@@ -5,7 +5,7 @@ Based on VTK: https://www.vtk.org
 To install:
 *sudo apt-get install python-vtk*
 
-## Example pyhton usage:
+## Example usage:
 ```python
 import plotter
 vp = plotter.vtkPlotter()
@@ -14,7 +14,7 @@ vp.help() # shows a help page
 <br />
 
 Load a vtk file as a vtkActor and visualize it as wireframe
-with a ruler on top, no axes. Quit python when closing the window:
+with a ruler on top, no axes. Press *Esc* to close the window and exit python session:
 ```python
 actor = vp.loadActor('290.vtk')
 actor.GetProperty().SetRepresentationToWireframe()
@@ -66,7 +66,7 @@ EX4
 Show the vtk boundaries of a vtk surface and its normals
 (ratio reduces the total nr of arrows by this factor)
 ```python
-va = vp.loadActor('data/xavis/vtk/290.vtk', c=(1,0.1,0.1))
+va = vp.loadActor('290.vtk', c=(1,0.1,0.1))
 nv = vp.make_normals(va, ratio=5)
 sbound = vp.make_boundaries(va)
 vp.show(actors=[va,nv, sbound], axes=1)
@@ -79,25 +79,25 @@ Split window in a 49 subwindows and draw somthing in
 windows nr 12 and 38. Then open and draw on an independent window
 ```python
 vp1 = plotter.vtkPlotter(shape=(7,7), size=(900,900))
-v290 = vp1.load('data/xavis/vtk/290.vtk')
-v270 = vp1.load('data/xavis/vtk/270.vtk')
+v290 = vp1.load('290.vtk')
+v270 = vp1.load('270.vtk')
 vp1.interactive = False
 vp1.show(at=12, polys=[v290,v270])
 vp1.show(at=38, polys=[v290,v270]) 
 vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
-v250 = vp2.loadActor('data/xavis/vtk/250.vtk')
-v260 = vp2.loadActor('data/xavis/vtk/260.vtk')
+v250 = vp2.loadActor('250.vtk')
+v260 = vp2.loadActor('260.vtk')
 vp2.show(actors=[v250,v260])
 EX6
 ```
 <br />
 
 
-Load a surface and show its curvature based on 4 different schemes:
+Load a surface and show its curvature based on 4 different schemes, they share a common vtkCamera:
 0-gaussian, 1-mean, 2-max, 3-min
 ```python
 vp = plotter.vtkPlotter(shape=(1,4), size=(400,1600))
-v = vp.load('data/xavis/vtk/290.vtk')
+v = vp.load('290.vtk')
 vp.interactive = False
 for i in [0,1,2,3]: 
     c = vp.make_curvatures(v, ctype=i, r=1, alpha=0.8)
@@ -108,22 +108,7 @@ EX7
 <br />
 
 
-Load a surface and show its curvature based on 4 different schemes:
-0-gaussian, 1-mean, 2-max, 3-min
-```python
-vp = plotter.vtkPlotter(shape=(1,4), size=(400,1600))
-v = vp.load('data/xavis/vtk/290.vtk')
-vp.interactive = False
-for i in [0,1,2,3]: 
-    c = vp.make_curvatures(v, ctype=i, r=1, alpha=0.8)
-    vp.show(at=i, actors=[c])
-vp.interact() # same as setting flag interactive=True
-EX9
-```
-<br />
-
-
-Draw a bunch of other simple objects
+Draw a bunch of other simple objects on separate parts of the rendering window:
 ```python
 vp = plotter.vtkPlotter(shape=(2,3), size=(800,1200))
 vp.axes        = True
@@ -140,8 +125,8 @@ vp.interact()
 <br />
 
 
-Draw a line in 3D that fits a cloud of points
-also show the first set of 20 points and fit a plane
+Draw a line in 3D that fits a cloud of points,
+also show the first set of 20 points and fit a plane:
 ```python
 for i in range(500): # draw 500 fit lines superposed
     x = np.mgrid[-2:5 :20j][:, np.newaxis] # generate 20 points
@@ -161,7 +146,7 @@ vp.show()
 
 Display a tetrahedral mesh (Fenics/Dolfin format)
 ```python
-actor = vp.loadActor('data/xavis/xml/grow/290.xml')
+actor = vp.loadActor('290.xml')
 actor.GetProperty().SetRepresentationToWireframe()
 vp.show()        
 ```
