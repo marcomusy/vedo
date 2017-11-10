@@ -37,6 +37,7 @@ vp.loadActor('270.vtk', c=(1,0.6,0))
 vp.loadActor('290.vtk', c=(1,0.8,0))
 print 'Loaded vtkActors: ', len(vp.actors)
 vp.show(legend=vp.files)
+vp.interact()
 ```
 ![ex2](https://user-images.githubusercontent.com/32848391/32666969-90a7dc48-c639-11e7-8795-b139166f0504.png)
 <br />
