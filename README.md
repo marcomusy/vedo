@@ -21,9 +21,9 @@ Press *Esc* to close the window and exit python session:
 ```python
 actor = vp.loadActor('290.vtk')
 actor.GetProperty().SetRepresentationToWireframe()
-vp.show(actor, ruler=1, axes=0, q=1)
+vp.show(actor, ruler=1, axes=0)
 #same as vp.show(actors=[actor], ruler=1, axes=0)
-#vp.show() picks what is automatically stored in vp.actors
+#same as vp.show(ruler=1, axes=0) picks what is automatically stored in vp.actors
 ```
 ![ex1](https://user-images.githubusercontent.com/32848391/32666968-908d1bf6-c639-11e7-9201-46572a2349c2.png)
 <br />
