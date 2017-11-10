@@ -22,17 +22,8 @@ actor.GetProperty().SetRepresentationToWireframe()
 vp.show(actor, ruler=1, axes=0, q=1)
 #same as vp.show(actors=[actor], ruler=1, axes=0, q=1)
 #vp.show() picks what is automatically stored in vp.actors
-EX1
 ```
 ![ex1](https://user-images.githubusercontent.com/32848391/32666968-908d1bf6-c639-11e7-9201-46572a2349c2.png)
-![ex2](https://user-images.githubusercontent.com/32848391/32666969-90a7dc48-c639-11e7-8795-b139166f0504.png)
-![ex3](https://user-images.githubusercontent.com/32848391/32666970-90c1b38e-c639-11e7-92dd-336f2aa2a2cf.png)
-![ex4](https://user-images.githubusercontent.com/32848391/32666971-90dac112-c639-11e7-96ef-ec41bdf3b7e5.png)
-![ex5](https://user-images.githubusercontent.com/32848391/32666972-90f46a5e-c639-11e7-93c3-e105322ff481.png)
-![ex6](https://user-images.githubusercontent.com/32848391/32666973-910d6dc4-c639-11e7-9645-e19ffdfff3d1.png)
-![ex7](https://user-images.githubusercontent.com/32848391/32666974-912de586-c639-11e7-880a-2b377cde3615.png)
-![ex8](https://user-images.githubusercontent.com/32848391/32666975-91690102-c639-11e7-8f7b-ad07bd6019da.png)
-![ex9](https://user-images.githubusercontent.com/32848391/32666976-918480bc-c639-11e7-9749-4fd0b71523ad.png)
 <br />
 
 Load 3 actors assigning color, use their paths as legend
@@ -43,8 +34,8 @@ vp.loadActor('270.vtk', c=(1,0.6,0))
 vp.loadActor('290.vtk', c=(1,0.8,0))
 print 'Loaded vtkActors: ', len(vp.actors)
 vp.show(legend=vp.files)
-EX2
 ```
+![ex2](https://user-images.githubusercontent.com/32848391/32666969-90a7dc48-c639-11e7-8795-b139166f0504.png)
 <br />
 
 Draw a spline that goes through a set of points, dont show the points
@@ -53,8 +44,8 @@ from random import uniform as u
 pts = [(u(0,1), u(0,1), u(0,1)) for i in range(10)]
 vp.make_spline(pts, s=.01, nodes=False)
 vp.show()
-EX3
 ```
+![ex3](https://user-images.githubusercontent.com/32848391/32666970-90c1b38e-c639-11e7-92dd-336f2aa2a2cf.png)
 <br />
 
 
@@ -69,8 +60,8 @@ ply = vp.make_grid(center=(0.5,0,0.5), normal=(0,1,0), c=(0,1,0))
 plz = vp.make_grid(center=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
 ax  = vp.make_axes()
 vp.show(axes=0)
-EX4
 ```
+![ex4](https://user-images.githubusercontent.com/32848391/32666971-90dac112-c639-11e7-96ef-ec41bdf3b7e5.png)
 <br />
 
 Show the vtk boundaries of a vtk surface and its normals
@@ -80,8 +71,8 @@ va = vp.loadActor('290.vtk', c=(1,0.1,0.1))
 nv = vp.make_normals(va, ratio=5)
 sbound = vp.make_boundaries(va)
 vp.show(actors=[va,nv, sbound], axes=1)
-EX5
 ```
+![ex5](https://user-images.githubusercontent.com/32848391/32666972-90f46a5e-c639-11e7-93c3-e105322ff481.png)
 <br />
 
 
@@ -98,8 +89,8 @@ vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
 v250 = vp2.loadActor('250.vtk')
 v260 = vp2.loadActor('260.vtk')
 vp2.show(actors=[v250,v260])
-EX6
 ```
+![ex6](https://user-images.githubusercontent.com/32848391/32666973-910d6dc4-c639-11e7-9645-e19ffdfff3d1.png)
 <br />
 
 
@@ -113,8 +104,8 @@ for i in [0,1,2,3]:
     c = vp.make_curvatures(v, ctype=i, r=1, alpha=0.8)
     vp.show(at=i, actors=[c])
 vp.interact() # same as setting flag interactive=True
-EX7
 ```
+![ex7](https://user-images.githubusercontent.com/32848391/32666974-912de586-c639-11e7-880a-2b377cde3615.png)
 <br />
 
 
@@ -132,6 +123,8 @@ vp.show(at=4, actors=vp.make_sphere([.5,.5,.5], r=0.3))
 vp.show(at=5, actors=vp.make_cube(  [.5,.5,.5], r=0.3))
 vp.interact()
 ```
+![ex8](https://user-images.githubusercontent.com/32848391/32666975-91690102-c639-11e7-8f7b-ad07bd6019da.png)
+![ex9](https://user-images.githubusercontent.com/32848391/32666976-918480bc-c639-11e7-9749-4fd0b71523ad.png)
 <br />
 
 
