@@ -3,7 +3,7 @@ A python helper class to easily draw VTK objects
 
 Based on VTK: https://www.vtk.org and *numpy*
 
-To install VTK:
+To install VTK in ubuntu:
 >*sudo apt-get install python-vtk*
 
 ## Example usage:
@@ -27,7 +27,7 @@ vp.show(actor, ruler=1, axes=0, q=1)
 <br />
 
 Load 3 actors assigning color, use their paths as legend
-no need to use variables, as actors are stored in vp.actors
+no need to use variables, as actors are stored in vp.actors:
 ```python
 vp.loadActor('250.vtk', c=(1,0.4,0))
 vp.loadActor('270.vtk', c=(1,0.6,0))
@@ -38,7 +38,7 @@ vp.show(legend=vp.files)
 ![ex2](https://user-images.githubusercontent.com/32848391/32666969-90a7dc48-c639-11e7-8795-b139166f0504.png)
 <br />
 
-Draw a spline that goes through a set of points, dont show the points
+Draw a spline that goes through a set of points, dont show the points:
 ```python
 from random import uniform as u
 pts = [(u(0,1), u(0,1), u(0,1)) for i in range(10)]
@@ -50,7 +50,7 @@ vp.show()
 
 
 Show 3 planes as a grid, add a sine plot, 
-add 3 axes at bounding box origin 
+add 3 axes at bounding box origin:
 ```python
 import numpy as np
 xycoords = [(np.exp(i/10.), np.sin(i/5.)) for i in range(40)]
@@ -64,8 +64,8 @@ vp.show(axes=0)
 ![ex4](https://user-images.githubusercontent.com/32848391/32666971-90dac112-c639-11e7-96ef-ec41bdf3b7e5.png)
 <br />
 
-Show the vtk boundaries of a vtk surface and its normals
-(ratio reduces the total nr of arrows by this factor)
+Show the vtk boundaries of a vtk surface and its normals<br />
+(ratio reduces the total nr of arrows by this factor):
 ```python
 va = vp.loadActor('290.vtk', c=(1,0.1,0.1))
 nv = vp.make_normals(va, ratio=5)
@@ -76,8 +76,8 @@ vp.show(actors=[va,nv, sbound], axes=1)
 <br />
 
 
-Split window in a 49 subwindows and draw somthing in 
-windows nr 12 and 38. Then open and draw on an independent window
+Split window in a 49 subwindows and draw something in 
+windows nr 12 and 38. Then open and draw on an independent window:
 ```python
 vp1 = plotter.vtkPlotter(shape=(7,7), size=(900,900))
 v290 = vp1.load('290.vtk')
