@@ -124,7 +124,6 @@ vp.show(at=5, actors=vp.make_cube(  [.5,.5,.5], r=0.3))
 vp.interact()
 ```
 ![ex8](https://user-images.githubusercontent.com/32848391/32666975-91690102-c639-11e7-8f7b-ad07bd6019da.png)
-![ex9](https://user-images.githubusercontent.com/32848391/32666976-918480bc-c639-11e7-9749-4fd0b71523ad.png)
 <br />
 
 
@@ -144,6 +143,7 @@ for i in range(500): # draw 500 fit lines superposed
 print vp.result['slope'] # access the last fitted slope direction
 vp.show()
 ```
+![plane](https://user-images.githubusercontent.com/32848391/32667173-3ad163ec-c63a-11e7-8b3d-4a8ba047eae9.png)
 <br />
 
 
@@ -153,6 +153,7 @@ actor = vp.loadActor('290.xml')
 actor.GetProperty().SetRepresentationToWireframe()
 vp.show()        
 ```
+![ex9](https://user-images.githubusercontent.com/32848391/32666976-918480bc-c639-11e7-9749-4fd0b71523ad.png)
 <br />
 
 
