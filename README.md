@@ -1,9 +1,10 @@
 # vtkPlotter
 A python helper class to easily draw VTK objects
 
-Based on VTK: https://www.vtk.org
-To install:
-*sudo apt-get install python-vtk*
+Based on VTK: https://www.vtk.org and *numpy*
+
+To install VTK:
+>*sudo apt-get install python-vtk*
 
 ## Example usage:
 ```python
