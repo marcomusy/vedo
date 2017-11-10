@@ -11,9 +11,10 @@ import plotter
 vp = plotter.vtkPlotter()
 vp.help() # shows a help page
 ```
+<br />
 
 Load a vtk file as a vtkActor and visualize it as wireframe
-with a ruler on top, no axes. Quit python when closing the window 
+with a ruler on top, no axes. Quit python when closing the window:
 ```python
 actor = vp.loadActor('data/xavis/vtk/290.vtk')
 actor.GetProperty().SetRepresentationToWireframe()
