@@ -16,7 +16,8 @@ vp.help() # shows a help page
 <br />
 
 Load a vtk file as a vtkActor and visualize it in wireframe style
-with a ruler on top. Don't show axes. 
+with a ruler on top. Don't show axes. <br />
+The tridimensional shape corresponds to the outer shape of the embryonic mouse limb at about 12 days of gestation.<br />
 Press *Esc* to close the window and exit python session:
 ```python
 actor = vp.loadActor('290.vtk')
