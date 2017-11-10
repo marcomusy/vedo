@@ -1,9 +1,10 @@
+![vtk](https://www.vtk.org/wp-content/uploads/2015/03/vtk_logo-main1.png)
 # vtkPlotter
-A python helper class to easily draw VTK objects
+A python helper class to easily draw VTK tridimensional objects.
 
-Based on VTK: https://www.vtk.org and *numpy*
+Based on VTK version 5.8.0: https://www.vtk.org and *numpy*
 
-To install VTK in ubuntu:
+To install VTK in Ubuntu:
 >*sudo apt-get install python-vtk*
 
 ## Example usage:
@@ -14,20 +15,21 @@ vp.help() # shows a help page
 ```
 <br />
 
-Load a vtk file as a vtkActor and visualize it as wireframe
-with a ruler on top, no axes. Press *Esc* to close the window and exit python session:
+Load a vtk file as a vtkActor and visualize it in wireframe style
+with a ruler on top. Don't show axes. 
+Press *Esc* to close the window and exit python session:
 ```python
 actor = vp.loadActor('290.vtk')
 actor.GetProperty().SetRepresentationToWireframe()
 vp.show(actor, ruler=1, axes=0, q=1)
-#same as vp.show(actors=[actor], ruler=1, axes=0, q=1)
+#same as vp.show(actors=[actor], ruler=1, axes=0)
 #vp.show() picks what is automatically stored in vp.actors
 ```
 ![ex1](https://user-images.githubusercontent.com/32848391/32666968-908d1bf6-c639-11e7-9201-46572a2349c2.png)
 <br />
 
-Load 3 actors assigning color, use their paths as legend
-no need to use variables, as actors are stored in vp.actors:
+Load 3 actors assigning each a different color, use their file paths as legend entries.
+No need to use any variables, as actors are stored internally in vp.actors:
 ```python
 vp.loadActor('250.vtk', c=(1,0.4,0))
 vp.loadActor('270.vtk', c=(1,0.6,0))
@@ -38,7 +40,7 @@ vp.show(legend=vp.files)
 ![ex2](https://user-images.githubusercontent.com/32848391/32666969-90a7dc48-c639-11e7-8795-b139166f0504.png)
 <br />
 
-Draw a spline that goes through a set of points, dont show the points:
+Draw a spline that goes through a set of points, don't show the points *(nodes=False)*:
 ```python
 from random import uniform as u
 pts = [(u(0,1), u(0,1), u(0,1)) for i in range(10)]
@@ -49,8 +51,8 @@ vp.show()
 <br />
 
 
-Show 3 planes as a grid, add a sine plot, 
-add 3 axes at bounding box origin:
+Show 3 planes as a grid, add a dummy sine plot on top left, 
+add 3 axes at the origin:
 ```python
 import numpy as np
 xycoords = [(np.exp(i/10.), np.sin(i/5.)) for i in range(40)]
@@ -65,7 +67,7 @@ vp.show(axes=0)
 <br />
 
 Show the vtk boundaries of a vtk surface and its normals<br />
-(ratio reduces the total nr of arrows by this factor):
+(*ratio* reduces the total nr of arrows by the indicated factor):
 ```python
 va = vp.loadActor('290.vtk', c=(1,0.1,0.1))
 nv = vp.make_normals(va, ratio=5)
@@ -77,7 +79,7 @@ vp.show(actors=[va,nv, sbound], axes=1)
 
 
 Split window in a 49 subwindows and draw something in 
-windows nr 12 and 38. Then open and draw on an independent window:
+windows nr 12 and nr 38. Then open an independent window and draw on two shapes:
 ```python
 vp1 = plotter.vtkPlotter(shape=(7,7), size=(900,900))
 v290 = vp1.load('290.vtk')
@@ -87,15 +89,16 @@ vp1.show(at=12, polys=[v290,v270])
 vp1.show(at=38, polys=[v290,v270]) 
 vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
 v250 = vp2.loadActor('250.vtk')
-v260 = vp2.loadActor('260.vtk')
-vp2.show(actors=[v250,v260])
+v260 = vp2.loadActor('270.vtk')
+vp2.show(actors=[v250,v270])
 ```
 ![ex6](https://user-images.githubusercontent.com/32848391/32666973-910d6dc4-c639-11e7-9645-e19ffdfff3d1.png)
 <br />
 
 
-Load a surface and show its curvature based on 4 different schemes, they share a common vtkCamera:
-0-gaussian, 1-mean, 2-max, 3-min
+Load a surface and show its curvature based on 4 different schemes. All four shapes 
+share a common vtkCamera:<br />
+*0-gaussian, 1-mean, 2-max, 3-min*
 ```python
 vp = plotter.vtkPlotter(shape=(1,4), size=(400,1600))
 v = vp.load('290.vtk')
@@ -109,7 +112,7 @@ vp.interact() # same as setting flag interactive=True
 <br />
 
 
-Draw a bunch of other simple objects on separate parts of the rendering window:
+Draw a bunch of simple objects on separate parts of the rendering window:
 ```python
 vp = plotter.vtkPlotter(shape=(2,3), size=(800,1200))
 vp.axes        = True
@@ -128,7 +131,7 @@ vp.interact()
 
 
 Draw a line in 3D that fits a cloud of points,
-also show the first set of 20 points and fit a plane:
+also show the first set of 20 points and fit a plane to them:
 ```python
 for i in range(500): # draw 500 fit lines superposed
     x = np.mgrid[-2:5 :20j][:, np.newaxis] # generate 20 points
@@ -147,7 +150,7 @@ vp.show()
 <br />
 
 
-Display a tetrahedral mesh (Fenics/Dolfin format)
+Display a tetrahedral mesh (Fenics/Dolfin format). The internal verteces are displayed too:
 ```python
 actor = vp.loadActor('290.xml')
 actor.GetProperty().SetRepresentationToWireframe()
