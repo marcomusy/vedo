@@ -132,7 +132,15 @@ class vtkPlotter:
     def loadXml(self, filename, appendpoly=True):
         try:
             import xml.etree.ElementTree as et
-            tree = et.parse(filename)
+            if '.gz' in filename:
+                import gzip
+                inF = gzip.open(filename, 'rb')
+                outF = open('/tmp/filename.xml', 'wb')
+                outF.write( inF.read() )
+                outF.close() 
+                inF.close()
+                tree = et.parse('/tmp/filename.xml')
+            else: tree = et.parse(filename)
             coords, connectivity = [], []
             for mesh in tree.getroot(): 
                 for elem in mesh:
@@ -172,7 +180,6 @@ class vtkPlotter:
                 print 'Appending vtkUnstructuredGrid to vtkPlotter.tetmeshes'
         except:
             print "Cannot parse xml file. Skip.", filename
-            return False
         try:
             if self.verbose: 
                 print 'Trying to convert fenics mesh file'
@@ -219,14 +226,14 @@ class vtkPlotter:
         if '.ply' in fl: reader = vtk.vtkPLYReader()
         if '.obj' in fl: reader = vtk.vtkOBJReader()
         if '.stl' in fl: reader = vtk.vtkSTLReader()
-        if '.xml' in fl: ### Fenics tetrahedral mesh file
+        if '.xml' in fl or '.xml.gz' in fl: ### Fenics tetrahedral mesh file
             return self.loadXml(filename, appendpoly)
-        if not reader: 
-            print 'Unable to load', filename
-            return False
-        reader = vtk.vtkPolyDataReader()
+        if not reader: reader = vtk.vtkPolyDataReader()
         reader.SetFileName(filename)    
         reader.Update()
+        if not reader.GetOutput(): 
+            print 'Unable to load', filename
+            return False
         mergeTriangles = vtk.vtkTriangleFilter()
         mergeTriangles.SetInput(reader.GetOutput())
         mergeTriangles.Update()
@@ -307,7 +314,7 @@ class vtkPlotter:
         actor.GetProperty().SetColor(c)
         actor.GetProperty().SetOpacity(alpha)
         actor.GetProperty().SetSpecular(0.05)
-        actor.GetProperty().BackfaceCullingOff()
+        actor.GetProperty().BackfaceCullingOn()
         actor.GetProperty().FrontfaceCullingOff()
         return actor
 
@@ -493,8 +500,7 @@ class vtkPlotter:
             inputPoints.InsertPoint(i, x, y, z)
          
         inputData = vtk.vtkPolyData() # Create a polydata to be glyphed.
-        inputData.SetPoints(inputPoints)
-                
+        inputData.SetPoints(inputPoints)                
         points = vtk.vtkPoints() # Generate the polyline for the spline.
         profileData = vtk.vtkPolyData()
         for i in range(0, numberOfOutputPoints):
@@ -611,7 +617,6 @@ class vtkPlotter:
         maskPts.SetOnRatio(ratio)
         maskPts.RandomModeOff()
         src = self.getPD(pactor)
-
         maskPts.SetInput(src)
         arrow = vtk.vtkArrowSource()
         arrow.SetTipRadius(0.075)
@@ -625,8 +630,7 @@ class vtkPlotter:
         glyph.SetColorModeToColorByVector()
         glyph.SetScaleModeToScaleByVector()
         glyph.OrientOn()
-        glyph.Update()
-        
+        glyph.Update()        
         glyphMapper = vtk.vtkPolyDataMapper()
         glyphMapper.SetInputConnection(glyph.GetOutputPort())
         glyphMapper.SetScalarModeToUsePointFieldData()
@@ -739,7 +743,11 @@ class vtkPlotter:
 
     def make_ellipsoid(self, points, pvalue=.95, c=(0,1,1), alpha=0.6, axes=False):
         # build the ellpsoid that contains 95% of points
-        from scipy.stats import f
+        try:
+            from scipy.stats import f
+        except:
+            print "scipy not installed. Skip."
+            return None
         P = np.array(points, ndmin=2, dtype=float)
         cov = np.cov(P, rowvar=0)    # covariance matrix
         U, s, R = np.linalg.svd(cov) # singular value decomposition
@@ -749,7 +757,7 @@ class vtkPlotter:
         center = np.mean(P, axis=0)  # centroid of the hyperellipsoid
         self.result['sphericity'] =  np.sqrt(  ((va-vb)/(va+vb))**2 
                                              + ((va-vc)/(va+vc))**2 
-                                             + ((vb-vc)/(vb+vc))**2 )/1.7321
+                                             + ((vb-vc)/(vb+vc))**2 )/1.7321*2
         self.result['a'] = va
         self.result['b'] = vb
         self.result['c'] = vc
