@@ -32,7 +32,7 @@ Load 3 actors assigning each a different color, use their file manes as legend e
 No need to use any variables, as actors are stored internally in vp.actors:
 ```python
 vp.load('data/250.vtk', c=(1,0.4,0))
-vp.loadr('data/270.vtk', c=(1,0.6,0))
+vp.load('data/270.vtk', c=(1,0.6,0))
 vp.load('data/290.vtk', c=(1,0.8,0))
 print 'Loaded vtkActors: ', len(vp.actors)
 vp.show(legend=vp.files)
