@@ -85,7 +85,7 @@ vp = plotter.vtkPlotter()
 va = vp.load('data/290.vtk', c=(1,0.1,0.1))
 nv = vp.make_normals(va, ratio=5)
 sbound = vp.make_boundaries(va)
-vp.show(actors=[va,nv, sbound])
+vp.show()
 ```
 ![ex5](https://user-images.githubusercontent.com/32848391/32666972-90f46a5e-c639-11e7-93c3-e105322ff481.png)
 <br />
