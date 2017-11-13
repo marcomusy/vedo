@@ -14,6 +14,7 @@ vp = plotter.vtkPlotter()
 #The tridimensional shape corresponds to the outer shape of the embryonic mouse limb 
 #at about 12 days of gestation.
 #Press Esc to close the window and exit python session, or q to continue:
+vp = plotter.vtkPlotter()
 actor = vp.loadActor('data/290.vtk')
 actor.GetProperty().SetRepresentationToWireframe()
 vp.show()  # picks what is automatically stored in vp.actors
@@ -40,7 +41,6 @@ vp.show()
 
 #Draw a PCA ellipsoid that contains 67% of a cluod of points:
 vp = plotter.vtkPlotter()
-from random import uniform as u
 pts = [(u(0,200), u(0,200), u(0,200)) for i in range(50)]
 vp.make_points(pts)
 vp.make_ellipsoid(pts, pvalue=0.67, axes=True)
@@ -50,6 +50,7 @@ vp.show()
 #Show 3 planes as a grid, add a dummy sine plot on top left, add 3 axes at the origin:
 import numpy as np
 xycoords = [(np.exp(i/10.), np.sin(i/5.)) for i in range(40)]
+vp = plotter.vtkPlotter()
 gr  = vp.make_xyplot( xycoords )
 plx = vp.make_grid(center=(0,0.5,0.5), normal=(1,0,0), c=(1,0,0))
 ply = vp.make_grid(center=(0.5,0,0.5), normal=(0,1,0), c=(0,1,0))
@@ -78,7 +79,7 @@ vp1.show(at=38, polys=[v290,v270])
 vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
 v250 = vp2.loadActor('data/250.vtk')
 v270 = vp2.loadActor('data/270.vtk')
-vp2.show(actors=[v250,v270])
+vp2.show()
 
 
 #Load a surface and show its curvature based on 4 different schemes. 
@@ -90,7 +91,7 @@ vp.interactive = False
 for i in [0,1,2,3]: 
     c = vp.make_curvatures(v, ctype=i, r=1, alpha=0.8)
     vp.show(at=i, actors=[c])
-vp.interact() # same as setting flag interactive=True
+vp.interact() 
 
 
 #Draw a bunch of simple objects on separate parts of the rendering window:
