@@ -8,6 +8,10 @@ To install VTK in Ubuntu:
 >*sudo apt-get install python-vtk*
 
 ## Example usage:
+
+Run this tutorial: 
+>*python example.py*<br />
+
 ```python
 import plotter
 vp = plotter.vtkPlotter()
