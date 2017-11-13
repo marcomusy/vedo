@@ -65,14 +65,15 @@ vp.show()
 Show 3 planes as a grid, add a dummy sine plot on top left, 
 add 3 axes at the origin:
 ```python
+#Show 3 planes as a grid, add a dummy sine plot on top left, add 3 axes at the origin:
 import numpy as np
 xycoords = [(np.exp(i/10.), np.sin(i/5.)) for i in range(40)]
 vp = plotter.vtkPlotter()
-gr  = vp.make_xyplot( xycoords )
-plx = vp.make_grid(center=(0,0.5,0.5), normal=(1,0,0), c=(1,0,0))
-ply = vp.make_grid(center=(0.5,0,0.5), normal=(0,1,0), c=(0,1,0))
-plz = vp.make_grid(center=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
-ax  = vp.make_axes()
+vp.make_xyplot( xycoords )
+vp.make_grid(center=(0,0.5,0.5), normal=(1,0,0), c=(1,0,0))
+vp.make_grid(center=(0.5,0,0.5), normal=(0,1,0), c=(0,1,0))
+vp.make_grid(center=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
+vp.make_axes()
 vp.show(axes=0)
 ```
 ![ex4](https://user-images.githubusercontent.com/32848391/32666971-90dac112-c639-11e7-96ef-ec41bdf3b7e5.png)
