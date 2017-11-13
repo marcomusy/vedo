@@ -32,9 +32,9 @@ vp.show(actor, ruler=1, axes=0)
 Load 3 actors assigning each a different color, use their file paths as legend entries.
 No need to use any variables, as actors are stored internally in vp.actors:
 ```python
-vp.loadActor('250.vtk', c=(1,0.4,0))
-vp.loadActor('270.vtk', c=(1,0.6,0))
-vp.loadActor('290.vtk', c=(1,0.8,0))
+vp.loadActor('data/250.vtk', c=(1,0.4,0))
+vp.loadActor('data/270.vtk', c=(1,0.6,0))
+vp.loadActor('data/290.vtk', c=(1,0.8,0))
 print 'Loaded vtkActors: ', len(vp.actors)
 vp.show(legend=vp.files)
 vp.interact()
@@ -50,6 +50,16 @@ vp.make_spline(pts, s=.01, nodes=False)
 vp.show()
 ```
 ![ex3](https://user-images.githubusercontent.com/32848391/32666970-90c1b38e-c639-11e7-92dd-336f2aa2a2cf.png)
+<br />
+
+
+Draw a PCA ellipsoid that contains 67% of a cloud of points:
+```python
+pts = [(u(0,200), u(0,200), u(0,200)) for i in range(50)]
+vp.make_points(pts)
+vp.make_ellipsoid(pts, pvalue=0.67, axes=True)
+vp.show()
+```
 <br />
 
 
@@ -71,7 +81,7 @@ vp.show(axes=0)
 Show the vtk boundaries of a vtk surface and its normals<br />
 (*ratio* reduces the total nr of arrows by the indicated factor):
 ```python
-va = vp.loadActor('290.vtk', c=(1,0.1,0.1))
+va = vp.loadActor('data/290.vtk', c=(1,0.1,0.1))
 nv = vp.make_normals(va, ratio=5)
 sbound = vp.make_boundaries(va)
 vp.show(actors=[va,nv, sbound], axes=1)
@@ -84,14 +94,14 @@ Split window in a 49 subwindows and draw something in
 windows nr 12 and nr 38. Then open an independent window and draw on two shapes:
 ```python
 vp1 = plotter.vtkPlotter(shape=(7,7), size=(900,900))
-v290 = vp1.load('290.vtk')
-v270 = vp1.load('270.vtk')
+v290 = vp1.load('data/290.vtk')
+v270 = vp1.load('data/270.vtk')
 vp1.interactive = False
 vp1.show(at=12, polys=[v290,v270])
 vp1.show(at=38, polys=[v290,v270]) 
 vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
-v250 = vp2.loadActor('250.vtk')
-v260 = vp2.loadActor('270.vtk')
+v250 = vp2.loadActor('data/250.vtk')
+v270 = vp2.loadActor('data/270.vtk')
 vp2.show(actors=[v250,v270])
 ```
 ![ex6](https://user-images.githubusercontent.com/32848391/32666973-910d6dc4-c639-11e7-9645-e19ffdfff3d1.png)
@@ -103,7 +113,7 @@ share a common vtkCamera:<br />
 *0-gaussian, 1-mean, 2-max, 3-min*
 ```python
 vp = plotter.vtkPlotter(shape=(1,4), size=(400,1600))
-v = vp.load('290.vtk')
+v = vp.load('data/290.vtk')
 vp.interactive = False
 for i in [0,1,2,3]: 
     c = vp.make_curvatures(v, ctype=i, r=1, alpha=0.8)
@@ -154,7 +164,7 @@ vp.show()
 
 Display a tetrahedral mesh (Fenics/Dolfin format). The internal verteces are displayed too:
 ```python
-actor = vp.loadActor('290.xml')
+actor = vp.loadActor('data/290.xml')
 actor.GetProperty().SetRepresentationToWireframe()
 vp.show()        
 ```
