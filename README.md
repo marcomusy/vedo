@@ -20,7 +20,7 @@ with a ruler on top. Don't show axes. <br />
 The tridimensional shape corresponds to the outer shape of the embryonic mouse limb at about 12 days of gestation.<br />
 Press *Esc* to close the window and exit python session:
 ```python
-actor = vp.loadActor('290.vtk')
+actor = vp.loadActor('data/290.vtk')
 actor.GetProperty().SetRepresentationToWireframe()
 vp.show(actor, ruler=1, axes=0)
 #same as vp.show(actors=[actor], ruler=1, axes=0)
