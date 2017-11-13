@@ -166,7 +166,7 @@ vp.show()
 
 Display a tetrahedral mesh (Fenics/Dolfin format). The internal verteces are displayed too:
 ```python
-actor = vp.loadActor('data/290.xml.gz')
+actor = vp.load('data/290.xml.gz')
 actor.GetProperty().SetRepresentationToWireframe()
 vp.show()        
 ```
