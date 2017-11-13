@@ -18,7 +18,28 @@ class vtkPlotter:
         A python helper class to easily draw VTK tridimensional objects.
         Please follow instructions at:
         https://github.com/marcomusy/vtkPlotter
+        Useful commands on graphic window:
         """
+        self.tips()        
+
+    def tips(self):
+        print "Press --------------------------------"
+        print " m   to minimise opacity"
+        print " /   to maximize opacity"
+        print " .,  to increase/reduce opacity"
+        print " w/s to toggle wireframe/solid style"
+        print " v   to toggle verbose mode"
+        print " S   to save a screenshot"
+        print " c   to print current camera info"
+        print " q   to return to python session"
+        print " e   to close window and return"
+        print " Esc to abort and exit python "
+        print " Move mouse to change 3D point of view"
+        print "      Ctrl-mouse to rotate scene"
+        print "      Shift-mouse to shift scene"
+        print "      Right-mouse to zoom in/out"
+        print "--------------------------------------"
+
         
     def __init__(self, shape=(1,1), size=(800,800), bg=(1,1,1)):
         self.shape      = shape #nr of rows and columns
@@ -106,8 +127,90 @@ class vtkPlotter:
             self.colors2.append((r,g,b))
         self.colors2 = self.colors2 * 100
   
-              
+
     #######################################
+    def loadXml(self, filename, appendpoly=True):
+        try:
+            import xml.etree.ElementTree as et
+            tree = et.parse(filename)
+            coords, connectivity = [], []
+            for mesh in tree.getroot(): 
+                for elem in mesh:
+                    if self.verbose: print 'reading',elem.tag
+                    for e in elem.findall('vertex'):
+                        x = float(e.get('x'))
+                        y = float(e.get('y'))
+                        z = float(e.get('z'))
+                        coords.append([x,y,z])
+                    for e in elem.findall('tetrahedron'):
+                        v0 = int(e.get('v0'))
+                        v1 = int(e.get('v1'))
+                        v2 = int(e.get('v2'))
+                        v3 = int(e.get('v3'))
+                        connectivity.append([v0,v1,v2,v3])                
+            points = vtk.vtkPoints()
+            for p in coords: points.InsertNextPoint(p)
+            
+            ugrid = vtk.vtkUnstructuredGrid()
+            ugrid.SetPoints(points)
+            cellArray = vtk.vtkCellArray()
+            for itet in range(len(connectivity)):
+                tetra = vtk.vtkTetra()
+                for k,j in enumerate(connectivity[itet]): 
+                    tetra.GetPointIds().SetId(k, j)
+                cellArray.InsertNextCell(tetra)                
+            ugrid.SetCells(vtk.VTK_TETRA, cellArray)
+            self.tetmeshes.append(ugrid)
+            # Create a mapper and actor this way
+            #  3D cells are mapped only if they are used by only one cell, 
+            #  i.e., on the boundary of the data set
+            #mapper = vtk.vtkDataSetMapper()
+            #mapper.SetInputConnection(ugrid.GetProducerPort()) 
+            #actor = vtk.vtkActor()
+            #actor.SetMapper(mapper)
+            if self.verbose:
+                print 'Appending vtkUnstructuredGrid to vtkPlotter.tetmeshes'
+        except:
+            print "Cannot parse xml file. Skip.", filename
+            return False
+        try:
+            if self.verbose: 
+                print 'Trying to convert fenics mesh file'
+            import dolfin as dlf
+
+            mesh = dlf.Mesh(filename)
+            boundarysurf = dlf.BoundaryMesh(mesh, "exterior")
+            dlf.File("/tmp/mesh.pvd") << boundarysurf
+            reader = vtk.vtkXMLUnstructuredGridReader()
+            reader.SetFileName("/tmp/mesh000000.vtu")
+            reader.Update()
+            gf = vtk.vtkGeometryFilter()
+            gf.SetInput(reader.GetOutput())
+            gf.Update()
+            cl = vtk.vtkCleanPolyData()
+            cl.SetInput(gf.GetOutput())
+            cl.Update()
+            poly = cl.GetOutput()
+            b = poly.GetBounds()
+            maxb = max(b[1]-b[0], b[3]-b[2], b[5]-b[4])
+            V  = dlf.FunctionSpace(mesh, 'CG', 1)
+            u  = dlf.Function(V)
+            bc = dlf.DirichletBC(V, 1, dlf.DomainBoundary())
+            bc.apply(u.vector())                    
+            d2v = dlf.dof_to_vertex_map(V)
+            idxs = d2v[u.vector() == 0.0] #indeces
+            coords = mesh.coordinates()                    
+            if self.verbose: 
+                print 'Appending tetrahedral vertices to vtkPlotter.actors'
+            self.make_points(coords[idxs], r=maxb/400, c=(.8,0,.2), alpha=.2)
+            self.files.append(filename)
+            if appendpoly: self.polys.append(poly)
+            return poly
+        except: 
+            print 'Unable to read fenics mesh file', filename
+            return False
+        
+             
     def load(self, filename, reader=None, appendpoly=True):
         # appendpoly if true appends to self.polys
         fl = filename.lower()
@@ -116,86 +219,8 @@ class vtkPlotter:
         if '.ply' in fl: reader = vtk.vtkPLYReader()
         if '.obj' in fl: reader = vtk.vtkOBJReader()
         if '.stl' in fl: reader = vtk.vtkSTLReader()
-        if '.xml' in fl: ### Fenics tetrahedral file
-            try:
-                import xml.etree.ElementTree as et
-                tree = et.parse(filename)
-                coords, connectivity = [], []
-                for mesh in tree.getroot(): 
-                    for elem in mesh:
-                        print 'reading',elem.tag
-                        for e in elem.findall('vertex'):
-                            x = float(e.get('x'))
-                            y = float(e.get('y'))
-                            z = float(e.get('z'))
-                            coords.append([x,y,z])
-                        for e in elem.findall('tetrahedron'):
-                            v0 = int(e.get('v0'))
-                            v1 = int(e.get('v1'))
-                            v2 = int(e.get('v2'))
-                            v3 = int(e.get('v3'))
-                            connectivity.append([v0,v1,v2,v3])                
-                points = vtk.vtkPoints()
-                for p in coords: points.InsertNextPoint(p)
-                
-                ugrid = vtk.vtkUnstructuredGrid()
-                ugrid.SetPoints(points)
-                cellArray = vtk.vtkCellArray()
-                for itet in range(len(connectivity)):
-                    tetra = vtk.vtkTetra()
-                    for k,j in enumerate(connectivity[itet]): 
-                        tetra.GetPointIds().SetId(k, j)
-                    cellArray.InsertNextCell(tetra)                
-                ugrid.SetCells(vtk.VTK_TETRA, cellArray)
-                self.tetmeshes.append(ugrid)
-                # Create a mapper and actor this way
-                #  3D cells are mapped only if they are used by only one cell, 
-                #  i.e., on the boundary of the data set
-                #mapper = vtk.vtkDataSetMapper()
-                #mapper.SetInputConnection(ugrid.GetProducerPort()) 
-                #actor = vtk.vtkActor()
-                #actor.SetMapper(mapper)
-                if self.verbose:
-                    print 'Appending vtkUnstructuredGrid to vtkPlotter.tetmeshes'
-            except:
-                print "Cannot parse xml file. Skip.", filename
-                return False
-            try:
-                if self.verbose: 
-                    print 'Trying to convert fenics mesh file'
-                import dolfin as dlf
-
-                mesh = dlf.Mesh(filename)
-                boundarysurf = dlf.BoundaryMesh(mesh, "exterior")
-                dlf.File("/tmp/mesh.pvd") << boundarysurf
-                reader = vtk.vtkXMLUnstructuredGridReader()
-                reader.SetFileName("/tmp/mesh000000.vtu")
-                reader.Update()
-                gf = vtk.vtkGeometryFilter()
-                gf.SetInput(reader.GetOutput())
-                gf.Update()
-                cl = vtk.vtkCleanPolyData()
-                cl.SetInput(gf.GetOutput())
-                cl.Update()
-                poly = cl.GetOutput()
-                b = poly.GetBounds()
-                maxb = max(b[1]-b[0], b[3]-b[2], b[5]-b[4])
-                V  = dlf.FunctionSpace(mesh, 'CG', 1)
-                u  = dlf.Function(V)
-                bc = dlf.DirichletBC(V, 1, dlf.DomainBoundary())
-                bc.apply(u.vector())                    
-                d2v = dlf.dof_to_vertex_map(V)
-                idxs = d2v[u.vector() == 0.0] #indeces
-                coords = mesh.coordinates()                    
-                if self.verbose: 
-                    print 'Appending tetrahedral vertices to vtkPlotter.actors'
-                self.make_points(coords[idxs], r=maxb/400, c=(.8,0,.2), alpha=.2)
-                self.files.append(filename)
-                if appendpoly: self.polys.append(poly)
-                return poly
-            except: 
-                print 'Unable to read fenics mesh file', filename
-                return False
+        if '.xml' in fl: ### Fenics tetrahedral mesh file
+            return self.loadXml(filename, appendpoly)
         if not reader: 
             print 'Unable to load', filename
             return False
@@ -394,25 +419,6 @@ class vtkPlotter:
         src.SetCenter(pt)
         src.Update()
         actor = self.makeActor(src.GetOutput(), c, alpha) 
-        self.actors.append(actor)
-        return actor
-    
-    
-    def make_ellipsoid(self, va, vb, vc, R, center, c=(1, 0, 0), alpha=1.):
-        elliSource = vtk.vtkSphereSource()
-        elliSource.SetThetaResolution(48)
-        elliSource.SetPhiResolution(48)
-        matri = vtk.vtkMatrix4x4()
-        matri.DeepCopy((R[0][0] * va, R[1][0] * vb, R[2][0] * vc, center[0],
-                        R[0][1] * va, R[1][1] * vb, R[2][1] * vc, center[1],
-                        R[0][2] * va, R[1][2] * vb, R[2][2] * vc, center[2], 0,0,0,1))
-        vtra = vtk.vtkTransform()
-        vtra.SetMatrix(matri)
-        ftra = vtk.vtkTransformFilter()
-        ftra.SetTransform(vtra)
-        ftra.SetInput(elliSource.GetOutput())
-        ftra.Update()
-        actor = self.makeActor(ftra.GetOutput(), c, alpha)
         self.actors.append(actor)
         return actor
     
@@ -700,6 +706,8 @@ class vtkPlotter:
         self.result['slope']  = vv
         self.result['center'] = datamean
         self.result['variances'] = dd
+        if self.verbose:
+            print "Extra info saved in vp.results['slope','center','variances']"
         if tube: # show a rough estimate of error band at 2 sigma level
             tb = vtk.vtkTubeFilter() 
             tb.SetNumberOfSides(48)
@@ -724,11 +732,59 @@ class vtkPlotter:
         self.result['normal']  = n
         self.result['center']  = datamean
         self.result['variance']= dd[2]
+        if self.verbose:
+            print "Extra info saved in vp.results['normal','center','variance']"
         return pla
 
-    def make_pca(self, points):
-        pass
-        
+
+    def make_ellipsoid(self, points, pvalue=.95, c=(0,1,1), alpha=0.6, axes=False):
+        # build the ellpsoid that contains 95% of points
+        from scipy.stats import f
+        P = np.array(points, ndmin=2, dtype=float)
+        cov = np.cov(P, rowvar=0)    # covariance matrix
+        U, s, R = np.linalg.svd(cov) # singular value decomposition
+        p, n = s.size, P.shape[0]
+        fppf = f.ppf(pvalue, p, n-p)*(n-1)*p*(n+1)/n/(n-p) # f % point function
+        va,vb,vc = np.sqrt(s*fppf)   # semi-axes (largest first)
+        center = np.mean(P, axis=0)  # centroid of the hyperellipsoid
+        self.result['sphericity'] =  np.sqrt(  ((va-vb)/(va+vb))**2 
+                                             + ((va-vc)/(va+vc))**2 
+                                             + ((vb-vc)/(vb+vc))**2 )/1.7321
+        self.result['a'] = va
+        self.result['b'] = vb
+        self.result['c'] = vc
+        if self.verbose:
+            print "Extra info saved in vp.results['sphericity','a','b','c']"
+        elliSource = vtk.vtkSphereSource()
+        elliSource.SetThetaResolution(48)
+        elliSource.SetPhiResolution(48)
+        matri = vtk.vtkMatrix4x4()
+        matri.DeepCopy((R[0][0] *va, R[1][0] *vb, R[2][0] *vc, center[0],
+                        R[0][1] *va, R[1][1] *vb, R[2][1] *vc, center[1],
+                        R[0][2] *va, R[1][2] *vb, R[2][2] *vc, center[2], 0,0,0,1))
+        vtra = vtk.vtkTransform()
+        vtra.SetMatrix(matri)
+        ftra = vtk.vtkTransformFilter()
+        ftra.SetTransform(vtra)
+        ftra.SetInput(elliSource.GetOutput())
+        ftra.Update()
+        actor_elli = self.makeActor(ftra.GetOutput(), c, alpha)
+        actor_elli.GetProperty().BackfaceCullingOn()
+        if axes:
+            axs = []
+            for ax in ([1,0,0], [0,1,0], [0,0,1]):
+                l = vtk.vtkLineSource()
+                l.SetPoint1([0,0,0])
+                l.SetPoint2(ax)
+                l.Update()
+                t = vtk.vtkTransformFilter()
+                t.SetTransform(vtra)
+                t.SetInput(l.GetOutput())
+                t.Update()
+                axs.append(self.makeActor(t.GetOutput(), c, alpha))
+            self.actors.append( self.make_assembly(axs+[actor_elli]) )
+        else : self.actors.append(actor_elli)
+        return self.actors[-1]      
     
 
     ##########################################
@@ -792,13 +848,13 @@ class vtkPlotter:
              axes=None, ruler=False, interactive=None, outputimage=None):
         
         # override what was stored internally with passed input
-        if not(actors is None):
+        if not actors is None:
             if isinstance(actors, vtk.vtkActor): self.actors = [actors]
             else: self.actors = actors 
-        if not(legend is None): self.legend = legend 
-        if not(polys  is None): self.polys  = polys
-        if not(axes   is None): self.axes   = axes 
-        if not(interactive is None): self.interactive = interactive 
+        if not legend is None: self.legend = legend 
+        if not polys  is None: self.polys  = polys
+        if not axes   is None: self.axes   = axes 
+        if not interactive is None: self.interactive = interactive 
         if self.verbose: 
             print 'Drawing',len(self.polys), 
             print 'polys and', len(self.actors),'actors',
@@ -828,59 +884,66 @@ class vtkPlotter:
         if not self.initialized: 
             self.interactor.Initialize()
             self.initialized = True
+            self.interactor.AddObserver("KeyPressEvent", self.keypress)
+
         self.interactor.Render()
-        if self.interactive: self.interact()
+        if self.verbose: self.tips()
         if outputimage: self.make_screenshot(outputimage)
+        if self.renderer and self.interactive: self.interact()
 
 
-    ###################
-    def interact(self, outputimage=False):
-        def keypress(obj, event):
-            key = obj.GetKeySym()
-            if key == "Escape": quit()
-            if key == "S":
-                print 'Saving picture as pic.png'
-                self.make_screenshot()
-            if key == "c": 
-                cam = self.renderer.GetActiveCamera()
-                print '\ncam = vtk.vtkCamera() #example code'
-                print 'cam.SetPosition(',  [round(e,3) for e in cam.GetPosition()],  ')'
-                print 'cam.SetFocalPoint(',[round(e,3) for e in cam.GetFocalPoint()],')'
-                print 'cam.SetParallelScale(',round(cam.GetParallelScale(),3),')'
-                print 'cam.SetViewUp(', [round(e,3) for e in cam.GetViewUp()],')'
-            actors = self.renderer.GetActors()
-            actors.InitTraversal()
-            if key == "m":
-                for i in range(actors.GetNumberOfItems()):
-                    actors.GetNextItem().GetProperty().SetOpacity(0.1)                    
-            if key == "comma":
-                for i in range(actors.GetNumberOfItems()):
-                    ap = actors.GetNextItem().GetProperty()
-                    ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.1]))
-            if key == "period":
-                for i in range(actors.GetNumberOfItems()):
-                    ap = actors.GetNextItem().GetProperty()
-                    ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
-            if key == "slash":
-                for i in range(actors.GetNumberOfItems()):
-                    actors.GetNextItem().GetProperty().SetOpacity(1)
-            
-        if self.verbose:
-            print "Press ------------------------------"
-            print " S   to save a screenshot"
-            print " c   to print current camera info"
-            print " m   to minimise opacity"
-            print " /   to maximize opacity"
-            print " .,  to increase/reduce opacity"
-            print " q   to close window and continue"
-            print " Esc to abort and exit. "
-            print "------------------------------------"
-        self.interactor.AddObserver("KeyPressEvent", keypress)
-        if self.renderer: self.interactor.Start()
-        if outputimage: self.make_screenshot(outputimage)
+    def keypress(self, obj, event):
+        key = obj.GetKeySym()
+        if key == "q":
+            if self.verbose: 
+                print "Returning control to python script/command line."
+                print "Use vp.interact() to go back to 3D scene."
+            self.interactor.ExitCallback()
+        if key == "e": 
+            if self.verbose:
+                print "Closing window and return control to python."
+            rw = self.interactor.GetRenderWindow()
+            rw.Finalize()
+            self.interactor.TerminateApp()
+            del self.renderWin, self.interactor
+            return
+        if key == "Escape":                 
+            if self.verbose: print "Quitting now, Bye."
+            exit(0)
+        if key == "S":
+            print 'Saving picture as screenshot.png'
+            self.make_screenshot()
+        if key == "c": 
+            cam = self.renderer.GetActiveCamera()
+            print '\ncam = vtk.vtkCamera() #example code'
+            print 'cam.SetPosition(',  [round(e,3) for e in cam.GetPosition()],  ')'
+            print 'cam.SetFocalPoint(',[round(e,3) for e in cam.GetFocalPoint()],')'
+            print 'cam.SetParallelScale(',round(cam.GetParallelScale(),3),')'
+            print 'cam.SetViewUp(', [round(e,3) for e in cam.GetViewUp()],')'
+        actors = self.renderer.GetActors()
+        actors.InitTraversal()
+        if key == "m":
+            for i in range(actors.GetNumberOfItems()):
+                actors.GetNextItem().GetProperty().SetOpacity(0.1)                    
+        if key == "comma":
+            for i in range(actors.GetNumberOfItems()):
+                ap = actors.GetNextItem().GetProperty()
+                ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.1]))
+        if key == "period":
+            for i in range(actors.GetNumberOfItems()):
+                ap = actors.GetNextItem().GetProperty()
+                ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
+        if key == "slash":
+            for i in range(actors.GetNumberOfItems()):
+                actors.GetNextItem().GetProperty().SetOpacity(1)
+        if key == "v": 
+            self.verbose = not(self.verbose)
+            print "Verbose: ", self.verbose
         
+    def interact(self): self.interactor.Start()
         
-   
+    
+        
     
 
 
