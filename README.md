@@ -16,20 +16,20 @@ vp.help() # shows a help page
 <br />
 
 Load a vtk file as a vtkActor and visualize it in wireframe style
-with a ruler on top. Don't show axes. <br />
+with a ruler on top. <br />
 The tridimensional shape corresponds to the outer shape of the embryonic mouse limb at about 12 days of gestation.<br />
-Press *Esc* to close the window and exit python session:
+Press *Esc* to close the window and exit python session or *q* to continue:
 ```python
 actor = vp.loadActor('data/290.vtk')
 actor.GetProperty().SetRepresentationToWireframe()
-vp.show(actor, ruler=1, axes=0)
-#same as vp.show(actors=[actor], ruler=1, axes=0)
-#same as vp.show(ruler=1, axes=0) picks what is automatically stored in vp.actors
+vp.show()
+#vp.show(actor)           # ignores the content of vp.actors
+#vp.show(actors=[actor])  # same as above
 ```
 ![ex1](https://user-images.githubusercontent.com/32848391/32666968-908d1bf6-c639-11e7-9201-46572a2349c2.png)
 <br />
 
-Load 3 actors assigning each a different color, use their file paths as legend entries.
+Load 3 actors assigning each a different color, use their file manes as legend entries.
 No need to use any variables, as actors are stored internally in vp.actors:
 ```python
 vp.loadActor('data/250.vtk', c=(1,0.4,0))
