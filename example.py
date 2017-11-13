@@ -7,15 +7,14 @@ Created on Mon Nov 13 12:48:43 2017
 
 import plotter
 vp = plotter.vtkPlotter()
-#vp.help() # shows a help web page
+vp.help() # shows a help web page
 
 
-#Load a vtk file as a vtkActor and visualize it in wireframe style with a ruler on top. 
+#Load a vtk file as a vtkActor and visualize it in wireframe style. 
 #The tridimensional shape corresponds to the outer shape of the embryonic mouse limb 
 #at about 12 days of gestation.
 #Press Esc to close the window and exit python session, or q to continue:
-vp = plotter.vtkPlotter()
-actor = vp.loadActor('data/290.vtk')
+actor = vp.load('data/290.vtk')
 actor.GetProperty().SetRepresentationToWireframe()
 vp.show()  # picks what is automatically stored in vp.actors
 #vp.show(actor)           # ignores the content of vp.actors
@@ -24,9 +23,10 @@ vp.show()  # picks what is automatically stored in vp.actors
 
 #Load 3 actors assigning each a different color, use their file paths as legend entries. 
 #No need to use any variables, as actors are stored internally in vp.actors:
-vp.loadActor('data/250.vtk', c=(1,0.4,0))
-vp.loadActor('data/270.vtk', c=(1,0.6,0))
-vp.loadActor('data/290.vtk', c=(1,0.8,0))
+vp = plotter.vtkPlotter()
+vp.load('data/250.vtk', c=(1,0.4,0))
+vp.load('data/270.vtk', c=(1,0.6,0))
+vp.load('data/290.vtk', c=(1,0.8,0))
 print 'Loaded vtkActors: ', len(vp.actors)
 vp.show(legend=vp.files)
 
@@ -62,23 +62,24 @@ vp.show(axes=0)
 #Show the vtk boundaries of a vtk surface and its normals
 #(ratio reduces the total nr of arrows by the indicated factor):
 vp = plotter.vtkPlotter()
-va = vp.loadActor('data/290.vtk', c=(1,0.1,0.1))
+va = vp.load('data/290.vtk', c=(1,0.1,0.1))
 nv = vp.make_normals(va, ratio=5)
 sbound = vp.make_boundaries(va)
 vp.show(actors=[va,nv, sbound], axes=1)
 
 
-#Split window in a 49 subwindows and draw something in windows nr 12 and nr 38. 
+#Split window in a 36 subwindows and draw something in windows nr 12 and nr 33. 
 #Then open an independent window and draw on two shapes:
-vp1 = plotter.vtkPlotter(shape=(7,7), size=(900,900))
-v290 = vp1.load('data/290.vtk')
-v270 = vp1.load('data/270.vtk')
+vp1 = plotter.vtkPlotter(shape=(6,6), size=(900,900))
+vp1.renderers[35].SetBackground(.8,.9,.9)
+v270 = vp1.load('data/270.vtk') #load as vtkActor
+v290 = vp1.loadPoly('data/290.vtk') #load as polydata
 vp1.interactive = False
-vp1.show(at=12, polys=[v290,v270])
-vp1.show(at=38, polys=[v290,v270]) 
+vp1.show(at=12, actors=[v270,v290]) # polys are automatically  
+vp1.show(at=33, actors=[v270,v290]) # transformed into actors
 vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
-v250 = vp2.loadActor('data/250.vtk')
-v270 = vp2.loadActor('data/270.vtk')
+v250 = vp2.load('data/250.vtk')
+v270 = vp2.load('data/270.vtk')
 vp2.show()
 
 
@@ -128,6 +129,6 @@ vp.show()
 
 #Display a tetrahedral mesh (Fenics/Dolfin format). The internal verteces are displayed too:
 vp = plotter.vtkPlotter()
-actor = vp.loadActor('data/290.xml')
+actor = vp.load('data/290.xml.gz')
 actor.GetProperty().SetRepresentationToWireframe()
 vp.show()        
