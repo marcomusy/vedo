@@ -56,7 +56,6 @@ class vtkPlotter:
         self.camThickness = 2000
         self.actors     = []
         self.legend     = []
-        self.polys      = []        
         self.files      = []   
         self.tetmeshes  = []     # vtkUnstructuredGrid
         self.result     = dict() # contains extra output information
@@ -129,7 +128,7 @@ class vtkPlotter:
   
 
     #######################################
-    def loadXml(self, filename, appendpoly=True):
+    def loadXml(self, filename):
         try:
             import xml.etree.ElementTree as et
             if '.gz' in filename:
@@ -211,23 +210,21 @@ class vtkPlotter:
                 print 'Appending tetrahedral vertices to vtkPlotter.actors'
             self.make_points(coords[idxs], r=maxb/400, c=(.8,0,.2), alpha=.2)
             self.files.append(filename)
-            if appendpoly: self.polys.append(poly)
-            return poly
+            act = self.makeActor(poly, c=(.8,0,.2), alpha=.2)
+            self.actors.append(act)
+            return act
         except: 
             print 'Unable to read fenics mesh file', filename
             return False
         
              
-    def load(self, filename, reader=None, appendpoly=True):
-        # appendpoly if true appends to self.polys
+    def loadPoly(self, filename, reader=None):
         fl = filename.lower()
         if '.vtk' in fl: reader = vtk.vtkPolyDataReader()
         if '.vtp' in fl: reader = vtk.vtkXMLPolyDataReader()
         if '.ply' in fl: reader = vtk.vtkPLYReader()
         if '.obj' in fl: reader = vtk.vtkOBJReader()
         if '.stl' in fl: reader = vtk.vtkSTLReader()
-        if '.xml' in fl or '.xml.gz' in fl: ### Fenics tetrahedral mesh file
-            return self.loadXml(filename, appendpoly)
         if not reader: reader = vtk.vtkPolyDataReader()
         reader.SetFileName(filename)    
         reader.Update()
@@ -239,30 +236,32 @@ class vtkPlotter:
         mergeTriangles.Update()
         poly = mergeTriangles.GetOutput()
         self.files.append(filename)
-        if appendpoly: self.polys.append(poly)
         return poly
  
  
     def loadDir(self, mydir, tag='.'):
         import os
-        polys = []
+        acts = []
         self.files = []
         for ifile in sorted(os.listdir(mydir)):
             if tag in ifile:
-                p = self.load(mydir + '/' + ifile)
-                if p:
-                    polys.append( p )
+                a = self.load(mydir + '/' + ifile)
+                if a:
+                    acts.append( a )
                     self.files.append( mydir + '/' + ifile )
         if not len(self.files): 
             print 'No files found containing tag:', tag, 'in', mydir
-        return polys
+        return acts
 
 
-    def loadActor(self, filename, reader=None, c=(1,0.647,0), alpha=0.2):
-        poly = self.load(filename, reader=reader, appendpoly=False)
-        act  = self.makeActor(poly, c, alpha)
-        self.actors.append(act)
-        return act
+    def load(self, filename, reader=None, c=(1,0.647,0), alpha=0.2):
+        fl = filename.lower()
+        if '.xml' in fl or '.xml.gz' in fl: # Fenics tetrahedral mesh file
+            return self.loadXml(filename)
+        poly = self.loadPoly(filename, reader=reader)
+        actor  = self.makeActor(poly, c, alpha)
+        self.actors.append(actor)
+        return actor
 
 
     def getPD(self, polyOrActor):
@@ -741,7 +740,7 @@ class vtkPlotter:
         return pla
 
 
-    def make_ellipsoid(self, points, pvalue=.95, c=(0,1,1), alpha=0.6, axes=False):
+    def make_ellipsoid(self, points, pvalue=.95, c=(0,1,1), alpha=0.5, axes=False):
         # build the ellpsoid that contains 95% of points
         try:
             from scipy.stats import f
@@ -755,7 +754,7 @@ class vtkPlotter:
         fppf = f.ppf(pvalue, p, n-p)*(n-1)*p*(n+1)/n/(n-p) # f % point function
         va,vb,vc = np.sqrt(s*fppf)   # semi-axes (largest first)
         center = np.mean(P, axis=0)  # centroid of the hyperellipsoid
-        self.result['sphericity'] =  np.sqrt(  ((va-vb)/(va+vb))**2 
+        self.result['sphericity'] =  1-np.sqrt(((va-vb)/(va+vb))**2 
                                              + ((va-vc)/(va+vc))**2 
                                              + ((vb-vc)/(vb+vc))**2 )/1.7321*2
         self.result['a'] = va
@@ -852,20 +851,18 @@ class vtkPlotter:
         
         
     ###############################################################################
-    def show(self, actors=None, polys=None, legend=None, at=0, #at=render wind. nr.
+    def show(self, actors=None, legend=None, at=0, #at=render wind. nr.
              axes=None, ruler=False, interactive=None, outputimage=None):
         
         # override what was stored internally with passed input
         if not actors is None:
-            if isinstance(actors, vtk.vtkActor): self.actors = [actors]
+            if not isinstance(actors, list): self.actors = [actors]
             else: self.actors = actors 
         if not legend is None: self.legend = legend 
-        if not polys  is None: self.polys  = polys
         if not axes   is None: self.axes   = axes 
         if not interactive is None: self.interactive = interactive 
         if self.verbose: 
-            print 'Drawing',len(self.polys), 
-            print 'polys and', len(self.actors),'actors',
+            print 'Drawing', len(self.actors),'actors',
             if self.shape != (1,1): print 'on window',at,'-',
             else: print '-',      
             if self.interactive: print 'Interactive: On.'
@@ -878,10 +875,10 @@ class vtkPlotter:
         if self.commoncam: 
             for r in self.renderers: r.SetActiveCamera(self.camera)
  
-        for apoly in self.polys:
-            actor = self.makeActor(apoly, c=(1,0.647,0), alpha=0.1)
-            self.renderer.AddActor(actor)
-        for ia in self.actors: self.renderer.AddActor(ia)        
+        for ia in self.actors:
+            if isinstance(ia, vtk.vtkPolyData):
+                ia = self.makeActor(ia, c=(1,0.647,0), alpha=0.1)
+            self.renderer.AddActor(ia)   
     
         if ruler: self.draw_ruler()
         if self.axes: self.draw_cubeaxes()
