@@ -31,7 +31,7 @@ vp.show()
 Load 3 actors assigning each a different color, use their file names as legend entries.
 No need to use any variables, as actors are stored internally in vp.actors:
 ```python
-vp.load('data/250.vtk', c=(1,0.4,0)) # c=(R,G.B) color
+vp.load('data/250.vtk', c=(1,0.4,0)) # c=(R,G,B) color
 vp.load('data/270.vtk', c=(1,0.6,0))
 vp.load('data/290.vtk', c=(1,0.8,0))
 print 'Loaded vtkActors: ', len(vp.actors)
@@ -55,7 +55,7 @@ Draw a PCA ellipsoid that contains 67% of a cloud of points:
 ```python
 pts = [(u(0,200), u(0,200), u(0,200)) for i in range(50)]
 vp.make_points(pts)
-vp.make_ellipsoid(pts, pvalue=0.67, axes=True)
+vp.make_ellipsoid(pts, pvalue=0.67)
 vp.show()
 ```
 ![pca](https://user-images.githubusercontent.com/32848391/32732169-12f82a5a-c88c-11e7-9a31-f14b100374cb.png)
@@ -85,7 +85,7 @@ vp = plotter.vtkPlotter()
 va = vp.load('data/290.vtk', c=(1,0.1,0.1))
 nv = vp.make_normals(va, ratio=5)
 sbound = vp.make_boundaries(va)
-vp.show(actors=[va,nv, sbound], axes=1)
+vp.show(actors=[va,nv, sbound])
 ```
 ![ex5](https://user-images.githubusercontent.com/32848391/32666972-90f46a5e-c639-11e7-93c3-e105322ff481.png)
 <br />
@@ -129,7 +129,6 @@ vp.interact() # same as setting flag interactive=True
 Draw a bunch of simple objects on separate parts of the rendering window:
 ```python
 vp = plotter.vtkPlotter(shape=(2,3), size=(800,1200))
-vp.axes        = True
 vp.commoncam   = False
 vp.interactive = False
 vp.show(at=0, actors=vp.make_arrow( [0,0,0], [1,1,1] ))
