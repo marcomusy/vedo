@@ -264,8 +264,8 @@ class vtkPlotter:
         return actor
 
 
-    def getPD(self, polyOrActor):
-        # returns polydata from an other object
+    def getPD(self, polyOrActor): # returns polydata from an other object type
+        # also possible: vp.getPD(3) #gets fourth's actor polydata
         if isinstance(polyOrActor, vtk.vtkPolyData): return polyOrActor
         elif isinstance(polyOrActor, vtk.vtkActor):
             return polyOrActor.GetMapper().GetInput()
@@ -891,7 +891,7 @@ class vtkPlotter:
             self.initialized = True
             self.interactor.AddObserver("KeyPressEvent", self.keypress)
 
-        self.interactor.Render()
+        if self.interactor: self.interactor.Render()
         if self.verbose: self.tips()
         if outputimage: self.make_screenshot(outputimage)
         if self.renderer and self.interactive: self.interact()
