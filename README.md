@@ -91,8 +91,8 @@ vp.show(actors=[va,nv, sbound], axes=1)
 <br />
 
 
-Split window in a 49 subwindows and draw something in 
-windows nr 12 and nr 38. Then open an independent window and draw on two shapes:
+Split window in a 36 subwindows and draw something in 
+windows nr 12 and nr 33. Then open an independent window and draw on two shapes:
 ```python
 vp1 = plotter.vtkPlotter(shape=(6,6), size=(900,900))
 vp1.renderers[35].SetBackground(.8,.9,.9)
