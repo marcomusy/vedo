@@ -60,6 +60,7 @@ vp.make_points(pts)
 vp.make_ellipsoid(pts, pvalue=0.67, axes=True)
 vp.show()
 ```
+![pca](https://user-images.githubusercontent.com/32848391/32732169-12f82a5a-c88c-11e7-9a31-f14b100374cb.png)
 <br />
 
 
