@@ -14,8 +14,10 @@ Run this tutorial:
 
 ```python
 import plotter
+
+# Declare an instance of the class
 vp = plotter.vtkPlotter()
-vp.help() # shows a help page
+vp.help() # shows a help message
 ```
 <br />
 
@@ -23,8 +25,7 @@ Load a vtk file as a vtkActor and visualize it in wireframe style. <br />
 The tridimensional shape corresponds to the outer shape of the embryonic mouse limb at about 12 days of gestation.<br />
 Press *Esc* to close the window and exit python session or *q* to continue:
 ```python
-actor = vp.load('data/290.vtk')
-actor.GetProperty().SetRepresentationToWireframe()
+actor = vp.load('data/290.vtk', wire=1)
 vp.show()
 #vp.show(actor)           # ignores the content of vp.actors
 #vp.show(actors=[actor])  # same as above
@@ -48,6 +49,7 @@ Draw a spline that goes through a set of points, don't show the points *(nodes=F
 ```python
 from random import uniform as u
 pts = [(u(0,1), u(0,1), u(0,1)) for i in range(10)]
+vp = plotter.vtkPlotter()
 vp.make_spline(pts, s=.01, nodes=False)
 vp.show()
 ```
@@ -58,6 +60,7 @@ vp.show()
 Draw a PCA ellipsoid that contains 67% of a cloud of points:
 ```python
 pts = [(u(0,200), u(0,200), u(0,200)) for i in range(50)]
+vp = plotter.vtkPlotter()
 vp.make_points(pts)
 vp.make_ellipsoid(pts, pvalue=0.67)
 vp.show()
@@ -170,8 +173,7 @@ vp.show()
 
 Display a tetrahedral mesh (Fenics/Dolfin format). The internal verteces are displayed too:
 ```python
-actor = vp.load('data/290.xml.gz')
-actor.GetProperty().SetRepresentationToWireframe()
+actor = vp.load('data/290.xml.gz', wire=1)
 vp.show()        
 ```
 ![ex9](https://user-images.githubusercontent.com/32848391/32666976-918480bc-c639-11e7-9749-4fd0b71523ad.png)
