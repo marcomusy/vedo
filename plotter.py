@@ -67,9 +67,9 @@ class vtkPlotter:
         self.colors     = []
         self.colors1    = []
         self.colors2    = []
-        self.legendSize = 0.8
+        self.legendSize = 0.25
         self.legendBG   = (.96,.96,.9)
-        self.legendPosition = 2   # 1=topleft
+        self.legendPosition = 2   # 1=topright
         self.result     = dict()  # stores extra output information
 
         #######################################
@@ -314,17 +314,17 @@ class vtkPlotter:
         mapper.SetInput(dataset.GetOutput())
         actor = vtk.vtkActor()
         actor.SetMapper(mapper)
-        if self.phong:   actor.GetProperty().SetInterpolationToPhong()
-        if self.flat:    actor.GetProperty().SetInterpolationToFlat()
-        if self.gouraud: actor.GetProperty().SetInterpolationToGouraud()
+        if self.phong:     actor.GetProperty().SetInterpolationToPhong()
+        elif self.flat:    actor.GetProperty().SetInterpolationToFlat()
+        elif self.gouraud: actor.GetProperty().SetInterpolationToGouraud()
         actor.GetProperty().EdgeVisibilityOff()
         actor.GetProperty().SetColor(c)
         actor.GetProperty().SetOpacity(alpha)
         actor.GetProperty().SetSpecular(0.05)
-        actor.GetProperty().BackfaceCullingOff()
         if self.bculling: actor.GetProperty().BackfaceCullingOn()
-        actor.GetProperty().FrontfaceCullingOff()
+        else: actor.GetProperty().BackfaceCullingOff()
         if self.fculling: actor.GetProperty().FrontfaceCullingOn()
+        else: actor.GetProperty().FrontfaceCullingOff()
         if wire: actor.GetProperty().SetRepresentationToWireframe()
         if bc: # defines a specific color for the backface
             backProp = vtk.vtkProperty()
@@ -492,7 +492,7 @@ class vtkPlotter:
     
     def make_spline(self, points, s=10, c=(0,0,0.8), alpha=1., nodes=True):
         numberOfOutputPoints = len(points)*20 # Number of points on the spline
-        numberOfInputPoints = len(points)  # One spline for each direction.
+        numberOfInputPoints  = len(points) # One spline for each direction.
         aSplineX = vtk.vtkCardinalSpline() #  interpolate the x values
         aSplineY = vtk.vtkCardinalSpline() #  interpolate the y values
         aSplineZ = vtk.vtkCardinalSpline() #  interpolate the z values
@@ -536,7 +536,39 @@ class vtkPlotter:
             glyphPoints.SetInput(inputData)
             glyphPoints.SetSource(balls.GetOutput())    
             actnodes = self.makeActor(glyphPoints.GetOutput(), c=c, alpha=alpha)
-            return self.make_assembly([acttube, actnodes])
+            acttube = self.make_assembly([acttube, actnodes])
+        self.actors.append(acttube)
+        return acttube
+
+
+    def make_bspline(self, points, nknots=-1,
+                     s=1, c=(0,0,0.8), alpha=1., nodes=True):
+        from scipy.interpolate import splprep, splev
+        Nout = len(points)*20 # Number of points on the spline
+        points = np.array(points)
+        x,y,z = points[:,0], points[:,1], points[:,2]
+        tckp, _ = splprep([x,y,z], nest=nknots) # find the knot points
+        # evaluate spline, including interpolated points:
+        xnew,ynew,znew = splev(np.linspace(0,1, Nout), tckp)         
+        ppoints = vtk.vtkPoints() # Generate the polyline for the spline.
+        profileData = vtk.vtkPolyData()
+        for i in range(Nout):
+            ppoints.InsertPoint(i, xnew[i],ynew[i],znew[i])
+        lines = vtk.vtkCellArray() # Create the polyline.
+        lines.InsertNextCell(Nout)
+        for i in range(Nout): lines.InsertCellPoint(i)
+        profileData.SetPoints(ppoints)
+        profileData.SetLines(lines)
+        profileTubes = vtk.vtkTubeFilter() # Add thickness to the resulting line.
+        profileTubes.SetNumberOfSides(12)
+        profileTubes.SetInput(profileData)
+        profileTubes.SetRadius(s)
+        poly = profileTubes.GetOutput()
+        acttube = self.makeActor(poly, c=c, alpha=alpha)
+        if nodes:
+            actnodes = self.make_points(points, r=s*50, c=c, alpha=alpha)
+            self.actors.pop()
+            acttube = self.make_assembly([acttube, actnodes])
         self.actors.append(acttube)
         return acttube
 
@@ -756,6 +788,7 @@ class vtkPlotter:
 
     def make_ellipsoid(self, points, pvalue=.95, c=(0,1,1), alpha=0.5, axes=False):
         # build the ellpsoid that contains 95% of points
+        # axes = True, show the 3 PCA axes
         try:
             from scipy.stats import f
         except:
@@ -805,7 +838,7 @@ class vtkPlotter:
                 axs.append(self.makeActor(t.GetOutput(), c, alpha))
             self.actors.append( self.make_assembly(axs+[actor_elli]) )
         else : self.actors.append(actor_elli)
-        return self.actors[-1]      
+        return self.lastactor()   
     
 
     ##########################################
@@ -838,29 +871,40 @@ class vtkPlotter:
         self.renderer.AddActor(ls)       
 
     def draw_legend(self):
+        #fix if passing a string insteadof a list:
+        if isinstance(self.legend, str): self.legend = [self.legend]
+
         texts = []
         for t in self.legend:
             if t=='': continue
             texts.append(t)
         N = len(texts)
-        if len(self.actors) < N:
-            print 'Mismatch in Legend:', len(self.actors), 'actors'
+        if N > len(self.actors):
+            print 'Mismatch in Legend: only', len(self.actors), 'actors'
             print 'but', N, 'legend lines. Skip.'
             return
         legend = vtk.vtkLegendBoxActor()
         legend.SetNumberOfEntries(N)
-        for i in range(N):
-            a = self.actors[i]
-            c = a.GetProperty().GetColor()
-            legend.SetEntry(i, a.GetMapper().GetInput(), " "+texts[i], c)
-        s = self.legendSize
-        pos = self.legendPosition
-        if pos==1: legend.GetPositionCoordinate().SetValue(.0, s, 0)
-        if pos==2: legend.GetPositionCoordinate().SetValue( s, s, 0)
-        if pos==3: legend.GetPositionCoordinate().SetValue(.0,.0, 0)
-        if pos==4: legend.GetPositionCoordinate().SetValue( s,.0, 0)
         legend.UseBackgroundOn()
         legend.SetBackgroundColor(self.legendBG)
+        legend.SetBackgroundOpacity(0.6)
+        legend.LockBorderOn()
+        for i in range(N):
+            a = self.actors[i]
+            if isinstance(a, vtk.vtkAssembly): 
+                print 'Sorry, cannot set legend for vtkAssembly'
+                continue
+            c = a.GetProperty().GetColor()
+            legend.SetEntry(i, self.getPD(i), "  "+texts[i], c)
+        pos = self.legendPosition
+        width = self.legendSize
+        legend.SetWidth(width)
+        legend.SetHeight(width/5.*N)
+        sx, sy = 1-width, 1-width/5.*N
+        if pos==1: legend.GetPositionCoordinate().SetValue(  0, sy) #x,y from bottomleft
+        if pos==2: legend.GetPositionCoordinate().SetValue( sx, sy) #default
+        if pos==3: legend.GetPositionCoordinate().SetValue(  0,  0)
+        if pos==4: legend.GetPositionCoordinate().SetValue( sx,  0)
         self.renderer.AddActor(legend)       
         
         
