@@ -520,6 +520,7 @@ class vtkPlotter:
     
     
     def make_spline(self, points, s=10, c=(0,0,0.8), alpha=1., nodes=True):
+        ## the spline passes through all points exactly
         numberOfOutputPoints = len(points)*20 # Number of points on the spline
         numberOfInputPoints  = len(points) # One spline for each direction.
         aSplineX = vtk.vtkCardinalSpline() #  interpolate the x values
@@ -947,7 +948,9 @@ class vtkPlotter:
     ###############################################################################
     def show(self, actors=None, legend=None, at=0, #at=render wind. nr.
              axes=None, ruler=False, interactive=None, outputimage=None):
-        
+        ## actors = a mixed list of vtkActors. vtkPolydata and filename strings
+        ## at = index of the renderer 
+             
         # override what was stored internally with passed input
         if not actors is None:
             if not isinstance(actors, list): self.actors = [actors]
@@ -970,8 +973,11 @@ class vtkPlotter:
             for r in self.renderers: r.SetActiveCamera(self.camera)
  
         for ia in self.actors:
-            if isinstance(ia, vtk.vtkPolyData):
+            if isinstance(ia, str): # assume a filepath was given
+                ia = self.load(ia)
+            elif isinstance(ia, vtk.vtkPolyData):
                 ia = self.makeActor(ia, c=(1,0.647,0), alpha=0.1)
+                self.actors.append(ia)
             self.renderer.AddActor(ia)   
     
         if ruler: self.draw_ruler()
