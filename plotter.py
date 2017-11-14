@@ -57,19 +57,21 @@ class vtkPlotter:
         self.actors     = []
         self.legend     = []
         self.files      = []   
-        self.tetmeshes  = []     # vtkUnstructuredGrid
-        self.result     = dict() # contains extra output information
+        self.tetmeshes  = []    # vtkUnstructuredGrid
         self.verbose    = True
         self.phong      = True
         self.flat       = False
         self.gouraud    = False
+        self.bculling   = False
+        self.fculling   = False
         self.colors     = []
         self.colors1    = []
         self.colors2    = []
         self.legendSize = 0.8
         self.legendBG   = (.96,.96,.9)
         self.legendPosition = 2   # 1=topleft
-        
+        self.result     = dict()  # stores extra output information
+
         #######################################
         # build the renderers scene:
         for i in reversed(range(shape[0])): 
@@ -210,12 +212,8 @@ class vtkPlotter:
                 print 'Appending tetrahedral vertices to vtkPlotter.actors'
             self.make_points(coords[idxs], r=maxb/400, c=(.8,0,.2), alpha=.2)
             self.files.append(filename)
-            act = self.makeActor(poly, c=(.8,0,.2), alpha=.2)
-            self.actors.append(act)
-            return act
-        except: 
-            print 'Unable to read fenics mesh file', filename
-            return False
+            return poly
+        except: return False
         
              
     def loadPoly(self, filename, reader=None):
@@ -228,9 +226,7 @@ class vtkPlotter:
         if not reader: reader = vtk.vtkPolyDataReader()
         reader.SetFileName(filename)    
         reader.Update()
-        if not reader.GetOutput(): 
-            print 'Unable to load', filename
-            return False
+        if not reader.GetOutput(): return False
         mergeTriangles = vtk.vtkTriangleFilter()
         mergeTriangles.SetInput(reader.GetOutput())
         mergeTriangles.Update()
@@ -254,12 +250,20 @@ class vtkPlotter:
         return acts
 
 
-    def load(self, filename, reader=None, c=(1,0.647,0), alpha=0.2):
+    def load(self, filename, reader=None, c=(1,0.647,0), alpha=0.5, wire=False, bc=None):
+        # c,     color in RGB format in the range [0,1]
+        # alpha, transparency (0=invisible)
+        # wire,  show surface as wireframe
+        # bc,    backface color of internal surface
         fl = filename.lower()
         if '.xml' in fl or '.xml.gz' in fl: # Fenics tetrahedral mesh file
-            return self.loadXml(filename)
-        poly = self.loadPoly(filename, reader=reader)
-        actor  = self.makeActor(poly, c, alpha)
+            poly = self.loadXml(filename)
+        else: 
+            poly = self.loadPoly(filename, reader=reader)
+        if not poly:
+            print 'Unable to load', filename
+            return False
+        actor = self.makeActor(poly, c, alpha, wire, bc)
         self.actors.append(actor)
         return actor
 
@@ -293,7 +297,11 @@ class vtkPlotter:
             print "Unable to take the screenshot. Skip."
             
     
-    def makeActor(self, poly, c=(0.5, 0.5, 0.5), alpha=1):
+    def makeActor(self, poly, c=(0.5, 0.5, 0.5), alpha=0.5, wire=False, bc=None):
+        # c,     color in RGB format in the range [0,1]
+        # alpha, transparency (0=invisible)
+        # wire,  show surface as wireframe
+        # bc,    backface color
         dataset = vtk.vtkPolyDataNormals()
         dataset.SetInput(poly)
         dataset.SetFeatureAngle(60.0)
@@ -313,8 +321,16 @@ class vtkPlotter:
         actor.GetProperty().SetColor(c)
         actor.GetProperty().SetOpacity(alpha)
         actor.GetProperty().SetSpecular(0.05)
-        actor.GetProperty().BackfaceCullingOn()
+        actor.GetProperty().BackfaceCullingOff()
+        if self.bculling: actor.GetProperty().BackfaceCullingOn()
         actor.GetProperty().FrontfaceCullingOff()
+        if self.fculling: actor.GetProperty().FrontfaceCullingOn()
+        if wire: actor.GetProperty().SetRepresentationToWireframe()
+        if bc: # defines a specific color for the backface
+            backProp = vtk.vtkProperty()
+            backProp.SetDiffuseColor(bc)
+            backProp.SetOpacity(alpha)
+            actor.SetBackfaceProperty(backProp)
         return actor
 
 
@@ -329,17 +345,14 @@ class vtkPlotter:
         # frac=0 -> camstart,  frac=1 -> camstop
         cam = vtk.vtkCamera()
         cam.DeepCopy(camstart)
-    
         p1 = np.array(camstart.GetPosition())
         f1 = np.array(camstart.GetFocalPoint())
         v1 = np.array(camstart.GetViewUp())
         s1 = np.array(camstart.GetParallelScale())
-    
         p2 = np.array(camstop.GetPosition())
         f2 = np.array(camstop.GetFocalPoint())
         v2 = np.array(camstop.GetViewUp())
         s2 = np.array(camstop.GetParallelScale())
-    
         cam.SetPosition(     p2*fraction+p1*(1.-fraction))
         cam.SetFocalPoint(   f2*fraction+f1*(1.-fraction))
         cam.SetViewUp(       v2*fraction+v1*(1.-fraction))
@@ -440,10 +453,6 @@ class vtkPlotter:
         actor.GetProperty().SetRepresentationToWireframe()
         actor.GetProperty().SetLineWidth(lw)
         actor.PickableOff()
-        backProp = vtk.vtkProperty()
-        backProp.SetDiffuseColor([0,0,0])
-        backProp.SetOpacity(alpha)
-        actor.SetBackfaceProperty(backProp)
         self.actors.append(actor)
         return actor
     
@@ -484,9 +493,9 @@ class vtkPlotter:
     def make_spline(self, points, s=10, c=(0,0,0.8), alpha=1., nodes=True):
         numberOfOutputPoints = len(points)*20 # Number of points on the spline
         numberOfInputPoints = len(points)  # One spline for each direction.
-        aSplineX = vtk.vtkCardinalSpline() #interpolate the x values
-        aSplineY = vtk.vtkCardinalSpline() #interpolate the y values
-        aSplineZ = vtk.vtkCardinalSpline() #interpolate the z values
+        aSplineX = vtk.vtkCardinalSpline() #  interpolate the x values
+        aSplineY = vtk.vtkCardinalSpline() #  interpolate the y values
+        aSplineZ = vtk.vtkCardinalSpline() #  interpolate the z values
         
         inputPoints = vtk.vtkPoints()
         for i in range(0, numberOfInputPoints):
@@ -532,7 +541,7 @@ class vtkPlotter:
         return acttube
 
     
-    def make_text(self, txt, pos=(0,0,0), s=1, c=(0,0,0), alpha=1, cam=True):
+    def make_text(self, txt, pos=(0,0,0), s=1, c=(0,0,0), alpha=1, cam=True, bc=None):
         tt = vtk.vtkVectorText()
         tt.SetText(txt)
         ttmapper = vtk.vtkPolyDataMapper()
@@ -547,6 +556,11 @@ class vtkPlotter:
         ttactor.GetProperty().SetOpacity(alpha)
         ttactor.AddPosition(pos)
         ttactor.SetScale(s,s,s)
+        if bc: # defines a specific color for the backface
+            backProp = vtk.vtkProperty()
+            backProp.SetDiffuseColor(bc)
+            backProp.SetOpacity(alpha)
+            ttactor.SetBackfaceProperty(backProp)
         self.actors.append(ttactor)
         return ttactor    
     
@@ -899,7 +913,7 @@ class vtkPlotter:
 
     def keypress(self, obj, event):
         key = obj.GetKeySym()
-        if key == "q":
+        if key == "q" or key == "space":
             if self.verbose: 
                 print "Returning control to python script/command line."
                 print "Use vp.interact() to go back to 3D scene."
@@ -946,6 +960,8 @@ class vtkPlotter:
             print "Verbose: ", self.verbose
         
     def interact(self): self.interactor.Start()
+    
+    def lastactor(self): return self.actors[-1]
         
     
         
