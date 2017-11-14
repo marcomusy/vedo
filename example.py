@@ -6,7 +6,6 @@ Created on Mon Nov 13 12:48:43 2017
 """
 import plotter
 
-
 # Declare an instance of the class
 vp = plotter.vtkPlotter()
 vp.help() # shows a help message
@@ -17,7 +16,7 @@ vp.help() # shows a help message
 #at about 11 days of gestation.
 #Choose a tomato color for the internal surface, and no transparency.
 #Press Esc to close the window and exit python session, or q to continue:
-vp.load('data/250.vtk', c=(0,0,1), bc=(1,.4,.3), alpha=1)  
+vp.load('data/250.vtk', c=(0,0,1), bc=(1,.4,.3), alpha=1) # c=(R,G,B) color
 vp.show()                 # picks what is automatically stored in vp.actors
 
 
@@ -31,7 +30,7 @@ vp.show()             # picks what is automatically stored in vp.actors
 #Load 3 actors assigning each a different color, use their file paths as legend entries. 
 #No need to use any variables, as actors are stored internally in vp.actors:
 vp = plotter.vtkPlotter()
-vp.load('data/250.vtk', c=(1,0.4,0))
+vp.load('data/250.vtk', c=(1,0.4,0)) 
 vp.load('data/270.vtk', c=(1,0.6,0))
 vp.load('data/290.vtk', c=(1,0.8,0))
 print 'Loaded vtkActors: ', len(vp.actors), vp.files
@@ -39,11 +38,11 @@ vp.show(legend=vp.files)
 
 
 #Draw a spline that goes through a set of points, don't show the points (nodes=False):
-vp = plotter.vtkPlotter()
 from random import uniform as u
-pts = [(u(0,10), u(0,10), u(0,10)) for i in range(10)]
+pts = [(u(0,10), u(0,10), u(0,10)) for i in range(20)]
+vp = plotter.vtkPlotter()
 vp.make_spline(pts, s=.1, nodes=False)
-vp.show()
+vp.show(legend='a random spline')
 
 
 #Draw a PCA ellipsoid that contains 67% of a cloud of points:
@@ -70,9 +69,9 @@ vp.show(axes=0)
 #(ratio reduces the total nr of arrows by the indicated factor):
 vp = plotter.vtkPlotter()
 va = vp.load('data/290.vtk', c=(1,0.1,0.1))
-nv = vp.make_normals(va, ratio=5)
-sbound = vp.make_boundaries(va)
-vp.show(actors=[va,nv, sbound], axes=1)
+vp.make_normals(va, ratio=5)
+vp.make_boundaries(va)
+vp.show()
 
 
 #Split window in a 36 subwindows and draw something in windows nr 12 and nr 33. 
@@ -134,8 +133,22 @@ print 'Fit slope=', vp.result['slope'] # access the last fitted slope direction
 vp.show()
 
 
-#Display a tetrahedral mesh (Fenics/Dolfin format). The internal vertices are displayed too:
+#Display a tetrahedral mesh (Fenics/Dolfin format). 
+#The internal vertices are displayed too:
 vp = plotter.vtkPlotter()
-actor = vp.load('data/290.xml.gz')
-actor.GetProperty().SetRepresentationToWireframe()
+vp.load('data/290.xml.gz', wire=1)
 vp.show()        
+
+
+#As a short cut, the filename can be given in the show command directly:
+vp = plotter.vtkPlotter()
+vp.show('data/limb.pcd') # Point cloud (PCL file format)
+
+
+
+
+
+
+
+
+
