@@ -258,6 +258,30 @@ class vtkPlotter:
         fl = filename.lower()
         if '.xml' in fl or '.xml.gz' in fl: # Fenics tetrahedral mesh file
             poly = self.loadXml(filename)
+        elif '.pcd' in fl:
+            f = open(filename, 'r')
+            lines = f.readlines()
+            f.close()
+            start = False
+            pts = []
+            N, expN = 0, 0
+            for text in lines:
+                if start:
+                    if N >= expN: break
+                    l = text.split()
+                    pts.append([float(l[0]),float(l[1]),float(l[2])])
+                    N += 1
+                if not start and 'POINTS' in text:
+                    expN= int(text.split()[1])
+                if not start and 'DATA ascii' in text:
+                    start = True
+            if expN != N:
+                print 'Mismatch in pcd file', expN, len(pts)
+            src = vtk.vtkPointSource()
+            src.SetNumberOfPoints(len(pts))
+            src.Update()
+            poly = src.GetOutput()
+            for i,p in enumerate(pts): poly.GetPoints().SetPoint(i, p)            
         else: 
             poly = self.loadPoly(filename, reader=reader)
         if not poly:
@@ -268,18 +292,23 @@ class vtkPlotter:
         return actor
 
 
-    def getPD(self, polyOrActor): # returns polydata from an other object type
+    def getPD(self, obj, index=0): 
+        # returns polydata from an other object type
         # also possible: vp.getPD(3) #gets fourth's actor polydata
-        if isinstance(polyOrActor, vtk.vtkPolyData): return polyOrActor
-        elif isinstance(polyOrActor, vtk.vtkActor):
-            return polyOrActor.GetMapper().GetInput()
-        elif isinstance(polyOrActor, vtk.vtkActor2D):
-            return polyOrActor.GetMapper().GetInput()
-        elif isinstance(polyOrActor, int):
-            return self.actors[polyOrActor].GetMapper().GetInput()
-        print "Error: input is neither a poly nor an actor.", polyOrActor
-        quit()
-
+        if   isinstance(obj, vtk.vtkPolyData): return obj
+        elif isinstance(obj, vtk.vtkActor):    return obj.GetMapper().GetInput()
+        elif isinstance(obj, vtk.vtkActor2D):  return obj.GetMapper().GetInput()
+        elif isinstance(obj, int): return self.actors[obj].GetMapper().GetInput()
+        elif isinstance(obj, vtk.vtkAssembly):
+            cl = vtk.vtkPropCollection()
+            obj.GetActors(cl)
+            cl.InitTraversal()
+            for i in range(index+1): 
+                act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
+            return act.GetMapper().GetInput()
+        print "Error: input is neither a poly nor an actor int or assembly.", obj
+        return False
+        
 
     def make_screenshot(self, filename='screenshot.png'):
         try:
@@ -543,6 +572,8 @@ class vtkPlotter:
 
     def make_bspline(self, points, nknots=-1,
                      s=1, c=(0,0,0.8), alpha=1., nodes=True):
+        ## nknots=-1, max nr of knots is used (max precision)
+        ## lower number gives smoother curve
         from scipy.interpolate import splprep, splev
         Nout = len(points)*20 # Number of points on the spline
         points = np.array(points)
@@ -891,11 +922,16 @@ class vtkPlotter:
         legend.LockBorderOn()
         for i in range(N):
             a = self.actors[i]
-            if isinstance(a, vtk.vtkAssembly): 
-                print 'Sorry, cannot set legend for vtkAssembly'
-                continue
-            c = a.GetProperty().GetColor()
-            legend.SetEntry(i, self.getPD(i), "  "+texts[i], c)
+            if isinstance(a, vtk.vtkAssembly):
+                cl = vtk.vtkPropCollection()
+                a.GetActors(cl)
+                cl.InitTraversal()
+                act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
+                c = act.GetProperty().GetColor()
+                legend.SetEntry(i, self.getPD(a), "  "+texts[i], c)
+            else: 
+                c = a.GetProperty().GetColor()
+                legend.SetEntry(i, self.getPD(i), "  "+texts[i], c)
         pos = self.legendPosition
         width = self.legendSize
         legend.SetWidth(width)
