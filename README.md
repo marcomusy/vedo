@@ -173,14 +173,14 @@ vp.show()
 
 Display a tetrahedral mesh (Fenics/Dolfin format). The internal verteces are displayed too:
 ```python
-actor = vp.load('data/290.xml.gz', wire=1)
+vp.load('data/290.xml.gz', wire=1)
 vp.show()        
 ```
 ![ex9](https://user-images.githubusercontent.com/32848391/32666976-918480bc-c639-11e7-9749-4fd0b71523ad.png)
 <br />
 
 
-As a short cut, the filename can be given in the show command directly:
+As a short cut, the filename (or a list of filenames) can be given in the show command directly:
 ```python
 vp = plotter.vtkPlotter()
 vp.show('data/limb.pcd') # Point cloud (PCL file format)
