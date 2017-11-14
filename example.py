@@ -4,21 +4,28 @@
 Created on Mon Nov 13 12:48:43 2017
 @author: mmusy
 """
-
 import plotter
+
+
+# Declare an instance of the class
 vp = plotter.vtkPlotter()
-vp.help() # shows a help web page
+vp.help() # shows a help message
+
+
+#Load a vtk file as a vtkActor and visualize it. 
+#The tridimensional shape corresponds to the outer shape of the embryonic mouse limb 
+#at about 11 days of gestation.
+#Choose a tomato color for the internal surface, and no transparency.
+#Press Esc to close the window and exit python session, or q to continue:
+vp.load('data/250.vtk', c=(0,0,1), bc=(1,.4,.3), alpha=1)  
+vp.show()                 # picks what is automatically stored in vp.actors
 
 
 #Load a vtk file as a vtkActor and visualize it in wireframe style. 
-#The tridimensional shape corresponds to the outer shape of the embryonic mouse limb 
-#at about 12 days of gestation.
-#Press Esc to close the window and exit python session, or q to continue:
-actor = vp.load('data/290.vtk')
-actor.GetProperty().SetRepresentationToWireframe()
-vp.show()  # picks what is automatically stored in vp.actors
-#vp.show(actor)           # ignores the content of vp.actors
-#vp.show(actors=[actor])  # same as above
+a = vp.load('data/290.vtk', wire=1) # same as a.GetProperty().SetRepresentationToWireframe()
+vp.show()             # picks what is automatically stored in vp.actors
+#vp.show(a)           # ignores the content of vp.actors
+#vp.show(actors=[a])  # same as above
 
 
 #Load 3 actors assigning each a different color, use their file paths as legend entries. 
@@ -27,7 +34,7 @@ vp = plotter.vtkPlotter()
 vp.load('data/250.vtk', c=(1,0.4,0))
 vp.load('data/270.vtk', c=(1,0.6,0))
 vp.load('data/290.vtk', c=(1,0.8,0))
-print 'Loaded vtkActors: ', len(vp.actors)
+print 'Loaded vtkActors: ', len(vp.actors), vp.files
 vp.show(legend=vp.files)
 
 
@@ -39,7 +46,7 @@ vp.make_spline(pts, s=.1, nodes=False)
 vp.show()
 
 
-#Draw a PCA ellipsoid that contains 67% of a cluod of points:
+#Draw a PCA ellipsoid that contains 67% of a cloud of points:
 vp = plotter.vtkPlotter()
 pts = [(u(0,200), u(0,200), u(0,200)) for i in range(50)]
 vp.make_points(pts)
@@ -51,11 +58,11 @@ vp.show()
 import numpy as np
 xycoords = [(np.exp(i/10.), np.sin(i/5.)) for i in range(40)]
 vp = plotter.vtkPlotter()
-gr  = vp.make_xyplot( xycoords )
-plx = vp.make_grid(center=(0,0.5,0.5), normal=(1,0,0), c=(1,0,0))
-ply = vp.make_grid(center=(0.5,0,0.5), normal=(0,1,0), c=(0,1,0))
-plz = vp.make_grid(center=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
-ax  = vp.make_axes()
+vp.make_xyplot( xycoords )
+vp.make_grid(center=(0,0.5,0.5), normal=(1,0,0), c=(1,0,0))
+vp.make_grid(center=(0.5,0,0.5), normal=(0,1,0), c=(0,1,0))
+vp.make_grid(center=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
+vp.make_axes()
 vp.show(axes=0)
 
 
@@ -72,14 +79,14 @@ vp.show(actors=[va,nv, sbound], axes=1)
 #Then open an independent window and draw on two shapes:
 vp1 = plotter.vtkPlotter(shape=(6,6), size=(900,900))
 vp1.renderers[35].SetBackground(.8,.9,.9)
-v270 = vp1.load('data/270.vtk') #load as vtkActor
+v270 = vp1.load('data/270.vtk')     #load as vtkActor (default)
 v290 = vp1.loadPoly('data/290.vtk') #load as polydata
 vp1.interactive = False
-vp1.show(at=12, actors=[v270,v290]) # polys are automatically  
-vp1.show(at=33, actors=[v270,v290]) # transformed into actors
+vp1.show(at=12, actors=[v270,v290]) # polydata are automatically  
+vp1.show(at=33, actors=[v270,v290]) # transformed into vtkActor
 vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
-v250 = vp2.load('data/250.vtk')
-v270 = vp2.load('data/270.vtk')
+vp2.load('data/250.vtk')
+vp2.load('data/270.vtk')
 vp2.show()
 
 
@@ -103,7 +110,7 @@ vp.interactive = False
 vp.show(at=0, actors=vp.make_arrow( [0,0,0], [1,1,1] ))
 vp.show(at=1, actors=vp.make_line(  [0,0,0], [1,2,3] ))
 vp.show(at=2, actors=vp.make_points( [ [0,0,0], [1,1,1], [3,1,2] ] ))
-vp.show(at=3, actors=vp.make_text('hello', cam=False))
+vp.show(at=3, actors=vp.make_text('hello', cam=False, bc=(0,1,0)))
 vp.show(at=4, actors=vp.make_sphere([.5,.5,.5], r=0.3))
 vp.show(at=5, actors=vp.make_cube(  [.5,.5,.5], r=0.3))
 vp.interact()
@@ -113,7 +120,7 @@ vp.interact()
 #also show the first set of 20 points and fit a plane to them:
 vp = plotter.vtkPlotter()
 vp.verbose = False
-for i in range(500): # draw 500 fit lines superposed
+for i in range(500): # draw 500 fit lines superimposed
     x = np.mgrid[-2:5 :20j][:, np.newaxis] # generate 20 points
     y = np.mgrid[ 1:9 :20j][:, np.newaxis]
     z = np.mgrid[-5:3 :20j][:, np.newaxis]
@@ -123,11 +130,11 @@ for i in range(500): # draw 500 fit lines superposed
         vp.make_points(data)
         vp.make_fitplane(data)
     vp.make_fitline(data, lw=10, alpha=0.01) # fit
-print 'Fit slope=',vp.result['slope'] # access the last fitted slope direction
+print 'Fit slope=', vp.result['slope'] # access the last fitted slope direction
 vp.show()
 
 
-#Display a tetrahedral mesh (Fenics/Dolfin format). The internal verteces are displayed too:
+#Display a tetrahedral mesh (Fenics/Dolfin format). The internal vertices are displayed too:
 vp = plotter.vtkPlotter()
 actor = vp.load('data/290.xml.gz')
 actor.GetProperty().SetRepresentationToWireframe()
