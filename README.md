@@ -185,6 +185,7 @@ As a short cut, the filename can be given in the show command directly:
 vp = plotter.vtkPlotter()
 vp.show('data/limb.pcd') # Point cloud (PCL file format)
 ```
+![pcd](https://user-images.githubusercontent.com/32848391/32798156-287955b4-c974-11e7-9abf-6057dd43c5db.png)
 <br />
 
 
