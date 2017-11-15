@@ -6,6 +6,7 @@ Created on Mon Nov 13 12:48:43 2017
 """
 import plotter
 
+
 # Declare an instance of the class
 vp = plotter.vtkPlotter()
 vp.help() # shows a help message
@@ -33,35 +34,35 @@ vp = plotter.vtkPlotter()
 vp.load('data/250.vtk', c=(1,0.4,0)) 
 vp.load('data/270.vtk', c=(1,0.6,0))
 vp.load('data/290.vtk', c=(1,0.8,0))
-print 'Loaded vtkActors: ', len(vp.actors), vp.files
-vp.show(legend=vp.files)
+print 'Loaded vtkActors: ', len(vp.actors), vp.names
+vp.show(legend=vp.names)
 
 
 #Draw a spline that goes through a set of points, don't show the points (nodes=False):
 from random import uniform as u
 pts = [(u(0,10), u(0,10), u(0,10)) for i in range(20)]
 vp = plotter.vtkPlotter()
-vp.make_spline(pts, s=.1, nodes=False)
+vp.spline(pts, s=.1, nodes=False)
 vp.show(legend='a random spline')
 
 
 #Draw a PCA ellipsoid that contains 67% of a cloud of points:
 vp = plotter.vtkPlotter()
 pts = [(u(0,200), u(0,200), u(0,200)) for i in range(50)]
-vp.make_points(pts)
-vp.make_ellipsoid(pts, pvalue=0.67, axes=True)
-vp.show()
+vp.points(pts)
+vp.ellipsoid(pts, pvalue=0.67, pcaaxes=True)
+vp.show(legend=['points', 'PCA ellipsoid'])
 
 
 #Show 3 planes as a grid, add a dummy sine plot on top left, add 3 axes at the origin:
 import numpy as np
 xycoords = [(np.exp(i/10.), np.sin(i/5.)) for i in range(40)]
 vp = plotter.vtkPlotter()
-vp.make_xyplot( xycoords )
-vp.make_grid(center=(0,0.5,0.5), normal=(1,0,0), c=(1,0,0))
-vp.make_grid(center=(0.5,0,0.5), normal=(0,1,0), c=(0,1,0))
-vp.make_grid(center=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
-vp.make_axes()
+vp.xyplot( xycoords )
+vp.grid(center=(0,0.5,0.5), normal=(1,0,0), c=(1,0,0))
+vp.grid(center=(0.5,0,0.5), normal=(0,1,0), c=(0,1,0))
+vp.grid(center=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
+vp.axes()
 vp.show(axes=0)
 
 
@@ -69,9 +70,9 @@ vp.show(axes=0)
 #(ratio reduces the total nr of arrows by the indicated factor):
 vp = plotter.vtkPlotter()
 va = vp.load('data/290.vtk', c=(1,0.1,0.1))
-vp.make_normals(va, ratio=5)
-vp.make_boundaries(va)
-vp.show()
+vp.normals(va, ratio=5)
+vp.boundaries(va)
+vp.show(legend='shape w/ boundaries')
 
 
 #Split window in a 36 subwindows and draw something in windows nr 12 and nr 33. 
@@ -86,7 +87,7 @@ vp1.show(at=33, actors=[v270,v290]) # transformed into vtkActor
 vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
 vp2.load('data/250.vtk')
 vp2.load('data/270.vtk')
-vp2.show()
+vp2.show(legend='an other window')
 
 
 #Load a surface and show its curvature based on 4 different schemes. 
@@ -96,8 +97,8 @@ vp = plotter.vtkPlotter(shape=(1,4), size=(400,1600))
 v = vp.load('data/290.vtk')
 vp.interactive = False
 for i in [0,1,2,3]: 
-    c = vp.make_curvatures(v, ctype=i, r=1, alpha=0.8)
-    vp.show(at=i, actors=[c])
+    c = vp.curvatures(v, ctype=i, r=1, alpha=0.8)
+    vp.show(at=i, actors=[c], legend='method #'+str(i+1))
 vp.interact() 
 
 
@@ -106,12 +107,12 @@ vp = plotter.vtkPlotter(shape=(2,3), size=(800,1200))
 vp.axes        = True
 vp.commoncam   = False
 vp.interactive = False
-vp.show(at=0, actors=vp.make_arrow( [0,0,0], [1,1,1] ))
-vp.show(at=1, actors=vp.make_line(  [0,0,0], [1,2,3] ))
-vp.show(at=2, actors=vp.make_points( [ [0,0,0], [1,1,1], [3,1,2] ] ))
-vp.show(at=3, actors=vp.make_text('hello', cam=False, bc=(0,1,0)))
-vp.show(at=4, actors=vp.make_sphere([.5,.5,.5], r=0.3))
-vp.show(at=5, actors=vp.make_cube(  [.5,.5,.5], r=0.3))
+vp.show(at=0, actors=vp.arrow( [0,0,0], [1,1,1] ) )
+vp.show(at=1, actors=vp.line(  [0,0,0], [1,2,3] ) )
+vp.show(at=2, actors=vp.points( [ [0,0,0], [1,1,1], [3,1,2] ] ) )
+vp.show(at=3, actors=vp.text('hello', cam=False, bc=(0,1,0) ) )
+vp.show(at=4, actors=vp.sphere([.5,.5,.5], r=0.3) )
+vp.show(at=5, actors=vp.cube(  [.5,.5,.5], r=0.3) )
 vp.interact()
 
 
@@ -126,23 +127,22 @@ for i in range(500): # draw 500 fit lines superimposed
     data  = np.concatenate((x, y, z), axis=1)
     data += np.random.normal(size=data.shape)*0.8 # add gauss noise
     if i==0: 
-        vp.make_points(data)
-        vp.make_fitplane(data)
-    vp.make_fitline(data, lw=10, alpha=0.01) # fit
+        vp.points(data)
+        vp.fitplane(data)
+    vp.fitline(data, lw=10, alpha=0.01) # fit
 print 'Fit slope=', vp.result['slope'] # access the last fitted slope direction
-vp.show()
+vp.show(legend=['points','fitting plane','fitting line'])
 
 
 #Display a tetrahedral mesh (Fenics/Dolfin format). 
 #The internal vertices are displayed too:
 vp = plotter.vtkPlotter()
 vp.load('data/290.xml.gz', wire=1)
-vp.show()        
+vp.show(legend=['tet. mesh','boundary surf.'])        
 
 
 #As a short cut, the filename can be given in the show command directly:
-vp = plotter.vtkPlotter()
-vp.show('data/limb.pcd') # Point cloud (PCL file format)
+plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 
 
 
