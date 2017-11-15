@@ -50,7 +50,7 @@ Draw a spline that goes through a set of points, don't show the points *(nodes=F
 from random import uniform as u
 pts = [(u(0,1), u(0,1), u(0,1)) for i in range(10)]
 vp = plotter.vtkPlotter()
-vp.make_spline(pts, s=.01, nodes=False)
+vp.spline(pts, s=.01, nodes=False)
 vp.show()
 ```
 ![ex3](https://user-images.githubusercontent.com/32848391/32666970-90c1b38e-c639-11e7-92dd-336f2aa2a2cf.png)
@@ -61,8 +61,8 @@ Draw a PCA ellipsoid that contains 67% of a cloud of points:
 ```python
 pts = [(u(0,200), u(0,200), u(0,200)) for i in range(50)]
 vp = plotter.vtkPlotter()
-vp.make_points(pts)
-vp.make_ellipsoid(pts, pvalue=0.67)
+vp.points(pts)
+vp.ellipsoid(pts, pvalue=0.67)
 vp.show()
 ```
 ![pca](https://user-images.githubusercontent.com/32848391/32732169-12f82a5a-c88c-11e7-9a31-f14b100374cb.png)
@@ -76,11 +76,11 @@ add 3 axes at the origin:
 import numpy as np
 xycoords = [(np.exp(i/10.), np.sin(i/5.)) for i in range(40)]
 vp = plotter.vtkPlotter()
-vp.make_xyplot( xycoords )
-vp.make_grid(center=(0,0.5,0.5), normal=(1,0,0), c=(1,0,0))
-vp.make_grid(center=(0.5,0,0.5), normal=(0,1,0), c=(0,1,0))
-vp.make_grid(center=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
-vp.make_axes()
+vp.xyplot( xycoords )
+vp.grid(center=(0,0.5,0.5), normal=(1,0,0), c=(1,0,0))
+vp.grid(center=(0.5,0,0.5), normal=(0,1,0), c=(0,1,0))
+vp.grid(center=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
+vp.axes()
 vp.show(axes=0)
 ```
 ![ex4](https://user-images.githubusercontent.com/32848391/32666971-90dac112-c639-11e7-96ef-ec41bdf3b7e5.png)
@@ -91,8 +91,8 @@ Show the vtk boundaries of a vtk surface and its normals<br />
 ```python
 vp = plotter.vtkPlotter()
 va = vp.load('data/290.vtk', c=(1,0.1,0.1))
-vp.make_normals(va, ratio=5)
-vp.make_boundaries(va)
+vp.normals(va, ratio=5)
+vp.boundaries(va)
 vp.show()
 ```
 ![ex5](https://user-images.githubusercontent.com/32848391/32666972-90f46a5e-c639-11e7-93c3-e105322ff481.png)
@@ -126,7 +126,7 @@ vp = plotter.vtkPlotter(shape=(1,4), size=(400,1600))
 v = vp.load('data/290.vtk')
 vp.interactive = False
 for i in [0,1,2,3]: 
-    c = vp.make_curvatures(v, ctype=i, r=1, alpha=0.8)
+    c = vp.curvatures(v, ctype=i, r=1, alpha=0.8)
     vp.show(at=i, actors=[c])
 vp.interact() # same as setting flag interactive=True
 ```
@@ -139,12 +139,12 @@ Draw a bunch of simple objects on separate parts of the rendering window:
 vp = plotter.vtkPlotter(shape=(2,3), size=(800,1200))
 vp.commoncam   = False
 vp.interactive = False
-vp.show(at=0, actors=vp.make_arrow( [0,0,0], [1,1,1] ))
-vp.show(at=1, actors=vp.make_line(  [0,0,0], [1,2,3] ))
-vp.show(at=2, actors=vp.make_points( [ [0,0,0], [1,1,1], [3,1,2] ] ))
-vp.show(at=3, actors=vp.make_text('hello', cam=False))
-vp.show(at=4, actors=vp.make_sphere([.5,.5,.5], r=0.3))
-vp.show(at=5, actors=vp.make_cube(  [.5,.5,.5], r=0.3))
+vp.show(at=0, actors=vp.arrow( [0,0,0], [1,1,1] ))
+vp.show(at=1, actors=vp.line(  [0,0,0], [1,2,3] ))
+vp.show(at=2, actors=vp.points( [ [0,0,0], [1,1,1], [3,1,2] ] ))
+vp.show(at=3, actors=vp.text('hello', cam=False))
+vp.show(at=4, actors=vp.sphere([.5,.5,.5], r=0.3))
+vp.show(at=5, actors=vp.cube(  [.5,.5,.5], r=0.3))
 vp.interact()
 ```
 ![ex8](https://user-images.githubusercontent.com/32848391/32666975-91690102-c639-11e7-8f7b-ad07bd6019da.png)
@@ -161,9 +161,9 @@ for i in range(500): # draw 500 fit lines superposed
     data  = np.concatenate((x, y, z), axis=1)
     data += np.random.normal(size=data.shape)*0.8 # add gauss noise
     if i==0: 
-        vp.make_points(data)
-        vp.make_fitplane(data)
-    vp.make_fitline(data, lw=10, alpha=0.01) # fit
+        vp.points(data)
+        vp.fitplane(data)
+    vp.fitline(data, lw=10, alpha=0.01) # fit
 print vp.result['slope'] # access the last fitted slope direction
 vp.show()
 ```
