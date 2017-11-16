@@ -34,9 +34,8 @@ Run a tutorial script:
 ```python
 import plotter
 
-# Declare an instance of the class
-vp = plotter.vtkPlotter()
-vp.help() # shows a help message
+vp = plotter.vtkPlotter()  # Declare an instance of the class
+vp.help()                  # shows a help message
 ```
 <br />
 
@@ -60,7 +59,7 @@ vp = plotter.vtkPlotter()
 vp.load('data/250.vtk', c=(1,0.4,0)) # c=(R,G,B) color
 vp.load('data/270.vtk', c=(1,0.6,0))
 vp.load('data/290.vtk', c=(1,0.8,0))
-print 'Loaded vtkActors: ', len(vp.actors)
+print ('Loaded vtkActors: ', len(vp.actors))
 vp.show(legend=vp.files)
 ```
 ![ex2](https://user-images.githubusercontent.com/32848391/32666969-90a7dc48-c639-11e7-8795-b139166f0504.png)
@@ -93,7 +92,6 @@ vp.show()
 Show 3 planes as a grid, add a dummy sine plot on top left,
 add 3 axes at the origin:
 ```python
-#Show 3 planes as a grid, add a dummy sine plot on top left, add 3 axes at the origin:
 import numpy as np
 xycoords = [(np.exp(i/10.), np.sin(i/5.)) for i in range(40)]
 vp = plotter.vtkPlotter()
@@ -125,10 +123,10 @@ windows nr 12 and nr 33. Then open an independent window and draw on two shapes:
 ```python
 vp1 = plotter.vtkPlotter(shape=(6,6), size=(900,900))
 vp1.renderers[35].SetBackground(.8,.9,.9)
-v270 = vp1.load('data/270.vtk') #load as vtkActor
-v290 = vp1.loadPoly('data/290.vtk') #load as polydata
+v270 = vp1.load('data/270.vtk')     #load as vtkActor
+v290 = vp1.loadPoly('data/290.vtk') #load as vtkPolyData object
 vp1.interactive = False
-vp1.show(at=12, actors=[v270,v290]) # polys are automatically  
+vp1.show(at=12, actors=[v270,v290]) # polydata are automatically  
 vp1.show(at=33, actors=[v270,v290]) # transformed into actors
 vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
 v250 = vp2.load('data/250.vtk')
@@ -185,7 +183,7 @@ for i in range(500): # draw 500 fit lines superposed
         vp.points(data)
         vp.fitplane(data)
     vp.fitline(data, lw=10, alpha=0.01) # fit
-print vp.result['slope'] # access the last fitted slope direction
+print (vp.result['slope']) # access the last fitted slope direction
 vp.show()
 ```
 ![plane](https://user-images.githubusercontent.com/32848391/32667173-3ad163ec-c63a-11e7-8b3d-4a8ba047eae9.png)
