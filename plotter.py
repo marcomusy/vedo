@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # A helper tool for visualizing vtk objects
+from __future__ import print_function
 __author__ = "Marco Musy"
 __license__ = "MIT"
 __version__ = "2.0"
@@ -15,33 +16,33 @@ vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
 class vtkPlotter:
 
     def help(self):
-        print """\n
+        print ("""\n
         A python helper class to easily draw VTK tridimensional objects.
         Please follow instructions at:
         https://github.com/marcomusy/vtkPlotter
         Useful commands on graphic window:
-        """
+        """)
         self.tips()
 
     def tips(self):
-        print "Press --------------------------------"
-        print " m   to minimise opacity"
-        print " /   to maximize opacity"
-        print " .,  to increase/reduce opacity"
-        print " w/s to toggle wireframe/solid style"
-        print " c   to print current camera info"
-        print " O   to show vertices only"
-        print " 123 to change color scheme"
-        print " v   to toggle verbose mode"
-        print " S   to save a screenshot"
-        print " q   to return to python session"
-        print " e   to close window and return"
-        print " Esc to abort and exit python "
-        print " Move mouse to change 3D point of view"
-        print "      Ctrl-mouse to rotate scene"
-        print "      Shift-mouse to shift scene"
-        print "      Right-mouse to zoom in/out"
-        print "--------------------------------------"
+        print ("""Press ----------------------------------------
+        m   to minimise opacity"
+        /   to maximize opacity"
+        .,  to increase/reduce opacity"
+        w/s to toggle wireframe/solid style"
+        c   to print current camera info"
+        O   to show vertices only"
+        123 to change color scheme"
+        v   to toggle verbose mode"
+        S   to save a screenshot"
+        q   to return to python session"
+        e   to close window and return"
+        Esc to abort and exit python "
+        Move mouse to change 3D point of view"
+            Ctrl-mouse to rotate scene"
+            Shift-mouse to shift scene"
+            Right-mouse to zoom in/out"
+        --------------------------------------""")
 
 
     def __init__(self, shape=(1,1), size=(800,800), bg=(1,1,1), balloon=False):
@@ -108,8 +109,8 @@ class vtkPlotter:
     #######################################
     def loadXml(self, filename):
         if not os.path.exists(filename): return False
-        if vtkMV: 
-            print 'Not yet tested on vtk 6.0 or higher.'
+        if vtkMV:
+            print ('Not yet tested on vtk 6.0 or higher.')
             return False
         try:
             import xml.etree.ElementTree as et
@@ -125,7 +126,7 @@ class vtkPlotter:
             coords, connectivity = [], []
             for mesh in tree.getroot():
                 for elem in mesh:
-                    if self.verbose: print 'reading',elem.tag
+                    if self.verbose: print ('reading',elem.tag)
                     for e in elem.findall('vertex'):
                         x = float(e.get('x'))
                         y = float(e.get('y'))
@@ -158,12 +159,12 @@ class vtkPlotter:
             #actor = vtk.vtkActor()
             #actor.SetMapper(mapper)
             if self.verbose:
-                print 'Appending vtkUnstructuredGrid to vtkPlotter.tetmeshes'
+                print ('Appending vtkUnstructuredGrid to vtkPlotter.tetmeshes')
         except:
-            print "Cannot parse xml file. Skip.", filename
+            print ("Cannot parse xml file. Skip.", filename)
         try:
             if self.verbose:
-                print 'Trying to convert fenics mesh file'
+                print ('Trying to convert fenics mesh file')
             import dolfin as dlf
 
             mesh = dlf.Mesh(filename)
@@ -190,7 +191,7 @@ class vtkPlotter:
             idxs = d2v[u.vector() == 0.0] #indeces
             coords = mesh.coordinates()
             if self.verbose:
-                print 'Appending tetrahedral vertices to vtkPlotter.actors'
+                print ('Appending tetrahedral vertices to vtkPlotter.actors')
             self.points(coords[idxs], r=maxb/400, c=(.8,0,.2), alpha=.2)
             self.names.append(filename)
             return poly
@@ -256,7 +257,7 @@ class vtkPlotter:
                 if not start and 'DATA ascii' in text:
                     start = True
             if expN != N:
-                print 'Mismatch in pcd file', expN, len(pts)
+                print ('Mismatch in pcd file', expN, len(pts))
             src = vtk.vtkPointSource()
             src.SetNumberOfPoints(len(pts))
             src.Update()
@@ -265,7 +266,7 @@ class vtkPlotter:
         else:
             poly = self.loadPoly(filename, reader=reader)
         if not poly:
-            print 'Unable to load', filename
+            print ('Unable to load', filename)
             return False
         actor = self.makeActor(poly, c, alpha, wire, bc)
         self.actors.append(actor)
@@ -286,7 +287,7 @@ class vtkPlotter:
             for i in range(index+1):
                 act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
             return act.GetMapper().GetInput()
-        print "Error: input is neither a poly nor an actor int or assembly.", obj
+        print ("Error: input is neither a poly nor an actor int or assembly.", obj)
         return False
 
 
@@ -364,7 +365,7 @@ class vtkPlotter:
     def colorpoints(self, plist, cols, r=10., alpha=0.8):
         ### cols= (r,g,b) in range [0,1]
         if len(plist) != len(cols):
-            print "Mismatch in colorpoints()", len(plist), len(cols)
+            print ("Mismatch in colorpoints()", len(plist), len(cols))
             quit()
         src = vtk.vtkPointSource()
         src.SetNumberOfPoints(len(plist))
@@ -701,7 +702,7 @@ class vtkPlotter:
         curve.SetCurvatureType(ctype)
         curve.InvertMeanCurvatureOn()
         curve.Update()
-        if self.verbose: print 'CurvatureType set to:',ctype
+        if self.verbose: print ('CurvatureType set to:',ctype)
         if not lut:
             lut = vtk.vtkLookupTable()
             lut.SetNumberOfColors(256)
@@ -758,7 +759,7 @@ class vtkPlotter:
         self.result['center'] = datamean
         self.result['variances'] = dd
         if self.verbose:
-            print "Extra info saved in vp.results['slope','center','variances']"
+            print ("Extra info saved in vp.results['slope','center','variances']")
         if tube: # show a rough estimate of error band at 2 sigma level
             tb = vtk.vtkTubeFilter()
             tb.SetNumberOfSides(48)
@@ -785,7 +786,7 @@ class vtkPlotter:
         self.result['center']  = datamean
         self.result['variance']= dd[2]
         if self.verbose:
-            print "Extra info saved in vp.results['normal','center','variance']"
+            print ("Extra info saved in vp.results['normal','center','variance']")
         return pla
 
 
@@ -795,7 +796,7 @@ class vtkPlotter:
         try:
             from scipy.stats import f
         except:
-            print "scipy not installed. Skip."
+            print ("scipy not installed. Skip.")
             return None
         P = np.array(points, ndmin=2, dtype=float)
         cov = np.cov(P, rowvar=0)    # covariance matrix
@@ -811,7 +812,7 @@ class vtkPlotter:
         self.result['b'] = vb
         self.result['c'] = vc
         if self.verbose:
-            print "Extra info saved in vp.results['sphericity','a','b','c']"
+            print ("Extra info saved in vp.results['sphericity','a','b','c']")
         elliSource = vtk.vtkSphereSource()
         elliSource.SetThetaResolution(48)
         elliSource.SetPhiResolution(48)
@@ -920,8 +921,8 @@ class vtkPlotter:
             texts.append(t)
         N = len(texts)
         if N > len(self.actors):
-            print 'Mismatch in Legend: only', len(self.actors), 'actors',
-            print 'but', N, 'legend lines. Skip.'
+            print ('Mismatch in Legend:')
+            print ('only', len(self.actors), 'actors but', N, 'legend lines.')
             return
         legend = vtk.vtkLegendBoxActor()
         legend.SetNumberOfEntries(N)
@@ -972,11 +973,11 @@ class vtkPlotter:
         if not axes   is None: self.showaxes = axes
         if not interactive is None: self.interactive = interactive
         if self.verbose:
-            print 'Drawing', len(self.actors),'actors',
-            if self.shape != (1,1): print 'on window',at,'-',
-            else: print '-',
-            if self.interactive: print 'Interactive: On.'
-            else: print 'Interactive: Off.'
+            print ('Drawing', len(self.actors),'actors', end='')
+            if self.shape != (1,1): print ('on window',at,'-', end='')
+            else: print (' - ', end='')
+            if self.interactive: print ('Interactive: On.')
+            else: print ('Interactive: Off.')
 
         self.renderer = self.renderers[at]
         if not self.camera: self.camera = self.renderer.GetActiveCamera()
@@ -1028,30 +1029,30 @@ class vtkPlotter:
         key = obj.GetKeySym()
         if key == "q" or key == "space":
             #if self.verbose:
-            #    print "Returning control to python script/command line."
-            #    print "Use vp.interact() to go back to 3D scene."
+            #    print ("Returning control to python script/command line.")
+            #    print ("Use vp.interact() to go back to 3D scene.")
             self.interactor.ExitCallback()
         if key == "e":
             if self.verbose:
-                print "Closing window and return control to python."
+                print ("Closing window and return control to python.")
             rw = self.interactor.GetRenderWindow()
             rw.Finalize()
             self.interactor.TerminateApp()
             del self.renderWin, self.interactor
             return
         if key == "Escape":
-            if self.verbose: print "Quitting now, Bye."
+            if self.verbose: print ("Quitting now, Bye.")
             exit(0)
         if key == "S":
-            print 'Saving picture as screenshot.png'
+            print ('Saving picture as screenshot.png')
             screenshot()
         if key == "c":
             cam = self.renderer.GetActiveCamera()
-            print '\ncam = vtk.vtkCamera() #example code'
-            print 'cam.SetPosition(',  [round(e,3) for e in cam.GetPosition()],  ')'
-            print 'cam.SetFocalPoint(',[round(e,3) for e in cam.GetFocalPoint()],')'
-            print 'cam.SetParallelScale(',round(cam.GetParallelScale(),3),')'
-            print 'cam.SetViewUp(', [round(e,3) for e in cam.GetViewUp()],')'
+            print ('\ncam = vtk.vtkCamera() #example code')
+            print ('cam.SetPosition(',  [round(e,3) for e in cam.GetPosition()],  ')')
+            print ('cam.SetFocalPoint(',[round(e,3) for e in cam.GetFocalPoint()],')')
+            print ('cam.SetParallelScale(',round(cam.GetParallelScale(),3),')')
+            print ('cam.SetViewUp(', [round(e,3) for e in cam.GetViewUp()],')')
         actors = self.renderer.GetActors()
         actors.InitTraversal()
         if key == "m":
@@ -1070,7 +1071,7 @@ class vtkPlotter:
                 actors.GetNextItem().GetProperty().SetOpacity(1)
         if key == "v":
             self.verbose = not(self.verbose)
-            print "Verbose: ", self.verbose
+            print ("Verbose: ", self.verbose)
         if key == "1":
             for i,ia in enumerate(self.actors):
                 ia.GetProperty().SetColor(colors1[i])
@@ -1141,15 +1142,14 @@ def screenshot(filename='screenshot.png'):
         import gtk.gdk
         w = gtk.gdk.get_default_root_window().get_screen().get_active_window()
         sz = w.get_size()
-        print "The size of active window is %d x %d" % sz
         pb = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8, sz[0], sz[1])
         pb = pb.get_from_drawable(w,w.get_colormap(),0,0,0,0, sz[0], sz[1])
         if pb is not None:
             pb.save(filename, "png")
-            print "Screenshot saved to", filename
-        else: print "Unable to save the screenshot. Skip."
+            print ("Screenshot saved to", filename)
+        else: print ("Unable to save the screenshot. Skip.")
     except:
-        print "Unable to take the screenshot. Skip."
+        print ("Unable to take the screenshot. Skip.")
 
 
 def video(images=[], outvid='pics/output.avi', srcdir='pics/',
@@ -1157,21 +1157,21 @@ def video(images=[], outvid='pics/output.avi', srcdir='pics/',
     try:
         import cv2
     except:
-        print "plotter.video: cv2 not installed? Skip."
+        print ("plotter.video: cv2 not installed? Skip.")
         return
     if len(images) == 0:
-        print 'Looking into ',srcdir,' to use png files therein'
+        print ('Looking into ',srcdir,' to use png files therein')
         names = sorted(os.listdir('pics'))
         selimg=[]
         for an in names :
             if 'png' in an and tag in an:
-                print '..using:', an
+                print ('..using:', an)
                 selimg.append(an)
         images = selimg
     fourcc = cv2.cv.CV_FOURCC(*format)
     for image in images:
         if not os.path.exists('pics/'+image):
-            print 'image not found:', 'pics/'+image
+            print ('image not found:', 'pics/'+image)
             quit()
         img = cv2.imread('pics/'+image)
         size = img.shape[1], img.shape[0]
@@ -1222,11 +1222,11 @@ if __name__ == '__main__':
     try:
         import sys
         fs = sys.argv[1:]
-        print 'Rendering files:', fs
+        print ('Rendering files:', fs)
         if len(fs)==1: leg=None
         else: leg=fs
         vp = vtkPlotter(balloon=True)
         vp.show(actors=fs, legend=leg)
     except:
-        print "Something went wrong."
-        print "Usage: python plotter.py file*.vtk [vtp,ply,obj,stl,xml,pcd]"
+        print ("Something went wrong.")
+        print ("Usage: python plotter.py file*.vtk  # [vtp,ply,obj,stl,xml,pcd]")
