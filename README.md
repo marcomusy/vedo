@@ -205,7 +205,7 @@ To install plotter.py in a fixed location (e.g. *$HOME/soft/bin*):
 ```bash
 mv vtkPlotter $HOME/soft/bin
 ```
- add this lines to your .bashrc:
+and add these lines to your .bashrc:
 ```bash
 export PYTHONPATH=$HOME/soft/bin/vtkPlotter:$PYTHONPATH
 export PATH=$HOME/soft/bin/vtkPlotter:$PATH
