@@ -20,7 +20,7 @@ class vtkPlotter:
         A python helper class to easily draw VTK tridimensional objects.
         Please follow instructions at:
         https://github.com/marcomusy/vtkPlotter
-        Useful commands on graphic window:\n """)
+        Useful commands on graphic window:\n  """)
         self.tips()
 
     def tips(self):
