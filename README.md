@@ -2,7 +2,7 @@
 # vtkPlotter
 A python helper class to easily draw VTK tridimensional objects.
 
-Based on VTK version 5.8.0: https://www.vtk.org and *numpy*
+Based on VTK (testes on version 5.8 and 6.1): https://www.vtk.org and *numpy*
 
 To install VTK in Ubuntu:
 >*sudo apt-get install python-vtk*
