@@ -19,7 +19,9 @@ python plotter.py data/*.vtk  # valid formats: [vtp,ply,obj,stl,xml,pcd]
 ```
 
 Run a tutorial script:
-```bash python example.py*```<br />
+```bash 
+python example.py
+```<br />
 
 ```python
 import plotter
