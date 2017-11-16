@@ -1118,11 +1118,12 @@ class vtkPlotter:
                 ia.GetProperty().SetPointSize(ps+2)
                 ia.GetProperty().SetRepresentationToPoints()
         self.interactor.Render()
-        print ('colorr',getcolor('blue'))
+
 
     def interact(self):
         if hasattr(self, 'interactor'):
             self.interactor.Start()
+
 
     def lastactor(self): return self.actors[-1]
 
