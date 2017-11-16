@@ -7,7 +7,12 @@ Based on VTK version 5.8.0: https://www.vtk.org and *numpy*
 To install VTK in Ubuntu:
 >*sudo apt-get install python-vtk*
 
-## Example usage:
+## Example usage:<br />
+
+Simple command line usage:
+```bash
+python plotter.py data/*.vtk  # valid formats: [vtp,ply,obj,stl,xml,pcd]
+```
 
 Run this tutorial: 
 >*python example.py*<br />
@@ -25,9 +30,10 @@ Load a vtk file as a vtkActor and visualize it in wireframe style. <br />
 The tridimensional shape corresponds to the outer shape of the embryonic mouse limb at about 12 days of gestation.<br />
 Press *Esc* to close the window and exit python session or *q* to continue:
 ```python
+vp = plotter.vtkPlotter()
 actor = vp.load('data/290.vtk', wire=1)
 vp.show()
-#vp.show(actor)           # ignores the content of vp.actors
+#vp.show(actor)           # overrides the content of vp.actors
 #vp.show(actors=[actor])  # same as above
 ```
 ![ex1](https://user-images.githubusercontent.com/32848391/32666968-908d1bf6-c639-11e7-9201-46572a2349c2.png)
@@ -36,6 +42,7 @@ vp.show()
 Load 3 actors assigning each a different color, use their file names as legend entries.
 No need to use any variables, as actors are stored internally in vp.actors:
 ```python
+vp = plotter.vtkPlotter()
 vp.load('data/250.vtk', c=(1,0.4,0)) # c=(R,G,B) color
 vp.load('data/270.vtk', c=(1,0.6,0))
 vp.load('data/290.vtk', c=(1,0.8,0))
@@ -186,6 +193,14 @@ plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 ```
 ![pcd](https://user-images.githubusercontent.com/32848391/32798156-287955b4-c974-11e7-9abf-6057dd43c5db.png)
 <br />
+
+If you need to do more complicated things (define widgets.. etc), you can still access all the usual VTK objects like interactors and renderers through vp.interactor, vp.renderer.<br />
+
+To install the script in a fixed location (e.g. $HOME/soft/bin), add this to your .bashrc:
+```bash
+export PYTHONPATH=$HOME/soft/bin:$PYTHONPATH
+```
+
 
 
 
