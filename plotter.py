@@ -108,6 +108,9 @@ class vtkPlotter:
     #######################################
     def loadXml(self, filename):
         if not os.path.exists(filename): return False
+        if vtkMV: 
+            print 'Not yet tested on vtk 6.0 or higher.'
+            return False
         try:
             import xml.etree.ElementTree as et
             if '.gz' in filename:
