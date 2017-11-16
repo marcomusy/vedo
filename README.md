@@ -2,7 +2,7 @@
 # vtkPlotter
 A python helper class to easily draw VTK tridimensional objects.
 
-Based on VTK (testes on version 5.8 and 6.1): https://www.vtk.org and *numpy*
+Based on VTK (tested on versions 5.8, 6.1, 7.0): https://www.vtk.org and *numpy*
 <br />
 
 ## Example usage:<br />
