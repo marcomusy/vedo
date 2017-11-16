@@ -43,7 +43,6 @@ Load a vtk file as a vtkActor and visualize it in wireframe style. <br />
 The tridimensional shape corresponds to the outer shape of the embryonic mouse limb at about 12 days of gestation.<br />
 Press *Esc* to close the window and exit python session or *q* to continue:
 ```python
-vp = plotter.vtkPlotter()
 actor = vp.load('data/290.vtk', wire=1)
 vp.show()
 #vp.show(actor)           # overrides the content of vp.actors
