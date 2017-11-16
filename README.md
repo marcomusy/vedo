@@ -11,7 +11,7 @@ git clone https://github.com/marcomusy/vtkPlotter.git
 cd vtkPlotter
 ```
 
-To install plotter.py in a fixed location (e.g. *$HOME/soft/bin*):
+To install to a fixed location (e.g. *$HOME/soft/bin*):
 ```bash
 mv vtkPlotter $HOME/soft/bin
 ```
@@ -24,7 +24,7 @@ export PATH=$HOME/soft/bin/vtkPlotter:$PATH
 
 Simple command line usage:
 ```bash
-python plotter.py data/*.vtk  # other valid formats: [vtp,ply,obj,stl,xml,pcd]
+plotter data/*.vtk  # other valid formats: [vtp,ply,obj,stl,xml,pcd]
 ```
 
 Run a tutorial script: 
