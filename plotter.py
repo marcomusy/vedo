@@ -231,11 +231,13 @@ class vtkPlotter:
 
 
     def load(self, filename, reader=None, c=(1,0.647,0), alpha=0.2, 
-             wire=False, bc=None, edges=False):
-        # c,     color in RGB format in the range [0,1]
+             wire=False, bc=False, edges=False):
+        # c,     color in RGB format or symbol
         # alpha, transparency (0=invisible)
         # wire,  show surface as wireframe
         # bc,    backface color of internal surface
+        c = getcolor(c) # allow different codings
+        if bc: bc = getcolor(bc)
         fl = filename.lower()
         if '.xml' in fl or '.xml.gz' in fl: # Fenics tetrahedral mesh file
             poly = self.loadXml(filename)
@@ -291,11 +293,13 @@ class vtkPlotter:
         return False
 
 
-    def makeActor(self, poly, c=(0.5, 0.5, 0.5), alpha=0.5, wire=False, bc=None, edges=False):
+    def makeActor(self, poly, c=(0.5, 0.5, 0.5), alpha=0.5, wire=False, bc=False, edges=False):
         # c,     color in RGB format in the range [0,1]
         # alpha, transparency (0=invisible)
         # wire,  show surface as wireframe
         # bc,    backface color
+        c = getcolor(c)
+        if bc: bc = getcolor(bc)
         dataset = vtk.vtkPolyDataNormals()
         if vtkMV: dataset.SetInputData(poly)
         else:     dataset.SetInput(poly)
@@ -397,6 +401,7 @@ class vtkPlotter:
     def points(self, plist, c=(0, 0, 1), r=10., alpha=1.):
         if len(c)>3:
             return self.colorpoints(plist, c, r, alpha)
+        else: c = getcolor(c) # allow different codings
         src = vtk.vtkPointSource()
         src.SetNumberOfPoints(len(plist))
         src.Update()
@@ -409,6 +414,7 @@ class vtkPlotter:
 
 
     def line(self, p0,p1, lw=1, c=(1, 0, 0), alpha=1.):
+        c = getcolor(c) # allow different codings
         lineSource = vtk.vtkLineSource()
         lineSource.SetPoint1(p0)
         lineSource.SetPoint2(p1)
@@ -420,6 +426,7 @@ class vtkPlotter:
 
 
     def sphere(self, pt, r=1, c=(1, 0, 0), alpha=1.):
+        c = getcolor(c) # allow different codings
         src = vtk.vtkSphereSource()
         src.SetThetaResolution(24)
         src.SetPhiResolution(24)
@@ -432,6 +439,7 @@ class vtkPlotter:
 
 
     def cube(self, pt, r=1, c=(0, 1, 0), alpha=1.):
+        c = getcolor(c) # allow different codings
         src = vtk.vtkCubeSource()
         src.SetXLength(r)
         src.SetYLength(r)
@@ -444,6 +452,7 @@ class vtkPlotter:
 
 
     def grid(self, center=(0,0,0), normal=(0,0,1), s=10, N=10, c=(0,0,1), lw=1, alpha=1):
+        c = getcolor(c) # allow different codings
         ps = vtk.vtkPlaneSource()
         ps.SetResolution(N, N)
         ps.SetCenter(np.array(center)/float(s))
@@ -459,6 +468,7 @@ class vtkPlotter:
 
 
     def arrow(self, startPoint, endPoint, c=(1, 0, 0), alpha=1):
+        c = getcolor(c) # allow different codings
         arrowSource = vtk.vtkArrowSource()
         arrowSource.SetShaftResolution(24)
         arrowSource.SetTipResolution(24)
@@ -494,6 +504,7 @@ class vtkPlotter:
 
     def spline(self, points, s=10, c=(0,0,0.8), alpha=1., nodes=True):
         ## the spline passes through all points exactly
+        c = getcolor(c) # allow different codings
         numberOfOutputPoints = len(points)*20 # Number of points on the spline
         numberOfInputPoints  = len(points) # One spline for each direction.
         aSplineX = vtk.vtkCardinalSpline() #  interpolate the x values
@@ -551,6 +562,7 @@ class vtkPlotter:
                 s=1, c=(0,0,0.8), alpha=1., nodes=True):
         ## nknots=-1, max nr of knots is used (max precision)
         ## lower number gives smoother curve
+        c = getcolor(c) # allow different codings
         from scipy.interpolate import splprep, splev
         Nout = len(points)*20 # Number of points on the spline
         points = np.array(points)
@@ -583,7 +595,9 @@ class vtkPlotter:
         return acttube
 
 
-    def text(self, txt, pos=(0,0,0), s=1, c=(0,0,0), alpha=1, cam=True, bc=None):
+    def text(self, txt, pos=(0,0,0), s=1, c=(0,0,0), alpha=1, cam=True, bc=False):
+        c = getcolor(c) # allow different codings
+        if bc: bc = getcolor(bc)
         tt = vtk.vtkVectorText()
         tt.SetText(txt)
         ttmapper = vtk.vtkPolyDataMapper()
@@ -608,6 +622,7 @@ class vtkPlotter:
 
 
     def xyplot(self, points, title='', c=(1,0,0), pos=1, lines=False):
+        c = getcolor(c) # allow different codings
         array_x = vtk.vtkFloatArray()
         array_y = vtk.vtkFloatArray()
         array_x.SetNumberOfTuples(len(points))
@@ -657,6 +672,7 @@ class vtkPlotter:
 
 
     def normals(self, pactor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8):
+        c = getcolor(c) # allow different codings
         maskPts = vtk.vtkMaskPoints()
         maskPts.SetOnRatio(ratio)
         maskPts.RandomModeOff()
@@ -725,6 +741,7 @@ class vtkPlotter:
 
     def boundaries(self, pactor, c=(1, 0, 0.5), lw=5):
         ### shows the boundaries lines of the polydata
+        c = getcolor(c) # allow different codings
         fe = vtk.vtkFeatureEdges()
         if vtkMV: fe.SetInputData(self.getPD(pactor))
         else:     fe.SetInput(self.getPD(pactor))
@@ -742,6 +759,7 @@ class vtkPlotter:
 
     ################# working with point clouds
     def fitline(self, points, c=(.5,0,1), lw=1, alpha=0.6, tube=False):
+        c = getcolor(c) # allow different codings
         data = np.array(points)
         datamean = data.mean(axis=0)
         uu, dd, vv = np.linalg.svd(data - datamean)
@@ -774,6 +792,7 @@ class vtkPlotter:
 
 
     def fitplane(self, points, c=(.5,0,1)):
+        c = getcolor(c) # allow different codings
         data = np.array(points)
         datamean = data.mean(axis=0)
         uu, dd, vv = np.linalg.svd(data - datamean)
@@ -793,6 +812,7 @@ class vtkPlotter:
     def ellipsoid(self, points, pvalue=.95, c=(0,1,1), alpha=0.5, pcaaxes=False):
         # build the ellpsoid that contains 95% of points
         # axes = True, show the 3 PCA axes
+        c = getcolor(c) # allow different codings
         try:
             from scipy.stats import f
         except:
@@ -959,9 +979,12 @@ class vtkPlotter:
     ###############################################################################
     def show(self, actors=None, legend=None, at=0, #at=render wind. nr.
              axes=None, ruler=False, interactive=None, outputimage=None,
-             c=(1,0.647,0), alpha=0.2, wire=False, bc=None, edges=False):
+             c=(1,0.647,0), alpha=0.2, wire=False, bc=False, edges=False):
         ## actors = a mixed list of vtkActors, vtkPolydata and filename strings
         ## at = index of the renderer
+        
+        c = getcolor(c)  # allow different codings
+        bc = getcolor(bc) 
 
         # override what was stored internally with passed input
         if not actors is None:
@@ -1095,6 +1118,7 @@ class vtkPlotter:
                 ia.GetProperty().SetPointSize(ps+2)
                 ia.GetProperty().SetRepresentationToPoints()
         self.interactor.Render()
+        print ('colorr',getcolor('blue'))
 
     def interact(self):
         if hasattr(self, 'interactor'):
@@ -1262,6 +1286,36 @@ def write(poly, fileoutput):
     print ("Writing", fileoutput, v.GetNumberOfPoints(),"points.")
     wt.Write()
 
+####################################
+def getcolor(c):
+    if isinstance(c,list) or isinstance(c,tuple) : #RGB
+        if c[0]<=1 and c[1]<=1 and c[2]<=1:
+            return c
+        else:
+            return [int(c[0]/255.),int(c[1]/255.),int(c[2]/255.)]
+    if isinstance(c,str):
+        cols = [ [0,0,1], [0,.9,0], [1,0,0],[0,1,1],[1,0,1],
+                [1,1,0], [0,0,0],[1,1,1],[1,.388,.278],
+                [.5,.5,0], [.5,0,.5], [.5,0,0],
+                [0,.5,.5], [0,.5,0], [0,0,.5], [1,.627,0.478],
+                [1,.843,0], [.5,.5,.5] ]
+        cols_names = ['blue','green','red','cyan','magenta',
+                      'yellow', 'black', 'white','tomato',
+                      'olive', 'purple', 'maroon',
+                      'teal','darkgreen','navy','salmon',
+                      'gold','gray']
+        if len(c)==1: #single letter color
+            cc = ['b','g','r','c','m','y','k','w','t','o','p']
+        else: 
+            cc = cols_names
+        try: 
+            ic = cc.index(c.lower())
+            return cols[ic]        
+        except ValueError:
+            print ("Unknow color name", c, 'is not in:\n',cols_names)
+    if isinstance(c,int): 
+        return colors3[i]
+    return [0,0,0]
 
 ########################################################################
 if __name__ == '__main__':

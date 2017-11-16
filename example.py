@@ -17,7 +17,7 @@ vp = plotter.vtkPlotter()
 #at about 11 days of gestation.
 #Choose a tomato color for the internal surface, and no transparency.
 #Press Esc to close the window and exit python session, or q to continue:
-vp.load('data/250.vtk', c=(0,0,1), bc=(1,.4,.3), alpha=1) # c=(R,G,B) color
+vp.load('data/250.vtk', c='b', bc='tomato', alpha=1) # c=(R,G,B), symbol or name
 vp.show()                 # picks what is automatically stored in vp.actors
 
 
@@ -69,7 +69,7 @@ vp.show(axes=0)
 #Show the vtk boundaries of a vtk surface and its normals
 #(ratio reduces the total nr of arrows by the indicated factor):
 vp = plotter.vtkPlotter()
-va = vp.load('data/290.vtk', c=(1,0.1,0.1))
+va = vp.load('data/290.vtk', c='maroon')
 vp.normals(va, ratio=5)
 vp.boundaries(va)
 vp.show(legend='shape w/ boundaries')
@@ -129,7 +129,7 @@ for i in range(500): # draw 500 fit lines superimposed
     data  = np.concatenate((x, y, z), axis=1)
     data += np.random.normal(size=data.shape)*0.8 # add gauss noise
     if i==0:
-        vp.points(data)
+        vp.points(data, c='red')
         vp.fitplane(data)
     vp.fitline(data, lw=10, alpha=0.01) # fit
 print ('Fit slope=', vp.result['slope']) # access the last fitted slope direction
