@@ -20,28 +20,27 @@ class vtkPlotter:
         A python helper class to easily draw VTK tridimensional objects.
         Please follow instructions at:
         https://github.com/marcomusy/vtkPlotter
-        Useful commands on graphic window:
-        """)
+        Useful commands on graphic window:\n """)
         self.tips()
 
     def tips(self):
         print ("""Press ----------------------------------------
-        m   to minimise opacity"
-        /   to maximize opacity"
-        .,  to increase/reduce opacity"
-        w/s to toggle wireframe/solid style"
-        c   to print current camera info"
-        O   to show vertices only"
-        123 to change color scheme"
-        v   to toggle verbose mode"
-        S   to save a screenshot"
-        q   to return to python session"
-        e   to close window and return"
-        Esc to abort and exit python "
-        Move mouse to change 3D point of view"
-            Ctrl-mouse to rotate scene"
-            Shift-mouse to shift scene"
-            Right-mouse to zoom in/out"
+        m   to minimise opacity
+        /   to maximize opacity
+        .,  to increase/reduce opacity
+        w/s to toggle wireframe/solid style
+        c   to print current camera info
+        O   to show vertices only
+        123 to change color scheme
+        v   to toggle verbose mode
+        S   to save a screenshot
+        q   to return to python session
+        e   to close window and return
+        Esc to abort and exit python
+        Move mouse to change 3D point of view
+            Ctrl-mouse to rotate scene
+            Shift-mouse to shift scene
+            Right-mouse to zoom in/out
         --------------------------------------""")
 
 
