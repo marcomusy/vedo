@@ -230,7 +230,8 @@ class vtkPlotter:
         return acts
 
 
-    def load(self, filename, reader=None, c=(1,0.647,0), alpha=0.2, wire=False, bc=None):
+    def load(self, filename, reader=None, c=(1,0.647,0), alpha=0.2, 
+             wire=False, bc=None, edges=False):
         # c,     color in RGB format in the range [0,1]
         # alpha, transparency (0=invisible)
         # wire,  show surface as wireframe
@@ -267,7 +268,7 @@ class vtkPlotter:
         if not poly:
             print ('Unable to load', filename)
             return False
-        actor = self.makeActor(poly, c, alpha, wire, bc)
+        actor = self.makeActor(poly, c, alpha, wire, bc, edges)
         self.actors.append(actor)
         return actor
 
@@ -290,7 +291,7 @@ class vtkPlotter:
         return False
 
 
-    def makeActor(self, poly, c=(0.5, 0.5, 0.5), alpha=0.5, wire=False, bc=None):
+    def makeActor(self, poly, c=(0.5, 0.5, 0.5), alpha=0.5, wire=False, bc=None, edges=False):
         # c,     color in RGB format in the range [0,1]
         # alpha, transparency (0=invisible)
         # wire,  show surface as wireframe
@@ -312,7 +313,7 @@ class vtkPlotter:
         if   self.phong:   actor.GetProperty().SetInterpolationToPhong()
         elif self.flat:    actor.GetProperty().SetInterpolationToFlat()
         elif self.gouraud: actor.GetProperty().SetInterpolationToGouraud()
-        actor.GetProperty().EdgeVisibilityOff()
+        if edges: actor.GetProperty().EdgeVisibilityOn()
         actor.GetProperty().SetColor(c)
         actor.GetProperty().SetOpacity(alpha)
         actor.GetProperty().SetSpecular(0.05)
@@ -958,7 +959,7 @@ class vtkPlotter:
     ###############################################################################
     def show(self, actors=None, legend=None, at=0, #at=render wind. nr.
              axes=None, ruler=False, interactive=None, outputimage=None,
-             c=(1,0.647,0), bc=None, alpha=0.2):
+             c=(1,0.647,0), alpha=0.2, wire=False, bc=None, edges=False):
         ## actors = a mixed list of vtkActors, vtkPolydata and filename strings
         ## at = index of the renderer
 
@@ -972,7 +973,7 @@ class vtkPlotter:
         if not axes   is None: self.showaxes = axes
         if not interactive is None: self.interactive = interactive
         if self.verbose:
-            print ('Drawing', len(self.actors),'actors', end='')
+            print ('Drawing', len(self.actors),'actors ', end='')
             if self.shape != (1,1): print ('on window',at,'-', end='')
             else: print (' - ', end='')
             if self.interactive: print ('Interactive: On.')
@@ -988,14 +989,14 @@ class vtkPlotter:
         for i in range(len(self.actors)): # scan for filepaths
             a = self.actors[i]
             if isinstance(a, str): #assume a filepath was given
-                ok = self.load(a, c=c, bc=bc, alpha=alpha)
+                ok = self.load(a, c=c, bc=bc, alpha=alpha, wire=wire, edges=edges)
                 if ok:
                     self.actors[i] = self.actors.pop() #put it in right position
 
         for i in range(len(self.actors)): # scan for polydata
             a = self.actors[i]
             if isinstance(a, vtk.vtkPolyData): #assume a filepath was given
-                act = self.makeActor(a, c=c, bc=bc, alpha=alpha)
+                act = self.makeActor(a, c=c, bc=bc, alpha=alpha, wire=wire, edges=edges)
                 self.actors[i] = act #put it in right position
 
         for ia in self.actors: self.renderer.AddActor(ia)
@@ -1052,20 +1053,27 @@ class vtkPlotter:
             print ('cam.SetFocalPoint(',[round(e,3) for e in cam.GetFocalPoint()],')')
             print ('cam.SetParallelScale(',round(cam.GetParallelScale(),3),')')
             print ('cam.SetViewUp(', [round(e,3) for e in cam.GetViewUp()],')')
-        actors = self.renderer.GetActors()
-        actors.InitTraversal()
+            return
         if key == "m":
+            actors = self.renderer.GetActors()
+            actors.InitTraversal()
             for i in range(actors.GetNumberOfItems()):
                 actors.GetNextItem().GetProperty().SetOpacity(0.1)
         if key == "comma":
+            actors = self.renderer.GetActors()
+            actors.InitTraversal()
             for i in range(actors.GetNumberOfItems()):
                 ap = actors.GetNextItem().GetProperty()
                 ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.1]))
         if key == "period":
+            actors = self.renderer.GetActors()
+            actors.InitTraversal()
             for i in range(actors.GetNumberOfItems()):
                 ap = actors.GetNextItem().GetProperty()
                 ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
         if key == "slash":
+            actors = self.renderer.GetActors()
+            actors.InitTraversal()
             for i in range(actors.GetNumberOfItems()):
                 actors.GetNextItem().GetProperty().SetOpacity(1)
         if key == "v":
@@ -1075,21 +1083,18 @@ class vtkPlotter:
         if key == "1":
             for i,ia in enumerate(self.actors):
                 ia.GetProperty().SetColor(colors1[i])
-            self.interactor.Render()
         if key == "2":
             for i,ia in enumerate(self.actors):
                 ia.GetProperty().SetColor(colors2[i])
-            self.interactor.Render()
         if key == "3":
             for i,ia in enumerate(self.actors):
                 ia.GetProperty().SetColor(colors3[i])
-            self.interactor.Render()
         if key == "O":
             for ia in self.actors:
                 ps = ia.GetProperty().GetPointSize()
                 ia.GetProperty().SetPointSize(ps+2)
                 ia.GetProperty().SetRepresentationToPoints()
-            self.interactor.Render()
+        self.interactor.Render()
 
     def interact(self):
         if hasattr(self, 'interactor'):
@@ -1136,7 +1141,7 @@ for i in range(10):
 colors3 = colors3 * 100
 
 
-#################################### Functions
+#################################### Useful Functions
 def screenshot(filename='screenshot.png'):
     try:
         import gtk.gdk
@@ -1180,6 +1185,7 @@ def video(images=[], outvid='pics/output.avi', srcdir='pics/',
             img = cv2.resize(img, size)
         vid.write(img)
     vid.release()
+    
 
 ####################################
 def makeList(vtksrcs):
@@ -1193,6 +1199,7 @@ def makeList(vtksrcs):
             apoly.GetPoint(i, p)
             pts.append(p)
     return pts
+
 
 ####################################
 def makeSource(spoints, addLines=True):
@@ -1217,14 +1224,55 @@ def makeSource(spoints, addLines=True):
     return source
 
 
+####################################
+def isinside(poly, point):
+    """Return True if point is inside a polydata closed surface"""
+    points = vtk.vtkPoints()
+    points.InsertNextPoint(point)
+    pointsPolydata = vtk.vtkPolyData()
+    pointsPolydata.SetPoints(points)
+    selectEnclosedPoints = vtk.vtkSelectEnclosedPoints()
+    selectEnclosedPoints.SetInput(pointsPolydata)
+    selectEnclosedPoints.SetSurface(poly)
+    selectEnclosedPoints.Update()
+    return selectEnclosedPoints.IsInside(0)
+    
+    
+####################################
+def closestPoint(polydata, pt, locator=None):
+    """Find the closest point on a surface given an other point"""
+    trgp  = [0,0,0]
+    cid   = vtk.mutable(0)
+    subid = vtk.mutable(0)
+    dist2 = vtk.mutable(0)
+    if not locator:
+        locator = vtk.vtkCellLocator()
+        locator.SetDataSet(polydata)
+        locator.BuildLocator()
+    locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
+    return (trgp, dist2)
+
+
+####################################
+def write(poly, fileoutput):
+    wt = vtk.vtkPolyDataWriter()
+    if vtkMV: wt.SetInputData(poly)
+    else:     wt.SetInput(poly)
+    wt.SetFileName(fileoutput)
+    print ("Writing", fileoutput, v.GetNumberOfPoints(),"points.")
+    wt.Write()
+
+
 ########################################################################
 if __name__ == '__main__':
     try:
         import sys
         fs = sys.argv[1:]
-        print ('Rendering files:', fs)
-        if len(fs)==1: leg=None
-        else: leg=fs
+        if len(fs)==1: 
+            leg=None
+        else: 
+            leg=fs
+            print ('Rendering',len(fs),'files:', fs)
         vp = vtkPlotter(balloon=True)
         vp.show(actors=fs, legend=leg)
     except:
