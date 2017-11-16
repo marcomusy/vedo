@@ -1,6 +1,6 @@
 ![vtk](https://www.vtk.org/wp-content/uploads/2015/03/vtk_logo-main1.png)
 # vtkPlotter
-A python helper class to easily draw VTK tridimensional objects.
+A python helper class to easily draw tridimensional objects.
 
 Based on VTK (tested on versions 5.8, 6.1, 7.0): https://www.vtk.org and *numpy*
 <br />
@@ -198,7 +198,8 @@ plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 ![pcd](https://user-images.githubusercontent.com/32848391/32798156-287955b4-c974-11e7-9abf-6057dd43c5db.png)
 <br />
 
-If you need to do more complicated things (define widgets.. etc), you can still access all the usual VTK objects like interactors and renderers through vp.interactor, vp.renderer.<br />
+If you need to do more complicated things (define widgets.. etc), you can still access all the 
+usual VTK objects like interactors and renderers through *vp.interactor, vp.renderer*... etc.<br />
 
 To install plotter.py in a fixed location (e.g. *$HOME/soft/bin*):
 ```bash
