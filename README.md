@@ -18,10 +18,9 @@ Simple command line usage:
 python plotter.py data/*.vtk  # valid formats: [vtp,ply,obj,stl,xml,pcd]
 ```
 
-Run a tutorial script:
-```bash 
+Run a tutorial script: >
 python example.py
-```<br />
+<br />
 
 ```python
 import plotter
