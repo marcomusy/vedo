@@ -35,7 +35,7 @@ vp = plotter.vtkPlotter()
 vp.load('data/250.vtk', c=(1,0.4,0))
 vp.load('data/270.vtk', c=(1,0.6,0))
 vp.load('data/290.vtk', c=(1,0.8,0))
-print 'Loaded vtkActors: ', len(vp.actors), vp.names
+print ('Loaded vtkActors: ', len(vp.actors), vp.names)
 vp.show(legend=vp.names)
 
 
@@ -132,7 +132,7 @@ for i in range(500): # draw 500 fit lines superimposed
         vp.points(data)
         vp.fitplane(data)
     vp.fitline(data, lw=10, alpha=0.01) # fit
-print 'Fit slope=', vp.result['slope'] # access the last fitted slope direction
+print ('Fit slope=', vp.result['slope']) # access the last fitted slope direction
 vp.show(legend=['points','fitting plane','fitting line'])
 
 
