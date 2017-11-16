@@ -5,12 +5,21 @@ A python helper class to easily draw tridimensional objects.
 Based on VTK (tested on versions 5.8, 6.1, 7.0): https://www.vtk.org and *numpy*
 <br />
 
-## Download:
+## Download/Install:
 ```bash
 git clone https://github.com/marcomusy/vtkPlotter.git
 cd vtkPlotter
 ```
 
+To install plotter.py in a fixed location (e.g. *$HOME/soft/bin*):
+```bash
+mv vtkPlotter $HOME/soft/bin
+```
+and add these lines to your .bashrc:
+```bash
+export PYTHONPATH=$HOME/soft/bin/vtkPlotter:$PYTHONPATH
+export PATH=$HOME/soft/bin/vtkPlotter:$PATH
+```
 ## Example usage:<br />
 
 Simple command line usage:
@@ -202,12 +211,4 @@ plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 If you need to do more complicated things (define widgets.. etc), you can still access all the 
 usual VTK objects like interactors and renderers through *vp.interactor, vp.renderer*... etc.<br />
 
-To install plotter.py in a fixed location (e.g. *$HOME/soft/bin*):
-```bash
-mv vtkPlotter $HOME/soft/bin
-```
-and add these lines to your .bashrc:
-```bash
-export PYTHONPATH=$HOME/soft/bin/vtkPlotter:$PYTHONPATH
-export PATH=$HOME/soft/bin/vtkPlotter:$PATH
-```
+
