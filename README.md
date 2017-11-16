@@ -194,7 +194,7 @@ plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 
 If you need to do more complicated things (define widgets.. etc), you can still access all the usual VTK objects like interactors and renderers through vp.interactor, vp.renderer.<br />
 
-To install the script in a fixed location (e.g. $HOME/soft/bin), add this to your .bashrc:
+To install plotter.py in a fixed location (e.g. $HOME/soft/bin), add this line to your .bashrc:
 ```bash
 export PYTHONPATH=$HOME/soft/bin:$PYTHONPATH
 ```
