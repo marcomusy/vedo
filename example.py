@@ -9,7 +9,7 @@ import plotter
 
 # Declare an instance of the class
 vp = plotter.vtkPlotter()
-vp.help() # shows a help message
+#vp.help() # shows a help message
 
 
 #Load a vtk file as a vtkActor and visualize it.

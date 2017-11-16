@@ -1010,6 +1010,7 @@ class vtkPlotter:
             self.interactor.Initialize()
             self.initialized = True
             self.interactor.AddObserver("KeyPressEvent", self.keypress)
+            self.tips()
             if self.balloon:
                 self.balloonWidget.SetInteractor(self.interactor)
                 self.balloonWidget.EnabledOn()
@@ -1019,7 +1020,6 @@ class vtkPlotter:
                     self.balloonWidget.AddBalloon(ia, self.names[i])
 
         if hasattr(self, 'interactor') and self.interactor: self.interactor.Render()
-        if self.verbose: self.tips()
         if outputimage: screenshot(outputimage)
         if self.renderer and self.interactive: self.interact()
 
@@ -1069,6 +1069,7 @@ class vtkPlotter:
             for i in range(actors.GetNumberOfItems()):
                 actors.GetNextItem().GetProperty().SetOpacity(1)
         if key == "v":
+            if not(self.verbose): self.tips()
             self.verbose = not(self.verbose)
             print ("Verbose: ", self.verbose)
         if key == "1":
