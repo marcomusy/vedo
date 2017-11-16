@@ -5,6 +5,12 @@ A python helper class to easily draw VTK tridimensional objects.
 Based on VTK (tested on versions 5.8, 6.1, 7.0): https://www.vtk.org and *numpy*
 <br />
 
+## Download:
+```bash
+git clone https://github.com/marcomusy/vtkPlotter.git
+cd vtkPlotter
+```
+
 ## Example usage:<br />
 
 Simple command line usage:
@@ -12,7 +18,7 @@ Simple command line usage:
 python plotter.py data/*.vtk  # valid formats: [vtp,ply,obj,stl,xml,pcd]
 ```
 
-Run a tutorial script: 
+Run a tutorial script:
 >*python example.py*<br />
 
 ```python
@@ -74,7 +80,7 @@ vp.show()
 <br />
 
 
-Show 3 planes as a grid, add a dummy sine plot on top left, 
+Show 3 planes as a grid, add a dummy sine plot on top left,
 add 3 axes at the origin:
 ```python
 #Show 3 planes as a grid, add a dummy sine plot on top left, add 3 axes at the origin:
@@ -104,7 +110,7 @@ vp.show()
 <br />
 
 
-Split window in a 36 subwindows and draw something in 
+Split window in a 36 subwindows and draw something in
 windows nr 12 and nr 33. Then open an independent window and draw on two shapes:
 ```python
 vp1 = plotter.vtkPlotter(shape=(6,6), size=(900,900))
@@ -123,14 +129,14 @@ vp2.show()
 <br />
 
 
-Load a surface and show its curvature based on 4 different schemes. All four shapes 
+Load a surface and show its curvature based on 4 different schemes. All four shapes
 share a common vtkCamera:<br />
 *0-gaussian, 1-mean, 2-max, 3-min*
 ```python
 vp = plotter.vtkPlotter(shape=(1,4), size=(400,1600))
 v = vp.load('data/290.vtk')
 vp.interactive = False
-for i in [0,1,2,3]: 
+for i in [0,1,2,3]:
     c = vp.curvatures(v, ctype=i, r=1, alpha=0.8)
     vp.show(at=i, actors=[c])
 vp.interact() # same as setting flag interactive=True
@@ -165,7 +171,7 @@ for i in range(500): # draw 500 fit lines superposed
     z = np.mgrid[-5:3 :20j][:, np.newaxis]
     data  = np.concatenate((x, y, z), axis=1)
     data += np.random.normal(size=data.shape)*0.8 # add gauss noise
-    if i==0: 
+    if i==0:
         vp.points(data)
         vp.fitplane(data)
     vp.fitline(data, lw=10, alpha=0.01) # fit
@@ -198,9 +204,3 @@ To install plotter.py in a fixed location (e.g. $HOME/soft/bin), add this line t
 ```bash
 export PYTHONPATH=$HOME/soft/bin:$PYTHONPATH
 ```
-
-
-
-
-
-
