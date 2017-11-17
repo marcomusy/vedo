@@ -17,8 +17,9 @@ vp = plotter.vtkPlotter()
 #at about 11 days of gestation.
 #Choose a tomato color for the internal surface, and no transparency.
 #Press Esc to close the window and exit python session, or q to continue:
-vp.load('data/250.vtk', c='b', bc='tomato', alpha=1) # c=(R,G,B), symbol or name
-vp.show()                 # picks what is automatically stored in vp.actors
+#vp.flat=1
+vp.load('data/250.vtk', c='b', bc='tomato', alpha=1) # c=(R,G,B), #hex, letter or name
+vp.show()             # picks what is automatically stored in vp.actors
 
 
 #Load a vtk file as a vtkActor and visualize it in wireframe style.
@@ -99,7 +100,7 @@ v = vp.load('data/290.vtk')
 vp.interactive = False
 vp.showaxes = False
 for i in [0,1,2,3]:
-    c = vp.curvatures(v, ctype=i, r=1, alpha=0.8)
+    c = vp.curvature(v, ctype=i, r=1, alpha=0.8)
     vp.show(at=i, actors=[c], legend='method #'+str(i+1))
 vp.interact()
 
@@ -138,9 +139,9 @@ vp.show(legend=['points','fitting plane','fitting line'])
 
 #Display a tetrahedral mesh (Fenics/Dolfin format). #not yet tested on vtk6
 #The internal vertices are displayed too:
-# vp = plotter.vtkPlotter()
-# vp.load('data/290.xml.gz', wire=1)
-# vp.show(legend=['tet. mesh','boundary surf.'])
+#vp = plotter.vtkPlotter()
+#vp.load('data/290.xml.gz', wire=1)
+#vp.show(legend=['tet. mesh','boundary surf.'])
 
 
 #As a short cut, the filename can be given in the show command directly:
