@@ -1295,7 +1295,7 @@ def getcolor(c):
         else:
             return [int(c[0]/255.),int(c[1]/255.),int(c[2]/255.)]
     if isinstance(c,str):
-        cols = [ [0,0,1], [0,.9,0], [1,0,0],[0,1,1],[1,0,1],
+        cols = [ [0,0,1], [0,.95,0], [1,0,0],[0,1,1],[1,0,1],
                 [1,1,0], [0,0,0],[1,1,1],[1,.388,.278],
                 [.5,.5,0], [.5,0,.5], [.5,0,0],
                 [0,.5,.5], [0,.5,0], [0,0,.5], [1,.627,0.478],
@@ -1304,16 +1304,18 @@ def getcolor(c):
                       'yellow', 'black', 'white','tomato',
                       'olive', 'purple', 'maroon',
                       'teal','darkgreen','navy','salmon',
-                      'gold','gray']
+                      'gold','grey']
+        cols_short = ['b','g','r','c','m','y','k','w','t','o','p']
         if len(c)==1: #single letter color
-            cc = ['b','g','r','c','m','y','k','w','t','o','p']
-        else: 
+            cc = cols_short
+        else:         #full name color
             cc = cols_names
         try: 
             ic = cc.index(c.lower())
             return cols[ic]        
         except ValueError:
-            print ("Unknow color name", c, 'is not in:\n',cols_names)
+            print ("Unknow color name", c, 'is not in:\n', cc)
+            if len(c)>1: print ("Available color names:\n", cols_names)
     if isinstance(c,int): 
         return colors3[i]
     return [0,0,0]
