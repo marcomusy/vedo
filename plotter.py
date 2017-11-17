@@ -29,11 +29,12 @@ class vtkPlotter:
         /   to maximize opacity
         .,  to increase/reduce opacity
         w/s to toggle wireframe/solid style
-        k   to toggle edges visibility
-        c   to print current camera info
+        E   to toggle edges visibility
+        F   to flip normals
+        C   to print current camera info
         O   to show vertices only
         123 to change color scheme
-        v   to toggle verbose mode
+        V   to toggle verbose mode
         S   to save a screenshot
         q   to continue
         e   to close window and continue
@@ -1129,9 +1130,6 @@ class vtkPlotter:
     def keypress(self, obj, event):
         key = obj.GetKeySym()
         if key == "q" or key == "space":
-            #if self.verbose:
-            #    print ("Returning control to python script/command line.")
-            #    print ("Use vp.interact() to go back to 3D scene.")
             self.interactor.ExitCallback()
         if key == "e":
             if self.verbose:
@@ -1142,12 +1140,12 @@ class vtkPlotter:
             del self.renderWin, self.interactor
             return
         if key == "Escape":
-            if self.verbose: print ("Quitting now, Bye.")
+            if self.verbose: print ("Quitting, Bye.")
             exit(0)
         if key == "S":
-            print ('Saving picture as screenshot.png')
+            print ('Saving window as screenshot.png')
             screenshot()
-        if key == "c":
+        if key == "C":
             cam = self.renderer.GetActiveCamera()
             print ('\ncam = vtk.vtkCamera() #example code')
             print ('cam.SetPosition(',  [round(e,3) for e in cam.GetPosition()],  ')')
@@ -1177,7 +1175,7 @@ class vtkPlotter:
             actors.InitTraversal()
             for i in range(actors.GetNumberOfItems()):
                 actors.GetNextItem().GetProperty().SetOpacity(1)
-        if key == "v":
+        if key == "V":
             if not(self.verbose): self.tips()
             self.verbose = not(self.verbose)
             print ("Verbose: ", self.verbose)
@@ -1202,12 +1200,26 @@ class vtkPlotter:
                     ia.GetProperty().SetPointSize(ps+2)
                     ia.GetProperty().SetRepresentationToPoints()
                 except AttributeError: pass
-        if key == "k":
+        if key == "E":
             for ia in self.actors:
                 try:
                     ev = ia.GetProperty().GetEdgeVisibility()
                     ia.GetProperty().SetEdgeVisibility(not(ev))
                 except AttributeError: pass
+        if key == "N":
+            for ia in self.actors:
+                try:
+                    rs = vtk.vtkReverseSense()
+                    rs.ReverseNormalsOn()
+                    if vtkMV: rs.SetInputData(self.getPD(ia))
+                    else:     rs.SetInput(self.getPD(ia))
+                    rs.Update()
+                    ns = rs.GetOutput().GetPointData().GetNormals()
+                    rna = vtk.vtkFloatArray.SafeDownCast(ns)
+                    ia.GetMapper().GetInput().GetPointData().SetNormals(rna)
+                    del rs
+                except: 
+                    print ("Cannot flip normals.")
         self.interactor.Render()
 
 
