@@ -6,7 +6,7 @@ __license__ = "MIT"
 __version__ = "2.1"
 __maintainer__ = "Marco Musy"
 __email__ = "marco.musy@embl.es"
-__status__ = "Stable"
+__status__ = "stable"
 
 import os, vtk, numpy as np
 
