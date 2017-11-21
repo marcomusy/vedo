@@ -8,7 +8,6 @@ Based on VTK (tested on versions 5.8, 6.1, 7.0): https://www.vtk.org and *numpy*
 ## Download/Install:
 ```bash
 git clone https://github.com/marcomusy/vtkPlotter.git
-cd vtkPlotter
 ```
 
 To install to a fixed location (e.g. *$HOME/soft/bin*):
