@@ -162,12 +162,29 @@ print ('Fit slope=', vp.result['slope']) # access the last fitted slope directio
 vp.show(legend=['points','fitting plane','fitting line'])
 
 
+#As a short cut, the filename can be given in the show command directly:
+plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
+
+
+#Make a video 
+vp = plotter.vtkPlotter(interactive=0, verbose=0)
+vp.load('data/290.vtk', c='b', bc='tomato', alpha=1)
+vp.show()                 # inits camera etc.
+vp.open_video(duration=5) # will make it last 5 seconds
+for i in range(100):
+    vp.camera.SetPosition(700.-i*20., -10, 4344.-i*80.)
+    vp.show()
+    vp.addframe_video()
+vp.release_video()
+print ('Video saved as movie.avi')
+vp.tips()
+vp.interact()
+
+
+
+#(untested)
 #Display a tetrahedral mesh (Fenics/Dolfin format). #not yet tested on vtk6
 #The internal vertices are displayed too:
 #vp = plotter.vtkPlotter()
 #vp.load('data/290.xml.gz', wire=1)
 #vp.show(legend=['tet. mesh','boundary surf.'])
-
-
-#As a short cut, the filename can be given in the show command directly:
-plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)

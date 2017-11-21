@@ -50,14 +50,15 @@ class vtkPlotter:
 
 
     def __init__(self, shape=(1,1), size=(800,800), 
-                bg=(1,1,1), bg2=None, balloon=False, verbose=True):
+                bg=(1,1,1), bg2=None, balloon=False, 
+                verbose=True, interactive=True):
         self.shape      = shape #nr of rows and columns
         self.size       = size
         self.balloon    = balloon
         self.verbose    = verbose
         self.renderer   = None  #current renderer
         self.renderers  = []
-        self.interactive= True
+        self.interactive= interactive
         self.initialized= False
         self.axes       = True
         self.camera     = None
@@ -1263,7 +1264,7 @@ class vtkPlotter:
             return
         self.videoname = name
         self.videoformat = format
-        self.videoduration = duration-1
+        self.videoduration = duration
         self.fps = float(fps) # if duration is given, will be recalculated
         self.frames = []
         if not os.path.exists('/tmp/v'): os.mkdir('/tmp/v')
