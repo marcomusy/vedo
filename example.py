@@ -7,20 +7,6 @@ Created on Mon Nov 13 12:48:43 2017
 from __future__ import print_function
 import plotter
 
-#Draw objects
-vp = plotter.vtkPlotter(shape=(3,3), size=(900,900))
-vp.commoncam   = False
-vp.interactive = False
-vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
-vp.show(at=1, c=1, actors='data/big_atc.ply', wire=1)
-vp.show(at=2, c=2, actors='data/big_porsche.ply', edges=1)
-vp.show(at=3, c=3, actors='data/big_spider.ply')
-vp.show(at=4, c=4, actors='data/egret.ply')
-vp.show(at=5, c=5, actors='data/mug.ply')
-vp.show(at=6, c=6, actors='data/scissors.ply')
-vp.show(at=7, c=7, actors='data/shuttle.obj')
-vp.show(at=8, c=8, actors='data/skyscraper.obj')
-vp.interact()
 
 # Declare an instance of the class
 vp = plotter.vtkPlotter()
