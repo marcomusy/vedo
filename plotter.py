@@ -24,6 +24,7 @@ class vtkPlotter:
         Please follow instructions at:
         https://github.com/marcomusy/vtkPlotter
         Useful commands on graphic window:\n  """)
+        print ("VTK version:"vtk.vtkVersion().GetVTKVersion())
         self.tips()
 
     def tips(self):
