@@ -4,8 +4,23 @@
 Created on Mon Nov 13 12:48:43 2017
 @author: mmusy
 """
+from __future__ import print_function
 import plotter
 
+#Draw objects
+vp = plotter.vtkPlotter(shape=(3,3), size=(900,900))
+vp.commoncam   = False
+vp.interactive = False
+vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
+vp.show(at=1, c=1, actors='data/big_atc.ply', wire=1)
+vp.show(at=2, c=2, actors='data/big_porsche.ply', edges=1)
+vp.show(at=3, c=3, actors='data/big_spider.ply')
+vp.show(at=4, c=4, actors='data/egret.ply')
+vp.show(at=5, c=5, actors='data/mug.ply')
+vp.show(at=6, c=6, actors='data/scissors.ply')
+vp.show(at=7, c=7, actors='data/shuttle.obj')
+vp.show(at=8, c=8, actors='data/skyscraper.obj')
+vp.interact()
 
 # Declare an instance of the class
 vp = plotter.vtkPlotter()
@@ -24,7 +39,7 @@ vp.show()             # picks what is automatically stored in vp.actors
 
 #Load a vtk file as a vtkActor and visualize it in wireframe style.
 a = vp.load('data/290.vtk', wire=1) # same as a.GetProperty().SetRepresentationToWireframe()
-vp.showaxes = False
+vp.axes = False
 vp.show()             # picks what is automatically stored in vp.actors
 #vp.show(a)           # ignores the content of vp.actors
 #vp.show(actors=[a])  # same as above
@@ -83,7 +98,7 @@ vp1.renderers[35].SetBackground(.8,.9,.9)
 v270 = vp1.load('data/270.vtk')     #load as vtkActor (default)
 v290 = vp1.loadPoly('data/290.vtk') #load as polydata
 vp1.interactive = False
-vp1.showaxes = False
+vp1.axes = False
 vp1.show(at=12, actors=[v270,v290]) # polydata are automatically
 vp1.show(at=33, actors=[v270,v290]) # transformed into vtkActor
 vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
@@ -98,7 +113,7 @@ vp2.show(legend='an other window')
 vp = plotter.vtkPlotter(shape=(1,4), size=(400,1600))
 v = vp.load('data/290.vtk')
 vp.interactive = False
-vp.showaxes = False
+vp.axes = False
 for i in [0,1,2,3]:
     c = vp.curvature(v, ctype=i, r=1, alpha=0.8)
     vp.show(at=i, actors=[c], legend='method #'+str(i+1))
@@ -107,7 +122,7 @@ vp.interact()
 
 #Draw a bunch of simple objects on separate parts of the rendering window:
 vp = plotter.vtkPlotter(shape=(2,3), size=(800,1200))
-vp.axes        = True
+vp.axes    = True
 vp.commoncam   = False
 vp.interactive = False
 vp.show(at=0, actors=vp.arrow( [0,0,0], [1,1,1] ) )
@@ -117,6 +132,30 @@ vp.show(at=3, actors=vp.text('hello', cam=False, bc=(0,1,0) ) )
 vp.show(at=4, actors=vp.sphere([.5,.5,.5], r=0.3), axes=0 )
 vp.show(at=5, actors=vp.cube(  [.5,.5,.5], r=0.3), axes=0 )
 vp.interact()
+
+
+#Draw objects
+vp = plotter.vtkPlotter(shape=(3,3), size=(900,900))
+vp.commoncam   = False
+vp.interactive = False
+vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
+vp.show(at=1, c=1, actors='data/big_atc.ply', wire=1)
+vp.show(at=2, c=2, actors='data/big_porsche.ply', edges=1)
+vp.show(at=3, c=3, actors='data/big_spider.ply')
+vp.show(at=4, c=4, actors='data/egret.ply')
+vp.show(at=5, c=5, actors='data/mug.ply')
+vp.show(at=6, c=6, actors='data/scissors.ply')
+vp.show(at=7, c=7, actors='data/shuttle.obj')
+vp.show(at=8, c=8, actors='data/skyscraper.obj')
+vp.interact()
+#import time
+#for i in range(9):
+#    cam = vp.renderers[i].GetActiveCamera()
+#    cam.SetViewUp([0,1,(i-5)/10.])
+#    vp.renderers[i].SetActiveCamera(cam)
+#    vp.renderers[i].Render()
+#    print ('renderer', i, vp.renderers[i].GetActiveCamera().GetViewUp())
+#    time.sleep(.2)
 
 
 #Draw a line in 3D that fits a cloud of points,

@@ -49,14 +49,16 @@ class vtkPlotter:
 
 
     def __init__(self, shape=(1,1), size=(800,800), 
-                bg=(1,1,1), bg2=None, balloon=False):
+                bg=(1,1,1), bg2=None, balloon=False, verbose=True):
         self.shape      = shape #nr of rows and columns
-        self.windowsize = size
+        self.size       = size
+        self.balloon    = balloon
+        self.verbose    = verbose
         self.renderer   = None  #current renderer
         self.renderers  = []
         self.interactive= True
         self.initialized= False
-        self.showaxes   = True
+        self.axes       = True
         self.camera     = None
         self.commoncam  = True
         self.resetcam   = True
@@ -66,7 +68,6 @@ class vtkPlotter:
         self.legend     = []
         self.names      = []
         self.tetmeshes  = []    # vtkUnstructuredGrid
-        self.verbose    = True
         self.flat       = True
         self.phong      = False
         self.gouraud    = False
@@ -76,7 +77,6 @@ class vtkPlotter:
         self.legendBG   = (.96,.96,.9)
         self.legendPosition = 2   # 1=topright
         self.result     = dict()  # stores extra output information
-        self.balloon    = balloon
         self.caxes_exist = False
 
         if balloon:
@@ -87,7 +87,7 @@ class vtkPlotter:
 
         self.videoname = None
         self.videoformat = None
-        self.fps       = 2
+        self.fps       = 12
         self.frames    = []
 
         #######################################
@@ -110,7 +110,7 @@ class vtkPlotter:
         self.renderWin.PolygonSmoothingOn()
         self.renderWin.LineSmoothingOn()
         self.renderWin.PointSmoothingOn()
-        self.renderWin.SetSize(list(reversed(self.windowsize)))
+        self.renderWin.SetSize(list(reversed(self.size)))
         for r in self.renderers: self.renderWin.AddRenderer(r)
         self.interactor = vtk.vtkRenderWindowInteractor()
         self.interactor.SetRenderWindow(self.renderWin)
@@ -483,6 +483,7 @@ class vtkPlotter:
         src.SetCenter(pt)
         src.Update()
         actor = self.makeActor(src.GetOutput(), c, alpha)
+        actor.GetProperty().SetInterpolationToPhong()
         self.actors.append(actor)
         return actor
 
@@ -556,6 +557,7 @@ class vtkPlotter:
         transformPD.SetInputConnection(arrowSource.GetOutputPort())
         transformPD.Update()
         actor = self.makeActor(transformPD.GetOutput(), c, alpha)
+        actor.GetProperty().SetInterpolationToPhong()
         self.actors.append(actor)
         return actor
 
@@ -663,7 +665,7 @@ class vtkPlotter:
 
     def text(self, txt, pos=(0,0,0), s=1, c='k', alpha=1, cam=True, bc=False):
         '''Returns a vtkActor that shows a text 3D
-            if cam is True the text will auto-orient to it
+           if cam is True the text will auto-orient to it
         '''
         c = getcolor(c) 
         if bc: bc = getcolor(bc)
@@ -692,8 +694,8 @@ class vtkPlotter:
 
     def xyplot(self, points, title='', c='r', pos=1, lines=False):
         """Return a vtkActor that is a plot of 2D points in x and y
-            pos assignes the position: 
-             1=topleft, 2=topright, 3=bottomleft, 4=bottomright
+           pos assignes the position: 
+           1=topleft, 2=topright, 3=bottomleft, 4=bottomright
         """
         c = getcolor(c) # allow different codings
         array_x = vtk.vtkFloatArray()
@@ -746,7 +748,7 @@ class vtkPlotter:
 
     def normals(self, pactor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8):
         '''Returns a vtkActor that contains the normals at vertices,
-        these are shown as arrows.
+           these are shown as arrows.
         '''
         maskPts = vtk.vtkMaskPoints()
         maskPts.SetOnRatio(ratio)
@@ -783,8 +785,8 @@ class vtkPlotter:
 
     def curvature(self, pactor, ctype=1, r=1, alpha=1, lut=None):
         '''Returns a vtkActor that contains the color coded surface
-         curvature following four different ways to calculate it:
-         ctype =  0-gaussian, 1-mean, 2-max, 3-min
+           curvature following four different ways to calculate it:
+           ctype =  0-gaussian, 1-mean, 2-max, 3-min
         '''
         poly = self.getPD(pactor)
         cleaner = vtk.vtkCleanPolyData()
@@ -930,6 +932,7 @@ class vtkPlotter:
         ftra.Update()
         actor_elli = self.makeActor(ftra.GetOutput(), c, alpha)
         actor_elli.GetProperty().BackfaceCullingOn()
+        actor_elli.GetProperty().SetInterpolationToPhong()
         if pcaaxes:
             axs = []
             for ax in ([1,0,0], [0,1,0], [0,0,1]):
@@ -975,7 +978,7 @@ class vtkPlotter:
 
     ##########################################
     def draw_cubeaxes(self, c=(.2, .2, .6)):
-        if self.caxes_exist and self.showaxes==False: return
+        if self.caxes_exist and not self.axes: return
         ca = vtk.vtkCubeAxesActor()
         if self.renderer:
             ca.SetBounds(self.renderer.ComputeVisiblePropBounds())
@@ -1073,7 +1076,7 @@ class vtkPlotter:
         outputimage = filename to dump a screenshot without asking
         wire   = show in wireframe representation
         edges  = show the edges on top of surface
-        bc     = background color, set a different color for the other face
+        bc     = background color, set a color for the back surface face
         '''
         
         # override what was stored internally with passed input
@@ -1083,7 +1086,7 @@ class vtkPlotter:
         if not legend is None:
             if isinstance(legend, list): self.legend = list(legend)
             if isinstance(legend,  str): self.legend = [str(legend)]
-        if not axes   is None: self.showaxes = axes
+        if not axes        is None: self.axes = axes
         if not interactive is None: self.interactive = interactive
         if self.verbose:
             print ('Drawing', len(self.actors),'actors ', end='')
@@ -1122,7 +1125,7 @@ class vtkPlotter:
             if not ia in acts: self.renderer.AddActor(ia)
 
         if ruler: self.draw_ruler()
-        if self.showaxes: self.draw_cubeaxes()
+        if self.axes: self.draw_cubeaxes()
         if self.legend or len(self.legend): self.draw_legend()
 
         if self.resetcam: self.renderer.ResetCamera()
@@ -1130,6 +1133,7 @@ class vtkPlotter:
         if not self.initialized:
             self.interactor.Initialize()
             self.initialized = True
+            self.interactor.AddObserver("LeftButtonPressEvent", self.mouseleft)
             self.interactor.AddObserver("KeyPressEvent", self.keypress)
             if self.verbose: self.tips()
             if self.balloon:
@@ -1145,7 +1149,13 @@ class vtkPlotter:
         if self.renderer and self.interactive: self.interact()
 
 
-    ###############################
+    ############################### events
+    def mouseleft(self, obj, event):
+        x,y = self.interactor.GetEventPosition()
+        self.renderer = obj.FindPokedRenderer(x,y)
+        self.renderWin = obj.GetRenderWindow()
+        #print ('Renderer clicked:', self.renderers.index(self.renderer))
+
     def keypress(self, obj, event):
         key = obj.GetKeySym()
         #print (key)
@@ -1238,6 +1248,7 @@ class vtkPlotter:
 
     def interact(self):
         if hasattr(self, 'interactor'):
+            self.interactor.Render()
             self.interactor.Start()
 
     def lastactor(self): return self.actors[-1]
@@ -1268,7 +1279,7 @@ class vtkPlotter:
         self.frames.append(fr)
 
     def pause_video(self, pause):
-        '''pause in seconds'''
+        '''insert a pause, in seconds'''
         if not self.videoname: return
         fr = self.frames[-1]
         n = int(self.fps*pause)
@@ -1485,8 +1496,8 @@ def getcolor(c):
             print ("Unknow color name", c, 'is not in:\n', cc)
             if len(c)==1: print ("Available colors:\n", cols_names)
             return [0,0,0]
-    if isinstance(c,int): 
-        return colors3[i]
+    if isinstance(c, int): 
+        return colors1[c]
     return [0,0,0]
     
 
