@@ -11,6 +11,9 @@ __status__ = "stable"
 import os, vtk, numpy as np
 
 vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
+def setInput(vtkobj, p):
+        if vtkMV: vtkobj.SetInputData(p)
+        else:     vtkobj.SetInput(p)
 
 #############################################################################
 class vtkPlotter:
@@ -39,14 +42,14 @@ class vtkPlotter:
         q   to continue
         e   to close window and continue
         Esc to abort and exit
-        Move mouse to change 3D point of view
-            Ctrl-mouse to rotate scene
-            Shift-mouse to shift scene
-            Right-mouse to zoom in/out
+        Ctrl-mouse  to rotate scene
+        Shift-mouse to shift scene
+        Right-mouse click to zoom in/out
         --------------------------------------""")
 
 
-    def __init__(self, shape=(1,1), size=(800,800), bg=(1,1,1), balloon=False):
+    def __init__(self, shape=(1,1), size=(800,800), 
+                bg=(1,1,1), bg2=None, balloon=False):
         self.shape      = shape #nr of rows and columns
         self.windowsize = size
         self.renderer   = None  #current renderer
@@ -64,8 +67,8 @@ class vtkPlotter:
         self.names      = []
         self.tetmeshes  = []    # vtkUnstructuredGrid
         self.verbose    = True
-        self.flat       = False
-        self.phong      = True
+        self.flat       = True
+        self.phong      = False
         self.gouraud    = False
         self.bculling   = False
         self.fculling   = False
@@ -82,12 +85,20 @@ class vtkPlotter:
             self.balloonRep.SetBalloonLayoutToImageRight()
             self.balloonWidget.SetRepresentation(self.balloonRep)
 
+        self.videoname = None
+        self.videoformat = None
+        self.fps       = 2
+        self.frames    = []
+
         #######################################
         # build the renderers scene:
         for i in reversed(range(shape[0])):
             for j in range(shape[1]):
                 arenderer = vtk.vtkRenderer()
                 arenderer.SetBackground(bg)
+                if bg2:
+                    arenderer.GradientBackgroundOn()
+                    arenderer.SetBackground2(bg2)
                 x0 = i/float(shape[0])
                 y0 = j/float(shape[1])
                 x1 = (i+1)/float(shape[0])
@@ -175,8 +186,7 @@ class vtkPlotter:
             reader.SetFileName("/tmp/mesh000000.vtu")
             reader.Update()
             gf = vtk.vtkGeometryFilter()
-            if vtkMV: gf.SetInputData(reader.GetOutput())
-            else:     gf.SetInput(reader.GetOutput())
+            setInput(gf, reader.GetOutput())
             gf.Update()
             cl = vtk.vtkCleanPolyData()
             cl.SetInput(gf.GetOutput())
@@ -213,8 +223,7 @@ class vtkPlotter:
         reader.Update()
         if not reader.GetOutput(): return False
         mergeTriangles = vtk.vtkTriangleFilter()
-        if vtkMV: mergeTriangles.SetInputData(reader.GetOutput())
-        else:     mergeTriangles.SetInput(reader.GetOutput())
+        setInput(mergeTriangles, reader.GetOutput())
         mergeTriangles.Update()
         poly = mergeTriangles.GetOutput()
         self.names.append(filename)
@@ -314,7 +323,9 @@ class vtkPlotter:
         acts=[]
         for i in range(acs.GetNumberOfItems()):
             a = acs.GetNextItem()
-            if not isinstance(a, vtk.vtkCubeAxesActor): acts.append(a)
+            if isinstance(a, vtk.vtkCubeAxesActor): continue
+            if isinstance(a, vtk.vtkLegendBoxActor): continue
+            acts.append(a)
         return acts
 
 
@@ -330,8 +341,7 @@ class vtkPlotter:
         c = getcolor(c)
         if bc: bc = getcolor(bc)
         dataset = vtk.vtkPolyDataNormals()
-        if vtkMV: dataset.SetInputData(poly)
-        else:     dataset.SetInput(poly)
+        setInput(dataset, poly)
         dataset.SetFeatureAngle(60.0)
         dataset.ComputePointNormalsOn()
         dataset.ComputeCellNormalsOn()
@@ -339,8 +349,7 @@ class vtkPlotter:
         dataset.ConsistencyOn()
         dataset.Update()
         mapper = vtk.vtkPolyDataMapper()
-        if vtkMV: mapper.SetInputData(dataset.GetOutput())
-        else:     mapper.SetInput(dataset.GetOutput())
+        setInput(mapper, dataset.GetOutput())
         actor = vtk.vtkActor()
         actor.SetMapper(mapper)
         actor.GetProperty().SetSpecular(0.025)
@@ -430,8 +439,7 @@ class vtkPlotter:
             colors.InsertNextTupleValue(np.clip(c, 0, 255))
         pd.GetPointData().SetScalars(colors)
         mapper = vtk.vtkPolyDataMapper()
-        if vtkMV: mapper.SetInputData(pd)
-        else:     mapper.SetInput(pd)
+        setInput(mapper, pd)
         mapper.ScalarVisibilityOn()
         actor = vtk.vtkActor()
         actor.SetMapper(mapper)
@@ -591,8 +599,7 @@ class vtkPlotter:
         profileData.SetLines(lines)
         profileTubes = vtk.vtkTubeFilter() # Add thickness to the resulting line.
         profileTubes.SetNumberOfSides(12)
-        if vtkMV: profileTubes.SetInputData(profileData)
-        else:     profileTubes.SetInput(profileData)
+        setInput(profileTubes, profileData)
         profileTubes.SetRadius(s)
         profileTubes.Update()
         acttube = self.makeActor(profileTubes.GetOutput(), c=c, alpha=alpha)
@@ -602,11 +609,10 @@ class vtkPlotter:
             balls.SetPhiResolution(12)
             balls.SetThetaResolution(12)
             glyphPoints = vtk.vtkGlyph3D()
-            if vtkMV: glyphPoints.SetInputData(inputData)
-            else:     glyphPoints.SetInput(inputData)
+            setInput(glyphPoints, inputData)
             glyphPoints.SetSource(balls.GetOutput())
             actnodes = self.makeActor(glyphPoints.GetOutput(), c=c, alpha=alpha)
-            acttube = self.assembly([acttube, actnodes])
+            acttube  = self.assembly([acttube, actnodes])
         self.actors.append(acttube)
         return acttube
 
@@ -642,8 +648,7 @@ class vtkPlotter:
         profileData.SetLines(lines)
         profileTubes = vtk.vtkTubeFilter() # Add thickness to the resulting line.
         profileTubes.SetNumberOfSides(12)
-        if vtkMV: profileTubes.SetInputData(profileData)
-        else:     profileTubes.SetInput(profileData)
+        setInput(profileTubes, profileData)
         profileTubes.SetRadius(s)
         profileTubes.Update()
         poly = profileTubes.GetOutput()
@@ -747,8 +752,7 @@ class vtkPlotter:
         maskPts.SetOnRatio(ratio)
         maskPts.RandomModeOff()
         src = self.getPD(pactor)
-        if vtkMV: maskPts.SetInputData(src)
-        else:     maskPts.SetInput(src)
+        setInput(maskPts, src)
         arrow = vtk.vtkArrowSource()
         arrow.SetTipRadius(0.075)
         glyph = vtk.vtkGlyph3D()
@@ -784,8 +788,7 @@ class vtkPlotter:
         '''
         poly = self.getPD(pactor)
         cleaner = vtk.vtkCleanPolyData()
-        if vtkMV: cleaner.SetInputData(poly)
-        else:     cleaner.SetInput(poly)
+        setInput(cleaner, poly)
         curve = vtk.vtkCurvatures()
         curve.SetInputConnection(cleaner.GetOutputPort())
         curve.SetCurvatureType(ctype)
@@ -817,8 +820,7 @@ class vtkPlotter:
            of a surface.
         '''
         fe = vtk.vtkFeatureEdges()
-        if vtkMV: fe.SetInputData(self.getPD(pactor))
-        else:     fe.SetInput(self.getPD(pactor))
+        setInput(fe, self.getPD(pactor))
         fe.BoundaryEdgesOn()
         fe.FeatureEdgesOn()
         fe.ManifoldEdgesOn()
@@ -858,8 +860,7 @@ class vtkPlotter:
         if tube: # show a rough estimate of error band at 2 sigma level
             tb = vtk.vtkTubeFilter()
             tb.SetNumberOfSides(48)
-            if vtkMV: tb.SetInputData(self.getPD(l))
-            else:     tb.SetInput(self.getPD(l))
+            setInput(tb, self.getPD(l))
             r = np.sqrt((dd[1]+dd[2])/2./len(points))
             tb.SetRadius(r)
             a = self.makeActor(tb.GetOutput(), c=c, alpha=alpha/4.)
@@ -938,8 +939,7 @@ class vtkPlotter:
                 l.Update()
                 t = vtk.vtkTransformFilter()
                 t.SetTransform(vtra)
-                if vtkMV: t.SetInputData(l.GetOutput())
-                else:     t.SetInput(l.GetOutput())
+                setInput(t, l.GetOutput())
                 t.Update()
                 axs.append(self.makeActor(t.GetOutput(), c, alpha))
             self.actors.append( self.assembly([actor_elli]+axs) )
@@ -964,8 +964,7 @@ class vtkPlotter:
         icp.Modified()
         icp.Update()
         icpTransformFilter = vtk.vtkTransformPolyDataFilter()
-        if vtkMV: icpTransformFilter.SetInputData(source)
-        else:     icpTransformFilter.SetInput(source)
+        setInput(icpTransformFilter, source)
         icpTransformFilter.SetTransform(icp)
         icpTransformFilter.Update()
         poly = icpTransformFilter.GetOutput()
@@ -1132,7 +1131,7 @@ class vtkPlotter:
             self.interactor.Initialize()
             self.initialized = True
             self.interactor.AddObserver("KeyPressEvent", self.keypress)
-            self.tips()
+            if self.verbose: self.tips()
             if self.balloon:
                 self.balloonWidget.SetInteractor(self.interactor)
                 self.balloonWidget.EnabledOn()
@@ -1141,7 +1140,7 @@ class vtkPlotter:
                 if i<len(self.names):
                     self.balloonWidget.AddBalloon(ia, self.names[i])
 
-        if hasattr(self, 'interactor') and self.interactor: self.interactor.Render()
+        if self.renderer: self.renderWin.Render()
         if outputimage: screenshot(outputimage)
         if self.renderer and self.interactive: self.interact()
 
@@ -1149,9 +1148,10 @@ class vtkPlotter:
     ###############################
     def keypress(self, obj, event):
         key = obj.GetKeySym()
-        if key == "q" or key == "space":
+        #print (key)
+        if   key == "q" or key == "space":
             self.interactor.ExitCallback()
-        if key == "e":
+        elif key == "e":
             if self.verbose:
                 print ("Closing window and return control to python.")
             rw = self.interactor.GetRenderWindow()
@@ -1159,13 +1159,13 @@ class vtkPlotter:
             self.interactor.TerminateApp()
             del self.renderWin, self.interactor
             return
-        if key == "Escape":
+        elif key == "Escape":
             if self.verbose: print ("Quitting, Bye.")
             exit(0)
-        if key == "S":
+        elif key == "S":
             print ('Saving window as screenshot.png')
             screenshot()
-        if key == "C":
+        elif key == "C":
             cam = self.renderer.GetActiveCamera()
             print ('\ncam = vtk.vtkCamera() #example code')
             print ('cam.SetPosition(',  [round(e,3) for e in cam.GetPosition()],  ')')
@@ -1173,58 +1173,59 @@ class vtkPlotter:
             print ('cam.SetParallelScale(',round(cam.GetParallelScale(),3),')')
             print ('cam.SetViewUp(', [round(e,3) for e in cam.GetViewUp()],')')
             return
-        if key == "m":
+        elif key == "m":
             for a in self.getActors():
-                a.GetProperty().SetOpacity(0.1)
-        if key == "comma":
+                a.GetProperty().SetOpacity(0.05)
+        elif key == "comma":
             for a in self.getActors():
                 ap = a.GetProperty()
-                ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.1]))
-        if key == "period":
+                ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.05]))
+        elif key == "period":
             for a in self.getActors():
                 ap = a.GetProperty()
                 ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
-        if key == "slash":
+        elif key == "slash":
             for a in self.getActors():
                 a.GetProperty().SetOpacity(1)
-        if key == "V":
+        elif key == "V":
             if not(self.verbose): self.tips()
             self.verbose = not(self.verbose)
             print ("Verbose: ", self.verbose)
-        if key == "1":
+        elif key in ["1", "KP_End", "KP_1"]:
             for i,ia in enumerate(self.getActors()):
                 ia.GetProperty().SetColor(colors1[i])
-        if key == "2":
+        elif key in ["2", "KP_Down", "KP_2"]:
             for i,ia in enumerate(self.getActors()):
                 ia.GetProperty().SetColor(colors2[i])
-        if key == "3":
+        elif key in ["3", "KP_Next", "KP_3"]:
             for i,ia in enumerate(self.getActors()):
                 ia.GetProperty().SetColor(colors3[i])
-        if key == "o":
+        elif key == "o":
             for ia in self.getActors():
                 ps = ia.GetProperty().GetPointSize()
                 ia.GetProperty().SetPointSize(ps-1)
                 ia.GetProperty().SetRepresentationToPoints()
-        if key == "O":
+        elif key == "O":
             for ia in self.getActors():
                 try:
                     ps = ia.GetProperty().GetPointSize()
                     ia.GetProperty().SetPointSize(ps+2)
                     ia.GetProperty().SetRepresentationToPoints()
                 except AttributeError: pass
-        if key == "D":
+        elif key == "D":
             for ia in self.getActors():
                 try:
                     ev = ia.GetProperty().GetEdgeVisibility()
                     ia.GetProperty().SetEdgeVisibility(not(ev))
+                    c = ia.GetProperty().GetColor()
+                    ia.GetProperty().SetEdgeColor(c)
                 except AttributeError: pass
-        if key == "N":
+        elif key == "N":
             for ia in self.getActors():
                 try:
                     rs = vtk.vtkReverseSense()
                     rs.ReverseNormalsOn()
-                    if vtkMV: rs.SetInputData(self.getPD(ia))
-                    else:     rs.SetInput(self.getPD(ia))
+                    setInput(rs, self.getPD(ia))
                     rs.Update()
                     ns = rs.GetOutput().GetPointData().GetNormals()
                     rna = vtk.vtkFloatArray.SafeDownCast(ns)
@@ -1239,18 +1240,88 @@ class vtkPlotter:
         if hasattr(self, 'interactor'):
             self.interactor.Start()
 
-
     def lastactor(self): return self.actors[-1]
+
+    
+    def open_video(self, name='movie.avi', fps=12, duration=None, format="XVID"):
+        try:
+            import cv2, glob
+        except:
+            print ("open_video: cv2 not installed? Skip.")
+            return
+        self.videoname = name
+        self.videoformat = format
+        self.videoduration = duration-1
+        self.fps = float(fps) # if duration is given, will be recalculated
+        self.frames = []
+        if not os.path.exists('/tmp/v'): os.mkdir('/tmp/v')
+        for fl in glob.glob("/tmp/v/*.png"): os.remove(fl)
+        print ("Video", name, "is open. Press q to continue.")
+        itr = bool(self.interactive)
+        self.show(interactive=True)
+        self.interactive = itr
+        
+    def addframe_video(self):
+        if not self.videoname: return
+        fr = '/tmp/v/'+str(len(self.frames))+'.png'
+        screenshot(fr)
+        self.frames.append(fr)
+
+    def pause_video(self, pause):
+        '''pause in seconds'''
+        if not self.videoname: return
+        fr = self.frames[-1]
+        n = int(self.fps*pause)
+        for i in range(n): 
+            fr2='/tmp/v/'+str(len(self.frames))+'.png'
+            self.frames.append(fr2)
+            os.system("cp -f %s %s" % (fr, fr2))
+            
+    def release_video(self):        
+        if not self.videoname: return
+        import cv2
+        if self.videoduration:
+            self.fps = len(self.frames)/float(self.videoduration)
+            print ("Recalculated video FPS to", round(self.fps,3))
+        fourcc = cv2.cv.CV_FOURCC(*self.videoformat)
+        vid = None
+        size = None
+        for image in self.frames:
+            if not os.path.exists(image):
+                print ('Image not found:', image)
+                continue
+            img = cv2.imread(image)
+            if vid is None:
+                if size is None:
+                    size = img.shape[1], img.shape[0]
+                vid = cv2.VideoWriter(self.videoname, 
+                                      fourcc, self.fps, size, True)
+            if size[0] != img.shape[1] and size[1] != img.shape[0]:
+                img = cv2.resize(img, size)
+            vid.write(img)
+        if self.verbose: print ("Video saved to:", self.videoname)
+        vid.release()
+    
+    def release_gif(self):
+        if not self.videoname: return
+        try: import imageio
+        except: 
+            print ("open_video: imageio not installed? Skip.")
+            return
+        images = []
+        for fl in self.frames:
+            images.append(imageio.imread(fl))
+        imageio.mimsave('animation.gif', images)
 
 
 #########################################################
-# color schemes
+# basic color schemes
 ######################################################### 
 colors= [[.9,0.05,0.05], [0,.95,0], [0, .2,.9],[0,1,1], 
         [.94,.2,.9],[1,1,0],[0,0,0],[1,1,1],[1,.388,.278],
         [.5,.5,0],[.5,0,.5], [.5,0,0], [.67,.43,.157],
         [0,.5,.5],[0,.5,0], [0,0,.5], [1,.627,0.478],
-        [1,.647,0],[.9,.745,1], [1,.5,.19], [1,.745,.7], 
+        [.92,.757,0],[.9,.745,1], [1,.5,.19], [1,.745,.7], 
         [1,.98,.75],[.5,1,.831],[.5,.5,.5] ]
 color_names= ['red','green','blue','cyan',
               'magenta','yellow', 'black', 'white','tomato',
@@ -1307,41 +1378,11 @@ def screenshot(filename='screenshot.png'):
         pb = pb.get_from_drawable(w,w.get_colormap(),0,0,0,0, sz[0], sz[1])
         if pb is not None:
             pb.save(filename, "png")
-            print ("Screenshot saved to", filename)
+            #print ("Screenshot saved to", filename)
         else: print ("Unable to save the screenshot. Skip.")
     except:
         print ("Unable to take the screenshot. Skip.")
 
-
-def video(images=[], outvid='pics/output.avi', srcdir='pics/',
-          tag='png', fps=2, format="XVID"):
-    try:
-        import cv2
-    except:
-        print ("plotter.video: cv2 not installed? Skip.")
-        return
-    if len(images) == 0:
-        print ('Looking into ',srcdir,' to use png files therein')
-        names = sorted(os.listdir('pics'))
-        selimg=[]
-        for an in names :
-            if 'png' in an and tag in an:
-                print ('..using:', an)
-                selimg.append(an)
-        images = selimg
-    fourcc = cv2.cv.CV_FOURCC(*format)
-    for image in images:
-        if not os.path.exists('pics/'+image):
-            print ('image not found:', 'pics/'+image)
-            quit()
-        img = cv2.imread('pics/'+image)
-        size = img.shape[1], img.shape[0]
-        vid = cv2.VideoWriter(outvid, fourcc, float(fps), size, True)
-        if size[0] != img.shape[1] and size[1] != img.shape[0]:
-            img = cv2.resize(img, size)
-        vid.write(img)
-    vid.release()
-    
 
 ####################################
 def makeList(vtksrcs):
@@ -1412,8 +1453,7 @@ def closestPoint(polydata, pt, locator=None):
 ####################################
 def write(poly, fileoutput):
     wt = vtk.vtkPolyDataWriter()
-    if vtkMV: wt.SetInputData(poly)
-    else:     wt.SetInput(poly)
+    setInput(wt, poly)
     wt.SetFileName(fileoutput)
     print ("Writing", fileoutput, v.GetNumberOfPoints(),"points.")
     wt.Write()
@@ -1461,7 +1501,12 @@ if __name__ == '__main__':
         else: 
             leg=fs
             print ('Loading',len(fs),'files:', fs)
-        vtkPlotter(balloon=True).show(actors=fs, legend=leg)
+        vp = vtkPlotter(bg2=(.94,.94,1), balloon=False)
+        acts =[]
+        alpha = 1./len(fs)
+        for f in fs:
+            vp.load(f, alpha=alpha)
+        vp.show(legend=leg)
     except:
         print ("Something went wrong.")
         print ("Usage: plotter.py file*.vtk  # [vtp,ply,obj,stl,xml,pcd]")
