@@ -134,14 +134,6 @@ vp.show(at=6, c=6, actors='data/scissors.ply')
 vp.show(at=7, c=7, actors='data/shuttle.obj')
 vp.show(at=8, c=8, actors='data/skyscraper.obj')
 vp.interact()
-#import time
-#for i in range(9):
-#    cam = vp.renderers[i].GetActiveCamera()
-#    cam.SetViewUp([0,1,(i-5)/10.])
-#    vp.renderers[i].SetActiveCamera(cam)
-#    vp.renderers[i].Render()
-#    print ('renderer', i, vp.renderers[i].GetActiveCamera().GetViewUp())
-#    time.sleep(.2)
 
 
 #Draw a line in 3D that fits a cloud of points,
@@ -182,8 +174,8 @@ vp.interact()
 
 
 
-#(untested)
-#Display a tetrahedral mesh (Fenics/Dolfin format). #not yet tested on vtk6
+#(untested on vtk>=6)
+#Display a tetrahedral mesh (Fenics/Dolfin format).
 #The internal vertices are displayed too:
 #vp = plotter.vtkPlotter()
 #vp.load('data/290.xml.gz', wire=1)
