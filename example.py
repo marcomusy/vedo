@@ -158,7 +158,7 @@ vp.show(legend=['points','fitting plane','fitting line'])
 plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 
 
-#Make a video 
+#Make a video  (needs cv2 package)
 vp = plotter.vtkPlotter(interactive=0, verbose=0)
 vp.load('data/290.vtk', c='b', bc='tomato', alpha=1)
 vp.show()                 # inits camera etc.
