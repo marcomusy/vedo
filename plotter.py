@@ -3,7 +3,7 @@
 from __future__ import print_function
 __author__ = "Marco Musy"
 __license__ = "MIT"
-__version__ = "2.1"
+__version__ = "2.2"
 __maintainer__ = "Marco Musy"
 __email__ = "marco.musy@embl.es"
 __status__ = "stable"
@@ -29,7 +29,7 @@ class vtkPlotter:
         /   to maximize opacity
         .,  to increase/reduce opacity
         w/s to toggle wireframe/solid style
-        E   to toggle edges visibility
+        D   to toggle edges visibility
         F   to flip normals
         C   to print current camera info
         O   to show vertices only
@@ -301,6 +301,23 @@ class vtkPlotter:
         return False
 
 
+    def getActors(self, r=None):
+        '''Return the actors list in renderer number r
+        if None, use current renderer'''
+        if r is None: acs = self.renderer.GetActors()
+        else: 
+            if r>=len(self.renderers):
+                print ("Error in getActors: non existing renderer",r)
+                exit(0)
+            acs = self.renderers[r].GetActors()
+        acs.InitTraversal()
+        acts=[]
+        for i in range(acs.GetNumberOfItems()):
+            a = acs.GetNextItem()
+            if not isinstance(a, vtk.vtkCubeAxesActor): acts.append(a)
+        return acts
+
+
     def makeActor(self, poly, c='gold', alpha=0.5, 
                   wire=False, bc=False, edges=False):
         '''Return a vtkActor from an input vtkPolyData, optional args:
@@ -308,6 +325,7 @@ class vtkPlotter:
            alpha, transparency (0=invisible)
            wire,  show surface as wireframe
            bc,    backface color of internal surface
+           edges, show edges as line on top of surface
         '''
         c = getcolor(c)
         if bc: bc = getcolor(bc)
@@ -1100,7 +1118,9 @@ class vtkPlotter:
                                      wire=wire, edges=edges)
                 self.actors[i] = act #put it in right position
 
-        for ia in self.actors: self.renderer.AddActor(ia)
+        acts = self.getActors()
+        for ia in self.actors: 
+            if not ia in acts: self.renderer.AddActor(ia)
 
         if ruler: self.draw_ruler()
         if self.showaxes: self.draw_cubeaxes()
@@ -1154,60 +1174,52 @@ class vtkPlotter:
             print ('cam.SetViewUp(', [round(e,3) for e in cam.GetViewUp()],')')
             return
         if key == "m":
-            actors = self.renderer.GetActors()
-            actors.InitTraversal()
-            for i in range(actors.GetNumberOfItems()):
-                actors.GetNextItem().GetProperty().SetOpacity(0.1)
+            for a in self.getActors():
+                a.GetProperty().SetOpacity(0.1)
         if key == "comma":
-            actors = self.renderer.GetActors()
-            actors.InitTraversal()
-            for i in range(actors.GetNumberOfItems()):
-                ap = actors.GetNextItem().GetProperty()
+            for a in self.getActors():
+                ap = a.GetProperty()
                 ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.1]))
         if key == "period":
-            actors = self.renderer.GetActors()
-            actors.InitTraversal()
-            for i in range(actors.GetNumberOfItems()):
-                ap = actors.GetNextItem().GetProperty()
+            for a in self.getActors():
+                ap = a.GetProperty()
                 ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
         if key == "slash":
-            actors = self.renderer.GetActors()
-            actors.InitTraversal()
-            for i in range(actors.GetNumberOfItems()):
-                actors.GetNextItem().GetProperty().SetOpacity(1)
+            for a in self.getActors():
+                a.GetProperty().SetOpacity(1)
         if key == "V":
             if not(self.verbose): self.tips()
             self.verbose = not(self.verbose)
             print ("Verbose: ", self.verbose)
         if key == "1":
-            for i,ia in enumerate(self.actors):
+            for i,ia in enumerate(self.getActors()):
                 ia.GetProperty().SetColor(colors1[i])
         if key == "2":
-            for i,ia in enumerate(self.actors):
+            for i,ia in enumerate(self.getActors()):
                 ia.GetProperty().SetColor(colors2[i])
         if key == "3":
-            for i,ia in enumerate(self.actors):
+            for i,ia in enumerate(self.getActors()):
                 ia.GetProperty().SetColor(colors3[i])
         if key == "o":
-            for ia in self.actors:
+            for ia in self.getActors():
                 ps = ia.GetProperty().GetPointSize()
                 ia.GetProperty().SetPointSize(ps-1)
                 ia.GetProperty().SetRepresentationToPoints()
         if key == "O":
-            for ia in self.actors:
+            for ia in self.getActors():
                 try:
                     ps = ia.GetProperty().GetPointSize()
                     ia.GetProperty().SetPointSize(ps+2)
                     ia.GetProperty().SetRepresentationToPoints()
                 except AttributeError: pass
-        if key == "E":
-            for ia in self.actors:
+        if key == "D":
+            for ia in self.getActors():
                 try:
                     ev = ia.GetProperty().GetEdgeVisibility()
                     ia.GetProperty().SetEdgeVisibility(not(ev))
                 except AttributeError: pass
         if key == "N":
-            for ia in self.actors:
+            for ia in self.getActors():
                 try:
                     rs = vtk.vtkReverseSense()
                     rs.ReverseNormalsOn()
