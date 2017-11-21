@@ -2,7 +2,7 @@
 # vtkPlotter
 A python helper class to easily draw tridimensional objects.
 
-Based on VTK (tested on versions 5.8, 6.1, 7.0): https://www.vtk.org and *numpy*
+Based on VTK (tested on versions 5.8, 6.1, 7.0): https://www.vtk.org
 <br />
 
 ## Download/Install:
@@ -165,6 +165,26 @@ vp.show(at=5, actors=vp.cube(  [.5,.5,.5], r=0.3))
 vp.interact()
 ```
 ![ex8](https://user-images.githubusercontent.com/32848391/32666975-91690102-c639-11e7-8f7b-ad07bd6019da.png)
+<br />
+
+
+Draw a number of objects in various formats and options:
+```python
+vp = plotter.vtkPlotter(shape=(3,3), size=(900,900))
+vp.commoncam   = False
+vp.interactive = False
+vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
+vp.show(at=1, c=1, actors='data/big_atc.ply', wire=1)
+vp.show(at=2, c=2, actors='data/big_porsche.ply', edges=1)
+vp.show(at=3, c=3, actors='data/big_spider.ply')
+vp.show(at=4, c=4, actors='data/egret.ply')
+vp.show(at=5, c=5, actors='data/mug.ply')
+vp.show(at=6, c=6, actors='data/scissors.ply')
+vp.show(at=7, c=7, actors='data/shuttle.obj')
+vp.show(at=8, c=8, actors='data/skyscraper.obj')
+vp.interact()
+```
+![objects](https://user-images.githubusercontent.com/32848391/33093360-158b5f2c-cefd-11e7-8cb7-9e3c303b41be.png)
 <br />
 
 
