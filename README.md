@@ -119,7 +119,7 @@ vp.show()
 Split window in a 36 subwindows and draw something in
 windows nr 12 and nr 33. Then open an independent window and draw on two shapes:
 ```python
-vp1 = plotter.vtkPlotter(shape=(6,6), size=(900,900))
+vp1 = plotter.vtkPlotter(shape=(6,6))
 vp1.renderers[35].SetBackground(.8,.9,.9)
 v270 = vp1.load('data/270.vtk')     #load as vtkActor
 v290 = vp1.loadPoly('data/290.vtk') #load as vtkPolyData object
@@ -139,7 +139,7 @@ Load a surface and show its curvature based on 4 different schemes. All four sha
 share a common vtkCamera:<br />
 *0-gaussian, 1-mean, 2-max, 3-min*
 ```python
-vp = plotter.vtkPlotter(shape=(1,4), size=(400,1600))
+vp = plotter.vtkPlotter(shape=(1,4))
 v = vp.load('data/290.vtk')
 vp.interactive = False
 for i in [0,1,2,3]:
@@ -153,7 +153,7 @@ vp.interact() # same as setting flag interactive=True
 
 Draw a bunch of simple objects on separate parts of the rendering window:
 ```python
-vp = plotter.vtkPlotter(shape=(2,3), size=(800,1200))
+vp = plotter.vtkPlotter(shape=(2,3))
 vp.commoncam   = False
 vp.interactive = False
 vp.show(at=0, actors=vp.arrow( [0,0,0], [1,1,1] ))
@@ -170,7 +170,7 @@ vp.interact()
 
 Draw a number of objects in various formats and options:
 ```python
-vp = plotter.vtkPlotter(shape=(3,3), size=(900,900))
+vp = plotter.vtkPlotter(shape=(3,3))
 vp.commoncam   = False
 vp.interactive = False
 vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
@@ -226,5 +226,6 @@ plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 
 If you need to do more complicated things (define widgets.. etc), you can still access all the 
 usual VTK objects like interactors and renderers through *vp.interactor, vp.renderer*... etc.<br />
+Use *vp.open_video(), vp.addframe_video()* and *vp.close_video()* to save a movie.avi file.
 
 
