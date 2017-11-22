@@ -1046,6 +1046,7 @@ class vtkPlotter:
         ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
         self.renderer.AddActor(ls)
 
+
     def draw_legend(self):
         texts = []
         for t in self.legend:
