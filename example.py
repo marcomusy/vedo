@@ -5,6 +5,7 @@ Created on Mon Nov 13 12:48:43 2017
 @author: mmusy
 """
 from __future__ import print_function
+import numpy as np
 import plotter
 
 
@@ -27,7 +28,7 @@ vp.show()             # picks what is automatically stored in vp.actors
 a = vp.load('data/290.vtk', wire=1) # same as a.GetProperty().SetRepresentationToWireframe()
 vp.axes = False
 vp.show()             # picks what is automatically stored in vp.actors
-#vp.show(a)           # ignores the content of vp.actors
+#vp.show(a)           # ignores the content of vp.actors and draws a
 #vp.show(actors=[a])  # same as above
 
 
@@ -58,7 +59,6 @@ vp.show(legend=['points', 'PCA ellipsoid'])
 
 
 #Show 3 planes as a grid, add a dummy sine plot on top left:
-import numpy as np
 xycoords = [(np.exp(i/10.), np.sin(i/5.)) for i in range(40)]
 vp = plotter.vtkPlotter()
 vp.xyplot( xycoords )
@@ -79,7 +79,7 @@ vp.show(legend='shape w/ boundaries')
 
 #Split window in a 36 subwindows and draw something in windows nr 12 and nr 33.
 #Then open an independent window and draw on two shapes:
-vp1 = plotter.vtkPlotter(shape=(6,6), size=(900,900))
+vp1 = plotter.vtkPlotter(shape=(6,6))
 vp1.renderers[35].SetBackground(.8,.9,.9)
 v270 = vp1.load('data/270.vtk')     #load as vtkActor (default)
 v290 = vp1.loadPoly('data/290.vtk') #load as polydata
@@ -96,7 +96,7 @@ vp2.show(legend='an other window')
 #Load a surface and show its curvature based on 4 different schemes.
 #All four shapes share a common vtkCamera:
 #0-gaussian, 1-mean, 2-max, 3-min
-vp = plotter.vtkPlotter(shape=(1,4), size=(400,1600))
+vp = plotter.vtkPlotter(shape=(1,4))
 v = vp.load('data/290.vtk')
 vp.interactive = False
 vp.axes = False
@@ -107,7 +107,7 @@ vp.interact()
 
 
 #Draw a bunch of simple objects on separate parts of the rendering window:
-vp = plotter.vtkPlotter(shape=(2,3), size=(800,1200))
+vp = plotter.vtkPlotter(shape=(2,3))
 vp.axes    = True
 vp.commoncam   = False
 vp.interactive = False
@@ -121,7 +121,7 @@ vp.interact()
 
 
 #Draw objects
-vp = plotter.vtkPlotter(shape=(3,3), size=(900,900))
+vp = plotter.vtkPlotter(shape=(3,3))
 vp.commoncam   = False
 vp.interactive = False
 vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
@@ -138,23 +138,22 @@ vp.interact()
 
 #Draw a line in 3D that fits a cloud of points,
 #also show the first set of 20 points and fit a plane to them:
-vp = plotter.vtkPlotter()
-vp.verbose = False
+vp = plotter.vtkPlotter(verbose=False)
 for i in range(500): # draw 500 fit lines superimposed
-    x = np.mgrid[-2:5 :20j][:, np.newaxis] # generate 20 points
-    y = np.mgrid[ 1:9 :20j][:, np.newaxis]
-    z = np.mgrid[-5:3 :20j][:, np.newaxis]
-    data  = np.concatenate((x, y, z), axis=1)
-    data += np.random.normal(size=data.shape)*0.8 # add gauss noise
+    x = np.linspace(-2, 5, 20) # generate 20 points
+    y = np.linspace( 1, 9, 20)
+    z = np.linspace(-5, 3, 20)
+    data = np.array(zip(x,y,z))
+    data+= np.random.normal(size=data.shape)*0.8 # add gauss noise
     if i==0:
         vp.points(data, c='red')
         vp.fitplane(data)
     vp.fitline(data, lw=10, alpha=0.01) # fit
-print ('Fit slope=', vp.result['slope']) # access the last fitted slope direction
+print ('Fit slope=', vp.result['slope']) # the last fitted slope direction
 vp.show(legend=['points','fitting plane','fitting line'])
 
 
-#As a short cut, the filename can be given in the show command directly:
+#As a short-cut, the filename can be given in the show command directly:
 plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 
 
@@ -173,10 +172,13 @@ vp.tips()
 vp.interact()
 
 
-
-#(untested on vtk>=6)
 #Display a tetrahedral mesh (Fenics/Dolfin format).
 #The internal vertices are displayed too:
-#vp = plotter.vtkPlotter()
-#vp.load('data/290.xml.gz', wire=1)
-#vp.show(legend=['tet. mesh','boundary surf.'])
+vp = plotter.vtkPlotter()
+vp.load('data/290.xml.gz', wire=1)
+vp.show(legend='tetrahedral mesh')
+
+
+
+
+

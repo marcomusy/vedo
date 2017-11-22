@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 # A helper tool for visualizing vtk objects
 from __future__ import print_function
-__author__ = "Marco Musy"
+__author__  = "Marco Musy"
 __license__ = "MIT"
 __version__ = "2.2"
-__maintainer__ = "Marco Musy"
-__email__ = "marco.musy@embl.es"
-__status__ = "stable"
+__maintainer__ = __author__
+__email__   = "marco.musy@embl.es"
+__status__  = "dev"
 
 import os, vtk, numpy as np
 
 vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
 def setInput(vtkobj, p):
         if vtkMV: vtkobj.SetInputData(p)
-        else:     vtkobj.SetInput(p)
+        else: vtkobj.SetInput(p)
 
 #############################################################################
 class vtkPlotter:
@@ -25,6 +25,10 @@ class vtkPlotter:
         https://github.com/marcomusy/vtkPlotter
         Useful commands on graphic window:\n  """)
         print ("VTK version:", vtk.vtkVersion().GetVTKVersion())
+        try:
+            import platform
+            print ("Python version:", platform.python_version())
+        except: pass
         self.tips()
 
     def tips(self):
@@ -49,17 +53,15 @@ class vtkPlotter:
         --------------------------------------""")
 
 
-    def __init__(self, shape=(1,1), size=(800,800), 
-                bg=(1,1,1), bg2=None, balloon=False, 
-                verbose=True, interactive=True):
+    def __init__(self, shape=(1,1), size='auto', screensize=(1000,1600),
+                bg=(1,1,1), bg2=None, balloon=False, verbose=True, interactive=True):
         self.shape      = shape #nr of rows and columns
         self.size       = size
         self.balloon    = balloon
         self.verbose    = verbose
+        self.interactive= interactive
         self.renderer   = None  #current renderer
         self.renderers  = []
-        self.interactive= interactive
-        self.initialized= False
         self.axes       = True
         self.camera     = None
         self.commoncam  = True
@@ -69,7 +71,6 @@ class vtkPlotter:
         self.actors     = []
         self.legend     = []
         self.names      = []
-        self.tetmeshes  = []    # vtkUnstructuredGrid
         self.flat       = True
         self.phong      = False
         self.gouraud    = False
@@ -79,7 +80,12 @@ class vtkPlotter:
         self.legendBG   = (.96,.96,.9)
         self.legendPosition = 2   # 1=topright
         self.result     = dict()  # stores extra output information
-        self.caxes_exist = False
+        self.caxes_exist= False
+        self.initialized= False
+        self.videoname  = None
+        self.videoformat = None
+        self.fps        = 12
+        self.frames     = []
 
         if balloon:
             self.balloonWidget = vtk.vtkBalloonWidget()
@@ -87,11 +93,23 @@ class vtkPlotter:
             self.balloonRep.SetBalloonLayoutToImageRight()
             self.balloonWidget.SetRepresentation(self.balloonRep)
 
-        self.videoname = None
-        self.videoformat = None
-        self.fps       = 12
-        self.frames    = []
-
+        if size=='auto': # figure out reasonable window size
+                maxs = screensize #max sizes allowed in y and x
+                xs = maxs[0]/2.*shape[0]
+                ys = maxs[0]/2.*shape[1]
+                if xs>maxs[0]: # shrink
+                    xs = maxs[0]
+                    ys = maxs[0]/shape[0]*shape[1]
+                if ys>maxs[1]: 
+                    ys = maxs[1]
+                    xs = maxs[1]/shape[1]*shape[0]
+                self.size = (xs,ys)
+                if shape==(1,1): 
+                    self.size = (maxs[1]/2,maxs[1]/2)
+                elif self.verbose:
+                    print ('Window size set to:', self.size)
+        
+   
         #######################################
         # build the renderers scene:
         for i in reversed(range(shape[0])):
@@ -121,11 +139,10 @@ class vtkPlotter:
 
 
     #######################################
-    def loadXml(self, filename):
+    def loadXml(self, filename, c='g', alpha=1, wire=0, bc=None, edges=0):
+        '''Reads a Fenics/Dolfin file format
+        '''
         if not os.path.exists(filename): return False
-        if vtkMV:
-            print ('Not yet tested on vtk 6.0 or higher.')
-            return False
         try:
             import xml.etree.ElementTree as et
             if '.gz' in filename:
@@ -140,7 +157,7 @@ class vtkPlotter:
             coords, connectivity = [], []
             for mesh in tree.getroot():
                 for elem in mesh:
-                    if self.verbose: print ('reading',elem.tag)
+                    if self.verbose: print ('Reading',elem.tag)
                     for e in elem.findall('vertex'):
                         x = float(e.get('x'))
                         y = float(e.get('y'))
@@ -164,56 +181,80 @@ class vtkPlotter:
                     tetra.GetPointIds().SetId(k, j)
                 cellArray.InsertNextCell(tetra)
             ugrid.SetCells(vtk.VTK_TETRA, cellArray)
-            self.tetmeshes.append(ugrid)
-            # Create a mapper and actor this way
-            #  3D cells are mapped only if they are used by only one cell,
+            # 3D cells are mapped only if they are used by only one cell,
             #  i.e., on the boundary of the data set
-            #mapper = vtk.vtkDataSetMapper()
-            #mapper.SetInputConnection(ugrid.GetProducerPort())
-            #actor = vtk.vtkActor()
-            #actor.SetMapper(mapper)
+            mapper = vtk.vtkDataSetMapper()
+            mapper.SetInputConnection(ugrid.GetProducerPort())
+            actor = vtk.vtkActor()
+            actor.SetMapper(mapper)
+            actor.GetProperty().SetInterpolationToFlat()
+            actor.GetProperty().SetColor(getcolor(c))
+            actor.GetProperty().SetOpacity(alpha)
+            if edges: actor.GetProperty().EdgeVisibilityOn()
+            if wire:  actor.GetProperty().SetRepresentationToWireframe()
+            vpts = vtk.vtkPointSource()
+            vpts.SetNumberOfPoints(len(coords))
+            vpts.Update()
+            vpts.GetOutput().SetPoints(points)
+            poly = vpts.GetOutput()
+            intpoints_act = self.makeActor(vpts.GetOutput(), c='b', alpha=alpha)
+            intpoints_act.GetProperty().SetPointSize(3)
+            intpoints_act.GetProperty().SetRepresentationToPoints()
+            actor2 = self.assembly([intpoints_act,actor])
+            self.actors.append(actor2)
+            self.names.append(filename)
             if self.verbose:
-                print ('Appending vtkUnstructuredGrid to vtkPlotter.tetmeshes')
+                print ('Saving vtkUnstructuredGrid obj in:', end='')
+                print (" vp.results['"+filename+"']")
+                self.result[filename] = ugrid
+            return actor2
         except:
             print ("Cannot parse xml file. Skip.", filename)
-        try:
-            if self.verbose:
-                print ('Trying to convert fenics mesh file')
-            import dolfin as dlf
-
-            mesh = dlf.Mesh(filename)
-            boundarysurf = dlf.BoundaryMesh(mesh, "exterior")
-            dlf.File("/tmp/mesh.pvd") << boundarysurf
-            reader = vtk.vtkXMLUnstructuredGridReader()
-            reader.SetFileName("/tmp/mesh000000.vtu")
-            reader.Update()
-            gf = vtk.vtkGeometryFilter()
-            setInput(gf, reader.GetOutput())
-            gf.Update()
-            cl = vtk.vtkCleanPolyData()
-            cl.SetInput(gf.GetOutput())
-            cl.Update()
-            poly = cl.GetOutput()
-            b = poly.GetBounds()
-            maxb = max(b[1]-b[0], b[3]-b[2], b[5]-b[4])
-            V  = dlf.FunctionSpace(mesh, 'CG', 1)
-            u  = dlf.Function(V)
-            bc = dlf.DirichletBC(V, 1, dlf.DomainBoundary())
-            bc.apply(u.vector())
-            d2v = dlf.dof_to_vertex_map(V)
-            idxs = d2v[u.vector() == 0.0] #indeces
-            coords = mesh.coordinates()
-            if self.verbose:
-                print ('Appending tetrahedral vertices to vtkPlotter.actors')
-            self.points(coords[idxs], r=maxb/400, c=(.8,0,.2), alpha=.2)
-            self.names.append(filename)
-            return poly
-        except: return False
-
+            return False
+ 
+ 
+    def loadPCD(self, filename, c='g', alpha=1):
+        '''Load Point Cloud file format
+        '''            
+        f = open(filename, 'r')
+        lines = f.readlines()
+        f.close()
+        start = False
+        pts = []
+        N, expN = 0, 0
+        for text in lines:
+            if start:
+                if N >= expN: break
+                l = text.split()
+                pts.append([float(l[0]),float(l[1]),float(l[2])])
+                N += 1
+            if not start and 'POINTS' in text:
+                expN= int(text.split()[1])
+            if not start and 'DATA ascii' in text:
+                start = True
+        if expN != N:
+            print ('Mismatch in pcd file', expN, len(pts))
+        src = vtk.vtkPointSource()
+        src.SetNumberOfPoints(len(pts))
+        src.Update()
+        poly = src.GetOutput()
+        for i,p in enumerate(pts): poly.GetPoints().SetPoint(i, p)
+        if not poly:
+            print ('Unable to load', filename)
+            return False
+        actor = self.makeActor(poly, getcolor(c), alpha)
+        actor.GetProperty().SetPointSize(4)
+        self.names.append(filename)
+        self.actors.append(actor)
+        return actor
+        
 
     def loadPoly(self, filename, reader=None):
-        '''Return a vtkPolyData object'''
-        if not os.path.exists(filename): return False
+        '''Return a vtkPolyData object
+        '''
+        if not os.path.exists(filename): 
+            print ('Cannot find file', filename)
+            return False
         fl = filename.lower()
         if '.vtk' in fl: reader = vtk.vtkPolyDataReader()
         if '.vtp' in fl: reader = vtk.vtkXMLPolyDataReader()
@@ -223,7 +264,9 @@ class vtkPlotter:
         if not reader: reader = vtk.vtkPolyDataReader()
         reader.SetFileName(filename)
         reader.Update()
-        if not reader.GetOutput(): return False
+        if not reader.GetOutput(): 
+            print ('Unable to load', filename)
+            return False
         mergeTriangles = vtk.vtkTriangleFilter()
         setInput(mergeTriangles, reader.GetOutput())
         mergeTriangles.Update()
@@ -233,7 +276,9 @@ class vtkPlotter:
 
 
     def loadDir(self, mydir, tag='.'):
-        '''Return a list of vtkActors from files in mydir of any formats'''
+        '''Return a list of vtkActors from files in mydir of any formats
+           filenames will contain tag
+        '''
         if not os.path.exists(mydir): return False
         acts = []
         for ifile in sorted(os.listdir(mydir)):
@@ -246,7 +291,7 @@ class vtkPlotter:
 
 
     def load(self, filename, reader=None, c='gold', alpha=0.2, 
-             wire=False, bc=False, edges=False):
+             wire=False, bc=None, edges=False):
         '''Return a vtkActor, optional args:
            c,     color in RGB format, hex, symbol or name
            alpha, transparency (0=invisible)
@@ -257,32 +302,11 @@ class vtkPlotter:
         if bc: bc = getcolor(bc)
         fl = filename.lower()
         if '.xml' in fl or '.xml.gz' in fl: # Fenics tetrahedral mesh file
-            poly = self.loadXml(filename)
+            return self.loadXml(filename, c, alpha, wire, bc, edges)
         elif '.pcd' in fl:                  # PCL point-cloud format
-            f = open(filename, 'r')
-            lines = f.readlines()
-            f.close()
-            start = False
-            pts = []
-            N, expN = 0, 0
-            for text in lines:
-                if start:
-                    if N >= expN: break
-                    l = text.split()
-                    pts.append([float(l[0]),float(l[1]),float(l[2])])
-                    N += 1
-                if not start and 'POINTS' in text:
-                    expN= int(text.split()[1])
-                if not start and 'DATA ascii' in text:
-                    start = True
-            if expN != N:
-                print ('Mismatch in pcd file', expN, len(pts))
-            src = vtk.vtkPointSource()
-            src.SetNumberOfPoints(len(pts))
-            src.Update()
-            poly = src.GetOutput()
-            for i,p in enumerate(pts): poly.GetPoints().SetPoint(i, p)
+            return self.loadPCD(filename, c, alpha)
         else:
+            print (filename)
             poly = self.loadPoly(filename, reader=reader)
         if not poly:
             print ('Unable to load', filename)
@@ -314,7 +338,7 @@ class vtkPlotter:
 
     def getActors(self, r=None):
         '''Return the actors list in renderer number r
-        if None, use current renderer'''
+           if None, use current renderer'''
         if r is None: acs = self.renderer.GetActors()
         else: 
             if r>=len(self.renderers):
@@ -340,8 +364,6 @@ class vtkPlotter:
            bc,    backface color of internal surface
            edges, show edges as line on top of surface
         '''
-        c = getcolor(c)
-        if bc: bc = getcolor(bc)
         dataset = vtk.vtkPolyDataNormals()
         setInput(dataset, poly)
         dataset.SetFeatureAngle(60.0)
@@ -366,7 +388,7 @@ class vtkPlotter:
             actor.GetProperty().SetInterpolationToGouraud()
             self.flat = self.phong = False
         if edges: actor.GetProperty().EdgeVisibilityOn()
-        actor.GetProperty().SetColor(c)
+        actor.GetProperty().SetColor(getcolor(c))
         actor.GetProperty().SetOpacity(alpha)
         if self.bculling:
             actor.GetProperty().BackfaceCullingOn()
@@ -377,9 +399,9 @@ class vtkPlotter:
         else:
             actor.GetProperty().FrontfaceCullingOff()
         if wire: actor.GetProperty().SetRepresentationToWireframe()
-        if bc: # defines a specific color for the backface
+        if not bc is False: # defines a specific color for the backface
             backProp = vtk.vtkProperty()
-            backProp.SetDiffuseColor(bc)
+            backProp.SetDiffuseColor(getcolor(bc))
             backProp.SetOpacity(alpha)
             actor.SetBackfaceProperty(backProp)
         return actor
@@ -526,7 +548,9 @@ class vtkPlotter:
         
     def plane(self, center=(0,0,0), normal=(0,0,1), s=10, N=10, 
               c='g', bc='darkgreen', lw=1, alpha=1):
-        return self.grid(center, normal, s, 1, c, bc, lw, alpha, 0)
+        pl = self.grid(center, normal, s, 1, c, bc, lw, alpha, 0)
+        pl.GetProperty().SetEdgeVisibility(1)
+        return pl
 
 
     def arrow(self, startPoint, endPoint, c='r', alpha=1):
@@ -1047,7 +1071,12 @@ class vtkPlotter:
                 act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
                 c = act.GetProperty().GetColor()
                 if c==(1,1,1): c=(0.5,0.5,0.5)
-                legend.SetEntry(i, self.getPD(a), "  "+texts[i], c)
+                try:
+                    legend.SetEntry(i, self.getPD(a), "  "+texts[i], c)
+                except:
+                    sp = vtk.vtkSphereSource() #make a dummy sphere as icon
+                    sp.Update()
+                    legend.SetEntry(i, sp.GetOutput(),"  "+texts[i], c)
             else:
                 c = a.GetProperty().GetColor()
                 if c==(1,1,1): c=(0.5,0.5,0.5)
@@ -1102,8 +1131,10 @@ class vtkPlotter:
         else:
             print ("Error in show(): wrong renderer index",at)
             return
-        if not self.camera: self.camera = self.renderer.GetActiveCamera()
-        else: self.camera.SetThickness(self.camThickness)
+        if not self.camera: 
+            self.camera = self.renderer.GetActiveCamera()
+        else: 
+            self.camera.SetThickness(self.camThickness)
         if self.parallelcam: self.camera.ParallelProjectionOn()
         if self.commoncam:
             for r in self.renderers: r.SetActiveCamera(self.camera)
@@ -1130,7 +1161,9 @@ class vtkPlotter:
         if self.axes: self.draw_cubeaxes()
         if self.legend or len(self.legend): self.draw_legend()
 
-        if self.resetcam: self.renderer.ResetCamera()
+        if self.resetcam: 
+            self.renderer.ResetCamera()
+            self.camera.Zoom(1.1)
 
         if not self.initialized:
             self.interactor.Initialize()
@@ -1470,6 +1503,7 @@ def write(poly, fileoutput):
     wt.SetFileName(fileoutput)
     print ("Writing", fileoutput, v.GetNumberOfPoints(),"points.")
     wt.Write()
+    
 
 ####################################
 def getcolor(c):
