@@ -689,12 +689,10 @@ class vtkPlotter:
         return acttube
 
 
-    def text(self, txt, pos=(0,0,0), s=1, c='k', alpha=1, cam=True, bc=False):
+    def text(self, txt, pos=(0,0,0), s=1, c='k', alpha=1, cam=True, bc=None):
         '''Returns a vtkActor that shows a text 3D
            if cam is True the text will auto-orient to it
         '''
-        c = getcolor(c) 
-        if bc: bc = getcolor(bc)
         tt = vtk.vtkVectorText()
         tt.SetText(txt)
         ttmapper = vtk.vtkPolyDataMapper()
@@ -705,13 +703,13 @@ class vtkPlotter:
         else:
             ttactor = vtk.vtkActor()
         ttactor.SetMapper(ttmapper)
-        ttactor.GetProperty().SetColor(c)
+        ttactor.GetProperty().SetColor(getcolor(c))
         ttactor.GetProperty().SetOpacity(alpha)
         ttactor.AddPosition(pos)
         ttactor.SetScale(s,s,s)
         if bc: # defines a specific color for the backface
             backProp = vtk.vtkProperty()
-            backProp.SetDiffuseColor(bc)
+            backProp.SetDiffuseColor(getcolor(bc))
             backProp.SetOpacity(alpha)
             ttactor.SetBackfaceProperty(backProp)
         self.actors.append(ttactor)
@@ -1163,7 +1161,7 @@ class vtkPlotter:
 
         if self.resetcam: 
             self.renderer.ResetCamera()
-            self.camera.Zoom(1.1)
+            self.camera.Zoom(1.05)
 
         if not self.initialized:
             self.interactor.Initialize()
