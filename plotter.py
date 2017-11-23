@@ -3,7 +3,7 @@
 from __future__ import print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "2.2"
+__version__ = "2.3"
 __maintainer__ = __author__
 __email__   = "marco.musy@embl.es"
 __status__  = "dev"
@@ -39,14 +39,14 @@ class vtkPlotter:
         /   to maximize opacity
         .,  to increase/reduce opacity
         w/s to toggle wireframe/solid style
-        F   to flip normals
-        C   to print current camera info
         oO  to change point size of vertices
         lL  to change edge line width
-        n   to normals for all actors
+        n   to show normals for all actors
         N   to flip all normals
+        x   to remove clicked actor
         1-4 to change color scheme
         V   to toggle verbose mode
+        C   to print current camera info
         S   to save a screenshot
         q   to continue
         e   to close current window
@@ -93,6 +93,9 @@ class vtkPlotter:
         self.icol1      = 0
         self.icol2      = 0
         self.icol3      = 0
+        self.clickedx   = 0
+        self.clickedy   = 0
+        self.clickedr   = 0
 
         if balloon:
             self.balloonWidget = vtk.vtkBalloonWidget()
@@ -1074,6 +1077,7 @@ class vtkPlotter:
             print ('Mismatch in Legend:')
             print ('only', len(self.actors), 'actors but', N, 'legend lines.')
             return
+        if N> 25: N=25
         legend = vtk.vtkLegendBoxActor()
         legend.SetNumberOfEntries(N)
         legend.UseBackgroundOn()
@@ -1139,7 +1143,7 @@ class vtkPlotter:
         if not interactive is None: self.interactive = interactive
         if self.verbose:
             print ('Drawing', len(self.actors),'actors ', end='')
-            if self.shape != (1,1): print ('on window',at,'-', end='')
+            if self.shape != (1,1) : print ('on window',at,'-', end='')
             else: print (' - ', end='')
             if self.interactive: print ('Interactive mode: On.')
             else: print ('Interactive mode: Off.')
@@ -1207,7 +1211,11 @@ class vtkPlotter:
         x,y = self.interactor.GetEventPosition()
         self.renderer = obj.FindPokedRenderer(x,y)
         self.renderWin = obj.GetRenderWindow()
-        #print ('Renderer clicked:', self.renderers.index(self.renderer))
+        self.clickedx,self.clickedy = x,y
+        self.clickedr = self.renderers.index(self.renderer)
+        if self.verbose and (len(self.renderers)>1 or self.clickedr>0):
+            print ('Current Renderer:', self.clickedr, 'at (x, y) =',(x,y),end='')
+            print (', nr. of actors =', len(self.getActors()))
 
     def keypress(self, obj, event):
         key = obj.GetKeySym()
@@ -1258,6 +1266,7 @@ class vtkPlotter:
             for i,ia in enumerate(self.getActors()):
                 ia.GetProperty().SetColor(colors1[i+self.icol1])
             self.icol1 += 1
+            self.draw_legend()
         elif key in ["2", "KP_Down", "KP_2"]:
             for i,ia in enumerate(self.getActors()):
                 ia.GetProperty().SetColor(colors2[i+self.icol2])
@@ -1323,8 +1332,19 @@ class vtkPlotter:
                     self.actors[i] = a
                 except ValueError: pass
             ii = bool(self.interactive)
-            self.show(interactive=0, axes=0)
+            self.show(at=self.clickedr, interactive=0, axes=0)
             self.interactive = ii # restore it
+        elif key == "x":
+            picker = vtk.vtkPropPicker()
+            x,y = self.clickedx, self.clickedy
+            picker.Pick(x,y, 0, self.renderer)
+            a = picker.GetActor()
+            if a and a in self.getActors():
+                al = np.sqrt(a.GetProperty().GetOpacity())
+                for op in np.linspace(al,0, 8): #fade away
+                    a.GetProperty().SetOpacity(op)
+                    self.interactor.Render()
+                self.renderer.RemoveActor(a) 
         self.interactor.Render()
 
 
