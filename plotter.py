@@ -95,7 +95,7 @@ class vtkPlotter:
         self.icol3      = 0
         self.clickedx   = 0
         self.clickedy   = 0
-        self.clickedr   = 0
+        self.clickedr   = 0 #clicked renderer number
 
         if balloon:
             self.balloonWidget = vtk.vtkBalloonWidget()
@@ -1271,10 +1271,20 @@ class vtkPlotter:
             for i,ia in enumerate(self.getActors()):
                 ia.GetProperty().SetColor(colors2[i+self.icol2])
             self.icol2 += 1
+            self.draw_legend()
         elif key in ["4", "KP_Left", "KP_4"]:
             for i,ia in enumerate(self.getActors()):
                 ia.GetProperty().SetColor(colors3[i+self.icol3])
             self.icol3 += 1
+            self.draw_legend()
+        elif key in ["5", "KP_Begin", "KP_5"]:
+            c = getcolor('gold')
+            acs = self.getActors()
+            alpha = 1./len(acs)
+            for ia in acs:
+                ia.GetProperty().SetColor(c)
+                ia.GetProperty().SetOpacity(alpha)
+            self.draw_legend()
         elif key == "o":
             for ia in self.getActors():
                 try:
