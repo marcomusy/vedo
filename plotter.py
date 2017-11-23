@@ -207,10 +207,6 @@ class vtkPlotter:
             actor2 = self.assembly([intpoints_act,actor])
             self.actors.append(actor2)
             self.names.append(filename)
-            if self.verbose:
-                print ('Saving vtkUnstructuredGrid obj in:', end='')
-                print (" vp.results['"+filename+"']")
-                self.result[filename] = ugrid
             return actor2
         except:
             print ("Cannot parse xml file. Skip.", filename)
