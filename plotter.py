@@ -47,7 +47,7 @@ class vtkPlotter:
         V   to toggle verbose mode
         S   to save a screenshot
         q   to continue
-        e   to close window and continue
+        e   to close current window
         Esc to abort and exit
         Ctrl-mouse  to rotate scene
         Shift-mouse to shift scene
@@ -78,7 +78,7 @@ class vtkPlotter:
         self.gouraud    = False
         self.bculling   = False
         self.fculling   = False
-        self.legendSize = 0.25
+        self.legendSize = 0.2
         self.legendBG   = (.96,.96,.9)
         self.legendPosition = 2   # 1=topright
         self.result     = dict()  # stores extra output information
@@ -253,30 +253,46 @@ class vtkPlotter:
         return actor
         
 
-    def loadPoly(self, filename, reader=None):
+    def loadPoly(self, filename):
         '''Return a vtkPolyData object
         '''
         if not os.path.exists(filename): 
             print ('Cannot find file', filename)
             return False
         fl = filename.lower()
-        if '.vtk' in fl: reader = vtk.vtkPolyDataReader()
-        if '.vtp' in fl: reader = vtk.vtkXMLPolyDataReader()
-        if '.ply' in fl: reader = vtk.vtkPLYReader()
-        if '.obj' in fl: reader = vtk.vtkOBJReader()
-        if '.stl' in fl: reader = vtk.vtkSTLReader()
-        if not reader: reader = vtk.vtkPolyDataReader()
+        if   '.vtk' in fl: reader = vtk.vtkPolyDataReader()
+        elif '.ply' in fl: reader = vtk.vtkPLYReader()
+        elif '.obj' in fl: reader = vtk.vtkOBJReader()
+        elif '.stl' in fl: reader = vtk.vtkSTLReader()
+        elif '.byu' in fl: reader = vtk.vtkBYUReader()
+        elif '.vtp' in fl: reader = vtk.vtkXMLPolyDataReader()
+        elif '.vts' in fl: reader = vtk.vtkXMLStructuredGridReader()
+        elif '.vtu' in fl: reader = vtk.vtkXMLUnstructuredGridReader()
+        elif '.txt' in fl: reader = vtk.ParticleReader() # (x y z scalar) format
+        else: reader = vtk.vtkDataReader()
         reader.SetFileName(filename)
         reader.Update()
-        if not reader.GetOutput(): 
+        if '.vts' in fl: # structured grid
+            gf = vtk.vtkStructuredGridGeometryFilter()
+            gf.SetInputConnection(reader.GetOutputPort())
+            gf.Update()
+            poly = gf.GetOutput()
+        elif '.vtu' in fl: # unstructured grid
+            gf = vtk.vtkGeometryFilter()
+            gf.SetInputConnection(reader.GetOutputPort())
+            gf.Update()    
+            poly = gf.GetOutput()
+        else: poly = reader.GetOutput()
+        
+        if not poly: 
             print ('Unable to load', filename)
             return False
+        
         mergeTriangles = vtk.vtkTriangleFilter()
-        setInput(mergeTriangles, reader.GetOutput())
+        setInput(mergeTriangles, poly)
         mergeTriangles.Update()
-        poly = mergeTriangles.GetOutput()
         self.names.append(filename)
-        return poly
+        return mergeTriangles.GetOutput()
 
 
     def loadDir(self, mydir, tag='.'):
@@ -294,7 +310,7 @@ class vtkPlotter:
         return acts
 
 
-    def load(self, filename, reader=None, c='gold', alpha=0.2, 
+    def load(self, filename, c='gold', alpha=0.2, 
              wire=False, bc=None, edges=False):
         '''Return a vtkActor, optional args:
            c,     color in RGB format, hex, symbol or name
@@ -302,16 +318,13 @@ class vtkPlotter:
            wire,  show surface as wireframe
            bc,    backface color of internal surface
         '''
-        c = getcolor(c) # allow different codings
-        if bc: bc = getcolor(bc)
         fl = filename.lower()
         if '.xml' in fl or '.xml.gz' in fl: # Fenics tetrahedral mesh file
             return self.loadXml(filename, c, alpha, wire, bc, edges)
         elif '.pcd' in fl:                  # PCL point-cloud format
             return self.loadPCD(filename, c, alpha)
         else:
-            print (filename)
-            poly = self.loadPoly(filename, reader=reader)
+            poly = self.loadPoly(filename)
         if not poly:
             print ('Unable to load', filename)
             return False
@@ -633,10 +646,10 @@ class vtkPlotter:
             balls.SetRadius(s*1.2)
             balls.SetPhiResolution(12)
             balls.SetThetaResolution(12)
-            glyphPoints = vtk.vtkGlyph3D()
-            setInput(glyphPoints, inputData)
-            glyphPoints.SetSource(balls.GetOutput())
-            actnodes = self.makeActor(glyphPoints.GetOutput(), c=c, alpha=alpha)
+            gl = vtk.vtkGlyph3D()
+            setInput(gl, inputData)
+            gl.SetSource(balls.GetOutput())
+            actnodes = self.makeActor(gl.GetOutput(), c=c, alpha=alpha)
             acttube  = self.assembly([acttube, actnodes])
         self.actors.append(acttube)
         return acttube
@@ -1174,9 +1187,9 @@ class vtkPlotter:
                 if i<len(self.names):
                     self.balloonWidget.AddBalloon(ia, self.names[i])
 
-        if self.renderer: self.renderWin.Render()
+        if hasattr(self, 'interactor') and self.interactor: self.interactor.Render()
         if outputimage: screenshot(outputimage)
-        if self.renderer and self.interactive: self.interact()
+        if self.interactive: self.interact()
 
 
     ############################### events
@@ -1281,8 +1294,9 @@ class vtkPlotter:
 
     def interact(self):
         if hasattr(self, 'interactor'):
-            self.interactor.Render()
-            self.interactor.Start()
+            if self.interactor:
+                self.interactor.Render()
+                self.interactor.Start()
 
     def lastactor(self): return self.actors[-1]
 
@@ -1541,24 +1555,19 @@ def getcolor(c):
 ###########################################################################
 if __name__ == '__main__':
 ###########################################################################
-    try:
-        import sys
-        fs = sys.argv[1:]
-        if len(fs) == 1 : 
-            leg = None
-            alpha = 1
-        else: 
-            leg = [os.path.basename(n) for n in fs]
-            alpha = 1./len(fs)  
-            print ('Loading',len(fs),'files:', fs)
-        vp = vtkPlotter(bg2=(.94,.94,1), balloon=False)
-        vp.legendSize = 0.2
-        for f in fs:
-            vp.load(f, alpha=alpha)
-        vp.show(legend=leg)
-    except:
-        print ("Something went wrong.")
-        print ("Usage: plotter.py file*.vtk  # [vtp,ply,obj,stl,xml,pcd]")
+    import sys
+    fs = sys.argv[1:]
+    if len(fs) == 1 : 
+        leg = None
+        alpha = 1
+    else: 
+        leg = [os.path.basename(n) for n in fs]
+        alpha = 1./len(fs)  
+        print ('Loading',len(fs),'files:', fs)
+    vp = vtkPlotter(bg2=(.94,.94,1), balloon=False)
+    for f in fs:
+        vp.load(f, alpha=alpha)
+    vp.show(legend=leg)
 ###########################################################################
 
 
