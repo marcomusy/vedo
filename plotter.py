@@ -41,7 +41,7 @@ class vtkPlotter:
         F   to flip normals
         C   to print current camera info
         O   to show vertices only
-        123 to change color scheme
+        1-4 to change color scheme
         V   to toggle verbose mode
         S   to save a screenshot
         q   to continue
@@ -86,6 +86,9 @@ class vtkPlotter:
         self.videoformat = None
         self.fps        = 12
         self.frames     = []
+        self.icol1      = 0
+        self.icol2      = 0
+        self.icol3      = 0
 
         if balloon:
             self.balloonWidget = vtk.vtkBalloonWidget()
@@ -356,7 +359,7 @@ class vtkPlotter:
 
 
     def makeActor(self, poly, c='gold', alpha=0.5, 
-                  wire=False, bc=False, edges=False):
+                  wire=False, bc=None, edges=False):
         '''Return a vtkActor from an input vtkPolyData, optional args:
            c,     color in RGB format, hex, symbol or name
            alpha, transparency (0=invisible)
@@ -399,8 +402,9 @@ class vtkPlotter:
         else:
             actor.GetProperty().FrontfaceCullingOff()
         if wire: actor.GetProperty().SetRepresentationToWireframe()
-        if not bc is False: # defines a specific color for the backface
+        if bc: # defines a specific color for the backface
             backProp = vtk.vtkProperty()
+            print (getcolor(bc))
             backProp.SetDiffuseColor(getcolor(bc))
             backProp.SetOpacity(alpha)
             actor.SetBackfaceProperty(backProp)
@@ -1094,7 +1098,7 @@ class vtkPlotter:
     ###############################################################################
     def show(self, actors=None, legend=None, at=0, #at=render wind. nr.
              axes=None, ruler=False, interactive=None, outputimage=None,
-             c='gold', alpha=0.2, wire=False, bc=False, edges=False):
+             c='gold', alpha=0.2, wire=False, bc=None, edges=False):
         '''
         Input: a mixed list of vtkActors, vtkPolydata and filename strings
         legend = a string or list of string for each actor. Empty string skips.
@@ -1191,7 +1195,7 @@ class vtkPlotter:
 
     def keypress(self, obj, event):
         key = obj.GetKeySym()
-        #print (key)
+        #print ('Pressed key:', key)
         if   key == "q" or key == "space":
             self.interactor.ExitCallback()
         elif key == "e":
@@ -1236,13 +1240,16 @@ class vtkPlotter:
             print ("Verbose: ", self.verbose)
         elif key in ["1", "KP_End", "KP_1"]:
             for i,ia in enumerate(self.getActors()):
-                ia.GetProperty().SetColor(colors1[i])
+                ia.GetProperty().SetColor(colors1[i+self.icol1])
+            self.icol1 += 1
         elif key in ["2", "KP_Down", "KP_2"]:
             for i,ia in enumerate(self.getActors()):
-                ia.GetProperty().SetColor(colors2[i])
-        elif key in ["3", "KP_Next", "KP_3"]:
+                ia.GetProperty().SetColor(colors2[i+self.icol2])
+            self.icol2 += 1
+        elif key in ["4", "KP_Left", "KP_4"]:
             for i,ia in enumerate(self.getActors()):
-                ia.GetProperty().SetColor(colors3[i])
+                ia.GetProperty().SetColor(colors3[i+self.icol3])
+            self.icol3 += 1
         elif key == "o":
             for ia in self.getActors():
                 ps = ia.GetProperty().GetPointSize()
