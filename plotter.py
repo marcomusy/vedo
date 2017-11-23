@@ -833,17 +833,17 @@ class vtkPlotter:
     def curvature(self, pactor, method=1, r=1, alpha=1, lut=None):
         '''Returns a vtkActor that contains the color coded surface
            curvature following four different ways to calculate it:
-           ctype =  0-gaussian, 1-mean, 2-max, 3-min
+           method =  0-gaussian, 1-mean, 2-max, 3-min
         '''
         poly = self.getPD(pactor)
         cleaner = vtk.vtkCleanPolyData()
         setInput(cleaner, poly)
         curve = vtk.vtkCurvatures()
         curve.SetInputConnection(cleaner.GetOutputPort())
-        curve.SetCurvatureType(ctype)
+        curve.SetCurvatureType(method)
         curve.InvertMeanCurvatureOn()
         curve.Update()
-        if self.verbose: print ('CurvatureType set to:',ctype)
+        if self.verbose: print ('CurvatureType set to:',method)
         if not lut:
             lut = vtk.vtkLookupTable()
             lut.SetNumberOfColors(256)
