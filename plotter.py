@@ -29,6 +29,8 @@ class vtkPlotter:
             import platform
             print ("Python version:", platform.python_version())
         except: pass
+        print('\nAvailable color names:\n', color_names)
+        print('Colors abbreviations:\n', color_nicks,'\n')
         self.tips()
 
     def tips(self):
@@ -199,7 +201,6 @@ class vtkPlotter:
             vpts.SetNumberOfPoints(len(coords))
             vpts.Update()
             vpts.GetOutput().SetPoints(points)
-            poly = vpts.GetOutput()
             intpoints_act = self.makeActor(vpts.GetOutput(), c='b', alpha=alpha)
             intpoints_act.GetProperty().SetPointSize(3)
             intpoints_act.GetProperty().SetRepresentationToPoints()
@@ -404,7 +405,6 @@ class vtkPlotter:
         if wire: actor.GetProperty().SetRepresentationToWireframe()
         if bc: # defines a specific color for the backface
             backProp = vtk.vtkProperty()
-            print (getcolor(bc))
             backProp.SetDiffuseColor(getcolor(bc))
             backProp.SetOpacity(alpha)
             actor.SetBackfaceProperty(backProp)
@@ -528,6 +528,11 @@ class vtkPlotter:
         return actor
 
 
+    def plane(self, center=(0,0,0), normal=(0,0,1), s=10, N=10, 
+              c='g', bc='darkgreen', lw=1, alpha=1, wire=False):
+        pl = self.grid(center, normal, s, 1, c, bc, lw, alpha, wire)
+        pl.GetProperty().SetEdgeVisibility(1)
+        return pl
     def grid(self, center=(0,0,0), normal=(0,0,1), s=10, N=10, 
              c='g', bc='darkgreen', lw=1, alpha=1, wire=True):
         '''Return a grid plane'''
@@ -536,26 +541,14 @@ class vtkPlotter:
         ps.SetCenter(np.array(center)/float(s))
         ps.SetNormal(normal)
         ps.Update()
-        actor = self.makeActor(ps.GetOutput(), c=c, alpha=alpha)
+        actor = self.makeActor(ps.GetOutput(), c=c, bc=bc, alpha=alpha)
         actor.SetScale(s,s,s)
         if wire: actor.GetProperty().SetRepresentationToWireframe()
         actor.GetProperty().SetLineWidth(lw)
         actor.PickableOff()
         self.actors.append(actor)
-        if bc: # defines a specific color for the backface
-            backProp = vtk.vtkProperty()
-            backProp.SetDiffuseColor(getcolor(bc))
-            backProp.SetOpacity(alpha)
-            actor.SetBackfaceProperty(backProp)
         return actor
-        
-        
-    def plane(self, center=(0,0,0), normal=(0,0,1), s=10, N=10, 
-              c='g', bc='darkgreen', lw=1, alpha=1):
-        pl = self.grid(center, normal, s, 1, c, bc, lw, alpha, 0)
-        pl.GetProperty().SetEdgeVisibility(1)
-        return pl
-
+    
 
     def arrow(self, startPoint, endPoint, c='r', alpha=1):
         arrowSource = vtk.vtkArrowSource()
@@ -1293,10 +1286,11 @@ class vtkPlotter:
 
     def lastactor(self): return self.actors[-1]
 
-    
+
+    ###################################################################### Video
     def open_video(self, name='movie.avi', fps=12, duration=None, format="XVID"):
         try:
-            import cv2, glob
+            import cv2, glob #just check
         except:
             print ("open_video: cv2 not installed? Skip.")
             return
@@ -1328,6 +1322,17 @@ class vtkPlotter:
             self.frames.append(fr2)
             os.system("cp -f %s %s" % (fr, fr2))
             
+    def release_gif(self):
+        if not self.videoname: return
+        try: import imageio
+        except: 
+            print ("release_gif: imageio not installed? Skip.")
+            return
+        images = []
+        for fl in self.frames:
+            images.append(imageio.imread(fl))
+        imageio.mimsave('animation.gif', images)
+
     def release_video(self):        
         if not self.videoname: return
         import cv2
@@ -1352,19 +1357,9 @@ class vtkPlotter:
             vid.write(img)
         if self.verbose: print ("Video saved to:", self.videoname)
         vid.release()
+        self.videoname = None
+ 
     
-    def release_gif(self):
-        if not self.videoname: return
-        try: import imageio
-        except: 
-            print ("open_video: imageio not installed? Skip.")
-            return
-        images = []
-        for fl in self.frames:
-            images.append(imageio.imread(fl))
-        imageio.mimsave('animation.gif', images)
-
-
 #########################################################
 # basic color schemes
 ######################################################### 
@@ -1409,10 +1404,9 @@ colors2 = colors2 * 100
 colors3=[]
 for i in range(10):
     pc = (i+0.5)/10.
-    sig = 0.2
-    r = np.exp(-((pc-0.0)/sig)**2/2.)
-    g = np.exp(-((pc-0.5)/sig)**2/2.)
-    b = np.exp(-((pc-1.0)/sig)**2/2.)
+    r = np.exp(-((pc-0.0)/.2)**2/2.)
+    g = np.exp(-((pc-0.5)/.2)**2/2.)
+    b = np.exp(-((pc-1.0)/.2)**2/2.)
     colors3.append((r,g,b))
 colors3 = colors3 * 100
 
@@ -1506,7 +1500,7 @@ def write(poly, fileoutput):
     wt = vtk.vtkPolyDataWriter()
     setInput(wt, poly)
     wt.SetFileName(fileoutput)
-    print ("Writing", fileoutput, v.GetNumberOfPoints(),"points.")
+    print ("Writing vtk file:", fileoutput)
     wt.Write()
     
 
@@ -1535,7 +1529,9 @@ def getcolor(c):
         except ValueError:
             # ToDo: add vtk6 defs for colors
             print ("Unknow color name", c, 'is not in:\n', cc)
-            if len(c)==1: print ("Available colors:\n", cols_names)
+            if len(c)==1: 
+                print ("Available colors:\n", color_names)
+                print ("Available abbreviations:\n", color_nicks)
             return [0,0,0]
     if isinstance(c, int): 
         return colors1[c]
@@ -1548,14 +1544,15 @@ if __name__ == '__main__':
     try:
         import sys
         fs = sys.argv[1:]
-        if len(fs)==1: 
-            leg=None
+        if len(fs) == 1 : 
+            leg = None
+            alpha = 1
         else: 
-            leg=fs
+            leg = [os.path.basename(n) for n in fs]
+            alpha = 1./len(fs)  
             print ('Loading',len(fs),'files:', fs)
         vp = vtkPlotter(bg2=(.94,.94,1), balloon=False)
-        acts =[]
-        alpha = 1./len(fs)
+        vp.legendSize = 0.2
         for f in fs:
             vp.load(f, alpha=alpha)
         vp.show(legend=leg)
