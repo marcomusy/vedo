@@ -39,10 +39,12 @@ class vtkPlotter:
         /   to maximize opacity
         .,  to increase/reduce opacity
         w/s to toggle wireframe/solid style
-        D   to toggle edges visibility
         F   to flip normals
         C   to print current camera info
-        O   to show vertices only
+        oO  to change point size of vertices
+        lL  to change edge line width
+        n   to normals for all actors
+        N   to flip all normals
         1-4 to change color scheme
         V   to toggle verbose mode
         S   to save a screenshot
@@ -147,7 +149,9 @@ class vtkPlotter:
     def loadXml(self, filename, c='g', alpha=1, wire=0, bc=None, edges=0):
         '''Reads a Fenics/Dolfin file format
         '''
-        if not os.path.exists(filename): return False
+        if not os.path.exists(filename): 
+            print ('Cannot find file', filename)
+            return False
         try:
             import xml.etree.ElementTree as et
             if '.gz' in filename:
@@ -216,6 +220,9 @@ class vtkPlotter:
     def loadPCD(self, filename, c='g', alpha=1):
         '''Load Point Cloud file format
         '''            
+        if not os.path.exists(filename): 
+            print ('Cannot find file', filename)
+            return False
         f = open(filename, 'r')
         lines = f.readlines()
         f.close()
@@ -264,7 +271,7 @@ class vtkPlotter:
         elif '.vtp' in fl: reader = vtk.vtkXMLPolyDataReader()
         elif '.vts' in fl: reader = vtk.vtkXMLStructuredGridReader()
         elif '.vtu' in fl: reader = vtk.vtkXMLUnstructuredGridReader()
-        elif '.txt' in fl: reader = vtk.vtkParticleReader() # (x y z scalar) format
+        elif '.txt' in fl: reader = vtk.vtkParticleReader() # (x y z scalar) 
         elif '.xyz' in fl: reader = vtk.vtkParticleReader()
         else: reader = vtk.vtkDataReader()
         reader.SetFileName(filename)
@@ -288,15 +295,18 @@ class vtkPlotter:
         mergeTriangles = vtk.vtkTriangleFilter()
         setInput(mergeTriangles, poly)
         mergeTriangles.Update()
+        poly = mergeTriangles.GetOutput()
         self.names.append(filename)
-        return mergeTriangles.GetOutput()
+        return poly
 
 
     def loadDir(self, mydir, tag='.'):
         '''Return a list of vtkActors from files in mydir of any formats
            filenames will contain tag
         '''
-        if not os.path.exists(mydir): return False
+        if not os.path.exists(filename): 
+            print ('Cannot find directory', mydir)
+            return False
         acts = []
         for ifile in sorted(os.listdir(mydir)):
             if tag in ifile:
@@ -326,6 +336,8 @@ class vtkPlotter:
             print ('Unable to load', filename)
             return False
         actor = self.makeActor(poly, c, alpha, wire, bc, edges)
+        if '.txt' in fl or '.xyz' in fl: 
+            actor.GetProperty().SetPointSize(4)
         self.actors.append(actor)
         return actor
 
@@ -810,8 +822,9 @@ class vtkPlotter:
         glyphActor.GetProperty().EdgeVisibilityOff()
         glyphActor.GetProperty().SetColor(getcolor(c))
         glyphActor.GetProperty().SetOpacity(alpha)
-        self.actors.append(glyphActor)
-        return glyphActor
+        actor = self.assembly([pactor,glyphActor])
+        self.actors.append(actor)
+        return actor
 
 
     def curvature(self, pactor, ctype=1, r=1, alpha=1, lut=None):
@@ -1255,9 +1268,11 @@ class vtkPlotter:
             self.icol3 += 1
         elif key == "o":
             for ia in self.getActors():
-                ps = ia.GetProperty().GetPointSize()
-                ia.GetProperty().SetPointSize(ps-1)
-                ia.GetProperty().SetRepresentationToPoints()
+                try:
+                    ps = ia.GetProperty().GetPointSize()
+                    ia.GetProperty().SetPointSize(ps-1)
+                    ia.GetProperty().SetRepresentationToPoints()
+                except AttributeError: pass
         elif key == "O":
             for ia in self.getActors():
                 try:
@@ -1265,13 +1280,23 @@ class vtkPlotter:
                     ia.GetProperty().SetPointSize(ps+2)
                     ia.GetProperty().SetRepresentationToPoints()
                 except AttributeError: pass
-        elif key == "D":
+        elif key == "l":
             for ia in self.getActors():
                 try:
-                    ev = ia.GetProperty().GetEdgeVisibility()
-                    ia.GetProperty().SetEdgeVisibility(not(ev))
+                    ls = ia.GetProperty().GetLineWidth()
+                    if ls==1: 
+                        ia.GetProperty().EdgeVisibilityOff() 
+                        ia.GetProperty().SetLineWidth(0)
+                    else: ia.GetProperty().SetLineWidth(ls-1)
+                except AttributeError: pass
+        elif key == "L":
+            for ia in self.getActors():
+                try:
+                    ia.GetProperty().EdgeVisibilityOn()
                     c = ia.GetProperty().GetColor()
                     ia.GetProperty().SetEdgeColor(c)
+                    ls = ia.GetProperty().GetLineWidth()
+                    ia.GetProperty().SetLineWidth(ls+1)
                 except AttributeError: pass
         elif key == "N":
             for ia in self.getActors():
@@ -1283,9 +1308,23 @@ class vtkPlotter:
                     ns = rs.GetOutput().GetPointData().GetNormals()
                     rna = vtk.vtkFloatArray.SafeDownCast(ns)
                     ia.GetMapper().GetInput().GetPointData().SetNormals(rna)
+                    ia.Modified()
                     del rs
                 except: 
                     print ("Cannot flip normals.")
+        elif key == "n":
+            for ia in self.getActors():
+                alpha = ia.GetProperty().GetOpacity()
+                c = ia.GetProperty().GetColor()
+                a = self.normals(ia, ratio=1, c=c, alpha=alpha)
+                self.actors.pop() #remove from list
+                try:
+                    i = self.actors.index(ia)
+                    self.actors[i] = a
+                except ValueError: pass
+            ii = bool(self.interactive)
+            self.show(interactive=0, axes=0)
+            self.interactive = ii # restore it
         self.interactor.Render()
 
 
@@ -1551,6 +1590,11 @@ def getcolor(c):
 
 ###########################################################################
 if __name__ == '__main__':
+    '''
+    Usage: 
+    plotter file.vtk  
+    # valid formats [vtk,vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz,txt,byu] 
+    '''
 ###########################################################################
     import sys
     fs = sys.argv[1:]

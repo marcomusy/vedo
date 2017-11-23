@@ -23,7 +23,7 @@ export PATH=$HOME/soft/bin/vtkPlotter:$PATH
 
 Simple command line usage:
 ```bash
-plotter data/*.vtk  # other valid formats: [vtp,ply,obj,stl,xml,pcd]
+plotter data/*.vtk  # other valid formats: [vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz,txt,byu]
 ```
 
 Run a tutorial script: 

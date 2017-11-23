@@ -157,6 +157,13 @@ vp.show(legend=['points','fitting plane','fitting line'])
 plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 
 
+#Display a tetrahedral mesh (Fenics/Dolfin format).
+#The internal vertices are displayed too:
+vp = plotter.vtkPlotter()
+vp.load('data/290.xml.gz', wire=1)
+vp.show(legend='tetrahedral mesh')
+
+
 #Make a video  (needs cv2 package)
 vp = plotter.vtkPlotter(interactive=0, verbose=0)
 vp.load('data/290.vtk', c='b', bc='tomato', alpha=1)
@@ -170,14 +177,6 @@ vp.release_video()
 print ('Video saved as movie.avi')
 vp.tips()
 vp.interact()
-
-
-#Display a tetrahedral mesh (Fenics/Dolfin format).
-#The internal vertices are displayed too:
-vp = plotter.vtkPlotter()
-vp.load('data/290.xml.gz', wire=1)
-vp.show(legend='tetrahedral mesh')
-
 
 
 
