@@ -268,7 +268,8 @@ class vtkPlotter:
         elif '.vtp' in fl: reader = vtk.vtkXMLPolyDataReader()
         elif '.vts' in fl: reader = vtk.vtkXMLStructuredGridReader()
         elif '.vtu' in fl: reader = vtk.vtkXMLUnstructuredGridReader()
-        elif '.txt' in fl: reader = vtk.ParticleReader() # (x y z scalar) format
+        elif '.txt' in fl: reader = vtk.vtkParticleReader() # (x y z scalar) format
+        elif '.xyz' in fl: reader = vtk.vtkParticleReader()
         else: reader = vtk.vtkDataReader()
         reader.SetFileName(filename)
         reader.Update()
