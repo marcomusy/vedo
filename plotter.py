@@ -830,7 +830,7 @@ class vtkPlotter:
         return actor
 
 
-    def curvature(self, pactor, ctype=1, r=1, alpha=1, lut=None):
+    def curvature(self, pactor, method=1, r=1, alpha=1, lut=None):
         '''Returns a vtkActor that contains the color coded surface
            curvature following four different ways to calculate it:
            ctype =  0-gaussian, 1-mean, 2-max, 3-min

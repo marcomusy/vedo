@@ -143,7 +143,7 @@ vp = plotter.vtkPlotter(shape=(1,4))
 v = vp.load('data/290.vtk')
 vp.interactive = False
 for i in [0,1,2,3]:
-    c = vp.curvatures(v, ctype=i, r=1, alpha=0.8)
+    c = vp.curvatures(v, method=i, r=1, alpha=0.8)
     vp.show(at=i, actors=[c])
 vp.interact() # same as setting flag interactive=True
 ```
