@@ -177,6 +177,7 @@ vp.show(legend='tetrahedral mesh')
 
 # Align 2 shapes and for each vertex of the first draw 
 # and arrow to the closest point of the second:
+vp = plotter.vtkPlotter()
 a1, a2 = vp.load('data/2[79]0.vtk') 
 a1.GetProperty().SetColor(0,1,0)
 a1b = vp.align(a1, a2, rigid=1)
