@@ -13,12 +13,12 @@ vp = plotter.vtkPlotter()
 #vp.help() # shows a help message
 
 
+
 #Load a vtk file as a vtkActor and visualize it.
 #The tridimensional shape corresponds to the outer shape of the embryonic mouse limb
 #at about 11 days of gestation.
 #Choose a tomato color for the internal surface, and no transparency.
 #Press Esc to close the window and exit python session, or q to continue:
-#vp.flat=1
 vp.load('data/250.vtk', c='b', bc='tomato', alpha=1) # c=(R,G,B), #hex, letter or name
 vp.show()             # picks what is automatically stored in vp.actors
 
@@ -76,16 +76,18 @@ vp.boundaries(va)
 vp.show(legend='shape w/ boundaries')
 
 
+
 #Split window in a 36 subwindows and draw something in windows nr 12 and nr 33.
 #Then open an independent window and draw on two shapes:
 vp1 = plotter.vtkPlotter(shape=(6,6))
 vp1.renderers[35].SetBackground(.8,.9,.9)
-v270 = vp1.load('data/270.vtk')     #load as vtkActor (default)
-v290 = vp1.loadPoly('data/290.vtk') #load as polydata
+a = vp1.load('data/250.vtk')     
+b = vp1.load('data/270.vtk')     
+c = vp1.load('data/290.vtk') 
 vp1.interactive = False
 vp1.axes = False
-vp1.show(at=12, actors=[v270,v290]) # polydata are automatically
-vp1.show(at=33, actors=[v270,v290]) # transformed into vtkActor
+vp1.show(at=12, actors=[a,b]) 
+vp1.show(at=33, actors=[b,c]) 
 vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
 vp2.load('data/250.vtk')
 vp2.load('data/270.vtk')
@@ -172,6 +174,16 @@ vp = plotter.vtkPlotter()
 vp.load('data/290.xml.gz', wire=1)
 vp.show(legend='tetrahedral mesh')
 
+
+# Align 2 shapes and for each vertex of the first draw 
+# and arrow to the closest point of the second:
+a1, a2 = vp.load('data/2[79]0.vtk') 
+a1.GetProperty().SetColor(0,1,0)
+a1b = vp.align(a1, a2, rigid=1)
+ps1 = vp.coordinates(a1b) # coordinates of actor
+for p in ps1: vp.arrow(p, vp.closestPoint(a2, p))
+vp.show(legend=['Source','Target','Aligned','Links'])            
+#vp.show(legend=True) # to be fixed
 
 
 #Make a video  (needs cv2 package)
