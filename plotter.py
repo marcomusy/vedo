@@ -1089,6 +1089,22 @@ class vtkPlotter:
         del arem
         self.actors[i] = finact # substitute
         # do not return actor
+        
+
+    ####################################
+    def closestPoint(self, surf, pt, locator=None):
+        """Find the closest point on a surface given an other point"""
+        polydata = self.getPD(surf)
+        trgp  = [0,0,0]
+        cid   = vtk.mutable(0)
+        subid = vtk.mutable(0)
+        dist2 = vtk.mutable(0)
+        if not locator:
+            locator = vtk.vtkCellLocator()
+            locator.SetDataSet(polydata)
+            locator.BuildLocator()
+        locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
+        return trgp
 
 
     ##########################################
@@ -1633,21 +1649,6 @@ def isinside(poly, point):
     selectEnclosedPoints.Update()
     return selectEnclosedPoints.IsInside(0)
     
-    
-####################################
-def closestPoint(polydata, pt, locator=None):
-    """Find the closest point on a surface given an other point"""
-    trgp  = [0,0,0]
-    cid   = vtk.mutable(0)
-    subid = vtk.mutable(0)
-    dist2 = vtk.mutable(0)
-    if not locator:
-        locator = vtk.vtkCellLocator()
-        locator.SetDataSet(polydata)
-        locator.BuildLocator()
-    locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
-    return (trgp, dist2)
-
 
 ####################################
 def write(poly, fileoutput):

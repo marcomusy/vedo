@@ -8,16 +8,6 @@ from __future__ import print_function
 import numpy as np
 import plotter
 
-
-#Cut a set of shapes with a plane that goes through the 
-#point at x=500 and has normal (1, 0.3, -0.2). 
-#Wildcards are ok to load multiple files or directories:
-vp = plotter.vtkPlotter()
-vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1) 
-for a in vp.actors:
-    vp.cutActor(a, origin=(500,0,0), normal=(0,.3,-1))
-vp.show(legend=vp.names)
-
 # Declare an instance of the class
 vp = plotter.vtkPlotter()
 #vp.help() # shows a help message
