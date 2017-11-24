@@ -224,6 +224,22 @@ plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 ![pcd](https://user-images.githubusercontent.com/32848391/32798156-287955b4-c974-11e7-9abf-6057dd43c5db.png)
 <br />
 
+
+
+Cut a set of shapes with a plane that goes through the point at x=500 and has normal (1, 0.3, -0.2). 
+Wildcards are ok to load multiple files or directories:
+```python
+vp = plotter.vtkPlotter()
+vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1) 
+for a in vp.actors:
+    vp.cutActor(a, origin=(500,0,0), normal=(0,.3,-1))
+vp.show(legend=vp.names)
+```
+![cut](https://user-images.githubusercontent.com/32848391/33214256-6895e478-d12b-11e7-8b4b-390b698e9ef4.png)
+<br />
+
+
+
 If you need to do more complicated things (define widgets.. etc), you can still access all the 
 usual VTK objects like interactors and renderers through *vp.interactor, vp.renderer*... etc.<br />
 Use *vp.open_video(), vp.addframe_video()* and *vp.close_video()* to save a movie.avi file.

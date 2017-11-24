@@ -3,12 +3,13 @@
 from __future__ import print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "2.3"
+__version__ = "2.4"
 __maintainer__ = __author__
 __email__   = "marco.musy@embl.es"
 __status__  = "dev"
 
 import os, vtk, numpy as np
+from glob import glob
 
 vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
 def setInput(vtkobj, p):
@@ -44,7 +45,7 @@ class vtkPlotter:
         n   to show normals for all actors
         N   to flip all normals
         x   to remove clicked actor
-        1-4 to change color scheme
+        1-5 to change color scheme
         V   to toggle verbose mode
         C   to print current camera info
         S   to save a screenshot
@@ -154,7 +155,7 @@ class vtkPlotter:
         '''
         if not os.path.exists(filename): 
             print ('Cannot find file', filename)
-            return False
+            exit(0)
         try:
             import xml.etree.ElementTree as et
             if '.gz' in filename:
@@ -208,12 +209,10 @@ class vtkPlotter:
             vpts.SetNumberOfPoints(len(coords))
             vpts.Update()
             vpts.GetOutput().SetPoints(points)
-            intpoints_act = self.makeActor(vpts.GetOutput(), c='b', alpha=alpha)
-            intpoints_act.GetProperty().SetPointSize(3)
-            intpoints_act.GetProperty().SetRepresentationToPoints()
-            actor2 = self.assembly([intpoints_act,actor])
-            self.actors.append(actor2)
-            self.names.append(filename)
+            pts_act = self.makeActor(vpts.GetOutput(), c='b', alpha=alpha)
+            pts_act.GetProperty().SetPointSize(3)
+            pts_act.GetProperty().SetRepresentationToPoints()
+            actor2 = self.assembly([pts_act, actor])
             return actor2
         except:
             print ("Cannot parse xml file. Skip.", filename)
@@ -225,7 +224,7 @@ class vtkPlotter:
         '''            
         if not os.path.exists(filename): 
             print ('Cannot find file', filename)
-            return False
+            exit(0)
         f = open(filename, 'r')
         lines = f.readlines()
         f.close()
@@ -254,8 +253,6 @@ class vtkPlotter:
             return False
         actor = self.makeActor(poly, getcolor(c), alpha)
         actor.GetProperty().SetPointSize(4)
-        self.names.append(filename)
-        self.actors.append(actor)
         return actor
         
 
@@ -264,13 +261,13 @@ class vtkPlotter:
         '''
         if not os.path.exists(filename): 
             print ('Cannot find file', filename)
-            return False
+            exit(0)
         fl = filename.lower()
         if   '.vtk' in fl: reader = vtk.vtkPolyDataReader()
         elif '.ply' in fl: reader = vtk.vtkPLYReader()
         elif '.obj' in fl: reader = vtk.vtkOBJReader()
         elif '.stl' in fl: reader = vtk.vtkSTLReader()
-        elif '.byu' in fl: reader = vtk.vtkBYUReader()
+        elif '.byu' in fl or '.g' in fl: reader = vtk.vtkBYUReader()
         elif '.vtp' in fl: reader = vtk.vtkXMLPolyDataReader()
         elif '.vts' in fl: reader = vtk.vtkXMLStructuredGridReader()
         elif '.vtu' in fl: reader = vtk.vtkXMLUnstructuredGridReader()
@@ -299,51 +296,54 @@ class vtkPlotter:
         setInput(mergeTriangles, poly)
         mergeTriangles.Update()
         poly = mergeTriangles.GetOutput()
-        self.names.append(filename)
         return poly
 
 
-    def loadDir(self, mydir, tag='.'):
-        '''Return a list of vtkActors from files in mydir of any formats
-           filenames will contain tag
-        '''
-        if not os.path.exists(filename): 
-            print ('Cannot find directory', mydir)
-            return False
-        acts = []
-        for ifile in sorted(os.listdir(mydir)):
-            if tag in ifile:
-                a = self.load(mydir + '/' + ifile)
-                if a:
-                    acts.append( a )
-                    self.names.append( mydir + '/' + ifile )
-        return acts
-
-
-    def load(self, filename, c='gold', alpha=0.2, 
-             wire=False, bc=None, edges=False):
+    def load(self, filesOrDirs, c='gold', alpha=0.2, 
+              wire=False, bc=None, edges=False):
         '''Return a vtkActor, optional args:
            c,     color in RGB format, hex, symbol or name
            alpha, transparency (0=invisible)
            wire,  show surface as wireframe
            bc,    backface color of internal surface
         '''
+        for fod in glob(filesOrDirs):
+            if os.path.isfile(fod): 
+                self._loadFile(fod, c, alpha, wire, bc, edges)
+            elif os.path.isdir(fod):
+                self._loadDir(fod, c, alpha, wire, bc, edges)
+        if not len(self.actors):
+            print ('Cannot find:', filesOrDirs)
+            exit(0)            
+        if len(self.actors) == 1: return self.actors[0]
+        else: return self.actors
+
+    def _loadDir(self, mydir, c='gold', alpha=0.2, 
+                 wire=False, bc=None, edges=False):
+        acts = []
+        for ifile in sorted(os.listdir(mydir)):
+            a = self._loadFile(mydir+'/'+ifile, c, alpha, wire, bc, edges)
+        return acts
+
+    def _loadFile(self, filename, c='gold', alpha=0.2, 
+                 wire=False, bc=None, edges=False):
         fl = filename.lower()
         if '.xml' in fl or '.xml.gz' in fl: # Fenics tetrahedral mesh file
-            return self.loadXml(filename, c, alpha, wire, bc, edges)
+            actor = self.loadXml(filename, c, alpha, wire, bc, edges)
         elif '.pcd' in fl:                  # PCL point-cloud format
-            return self.loadPCD(filename, c, alpha)
+            actor = self.loadPCD(filename, c, alpha)
         else:
             poly = self.loadPoly(filename)
-        if not poly:
-            print ('Unable to load', filename)
-            return False
-        actor = self.makeActor(poly, c, alpha, wire, bc, edges)
-        if '.txt' in fl or '.xyz' in fl: 
-            actor.GetProperty().SetPointSize(4)
+            if not poly:
+                print ('Unable to load', filename)
+                return False
+            actor = self.makeActor(poly, c, alpha, wire, bc, edges)
+            if '.txt' in fl or '.xyz' in fl: 
+                actor.GetProperty().SetPointSize(4)
         self.actors.append(actor)
+        self.names.append(filename)
         return actor
-
+        
 
     def getPD(self, obj, index=0):
         '''
@@ -1023,6 +1023,74 @@ class vtkPlotter:
         return actor
 
 
+    def cutActor(self, actor, origin=(0,0,0), normal=(1,0,0),
+                showcut=True, showline=False, showpts=True):
+        '''Takes actor and cuts it with the plane defined by a point 
+           and a normal. Substitutes it to the original actor.
+           showcut  = shows the cut away part as thin wireframe
+           showline = marks with a thick line the cut
+           showpts  = shows the vertices along the cut
+        '''
+        if not actor in self.actors:
+            print ('Error in cutActor: actor not in vp.actors. Skip.')
+            return
+        plane = vtk.vtkPlane()
+        plane.SetOrigin(origin)
+        plane.SetNormal(normal)
+        poly = self.getPD(actor)
+        clipper = vtk.vtkClipPolyData()
+        setInput(clipper, poly)
+        clipper.SetClipFunction(plane)
+        clipper.GenerateClippedOutputOn()
+        clipper.SetValue(0.)
+        alpha = actor.GetProperty().GetOpacity()
+        c = actor.GetProperty().GetColor()
+        bf = actor.GetBackfaceProperty()
+        clipActor = self.makeActor(clipper.GetOutput(),c=c,alpha=alpha)
+        clipActor.SetBackfaceProperty(bf)
+        
+        acts = [clipActor]
+        if showcut:
+            cpoly = clipper.GetClippedOutput()
+            restActor = self.makeActor(cpoly, c=c, alpha=0.05, wire=1)
+            acts.append(restActor)
+        cutEdges = vtk.vtkCutter()
+        setInput(cutEdges, poly)
+        cutEdges.SetCutFunction(plane)
+        cutEdges.SetValue(0, 0.)
+        cutStrips = vtk.vtkStripper()
+        cutStrips.SetInputConnection(cutEdges.GetOutputPort())
+        cutStrips.Update()
+        if showline: 
+            cutPoly = vtk.vtkPolyData()
+            cutPoly.SetPoints(cutStrips.GetOutput().GetPoints())
+            cutPoly.SetPolys(cutStrips.GetOutput().GetLines())
+            cutline = self.makeActor(cutPoly, c=c, alpha=np.sqrt(alpha))
+            cutline.GetProperty().SetRepresentationToWireframe()
+            cutline.GetProperty().SetLineWidth(4)
+            acts.append(cutline)
+        if showpts: 
+            vpts = vtk.vtkPointSource()
+            cspts = cutStrips.GetOutput().GetPoints()
+            vpts.SetNumberOfPoints(cspts.GetNumberOfPoints())
+            vpts.Update()
+            vpts.GetOutput().SetPoints(cspts)
+            points_act = self.makeActor(vpts.GetOutput(), c=c, alpha=np.sqrt(alpha))
+            points_act.GetProperty().SetPointSize(4)
+            points_act.GetProperty().SetRepresentationToPoints()
+            acts.append(points_act)
+
+        if len(acts)>1: 
+            finact = self.assembly(acts)
+        else: 
+            finact = clipActor
+        i = self.actors.index(actor)
+        arem = self.actors[i]
+        del arem
+        self.actors[i] = finact # substitute
+        # do not return actor
+
+
     ##########################################
     def draw_cubeaxes(self, c=(.2, .2, .6)):
         if self.caxes_exist and not self.axes: return
@@ -1164,8 +1232,11 @@ class vtkPlotter:
         for i in range(len(self.actors)): # scan for filepaths
             a = self.actors[i]
             if isinstance(a, str): #assume a filepath was given
-                ok = self.load(a, c=c, bc=bc, alpha=alpha, wire=wire, edges=edges)
-                if ok:
+                out = self.load(a, c=c, bc=bc, alpha=alpha, wire=wire, edges=edges)
+                if isinstance(out, str): 
+                    print ('File not found:', out)
+                    self.actors.pop() #something went wrong, purge list
+                else:
                     self.actors[i] = self.actors.pop() #put it in right position
 
         for i in range(len(self.actors)): # scan for polydata
@@ -1220,11 +1291,10 @@ class vtkPlotter:
     def keypress(self, obj, event):
         key = obj.GetKeySym()
         #print ('Pressed key:', key)
-        if   key == "q" or key == "space":
+        if   key == "q" or key == "space" or key == "Return":
             self.interactor.ExitCallback()
         elif key == "e":
-            if self.verbose:
-                print ("Closing window and return control to python.")
+            if self.verbose: print ("Closing window..")
             rw = self.interactor.GetRenderWindow()
             rw.Finalize()
             self.interactor.TerminateApp()
@@ -1232,6 +1302,11 @@ class vtkPlotter:
             return
         elif key == "Escape":
             if self.verbose: print ("Quitting, Bye.")
+            self.interactor.TerminateApp()
+            rw = self.interactor.GetRenderWindow()
+            rw.Finalize()
+            self.interactor.TerminateApp()
+            del self.renderWin, self.interactor
             exit(0)
         elif key == "S":
             print ('Saving window as screenshot.png')
@@ -1327,7 +1402,6 @@ class vtkPlotter:
                     ns = rs.GetOutput().GetPointData().GetNormals()
                     rna = vtk.vtkFloatArray.SafeDownCast(ns)
                     ia.GetMapper().GetInput().GetPointData().SetNormals(rna)
-                    ia.Modified()
                     del rs
                 except: 
                     print ("Cannot flip normals.")
@@ -1370,7 +1444,7 @@ class vtkPlotter:
     ###################################################################### Video
     def open_video(self, name='movie.avi', fps=12, duration=None, format="XVID"):
         try:
-            import cv2, glob #just check
+            import cv2 #just check
         except:
             print ("open_video: cv2 not installed? Skip.")
             return
@@ -1380,7 +1454,7 @@ class vtkPlotter:
         self.fps = float(fps) # if duration is given, will be recalculated
         self.frames = []
         if not os.path.exists('/tmp/v'): os.mkdir('/tmp/v')
-        for fl in glob.glob("/tmp/v/*.png"): os.remove(fl)
+        for fl in glob("/tmp/v/*.png"): os.remove(fl)
         print ("Video", name, "is open. Press q to continue.")
         itr = bool(self.interactive)
         self.show(interactive=True)

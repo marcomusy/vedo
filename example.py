@@ -9,6 +9,15 @@ import numpy as np
 import plotter
 
 
+#Cut a set of shapes with a plane that goes through the 
+#point at x=500 and has normal (1, 0.3, -0.2). 
+#Wildcards are ok to load multiple files or directories:
+vp = plotter.vtkPlotter()
+vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1) 
+for a in vp.actors:
+    vp.cutActor(a, origin=(500,0,0), normal=(0,.3,-1))
+vp.show(legend=vp.names)
+
 # Declare an instance of the class
 vp = plotter.vtkPlotter()
 #vp.help() # shows a help message
@@ -153,6 +162,16 @@ print ('Fit slope=', vp.result['slope']) # the last fitted slope direction
 vp.show(legend=['points','fitting plane','fitting line'])
 
 
+#Cut a set of shapes with a plane that goes through the 
+#point at x=500 and has normal (1, 0.3, -0.2). 
+#Wildcards are ok to load multiple files or directories:
+vp = plotter.vtkPlotter()
+vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1) 
+for a in vp.actors:
+    vp.cutActor(a, origin=(500,0,0), normal=(0,.3,-1))
+vp.show(legend=vp.names)
+
+
 #As a short-cut, the filename can be given in the show command directly:
 plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 
@@ -162,6 +181,7 @@ plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 vp = plotter.vtkPlotter()
 vp.load('data/290.xml.gz', wire=1)
 vp.show(legend='tetrahedral mesh')
+
 
 
 #Make a video  (needs cv2 package)
