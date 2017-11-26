@@ -8,10 +8,10 @@ from __future__ import print_function
 import numpy as np
 import plotter
 
-# Declare an instance of the class
-vp = plotter.vtkPlotter()
-#vp.help() # shows a help message
 
+# Declare an instance of the class
+vp = plotter.vtkPlotter(shape=(1,1))
+#vp.help() # shows a help message
 
 
 #Load a vtk file as a vtkActor and visualize it.
@@ -26,7 +26,7 @@ vp.show()             # picks what is automatically stored in vp.actors
 #Load a vtk file as a vtkActor and visualize it in wireframe style.
 a = vp.load('data/290.vtk', wire=1) # same as a.GetProperty().SetRepresentationToWireframe()
 vp.axes = False
-vp.show()             # picks what is automatically stored in vp.actors
+vp.show(legend=False) # picks what is automatically stored in vp.actors
 #vp.show(a)           # ignores the content of vp.actors and draws a
 #vp.show(actors=[a])  # same as above
 
@@ -70,8 +70,8 @@ vp.show(axes=0)
 #Show the vtk boundaries of a vtk surface and its normals
 #(ratio reduces the total nr of arrows by the indicated factor):
 vp = plotter.vtkPlotter()
-va = vp.load('data/290.vtk', c='maroon')
-vp.normals(va, ratio=5)
+va = vp.load('data/290.vtk', c='maroon', legend=0)
+vp.normals(va, ratio=5, legend=False)
 vp.boundaries(va)
 vp.show(legend='shape w/ boundaries')
 
@@ -117,7 +117,7 @@ vp.show(at=1, actors=vp.line(  [0,0,0], [1,2,3] ) )
 vp.show(at=2, actors=vp.points( [ [0,0,0], [1,1,1], [3,1,2] ] ) )
 vp.show(at=3, actors=vp.text('hello', cam=False, bc=(0,1,0) ) )
 vp.show(at=4, actors=vp.sphere([.5,.5,.5], r=0.3), axes=0 )
-vp.show(at=5, actors=vp.cube(  [.5,.5,.5], r=0.3), axes=0 )
+vp.show(at=5, actors=vp.cube(  [.5,.5,.5], r=0.3), axes=0, legend='a dummy cube' )
 vp.interact()
 
 
@@ -171,7 +171,7 @@ plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 #Display a tetrahedral mesh (Fenics/Dolfin format).
 #The internal vertices are displayed too:
 vp = plotter.vtkPlotter()
-vp.load('data/290.xml.gz', wire=1)
+vp.load('data/290.xml.gz')
 vp.show(legend='tetrahedral mesh')
 
 

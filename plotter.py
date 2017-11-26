@@ -160,6 +160,7 @@ class vtkPlotter:
            legend, text to show on legend, if True picks filename.
         '''
         acts = []
+        if isinstance(legend, int): legend = bool(legend)
         for fod in sorted(glob(filesOrDirs)):
             if os.path.isfile(fod): 
                 a = self._loadFile(fod, c, alpha, wire, bc, edges, legend)
@@ -241,7 +242,7 @@ class vtkPlotter:
         poly = mergeTriangles.GetOutput()
         return poly
 
-    def _loadXml(self, filename, c='g', alpha=1, wire=0, bc=None, edges=0, legend=None):
+    def _loadXml(self, filename, c, alpha, wire, bc, edges, legend):
         '''Reads a Fenics/Dolfin file format
         '''
         if not os.path.exists(filename): 
@@ -293,7 +294,8 @@ class vtkPlotter:
             actor.SetMapper(mapper)
             actor.GetProperty().SetInterpolationToFlat()
             actor.GetProperty().SetColor(getcolor(c))
-            actor.GetProperty().SetOpacity(alpha)
+            actor.GetProperty().SetOpacity(alpha/2.)
+            #actor.GetProperty().VertexVisibilityOn()
             if edges: actor.GetProperty().EdgeVisibilityOn()
             if wire:  actor.GetProperty().SetRepresentationToWireframe()
             vpts = vtk.vtkPointSource()
@@ -312,7 +314,7 @@ class vtkPlotter:
             print ("Cannot parse xml file. Skip.", filename)
             return False
  
-    def _loadPCD(self, filename, c='g', alpha=1, legend=None):
+    def _loadPCD(self, filename, c, alpha, legend):
         '''Return vtkActor from Point Cloud file format
         '''            
         if not os.path.exists(filename): 
@@ -371,23 +373,39 @@ class vtkPlotter:
         return False
 
 
-    def getActors(self, r=None):
-        '''Return the actors list in renderer number r
-           if None, use current renderer'''
-        if r is None: acs = self.renderer.GetActors()
-        else: 
-            if r>=len(self.renderers):
+    def getActors(self, obj=None):
+        '''Return the actors list in renderer number obj (int). If None, use current renderer.
+           If obj is a vtkAssembly return the actors contained in it.
+         '''
+        if isinstance(obj , vtk.vtkAssembly):
+            cl = vtk.vtkPropCollection()
+            obj.GetActors(cl)
+            actors=[]
+            cl.InitTraversal()
+            for i in range(obj.GetNumberOfPaths()):
+                act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
+                if isinstance(act, vtk.vtkCubeAxesActor): continue
+                if isinstance(act, vtk.vtkLegendBoxActor): continue
+                actors.append(act)
+            return actors
+            
+        elif isinstance(obj, int) or obj is None:
+            if obj is None: 
+                acs = self.renderer.GetActors()
+            elif r>=len(self.renderers):
                 print ("Error in getActors: non existing renderer",r)
-                exit(0)
-            acs = self.renderers[r].GetActors()
-        acs.InitTraversal()
-        acts=[]
-        for i in range(acs.GetNumberOfItems()):
-            a = acs.GetNextItem()
-            if isinstance(a, vtk.vtkCubeAxesActor): continue
-            if isinstance(a, vtk.vtkLegendBoxActor): continue
-            acts.append(a)
-        return acts
+                return []
+                acs = self.renderers[r].GetActors()
+            actors=[]
+            acs.InitTraversal()
+            for i in range(acs.GetNumberOfItems()):
+                a = acs.GetNextItem()
+                if isinstance(a, vtk.vtkCubeAxesActor): continue
+                if isinstance(a, vtk.vtkLegendBoxActor): continue
+                actors.append(a)
+            return actors
+        if self.verbose: print ('Warning in getActors: unexpected input type',obj)
+        return []
 
 
     def makeActor(self, poly, c='gold', alpha=0.5, 
@@ -1195,36 +1213,40 @@ class vtkPlotter:
         self.renderer.AddActor(ls)
 
     def draw_legend(self):
-        texts = []
-        for t in self.legend:
-            if t=='': continue
-            texts.append(t)
-        N = len(texts)
-        if N > len(self.actors):
-            print ('Mismatch in Legend:')
-            print ('only', len(self.actors), 'actors but', N, 'legend lines.')
-            return
-        if N>25: N=25
         legend = vtk.vtkLegendBoxActor()
-        legend.SetNumberOfEntries(N)
         legend.UseBackgroundOn()
         legend.SetBackgroundColor(self.legendBG)
         legend.SetBackgroundOpacity(0.6)
         legend.LockBorderOn()
+
+        NA, NL = len(self.actors), len(self.legend)
+        if NL > NA:
+            print ('Mismatch in Legend:', end='')
+            print (NA, 'actors but', NL, 'legend entries.')
+
+        acts, texts = [], []
         for i in range(len(self.actors)):
             a = self.actors[i]
-            
-            if i<len(self.legend) and self.legend[i]!='': ti = self.legend[i]
-            elif hasattr(a, 'legend'): ti = a.legend
-            else: continue
+            if i<len(self.legend) and self.legend[i]!='': 
+                texts.append(self.legend[i])
+                acts.append(a)
+            elif hasattr(a, 'legend') and a.legend: 
+                texts.append(a.legend)
+                acts.append(a)
         
+        NT = len(texts)
+        if NT>20: NT=20
+        legend.SetNumberOfEntries(NT)
+        for i in range(NT):
+            ti = texts[i]
+            a  = acts[i]
             if isinstance(a, vtk.vtkAssembly):
                 cl = vtk.vtkPropCollection()
                 a.GetActors(cl)
                 cl.InitTraversal()
                 act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
                 c = act.GetProperty().GetColor()
-                if c==(1,1,1): c=(0.5,0.5,0.5)
+                if c==(1,1,1): c=(0.7,0.7,0.7) # awoid white
                 try:
                     legend.SetEntry(i, self.getPD(a), "  "+ti, c)
                 except:
@@ -1233,13 +1255,13 @@ class vtkPlotter:
                     legend.SetEntry(i, sp.GetOutput(),"  "+ti, c)
             else:
                 c = a.GetProperty().GetColor()
-                if c==(1,1,1): c=(0.5,0.5,0.5)
+                if c==(1,1,1): c=(0.7,0.7,0.7)
                 legend.SetEntry(i, self.getPD(i), "  "+ti, c)
         pos = self.legendPosition
         width = self.legendSize
         legend.SetWidth(width)
-        legend.SetHeight(width/5.*N)
-        sx, sy = 1-width, 1-width/5.*N
+        legend.SetHeight(width/5.*NT)
+        sx, sy = 1-width, 1-width/5.*NT
         if pos==1: legend.GetPositionCoordinate().SetValue(  0, sy) #x,y from bottomleft
         if pos==2: legend.GetPositionCoordinate().SetValue( sx, sy) #default
         if pos==3: legend.GetPositionCoordinate().SetValue(  0,  0)
@@ -1247,14 +1269,14 @@ class vtkPlotter:
         self.renderer.AddActor(legend)
 
 
-    ###############################################################################
-    def show(self, actors=None, legend=None, at=0, #at=render wind. nr.
-             axes=None, ruler=False, interactive=None, outputimage=None,
-             c='gold', alpha=0.2, wire=False, bc=None, edges=False):
+    #################################################################################
+    def show(self, actors=None, at=0, # at=render wind. nr.
+             legend=True, axes=None, ruler=False, interactive=None, outputimage=None,
+             c='gold', alpha=0.2, wire=False, bc=None, edges=False, q=False):
         '''
         Input: a mixed list of vtkActors, vtkPolydata and filename strings
-        legend = a string or list of string for each actor. Empty string skips.
-        at     = number of the renderer to plot to.
+        at     = number of the renderer to plot to
+        legend = a string or list of string for each actor, if False will not show it
         axes   = show xyz axes
         ruler  = draws a simple ruler at the bottom
         interactive = pause and interact w/ window or continue execution
@@ -1262,6 +1284,7 @@ class vtkPlotter:
         wire   = show in wireframe representation
         edges  = show the edges on top of surface
         bc     = background color, set a color for the back surface face
+        q      = force exit after show() command
         '''
         
         # override what was stored internally with passed input
@@ -1269,8 +1292,7 @@ class vtkPlotter:
             if not isinstance(actors, list): self.actors = [actors]
             else: self.actors = actors
         if not legend is None:
-            if legend is True: self.legend = ['']*len(self.actors)
-            elif isinstance(legend, list): self.legend = list(legend)
+            if   isinstance(legend, list): self.legend = list(legend)
             elif isinstance(legend,  str): self.legend = [str(legend)]
         if not axes        is None: self.axes = axes
         if not interactive is None: self.interactive = interactive
@@ -1317,7 +1339,7 @@ class vtkPlotter:
 
         if ruler: self.draw_ruler()
         if self.axes: self.draw_cubeaxes()
-        if self.legend or len(self.legend): self.draw_legend()
+        if legend: self.draw_legend()
 
         if self.resetcam: 
             self.renderer.ResetCamera()
@@ -1337,9 +1359,13 @@ class vtkPlotter:
                 if i<len(self.names):
                     self.balloonWidget.AddBalloon(ia, self.names[i])
 
-        if hasattr(self, 'interactor') and self.interactor: self.interactor.Render()
+        if hasattr(self, 'interactor') and self.interactor: 
+            self.interactor.Render()
         if outputimage: screenshot(outputimage)
         if self.interactive: self.interact()
+        if q : # gracefully exit
+            if self.verbose: print ('q flag set to True. Exit. Bye.')
+            exit(0)
 
 
     ############################### events
@@ -1360,16 +1386,14 @@ class vtkPlotter:
             self.interactor.ExitCallback()
         elif key == "e":
             if self.verbose: print ("Closing window..")
-            rw = self.interactor.GetRenderWindow()
-            rw.Finalize()
+            self.interactor.GetRenderWindow().Finalize()
             self.interactor.TerminateApp()
             del self.renderWin, self.interactor
             return
         elif key == "Escape":
             if self.verbose: print ("Quitting, Bye.")
             self.interactor.TerminateApp()
-            rw = self.interactor.GetRenderWindow()
-            rw.Finalize()
+            self.interactor.GetRenderWindow().Finalize()
             self.interactor.TerminateApp()
             del self.renderWin, self.interactor
             exit(0)
@@ -1486,14 +1510,28 @@ class vtkPlotter:
         elif key == "x":
             picker = vtk.vtkPropPicker()
             x,y = self.clickedx, self.clickedy
-            picker.Pick(x,y, 0, self.renderer)
+            picker.PickProp(x,y, self.renderer)
             a = picker.GetActor()
-            if a and a in self.getActors():
+            if a is None:
+                asse = picker.GetAssembly()
+                if asse:
+                    props = vtk.vtkPropCollection()
+                    asse.GetActors(props)
+                    a = props.GetLastProp()
+                    asse.RemovePart(a)
+                    if self.verbose:
+                        print ('You picked a vtkAssembly. ', end='')
+                        print ('Removing last actor in the set.')
+                    self.interactor.Render()
+                    return
+                else: print ('Click an actor and press x to remove it.')
+            if a in self.getActors():
                 al = np.sqrt(a.GetProperty().GetOpacity())
                 for op in np.linspace(al,0, 8): #fade away
                     a.GetProperty().SetOpacity(op)
                     self.interactor.Render()
-                self.renderer.RemoveActor(a) 
+                self.renderer.RemoveActor(a)
+            
         self.interactor.Render()
 
 
@@ -1509,7 +1547,8 @@ class vtkPlotter:
     ###################################################################### Video
     def open_video(self, name='movie.avi', fps=12, duration=None, format="XVID"):
         try:
-            import cv2 #just check
+            import cv2 #just check existence
+            cv2.__version__
         except:
             print ("open_video: cv2 not installed? Skip.")
             return
@@ -1740,10 +1779,10 @@ if __name__ == '__main__':
     import sys
     fs = sys.argv[1:]
     if len(fs) == 1 : 
-        leg = None
+        leg = False
         alpha = 1
     else: 
-        leg = [os.path.basename(n) for n in fs]
+        leg = True
         alpha = 1./len(fs)  
         print ('Loading',len(fs),'files:', fs)
     vp = vtkPlotter(bg2=(.94,.94,1), balloon=False)
