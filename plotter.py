@@ -3,7 +3,7 @@
 from __future__ import print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "2.4"
+__version__ = "2.6"
 __maintainer__ = __author__
 __email__   = "marco.musy@embl.es"
 __status__  = "dev"
