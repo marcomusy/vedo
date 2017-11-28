@@ -10,11 +10,11 @@ import plotter
 
 
 # Declare an instance of the class
-vp = plotter.vtkPlotter(shape=(1,1))
+vp = plotter.vtkPlotter()
 #vp.help() # shows a help message
 
 
-#Load a vtk file as a vtkActor and visualize it.
+# Load a vtk file as a vtkActor and visualize it.
 #The tridimensional shape corresponds to the outer shape of the embryonic mouse limb
 #at about 11 days of gestation.
 #Choose a tomato color for the internal surface, and no transparency.
@@ -23,7 +23,7 @@ vp.load('data/250.vtk', c='b', bc='tomato', alpha=1) # c=(R,G,B), #hex, letter o
 vp.show()             # picks what is automatically stored in vp.actors
 
 
-#Load a vtk file as a vtkActor and visualize it in wireframe style.
+# Load a vtk file as a vtkActor and visualize it in wireframe style.
 a = vp.load('data/290.vtk', wire=1) # same as a.GetProperty().SetRepresentationToWireframe()
 vp.axes = False
 vp.show(legend=False) # picks what is automatically stored in vp.actors
@@ -31,8 +31,8 @@ vp.show(legend=False) # picks what is automatically stored in vp.actors
 #vp.show(actors=[a])  # same as above
 
 
-#Load 3 actors assigning each a different color, use their file paths as legend entries.
-#No need to use any variables, as actors are stored internally in vp.actors:
+# Load 3 actors assigning each a different color, use their file paths as legend entries.
+# No need to use any variables, as actors are stored internally in vp.actors:
 vp = plotter.vtkPlotter()
 vp.load('data/250.vtk', c=(1,0.4,0))
 vp.load('data/270.vtk', c=(1,0.6,0))
@@ -41,7 +41,7 @@ print ('Loaded vtkActors: ', len(vp.actors), vp.names)
 vp.show(legend=vp.names)
 
 
-#Draw a spline that goes through a set of points, don't show the points (nodes=False):
+# Draw a spline that goes through a set of points, don't show the points (nodes=False):
 from random import uniform as u
 pts = [(u(0,10), u(0,10), u(0,10)) for i in range(20)]
 vp = plotter.vtkPlotter()
@@ -49,7 +49,7 @@ vp.spline(pts, s=.1, nodes=False)
 vp.show(legend='a random spline')
 
 
-#Draw a PCA ellipsoid that contains 67% of a cloud of points:
+# Draw a PCA ellipsoid that contains 67% of a cloud of points:
 vp = plotter.vtkPlotter()
 pts = [(u(0,200), u(0,200), u(0,200)) for i in range(50)]
 vp.points(pts)
@@ -57,7 +57,7 @@ vp.ellipsoid(pts, pvalue=0.67, pcaaxes=True)
 vp.show(legend=['points', 'PCA ellipsoid'])
 
 
-#Show 3 planes as a grid, add a dummy sine plot on top left:
+# Show 3 planes as a grid, add a dummy sine plot on top left:
 xycoords = [(np.exp(i/10.), np.sin(i/5.)) for i in range(40)]
 vp = plotter.vtkPlotter()
 vp.xyplot( xycoords )
@@ -67,8 +67,8 @@ vp.grid(center=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
 vp.show(axes=0)
 
 
-#Show the vtk boundaries of a vtk surface and its normals
-#(ratio reduces the total nr of arrows by the indicated factor):
+# Show the vtk boundaries of a vtk surface and its normals
+# (ratio reduces the total nr of arrows by the indicated factor):
 vp = plotter.vtkPlotter()
 va = vp.load('data/290.vtk', c='maroon', legend=0)
 vp.normals(va, ratio=5, legend=False)
@@ -77,8 +77,8 @@ vp.show(legend='shape w/ boundaries')
 
 
 
-#Split window in a 36 subwindows and draw something in windows nr 12 and nr 33.
-#Then open an independent window and draw on two shapes:
+# Split window in a 36 subwindows and draw something in windows nr 12 and nr 33.
+# Then open an independent window and draw on two shapes:
 vp1 = plotter.vtkPlotter(shape=(6,6))
 vp1.renderers[35].SetBackground(.8,.9,.9)
 a = vp1.load('data/250.vtk')     
@@ -94,9 +94,9 @@ vp2.load('data/270.vtk')
 vp2.show(legend='an other window')
 
 
-#Load a surface and show its curvature based on 4 different schemes.
-#All four shapes share a common vtkCamera:
-#0-gaussian, 1-mean, 2-max, 3-min
+# Load a surface and show its curvature based on 4 different schemes.
+# All four shapes share a common vtkCamera:
+# 0-gaussian, 1-mean, 2-max, 3-min
 vp = plotter.vtkPlotter(shape=(1,4))
 v = vp.load('data/290.vtk')
 vp.interactive = False
@@ -107,7 +107,7 @@ for i in [0,1,2,3]:
 vp.interact()
 
 
-#Draw a bunch of simple objects on separate parts of the rendering window:
+# Draw a simple objects on separate parts of the rendering window:
 vp = plotter.vtkPlotter(shape=(2,3))
 vp.axes    = True
 vp.commoncam   = False
@@ -121,7 +121,7 @@ vp.show(at=5, actors=vp.cube(  [.5,.5,.5], r=0.3), axes=0, legend='a dummy cube'
 vp.interact()
 
 
-#Draw objects
+# Draw a bunch of objects
 vp = plotter.vtkPlotter(shape=(3,3))
 vp.commoncam   = False
 vp.interactive = False
@@ -137,8 +137,8 @@ vp.show(at=8, c=8, actors='data/skyscraper.obj')
 vp.interact()
 
 
-#Draw a line in 3D that fits a cloud of points,
-#also show the first set of 20 points and fit a plane to them:
+# Draw a line in 3D that fits a cloud of points,
+# also show the first set of 20 points and fit a plane to them:
 vp = plotter.vtkPlotter(verbose=False)
 for i in range(500): # draw 500 fit lines superimposed
     x = np.linspace(-2, 5, 20) # generate 20 points
@@ -154,9 +154,9 @@ print ('Fit slope=', vp.result['slope']) # the last fitted slope direction
 vp.show(legend=['points','fitting plane','fitting line'])
 
 
-#Cut a set of shapes with a plane that goes through the 
-#point at x=500 and has normal (1, 0.3, -0.2). 
-#Wildcards are ok to load multiple files or directories:
+# Cut a set of shapes with a plane that goes through the 
+# point at x=500 and has normal (1, 0.3, -0.2). 
+# Wildcards are ok to load multiple files or directories:
 vp = plotter.vtkPlotter()
 vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1) 
 for a in vp.actors:
@@ -164,12 +164,12 @@ for a in vp.actors:
 vp.show(legend=vp.names)
 
 
-#As a short-cut, the filename can be given in the show command directly:
+# As a short-cut, the filename can be given in the show command directly:
 plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 
 
-#Display a tetrahedral mesh (Fenics/Dolfin format).
-#The internal vertices are displayed too:
+# Display a tetrahedral mesh (Fenics/Dolfin format).
+# The internal vertices are displayed too:
 vp = plotter.vtkPlotter()
 vp.load('data/290.xml.gz')
 vp.show(legend='tetrahedral mesh')
@@ -187,7 +187,22 @@ vp.show(legend=['Source','Target','Aligned','Links'])
 #vp.show(legend=True) # to be fixed
 
 
-#Make a video  (needs cv2 package)
+# Find closest point in set pts1 to pts2 within a specified radius
+from random import uniform as u
+pts1 = [(u(0,5), u(0,5), u(0,5)) for i in range(40)]
+pts2 = [(u(0,5), u(0,5), u(0,5)) for i in range(20)]
+vp = plotter.vtkPlotter()
+vp.points(pts1, r=4,  alpha=1)
+vp.points(pts1, r=25, alpha=0.1) # make a halo 
+a = vp.points(pts2, r=4, c='r', alpha=1)
+for p in pts1:
+    cp = vp.closestPoint(a, p, radius=2)
+    vp.line(p, cp)
+    #print (vp.result['closest_exists'], 'dist2=', vp.result['distance2'])
+vp.show()
+
+
+# Make a video  (needs cv2 package)
 vp = plotter.vtkPlotter(interactive=0, verbose=0)
 vp.load('data/290.vtk', c='b', bc='tomato', alpha=1)
 vp.show()                 # inits camera etc.

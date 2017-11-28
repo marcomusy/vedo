@@ -97,6 +97,7 @@ class vtkPlotter:
         self.clickedx   = 0
         self.clickedy   = 0
         self.clickedr   = 0 #clicked renderer number
+        self.locator    = None
 
         if balloon:
             self.balloonWidget = vtk.vtkBalloonWidget()
@@ -531,7 +532,7 @@ class vtkPlotter:
 
 
     def points(self, plist, c='b', r=10., alpha=1., legend=None):
-        if isinstance(c, list):
+        if isinstance(c, list) or isinstance(c, list):
             return self.colorpoints(plist, c, r, alpha)
         src = vtk.vtkPointSource()
         src.SetNumberOfPoints(len(plist))
@@ -609,10 +610,6 @@ class vtkPlotter:
     
 
     def arrow(self, startPoint, endPoint, c='r', alpha=1, legend=None):
-        arrowSource = vtk.vtkArrowSource()
-        arrowSource.SetShaftResolution(24)
-        arrowSource.SetTipResolution(24)
-        arrowSource.SetTipRadius(0.06)
         nx = [0, 0, 0]
         ny = [0, 0, 0]
         nz = [0, 0, 0]
@@ -625,10 +622,14 @@ class vtkPlotter:
         math.Cross(nz, nx, ny)
         matrix = vtk.vtkMatrix4x4()
         matrix.Identity()
-        for i in range(3):
-            matrix.SetElement(i, 0, nx[i])
-            matrix.SetElement(i, 1, ny[i])
-            matrix.SetElement(i, 2, nz[i])
+        n= [nx,ny,nz]
+        for i in range(3): 
+            for j in range(3): 
+                matrix.SetElement(i, j, n[j][i])
+        arrowSource = vtk.vtkArrowSource()
+        arrowSource.SetShaftResolution(24)
+        arrowSource.SetTipResolution(24)
+        arrowSource.SetTipRadius(0.06)
         transform = vtk.vtkTransform()
         transform.Translate(startPoint)
         transform.Concatenate(matrix)
@@ -642,6 +643,7 @@ class vtkPlotter:
         self.actors.append(actor)
         if legend: setattr(actor, 'legend', legend) 
         return actor
+
 
 
     def spline(self, points, s=10, c='navy', alpha=1., nodes=True, legend=None):
@@ -1038,8 +1040,8 @@ class vtkPlotter:
                 axs.append(self.makeActor(t.GetOutput(), c, alpha))
             self.actors.append( self.assembly([actor_elli]+axs) )
         else : self.actors.append(actor_elli)
-        if legend: setattr(self.lastactor(), 'legend', legend) 
-        return self.lastactor()
+        if legend: setattr(self.lastActor(), 'legend', legend) 
+        return self.lastActor()
 
 
     def align(self, source, target, rigid=False, iters=100, legend=None):
@@ -1140,19 +1142,49 @@ class vtkPlotter:
         
 
     ####################################
-    def closestPoint(self, surf, pt, locator=None):
-        """Find the closest point on a surface given an other point"""
+    def closestPoint(self, surf, pt, locator=None, N=None, radius=None):
+        """Find the closest point on a polydata given an other point.
+        If N is given, return a list of N ordered closest points.
+        If radius is given, pick only within specified radius.
+        """
         polydata = self.getPD(surf)
         trgp  = [0,0,0]
         cid   = vtk.mutable(0)
         subid = vtk.mutable(0)
         dist2 = vtk.mutable(0)
-        if not locator:
-            locator = vtk.vtkCellLocator()
-            locator.SetDataSet(polydata)
-            locator.BuildLocator()
-        locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
+        self.result['closest_exists'] = False
+        if locator: self.locator = locator
+        elif not self.locator:
+            if N: self.locator = vtk.vtkPointLocator()
+            else: self.locator = vtk.vtkCellLocator()
+            self.locator.SetDataSet(polydata)
+            self.locator.BuildLocator()
+        if N:
+            vtklist = vtk.vtkIdList()
+            vmath = vtk.vtkMath()
+            self.locator.FindClosestNPoints(N, pt, vtklist)
+            trgp_, trgp, dists2 = [0,0,0], [], []
+            npt = vtklist.GetNumberOfIds()
+            if npt: self.result['closest_exists'] = True
+            for i in range(vtklist.GetNumberOfIds()):
+                vi = vtklist.GetId(i)
+                polydata.GetPoints().GetPoint(vi, trgp_ )
+                trgp.append( trgp_ )
+                dists2.append(vmath.Distance2BetweenPoints(trgp_, pt))
+            dist2 = dists2
+        elif radius:
+            cell = vtk.mutable(0)
+            r = self.locator.FindClosestPointWithinRadius(pt, radius, trgp, cell, cid, dist2)
+            self.result['closest_exists'] = bool(r)
+            if not r: 
+                trgp = pt
+                dist2 = 0.0
+        else: 
+            self.locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
+            self.result['closest_exists'] = True
+        self.result['distance2'] = dist2
         return trgp
+        
         
     def coordinates(self, actors):
         """Return a merged list of coordinates of all actors or polys"""
@@ -1169,7 +1201,7 @@ class vtkPlotter:
 
 
     ##########################################
-    def draw_cubeaxes(self, c=(.2, .2, .6)):
+    def _draw_cubeaxes(self, c=(.2, .2, .6)):
         if self.caxes_exist and not self.axes: return
         ca = vtk.vtkCubeAxesActor()
         if self.renderer:
@@ -1197,7 +1229,7 @@ class vtkPlotter:
         self.caxes_exist = True
         self.renderer.AddActor(ca)
 
-    def draw_ruler(self):
+    def _draw_ruler(self):
         #draws a simple ruler at the bottom
         ls = vtk.vtkLegendScaleActor()
         ls.RightAxisVisibilityOff()
@@ -1212,7 +1244,7 @@ class vtkPlotter:
         ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
         self.renderer.AddActor(ls)
 
-    def draw_legend(self):
+    def _draw_legend(self):
         legend = vtk.vtkLegendBoxActor()
         legend.UseBackgroundOn()
         legend.SetBackgroundColor(self.legendBG)
@@ -1337,9 +1369,9 @@ class vtkPlotter:
         for ia in self.actors: 
             if not ia in acts: self.renderer.AddActor(ia)
 
-        if ruler: self.draw_ruler()
-        if self.axes: self.draw_cubeaxes()
-        if legend: self.draw_legend()
+        if ruler: self._draw_ruler()
+        if self.axes: self._draw_cubeaxes()
+        if legend: self._draw_legend()
 
         if self.resetcam: 
             self.renderer.ResetCamera()
@@ -1430,17 +1462,17 @@ class vtkPlotter:
             for i,ia in enumerate(self.getActors()):
                 ia.GetProperty().SetColor(colors1[i+self.icol1])
             self.icol1 += 1
-            self.draw_legend()
+            self._draw_legend()
         elif key in ["2", "KP_Down", "KP_2"]:
             for i,ia in enumerate(self.getActors()):
                 ia.GetProperty().SetColor(colors2[i+self.icol2])
             self.icol2 += 1
-            self.draw_legend()
+            self._draw_legend()
         elif key in ["4", "KP_Left", "KP_4"]:
             for i,ia in enumerate(self.getActors()):
                 ia.GetProperty().SetColor(colors3[i+self.icol3])
             self.icol3 += 1
-            self.draw_legend()
+            self._draw_legend()
         elif key in ["5", "KP_Begin", "KP_5"]:
             c = getcolor('gold')
             acs = self.getActors()
@@ -1448,7 +1480,7 @@ class vtkPlotter:
             for ia in acs:
                 ia.GetProperty().SetColor(c)
                 ia.GetProperty().SetOpacity(alpha)
-            self.draw_legend()
+            self._draw_legend()
         elif key == "o":
             for ia in self.getActors():
                 try:
@@ -1541,7 +1573,7 @@ class vtkPlotter:
                 self.interactor.Render()
                 self.interactor.Start()
 
-    def lastactor(self): return self.actors[-1]
+    def lastActor(self): return self.actors[-1]
 
 
     ###################################################################### Video
