@@ -54,7 +54,7 @@ Load 3 actors assigning each a different color, use their file names as legend e
 No need to use any variables, as actors are stored internally in vp.actors:
 ```python
 vp = plotter.vtkPlotter()
-vp.load('data/250.vtk', c=(1,0.4,0)) # c=(R,G,B) color
+vp.load('data/250.vtk', c=(1,0.4,0)) # c=(R,G,B) color, name or hex code
 vp.load('data/270.vtk', c=(1,0.6,0))
 vp.load('data/290.vtk', c=(1,0.8,0))
 print ('Loaded vtkActors: ', len(vp.actors))
@@ -242,6 +242,6 @@ vp.show(legend=vp.names)
 
 If you need to do more complicated things (define widgets.. etc), you can still access all the 
 usual VTK objects like interactors and renderers through *vp.interactor, vp.renderer*... etc.<br />
-Use *vp.open_video(), vp.addframe_video()* and *vp.close_video()* to save a movie.avi file.
+Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.avi* file.
 
 

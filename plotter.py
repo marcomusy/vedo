@@ -3,7 +3,7 @@
 from __future__ import print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "2.6"
+__version__ = "3.0"
 __maintainer__ = __author__
 __email__   = "marco.musy@embl.es"
 __status__  = "dev"
@@ -35,9 +35,9 @@ class vtkPlotter:
         self.tips()
 
     def tips(self):
-        print ("""Press ----------------------------------------
-        m   to minimise opacity
-        /   to maximize opacity
+        msg = """Press ----------------------------------------
+        m   to minimise opacity of selected actor
+        /   to maximize opacity of selected actor
         .,  to increase/reduce opacity
         w/s to toggle wireframe/solid style
         oO  to change point size of vertices
@@ -55,7 +55,8 @@ class vtkPlotter:
         Ctrl-mouse  to rotate scene
         Shift-mouse to shift scene
         Right-mouse click to zoom in/out
-        --------------------------------------""")
+        --------------------------------------"""
+        print (msg)
 
 
     def __init__(self, shape=(1,1), size='auto', screensize=(1000,1600),
@@ -97,6 +98,7 @@ class vtkPlotter:
         self.clickedx   = 0
         self.clickedy   = 0
         self.clickedr   = 0 #clicked renderer number
+        self.clickedActor = None
         self.locator    = None
 
         if balloon:
@@ -294,7 +296,7 @@ class vtkPlotter:
             actor = vtk.vtkActor()
             actor.SetMapper(mapper)
             actor.GetProperty().SetInterpolationToFlat()
-            actor.GetProperty().SetColor(getcolor(c))
+            actor.GetProperty().SetColor(getColor(c))
             actor.GetProperty().SetOpacity(alpha/2.)
             #actor.GetProperty().VertexVisibilityOn()
             if edges: actor.GetProperty().EdgeVisibilityOn()
@@ -347,7 +349,7 @@ class vtkPlotter:
         if not poly:
             print ('Unable to load', filename)
             return False
-        actor = self.makeActor(poly, getcolor(c), alpha)
+        actor = self.makeActor(poly, getColor(c), alpha)
         actor.GetProperty().SetPointSize(4)
         if legend: setattr(actor, 'legend', legend)
         if legend is True: setattr(actor, 'legend', os.path.basename(filename))
@@ -442,7 +444,7 @@ class vtkPlotter:
             actor.GetProperty().SetInterpolationToGouraud()
             self.flat = self.phong = False
         if edges: actor.GetProperty().EdgeVisibilityOn()
-        actor.GetProperty().SetColor(getcolor(c))
+        actor.GetProperty().SetColor(getColor(c))
         actor.GetProperty().SetOpacity(alpha)
         if self.bculling:
             actor.GetProperty().BackfaceCullingOn()
@@ -455,23 +457,25 @@ class vtkPlotter:
         if wire: actor.GetProperty().SetRepresentationToWireframe()
         if bc: # defines a specific color for the backface
             backProp = vtk.vtkProperty()
-            backProp.SetDiffuseColor(getcolor(bc))
+            backProp.SetDiffuseColor(getColor(bc))
             backProp.SetOpacity(alpha)
             actor.SetBackfaceProperty(backProp)
         if legend: setattr(actor, 'legend', legend) 
         return actor
 
 
-    def assembly(self, actors):
+    def assembly(self, actors, legend=None):
         '''Treat many actors as a single new actor'''
         assembly = vtk.vtkAssembly()
         for a in actors: assembly.AddPart(a)
-        if hasattr(actors[0], 'legend'): 
+        if legend:
+            setattr(assembly, 'legend', legend) 
+        elif hasattr(actors[0], 'legend'): 
             setattr(assembly, 'legend', actors[0].legend) 
         return assembly
 
 
-    def move_camera(self, camstart, camstop, fraction):
+    def moveCamera(self, camstart, camstop, fraction):
         '''Takes as input two vtkCamera objects and returns
         a new vtkCamera that is at intermediate position:
         fraction=0 -> camstart,  fraction=1 -> camstop.
@@ -497,7 +501,7 @@ class vtkPlotter:
 
 
     #############################################################################
-    def colorpoints(self, plist, cols, r=10., alpha=0.8, legend=None):
+    def colorPoints(self, plist, cols, r=10., alpha=0.8, legend=None):
         '''Return a vtkActor for a list of points.
         Input cols is a list of RGB colors of same length as plist
         '''
@@ -516,7 +520,7 @@ class vtkPlotter:
         colors.SetName("RGB")
         for i,p in enumerate(plist):
             pd.GetPoints().SetPoint(i, p)
-            c = np.array(getcolor(cols[i]))*255
+            c = np.array(getColor(cols[i]))*255
             colors.InsertNextTupleValue(np.clip(c, 0, 255))
         pd.GetPointData().SetScalars(colors)
         mapper = vtk.vtkPolyDataMapper()
@@ -608,42 +612,52 @@ class vtkPlotter:
         if legend: setattr(actor, 'legend', legend) 
         return actor
     
-
+    
     def arrow(self, startPoint, endPoint, c='r', alpha=1, legend=None):
-        nx = [0, 0, 0]
-        ny = [0, 0, 0]
-        nz = [0, 0, 0]
-        math = vtk.vtkMath()
-        math.Subtract(endPoint, startPoint, nx)
-        length = math.Norm(nx)
-        math.Normalize(nx)
-        math.Cross(nx, [7.4,3.1,-1.2], nz)
-        math.Normalize(nz)
-        math.Cross(nz, nx, ny)
-        matrix = vtk.vtkMatrix4x4()
-        matrix.Identity()
-        n= [nx,ny,nz]
-        for i in range(3): 
-            for j in range(3): 
-                matrix.SetElement(i, j, n[j][i])
-        arrowSource = vtk.vtkArrowSource()
-        arrowSource.SetShaftResolution(24)
-        arrowSource.SetTipResolution(24)
-        arrowSource.SetTipRadius(0.06)
-        transform = vtk.vtkTransform()
-        transform.Translate(startPoint)
-        transform.Concatenate(matrix)
-        transform.Scale(length, length, length)
-        transformPD = vtk.vtkTransformPolyDataFilter()
-        transformPD.SetTransform(transform)
-        transformPD.SetInputConnection(arrowSource.GetOutputPort())
-        transformPD.Update()
-        actor = self.makeActor(transformPD.GetOutput(), c, alpha)
+        axis = np.array(endPoint) - np.array(startPoint)
+        length = np.linalg.norm(axis)
+        axis = axis/length
+        theta = np.arccos(axis[2])
+        phi   = np.arctan2(axis[1], axis[0])
+        arr = vtk.vtkArrowSource()
+        arr.SetShaftResolution(24)
+        arr.SetTipResolution(24)
+        arr.SetTipRadius(0.06)
+        actor = self.makeActor(arr.GetOutput(), c, alpha)
         actor.GetProperty().SetInterpolationToPhong()
+        actor.SetPosition(startPoint)
+        actor.RotateZ(phi*57.3)
+        actor.RotateY(theta*57.3)
+        actor.SetScale(length,length,length)
+        actor.RotateY(-90) #put it along Z
+        actor.DragableOff()
+        actor.PickableOff()
         self.actors.append(actor)
         if legend: setattr(actor, 'legend', legend) 
         return actor
 
+
+    def cylinder(self, center, radius, height, axis=[1,1,1],
+                 c='teal', alpha=1, legend=None):
+        cyl = vtk.vtkCylinderSource()
+        cyl.SetResolution(24)
+        cyl.SetRadius(radius)
+        cyl.SetHeight(height)
+        #cyl.SetAxis(axis)
+        axis  = np.array(axis)/np.linalg.norm(axis)
+        theta = np.arccos(axis[2])
+        phi   = np.arctan2(axis[1], axis[0])
+        actor = self.makeActor(cyl.GetOutput(), c, alpha)
+        actor.GetProperty().SetInterpolationToPhong()
+        actor.SetPosition(center)
+        actor.RotateZ(phi*57.3)
+        actor.RotateY(theta*57.3)
+        actor.RotateX(90) #put it along Z
+        actor.DragableOff()
+        actor.PickableOff()
+        self.actors.append(actor)
+        if legend: setattr(actor, 'legend', legend) 
+        return actor
 
 
     def spline(self, points, s=10, c='navy', alpha=1., nodes=True, legend=None):
@@ -763,13 +777,13 @@ class vtkPlotter:
         else:
             ttactor = vtk.vtkActor()
         ttactor.SetMapper(ttmapper)
-        ttactor.GetProperty().SetColor(getcolor(c))
+        ttactor.GetProperty().SetColor(getColor(c))
         ttactor.GetProperty().SetOpacity(alpha)
         ttactor.AddPosition(pos)
         ttactor.SetScale(s,s,s)
         if bc: # defines a specific color for the backface
             backProp = vtk.vtkProperty()
-            backProp.SetDiffuseColor(getcolor(bc))
+            backProp.SetDiffuseColor(getColor(bc))
             backProp.SetOpacity(alpha)
             ttactor.SetBackfaceProperty(backProp)
         self.actors.append(ttactor)
@@ -782,7 +796,7 @@ class vtkPlotter:
            pos assignes the position: 
            1=topleft, 2=topright, 3=bottomleft, 4=bottomright
         """
-        c = getcolor(c) # allow different codings
+        c = getColor(c) # allow different codings
         array_x = vtk.vtkFloatArray()
         array_y = vtk.vtkFloatArray()
         array_x.SetNumberOfTuples(len(points))
@@ -863,7 +877,7 @@ class vtkPlotter:
         glyphActor = vtk.vtkActor()
         glyphActor.SetMapper(glyphMapper)
         glyphActor.GetProperty().EdgeVisibilityOff()
-        glyphActor.GetProperty().SetColor(getcolor(c))
+        glyphActor.GetProperty().SetColor(getColor(c))
         glyphActor.GetProperty().SetOpacity(alpha)
         actor = self.assembly([pactor,glyphActor])
         self.actors.append(actor)
@@ -926,7 +940,7 @@ class vtkPlotter:
 
 
     ################# working with point clouds
-    def fitline(self, points, c='orange', lw=1, alpha=0.6, tube=False, legend=None):
+    def fitLine(self, points, c='orange', lw=1, alpha=0.6, tube=False, legend=None):
         '''Fits a line through points.
            tube = show a rough estimate of error band at 2 sigma level
            Extra info is stored in vp.results['slope','center','variances']
@@ -962,7 +976,7 @@ class vtkPlotter:
         return l
 
 
-    def fitplane(self, points, c='g', bc='darkgreen', legend=None):
+    def fitPlane(self, points, c='g', bc='darkgreen', legend=None):
         '''Fits a plane to a set of points.
            Extra info is stored in vp.results['normal','center','variance']
         '''
@@ -1058,7 +1072,6 @@ class vtkPlotter:
         if rigid: icp.GetLandmarkTransform().SetModeToRigidBody()
         icp.SetMaximumNumberOfIterations(iters)
         icp.StartByMatchingCentroidsOn()
-        icp.Modified()
         icp.Update()
         icpTransformFilter = vtk.vtkTransformPolyDataFilter()
         setInput(icpTransformFilter, source)
@@ -1245,11 +1258,11 @@ class vtkPlotter:
         self.renderer.AddActor(ls)
 
     def _draw_legend(self):
-        legend = vtk.vtkLegendBoxActor()
-        legend.UseBackgroundOn()
-        legend.SetBackgroundColor(self.legendBG)
-        legend.SetBackgroundOpacity(0.6)
-        legend.LockBorderOn()
+        vtklegend = vtk.vtkLegendBoxActor()
+        vtklegend.UseBackgroundOn()
+        vtklegend.SetBackgroundColor(self.legendBG)
+        vtklegend.SetBackgroundOpacity(0.6)
+        vtklegend.LockBorderOn()
 
         NA, NL = len(self.actors), len(self.legend)
         if NL > NA:
@@ -1268,7 +1281,7 @@ class vtkPlotter:
         
         NT = len(texts)
         if NT>20: NT=20
-        legend.SetNumberOfEntries(NT)
+        vtklegend.SetNumberOfEntries(NT)
         for i in range(NT):
             ti = texts[i]
             a  = acts[i]
@@ -1280,25 +1293,25 @@ class vtkPlotter:
                 c = act.GetProperty().GetColor()
                 if c==(1,1,1): c=(0.7,0.7,0.7) # awoid white
                 try:
-                    legend.SetEntry(i, self.getPD(a), "  "+ti, c)
+                    vtklegend.SetEntry(i, self.getPD(a), "  "+ti, c)
                 except:
                     sp = vtk.vtkSphereSource() #make a dummy sphere as icon
                     sp.Update()
-                    legend.SetEntry(i, sp.GetOutput(),"  "+ti, c)
+                    vtklegend.SetEntry(i, sp.GetOutput(),"  "+ti, c)
             else:
                 c = a.GetProperty().GetColor()
                 if c==(1,1,1): c=(0.7,0.7,0.7)
-                legend.SetEntry(i, self.getPD(i), "  "+ti, c)
+                vtklegend.SetEntry(i, self.getPD(i), "  "+ti, c)
         pos = self.legendPosition
         width = self.legendSize
-        legend.SetWidth(width)
-        legend.SetHeight(width/5.*NT)
+        vtklegend.SetWidth(width)
+        vtklegend.SetHeight(width/5.*NT)
         sx, sy = 1-width, 1-width/5.*NT
-        if pos==1: legend.GetPositionCoordinate().SetValue(  0, sy) #x,y from bottomleft
-        if pos==2: legend.GetPositionCoordinate().SetValue( sx, sy) #default
-        if pos==3: legend.GetPositionCoordinate().SetValue(  0,  0)
-        if pos==4: legend.GetPositionCoordinate().SetValue( sx,  0)
-        self.renderer.AddActor(legend)
+        if pos==1: vtklegend.GetPositionCoordinate().SetValue(  0, sy) #x,y from bottomleft
+        elif pos==2: vtklegend.GetPositionCoordinate().SetValue( sx, sy) #default
+        elif pos==3: vtklegend.GetPositionCoordinate().SetValue(  0,  0)
+        elif pos==4: vtklegend.GetPositionCoordinate().SetValue( sx,  0)
+        self.renderer.AddActor(vtklegend)
 
 
     #################################################################################
@@ -1405,11 +1418,46 @@ class vtkPlotter:
         x,y = self.interactor.GetEventPosition()
         self.renderer = obj.FindPokedRenderer(x,y)
         self.renderWin = obj.GetRenderWindow()
-        self.clickedx,self.clickedy = x,y
-        self.clickedr = self.renderers.index(self.renderer)
-        if self.verbose and (len(self.renderers)>1 or self.clickedr>0):
-            print ('Current Renderer:', self.clickedr, 'at (x, y) =',(x,y),end='')
-            print (', nr. of actors =', len(self.getActors()))
+        clickedr = self.renderers.index(self.renderer)
+        picker = vtk.vtkPropPicker()
+        picker.PickProp(x,y, self.renderer)
+        clickedActor = picker.GetActor()
+        if not clickedActor: clickedActor = picker.GetAssembly()
+        if self.verbose and (len(self.renderers)>1 or clickedr>0):
+            if self.clickedr != clickedr:
+                print ('Current Renderer:', clickedr, 'at (x, y) =',(x,y),end='')
+                print (', nr. of actors =', len(self.getActors()))
+        if self.verbose and clickedActor and hasattr(clickedActor,'legend'):
+            bhasl = hasattr(self.clickedActor,'legend')
+            if len(clickedActor.legend) > 1 :
+                if not bhasl or (bhasl and self.clickedActor.legend!=clickedActor.legend): 
+                    try:                    
+                        mass = vtk.vtkMassProperties()
+                        apoly = self.getPD(clickedActor)
+                        mass.SetInput(apoly)
+                        mass.Update() 
+                        area = '{:.1e}'.format(float(mass.GetSurfaceArea()))
+                        vol  = '{:.1e}'.format(float(mass.GetVolume()))
+                    except:
+                        area, vol = 'n.a.', 'n.a.'
+                    try: 
+                        indx = str(self.actors.index(clickedActor))
+                    except ValueError: indx = None                        
+                    try: 
+                        rgb = list(clickedActor.GetProperty().GetColor())
+                        cn = '('+getColorName(rgb)+'),'
+                    except: cn = None                        
+                    if (not indx is None) and isinstance(clickedActor, vtk.vtkAssembly): 
+                        print ('-> assembly',indx+':',clickedActor.legend, end=' ')
+                    elif not indx is None:
+                        print ('-> actor',indx+':',clickedActor.legend, end=' ')
+                        if cn: print (cn.ljust(12), end='')
+                    npt = str(apoly.GetNumberOfPoints()).ljust(5)
+                    print ('Npt='+npt,'area='+str(area),'vol='+str(vol))
+        self.clickedActor = clickedActor
+        self.clickedx, self.clickedy = x,y
+        self.clickedr = clickedr
+
 
     def keypress(self, obj, event):
         key = obj.GetKeySym()
@@ -1441,19 +1489,31 @@ class vtkPlotter:
             print ('cam.SetViewUp(', [round(e,3) for e in cam.GetViewUp()],')')
             return
         elif key == "m":
-            for a in self.getActors():
-                a.GetProperty().SetOpacity(0.05)
+            if self.clickedActor in self.getActors():
+                self.clickedActor.GetProperty().SetOpacity(0.05)
+            else:
+                for a in self.getActors(): a.GetProperty().SetOpacity(.05)
         elif key == "comma":
-            for a in self.getActors():
-                ap = a.GetProperty()
+            if self.clickedActor in self.getActors():
+                ap = self.clickedActor.GetProperty()
                 ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.05]))
+            else:
+                for a in self.getActors():
+                    ap = a.GetProperty()
+                    ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.05]))
         elif key == "period":
-            for a in self.getActors():
-                ap = a.GetProperty()
+            if self.clickedActor in self.getActors():
+                ap = self.clickedActor.GetProperty()
                 ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
+            else:
+                for a in self.getActors():
+                    ap = a.GetProperty()
+                    ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
         elif key == "slash":
-            for a in self.getActors():
-                a.GetProperty().SetOpacity(1)
+            if self.clickedActor in self.getActors():
+                self.clickedActor.GetProperty().SetOpacity(1) 
+            else:
+                for a in self.getActors(): a.GetProperty().SetOpacity(1)
         elif key == "V":
             if not(self.verbose): self.tips()
             self.verbose = not(self.verbose)
@@ -1474,7 +1534,7 @@ class vtkPlotter:
             self.icol3 += 1
             self._draw_legend()
         elif key in ["5", "KP_Begin", "KP_5"]:
-            c = getcolor('gold')
+            c = getColor('gold')
             acs = self.getActors()
             alpha = 1./len(acs)
             for ia in acs:
@@ -1540,29 +1600,25 @@ class vtkPlotter:
             self.show(at=self.clickedr, interactive=0, axes=0)
             self.interactive = ii # restore it
         elif key == "x":
-            picker = vtk.vtkPropPicker()
-            x,y = self.clickedx, self.clickedy
-            picker.PickProp(x,y, self.renderer)
-            a = picker.GetActor()
-            if a is None:
-                asse = picker.GetAssembly()
-                if asse:
-                    props = vtk.vtkPropCollection()
-                    asse.GetActors(props)
-                    a = props.GetLastProp()
-                    asse.RemovePart(a)
-                    if self.verbose:
-                        print ('You picked a vtkAssembly. ', end='')
-                        print ('Removing last actor in the set.')
-                    self.interactor.Render()
-                    return
-                else: print ('Click an actor and press x to remove it.')
-            if a in self.getActors():
-                al = np.sqrt(a.GetProperty().GetOpacity())
+            if isinstance(self.clickedActor, vtk.vtkAssembly):
+                props = vtk.vtkPropCollection()
+                self.clickedActor.GetActors(props)
+                a = props.GetLastProp()
+                self.clickedActor.RemovePart(a)
+                if self.verbose:
+                    print ('You picked a vtkAssembly. ', end='')
+                    print ('Removing last actor in the set.')
+                self.interactor.Render()
+                return
+            if self.clickedActor in self.getActors():
+                al = np.sqrt(self.clickedActor.GetProperty().GetOpacity())
                 for op in np.linspace(al,0, 8): #fade away
-                    a.GetProperty().SetOpacity(op)
+                    self.clickedActor.GetProperty().SetOpacity(op)
                     self.interactor.Render()
-                self.renderer.RemoveActor(a)
+                self.renderer.RemoveActor(self.clickedActor)
+                self.interactor.Render()
+                return
+            print ('Click an actor and press x to remove it.')
             
         self.interactor.Render()
 
@@ -1577,12 +1633,12 @@ class vtkPlotter:
 
 
     ###################################################################### Video
-    def open_video(self, name='movie.avi', fps=12, duration=None, format="XVID"):
+    def openVideo(self, name='movie.avi', fps=12, duration=None, format="XVID"):
         try:
             import cv2 #just check existence
             cv2.__version__
         except:
-            print ("open_video: cv2 not installed? Skip.")
+            print ("openVideo: cv2 not installed? Skip.")
             return
         self.videoname = name
         self.videoformat = format
@@ -1596,13 +1652,13 @@ class vtkPlotter:
         self.show(interactive=True)
         self.interactive = itr
         
-    def addframe_video(self):
+    def addFrameVideo(self):
         if not self.videoname: return
         fr = '/tmp/v/'+str(len(self.frames))+'.png'
         screenshot(fr)
         self.frames.append(fr)
 
-    def pause_video(self, pause):
+    def pauseVideo(self, pause):
         '''insert a pause, in seconds'''
         if not self.videoname: return
         fr = self.frames[-1]
@@ -1612,7 +1668,7 @@ class vtkPlotter:
             self.frames.append(fr2)
             os.system("cp -f %s %s" % (fr, fr2))
             
-    def release_gif(self):
+    def releaseGif(self):
         if not self.videoname: return
         try: import imageio
         except: 
@@ -1623,7 +1679,7 @@ class vtkPlotter:
             images.append(imageio.imread(fl))
         imageio.mimsave('animation.gif', images)
 
-    def release_video(self):        
+    def releaseVideo(self):        
         if not self.videoname: return
         import cv2
         if self.videoduration:
@@ -1744,7 +1800,7 @@ def makeSource(spoints, addLines=True):
 
 
 ####################################
-def isinside(poly, point):
+def isInside(poly, point):
     """Return True if point is inside a polydata closed surface"""
     points = vtk.vtkPoints()
     points.InsertNextPoint(point)
@@ -1767,8 +1823,8 @@ def write(poly, fileoutput):
     
 
 ####################################
-def getcolor(c):
-    #Convert a color to (r,g,b) format from many input formats
+def getColor(c):
+    """Convert a color to (r,g,b) format from many input formats"""
     if isinstance(c,list) or isinstance(c,tuple) : #RGB
         if c[0]<=1 and c[1]<=1 and c[2]<=1:
             return c
@@ -1798,13 +1854,27 @@ def getcolor(c):
     if isinstance(c, int): 
         return colors1[c]
     return [0,0,0]
-    
+
+def getColorName(c):
+    """Convert a rgb color or numeric code to closest name color"""
+    c = np.array(getColor(c)) #reformat
+    mdist = 99.
+    iclosest = None
+    for i in range(len(colors)):
+        ci = np.array(colors[i])
+        d = np.linalg.norm(c-ci)
+        if d<mdist: 
+            mdist = d
+            iclosest = i
+    return color_names[iclosest] 
+
+   
 
 ###########################################################################
 if __name__ == '__main__':
     '''
     Usage: 
-    plotter file.vtk  
+    plotter files*.vtk  
     # valid formats [vtk,vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz,txt,byu] 
     '''
 ###########################################################################

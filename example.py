@@ -9,10 +9,15 @@ import numpy as np
 import plotter
 
 
+# Display a tetrahedral mesh (Fenics/Dolfin format).
+# The internal vertices are displayed too:
+vp = plotter.vtkPlotter()
+vp.load('data/290.xml.gz')
+vp.show(legend='tetrahedral mesh')
+
 # Declare an instance of the class
 vp = plotter.vtkPlotter()
 #vp.help() # shows a help message
-
 
 # Load a vtk file as a vtkActor and visualize it.
 #The tridimensional shape corresponds to the outer shape of the embryonic mouse limb
@@ -74,7 +79,6 @@ va = vp.load('data/290.vtk', c='maroon', legend=0)
 vp.normals(va, ratio=5, legend=False)
 vp.boundaries(va)
 vp.show(legend='shape w/ boundaries')
-
 
 
 # Split window in a 36 subwindows and draw something in windows nr 12 and nr 33.
@@ -148,19 +152,19 @@ for i in range(500): # draw 500 fit lines superimposed
     data+= np.random.normal(size=data.shape)*0.8 # add gauss noise
     if i==0:
         vp.points(data, c='red')
-        vp.fitplane(data)
-    vp.fitline(data, lw=10, alpha=0.01) # fit
+        vp.fitPlane(data)
+    vp.fitLine(data, lw=10, alpha=0.01) # fit
 print ('Fit slope=', vp.result['slope']) # the last fitted slope direction
 vp.show(legend=['points','fitting plane','fitting line'])
 
 
 # Cut a set of shapes with a plane that goes through the 
-# point at x=500 and has normal (1, 0.3, -0.2). 
+# point at x=500 and has normal (0, 0.3, -1). 
 # Wildcards are ok to load multiple files or directories:
 vp = plotter.vtkPlotter()
 vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1) 
 for a in vp.actors:
-    vp.cutActor(a, origin=(500,0,0), normal=(0,.3,-1))
+    vp.cutActor(a, origin=(500,0,0), normal=(0,0.3,-1))
 vp.show(legend=vp.names)
 
 
@@ -206,12 +210,12 @@ vp.show()
 vp = plotter.vtkPlotter(interactive=0, verbose=0)
 vp.load('data/290.vtk', c='b', bc='tomato', alpha=1)
 vp.show()                 # inits camera etc.
-vp.open_video(duration=5) # will make it last 5 seconds
+vp.openVideo(duration=5) # will make it last 5 seconds
 for i in range(100):
     vp.camera.SetPosition(700.-i*20., -10, 4344.-i*80.)
     vp.show()
-    vp.addframe_video()
-vp.release_video()
+    vp.addFrameVideo()
+vp.releaseVideo()
 print ('Video saved as movie.avi')
 vp.tips()
 vp.interact()
