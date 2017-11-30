@@ -248,13 +248,16 @@ Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.
 ## List of available methods with default values:
 ```python
 def help()
+#
 def getPolyData(obj, index=0)
 def getActors(obj=None)
 def getPoint(i, actor)
 def getCoordinates(actors)
+#
 def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None)
-def assembly(actors, legend=None)
+def makeAssembly(actors, legend=None)
 def moveCamera(camstart, camstop, fraction)
+#
 def points(plist, c='b', r=10., alpha=1., legend=None)
 def line(p0,p1, lw=1, c='r', alpha=1., legend=None)
 def sphere(pt, r=1, c='r', alpha=1., legend=None)
@@ -270,12 +273,14 @@ def xyplot(points, title='', c='r', pos=1, lines=False)
 def normals(pactor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
 def curvature(pactor, method=1, r=1, alpha=1, lut=None, legend=None)
 def boundaries(pactor, c='p', lw=5, legend=None)
+def ellipsoid(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None)
+#
+def align(source, target, rigid=False, iters=100, legend=None):
 def fitLine(points, c='orange', lw=1, alpha=0.6, tube=False, legend=None)
 def fitPlane(points, c='g', bc='darkgreen', legend=None)
-def ellipsoid(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None)
-def align(source, target, rigid=False, iters=100, legend=None):
 def cutActor(actor, origin=(0,0,0), normal=(1,0,0), showcut=True, showline=False, showpts=False)
 def closestPoint(surf, pt, locator=None, N=None, radius=None)
+#
 def show(actors=None, at=0, legend=None, axes=None, ruler=False, interactive=None, 
          outputimage=None, c='gold', bc=None, alpha=0.2, wire=False, edges=False, q=False)
 def clear(actors=[])

@@ -305,7 +305,7 @@ class vtkPlotter:
             pts_act = self.makeActor(vpts.GetOutput(), c='b', alpha=alpha)
             pts_act.GetProperty().SetPointSize(3)
             pts_act.GetProperty().SetRepresentationToPoints()
-            actor2 = self.assembly([pts_act, actor])
+            actor2 = self.makeAssembly([pts_act, actor])
             if legend: setattr(actor2, 'legend', legend)
             if legend is True: 
                 setattr(actor2, 'legend', os.path.basename(filename))
@@ -750,7 +750,7 @@ class vtkPlotter:
             setInput(gl, inputData)
             gl.SetSource(balls.GetOutput())
             actnodes = self.makeActor(gl.GetOutput(), c=c, alpha=alpha)
-            acttube  = self.assembly([acttube, actnodes])
+            acttube  = self.makeAssembly([acttube, actnodes])
         self.actors.append(acttube)
         if legend: setattr(acttube, 'legend', legend) 
         return acttube
@@ -795,7 +795,7 @@ class vtkPlotter:
         if nodes:
             actnodes = self.points(points, r=s*50, c=c, alpha=alpha)
             self.actors.pop()
-            acttube = self.assembly([acttube, actnodes])
+            acttube = self.makeAssembly([acttube, actnodes])
         self.actors.append(acttube)
         if legend: setattr(acttube, 'legend', legend) 
         return acttube
@@ -915,7 +915,7 @@ class vtkPlotter:
         glyphActor.GetProperty().EdgeVisibilityOff()
         glyphActor.GetProperty().SetColor(getColor(c))
         glyphActor.GetProperty().SetOpacity(alpha)
-        actor = self.assembly([pactor,glyphActor])
+        actor = self.makeAssembly([pactor,glyphActor])
         self.actors.append(actor)
         if legend: setattr(actor, 'legend', legend) 
         return actor
@@ -1006,7 +1006,7 @@ class vtkPlotter:
             r = np.sqrt((dd[1]+dd[2])/2./len(points))
             tb.SetRadius(r)
             a = self.makeActor(tb.GetOutput(), c=c, alpha=alpha/4.)
-            l = self.assembly([l,a])
+            l = self.makeAssembly([l,a])
             self.actors[-1] = l # replace
         if legend: setattr(l, 'legend', legend) 
         return l
@@ -1088,7 +1088,7 @@ class vtkPlotter:
                 setInput(t, l.GetOutput())
                 t.Update()
                 axs.append(self.makeActor(t.GetOutput(), c, alpha))
-            self.actors.append( self.assembly([actor_elli]+axs) )
+            self.actors.append( self.makeAssembly([actor_elli]+axs) )
         else : self.actors.append(actor_elli)
         if legend: setattr(self.lastActor(), 'legend', legend) 
         return self.lastActor()
@@ -1179,7 +1179,7 @@ class vtkPlotter:
             acts.append(points_act)
 
         if len(acts)>1: 
-            finact = self.assembly(acts)
+            finact = self.makeAssembly(acts)
         else: 
             finact = clipActor
         i = self.actors.index(actor)
