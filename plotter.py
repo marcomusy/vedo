@@ -626,7 +626,7 @@ class vtkPlotter:
         return actor
 
 
-    def plane(self, center=(0,0,0), normal=(0,0,1), s=10, N=10, 
+    def plane(self, center=(0,0,0), normal=(0,0,1), s=10, 
               c='g', bc='darkgreen', lw=1, alpha=1, wire=False, legend=None):
         pl = self.grid(center, normal, s, 1, c, bc, lw, alpha, wire, legend)
         pl.GetProperty().SetEdgeVisibility(1)

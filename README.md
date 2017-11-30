@@ -258,16 +258,16 @@ def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legen
 def makeAssembly(actors, legend=None)
 def moveCamera(camstart, camstop, fraction)
 #
-def points(plist, c='b', r=10., alpha=1., legend=None)
-def line(p0,p1, lw=1, c='r', alpha=1., legend=None)
-def sphere(pt, r=1, c='r', alpha=1., legend=None)
-def cube(pt, r=1, c='g', alpha=1., legend=None)
-def plane(center=(0,0,0), normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1)
-def grid(center=(0,0,0), normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1)
+def points(plist, c='b', r=10, alpha=1, legend=None)
+def line(p0, p1, lw=1, c='r', alpha=1, legend=None)
+def sphere(pt, r=1, c='r', alpha=1, legend=None)
+def cube(pt, r=1, c='g', alpha=1, legend=None)
+def plane(center=(0,0,0), normal=(0,0,1), s=10, c='g', bc='darkgreen', lw=1, alpha=1)
+def grid( center=(0,0,0), normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1)
 def arrow(startPoint, endPoint, c='r', alpha=1, legend=None)
 def cylinder(center, radius, height, axis=[1,1,1], c='teal', alpha=1, legend=None)
 def spline(points, s=10, c='navy', alpha=1., nodes=True, legend=None)
-def bspline(points, nknots=-1, s=1, c=(0,0,0.8), alpha=1., nodes=True, legend=None)
+def bspline(points, nknots=-1, s=1, c=(0,0,0.8), alpha=1, nodes=True, legend=None)
 def text(txt, pos=(0,0,0), s=1, c='k', alpha=1, bc=None, cam=True)
 def xyplot(points, title='', c='r', pos=1, lines=False)
 def normals(pactor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
@@ -292,4 +292,33 @@ def pauseVideo(pause)
 def releaseGif()
 def releaseVideo()
 ```
+<br />
 
+Attributes:
+
+```python
+vp = plotter.vtkPlotter()
+vp.shape       # nr of rows and columns in render window
+vp.size        # window size
+vp.verbose     # verbosity
+vp.interactive # allows to interact with renderer
+vp.renderer    # holds current renderer
+vp.renderers   # list of renderers
+vp.axes        # show or hide axes
+vp.units       # axes units (string)
+vp.camera      # current vtkCamera 
+vp.commoncam   # share the same camera in renderers
+vp.resetcam    # if true reset camera when calling show()
+vp.parallelcam # (true) parallel projection or (false) perspective
+vp.actors      # list of actor to be shown
+vp.legend      # list of legend entries for each actors, can be false
+vp.flat        # (true)  sets interpolation style to 'flat'
+vp.phong       # (false) sets interpolation style to 'phong'
+vp.gouraud     # (false) sets interpolation style to 'gouraud' 
+vp.bculling    # back face culling style
+vp.fculling    # front face culling style
+vp.result      # dictionary to store extra output information
+vp.legendSize  # size of legend
+vp.legendBG    # background color of legend
+vp.legendPosition # 1=topright, 2=top-right, 3=bottom-left 4=bottom-right
+```
