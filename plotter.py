@@ -1281,6 +1281,7 @@ class vtkPlotter:
 
 
     def _draw_legend(self):
+        if not self.legend: return
         # remove old legend if present on current renderer:
         acs = self.renderer.GetActors2D()
         acs.InitTraversal()
