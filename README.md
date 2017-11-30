@@ -292,33 +292,32 @@ def pauseVideo(pause)
 def releaseGif()
 def releaseVideo()
 ```
-<br />
-
 Attributes:
-
 ```python
 vp = plotter.vtkPlotter()
-vp.shape       # nr of rows and columns in render window
-vp.size        # window size
-vp.verbose     # verbosity
-vp.interactive # allows to interact with renderer
-vp.renderer    # holds current renderer
-vp.renderers   # list of renderers
-vp.axes        # show or hide axes
-vp.units       # axes units (string)
-vp.camera      # current vtkCamera 
-vp.commoncam   # share the same camera in renderers
-vp.resetcam    # if true reset camera when calling show()
-vp.parallelcam # (true) parallel projection or (false) perspective
-vp.actors      # list of actor to be shown
-vp.legend      # list of legend entries for each actors, can be false
-vp.flat        # (true)  sets interpolation style to 'flat'
-vp.phong       # (false) sets interpolation style to 'phong'
-vp.gouraud     # (false) sets interpolation style to 'gouraud' 
-vp.bculling    # back face culling style
-vp.fculling    # front face culling style
-vp.result      # dictionary to store extra output information
-vp.legendSize  # size of legend
-vp.legendBG    # background color of legend
-vp.legendPosition # 1=topright, 2=top-right, 3=bottom-left 4=bottom-right
+vp.shape        # nr of rows and columns in vtk render window
+vp.size         # ('auto') specify vtk window size 
+vp.verbose      # verbosity
+vp.actors       # list of actors to be shown
+vp.clickedActor # holds the actor that has been clicked
+vp.renderer     # holds current renderer
+vp.renderers    # list of renderers
+vp.interactor   # vtk window interactor
+vp.interactive  # (true) allows to interact with renderer
+vp.axes         # (true) show or hide axes
+vp.units        # axes units
+vp.camera       # current vtkCamera 
+vp.commoncam    # (true) share the same camera in renderers
+vp.resetcam     # (true) if true reset camera when calling show()
+vp.parallelcam  # (true) parallel projection or (false) perspective
+vp.flat         # (true)  sets interpolation style to 'flat'
+vp.phong        # (false) sets interpolation style to 'phong'
+vp.gouraud      # (false) sets interpolation style to 'gouraud' 
+vp.bculling     # (false) back face culling style
+vp.fculling     # (false) front face culling style
+vp.result       # dictionary to store extra output information
+vp.legend       # list of legend entries for each actors, can be false
+vp.legendSize   # size of legend
+vp.legendBG     # background color of legend
+vp.legendPos    # 1=topright, 2=top-right, 3=bottom-left 4=bottom-right
 ```

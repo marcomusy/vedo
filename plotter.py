@@ -57,37 +57,32 @@ class vtkPlotter:
     def __init__(self, shape=(1,1), size='auto', screensize=(1000,1600),
                 bg=(1,1,1), bg2=None, balloon=False, verbose=True, interactive=True):
         self.shape      = shape # nr of rows and columns in render window
-        self.size       = size  # window size
+        self.size       = size  # specify window size
         self.verbose    = verbose
-        self.interactive= interactive # allows to interact with renderer
+        self.actors     = []    # list of actors to be shown
+        self.clickedActor = None# holds the actor that has been clicked
         self.renderer   = None  # current renderer
-        self.renderers  = []
+        self.renderers  = []    # list of renderers
+        self.interactive= interactive # allows to interact with renderer
         self.axes       = True  # show or hide axes
         self.units      = ''    # axes units
         self.camera     = None  # current vtkCamera 
         self.commoncam  = True  # share the same camera in renderers
         self.resetcam   = True  # reset camera when calling show()
         self.parallelcam = True # parallel projection or perspective
-        self.actors     = []    # list of actor to be shown
-        self.legend     = []    # list of legend entries for actors
-        self.flat       = True
-        self.phong      = False
-        self.gouraud    = False 
+        self.flat       = True  # sets interpolation style to 'flat'
+        self.phong      = False # sets interpolation style to 'phong'
+        self.gouraud    = False # sets interpolation style to 'gouraud'
         self.bculling   = False # back face culling
         self.fculling   = False # front face culling
-        self.legendSize = 0.2
-        self.legendBG   = (.96,.96,.9)
-        self.legendPosition = 2   # 1=topright
-        self.result     = dict()  # stores extra output information
+        self.legend     = []    # list of legend entries for actors
+        self.legendSize = 0.2   # size of legend
+        self.legendBG   = (.96,.96,.9) # legend background color
+        self.legendPos  = 2     # 1=topright, 2=top-right, 3=bottom-left
+        self.result     = dict()# stores extra output information
         
         # internal stuff:
-        self.icol1      = 0
-        self.icol2      = 0
-        self.icol3      = 0
-        self.clickedr   = 0 #clicked renderer number
-        self.clickedx   = 0 
-        self.clickedy   = 0
-        self.clickedActor = None
+        self.clickedr   = 0 # clicked renderer number
         self.camThickness = 2000
         self.balloon    = balloon
         self.locator    = None
@@ -97,13 +92,10 @@ class vtkPlotter:
         self.frames     = []
         self.fps        = 12
         self.caxes_exist = []
+        self.icol1      = 0
+        self.icol2      = 0
+        self.icol3      = 0
         
-        if balloon: # tends to crash, so disabled.
-            self.balloonWidget = vtk.vtkBalloonWidget()
-            self.balloonRep = vtk.vtkBalloonRepresentation()
-            self.balloonRep.SetBalloonLayoutToImageRight()
-            self.balloonWidget.SetRepresentation(self.balloonRep)
-
         if size=='auto': # figure out reasonable window size
                 maxs = screensize #max sizes allowed in y and x
                 xs = maxs[0]/2.*shape[0]
@@ -119,7 +111,6 @@ class vtkPlotter:
                     self.size = (maxs[1]/2,maxs[1]/2)
                 elif self.verbose:
                     print ('Window size set to:', self.size)
-        
    
         #######################################
         # build the renderers scene:
@@ -148,6 +139,12 @@ class vtkPlotter:
         self.interactor.SetRenderWindow(self.renderWin)
         vsty = vtk.vtkInteractorStyleTrackballCamera()
         self.interactor.SetInteractorStyle(vsty)
+
+        if balloon: # tends to crash, so disabled.
+            self.balloonWidget = vtk.vtkBalloonWidget()
+            self.balloonRep = vtk.vtkBalloonRepresentation()
+            self.balloonRep.SetBalloonLayoutToImageRight()
+            self.balloonWidget.SetRepresentation(self.balloonRep)
 
 
     ####################################### LOADER
@@ -1337,7 +1334,7 @@ class vtkPlotter:
                 c = a.GetProperty().GetColor()
                 if c==(1,1,1): c=(0.7,0.7,0.7)
                 vtklegend.SetEntry(i, self.getPolyData(a), "  "+ti, c)
-        pos = self.legendPosition
+        pos = self.legendPos
         width = self.legendSize
         vtklegend.SetWidth(width)
         vtklegend.SetHeight(width/5.*NT)
@@ -1507,7 +1504,6 @@ class vtkPlotter:
                     npt = str(apoly.GetNumberOfPoints()).ljust(5)
                     print ('Npt='+npt,'area='+str(area),'vol='+str(vol))
         self.clickedActor = clickedActor
-        self.clickedx, self.clickedy = x,y
         self.clickedr = clickedr
 
 
