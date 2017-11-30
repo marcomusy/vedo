@@ -542,7 +542,6 @@ class vtkPlotter:
         '''
         if isinstance(c, list) or isinstance(c, tuple) and len(c):
             if isinstance(c[0], list) or isinstance(c[0], tuple):
-                print (c)
                 return self._colorPoints(plist, c, r, alpha, legend)
         src = vtk.vtkPointSource()
         src.SetNumberOfPoints(len(plist))
