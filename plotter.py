@@ -3,7 +3,7 @@
 from __future__ import print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "3.1"
+__version__ = "3.2"
 __maintainer__ = __author__
 __email__   = "marco.musy@embl.es"
 __status__  = "dev"
@@ -353,10 +353,10 @@ class vtkPlotter:
         return actor
         
     ############################################# getters
-    def getPD(self, obj, index=0): # get PolyData
+    def getPolyData(self, obj, index=0): # get PolyData
         '''
         Returns vtkPolyData from an other object (vtkActor, vtkAssembly, int)
-         e.g.: vp.getPD(3) #gets fourth's actor polydata
+         e.g.: vp.getPolyData(3) #gets fourth's actor polydata
         '''
         if   isinstance(obj, vtk.vtkPolyData): return obj
         elif isinstance(obj, vtk.vtkActor):    return obj.GetMapper().GetInput()
@@ -422,19 +422,19 @@ class vtkPlotter:
 
     def getPoint(self, i, actor):
         if isinstance(actor, int): actor = self.actors[actor]
-        poly = self.getPD(actor)
+        poly = self.getPolyData(actor)
         p = [0,0,0]
         poly.GetPoints().GetPoint(i, p)
         return np.array(p)
 
 
-    def coordinates(self, actors):
+    def getCoordinates(self, actors):
         """Return a merged list of coordinates of actors or polys"""
         if not isinstance(actors, list):
             actors = [actors]
         pts = []
         for i in range(len(actors)):
-            apoly = self.getPD(actors[i])
+            apoly = self.getPolyData(actors[i])
             for j in range(apoly.GetNumberOfPoints()):
                 p = [0, 0, 0]
                 apoly.GetPoint(j, p)
@@ -889,7 +889,7 @@ class vtkPlotter:
         maskPts = vtk.vtkMaskPoints()
         maskPts.SetOnRatio(ratio)
         maskPts.RandomModeOff()
-        src = self.getPD(pactor)
+        src = self.getPolyData(pactor)
         setInput(maskPts, src)
         arrow = vtk.vtkArrowSource()
         arrow.SetTipRadius(0.075)
@@ -926,7 +926,7 @@ class vtkPlotter:
            curvature following four different ways to calculate it:
            method =  0-gaussian, 1-mean, 2-max, 3-min
         '''
-        poly = self.getPD(pactor)
+        poly = self.getPolyData(pactor)
         cleaner = vtk.vtkCleanPolyData()
         setInput(cleaner, poly)
         curve = vtk.vtkCurvatures()
@@ -961,7 +961,7 @@ class vtkPlotter:
            of a surface.
         '''
         fe = vtk.vtkFeatureEdges()
-        setInput(fe, self.getPD(pactor))
+        setInput(fe, self.getPolyData(pactor))
         fe.BoundaryEdgesOn()
         fe.FeatureEdgesOn()
         fe.ManifoldEdgesOn()
@@ -1002,7 +1002,7 @@ class vtkPlotter:
         if tube: # show a rough estimate of error band at 2 sigma level
             tb = vtk.vtkTubeFilter()
             tb.SetNumberOfSides(48)
-            setInput(tb, self.getPD(l))
+            setInput(tb, self.getPolyData(l))
             r = np.sqrt((dd[1]+dd[2])/2./len(points))
             tb.SetRadius(r)
             a = self.makeActor(tb.GetOutput(), c=c, alpha=alpha/4.)
@@ -1100,8 +1100,8 @@ class vtkPlotter:
            rigid = True, then no scaling is allowed.
         '''
         sprop = source.GetProperty()
-        source = self.getPD(source)
-        target = self.getPD(target)
+        source = self.getPolyData(source)
+        target = self.getPolyData(target)
         icp = vtk.vtkIterativeClosestPointTransform()
         icp.SetSource(source)
         icp.SetTarget(target)
@@ -1135,7 +1135,7 @@ class vtkPlotter:
         plane = vtk.vtkPlane()
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
-        poly = self.getPD(actor)
+        poly = self.getPolyData(actor)
         clipper = vtk.vtkClipPolyData()
         setInput(clipper, poly)
         clipper.SetClipFunction(plane)
@@ -1197,7 +1197,7 @@ class vtkPlotter:
         If N is given, return a list of N ordered closest points.
         If radius is given, pick only within specified radius.
         """
-        polydata = self.getPD(surf)
+        polydata = self.getPolyData(surf)
         trgp  = [0,0,0]
         cid   = vtk.mutable(0)
         subid = vtk.mutable(0)
@@ -1328,7 +1328,7 @@ class vtkPlotter:
                 c = act.GetProperty().GetColor()
                 if c==(1,1,1): c=(0.7,0.7,0.7) # awoid white
                 try:
-                    vtklegend.SetEntry(i, self.getPD(a), "  "+ti, c)
+                    vtklegend.SetEntry(i, self.getPolyData(a), "  "+ti, c)
                 except:
                     sp = vtk.vtkSphereSource() #make a dummy sphere as icon
                     sp.Update()
@@ -1336,7 +1336,7 @@ class vtkPlotter:
             else:
                 c = a.GetProperty().GetColor()
                 if c==(1,1,1): c=(0.7,0.7,0.7)
-                vtklegend.SetEntry(i, self.getPD(a), "  "+ti, c)
+                vtklegend.SetEntry(i, self.getPolyData(a), "  "+ti, c)
         pos = self.legendPosition
         width = self.legendSize
         vtklegend.SetWidth(width)
@@ -1365,9 +1365,10 @@ class vtkPlotter:
         ruler  = draws a simple ruler at the bottom
         interactive = pause and interact w/ window or continue execution
         outputimage = filename to dump a screenshot without asking
+        c      = surface color, in rgb, hex or name formats
+        bc     = background color, set a color for the back surface face
         wire   = show in wireframe representation
         edges  = show the edges on top of surface
-        bc     = background color, set a color for the back surface face
         q      = force exit after show() command
         '''
         
@@ -1484,7 +1485,7 @@ class vtkPlotter:
                 if not bh or (bh and self.clickedActor.legend!=clickedActor.legend): 
                     try:                    
                         mass = vtk.vtkMassProperties()
-                        apoly = self.getPD(clickedActor)
+                        apoly = self.getPolyData(clickedActor)
                         mass.SetInput(apoly)
                         mass.Update() 
                         area = '{:.1e}'.format(float(mass.GetSurfaceArea()))
@@ -1640,7 +1641,7 @@ class vtkPlotter:
 #                try:
 #                    rs = vtk.vtkReverseSense()
 #                    rs.ReverseNormalsOn()
-#                    setInput(rs, self.getPD(ia))
+#                    setInput(rs, self.getPolyData(ia))
 #                    rs.Update()
 #                    ns = rs.GetOutput().GetPointData().GetNormals()
 #                    rna = vtk.vtkFloatArray.SafeDownCast(ns)

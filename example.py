@@ -181,7 +181,7 @@ vp = plotter.vtkPlotter()
 a1, a2 = vp.load('data/2[79]0.vtk') 
 a1.GetProperty().SetColor(0,1,0)
 a1b = vp.align(a1, a2, rigid=1)
-ps1 = vp.coordinates(a1b) # coordinates of actor
+ps1 = vp.getCoordinates(a1b) # coordinates of actor
 for p in ps1: vp.arrow(p, vp.closestPoint(a2, p))
 vp.show(legend=['Source','Target','Aligned','Links'])            
 
