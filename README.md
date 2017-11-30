@@ -247,9 +247,9 @@ Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.
 
 ## List of available methods with default values:
 ```python
-def help():
-def getPD(obj, index=0): 
-def getActors(obj=None):
+def help()
+def getPD(obj, index=0)
+def getActors(obj=None)
 def getPoint(i, actor):
 def coordinates(actors):
 def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None):
