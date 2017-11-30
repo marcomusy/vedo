@@ -9,12 +9,6 @@ import numpy as np
 import plotter
 
 
-# Display a tetrahedral mesh (Fenics/Dolfin format).
-# The internal vertices are displayed too:
-vp = plotter.vtkPlotter()
-vp.load('data/290.xml.gz')
-vp.show(legend='tetrahedral mesh')
-
 # Declare an instance of the class
 vp = plotter.vtkPlotter()
 #vp.help() # shows a help message
@@ -31,19 +25,19 @@ vp.show()             # picks what is automatically stored in vp.actors
 # Load a vtk file as a vtkActor and visualize it in wireframe style.
 a = vp.load('data/290.vtk', wire=1) # same as a.GetProperty().SetRepresentationToWireframe()
 vp.axes = False
-vp.show(legend=False) # picks what is automatically stored in vp.actors
+vp.show(legend=None) # picks what is automatically stored in vp.actors
 #vp.show(a)           # ignores the content of vp.actors and draws a
 #vp.show(actors=[a])  # same as above
 
 
-# Load 3 actors assigning each a different color, use their file paths as legend entries.
+# Load 3 actors assigning each a different color, use their file names as legend entries.
 # No need to use any variables, as actors are stored internally in vp.actors:
 vp = plotter.vtkPlotter()
 vp.load('data/250.vtk', c=(1,0.4,0))
 vp.load('data/270.vtk', c=(1,0.6,0))
 vp.load('data/290.vtk', c=(1,0.8,0))
-print ('Loaded vtkActors: ', len(vp.actors), vp.names)
-vp.show(legend=vp.names)
+print ('Loaded vtkActors: ', len(vp.actors))
+vp.show()
 
 
 # Draw a spline that goes through a set of points, don't show the points (nodes=False):
@@ -136,6 +130,8 @@ vp.show(at=3, c=3, actors='data/big_spider.ply')
 vp.show(at=4, c=4, actors='data/egret.ply')
 vp.show(at=5, c=5, actors='data/mug.ply')
 vp.show(at=6, c=6, actors='data/scissors.ply')
+a = vp.getActors('sciss') # retrieve actors by matching legend string 
+a[0].RotateX(90)          # and rotate it by 90 degrees around x
 vp.show(at=7, c=7, actors='data/shuttle.obj')
 vp.show(at=8, c=8, actors='data/skyscraper.obj')
 vp.interact()
@@ -165,7 +161,7 @@ vp = plotter.vtkPlotter()
 vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1) 
 for a in vp.actors:
     vp.cutActor(a, origin=(500,0,0), normal=(0,0.3,-1))
-vp.show(legend=vp.names)
+vp.show()
 
 
 # As a short-cut, the filename can be given in the show command directly:
@@ -188,7 +184,6 @@ a1b = vp.align(a1, a2, rigid=1)
 ps1 = vp.coordinates(a1b) # coordinates of actor
 for p in ps1: vp.arrow(p, vp.closestPoint(a2, p))
 vp.show(legend=['Source','Target','Aligned','Links'])            
-#vp.show(legend=True) # to be fixed
 
 
 # Find closest point in set pts1 to pts2 within a specified radius
@@ -196,13 +191,21 @@ from random import uniform as u
 pts1 = [(u(0,5), u(0,5), u(0,5)) for i in range(40)]
 pts2 = [(u(0,5), u(0,5), u(0,5)) for i in range(20)]
 vp = plotter.vtkPlotter()
-vp.points(pts1, r=4,  alpha=1)
+vp.points(pts1, r=4,  alpha=1, legend='point set 1')
 vp.points(pts1, r=25, alpha=0.1) # make a halo 
-a = vp.points(pts2, r=4, c='r', alpha=1)
+a = vp.points(pts2, r=4, c='r', alpha=1, legend='point set 2')
 for p in pts1:
     cp = vp.closestPoint(a, p, radius=2)
     vp.line(p, cp)
     #print (vp.result['closest_exists'], 'dist2=', vp.result['distance2'])
+vp.show()
+
+
+# Draw a cloud of points each one with a different color 
+# which depends on its position
+vp = plotter.vtkPlotter()
+rgb = [(u(0,255), u(0,255), u(0,255)) for i in range(1000)]
+vp.points(rgb, c=rgb, alpha=0.8, legend='RGB points')
 vp.show()
 
 

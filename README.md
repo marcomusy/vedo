@@ -58,7 +58,7 @@ vp.load('data/250.vtk', c=(1,0.4,0)) # c=(R,G,B) color, name or hex code
 vp.load('data/270.vtk', c=(1,0.6,0))
 vp.load('data/290.vtk', c=(1,0.8,0))
 print ('Loaded vtkActors: ', len(vp.actors))
-vp.show(legend=vp.files)
+vp.show()
 ```
 ![ex2](https://user-images.githubusercontent.com/32848391/32666969-90a7dc48-c639-11e7-8795-b139166f0504.png)
 <br />
@@ -233,7 +233,7 @@ vp = plotter.vtkPlotter()
 vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1) 
 for a in vp.actors:
     vp.cutActor(a, origin=(500,0,0), normal=(0,.3,-1))
-vp.show(legend=vp.names)
+vp.show()
 ```
 ![cut](https://user-images.githubusercontent.com/32848391/33214256-6895e478-d12b-11e7-8b4b-390b698e9ef4.png)
 <br />
@@ -243,5 +243,47 @@ vp.show(legend=vp.names)
 If you need to do more complicated things (define widgets.. etc), you can still access all the 
 usual VTK objects like interactors and renderers through *vp.interactor, vp.renderer*... etc.<br />
 Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.avi* file.
+<br />
 
+## List of available methods:
+```python
+   def help():
+   def getPD(obj, index=0): # get PolyData
+   def getActors(obj=None):
+   def getPoint(i, actor):
+   def coordinates(actors):
+   def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None):
+   def assembly(actors, legend=None):
+   def moveCamera(camstart, camstop, fraction):
+   def points(plist, c='b', r=10., alpha=1., legend=None):
+   def line(p0,p1, lw=1, c='r', alpha=1., legend=None):
+   def sphere(pt, r=1, c='r', alpha=1., legend=None):
+   def cube(pt, r=1, c='g', alpha=1., legend=None):
+   def plane(center=(0,0,0), normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1):
+   def grid(center=(0,0,0), normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1):
+   def arrow(startPoint, endPoint, c='r', alpha=1, legend=None):
+   def cylinder(center, radius, height, axis=[1,1,1],
+   def spline(points, s=10, c='navy', alpha=1., nodes=True, legend=None):
+   def bspline(points, nknots=-1, s=1, c=(0,0,0.8), alpha=1., nodes=True, legend=None):
+   def text(txt, pos=(0,0,0), s=1, c='k', alpha=1, bc=None, cam=True):
+   def xyplot(points, title='', c='r', pos=1, lines=False):
+   def normals(pactor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
+   def curvature(pactor, method=1, r=1, alpha=1, lut=None, legend=None):
+   def boundaries(pactor, c='p', lw=5, legend=None):
+   def fitLine(points, c='orange', lw=1, alpha=0.6, tube=False, legend=None):
+   def fitPlane(points, c='g', bc='darkgreen', legend=None):
+   def ellipsoid(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None):
+   def align(source, target, rigid=False, iters=100, legend=None):
+   def cutActor(actor, origin=(0,0,0), normal=(1,0,0),showcut=True, showline=False, showpts=True):
+   def closestPoint(surf, pt, locator=None, N=None, radius=None):
+   def show(actors=None, at=0, legend=True, axes=None, ruler=False, interactive=None, 
+            outputimage=None, c='gold', alpha=0.2, wire=False, bc=None, edges=False, q=False):
+   def interact():
+   def lastActor(): 
+   def openVideo(name='movie.avi', fps=12, duration=None, format="XVID"):
+   def addFrameVideo():
+   def pauseVideo(pause):
+   def releaseGif():
+   def releaseVideo():        
+```
 
