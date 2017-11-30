@@ -514,6 +514,8 @@ class vtkPlotter:
         Press c key in interactive mode to dump a vtkCamera 
         parameter for the current camera view.
         '''
+        if isinstance(fraction, int) and self.verbose:
+            print ("Warning in moveCamera(): fraction is integer.")
         cam = vtk.vtkCamera()
         cam.DeepCopy(camstart)
         p1 = np.array(camstart.GetPosition())
@@ -538,8 +540,10 @@ class vtkPlotter:
         Return a vtkActor for a list of points.
         Input cols is a list of RGB colors of same length as plist
         '''
-        if isinstance(c, list):
-            return self._colorPoints(plist, c, r, alpha, legend)
+        if isinstance(c, list) or isinstance(c, tuple) and len(c):
+            if isinstance(c[0], list) or isinstance(c[0], tuple):
+                print (c)
+                return self._colorPoints(plist, c, r, alpha, legend)
         src = vtk.vtkPointSource()
         src.SetNumberOfPoints(len(plist))
         src.Update()
@@ -1119,7 +1123,7 @@ class vtkPlotter:
 
 
     def cutActor(self, actor, origin=(0,0,0), normal=(1,0,0),
-                showcut=True, showline=False, showpts=True, legend=None):
+                 showcut=True, showline=False, showpts=False):
         '''Takes actor and cuts it with the plane defined by a point 
            and a normal. Substitutes it to the original actor.
            showcut  = shows the cut away part as thin wireframe
@@ -1182,7 +1186,8 @@ class vtkPlotter:
         i = self.actors.index(actor)
         arem = self.actors[i]
         del arem
-        if legend: setattr(finact, 'legend', legend) 
+        if hasattr(actor, 'legend'): 
+            setattr(finact, 'legend', actor.legend) 
         self.actors[i] = finact # substitute
         # do not return actor
         
@@ -1281,7 +1286,9 @@ class vtkPlotter:
 
 
     def _draw_legend(self):
-        if not self.legend: return
+
+        if not isinstance(self.legend, list): return
+
         # remove old legend if present on current renderer:
         acs = self.renderer.GetActors2D()
         acs.InitTraversal()
@@ -1349,7 +1356,7 @@ class vtkPlotter:
 
     #################################################################################
     def show(self, actors=None, at=0, # at=render wind. nr.
-             legend=True, axes=None, ruler=False, interactive=None, outputimage=None,
+             legend=None, axes=None, ruler=False, interactive=None, outputimage=None,
              c='gold', alpha=0.2, wire=False, bc=None, edges=False, q=False):
         '''
         Input: a mixed list of vtkActors, vtkPolydata and filename strings
@@ -1369,9 +1376,12 @@ class vtkPlotter:
         if actors:
             if not isinstance(actors, list): self.actors = [actors]
             else: self.actors = actors
-        if not legend is None:
+        if legend:
             if   isinstance(legend, list): self.legend = list(legend)
             elif isinstance(legend,  str): self.legend = [str(legend)]
+            else: 
+                print ('Error in show(): legend must be list or string.')
+                exit()
         if not axes        is None: self.axes = axes
         if not interactive is None: self.interactive = interactive
         if self.verbose:
@@ -1417,7 +1427,7 @@ class vtkPlotter:
 
         if ruler: self._draw_ruler()
         if self.axes: self._draw_cubeaxes()
-        if legend: self._draw_legend()
+        self._draw_legend()
 
         if self.resetcam: 
             self.renderer.ResetCamera()
@@ -1445,6 +1455,15 @@ class vtkPlotter:
             if self.verbose: print ('q flag set to True. Exit. Bye.')
             exit(0)
 
+    def clear(self, actors=[]):
+        """Delete specified actors, by default delete all."""
+        if len(actors):
+            for i,a in enumerate(actors): 
+                self.renderer.RemoveActor(a)
+                del a[i] 
+        else:
+            for a in self.getActors(): self.renderer.RemoveActor(a)
+            self.actors = []
 
     ############################### events
     def mouseleft(self, obj, event):
@@ -1935,7 +1954,7 @@ if __name__ == '__main__':
         leg = False
         alpha = 1
     else: 
-        leg = True
+        leg=None
         alpha = 1./len(fs)  
         print ('Loading',len(fs),'files:', fs)
     vp = vtkPlotter(bg2=(.94,.94,1), balloon=False)

@@ -274,10 +274,11 @@ def fitLine(points, c='orange', lw=1, alpha=0.6, tube=False, legend=None):
 def fitPlane(points, c='g', bc='darkgreen', legend=None):
 def ellipsoid(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None):
 def align(source, target, rigid=False, iters=100, legend=None):
-def cutActor(actor, origin=(0,0,0), normal=(1,0,0),showcut=True, showline=False, showpts=True):
+def cutActor(actor, origin=(0,0,0), normal=(1,0,0), showcut=True, showline=False, showpts=False):
 def closestPoint(surf, pt, locator=None, N=None, radius=None):
-def show(actors=None, at=0, legend=True, axes=None, ruler=False, interactive=None, 
+def show(actors=None, at=0, legend=None, axes=None, ruler=False, interactive=None, 
          outputimage=None, c='gold', alpha=0.2, wire=False, bc=None, edges=False, q=False):
+def clear(actors=[]):
 def interact():
 def lastActor(): 
 def openVideo(name='movie.avi', fps=12, duration=None, format="XVID"):
