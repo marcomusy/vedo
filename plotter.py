@@ -493,7 +493,7 @@ class vtkPlotter:
         return actor
 
 
-    def assembly(self, actors, legend=None):
+    def makeAssembly(self, actors, legend=None):
         '''Treat many actors as a single new actor'''
         assembly = vtk.vtkAssembly()
         for a in actors: assembly.AddPart(a)
@@ -1667,10 +1667,12 @@ class vtkPlotter:
                 props = vtk.vtkPropCollection()
                 self.clickedActor.GetActors(props)
                 actr = props.GetLastProp()
-                al = np.sqrt(actr.GetProperty().GetOpacity())
-                for op in np.linspace(al,0, 8): #fade away
-                    actr.GetProperty().SetOpacity(op)
-                    self.interactor.Render()
+                try:
+                    al = np.sqrt(actr.GetProperty().GetOpacity())
+                    for op in np.linspace(al,0, 8): #fade away
+                        actr.GetProperty().SetOpacity(op)
+                        self.interactor.Render()
+                except AttributeError: pass
                 self.clickedActor.RemovePart(actr)                    
             elif self.clickedActor in self.getActors():
                 actr = self.clickedActor
