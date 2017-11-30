@@ -245,45 +245,45 @@ usual VTK objects like interactors and renderers through *vp.interactor, vp.rend
 Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.avi* file.
 <br />
 
-## List of available methods:
+## List of available methods with default values:
 ```python
-   def help():
-   def getPD(obj, index=0): # get PolyData
-   def getActors(obj=None):
-   def getPoint(i, actor):
-   def coordinates(actors):
-   def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None):
-   def assembly(actors, legend=None):
-   def moveCamera(camstart, camstop, fraction):
-   def points(plist, c='b', r=10., alpha=1., legend=None):
-   def line(p0,p1, lw=1, c='r', alpha=1., legend=None):
-   def sphere(pt, r=1, c='r', alpha=1., legend=None):
-   def cube(pt, r=1, c='g', alpha=1., legend=None):
-   def plane(center=(0,0,0), normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1):
-   def grid(center=(0,0,0), normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1):
-   def arrow(startPoint, endPoint, c='r', alpha=1, legend=None):
-   def cylinder(center, radius, height, axis=[1,1,1],
-   def spline(points, s=10, c='navy', alpha=1., nodes=True, legend=None):
-   def bspline(points, nknots=-1, s=1, c=(0,0,0.8), alpha=1., nodes=True, legend=None):
-   def text(txt, pos=(0,0,0), s=1, c='k', alpha=1, bc=None, cam=True):
-   def xyplot(points, title='', c='r', pos=1, lines=False):
-   def normals(pactor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
-   def curvature(pactor, method=1, r=1, alpha=1, lut=None, legend=None):
-   def boundaries(pactor, c='p', lw=5, legend=None):
-   def fitLine(points, c='orange', lw=1, alpha=0.6, tube=False, legend=None):
-   def fitPlane(points, c='g', bc='darkgreen', legend=None):
-   def ellipsoid(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None):
-   def align(source, target, rigid=False, iters=100, legend=None):
-   def cutActor(actor, origin=(0,0,0), normal=(1,0,0),showcut=True, showline=False, showpts=True):
-   def closestPoint(surf, pt, locator=None, N=None, radius=None):
-   def show(actors=None, at=0, legend=True, axes=None, ruler=False, interactive=None, 
-            outputimage=None, c='gold', alpha=0.2, wire=False, bc=None, edges=False, q=False):
-   def interact():
-   def lastActor(): 
-   def openVideo(name='movie.avi', fps=12, duration=None, format="XVID"):
-   def addFrameVideo():
-   def pauseVideo(pause):
-   def releaseGif():
-   def releaseVideo():        
+def help():
+def getPD(obj, index=0): 
+def getActors(obj=None):
+def getPoint(i, actor):
+def coordinates(actors):
+def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None):
+def assembly(actors, legend=None):
+def moveCamera(camstart, camstop, fraction):
+def points(plist, c='b', r=10., alpha=1., legend=None):
+def line(p0,p1, lw=1, c='r', alpha=1., legend=None):
+def sphere(pt, r=1, c='r', alpha=1., legend=None):
+def cube(pt, r=1, c='g', alpha=1., legend=None):
+def plane(center=(0,0,0), normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1):
+def grid(center=(0,0,0), normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1):
+def arrow(startPoint, endPoint, c='r', alpha=1, legend=None):
+def cylinder(center, radius, height, axis=[1,1,1], c='teal', alpha=1, legend=None):
+def spline(points, s=10, c='navy', alpha=1., nodes=True, legend=None):
+def bspline(points, nknots=-1, s=1, c=(0,0,0.8), alpha=1., nodes=True, legend=None):
+def text(txt, pos=(0,0,0), s=1, c='k', alpha=1, bc=None, cam=True):
+def xyplot(points, title='', c='r', pos=1, lines=False):
+def normals(pactor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
+def curvature(pactor, method=1, r=1, alpha=1, lut=None, legend=None):
+def boundaries(pactor, c='p', lw=5, legend=None):
+def fitLine(points, c='orange', lw=1, alpha=0.6, tube=False, legend=None):
+def fitPlane(points, c='g', bc='darkgreen', legend=None):
+def ellipsoid(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None):
+def align(source, target, rigid=False, iters=100, legend=None):
+def cutActor(actor, origin=(0,0,0), normal=(1,0,0),showcut=True, showline=False, showpts=True):
+def closestPoint(surf, pt, locator=None, N=None, radius=None):
+def show(actors=None, at=0, legend=True, axes=None, ruler=False, interactive=None, 
+         outputimage=None, c='gold', alpha=0.2, wire=False, bc=None, edges=False, q=False):
+def interact():
+def lastActor(): 
+def openVideo(name='movie.avi', fps=12, duration=None, format="XVID"):
+def addFrameVideo():
+def pauseVideo(pause):
+def releaseGif():
+def releaseVideo():        
 ```
 
