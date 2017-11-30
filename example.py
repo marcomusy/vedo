@@ -11,7 +11,7 @@ import plotter
 
 # Declare an instance of the class
 vp = plotter.vtkPlotter()
-#vp.help() # shows a help message
+vp.help() # shows a help message
 
 # Load a vtk file as a vtkActor and visualize it.
 #The tridimensional shape corresponds to the outer shape of the embryonic mouse limb
@@ -220,7 +220,6 @@ for i in range(100):
     vp.addFrameVideo()
 vp.releaseVideo()
 print ('Video saved as movie.avi')
-vp.tips()
 vp.interact()
 
 

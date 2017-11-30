@@ -6,9 +6,10 @@ __license__ = "MIT"
 __version__ = "3.2"
 __maintainer__ = __author__
 __email__   = "marco.musy@embl.es"
-__status__  = "dev"
+__status__  = "stable"
 
-import os, vtk, numpy as np
+import os, vtk
+import numpy as np
 from glob import glob
 
 
@@ -16,21 +17,26 @@ from glob import glob
 class vtkPlotter:
 
     def help(self):
-        print ("""\n
+        print ("""
         A python helper class to easily draw VTK tridimensional objects.
         Please follow instructions at:
-        https://github.com/marcomusy/vtkPlotter
-        Useful commands on graphic window:\n  """)
+        https://github.com/marcomusy/vtkPlotter\n""")
         print ("VTK version:", vtk.vtkVersion().GetVTKVersion())
         try:
             import platform
             print ("Python version:", platform.python_version())
         except: pass
-        print('\nAvailable color names:\n', color_names)
-        print('Colors abbreviations:\n', color_nicks,'\n')
-        self.tips()
-
-    def tips(self):
+        print('\nAvailable color names:', color_names)
+        print('Color abbreviations:', color_nicks,'\n')
+        print('Useful commands on graphic window:') 
+        self._tips()
+        print( '''
+        Command line usage: 
+            > plotter files*.vtk  
+            # valid file formats:
+            # [vtk,vtu,vts,vtp,ply,obj,stl,xml,pcd,xyz,txt,byu,g] 
+        ''')
+    def _tips(self):
         msg = """Press: ------------------------------------------
         m   to minimise opacity of selected actor
         /   to maximize opacity of selected actor
@@ -82,7 +88,7 @@ class vtkPlotter:
         self.result     = dict()# stores extra output information
         
         # internal stuff:
-        self.clickedr   = 0 # clicked renderer number
+        self.clickedr   = 0     # clicked renderer number
         self.camThickness = 2000
         self.balloon    = balloon
         self.locator    = None
@@ -96,11 +102,11 @@ class vtkPlotter:
         self.icol2      = 0
         self.icol3      = 0
         
-        if size=='auto': # figure out reasonable window size
-                maxs = screensize #max sizes allowed in y and x
+        if size=='auto':        # figure out reasonable window size
+                maxs = screensize # max sizes allowed in y and x
                 xs = maxs[0]/2.*shape[0]
                 ys = maxs[0]/2.*shape[1]
-                if xs>maxs[0]: # shrink
+                if xs>maxs[0]:  # shrink
                     xs = maxs[0]
                     ys = maxs[0]/shape[0]*shape[1]
                 if ys>maxs[1]: 
@@ -112,7 +118,7 @@ class vtkPlotter:
                 elif self.verbose:
                     print ('Window size set to:', self.size)
    
-        #######################################
+        ############################
         # build the renderers scene:
         for i in reversed(range(shape[0])):
             for j in range(shape[1]):
@@ -150,7 +156,8 @@ class vtkPlotter:
     ####################################### LOADER
     def load(self, filesOrDirs, c='gold', alpha=0.2, 
               wire=False, bc=None, edges=False, legend=True):
-        '''Return a vtkActor, optional args:
+        '''Returns a vtkActor from reading a file or directory. 
+           Optional args:
            c,     color in RGB format, hex, symbol or name
            alpha, transparency (0=invisible)
            wire,  show surface as wireframe
@@ -198,8 +205,7 @@ class vtkPlotter:
         return acts
 
     def _loadPoly(self, filename):
-        '''Return a vtkPolyData object, NOT a vtkActor
-        '''
+        '''Return a vtkPolyData object, NOT a vtkActor'''
         if not os.path.exists(filename): 
             print ('Cannot find file', filename)
             exit(0)
@@ -240,8 +246,7 @@ class vtkPlotter:
         return poly
 
     def _loadXml(self, filename, c, alpha, wire, bc, edges, legend):
-        '''Reads a Fenics/Dolfin file format
-        '''
+        '''Reads a Fenics/Dolfin file format'''
         if not os.path.exists(filename): 
             print ('Cannot find file', filename)
             exit(0)
@@ -312,8 +317,7 @@ class vtkPlotter:
             return False
  
     def _loadPCD(self, filename, c, alpha, legend):
-        '''Return vtkActor from Point Cloud file format
-        '''            
+        '''Return vtkActor from Point Cloud file format'''            
         if not os.path.exists(filename): 
             print ('Cannot find file', filename)
             exit(0)
@@ -505,7 +509,8 @@ class vtkPlotter:
 
 
     def moveCamera(self, camstart, camstop, fraction):
-        '''Takes as input two vtkCamera objects and returns
+        '''
+        Takes as input two vtkCamera objects and returns
         a new vtkCamera that is at intermediate position:
         fraction=0 -> camstart,  fraction=1 -> camstop.
         Press c key in interactive mode to dump a vtkCamera 
@@ -696,8 +701,8 @@ class vtkPlotter:
 
 
     def spline(self, points, s=10, c='navy', alpha=1., nodes=True, legend=None):
-        '''Return a vtkActor for a spline that goes exactly trought all
-        list of points.
+        '''
+        Return a vtkActor for a spline that goes exactly trought all points.
         nodes = True shows the points and therefore returns a vtkAssembly
         '''
         ## the spline passes through all points exactly
@@ -755,8 +760,8 @@ class vtkPlotter:
 
     def bspline(self, points, nknots=-1,
                 s=1, c=(0,0,0.8), alpha=1., nodes=True, legend=None):
-        '''Return a vtkActor for a spline that goes exactly trought all
-        list of points.
+        '''
+        Return a vtkActor for a spline that goes exactly trought all points.
         nknots= number of nodes used by the bspline. A small nr implies 
                 a smoother interpolation. Default -1 gives max precision.
         nodes = True shows the points and therefore returns a vtkAssembly
@@ -799,8 +804,9 @@ class vtkPlotter:
 
 
     def text(self, txt, pos=(0,0,0), s=1, c='k', alpha=1, bc=None, cam=True):
-        '''Returns a vtkActor that shows a text 3D
-           if cam is True the text will auto-orient to it
+        '''
+        Returns a vtkActor that shows a text 3D
+        if cam is True the text will auto-orient to it
         '''
         tt = vtk.vtkVectorText()
         tt.SetText(txt)
@@ -826,9 +832,10 @@ class vtkPlotter:
 
 
     def xyplot(self, points, title='', c='r', pos=1, lines=False):
-        """Return a vtkActor that is a plot of 2D points in x and y
-           pos assignes the position: 
-           1=topleft, 2=topright, 3=bottomleft, 4=bottomright
+        """
+        Return a vtkActor that is a plot of 2D points in x and y.
+        pos assignes the position: 
+        1=topleft, 2=topright, 3=bottomleft, 4=bottomright
         """
         c = getColor(c) # allow different codings
         array_x = vtk.vtkFloatArray()
@@ -880,8 +887,8 @@ class vtkPlotter:
 
 
     def normals(self, pactor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
-        '''Returns a vtkActor that contains the normals at vertices,
-           these are shown as arrows.
+        '''
+        Returns a vtkActor that contains the normals at vertices shown as arrows
         '''
         maskPts = vtk.vtkMaskPoints()
         maskPts.SetOnRatio(ratio)
@@ -919,9 +926,10 @@ class vtkPlotter:
 
 
     def curvature(self, pactor, method=1, r=1, alpha=1, lut=None, legend=None):
-        '''Returns a vtkActor that contains the color coded surface
-           curvature following four different ways to calculate it:
-           method =  0-gaussian, 1-mean, 2-max, 3-min
+        '''
+        Returns a vtkActor that contains the color coded surface
+        curvature following four different ways to calculate it:
+        method =  0-gaussian, 1-mean, 2-max, 3-min
         '''
         poly = self.getPolyData(pactor)
         cleaner = vtk.vtkCleanPolyData()
@@ -954,9 +962,7 @@ class vtkPlotter:
 
 
     def boundaries(self, pactor, c='p', lw=5, legend=None):
-        '''Returns a vtkActor that shows the boundary lines
-           of a surface.
-        '''
+        '''Returns a vtkActor that shows the boundary lines of a surface.'''
         fe = vtk.vtkFeatureEdges()
         setInput(fe, self.getPolyData(pactor))
         fe.BoundaryEdgesOn()
@@ -974,9 +980,10 @@ class vtkPlotter:
 
     ################# working with point clouds
     def fitLine(self, points, c='orange', lw=1, alpha=0.6, tube=False, legend=None):
-        '''Fits a line through points.
-           tube = show a rough estimate of error band at 2 sigma level
-           Extra info is stored in vp.results['slope','center','variances']
+        '''
+        Fits a line through points.
+        tube = show a rough estimate of error band at 2 sigma level
+        Extra info is stored in vp.results['slope','center','variances']
         '''
         data = np.array(points)
         datamean = data.mean(axis=0)
@@ -1010,8 +1017,9 @@ class vtkPlotter:
 
 
     def fitPlane(self, points, c='g', bc='darkgreen', legend=None):
-        '''Fits a plane to a set of points.
-           Extra info is stored in vp.results['normal','center','variance']
+        '''
+        Fits a plane to a set of points.
+        Extra info is stored in vp.results['normal','center','variance']
         '''
         data = np.array(points)
         datamean = data.mean(axis=0)
@@ -1032,10 +1040,11 @@ class vtkPlotter:
 
     def ellipsoid(self, points, pvalue=.95, c='c', alpha=0.5, 
                   pcaaxes=False, legend=None):
-        '''Show the oriented PCA ellipsoid that contains 95% of points.
-           axes = True, show the 3 PCA semi axes
-           Extra info is stored in vp.results['sphericity','a','b','c']
-           sphericity = 1 for a perfect sphere
+        '''
+        Show the oriented PCA ellipsoid that contains 95% of points.
+        axes = True, show the 3 PCA semi axes
+        Extra info is stored in vp.results['sphericity','a','b','c']
+        sphericity = 1 for a perfect sphere
         '''
         try:
             from scipy.stats import f
@@ -1092,9 +1101,10 @@ class vtkPlotter:
 
 
     def align(self, source, target, rigid=False, iters=100, legend=None):
-        '''Return a vtkActor which is the same as source but
-           aligned to target though IterativeClosestPoint method
-           rigid = True, then no scaling is allowed.
+        '''
+        Return a vtkActor which is the same as source but
+        aligned to target though IterativeClosestPoint method
+        rigid = True, then no scaling is allowed.
         '''
         sprop = source.GetProperty()
         source = self.getPolyData(source)
@@ -1120,11 +1130,12 @@ class vtkPlotter:
 
     def cutActor(self, actor, origin=(0,0,0), normal=(1,0,0),
                  showcut=True, showline=False, showpts=False):
-        '''Takes actor and cuts it with the plane defined by a point 
-           and a normal. Substitutes it to the original actor.
-           showcut  = shows the cut away part as thin wireframe
-           showline = marks with a thick line the cut
-           showpts  = shows the vertices along the cut
+        '''
+        Takes actor and cuts it with the plane defined by a point 
+        and a normal. Substitutes it to the original actor.
+        showcut  = shows the cut away part as thin wireframe
+        showline = marks with a thick line the cut
+        showpts  = shows the vertices along the cut
         '''
         if not actor in self.actors:
             print ('Error in cutActor: actor not in vp.actors. Skip.')
@@ -1190,7 +1201,8 @@ class vtkPlotter:
 
     ####################################
     def closestPoint(self, surf, pt, locator=None, N=None, radius=None):
-        """Find the closest point on a polydata given an other point.
+        """
+        Find the closest point on a polydata given an other point.
         If N is given, return a list of N ordered closest points.
         If radius is given, pick only within specified radius.
         """
@@ -1282,7 +1294,6 @@ class vtkPlotter:
 
 
     def _draw_legend(self):
-
         if not isinstance(self.legend, list): return
 
         # remove old legend if present on current renderer:
@@ -1299,7 +1310,6 @@ class vtkPlotter:
             #print ('Mismatch in Legend:', end='')
             #print (NA, 'actors but', NL, 'legend entries.')
             pass
-
         acts, texts = [], []
         for i in range(len(actors)):
             a = actors[i]
@@ -1435,7 +1445,7 @@ class vtkPlotter:
             self.initialized = True
             self.interactor.AddObserver("LeftButtonPressEvent", self.mouseleft)
             self.interactor.AddObserver("KeyPressEvent", self.keypress)
-            if self.verbose: self.tips()
+            if self.verbose: self._tips()
             if self.balloon:
                 self.balloonWidget.SetInteractor(self.interactor)
                 self.balloonWidget.EnabledOn()
@@ -1490,7 +1500,7 @@ class vtkPlotter:
                     except:
                         area, vol = 'n.a.', 'n.a.'
                     try: 
-                        indx = str(self.actors.index(clickedActor))
+                        indx = str(self.getActors().index(clickedActor))
                     except ValueError: indx = None                        
                     try: 
                         rgb = list(clickedActor.GetProperty().GetColor())
@@ -1530,7 +1540,7 @@ class vtkPlotter:
             return
         elif key == "C":
             cam = self.renderer.GetActiveCamera()
-            print ('\ncam = vtk.vtkCamera() #example code')
+            print ('\ncam = vtk.vtkCamera() ### example code')
             print ('cam.SetPosition(',  [round(e,3) for e in cam.GetPosition()],  ')')
             print ('cam.SetFocalPoint(',[round(e,3) for e in cam.GetFocalPoint()],')')
             print ('cam.SetParallelScale(',round(cam.GetParallelScale(),3),')')
@@ -1563,7 +1573,7 @@ class vtkPlotter:
             else:
                 for a in self.getActors(): a.GetProperty().SetOpacity(1)
         elif key == "V":
-            if not(self.verbose): self.tips()
+            if not(self.verbose): self._tips()
             self.verbose = not(self.verbose)
             print ("Verbose: ", self.verbose)
         elif key in ["1", "KP_End", "KP_1"]:
@@ -1737,7 +1747,7 @@ class vtkPlotter:
             self.frames.append(fr2)
             os.system("cp -f %s %s" % (fr, fr2))
             
-    def releaseGif(self):
+    def releaseGif(self): #untested
         if not self.videoname: return
         try: import imageio
         except: 
@@ -1889,6 +1899,7 @@ def screenshot(filename='screenshot.png'):
 
 
 def makeSource(spoints, addLines=True):
+    """Try to workout a polydata from points"""
     sourcePoints = vtk.vtkPoints()
     sourceVertices = vtk.vtkCellArray()
     for pt in spoints:
@@ -1940,19 +1951,17 @@ def setInput(vtkobj, p):
 ###########################################################################
 if __name__ == '__main__':
 ###########################################################################
-    '''
-    Usage: 
+    '''Usage: 
     plotter files*.vtk  
-    # valid formats [vtk,vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz,txt,byu] 
+    # valid formats [vtk,vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz,txt,byu,g] 
     '''
-###########################################################################
     import sys
     fs = sys.argv[1:]
     if len(fs) == 1 : 
         leg = False
         alpha = 1
     else: 
-        leg=None
+        leg = None
         alpha = 1./len(fs)  
         print ('Loading',len(fs),'files:', fs)
     vp = vtkPlotter(bg2=(.94,.94,1), balloon=False)
