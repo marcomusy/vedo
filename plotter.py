@@ -1972,10 +1972,11 @@ def getColor(c):
      string = 'white'
      string = 'dr' is darkred
      int    = 7 picks color #7 in list colors1
+     vtkColor object
     """
-    if isinstance(c,list) or isinstance(c,tuple) : #RGB
-        if c[0]<=1 and c[1]<=1 and c[2]<=1: return c #rgb
-        else: return list(np.array(c)/255.)
+    if isinstance(c,list) or isinstance(c,tuple) :
+        if c[0]<=1 and c[1]<=1 and c[2]<=1: return c #already rgb
+        else: return list(np.array(c)/255.) #RGB
 
     elif isinstance(c, str):
         if 0 < len(c) < 3: 
@@ -1983,25 +1984,27 @@ def getColor(c):
                 c = color_nicks[c.lower()] 
             except KeyError:
                 print ("Unknow color nickname:", c)
-                print ("Available abbreviations:\n", color_nicks)
+                print ("Available abbreviations:", color_nicks)
                 return [0.5,0.5,0.5]
         try: # full name color
             c = colors[c.lower()] 
         except KeyError:
             print ("Unknow color name:", c)
-            print ("Available colors:\n", colors.keys())
+            print ("Available colors:", colors.keys())
             return [0.5,0.5,0.5]
 
         if '#' in c: #hex to rgb
             h = c.lstrip('#')
             rgb255 = list(int(h[i:i+2], 16) for i in (0, 2 ,4))
             rgb = np.array(rgb255)/255.
-            if np.sum(rgb)>3: return [0.5,0.5,0.5]
+            if np.sum(rgb)>3: 
+                print ("Error in getColor(): Wrong hex color", c)
+                return [0.5,0.5,0.5]
             return list(rgb)
             
     elif isinstance(c, int): 
         return colors1[c]
-    #elif isinstance(c, vtk.vtkColors) # ToDo: add vtk6 defs for colors
+    #elif isinstance(c, vtk.vtkColor) # ToDo: add vtk6 defs for colors
     return [0.5,0.5,0.5]
     
 def getColorName(c):
@@ -2009,8 +2012,7 @@ def getColorName(c):
     c = np.array(getColor(c)) #reformat to rgb
     mdist = 99.
     kclosest = ''
-    for it in colors.items():
-        key = it[0]
+    for key in colors.keys():
         ci = np.array(getColor(key))
         d = np.linalg.norm(c-ci)
         if d<mdist: 
