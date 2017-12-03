@@ -62,8 +62,6 @@ class vtkPlotter:
 
     def __init__(self, shape=(1,1), size='auto', screensize=(1000,1600),
                 bg=(1,1,1), bg2=None, balloon=False, verbose=True, interactive=True):
-        self.shape      = shape # nr of rows and columns in render window
-        self.size       = size  # specify window size
         self.verbose    = verbose
         self.actors     = []    # list of actors to be shown
         self.clickedActor = None# holds the actor that has been clicked
@@ -90,7 +88,6 @@ class vtkPlotter:
         # internal stuff:
         self.clickedr   = 0     # clicked renderer number
         self.camThickness = 2000
-        self.balloon    = balloon
         self.locator    = None
         self.initialized= False
         self.videoname  = None
