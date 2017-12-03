@@ -51,7 +51,7 @@ vp.show(legend='a random spline')
 vp = plotter.vtkPlotter()
 pts = [(u(0,200), u(0,200), u(0,200)) for i in range(50)]
 vp.points(pts)
-vp.ellipsoid(pts, pvalue=0.67, pcaaxes=True)
+vp.ellipsoid(pts, pvalue=0.67, pcaAxes=True)
 vp.show(legend=['points', 'PCA ellipsoid'])
 
 

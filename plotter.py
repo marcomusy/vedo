@@ -1039,7 +1039,7 @@ class vtkPlotter:
 
 
     def ellipsoid(self, points, pvalue=.95, c='c', alpha=0.5, 
-                  pcaaxes=False, legend=None):
+                  pcaAxes=False, legend=None):
         '''
         Show the oriented PCA ellipsoid that contains 95% of points.
         axes = True, show the 3 PCA semi axes
@@ -1082,7 +1082,7 @@ class vtkPlotter:
         actor_elli = self.makeActor(ftra.GetOutput(), c, alpha)
         actor_elli.GetProperty().BackfaceCullingOn()
         actor_elli.GetProperty().SetInterpolationToPhong()
-        if pcaaxes:
+        if pcaAxes:
             axs = []
             for ax in ([1,0,0], [0,1,0], [0,0,1]):
                 l = vtk.vtkLineSource()
