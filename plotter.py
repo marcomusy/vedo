@@ -26,7 +26,7 @@ class vtkPlotter:
             import platform
             print ("Python version:", platform.python_version())
         except: pass
-        print('\nAvailable color names:', color_names)
+        #print('\nAvailable color names:', colors)
         print('Color abbreviations:', color_nicks,'\n')
         print('Useful commands on graphic window:') 
         self._tips()
@@ -1190,12 +1190,12 @@ class vtkPlotter:
             finact = self.makeAssembly(acts)
         else: 
             finact = clipActor
+        if hasattr(actor, 'legend'): 
+            setattr(finact, 'legend', str(actor.legend)) 
         i = self.actors.index(actor)
         arem = self.actors[i]
         del arem
-        if hasattr(actor, 'legend'): 
-            setattr(finact, 'legend', actor.legend) 
-        self.actors[i] = finact # substitute
+        self.actors[i] = finact # substitute original actor with cut one
         # do not return actor
         
 
@@ -1302,6 +1302,8 @@ class vtkPlotter:
         for i in range(acs.GetNumberOfItems()):
             a = acs.GetNextItem()
             if isinstance(a, vtk.vtkLegendBoxActor):
+                self.renderer.RemoveActor(a)
+            if isinstance(a, vtk.vtkScalarBarActor):
                 self.renderer.RemoveActor(a)
 
         actors = self.getActors()
@@ -1783,106 +1785,11 @@ class vtkPlotter:
         if self.verbose: print ("Video saved to:", self.videoname)
         vid.release()
         self.videoname = None
- 
-    
-#########################################################
-# basic color schemes
-######################################################### 
-colors= [[.9,0.05,0.05], [0,.95,0], [0, .2,.9],[0,1,1], 
-        [.94,.2,.9],[1,1,0],[0,0,0],[1,1,1],[1,.388,.278],
-        [.5,.5,0],[.5,0,.5], [.5,0,0], [.67,.43,.157],
-        [0,.5,.5],[0,.5,0], [0,0,.5], [1,.627,0.478],
-        [.92,.757,0],[.9,.745,1], [1,.5,.19], [1,.745,.7], 
-        [1,.98,.75],[.5,1,.831],[.5,.5,.5] ]
-color_names= ['red','green','blue','cyan',
-              'magenta','yellow', 'black', 'white','tomato',
-              'olive', 'purple', 'maroon', 'brown',
-              'teal','darkgreen','navy','salmon',
-              'gold','lavender','orange','pink',
-              'beige','aqua','grey']
-color_nicks= ['r','g','b','c','m','y','k','w','t','o','p']
-
-colors1=[]
-colors1.append((1.0,0.647,0.0))     # orange
-colors1.append((0.59,0.0,0.09))     # dark red
-colors1.append((0.5,1.0,0.0))       # green
-colors1.append((0.5,0.5,0))         # yellow-green
-colors1.append((0.0, 0.66,0.42))    # green blue
-colors1.append((0.0,0.18,0.65))     # blue
-colors1.append((0.4,0.0,0.4))       # plum
-colors1.append((0.4,0.0,0.6))
-colors1.append((0.2,0.4,0.6))
-colors1.append((0.1,0.3,0.2))
-colors1 = colors1 * 100
-
-colors2=[]
-colors2.append((0.99,0.83,0))       # gold
-colors2.append((0.59, 0.0,0.09))    # dark red
-colors2.append((.984,.925,.354))    # yellow
-colors2.append((0.5,  0.5,0))       # yellow-green
-colors2.append((0.5,  1.0,0.0))     # green
-colors2.append((0.0, 0.66,0.42))    # green blue
-colors2.append((0.0, 0.18,0.65))    # blue
-colors2.append((0.4,  0.0,0.4))     # plum
-colors2 = colors2 * 100
-
-colors3=[]
-for i in range(10):
-    pc = (i+0.5)/10.
-    r = np.exp(-((pc-0.0)/.2)**2/2.)
-    g = np.exp(-((pc-0.5)/.2)**2/2.)
-    b = np.exp(-((pc-1.0)/.2)**2/2.)
-    colors3.append((r,g,b))
-colors3 = colors3 * 100
 
 
 #########################################################
 # Useful Functions
 ######################################################### 
-def getColor(c):
-    """Convert a color to (r,g,b) format from many input formats"""
-    if isinstance(c,list) or isinstance(c,tuple) : #RGB
-        if c[0]<=1 and c[1]<=1 and c[2]<=1:
-            return c
-        else: return list(np.array(c)/255.)
-    elif isinstance(c, str):
-        if '#' in c: #hex to rgb
-            h = c.lstrip('#')
-            rgb255 = list(int(h[i:i+2], 16) for i in (0, 2 ,4))
-            rgb = np.array(rgb255)/255.
-            if np.sum(rgb)>1: return [0,0,0]
-            return list(rgb)
-        if len(c)==1: cc = color_nicks # single letter color
-        else: cc = color_names         # full name color
-        try: 
-            ic = cc.index(c.lower())
-            return colors[ic]        
-        except ValueError:
-            # ToDo: add vtk6 defs for colors
-            print ("Unknow color name", c, 'is not in:\n', cc)
-            if len(c)==1: 
-                print ("Available colors:\n", color_names)
-                print ("Available abbreviations:\n", color_nicks)
-            return [0,0,0]
-    elif isinstance(c, int): 
-        return colors1[c]
-    return [0,0,0]
-    
-
-def getColorName(c):
-    """Convert any rgb color or numeric code to closest name color"""
-    c = np.array(getColor(c)) #reformat
-    mdist = 99.
-    iclosest = 0
-    for i in range(len(colors)):
-        ci = np.array(colors[i])
-        d = np.linalg.norm(c-ci)
-        if d<mdist: 
-            mdist = d
-            iclosest = i
-    return color_names[iclosest] 
-
-
 def screenshot(filename='screenshot.png'):
     try:
         import gtk.gdk
@@ -1947,7 +1854,205 @@ def setInput(vtkobj, p):
         if vtkMV: vtkobj.SetInputData(p)
         else: vtkobj.SetInput(p)
 
-   
+
+#########################################################
+# basic color schemes
+######################################################### 
+colors = { # from matplotlib
+    'aliceblue':            '#F0F8FF', 'antiquewhite':         '#FAEBD7',
+    'aqua':                 '#00FFFF', 'aquamarine':           '#7FFFD4',
+    'azure':                '#F0FFFF', 'beige':                '#F5F5DC',
+    'bisque':               '#FFE4C4', 'black':                '#000000',
+    'blanchedalmond':       '#FFEBCD', 'blue':                 '#0000FF',
+    'blueviolet':           '#8A2BE2', 'brown':                '#A52A2A',
+    'burlywood':            '#DEB887', 'cadetblue':            '#5F9EA0',
+    'chartreuse':           '#7FFF00', 'chocolate':            '#D2691E',
+    'coral':                '#FF7F50', 'cornflowerblue':       '#6495ED',
+    'cornsilk':             '#FFF8DC', 'crimson':              '#DC143C',
+    'cyan':                 '#00FFFF', 'darkblue':             '#00008B',
+    'darkcyan':             '#008B8B', 'darkgoldenrod':        '#B8860B',
+    'darkgray':             '#A9A9A9', 'darkgreen':            '#006400',
+    'darkgrey':             '#A9A9A9', 'darkkhaki':            '#BDB76B',
+    'darkmagenta':          '#8B008B', 'darkolivegreen':       '#556B2F',
+    'darkorange':           '#FF8C00', 'darkorchid':           '#9932CC',
+    'darkred':              '#8B0000', 'darksalmon':           '#E9967A',
+    'darkseagreen':         '#8FBC8F', 'darkslateblue':        '#483D8B',
+    'darkslategray':        '#2F4F4F', 'darkslategrey':        '#2F4F4F',
+    'darkturquoise':        '#00CED1', 'darkviolet':           '#9400D3',
+    'deeppink':             '#FF1493', 'deepskyblue':          '#00BFFF',
+    'dimgray':              '#696969', 'dimgrey':              '#696969',
+    'dodgerblue':           '#1E90FF', 'firebrick':            '#B22222',
+    'floralwhite':          '#FFFAF0', 'forestgreen':          '#228B22',
+    'fuchsia':              '#FF00FF', 'gainsboro':            '#DCDCDC',
+    'ghostwhite':           '#F8F8FF', 'gold':                 '#FFD700',
+    'goldenrod':            '#DAA520', 'gray':                 '#808080',
+    'green':                '#008000', 'greenyellow':          '#ADFF2F',
+    'grey':                 '#808080', 'honeydew':             '#F0FFF0',
+    'hotpink':              '#FF69B4', 'indianred':            '#CD5C5C',
+    'indigo':               '#4B0082', 'ivory':                '#FFFFF0',
+    'khaki':                '#F0E68C', 'lavender':             '#E6E6FA',
+    'lavenderblush':        '#FFF0F5', 'lawngreen':            '#7CFC00',
+    'lemonchiffon':         '#FFFACD', 'lightblue':            '#ADD8E6',
+    'lightcoral':           '#F08080', 'lightcyan':            '#E0FFFF',
+    'lightgray':            '#D3D3D3', 'lightgreen':           '#90EE90',
+    'lightgrey':            '#D3D3D3', 'lightpink':            '#FFB6C1',
+    'lightsalmon':          '#FFA07A', 'lightseagreen':        '#20B2AA',
+    'lightskyblue':         '#87CEFA', 'lightslategray':       '#778899',
+    'lightslategrey':       '#778899', 'lightsteelblue':       '#B0C4DE',
+    'lightyellow':          '#FFFFE0', 'lime':                 '#00FF00',
+    'limegreen':            '#32CD32', 'linen':                '#FAF0E6',
+    'magenta':              '#FF00FF', 'maroon':               '#800000',
+    'mediumaquamarine':     '#66CDAA', 'mediumblue':           '#0000CD',
+    'mediumorchid':         '#BA55D3', 'mediumpurple':         '#9370DB',
+    'mediumseagreen':       '#3CB371', 'mediumslateblue':      '#7B68EE',
+    'mediumspringgreen':    '#00FA9A', 'mediumturquoise':      '#48D1CC',
+    'mediumvioletred':      '#C71585', 'midnightblue':         '#191970',
+    'mintcream':            '#F5FFFA', 'mistyrose':            '#FFE4E1',
+    'moccasin':             '#FFE4B5', 'navajowhite':          '#FFDEAD',
+    'navy':                 '#000080', 'oldlace':              '#FDF5E6',
+    'olive':                '#808000', 'olivedrab':            '#6B8E23',
+    'orange':               '#FFA500', 'orangered':            '#FF4500',
+    'orchid':               '#DA70D6', 'palegoldenrod':        '#EEE8AA',
+    'palegreen':            '#98FB98', 'paleturquoise':        '#AFEEEE',
+    'palevioletred':        '#DB7093', 'papayawhip':           '#FFEFD5',
+    'peachpuff':            '#FFDAB9', 'peru':                 '#CD853F',
+    'pink':                 '#FFC0CB', 'plum':                 '#DDA0DD',
+    'powderblue':           '#B0E0E6', 'purple':               '#800080',
+    'rebeccapurple':        '#663399', 'red':                  '#FF0000',
+    'rosybrown':            '#BC8F8F', 'royalblue':            '#4169E1',
+    'saddlebrown':          '#8B4513', 'salmon':               '#FA8072',
+    'sandybrown':           '#F4A460', 'seagreen':             '#2E8B57',
+    'seashell':             '#FFF5EE', 'sienna':               '#A0522D',
+    'silver':               '#C0C0C0', 'skyblue':              '#87CEEB',
+    'slateblue':            '#6A5ACD', 'slategray':            '#708090',
+    'slategrey':            '#708090', 'snow':                 '#FFFAFA',
+    'springgreen':          '#00FF7F', 'steelblue':            '#4682B4',
+    'tan':                  '#D2B48C', 'teal':                 '#008080',
+    'thistle':              '#D8BFD8', 'tomato':               '#FF6347',
+    'turquoise':            '#40E0D0', 'violet':               '#EE82EE',
+    'wheat':                '#F5DEB3', 'white':                '#FFFFFF',
+    'whitesmoke':           '#F5F5F5', 'yellow':               '#FFFF00',
+    'yellowgreen':          '#9ACD32'}
+
+color_nicks = {
+        'b': 'blue',
+        'g': 'green',
+        'r': 'red',
+        'c': 'cyan',
+        'm': 'magenta',
+        'y': 'yellow',
+        'k': 'black',
+        'w': 'white',
+        't': 'tomato',
+        'o': 'olive',
+        'p': 'purple',
+        's': 'salmon',
+        'v': 'violet'}
+color_nicks.update({   # light
+        'lb': 'lightblue',
+        'lg': 'lightgreen',
+        'lc': 'lightcyan',
+        'ls': 'lightsalmon',
+        'ly': 'lightyellow'})
+color_nicks.update({   # dark
+        'dr': 'darkred',
+        'db': 'darkblue',
+        'dg': 'darkgreen',
+        'dm': 'darkmagenta',
+        'dc': 'darkcyan',
+        'ds': 'darksalmon',
+        'dv': 'darkviolet'})
+
+def getColor(c):
+    """
+    Convert a color to (r,g,b) format from many input formats, e.g.:
+     RGB    = (255, 255, 255), corresponds to white
+     rgb    = (1,1,1) 
+     hex    = #FFFF00 is yellow
+     string = 'white'
+     string = 'dr' is darkred
+     int    = 7 picks color #7 in list colors1
+    """
+    if isinstance(c,list) or isinstance(c,tuple) : #RGB
+        if c[0]<=1 and c[1]<=1 and c[2]<=1: return c #rgb
+        else: return list(np.array(c)/255.)
+
+    elif isinstance(c, str):
+        if 0 < len(c) < 3: 
+            try: # single/double letter color
+                c = color_nicks[c.lower()] 
+            except KeyError:
+                print ("Unknow color nickname:", c)
+                print ("Available abbreviations:\n", color_nicks)
+                return [0.5,0.5,0.5]
+        try: # full name color
+            c = colors[c.lower()] 
+        except KeyError:
+            print ("Unknow color name:", c)
+            print ("Available colors:\n", colors.keys())
+            return [0.5,0.5,0.5]
+
+        if '#' in c: #hex to rgb
+            h = c.lstrip('#')
+            rgb255 = list(int(h[i:i+2], 16) for i in (0, 2 ,4))
+            rgb = np.array(rgb255)/255.
+            if np.sum(rgb)>3: return [0.5,0.5,0.5]
+            return list(rgb)
+            
+    elif isinstance(c, int): 
+        return colors1[c]
+    #elif isinstance(c, vtk.vtkColors) # ToDo: add vtk6 defs for colors
+    return [0.5,0.5,0.5]
+    
+def getColorName(c):
+    """Convert any rgb color or numeric code to closest name color"""
+    c = np.array(getColor(c)) #reformat to rgb
+    mdist = 99.
+    kclosest = ''
+    for it in colors.items():
+        key = it[0]
+        ci = np.array(getColor(key))
+        d = np.linalg.norm(c-ci)
+        if d<mdist: 
+            mdist = d
+            kclosest = str(key)
+    return kclosest
+
+########## other sets of colors
+colors1=[]
+colors1.append((1.0,0.647,0.0))     # orange
+colors1.append((0.59,0.0,0.09))     # dark red
+colors1.append((0.5,1.0,0.0))       # green
+colors1.append((0.5,0.5,0))         # yellow-green
+colors1.append((0.0, 0.66,0.42))    # green blue
+colors1.append((0.0,0.18,0.65))     # blue
+colors1.append((0.4,0.0,0.4))       # plum
+colors1.append((0.4,0.0,0.6))
+colors1.append((0.2,0.4,0.6))
+colors1.append((0.1,0.3,0.2))
+colors1 = colors1 * 100
+
+colors2=[]
+colors2.append((0.99,0.83,0))       # gold
+colors2.append((0.59, 0.0,0.09))    # dark red
+colors2.append((.984,.925,.354))    # yellow
+colors2.append((0.5,  0.5,0))       # yellow-green
+colors2.append((0.5,  1.0,0.0))     # green
+colors2.append((0.0, 0.66,0.42))    # green blue
+colors2.append((0.0, 0.18,0.65))    # blue
+colors2.append((0.4,  0.0,0.4))     # plum
+colors2 = colors2 * 100
+
+colors3=[]
+for i in range(10):
+    pc = (i+0.5)/10.
+    r = np.exp(-((pc-0.0)/.2)**2/2.)
+    g = np.exp(-((pc-0.5)/.2)**2/2.)
+    b = np.exp(-((pc-1.0)/.2)**2/2.)
+    colors3.append((r,g,b))
+colors3 = colors3 * 100
+
+ 
 ###########################################################################
 if __name__ == '__main__':
 ###########################################################################
@@ -1964,7 +2069,7 @@ if __name__ == '__main__':
         leg = None
         alpha = 1./len(fs)  
         print ('Loading',len(fs),'files:', fs)
-    vp = vtkPlotter(bg2=(.94,.94,1), balloon=False)
+    vp = vtkPlotter(bg2=(.94,.94,1))
     for f in fs:
         vp.load(f, alpha=alpha)
     vp.show(legend=leg)

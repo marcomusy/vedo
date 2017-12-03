@@ -8,10 +8,9 @@ from __future__ import print_function
 import numpy as np
 import plotter
 
-
 # Declare an instance of the class
 vp = plotter.vtkPlotter()
-vp.help() # shows a help message
+#vp.help() # shows a help message
 
 # Load a vtk file as a vtkActor and visualize it.
 #The tridimensional shape corresponds to the outer shape of the embryonic mouse limb
@@ -19,7 +18,7 @@ vp.help() # shows a help message
 #Choose a tomato color for the internal surface, and no transparency.
 #Press Esc to close the window and exit python session, or q to continue:
 vp.load('data/250.vtk', c='b', bc='tomato', alpha=1) # c=(R,G,B), #hex, letter or name
-vp.show()             # picks what is automatically stored in vp.actors
+vp.show()             # picks what is automatically stored in vp.actors list
 
 
 # Load a vtk file as a vtkActor and visualize it in wireframe style.
