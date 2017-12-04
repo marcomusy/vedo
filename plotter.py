@@ -556,6 +556,9 @@ class vtkPlotter:
         if legend: setattr(actor, 'legend', legend) 
         return actor
         
+    def point(self, pt, c='b', r=10., alpha=1., legend=None):
+        return self.points([pt], c, r, alpha, legend)
+        
     def _colorPoints(self, plist, cols, r, alpha, legend):
         if len(plist) != len(cols):
             print ("Mismatch in colorPoints()", len(plist), len(cols))
@@ -1704,11 +1707,12 @@ class vtkPlotter:
         self.interactor.Render()
 
 
-    def interact(self):
+    def interact(self, q=False):
         if hasattr(self, 'interactor'):
             if self.interactor:
                 self.interactor.Render()
                 self.interactor.Start()
+        if q: exit(0)
 
     def lastActor(self): return self.actors[-1]
 
@@ -2003,7 +2007,8 @@ def getColor(c):
             return list(rgb)
             
     elif isinstance(c, int): 
-        return colors1[c]
+        try: return colors1[c] 
+        except: return [0.5,0.5,0.5]
     #elif isinstance(c, vtk.vtkColor) # ToDo: add vtk6 defs for colors
     return [0.5,0.5,0.5]
     
