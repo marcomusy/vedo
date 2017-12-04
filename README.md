@@ -258,6 +258,7 @@ def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legen
 def makeAssembly(actors, legend=None)
 def moveCamera(camstart, camstop, fraction)
 #
+def point(pt, c='b', r=10, alpha=1, legend=None)
 def points(plist, c='b', r=10, alpha=1, legend=None)
 def line(p0, p1, lw=1, c='r', alpha=1, legend=None)
 def sphere(pt, r=1, c='r', alpha=1, legend=None)
@@ -292,32 +293,20 @@ def pauseVideo(pause)
 def releaseGif()
 def releaseVideo()
 ```
-Attributes:
+Useful attributes:
 ```python
 vp = plotter.vtkPlotter()
-vp.shape        # nr of rows and columns in vtk render window
-vp.size         # ('auto') specify vtk window size 
-vp.verbose      # verbosity
-vp.actors       # list of actors to be shown
+vp.actors       # list of vtkActors to be shown
 vp.clickedActor # holds the actor that has been clicked
 vp.renderer     # holds current renderer
 vp.renderers    # list of renderers
 vp.interactor   # vtk window interactor
 vp.interactive  # (true) allows to interact with renderer
-vp.axes         # (true) show or hide axes
-vp.units        # axes units
+vp.axes         # (true) show 3D axes
 vp.camera       # current vtkCamera 
 vp.commoncam    # (true) share the same camera in renderers
 vp.resetcam     # (true) if true reset camera when calling show()
-vp.parallelcam  # (true) parallel projection or (false) perspective
-vp.flat         # (true)  sets interpolation style to 'flat'
-vp.phong        # (false) sets interpolation style to 'phong'
-vp.gouraud      # (false) sets interpolation style to 'gouraud' 
-vp.bculling     # (false) back face culling style
-vp.fculling     # (false) front face culling style
-vp.result       # dictionary to store extra output information
 vp.legend       # list of legend entries for each actors, can be false
-vp.legendSize   # size of legend
-vp.legendBG     # background color of legend
-vp.legendPos    # 1=topright, 2=top-right, 3=bottom-left 4=bottom-right
+vp.verbose      # verbosity
+vp.result       # dictionary to store extra output information
 ```
