@@ -3,7 +3,7 @@
 from __future__ import print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "3.2"
+__version__ = "3.3"
 __maintainer__ = __author__
 __email__   = "marco.musy@embl.es"
 __status__  = "stable"
@@ -11,6 +11,8 @@ __status__  = "stable"
 import os, vtk
 import numpy as np
 from glob import glob
+from colors import *
+from vtkutils import *
 
 
 #############################################################################
@@ -91,6 +93,7 @@ class vtkPlotter:
         self.balloon    = balloon
         self.locator    = None
         self.initialized= False
+        self.justremoved= None
         self.videoname  = None
         self.videoformat = None
         self.frames     = []
@@ -657,6 +660,7 @@ class vtkPlotter:
     def arrow(self, startPoint, endPoint, c='r', alpha=1, legend=None):
         axis = np.array(endPoint) - np.array(startPoint)
         length = np.linalg.norm(axis)
+        if not length: return None
         axis = axis/length
         theta = np.arccos(axis[2])
         phi   = np.arctan2(axis[1], axis[0])
@@ -887,14 +891,14 @@ class vtkPlotter:
         return plot
 
 
-    def normals(self, pactor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
+    def normals(self, actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
         '''
         Returns a vtkActor that contains the normals at vertices shown as arrows
         '''
         maskPts = vtk.vtkMaskPoints()
         maskPts.SetOnRatio(ratio)
         maskPts.RandomModeOff()
-        src = self.getPolyData(pactor)
+        src = self.getPolyData(actor)
         setInput(maskPts, src)
         arrow = vtk.vtkArrowSource()
         arrow.SetTipRadius(0.075)
@@ -920,19 +924,19 @@ class vtkPlotter:
         glyphActor.GetProperty().EdgeVisibilityOff()
         glyphActor.GetProperty().SetColor(getColor(c))
         glyphActor.GetProperty().SetOpacity(alpha)
-        actor = self.makeAssembly([pactor,glyphActor])
-        self.actors.append(actor)
-        if legend: setattr(actor, 'legend', legend) 
-        return actor
+        aactor = self.makeAssembly([actor,glyphActor])
+        self.actors.append(aactor)
+        if legend: setattr(aactor, 'legend', legend) 
+        return aactor
 
 
-    def curvature(self, pactor, method=1, r=1, alpha=1, lut=None, legend=None):
+    def curvature(self, actor, method=1, r=1, alpha=1, lut=None, legend=None):
         '''
         Returns a vtkActor that contains the color coded surface
         curvature following four different ways to calculate it:
         method =  0-gaussian, 1-mean, 2-max, 3-min
         '''
-        poly = self.getPolyData(pactor)
+        poly = self.getPolyData(actor)
         cleaner = vtk.vtkCleanPolyData()
         setInput(cleaner, poly)
         curve = vtk.vtkCurvatures()
@@ -955,28 +959,28 @@ class vtkPlotter:
         cmapper.SetInputConnection(curve.GetOutputPort())
         cmapper.SetLookupTable(lut)
         cmapper.SetUseLookupTableScalarRange(1)
-        actor = vtk.vtkActor()
-        actor.SetMapper(cmapper)
-        self.actors.append(actor)
-        if legend: setattr(actor, 'legend', legend) 
-        return actor
+        cactor = vtk.vtkActor()
+        cactor.SetMapper(cmapper)
+        self.actors.append(cactor)
+        if legend: setattr(cactor, 'legend', legend) 
+        return cactor
 
 
-    def boundaries(self, pactor, c='p', lw=5, legend=None):
+    def boundaries(self, actor, c='p', lw=5, legend=None):
         '''Returns a vtkActor that shows the boundary lines of a surface.'''
         fe = vtk.vtkFeatureEdges()
-        setInput(fe, self.getPolyData(pactor))
+        setInput(fe, self.getPolyData(actor))
         fe.BoundaryEdgesOn()
         fe.FeatureEdgesOn()
         fe.ManifoldEdgesOn()
         fe.NonManifoldEdgesOn()
         fe.ColoringOff()
         fe.Update()
-        actor = self.makeActor(fe.GetOutput(), c=c, alpha=1)
-        actor.GetProperty().SetLineWidth(lw)
-        self.actors.append(actor)
-        if legend: setattr(actor, 'legend', legend) 
-        return actor
+        bactor = self.makeActor(fe.GetOutput(), c=c, alpha=1)
+        bactor.GetProperty().SetLineWidth(lw)
+        self.actors.append(bactor)
+        if legend: setattr(bactor, 'legend', legend) 
+        return bactor
 
 
     ################# working with point clouds
@@ -1426,7 +1430,7 @@ class vtkPlotter:
 
         for i in range(len(self.actors)): # scan for polydata
             a = self.actors[i]
-            if isinstance(a, vtk.vtkPolyData): #assume a filepath was given
+            if isinstance(a, vtk.vtkPolyData): 
                 act = self.makeActor(a, c=c, bc=bc, alpha=alpha, 
                                      wire=wire, edges=edges)
                 self.actors[i] = act #put it in right position
@@ -1493,15 +1497,6 @@ class vtkPlotter:
             bh = hasattr(self.clickedActor,'legend')
             if len(clickedActor.legend) > 1 :
                 if not bh or (bh and self.clickedActor.legend!=clickedActor.legend): 
-                    try:                    
-                        mass = vtk.vtkMassProperties()
-                        apoly = self.getPolyData(clickedActor)
-                        mass.SetInput(apoly)
-                        mass.Update() 
-                        area = '{:.1e}'.format(float(mass.GetSurfaceArea()))
-                        vol  = '{:.1e}'.format(float(mass.GetVolume()))
-                    except:
-                        area, vol = 'n.a.', 'n.a.'
                     try: 
                         indx = str(self.getActors().index(clickedActor))
                     except ValueError: indx = None                        
@@ -1510,12 +1505,12 @@ class vtkPlotter:
                         cn = '('+getColorName(rgb)+'),'
                     except: cn = None                        
                     if (not indx is None) and isinstance(clickedActor, vtk.vtkAssembly): 
-                        print ('-> assembly',indx+':',clickedActor.legend, end=' ')
+                        print ('-> assembly', indx+':', clickedActor.legend, end=' ')
                     elif not indx is None:
-                        print ('-> actor',indx+':',clickedActor.legend, end=' ')
-                        if cn: print (cn.ljust(12), end='')
-                    npt = str(apoly.GetNumberOfPoints()).ljust(5)
-                    print ('Npt='+npt,'area='+str(area),'vol='+str(vol))
+                        print ('-> actor', indx+':', clickedActor.legend, end=' ')
+                        if cn: print (cn, end=' ')
+                    n = str(self.getPolyData(clickedActor).GetNumberOfPoints())
+                    print ('N='+n)
         self.clickedActor = clickedActor
         self.clickedr = clickedr
 
@@ -1643,7 +1638,7 @@ class vtkPlotter:
                     ls = ia.GetProperty().GetLineWidth()
                     ia.GetProperty().SetLineWidth(ls+1)
                 except AttributeError: pass
-#        elif key == "N":
+#        elif key == "N": #flips normals
 #            if self.clickedActor in self.getActors(): acts=[self.clickedActor]
 #            else: acts = self.getActors()
 #            for ia in acts:
@@ -1676,31 +1671,45 @@ class vtkPlotter:
             self.show(at=self.clickedr, interactive=0, axes=0)
             self.interactive = ii # restore it
         elif key == "x":
-            if isinstance(self.clickedActor, vtk.vtkAssembly):
-                props = vtk.vtkPropCollection()
-                self.clickedActor.GetActors(props)
-                actr = props.GetLastProp()
-                try:
+            self.justremoved = None # needs fix
+            if self.justremoved is None:                    
+                if isinstance(self.clickedActor, vtk.vtkAssembly):
+                    props = vtk.vtkPropCollection()
+                    self.clickedActor.GetActors(props)
+                    actr = props.GetLastProp()
+                    try:
+                        al = np.sqrt(actr.GetProperty().GetOpacity())
+                        for op in np.linspace(al,0, 8): #fade away
+                            actr.GetProperty().SetOpacity(op)
+                            self.interactor.Render()
+                    except AttributeError: pass
+                    self.justremoved = actr
+                    self.clickedActor.RemovePart(actr)                    
+                elif self.clickedActor in self.getActors():
+                    actr = self.clickedActor
                     al = np.sqrt(actr.GetProperty().GetOpacity())
                     for op in np.linspace(al,0, 8): #fade away
                         actr.GetProperty().SetOpacity(op)
                         self.interactor.Render()
-                except AttributeError: pass
-                self.clickedActor.RemovePart(actr)                    
-            elif self.clickedActor in self.getActors():
-                actr = self.clickedActor
-                al = np.sqrt(actr.GetProperty().GetOpacity())
-                for op in np.linspace(al,0, 8): #fade away
-                    actr.GetProperty().SetOpacity(op)
-                    self.interactor.Render()
-                self.renderer.RemoveActor(actr)
-            else: 
-                if self.verbose:
-                    print ('Click an actor and press x to remove it.')
-                return
-            if self.verbose and hasattr(actr, 'legend'):
-                print ('   ...removing actor:', actr.legend)
-            self._draw_legend()
+                    self.justremoved = actr
+                    self.renderer.RemoveActor(actr)
+                else: 
+                    if self.verbose:
+                        print ('Click an actor and press x to remove it.')
+                    return
+                if self.verbose and hasattr(actr, 'legend'):
+                    print ('   ...removing actor:', actr.legend)
+                self._draw_legend()
+            else:
+                if isinstance(self.clickedActor, vtk.vtkAssembly):
+                    self.clickedActor.AddPart(self.justremoved)
+                    self._draw_legend()
+                elif self.clickedActor in self.actors:
+                    print ([self.clickedActor, self.justremoved])
+                    self.renderer.AddActor(self.justremoved)
+                    self.renderer.Render()
+                    self._draw_legend()        
+                self.justremoved = None
             
         self.interactor.Render()
 
@@ -1788,274 +1797,6 @@ class vtkPlotter:
         vid.release()
         self.videoname = None
 
-
-#########################################################
-# Useful Functions
-######################################################### 
-def screenshot(filename='screenshot.png'):
-    try:
-        import gtk.gdk
-        w = gtk.gdk.get_default_root_window().get_screen().get_active_window()
-        sz = w.get_size()
-        pb = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8, sz[0], sz[1])
-        pb = pb.get_from_drawable(w,w.get_colormap(),0,0,0,0, sz[0], sz[1])
-        if pb is not None:
-            pb.save(filename, "png")
-            #print ("Screenshot saved to", filename)
-        else: print ("Unable to save the screenshot. Skip.")
-    except:
-        print ("Unable to take the screenshot. Skip.")
-
-
-def makeSource(spoints, addLines=True):
-    """Try to workout a polydata from points"""
-    sourcePoints = vtk.vtkPoints()
-    sourceVertices = vtk.vtkCellArray()
-    for pt in spoints:
-        if len(pt)==3: #it's 3D!
-            aid = sourcePoints.InsertNextPoint(pt[0], pt[1], pt[2])
-        else:
-            aid = sourcePoints.InsertNextPoint(pt[0], pt[1], 0)
-        sourceVertices.InsertNextCell(1)
-        sourceVertices.InsertCellPoint(aid)
-    source = vtk.vtkPolyData()
-    source.SetPoints(sourcePoints)
-    source.SetVerts(sourceVertices)
-    if addLines:
-        lines = vtk.vtkCellArray()
-        lines.InsertNextCell(len(spoints))
-        for i in range(len(spoints)): lines.InsertCellPoint(i)
-        source.SetLines(lines)
-    source.Update()
-    return source
-
-
-def isInside(poly, point):
-    """Return True if point is inside a polydata closed surface"""
-    points = vtk.vtkPoints()
-    points.InsertNextPoint(point)
-    pointsPolydata = vtk.vtkPolyData()
-    pointsPolydata.SetPoints(points)
-    selectEnclosedPoints = vtk.vtkSelectEnclosedPoints()
-    selectEnclosedPoints.SetInput(pointsPolydata)
-    selectEnclosedPoints.SetSurface(poly)
-    selectEnclosedPoints.Update()
-    return selectEnclosedPoints.IsInside(0)
-    
-
-####################################
-def write(poly, fileoutput):
-    wt = vtk.vtkPolyDataWriter()
-    setInput(wt, poly)
-    wt.SetFileName(fileoutput)
-    print ("Writing vtk file:", fileoutput)
-    wt.Write()
-    
-vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
-def setInput(vtkobj, p):
-        if vtkMV: vtkobj.SetInputData(p)
-        else: vtkobj.SetInput(p)
-
-
-#########################################################
-# basic color schemes
-######################################################### 
-colors = { # from matplotlib
-    'aliceblue':            '#F0F8FF', 'antiquewhite':         '#FAEBD7',
-    'aqua':                 '#00FFFF', 'aquamarine':           '#7FFFD4',
-    'azure':                '#F0FFFF', 'beige':                '#F5F5DC',
-    'bisque':               '#FFE4C4', 'black':                '#000000',
-    'blanchedalmond':       '#FFEBCD', 'blue':                 '#0000FF',
-    'blueviolet':           '#8A2BE2', 'brown':                '#A52A2A',
-    'burlywood':            '#DEB887', 'cadetblue':            '#5F9EA0',
-    'chartreuse':           '#7FFF00', 'chocolate':            '#D2691E',
-    'coral':                '#FF7F50', 'cornflowerblue':       '#6495ED',
-    'cornsilk':             '#FFF8DC', 'crimson':              '#DC143C',
-    'cyan':                 '#00FFFF', 'darkblue':             '#00008B',
-    'darkcyan':             '#008B8B', 'darkgoldenrod':        '#B8860B',
-    'darkgray':             '#A9A9A9', 'darkgreen':            '#006400',
-    'darkgrey':             '#A9A9A9', 'darkkhaki':            '#BDB76B',
-    'darkmagenta':          '#8B008B', 'darkolivegreen':       '#556B2F',
-    'darkorange':           '#FF8C00', 'darkorchid':           '#9932CC',
-    'darkred':              '#8B0000', 'darksalmon':           '#E9967A',
-    'darkseagreen':         '#8FBC8F', 'darkslateblue':        '#483D8B',
-    'darkslategray':        '#2F4F4F', 'darkslategrey':        '#2F4F4F',
-    'darkturquoise':        '#00CED1', 'darkviolet':           '#9400D3',
-    'deeppink':             '#FF1493', 'deepskyblue':          '#00BFFF',
-    'dimgray':              '#696969', 'dimgrey':              '#696969',
-    'dodgerblue':           '#1E90FF', 'firebrick':            '#B22222',
-    'floralwhite':          '#FFFAF0', 'forestgreen':          '#228B22',
-    'fuchsia':              '#FF00FF', 'gainsboro':            '#DCDCDC',
-    'ghostwhite':           '#F8F8FF', 'gold':                 '#FFD700',
-    'goldenrod':            '#DAA520', 'gray':                 '#808080',
-    'green':                '#008000', 'greenyellow':          '#ADFF2F',
-    'grey':                 '#808080', 'honeydew':             '#F0FFF0',
-    'hotpink':              '#FF69B4', 'indianred':            '#CD5C5C',
-    'indigo':               '#4B0082', 'ivory':                '#FFFFF0',
-    'khaki':                '#F0E68C', 'lavender':             '#E6E6FA',
-    'lavenderblush':        '#FFF0F5', 'lawngreen':            '#7CFC00',
-    'lemonchiffon':         '#FFFACD', 'lightblue':            '#ADD8E6',
-    'lightcoral':           '#F08080', 'lightcyan':            '#E0FFFF',
-    'lightgray':            '#D3D3D3', 'lightgreen':           '#90EE90',
-    'lightgrey':            '#D3D3D3', 'lightpink':            '#FFB6C1',
-    'lightsalmon':          '#FFA07A', 'lightseagreen':        '#20B2AA',
-    'lightskyblue':         '#87CEFA', 'lightslategray':       '#778899',
-    'lightslategrey':       '#778899', 'lightsteelblue':       '#B0C4DE',
-    'lightyellow':          '#FFFFE0', 'lime':                 '#00FF00',
-    'limegreen':            '#32CD32', 'linen':                '#FAF0E6',
-    'magenta':              '#FF00FF', 'maroon':               '#800000',
-    'mediumaquamarine':     '#66CDAA', 'mediumblue':           '#0000CD',
-    'mediumorchid':         '#BA55D3', 'mediumpurple':         '#9370DB',
-    'mediumseagreen':       '#3CB371', 'mediumslateblue':      '#7B68EE',
-    'mediumspringgreen':    '#00FA9A', 'mediumturquoise':      '#48D1CC',
-    'mediumvioletred':      '#C71585', 'midnightblue':         '#191970',
-    'mintcream':            '#F5FFFA', 'mistyrose':            '#FFE4E1',
-    'moccasin':             '#FFE4B5', 'navajowhite':          '#FFDEAD',
-    'navy':                 '#000080', 'oldlace':              '#FDF5E6',
-    'olive':                '#808000', 'olivedrab':            '#6B8E23',
-    'orange':               '#FFA500', 'orangered':            '#FF4500',
-    'orchid':               '#DA70D6', 'palegoldenrod':        '#EEE8AA',
-    'palegreen':            '#98FB98', 'paleturquoise':        '#AFEEEE',
-    'palevioletred':        '#DB7093', 'papayawhip':           '#FFEFD5',
-    'peachpuff':            '#FFDAB9', 'peru':                 '#CD853F',
-    'pink':                 '#FFC0CB', 'plum':                 '#DDA0DD',
-    'powderblue':           '#B0E0E6', 'purple':               '#800080',
-    'rebeccapurple':        '#663399', 'red':                  '#FF0000',
-    'rosybrown':            '#BC8F8F', 'royalblue':            '#4169E1',
-    'saddlebrown':          '#8B4513', 'salmon':               '#FA8072',
-    'sandybrown':           '#F4A460', 'seagreen':             '#2E8B57',
-    'seashell':             '#FFF5EE', 'sienna':               '#A0522D',
-    'silver':               '#C0C0C0', 'skyblue':              '#87CEEB',
-    'slateblue':            '#6A5ACD', 'slategray':            '#708090',
-    'slategrey':            '#708090', 'snow':                 '#FFFAFA',
-    'springgreen':          '#00FF7F', 'steelblue':            '#4682B4',
-    'tan':                  '#D2B48C', 'teal':                 '#008080',
-    'thistle':              '#D8BFD8', 'tomato':               '#FF6347',
-    'turquoise':            '#40E0D0', 'violet':               '#EE82EE',
-    'wheat':                '#F5DEB3', 'white':                '#FFFFFF',
-    'whitesmoke':           '#F5F5F5', 'yellow':               '#FFFF00',
-    'yellowgreen':          '#9ACD32'}
-
-color_nicks = {
-        'b': 'blue',
-        'g': 'green',
-        'r': 'red',
-        'c': 'cyan',
-        'm': 'magenta',
-        'y': 'yellow',
-        'k': 'black',
-        'w': 'white',
-        't': 'tomato',
-        'o': 'olive',
-        'p': 'purple',
-        's': 'salmon',
-        'v': 'violet'}
-color_nicks.update({   # light
-        'lb': 'lightblue',
-        'lg': 'lightgreen',
-        'lc': 'lightcyan',
-        'ls': 'lightsalmon',
-        'ly': 'lightyellow'})
-color_nicks.update({   # dark
-        'dr': 'darkred',
-        'db': 'darkblue',
-        'dg': 'darkgreen',
-        'dm': 'darkmagenta',
-        'dc': 'darkcyan',
-        'ds': 'darksalmon',
-        'dv': 'darkviolet'})
-
-def getColor(c):
-    """
-    Convert a color to (r,g,b) format from many input formats, e.g.:
-     RGB    = (255, 255, 255), corresponds to white
-     rgb    = (1,1,1) 
-     hex    = #FFFF00 is yellow
-     string = 'white'
-     string = 'dr' is darkred
-     int    = 7 picks color #7 in list colors1
-     vtkColor object
-    """
-    if isinstance(c,list) or isinstance(c,tuple) :
-        if c[0]<=1 and c[1]<=1 and c[2]<=1: return c #already rgb
-        else: return list(np.array(c)/255.) #RGB
-
-    elif isinstance(c, str):
-        if 0 < len(c) < 3: 
-            try: # single/double letter color
-                c = color_nicks[c.lower()] 
-            except KeyError:
-                print ("Unknow color nickname:", c)
-                print ("Available abbreviations:", color_nicks)
-                return [0.5,0.5,0.5]
-        try: # full name color
-            c = colors[c.lower()] 
-        except KeyError:
-            print ("Unknow color name:", c)
-            print ("Available colors:", colors.keys())
-            return [0.5,0.5,0.5]
-
-        if '#' in c: #hex to rgb
-            h = c.lstrip('#')
-            rgb255 = list(int(h[i:i+2], 16) for i in (0, 2 ,4))
-            rgb = np.array(rgb255)/255.
-            if np.sum(rgb)>3: 
-                print ("Error in getColor(): Wrong hex color", c)
-                return [0.5,0.5,0.5]
-            return list(rgb)
-            
-    elif isinstance(c, int): 
-        try: return colors1[c] 
-        except: return [0.5,0.5,0.5]
-    #elif isinstance(c, vtk.vtkColor) # ToDo: add vtk6 defs for colors
-    return [0.5,0.5,0.5]
-    
-def getColorName(c):
-    """Convert any rgb color or numeric code to closest name color"""
-    c = np.array(getColor(c)) #reformat to rgb
-    mdist = 99.
-    kclosest = ''
-    for key in colors.keys():
-        ci = np.array(getColor(key))
-        d = np.linalg.norm(c-ci)
-        if d<mdist: 
-            mdist = d
-            kclosest = str(key)
-    return kclosest
-
-########## other sets of colors
-colors1=[]
-colors1.append((1.0,0.647,0.0))     # orange
-colors1.append((0.59,0.0,0.09))     # dark red
-colors1.append((0.5,1.0,0.0))       # green
-colors1.append((0.5,0.5,0))         # yellow-green
-colors1.append((0.0, 0.66,0.42))    # green blue
-colors1.append((0.0,0.18,0.65))     # blue
-colors1.append((0.4,0.0,0.4))       # plum
-colors1.append((0.4,0.0,0.6))
-colors1.append((0.2,0.4,0.6))
-colors1.append((0.1,0.3,0.2))
-colors1 = colors1 * 100
-
-colors2=[]
-colors2.append((0.99,0.83,0))       # gold
-colors2.append((0.59, 0.0,0.09))    # dark red
-colors2.append((.984,.925,.354))    # yellow
-colors2.append((0.5,  0.5,0))       # yellow-green
-colors2.append((0.5,  1.0,0.0))     # green
-colors2.append((0.0, 0.66,0.42))    # green blue
-colors2.append((0.0, 0.18,0.65))    # blue
-colors2.append((0.4,  0.0,0.4))     # plum
-colors2 = colors2 * 100
-
-colors3=[]
-for i in range(10):
-    pc = (i+0.5)/10.
-    r = np.exp(-((pc-0.0)/.2)**2/2.)
-    g = np.exp(-((pc-0.5)/.2)**2/2.)
-    b = np.exp(-((pc-1.0)/.2)**2/2.)
-    colors3.append((r,g,b))
-colors3 = colors3 * 100
 
  
 ###########################################################################
