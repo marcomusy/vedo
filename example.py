@@ -8,13 +8,6 @@ from __future__ import print_function
 import numpy as np
 import plotter
 
-# Draw a cloud of points each one with a different color 
-# which depends on its position
-from random import uniform as u
-vp = plotter.vtkPlotter()
-rgb = [(u(0,1), u(0,1), u(0,1)) for i in range(10000)]
-vp.points(rgb, c=rgb, alpha=0.5, r=3, legend='RGB points')
-vp.show()
 
 # Declare an instance of the class
 vp = plotter.vtkPlotter()
@@ -211,8 +204,8 @@ vp.show()
 # Draw a cloud of points each one with a different color 
 # which depends on its position
 vp = plotter.vtkPlotter()
-rgb = [(u(0,255), u(0,255), u(0,255)) for i in range(1000)]
-vp.points(rgb, c=rgb, alpha=0.8, legend='RGB points')
+rgb = [(u(0,255), u(0,255), u(0,255)) for i in range(2000)]
+vp.points(rgb, c=rgb, alpha=0.7, legend='RGB points')
 vp.show()
 
 

@@ -88,6 +88,7 @@ class vtkPlotter:
         # internal stuff:
         self.clickedr   = 0     # clicked renderer number
         self.camThickness = 2000
+        self.balloon    = balloon
         self.locator    = None
         self.initialized= False
         self.videoname  = None
@@ -1395,7 +1396,7 @@ class vtkPlotter:
         if not interactive is None: self.interactive = interactive
         if self.verbose:
             print ('Drawing', len(self.actors),'actors ', end='')
-            if self.shape != (1,1) : print ('on window',at,'-', end='')
+            if len(self.renderers)>1 : print ('on window',at,'-', end='')
             else: print (' - ', end='')
             if self.interactive: print ('Interactive mode: On.')
             else: print ('Interactive mode: Off.')
