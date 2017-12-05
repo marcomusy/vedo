@@ -121,8 +121,8 @@ windows nr 12 and nr 33. Then open an independent window and draw on two shapes:
 ```python
 vp1 = plotter.vtkPlotter(shape=(6,6))
 vp1.renderers[35].SetBackground(.8,.9,.9)
-v270 = vp1.load('data/270.vtk')     #load as vtkActor
-v290 = vp1.loadPoly('data/290.vtk') #load as vtkPolyData object
+v270 = vp1.load('data/270.vtk')   
+v290 = vp1.load('data/290.vtk') 
 vp1.interactive = False
 vp1.show(at=12, actors=[v270,v290]) # polydata are automatically  
 vp1.show(at=33, actors=[v270,v290]) # transformed into actors
@@ -153,7 +153,7 @@ vp.interact() # same as setting flag interactive=True
 
 Draw a bunch of simple objects on separate parts of the rendering window:
 ```python
-vp = plotter.vtkPlotter(shape=(2,3))
+vp = plotter.vtkPlotter(N=6) # split window to best accomodate 6 renderers
 vp.commoncam   = False
 vp.interactive = False
 vp.show(at=0, actors=vp.arrow( [0,0,0], [1,1,1] ))
@@ -170,7 +170,7 @@ vp.interact()
 
 Draw a number of objects in various formats and options:
 ```python
-vp = plotter.vtkPlotter(shape=(3,3))
+vp = plotter.vtkPlotter(shape=(3,3)) # split window in 3 rows and 3 columns
 vp.commoncam   = False
 vp.interactive = False
 vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
@@ -180,6 +180,8 @@ vp.show(at=3, c=3, actors='data/big_spider.ply')
 vp.show(at=4, c=4, actors='data/egret.ply')
 vp.show(at=5, c=5, actors='data/mug.ply')
 vp.show(at=6, c=6, actors='data/scissors.ply')
+a = vp.getActors('sciss') # retrieve actors by matching legend string 
+a[0].RotateX(90)          # and rotate it by 90 degrees around x
 vp.show(at=7, c=7, actors='data/shuttle.obj')
 vp.show(at=8, c=8, actors='data/skyscraper.obj')
 vp.interact()
@@ -242,7 +244,7 @@ vp.show()
 
 If you need to do more complicated things (define widgets.. etc), you can still access all the 
 usual VTK objects like interactors and renderers through *vp.interactor, vp.renderer*... etc.<br />
-Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.avi* file.
+Use *plotter.openVideo(), plotter.addFrameVideo()* and *plotter.closeVideo()* to save a *movie.avi* file.
 <br />
 
 ## List of available methods with default values:
@@ -250,13 +252,8 @@ Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.
 def help()
 def __init__(shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='',
              bg=(1,1,1), bg2=None, verbose=True, interactive=True)
-def getPolyData(obj, index=0)
+def load(filesOrDirs, c='gold', alpha=0.2, wire=False, bc=None, edges=False, legend=True)
 def getActors(obj=None)
-def getPoint(i, actor)
-def getCoordinates(actors)
-#
-def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None)
-def makeAssembly(actors, legend=None)
 def moveCamera(camstart, camstop, fraction)
 #
 def point(pt, c='b', r=10, alpha=1, legend=None)
@@ -288,15 +285,11 @@ def show(actors=None, at=0, legend=None, axes=None, ruler=False, interactive=Non
 def clear(actors=[])
 def interact()
 def lastActor()
-def openVideo(name='movie.avi', fps=12, duration=None, format="XVID")
-def addFrameVideo()
-def pauseVideo(pause)
-def releaseGif()
-def releaseVideo()
 ```
-Useful attributes:
+
+Useful *vtkPlotter* attributes:
 ```python
-vp = plotter.vtkPlotter()
+vp = plotter.vtkPlotter() #e.g.
 vp.actors       # list of vtkActors to be shown
 vp.renderer     # holds current renderer
 vp.renderers    # list of renderers
@@ -309,4 +302,22 @@ vp.resetcam     # (true) if true reset camera when calling show()
 vp.legend       # list of legend entries for each actors, can be false
 vp.verbose      # verbosity
 vp.result       # dictionary to store extra output information
+```
+
+Useful *plotter* functions:
+```python
+def load(filesOrDirs, c='gold', alpha=0.2, wire=False, bc=None, edges=False, legend=True)
+def makeActor(poly, c='gold', alpha=0.5, 
+def makeAssembly(actors, legend=None)
+def screenshot(filename='screenshot.png')
+def makePolyData(spoints, addLines=True)
+def isInside(poly, point)
+def getPolyData(obj, index=0)
+def getPoint(i, actor)
+def getCoordinates(actors)
+def writeVTK(obj, fileoutput)
+def openVideo(name='movie.avi', fps=12, duration=None, format="XVID")
+def addFrameVideo()
+def pauseVideo(pause)
+def releaseVideo()  
 ```

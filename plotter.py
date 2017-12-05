@@ -3,17 +3,16 @@
 from __future__ import print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "3.3"
+__version__ = "4.0"
 __maintainer__ = __author__
 __email__   = "marco.musy@embl.es"
 __status__  = "stable"
 
-import os, vtk
+import vtk
 import numpy as np
-from glob import glob
 from colors import *
 from vtkutils import *
-
+import vtkutils
 
 #############################################################################
 class vtkPlotter:
@@ -189,215 +188,29 @@ class vtkPlotter:
            bc,    backface color of internal surface
            legend, text to show on legend, if True picks filename.
         '''
-        acts = []
-        if isinstance(legend, int): legend = bool(legend)
-        for fod in sorted(glob(filesOrDirs)):
-            if os.path.isfile(fod): 
-                a = self._loadFile(fod, c, alpha, wire, bc, edges, legend)
-                acts.append(a)
-            elif os.path.isdir(fod):
-                acts = self._loadDir(fod, c, alpha, wire, bc, edges, legend)
-        if not len(self.actors):
-            print ('Cannot find:', filesOrDirs)
-            exit(0) 
-        if len(acts) == 1: 
-            return acts[0]
-        else: 
-            return acts
+        acts = vtkutils.load(filesOrDirs, c, alpha, wire, bc, edges, legend)
+        if not isinstance(acts, list): acts=[acts]
+        for actor in acts:
+            if not isinstance(actor, vtk.vtkActor): continue
+            if self.flat:    
+                actor.GetProperty().SetInterpolationToFlat()
+                self.phong = self.gouraud = False
+                actor.GetProperty().SetSpecular(0)
+            if self.phong:   
+                actor.GetProperty().SetInterpolationToPhong()
+                self.flat = self.gouraud = False
+            if self.gouraud: 
+                actor.GetProperty().SetInterpolationToGouraud()
+                self.flat = self.phong = False
+            if self.bculling: actor.GetProperty().BackfaceCullingOn()
+            else: actor.GetProperty().BackfaceCullingOff()
+            if self.fculling: actor.GetProperty().FrontfaceCullingOn()
+            else: actor.GetProperty().FrontfaceCullingOff()
 
-    def _loadFile(self, filename, c, alpha, wire, bc, edges, legend):
-        fl = filename.lower()
-        if '.xml' in fl or '.xml.gz' in fl: # Fenics tetrahedral mesh file
-            actor = self._loadXml(filename, c, alpha, wire, bc, edges, legend)
-        elif '.pcd' in fl:                  # PCL point-cloud format
-            actor = self._loadPCD(filename, c, alpha, legend)
-        else:
-            poly = self._loadPoly(filename)
-            if not poly:
-                print ('Unable to load', filename)
-                return False
-            if legend is True: legend = os.path.basename(filename)
-            actor = self.makeActor(poly, c, alpha, wire, bc, edges, legend)
-            if '.txt' in fl or '.xyz' in fl: 
-                actor.GetProperty().SetPointSize(4)
-        self.actors.append(actor)
-        return actor
+        self.actors += acts
+        if len(acts) == 1: return acts[0]
+        else: return acts
         
-    def _loadDir(self, mydir, c, alpha, wire, bc, edges, legend):
-        acts = []
-        for ifile in sorted(os.listdir(mydir)):
-            self._loadFile(mydir+'/'+ifile, c, alpha, wire, bc, edges)
-        return acts
-
-    def _loadPoly(self, filename):
-        '''Return a vtkPolyData object, NOT a vtkActor'''
-        if not os.path.exists(filename): 
-            print ('Cannot find file', filename)
-            exit(0)
-        fl = filename.lower()
-        if   '.vtk' in fl: reader = vtk.vtkPolyDataReader()
-        elif '.ply' in fl: reader = vtk.vtkPLYReader()
-        elif '.obj' in fl: reader = vtk.vtkOBJReader()
-        elif '.stl' in fl: reader = vtk.vtkSTLReader()
-        elif '.byu' in fl or '.g' in fl: reader = vtk.vtkBYUReader()
-        elif '.vtp' in fl: reader = vtk.vtkXMLPolyDataReader()
-        elif '.vts' in fl: reader = vtk.vtkXMLStructuredGridReader()
-        elif '.vtu' in fl: reader = vtk.vtkXMLUnstructuredGridReader()
-        elif '.txt' in fl: reader = vtk.vtkParticleReader() # (x y z scalar) 
-        elif '.xyz' in fl: reader = vtk.vtkParticleReader()
-        else: reader = vtk.vtkDataReader()
-        reader.SetFileName(filename)
-        reader.Update()
-        if '.vts' in fl: # structured grid
-            gf = vtk.vtkStructuredGridGeometryFilter()
-            gf.SetInputConnection(reader.GetOutputPort())
-            gf.Update()
-            poly = gf.GetOutput()
-        elif '.vtu' in fl: # unstructured grid
-            gf = vtk.vtkGeometryFilter()
-            gf.SetInputConnection(reader.GetOutputPort())
-            gf.Update()    
-            poly = gf.GetOutput()
-        else: poly = reader.GetOutput()
-        
-        if not poly: 
-            print ('Unable to load', filename)
-            return False
-        
-        mergeTriangles = vtk.vtkTriangleFilter()
-        setInput(mergeTriangles, poly)
-        mergeTriangles.Update()
-        poly = mergeTriangles.GetOutput()
-        return poly
-
-    def _loadXml(self, filename, c, alpha, wire, bc, edges, legend):
-        '''Reads a Fenics/Dolfin file format'''
-        if not os.path.exists(filename): 
-            print ('Cannot find file', filename)
-            exit(0)
-        try:
-            import xml.etree.ElementTree as et
-            if '.gz' in filename:
-                import gzip
-                inF = gzip.open(filename, 'rb')
-                outF = open('/tmp/filename.xml', 'wb')
-                outF.write( inF.read() )
-                outF.close()
-                inF.close()
-                tree = et.parse('/tmp/filename.xml')
-            else: tree = et.parse(filename)
-            coords, connectivity = [], []
-            for mesh in tree.getroot():
-                for elem in mesh:
-                    if self.verbose: print ('Reading',elem.tag)
-                    for e in elem.findall('vertex'):
-                        x = float(e.get('x'))
-                        y = float(e.get('y'))
-                        z = float(e.get('z'))
-                        coords.append([x,y,z])
-                    for e in elem.findall('tetrahedron'):
-                        v0 = int(e.get('v0'))
-                        v1 = int(e.get('v1'))
-                        v2 = int(e.get('v2'))
-                        v3 = int(e.get('v3'))
-                        connectivity.append([v0,v1,v2,v3])
-            points = vtk.vtkPoints()
-            for p in coords: points.InsertNextPoint(p)
-
-            ugrid = vtk.vtkUnstructuredGrid()
-            ugrid.SetPoints(points)
-            cellArray = vtk.vtkCellArray()
-            for itet in range(len(connectivity)):
-                tetra = vtk.vtkTetra()
-                for k,j in enumerate(connectivity[itet]):
-                    tetra.GetPointIds().SetId(k, j)
-                cellArray.InsertNextCell(tetra)
-            ugrid.SetCells(vtk.VTK_TETRA, cellArray)
-            # 3D cells are mapped only if they are used by only one cell,
-            #  i.e., on the boundary of the data set
-            mapper = vtk.vtkDataSetMapper()
-            mapper.SetInputConnection(ugrid.GetProducerPort())
-            actor = vtk.vtkActor()
-            actor.SetMapper(mapper)
-            actor.GetProperty().SetInterpolationToFlat()
-            actor.GetProperty().SetColor(getColor(c))
-            actor.GetProperty().SetOpacity(alpha/2.)
-            #actor.GetProperty().VertexVisibilityOn()
-            if edges: actor.GetProperty().EdgeVisibilityOn()
-            if wire:  actor.GetProperty().SetRepresentationToWireframe()
-            vpts = vtk.vtkPointSource()
-            vpts.SetNumberOfPoints(len(coords))
-            vpts.Update()
-            vpts.GetOutput().SetPoints(points)
-            pts_act = self.makeActor(vpts.GetOutput(), c='b', alpha=alpha)
-            pts_act.GetProperty().SetPointSize(3)
-            pts_act.GetProperty().SetRepresentationToPoints()
-            actor2 = self.makeAssembly([pts_act, actor])
-            if legend: setattr(actor2, 'legend', legend)
-            if legend is True: 
-                setattr(actor2, 'legend', os.path.basename(filename))
-            return actor2
-        except:
-            print ("Cannot parse xml file. Skip.", filename)
-            return False
- 
-    def _loadPCD(self, filename, c, alpha, legend):
-        '''Return vtkActor from Point Cloud file format'''            
-        if not os.path.exists(filename): 
-            print ('Cannot find file', filename)
-            exit(0)
-        f = open(filename, 'r')
-        lines = f.readlines()
-        f.close()
-        start = False
-        pts = []
-        N, expN = 0, 0
-        for text in lines:
-            if start:
-                if N >= expN: break
-                l = text.split()
-                pts.append([float(l[0]),float(l[1]),float(l[2])])
-                N += 1
-            if not start and 'POINTS' in text:
-                expN= int(text.split()[1])
-            if not start and 'DATA ascii' in text:
-                start = True
-        if expN != N:
-            print ('Mismatch in pcd file', expN, len(pts))
-        src = vtk.vtkPointSource()
-        src.SetNumberOfPoints(len(pts))
-        src.Update()
-        poly = src.GetOutput()
-        for i,p in enumerate(pts): poly.GetPoints().SetPoint(i, p)
-        if not poly:
-            print ('Unable to load', filename)
-            return False
-        actor = self.makeActor(poly, getColor(c), alpha)
-        actor.GetProperty().SetPointSize(4)
-        if legend: setattr(actor, 'legend', legend)
-        if legend is True: setattr(actor, 'legend', os.path.basename(filename))
-        return actor
-        
-    ############################################# getters
-    def getPolyData(self, obj, index=0): # get PolyData
-        '''
-        Returns vtkPolyData from an other object (vtkActor, vtkAssembly, int)
-         e.g.: vp.getPolyData(3) #gets fourth's actor polydata
-        '''
-        if   isinstance(obj, vtk.vtkPolyData): return obj
-        elif isinstance(obj, vtk.vtkActor):    return obj.GetMapper().GetInput()
-        elif isinstance(obj, vtk.vtkActor2D):  return obj.GetMapper().GetInput()
-        elif isinstance(obj, int): return self.actors[obj].GetMapper().GetInput()
-        elif isinstance(obj, vtk.vtkAssembly):
-            cl = vtk.vtkPropCollection()
-            obj.GetActors(cl)
-            cl.InitTraversal()
-            for i in range(index+1):
-                act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
-            return act.GetMapper().GetInput()
-        print ("Error: input is neither a poly nor an actor int or assembly.", obj)
-        return False
-
 
     def getActors(self, obj=None):
         '''
@@ -444,94 +257,7 @@ class vtkPlotter:
                 
         if self.verbose: print ('Warning in getActors: unexpected input type',obj)
         return []
-
-
-    def getPoint(self, i, actor):
-        if isinstance(actor, int): actor = self.actors[actor]
-        poly = self.getPolyData(actor)
-        p = [0,0,0]
-        poly.GetPoints().GetPoint(i, p)
-        return np.array(p)
-
-
-    def getCoordinates(self, actors):
-        """Return a merged list of coordinates of actors or polys"""
-        if not isinstance(actors, list):
-            actors = [actors]
-        pts = []
-        for i in range(len(actors)):
-            apoly = self.getPolyData(actors[i])
-            for j in range(apoly.GetNumberOfPoints()):
-                p = [0, 0, 0]
-                apoly.GetPoint(j, p)
-                pts.append(p)
-        return pts
         
-
-    #############
-    def makeActor(self, poly, c='gold', alpha=0.5, 
-                  wire=False, bc=None, edges=False, legend=None):
-        '''Return a vtkActor from an input vtkPolyData, optional args:
-           c,     color in RGB format, hex, symbol or name
-           alpha, transparency (0=invisible)
-           wire,  show surface as wireframe
-           bc,    backface color of internal surface
-           edges, show edges as line on top of surface
-        '''
-        dataset = vtk.vtkPolyDataNormals()
-        setInput(dataset, poly)
-        dataset.SetFeatureAngle(60.0)
-        dataset.ComputePointNormalsOn()
-        dataset.ComputeCellNormalsOn()
-        dataset.FlipNormalsOff()
-        dataset.ConsistencyOn()
-        dataset.Update()
-        mapper = vtk.vtkPolyDataMapper()
-        setInput(mapper, dataset.GetOutput())
-        actor = vtk.vtkActor()
-        actor.SetMapper(mapper)
-        actor.GetProperty().SetSpecular(0.025)
-        if self.flat:    
-            actor.GetProperty().SetInterpolationToFlat()
-            self.phong = self.gouraud = False
-            actor.GetProperty().SetSpecular(0)
-        if self.phong:   
-            actor.GetProperty().SetInterpolationToPhong()
-            self.flat = self.gouraud = False
-        if self.gouraud: 
-            actor.GetProperty().SetInterpolationToGouraud()
-            self.flat = self.phong = False
-        if edges: actor.GetProperty().EdgeVisibilityOn()
-        actor.GetProperty().SetColor(getColor(c))
-        actor.GetProperty().SetOpacity(alpha)
-        if self.bculling:
-            actor.GetProperty().BackfaceCullingOn()
-        else:
-            actor.GetProperty().BackfaceCullingOff()
-        if self.fculling:
-            actor.GetProperty().FrontfaceCullingOn()
-        else:
-            actor.GetProperty().FrontfaceCullingOff()
-        if wire: actor.GetProperty().SetRepresentationToWireframe()
-        if bc: # defines a specific color for the backface
-            backProp = vtk.vtkProperty()
-            backProp.SetDiffuseColor(getColor(bc))
-            backProp.SetOpacity(alpha)
-            actor.SetBackfaceProperty(backProp)
-        if legend: setattr(actor, 'legend', legend) 
-        return actor
-
-
-    def makeAssembly(self, actors, legend=None):
-        '''Treat many actors as a single new actor'''
-        assembly = vtk.vtkAssembly()
-        for a in actors: assembly.AddPart(a)
-        if legend:
-            setattr(assembly, 'legend', legend) 
-        elif hasattr(actors[0], 'legend'): 
-            setattr(assembly, 'legend', actors[0].legend) 
-        return assembly
-
 
     def moveCamera(self, camstart, camstop, fraction):
         '''
@@ -575,7 +301,7 @@ class vtkPlotter:
         src.Update()
         pd = src.GetOutput()
         for i,p in enumerate(plist): pd.GetPoints().SetPoint(i, p)
-        actor = self.makeActor(pd, c, alpha)
+        actor = makeActor(pd, c, alpha)
         actor.GetProperty().SetPointSize(r)
         self.actors.append(actor)
         if legend: setattr(actor, 'legend', legend) 
@@ -622,7 +348,7 @@ class vtkPlotter:
         lineSource.SetPoint1(p0)
         lineSource.SetPoint2(p1)
         lineSource.Update()
-        actor = self.makeActor(lineSource.GetOutput(), c, alpha)
+        actor = makeActor(lineSource.GetOutput(), c, alpha)
         actor.GetProperty().SetLineWidth(lw)
         self.actors.append(actor)
         if legend: setattr(actor, 'legend', legend) 
@@ -636,7 +362,7 @@ class vtkPlotter:
         src.SetRadius(r)
         src.SetCenter(pt)
         src.Update()
-        actor = self.makeActor(src.GetOutput(), c, alpha)
+        actor = makeActor(src.GetOutput(), c, alpha)
         actor.GetProperty().SetInterpolationToPhong()
         self.actors.append(actor)
         if legend: setattr(actor, 'legend', legend) 
@@ -650,7 +376,7 @@ class vtkPlotter:
         src.SetZLength(r)
         src.SetCenter(pt)
         src.Update()
-        actor = self.makeActor(src.GetOutput(), c, alpha)
+        actor = makeActor(src.GetOutput(), c, alpha)
         self.actors.append(actor)
         if legend: setattr(actor, 'legend', legend) 
         return actor
@@ -671,7 +397,7 @@ class vtkPlotter:
         ps.SetCenter(np.array(center)/float(s))
         ps.SetNormal(normal)
         ps.Update()
-        actor = self.makeActor(ps.GetOutput(), c=c, bc=bc, alpha=alpha)
+        actor = makeActor(ps.GetOutput(), c=c, bc=bc, alpha=alpha)
         actor.SetScale(s,s,s)
         if wire: actor.GetProperty().SetRepresentationToWireframe()
         actor.GetProperty().SetLineWidth(lw)
@@ -692,7 +418,7 @@ class vtkPlotter:
         arr.SetShaftResolution(24)
         arr.SetTipResolution(24)
         arr.SetTipRadius(0.06)
-        actor = self.makeActor(arr.GetOutput(), c, alpha)
+        actor = makeActor(arr.GetOutput(), c, alpha)
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(startPoint)
         actor.RotateZ(phi*57.3)
@@ -716,7 +442,7 @@ class vtkPlotter:
         axis  = np.array(axis)/np.linalg.norm(axis)
         theta = np.arccos(axis[2])
         phi   = np.arctan2(axis[1], axis[0])
-        actor = self.makeActor(cyl.GetOutput(), c, alpha)
+        actor = makeActor(cyl.GetOutput(), c, alpha)
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(center)
         actor.RotateZ(phi*57.3)
@@ -771,7 +497,7 @@ class vtkPlotter:
         setInput(profileTubes, profileData)
         profileTubes.SetRadius(s)
         profileTubes.Update()
-        acttube = self.makeActor(profileTubes.GetOutput(), c=c, alpha=alpha)
+        acttube = makeActor(profileTubes.GetOutput(), c=c, alpha=alpha)
         if nodes:
             balls = vtk.vtkSphereSource() # Use sphere as glyph source.
             balls.SetRadius(s*1.2)
@@ -780,8 +506,8 @@ class vtkPlotter:
             gl = vtk.vtkGlyph3D()
             setInput(gl, inputData)
             gl.SetSource(balls.GetOutput())
-            actnodes = self.makeActor(gl.GetOutput(), c=c, alpha=alpha)
-            acttube  = self.makeAssembly([acttube, actnodes])
+            actnodes = makeActor(gl.GetOutput(), c=c, alpha=alpha)
+            acttube  = makeAssembly([acttube, actnodes])
         self.actors.append(acttube)
         if legend: setattr(acttube, 'legend', legend) 
         return acttube
@@ -822,11 +548,11 @@ class vtkPlotter:
         profileTubes.SetRadius(s)
         profileTubes.Update()
         poly = profileTubes.GetOutput()
-        acttube = self.makeActor(poly, c=c, alpha=alpha)
+        acttube = makeActor(poly, c=c, alpha=alpha)
         if nodes:
             actnodes = self.points(points, r=s*50, c=c, alpha=alpha)
             self.actors.pop()
-            acttube = self.makeAssembly([acttube, actnodes])
+            acttube = makeAssembly([acttube, actnodes])
         self.actors.append(acttube)
         if legend: setattr(acttube, 'legend', legend) 
         return acttube
@@ -922,7 +648,7 @@ class vtkPlotter:
         maskPts = vtk.vtkMaskPoints()
         maskPts.SetOnRatio(ratio)
         maskPts.RandomModeOff()
-        src = self.getPolyData(actor)
+        src = getPolyData(actor)
         setInput(maskPts, src)
         arrow = vtk.vtkArrowSource()
         arrow.SetTipRadius(0.075)
@@ -948,7 +674,7 @@ class vtkPlotter:
         glyphActor.GetProperty().EdgeVisibilityOff()
         glyphActor.GetProperty().SetColor(getColor(c))
         glyphActor.GetProperty().SetOpacity(alpha)
-        aactor = self.makeAssembly([actor,glyphActor])
+        aactor = makeAssembly([actor,glyphActor])
         self.actors.append(aactor)
         if legend: setattr(aactor, 'legend', legend) 
         return aactor
@@ -960,7 +686,7 @@ class vtkPlotter:
         curvature following four different ways to calculate it:
         method =  0-gaussian, 1-mean, 2-max, 3-min
         '''
-        poly = self.getPolyData(actor)
+        poly = getPolyData(actor)
         cleaner = vtk.vtkCleanPolyData()
         setInput(cleaner, poly)
         curve = vtk.vtkCurvatures()
@@ -993,14 +719,14 @@ class vtkPlotter:
     def boundaries(self, actor, c='p', lw=5, legend=None):
         '''Returns a vtkActor that shows the boundary lines of a surface.'''
         fe = vtk.vtkFeatureEdges()
-        setInput(fe, self.getPolyData(actor))
+        setInput(fe, getPolyData(actor))
         fe.BoundaryEdgesOn()
         fe.FeatureEdgesOn()
         fe.ManifoldEdgesOn()
         fe.NonManifoldEdgesOn()
         fe.ColoringOff()
         fe.Update()
-        bactor = self.makeActor(fe.GetOutput(), c=c, alpha=1)
+        bactor = makeActor(fe.GetOutput(), c=c, alpha=1)
         bactor.GetProperty().SetLineWidth(lw)
         self.actors.append(bactor)
         if legend: setattr(bactor, 'legend', legend) 
@@ -1035,11 +761,11 @@ class vtkPlotter:
         if tube: # show a rough estimate of error band at 2 sigma level
             tb = vtk.vtkTubeFilter()
             tb.SetNumberOfSides(48)
-            setInput(tb, self.getPolyData(l))
+            setInput(tb, getPolyData(l))
             r = np.sqrt((dd[1]+dd[2])/2./len(points))
             tb.SetRadius(r)
-            a = self.makeActor(tb.GetOutput(), c=c, alpha=alpha/4.)
-            l = self.makeAssembly([l,a])
+            a = makeActor(tb.GetOutput(), c=c, alpha=alpha/4.)
+            l = makeAssembly([l,a])
             self.actors[-1] = l # replace
         if legend: setattr(l, 'legend', legend) 
         return l
@@ -1108,7 +834,7 @@ class vtkPlotter:
         ftra.SetTransform(vtra)
         ftra.SetInputConnection(elliSource.GetOutputPort())
         ftra.Update()
-        actor_elli = self.makeActor(ftra.GetOutput(), c, alpha)
+        actor_elli = makeActor(ftra.GetOutput(), c, alpha)
         actor_elli.GetProperty().BackfaceCullingOn()
         actor_elli.GetProperty().SetInterpolationToPhong()
         if pcaAxes:
@@ -1122,8 +848,8 @@ class vtkPlotter:
                 t.SetTransform(vtra)
                 setInput(t, l.GetOutput())
                 t.Update()
-                axs.append(self.makeActor(t.GetOutput(), c, alpha))
-            self.actors.append( self.makeAssembly([actor_elli]+axs) )
+                axs.append(makeActor(t.GetOutput(), c, alpha))
+            self.actors.append( makeAssembly([actor_elli]+axs) )
         else : self.actors.append(actor_elli)
         if legend: setattr(self.lastActor(), 'legend', legend) 
         return self.lastActor()
@@ -1136,8 +862,8 @@ class vtkPlotter:
         rigid = True, then no scaling is allowed.
         '''
         sprop = source.GetProperty()
-        source = self.getPolyData(source)
-        target = self.getPolyData(target)
+        source = getPolyData(source)
+        target = getPolyData(target)
         icp = vtk.vtkIterativeClosestPointTransform()
         icp.SetSource(source)
         icp.SetTarget(target)
@@ -1150,7 +876,7 @@ class vtkPlotter:
         icpTransformFilter.SetTransform(icp)
         icpTransformFilter.Update()
         poly = icpTransformFilter.GetOutput()
-        actor = self.makeActor(poly)
+        actor = makeActor(poly)
         actor.SetProperty(sprop)
         self.actors.append(actor)
         if legend: setattr(actor, 'legend', legend) 
@@ -1172,7 +898,7 @@ class vtkPlotter:
         plane = vtk.vtkPlane()
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
-        poly = self.getPolyData(actor)
+        poly = getPolyData(actor)
         clipper = vtk.vtkClipPolyData()
         setInput(clipper, poly)
         clipper.SetClipFunction(plane)
@@ -1181,13 +907,13 @@ class vtkPlotter:
         alpha = actor.GetProperty().GetOpacity()
         c = actor.GetProperty().GetColor()
         bf = actor.GetBackfaceProperty()
-        clipActor = self.makeActor(clipper.GetOutput(),c=c,alpha=alpha)
+        clipActor = makeActor(clipper.GetOutput(),c=c,alpha=alpha)
         clipActor.SetBackfaceProperty(bf)
         
         acts = [clipActor]
         if showcut:
             cpoly = clipper.GetClippedOutput()
-            restActor = self.makeActor(cpoly, c=c, alpha=0.05, wire=1)
+            restActor = makeActor(cpoly, c=c, alpha=0.05, wire=1)
             acts.append(restActor)
         cutEdges = vtk.vtkCutter()
         setInput(cutEdges, poly)
@@ -1200,7 +926,7 @@ class vtkPlotter:
             cutPoly = vtk.vtkPolyData()
             cutPoly.SetPoints(cutStrips.GetOutput().GetPoints())
             cutPoly.SetPolys(cutStrips.GetOutput().GetLines())
-            cutline = self.makeActor(cutPoly, c=c, alpha=np.sqrt(alpha))
+            cutline = makeActor(cutPoly, c=c, alpha=np.sqrt(alpha))
             cutline.GetProperty().SetRepresentationToWireframe()
             cutline.GetProperty().SetLineWidth(4)
             acts.append(cutline)
@@ -1210,13 +936,13 @@ class vtkPlotter:
             vpts.SetNumberOfPoints(cspts.GetNumberOfPoints())
             vpts.Update()
             vpts.GetOutput().SetPoints(cspts)
-            points_act = self.makeActor(vpts.GetOutput(), c=c, alpha=np.sqrt(alpha))
+            points_act = makeActor(vpts.GetOutput(), c=c, alpha=np.sqrt(alpha))
             points_act.GetProperty().SetPointSize(4)
             points_act.GetProperty().SetRepresentationToPoints()
             acts.append(points_act)
 
         if len(acts)>1: 
-            finact = self.makeAssembly(acts)
+            finact = makeAssembly(acts)
         else: 
             finact = clipActor
         if hasattr(actor, 'legend'): 
@@ -1235,7 +961,7 @@ class vtkPlotter:
         If N is given, return a list of N ordered closest points.
         If radius is given, pick only within specified radius.
         """
-        polydata = self.getPolyData(surf)
+        polydata = getPolyData(surf)
         trgp  = [0,0,0]
         cid   = vtk.mutable(0)
         subid = vtk.mutable(0)
@@ -1366,7 +1092,7 @@ class vtkPlotter:
                 c = act.GetProperty().GetColor()
                 if c==(1,1,1): c=(0.7,0.7,0.7) # awoid white
                 try:
-                    vtklegend.SetEntry(i, self.getPolyData(a), "  "+ti, c)
+                    vtklegend.SetEntry(i, getPolyData(a), "  "+ti, c)
                 except:
                     sp = vtk.vtkSphereSource() #make a dummy sphere as icon
                     sp.Update()
@@ -1374,7 +1100,7 @@ class vtkPlotter:
             else:
                 c = a.GetProperty().GetColor()
                 if c==(1,1,1): c=(0.7,0.7,0.7)
-                vtklegend.SetEntry(i, self.getPolyData(a), "  "+ti, c)
+                vtklegend.SetEntry(i, getPolyData(a), "  "+ti, c)
         pos = self.legendPos
         width = self.legendSize
         vtklegend.SetWidth(width)
@@ -1455,8 +1181,7 @@ class vtkPlotter:
         for i in range(len(self.actors)): # scan for polydata
             a = self.actors[i]
             if isinstance(a, vtk.vtkPolyData): 
-                act = self.makeActor(a, c=c, bc=bc, alpha=alpha, 
-                                     wire=wire, edges=edges)
+                act = makeActor(a, c=c, bc=bc, alpha=alpha, wire=wire, edges=edges)
                 self.actors[i] = act #put it in right position
 
         acts = self.getActors()
@@ -1526,7 +1251,7 @@ class vtkPlotter:
                     elif not indx is None:
                         print ('-> actor', indx+':', clickedActor.legend, end=' ')
                         if cn: print (cn, end=' ')
-                    n = str(self.getPolyData(clickedActor).GetNumberOfPoints())
+                    n = str(getPolyData(clickedActor).GetNumberOfPoints())
                     print ('N='+n)
         self.clickedActor = clickedActor
         self.clickedr = clickedr
@@ -1724,80 +1449,6 @@ class vtkPlotter:
         if q: exit(0)
 
     def lastActor(self): return self.actors[-1]
-
-
-    ###################################################################### Video
-    def openVideo(self, name='movie.avi', fps=12, duration=None, format="XVID"):
-        try:
-            import cv2 #just check existence
-            cv2.__version__
-        except:
-            print ("openVideo: cv2 not installed? Skip.")
-            return
-        self.videoname = name
-        self.videoformat = format
-        self.videoduration = duration
-        self.fps = float(fps) # if duration is given, will be recalculated
-        self.frames = []
-        if not os.path.exists('/tmp/v'): os.mkdir('/tmp/v')
-        for fl in glob("/tmp/v/*.png"): os.remove(fl)
-        print ("Video", name, "is open. Press q to continue.")
-        itr = bool(self.interactive)
-        self.show(interactive=True)
-        self.interactive = itr
-        
-    def addFrameVideo(self):
-        if not self.videoname: return
-        fr = '/tmp/v/'+str(len(self.frames))+'.png'
-        screenshot(fr)
-        self.frames.append(fr)
-
-    def pauseVideo(self, pause):
-        '''insert a pause, in seconds'''
-        if not self.videoname: return
-        fr = self.frames[-1]
-        n = int(self.fps*pause)
-        for i in range(n): 
-            fr2='/tmp/v/'+str(len(self.frames))+'.png'
-            self.frames.append(fr2)
-            os.system("cp -f %s %s" % (fr, fr2))
-            
-    def releaseGif(self): #untested
-        if not self.videoname: return
-        try: import imageio
-        except: 
-            print ("release_gif: imageio not installed? Skip.")
-            return
-        images = []
-        for fl in self.frames:
-            images.append(imageio.imread(fl))
-        imageio.mimsave('animation.gif', images)
-
-    def releaseVideo(self):        
-        if not self.videoname: return
-        import cv2
-        if self.videoduration:
-            self.fps = len(self.frames)/float(self.videoduration)
-            print ("Recalculated video FPS to", round(self.fps,3))
-        fourcc = cv2.cv.CV_FOURCC(*self.videoformat)
-        vid = None
-        size = None
-        for image in self.frames:
-            if not os.path.exists(image):
-                print ('Image not found:', image)
-                continue
-            img = cv2.imread(image)
-            if vid is None:
-                if size is None:
-                    size = img.shape[1], img.shape[0]
-                vid = cv2.VideoWriter(self.videoname, 
-                                      fourcc, self.fps, size, True)
-            if size[0] != img.shape[1] and size[1] != img.shape[0]:
-                img = cv2.resize(img, size)
-            vid.write(img)
-        if self.verbose: print ("Video saved to:", self.videoname)
-        vid.release()
-        self.videoname = None
 
 
  

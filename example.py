@@ -106,8 +106,7 @@ vp.interact()
 
 
 # Draw a simple objects on separate parts of the rendering window:
-vp = plotter.vtkPlotter(shape=(2,3))
-vp.axes    = True
+vp = plotter.vtkPlotter(N=6) # split window to best accomodate 6 renderers
 vp.commoncam   = False
 vp.interactive = False
 vp.show(at=0, actors=vp.arrow( [0,0,0], [1,1,1] ) )
@@ -120,7 +119,7 @@ vp.interact()
 
 
 # Draw a bunch of objects
-vp = plotter.vtkPlotter(shape=(3,3))
+vp = plotter.vtkPlotter(shape=(3,3)) # split window in 3 rows and 3 columns
 vp.commoncam   = False
 vp.interactive = False
 vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
@@ -181,7 +180,7 @@ vp = plotter.vtkPlotter()
 a1, a2 = vp.load('data/2[79]0.vtk') 
 a1.GetProperty().SetColor(0,1,0)
 a1b = vp.align(a1, a2, rigid=1)
-ps1 = vp.getCoordinates(a1b) # coordinates of actor
+ps1 = plotter.getCoordinates(a1b) # coordinates of actor
 for p in ps1: vp.arrow(p, vp.closestPoint(a2, p))
 vp.show(legend=['Source','Target','Aligned','Links'])            
 
@@ -212,13 +211,13 @@ vp.show()
 # Make a video  (needs cv2 package)
 vp = plotter.vtkPlotter(interactive=0, verbose=0)
 vp.load('data/290.vtk', c='b', bc='tomato', alpha=1)
-vp.show()                 # inits camera etc.
-vp.openVideo(duration=5) # will make it last 5 seconds
+vp.show()                     # inits camera etc.
+plotter.openVideo(duration=3) # will make it last 3 seconds
 for i in range(100):
     vp.camera.SetPosition(700.-i*20., -10, 4344.-i*80.)
     vp.show()
-    vp.addFrameVideo()
-vp.releaseVideo()
+    plotter.addFrameVideo()
+plotter.releaseVideo()
 print ('Video saved as movie.avi')
 vp.interact()
 
