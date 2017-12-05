@@ -62,8 +62,17 @@ class vtkPlotter:
         print (msg)
 
 
-    def __init__(self, shape=(1,1), size='auto', screensize=(1000,1600),
-                bg=(1,1,1), bg2=None, balloon=False, verbose=True, interactive=True):
+    def __init__(self, shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='',
+                bg=(1,1,1), bg2=None, verbose=True, interactive=True):
+        """
+        size = size of the rendering window. If 'auto', guess it based on screensize.
+        N    = number of desired renderers arranged in a grid automatically.
+        shape= shape of the grid of renderers in format (rows, columns).
+               Ignored if N is specified.
+        bg   = background color
+        bg2  = background color of a gradient towards the top
+        interactive = if True will stop after show() to allow interaction w/ window 
+        """
         self.verbose    = verbose
         self.actors     = []    # list of actors to be shown
         self.clickedActor = None# holds the actor that has been clicked
@@ -71,7 +80,8 @@ class vtkPlotter:
         self.renderers  = []    # list of renderers
         self.interactive= interactive # allows to interact with renderer
         self.axes       = True  # show or hide axes
-        self.units      = ''    # axes units
+        self.xtitle     = 'x'   # x axis label and units
+        self.ytitle     = 'y'   # y axis label and units
         self.camera     = None  # current vtkCamera 
         self.commoncam  = True  # share the same camera in renderers
         self.resetcam   = True  # reset camera when calling show()
@@ -90,10 +100,9 @@ class vtkPlotter:
         # internal stuff:
         self.clickedr   = 0     # clicked renderer number
         self.camThickness = 2000
-        self.balloon    = balloon
         self.locator    = None
         self.initialized= False
-        self.justremoved= None
+        self.justremoved= None # to fix
         self.videoname  = None
         self.videoformat = None
         self.frames     = []
@@ -103,21 +112,41 @@ class vtkPlotter:
         self.icol2      = 0
         self.icol3      = 0
         
-        if size=='auto':        # figure out reasonable window size
-                maxs = screensize # max sizes allowed in y and x
-                xs = maxs[0]/2.*shape[0]
-                ys = maxs[0]/2.*shape[1]
-                if xs>maxs[0]:  # shrink
-                    xs = maxs[0]
-                    ys = maxs[0]/shape[0]*shape[1]
-                if ys>maxs[1]: 
-                    ys = maxs[1]
-                    xs = maxs[1]/shape[1]*shape[0]
-                self.size = (xs,ys)
-                if shape==(1,1): 
-                    self.size = (maxs[1]/2,maxs[1]/2)
-                elif self.verbose:
-                    print ('Window size set to:', self.size)
+        if N:                # N = number of renderers. Find out the best 
+            if shape!=(1,1): # arrangement based on minimum nr. of empty renderers
+                print ('Warning: having set N, #renderers, shape is ignored.)')
+            x = float(screensize[0]) 
+            y = float(screensize[1])
+            n = shape
+            nx= int(np.sqrt(int(n*x/y)+1))
+            ny= int(np.sqrt(int(n*y/x)+1))
+            lm = [(nx,ny), (nx,ny+1), (nx-1,ny), (nx+1,ny), (nx,ny-1)]
+            lm+= [(nx-1,ny+1), (nx+1,ny-1), (nx+1,ny+1), (nx-1,ny-1)]
+            minl=100
+            ind = 0
+            for i,m in enumerate(lm):
+                l = m[0]*m[1]
+                if n <= l < minl:
+                  ind = i
+                  minl = l
+            shape = lm[ind]
+            self.size = screensize
+        elif size=='auto':        # figure out reasonable window size
+            maxs = screensize
+            xs = maxs[0]/2.*shape[0]
+            ys = maxs[0]/2.*shape[1]
+            if xs>maxs[0]:  # shrink
+                xs = maxs[0]
+                ys = maxs[0]/shape[0]*shape[1]
+            if ys>maxs[1]: 
+                ys = maxs[1]
+                xs = maxs[1]/shape[1]*shape[0]
+            self.size = (xs,ys)
+            if shape==(1,1): 
+                self.size = (maxs[1]/2,maxs[1]/2)
+
+            if self.verbose and shape!=(1,1):
+                print ('Window size =', self.size, 'shape =',shape)
    
         ############################
         # build the renderers scene:
@@ -141,17 +170,13 @@ class vtkPlotter:
         self.renderWin.LineSmoothingOn()
         self.renderWin.PointSmoothingOn()
         self.renderWin.SetSize(list(reversed(self.size)))
+        if title: self.renderWin.SetWindowName(title)
         for r in self.renderers: self.renderWin.AddRenderer(r)
+        
         self.interactor = vtk.vtkRenderWindowInteractor()
         self.interactor.SetRenderWindow(self.renderWin)
         vsty = vtk.vtkInteractorStyleTrackballCamera()
         self.interactor.SetInteractorStyle(vsty)
-
-        if balloon: # tends to crash, so disabled.
-            self.balloonWidget = vtk.vtkBalloonWidget()
-            self.balloonRep = vtk.vtkBalloonRepresentation()
-            self.balloonRep.SetBalloonLayoutToImageRight()
-            self.balloonWidget.SetRepresentation(self.balloonRep)
 
 
     ####################################### LOADER
@@ -1273,8 +1298,8 @@ class vtkPlotter:
         ca.XAxisLabelVisibilityOn()
         ca.YAxisLabelVisibilityOn()
         ca.ZAxisLabelVisibilityOff()
-        ca.SetXTitle('x-axis '+self.units)
-        ca.SetYTitle('y-axis '+self.units)
+        ca.SetXTitle(self.xtitle)
+        ca.SetYTitle(self.ytitle)
         ca.XAxisMinorTickVisibilityOff()
         ca.YAxisMinorTickVisibilityOff()
         ca.ZAxisMinorTickVisibilityOff()
@@ -1400,7 +1425,7 @@ class vtkPlotter:
         if not interactive is None: self.interactive = interactive
         if self.verbose:
             print ('Drawing', len(self.actors),'actors ', end='')
-            if len(self.renderers)>1 : print ('on window',at,'-', end='')
+            if len(self.renderers)>1 : print ('on window', at,'-', end='')
             else: print (' - ', end='')
             if self.interactive: print ('Interactive mode: On.')
             else: print ('Interactive mode: Off.')
@@ -1408,7 +1433,7 @@ class vtkPlotter:
         if at<len(self.renderers):
             self.renderer = self.renderers[at]
         else:
-            print ("Error in show(): wrong renderer index",at)
+            print ("Error in show(): wrong renderer index", at)
             return
         if not self.camera: 
             self.camera = self.renderer.GetActiveCamera()
@@ -1453,13 +1478,6 @@ class vtkPlotter:
             self.interactor.AddObserver("LeftButtonPressEvent", self.mouseleft)
             self.interactor.AddObserver("KeyPressEvent", self.keypress)
             if self.verbose: self._tips()
-            if self.balloon:
-                self.balloonWidget.SetInteractor(self.interactor)
-                self.balloonWidget.EnabledOn()
-        if self.balloon:
-            for ia in self.actors:
-                if hasattr(ia, 'legend'):
-                    self.balloonWidget.AddBalloon(ia, a.legend)
 
         if hasattr(self, 'interactor') and self.interactor: 
             self.interactor.Render()
@@ -1521,7 +1539,7 @@ class vtkPlotter:
         if   key == "q" or key == "space" or key == "Return":
             self.interactor.ExitCallback()
         elif key == "e":
-            if self.verbose: print ("Closing window...")
+            if self.verbose: print ("closing window...")
             self.interactor.GetRenderWindow().Finalize()
             self.interactor.TerminateApp()
             del self.renderWin, self.interactor
@@ -1638,21 +1656,6 @@ class vtkPlotter:
                     ls = ia.GetProperty().GetLineWidth()
                     ia.GetProperty().SetLineWidth(ls+1)
                 except AttributeError: pass
-#        elif key == "N": #flips normals
-#            if self.clickedActor in self.getActors(): acts=[self.clickedActor]
-#            else: acts = self.getActors()
-#            for ia in acts:
-#                try:
-#                    rs = vtk.vtkReverseSense()
-#                    rs.ReverseNormalsOn()
-#                    setInput(rs, self.getPolyData(ia))
-#                    rs.Update()
-#                    ns = rs.GetOutput().GetPointData().GetNormals()
-#                    rna = vtk.vtkFloatArray.SafeDownCast(ns)
-#                    ia.GetMapper().GetInput().GetPointData().SetNormals(rna)
-#                    del rs
-#                except: 
-#                    print ("Cannot flip normals.")
         elif key == "n": # show normals to an actor
             if self.clickedActor in self.getActors(): acts=[self.clickedActor]
             else: acts = self.getActors()

@@ -248,6 +248,8 @@ Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.
 ## List of available methods with default values:
 ```python
 def help()
+def __init__(shape=(1,1), size='auto', N=None, screensize=(1000,1600), title='',
+             bg=(1,1,1), bg2=None, verbose=True, interactive=True):
 #
 def getPolyData(obj, index=0)
 def getActors(obj=None)
@@ -297,7 +299,6 @@ Useful attributes:
 ```python
 vp = plotter.vtkPlotter()
 vp.actors       # list of vtkActors to be shown
-vp.clickedActor # holds the actor that has been clicked
 vp.renderer     # holds current renderer
 vp.renderers    # list of renderers
 vp.interactor   # vtk window interactor
