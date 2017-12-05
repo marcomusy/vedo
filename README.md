@@ -307,7 +307,7 @@ vp.result       # dictionary to store extra output information
 Useful *plotter* functions:
 ```python
 def load(filesOrDirs, c='gold', alpha=0.2, wire=False, bc=None, edges=False, legend=True)
-def makeActor(poly, c='gold', alpha=0.5, 
+def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None)
 def makeAssembly(actors, legend=None)
 def screenshot(filename='screenshot.png')
 def makePolyData(spoints, addLines=True)
