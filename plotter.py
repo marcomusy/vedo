@@ -117,16 +117,15 @@ class vtkPlotter:
                 print ('Warning: having set N, #renderers, shape is ignored.)')
             x = float(screensize[0]) 
             y = float(screensize[1])
-            n = shape
-            nx= int(np.sqrt(int(n*x/y)+1))
-            ny= int(np.sqrt(int(n*y/x)+1))
+            nx= int(np.sqrt(int(N*x/y)+1))
+            ny= int(np.sqrt(int(N*y/x)+1))
             lm = [(nx,ny), (nx,ny+1), (nx-1,ny), (nx+1,ny), (nx,ny-1)]
             lm+= [(nx-1,ny+1), (nx+1,ny-1), (nx+1,ny+1), (nx-1,ny-1)]
             minl=100
             ind = 0
             for i,m in enumerate(lm):
                 l = m[0]*m[1]
-                if n <= l < minl:
+                if N <= l < minl:
                   ind = i
                   minl = l
             shape = lm[ind]

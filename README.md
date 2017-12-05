@@ -248,9 +248,8 @@ Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.
 ## List of available methods with default values:
 ```python
 def help()
-def __init__(shape=(1,1), size='auto', N=None, screensize=(1000,1600), title='',
-             bg=(1,1,1), bg2=None, verbose=True, interactive=True):
-#
+def __init__(shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='',
+             bg=(1,1,1), bg2=None, verbose=True, interactive=True)
 def getPolyData(obj, index=0)
 def getActors(obj=None)
 def getPoint(i, actor)
@@ -273,9 +272,9 @@ def spline(points, s=10, c='navy', alpha=1., nodes=True, legend=None)
 def bspline(points, nknots=-1, s=1, c=(0,0,0.8), alpha=1, nodes=True, legend=None)
 def text(txt, pos=(0,0,0), s=1, c='k', alpha=1, bc=None, cam=True)
 def xyplot(points, title='', c='r', pos=1, lines=False)
-def normals(pactor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
-def curvature(pactor, method=1, r=1, alpha=1, lut=None, legend=None)
-def boundaries(pactor, c='p', lw=5, legend=None)
+def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
+def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None)
+def boundaries(actor, c='p', lw=5, legend=None)
 def ellipsoid(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None)
 #
 def align(source, target, rigid=False, iters=100, legend=None):
