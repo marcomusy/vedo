@@ -102,10 +102,6 @@ class vtkPlotter:
         self.locator    = None
         self.initialized= False
         self.justremoved= None # to fix
-        self.videoname  = None
-        self.videoformat = None
-        self.frames     = []
-        self.fps        = 12
         self.caxes_exist = []
         self.icol1      = 0
         self.icol2      = 0

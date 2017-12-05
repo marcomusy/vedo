@@ -5,23 +5,26 @@ Created on Mon Nov 13 12:48:43 2017
 @author: mmusy
 """
 from __future__ import print_function
+from random import uniform as u
 import numpy as np
 import plotter
 
 
+#########################################################################################
 # Declare an instance of the class
 vp = plotter.vtkPlotter()
 #vp.help() # shows a help message
 
 # Load a vtk file as a vtkActor and visualize it.
-#The tridimensional shape corresponds to the outer shape of the embryonic mouse limb
-#at about 11 days of gestation.
-#Choose a tomato color for the internal surface, and no transparency.
-#Press Esc to close the window and exit python session, or q to continue:
+# The tridimensional shape corresponds to the outer shape of the embryonic mouse limb
+# at about 11 days of gestation.
+# Choose a tomato color for the internal surface, and no transparency.
 vp.load('data/250.vtk', c='b', bc='tomato', alpha=1) # c=(R,G,B), #hex, letter or name
 vp.show()             # picks what is automatically stored in vp.actors list
+# Press Esc to close the window and exit python session, or q to continue
 
 
+#########################################################################################
 # Load a vtk file as a vtkActor and visualize it in wireframe style.
 a = vp.load('data/290.vtk', wire=1) # same as a.GetProperty().SetRepresentationToWireframe()
 vp.axes = False
@@ -30,6 +33,7 @@ vp.show(legend=None) # picks what is automatically stored in vp.actors
 #vp.show(actors=[a])  # same as above
 
 
+#########################################################################################
 # Load 3 actors assigning each a different color, use their file names as legend entries.
 # No need to use any variables, as actors are stored internally in vp.actors:
 vp = plotter.vtkPlotter()
@@ -40,14 +44,15 @@ print ('Loaded vtkActors: ', len(vp.actors))
 vp.show()
 
 
+#########################################################################################
 # Draw a spline that goes through a set of points, don't show the points (nodes=False):
-from random import uniform as u
 pts = [(u(0,10), u(0,10), u(0,10)) for i in range(20)]
 vp = plotter.vtkPlotter()
 vp.spline(pts, s=.1, nodes=False)
 vp.show(legend='a random spline')
 
 
+#########################################################################################
 # Draw a PCA ellipsoid that contains 67% of a cloud of points:
 vp = plotter.vtkPlotter()
 pts = [(u(0,200), u(0,200), u(0,200)) for i in range(50)]
@@ -56,6 +61,7 @@ vp.ellipsoid(pts, pvalue=0.67, pcaAxes=True)
 vp.show(legend=['points', 'PCA ellipsoid'])
 
 
+#########################################################################################
 # Show 3 planes as a grid, add a dummy sine plot on top left:
 xycoords = [(np.exp(i/10.), np.sin(i/5.)) for i in range(40)]
 vp = plotter.vtkPlotter()
@@ -66,6 +72,7 @@ vp.grid(center=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
 vp.show(axes=0)
 
 
+#########################################################################################
 # Show the vtk boundaries of a vtk surface and its normals
 # (ratio reduces the total nr of arrows by the indicated factor):
 vp = plotter.vtkPlotter()
@@ -75,6 +82,7 @@ vp.boundaries(va)
 vp.show(legend='shape w/ boundaries')
 
 
+#########################################################################################
 # Split window in a 36 subwindows and draw something in windows nr 12 and nr 33.
 # Then open an independent window and draw on two shapes:
 vp1 = plotter.vtkPlotter(shape=(6,6))
@@ -92,6 +100,7 @@ vp2.load('data/270.vtk')
 vp2.show(legend='an other window')
 
 
+#########################################################################################
 # Load a surface and show its curvature based on 4 different schemes.
 # All four shapes share a common vtkCamera:
 # 0-gaussian, 1-mean, 2-max, 3-min
@@ -105,6 +114,7 @@ for i in [0,1,2,3]:
 vp.interact()
 
 
+#########################################################################################
 # Draw a simple objects on separate parts of the rendering window:
 vp = plotter.vtkPlotter(N=6) # split window to best accomodate 6 renderers
 vp.commoncam   = False
@@ -118,6 +128,7 @@ vp.show(at=5, actors=vp.cube(  [.5,.5,.5], r=0.3), axes=0, legend='a dummy cube'
 vp.interact()
 
 
+#########################################################################################
 # Draw a bunch of objects
 vp = plotter.vtkPlotter(shape=(3,3)) # split window in 3 rows and 3 columns
 vp.commoncam   = False
@@ -136,6 +147,7 @@ vp.show(at=8, c=8, actors='data/skyscraper.obj')
 vp.interact()
 
 
+#########################################################################################
 # Draw a line in 3D that fits a cloud of points,
 # also show the first set of 20 points and fit a plane to them:
 vp = plotter.vtkPlotter(verbose=False)
@@ -153,6 +165,7 @@ print ('Fit slope=', vp.result['slope']) # the last fitted slope direction
 vp.show(legend=['points','fitting plane','fitting line'])
 
 
+#########################################################################################
 # Cut a set of shapes with a plane that goes through the 
 # point at x=500 and has normal (0, 0.3, -1). 
 # Wildcards are ok to load multiple files or directories:
@@ -163,10 +176,12 @@ for a in vp.actors:
 vp.show()
 
 
+#########################################################################################
 # As a short-cut, the filename can be given in the show command directly:
 plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 
 
+#########################################################################################
 # Display a tetrahedral mesh (Fenics/Dolfin format).
 # The internal vertices are displayed too:
 vp = plotter.vtkPlotter()
@@ -174,6 +189,7 @@ vp.load('data/290.xml.gz')
 vp.show(legend='tetrahedral mesh')
 
 
+#########################################################################################
 # Align 2 shapes and for each vertex of the first draw 
 # and arrow to the closest point of the second:
 vp = plotter.vtkPlotter()
@@ -185,8 +201,8 @@ for p in ps1: vp.arrow(p, vp.closestPoint(a2, p))
 vp.show(legend=['Source','Target','Aligned','Links'])            
 
 
+#########################################################################################
 # Find closest point in set pts1 to pts2 within a specified radius
-from random import uniform as u
 pts1 = [(u(0,5), u(0,5), u(0,5)) for i in range(40)]
 pts2 = [(u(0,5), u(0,5), u(0,5)) for i in range(20)]
 vp = plotter.vtkPlotter()
@@ -200,6 +216,7 @@ for p in pts1:
 vp.show()
 
 
+#########################################################################################
 # Draw a cloud of points each one with a different color 
 # which depends on its position
 vp = plotter.vtkPlotter()
@@ -208,6 +225,7 @@ vp.points(rgb, c=rgb, alpha=0.7, legend='RGB points')
 vp.show()
 
 
+#########################################################################################
 # Make a video  (needs cv2 package)
 vp = plotter.vtkPlotter(interactive=0, verbose=0)
 vp.load('data/290.vtk', c='b', bc='tomato', alpha=1)
@@ -222,5 +240,6 @@ print ('Video saved as movie.avi')
 vp.interact()
 
 
+#########################################################################################
 
 
