@@ -39,7 +39,8 @@ vp.help()                  # shows a help message
 <br />
 
 Load a vtk file as a vtkActor and visualize it in wireframe style. <br />
-The tridimensional shape corresponds to the outer shape of the embryonic mouse limb at about 12 days of gestation.<br />
+The tridimensional shape corresponds to the outer shape of the embryonic mouse 
+limb at about 12 days of gestation.<br />
 Press *Esc* to close the window and exit python session or *q* to continue:
 ```python
 actor = vp.load('data/290.vtk', wire=1)
@@ -242,7 +243,7 @@ vp.show()
 
 
 
-If you need to do more complicated things (define widgets.. etc), you can still access all the 
+More examples in *example.py*. If you need to do more complicated things (define widgets.. etc), you can still access all the 
 usual VTK objects like interactors and renderers through *vp.interactor, vp.renderer*... etc.<br />
 Use *plotter.openVideo(), plotter.addFrameVideo()* and *plotter.closeVideo()* to save a *movie.avi* file.
 <br />
@@ -314,7 +315,9 @@ def makePolyData(spoints, addLines=True)
 def isInside(poly, point)
 def getPolyData(obj, index=0)
 def getPoint(i, actor)
+def closestPoint(surface, point, locator=None, N=None, radius=None)
 def getCoordinates(actors)
+def cutterWidget(actor, outputname='clipped.vtk')
 def writeVTK(obj, fileoutput)
 def openVideo(name='movie.avi', fps=12, duration=None, format="XVID")
 def addFrameVideo()

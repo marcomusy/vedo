@@ -3,7 +3,7 @@
 from __future__ import print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "4.0"
+__version__ = "4.1"
 __maintainer__ = __author__
 __email__   = "marco.musy@embl.es"
 __status__  = "stable"
@@ -38,7 +38,7 @@ class vtkPlotter:
             # [vtk,vtu,vts,vtp,ply,obj,stl,xml,pcd,xyz,txt,byu,g] 
         ''')
     def _tips(self):
-        msg = """Press: ------------------------------------------
+        msg = """Press: -------------------------------------------
         m   to minimise opacity of selected actor
         /   to maximize opacity of selected actor
         .,  to increase/reduce opacity
@@ -47,6 +47,7 @@ class vtkPlotter:
         lL  to change edge line width
         n   to show normals for selected actor
         x   to remove selected actor
+        X   to open a cutter widget for sel. actor
         1-5 to change color scheme
         V   to toggle verbose mode
         C   to print current camera info
@@ -57,7 +58,7 @@ class vtkPlotter:
         Ctrl-mouse  to rotate scene
         Shift-mouse to shift scene
         Right-mouse click to zoom in/out
-        -----------------------------------------"""
+        ------------------------------------------"""
         print (msg)
 
 
@@ -174,9 +175,9 @@ class vtkPlotter:
 
 
     ####################################### LOADER
-    def load(self, filesOrDirs, c='gold', alpha=0.2, 
+    def load(self, inputobj, c='gold', alpha=0.2, 
               wire=False, bc=None, edges=False, legend=True):
-        '''Returns a vtkActor from reading a file or directory. 
+        '''Returns a vtkActor from reading a file, directory or vtkPolyData. 
            Optional args:
            c,     color in RGB format, hex, symbol or name
            alpha, transparency (0=invisible)
@@ -184,24 +185,30 @@ class vtkPlotter:
            bc,    backface color of internal surface
            legend, text to show on legend, if True picks filename.
         '''
-        acts = vtkutils.load(filesOrDirs, c, alpha, wire, bc, edges, legend)
+        if isinstance(inputobj, vtk.vtkPolyData):
+            a = makeActor(inputobj, c, alpha, wire, bc, edge, legend)
+            self.actors.append(a)
+            return a
+            
+        acts = vtkutils.load(inputobj, c, alpha, wire, bc, edges, legend)
+        
         if not isinstance(acts, list): acts=[acts]
         for actor in acts:
-            if not isinstance(actor, vtk.vtkActor): continue
-            if self.flat:    
-                actor.GetProperty().SetInterpolationToFlat()
-                self.phong = self.gouraud = False
-                actor.GetProperty().SetSpecular(0)
-            if self.phong:   
-                actor.GetProperty().SetInterpolationToPhong()
-                self.flat = self.gouraud = False
-            if self.gouraud: 
-                actor.GetProperty().SetInterpolationToGouraud()
-                self.flat = self.phong = False
-            if self.bculling: actor.GetProperty().BackfaceCullingOn()
-            else: actor.GetProperty().BackfaceCullingOff()
-            if self.fculling: actor.GetProperty().FrontfaceCullingOn()
-            else: actor.GetProperty().FrontfaceCullingOff()
+            if isinstance(actor, vtk.vtkActor): 
+                if self.flat:    
+                    actor.GetProperty().SetInterpolationToFlat()
+                    self.phong = self.gouraud = False
+                    actor.GetProperty().SetSpecular(0)
+                if self.phong:   
+                    actor.GetProperty().SetInterpolationToPhong()
+                    self.flat = self.gouraud = False
+                if self.gouraud: 
+                    actor.GetProperty().SetInterpolationToGouraud()
+                    self.flat = self.phong = False
+                if self.bculling: actor.GetProperty().BackfaceCullingOn()
+                else:             actor.GetProperty().BackfaceCullingOff()
+                if self.fculling: actor.GetProperty().FrontfaceCullingOn()
+                else:             actor.GetProperty().FrontfaceCullingOff()
 
         self.actors += acts
         if len(acts) == 1: return acts[0]
@@ -365,14 +372,19 @@ class vtkPlotter:
         return actor
 
 
-    def cube(self, pt, r=1, c='g', alpha=1., legend=None):
+    def cube(self, pt, r=1, normal=(0,0,1), c='g', alpha=1., legend=None):
         src = vtk.vtkCubeSource()
         src.SetXLength(r)
         src.SetYLength(r)
         src.SetZLength(r)
-        src.SetCenter(pt)
         src.Update()
         actor = makeActor(src.GetOutput(), c, alpha)
+        normal= np.array(normal)/np.linalg.norm(normal)
+        theta = np.arccos(normal[2])
+        phi   = np.arctan2(normal[1], normal[0])
+        actor.SetPosition(pt)
+        actor.RotateZ(phi*57.3)
+        actor.RotateY(theta*57.3)
         self.actors.append(actor)
         if legend: setattr(actor, 'legend', legend) 
         return actor
@@ -938,62 +950,17 @@ class vtkPlotter:
             acts.append(points_act)
 
         if len(acts)>1: 
-            finact = makeAssembly(acts)
+            finact = makeAssembly(list(reversed(acts)))
         else: 
             finact = clipActor
         if hasattr(actor, 'legend'): 
-            setattr(finact, 'legend', str(actor.legend)) 
+            setattr(finact, 'legend', actor.legend) 
+            setattr(clipActor, 'legend', actor.legend) 
         i = self.actors.index(actor)
         arem = self.actors[i]
         del arem
         self.actors[i] = finact # substitute original actor with cut one
-        # do not return actor
-        
-
-    ####################################
-    def closestPoint(self, surf, pt, locator=None, N=None, radius=None):
-        """
-        Find the closest point on a polydata given an other point.
-        If N is given, return a list of N ordered closest points.
-        If radius is given, pick only within specified radius.
-        """
-        polydata = getPolyData(surf)
-        trgp  = [0,0,0]
-        cid   = vtk.mutable(0)
-        subid = vtk.mutable(0)
-        dist2 = vtk.mutable(0)
-        self.result['closest_exists'] = False
-        if locator: self.locator = locator
-        elif not self.locator:
-            if N: self.locator = vtk.vtkPointLocator()
-            else: self.locator = vtk.vtkCellLocator()
-            self.locator.SetDataSet(polydata)
-            self.locator.BuildLocator()
-        if N:
-            vtklist = vtk.vtkIdList()
-            vmath = vtk.vtkMath()
-            self.locator.FindClosestNPoints(N, pt, vtklist)
-            trgp_, trgp, dists2 = [0,0,0], [], []
-            npt = vtklist.GetNumberOfIds()
-            if npt: self.result['closest_exists'] = True
-            for i in range(vtklist.GetNumberOfIds()):
-                vi = vtklist.GetId(i)
-                polydata.GetPoints().GetPoint(vi, trgp_ )
-                trgp.append( trgp_ )
-                dists2.append(vmath.Distance2BetweenPoints(trgp_, pt))
-            dist2 = dists2
-        elif radius:
-            cell = vtk.mutable(0)
-            r = self.locator.FindClosestPointWithinRadius(pt, radius, trgp, cell, cid, dist2)
-            self.result['closest_exists'] = bool(r)
-            if not r: 
-                trgp = pt
-                dist2 = 0.0
-        else: 
-            self.locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
-            self.result['closest_exists'] = True
-        self.result['distance2'] = dist2
-        return trgp
+        return clipActor
         
 
     ##########################################
@@ -1052,9 +1019,7 @@ class vtkPlotter:
         acs.InitTraversal()
         for i in range(acs.GetNumberOfItems()):
             a = acs.GetNextItem()
-            if isinstance(a, vtk.vtkLegendBoxActor):
-                self.renderer.RemoveActor(a)
-            if isinstance(a, vtk.vtkScalarBarActor):
+            if isinstance(a, vtk.vtkLegendBoxActor): 
                 self.renderer.RemoveActor(a)
 
         actors = self.getActors()
@@ -1080,29 +1045,15 @@ class vtkPlotter:
         for i in range(NT):
             ti = texts[i]
             a  = acts[i]
-            if isinstance(a, vtk.vtkAssembly):
-                cl = vtk.vtkPropCollection()
-                a.GetActors(cl)
-                cl.InitTraversal()
-                act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
-                c = act.GetProperty().GetColor()
-                if c==(1,1,1): c=(0.7,0.7,0.7) # awoid white
-                try:
-                    vtklegend.SetEntry(i, getPolyData(a), "  "+ti, c)
-                except:
-                    sp = vtk.vtkSphereSource() #make a dummy sphere as icon
-                    sp.Update()
-                    vtklegend.SetEntry(i, sp.GetOutput(),"  "+ti, c)
-            else:
-                c = a.GetProperty().GetColor()
-                if c==(1,1,1): c=(0.7,0.7,0.7)
-                vtklegend.SetEntry(i, getPolyData(a), "  "+ti, c)
+            c = a.GetProperty().GetColor()
+            if c==(1,1,1): c=(0.7,0.7,0.7)
+            vtklegend.SetEntry(i, getPolyData(a), "  "+ti, c)
         pos = self.legendPos
         width = self.legendSize
         vtklegend.SetWidth(width)
         vtklegend.SetHeight(width/5.*NT)
         sx, sy = 1-width, 1-width/5.*NT
-        if pos==1: vtklegend.GetPositionCoordinate().SetValue(  0, sy) #x,y from bottomleft
+        if   pos==1: vtklegend.GetPositionCoordinate().SetValue(  0, sy) #x,y from bottomleft
         elif pos==2: vtklegend.GetPositionCoordinate().SetValue( sx, sy) #default
         elif pos==3: vtklegend.GetPositionCoordinate().SetValue(  0,  0)
         elif pos==4: vtklegend.GetPositionCoordinate().SetValue( sx,  0)
@@ -1226,29 +1177,34 @@ class vtkPlotter:
         picker = vtk.vtkPropPicker()
         picker.PickProp(x,y, self.renderer)
         clickedActor = picker.GetActor()
-        if not clickedActor: clickedActor = picker.GetAssembly()
-        if self.verbose and (len(self.renderers)>1 or clickedr>0):
-            if self.clickedr != clickedr:
+        if not clickedActor: 
+            clickedActor = picker.GetAssembly()
+            
+        if self.verbose:
+            if len(self.renderers)>1 or clickedr>0 and self.clickedr != clickedr:
                 print ('Current Renderer:', clickedr, end='')
                 print (', nr. of actors =', len(self.getActors()))
-        if self.verbose and clickedActor and hasattr(clickedActor,'legend'):
-            bh = hasattr(self.clickedActor,'legend')
-            if len(clickedActor.legend) > 1 :
-                if not bh or (bh and self.clickedActor.legend!=clickedActor.legend): 
-                    try: 
-                        indx = str(self.getActors().index(clickedActor))
-                    except ValueError: indx = None                        
-                    try: 
-                        rgb = list(clickedActor.GetProperty().GetColor())
-                        cn = '('+getColorName(rgb)+'),'
-                    except: cn = None                        
-                    if (not indx is None) and isinstance(clickedActor, vtk.vtkAssembly): 
-                        print ('-> assembly', indx+':', clickedActor.legend, end=' ')
-                    elif not indx is None:
-                        print ('-> actor', indx+':', clickedActor.legend, end=' ')
-                        if cn: print (cn, end=' ')
-                    n = str(getPolyData(clickedActor).GetNumberOfPoints())
-                    print ('N='+n)
+            
+            leg, oldleg = '', ''
+            if hasattr(clickedActor,'legend'): leg = clickedActor.legend
+            if hasattr(self.clickedActor,'legend'): oldleg = self.clickedActor.legend
+            if len(leg) and oldleg != leg: #detect if clickin the same obj
+                try: indx = str(self.getActors().index(clickedActor))
+                except ValueError: indx = None                        
+                try: indx = str(self.actors.index(clickedActor))
+                except ValueError: indx = None                        
+                try: 
+                    rgb = list(clickedActor.GetProperty().GetColor())
+                    cn = '('+getColorName(rgb)+'),'
+                except: 
+                    cn = None                        
+                if indx and isinstance(clickedActor, vtk.vtkAssembly): 
+                    print ('-> assembly', indx+':', clickedActor.legend, end=' ')
+                elif indx:
+                    print ('-> actor', indx+':', leg, end=' ')
+                    if cn: print (cn, end=' ')
+                print ('N='+str(getPolyData(clickedActor).GetNumberOfPoints()))
+                    
         self.clickedActor = clickedActor
         self.clickedr = clickedr
 
@@ -1433,6 +1389,17 @@ class vtkPlotter:
                     self.renderer.Render()
                     self._draw_legend()        
                 self.justremoved = None
+        elif key == "X":
+            if self.clickedActor:
+                if hasattr(self.clickedActor, 'legend'):
+                    fname = 'clipped_'+self.clickedActor.legend
+                    fname = fname.split('.')[0]+'.vtk'
+                else: fname = 'clipped.vtk'
+                if self.verbose:
+                    print ('Move handles to remove part of the actor.')
+                cutterWidget(self.clickedActor, fname) 
+            elif self.verbose: 
+                print ('Click an actor and press X to open the cutter widget.')
             
         self.interactor.Render()
 

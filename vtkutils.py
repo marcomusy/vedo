@@ -354,6 +354,45 @@ def getCoordinates(actors):
 
 
 ####################################
+def closestPoint(surf, pt, locator=None, N=None, radius=None):
+    """
+    Find the closest point on a polydata given an other point.
+    If N is given, return a list of N ordered closest points.
+    If radius is given, pick only within specified radius.
+    """
+    polydata = getPolyData(surf)
+    trgp  = [0,0,0]
+    cid   = vtk.mutable(0)
+    dist2 = vtk.mutable(0)
+    if not locator:
+        if N: locator = vtk.vtkPointLocator()
+        else: locator = vtk.vtkCellLocator()
+        locator.SetDataSet(polydata)
+        locator.BuildLocator()
+    if N:
+        vtklist = vtk.vtkIdList()
+        vmath = vtk.vtkMath()
+        locator.FindClosestNPoints(N, pt, vtklist)
+        trgp_, trgp, dists2 = [0,0,0], [], []
+        for i in range(vtklist.GetNumberOfIds()):
+            vi = vtklist.GetId(i)
+            polydata.GetPoints().GetPoint(vi, trgp_ )
+            trgp.append( trgp_ )
+            dists2.append(vmath.Distance2BetweenPoints(trgp_, pt))
+        dist2 = dists2
+    elif radius:
+        cell = vtk.mutable(0)
+        r = locator.FindClosestPointWithinRadius(pt, radius, trgp, cell, cid, dist2)
+        if not r: 
+            trgp = pt
+            dist2 = 0.0
+    else: 
+        subid = vtk.mutable(0)
+        locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
+    return trgp
+        
+
+####################################
 def writeVTK(obj, fileoutput):
     wt = vtk.vtkPolyDataWriter()
     setInput(wt, getPolyData(obj))
@@ -361,6 +400,69 @@ def writeVTK(obj, fileoutput):
     print ("Writing vtk file:", fileoutput)
     wt.Write()
     
+
+####################################
+def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1, 
+                 wire=False, bc=(0.7, 0.8, 1), edges=False, legend=None):
+                
+    apd = getPolyData(obj)
+    planes  = vtk.vtkPlanes()
+    planes.SetBounds(apd.GetBounds())
+    clipper = vtk.vtkClipPolyData()
+    setInput(clipper, apd)
+    clipper.SetClipFunction(planes)
+    clipper.InsideOutOn()
+    
+    confilter = vtk.vtkPolyDataConnectivityFilter()
+    setInput(confilter, clipper.GetOutput())
+    confilter.SetExtractionModeToLargestRegion()
+    confilter.Update()
+    cpd = vtk.vtkCleanPolyData()
+    setInput(cpd, confilter.GetOutput())
+    
+    actor = makeActor(clipper.GetOutput(), c, alpha, wire, bc, edges, legend)
+    actor.GetProperty().SetInterpolationToFlat()
+
+    ren = vtk.vtkRenderer()
+    ren.SetBackground(1, 1, 1)
+    ren.AddActor(actor)
+    
+    renWin = vtk.vtkRenderWindow()
+    renWin.SetSize(800, 800)
+    renWin.AddRenderer(ren)
+    
+    iren = vtk.vtkRenderWindowInteractor()
+    iren.SetRenderWindow(renWin)
+    istyl = vtk.vtkInteractorStyleSwitch()
+    istyl.SetCurrentStyleToTrackballCamera()
+    iren.SetInteractorStyle(istyl)
+    
+    def SelectPolygons(object, event): object.GetPlanes(planes)
+    boxWidget = vtk.vtkBoxWidget()
+    boxWidget.OutlineCursorWiresOn()
+    boxWidget.GetSelectedOutlineProperty().SetColor(1,0,1)
+    boxWidget.GetOutlineProperty().SetColor(0.1,0.1,0.1)
+    boxWidget.GetOutlineProperty().SetOpacity(0.8)
+    boxWidget.SetPlaceFactor(1.05)
+    boxWidget.SetInteractor(iren)
+    boxWidget.SetInput(apd)
+    boxWidget.PlaceWidget()
+    boxWidget.AddObserver("InteractionEvent", SelectPolygons)
+    boxWidget.On()
+    
+    print ("Press X to save file:", outputname)
+    def cwkeypress(obj, event):
+        key = obj.GetKeySym()
+        #print ('Pressed key:', key)
+        if key == "X":
+            writeVTK(cpd.GetOutput(), outputname)
+            
+    iren.Initialize()
+    iren.AddObserver("KeyPressEvent", cwkeypress)
+    iren.Start()
+    boxWidget.Off()
+    
+
 
 ###################################################################### Video
 def openVideo(name='movie.avi', fps=12, duration=None, format="XVID"):
@@ -438,4 +540,7 @@ def releaseVideo():
             img = cv2.resize(img, size)
         vid.write(img)
     vid.release()
+    print ('Video saved as', _videoname)
     _videoname = False
+
+
