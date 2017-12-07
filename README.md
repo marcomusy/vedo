@@ -69,7 +69,7 @@ Draw a spline that goes through a set of points, don't show the points *(nodes=F
 from random import uniform as u
 pts = [(u(0,1), u(0,1), u(0,1)) for i in range(10)]
 vp = plotter.vtkPlotter()
-vp.spline(pts, s=.01, nodes=False)
+vp.spline(pts, s=1.5, nodes=False)
 vp.show()
 ```
 ![ex3](https://user-images.githubusercontent.com/32848391/32666970-90c1b38e-c639-11e7-92dd-336f2aa2a2cf.png)
@@ -81,7 +81,7 @@ Draw a PCA ellipsoid that contains 67% of a cloud of points:
 pts = [(u(0,200), u(0,200), u(0,200)) for i in range(50)]
 vp = plotter.vtkPlotter()
 vp.points(pts)
-vp.ellipsoid(pts, pvalue=0.67)
+vp.pca(pts, pvalue=0.67, pcaAxes=True)
 vp.show()
 ```
 ![pca](https://user-images.githubusercontent.com/32848391/32732169-12f82a5a-c88c-11e7-9a31-f14b100374cb.png)
@@ -125,8 +125,8 @@ vp1.renderers[35].SetBackground(.8,.9,.9)
 v270 = vp1.load('data/270.vtk')   
 v290 = vp1.load('data/290.vtk') 
 vp1.interactive = False
-vp1.show(at=12, actors=[v270,v290]) # polydata are automatically  
-vp1.show(at=33, actors=[v270,v290]) # transformed into actors
+vp1.show(at=12, actors=[v270,v290])
+vp1.show(at=33, actors=[v270,v290])
 vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
 v250 = vp2.load('data/250.vtk')
 v270 = vp2.load('data/270.vtk')
@@ -154,15 +154,15 @@ vp.interact() # same as setting flag interactive=True
 
 Draw a bunch of simple objects on separate parts of the rendering window:
 ```python
-vp = plotter.vtkPlotter(N=6) # split window to best accomodate 6 renderers
+vp = plotter.vtkPlotter(N=6) 
 vp.commoncam   = False
 vp.interactive = False
-vp.show(at=0, actors=vp.arrow( [0,0,0], [1,1,1] ))
-vp.show(at=1, actors=vp.line(  [0,0,0], [1,2,3] ))
-vp.show(at=2, actors=vp.points( [ [0,0,0], [1,1,1], [3,1,2] ] ))
-vp.show(at=3, actors=vp.text('hello', cam=False))
-vp.show(at=4, actors=vp.sphere([.5,.5,.5], r=0.3))
-vp.show(at=5, actors=vp.cube(  [.5,.5,.5], r=0.3))
+vp.show(at=0, actors=vp.arrow() )
+vp.show(at=1, actors=vp.line() )
+vp.show(at=2, actors=vp.points() )
+vp.show(at=3, actors=vp.text('hello', cam=False, bc=(1,0,0) ) )
+vp.show(at=4, actors=vp.sphere(), axes=0 )
+vp.show(at=5, actors=vp.cube(), axes=0)
 vp.interact()
 ```
 ![ex8](https://user-images.githubusercontent.com/32848391/32666975-91690102-c639-11e7-8f7b-ad07bd6019da.png)
@@ -235,7 +235,7 @@ Wildcards are ok to load multiple files or directories:
 vp = plotter.vtkPlotter()
 vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1) 
 for a in vp.actors:
-    vp.cutActor(a, origin=(500,0,0), normal=(0,.3,-1))
+    vp.cutActor(a, origin=(500,0,0), normal=(0,0.3,-1))
 vp.show()
 ```
 ![cut](https://user-images.githubusercontent.com/32848391/33214256-6895e478-d12b-11e7-8b4b-390b698e9ef4.png)
@@ -243,7 +243,8 @@ vp.show()
 
 
 
-More examples in *example.py*. If you need to do more complicated things (define widgets.. etc), you can still access all the 
+More examples in *example.py*.<br /> 
+If you need to do more complicated things (define widgets.. etc), you can still access all the 
 usual VTK objects like interactors and renderers through *vp.interactor, vp.renderer*... etc.<br />
 Use *plotter.openVideo(), plotter.addFrameVideo()* and *plotter.closeVideo()* to save a *movie.avi* file.
 <br />
