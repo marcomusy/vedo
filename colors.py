@@ -4,7 +4,7 @@ Created on Mon Dec  4 20:06:00 2017
 
 @author: mmusy
 """
-from __future__ import print_function
+from __future__ import division, print_function
 import numpy as np
 
 

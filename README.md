@@ -17,7 +17,7 @@ mv vtkPlotter $HOME/soft/bin
 and add these lines to your *.bashrc*:
 ```bash
 export PYTHONPATH=$HOME/soft/bin/vtkPlotter:$PYTHONPATH
-export PATH=$HOME/soft/bin/vtkPlotter:$PATH
+alias plotter='$HOME/soft/bin/vtkPlotter/plotter.py'
 ```
 ## Example usage:<br />
 
@@ -266,18 +266,24 @@ def plane(center=(0,0,0), normal=(0,0,1), s=10, c='g', bc='darkgreen', lw=1, alp
 def grid( center=(0,0,0), normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1)
 def arrow(startPoint, endPoint, c='r', alpha=1, legend=None)
 def cylinder(center, radius, height, axis=[1,1,1], c='teal', alpha=1, legend=None)
+def cone(center, radius, height, axis=[1,1,1], c='g', alpha=1, legend=None)
+def ellipsoid(points, c='c', alpha=0.5, legend=None)
+def helix(center=[0,0,0], length=2, n=6, radius=1, axis=[0,0,1], lw=1, c='grey', alpha=1, legend=None)
+def pyramid(center=[0,0,0], s=1, height=1, axis=[0,0,1], c='dg', alpha=1, legend=None)
+def ring(center=[0,0,0], radius=1, thickness=0.1, axis=[1,1,1], c='khaki', alpha=1, legend=None)
 def spline(points, s=10, c='navy', alpha=1., nodes=True, legend=None)
-def bspline(points, nknots=-1, s=1, c=(0,0,0.8), alpha=1, nodes=True, legend=None)
+def bspline(points, nknots=-1, s=1, c=(0,0,0.8), alpha=1, nodes=False, legend=None)
 def text(txt, pos=(0,0,0), s=1, c='k', alpha=1, bc=None, cam=True)
+#
 def xyplot(points, title='', c='r', pos=1, lines=False)
 def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
 def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None)
 def boundaries(actor, c='p', lw=5, legend=None)
-def ellipsoid(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None)
 #
 def align(source, target, rigid=False, iters=100, legend=None):
 def fitLine(points, c='orange', lw=1, alpha=0.6, tube=False, legend=None)
 def fitPlane(points, c='g', bc='darkgreen', legend=None)
+def pca(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None)
 def cutActor(actor, origin=(0,0,0), normal=(1,0,0), showcut=True, showline=False, showpts=False)
 def closestPoint(surf, pt, locator=None, N=None, radius=None)
 #
@@ -312,6 +318,7 @@ def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legen
 def makeAssembly(actors, legend=None)
 def screenshot(filename='screenshot.png')
 def makePolyData(spoints, addLines=True)
+def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1)
 def isInside(poly, point)
 def getPolyData(obj, index=0)
 def getPoint(i, actor)

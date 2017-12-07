@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # A helper tool for visualizing vtk objects
-from __future__ import print_function
+from __future__ import division, print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "4.1"
+__version__ = "4.2"
 __maintainer__ = __author__
 __email__   = "marco.musy@embl.es"
 __status__  = "stable"
@@ -13,6 +13,7 @@ import numpy as np
 from colors import *
 from vtkutils import *
 import vtkutils
+import events
 
 #############################################################################
 class vtkPlotter:
@@ -63,7 +64,7 @@ class vtkPlotter:
 
 
     def __init__(self, shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='',
-                bg=(1,1,1), bg2=None, verbose=True, interactive=True):
+                bg=(1,1,1), bg2=None, axes=True, verbose=True, interactive=True):
         """
         size = size of the rendering window. If 'auto', guess it based on screensize.
         N    = number of desired renderers arranged in a grid automatically.
@@ -79,13 +80,13 @@ class vtkPlotter:
         self.renderer   = None  # current renderer
         self.renderers  = []    # list of renderers
         self.interactive= interactive # allows to interact with renderer
-        self.axes       = True  # show or hide axes
+        self.axes       = axes  # show or hide axes
         self.xtitle     = 'x'   # x axis label and units
         self.ytitle     = 'y'   # y axis label and units
         self.camera     = None  # current vtkCamera 
         self.commoncam  = True  # share the same camera in renderers
         self.resetcam   = True  # reset camera when calling show()
-        self.parallelcam = True # parallel projection or perspective
+        self.projection = 0     # value of the ParallelProjection instance variable
         self.flat       = True  # sets interpolation style to 'flat'
         self.phong      = False # sets interpolation style to 'phong'
         self.gouraud    = False # sets interpolation style to 'gouraud'
@@ -291,7 +292,8 @@ class vtkPlotter:
 
 
     ################################################################## vtk objects
-    def points(self, plist, c='b', r=10., alpha=1., legend=None):
+    def points(self, plist=[[1,0,0],[0,1,0],[0,0,1]], 
+               c='b', r=10., alpha=1., legend=None):
         '''
         Return a vtkActor for a list of points.
         Input cols is a list of RGB colors of same length as plist
@@ -310,7 +312,7 @@ class vtkPlotter:
         if legend: setattr(actor, 'legend', legend) 
         return actor
         
-    def point(self, pt, c='b', r=10., alpha=1., legend=None):
+    def point(self, pt=[0,0,0], c='b', r=10., alpha=1., legend=None):
         return self.points([pt], c, r, alpha, legend)
         
     def _colorPoints(self, plist, cols, r, alpha, legend):
@@ -345,7 +347,7 @@ class vtkPlotter:
         return actor
 
 
-    def line(self, p0,p1, lw=1, c='r', alpha=1., legend=None):
+    def line(self, p0=[0,0,0],p1=[1,1,1], lw=1, c='r', alpha=1., legend=None):
         '''Returns the line segment between points p0 and p1'''
         lineSource = vtk.vtkLineSource()
         lineSource.SetPoint1(p0)
@@ -358,7 +360,7 @@ class vtkPlotter:
         return actor
 
 
-    def sphere(self, pt, r=1, c='r', alpha=1., legend=None):
+    def sphere(self, pt=[0,0,0], r=1, c='r', alpha=1., legend=None):
         src = vtk.vtkSphereSource()
         src.SetThetaResolution(24)
         src.SetPhiResolution(24)
@@ -372,32 +374,37 @@ class vtkPlotter:
         return actor
 
 
-    def cube(self, pt, r=1, normal=(0,0,1), c='g', alpha=1., legend=None):
+    def box(self, center=[0,0,0], length=1, width=2, height=3, normal=(0,0,1), 
+            c='g', alpha=1., legend=None):
         src = vtk.vtkCubeSource()
-        src.SetXLength(r)
-        src.SetYLength(r)
-        src.SetZLength(r)
+        src.SetXLength(length)
+        src.SetYLength(width)
+        src.SetZLength(height)
         src.Update()
         actor = makeActor(src.GetOutput(), c, alpha)
         normal= np.array(normal)/np.linalg.norm(normal)
         theta = np.arccos(normal[2])
         phi   = np.arctan2(normal[1], normal[0])
-        actor.SetPosition(pt)
+        actor.SetPosition(center)
         actor.RotateZ(phi*57.3)
         actor.RotateY(theta*57.3)
         self.actors.append(actor)
         if legend: setattr(actor, 'legend', legend) 
         return actor
+        
+    def cube(self, center=[0,0,0], length=1, normal=(0,0,1), 
+             c='g', alpha=1., legend=None):
+        return self.box(center, length, 1, 1, normal, c, alpha, legend)
 
 
-    def plane(self, center=(0,0,0), normal=(0,0,1), s=10, 
+    def plane(self, center=[0,0,0], normal=[0,0,1], s=10, 
               c='g', bc='darkgreen', lw=1, alpha=1, wire=False, legend=None):
         pl = self.grid(center, normal, s, 1, c, bc, lw, alpha, wire, legend)
         pl.GetProperty().SetEdgeVisibility(1)
         return pl
         
         
-    def grid(self, center=(0,0,0), normal=(0,0,1), s=10, N=10, 
+    def grid(self, center=[0,0,0], normal=[0,0,1], s=10, N=10, 
              c='g', bc='darkgreen', lw=1, alpha=1, wire=True, legend=None):
         '''Return a grid plane'''
         ps = vtk.vtkPlaneSource()
@@ -415,8 +422,13 @@ class vtkPlotter:
         return actor
     
     
-    def arrow(self, startPoint, endPoint, c='r', alpha=1, legend=None):
-        axis = np.array(endPoint) - np.array(startPoint)
+        return self.arrow(start, start+np.array(axis), c, alpha, legend)
+
+    def arrow(self, start=[0,0,0], end=[1,1,1], axis=None, 
+              c='r', alpha=1, legend=None):
+        if axis:
+            end = start+np.array(axis)
+        axis = np.array(end) - np.array(start)
         length = np.linalg.norm(axis)
         if not length: return None
         axis = axis/length
@@ -428,7 +440,7 @@ class vtkPlotter:
         arr.SetTipRadius(0.06)
         actor = makeActor(arr.GetOutput(), c, alpha)
         actor.GetProperty().SetInterpolationToPhong()
-        actor.SetPosition(startPoint)
+        actor.SetPosition(start)
         actor.RotateZ(phi*57.3)
         actor.RotateY(theta*57.3)
         actor.SetScale(length,length,length)
@@ -440,10 +452,10 @@ class vtkPlotter:
         return actor
 
 
-    def cylinder(self, center, radius, height, axis=[1,1,1],
+    def cylinder(self, center=[0,0,0], radius=1, height=1, axis=[0,0,1],
                  c='teal', alpha=1, legend=None):
         cyl = vtk.vtkCylinderSource()
-        cyl.SetResolution(24)
+        cyl.SetResolution(48)
         cyl.SetRadius(radius)
         cyl.SetHeight(height)
         #cyl.SetAxis(axis)
@@ -463,7 +475,88 @@ class vtkPlotter:
         return actor
 
 
-    def spline(self, points, s=10, c='navy', alpha=1., nodes=True, legend=None):
+    def cone(self, center=[0,0,0], radius=1, height=1, axis=[0,0,1],
+             c='dg', alpha=1, legend=None, res=48):
+        cyl = vtk.vtkConeSource()
+        cyl.SetResolution(res)
+        cyl.SetRadius(radius)
+        cyl.SetHeight(height)
+        cyl.SetDirection(axis)
+        actor = makeActor(cyl.GetOutput(), c, alpha)
+        actor.GetProperty().SetInterpolationToPhong()
+        actor.SetPosition(center)
+        actor.DragableOff()
+        actor.PickableOff()
+        self.actors.append(actor)
+        if legend: setattr(actor, 'legend', legend) 
+        return actor
+
+
+    def pyramid(self, center=[0,0,0], s=1, height=1, axis=[0,0,1],
+                c='dg', alpha=1, legend=None):
+        a = self.cone(center, s*1.4142/2., height, axis, c, alpha, legend, 4)
+        a.RotateZ(45)
+        return a
+
+
+    def ring(self, center=[0,0,0], radius=1, thickness=0.1, axis=[1,1,1],
+             c='khaki', alpha=1, legend=None):
+        rs = vtk.vtkParametricTorus()
+        rs.SetRingRadius(radius)
+        rs.SetCrossSectionRadius(thickness)
+        pfs = vtk.vtkParametricFunctionSource()
+        pfs.SetParametricFunction(rs)
+        pfs.SetUResolution(90)
+        pfs.SetVResolution(30)
+        pfs.Update()
+        axis  = np.array(axis)/np.linalg.norm(axis)
+        theta = np.arccos(axis[2])
+        phi   = np.arctan2(axis[1], axis[0])
+        actor = makeActor(pfs.GetOutput(), c, alpha)
+        actor.GetProperty().SetInterpolationToPhong()
+        actor.SetPosition(center)
+        actor.RotateZ(phi*57.3)
+        actor.RotateY(theta*57.3)
+        self.actors.append(actor)
+        if legend: setattr(actor, 'legend', legend) 
+        return actor        
+
+
+    def ellipsoid(self, center=[0,0,0], axis1=[1,0,0], axis2=[0,2,0], axis3=[0,0,3], 
+                  c='c', alpha=1, legend=None):
+        """axis1 and axis2 are only used to define sizes and one azimuth angle"""
+        elliSource = vtk.vtkSphereSource()
+        elliSource.SetThetaResolution(24)
+        elliSource.SetPhiResolution(24)
+        l1,l2,l3 = np.linalg.norm(axis1), np.linalg.norm(axis2), np.linalg.norm(axis3)
+        axis1  = np.array(axis1)/l1
+        axis2  = np.array(axis2)/l2
+        axis3  = np.array(axis3)/l3
+        angle = np.arcsin(np.dot(axis1,axis2))
+        
+        vtra = vtk.vtkTransform()
+        theta = np.arccos(axis3[2])
+        phi   = np.arctan2(axis3[1], axis3[0])
+
+        ftra = vtk.vtkTransformFilter()
+        ftra.SetTransform(vtra)
+        ftra.SetInputConnection(elliSource.GetOutputPort())
+        ftra.Update()
+        actor= makeActor(ftra.GetOutput(), c, alpha)
+        actor.GetProperty().BackfaceCullingOn()
+        actor.GetProperty().SetInterpolationToPhong()
+        actor.SetPosition(center)
+        actor.RotateZ(phi*57.3)
+        actor.RotateY(theta*57.3)
+        actor.RotateX(angle*57.3)
+        vtra.Scale(l1,l2,l3)
+        self.actors.append(actor)
+        if legend: setattr(actor, 'legend', legend) 
+        return self.lastActor()
+
+
+    def spline(self, points=[[0,0,0],[1,0,0],[1,2,0],[1,2,1]], 
+               s=1., c='navy', alpha=1., nodes=False, legend=None):
         '''
         Return a vtkActor for a spline that goes exactly trought all points.
         nodes = True shows the points and therefore returns a vtkAssembly
@@ -498,31 +591,32 @@ class vtkPlotter:
         lines.InsertNextCell(numberOfOutputPoints)
         for i in range(0, numberOfOutputPoints): lines.InsertCellPoint(i)
 
+        s = s*0.01*getMaxOfBounds(profileData)
         profileData.SetPoints(points)
         profileData.SetLines(lines)
         profileTubes = vtk.vtkTubeFilter() # Add thickness to the resulting line.
-        profileTubes.SetNumberOfSides(12)
+        profileTubes.SetNumberOfSides(8)
         setInput(profileTubes, profileData)
         profileTubes.SetRadius(s)
         profileTubes.Update()
         acttube = makeActor(profileTubes.GetOutput(), c=c, alpha=alpha)
+        acttube.GetProperty().SetInterpolationToPhong()
         if nodes:
-            balls = vtk.vtkSphereSource() # Use sphere as glyph source.
-            balls.SetRadius(s*1.2)
-            balls.SetPhiResolution(12)
-            balls.SetThetaResolution(12)
-            gl = vtk.vtkGlyph3D()
-            setInput(gl, inputData)
-            gl.SetSource(balls.GetOutput())
-            actnodes = makeActor(gl.GetOutput(), c=c, alpha=alpha)
-            acttube  = makeAssembly([acttube, actnodes])
-        self.actors.append(acttube)
-        if legend: setattr(acttube, 'legend', legend) 
-        return acttube
+            pts = getCoordinates(inputData)
+            actnodes = self.points(pts, r=10, c=c, alpha=alpha)
+            self.actors.pop()
+            ass = makeAssembly([acttube, actnodes])
+            self.actors.append(ass)
+            if legend: setattr(ass, 'legend', legend) 
+            return ass
+        else:
+            self.actors.append(acttube)
+            if legend: setattr(acttube, 'legend', legend) 
+            return acttube
 
 
-    def bspline(self, points, nknots=-1,
-                s=1, c=(0,0,0.8), alpha=1., nodes=True, legend=None):
+    def bspline(self, points=[[0,0,0],[1,0,0],[1,2,0],[1,2,1]], 
+                nknots=-1, s=1, c=(0,0,0.8), alpha=1., nodes=False, legend=None):
         '''
         Return a vtkActor for a spline that goes exactly trought all points.
         nknots= number of nodes used by the bspline. A small nr implies 
@@ -551,22 +645,47 @@ class vtkPlotter:
         profileData.SetPoints(ppoints)
         profileData.SetLines(lines)
         profileTubes = vtk.vtkTubeFilter() # Add thickness to the resulting line.
-        profileTubes.SetNumberOfSides(12)
+        profileTubes.SetNumberOfSides(8)
         setInput(profileTubes, profileData)
+        print (getMaxOfBounds(profileData))
+        s = s*0.01*getMaxOfBounds(profileData)
         profileTubes.SetRadius(s)
         profileTubes.Update()
         poly = profileTubes.GetOutput()
         acttube = makeActor(poly, c=c, alpha=alpha)
+        acttube.GetProperty().SetInterpolationToPhong()
         if nodes:
-            actnodes = self.points(points, r=s*50, c=c, alpha=alpha)
+            actnodes = self.points(points, r=10, c=c, alpha=alpha)
             self.actors.pop()
-            acttube = makeAssembly([acttube, actnodes])
-        self.actors.append(acttube)
-        if legend: setattr(acttube, 'legend', legend) 
-        return acttube
+            ass = makeAssembly([acttube, actnodes])
+            self.actors.append(ass)
+            if legend: setattr(ass, 'legend', legend) 
+            return ass
+        else:
+            self.actors.append(actube)
+            if legend: setattr(acttube, 'legend', legend) 
+            return acttube
 
 
-    def text(self, txt, pos=(0,0,0), s=1, c='k', alpha=1, bc=None, cam=True):
+    def helix(self, center=[0,0,0], length=2, n=6, radius=1, axis=[0,0,1],
+              lw=1, c='grey', alpha=1, legend=None):
+        thickness = max(length,radius)*10*lw
+        trange = np.linspace(-length/2., length/2., num=4*n)
+        pts = [ [np.cos(2*n*t),np.sin(2*n*t),t] for t in trange ]
+        actor = self.spline(pts, thickness, c, alpha, False, legend)
+        axis  = np.array(axis)/np.linalg.norm(axis)
+        theta = np.arccos(axis[2])
+        phi   = np.arctan2(axis[1], axis[0])
+        actor.GetProperty().SetInterpolationToPhong()
+        actor.SetPosition(center)
+        actor.RotateZ(phi*57.3)
+        actor.RotateY(theta*57.3)
+        self.actors.append(actor)
+        if legend: setattr(actor, 'legend', legend) 
+        return self.lastActor()               
+
+
+    def text(self, txt='hello', pos=(0,0,0), s=1, c='k', alpha=1, bc=None, cam=True):
         '''
         Returns a vtkActor that shows a text 3D
         if cam is True the text will auto-orient to it
@@ -594,7 +713,8 @@ class vtkPlotter:
         return ttactor
 
 
-    def xyplot(self, points, title='', c='r', pos=1, lines=False):
+    def xyplot(self, points=[[0,0],[1,0],[2,1],[3,2],[4,1]],
+               title='', c='r', pos=1, lines=False):
         """
         Return a vtkActor that is a plot of 2D points in x and y.
         pos assignes the position: 
@@ -801,8 +921,8 @@ class vtkPlotter:
         return pla
 
 
-    def ellipsoid(self, points, pvalue=.95, c='c', alpha=0.5, 
-                  pcaAxes=False, legend=None):
+    def pca(self, points=[[1,0,0],[0,1,0],[0,0,1],[.5,0,1],[0,.2,.3]], 
+            pvalue=.95, c='c', alpha=0.5, pcaAxes=False, legend=None):
         '''
         Show the oriented PCA ellipsoid that contains 95% of points.
         axes = True, show the 3 PCA semi axes
@@ -1046,7 +1166,7 @@ class vtkPlotter:
             ti = texts[i]
             a  = acts[i]
             c = a.GetProperty().GetColor()
-            if c==(1,1,1): c=(0.7,0.7,0.7)
+            if c==(1,1,1): c=(0.2,0.2,0.2)
             vtklegend.SetEntry(i, getPolyData(a), "  "+ti, c)
         pos = self.legendPos
         width = self.legendSize
@@ -1111,7 +1231,7 @@ class vtkPlotter:
             self.camera = self.renderer.GetActiveCamera()
         else: 
             self.camera.SetThickness(self.camThickness)
-        if self.parallelcam: self.camera.ParallelProjectionOn()
+        self.camera.SetParallelProjection(self.projection)
         if self.commoncam:
             for r in self.renderers: r.SetActiveCamera(self.camera)
 
@@ -1146,8 +1266,10 @@ class vtkPlotter:
         if not self.initialized:
             self.interactor.Initialize()
             self.initialized = True
-            self.interactor.AddObserver("LeftButtonPressEvent", self.mouseleft)
-            self.interactor.AddObserver("KeyPressEvent", self.keypress)
+            def mouseleft(obj, e): events._mouseleft(self, obj, e)
+            def keypress(obj, e):  events._keypress(self, obj, e)
+            self.interactor.AddObserver("LeftButtonPressEvent", mouseleft)
+            self.interactor.AddObserver("KeyPressEvent", keypress)
             if self.verbose: self._tips()
 
         if hasattr(self, 'interactor') and self.interactor: 
@@ -1167,242 +1289,6 @@ class vtkPlotter:
         else:
             for a in self.getActors(): self.renderer.RemoveActor(a)
             self.actors = []
-
-    ############################### events
-    def mouseleft(self, obj, event):
-        x,y = self.interactor.GetEventPosition()
-        self.renderer = obj.FindPokedRenderer(x,y)
-        self.renderWin = obj.GetRenderWindow()
-        clickedr = self.renderers.index(self.renderer)
-        picker = vtk.vtkPropPicker()
-        picker.PickProp(x,y, self.renderer)
-        clickedActor = picker.GetActor()
-        if not clickedActor: 
-            clickedActor = picker.GetAssembly()
-            
-        if self.verbose:
-            if len(self.renderers)>1 or clickedr>0 and self.clickedr != clickedr:
-                print ('Current Renderer:', clickedr, end='')
-                print (', nr. of actors =', len(self.getActors()))
-            
-            leg, oldleg = '', ''
-            if hasattr(clickedActor,'legend'): leg = clickedActor.legend
-            if hasattr(self.clickedActor,'legend'): oldleg = self.clickedActor.legend
-            if len(leg) and oldleg != leg: #detect if clickin the same obj
-                try: indx = str(self.getActors().index(clickedActor))
-                except ValueError: indx = None                        
-                try: indx = str(self.actors.index(clickedActor))
-                except ValueError: indx = None                        
-                try: 
-                    rgb = list(clickedActor.GetProperty().GetColor())
-                    cn = '('+getColorName(rgb)+'),'
-                except: 
-                    cn = None                        
-                if indx and isinstance(clickedActor, vtk.vtkAssembly): 
-                    print ('-> assembly', indx+':', clickedActor.legend, end=' ')
-                elif indx:
-                    print ('-> actor', indx+':', leg, end=' ')
-                    if cn: print (cn, end=' ')
-                print ('N='+str(getPolyData(clickedActor).GetNumberOfPoints()))
-                    
-        self.clickedActor = clickedActor
-        self.clickedr = clickedr
-
-
-    def keypress(self, obj, event):
-        key = obj.GetKeySym()
-        #print ('Pressed key:', key)
-        if   key == "q" or key == "space" or key == "Return":
-            self.interactor.ExitCallback()
-        elif key == "e":
-            if self.verbose: print ("closing window...")
-            self.interactor.GetRenderWindow().Finalize()
-            self.interactor.TerminateApp()
-            del self.renderWin, self.interactor
-            return
-        elif key == "Escape":
-            self.interactor.TerminateApp()
-            self.interactor.GetRenderWindow().Finalize()
-            self.interactor.TerminateApp()
-            del self.renderWin, self.interactor
-            exit(0)
-        elif key == "S":
-            print ('Saving window as screenshot.png')
-            screenshot()
-            return
-        elif key == "C":
-            cam = self.renderer.GetActiveCamera()
-            print ('\ncam = vtk.vtkCamera() ### example code')
-            print ('cam.SetPosition(',  [round(e,3) for e in cam.GetPosition()],  ')')
-            print ('cam.SetFocalPoint(',[round(e,3) for e in cam.GetFocalPoint()],')')
-            print ('cam.SetParallelScale(',round(cam.GetParallelScale(),3),')')
-            print ('cam.SetViewUp(', [round(e,3) for e in cam.GetViewUp()],')\n')
-            return
-        elif key == "m":
-            if self.clickedActor in self.getActors():
-                self.clickedActor.GetProperty().SetOpacity(0.05)
-            else:
-                for a in self.getActors(): a.GetProperty().SetOpacity(.05)
-        elif key == "comma":
-            if self.clickedActor in self.getActors():
-                ap = self.clickedActor.GetProperty()
-                ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.05]))
-            else:
-                for a in self.getActors():
-                    ap = a.GetProperty()
-                    ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.05]))
-        elif key == "period":
-            if self.clickedActor in self.getActors():
-                ap = self.clickedActor.GetProperty()
-                ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
-            else:
-                for a in self.getActors():
-                    ap = a.GetProperty()
-                    ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
-        elif key == "slash":
-            if self.clickedActor in self.getActors():
-                self.clickedActor.GetProperty().SetOpacity(1) 
-            else:
-                for a in self.getActors(): a.GetProperty().SetOpacity(1)
-        elif key == "V":
-            if not(self.verbose): self._tips()
-            self.verbose = not(self.verbose)
-            print ("Verbose: ", self.verbose)
-        elif key in ["1", "KP_End", "KP_1"]:
-            for i,ia in enumerate(self.getActors()):
-                ia.GetProperty().SetColor(colors1[i+self.icol1])
-            self.icol1 += 1
-            self._draw_legend()
-        elif key in ["2", "KP_Down", "KP_2"]:
-            for i,ia in enumerate(self.getActors()):
-                ia.GetProperty().SetColor(colors2[i+self.icol2])
-            self.icol2 += 1
-            self._draw_legend()
-        elif key in ["4", "KP_Left", "KP_4"]:
-            for i,ia in enumerate(self.getActors()):
-                ia.GetProperty().SetColor(colors3[i+self.icol3])
-            self.icol3 += 1
-            self._draw_legend()
-        elif key in ["5", "KP_Begin", "KP_5"]:
-            c = getColor('gold')
-            acs = self.getActors()
-            alpha = 1./len(acs)
-            for ia in acs:
-                ia.GetProperty().SetColor(c)
-                ia.GetProperty().SetOpacity(alpha)
-            self._draw_legend()
-        elif key == "o":
-            if self.clickedActor in self.getActors(): acts=[self.clickedActor]
-            else: acts = self.getActors()
-            for ia in acts:
-                try:
-                    ps = ia.GetProperty().GetPointSize()
-                    ia.GetProperty().SetPointSize(ps-1)
-                    ia.GetProperty().SetRepresentationToPoints()
-                except AttributeError: pass
-        elif key == "O":
-            if self.clickedActor in self.getActors(): acts=[self.clickedActor]
-            else: acts = self.getActors()
-            for ia in acts:
-                try:
-                    ps = ia.GetProperty().GetPointSize()
-                    ia.GetProperty().SetPointSize(ps+2)
-                    ia.GetProperty().SetRepresentationToPoints()
-                except AttributeError: pass
-        elif key == "l":
-            if self.clickedActor in self.getActors(): acts=[self.clickedActor]
-            else: acts = self.getActors()
-            for ia in acts:
-                try:
-                    ia.GetProperty().SetRepresentationToSurface()
-                    ls = ia.GetProperty().GetLineWidth()
-                    if ls==1: 
-                        ia.GetProperty().EdgeVisibilityOff() 
-                        ia.GetProperty().SetLineWidth(0)
-                    else: ia.GetProperty().SetLineWidth(ls-1)
-                except AttributeError: pass
-        elif key == "L":
-            if self.clickedActor in self.getActors(): acts=[self.clickedActor]
-            else: acts = self.getActors()
-            for ia in acts:
-                try:
-                    ia.GetProperty().EdgeVisibilityOn()
-                    c = ia.GetProperty().GetColor()
-                    ia.GetProperty().SetEdgeColor(c)
-                    ls = ia.GetProperty().GetLineWidth()
-                    ia.GetProperty().SetLineWidth(ls+1)
-                except AttributeError: pass
-        elif key == "n": # show normals to an actor
-            if self.clickedActor in self.getActors(): acts=[self.clickedActor]
-            else: acts = self.getActors()
-            for ia in acts:
-                alpha = ia.GetProperty().GetOpacity()
-                c = ia.GetProperty().GetColor()
-                a = self.normals(ia, ratio=1, c=c, alpha=alpha)
-                self.actors.pop() #remove from list
-                try:
-                    i = self.actors.index(ia)
-                    self.actors[i] = a
-                    self.renderer.RemoveActor(ia)
-                    self.interactor.Render()
-                except ValueError: pass
-            ii = bool(self.interactive)
-            self.show(at=self.clickedr, interactive=0, axes=0)
-            self.interactive = ii # restore it
-        elif key == "x":
-            self.justremoved = None # needs fix
-            if self.justremoved is None:                    
-                if isinstance(self.clickedActor, vtk.vtkAssembly):
-                    props = vtk.vtkPropCollection()
-                    self.clickedActor.GetActors(props)
-                    actr = props.GetLastProp()
-                    try:
-                        al = np.sqrt(actr.GetProperty().GetOpacity())
-                        for op in np.linspace(al,0, 8): #fade away
-                            actr.GetProperty().SetOpacity(op)
-                            self.interactor.Render()
-                    except AttributeError: pass
-                    self.justremoved = actr
-                    self.clickedActor.RemovePart(actr)                    
-                elif self.clickedActor in self.getActors():
-                    actr = self.clickedActor
-                    al = np.sqrt(actr.GetProperty().GetOpacity())
-                    for op in np.linspace(al,0, 8): #fade away
-                        actr.GetProperty().SetOpacity(op)
-                        self.interactor.Render()
-                    self.justremoved = actr
-                    self.renderer.RemoveActor(actr)
-                else: 
-                    if self.verbose:
-                        print ('Click an actor and press x to remove it.')
-                    return
-                if self.verbose and hasattr(actr, 'legend'):
-                    print ('   ...removing actor:', actr.legend)
-                self._draw_legend()
-            else:
-                if isinstance(self.clickedActor, vtk.vtkAssembly):
-                    self.clickedActor.AddPart(self.justremoved)
-                    self._draw_legend()
-                elif self.clickedActor in self.actors:
-                    print ([self.clickedActor, self.justremoved])
-                    self.renderer.AddActor(self.justremoved)
-                    self.renderer.Render()
-                    self._draw_legend()        
-                self.justremoved = None
-        elif key == "X":
-            if self.clickedActor:
-                if hasattr(self.clickedActor, 'legend'):
-                    fname = 'clipped_'+self.clickedActor.legend
-                    fname = fname.split('.')[0]+'.vtk'
-                else: fname = 'clipped.vtk'
-                if self.verbose:
-                    print ('Move handles to remove part of the actor.')
-                cutterWidget(self.clickedActor, fname) 
-            elif self.verbose: 
-                print ('Click an actor and press X to open the cutter widget.')
-            
-        self.interactor.Render()
-
 
     def interact(self, q=False):
         if hasattr(self, 'interactor'):

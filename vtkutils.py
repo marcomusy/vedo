@@ -4,7 +4,7 @@ Created on Mon Dec  4 20:10:27 2017
 
 @author: mmusy
 """
-from __future__ import print_function
+from __future__ import division, print_function
 from glob import glob
 import os, vtk
 from colors import *
@@ -353,6 +353,51 @@ def getCoordinates(actors):
     return pts
 
 
+def getMaxOfBounds(actor):
+    poly = getPolyData(actor)
+    b = poly.GetBounds()
+    maxb = max(abs(b[1]-b[0]), abs(b[3]-b[2]), abs(b[5]-b[4]))
+    return maxb
+
+
+def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
+
+    if   mapTo == 1: tmapper = vtk.vtkTextureMapToCylinder()
+    elif mapTo == 2: tmapper = vtk.vtkTextureMapToSphere()
+    elif mapTo == 3: tmapper = vtk.vtkTextureMapToPlane()
+    
+    tmapper.SetInput(getPolyData(actor))
+    tmapper.PreventSeamOn()
+    
+    xform = vtk.vtkTransformTextureCoords()
+    xform.SetInputConnection(tmapper.GetOutputPort())
+    xform.SetScale(scale,scale,scale)
+    
+    mapper = vtk.vtkDataSetMapper()
+    mapper.SetInputConnection(xform.GetOutputPort())
+    
+    cdir = os.path.dirname(__file__)     
+    fn = cdir + '/textures/'+name+".jpg"
+    if os.path.exists(name): 
+        fn = name
+    elif not os.path.exists(fn):
+        print ('Texture', name, 'not found in', cdir+'/textures')
+        return actor
+        
+    jpgReader = vtk.vtkJPEGReader()
+    jpgReader.SetFileName(fn)
+    atext = vtk.vtkTexture()
+    atext.RepeatOn()
+    atext.EdgeClampOff()
+    atext.InterpolateOn()
+    if falsecolors: atext.MapColorScalarsThroughLookupTableOn()
+    atext.SetInputConnection(jpgReader.GetOutputPort())
+    actor.GetProperty().SetColor(1,1,1)
+    actor.SetMapper(mapper)
+    actor.SetTexture(atext)
+    return actor
+    
+    
 ####################################
 def closestPoint(surf, pt, locator=None, N=None, radius=None):
     """
@@ -397,8 +442,8 @@ def writeVTK(obj, fileoutput):
     wt = vtk.vtkPolyDataWriter()
     setInput(wt, getPolyData(obj))
     wt.SetFileName(fileoutput)
-    print ("Writing vtk file:", fileoutput)
     wt.Write()
+    print ("Saved vtk file:", fileoutput)
     
 
 ####################################
@@ -412,13 +457,17 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     setInput(clipper, apd)
     clipper.SetClipFunction(planes)
     clipper.InsideOutOn()
-    
+    clipper.GenerateClippedOutputOn()
+
     confilter = vtk.vtkPolyDataConnectivityFilter()
     setInput(confilter, clipper.GetOutput())
     confilter.SetExtractionModeToLargestRegion()
     confilter.Update()
     cpd = vtk.vtkCleanPolyData()
     setInput(cpd, confilter.GetOutput())
+
+    cpoly = clipper.GetClippedOutput() # cut away part
+    restActor = makeActor(cpoly, c=c, alpha=0.05, wire=1)
     
     actor = makeActor(clipper.GetOutput(), c, alpha, wire, bc, edges, legend)
     actor.GetProperty().SetInterpolationToFlat()
@@ -426,7 +475,8 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     ren = vtk.vtkRenderer()
     ren.SetBackground(1, 1, 1)
     ren.AddActor(actor)
-    
+    ren.AddActor(restActor)
+
     renWin = vtk.vtkRenderWindow()
     renWin.SetSize(800, 800)
     renWin.AddRenderer(ren)
@@ -452,9 +502,7 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     
     print ("Press X to save file:", outputname)
     def cwkeypress(obj, event):
-        key = obj.GetKeySym()
-        #print ('Pressed key:', key)
-        if key == "X":
+        if obj.GetKeySym() == "X":
             writeVTK(cpd.GetOutput(), outputname)
             
     iren.Initialize()
