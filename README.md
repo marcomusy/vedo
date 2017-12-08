@@ -27,7 +27,7 @@ plotter data/*.vtk  # other valid formats: [vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz
 ```
 
 Run a tutorial script: 
->python example.py
+>python tutorial.py
 <br />
 
 ```python
@@ -253,14 +253,14 @@ Use *plotter.openVideo(), plotter.addFrameVideo()* and *plotter.closeVideo()* to
 ```python
 def help()
 def __init__(shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='',
-             bg=(1,1,1), bg2=None, verbose=True, interactive=True)
+             bg=(1,1,1), bg2=None, axes=True, verbose=True, interactive=True)
 def load(filesOrDirs, c='gold', alpha=0.2, wire=False, bc=None, edges=False, legend=True)
 def getActors(obj=None)
 def moveCamera(camstart, camstop, fraction)
 #
 def point(pt, c='b', r=10, alpha=1, legend=None)
 def points(plist, c='b', r=10, alpha=1, legend=None)
-def line(p0, p1, lw=1, c='r', alpha=1, legend=None)
+def line(p0, p1, lw=1, dotted=False, c='r', alpha=1, legend=None)
 def sphere(pt, r=1, c='r', alpha=1, legend=None)
 def cube(pt, r=1, c='g', alpha=1, legend=None)
 def plane(center=(0,0,0), normal=(0,0,1), s=10, c='g', bc='darkgreen', lw=1, alpha=1)

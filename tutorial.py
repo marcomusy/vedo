@@ -117,15 +117,18 @@ vp.interact()
 # 10 #######################################################################################
 # Draw a simple objects on separate parts of the rendering window:
 # split window to best accomodate 6 renderers
-vp = plotter.vtkPlotter(N=6, title='Example 10') 
+vp = plotter.vtkPlotter(N=9, title='Example 10') 
 vp.commoncam   = False
 vp.interactive = False
-vp.show(at=0, actors=vp.arrow() )
-vp.show(at=1, actors=vp.line() )
-vp.show(at=2, actors=vp.points() )
+vp.show(at=0, actors=vp.arrow(),  legend='arrow()' )
+vp.show(at=1, actors=vp.line(),   legend='line()' )
+vp.show(at=2, actors=vp.points(), legend='points()' )
 vp.show(at=3, actors=vp.text('hello', cam=False, bc=(1,0,0) ) )
-vp.show(at=4, actors=vp.sphere(), axes=0 )
-vp.show(at=5, actors=vp.cube(), axes=0)
+vp.show(at=4, actors=vp.sphere() )
+vp.show(at=5, actors=vp.cube(),   legend='cube()')
+vp.show(at=6, actors=vp.ring(),   legend='ring()')
+vp.show(at=7, actors=vp.helix(),  legend='helix()')
+vp.show(at=8, actors=vp.cylinder(), legend='cylinder()')
 vp.interact()
 
 
@@ -237,15 +240,16 @@ vp.show()
 
 
 # 20 ########################################################################################
-a = plotter.load('data/cow.g') # N.B.: not necessarily using vtkPlotter object to load
+a = plotter.load('data/cow.g') # N.B.: not necessarily using vtkPlotter object to load file
 plotter.cutterWidget(a)
 
 
 # 21 ########################################################################################
 # Make a video (needs cv2 package)
-vp = plotter.vtkPlotter(interactive=0, verbose=0, title='Example 21')
+vp = plotter.vtkPlotter(title='Example 21')
 vp.load('data/290.vtk', c='b', bc='tomato', alpha=1)
 vp.show()                     # inits camera etc.
+vp.interactive = False
 plotter.openVideo(duration=3) # will make it last 3 seconds
 for i in range(100):
     vp.camera.SetPosition(700.-i*20., -10, 4344.-i*80.)

@@ -3,7 +3,7 @@
 from __future__ import division, print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "4.2"
+__version__ = "4.3"
 __maintainer__ = __author__
 __email__   = "marco.musy@embl.es"
 __status__  = "stable"
@@ -347,7 +347,8 @@ class vtkPlotter:
         return actor
 
 
-    def line(self, p0=[0,0,0],p1=[1,1,1], lw=1, c='r', alpha=1., legend=None):
+    def line(self, p0=[0,0,0],p1=[1,1,1], lw=1, dotted=False,
+             c='r', alpha=1., legend=None):
         '''Returns the line segment between points p0 and p1'''
         lineSource = vtk.vtkLineSource()
         lineSource.SetPoint1(p0)
@@ -355,17 +356,20 @@ class vtkPlotter:
         lineSource.Update()
         actor = makeActor(lineSource.GetOutput(), c, alpha)
         actor.GetProperty().SetLineWidth(lw)
+        if dotted:
+            actor.GetProperty().SetLineStipplePattern(0xf0f0)
+            actor.GetProperty().SetLineStippleRepeatFactor(1)           
         self.actors.append(actor)
         if legend: setattr(actor, 'legend', legend) 
         return actor
 
 
-    def sphere(self, pt=[0,0,0], r=1, c='r', alpha=1., legend=None):
+    def sphere(self, center=[0,0,0], r=1, c='r', alpha=1., legend=None):
         src = vtk.vtkSphereSource()
         src.SetThetaResolution(24)
         src.SetPhiResolution(24)
         src.SetRadius(r)
-        src.SetCenter(pt)
+        src.SetCenter(center)
         src.Update()
         actor = makeActor(src.GetOutput(), c, alpha)
         actor.GetProperty().SetInterpolationToPhong()
@@ -397,22 +401,22 @@ class vtkPlotter:
         return self.box(center, length, 1, 1, normal, c, alpha, legend)
 
 
-    def plane(self, center=[0,0,0], normal=[0,0,1], s=10, 
-              c='g', bc='darkgreen', lw=1, alpha=1, wire=False, legend=None):
-        pl = self.grid(center, normal, s, 1, c, bc, lw, alpha, wire, legend)
-        pl.GetProperty().SetEdgeVisibility(1)
-        return pl
+    def plane(self, center=[0,0,0], normal=[0,0,1], s=1, c='g', bc='darkgreen',
+              lw=1, alpha=1, wire=False, legend=None, texture=None):
+        p = self.grid(center, normal, s, 1, c, bc, lw, alpha, wire, legend, texture)
+        if not texture: p.GetProperty().SetEdgeVisibility(1)
+        return p
         
         
-    def grid(self, center=[0,0,0], normal=[0,0,1], s=10, N=10, 
-             c='g', bc='darkgreen', lw=1, alpha=1, wire=True, legend=None):
+    def grid(self, center=[0,0,0], normal=[0,0,1], s=10, N=10, c='g', bc='darkgreen',
+             lw=1, alpha=1, wire=True, legend=None, texture=None):
         '''Return a grid plane'''
         ps = vtk.vtkPlaneSource()
         ps.SetResolution(N, N)
         ps.SetCenter(np.array(center)/float(s))
         ps.SetNormal(normal)
         ps.Update()
-        actor = makeActor(ps.GetOutput(), c=c, bc=bc, alpha=alpha)
+        actor = makeActor(ps.GetOutput(), c=c, bc=bc, alpha=alpha, texture=texture)
         actor.SetScale(s,s,s)
         if wire: actor.GetProperty().SetRepresentationToWireframe()
         actor.GetProperty().SetLineWidth(lw)
@@ -669,7 +673,7 @@ class vtkPlotter:
 
     def helix(self, center=[0,0,0], length=2, n=6, radius=1, axis=[0,0,1],
               lw=1, c='grey', alpha=1, legend=None):
-        thickness = max(length,radius)*10*lw
+        thickness = max(length,radius)*2*lw
         trange = np.linspace(-length/2., length/2., num=4*n)
         pts = [ [np.cos(2*n*t),np.sin(2*n*t),t] for t in trange ]
         actor = self.spline(pts, thickness, c, alpha, False, legend)
@@ -1261,7 +1265,7 @@ class vtkPlotter:
 
         if self.resetcam: 
             self.renderer.ResetCamera()
-            self.camera.Zoom(1.05)
+            #self.camera.Zoom(1.05)
 
         if not self.initialized:
             self.interactor.Initialize()
@@ -1280,6 +1284,7 @@ class vtkPlotter:
             if self.verbose: print ('q flag set to True. Exit. Bye.')
             exit(0)
 
+
     def clear(self, actors=[]):
         """Delete specified actors, by default delete all."""
         if len(actors):
@@ -1290,12 +1295,19 @@ class vtkPlotter:
             for a in self.getActors(): self.renderer.RemoveActor(a)
             self.actors = []
 
+
     def interact(self, q=False):
         if hasattr(self, 'interactor'):
             if self.interactor:
                 self.interactor.Render()
                 self.interactor.Start()
         if q: exit(0)
+
+
+    def render(self, resetcam=False):
+        if resetcam: self.renderer.ResetCamera()
+        self.interactor.Render()
+
 
     def lastActor(self): return self.actors[-1]
 

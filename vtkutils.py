@@ -8,11 +8,14 @@ from __future__ import division, print_function
 from glob import glob
 import os, vtk
 from colors import *
+import types
+
 
 vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
 def setInput(vtkobj, p):
     if vtkMV: vtkobj.SetInputData(p)
     else: vtkobj.SetInput(p)
+
 
 ####################################### LOADER
 def load(filesOrDirs, c='gold', alpha=0.2, 
@@ -213,9 +216,10 @@ def _loadPCD(filename, c, alpha, legend):
     if legend is True: setattr(actor, 'legend', os.path.basename(filename))
     return actor
     
+    
 ##############################################################################
 def makeActor(poly, c='gold', alpha=0.5, 
-              wire=False, bc=None, edges=False, legend=None):
+              wire=False, bc=None, edges=False, legend=None, texture=None):
     '''Return a vtkActor from an input vtkPolyData, optional args:
        c,     color in RGB format, hex, symbol or name
        alpha, transparency (0=invisible)
@@ -232,20 +236,37 @@ def makeActor(poly, c='gold', alpha=0.5,
     dataset.ConsistencyOn()
     dataset.Update()
     mapper = vtk.vtkPolyDataMapper()
+    
+#    mapper.SetScalarMode(2)
+#    mapper.ScalarVisibilityOn ()
+#    mapper.SetColorModeToDefault()
+#    mapper.SelectColorArray("Colors");
+#    mapper.SetScalarRange(0,255)
+#    print (dataset.GetOutput())
+#    mapper.SetScalarModeToUsePointData ()
+#    mapper.UseLookupTableScalarRangeOff ()
+
     setInput(mapper, dataset.GetOutput())
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
     actor.GetProperty().SetSpecular(0.025)
+
     if edges: actor.GetProperty().EdgeVisibilityOn()
+    mapper.ScalarVisibilityOff()
     actor.GetProperty().SetColor(getColor(c))
     actor.GetProperty().SetOpacity(alpha)
+
     if wire: actor.GetProperty().SetRepresentationToWireframe()
-    if bc: # defines a specific color for the backface
+
+    if texture: assignTexture(actor, texture)
+    elif bc: # defines a specific color for the backface
         backProp = vtk.vtkProperty()
         backProp.SetDiffuseColor(getColor(bc))
         backProp.SetOpacity(alpha)
         actor.SetBackfaceProperty(backProp)
-    if legend: setattr(actor, 'legend', legend) 
+
+    if legend: setattr(actor, 'legend', legend)
+    assignPhysicsMethods(actor)    
     return actor
 
 
@@ -256,8 +277,131 @@ def makeAssembly(actors, legend=None):
     if legend:
         setattr(assembly, 'legend', legend) 
     elif hasattr(actors[0], 'legend'): 
-        setattr(assembly, 'legend', actors[0].legend) 
+        setattr(assembly, 'legend', actors[0].legend)
+    assignPhysicsMethods(assembly)
     return assembly
+    
+
+def assignPhysicsMethods(actor):
+    apos = np.array(actor.GetPosition())
+    setattr(actor, '_pos',  apos)               # position  
+    def _fpos(self, p=None): 
+        if p is None: return self._pos
+        self.SetPosition(p)
+        self._pos = np.array(p)
+    actor.pos = types.MethodType( _fpos, actor )
+
+    def _fpx(self, px=None):               # X  
+        if px is None: return self._pos[0]
+        newp = [px, self._pos[1], self._pos[2]]
+        self.SetPosition(newp)
+        self._pos = newp
+    actor.x = types.MethodType( _fpx, actor )
+
+    def _fpy(self, py=None):               # Y  
+        if py is None: return self._pos[1]
+        newp = [self._pos[0], py, self._pos[2]]
+        self.SetPosition(newp)
+        self._pos = newp
+    actor.y = types.MethodType( _fpy, actor )
+
+    def _fpz(self, pz=None):               # Z  
+        if pz is None: return self._pos[2]
+        newp = [self._pos[0], self._pos[1], pz]
+        self.SetPosition(newp)
+        self._pos = newp
+    actor.z = types.MethodType( _fpz, actor )
+     
+    setattr(actor, '_vel',  np.array([0,0,0]))  # velocity
+    def _fvel(self, v=None): 
+        if v is None: return self._vel
+        self._vel = v
+    actor.vel = types.MethodType( _fvel, actor )
+    
+    def _fvx(self, vx=None):               # VX  
+        if vx is None: return self._vel[0]
+        newp = [vx, self._vel[1], self._vel[2]]
+        self.SetPosition(newp)
+        self._vel = newp
+    actor.vx = types.MethodType( _fvx, actor )
+
+    def _fvy(self, vy=None):               # VY  
+        if vy is None: return self._vel[1]
+        newp = [self._vel[0], vy, self._vel[2]]
+        self.SetPosition(newp)
+        self._vel = newp
+    actor.vy = types.MethodType( _fvy, actor )
+
+    def _fvz(self, vz=None):               # VZ  
+        if vz is None: return self._vel[2]
+        newp = [self._vel[0], self._vel[1], vz]
+        self.SetPosition(newp)
+        self._vel = newp
+    actor.vz = types.MethodType( _fvz, actor )
+     
+    setattr(actor, '_mass',  1.0)               # mass
+    def _fmass(self, m=None): 
+        if m is None: return self._mass
+        self._mass = m
+    actor.mass = types.MethodType( _fmass, actor )
+
+    setattr(actor, '_axis',  np.array([0,0,1]))  # axis
+    def _faxis(self, a=None): 
+        if a is None: return self._axis
+        self._axis = a
+    actor.axis = types.MethodType( _faxis, actor )
+
+    setattr(actor, '_omega', 0.0)     # angular velocity
+    def _fomega(self, o=None): 
+        if o is None: return self._omega
+        self._omega = o
+    actor.omega = types.MethodType( _fomega, actor )
+    return actor
+
+    setattr(actor, '_p', 0.0)              # momentum
+    def _fp(self, mv=None): 
+        if mv is None: return self._p
+        self._p = self.mass * self._vel
+    actor.p = types.MethodType( _fp, actor )
+
+
+######################################################### movements
+def moveActor(actor, matrix): 
+    '''moves the underlying polydata too'''
+    t = vtk.vtkTransform()
+    t.SetMatrix(matrix)    
+    poly = actor.GetMapper().GetInput()
+    tf = vtk.vtkTransformPolyDataFilter() 
+    setInput(tf, poly)
+    tf.SetTransform(t)
+    tf.Update()
+    poly = tf.GetOutput()
+    actor.GetMapper().SetInput(poly)
+    actor.Modified()
+
+
+def normalizeActor(actor): pass #to do
+def cloneActor(actor): pass #to do
+
+
+def rotate(v, axis, theta):
+    """
+    Return the rotation matrix associated with counterclockwise
+    rotation about the given axis by theta radians.
+    """
+    axis = np.asarray(axis)
+    theta = np.asarray(theta)
+    ax2 = np.sqrt(np.dot(axis, axis))
+    if ax2: axis /= ax2
+    a = np.cos(theta / 2.0)
+    b, c, d = -axis * np.sin(theta / 2.0)
+    aa, bb, cc, dd = a * a, b * b, c * c, d * d
+    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+    R = np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                  [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                  [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+    rv = np.dot(R, v)
+    return rv
 
 
 #########################################################
@@ -307,11 +451,11 @@ def isInside(poly, point):
     points.InsertNextPoint(point)
     pointsPolydata = vtk.vtkPolyData()
     pointsPolydata.SetPoints(points)
-    selectEnclosedPoints = vtk.vtkSelectEnclosedPoints()
-    selectEnclosedPoints.SetInput(pointsPolydata)
-    selectEnclosedPoints.SetSurface(poly)
-    selectEnclosedPoints.Update()
-    return selectEnclosedPoints.IsInside(0)
+    sep = vtk.vtkSelectEnclosedPoints()
+    setInput(sep, pointsPolydata)
+    sep.SetSurface(poly)
+    sep.Update()
+    return sep.IsInside(0)
 
 
 def getPolyData(obj, index=0): # get PolyData
@@ -350,7 +494,7 @@ def getCoordinates(actors):
             p = [0, 0, 0]
             apoly.GetPoint(j, p)
             pts.append(p)
-    return pts
+    return np.array(pts)
 
 
 def getMaxOfBounds(actor):
@@ -360,13 +504,27 @@ def getMaxOfBounds(actor):
     return maxb
 
 
+def getCM(actor):
+    '''Get the Center of Mass of the actor'''
+    if vtkMV: #faster
+        cmf = vtk.vtkCenterOfMass()
+        setInput(cmf, getPolyData(actor))
+        cmf.UseScalarsAsWeightsOff()
+        cmf.Update()
+        c = cmf.GetCenter()
+        return np.array(c)
+    else:
+        pts = getCoordinates(actor)
+        return np.mean(pts, axis=0)       
+
+
 def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
 
     if   mapTo == 1: tmapper = vtk.vtkTextureMapToCylinder()
     elif mapTo == 2: tmapper = vtk.vtkTextureMapToSphere()
     elif mapTo == 3: tmapper = vtk.vtkTextureMapToPlane()
     
-    tmapper.SetInput(getPolyData(actor))
+    setInput(tmapper, getPolyData(actor))
     tmapper.PreventSeamOn()
     
     xform = vtk.vtkTransformTextureCoords()
@@ -435,7 +593,7 @@ def closestPoint(surf, pt, locator=None, N=None, radius=None):
         subid = vtk.mutable(0)
         locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
     return trgp
-        
+
 
 ####################################
 def writeVTK(obj, fileoutput):
@@ -495,7 +653,7 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     boxWidget.GetOutlineProperty().SetOpacity(0.8)
     boxWidget.SetPlaceFactor(1.05)
     boxWidget.SetInteractor(iren)
-    boxWidget.SetInput(apd)
+    setInput(boxWidget, apd)
     boxWidget.PlaceWidget()
     boxWidget.AddObserver("InteractionEvent", SelectPolygons)
     boxWidget.On()
