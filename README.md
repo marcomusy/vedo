@@ -331,4 +331,27 @@ def openVideo(name='movie.avi', fps=12, duration=None, format="XVID")
 def addFrameVideo()
 def pauseVideo(pause)
 def releaseVideo()  
+
+Additional physics methods of vtkActor (*a la vpython*):
+```python
+actor.pos()   # position vector (setters and getters, if no argument)
+actor.x()
+actor.y()
+actor.z()
+#
+actor.vel()   # velocity vector
+actor.vx()
+actor.vy()
+actor.vz()
+#
+actor.mass()  # mass
+#
+actor.axis()  # orientation axis
+#
+actor.omega() # angular velocity
+#
+actor.p       # momentum vector
 ```
+
+
+
