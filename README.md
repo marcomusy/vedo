@@ -330,7 +330,8 @@ def writeVTK(obj, fileoutput)
 def openVideo(name='movie.avi', fps=12, duration=None, format="XVID")
 def addFrameVideo()
 def pauseVideo(pause)
-def releaseVideo()  
+def releaseVideo() 
+``` 
 
 Additional physics methods of vtkActor (*a la vpython*):
 ```python
