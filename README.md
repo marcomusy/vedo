@@ -333,9 +333,9 @@ def pauseVideo(pause)
 def releaseVideo() 
 ``` 
 
-Additional physics methods of vtkActor (*a la vpython*):
+Additional physics methods of vtkActor object (*a la vpython*):
 ```python
-actor.pos()   # position vector (setters and getters, if no argument)
+actor.pos()   # position vector (setters, and getters if no argument is given)
 actor.x()
 actor.y()
 actor.z()
@@ -351,7 +351,7 @@ actor.axis()  # orientation axis
 #
 actor.omega() # angular velocity
 #
-actor.p       # momentum vector
+actor.p()     # momentum vector
 ```
 
 
