@@ -335,23 +335,25 @@ def releaseVideo()
 
 Additional physics methods of vtkActor object (*a la vpython*):
 ```python
-actor.pos()   # position vector (setters, and getters if no argument is given)
-actor.x()
+actor.pos()      # position vector (setters, and getters if no argument is given)
+actor.x()        # set/get components
 actor.y()
 actor.z()
 #
-actor.vel()   # velocity vector
+actor.vel()      # set/get velocity vector
 actor.vx()
 actor.vy()
 actor.vz()
 #
-actor.mass()  # mass
+actor.mass()     # set/get mass
 #
-actor.axis()  # orientation axis
+actor.axis()     # set/get orientation axis
 #
-actor.omega() # angular velocity
+actor.omega()    # set/get angular velocity
 #
-actor.p()     # momentum vector
+actor.momentum() # get momentum vector
+#
+actor.gamma()    # get Lorentz factor
 ```
 
 

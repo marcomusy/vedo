@@ -364,28 +364,28 @@ class vtkPlotter:
         return actor
 
 
-    def sphere(self, center=[0,0,0], r=1, c='r', alpha=1., legend=None):
+    def sphere(self, center=[0,0,0], r=1, c='r', alpha=1., legend=None, texture=None):
         src = vtk.vtkSphereSource()
         src.SetThetaResolution(24)
         src.SetPhiResolution(24)
         src.SetRadius(r)
         src.SetCenter(center)
         src.Update()
-        actor = makeActor(src.GetOutput(), c, alpha)
+        actor = makeActor(src.GetOutput(), c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
         self.actors.append(actor)
-        if legend: setattr(actor, 'legend', legend) 
         return actor
 
 
     def box(self, center=[0,0,0], length=1, width=2, height=3, normal=(0,0,1), 
-            c='g', alpha=1., legend=None):
+            c='g', alpha=1, legend=None, texture=None):
         src = vtk.vtkCubeSource()
         src.SetXLength(length)
         src.SetYLength(width)
         src.SetZLength(height)
         src.Update()
-        actor = makeActor(src.GetOutput(), c, alpha)
+        poly = src.GetOutput()
+        actor = makeActor(poly, c=c, alpha=alpha, legend=legend, texture=texture)
         normal= np.array(normal)/np.linalg.norm(normal)
         theta = np.arccos(normal[2])
         phi   = np.arctan2(normal[1], normal[0])
@@ -393,12 +393,11 @@ class vtkPlotter:
         actor.RotateZ(phi*57.3)
         actor.RotateY(theta*57.3)
         self.actors.append(actor)
-        if legend: setattr(actor, 'legend', legend) 
         return actor
         
     def cube(self, center=[0,0,0], length=1, normal=(0,0,1), 
-             c='g', alpha=1., legend=None):
-        return self.box(center, length, 1, 1, normal, c, alpha, legend)
+             c='g', alpha=1., legend=None, texture=None):
+        return self.box(center, length, 1, 1, normal, c, alpha, legend, texture)
 
 
     def plane(self, center=[0,0,0], normal=[0,0,1], s=1, c='g', bc='darkgreen',
@@ -422,12 +421,9 @@ class vtkPlotter:
         actor.GetProperty().SetLineWidth(lw)
         actor.PickableOff()
         self.actors.append(actor)
-        if legend: setattr(actor, 'legend', legend) 
         return actor
     
     
-        return self.arrow(start, start+np.array(axis), c, alpha, legend)
-
     def arrow(self, start=[0,0,0], end=[1,1,1], axis=None, 
               c='r', alpha=1, legend=None):
         if axis:
@@ -442,7 +438,7 @@ class vtkPlotter:
         arr.SetShaftResolution(24)
         arr.SetTipResolution(24)
         arr.SetTipRadius(0.06)
-        actor = makeActor(arr.GetOutput(), c, alpha)
+        actor = makeActor(arr.GetOutput(), c=c, alpha=alpha, legend=legend)
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(start)
         actor.RotateZ(phi*57.3)
@@ -452,12 +448,11 @@ class vtkPlotter:
         actor.DragableOff()
         actor.PickableOff()
         self.actors.append(actor)
-        if legend: setattr(actor, 'legend', legend) 
         return actor
 
 
     def cylinder(self, center=[0,0,0], radius=1, height=1, axis=[0,0,1],
-                 c='teal', alpha=1, legend=None):
+                 c='teal', alpha=1, legend=None, texture=None):
         cyl = vtk.vtkCylinderSource()
         cyl.SetResolution(48)
         cyl.SetRadius(radius)
@@ -466,45 +461,42 @@ class vtkPlotter:
         axis  = np.array(axis)/np.linalg.norm(axis)
         theta = np.arccos(axis[2])
         phi   = np.arctan2(axis[1], axis[0])
-        actor = makeActor(cyl.GetOutput(), c, alpha)
+        actor = makeActor(cyl.GetOutput(),
+                          c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(center)
         actor.RotateZ(phi*57.3)
         actor.RotateY(theta*57.3)
         actor.RotateX(90) #put it along Z
-        actor.DragableOff()
-        actor.PickableOff()
         self.actors.append(actor)
-        if legend: setattr(actor, 'legend', legend) 
         return actor
 
 
     def cone(self, center=[0,0,0], radius=1, height=1, axis=[0,0,1],
-             c='dg', alpha=1, legend=None, res=48):
+             c='dg', alpha=1, legend=None, texture=None, res=48):
         cyl = vtk.vtkConeSource()
         cyl.SetResolution(res)
         cyl.SetRadius(radius)
         cyl.SetHeight(height)
         cyl.SetDirection(axis)
-        actor = makeActor(cyl.GetOutput(), c, alpha)
+        actor = makeActor(cyl.GetOutput(), 
+                          c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(center)
         actor.DragableOff()
         actor.PickableOff()
         self.actors.append(actor)
-        if legend: setattr(actor, 'legend', legend) 
         return actor
 
-
     def pyramid(self, center=[0,0,0], s=1, height=1, axis=[0,0,1],
-                c='dg', alpha=1, legend=None):
-        a = self.cone(center, s*1.4142/2., height, axis, c, alpha, legend, 4)
+                c='dg', alpha=1, legend=None, texture=None):
+        a = self.cone(center, s*0.7, height, axis, c, alpha, legend, texture, 4)
         a.RotateZ(45)
         return a
 
 
     def ring(self, center=[0,0,0], radius=1, thickness=0.1, axis=[1,1,1],
-             c='khaki', alpha=1, legend=None):
+             c='khaki', alpha=1, legend=None, texture=None):
         rs = vtk.vtkParametricTorus()
         rs.SetRingRadius(radius)
         rs.SetCrossSectionRadius(thickness)
@@ -516,18 +508,18 @@ class vtkPlotter:
         axis  = np.array(axis)/np.linalg.norm(axis)
         theta = np.arccos(axis[2])
         phi   = np.arctan2(axis[1], axis[0])
-        actor = makeActor(pfs.GetOutput(), c, alpha)
+        actor = makeActor(pfs.GetOutput(), 
+                          c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(center)
         actor.RotateZ(phi*57.3)
         actor.RotateY(theta*57.3)
         self.actors.append(actor)
-        if legend: setattr(actor, 'legend', legend) 
         return actor        
 
 
     def ellipsoid(self, center=[0,0,0], axis1=[1,0,0], axis2=[0,2,0], axis3=[0,0,3], 
-                  c='c', alpha=1, legend=None):
+                  c='c', alpha=1, legend=None, texture=None):
         """axis1 and axis2 are only used to define sizes and one azimuth angle"""
         elliSource = vtk.vtkSphereSource()
         elliSource.SetThetaResolution(24)
@@ -546,7 +538,8 @@ class vtkPlotter:
         ftra.SetTransform(vtra)
         ftra.SetInputConnection(elliSource.GetOutputPort())
         ftra.Update()
-        actor= makeActor(ftra.GetOutput(), c, alpha)
+        actor= makeActor(ftra.GetOutput(), 
+                         c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().BackfaceCullingOn()
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(center)
@@ -555,7 +548,6 @@ class vtkPlotter:
         actor.RotateX(angle*57.3)
         vtra.Scale(l1,l2,l3)
         self.actors.append(actor)
-        if legend: setattr(actor, 'legend', legend) 
         return self.lastActor()
 
 
@@ -689,7 +681,8 @@ class vtkPlotter:
         return self.lastActor()               
 
 
-    def text(self, txt='hello', pos=(0,0,0), s=1, c='k', alpha=1, bc=None, cam=True):
+    def text(self, txt='hello', pos=(0,0,0), s=1, 
+             c='k', alpha=1, bc=None, cam=True, texture=None):
         '''
         Returns a vtkActor that shows a text 3D
         if cam is True the text will auto-orient to it
@@ -713,6 +706,7 @@ class vtkPlotter:
             backProp.SetDiffuseColor(getColor(bc))
             backProp.SetOpacity(alpha)
             ttactor.SetBackfaceProperty(backProp)
+        if texture: assignTexture(ttactor, texture)
         self.actors.append(ttactor)
         return ttactor
 

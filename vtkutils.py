@@ -283,6 +283,7 @@ def makeAssembly(actors, legend=None):
     
 
 def assignPhysicsMethods(actor):
+    
     apos = np.array(actor.GetPosition())
     setattr(actor, '_pos',  apos)               # position  
     def _fpos(self, p=None): 
@@ -358,11 +359,13 @@ def assignPhysicsMethods(actor):
     actor.omega = types.MethodType( _fomega, actor )
     return actor
 
-    setattr(actor, '_p', 0.0)              # momentum
     def _fp(self, mv=None): 
-        if mv is None: return self._p
-        self._p = self.mass * self._vel
-    actor.p = types.MethodType( _fp, actor )
+        return self.mass * self._vel
+    actor.momentum = types.MethodType( _fp, actor )
+
+    def _fgamma(self, mv=None): 
+        return 1./np.sqrt(1- (self._vel/299792.48)**2)
+    actor.gamma = types.MethodType( _fgamma, actor )
 
 
 ######################################################### movements
