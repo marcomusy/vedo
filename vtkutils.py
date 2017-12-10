@@ -19,7 +19,7 @@ def setInput(vtkobj, p):
 
 ####################################### LOADER
 def load(filesOrDirs, c='gold', alpha=0.2, 
-          wire=False, bc=None, edges=False, legend=True):
+          wire=False, bc=None, edges=False, legend=True, texture=None):
     '''Returns a vtkActor from reading a file or directory. 
        Optional args:
        c,     color in RGB format, hex, symbol or name
@@ -32,10 +32,10 @@ def load(filesOrDirs, c='gold', alpha=0.2,
     if isinstance(legend, int): legend = bool(legend)
     for fod in sorted(glob(filesOrDirs)):
         if os.path.isfile(fod): 
-            a = _loadFile(fod, c, alpha, wire, bc, edges, legend)
+            a = _loadFile(fod, c, alpha, wire, bc, edges, legend, texture)
             acts.append(a)
         elif os.path.isdir(fod):
-            acts = _loadDir(fod, c, alpha, wire, bc, edges, legend)
+            acts = _loadDir(fod, c, alpha, wire, bc, edges, legend, texture)
     if not len(acts):
         print ('Cannot find:', filesOrDirs)
         exit(0) 
@@ -43,7 +43,7 @@ def load(filesOrDirs, c='gold', alpha=0.2,
     else: return acts
 
 
-def _loadFile(filename, c, alpha, wire, bc, edges, legend):
+def _loadFile(filename, c, alpha, wire, bc, edges, legend, texture):
     fl = filename.lower()
     if '.xml' in fl or '.xml.gz' in fl: # Fenics tetrahedral mesh file
         actor = _loadXml(filename, c, alpha, wire, bc, edges, legend)
@@ -55,15 +55,15 @@ def _loadFile(filename, c, alpha, wire, bc, edges, legend):
             print ('Unable to load', filename)
             return False
         if legend is True: legend = os.path.basename(filename)
-        actor = makeActor(poly, c, alpha, wire, bc, edges, legend)
+        actor = makeActor(poly, c, alpha, wire, bc, edges, legend, texture)
         if '.txt' in fl or '.xyz' in fl: 
             actor.GetProperty().SetPointSize(4)
     return actor
     
-def _loadDir(mydir, c, alpha, wire, bc, edges, legend):
+def _loadDir(mydir, c, alpha, wire, bc, edges, legend, texture):
     acts = []
     for ifile in sorted(os.listdir(mydir)):
-        _loadFile(mydir+'/'+ifile, c, alpha, wire, bc, edges)
+        _loadFile(mydir+'/'+ifile, c, alpha, wire, bc, edges, legend, texture)
     return acts
 
 def _loadPoly(filename):
@@ -221,11 +221,13 @@ def _loadPCD(filename, c, alpha, legend):
 def makeActor(poly, c='gold', alpha=0.5, 
               wire=False, bc=None, edges=False, legend=None, texture=None):
     '''Return a vtkActor from an input vtkPolyData, optional args:
-       c,     color in RGB format, hex, symbol or name
-       alpha, transparency (0=invisible)
-       wire,  show surface as wireframe
-       bc,    backface color of internal surface
-       edges, show edges as line on top of surface
+       c,       color in RGB format, hex, symbol or name
+       alpha,   transparency (0=invisible)
+       wire,    show surface as wireframe
+       bc,      backface color of internal surface
+       edges,   show edges as line on top of surface
+       legend   optional string
+       texture  jpg file name of surface texture, eg. 'metalfloor1'
     '''
     dataset = vtk.vtkPolyDataNormals()
     setInput(dataset, poly)
@@ -236,37 +238,48 @@ def makeActor(poly, c='gold', alpha=0.5,
     dataset.ConsistencyOn()
     dataset.Update()
     mapper = vtk.vtkPolyDataMapper()
-    
-#    mapper.SetScalarMode(2)
+
+#    mapper.ScalarVisibilityOff()    
 #    mapper.ScalarVisibilityOn ()
+#    mapper.SetScalarMode(2)
 #    mapper.SetColorModeToDefault()
-#    mapper.SelectColorArray("Colors");
+#    mapper.SelectColorArray("Colors")
 #    mapper.SetScalarRange(0,255)
-#    print (dataset.GetOutput())
 #    mapper.SetScalarModeToUsePointData ()
 #    mapper.UseLookupTableScalarRangeOff ()
 
     setInput(mapper, dataset.GetOutput())
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
-    actor.GetProperty().SetSpecular(0.025)
+    
+    c = getColor(c)
+    actor.GetProperty().SetColor(c)
 
-    if edges: actor.GetProperty().EdgeVisibilityOn()
-    mapper.ScalarVisibilityOff()
-    actor.GetProperty().SetColor(getColor(c))
+    actor.GetProperty().SetSpecular(0)
+    actor.GetProperty().SetSpecularColor(c)
+    actor.GetProperty().SetSpecularPower(1)
+
+    actor.GetProperty().SetAmbient(0)
+    actor.GetProperty().SetAmbientColor(c)
+
+    actor.GetProperty().SetDiffuse(1)
+    actor.GetProperty().SetDiffuseColor(c)
+
     actor.GetProperty().SetOpacity(alpha)
 
+    if edges: actor.GetProperty().EdgeVisibilityOn()
     if wire: actor.GetProperty().SetRepresentationToWireframe()
 
-    if texture: assignTexture(actor, texture)
+    if texture: 
+        assignTexture(actor, texture)
     elif bc: # defines a specific color for the backface
         backProp = vtk.vtkProperty()
         backProp.SetDiffuseColor(getColor(bc))
         backProp.SetOpacity(alpha)
         actor.SetBackfaceProperty(backProp)
 
-    if legend: setattr(actor, 'legend', legend)
     assignPhysicsMethods(actor)    
+    assignConvenienceMethods(actor, legend)    
     return actor
 
 
@@ -274,23 +287,65 @@ def makeAssembly(actors, legend=None):
     '''Treat many actors as a single new actor'''
     assembly = vtk.vtkAssembly()
     for a in actors: assembly.AddPart(a)
-    if legend:
-        setattr(assembly, 'legend', legend) 
-    elif hasattr(actors[0], 'legend'): 
-        setattr(assembly, 'legend', actors[0].legend)
+    setattr(assembly, 'legend', legend) 
+    if hasattr(actors[0], 'legend'): 
+        assembly.legend = actors[0].legend
     assignPhysicsMethods(assembly)
     return assembly
+
+
+def assignConvenienceMethods(actor, legend):
+    setattr(actor, 'legend', legend)
+
+    def _frotate(self, angle, axis, rad=False): 
+        return rotate(self, angle, axis, rad)
+    actor.rotate = types.MethodType( _frotate, actor )
+
+    def _frotateX(self, angle, rad=False): 
+        return rotate(self, angle, [1,0,0], rad)
+    actor.rotateX = types.MethodType( _frotateX, actor )
+
+    def _frotateY(self, angle, rad=False): 
+        return rotate(self, angle, [0,1,0], rad)
+    actor.rotateY = types.MethodType( _frotateY, actor )
+
+    def _frotateZ(self, angle, rad=False): 
+        return rotate(self, angle, [0,0,1], rad)
+    actor.rotateZ = types.MethodType( _frotateZ, actor )
+
+    def _fclone(self, c='gold', alpha=1, wire=False, bc=None,
+                edges=False, legend=None, texture=None): 
+        return clone(self, c, alpha, wire, bc, edges, legend, texture)
+    actor.clone = types.MethodType( _fclone, actor )
+
+    def _fnormalize(self): return normalize(self)
+    actor.normalize = types.MethodType( _fnormalize, actor )
+
+    def _fshrink(self, fraction=0.85): return shrink(self, fraction)
+    actor.shrink = types.MethodType( _fshrink, actor )
+
+    def _fcutterw(self): return cutterWidget(self)
+    actor.cutterWidget = types.MethodType( _fcutterw, actor )
     
+    def _fvisible(self, alpha=1): self.GetProperty().SetOpacity(alpha)
+    actor.visible = types.MethodType( _fvisible, actor )
+    
+
 
 def assignPhysicsMethods(actor):
     
     apos = np.array(actor.GetPosition())
-    setattr(actor, '_pos',  apos)               # position  
+    setattr(actor, '_pos',  apos)             # position  
     def _fpos(self, p=None): 
         if p is None: return self._pos
         self.SetPosition(p)
         self._pos = np.array(p)
     actor.pos = types.MethodType( _fpos, actor )
+
+    def _faddpos(self, dp): 
+        self.AddPosition(dp)
+        self._pos += dp        
+    actor.addpos = types.MethodType( _faddpos, actor )
 
     def _fpx(self, px=None):               # X  
         if px is None: return self._pos[0]
@@ -357,54 +412,61 @@ def assignPhysicsMethods(actor):
         if o is None: return self._omega
         self._omega = o
     actor.omega = types.MethodType( _fomega, actor )
-    return actor
 
-    def _fp(self, mv=None): 
-        return self.mass * self._vel
-    actor.momentum = types.MethodType( _fp, actor )
+    def _fmomentum(self): 
+        return self._mass * self._vel
+    actor.momentum = types.MethodType( _fmomentum, actor )
 
-    def _fgamma(self, mv=None): 
-        return 1./np.sqrt(1- (self._vel/299792.48)**2)
+    def _fgamma(self):                 # Lorentz factor
+        v2 = np.sum( self._vel*self._vel )
+        return 1./np.sqrt(1. - v2/299792.48**2)
     actor.gamma = types.MethodType( _fgamma, actor )
 
-
-######################################################### movements
-def moveActor(actor, matrix): 
-    '''moves the underlying polydata too'''
-    t = vtk.vtkTransform()
-    t.SetMatrix(matrix)    
-    poly = actor.GetMapper().GetInput()
-    tf = vtk.vtkTransformPolyDataFilter() 
-    setInput(tf, poly)
-    tf.SetTransform(t)
-    tf.Update()
-    poly = tf.GetOutput()
-    actor.GetMapper().SetInput(poly)
-    actor.Modified()
+    return actor ########### >>
 
 
-def normalizeActor(actor): pass #to do
-def cloneActor(actor): pass #to do
+######################################################### 
+def normalize(actor): 
+    cm = getCM(actor)
+    coords = getCoordinates(actor)
+    if not len(coords) : return
+    pts = getCoordinates(actor) - cm
+    xyz2 = np.sum(pts * pts, axis=0)
+    scale = 1./np.sqrt(np.sum(xyz2)/len(pts))
+    actor.SetPosition(0,0,0)
+    actor.SetScale(scale, scale, scale)
+    poly = getPolyData(actor)
+    for i,p in enumerate(pts): 
+        poly.GetPoints().SetPoint(i, p)
 
 
-def rotate(v, axis, theta):
-    """
-    Return the rotation matrix associated with counterclockwise
-    rotation about the given axis by theta radians.
-    """
-    axis = np.asarray(axis)
-    theta = np.asarray(theta)
-    ax2 = np.sqrt(np.dot(axis, axis))
-    if ax2: axis /= ax2
-    a = np.cos(theta / 2.0)
-    b, c, d = -axis * np.sin(theta / 2.0)
-    aa, bb, cc, dd = a * a, b * b, c * c, d * d
-    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-    R = np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
-                  [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
-                  [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
-    rv = np.dot(R, v)
-    return rv
+def clone(actor, c='gold', alpha=0.5, wire=False, bc=None,
+          edges=False, legend=None, texture=None): 
+    poly = getPolyData(actor)
+    if not len(getCoordinates(actor)):
+        print ('Limitation: cannot clone textured obj. Returning input.')
+        return actor
+    polyCopy = vtk.vtkPolyData()
+    polyCopy.DeepCopy(poly)
+    a = makeActor(polyCopy, c, alpha, wire, bc, edges, legend, texture)
+    return a
+    
+
+def rotate(actor, angle, axis, rad=False):
+    l = np.linalg.norm(axis)
+    if not l: return
+    axis /= l
+    if rad: angle *= 57.3
+    actor.RotateWXYZ(-angle, axis[0], axis[1], axis[2])
+
+
+def shrink(actor, fraction=0.85):
+    poly = getPolyData(actor)
+    shrink = vtk.vtkShrinkPolyData()
+    setInput(shrink, poly)
+    shrink.SetShrinkFactor(fraction)
+    shrink.Update()
+    actor.GetMapper().SetInput(shrink.GetOutput())
 
 
 #########################################################
@@ -518,6 +580,7 @@ def getCM(actor):
         return np.array(c)
     else:
         pts = getCoordinates(actor)
+        if not len(pts): return np.array([0,0,0])
         return np.mean(pts, axis=0)       
 
 
@@ -528,11 +591,12 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     elif mapTo == 3: tmapper = vtk.vtkTextureMapToPlane()
     
     setInput(tmapper, getPolyData(actor))
-    tmapper.PreventSeamOn()
+    if mapTo == 1:  tmapper.PreventSeamOn()
     
     xform = vtk.vtkTransformTextureCoords()
     xform.SetInputConnection(tmapper.GetOutputPort())
     xform.SetScale(scale,scale,scale)
+    if mapTo == 1: xform.FlipSOn()
     
     mapper = vtk.vtkDataSetMapper()
     mapper.SetInputConnection(xform.GetOutputPort())
@@ -543,7 +607,7 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
         fn = name
     elif not os.path.exists(fn):
         print ('Texture', name, 'not found in', cdir+'/textures')
-        return actor
+        return 
         
     jpgReader = vtk.vtkJPEGReader()
     jpgReader.SetFileName(fn)
@@ -556,7 +620,6 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     actor.GetProperty().SetColor(1,1,1)
     actor.SetMapper(mapper)
     actor.SetTexture(atext)
-    return actor
     
     
 ####################################

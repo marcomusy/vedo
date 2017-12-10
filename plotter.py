@@ -3,7 +3,7 @@
 from __future__ import division, print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "4.3"
+__version__ = "5.0"
 __maintainer__ = __author__
 __email__   = "marco.musy@embl.es"
 __status__  = "stable"
@@ -14,6 +14,7 @@ from colors import *
 from vtkutils import *
 import vtkutils
 import events
+import time
 
 #############################################################################
 class vtkPlotter:
@@ -85,7 +86,6 @@ class vtkPlotter:
         self.ytitle     = 'y'   # y axis label and units
         self.camera     = None  # current vtkCamera 
         self.commoncam  = True  # share the same camera in renderers
-        self.resetcam   = True  # reset camera when calling show()
         self.projection = 0     # value of the ParallelProjection instance variable
         self.flat       = True  # sets interpolation style to 'flat'
         self.phong      = False # sets interpolation style to 'phong'
@@ -98,16 +98,19 @@ class vtkPlotter:
         self.legendPos  = 2     # 1=topright, 2=top-right, 3=bottom-left
         self.result     = dict()# stores extra output information
         
-        # internal stuff:
+        # mostly internal stuff:
         self.clickedr   = 0     # clicked renderer number
         self.camThickness = 2000
         self.locator    = None
-        self.initialized= False
         self.justremoved= None # to fix
         self.caxes_exist = []
         self.icol1      = 0
         self.icol2      = 0
         self.icol3      = 0
+        self.clock      = 0
+        self._clockt0   = time.time()
+        self.initializedPlotter= False
+        self.initializedIren = False
         
         if N:                # N = number of renderers. Find out the best 
             if shape!=(1,1): # arrangement based on minimum nr. of empty renderers
@@ -177,7 +180,7 @@ class vtkPlotter:
 
     ####################################### LOADER
     def load(self, inputobj, c='gold', alpha=0.2, 
-              wire=False, bc=None, edges=False, legend=True):
+              wire=False, bc=None, edges=False, legend=True, texture=None):
         '''Returns a vtkActor from reading a file, directory or vtkPolyData. 
            Optional args:
            c,     color in RGB format, hex, symbol or name
@@ -185,13 +188,14 @@ class vtkPlotter:
            wire,  show surface as wireframe
            bc,    backface color of internal surface
            legend, text to show on legend, if True picks filename.
+           texture any jpg file can be used as texture
         '''
         if isinstance(inputobj, vtk.vtkPolyData):
-            a = makeActor(inputobj, c, alpha, wire, bc, edge, legend)
+            a = makeActor(inputobj, c, alpha, wire, bc, edge, legend, texture)
             self.actors.append(a)
             return a
             
-        acts = vtkutils.load(inputobj, c, alpha, wire, bc, edges, legend)
+        acts = vtkutils.load(inputobj, c, alpha, wire, bc, edges, legend, texture)
         
         if not isinstance(acts, list): acts=[acts]
         for actor in acts:
@@ -312,8 +316,8 @@ class vtkPlotter:
         if legend: setattr(actor, 'legend', legend) 
         return actor
         
-    def point(self, pt=[0,0,0], c='b', r=10., alpha=1., legend=None):
-        return self.points([pt], c, r, alpha, legend)
+    def point(self, pos=[0,0,0], c='b', r=10., alpha=1., legend=None):
+        return self.points([pos], c, r, alpha, legend)
         
     def _colorPoints(self, plist, cols, r, alpha, legend):
         if len(plist) != len(cols):
@@ -364,12 +368,12 @@ class vtkPlotter:
         return actor
 
 
-    def sphere(self, center=[0,0,0], r=1, c='r', alpha=1., legend=None, texture=None):
+    def sphere(self, pos=[0,0,0], r=1, c='r', alpha=1., legend=None, texture=None):
         src = vtk.vtkSphereSource()
         src.SetThetaResolution(24)
         src.SetPhiResolution(24)
         src.SetRadius(r)
-        src.SetCenter(center)
+        src.SetCenter(pos)
         src.Update()
         actor = makeActor(src.GetOutput(), c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
@@ -377,7 +381,7 @@ class vtkPlotter:
         return actor
 
 
-    def box(self, center=[0,0,0], length=1, width=2, height=3, normal=(0,0,1), 
+    def box(self, pos=[0,0,0], length=1, width=2, height=3, normal=(0,0,1), 
             c='g', alpha=1, legend=None, texture=None):
         src = vtk.vtkCubeSource()
         src.SetXLength(length)
@@ -389,30 +393,56 @@ class vtkPlotter:
         normal= np.array(normal)/np.linalg.norm(normal)
         theta = np.arccos(normal[2])
         phi   = np.arctan2(normal[1], normal[0])
-        actor.SetPosition(center)
+        actor.SetPosition(pos)
         actor.RotateZ(phi*57.3)
         actor.RotateY(theta*57.3)
         self.actors.append(actor)
         return actor
         
-    def cube(self, center=[0,0,0], length=1, normal=(0,0,1), 
+        
+    def cube(self, pos=[0,0,0], length=1, normal=(0,0,1), 
              c='g', alpha=1., legend=None, texture=None):
-        return self.box(center, length, 1, 1, normal, c, alpha, legend, texture)
+        return self.box(pos, length, 1, 1, normal, c, alpha, legend, texture)
 
 
-    def plane(self, center=[0,0,0], normal=[0,0,1], s=1, c='g', bc='darkgreen',
+    def prism(self, N=6, pos=[0,0,0], length=1, normal=(0,0,1), 
+              c='g', alpha=1., legend=None, texture=None):
+        return ######to do
+        
+        points = vtk.vtkPoints()
+        for i,x in enumerate(np.linspace(0,6.283, N)): 
+            points.InsertPoint(i, np.cos(x), np.sin(x), 0.5)
+            points.InsertPoint(i, np.cos(x), np.sin(x), -0.5)
+        profile = vtk.vtkPolyData()
+        profile.SetPoints(points) 
+        delny = vtk.vtkDelaunay3D()
+        delny.SetInput(profile)
+        delny.SetTolerance(0.01)
+        delny.SetAlpha(0.2)
+        delny.BoundingTriangulationOn()
+        delny.Update()
+        mapper = vtk.vtkDataSetMapper()
+        mapper.SetInputConnection(delny.GetOutputPort())
+        triangulation = vtk.vtkActor()
+        triangulation.SetMapper(mapper)
+        triangulation.GetProperty().SetColor(1, 0, 0)
+        self.actors.append(triangulation)
+        return triangulation  
+     
+
+    def plane(self, pos=[0,0,0], normal=[0,0,1], s=1, c='g', bc='darkgreen',
               lw=1, alpha=1, wire=False, legend=None, texture=None):
-        p = self.grid(center, normal, s, 1, c, bc, lw, alpha, wire, legend, texture)
+        p = self.grid(pos, normal, s, 1, c, bc, lw, alpha, wire, legend, texture)
         if not texture: p.GetProperty().SetEdgeVisibility(1)
         return p
         
         
-    def grid(self, center=[0,0,0], normal=[0,0,1], s=10, N=10, c='g', bc='darkgreen',
+    def grid(self, pos=[0,0,0], normal=[0,0,1], s=10, N=10, c='g', bc='darkgreen',
              lw=1, alpha=1, wire=True, legend=None, texture=None):
         '''Return a grid plane'''
         ps = vtk.vtkPlaneSource()
         ps.SetResolution(N, N)
-        ps.SetCenter(np.array(center)/float(s))
+        ps.SetCenter(np.array(pos)/float(s))
         ps.SetNormal(normal)
         ps.Update()
         actor = makeActor(ps.GetOutput(), c=c, bc=bc, alpha=alpha, texture=texture)
@@ -425,7 +455,7 @@ class vtkPlotter:
     
     
     def arrow(self, start=[0,0,0], end=[1,1,1], axis=None, 
-              c='r', alpha=1, legend=None):
+              c='r', alpha=1, legend=None, texture=None):
         if axis:
             end = start+np.array(axis)
         axis = np.array(end) - np.array(start)
@@ -438,7 +468,8 @@ class vtkPlotter:
         arr.SetShaftResolution(24)
         arr.SetTipResolution(24)
         arr.SetTipRadius(0.06)
-        actor = makeActor(arr.GetOutput(), c=c, alpha=alpha, legend=legend)
+        actor = makeActor(arr.GetOutput(), 
+                          c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(start)
         actor.RotateZ(phi*57.3)
@@ -451,7 +482,7 @@ class vtkPlotter:
         return actor
 
 
-    def cylinder(self, center=[0,0,0], radius=1, height=1, axis=[0,0,1],
+    def cylinder(self, pos=[0,0,0], radius=1, height=1, axis=[0,0,1],
                  c='teal', alpha=1, legend=None, texture=None):
         cyl = vtk.vtkCylinderSource()
         cyl.SetResolution(48)
@@ -464,7 +495,7 @@ class vtkPlotter:
         actor = makeActor(cyl.GetOutput(),
                           c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
-        actor.SetPosition(center)
+        actor.SetPosition(pos)
         actor.RotateZ(phi*57.3)
         actor.RotateY(theta*57.3)
         actor.RotateX(90) #put it along Z
@@ -472,7 +503,7 @@ class vtkPlotter:
         return actor
 
 
-    def cone(self, center=[0,0,0], radius=1, height=1, axis=[0,0,1],
+    def cone(self, pos=[0,0,0], radius=1, height=1, axis=[0,0,1],
              c='dg', alpha=1, legend=None, texture=None, res=48):
         cyl = vtk.vtkConeSource()
         cyl.SetResolution(res)
@@ -482,20 +513,21 @@ class vtkPlotter:
         actor = makeActor(cyl.GetOutput(), 
                           c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
-        actor.SetPosition(center)
+        actor.SetPosition(pos)
         actor.DragableOff()
         actor.PickableOff()
         self.actors.append(actor)
         return actor
 
-    def pyramid(self, center=[0,0,0], s=1, height=1, axis=[0,0,1],
+
+    def pyramid(self, pos=[0,0,0], s=1, height=1, axis=[0,0,1],
                 c='dg', alpha=1, legend=None, texture=None):
-        a = self.cone(center, s*0.7, height, axis, c, alpha, legend, texture, 4)
+        a = self.cone(pos, s*0.7, height, axis, c, alpha, legend, texture, 4)
         a.RotateZ(45)
         return a
 
 
-    def ring(self, center=[0,0,0], radius=1, thickness=0.1, axis=[1,1,1],
+    def ring(self, pos=[0,0,0], radius=1, thickness=0.1, axis=[1,1,1],
              c='khaki', alpha=1, legend=None, texture=None):
         rs = vtk.vtkParametricTorus()
         rs.SetRingRadius(radius)
@@ -511,14 +543,14 @@ class vtkPlotter:
         actor = makeActor(pfs.GetOutput(), 
                           c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
-        actor.SetPosition(center)
+        actor.SetPosition(pos)
         actor.RotateZ(phi*57.3)
         actor.RotateY(theta*57.3)
         self.actors.append(actor)
         return actor        
 
 
-    def ellipsoid(self, center=[0,0,0], axis1=[1,0,0], axis2=[0,2,0], axis3=[0,0,3], 
+    def ellipsoid(self, pos=[0,0,0], axis1=[1,0,0], axis2=[0,2,0], axis3=[0,0,3], 
                   c='c', alpha=1, legend=None, texture=None):
         """axis1 and axis2 are only used to define sizes and one azimuth angle"""
         elliSource = vtk.vtkSphereSource()
@@ -542,7 +574,7 @@ class vtkPlotter:
                          c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().BackfaceCullingOn()
         actor.GetProperty().SetInterpolationToPhong()
-        actor.SetPosition(center)
+        actor.SetPosition(pos)
         actor.RotateZ(phi*57.3)
         actor.RotateY(theta*57.3)
         actor.RotateX(angle*57.3)
@@ -663,7 +695,7 @@ class vtkPlotter:
             return acttube
 
 
-    def helix(self, center=[0,0,0], length=2, n=6, radius=1, axis=[0,0,1],
+    def helix(self, pos=[0,0,0], length=2, n=6, radius=1, axis=[0,0,1],
               lw=1, c='grey', alpha=1, legend=None):
         thickness = max(length,radius)*2*lw
         trange = np.linspace(-length/2., length/2., num=4*n)
@@ -673,7 +705,7 @@ class vtkPlotter:
         theta = np.arccos(axis[2])
         phi   = np.arctan2(axis[1], axis[0])
         actor.GetProperty().SetInterpolationToPhong()
-        actor.SetPosition(center)
+        actor.SetPosition(pos)
         actor.RotateZ(phi*57.3)
         actor.RotateY(theta*57.3)
         self.actors.append(actor)
@@ -712,7 +744,7 @@ class vtkPlotter:
 
 
     def xyplot(self, points=[[0,0],[1,0],[2,1],[3,2],[4,1]],
-               title='', c='r', pos=1, lines=False):
+               title='', c='r', corner=1, lines=False):
         """
         Return a vtkActor that is a plot of 2D points in x and y.
         pos assignes the position: 
@@ -758,10 +790,10 @@ class vtkPlotter:
         plot.SetAxisTitleTextProperty(tprop)
         plot.SetAxisLabelTextProperty(tprop)
         plot.SetTitleTextProperty(tprop)
-        if pos==1: plot.GetPositionCoordinate().SetValue(.0, .8, 0)
-        if pos==2: plot.GetPositionCoordinate().SetValue(.7, .8, 0)
-        if pos==3: plot.GetPositionCoordinate().SetValue(.0, .0, 0)
-        if pos==4: plot.GetPositionCoordinate().SetValue(.7, .0, 0)
+        if corner==1: plot.GetPositionCoordinate().SetValue(.0, .8, 0)
+        if corner==2: plot.GetPositionCoordinate().SetValue(.7, .8, 0)
+        if corner==3: plot.GetPositionCoordinate().SetValue(.0, .0, 0)
+        if corner==4: plot.GetPositionCoordinate().SetValue(.7, .0, 0)
         plot.GetPosition2Coordinate().SetValue(.3, .2, 0)
         self.actors.append(plot)
         return plot
@@ -931,7 +963,7 @@ class vtkPlotter:
             from scipy.stats import f
         except:
             print ("Error in ellipsoid(): scipy not installed. Skip.")
-            return vtk.vtkActor()
+            return None
         P = np.array(points, ndmin=2, dtype=float)
         cov = np.cov(P, rowvar=0)    # covariance matrix
         U, s, R = np.linalg.svd(cov) # singular value decomposition
@@ -1185,7 +1217,8 @@ class vtkPlotter:
     #################################################################################
     def show(self, actors=None, at=0, # at=render wind. nr.
              legend=None, axes=None, ruler=False, interactive=None, outputimage=None,
-             c='gold', alpha=0.2, wire=False, bc=None, edges=False, q=False):
+             c='gold', alpha=0.2, wire=False, bc=None, edges=False, 
+             resetcam=True, q=False):
         '''
         Input: a mixed list of vtkActors, vtkPolydata and filename strings
         at     = number of the renderer to plot to
@@ -1198,6 +1231,7 @@ class vtkPlotter:
         bc     = background color, set a color for the back surface face
         wire   = show in wireframe representation
         edges  = show the edges on top of surface
+        resetcam = if true re-adjust camera position to fit objects
         q      = force exit after show() command
         '''
         
@@ -1257,55 +1291,90 @@ class vtkPlotter:
         if self.axes: self._draw_cubeaxes()
         self._draw_legend()
 
-        if self.resetcam: 
+        if resetcam: 
             self.renderer.ResetCamera()
             #self.camera.Zoom(1.05)
 
-        if not self.initialized:
+        if not self.initializedIren:
+            self.initializedIren = True
             self.interactor.Initialize()
-            self.initialized = True
             def mouseleft(obj, e): events._mouseleft(self, obj, e)
             def keypress(obj, e):  events._keypress(self, obj, e)
+            def stopren(obj, e):   events._stopren(self, obj, e)
             self.interactor.AddObserver("LeftButtonPressEvent", mouseleft)
             self.interactor.AddObserver("KeyPressEvent", keypress)
+#            self.interactor.AddObserver('TimerEvent', stopren)
+#            self.interactor.CreateRepeatingTimer(10)
+#            self.interactor.SetTimerDuration(10) #millisec
             if self.verbose: self._tips()
 
-        if hasattr(self, 'interactor') and self.interactor: 
-            self.interactor.Render()
+        self.interactor.Render()
+
         if outputimage: screenshot(outputimage)
-        if self.interactive: self.interact()
+
+        if self.interactive: self.interactor.Start()
+
+        self.initializedPlotter = True
         if q : # gracefully exit
-            if self.verbose: print ('q flag set to True. Exit. Bye.')
+            if self.verbose: print ('q flag set to True. Exit.')
             exit(0)
 
 
-    def clear(self, actors=[]):
-        """Delete specified actors, by default delete all."""
-        if len(actors):
-            for i,a in enumerate(actors): 
-                self.renderer.RemoveActor(a)
-                del a[i] 
-        else:
-            for a in self.getActors(): self.renderer.RemoveActor(a)
-            self.actors = []
-
-
-    def interact(self, q=False):
-        if hasattr(self, 'interactor'):
-            if self.interactor:
-                self.interactor.Render()
-                self.interactor.Start()
-        if q: exit(0)
-
-
-    def render(self, resetcam=False):
+    def render(self, resetcam=False, rate=10000):
+        if not self.initializedPlotter: 
+            before = bool(self.interactive)
+            self.show(interactive=0)
+            self.interactive = before
+            return
         if resetcam: self.renderer.ResetCamera()
         self.interactor.Render()
+#        self.interactor.Start()
+
+        if self.clock is None: # set clock and limit rate
+            self._clockt0 = time.time()
+            self.clock = 0.
+        else:
+            t = time.time() - self._clockt0
+            elapsed = t - self.clock
+            mint = 1./rate
+            if elapsed < mint:
+                time.sleep(mint-elapsed)
+            self.clock = time.time() - self._clockt0
 
 
     def lastActor(self): return self.actors[-1]
 
 
+    def addActor(self, a): 
+        if not self.initializedPlotter: 
+            before = bool(self.interactive)
+            self.show(interactive=0)
+            self.interactive = before
+            return
+        self.actors.append(a)
+        self.renderer.AddActor(a)
+
+
+    def removeActor(self, a): 
+        try:
+            if not self.initializedPlotter: 
+                self.show()
+                return
+            if self.renderer: self.renderer.RemoveActor(a)
+            i = self.actors.index(a)
+            del self.actors[i]
+        except: pass
+
+
+    def clear(self, actors=[]):
+        """Delete specified actors, by default delete all."""
+        if len(actors):
+            for i,a in enumerate(actors): self.removeActor(a)
+        else:
+            for a in self.getActors(): self.renderer.RemoveActor(a)
+            self.actors = []
+
+ 
  
 ###########################################################################
 if __name__ == '__main__':

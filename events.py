@@ -9,10 +9,13 @@ import vtk
 from vtkutils import *
 
 
-############################### events
+
+############################### mouse event
 def _mouseleft(vp, obj, event):
 
     x,y = vp.interactor.GetEventPosition()
+    #print ('mouse at',x,y)
+    
     vp.renderer = obj.FindPokedRenderer(x,y)
     vp.renderWin = obj.GetRenderWindow()
     clickedr = vp.renderers.index(vp.renderer)
@@ -30,7 +33,7 @@ def _mouseleft(vp, obj, event):
         leg, oldleg = '', ''
         if hasattr(clickedActor,'legend'): leg = clickedActor.legend
         if hasattr(vp.clickedActor,'legend'): oldleg = vp.clickedActor.legend
-        if len(leg) and oldleg != leg: #detect if clickin the same obj
+        if leg and len(leg) and oldleg != leg: #detect if clickin the same obj
             try: indx = str(vp.getActors().index(clickedActor))
             except ValueError: indx = None                        
             try: indx = str(vp.actors.index(clickedActor))
@@ -51,8 +54,9 @@ def _mouseleft(vp, obj, event):
     vp.clickedr = clickedr
 
 
-###############################
+############################### keystroke event
 def _keypress(vp, obj, event):
+    
     key = obj.GetKeySym()
     #print ('Pressed key:', key, event)
 
@@ -80,7 +84,8 @@ def _keypress(vp, obj, event):
 
     elif key == "C":
         cam = vp.renderer.GetActiveCamera()
-        print ('\ncam = vtk.vtkCamera() ### example code')
+        print ('\nfrom vtk import vtkCamera ### example code')
+        print ('cam = vtkCamera()')
         print ('cam.SetPosition(',  [round(e,3) for e in cam.GetPosition()],  ')')
         print ('cam.SetFocalPoint(',[round(e,3) for e in cam.GetFocalPoint()],')')
         print ('cam.SetParallelScale(',round(cam.GetParallelScale(),3),')')
@@ -266,3 +271,17 @@ def _keypress(vp, obj, event):
             print ('Click an actor and press X to open the cutter box widget.')
         
     vp.interactor.Render()
+
+
+############################### timer event
+# allows to move the window while running
+# see lines 1306, 1330 in plotter.py
+def _stopren(vp, obj, event):
+    #if vp.interactive: return
+    #x,y = vp.interactor.GetEventPosition()
+    #print (' _stopren at',x,y, event, obj.GetKeySym())
+    vp.interactor.ExitCallback()
+    
+    
+
+

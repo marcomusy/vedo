@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 #
-"""
-Created on Mon Nov 13 12:48:43 2017
-@author: mmusy
-"""
 from __future__ import division, print_function
 from random import uniform as u
 import numpy as np
 import plotter
+
 
 
 # 1 ########################################################################################
@@ -66,9 +63,9 @@ vp.show(legend=['points', 'PCA ellipsoid'])
 xycoords = [(np.exp(i/10.), np.sin(i/5.)) for i in range(40)]
 vp = plotter.vtkPlotter(title='Example 6')
 vp.xyplot( xycoords )
-vp.grid(center=(0,0.5,0.5), normal=(1,0,0), c=(1,0,0))
-vp.grid(center=(0.5,0,0.5), normal=(0,1,0), c=(0,1,0))
-vp.grid(center=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
+vp.grid(pos=(0,0.5,0.5), normal=(1,0,0), c=(1,0,0))
+vp.grid(pos=(0.5,0,0.5), normal=(0,1,0), c=(0,1,0))
+vp.grid(pos=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
 vp.show(axes=0)
 
 
@@ -87,12 +84,11 @@ vp.show(legend='shape w/ boundaries')
 # Then open an independent window and draw on two shapes:
 vp1 = plotter.vtkPlotter(shape=(6,6), title='Example 8')
 vp1.renderers[35].SetBackground(.8,.9,.9)
+vp1.axes = False
 a = vp1.load('data/250.vtk')     
 b = vp1.load('data/270.vtk', legend='some legend')     
 c = vp1.load('data/290.vtk') 
-vp1.interactive = False
-vp1.axes = False
-vp1.show(at=12, actors=[a,b]) 
+vp1.show(at=12, actors=[a,b], interactive=False) 
 vp1.show(at=33, actors=[b,c]) 
 vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
 vp2.load('data/250.vtk', legend='an other window')
@@ -111,7 +107,7 @@ vp.axes = False
 for i in [0,1,2,3]:
     c = vp.curvature(v, method=i, r=1, alpha=0.8)
     vp.show(at=i, actors=[c], legend='method #'+str(i+1))
-vp.interact()
+vp.show(interactive=1)
 
 
 # 10 #######################################################################################
@@ -129,7 +125,7 @@ vp.show(at=5, actors=vp.cube(),   legend='cube()')
 vp.show(at=6, actors=vp.ring(),   legend='ring()')
 vp.show(at=7, actors=vp.helix(),  legend='helix()')
 vp.show(at=8, actors=vp.cylinder(), legend='cylinder()')
-vp.interact()
+vp.show(interactive=1)
 
 
 # 11 #######################################################################################
@@ -148,7 +144,7 @@ a = vp.getActors('sciss') # retrieve actors by matching legend string
 a[0].RotateX(90)          # and rotate it by 90 degrees around x
 vp.show(at=7, c=7, actors='data/shuttle.obj')
 vp.show(at=8, c=8, actors='data/skyscraper.obj')
-vp.interact()
+vp.show(interactive=1)
 
 
 # 12 #######################################################################################
@@ -159,7 +155,7 @@ for i,mname in enumerate(mat):
     sp = vp.load('data/beethoven.ply', alpha=1)
     plotter.assignTexture(sp, mname, scale=1) # mname can be any jpeg file
     vp.show(at=i, actors=sp, legend=mname)
-vp.interact()
+vp.show(interactive=1)
 
 
 # 13 ########################################################################################
@@ -241,23 +237,20 @@ vp.show()
 
 # 20 ########################################################################################
 a = plotter.load('data/cow.g') # N.B.: not necessarily using vtkPlotter object to load file
-plotter.cutterWidget(a)
+a.cutterWidget() # invoke widget
 
 
 # 21 ########################################################################################
 # Make a video (needs cv2 package)
 vp = plotter.vtkPlotter(title='Example 21')
 vp.load('data/290.vtk', c='b', bc='tomato', alpha=1)
-vp.show()                     # inits camera etc.
-vp.interactive = False
-plotter.openVideo(duration=3) # will make it last 3 seconds
+plotter.openVideo(duration=3) # will force it to last 3 seconds in total
 for i in range(100):
+    vp.render(resetcam=True)
     vp.camera.SetPosition(700.-i*20., -10, 4344.-i*80.)
-    vp.show()
     plotter.addFrameVideo()
 plotter.releaseVideo()
-vp.interact()
-
+vp.show()
 
 ############################################################################################
 

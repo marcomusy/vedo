@@ -95,9 +95,9 @@ import numpy as np
 xycoords = [(np.exp(i/10.), np.sin(i/5.)) for i in range(40)]
 vp = plotter.vtkPlotter()
 vp.xyplot( xycoords )
-vp.grid(center=(0,0.5,0.5), normal=(1,0,0), c=(1,0,0))
-vp.grid(center=(0.5,0,0.5), normal=(0,1,0), c=(0,1,0))
-vp.grid(center=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
+vp.grid(pos=(0,0.5,0.5), normal=(1,0,0), c=(1,0,0))
+vp.grid(pos=(0.5,0,0.5), normal=(0,1,0), c=(0,1,0))
+vp.grid(pos=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
 vp.axes()
 vp.show(axes=0)
 ```
@@ -254,27 +254,27 @@ Use *plotter.openVideo(), plotter.addFrameVideo()* and *plotter.closeVideo()* to
 def help()
 def __init__(shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='',
              bg=(1,1,1), bg2=None, axes=True, verbose=True, interactive=True)
-def load(filesOrDirs, c='gold', alpha=0.2, wire=False, bc=None, edges=False, legend=True)
+def load(filesOrDirs, c='gold', alpha=0.2, wire=False, bc=None, edges=False, legend=True, texture=None)
 def getActors(obj=None)
 def moveCamera(camstart, camstop, fraction)
 #
-def point(pt, c='b', r=10, alpha=1, legend=None)
+def point(pos, c='b', r=10, alpha=1, legend=None)
 def points(plist, c='b', r=10, alpha=1, legend=None)
 def line(p0, p1, lw=1, dotted=False, c='r', alpha=1, legend=None)
-def sphere(pt, r=1, c='r', alpha=1, legend=None)
-def cube(pt, r=1, c='g', alpha=1, legend=None)
-def plane(center=(0,0,0), normal=(0,0,1), s=10, c='g', bc='darkgreen', lw=1, alpha=1)
-def grid( center=(0,0,0), normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1)
-def arrow(startPoint, endPoint, c='r', alpha=1, legend=None)
-def cylinder(center, radius, height, axis=[1,1,1], c='teal', alpha=1, legend=None)
-def cone(center, radius, height, axis=[1,1,1], c='g', alpha=1, legend=None)
-def ellipsoid(points, c='c', alpha=0.5, legend=None)
-def helix(center=[0,0,0], length=2, n=6, radius=1, axis=[0,0,1], lw=1, c='grey', alpha=1, legend=None)
-def pyramid(center=[0,0,0], s=1, height=1, axis=[0,0,1], c='dg', alpha=1, legend=None)
-def ring(center=[0,0,0], radius=1, thickness=0.1, axis=[1,1,1], c='khaki', alpha=1, legend=None)
+def sphere(pos, r=1, c='r', alpha=1, legend=None, texture=None)
+def cube(pt, r=1, c='g', alpha=1, legend=None, texture=None)
+def plane(pos=(0,0,0), normal=(0,0,1), s=10, c='g', bc='darkgreen', lw=1, alpha=1, texture=None)
+def grid( pos=(0,0,0), normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1, texture=None)
+def arrow(startPoint, endPoint, c='r', alpha=1, legend=None, texture=None)
+def cylinder(pos, radius, height, axis=[1,1,1], c='teal', alpha=1, legend=None, texture=None)
+def cone(pos, radius, height, axis=[1,1,1], c='g', alpha=1, legend=None, texture=None)
+def ellipsoid(points, c='c', alpha=0.5, legend=None, texture=None)
+def helix(pos=[0,0,0], length=2, n=6, radius=1, axis=[0,0,1], lw=1, c='grey', alpha=1, legend=None, texture=None)
+def pyramid(pos=[0,0,0], s=1, height=1, axis=[0,0,1], c='dg', alpha=1, legend=None, texture=None)
+def ring(pos=[0,0,0], radius=1, thickness=0.1, axis=[1,1,1], c='khaki', alpha=1, legend=None, texture=None)
 def spline(points, s=10, c='navy', alpha=1., nodes=True, legend=None)
 def bspline(points, nknots=-1, s=1, c=(0,0,0.8), alpha=1, nodes=False, legend=None)
-def text(txt, pos=(0,0,0), s=1, c='k', alpha=1, bc=None, cam=True)
+def text(txt, pos=(0,0,0), s=1, c='k', alpha=1, bc=None, cam=True, texture=None)
 #
 def xyplot(points, title='', c='r', pos=1, lines=False)
 def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
@@ -289,9 +289,11 @@ def cutActor(actor, origin=(0,0,0), normal=(1,0,0), showcut=True, showline=False
 def closestPoint(surf, pt, locator=None, N=None, radius=None)
 #
 def show(actors=None, at=0, legend=None, axes=None, ruler=False, interactive=None, 
-         outputimage=None, c='gold', bc=None, alpha=0.2, wire=False, edges=False, q=False)
+         outputimage=None, c='gold', bc=None, alpha=0.2, wire=False, edges=False, resetcam=True, q=False)
 def clear(actors=[])
-def interact()
+def render(resetcam=False, rate=10000)
+def addActor(actor) 
+def removeActor(actor) 
 def lastActor()
 ```
 
@@ -306,7 +308,6 @@ vp.interactive  # (true) allows to interact with renderer
 vp.axes         # (true) show 3D axes
 vp.camera       # current vtkCamera 
 vp.commoncam    # (true) share the same camera in renderers
-vp.resetcam     # (true) if true reset camera when calling show()
 vp.legend       # list of legend entries for each actors, can be false
 vp.verbose      # verbosity
 vp.result       # dictionary to store extra output information
@@ -333,27 +334,33 @@ def pauseVideo(pause)
 def releaseVideo() 
 ``` 
 
-Additional physics methods of vtkActor object (*a la vpython*):
+Additional methods of vtkActor object (*a la vpython*):
 ```python
 actor.pos()      # position vector (setters, and getters if no argument is given)
-actor.x()        # set/get components
-actor.y()
-actor.z()
+actor.addpos(v)  # add v to current actor position
+actor.x()        # set/get x component of position (same for y and z)
 #
 actor.vel()      # set/get velocity vector
-actor.vx()
-actor.vy()
-actor.vz()
+actor.vx()       # set/get x component of velocity (same for y and z)
 #
 actor.mass()     # set/get mass
-#
 actor.axis()     # set/get orientation axis
-#
 actor.omega()    # set/get angular velocity
-#
 actor.momentum() # get momentum vector
-#
 actor.gamma()    # get Lorentz factor
+#
+actor.rotate(angle, axis, rad=False)  # rotate actor around axis
+actor.rotateX(angle, rad=False)       # rotate actor around X (or Y or Z)
+#
+actor.clone(c='gold', alpha=1, wire=False, bc=None, edges=False, legend=None, texture=None)
+#
+actor.normalize() # sets actor at origin and scales its average size to 1
+#
+actor.shrink(fraction=0.85)  # shrinks the polydata triangles for visualizion
+#
+actor.visible(alpha=1)       # sets opacity
+#
+actor.cutterWidget()         # invoke a cutter widget for actor
 ```
 
 
