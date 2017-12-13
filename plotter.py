@@ -167,7 +167,7 @@ class vtkPlotter:
         self.renderWin.PolygonSmoothingOn()
         self.renderWin.LineSmoothingOn()
         self.renderWin.PointSmoothingOn()
-        self.renderWin.SetSize(list(reversed(self.size)))
+        self.renderWin.SetSize(self.size[1], self.size[0])
         if title: self.renderWin.SetWindowName(title)
         for r in self.renderers: self.renderWin.AddRenderer(r)
         
