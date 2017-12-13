@@ -2,13 +2,15 @@
 """
 Created on Mon Dec  4 20:10:27 2017
 
-@author: mmusy
+@author: marco musy
 """
 from __future__ import division, print_function
 from glob import glob
-import os, vtk
-from colors import *
-import types
+import os, sys, types
+import numpy as np
+from colors import getColor
+import vtk
+import time
 
 
 vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
@@ -37,7 +39,7 @@ def load(filesOrDirs, c='gold', alpha=0.2,
         elif os.path.isdir(fod):
             acts = _loadDir(fod, c, alpha, wire, bc, edges, legend, texture)
     if not len(acts):
-        print ('Cannot find:', filesOrDirs)
+        printc(('Cannot find:', filesOrDirs), c=1)
         exit(0) 
     if len(acts) == 1: return acts[0]
     else: return acts
@@ -52,7 +54,7 @@ def _loadFile(filename, c, alpha, wire, bc, edges, legend, texture):
     else:
         poly = _loadPoly(filename)
         if not poly:
-            print ('Unable to load', filename)
+            printc(('Unable to load', filename), c=1)
             return False
         if legend is True: legend = os.path.basename(filename)
         actor = makeActor(poly, c, alpha, wire, bc, edges, legend, texture)
@@ -69,7 +71,7 @@ def _loadDir(mydir, c, alpha, wire, bc, edges, legend, texture):
 def _loadPoly(filename):
     '''Return a vtkPolyData object, NOT a vtkActor'''
     if not os.path.exists(filename): 
-        print ('Cannot find file', filename)
+        printc(('Cannot find file', filename), c=1)
         exit(0)
     fl = filename.lower()
     if   '.vtk' in fl: reader = vtk.vtkPolyDataReader()
@@ -98,7 +100,7 @@ def _loadPoly(filename):
     else: poly = reader.GetOutput()
     
     if not poly: 
-        print ('Unable to load', filename)
+        printc(('Unable to load', filename), c=1)
         return False
     
     mergeTriangles = vtk.vtkTriangleFilter()
@@ -111,7 +113,7 @@ def _loadPoly(filename):
 def _loadXml(filename, c, alpha, wire, bc, edges, legend):
     '''Reads a Fenics/Dolfin file format'''
     if not os.path.exists(filename): 
-        print ('Cannot find file', filename)
+        printc(('Cannot find file', filename), c=1)
         exit(0)
     try:
         import xml.etree.ElementTree as et
@@ -175,14 +177,14 @@ def _loadXml(filename, c, alpha, wire, bc, edges, legend):
             setattr(actor2, 'legend', os.path.basename(filename))
         return actor2
     except:
-        print ("Cannot parse xml file. Skip.", filename)
+        printc(("Cannot parse xml file. Skip.", filename), c=1)
         return False
  
 
 def _loadPCD(filename, c, alpha, legend):
     '''Return vtkActor from Point Cloud file format'''            
     if not os.path.exists(filename): 
-        print ('Cannot find file', filename)
+        printc(('Cannot find file', filename), 'red')
         exit(0)
     f = open(filename, 'r')
     lines = f.readlines()
@@ -201,14 +203,14 @@ def _loadPCD(filename, c, alpha, legend):
         if not start and 'DATA ascii' in text:
             start = True
     if expN != N:
-        print ('Mismatch in pcd file', expN, len(pts))
+        printc(('Mismatch in pcd file', expN, len(pts)), 'red')
     src = vtk.vtkPointSource()
     src.SetNumberOfPoints(len(pts))
     src.Update()
     poly = src.GetOutput()
     for i,p in enumerate(pts): poly.GetPoints().SetPoint(i, p)
     if not poly:
-        print ('Unable to load', filename)
+        printc(('Unable to load', filename), 'red')
         return False
     actor = makeActor(poly, getColor(c), alpha)
     actor.GetProperty().SetPointSize(4)
@@ -254,6 +256,7 @@ def makeActor(poly, c='gold', alpha=0.5,
     
     c = getColor(c)
     actor.GetProperty().SetColor(c)
+    actor.GetProperty().SetOpacity(alpha)
 
     actor.GetProperty().SetSpecular(0)
     actor.GetProperty().SetSpecularColor(c)
@@ -265,14 +268,10 @@ def makeActor(poly, c='gold', alpha=0.5,
     actor.GetProperty().SetDiffuse(1)
     actor.GetProperty().SetDiffuseColor(c)
 
-    actor.GetProperty().SetOpacity(alpha)
-
     if edges: actor.GetProperty().EdgeVisibilityOn()
     if wire: actor.GetProperty().SetRepresentationToWireframe()
-
-    if texture: 
-        assignTexture(actor, texture)
-    elif bc: # defines a specific color for the backface
+    if texture: assignTexture(actor, texture)
+    if bc: # defines a specific color for the backface
         backProp = vtk.vtkProperty()
         backProp.SetDiffuseColor(getColor(bc))
         backProp.SetOpacity(alpha)
@@ -288,14 +287,15 @@ def makeAssembly(actors, legend=None):
     assembly = vtk.vtkAssembly()
     for a in actors: assembly.AddPart(a)
     setattr(assembly, 'legend', legend) 
-    if hasattr(actors[0], 'legend'): 
-        assembly.legend = actors[0].legend
+#    if hasattr(actors[0], 'legend'): assembly.legend = actors[0].legend
     assignPhysicsMethods(assembly)
     return assembly
 
 
 def assignConvenienceMethods(actor, legend):
-    setattr(actor, 'legend', legend)
+    
+    if not hasattr(actor, 'legend'):
+        setattr(actor, 'legend', legend)
 
     def _frotate(self, angle, axis, rad=False): 
         return rotate(self, angle, axis, rad)
@@ -335,7 +335,7 @@ def assignConvenienceMethods(actor, legend):
 def assignPhysicsMethods(actor):
     
     apos = np.array(actor.GetPosition())
-    setattr(actor, '_pos',  apos)             # position  
+    setattr(actor, '_pos',  apos)         # position  
     def _fpos(self, p=None): 
         if p is None: return self._pos
         self.SetPosition(p)
@@ -444,7 +444,7 @@ def clone(actor, c='gold', alpha=0.5, wire=False, bc=None,
           edges=False, legend=None, texture=None): 
     poly = getPolyData(actor)
     if not len(getCoordinates(actor)):
-        print ('Limitation: cannot clone textured obj. Returning input.')
+        printc('Limitation: cannot clone textured obj. Returning input.', 'red')
         return actor
     polyCopy = vtk.vtkPolyData()
     polyCopy.DeepCopy(poly)
@@ -466,7 +466,8 @@ def shrink(actor, fraction=0.85):
     setInput(shrink, poly)
     shrink.SetShrinkFactor(fraction)
     shrink.Update()
-    actor.GetMapper().SetInput(shrink.GetOutput())
+    mapper = actor.GetMapper()
+    setInput(mapper, shrink.GetOutput())
 
 
 #########################################################
@@ -482,9 +483,9 @@ def screenshot(filename='screenshot.png'):
         if pb is not None:
             pb.save(filename, "png")
             #print ("Screenshot saved to", filename)
-        else: print ("Unable to save the screenshot. Skip.")
+        else: printc("Unable to save the screenshot. Skip.", 'red')
     except:
-        print ("Unable to take the screenshot. Skip.")
+        printc("Unable to take the screenshot. Skip.", 'red')
 
 
 def makePolyData(spoints, addLines=True):
@@ -523,7 +524,8 @@ def isInside(poly, point):
     return sep.IsInside(0)
 
 
-def getPolyData(obj, index=0): # get PolyData
+#################################################################### get stuff
+def getPolyData(obj, index=0): 
     '''
     Returns vtkPolyData from an other object (vtkActor, vtkAssembly, int)
     '''
@@ -538,8 +540,9 @@ def getPolyData(obj, index=0): # get PolyData
         for i in range(index+1):
             act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
         return act.GetMapper().GetInput()
-    print ("Error: input is neither a poly nor an actor int or assembly.", obj)
-    return False
+    printc("Fatal Error in getPolyData(): ", 'red', end='')
+    printc(("input is neither a poly nor an actor int or assembly.", [obj]), 'red')
+    exit(1)
 
 
 def getPoint(i, actor):
@@ -563,6 +566,7 @@ def getCoordinates(actors):
 
 
 def getMaxOfBounds(actor):
+    '''Get the maximum dimension of the actor bounding box'''
     poly = getPolyData(actor)
     b = poly.GetBounds()
     maxb = max(abs(b[1]-b[0]), abs(b[3]-b[2]), abs(b[5]-b[4]))
@@ -584,8 +588,24 @@ def getCM(actor):
         return np.mean(pts, axis=0)       
 
 
-def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
+def getVolume(actor):
+    '''Get the volume occupied by actor'''
+    mass = vtk.vtkMassProperties()
+    setInput(mass, getPolyData(actor))
+    mass.Update() 
+    return mass.GetVolume()
 
+
+def getArea(actor):
+    '''Get the surface area of actor'''
+    mass = vtk.vtkMassProperties()
+    setInput(mass, getPolyData(actor))
+    mass.Update() 
+    return mass.GetSurfaceArea()
+
+
+def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
+    '''Assign a texture to actro from file or name in /textures directory'''
     if   mapTo == 1: tmapper = vtk.vtkTextureMapToCylinder()
     elif mapTo == 2: tmapper = vtk.vtkTextureMapToSphere()
     elif mapTo == 3: tmapper = vtk.vtkTextureMapToPlane()
@@ -606,7 +626,7 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     if os.path.exists(name): 
         fn = name
     elif not os.path.exists(fn):
-        print ('Texture', name, 'not found in', cdir+'/textures')
+        printc(('Texture', name, 'not found in', cdir+'/textures'), 'red')
         return 
         
     jpgReader = vtk.vtkJPEGReader()
@@ -622,7 +642,15 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     actor.SetTexture(atext)
     
     
-####################################
+def writeVTK(obj, fileoutput):
+    wt = vtk.vtkPolyDataWriter()
+    setInput(wt, getPolyData(obj))
+    wt.SetFileName(fileoutput)
+    wt.Write()
+    printc(("Saved vtk file:", fileoutput), 'green')
+    
+
+########################################################################
 def closestPoint(surf, pt, locator=None, N=None, radius=None):
     """
     Find the closest point on a polydata given an other point.
@@ -661,19 +689,10 @@ def closestPoint(surf, pt, locator=None, N=None, radius=None):
     return trgp
 
 
-####################################
-def writeVTK(obj, fileoutput):
-    wt = vtk.vtkPolyDataWriter()
-    setInput(wt, getPolyData(obj))
-    wt.SetFileName(fileoutput)
-    wt.Write()
-    print ("Saved vtk file:", fileoutput)
-    
-
-####################################
+########################################################################
 def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1, 
                  wire=False, bc=(0.7, 0.8, 1), edges=False, legend=None):
-                
+    '''Pop up a box widget to cut parts of actor. Return largest part.'''
     apd = getPolyData(obj)
     planes  = vtk.vtkPlanes()
     planes.SetBounds(apd.GetBounds())
@@ -711,7 +730,7 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     istyl.SetCurrentStyleToTrackballCamera()
     iren.SetInteractorStyle(istyl)
     
-    def SelectPolygons(object, event): object.GetPlanes(planes)
+    def selectPolygons(object, event): object.GetPlanes(planes)
     boxWidget = vtk.vtkBoxWidget()
     boxWidget.OutlineCursorWiresOn()
     boxWidget.GetSelectedOutlineProperty().SetColor(1,0,1)
@@ -721,10 +740,10 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     boxWidget.SetInteractor(iren)
     setInput(boxWidget, apd)
     boxWidget.PlaceWidget()
-    boxWidget.AddObserver("InteractionEvent", SelectPolygons)
+    boxWidget.AddObserver("InteractionEvent", selectPolygons)
     boxWidget.On()
     
-    print ("Press X to save file:", outputname)
+    printc(("Press X to save file:", outputname), 'blue')
     def cwkeypress(obj, event):
         if obj.GetKeySym() == "X":
             writeVTK(cpd.GetOutput(), outputname)
@@ -733,7 +752,7 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     iren.AddObserver("KeyPressEvent", cwkeypress)
     iren.Start()
     boxWidget.Off()
-    
+    return actor
 
 
 ###################################################################### Video
@@ -815,4 +834,123 @@ def releaseVideo():
     print ('Video saved as', _videoname)
     _videoname = False
 
+
+###########################################################################
+class ProgressBar: 
+    '''Class to print a progress bar with optional text on its right'''
+    # import time                        ### Usage example:
+    # pb = ProgressBar(0,400, c='red')
+    # for i in pb.range():
+    #     time.sleep(.1)
+    #     pb.print('some message')       # or pb.print(counts=i) 
+    def __init__(self, start, stop, step=1, c=None, ETA=True, width=25):
+        self.start  = start
+        self.stop   = stop
+        self.step   = step
+        self.color  = c
+        self.width  = width
+        self.bar    = ""  
+        self.percent= 0
+        self._counts= 0
+        self._oldbar= ""
+        self._lentxt= 0
+        self._range = range(start, stop, step) 
+        self._len   = len(self._range)
+        self.clock0 = 0
+        self.ETA    = ETA
+        self.clock0 = time.time()
+        self._update(0)
+        
+    def print(self, txt='', counts=None):
+        if counts: self._update(counts)
+        else:      self._update(self._counts + self.step)
+        if self.bar != self._oldbar:
+            self._oldbar = self.bar
+            eraser = [' ']*self._lentxt + ['\b']*self._lentxt 
+            eraser = ''.join(eraser)
+            if self.ETA and self._counts>10:
+                vel  = self._counts/(time.time() - self.clock0)
+                remt =  (self.stop-self._counts)/vel
+                if remt>60:
+                    mins = int(remt/60)
+                    secs = remt - 60*mins
+                    mins = str(mins)+'m'
+                    secs = str(int(secs))+'s '
+                else:
+                    mins = ''
+                    secs= str(int(remt))+'s '
+                vel = str(round(vel,1))
+                eta = 'ETA: '+mins+secs+'('+vel+' it/s) '
+            else: eta = ''
+            txt = eta + txt 
+            s = self.bar + ' ' + eraser + txt + '\r'
+            if self.color: 
+                printc(s, c=self.color, end='')
+            else: 
+                sys.stdout.write(s)
+                sys.stdout.flush()
+            if self.percent==100: print ('')
+            self._lentxt = len(txt)
+
+    def range(self): return self._range
+    def len(self): return self._len
+ 
+    def _update(self, counts):
+        if counts < self.start: counts = self.start
+        elif counts > self.stop: counts = self.stop
+        self._counts = counts
+        self.percent = (self._counts - self.start)*100
+        self.percent /= self.stop - self.start
+        self.percent = int(round(self.percent))
+        af = self.width - 2
+        nh = int(round( self.percent/100 * af ))
+        if   nh==0:  self.bar = "[>%s]" % (' '*(af-1))
+        elif nh==af: self.bar = "[%s]" % ('='*af)
+        else:        self.bar = "[%s>%s]" % ('='*(nh-1), ' '*(af-nh))
+        ps = str(self.percent) + "%"
+        self.bar = ' '.join([self.bar, ps])
+        
+
+################################################################### color print
+def printc(strings, c='black', bold=True, separator=' ', end='\n'):
+    '''Print to terminal in color. Available colors:
+    black, red, green, yellow, blue, magenta, cyan, white
+    E.g.:
+    cprint( 'anything', c='red', bold=False, end='' )
+    cprint( ['anything', 455.5, vtkObject], 'green', separator='-')
+    cprint(299792.48, c=4) #blue
+    '''
+    if isinstance(strings, tuple): strings = list(strings)
+    elif not isinstance(strings, list): strings = [str(strings)]
+    txt = str()
+    for i,s in enumerate(strings):
+        if i == len(strings)-1: separator=''
+        txt = txt + str(s) + separator
+    
+    if _terminal_has_colors:
+        try:
+            if isinstance(c, int): 
+                ncol = c % 8
+            else: 
+                cols = {'black':0, 'red':1, 'green':2, 'yellow':3, 
+                        'blue':4, 'magenta':5, 'cyan':6, 'white':7}
+                ncol = cols[c.lower()]
+            if bold: seq = "\x1b[1;%dm" % (30+ncol)
+            else:    seq = "\x1b[0;%dm" % (30+ncol)
+            sys.stdout.write(seq + txt + "\x1b[0m" +end)
+            sys.stdout.flush()
+        except: print (txt, end=end)
+    else:
+        print (txt, end=end)
+        
+def _has_colors(stream):
+    if not hasattr(stream, "isatty"): return False
+    if not stream.isatty(): return False # auto color only on TTYs
+    try:
+        import curses
+        curses.setupterm()
+        return curses.tigetnum("colors") > 2
+    except:
+        return False
+_terminal_has_colors = _has_colors(sys.stdout)
 

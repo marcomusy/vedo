@@ -7,6 +7,7 @@ Created on Thu Dec  7 11:15:37 2017
 from __future__ import division, print_function
 import vtk
 from vtkutils import *
+from colors import getColorName
 
 
 
@@ -44,11 +45,11 @@ def _mouseleft(vp, obj, event):
             except: 
                 cn = None                        
             if indx and isinstance(clickedActor, vtk.vtkAssembly): 
-                print ('-> assembly', indx+':', clickedActor.legend, end=' ')
+                printc(('-> assembly', indx+':', clickedActor.legend), end=' ')
             elif indx:
-                print ('-> actor', indx+':', leg, end=' ')
-                if cn: print (cn, end=' ')
-            print ('N='+str(getPolyData(clickedActor).GetNumberOfPoints()))
+                printc(('-> actor', indx+':', leg), end=' ')
+                if cn: printc(cn, c=0, end=' ')
+            printc('N='+str(getPolyData(clickedActor).GetNumberOfPoints()))
                 
     vp.clickedActor = clickedActor
     vp.clickedr = clickedr
@@ -78,7 +79,7 @@ def _keypress(vp, obj, event):
         exit(0)
 
     elif key == "S":
-        print ('Saving window as screenshot.png')
+        printc('Saving window as screenshot.png', 'green')
         screenshot()
         return
 
@@ -242,7 +243,7 @@ def _keypress(vp, obj, event):
                 vp.renderer.RemoveActor(actr)
             else: 
                 if vp.verbose:
-                    print ('Click an actor and press x to remove it.')
+                    printc('Click an actor and press x to remove it.',5)
                 return
             if vp.verbose and hasattr(actr, 'legend'):
                 print ('   ...removing actor:', actr.legend)
@@ -265,10 +266,10 @@ def _keypress(vp, obj, event):
                 fname = fname.split('.')[0]+'.vtk'
             else: fname = 'clipped.vtk'
             if vp.verbose:
-                print ('Move handles to remove part of the actor.')
+                printc('Move handles to remove part of the actor.',4)
             cutterWidget(vp.clickedActor, fname) 
         elif vp.verbose: 
-            print ('Click an actor and press X to open the cutter box widget.')
+            printc('Click an actor and press X to open the cutter box widget.',4)
         
     vp.interactor.Render()
 

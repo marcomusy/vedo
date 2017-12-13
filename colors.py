@@ -136,13 +136,13 @@ def getColor(c):
             try: # single/double letter color
                 c = color_nicks[c.lower()] 
             except KeyError:
-                print ("Unknow color nickname:", c)
+                print("Unknow color nickname:", c)
                 print ("Available abbreviations:", color_nicks)
                 return [0.5,0.5,0.5]
         try: # full name color
             c = colors[c.lower()] 
         except KeyError:
-            print ("Unknow color name:", c)
+            print("Unknow color name:", c)
             print ("Available colors:", colors.keys())
             return [0.5,0.5,0.5]
 
@@ -151,7 +151,7 @@ def getColor(c):
             rgb255 = list(int(h[i:i+2], 16) for i in (0, 2 ,4))
             rgb = np.array(rgb255)/255.
             if np.sum(rgb)>3: 
-                print ("Error in getColor(): Wrong hex color", c)
+                print("Error in getColor(): Wrong hex color", c)
                 return [0.5,0.5,0.5]
             return list(rgb)
             

@@ -1,6 +1,6 @@
 ![vtk](https://www.vtk.org/wp-content/uploads/2015/03/vtk_logo-main1.png)
 # vtkPlotter
-A python helper class to easily draw tridimensional objects.
+A python helper class to easily draw tridimensional objects. An alternative to Vpython.
 
 Based on VTK (tested on versions 5.8, 6.1, 7.0): https://www.vtk.org
 <br />
