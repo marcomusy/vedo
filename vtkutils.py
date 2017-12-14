@@ -237,12 +237,6 @@ def assignPhysicsMethods(actor):
 
 
 ######################################################### 
-def point(i, actor):
-    poly = getPolyData(actor)
-    p = [0,0,0]
-    poly.GetPoints().GetPoint(i, p)
-    return np.array(p)
-
 def normalize(actor): 
     cm = getCM(actor)
     coords = getCoordinates(actor)

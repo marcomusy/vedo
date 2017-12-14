@@ -2,7 +2,7 @@
 # vtkPlotter
 A python helper class to easily draw and animate tridimensional objects. A VTK alternative to Vpython.
 
-Based on VTK (tested on versions 5.8, 6.1, 7.0): https://www.vtk.org
+Based on VTK (tested on versions 5.8, 6.3, 7.1, 8.0): https://www.vtk.org
 <br />
 
 ## Download/Install:
@@ -34,7 +34,6 @@ Run a tutorial script:
 import plotter
 
 vp = plotter.vtkPlotter()  # Declare an instance of the class
-vp.help()                  # shows a help message
 ```
 <br />
 
@@ -140,13 +139,12 @@ Load a surface and show its curvature based on 4 different schemes. All four sha
 share a common vtkCamera:<br />
 *0-gaussian, 1-mean, 2-max, 3-min*
 ```python
-vp = plotter.vtkPlotter(shape=(1,4))
+vp = plotter.vtkPlotter(shape=(1,4), interactive = False)
 v = vp.load('data/290.vtk')
-vp.interactive = False
 for i in [0,1,2,3]:
-    c = vp.curvatures(v, method=i, r=1, alpha=0.8)
+    c = vp.curvature(v, method=i, r=1, alpha=0.8)
     vp.show(at=i, actors=[c])
-vp.interact() # same as setting flag interactive=True
+vp.show(interactive=1) # same as setting flag interactive=True
 ```
 ![ex7](https://user-images.githubusercontent.com/32848391/32666974-912de586-c639-11e7-880a-2b377cde3615.png)
 <br />
@@ -154,16 +152,15 @@ vp.interact() # same as setting flag interactive=True
 
 Draw a bunch of simple objects on separate parts of the rendering window:
 ```python
-vp = plotter.vtkPlotter(N=6) 
+vp = plotter.vtkPlotter(N=6, interactive=0) 
 vp.commoncam   = False
-vp.interactive = False
-vp.show(at=0, actors=vp.arrow() )
-vp.show(at=1, actors=vp.line() )
-vp.show(at=2, actors=vp.points() )
+vp.show(at=0, actors=vp.arrow(),  legend='arrow()' )
+vp.show(at=1, actors=vp.line(),   legend='line()' )
+vp.show(at=2, actors=vp.points(), legend='points()' )
 vp.show(at=3, actors=vp.text('hello', cam=False, bc=(1,0,0) ) )
-vp.show(at=4, actors=vp.sphere(), axes=0 )
-vp.show(at=5, actors=vp.cube(), axes=0)
-vp.interact()
+vp.show(at=4, actors=vp.sphere() )
+vp.show(at=5, actors=vp.cube(),   legend='cube()')
+vp.show(interactive=1)
 ```
 ![ex8](https://user-images.githubusercontent.com/32848391/32666975-91690102-c639-11e7-8f7b-ad07bd6019da.png)
 <br />
@@ -185,7 +182,7 @@ a = vp.getActors('sciss') # retrieve actors by matching legend string
 a[0].RotateX(90)          # and rotate it by 90 degrees around x
 vp.show(at=7, c=7, actors='data/shuttle.obj')
 vp.show(at=8, c=8, actors='data/skyscraper.obj')
-vp.interact()
+vp.show(interactive=1)
 ```
 ![objects](https://user-images.githubusercontent.com/32848391/33093360-158b5f2c-cefd-11e7-8cb7-9e3c303b41be.png)
 <br />
@@ -246,7 +243,7 @@ vp.show()
 More examples in *example.py*.<br /> 
 If you need to do more complicated things (define widgets.. etc), you can still access all the 
 usual VTK objects like interactors and renderers through *vp.interactor, vp.renderer*... etc.<br />
-Use *plotter.openVideo(), plotter.addFrameVideo()* and *plotter.closeVideo()* to save a *movie.avi* file.
+Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.avi* file.
 <br />
 
 ## List of available methods with default values:

@@ -36,7 +36,7 @@ class vtkPlotter:
         printc("""
         A python helper class to easily draw VTK tridimensional objects.
         Please follow instructions at:
-        https://github.com/marcomusy/vtkPlotter\n""", c=0)
+        https://github.com/marcomusy/vtkPlotter\n""", c=1)
         print ("vtkPlotter version:", __version__)
         print ("VTK version:", vtk.vtkVersion().GetVTKVersion())
         try:
@@ -78,9 +78,8 @@ class vtkPlotter:
         ------------------------------------------"""
         printc(vv+msg, c='blue')
 
-    def __init__(self, shape=(1,1), size='auto', N=None, screensize=(500,900), title='vtkPlotter',
-
-#    def __init__(self, shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='vtkPlotter',
+    
+    def __init__(self, shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='vtkPlotter',
                 bg=(1,1,1), bg2=None, axes=True, verbose=True, interactive=True):
         """
         size = size of the rendering window. If 'auto', guess it based on screensize.
