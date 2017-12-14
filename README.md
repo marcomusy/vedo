@@ -1,6 +1,6 @@
 ![vtk](https://www.vtk.org/wp-content/uploads/2015/03/vtk_logo-main1.png)
 # vtkPlotter
-A python helper class to easily draw tridimensional objects. An alternative to Vpython.
+A python helper class to easily draw and animate tridimensional objects. A VTK alternative to Vpython.
 
 Based on VTK (tested on versions 5.8, 6.1, 7.0): https://www.vtk.org
 <br />
@@ -361,6 +361,7 @@ actor.shrink(fraction=0.85)  # shrinks the polydata triangles for visualizion
 actor.visible(alpha=1)       # sets opacity
 #
 actor.cutterWidget()         # invoke a cutter widget for actor
+actor.point(i, p=None)       # set/get i-th point in actor mesh
 ```
 
 

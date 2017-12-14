@@ -1,2 +1,4 @@
 store/
 *pyc
+.DS_Store
+

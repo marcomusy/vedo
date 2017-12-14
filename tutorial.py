@@ -4,7 +4,7 @@ from __future__ import division, print_function
 from random import uniform as u
 import numpy as np
 import plotter
-
+ 
 
 
 # 1 ########################################################################################
@@ -166,7 +166,7 @@ for i in range(500): # draw 500 fit lines superimposed
     x = np.linspace(-2, 5, 20) # generate 20 points
     y = np.linspace( 1, 9, 20)
     z = np.linspace(-5, 3, 20)
-    data = np.array(zip(x,y,z))
+    data = np.array(list(zip(x,y,z)))
     data+= np.random.normal(size=data.shape)*0.8 # add gauss noise
     if i==0:
         vp.points(data, c='red')
@@ -236,7 +236,7 @@ vp.show()
 
 
 # 20 ########################################################################################
-a = plotter.load('data/cow.g') # N.B.: not necessarily using vtkPlotter object to load file
+a = vp.load('data/cow.g') 
 a.cutterWidget() # invoke widget
 
 
@@ -244,12 +244,12 @@ a.cutterWidget() # invoke widget
 # Make a video (needs cv2 package)
 vp = plotter.vtkPlotter(title='Example 21')
 vp.load('data/290.vtk', c='b', bc='tomato', alpha=1)
-plotter.openVideo(duration=3) # will force it to last 3 seconds in total
+vp.openVideo(duration=3) # will force it to last 3 seconds in total
 for i in range(100):
     vp.render(resetcam=True)
     vp.camera.SetPosition(700.-i*20., -10, 4344.-i*80.)
-    plotter.addFrameVideo()
-plotter.releaseVideo()
+    vp.addFrameVideo()
+vp.releaseVideo()
 vp.show()
 
 ############################################################################################

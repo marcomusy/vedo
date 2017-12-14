@@ -5,10 +5,9 @@ Created on Mon Dec  4 20:10:27 2017
 @author: marco musy
 """
 from __future__ import division, print_function
-from glob import glob
 import os, sys, types
 import numpy as np
-from colors import getColor
+import colors
 import vtk
 import time
 
@@ -18,206 +17,6 @@ def setInput(vtkobj, p):
     if vtkMV: vtkobj.SetInputData(p)
     else: vtkobj.SetInput(p)
 
-
-####################################### LOADER
-def load(filesOrDirs, c='gold', alpha=0.2, 
-          wire=False, bc=None, edges=False, legend=True, texture=None):
-    '''Returns a vtkActor from reading a file or directory. 
-       Optional args:
-       c,     color in RGB format, hex, symbol or name
-       alpha, transparency (0=invisible)
-       wire,  show surface as wireframe
-       bc,    backface color of internal surface
-       legend, text to show on legend, if True picks filename.
-    '''
-    acts = []
-    if isinstance(legend, int): legend = bool(legend)
-    for fod in sorted(glob(filesOrDirs)):
-        if os.path.isfile(fod): 
-            a = _loadFile(fod, c, alpha, wire, bc, edges, legend, texture)
-            acts.append(a)
-        elif os.path.isdir(fod):
-            acts = _loadDir(fod, c, alpha, wire, bc, edges, legend, texture)
-    if not len(acts):
-        printc(('Cannot find:', filesOrDirs), c=1)
-        exit(0) 
-    if len(acts) == 1: return acts[0]
-    else: return acts
-
-
-def _loadFile(filename, c, alpha, wire, bc, edges, legend, texture):
-    fl = filename.lower()
-    if '.xml' in fl or '.xml.gz' in fl: # Fenics tetrahedral mesh file
-        actor = _loadXml(filename, c, alpha, wire, bc, edges, legend)
-    elif '.pcd' in fl:                  # PCL point-cloud format
-        actor = _loadPCD(filename, c, alpha, legend)
-    else:
-        poly = _loadPoly(filename)
-        if not poly:
-            printc(('Unable to load', filename), c=1)
-            return False
-        if legend is True: legend = os.path.basename(filename)
-        actor = makeActor(poly, c, alpha, wire, bc, edges, legend, texture)
-        if '.txt' in fl or '.xyz' in fl: 
-            actor.GetProperty().SetPointSize(4)
-    return actor
-    
-def _loadDir(mydir, c, alpha, wire, bc, edges, legend, texture):
-    acts = []
-    for ifile in sorted(os.listdir(mydir)):
-        _loadFile(mydir+'/'+ifile, c, alpha, wire, bc, edges, legend, texture)
-    return acts
-
-def _loadPoly(filename):
-    '''Return a vtkPolyData object, NOT a vtkActor'''
-    if not os.path.exists(filename): 
-        printc(('Cannot find file', filename), c=1)
-        exit(0)
-    fl = filename.lower()
-    if   '.vtk' in fl: reader = vtk.vtkPolyDataReader()
-    elif '.ply' in fl: reader = vtk.vtkPLYReader()
-    elif '.obj' in fl: reader = vtk.vtkOBJReader()
-    elif '.stl' in fl: reader = vtk.vtkSTLReader()
-    elif '.byu' in fl or '.g' in fl: reader = vtk.vtkBYUReader()
-    elif '.vtp' in fl: reader = vtk.vtkXMLPolyDataReader()
-    elif '.vts' in fl: reader = vtk.vtkXMLStructuredGridReader()
-    elif '.vtu' in fl: reader = vtk.vtkXMLUnstructuredGridReader()
-    elif '.txt' in fl: reader = vtk.vtkParticleReader() # (x y z scalar) 
-    elif '.xyz' in fl: reader = vtk.vtkParticleReader()
-    else: reader = vtk.vtkDataReader()
-    reader.SetFileName(filename)
-    reader.Update()
-    if '.vts' in fl: # structured grid
-        gf = vtk.vtkStructuredGridGeometryFilter()
-        gf.SetInputConnection(reader.GetOutputPort())
-        gf.Update()
-        poly = gf.GetOutput()
-    elif '.vtu' in fl: # unstructured grid
-        gf = vtk.vtkGeometryFilter()
-        gf.SetInputConnection(reader.GetOutputPort())
-        gf.Update()    
-        poly = gf.GetOutput()
-    else: poly = reader.GetOutput()
-    
-    if not poly: 
-        printc(('Unable to load', filename), c=1)
-        return False
-    
-    mergeTriangles = vtk.vtkTriangleFilter()
-    setInput(mergeTriangles, poly)
-    mergeTriangles.Update()
-    poly = mergeTriangles.GetOutput()
-    return poly
-
-
-def _loadXml(filename, c, alpha, wire, bc, edges, legend):
-    '''Reads a Fenics/Dolfin file format'''
-    if not os.path.exists(filename): 
-        printc(('Cannot find file', filename), c=1)
-        exit(0)
-    try:
-        import xml.etree.ElementTree as et
-        if '.gz' in filename:
-            import gzip
-            inF = gzip.open(filename, 'rb')
-            outF = open('/tmp/filename.xml', 'wb')
-            outF.write( inF.read() )
-            outF.close()
-            inF.close()
-            tree = et.parse('/tmp/filename.xml')
-        else: tree = et.parse(filename)
-        coords, connectivity = [], []
-        for mesh in tree.getroot():
-            for elem in mesh:
-                for e in elem.findall('vertex'):
-                    x = float(e.get('x'))
-                    y = float(e.get('y'))
-                    z = float(e.get('z'))
-                    coords.append([x,y,z])
-                for e in elem.findall('tetrahedron'):
-                    v0 = int(e.get('v0'))
-                    v1 = int(e.get('v1'))
-                    v2 = int(e.get('v2'))
-                    v3 = int(e.get('v3'))
-                    connectivity.append([v0,v1,v2,v3])
-        points = vtk.vtkPoints()
-        for p in coords: points.InsertNextPoint(p)
-
-        ugrid = vtk.vtkUnstructuredGrid()
-        ugrid.SetPoints(points)
-        cellArray = vtk.vtkCellArray()
-        for itet in range(len(connectivity)):
-            tetra = vtk.vtkTetra()
-            for k,j in enumerate(connectivity[itet]):
-                tetra.GetPointIds().SetId(k, j)
-            cellArray.InsertNextCell(tetra)
-        ugrid.SetCells(vtk.VTK_TETRA, cellArray)
-        # 3D cells are mapped only if they are used by only one cell,
-        #  i.e., on the boundary of the data set
-        mapper = vtk.vtkDataSetMapper()
-        mapper.SetInputConnection(ugrid.GetProducerPort())
-        actor = vtk.vtkActor()
-        actor.SetMapper(mapper)
-        actor.GetProperty().SetInterpolationToFlat()
-        actor.GetProperty().SetColor(getColor(c))
-        actor.GetProperty().SetOpacity(alpha/2.)
-        #actor.GetProperty().VertexVisibilityOn()
-        if edges: actor.GetProperty().EdgeVisibilityOn()
-        if wire:  actor.GetProperty().SetRepresentationToWireframe()
-        vpts = vtk.vtkPointSource()
-        vpts.SetNumberOfPoints(len(coords))
-        vpts.Update()
-        vpts.GetOutput().SetPoints(points)
-        pts_act = makeActor(vpts.GetOutput(), c='b', alpha=alpha)
-        pts_act.GetProperty().SetPointSize(3)
-        pts_act.GetProperty().SetRepresentationToPoints()
-        actor2 = makeAssembly([pts_act, actor])
-        if legend: setattr(actor2, 'legend', legend)
-        if legend is True: 
-            setattr(actor2, 'legend', os.path.basename(filename))
-        return actor2
-    except:
-        printc(("Cannot parse xml file. Skip.", filename), c=1)
-        return False
- 
-
-def _loadPCD(filename, c, alpha, legend):
-    '''Return vtkActor from Point Cloud file format'''            
-    if not os.path.exists(filename): 
-        printc(('Cannot find file', filename), 'red')
-        exit(0)
-    f = open(filename, 'r')
-    lines = f.readlines()
-    f.close()
-    start = False
-    pts = []
-    N, expN = 0, 0
-    for text in lines:
-        if start:
-            if N >= expN: break
-            l = text.split()
-            pts.append([float(l[0]),float(l[1]),float(l[2])])
-            N += 1
-        if not start and 'POINTS' in text:
-            expN= int(text.split()[1])
-        if not start and 'DATA ascii' in text:
-            start = True
-    if expN != N:
-        printc(('Mismatch in pcd file', expN, len(pts)), 'red')
-    src = vtk.vtkPointSource()
-    src.SetNumberOfPoints(len(pts))
-    src.Update()
-    poly = src.GetOutput()
-    for i,p in enumerate(pts): poly.GetPoints().SetPoint(i, p)
-    if not poly:
-        printc(('Unable to load', filename), 'red')
-        return False
-    actor = makeActor(poly, getColor(c), alpha)
-    actor.GetProperty().SetPointSize(4)
-    if legend: setattr(actor, 'legend', legend)
-    if legend is True: setattr(actor, 'legend', os.path.basename(filename))
-    return actor
-    
     
 ##############################################################################
 def makeActor(poly, c='gold', alpha=0.5, 
@@ -254,7 +53,7 @@ def makeActor(poly, c='gold', alpha=0.5,
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
     
-    c = getColor(c)
+    c = colors.getColor(c)
     actor.GetProperty().SetColor(c)
     actor.GetProperty().SetOpacity(alpha)
 
@@ -273,7 +72,7 @@ def makeActor(poly, c='gold', alpha=0.5,
     if texture: assignTexture(actor, texture)
     if bc: # defines a specific color for the backface
         backProp = vtk.vtkProperty()
-        backProp.SetDiffuseColor(getColor(bc))
+        backProp.SetDiffuseColor(colors.getColor(bc))
         backProp.SetOpacity(alpha)
         actor.SetBackfaceProperty(backProp)
 
@@ -317,6 +116,18 @@ def assignConvenienceMethods(actor, legend):
                 edges=False, legend=None, texture=None): 
         return clone(self, c, alpha, wire, bc, edges, legend, texture)
     actor.clone = types.MethodType( _fclone, actor )
+
+    def _fpoint(self, i, p=None): 
+        poly = getPolyData(self)
+        if p is None:
+            p = [0,0,0]
+            poly.GetPoints().GetPoint(i, p)
+            return np.array(p)
+        else:
+            poly.GetPoints().SetPoint(i, p)
+            #actor.GetMapper().Update()
+        return 
+    actor.point = types.MethodType( _fpoint, actor )
 
     def _fnormalize(self): return normalize(self)
     actor.normalize = types.MethodType( _fnormalize, actor )
@@ -426,6 +237,12 @@ def assignPhysicsMethods(actor):
 
 
 ######################################################### 
+def point(i, actor):
+    poly = getPolyData(actor)
+    p = [0,0,0]
+    poly.GetPoints().GetPoint(i, p)
+    return np.array(p)
+
 def normalize(actor): 
     cm = getCM(actor)
     coords = getCoordinates(actor)
@@ -468,26 +285,12 @@ def shrink(actor, fraction=0.85):
     shrink.Update()
     mapper = actor.GetMapper()
     setInput(mapper, shrink.GetOutput())
+    mapper.Update()
 
 
 #########################################################
 # Useful Functions
 ######################################################### 
-def screenshot(filename='screenshot.png'):
-    try:
-        import gtk.gdk
-        w = gtk.gdk.get_default_root_window().get_screen().get_active_window()
-        sz = w.get_size()
-        pb = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8, sz[0], sz[1])
-        pb = pb.get_from_drawable(w,w.get_colormap(),0,0,0,0, sz[0], sz[1])
-        if pb is not None:
-            pb.save(filename, "png")
-            #print ("Screenshot saved to", filename)
-        else: printc("Unable to save the screenshot. Skip.", 'red')
-    except:
-        printc("Unable to take the screenshot. Skip.", 'red')
-
-
 def makePolyData(spoints, addLines=True):
     """Try to workout a polydata from points"""
     sourcePoints = vtk.vtkPoints()
@@ -545,13 +348,6 @@ def getPolyData(obj, index=0):
     exit(1)
 
 
-def getPoint(i, actor):
-    poly = getPolyData(actor)
-    p = [0,0,0]
-    poly.GetPoints().GetPoint(i, p)
-    return np.array(p)
-
-
 def getCoordinates(actors):
     """Return a merged list of coordinates of actors or polys"""
     if not isinstance(actors, list): actors = [actors]
@@ -578,7 +374,7 @@ def getCM(actor):
     if vtkMV: #faster
         cmf = vtk.vtkCenterOfMass()
         setInput(cmf, getPolyData(actor))
-        cmf.UseScalarsAsWeightsOff()
+        #cmf.UseScalarsAsWeightsOff()
         cmf.Update()
         c = cmf.GetCenter()
         return np.array(c)
@@ -688,8 +484,6 @@ def closestPoint(surf, pt, locator=None, N=None, radius=None):
         locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
     return trgp
 
-
-########################################################################
 def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1, 
                  wire=False, bc=(0.7, 0.8, 1), edges=False, legend=None):
     '''Pop up a box widget to cut parts of actor. Return largest part.'''
@@ -701,6 +495,8 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     clipper.SetClipFunction(planes)
     clipper.InsideOutOn()
     clipper.GenerateClippedOutputOn()
+    clipper.SetValue(0.)
+    clipper.Update()
 
     confilter = vtk.vtkPolyDataConnectivityFilter()
     setInput(confilter, clipper.GetOutput())
@@ -747,92 +543,13 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     def cwkeypress(obj, event):
         if obj.GetKeySym() == "X":
             writeVTK(cpd.GetOutput(), outputname)
+        elif obj.GetKeySym() == "Escape": exit()
             
     iren.Initialize()
     iren.AddObserver("KeyPressEvent", cwkeypress)
     iren.Start()
     boxWidget.Off()
     return actor
-
-
-###################################################################### Video
-def openVideo(name='movie.avi', fps=12, duration=None, format="XVID"):
-    global _videoname
-    global _videoformat
-    global _videoduration
-    global _fps
-    global _frames
-    try:
-        import cv2 #just check existence
-        cv2.__version__
-    except:
-        print ("openVideo: cv2 not installed? Skip.")
-        return
-    _videoname = name
-    _videoformat = format
-    _videoduration = duration
-    _fps = float(fps) # if duration is given, will be recalculated
-    _frames = []
-    if not os.path.exists('/tmp/v'): os.mkdir('/tmp/v')
-    for fl in glob("/tmp/v/*.png"): os.remove(fl)
-    print ("Video", name, "is open. Press q to continue.")
-    
-def addFrameVideo():
-    global _videoname, _frames
-    if not _videoname: return
-    fr = '/tmp/v/'+str(len(_frames))+'.png'
-    screenshot(fr)
-    _frames.append(fr)
-
-def pauseVideo(pause):
-    '''insert a pause, in seconds'''
-    global _frames
-    if not _videoname: return
-    fr = _frames[-1]
-    n = int(_fps*pause)
-    for i in range(n): 
-        fr2='/tmp/v/'+str(len(_frames))+'.png'
-        _frames.append(fr2)
-        os.system("cp -f %s %s" % (fr, fr2))
-        
-def releaseGif(): #untested
-    global _videoname, _frames
-    if not _videoname: return
-    try: import imageio
-    except: 
-        print ("release_gif: imageio not installed? Skip.")
-        return
-    images = []
-    for fl in _frames:
-        images.append(imageio.imread(fl))
-    imageio.mimsave('animation.gif', images)
-
-def releaseVideo():      
-    global _videoname, _fps, _videoduration, _videoformat, _frames
-    if not _videoname: return
-    import cv2
-    if _videoduration:
-        _fps = len(_frames)/float(_videoduration)
-        print ("Recalculated video FPS to", round(_fps,3))
-    else: _fps = int(_fps)
-    fourcc = cv2.cv.CV_FOURCC(*_videoformat)
-    vid = None
-    size = None
-    for image in _frames:
-        if not os.path.exists(image):
-            print ('Image not found:', image)
-            continue
-        img = cv2.imread(image)
-        if vid is None:
-            if size is None:
-                size = img.shape[1], img.shape[0]
-            vid = cv2.VideoWriter(_videoname, fourcc, _fps, size, True)
-        if size[0] != img.shape[1] and size[1] != img.shape[0]:
-            img = cv2.resize(img, size)
-        vid.write(img)
-    vid.release()
-    print ('Video saved as', _videoname)
-    _videoname = False
 
 
 ###########################################################################

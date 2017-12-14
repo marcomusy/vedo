@@ -5,10 +5,10 @@ Created on Thu Dec  7 11:15:37 2017
 @author: mmusy
 """
 from __future__ import division, print_function
+import numpy as np
 import vtk
-from vtkutils import *
-from colors import getColorName
-
+import vtkutils as ut
+import colors
 
 
 ############################### mouse event
@@ -41,15 +41,16 @@ def _mouseleft(vp, obj, event):
             except ValueError: indx = None                        
             try: 
                 rgb = list(clickedActor.GetProperty().GetColor())
-                cn = '('+getColorName(rgb)+'),'
+                cn = colors.getColorName(rgb)
+                if cn == 'white': cn = ''
+                else: cn = '('+cn+'),'
             except: 
-                cn = None                        
+                cn = ''                        
             if indx and isinstance(clickedActor, vtk.vtkAssembly): 
-                printc(('-> assembly', indx+':', clickedActor.legend), end=' ')
+                ut.printc(('-> assembly',indx+':',clickedActor.legend,cn),end=' ')
             elif indx:
-                printc(('-> actor', indx+':', leg), end=' ')
-                if cn: printc(cn, c=0, end=' ')
-            printc('N='+str(getPolyData(clickedActor).GetNumberOfPoints()))
+                ut.printc(('-> actor', indx+':', leg, cn), end=' ')
+            ut.printc('N='+str(ut.getPolyData(clickedActor).GetNumberOfPoints()))
                 
     vp.clickedActor = clickedActor
     vp.clickedr = clickedr
@@ -79,8 +80,8 @@ def _keypress(vp, obj, event):
         exit(0)
 
     elif key == "S":
-        printc('Saving window as screenshot.png', 'green')
-        screenshot()
+        ut.printc('Saving window as screenshot.png', 'green')
+        ut.screenshot()
         return
 
     elif key == "C":
@@ -96,32 +97,50 @@ def _keypress(vp, obj, event):
     elif key == "m":
         if vp.clickedActor in vp.getActors():
             vp.clickedActor.GetProperty().SetOpacity(0.05)
+            bfp = vp.clickedActor.GetBackfaceProperty()
+            if bfp: bfp.SetOpacity(0.05)
         else:
-            for a in vp.getActors(): a.GetProperty().SetOpacity(.05)
+            for a in vp.getActors(): 
+                a.GetProperty().SetOpacity(.05)
+                bfp = a.GetBackfaceProperty()
+                if bfp: bfp.SetOpacity(0.05)
 
     elif key == "comma":
         if vp.clickedActor in vp.getActors():
             ap = vp.clickedActor.GetProperty()
             ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.05]))
+            bfp = vp.clickedActor.GetBackfaceProperty()
+            if bfp: bfp.SetOpacity(ap.GetOpacity())
         else:
             for a in vp.getActors():
                 ap = a.GetProperty()
                 ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.05]))
+                bfp = a.GetBackfaceProperty()
+                if bfp: bfp.SetOpacity(ap.GetOpacity())
 
     elif key == "period":
         if vp.clickedActor in vp.getActors():
             ap = vp.clickedActor.GetProperty()
             ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
+            bfp = vp.clickedActor.GetBackfaceProperty()
+            if bfp: bfp.SetOpacity(ap.GetOpacity())
         else:
             for a in vp.getActors():
                 ap = a.GetProperty()
                 ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
+                bfp = a.GetBackfaceProperty()
+                if bfp: bfp.SetOpacity(ap.GetOpacity())
 
     elif key == "slash":
         if vp.clickedActor in vp.getActors():
             vp.clickedActor.GetProperty().SetOpacity(1) 
+            bfp = vp.clickedActor.GetBackfaceProperty()
+            if bfp: bfp.SetOpacity(1)
         else:
-            for a in vp.getActors(): a.GetProperty().SetOpacity(1)
+            for a in vp.getActors(): 
+                a.GetProperty().SetOpacity(1)
+                bfp = a.GetBackfaceProperty()
+                if bfp: bfp.SetOpacity(1)
 
     elif key == "V":
         if not(vp.verbose): vp._tips()
@@ -130,24 +149,24 @@ def _keypress(vp, obj, event):
 
     elif key in ["1", "KP_End", "KP_1"]:
         for i,ia in enumerate(vp.getActors()):
-            ia.GetProperty().SetColor(colors1[i+vp.icol1])
+            ia.GetProperty().SetColor(colors.colors1[i+vp.icol1])
         vp.icol1 += 1
         vp._draw_legend()
 
     elif key in ["2", "KP_Down", "KP_2"]:
         for i,ia in enumerate(vp.getActors()):
-            ia.GetProperty().SetColor(colors2[i+vp.icol2])
+            ia.GetProperty().SetColor(colors.colors2[i+vp.icol2])
         vp.icol2 += 1
         vp._draw_legend()
 
     elif key in ["4", "KP_Left", "KP_4"]:
         for i,ia in enumerate(vp.getActors()):
-            ia.GetProperty().SetColor(colors3[i+vp.icol3])
+            ia.GetProperty().SetColor(colors.colors3[i+vp.icol3])
         vp.icol3 += 1
         vp._draw_legend()
 
     elif key in ["5", "KP_Begin", "KP_5"]:
-        c = getColor('gold')
+        c = colors.getColor('gold')
         acs = vp.getActors()
         alpha = 1./len(acs)
         for ia in acs:
@@ -243,10 +262,10 @@ def _keypress(vp, obj, event):
                 vp.renderer.RemoveActor(actr)
             else: 
                 if vp.verbose:
-                    printc('Click an actor and press x to remove it.',5)
+                    ut.printc('Click an actor and press x to remove it.',5)
                 return
             if vp.verbose and hasattr(actr, 'legend'):
-                print ('   ...removing actor:', actr.legend)
+                ut.printc(('   ...removing actor:', actr.legend))
             vp._draw_legend()
         else:
             if isinstance(vp.clickedActor, vtk.vtkAssembly):
@@ -266,10 +285,10 @@ def _keypress(vp, obj, event):
                 fname = fname.split('.')[0]+'.vtk'
             else: fname = 'clipped.vtk'
             if vp.verbose:
-                printc('Move handles to remove part of the actor.',4)
-            cutterWidget(vp.clickedActor, fname) 
+                ut.printc('Move handles to remove part of the actor.',4)
+            ut.cutterWidget(vp.clickedActor, fname) 
         elif vp.verbose: 
-            printc('Click an actor and press X to open the cutter box widget.',4)
+            ut.printc('Click an actor and press X to open the cutter box widget.',4)
         
     vp.interactor.Render()
 
