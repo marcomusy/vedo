@@ -13,7 +13,10 @@ import time
 
 
 vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
-def setInput(vtkobj, p):
+def setInput(vtkobj, p, port=0):
+    if isinstance(p, vtk.vtkAlgorithmOutput): # passing port
+        vtkobj.SetInputConnection(port, p)
+        return    
     if vtkMV: vtkobj.SetInputData(p)
     else: vtkobj.SetInput(p)
 
@@ -436,6 +439,7 @@ def writeVTK(obj, fileoutput):
     wt = vtk.vtkPolyDataWriter()
     setInput(wt, getPolyData(obj))
     wt.SetFileName(fileoutput)
+    wt.Update()
     wt.Write()
     printc(("Saved vtk file:", fileoutput), 'green')
     
@@ -478,49 +482,65 @@ def closestPoint(surf, pt, locator=None, N=None, radius=None):
         locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
     return trgp
 
-def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1, 
-                 wire=False, bc=(0.7, 0.8, 1), edges=False, legend=None):
+
+def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
+                 bc=(0.7, 0.8, 1), legend=None):
     '''Pop up a box widget to cut parts of actor. Return largest part.'''
+
     apd = getPolyData(obj)
-    planes  = vtk.vtkPlanes()
+    
+    planes = vtk.vtkPlanes()
     planes.SetBounds(apd.GetBounds())
+
     clipper = vtk.vtkClipPolyData()
     setInput(clipper, apd)
     clipper.SetClipFunction(planes)
     clipper.InsideOutOn()
     clipper.GenerateClippedOutputOn()
-    clipper.SetValue(0.)
-    clipper.Update()
 
-    confilter = vtk.vtkPolyDataConnectivityFilter()
-    setInput(confilter, clipper.GetOutput())
-    confilter.SetExtractionModeToLargestRegion()
-    confilter.Update()
-    cpd = vtk.vtkCleanPolyData()
-    setInput(cpd, confilter.GetOutput())
-
-    cpoly = clipper.GetClippedOutput() # cut away part
-    restActor = makeActor(cpoly, c=c, alpha=0.05, wire=1)
+    act0Mapper = vtk.vtkPolyDataMapper() # the part which stays
+    act0Mapper.SetInputConnection(clipper.GetOutputPort())
+    act0 = vtk.vtkActor()
+    act0.SetMapper(act0Mapper)
+    act0.GetProperty().SetColor(colors.getColor(c))
+    act0.GetProperty().SetOpacity(alpha)
+    backProp = vtk.vtkProperty()
+    backProp.SetDiffuseColor(colors.getColor(bc))
+    backProp.SetOpacity(alpha)
+    act0.SetBackfaceProperty(backProp)
+    #act0 = makeActor(clipper.GetOutputPort())
     
-    actor = makeActor(clipper.GetOutput(), c, alpha, wire, bc, edges, legend)
-    actor.GetProperty().SetInterpolationToFlat()
+    act0.GetProperty().SetInterpolationToFlat()
+    assignPhysicsMethods(act0)    
+    assignConvenienceMethods(act0, legend)    
 
+    act1Mapper = vtk.vtkPolyDataMapper() # the part which is cut away
+    act1Mapper.SetInputConnection(clipper.GetClippedOutputPort())
+    act1 = vtk.vtkActor()
+    act1.SetMapper(act1Mapper)
+    act1.GetProperty().SetColor(colors.getColor(c))
+    act1.GetProperty().SetOpacity(alpha/10.)
+    act1.GetProperty().SetRepresentationToWireframe()
+    act1.VisibilityOn()
+    
     ren = vtk.vtkRenderer()
-    ren.SetBackground(1, 1, 1)
-    ren.AddActor(actor)
-    ren.AddActor(restActor)
-
-    renWin = vtk.vtkRenderWindow()
-    renWin.SetSize(800, 800)
-    renWin.AddRenderer(ren)
+    ren.SetBackground(1,1,1)
     
+    ren.AddActor(act0)
+    ren.AddActor(act1)
+    
+    renWin = vtk.vtkRenderWindow()
+    renWin.AddRenderer(ren)
+    renWin.SetSize(600, 700)
+
     iren = vtk.vtkRenderWindowInteractor()
     iren.SetRenderWindow(renWin)
     istyl = vtk.vtkInteractorStyleSwitch()
     istyl.SetCurrentStyleToTrackballCamera()
     iren.SetInteractorStyle(istyl)
     
-    def selectPolygons(object, event): object.GetPlanes(planes)
+    def SelectPolygons(vobj, event): vobj.GetPlanes(planes)
+    
     boxWidget = vtk.vtkBoxWidget()
     boxWidget.OutlineCursorWiresOn()
     boxWidget.GetSelectedOutlineProperty().SetColor(1,0,1)
@@ -529,21 +549,29 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     boxWidget.SetPlaceFactor(1.05)
     boxWidget.SetInteractor(iren)
     setInput(boxWidget, apd)
-    boxWidget.PlaceWidget()
-    boxWidget.AddObserver("InteractionEvent", selectPolygons)
+    boxWidget.PlaceWidget()    
+    boxWidget.AddObserver("InteractionEvent", SelectPolygons)
     boxWidget.On()
     
     printc(("Press X to save file:", outputname), 'blue')
     def cwkeypress(obj, event):
         if obj.GetKeySym() == "X":
+            confilter = vtk.vtkPolyDataConnectivityFilter()
+            setInput(confilter, clipper.GetOutput())
+            confilter.SetExtractionModeToLargestRegion()
+            confilter.Update()
+            cpd = vtk.vtkCleanPolyData()
+            setInput(cpd, confilter.GetOutput())
+            cpd.Update()
             writeVTK(cpd.GetOutput(), outputname)
         elif obj.GetKeySym() == "Escape": exit()
-            
+    
     iren.Initialize()
     iren.AddObserver("KeyPressEvent", cwkeypress)
     iren.Start()
     boxWidget.Off()
-    return actor
+
+    return act0
 
 
 ###########################################################################
