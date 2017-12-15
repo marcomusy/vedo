@@ -23,7 +23,7 @@ from vtkutils import printc, makeActor, setInput, vtkMV
 from vtkutils import makeAssembly, assignTexture
 from vtkutils import getPolyData, getMaxOfBounds, getCoordinates
 
-# to expose these methods in plotter namespace:
+# to expose these methods in plotter namespace (not used in this file):
 from vtkutils import closestPoint, isInside
 from vtkutils import normalize, clone, decimate, rotate, shrink
 from vtkutils import getCM, getVolume, getArea, writeVTK, cutterWidget
