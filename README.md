@@ -1,7 +1,9 @@
 ![logo](https://user-images.githubusercontent.com/32848391/34055656-8c2e2e6c-e1d0-11e7-8d9d-728b0a535cc6.png)
 <br />
+<br />
+
 A python helper class to easily draw, analyse and animate tridimensional objects. 
-A VTK alternative to Vpython.
+<br />A VTK alternative to Vpython.
 
 ## Download / Install:
 ```bash
