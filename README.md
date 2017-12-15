@@ -1,10 +1,9 @@
 ![logo](https://user-images.githubusercontent.com/32848391/34055656-8c2e2e6c-e1d0-11e7-8d9d-728b0a535cc6.png)
-A python helper class to easily draw and animate tridimensional objects. A VTK alternative to Vpython.
-
-Based on VTK (tested on versions 5.8, 6.3, 7.1, 8.0): https://www.vtk.org
 <br />
+A python helper class to easily draw, analyse and animate tridimensional objects. 
+A VTK alternative to Vpython.
 
-## Download/Install:
+## Download / Install:
 ```bash
 git clone https://github.com/marcomusy/vtkPlotter.git
 ```
@@ -362,4 +361,6 @@ actor.point(i, p=None)       # set/get i-th point in actor mesh
 ```
 
 
+<br />
+Tested on VTK versions 5.8, 6.3, 7.1, 8.0: https://www.vtk.org
 
