@@ -14,8 +14,8 @@ import time
 
 vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
 def setInput(vtkobj, p, port=0):
-    if isinstance(p, vtk.vtkAlgorithmOutput): # passing port
-        vtkobj.SetInputConnection(port, p)
+    if isinstance(p, vtk.vtkAlgorithmOutput):
+        vtkobj.SetInputConnection(port, p) # passing port
         return    
     if vtkMV: vtkobj.SetInputData(p)
     else: vtkobj.SetInput(p)
@@ -89,7 +89,6 @@ def makeAssembly(actors, legend=None):
     assembly = vtk.vtkAssembly()
     for a in actors: assembly.AddPart(a)
     setattr(assembly, 'legend', legend) 
-#    if hasattr(actors[0], 'legend'): assembly.legend = actors[0].legend
     assignPhysicsMethods(assembly)
     return assembly
 
@@ -240,41 +239,78 @@ def assignPhysicsMethods(actor):
 
 
 ######################################################### 
-def normalize(actor): 
+def clone(actor, c='gold', alpha=None, wire=False, bc=None,
+          edges=False, legend=None, texture=None): 
+    poly = getPolyData(actor)
+    if not len(getCoordinates(actor)):
+        printc('Limitation: cannot clone textured obj. Returning input.',1)
+        return actor
+    polyCopy = vtk.vtkPolyData()
+    polyCopy.DeepCopy(poly)
+    if not legend is None and hasattr(actor.legend): 
+        legend = actor.legend+' copy'
+        
+    if alpha is None: alpha = actor.GetProperty().GetOpacity()
+    if hasattr(actor, 'texture'): texture = actor.texture
+    a = makeActor(polyCopy, c, alpha, wire, bc, edges, legend, texture)
+
+#    mapper = vtk.vtkPolyDataMapper()  # alternative  way
+#    mapper.ShallowCopy(actor.GetMapper())
+#    setInput(mapper, polyCopy)
+#    mapper.Update()
+#    a = vtk.vtkActor()
+#    a.SetProperty(actor.GetProperty())
+#    a.SetMapper(mapper)
+    
+    assignPhysicsMethods(a)    
+    assignConvenienceMethods(a, legend)    
+    return a
+    
+
+def normalize(actor, s=1): # N.B. input argument gets modified
+    # s= scale
     cm = getCM(actor)
     coords = getCoordinates(actor)
     if not len(coords) : return
     pts = getCoordinates(actor) - cm
     xyz2 = np.sum(pts * pts, axis=0)
-    scale = 1./np.sqrt(np.sum(xyz2)/len(pts))
-    actor.SetPosition(0,0,0)
-    actor.SetScale(scale, scale, scale)
-    poly = getPolyData(actor)
-    for i,p in enumerate(pts): 
-        poly.GetPoints().SetPoint(i, p)
+    scale = s/np.sqrt(np.sum(xyz2)/len(pts))
+    t = vtk.vtkTransform()
+    t.Scale(scale, scale, scale)
+    t.Translate(-cm)
+    tf = vtk.vtkTransformPolyDataFilter() 
+    setInput(tf, actor.GetMapper().GetInput())
+    tf.SetTransform(t)
+    tf.Update()
+    mapper = actor.GetMapper()
+    setInput(mapper, tf.GetOutput())
+    mapper.Update()
+    actor.Modified()
+    return actor  # return same obj for concatenation
 
 
-def clone(actor, c='gold', alpha=0.5, wire=False, bc=None,
-          edges=False, legend=None, texture=None): 
-    poly = getPolyData(actor)
-    if not len(getCoordinates(actor)):
-        printc('Limitation: cannot clone textured obj. Returning input.', 'red')
-        return actor
-    polyCopy = vtk.vtkPolyData()
-    polyCopy.DeepCopy(poly)
-    a = makeActor(polyCopy, c, alpha, wire, bc, edges, legend, texture)
-    return a
-    
-
-def rotate(actor, angle, axis, rad=False):
+def rotate(actor, angle, axis, rad=False): # N.B. input argument is modified
     l = np.linalg.norm(axis)
     if not l: return
     axis /= l
     if rad: angle *= 57.3
-    actor.RotateWXYZ(-angle, axis[0], axis[1], axis[2])
+    cm = getCM(actor)
+    t = vtk.vtkTransform()
+    t.Translate(cm)
+    t.RotateWXYZ(-angle,  axis[0], axis[1], axis[2])
+    t.Translate(-cm)
+    tf = vtk.vtkTransformPolyDataFilter() 
+    setInput(tf, actor.GetMapper().GetInput())
+    tf.SetTransform(t)
+    tf.Update()
+    mapper = actor.GetMapper()
+    setInput(mapper, tf.GetOutput())
+    mapper.Update()
+    actor.Modified()
+    return actor   # return same obj for concatenation
 
 
-def shrink(actor, fraction=0.85):
+def shrink(actor, fraction=0.85): # N.B. input argument is modified
     poly = getPolyData(actor)
     shrink = vtk.vtkShrinkPolyData()
     setInput(shrink, poly)
@@ -283,6 +319,32 @@ def shrink(actor, fraction=0.85):
     mapper = actor.GetMapper()
     setInput(mapper, shrink.GetOutput())
     mapper.Update()
+    actor.Modified()
+    return actor   # return same obj for concatenation
+
+
+def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
+    poly = getPolyData(actor)
+    if N: # N = desired number of points
+        Np = poly.GetNumberOfPoints()
+        fraction = float(N)/Np
+        if fraction >= 1: return actor   
+        
+    decimate = vtk.vtkDecimatePro()
+    setInput(decimate, poly)
+    decimate.SetTargetReduction(1.-fraction)
+    decimate.PreserveTopologyOff()
+    if boundaries: decimate.BoundaryVertexDeletionOn()
+    else: decimate.BoundaryVertexDeletionOff()
+    decimate.Update()
+    if verbose:
+        print ('Input nr. of pts:',poly.GetNumberOfPoints(),end='')
+        print (' output:',decimate.GetOutput().GetNumberOfPoints())
+    mapper = actor.GetMapper()
+    setInput(mapper, decimate.GetOutput())
+    mapper.Update()
+    actor.Modified()
+    return actor  
 
 
 #########################################################

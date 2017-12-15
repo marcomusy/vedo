@@ -5,7 +5,7 @@ import plotter
 vp = plotter.vtkPlotter(verbose=0)
 vp.plane(pos=(4,0,-.35), s=12, alpha=.9, texture='metalfloor1')
 vp.cylinder(pos=(1.6,-.4,1.1), radius=0.1, height=3, texture='wood1')
-a = vp.load('data/big_porsche.ply', c='r', alpha=1) 
+a = vp.load('data/shapes/porsche.ply', c='r', alpha=1) 
 a.rotateX(-90)
 a.normalize() # put actor at origin and scale ave size to 1
 print ('Scene is ready, press q to continue')

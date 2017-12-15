@@ -8,6 +8,7 @@ from __future__ import division, print_function
 import numpy as np
 import vtk
 import vtkutils as ut
+import vtkvideo
 import colors
 
 
@@ -81,7 +82,7 @@ def _keypress(vp, obj, event):
 
     elif key == "S":
         ut.printc('Saving window as screenshot.png', 'green')
-        ut.screenshot()
+        vtkvideo.screenshot()
         return
 
     elif key == "C":
@@ -93,6 +94,23 @@ def _keypress(vp, obj, event):
         print ('cam.SetParallelScale(',round(cam.GetParallelScale(),3),')')
         print ('cam.SetViewUp(', [round(e,3) for e in cam.GetViewUp()],')\n')
         return
+
+
+    elif key == "w":
+        if vp.clickedActor and vp.clickedActor in vp.getActors():
+            vp.clickedActor.GetProperty().SetRepresentationToWireframe()
+        else:
+            for a in vp.getActors(): 
+                if a: 
+                    a.GetProperty().SetRepresentationToWireframe()
+
+    elif key == "s":
+        if vp.clickedActor and vp.clickedActor in vp.getActors():
+            vp.clickedActor.GetProperty().SetRepresentationToSurface()
+        else:
+            for a in vp.getActors(): 
+                if a: 
+                    a.GetProperty().SetRepresentationToSurface()
 
     elif key == "m":
         if vp.clickedActor in vp.getActors():
@@ -159,13 +177,13 @@ def _keypress(vp, obj, event):
         vp.icol2 += 1
         vp._draw_legend()
 
-    elif key in ["4", "KP_Left", "KP_4"]:
+    elif key in ["3", "KP_Left", "KP_4"]:
         for i,ia in enumerate(vp.getActors()):
             ia.GetProperty().SetColor(colors.colors3[i+vp.icol3])
         vp.icol3 += 1
         vp._draw_legend()
 
-    elif key in ["5", "KP_Begin", "KP_5"]:
+    elif key in ["4", "KP_Begin", "KP_5"]:
         c = colors.getColor('gold')
         acs = vp.getActors()
         alpha = 1./len(acs)

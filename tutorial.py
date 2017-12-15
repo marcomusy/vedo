@@ -129,21 +129,22 @@ vp.show(interactive=1)
 
 
 # 11 #######################################################################################
-# Draw a bunch of objects. Split window in 3 rows and 3 columns
+# Draw a bunch of objects in many formats. Split window in 3 rows and 3 columns
 vp = plotter.vtkPlotter(shape=(3,3), title='Example 11') 
 vp.commoncam   = False
 vp.interactive = False
 vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
-vp.show(at=1, c=1, actors='data/big_atc.ply', wire=1)
-vp.show(at=2, c=2, actors='data/big_porsche.ply', edges=1)
-vp.show(at=3, c=3, actors='data/big_spider.ply')
-vp.show(at=4, c=4, actors='data/egret.ply')
-vp.show(at=5, c=5, actors='data/mug.ply')
-vp.show(at=6, c=6, actors='data/scissors.ply')
-a = vp.getActors('sciss') # retrieve actors by matching legend string 
-a[0].RotateX(90)          # and rotate it by 90 degrees around x
-vp.show(at=7, c=7, actors='data/shuttle.obj')
-vp.show(at=8, c=8, actors='data/skyscraper.obj')
+vp.show(at=1, c=1, actors='data/cow.g', wire=1)
+vp.show(at=2, c=2, actors='data/limb.pcd')
+vp.show(at=3, c=3, actors='data/shapes/spider.ply')
+vp.show(at=4, c=4, actors='data/shuttle.obj')
+vp.show(at=5, c=5, actors='data/shapes/magnolia.vtk')
+vp.show(at=6, c=6, actors='data/shapes/man.vtk', alpha=1, axes=1)
+a = vp.getActors('man')        # retrieve actors by matching legend string 
+a[0].rotateX(90)               #  and rotate it by 90 degrees around x
+a[0].rotateY(1.57, rad=True)   #  and then by 90 degrees around y
+vp.show(at=7, c=7, actors='data/teapot.xyz')
+vp.show(at=8, c=8, actors='data/unstrgrid.vtu')
 vp.show(interactive=1)
 
 

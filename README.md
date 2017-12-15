@@ -1,4 +1,3 @@
-![vtk](https://www.vtk.org/wp-content/uploads/2015/03/vtk_logo-main1.png)
 # vtkPlotter
 A python helper class to easily draw and animate tridimensional objects. A VTK alternative to Vpython.
 
@@ -24,12 +23,13 @@ alias plotter='$HOME/soft/bin/vtkPlotter/plotter.py'
 Simple command line usage:
 ```bash
 plotter data/*.vtk  # other valid formats: [vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz,txt,byu]
-```
 
-Run a tutorial script: 
->python tutorial.py
+python tutorial.py  ### run a tutorial script
+```
 <br />
 
+
+In your python script:
 ```python
 import plotter
 
@@ -37,9 +37,9 @@ vp = plotter.vtkPlotter()  # Declare an instance of the class
 ```
 <br />
 
-Load a vtk file as a vtkActor and visualize it in wireframe style. <br />
-The tridimensional shape corresponds to the outer shape of the embryonic mouse 
-limb at about 12 days of gestation.<br />
+Load a vtk file as a vtkActor and visualize it in wireframe style, <br />
+(the tridimensional shape corresponds to the outer shape of the embryonic mouse 
+limb at about 12 days of gestation).<br />
 Press *Esc* to close the window and exit python session or *q* to continue:
 ```python
 actor = vp.load('data/290.vtk', wire=1)
@@ -168,20 +168,21 @@ vp.show(interactive=1)
 
 Draw a number of objects in various formats and options:
 ```python
-vp = plotter.vtkPlotter(shape=(3,3)) # split window in 3 rows and 3 columns
+vp = plotter.vtkPlotter(shape=(3,3)) 
 vp.commoncam   = False
 vp.interactive = False
 vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
-vp.show(at=1, c=1, actors='data/big_atc.ply', wire=1)
-vp.show(at=2, c=2, actors='data/big_porsche.ply', edges=1)
-vp.show(at=3, c=3, actors='data/big_spider.ply')
-vp.show(at=4, c=4, actors='data/egret.ply')
-vp.show(at=5, c=5, actors='data/mug.ply')
-vp.show(at=6, c=6, actors='data/scissors.ply')
-a = vp.getActors('sciss') # retrieve actors by matching legend string 
-a[0].RotateX(90)          # and rotate it by 90 degrees around x
-vp.show(at=7, c=7, actors='data/shuttle.obj')
-vp.show(at=8, c=8, actors='data/skyscraper.obj')
+vp.show(at=1, c=1, actors='data/cow.g', wire=1)
+vp.show(at=2, c=2, actors='data/limb.pcd')
+vp.show(at=3, c=3, actors='data/shapes/spider.ply')
+vp.show(at=4, c=4, actors='data/shuttle.obj')
+vp.show(at=5, c=5, actors='data/shapes/magnolia.vtk')
+vp.show(at=6, c=6, actors='data/shapes/man.vtk', alpha=1, axes=1)
+a = vp.getActors('man')        # retrieve actors by matching legend string 
+a[0].rotateX(90)               #  and rotate it by 90 degrees around x
+a[0].rotateY(1.57, rad=True)   #   then by 90 degrees around y
+vp.show(at=7, c=7, actors='data/teapot.xyz')
+vp.show(at=8, c=8, actors='data/unstrgrid.vtu')
 vp.show(interactive=1)
 ```
 ![objects](https://user-images.githubusercontent.com/32848391/33093360-158b5f2c-cefd-11e7-8cb7-9e3c303b41be.png)
@@ -243,7 +244,7 @@ vp.show()
 More examples in *example.py*.<br /> 
 If you need to do more complicated things (define widgets.. etc), you can still access all the 
 usual VTK objects like interactors and renderers through *vp.interactor, vp.renderer*... etc.<br />
-Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.avi* file.
+Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.avi* file (needs to import cv2).
 <br />
 
 ## List of available methods with default values:
@@ -262,6 +263,7 @@ def sphere(pos, r=1, c='r', alpha=1, legend=None, texture=None)
 def cube(pt, r=1, c='g', alpha=1, legend=None, texture=None)
 def plane(pos=(0,0,0), normal=(0,0,1), s=10, c='g', bc='darkgreen', lw=1, alpha=1, texture=None)
 def grid( pos=(0,0,0), normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1, texture=None)
+def polygon(pos, normal=[0,0,1], nsides=6, r=1, c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, cam=0):
 def arrow(startPoint, endPoint, c='r', alpha=1, legend=None, texture=None)
 def cylinder(pos, radius, height, axis=[1,1,1], c='teal', alpha=1, legend=None, texture=None)
 def cone(pos, radius, height, axis=[1,1,1], c='g', alpha=1, legend=None, texture=None)
@@ -292,6 +294,10 @@ def render(resetcam=False, rate=10000)
 def addActor(actor) 
 def removeActor(actor) 
 def lastActor()
+def openVideo(name='movie.avi', fps=12, duration=None, format="XVID")
+def addFrameVideo()
+def pauseVideo(pause)
+def releaseVideo() 
 ```
 
 Useful *vtkPlotter* attributes:
@@ -312,7 +318,6 @@ vp.result       # dictionary to store extra output information
 
 Useful *plotter* functions:
 ```python
-def load(filesOrDirs, c='gold', alpha=0.2, wire=False, bc=None, edges=False, legend=True)
 def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None)
 def makeAssembly(actors, legend=None)
 def screenshot(filename='screenshot.png')
@@ -320,15 +325,10 @@ def makePolyData(spoints, addLines=True)
 def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1)
 def isInside(poly, point)
 def getPolyData(obj, index=0)
-def getPoint(i, actor)
 def closestPoint(surface, point, locator=None, N=None, radius=None)
 def getCoordinates(actors)
 def cutterWidget(actor, outputname='clipped.vtk')
 def writeVTK(obj, fileoutput)
-def openVideo(name='movie.avi', fps=12, duration=None, format="XVID")
-def addFrameVideo()
-def pauseVideo(pause)
-def releaseVideo() 
 ``` 
 
 Additional methods of vtkActor object (*a la vpython*):
