@@ -33,14 +33,18 @@ def makeActor(poly, c='gold', alpha=0.5,
        legend   optional string
        texture  jpg file name of surface texture, eg. 'metalfloor1'
     '''
-    dataset = vtk.vtkPolyDataNormals()
-    setInput(dataset, poly)
-    dataset.SetFeatureAngle(60.0)
-    dataset.ComputePointNormalsOn()
-    dataset.ComputeCellNormalsOn()
-    dataset.FlipNormalsOff()
-    dataset.ConsistencyOn()
-    dataset.Update()
+    pdnorm = vtk.vtkPolyDataNormals()
+    setInput(pdnorm, poly)
+    pdnorm.SetFeatureAngle(60.0)
+    pdnorm.ComputePointNormalsOn()
+    pdnorm.ComputeCellNormalsOn()
+    pdnorm.FlipNormalsOff()
+    pdnorm.ConsistencyOn()
+    pdnorm.Update()
+    clp = vtk.vtkCleanPolyData()
+    setInput(clp, pdnorm.GetOutput())
+    clp.Update()
+
     mapper = vtk.vtkPolyDataMapper()
 
 #    mapper.ScalarVisibilityOff()    
@@ -52,7 +56,7 @@ def makeActor(poly, c='gold', alpha=0.5,
 #    mapper.SetScalarModeToUsePointData ()
 #    mapper.UseLookupTableScalarRangeOff ()
 
-    setInput(mapper, dataset.GetOutput())
+    setInput(mapper, clp.GetOutput())
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
     

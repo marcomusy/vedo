@@ -3,10 +3,10 @@
 from __future__ import division, print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "6.1"
+__version__ = "6.2"
 __maintainer__ = "M. Musy, G. Dalmasso"
 __email__   = "marco.musy@embl.es"
-__status__  = "stable"
+__status__  = "development"
 __website__ = "https://github.com/marcomusy/vtkPlotter"
 
 
@@ -417,22 +417,84 @@ class vtkPlotter:
         src.SetZLength(height)
         src.Update()
         poly = src.GetOutput()
-        actor = makeActor(poly, c=c, alpha=alpha, legend=legend, texture=texture)
-        normal= np.array(normal)/np.linalg.norm(normal)
-        theta = np.arccos(normal[2])
-        phi   = np.arctan2(normal[1], normal[0])
-        actor.SetPosition(pos)
-        actor.RotateZ(phi*57.3)
-        actor.RotateY(theta*57.3)
+
+        axis  = np.array(normal)/np.linalg.norm(normal)
+        theta = np.arccos(axis[2])
+        phi   = np.arctan2(axis[1], axis[0])
+        t = vtk.vtkTransform()
+        t.PostMultiply()
+        t.RotateY(theta*57.3)
+        t.RotateZ(phi*57.3)
+        t.Translate(pos)
+       
+        tf = vtk.vtkTransformPolyDataFilter() 
+        setInput(tf, poly)
+        tf.SetTransform(t)
+        tf.Update()
+        pd = tf.GetOutput()
+
+        actor = makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
         self.actors.append(actor)
         return actor
-        
-        
+
+
     def cube(self, pos=[0,0,0], length=1, normal=(0,0,1), 
              c='g', alpha=1., legend=None, texture=None):
         return self.box(pos, length, 1, 1, normal, c, alpha, legend, texture)
 
 
+    def octahedron(self, pos=[0,0,0], s=1, axis=(0,0,1), 
+                   c='g', alpha=1, wire=False, legend=None, texture=None):
+        pts = vtk.vtkPoints()
+        pts.SetNumberOfPoints(6)
+        pts.SetPoint(0, -s, 0, 0)
+        pts.SetPoint(1, s, 0, 0)
+        pts.SetPoint(2, 0, -s, 0)
+        pts.SetPoint(3, 0, s, 0)
+        pts.SetPoint(4, 0, 0, -s)
+        pts.SetPoint(5, 0, 0, s) # axis z points to this
+        t = vtk.vtkCellArray()
+        t.InsertNextCell(3)
+        t.InsertCellPoint(2); t.InsertCellPoint(0); t.InsertCellPoint(4)
+        t.InsertNextCell(3)
+        t.InsertCellPoint(1); t.InsertCellPoint(2); t.InsertCellPoint(4)
+        t.InsertNextCell(3)
+        t.InsertCellPoint(3); t.InsertCellPoint(1); t.InsertCellPoint(4)
+        t.InsertNextCell(3)
+        t.InsertCellPoint(0); t.InsertCellPoint(3); t.InsertCellPoint(4)
+        t.InsertNextCell(3)
+        t.InsertCellPoint(0); t.InsertCellPoint(2); t.InsertCellPoint(5)
+        t.InsertNextCell(3)
+        t.InsertCellPoint(2); t.InsertCellPoint(1); t.InsertCellPoint(5)
+        t.InsertNextCell(3)
+        t.InsertCellPoint(1); t.InsertCellPoint(3); t.InsertCellPoint(5)
+        t.InsertNextCell(3)
+        t.InsertCellPoint(3); t.InsertCellPoint(0); t.InsertCellPoint(5)
+        pd = vtk.vtkPolyData()
+        pd.SetPoints(pts)
+        pd.SetPolys(t)
+        
+        axis  = np.array(axis)/np.linalg.norm(axis)
+        theta = np.arccos(axis[2])
+        phi   = np.arctan2(axis[1], axis[0])
+        t = vtk.vtkTransform()
+        t.PostMultiply()
+        t.RotateY(theta*57.3)
+        t.RotateZ(phi*57.3)
+        t.Translate(pos)       
+        tf = vtk.vtkTransformPolyDataFilter() 
+        setInput(tf, pd)
+        tf.SetTransform(t)
+        tf.Update()
+        pd = tf.GetOutput()
+        
+        actor = makeActor(pd, c=c, alpha=alpha, wire=wire,
+                          legend=legend, texture=texture)
+        actor.GetProperty().SetInterpolationToPhong()
+        self.actors.append(actor)
+        return actor
+        
+        
     def plane(self, pos=[0,0,0], normal=[0,0,1], s=1, c='g', bc='darkgreen',
               lw=1, alpha=1, wire=False, legend=None, texture=None):
         p = self.grid(pos, normal, s, 1, c, bc, lw, alpha, wire, legend, texture)
@@ -533,19 +595,103 @@ class vtkPlotter:
         cyl.SetRadius(radius)
         cyl.SetHeight(height)
         cyl.Update()
+        
         axis  = np.array(axis)/np.linalg.norm(axis)
         theta = np.arccos(axis[2])
         phi   = np.arctan2(axis[1], axis[0])
-        actor = makeActor(cyl.GetOutput(),
-                          c=c, alpha=alpha, legend=legend, texture=texture)
+        t = vtk.vtkTransform()
+        t.PostMultiply()
+        t.RotateX(90) #put it along Z
+        t.RotateY(theta*57.3)
+        t.RotateZ(phi*57.3)
+        t.Translate(pos)       
+        tf = vtk.vtkTransformPolyDataFilter() 
+        setInput(tf, cyl.GetOutput())
+        tf.SetTransform(t)
+        tf.Update()
+        pd = tf.GetOutput()
+
+        actor = makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
-        actor.SetPosition(pos)
-        actor.RotateZ(phi*57.3)
-        actor.RotateY(theta*57.3)
-        actor.RotateX(90) #put it along Z
         self.actors.append(actor)
         return actor
 
+
+    def paraboloid(self, pos=[0,0,0], radius=1, height=1, axis=[0,0,1],
+                   c='cyan', alpha=1, legend=None, texture=None, res=50):
+        quadric = vtk.vtkQuadric()
+        quadric.SetCoefficients(1, 1, 0, 0, 0, 0, 0, 0, 0.25/height, 0)
+        #F(x,y,z) = a0*x^2 + a1*y^2 + a2*z^2 
+        #         + a3*x*y + a4*y*z + a5*x*z 
+        #         + a6*x   + a7*y   + a8*z  +a9    
+        sample = vtk.vtkSampleFunction()
+        sample.SetSampleDimensions(res,res,res)
+        sample.SetImplicitFunction(quadric)
+         
+        contours = vtk.vtkContourFilter()
+        contours.SetInputConnection(sample.GetOutputPort())
+        contours.GenerateValues(1, .01, .01)
+        contours.Update()
+        
+        axis  = np.array(axis)/np.linalg.norm(axis)
+        theta = np.arccos(axis[2])
+        phi   = np.arctan2(axis[1], axis[0])
+        t = vtk.vtkTransform()
+        t.PostMultiply()
+        t.RotateY(theta*57.3)
+        t.RotateZ(phi*57.3)
+        t.Scale(radius*2,radius*2,radius*2)
+        t.Translate(pos)       
+        tf = vtk.vtkTransformPolyDataFilter() 
+        setInput(tf, contours.GetOutput())
+        tf.SetTransform(t)
+        tf.Update()
+        pd = tf.GetOutput()
+
+        actor = makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
+        actor.GetProperty().SetInterpolationToPhong()
+        actor.GetMapper().ScalarVisibilityOff() 
+        self.actors.append(actor)
+        return actor
+
+
+    def hyperboloid(self, pos=[0,0,0], a2=1, value=0.5, height=1, axis=[0,0,1],
+                    c='magenta', alpha=1, legend=None, texture=None, res=50):
+        q = vtk.vtkQuadric()
+        q.SetCoefficients(2, 2, -1/a2, 0, 0, 0, 0, 0, 0, 0)
+        #F(x,y,z) = a0*x^2 + a1*y^2 + a2*z^2 
+        #         + a3*x*y + a4*y*z + a5*x*z 
+        #         + a6*x   + a7*y   + a8*z  +a9    
+        sample = vtk.vtkSampleFunction()
+        sample.SetSampleDimensions(res,res,res)
+        sample.SetImplicitFunction(q)
+         
+        contours = vtk.vtkContourFilter()
+        contours.SetInputConnection(sample.GetOutputPort())
+        contours.GenerateValues(1, value, value)
+        contours.Update()
+        
+        axis  = np.array(axis)/np.linalg.norm(axis)
+        theta = np.arccos(axis[2])
+        phi   = np.arctan2(axis[1], axis[0])
+        t = vtk.vtkTransform()
+        t.PostMultiply()
+        t.RotateY(theta*57.3)
+        t.RotateZ(phi*57.3)
+        t.Scale(1,1,height)
+        t.Translate(pos)       
+        tf = vtk.vtkTransformPolyDataFilter() 
+        setInput(tf, contours.GetOutput())
+        tf.SetTransform(t)
+        tf.Update()
+        pd = tf.GetOutput()
+
+        actor = makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
+        actor.GetProperty().SetInterpolationToPhong()
+        actor.GetMapper().ScalarVisibilityOff() 
+        self.actors.append(actor)
+        return actor
+    
 
     def cone(self, pos=[0,0,0], radius=1, height=1, axis=[0,0,1],
              c='dg', alpha=1, legend=None, texture=None, res=48):
@@ -567,8 +713,7 @@ class vtkPlotter:
 
     def pyramid(self, pos=[0,0,0], s=1, height=1, axis=[0,0,1],
                 c='dg', alpha=1, legend=None, texture=None):
-        a = self.cone(pos, s*0.7, height, axis, c, alpha, legend, texture, 4)
-        a.RotateZ(45)
+        a = self.cone(pos, s, height, axis, c, alpha, legend, texture, 4)
         return a
 
 
@@ -582,15 +727,23 @@ class vtkPlotter:
         pfs.SetUResolution(90)
         pfs.SetVResolution(30)
         pfs.Update()
+        
         axis  = np.array(axis)/np.linalg.norm(axis)
         theta = np.arccos(axis[2])
         phi   = np.arctan2(axis[1], axis[0])
-        actor = makeActor(pfs.GetOutput(), c=c, alpha=alpha, 
-                          legend=legend, texture=texture)
+        t = vtk.vtkTransform()
+        t.PostMultiply()
+        t.RotateY(theta*57.3)
+        t.RotateZ(phi*57.3)
+        t.Translate(pos)       
+        tf = vtk.vtkTransformPolyDataFilter() 
+        setInput(tf, pfs.GetOutput())
+        tf.SetTransform(t)
+        tf.Update()
+        pd = tf.GetOutput()
+       
+        actor = makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
-        actor.SetPosition(pos)
-        actor.RotateZ(phi*57.3)
-        actor.RotateY(theta*57.3)
         self.actors.append(actor)
         return actor        
 
@@ -602,31 +755,52 @@ class vtkPlotter:
         elliSource.SetThetaResolution(24)
         elliSource.SetPhiResolution(24)
         elliSource.Update()
-        l1,l2,l3 = np.linalg.norm(axis1),np.linalg.norm(axis2),np.linalg.norm(axis3)
+        l1 = np.linalg.norm(axis1)
+        l2 = np.linalg.norm(axis2)
+        l3 = np.linalg.norm(axis3)
         axis1  = np.array(axis1)/l1
         axis2  = np.array(axis2)/l2
         axis3  = np.array(axis3)/l3
         angle = np.arcsin(np.dot(axis1,axis2))
-        
-        vtra = vtk.vtkTransform()
         theta = np.arccos(axis3[2])
         phi   = np.arctan2(axis3[1], axis3[0])
-
-        ftra = vtk.vtkTransformFilter()
-        ftra.SetTransform(vtra)
-        ftra.SetInputConnection(elliSource.GetOutputPort())
-        ftra.Update()
-        actor= makeActor(ftra.GetOutput(), 
-                         c=c, alpha=alpha, legend=legend, texture=texture)
+        
+        t = vtk.vtkTransform()
+        t.PostMultiply()
+        t.Scale(l1,l2,l3)
+        t.RotateX(angle*57.3)
+        t.RotateY(theta*57.3)
+        t.RotateZ(phi*57.3)
+        t.Translate(pos)       
+        tf = vtk.vtkTransformPolyDataFilter() 
+        setInput(tf, elliSource.GetOutput())
+        tf.SetTransform(t)
+        tf.Update()
+        pd = tf.GetOutput()        
+        
+        actor= makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().BackfaceCullingOn()
+        actor.GetProperty().SetInterpolationToPhong()
+        self.actors.append(actor)
+        return self.lastActor()
+
+
+    def helix(self, pos=[0,0,0], length=2, n=6, radius=1, axis=[0,0,1],
+              lw=1, c='grey', alpha=1, legend=None):
+        thickness = max(length,radius)*2*lw
+        trange = np.linspace(-length/2., length/2., num=4*n)
+        pts = [ [np.cos(2*n*t),np.sin(2*n*t),t] for t in trange ]
+        actor = self.spline(pts, thickness, c, alpha, False, legend)
+        axis  = np.array(axis)/np.linalg.norm(axis)
+        theta = np.arccos(axis[2])
+        phi   = np.arctan2(axis[1], axis[0])
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(pos)
         actor.RotateZ(phi*57.3)
         actor.RotateY(theta*57.3)
-        actor.RotateX(angle*57.3)
-        vtra.Scale(l1,l2,l3)
         self.actors.append(actor)
-        return self.lastActor()
+        if legend: setattr(actor, 'legend', legend) 
+        return self.lastActor()               
 
 
     def spline(self, points=[[0,0,0],[1,0,0],[1,2,0],[1,2,1]], 
@@ -734,24 +908,6 @@ class vtkPlotter:
         else:
             self.actors.append(acttube)
             return acttube
-
-
-    def helix(self, pos=[0,0,0], length=2, n=6, radius=1, axis=[0,0,1],
-              lw=1, c='grey', alpha=1, legend=None):
-        thickness = max(length,radius)*2*lw
-        trange = np.linspace(-length/2., length/2., num=4*n)
-        pts = [ [np.cos(2*n*t),np.sin(2*n*t),t] for t in trange ]
-        actor = self.spline(pts, thickness, c, alpha, False, legend)
-        axis  = np.array(axis)/np.linalg.norm(axis)
-        theta = np.arccos(axis[2])
-        phi   = np.arctan2(axis[1], axis[0])
-        actor.GetProperty().SetInterpolationToPhong()
-        actor.SetPosition(pos)
-        actor.RotateZ(phi*57.3)
-        actor.RotateY(theta*57.3)
-        self.actors.append(actor)
-        if legend: setattr(actor, 'legend', legend) 
-        return self.lastActor()               
 
 
     def text(self, txt='hello', pos=(0,0,0), s=1, 
@@ -1171,7 +1327,7 @@ class vtkPlotter:
         ca.SetFlyMode(3)
         ca.XAxisLabelVisibilityOn()
         ca.YAxisLabelVisibilityOn()
-        ca.ZAxisLabelVisibilityOff()
+        ca.ZAxisLabelVisibilityOn()
         ca.SetXTitle(self.xtitle)
         ca.SetYTitle(self.ytitle)
         ca.XAxisMinorTickVisibilityOff()

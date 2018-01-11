@@ -12,12 +12,12 @@ git clone https://github.com/marcomusy/vtkPlotter.git
 
 To install to a fixed location (e.g. *$HOME/soft/bin*):
 ```bash
-mv vtkPlotter $HOME/soft/bin
+mv vtkPlotter $HOME/software/
 ```
 and add these lines to your *.bashrc*:
 ```bash
-export PYTHONPATH=$HOME/soft/bin/vtkPlotter:$PYTHONPATH
-alias plotter='$HOME/soft/bin/vtkPlotter/plotter.py'
+export PYTHONPATH=$HOME/software/vtkPlotter:$PYTHONPATH
+alias plotter='$HOME/software/vtkPlotter/plotter.py'
 ```
 ## Example usage:<br />
 
@@ -262,19 +262,22 @@ def points(plist, c='b', r=10, alpha=1, legend=None)
 def line(p0, p1, lw=1, dotted=False, c='r', alpha=1, legend=None)
 def sphere(pos, r=1, c='r', alpha=1, legend=None, texture=None)
 def cube(pt, r=1, c='g', alpha=1, legend=None, texture=None)
-def plane(pos=(0,0,0), normal=(0,0,1), s=10, c='g', bc='darkgreen', lw=1, alpha=1, texture=None)
-def grid( pos=(0,0,0), normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1, texture=None)
-def polygon(pos, normal=[0,0,1], nsides=6, r=1, c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, cam=0):
+def plane(pos, normal=(0,0,1), s=10, c='g', bc='darkgreen', lw=1, alpha=1, texture=None)
+def grid( pos, normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1, texture=None)
+def polygon(pos, normal=(0,0,1), nsides=6, r=1, c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, cam=0):
 def arrow(startPoint, endPoint, c='r', alpha=1, legend=None, texture=None)
 def cylinder(pos, radius, height, axis=[1,1,1], c='teal', alpha=1, legend=None, texture=None)
+def octahedron(pos, s=1, axis=(0,0,1), c='g', alpha=1, wire=False, legend=None, texture=None)
 def cone(pos, radius, height, axis=[1,1,1], c='g', alpha=1, legend=None, texture=None)
 def ellipsoid(points, c='c', alpha=0.5, legend=None, texture=None)
-def helix(pos=[0,0,0], length=2, n=6, radius=1, axis=[0,0,1], lw=1, c='grey', alpha=1, legend=None, texture=None)
-def pyramid(pos=[0,0,0], s=1, height=1, axis=[0,0,1], c='dg', alpha=1, legend=None, texture=None)
-def ring(pos=[0,0,0], radius=1, thickness=0.1, axis=[1,1,1], c='khaki', alpha=1, legend=None, texture=None)
+def paraboloid(pos, radius=1, height=1, axis=[0,0,1], c='cyan', alpha=1, legend=None, texture=None, res=50)
+def hyperboloid(pos, a2=1, value=0.5, height=1, axis=[0,0,1], c='magenta', alpha=1, legend=None, texture=None, res=50)
+def helix(pos, length=2, n=6, radius=1, axis=[0,0,1], lw=1, c='grey', alpha=1, legend=None, texture=None)
+def pyramid(pos, s=1, height=1, axis=[0,0,1], c='dg', alpha=1, legend=None, texture=None)
+def ring(pos, radius=1, thickness=0.1, axis=[1,1,1], c='khaki', alpha=1, legend=None, texture=None)
 def spline(points, s=10, c='navy', alpha=1., nodes=True, legend=None)
 def bspline(points, nknots=-1, s=1, c=(0,0,0.8), alpha=1, nodes=False, legend=None)
-def text(txt, pos=(0,0,0), s=1, c='k', alpha=1, bc=None, cam=True, texture=None)
+def text(txt, pos, s=1, c='k', alpha=1, bc=None, cam=True, texture=None)
 #
 def xyplot(points, title='', c='r', pos=1, lines=False)
 def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
