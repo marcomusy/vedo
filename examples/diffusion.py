@@ -24,7 +24,7 @@ for t in pb.range():            # loop of 400 steps
         actor = scene.actors[i]
         r = [u(-s,s), u(-s,s), u(-s,s)] # random step
         p = actor.pos()         # get point position
-        q = p + r 
+        q = p + r               # add the noise
         if q[2]<0: q[2] *= -1   # if bounce on the floor
         actor.pos(q)            # set its new position
     scene.render(resetcam=0)

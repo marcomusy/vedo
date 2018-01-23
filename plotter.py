@@ -3,7 +3,7 @@
 from __future__ import division, print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "6.2"
+__version__ = "6.3"
 __maintainer__ = "M. Musy, G. Dalmasso"
 __email__   = "marco.musy@embl.es"
 __status__  = "development"
@@ -13,12 +13,13 @@ __website__ = "https://github.com/marcomusy/vtkPlotter"
 ########################################################################
 import time, vtk
 import numpy as np
-import events
-from colors import getColor
+
+from vtkcolors import getColor
+import vtkevents
 import vtkvideo 
 import vtkloader
-import vtkutils
 
+import vtkutils
 from vtkutils import printc, makeActor, setInput, vtkMV
 from vtkutils import makeAssembly, assignTexture
 from vtkutils import getPolyData, getMaxOfBounds, getCoordinates
@@ -44,8 +45,6 @@ class vtkPlotter:
             import platform
             print ("Python version:", platform.python_version())
         except: pass
-        #print('\nAvailable color names:', colors)
-        #print('Color abbreviations:', color_nicks,'\n')
         print('Useful commands on graphic window:') 
         self._tips()
         print( '''
@@ -55,29 +54,30 @@ class vtkPlotter:
             # [vtk,vtu,vts,vtp,ply,obj,stl,xml,pcd,xyz,txt,byu,g] 
         ''')
     def _tips(self):
-        vv = 'Vtk '+vtk.vtkVersion().GetVTKVersion()
-        msg = """, press: --------------------------------
-        m   to minimise opacity of selected actor
-        /   to maximize opacity of selected actor
-        .,  to increase/reduce opacity
-        w/s to toggle wireframe/solid style
-        oO  to change point size of vertices
-        lL  to change edge line width
-        n   to show normals for selected actor
-        x   to remove selected actor
-        X   to open a cutter widget for sel. actor
-        1-4 to change color scheme
-        V   to toggle verbose mode
-        C   to print current camera info
-        S   to save a screenshot
-        q   to continue
-        e   to close current window
-        Esc to abort and exit
-        Ctrl-mouse  to rotate scene
-        Shift-mouse to shift scene
-        Right-mouse click to zoom in/out
-        ------------------------------------------"""
-        printc(vv+msg, c='blue')
+        msg  = 'vtkPlotter '+__version__
+        msg += ', vtk '+vtk.vtkVersion().GetVTKVersion()
+        msg += " ----------------------- Press: \n"
+        msg += "\tm   to minimise opacity of selected actor\n"
+        msg += "\t.,  to increase/reduce opacity\n"
+        msg += "\t/   to maximize opacity of selected actor\n"
+        msg += "\tw/s to toggle wireframe/solid style\n"
+        msg += "\tpP  to change point size of vertices\n"
+        msg += "\tlL  to change edge line width\n"
+        msg += "\tn   to show normals for selected actor\n"
+        msg += "\tx   to remove selected actor\n"
+        msg += "\tX   to open a cutter widget for sel. actor\n"
+        msg += "\t1-4 to change color scheme\n"
+        msg += "\tV   to toggle verbose mode\n"
+        msg += "\tC   to print current camera info\n"
+        msg += "\tS   to save a screenshot\n"
+        msg += "\tq   to continue\n"
+        msg += "\te   to close current window\n"
+        msg += "\tEsc to abort and exit\n"
+        msg += "\tCtrl-mouse   to rotate scene\n"
+        msg += "\tShift-mouse  to shift scene\n"
+        msg += "\tRight-mouse  click to zoom in/out\n"
+        msg += "---------------------------------------------------------"
+        printc(msg, c='blue')
 
     
     def __init__(self, shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='vtkPlotter',
@@ -100,6 +100,7 @@ class vtkPlotter:
         self.axes       = axes  # show or hide axes
         self.xtitle     = 'x'   # x axis label and units
         self.ytitle     = 'y'   # y axis label and units
+        self.ztitle     = 'z'   # z axis label and units
         self.camera     = None  # current vtkCamera 
         self.commoncam  = True  # share the same camera in renderers
         self.projection = 0     # value of the ParallelProjection instance variable
@@ -394,17 +395,27 @@ class vtkPlotter:
         return actor
 
 
-    def sphere(self, pos=[0,0,0], r=1, c='r', alpha=1., 
-               legend=None, texture=None):
-        src = vtk.vtkSphereSource()
-        src.SetThetaResolution(24)
-        src.SetPhiResolution(24)
-        src.SetRadius(r)
-        src.SetCenter(pos)
-        src.Update()
-        actor = makeActor(src.GetOutput(), c=c, alpha=alpha, 
-                          legend=legend, texture=texture)
+    def sphere(self, pos=[0,0,0], r=1, 
+               c='r', alpha=1, legend=None, texture=None, res=10):
+        quadric = vtk.vtkQuadric()
+        quadric.SetCoefficients(1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
+        value = 1.0
+        sample = vtk.vtkSampleFunction()
+        sample.SetSampleDimensions(res,res,res)
+        sample.SetImplicitFunction(quadric)
+         
+        contours = vtk.vtkContourFilter()
+        contours.SetInputConnection(sample.GetOutputPort())
+        contours.GenerateValues(1, value,value)
+        contours.Update()        
+        pd = contours.GetOutput()
+
+        actor = makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
+        actor.GetMapper().ScalarVisibilityOff()
+        bs = actor.GetBounds()
+        actor.SetScale(2.*r/(bs[1]-bs[0]))
+        actor.SetPosition(pos)
         self.actors.append(actor)
         return actor
 
@@ -640,7 +651,7 @@ class vtkPlotter:
         t.PostMultiply()
         t.RotateY(theta*57.3)
         t.RotateZ(phi*57.3)
-        t.Scale(radius*2,radius*2,radius*2)
+        t.Scale(radius,radius,radius)
         t.Translate(pos)       
         tf = vtk.vtkTransformPolyDataFilter() 
         setInput(tf, contours.GetOutput())
@@ -692,7 +703,7 @@ class vtkPlotter:
         self.actors.append(actor)
         return actor
     
-
+    
     def cone(self, pos=[0,0,0], radius=1, height=1, axis=[0,0,1],
              c='dg', alpha=1, legend=None, texture=None, res=48):
         con = vtk.vtkConeSource()
@@ -864,7 +875,7 @@ class vtkPlotter:
     def bspline(self, points=[[0,0,0],[1,0,0],[1,2,0],[1,2,1]], 
                 nknots=-1, s=1, c=(0,0,0.8), alpha=1., nodes=False, legend=None):
         '''
-        Return a vtkActor for a spline that goes exactly trought all points.
+        Return a vtkActor for a spline that DOESNT go exactly trought all points.
         nknots= number of nodes used by the bspline. A small nr implies 
                 a smoother interpolation. Default -1 gives max precision.
         nodes = True shows the points and therefore returns a vtkAssembly
@@ -1330,6 +1341,7 @@ class vtkPlotter:
         ca.ZAxisLabelVisibilityOn()
         ca.SetXTitle(self.xtitle)
         ca.SetYTitle(self.ytitle)
+        ca.SetZTitle(self.ztitle)
         ca.XAxisMinorTickVisibilityOff()
         ca.YAxisMinorTickVisibilityOff()
         ca.ZAxisMinorTickVisibilityOff()
@@ -1502,11 +1514,11 @@ class vtkPlotter:
         if not self.initializedIren:
             self.initializedIren = True
             self.interactor.Initialize()
-            def mouseleft(obj, e): events._mouseleft(self, obj, e)
-            def keypress(obj, e):  events._keypress(self, obj, e)
-            def stopren(obj, e):   events._stopren(self, obj, e)
-            self.interactor.AddObserver("LeftButtonPressEvent", mouseleft)
+            def mouseleft(obj, e): vtkevents._mouseleft(self, obj, e)
+            def keypress(obj, e):  vtkevents._keypress(self, obj, e)
+            def stopren(obj, e):   vtkevents._stopren(self, obj, e)
             self.interactor.RemoveObservers('CharEvent') 
+            self.interactor.AddObserver("LeftButtonPressEvent", mouseleft)
             self.interactor.AddObserver("KeyPressEvent", keypress)
 #            self.interactor.AddObserver('TimerEvent', stopren)
 #            self.interactor.CreateRepeatingTimer(10)
@@ -1525,7 +1537,9 @@ class vtkPlotter:
             exit(0)
 
 
-    def render(self, resetcam=False, rate=10000):
+    def render(self, addactor=None, resetcam=False, rate=10000):
+        if addactor:
+            self.addActor(addactor)
         if not self.initializedPlotter: 
             before = bool(self.interactive)
             self.show(interactive=0)
@@ -1605,7 +1619,10 @@ if __name__ == '__main__':
     vp = vtkPlotter(bg2=(.94,.94,1))
     for f in fs:
         vp.load(f, alpha=alpha)
-    if len(fs): vp.show(legend=leg)
+    if len(fs): 
+        vp.show(legend=leg)
+    else:
+        help()
 ###########################################################################
 
 

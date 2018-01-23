@@ -8,7 +8,7 @@ Created on Thu Dec 14 15:06:48 2017
 from __future__ import division, print_function
 from glob import glob
 import os
-import colors
+import vtkcolors
 import vtk
 import vtkutils as ut
 
@@ -162,7 +162,7 @@ def _loadXml(filename, c, alpha, wire, bc, edges, legend):
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
     actor.GetProperty().SetInterpolationToFlat()
-    actor.GetProperty().SetColor(colors.getColor(c))
+    actor.GetProperty().SetColor(vtkcolors.getColor(c))
     actor.GetProperty().SetOpacity(alpha/2.)
     #actor.GetProperty().VertexVisibilityOn()
     if edges: actor.GetProperty().EdgeVisibilityOn()
@@ -212,7 +212,7 @@ def _loadPCD(filename, c, alpha, legend):
     if not poly:
         ut.printc(('Unable to load', filename), 'red')
         return False
-    actor = ut.makeActor(poly, colors.getColor(c), alpha)
+    actor = ut.makeActor(poly, vtkcolors.getColor(c), alpha)
     actor.GetProperty().SetPointSize(4)
     if legend: setattr(actor, 'legend', legend)
     if legend is True: setattr(actor, 'legend', os.path.basename(filename))

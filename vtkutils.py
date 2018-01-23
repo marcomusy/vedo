@@ -7,7 +7,7 @@ Created on Mon Dec  4 20:10:27 2017
 from __future__ import division, print_function
 import os, sys, types
 import numpy as np
-import colors
+import vtkcolors
 import vtk
 import time
 
@@ -60,7 +60,7 @@ def makeActor(poly, c='gold', alpha=0.5,
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
     
-    c = colors.getColor(c)
+    c = vtkcolors.getColor(c)
     actor.GetProperty().SetColor(c)
     actor.GetProperty().SetOpacity(alpha)
 
@@ -79,7 +79,7 @@ def makeActor(poly, c='gold', alpha=0.5,
     if texture: assignTexture(actor, texture)
     if bc: # defines a specific color for the backface
         backProp = vtk.vtkProperty()
-        backProp.SetDiffuseColor(colors.getColor(bc))
+        backProp.SetDiffuseColor(vtkcolors.getColor(bc))
         backProp.SetOpacity(alpha)
         actor.SetBackfaceProperty(backProp)
 
@@ -153,36 +153,42 @@ def assignPhysicsMethods(actor):
     
     apos = np.array(actor.GetPosition())
     setattr(actor, '_pos',  apos)         # position  
+
     def _fpos(self, p=None): 
         if p is None: return self._pos
         self.SetPosition(p)
         self._pos = np.array(p)
+        return self # return itself to concatenate commands
     actor.pos = types.MethodType( _fpos, actor )
 
     def _faddpos(self, dp): 
-        self.AddPosition(dp)
-        self._pos += dp        
+        self._pos += np.array(dp)        
+        self.SetPosition(self._pos )
+        return self
     actor.addpos = types.MethodType( _faddpos, actor )
 
     def _fpx(self, px=None):               # X  
         if px is None: return self._pos[0]
         newp = [px, self._pos[1], self._pos[2]]
         self.SetPosition(newp)
-        self._pos = newp
+        self._pos = np.array(newp)
+        return self
     actor.x = types.MethodType( _fpx, actor )
 
     def _fpy(self, py=None):               # Y  
         if py is None: return self._pos[1]
         newp = [self._pos[0], py, self._pos[2]]
         self.SetPosition(newp)
-        self._pos = newp
+        self._pos = np.array(newp)
+        return self
     actor.y = types.MethodType( _fpy, actor )
 
     def _fpz(self, pz=None):               # Z  
         if pz is None: return self._pos[2]
         newp = [self._pos[0], self._pos[1], pz]
         self.SetPosition(newp)
-        self._pos = newp
+        self._pos = np.array(newp)
+        return self
     actor.z = types.MethodType( _fpz, actor )
      
     setattr(actor, '_vel',  np.array([0,0,0]))  # velocity
@@ -239,7 +245,6 @@ def assignPhysicsMethods(actor):
         return 1./np.sqrt(1. - v2/299792.48**2)
     actor.gamma = types.MethodType( _fgamma, actor )
 
-    return actor ########### >>
 
 
 ######################################################### 
@@ -348,7 +353,7 @@ def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
     setInput(mapper, decimate.GetOutput())
     mapper.Update()
     actor.Modified()
-    return actor  
+    return actor  # return same obj for concatenation
 
 
 #########################################################
@@ -395,17 +400,38 @@ def getPolyData(obj, index=0):
     '''
     Returns vtkPolyData from an other object (vtkActor, vtkAssembly, int)
     '''
-    if   isinstance(obj, list) and len(obj)==1: obj = obj[0]
-    if   isinstance(obj, vtk.vtkPolyData): return obj
-    elif isinstance(obj, vtk.vtkActor):    return obj.GetMapper().GetInput()
-    elif isinstance(obj, vtk.vtkActor2D):  return obj.GetMapper().GetInput()
+    if isinstance(obj, list) and len(obj)==1: obj = obj[0]
+   
+    if isinstance(obj, vtk.vtkActor):   
+        pd = obj.GetMapper().GetInput()
+        transform = vtk.vtkTransform()
+        transform.SetMatrix(obj.GetMatrix())
+        tp = vtk.vtkTransformPolyDataFilter()
+        tp.SetTransform(transform)
+        if vtkMV: tp.SetInputData(pd)
+        else: tp.SetInput(pd)
+        tp.Update()
+        return tp.GetOutput()
+
     elif isinstance(obj, vtk.vtkAssembly):
         cl = vtk.vtkPropCollection()
         obj.GetActors(cl)
         cl.InitTraversal()
         for i in range(index+1):
             act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
-        return act.GetMapper().GetInput()
+        pd = act.GetMapper().GetInput()
+        transform = vtk.vtkTransform()
+        transform.SetMatrix(act.GetMatrix())
+        tp = vtk.vtkTransformPolyDataFilter()
+        tp.SetTransform(transform)
+        if vtkMV: tp.SetInputData(pd)
+        else: tp.SetInput(pd)
+        tp.Update()
+        return tp.GetOutput()
+    
+    elif isinstance(obj, vtk.vtkPolyData): return obj
+    elif isinstance(obj, vtk.vtkActor2D):  return obj.GetMapper().GetInput()
+
     printc("Fatal Error in getPolyData(): ", 'red', end='')
     printc(("input is neither a poly nor an actor int or assembly.", [obj]), 'red')
     exit(1)
@@ -568,10 +594,10 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     act0Mapper.SetInputConnection(clipper.GetOutputPort())
     act0 = vtk.vtkActor()
     act0.SetMapper(act0Mapper)
-    act0.GetProperty().SetColor(colors.getColor(c))
+    act0.GetProperty().SetColor(vtkcolors.getColor(c))
     act0.GetProperty().SetOpacity(alpha)
     backProp = vtk.vtkProperty()
-    backProp.SetDiffuseColor(colors.getColor(bc))
+    backProp.SetDiffuseColor(vtkcolors.getColor(bc))
     backProp.SetOpacity(alpha)
     act0.SetBackfaceProperty(backProp)
     #act0 = makeActor(clipper.GetOutputPort())
@@ -584,7 +610,7 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     act1Mapper.SetInputConnection(clipper.GetClippedOutputPort())
     act1 = vtk.vtkActor()
     act1.SetMapper(act1Mapper)
-    act1.GetProperty().SetColor(colors.getColor(c))
+    act1.GetProperty().SetColor(vtkcolors.getColor(c))
     act1.GetProperty().SetOpacity(alpha/10.)
     act1.GetProperty().SetRepresentationToWireframe()
     act1.VisibilityOn()
@@ -659,7 +685,8 @@ class ProgressBar:
         self._counts= 0
         self._oldbar= ""
         self._lentxt= 0
-        self._range = range(start, stop, step) 
+        self._range = np.linspace(start, stop, num=(stop-start)/step)
+#        self._range = range(start, stop, step) 
         self._len   = len(self._range)
         self.clock0 = 0
         self.ETA    = ETA

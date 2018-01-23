@@ -10,7 +10,7 @@ A python helper class to easily draw, analyse and animate tridimensional objects
 git clone https://github.com/marcomusy/vtkPlotter.git
 ```
 
-To install to a fixed location (e.g. *$HOME/soft/bin*):
+To install to a fixed location (e.g. *$HOME/software*):
 ```bash
 mv vtkPlotter $HOME/software/
 ```
