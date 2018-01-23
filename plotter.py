@@ -45,13 +45,7 @@ class vtkPlotter:
             import platform
             print ("Python version:", platform.python_version())
         except: pass
-<<<<<<< HEAD
         print('Useful commands on graphic window:') 
-=======
-        #print('\nAvailable color names:', colors)
-        #print('Color abbreviations:', color_nicks,'\n')
-        print('Useful commands on graphic window:')
->>>>>>> ba66fd62a992c1118de111d283f9c31b7a831165
         self._tips()
         print( '''
         Command line usage:
