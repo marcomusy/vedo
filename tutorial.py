@@ -152,9 +152,8 @@ vp.show(interactive=1)
 # Draw the same object with different surface textures
 vp = plotter.vtkPlotter(shape=(3,3), verbose=0, axes=0, interactive=0, title='Example 12')
 mat = ['aqua','gold2','metal1','ivy','paper','sky','white2','wood3','wood7']
-for i,mname in enumerate(mat):
-    sp = vp.load('data/beethoven.ply', alpha=1)
-    plotter.assignTexture(sp, mname, scale=1) # mname can be any jpeg file
+for i,mname in enumerate(mat): # mname can be any jpeg file
+    sp = vp.load('data/beethoven.ply', alpha=1, texture=mname)
     vp.show(at=i, actors=sp, legend=mname)
 vp.show(interactive=1)
 

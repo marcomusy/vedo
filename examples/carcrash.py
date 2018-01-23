@@ -1,5 +1,5 @@
 ## Example
-## make a textured floor, a cylinder post, and load a mesh of a car
+## make a textured floor, a lamp post, and load a mesh of a car
 ## make copies of the car, rotate and move them in a loop
 ## vp.render() adds the actor to the list vp.actors
 ## rate=10 limits the speed of the loop
@@ -9,8 +9,9 @@ import plotter
 
 vp = plotter.vtkPlotter(verbose=0)
 
-vp.plane(pos=(4,0,-.35), s=12, alpha=.9, texture='metalfloor1')
-vp.cylinder(pos=(1.6,-.4,1.1), radius=0.1, height=3, texture='wood1')
+vp.plane(pos=(4,0,-.35), s=12, texture='metalfloor1')
+
+vp.load('data/shapes/lamp.vtk', alpha=1).pos((1.7,-.4,2))
 
 a = vp.load('data/shapes/porsche.ply', c='r', alpha=1)
 a.rotateX(-90).normalize() # set actor at origin and scale size to 1

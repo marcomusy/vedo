@@ -158,7 +158,7 @@ def assignPhysicsMethods(actor):
         if p is None: return self._pos
         self.SetPosition(p)
         self._pos = np.array(p)
-        return self # return itself to concatenate commands
+        return self # return itself to concatenate methods
     actor.pos = types.MethodType( _fpos, actor )
 
     def _faddpos(self, dp): 
@@ -502,6 +502,7 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     xform.SetInputConnection(tmapper.GetOutputPort())
     xform.SetScale(scale,scale,scale)
     if mapTo == 1: xform.FlipSOn()
+    xform.Update()
     
     mapper = vtk.vtkDataSetMapper()
     mapper.SetInputConnection(xform.GetOutputPort())
@@ -685,8 +686,7 @@ class ProgressBar:
         self._counts= 0
         self._oldbar= ""
         self._lentxt= 0
-        self._range = np.linspace(start, stop, num=(stop-start)/step)
-#        self._range = range(start, stop, step) 
+        self._range = np.linspace(start, stop, num=int((stop-start)/step))
         self._len   = len(self._range)
         self.clock0 = 0
         self.ETA    = ETA

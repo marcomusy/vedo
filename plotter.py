@@ -6,7 +6,7 @@ __license__ = "MIT"
 __version__ = "6.2"
 __maintainer__ = "M. Musy, G. Dalmasso"
 __email__   = "marco.musy@embl.es"
-__status__  = "development"
+__status__  = "dev"
 __website__ = "https://github.com/marcomusy/vtkPlotter"
 
 
