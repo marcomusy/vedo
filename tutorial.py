@@ -4,13 +4,12 @@ from __future__ import division, print_function
 from random import uniform as u
 import numpy as np
 import plotter
- 
 
 
 # 1 ########################################################################################
 # Declare an instance of the class
 vp = plotter.vtkPlotter(title='Example 1 and 2')
-#vp.help() # shows a help message
+# vp.help() # shows a help message
 
 # Load a vtk file as a vtkActor and visualize it.
 # The tridimensional shape corresponds to the outer shape of the embryonic mouse limb
@@ -85,11 +84,11 @@ vp.show(legend='shape w/ boundaries')
 vp1 = plotter.vtkPlotter(shape=(6,6), title='Example 8')
 vp1.renderers[35].SetBackground(.8,.9,.9)
 vp1.axes = False
-a = vp1.load('data/250.vtk')     
-b = vp1.load('data/270.vtk', legend='some legend')     
-c = vp1.load('data/290.vtk') 
-vp1.show(at=12, actors=[a,b], interactive=False) 
-vp1.show(at=33, actors=[b,c]) 
+a = vp1.load('data/250.vtk')
+b = vp1.load('data/270.vtk', legend='some legend')
+c = vp1.load('data/290.vtk')
+vp1.show(at=12, actors=[a,b], interactive=False)
+vp1.show(at=33, actors=[b,c])
 vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
 vp2.load('data/250.vtk', legend='an other window')
 vp2.load('data/270.vtk')
@@ -113,7 +112,7 @@ vp.show(interactive=1)
 # 10 #######################################################################################
 # Draw a simple objects on separate parts of the rendering window:
 # split window to best accomodate 6 renderers
-vp = plotter.vtkPlotter(N=9, title='Example 10') 
+vp = plotter.vtkPlotter(N=9, title='Example 10')
 vp.commoncam   = False
 vp.interactive = False
 vp.show(at=0, actors=vp.arrow(),  legend='arrow()' )
@@ -130,7 +129,7 @@ vp.show(interactive=1)
 
 # 11 #######################################################################################
 # Draw a bunch of objects in many formats. Split window in 3 rows and 3 columns
-vp = plotter.vtkPlotter(shape=(3,3), title='Example 11') 
+vp = plotter.vtkPlotter(shape=(3,3), title='Example 11')
 vp.commoncam   = False
 vp.interactive = False
 vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
@@ -140,7 +139,7 @@ vp.show(at=3, c=3, actors='data/shapes/spider.ply')
 vp.show(at=4, c=4, actors='data/shuttle.obj')
 vp.show(at=5, c=5, actors='data/shapes/magnolia.vtk')
 vp.show(at=6, c=6, actors='data/shapes/man.vtk', alpha=1, axes=1)
-a = vp.getActors('man')        # retrieve actors by matching legend string 
+a = vp.getActors('man')        # retrieve actors by matching legend string
 a[0].rotateX(90)               #  and rotate it by 90 degrees around x
 a[0].rotateY(1.57, rad=True)   #  and then by 90 degrees around y
 vp.show(at=7, c=7, actors='data/teapot.xyz')
@@ -177,11 +176,11 @@ vp.show(legend=['points','fitting plane','fitting line'])
 
 
 # 14 ########################################################################################
-# Cut a set of shapes with a plane that goes through the 
-# point at x=500 and has normal (0, 0.3, -1). 
+# Cut a set of shapes with a plane that goes through the
+# point at x=500 and has normal (0, 0.3, -1).
 # Wildcards are ok to load multiple files or directories:
 vp = plotter.vtkPlotter(title='Example 14')
-vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1) 
+vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1)
 for a in vp.actors:
     vp.cutActor(a, origin=(500,0,0), normal=(0,0.3,-1))
 vp.show()
@@ -201,15 +200,15 @@ vp.show(legend='tetrahedral mesh')
 
 
 # 17 ########################################################################################
-# Align 2 shapes and for each vertex of the first draw 
+# Align 2 shapes and for each vertex of the first draw
 # and arrow to the closest point of the second:
 vp = plotter.vtkPlotter(title='Example 17')
-a1, a2 = vp.load('data/2[79]0.vtk') 
+a1, a2 = vp.load('data/2[79]0.vtk')
 a1.GetProperty().SetColor(0,1,0)
 a1b = vp.align(a1, a2, rigid=1)
 ps1 = plotter.getCoordinates(a1b) # coordinates of actor
 for p in ps1: vp.arrow(p, plotter.closestPoint(a2, p))
-vp.show(legend=['Source','Target','Aligned','Links'])            
+vp.show(legend=['Source','Target','Aligned','Links'])
 
 
 # 18 ########################################################################################
@@ -218,7 +217,7 @@ pts1 = [(u(0,5), u(0,5), u(0,5)) for i in range(40)]
 pts2 = [(u(0,5), u(0,5), u(0,5)) for i in range(20)]
 vp = plotter.vtkPlotter(title='Example 18')
 vp.points(pts1, r=4,  alpha=1, legend='point set 1')
-vp.points(pts1, r=25, alpha=0.1) # make a halo 
+vp.points(pts1, r=25, alpha=0.1) # make a halo
 a = vp.points(pts2, r=4, c='r', alpha=1, legend='point set 2')
 for p in pts1:
     cp = plotter.closestPoint(a, p, radius=2)
@@ -227,7 +226,7 @@ vp.show()
 
 
 # 19 ########################################################################################
-# Draw a cloud of points each one with a different color 
+# Draw a cloud of points each one with a different color
 # which depends on its position
 vp = plotter.vtkPlotter(title='Example 19')
 rgb = [(u(0,255), u(0,255), u(0,255)) for i in range(2000)]
@@ -236,7 +235,7 @@ vp.show()
 
 
 # 20 ########################################################################################
-a = vp.load('data/cow.g') 
+a = vp.load('data/cow.g')
 a.cutterWidget() # invoke widget
 
 
@@ -253,5 +252,3 @@ vp.releaseVideo()
 vp.show()
 
 ############################################################################################
-
-
