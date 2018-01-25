@@ -99,7 +99,7 @@ vp.show(interactive=1)
 # 9 ########################################################################################
 # Split window in a 36 subwindows and draw something in windows nr 12 and nr 33.
 # Then open an independent window and draw on two shapes:
-vp1 = plotter.vtkPlotter(shape=(6,6), title='Example 8')
+vp1 = plotter.vtkPlotter(shape=(6,6), title='Example 9')
 vp1.renderers[35].SetBackground(.8,.9,.9)
 vp1.axes = False
 a = vp1.load('data/250.vtk')
@@ -117,7 +117,7 @@ vp2.show()
 # Load a surface and show its curvature based on 4 different schemes.
 # All four shapes share a common vtkCamera:
 # 0-gaussian, 1-mean, 2-max, 3-min
-vp = plotter.vtkPlotter(shape=(1,4), title='Example 9')
+vp = plotter.vtkPlotter(shape=(1,4), title='Example 10')
 v = vp.load('data/290.vtk')
 vp.interactive = False
 vp.axes = False
@@ -130,7 +130,7 @@ vp.show(interactive=1)
 # 11 #######################################################################################
 # Draw a simple objects on separate parts of the rendering window:
 # split window to best accomodate 6 renderers
-vp = plotter.vtkPlotter(N=9, title='Example 10')
+vp = plotter.vtkPlotter(N=9, title='Example 11')
 vp.commoncam   = False
 vp.interactive = False
 vp.show(at=0, actors=vp.arrow(),  legend='arrow()' )
@@ -147,7 +147,7 @@ vp.show(interactive=1)
 
 # 12 #######################################################################################
 # Draw a bunch of objects in many formats. Split window in 3 rows and 3 columns
-vp = plotter.vtkPlotter(shape=(3,3), title='Example 11')
+vp = plotter.vtkPlotter(shape=(3,3), title='Example 12')
 vp.commoncam   = False
 vp.interactive = False
 vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
@@ -167,7 +167,7 @@ vp.show(interactive=1)
 
 # 13 #######################################################################################
 # Draw the same object with different surface textures
-vp = plotter.vtkPlotter(shape=(3,3), verbose=0, axes=0, interactive=0, title='Example 12')
+vp = plotter.vtkPlotter(shape=(3,3), verbose=0, axes=0, interactive=0, title='Example 13')
 mat = ['aqua','gold2','metal1','ivy','paper','sky','white2','wood3','wood7']
 for i,mname in enumerate(mat): # mname can be any jpeg file
     sp = vp.load('data/beethoven.ply', alpha=1, texture=mname)
@@ -178,7 +178,7 @@ vp.show(interactive=1)
 # 14 ########################################################################################
 # Draw a line in 3D that fits a cloud of points,
 # also show the first set of 20 points and fit a plane to them:
-vp = plotter.vtkPlotter(verbose=False, title='Example 13')
+vp = plotter.vtkPlotter(verbose=False, title='Example 14')
 for i in range(500): # draw 500 fit lines superimposed
     x = np.linspace(-2, 5, 20) # generate 20 points
     y = np.linspace( 1, 9, 20)
@@ -197,7 +197,7 @@ vp.show(legend=['points','fitting plane','fitting line'])
 # Cut a set of shapes with a plane that goes through the
 # point at x=500 and has normal (0, 0.3, -1).
 # Wildcards are ok to load multiple files or directories:
-vp = plotter.vtkPlotter(title='Example 14')
+vp = plotter.vtkPlotter(title='Example 15')
 vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1)
 for a in vp.actors:
     vp.cutActor(a, origin=(500,0,0), normal=(0,0.3,-1))
@@ -212,7 +212,7 @@ plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 # 17 ########################################################################################
 # Display a tetrahedral mesh (Fenics/Dolfin format).
 # The internal vertices are displayed too:
-vp = plotter.vtkPlotter(title='Example 16')
+vp = plotter.vtkPlotter(title='Example 17')
 vp.load('data/290.xml.gz')
 vp.show(legend='tetrahedral mesh')
 
@@ -220,7 +220,7 @@ vp.show(legend='tetrahedral mesh')
 # 18 ########################################################################################
 # Align 2 shapes and for each vertex of the first draw
 # and arrow to the closest point of the second:
-vp = plotter.vtkPlotter(title='Example 17')
+vp = plotter.vtkPlotter(title='Example 18')
 a1, a2 = vp.load('data/2[79]0.vtk')
 a1.GetProperty().SetColor(0,1,0)
 a1b = vp.align(a1, a2, rigid=1)
@@ -233,7 +233,7 @@ vp.show(legend=['Source','Target','Aligned','Links'])
 # Find closest point in set pts1 to pts2 within a specified radius
 pts1 = [(u(0,5), u(0,5), u(0,5)) for i in range(40)]
 pts2 = [(u(0,5), u(0,5), u(0,5)) for i in range(20)]
-vp = plotter.vtkPlotter(title='Example 18')
+vp = plotter.vtkPlotter(title='Example 19')
 vp.points(pts1, r=4,  alpha=1, legend='point set 1')
 vp.points(pts1, r=25, alpha=0.1) # make a halo
 a = vp.points(pts2, r=4, c='r', alpha=1, legend='point set 2')
@@ -246,7 +246,7 @@ vp.show()
 # 20 ########################################################################################
 # Draw a cloud of points each one with a different color
 # which depends on its position
-vp = plotter.vtkPlotter(title='Example 19')
+vp = plotter.vtkPlotter(title='Example 20')
 rgb = [(u(0,255), u(0,255), u(0,255)) for i in range(2000)]
 vp.points(rgb, c=rgb, alpha=0.7, legend='RGB points')
 vp.show()
@@ -259,7 +259,7 @@ a.cutterWidget() # invoke widget
 
 # 22 ########################################################################################
 # Make a video (needs cv2 package)
-vp = plotter.vtkPlotter(title='Example 21')
+vp = plotter.vtkPlotter(title='Example 22')
 vp.load('data/290.vtk', c='b', bc='tomato', alpha=1)
 vp.openVideo(duration=3) # will force it to last 3 seconds in total
 for i in range(100):
