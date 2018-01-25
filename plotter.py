@@ -1081,7 +1081,7 @@ class vtkPlotter:
         return self, cactor
 
     def subDivideSurface(self, actor, N=1):
-        '''Increases the number of points in vtk mesh.'''
+        '''Increases the number of points in a vtk mesh.'''
         triangles = vtk.vtkTriangleFilter()
         setInput(triangles, getPolyData(actor))
         triangles.Update()
