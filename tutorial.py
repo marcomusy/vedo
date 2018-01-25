@@ -79,6 +79,24 @@ vp.show(legend='shape w/ boundaries')
 
 
 # 8 ########################################################################################
+# Increases the number of points in a vtk mesh using 'subDivideSurface'
+# and shows them before and after.
+vp = plotter.vtkPlotter(N=2)
+vp.interactive = False
+a = vp.load('data/290.vtk')
+aCoord = plotter.getCoordinates(a)
+aPoints = vp.points(aCoord, r=3, legend='# points =' + str(len(aCoord)))
+
+addingPoints = vp.subDivideSurface(a)  # Increasing the number of points of the mesh
+addingPointsCoord = plotter.getCoordinates(addingPoints)
+newPoints = vp.points(addingPointsCoord, r=3, legend='# points =' + str(len(addingPointsCoord)))
+
+vp.show(at=0, actors=aPoints)
+vp.show(at=1, actors=newPoints)
+vp.show(interactive=1)
+
+
+# 9 ########################################################################################
 # Split window in a 36 subwindows and draw something in windows nr 12 and nr 33.
 # Then open an independent window and draw on two shapes:
 vp1 = plotter.vtkPlotter(shape=(6,6), title='Example 8')
@@ -95,7 +113,7 @@ vp2.load('data/270.vtk')
 vp2.show()
 
 
-# 9 ########################################################################################
+# 10 ########################################################################################
 # Load a surface and show its curvature based on 4 different schemes.
 # All four shapes share a common vtkCamera:
 # 0-gaussian, 1-mean, 2-max, 3-min
@@ -109,7 +127,7 @@ for i in [0,1,2,3]:
 vp.show(interactive=1)
 
 
-# 10 #######################################################################################
+# 11 #######################################################################################
 # Draw a simple objects on separate parts of the rendering window:
 # split window to best accomodate 6 renderers
 vp = plotter.vtkPlotter(N=9, title='Example 10')
@@ -127,7 +145,7 @@ vp.show(at=8, actors=vp.cylinder(), legend='cylinder()')
 vp.show(interactive=1)
 
 
-# 11 #######################################################################################
+# 12 #######################################################################################
 # Draw a bunch of objects in many formats. Split window in 3 rows and 3 columns
 vp = plotter.vtkPlotter(shape=(3,3), title='Example 11')
 vp.commoncam   = False
@@ -147,7 +165,7 @@ vp.show(at=8, c=8, actors='data/unstrgrid.vtu')
 vp.show(interactive=1)
 
 
-# 12 #######################################################################################
+# 13 #######################################################################################
 # Draw the same object with different surface textures
 vp = plotter.vtkPlotter(shape=(3,3), verbose=0, axes=0, interactive=0, title='Example 12')
 mat = ['aqua','gold2','metal1','ivy','paper','sky','white2','wood3','wood7']
@@ -157,7 +175,7 @@ for i,mname in enumerate(mat): # mname can be any jpeg file
 vp.show(interactive=1)
 
 
-# 13 ########################################################################################
+# 14 ########################################################################################
 # Draw a line in 3D that fits a cloud of points,
 # also show the first set of 20 points and fit a plane to them:
 vp = plotter.vtkPlotter(verbose=False, title='Example 13')
@@ -175,7 +193,7 @@ print ('Fit slope=', vp.result['slope']) # the last fitted slope direction
 vp.show(legend=['points','fitting plane','fitting line'])
 
 
-# 14 ########################################################################################
+# 15 ########################################################################################
 # Cut a set of shapes with a plane that goes through the
 # point at x=500 and has normal (0, 0.3, -1).
 # Wildcards are ok to load multiple files or directories:
@@ -186,12 +204,12 @@ for a in vp.actors:
 vp.show()
 
 
-# 15 ########################################################################################
+# 16 ########################################################################################
 # As a short-cut, the filename can be given in the show command directly:
 plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 
 
-# 16 ########################################################################################
+# 17 ########################################################################################
 # Display a tetrahedral mesh (Fenics/Dolfin format).
 # The internal vertices are displayed too:
 vp = plotter.vtkPlotter(title='Example 16')
@@ -199,7 +217,7 @@ vp.load('data/290.xml.gz')
 vp.show(legend='tetrahedral mesh')
 
 
-# 17 ########################################################################################
+# 18 ########################################################################################
 # Align 2 shapes and for each vertex of the first draw
 # and arrow to the closest point of the second:
 vp = plotter.vtkPlotter(title='Example 17')
@@ -211,7 +229,7 @@ for p in ps1: vp.arrow(p, plotter.closestPoint(a2, p))
 vp.show(legend=['Source','Target','Aligned','Links'])
 
 
-# 18 ########################################################################################
+# 19 ########################################################################################
 # Find closest point in set pts1 to pts2 within a specified radius
 pts1 = [(u(0,5), u(0,5), u(0,5)) for i in range(40)]
 pts2 = [(u(0,5), u(0,5), u(0,5)) for i in range(20)]
@@ -225,7 +243,7 @@ for p in pts1:
 vp.show()
 
 
-# 19 ########################################################################################
+# 20 ########################################################################################
 # Draw a cloud of points each one with a different color
 # which depends on its position
 vp = plotter.vtkPlotter(title='Example 19')
@@ -234,12 +252,12 @@ vp.points(rgb, c=rgb, alpha=0.7, legend='RGB points')
 vp.show()
 
 
-# 20 ########################################################################################
+# 21 ########################################################################################
 a = vp.load('data/cow.g')
 a.cutterWidget() # invoke widget
 
 
-# 21 ########################################################################################
+# 22 ########################################################################################
 # Make a video (needs cv2 package)
 vp = plotter.vtkPlotter(title='Example 21')
 vp.load('data/290.vtk', c='b', bc='tomato', alpha=1)
