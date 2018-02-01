@@ -47,32 +47,25 @@ def makeActor(poly, c='gold', alpha=0.5,
 
     mapper = vtk.vtkPolyDataMapper()
 
-#    mapper.ScalarVisibilityOff()    
-#    mapper.ScalarVisibilityOn ()
-#    mapper.SetScalarMode(2)
-#    mapper.SetColorModeToDefault()
-#    mapper.SelectColorArray("Colors")
-#    mapper.SetScalarRange(0,255)
-#    mapper.SetScalarModeToUsePointData ()
-#    mapper.UseLookupTableScalarRangeOff ()
-
     setInput(mapper, clp.GetOutput())
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
+    if c is None: 
+        mapper.ScalarVisibilityOn()
+    else:
+        c = vtkcolors.getColor(c)
+        actor.GetProperty().SetColor(c)
+        actor.GetProperty().SetOpacity(alpha)
     
-    c = vtkcolors.getColor(c)
-    actor.GetProperty().SetColor(c)
-    actor.GetProperty().SetOpacity(alpha)
-
-    actor.GetProperty().SetSpecular(0)
-    actor.GetProperty().SetSpecularColor(c)
-    actor.GetProperty().SetSpecularPower(1)
-
-    actor.GetProperty().SetAmbient(0)
-    actor.GetProperty().SetAmbientColor(c)
-
-    actor.GetProperty().SetDiffuse(1)
-    actor.GetProperty().SetDiffuseColor(c)
+        actor.GetProperty().SetSpecular(0)
+        actor.GetProperty().SetSpecularColor(c)
+        actor.GetProperty().SetSpecularPower(1)
+    
+        actor.GetProperty().SetAmbient(0)
+        actor.GetProperty().SetAmbientColor(c)
+    
+        actor.GetProperty().SetDiffuse(1)
+        actor.GetProperty().SetDiffuseColor(c)
 
     if edges: actor.GetProperty().EdgeVisibilityOn()
     if wire: actor.GetProperty().SetRepresentationToWireframe()
@@ -765,7 +758,9 @@ def printc(strings, c='black', bold=True, separator=' ', end='\n'):
                 ncol = c % 8
             else: 
                 cols = {'black':0, 'red':1, 'green':2, 'yellow':3, 
-                        'blue':4, 'magenta':5, 'cyan':6, 'white':7}
+                        'blue':4, 'magenta':5, 'cyan':6, 'white':7,
+                        'k':0, 'r':1, 'g':2, 'y':3,
+                        'b':4, 'm':5, 'c':6, 'w':7}
                 ncol = cols[c.lower()]
             if bold: seq = "\x1b[1;%dm" % (30+ncol)
             else:    seq = "\x1b[0;%dm" % (30+ncol)

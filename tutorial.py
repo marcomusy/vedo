@@ -4,6 +4,7 @@ from __future__ import division, print_function
 from random import uniform as u
 import numpy as np
 import plotter
+import math
  
 
 
@@ -59,14 +60,14 @@ vp.show(legend=['points', 'PCA ellipsoid'])
 
 
 # 6 ########################################################################################
-# Show 3 planes as a grid, add a dummy sine plot on top left:
-xycoords = [(np.exp(i/10.), np.sin(i/5.)) for i in range(40)]
+# Show a dummy sine plot on top left,  
+# and a 3D function f(x,y) = sin(3*x)*log(x-y)/3 (more examples in examples/fxy.py)
+# red points indicate where the function is not real
 vp = plotter.vtkPlotter(title='Example 6')
+xycoords = [(math.exp(i/10.), math.sin(i/5.)) for i in range(40)]
 vp.xyplot( xycoords )
-vp.grid(pos=(0,0.5,0.5), normal=(1,0,0), c=(1,0,0))
-vp.grid(pos=(0.5,0,0.5), normal=(0,1,0), c=(0,1,0))
-vp.grid(pos=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
-vp.show(axes=0)
+vp.fxy( lambda x,y: math.sin(3*x)*math.log(x-y)/3, texture='paper' )
+vp.show()
 
 
 # 7 ########################################################################################

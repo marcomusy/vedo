@@ -88,20 +88,18 @@ vp.show()
 <br />
 
 
-Show 3 planes as a grid, add a dummy sine plot on top left,
-add 3 axes at the origin:
+Show a dummy sine plot on top left,  
+and a 3D function f(x,y) = sin(3*x)*log(x-y)/3 (more examples in examples/fxy.py).
+Red points indicate where the function is not real:
 ```python
-import numpy as np
-xycoords = [(np.exp(i/10.), np.sin(i/5.)) for i in range(40)]
-vp = plotter.vtkPlotter()
+import math
+vp = plotter.vtkPlotter(title='Example 6')
+vp.fxy( lambda x,y: math.sin(3*x)*math.log(x-y)/3, texture='paper' )
+xycoords = [(math.exp(i/10.), math.sin(i/5.)) for i in range(40)]
 vp.xyplot( xycoords )
-vp.grid(pos=(0,0.5,0.5), normal=(1,0,0), c=(1,0,0))
-vp.grid(pos=(0.5,0,0.5), normal=(0,1,0), c=(0,1,0))
-vp.grid(pos=(0.5,0.5,0), normal=(0,0,1), c=(0,0,1))
-vp.axes()
-vp.show(axes=0)
+vp.show()
 ```
-![ex4](https://user-images.githubusercontent.com/32848391/32666971-90dac112-c639-11e7-96ef-ec41bdf3b7e5.png)
+![func3d2](https://user-images.githubusercontent.com/32848391/35693806-9cea58f0-077f-11e8-8609-8e37ba1f5357.png)
 <br />
 
 Show the vtk boundaries of a vtk surface and its normals<br />
@@ -264,14 +262,18 @@ def sphere(pos, r=1, c='r', alpha=1, legend=None, texture=None)
 def cube(pt, r=1, c='g', alpha=1, legend=None, texture=None)
 def plane(pos, normal=(0,0,1), s=10, c='g', bc='darkgreen', lw=1, alpha=1, texture=None)
 def grid( pos, normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1, texture=None)
-def polygon(pos, normal=(0,0,1), nsides=6, r=1, c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, cam=0):
+def fxy(z='sin(x)+y', x=[0,3], y=[0,3], zlimits=[-1e+30, 1e+30], showNan=True, zlevels=10, 
+        c='b', bc='aqua', alpha=1, legend=True, texture=None, res=100)
+def polygon(pos, normal=(0,0,1), nsides=6, r=1, 
+            c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, followcam=False):
 def arrow(startPoint, endPoint, c='r', alpha=1, legend=None, texture=None)
 def cylinder(pos, radius, height, axis=[1,1,1], c='teal', alpha=1, legend=None, texture=None)
 def octahedron(pos, s=1, axis=(0,0,1), c='g', alpha=1, wire=False, legend=None, texture=None)
 def cone(pos, radius, height, axis=[1,1,1], c='g', alpha=1, legend=None, texture=None)
 def ellipsoid(points, c='c', alpha=0.5, legend=None, texture=None)
 def paraboloid(pos, radius=1, height=1, axis=[0,0,1], c='cyan', alpha=1, legend=None, texture=None, res=50)
-def hyperboloid(pos, a2=1, value=0.5, height=1, axis=[0,0,1], c='magenta', alpha=1, legend=None, texture=None, res=50)
+def hyperboloid(pos, a2=1, value=0.5, height=1, axis=[0,0,1], 
+                c='magenta', alpha=1, legend=None, texture=None, res=50)
 def helix(pos, length=2, n=6, radius=1, axis=[0,0,1], lw=1, c='grey', alpha=1, legend=None, texture=None)
 def pyramid(pos, s=1, height=1, axis=[0,0,1], c='dg', alpha=1, legend=None, texture=None)
 def ring(pos, radius=1, thickness=0.1, axis=[1,1,1], c='khaki', alpha=1, legend=None, texture=None)

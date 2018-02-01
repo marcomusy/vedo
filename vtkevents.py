@@ -35,7 +35,8 @@ def _mouseleft(vp, obj, event):
         leg, oldleg = '', ''
         if hasattr(clickedActor,'legend'): leg = clickedActor.legend
         if hasattr(vp.clickedActor,'legend'): oldleg = vp.clickedActor.legend
-        if leg and len(leg) and oldleg != leg: #detect if clickin the same obj
+        #detect if clickin the same obj
+        if leg and isinstance(leg, str) and len(leg) and oldleg != leg: 
             try: indx = str(vp.getActors().index(clickedActor))
             except ValueError: indx = None                        
             try: indx = str(vp.actors.index(clickedActor))
