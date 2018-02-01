@@ -2,7 +2,7 @@
 <br />
 <br />
 
-A python helper class to easily draw, analyse and animate tridimensional objects. 
+A python helper class to easily draw, analyse and animate tridimensional objects.
 <br />A VTK alternative to Vpython.
 
 ## Download / Install:
@@ -39,7 +39,7 @@ vp = plotter.vtkPlotter()  # Declare an instance of the class
 <br />
 
 Load a vtk file as a vtkActor and visualize it in wireframe style, <br />
-(the tridimensional shape corresponds to the outer shape of the embryonic mouse 
+(the tridimensional shape corresponds to the outer shape of the embryonic mouse
 limb at about 12 days of gestation).<br />
 Press *Esc* to close the window and exit python session or *q* to continue:
 ```python
@@ -121,7 +121,7 @@ windows nr 12 and nr 33. Then open an independent window and draw on two shapes:
 vp1 = plotter.vtkPlotter(shape=(6,6))
 vp1.renderers[35].SetBackground(.8,.9,.9)
 v270 = vp1.load('data/270.vtk')   
-v290 = vp1.load('data/290.vtk') 
+v290 = vp1.load('data/290.vtk')
 vp1.interactive = False
 vp1.show(at=12, actors=[v270,v290])
 vp1.show(at=33, actors=[v270,v290])
@@ -151,7 +151,7 @@ vp.show(interactive=1) # same as setting flag interactive=True
 
 Draw a bunch of simple objects on separate parts of the rendering window:
 ```python
-vp = plotter.vtkPlotter(N=6, interactive=0) 
+vp = plotter.vtkPlotter(N=6, interactive=0)
 vp.commoncam   = False
 vp.show(at=0, actors=vp.arrow(),  legend='arrow()' )
 vp.show(at=1, actors=vp.line(),   legend='line()' )
@@ -167,7 +167,7 @@ vp.show(interactive=1)
 
 Draw a number of objects in various formats and options:
 ```python
-vp = plotter.vtkPlotter(shape=(3,3)) 
+vp = plotter.vtkPlotter(shape=(3,3))
 vp.commoncam   = False
 vp.interactive = False
 vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
@@ -177,7 +177,7 @@ vp.show(at=3, c=3, actors='data/shapes/spider.ply')
 vp.show(at=4, c=4, actors='data/shuttle.obj')
 vp.show(at=5, c=5, actors='data/shapes/magnolia.vtk')
 vp.show(at=6, c=6, actors='data/shapes/man.vtk', alpha=1, axes=1)
-a = vp.getActors('man')        # retrieve actors by matching legend string 
+a = vp.getActors('man')        # retrieve actors by matching legend string
 a[0].rotateX(90)               #  and rotate it by 90 degrees around x
 a[0].rotateY(1.57, rad=True)   #   then by 90 degrees around y
 vp.show(at=7, c=7, actors='data/teapot.xyz')
@@ -226,11 +226,11 @@ plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
 
 
 
-Cut a set of shapes with a plane that goes through the point at x=500 and has normal (1, 0.3, -0.2). 
+Cut a set of shapes with a plane that goes through the point at x=500 and has normal (1, 0.3, -0.2).
 Wildcards are ok to load multiple files or directories:
 ```python
 vp = plotter.vtkPlotter()
-vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1) 
+vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1)
 for a in vp.actors:
     vp.cutActor(a, origin=(500,0,0), normal=(0,0.3,-1))
 vp.show()
@@ -240,8 +240,8 @@ vp.show()
 
 
 
-More examples in *example.py*.<br /> 
-If you need to do more complicated things (define widgets.. etc), you can still access all the 
+More examples in *example.py*.<br />
+If you need to do more complicated things (define widgets.. etc), you can still access all the
 usual VTK objects like interactors and renderers through *vp.interactor, vp.renderer*... etc.<br />
 Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.avi* file (needs to import cv2).
 <br />
@@ -284,6 +284,7 @@ def text(txt, pos, s=1, c='k', alpha=1, bc=None, cam=True, texture=None)
 def xyplot(points, title='', c='r', pos=1, lines=False)
 def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
 def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None)
+def subDivideSurface(actor, N=1)
 def boundaries(actor, c='p', lw=5, legend=None)
 #
 def align(source, target, rigid=False, iters=100, legend=None):
@@ -293,17 +294,17 @@ def pca(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None)
 def cutActor(actor, origin=(0,0,0), normal=(1,0,0), showcut=True, showline=False, showpts=False)
 def closestPoint(surf, pt, locator=None, N=None, radius=None)
 #
-def show(actors=None, at=0, legend=None, axes=None, ruler=False, interactive=None, 
+def show(actors=None, at=0, legend=None, axes=None, ruler=False, interactive=None,
          outputimage=None, c='gold', bc=None, alpha=0.2, wire=False, edges=False, resetcam=True, q=False)
 def clear(actors=[])
 def render(resetcam=False, rate=10000)
-def addActor(actor) 
-def removeActor(actor) 
+def addActor(actor)
+def removeActor(actor)
 def lastActor()
 def openVideo(name='movie.avi', fps=12, duration=None, format="XVID")
 def addFrameVideo()
 def pauseVideo(pause)
-def releaseVideo() 
+def releaseVideo()
 ```
 
 Useful *vtkPlotter* attributes:
@@ -315,7 +316,7 @@ vp.renderers    # list of renderers
 vp.interactor   # vtk window interactor
 vp.interactive  # (true) allows to interact with renderer
 vp.axes         # (true) show 3D axes
-vp.camera       # current vtkCamera 
+vp.camera       # current vtkCamera
 vp.commoncam    # (true) share the same camera in renderers
 vp.legend       # list of legend entries for each actors, can be false
 vp.verbose      # verbosity
@@ -335,7 +336,7 @@ def closestPoint(surface, point, locator=None, N=None, radius=None)
 def getCoordinates(actors)
 def cutterWidget(actor, outputname='clipped.vtk')
 def writeVTK(obj, fileoutput)
-``` 
+```
 
 Additional methods of vtkActor object (*a la vpython*):
 ```python
@@ -370,4 +371,3 @@ actor.point(i, p=None)       # set/get i-th point in actor mesh
 
 <br />
 Tested on VTK versions 5.8, 6.3, 7.1, 8.0: https://www.vtk.org
-
