@@ -1214,28 +1214,6 @@ class vtkPlotter:
         return cactor
 
 
-    def subDivideSurface(self, actor, N=1):
-        '''Increases the number of points in a vtk mesh.'''
-        triangles = vtk.vtkTriangleFilter()
-        setInput(triangles, getPolyData(actor))
-        triangles.Update()
-        originalMesh = triangles.GetOutput()
-        if self.verbose:
-            print("Before subdivision:", originalMesh.GetNumberOfPoints(), "points.",)
-            print("and", originalMesh.GetNumberOfPolys(), "triangles.")
-
-        subdivisionFilter = vtk.vtkLoopSubdivisionFilter()
-        subdivisionFilter.SetNumberOfSubdivisions(N)
-        setInput(subdivisionFilter, originalMesh)
-        subdivisionFilter.Update()
-        out = subdivisionFilter.GetOutput()
-        if self.verbose:
-            print("After subdivision:", out.GetNumberOfPoints(), "points.",)
-            print("and", out.GetNumberOfPolys(), "triangles.")
-        self.actors.append(out)
-        return out
-
-
     def boundaries(self, actor, c='p', lw=5, legend=None):
         '''Returns a vtkActor that shows the boundary lines of a surface.'''
         fe = vtk.vtkFeatureEdges()
@@ -1462,6 +1440,28 @@ class vtkPlotter:
         except ValueError: pass
         return finact
         
+
+    def subDivideSurface(self, actor, N=1):
+        '''Increases the number of points in actor'''
+        triangles = vtk.vtkTriangleFilter()
+        setInput(triangles, getPolyData(actor))
+        triangles.Update()
+        originalMesh = triangles.GetOutput()
+        subdivisionFilter = vtk.vtkLoopSubdivisionFilter()
+        subdivisionFilter.SetNumberOfSubdivisions(N)
+        setInput(subdivisionFilter, originalMesh)
+        subdivisionFilter.Update()
+        out = subdivisionFilter.GetOutput()
+        sactor = makeActor(out)
+        sactor.GetProperty().SetOpacity(actor.GetProperty().GetOpacity())
+        sactor.GetProperty().SetColor(actor.GetProperty().GetColor())
+        try:
+            print (out.GetNumberOfPoints())
+            i = self.actors.index(actor)
+            self.actors[i] = sactor # substitute original actor
+        except ValueError: pass
+        return sactor
+    
 
     ##########################################
     def _draw_cubeaxes(self, c=(.2, .2, .6)):

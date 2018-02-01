@@ -22,11 +22,11 @@ f1 = vp.fxy(my_z, texture='paper')
 vp.show(f1, at=0, interactive=0)
 
 # c=None shows the original z-scalar color scale. No z-level lines.
-# if vp is set to verbose, sympy calculates derivatives and prints them:
 f2 = vp.fxy(lambda x,y: math.sin(x*y), c=None, zlevels=None)
 vp.show(f2, at=1)
 
 # red dots are shown where the function does not exist (y>x):
+# if vp is set to verbose, sympy calculates derivatives and prints them:
 f3 = vp.fxy('sin(3*x)*log(x-y)/3')
 vp.show(f3, at=2)
 

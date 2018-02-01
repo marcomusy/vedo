@@ -82,34 +82,33 @@ vp.show(legend='shape w/ boundaries')
 # 8 ########################################################################################
 # Increases the number of points in a vtk mesh using 'subDivideSurface'
 # and shows them before and after.
-vp = plotter.vtkPlotter(N=2, interactive=False)
-a = vp.load('data/290.vtk')
-aCoord = plotter.getCoordinates(a)
-aPoints = vp.points(aCoord, r=3, legend='# points =' + str(len(aCoord)))
+vp = plotter.vtkPlotter(N=2, axes=False)
+a1 = vp.load('data/beethoven.ply', alpha=1)
+coords1 = plotter.getCoordinates(a1)
+pts1 = vp.points(coords1, r=4, c='g', legend='#points = '+str(len(coords1)))
+vp.show([a1, pts1], at=0, interactive=False)
 
-addingPoints = vp.subDivideSurface(a)  # Increasing the number of points of the mesh
-addingPointsCoord = plotter.getCoordinates(addingPoints)
-newPoints = vp.points(addingPointsCoord, r=3, legend='# points ='+str(len(addingPointsCoord)))
-
-vp.show(at=0, actors=aPoints)
-vp.show(at=1, actors=newPoints, interactive=True)
+a2 = vp.subDivideSurface(a1) # Increasing the number of points of the mesh
+coords2 = plotter.getCoordinates(a2)
+pts2 = vp.points(coords2, r=1, legend='#points = '+str(len(coords2)))
+vp.show([a2, pts2], at=1, interactive=True)
 
 
 # 9 ########################################################################################
 # Split window in a 36 subwindows and draw something in windows nr 12 and nr 33.
 # Then open an independent window and draw on two shapes:
-#vp1 = plotter.vtkPlotter(shape=(6,6), title='Example 9')
-#vp1.renderers[35].SetBackground(.8,.9,.9)
-#vp1.axes = False
-#a = vp1.load('data/250.vtk')
-#b = vp1.load('data/270.vtk', legend='some legend')
-#c = vp1.load('data/290.vtk')
-#vp1.show(at=12, actors=[a,b], interactive=False)
-#vp1.show(at=33, actors=[b,c])
-#vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
-#vp2.load('data/250.vtk', legend='an other window')
-#vp2.load('data/270.vtk')
-#vp2.show()
+vp1 = plotter.vtkPlotter(shape=(6,6), title='Example 9')
+vp1.renderers[35].SetBackground(.8,.9,.9)
+vp1.axes = False
+a = vp1.load('data/250.vtk')
+b = vp1.load('data/270.vtk', legend='some legend')
+c = vp1.load('data/290.vtk')
+vp1.show(at=12, actors=[a,b], interactive=False)
+vp1.show(at=33, actors=[b,c])
+vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
+vp2.load('data/250.vtk', legend='an other window')
+vp2.load('data/270.vtk')
+vp2.show()
 
 
 # 10 ########################################################################################
