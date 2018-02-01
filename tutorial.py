@@ -98,18 +98,18 @@ vp.show(at=1, actors=newPoints, interactive=True)
 # 9 ########################################################################################
 # Split window in a 36 subwindows and draw something in windows nr 12 and nr 33.
 # Then open an independent window and draw on two shapes:
-vp1 = plotter.vtkPlotter(shape=(6,6), title='Example 9')
-vp1.renderers[35].SetBackground(.8,.9,.9)
-vp1.axes = False
-a = vp1.load('data/250.vtk')
-b = vp1.load('data/270.vtk', legend='some legend')
-c = vp1.load('data/290.vtk')
-vp1.show(at=12, actors=[a,b], interactive=False)
-vp1.show(at=33, actors=[b,c])
-vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
-vp2.load('data/250.vtk', legend='an other window')
-vp2.load('data/270.vtk')
-vp2.show()
+#vp1 = plotter.vtkPlotter(shape=(6,6), title='Example 9')
+#vp1.renderers[35].SetBackground(.8,.9,.9)
+#vp1.axes = False
+#a = vp1.load('data/250.vtk')
+#b = vp1.load('data/270.vtk', legend='some legend')
+#c = vp1.load('data/290.vtk')
+#vp1.show(at=12, actors=[a,b], interactive=False)
+#vp1.show(at=33, actors=[b,c])
+#vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
+#vp2.load('data/250.vtk', legend='an other window')
+#vp2.load('data/270.vtk')
+#vp2.show()
 
 
 # 10 ########################################################################################

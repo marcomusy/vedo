@@ -1520,14 +1520,13 @@ class vtkPlotter:
         acs.InitTraversal()
         for i in range(acs.GetNumberOfItems()):
             a = acs.GetNextItem()
-            if isinstance(a, vtk.vtkLegendBoxActor):
+            if isinstance(a, vtk.vtkLegendBoxActor): 
                 self.renderer.RemoveActor(a)
 
         actors = self.getActors()
         acts, texts = [], []
         for i in range(len(actors)):
             a = actors[i]
-<<<<<<< HEAD
             if i<len(self.legend) and self.legend[i]!='': 
                 if isinstance(self.legend[i], str):
                     texts.append(self.legend[i])
@@ -1537,15 +1536,6 @@ class vtkPlotter:
                     texts.append(a.legend)
                     acts.append(a)
         
-=======
-            if i<len(self.legend) and self.legend[i]!='':
-                texts.append(self.legend[i])
-                acts.append(a)
-            elif hasattr(a, 'legend') and a.legend:
-                texts.append(a.legend)
-                acts.append(a)
-
->>>>>>> b5b17b4b33baa98850ef5da7e41cdfa44c6349aa
         NT = len(texts)
         if NT>25: NT=25
         vtklegend = vtk.vtkLegendBoxActor()
