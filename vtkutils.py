@@ -16,13 +16,13 @@ vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
 def setInput(vtkobj, p, port=0):
     if isinstance(p, vtk.vtkAlgorithmOutput):
         vtkobj.SetInputConnection(port, p) # passing port
-        return    
+        return
     if vtkMV: vtkobj.SetInputData(p)
     else: vtkobj.SetInput(p)
 
-    
+
 ##############################################################################
-def makeActor(poly, c='gold', alpha=0.5, 
+def makeActor(poly, c='gold', alpha=0.5,
               wire=False, bc=None, edges=False, legend=None, texture=None):
     '''Return a vtkActor from an input vtkPolyData, optional args:
        c,       color in RGB format, hex, symbol or name
@@ -50,20 +50,20 @@ def makeActor(poly, c='gold', alpha=0.5,
     setInput(mapper, clp.GetOutput())
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
-    if c is None: 
+    if c is None:
         mapper.ScalarVisibilityOn()
     else:
         c = vtkcolors.getColor(c)
         actor.GetProperty().SetColor(c)
         actor.GetProperty().SetOpacity(alpha)
-    
+
         actor.GetProperty().SetSpecular(0)
         actor.GetProperty().SetSpecularColor(c)
         actor.GetProperty().SetSpecularPower(1)
-    
+
         actor.GetProperty().SetAmbient(0)
         actor.GetProperty().SetAmbientColor(c)
-    
+
         actor.GetProperty().SetDiffuse(1)
         actor.GetProperty().SetDiffuseColor(c)
 
@@ -76,8 +76,8 @@ def makeActor(poly, c='gold', alpha=0.5,
         backProp.SetOpacity(alpha)
         actor.SetBackfaceProperty(backProp)
 
-    assignPhysicsMethods(actor)    
-    assignConvenienceMethods(actor, legend)    
+    assignPhysicsMethods(actor)
+    assignConvenienceMethods(actor, legend)
     return actor
 
 
@@ -85,38 +85,38 @@ def makeAssembly(actors, legend=None):
     '''Treat many actors as a single new actor'''
     assembly = vtk.vtkAssembly()
     for a in actors: assembly.AddPart(a)
-    setattr(assembly, 'legend', legend) 
+    setattr(assembly, 'legend', legend)
     assignPhysicsMethods(assembly)
     return assembly
 
 
 def assignConvenienceMethods(actor, legend):
-    
+
     if not hasattr(actor, 'legend'):
         setattr(actor, 'legend', legend)
 
-    def _frotate(self, angle, axis, rad=False): 
+    def _frotate(self, angle, axis, rad=False):
         return rotate(self, angle, axis, rad)
     actor.rotate = types.MethodType( _frotate, actor )
 
-    def _frotateX(self, angle, rad=False): 
+    def _frotateX(self, angle, rad=False):
         return rotate(self, angle, [1,0,0], rad)
     actor.rotateX = types.MethodType( _frotateX, actor )
 
-    def _frotateY(self, angle, rad=False): 
+    def _frotateY(self, angle, rad=False):
         return rotate(self, angle, [0,1,0], rad)
     actor.rotateY = types.MethodType( _frotateY, actor )
 
-    def _frotateZ(self, angle, rad=False): 
+    def _frotateZ(self, angle, rad=False):
         return rotate(self, angle, [0,0,1], rad)
     actor.rotateZ = types.MethodType( _frotateZ, actor )
 
     def _fclone(self, c='gold', alpha=1, wire=False, bc=None,
-                edges=False, legend=None, texture=None): 
+                edges=False, legend=None, texture=None):
         return clone(self, c, alpha, wire, bc, edges, legend, texture)
     actor.clone = types.MethodType( _fclone, actor )
 
-    def _fpoint(self, i, p=None): 
+    def _fpoint(self, i, p=None):
         poly = getPolyData(self)
         if p is None:
             p = [0,0,0]
@@ -125,7 +125,7 @@ def assignConvenienceMethods(actor, legend):
         else:
             poly.GetPoints().SetPoint(i, p)
             #actor.GetMapper().Update()
-        return 
+        return
     actor.point = types.MethodType( _fpoint, actor )
 
     def _fnormalize(self): return normalize(self)
@@ -136,31 +136,31 @@ def assignConvenienceMethods(actor, legend):
 
     def _fcutterw(self): return cutterWidget(self)
     actor.cutterWidget = types.MethodType( _fcutterw, actor )
-    
+
     def _fvisible(self, alpha=1): self.GetProperty().SetOpacity(alpha)
     actor.visible = types.MethodType( _fvisible, actor )
-    
+
 
 
 def assignPhysicsMethods(actor):
-    
-    apos = np.array(actor.GetPosition())
-    setattr(actor, '_pos',  apos)         # position  
 
-    def _fpos(self, p=None): 
+    apos = np.array(actor.GetPosition())
+    setattr(actor, '_pos',  apos)         # position
+
+    def _fpos(self, p=None):
         if p is None: return self._pos
         self.SetPosition(p)
         self._pos = np.array(p)
         return self # return itself to concatenate methods
     actor.pos = types.MethodType( _fpos, actor )
 
-    def _faddpos(self, dp): 
-        self._pos += np.array(dp)        
+    def _faddpos(self, dp):
+        self._pos += np.array(dp)
         self.SetPosition(self._pos )
         return self
     actor.addpos = types.MethodType( _faddpos, actor )
 
-    def _fpx(self, px=None):               # X  
+    def _fpx(self, px=None):               # X
         if px is None: return self._pos[0]
         newp = [px, self._pos[1], self._pos[2]]
         self.SetPosition(newp)
@@ -168,7 +168,7 @@ def assignPhysicsMethods(actor):
         return self
     actor.x = types.MethodType( _fpx, actor )
 
-    def _fpy(self, py=None):               # Y  
+    def _fpy(self, py=None):               # Y
         if py is None: return self._pos[1]
         newp = [self._pos[0], py, self._pos[2]]
         self.SetPosition(newp)
@@ -176,60 +176,60 @@ def assignPhysicsMethods(actor):
         return self
     actor.y = types.MethodType( _fpy, actor )
 
-    def _fpz(self, pz=None):               # Z  
+    def _fpz(self, pz=None):               # Z
         if pz is None: return self._pos[2]
         newp = [self._pos[0], self._pos[1], pz]
         self.SetPosition(newp)
         self._pos = np.array(newp)
         return self
     actor.z = types.MethodType( _fpz, actor )
-     
+
     setattr(actor, '_vel',  np.array([0,0,0]))  # velocity
-    def _fvel(self, v=None): 
+    def _fvel(self, v=None):
         if v is None: return self._vel
         self._vel = v
     actor.vel = types.MethodType( _fvel, actor )
-    
-    def _fvx(self, vx=None):               # VX  
+
+    def _fvx(self, vx=None):               # VX
         if vx is None: return self._vel[0]
         newp = [vx, self._vel[1], self._vel[2]]
         self.SetPosition(newp)
         self._vel = newp
     actor.vx = types.MethodType( _fvx, actor )
 
-    def _fvy(self, vy=None):               # VY  
+    def _fvy(self, vy=None):               # VY
         if vy is None: return self._vel[1]
         newp = [self._vel[0], vy, self._vel[2]]
         self.SetPosition(newp)
         self._vel = newp
     actor.vy = types.MethodType( _fvy, actor )
 
-    def _fvz(self, vz=None):               # VZ  
+    def _fvz(self, vz=None):               # VZ
         if vz is None: return self._vel[2]
         newp = [self._vel[0], self._vel[1], vz]
         self.SetPosition(newp)
         self._vel = newp
     actor.vz = types.MethodType( _fvz, actor )
-     
+
     setattr(actor, '_mass',  1.0)               # mass
-    def _fmass(self, m=None): 
+    def _fmass(self, m=None):
         if m is None: return self._mass
         self._mass = m
     actor.mass = types.MethodType( _fmass, actor )
 
     setattr(actor, '_axis',  np.array([0,0,1]))  # axis
-    def _faxis(self, a=None): 
+    def _faxis(self, a=None):
         if a is None: return self._axis
         self._axis = a
     actor.axis = types.MethodType( _faxis, actor )
 
     setattr(actor, '_omega', 0.0)     # angular velocity
-    def _fomega(self, o=None): 
+    def _fomega(self, o=None):
         if o is None: return self._omega
         self._omega = o
     actor.omega = types.MethodType( _fomega, actor )
 
-    def _fmomentum(self): 
+    def _fmomentum(self):
         return self._mass * self._vel
     actor.momentum = types.MethodType( _fmomentum, actor )
 
@@ -240,18 +240,18 @@ def assignPhysicsMethods(actor):
 
 
 
-######################################################### 
+#########################################################
 def clone(actor, c='gold', alpha=None, wire=False, bc=None,
-          edges=False, legend=None, texture=None): 
+          edges=False, legend=None, texture=None):
     poly = getPolyData(actor)
     if not len(getCoordinates(actor)):
         printc('Limitation: cannot clone textured obj. Returning input.',1)
         return actor
     polyCopy = vtk.vtkPolyData()
     polyCopy.DeepCopy(poly)
-    if not legend is None and hasattr(actor.legend): 
+    if not legend is None and hasattr(actor.legend):
         legend = actor.legend+' copy'
-        
+
     if alpha is None: alpha = actor.GetProperty().GetOpacity()
     if hasattr(actor, 'texture'): texture = actor.texture
     a = makeActor(polyCopy, c, alpha, wire, bc, edges, legend, texture)
@@ -263,11 +263,11 @@ def clone(actor, c='gold', alpha=None, wire=False, bc=None,
 #    a = vtk.vtkActor()
 #    a.SetProperty(actor.GetProperty())
 #    a.SetMapper(mapper)
-    
-    assignPhysicsMethods(a)    
-    assignConvenienceMethods(a, legend)    
+
+    assignPhysicsMethods(a)
+    assignConvenienceMethods(a, legend)
     return a
-    
+
 
 def normalize(actor, s=1): # N.B. input argument gets modified
     # s= scale
@@ -280,7 +280,7 @@ def normalize(actor, s=1): # N.B. input argument gets modified
     t = vtk.vtkTransform()
     t.Scale(scale, scale, scale)
     t.Translate(-cm)
-    tf = vtk.vtkTransformPolyDataFilter() 
+    tf = vtk.vtkTransformPolyDataFilter()
     setInput(tf, actor.GetMapper().GetInput())
     tf.SetTransform(t)
     tf.Update()
@@ -301,7 +301,7 @@ def rotate(actor, angle, axis, rad=False): # N.B. input argument is modified
     t.Translate(cm)
     t.RotateWXYZ(-angle,  axis[0], axis[1], axis[2])
     t.Translate(-cm)
-    tf = vtk.vtkTransformPolyDataFilter() 
+    tf = vtk.vtkTransformPolyDataFilter()
     setInput(tf, actor.GetMapper().GetInput())
     tf.SetTransform(t)
     tf.Update()
@@ -330,8 +330,8 @@ def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
     if N: # N = desired number of points
         Np = poly.GetNumberOfPoints()
         fraction = float(N)/Np
-        if fraction >= 1: return actor   
-        
+        if fraction >= 1: return actor
+
     decimate = vtk.vtkDecimatePro()
     setInput(decimate, poly)
     decimate.SetTargetReduction(1.-fraction)
@@ -351,7 +351,7 @@ def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
 
 #########################################################
 # Useful Functions
-######################################################### 
+#########################################################
 def makePolyData(spoints, addLines=True):
     """Try to workout a polydata from points"""
     sourcePoints = vtk.vtkPoints()
@@ -371,7 +371,6 @@ def makePolyData(spoints, addLines=True):
         lines.InsertNextCell(len(spoints))
         for i in range(len(spoints)): lines.InsertCellPoint(i)
         source.SetLines(lines)
-    source.Update()
     return source
 
 
@@ -389,13 +388,13 @@ def isInside(poly, point):
 
 
 #################################################################### get stuff
-def getPolyData(obj, index=0): 
+def getPolyData(obj, index=0):
     '''
     Returns vtkPolyData from an other object (vtkActor, vtkAssembly, int)
     '''
     if isinstance(obj, list) and len(obj)==1: obj = obj[0]
-   
-    if isinstance(obj, vtk.vtkActor):   
+
+    if isinstance(obj, vtk.vtkActor):
         pd = obj.GetMapper().GetInput()
         transform = vtk.vtkTransform()
         transform.SetMatrix(obj.GetMatrix())
@@ -421,7 +420,7 @@ def getPolyData(obj, index=0):
         else: tp.SetInput(pd)
         tp.Update()
         return tp.GetOutput()
-    
+
     elif isinstance(obj, vtk.vtkPolyData): return obj
     elif isinstance(obj, vtk.vtkActor2D):  return obj.GetMapper().GetInput()
 
@@ -463,14 +462,14 @@ def getCM(actor):
     else:
         pts = getCoordinates(actor)
         if not len(pts): return np.array([0,0,0])
-        return np.mean(pts, axis=0)       
+        return np.mean(pts, axis=0)
 
 
 def getVolume(actor):
     '''Get the volume occupied by actor'''
     mass = vtk.vtkMassProperties()
     setInput(mass, getPolyData(actor))
-    mass.Update() 
+    mass.Update()
     return mass.GetVolume()
 
 
@@ -478,7 +477,7 @@ def getArea(actor):
     '''Get the surface area of actor'''
     mass = vtk.vtkMassProperties()
     setInput(mass, getPolyData(actor))
-    mass.Update() 
+    mass.Update()
     return mass.GetSurfaceArea()
 
 
@@ -487,27 +486,27 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     if   mapTo == 1: tmapper = vtk.vtkTextureMapToCylinder()
     elif mapTo == 2: tmapper = vtk.vtkTextureMapToSphere()
     elif mapTo == 3: tmapper = vtk.vtkTextureMapToPlane()
-    
+
     setInput(tmapper, getPolyData(actor))
     if mapTo == 1:  tmapper.PreventSeamOn()
-    
+
     xform = vtk.vtkTransformTextureCoords()
     xform.SetInputConnection(tmapper.GetOutputPort())
     xform.SetScale(scale,scale,scale)
     if mapTo == 1: xform.FlipSOn()
     xform.Update()
-    
+
     mapper = vtk.vtkDataSetMapper()
     mapper.SetInputConnection(xform.GetOutputPort())
-    
-    cdir = os.path.dirname(__file__)     
+
+    cdir = os.path.dirname(__file__)
     fn = cdir + '/textures/'+name+".jpg"
-    if os.path.exists(name): 
+    if os.path.exists(name):
         fn = name
     elif not os.path.exists(fn):
         printc(('Texture', name, 'not found in', cdir+'/textures'), 'red')
-        return 
-        
+        return
+
     jpgReader = vtk.vtkJPEGReader()
     jpgReader.SetFileName(fn)
     atext = vtk.vtkTexture()
@@ -519,8 +518,8 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     actor.GetProperty().SetColor(1,1,1)
     actor.SetMapper(mapper)
     actor.SetTexture(atext)
-    
-    
+
+
 def writeVTK(obj, fileoutput):
     wt = vtk.vtkPolyDataWriter()
     setInput(wt, getPolyData(obj))
@@ -528,7 +527,7 @@ def writeVTK(obj, fileoutput):
     wt.Update()
     wt.Write()
     printc(("Saved vtk file:", fileoutput), 'green')
-    
+
 
 ########################################################################
 def closestPoint(surf, pt, locator=None, N=None, radius=None):
@@ -560,10 +559,10 @@ def closestPoint(surf, pt, locator=None, N=None, radius=None):
     elif radius:
         cell = vtk.mutable(0)
         r = locator.FindClosestPointWithinRadius(pt, radius, trgp, cell, cid, dist2)
-        if not r: 
+        if not r:
             trgp = pt
             dist2 = 0.0
-    else: 
+    else:
         subid = vtk.mutable(0)
         locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
     return trgp
@@ -574,7 +573,7 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     '''Pop up a box widget to cut parts of actor. Return largest part.'''
 
     apd = getPolyData(obj)
-    
+
     planes = vtk.vtkPlanes()
     planes.SetBounds(apd.GetBounds())
 
@@ -595,10 +594,10 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     backProp.SetOpacity(alpha)
     act0.SetBackfaceProperty(backProp)
     #act0 = makeActor(clipper.GetOutputPort())
-    
+
     act0.GetProperty().SetInterpolationToFlat()
-    assignPhysicsMethods(act0)    
-    assignConvenienceMethods(act0, legend)    
+    assignPhysicsMethods(act0)
+    assignConvenienceMethods(act0, legend)
 
     act1Mapper = vtk.vtkPolyDataMapper() # the part which is cut away
     act1Mapper.SetInputConnection(clipper.GetClippedOutputPort())
@@ -608,13 +607,13 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     act1.GetProperty().SetOpacity(alpha/10.)
     act1.GetProperty().SetRepresentationToWireframe()
     act1.VisibilityOn()
-    
+
     ren = vtk.vtkRenderer()
     ren.SetBackground(1,1,1)
-    
+
     ren.AddActor(act0)
     ren.AddActor(act1)
-    
+
     renWin = vtk.vtkRenderWindow()
     renWin.AddRenderer(ren)
     renWin.SetSize(600, 700)
@@ -624,9 +623,9 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     istyl = vtk.vtkInteractorStyleSwitch()
     istyl.SetCurrentStyleToTrackballCamera()
     iren.SetInteractorStyle(istyl)
-    
+
     def SelectPolygons(vobj, event): vobj.GetPlanes(planes)
-    
+
     boxWidget = vtk.vtkBoxWidget()
     boxWidget.OutlineCursorWiresOn()
     boxWidget.GetSelectedOutlineProperty().SetColor(1,0,1)
@@ -635,10 +634,10 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     boxWidget.SetPlaceFactor(1.05)
     boxWidget.SetInteractor(iren)
     setInput(boxWidget, apd)
-    boxWidget.PlaceWidget()    
+    boxWidget.PlaceWidget()
     boxWidget.AddObserver("InteractionEvent", SelectPolygons)
     boxWidget.On()
-    
+
     printc(("Press X to save file:", outputname), 'blue')
     def cwkeypress(obj, event):
         if obj.GetKeySym() == "X":
@@ -651,7 +650,7 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
             cpd.Update()
             writeVTK(cpd.GetOutput(), outputname)
         elif obj.GetKeySym() == "Escape": exit()
-    
+
     iren.Initialize()
     iren.AddObserver("KeyPressEvent", cwkeypress)
     iren.Start()
@@ -661,20 +660,20 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
 
 
 ###########################################################################
-class ProgressBar: 
+class ProgressBar:
     '''Class to print a progress bar with optional text on its right'''
     # import time                        ### Usage example:
     # pb = ProgressBar(0,400, c='red')
     # for i in pb.range():
     #     time.sleep(.1)
-    #     pb.print('some message')       # or pb.print(counts=i) 
+    #     pb.print('some message')       # or pb.print(counts=i)
     def __init__(self, start, stop, step=1, c=None, ETA=True, width=25):
         self.start  = start
         self.stop   = stop
         self.step   = step
         self.color  = c
         self.width  = width
-        self.bar    = ""  
+        self.bar    = ""
         self.percent= 0
         self._counts= 0
         self._oldbar= ""
@@ -685,13 +684,13 @@ class ProgressBar:
         self.ETA    = ETA
         self.clock0 = time.time()
         self._update(0)
-        
+
     def print(self, txt='', counts=None):
         if counts: self._update(counts)
         else:      self._update(self._counts + self.step)
         if self.bar != self._oldbar:
             self._oldbar = self.bar
-            eraser = [' ']*self._lentxt + ['\b']*self._lentxt 
+            eraser = [' ']*self._lentxt + ['\b']*self._lentxt
             eraser = ''.join(eraser)
             if self.ETA and self._counts>10:
                 vel  = self._counts/(time.time() - self.clock0)
@@ -707,11 +706,11 @@ class ProgressBar:
                 vel = str(round(vel,1))
                 eta = 'ETA: '+mins+secs+'('+vel+' it/s) '
             else: eta = ''
-            txt = eta + txt 
+            txt = eta + txt
             s = self.bar + ' ' + eraser + txt + '\r'
-            if self.color: 
+            if self.color:
                 printc(s, c=self.color, end='')
-            else: 
+            else:
                 sys.stdout.write(s)
                 sys.stdout.flush()
             if self.percent==100: print ('')
@@ -719,7 +718,7 @@ class ProgressBar:
 
     def range(self): return self._range
     def len(self): return self._len
- 
+
     def _update(self, counts):
         if counts < self.start: counts = self.start
         elif counts > self.stop: counts = self.stop
@@ -734,7 +733,7 @@ class ProgressBar:
         else:        self.bar = "[%s>%s]" % ('='*(nh-1), ' '*(af-nh))
         ps = str(self.percent) + "%"
         self.bar = ' '.join([self.bar, ps])
-        
+
 
 ################################################################### color print
 def printc(strings, c='black', bold=True, separator=' ', end='\n'):
@@ -751,13 +750,13 @@ def printc(strings, c='black', bold=True, separator=' ', end='\n'):
     for i,s in enumerate(strings):
         if i == len(strings)-1: separator=''
         txt = txt + str(s) + separator
-    
+
     if _terminal_has_colors:
         try:
-            if isinstance(c, int): 
+            if isinstance(c, int):
                 ncol = c % 8
-            else: 
-                cols = {'black':0, 'red':1, 'green':2, 'yellow':3, 
+            else:
+                cols = {'black':0, 'red':1, 'green':2, 'yellow':3,
                         'blue':4, 'magenta':5, 'cyan':6, 'white':7,
                         'k':0, 'r':1, 'g':2, 'y':3,
                         'b':4, 'm':5, 'c':6, 'w':7}
@@ -769,7 +768,7 @@ def printc(strings, c='black', bold=True, separator=' ', end='\n'):
         except: print (txt, end=end)
     else:
         print (txt, end=end)
-        
+
 def _has_colors(stream):
     if not hasattr(stream, "isatty"): return False
     if not stream.isatty(): return False # auto color only on TTYs
@@ -780,4 +779,3 @@ def _has_colors(stream):
     except:
         return False
 _terminal_has_colors = _has_colors(sys.stdout)
-
