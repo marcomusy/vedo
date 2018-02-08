@@ -53,6 +53,7 @@ def makeActor(poly, c='gold', alpha=0.5,
     if c is None: 
         mapper.ScalarVisibilityOn()
     else:
+        mapper.ScalarVisibilityOff()
         c = vtkcolors.getColor(c)
         actor.GetProperty().SetColor(c)
         actor.GetProperty().SetOpacity(alpha)
@@ -69,7 +70,9 @@ def makeActor(poly, c='gold', alpha=0.5,
 
     if edges: actor.GetProperty().EdgeVisibilityOn()
     if wire: actor.GetProperty().SetRepresentationToWireframe()
-    if texture: assignTexture(actor, texture)
+    if texture: 
+        mapper.ScalarVisibilityOff()
+        assignTexture(actor, texture)
     if bc: # defines a specific color for the backface
         backProp = vtk.vtkProperty()
         backProp.SetDiffuseColor(vtkcolors.getColor(bc))
@@ -87,11 +90,50 @@ def makeAssembly(actors, legend=None):
     for a in actors: assembly.AddPart(a)
     setattr(assembly, 'legend', legend) 
     assignPhysicsMethods(assembly)
+    assignConvenienceMethods(assembly, legend)
     return assembly
 
 
-def assignConvenienceMethods(actor, legend):
+def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
+    '''Assign a texture to actro from file or name in /textures directory'''
+    if   mapTo == 1: tmapper = vtk.vtkTextureMapToCylinder()
+    elif mapTo == 2: tmapper = vtk.vtkTextureMapToSphere()
+    elif mapTo == 3: tmapper = vtk.vtkTextureMapToPlane()
     
+    setInput(tmapper, getPolyData(actor))
+    if mapTo == 1:  tmapper.PreventSeamOn()
+    
+    xform = vtk.vtkTransformTextureCoords()
+    xform.SetInputConnection(tmapper.GetOutputPort())
+    xform.SetScale(scale,scale,scale)
+    if mapTo == 1: xform.FlipSOn()
+    xform.Update()
+    
+    mapper = vtk.vtkDataSetMapper()
+    mapper.SetInputConnection(xform.GetOutputPort())
+    
+    cdir = os.path.dirname(__file__)     
+    fn = cdir + '/textures/'+name+".jpg"
+    if os.path.exists(name): 
+        fn = name
+    elif not os.path.exists(fn):
+        printc(('Texture', name, 'not found in', cdir+'/textures'), 'red')
+        return 
+        
+    jpgReader = vtk.vtkJPEGReader()
+    jpgReader.SetFileName(fn)
+    atext = vtk.vtkTexture()
+    atext.RepeatOn()
+    atext.EdgeClampOff()
+    atext.InterpolateOn()
+    if falsecolors: atext.MapColorScalarsThroughLookupTableOn()
+    atext.SetInputConnection(jpgReader.GetOutputPort())
+    actor.GetProperty().SetColor(1,1,1)
+    actor.SetMapper(mapper)
+    actor.SetTexture(atext)
+
+
+def assignConvenienceMethods(actor, legend):
     if not hasattr(actor, 'legend'):
         setattr(actor, 'legend', legend)
 
@@ -124,7 +166,6 @@ def assignConvenienceMethods(actor, legend):
             return np.array(p)
         else:
             poly.GetPoints().SetPoint(i, p)
-            #actor.GetMapper().Update()
         return 
     actor.point = types.MethodType( _fpoint, actor )
 
@@ -140,6 +181,8 @@ def assignConvenienceMethods(actor, legend):
     def _fvisible(self, alpha=1): self.GetProperty().SetOpacity(alpha)
     actor.visible = types.MethodType( _fvisible, actor )
     
+    def _fgpoly(self): return getPolyData(self)
+    actor.getPolyData = types.MethodType( _fgpoly, actor )
 
 
 def assignPhysicsMethods(actor):
@@ -255,15 +298,7 @@ def clone(actor, c='gold', alpha=None, wire=False, bc=None,
     if alpha is None: alpha = actor.GetProperty().GetOpacity()
     if hasattr(actor, 'texture'): texture = actor.texture
     a = makeActor(polyCopy, c, alpha, wire, bc, edges, legend, texture)
-
-#    mapper = vtk.vtkPolyDataMapper()  # alternative  way
-#    mapper.ShallowCopy(actor.GetMapper())
-#    setInput(mapper, polyCopy)
-#    mapper.Update()
-#    a = vtk.vtkActor()
-#    a.SetProperty(actor.GetProperty())
-#    a.SetMapper(mapper)
-    
+  
     assignPhysicsMethods(a)    
     assignConvenienceMethods(a, legend)    
     return a
@@ -349,6 +384,34 @@ def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
     return actor  # return same obj for concatenation
 
 
+def boolActors(actor1, actor2, operation='plus', c=None, alpha=1, 
+               wire=False, bc=None, edges=False, legend=None, texture=None):
+    try:
+        bf = vtk.vtkBooleanOperationPolyDataFilter()
+    except AttributeError:
+        printc('Boolean operation only possible for vtk version > 6','r')
+        return None
+    poly1 = getPolyData(actor1)
+    poly2 = getPolyData(actor2)
+    if operation.lower() == 'plus':
+        bf.SetOperationToUnion()
+    elif operation.lower() == 'intersect':
+        bf.SetOperationToIntersection()
+    elif operation.lower() == 'minus':
+        bf.SetOperationToDifference()
+        bf.ReorientDifferenceCellsOn()
+    if vtkMV:
+        bf.SetInputData(0, poly1)
+        bf.SetInputData(1, poly2)
+    else:
+        bf.SetInputConnection(0, poly1.GetProducerPort())
+        bf.SetInputConnection(1, poly2.GetProducerPort())
+    bf.Update()
+    actor = makeActor(bf.GetOutput(), 
+                      c, alpha, wire, bc, edges, legend, texture)
+    return actor
+
+
 #########################################################
 # Useful Functions
 ######################################################### 
@@ -375,17 +438,56 @@ def makePolyData(spoints, addLines=True):
     return source
 
 
-def isInside(poly, point):
+def isInside(actor, point):
     """Return True if point is inside a polydata closed surface"""
+    poly = getPolyData(actor)
     points = vtk.vtkPoints()
     points.InsertNextPoint(point)
     pointsPolydata = vtk.vtkPolyData()
     pointsPolydata.SetPoints(points)
     sep = vtk.vtkSelectEnclosedPoints()
     setInput(sep, pointsPolydata)
-    sep.SetSurface(poly)
+    if vtkMV: sep.SetSurfaceData(poly)
+    else: sep.SetSurface(poly)
     sep.Update()
     return sep.IsInside(0)
+
+
+def insidePoints(actor, points, invert=False, tol=1e-05):
+    """Return list of points that are inside a polydata closed surface"""
+    poly = getPolyData(actor)
+    # check if the stl file is closed
+    featureEdge = vtk.vtkFeatureEdges()
+    featureEdge.FeatureEdgesOff()
+    featureEdge.BoundaryEdgesOn()
+    featureEdge.NonManifoldEdgesOn()
+    setInput(featureEdge, poly)
+    featureEdge.Update()
+    openEdges = featureEdge.GetOutput().GetNumberOfCells()
+    if openEdges != 0:
+        printc("Warning: polydata is not a closed surface",5)
+    
+    vpoints = vtk.vtkPoints()
+    for p in points: vpoints.InsertNextPoint(p)
+    pointsPolydata = vtk.vtkPolyData()
+    pointsPolydata.SetPoints(vpoints)
+    sep = vtk.vtkSelectEnclosedPoints()
+    sep.SetTolerance(tol) 
+    setInput(sep, pointsPolydata)
+    if vtkMV: sep.SetSurfaceData(poly)
+    else: sep.SetSurface(poly)
+    sep.Update()
+    
+    mask1, mask2 = [], []
+    for i,p in enumerate(points):
+        if sep.IsInside(i) :
+            mask1.append(p)
+        else:
+            mask2.append(p)
+    if invert: 
+        return mask2
+    else:
+        return mask1
 
 
 #################################################################### get stuff
@@ -480,45 +582,6 @@ def getArea(actor):
     setInput(mass, getPolyData(actor))
     mass.Update() 
     return mass.GetSurfaceArea()
-
-
-def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
-    '''Assign a texture to actro from file or name in /textures directory'''
-    if   mapTo == 1: tmapper = vtk.vtkTextureMapToCylinder()
-    elif mapTo == 2: tmapper = vtk.vtkTextureMapToSphere()
-    elif mapTo == 3: tmapper = vtk.vtkTextureMapToPlane()
-    
-    setInput(tmapper, getPolyData(actor))
-    if mapTo == 1:  tmapper.PreventSeamOn()
-    
-    xform = vtk.vtkTransformTextureCoords()
-    xform.SetInputConnection(tmapper.GetOutputPort())
-    xform.SetScale(scale,scale,scale)
-    if mapTo == 1: xform.FlipSOn()
-    xform.Update()
-    
-    mapper = vtk.vtkDataSetMapper()
-    mapper.SetInputConnection(xform.GetOutputPort())
-    
-    cdir = os.path.dirname(__file__)     
-    fn = cdir + '/textures/'+name+".jpg"
-    if os.path.exists(name): 
-        fn = name
-    elif not os.path.exists(fn):
-        printc(('Texture', name, 'not found in', cdir+'/textures'), 'red')
-        return 
-        
-    jpgReader = vtk.vtkJPEGReader()
-    jpgReader.SetFileName(fn)
-    atext = vtk.vtkTexture()
-    atext.RepeatOn()
-    atext.EdgeClampOff()
-    atext.InterpolateOn()
-    if falsecolors: atext.MapColorScalarsThroughLookupTableOn()
-    atext.SetInputConnection(jpgReader.GetOutputPort())
-    actor.GetProperty().SetColor(1,1,1)
-    actor.SetMapper(mapper)
-    actor.SetTexture(atext)
     
     
 def writeVTK(obj, fileoutput):

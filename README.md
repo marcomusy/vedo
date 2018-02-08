@@ -43,12 +43,10 @@ Load a vtk file as a vtkActor and visualize it in wireframe style, <br />
 limb at about 12 days of gestation).<br />
 Press *Esc* to close the window and exit python session or *q* to continue:
 ```python
-actor = vp.load('data/290.vtk', wire=1)
+vp.load('data/shuttle.obj', wire=1)
 vp.show()
-#vp.show(actor)           # overrides the content of vp.actors
-#vp.show(actors=[actor])  # same as above
 ```
-![ex1](https://user-images.githubusercontent.com/32848391/32666968-908d1bf6-c639-11e7-9201-46572a2349c2.png)
+![shuttle](https://user-images.githubusercontent.com/32848391/35975974-e1235396-0cde-11e8-9880-69335cc7fd43.png)
 <br />
 
 Load 3 actors assigning each a different color, use their file names as legend entries.
@@ -102,40 +100,9 @@ vp.show()
 ![func3d2](https://user-images.githubusercontent.com/32848391/35693806-9cea58f0-077f-11e8-8609-8e37ba1f5357.png)
 <br />
 
-Show the vtk boundaries of a vtk surface and its normals<br />
-(*ratio* reduces the total nr of arrows by the indicated factor):
-```python
-vp = plotter.vtkPlotter()
-va = vp.load('data/290.vtk', c=(1,0.1,0.1))
-vp.normals(va, ratio=5)
-vp.boundaries(va)
-vp.show()
-```
-![ex5](https://user-images.githubusercontent.com/32848391/32666972-90f46a5e-c639-11e7-93c3-e105322ff481.png)
-<br />
-
-
-Split window in a 36 subwindows and draw something in
-windows nr 12 and nr 33. Then open an independent window and draw on two shapes:
-```python
-vp1 = plotter.vtkPlotter(shape=(6,6))
-vp1.renderers[35].SetBackground(.8,.9,.9)
-v270 = vp1.load('data/270.vtk')   
-v290 = vp1.load('data/290.vtk')
-vp1.interactive = False
-vp1.show(at=12, actors=[v270,v290])
-vp1.show(at=33, actors=[v270,v290])
-vp2 = plotter.vtkPlotter(bg=(0.9,0.9,1))
-v250 = vp2.load('data/250.vtk')
-v270 = vp2.load('data/270.vtk')
-vp2.show()
-```
-![ex6](https://user-images.githubusercontent.com/32848391/32666973-910d6dc4-c639-11e7-9645-e19ffdfff3d1.png)
-<br />
-
-
-Load a surface and show its curvature based on 4 different schemes. All four shapes
-share a common vtkCamera:<br />
+Load a surface and show its curvature based on 4 different schemes. 
+Objects can be drawn on independent windows and/or subwindows within the same canvas.
+All four shapes here share a common vtkCamera:<br />
 *0-gaussian, 1-mean, 2-max, 3-min*
 ```python
 vp = plotter.vtkPlotter(shape=(1,4), interactive = False)
@@ -188,44 +155,6 @@ vp.show(interactive=1)
 <br />
 
 
-Draw a line in 3D that fits a cloud of points,
-also show the first set of 20 points and fit a plane to them:
-```python
-for i in range(500): # draw 500 fit lines superposed
-    x = np.mgrid[-2:5 :20j][:, np.newaxis] # generate 20 points
-    y = np.mgrid[ 1:9 :20j][:, np.newaxis]
-    z = np.mgrid[-5:3 :20j][:, np.newaxis]
-    data  = np.concatenate((x, y, z), axis=1)
-    data += np.random.normal(size=data.shape)*0.8 # add gauss noise
-    if i==0:
-        vp.points(data)
-        vp.fitplane(data)
-    vp.fitline(data, lw=10, alpha=0.01) # fit
-print (vp.result['slope']) # access the last fitted slope direction
-vp.show()
-```
-![plane](https://user-images.githubusercontent.com/32848391/32667173-3ad163ec-c63a-11e7-8b3d-4a8ba047eae9.png)
-<br />
-
-
-Display a tetrahedral mesh (Fenics/Dolfin format). The internal verteces are displayed too:
-```python
-vp.load('data/290.xml.gz', wire=1)
-vp.show()        
-```
-![ex9](https://user-images.githubusercontent.com/32848391/32666976-918480bc-c639-11e7-9749-4fd0b71523ad.png)
-<br />
-
-
-As a short cut, the filename (or a list of filenames) can be given in the show command directly:
-```python
-plotter.vtkPlotter().show('data/limb.pcd') # Point cloud (PCL file format)
-```
-![pcd](https://user-images.githubusercontent.com/32848391/32798156-287955b4-c974-11e7-9abf-6057dd43c5db.png)
-<br />
-
-
-
 Cut a set of shapes with a plane that goes through the point at x=500 and has normal (1, 0.3, -0.2).
 Wildcards are ok to load multiple files or directories:
 ```python
@@ -261,30 +190,29 @@ def line(p0, p1, lw=1, dotted=False, c='r', alpha=1, legend=None)
 def sphere(pos, r=1, c='r', alpha=1, legend=None, texture=None)
 def cube(pt, r=1, c='g', alpha=1, legend=None, texture=None)
 def plane(pos, normal=(0,0,1), s=10, c='g', bc='darkgreen', lw=1, alpha=1, texture=None)
-def grid( pos, normal=(0,0,1), s=10, N=10, c='g', bc='darkgreen', lw=1, alpha=1, texture=None)
+def grid( pos, normal=(0,0,1), s=10, c='g', bc='darkgreen', lw=1, alpha=1, texture=None, res=10)
 def fxy(z='sin(x)+y', x=[0,3], y=[0,3], zlimits=[-1e+30, 1e+30], showNan=True, zlevels=10, 
         c='b', bc='aqua', alpha=1, legend=True, texture=None, res=100)
 def polygon(pos, normal=(0,0,1), nsides=6, r=1, 
             c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, followcam=False):
-def arrow(startPoint, endPoint, c='r', alpha=1, legend=None, texture=None)
-def cylinder(pos, radius, height, axis=[1,1,1], c='teal', alpha=1, legend=None, texture=None)
+def arrow(startPoint, endPoint, c='r', alpha=1, legend=None, texture=None, res=12)
+def cylinder(pos, radius, height, axis=[1,1,1], c='teal', alpha=1, legend=None, texture=None, res=24)
 def octahedron(pos, s=1, axis=(0,0,1), c='g', alpha=1, wire=False, legend=None, texture=None)
 def cone(pos, radius, height, axis=[1,1,1], c='g', alpha=1, legend=None, texture=None)
-def ellipsoid(points, c='c', alpha=0.5, legend=None, texture=None)
+def ellipsoid(points, c='c', alpha=0.5, legend=None, texture=None, res=24)
 def paraboloid(pos, radius=1, height=1, axis=[0,0,1], c='cyan', alpha=1, legend=None, texture=None, res=50)
 def hyperboloid(pos, a2=1, value=0.5, height=1, axis=[0,0,1], 
                 c='magenta', alpha=1, legend=None, texture=None, res=50)
 def helix(pos, length=2, n=6, radius=1, axis=[0,0,1], lw=1, c='grey', alpha=1, legend=None, texture=None)
 def pyramid(pos, s=1, height=1, axis=[0,0,1], c='dg', alpha=1, legend=None, texture=None)
-def ring(pos, radius=1, thickness=0.1, axis=[1,1,1], c='khaki', alpha=1, legend=None, texture=None)
-def spline(points, s=10, c='navy', alpha=1., nodes=True, legend=None)
-def bspline(points, nknots=-1, s=1, c=(0,0,0.8), alpha=1, nodes=False, legend=None)
+def ring(pos, radius=1, thickness=0.1, axis=[1,1,1], c='khaki', alpha=1, legend=None, texture=None, res=30)
+def spline(points, smooth=0.5, degree=2, s=5, c='b', alpha=1., nodes=False, legend=None, res=20)
 def text(txt, pos, s=1, c='k', alpha=1, bc=None, cam=True, texture=None)
 #
 def xyplot(points, title='', c='r', pos=1, lines=False)
 def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
 def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None)
-def subDivideSurface(actor, N=1)
+def subDivideMesh(actor, N=1, method=0, legend=None)
 def boundaries(actor, c='p', lw=5, legend=None)
 #
 def align(source, target, rigid=False, iters=100, legend=None):

@@ -42,9 +42,9 @@ class Cell:
                 
         self.vp = vp
         self.surface = vp.sphere(self._pos, r=self.size, 
-                                 c=self.color, alpha=self.alpha, res=6)
+                                 c=self.color, alpha=self.alpha, res=48)
         self.nucleus = vp.sphere(self._pos, r=self.size/6., 
-                                 c=self.color, alpha=1, res=5)
+                                 c=self.color, alpha=1, res=12)
 
         
     def shouldDivide(self, t):

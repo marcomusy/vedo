@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+#
 # A helper tool for visualizing vtk objects
+#
 from __future__ import division, print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "6.3"
+__version__ = "6.4"
 __maintainer__ = "M. Musy, G. Dalmasso"
 __email__   = "marco.musy@embl.es"
 __status__  = "dev"
@@ -22,11 +24,12 @@ import vtkloader
 import vtkutils
 from vtkutils import printc, makeActor, setInput, vtkMV
 from vtkutils import makeAssembly, assignTexture
-from vtkutils import getPolyData, getMaxOfBounds, getCoordinates
+from vtkutils import getPolyData, getCoordinates
 
 # to expose these methods in plotter namespace (not used in this file):
-from vtkutils import closestPoint, isInside
-from vtkutils import normalize, clone, decimate, rotate, shrink
+# they are also passed to the class at line ~140
+from vtkutils import closestPoint, isInside, insidePoints, getMaxOfBounds
+from vtkutils import normalize, clone, decimate, rotate, shrink, boolActors
 from vtkutils import getCM, getVolume, getArea, writeVTK, cutterWidget
 from vtkutils import ProgressBar
 
@@ -38,7 +41,7 @@ class vtkPlotter:
         printc("""
         A python helper class to easily draw VTK tridimensional objects.
         Please follow instructions at:
-        https://github.com/marcomusy/vtkPlotter\n""", c=1)
+        https://github.com/marcomusy/vtkPlotter\n""", 1)
         print ("vtkPlotter version:", __version__)
         print ("VTK version:", vtk.vtkVersion().GetVTKVersion())
         try:
@@ -135,7 +138,31 @@ class vtkPlotter:
         self._fps         = None
         self._frames      = None
         self.camera = vtk.vtkCamera()
-
+        
+        # share the methods in vtkutils in vtkPlotter namespace
+        self.printc = printc
+        self.makeActor = makeActor
+        self.setInput = setInput
+        self.makeAssembly = makeAssembly
+        self.getPolyData = getPolyData
+        self.getCoordinates = getCoordinates
+        self.boolActors = boolActors
+        self.closestPoint = closestPoint
+        self.isInside = isInside
+        self.insidePoints = insidePoints
+        self.getMaxOfBounds = getMaxOfBounds
+        self.normalize = normalize
+        self.clone = clone
+        self.decimate = decimate
+        self.rotate = rotate
+        self.shrink = shrink
+        self.getCM = getCM
+        self.getVolume = getVolume
+        self.getArea = getArea
+        self.writeVTK = writeVTK
+        self.cutterWidget = cutterWidget
+        self.ProgressBar = ProgressBar
+  
         if N:                # N = number of renderers. Find out the best
             if shape!=(1,1): # arrangement based on minimum nr. of empty renderers
                 printc('Warning: having set N, #renderers, shape is ignored.)', c=1)
@@ -379,14 +406,30 @@ class vtkPlotter:
         return actor
 
 
-    def line(self, p0=[0,0,0],p1=[1,1,1], lw=1, dotted=False,
+    def line(self, p0, p1=None, lw=1, dotted=False,
              c='r', alpha=1., legend=None):
-        '''Returns the line segment between points p0 and p1'''
-        lineSource = vtk.vtkLineSource()
-        lineSource.SetPoint1(p0)
-        lineSource.SetPoint2(p1)
-        lineSource.Update()
-        actor = makeActor(lineSource.GetOutput(), c, alpha, legend=legend)
+        '''Returns the line segment between points p0 and p1
+           if p0 is a list of points returns the line connecting them.
+        '''
+        #detect if user is passing a list of points:
+        if isinstance(p0[0], list) or  isinstance(p0[0], tuple):
+            ppoints = vtk.vtkPoints() # Generate the polyline
+            poly = vtk.vtkPolyData()
+            for i in range(len(p0)):
+                p = p0[i]
+                ppoints.InsertPoint(i, p[0],p[1],p[2])
+            lines = vtk.vtkCellArray() # Create the polyline.
+            lines.InsertNextCell(len(p0))
+            for i in range(len(p0)): lines.InsertCellPoint(i)
+            poly.SetPoints(ppoints)
+            poly.SetLines(lines)
+        else: # or just 2 points to link
+            lineSource = vtk.vtkLineSource()
+            lineSource.SetPoint1(p0)
+            lineSource.SetPoint2(p1)
+            lineSource.Update()
+            poly = lineSource.GetOutput()
+        actor = makeActor(poly, c, alpha, legend=legend)
         actor.GetProperty().SetLineWidth(lw)
         if dotted:
             actor.GetProperty().SetLineStipplePattern(0xf0f0)
@@ -396,26 +439,18 @@ class vtkPlotter:
 
 
     def sphere(self, pos=[0,0,0], r=1,
-               c='r', alpha=1, legend=None, texture=None, res=10):
-        quadric = vtk.vtkQuadric()
-        quadric.SetCoefficients(1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
-        value = 1.0
-        sample = vtk.vtkSampleFunction()
-        sample.SetSampleDimensions(res,res,res)
-        sample.SetImplicitFunction(quadric)
+               c='r', alpha=1, legend=None, texture=None, res=24):
 
-        contours = vtk.vtkContourFilter()
-        contours.SetInputConnection(sample.GetOutputPort())
-        contours.GenerateValues(1, value,value)
-        contours.Update()
-        pd = contours.GetOutput()
+        ss = vtk.vtkSphereSource()
+        ss.SetCenter(pos)
+        ss.SetRadius(r)
+        ss.SetThetaResolution(res)
+        ss.SetPhiResolution(res)
+        ss.Update()
+        pd = ss.GetOutput()
 
         actor = makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
-        actor.GetMapper().ScalarVisibilityOff()
-        bs = actor.GetBounds()
-        actor.SetScale(2.*r/(bs[1]-bs[0]))
-        actor.SetPosition(pos)
         self.actors.append(actor)
         return actor
 
@@ -508,20 +543,21 @@ class vtkPlotter:
 
     def plane(self, pos=[0,0,0], normal=[0,0,1], s=1, c='g', bc='darkgreen',
               lw=1, alpha=1, wire=False, legend=None, texture=None):
-        p = self.grid(pos, normal, s, 1, c, bc, lw, alpha, wire, legend, texture)
+        p = self.grid(pos, normal, s, c, bc, lw, alpha, wire, legend, texture,1)
         if not texture: p.GetProperty().SetEdgeVisibility(1)
         return p
 
 
-    def grid(self, pos=[0,0,0], normal=[0,0,1], s=10, N=10, c='g', bc='darkgreen',
-             lw=1, alpha=1, wire=True, legend=None, texture=None):
+    def grid(self, pos=[0,0,0], normal=[0,0,1], s=10, c='g', bc='darkgreen',
+             lw=1, alpha=1, wire=True, legend=None, texture=None, res=10):
         '''Return a grid plane'''
         ps = vtk.vtkPlaneSource()
-        ps.SetResolution(N, N)
+        ps.SetResolution(res, res)
         ps.SetCenter(np.array(pos)/s)
         ps.SetNormal(normal)
         ps.Update()
-        actor = makeActor(ps.GetOutput(), c=c, bc=bc, alpha=alpha, texture=texture)
+        actor = makeActor(ps.GetOutput(), 
+                          c=c, bc=bc, alpha=alpha, legend=legend, texture=texture)
         actor.SetScale(s,s,s)
         if wire: actor.GetProperty().SetRepresentationToWireframe()
         actor.GetProperty().SetLineWidth(lw)
@@ -571,7 +607,7 @@ class vtkPlotter:
 
 
     def arrow(self, start=[0,0,0], end=[1,1,1], axis=None,
-              c='r', alpha=1, legend=None, texture=None):
+              c='r', alpha=1, legend=None, texture=None, res=12):
         if axis:
             end = start+np.array(axis)
         axis = np.array(end) - np.array(start)
@@ -581,8 +617,8 @@ class vtkPlotter:
         theta = np.arccos(axis[2])
         phi   = np.arctan2(axis[1], axis[0])
         arr = vtk.vtkArrowSource()
-        arr.SetShaftResolution(24)
-        arr.SetTipResolution(24)
+        arr.SetShaftResolution(res)
+        arr.SetTipResolution(res)
         arr.SetTipRadius(0.06)
         arr.Update()
         actor = makeActor(arr.GetOutput(),
@@ -600,9 +636,9 @@ class vtkPlotter:
 
 
     def cylinder(self, pos=[0,0,0], radius=1, height=1, axis=[0,0,1],
-                 c='teal', alpha=1, legend=None, texture=None):
+                 c='teal', alpha=1, legend=None, texture=None, res=24):
         cyl = vtk.vtkCylinderSource()
-        cyl.SetResolution(48)
+        cyl.SetResolution(res)
         cyl.SetRadius(radius)
         cyl.SetHeight(height)
         cyl.Update()
@@ -729,14 +765,14 @@ class vtkPlotter:
 
 
     def ring(self, pos=[0,0,0], radius=1, thickness=0.1, axis=[1,1,1],
-             c='khaki', alpha=1, legend=None, texture=None):
+             c='khaki', alpha=1, legend=None, texture=None, res=30):
         rs = vtk.vtkParametricTorus()
         rs.SetRingRadius(radius)
         rs.SetCrossSectionRadius(thickness)
         pfs = vtk.vtkParametricFunctionSource()
         pfs.SetParametricFunction(rs)
-        pfs.SetUResolution(90)
-        pfs.SetVResolution(30)
+        pfs.SetUResolution(res*3)
+        pfs.SetVResolution(res)
         pfs.Update()
 
         axis  = np.array(axis)/np.linalg.norm(axis)
@@ -760,11 +796,11 @@ class vtkPlotter:
 
 
     def ellipsoid(self, pos=[0,0,0], axis1=[1,0,0], axis2=[0,2,0], axis3=[0,0,3],
-                  c='c', alpha=1, legend=None, texture=None):
+                  c='c', alpha=1, legend=None, texture=None, res=24):
         """axis1 and axis2 are only used to define sizes and one azimuth angle"""
         elliSource = vtk.vtkSphereSource()
-        elliSource.SetThetaResolution(24)
-        elliSource.SetPhiResolution(24)
+        elliSource.SetThetaResolution(res)
+        elliSource.SetPhiResolution(res)
         elliSource.Update()
         l1 = np.linalg.norm(axis1)
         l2 = np.linalg.norm(axis2)
@@ -797,11 +833,11 @@ class vtkPlotter:
 
 
     def helix(self, pos=[0,0,0], length=2, n=6, radius=1, axis=[0,0,1],
-              lw=1, c='grey', alpha=1, legend=None):
+              lw=5, c='grey', alpha=1, legend=None):
         thickness = max(length,radius)*2*lw
-        trange = np.linspace(-length/2., length/2., num=4*n)
+        trange = np.linspace(-length/2., length/2., num=10*n)
         pts = [ [np.cos(2*n*t),np.sin(2*n*t),t] for t in trange ]
-        actor = self.spline(pts, thickness, c, alpha, False, legend)
+        actor = self.spline(pts, 0, 2, thickness, c, alpha, False, legend)
         axis  = np.array(axis)/np.linalg.norm(axis)
         theta = np.arccos(axis[2])
         phi   = np.arctan2(axis[1], axis[0])
@@ -814,14 +850,8 @@ class vtkPlotter:
         return self.lastActor()
 
 
-    def spline(self, points=[[0,0,0],[1,0,0],[1,2,0],[1,2,1]],
-               s=1., c='navy', alpha=1., nodes=False, legend=None):
-        '''
-        Return a vtkActor for a spline that goes exactly trought all points.
-        nodes = True shows the points and therefore returns a vtkAssembly
-        '''
-        ## the spline passes through all points exactly
-        numberOfOutputPoints = len(points)*20 # Number of points on the spline
+    def _vtkspline(self, points, s, c, alpha, nodes, legend, res):
+        numberOfOutputPoints = len(points)*res # Number of points on the spline
         numberOfInputPoints  = len(points) # One spline for each direction.
         aSplineX = vtk.vtkCardinalSpline() #  interpolate the x values
         aSplineY = vtk.vtkCardinalSpline() #  interpolate the y values
@@ -837,9 +867,9 @@ class vtkPlotter:
             aSplineZ.AddPoint(i, z)
             inputPoints.InsertPoint(i, x, y, z)
 
-        inputData = vtk.vtkPolyData() # Create a polydata to be glyphed.
+        inputData = vtk.vtkPolyData() 
         inputData.SetPoints(inputPoints)
-        points = vtk.vtkPoints() # Generate the polyline for the spline.
+        points = vtk.vtkPoints() 
         profileData = vtk.vtkPolyData()
         for i in range(0, numberOfOutputPoints):
             t = (numberOfInputPoints-1.)/(numberOfOutputPoints-1.)*i
@@ -850,68 +880,65 @@ class vtkPlotter:
         lines.InsertNextCell(numberOfOutputPoints)
         for i in range(0, numberOfOutputPoints): lines.InsertCellPoint(i)
 
-        s = s*0.01*getMaxOfBounds(profileData)
         profileData.SetPoints(points)
         profileData.SetLines(lines)
-        profileTubes = vtk.vtkTubeFilter() # Add thickness to the resulting line.
-        profileTubes.SetNumberOfSides(8)
-        setInput(profileTubes, profileData)
-        profileTubes.SetRadius(s)
-        profileTubes.Update()
-        acttube = makeActor(profileTubes.GetOutput(), c=c, alpha=alpha, legend=legend)
-        acttube.GetProperty().SetInterpolationToPhong()
+        actline = makeActor(profileData, c=c, alpha=alpha, legend=legend)
+        actline.GetProperty().SetLineWidth(s)
+        actline.GetProperty().SetInterpolationToPhong()
         if nodes:
             pts = getCoordinates(inputData)
-            actnodes = self.points(pts, r=10, c=c, alpha=alpha)
+            actnodes = self.points(pts, r=s*1.5, c=c, alpha=alpha)
             self.actors.pop()
-            ass = makeAssembly([acttube, actnodes], legend=legend)
+            ass = makeAssembly([actline, actnodes], legend=legend)
             self.actors.append(ass)
             return ass
         else:
-            self.actors.append(acttube)
-            return acttube
+            self.actors.append(actline)
+            return actline
 
 
-    def bspline(self, points=[[0,0,0],[1,0,0],[1,2,0],[1,2,1]],
-                nknots=-1, s=1, c=(0,0,0.8), alpha=1., nodes=False, legend=None):
+    def spline(self, points, smooth=0.5, degree=2, 
+               s=2, c='b', alpha=1., nodes=False, legend=None, res=20):
         '''
-        Return a vtkActor for a spline that DOESNT go exactly trought all points.
-        nknots= number of nodes used by the bspline. A small nr implies
-                a smoother interpolation. Default -1 gives max precision.
-        nodes = True shows the points and therefore returns a vtkAssembly
+        Return a vtkActor for a spline that doesnt necessarly 
+               pass exactly throught all points.
+        smooth = smoothing factor, 0=interpolate points exactly, 1=average point positions
+        degree = degree of the spline (1<degree<5)
+        nodes  = True shows the points and therefore returns a vtkAssembly
         '''
         try:
             from scipy.interpolate import splprep, splev
         except ImportError:
-            printc("Error in bspline(): scipy not installed. Skip.", 1)
-            return None
+            printc('Warning: ..scipy not installed, using vtkCardinalSpline instead.',5)
+            return self._vtkspline(points, s, c, alpha, nodes, legend, res)
 
-        Nout = len(points)*20 # Number of points on the spline
+        Nout = len(points)*res # Number of points on the spline
         points = np.array(points)
+
+        minx, miny, minz = np.min(points, axis=0)
+        maxx, maxy, maxz = np.max(points, axis=0)
+        maxb = max(maxx-minx, maxy-miny, maxz-minz)
+        smooth *= maxb/2 # must be in absolute units
+        
         x,y,z = points[:,0], points[:,1], points[:,2]
-        tckp, _ = splprep([x,y,z], nest=nknots) # find the knot points
+        tckp, _ = splprep([x,y,z], task=0, s=smooth, k=degree) # find the knots
         # evaluate spline, including interpolated points:
         xnew,ynew,znew = splev(np.linspace(0,1, Nout), tckp)
-        ppoints = vtk.vtkPoints() # Generate the polyline for the spline.
+
+        ppoints = vtk.vtkPoints() # Generate the polyline for the spline
         profileData = vtk.vtkPolyData()
         for i in range(Nout):
             ppoints.InsertPoint(i, xnew[i],ynew[i],znew[i])
-        lines = vtk.vtkCellArray() # Create the polyline.
+        lines = vtk.vtkCellArray() # Create the polyline
         lines.InsertNextCell(Nout)
         for i in range(Nout): lines.InsertCellPoint(i)
         profileData.SetPoints(ppoints)
         profileData.SetLines(lines)
-        profileTubes = vtk.vtkTubeFilter() # Add thickness to the resulting line.
-        profileTubes.SetNumberOfSides(8)
-        setInput(profileTubes, profileData)
-        s = s*0.01*getMaxOfBounds(profileData)
-        profileTubes.SetRadius(s)
-        profileTubes.Update()
-        poly = profileTubes.GetOutput()
-        acttube = makeActor(poly, c=c, alpha=alpha, legend=legend)
+        acttube = makeActor(profileData, c=c, alpha=alpha, legend=legend)
+        acttube.GetProperty().SetLineWidth(s)
         acttube.GetProperty().SetInterpolationToPhong()
         if nodes:
-            actnodes = self.points(points, r=10, c=c, alpha=alpha)
+            actnodes = self.points(points, r=s*1.5, c=c, alpha=alpha)
             self.actors.pop()
             ass = makeAssembly([acttube, actnodes], legend=legend)
             self.actors.append(ass)
@@ -921,8 +948,8 @@ class vtkPlotter:
             return acttube
 
 
-    def text(self, txt='hello', pos=(0,0,0), s=1,
-             c='k', alpha=1, bc=None, cam=True, texture=None):
+    def text(self, txt, pos=(0,0,0), s=1,
+             c='k', alpha=1, bc=None, followcam=True, texture=None):
         '''
         Returns a vtkActor that shows a text 3D
         if cam is True the text will auto-orient to it
@@ -931,7 +958,7 @@ class vtkPlotter:
         tt.SetText(txt)
         ttmapper = vtk.vtkPolyDataMapper()
         ttmapper.SetInputConnection(tt.GetOutputPort())
-        if cam: #follow cam
+        if followcam: #follow cam
             ttactor = vtk.vtkFollower()
             ttactor.SetCamera(self.camera)
         else:
@@ -1231,7 +1258,7 @@ class vtkPlotter:
 
 
     ################# working with point clouds
-    def fitLine(self, points, c='orange', lw=1, alpha=0.6, tube=False, legend=None):
+    def fitLine(self, points, c='orange', lw=1, alpha=0.6, legend=None):
         '''
         Fits a line through points.
         tube = show a rough estimate of error band at 2 sigma level
@@ -1250,20 +1277,11 @@ class vtkPlotter:
         p1 = datamean -a*vv
         p2 = datamean +b*vv
         l = self.line(p1, p2, c=c, lw=lw, alpha=alpha)
-        self.result['slope']  = vv
+        self.result['slope'] = vv
         self.result['center'] = datamean
         self.result['variances'] = dd
         if self.verbose:
             printc("Extra info saved in vp.results['slope','center','variances']",5)
-        if tube: # show a rough estimate of error band at 2 sigma level
-            tb = vtk.vtkTubeFilter()
-            tb.SetNumberOfSides(48)
-            setInput(tb, getPolyData(l))
-            r = np.sqrt((dd[1]+dd[2])/2./len(points))
-            tb.SetRadius(r)
-            a = makeActor(tb.GetOutput(), c=c, alpha=alpha/4.)
-            l = makeAssembly([l,a], legend=legend)
-            self.actors[-1] = l # replace
         return l
 
 
@@ -1306,7 +1324,7 @@ class vtkPlotter:
         U, s, R = np.linalg.svd(cov) # singular value decomposition
         p, n = s.size, P.shape[0]
         fppf = f.ppf(pvalue, p, n-p)*(n-1)*p*(n+1)/n/(n-p) # f % point function
-        va,vb,vc = np.sqrt(s*fppf)   # semi-axes (largest first)
+        va,vb,vc = np.sqrt(s*fppf)*2   # semi-axes (largest first)
         center = np.mean(P, axis=0)  # centroid of the hyperellipsoid
         self.result['sphericity'] = (((va-vb)/(va+vb))**2
                                    + ((va-vc)/(va+vc))**2
@@ -1344,8 +1362,10 @@ class vtkPlotter:
                 setInput(t, l.GetOutput())
                 t.Update()
                 axs.append(makeActor(t.GetOutput(), c, alpha))
-            self.actors.append( makeAssembly([actor_elli]+axs, legend=legend) )
-        else : self.actors.append(actor_elli)
+            asse = makeAssembly([actor_elli]+axs, legend=legend)
+            self.actors.append( asse )
+        else : 
+            self.actors.append(actor_elli)
         return self.lastActor()
 
 
@@ -1441,22 +1461,27 @@ class vtkPlotter:
         return finact
         
 
-    def subDivideSurface(self, actor, N=1):
-        '''Increases the number of points in actor'''
+    def subDivideMesh(self, actor, N=1, method=0, legend=None):
+        '''Increases the number of points in actor'''        
         triangles = vtk.vtkTriangleFilter()
         setInput(triangles, getPolyData(actor))
         triangles.Update()
         originalMesh = triangles.GetOutput()
-        subdivisionFilter = vtk.vtkLoopSubdivisionFilter()
-        subdivisionFilter.SetNumberOfSubdivisions(N)
-        setInput(subdivisionFilter, originalMesh)
-        subdivisionFilter.Update()
-        out = subdivisionFilter.GetOutput()
-        sactor = makeActor(out)
+        if   method==0: sdf = vtk.vtkLoopSubdivisionFilter()
+        elif method==1: sdf = vtk.vtkLinearSubdivisionFilter()
+        elif method==2: sdf = vtk.vtkAdaptiveSubdivisionFilter()
+        elif method==3: sdf = vtk.vtkButterflySubdivisionFilter()
+        else:
+            printc('Error in subDivideMesh: unknown method.', 'r')
+            exit(1)
+        if method != 2: sdf.SetNumberOfSubdivisions(N)
+        setInput(sdf, originalMesh)
+        sdf.Update()
+        out = sdf.GetOutput()
+        sactor = makeActor(out, legend=legend)
         sactor.GetProperty().SetOpacity(actor.GetProperty().GetOpacity())
         sactor.GetProperty().SetColor(actor.GetProperty().GetColor())
         try:
-            print (out.GetNumberOfPoints())
             i = self.actors.index(actor)
             self.actors[i] = sactor # substitute original actor
         except ValueError: pass

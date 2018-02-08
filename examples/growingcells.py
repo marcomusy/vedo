@@ -36,5 +36,6 @@ for t in pb.range():
 
     pb.print('N='+str(len(cells)))
     vp.show(resetcam=1)
+    vp.camera.Azimuth(.4) # move camera at each loop
         
 vp.show(interactive=1, q=1)

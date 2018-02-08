@@ -16,7 +16,7 @@ for i in range(N):              # generate a grid of points
 printc('Scene is ready, press q to continue', c='green')
 scene.show()
 
-pb = ProgressBar(0,400, c='red')
+pb = ProgressBar(0,200, c='red')
 for t in pb.range():            # loop of 400 steps
     pb.print()   
     
