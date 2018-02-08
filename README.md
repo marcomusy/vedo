@@ -169,7 +169,7 @@ vp.show()
 
 
 
-##More examples in directory *example/*.<br />
+##More examples in directory *example/* !
 
 If you need to do more complicated things (define widgets.. etc), you can still access all the
 usual VTK objects like interactors and renderers through *vp.interactor, vp.renderer*... etc.<br />
