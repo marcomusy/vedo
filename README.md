@@ -36,12 +36,11 @@ import plotter
 
 vp = plotter.vtkPlotter()  # Declare an instance of the class
 ```
-<br />
 
-Load a vtk file as a vtkActor and visualize it in wireframe style.<br />
+Load a simple OBJ file and display it.<br />
 Press *Esc* to close the window and exit python session or *q* to continue:
 ```python
-vp.load('data/shuttle.obj', wire=1)
+vp.load('data/shuttle.obj')
 vp.show()
 ```
 ![shuttle](https://user-images.githubusercontent.com/32848391/35975974-e1235396-0cde-11e8-9880-69335cc7fd43.png)
@@ -50,7 +49,7 @@ vp.show()
 Load 3 actors assigning each a different color, use their file names as legend entries.<br />
 (the tridimensional shape corresponds to the outer shape of the embryonic mouse
 limb at about 12 days of gestation).<br />
-No need to use any variables, as actors are stored internally in vp.actors:
+Graphic objects are stored internally in vp.actors (as vtkActor):
 ```python
 vp = plotter.vtkPlotter()
 vp.load('data/250.vtk', c=(1,0.4,0)) # c=(R,G,B) color, name or hex code
@@ -87,12 +86,14 @@ vp.show()
 
 
 Show a dummy sine plot on top left,  
-and a 3D function f(x,y) = sin(3*x)*log(x-y)/3 (more examples in examples/fxy.py).
-Red points indicate where the function is not real:
+and the 3D function f(x,y) = sin(3*x)*log(x-y)/3 (more examples in examples/fxy.py).
+<br />
+Red points in the 3D plot indicate where the function is not real:
 ```python
 import math
 vp = plotter.vtkPlotter(title='Example 6')
 vp.fxy( lambda x,y: math.sin(3*x)*math.log(x-y)/3, texture='paper' )
+
 xycoords = [(math.exp(i/10.), math.sin(i/5.)) for i in range(40)]
 vp.xyplot( xycoords )
 vp.show()
@@ -100,7 +101,7 @@ vp.show()
 ![func3d2](https://user-images.githubusercontent.com/32848391/35693806-9cea58f0-077f-11e8-8609-8e37ba1f5357.png)
 <br />
 
-Load a surface and show its curvature based on 4 different schemes. 
+Load a surface and show its curvature based on 4 different schemes. <br />
 Objects can be drawn on independent windows and/or subwindows within the same canvas.
 All four shapes here share a common vtkCamera:<br />
 *0-gaussian, 1-mean, 2-max, 3-min*
@@ -155,7 +156,7 @@ vp.show(interactive=1)
 <br />
 
 
-Cut a set of shapes with a plane that goes through the point at x=500 and has normal (1, 0.3, -0.2).
+Cut a set of shapes with a plane that goes through the point at x=500 and has normal (0, 0.3, -1).
 Wildcards are ok to load multiple files or directories:
 ```python
 vp = plotter.vtkPlotter()
@@ -169,7 +170,7 @@ vp.show()
 
 
 
-##More examples in directory *example/* !
+More examples in directory *examples/* 
 
 If you need to do more complicated things (define widgets.. etc), you can still access all the
 usual VTK objects like interactors and renderers through *vp.interactor, vp.renderer*... etc.<br />
