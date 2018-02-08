@@ -31,7 +31,7 @@ from vtkutils import getPolyData, getCoordinates
 from vtkutils import closestPoint, isInside, insidePoints, getMaxOfBounds
 from vtkutils import normalize, clone, decimate, rotate, shrink, boolActors
 from vtkutils import getCM, getVolume, getArea, writeVTK, cutterWidget
-from vtkutils import ProgressBar
+from vtkutils import ProgressBar, makePolyData
 
 
 #########################################################################
@@ -162,6 +162,7 @@ class vtkPlotter:
         self.writeVTK = writeVTK
         self.cutterWidget = cutterWidget
         self.ProgressBar = ProgressBar
+        self.makePolyData = makePolyData
   
         if N:                # N = number of renderers. Find out the best
             if shape!=(1,1): # arrangement based on minimum nr. of empty renderers
@@ -567,7 +568,7 @@ class vtkPlotter:
 
 
     def polygon(self, pos=[0,0,0], normal=[0,0,1], nsides=6, r=1,
-                c='coral', bc='darkgreen', lw=1, alpha=1, 
+                c='coral', bc='darkgreen', lw=1, alpha=1,
                 legend=None, texture=None, followcam=False):
         ps = vtk.vtkRegularPolygonSource()
         ps.SetNumberOfSides(nsides)
@@ -1034,8 +1035,8 @@ class vtkPlotter:
         return plot
 
 
-    def fxy(self, z, x=[0,3], y=[0,3], 
-            zlimits=[-1e+30, 1e+30], showNan=True, zlevels=10, 
+    def fxy(self, z, x=[0,3], y=[0,3],
+            zlimits=[-1e+30, 1e+30], showNan=True, zlevels=10,
             c='b', bc='aqua', alpha=1, legend=True, texture=None, res=100):
         '''
         Return a surface representing the 3D function specified as a string
@@ -1048,7 +1049,7 @@ class vtkPlotter:
             or
             def z(x,y): return np.sin(x*y)
             vp.function(z) # or equivalently:
-            vp.function(lambda x,y: np.sin(x*y)) 
+            vp.function(lambda x,y: np.sin(x*y))
         '''
         expr = False
         if isinstance(z, str):
@@ -1083,30 +1084,30 @@ class vtkPlotter:
         dx = x[1]-x[0]
         dy = y[1]-y[0]
         todel, nans = [], []
-        
+
         if zlevels:
             tf = vtk.vtkTriangleFilter()
             setInput(tf, poly)
             tf.Update()
-            poly = tf.GetOutput()        
-        
+            poly = tf.GetOutput()
+
         for i in range(poly.GetNumberOfPoints()):
             px,py,_ = poly.GetPoint(i)
             xv = (px+.5)*dx+x[0]
             yv = (py+.5)*dy+y[0]
-            try: 
+            try:
                 if expr: zv = expr.subs([(sx, xv), (sy, yv)])
                 else:    zv = z(xv, yv)
                 poly.GetPoints().SetPoint(i, [xv,yv,zv])
-            except: 
+            except:
                 todel.append(i)
                 nans.append([xv,yv,0])
-            
+
         if len(todel):
             cellIds = vtk.vtkIdList()
             poly.BuildLinks()
-            
-            for i in todel: 
+
+            for i in todel:
                 poly.GetPointCells(i, cellIds)
                 for j in range(cellIds.GetNumberOfIds()):
                     poly.DeleteCell(cellIds.GetId(j)) #flag cell
@@ -1121,19 +1122,19 @@ class vtkPlotter:
         poly = getPolyData(a)
         a = self.cutActor(poly, (0,0,zlimits[1]), (0,0,-1), False)
         poly = getPolyData(a)
-  
+
         if c is None:
             elev = vtk.vtkElevationFilter()
             setInput(elev,poly)
             elev.Update()
-            poly = elev.GetOutput()            
+            poly = elev.GetOutput()
 
-        actor = makeActor(poly, c=c, bc=bc, alpha=alpha, 
+        actor = makeActor(poly, c=c, bc=bc, alpha=alpha,
                           legend=legend, texture=texture)
         acts=[actor]
 
         if zlevels:
-           elevation = vtk.vtkElevationFilter()   
+           elevation = vtk.vtkElevationFilter()
            setInput(elevation, poly)
            bounds = poly.GetBounds()
            elevation.SetLowPoint( 0,0,bounds[4])
@@ -1399,7 +1400,7 @@ class vtkPlotter:
     def cutActor(self, actor, origin=(0,0,0), normal=(1,0,0),
                  showcut=True, showline=False):
         '''
-        Takes actor and cuts it with the plane defined by a point 
+        Takes actor and cuts it with the plane defined by a point
         and a normal. Substitutes it to the original actor.
         showcut  = shows the cut away part as thin wireframe
         showline = marks with a thick line the cut
@@ -1432,7 +1433,7 @@ class vtkPlotter:
             cpoly = clipper.GetClippedOutput()
             restActor = makeActor(cpoly, c=c, alpha=0.05, wire=1)
             acts.append(restActor)
-            
+
         cutEdges = vtk.vtkCutter()
         setInput(cutEdges, poly)
         cutEdges.SetCutFunction(plane)
@@ -1441,7 +1442,7 @@ class vtkPlotter:
         cutStrips = vtk.vtkStripper()
         cutStrips.SetInputConnection(cutEdges.GetOutputPort())
         cutStrips.Update()
-        if showline: 
+        if showline:
             cutPoly = vtk.vtkPolyData()
             cutPoly.SetPoints(cutStrips.GetOutput().GetPoints())
             cutPoly.SetPolys(cutStrips.GetOutput().GetLines())
@@ -1450,16 +1451,16 @@ class vtkPlotter:
             cutline.GetProperty().SetLineWidth(4)
             acts.append(cutline)
 
-        if len(acts)>1: 
+        if len(acts)>1:
             finact = makeAssembly(acts, legend=leg)
-        else: 
+        else:
             finact = clipActor
         try:
             i = self.actors.index(actor)
             self.actors[i] = finact # substitute original actor with cut one
         except ValueError: pass
         return finact
-        
+
 
     def subDivideMesh(self, actor, N=1, method=0, legend=None):
         '''Increases the number of points in actor'''        
@@ -1486,7 +1487,7 @@ class vtkPlotter:
             self.actors[i] = sactor # substitute original actor
         except ValueError: pass
         return sactor
-    
+
 
     ##########################################
     def _draw_cubeaxes(self, c=(.2, .2, .6)):
@@ -1545,22 +1546,22 @@ class vtkPlotter:
         acs.InitTraversal()
         for i in range(acs.GetNumberOfItems()):
             a = acs.GetNextItem()
-            if isinstance(a, vtk.vtkLegendBoxActor): 
+            if isinstance(a, vtk.vtkLegendBoxActor):
                 self.renderer.RemoveActor(a)
 
         actors = self.getActors()
         acts, texts = [], []
         for i in range(len(actors)):
             a = actors[i]
-            if i<len(self.legend) and self.legend[i]!='': 
+            if i<len(self.legend) and self.legend[i]!='':
                 if isinstance(self.legend[i], str):
                     texts.append(self.legend[i])
                     acts.append(a)
-            elif hasattr(a, 'legend') and a.legend: 
+            elif hasattr(a, 'legend') and a.legend:
                 if isinstance(a.legend, str):
                     texts.append(a.legend)
                     acts.append(a)
-        
+
         NT = len(texts)
         if NT>25: NT=25
         vtklegend = vtk.vtkLegendBoxActor()
@@ -1779,9 +1780,9 @@ class vtkPlotter:
 ###########################################################################
 if __name__ == '__main__':
 ###########################################################################
-    '''Usage: 
-    plotter files*.vtk  
-    # valid formats [vtk,vtu,vts,vtp,ply,obj,stl,xml,pcd,xyz,txt,byu,g] 
+    '''Usage:
+    plotter files*.vtk
+    # valid formats [vtk,vtu,vts,vtp,ply,obj,stl,xml,pcd,xyz,txt,byu,g]
     '''
     import sys
     fs = sys.argv[1:]
