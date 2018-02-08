@@ -38,9 +38,7 @@ vp = plotter.vtkPlotter()  # Declare an instance of the class
 ```
 <br />
 
-Load a vtk file as a vtkActor and visualize it in wireframe style, <br />
-(the tridimensional shape corresponds to the outer shape of the embryonic mouse
-limb at about 12 days of gestation).<br />
+Load a vtk file as a vtkActor and visualize it in wireframe style.<br />
 Press *Esc* to close the window and exit python session or *q* to continue:
 ```python
 vp.load('data/shuttle.obj', wire=1)
@@ -49,7 +47,9 @@ vp.show()
 ![shuttle](https://user-images.githubusercontent.com/32848391/35975974-e1235396-0cde-11e8-9880-69335cc7fd43.png)
 <br />
 
-Load 3 actors assigning each a different color, use their file names as legend entries.
+Load 3 actors assigning each a different color, use their file names as legend entries.<br />
+(the tridimensional shape corresponds to the outer shape of the embryonic mouse
+limb at about 12 days of gestation).<br />
 No need to use any variables, as actors are stored internally in vp.actors:
 ```python
 vp = plotter.vtkPlotter()
@@ -169,7 +169,8 @@ vp.show()
 
 
 
-More examples in *example.py*.<br />
+##More examples in directory *example/*.<br />
+
 If you need to do more complicated things (define widgets.. etc), you can still access all the
 usual VTK objects like interactors and renderers through *vp.interactor, vp.renderer*... etc.<br />
 Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.avi* file (needs to import cv2).
