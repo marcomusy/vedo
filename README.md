@@ -88,10 +88,10 @@ vp.show()
 Show a dummy sine plot on top left,  
 and the 3D function f(x,y) = sin(3*x)*log(x-y)/3 (more examples in examples/fxy.py).
 <br />
-Red points in the 3D plot indicate where the function is not real:
+Red points in the 3D plot indicate where the function is not a real number:
 ```python
 import math
-vp = plotter.vtkPlotter(title='Example 6')
+vp = plotter.vtkPlotter())
 vp.fxy( lambda x,y: math.sin(3*x)*math.log(x-y)/3, texture='paper' )
 
 xycoords = [(math.exp(i/10.), math.sin(i/5.)) for i in range(40)]
@@ -185,18 +185,19 @@ def __init__(shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='',
 def load(filesOrDirs, c='gold', alpha=0.2, wire=False, bc=None, edges=False, legend=True, texture=None)
 def getActors(obj=None)
 def moveCamera(camstart, camstop, fraction)
+def light(pos, fp, deg=25, diffuse='y', ambient='r', specular='b', showsource=False)
 #
 def point(pos, c='b', r=10, alpha=1, legend=None)
-def points(plist, c='b', r=10, alpha=1, legend=None)
+def points(plist, c='b', tags=[], r=10, alpha=1, legend=None)
 def line(p0, p1, lw=1, dotted=False, c='r', alpha=1, legend=None)
 def sphere(pos, r=1, c='r', alpha=1, legend=None, texture=None)
 def cube(pt, r=1, c='g', alpha=1, legend=None, texture=None)
-def plane(pos, normal=(0,0,1), s=10, c='g', bc='darkgreen', lw=1, alpha=1, texture=None)
-def grid( pos, normal=(0,0,1), s=10, c='g', bc='darkgreen', lw=1, alpha=1, texture=None, res=10)
-def fxy(z='sin(x)+y', x=[0,3], y=[0,3], zlimits=[-1e+30, 1e+30], showNan=True, zlevels=10, 
-        c='b', bc='aqua', alpha=1, legend=True, texture=None, res=100)
+def plane(pos, normal=(0,0,1), s=10, c='g', bc='dg', lw=1, alpha=1, texture=None)
+def grid( pos, normal=(0,0,1), s=10, c='g', bc='dg', lw=1, alpha=1, texture=None, res=10)
 def polygon(pos, normal=(0,0,1), nsides=6, r=1, 
             c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, followcam=False):
+def disc(pos, normal=[0,0,1], r1=0.5, r2=1, 
+            c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, res=12)
 def arrow(startPoint, endPoint, c='r', alpha=1, legend=None, texture=None, res=12)
 def cylinder(pos, radius, height, axis=[1,1,1], c='teal', alpha=1, legend=None, texture=None, res=24)
 def octahedron(pos, s=1, axis=(0,0,1), c='g', alpha=1, wire=False, legend=None, texture=None)
@@ -212,6 +213,8 @@ def spline(points, smooth=0.5, degree=2, s=5, c='b', alpha=1., nodes=False, lege
 def text(txt, pos, s=1, c='k', alpha=1, bc=None, cam=True, texture=None)
 #
 def xyplot(points, title='', c='r', pos=1, lines=False)
+def fxy(z='sin(x)+y', x=[0,3], y=[0,3], zlimits=[-1e+30, 1e+30], showNan=True, zlevels=10, 
+        c='b', bc='aqua', alpha=1, legend=True, texture=None, res=100)
 def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
 def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None)
 def subDivideMesh(actor, N=1, method=0, legend=None)
@@ -231,6 +234,7 @@ def render(resetcam=False, rate=10000)
 def addActor(actor)
 def removeActor(actor)
 def lastActor()
+def addScalarBar(actor=None, c='k', horizontal=False)
 def openVideo(name='movie.avi', fps=12, duration=None, format="XVID")
 def addFrameVideo()
 def pauseVideo(pause)
@@ -265,7 +269,7 @@ def getPolyData(obj, index=0)
 def closestPoint(surface, point, locator=None, N=None, radius=None)
 def getCoordinates(actors)
 def cutterWidget(actor, outputname='clipped.vtk')
-def writeVTK(obj, fileoutput)
+def write(obj, outputfilename)
 ```
 
 Additional methods of vtkActor object (*a la vpython*):

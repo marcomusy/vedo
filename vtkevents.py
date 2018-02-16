@@ -5,10 +5,8 @@ Created on Thu Dec  7 11:15:37 2017
 @author: mmusy
 """
 from __future__ import division, print_function
-import numpy as np
 import vtk
 import vtkutils as ut
-import vtkvideo
 import vtkcolors
 
 
@@ -26,6 +24,7 @@ def _mouseleft(vp, obj, event):
     clickedActor = picker.GetActor()
     if not clickedActor: 
         clickedActor = picker.GetAssembly()
+    vp.picked3d = picker.GetPickPosition()    
         
     if vp.verbose:
         if len(vp.renderers)>1 or clickedr>0 and vp.clickedr != clickedr:
@@ -49,11 +48,14 @@ def _mouseleft(vp, obj, event):
             except: 
                 cn = ''                        
             if indx and isinstance(clickedActor, vtk.vtkAssembly): 
-                ut.printc(('-> assembly',indx+':',clickedActor.legend,cn),end=' ')
+                ut.printc(('-> assembly',indx+':',clickedActor.legend,cn), end=' ')
             elif indx:
                 ut.printc(('-> actor', indx+':', leg, cn), end=' ')
-            ut.printc('N='+str(ut.getPolyData(clickedActor).GetNumberOfPoints()))
-                
+            ut.printc('N='+str(ut.getPolyData(clickedActor).GetNumberOfPoints()), end='')
+            px,py,pz = vp.picked3d
+            px,py,pz = str(round(px,1)), str(round(py,1)), str(round(pz,1))
+            ut.printc(', p=('+px+','+py+','+pz+')')
+
     vp.clickedActor = clickedActor
     vp.clickedr = clickedr
 
@@ -83,7 +85,7 @@ def _keypress(vp, obj, event):
 
     elif key == "S":
         ut.printc('Saving window as screenshot.png', 'green')
-        vtkvideo.screenshot()
+        vp.screenshot()
         return
 
     elif key == "C":
@@ -239,8 +241,10 @@ def _keypress(vp, obj, event):
             except AttributeError: pass
 
     elif key == "n": # show normals to an actor
-        if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
-        else: acts = vp.getActors()
+        if vp.clickedActor in vp.getActors(): 
+            acts=[vp.clickedActor]
+        else: 
+            acts = vp.getActors()
         for ia in acts:
             alpha = ia.GetProperty().GetOpacity()
             c = ia.GetProperty().GetColor()
@@ -256,50 +260,29 @@ def _keypress(vp, obj, event):
         vp.show(at=vp.clickedr, interactive=0, axes=0)
         vp.interactive = ii # restore it
 
+
     elif key == "x":
-        vp.justremoved = None # needs fix
         if vp.justremoved is None:                    
-            if isinstance(vp.clickedActor, vtk.vtkAssembly):
-                props = vtk.vtkPropCollection()
-                vp.clickedActor.GetActors(props)
-                actr = props.GetLastProp()
-                try:
-                    al = np.sqrt(actr.GetProperty().GetOpacity())
-                    for op in np.linspace(al,0, 8): #fade away
-                        actr.GetProperty().SetOpacity(op)
-                        vp.interactor.Render()
-                except AttributeError: pass
-                vp.justremoved = actr
-                vp.clickedActor.RemovePart(actr)                    
-            elif vp.clickedActor in vp.getActors():
-                actr = vp.clickedActor
-                al = np.sqrt(actr.GetProperty().GetOpacity())
-                for op in np.linspace(al,0, 8): #fade away
-                    actr.GetProperty().SetOpacity(op)
-                    vp.interactor.Render()
-                vp.justremoved = actr
-                vp.renderer.RemoveActor(actr)
+            if vp.clickedActor in vp.getActors() or isinstance(vp.clickedActor, vtk.vtkAssembly):
+                vp.justremoved = vp.clickedActor
+                vp.renderer.RemoveActor(vp.clickedActor)
             else: 
                 if vp.verbose:
-                    ut.printc('Click an actor and press x to remove it.',5)
+                    ut.printc('Click an actor and press x to toggle it.',5)
                 return
-            if vp.verbose and hasattr(actr, 'legend'):
-                ut.printc(('   ...removing actor:', actr.legend))
-            vp._draw_legend()
+            if vp.verbose and hasattr(vp.clickedActor, 'legend') and vp.clickedActor.legend:
+                ut.printc('   ...removing actor: '+ str(vp.clickedActor.legend) +
+                          ', press x to put it back again')
         else:
-            if isinstance(vp.clickedActor, vtk.vtkAssembly):
-                vp.clickedActor.AddPart(vp.justremoved)
-                vp._draw_legend()
-            elif vp.clickedActor in vp.actors:
-                print ([vp.clickedActor, vp.justremoved])
-                vp.renderer.AddActor(vp.justremoved)
-                vp.renderer.Render()
-                vp._draw_legend()        
+            vp.renderer.AddActor(vp.justremoved)
+            vp.renderer.Render()
             vp.justremoved = None
+        vp._draw_legend()
+
 
     elif key == "X":
         if vp.clickedActor:
-            if hasattr(vp.clickedActor, 'legend'):
+            if hasattr(vp.clickedActor, 'legend') and vp.clickedActor.legend:
                 fname = 'clipped_'+vp.clickedActor.legend
                 fname = fname.split('.')[0]+'.vtk'
             else: fname = 'clipped.vtk'

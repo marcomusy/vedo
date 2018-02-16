@@ -19,5 +19,7 @@ b3 = vp.boolActors(s1, s2, 'minus', c=None)
 # show the result in 4 different subwindows 0->3
 vp.show([s1,s2], at=0, legend='2 spheres')
 vp.show(b1, at=1, legend='intersect')
-vp.show(b3, at=2, legend='minus')
-vp.show(b2, at=3, legend='plus', interactive=1)
+vp.show(b2, at=2, legend='plus')
+vp.show(b3, at=3, legend='minus')
+vp.addScalarBar() # adds a scalarbar to the last actor 
+vp.show(interactive=1)

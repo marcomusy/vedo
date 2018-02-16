@@ -12,7 +12,7 @@ import vtkutils as ut
 
 
 ###################################################################### 
-def screenshot(filename='screenshot.png'):
+def screenshot(obj=None, filename='screenshot.png'):
     try:
         import gtk.gdk
         w = gtk.gdk.get_default_root_window().get_screen().get_active_window()
@@ -23,7 +23,19 @@ def screenshot(filename='screenshot.png'):
             pb.save(filename, "png")
         else: ut.printc("Unable to save the screenshot. Skip.", 'red')
     except:
-        ut.printc("Gtk import problem? Unable to take screenshots. Skip.",1)
+        import vtk
+        w2if = vtk.vtkWindowToImageFilter()
+        w2if.SetInput(obj.renderWin)
+        w2if.SetMagnification(1) #set the resolution of the output image
+        w2if.SetInputBufferTypeToRGBA() #also record the alpha (transparency) channel
+        w2if.ReadFrontBufferOff() # read from the back buffer
+        w2if.Update()
+         
+        pngwriter = vtk.vtkPNGWriter()
+        pngwriter.SetFileName(filename)
+        pngwriter.SetInputConnection(w2if.GetOutputPort())
+        pngwriter.Write()
+        obj.interactor.Render()
 
 
 def openVideo(obj=None, name='movie.avi', fps=12, duration=None, format="XVID"):
@@ -46,7 +58,7 @@ def openVideo(obj=None, name='movie.avi', fps=12, duration=None, format="XVID"):
 def addFrameVideo(obj=None):
     if not obj._videoname: return
     fr = '/tmp/v/'+str(len(obj._frames))+'.png'
-    screenshot(fr)
+    screenshot(obj, fr)
     obj._frames.append(fr)
 
 
@@ -60,18 +72,6 @@ def pauseVideo(obj=None, pause=0):
         obj._frames.append(fr2)
         os.system("cp -f %s %s" % (fr, fr2))
        
-        
-def releaseGif(obj=None): #untested
-    if not obj._videoname: return
-    try: import imageio
-    except: 
-        ut.printc("release_gif: imageio not installed? Skip.", 1)
-        return
-    images = []
-    for fl in obj._frames:
-        images.append(imageio.imread(fl))
-    imageio.mimsave('animation.gif', images)
-
 
 def releaseVideo(obj=None):      
     if not obj._videoname: return
@@ -100,3 +100,21 @@ def releaseVideo(obj=None):
         ut.printc(('Video saved as', obj._videoname), 'green')
     obj._videoname = False
 
+
+# experimental
+#    def openVideo2(self, name='movie.avi', fps=12, quality=1):
+#        w2if = vtk.vtkWindowToImageFilter()
+#        w2if.SetInput(self.renderWin)
+#        self.writer = vtk.vtkAVIWriter()
+#        self.writer.SetInputConnection(w2if.GetOutputPort())
+#        self.writer.SetFileName(name)
+#        self.writer.SetRate(fps)
+#        self.SetQuality(quality)
+#        self.writer.Start()
+#        return     
+#    def addFrameVideo2(self):     
+#        self.writer.Write()
+#        return         
+#    def releaseVideo2(self):   
+#        self.writer.End()
+#        return 

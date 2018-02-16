@@ -5,7 +5,7 @@
 from __future__ import division, print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "6.4"
+__version__ = "6.5"
 __maintainer__ = "M. Musy, G. Dalmasso"
 __email__   = "marco.musy@embl.es"
 __status__  = "dev"
@@ -30,7 +30,7 @@ from vtkutils import getPolyData, getCoordinates
 # they are also passed to the class at line ~140
 from vtkutils import closestPoint, isInside, insidePoints, getMaxOfBounds
 from vtkutils import normalize, clone, decimate, rotate, shrink, boolActors
-from vtkutils import getCM, getVolume, getArea, writeVTK, cutterWidget
+from vtkutils import getCM, getVolume, getArea, write, cutterWidget
 from vtkutils import ProgressBar, makePolyData
 
 
@@ -67,7 +67,7 @@ class vtkPlotter:
         msg += "\tpP  to change point size of vertices\n"
         msg += "\tlL  to change edge line width\n"
         msg += "\tn   to show normals for selected actor\n"
-        msg += "\tx   to remove selected actor\n"
+        msg += "\tx   to toggle selected actor\n"
         msg += "\tX   to open a cutter widget for sel. actor\n"
         msg += "\t1-4 to change color scheme\n"
         msg += "\tV   to toggle verbose mode\n"
@@ -84,7 +84,7 @@ class vtkPlotter:
 
 
     def __init__(self, shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='vtkPlotter',
-                bg=(1,1,1), bg2=None, axes=True, verbose=True, interactive=True):
+                bg='w', bg2=None, axes=True, verbose=True, interactive=True):
         """
         size = size of the rendering window. If 'auto', guess it based on screensize.
         N    = number of desired renderers arranged in a grid automatically.
@@ -117,12 +117,13 @@ class vtkPlotter:
         self.legendBG   = (.96,.96,.9) # legend background color
         self.legendPos  = 2     # 1=topright, 2=top-right, 3=bottom-left
         self.result     = dict()# stores extra output information
+        self.picked3d   = None  # 3d coords of a clicked point on an actor 
 
         # mostly internal stuff:
         self.clickedr   = 0     # clicked renderer number
         self.camThickness = 2000
         self.locator    = None
-        self.justremoved= None # to fix
+        self.justremoved= None 
         self.caxes_exist = []
         self.icol1      = 0
         self.icol2      = 0
@@ -137,32 +138,33 @@ class vtkPlotter:
         self._videoduration = None
         self._fps         = None
         self._frames      = None
+        self.writer = None
         self.camera = vtk.vtkCamera()
         
-        # share the methods in vtkutils in vtkPlotter namespace
-        self.printc = printc
-        self.makeActor = makeActor
-        self.setInput = setInput
-        self.makeAssembly = makeAssembly
-        self.getPolyData = getPolyData
-        self.getCoordinates = getCoordinates
-        self.boolActors = boolActors
-        self.closestPoint = closestPoint
-        self.isInside = isInside
-        self.insidePoints = insidePoints
-        self.getMaxOfBounds = getMaxOfBounds
-        self.normalize = normalize
-        self.clone = clone
-        self.decimate = decimate
-        self.rotate = rotate
-        self.shrink = shrink
-        self.getCM = getCM
-        self.getVolume = getVolume
-        self.getArea = getArea
-        self.writeVTK = writeVTK
-        self.cutterWidget = cutterWidget
-        self.ProgressBar = ProgressBar
-        self.makePolyData = makePolyData
+        # share the methods in vtkutils in vtkPlotter class
+        self.printc = vtkutils.printc
+        self.makeActor = vtkutils.makeActor
+        self.setInput = vtkutils.setInput
+        self.makeAssembly = vtkutils.makeAssembly
+        self.getPolyData = vtkutils.getPolyData
+        self.getCoordinates = vtkutils.getCoordinates
+        self.boolActors = vtkutils.boolActors
+        self.closestPoint = vtkutils.closestPoint
+        self.isInside = vtkutils.isInside
+        self.insidePoints = vtkutils.insidePoints
+        self.getMaxOfBounds = vtkutils.getMaxOfBounds
+        self.normalize = vtkutils.normalize
+        self.clone = vtkutils.clone
+        self.decimate = vtkutils.decimate
+        self.rotate = vtkutils.rotate
+        self.shrink = vtkutils.shrink
+        self.getCM = vtkutils.getCM
+        self.getVolume = vtkutils.getVolume
+        self.getArea = vtkutils.getArea
+        self.write = vtkutils.write
+        self.cutterWidget = vtkutils.cutterWidget
+        self.ProgressBar = vtkutils.ProgressBar
+        self.makePolyData = vtkutils.makePolyData
   
         if N:                # N = number of renderers. Find out the best
             if shape!=(1,1): # arrangement based on minimum nr. of empty renderers
@@ -204,10 +206,10 @@ class vtkPlotter:
         for i in reversed(range(shape[0])):
             for j in range(shape[1]):
                 arenderer = vtk.vtkRenderer()
-                arenderer.SetBackground(bg)
+                arenderer.SetBackground(getColor(bg))
                 if bg2:
                     arenderer.GradientBackgroundOn()
-                    arenderer.SetBackground2(bg2)
+                    arenderer.SetBackground2(getColor(bg2))
                 x0 = i/shape[0]
                 y0 = j/shape[1]
                 x1 = (i+1)/shape[0]
@@ -273,8 +275,9 @@ class vtkPlotter:
 
     def getActors(self, obj=None):
         '''
-        Return the actors list in renderer number obj (int).
-        If None, use current renderer.
+        Return an actors list.
+        If None, return actors of current renderer.
+        If obj is a int, return actors of renderer #obj.
         If obj is a vtkAssembly return the actors contained in it.
         If obj is a string, return actors with that legend name.
         '''
@@ -302,6 +305,7 @@ class vtkPlotter:
             for i in range(acs.GetNumberOfItems()):
                 a = acs.GetNextItem()
                 if isinstance(a, vtk.vtkCubeAxesActor): continue
+                if isinstance(a, vtk.vtkLightActor): continue
                 actors.append(a)
             return actors
 
@@ -348,16 +352,47 @@ class vtkPlotter:
         self.show()
 
 
-    ################################################################## vtk objects
+    ##################################################################
+    def light(self, pos=[1,1,1], fp=[0,0,0], deg=25,
+              diffuse='y', ambient='r', specular='b', showsource=False):
+        """
+        Generate a source of light placed at pos, directed to focal point fp.
+        If fp is a vtkActor use its position.
+        deg = aperture angle of the light source
+        showsource = True, will show the vtk representation of the source.
+        """
+        if isinstance(fp, vtk.vtkActor): fp = fp.GetPosition()
+        light = vtk.vtkLight()
+        light.SetLightTypeToSceneLight()
+        light.SetPosition(pos)
+        light.SetPositional(1)
+        light.SetConeAngle(deg)
+        light.SetFocalPoint(fp)
+        light.SetDiffuseColor(getColor(diffuse))
+        light.SetAmbientColor(getColor(ambient))
+        light.SetSpecularColor(getColor(specular))
+        self.render()
+        if showsource:
+            lightActor = vtk.vtkLightActor()
+            lightActor.SetLight(light)
+            self.renderer.AddViewProp(lightActor)
+            self.renderer.AddLight(light)
+        return light
+
+    
     def points(self, plist=[[1,0,0],[0,1,0],[0,0,1]],
-               c='b', r=5., alpha=1., legend=None):
+               c='b', tags=[], r=5., alpha=1., legend=None):
         '''
         Return a vtkActor for a list of points.
         Input cols is a list of RGB colors of same length as plist
+        If tags is specified the list of string is displayed along 
+        with the points.
+        If tags='ids' points are labeled with an integer number
         '''
         if isinstance(c, list) or isinstance(c, tuple) and len(c):
             if isinstance(c[0], list) or isinstance(c[0], tuple):
                 return self._colorPoints(plist, c, r, alpha, legend)
+
         src = vtk.vtkPointSource()
         src.SetNumberOfPoints(len(plist))
         src.Update()
@@ -367,10 +402,33 @@ class vtkPlotter:
         actor.GetProperty().SetPointSize(r)
         self.actors.append(actor)
         if legend: setattr(actor, 'legend', legend)
+
+        if tags and 0 < len(tags) <= len(plist):
+            tagmap = vtk.vtkLabeledDataMapper()
+            setInput(tagmap, pd)
+            if tags is 'ids': 
+                tagmap.SetLabelModeToLabelIds()
+            else:
+                vsa = vtk.vtkStringArray()
+                vsa.SetName('tags')
+                for t in tags: 
+                    vsa.InsertNextValue(str(t))
+                pd.GetPointData().AddArray(vsa)
+                tagmap.SetLabelModeToLabelFieldData()
+            tagmap.SetFieldDataName('tags')
+            tagprop = tagmap.GetLabelTextProperty()
+            tagprop.BoldOn()
+            tagprop.ItalicOff()
+            tagprop.ShadowOff()
+            tagprop.SetColor(0,0,.0)
+            tagprop.SetFontSize(12)
+            tagactor = vtk.vtkActor2D()
+            tagactor.SetMapper(tagmap)
+            self.actors.append(tagactor)
         return actor
 
     def point(self, pos=[0,0,0], c='b', r=10., alpha=1., legend=None):
-        return self.points([pos], c, r, alpha, legend)
+        return self.points([pos], c, [], r, alpha, legend)
 
     def _colorPoints(self, plist, cols, r, alpha, legend):
         if len(plist) != len(cols):
@@ -606,6 +664,54 @@ class vtkPlotter:
         self.actors.append(actor)
         return actor
 
+
+    def disc(self, pos=[0,0,0], normal=[0,0,1], r1=0.5, r2=1,
+             c='coral', bc='darkgreen', lw=1, alpha=1, 
+             legend=None, texture=None, res=12):
+        ps = vtk.vtkDiskSource()
+        ps.SetInnerRadius(r1)
+        ps.SetOuterRadius(r2)
+        ps.SetRadialResolution(res)
+        ps.SetCircumferentialResolution(res*4)
+        ps.Update()
+        tr = vtk.vtkTriangleFilter()
+        setInput(tr, ps.GetOutputPort())
+        tr.Update()
+
+        axis  = np.array(normal)/np.linalg.norm(normal)
+        theta = np.arccos(axis[2])
+        phi   = np.arctan2(axis[1], axis[0])
+        t = vtk.vtkTransform()
+        t.PostMultiply()
+        t.RotateY(theta*57.3)
+        t.RotateZ(phi*57.3)
+        t.Translate(pos)
+        tf = vtk.vtkTransformPolyDataFilter()
+        setInput(tf, tr.GetOutput())
+        tf.SetTransform(t)
+        tf.Update()
+
+        pd = tf.GetOutput()
+        mapper = vtk.vtkPolyDataMapper()
+        setInput(mapper, pd)
+
+        actor = vtk.vtkActor()
+        actor.SetMapper(mapper)
+        actor.GetProperty().SetColor(getColor(c))
+        actor.GetProperty().SetOpacity(alpha)
+        actor.GetProperty().SetLineWidth(lw)
+        actor.GetProperty().SetInterpolationToFlat()
+        if bc: # defines a specific color for the backface
+            backProp = vtk.vtkProperty()
+            backProp.SetDiffuseColor(getColor(bc))
+            backProp.SetOpacity(alpha)
+            actor.SetBackfaceProperty(backProp)
+        if texture: assignTexture(actor, texture)
+        vtkutils.assignPhysicsMethods(actor)
+        vtkutils.assignConvenienceMethods(actor, legend)
+        self.actors.append(actor)
+        return actor
+        
 
     def arrow(self, start=[0,0,0], end=[1,1,1], axis=None,
               c='r', alpha=1, legend=None, texture=None, res=12):
@@ -1015,10 +1121,10 @@ class vtkPlotter:
         plot.GetProperty().SetColor(0,0,0)
         plot.GetProperty().SetOpacity(0.7)
         plot.SetPlotColor(0,c[0],c[1],c[2])
-        tprop = plot.GetTitleTextProperty()
+        tprop = plot.GetAxisLabelTextProperty()
         tprop.SetColor(0,0,0)
         tprop.SetOpacity(0.7)
-        tprop.SetFontFamily(1)
+        tprop.SetFontFamily(0)
         tprop.BoldOff()
         tprop.ItalicOff()
         tprop.ShadowOff()
@@ -1166,6 +1272,55 @@ class vtkPlotter:
         else:
             self.actors.append(actor)
             return actor
+
+    
+    def addScalarBar(self, actor=None, c='k', horizontal=False):
+        """
+        Add a scalar bar for the specified actor.
+        If actor is None will add it to the last actor in self.actors
+        """
+        
+        if actor is None: actor=self.lastActor()
+        if not isinstance(actor, vtk.vtkActor) or not hasattr(actor, 'GetMapper'): 
+            printc('Error in addScalarBar: input is not a vtkActor.',1)
+            return None
+        lut = actor.GetMapper().GetLookupTable()
+        if not lut: return None
+        
+        c = getColor(c)
+        sb = vtk.vtkScalarBarActor()
+        sb.SetLookupTable(lut)
+        sb.UnconstrainedFontSizeOn()
+        sb.FixedAnnotationLeaderLineColorOff()
+        sb.DrawAnnotationsOn()
+        sb.DrawTickLabelsOn()
+        sb.SetMaximumNumberOfColors(256)
+
+        if horizontal:
+            sb.SetOrientationToHorizontal ()
+            sb.SetNumberOfLabels(4)
+            sb.SetTextPositionToSucceedScalarBar ()
+            sb.SetPosition(0.1,.05)
+            sb.SetMaximumWidthInPixels(1000)
+            sb.SetMaximumHeightInPixels(70)
+        else:
+            sb.SetNumberOfLabels(10)
+            sb.SetTextPositionToPrecedeScalarBar()            
+            sb.SetPosition(.87,.05)
+            sb.SetMaximumWidthInPixels(80)
+            sb.SetMaximumHeightInPixels(500)
+
+        sctxt = sb.GetLabelTextProperty()
+        sctxt.SetColor(c)
+        sctxt.SetShadow(0)
+        sctxt.SetFontFamily(0)
+        sctxt.SetItalic(0)
+        sctxt.SetBold(0)
+        sctxt.SetFontSize(12)
+        if not self.renderer: self.render()
+        self.renderer.AddActor(sb)
+        self.render()
+        return sb
 
 
     def normals(self, actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
@@ -1775,6 +1930,29 @@ class vtkPlotter:
     def addFrameVideo(self):     return vtkvideo.addFrameVideo(self)
     def pauseVideo(self, pause): return vtkvideo.pauseVideo(self, pause)
     def releaseVideo(self):      return vtkvideo.releaseVideo(self)
+    def screenshot(self):        return vtkvideo.screenshot(self)
+
+
+
+## experimental
+## https://www.vtk.org/gitweb?p=VTK.git;a=blob;f=IO/Movie/Testing/Cxx/TestOggTheoraWriter.cxx
+#    def openVideo2(self, name='movie.ogv', fps=12, quality=1):
+#        w2if = vtk.vtkWindowToImageFilter()
+#        w2if.SetInput(self.renderWin)
+#        self.writer = vtk.vtkOggTheoraWriter()  #vtkAVIWriter
+#        self.writer.SetInputConnection(w2if.GetOutputPort())
+#        self.writer.SetFileName(name)
+#        self.writer.SetRate(fps)
+##        self.SetQuality(quality)
+#        self.writer.Start()
+#        return     
+#    def addFrameVideo2(self):  
+##        self.writer.Update()
+#        self.writer.Write()
+#        return         
+#    def releaseVideo2(self):   
+#        self.writer.End()
+#        return 
 
 
 ###########################################################################

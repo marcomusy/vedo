@@ -27,7 +27,11 @@ def load(filesOrDirs, c='gold', alpha=0.2,
     '''
     acts = []
     if isinstance(legend, int): legend = bool(legend)
-    for fod in sorted(glob(filesOrDirs)):
+    if isinstance(filesOrDirs, list):
+        flist = filesOrDirs
+    else:
+        flist = sorted(glob(filesOrDirs))
+    for fod in flist:
         if os.path.isfile(fod): 
             a = _loadFile(fod, c, alpha, wire, bc, edges, legend, texture)
             acts.append(a)

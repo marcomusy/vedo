@@ -11,7 +11,7 @@ import vtkcolors
 import vtk
 import time
 
-
+##############################################################################
 vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
 def setInput(vtkobj, p, port=0):
     if isinstance(p, vtk.vtkAlgorithmOutput):
@@ -117,7 +117,11 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     if os.path.exists(name): 
         fn = name
     elif not os.path.exists(fn):
-        printc(('Texture', name, 'not found in', cdir+'/textures'), 'red')
+        printc(('Texture', name, 'not found in', cdir+'/textures'), 'r')
+        printc('Available textures:', c='m', end=' ')
+        for ff in os.listdir(cdir + '/textures'):
+            printc(ff.split('.')[0], end=' ', c='m')
+        print()
         return 
         
     jpgReader = vtk.vtkJPEGReader()
@@ -434,7 +438,6 @@ def makePolyData(spoints, addLines=True):
         lines.InsertNextCell(len(spoints))
         for i in range(len(spoints)): lines.InsertCellPoint(i)
         source.SetLines(lines)
-    source.Update()
     return source
 
 
@@ -493,9 +496,9 @@ def insidePoints(actor, points, invert=False, tol=1e-05):
 #################################################################### get stuff
 def getPolyData(obj, index=0): 
     '''
-    Returns vtkPolyData from an other object (vtkActor, vtkAssembly, int)
+    Returns vtkPolyData from an other object (vtkActor, vtkAssembly)
     '''
-    if isinstance(obj, list) and len(obj)==1: obj = obj[0]
+    if isinstance(obj, list) and len(obj)>0: obj = obj[index]
    
     if isinstance(obj, vtk.vtkActor):   
         pd = obj.GetMapper().GetInput()
@@ -527,8 +530,8 @@ def getPolyData(obj, index=0):
     elif isinstance(obj, vtk.vtkPolyData): return obj
     elif isinstance(obj, vtk.vtkActor2D):  return obj.GetMapper().GetInput()
 
-    printc("Fatal Error in getPolyData(): ", 'red', end='')
-    printc(("input is neither a poly nor an actor int or assembly.", [obj]), 'red')
+    printc("Fatal Error in getPolyData(): ", 'r', end='')
+    printc(("input is neither a poly nor an actor int or assembly.", [obj]), 'r')
     exit(1)
 
 
@@ -582,16 +585,34 @@ def getArea(actor):
     setInput(mass, getPolyData(actor))
     mass.Update() 
     return mass.GetSurfaceArea()
+
     
-    
-def writeVTK(obj, fileoutput):
-    wt = vtk.vtkPolyDataWriter()
-    setInput(wt, getPolyData(obj))
-    wt.SetFileName(fileoutput)
-    wt.Update()
-    wt.Write()
-    printc(("Saved vtk file:", fileoutput), 'green')
-    
+def write(obj, fileoutput):
+    fr = fileoutput.lower()
+    if   '.vtk' in fr: w = vtk.vtkPolyDataWriter()
+    elif '.ply' in fr: w = vtk.vtkPLYWriter()
+    elif '.obj' in fr: 
+        w = vtk.vtkOBJExporter()
+        w.SetFilePrefix(fileoutput.replace('.obj',''))
+        printc('input must be set manually to vp.renderWin',3)
+        w.SetInput(obj)
+        w.Update()
+        printc("Saved file: "+fileoutput, 'g')
+        return
+    elif '.stl' in fr: w = vtk.vtkSTLWriter()
+    elif '.byu' in fr or '.g' in fr: w = vtk.vtkBYUWriter()
+    elif '.vtp' in fr: w = vtk.vtkXMLPolyDataWriter()
+    else:
+        printc('Unavailable format in file '+fileoutput, c='r')
+        exit(1)
+    try:
+        setInput(w, getPolyData(obj))
+        w.SetFileName(fileoutput)
+        w.Write()
+        printc("Saved file: "+fileoutput, 'g')
+    except:
+        printc("Error saving: "+fileoutput, 'r')
+
 
 ########################################################################
 def closestPoint(surf, pt, locator=None, N=None, radius=None):
@@ -712,7 +733,7 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
             cpd = vtk.vtkCleanPolyData()
             setInput(cpd, confilter.GetOutput())
             cpd.Update()
-            writeVTK(cpd.GetOutput(), outputname)
+            write(cpd.GetOutput(), outputname)
         elif obj.GetKeySym() == "Escape": exit()
     
     iren.Initialize()
