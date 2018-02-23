@@ -2,7 +2,6 @@
 #
 from __future__ import division, print_function
 from random import uniform as u, gauss
-import numpy as np
 import plotter
 import math
  

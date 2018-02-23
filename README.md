@@ -23,7 +23,8 @@ alias plotter='$HOME/software/vtkPlotter/plotter.py'
 
 Simple command line usage:
 ```bash
-plotter data/*.vtk  # other valid formats: [vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz,txt,byu,tif]
+plotter data/*.vtk  
+# other valid formats: [vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz,txt,byu, tif,slc, png,jpg]
 
 python tutorial.py  ### run a tutorial script
 ```

@@ -2000,7 +2000,7 @@ class vtkPlotter:
         self._videoname = False
     
 
-################################################################### LOADERS
+    ################################################################### LOADERS
     def _loadFile(self, filename, c, alpha, wire, bc, edges, legend, texture,
                   smoothing, threshold, connectivity, scaling):
         fl = filename.lower()
@@ -2008,9 +2008,11 @@ class vtkPlotter:
             actor = _loadXml(filename, c, alpha, wire, bc, edges, legend)
         elif '.pcd' in fl:                  # PCL point-cloud format
             actor = _loadPCD(filename, c, alpha, legend)
-        elif '.tif' in fl:                  # tiff stack
-            actor = _loadTIFF(filename, c, alpha, wire, bc, edges, legend, texture,
-                              smoothing, threshold, connectivity, scaling)
+        elif '.tif' in fl or '.slc' in fl:  # tiff stack or slc
+            actor = _loadVolume(filename, c, alpha, wire, bc, edges, legend, texture,
+                                smoothing, threshold, connectivity, scaling)
+        elif '.png' in fl or '.jpg' in fl or '.jpeg' in fl:  # regular image
+            actor = _load2Dimage(filename, alpha)
         else:
             poly = _loadPoly(filename)
             if not poly:
@@ -2186,15 +2188,20 @@ def _loadPCD(filename, c, alpha, legend):
     return actor
 
 
-def _loadTIFF(filename, c, alpha, wire, bc, edges, legend, texture, 
+def _loadVolume(filename, c, alpha, wire, bc, edges, legend, texture, 
               smoothing, threshold, connectivity, scaling):
-    '''Return vtkActor from a TIFF Stack'''            
+    '''Return vtkActor from a TIFF stack or SLC file'''            
     if not os.path.exists(filename): 
-        printc(('Error in loadTIFF: Cannot find file', filename), c=1)
-        exit(0)
+        printc(('Error in loadVolume: Cannot find file', filename), c=1)
+        exit(1)
     
-    print ('..reading tiff file:', filename)
-    reader = vtk.vtkTIFFReader() 
+    print ('..reading file:', filename)
+    if   '.tif' in filename.lower(): reader = vtk.vtkTIFFReader() 
+    elif '.slc' in filename.lower(): 
+        reader = vtk.vtkSLCReader() 
+        if not reader.CanReadFile(filename):
+            printc('Sorry bad SLC file '+filename, 1)
+            exit(1)
     reader.SetFileName(filename) 
     reader.Update() 
     image = reader.GetOutput()
@@ -2246,12 +2253,30 @@ def _loadTIFF(filename, c, alpha, wire, bc, edges, legend, texture,
     return makeActor(image, c, alpha, wire, bc, edges, legend, texture)
 
 
+def _load2Dimage(filename, alpha):
+    fl = filename.lower()
+    if   '.png' in fl:
+        picr = vtk.vtkPNGReader()
+    elif '.jpg' in fl or '.jpeg' in fl:
+        picr = vtk.vtkJPEGReader()
+    else:
+        print('file must end with .png or .jpg')
+        exit(1)
+    picr.SetFileName(filename)
+    picr.Update()
+    vactor = vtk.vtkImageActor()
+    vactor.SetInputData(picr.GetOutput())
+    vactor.SetOpacity(alpha)
+    return vactor
+
+
 ###########################################################################
 if __name__ == '__main__':
 ###########################################################################
     '''Basic usage:
     plotter files*.vtk
-    # valid formats [vtk,vtu,vts,vtp,ply,obj,stl,xml,pcd,xyz,txt,byu,g,tif]
+    # valid formats:
+    # [vtk,vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz,txt,byu,g, tif,slc, png,jpg]
     '''
     import sys
     fs = sys.argv[1:]
@@ -2270,3 +2295,9 @@ if __name__ == '__main__':
     else:
         help()
 ###########################################################################
+
+
+
+
+
+

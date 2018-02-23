@@ -98,6 +98,17 @@ def _keypress(vp, obj, event):
         print ('cam.SetViewUp(', [round(e,3) for e in cam.GetViewUp()],')\n')
         return
 
+#    elif key == "i":
+#        ut.printc('Actor info ==============================:', c=6, bold=0)
+#        ut.printc('Camera info =============================:', c=6, bold=0)
+#        cam = vp.renderer.GetActiveCamera()
+#        print ('\nfrom vtk import vtkCamera ### example code')
+#        print ('cam = vtkCamera()')
+#        print ('cam.SetPosition(',  [round(e,2) for e in cam.GetPosition()],  ')')
+#        print ('cam.SetFocalPoint(',[round(e,2) for e in cam.GetFocalPoint()],')')
+#        print ('cam.SetParallelScale(',round(cam.GetParallelScale(),2),')')
+#        print ('cam.SetViewUp(', [round(e,2) for e in cam.GetViewUp()],')\n')
+#        return
 
     elif key == "w":
         if vp.clickedActor and vp.clickedActor in vp.getActors():
