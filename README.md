@@ -23,7 +23,7 @@ alias plotter='$HOME/software/vtkPlotter/plotter.py'
 
 Simple command line usage:
 ```bash
-plotter data/*.vtk  # other valid formats: [vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz,txt,byu]
+plotter data/*.vtk  # other valid formats: [vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz,txt,byu,tif]
 
 python tutorial.py  ### run a tutorial script
 ```
@@ -40,8 +40,7 @@ vp = plotter.vtkPlotter()  # Declare an instance of the class
 Load a simple OBJ file and display it.<br />
 Press *Esc* to close the window and exit python session or *q* to continue:
 ```python
-vp.load('data/shuttle.obj')
-vp.show()
+vp.show('data/shuttle.obj')
 ```
 ![shuttle](https://user-images.githubusercontent.com/32848391/35975974-e1235396-0cde-11e8-9880-69335cc7fd43.png)
 <br />
@@ -90,10 +89,10 @@ and the 3D function f(x,y) = sin(3*x)*log(x-y)/3 (more examples in examples/fxy.
 <br />
 Red points in the 3D plot indicate where the function is not a real number:
 ```python
-import math
-vp = plotter.vtkPlotter())
-vp.fxy( lambda x,y: math.sin(3*x)*math.log(x-y)/3, texture='paper' )
+vp = plotter.vtkPlotter()
+vp.fxy('sin(3*x)*log(x-y)/3', texture='paper')
 
+import math
 xycoords = [(math.exp(i/10.), math.sin(i/5.)) for i in range(40)]
 vp.xyplot( xycoords )
 vp.show()
@@ -213,7 +212,7 @@ def spline(points, smooth=0.5, degree=2, s=5, c='b', alpha=1., nodes=False, lege
 def text(txt, pos, s=1, c='k', alpha=1, bc=None, cam=True, texture=None)
 #
 def xyplot(points, title='', c='r', pos=1, lines=False)
-def fxy(z='sin(x)+y', x=[0,3], y=[0,3], zlimits=[-1e+30, 1e+30], showNan=True, zlevels=10, 
+def fxy(z='sin(x)+y', x=[0,3], y=[0,3], zlimits=[None, None], showNan=True, zlevels=10, 
         c='b', bc='aqua', alpha=1, legend=True, texture=None, res=100)
 def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
 def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None)
@@ -228,7 +227,7 @@ def cutActor(actor, origin=(0,0,0), normal=(1,0,0), showcut=True, showline=False
 def closestPoint(surf, pt, locator=None, N=None, radius=None)
 #
 def show(actors=None, at=0, legend=None, axes=None, ruler=False, interactive=None,
-         outputimage=None, c='gold', bc=None, alpha=0.2, wire=False, edges=False, resetcam=True, q=False)
+         c='gold', bc=None, alpha=0.2, wire=False, edges=False, resetcam=True, q=False)
 def clear(actors=[])
 def render(resetcam=False, rate=10000)
 def addActor(actor)

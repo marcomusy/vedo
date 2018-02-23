@@ -142,6 +142,11 @@ def getColor(c):
         try: # full name color
             c = colors[c.lower()] 
         except KeyError:
+            import vtk
+            if vtk.vtkVersion().GetVTKMajorVersion() > 5:
+                namedColors = vtk.vtkNamedColors()
+                rgba = namedColors.GetColor(c)
+                return rgba[0:3]
             print("Unknow color name:", c)
             print ("Available colors:", colors.keys())
             return [0.5,0.5,0.5]
@@ -158,7 +163,7 @@ def getColor(c):
     elif isinstance(c, int): 
         try: return colors1[c] 
         except: return [0.5,0.5,0.5]
-    #elif isinstance(c, vtk.vtkColor) # ToDo: add vtk6 defs for colors
+            
     return [0.5,0.5,0.5]
     
 def getColorName(c):

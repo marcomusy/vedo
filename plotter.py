@@ -5,7 +5,7 @@
 from __future__ import division, print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "6.5"
+__version__ = "6.6"
 __maintainer__ = "M. Musy, G. Dalmasso"
 __email__   = "marco.musy@embl.es"
 __status__  = "dev"
@@ -13,14 +13,13 @@ __website__ = "https://github.com/marcomusy/vtkPlotter"
 
 
 ########################################################################
-import time, vtk
+import os, time, vtk
 import numpy as np
+from math import *
+from glob import glob
 
 from vtkcolors import getColor
 import vtkevents
-import vtkvideo
-import vtkloader
-
 import vtkutils
 from vtkutils import printc, makeActor, setInput, vtkMV
 from vtkutils import makeAssembly, assignTexture
@@ -133,12 +132,6 @@ class vtkPlotter:
         self.initializedPlotter= False
         self.initializedIren = False
 
-        self._videoname   = None
-        self._videoformat = None
-        self._videoduration = None
-        self._fps         = None
-        self._frames      = None
-        self.writer = None
         self.camera = vtk.vtkCamera()
         
         # share the methods in vtkutils in vtkPlotter class
@@ -231,9 +224,10 @@ class vtkPlotter:
         self.interactor.SetInteractorStyle(vsty)
 
 
-    ####################################### LOADER
+    ############################################# LOADER
     def load(self, inputobj, c='gold', alpha=0.2,
-              wire=False, bc=None, edges=False, legend=True, texture=None):
+             wire=False, bc=None, edges=False, legend=True, texture=None,
+             smoothing=None, threshold=None, connectivity=False, scaling=None):
         '''Returns a vtkActor from reading a file, directory or vtkPolyData.
            Optional args:
            c,     color in RGB format, hex, symbol or name
@@ -242,15 +236,35 @@ class vtkPlotter:
            bc,    backface color of internal surface
            legend, text to show on legend, if True picks filename.
            texture any jpg file can be used as texture
+           For volumetric data (tiff, slc files):
+             smoothing,    gaussian filter to smooth vtkImageData
+             threshold,    to draw the corresponding isosurface, None=automatic
+             connectivity, if True only keeps the largest portion of the polydata
+             scaling,      scaling factors for x y an z coordinates 
         '''
         if isinstance(inputobj, vtk.vtkPolyData):
             a = makeActor(inputobj, c, alpha, wire, bc, edges, legend, texture)
             self.actors.append(a)
             return a
 
-        acts = vtkloader.load(inputobj, c, alpha, wire, bc, edges, legend, texture)
+        acts = []
+        if isinstance(legend, int): legend = bool(legend)
+        if isinstance(inputobj, list):
+            flist = inputobj
+        else:
+            flist = sorted(glob(inputobj))
+        for fod in flist:
+            if os.path.isfile(fod): 
+                a = self._loadFile(fod, c, alpha, wire, bc, edges, legend, texture,
+                                   smoothing, threshold, connectivity, scaling)
+                acts.append(a)
+            elif os.path.isdir(fod):
+                acts = self._loadDir(fod, c, alpha, wire, bc, edges, legend, texture,
+                                     smoothing, threshold, connectivity, scaling)
+        if not len(acts):
+            printc(('Cannot find:', inputobj), 1)
+            exit(0) 
 
-        if not isinstance(acts, list): acts=[acts]
         for actor in acts:
             if isinstance(actor, vtk.vtkActor):
                 if self.flat:
@@ -1086,7 +1100,7 @@ class vtkPlotter:
 
 
     def xyplot(self, points=[[0,0],[1,0],[2,1],[3,2],[4,1]],
-               title='', c='r', corner=1, lines=False):
+               title='', c='b', corner=1, lines=False):
         """
         Return a vtkActor that is a plot of 2D points in x and y.
         pos assignes the position:
@@ -1141,8 +1155,8 @@ class vtkPlotter:
         return plot
 
 
-    def fxy(self, z, x=[0,3], y=[0,3],
-            zlimits=[-1e+30, 1e+30], showNan=True, zlevels=10,
+    def fxy(self, z='sin(3*x)*log(x-y)/3', x=[0,3], y=[0,3],
+            zlimits=[None,None], showNan=True, zlevels=10,
             c='b', bc='aqua', alpha=1, legend=True, texture=None, res=100):
         '''
         Return a surface representing the 3D function specified as a string
@@ -1151,35 +1165,19 @@ class vtkPlotter:
         zlevels will draw the specified number of z-levels contour lines.
         Examples:
             vp = plotter.vtkPlotter()
-            vp.function('sin(3*x)*log(x-y)/3')
+            vp.fxy('sin(3*x)*log(x-y)/3')
             or
-            def z(x,y): return np.sin(x*y)
-            vp.function(z) # or equivalently:
-            vp.function(lambda x,y: np.sin(x*y))
+            def z(x,y): return math.sin(x*y)
+            vp.fxy(z) # or equivalently:
+            vp.fxy(lambda x,y: math.sin(x*y))
         '''
-        expr = False
         if isinstance(z, str):
+            z = z.replace('math.','').replace('np.','')
+            code  = "def z(x,y): return "+z
             try:
-                import sympy
-                sx,sy = sympy.symbols('x y')
-                z = z.replace('np.','')
-                z = z.replace('math.','')
-                expr = sympy.sympify(z)
-                if legend is True: legend = z
-                res = int(res/2) # sympy is slower
-                if self.verbose:
-                    sympy.init_printing()
-                    printc('Function properties of:','c')
-                    sympy.pprint(expr)
-                    printc('\t simplified form: '+str(sympy.simplify(z)))
-                    printc('\t expanded form: '+str(sympy.expand(z)))
-                    printc('\t x derivative: '+str(sympy.diff(z, sx)))
-                    printc('\t y derivative: '+str(sympy.diff(z, sy)))
+                exec(code)
             except:
-                printc('Error in vtkPlotter.function: sympy not installed?',1)
-                printc('or syntax error in function: '+z,1)
-                printc('Use instead e.g.: def z(x,y): return math.sin(x*y)',5)
-                printc('vp.function(z)', 5)
+                printc('Syntax Error in fxy()',1)
                 return None
 
         ps = vtk.vtkPlaneSource()
@@ -1202,8 +1200,7 @@ class vtkPlotter:
             xv = (px+.5)*dx+x[0]
             yv = (py+.5)*dy+y[0]
             try:
-                if expr: zv = expr.subs([(sx, xv), (sy, yv)])
-                else:    zv = z(xv, yv)
+                zv = z(xv, yv)
                 poly.GetPoints().SetPoint(i, [xv,yv,zv])
             except:
                 todel.append(i)
@@ -1224,10 +1221,12 @@ class vtkPlotter:
             cl.Update()
             poly = cl.GetOutput()
 
-        a = self.cutActor(poly, (0,0,zlimits[0]), (0,0,1), False)
-        poly = getPolyData(a)
-        a = self.cutActor(poly, (0,0,zlimits[1]), (0,0,-1), False)
-        poly = getPolyData(a)
+        if zlimits[0]:
+            a = self.cutActor(poly, (0,0,zlimits[0]), (0,0,1), False)
+            poly = getPolyData(a)
+        if zlimits[1]:
+            a = self.cutActor(poly, (0,0,zlimits[1]), (0,0,-1), False)
+            poly = getPolyData(a)
 
         if c is None:
             elev = vtk.vtkElevationFilter()
@@ -1261,7 +1260,7 @@ class vtkPlotter:
             bb = actor.GetBounds()
             zm = (bb[4]+bb[5])/2
             nans = np.array(nans)+[0,0,zm]
-            nansact = self.points(nans, c='red', alpha=alpha)
+            nansact = self.points(nans, c='red', alpha=alpha/2)
             self.actors.pop()
             acts.append(nansact)
 
@@ -1290,10 +1289,11 @@ class vtkPlotter:
         c = getColor(c)
         sb = vtk.vtkScalarBarActor()
         sb.SetLookupTable(lut)
-        sb.UnconstrainedFontSizeOn()
-        sb.FixedAnnotationLeaderLineColorOff()
-        sb.DrawAnnotationsOn()
-        sb.DrawTickLabelsOn()
+        if vtkMV: 
+            sb.UnconstrainedFontSizeOn()
+            sb.FixedAnnotationLeaderLineColorOff()
+            sb.DrawAnnotationsOn()
+            sb.DrawTickLabelsOn()
         sb.SetMaximumNumberOfColors(256)
 
         if horizontal:
@@ -1746,8 +1746,8 @@ class vtkPlotter:
     #################################################################################
     def show(self, actors=None, at=None,
              legend=None, axes=None, ruler=False,
-             c='gold', alpha=0.2, wire=False, bc=None, edges=False,
-             resetcam=True, interactive=None, outputimage=None, q=False):
+             c='gold', alpha=0.5, wire=False, bc=None, edges=False,
+             resetcam=True, interactive=None, q=False):
         '''
         actors = a mixed list of vtkActors, vtkAssembly, vtkPolydata or filename strings
         at     = number of the renderer to plot to, if more than one exists
@@ -1760,7 +1760,6 @@ class vtkPlotter:
         edges  = show the edges on top of surface
         resetcam = if true re-adjust camera position to fit objects
         interactive = pause and interact w/ window or continue execution
-        outputimage = filename to dump a screenshot without asking
         q      = force program exit after show() command
         '''
 
@@ -1791,7 +1790,6 @@ class vtkPlotter:
             # at which renderer will just render the whole thing and return
             if self.interactor:
                 self.interactor.Render()
-                if outputimage: vtkvideo.screenshot(outputimage)
                 if self.interactive: self.interactor.Start()
                 return
         if at is None: at=0
@@ -1859,8 +1857,6 @@ class vtkPlotter:
 
         self.interactor.Render()
 
-        if outputimage: vtkvideo.screenshot(outputimage)
-
         if self.interactive: self.interactor.Start()
 
         self.initializedPlotter = True
@@ -1925,42 +1921,337 @@ class vtkPlotter:
             for a in self.getActors(): self.renderer.RemoveActor(a)
             self.actors = []
 
+     
+    ################################################################### Video
+    def screenshot(self, filename='screenshot.png'):
+        w2if = vtk.vtkWindowToImageFilter()
+        w2if.ShouldRerenderOff ()
+        w2if.SetInput(self.renderWin)
+        w2if.SetMagnification(1) #set the resolution of the output image
+        w2if.SetInputBufferTypeToRGBA() #also record the alpha channel
+        w2if.ReadFrontBufferOff() # read from the back buffer
+        w2if.Update()         
+        pngwriter = vtk.vtkPNGWriter()
+        pngwriter.SetFileName(filename)
+        pngwriter.SetInputConnection(w2if.GetOutputPort())
+        pngwriter.Write()
+    
     def openVideo(self, name='movie.avi', fps=12, duration=None, format="XVID"):
-        return vtkvideo.openVideo(self, name, fps, duration, format)
-    def addFrameVideo(self):     return vtkvideo.addFrameVideo(self)
-    def pauseVideo(self, pause): return vtkvideo.pauseVideo(self, pause)
-    def releaseVideo(self):      return vtkvideo.releaseVideo(self)
-    def screenshot(self):        return vtkvideo.screenshot(self)
+        try:
+            import cv2, os #just check existence
+            cv2.__version__
+        except:
+            printc("openVideo: cv2 not installed? Skip.",1)
+            return
+        self._videoname = name
+        self._videoformat = format
+        self._videoduration = duration
+        self._fps = float(fps) # if duration is given, will be recalculated
+        self._frames = []
+        if not os.path.exists('/tmp/vp'): os.mkdir('/tmp/vp')
+        for fl in glob("/tmp/vp/*.png"): os.remove(fl)
+        printc(("Video", name, "is open. Press q to continue."), 'm')
+        
+    def addFrameVideo(self):
+        if not self._videoname: return
+        fr = '/tmp/vp/'+str(len(self._frames))+'.png'
+        self.screenshot(fr)
+        self._frames.append(fr)
+    
+    def pauseVideo(self, pause=0):
+        '''insert a pause, in seconds'''
+        import os
+        if not self._videoname: return
+        fr = self._frames[-1]
+        n = int(self._fps*pause)
+        for i in range(n): 
+            fr2='/tmp/vp/'+str(len(self._frames))+'.png'
+            self._frames.append(fr2)
+            os.system("cp -f %s %s" % (fr, fr2))
+    
+    def releaseVideo(self):      
+        if not self._videoname: return
+        import cv2, os
+        if self._videoduration:
+            self._fps = len(self._frames)/float(self._videoduration)
+            printc(("Recalculated video FPS to", round(self._fps,3)), 'yellow')
+        else: self._fps = int(self._fps)
+        fourcc = cv2.cv.CV_FOURCC(*self._videoformat)
+        vid = None
+        size = None
+        for image in self._frames:
+            if not os.path.exists(image):
+                printc(('Image not found:', image), 1)
+                continue
+            img = cv2.imread(image)
+            if vid is None:
+                if size is None:
+                    if img is None: 
+                        printc(('releaseVideo, imread error for', image), 1)
+                        continue 
+                    size = img.shape[1], img.shape[0]
+                vid = cv2.VideoWriter(self._videoname, fourcc, self._fps, size, True)
+            if size[0] != img.shape[1] and size[1] != img.shape[0]:
+                img = cv2.resize(img, size)
+            vid.write(img)
+        if vid:
+            vid.release()
+            printc(('Video saved as', self._videoname), 'green')
+        self._videoname = False
+    
+
+################################################################### LOADERS
+    def _loadFile(self, filename, c, alpha, wire, bc, edges, legend, texture,
+                  smoothing, threshold, connectivity, scaling):
+        fl = filename.lower()
+        if '.xml' in fl or '.xml.gz' in fl: # Fenics tetrahedral mesh file
+            actor = _loadXml(filename, c, alpha, wire, bc, edges, legend)
+        elif '.pcd' in fl:                  # PCL point-cloud format
+            actor = _loadPCD(filename, c, alpha, legend)
+        elif '.tif' in fl:                  # tiff stack
+            actor = _loadTIFF(filename, c, alpha, wire, bc, edges, legend, texture,
+                              smoothing, threshold, connectivity, scaling)
+        else:
+            poly = _loadPoly(filename)
+            if not poly:
+                printc(('Unable to load', filename), c=1)
+                return False
+            if legend is True: legend = os.path.basename(filename)
+            actor = makeActor(poly, c, alpha, wire, bc, edges, legend, texture)
+            if '.txt' in fl or '.xyz' in fl: 
+                actor.GetProperty().SetPointSize(4)
+        return actor
+        
+    def _loadDir(self, mydir, c, alpha, wire, bc, edges, legend, texture,
+                 smoothing, threshold, connectivity, scaling):
+        if not os.path.exists(mydir): 
+            printc(('Error in loadDir: Cannot find', mydir), c=1)
+            exit(0)
+        acts = []
+        for ifile in sorted(os.listdir(mydir)):
+            self._loadFile(self, mydir+'/'+ifile, c, alpha, wire, bc, edges, legend, texture,
+                           smoothing, threshold, connectivity, scaling)
+        return acts
+
+def _loadPoly(filename):
+    '''Return a vtkPolyData object, NOT a vtkActor'''
+    if not os.path.exists(filename): 
+        printc(('Error in loadPoly: Cannot find', filename), c=1)
+        exit(0)
+    fl = filename.lower()
+    if   '.vtk' in fl: reader = vtk.vtkPolyDataReader()
+    elif '.ply' in fl: reader = vtk.vtkPLYReader()
+    elif '.obj' in fl: reader = vtk.vtkOBJReader()
+    elif '.stl' in fl: reader = vtk.vtkSTLReader()
+    elif '.byu' in fl or '.g' in fl: reader = vtk.vtkBYUReader()
+    elif '.vtp' in fl: reader = vtk.vtkXMLPolyDataReader()
+    elif '.vts' in fl: reader = vtk.vtkXMLStructuredGridReader()
+    elif '.vtu' in fl: reader = vtk.vtkXMLUnstructuredGridReader()
+    elif '.txt' in fl: reader = vtk.vtkParticleReader() # (x y z scalar) 
+    elif '.xyz' in fl: reader = vtk.vtkParticleReader()
+    else: reader = vtk.vtkDataReader()
+    reader.SetFileName(filename)
+    reader.Update()
+    if '.vts' in fl: # structured grid
+        gf = vtk.vtkStructuredGridGeometryFilter()
+        gf.SetInputConnection(reader.GetOutputPort())
+        gf.Update()
+        poly = gf.GetOutput()
+    elif '.vtu' in fl: # unstructured grid
+        gf = vtk.vtkGeometryFilter()
+        gf.SetInputConnection(reader.GetOutputPort())
+        gf.Update()    
+        poly = gf.GetOutput()
+    else: poly = reader.GetOutput()
+    
+    if not poly: 
+        printc(('Unable to load', filename), c=1)
+        return False
+    
+    mergeTriangles = vtk.vtkTriangleFilter()
+    setInput(mergeTriangles, poly)
+    mergeTriangles.Update()
+    poly = mergeTriangles.GetOutput()
+    return poly
 
 
+def _loadXml(filename, c, alpha, wire, bc, edges, legend):
+    '''Reads a Fenics/Dolfin file format'''
+    if not os.path.exists(filename): 
+        printc(('Error in loadXml: Cannot find', filename), c=1)
+        exit(0)
+    import xml.etree.ElementTree as et
+    if '.gz' in filename:
+        import gzip
+        inF = gzip.open(filename, 'rb')
+        outF = open('/tmp/filename.xml', 'wb')
+        outF.write( inF.read() )
+        outF.close()
+        inF.close()
+        tree = et.parse('/tmp/filename.xml')
+    else: tree = et.parse(filename)
+    coords, connectivity = [], []
+    print('..loading',filename)
+    for mesh in tree.getroot():
+        for elem in mesh:
+            for e in elem.findall('vertex'):
+                x = float(e.get('x'))
+                y = float(e.get('y'))
+                z = float(e.get('z'))
+                coords.append([x,y,z])
+            for e in elem.findall('tetrahedron'):
+                v0 = int(e.get('v0'))
+                v1 = int(e.get('v1'))
+                v2 = int(e.get('v2'))
+                v3 = int(e.get('v3'))
+                connectivity.append([v0,v1,v2,v3])
+    points = vtk.vtkPoints()
+    for p in coords: points.InsertNextPoint(p)
 
-## experimental
-## https://www.vtk.org/gitweb?p=VTK.git;a=blob;f=IO/Movie/Testing/Cxx/TestOggTheoraWriter.cxx
-#    def openVideo2(self, name='movie.ogv', fps=12, quality=1):
-#        w2if = vtk.vtkWindowToImageFilter()
-#        w2if.SetInput(self.renderWin)
-#        self.writer = vtk.vtkOggTheoraWriter()  #vtkAVIWriter
-#        self.writer.SetInputConnection(w2if.GetOutputPort())
-#        self.writer.SetFileName(name)
-#        self.writer.SetRate(fps)
-##        self.SetQuality(quality)
-#        self.writer.Start()
-#        return     
-#    def addFrameVideo2(self):  
-##        self.writer.Update()
-#        self.writer.Write()
-#        return         
-#    def releaseVideo2(self):   
-#        self.writer.End()
-#        return 
+    ugrid = vtk.vtkUnstructuredGrid()
+    ugrid.SetPoints(points)
+    cellArray = vtk.vtkCellArray()
+    for itet in range(len(connectivity)):
+        tetra = vtk.vtkTetra()
+        for k,j in enumerate(connectivity[itet]):
+            tetra.GetPointIds().SetId(k, j)
+        cellArray.InsertNextCell(tetra)
+    ugrid.SetCells(vtk.VTK_TETRA, cellArray)
+
+    # 3D cells are mapped only if they are used by only one cell,
+    #  i.e., on the boundary of the data set
+    mapper = vtk.vtkDataSetMapper()
+    if vtkMV: 
+        mapper.SetInputData(ugrid)
+    else:
+        mapper.SetInputConnection(ugrid.GetProducerPort())
+
+    actor = vtk.vtkActor()
+    actor.SetMapper(mapper)
+    actor.GetProperty().SetInterpolationToFlat()
+    actor.GetProperty().SetColor(getColor(c))
+    actor.GetProperty().SetOpacity(alpha/2.)
+    #actor.GetProperty().VertexVisibilityOn()
+    if edges: actor.GetProperty().EdgeVisibilityOn()
+    if wire:  actor.GetProperty().SetRepresentationToWireframe()
+    vpts = vtk.vtkPointSource()
+    vpts.SetNumberOfPoints(len(coords))
+    vpts.Update()
+    vpts.GetOutput().SetPoints(points)
+    pts_act = makeActor(vpts.GetOutput(), c='b', alpha=alpha)
+    pts_act.GetProperty().SetPointSize(3)
+    pts_act.GetProperty().SetRepresentationToPoints()
+    actor2 = makeAssembly([pts_act, actor])
+    if legend: setattr(actor2, 'legend', legend)
+    if legend is True: 
+        setattr(actor2, 'legend', os.path.basename(filename))
+    return actor2
+ 
+
+def _loadPCD(filename, c, alpha, legend):
+    '''Return vtkActor from Point Cloud file format'''            
+    if not os.path.exists(filename): 
+        printc(('Error in loadPCD: Cannot find file', filename), c=1)
+        exit(0)
+    f = open(filename, 'r')
+    lines = f.readlines()
+    f.close()
+    start = False
+    pts = []
+    N, expN = 0, 0
+    for text in lines:
+        if start:
+            if N >= expN: break
+            l = text.split()
+            pts.append([float(l[0]),float(l[1]),float(l[2])])
+            N += 1
+        if not start and 'POINTS' in text:
+            expN= int(text.split()[1])
+        if not start and 'DATA ascii' in text:
+            start = True
+    if expN != N:
+        printc(('Mismatch in pcd file', expN, len(pts)), 'red')
+    src = vtk.vtkPointSource()
+    src.SetNumberOfPoints(len(pts))
+    src.Update()
+    poly = src.GetOutput()
+    for i,p in enumerate(pts): poly.GetPoints().SetPoint(i, p)
+    if not poly:
+        printc(('Unable to load', filename), 'red')
+        return False
+    actor = makeActor(poly, getColor(c), alpha)
+    actor.GetProperty().SetPointSize(4)
+    if legend: setattr(actor, 'legend', legend)
+    if legend is True: setattr(actor, 'legend', os.path.basename(filename))
+    return actor
+
+
+def _loadTIFF(filename, c, alpha, wire, bc, edges, legend, texture, 
+              smoothing, threshold, connectivity, scaling):
+    '''Return vtkActor from a TIFF Stack'''            
+    if not os.path.exists(filename): 
+        printc(('Error in loadTIFF: Cannot find file', filename), c=1)
+        exit(0)
+    
+    print ('..reading tiff file:', filename)
+    reader = vtk.vtkTIFFReader() 
+    reader.SetFileName(filename) 
+    reader.Update() 
+    image = reader.GetOutput()
+
+    if smoothing:
+        print ('  gaussian smoothing data with volume_smoothing =',smoothing)
+        smImg = vtk.vtkImageGaussianSmooth()
+        smImg.SetDimensionality(3)
+        setInput(smImg, image)
+        smImg.SetStandardDeviations(smoothing, smoothing, smoothing)
+        smImg.Update()
+        image = smImg.GetOutput()
+    
+    scrange = image.GetScalarRange()
+    if not threshold:
+        threshold = (2*scrange[0]+scrange[1])/3.
+        a = '  isosurfacing volume with automatic iso_threshold ='
+    else: a='  isosurfacing volume with iso_threshold ='
+    print (a, round(threshold,2), scrange)
+    cf= vtk.vtkContourFilter()
+    setInput(cf, image)
+    cf.UseScalarTreeOn()
+    cf.ComputeScalarsOff()
+    cf.SetValue(0, threshold)
+    cf.Update()
+    
+    clp = vtk.vtkCleanPolyData()
+    setInput(clp, cf.GetOutput())
+    clp.Update()
+    image = clp.GetOutput()
+    
+    if connectivity:
+        print ('  applying connectivity filter, select largest region')
+        conn = vtk.vtkPolyDataConnectivityFilter()
+        conn.SetExtractionModeToLargestRegion() 
+        setInput(conn, image)
+        conn.Update()
+        image = conn.GetOutput()
+
+    if scaling:
+        print ('  scaling xyz by factors', scaling)
+        tf = vtk.vtkTransformPolyDataFilter()
+        setInput(tf, image)
+        trans = vtk.vtkTransform()
+        trans.Scale(scaling)
+        tf.SetTransform(trans)
+        tf.Update()
+        image = tf.GetOutput()
+    return makeActor(image, c, alpha, wire, bc, edges, legend, texture)
 
 
 ###########################################################################
 if __name__ == '__main__':
 ###########################################################################
-    '''Usage:
+    '''Basic usage:
     plotter files*.vtk
-    # valid formats [vtk,vtu,vts,vtp,ply,obj,stl,xml,pcd,xyz,txt,byu,g]
+    # valid formats [vtk,vtu,vts,vtp,ply,obj,stl,xml,pcd,xyz,txt,byu,g,tif]
     '''
     import sys
     fs = sys.argv[1:]

@@ -1,6 +1,6 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # 
-# Example use of light()
+# Example use of method light()
 #
 import plotter
 
