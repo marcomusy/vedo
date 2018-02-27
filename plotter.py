@@ -911,7 +911,8 @@ class vtkPlotter:
         pfs.SetVResolution(res)
         pfs.Update()
 
-        axis  = np.array(axis)/np.linalg.norm(axis)
+        nax = np.linalg.norm(axis)
+        if nax: axis  = np.array(axis)/nax
         theta = np.arccos(axis[2])
         phi   = np.arctan2(axis[1], axis[0])
         t = vtk.vtkTransform()
