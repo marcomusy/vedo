@@ -11,7 +11,7 @@ cells = [c1,c2,c3]
 for c in cells: c.build(vp)
 
 #time loop
-pb = ProgressBar(0,10, 0.01)
+pb = ProgressBar(0,10, 0.01, c=1)
 for t in pb.range():
     newcells = []    
     for c in cells:
@@ -34,7 +34,7 @@ for t in pb.range():
             vtot += f 
         ci.addPos(vtot)
 
-    pb.print('N='+str(len(cells)))
+    pb.print('Ncells='+str(len(cells)))
     vp.show(resetcam=1)
     vp.camera.Azimuth(.4) # move camera at each loop
         

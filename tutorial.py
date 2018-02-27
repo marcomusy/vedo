@@ -4,10 +4,10 @@ from __future__ import division, print_function
 from random import uniform as u, gauss
 import plotter
 import math
- 
+  
 #########################################################################################
 #
-# Check for more in directory examples/
+# Check for more examples in directory examples/
 #
 #########################################################################################
 # Declare an instance of the class

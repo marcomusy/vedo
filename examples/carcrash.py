@@ -7,7 +7,7 @@
 from __future__ import division, print_function
 import plotter
 
-vp = plotter.vtkPlotter(verbose=0)
+vp = plotter.vtkPlotter(verbose=0, axes=0)
 
 vp.plane(pos=(4,0,-.35), s=12, texture='metalfloor1')
 
@@ -24,4 +24,5 @@ for i in range(1, 10):
     b.rotateX(20*i).rotateY(10*i).pos([i, i/2, i/2])
     vp.render(b, rate=10)  # add actor b, maximum frame rate in hertz
     print (i, 'time:', vp.clock, 's')
+    #vp.screenshot('car_'+str(i)+'.png')
 vp.show()

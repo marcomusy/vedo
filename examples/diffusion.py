@@ -6,7 +6,7 @@ N = 10      # nr of particles along axis
 s = 0.01    # random step size
 
 scene = vtkPlotter(verbose=0)
-scene.plane(pos=[.45,.45,-.05], texture='wood7')
+scene.plane(pos=[.22,.22,-.05], texture='wood7')
 
 for i in range(N):              # generate a grid of points
     for j in range(N): 

@@ -26,7 +26,7 @@ Simple command line usage:
 plotter data/*.vtk  
 # other valid formats: [vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz,txt,byu, tif,slc, png,jpg]
 
-python tutorial.py  ### run a tutorial script
+python tutorial.py  ### run a tutorial script (on macOS try pythonw instead)
 ```
 <br />
 
@@ -85,20 +85,15 @@ vp.show()
 <br />
 
 
-Show a dummy sine plot on top left,  
-and the 3D function f(x,y) = sin(3*x)*log(x-y)/3 (more examples in examples/fxy.py).
+Plot the function f(x,y) = sin(3*x)*log(x-y)/3 (more examples in examples/fxy.py).
 <br />
 Red points in the 3D plot indicate where the function is not a real number:
 ```python
 vp = plotter.vtkPlotter()
 vp.fxy('sin(3*x)*log(x-y)/3', texture='paper')
-
-import math
-xycoords = [(math.exp(i/10.), math.sin(i/5.)) for i in range(40)]
-vp.xyplot( xycoords )
 vp.show()
 ```
-![func3d2](https://user-images.githubusercontent.com/32848391/35693806-9cea58f0-077f-11e8-8609-8e37ba1f5357.png)
+![fxy](https://user-images.githubusercontent.com/32848391/36611824-fd524fac-18d4-11e8-8c76-d3d1b1bb3954.png)
 <br />
 
 Load a surface and show its curvature based on 4 different schemes. <br />
@@ -206,7 +201,7 @@ def ellipsoid(points, c='c', alpha=0.5, legend=None, texture=None, res=24)
 def paraboloid(pos, radius=1, height=1, axis=[0,0,1], c='cyan', alpha=1, legend=None, texture=None, res=50)
 def hyperboloid(pos, a2=1, value=0.5, height=1, axis=[0,0,1], 
                 c='magenta', alpha=1, legend=None, texture=None, res=50)
-def helix(pos, length=2, n=6, radius=1, axis=[0,0,1], lw=1, c='grey', alpha=1, legend=None, texture=None)
+def helix(pos, axis=[0,0,1], coils=6, radius=1, lw=1, c='grey', alpha=1, legend=None, texture=None)
 def pyramid(pos, s=1, height=1, axis=[0,0,1], c='dg', alpha=1, legend=None, texture=None)
 def ring(pos, radius=1, thickness=0.1, axis=[1,1,1], c='khaki', alpha=1, legend=None, texture=None, res=30)
 def spline(points, smooth=0.5, degree=2, s=5, c='b', alpha=1., nodes=False, legend=None, res=20)

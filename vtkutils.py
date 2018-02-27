@@ -11,6 +11,7 @@ import vtkcolors
 import vtk
 import time
 
+
 ##############################################################################
 vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
 def setInput(vtkobj, p, port=0):
@@ -33,21 +34,24 @@ def makeActor(poly, c='gold', alpha=0.5,
        legend   optional string
        texture  jpg file name of surface texture, eg. 'metalfloor1'
     '''
+    clp = vtk.vtkCleanPolyData()
+    setInput(clp, poly)
+    clp.Update()
+    #triangles = vtk.vtkTriangleFilter()
+    #setInput(triangles, clp.GetOutput())
+    #triangles.Update() 
     pdnorm = vtk.vtkPolyDataNormals()
-    setInput(pdnorm, poly)
+    setInput(pdnorm, clp.GetOutput())
     pdnorm.SetFeatureAngle(60.0)
     pdnorm.ComputePointNormalsOn()
     pdnorm.ComputeCellNormalsOn()
     pdnorm.FlipNormalsOff()
     pdnorm.ConsistencyOn()
     pdnorm.Update()
-    clp = vtk.vtkCleanPolyData()
-    setInput(clp, pdnorm.GetOutput())
-    clp.Update()
 
     mapper = vtk.vtkPolyDataMapper()
 
-    setInput(mapper, clp.GetOutput())
+    setInput(mapper, pdnorm.GetOutput())
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
     if c is None: 
@@ -58,11 +62,11 @@ def makeActor(poly, c='gold', alpha=0.5,
         actor.GetProperty().SetColor(c)
         actor.GetProperty().SetOpacity(alpha)
     
-        actor.GetProperty().SetSpecular(0)
+        actor.GetProperty().SetSpecular(0.1)
         actor.GetProperty().SetSpecularColor(c)
         actor.GetProperty().SetSpecularPower(1)
     
-        actor.GetProperty().SetAmbient(0)
+        actor.GetProperty().SetAmbient(0.1)
         actor.GetProperty().SetAmbientColor(c)
     
         actor.GetProperty().SetDiffuse(1)
@@ -95,7 +99,7 @@ def makeAssembly(actors, legend=None):
 
 
 def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
-    '''Assign a texture to actro from file or name in /textures directory'''
+    '''Assign a texture to actor from file or name in /textures directory'''
     if   mapTo == 1: tmapper = vtk.vtkTextureMapToCylinder()
     elif mapTo == 2: tmapper = vtk.vtkTextureMapToSphere()
     elif mapTo == 3: tmapper = vtk.vtkTextureMapToPlane()
@@ -191,43 +195,44 @@ def assignConvenienceMethods(actor, legend):
 
 def assignPhysicsMethods(actor):
     
-    apos = np.array(actor.GetPosition())
-    setattr(actor, '_pos',  apos)         # position  
-
     def _fpos(self, p=None): 
-        if p is None: return self._pos
+        if p is None: 
+            return np.array(self.GetPosition())
         self.SetPosition(p)
-        self._pos = np.array(p)
         return self # return itself to concatenate methods
     actor.pos = types.MethodType( _fpos, actor )
 
     def _faddpos(self, dp): 
-        self._pos += np.array(dp)        
-        self.SetPosition(self._pos )
+        _pos = np.array(self.GetPosition())
+        _pos += np.array(dp)        
+        self.SetPosition(_pos )
         return self
     actor.addpos = types.MethodType( _faddpos, actor )
 
     def _fpx(self, px=None):               # X  
-        if px is None: return self._pos[0]
-        newp = [px, self._pos[1], self._pos[2]]
+        _pos = self.GetPosition()
+        if px is None: 
+            return _pos[0]
+        newp = [px, _pos[1], _pos[2]]
         self.SetPosition(newp)
-        self._pos = np.array(newp)
         return self
     actor.x = types.MethodType( _fpx, actor )
 
     def _fpy(self, py=None):               # Y  
-        if py is None: return self._pos[1]
-        newp = [self._pos[0], py, self._pos[2]]
+        _pos = self.GetPosition()
+        if py is None: 
+            return _pos[1]
+        newp = [_pos[0], py, _pos[2]]
         self.SetPosition(newp)
-        self._pos = np.array(newp)
         return self
     actor.y = types.MethodType( _fpy, actor )
 
     def _fpz(self, pz=None):               # Z  
-        if pz is None: return self._pos[2]
-        newp = [self._pos[0], self._pos[1], pz]
+        _pos = self.GetPosition()
+        if pz is None: 
+            return _pos[2]
+        newp = [_pos[0], _pos[1], pz]
         self.SetPosition(newp)
-        self._pos = np.array(newp)
         return self
     actor.z = types.MethodType( _fpz, actor )
      
@@ -240,21 +245,18 @@ def assignPhysicsMethods(actor):
     def _fvx(self, vx=None):               # VX  
         if vx is None: return self._vel[0]
         newp = [vx, self._vel[1], self._vel[2]]
-        self.SetPosition(newp)
         self._vel = newp
     actor.vx = types.MethodType( _fvx, actor )
 
     def _fvy(self, vy=None):               # VY  
         if vy is None: return self._vel[1]
         newp = [self._vel[0], vy, self._vel[2]]
-        self.SetPosition(newp)
         self._vel = newp
     actor.vy = types.MethodType( _fvy, actor )
 
     def _fvz(self, vz=None):               # VZ  
         if vz is None: return self._vel[2]
         newp = [self._vel[0], self._vel[1], vz]
-        self.SetPosition(newp)
         self._vel = newp
     actor.vz = types.MethodType( _fvz, actor )
      
@@ -270,7 +272,7 @@ def assignPhysicsMethods(actor):
         self._axis = a
     actor.axis = types.MethodType( _faxis, actor )
 
-    setattr(actor, '_omega', 0.0)     # angular velocity
+    setattr(actor, '_omega', 0.0)                # angular velocity
     def _fomega(self, o=None): 
         if o is None: return self._omega
         self._omega = o
@@ -529,6 +531,7 @@ def getPolyData(obj, index=0):
     
     elif isinstance(obj, vtk.vtkPolyData): return obj
     elif isinstance(obj, vtk.vtkActor2D):  return obj.GetMapper().GetInput()
+    elif isinstance(obj, vtk.vtkImageActor):  return obj.GetMapper().GetInput()
 
     printc("Fatal Error in getPolyData(): ", 'r', end='')
     printc(("input is neither a poly nor an actor int or assembly.", [obj]), 'r')
@@ -723,7 +726,7 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     boxWidget.AddObserver("InteractionEvent", SelectPolygons)
     boxWidget.On()
     
-    printc(("Press X to save file:", outputname), 'blue')
+    printc(("Press X to save file:", outputname), 'm')
     def cwkeypress(obj, event):
         if obj.GetKeySym() == "X":
             confilter = vtk.vtkPolyDataConnectivityFilter()
@@ -763,7 +766,8 @@ class ProgressBar:
         self._counts= 0
         self._oldbar= ""
         self._lentxt= 0
-        self._range = np.linspace(start, stop, num=int((stop-start)/step))
+        self._range = np.linspace(start, stop-step, 
+                                  num=int((stop-start)/step))
         self._len   = len(self._range)
         self.clock0 = 0
         self.ETA    = ETA
@@ -791,7 +795,7 @@ class ProgressBar:
                 vel = str(round(vel,1))
                 eta = 'ETA: '+mins+secs+'('+vel+' it/s) '
             else: eta = ''
-            txt = eta + txt 
+            txt = eta + str(txt) 
             s = self.bar + ' ' + eraser + txt + '\r'
             if self.color: 
                 printc(s, c=self.color, end='')

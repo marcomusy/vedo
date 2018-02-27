@@ -5,7 +5,7 @@
 from __future__ import division, print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "6.6"
+__version__ = "6.7" 
 __maintainer__ = "M. Musy, G. Dalmasso"
 __email__   = "marco.musy@embl.es"
 __status__  = "dev"
@@ -131,6 +131,11 @@ class vtkPlotter:
         self._clockt0   = time.time()
         self.initializedPlotter= False
         self.initializedIren = False
+        self._videoname = None
+        self._videoformat = None
+        self._videoduration = None
+        self._fps = None 
+        self._frames = None
 
         self.camera = vtk.vtkCamera()
         
@@ -215,7 +220,7 @@ class vtkPlotter:
         self.renderWin.LineSmoothingOn()
         self.renderWin.PointSmoothingOn()
         self.renderWin.SetSize(int(self.size[1]), int(self.size[0]))
-        if title: self.renderWin.SetWindowName(title)
+        self.renderWin.SetWindowName(title)
         for r in self.renderers: self.renderWin.AddRenderer(r)
 
         self.interactor = vtk.vtkRenderWindowInteractor()
@@ -337,6 +342,9 @@ class vtkPlotter:
             printc(('Warning in getActors: unexpected input type',obj), 1)
         return []
 
+    def vector(self, x,y,z=None):
+        if z is None: return np.array([x,y,0])
+        return np.array([x,y,z])
 
     def moveCamera(self, camstart, camstop, fraction):
         '''
@@ -403,7 +411,7 @@ class vtkPlotter:
         with the points.
         If tags='ids' points are labeled with an integer number
         '''
-        if isinstance(c, list) or isinstance(c, tuple) and len(c):
+        if len(c) and (isinstance(c, list) or isinstance(c, tuple)):
             if isinstance(c[0], list) or isinstance(c[0], tuple):
                 return self._colorPoints(plist, c, r, alpha, legend)
 
@@ -485,7 +493,11 @@ class vtkPlotter:
            if p0 is a list of points returns the line connecting them.
         '''
         #detect if user is passing a list of points:
-        if isinstance(p0[0], list) or  isinstance(p0[0], tuple):
+        if len(p0):
+            islist = isinstance(p0[0], list)
+            istuple = isinstance(p0[0], tuple)
+            isnparray = isinstance(p0[0], np.ndarray)
+        if len(p0) and (islist or istuple or isnparray):
             ppoints = vtk.vtkPoints() # Generate the polyline
             poly = vtk.vtkPolyData()
             for i in range(len(p0)):
@@ -515,7 +527,6 @@ class vtkPlotter:
                c='r', alpha=1, legend=None, texture=None, res=24):
 
         ss = vtk.vtkSphereSource()
-        ss.SetCenter(pos)
         ss.SetRadius(r)
         ss.SetThetaResolution(res)
         ss.SetPhiResolution(res)
@@ -524,12 +535,13 @@ class vtkPlotter:
 
         actor = makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
+        actor.SetPosition(pos)
         self.actors.append(actor)
         return actor
 
 
     def box(self, pos=[0,0,0], length=1, width=2, height=3, normal=(0,0,1),
-            c='g', alpha=1, legend=None, texture=None):
+            c='g', alpha=1, wire=False, legend=None, texture=None):
         src = vtk.vtkCubeSource()
         src.SetXLength(length)
         src.SetYLength(width)
@@ -544,7 +556,6 @@ class vtkPlotter:
         t.PostMultiply()
         t.RotateY(theta*57.3)
         t.RotateZ(phi*57.3)
-        t.Translate(pos)
 
         tf = vtk.vtkTransformPolyDataFilter()
         setInput(tf, poly)
@@ -552,14 +563,17 @@ class vtkPlotter:
         tf.Update()
         pd = tf.GetOutput()
 
-        actor = makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
+        actor = makeActor(pd, c=c, alpha=alpha, wire=wire,
+                          legend=legend, texture=texture)
+        actor.SetPosition(pos)
         self.actors.append(actor)
         return actor
 
 
     def cube(self, pos=[0,0,0], length=1, normal=(0,0,1),
-             c='g', alpha=1., legend=None, texture=None):
-        return self.box(pos, length, 1, 1, normal, c, alpha, legend, texture)
+             c='g', alpha=1., wire=False, legend=None, texture=None):
+        return self.box(pos, length, length, length, 
+                        normal, c, alpha, wire, legend, texture)
 
 
     def octahedron(self, pos=[0,0,0], s=1, axis=(0,0,1),
@@ -600,7 +614,6 @@ class vtkPlotter:
         t.PostMultiply()
         t.RotateY(theta*57.3)
         t.RotateZ(phi*57.3)
-        t.Translate(pos)
         tf = vtk.vtkTransformPolyDataFilter()
         setInput(tf, pd)
         tf.SetTransform(t)
@@ -610,6 +623,7 @@ class vtkPlotter:
         actor = makeActor(pd, c=c, alpha=alpha, wire=wire,
                           legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
+        actor.SetPosition(pos)       
         self.actors.append(actor)
         return actor
 
@@ -631,9 +645,10 @@ class vtkPlotter:
         ps.Update()
         actor = makeActor(ps.GetOutput(), 
                           c=c, bc=bc, alpha=alpha, legend=legend, texture=texture)
-        actor.SetScale(s,s,s)
         if wire: actor.GetProperty().SetRepresentationToWireframe()
         actor.GetProperty().SetLineWidth(lw)
+        actor.SetPosition(np.array(pos)/s)
+        actor.SetScale(s,s,s)
         actor.PickableOff()
         self.actors.append(actor)
         return actor
@@ -644,7 +659,6 @@ class vtkPlotter:
                 legend=None, texture=None, followcam=False):
         ps = vtk.vtkRegularPolygonSource()
         ps.SetNumberOfSides(nsides)
-        ps.SetCenter(pos)
         ps.SetRadius(r)
         ps.SetNormal(-np.array(normal))
         ps.Update()
@@ -675,6 +689,7 @@ class vtkPlotter:
         if texture: assignTexture(actor, texture)
         vtkutils.assignPhysicsMethods(actor)
         vtkutils.assignConvenienceMethods(actor, legend)
+        actor.SetPosition(pos)
         self.actors.append(actor)
         return actor
 
@@ -699,7 +714,6 @@ class vtkPlotter:
         t.PostMultiply()
         t.RotateY(theta*57.3)
         t.RotateZ(phi*57.3)
-        t.Translate(pos)
         tf = vtk.vtkTransformPolyDataFilter()
         setInput(tf, tr.GetOutput())
         tf.SetTransform(t)
@@ -723,6 +737,7 @@ class vtkPlotter:
         if texture: assignTexture(actor, texture)
         vtkutils.assignPhysicsMethods(actor)
         vtkutils.assignConvenienceMethods(actor, legend)
+        actor.SetPosition(pos)
         self.actors.append(actor)
         return actor
         
@@ -772,7 +787,6 @@ class vtkPlotter:
         t.RotateX(90) #put it along Z
         t.RotateY(theta*57.3)
         t.RotateZ(phi*57.3)
-        t.Translate(pos)
         tf = vtk.vtkTransformPolyDataFilter()
         setInput(tf, cyl.GetOutput())
         tf.SetTransform(t)
@@ -781,6 +795,7 @@ class vtkPlotter:
 
         actor = makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
+        actor.SetPosition(pos)
         self.actors.append(actor)
         return actor
 
@@ -809,7 +824,6 @@ class vtkPlotter:
         t.RotateY(theta*57.3)
         t.RotateZ(phi*57.3)
         t.Scale(radius,radius,radius)
-        t.Translate(pos)
         tf = vtk.vtkTransformPolyDataFilter()
         setInput(tf, contours.GetOutput())
         tf.SetTransform(t)
@@ -819,6 +833,7 @@ class vtkPlotter:
         actor = makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
         actor.GetMapper().ScalarVisibilityOff()
+        actor.SetPosition(pos)
         self.actors.append(actor)
         return actor
 
@@ -847,7 +862,6 @@ class vtkPlotter:
         t.RotateY(theta*57.3)
         t.RotateZ(phi*57.3)
         t.Scale(1,1,height)
-        t.Translate(pos)
         tf = vtk.vtkTransformPolyDataFilter()
         setInput(tf, contours.GetOutput())
         tf.SetTransform(t)
@@ -857,6 +871,7 @@ class vtkPlotter:
         actor = makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
         actor.GetMapper().ScalarVisibilityOff()
+        actor.SetPosition(pos)
         self.actors.append(actor)
         return actor
 
@@ -885,8 +900,8 @@ class vtkPlotter:
         return a
 
 
-    def ring(self, pos=[0,0,0], radius=1, thickness=0.1, axis=[1,1,1],
-             c='khaki', alpha=1, legend=None, texture=None, res=30):
+    def ring(self, pos=[0,0,0], radius=1, thickness=0.1, axis=[0,0,1],
+             c='khaki', alpha=1, wire=False, legend=None, texture=None, res=30):
         rs = vtk.vtkParametricTorus()
         rs.SetRingRadius(radius)
         rs.SetCrossSectionRadius(thickness)
@@ -903,15 +918,15 @@ class vtkPlotter:
         t.PostMultiply()
         t.RotateY(theta*57.3)
         t.RotateZ(phi*57.3)
-        t.Translate(pos)
         tf = vtk.vtkTransformPolyDataFilter()
         setInput(tf, pfs.GetOutput())
         tf.SetTransform(t)
         tf.Update()
         pd = tf.GetOutput()
 
-        actor = makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
+        actor = makeActor(pd, c=c, alpha=alpha, wire=wire, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
+        actor.SetPosition(pos)
         self.actors.append(actor)
         return actor
 
@@ -939,7 +954,6 @@ class vtkPlotter:
         t.RotateX(angle*57.3)
         t.RotateY(theta*57.3)
         t.RotateZ(phi*57.3)
-        t.Translate(pos)
         tf = vtk.vtkTransformPolyDataFilter()
         setInput(tf, elliSource.GetOutput())
         tf.SetTransform(t)
@@ -949,24 +963,34 @@ class vtkPlotter:
         actor= makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().BackfaceCullingOn()
         actor.GetProperty().SetInterpolationToPhong()
+        actor.SetPosition(pos)
         self.actors.append(actor)
         return self.lastActor()
 
 
-    def helix(self, pos=[0,0,0], length=2, n=6, radius=1, axis=[0,0,1],
-              lw=5, c='grey', alpha=1, legend=None):
+    def helix(self, pos=[0,0,0], axis=[0,0,1], coils=10, radius=1,
+              lw=4, c='grey', alpha=1, legend=None):
+        length = np.linalg.norm(axis-np.array(pos))
         thickness = max(length,radius)*2*lw
-        trange = np.linspace(-length/2., length/2., num=10*n)
-        pts = [ [np.cos(2*n*t),np.sin(2*n*t),t] for t in trange ]
-        actor = self.spline(pts, 0, 2, thickness, c, alpha, False, legend)
-        axis  = np.array(axis)/np.linalg.norm(axis)
+        trange = np.linspace(0, length, num=10*coils*length)
+        om = 2*3.1415*coils/length
+        pts = [ [radius*np.cos(om*t),radius*np.sin(om*t),t] for t in trange ]
+        axis = axis-np.array(pos)
+        axis  = axis/np.linalg.norm(axis)
         theta = np.arccos(axis[2])
         phi   = np.arctan2(axis[1], axis[0])
+        sp = makePolyData(pts, addLines=0)
+        t = vtk.vtkTransform()
+        t.RotateZ(phi*57.3)
+        t.RotateY(theta*57.3)
+        tf = vtk.vtkTransformPolyDataFilter()
+        setInput(tf, sp)
+        tf.SetTransform(t)
+        tf.Update()
+        pts = getCoordinates(tf.GetOutput())
+        actor = self.spline(pts, 0, 2, thickness, c, alpha, False, legend)
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(pos)
-        actor.RotateZ(phi*57.3)
-        actor.RotateY(theta*57.3)
-        self.actors.append(actor)
         if legend: setattr(actor, 'legend', legend)
         return self.lastActor()
 
@@ -1087,7 +1111,7 @@ class vtkPlotter:
         ttactor.SetMapper(ttmapper)
         ttactor.GetProperty().SetColor(getColor(c))
         ttactor.GetProperty().SetOpacity(alpha)
-        ttactor.AddPosition(pos)
+        ttactor.SetPosition(pos)
         ttactor.SetScale(s,s,s)
         if bc: # defines a specific color for the backface
             backProp = vtk.vtkProperty()
@@ -1289,7 +1313,7 @@ class vtkPlotter:
         c = getColor(c)
         sb = vtk.vtkScalarBarActor()
         sb.SetLookupTable(lut)
-        if vtkMV: 
+        if vtk.vtkVersion().GetVTKMajorVersion() > 7: 
             sb.UnconstrainedFontSizeOn()
             sb.FixedAnnotationLeaderLineColorOff()
             sb.DrawAnnotationsOn()
@@ -1928,7 +1952,7 @@ class vtkPlotter:
         w2if.ShouldRerenderOff ()
         w2if.SetInput(self.renderWin)
         w2if.SetMagnification(1) #set the resolution of the output image
-        w2if.SetInputBufferTypeToRGBA() #also record the alpha channel
+        #w2if.SetInputBufferTypeToRGBA() #also record the alpha channel
         w2if.ReadFrontBufferOff() # read from the back buffer
         w2if.Update()         
         pngwriter = vtk.vtkPNGWriter()
@@ -1937,12 +1961,6 @@ class vtkPlotter:
         pngwriter.Write()
     
     def openVideo(self, name='movie.avi', fps=12, duration=None, format="XVID"):
-        try:
-            import cv2, os #just check existence
-            cv2.__version__
-        except:
-            printc("openVideo: cv2 not installed? Skip.",1)
-            return
         self._videoname = name
         self._videoformat = format
         self._videoduration = duration
@@ -1971,7 +1989,16 @@ class vtkPlotter:
     
     def releaseVideo(self):      
         if not self._videoname: return
-        import cv2, os
+        import os
+        try:
+            import cv2 
+        except:
+            printc("openVideo: cv2 not installed? Trying ffmpeg..",1)
+            self._videoname = self._videoname.split('.')[0]+'.mp4'
+            out = os.system("ffmpeg -r "+self._fps
+                            +" -i /tmp/vp/%01d.png -y /dev/null "+self._videoname)
+            if out: printc("ffmpeg returning error",1)
+            return
         if self._videoduration:
             self._fps = len(self._frames)/float(self._videoduration)
             printc(("Recalculated video FPS to", round(self._fps,3)), 'yellow')
@@ -1987,8 +2014,11 @@ class vtkPlotter:
             if vid is None:
                 if size is None:
                     if img is None: 
-                        printc(('releaseVideo, imread error for', image), 1)
-                        continue 
+                        printc(('cv2, imread error for', image, 'trying ffmpeg..'),1)
+                        out = os.system("ffmpeg -r "+str(self._fps)
+                                        +" -i /tmp/vp/%01d.png -y "+self._videoname)
+                        if out: printc("ffmpeg returning error",1)
+                        return 
                     size = img.shape[1], img.shape[0]
                 vid = cv2.VideoWriter(self._videoname, fourcc, self._fps, size, True)
             if size[0] != img.shape[1] and size[1] != img.shape[0]:
@@ -2196,7 +2226,8 @@ def _loadVolume(filename, c, alpha, wire, bc, edges, legend, texture,
         exit(1)
     
     print ('..reading file:', filename)
-    if   '.tif' in filename.lower(): reader = vtk.vtkTIFFReader() 
+    if   '.tif' in filename.lower(): 
+        reader = vtk.vtkTIFFReader() 
     elif '.slc' in filename.lower(): 
         reader = vtk.vtkSLCReader() 
         if not reader.CanReadFile(filename):
@@ -2265,8 +2296,14 @@ def _load2Dimage(filename, alpha):
     picr.SetFileName(filename)
     picr.Update()
     vactor = vtk.vtkImageActor()
-    vactor.SetInputData(picr.GetOutput())
+    setInput(vactor, picr.GetOutput())
     vactor.SetOpacity(alpha)
+    #    bf = vtk.vtkImageProperty() #not working
+    #    bf.BackingOn()
+    #    bf.SetBackingColor(1,1,1)
+    #    vactor.SetProperty(bf)
+    #    vactor.ForceTranslucentOn()
+    vtkutils.assignPhysicsMethods(vactor)    
     return vactor
 
 

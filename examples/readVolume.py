@@ -36,4 +36,3 @@ vp.show(a2, at=2)
 vp2= plotter.vtkPlotter()
 vp2.load('data/embryo.slc', alpha=1, c='g', bc='v', smoothing=1, connectivity=1)
 vp2.show(interactive=1)
-print a0

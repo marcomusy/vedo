@@ -14,9 +14,9 @@ vp.load('data/shapes/spider.ply', c='m', alpha=1)
 vp.openVideo(duration=3) 
 
 # use render() instead of show() inside loop - it's faster!
-for i in range(100):
+for i in range(50):
     vp.render(resetcam=True)
-    vp.camera.Azimuth(4) # rotate by 4 deg at each iteration
+    vp.camera.Azimuth(5) # rotate by 4 deg at each iteration
     vp.addFrameVideo() 
 
 vp.releaseVideo() # merges all the recorded frames
