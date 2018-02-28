@@ -206,7 +206,7 @@ def _keypress(vp, obj, event):
             ia.GetProperty().SetOpacity(alpha)
         vp._draw_legend()
 
-    elif key == "p":
+    elif key == "P":
         if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
         else: acts = vp.getActors()
         for ia in acts:
@@ -216,7 +216,7 @@ def _keypress(vp, obj, event):
                 ia.GetProperty().SetRepresentationToPoints()
             except AttributeError: pass
 
-    elif key == "P":
+    elif key == "p":
         if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
         else: acts = vp.getActors()
         for ia in acts:
@@ -226,7 +226,7 @@ def _keypress(vp, obj, event):
                 ia.GetProperty().SetRepresentationToPoints()
             except AttributeError: pass
 
-    elif key == "l":
+    elif key == "L":
         if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
         else: acts = vp.getActors()
         for ia in acts:
@@ -239,7 +239,7 @@ def _keypress(vp, obj, event):
                 else: ia.GetProperty().SetLineWidth(ls-1)
             except AttributeError: pass
 
-    elif key == "L":
+    elif key == "l":
         if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
         else: acts = vp.getActors()
         for ia in acts:

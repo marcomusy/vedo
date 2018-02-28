@@ -96,23 +96,8 @@ vp.show()
 ![fxy](https://user-images.githubusercontent.com/32848391/36611824-fd524fac-18d4-11e8-8c76-d3d1b1bb3954.png)
 <br />
 
-Load a surface and show its curvature based on 4 different schemes. <br />
-Objects can be drawn on independent windows and/or subwindows within the same canvas.
-All four shapes here share a common vtkCamera:<br />
-*0-gaussian, 1-mean, 2-max, 3-min*
-```python
-vp = plotter.vtkPlotter(shape=(1,4), interactive = False)
-v = vp.load('data/290.vtk')
-for i in [0,1,2,3]:
-    c = vp.curvature(v, method=i, r=1, alpha=0.8)
-    vp.show(at=i, actors=[c])
-vp.show(interactive=1) # same as setting flag interactive=True
-```
-![ex7](https://user-images.githubusercontent.com/32848391/32666974-912de586-c639-11e7-880a-2b377cde3615.png)
-<br />
 
-
-Draw a bunch of simple objects on separate parts of the rendering window:
+Draw a bunch of basic goemetric objects on separate parts of the rendering window:
 ```python
 vp = plotter.vtkPlotter(N=6, interactive=0)
 vp.commoncam   = False
@@ -128,7 +113,7 @@ vp.show(interactive=1)
 <br />
 
 
-Draw a number of objects in various formats and options:
+Draw a number of mesh objects in various formats and options:
 ```python
 vp = plotter.vtkPlotter(shape=(3,3))
 vp.commoncam   = False
@@ -164,6 +149,25 @@ vp.show()
 <br />
 
 
+Motion of a large brownian
+particle in a swarm of small particles in 2D motion.
+The spheres collide elastically with themselves and
+with the walls of the box. The masses of the spheres
+are proportional to their volume.
+```bash
+python examples/brownian2d.py
+```
+![brownian](https://user-images.githubusercontent.com/32848391/36788300-b07fd4f8-1c8d-11e8-9bdd-790c6abddd99.gif)
+<br />
+
+
+Simulation of a spring in a viscous medium:
+```bash
+python examples/spring.py
+```
+
+![spring](https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif)
+
 
 More examples in directory *examples/* 
 
@@ -194,6 +198,7 @@ def polygon(pos, normal=(0,0,1), nsides=6, r=1,
 def disc(pos, normal=[0,0,1], r1=0.5, r2=1, 
             c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, res=12)
 def arrow(startPoint, endPoint, c='r', alpha=1, legend=None, texture=None, res=12)
+def helix(startPoint, endPoint, coils=6, radius=1, lw=1, c='grey', alpha=1, legend=None, texture=None)
 def cylinder(pos, radius, height, axis=[1,1,1], c='teal', alpha=1, legend=None, texture=None, res=24)
 def octahedron(pos, s=1, axis=(0,0,1), c='g', alpha=1, wire=False, legend=None, texture=None)
 def cone(pos, radius, height, axis=[1,1,1], c='g', alpha=1, legend=None, texture=None)
@@ -201,7 +206,6 @@ def ellipsoid(points, c='c', alpha=0.5, legend=None, texture=None, res=24)
 def paraboloid(pos, radius=1, height=1, axis=[0,0,1], c='cyan', alpha=1, legend=None, texture=None, res=50)
 def hyperboloid(pos, a2=1, value=0.5, height=1, axis=[0,0,1], 
                 c='magenta', alpha=1, legend=None, texture=None, res=50)
-def helix(pos, axis=[0,0,1], coils=6, radius=1, lw=1, c='grey', alpha=1, legend=None, texture=None)
 def pyramid(pos, s=1, height=1, axis=[0,0,1], c='dg', alpha=1, legend=None, texture=None)
 def ring(pos, radius=1, thickness=0.1, axis=[1,1,1], c='khaki', alpha=1, legend=None, texture=None, res=30)
 def spline(points, smooth=0.5, degree=2, s=5, c='b', alpha=1., nodes=False, legend=None, res=20)
@@ -234,6 +238,7 @@ def openVideo(name='movie.avi', fps=12, duration=None, format="XVID")
 def addFrameVideo()
 def pauseVideo(pause)
 def releaseVideo()
+def screenshot(filename='screenshot.png')
 ```
 
 Useful *vtkPlotter* attributes:
@@ -256,7 +261,6 @@ Useful *plotter* functions:
 ```python
 def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None)
 def makeAssembly(actors, legend=None)
-def screenshot(filename='screenshot.png')
 def makePolyData(spoints, addLines=True)
 def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1)
 def isInside(poly, point)
@@ -289,7 +293,7 @@ actor.clone(c='gold', alpha=1, wire=False, bc=None, edges=False, legend=None, te
 #
 actor.normalize() # sets actor at origin and scales its average size to 1
 #
-actor.shrink(fraction=0.85)  # shrinks the polydata triangles for visualizion
+actor.shrink(fraction=0.85)  # shrinks the polydata triangles for visualization
 #
 actor.visible(alpha=1)       # sets opacity
 #
@@ -297,6 +301,13 @@ actor.cutterWidget()         # invoke a cutter widget for actor
 actor.point(i, p=None)       # set/get i-th point in actor mesh
 ```
 
+Some useful *numpy* shortcuts available in vtkPlotter:
+```python
+def arange(start,stop, step)  # return a range list of floats
+def vector(x,y,z=None)        # return a numpy vector (2D or 3D)
+def mag(v)                    # return the size of a vector or list of vectors
+def norm(v)                   # return the versor of a vector or list of vectors
+```
 
 <br />
 Tested on VTK versions 5.8, 6.3, 7.1, 8.0: https://www.vtk.org

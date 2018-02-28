@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Dec  4 20:10:27 2017
-
-@author: marco musy
-"""
+#
 from __future__ import division, print_function
 import os, sys, types
 import numpy as np
@@ -21,8 +17,27 @@ def setInput(vtkobj, p, port=0):
     if vtkMV: vtkobj.SetInputData(p)
     else: vtkobj.SetInput(p)
 
-    
-##############################################################################
+
+def arange(start,stop, step): 
+    return np.arange(start, stop, step)
+
+def vector(x,y,z=None):
+    if z is None: return np.array([x,y,0]) #assume 2D
+    return np.array([x,y,z])
+
+def mag(z):
+    if isinstance(z[0], np.ndarray): 
+        return np.array(list(map(np.linalg.norm, z)))
+    else: 
+        return np.linalg.norm(z)
+
+def norm(v):
+    if isinstance(v[0], np.ndarray):
+        return np.divide(v, mag(v)[:,None])
+    else: 
+        return v/mag(v)
+
+
 def makeActor(poly, c='gold', alpha=0.5, 
               wire=False, bc=None, edges=False, legend=None, texture=None):
     '''Return a vtkActor from an input vtkPolyData, optional args:
@@ -146,18 +161,22 @@ def assignConvenienceMethods(actor, legend):
         setattr(actor, 'legend', legend)
 
     def _frotate(self, angle, axis, rad=False): 
+        if rad: angle *= 57.3
         return rotate(self, angle, axis, rad)
     actor.rotate = types.MethodType( _frotate, actor )
 
     def _frotateX(self, angle, rad=False): 
+        if rad: angle *= 57.3
         return rotate(self, angle, [1,0,0], rad)
     actor.rotateX = types.MethodType( _frotateX, actor )
 
     def _frotateY(self, angle, rad=False): 
+        if rad: angle *= 57.3
         return rotate(self, angle, [0,1,0], rad)
     actor.rotateY = types.MethodType( _frotateY, actor )
 
     def _frotateZ(self, angle, rad=False): 
+        if rad: angle *= 57.3
         return rotate(self, angle, [0,0,1], rad)
     actor.rotateZ = types.MethodType( _frotateZ, actor )
 
@@ -332,25 +351,38 @@ def normalize(actor, s=1): # N.B. input argument gets modified
     return actor  # return same obj for concatenation
 
 
-def rotate(actor, angle, axis, rad=False): # N.B. input argument is modified
-    l = np.linalg.norm(axis)
-    if not l: return
-    axis /= l
+def rotate(actor, angle, axis, aroundCM=True, rad=False): 
+
     if rad: angle *= 57.3
-    cm = getCM(actor)
-    t = vtk.vtkTransform()
-    t.Translate(cm)
-    t.RotateWXYZ(-angle,  axis[0], axis[1], axis[2])
-    t.Translate(-cm)
-    tf = vtk.vtkTransformPolyDataFilter() 
-    setInput(tf, actor.GetMapper().GetInput())
-    tf.SetTransform(t)
-    tf.Update()
-    mapper = actor.GetMapper()
-    setInput(mapper, tf.GetOutput())
-    mapper.Update()
-    actor.Modified()
+    cm= np.array([0,0,0])
+    if aroundCM is True: cm = getCM(actor)
+    elif isinstance(aroundCM, list): cm = np.array(aroundCM)
+    
+    actor.AddPosition(cm)    
+    actor.RotateWXYZ(angle, axis[0], axis[1], axis[2] )
+    actor.AddPosition(-cm)
     return actor   # return same obj for concatenation
+
+
+############################################################################
+def rotate3(v, axis, theta):
+    """
+    Return the rotation matrix associated with counterclockwise
+    rotation about the given axis by theta radians.
+    """
+    axis = np.asarray(axis)
+    theta = np.asarray(theta)
+    ax2 = np.sqrt(np.dot(axis, axis))
+    if ax2: axis /= ax2
+    a = np.cos(theta / 2.0)
+    b, c, d = -axis * np.sin(theta / 2.0)
+    aa, bb, cc, dd = a * a, b * b, c * c, d * d
+    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+    R = np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                  [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                  [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+    rv = np.dot(R, v)
+    return rv
 
 
 def shrink(actor, fraction=0.85): # N.B. input argument is modified
@@ -364,6 +396,20 @@ def shrink(actor, fraction=0.85): # N.B. input argument is modified
     mapper.Update()
     actor.Modified()
     return actor   # return same obj for concatenation
+
+
+###########################
+def stretch(actor, p1): 
+    pos = actor.GetPosition()
+    x0 = actor.GetBounds()
+    print (pos)
+    print (actor.GetMatrix())
+    fx = (p1[0]-pos[0])/(x0[1]-pos[0])
+    fy = (p1[1]-pos[1])/(x0[3]-pos[1])
+#    fz = (p1[2]-pos[2])/(x0[5]-pos[2])
+    actor.SetScale(fx, fy, 1)    
+    return actor
+###########################
 
 
 def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
@@ -766,8 +812,7 @@ class ProgressBar:
         self._counts= 0
         self._oldbar= ""
         self._lentxt= 0
-        self._range = np.linspace(start, stop-step, 
-                                  num=int((stop-start)/step))
+        self._range = arange(start, stop, step)
         self._len   = len(self._range)
         self.clock0 = 0
         self.ETA    = ETA
@@ -781,7 +826,7 @@ class ProgressBar:
             self._oldbar = self.bar
             eraser = [' ']*self._lentxt + ['\b']*self._lentxt 
             eraser = ''.join(eraser)
-            if self.ETA and self._counts>10:
+            if self.ETA:
                 vel  = self._counts/(time.time() - self.clock0)
                 remt =  (self.stop-self._counts)/vel
                 if remt>60:

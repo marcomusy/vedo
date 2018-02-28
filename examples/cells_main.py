@@ -1,8 +1,8 @@
 from __future__ import division, print_function
-from plotter import ProgressBar, vtkPlotter
 from cell import Cell
+import plotter 
 
-vp = vtkPlotter(verbose=0, interactive=0)
+vp = plotter.vtkPlotter(verbose=0, interactive=0)
 
 c1 = Cell('cr', 'r', [1,0,0])
 c2 = Cell('cg', 'g', [0,1,0])
@@ -11,7 +11,7 @@ cells = [c1,c2,c3]
 for c in cells: c.build(vp)
 
 #time loop
-pb = ProgressBar(0,10, 0.01, c=1)
+pb = vp.ProgressBar(0,10, 0.01, c=1)
 for t in pb.range():
     newcells = []    
     for c in cells:
@@ -34,8 +34,11 @@ for t in pb.range():
             vtot += f 
         ci.addPos(vtot)
 
+    # use show() instead of render() because there can be
+    # various new actors in the scene
+    vp.show(resetcam=1)   
+    vp.camera.Azimuth(.4)   # move camera at each loop
+    vp.camera.Elevation(.01) 
     pb.print('Ncells='+str(len(cells)))
-    vp.show(resetcam=1)
-    vp.camera.Azimuth(.4) # move camera at each loop
         
-vp.show(interactive=1, q=1)
+vp.show(interactive=1)

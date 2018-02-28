@@ -1,7 +1,7 @@
 import plotter
 import numpy as np
 
-scene = plotter.vtkPlotter(title='Lorenz differential equation', axes=0)
+scene = plotter.vtkPlotter(title='Lorenz attractor', axes=0)
 scene.verbose = 0
 
 dt = 0.001

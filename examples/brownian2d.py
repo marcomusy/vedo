@@ -11,8 +11,11 @@ from __future__ import division, print_function
 import random, plotter
 import numpy as np
 
-screen_w = 800
-screen_h = 800   
+screen_w = 1200
+screen_h = 1200  
+ 
+vp = plotter.vtkPlotter(title="Brownian Motion",  
+                        screensize=(screen_w,screen_h), axes=0, verbose=0)
 
 # Constants and time step
 Nsp = 200               # Number of small spheres
@@ -31,15 +34,13 @@ Ls1 = LBox[1]-Rs
 # Start with the big sphere at the center, then put the small
 # spheres at random selected from a grid of possible positions.
 ListPos=[(0,0)]
-def arange(start,stop, step): 
-    return np.linspace(start,stop-step, int((stop-start)/step))
-PossiblePos=[(x,y) for x in arange(-LBox[0]+2*Rs,LBox[0]-2*Rs,2.2*Rs)
-             for y in arange(-LBox[1]+2*Rs,LBox[1]-2*Rs,2.2*Rs)
+PossiblePos=[(x,y) for x in vp.arange(-LBox[0]+2*Rs,LBox[0]-2*Rs,2.2*Rs)
+             for y in vp.arange(-LBox[1]+2*Rs,LBox[1]-2*Rs,2.2*Rs)
              if x*x+y*y > Rb+Rs]
              
 if Nsp > len(PossiblePos)+1: Nsp = len(PossiblePos)+1
 
-for s in xrange(Nsp-1):
+for s in range(Nsp-1):
     n = random.randint(0, len(PossiblePos)-1)
     ListPos.append(PossiblePos[n])
     del PossiblePos[n] 
@@ -53,18 +54,17 @@ Mass=[1.0]+[Ms]*(Nsp-1)
 
 # Create the initial array of velocities at random with big sphere at rest
 ListVel=[(0.,0.)]
-for s in xrange(1,Nsp):
+for s in range(1,Nsp):
     ListVel.append( (Rb*random.uniform(-1,1), Rb*random.uniform(-1,1)) )
 Vel = np.array(ListVel)
 
 
 # Create the spheres 
-vp = plotter.vtkPlotter(title="Brownian Motion", axes=0, verbose=0)
-vp.grid(s=800)
 Spheres = [vp.sphere(pos=(Pos[0][0],Pos[0][1],0), r=Radius[0], c='red')]
-for s in xrange(1,Nsp):
+for s in range(1,Nsp):
     a = vp.sphere(pos=(Pos[s][0],Pos[s][1],0), r=Radius[s], c='blue')
     Spheres.append(a)
+vp.grid(s=screen_w)
 
 
 # Auxiliary variables
@@ -91,7 +91,7 @@ for i in pb.range():
     elif Pos[0,1] >= Lb1:
         Pos[0,1] = Lb1
         Vel[0,1] = -Vel[0,1]
-    for s in xrange(1,Nsp):
+    for s in range(1,Nsp):
         if Pos[s,0] <=  -Ls0:
             Pos[s,0] = -Ls0
             Vel[s,0] = -Vel[s,0]
@@ -129,7 +129,7 @@ for i in pb.range():
         Vel[s2] -=  x1*DV0
 
     # Update the location of the spheres
-    for s in xrange(Nsp): Spheres[s].pos([Pos[s][0],Pos[s][1],0])
+    for s in range(Nsp): Spheres[s].pos([Pos[s][0],Pos[s][1],0])
         
     if not int(i)%10:                  # every ten steps:
         rsp = [Pos[0][0],Pos[0][1],0]

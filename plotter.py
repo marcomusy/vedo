@@ -31,6 +31,7 @@ from vtkutils import closestPoint, isInside, insidePoints, getMaxOfBounds
 from vtkutils import normalize, clone, decimate, rotate, shrink, boolActors
 from vtkutils import getCM, getVolume, getArea, write, cutterWidget
 from vtkutils import ProgressBar, makePolyData
+from vtkutils import arange, vector, mag, norm #numpy shortcuts
 
 
 #########################################################################
@@ -56,10 +57,12 @@ class vtkPlotter:
             # [vtk,vtu,vts,vtp,ply,obj,stl,xml,pcd,xyz,txt,byu,g]
         ''')
     def _tips(self):
-        msg  = 'vtkPlotter '+__version__
-        msg += ', vtk '+vtk.vtkVersion().GetVTKVersion()
-        msg += " ----------------------- Press: \n"
-        msg += "\tm   to minimise opacity of selected actor\n"
+        import sys
+        msg  = '------- vtkPlotter '+__version__
+        msg += ', vtk '+vtk.vtkVersion().GetVTKVersion()+', python '
+        msg += str(sys.version_info[0])+'.'+str(sys.version_info[1])        
+        msg += " -----------\n"
+        msg += "Press:\tm   to minimise opacity of selected actor\n"
         msg += "\t.,  to increase/reduce opacity\n"
         msg += "\t/   to maximize opacity of selected actor\n"
         msg += "\tw/s to toggle wireframe/solid style\n"
@@ -75,9 +78,6 @@ class vtkPlotter:
         msg += "\tq   to continue\n"
         msg += "\te   to close current window\n"
         msg += "\tEsc to abort and exit\n"
-        msg += "\tCtrl-mouse   to rotate scene\n"
-        msg += "\tShift-mouse  to shift scene\n"
-        msg += "\tRight-mouse  click to zoom in/out\n"
         msg += "---------------------------------------------------------"
         printc(msg, c='blue')
 
@@ -163,6 +163,10 @@ class vtkPlotter:
         self.cutterWidget = vtkutils.cutterWidget
         self.ProgressBar = vtkutils.ProgressBar
         self.makePolyData = vtkutils.makePolyData
+        self.arange = vtkutils.arange
+        self.vector = vtkutils.vector
+        self.mag = vtkutils.mag
+        self.norm = vtkutils.norm
   
         if N:                # N = number of renderers. Find out the best
             if shape!=(1,1): # arrangement based on minimum nr. of empty renderers
@@ -342,9 +346,6 @@ class vtkPlotter:
             printc(('Warning in getActors: unexpected input type',obj), 1)
         return []
 
-    def vector(self, x,y,z=None):
-        if z is None: return np.array([x,y,0])
-        return np.array([x,y,z])
 
     def moveCamera(self, camstart, camstop, fraction):
         '''
@@ -742,11 +743,11 @@ class vtkPlotter:
         return actor
         
 
-    def arrow(self, start=[0,0,0], end=[1,1,1], axis=None,
+    def arrow(self, startPoint=[0,0,0], endPoint=[1,1,1], axis=None,
               c='r', alpha=1, legend=None, texture=None, res=12):
         if axis:
-            end = start+np.array(axis)
-        axis = np.array(end) - np.array(start)
+            endPoint = startPoint+np.array(axis)
+        axis = np.array(endPoint) - np.array(startPoint)
         length = np.linalg.norm(axis)
         if not length: return None
         axis = axis/length
@@ -757,18 +758,57 @@ class vtkPlotter:
         arr.SetTipResolution(res)
         arr.SetTipRadius(0.06)
         arr.Update()
-        actor = makeActor(arr.GetOutput(),
+        t = vtk.vtkTransform()
+        t.PostMultiply()
+        t.RotateZ(phi*57.3)
+        t.RotateY(theta*57.3)
+        t.RotateY(-90) #put it along Z
+        t.Scale(length,length,length)
+        tf = vtk.vtkTransformPolyDataFilter()
+        setInput(tf, arr.GetOutput())
+        tf.SetTransform(t)
+        tf.Update()
+        
+        actor = makeActor(tf.GetOutput(),
                           c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
-        actor.SetPosition(start)
-        actor.RotateZ(phi*57.3)
-        actor.RotateY(theta*57.3)
-        actor.SetScale(length,length,length)
-        actor.RotateY(-90) #put it along Z
+        actor.SetPosition(startPoint)
         actor.DragableOff()
         actor.PickableOff()
         self.actors.append(actor)
         return actor
+
+
+    def helix(self, startPoint=[0,0,0], endPoint=[1,1,1], coils=10, radius=1,
+              lw=4, c='grey', alpha=1, legend=None):
+        '''
+        Creates a spring actor.
+        '''
+        diff = endPoint-np.array(startPoint)
+        length = np.linalg.norm(diff)
+        thickness = max(length,radius)*2*lw
+        trange = np.linspace(0, length, num=10*coils*length)
+        om = 2*3.1415*coils/length
+        pts = [ [radius*np.cos(om*t),radius*np.sin(om*t),t] for t in trange ]
+        endPoint = endPoint-np.array(startPoint)
+        endPoint = endPoint/np.linalg.norm(endPoint)
+        theta = np.arccos(endPoint[2])
+        phi   = np.arctan2(endPoint[1], endPoint[0])
+        sp = makePolyData(pts, addLines=0)
+        t = vtk.vtkTransform()
+        t.RotateZ(phi*57.3)
+        t.RotateY(theta*57.3)
+        tf = vtk.vtkTransformPolyDataFilter()
+        setInput(tf, sp)
+        tf.SetTransform(t)
+        tf.Update()
+        pts = getCoordinates(tf.GetOutput()).tolist()
+        pts = [ [0,0,0] ] + pts + [ diff.tolist() ]
+        actor = self.spline(pts, 0, 2, thickness, c, alpha, False, legend)
+        actor.GetProperty().SetInterpolationToPhong()
+        actor.SetPosition(startPoint)
+        if legend: setattr(actor, 'legend', legend)
+        return self.lastActor()
 
 
     def cylinder(self, pos=[0,0,0], radius=1, height=1, axis=[0,0,1],
@@ -966,33 +1006,6 @@ class vtkPlotter:
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(pos)
         self.actors.append(actor)
-        return self.lastActor()
-
-
-    def helix(self, pos=[0,0,0], axis=[0,0,1], coils=10, radius=1,
-              lw=4, c='grey', alpha=1, legend=None):
-        length = np.linalg.norm(axis-np.array(pos))
-        thickness = max(length,radius)*2*lw
-        trange = np.linspace(0, length, num=10*coils*length)
-        om = 2*3.1415*coils/length
-        pts = [ [radius*np.cos(om*t),radius*np.sin(om*t),t] for t in trange ]
-        axis = axis-np.array(pos)
-        axis  = axis/np.linalg.norm(axis)
-        theta = np.arccos(axis[2])
-        phi   = np.arctan2(axis[1], axis[0])
-        sp = makePolyData(pts, addLines=0)
-        t = vtk.vtkTransform()
-        t.RotateZ(phi*57.3)
-        t.RotateY(theta*57.3)
-        tf = vtk.vtkTransformPolyDataFilter()
-        setInput(tf, sp)
-        tf.SetTransform(t)
-        tf.Update()
-        pts = getCoordinates(tf.GetOutput())
-        actor = self.spline(pts, 0, 2, thickness, c, alpha, False, legend)
-        actor.GetProperty().SetInterpolationToPhong()
-        actor.SetPosition(pos)
-        if legend: setattr(actor, 'legend', legend)
         return self.lastActor()
 
 
@@ -1993,18 +2006,18 @@ class vtkPlotter:
         import os
         try:
             import cv2 
+            fourcc = cv2.cv.CV_FOURCC(*self._videoformat)
         except:
             printc("openVideo: cv2 not installed? Trying ffmpeg..",1)
             self._videoname = self._videoname.split('.')[0]+'.mp4'
-            out = os.system("ffmpeg -r "+self._fps
-                            +" -i /tmp/vp/%01d.png -y /dev/null "+self._videoname)
+            out = os.system("ffmpeg -r "+str(self._fps)
+                            +" -i /tmp/vp/%01d.png  "+self._videoname)
             if out: printc("ffmpeg returning error",1)
             return
         if self._videoduration:
             self._fps = len(self._frames)/float(self._videoduration)
             printc(("Recalculated video FPS to", round(self._fps,3)), 'yellow')
         else: self._fps = int(self._fps)
-        fourcc = cv2.cv.CV_FOURCC(*self._videoformat)
         vid = None
         size = None
         for image in self._frames:
