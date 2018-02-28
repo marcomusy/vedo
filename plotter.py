@@ -2008,7 +2008,7 @@ class vtkPlotter:
             import cv2 
             fourcc = cv2.cv.CV_FOURCC(*self._videoformat)
         except:
-            printc("openVideo: cv2 not installed? Trying ffmpeg..",1)
+            printc("releaseVideo: cv2 not installed? Trying ffmpeg..",1)
             self._videoname = self._videoname.split('.')[0]+'.mp4'
             out = os.system("ffmpeg -r "+str(self._fps)
                             +" -i /tmp/vp/%01d.png  "+self._videoname)
