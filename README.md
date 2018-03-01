@@ -19,7 +19,7 @@ and add these lines to your *.bashrc*:
 export PYTHONPATH=$HOME/software/vtkPlotter:$PYTHONPATH
 alias plotter='$HOME/software/vtkPlotter/plotter.py'
 ```
-## Example usage:<br />
+## Example usage and Tutorial:<br />
 
 Simple command line usage:
 ```bash
@@ -85,9 +85,9 @@ vp.show()
 <br />
 
 
-Plot the function f(x,y) = sin(3*x)*log(x-y)/3 (more examples in examples/fxy.py).
+Plot the function *f(x,y) = sin(3*x)*log(x-y)/3* (more examples in *examples/fxy.py*).
 <br />
-Red points in the 3D plot indicate where the function is not a real number:
+Red dots in the plot indicate the (x,y) where the function *f* is not a real number:
 ```python
 vp = plotter.vtkPlotter()
 vp.fxy('sin(3*x)*log(x-y)/3', texture='paper')

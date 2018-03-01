@@ -11,11 +11,11 @@ from __future__ import division, print_function
 import random, plotter
 import numpy as np
 
-screen_w = 1200
-screen_h = 1200  
+screen_w = 600
+screen_h = 600  
  
 vp = plotter.vtkPlotter(title="Brownian Motion",  
-                        screensize=(screen_w,screen_h), axes=0, verbose=0)
+                        size=(screen_w,screen_h), axes=0, verbose=0)
 
 # Constants and time step
 Nsp = 200               # Number of small spheres

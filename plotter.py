@@ -5,7 +5,7 @@
 from __future__ import division, print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "6.7" 
+__version__ = "6.8" 
 __maintainer__ = "M. Musy, G. Dalmasso"
 __email__   = "marco.musy@embl.es"
 __status__  = "dev"
@@ -16,7 +16,7 @@ __website__ = "https://github.com/marcomusy/vtkPlotter"
 import os, time, vtk
 import numpy as np
 from math import *
-from glob import glob
+import types
 
 from vtkcolors import getColor
 import vtkevents
@@ -37,26 +37,7 @@ from vtkutils import arange, vector, mag, norm #numpy shortcuts
 #########################################################################
 class vtkPlotter:
 
-    def help(self):
-        printc("""
-        A python helper class to easily draw VTK tridimensional objects.
-        Please follow instructions at:
-        https://github.com/marcomusy/vtkPlotter\n""", 1)
-        print ("vtkPlotter version:", __version__)
-        print ("VTK version:", vtk.vtkVersion().GetVTKVersion())
-        try:
-            import platform
-            print ("Python version:", platform.python_version())
-        except: pass
-        print('Useful commands on graphic window:')
-        self._tips()
-        print( '''
-        Command line usage:
-            > plotter files*.vtk
-            # valid file formats:
-            # [vtk,vtu,vts,vtp,ply,obj,stl,xml,pcd,xyz,txt,byu,g]
-        ''')
-    def _tips(self):
+    def tips(self):
         import sys
         msg  = '------- vtkPlotter '+__version__
         msg += ', vtk '+vtk.vtkVersion().GetVTKVersion()+', python '
@@ -82,30 +63,36 @@ class vtkPlotter:
         printc(msg, c='blue')
 
 
-    def __init__(self, shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='vtkPlotter',
-                bg='w', bg2=None, axes=True, verbose=True, interactive=True):
+    def __init__(self, shape=(1,1), N=None, size='auto', maxscreensize=(1100,1800), 
+                 title='vtkPlotter', bg='w', bg2=None, axes=True, projection=False,
+                 commoncam=True, verbose=True, interactive=True):
         """
         size = size of the rendering window. If 'auto', guess it based on screensize.
         N    = number of desired renderers arranged in a grid automatically.
         shape= shape of the grid of renderers in format (rows, columns).
                Ignored if N is specified.
+        maxscreensize = physical size of the monitor screen
         bg   = background color
         bg2  = background color of a gradient towards the top
-        interactive = if True will stop after show() to allow interaction w/ window
+        axes = show cartesian axes
+        projection,  if True fugue point is set at infinity (no perspective effects)
+        commoncam,   if False each renderer will have an independent vtkCamera
+        interactive, if True will stop after show() to allow interaction w/ window
         """
         self.verbose    = verbose
         self.actors     = []    # list of actors to be shown
         self.clickedActor = None# holds the actor that has been clicked
         self.renderer   = None  # current renderer
         self.renderers  = []    # list of renderers
+        self.size       = [size[1],size[0]] # size of the rendering window
         self.interactive= interactive # allows to interact with renderer
         self.axes       = axes  # show or hide axes
         self.xtitle     = 'x'   # x axis label and units
         self.ytitle     = 'y'   # y axis label and units
         self.ztitle     = 'z'   # z axis label and units
         self.camera     = None  # current vtkCamera
-        self.commoncam  = True  # share the same camera in renderers
-        self.projection = 0     # value of the ParallelProjection instance variable
+        self.commoncam  = commoncam  # share the same camera in renderers
+        self.projection = projection # ParallelProjection On or Off
         self.flat       = True  # sets interpolation style to 'flat'
         self.phong      = False # sets interpolation style to 'phong'
         self.gouraud    = False # sets interpolation style to 'gouraud'
@@ -171,8 +158,8 @@ class vtkPlotter:
         if N:                # N = number of renderers. Find out the best
             if shape!=(1,1): # arrangement based on minimum nr. of empty renderers
                 printc('Warning: having set N, #renderers, shape is ignored.)', c=1)
-            x = float(screensize[0])
-            y = float(screensize[1])
+            x = float(maxscreensize[0])
+            y = float(maxscreensize[1])
             nx= int(np.sqrt(int(N*x/y)+1))
             ny= int(np.sqrt(int(N*y/x)+1))
             lm = [(nx,ny), (nx,ny+1), (nx-1,ny), (nx+1,ny), (nx,ny-1)]
@@ -185,9 +172,9 @@ class vtkPlotter:
                   ind = i
                   minl = l
             shape = lm[ind]
-            self.size = screensize
-        elif size=='auto':        # figure out reasonable window size
-            maxs = screensize
+            self.size = maxscreensize
+        elif size=='auto':        # figure out a reasonable window size
+            maxs = maxscreensize
             xs = maxs[0]/2.*shape[0]
             ys = maxs[0]/2.*shape[1]
             if xs>maxs[0]:  # shrink
@@ -232,6 +219,25 @@ class vtkPlotter:
         vsty = vtk.vtkInteractorStyleTrackballCamera()
         self.interactor.SetInteractorStyle(vsty)
 
+    def help(self):
+        printc("""
+        A python helper class to easily draw VTK tridimensional objects.
+        Please follow instructions at:
+        https://github.com/marcomusy/vtkPlotter\n""", 1)
+        print ("vtkPlotter version:", __version__)
+        print ("VTK version:", vtk.vtkVersion().GetVTKVersion())
+        try:
+            import platform
+            print ("Python version:", platform.python_version())
+        except: pass
+        print('Useful commands on graphic window:')
+        self.tips()
+        print( '''
+        Command line usage:
+            > plotter files*.vtk
+            # valid file formats:
+            # [vtk,vtu,vts,vtp,ply,obj,stl,xml,pcd,xyz,txt,byu,g]
+        ''')
 
     ############################################# LOADER
     def load(self, inputobj, c='gold', alpha=0.2,
@@ -261,7 +267,8 @@ class vtkPlotter:
         if isinstance(inputobj, list):
             flist = inputobj
         else:
-            flist = sorted(glob(inputobj))
+            import glob
+            flist = sorted(glob.glob(inputobj))
         for fod in flist:
             if os.path.isfile(fod): 
                 a = self._loadFile(fod, c, alpha, wire, bc, edges, legend, texture,
@@ -520,6 +527,17 @@ class vtkPlotter:
         if dotted:
             actor.GetProperty().SetLineStipplePattern(0xf0f0)
             actor.GetProperty().SetLineStippleRepeatFactor(1)
+        def _faxis(self):
+            M = self.GetMatrix()
+            t = vtk.vtkTransform()
+            t.SetMatrix(M)            
+            vpts = self.GetMapper().GetInput().GetPoints()
+            pbase =  vpts.GetPoint(0)
+            ptip  =  vpts.GetPoint(vpts.GetNumberOfPoints()-1)
+            tbase = t.TransformPoint(pbase)
+            ttip  = t.TransformPoint(ptip)
+            return np.array(tbase), np.array(ttip)
+        actor.axis = types.MethodType( _faxis, actor )
         self.actors.append(actor)
         return actor
 
@@ -744,7 +762,7 @@ class vtkPlotter:
         
 
     def arrow(self, startPoint=[0,0,0], endPoint=[1,1,1], axis=None,
-              c='r', alpha=1, legend=None, texture=None, res=12):
+              c='r', alpha=1, legend=None, texture=None):
         if axis:
             endPoint = startPoint+np.array(axis)
         axis = np.array(endPoint) - np.array(startPoint)
@@ -754,12 +772,11 @@ class vtkPlotter:
         theta = np.arccos(axis[2])
         phi   = np.arctan2(axis[1], axis[0])
         arr = vtk.vtkArrowSource()
-        arr.SetShaftResolution(res)
-        arr.SetTipResolution(res)
+        arr.SetShaftResolution(12) #dont change
+        arr.SetTipResolution(12)
         arr.SetTipRadius(0.06)
         arr.Update()
         t = vtk.vtkTransform()
-        t.PostMultiply()
         t.RotateZ(phi*57.3)
         t.RotateY(theta*57.3)
         t.RotateY(-90) #put it along Z
@@ -775,26 +792,39 @@ class vtkPlotter:
         actor.SetPosition(startPoint)
         actor.DragableOff()
         actor.PickableOff()
+        def _faxis(self):
+            M = self.GetMatrix()
+            t = vtk.vtkTransform()
+            t.SetMatrix(M)            
+            vpts = self.GetMapper().GetInput().GetPoints()
+            pbase1 =  vpts.GetPoint(18) #43 is the opposite one at the base
+            pbase2 =  vpts.GetPoint(43) 
+            ptip  =  vpts.GetPoint(36)
+            tbase1 = t.TransformPoint(pbase1)
+            tbase2 = t.TransformPoint(pbase2)
+            ttip  = t.TransformPoint(ptip)
+            return (np.array(tbase1)+tbase2)/2, np.array(ttip)
+        actor.axis = types.MethodType( _faxis, actor )
         self.actors.append(actor)
         return actor
 
 
-    def helix(self, startPoint=[0,0,0], endPoint=[1,1,1], coils=10, radius=1,
+    def helix(self, startPoint=[0,0,0], endPoint=[1,1,1], coils=12, radius=1,
               lw=4, c='grey', alpha=1, legend=None):
         '''
         Creates a spring actor.
         '''
         diff = endPoint-np.array(startPoint)
         length = np.linalg.norm(diff)
-        thickness = max(length,radius)*2*lw
-        trange = np.linspace(0, length, num=10*coils*length)
-        om = 2*3.1415*coils/length
+        trange = np.linspace(0, length, num=50*coils)
+        om = 6.283*(coils-.5)/length
         pts = [ [radius*np.cos(om*t),radius*np.sin(om*t),t] for t in trange ]
+        pts = [ [0,0,0] ] + pts + [ [0, 0, length] ]
         endPoint = endPoint-np.array(startPoint)
         endPoint = endPoint/np.linalg.norm(endPoint)
         theta = np.arccos(endPoint[2])
         phi   = np.arctan2(endPoint[1], endPoint[0])
-        sp = makePolyData(pts, addLines=0)
+        sp = makePolyData(pts)
         t = vtk.vtkTransform()
         t.RotateZ(phi*57.3)
         t.RotateY(theta*57.3)
@@ -802,19 +832,36 @@ class vtkPlotter:
         setInput(tf, sp)
         tf.SetTransform(t)
         tf.Update()
-        pts = getCoordinates(tf.GetOutput()).tolist()
-        pts = [ [0,0,0] ] + pts + [ diff.tolist() ]
-        actor = self.spline(pts, 0, 2, thickness, c, alpha, False, legend)
-        actor.GetProperty().SetInterpolationToPhong()
+        actor = makeActor(tf.GetOutput(), c=c, alpha=alpha, legend=legend)
         actor.SetPosition(startPoint)
-        if legend: setattr(actor, 'legend', legend)
-        return self.lastActor()
+        actor.GetProperty().SetLineWidth(lw)
+        #set a method to retrieve the base and tip of actor
+        def _faxis(self):
+            M = self.GetMatrix()
+            t = vtk.vtkTransform()
+            t.SetMatrix(M)            
+            vpts = self.GetMapper().GetInput().GetPoints()
+            pbase =  vpts.GetPoint(0)
+            ptip  =  vpts.GetPoint(vpts.GetNumberOfPoints()-1)
+            tbase = t.TransformPoint(pbase)
+            ttip  = t.TransformPoint(ptip)
+            return np.array(tbase), np.array(ttip)
+        actor.axis = types.MethodType( _faxis, actor )
+        self.actors.append(actor)
+        return actor
 
 
     def cylinder(self, pos=[0,0,0], radius=1, height=1, axis=[0,0,1],
-                 c='teal', alpha=1, legend=None, texture=None, res=24):
+                 c='teal', alpha=1, legend=None, texture=None):
+        
+        if isinstance(pos[0], list): # assume user is passing pos=[base, top]
+            base = np.array(pos[0])
+            top  = np.array(pos[1])
+            pos = (base+top)/2
+            height = np.linalg.norm(top-base)
+            axis = top-base
         cyl = vtk.vtkCylinderSource()
-        cyl.SetResolution(res)
+        cyl.SetResolution(24)
         cyl.SetRadius(radius)
         cyl.SetHeight(height)
         cyl.Update()
@@ -836,6 +883,21 @@ class vtkPlotter:
         actor = makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(pos)
+        def _faxis(self):
+            M = self.GetMatrix()
+            t = vtk.vtkTransform()
+            t.SetMatrix(M)            
+            vpts = self.GetMapper().GetInput().GetPoints()
+            pbase1 =  vpts.GetPoint(2) 
+            pbase2 =  vpts.GetPoint(22) #is the opposite one at the base
+            ptip1  =  vpts.GetPoint(3)
+            ptip2  =  vpts.GetPoint(23) #is the opposite one at the top 
+            tbase1 = t.TransformPoint(pbase1)
+            tbase2 = t.TransformPoint(pbase2)
+            ttip1  = t.TransformPoint(ptip1)
+            ttip2  = t.TransformPoint(ptip2)
+            return (np.array(tbase1)+tbase2)/2, (np.array(ttip1)+ttip2)/2
+        actor.axis = types.MethodType( _faxis, actor )
         self.actors.append(actor)
         return actor
 
@@ -930,6 +992,19 @@ class vtkPlotter:
         actor.SetPosition(pos)
         actor.DragableOff()
         actor.PickableOff()
+        def _faxis(self):
+            M = self.GetMatrix()
+            t = vtk.vtkTransform()
+            t.SetMatrix(M)            
+            vpts = self.GetMapper().GetInput().GetPoints()
+            pbase1 = vpts.GetPoint(0) #43 is the opposite one at the base
+            pbase2 = vpts.GetPoint(int(res/2)) 
+            ptip   = vpts.GetPoint(res)
+            tbase1 = t.TransformPoint(pbase1)
+            tbase2 = t.TransformPoint(pbase2)
+            ttip   = t.TransformPoint(ptip)
+            return (np.array(tbase1)+tbase2)/2, np.array(ttip)
+        actor.axis = types.MethodType( _faxis, actor )
         self.actors.append(actor)
         return actor
 
@@ -1093,18 +1168,17 @@ class vtkPlotter:
         for i in range(Nout): lines.InsertCellPoint(i)
         profileData.SetPoints(ppoints)
         profileData.SetLines(lines)
-        acttube = makeActor(profileData, c=c, alpha=alpha, legend=legend)
-        acttube.GetProperty().SetLineWidth(s)
-        acttube.GetProperty().SetInterpolationToPhong()
+        actline = makeActor(profileData, c=c, alpha=alpha, legend=legend)
+        actline.GetProperty().SetLineWidth(s)
         if nodes:
             actnodes = self.points(points, r=s*1.5, c=c, alpha=alpha)
             self.actors.pop()
-            ass = makeAssembly([acttube, actnodes], legend=legend)
+            ass = makeAssembly([actline, actnodes], legend=legend)
             self.actors.append(ass)
             return ass
         else:
-            self.actors.append(acttube)
-            return acttube
+            self.actors.append(actline)
+            return actline
 
 
     def text(self, txt, pos=(0,0,0), s=1,
@@ -1455,7 +1529,6 @@ class vtkPlotter:
     def fitLine(self, points, c='orange', lw=1, alpha=0.6, legend=None):
         '''
         Fits a line through points.
-        tube = show a rough estimate of error band at 2 sigma level
         Extra info is stored in vp.results['slope','center','variances']
         '''
         data = np.array(points)
@@ -1514,12 +1587,12 @@ class vtkPlotter:
             printc("Error in ellipsoid(): scipy not installed. Skip.",1)
             return None
         P = np.array(points, ndmin=2, dtype=float)
-        cov = np.cov(P, rowvar=0)    # covariance matrix
-        U, s, R = np.linalg.svd(cov) # singular value decomposition
+        cov = np.cov(P, rowvar=0)      # covariance matrix
+        U, s, R = np.linalg.svd(cov)   # singular value decomposition
         p, n = s.size, P.shape[0]
         fppf = f.ppf(pvalue, p, n-p)*(n-1)*p*(n+1)/n/(n-p) # f % point function
         va,vb,vc = np.sqrt(s*fppf)*2   # semi-axes (largest first)
-        center = np.mean(P, axis=0)  # centroid of the hyperellipsoid
+        center = np.mean(P, axis=0)    # centroid of the hyperellipsoid
         self.result['sphericity'] = (((va-vb)/(va+vb))**2
                                    + ((va-vc)/(va+vc))**2
                                    + ((vb-vc)/(vb+vc))**2 )/3. *4.
@@ -1716,7 +1789,7 @@ class vtkPlotter:
 
 
     def _draw_ruler(self):
-        #draws a simple ruler at the bottom
+        #draws a simple ruler at the bottom of the window
         ls = vtk.vtkLegendScaleActor()
         ls.RightAxisVisibilityOff()
         ls.TopAxisVisibilityOff()
@@ -1891,7 +1964,7 @@ class vtkPlotter:
 #            self.interactor.AddObserver('TimerEvent', stopren)
 #            self.interactor.CreateRepeatingTimer(10)
 #            self.interactor.SetTimerDuration(10) #millisec
-            if self.verbose and self.interactive: self._tips()
+            if self.verbose and self.interactive: self.tips()
 
         self.interactor.Render()
 
@@ -1908,6 +1981,7 @@ class vtkPlotter:
             self.addActor(addactor)
         if not self.initializedPlotter:
             before = bool(self.interactive)
+            self.verbose = False
             self.show(interactive=0)
             self.interactive = before
             return
@@ -1975,14 +2049,15 @@ class vtkPlotter:
         pngwriter.Write()
     
     def openVideo(self, name='movie.avi', fps=12, duration=None, format="XVID"):
+        import glob
         self._videoname = name
         self._videoformat = format
         self._videoduration = duration
         self._fps = float(fps) # if duration is given, will be recalculated
         self._frames = []
         if not os.path.exists('/tmp/vp'): os.mkdir('/tmp/vp')
-        for fl in glob("/tmp/vp/*.png"): os.remove(fl)
-        printc(("Video", name, "is open. Press q to continue."), 'm')
+        for fl in glob.glob("/tmp/vp/*.png"): os.remove(fl)
+        printc(("Video", name, "is open.."), 'm')
         
     def addFrameVideo(self):
         if not self._videoname: return

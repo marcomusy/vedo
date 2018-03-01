@@ -211,6 +211,13 @@ def assignConvenienceMethods(actor, legend):
     def _fgpoly(self): return getPolyData(self)
     actor.getPolyData = types.MethodType( _fgpoly, actor )
 
+    def _fcoords(self): return getCoordinates(self)
+    actor.getCoordinates = types.MethodType( _fcoords, actor )
+
+    def _fstretch(self, startpt, endpt): 
+        return stretch(self, startpt, endpt)
+    actor.stretch = types.MethodType( _fstretch, actor)
+
 
 def assignPhysicsMethods(actor):
     
@@ -222,9 +229,7 @@ def assignPhysicsMethods(actor):
     actor.pos = types.MethodType( _fpos, actor )
 
     def _faddpos(self, dp): 
-        _pos = np.array(self.GetPosition())
-        _pos += np.array(dp)        
-        self.SetPosition(_pos )
+        self.SetPosition(np.array(self.GetPosition()) +dp )
         return self
     actor.addpos = types.MethodType( _faddpos, actor )
 
@@ -285,12 +290,6 @@ def assignPhysicsMethods(actor):
         self._mass = m
     actor.mass = types.MethodType( _fmass, actor )
 
-    setattr(actor, '_axis',  np.array([0,0,1]))  # axis
-    def _faxis(self, a=None): 
-        if a is None: return self._axis
-        self._axis = a
-    actor.axis = types.MethodType( _faxis, actor )
-
     setattr(actor, '_omega', 0.0)                # angular velocity
     def _fomega(self, o=None): 
         if o is None: return self._omega
@@ -318,7 +317,7 @@ def clone(actor, c='gold', alpha=None, wire=False, bc=None,
     polyCopy = vtk.vtkPolyData()
     polyCopy.DeepCopy(poly)
     if not legend is None and hasattr(actor.legend): 
-        legend = actor.legend+' copy'
+        legend = actor.legend
         
     if alpha is None: alpha = actor.GetProperty().GetOpacity()
     if hasattr(actor, 'texture'): texture = actor.texture
@@ -351,16 +350,13 @@ def normalize(actor, s=1): # N.B. input argument gets modified
     return actor  # return same obj for concatenation
 
 
-def rotate(actor, angle, axis, aroundCM=True, rad=False): 
+def rotate(actor, angle, axis, point=[0,0,0], rad=False): 
 
     if rad: angle *= 57.3
-    cm= np.array([0,0,0])
-    if aroundCM is True: cm = getCM(actor)
-    elif isinstance(aroundCM, list): cm = np.array(aroundCM)
-    
-    actor.AddPosition(cm)    
+#    cm= np.array(point)     ## point not working ??
+#    actor.SetPosition(-cm)    
     actor.RotateWXYZ(angle, axis[0], axis[1], axis[2] )
-    actor.AddPosition(-cm)
+#    actor.SetPosition(cm)
     return actor   # return same obj for concatenation
 
 
@@ -398,18 +394,30 @@ def shrink(actor, fraction=0.85): # N.B. input argument is modified
     return actor   # return same obj for concatenation
 
 
-###########################
-def stretch(actor, p1): 
-    pos = actor.GetPosition()
-    x0 = actor.GetBounds()
-    print (pos)
-    print (actor.GetMatrix())
-    fx = (p1[0]-pos[0])/(x0[1]-pos[0])
-    fy = (p1[1]-pos[1])/(x0[3]-pos[1])
-#    fz = (p1[2]-pos[2])/(x0[5]-pos[2])
-    actor.SetScale(fx, fy, 1)    
+def stretch(actor, q1, q2): 
+    TI = vtk.vtkTransform()
+    actor.SetUserMatrix(TI.GetMatrix()) # reset
+
+    p1, p2 = actor.axis()
+    q1,q2,z = np.array(q1), np.array(q2), np.array([0,0,1])
+    plength = np.linalg.norm(p2-p1)
+    qlength = np.linalg.norm(q2-q1)
+    T = vtk.vtkTransform()
+    T.PostMultiply()
+    T.Translate(-p1)
+    cosa = np.dot(p2-p1, z)/plength
+    n  = np.cross(p2-p1, z)
+    T.RotateWXYZ(np.arccos(cosa)*57.3, n)
+    
+    T.Scale(1,1, qlength/plength)
+
+    cosa = np.dot(q2-q1, z)/qlength
+    n  = np.cross(q2-q1, z)
+    T.RotateWXYZ(-np.arccos(cosa)*57.3, n)
+    T.Translate(q1)
+    
+    actor.SetUserMatrix(T.GetMatrix())
     return actor
-###########################
 
 
 def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
