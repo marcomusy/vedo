@@ -17,7 +17,7 @@ a1.GetProperty().SetColor(0,1,0)
 # rigid=1 forces the relative scale to remain unchanged
 a1b = vp.align(a1, a2, rigid=1) 
 
-ps1b = plotter.getCoordinates(a1b) # coordinates of actor a1b
+ps1b = a1b.coordinates() # coordinates of actor a1b
 # for each point in a1b draw an arrow towards the closest point on a2
 for p in ps1b: 
     vp.arrow(p, plotter.closestPoint(a2, p))

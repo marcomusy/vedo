@@ -188,7 +188,7 @@ def light(pos, fp, deg=25, diffuse='y', ambient='r', specular='b', showsource=Fa
 #
 def point(pos, c='b', r=10, alpha=1, legend=None)
 def points(plist, c='b', tags=[], r=10, alpha=1, legend=None)
-def line(p0, p1, lw=1, dotted=False, c='r', alpha=1, legend=None)
+def line(p0, p1, lw=1, tube=False, dotted=False, c='r', alpha=1, legend=None)
 def sphere(pos, r=1, c='r', alpha=1, legend=None, texture=None)
 def cube(pt, r=1, c='g', alpha=1, legend=None, texture=None)
 def plane(pos, normal=(0,0,1), s=10, c='g', bc='dg', lw=1, alpha=1, texture=None)
@@ -198,7 +198,7 @@ def polygon(pos, normal=(0,0,1), nsides=6, r=1,
 def disc(pos, normal=[0,0,1], r1=0.5, r2=1, 
             c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, res=12)
 def arrow(startPoint, endPoint, c='r', alpha=1, legend=None, texture=None, res=12)
-def helix(startPoint, endPoint, coils=6, radius=1, lw=1, c='grey', alpha=1, legend=None, texture=None)
+def helix(startPoint, endPoint, coils=12, radius=1, thickness=1, c='grey', alpha=1, legend=None, texture=None)
 def cylinder(pos, radius, height, axis=[1,1,1], c='teal', alpha=1, legend=None, texture=None, res=24)
 def octahedron(pos, s=1, axis=(0,0,1), c='g', alpha=1, wire=False, legend=None, texture=None)
 def cone(pos, radius, height, axis=[1,1,1], c='g', alpha=1, legend=None, texture=None)

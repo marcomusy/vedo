@@ -18,7 +18,8 @@ xr = vp.vector(l_rest, 0, 0)
 vp.box(pos=(0,-0.1,0),   length=2.0, width=0.02, height=0.5)  #surface
 vp.box(pos=(-.82,.15,0), length=.04, width=0.50, height=0.3)  #wall
 block  = vp.cube(pos=x, length=.2, c='t')
-spring = vp.helix([-0.8,0,0], x, coils=25, radius=0.08, lw=2, c='grey')
+spring = vp.helix([-0.8,0,0], x, radius=0.06, thickness=.01, 
+                  coils=25, texture='metal1')
 
 pb = vp.ProgressBar(0,500, c='r')
 for i in pb.range(): 
@@ -33,7 +34,7 @@ for i in pb.range():
     vp.camera.Azimuth(.1)
     vp.camera.Elevation(.1)
     vp.render(rate=1000)
-    pb.print('F='+str(F[0]))
+    pb.print('Fx='+str(F[0]))
 
 vp.show(interactive=1)
  

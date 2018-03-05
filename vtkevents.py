@@ -24,7 +24,8 @@ def _mouseleft(vp, obj, event):
     clickedActor = picker.GetActor()
     if not clickedActor: 
         clickedActor = picker.GetAssembly()
-    vp.picked3d = picker.GetPickPosition()    
+    vp.picked3d = picker.GetPickPosition()
+    vp.justremoved = None
         
     if vp.verbose:
         if len(vp.renderers)>1 or clickedr>0 and vp.clickedr != clickedr:
@@ -51,7 +52,7 @@ def _mouseleft(vp, obj, event):
                 ut.printc(('-> assembly',indx+':',clickedActor.legend,cn), end=' ')
             elif indx:
                 ut.printc(('-> actor', indx+':', leg, cn), end=' ')
-            ut.printc('N='+str(ut.getPolyData(clickedActor).GetNumberOfPoints()), end='')
+            ut.printc('N='+str(ut.polydata(clickedActor).GetNumberOfPoints()), end='')
             px,py,pz = vp.picked3d
             px,py,pz = str(round(px,1)), str(round(py,1)), str(round(pz,1))
             ut.printc(', p=('+px+','+py+','+pz+')')
@@ -97,18 +98,6 @@ def _keypress(vp, obj, event):
         print ('cam.SetParallelScale(',round(cam.GetParallelScale(),3),')')
         print ('cam.SetViewUp(', [round(e,3) for e in cam.GetViewUp()],')\n')
         return
-
-#    elif key == "i":
-#        ut.printc('Actor info ==============================:', c=6, bold=0)
-#        ut.printc('Camera info =============================:', c=6, bold=0)
-#        cam = vp.renderer.GetActiveCamera()
-#        print ('\nfrom vtk import vtkCamera ### example code')
-#        print ('cam = vtkCamera()')
-#        print ('cam.SetPosition(',  [round(e,2) for e in cam.GetPosition()],  ')')
-#        print ('cam.SetFocalPoint(',[round(e,2) for e in cam.GetFocalPoint()],')')
-#        print ('cam.SetParallelScale(',round(cam.GetParallelScale(),2),')')
-#        print ('cam.SetViewUp(', [round(e,2) for e in cam.GetViewUp()],')\n')
-#        return
 
     elif key == "w":
         if vp.clickedActor and vp.clickedActor in vp.getActors():
@@ -271,7 +260,6 @@ def _keypress(vp, obj, event):
         vp.show(at=vp.clickedr, interactive=0, axes=0)
         vp.interactive = ii # restore it
 
-
     elif key == "x":
         if vp.justremoved is None:                    
             if vp.clickedActor in vp.getActors() or isinstance(vp.clickedActor, vtk.vtkAssembly):
@@ -289,7 +277,6 @@ def _keypress(vp, obj, event):
             vp.renderer.Render()
             vp.justremoved = None
         vp._draw_legend()
-
 
     elif key == "X":
         if vp.clickedActor:

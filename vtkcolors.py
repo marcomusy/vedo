@@ -116,7 +116,8 @@ color_nicks.update({   # dark
         'ds': 'darksalmon',
         'dv': 'darkviolet'})
 
-def getColor(c):
+
+def getColor(rgb=None, hsv=None):
     """
     Convert a color to (r,g,b) format from many input formats, e.g.:
      RGB    = (255, 255, 255), corresponds to white
@@ -125,8 +126,10 @@ def getColor(c):
      string = 'white'
      string = 'dr' is darkred
      int    = 7 picks color #7 in list colors1
-     vtkColor object
+     if hsv is set to (hue,saturation,value), rgb is calculated from it 
     """
+    if hsv: c = hsv2rgb(hsv)
+    else: c = rgb 
     if isinstance(c,list) or isinstance(c,tuple) :
         if c[0]<=1 and c[1]<=1 and c[2]<=1: return c #already rgb
         else: return list(np.array(c)/255.) #RGB
@@ -154,11 +157,11 @@ def getColor(c):
         if '#' in c: #hex to rgb
             h = c.lstrip('#')
             rgb255 = list(int(h[i:i+2], 16) for i in (0, 2 ,4))
-            rgb = np.array(rgb255)/255.
-            if np.sum(rgb)>3: 
+            rgbh = np.array(rgb255)/255.
+            if np.sum(rgbh)>3: 
                 print("Error in getColor(): Wrong hex color", c)
                 return [0.5,0.5,0.5]
-            return list(rgb)
+            return list(rgbh)
             
     elif isinstance(c, int): 
         try: return colors1[c] 
@@ -166,6 +169,7 @@ def getColor(c):
             
     return [0.5,0.5,0.5]
     
+
 def getColorName(c):
     """Convert any rgb color or numeric code to closest name color"""
     c = np.array(getColor(c)) #reformat to rgb
@@ -179,6 +183,17 @@ def getColorName(c):
             kclosest = str(key)
     return kclosest
 
+
+def hsv2rgb(hsv):
+    import vtk
+    ma = vtk.vtkMath()
+    return ma.HSVToRGB(hsv)    
+def rgb2hsv(rgb):
+    import vtk
+    ma = vtk.vtkMath()
+    return ma.RGBToHSV(getColor(rgb))
+
+    
 ########## other sets of colors
 colors1=[]
 colors1.append((1.0,0.647,0.0))     # orange
@@ -212,3 +227,5 @@ for i in range(10):
     b = np.exp(-((pc-1.0)/.2)**2/2.)
     colors3.append((r,g,b))
 colors3 = colors3 * 100
+
+

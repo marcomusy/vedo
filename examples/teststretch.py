@@ -17,7 +17,7 @@ vp.line(p1, p2, lw=3, c='m')
 vp.points([q1,q2])
 
 #######################################################
-actor = vp.helix(p1, p2, radius=.2, lw=3, c='r')
+actor = vp.helix(p1, p2, radius=.2, thickness=.03, c='r')
 #actor = vp.arrow(p1, p2, c='r')
 #actor = vp.line(p1, p2, c='r')
 #actor = vp.cylinder([p1, p2], radius=.03, c='r')

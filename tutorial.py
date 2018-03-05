@@ -28,7 +28,7 @@ vp.show()             # picks what is automatically stored in vp.actors list
 act = vp.load('data/290.vtk', wire=1) 
 vp.axes = False         # do not draw cartesian axes
 vp.show()               # picks what is automatically stored in vp.actors
-#vp.show(act)           # same: would ignore the content of vp.actors and draws act
+#vp.show(act)           # same: store act in vp.actors and draws act only
 #vp.show(actors=[act])  # same as above
 # wire=1, equivalent to act.GetProperty().SetRepresentationToWireframe()
 
@@ -90,7 +90,8 @@ vp.show()
 vp = plotter.vtkPlotter(title='Example of a 3D function plotting')
 xycoords = [(math.exp(i/10.), math.sin(i/5.)) for i in range(40)]
 vp.xyplot( xycoords )
-vp.fxy( lambda x,y: math.sin(3*x)*math.log(x-y)/3, texture='paper' )
+
+vp.fxy( 'sin(3*x)*log(x-y)/3', texture='paper' )
 vp.show()
 
 
@@ -109,12 +110,12 @@ vp.show(legend='shape w/ edges')
 # and shows them before and after.
 vp = plotter.vtkPlotter(shape=(1,2), axes=False)
 a1 = vp.load('data/beethoven.ply', alpha=1)
-coords1 = plotter.getCoordinates(a1)
+coords1 = a1.coordinates()
 pts1 = vp.points(coords1, r=4, c='g', legend='#points = '+str(len(coords1)))
 vp.show([a1, pts1], at=0, interactive=False)
 
 a2 = vp.subDivideMesh(a1, method=0) # Increasing the number of points of the mesh
-coords2 = plotter.getCoordinates(a2)
+coords2 = a2.coordinates()
 pts2 = vp.points(coords2, r=1, legend='#points = '+str(len(coords2)))
 vp.show([a2, pts2], at=1, interactive=True)
 
@@ -129,7 +130,7 @@ vp.interactive = False
 vp.axes = False
 for i in [0,1,2,3]:
     c = vp.curvature(v, method=i, r=1, alpha=0.8)
-    vp.show(at=i, actors=[c], legend='method #'+str(i+1))
+    vp.show(c, at=i, legend='method #'+str(i+1))
 vp.show(interactive=1)
 
 
@@ -153,9 +154,8 @@ vp.show(interactive=1)
 
 ########################################################################################
 # Draw a bunch of objects in many formats. Split window in 3 rows and 3 columns
-vp = plotter.vtkPlotter(shape=(3,3), title='Example 12')
+vp = plotter.vtkPlotter(shape=(3,3), title='Example 12', interactive=False)
 vp.commoncam   = False
-vp.interactive = False
 vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
 vp.show(at=1, c=1, actors='data/cow.g', wire=1)
 vp.show(at=2, c=2, actors='data/limb.pcd')
@@ -163,12 +163,13 @@ vp.show(at=3, c=3, actors='data/shapes/spider.ply')
 vp.show(at=4, c=4, actors='data/shuttle.obj')
 vp.show(at=5, c=5, actors='data/shapes/magnolia.vtk')
 vp.show(at=6, c=6, actors='data/shapes/man.vtk', alpha=1, axes=1)
-a = vp.getActors('man')        # retrieve all actors with matching legend string
-a[0].rotateX(90)               #  and rotate the first by 90 degrees around x
-a[0].rotateY(1.57, rad=True)   #  and then by 90 degrees around y
 vp.show(at=7, c=7, actors='data/teapot.xyz')
 vp.show(at=8, c=8, actors='data/unstrgrid.vtu')
 vp.show(interactive=1)
+a = vp.getActors('man')         # retrieve all actors with matching legend string
+a[0].rotateX(-90)               #  and rotate the first by 90 degrees around x
+a[0].rotateY(-1.57, rad=True)   #  and then by 90 degrees around y
+vp.show()
 
 
 ########################################################################################
@@ -177,7 +178,7 @@ vp = plotter.vtkPlotter(shape=(3,3), verbose=0, axes=0, interactive=0)
 mat = ['aqua','gold2','metal1','ivy','paper','sky','white2','wood3','wood7']
 for i,mname in enumerate(mat): # mname can be any jpeg file
     sp = vp.load('data/beethoven.ply', alpha=1, texture=mname)
-    vp.show(at=i, actors=sp, legend=mname)
+    vp.show(sp, at=i, legend=mname)
 vp.show(interactive=1)
 
 
