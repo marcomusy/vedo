@@ -131,8 +131,9 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     mapper = vtk.vtkDataSetMapper()
     mapper.SetInputConnection(xform.GetOutputPort())
     
-    cdir = os.path.dirname(__file__)     
-    fn = cdir + '/textures/'+name+".jpg"
+    cdir = os.path.dirname(__file__)
+    if cdir == '': cdir = '.'  
+    fn = cdir + '/textures/' + name + ".jpg"
     if os.path.exists(name): 
         fn = name
     elif not os.path.exists(fn):
@@ -596,7 +597,8 @@ def polydata(obj, index=0):
     elif isinstance(obj, vtk.vtkPolyData): return obj
     elif isinstance(obj, vtk.vtkActor2D):  return obj.GetMapper().GetInput()
     elif isinstance(obj, vtk.vtkImageActor):  return obj.GetMapper().GetInput()
-
+    elif obj is None:  return None
+    
     printc("Fatal Error in polydata(): ", 'r', end='')
     printc(("input is neither a poly nor an actor int or assembly.", [obj]), 'r')
     exit(1)
