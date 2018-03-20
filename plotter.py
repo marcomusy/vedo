@@ -261,7 +261,7 @@ class vtkPlotter:
         if isinstance(inputobj, vtk.vtkPolyData):
             a = makeActor(inputobj, c, alpha, wire, bc, edges, legend, texture)
             self.actors.append(a)
-            if a.GetNumberOfPoints()==0:
+            if inputobj and inputobj.GetNumberOfPoints()==0:
                 printc('Warning: actor has zero points.',5)
             return a
 
@@ -1665,11 +1665,10 @@ class vtkPlotter:
         return self.lastActor()
 
 
-    def align(self, source, target, rigid=False, iters=100, legend=None):
+    def align(self, source, target, iters=100, legend=None):
         '''
         Return a vtkActor which is the same as source but
         aligned to target though IterativeClosestPoint method
-        rigid = True, then no scaling is allowed.
         '''
         sprop = source.GetProperty()
         source = polydata(source)
@@ -1677,10 +1676,10 @@ class vtkPlotter:
         icp = vtk.vtkIterativeClosestPointTransform()
         icp.SetSource(source)
         icp.SetTarget(target)
-        if rigid: icp.GetLandmarkTransform().SetModeToRigidBody()
         icp.SetMaximumNumberOfIterations(iters)
         icp.StartByMatchingCentroidsOn()
         icp.Update()
+        print(icp.GetLandmarkTransform().GetMode())
         icpTransformFilter = vtk.vtkTransformPolyDataFilter()
         setInput(icpTransformFilter, source)
         icpTransformFilter.SetTransform(icp)
@@ -1688,6 +1687,7 @@ class vtkPlotter:
         poly = icpTransformFilter.GetOutput()
         actor = makeActor(poly, legend=legend)
         actor.SetProperty(sprop)
+        self.result['transform'] = icp.GetLandmarkTransform()
         self.actors.append(actor)
         return actor
 

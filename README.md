@@ -219,7 +219,7 @@ def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None)
 def subDivideMesh(actor, N=1, method=0, legend=None)
 def boundaries(actor, c='p', lw=5, legend=None)
 #
-def align(source, target, rigid=False, iters=100, legend=None):
+def align(source, target, iters=100, legend=None):
 def fitLine(points, c='orange', lw=1, alpha=0.6, tube=False, legend=None)
 def fitPlane(points, c='g', bc='darkgreen', legend=None)
 def pca(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None)

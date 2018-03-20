@@ -14,8 +14,7 @@ a1, a2 = vp.load('data/2[79]0.vtk') # load 2 files and assign to a1, a2
 a1.GetProperty().SetColor(0,1,0) 
 
 # align a1 to a2, store the new actor in a1b
-# rigid=1 forces the relative scale to remain unchanged
-a1b = vp.align(a1, a2, rigid=1) 
+a1b = vp.align(a1, a2) 
 
 ps1b = a1b.coordinates() # coordinates of actor a1b
 # for each point in a1b draw an arrow towards the closest point on a2
