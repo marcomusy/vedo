@@ -1,6 +1,5 @@
-![logo](https://user-images.githubusercontent.com/32848391/34055656-8c2e2e6c-e1d0-11e7-8d9d-728b0a535cc6.png)
-<br />
-<br />
+
+## vtkPlotter
 
 A python helper class to easily draw, analyse and animate tridimensional objects.
 <br />A VTK alternative to Vpython.
@@ -225,6 +224,7 @@ def fitPlane(points, c='g', bc='darkgreen', legend=None)
 def pca(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None)
 def cutActor(actor, origin=(0,0,0), normal=(1,0,0), showcut=True, showline=False, showpts=False)
 def closestPoint(surf, pt, locator=None, N=None, radius=None)
+def intersectWithLine(actor, p0, p1)
 #
 def show(actors=None, at=0, legend=None, axes=None, ruler=False, interactive=None,
          c='gold', bc=None, alpha=0.2, wire=False, edges=False, resetcam=True, q=False)

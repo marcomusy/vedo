@@ -722,6 +722,24 @@ def closestPoint(surf, pt, locator=None, N=None, radius=None):
     return trgp
 
 
+def intersectWithLine(act, p0, p1):
+    # return a list of points between p0 and p1 which intersect the actor
+    if not hasattr(act,'locator'):
+        linelocator = vtk.vtkOBBTree()
+        linelocator.SetDataSet(act.polydata())
+        linelocator.BuildLocator()
+        setattr(act, 'locator', linelocator)
+
+    intersectPoints = vtk.vtkPoints()
+    intersection = [0, 0, 0]
+    act.locator.IntersectWithLine(p0, p1, intersectPoints, None)
+    pts=[]
+    for i in range(intersectPoints.GetNumberOfPoints()):
+        intersectPoints.GetPoint(i, intersection)
+        pts.append(list(intersection))
+    return pts
+
+
 def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
                  bc=(0.7, 0.8, 1), legend=None):
     '''Pop up a box widget to cut parts of actor. Return largest part.'''

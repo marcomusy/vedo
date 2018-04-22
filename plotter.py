@@ -29,7 +29,7 @@ from vtkutils import polydata, coordinates
 from vtkutils import closestPoint, isInside, insidePoints, maxOfBounds
 from vtkutils import normalize, clone, decimate, rotate, shrink, boolActors
 from vtkutils import centerOfMass, volume, surfaceArea, write, cutterWidget
-from vtkutils import ProgressBar, makePolyData
+from vtkutils import ProgressBar, makePolyData, intersectWithLine
 from vtkutils import arange, vector, mag, norm #numpy shortcuts
 
 
@@ -107,7 +107,6 @@ class vtkPlotter:
         # mostly internal stuff:
         self.clickedr   = 0     # clicked renderer number
         self.camThickness = 2000
-        self.locator    = None
         self.justremoved= None 
         self.caxes_exist = []
         self.icol1      = 0
@@ -138,6 +137,7 @@ class vtkPlotter:
         self.closestPoint = vtkutils.closestPoint
         self.isInside = vtkutils.isInside
         self.insidePoints = vtkutils.insidePoints
+        self.intersectWithLine = vtkutils.intersectWithLine
         self.maxOfBounds = vtkutils.maxOfBounds
         self.normalize = vtkutils.normalize
         self.clone = vtkutils.clone
