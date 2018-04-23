@@ -1,5 +1,5 @@
 
-## vtkPlotter
+# vtkPlotter
 
 A python helper class to easily draw, analyse and animate tridimensional objects.
 <br />A VTK alternative to Vpython.
@@ -160,6 +160,14 @@ python examples/brownian2d.py
 <br />
 
 
+Motion of particles of gas in a toroidal tank. 
+```bash
+python examples/gas.py
+```
+![gas](https://user-images.githubusercontent.com/32848391/39139206-90d644ca-4721-11e8-95b9-8aceeb3ac742.gif)
+<br />
+
+
 Simulation of a spring in a viscous medium:
 ```bash
 python examples/spring.py
@@ -196,7 +204,7 @@ def polygon(pos, normal=(0,0,1), nsides=6, r=1,
             c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, followcam=False):
 def disc(pos, normal=[0,0,1], r1=0.5, r2=1, 
             c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, res=12)
-def arrow(startPoint, endPoint, c='r', alpha=1, legend=None, texture=None, res=12)
+def arrow(startPoint, endPoint, s=0.03, c='r', alpha=1, legend=None, texture=None)
 def helix(startPoint, endPoint, coils=12, radius=1, thickness=1, c='grey', alpha=1, legend=None, texture=None)
 def cylinder(pos, radius, height, axis=[1,1,1], c='teal', alpha=1, legend=None, texture=None, res=24)
 def octahedron(pos, s=1, axis=(0,0,1), c='g', alpha=1, wire=False, legend=None, texture=None)

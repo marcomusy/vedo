@@ -612,7 +612,7 @@ class vtkPlotter:
 
 
     def octahedron(self, pos=[0,0,0], s=1, axis=(0,0,1),
-                   c='g', alpha=1, wire=False, legend=None, texture=None):
+                   c='g', alpha=1, wire=False, edges=False, legend=None, texture=None):
         pts = vtk.vtkPoints()
         pts.SetNumberOfPoints(6)
         pts.SetPoint(0, -s, 0, 0)
@@ -655,7 +655,7 @@ class vtkPlotter:
         tf.Update()
         pd = tf.GetOutput()
 
-        actor = makeActor(pd, c=c, alpha=alpha, wire=wire,
+        actor = makeActor(pd, c=c, alpha=alpha, wire=wire, edges=edges,
                           legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(pos)       
@@ -778,9 +778,9 @@ class vtkPlotter:
         
 
     def arrow(self, startPoint=[0,0,0], endPoint=[1,1,1], axis=None,
-              c='r', alpha=1, legend=None, texture=None):
+              c='r', s=None, alpha=1, legend=None, texture=None):
         if axis:
-            endPoint = startPoint+np.array(axis)
+            endPoint = startPoint + np.array(axis)
         axis = np.array(endPoint) - np.array(startPoint)
         length = np.linalg.norm(axis)
         if not length: return None
@@ -790,13 +790,22 @@ class vtkPlotter:
         arr = vtk.vtkArrowSource()
         arr.SetShaftResolution(12) #dont change
         arr.SetTipResolution(12)
-        arr.SetTipRadius(0.06)
+        if s: 
+            sz=0.02
+            arr.SetTipRadius(sz)
+            arr.SetShaftRadius(sz/1.75)
+            arr.SetTipLength(sz*15)
         arr.Update()
         t = vtk.vtkTransform()
         t.RotateZ(phi*57.3)
         t.RotateY(theta*57.3)
         t.RotateY(-90) #put it along Z
-        t.Scale(length,length,length)
+        if s: 
+            w,h = self.renderWin.GetSize()
+            sz = (w+h)/2*s
+            t.Scale(length,sz,sz)
+        else:
+            t.Scale(length,length,length)
         tf = vtk.vtkTransformPolyDataFilter()
         setInput(tf, arr.GetOutput())
         tf.SetTransform(t)
@@ -1679,7 +1688,6 @@ class vtkPlotter:
         icp.SetMaximumNumberOfIterations(iters)
         icp.StartByMatchingCentroidsOn()
         icp.Update()
-        print(icp.GetLandmarkTransform().GetMode())
         icpTransformFilter = vtk.vtkTransformPolyDataFilter()
         setInput(icpTransformFilter, source)
         icpTransformFilter.SetTransform(icp)

@@ -19,6 +19,6 @@ a1b = vp.align(a1, a2)
 ps1b = a1b.coordinates() # coordinates of actor a1b
 # for each point in a1b draw an arrow towards the closest point on a2
 for p in ps1b: 
-    vp.arrow(p, plotter.closestPoint(a2, p))
+    vp.arrow(p, plotter.closestPoint(a2, p), s=0.3)
 
 vp.show(legend=['Source','Target','Aligned','Links'])
