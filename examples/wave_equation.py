@@ -94,11 +94,11 @@ for i in pb.range():
 ####################################################
 # Visualize the result
 ####################################################
-for i in x: vp.point([i, 0, 0], c='green', r=6)
+for i in x: vp.point([0, 0, 0], c='green', r=6)
 pts_actors_eu = list(vp.actors) # makes a copy of the actors list
 
 vp.actors=[] # clean up the list
-for i in x: vp.point([i, 0, 0], c='red', r=6)
+for i in x: vp.point([0, 0, 0], c='red', r=6)
 pts_actors_rk = list(vp.actors) # makes a copy of the actors list
 vp.actors = pts_actors_eu + pts_actors_rk # sum lists to visualize
 pts_actors_eu[0].legend = 'Euler method'
