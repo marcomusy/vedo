@@ -2,6 +2,7 @@
 # Morph one shape into another using spherical harmonics
 # package shtools.
 # In this example we morph a sphere into a octahedron
+# and viceversa
 ##########################################################
 try:
     import pyshtools
@@ -23,7 +24,7 @@ x0 = [0,0,0] # set object at this position
 def makegrid(shape, N):
     rmax = 2.0   # line length 
     agrid, pts = [], []
-    for th in np.linspace(0, np.pi,   N, endpoint=True):
+    for th in np.linspace(0, np.pi, N, endpoint=True):
         lats = []
         for ph in np.linspace(0, 2*np.pi, N, endpoint=True):
             p  = np.array([sin(th)*cos(ph), sin(th)*sin(ph), cos(th)])*rmax
@@ -61,7 +62,7 @@ def morph(clm1, clm2, t, lmax):
 vp = plotter.vtkPlotter(shape=[2,2], verbose=0, axes=0, interactive=0)
 
 shape1 = vp.sphere(alpha=0.2)
-shape2 = vp.octahedron(alpha=0.2, edges=1)
+shape2 = vp.octahedron(alpha=0.2, edges=True)
 
 agrid1, actorpts1 = makegrid(shape1, N)
 vp.show(at=0, actors=[shape1, actorpts1])
@@ -83,4 +84,4 @@ for t in vp.arange(0,1, 0.005):
     vp.show(at=3, actors=act12)
     vp.camera.Azimuth(2)
 
-vp.show(actors=[], interactive=1)
+vp.show(interactive=1)

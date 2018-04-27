@@ -260,6 +260,14 @@ def assignPhysicsMethods(actor):
         self.SetPosition(newp)
         return self
     actor.z = types.MethodType( _fpz, actor )
+
+    def _fscale(self, p=None): 
+        if p is None: 
+            return np.array(self.GetScale())
+        self.SetScale(p)
+        return self # return itself to concatenate methods
+    actor.scale = types.MethodType( _fscale, actor )
+
      
     setattr(actor, '_vel',  np.array([0,0,0]))  # velocity
     def _fvel(self, v=None): 
@@ -330,7 +338,6 @@ def clone(actor, c='gold', alpha=None, wire=False, bc=None,
     
 
 def normalize(actor, s=1): # N.B. input argument gets modified
-    # s= scale
     cm = centerOfMass(actor)
     coords = coordinates(actor)
     if not len(coords) : return

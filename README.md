@@ -172,16 +172,30 @@ Simulation of a spring in a viscous medium:
 ```bash
 python examples/spring.py
 ```
-
 ![spring](https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif)
+
+
+Simulation of an elastic multiple pendulum with friction:
+```bash
+python examples/multiple_pendulum.py
+```
+![pendulum](https://user-images.githubusercontent.com/32848391/39259507-dc26b18a-48b6-11e8-94fd-3fcb01661b55.gif)
+
+
+Direct integration of the wave equation comparing the simple Euler method (green) with the more sofisticated Runge-Kutta 4th order method (red):
+```bash
+python examples/wave_equation.py
+```
+![wave](https://user-images.githubusercontent.com/32848391/39360796-ea5f9ef0-4a1f-11e8-85cb-f3e21072c7d5.gif)
 
 
 More examples in directory *examples/* 
 
-If you need to do more complicated things (define widgets.. etc), you can still access all the
-usual VTK objects like interactors and renderers through *vp.interactor, vp.renderer*... etc.<br />
+If you need to do more complicated things (define widgets.. etc), you can still have full access to all
+standard VTK objects (e.g. interactors and renderers through *vp.interactor, vp.renderer*... etc).<br />
 Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.avi* file (needs to import cv2).
 <br />
+To make animated gifs online, there is this great site: [ezgif.com] (https://ezgif.com/)
 
 ## List of available methods with default values:
 ```python
@@ -299,6 +313,7 @@ actor.rotateX(angle, rad=False)       # rotate actor around X (or Y or Z)
 #
 actor.clone(c='gold', alpha=1, wire=False, bc=None, edges=False, legend=None, texture=None)
 #
+actor.scale()     # set/get scaling factor of actor
 actor.normalize() # sets actor at origin and scales its average size to 1
 #
 actor.shrink(fraction=0.85)  # shrinks the polydata triangles for visualization
@@ -306,7 +321,7 @@ actor.shrink(fraction=0.85)  # shrinks the polydata triangles for visualization
 actor.visible(alpha=1)       # sets opacity
 #
 actor.cutterWidget()         # invoke a cutter widget for actor
-actor.point(i, p=None)       # set/get i-th point in actor mesh
+actor.point(i, p=None)       # set/get i-th point in actor's polydata
 ```
 
 Some useful *numpy* shortcuts available in vtkPlotter:

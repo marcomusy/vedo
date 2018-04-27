@@ -423,17 +423,19 @@ class vtkPlotter:
         with the points.
         If tags='ids' points are labeled with an integer number
         '''
-        if len(c) and (isinstance(c, list) or isinstance(c, tuple)):
-            if isinstance(c[0], list) or isinstance(c[0], tuple):
-                return self._colorPoints(plist, c, r, alpha, legend)
+
+        if isSequence(c) and isSequence(c[0]):
+            return self._colorPoints(plist, c, r, alpha, legend)
 
         src = vtk.vtkPointSource()
         src.SetNumberOfPoints(len(plist))
         src.Update()
         pd = src.GetOutput()
-        for i,p in enumerate(plist): pd.GetPoints().SetPoint(i, p)
+        for i,p in enumerate(plist): 
+            pd.GetPoints().SetPoint(i, [0,0,0])
         actor = makeActor(pd, c, alpha)
         actor.GetProperty().SetPointSize(r)
+        actor.SetPosition(p)
         self.actors.append(actor)
         if legend: setattr(actor, 'legend', legend)
 
@@ -505,12 +507,9 @@ class vtkPlotter:
            if p0 is a list of points returns the line connecting them.
            if tube=True, lines are rendered as tubes of radius lw
         '''
+
         #detect if user is passing a list of points:
-        if len(p0):
-            islist = isinstance(p0[0], list)
-            istuple = isinstance(p0[0], tuple)
-            isnparray = isinstance(p0[0], np.ndarray)
-        if len(p0) and (islist or istuple or isnparray):
+        if isSequence(p0[0]):
             ppoints = vtk.vtkPoints() # Generate the polyline
             poly = vtk.vtkPolyData()
             for i in range(len(p0)):
@@ -886,7 +885,7 @@ class vtkPlotter:
     def cylinder(self, pos=[0,0,0], radius=1, height=1, axis=[0,0,1],
                  c='teal', alpha=1, legend=None, texture=None):
         
-        if isinstance(pos[0], list): # assume user is passing pos=[base, top]
+        if isSequence(pos[0]): # assume user is passing pos=[base, top]
             base = np.array(pos[0])
             top  = np.array(pos[1])
             pos = (base+top)/2
@@ -1842,7 +1841,7 @@ class vtkPlotter:
 
 
     def _draw_legend(self):
-        if not isinstance(self.legend, list): return
+        if not isSequence(self.legend): return
 
         # remove old legend if present on current renderer:
         acs = self.renderer.GetActors2D()
@@ -1913,7 +1912,7 @@ class vtkPlotter:
 
         def scan(wannabeacts):
             scannedacts=[]
-            if not isinstance(wannabeacts, list): wannabeacts = [wannabeacts]
+            if not isSequence(wannabeacts): wannabeacts = [wannabeacts]
             for a in wannabeacts: # scan content of list
                 if   isinstance(a, vtk.vtkActor):      scannedacts.append(a)
                 elif isinstance(a, vtk.vtkAssembly):   scannedacts.append(a)
@@ -1945,7 +1944,7 @@ class vtkPlotter:
             self.actors = list(actors2show)
 
         if legend:
-            if   isinstance(legend, list): self.legend = list(legend)
+            if   isSequence(legend): self.legend = list(legend)
             elif isinstance(legend,  str): self.legend = [str(legend)]
             else:
                 printc('Error in show(): legend must be list or string.', 1)
@@ -2448,6 +2447,12 @@ def getPolyData(a=None):
 def getCoordinates(a=None):
     printc('Please change getCoordinates() to coordinates() in your code. Exit.',1)
     exit()
+
+def isSequence(arg): 
+    if hasattr(arg, "strip"): return False
+    if hasattr(arg, "__getslice__"): return True
+    if hasattr(arg, "__iter__"): return True
+    return False
 
 ###########################################################################
 if __name__ == '__main__':
