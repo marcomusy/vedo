@@ -30,10 +30,11 @@ for i in pb.range():
     
     block.pos(x)                     # update block position
     spring.stretch([-0.8,0,0], x)    # stretch helix accordingly
+    trace = vp.point(x+[0,.3,0], c='r', r=3, alpha=.5) # leave a trace
     
     vp.camera.Azimuth(.1)
     vp.camera.Elevation(.1)
-    vp.render(rate=1000)
+    vp.render(addActor=trace)
     pb.print('Fx='+str(F[0]))
 
 vp.show(interactive=1)

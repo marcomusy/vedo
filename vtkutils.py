@@ -452,7 +452,7 @@ def boolActors(actor1, actor2, operation='plus', c=None, alpha=1,
     try:
         bf = vtk.vtkBooleanOperationPolyDataFilter()
     except AttributeError:
-        printc('Boolean operation only possible for vtk version > 6','r')
+        printc('Boolean operation only possible for vtk version >= 8','r')
         return None
     poly1 = polydata(actor1)
     poly2 = polydata(actor2)

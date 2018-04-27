@@ -184,7 +184,7 @@ python examples/multiple_pendulum.py
 
 Direct integration of the wave equation comparing the simple Euler method (green) with the more sofisticated Runge-Kutta 4th order method (red):
 ```bash
-python examples/wave_equation.py
+python wave_equation.py
 ```
 ![wave](https://user-images.githubusercontent.com/32848391/39360796-ea5f9ef0-4a1f-11e8-85cb-f3e21072c7d5.gif)
 

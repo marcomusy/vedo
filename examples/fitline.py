@@ -5,6 +5,7 @@
 # Draw a line in 3D that fits a cloud of 20 points,
 # also show the first set of 20 points and fit a plane to them
 #
+from __future__ import division, print_function
 import plotter
 import numpy as np
 

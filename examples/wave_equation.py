@@ -9,16 +9,13 @@
 # masses makes the programming easier.  
 # Adapted from B.Martin (2009) http://www.kcvs.ca/martin by M.Musy
 from __future__ import division, print_function
-import plotter, numpy as np
+from plotter import vtkPlotter, ProgressBar
+import numpy as np
 
 ####################################################
 N = 400			# Number of coupled oscillators
 dt = 0.5        # Time step
 Nsteps = 1000   # Number of steps in the simulation
-
-vp = plotter.vtkPlotter(verbose=0)
-vp.ytitle = 'u(x,t)'
-vp.ztitle = ''
 
 
 ####################################################
@@ -34,7 +31,7 @@ for p in x:                # p is particle number along x axis
     # Or:
     y[p] = 50*np.sin( p/15 )
     # Or, explicitly set particle positions:
-    # y[p] = 150*np.exp(-(p-155)**2/2)
+    # y[p] = 200*np.exp( -((p-150)/10)**2 )
 
 
 ####################################################
@@ -80,8 +77,8 @@ def euler(y, v, t, dt): # simple euler integrator
 positions_eu, positions_rk  = [], []
 y_eu,y_rk = np.array(y), np.array(y)
 v_eu,v_rk = np.array(v), np.array(v)
-t=0
-pb = vp.ProgressBar(0, Nsteps, c='blue', ETA=0)
+t = 0
+pb = ProgressBar(0, Nsteps, c='blue', ETA=0)
 for i in pb.range():
     y_eu, v_eu = euler(y_eu, v_eu, t, dt) 
     y_rk, v_rk = rk4(  y_rk, v_rk, t, dt) 
@@ -94,21 +91,30 @@ for i in pb.range():
 ####################################################
 # Visualize the result
 ####################################################
-for i in x: vp.point([0, 0, 0], c='green', r=6)
-pts_actors_eu = list(vp.actors) # makes a copy of the actors list
+vp = vtkPlotter(verbose=0)
+vp.ytitle = 'u(x,t)'
+vp.ztitle = ''
+
+for i in x: vp.point([i, 0, 0], c='green', r=6)
+pts_actors_eu = vp.actors # save a copy of the actors list
+pts_actors_eu[0].legend = 'Euler method'
 
 vp.actors=[] # clean up the list
-for i in x: vp.point([0, 0, 0], c='red', r=6)
-pts_actors_rk = list(vp.actors) # makes a copy of the actors list
-vp.actors = pts_actors_eu + pts_actors_rk # sum lists to visualize
-pts_actors_eu[0].legend = 'Euler method'
+
+for i in x: vp.point([i, 0, 0], c='red', r=6)
+pts_actors_rk = vp.actors # save a copy of the actors list
 pts_actors_rk[0].legend = 'Runge-Kutta4'
 
-vp.load('wave_wiki.png', alpha=.8).scale(0.4).pos([0,-100,-20])
+# merge the two lists and set it as the current vtkPlotter actors
+vp.actors = pts_actors_eu + pts_actors_rk 
+
+# let's also add a fancy background image
+vp.load('wave_wiki.png', alpha=0.8).scale(0.4).pos([0,-100,-20])
+
 pb = vp.ProgressBar(0, Nsteps, c='red', ETA=1)
 for i in pb.range():
-    y_eu = positions_eu[int(i)]
-    y_rk = positions_rk[int(i)]
+    y_eu = positions_eu[i] # retrieve the list of y positions at step i
+    y_rk = positions_rk[i]
     for j,act in enumerate(pts_actors_eu): act.pos([j, y_eu[j], 0])
     for j,act in enumerate(pts_actors_rk): act.pos([j, y_rk[j], 0])
     vp.render()

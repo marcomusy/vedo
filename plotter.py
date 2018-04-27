@@ -281,8 +281,8 @@ class vtkPlotter:
                 acts = self._loadDir(fod, c, alpha, wire, bc, edges, legend, texture,
                                      smoothing, threshold, connectivity, scaling)
         if not len(acts):
-            printc(('Cannot find:', inputobj), 1)
-            exit(0) 
+            printc(('Error in load(): cannot find', inputobj), 1)
+            return None
 
         for actor in acts:
             if isinstance(actor, vtk.vtkActor):
@@ -431,12 +431,16 @@ class vtkPlotter:
         src.SetNumberOfPoints(len(plist))
         src.Update()
         pd = src.GetOutput()
-        for i,p in enumerate(plist): 
-            pd.GetPoints().SetPoint(i, p)
+        if len(plist) == 1: #passing just one point
+            pd.GetPoints().SetPoint(0, [0,0,0])
+        else:
+            for i,p in enumerate(plist): 
+                pd.GetPoints().SetPoint(i, p)
         actor = makeActor(pd, c, alpha)
         actor.GetProperty().SetPointSize(r)
-        # actor.SetPosition(p)
+        if len(plist) == 1: actor.SetPosition(plist[0])
         self.actors.append(actor)
+
         if legend: setattr(actor, 'legend', legend)
 
         if tags and 0 < len(tags) <= len(plist):
@@ -2022,9 +2026,9 @@ class vtkPlotter:
             exit(0)
 
 
-    def render(self, addactor=None, resetcam=False, rate=10000):
-        if addactor:
-            self.addActor(addactor)
+    def render(self, addActor=None, resetcam=False, rate=10000):
+        if addActor:
+            self.addActor(addActor)
         if not self.initializedPlotter:
             before = bool(self.interactive)
             self.verbose = False
@@ -2204,7 +2208,7 @@ def _loadPoly(filename):
     '''Return a vtkPolyData object, NOT a vtkActor'''
     if not os.path.exists(filename): 
         printc(('Error in loadPoly: Cannot find', filename), c=1)
-        exit(0)
+        return None
     fl = filename.lower()
     if   '.vtk' in fl: reader = vtk.vtkPolyDataReader()
     elif '.ply' in fl: reader = vtk.vtkPLYReader()
@@ -2246,7 +2250,7 @@ def _loadXml(filename, c, alpha, wire, bc, edges, legend):
     '''Reads a Fenics/Dolfin file format'''
     if not os.path.exists(filename): 
         printc(('Error in loadXml: Cannot find', filename), c=1)
-        exit(0)
+        return None
     import xml.etree.ElementTree as et
     if '.gz' in filename:
         import gzip
@@ -2319,7 +2323,7 @@ def _loadPCD(filename, c, alpha, legend):
     '''Return vtkActor from Point Cloud file format'''            
     if not os.path.exists(filename): 
         printc(('Error in loadPCD: Cannot find file', filename), c=1)
-        exit(0)
+        return None
     f = open(filename, 'r')
     lines = f.readlines()
     f.close()
@@ -2358,7 +2362,7 @@ def _loadVolume(filename, c, alpha, wire, bc, edges, legend, texture,
     '''Return vtkActor from a TIFF stack or SLC file'''            
     if not os.path.exists(filename): 
         printc(('Error in loadVolume: Cannot find file', filename), c=1)
-        exit(1)
+        return None
     
     print ('..reading file:', filename)
     if   '.tif' in filename.lower(): 

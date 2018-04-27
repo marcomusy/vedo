@@ -63,7 +63,6 @@ r = pos-pos[:, np.newaxis] # all pairs of atom-to-atom vectors
 ds = (p/m)*(dt/2.)
 if 'False' not in np.less_equal(vp.mag(ds), radius).tolist():
     pos = pos+(p/mass)*(dt/2.) # initial half-step
-vp.show()
 
 pb = vp.ProgressBar(0,Nsteps, c=1)
 for i in pb.range():
