@@ -432,10 +432,10 @@ class vtkPlotter:
         src.Update()
         pd = src.GetOutput()
         for i,p in enumerate(plist): 
-            pd.GetPoints().SetPoint(i, [0,0,0])
+            pd.GetPoints().SetPoint(i, p)
         actor = makeActor(pd, c, alpha)
         actor.GetProperty().SetPointSize(r)
-        actor.SetPosition(p)
+        # actor.SetPosition(p)
         self.actors.append(actor)
         if legend: setattr(actor, 'legend', legend)
 
