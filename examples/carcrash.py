@@ -9,7 +9,7 @@ import plotter
 
 vp = plotter.vtkPlotter(verbose=0, axes=0)
 
-vp.plane(pos=(4,0,-.35), s=12, texture='metalfloor1')
+vp.plane(pos=(4,0,-.45), s=12, texture='metalfloor1')
 
 vp.load('data/shapes/lamp.vtk', alpha=1).pos((1.7,-.4,2))
 

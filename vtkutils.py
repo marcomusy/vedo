@@ -161,25 +161,31 @@ def assignConvenienceMethods(actor, legend):
     if not hasattr(actor, 'legend'):
         setattr(actor, 'legend', legend)
 
-    def _frotate(self, angle, axis, rad=False): 
+    def _frotate(self, angle, axis, axis_point=[0,0,0], rad=False): 
         if rad: angle *= 57.3
-        return rotate(self, angle, axis, rad)
+        return rotate(self, angle, axis, axis_point, rad)
     actor.rotate = types.MethodType( _frotate, actor )
 
-    def _frotateX(self, angle, rad=False): 
+    def _frotateX(self, angle, axis_point=[0,0,0], rad=False): 
         if rad: angle *= 57.3
-        return rotate(self, angle, [1,0,0], rad)
+        return rotate(self, angle, [1,0,0], axis_point, rad)
     actor.rotateX = types.MethodType( _frotateX, actor )
 
-    def _frotateY(self, angle, rad=False): 
+    def _frotateY(self, angle, axis_point=[0,0,0], rad=False): 
         if rad: angle *= 57.3
-        return rotate(self, angle, [0,1,0], rad)
+        return rotate(self, angle, [0,1,0], axis_point, rad)
     actor.rotateY = types.MethodType( _frotateY, actor )
 
-    def _frotateZ(self, angle, rad=False): 
+    def _frotateZ(self, angle, axis_point=[0,0,0], rad=False): 
         if rad: angle *= 57.3
-        return rotate(self, angle, [0,0,1], rad)
+        return rotate(self, angle, [0,0,1], axis_point, rad)
     actor.rotateZ = types.MethodType( _frotateZ, actor )
+
+
+    def _forientation(self, oldaxis, newaxis): 
+        return orientation(self, oldaxis, newaxis)
+    actor.orientation = types.MethodType( _forientation, actor )
+
 
     def _fclone(self, c='gold', alpha=1, wire=False, bc=None,
                 edges=False, legend=None, texture=None): 
@@ -206,14 +212,14 @@ def assignConvenienceMethods(actor, legend):
     def _fcutterw(self): return cutterWidget(self)
     actor.cutterWidget = types.MethodType( _fcutterw, actor )
     
-    def _fvisible(self, alpha=1): self.GetProperty().SetOpacity(alpha)
-    actor.visible = types.MethodType( _fvisible, actor )
+    def _falpha(self, value): self.GetProperty().SetOpacity(value)
+    actor.alpha = types.MethodType( _falpha, actor )
     
     def _fgpoly(self): return polydata(self)
     actor.polydata = types.MethodType( _fgpoly, actor )
 
-    def _fcoords(self): return coordinates(self)
-    actor.coordinates = types.MethodType( _fcoords, actor )
+    def _fcoordinates(self): return coordinates(self)
+    actor.coordinates = types.MethodType( _fcoordinates, actor )
 
     def _fstretch(self, startpt, endpt): 
         return stretch(self, startpt, endpt)
@@ -314,6 +320,17 @@ def assignPhysicsMethods(actor):
         return 1./np.sqrt(1. - v2/299792.48**2)
     actor.gamma = types.MethodType( _fgamma, actor )
 
+    # if not hasattr(actor, 'axis'): # some types of actors already have it
+    #     setattr(actor, '_axis', None)      # define axis of symmetry
+    #     def _faxis(self, anaxis=None): 
+    #         if anaxis is None: return self._axis
+    #         if self._axis is None: # init phase
+    #             self._axis = anaxis
+    #         else:
+    #             orientation(self, self._axis, anaxis)
+    #             self._axis = np.array(anaxis)
+    #         return self
+    #     actor.axis = types.MethodType( _faxis, actor )
 
 
 ######################################################### 
@@ -357,30 +374,38 @@ def normalize(actor, s=1): # N.B. input argument gets modified
     actor.Modified()
     return actor  # return same obj for concatenation
 
-
-def rotate(actor, angle, axis, point=[0,0,0], rad=False): 
+    
+def rotate(actor, angle, axis, axis_point=[0,0,0], rad=False): 
+    # Rotate an actor around an arbitrary axis passing through axis_point
+    anglerad = angle
+    if not rad: anglerad = angle/57.3
+    axis = norm(axis)
+    a = np.cos(anglerad / 2)
+    b, c, d = -axis * np.sin(anglerad / 2)
+    aa, bb, cc, dd = a * a, b * b, c * c, d * d
+    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+    R = np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                    [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                    [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+    rv = np.dot(R, actor.GetPosition()-np.array(axis_point)) + axis_point
+    
     if rad: angle *= 57.3
-
-    if isinstance(actor, list):
-        axis = np.asarray(axis)
-        theta = np.asarray(angle)
-        ax2 = np.sqrt(np.dot(axis, axis))
-        if ax2: axis /= ax2
-        a = np.cos(theta / 2.0)
-        b, c, d = -axis * np.sin(theta / 2.0)
-        aa, bb, cc, dd = a * a, b * b, c * c, d * d
-        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-        R = np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
-                      [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
-                      [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
-        rv = np.dot(R, actor)
-        return rv
-
-#    cm= np.array(point)     ## point not working ??
-#    actor.SetPosition(-cm)    
+    # this stupid vtk method only rotates in the origin of the actor:
     actor.RotateWXYZ(angle, axis[0], axis[1], axis[2] )
-#    actor.SetPosition(cm)
-    return actor   # return same obj for concatenation
+    actor.SetPosition(rv)
+    return actor
+    
+
+def orientation(actor, oldaxis, newaxis):
+    # pos = actor.GetPosition()
+    # TI = vtk.vtkTransform()
+    # actor.SetUserMatrix(TI.GetMatrix()) # reset
+    crossvec = np.cross(norm(oldaxis), norm(newaxis))
+    angle = np.arcsin(mag(crossvec))*57.3
+    actor.RotateWXYZ(angle, crossvec[0], crossvec[1], crossvec[2])
+    # actor.SetPosition(pos)
+    return actor
+
 
 
 ############################################################################

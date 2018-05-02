@@ -24,7 +24,7 @@ for i in range(500):
     vp.fitLine(data, lw=4, alpha=0.03) # fit a line
 
 # 'data' still contains the last iteration points
-vp.points(data, c='red', legend='random points')
+vp.points(data, r=10, c='red', legend='random points')
 
 # the last fitted slope direction is stored in vp.result dictionary
 print ('Line Fit slope= ', vp.result['slope']) 

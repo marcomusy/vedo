@@ -184,7 +184,7 @@ python examples/multiple_pendulum.py
 
 Direct integration of the wave equation comparing the simple Euler method (green) with the more sofisticated Runge-Kutta 4th order method (red):
 ```bash
-python wave_equation.py
+python examples/wave_equation.py
 ```
 ![wave](https://user-images.githubusercontent.com/32848391/39360796-ea5f9ef0-4a1f-11e8-85cb-f3e21072c7d5.gif)
 
@@ -201,7 +201,7 @@ To make animated gifs online, there is this great site: [ezgif.com] (https://ezg
 ```python
 def help()
 def __init__(shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='',
-             bg=(1,1,1), bg2=None, axes=True, verbose=True, interactive=True)
+             bg=(1,1,1), bg2=None, axes=0, verbose=True, interactive=True)
 def load(filesOrDirs, c='gold', alpha=0.2, wire=False, bc=None, edges=False, legend=True, texture=None)
 def getActors(obj=None)
 def moveCamera(camstart, camstop, fraction)
@@ -220,7 +220,7 @@ def disc(pos, normal=[0,0,1], r1=0.5, r2=1,
             c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, res=12)
 def arrow(startPoint, endPoint, s=0.03, c='r', alpha=1, legend=None, texture=None)
 def helix(startPoint, endPoint, coils=12, radius=1, thickness=1, c='grey', alpha=1, legend=None, texture=None)
-def cylinder(pos, radius, height, axis=[1,1,1], c='teal', alpha=1, legend=None, texture=None, res=24)
+def cylinder(pos, radius, height, axis=[1,1,1], c='teal', alpha=1, edges=False, legend=None, texture=None, res=24)
 def octahedron(pos, s=1, axis=(0,0,1), c='g', alpha=1, wire=False, legend=None, texture=None)
 def cone(pos, radius, height, axis=[1,1,1], c='g', alpha=1, legend=None, texture=None)
 def ellipsoid(points, c='c', alpha=0.5, legend=None, texture=None, res=24)
@@ -230,11 +230,12 @@ def hyperboloid(pos, a2=1, value=0.5, height=1, axis=[0,0,1],
 def pyramid(pos, s=1, height=1, axis=[0,0,1], c='dg', alpha=1, legend=None, texture=None)
 def ring(pos, radius=1, thickness=0.1, axis=[1,1,1], c='khaki', alpha=1, legend=None, texture=None, res=30)
 def spline(points, smooth=0.5, degree=2, s=5, c='b', alpha=1., nodes=False, legend=None, res=20)
-def text(txt, pos, s=1, c='k', alpha=1, bc=None, cam=True, texture=None)
+def text(txt, pos, axis=(0,0,1), s=1, c='k', alpha=1, bc=None, cam=True, texture=None)
 #
 def xyplot(points, title='', c='r', pos=1, lines=False)
 def fxy(z='sin(x)+y', x=[0,3], y=[0,3], zlimits=[None, None], showNan=True, zlevels=10, 
         c='b', bc='aqua', alpha=1, legend=True, texture=None, res=100)
+#
 def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
 def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None)
 def subDivideMesh(actor, N=1, method=0, legend=None)
@@ -248,7 +249,7 @@ def cutActor(actor, origin=(0,0,0), normal=(1,0,0), showcut=True, showline=False
 def closestPoint(surf, pt, locator=None, N=None, radius=None)
 def intersectWithLine(actor, p0, p1)
 #
-def show(actors=None, at=0, legend=None, axes=None, ruler=False, interactive=None,
+def show(actors=None, at=0, legend=None, axes=0, ruler=False, interactive=None,
          c='gold', bc=None, alpha=0.2, wire=False, edges=False, resetcam=True, q=False)
 def clear(actors=[])
 def render(resetcam=False, rate=10000)
@@ -293,9 +294,9 @@ def cutterWidget(actor, outputname='clipped.vtk')
 def write(obj, outputfilename)
 ```
 
-Additional methods of vtkActor object (*a la vpython*):
+Additional methods of vtkActor object:
 ```python
-actor.pos()      # position vector (setters, and getters if no argument is given)
+actor.pos()      # set/get position vector (setters, and getters if no argument is given)
 actor.addpos(v)  # add v to current actor position
 actor.x()        # set/get x component of position (same for y and z)
 #
@@ -308,23 +309,25 @@ actor.omega()    # set/get angular velocity
 actor.momentum() # get momentum vector
 actor.gamma()    # get Lorentz factor
 #
-actor.rotate(angle, axis, rad=False)  # rotate actor around axis
+actor.rotate(angle, axis, axis_point=[0,0,0], rad=False)  # rotate actor around axis
 actor.rotateX(angle, rad=False)       # rotate actor around X (or Y or Z)
+actor.orientation(oldaxis, newaxis)   # rotate actor from direction oldaxis to newaxis
 #
 actor.clone(c='gold', alpha=1, wire=False, bc=None, edges=False, legend=None, texture=None)
 #
 actor.scale()     # set/get scaling factor of actor
 actor.normalize() # sets actor at origin and scales its average size to 1
+actor.stretch(p1, p2): # stretch actor (typically a spring) between two points
 #
 actor.shrink(fraction=0.85)  # shrinks the polydata triangles for visualization
 #
-actor.visible(alpha=1)       # sets opacity
+actor.alpha(value)           # sets opacity
 #
 actor.cutterWidget()         # invoke a cutter widget for actor
-actor.point(i, p=None)       # set/get i-th point in actor's polydata
+actor.point(i, p=None)       # set/get i-th point in actor's polydata (no effect on actors)
 ```
 
-Some useful *numpy* shortcuts available in vtkPlotter:
+Some useful *numpy* shortcuts available in vtkPlotter (*a la vpython*):
 ```python
 def arange(start,stop, step)  # return a range list of floats
 def vector(x,y,z=None)        # return a numpy vector (2D or 3D)

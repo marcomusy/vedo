@@ -87,7 +87,7 @@ vp.show()
 # Show a dummy sine plot on top left,  
 # and a 3D function f(x,y) = sin(3*x)*log(x-y)/3 (more examples in examples/fxy.py)
 # red points indicate where the function is not real
-vp = plotter.vtkPlotter(title='Example of a 3D function plotting')
+vp = plotter.vtkPlotter(title='Example of a 3D function plotting', axes=2)
 xycoords = [(math.exp(i/10.), math.sin(i/5.)) for i in range(40)]
 vp.xyplot( xycoords )
 

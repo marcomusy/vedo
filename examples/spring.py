@@ -1,7 +1,7 @@
 from __future__ import division, print_function
 import plotter
 
-vp = plotter.vtkPlotter(title='Spring in viscous medium', verbose=0)
+vp = plotter.vtkPlotter(title='Spring in viscous medium', verbose=0, axes=3)
 
 l_rest = 0.1 # spring x position at rest
 x0 = 0.85 # initial x-coordinate of the block

@@ -91,9 +91,9 @@ for i in pb.range():
 ####################################################
 # Visualize the result
 ####################################################
-vp = vtkPlotter(verbose=0)
+vp = vtkPlotter(verbose=0, axes=2) # choose axes type nr.2
 vp.ytitle = 'u(x,t)'
-vp.ztitle = ''
+vp.ztitle = '' # will not draw z axis
 
 for i in x: vp.point([i, 0, 0], c='green', r=6)
 pts_actors_eu = vp.actors # save a copy of the actors list
@@ -109,7 +109,7 @@ pts_actors_rk[0].legend = 'Runge-Kutta4'
 vp.actors = pts_actors_eu + pts_actors_rk 
 
 # let's also add a fancy background image
-vp.load('wave_wiki.png', alpha=0.8).scale(0.4).pos([0,-100,-20])
+vp.load('data/wave_wiki.png', alpha=0.8).scale(0.4).pos([0,-100,-20])
 
 pb = vp.ProgressBar(0, Nsteps, c='red', ETA=1)
 for i in pb.range():

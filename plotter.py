@@ -21,7 +21,8 @@ from vtkcolors import getColor
 import vtkevents
 import vtkutils
 from vtkutils import printc, makeActor, setInput, vtkMV
-from vtkutils import makeAssembly, assignTexture
+from vtkutils import makeAssembly,  assignConvenienceMethods
+from vtkutils import assignTexture, assignPhysicsMethods
 from vtkutils import polydata, coordinates
 
 # to expose these methods in plotter namespace (not used in this file):
@@ -30,7 +31,7 @@ from vtkutils import closestPoint, isInside, insidePoints, maxOfBounds
 from vtkutils import normalize, clone, decimate, rotate, shrink, boolActors
 from vtkutils import centerOfMass, volume, surfaceArea, write, cutterWidget
 from vtkutils import ProgressBar, makePolyData, intersectWithLine
-from vtkutils import arange, vector, mag, norm #numpy shortcuts
+from vtkutils import arange, vector, mag, norm, orientation #numpy shortcuts
 
 
 #########################################################################
@@ -63,7 +64,7 @@ class vtkPlotter:
 
 
     def __init__(self, shape=(1,1), N=None, size='auto', maxscreensize=(1100,1800), 
-                 title='vtkPlotter', bg='w', bg2=None, axes=True, projection=False,
+                 title='vtkPlotter', bg='w', bg2=None, axes=1, projection=False,
                  commoncam=True, verbose=True, interactive=True):
         """
         size = size of the rendering window. If 'auto', guess it based on screensize.
@@ -73,7 +74,7 @@ class vtkPlotter:
         maxscreensize = physical size of the monitor screen
         bg   = background color
         bg2  = background color of a gradient towards the top
-        axes = show cartesian axes
+        axes = no axes (0), vtkCubeAxes (1), cartesian (2), positive cartesian (3)
         projection,  if True fugue point is set at infinity (no perspective effects)
         commoncam,   if False each renderer will have an independent vtkCamera
         interactive, if True will stop after show() to allow interaction w/ window
@@ -155,7 +156,8 @@ class vtkPlotter:
         self.vector = vtkutils.vector
         self.mag = vtkutils.mag
         self.norm = vtkutils.norm
-  
+        self.orientation = vtkutils.orientation
+
         if N:                # N = number of renderers. Find out the best
             if shape!=(1,1): # arrangement based on minimum nr. of empty renderers
                 printc('Warning: having set N, #renderers, shape is ignored.)', c=1)
@@ -206,7 +208,7 @@ class vtkPlotter:
                 y1 = (j+1)/shape[1]
                 arenderer.SetViewport(y0,x0, y1,x1)
                 self.renderers.append(arenderer)
-                self.caxes_exist.append(False)
+                self.caxes_exist.append(None)
         self.renderWin = vtk.vtkRenderWindow()
         #self.renderWin.PolygonSmoothingOn()
         #self.renderWin.LineSmoothingOn()
@@ -328,6 +330,8 @@ class vtkPlotter:
             for i in range(acs.GetNumberOfItems()):
                 a = acs.GetNextItem()
                 if isinstance(a, vtk.vtkCubeAxesActor): continue
+                r = self.renderers.index(self.renderer)
+                if a == self.caxes_exist[r]: continue
                 if isinstance(a, vtk.vtkLightActor): continue
                 actors.append(a)
             return actors
@@ -887,7 +891,7 @@ class vtkPlotter:
 
 
     def cylinder(self, pos=[0,0,0], radius=1, height=1, axis=[0,0,1],
-                 c='teal', alpha=1, legend=None, texture=None):
+                 c='teal', alpha=1, edges=False, legend=None, texture=None):
         
         if isSequence(pos[0]): # assume user is passing pos=[base, top]
             base = np.array(pos[0])
@@ -915,7 +919,8 @@ class vtkPlotter:
         tf.Update()
         pd = tf.GetOutput()
 
-        actor = makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
+        actor = makeActor(pd, c=c, alpha=alpha, edges=edges,
+                            legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(pos)
         def _faxis(self):
@@ -1216,7 +1221,7 @@ class vtkPlotter:
             return actline
 
 
-    def text(self, txt, pos=(0,0,0), s=1,
+    def text(self, txt, pos=(0,0,0), axis=(0,0,1), s=1,
              c='k', alpha=1, bc=None, followcam=True, texture=None):
         '''
         Returns a vtkActor that shows a text 3D
@@ -1234,14 +1239,23 @@ class vtkPlotter:
         ttactor.SetMapper(ttmapper)
         ttactor.GetProperty().SetColor(getColor(c))
         ttactor.GetProperty().SetOpacity(alpha)
-        ttactor.SetPosition(pos)
+
+        nax = np.linalg.norm(axis)
+        if nax: axis  = np.array(axis)/nax
+        theta = np.arccos(axis[2])
+        phi   = np.arctan2(axis[1], axis[0])
         ttactor.SetScale(s,s,s)
+        ttactor.RotateZ(phi*57.3)
+        ttactor.RotateY(theta*57.3)
+        ttactor.SetPosition(pos)
         if bc: # defines a specific color for the backface
             backProp = vtk.vtkProperty()
             backProp.SetDiffuseColor(getColor(bc))
             backProp.SetOpacity(alpha)
             ttactor.SetBackfaceProperty(backProp)
         if texture: assignTexture(ttactor, texture)
+        assignConvenienceMethods(ttactor, None)
+        assignPhysicsMethods(ttactor)
         self.actors.append(ttactor)
         return ttactor
 
@@ -1796,36 +1810,107 @@ class vtkPlotter:
 
 
     ##########################################
-    def _draw_cubeaxes(self, c=(.2, .2, .6)):
+    def _draw_axes(self, c=(.2, .2, .6)):
         r = self.renderers.index(self.renderer)
         if self.caxes_exist[r] or not self.axes: return
-        ca = vtk.vtkCubeAxesActor()
-        if self.renderer:
-            ca.SetBounds(self.renderer.ComputeVisiblePropBounds())
-        if self.camera: ca.SetCamera(self.camera)
-        else: ca.SetCamera(self.renderer.GetActiveCamera())
-        if vtkMV:
-            ca.GetXAxesLinesProperty().SetColor(c)
-            ca.GetYAxesLinesProperty().SetColor(c)
-            ca.GetZAxesLinesProperty().SetColor(c)
-            for i in range(3):
-                ca.GetLabelTextProperty(i).SetColor(c)
-                ca.GetTitleTextProperty(i).SetColor(c)
-            ca.SetTitleOffset(10)
-        else:
-            ca.GetProperty().SetColor(c)
-        ca.SetFlyMode(3)
-        ca.XAxisLabelVisibilityOn()
-        ca.YAxisLabelVisibilityOn()
-        ca.ZAxisLabelVisibilityOn()
-        ca.SetXTitle(self.xtitle)
-        ca.SetYTitle(self.ytitle)
-        ca.SetZTitle(self.ztitle)
-        ca.XAxisMinorTickVisibilityOff()
-        ca.YAxisMinorTickVisibilityOff()
-        ca.ZAxisMinorTickVisibilityOff()
-        self.caxes_exist[r] = True
-        self.renderer.AddActor(ca)
+        if not self.renderer: return
+        vbb = self.renderer.ComputeVisiblePropBounds()
+
+        if self.axes == 1 or self.axes == True:
+            ca = vtk.vtkCubeAxesActor()
+            ca.SetBounds(vbb)
+            if self.camera: ca.SetCamera(self.camera)
+            else: ca.SetCamera(self.renderer.GetActiveCamera())
+            if vtkMV:
+                ca.GetXAxesLinesProperty().SetColor(c)
+                ca.GetYAxesLinesProperty().SetColor(c)
+                ca.GetZAxesLinesProperty().SetColor(c)
+                for i in range(3):
+                    ca.GetLabelTextProperty(i).SetColor(c)
+                    ca.GetTitleTextProperty(i).SetColor(c)
+                ca.SetTitleOffset(8)
+                # ca.SetEnableDistanceLOD(0)
+                # ca.SetEnableViewAngleLOD(0)
+            else:
+                ca.GetProperty().SetColor(c)
+            ca.SetFlyMode(3)
+            # ca.SetInertia(0)
+            ca.SetLabelScaling(False, 1,1,1)
+            ca.SetXTitle(self.xtitle)
+            ca.SetYTitle(self.ytitle)
+            ca.SetZTitle(self.ztitle)
+            if self.xtitle=='': 
+                ca.SetXAxisVisibility(0)
+                ca.XAxisLabelVisibilityOff()
+            if self.ytitle=='': 
+                ca.SetYAxisVisibility(0)
+                ca.YAxisLabelVisibilityOff()
+            if self.ztitle=='': 
+                ca.SetZAxisVisibility(0)
+                ca.ZAxisLabelVisibilityOff()
+            ca.XAxisMinorTickVisibilityOff()
+            ca.YAxisMinorTickVisibilityOff()
+            ca.ZAxisMinorTickVisibilityOff()
+            self.caxes_exist[r] = ca
+            self.renderer.AddActor(ca)
+
+        elif self.axes > 1:
+            xcol, ycol, zcol = 'db', 'dg', 'dr' # dark blue, green red
+            s = 1
+            alpha = 1
+            centered = False
+            x0, x1, y0, y1, z0, z1 = vbb
+            dx, dy, dz = x1-x0, y1-y0, z1-z0
+            aves = np.sqrt(dx*dx+dy*dy+dz*dz)/2
+            x0, x1 = min(x0, 0), max(x1, 0)
+            y0, y1 = min(y0, 0), max(y1, 0)
+            z0, z1 = min(z0, 0), max(z1, 0)
+            if self.axes==3: 
+                if x1>0: x0=0
+                if y1>0: y0=0
+                if z1>0: z0=0
+
+            dx, dy, dz = x1-x0, y1-y0, z1-z0
+            acts=[]
+            if (x0*x1<=0 or y0*z1<=0 or z0*z1<=0): # some ranges contain origin
+                zero = self.sphere(r=aves/80*s, c='k', alpha=alpha, res=10)
+                acts += [zero]
+                self.actors.pop()
+
+            if len(self.xtitle) and dx>0:
+                xl = self.cylinder([[x0, 0, 0], [x1, 0, 0]], radius=aves/250*s, c=xcol, alpha=alpha)
+                xc = self.cone(pos=[x1, 0, 0], c=xcol, alpha=alpha,
+                                radius=aves/100*s, height=aves/25*s, axis=[1, 0, 0], res=10)
+                wpos = [x1-(len(self.xtitle)+1)*aves/40*s, -aves/25*s, 0] # aligned to arrow tip
+                if centered: wpos = [(x0+x1)/2-len(self.xtitle)/2*aves/40*s, -aves/25*s, 0] 
+                xt = self.text(self.xtitle, pos=wpos, axis=(0,0,1) , s=aves/40*s, c=xcol, followcam=0)
+                for i in range(3): self.actors.pop()
+                acts += [xl,xc,xt]
+
+            if len(self.ytitle) and dy>0:
+                yl = self.cylinder([[0, y0, 0], [0, y1, 0]], radius=aves/250*s, c=ycol, alpha=alpha)
+                yc = self.cone(pos=[0, y1, 0], c=ycol, alpha=alpha,
+                                radius=aves/100*s, height=aves/25*s, axis=[0, 1, 0], res=10)
+                wpos = [-aves/40*s, y1-(len(self.ytitle)+1)*aves/40*s, 0]
+                if centered: wpos = [ -aves/40*s, (y0+y1)/2-len(self.ytitle)/2*aves/40*s, 0] 
+                yt = self.text(self.ytitle, axis=(0,0,1) , s=aves/40*s, c=ycol, followcam=0)
+                yt.rotate(90, [0,0,1]).pos(wpos)
+                for i in range(3): self.actors.pop()
+                acts += [yl,yc,yt]
+
+            if len(self.ztitle) and dz>0:
+                zl = self.cylinder([[0, 0, z0], [0, 0, z1]], radius=aves/250*s, c=zcol, alpha=alpha)
+                zc = self.cone(pos=[0, 0, z1], c=zcol, alpha=alpha,
+                                radius=aves/100*s, height=aves/25*s, axis=[0, 0, 1], res=10)
+                wpos = [-aves/50*s, -aves/50*s, z1-(len(self.ztitle)+1)*aves/40*s]
+                if centered: wpos = [ -aves/50*s,  -aves/50*s, (z0+z1)/2-len(self.ztitle)/2*aves/40*s]
+                zt = self.text(self.ztitle, axis=(1, -1,0) , s=aves/40*s, c=zcol, followcam=0)
+                zt.rotate(180, (1, -1, 0)).pos(wpos)
+                for i in range(3): self.actors.pop()
+                acts += [zl,zc,zt]
+            ass = makeAssembly(acts)
+            self.caxes_exist[r] = ass
+            self.renderer.AddActor(ass)
 
 
     def _draw_ruler(self):
@@ -1997,7 +2082,7 @@ class vtkPlotter:
                 self.renderer.RemoveActor(ia)
 
         if ruler: self._draw_ruler()
-        if self.axes: self._draw_cubeaxes()
+        if self.axes: self._draw_axes()
         self._draw_legend()
 
         if resetcam: self.renderer.ResetCamera()
