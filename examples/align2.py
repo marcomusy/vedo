@@ -7,7 +7,7 @@ import plotter
 # and align them using vtkIterativeClosestPointTransform.
 # Retrieve the vtk transformation matrix.
 
-vp = plotter.vtkPlotter(shape=[1,2], verbose=0)
+vp = plotter.vtkPlotter(shape=[1,2], verbose=0, axes=2)
 
 N1 = 15  # number of points of first set
 N2 = 10  # number of points of second set

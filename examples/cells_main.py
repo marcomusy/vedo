@@ -2,7 +2,7 @@ from __future__ import division, print_function
 from cell import Cell
 import plotter 
 
-vp = plotter.vtkPlotter(verbose=0, interactive=0)
+vp = plotter.vtkPlotter(verbose=0, interactive=0, axes=3)
 
 c1 = Cell('cr', 'r', [1,0,0])
 c2 = Cell('cg', 'g', [0,1,0])

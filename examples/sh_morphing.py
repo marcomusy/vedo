@@ -59,7 +59,7 @@ def morph(clm1, clm2, t, lmax):
     return pts
 
 
-vp = plotter.vtkPlotter(shape=[2,2], verbose=0, axes=0, interactive=0)
+vp = plotter.vtkPlotter(shape=[2,2], verbose=0, axes=3, interactive=0)
 
 shape1 = vp.sphere(alpha=0.2)
 shape2 = vp.octahedron(alpha=0.2, edges=True)

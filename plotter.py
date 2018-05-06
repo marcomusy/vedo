@@ -1317,7 +1317,7 @@ class vtkPlotter:
 
 
     def fxy(self, z='sin(3*x)*log(x-y)/3', x=[0,3], y=[0,3],
-            zlimits=[None,None], showNan=True, zlevels=10,
+            zlimits=[None,None], showNan=True, zlevels=10, wire=False,
             c='b', bc='aqua', alpha=1, legend=True, texture=None, res=100):
         '''
         Return a surface representing the 3D function specified as a string
@@ -1401,7 +1401,7 @@ class vtkPlotter:
             elev.Update()
             poly = elev.GetOutput()
 
-        actor = makeActor(poly, c=c, bc=bc, alpha=alpha,
+        actor = makeActor(poly, c=c, bc=bc, alpha=alpha, wire=wire,
                           legend=legend, texture=texture)
         acts=[actor]
 
@@ -1877,7 +1877,7 @@ class vtkPlotter:
                 acts += [zero]
                 self.actors.pop()
 
-            if len(self.xtitle) and dx>0:
+            if len(self.xtitle) and dx>aves/100:
                 xl = self.cylinder([[x0, 0, 0], [x1, 0, 0]], radius=aves/250*s, c=xcol, alpha=alpha)
                 xc = self.cone(pos=[x1, 0, 0], c=xcol, alpha=alpha,
                                 radius=aves/100*s, height=aves/25*s, axis=[1, 0, 0], res=10)
@@ -1887,7 +1887,7 @@ class vtkPlotter:
                 for i in range(3): self.actors.pop()
                 acts += [xl,xc,xt]
 
-            if len(self.ytitle) and dy>0:
+            if len(self.ytitle) and dy>aves/100:
                 yl = self.cylinder([[0, y0, 0], [0, y1, 0]], radius=aves/250*s, c=ycol, alpha=alpha)
                 yc = self.cone(pos=[0, y1, 0], c=ycol, alpha=alpha,
                                 radius=aves/100*s, height=aves/25*s, axis=[0, 1, 0], res=10)
@@ -1898,7 +1898,7 @@ class vtkPlotter:
                 for i in range(3): self.actors.pop()
                 acts += [yl,yc,yt]
 
-            if len(self.ztitle) and dz>0:
+            if len(self.ztitle) and dz>aves/100:
                 zl = self.cylinder([[0, 0, z0], [0, 0, z1]], radius=aves/250*s, c=zcol, alpha=alpha)
                 zc = self.cone(pos=[0, 0, z1], c=zcol, alpha=alpha,
                                 radius=aves/100*s, height=aves/25*s, axis=[0, 0, 1], res=10)

@@ -5,7 +5,7 @@
 import plotter
 
 # declare the instance of the class
-vp = plotter.vtkPlotter(shape=(2,2), interactive=0)
+vp = plotter.vtkPlotter(shape=(2,2), interactive=0, axes=3)
 
 # build to sphere actors 
 s1 = vp.sphere(pos=[-.7,0,0], c='r', alpha=0.5)
