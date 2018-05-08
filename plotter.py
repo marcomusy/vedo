@@ -5,7 +5,7 @@
 from __future__ import division, print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "7.0" 
+__version__ = "7.1" 
 __maintainer__ = "M. Musy, G. Dalmasso"
 __email__   = "marco.musy@embl.es"
 __status__  = "dev"
@@ -428,6 +428,7 @@ class vtkPlotter:
         If tags='ids' points are labeled with an integer number
         '''
 
+        if len(plist) == 0: return None
         if isSequence(c) and isSequence(c[0]):
             return self._colorPoints(plist, c, r, alpha, legend)
 
@@ -848,6 +849,7 @@ class vtkPlotter:
         '''
         diff = endPoint-np.array(startPoint)
         length = np.linalg.norm(diff)
+        if not length: return None
         trange = np.linspace(0, length, num=50*coils)
         om = 6.283*(coils-.5)/length
         pts = [ [radius*np.cos(om*t),radius*np.sin(om*t),t] for t in trange ]
@@ -1641,6 +1643,7 @@ class vtkPlotter:
         except:
             printc("Error in ellipsoid(): scipy not installed. Skip.",1)
             return None
+        if len(points) == 0: return None
         P = np.array(points, ndmin=2, dtype=float)
         cov = np.cov(P, rowvar=0)      # covariance matrix
         U, s, R = np.linalg.svd(cov)   # singular value decomposition
@@ -2113,7 +2116,10 @@ class vtkPlotter:
 
     def render(self, addActor=None, resetcam=False, rate=10000):
         if addActor:
-            self.addActor(addActor)
+            if isSequence(addActor): 
+                for a in addActor: self.addActor(a)
+            else: self.addActor(addActor)
+
         if not self.initializedPlotter:
             before = bool(self.interactive)
             self.verbose = False

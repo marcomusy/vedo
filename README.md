@@ -72,17 +72,6 @@ vp.show()
 <br />
 
 
-Draw a PCA ellipsoid that contains 67% of a cloud of points:
-```python
-pts = [(u(0,200), u(0,200), u(0,200)) for i in range(50)]
-vp = plotter.vtkPlotter()
-vp.points(pts)
-vp.pca(pts, pvalue=0.67, pcaAxes=True)
-vp.show()
-```
-![pca](https://user-images.githubusercontent.com/32848391/32732169-12f82a5a-c88c-11e7-9a31-f14b100374cb.png)
-<br />
-
 
 Plot the function *f(x,y) = sin(3*x)*log(x-y)/3* (more examples in *examples/fxy.py*).
 <br />
@@ -173,6 +162,7 @@ Simulation of a spring in a viscous medium:
 python examples/spring.py
 ```
 ![spring](https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif)
+<br />
 
 
 Simulation of an elastic multiple pendulum with friction:
@@ -180,6 +170,7 @@ Simulation of an elastic multiple pendulum with friction:
 python examples/multiple_pendulum.py
 ```
 ![pendulum](https://user-images.githubusercontent.com/32848391/39259507-dc26b18a-48b6-11e8-94fd-3fcb01661b55.gif)
+<br />
 
 
 Direct integration of the wave equation comparing the simple Euler method (green) with the more sofisticated Runge-Kutta 4th order method (red):
@@ -187,6 +178,24 @@ Direct integration of the wave equation comparing the simple Euler method (green
 python examples/wave_equation.py
 ```
 ![wave](https://user-images.githubusercontent.com/32848391/39360796-ea5f9ef0-4a1f-11e8-85cb-f3e21072c7d5.gif)
+<br />
+
+
+Simulation of bacteria types that divide at different rates. As they divide they occupy more and more space:
+```bash
+python examples/cells_main.py
+```
+![cells](https://user-images.githubusercontent.com/32848391/39751599-ea32aa66-52b8-11e8-93a3-4a5a65d34612.gif)
+<br />
+
+
+Simulation of a gyroscope hanging from a spring:
+```bash
+python examples/gyroscope.py
+```
+![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)
+<br />
+
 
 
 More examples in directory *examples/* 
@@ -311,7 +320,7 @@ actor.gamma()    # get Lorentz factor
 #
 actor.rotate(angle, axis, axis_point=[0,0,0], rad=False)  # rotate actor around axis
 actor.rotateX(angle, rad=False)       # rotate actor around X (or Y or Z)
-actor.orientation(oldaxis, newaxis)   # rotate actor from direction oldaxis to newaxis
+actor.orientation(initaxis, newaxis)  # rotate actor from direction initaxis to newaxis
 #
 actor.clone(c='gold', alpha=1, wire=False, bc=None, edges=False, legend=None, texture=None)
 #

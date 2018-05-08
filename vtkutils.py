@@ -394,18 +394,22 @@ def rotate(actor, angle, axis, axis_point=[0,0,0], rad=False):
     actor.RotateWXYZ(angle, axis[0], axis[1], axis[2] )
     actor.SetPosition(rv)
     return actor
-    
+ 
 
-def orientation(actor, oldaxis, newaxis):
-    # pos = actor.GetPosition()
-    # TI = vtk.vtkTransform()
-    # actor.SetUserMatrix(TI.GetMatrix()) # reset
-    crossvec = np.cross(norm(oldaxis), norm(newaxis))
-    angle = np.arcsin(mag(crossvec))*57.3
-    actor.RotateWXYZ(angle, crossvec[0], crossvec[1], crossvec[2])
-    # actor.SetPosition(pos)
+def orientation(actor, initaxis, newaxis):
+    initaxis, newaxis = norm(initaxis), norm(newaxis)
+    TI = vtk.vtkTransform()
+    actor.SetUserMatrix(TI.GetMatrix()) # reset
+    pos = np.array(actor.GetPosition())
+    crossvec = np.cross(initaxis, newaxis)
+    angle = np.arccos(np.dot(initaxis, newaxis))
+    T = vtk.vtkTransform()
+    T.PostMultiply()
+    T.Translate(-pos)
+    T.RotateWXYZ(angle*57.3, crossvec)
+    T.Translate(pos)
+    actor.SetUserMatrix(T.GetMatrix())
     return actor
-
 
 
 ############################################################################
