@@ -5,7 +5,7 @@
 from __future__ import division, print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "7.1" 
+__version__ = "7.2" 
 __maintainer__ = "M. Musy, G. Dalmasso"
 __email__   = "marco.musy@embl.es"
 __status__  = "dev"
@@ -23,15 +23,8 @@ import vtkutils
 from vtkutils import printc, makeActor, setInput, vtkMV
 from vtkutils import makeAssembly,  assignConvenienceMethods
 from vtkutils import assignTexture, assignPhysicsMethods
-from vtkutils import polydata, coordinates
-
-# to expose these methods in plotter namespace (not used in this file):
-# they are also passed to the class at line ~140
-from vtkutils import closestPoint, isInside, insidePoints, maxOfBounds
-from vtkutils import normalize, clone, decimate, rotate, shrink, boolActors
-from vtkutils import centerOfMass, volume, surfaceArea, write, cutterWidget
-from vtkutils import ProgressBar, makePolyData, intersectWithLine
-from vtkutils import arange, vector, mag, norm, orientation #numpy shortcuts
+from vtkutils import polydata, coordinates, makePolyData
+from vtkutils import arange, vector, mag, mag2, norm, ProgressBar
 
 
 #########################################################################
@@ -155,7 +148,10 @@ class vtkPlotter:
         self.arange = vtkutils.arange
         self.vector = vtkutils.vector
         self.mag = vtkutils.mag
+        self.mag2 = vtkutils.mag2
         self.norm = vtkutils.norm
+        self.dot = np.dot
+        self.cross = np.cross
         self.orientation = vtkutils.orientation
 
         if N:                # N = number of renderers. Find out the best
@@ -476,9 +472,11 @@ class vtkPlotter:
         return self.points([pos], c, [], r, alpha, legend)
 
     def _colorPoints(self, plist, cols, r, alpha, legend):
-        if len(plist) != len(cols):
+        if len(plist) > len(cols):
             printc(("Mismatch in colorPoints()", len(plist), len(cols)), 1)
             exit()
+        if len(plist) != len(cols):
+            printc(("Warning: mismatch in colorPoints()", len(plist), len(cols)))
         src = vtk.vtkPointSource()
         src.SetNumberOfPoints(len(plist))
         src.Update()
@@ -567,16 +565,18 @@ class vtkPlotter:
 
 
     def sphere(self, pos=[0,0,0], r=1,
-               c='r', alpha=1, legend=None, texture=None, res=24):
+               c='r', alpha=1, wire=False, legend=None, texture=None, res=24):
 
         ss = vtk.vtkSphereSource()
         ss.SetRadius(r)
         ss.SetThetaResolution(res)
         ss.SetPhiResolution(res)
+        # ss.SetCenter(pos)
         ss.Update()
         pd = ss.GetOutput()
 
-        actor = makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
+        actor = makeActor(pd, c=c, alpha=alpha, wire=wire,
+                            legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(pos)
         self.actors.append(actor)

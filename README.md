@@ -303,20 +303,12 @@ def cutterWidget(actor, outputname='clipped.vtk')
 def write(obj, outputfilename)
 ```
 
-Additional methods of vtkActor object:
+Additional methods of vtkActor object. They return the actor object so that can be concatenated
+(e.g. actor.pos([1,2,3]).scale(3).color('blue') etc..):
 ```python
 actor.pos()      # set/get position vector (setters, and getters if no argument is given)
 actor.addpos(v)  # add v to current actor position
 actor.x()        # set/get x component of position (same for y and z)
-#
-actor.vel()      # set/get velocity vector
-actor.vx()       # set/get x component of velocity (same for y and z)
-#
-actor.mass()     # set/get mass
-actor.axis()     # set/get orientation axis
-actor.omega()    # set/get angular velocity
-actor.momentum() # get momentum vector
-actor.gamma()    # get Lorentz factor
 #
 actor.rotate(angle, axis, axis_point=[0,0,0], rad=False)  # rotate actor around axis
 actor.rotateX(angle, rad=False)       # rotate actor around X (or Y or Z)
@@ -330,10 +322,13 @@ actor.stretch(p1, p2): # stretch actor (typically a spring) between two points
 #
 actor.shrink(fraction=0.85)  # shrinks the polydata triangles for visualization
 #
-actor.alpha(value)           # sets opacity
+actor.color(value)           # sets/gets color
+actor.alpha(value)           # sets/gets opacity
 #
-actor.cutterWidget()         # invoke a cutter widget for actor
-actor.point(i, p=None)       # set/get i-th point in actor's polydata (no effect on actors)
+actor.N()                        # get number of vertex points defining the surface actor
+actor.polydata(transformed=True) # get the actor's polydata in its current associated vtkTranform
+actor.point(i, p=None)           # set/get i-th point in actor's polydata 
+actor.cutterWidget()             # invoke a cutter widget for actor
 ```
 
 Some useful *numpy* shortcuts available in vtkPlotter (*a la vpython*):

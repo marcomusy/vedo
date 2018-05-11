@@ -31,6 +31,9 @@ def mag(z):
     else: 
         return np.linalg.norm(z)
 
+def mag2(z):
+    return np.dot(z,z)
+
 def norm(v):
     if isinstance(v[0], np.ndarray):
         return np.divide(v, mag(v)[:,None])
@@ -52,9 +55,6 @@ def makeActor(poly, c='gold', alpha=0.5,
     clp = vtk.vtkCleanPolyData()
     setInput(clp, poly)
     clp.Update()
-    #triangles = vtk.vtkTriangleFilter()
-    #setInput(triangles, clp.GetOutput())
-    #triangles.Update() 
     pdnorm = vtk.vtkPolyDataNormals()
     setInput(pdnorm, clp.GetOutput())
     pdnorm.SetFeatureAngle(60.0)
@@ -187,21 +187,28 @@ def assignConvenienceMethods(actor, legend):
     actor.orientation = types.MethodType( _forientation, actor )
 
 
-    def _fclone(self, c='gold', alpha=1, wire=False, bc=None,
+    def _fclone(self, c=None, alpha=None, wire=False, bc=None,
                 edges=False, legend=None, texture=None): 
         return clone(self, c, alpha, wire, bc, edges, legend, texture)
     actor.clone = types.MethodType( _fclone, actor )
 
     def _fpoint(self, i, p=None): 
-        poly = polydata(self)
-        if p is None:
+        if p is None : 
+            poly = polydata(self, 0, True)
             p = [0,0,0]
             poly.GetPoints().GetPoint(i, p)
             return np.array(p)
         else:
+            poly = polydata(self, 0, False)
             poly.GetPoints().SetPoint(i, p)
-        return 
+            TI = vtk.vtkTransform()
+            actor.SetUserMatrix(TI.GetMatrix()) # reset
+        return self
     actor.point = types.MethodType( _fpoint, actor )
+
+    def _fN(self, index=0): 
+        return polydata(self, index, False).GetNumberOfPoints()
+    actor.N = types.MethodType( _fN, actor )
 
     def _fnormalize(self): return normalize(self)
     actor.normalize = types.MethodType( _fnormalize, actor )
@@ -211,12 +218,10 @@ def assignConvenienceMethods(actor, legend):
 
     def _fcutterw(self): return cutterWidget(self)
     actor.cutterWidget = types.MethodType( _fcutterw, actor )
-    
-    def _falpha(self, value): self.GetProperty().SetOpacity(value)
-    actor.alpha = types.MethodType( _falpha, actor )
-    
-    def _fgpoly(self): return polydata(self)
-    actor.polydata = types.MethodType( _fgpoly, actor )
+     
+    def _fpolydata(self, index=0, transformed=True): 
+        return polydata(self, index, transformed)
+    actor.polydata = types.MethodType( _fpolydata, actor )
 
     def _fcoordinates(self): return coordinates(self)
     actor.coordinates = types.MethodType( _fcoordinates, actor )
@@ -224,6 +229,25 @@ def assignConvenienceMethods(actor, legend):
     def _fstretch(self, startpt, endpt): 
         return stretch(self, startpt, endpt)
     actor.stretch = types.MethodType( _fstretch, actor)
+
+    def _fcolor(self, c=None):
+        if c: 
+            self.GetProperty().SetColor(vtkcolors.getColor(c))
+            return self
+        else: return np.array(self.GetProperty().GetColor())
+    actor.color = types.MethodType( _fcolor, actor)
+
+    def _falpha(self, a=None):
+        if a: 
+            self.GetProperty().SetOpacity(a)
+            return self
+        else: return self.GetProperty().GetOpacity()
+    actor.alpha = types.MethodType( _falpha, actor)
+
+    def _fclosestPoint(self, pt, N=None, radius=None):
+        return closestPoint(self, pt, N, radius)
+    actor.closestPoint = types.MethodType( _fclosestPoint, actor)
+
 
 
 def assignPhysicsMethods(actor):
@@ -274,51 +298,6 @@ def assignPhysicsMethods(actor):
         return self # return itself to concatenate methods
     actor.scale = types.MethodType( _fscale, actor )
 
-     
-    setattr(actor, '_vel',  np.array([0,0,0]))  # velocity
-    def _fvel(self, v=None): 
-        if v is None: return self._vel
-        self._vel = v
-    actor.vel = types.MethodType( _fvel, actor )
-    
-    def _fvx(self, vx=None):               # VX  
-        if vx is None: return self._vel[0]
-        newp = [vx, self._vel[1], self._vel[2]]
-        self._vel = newp
-    actor.vx = types.MethodType( _fvx, actor )
-
-    def _fvy(self, vy=None):               # VY  
-        if vy is None: return self._vel[1]
-        newp = [self._vel[0], vy, self._vel[2]]
-        self._vel = newp
-    actor.vy = types.MethodType( _fvy, actor )
-
-    def _fvz(self, vz=None):               # VZ  
-        if vz is None: return self._vel[2]
-        newp = [self._vel[0], self._vel[1], vz]
-        self._vel = newp
-    actor.vz = types.MethodType( _fvz, actor )
-     
-    setattr(actor, '_mass',  1.0)               # mass
-    def _fmass(self, m=None): 
-        if m is None: return self._mass
-        self._mass = m
-    actor.mass = types.MethodType( _fmass, actor )
-
-    setattr(actor, '_omega', 0.0)                # angular velocity
-    def _fomega(self, o=None): 
-        if o is None: return self._omega
-        self._omega = o
-    actor.omega = types.MethodType( _fomega, actor )
-
-    def _fmomentum(self): 
-        return self._mass * self._vel
-    actor.momentum = types.MethodType( _fmomentum, actor )
-
-    def _fgamma(self):                 # Lorentz factor
-        v2 = np.sum( self._vel*self._vel )
-        return 1./np.sqrt(1. - v2/299792.48**2)
-    actor.gamma = types.MethodType( _fgamma, actor )
 
     # if not hasattr(actor, 'axis'): # some types of actors already have it
     #     setattr(actor, '_axis', None)      # define axis of symmetry
@@ -334,7 +313,7 @@ def assignPhysicsMethods(actor):
 
 
 ######################################################### 
-def clone(actor, c='gold', alpha=None, wire=False, bc=None,
+def clone(actor, c=None, alpha=None, wire=False, bc=None,
           edges=False, legend=None, texture=None): 
     poly = polydata(actor)
     if not len(coordinates(actor)):
@@ -342,16 +321,13 @@ def clone(actor, c='gold', alpha=None, wire=False, bc=None,
         return actor
     polyCopy = vtk.vtkPolyData()
     polyCopy.DeepCopy(poly)
-    if not legend is None and hasattr(actor.legend): 
-        legend = actor.legend
-        
-    if alpha is None: alpha = actor.GetProperty().GetOpacity()
-    if hasattr(actor, 'texture'): texture = actor.texture
-    a = makeActor(polyCopy, c, alpha, wire, bc, edges, legend, texture)
+
+    if legend  is True and hasattr(actor, 'legend'): legend = actor.legend
+    if alpha   is None: alpha = actor.GetProperty().GetOpacity()
+    if c       is None: c = actor.GetProperty().GetColor()
+    if texture is None and hasattr(actor, 'texture'): texture = actor.texture
   
-    assignPhysicsMethods(a)    
-    assignConvenienceMethods(a, legend)    
-    return a
+    return makeActor(polyCopy, c, alpha, wire, bc, edges, legend, texture)
     
 
 def normalize(actor, s=1): # N.B. input argument gets modified
@@ -529,7 +505,7 @@ def makePolyData(spoints, addLines=True):
     return source
 
 
-def isInside(actor, point):
+def isInside(actor, point, tol=0.0001):
     """Return True if point is inside a polydata closed surface"""
     poly = polydata(actor)
     points = vtk.vtkPoints()
@@ -537,6 +513,8 @@ def isInside(actor, point):
     pointsPolydata = vtk.vtkPolyData()
     pointsPolydata.SetPoints(points)
     sep = vtk.vtkSelectEnclosedPoints()
+    sep.SetTolerance(tol)
+    sep.CheckSurfaceOff()
     setInput(sep, pointsPolydata)
     if vtkMV: sep.SetSurfaceData(poly)
     else: sep.SetSurface(poly)
@@ -595,18 +573,37 @@ def fillHoles(actor, size=None, legend=None):
     factor.SetProperty(actor.GetProperty())
     return factor    
 
+def isIdentity(M, tol=1e-06):
+    # check if vtkMatrix4x4 is Identity
+    for i in [0,1,2,3]: 
+        for j in [0,1,2,3]: 
+            e = M.GetElement(i,j)
+            if i==j: 
+                if np.abs(e-1) > tol: return False
+            elif np.abs(e) > tol: return False
+            # np.allclose(M, np.eye(4))
+    return True
+
 
 #################################################################### get stuff
-def polydata(obj, index=0): 
+def polydata(obj, index=0, transformed=True): 
     '''
-    Returns vtkPolyData from an other object (vtkActor, vtkAssembly)
+    Returns vtkPolyData from an other object (vtkActor, vtkAssembly),
+    if transformed=True returns a copy of polydata
+    that corresponds to the current the position in space
     '''
+
     if isinstance(obj, list) and len(obj)>0: obj = obj[index]
    
     if isinstance(obj, vtk.vtkActor):   
         pd = obj.GetMapper().GetInput()
+        M = obj.GetMatrix()
+        if transformed == False or isIdentity(M):
+            return pd # if identity return the original polydata
+        # otherwise make a copy that corresponds to 
+        # the actual position in space of the actor
         transform = vtk.vtkTransform()
-        transform.SetMatrix(obj.GetMatrix())
+        transform.SetMatrix(M)
         tp = vtk.vtkTransformPolyDataFilter()
         tp.SetTransform(transform)
         if vtkMV: tp.SetInputData(pd)
@@ -621,8 +618,13 @@ def polydata(obj, index=0):
         for i in range(index+1):
             act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
         pd = act.GetMapper().GetInput()
+        M = act.GetMatrix()
+        if transformed == False or isIdentity(M):
+            return pd # if identity return the original polydata
+        # otherwise make a copy that corresponds to 
+        # the actual position in space of the actor
         transform = vtk.vtkTransform()
-        transform.SetMatrix(act.GetMatrix())
+        transform.SetMatrix(M)
         tp = vtk.vtkTransformPolyDataFilter()
         tp.SetTransform(transform)
         if vtkMV: tp.SetInputData(pd)
@@ -636,7 +638,7 @@ def polydata(obj, index=0):
     elif obj is None:  return None
     
     printc("Fatal Error in polydata(): ", 'r', end='')
-    printc(("input is neither a poly nor an actor int or assembly.", [obj]), 'r')
+    printc(("input is neither a vtkActor nor vtkAssembly.", [obj]), 'r')
     exit(1)
 
 
@@ -720,7 +722,7 @@ def write(obj, fileoutput):
 
 
 ########################################################################
-def closestPoint(surf, pt, locator=None, N=None, radius=None):
+def closestPoint(surf, pt, N=None, radius=None):
     """
     Find the closest point on a polydata given an other point.
     If N is given, return a list of N ordered closest points.
@@ -730,15 +732,18 @@ def closestPoint(surf, pt, locator=None, N=None, radius=None):
     trgp  = [0,0,0]
     cid   = vtk.mutable(0)
     dist2 = vtk.mutable(0)
-    if not locator:
-        if N: locator = vtk.vtkPointLocator()
-        else: locator = vtk.vtkCellLocator()
-        locator.SetDataSet(poly)
-        locator.BuildLocator()
+
+    locexists = hasattr(surf, 'pointlocator')
+    if not locexists or (locexists and surf.pointlocator is None):
+        if N: pointlocator = vtk.vtkPointLocator()
+        else: pointlocator = vtk.vtkCellLocator()
+        pointlocator.SetDataSet(poly)
+        pointlocator.BuildLocator()
+        setattr(surf, 'pointlocator', pointlocator)
     if N:
         vtklist = vtk.vtkIdList()
         vmath = vtk.vtkMath()
-        locator.FindClosestNPoints(N, pt, vtklist)
+        surf.pointlocator.FindClosestNPoints(N, pt, vtklist)
         trgp_, trgp, dists2 = [0,0,0], [], []
         for i in range(vtklist.GetNumberOfIds()):
             vi = vtklist.GetId(i)
@@ -748,13 +753,13 @@ def closestPoint(surf, pt, locator=None, N=None, radius=None):
         dist2 = dists2
     elif radius:
         cell = vtk.mutable(0)
-        r = locator.FindClosestPointWithinRadius(pt, radius, trgp, cell, cid, dist2)
+        r = surf.pointlocator.FindClosestPointWithinRadius(pt, radius, trgp, cell, cid, dist2)
         if not r: 
             trgp = pt
             dist2 = 0.0
     else: 
         subid = vtk.mutable(0)
-        locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
+        surf.pointlocator.FindClosestPoint(pt, trgp, cid, subid, dist2)
     return trgp
 
 
@@ -764,11 +769,11 @@ def intersectWithLine(act, p0, p1):
         linelocator = vtk.vtkOBBTree()
         linelocator.SetDataSet(act.polydata())
         linelocator.BuildLocator()
-        setattr(act, 'locator', linelocator)
+        setattr(act, 'linelocator', linelocator)
 
     intersectPoints = vtk.vtkPoints()
     intersection = [0, 0, 0]
-    act.locator.IntersectWithLine(p0, p1, intersectPoints, None)
+    act.linelocator.IntersectWithLine(p0, p1, intersectPoints, None)
     pts=[]
     for i in range(intersectPoints.GetNumberOfPoints()):
         intersectPoints.GetPoint(i, intersection)

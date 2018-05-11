@@ -65,8 +65,8 @@ vp = plotter.vtkPlotter(title='Example of PCA analysys')
 pts = [(gauss(0,1), gauss(0,2), gauss(0,3)) for i in range(1000)]
 a = vp.pca(pts, pvalue=0.5, pcaAxes=1, legend='PCA ellipsoid')
 
-ipts = plotter.insidePoints(a, pts)
-opts = plotter.insidePoints(a, pts, invert=True)
+ipts = vp.insidePoints(a, pts)
+opts = vp.insidePoints(a, pts, invert=True)
 vp.points(ipts, c='g', legend='in  points #'+str(len(ipts)))
 vp.points(opts, c='r', legend='out points #'+str(len(opts)))
 vp.show()
@@ -207,7 +207,7 @@ a = vp.points(pts2, r=4, c='r', alpha=1, legend='point set 2')
 
 #for each point in pts1 find the closest point within radius=2
 for p in pts1:
-    cp = plotter.closestPoint(a, p, radius=2)
+    cp = a.closestPoint(p, radius=2)
     vp.line(p, cp)
 vp.show()
 
