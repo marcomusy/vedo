@@ -289,7 +289,7 @@ vp.verbose      # verbosity
 vp.result       # dictionary to store extra output information
 ```
 
-Useful *plotter* functions:
+Useful methods:
 ```python
 def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None)
 def makeAssembly(actors, legend=None)
@@ -314,7 +314,7 @@ actor.rotate(angle, axis, axis_point=[0,0,0], rad=False)  # rotate actor around 
 actor.rotateX(angle, rad=False)       # rotate actor around X (or Y or Z)
 actor.orientation(initaxis, newaxis)  # rotate actor from direction initaxis to newaxis
 #
-actor.clone(c='gold', alpha=1, wire=False, bc=None, edges=False, legend=None, texture=None)
+actor.clone(c=None, alpha=None, wire=False, bc=None, edges=False, legend=None, texture=None)
 #
 actor.scale()     # set/get scaling factor of actor
 actor.normalize() # sets actor at origin and scales its average size to 1
@@ -328,6 +328,7 @@ actor.alpha(value)           # sets/gets opacity
 actor.N()                        # get number of vertex points defining the surface actor
 actor.polydata(transformed=True) # get the actor's polydata in its current associated vtkTranform
 actor.point(i, p=None)           # set/get i-th point in actor's polydata 
+actor.closestPoint(p, N=None, radius=None) # get the closest point(s) to p on actor's surface
 actor.cutterWidget()             # invoke a cutter widget for actor
 ```
 
