@@ -183,7 +183,7 @@ python examples/wave_equation.py
 
 Simulation of bacteria types that divide at different rates. As they divide they occupy more and more space:
 ```bash
-python examples/cells_main.py
+python examples/advanced//cells_main.py
 ```
 ![cells](https://user-images.githubusercontent.com/32848391/39751599-ea32aa66-52b8-11e8-93a3-4a5a65d34612.gif)
 <br />
@@ -191,7 +191,7 @@ python examples/cells_main.py
 
 Simulation of a gyroscope hanging from a spring:
 ```bash
-python examples/gyroscope.py
+python examples/gyroscope1.py
 ```
 ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)
 <br />
@@ -204,13 +204,12 @@ If you need to do more complicated things (define widgets.. etc), you can still 
 standard VTK objects (e.g. interactors and renderers through *vp.interactor, vp.renderer*... etc).<br />
 Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.avi* file (needs to import cv2).
 <br />
-To make animated gifs online, there is this great site: [ezgif.com] (https://ezgif.com/)
+To make animated gifs online, there is this great site: https://ezgif.com
 
 ## List of available methods with default values:
 ```python
-def help()
-def __init__(shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='',
-             bg=(1,1,1), bg2=None, axes=0, verbose=True, interactive=True)
+def vtkPlotter(shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='vtkPlotter',
+               bg=(1,1,1), bg2=None, axes=0, verbose=True, interactive=True)
 def load(filesOrDirs, c='gold', alpha=0.2, wire=False, bc=None, edges=False, legend=True, texture=None)
 def getActors(obj=None)
 def moveCamera(camstart, camstop, fraction)
@@ -228,16 +227,16 @@ def polygon(pos, normal=(0,0,1), nsides=6, r=1,
 def disc(pos, normal=[0,0,1], r1=0.5, r2=1, 
             c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, res=12)
 def arrow(startPoint, endPoint, s=0.03, c='r', alpha=1, legend=None, texture=None)
-def helix(startPoint, endPoint, coils=12, radius=1, thickness=1, c='grey', alpha=1, legend=None, texture=None)
-def cylinder(pos, radius, height, axis=[1,1,1], c='teal', alpha=1, edges=False, legend=None, texture=None, res=24)
+def helix(startPoint, endPoint, coils=12, r=1, thickness=1, c='grey', alpha=1, legend=None, texture=None)
+def cylinder(pos, r, height, axis=[1,1,1], c='teal', alpha=1, edges=False, legend=None, texture=None, res=24)
 def octahedron(pos, s=1, axis=(0,0,1), c='g', alpha=1, wire=False, legend=None, texture=None)
-def cone(pos, radius, height, axis=[1,1,1], c='g', alpha=1, legend=None, texture=None)
+def cone(pos, r, height, axis=[1,1,1], c='g', alpha=1, legend=None, texture=None)
 def ellipsoid(points, c='c', alpha=0.5, legend=None, texture=None, res=24)
-def paraboloid(pos, radius=1, height=1, axis=[0,0,1], c='cyan', alpha=1, legend=None, texture=None, res=50)
+def paraboloid(pos, r=1, height=1, axis=[0,0,1], c='cyan', alpha=1, legend=None, texture=None, res=50)
 def hyperboloid(pos, a2=1, value=0.5, height=1, axis=[0,0,1], 
                 c='magenta', alpha=1, legend=None, texture=None, res=50)
 def pyramid(pos, s=1, height=1, axis=[0,0,1], c='dg', alpha=1, legend=None, texture=None)
-def ring(pos, radius=1, thickness=0.1, axis=[1,1,1], c='khaki', alpha=1, legend=None, texture=None, res=30)
+def ring(pos, r=1, thickness=0.1, axis=[1,1,1], c='khaki', alpha=1, legend=None, texture=None, res=30)
 def spline(points, smooth=0.5, degree=2, s=5, c='b', alpha=1., nodes=False, legend=None, res=20)
 def text(txt, pos, axis=(0,0,1), s=1, c='k', alpha=1, bc=None, cam=True, texture=None)
 #
@@ -257,6 +256,9 @@ def pca(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None)
 def cutActor(actor, origin=(0,0,0), normal=(1,0,0), showcut=True, showline=False, showpts=False)
 def closestPoint(surf, pt, locator=None, N=None, radius=None)
 def intersectWithLine(actor, p0, p1)
+def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3, c=None, alpha=1, legend=None)
+def booleanOperation(actor1, actor2, operation='plus',  # possible operations: plus, intersect, minus
+                     c=None, alpha=1, wire=False, bc=None, edges=False, legend=None, texture=None)
 #
 def show(actors=None, at=0, legend=None, axes=0, ruler=False, interactive=None,
          c='gold', bc=None, alpha=0.2, wire=False, edges=False, resetcam=True, q=False)
@@ -298,7 +300,8 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1)
 def isInside(poly, point)
 def polydata(obj, index=0, transformed=True)
 def closestPoint(surface, point, locator=None, N=None, radius=None)
-def coordinates(actors)
+def coordinates(actor)
+def normals(actor)
 def cutterWidget(actor, outputname='clipped.vtk')
 def write(obj, outputfilename)
 ```
@@ -328,6 +331,8 @@ actor.alpha(value)           # sets/gets opacity
 actor.N()                        # get number of vertex points defining the surface actor
 actor.polydata(transformed=True) # get the actor's polydata in its current associated vtkTranform
 actor.point(i, p=None)           # set/get i-th point in actor's polydata 
+actor.normalAt(i)                # get the normal at point i
+actor.normals()                  # get the list of normals at the vertices of the surface
 actor.closestPoint(p, N=None, radius=None) # get the closest point(s) to p on actor's surface
 actor.cutterWidget()             # invoke a cutter widget for actor
 ```
@@ -337,6 +342,7 @@ Some useful *numpy* shortcuts available in vtkPlotter (*a la vpython*):
 def arange(start,stop, step)  # return a range list of floats
 def vector(x,y,z=None)        # return a numpy vector (2D or 3D)
 def mag(v)                    # return the size of a vector or list of vectors
+def mag2(v)                   # return the squared size of a vector
 def norm(v)                   # return the versor of a vector or list of vectors
 ```
 

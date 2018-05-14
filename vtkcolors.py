@@ -5,6 +5,7 @@ Created on Mon Dec  4 20:06:00 2017
 @author: mmusy
 """
 from __future__ import division, print_function
+import vtkutils 
 import numpy as np
 
 
@@ -130,11 +131,13 @@ def getColor(rgb=None, hsv=None):
     """
     if hsv: c = hsv2rgb(hsv)
     else: c = rgb 
-    if isinstance(c,list) or isinstance(c,tuple) :
+    if vtkutils.isSequence(c) :
         if c[0]<=1 and c[1]<=1 and c[2]<=1: return c #already rgb
         else: return list(np.array(c)/255.) #RGB
 
     elif isinstance(c, str):
+        c = c.replace(',',' ').replace('/',' ').replace('alpha=','')
+        c = c.split()[0] #ignore possible opacity float inside string
         if 0 < len(c) < 3: 
             try: # single/double letter color
                 c = color_nicks[c.lower()] 
@@ -142,13 +145,15 @@ def getColor(rgb=None, hsv=None):
                 print("Unknow color nickname:", c)
                 print ("Available abbreviations:", color_nicks)
                 return [0.5,0.5,0.5]
+    
         try: # full name color
             c = colors[c.lower()] 
-        except KeyError:
+        except KeyError: 
             import vtk
             if vtk.vtkVersion().GetVTKMajorVersion() > 5:
                 namedColors = vtk.vtkNamedColors()
-                rgba = namedColors.GetColor(c)
+                rgba=[0,0,0,0]
+                namedColors.GetColor(c, rgba)
                 return rgba[0:3]
             print("Unknow color name:", c)
             print ("Available colors:", colors.keys())
@@ -166,9 +171,19 @@ def getColor(rgb=None, hsv=None):
     elif isinstance(c, int): 
         try: return colors1[c] 
         except: return [0.5,0.5,0.5]
-            
+
+    print('Unknown color:', c)
     return [0.5,0.5,0.5]
     
+
+def getAlpha(c):
+    "Check if color string contains a float representing opacity"
+    if isinstance(c, str):
+        sc = c.replace(',',' ').replace('/',' ').replace('alpha=','').split()
+        if len(sc)==1: return None
+        return float(sc[-1])
+    return None
+
 
 def getColorName(c):
     """Convert any rgb color or numeric code to closest name color"""

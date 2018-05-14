@@ -27,14 +27,14 @@ vp.box(pos=(bob_x[0], bob_y[0], 0), length=12,
        width=12, height=.7, c='k', wire=1)
 bob = [vp.sphere(pos=(bob_x[0], bob_y[0], 0), r=R/2, c='gray')]
 for k in range(1, N+1):
-    bob.append(vp.cylinder(pos=(bob_x[k], bob_y[k], 0), radius=R, height=.3, c=k))
+    bob.append(vp.cylinder(pos=(bob_x[k], bob_y[k], 0), r=R, height=.3, c=k))
 
 # Create the springs out of N links
 link = [0]*N
 for k in range(N):
     p0 = bob[k].pos()
     p1 = bob[k+1].pos()
-    link[k] = vp.helix(p0, p1, thickness=.015, radius=R/3, c='gray')
+    link[k] = vp.helix(p0, p1, thickness=.015, r=R/3, c='gray')
 printc('\nPress q to start simulation', 'green')
 vp.show()
 

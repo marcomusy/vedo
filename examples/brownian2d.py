@@ -134,7 +134,7 @@ for i in pb.range():
     if not int(i)%10:                  # every ten steps:
         rsp = [Pos[0][0],Pos[0][1],0]
         rsv = [Vel[0][0],Vel[0][1],0]
-        p = vp.ring(pos=rsp, axis=rsv, radius=Rb/4, thickness=Rb/40, 
+        p = vp.ring(pos=rsp, axis=rsv, r=Rb/4, thickness=Rb/40, 
                     c='r', alpha=0.05) # leave an oriented trace
         vp.render(p)                   # add actor p and render scene   
     pb.print('#actors='+str(len(vp.actors)))

@@ -5,6 +5,7 @@ import os, sys, types
 import numpy as np
 import vtkcolors
 import vtk
+from vtk.util import numpy_support
 import time
 
 
@@ -18,11 +19,17 @@ def setInput(vtkobj, p, port=0):
     else: vtkobj.SetInput(p)
 
 
+def isSequence(arg): 
+    if hasattr(arg, "strip"): return False
+    if hasattr(arg, "__getslice__"): return True
+    if hasattr(arg, "__iter__"): return True
+    return False
+
+
 def arange(start,stop, step=1): 
     return np.arange(start, stop, step)
 
-def vector(x,y,z=None):
-    if z is None: return np.array([x,y,0]) #assume 2D
+def vector(x, y ,z=0):
     return np.array([x,y,z])
 
 def mag(z):
@@ -65,6 +72,10 @@ def makeActor(poly, c='gold', alpha=0.5,
     pdnorm.Update()
 
     mapper = vtk.vtkPolyDataMapper()
+
+    # check if color string contains a float, in this case ignore alpha
+    al = vtkcolors.getAlpha(c)
+    if al: alpha = al
 
     setInput(mapper, pdnorm.GetOutput())
     actor = vtk.vtkActor()
@@ -225,6 +236,17 @@ def assignConvenienceMethods(actor, legend):
 
     def _fcoordinates(self): return coordinates(self)
     actor.coordinates = types.MethodType( _fcoordinates, actor )
+
+    def _fnormalAt(self, index): 
+        normals = self.polydata().GetPointData().GetNormals()
+        return np.array(normals.GetTuple(index))
+    actor.normalAt = types.MethodType( _fnormalAt, actor )
+
+    def _fnormals(self): 
+        vtknormals = self.polydata().GetPointData().GetNormals()
+        as_numpy = numpy_support.vtk_to_numpy(vtknormals)
+        return as_numpy
+    actor.normals = types.MethodType( _fnormals, actor )
 
     def _fstretch(self, startpt, endpt): 
         return stretch(self, startpt, endpt)
@@ -452,8 +474,8 @@ def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
     return actor  # return same obj for concatenation
 
 
-def boolActors(actor1, actor2, operation='plus', c=None, alpha=1, 
-               wire=False, bc=None, edges=False, legend=None, texture=None):
+def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1, 
+                     wire=False, bc=None, edges=False, legend=None, texture=None):
     try:
         bf = vtk.vtkBooleanOperationPolyDataFilter()
     except AttributeError:
@@ -477,6 +499,26 @@ def boolActors(actor1, actor2, operation='plus', c=None, alpha=1,
     bf.Update()
     actor = makeActor(bf.GetOutput(), 
                       c, alpha, wire, bc, edges, legend, texture)
+    return actor
+
+
+def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3,
+                        c=None, alpha=1, legend=None):
+    try:
+        bf = vtk.vtkIntersectionPolyDataFilter()
+    except AttributeError:
+        printc('surfaceIntersection only possible for vtk version > 6','r')
+        return None
+    poly1 = polydata(actor1)
+    poly2 = polydata(actor2)
+    # bf.CheckInputOff()
+    # bf.CheckMeshOff()
+    bf.SetInputData(0, poly1)
+    bf.SetInputData(1, poly2)
+    bf.Update()
+    if c is None: c = actor1.GetProperty().GetColor()
+    actor = makeActor(bf.GetOutput(), c, alpha, 0, legend=legend)
+    actor.GetProperty().SetLineWidth(lw)
     return actor
 
 
@@ -693,6 +735,15 @@ def surfaceArea(actor):
     mass.Update() 
     return mass.GetSurfaceArea()
 
+
+def averageSize(actor):
+    cm = centerOfMass(actor)
+    coords = coordinates(actor)
+    if not len(coords) : return
+    pts = coordinates(actor) - cm
+    xyz2 = np.sum(pts * pts, axis=0)
+    return np.sqrt(np.sum(xyz2)/len(pts))
+
     
 def write(obj, fileoutput):
     fr = fileoutput.lower()
@@ -795,6 +846,10 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     clipper.SetClipFunction(planes)
     clipper.InsideOutOn()
     clipper.GenerateClippedOutputOn()
+
+    # check if color string contains a float, in this case ignore alpha
+    al = vtkcolors.getAlpha(c)
+    if al: alpha = al
 
     act0Mapper = vtk.vtkPolyDataMapper() # the part which stays
     act0Mapper.SetInputConnection(clipper.GetOutputPort())

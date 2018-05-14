@@ -28,7 +28,7 @@ def reflection(p, pos):
     return np.dot(np.identity(3)-2*n*n[:,np.newaxis], p)
 
 vp = plotter.vtkPlotter(title='gas in toroid', verbose=0, axes=0)
-vp.ring(c='g', radius=RingRadius, thickness=RingThickness, alpha=.1, wire=1) ### <--
+vp.ring(c='g', r=RingRadius, thickness=RingThickness, alpha=.1, wire=1) ### <--
 
 Atoms = []
 poslist = []

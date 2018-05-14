@@ -5,7 +5,7 @@
 from __future__ import division, print_function
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "7.2" 
+__version__ = "7.3" 
 __maintainer__ = "M. Musy, G. Dalmasso"
 __email__   = "marco.musy@embl.es"
 __status__  = "dev"
@@ -17,14 +17,14 @@ import os, time, vtk
 import numpy as np
 import types
 
-from vtkcolors import getColor
 import vtkevents
 import vtkutils
-from vtkutils import printc, makeActor, setInput, vtkMV
+from vtkutils import printc, makeActor, setInput, vtkMV, isSequence
 from vtkutils import makeAssembly,  assignConvenienceMethods
 from vtkutils import assignTexture, assignPhysicsMethods
 from vtkutils import polydata, coordinates, makePolyData
 from vtkutils import arange, vector, mag, mag2, norm, ProgressBar
+from vtkcolors import getColor, getAlpha
 
 
 #########################################################################
@@ -125,13 +125,12 @@ class vtkPlotter:
         self.makeAssembly = vtkutils.makeAssembly
         self.polydata = vtkutils.polydata
         self.coordinates = vtkutils.coordinates
-        self.getCoordinates = getCoordinates
-        self.getPolyData = getPolyData
-        self.boolActors = vtkutils.boolActors
+        self.booleanOperation = vtkutils.booleanOperation
         self.closestPoint = vtkutils.closestPoint
         self.isInside = vtkutils.isInside
         self.insidePoints = vtkutils.insidePoints
         self.intersectWithLine = vtkutils.intersectWithLine
+        self.surfaceIntersection = vtkutils.surfaceIntersection
         self.maxOfBounds = vtkutils.maxOfBounds
         self.normalize = vtkutils.normalize
         self.clone = vtkutils.clone
@@ -139,6 +138,7 @@ class vtkPlotter:
         self.rotate = vtkutils.rotate
         self.shrink = vtkutils.shrink
         self.centerOfMass = vtkutils.centerOfMass
+        self.averageSize = vtkutils.averageSize
         self.volume = vtkutils.volume
         self.surfaceArea = vtkutils.surfaceArea
         self.write = vtkutils.write
@@ -501,6 +501,9 @@ class vtkPlotter:
         actor = vtk.vtkActor()
         actor.SetMapper(mapper)
         actor.GetProperty().SetInterpolationToFlat()
+        # check if color string contains a float, in this case ignore alpha
+        al = getAlpha(c)
+        if al: alpha = al
         actor.GetProperty().SetOpacity(alpha)
         actor.GetProperty().SetPointSize(r)
         self.actors.append(actor)
@@ -566,7 +569,6 @@ class vtkPlotter:
 
     def sphere(self, pos=[0,0,0], r=1,
                c='r', alpha=1, wire=False, legend=None, texture=None, res=24):
-
         ss = vtk.vtkSphereSource()
         ss.SetRadius(r)
         ss.SetThetaResolution(res)
@@ -575,8 +577,7 @@ class vtkPlotter:
         ss.Update()
         pd = ss.GetOutput()
 
-        actor = makeActor(pd, c=c, alpha=alpha, wire=wire,
-                            legend=legend, texture=texture)
+        actor = makeActor(pd, c, alpha, wire, legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(pos)
         self.actors.append(actor)
@@ -606,8 +607,7 @@ class vtkPlotter:
         tf.Update()
         pd = tf.GetOutput()
 
-        actor = makeActor(pd, c=c, alpha=alpha, wire=wire,
-                          legend=legend, texture=texture)
+        actor = makeActor(pd, c, alpha, wire, legend=legend, texture=texture)
         actor.SetPosition(pos)
         self.actors.append(actor)
         return actor
@@ -663,7 +663,7 @@ class vtkPlotter:
         tf.Update()
         pd = tf.GetOutput()
 
-        actor = makeActor(pd, c=c, alpha=alpha, wire=wire, edges=edges,
+        actor = makeActor(pd, c, alpha, wire, edges=edges,
                           legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(pos)       
@@ -721,6 +721,9 @@ class vtkPlotter:
             actor = vtk.vtkActor()
         actor.SetMapper(mapper)
         actor.GetProperty().SetColor(getColor(c))
+        # check if color string contains a float, in this case ignore alpha
+        al = getAlpha(c)
+        if al: alpha = al
         actor.GetProperty().SetOpacity(alpha)
         actor.GetProperty().SetLineWidth(lw)
         actor.GetProperty().SetInterpolationToFlat()
@@ -769,6 +772,9 @@ class vtkPlotter:
         actor = vtk.vtkActor()
         actor.SetMapper(mapper)
         actor.GetProperty().SetColor(getColor(c))
+        # check if color string contains a float, in this case ignore alpha
+        al = getAlpha(c)
+        if al: alpha = al
         actor.GetProperty().SetOpacity(alpha)
         actor.GetProperty().SetLineWidth(lw)
         actor.GetProperty().SetInterpolationToFlat()
@@ -842,7 +848,7 @@ class vtkPlotter:
         return actor
 
 
-    def helix(self, startPoint=[0,0,0], endPoint=[1,1,1], coils=12, radius=1,
+    def helix(self, startPoint=[0,0,0], endPoint=[1,1,1], coils=12, r=1,
               thickness=0.1, c='grey', alpha=1, legend=None, texture=None):
         '''
         Creates a spring actor.
@@ -852,7 +858,7 @@ class vtkPlotter:
         if not length: return None
         trange = np.linspace(0, length, num=50*coils)
         om = 6.283*(coils-.5)/length
-        pts = [ [radius*np.cos(om*t),radius*np.sin(om*t),t] for t in trange ]
+        pts = [ [r*np.cos(om*t),r*np.sin(om*t),t] for t in trange ]
         pts = [ [0,0,0] ] + pts + [ [0, 0, length] ]
         endPoint = endPoint-np.array(startPoint)
         endPoint = endPoint/np.linalg.norm(endPoint)
@@ -892,7 +898,7 @@ class vtkPlotter:
         return actor
 
 
-    def cylinder(self, pos=[0,0,0], radius=1, height=1, axis=[0,0,1],
+    def cylinder(self, pos=[0,0,0], r=1, height=1, axis=[0,0,1],
                  c='teal', alpha=1, edges=False, legend=None, texture=None):
         
         if isSequence(pos[0]): # assume user is passing pos=[base, top]
@@ -903,7 +909,7 @@ class vtkPlotter:
             axis = top-base
         cyl = vtk.vtkCylinderSource()
         cyl.SetResolution(24)
-        cyl.SetRadius(radius)
+        cyl.SetRadius(r)
         cyl.SetHeight(height)
         cyl.Update()
 
@@ -944,7 +950,7 @@ class vtkPlotter:
         return actor
 
 
-    def paraboloid(self, pos=[0,0,0], radius=1, height=1, axis=[0,0,1],
+    def paraboloid(self, pos=[0,0,0], r=1, height=1, axis=[0,0,1],
                    c='cyan', alpha=1, legend=None, texture=None, res=50):
         quadric = vtk.vtkQuadric()
         quadric.SetCoefficients(1, 1, 0, 0, 0, 0, 0, 0, 0.25/height, 0)
@@ -967,7 +973,7 @@ class vtkPlotter:
         t.PostMultiply()
         t.RotateY(theta*57.3)
         t.RotateZ(phi*57.3)
-        t.Scale(radius,radius,radius)
+        t.Scale(r, r, r)
         tf = vtk.vtkTransformPolyDataFilter()
         setInput(tf, contours.GetOutput())
         tf.SetTransform(t)
@@ -1020,11 +1026,11 @@ class vtkPlotter:
         return actor
 
 
-    def cone(self, pos=[0,0,0], radius=1, height=1, axis=[0,0,1],
+    def cone(self, pos=[0,0,0], r=1, height=1, axis=[0,0,1],
              c='dg', alpha=1, legend=None, texture=None, res=48):
         con = vtk.vtkConeSource()
         con.SetResolution(res)
-        con.SetRadius(radius)
+        con.SetRadius(r)
         con.SetHeight(height)
         con.SetDirection(axis)
         con.Update()
@@ -1057,10 +1063,10 @@ class vtkPlotter:
         return a
 
 
-    def ring(self, pos=[0,0,0], radius=1, thickness=0.1, axis=[0,0,1],
+    def ring(self, pos=[0,0,0], r=1, thickness=0.1, axis=[0,0,1],
              c='khaki', alpha=1, wire=False, legend=None, texture=None, res=30):
         rs = vtk.vtkParametricTorus()
-        rs.SetRingRadius(radius)
+        rs.SetRingRadius(r)
         rs.SetCrossSectionRadius(thickness)
         pfs = vtk.vtkParametricFunctionSource()
         pfs.SetParametricFunction(rs)
@@ -1240,6 +1246,10 @@ class vtkPlotter:
             ttactor = vtk.vtkActor()
         ttactor.SetMapper(ttmapper)
         ttactor.GetProperty().SetColor(getColor(c))
+
+        # check if color string contains a float, in this case ignore alpha
+        al = getAlpha(c)
+        if al: alpha = al
         ttactor.GetProperty().SetOpacity(alpha)
 
         nax = np.linalg.norm(axis)
@@ -1524,8 +1534,11 @@ class vtkPlotter:
         glyphActor.SetMapper(glyphMapper)
         glyphActor.GetProperty().EdgeVisibilityOff()
         glyphActor.GetProperty().SetColor(getColor(c))
+        # check if color string contains a float, in this case ignore alpha
+        al = getAlpha(c)
+        if al: alpha = al
         glyphActor.GetProperty().SetOpacity(alpha)
-        aactor = makeAssembly([actor,glyphActor], legend=legend)
+        aactor = makeAssembly([actor, glyphActor], legend=legend)
         self.actors.append(aactor)
         return aactor
 
@@ -1881,9 +1894,9 @@ class vtkPlotter:
                 self.actors.pop()
 
             if len(self.xtitle) and dx>aves/100:
-                xl = self.cylinder([[x0, 0, 0], [x1, 0, 0]], radius=aves/250*s, c=xcol, alpha=alpha)
+                xl = self.cylinder([[x0, 0, 0], [x1, 0, 0]], r=aves/250*s, c=xcol, alpha=alpha)
                 xc = self.cone(pos=[x1, 0, 0], c=xcol, alpha=alpha,
-                                radius=aves/100*s, height=aves/25*s, axis=[1, 0, 0], res=10)
+                                r=aves/100*s, height=aves/25*s, axis=[1, 0, 0], res=10)
                 wpos = [x1-(len(self.xtitle)+1)*aves/40*s, -aves/25*s, 0] # aligned to arrow tip
                 if centered: wpos = [(x0+x1)/2-len(self.xtitle)/2*aves/40*s, -aves/25*s, 0] 
                 xt = self.text(self.xtitle, pos=wpos, axis=(0,0,1) , s=aves/40*s, c=xcol, followcam=0)
@@ -1891,9 +1904,9 @@ class vtkPlotter:
                 acts += [xl,xc,xt]
 
             if len(self.ytitle) and dy>aves/100:
-                yl = self.cylinder([[0, y0, 0], [0, y1, 0]], radius=aves/250*s, c=ycol, alpha=alpha)
+                yl = self.cylinder([[0, y0, 0], [0, y1, 0]], r=aves/250*s, c=ycol, alpha=alpha)
                 yc = self.cone(pos=[0, y1, 0], c=ycol, alpha=alpha,
-                                radius=aves/100*s, height=aves/25*s, axis=[0, 1, 0], res=10)
+                                r=aves/100*s, height=aves/25*s, axis=[0, 1, 0], res=10)
                 wpos = [-aves/40*s, y1-(len(self.ytitle)+1)*aves/40*s, 0]
                 if centered: wpos = [ -aves/40*s, (y0+y1)/2-len(self.ytitle)/2*aves/40*s, 0] 
                 yt = self.text(self.ytitle, axis=(0,0,1) , s=aves/40*s, c=ycol, followcam=0)
@@ -1902,9 +1915,9 @@ class vtkPlotter:
                 acts += [yl,yc,yt]
 
             if len(self.ztitle) and dz>aves/100:
-                zl = self.cylinder([[0, 0, z0], [0, 0, z1]], radius=aves/250*s, c=zcol, alpha=alpha)
+                zl = self.cylinder([[0, 0, z0], [0, 0, z1]], r=aves/250*s, c=zcol, alpha=alpha)
                 zc = self.cone(pos=[0, 0, z1], c=zcol, alpha=alpha,
-                                radius=aves/100*s, height=aves/25*s, axis=[0, 0, 1], res=10)
+                                r=aves/100*s, height=aves/25*s, axis=[0, 0, 1], res=10)
                 wpos = [-aves/50*s, -aves/50*s, z1-(len(self.ztitle)+1)*aves/40*s]
                 if centered: wpos = [ -aves/50*s,  -aves/50*s, (z0+z1)/2-len(self.ztitle)/2*aves/40*s]
                 zt = self.text(self.ztitle, axis=(1, -1,0) , s=aves/40*s, c=zcol, followcam=0)
@@ -2535,19 +2548,6 @@ def _load2Dimage(filename, alpha):
     #    vactor.ForceTranslucentOn()
     vtkutils.assignPhysicsMethods(vactor)    
     return vactor
-
-def getPolyData(a=None):
-    printc('Please change getPolyData() to polydata() in your code. Exit.',1)
-    exit()
-def getCoordinates(a=None):
-    printc('Please change getCoordinates() to coordinates() in your code. Exit.',1)
-    exit()
-
-def isSequence(arg): 
-    if hasattr(arg, "strip"): return False
-    if hasattr(arg, "__getslice__"): return True
-    if hasattr(arg, "__iter__"): return True
-    return False
 
 ###########################################################################
 if __name__ == '__main__':
