@@ -27,8 +27,6 @@ alpts1 = vp.align(act1,act2).coordinates()
 for i in range(N1): #draw arrows to see where points end up
     vp.arrow(pts1[i], alpts1[i], c='k', s=0.01, alpha=.1) 
 
-print ('transformation matrix:', vp.result['transform'].GetMatrix())
-
 vp.show(at=1, interactive=1)
 
 

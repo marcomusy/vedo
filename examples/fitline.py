@@ -21,15 +21,15 @@ for i in range(500):
     data = np.array(list(zip(x,y,z)))
     data+= np.random.normal(size=data.shape)*0.8 # add gauss noise
     
-    vp.fitLine(data, lw=4, alpha=0.03) # fit a line
+    l = vp.fitLine(data, lw=4, alpha=0.03) # fit a line
 
 # 'data' still contains the last iteration points
 vp.points(data, r=10, c='red', legend='random points')
 
-# the last fitted slope direction is stored in vp.result dictionary
-print ('Line Fit slope= ', vp.result['slope']) 
+# the last fitted slope direction is stored in actor.slope and actor.normal
+print ('Line Fit slope= ', l.slope) 
 
-vp.fitPlane(data, legend='fit plane') # fit a plane
-print ('Plan Fit normal=', vp.result['normal']) 
+plane = vp.fitPlane(data, legend='fit plane') # fit a plane
+print ('Plan Fit normal=', plane.normal) 
 
 vp.show()

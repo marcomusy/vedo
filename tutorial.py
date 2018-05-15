@@ -106,7 +106,7 @@ vp.show(legend='shape w/ edges')
 
 
 #########################################################################################
-# Increases the number of points in a vtk mesh using 'subDivideMesh'
+# Increases the number of points in a vtk mesh using subdivide()
 # and shows them before and after.
 vp = plotter.vtkPlotter(shape=(1,2), axes=False)
 a1 = vp.load('data/beethoven.ply', alpha=1)
@@ -114,7 +114,7 @@ coords1 = a1.coordinates()
 pts1 = vp.points(coords1, r=4, c='g', legend='#points = '+str(len(coords1)))
 vp.show([a1, pts1], at=0, interactive=False)
 
-a2 = vp.subDivideMesh(a1, method=0) # Increasing the number of points of the mesh
+a2 = a1.subdivide(method=0) # Increasing the number of points of the mesh
 coords2 = a2.coordinates()
 pts2 = vp.points(coords2, r=1, legend='#points = '+str(len(coords2)))
 vp.show([a2, pts2], at=1, interactive=True)

@@ -13,14 +13,14 @@ __website__ = "https://github.com/marcomusy/vtkPlotter"
 
 
 ########################################################################
-import os, time, vtk
+import os, time, types, vtk
 import numpy as np
-import types
+from numpy import sin, cos, sqrt, dot, cross
 
 import vtkevents
 import vtkutils
 from vtkutils import printc, makeActor, setInput, vtkMV, isSequence
-from vtkutils import makeAssembly,  assignConvenienceMethods
+from vtkutils import makeAssembly, assignConvenienceMethods
 from vtkutils import assignTexture, assignPhysicsMethods
 from vtkutils import polydata, coordinates, makePolyData
 from vtkutils import arange, vector, mag, mag2, norm, ProgressBar
@@ -95,7 +95,6 @@ class vtkPlotter:
         self.legendSize = 0.2   # size of legend
         self.legendBG   = (.96,.96,.9) # legend background color
         self.legendPos  = 2     # 1=topright, 2=top-right, 3=bottom-left
-        self.result     = dict()# stores extra output information
         self.picked3d   = None  # 3d coords of a clicked point on an actor 
 
         # mostly internal stuff:
@@ -153,14 +152,15 @@ class vtkPlotter:
         self.dot = np.dot
         self.cross = np.cross
         self.orientation = vtkutils.orientation
+        self.subdivide = vtkutils.subdivide
 
         if N:                # N = number of renderers. Find out the best
             if shape!=(1,1): # arrangement based on minimum nr. of empty renderers
                 printc('Warning: having set N, #renderers, shape is ignored.)', c=1)
             x = float(maxscreensize[0])
             y = float(maxscreensize[1])
-            nx= int(np.sqrt(int(N*x/y)+1))
-            ny= int(np.sqrt(int(N*y/x)+1))
+            nx= int(sqrt(int(N*x/y)+1))
+            ny= int(sqrt(int(N*y/x)+1))
             lm = [(nx,ny), (nx,ny+1), (nx-1,ny), (nx+1,ny), (nx,ny-1)]
             lm+= [(nx-1,ny+1), (nx+1,ny-1), (nx+1,ny+1), (nx-1,ny-1)]
             minl=100
@@ -858,7 +858,7 @@ class vtkPlotter:
         if not length: return None
         trange = np.linspace(0, length, num=50*coils)
         om = 6.283*(coils-.5)/length
-        pts = [ [r*np.cos(om*t),r*np.sin(om*t),t] for t in trange ]
+        pts = [ [r*cos(om*t),r*sin(om*t),t] for t in trange ]
         pts = [ [0,0,0] ] + pts + [ [0, 0, length] ]
         endPoint = endPoint-np.array(startPoint)
         endPoint = endPoint/np.linalg.norm(endPoint)
@@ -1315,7 +1315,7 @@ class vtkPlotter:
         tprop.BoldOff()
         tprop.ItalicOff()
         tprop.ShadowOff()
-        tprop.SetFontSize(6) #not working
+        tprop.SetFontSize(3) #not working
         plot.SetAxisTitleTextProperty(tprop)
         plot.SetAxisLabelTextProperty(tprop)
         plot.SetTitleTextProperty(tprop)
@@ -1326,6 +1326,14 @@ class vtkPlotter:
         plot.GetPosition2Coordinate().SetValue(.3, .2, 0)
         self.actors.append(plot)
         return plot
+
+    def histogram(self, values, bins=10, vrange=None, 
+                    title='', c='g', corner=1, lines=True):
+        fs, edges = np.histogram(values, bins=bins, range=None)
+        pts=[]
+        for i in range(len(fs)): 
+            pts.append( [ (edges[i]+edges[i+1])/2, fs[i] ])
+        return self.xyplot(pts, title, c, corner, lines)
 
 
     def fxy(self, z='sin(3*x)*log(x-y)/3', x=[0,3], y=[0,3],
@@ -1599,7 +1607,7 @@ class vtkPlotter:
     def fitLine(self, points, c='orange', lw=1, alpha=0.6, legend=None):
         '''
         Fits a line through points.
-        Extra info is stored in vp.results['slope','center','variances']
+        Extra info is stored in actor.slope, actor.center, actor.variances
         '''
         data = np.array(points)
         datamean = data.mean(axis=0)
@@ -1614,18 +1622,18 @@ class vtkPlotter:
         p1 = datamean -a*vv
         p2 = datamean +b*vv
         l = self.line(p1, p2, c=c, lw=lw, alpha=alpha)
-        self.result['slope'] = vv
-        self.result['center'] = datamean
-        self.result['variances'] = dd
+        setattr(l, 'slope', vv)
+        setattr(l, 'center', datamean)
+        setattr(l, 'variances', dd)
         if self.verbose:
-            printc("Extra info saved in vp.results['slope','center','variances']",5)
+            printc("fitLine info saved in actor.slope, actor.center, actor.variances",5)
         return l
 
 
-    def fitPlane(self, points, c='g', bc='darkgreen', legend=None):
+    def fitPlane(self, points, c='g', bc='darkgreen', alpha=0.8, legend=None):
         '''
         Fits a plane to a set of points.
-        Extra info is stored in vp.results['normal','center','variance']
+        Extra info is stored in actor.normal, actor.center, actor.variance
         '''
         data = np.array(points)
         datamean = data.mean(axis=0)
@@ -1634,13 +1642,41 @@ class vtkPlotter:
         xyz_max = points.max(axis=0)
         s= np.linalg.norm(xyz_max - xyz_min)
         n = np.cross(vv[0],vv[1])
-        pla = self.plane(datamean, n, c=c, bc=bc, s=s, lw=2, alpha=0.8, legend=legend)
-        self.result['normal']  = n
-        self.result['center']  = datamean
-        self.result['variance']= dd[2]
+        pla = self.plane(datamean, n, 
+                         c=c, bc=bc, s=s, lw=2, alpha=alpha, legend=legend)
+        setattr(pla, 'normal', n)
+        setattr(pla, 'center', datamean)
+        setattr(pla, 'variance', dd[2])
         if self.verbose:
-            printc("Extra info saved in vp.results['normal','center','variance']",5)
+            printc("fitPlane info saved in actor.normal, actor.center, actor.variance",5)
         return pla
+
+
+    def fitSphere(self, coords, c='r', alpha=1, wire=1, legend=None):
+        coords = np.array(coords)
+        n = len(coords)
+        A = np.zeros((n,4))
+        A[:,:-1] = coords*2
+        A[:,  3] = 1
+        f = np.zeros((n,1))
+        x = coords[:,0]
+        y = coords[:,1]
+        z = coords[:,2]
+        f[:,0] = x*x+ y*y +z*z
+        C, residue, rank, sv = np.linalg.lstsq(A,f) # solve AC=f
+        if rank<4: return None
+        t = (C[0]*C[0]) + (C[1]*C[1]) + (C[2]*C[2]) +C[3]
+        radius = sqrt(t)[0]
+        center = np.array([C[0][0], C[1][0], C[2][0]])
+        if len(residue): residue = sqrt(residue[0])/n
+        else: residue=0
+        s = self.sphere(center, radius, c, alpha, wire=wire, legend=legend)
+        setattr(s, 'radius', radius)
+        setattr(s, 'center', center)
+        setattr(s, 'residue', residue)
+        if self.verbose:
+            printc("fitSphere info saved in actor.radius, actor.center, actor.residue",5)
+        return s
 
 
     def pca(self, points=[[1,0,0],[0,1,0],[0,0,1],[.5,0,1],[0,.2,.3]],
@@ -1648,7 +1684,7 @@ class vtkPlotter:
         '''
         Show the oriented PCA ellipsoid that contains 95% of points.
         axes = True, show the 3 PCA semi axes
-        Extra info is stored in vp.results['sphericity','a','b','c']
+        Extra info is stored in actor.sphericity, actor.va, actor.vb, actor.vc
         sphericity = 1 for a perfect sphere
         '''
         try:
@@ -1662,16 +1698,11 @@ class vtkPlotter:
         U, s, R = np.linalg.svd(cov)   # singular value decomposition
         p, n = s.size, P.shape[0]
         fppf = f.ppf(pvalue, p, n-p)*(n-1)*p*(n+1)/n/(n-p) # f % point function
-        va,vb,vc = np.sqrt(s*fppf)*2   # semi-axes (largest first)
+        va,vb,vc = sqrt(s*fppf)*2   # semi-axes (largest first)
         center = np.mean(P, axis=0)    # centroid of the hyperellipsoid
-        self.result['sphericity'] = (((va-vb)/(va+vb))**2
-                                   + ((va-vc)/(va+vc))**2
-                                   + ((vb-vc)/(vb+vc))**2 )/3. *4.
-        self.result['a'] = va
-        self.result['b'] = vb
-        self.result['c'] = vc
-        if self.verbose:
-            printc("Extra info saved in vp.results['sphericity','a','b','c']",5)
+        sphericity =  (((va-vb)/(va+vb))**2
+                        + ((va-vc)/(va+vc))**2
+                        + ((vb-vc)/(vb+vc))**2 )/3. *4.
         elliSource = vtk.vtkSphereSource()
         elliSource.SetThetaResolution(48)
         elliSource.SetPhiResolution(48)
@@ -1704,7 +1735,14 @@ class vtkPlotter:
             self.actors.append( asse )
         else : 
             self.actors.append(actor_elli)
-        return self.lastActor()
+        act = self.lastActor()
+        setattr(act, 'sphericity', sphericity)
+        setattr(act, 'va', va)
+        setattr(act, 'vb', vb)
+        setattr(act, 'vc', vc)
+        if self.verbose:
+            printc("PCA info saved in actor.sphericity, actor.va, actor.vb, actor.vc",5)
+        return act
 
 
     def align(self, source, target, iters=100, legend=None):
@@ -1728,7 +1766,7 @@ class vtkPlotter:
         poly = icpTransformFilter.GetOutput()
         actor = makeActor(poly, legend=legend)
         actor.SetProperty(sprop)
-        self.result['transform'] = icp.GetLandmarkTransform()
+        setattr(actor, 'transform', icp.GetLandmarkTransform())
         self.actors.append(actor)
         return actor
 
@@ -1782,7 +1820,7 @@ class vtkPlotter:
             cutPoly = vtk.vtkPolyData()
             cutPoly.SetPoints(cutStrips.GetOutput().GetPoints())
             cutPoly.SetPolys(cutStrips.GetOutput().GetLines())
-            cutline = makeActor(cutPoly, c=c, alpha=np.sqrt(alpha))
+            cutline = makeActor(cutPoly, c=c, alpha=sqrt(alpha))
             cutline.GetProperty().SetRepresentationToWireframe()
             cutline.GetProperty().SetLineWidth(4)
             acts.append(cutline)
@@ -1796,34 +1834,6 @@ class vtkPlotter:
             self.actors[i] = finact # substitute original actor with cut one
         except ValueError: pass
         return finact
-
-
-    def subDivideMesh(self, actor, N=1, method=0, legend=None):
-        '''Increases the number of points in actor'''        
-        triangles = vtk.vtkTriangleFilter()
-        setInput(triangles, polydata(actor))
-        triangles.Update()
-        originalMesh = triangles.GetOutput()
-        if   method==0: sdf = vtk.vtkLoopSubdivisionFilter()
-        elif method==1: sdf = vtk.vtkLinearSubdivisionFilter()
-        elif method==2: sdf = vtk.vtkAdaptiveSubdivisionFilter()
-        elif method==3: sdf = vtk.vtkButterflySubdivisionFilter()
-        else:
-            printc('Error in subDivideMesh: unknown method.', 'r')
-            exit(1)
-        if method != 2: sdf.SetNumberOfSubdivisions(N)
-        setInput(sdf, originalMesh)
-        sdf.Update()
-        out = sdf.GetOutput()
-        sactor = makeActor(out, legend=legend)
-        sactor.GetProperty().SetOpacity(actor.GetProperty().GetOpacity())
-        sactor.GetProperty().SetColor(actor.GetProperty().GetColor())
-        try:
-            i = self.actors.index(actor)
-            self.actors[i] = sactor # substitute original actor
-        except ValueError: pass
-        return sactor
-
 
     ##########################################
     def _draw_axes(self, c=(.2, .2, .6)):
@@ -1877,7 +1887,7 @@ class vtkPlotter:
             centered = False
             x0, x1, y0, y1, z0, z1 = vbb
             dx, dy, dz = x1-x0, y1-y0, z1-z0
-            aves = np.sqrt(dx*dx+dy*dy+dz*dz)/2
+            aves = sqrt(dx*dx+dy*dy+dz*dz)/2
             x0, x1 = min(x0, 0), max(x1, 0)
             y0, y1 = min(y0, 0), max(y1, 0)
             z0, z1 = min(z0, 0), max(z1, 0)

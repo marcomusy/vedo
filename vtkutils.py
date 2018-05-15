@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 #
 from __future__ import division, print_function
-import os, sys, types
+import os, sys, time, types
 import numpy as np
-import vtkcolors
 import vtk
 from vtk.util import numpy_support
-import time
+import vtkcolors
 
 
 ##############################################################################
@@ -80,26 +79,29 @@ def makeActor(poly, c='gold', alpha=0.5,
     setInput(mapper, pdnorm.GetOutput())
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
+    prp = actor.GetProperty()
+    if vtk.vtkVersion().GetVTKMajorVersion()>7: 
+        prp.RenderPointsAsSpheresOn()
     if c is None: 
         mapper.ScalarVisibilityOn()
     else:
         mapper.ScalarVisibilityOff()
         c = vtkcolors.getColor(c)
-        actor.GetProperty().SetColor(c)
-        actor.GetProperty().SetOpacity(alpha)
+        prp.SetColor(c)
+        prp.SetOpacity(alpha)
     
-        actor.GetProperty().SetSpecular(0.1)
-        actor.GetProperty().SetSpecularColor(c)
-        actor.GetProperty().SetSpecularPower(1)
+        prp.SetSpecular(0.1)
+        prp.SetSpecularColor(c)
+        prp.SetSpecularPower(1)
     
-        actor.GetProperty().SetAmbient(0.1)
-        actor.GetProperty().SetAmbientColor(c)
+        prp.SetAmbient(0.1)
+        prp.SetAmbientColor(c)
     
-        actor.GetProperty().SetDiffuse(1)
-        actor.GetProperty().SetDiffuseColor(c)
+        prp.SetDiffuse(1)
+        prp.SetDiffuseColor(c)
 
-    if edges: actor.GetProperty().EdgeVisibilityOn()
-    if wire: actor.GetProperty().SetRepresentationToWireframe()
+    if edges: prp.EdgeVisibilityOn()
+    if wire: prp.SetRepresentationToWireframe()
     if texture: 
         mapper.ScalarVisibilityOff()
         assignTexture(actor, texture)
@@ -251,6 +253,10 @@ def assignConvenienceMethods(actor, legend):
     def _fstretch(self, startpt, endpt): 
         return stretch(self, startpt, endpt)
     actor.stretch = types.MethodType( _fstretch, actor)
+
+    def _fsubdivide(self, N=1, method=0, legend=None): 
+        return subdivide(self, N, method, legend)
+    actor.subdivide = types.MethodType( _fsubdivide, actor)
 
     def _fcolor(self, c=None):
         if c: 
@@ -684,6 +690,37 @@ def polydata(obj, index=0, transformed=True):
     exit(1)
 
 
+def subdivide(actor, N=1, method=0, legend=None):
+    '''
+    Increase the number of points in actor surface
+    N = number of subdivisions
+    method = 0, Loop
+    method = 1, Linear
+    method = 2, Adaptive
+    method = 3, Butterfly
+    '''        
+    triangles = vtk.vtkTriangleFilter()
+    setInput(triangles, polydata(actor))
+    triangles.Update()
+    originalMesh = triangles.GetOutput()
+    if   method==0: sdf = vtk.vtkLoopSubdivisionFilter()
+    elif method==1: sdf = vtk.vtkLinearSubdivisionFilter()
+    elif method==2: sdf = vtk.vtkAdaptiveSubdivisionFilter()
+    elif method==3: sdf = vtk.vtkButterflySubdivisionFilter()
+    else:
+        printc('Error in subdivide: unknown method.', 'r')
+        exit(1)
+    if method != 2: sdf.SetNumberOfSubdivisions(N)
+    setInput(sdf, originalMesh)
+    sdf.Update()
+    out = sdf.GetOutput()
+    sactor = makeActor(out, legend=legend)
+    sactor.GetProperty().SetOpacity(actor.GetProperty().GetOpacity())
+    sactor.GetProperty().SetColor(actor.GetProperty().GetColor())
+    sactor.GetProperty().SetRepresentation(actor.GetProperty().GetRepresentation())
+    return sactor
+
+
 def coordinates(actors):
     """Return a merged list of coordinates of actors or polys"""
     if not isinstance(actors, list): actors = [actors]
@@ -795,8 +832,9 @@ def closestPoint(surf, pt, N=None, radius=None):
         vtklist = vtk.vtkIdList()
         vmath = vtk.vtkMath()
         surf.pointlocator.FindClosestNPoints(N, pt, vtklist)
-        trgp_, trgp, dists2 = [0,0,0], [], []
+        trgp, dists2  = [], []
         for i in range(vtklist.GetNumberOfIds()):
+            trgp_ = [0,0,0]
             vi = vtklist.GetId(i)
             poly.GetPoints().GetPoint(vi, trgp_ )
             trgp.append( trgp_ )
@@ -811,7 +849,7 @@ def closestPoint(surf, pt, N=None, radius=None):
     else: 
         subid = vtk.mutable(0)
         surf.pointlocator.FindClosestPoint(pt, trgp, cid, subid, dist2)
-    return trgp
+    return np.array(trgp)
 
 
 def intersectWithLine(act, p0, p1):

@@ -5,15 +5,14 @@
 # angle phi, and spin angle psi. 
 # (adapted from http://www.glowscript.org)
 from __future__ import division, print_function
-from plotter import vtkPlotter, ProgressBar, vector
-from numpy import pi, sin, cos
+from plotter import vtkPlotter, ProgressBar, vector, sin, cos
 
 # ############################################################ parameters
 dt = 5e-05      # time step
 Lshaft = 1      # length of gyroscope shaft
 M = 1           # mass of gyroscope (massless shaft)
 R = 0.4         # radius of gyroscope rotor
-theta  = 0.4*pi # initial polar angle of shaft (from vertical)
+theta  = 1.3    # initial polar angle of shaft (from vertical)
 psidot = -40    # spinning angular velocity (rad/s)
 phidot = 0      # (try -1 and +1 to get first and second pattern)
 
@@ -31,7 +30,7 @@ shaft = vp.cylinder([[0,0,0],         [Lshaft,0,0]], r=.03, c='dg')
 rotor = vp.cylinder([[Lshaft/2.2,0,0],[Lshaft/1.8,0,0]], r=R, texture='marble')
 base  = vp.sphere([     0, 0, 0], c='dg', r=.03)
 tip   = vp.sphere([Lshaft, 0, 0], c='dg', r=.03)
-gyro = vp.makeAssembly([shaft, rotor, base, tip]) # group relevant actors
+gyro  = vp.makeAssembly([shaft, rotor, base, tip]) # group relevant actors
 
 pedestal = vp.box([0,-0.63,0], height=.1, length=.1, width=1, texture='wood5')
 pedbase  = vp.box([0,-1.13,0], height=.5, length=.5, width=.05, texture='wood5')

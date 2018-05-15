@@ -1,8 +1,7 @@
 # Gyroscope hanging from a spring
 # (adapted from Bruce Sherwood, 2009)
 from __future__ import division, print_function
-from plotter import vtkPlotter, ProgressBar, vector, mag, norm
-from numpy import cross
+from plotter import vtkPlotter, ProgressBar, vector, mag, norm, cross
 
 # ############################################################ parameters
 dt = 0.005      # time step

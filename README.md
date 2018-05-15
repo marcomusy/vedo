@@ -143,7 +143,7 @@ The spheres collide elastically with themselves and
 with the walls of the box. The masses of the spheres
 are proportional to their volume.
 ```bash
-python examples/brownian2d.py
+python examples/advanced/brownian2d.py
 ```
 ![brownian](https://user-images.githubusercontent.com/32848391/36788300-b07fd4f8-1c8d-11e8-9bdd-790c6abddd99.gif)
 <br />
@@ -151,7 +151,7 @@ python examples/brownian2d.py
 
 Motion of particles of gas in a toroidal tank. 
 ```bash
-python examples/gas.py
+python examples/advanced/gas.py
 ```
 ![gas](https://user-images.githubusercontent.com/32848391/39139206-90d644ca-4721-11e8-95b9-8aceeb3ac742.gif)
 <br />
@@ -167,7 +167,7 @@ python examples/spring.py
 
 Simulation of an elastic multiple pendulum with friction:
 ```bash
-python examples/multiple_pendulum.py
+python examples/advanced/multiple_pendulum.py
 ```
 ![pendulum](https://user-images.githubusercontent.com/32848391/39259507-dc26b18a-48b6-11e8-94fd-3fcb01661b55.gif)
 <br />
@@ -175,7 +175,7 @@ python examples/multiple_pendulum.py
 
 Direct integration of the wave equation comparing the simple Euler method (green) with the more sofisticated Runge-Kutta 4th order method (red):
 ```bash
-python examples/wave_equation.py
+python examples/advanced/wave_equation.py
 ```
 ![wave](https://user-images.githubusercontent.com/32848391/39360796-ea5f9ef0-4a1f-11e8-85cb-f3e21072c7d5.gif)
 <br />
@@ -241,17 +241,19 @@ def spline(points, smooth=0.5, degree=2, s=5, c='b', alpha=1., nodes=False, lege
 def text(txt, pos, axis=(0,0,1), s=1, c='k', alpha=1, bc=None, cam=True, texture=None)
 #
 def xyplot(points, title='', c='r', pos=1, lines=False)
+def histogram(self, values, bins=10, vrange=None, title='', c='b', corner=1, lines=True)
 def fxy(z='sin(x)+y', x=[0,3], y=[0,3], zlimits=[None, None], showNan=True, zlevels=10, 
         c='b', bc='aqua', alpha=1, legend=True, texture=None, res=100)
 #
 def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
 def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None)
-def subDivideMesh(actor, N=1, method=0, legend=None)
+def subdivide(actor, N=1, method=0, legend=None)
 def boundaries(actor, c='p', lw=5, legend=None)
 #
 def align(source, target, iters=100, legend=None):
 def fitLine(points, c='orange', lw=1, alpha=0.6, tube=False, legend=None)
 def fitPlane(points, c='g', bc='darkgreen', legend=None)
+def fitSphere(self, coords, c='r', alpha=1, wire=0, legend=None)
 def pca(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None)
 def cutActor(actor, origin=(0,0,0), normal=(1,0,0), showcut=True, showline=False, showpts=False)
 def closestPoint(surf, pt, locator=None, N=None, radius=None)
@@ -324,6 +326,7 @@ actor.normalize() # sets actor at origin and scales its average size to 1
 actor.stretch(p1, p2): # stretch actor (typically a spring) between two points
 #
 actor.shrink(fraction=0.85)  # shrinks the polydata triangles for visualization
+actor.subdivide(N=1, method=0, legend=None)  # increase the nr of vertices of the surface mesh
 #
 actor.color(value)           # sets/gets color
 actor.alpha(value)           # sets/gets opacity
