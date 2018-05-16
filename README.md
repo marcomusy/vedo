@@ -332,11 +332,14 @@ actor.color(value)           # sets/gets color
 actor.alpha(value)           # sets/gets opacity
 #
 actor.N()                        # get number of vertex points defining the surface actor
-actor.polydata(transformed=True) # get the actor's polydata in its current associated vtkTranform
+actor.polydata(rebuild=False)    # get the actor's polydata in its current associated vtkTranform
 actor.point(i, p=None)           # set/get i-th point in actor's polydata 
+actor.coordinates()              # get a numpy array of all vertex points
+actor.xbounds()                  # get (xmin, xmax) of actor bounding box (same for y and z)
 actor.normalAt(i)                # get the normal at point i
 actor.normals()                  # get the list of normals at the vertices of the surface
 actor.closestPoint(p, N=None, radius=None) # get the closest point(s) to p on actor's surface
+actor.intersectWithLine(p0, p1)  # get a list of points of intersection with segment from p0 to p1
 actor.cutterWidget()             # invoke a cutter widget for actor
 ```
 
@@ -347,6 +350,7 @@ def vector(x,y,z=None)        # return a numpy vector (2D or 3D)
 def mag(v)                    # return the size of a vector or list of vectors
 def mag2(v)                   # return the squared size of a vector
 def norm(v)                   # return the versor of a vector or list of vectors
+def colorMap(value, name='rainbow') # return the color in the scale map name
 ```
 
 <br />

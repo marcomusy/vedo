@@ -1,6 +1,6 @@
 # In this example we modify the mesh of a shape
 # by moving the points along the normals to the surface
-# and along the radius of a sphere centered at the center of mass
+# and along the radius of a sphere centered at the center of mass.
 # At each step we redefine the actor so that the normals are
 # recalculated for the underlying polydata.
 from __future__ import division, print_function

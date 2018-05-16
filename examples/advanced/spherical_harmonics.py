@@ -30,7 +30,7 @@ for th in np.linspace(0, np.pi,   N, endpoint=True):
     lats = []
     for ph in np.linspace(0, 2*np.pi, N, endpoint=True):
         p  = np.array([sin(th)*cos(ph), sin(th)*sin(ph), cos(th)])*rmax
-        intersections = vp.intersectWithLine(shape, [0,0,0], p) ### <--
+        intersections = shape.intersectWithLine([0,0,0], p) ### <--
         if len(intersections):
             value = vp.mag(intersections[0])
             lats.append(value - rbias)

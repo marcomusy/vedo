@@ -24,7 +24,7 @@ from vtkutils import makeAssembly, assignConvenienceMethods
 from vtkutils import assignTexture, assignPhysicsMethods
 from vtkutils import polydata, coordinates, makePolyData
 from vtkutils import arange, vector, mag, mag2, norm, ProgressBar
-from vtkcolors import getColor, getAlpha
+from vtkcolors import getColor, getAlpha, colorMap
 
 
 #########################################################################
@@ -153,6 +153,10 @@ class vtkPlotter:
         self.cross = np.cross
         self.orientation = vtkutils.orientation
         self.subdivide = vtkutils.subdivide
+        self.colorMap = colorMap
+        self.xbounds = vtkutils.xbounds
+        self.ybounds = vtkutils.ybounds
+        self.zbounds = vtkutils.zbounds
 
         if N:                # N = number of renderers. Find out the best
             if shape!=(1,1): # arrangement based on minimum nr. of empty renderers

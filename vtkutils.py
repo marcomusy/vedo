@@ -24,7 +24,6 @@ def isSequence(arg):
     if hasattr(arg, "__iter__"): return True
     return False
 
-
 def arange(start,stop, step=1): 
     return np.arange(start, stop, step)
 
@@ -63,7 +62,7 @@ def makeActor(poly, c='gold', alpha=0.5,
     clp.Update()
     pdnorm = vtk.vtkPolyDataNormals()
     setInput(pdnorm, clp.GetOutput())
-    pdnorm.SetFeatureAngle(60.0)
+    # pdnorm.SetFeatureAngle(60.0)
     pdnorm.ComputePointNormalsOn()
     pdnorm.ComputeCellNormalsOn()
     pdnorm.FlipNormalsOff()
@@ -170,6 +169,7 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     actor.SetTexture(atext)
 
 
+# ###########################################################################
 def assignConvenienceMethods(actor, legend):
     if not hasattr(actor, 'legend'):
         setattr(actor, 'legend', legend)
@@ -232,12 +232,26 @@ def assignConvenienceMethods(actor, legend):
     def _fcutterw(self): return cutterWidget(self)
     actor.cutterWidget = types.MethodType( _fcutterw, actor )
      
-    def _fpolydata(self, index=0, transformed=True): 
-        return polydata(self, index, transformed)
+    def _fpolydata(self, index=0, rebuild=False): 
+        return polydata(self, index, rebuild)
     actor.polydata = types.MethodType( _fpolydata, actor )
 
     def _fcoordinates(self): return coordinates(self)
     actor.coordinates = types.MethodType( _fcoordinates, actor )
+
+    def _fxbounds(self): 
+        b = polydata(actor).GetBounds()
+        return (b[0],b[1])
+    actor.xbounds = types.MethodType( _fxbounds, actor )
+    def _fybounds(self): 
+        b = polydata(actor).GetBounds()
+        return (b[2],b[3])
+    actor.ybounds = types.MethodType( _fybounds, actor )
+    def _fzbounds(self): 
+        b = polydata(actor).GetBounds()
+        return (b[4],b[5])
+    actor.zbounds = types.MethodType( _fzbounds, actor )
+
 
     def _fnormalAt(self, index): 
         normals = self.polydata().GetPointData().GetNormals()
@@ -276,8 +290,11 @@ def assignConvenienceMethods(actor, legend):
         return closestPoint(self, pt, N, radius)
     actor.closestPoint = types.MethodType( _fclosestPoint, actor)
 
+    def _fintersectWithLine(self, p0, p1):
+        return intersectWithLine(self, p0,p1)
+    actor.intersectWithLine = types.MethodType(_fintersectWithLine , actor)
 
-
+# ###########################################################################
 def assignPhysicsMethods(actor):
     
     def _fpos(self, p=None): 
@@ -634,20 +651,21 @@ def isIdentity(M, tol=1e-06):
 
 
 #################################################################### get stuff
-def polydata(obj, index=0, transformed=True): 
+def polydata(obj, index=0, rebuild=False): 
     '''
     Returns vtkPolyData from an other object (vtkActor, vtkAssembly),
-    if transformed=True returns a copy of polydata
+    if rebuild=True returns a copy of polydata
     that corresponds to the current the position in space
     '''
 
-    if isinstance(obj, list) and len(obj)>0: obj = obj[index]
+    # if isinstance(obj, list) and len(obj)>0: obj = obj[index]
    
     if isinstance(obj, vtk.vtkActor):   
         pd = obj.GetMapper().GetInput()
+        if not rebuild: return pd
         M = obj.GetMatrix()
-        if transformed == False or isIdentity(M):
-            return pd # if identity return the original polydata
+        if isIdentity(M): return pd 
+        # if identity return the original polydata
         # otherwise make a copy that corresponds to 
         # the actual position in space of the actor
         transform = vtk.vtkTransform()
@@ -667,7 +685,7 @@ def polydata(obj, index=0, transformed=True):
             act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
         pd = act.GetMapper().GetInput()
         M = act.GetMatrix()
-        if transformed == False or isIdentity(M):
+        if rebuild == False or isIdentity(M):
             return pd # if identity return the original polydata
         # otherwise make a copy that corresponds to 
         # the actual position in space of the actor
@@ -736,10 +754,24 @@ def coordinates(actors):
 
 def maxOfBounds(actor):
     '''Get the maximum dimension of the actor bounding box'''
-    poly = polydata(actor)
-    b = poly.GetBounds()
+    b = polydata(actor).GetBounds()
     maxb = max(abs(b[1]-b[0]), abs(b[3]-b[2]), abs(b[5]-b[4]))
     return maxb
+
+def xbounds(actor):
+    '''Get the the actor bounding [xmin,xmax] '''
+    b = polydata(actor).GetBounds()
+    return (b[0],b[1])
+
+def ybounds(actor):
+    '''Get the the actor bounding [ymin,ymax] '''
+    b = polydata(actor).GetBounds()
+    return (b[2],b[3])
+
+def zbounds(actor):
+    '''Get the the actor bounding [zmin,zmax] '''
+    b = polydata(actor).GetBounds()
+    return (b[4],b[5])
 
 
 def centerOfMass(actor):
@@ -854,7 +886,7 @@ def closestPoint(surf, pt, N=None, radius=None):
 
 def intersectWithLine(act, p0, p1):
     # return a list of points between p0 and p1 which intersect the actor
-    if not hasattr(act,'locator'):
+    if not hasattr(act,'linelocator'):
         linelocator = vtk.vtkOBBTree()
         linelocator.SetDataSet(act.polydata())
         linelocator.BuildLocator()

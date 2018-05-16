@@ -208,7 +208,36 @@ def rgb2hsv(rgb):
     ma = vtk.vtkMath()
     return ma.RGBToHSV(getColor(rgb))
 
+try:
+    import matplotlib.cm as cm_mpl
+    mapscales = {
+        'jet':cm_mpl.jet,
+        'hot':cm_mpl.hot,
+        'afmhot':cm_mpl.afmhot,
+        'rainbow': cm_mpl.rainbow,
+        'binary':cm_mpl.binary,
+        'gray':cm_mpl.gray,
+        'bone':cm_mpl.bone,
+        'winter':cm_mpl.winter,
+        'cool': cm_mpl.cool,
+        'copper':cm_mpl.copper,
+        'paired':cm_mpl.Paired
+    }
+except: mapscales = None
     
+def colorMap(value, name='jet'): # maps [0,1] into a color scale 
+    if mapscales:
+        if value>.999: value=.999
+        elif value<0: value=0
+        try: 
+            return mapscales[name](value)[0:3]
+        except:
+            print('Error in colorMap(): avaliable maps =',
+                    sorted(mapscales.keys()))
+            exit(0)
+    return (.5,.5,.5)
+
+
 ########## other sets of colors
 colors1=[]
 colors1.append((1.0,0.647,0.0))     # orange
