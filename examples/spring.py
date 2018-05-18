@@ -20,7 +20,7 @@ offx= vp.vector(0, 0.3, 0)
 vp.box(pos=(0, -0.1, 0), length=2.0, width=0.02, height=0.5)  #surface
 vp.box(pos=(-.82,.15,0), length=.04, width=0.50, height=0.3)  #wall
 block = vp.cube(pos=x, length=0.2, c='t')
-spring= vp.helix(sx0, x, r=.06, thickness=.01, coils=25, texture='metal1')
+spring= vp.helix(sx0, x, r=.06, thickness=.01, texture='metal1')
 
 pb = ProgressBar(0,500, c='r')
 for i in pb.range(): 
