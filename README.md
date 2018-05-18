@@ -87,8 +87,7 @@ vp.show()
 
 Draw a bunch of basic goemetric objects on separate parts of the rendering window:
 ```python
-vp = plotter.vtkPlotter(N=6, interactive=0)
-vp.commoncam   = False
+vp = plotter.vtkPlotter(N=6, sharecam=False, interactive=0)
 vp.show(at=0, actors=vp.arrow(),  legend='arrow()' )
 vp.show(at=1, actors=vp.line(),   legend='line()' )
 vp.show(at=2, actors=vp.points(), legend='points()' )
@@ -103,9 +102,7 @@ vp.show(interactive=1)
 
 Draw a number of mesh objects in various formats and options:
 ```python
-vp = plotter.vtkPlotter(shape=(3,3))
-vp.commoncam   = False
-vp.interactive = False
+vp = plotter.vtkPlotter(shape=(3,3), sharecam=False, interactive=0)
 vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
 vp.show(at=1, c=1, actors='data/cow.g', wire=1)
 vp.show(at=2, c=2, actors='data/limb.pcd')
@@ -149,6 +146,14 @@ python examples/advanced/brownian2d.py
 <br />
 
 
+Simulation of a spring in a viscous medium:
+```bash
+python examples/spring.py
+```
+![spring](https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif)
+<br />
+
+
 Motion of particles of gas in a toroidal tank. 
 ```bash
 python examples/advanced/gas.py
@@ -156,13 +161,6 @@ python examples/advanced/gas.py
 ![gas](https://user-images.githubusercontent.com/32848391/39139206-90d644ca-4721-11e8-95b9-8aceeb3ac742.gif)
 <br />
 
-
-Simulation of a spring in a viscous medium:
-```bash
-python examples/spring.py
-```
-![spring](https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif)
-<br />
 
 
 Simulation of an elastic multiple pendulum with friction:
@@ -247,7 +245,6 @@ def fxy(z='sin(x)+y', x=[0,3], y=[0,3], zlimits=[None, None], showNan=True, zlev
 #
 def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
 def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None)
-def subdivide(actor, N=1, method=0, legend=None)
 def boundaries(actor, c='p', lw=5, legend=None)
 #
 def align(source, target, iters=100, legend=None):
@@ -280,67 +277,78 @@ def screenshot(filename='screenshot.png')
 Useful *vtkPlotter* attributes:
 ```python
 vp = plotter.vtkPlotter() #e.g.
-vp.actors       # list of vtkActors to be shown
+vp.actors       # holds the current list of vtkActors to be shown
 vp.renderer     # holds current renderer
-vp.renderers    # list of renderers
-vp.interactor   # vtk window interactor
-vp.interactive  # (true) allows to interact with renderer
-vp.axes         # (true) show 3D axes
-vp.camera       # current vtkCamera
-vp.commoncam    # (true) share the same camera in renderers
-vp.legend       # list of legend entries for each actors, can be false
-vp.verbose      # verbosity
-vp.result       # dictionary to store extra output information
+vp.renderers    # holds the list of renderers
+vp.interactor   # holds the vtkWindowInteractor object
+vp.interactive  # (True) allows to interact with renderer after show()
+vp.axes         # [0,1,2,3] show 3D axes of various types. Default is 1
+vp.camera       # holds the current vtkCamera
+vp.sharecam     # (True) share the same camera in multiple renderers
+vp.legend       # list of legend entries for each actors, can be False
+vp.verbose      # (True) set verbosity on or off
 ```
 
 Useful methods:
 ```python
+# Example -- vp = vtkPlotter(); vp.makeActor(myolydata, c='red')
 def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None)
 def makeAssembly(actors, legend=None)
-def makePolyData(spoints, addLines=True)
 def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1)
-def isInside(poly, point)
-def polydata(obj, index=0, transformed=True)
-def closestPoint(surface, point, locator=None, N=None, radius=None)
+def polydata(actor, index=0, transformed=True)
+def closestPoint(actor, point, locator=None, N=1, radius=None)
 def coordinates(actor)
 def normals(actor)
-def cutterWidget(actor, outputname='clipped.vtk')
-def write(obj, outputfilename)
+def write(actor, outputfilename)
+def colorMap(value, name='rainbow', vmin=0, vmax=1) # return the color in the scale map name
 ```
 
-Additional methods of vtkActor object. They return the actor object so that can be concatenated
-(e.g. actor.pos([1,2,3]).scale(3).color('blue') etc..):
+Additional methods of vtkActor object. They return the actor object so that can be concatenated:
 ```python
+# Example -- actor.scale(3).pos([1,2,3]).color('blue').alpha(0.5) etc..)
 actor.pos()      # set/get position vector (setters, and getters if no argument is given)
 actor.addpos(v)  # add v to current actor position
 actor.x()        # set/get x component of position (same for y and z)
 #
 actor.rotate(angle, axis, axis_point=[0,0,0], rad=False)  # rotate actor around axis
-actor.rotateX(angle, rad=False)       # rotate actor around X (or Y or Z)
-actor.orientation(initaxis, newaxis)  # rotate actor from direction initaxis to newaxis
-#
+actor.rotateX(angle, rad=False)  # rotate actor around X (or Y or Z)
+actor.orientation(newaxis=None, rotation=0)  # orient actor along newaxis and rotate around its axis
+#                      as specified by rotation in degrees (if newaxis=None return polydata orientation)
 actor.clone(c=None, alpha=None, wire=False, bc=None, edges=False, legend=None, texture=None)
 #
-actor.scale()     # set/get scaling factor of actor
-actor.normalize() # sets actor at origin and scales its average size to 1
-actor.stretch(p1, p2): # stretch actor (typically a spring) between two points
+actor.scale()          # set/get scaling factor of actor
+actor.normalize()      # sets actor at origin and scales its average size to 1
+actor.stretch(p1, p2): # stretch actor (typically a spring, cylinder, cone) between two points
 #
-actor.shrink(fraction=0.85)  # shrinks the polydata triangles for visualization
-actor.subdivide(N=1, method=0, legend=None)  # increase the nr of vertices of the surface mesh
+actor.shrink(fraction=0.85)                 # shrinks the polydata triangles for visualization
+actor.subdivide(N=1, method=0, legend=None) # increase the nr of vertices of the surface mesh
 #
-actor.color(value)           # sets/gets color
-actor.alpha(value)           # sets/gets opacity
+actor.color(value)            # sets/gets color
+actor.alpha(value)            # sets/gets opacity
 #
-actor.N()                        # get number of vertex points defining the surface actor
-actor.polydata(rebuild=False)    # get the actor's polydata in its current associated vtkTranform
-actor.point(i, p=None)           # set/get i-th point in actor's polydata 
-actor.coordinates()              # get a numpy array of all vertex points
-actor.xbounds()                  # get (xmin, xmax) of actor bounding box (same for y and z)
-actor.normalAt(i)                # get the normal at point i
-actor.normals()                  # get the list of normals at the vertices of the surface
-actor.closestPoint(p, N=None, radius=None) # get the closest point(s) to p on actor's surface
-actor.intersectWithLine(p0, p1)  # get a list of points of intersection with segment from p0 to p1
-actor.cutterWidget()             # invoke a cutter widget for actor
+actor.N()                     # get number of vertex points defining the surface actor
+actor.polydata(rebuild=False) # get the actor's mesh polydata 
+                              # (if rebuild is True : get a copy in its current associated vtkTranform)
+actor.coordinates()           # get a numpy array of all vertex points
+actor.point(i, p=None)        # set/get i-th point in actor's polydata (slow performance!)
+actor isInside(p)             # check if point p is inside actor
+actor insidePoints(pts, invert=False) # return the list of points (among pts) that are inside actor
+actor.normals()               # get the list of normals at the vertices of the surface
+actor.normalAt(i)             # get the normal at point i (slow performance!)
+actor.flipNormals()           # filp all normals directions
+#
+actor.xbounds()               # get (xmin, xmax) of actor bounding box (same for y and z)
+actor.maxBoundSize()          # get the maximum of bounds size in x y and z
+actor.averageSize()           # get an average of size of surface actor as sum(p**2)/N
+actor.diagonalSize()          # get the size of the diagonal of the bounding box
+#
+actor.centerOfMass()          # get the center of mass of actor
+actor.area()                  # get the area of actor's surface
+actor.volume()                # get the volume of actor
+#
+actor.closestPoint(p, N=1, radius=None) # get the closest N point(s) to p on actor's surface
+actor.intersectWithLine(p0, p1) # get a list of points of intersection with segment from p0 to p1
+actor.cutterWidget(outputname='clipped.vtk') # invoke a cutter widget for actor
 ```
 
 Some useful *numpy* shortcuts available in vtkPlotter (*a la vpython*):
@@ -348,9 +356,7 @@ Some useful *numpy* shortcuts available in vtkPlotter (*a la vpython*):
 def arange(start,stop, step)  # return a range list of floats
 def vector(x,y,z=None)        # return a numpy vector (2D or 3D)
 def mag(v)                    # return the size of a vector or list of vectors
-def mag2(v)                   # return the squared size of a vector
 def norm(v)                   # return the versor of a vector or list of vectors
-def colorMap(value, name='rainbow') # return the color in the scale map name
 ```
 
 <br />

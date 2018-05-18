@@ -17,21 +17,22 @@ vp.line(p1, p2, lw=3, c='m')
 vp.points([q1,q2])
 
 #######################################################
-actor = vp.helix(p1, p2, radius=.2, thickness=.03, c='r')
-#actor = vp.arrow(p1, p2, c='r')
-#actor = vp.line(p1, p2, c='r')
-#actor = vp.cylinder([p1, p2], radius=.03, c='r')
-#actor = vp.cone(p1, radius=.1, c='r')
+# actor = vp.helix(p1, p2, r=.2, thickness=.03, c='r')
+# actor = vp.arrow(p1, p2, c='r/.2')
+# actor = vp.line(p1, p2, c='r')
+# actor = vp.cylinder([p1, p2], r=.03, c='r')
+actor = vp.cone(p1, r=.1, c='r/.2')
 #######################################################
 
 vp.show()
 
 for i in range(314*2): 
     q2 = np.array(q2) +  [np.sin(i/100)/500, 0, 0]
+    vp.point(q2)
     actor.stretch(q1, q2) ##### <---
     vp.camera.Azimuth(.1)
     vp.camera.Elevation(.1)
-    vp.render()
+    vp.render(resetcam=1)
     
 vp.show(interactive=1)
 

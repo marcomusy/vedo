@@ -169,8 +169,7 @@ def getColor(rgb=None, hsv=None):
             return list(rgbh)
             
     elif isinstance(c, int): 
-        try: return colors1[c] 
-        except: return [0.5,0.5,0.5]
+        return colors1[c%10] 
 
     print('Unknown color:', c)
     return [0.5,0.5,0.5]
@@ -225,7 +224,7 @@ try:
     }
 except: mapscales = None
     
-def colorMap(value, name='jet'): # maps [0,1] into a color scale 
+def colorMap(value, name='jet', vmax=0, vmin=1): # maps [0,1] into a color scale 
     if mapscales:
         if value>.999: value=.999
         elif value<0: value=0
@@ -235,7 +234,7 @@ def colorMap(value, name='jet'): # maps [0,1] into a color scale
             print('Error in colorMap(): avaliable maps =',
                     sorted(mapscales.keys()))
             exit(0)
-    return (.5,.5,.5)
+    return (0.5,0.5,0.5)
 
 
 ########## other sets of colors
@@ -250,7 +249,6 @@ colors1.append((0.4,0.0,0.4))       # plum
 colors1.append((0.4,0.0,0.6))
 colors1.append((0.2,0.4,0.6))
 colors1.append((0.1,0.3,0.2))
-colors1 = colors1 * 100
 
 colors2=[]
 colors2.append((0.99,0.83,0))       # gold
@@ -261,15 +259,15 @@ colors2.append((0.5,  1.0,0.0))     # green
 colors2.append((0.0, 0.66,0.42))    # green blue
 colors2.append((0.0, 0.18,0.65))    # blue
 colors2.append((0.4,  0.0,0.4))     # plum
-colors2 = colors2 * 100
+colors2.append((0.5,  0.5,0))       # yellow-green
+colors2.append((.984,.925,.354))    # yellow
 
 colors3=[]
 for i in range(10):
-    pc = (i+0.5)/10.
-    r = np.exp(-((pc-0.0)/.2)**2/2.)
-    g = np.exp(-((pc-0.5)/.2)**2/2.)
-    b = np.exp(-((pc-1.0)/.2)**2/2.)
+    pc = (i+0.5)/10
+    r = np.exp(-((pc    )/.2)**2/2)
+    g = np.exp(-((pc-0.5)/.2)**2/2)
+    b = np.exp(-((pc-1.0)/.2)**2/2)
     colors3.append((r,g,b))
-colors3 = colors3 * 100
 
 

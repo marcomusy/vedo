@@ -53,9 +53,9 @@ for i, t in enumerate(pb.range()):
     x = x + v*dt  # update Lagrangian coordinates
 
     gaxis = (Lshaft+0.03)*vector(st*sp, ct, st*cp)
-    gyro.orientation([1,0,0], gaxis)
-    if not i%200:             # add trace and render all, every 200 iterations
-        gyro.rotate(psidot*dt*200*57.3, [1,0,0])
+    # set orientation along gaxis and rotate it around its axis by psidot*t degrees
+    gyro.orientation(gaxis, rotation=psidot*t*57.3) 
+    if not i%200: # add trace and render all, every 200 iterations
         trace = vp.point(gaxis, r=3, c='r')
         vp.render(trace, resetcam=1) 
     pb.print()

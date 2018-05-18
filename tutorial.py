@@ -138,7 +138,7 @@ vp.show(interactive=1)
 # Draw a simple objects on separate parts of the rendering window:
 # split window to best accomodate 6 renderers
 vp = plotter.vtkPlotter(N=9, title='basic shapes')
-vp.commoncam   = False
+vp.sharecam   = False
 vp.interactive = False
 vp.show(at=0, actors=vp.arrow([0,0,0],[1,1,1]),  legend='arrow()' )
 vp.show(at=1, actors=vp.line([0,0,0],[1,1,1]),   legend='line()' )
@@ -155,7 +155,7 @@ vp.show(interactive=1)
 ########################################################################################
 # Draw a bunch of objects in many formats. Split window in 3 rows and 3 columns
 vp = plotter.vtkPlotter(shape=(3,3), title='Example 12', interactive=False)
-vp.commoncam   = False
+vp.sharecam   = False
 vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
 vp.show(at=1, c=1, actors='data/cow.g', wire=1)
 vp.show(at=2, c=2, actors='data/limb.pcd')

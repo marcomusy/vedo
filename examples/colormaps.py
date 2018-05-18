@@ -4,7 +4,7 @@
 # by looking it up in matplotlib database of colormaps
 # ################################################################
 from __future__ import division, print_function
-from plotter import vtkPlotter
+from plotter import vtkPlotter, colorMap
 
 
 mapkeys = ['copper', 'gray', 'binary', 'cool', 'rainbow', 'winter', 
@@ -20,7 +20,7 @@ print('range in y is:', act.ybounds())
 for i,key in enumerate(mapkeys): # for each available color map name
 
     # make a list of colors based on the y position of point p
-    cols = [ vp.colorMap(p[1]/.087, name=key) for p in pts ]
+    cols = [ colorMap(p[1]/.087, name=key) for p in pts ]
     
     apts = vp.points(pts, cols)
     

@@ -122,6 +122,9 @@ def makeAssembly(actors, legend=None):
     setattr(assembly, 'legend', legend) 
     assignPhysicsMethods(assembly)
     assignConvenienceMethods(assembly, legend)
+    if hasattr(actors[0], 'base'):
+        setattr(assembly, 'base', actors[0].base)
+        setattr(assembly, 'top',  actors[0].top)
     return assembly
 
 
@@ -132,7 +135,7 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     elif mapTo == 3: tmapper = vtk.vtkTextureMapToPlane()
     
     setInput(tmapper, polydata(actor))
-    if mapTo == 1:  tmapper.PreventSeamOn()
+    if mapTo == 1: tmapper.PreventSeamOn()
     
     xform = vtk.vtkTransformTextureCoords()
     xform.SetInputConnection(tmapper.GetOutputPort())
@@ -194,11 +197,9 @@ def assignConvenienceMethods(actor, legend):
         return rotate(self, angle, [0,0,1], axis_point, rad)
     actor.rotateZ = types.MethodType( _frotateZ, actor )
 
-
-    def _forientation(self, oldaxis, newaxis): 
-        return orientation(self, oldaxis, newaxis)
+    def _forientation(self, newaxis=None, rotation=0): 
+        return orientation(self, newaxis, rotation)
     actor.orientation = types.MethodType( _forientation, actor )
-
 
     def _fclone(self, c=None, alpha=None, wire=False, bc=None,
                 edges=False, legend=None, texture=None): 
@@ -294,6 +295,19 @@ def assignConvenienceMethods(actor, legend):
         return intersectWithLine(self, p0,p1)
     actor.intersectWithLine = types.MethodType(_fintersectWithLine , actor)
 
+    def _fisInside(self, point, tol=0.0001):
+        return isInside(self, point, tol)
+    actor.isInside = types.MethodType(_fisInside , actor)
+   
+    def _finsidePoints(self, points, invert=False, tol=1e-05):
+        return insidePoints(self, points, invert, tol)
+    actor.insidePoints = types.MethodType(_finsidePoints , actor)
+
+    def _fflipNormals(self):
+        return flipNormals(self)
+    actor.flipNormals = types.MethodType(_fflipNormals , actor)
+
+
 # ###########################################################################
 def assignPhysicsMethods(actor):
     
@@ -343,24 +357,51 @@ def assignPhysicsMethods(actor):
         return self # return itself to concatenate methods
     actor.scale = types.MethodType( _fscale, actor )
 
+    def _fcenterOfMass(self): return centerOfMass(self)
+    actor.centerOfMass = types.MethodType(_fcenterOfMass, actor)
 
-    # if not hasattr(actor, 'axis'): # some types of actors already have it
-    #     setattr(actor, '_axis', None)      # define axis of symmetry
-    #     def _faxis(self, anaxis=None): 
-    #         if anaxis is None: return self._axis
-    #         if self._axis is None: # init phase
-    #             self._axis = anaxis
-    #         else:
-    #             orientation(self, self._axis, anaxis)
-    #             self._axis = np.array(anaxis)
-    #         return self
-    #     actor.axis = types.MethodType( _faxis, actor )
+    def _fvolume(self): return volume(self)
+    actor.volume = types.MethodType(_fvolume, actor)
+
+    def _farea(self): return area(self)
+    actor.area = types.MethodType(_farea, actor)
+
+
+    # def _faxis(self):
+    #     print('_faxis',  self.base, self.top)
+    #     return self.base, self.top
+    # actor.axis = types.MethodType(_faxis, actor)
+
+
+# def assignAxis(actor, ibase1, ibase2, itop1, itop2):
+#     setattr(actor, 'ibase1', ibase1)
+#     setattr(actor, 'ibase2', ibase2)
+#     setattr(actor, 'itop1', itop1)
+#     setattr(actor, 'itop2', itop2)
+
+#     def _faxis(self):
+#         vpts = polydata(self, rebuild=0).GetPoints()
+#         pbase1 = vpts.GetPoint(self.ibase1)
+#         pbase2 = vpts.GetPoint(self.ibase2)
+#         ptip1  = vpts.GetPoint(self.itop1)
+#         ptip2  = vpts.GetPoint(self.itop2)
+#         t = vtk.vtkTransform()
+#         t.SetMatrix(self.GetMatrix())            
+#         tbase1 = np.array(t.TransformPoint(pbase1))
+#         tbase2 = np.array(t.TransformPoint(pbase2))
+#         ttip1  = np.array(t.TransformPoint(ptip1))
+#         ttip2  = np.array(t.TransformPoint(ptip2))
+#         print((tbase1+tbase2)/2, (ttip1+ttip2)/2)
+#         # return np.array([0,0,0]),np.array([-1,0,0])
+#         return (tbase1+tbase2)/2, (ttip1+ttip2)/2
+#     actor.axis = types.MethodType(_faxis, actor)
 
 
 ######################################################### 
 def clone(actor, c=None, alpha=None, wire=False, bc=None,
-          edges=False, legend=None, texture=None): 
-    poly = polydata(actor)
+          edges=False, legend=None, texture=None):
+    '''Clone a vtkActor in its current position in space'''
+    poly = polydata(actor, rebuild=False)
     if not len(coordinates(actor)):
         printc('Limitation: cannot clone textured obj. Returning input.',1)
         return actor
@@ -371,17 +412,30 @@ def clone(actor, c=None, alpha=None, wire=False, bc=None,
     if alpha   is None: alpha = actor.GetProperty().GetOpacity()
     if c       is None: c = actor.GetProperty().GetColor()
     if texture is None and hasattr(actor, 'texture'): texture = actor.texture
-  
     return makeActor(polyCopy, c, alpha, wire, bc, edges, legend, texture)
-    
 
-def normalize(actor, s=1): # N.B. input argument gets modified
+
+def flipNormals(actor): # N.B. input argument gets modified
+    rs = vtk.vtkReverseSense()
+    setInput(rs, polydata(actor))
+    rs.ReverseNormalsOn()
+    rs.Update()
+    poly = rs.GetOutput()
+    mapper = actor.GetMapper()
+    setInput(mapper, poly)
+    mapper.Update()
+    actor.Modified()
+    if hasattr(actor, 'poly'): actor.poly=None #clean cache
+    return actor  # return same obj for concatenation
+
+
+def normalize(actor): # N.B. input argument gets modified
     cm = centerOfMass(actor)
     coords = coordinates(actor)
     if not len(coords) : return
     pts = coordinates(actor) - cm
     xyz2 = np.sum(pts * pts, axis=0)
-    scale = s/np.sqrt(np.sum(xyz2)/len(pts))
+    scale = 1/np.sqrt(np.sum(xyz2)/len(pts))
     t = vtk.vtkTransform()
     t.Scale(scale, scale, scale)
     t.Translate(-cm)
@@ -393,11 +447,12 @@ def normalize(actor, s=1): # N.B. input argument gets modified
     setInput(mapper, tf.GetOutput())
     mapper.Update()
     actor.Modified()
+    if hasattr(actor, 'poly'): actor.poly=None #clean cache
     return actor  # return same obj for concatenation
 
     
 def rotate(actor, angle, axis, axis_point=[0,0,0], rad=False): 
-    # Rotate an actor around an arbitrary axis passing through axis_point
+    '''Rotate an actor around an arbitrary axis passing through axis_point'''
     anglerad = angle
     if not rad: anglerad = angle/57.3
     axis = norm(axis)
@@ -417,8 +472,10 @@ def rotate(actor, angle, axis, axis_point=[0,0,0], rad=False):
     return actor
  
 
-def orientation(actor, initaxis, newaxis):
-    initaxis, newaxis = norm(initaxis), norm(newaxis)
+def orientation(actor, newaxis=None, rotation=0):
+    initaxis = norm(actor.top - actor.base)
+    if newaxis is None: return initaxis
+    newaxis = norm(newaxis)
     TI = vtk.vtkTransform()
     actor.SetUserMatrix(TI.GetMatrix()) # reset
     pos = np.array(actor.GetPosition())
@@ -427,6 +484,7 @@ def orientation(actor, initaxis, newaxis):
     T = vtk.vtkTransform()
     T.PostMultiply()
     T.Translate(-pos)
+    if rotation: T.RotateWXYZ(rotation, initaxis)
     T.RotateWXYZ(angle*57.3, crossvec)
     T.Translate(pos)
     actor.SetUserMatrix(T.GetMatrix())
@@ -434,7 +492,9 @@ def orientation(actor, initaxis, newaxis):
 
 
 ############################################################################
-def shrink(actor, fraction=0.85): # N.B. input argument is modified
+def shrink(actor, fraction=0.85):   # N.B. input argument gets modified
+    '''Shrink the triangle polydata in the representation of actor'''
+
     poly = polydata(actor)
     shrink = vtk.vtkShrinkPolyData()
     setInput(shrink, poly)
@@ -448,10 +508,16 @@ def shrink(actor, fraction=0.85): # N.B. input argument is modified
 
 
 def stretch(actor, q1, q2): 
+    '''Stretch actor between points q1 and q2'''
+
+    if not hasattr(actor, 'base'):
+        printc('Please define vectors actor.base and actor.top at creation. Exit.','r')
+        exit(0)
+
     TI = vtk.vtkTransform()
     actor.SetUserMatrix(TI.GetMatrix()) # reset
 
-    p1, p2 = actor.axis()
+    p1, p2 = actor.base, actor.top
     q1,q2,z = np.array(q1), np.array(q2), np.array([0,0,1])
     plength = np.linalg.norm(p2-p1)
     qlength = np.linalg.norm(q2-q1)
@@ -474,6 +540,10 @@ def stretch(actor, q1, q2):
 
 
 def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
+    '''Downsample the number of vertices in a mesh.
+    fraction gives the desired target of reduction. E.g. fraction=0.1
+    should leave 10% of the original nr of vertices.
+    '''
     poly = polydata(actor)
     if N: # N = desired number of points
         Np = poly.GetNumberOfPoints()
@@ -494,11 +564,13 @@ def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
     setInput(mapper, decimate.GetOutput())
     mapper.Update()
     actor.Modified()
+    if hasattr(actor, 'poly'): actor.poly=None #clean cache
     return actor  # return same obj for concatenation
 
 
 def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1, 
                      wire=False, bc=None, edges=False, legend=None, texture=None):
+    ''' Volumetric union, intersection and subtraction of surfaces'''
     try:
         bf = vtk.vtkBooleanOperationPolyDataFilter()
     except AttributeError:
@@ -527,6 +599,7 @@ def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1,
 
 def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3,
                         c=None, alpha=1, legend=None):
+    '''intersect 2 surfaces and return a line actor'''
     try:
         bf = vtk.vtkIntersectionPolyDataFilter()
     except AttributeError:
@@ -534,8 +607,6 @@ def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3,
         return None
     poly1 = polydata(actor1)
     poly2 = polydata(actor2)
-    # bf.CheckInputOff()
-    # bf.CheckMeshOff()
     bf.SetInputData(0, poly1)
     bf.SetInputData(1, poly2)
     bf.Update()
@@ -624,10 +695,10 @@ def insidePoints(actor, points, invert=False, tol=1e-05):
         return mask1
 
 
-def fillHoles(actor, size=None, legend=None):
+def fillHoles(actor, size=None, legend=None): # not tested properly
     fh = vtk.vtkFillHolesFilter()
     if not size:
-        mb = maxOfBounds(actor)
+        mb = maxBoundSize(actor)
         size = mb/20
     fh.SetHoleSize(size)
     poly = polydata(actor)
@@ -638,33 +709,43 @@ def fillHoles(actor, size=None, legend=None):
     factor.SetProperty(actor.GetProperty())
     return factor    
 
+
 def isIdentity(M, tol=1e-06):
-    # check if vtkMatrix4x4 is Identity
+    '''check if vtkMatrix4x4 is Identity'''
     for i in [0,1,2,3]: 
         for j in [0,1,2,3]: 
             e = M.GetElement(i,j)
             if i==j: 
                 if np.abs(e-1) > tol: return False
             elif np.abs(e) > tol: return False
-            # np.allclose(M, np.eye(4))
     return True
 
 
 #################################################################### get stuff
 def polydata(obj, index=0, rebuild=False): 
     '''
-    Returns vtkPolyData from an other object (vtkActor, vtkAssembly),
-    if rebuild=True returns a copy of polydata
-    that corresponds to the current the position in space
+    Returns the vtkPolyData of a vtkActor or vtkAssembly.
+    If rebuild=True returns a copy of polydata
+    that corresponds to the current actor's position in space.
+    If a vtkAssembly is passed returns the polydata of component index.
     '''
-
-    # if isinstance(obj, list) and len(obj)>0: obj = obj[index]
    
     if isinstance(obj, vtk.vtkActor):   
-        pd = obj.GetMapper().GetInput()
-        if not rebuild: return pd
+        if not rebuild: 
+            if hasattr(obj, 'poly') :
+                if obj.poly: return obj.poly
+            else: 
+                setattr(obj, 'poly', None)
+            obj.poly = obj.GetMapper().GetInput() #cache it for speed
+            return obj.poly
         M = obj.GetMatrix()
-        if isIdentity(M): return pd 
+        if isIdentity(M):
+            if hasattr(obj, 'poly') :
+                if obj.poly: return obj.poly
+            else: 
+                setattr(obj, 'poly', None)
+            obj.poly = obj.GetMapper().GetInput() #cache it for speed
+            return obj.poly
         # if identity return the original polydata
         # otherwise make a copy that corresponds to 
         # the actual position in space of the actor
@@ -672,8 +753,8 @@ def polydata(obj, index=0, rebuild=False):
         transform.SetMatrix(M)
         tp = vtk.vtkTransformPolyDataFilter()
         tp.SetTransform(transform)
-        if vtkMV: tp.SetInputData(pd)
-        else: tp.SetInput(pd)
+        if vtkMV: tp.SetInputData(obj.GetMapper().GetInput())
+        else: tp.SetInput(obj.GetMapper().GetInput())
         tp.Update()
         return tp.GetOutput()
 
@@ -683,10 +764,11 @@ def polydata(obj, index=0, rebuild=False):
         cl.InitTraversal()
         for i in range(index+1):
             act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
-        pd = act.GetMapper().GetInput()
+        pd = act.GetMapper().GetInput() #not optimized
+        if not rebuild: return pd 
         M = act.GetMatrix()
-        if rebuild == False or isIdentity(M):
-            return pd # if identity return the original polydata
+        if isIdentity(M): return pd 
+        # if identity return the original polydata
         # otherwise make a copy that corresponds to 
         # the actual position in space of the actor
         transform = vtk.vtkTransform()
@@ -701,7 +783,7 @@ def polydata(obj, index=0, rebuild=False):
     elif isinstance(obj, vtk.vtkPolyData): return obj
     elif isinstance(obj, vtk.vtkActor2D):  return obj.GetMapper().GetInput()
     elif isinstance(obj, vtk.vtkImageActor):  return obj.GetMapper().GetInput()
-    elif obj is None:  return None
+    elif obj is None: return None
     
     printc("Fatal Error in polydata(): ", 'r', end='')
     printc(("input is neither a vtkActor nor vtkAssembly.", [obj]), 'r')
@@ -752,12 +834,6 @@ def coordinates(actors):
     return np.array(pts)
 
 
-def maxOfBounds(actor):
-    '''Get the maximum dimension of the actor bounding box'''
-    b = polydata(actor).GetBounds()
-    maxb = max(abs(b[1]-b[0]), abs(b[3]-b[2]), abs(b[5]-b[4]))
-    return maxb
-
 def xbounds(actor):
     '''Get the the actor bounding [xmin,xmax] '''
     b = polydata(actor).GetBounds()
@@ -773,7 +849,6 @@ def zbounds(actor):
     b = polydata(actor).GetBounds()
     return (b[4],b[5])
 
-
 def centerOfMass(actor):
     '''Get the Center of Mass of the actor'''
     if vtkMV: #faster
@@ -788,7 +863,6 @@ def centerOfMass(actor):
         if not len(pts): return np.array([0,0,0])
         return np.mean(pts, axis=0)       
 
-
 def volume(actor):
     '''Get the volume occupied by actor'''
     mass = vtk.vtkMassProperties()
@@ -796,14 +870,12 @@ def volume(actor):
     mass.Update() 
     return mass.GetVolume()
 
-
-def surfaceArea(actor):
+def area(actor):
     '''Get the surface area of actor'''
     mass = vtk.vtkMassProperties()
     setInput(mass, polydata(actor))
     mass.Update() 
     return mass.GetSurfaceArea()
-
 
 def averageSize(actor):
     cm = centerOfMass(actor)
@@ -813,6 +885,16 @@ def averageSize(actor):
     xyz2 = np.sum(pts * pts, axis=0)
     return np.sqrt(np.sum(xyz2)/len(pts))
 
+def diagonalSize(actor):
+    '''Get the length of the diagonal of actor bounding box'''
+    b = polydata(actor).GetBounds()
+    return np.sqrt((b[1]-b[0])**2, (b[3]-b[2])**2, (b[5]-b[4])**2)
+
+def maxBoundSize(actor):
+    '''Get the maximum dimension in x, y or z of the actor bounding box'''
+    b = polydata(actor).GetBounds()
+    return max(abs(b[1]-b[0]), abs(b[3]-b[2]), abs(b[5]-b[4]))
+
     
 def write(obj, fileoutput):
     fr = fileoutput.lower()
@@ -821,7 +903,7 @@ def write(obj, fileoutput):
     elif '.obj' in fr: 
         w = vtk.vtkOBJExporter()
         w.SetFilePrefix(fileoutput.replace('.obj',''))
-        printc('input must be set manually to vp.renderWin',3)
+        printc('Please use write(vp.renderWin)',3)
         w.SetInput(obj)
         w.Update()
         printc("Saved file: "+fileoutput, 'g')
@@ -842,7 +924,7 @@ def write(obj, fileoutput):
 
 
 ########################################################################
-def closestPoint(surf, pt, N=None, radius=None):
+def closestPoint(surf, pt, N=1, radius=None):
     """
     Find the closest point on a polydata given an other point.
     If N is given, return a list of N ordered closest points.
@@ -860,7 +942,7 @@ def closestPoint(surf, pt, N=None, radius=None):
         pointlocator.SetDataSet(poly)
         pointlocator.BuildLocator()
         setattr(surf, 'pointlocator', pointlocator)
-    if N:
+    if N>1:
         vtklist = vtk.vtkIdList()
         vmath = vtk.vtkMath()
         surf.pointlocator.FindClosestNPoints(N, pt, vtklist)
@@ -885,8 +967,8 @@ def closestPoint(surf, pt, N=None, radius=None):
 
 
 def intersectWithLine(act, p0, p1):
-    # return a list of points between p0 and p1 which intersect the actor
-    if not hasattr(act,'linelocator'):
+    ''''return a list of points between p0 and p1 which intersect the actor'''
+    if not hasattr(act, 'linelocator'):
         linelocator = vtk.vtkOBBTree()
         linelocator.SetDataSet(act.polydata())
         linelocator.BuildLocator()
@@ -976,9 +1058,14 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     boxWidget.AddObserver("InteractionEvent", SelectPolygons)
     boxWidget.On()
     
-    printc(("Press X to save file:", outputname), 'm')
+    printc('\nCutterWidget:\n Move handles to cut parts of the actor','m')
+    printc(' Press q to continue, Escape to exit','m')
+    printc((" Press X to save file to", outputname), 'm')
     def cwkeypress(obj, event):
-        if obj.GetKeySym() == "X": 
+        key = obj.GetKeySym()
+        if   key == "q" or key == "space" or key == "Return":
+            iren.ExitCallback()
+        elif key == "X": 
             confilter = vtk.vtkPolyDataConnectivityFilter()
             setInput(confilter, clipper.GetOutput())
             confilter.SetExtractionModeToLargestRegion()
@@ -987,8 +1074,8 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
             setInput(cpd, confilter.GetOutput())
             cpd.Update()
             write(cpd.GetOutput(), outputname)
-        elif obj.GetKeySym() == "Escape": 
-            exit()
+        elif key == "Escape": 
+            exit(0)
     
     iren.Initialize()
     iren.AddObserver("KeyPressEvent", cwkeypress)
@@ -1000,12 +1087,15 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
 
 ###########################################################################
 class ProgressBar: 
-    '''Class to print a progress bar with optional text on its right'''
-    # import time                        ### Usage example:
-    # pb = ProgressBar(0,400, c='red')
-    # for i in pb.range():
-    #     time.sleep(.1)
-    #     pb.print('some message')       # or pb.print(counts=i) 
+    '''Class to print a progress bar with optional text on its right
+    ### Usage example:
+    import time                        
+    pb = ProgressBar(0,400, c='red')
+    for i in pb.range():
+        time.sleep(.1)
+        pb.print('some message')       # or pb.print(counts=i)
+    ''' 
+
     def __init__(self, start, stop, step=1, c=None, ETA=True, width=25):
         self.start  = start
         self.stop   = stop
@@ -1014,15 +1104,15 @@ class ProgressBar:
         self.width  = width
         self.bar    = ""  
         self.percent= 0
+        self.clock0 = 0
+        self.ETA    = ETA
+        self.clock0 = time.time()
+        self._update(0)
         self._counts= 0
         self._oldbar= ""
         self._lentxt= 0
         self._range = arange(start, stop, step)
         self._len   = len(self._range)
-        self.clock0 = 0
-        self.ETA    = ETA
-        self.clock0 = time.time()
-        self._update(0)
         
     def print(self, txt='', counts=None):
         if counts: self._update(counts)

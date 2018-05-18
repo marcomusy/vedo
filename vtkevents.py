@@ -299,11 +299,11 @@ def _keypress(vp, obj, event):
 ############################### timer event
 # allows to move the window while running
 # see lines 1306, 1330 in plotter.py
-def _stopren(vp, obj, event):
+# def _stopren(vp, obj, event):
     #if vp.interactive: return
     #x,y = vp.interactor.GetEventPosition()
     #print (' _stopren at',x,y, event, obj.GetKeySym())
-    vp.interactor.ExitCallback()
+    # vp.interactor.ExitCallback()
     
     
 
