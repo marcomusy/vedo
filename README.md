@@ -218,26 +218,26 @@ def points(plist, c='b', tags=[], r=10, alpha=1, legend=None)
 def line(p0, p1, lw=1, tube=False, dotted=False, c='r', alpha=1, legend=None)
 def sphere(pos, r=1, c='r', alpha=1, legend=None, texture=None)
 def cube(pt, r=1, c='g', alpha=1, legend=None, texture=None)
+def arrow(startPoint, endPoint, s=0.03, c='r', alpha=1, legend=None, texture=None)
+def helix(startPoint, endPoint, coils=12, r=1, thickness=1, c='gray', alpha=1, legend=None, texture=None)
+def cylinder(pos, r, height, axis=[1,1,1], c='teal', alpha=1, edges=False, legend=None, texture=None, res=24)
+def cone(pos, r, height, axis=[1,1,1], c='g', alpha=1, legend=None, texture=None)
+def pyramid(pos, s=1, height=1, axis=[0,0,1], c='dg', alpha=1, legend=None, texture=None)
+def ring(pos, r=1, thickness=0.1, axis=[1,1,1], c='khaki', alpha=1, legend=None, texture=None, res=30)
+def ellipsoid(points, c='c', alpha=0.5, legend=None, texture=None, res=24)
+def paraboloid(pos, r=1, height=1, axis=[0,0,1], c='cyan', alpha=1, legend=None, texture=None, res=50)
+def hyperboloid(pos, a2=1, value=0.5, height=1, axis=[0,0,1], 
+                c='magenta', alpha=1, legend=None, texture=None, res=50)
+#
 def plane(pos, normal=(0,0,1), s=10, c='g', bc='dg', lw=1, alpha=1, texture=None)
 def grid( pos, normal=(0,0,1), s=10, c='g', bc='dg', lw=1, alpha=1, texture=None, res=10)
 def polygon(pos, normal=(0,0,1), nsides=6, r=1, 
             c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, followcam=False):
 def disc(pos, normal=[0,0,1], r1=0.5, r2=1, 
             c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, res=12)
-def arrow(startPoint, endPoint, s=0.03, c='r', alpha=1, legend=None, texture=None)
-def helix(startPoint, endPoint, coils=12, r=1, thickness=1, c='grey', alpha=1, legend=None, texture=None)
-def cylinder(pos, r, height, axis=[1,1,1], c='teal', alpha=1, edges=False, legend=None, texture=None, res=24)
-def octahedron(pos, s=1, axis=(0,0,1), c='g', alpha=1, wire=False, legend=None, texture=None)
-def cone(pos, r, height, axis=[1,1,1], c='g', alpha=1, legend=None, texture=None)
-def ellipsoid(points, c='c', alpha=0.5, legend=None, texture=None, res=24)
-def paraboloid(pos, r=1, height=1, axis=[0,0,1], c='cyan', alpha=1, legend=None, texture=None, res=50)
-def hyperboloid(pos, a2=1, value=0.5, height=1, axis=[0,0,1], 
-                c='magenta', alpha=1, legend=None, texture=None, res=50)
-def pyramid(pos, s=1, height=1, axis=[0,0,1], c='dg', alpha=1, legend=None, texture=None)
-def ring(pos, r=1, thickness=0.1, axis=[1,1,1], c='khaki', alpha=1, legend=None, texture=None, res=30)
-def spline(points, smooth=0.5, degree=2, s=5, c='b', alpha=1., nodes=False, legend=None, res=20)
 def text(txt, pos, axis=(0,0,1), s=1, c='k', alpha=1, bc=None, cam=True, texture=None)
 #
+def spline(points, smooth=0.5, degree=2, s=5, c='b', alpha=1., nodes=False, legend=None, res=20)
 def xyplot(points, title='', c='r', pos=1, lines=False)
 def histogram(self, values, bins=10, vrange=None, title='', c='b', corner=1, lines=True)
 def fxy(z='sin(x)+y', x=[0,3], y=[0,3], zlimits=[None, None], showNan=True, zlevels=10, 
@@ -270,7 +270,7 @@ def addScalarBar(actor=None, c='k', horizontal=False)
 def openVideo(name='movie.avi', fps=12, duration=None, format="XVID")
 def addFrameVideo()
 def pauseVideo(pause)
-def releaseVideo()
+def closeVideo()
 def screenshot(filename='screenshot.png')
 ```
 
@@ -294,6 +294,8 @@ Useful methods:
 # Example -- vp = vtkPlotter(); vp.makeActor(myolydata, c='red')
 def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None)
 def makeAssembly(actors, legend=None)
+def reconstructSurface(points, neighbors=20, spacing=None, 
+                       c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None)
 def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1)
 def polydata(actor, index=0, transformed=True)
 def closestPoint(actor, point, locator=None, N=1, radius=None)

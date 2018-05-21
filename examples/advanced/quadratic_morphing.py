@@ -110,9 +110,9 @@ class Morpher:
         zero = vp.point(pos, c='black')
         x1,x2, y1,y2, z1,z2 = self.target.polydata().GetBounds()
         tpos = [x1, y2, z1]
-        text1 = vp.text('source vs target',  tpos, s=sz/10, c='dg', followcam=0)
-        text2 = vp.text('morphed vs target', tpos, s=sz/10, c='dg', followcam=0)
-        text3 = vp.text('deformation',       tpos, s=sz/10, c='dr', followcam=0)
+        text1 = vp.text('source vs target',  tpos, s=sz/10, c='dg')
+        text2 = vp.text('morphed vs target', tpos, s=sz/10, c='dg')
+        text3 = vp.text('deformation',       tpos, s=sz/10, c='dr')
 
         vp.show([sphere0, sphere1, zero, text3] + hairsacts, at=2)
         vp.show([self.msource, self.target, text2], at=1) 

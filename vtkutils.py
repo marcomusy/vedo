@@ -1085,6 +1085,64 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     return act0
 
 
+def reconstructSurface(points, neighbors=20, spacing=None,
+                       c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None):
+    
+    def doIterativeClosestPoint(source, target, rigid=False, locator=None, iters=20):
+
+        icp = vtk.vtkIterativeClosestPointTransform()
+        icp.SetSource(source)
+        icp.SetTarget(target)
+        if locator: icp.SetLocator(locator)
+        if rigid: icp.GetLandmarkTransform().SetModeToRigidBody()
+        icp.SetMaximumNumberOfIterations(iters)
+        icp.StartByMatchingCentroidsOn()
+        icp.Modified()
+        icp.Update()
+        icpTransformFilter = vtk.vtkTransformPolyDataFilter()
+        icpTransformFilter.SetInput(source)
+        icpTransformFilter.SetTransform(icp)
+        icpTransformFilter.Update()
+        return icpTransformFilter.GetOutput()
+
+    pointSource = vtk.vtkPointSource()
+    pointSource.SetNumberOfPoints(len(points))
+    pointSource.Update()
+    for i,p in enumerate(points): 
+        pointSource.GetOutput().GetPoints().SetPoint(i, p)
+
+    surf = vtk.vtkSurfaceReconstructionFilter()
+    if spacing: surf.SetSampleSpacing(spacing)
+    if neighbors: surf.SetNeighborhoodSize(neighbors)
+    surf.SetInputConnection(pointSource.GetOutputPort())    
+    cf = vtk.vtkContourFilter()
+    cf.SetInputConnection(surf.GetOutputPort())
+    cf.SetValue(0, 0.0)
+    
+    reverse = vtk.vtkReverseSense()
+    reverse.SetInputConnection(cf.GetOutputPort())
+    reverse.ReverseCellsOn()
+    reverse.ReverseNormalsOn()
+    reverse.Update()
+
+    pt = pointSource.GetOutput().GetPoints()
+    pt_bounds = pt.GetBounds()
+    pd_bounds = reverse.GetOutput().GetBounds()
+    scale = (pt_bounds[1] - pt_bounds[0])/(pd_bounds[1] - pd_bounds[0])
+    
+    transp = vtk.vtkTransform()
+    transp.Translate(pt_bounds[0], pt_bounds[2], pt_bounds[4])
+    transp.Scale(scale, scale, scale)
+    transp.Translate(-pd_bounds[0], -pd_bounds[2], -pd_bounds[4])
+    tpd = vtk.vtkTransformPolyDataFilter()
+    tpd.SetInput(reverse.GetOutput())
+    tpd.SetTransform(transp)
+    tpd.Update()
+    fpd = doIterativeClosestPoint(tpd.GetOutput(), pointSource.GetOutput())
+    actor = makeActor(fpd, c, alpha, wire, bc, edges, legend)
+    return actor
+
+
 ###########################################################################
 class ProgressBar: 
     '''Class to print a progress bar with optional text on its right
