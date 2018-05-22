@@ -17,7 +17,6 @@ def setInput(vtkobj, p, port=0):
     if vtkMV: vtkobj.SetInputData(p)
     else: vtkobj.SetInput(p)
 
-
 def isSequence(arg): 
     if hasattr(arg, "strip"): return False
     if hasattr(arg, "__getslice__"): return True
@@ -48,14 +47,15 @@ def norm(v):
 
 def makeActor(poly, c='gold', alpha=0.5, 
               wire=False, bc=None, edges=False, legend=None, texture=None):
-    '''Return a vtkActor from an input vtkPolyData, optional args:
-       c,       color in RGB format, hex, symbol or name
-       alpha,   transparency (0=invisible)
-       wire,    show surface as wireframe
-       bc,      backface color of internal surface
-       edges,   show edges as line on top of surface
-       legend   optional string
-       texture  jpg file name of surface texture, eg. 'metalfloor1'
+    '''
+    Return a vtkActor from an input vtkPolyData, optional args:
+        c,       color in RGB format, hex, symbol or name
+        alpha,   transparency (0=invisible)
+        wire,    show surface as wireframe
+        bc,      backface color of internal surface
+        edges,   show edges as line on top of surface
+        legend   optional string
+        texture  jpg file name of surface texture, eg. 'metalfloor1'
     '''
     clp = vtk.vtkCleanPolyData()
     setInput(clp, poly)
@@ -116,7 +116,7 @@ def makeActor(poly, c='gold', alpha=0.5,
 
 
 def makeAssembly(actors, legend=None):
-    '''Treat many actors as a single new actor'''
+    '''Group many actors as a single new actor'''
     assembly = vtk.vtkAssembly()
     for a in actors: assembly.AddPart(a)
     setattr(assembly, 'legend', legend) 
@@ -202,8 +202,8 @@ def assignConvenienceMethods(actor, legend):
     actor.orientation = types.MethodType( _forientation, actor )
 
     def _fclone(self, c=None, alpha=None, wire=False, bc=None,
-                edges=False, legend=None, texture=None): 
-        return clone(self, c, alpha, wire, bc, edges, legend, texture)
+                edges=False, legend=None, texture=None, rebuild=False): 
+        return clone(self, c, alpha, wire, bc, edges, legend, texture, rebuild)
     actor.clone = types.MethodType( _fclone, actor )
 
     def _fpoint(self, i, p=None): 
@@ -287,7 +287,7 @@ def assignConvenienceMethods(actor, legend):
         else: return self.GetProperty().GetOpacity()
     actor.alpha = types.MethodType( _falpha, actor)
 
-    def _fclosestPoint(self, pt, N=None, radius=None):
+    def _fclosestPoint(self, pt, N=1, radius=None):
         return closestPoint(self, pt, N, radius)
     actor.closestPoint = types.MethodType( _fclosestPoint, actor)
 
@@ -366,42 +366,43 @@ def assignPhysicsMethods(actor):
     def _farea(self): return area(self)
     actor.area = types.MethodType(_farea, actor)
 
-
     # def _faxis(self):
     #     print('_faxis',  self.base, self.top)
     #     return self.base, self.top
     # actor.axis = types.MethodType(_faxis, actor)
 
+    # def assignAxis(actor, ibase1, ibase2, itop1, itop2):
+    #     setattr(actor, 'ibase1', ibase1)
+    #     setattr(actor, 'ibase2', ibase2)
+    #     setattr(actor, 'itop1', itop1)
+    #     setattr(actor, 'itop2', itop2)
 
-# def assignAxis(actor, ibase1, ibase2, itop1, itop2):
-#     setattr(actor, 'ibase1', ibase1)
-#     setattr(actor, 'ibase2', ibase2)
-#     setattr(actor, 'itop1', itop1)
-#     setattr(actor, 'itop2', itop2)
-
-#     def _faxis(self):
-#         vpts = polydata(self, rebuild=0).GetPoints()
-#         pbase1 = vpts.GetPoint(self.ibase1)
-#         pbase2 = vpts.GetPoint(self.ibase2)
-#         ptip1  = vpts.GetPoint(self.itop1)
-#         ptip2  = vpts.GetPoint(self.itop2)
-#         t = vtk.vtkTransform()
-#         t.SetMatrix(self.GetMatrix())            
-#         tbase1 = np.array(t.TransformPoint(pbase1))
-#         tbase2 = np.array(t.TransformPoint(pbase2))
-#         ttip1  = np.array(t.TransformPoint(ptip1))
-#         ttip2  = np.array(t.TransformPoint(ptip2))
-#         print((tbase1+tbase2)/2, (ttip1+ttip2)/2)
-#         # return np.array([0,0,0]),np.array([-1,0,0])
-#         return (tbase1+tbase2)/2, (ttip1+ttip2)/2
-#     actor.axis = types.MethodType(_faxis, actor)
+    #     def _faxis(self):
+    #         vpts = polydata(self, rebuild=0).GetPoints()
+    #         pbase1 = vpts.GetPoint(self.ibase1)
+    #         pbase2 = vpts.GetPoint(self.ibase2)
+    #         ptip1  = vpts.GetPoint(self.itop1)
+    #         ptip2  = vpts.GetPoint(self.itop2)
+    #         t = vtk.vtkTransform()
+    #         t.SetMatrix(self.GetMatrix())            
+    #         tbase1 = np.array(t.TransformPoint(pbase1))
+    #         tbase2 = np.array(t.TransformPoint(pbase2))
+    #         ttip1  = np.array(t.TransformPoint(ptip1))
+    #         ttip2  = np.array(t.TransformPoint(ptip2))
+    #         print((tbase1+tbase2)/2, (ttip1+ttip2)/2)
+    #         # return np.array([0,0,0]),np.array([-1,0,0])
+    #         return (tbase1+tbase2)/2, (ttip1+ttip2)/2
+    #     actor.axis = types.MethodType(_faxis, actor)
 
 
 ######################################################### 
 def clone(actor, c=None, alpha=None, wire=False, bc=None,
-          edges=False, legend=None, texture=None):
-    '''Clone a vtkActor in its current position in space'''
-    poly = polydata(actor, rebuild=False)
+          edges=False, legend=None, texture=None, rebuild=False):
+    '''
+    Clone a vtkActor.
+        If rebuild is True build its polydata in its current position in space
+    '''
+    poly = polydata(actor, rebuild=rebuild)
     if not len(coordinates(actor)):
         printc('Limitation: cannot clone textured obj. Returning input.',1)
         return actor
@@ -430,6 +431,9 @@ def flipNormals(actor): # N.B. input argument gets modified
 
 
 def normalize(actor): # N.B. input argument gets modified
+    '''
+    Shift actor's center of mass at origin and scale its average size to unit.
+    '''
     cm = centerOfMass(actor)
     coords = coordinates(actor)
     if not len(coords) : return
@@ -473,6 +477,10 @@ def rotate(actor, angle, axis, axis_point=[0,0,0], rad=False):
  
 
 def orientation(actor, newaxis=None, rotation=0):
+    '''
+    Set/Get actor orientation.
+        If rotation != 0 rotate actor around newaxis (in degree units)
+    '''
     initaxis = norm(actor.top - actor.base)
     if newaxis is None: return initaxis
     newaxis = norm(newaxis)
@@ -540,9 +548,11 @@ def stretch(actor, q1, q2):
 
 
 def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
-    '''Downsample the number of vertices in a mesh.
-    fraction gives the desired target of reduction. E.g. fraction=0.1
-    should leave 10% of the original nr of vertices.
+    '''
+    Downsample the number of vertices in a mesh.
+        fraction gives the desired target of reduction. 
+        E.g. fraction=0.1
+             leaves 10% of the original nr of vertices.
     '''
     poly = polydata(actor)
     if N: # N = desired number of points
@@ -570,7 +580,7 @@ def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
 
 def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1, 
                      wire=False, bc=None, edges=False, legend=None, texture=None):
-    ''' Volumetric union, intersection and subtraction of surfaces'''
+    '''Volumetric union, intersection and subtraction of surfaces'''
     try:
         bf = vtk.vtkBooleanOperationPolyDataFilter()
     except AttributeError:
@@ -599,7 +609,7 @@ def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1,
 
 def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3,
                         c=None, alpha=1, legend=None):
-    '''intersect 2 surfaces and return a line actor'''
+    '''Intersect 2 surfaces and return a line actor'''
     try:
         bf = vtk.vtkIntersectionPolyDataFilter()
     except AttributeError:
@@ -620,7 +630,7 @@ def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3,
 # Useful Functions
 ######################################################### 
 def makePolyData(spoints, addLines=True):
-    """Try to workout a polydata from points"""
+    """Try to workout a polydata from ordered points"""
     sourcePoints = vtk.vtkPoints()
     sourceVertices = vtk.vtkCellArray()
     for pt in spoints:
@@ -711,7 +721,7 @@ def fillHoles(actor, size=None, legend=None): # not tested properly
 
 
 def isIdentity(M, tol=1e-06):
-    '''check if vtkMatrix4x4 is Identity'''
+    '''Check if vtkMatrix4x4 is Identity'''
     for i in [0,1,2,3]: 
         for j in [0,1,2,3]: 
             e = M.GetElement(i,j)
@@ -725,9 +735,9 @@ def isIdentity(M, tol=1e-06):
 def polydata(obj, index=0, rebuild=False): 
     '''
     Returns the vtkPolyData of a vtkActor or vtkAssembly.
-    If rebuild=True returns a copy of polydata
-    that corresponds to the current actor's position in space.
-    If a vtkAssembly is passed returns the polydata of component index.
+        If rebuild=True returns a copy of polydata
+        that corresponds to the current actor's position in space.
+        If a vtkAssembly is passed, return the polydata of component index.
     '''
    
     if isinstance(obj, vtk.vtkActor):   
@@ -793,11 +803,11 @@ def polydata(obj, index=0, rebuild=False):
 def subdivide(actor, N=1, method=0, legend=None):
     '''
     Increase the number of points in actor surface
-    N = number of subdivisions
-    method = 0, Loop
-    method = 1, Linear
-    method = 2, Adaptive
-    method = 3, Butterfly
+        N = number of subdivisions
+        method = 0, Loop
+        method = 1, Linear
+        method = 2, Adaptive
+        method = 3, Butterfly
     '''        
     triangles = vtk.vtkTriangleFilter()
     setInput(triangles, polydata(actor))
@@ -897,6 +907,10 @@ def maxBoundSize(actor):
 
     
 def write(obj, fileoutput):
+    '''
+    Write 3D object to file.
+    Possile extensions are: .vtk, .ply, .obj, .stl, .byu, .vtp
+    '''
     fr = fileoutput.lower()
     if   '.vtk' in fr: w = vtk.vtkPolyDataWriter()
     elif '.ply' in fr: w = vtk.vtkPLYWriter()
@@ -927,8 +941,8 @@ def write(obj, fileoutput):
 def closestPoint(surf, pt, N=1, radius=None):
     """
     Find the closest point on a polydata given an other point.
-    If N is given, return a list of N ordered closest points.
-    If radius is given, pick only within specified radius.
+        If N>1, return a list of N ordered closest points.
+        If radius is given, get all points within.
     """
     poly = polydata(surf)
     trgp  = [0,0,0]
@@ -937,7 +951,7 @@ def closestPoint(surf, pt, N=1, radius=None):
 
     locexists = hasattr(surf, 'pointlocator')
     if not locexists or (locexists and surf.pointlocator is None):
-        if N: pointlocator = vtk.vtkPointLocator()
+        if N>1: pointlocator = vtk.vtkPointLocator()
         else: pointlocator = vtk.vtkCellLocator()
         pointlocator.SetDataSet(poly)
         pointlocator.BuildLocator()
@@ -967,7 +981,7 @@ def closestPoint(surf, pt, N=1, radius=None):
 
 
 def intersectWithLine(act, p0, p1):
-    ''''return a list of points between p0 and p1 which intersect the actor'''
+    '''Return a list of points between p0 and p1 intersecting the actor'''
     if not hasattr(act, 'linelocator'):
         linelocator = vtk.vtkOBBTree()
         linelocator.SetDataSet(act.polydata())
@@ -1146,12 +1160,13 @@ def reconstructSurface(points, neighbors=20, spacing=None,
 ###########################################################################
 class ProgressBar: 
     '''Class to print a progress bar with optional text on its right
-    ### Usage example:
-    import time                        
-    pb = ProgressBar(0,400, c='red')
-    for i in pb.range():
-        time.sleep(.1)
-        pb.print('some message')       # or pb.print(counts=i)
+    
+    Usage example:
+        import time                        
+        pb = ProgressBar(0,400, c='red')
+        for i in pb.range():
+            time.sleep(.1)
+            pb.print('some message') # or pb.print(counts=i)
     ''' 
 
     def __init__(self, start, stop, step=1, c=None, ETA=True, width=25):
@@ -1224,12 +1239,15 @@ class ProgressBar:
 
 ################################################################### color print
 def printc(strings, c='black', bold=True, separator=' ', end='\n'):
-    '''Print to terminal in color. Available colors:
-    black, red, green, yellow, blue, magenta, cyan, white
-    E.g.:
-    cprint( 'anything', c='red', bold=False, end='' )
-    cprint( ['anything', 455.5, vtkObject], 'green', separator='-')
-    cprint(299792.48, c=4) #blue
+    '''
+    Print to terminal in color. 
+    
+    Available colors:
+        black, red, green, yellow, blue, magenta, cyan, white
+    Usage example:
+        cprint( 'anything', c='red', bold=False, end='' )
+        cprint( ['anything', 455.5, vtkObject], 'green')
+        cprint(299792.48, c=4) # 4 is blue
     '''
     if isinstance(strings, tuple): strings = list(strings)
     elif not isinstance(strings, list): strings = [str(strings)]

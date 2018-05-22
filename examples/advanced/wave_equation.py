@@ -15,7 +15,7 @@ import numpy as np
 ####################################################
 N = 400			# Number of coupled oscillators
 dt = 0.5        # Time step
-Nsteps = 1000   # Number of steps in the simulation
+Nsteps = 500   # Number of steps in the simulation
 
 
 ####################################################
