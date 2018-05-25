@@ -16,6 +16,7 @@ __website__ = "https://github.com/marcomusy/vtkPlotter"
 import os, time, types, vtk
 import numpy as np
 from numpy import sin, cos, sqrt, dot, cross
+from vtk import vtkCamera
 
 import vtkevents
 import vtkutils
@@ -385,6 +386,8 @@ class vtkPlotter:
         '''
         if isinstance(fraction, int) and self.verbose:
             printc("Warning in moveCamera(): fraction is integer.", 1)
+        if fraction>1:
+            printc("Warning in moveCamera(): fraction is > 1", 1)
         cam = vtk.vtkCamera()
         cam.DeepCopy(camstart)
         p1 = np.array(camstart.GetPosition())
@@ -437,11 +440,12 @@ class vtkPlotter:
         '''
         Build a vtkActor for a list of points.
 
-        Input cols is a list of RGB colors of same length as plist
-        If tags is specified the list of string is displayed along 
+        c can be a list of [R,G,B] colors of same length as plist
+        
+        If tags (a list of strings) is specified, is displayed along 
         with the points.
         
-        If tags='ids' points are labeled with an integer number
+        If tags='ids' points are labeled with an integer number.
         '''
 
         if len(plist) == 0: return None

@@ -19,6 +19,6 @@ for i in range(50):
     vp.camera.Azimuth(5) # rotate by 4 deg at each iteration
     vp.addFrameVideo() 
 
-vp.releaseVideo() # merges all the recorded frames
+vp.closeVideo() # merges all the recorded frames
 
 vp.show()
