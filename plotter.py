@@ -153,6 +153,8 @@ class vtkPlotter:
         self.cutterWidget = vtkutils.cutterWidget
         self.ProgressBar = vtkutils.ProgressBar
         self.makePolyData = vtkutils.makePolyData
+        self.delaunay2D = vtkutils.delaunay2D
+        self.cellCenters = vtkutils.cellCenters
         self.flipNormals = vtkutils.flipNormals
         self.arange = vtkutils.arange
         self.vector = vtkutils.vector
@@ -859,7 +861,8 @@ class vtkPlotter:
 
 
     def cylinder(self, pos=[0,0,0], r=1, height=1, axis=[0,0,1],
-                 c='teal', alpha=1, edges=False, legend=None, texture=None):
+                 c='teal', wire=0, alpha=1, edges=False, 
+                 legend=None, texture=None, res=24):
         '''
         Build a cylinder of specified height and radius r, centered at pos.
         
@@ -880,7 +883,7 @@ class vtkPlotter:
             top  = pos + axis*height/2
 
         cyl = vtk.vtkCylinderSource()
-        cyl.SetResolution(24)
+        cyl.SetResolution(res)
         cyl.SetRadius(r)
         cyl.SetHeight(height)
         cyl.Update()
@@ -898,7 +901,7 @@ class vtkPlotter:
         tf.Update()
         pd = tf.GetOutput()
 
-        actor = makeActor(pd, c=c, alpha=alpha, edges=edges,
+        actor = makeActor(pd, c, alpha, wire, edges=edges,
                             legend=legend, texture=texture)
         actor.GetProperty().SetInterpolationToPhong()
         actor.SetPosition(pos)
@@ -2328,7 +2331,7 @@ def _loadPoly(filename):
     elif '.byu' in fl or '.g' in fl: reader = vtk.vtkBYUReader()
     elif '.vtp' in fl: reader = vtk.vtkXMLPolyDataReader()
     elif '.vts' in fl: reader = vtk.vtkXMLStructuredGridReader()
-    elif '.vtu' in fl: reader = vtk.vtkXMLUnstructuredGridReader()
+    elif '.vtu' in fl: reader = vtk.vtkUnstructuredGridReader()
     elif '.txt' in fl: reader = vtk.vtkParticleReader() # (x y z scalar) 
     elif '.xyz' in fl: reader = vtk.vtkParticleReader()
     else: reader = vtk.vtkDataReader()

@@ -237,7 +237,8 @@ def assignConvenienceMethods(actor, legend):
         return polydata(self, index, rebuild)
     actor.polydata = types.MethodType( _fpolydata, actor )
 
-    def _fcoordinates(self): return coordinates(self)
+    def _fcoordinates(self, rebuild=False): 
+        return coordinates(self, rebuild)
     actor.coordinates = types.MethodType( _fcoordinates, actor )
 
     def _fxbounds(self): 
@@ -366,35 +367,6 @@ def assignPhysicsMethods(actor):
     def _farea(self): return area(self)
     actor.area = types.MethodType(_farea, actor)
 
-    # def _faxis(self):
-    #     print('_faxis',  self.base, self.top)
-    #     return self.base, self.top
-    # actor.axis = types.MethodType(_faxis, actor)
-
-    # def assignAxis(actor, ibase1, ibase2, itop1, itop2):
-    #     setattr(actor, 'ibase1', ibase1)
-    #     setattr(actor, 'ibase2', ibase2)
-    #     setattr(actor, 'itop1', itop1)
-    #     setattr(actor, 'itop2', itop2)
-
-    #     def _faxis(self):
-    #         vpts = polydata(self, rebuild=0).GetPoints()
-    #         pbase1 = vpts.GetPoint(self.ibase1)
-    #         pbase2 = vpts.GetPoint(self.ibase2)
-    #         ptip1  = vpts.GetPoint(self.itop1)
-    #         ptip2  = vpts.GetPoint(self.itop2)
-    #         t = vtk.vtkTransform()
-    #         t.SetMatrix(self.GetMatrix())            
-    #         tbase1 = np.array(t.TransformPoint(pbase1))
-    #         tbase2 = np.array(t.TransformPoint(pbase2))
-    #         ttip1  = np.array(t.TransformPoint(ptip1))
-    #         ttip2  = np.array(t.TransformPoint(ptip2))
-    #         print((tbase1+tbase2)/2, (ttip1+ttip2)/2)
-    #         # return np.array([0,0,0]),np.array([-1,0,0])
-    #         return (tbase1+tbase2)/2, (ttip1+ttip2)/2
-    #     actor.axis = types.MethodType(_faxis, actor)
-
-
 ######################################################### 
 def clone(actor, c=None, alpha=None, wire=False, bc=None,
           edges=False, legend=None, texture=None, rebuild=False):
@@ -403,7 +375,7 @@ def clone(actor, c=None, alpha=None, wire=False, bc=None,
         If rebuild is True build its polydata in its current position in space
     '''
     poly = polydata(actor, rebuild=rebuild)
-    if not len(coordinates(actor)):
+    if not poly.GetNumberOfPoints():
         printc('Limitation: cannot clone textured obj. Returning input.',1)
         return actor
     polyCopy = vtk.vtkPolyData()
@@ -720,6 +692,29 @@ def fillHoles(actor, size=None, legend=None): # not tested properly
     return factor    
 
 
+def delaunay2D(plist, tol=None, 
+                c='gold', alpha=0.5, wire=False, bc=None, edges=False, 
+                legend=None, texture=None):
+    src = vtk.vtkPointSource()
+    src.SetNumberOfPoints(len(plist))
+    src.Update()
+    pd = src.GetOutput()
+    for i,p in enumerate(plist): pd.GetPoints().SetPoint(i, p)
+    delny = vtk.vtkDelaunay2D()
+    setInput(delny, pd)
+    if tol: delny.SetTolerance(tol)
+    delny.Update()
+    return makeActor(delny.GetOutput(), c, alpha, wire, bc, edges, legend, texture)
+
+
+def cellCenters(actor):
+    '''Get the list of cell centers of the mesh surface'''
+    vcen = vtk.vtkCellCenters()
+    setInput(vcen, polydata(actor, rebuild=1))
+    vcen.Update()
+    return coordinates(vcen.GetOutput())
+
+
 def isIdentity(M, tol=1e-06):
     '''Check if vtkMatrix4x4 is Identity'''
     for i in [0,1,2,3]: 
@@ -831,16 +826,14 @@ def subdivide(actor, N=1, method=0, legend=None):
     return sactor
 
 
-def coordinates(actors):
+def coordinates(actor, rebuild=False):
     """Return a merged list of coordinates of actors or polys"""
-    if not isinstance(actors, list): actors = [actors]
     pts = []
-    for i in range(len(actors)):
-        apoly = polydata(actors[i])
-        for j in range(apoly.GetNumberOfPoints()):
-            p = [0, 0, 0]
-            apoly.GetPoint(j, p)
-            pts.append(p)
+    poly = polydata(actor, rebuild)
+    for j in range(poly.GetNumberOfPoints()):
+        p = [0, 0, 0]
+        poly.GetPoint(j, p)
+        pts.append(p)
     return np.array(pts)
 
 
@@ -869,7 +862,7 @@ def centerOfMass(actor):
         c = cmf.GetCenter()
         return np.array(c)
     else:
-        pts = coordinates(actor)
+        pts = coordinates(actor, True)
         if not len(pts): return np.array([0,0,0])
         return np.mean(pts, axis=0)       
 
@@ -889,9 +882,9 @@ def area(actor):
 
 def averageSize(actor):
     cm = centerOfMass(actor)
-    coords = coordinates(actor)
+    coords = coordinates(actor, True)
     if not len(coords) : return
-    pts = coordinates(actor) - cm
+    pts = coords - cm
     xyz2 = np.sum(pts * pts, axis=0)
     return np.sqrt(np.sum(xyz2)/len(pts))
 

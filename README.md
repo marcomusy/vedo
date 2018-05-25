@@ -246,6 +246,7 @@ def fxy(z='sin(x)+y', x=[0,3], y=[0,3], zlimits=[None, None], showNan=True, zlev
 def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
 def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None)
 def boundaries(actor, c='p', lw=5, legend=None)
+def delaunay2D(actor, tol=None) # triangulate after projecting on the xy plane
 #
 def align(source, target, iters=100, legend=None):
 def fitLine(points, c='orange', lw=1, alpha=0.6, tube=False, legend=None)
