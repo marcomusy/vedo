@@ -13,10 +13,8 @@ __website__ = "https://github.com/marcomusy/vtkPlotter"
 
 
 ########################################################################
-import os, time, types, vtk
+import os, time, vtk
 import numpy as np
-from numpy import sin, cos, sqrt, dot, cross
-from vtk import vtkCamera
 
 import vtkevents
 import vtkutils
@@ -25,6 +23,7 @@ from vtkutils import makeAssembly, assignTexture
 from vtkutils import polydata, coordinates, makePolyData
 from vtkutils import arange, vector, mag, mag2, norm, ProgressBar
 from vtkcolors import getColor, getAlpha, colorMap
+from numpy import sin, cos, sqrt, dot, cross
 
 
 #########################################################################
@@ -153,7 +152,6 @@ class vtkPlotter:
         self.cutterWidget = vtkutils.cutterWidget
         self.ProgressBar = vtkutils.ProgressBar
         self.makePolyData = vtkutils.makePolyData
-        self.delaunay2D = vtkutils.delaunay2D
         self.cellCenters = vtkutils.cellCenters
         self.flipNormals = vtkutils.flipNormals
         self.arange = vtkutils.arange
@@ -533,8 +531,28 @@ class vtkPlotter:
         actor.GetProperty().SetOpacity(alpha)
         actor.GetProperty().SetPointSize(r)
         self.actors.append(actor)
-        if legend: setattr(actor, 'legend', legend)
         return actor
+
+    
+    def delaunay2D(self, plist, tol=None, 
+                    c='gold', alpha=0.5, wire=False, bc=None, edges=False, 
+                    legend=None, texture=None):
+        '''
+        Create a mesh from points in the XY plane.
+        '''
+        src = vtk.vtkPointSource()
+        src.SetNumberOfPoints(len(plist))
+        src.Update()
+        pd = src.GetOutput()
+        for i,p in enumerate(plist): pd.GetPoints().SetPoint(i, p)
+        delny = vtk.vtkDelaunay2D()
+        setInput(delny, pd)
+        if tol: delny.SetTolerance(tol)
+        delny.Update()
+        actor = makeActor(delny.GetOutput(), 
+                          c, alpha, wire, bc, edges, legend, texture)
+        self.actors.append(actor)
+        return actor        
 
 
     def line(self, p0, p1=None, lw=1, tube=False, dotted=False,
@@ -2427,7 +2445,7 @@ def _loadXml(filename, c, alpha, wire, bc, edges, legend):
     pts_act.GetProperty().SetPointSize(3)
     pts_act.GetProperty().SetRepresentationToPoints()
     actor2 = makeAssembly([pts_act, actor])
-    if legend: setattr(actor2, 'legend', legend)
+    setattr(actor2, 'legend', legend)
     if legend is True: 
         setattr(actor2, 'legend', os.path.basename(filename))
     return actor2

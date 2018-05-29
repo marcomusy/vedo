@@ -81,7 +81,7 @@ clm2  = pyshtools.SHGrid.from_array(agrid2).expand()
 for t in vp.arange(0,1, 0.005):
     act21 = vp.points(morph(clm2, clm1, t, lmax), c='r', r=4)
     act12 = vp.points(morph(clm1, clm2, t, lmax), c='g', r=4)
-    vp.show(at=2, actors=act21, resetcam=0, legend='time: '+str(t*100))
+    vp.show(at=2, actors=act21, resetcam=0, legend='time: '+str(int(t*100)))
     vp.show(at=3, actors=act12)
     vp.camera.Azimuth(2)
 

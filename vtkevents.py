@@ -91,12 +91,12 @@ def _keypress(vp, obj, event):
 
     elif key == "C":
         cam = vp.renderer.GetActiveCamera()
-        print ('\nfrom vtk import vtkCamera ### example code')
-        print ('cam = vtkCamera()')
-        print ('cam.SetPosition(',  [round(e,3) for e in cam.GetPosition()],  ')')
-        print ('cam.SetFocalPoint(',[round(e,3) for e in cam.GetFocalPoint()],')')
-        print ('cam.SetParallelScale(',round(cam.GetParallelScale(),3),')')
-        print ('cam.SetViewUp(', [round(e,3) for e in cam.GetViewUp()],')\n')
+        print ('\n### Example code to position this vtkCamera:')
+        print ('vp = plotter.vtkPlotter()\n...')
+        print ('vp.camera.SetPosition(',  [round(e,3) for e in cam.GetPosition()],  ')')
+        print ('vp.camera.SetFocalPoint(',[round(e,3) for e in cam.GetFocalPoint()],')')
+        print ('vp.camera.SetViewUp(',    [round(e,3) for e in cam.GetViewUp()],')')
+        print ('vp.camera.SetParallelScale(',round(cam.GetParallelScale(),3),')\n')
         return
 
     elif key == "w":

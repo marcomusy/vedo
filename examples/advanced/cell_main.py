@@ -45,7 +45,7 @@ for t in pb.range():
         vp.points(pts, c=colony.color, r=15, alpha=.05) # halo
         msg += str(len(colony.cells)) + ','
 
-    pb.print(msg+str(t))
+    pb.print(msg+str(int(t)))
     vp.show(resetcam=0)
 
 # draw the oriented ellipsoid that contains 50% of the cells

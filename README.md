@@ -5,10 +5,12 @@ A python helper class to easily draw, analyse and animate tridimensional objects
 <br />A VTK alternative to Vpython.
 
 ## Download / Install:
+After installing [VTK](https://www.vtk.org/):
 ```bash
+cd mydirectory
 git clone https://github.com/marcomusy/vtkPlotter.git
 ```
-
+will download the package.
 To install to a fixed location (e.g. *$HOME/software*):
 ```bash
 mv vtkPlotter $HOME/software/
@@ -181,7 +183,7 @@ python examples/advanced/wave_equation.py
 
 Simulation of bacteria types that divide at different rates. As they divide they occupy more and more space:
 ```bash
-python examples/advanced//cells_main.py
+python examples/advanced/cells_main.py
 ```
 ![cells](https://user-images.githubusercontent.com/32848391/39751599-ea32aa66-52b8-11e8-93a3-4a5a65d34612.gif)
 <br />
@@ -194,6 +196,14 @@ python examples/gyroscope1.py
 ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)
 <br />
 
+
+
+Visualizing a Turing system of reaction-diffusion:
+```bash
+python examples/advanced/turing.py
+```
+![turing](https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif)
+<br />
 
 
 More examples in directory *examples/* 
@@ -330,7 +340,7 @@ actor.color(value)            # sets/gets color
 actor.alpha(value)            # sets/gets opacity
 #
 actor.N()                     # get number of vertex points defining the surface actor
-actor.polydata(rebuild=False) # get the actor's mesh polydata 
+actor.polydata(rebuild=True)  # get the actor's mesh polydata including its current transformation
                               # (if rebuild is True : get a copy in its current associated vtkTranform)
 actor.coordinates()           # get a numpy array of all vertex points
 actor.point(i, p=None)        # set/get i-th point in actor's polydata (slow performance!)
