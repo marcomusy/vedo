@@ -198,7 +198,7 @@ python examples/gyroscope1.py
 
 
 
-Visualizing a Turing system of reaction-diffusion:
+Visualizing a Turing system of reaction-diffusion between two molecules:
 ```bash
 python examples/advanced/turing.py
 ```
@@ -210,9 +210,9 @@ More examples in directory *examples/*
 
 If you need to do more complicated things (define widgets.. etc), you can still have full access to all
 standard VTK objects (e.g. interactors and renderers through *vp.interactor, vp.renderer*... etc).<br />
-Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.avi* file (needs to import cv2).
+Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.avi* file.
 <br />
-To make animated gifs online, there is this great site: https://ezgif.com
+To produce animated gifs online, check out this great site: https://ezgif.com
 
 ## List of available methods with default values:
 ```python
@@ -226,9 +226,12 @@ def light(pos, fp, deg=25, diffuse='y', ambient='r', specular='b', showsource=Fa
 def point(pos, c='b', r=10, alpha=1, legend=None)
 def points(plist, c='b', tags=[], r=10, alpha=1, legend=None)
 def line(p0, p1, lw=1, tube=False, dotted=False, c='r', alpha=1, legend=None)
+def lines(plist0, plist1=None, lw=1, dotted=False, c='r', alpha=1, legend=None)   
+def arrow(startPoint, endPoint, s=0.03, c='r', alpha=1, legend=None, texture=None)
+def arrows(startPoints, endPoints=None, c='r', s=None, alpha=1, legend=None)
+#
 def sphere(pos, r=1, c='r', alpha=1, legend=None, texture=None)
 def cube(pt, r=1, c='g', alpha=1, legend=None, texture=None)
-def arrow(startPoint, endPoint, s=0.03, c='r', alpha=1, legend=None, texture=None)
 def helix(startPoint, endPoint, coils=12, r=1, thickness=1, c='gray', alpha=1, legend=None, texture=None)
 def cylinder(pos, r, height, axis=[1,1,1], c='teal', alpha=1, edges=False, legend=None, texture=None, res=24)
 def cone(pos, r, height, axis=[1,1,1], c='g', alpha=1, legend=None, texture=None)
@@ -265,10 +268,11 @@ def fitSphere(self, coords, c='r', alpha=1, wire=0, legend=None)
 def pca(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None)
 def cutActor(actor, origin=(0,0,0), normal=(1,0,0), showcut=True, showline=False, showpts=False)
 def closestPoint(surf, pt, locator=None, N=None, radius=None)
-def intersectWithLine(actor, p0, p1)
 def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3, c=None, alpha=1, legend=None)
 def booleanOperation(actor1, actor2, operation='plus',  # possible operations: plus, intersect, minus
                      c=None, alpha=1, wire=False, bc=None, edges=False, legend=None, texture=None)
+def mergeActors(actors, c=None, alpha=1, wire=False, bc=None, edges=False, legend=None, texture=None)
+def intersectWithLine(actor, p0, p1)
 #
 def show(actors=None, at=0, legend=None, axes=0, ruler=False, interactive=None,
          c='gold', bc=None, alpha=0.2, wire=False, edges=False, resetcam=True, q=False)

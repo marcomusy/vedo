@@ -21,6 +21,7 @@ import vtkutils
 from vtkutils import printc, makeActor, setInput, vtkMV, isSequence
 from vtkutils import makeAssembly, assignTexture
 from vtkutils import polydata, coordinates, makePolyData
+
 from vtkutils import arange, vector, mag, mag2, norm, ProgressBar
 from vtkcolors import getColor, getAlpha, colorMap
 from numpy import sin, cos, sqrt, dot, cross
@@ -132,6 +133,7 @@ class vtkPlotter:
         self.polydata = vtkutils.polydata
         self.coordinates = vtkutils.coordinates
         self.booleanOperation = vtkutils.booleanOperation
+        self.mergeActors = vtkutils.mergeActors
         self.closestPoint = vtkutils.closestPoint
         self.isInside = vtkutils.isInside
         self.insidePoints = vtkutils.insidePoints
@@ -605,6 +607,126 @@ class vtkPlotter:
         return actor
 
 
+    def lines(self, plist0, plist1=None, lw=1, dotted=False,
+              c='r', alpha=1, legend=None):
+        '''Build the line segments between two lists of points plist0 and plist1.
+           plist0 can be also passed in the form [[point1, point2], ...]
+        '''        
+        if plist1 is not None:
+            plist0 = list(zip(plist0,plist1))
+            
+        polylns = vtk.vtkAppendPolyData()
+        for twopts in plist0:
+            lineSource = vtk.vtkLineSource()
+            lineSource.SetPoint1(twopts[0])
+            lineSource.SetPoint2(twopts[1])
+            polylns.AddInputConnection(lineSource.GetOutputPort())
+        polylns.Update()
+        
+        actor = makeActor(polylns.GetOutput(), c, alpha, legend=legend)
+        actor.GetProperty().SetLineWidth(lw)
+        if dotted:
+            actor.GetProperty().SetLineStipplePattern(0xf0f0)
+            actor.GetProperty().SetLineStippleRepeatFactor(1)
+        self.actors.append(actor)
+        return actor
+
+
+    def arrow(self, startPoint=[0,0,0], endPoint=[1,1,1],
+              c='r', s=None, alpha=1, legend=None, texture=None, res=12):
+        '''Build a 3D arrow from startPoint to endPoint of section size s,
+        expressed as the fraction of the window size.
+        If s=None the arrow is scaled proportionally to its length.'''
+
+        axis = np.array(endPoint) - np.array(startPoint)
+        length = np.linalg.norm(axis)
+        if not length: return None
+        axis = axis/length
+        theta = np.arccos(axis[2])
+        phi   = np.arctan2(axis[1], axis[0])
+        arr = vtk.vtkArrowSource()
+        arr.SetShaftResolution(res) 
+        arr.SetTipResolution(res)
+        if s: 
+            sz=0.02
+            arr.SetTipRadius(sz)
+            arr.SetShaftRadius(sz/1.75)
+            arr.SetTipLength(sz*15)
+        arr.Update()
+        t = vtk.vtkTransform()
+        t.RotateZ(phi*57.3)
+        t.RotateY(theta*57.3)
+        t.RotateY(-90) #put it along Z
+        if s: 
+            w,h = self.renderWin.GetSize()
+            sz = (w+h)/2*s
+            t.Scale(length,sz,sz)
+        else:
+            t.Scale(length,length,length)
+        tf = vtk.vtkTransformPolyDataFilter()
+        setInput(tf, arr.GetOutput())
+        tf.SetTransform(t)
+        tf.Update()
+        
+        actor = makeActor(tf.GetOutput(),
+                          c, alpha, legend=legend, texture=texture)
+        actor.GetProperty().SetInterpolationToPhong()
+        actor.SetPosition(startPoint)
+        actor.DragableOff()
+        actor.PickableOff()
+        setattr(actor, 'base', np.array(startPoint))
+        setattr(actor, 'top',  np.array(endPoint))
+        self.actors.append(actor)
+        return actor
+
+
+    def arrows(self, startPoints, endPoints=None,
+               c='r', s=None, alpha=1, legend=None):
+        '''Build arrows between two lists of points startPoints and endPoints.
+           startPoints can be also passed in the form [[point1, point2], ...]
+        '''        
+        if endPoints is not None:
+            startPoints = list(zip(startPoints,endPoints))
+        
+        polyapp = vtk.vtkAppendPolyData()
+        for twopts in startPoints:
+            startPoint, endPoint = twopts
+            axis = np.array(endPoint) - np.array(startPoint)
+            length = np.linalg.norm(axis)
+            if not length: return None
+            axis = axis/length
+            theta = np.arccos(axis[2])
+            phi   = np.arctan2(axis[1], axis[0])
+            arr = vtk.vtkArrowSource()
+            arr.SetShaftResolution(10) 
+            arr.SetTipResolution(10)
+            if s: 
+                sz=0.02
+                arr.SetTipRadius(sz)
+                arr.SetShaftRadius(sz/1.75)
+                arr.SetTipLength(sz*15)
+            t = vtk.vtkTransform()
+            t.Translate(startPoint)###
+            t.RotateZ(phi*57.3)
+            t.RotateY(theta*57.3)
+            t.RotateY(-90) #put it along Z
+            if s: 
+                w,h = self.renderWin.GetSize()
+                sz = (w+h)/2*s
+                t.Scale(length,sz,sz)
+            else:
+                t.Scale(length,length,length)
+            tf = vtk.vtkTransformPolyDataFilter()
+            tf.SetInputConnection(arr.GetOutputPort())
+            tf.SetTransform(t)
+            polyapp.AddInputConnection(tf.GetOutputPort())
+        
+        polyapp.Update()
+        actor = makeActor(polyapp.GetOutput(), c, alpha, legend=legend)
+        self.actors.append(actor)
+        return actor     
+
+
     def sphere(self, pos=[0,0,0], r=1,
                c='r', alpha=1, wire=False, legend=None, texture=None, res=24):
         '''Build a sphere at position pos of radius r.'''
@@ -787,54 +909,6 @@ class vtkPlotter:
         self.actors.append(actor)
         return actor
         
-
-    def arrow(self, startPoint=[0,0,0], endPoint=[1,1,1],
-              c='r', s=None, alpha=1, legend=None, texture=None):
-        '''Build a 3D arrow from startPoint to endPoint of section size s,
-        as the fraction of the window size.
-        If s=None the arrow is scaled proportionally to its length.'''
-
-        axis = np.array(endPoint) - np.array(startPoint)
-        length = np.linalg.norm(axis)
-        if not length: return None
-        axis = axis/length
-        theta = np.arccos(axis[2])
-        phi   = np.arctan2(axis[1], axis[0])
-        arr = vtk.vtkArrowSource()
-        arr.SetShaftResolution(12) #dont change
-        arr.SetTipResolution(12)
-        if s: 
-            sz=0.02
-            arr.SetTipRadius(sz)
-            arr.SetShaftRadius(sz/1.75)
-            arr.SetTipLength(sz*15)
-        arr.Update()
-        t = vtk.vtkTransform()
-        t.RotateZ(phi*57.3)
-        t.RotateY(theta*57.3)
-        t.RotateY(-90) #put it along Z
-        if s: 
-            w,h = self.renderWin.GetSize()
-            sz = (w+h)/2*s
-            t.Scale(length,sz,sz)
-        else:
-            t.Scale(length,length,length)
-        tf = vtk.vtkTransformPolyDataFilter()
-        setInput(tf, arr.GetOutput())
-        tf.SetTransform(t)
-        tf.Update()
-        
-        actor = makeActor(tf.GetOutput(),
-                          c, alpha, legend=legend, texture=texture)
-        actor.GetProperty().SetInterpolationToPhong()
-        actor.SetPosition(startPoint)
-        actor.DragableOff()
-        actor.PickableOff()
-        setattr(actor, 'base', np.array(startPoint))
-        setattr(actor, 'top',  np.array(endPoint))
-        self.actors.append(actor)
-        return actor
-
 
     def helix(self, startPoint=[0,0,0], endPoint=[1,1,1], coils=20, r=None,
               thickness=None, c='grey', alpha=1, legend=None, texture=None):
@@ -1674,7 +1748,7 @@ class vtkPlotter:
         y = coords[:,1]
         z = coords[:,2]
         f[:,0] = x*x+ y*y +z*z
-        C, residue, rank, sv = np.linalg.lstsq(A,f) # solve AC=f
+        C, residue, rank, sv = np.linalg.lstsq(A,f, rcond=None) # solve AC=f
         if rank<4: return None
         t = (C[0]*C[0]) + (C[1]*C[1]) + (C[2]*C[2]) +C[3]
         radius = sqrt(t)[0]
