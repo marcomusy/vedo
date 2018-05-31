@@ -3,8 +3,9 @@
 # and along the radius of a sphere centered at the center of mass.
 # At each step we redefine the actor so that the normals are
 # recalculated for the underlying polydata.
+#
 from __future__ import division, print_function
-from plotter import vtkPlotter, vector, norm, mag
+from plotter import vtkPlotter, norm, mag
 
 vp = vtkPlotter(axes=0)
 

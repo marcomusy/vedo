@@ -192,7 +192,7 @@ for a in vp.actors:
     vp.cutActor(a, origin=(500,0,0), normal=(0,0.3,-1))
 vp.show()
 
-
+  
 #########################################################################################
 # Find closest point in set pts1 to pts2 within a specified radius
 vp = plotter.vtkPlotter(title='closest points example')
@@ -205,10 +205,11 @@ vp.points(pts1, r=25, alpha=0.1) # make a halo
 
 a = vp.points(pts2, r=4, c='r', alpha=1, legend='point set 2')
 
-#for each point in pts1 find the closest point within radius=2
+#for each point in pts1 find the points within radius=2 
+#and pick one (not necessarily the closest)
 for p in pts1:
-    cp = a.closestPoint(p, radius=2)
-    vp.line(p, cp)
+    pts = a.closestPoint(p, radius=2)
+    if len(pts): vp.line(p, pts[0])
 vp.show()
 
 
