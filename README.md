@@ -229,8 +229,9 @@ def line(p0, p1, lw=1, tube=False, dotted=False, c='r', alpha=1, legend=None)
 def lines(plist0, plist1=None, lw=1, dotted=False, c='r', alpha=1, legend=None)   
 def arrow(startPoint, endPoint, s=0.03, c='r', alpha=1, legend=None, texture=None)
 def arrows(startPoints, endPoints=None, c='r', s=None, alpha=1, legend=None)
-#
 def sphere(pos, r=1, c='r', alpha=1, legend=None, texture=None)
+def spheres(centers, r=1, c='r', alpha=1, wire=False, legend=None, texture=None, res=8)
+#
 def cube(pt, r=1, c='g', alpha=1, legend=None, texture=None)
 def helix(startPoint, endPoint, coils=12, r=1, thickness=1, c='gray', alpha=1, legend=None, texture=None)
 def cylinder(pos, r, height, axis=[1,1,1], c='teal', alpha=1, edges=False, legend=None, texture=None, res=24)
