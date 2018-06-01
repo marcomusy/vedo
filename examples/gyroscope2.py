@@ -35,7 +35,7 @@ gyro  = vp.makeAssembly([shaft, rotor, base, tip]) # group relevant actors
 pedestal = vp.box([0,-0.63,0], height=.1, length=.1, width=1, texture='wood5')
 pedbase  = vp.box([0,-1.13,0], height=.5, length=.5, width=.05, texture='wood5')
 pedpin   = vp.pyramid([0,-.08,0], axis=[0,1,0], s=.05, height=.12, texture='wood5')
-formulas = vp.load('data/gyro_formulas.png', alpha=.9).scale(.003).pos([-1,-1,-1.1])
+formulas = vp.load('data/images/gyro_formulas.png', alpha=.9).scale(.003).pos([-1,-1,-1.1])
 vp.actors = [gyro, pedestal, pedbase, pedpin, formulas]
 
 # ############################################################ the physics

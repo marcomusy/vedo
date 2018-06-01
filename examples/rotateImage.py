@@ -3,12 +3,11 @@
 #
 import plotter
 
-vp = plotter.vtkPlotter()
+vp = plotter.vtkPlotter(axes=3)
 
 for i in range(5): 
-    a = vp.load('../textures/dog.jpg', alpha=1)
-    a.SetScale(1.0) # image can be scaled in size
-    a.RotateX(20*i)
-    a.SetPosition(0, 0, 30*i)
+    a = vp.load('data/images/dog.jpg', alpha=1)
+    a.scale(1-i/10.)                  # image can be scaled in size
+    a.rotateX(20*i).pos([0, 0, 30*i]) # can concatenate methods
 
 vp.show()

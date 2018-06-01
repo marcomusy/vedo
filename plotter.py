@@ -3,6 +3,7 @@
 # A helper tool for visualizing vtk objects
 #
 from __future__ import division, print_function
+
 __author__  = "Marco Musy"
 __license__ = "MIT"
 __version__ = "7.5" 
@@ -80,6 +81,8 @@ class vtkPlotter:
         
         interactive, if True will stop after show() to allow interaction w/ window
         """
+        
+        if not interactive: verbose=False
         self.verbose    = verbose
         self.actors     = []    # list of actors to be shown
         self.clickedActor = None# holds the actor that has been clicked
@@ -535,27 +538,118 @@ class vtkPlotter:
         self.actors.append(actor)
         return actor
 
-    
-    def delaunay2D(self, plist, tol=None, 
-                    c='gold', alpha=0.5, wire=False, bc=None, edges=False, 
-                    legend=None, texture=None):
-        '''
-        Create a mesh from points in the XY plane.
-        '''
-        src = vtk.vtkPointSource()
-        src.SetNumberOfPoints(len(plist))
-        src.Update()
-        pd = src.GetOutput()
-        for i,p in enumerate(plist): pd.GetPoints().SetPoint(i, p)
-        delny = vtk.vtkDelaunay2D()
-        setInput(delny, pd)
-        if tol: delny.SetTolerance(tol)
-        delny.Update()
-        actor = makeActor(delny.GetOutput(), 
-                          c, alpha, wire, bc, edges, legend, texture)
-        self.actors.append(actor)
-        return actor        
 
+    def sphere(self, pos=[0,0,0], r=1,
+               c='r', alpha=1, wire=False, legend=None, texture=None, res=24):
+        '''Build a sphere at position pos of radius r.'''
+        ss = vtk.vtkSphereSource()
+        ss.SetRadius(r)
+        ss.SetThetaResolution(res)
+        ss.SetPhiResolution(res)
+        ss.Update()
+        pd = ss.GetOutput()
+
+        actor = makeActor(pd, c, alpha, wire, legend=legend, texture=texture)
+        actor.GetProperty().SetInterpolationToPhong()
+        actor.SetPosition(pos)
+        self.actors.append(actor)
+        return actor
+
+
+    def spheres(self, centers, r=1,
+               c='r', alpha=1, wire=False, legend=None, texture=None, res=8):
+        '''
+        Build a (possibly large) set of spheres at centers of radius r.
+        
+        Either c or r can be a list of RGB colors or radii.
+        '''
+
+        cisseq=False
+        if isSequence(c): cisseq=True
+
+        if cisseq:
+            if len(centers) > len(c):
+                printc(("Mismatch in spheres() colors", len(centers), len(c)), 1)
+                exit()
+            if len(centers) != len(c):
+                printc(("Warning: mismatch in spheres() colors", len(centers), len(c)))
+                
+        risseq=False
+        if isSequence(r): risseq=True
+
+        if risseq:
+            if len(centers) > len(r):
+                printc(("Mismatch in spheres() radius", len(centers), len(r)), 1)
+                exit()
+            if len(centers) != len(r):
+                printc(("Warning: mismatch in spheres() radius", len(centers), len(r)))
+        if cisseq and risseq:
+            printc("Limitation: c and r cannot be both sequences.",1)
+            exit()
+
+        src = vtk.vtkSphereSource()
+        if not risseq: src.SetRadius(r)
+        src.SetPhiResolution(res)
+        src.SetThetaResolution(res)
+        src.Update()
+        glyph = vtk.vtkGlyph3D()
+        glyph.SetSourceConnection(src.GetOutputPort())
+
+        psrc = vtk.vtkPointSource()
+        psrc.SetNumberOfPoints(len(centers))
+        psrc.Update()
+        pd = psrc.GetOutput()
+        
+        if cisseq:
+            glyph.SetColorModeToColorByScalar()
+            ucols = vtk.vtkUnsignedCharArray()
+            ucols.SetNumberOfComponents(3)
+            ucols.SetName("colors")
+            vpts = pd.GetPoints()
+            for i,p in enumerate(centers):
+                vpts.SetPoint(i, p)
+                cc = np.array(getColor(c[i]))*255
+                if vtkMV:
+                    ucols.InsertNextTuple3(cc[0],cc[1],cc[2])
+                else:
+                    ucols.InsertNextTupleValue(cc)            
+                pd.GetPointData().SetScalars(ucols)
+                glyph.ScalingOff()
+    
+        if risseq:
+            glyph.SetScaleModeToScaleByScalar()
+            urads = vtk.vtkFloatArray()
+            urads.SetName("scales")
+            vpts = pd.GetPoints()
+            for i,p in enumerate(centers):
+                vpts.SetPoint(i, p)
+                urads.InsertNextValue(r[i])            
+            pd.GetPointData().SetScalars(urads)
+
+        setInput(glyph, pd)
+        glyph.Update()
+        
+        mapper = vtk.vtkPolyDataMapper()
+        setInput(mapper, glyph.GetOutput())
+        if cisseq: mapper.ScalarVisibilityOn()
+        else: mapper.ScalarVisibilityOff()
+        actor = vtk.vtkActor()
+        actor.SetMapper(mapper)
+        actor.GetProperty().SetInterpolationToPhong()
+        # check if color string contains a float, in this case ignore alpha
+        al = getAlpha(c)
+        if al: alpha = al
+        actor.GetProperty().SetOpacity(alpha)
+        if not cisseq: 
+            if texture is not None:
+                assignTexture(actor, texture)
+                mapper.ScalarVisibilityOff()
+            else:
+                actor.GetProperty().SetColor(getColor(c))
+        vtkutils.assignConvenienceMethods(actor, legend)
+        self.actors.append(actor)
+        return actor
+    
 
     def line(self, p0, p1=None, lw=1, tube=False, dotted=False,
              c='r', alpha=1., legend=None):
@@ -725,23 +819,6 @@ class vtkPlotter:
         actor = makeActor(polyapp.GetOutput(), c, alpha, legend=legend)
         self.actors.append(actor)
         return actor     
-
-
-    def sphere(self, pos=[0,0,0], r=1,
-               c='r', alpha=1, wire=False, legend=None, texture=None, res=24):
-        '''Build a sphere at position pos of radius r.'''
-        ss = vtk.vtkSphereSource()
-        ss.SetRadius(r)
-        ss.SetThetaResolution(res)
-        ss.SetPhiResolution(res)
-        ss.Update()
-        pd = ss.GetOutput()
-
-        actor = makeActor(pd, c, alpha, wire, legend=legend, texture=texture)
-        actor.GetProperty().SetInterpolationToPhong()
-        actor.SetPosition(pos)
-        self.actors.append(actor)
-        return actor
 
 
     def box(self, pos=[0,0,0], length=1, width=2, height=3, normal=(0,0,1),
@@ -1680,6 +1757,27 @@ class vtkPlotter:
         self.actors.append(bactor)
         return bactor
 
+    
+    def delaunay2D(self, plist, tol=None, 
+                    c='gold', alpha=0.5, wire=False, bc=None, edges=False, 
+                    legend=None, texture=None):
+        '''
+        Create a mesh from points in the XY plane.
+        '''
+        src = vtk.vtkPointSource()
+        src.SetNumberOfPoints(len(plist))
+        src.Update()
+        pd = src.GetOutput()
+        for i,p in enumerate(plist): pd.GetPoints().SetPoint(i, p)
+        delny = vtk.vtkDelaunay2D()
+        setInput(delny, pd)
+        if tol: delny.SetTolerance(tol)
+        delny.Update()
+        actor = makeActor(delny.GetOutput(), 
+                          c, alpha, wire, bc, edges, legend, texture)
+        self.actors.append(actor)
+        return actor    
+    
 
     ################# working with point clouds
     def fitLine(self, points, c='orange', lw=1, alpha=0.6, legend=None):
@@ -1985,7 +2083,7 @@ class vtkPlotter:
             dx, dy, dz = x1-x0, y1-y0, z1-z0
             acts=[]
             if (x0*x1<=0 or y0*z1<=0 or z0*z1<=0): # some ranges contain origin
-                zero = self.sphere(r=aves/80*s, c='k', alpha=alpha, res=10)
+                zero = self.sphere(r=aves/120*s, c='k', alpha=alpha, res=10)
                 acts += [zero]
                 self.actors.pop()
 
@@ -2293,9 +2391,9 @@ class vtkPlotter:
     def screenshot(self, filename='screenshot.png'):
         '''Take a screenshot of current rendering window'''
         w2if = vtk.vtkWindowToImageFilter()
-        w2if.ShouldRerenderOff ()
+        w2if.ShouldRerenderOff()
         w2if.SetInput(self.renderWin)
-        w2if.SetMagnification(1) #set the resolution of the output image
+        #w2if.SetMagnification(1) #set the resolution of the output image
         #w2if.SetInputBufferTypeToRGBA() #also record the alpha channel
         w2if.ReadFrontBufferOff() # read from the back buffer
         w2if.Update()         

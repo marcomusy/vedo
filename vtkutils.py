@@ -144,6 +144,7 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     
     mapper = vtk.vtkDataSetMapper()
     mapper.SetInputConnection(xform.GetOutputPort())
+    mapper.ScalarVisibilityOff()
     
     cdir = os.path.dirname(__file__)
     if cdir == '': cdir = '.'  
@@ -929,51 +930,6 @@ def write(obj, fileoutput):
 
 
 ########################################################################
-#def closestPoint(actor, pt, N=1, radius=None):
-#    """
-#    Find the closest point on a polydata given an other point.
-#        If N>1, return a list of N ordered closest points.
-#        If radius is given, get all points within.
-#    """
-#    poly = polydata(actor, True)
-#    trgp  = [0,0,0]
-#    cid   = vtk.mutable(0)
-#    dist2 = vtk.mutable(0)
-#
-#    locexists = hasattr(actor, 'pointlocator')
-#    if not locexists or (locexists and actor.pointlocator is None):
-#        if N>1: 
-#            pointlocator = vtk.vtkPointLocator()
-#        else: 
-#            pointlocator = vtk.vtkCellLocator()
-#        pointlocator.SetDataSet(poly)
-#        pointlocator.BuildLocator()
-#        setattr(actor, 'pointlocator', pointlocator)
-#    print(N)
-#    if N>1:
-#        vtklist = vtk.vtkIdList()
-#        vmath = vtk.vtkMath()
-#        actor.pointlocator.FindClosestNPoints(N, pt, vtklist)
-#        trgp, dists2  = [], []
-#        for i in range(vtklist.GetNumberOfIds()):
-#            trgp_ = [0,0,0]
-#            vi = vtklist.GetId(i)
-#            poly.GetPoints().GetPoint(vi, trgp_ )
-#            trgp.append( trgp_ )
-#            dists2.append(vmath.Distance2BetweenPoints(trgp_, pt))
-#        dist2 = dists2
-#    elif radius:
-#        cell = vtk.mutable(0)
-#        r = actor.pointlocator.FindClosestPointWithinRadius(pt, radius, trgp, cell, cid, dist2)
-#        if not r: 
-#            trgp = pt
-#            dist2 = 0.0
-#    else: 
-#        subid = vtk.mutable(0)
-#        actor.pointlocator.FindClosestPoint(pt, trgp, cid, subid, dist2)
-#    return np.array(trgp)
-
-########################################################################
 def closestPoint(actor, pt, N=1, radius=None):
     """
     Find the closest point on a polydata given an other point.
@@ -981,7 +937,6 @@ def closestPoint(actor, pt, N=1, radius=None):
         If radius is given, get all points within.
     """
     poly = polydata(actor, True)
-    trgp  = [0,0,0]
 
     if N>1 or radius: 
         plocexists = hasattr(actor, 'point_locator')
@@ -990,17 +945,10 @@ def closestPoint(actor, pt, N=1, radius=None):
             point_locator.SetDataSet(poly)
             point_locator.BuildLocator()
             setattr(actor, 'point_locator', point_locator)
-    else:
-        clocexists = hasattr(actor, 'cell_locator')
-        if not clocexists or (clocexists and actor.cell_locator is None):
-            cell_locator = vtk.vtkCellLocator()
-            cell_locator.SetDataSet(poly)
-            cell_locator.BuildLocator()
-            setattr(actor, 'cell_locator', cell_locator)
         
-    if N>1: 
         vtklist = vtk.vtkIdList()
-        actor.point_locator.FindClosestNPoints(N, pt, vtklist)
+        if N>1: actor.point_locator.FindClosestNPoints(N, pt, vtklist)
+        else: actor.point_locator.FindPointsWithinRadius(radius, pt, vtklist)
         trgp  = []
         for i in range(vtklist.GetNumberOfIds()):
             trgp_ = [0,0,0]
@@ -1008,25 +956,20 @@ def closestPoint(actor, pt, N=1, radius=None):
             poly.GetPoints().GetPoint(vi, trgp_ )
             trgp.append( trgp_ )
         return np.array(trgp)
-    
-    elif radius:
-        cid   = vtk.mutable(0)
-        dist2 = vtk.mutable(0)
-        cell = vtk.mutable(0)
-        r = actor.point_locator.FindClosestPointWithinRadius(pt, radius, trgp, 
-                                                             cell, cid, dist2)
-        if not r: return []
-        return np.array(trgp)
-    
-    else: 
-        cid   = vtk.mutable(0)
-        dist2 = vtk.mutable(0)
-        subid = vtk.mutable(0)
-        actor.cell_locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
-        return np.array(trgp)
-    
-    printc('Error in closestPoint()')
-    return []
+
+    clocexists = hasattr(actor, 'cell_locator')
+    if not clocexists or (clocexists and actor.cell_locator is None):
+        cell_locator = vtk.vtkCellLocator()
+        cell_locator.SetDataSet(poly)
+        cell_locator.BuildLocator()
+        setattr(actor, 'cell_locator', cell_locator)
+
+    trgp  = [0,0,0]
+    cid   = vtk.mutable(0)
+    dist2 = vtk.mutable(0)
+    subid = vtk.mutable(0)
+    actor.cell_locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
+    return np.array(trgp)
 
 
 def intersectWithLine(act, p0, p1):
