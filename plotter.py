@@ -3,6 +3,7 @@
 # A helper tool for visualizing vtk objects
 #
 from __future__ import division, print_function
+
 __author__  = "Marco Musy"
 __license__ = "MIT"
 __version__ = "7.5" 
@@ -558,9 +559,9 @@ class vtkPlotter:
     def spheres(self, centers, r=1,
                c='r', alpha=1, wire=False, legend=None, texture=None, res=8):
         '''
-        Build a set of spheres at centers of radius r.
+        Build a (possibly large) set of spheres at centers of radius r.
         
-        Either c or r can be a list of RGB colors or radius values.
+        Either c or r can be a list of RGB colors or radii.
         '''
 
         cisseq=False
@@ -631,6 +632,7 @@ class vtkPlotter:
         mapper = vtk.vtkPolyDataMapper()
         setInput(mapper, glyph.GetOutput())
         if cisseq: mapper.ScalarVisibilityOn()
+        else: mapper.ScalarVisibilityOff()
         actor = vtk.vtkActor()
         actor.SetMapper(mapper)
         actor.GetProperty().SetInterpolationToPhong()
@@ -638,9 +640,12 @@ class vtkPlotter:
         al = getAlpha(c)
         if al: alpha = al
         actor.GetProperty().SetOpacity(alpha)
-        if not cisseq:
-            mapper.ScalarVisibilityOff()
-            actor.GetProperty().SetColor(getColor(c))
+        if not cisseq: 
+            if texture is not None:
+                assignTexture(actor, texture)
+                mapper.ScalarVisibilityOff()
+            else:
+                actor.GetProperty().SetColor(getColor(c))
         vtkutils.assignConvenienceMethods(actor, legend)
         self.actors.append(actor)
         return actor
@@ -2078,7 +2083,7 @@ class vtkPlotter:
             dx, dy, dz = x1-x0, y1-y0, z1-z0
             acts=[]
             if (x0*x1<=0 or y0*z1<=0 or z0*z1<=0): # some ranges contain origin
-                zero = self.sphere(r=aves/80*s, c='k', alpha=alpha, res=10)
+                zero = self.sphere(r=aves/120*s, c='k', alpha=alpha, res=10)
                 acts += [zero]
                 self.actors.pop()
 

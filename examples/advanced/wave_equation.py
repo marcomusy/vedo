@@ -109,7 +109,7 @@ pts_actors_rk[0].legend = 'Runge-Kutta4'
 vp.actors = pts_actors_eu + pts_actors_rk 
 
 # let's also add a fancy background image from wikipedia
-vp.load('data/wave_wiki.png', alpha=0.8).scale(0.4).pos([0,-100,-20])
+vp.load('data/images/wave_wiki.png', alpha=.8).scale(0.4).pos([0,-100,-20])
 
 pb = vp.ProgressBar(0, Nsteps, c='red', ETA=1)
 for i in pb.range():

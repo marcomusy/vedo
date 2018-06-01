@@ -144,6 +144,7 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     
     mapper = vtk.vtkDataSetMapper()
     mapper.SetInputConnection(xform.GetOutputPort())
+    mapper.ScalarVisibilityOff()
     
     cdir = os.path.dirname(__file__)
     if cdir == '': cdir = '.'  
