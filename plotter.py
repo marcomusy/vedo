@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# A helper tool for visualizing vtk objects
+# A helper tool for visualizing 3D objects with VTK
 #
 from __future__ import division, print_function
 
@@ -82,6 +82,7 @@ class vtkPlotter:
         interactive, if True will stop after show() to allow interaction w/ window
         """
         
+        if N or shape != (1,1): interactive=False
         if not interactive: verbose=False
         self.verbose    = verbose
         self.actors     = []    # list of actors to be shown
@@ -867,7 +868,6 @@ class vtkPlotter:
         if not texture: p.GetProperty().SetEdgeVisibility(1)
         return p
 
-
     def grid(self, pos=[0,0,0], normal=[0,0,1], s=10, c='g', bc='darkgreen',
              lw=1, alpha=1, wire=True, legend=None, texture=None, res=10):
         '''Return a grid plane'''
@@ -880,7 +880,6 @@ class vtkPlotter:
                           c=c, bc=bc, alpha=alpha, legend=legend, texture=texture)
         if wire: actor.GetProperty().SetRepresentationToWireframe()
         actor.GetProperty().SetLineWidth(lw)
-        actor.SetPosition(np.array(pos)/s)
         actor.SetScale(s,s,s)
         actor.PickableOff()
         self.actors.append(actor)
@@ -1927,6 +1926,85 @@ class vtkPlotter:
             printc("PCA info saved in actor.sphericity, actor.va, actor.vb, actor.vc",5)
         return act
 
+
+    def smoothMLS(self, actor, f=0.2, decimate=1, recursive=1, showNPlanes=30):
+        '''
+        Smooth actor or points with a Moving Least Squares variant.
+        The list actor.variances contain the residue calculated for each point. 
+        
+            f, smoothing factor - typical range [0,2]
+            
+            decimate, decimation factor (an integer number) 
+            
+            recursive, move points while algorithm proceedes
+            
+            showNPlanes, build an actor showing the fitting plane for N random points            
+        '''        
+        coords  = coordinates(actor)
+        ncoords = len(coords)
+        Ncp     = int(ncoords*f/100)
+        nshow   = int(ncoords/decimate)
+        ndiv    = int(nshow/showNPlanes*decimate)
+        
+        if Ncp<5:
+            print('Choose higher fraction than',f)
+            exit()
+        print('smoothMLS(): Searching #neighbours, #pt:', Ncp, ncoords)
+        
+        poly = polydata(actor, True)
+        vpts = poly.GetPoints()
+        locator = vtk.vtkPointLocator()
+        locator.SetDataSet(poly)
+        locator.BuildLocator()
+        vtklist = vtk.vtkIdList()        
+        variances, newsurf, acts = [], [], [actor]
+        pb = ProgressBar(0, ncoords)
+        for i, p in enumerate(coords):
+            pb.print('..smoothing')
+            if i%decimate: continue
+            
+            locator.FindClosestNPoints(Ncp, p, vtklist)
+            points  = []
+            for j in range(vtklist.GetNumberOfIds()):
+                trgp = [0,0,0]
+                vpts.GetPoint(vtklist.GetId(j), trgp )
+                points.append( trgp )
+            if len(points)<5: continue
+            
+            points = np.array(points)
+            pointsmean = points.mean(axis=0) # plane center
+            uu, dd, vv = np.linalg.svd(points-pointsmean)
+            a,b,c = np.cross(vv[0],vv[1]) # normal
+            d,e,f = pointsmean # plane center
+            x,y,z = p
+            t = (a*d -a*x +b*e- b*y +c*f -c*z)#/(a*a+b*b+c*c)
+            newp = [x+t*a, y+t*b, z+t*c] 
+            variances.append(dd[2])
+            newsurf.append(newp)
+            if recursive: vpts.SetPoint(i, newp)
+        
+            if showNPlanes and not i%ndiv: 
+                plane = self.fitPlane(points, alpha=0.3) # fitting plane
+                iapts = self.points(points)  # blue points
+                self.actors.pop()
+                self.actors.pop()
+                acts += [plane, iapts]
+                        
+        if decimate==1 and not recursive:
+            for i in range(ncoords): vpts.SetPoint(i, newsurf[i])
+
+        setattr(actor, 'variances', np.array(variances))
+
+        if showNPlanes:
+            apts = self.points(newsurf, c='v 0.6', r=5)
+            self.actors.pop()
+            acts.append(apts)
+            ass = makeAssembly(acts)
+            self.actors.append(ass)
+            return ass
+
+        return actor
+    
 
     def align(self, source, target, iters=100, legend=None):
         '''

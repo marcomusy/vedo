@@ -6,7 +6,7 @@ N = 10      # nr of particles along axis
 s = 0.01    # random step size
 
 scene = vtkPlotter(verbose=0, axes=0)
-scene.plane(pos=[.22,.22,-.05], texture='wood7')
+scene.plane(pos=[.44,.44,-.1], texture='wood7')
 
 for i in range(N):              # generate a grid of points
     for j in range(N): 
@@ -16,7 +16,7 @@ for i in range(N):              # generate a grid of points
 printc('Scene is ready, press q to continue', c='green')
 scene.show()
 
-pb = ProgressBar(0,200, c='red')
+pb = ProgressBar(0,100, c='red')
 for t in pb.range():            # loop of 400 steps
     pb.print()   
     

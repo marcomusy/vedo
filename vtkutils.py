@@ -526,7 +526,7 @@ def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
         E.g. fraction=0.1
              leaves 10% of the original nr of vertices.
     '''
-    poly = polydata(actor)
+    poly = polydata(actor, True)
     if N: # N = desired number of points
         Np = poly.GetNumberOfPoints()
         fraction = float(N)/Np

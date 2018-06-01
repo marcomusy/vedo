@@ -267,6 +267,8 @@ def fitLine(points, c='orange', lw=1, alpha=0.6, tube=False, legend=None)
 def fitPlane(points, c='g', bc='darkgreen', legend=None)
 def fitSphere(self, coords, c='r', alpha=1, wire=0, legend=None)
 def pca(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None)
+def smoothMLS(actor, f=0.2, decimate=1, recursive=1, showNPlanes=15)
+#
 def cutActor(actor, origin=(0,0,0), normal=(1,0,0), showcut=True, showline=False, showpts=False)
 def closestPoint(surf, pt, locator=None, N=None, radius=None)
 def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3, c=None, alpha=1, legend=None)
