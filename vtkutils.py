@@ -385,7 +385,11 @@ def clone(actor, c=None, alpha=None, wire=False, bc=None,
     if alpha   is None: alpha = actor.GetProperty().GetOpacity()
     if c       is None: c = actor.GetProperty().GetColor()
     if texture is None and hasattr(actor, 'texture'): texture = actor.texture
-    return makeActor(polyCopy, c, alpha, wire, bc, edges, legend, texture)
+    cact = makeActor(polyCopy, c, alpha, wire, bc, edges, legend, texture)
+
+    cact.GetProperty().SetPointSize(actor.GetProperty().GetPointSize())
+
+    return cact
 
 
 def flipNormals(actor): # N.B. input argument gets modified

@@ -136,6 +136,14 @@ vp.show()
 <br />
 
 
+Apply Moving Least Squares algorithm to a point cloud (20k points) to obtain a smooth surface from scattered points in space:
+```bash
+python examples/advanced/moving_least_squares.py
+```
+![mls](https://user-images.githubusercontent.com/32848391/40891869-dd4df456-678d-11e8-86c4-c131207868e8.png)
+<br />
+
+
 Motion of a large brownian
 particle in a swarm of small particles in 2D motion.
 The spheres collide elastically with themselves and

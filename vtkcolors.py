@@ -224,7 +224,7 @@ try:
     }
 except: mapscales = None
     
-def colorMap(value, name='jet', vmax=0, vmin=1): # maps [0,1] into a color scale 
+def colorMap(value, name='jet', vmax=0, vmin=1): # maps [0,1] into a color scale
     if mapscales:
         if value>.999: value=.999
         elif value<0: value=0

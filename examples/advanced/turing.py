@@ -9,7 +9,7 @@ import numpy as np
 
 # Load (with numpy) an existing set of mesh points and a list 
 # of scalars that represent the concentration of a substance
-mesh, conc, cgradfac = np.load('data/turing_data.npy')
+mesh, conc, cgradfac = np.load('data/turing_data.npy', encoding='latin1')
 conc = conc/1000. # normalize concentrations read from file
 nc,n = conc.shape # nc= nr. of time points, n= nr. of vertices
 

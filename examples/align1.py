@@ -14,7 +14,7 @@ a1.GetProperty().SetColor(0,1,0)
 
 # align a1 to a2, store the new actor in a1b
 a1b = vp.align(a1, a2) 
-print('transformation matrix:', a1b.transform)
+#print('transformation matrix:', a1b.transform)
 
 ps1b = a1b.coordinates() # coordinates of actor a1b
 # for each point in a1b draw an arrow towards the closest point on a2

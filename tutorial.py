@@ -175,7 +175,7 @@ vp.show()
 ########################################################################################
 # Draw the same object with different surface textures
 vp = plotter.vtkPlotter(shape=(3,3), verbose=0, axes=0, interactive=0)
-mat = ['aqua','gold2','metal1','ivy','paper','sky','white2','wood3','wood7']
+mat = ['aqua','gold2','metal1','ivy','paper','blue','white2','wood3','wood7']
 for i,mname in enumerate(mat): # mname can be any jpeg file
     sp = vp.load('data/beethoven.ply', alpha=1, texture=mname)
     vp.show(sp, at=i, legend=mname)

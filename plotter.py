@@ -1927,12 +1927,13 @@ class vtkPlotter:
         return act
 
 
-    def smoothMLS(self, actor, f=0.2, decimate=1, recursive=1, showNPlanes=30):
+    def smoothMLS(self, actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
         '''
         Smooth actor or points with a Moving Least Squares variant.
-        The list actor.variances contain the residue calculated for each point. 
+        The list actor.variances contain the residue calculated for each point.
+        Input actor's polydata is modified.
         
-            f, smoothing factor - typical range [0,2]
+            f, smoothing factor - typical range s [0,2]
             
             decimate, decimation factor (an integer number) 
             
@@ -1944,11 +1945,11 @@ class vtkPlotter:
         ncoords = len(coords)
         Ncp     = int(ncoords*f/100)
         nshow   = int(ncoords/decimate)
-        ndiv    = int(nshow/showNPlanes*decimate)
+        if showNPlanes: ndiv = int(nshow/showNPlanes*decimate)
         
         if Ncp<5:
-            print('Choose higher fraction than',f)
-            exit()
+            printc('Please choose a higher fraction than'+str(f), 1)
+            Ncp=5
         print('smoothMLS(): Searching #neighbours, #pt:', Ncp, ncoords)
         
         poly = polydata(actor, True)
@@ -1957,10 +1958,10 @@ class vtkPlotter:
         locator.SetDataSet(poly)
         locator.BuildLocator()
         vtklist = vtk.vtkIdList()        
-        variances, newsurf, acts = [], [], [actor]
+        variances, newsurf, acts = [], [], []
         pb = ProgressBar(0, ncoords)
         for i, p in enumerate(coords):
-            pb.print('..smoothing')
+            pb.print('smoothing..')
             if i%decimate: continue
             
             locator.FindClosestNPoints(Ncp, p, vtklist)
@@ -1996,14 +1997,13 @@ class vtkPlotter:
         setattr(actor, 'variances', np.array(variances))
 
         if showNPlanes:
-            apts = self.points(newsurf, c='v 0.6', r=5)
+            apts = self.points(newsurf, c='r 0.6', r=2)
             self.actors.pop()
-            acts.append(apts)
-            ass = makeAssembly(acts)
+            ass = makeAssembly([apts]+acts)
             self.actors.append(ass)
-            return ass
+            return ass #NB: a demo actor is returned
 
-        return actor
+        return actor #NB: original actor is modified
     
 
     def align(self, source, target, iters=100, legend=None):
