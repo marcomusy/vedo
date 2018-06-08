@@ -21,7 +21,7 @@ f1 = vp.fxy(my_z, texture='paper')
 vp.show(f1, at=0, interactive=0)
 
 # c=None shows the original z-scalar color scale. No z-level lines.
-f2 = vp.fxy(lambda x,y: math.sin(x*y), c=None, zlevels=None, wire=1)
+f2 = vp.fxy(lambda x,y: math.sin(x*y), c=None, zlevels=None, texture=None, wire=1)
 vp.show(f2, at=1)
 
 # red dots are shown where the function does not exist (y>x):

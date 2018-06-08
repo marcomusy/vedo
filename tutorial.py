@@ -38,9 +38,9 @@ vp.show()               # picks what is automatically stored in vp.actors
 # by default use their file names as legend entries.
 # No need to use any variables, as actors are stored internally in vp.actors:
 vp = plotter.vtkPlotter(title='3 shapes')
-vp.load('data/250.vtk', c=(1,0.4,0))
-vp.load('data/270.vtk', c=(1,0.6,0))
-vp.load('data/290.vtk', c=(1,0.8,0))
+vp.load('data/250.vtk', c=(1,0.4,0), alpha=.3)
+vp.load('data/270.vtk', c=(1,0.6,0), alpha=.3)
+vp.load('data/290.vtk', c=(1,0.8,0), alpha=.3)
 print ('Loaded vtkActors: ', len(vp.actors))
 vp.show()
 
@@ -187,9 +187,9 @@ vp.show(interactive=1)
 # point at x=500 and has normal (0, 0.3, -1).
 # Wildcards are ok to load multiple files or directories:
 vp = plotter.vtkPlotter(title='Cut a surface with a plane')
-vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1)
+vp.load('data/*.vtk', c='orange', bc='aqua')
 for a in vp.actors:
-    vp.cutActor(a, origin=(500,0,0), normal=(0,0.3,-1))
+    vp.cutPlane(a, origin=(500,0,0), normal=(0,0.3,-1))
 vp.show()
 
   

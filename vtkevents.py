@@ -6,12 +6,14 @@ Created on Thu Dec  7 11:15:37 2017
 """
 from __future__ import division, print_function
 import vtk
-import vtkutils as ut
+import vtkutils 
 import vtkcolors
+import vtkanalysis
+import vtkio
 
 
 ############################### mouse event
-def _mouseleft(vp, obj, event):
+def mouseleft(vp, obj, event):
 
     x,y = vp.interactor.GetEventPosition()
     #print ('mouse at',x,y)
@@ -49,20 +51,20 @@ def _mouseleft(vp, obj, event):
             except: 
                 cn = ''                        
             if indx and isinstance(clickedActor, vtk.vtkAssembly): 
-                ut.printc(('-> assembly',indx+':',clickedActor.legend,cn), end=' ')
+                vtkio.printc(('-> assembly',indx+':',clickedActor.legend,cn), end=' ')
             elif indx:
-                ut.printc(('-> actor', indx+':', leg, cn), end=' ')
-            ut.printc('N='+str(ut.polydata(clickedActor).GetNumberOfPoints()), end='')
+                vtkio.printc(('-> actor', indx+':', leg, cn), end=' ')
+            vtkio.printc('N='+str(vtkutils.polydata(clickedActor).GetNumberOfPoints()), end='')
             px,py,pz = vp.picked3d
             px,py,pz = str(round(px,1)), str(round(py,1)), str(round(pz,1))
-            ut.printc(', p=('+px+','+py+','+pz+')')
+            vtkio.printc(', p=('+px+','+py+','+pz+')')
 
     vp.clickedActor = clickedActor
     vp.clickedr = clickedr
 
 
 ############################### keystroke event
-def _keypress(vp, obj, event):
+def keypress(vp, obj, event):
     
     key = obj.GetKeySym()
     #print ('Pressed key:', key, event)
@@ -85,7 +87,7 @@ def _keypress(vp, obj, event):
         exit(0)
 
     elif key == "S":
-        ut.printc('Saving window as screenshot.png', 'green')
+        vtkio.printc('Saving window as screenshot.png', 'green')
         vp.screenshot()
         return
 
@@ -201,7 +203,8 @@ def _keypress(vp, obj, event):
         for ia in acts:
             try:
                 ps = ia.GetProperty().GetPointSize()
-                ia.GetProperty().SetPointSize(ps-1)
+                if ps>1:
+                    ia.GetProperty().SetPointSize(ps-1)
                 ia.GetProperty().SetRepresentationToPoints()
             except AttributeError: pass
 
@@ -267,10 +270,10 @@ def _keypress(vp, obj, event):
                 vp.renderer.RemoveActor(vp.clickedActor)
             else: 
                 if vp.verbose:
-                    ut.printc('Click an actor and press x to toggle it.',5)
+                    vtkio.printc('Click an actor and press x to toggle it.',5)
                 return
             if vp.verbose and hasattr(vp.clickedActor, 'legend') and vp.clickedActor.legend:
-                ut.printc('   ...removing actor: '+ str(vp.clickedActor.legend) +
+                vtkio.printc('   ...removing actor: '+ str(vp.clickedActor.legend) +
                           ', press x to put it back again')
         else:
             vp.renderer.AddActor(vp.justremoved)
@@ -285,26 +288,15 @@ def _keypress(vp, obj, event):
                 fname = fname.split('.')[0]+'.vtk'
             else: fname = 'clipped.vtk'
             if vp.verbose:
-                ut.printc('Move handles to remove part of the actor.',4)
-            ut.cutterWidget(vp.clickedActor, fname) 
+                vtkio.printc('Move handles to remove part of the actor.',4)
+            vtkanalysis.cutterWidget(vp.clickedActor, fname) 
         elif vp.verbose: 
-            ut.printc('Click an actor and press X to open the cutter box widget.',4)
+            vtkio.printc('Click an actor and press X to open the cutter box widget.',4)
 
     elif key == "r":
         vp.renderer.ResetCamera()
         
     vp.interactor.Render()
 
-
-############################### timer event
-# allows to move the window while running
-# see lines 1306, 1330 in plotter.py
-# def _stopren(vp, obj, event):
-    #if vp.interactive: return
-    #x,y = vp.interactor.GetEventPosition()
-    #print (' _stopren at',x,y, event, obj.GetKeySym())
-    # vp.interactor.ExitCallback()
-    
-    
 
 

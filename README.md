@@ -129,7 +129,7 @@ Wildcards are ok to load multiple files or directories:
 vp = plotter.vtkPlotter()
 vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1)
 for a in vp.actors:
-    vp.cutActor(a, origin=(500,0,0), normal=(0,0.3,-1))
+    vp.cutPlane(a, origin=(500,0,0), normal=(0,0.3,-1))
 vp.show()
 ```
 ![cut](https://user-images.githubusercontent.com/32848391/33214256-6895e478-d12b-11e7-8b4b-390b698e9ef4.png)
@@ -218,7 +218,7 @@ More examples in directory *examples/*
 
 If you need to do more complicated things (define widgets.. etc), you can still have full access to all
 standard VTK objects (e.g. interactors and renderers through *vp.interactor, vp.renderer*... etc).<br />
-Use *vp.openVideo(), vp.addFrameVideo()* and *vp.closeVideo()* to save a *movie.avi* file.
+Use *vp.openVideo(), video.addFrame()* and *video.close()* to save a *movie.avi* file.
 <br />
 To produce animated gifs online, check out this great site: https://ezgif.com
 
@@ -277,7 +277,7 @@ def fitSphere(self, coords, c='r', alpha=1, wire=0, legend=None)
 def pca(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None)
 def smoothMLS(actor, f=0.2, decimate=1, recursive=1, showNPlanes=15)
 #
-def cutActor(actor, origin=(0,0,0), normal=(1,0,0), showcut=True, showline=False, showpts=False)
+def cutPlane(actor, origin=(0,0,0), normal=(1,0,0), showcut=True, showline=False, showpts=False)
 def closestPoint(surf, pt, locator=None, N=None, radius=None)
 def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3, c=None, alpha=1, legend=None)
 def booleanOperation(actor1, actor2, operation='plus',  # possible operations: plus, intersect, minus

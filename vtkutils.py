@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-#
 from __future__ import division, print_function
-import os, sys, time, types
+import os, types
 import numpy as np
 import vtk
 from vtk.util import numpy_support
-import vtkcolors
+import vtkcolors, vtkanalysis, vtkio 
 
 
 ##############################################################################
@@ -152,10 +150,10 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     if os.path.exists(name): 
         fn = name
     elif not os.path.exists(fn):
-        printc(('Texture', name, 'not found in', cdir+'/textures'), 'r')
-        printc('Available textures:', c='m', end=' ')
+        vtkio.printc(('Texture', name, 'not found in', cdir+'/textures'), 'r')
+        vtkio.printc('Available textures:', c='m', end=' ')
         for ff in os.listdir(cdir + '/textures'):
-            printc(ff.split('.')[0], end=' ', c='m')
+            vtkio.printc(ff.split('.')[0], end=' ', c='m')
         print()
         return 
         
@@ -230,7 +228,7 @@ def assignConvenienceMethods(actor, legend):
     def _fshrink(self, fraction=0.85): return shrink(self, fraction)
     actor.shrink = types.MethodType( _fshrink, actor )
 
-    def _fcutterw(self): return cutterWidget(self)
+    def _fcutterw(self): return vtkanalysis.cutterWidget(self)
     actor.cutterWidget = types.MethodType( _fcutterw, actor )
      
     def _fpolydata(self, rebuild=True, index=0): 
@@ -271,8 +269,12 @@ def assignConvenienceMethods(actor, legend):
     actor.stretch = types.MethodType( _fstretch, actor)
 
     def _fsubdivide(self, N=1, method=0, legend=None): 
-        return subdivide(self, N, method, legend)
+        return vtkanalysis.subdivide(self, N, method, legend)
     actor.subdivide = types.MethodType( _fsubdivide, actor)
+
+    def _fdecimate(self, fraction=0.5, N=None, verbose=True, boundaries=True): 
+        return vtkanalysis.decimate(self, fraction, N, verbose, boundaries)
+    actor.decimate = types.MethodType( _fdecimate, actor)
 
     def _fcolor(self, c=None):
         if c: 
@@ -293,7 +295,7 @@ def assignConvenienceMethods(actor, legend):
     actor.closestPoint = types.MethodType( _fclosestPoint, actor)
 
     def _fintersectWithLine(self, p0, p1):
-        return intersectWithLine(self, p0,p1)
+        return vtkanalysis.intersectWithLine(self, p0,p1)
     actor.intersectWithLine = types.MethodType(_fintersectWithLine , actor)
 
     def _fisInside(self, point, tol=0.0001):
@@ -376,7 +378,7 @@ def clone(actor, c=None, alpha=None, wire=False, bc=None,
     '''
     poly = polydata(actor, rebuild)
     if not poly.GetNumberOfPoints():
-        printc('Limitation: cannot clone textured obj. Returning input.',1)
+        vtkio.printc('Limitation: cannot clone textured obj. Returning input.',1)
         return actor
     polyCopy = vtk.vtkPolyData()
     polyCopy.DeepCopy(poly)
@@ -495,7 +497,7 @@ def stretch(actor, q1, q2):
     '''Stretch actor between points q1 and q2'''
 
     if not hasattr(actor, 'base'):
-        printc('Please define vectors actor.base and actor.top at creation. Exit.','r')
+        vtkio.printc('Please define vectors actor.base and actor.top at creation. Exit.','r')
         exit(0)
 
     TI = vtk.vtkTransform()
@@ -523,66 +525,6 @@ def stretch(actor, q1, q2):
     return actor
 
 
-def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
-    '''
-    Downsample the number of vertices in a mesh.
-        fraction gives the desired target of reduction. 
-        E.g. fraction=0.1
-             leaves 10% of the original nr of vertices.
-    '''
-    poly = polydata(actor, True)
-    if N: # N = desired number of points
-        Np = poly.GetNumberOfPoints()
-        fraction = float(N)/Np
-        if fraction >= 1: return actor   
-        
-    decimate = vtk.vtkDecimatePro()
-    setInput(decimate, poly)
-    decimate.SetTargetReduction(1.-fraction)
-    decimate.PreserveTopologyOff()
-    if boundaries: decimate.BoundaryVertexDeletionOn()
-    else: decimate.BoundaryVertexDeletionOff()
-    decimate.Update()
-    if verbose:
-        print ('Input nr. of pts:',poly.GetNumberOfPoints(),end='')
-        print (' output:',decimate.GetOutput().GetNumberOfPoints())
-    mapper = actor.GetMapper()
-    setInput(mapper, decimate.GetOutput())
-    mapper.Update()
-    actor.Modified()
-    if hasattr(actor, 'poly'): actor.poly=None #clean cache
-    return actor  # return same obj for concatenation
-
-
-def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1, 
-                     wire=False, bc=None, edges=False, legend=None, texture=None):
-    '''Volumetric union, intersection and subtraction of surfaces'''
-    try:
-        bf = vtk.vtkBooleanOperationPolyDataFilter()
-    except AttributeError:
-        printc('Boolean operation only possible for vtk version >= 8','r')
-        return None
-    poly1 = polydata(actor1, True)
-    poly2 = polydata(actor2, True)
-    if operation.lower() == 'plus':
-        bf.SetOperationToUnion()
-    elif operation.lower() == 'intersect':
-        bf.SetOperationToIntersection()
-    elif operation.lower() == 'minus':
-        bf.SetOperationToDifference()
-        bf.ReorientDifferenceCellsOn()
-    if vtkMV:
-        bf.SetInputData(0, poly1)
-        bf.SetInputData(1, poly2)
-    else:
-        bf.SetInputConnection(0, poly1.GetProducerPort())
-        bf.SetInputConnection(1, poly2.GetProducerPort())
-    bf.Update()
-    actor = makeActor(bf.GetOutput(), 
-                      c, alpha, wire, bc, edges, legend, texture)
-    return actor
-       
-
 def mergeActors(actors, c=None, alpha=1, 
                 wire=False, bc=None, edges=False, legend=None, texture=None):
     '''
@@ -595,25 +537,6 @@ def mergeActors(actors, c=None, alpha=1,
     actor = makeActor(polylns.GetOutput(), 
                       c, alpha, wire, bc, edges, legend, texture)
     return actor    
-  
-
-def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3,
-                        c=None, alpha=1, legend=None):
-    '''Intersect 2 surfaces and return a line actor'''
-    try:
-        bf = vtk.vtkIntersectionPolyDataFilter()
-    except AttributeError:
-        printc('surfaceIntersection only possible for vtk version > 6','r')
-        return None
-    poly1 = polydata(actor1, True)
-    poly2 = polydata(actor2, True)
-    bf.SetInputData(0, poly1)
-    bf.SetInputData(1, poly2)
-    bf.Update()
-    if c is None: c = actor1.GetProperty().GetColor()
-    actor = makeActor(bf.GetOutput(), c, alpha, 0, legend=legend)
-    actor.GetProperty().SetLineWidth(lw)
-    return actor
 
 
 #########################################################
@@ -670,7 +593,7 @@ def insidePoints(actor, points, invert=False, tol=1e-05):
     featureEdge.Update()
     openEdges = featureEdge.GetOutput().GetNumberOfCells()
     if openEdges != 0:
-        printc("Warning: polydata is not a closed surface",5)
+        vtkio.printc("Warning: polydata is not a closed surface",5)
     
     vpoints = vtk.vtkPoints()
     for p in points: vpoints.InsertNextPoint(p)
@@ -793,40 +716,10 @@ def polydata(obj, rebuild=True, index=0):
     elif isinstance(obj, vtk.vtkImageActor):  return obj.GetMapper().GetInput()
     elif obj is None: return None
     
-    printc("Fatal Error in polydata(): ", 'r', end='')
-    printc(("input is neither a vtkActor nor vtkAssembly.", [obj]), 'r')
+    vtkio.printc("Fatal Error in polydata(): ", 'r', end='')
+    vtkio.printc(("input is neither a vtkActor nor vtkAssembly.", [obj]), 'r')
     exit(1)
 
-
-def subdivide(actor, N=1, method=0, legend=None):
-    '''
-    Increase the number of points in actor surface
-        N = number of subdivisions
-        method = 0, Loop
-        method = 1, Linear
-        method = 2, Adaptive
-        method = 3, Butterfly
-    '''        
-    triangles = vtk.vtkTriangleFilter()
-    setInput(triangles, polydata(actor))
-    triangles.Update()
-    originalMesh = triangles.GetOutput()
-    if   method==0: sdf = vtk.vtkLoopSubdivisionFilter()
-    elif method==1: sdf = vtk.vtkLinearSubdivisionFilter()
-    elif method==2: sdf = vtk.vtkAdaptiveSubdivisionFilter()
-    elif method==3: sdf = vtk.vtkButterflySubdivisionFilter()
-    else:
-        printc('Error in subdivide: unknown method.', 'r')
-        exit(1)
-    if method != 2: sdf.SetNumberOfSubdivisions(N)
-    setInput(sdf, originalMesh)
-    sdf.Update()
-    out = sdf.GetOutput()
-    sactor = makeActor(out, legend=legend)
-    sactor.GetProperty().SetOpacity(actor.GetProperty().GetOpacity())
-    sactor.GetProperty().SetColor(actor.GetProperty().GetColor())
-    sactor.GetProperty().SetRepresentation(actor.GetProperty().GetRepresentation())
-    return sactor
 
 
 def coordinates(actor, rebuild=True):
@@ -860,7 +753,6 @@ def centerOfMass(actor):
     if vtkMV: #faster
         cmf = vtk.vtkCenterOfMass()
         setInput(cmf, polydata(actor, True))
-        #cmf.UseScalarsAsWeightsOff()
         cmf.Update()
         c = cmf.GetCenter()
         return np.array(c)
@@ -894,44 +786,14 @@ def averageSize(actor):
 def diagonalSize(actor):
     '''Get the length of the diagonal of actor bounding box'''
     b = polydata(actor).GetBounds()
-    return np.sqrt((b[1]-b[0])**2, (b[3]-b[2])**2, (b[5]-b[4])**2)
+    return np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])**2 + (b[5]-b[4])**2)
 
 def maxBoundSize(actor):
     '''Get the maximum dimension in x, y or z of the actor bounding box'''
     b = polydata(actor, True).GetBounds()
     return max(abs(b[1]-b[0]), abs(b[3]-b[2]), abs(b[5]-b[4]))
 
-    
-def write(obj, fileoutput):
-    '''
-    Write 3D object to file.
-    Possile extensions are: .vtk, .ply, .obj, .stl, .byu, .vtp
-    '''
-    fr = fileoutput.lower()
-    if   '.vtk' in fr: w = vtk.vtkPolyDataWriter()
-    elif '.ply' in fr: w = vtk.vtkPLYWriter()
-    elif '.obj' in fr: 
-        w = vtk.vtkOBJExporter()
-        w.SetFilePrefix(fileoutput.replace('.obj',''))
-        printc('Please use write(vp.renderWin)',3)
-        w.SetInput(obj)
-        w.Update()
-        printc("Saved file: "+fileoutput, 'g')
-        return
-    elif '.stl' in fr: w = vtk.vtkSTLWriter()
-    elif '.byu' in fr or '.g' in fr: w = vtk.vtkBYUWriter()
-    elif '.vtp' in fr: w = vtk.vtkXMLPolyDataWriter()
-    else:
-        printc('Unavailable format in file '+fileoutput, c='r')
-        exit(1)
-    try:
-        setInput(w, polydata(obj, True))
-        w.SetFileName(fileoutput)
-        w.Write()
-        printc("Saved file: "+fileoutput, 'g')
-    except:
-        printc("Error saving: "+fileoutput, 'r')
-
+   
 
 ########################################################################
 def closestPoint(actor, pt, N=1, radius=None):
@@ -974,310 +836,4 @@ def closestPoint(actor, pt, N=1, radius=None):
     subid = vtk.mutable(0)
     actor.cell_locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
     return np.array(trgp)
-
-
-def intersectWithLine(act, p0, p1):
-    '''Return a list of points between p0 and p1 intersecting the actor'''
-    if not hasattr(act, 'linelocator'):
-        linelocator = vtk.vtkOBBTree()
-        linelocator.SetDataSet(polydata(act, True))
-        linelocator.BuildLocator()
-        setattr(act, 'linelocator', linelocator)
-
-    intersectPoints = vtk.vtkPoints()
-    intersection = [0, 0, 0]
-    act.linelocator.IntersectWithLine(p0, p1, intersectPoints, None)
-    pts=[]
-    for i in range(intersectPoints.GetNumberOfPoints()):
-        intersectPoints.GetPoint(i, intersection)
-        pts.append(list(intersection))
-    return pts
-
-
-def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
-                 bc=(0.7, 0.8, 1), legend=None):
-    '''Pop up a box widget to cut parts of actor. Return largest part.'''
-
-    apd = polydata(obj)
-    
-    planes = vtk.vtkPlanes()
-    planes.SetBounds(apd.GetBounds())
-
-    clipper = vtk.vtkClipPolyData()
-    setInput(clipper, apd)
-    clipper.SetClipFunction(planes)
-    clipper.InsideOutOn()
-    clipper.GenerateClippedOutputOn()
-
-    # check if color string contains a float, in this case ignore alpha
-    al = vtkcolors.getAlpha(c)
-    if al: alpha = al
-
-    act0Mapper = vtk.vtkPolyDataMapper() # the part which stays
-    act0Mapper.SetInputConnection(clipper.GetOutputPort())
-    act0 = vtk.vtkActor()
-    act0.SetMapper(act0Mapper)
-    act0.GetProperty().SetColor(vtkcolors.getColor(c))
-    act0.GetProperty().SetOpacity(alpha)
-    backProp = vtk.vtkProperty()
-    backProp.SetDiffuseColor(vtkcolors.getColor(bc))
-    backProp.SetOpacity(alpha)
-    act0.SetBackfaceProperty(backProp)
-    #act0 = makeActor(clipper.GetOutputPort())
-    
-    act0.GetProperty().SetInterpolationToFlat()
-    assignPhysicsMethods(act0)    
-    assignConvenienceMethods(act0, legend)    
-
-    act1Mapper = vtk.vtkPolyDataMapper() # the part which is cut away
-    act1Mapper.SetInputConnection(clipper.GetClippedOutputPort())
-    act1 = vtk.vtkActor()
-    act1.SetMapper(act1Mapper)
-    act1.GetProperty().SetColor(vtkcolors.getColor(c))
-    act1.GetProperty().SetOpacity(alpha/10.)
-    act1.GetProperty().SetRepresentationToWireframe()
-    act1.VisibilityOn()
-    
-    ren = vtk.vtkRenderer()
-    ren.SetBackground(1,1,1)
-    
-    ren.AddActor(act0)
-    ren.AddActor(act1)
-    
-    renWin = vtk.vtkRenderWindow()
-    renWin.AddRenderer(ren)
-    renWin.SetSize(600, 700)
-
-    iren = vtk.vtkRenderWindowInteractor()
-    iren.SetRenderWindow(renWin)
-    istyl = vtk.vtkInteractorStyleSwitch()
-    istyl.SetCurrentStyleToTrackballCamera()
-    iren.SetInteractorStyle(istyl)
-    
-    def SelectPolygons(vobj, event): vobj.GetPlanes(planes)
-    
-    boxWidget = vtk.vtkBoxWidget()
-    boxWidget.OutlineCursorWiresOn()
-    boxWidget.GetSelectedOutlineProperty().SetColor(1,0,1)
-    boxWidget.GetOutlineProperty().SetColor(0.1,0.1,0.1)
-    boxWidget.GetOutlineProperty().SetOpacity(0.8)
-    boxWidget.SetPlaceFactor(1.05)
-    boxWidget.SetInteractor(iren)
-    setInput(boxWidget, apd)
-    boxWidget.PlaceWidget()    
-    boxWidget.AddObserver("InteractionEvent", SelectPolygons)
-    boxWidget.On()
-    
-    printc('\nCutterWidget:\n Move handles to cut parts of the actor','m')
-    printc(' Press q to continue, Escape to exit','m')
-    printc((" Press X to save file to", outputname), 'm')
-    def cwkeypress(obj, event):
-        key = obj.GetKeySym()
-        if   key == "q" or key == "space" or key == "Return":
-            iren.ExitCallback()
-        elif key == "X": 
-            confilter = vtk.vtkPolyDataConnectivityFilter()
-            setInput(confilter, clipper.GetOutput())
-            confilter.SetExtractionModeToLargestRegion()
-            confilter.Update()
-            cpd = vtk.vtkCleanPolyData()
-            setInput(cpd, confilter.GetOutput())
-            cpd.Update()
-            write(cpd.GetOutput(), outputname)
-        elif key == "Escape": 
-            exit(0)
-    
-    iren.Initialize()
-    iren.AddObserver("KeyPressEvent", cwkeypress)
-    iren.Start()
-    boxWidget.Off()
-
-    return act0
-
-
-def reconstructSurface(points, neighbors=20, spacing=None,
-                       c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None):
-    
-    def doIterativeClosestPoint(source, target, rigid=False, locator=None, iters=20):
-
-        icp = vtk.vtkIterativeClosestPointTransform()
-        icp.SetSource(source)
-        icp.SetTarget(target)
-        if locator: icp.SetLocator(locator)
-        if rigid: icp.GetLandmarkTransform().SetModeToRigidBody()
-        icp.SetMaximumNumberOfIterations(iters)
-        icp.StartByMatchingCentroidsOn()
-        icp.Modified()
-        icp.Update()
-        icpTransformFilter = vtk.vtkTransformPolyDataFilter()
-        icpTransformFilter.SetInput(source)
-        icpTransformFilter.SetTransform(icp)
-        icpTransformFilter.Update()
-        return icpTransformFilter.GetOutput()
-
-    pointSource = vtk.vtkPointSource()
-    pointSource.SetNumberOfPoints(len(points))
-    pointSource.Update()
-    for i,p in enumerate(points): 
-        pointSource.GetOutput().GetPoints().SetPoint(i, p)
-
-    surf = vtk.vtkSurfaceReconstructionFilter()
-    if spacing: surf.SetSampleSpacing(spacing)
-    if neighbors: surf.SetNeighborhoodSize(neighbors)
-    surf.SetInputConnection(pointSource.GetOutputPort())    
-    cf = vtk.vtkContourFilter()
-    cf.SetInputConnection(surf.GetOutputPort())
-    cf.SetValue(0, 0.0)
-    
-    reverse = vtk.vtkReverseSense()
-    reverse.SetInputConnection(cf.GetOutputPort())
-    reverse.ReverseCellsOn()
-    reverse.ReverseNormalsOn()
-    reverse.Update()
-
-    pt = pointSource.GetOutput().GetPoints()
-    pt_bounds = pt.GetBounds()
-    pd_bounds = reverse.GetOutput().GetBounds()
-    scale = (pt_bounds[1] - pt_bounds[0])/(pd_bounds[1] - pd_bounds[0])
-    
-    transp = vtk.vtkTransform()
-    transp.Translate(pt_bounds[0], pt_bounds[2], pt_bounds[4])
-    transp.Scale(scale, scale, scale)
-    transp.Translate(-pd_bounds[0], -pd_bounds[2], -pd_bounds[4])
-    tpd = vtk.vtkTransformPolyDataFilter()
-    tpd.SetInput(reverse.GetOutput())
-    tpd.SetTransform(transp)
-    tpd.Update()
-    fpd = doIterativeClosestPoint(tpd.GetOutput(), pointSource.GetOutput())
-    actor = makeActor(fpd, c, alpha, wire, bc, edges, legend)
-    return actor
-
-
-###########################################################################
-class ProgressBar: 
-    '''Class to print a progress bar with optional text on its right
-    
-    Usage example:
-        import time                        
-        pb = ProgressBar(0,400, c='red')
-        for i in pb.range():
-            time.sleep(.1)
-            pb.print('some message') # or pb.print(counts=i)
-    ''' 
-
-    def __init__(self, start, stop, step=1, c=None, ETA=True, width=25):
-        self.start  = start
-        self.stop   = stop
-        self.step   = step
-        self.color  = c
-        self.width  = width
-        self.bar    = ""  
-        self.percent= 0
-        self.clock0 = 0
-        self.ETA    = ETA
-        self.clock0 = time.time()
-        self._update(0)
-        self._counts= 0
-        self._oldbar= ""
-        self._lentxt= 0
-        self._range = arange(start, stop, step)
-        self._len   = len(self._range)
-        
-    def print(self, txt='', counts=None):
-        if counts: self._update(counts)
-        else:      self._update(self._counts + self.step)
-        if self.bar != self._oldbar:
-            self._oldbar = self.bar
-            eraser = [' ']*self._lentxt + ['\b']*self._lentxt 
-            eraser = ''.join(eraser)
-            if self.ETA:
-                vel  = self._counts/(time.time() - self.clock0)
-                remt =  (self.stop-self._counts)/vel
-                if remt>60:
-                    mins = int(remt/60)
-                    secs = remt - 60*mins
-                    mins = str(mins)+'m'
-                    secs = str(int(secs))+'s '
-                else:
-                    mins = ''
-                    secs= str(int(remt))+'s '
-                vel = str(round(vel,1))
-                eta = 'ETA: '+mins+secs+'('+vel+' it/s) '
-            else: eta = ''
-            txt = eta + str(txt) 
-            s = self.bar + ' ' + eraser + txt + '\r'
-            if self.color: 
-                printc(s, c=self.color, end='')
-            else: 
-                sys.stdout.write(s)
-                sys.stdout.flush()
-            if self.percent==100: print ('')
-            self._lentxt = len(txt)
-
-    def range(self): return self._range
-    def len(self): return self._len
- 
-    def _update(self, counts):
-        if counts < self.start: counts = self.start
-        elif counts > self.stop: counts = self.stop
-        self._counts = counts
-        self.percent = (self._counts - self.start)*100
-        self.percent /= self.stop - self.start
-        self.percent = int(round(self.percent))
-        af = self.width - 2
-        nh = int(round( self.percent/100 * af ))
-        if   nh==0:  self.bar = "[>%s]" % (' '*(af-1))
-        elif nh==af: self.bar = "[%s]" % ('='*af)
-        else:        self.bar = "[%s>%s]" % ('='*(nh-1), ' '*(af-nh))
-        ps = str(self.percent) + "%"
-        self.bar = ' '.join([self.bar, ps])
-        
-
-################################################################### color print
-def printc(strings, c='black', bold=True, separator=' ', end='\n'):
-    '''
-    Print to terminal in color. 
-    
-    Available colors:
-        black, red, green, yellow, blue, magenta, cyan, white
-    Usage example:
-        cprint( 'anything', c='red', bold=False, end='' )
-        cprint( ['anything', 455.5, vtkObject], 'green')
-        cprint(299792.48, c=4) # 4 is blue
-    '''
-    if isinstance(strings, tuple): strings = list(strings)
-    elif not isinstance(strings, list): strings = [str(strings)]
-    txt = str()
-    for i,s in enumerate(strings):
-        if i == len(strings)-1: separator=''
-        txt = txt + str(s) + separator
-    
-    if _terminal_has_colors:
-        try:
-            if isinstance(c, int): 
-                ncol = c % 8
-            else: 
-                cols = {'black':0, 'red':1, 'green':2, 'yellow':3, 
-                        'blue':4, 'magenta':5, 'cyan':6, 'white':7,
-                        'k':0, 'r':1, 'g':2, 'y':3,
-                        'b':4, 'm':5, 'c':6, 'w':7}
-                ncol = cols[c.lower()]
-            if bold: seq = "\x1b[1;%dm" % (30+ncol)
-            else:    seq = "\x1b[0;%dm" % (30+ncol)
-            sys.stdout.write(seq + txt + "\x1b[0m" +end)
-            sys.stdout.flush()
-        except: print (txt, end=end)
-    else:
-        print (txt, end=end)
-        
-def _has_colors(stream):
-    if not hasattr(stream, "isatty"): return False
-    if not stream.isatty(): return False # auto color only on TTYs
-    try:
-        import curses
-        curses.setupterm()
-        return curses.tigetnum("colors") > 2
-    except:
-        return False
-_terminal_has_colors = _has_colors(sys.stdout)
 

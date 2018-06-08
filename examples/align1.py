@@ -6,7 +6,7 @@
 import plotter
 
 vp = plotter.vtkPlotter()
-a1, a2 = vp.load('data/2[79]0.vtk') # load 2 files and assign to a1, a2
+a1, a2 = vp.load('data/2[79]0.vtk', alpha=.5) # load 2 files and assign to a1, a2
 
 # the usual vtk way to assign a property is always available
 # (it's easier to set c='g' in the command above!)

@@ -7,7 +7,7 @@ from plotter import vtkPlotter, colorMap, norm
 
 vp = vtkPlotter(verbose=0, axes=0)
 
-s = vp.load('data/shapes/cow.vtk').normalize()#.subdivide()
+s = vp.load('data/shapes/cow.vtk', alpha=0.3)#.subdivide()
 
 pts1, pts2, vals, cols, lns = [], [], [], [], []
 

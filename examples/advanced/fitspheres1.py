@@ -13,7 +13,7 @@ import plotter
 vp = plotter.vtkPlotter(verbose=0)
 
 # load mesh and increase by a lot (N=2) the nr of surface vertices
-s = vp.load('data/shapes/cow.vtk').subdivide(N=2)
+s = vp.load('data/shapes/cow.vtk').subdivide(N=2).alpha(0.3)
 
 reds, invr = [], []
 for i, p in enumerate(s.coordinates()):

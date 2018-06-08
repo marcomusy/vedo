@@ -11,7 +11,7 @@
 #
 from __future__ import division, print_function
 from plotter import vtkPlotter, cos, sqrt, colorMap, vector
-from random import uniform, gauss
+from random import gauss
 import numpy as np
 
 
