@@ -1,7 +1,7 @@
 
 # vtkPlotter
 
-A python helper class to easily draw, analyse and animate tridimensional objects.
+A python helper class to easily draw, analyse and animate 3D objects.
 <br />A VTK alternative to Vpython.
 
 ## Download / Install:
@@ -112,9 +112,6 @@ vp.show(at=3, c=3, actors='data/shapes/spider.ply')
 vp.show(at=4, c=4, actors='data/shuttle.obj')
 vp.show(at=5, c=5, actors='data/shapes/magnolia.vtk')
 vp.show(at=6, c=6, actors='data/shapes/man.vtk', alpha=1, axes=1)
-a = vp.getActors('man')        # retrieve actors by matching legend string
-a[0].rotateX(90)               #  and rotate it by 90 degrees around x
-a[0].rotateY(1.57, rad=True)   #   then by 90 degrees around y
 vp.show(at=7, c=7, actors='data/teapot.xyz')
 vp.show(at=8, c=8, actors='data/unstrgrid.vtu')
 vp.show(interactive=1)
@@ -276,6 +273,8 @@ def fitPlane(points, c='g', bc='darkgreen', legend=None)
 def fitSphere(self, coords, c='r', alpha=1, wire=0, legend=None)
 def pca(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None)
 def smoothMLS(actor, f=0.2, decimate=1, recursive=1, showNPlanes=15)
+def recoSurface(points, bins=256, c='gold', alpha=1, wire=False, bc='t', edges=False, legend=None)
+def cluster(points, radius, legend=None)
 #
 def cutPlane(actor, origin=(0,0,0), normal=(1,0,0), showcut=True, showline=False, showpts=False)
 def closestPoint(surf, pt, locator=None, N=None, radius=None)
@@ -320,8 +319,6 @@ Useful methods:
 # Example -- vp = vtkPlotter(); vp.makeActor(myolydata, c='red')
 def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None)
 def makeAssembly(actors, legend=None)
-def reconstructSurface(points, neighbors=20, spacing=None, 
-                       c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None)
 def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1)
 def polydata(actor, index=0, transformed=True)
 def closestPoint(actor, point, locator=None, N=1, radius=None)
@@ -388,4 +385,4 @@ def norm(v)                   # return the versor of a vector or list of vectors
 ```
 
 <br />
-Tested on VTK versions 5.8, 6.3, 7.1, 8.0: https://www.vtk.org
+Tested on VTK versions 5.8, 6.3, 7.1, 8.1: https://www.vtk.org

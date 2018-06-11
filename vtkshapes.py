@@ -397,13 +397,13 @@ def spheres(centers, r=1,
     psrc.SetNumberOfPoints(len(centers))
     psrc.Update()
     pd = psrc.GetOutput()
+    vpts = pd.GetPoints()
     
     if cisseq:
         glyph.SetColorModeToColorByScalar()
         ucols = vtk.vtkUnsignedCharArray()
         ucols.SetNumberOfComponents(3)
         ucols.SetName("colors")
-        vpts = pd.GetPoints()
         for i,p in enumerate(centers):
             vpts.SetPoint(i, p)
             cc = np.array(vc.getColor(c[i]))*255
@@ -413,16 +413,16 @@ def spheres(centers, r=1,
                 ucols.InsertNextTupleValue(cc)            
             pd.GetPointData().SetScalars(ucols)
             glyph.ScalingOff()
-
-    if risseq:
+    elif risseq:
         glyph.SetScaleModeToScaleByScalar()
         urads = vtk.vtkFloatArray()
         urads.SetName("scales")
-        vpts = pd.GetPoints()
         for i,p in enumerate(centers):
             vpts.SetPoint(i, p)
             urads.InsertNextValue(r[i])            
         pd.GetPointData().SetScalars(urads)
+    else:
+        for i,p in enumerate(centers): vpts.SetPoint(i, p)        
 
     vu.setInput(glyph, pd)
     glyph.Update()

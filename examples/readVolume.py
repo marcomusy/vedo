@@ -24,9 +24,9 @@ import plotter
 f = 'data/embryo.tif'
 
 vp = plotter.vtkPlotter(shape=(1,3), interactive=0)
-a0= vp.load(f, bc='v', alpha=1, threshold=80, connectivity=1, legend='connectivity=True')
-a1= vp.load(f, bc='v', alpha=1, threshold=80, connectivity=0, legend='connectivity=False')
-a2= vp.load(f, bc='v', alpha=1, smoothing=2, legend='thres=automatic\nsmoothing=2')
+a0= vp.load(f, bc='v', threshold=80, connectivity=1, legend='connectivity=True')
+a1= vp.load(f, bc='v', threshold=80, connectivity=0, legend='connectivity=False')
+a2= vp.load(f, bc='v', smoothing=2, legend='thres=automatic\nsmoothing=2')
 
 vp.show(a0, at=0)
 vp.show(a1, at=1)
@@ -34,5 +34,5 @@ vp.show(a2, at=2)
 
 # Can also read SLC files:
 vp2= plotter.vtkPlotter()
-vp2.load('data/embryo.slc', c='g', bc='v', alpha=1, smoothing=1, connectivity=1)
+vp2.load('data/embryo.slc', c='g', bc='v', smoothing=1, connectivity=1)
 vp2.show(interactive=1)

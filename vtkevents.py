@@ -172,19 +172,19 @@ def keypress(vp, obj, event):
 
     elif key in ["1", "KP_End", "KP_1"]:
         for i,ia in enumerate(vp.getActors()):
-            ia.GetProperty().SetColor(vtkcolors.colors1[i+vp.icol1])
+            ia.GetProperty().SetColor(vtkcolors.colors1[(i+vp.icol1)%10])
         vp.icol1 += 1
         vp._draw_legend()
 
     elif key in ["2", "KP_Down", "KP_2"]:
         for i,ia in enumerate(vp.getActors()):
-            ia.GetProperty().SetColor(vtkcolors.colors2[i+vp.icol2])
+            ia.GetProperty().SetColor(vtkcolors.colors2[(i+vp.icol2)%10])
         vp.icol2 += 1
         vp._draw_legend()
 
     elif key in ["3", "KP_Left", "KP_4"]:
         for i,ia in enumerate(vp.getActors()):
-            ia.GetProperty().SetColor(vtkcolors.colors3[i+vp.icol3])
+            ia.GetProperty().SetColor(vtkcolors.colors3[(i+vp.icol3)%10])
         vp.icol3 += 1
         vp._draw_legend()
 

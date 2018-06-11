@@ -162,14 +162,10 @@ vp.show(at=2, c=2, actors='data/limb.pcd')
 vp.show(at=3, c=3, actors='data/shapes/spider.ply')
 vp.show(at=4, c=4, actors='data/shuttle.obj')
 vp.show(at=5, c=5, actors='data/shapes/magnolia.vtk')
-vp.show(at=6, c=6, actors='data/shapes/man.vtk', alpha=1, axes=1)
+vp.show(at=6, c=6, actors='data/shapes/man.vtk', axes=1)
 vp.show(at=7, c=7, actors='data/teapot.xyz')
 vp.show(at=8, c=8, actors='data/unstrgrid.vtu')
 vp.show(interactive=1)
-a = vp.getActors('man')         # retrieve all actors with matching legend string
-a[0].rotateX(-90)               #  and rotate the first by 90 degrees around x
-a[0].rotateY(-1.57, rad=True)   #  and then by 90 degrees around y
-vp.show()
 
 
 ########################################################################################

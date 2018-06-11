@@ -146,7 +146,6 @@ class vtkPlotter:
         self.insidePoints = vtkutils.insidePoints
         self.intersectWithLine = vtkanalysis.intersectWithLine
         self.surfaceIntersection = vtkanalysis.surfaceIntersection
-        self.recoSurface = vtkanalysis.recoSurface
         self.maxBoundSize = vtkutils.maxBoundSize
         self.normalize = vtkutils.normalize
         self.clone = vtkutils.clone
@@ -173,6 +172,7 @@ class vtkPlotter:
         self.xbounds = vtkutils.xbounds
         self.ybounds = vtkutils.ybounds
         self.zbounds = vtkutils.zbounds
+        self.cleanPolydata = vtkutils.cleanPolydata
         self.screenshot= vtkio.screenshot        
 
         if N:                # N = number of renderers. Find out the best
@@ -700,6 +700,7 @@ class vtkPlotter:
         return actor
 
 
+    ################# from vtkanalysis
     def xyplot(self, points=[[0,0],[1,0],[2,1],[3,2],[4,1]],
                title='', c='b', corner=1, lines=False):
         """
@@ -757,17 +758,8 @@ class vtkPlotter:
                                 wire, c, bc, alpha, legend, texture, res)
         self.actors.append(actor)
         return actor
-
-    
-    def delaunay2D(self, plist, tol=None, c='gold', alpha=0.5, wire=False, bc=None, 
-                   edges=False, legend=None, texture=None):
-        '''Create a mesh from points in the XY plane.'''
-        a = vtkanalysis.delaunay2D(plist, tol, c, alpha, wire, bc, edges, legend, texture)
-        self.actors.append(a)
-        return a    
     
 
-    ################# working with point clouds
     def fitLine(self, points, c='orange', lw=1, alpha=0.6, legend=None):
         '''
         Fits a line through points.
@@ -865,22 +857,38 @@ class vtkPlotter:
         except ValueError: pass
         return cactor #NB: original actor is modified
 
+ 
+    def delaunay2D(self, plist, tol=None, c='gold', alpha=0.5, wire=False, bc=None, 
+                   edges=False, legend=None, texture=None):
+        '''Create a mesh from points in the XY plane.'''
+        a = vtkanalysis.delaunay2D(plist, tol, c, alpha, wire, bc, edges, legend, texture)
+        self.actors.append(a)
+        return a    
+        
+    
+    def recoSurface(self, points, bins=256,
+                    c='gold', alpha=1, wire=False, bc='t', edges=False, legend=None):
+        '''
+        Surface reconstruction from sparse points.
+        '''
+        a = vtkanalysis.recoSurface(points, bins, c, alpha, wire, bc, edges, legend)
+        self.actors.append(a)
+        return a    
+    
+
+    def cluster(self, points, radius, legend=None):
+        '''
+        Clustering of points in space.
+        radius, is the radius of local search.
+        Individual subsets can be accessed through actor.clusters
+        '''
+        a = vtkanalysis.cluster(points, radius, legend)
+        self.actors.append(a)
+        return a    
+        
+  
 
     ##########################################
-    def silhouette(self, actor, c='r', alpha=1, lw=5):
-        poly = polydata(actor,False)
-        sil = vtk.vtkPolyDataSilhouette()
-        setInput(sil, poly)
-        self.show()
-        sil.SetCamera(self.camera)
-        sil.SetEnableFeatureAngle(0)
-        sil.Update()
-        actor2 =makeActor(sil.GetOutput(),c,alpha)
-        actor2.GetProperty().SetColor(getColor(c))
-        actor2.GetProperty().SetLineWidth(lw)
-        self.actors.append(actor2)
-        return actor2
-
     def normals(self, actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
         '''
         Build a vtkActor made of the normals at vertices shown as arrows

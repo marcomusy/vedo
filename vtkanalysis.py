@@ -811,7 +811,10 @@ def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3,
 
 def recoSurface(points, bins=256,
                 c='gold', alpha=1, wire=False, bc='t', edges=False, legend=None):
-
+    '''
+    Surface reconstruction from sparse points.
+    '''
+    
     if isinstance(points, vtk.vtkActor): points = vu.coordinates(points)
     N=len(points)
     if N<50: 
@@ -858,57 +861,93 @@ def recoSurface(points, bins=256,
     return vu.makeActor(surface.GetOutput(), c, alpha, wire, bc, edges, legend)
 
 
-
-def recoSurface2(points, bins=256,
-                 c='gold', alpha=1, wire=False, bc='t', edges=False, legend=None):
-
-    if isinstance(points, vtk.vtkActor): points = vu.coordinates(points)
-    N=len(points)
-    if N<50: 
-        print('recoSurface: Use at least 50 points.')
-        return None
-    points = np.array(points)
-
-    ptsSource = vtk.vtkPointSource()
-    ptsSource.SetNumberOfPoints(N)
-    ptsSource.Update()
-    vpts = ptsSource.GetOutput().GetPoints()
-    for i,p in enumerate(points): vpts.SetPoint(i, p)
-    polyData = ptsSource.GetOutput()
-
-    distance = vtk.vtkSignedDistance()
-    f=0.1
-    x0,x1,y0,y1,z0,z1 = polyData.GetBounds()
-    distance.SetBounds(x0-(x1-x0)*f, x1+(x1-x0)*f,
-                       y0-(y1-y0)*f, y1+(y1-y0)*f,
-                       z0-(z1-z0)*f, z1+(z1-z0)*f)
-    if polyData.GetPointData().GetNormals():
-        distance.SetInputData(polyData)
-        vu.setInput(distance, polyData)
+def cluster(points, radius, legend=None):
+    '''
+    Clustering of points in space.
+    radius, is the radius of local search.
+    Individual subsets can be accessed through actor.clusters
+    '''
+    if isinstance(points, vtk.vtkActor): 
+        poly = vu.polydata(points)
     else:
-        print ('Recalculating normals for', N, 'points')
-        normals = vtk.vtkPCANormalEstimation()
-        vu.setInput(normals, polyData)
-        normals.SetSampleSize(int(N/50))
-        normals.SetNormalOrientationToGraphTraversal()
-        distance.SetInputConnection(normals.GetOutputPort())
-    radius = vu.diagonalSize(polyData)/bins*5
-    distance.SetRadius(radius)
-    distance.SetDimensions(bins, bins, bins)
-    distance.Update()  
+        src = vtk.vtkPointSource()
+        src.SetNumberOfPoints(len(points))
+        src.Update()
+        vpts = src.GetOutput().GetPoints()
+        for i,p in enumerate(points): vpts.SetPoint(i, p)
+        poly = src.GetOutput()
+        
+    cluster = vtk.vtkEuclideanClusterExtraction()
+    vu.setInput(cluster, poly)
+    cluster.SetExtractionModeToAllClusters()
+    cluster.SetRadius(radius)
+    cluster.ColorClustersOn()
+    cluster.Update()
+    
+    idsarr = cluster.GetOutput().GetPointData().GetArray('ClusterId')
+    Nc = cluster.GetNumberOfExtractedClusters()
+    
+    sets = [ [] for i in range(Nc)]
+    for i,p in enumerate(points): sets[idsarr.GetValue(i)].append(p)
+    
+    acts = []
+    for i,aset in enumerate(sets): 
+        acts.append(vs.points(aset, c=i))
 
-    print ('Calculating mesh from points with R =', radius)
-    surface = vtk.vtkExtractSurface()
-    surface.SetRadius(radius * .99)
-    surface.HoleFillingOn()
-    surface.ComputeNormalsOff()
-    surface.ComputeGradientsOff()
-    surface.SetInputConnection(distance.GetOutputPort())
-    surface.Update()  
-    return vu.makeActor(surface.GetOutput(), c, alpha, wire, bc, edges, legend)
+    actor = vu.makeAssembly(acts, legend=legend)
+    setattr(actor, 'clusters', sets)
+    print('Nr. of extracted clusters', Nc)
+    if Nc>10: print('First ten:')
+    for i in range(Nc):
+        if i>9: 
+            print('...')
+            break
+        print('Cluster #'+str(i)+',  N =', len(sets[i]))
+    print('Access individual clusters through attribute: actor.cluster')
+    return actor
+    
+    
 
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 

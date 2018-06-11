@@ -290,6 +290,20 @@ def assignConvenienceMethods(actor, legend):
         else: return self.GetProperty().GetOpacity()
     actor.alpha = types.MethodType( _falpha, actor)
 
+    def _fwire(self, a):
+        if a: 
+            self.GetProperty().SetRepresentationToWireframe()
+        else:
+            self.GetProperty().SetRepresentationToSurface()
+        return self
+    actor.wire = types.MethodType( _fwire, actor)
+
+    def _flegend(self, a=None):
+        if not hasattr(self, 'legend'):
+            setattr(self, 'legend', a)
+        return self
+    actor.legend = types.MethodType( _flegend, actor)
+
     def _fclosestPoint(self, pt, N=1, radius=None):
         return closestPoint(self, pt, N, radius)
     actor.closestPoint = types.MethodType( _fclosestPoint, actor)
@@ -369,6 +383,7 @@ def assignPhysicsMethods(actor):
     def _farea(self): return area(self)
     actor.area = types.MethodType(_farea, actor)
 
+
 ######################################################### 
 def clone(actor, c=None, alpha=None, wire=False, bc=None,
           edges=False, legend=None, texture=None, rebuild=True):
@@ -388,9 +403,7 @@ def clone(actor, c=None, alpha=None, wire=False, bc=None,
     if c       is None: c = actor.GetProperty().GetColor()
     if texture is None and hasattr(actor, 'texture'): texture = actor.texture
     cact = makeActor(polyCopy, c, alpha, wire, bc, edges, legend, texture)
-
     cact.GetProperty().SetPointSize(actor.GetProperty().GetPointSize())
-
     return cact
 
 
@@ -404,7 +417,7 @@ def flipNormals(actor): # N.B. input argument gets modified
     setInput(mapper, poly)
     mapper.Update()
     actor.Modified()
-    if hasattr(actor, 'poly'): actor.poly=None #clean cache
+    if hasattr(actor, 'poly'): actor.poly=poly
     return actor  # return same obj for concatenation
 
 
@@ -429,7 +442,7 @@ def normalize(actor): # N.B. input argument gets modified
     setInput(mapper, tf.GetOutput())
     mapper.Update()
     actor.Modified()
-    if hasattr(actor, 'poly'): actor.poly=None #clean cache
+    if hasattr(actor, 'poly'): actor.poly=tf.GetOutput()
     return actor  # return same obj for concatenation
 
     
@@ -443,12 +456,12 @@ def rotate(actor, angle, axis, axis_point=[0,0,0], rad=False):
     aa, bb, cc, dd = a * a, b * b, c * c, d * d
     bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
     R = np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
-                    [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
-                    [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+                  [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                  [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
     rv = np.dot(R, actor.GetPosition()-np.array(axis_point)) + axis_point
     
     if rad: angle *= 57.3
-    # this stupid vtk method only rotates in the origin of the actor:
+    # this vtk method only rotates in the origin of the actor:
     actor.RotateWXYZ(angle, axis[0], axis[1], axis[2] )
     actor.SetPosition(rv)
     return actor
@@ -651,6 +664,26 @@ def isIdentity(M, tol=1e-06):
             elif np.abs(e) > tol: return False
     return True
 
+
+def cleanPolydata(actor, tol=None):
+    '''
+    Clean actor's polydata.
+        tol paramenter defines how far should be the points from each other
+        in terms of fraction of bounding box length.
+    '''
+    poly = polydata(actor, False)
+    cleanPolyData = vtk.vtkCleanPolyData()
+    setInput(cleanPolyData, poly)
+    if tol: cleanPolyData.SetTolerance(tol)
+    cleanPolyData.PointMergingOn()
+    cleanPolyData.Update()
+    mapper = actor.GetMapper()
+    setInput(mapper, cleanPolyData.GetOutput())
+    mapper.Update()
+    actor.Modified()
+    if hasattr(actor, 'poly'): actor.poly = cleanPolyData.GetOutput()
+    return actor # NB: polydata is being changed
+    
 
 #################################################################### get stuff
 def polydata(obj, rebuild=True, index=0): 
