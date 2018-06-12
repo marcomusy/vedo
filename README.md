@@ -284,8 +284,8 @@ def booleanOperation(actor1, actor2, operation='plus',  # possible operations: p
 def mergeActors(actors, c=None, alpha=1, wire=False, bc=None, edges=False, legend=None, texture=None)
 def intersectWithLine(actor, p0, p1)
 #
-def show(actors=None, at=0, legend=None, axes=0, ruler=False, interactive=None,
-         c='gold', bc=None, alpha=0.2, wire=False, edges=False, resetcam=True, q=False)
+def show(actors=None, at=0, legend=None, axes=0, ruler=False, c='gold', bc=None, 
+         alpha=0.2, wire=False, resetcam=True, interactive=None, q=False)
 def clear(actors=[])
 def render(resetcam=False, rate=10000)
 def addActor(actor)

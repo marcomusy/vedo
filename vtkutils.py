@@ -69,6 +69,7 @@ def makeActor(poly, c='gold', alpha=0.5,
     mapper = vtk.vtkPolyDataMapper()
 
     # check if color string contains a float, in this case ignore alpha
+    if alpha is None: alpha=0.5
     al = vtkcolors.getAlpha(c)
     if al: alpha = al
 

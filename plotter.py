@@ -1201,7 +1201,7 @@ class vtkPlotter:
     #################################################################################
     def show(self, actors=None, at=None,
              legend=None, axes=None, ruler=False,
-             c='gold', alpha=0.5, wire=False, bc=None, edges=False,
+             c=None, alpha=None , wire=False, bc=None, 
              resetcam=True, interactive=None, q=False):
         '''
         Render a list of actors.
@@ -1216,7 +1216,6 @@ class vtkPlotter:
             c      = surface color, in rgb, hex or name formats
             bc     = set a color for the internal surface face
             wire   = show actor in wireframe representation
-            edges  = show the edges on top of surface
             resetcam = re-adjust camera position to fit objects
             interactive = pause and interact with window (True)
                           or continue execution (False)
@@ -1227,16 +1226,28 @@ class vtkPlotter:
             scannedacts=[]
             if not isSequence(wannabeacts): wannabeacts = [wannabeacts]
             for a in wannabeacts: # scan content of list
-                if   isinstance(a, vtk.vtkActor):      scannedacts.append(a)
+                if isinstance(a, vtk.vtkActor):      
+                    if c is not None: a.GetProperty().SetColor(getColor(c))
+            
+                    if alpha is not None: a.GetProperty().SetOpacity(alpha)
+                    
+                    if wire: a.GetProperty().SetRepresentationToWireframe()
+            
+                    if bc: # defines a specific color for the backface
+                        backProp = vtk.vtkProperty()
+                        backProp.SetDiffuseColor(getColor(bc))
+                        if alpha: backProp.SetOpacity(alpha)
+                        a.SetBackfaceProperty(backProp)
+                    scannedacts.append(a)
                 elif isinstance(a, vtk.vtkAssembly):   scannedacts.append(a)
                 elif isinstance(a, vtk.vtkActor2D):    scannedacts.append(a)
                 elif isinstance(a, vtk.vtkImageActor): scannedacts.append(a)
                 elif isinstance(a, vtk.vtkPolyData):
-                    out = self.load(a, c, alpha, wire, bc, edges)
+                    out = self.load(a, c, alpha, wire, bc, False)
                     self.actors.pop()
                     scannedacts.append(out) 
                 elif isinstance(a, str): # assume a filepath was given
-                    out = self.load(a, c, alpha, wire, bc, edges)
+                    out = self.load(a, c, alpha, wire, bc, False)
                     self.actors.pop()
                     if isinstance(out, str):
                         printc(('File not found:', out), 1)
@@ -1255,7 +1266,7 @@ class vtkPlotter:
         else:
             actors2show = scan(self.actors)
             self.actors = list(actors2show)
-
+        
         if legend:
             if   isSequence(legend): self.legend = list(legend)
             elif isinstance(legend,  str): self.legend = [str(legend)]
