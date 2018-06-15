@@ -764,11 +764,20 @@ def text(txt, pos=(0,0,0), axis=(0,0,1), s=1, depth=0.1,
          c='k', alpha=1, bc=None, followcam=False, texture=None, cam=None):
     '''
     Returns a vtkActor that shows a text in 3D.
-    
+        
+        pos = position in 3D space
+              if an integer is passed [1 -> 8], places text in a corner
         s = size of text 
         depth = text thickness
         followcam = True, the text will auto-orient itself to it
     '''
+    if isinstance(pos, int):
+        cornerAnnotation = vtk.vtkCornerAnnotation()
+        cornerAnnotation.SetNonlinearFontScaleFactor(s/3)
+        cornerAnnotation.SetText(pos-1, txt )
+        cornerAnnotation.GetTextProperty().SetColor( vc.getColor(c) )
+        return cornerAnnotation
+        
     tt = vtk.vtkVectorText()
     tt.SetText(txt)
     tt.Update()

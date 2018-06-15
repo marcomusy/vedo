@@ -690,6 +690,8 @@ class vtkPlotter:
         '''
         Returns a vtkActor that shows a text in 3D.
         
+            pos = position in 3D space
+                  if an integer is passed [1 -> 8], places text in a corner
             s = size of text 
             depth = text thickness
             followcam = True, the text will auto-orient itself to it
@@ -886,6 +888,16 @@ class vtkPlotter:
         self.actors.append(a)
         return a    
         
+    
+    def removeOutliers(self, points, radius, c='k', alpha=1, legend=None):
+        '''
+        Remove outliers from a cloud of points within radius search
+        If points is a list of [x,y,z] return a reduced list of points
+        If input is a vtkActor return a vtkActor.
+        '''
+        a = vtkanalysis.removeOutliers(points, radius, c, alpha, legend)
+        if not isSequence(a): self.actors.append(a)
+        return a    
   
 
     ##########################################

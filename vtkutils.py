@@ -299,12 +299,6 @@ def assignConvenienceMethods(actor, legend):
         return self
     actor.wire = types.MethodType( _fwire, actor)
 
-    def _flegend(self, a=None):
-        if not hasattr(self, 'legend'):
-            setattr(self, 'legend', a)
-        return self
-    actor.legend = types.MethodType( _flegend, actor)
-
     def _fclosestPoint(self, pt, N=1, radius=None):
         return closestPoint(self, pt, N, radius)
     actor.closestPoint = types.MethodType( _fclosestPoint, actor)
@@ -631,6 +625,25 @@ def insidePoints(actor, points, invert=False, tol=1e-05):
     else:
         return mask1
 
+   
+def pointIsInTriangle(p, p1,p2,p3):
+    '''
+    Return True if a point is inside (or above/below) a triangle
+    defined by 3 points in space.
+    '''
+    p = np.array(p) 
+    u = np.array(p2) - p1
+    v = np.array(p3) - p1
+    n = np.cross(u,v)
+    w = p - p1
+    ln= np.dot(n,n)
+    if not ln: return True #degenerate triangle
+    gamma = ( np.dot(np.cross(u,w), n) )/ ln
+    beta  = ( np.dot(np.cross(w,v), n) )/ ln
+    alpha = 1-gamma-beta
+    if 0<alpha<1 and 0<beta<1 and 0<gamma<1: return True
+    return False
+
 
 def fillHoles(actor, size=None, legend=None): # not tested properly
     fh = vtk.vtkFillHolesFilter()
@@ -827,7 +840,6 @@ def maxBoundSize(actor):
     b = polydata(actor, True).GetBounds()
     return max(abs(b[1]-b[0]), abs(b[3]-b[2]), abs(b[5]-b[4]))
 
-   
 
 ########################################################################
 def closestPoint(actor, pt, N=1, radius=None):

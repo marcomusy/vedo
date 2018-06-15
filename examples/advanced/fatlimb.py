@@ -25,15 +25,15 @@ for t in range(Niter):
     for i in range(s.N()):
         n = normals[i]
         p = coords[i]
-        q = norm(p-c)*aves +c
+        q = norm(p-c)*aves + c
         dp = mag(q-p)
         alongn = n*dp
-        alongr = q - p
+        alongr = q - p # bias normal
         newp = p + (alongn + alongr) /2 /Niter 
         s.point(i, newp)
         
-    #refresh actor, so to recalc polydata normals
-    s = vp.makeActor(s.polydata(), wire=1, alpha=.1)
+    #refresh actor, so polydata normals are recalculated
+    s = s.clone(wire=1, alpha=.1)
     vp.actors.append(s)
 
 vp.show()

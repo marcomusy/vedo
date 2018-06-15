@@ -638,7 +638,7 @@ def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
     vu.setInput(mapper, decimate.GetOutput())
     mapper.Update()
     actor.Modified()
-    if hasattr(actor, 'poly'): actor.poly=None #clean cache
+    if hasattr(actor, 'poly'): actor.poly=decimate.GetOutput()
     return actor  # return same obj for concatenation
 
 
@@ -907,8 +907,43 @@ def cluster(points, radius, legend=None):
     return actor
     
     
-
+def removeOutliers(points, radius, c='k', alpha=1, legend=None):
+    '''
+    Remove outliers from a cloud of points within radius search
+    '''
+    isactor=False
+    if isinstance(points, vtk.vtkActor): 
+        isactor=True
+        poly = vu.polydata(points)
+    else:
+        src = vtk.vtkPointSource()
+        src.SetNumberOfPoints(len(points))
+        src.Update()
+        vpts = src.GetOutput().GetPoints()
+        for i,p in enumerate(points): vpts.SetPoint(i, p)
+        poly = src.GetOutput()
     
+    removal = vtk.vtkRadiusOutlierRemoval()
+    vu.setInput(removal, poly)
+    
+    removal.SetRadius(radius)
+    removal.SetNumberOfNeighbors(5)
+    removal.GenerateOutliersOff()
+    removal.Update()
+    rpoly = removal.GetOutput()
+    print("# of removed outlier points: ", 
+          removal.GetNumberOfPointsRemoved(),'/', poly.GetNumberOfPoints())
+    outpts=[]
+    for i in range(rpoly.GetNumberOfPoints()): 
+        outpts.append(list(rpoly.GetPoint(i)))
+    outpts = np.array(outpts)
+    if not isactor: return outpts
+
+    actor = vs.points(outpts, c=c, alpha=alpha, legend=legend)
+    return actor  # return same obj for concatenation
+
+          
+
     
     
     

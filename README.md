@@ -275,6 +275,7 @@ def pca(points, pvalue=.95, c='c', alpha=0.5, pcaaxes=False, legend=None)
 def smoothMLS(actor, f=0.2, decimate=1, recursive=1, showNPlanes=15)
 def recoSurface(points, bins=256, c='gold', alpha=1, wire=False, bc='t', edges=False, legend=None)
 def cluster(points, radius, legend=None)
+def removeOutliers(points, radius, c='k', alpha=1, legend=None)
 #
 def cutPlane(actor, origin=(0,0,0), normal=(1,0,0), showcut=True, showline=False, showpts=False)
 def closestPoint(surf, pt, locator=None, N=None, radius=None)
