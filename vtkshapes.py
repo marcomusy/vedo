@@ -3,6 +3,7 @@ import vtk
 import numpy as np
 import vtkutils as vu
 import vtkcolors as vc
+import vtkio as vio
 
 
 ########################################################################
@@ -38,10 +39,10 @@ def points(plist, c='b', tags=[], r=5, alpha=1, legend=None):
 
 def _colorPoints(plist, cols, r, alpha, legend):
     if len(plist) > len(cols):
-        vu.printc(("Mismatch in colorPoints()", len(plist), len(cols)), 1)
+        vio.printc(("Mismatch in colorPoints()", len(plist), len(cols)), 1)
         exit()
     if len(plist) != len(cols):
-        vu.printc(("Warning: mismatch in colorPoints()", len(plist), len(cols)))
+        vio.printc(("Warning: mismatch in colorPoints()", len(plist), len(cols)))
     src = vtk.vtkPointSource()
     src.SetNumberOfPoints(len(plist))
     src.Update()
@@ -264,7 +265,7 @@ def polygon(pos=[0,0,0], normal=[0,0,1], nsides=6, r=1,
         actor = vtk.vtkFollower()
         actor.SetCamera(camera)
         if not camera:
-            vu.printc('Warning: vtkCamera does not yet exist for polygon',5)
+            vio.printc('Warning: vtkCamera does not yet exist for polygon',5)
     else:
         actor = vtk.vtkActor()
     actor.SetMapper(mapper)
@@ -367,22 +368,22 @@ def spheres(centers, r=1,
 
     if cisseq:
         if len(centers) > len(c):
-            vu.printc(("Mismatch in spheres() colors", len(centers), len(c)), 1)
+            vio.printc(("Mismatch in spheres() colors", len(centers), len(c)), 1)
             exit()
         if len(centers) != len(c):
-            vu.printc(("Warning: mismatch in spheres() colors", len(centers), len(c)))
+            vio.printc(("Warning: mismatch in spheres() colors", len(centers), len(c)))
             
     risseq=False
     if vu.isSequence(r): risseq=True
 
     if risseq:
         if len(centers) > len(r):
-            vu.printc(("Mismatch in spheres() radius", len(centers), len(r)), 1)
+            vio.printc(("Mismatch in spheres() radius", len(centers), len(r)), 1)
             exit()
         if len(centers) != len(r):
-            vu.printc(("Warning: mismatch in spheres() radius", len(centers), len(r)))
+            vio.printc(("Warning: mismatch in spheres() radius", len(centers), len(r)))
     if cisseq and risseq:
-        vu.printc("Limitation: c and r cannot be both sequences.",1)
+        vio.printc("Limitation: c and r cannot be both sequences.",1)
         exit()
 
     src = vtk.vtkSphereSource()

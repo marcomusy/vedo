@@ -339,7 +339,96 @@ def delaunay2D(plist, tol=None, c='gold', alpha=0.5, wire=False, bc=None, edges=
     if tol: delny.SetTolerance(tol)
     delny.Update()
     return vu.makeActor(delny.GetOutput(), c, alpha, wire, bc, edges, legend, texture)
-    
+
+
+def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
+    '''
+    Build a vtkActor made of the normals at vertices shown as arrows
+    '''
+    maskPts = vtk.vtkMaskPoints()
+    maskPts.SetOnRatio(ratio)
+    maskPts.RandomModeOff()
+    src = vu.polydata(actor)
+    vu.setInput(maskPts, src)
+    arrow = vtk.vtkArrowSource()
+    arrow.SetTipRadius(0.075)
+    glyph = vtk.vtkGlyph3D()
+    glyph.SetSourceConnection(arrow.GetOutputPort())
+    glyph.SetInputConnection(maskPts.GetOutputPort())
+    glyph.SetVectorModeToUseNormal()
+    b = src.GetBounds()
+    sc = max( [ b[1]-b[0], b[3]-b[2], b[5]-b[4] ] )/20.
+    glyph.SetScaleFactor(sc)
+    glyph.SetColorModeToColorByVector()
+    glyph.SetScaleModeToScaleByVector()
+    glyph.OrientOn()
+    glyph.Update()
+    glyphMapper = vtk.vtkPolyDataMapper()
+    glyphMapper.SetInputConnection(glyph.GetOutputPort())
+    glyphMapper.SetScalarModeToUsePointFieldData()
+    glyphMapper.SetColorModeToMapScalars()
+    glyphMapper.ScalarVisibilityOn()
+    glyphMapper.SelectColorArray("Elevation")
+    glyphActor = vtk.vtkActor()
+    glyphActor.SetMapper(glyphMapper)
+    glyphActor.GetProperty().EdgeVisibilityOff()
+    glyphActor.GetProperty().SetColor(vc.getColor(c))
+    # check if color string contains a float, in this case ignore alpha
+    al = vc.getAlpha(c)
+    if al: alpha = al
+    glyphActor.GetProperty().SetOpacity(alpha)
+    aactor = vu.makeAssembly([actor, glyphActor], legend=legend)
+    return aactor
+
+
+def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None):
+    '''
+    Build a copy of vtkActor that contains the color coded surface
+    curvature following four different ways to calculate it:
+        method =  0-gaussian, 1-mean, 2-max, 3-min
+    '''
+    poly = vu.polydata(actor)
+    cleaner = vtk.vtkCleanPolyData()
+    vu.setInput(cleaner, poly)
+    curve = vtk.vtkCurvatures()
+    curve.SetInputConnection(cleaner.GetOutputPort())
+    curve.SetCurvatureType(method)
+    curve.InvertMeanCurvatureOn()
+    curve.Update()
+    print('CurvatureType set to:', method)
+    if not lut:
+        lut = vtk.vtkLookupTable()
+        lut.SetNumberOfColors(256)
+        lut.SetHueRange(0.15, 1)
+        lut.SetSaturationRange(1, 1)
+        lut.SetValueRange(1, 1)
+        lut.SetAlphaRange(alpha, 1)
+        b = poly.GetBounds()
+        sc = max( [ b[1]-b[0], b[3]-b[2], b[5]-b[4] ] )
+        lut.SetRange(-0.01/sc*r, 0.01/sc*r)
+    cmapper = vtk.vtkPolyDataMapper()
+    cmapper.SetInputConnection(curve.GetOutputPort())
+    cmapper.SetLookupTable(lut)
+    cmapper.SetUseLookupTableScalarRange(1)
+    cactor = vtk.vtkActor()
+    cactor.SetMapper(cmapper)
+    return cactor
+
+
+def boundaries(actor, c='p', lw=5, legend=None):
+    '''Build a copy of actor that shows the boundary lines of its surface.'''
+    fe = vtk.vtkFeatureEdges()
+    vu.setInput(fe, vu.polydata(actor))
+    fe.BoundaryEdgesOn()
+    fe.FeatureEdgesOn()
+    fe.ManifoldEdgesOn()
+    fe.NonManifoldEdgesOn()
+    fe.ColoringOff()
+    fe.Update()
+    bactor = vu.makeActor(fe.GetOutput(), c=c, alpha=1, legend=legend)
+    bactor.GetProperty().SetLineWidth(lw)
+    return bactor
+
 
 ################# working with point clouds
 def fitLine(points, c='orange', lw=1, alpha=0.6, legend=None):
@@ -500,7 +589,7 @@ def smoothMLS(actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
     if showNPlanes: ndiv = int(nshow/showNPlanes*decimate)
     
     if Ncp<5:
-        vio.printc('Please choose a higher fraction than'+str(f), 1)
+        vio.printc('Please choose a higher fraction than '+str(f), 1)
         Ncp=5
     print('smoothMLS: Searching #neighbours, #pt:', Ncp, ncoords)
     
@@ -552,7 +641,94 @@ def smoothMLS(actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
         return ass #NB: a demo actor is returned
 
     return actor #NB: original actor is modified
+   
     
+def smoothLineMLS(actor, f=0.2, showNLines=0):
+    '''
+    Smooth actor or points with a Moving Least Squares variant.
+    The list actor.variances contain the residue calculated for each point.
+    Input actor's polydata is modified.
+    
+        f, smoothing factor - typical range s [0,2]
+                      
+        showNLines, build an actor showing the fitting line for N random points            
+    '''        
+    coords  = vu.coordinates(actor)
+    ncoords = len(coords)
+    Ncp     = int(ncoords*f/10)
+    nshow   = int(ncoords)
+    if showNLines: ndiv = int(nshow/showNLines)
+    
+    if Ncp<3:
+        vio.printc('Please choose a higher fraction than '+str(f), 1)
+        Ncp=3
+    
+    poly = vu.polydata(actor, True)
+    vpts = poly.GetPoints()
+    locator = vtk.vtkPointLocator()
+    locator.SetDataSet(poly)
+    locator.BuildLocator()
+    vtklist = vtk.vtkIdList()        
+    variances, newline, acts = [], [], []
+    for i, p in enumerate(coords):
+        
+        locator.FindClosestNPoints(Ncp, p, vtklist)
+        points  = []
+        for j in range(vtklist.GetNumberOfIds()):
+            trgp = [0,0,0]
+            vpts.GetPoint(vtklist.GetId(j), trgp )
+            points.append( trgp )
+        if len(points)<2: continue
+        
+        points = np.array(points)
+        pointsmean = points.mean(axis=0) # plane center
+        uu, dd, vv = np.linalg.svd(points-pointsmean)
+        newp = np.dot(p-pointsmean, vv[0])*vv[0] + pointsmean
+        variances.append(dd[1]+dd[2])
+        newline.append(newp)
+    
+        if showNLines and not i%ndiv: 
+            fline = fitLine(points, lw=4,alpha=1) # fitting plane
+            iapts = vs.points(points)  # blue points
+            acts += [fline, iapts]
+                    
+    for i in range(ncoords): vpts.SetPoint(i, newline[i])
+
+    if showNLines:
+        apts = vs.points(newline, c='r 0.6', r=2)
+        ass = vu.makeAssembly([apts]+acts)
+        return ass #NB: a demo actor is returned
+
+    setattr(actor, 'variances', np.array(variances))
+    return actor #NB: original actor is modified
+   
+
+def extractLines(actor, n=5):
+    
+    coords  = vu.coordinates(actor)
+    poly = vu.polydata(actor, True)
+    vpts = poly.GetPoints()
+    locator = vtk.vtkPointLocator()
+    locator.SetDataSet(poly)
+    locator.BuildLocator()
+    vtklist = vtk.vtkIdList()  
+    spts=[]
+    for i, p in enumerate(coords):
+        locator.FindClosestNPoints(n, p, vtklist)
+        points  = []
+        for j in range(vtklist.GetNumberOfIds()):
+            trgp = [0,0,0]
+            vpts.GetPoint(vtklist.GetId(j), trgp )
+            if (p-trgp).any(): points.append( trgp )
+        p0 = points.pop()
+        dots = []
+        for ps in points:
+            dots.append( np.dot(p0-p, ps-p) )
+        if len(np.unique(np.sign(dots)))==1:
+            spts.append(p)
+    return np.array(spts)
+
+
 
 def align(source, target, iters=100, legend=None):
     '''

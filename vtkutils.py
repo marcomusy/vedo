@@ -278,20 +278,22 @@ def assignConvenienceMethods(actor, legend):
     actor.decimate = types.MethodType( _fdecimate, actor)
 
     def _fcolor(self, c=None):
-        if c: 
+        if c is not None: 
             self.GetProperty().SetColor(vtkcolors.getColor(c))
             return self
-        else: return np.array(self.GetProperty().GetColor())
+        else: 
+            return np.array(self.GetProperty().GetColor())
     actor.color = types.MethodType( _fcolor, actor)
 
     def _falpha(self, a=None):
         if a: 
             self.GetProperty().SetOpacity(a)
             return self
-        else: return self.GetProperty().GetOpacity()
+        else: 
+            return self.GetProperty().GetOpacity()
     actor.alpha = types.MethodType( _falpha, actor)
 
-    def _fwire(self, a):
+    def _fwire(self, a=True):
         if a: 
             self.GetProperty().SetRepresentationToWireframe()
         else:
@@ -842,7 +844,7 @@ def maxBoundSize(actor):
 
 
 ########################################################################
-def closestPoint(actor, pt, N=1, radius=None):
+def closestPoint(actor, pt, N=1, radius=None, returnIds=False):
     """
     Find the closest point on a polydata given an other point.
         If N>1, return a list of N ordered closest points.
@@ -859,15 +861,20 @@ def closestPoint(actor, pt, N=1, radius=None):
             setattr(actor, 'point_locator', point_locator)
         
         vtklist = vtk.vtkIdList()
-        if N>1: actor.point_locator.FindClosestNPoints(N, pt, vtklist)
-        else: actor.point_locator.FindPointsWithinRadius(radius, pt, vtklist)
-        trgp  = []
-        for i in range(vtklist.GetNumberOfIds()):
-            trgp_ = [0,0,0]
-            vi = vtklist.GetId(i)
-            poly.GetPoints().GetPoint(vi, trgp_ )
-            trgp.append( trgp_ )
-        return np.array(trgp)
+        if N>1: 
+            actor.point_locator.FindClosestNPoints(N, pt, vtklist)
+        else: 
+            actor.point_locator.FindPointsWithinRadius(radius, pt, vtklist)
+        if returnIds:
+            return [int(vtklist.GetId(k)) for k in range(vtklist.GetNumberOfIds())]
+        else:
+            trgp  = []
+            for i in range(vtklist.GetNumberOfIds()):
+                trgp_ = [0,0,0]
+                vi = vtklist.GetId(i)
+                poly.GetPoints().GetPoint(vi, trgp_ )
+                trgp.append( trgp_ )
+            return np.array(trgp)
 
     clocexists = hasattr(actor, 'cell_locator')
     if not clocexists or (clocexists and actor.cell_locator is None):
@@ -881,5 +888,13 @@ def closestPoint(actor, pt, N=1, radius=None):
     dist2 = vtk.mutable(0)
     subid = vtk.mutable(0)
     actor.cell_locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
-    return np.array(trgp)
+    if returnIds: 
+        return int(cid)
+    else:
+        return np.array(trgp)
+
+
+
+
+
 

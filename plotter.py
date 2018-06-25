@@ -51,7 +51,6 @@ class vtkPlotter:
         msg += "\tx   to toggle selected actor visibility\n"
         msg += "\tX   to open a cutter widget for sel. actor\n"
         msg += "\t1-4 to change color scheme\n"
-        msg += "\tV   to toggle verbose mode\n"
         msg += "\tC   to print current camera info\n"
         msg += "\tS   to save a screenshot\n"
         msg += "\tq   to continue\n"
@@ -267,17 +266,24 @@ class vtkPlotter:
            
             Optional args:
                 c,       color in RGB format, hex, symbol or name
+                
                 alpha,   transparency (0=invisible)
+                
                 wire,    show surface as wireframe      
+                
                 bc,      backface color of internal surface      
+                
                 legend,  text to show on legend, True picks filename
+                
                 texture, any png/jpg file can be used as texture
            
             For volumetric data (tiff, slc files):
                 smoothing,    gaussian filter to smooth vtkImageData
+                
                 threshold,    value to draw the isosurface
-                connectivity, if True only keeps the largest 
-                              portion of the polydata
+                
+                connectivity, if True only keeps the largest portion of the polydata
+                
                 scaling,      scaling factors for x y an z coordinates 
         '''
         if isinstance(inputobj, vtk.vtkPolyData):
@@ -835,6 +841,21 @@ class vtkPlotter:
         return actor #NB: original actor is modified
     
 
+    def smoothLineMLS(self, actor, f=0.2, showNLines=0):
+        '''
+        Smooth actor or points with a Moving Least Squares variant.
+        The list actor.variances contain the residue calculated for each point.
+        Input actor's polydata is modified.
+        
+            f, smoothing factor - typical range s [0,2]
+            
+            showNLines, build an actor showing the fitting line for N random points            
+        '''        
+        actor = vtkanalysis.smoothLineMLS(actor, f, showNLines)
+        self.actors.append(actor)
+        return actor #NB: original actor is modified
+    
+
     def align(self, source, target, iters=100, legend=None):
         '''
         Return a copy of source actor which is aligned to
@@ -905,91 +926,27 @@ class vtkPlotter:
         '''
         Build a vtkActor made of the normals at vertices shown as arrows
         '''
-        maskPts = vtk.vtkMaskPoints()
-        maskPts.SetOnRatio(ratio)
-        maskPts.RandomModeOff()
-        src = polydata(actor)
-        setInput(maskPts, src)
-        arrow = vtk.vtkArrowSource()
-        arrow.SetTipRadius(0.075)
-        glyph = vtk.vtkGlyph3D()
-        glyph.SetSourceConnection(arrow.GetOutputPort())
-        glyph.SetInputConnection(maskPts.GetOutputPort())
-        glyph.SetVectorModeToUseNormal()
-        b = src.GetBounds()
-        sc = max( [ b[1]-b[0], b[3]-b[2], b[5]-b[4] ] )/20.
-        glyph.SetScaleFactor(sc)
-        glyph.SetColorModeToColorByVector()
-        glyph.SetScaleModeToScaleByVector()
-        glyph.OrientOn()
-        glyph.Update()
-        glyphMapper = vtk.vtkPolyDataMapper()
-        glyphMapper.SetInputConnection(glyph.GetOutputPort())
-        glyphMapper.SetScalarModeToUsePointFieldData()
-        glyphMapper.SetColorModeToMapScalars()
-        glyphMapper.ScalarVisibilityOn()
-        glyphMapper.SelectColorArray("Elevation")
-        glyphActor = vtk.vtkActor()
-        glyphActor.SetMapper(glyphMapper)
-        glyphActor.GetProperty().EdgeVisibilityOff()
-        glyphActor.GetProperty().SetColor(getColor(c))
-        # check if color string contains a float, in this case ignore alpha
-        al = getAlpha(c)
-        if al: alpha = al
-        glyphActor.GetProperty().SetOpacity(alpha)
-        aactor = makeAssembly([actor, glyphActor], legend=legend)
+        aactor = vtkanalysis.normals(actor, ratio, c, alpha, legend)
         self.actors.append(aactor)
         return aactor
-
+    
     def curvature(self, actor, method=1, r=1, alpha=1, lut=None, legend=None):
         '''
         Build a copy of vtkActor that contains the color coded surface
         curvature following four different ways to calculate it:
             method =  0-gaussian, 1-mean, 2-max, 3-min
         '''
-        poly = polydata(actor)
-        cleaner = vtk.vtkCleanPolyData()
-        setInput(cleaner, poly)
-        curve = vtk.vtkCurvatures()
-        curve.SetInputConnection(cleaner.GetOutputPort())
-        curve.SetCurvatureType(method)
-        curve.InvertMeanCurvatureOn()
-        curve.Update()
-        if self.verbose: print('CurvatureType set to:', method)
-        if not lut:
-            lut = vtk.vtkLookupTable()
-            lut.SetNumberOfColors(256)
-            lut.SetHueRange(0.15, 1)
-            lut.SetSaturationRange(1, 1)
-            lut.SetValueRange(1, 1)
-            lut.SetAlphaRange(alpha, 1)
-            b = poly.GetBounds()
-            sc = max( [ b[1]-b[0], b[3]-b[2], b[5]-b[4] ] )
-            lut.SetRange(-0.01/sc*r, 0.01/sc*r)
-        cmapper = vtk.vtkPolyDataMapper()
-        cmapper.SetInputConnection(curve.GetOutputPort())
-        cmapper.SetLookupTable(lut)
-        cmapper.SetUseLookupTableScalarRange(1)
-        cactor = vtk.vtkActor()
-        cactor.SetMapper(cmapper)
+        cactor = vtkanalysis.curvature(actor, method, r, alpha, lut, legend)
         self.actors.append(cactor)
         if legend: setattr(cactor, 'legend', legend)
         return cactor
 
     def boundaries(self, actor, c='p', lw=5, legend=None):
         '''Build a copy of actor that shows the boundary lines of its surface.'''
-        fe = vtk.vtkFeatureEdges()
-        setInput(fe, polydata(actor))
-        fe.BoundaryEdgesOn()
-        fe.FeatureEdgesOn()
-        fe.ManifoldEdgesOn()
-        fe.NonManifoldEdgesOn()
-        fe.ColoringOff()
-        fe.Update()
-        bactor = makeActor(fe.GetOutput(), c=c, alpha=1, legend=legend)
-        bactor.GetProperty().SetLineWidth(lw)
+        bactor = vtkanalysis.boundaries(actor, c, lw, legend)
         self.actors.append(bactor)
         return bactor
+
 
     def addScalarBar(self, actor=None, c='k', horizontal=False):
         """
@@ -1231,7 +1188,7 @@ class vtkPlotter:
             resetcam = re-adjust camera position to fit objects
             interactive = pause and interact with window (True)
                           or continue execution (False)
-            q      = force program exit after show() command
+            q      = force program to quit after show() command
         '''
 
         def scan(wannabeacts):

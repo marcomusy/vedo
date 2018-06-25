@@ -225,10 +225,12 @@ def keypress(vp, obj, event):
             try:
                 ia.GetProperty().SetRepresentationToSurface()
                 ls = ia.GetProperty().GetLineWidth()
-                if ls==1: 
-                    ia.GetProperty().EdgeVisibilityOff() 
-                    ia.GetProperty().SetLineWidth(0)
-                else: ia.GetProperty().SetLineWidth(ls-1)
+                if ls<=1: 
+                    ls=1
+                    ia.GetProperty().EdgeVisibilityOff()
+                else: 
+                    ia.GetProperty().EdgeVisibilityOn()
+                    ia.GetProperty().SetLineWidth(ls-1)
             except AttributeError: pass
 
     elif key == "l":
