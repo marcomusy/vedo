@@ -10,7 +10,7 @@ coords = d0.coordinates() # get the coordinates of the mesh vertices
 # Build a mesh starting from points in space (they must be projectable on the XY plane)
 d1 = vp.delaunay2D(coords, c='r', wire=1, legend='delaunay mesh')
 
-cents = vp.cellCenters(d1)
+cents = d1.cellCenters()
 ap = vp.points(cents, legend='cell centers')
 
 vp.show([d0,d1], at=0) # NB: d0 and d1 are slightly different

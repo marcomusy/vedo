@@ -40,9 +40,9 @@ s1 = s0.clone(c='dg') # a dark green copy of it
 
 # project s1 points into a smooth surface of points 
 # return a demo actor showing 30 regressions at random points
-mls1 = vp1.smoothMLS(s1, f=0.5, showNPlanes=30) # first pass
-mls2 = vp1.smoothMLS(s1, f=0.3, showNPlanes=30) # second pass
-vp1.smoothMLS(s1, f=0.1) # third pass
+mls1 = vp1.smoothMLS2D(s1, f=0.5, showNPlanes=30) # first pass
+mls2 = vp1.smoothMLS2D(s1, f=0.3, showNPlanes=30) # second pass
+vp1.smoothMLS2D(s1, f=0.1) # third pass
 
 vp1.show([s0,act], at=0) 
 vp1.show(mls1, at=1, legend='first pass') 

@@ -50,7 +50,7 @@ def spline(points, smooth=0.5, degree=2,
     actline = vu.makeActor(profileData, c=c, alpha=alpha, legend=legend)
     actline.GetProperty().SetLineWidth(s)
     if nodes:
-        actnodes = vs.points(points, r=s*1.5, c=c, alpha=alpha)
+        actnodes = vs.points(points, r=5, c=c, alpha=alpha)
         ass = vu.makeAssembly([actline, actnodes], legend=legend)
         return ass
     else:
@@ -519,6 +519,7 @@ def pca(points, pvalue=.95, c='c', alpha=0.5, pcaAxes=False, legend=None):
     except:
         vio.printc("Error in ellipsoid(): scipy not installed. Skip.",1)
         return None
+    if isinstance(points, vtk.vtkActor): points=vu.coordinates(points)
     if len(points) == 0: return None
     P = np.array(points, ndmin=2, dtype=float)
     cov = np.cov(P, rowvar=0)      # covariance matrix
@@ -527,9 +528,9 @@ def pca(points, pvalue=.95, c='c', alpha=0.5, pcaAxes=False, legend=None):
     fppf = f.ppf(pvalue, p, n-p)*(n-1)*p*(n+1)/n/(n-p) # f % point function
     ua,ub,uc = np.sqrt(s*fppf)*2   # semi-axes (largest first)
     center = np.mean(P, axis=0)    # centroid of the hyperellipsoid
-    sphericity =  (((ua-ub)/(ua+ub))**2
-                    + ((ua-uc)/(ua+uc))**2
-                    + ((ub-uc)/(ub+uc))**2 )/3. *4.
+    sphericity = ( ((ua-ub)/(ua+ub))**2
+                 + ((ua-uc)/(ua+uc))**2
+                 + ((ub-uc)/(ub+uc))**2 )/3. *4.
     elliSource = vtk.vtkSphereSource()
     elliSource.SetThetaResolution(48)
     elliSource.SetPhiResolution(48)
@@ -568,7 +569,7 @@ def pca(points, pvalue=.95, c='c', alpha=0.5, pcaAxes=False, legend=None):
     return finact
 
 
-def smoothMLS(actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
+def smoothMLS2D(actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
     '''
     Smooth actor or points with a Moving Least Squares variant.
     The list actor.variances contain the residue calculated for each point.
@@ -643,7 +644,7 @@ def smoothMLS(actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
     return actor #NB: original actor is modified
    
     
-def smoothLineMLS(actor, f=0.2, showNLines=0):
+def smoothMLS1D(actor, f=0.2, showNLines=0):
     '''
     Smooth actor or points with a Moving Least Squares variant.
     The list actor.variances contain the residue calculated for each point.
@@ -720,10 +721,8 @@ def extractLines(actor, n=5):
             trgp = [0,0,0]
             vpts.GetPoint(vtklist.GetId(j), trgp )
             if (p-trgp).any(): points.append( trgp )
-        p0 = points.pop()
-        dots = []
-        for ps in points:
-            dots.append( np.dot(p0-p, ps-p) )
+        p0 = points.pop()-p
+        dots = [np.dot(p0, ps-p) for ps in points]
         if len(np.unique(np.sign(dots)))==1:
             spts.append(p)
     return np.array(spts)
@@ -847,18 +846,18 @@ def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1,
     return actor
        
 
-
 def intersectWithLine(act, p0, p1):
     '''Return a list of points between p0 and p1 intersecting the actor'''
-    if not hasattr(act, 'linelocator'):
-        linelocator = vtk.vtkOBBTree()
-        linelocator.SetDataSet(vu.polydata(act, True))
-        linelocator.BuildLocator()
-        setattr(act, 'linelocator', linelocator)
+    
+    if not hasattr(act, 'line_locator'):
+        line_locator = vtk.vtkOBBTree()
+        line_locator.SetDataSet(vu.polydata(act, True))
+        line_locator.BuildLocator()
+        setattr(act, 'line_locator', line_locator)
 
     intersectPoints = vtk.vtkPoints()
     intersection = [0, 0, 0]
-    act.linelocator.IntersectWithLine(p0, p1, intersectPoints, None)
+    act.line_locator.IntersectWithLine(p0, p1, intersectPoints, None)
     pts=[]
     for i in range(intersectPoints.GetNumberOfPoints()):
         intersectPoints.GetPoint(i, intersection)
@@ -895,7 +894,6 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     backProp.SetDiffuseColor(vc.getColor(bc))
     backProp.SetOpacity(alpha)
     act0.SetBackfaceProperty(backProp)
-    #act0 = makeActor(clipper.GetOutputPort())
     
     act0.GetProperty().SetInterpolationToFlat()
     vu.assignPhysicsMethods(act0)    

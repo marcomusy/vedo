@@ -2,7 +2,8 @@ from __future__ import division, print_function
 import os, types
 import numpy as np
 import vtk
-from vtk.util import numpy_support
+from vtk.util.numpy_support import numpy_to_vtk
+from vtk.util.numpy_support import vtk_to_numpy
 import vtkcolors, vtkanalysis, vtkio 
 
 
@@ -24,7 +25,7 @@ def isSequence(arg):
 def arange(start,stop, step=1): 
     return np.arange(start, stop, step)
 
-def vector(x, y ,z=0):
+def vector(x, y, z=0):
     return np.array([x,y,z])
 
 def mag(z):
@@ -77,8 +78,13 @@ def makeActor(poly, c='gold', alpha=0.5,
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
     prp = actor.GetProperty()
-    if vtk.vtkVersion().GetVTKMajorVersion()>7: 
-        prp.RenderPointsAsSpheresOn()
+
+    #########################################################################     
+    ### On some vtk versions/platforms points are redered as ugly squares
+    ### in such a case uncomment this line:
+    if vtk.vtkVersion().GetVTKMajorVersion()>6: prp.RenderPointsAsSpheresOn()
+    ######################################################################### 
+    
     if c is None: 
         mapper.ScalarVisibilityOn()
     else:
@@ -261,7 +267,7 @@ def assignConvenienceMethods(actor, legend):
 
     def _fnormals(self): 
         vtknormals = polydata(self, True).GetPointData().GetNormals()
-        as_numpy = numpy_support.vtk_to_numpy(vtknormals)
+        as_numpy = vtk_to_numpy(vtknormals)
         return as_numpy
     actor.normals = types.MethodType( _fnormals, actor )
 
@@ -320,6 +326,30 @@ def assignConvenienceMethods(actor, legend):
     def _fflipNormals(self):
         return flipNormals(self)
     actor.flipNormals = types.MethodType(_fflipNormals , actor)
+    
+    def _fcellCenters(self):
+        return cellCenters(self)
+    actor.cellCenters = types.MethodType(_fcellCenters, actor)
+    
+    def _fpointScalars(self, scalars, name):
+        return pointScalars(self, scalars, name)
+    actor.pointScalars = types.MethodType(_fpointScalars , actor)
+    
+    def _fpointColors(self, scalars, cmap='jet'):
+        return pointColors(self, scalars, cmap)
+    actor.pointColors = types.MethodType(_fpointColors , actor)
+    
+    def _fcellScalars(self, scalars, name):
+        return cellScalars(self, scalars, name)
+    actor.cellScalars = types.MethodType(_fcellScalars , actor)
+
+    def _fcellColors(self, scalars, cmap='jet'):
+        return cellColors(self, scalars, cmap)
+    actor.cellColors = types.MethodType(_fcellColors , actor)
+
+    def _fscalars(self, name):
+        return scalars(self, name)
+    actor.scalars = types.MethodType(_fscalars , actor)
 
 
 # ###########################################################################
@@ -538,7 +568,8 @@ def stretch(actor, q1, q2):
 def mergeActors(actors, c=None, alpha=1, 
                 wire=False, bc=None, edges=False, legend=None, texture=None):
     '''
-    Build a new actor formed by the sum of the polydata of the input objects.
+    Build a new actor formed by the fusion of the polydata of the input objects.
+    Similar to makeAssembly, but in this case the input objects become a single one.
     '''
     polylns = vtk.vtkAppendPolyData()
     for a in actors:
@@ -770,7 +801,6 @@ def polydata(obj, rebuild=True, index=0):
     exit(1)
 
 
-
 def coordinates(actor, rebuild=True):
     """Return a merged list of coordinates of actors or polys"""
     pts = []
@@ -847,6 +877,7 @@ def maxBoundSize(actor):
 def closestPoint(actor, pt, N=1, radius=None, returnIds=False):
     """
     Find the closest point on a polydata given an other point.
+    The appropriate locator is built on the fly and cached for speed.
         If N>1, return a list of N ordered closest points.
         If radius is given, get all points within.
     """
@@ -894,7 +925,100 @@ def closestPoint(actor, pt, N=1, radius=None, returnIds=False):
         return np.array(trgp)
 
 
+def pointScalars(actor, scalars, name):
+        """
+        Set point scalars to the polydata
+        """
+        poly = polydata(actor, False)
+        scalars = np.array(scalars) - np.min(scalars)
+        scalars = scalars/np.max(scalars)
+        if len(scalars) != poly.GetNumberOfPoints():
+            vtkio.printc('Number of scalars != nr. of points',1)
+            exit()
+        arr = numpy_to_vtk(scalars, deep=True)
+        arr.SetName(name)
+        poly.GetPointData().AddArray(arr)
+        poly.GetPointData().SetActiveScalars(name)
+        actor.GetMapper().ScalarVisibilityOn()
 
 
+def pointColors(actor, scalars, cmap='jet'):
+        """
+        Set individual point colors by setting a scalar
+        """
+        poly = polydata(actor, False)
+        if len(scalars) != poly.GetNumberOfPoints():
+            vtkio.printc('Number of scalars != nr. of points',1)
+            exit()
+       
+        lut = vtk.vtkLookupTable()
+        lut.SetNumberOfTableValues(len(scalars))
+        lut.Build()
+        vmin, vmax = np.min(scalars), np.max(scalars)
+        n = len(scalars)
+        for i in range(n):
+            c = vtkcolors.colorMap(i, cmap, 0, n)
+            lut.SetTableValue(i, c[0], c[1], c[2], 1)
+        arr = numpy_to_vtk(scalars, deep=True)
+        arr.SetName('pointcolors_'+cmap)
+        poly.GetPointData().AddArray(arr)
+        poly.GetPointData().SetActiveScalars('pointcolors_'+cmap)            
+        actor.GetMapper().SetScalarRange(vmin, vmax)
+        actor.GetMapper().SetLookupTable(lut)
+        actor.GetMapper().ScalarVisibilityOn()
+        
+ 
+def cellScalars(actor, scalars, name):
+        """
+        Set cell scalars to the polydata
+        """
+        poly = polydata(actor, False)
+        scalars = np.array(scalars) - np.min(scalars)
+        scalars = scalars/np.max(scalars)
+        if len(scalars) != poly.GetNumberOfCells():
+            vtkio.printc('Number of scalars != nr. of cells',1)
+            exit()
+        arr = numpy_to_vtk(np.array(scalars), deep=True)
+        arr.SetName(name)
+        poly.GetCellData().AddArray(arr)
+        poly.GetCellData().SetActiveScalars(name)
+        actor.GetMapper().ScalarVisibilityOn()
+
+
+def cellColors(actor, scalars, cmap='jet'):
+        """
+        Set individual cell colors by setting a scalar
+        """
+        poly = polydata(actor, False)
+        if len(scalars) != poly.GetNumberOfCells():
+            vtkio.printc('Number of scalars != nr. of cells',1)
+            exit()
+       
+        lut = vtk.vtkLookupTable()
+        lut.SetNumberOfTableValues(len(scalars))
+        lut.Build()
+        vmin, vmax = np.min(scalars), np.max(scalars)
+        n = len(scalars)
+        for i in range(n):
+            c = vtkcolors.colorMap(i, cmap, 0, n)
+            lut.SetTableValue(i, c[0], c[1], c[2], 1)
+        arr = numpy_to_vtk(scalars, deep=True)
+        arr.SetName('cellcolors_'+cmap)
+        poly.GetCellData().AddArray(arr)
+        poly.GetCellData().SetActiveScalars('cellcolors_'+cmap)            
+        actor.GetMapper().SetScalarRange(vmin, vmax)
+        actor.GetMapper().SetLookupTable(lut)
+        actor.GetMapper().ScalarVisibilityOn()
+        
+           
+def scalars(actor, name):
+        """
+        Get point or cell scalars by name from actor
+        """
+        poly = polydata(actor, False)
+        arr = poly.GetPointData().GetArray(name)
+        if not arr: arr = poly.GetCellData().GetArray(name)
+        if arr: return vtk_to_numpy(arr)
+        return None
 
 

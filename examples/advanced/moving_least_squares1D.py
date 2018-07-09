@@ -26,7 +26,7 @@ vp.show(a, at=0, legend='cloud')
         
 for i in range(1, N):
     a = a.clone().color(i)
-    vp.smoothLineMLS(a, f=0.4)
+    vp.smoothMLS1D(a, f=0.4)
     
     # at last iteration make sure points are separated by tol
     if i==N-1: vp.cleanPolydata(a, tol=.01)

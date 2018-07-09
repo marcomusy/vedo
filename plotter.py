@@ -14,8 +14,7 @@ __website__ = "https://github.com/marcomusy/vtkPlotter"
 
 
 ########################################################################
-import os, time, vtk
-import numpy as np
+import time, vtk
 
 import vtkevents
 import vtkutils
@@ -29,7 +28,7 @@ from vtkutils import polydata, coordinates
 from vtkutils import arange, vector, mag, mag2, norm
 from vtkcolors import getColor, getAlpha, colorMap
 from vtkio import ProgressBar, printc
-from numpy import sin, cos, tan, sqrt, dot, cross, exp, log
+from numpy import sin, cos, sqrt, exp, log, dot, cross, array
 
 
 #########################################################################
@@ -286,6 +285,7 @@ class vtkPlotter:
                 
                 scaling,      scaling factors for x y an z coordinates 
         '''
+        import os
         if isinstance(inputobj, vtk.vtkPolyData):
             a = makeActor(inputobj, c, alpha, wire, bc, edges, legend, texture)
             self.actors.append(a)
@@ -337,9 +337,12 @@ class vtkPlotter:
     def getActors(self, obj=None):
         '''
         Return an actors list
-            If None, return actors of current renderer
+            If None, return actors of current renderer  
+            
             If obj is a int, return actors of renderer #obj
+            
             If obj is a vtkAssembly return the contained actors
+            
             If obj is a string, return actors matching legend name
         '''
         
@@ -394,7 +397,7 @@ class vtkPlotter:
         a new vtkCamera that is at intermediate position:
             fraction=0 -> camstart,  fraction=1 -> camstop.
             
-            Press c key in interactive mode to dump a vtkCamera
+            Press shift-C key in interactive mode to dump a vtkCamera
             parameter for the current camera view.
         '''
         if isinstance(fraction, int) and self.verbose:
@@ -403,14 +406,14 @@ class vtkPlotter:
             printc("Warning in moveCamera(): fraction is > 1", 1)
         cam = vtk.vtkCamera()
         cam.DeepCopy(camstart)
-        p1 = np.array(camstart.GetPosition())
-        f1 = np.array(camstart.GetFocalPoint())
-        v1 = np.array(camstart.GetViewUp())
-        s1 = np.array(camstart.GetParallelScale())
-        p2 = np.array(camstop.GetPosition())
-        f2 = np.array(camstop.GetFocalPoint())
-        v2 = np.array(camstop.GetViewUp())
-        s2 = np.array(camstop.GetParallelScale())
+        p1 = array(camstart.GetPosition())
+        f1 = array(camstart.GetFocalPoint())
+        v1 = array(camstart.GetViewUp())
+        s1 = array(camstart.GetParallelScale())
+        p2 = array(camstop.GetPosition())
+        f2 = array(camstop.GetFocalPoint())
+        v2 = array(camstop.GetViewUp())
+        s2 = array(camstop.GetParallelScale())
         cam.SetPosition(     p2*fraction+p1*(1.-fraction))
         cam.SetFocalPoint(   f2*fraction+f1*(1.-fraction))
         cam.SetViewUp(       v2*fraction+v1*(1.-fraction))
@@ -426,7 +429,7 @@ class vtkPlotter:
         If fp is a vtkActor use its position
             deg = aperture angle of the light source
             showsource, if True, will show a vtk representation 
-                        of the source of light as an extra actor
+            of the source of light as an extra actor
         """
         if isinstance(fp, vtk.vtkActor): fp = fp.GetPosition()
         light = vtk.vtkLight()
@@ -448,6 +451,11 @@ class vtkPlotter:
 
 
     ####################################################### manage basic shapes
+    def point(self, pos=[0,0,0], c='b', r=10, alpha=1, legend=None):
+        actor = vtkshapes.points([pos], c, [], r, alpha, legend)
+        self.actors.append(actor)
+        return actor
+
     def points(self, plist=[[1,0,0],[0,1,0],[0,0,1]],
                 c='b', tags=[], r=5, alpha=1, legend=None):
         '''
@@ -455,25 +463,40 @@ class vtkPlotter:
     
         c can be a list of [R,G,B] colors of same length as plist
         
-        If tags (a list of strings) is specified, is displayed along 
-        with the points.
+        If tags (a list of strings) is specified, they will be displayed  
+        along with the points.
         '''
         actor = vtkshapes.points(plist, c, tags, r, alpha, legend)
         self.actors.append(actor)
         return actor
 
-    def point(self, pos=[0,0,0], c='b', r=10, alpha=1, legend=None):
-        actor = vtkshapes.points([pos], c, [], r, alpha, legend)
+
+    def sphere(self, pos=[0,0,0], r=1,
+               c='r', alpha=1, wire=False, legend=None, texture=None, res=24):
+        '''Build a sphere at position pos of radius r.'''
+        actor = vtkshapes.sphere(pos, r, c, alpha, wire, legend, texture, res)
         self.actors.append(actor)
         return actor
+
+    def spheres(self, centers, r=1,
+               c='r', alpha=1, wire=False, legend=None, texture=None, res=8):
+        '''
+        Build a (possibly large) set of spheres at centers of radius r.
+        
+        Either c or r can be a list of RGB colors or radii.
+        '''
+        actor = vtkshapes.spheres(centers, r, c, alpha, wire, legend, texture, res)
+        self.actors.append(actor)
+        return actor
+
 
     def line(self, p0, p1=None, lw=1, tube=False, dotted=False,
              c='r', alpha=1., legend=None):
         '''Build the line segment between points p0 and p1.
             
-            if p0 is a list of points returns the line connecting them.
+            If p0 is a list of points returns the line connecting them.
             
-            if tube=True, lines are rendered as tubes of radius lw
+            If tube=True, lines are rendered as tubes of radius lw
         '''
         actor = vtkshapes.line(p0, p1, lw, tube, dotted, c, alpha, legend)
         self.actors.append(actor)
@@ -482,14 +505,14 @@ class vtkPlotter:
     def lines(self, plist0, plist1=None, lw=1, dotted=False,
               c='r', alpha=1, legend=None):
         '''Build the line segments between two lists of points plist0 and plist1.
-           plist0 can be also passed in the form [[point1, point2], ...]
+           plist0 can be also passed in the format [[point1, point2], ...]
         '''      
         actor = vtkshapes.lines(plist0, plist1, lw, dotted, c, alpha, legend)
         self.actors.append(actor)
         return actor
         
 
-    def arrow(self, startPoint=[0,0,0], endPoint=[1,1,1],
+    def arrow(self, startPoint, endPoint,
               c='r', s=None, alpha=1, legend=None, texture=None, res=12):
         '''Build a 3D arrow from startPoint to endPoint of section size s,
         expressed as the fraction of the window size.
@@ -546,25 +569,6 @@ class vtkPlotter:
         '''Build a 2D disc of internal radius r1 and outer radius r2,
         oriented perpendicular to normal'''
         actor = vtkshapes.disc(pos, normal, r1, r2, c, bc, lw, alpha, legend, texture, res)
-        self.actors.append(actor)
-        return actor
-
-
-    def sphere(self, pos=[0,0,0], r=1,
-               c='r', alpha=1, wire=False, legend=None, texture=None, res=24):
-        '''Build a sphere at position pos of radius r.'''
-        actor = vtkshapes.sphere(pos, r, c, alpha, wire, legend, texture, res)
-        self.actors.append(actor)
-        return actor
-
-    def spheres(self, centers, r=1,
-               c='r', alpha=1, wire=False, legend=None, texture=None, res=8):
-        '''
-        Build a (possibly large) set of spheres at centers of radius r.
-        
-        Either c or r can be a list of RGB colors or radii.
-        '''
-        actor = vtkshapes.spheres(centers, r, c, alpha, wire, legend, texture, res)
         self.actors.append(actor)
         return actor
 
@@ -683,7 +687,8 @@ class vtkPlotter:
                 0 = interpolate points exactly, 
                 1 = average point positions
             degree = degree of the spline (1<degree<5)
-            nodes = True shows also original the points 
+            
+            nodes = True, show also the input points 
         '''
         actor = vtkanalysis.spline(points, smooth, degree, 
                                    s, c, alpha, nodes, legend, res)
@@ -697,10 +702,13 @@ class vtkPlotter:
         Returns a vtkActor that shows a text in 3D.
         
             pos = position in 3D space
-                  if an integer is passed [1 -> 8], places text in a corner
+            if an integer is passed [1 -> 8], places text in one of the corners
+            
             s = size of text 
+            
             depth = text thickness
-            followcam = True, the text will auto-orient itself to it
+            
+            followcam = True, the text will auto-orient itself to it.
         '''
         actor = vtkshapes.text(txt, pos, axis, s, depth, c, alpha, bc,
                                followcam, texture, cam=self.camera)
@@ -724,7 +732,7 @@ class vtkPlotter:
         self.actors.append(actor)
         return actor
 
-    def histogram(self, values=np.random.randn(1000), bins=10, vrange=None, 
+    def histogram(self, values, bins=10, vrange=None, 
                   title='', c='g', corner=1, lines=True):
         '''
         Build a 2D histogram from a list of values in n bins.
@@ -737,7 +745,8 @@ class vtkPlotter:
             3=bottomleft, 
             4=bottomright.         
         '''
-        fs, edges = np.histogram(values, bins=bins, range=vrange)
+        import numpy
+        fs, edges = numpy.histogram(values, bins=bins, range=vrange)
         pts=[]
         for i in range(len(fs)): 
             pts.append( [ (edges[i]+edges[i+1])/2, fs[i] ])
@@ -756,10 +765,15 @@ class vtkPlotter:
 
         Examples:
             vp = plotter.vtkPlotter()
+            
             vp.fxy('sin(3*x)*log(x-y)/3')
+            
             or
+            
             def z(x,y): return math.sin(x*y)
+            
             vp.fxy(z) # or equivalently:
+            
             vp.fxy(lambda x,y: math.sin(x*y))
         '''
         actor = vtkanalysis.fxy(z, x, y, zlimits, showNan, zlevels, 
@@ -822,7 +836,21 @@ class vtkPlotter:
         return actor
 
 
-    def smoothMLS(self, actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
+    def smoothMLS1D(self, actor, f=0.2, showNLines=0):
+        '''
+        Smooth actor or points with a Moving Least Squares variant.
+        The list actor.variances contain the residue calculated for each point.
+        Input actor's polydata is modified.
+        
+            f, smoothing factor - typical range s [0,2]
+            
+            showNLines, build an actor showing the fitting line for N random points            
+        '''        
+        actor = vtkanalysis.smoothMLS1D(actor, f, showNLines)
+        return actor #NB: original actor is modified
+
+
+    def smoothMLS2D(self, actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
         '''
         Smooth actor or points with a Moving Least Squares variant.
         The list actor.variances contain the residue calculated for each point.
@@ -836,23 +864,7 @@ class vtkPlotter:
             
             showNPlanes, build an actor showing the fitting plane for N random points            
         '''        
-        actor = vtkanalysis.smoothMLS(actor, f, decimate, recursive, showNPlanes)
-        self.actors.append(actor)
-        return actor #NB: original actor is modified
-    
-
-    def smoothLineMLS(self, actor, f=0.2, showNLines=0):
-        '''
-        Smooth actor or points with a Moving Least Squares variant.
-        The list actor.variances contain the residue calculated for each point.
-        Input actor's polydata is modified.
-        
-            f, smoothing factor - typical range s [0,2]
-            
-            showNLines, build an actor showing the fitting line for N random points            
-        '''        
-        actor = vtkanalysis.smoothLineMLS(actor, f, showNLines)
-        self.actors.append(actor)
+        actor = vtkanalysis.smoothMLS2D(actor, f, decimate, recursive, showNPlanes)
         return actor #NB: original actor is modified
     
 
@@ -871,6 +883,7 @@ class vtkPlotter:
         Takes actor and cuts it with the plane defined by a point
         and a normal. 
             showcut  = shows the cut away part as thin wireframe
+            
             showline = marks with a thick line the cut
         '''
         cactor = vtkanalysis.cutPlane(uactor, origin, normal, showcut)
@@ -902,6 +915,7 @@ class vtkPlotter:
     def cluster(self, points, radius, legend=None):
         '''
         Clustering of points in space.
+        
         radius, is the radius of local search.
         Individual subsets can be accessed through actor.clusters
         '''
@@ -912,7 +926,7 @@ class vtkPlotter:
     
     def removeOutliers(self, points, radius, c='k', alpha=1, legend=None):
         '''
-        Remove outliers from a cloud of points within radius search
+        Remove outliers from a cloud of points within radius search.
         If points is a list of [x,y,z] return a reduced list of points
         If input is a vtkActor return a vtkActor.
         '''
@@ -920,8 +934,6 @@ class vtkPlotter:
         if not isSequence(a): self.actors.append(a)
         return a    
   
-
-    ##########################################
     def normals(self, actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
         '''
         Build a vtkActor made of the normals at vertices shown as arrows
@@ -961,10 +973,11 @@ class vtkPlotter:
             return None
         lut = actor.GetMapper().GetLookupTable()
         if not lut: return None
-        
+      
         c = getColor(c)
         sb = vtk.vtkScalarBarActor()
         sb.SetLookupTable(lut)
+        
         if vtk.vtkVersion().GetVTKMajorVersion() > 7: 
             sb.UnconstrainedFontSizeOn()
             sb.FixedAnnotationLeaderLineColorOff()
@@ -1175,19 +1188,26 @@ class vtkPlotter:
         '''
         Render a list of actors.
             actors = a mixed list of vtkActors, vtkAssembly, 
-                     vtkPolydata or filename strings
-            at     = number of the renderer to plot to, 
-                     if more than one exists
-            legend = a string or list of string for each actor, 
-                     if False will not show it
+            vtkPolydata or filename strings
+            
+            at     = number of the renderer to plot to, if more than one exists
+            
+            legend = a string or list of string for each actor, if False will not show it
+            
             axes   = show xyz axes
+            
             ruler  = draws a simple ruler at the bottom
+            
             c      = surface color, in rgb, hex or name formats
+            
             bc     = set a color for the internal surface face
+            
             wire   = show actor in wireframe representation
+            
             resetcam = re-adjust camera position to fit objects
-            interactive = pause and interact with window (True)
-                          or continue execution (False)
+            
+            interactive = pause and interact with window (True) or continue execution (False)
+            
             q      = force program to quit after show() command
         '''
 
@@ -1369,14 +1389,15 @@ class vtkPlotter:
     def openVideo(self, name='movie.avi', fps=12, duration=None):
         return vtkio.Video(self.renderWin, name, fps, duration)
 
+
+
 ###########################################################################
 if __name__ == '__main__':
 ###########################################################################
-    '''Basic usage:
-    plotter.py files*.vtk
-    # valid formats:
-    # [vtk,vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz,txt,byu,g, tif,slc, png,jpg]
-    '''
+#    Basic usage:
+#    plotter.py files*.vtk
+#    # valid formats:
+#    # [vtk,vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz,txt,byu,g, tif,slc, png,jpg]
     import sys
     fs = sys.argv[1:]
     alpha = 1

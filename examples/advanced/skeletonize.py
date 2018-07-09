@@ -18,7 +18,7 @@ a = vp.points(pts)
 for i in range(N):
     vp.show(a, at=i, legend='iter #'+str(i))
     a = a.clone().color(i)
-    vp.smoothLineMLS(a, f)
+    vp.smoothMLS1D(a, f)
 vp.show(interactive=1)
 
 

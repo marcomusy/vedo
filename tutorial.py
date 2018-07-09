@@ -24,9 +24,9 @@ vp.show()             # picks what is automatically stored in vp.actors list
 
 
 #########################################################################################
-# Load a vtk file as a vtkActor and visualize it in wireframe style.
+# Load a vtk file as a vtkActor and visualize it in wireframe style and no cartesian axes.
 act = vp.load('data/290.vtk', wire=1) 
-vp.axes = False         # do not draw cartesian axes
+vp.axes=0               # do not draw axes
 vp.show()               # picks what is automatically stored in vp.actors
 #vp.show(act)           # same: store act in vp.actors and draws act only
 #vp.show(actors=[act])  # same as above
@@ -50,11 +50,10 @@ vp.show()
 vp = plotter.vtkPlotter(title='Example of splines through 8 random points')
 
 pts = [ (u(0,2), u(0,2), u(0,2)+i) for i in range(8) ]
-
 vp.points(pts, legend='random points')
 
 for i in range(10):
-    vp.spline(pts, smooth=i/10, degree=2, c=i, legend='spline #'+str(i))
+    vp.spline(pts, smooth=i/10, degree=2, c=i, legend='smoothing '+str(i/10))
 vp.show()
 
 
@@ -77,7 +76,7 @@ vp.show()
 # which depends on the point position itself
 vp = plotter.vtkPlotter(title='color points')
 
-rgb = [(u(0,255), u(0,255), u(0,255)) for i in range(2000)]
+rgb = [(u(0,255), u(0,255), u(0,255)) for i in range(5000)]
 
 vp.points(rgb, c=rgb, alpha=0.7, legend='RGB points')
 vp.show()
@@ -124,10 +123,8 @@ vp.show([a2, pts2], at=1, interactive=True)
 # Load a surface and show its curvature based on 4 different schemes.
 # All four shapes share a common vtkCamera:
 # 0-gaussian, 1-mean, 2-max, 3-min
-vp = plotter.vtkPlotter(shape=(1,4), title='surface curvature')
+vp = plotter.vtkPlotter(shape=(1,4), title='surface curvature', axes=0)
 v = vp.load('data/290.vtk')
-vp.interactive = False
-vp.axes = False
 for i in [0,1,2,3]:
     c = vp.curvature(v, method=i, r=1, alpha=0.8)
     vp.show(c, at=i, legend='method #'+str(i+1))
@@ -139,7 +136,6 @@ vp.show(interactive=1)
 # split window to best accomodate 6 renderers
 vp = plotter.vtkPlotter(N=9, title='basic shapes')
 vp.sharecam   = False
-vp.interactive = False
 vp.show(at=0, actors=vp.arrow([0,0,0],[1,1,1]),  legend='arrow()' )
 vp.show(at=1, actors=vp.line([0,0,0],[1,1,1]),   legend='line()' )
 vp.show(at=2, actors=vp.points([[0,0,0],[1,1,1]]), legend='points()' )
@@ -186,26 +182,6 @@ vp = plotter.vtkPlotter(title='Cut a surface with a plane')
 vp.load('data/*.vtk', c='orange', bc='aqua')
 for a in vp.actors:
     vp.cutPlane(a, origin=(500,0,0), normal=(0,0.3,-1))
-vp.show()
-
-  
-#########################################################################################
-# Find closest point in set pts1 to pts2 within a specified radius
-vp = plotter.vtkPlotter(title='closest points example')
-
-pts1 = [(u(0,5), u(0,5), u(0,5)) for i in range(40)]
-pts2 = [(u(0,5), u(0,5), u(0,5)) for i in range(20)]
-
-vp.points(pts1, r=4,  alpha=1, legend='point set 1')
-vp.points(pts1, r=25, alpha=0.1) # make a halo
-
-a = vp.points(pts2, r=4, c='r', alpha=1, legend='point set 2')
-
-#for each point in pts1 find the points within radius=2 
-#and pick one (not necessarily the closest)
-for p in pts1:
-    pts = a.closestPoint(p, radius=2)
-    if len(pts): vp.line(p, pts[0])
 vp.show()
 
 

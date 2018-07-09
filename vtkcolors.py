@@ -224,15 +224,16 @@ try:
     }
 except: mapscales = None
     
-def colorMap(value, name='jet', vmax=0, vmin=1): # maps [0,1] into a color scale
+def colorMap(value, name='jet', vmin=0, vmax=1): # maps [0,1] into a color scale
+    value = value - vmin
+    value = value / vmax
     if mapscales:
         if value>.999: value=.999
         elif value<0: value=0
         try: 
             return mapscales[name](value)[0:3]
         except:
-            print('Error in colorMap(): avaliable maps =',
-                    sorted(mapscales.keys()))
+            print('Error in colorMap(): avaliable maps =', sorted(mapscales.keys()))
             exit(0)
     return (0.5,0.5,0.5)
 
