@@ -6,7 +6,7 @@ from __future__ import division, print_function
 
 __author__  = "Marco Musy"
 __license__ = "MIT"
-__version__ = "7.6" 
+__version__ = "7.7" 
 __maintainer__ = "M. Musy, G. Dalmasso"
 __email__   = "marco.musy@embl.es"
 __status__  = "dev"
@@ -14,7 +14,7 @@ __website__ = "https://github.com/marcomusy/vtkPlotter"
 
 
 ########################################################################
-import time, vtk
+import time, sys, vtk, numpy
 
 import vtkevents
 import vtkutils
@@ -171,7 +171,10 @@ class vtkPlotter:
         self.ybounds = vtkutils.ybounds
         self.zbounds = vtkutils.zbounds
         self.cleanPolydata = vtkutils.cleanPolydata
-        self.screenshot= vtkio.screenshot        
+        self.pointColors = vtkutils.pointColors
+        self.cellColors = vtkutils.cellColors
+        self.pointScalars = vtkutils.pointScalars
+        self.cellScalars = vtkutils.cellScalars
 
         if N:                # N = number of renderers. Find out the best
             if shape!=(1,1): # arrangement based on minimum nr. of empty renderers
@@ -206,7 +209,7 @@ class vtkPlotter:
                 self.size = (maxs[1]/2,maxs[1]/2)
 
             if self.verbose and shape!=(1,1):
-                print ('Window size =', self.size, 'shape =',shape)
+                print ('Window size =', self.size, 'shape =',shape)            
 
         ############################
         # build the renderers scene:
@@ -228,7 +231,13 @@ class vtkPlotter:
         #self.renderWin.PolygonSmoothingOn()
         #self.renderWin.LineSmoothingOn()
         self.renderWin.PointSmoothingOn()
-        self.renderWin.SetSize(int(self.size[1]), int(self.size[0]))
+        
+        if 'full' in size: # full screen
+            self.renderWin.SetFullScreen(True)
+            self.renderWin.BordersOn()
+        else:
+            self.renderWin.SetSize(int(self.size[1]), int(self.size[0]))
+            
         self.renderWin.SetWindowName(title)
         for r in self.renderers: self.renderWin.AddRenderer(r)
 
@@ -534,20 +543,25 @@ class vtkPlotter:
         return actor
 
 
-    def grid(self, pos=[0,0,0], normal=[0,0,1], s=10, c='g', bc='darkgreen',
-             lw=1, alpha=1, wire=True, legend=None, texture=None, res=10):
-        '''Return a grid plane'''
-        actor = vtkshapes.grid(pos, normal, s, c, bc,
-                               lw, alpha, wire, legend, texture, res)
+    def grid(self, pos=[0,0,0], normal=[0,0,1], sx=1, sy=1, c='g', bc='darkgreen',
+             lw=1, alpha=1, legend=None, resx=10, resy=10):
+        '''
+        Draw a grid of size sx and sy oriented perpendicular to vector normal  
+        and so that it passes through point pos.
+        '''
+        actor = vtkshapes.grid(pos, normal, sx, sy, c, bc, lw, alpha, legend, resx, resy)
         self.actors.append(actor)
         return actor
 
-    def plane(self, pos=[0,0,0], normal=[0,0,1], s=1, c='g', bc='darkgreen',
-              lw=1, alpha=1, wire=False, legend=None, texture=None):
-        '''Draw a plane of size s oriented perpendicular to vector normal so that it 
-        passes through point pos.'''
-        a = self.grid(pos, normal, s, c, bc, lw, alpha, wire, legend, texture,1)
-        if not texture: a.GetProperty().SetEdgeVisibility(1)
+
+    def plane(self, pos=[0,0,0], normal=[0,0,1], sx=1, sy=None, c='g', bc='darkgreen',
+              alpha=1, legend=None, texture=None):
+        '''
+        Draw a plane of size sx and sy oriented perpendicular to vector normal  
+        and so that it passes through point pos.
+        '''
+        a = vtkshapes.plane(pos, normal, sx, sy, c, bc, alpha, legend, texture)
+        self.actors.append(a)
         return a
     
 
@@ -696,8 +710,8 @@ class vtkPlotter:
         return actor
 
 
-    def text(self, txt='Hello', pos=(0,0,0), axis=(0,0,1), s=1, depth=0.1,
-             c='k', alpha=1, bc=None, followcam=False, texture=None):
+    def text(self, txt='Hello', pos=(0,0,0), normal=(0,0,1), s=1, depth=0.1,
+             c='k', alpha=1, bc=None, texture=None, followcam=False):
         '''
         Returns a vtkActor that shows a text in 3D.
         
@@ -710,8 +724,8 @@ class vtkPlotter:
             
             followcam = True, the text will auto-orient itself to it.
         '''
-        actor = vtkshapes.text(txt, pos, axis, s, depth, c, alpha, bc,
-                               followcam, texture, cam=self.camera)
+        actor = vtkshapes.text(txt, pos, normal, s, depth, c, alpha, bc,
+                               texture, followcam, cam=self.camera)
         self.actors.append(actor)
         return actor
 
@@ -962,7 +976,7 @@ class vtkPlotter:
 
     def addScalarBar(self, actor=None, c='k', horizontal=False):
         """
-        Add a scalar bar for the specified actor.
+        Add a 2D scalar bar for the specified actor.
 
         If actor is None will add it to the last actor in self.actors
         """
@@ -991,7 +1005,7 @@ class vtkPlotter:
             sb.SetTextPositionToSucceedScalarBar ()
             sb.SetPosition(0.1,.05)
             sb.SetMaximumWidthInPixels(1000)
-            sb.SetMaximumHeightInPixels(70)
+            sb.SetMaximumHeightInPixels(50)
         else:
             sb.SetNumberOfLabels(10)
             sb.SetTextPositionToPrecedeScalarBar()            
@@ -1010,6 +1024,70 @@ class vtkPlotter:
         self.renderer.AddActor(sb)
         self.render()
         return sb
+
+
+    def addScalarBar3D(self, obj=None, pos=[0,0,0], normal=[0,0,1], sx=.1, sy=2, 
+                       nlabels=9, ncols=256, cmap='jet', c='k', alpha=1):
+        '''
+        Draw a 3D scalar bar.
+        
+        obj input can be:
+            
+            a list of numbers,
+            
+            a list of two numbers in the form (min, max)
+            
+            a vtkActor containing a set of scalars associated to vertices or cells,
+            if None the last actor in the list of actors will be used.
+        '''
+        gap = 0.4
+        if obj is None: obj = self.lastActor()
+        if isinstance(obj, vtk.vtkActor):
+            poly = vtkutils.polydata(obj)
+            vtkscalars = poly.GetPointData().GetScalars()
+            if vtkscalars is None:
+                vtkscalars = poly.GetCellData().GetScalars()
+            if vtkscalars is None:
+                print('Error in scalarBar3D: actor has no scalar array.')
+                sys.exit()
+            npscalars = vtkutils.vtk_to_numpy(vtkscalars)
+            vmin, vmax = numpy.min(npscalars), numpy.max(npscalars)
+        elif vtkutils.isSequence(obj):
+            vmin, vmax = numpy.min(obj), numpy.max(obj)
+        else:
+            print('Error in scalarBar3D: input must be vtkActor or list.', type(obj))
+            sys.exit()
+        # build the color scale part
+        scale = vtkshapes.grid([-sx*gap,0,0], c='w', alpha=alpha, sx=sx, sy=sy, resx=1, resy=ncols)
+        scale.GetProperty().SetRepresentationToSurface()
+        cscals = vtkutils.cellCenters(scale)[:,1] 
+        vtkutils.cellColors(scale, cscals, cmap)
+        # build text
+        nlabels = numpy.min([nlabels, ncols])
+        tlabs = numpy.linspace(vmin, vmax, num=nlabels, endpoint=True)
+        tacts = []
+        prec = (vmax-vmin)/abs(vmax+vmin)*2
+        prec = int(abs(numpy.log10(prec))+2.5)
+        for i,t in enumerate(tlabs):
+            tx = str(vtkutils.to_precision(t, prec))
+            y = -sy/1.98+sy*i/(nlabels-1)
+            a = vtkshapes.text(tx, pos=[sx*gap,y,0], s=sy/50, c=c, alpha=alpha, depth=0)
+            tacts.append( a )
+        sact = vtkutils.makeAssembly([scale]+tacts)
+        nax = numpy.linalg.norm(normal)
+        if nax: normal = numpy.array(normal)/nax
+        theta = numpy.arccos(normal[2])
+        phi   = numpy.arctan2(normal[1], normal[0])
+        sact.RotateZ(phi*57.3)
+        sact.RotateY(theta*57.3)
+        sact.SetPosition(pos)
+        vtkutils.assignConvenienceMethods(sact, None)
+        vtkutils.assignPhysicsMethods(sact)
+        if not self.renderer: self.render()
+        self.renderer.AddActor(sact)
+        self.render()
+        return sact
+
 
     def _draw_axes(self, c=(.2, .2, .6)):
         r = self.renderers.index(self.renderer)
@@ -1079,35 +1157,32 @@ class vtkPlotter:
                 self.actors.pop()
 
             if len(self.xtitle) and dx>aves/100:
-                xl = self.cylinder([[x0, 0, 0], [x1, 0, 0]], r=aves/250*s, c=xcol, alpha=alpha)
-                xc = self.cone(pos=[x1, 0, 0], c=xcol, alpha=alpha,
-                                r=aves/100*s, height=aves/25*s, axis=[1, 0, 0], res=10)
+                xl = vtkshapes.cylinder([[x0, 0, 0], [x1, 0, 0]], r=aves/250*s, c=xcol, alpha=alpha)
+                xc = vtkshapes.cone(pos=[x1, 0, 0], c=xcol, alpha=alpha,
+                                    r=aves/100*s, height=aves/25*s, axis=[1, 0, 0], res=10)
                 wpos = [x1-(len(self.xtitle)+1)*aves/40*s, -aves/25*s, 0] # aligned to arrow tip
                 if centered: wpos = [(x0+x1)/2-len(self.xtitle)/2*aves/40*s, -aves/25*s, 0] 
-                xt = self.text(self.xtitle, pos=wpos, axis=(0,0,1) , s=aves/40*s, c=xcol)
-                for i in range(3): self.actors.pop()
+                xt = vtkshapes.text(self.xtitle, pos=wpos, normal=(0,0,1) , s=aves/40*s, c=xcol)
                 acts += [xl,xc,xt]
 
             if len(self.ytitle) and dy>aves/100:
-                yl = self.cylinder([[0, y0, 0], [0, y1, 0]], r=aves/250*s, c=ycol, alpha=alpha)
-                yc = self.cone(pos=[0, y1, 0], c=ycol, alpha=alpha,
-                                r=aves/100*s, height=aves/25*s, axis=[0, 1, 0], res=10)
+                yl = vtkshapes.cylinder([[0, y0, 0], [0, y1, 0]], r=aves/250*s, c=ycol, alpha=alpha)
+                yc = vtkshapes.cone(pos=[0, y1, 0], c=ycol, alpha=alpha,
+                                    r=aves/100*s, height=aves/25*s, axis=[0, 1, 0], res=10)
                 wpos = [-aves/40*s, y1-(len(self.ytitle)+1)*aves/40*s, 0]
                 if centered: wpos = [ -aves/40*s, (y0+y1)/2-len(self.ytitle)/2*aves/40*s, 0] 
-                yt = self.text(self.ytitle, axis=(0,0,1) , s=aves/40*s, c=ycol)
+                yt = vtkshapes.text(self.ytitle, normal=(0,0,1) , s=aves/40*s, c=ycol)
                 yt.rotate(90, [0,0,1]).pos(wpos)
-                for i in range(3): self.actors.pop()
                 acts += [yl,yc,yt]
 
             if len(self.ztitle) and dz>aves/100:
-                zl = self.cylinder([[0, 0, z0], [0, 0, z1]], r=aves/250*s, c=zcol, alpha=alpha)
-                zc = self.cone(pos=[0, 0, z1], c=zcol, alpha=alpha,
-                                r=aves/100*s, height=aves/25*s, axis=[0, 0, 1], res=10)
+                zl = vtkshapes.cylinder([[0, 0, z0], [0, 0, z1]], r=aves/250*s, c=zcol, alpha=alpha)
+                zc = vtkshapes.cone(pos=[0, 0, z1], c=zcol, alpha=alpha,
+                                    r=aves/100*s, height=aves/25*s, axis=[0, 0, 1], res=10)
                 wpos = [-aves/50*s, -aves/50*s, z1-(len(self.ztitle)+1)*aves/40*s]
                 if centered: wpos = [ -aves/50*s,  -aves/50*s, (z0+z1)/2-len(self.ztitle)/2*aves/40*s]
-                zt = self.text(self.ztitle, axis=(1, -1,0) , s=aves/40*s, c=zcol)
+                zt = vtkshapes.text(self.ztitle, normal=(1, -1,0) , s=aves/40*s, c=zcol)
                 zt.rotate(180, (1, -1, 0)).pos(wpos)
-                for i in range(3): self.actors.pop()
                 acts += [zl,zc,zt]
             ass = makeAssembly(acts)
             self.caxes_exist[r] = ass
@@ -1184,7 +1259,7 @@ class vtkPlotter:
     def show(self, actors=None, at=None,
              legend=None, axes=None, ruler=False,
              c=None, alpha=None , wire=False, bc=None, 
-             resetcam=True, interactive=None, q=False):
+             resetcam=True, zoom=False, interactive=None, q=False):
         '''
         Render a list of actors.
             actors = a mixed list of vtkActors, vtkAssembly, 
@@ -1261,7 +1336,7 @@ class vtkPlotter:
             elif isinstance(legend,  str): self.legend = [str(legend)]
             else:
                 printc('Error in show(): legend must be list or string.', 1)
-                exit()
+                sys.exit()
         if not (axes is None): self.axes = axes
         if not (interactive is None): self.interactive = interactive
 
@@ -1278,6 +1353,7 @@ class vtkPlotter:
             #in case of multiple renderers a call to show w/o specifing
             # at which renderer will just render the whole thing and return
             if self.interactor:
+                if zoom: self.camera.Zoom(zoom)
                 self.interactor.Render()
                 if self.interactive: self.interactor.Start()
                 return
@@ -1320,15 +1396,17 @@ class vtkPlotter:
             self.interactor.AddObserver("LeftButtonPressEvent", mouseleft)
             self.interactor.AddObserver("KeyPressEvent", keypress)
             if self.verbose and self.interactive: self.tips()
+        self.initializedPlotter = True
 
+        if zoom: self.camera.Zoom(zoom)
         self.interactor.Render()
 
-        if self.interactive: self.interactor.Start()
+        if self.interactive: 
+            self.interactor.Start()
 
-        self.initializedPlotter = True
         if q : # gracefully exit
             if self.verbose: print ('q flag set to True. Exit.')
-            exit(0)
+            sys.exit(0)
 
 
     def render(self, addActor=None, resetcam=False, rate=10000):
@@ -1389,6 +1467,8 @@ class vtkPlotter:
     def openVideo(self, name='movie.avi', fps=12, duration=None):
         return vtkio.Video(self.renderWin, name, fps, duration)
 
+    def screenshot(self, filename='screenshot.png'):
+        vtkio.screenshot(self.renderWin, filename)
 
 
 ###########################################################################
@@ -1398,7 +1478,6 @@ if __name__ == '__main__':
 #    plotter.py files*.vtk
 #    # valid formats:
 #    # [vtk,vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz,txt,byu,g, tif,slc, png,jpg]
-    import sys
     fs = sys.argv[1:]
     alpha = 1
     if len(fs) == 1 :

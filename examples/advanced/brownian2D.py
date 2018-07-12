@@ -64,7 +64,7 @@ Spheres = [vp.sphere(pos=(Pos[0][0],Pos[0][1],0), r=Radius[0], c='red')]
 for s in range(1,Nsp):
     a = vp.sphere(pos=(Pos[s][0],Pos[s][1],0), r=Radius[s], c='blue')
     Spheres.append(a)
-vp.grid(s=screen_w)
+vp.grid(sx=screen_w, sy=screen_w)
 
 
 # Auxiliary variables

@@ -5,6 +5,7 @@ Created on Thu Dec  7 11:15:37 2017
 @author: mmusy
 """
 from __future__ import division, print_function
+import sys
 import vtk
 import vtkutils 
 import vtkcolors
@@ -84,11 +85,11 @@ def keypress(vp, obj, event):
         vp.interactor.GetRenderWindow().Finalize()
         vp.interactor.TerminateApp()
         del vp.renderWin, vp.interactor
-        exit(0)
+        sys.exit(0)
 
     elif key == "S":
         vtkio.printc('Saving window as screenshot.png', 'green')
-        vp.screenshot()
+        vp.screenshot(vp.renderWin, 'screenshot.png')
         return
 
     elif key == "C":
@@ -261,9 +262,7 @@ def keypress(vp, obj, event):
                 vp.renderer.RemoveActor(ia)
                 vp.interactor.Render()
             except ValueError: pass
-        ii = bool(vp.interactive)
-        vp.show(at=vp.clickedr, interactive=0, axes=0)
-        vp.interactive = ii # restore it
+            vp.render(a)
 
     elif key == "x":
         if vp.justremoved is None:                    
@@ -276,7 +275,7 @@ def keypress(vp, obj, event):
                 return
             if vp.verbose and hasattr(vp.clickedActor, 'legend') and vp.clickedActor.legend:
                 vtkio.printc('   ...removing actor: '+ str(vp.clickedActor.legend) +
-                          ', press x to put it back again')
+                          ', press x to put it back')
         else:
             vp.renderer.AddActor(vp.justremoved)
             vp.renderer.Render()

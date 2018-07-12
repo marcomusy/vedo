@@ -238,6 +238,7 @@ def removeActor(actor)
 def lastActor()
 def screenshot(filename='screenshot.png')
 def addScalarBar(actor=None, c='k', horizontal=False)
+def addScalarBar3D(actor=None, pos, normal=[0,0,1], sx=.1, sy=2, nlabels=9, ncols=256, cmap='jet', c='k', alpha=1)
 def openVideo(name='movie.avi', fps=12, duration=None, format="XVID")
 def addFrameVideo()
 def pauseVideo(pause)
@@ -262,13 +263,13 @@ def ellipsoid(points, c='c', alpha=0.5, legend=None, texture=None, res=24)
 def paraboloid(pos, r=1, height=1, axis=[0,0,1], c='cyan', alpha=1, legend=None, texture=None, res=50)
 def hyperboloid(pos, a2=1, value=0.5, height=1, axis=[0,0,1], 
                 c='magenta', alpha=1, legend=None, texture=None, res=50)
-def plane(pos, normal=(0,0,1), s=10, c='g', bc='dg', lw=1, alpha=1, texture=None)
-def grid( pos, normal=(0,0,1), s=10, c='g', bc='dg', lw=1, alpha=1, texture=None, res=10)
+def plane(pos, normal=(0,0,1), sx=1, sy=None, c='g', bc='darkgreen', alpha=1, legend=None, texture=None)
+def grid( pos, normal=(0,0,1), sx=1, sy=1, c='g', bc='darkgreen', lw=1, alpha=1, legend=None, resx=10, resy=10)
 def polygon(pos, normal=(0,0,1), nsides=6, r=1, 
             c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, followcam=False):
 def disc(pos, normal=[0,0,1], r1=0.5, r2=1, 
             c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, res=12)
-def text(txt, pos, axis=(0,0,1), s=1, c='k', alpha=1, bc=None, cam=True, texture=None)
+def text(txt, pos, normal=(0,0,1), s=1, c='k', alpha=1, bc=None, texture=None, followcam=False)
 #
 # Analysis methods
 def xyplot(points, title='', c='r', pos=1, lines=False)

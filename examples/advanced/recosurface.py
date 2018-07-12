@@ -23,7 +23,7 @@ act_pts0 = vp.points(act.coordinates()+noise, r=3) #add noise
 act_pts1 = act_pts0.clone()   #make a copy to modify
 vp.show(act_pts0, at=1, legend='noisy cloud')
 
-vp.smoothMLS(act_pts1, f=0.4) #smooth cloud
+vp.smoothMLS2D(act_pts1, f=0.4) #smooth cloud
 
 print('Nr of points before cleanPolydata:', act_pts1.N())
 vp.cleanPolydata(act_pts1, tol=0.01) #impose a min distance among points

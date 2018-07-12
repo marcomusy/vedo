@@ -27,9 +27,9 @@ for i in range(500):
 vp.points(data, r=10, c='red', legend='random points')
 
 # the last fitted slope direction is stored in actor.slope and actor.normal
-print ('Line Fit slope= ', l.slope) 
+print('Line Fit slope = ', l.slope) 
 
-plane = vp.fitPlane(data, legend='fit plane') # fit a plane
-print ('Plan Fit normal=', plane.normal) 
+plane = vp.fitPlane(data, legend='fitting plane') # fit a plane
+print('Plan Fit normal=', plane.normal) 
 
 vp.show()

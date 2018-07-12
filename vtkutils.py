@@ -5,10 +5,13 @@ import vtk
 from vtk.util.numpy_support import numpy_to_vtk
 from vtk.util.numpy_support import vtk_to_numpy
 import vtkcolors, vtkanalysis, vtkio 
+import warnings
 
 
 ##############################################################################
+warnings.simplefilter(action='ignore', category=FutureWarning)
 vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
+
 def setInput(vtkobj, p, port=0):
     if isinstance(p, vtk.vtkAlgorithmOutput):
         vtkobj.SetInputConnection(port, p) # passing port
@@ -42,8 +45,65 @@ def norm(v):
         return np.divide(v, mag(v)[:,None])
     else: 
         return v/mag(v)
+    
+def to_precision(x, p):
+    """
+    Returns a string representation of x formatted with a precision of p
+
+    Based on the webkit javascript implementation taken from here:
+    https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/kjs/number_object.cpp
+    Implemented in https://github.com/randlet/to-precision    
+    """
+    import math
+    x = float(x)
+
+    if x == 0.: return "0." + "0"*(p-1)
+
+    out = []
+    if x < 0:
+        out.append("-")
+        x = -x
+
+    e = int(math.log10(x))
+    tens = math.pow(10, e - p + 1)
+    n = math.floor(x/tens)
+
+    if n < math.pow(10, p - 1):
+        e = e -1
+        tens = math.pow(10, e - p+1)
+        n = math.floor(x / tens)
+
+    if abs((n + 1.) * tens - x) <= abs(n * tens -x): n = n + 1
+
+    if n >= math.pow(10,p):
+        n = n / 10.
+        e = e + 1
+
+    m = "%.*g" % (p, n)
+    if e < -2 or e >= p:
+        out.append(m[0])
+        if p > 1:
+            out.append(".")
+            out.extend(m[1:p])
+        out.append('e')
+        if e > 0:
+            out.append("+")
+        out.append(str(e))
+    elif e == (p -1):
+        out.append(m)
+    elif e >= 0:
+        out.append(m[:e+1])
+        if e+1 < len(m):
+            out.append(".")
+            out.extend(m[e+1:])
+    else:
+        out.append("0.")
+        out.extend(["0"]*-(e+1))
+        out.append(m)
+    return "".join(out)
 
 
+#########################################################################
 def makeActor(poly, c='gold', alpha=0.5, 
               wire=False, bc=None, edges=False, legend=None, texture=None):
     '''
@@ -935,7 +995,7 @@ def pointScalars(actor, scalars, name):
         if len(scalars) != poly.GetNumberOfPoints():
             vtkio.printc('Number of scalars != nr. of points',1)
             exit()
-        arr = numpy_to_vtk(scalars, deep=True)
+        arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
         arr.SetName(name)
         poly.GetPointData().AddArray(arr)
         poly.GetPointData().SetActiveScalars(name)
@@ -959,7 +1019,7 @@ def pointColors(actor, scalars, cmap='jet'):
         for i in range(n):
             c = vtkcolors.colorMap(i, cmap, 0, n)
             lut.SetTableValue(i, c[0], c[1], c[2], 1)
-        arr = numpy_to_vtk(scalars, deep=True)
+        arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
         arr.SetName('pointcolors_'+cmap)
         poly.GetPointData().AddArray(arr)
         poly.GetPointData().SetActiveScalars('pointcolors_'+cmap)            
@@ -978,7 +1038,7 @@ def cellScalars(actor, scalars, name):
         if len(scalars) != poly.GetNumberOfCells():
             vtkio.printc('Number of scalars != nr. of cells',1)
             exit()
-        arr = numpy_to_vtk(np.array(scalars), deep=True)
+        arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
         arr.SetName(name)
         poly.GetCellData().AddArray(arr)
         poly.GetCellData().SetActiveScalars(name)
@@ -1002,7 +1062,7 @@ def cellColors(actor, scalars, cmap='jet'):
         for i in range(n):
             c = vtkcolors.colorMap(i, cmap, 0, n)
             lut.SetTableValue(i, c[0], c[1], c[2], 1)
-        arr = numpy_to_vtk(scalars, deep=True)
+        arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
         arr.SetName('cellcolors_'+cmap)
         poly.GetCellData().AddArray(arr)
         poly.GetCellData().SetActiveScalars('cellcolors_'+cmap)            
@@ -1013,7 +1073,7 @@ def cellColors(actor, scalars, cmap='jet'):
            
 def scalars(actor, name):
         """
-        Get point or cell scalars by name from actor
+        Retrieve point or cell scalars using array name
         """
         poly = polydata(actor, False)
         arr = poly.GetPointData().GetArray(name)

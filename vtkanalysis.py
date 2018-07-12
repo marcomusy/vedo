@@ -469,7 +469,7 @@ def fitPlane(points, c='g', bc='darkgreen', alpha=0.8, legend=None):
     xyz_max = points.max(axis=0)
     s= np.linalg.norm(xyz_max - xyz_min)
     n = np.cross(vv[0],vv[1])
-    pla = vs.grid(datamean, n, s, c, bc, 3, alpha, False, legend, None, 1)
+    pla = vs.plane(datamean, n, s, s, c, bc, alpha, legend, None)
     setattr(pla, 'normal', n)
     setattr(pla, 'center', datamean)
     setattr(pla, 'variance', dd[2])

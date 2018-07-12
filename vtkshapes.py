@@ -488,19 +488,68 @@ def ellipsoid(pos=[0,0,0], axis1=[1,0,0], axis2=[0,2,0], axis3=[0,0,3],
     return actor
 
 
-def grid(pos=[0,0,0], normal=[0,0,1], s=10, c='g', bc='darkgreen',
-         lw=1, alpha=1, wire=True, legend=None, texture=None, res=10):
+def grid(pos=[0,0,0], normal=[0,0,1], sx=1, sy=1, c='g', bc='darkgreen',
+         lw=1, alpha=1, legend=None, resx=10, resy=10):
     '''Return a grid plane'''
     ps = vtk.vtkPlaneSource()
-    ps.SetResolution(res, res)
-    ps.SetCenter(np.array(pos)/s)
-    ps.SetNormal(normal)
+    ps.SetResolution(resx, resy)
     ps.Update()
-    actor = vu.makeActor(ps.GetOutput(), 
-                         c=c, bc=bc, alpha=alpha, legend=legend, texture=texture)
-    if wire: actor.GetProperty().SetRepresentationToWireframe()
+    poly0 = ps.GetOutput()
+    t0 = vtk.vtkTransform()
+    t0.Scale(sx,sy,1)
+    tf0 = vtk.vtkTransformPolyDataFilter()
+    vu.setInput(tf0, poly0)
+    tf0.SetTransform(t0)
+    tf0.Update()
+    poly = tf0.GetOutput()
+    axis  = np.array(normal)/np.linalg.norm(normal)
+    theta = np.arccos(axis[2])
+    phi   = np.arctan2(axis[1], axis[0])
+    t = vtk.vtkTransform()
+    t.PostMultiply()
+    t.RotateY(theta*57.3)
+    t.RotateZ(phi*57.3)
+    tf = vtk.vtkTransformPolyDataFilter()
+    vu.setInput(tf, poly)
+    tf.SetTransform(t)
+    tf.Update()
+    pd = tf.GetOutput()
+    actor = vu.makeActor(pd, c=c, bc=bc, alpha=alpha, legend=legend)
+    actor.GetProperty().SetRepresentationToWireframe()
     actor.GetProperty().SetLineWidth(lw)
-    actor.SetScale(s,s,s)
+    actor.SetPosition(pos)
+    actor.PickableOff()
+    return actor
+
+
+def plane(pos=[0,0,0], normal=[0,0,1], sx=1, sy=None, c='g', bc='darkgreen',
+          alpha=1, legend=None, texture=None):
+    '''
+    Draw a plane of size sx and sy oriented perpendicular to vector normal  
+    and so that it passes through point pos.
+    '''
+    if sy is None: sy=sx
+    ps = vtk.vtkPlaneSource()
+    ps.SetResolution(1, 1)
+    tri = vtk.vtkTriangleFilter()
+    tri.SetInputConnection(ps.GetOutputPort())
+    tri.Update()
+    poly = tri.GetOutput()
+    axis  = np.array(normal)/np.linalg.norm(normal)
+    theta = np.arccos(axis[2])
+    phi   = np.arctan2(axis[1], axis[0])
+    t = vtk.vtkTransform()
+    t.PostMultiply()
+    t.Scale(sx,sy,1)
+    t.RotateY(theta*57.3)
+    t.RotateZ(phi*57.3)
+    tf = vtk.vtkTransformPolyDataFilter()
+    vu.setInput(tf, poly)
+    tf.SetTransform(t)
+    tf.Update()
+    pd = tf.GetOutput()
+    actor = vu.makeActor(pd, c=c, bc=bc, alpha=alpha, legend=legend, texture=texture)
+    actor.SetPosition(pos)
     actor.PickableOff()
     return actor
 
@@ -761,8 +810,8 @@ def hyperboloid(pos=[0,0,0], a2=1, value=0.5, height=1, axis=[0,0,1],
     return actor
 
 
-def text(txt, pos=(0,0,0), axis=(0,0,1), s=1, depth=0.1,
-         c='k', alpha=1, bc=None, followcam=False, texture=None, cam=None):
+def text(txt, pos=(0,0,0), normal=(0,0,1), s=1, depth=0.1,
+         c='k', alpha=1, bc=None, texture=None, followcam=False, cam=None):
     '''
     Returns a vtkActor that shows a text in 3D.
         
@@ -805,10 +854,10 @@ def text(txt, pos=(0,0,0), axis=(0,0,1), s=1, depth=0.1,
     if al: alpha = al
     ttactor.GetProperty().SetOpacity(alpha)
 
-    nax = np.linalg.norm(axis)
-    if nax: axis  = np.array(axis)/nax
-    theta = np.arccos(axis[2])
-    phi   = np.arctan2(axis[1], axis[0])
+    nax = np.linalg.norm(normal)
+    if nax: normal  = np.array(normal)/nax
+    theta = np.arccos(normal[2])
+    phi   = np.arctan2(normal[1], normal[0])
     ttactor.SetScale(s,s,s)
     ttactor.RotateZ(phi*57.3)
     ttactor.RotateY(theta*57.3)
