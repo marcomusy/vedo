@@ -220,7 +220,8 @@ try:
         'winter':cm_mpl.winter,
         'cool': cm_mpl.cool,
         'copper':cm_mpl.copper,
-        'paired':cm_mpl.Paired
+        'coolwarm':cm_mpl.coolwarm,
+        'gist_earth':cm_mpl.gist_earth
     }
 except: mapscales = None
     

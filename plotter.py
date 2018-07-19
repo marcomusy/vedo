@@ -50,6 +50,7 @@ class vtkPlotter:
         msg += "\tx   to toggle selected actor visibility\n"
         msg += "\tX   to open a cutter widget for sel. actor\n"
         msg += "\t1-4 to change color scheme\n"
+        msg += "\tkK to use point/cell scalars as color\n"
         msg += "\tC   to print current camera info\n"
         msg += "\tS   to save a screenshot\n"
         msg += "\tq   to continue\n"
@@ -354,6 +355,7 @@ class vtkPlotter:
             
             If obj is a string, return actors matching legend name
         '''
+        if not self.renderer: return []
         
         if obj is None or isinstance(obj, int):
             if obj is None:
@@ -533,12 +535,12 @@ class vtkPlotter:
         return actor
         
     def arrows(self, startPoints, endPoints=None,
-               c='r', s=None, alpha=1, legend=None):
+            c='r', s=None, alpha=1, legend=None, res=8):
         '''Build arrows between two lists of points startPoints and endPoints.
            startPoints can be also passed in the form [[point1, point2], ...]
         '''        
         rwSize = self.renderWin.GetSize()
-        actor = vtkshapes.arrow(startPoints, endPoints, c, s, alpha, legend, rwSize)
+        actor = vtkshapes.arrows(startPoints, endPoints, c, s, alpha, legend, res, rwSize)
         self.actors.append(actor)
         return actor
 
@@ -1318,6 +1320,8 @@ class vtkPlotter:
                         scannedacts.append(None)
                     else:
                         scannedacts.append(out) 
+                elif a is None: 
+                    pass
                 else: 
                     printc(('Cannot understand input in show():', type(a)), 1)
                     scannedacts.append(None)

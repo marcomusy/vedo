@@ -7,8 +7,8 @@ from __future__ import division, print_function
 from plotter import vtkPlotter, colorMap
 
 
-mapkeys = ['copper', 'gray', 'binary', 'cool', 'rainbow', 'winter', 
-           'jet', 'paired', 'hot', 'afmhot', 'bone']
+mapkeys = ['afmhot', 'binary', 'bone', 'cool', 'coolwarm', 'copper', 
+           'gist_earth', 'gray', 'hot', 'jet', 'rainbow', 'winter']
 
 vp = vtkPlotter(shape=(3,4), axes=3, verbose=0, interactive=0)
 

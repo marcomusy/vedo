@@ -174,18 +174,21 @@ def keypress(vp, obj, event):
     elif key in ["1", "KP_End", "KP_1"]:
         for i,ia in enumerate(vp.getActors()):
             ia.GetProperty().SetColor(vtkcolors.colors1[(i+vp.icol1)%10])
+            ia.GetMapper().ScalarVisibilityOff()
         vp.icol1 += 1
         vp._draw_legend()
 
     elif key in ["2", "KP_Down", "KP_2"]:
         for i,ia in enumerate(vp.getActors()):
             ia.GetProperty().SetColor(vtkcolors.colors2[(i+vp.icol2)%10])
+            ia.GetMapper().ScalarVisibilityOff()
         vp.icol2 += 1
         vp._draw_legend()
 
     elif key in ["3", "KP_Left", "KP_4"]:
         for i,ia in enumerate(vp.getActors()):
             ia.GetProperty().SetColor(vtkcolors.colors3[(i+vp.icol3)%10])
+            ia.GetMapper().ScalarVisibilityOff()
         vp.icol3 += 1
         vp._draw_legend()
 
@@ -196,7 +199,54 @@ def keypress(vp, obj, event):
         for ia in acs:
             ia.GetProperty().SetColor(c)
             ia.GetProperty().SetOpacity(alpha)
+            ia.GetMapper().ScalarVisibilityOff()
         vp._draw_legend()
+
+
+    elif key in ["k", "K"]:
+        for a in vp.getActors():
+            ptdata = vp.polydata(a).GetPointData()
+            cldata = vp.polydata(a).GetCellData()
+
+            arrtypes = dict()
+            arrtypes[vtk.VTK_UNSIGNED_CHAR] = 'VTK_UNSIGNED_CHAR'
+            arrtypes[vtk.VTK_UNSIGNED_INT] = 'VTK_UNSIGNED_INT'
+            arrtypes[vtk.VTK_FLOAT] = 'VTK_FLOAT'
+            arrtypes[vtk.VTK_DOUBLE] = 'VTK_DOUBLE'
+            foundarr=0
+
+            if key == 'k':
+                for i in range(ptdata.GetNumberOfArrays()):
+                    name = ptdata.GetArrayName(i)
+                    if name == 'Normals': continue
+                    if hasattr(a, 'legend'): print ('actor:', a.legend, end='')
+                    print ('\tfound POINT array with name:', name, end=', ')
+                    print ('type:', arrtypes[ptdata.GetArray(i).GetDataType()])
+                    ptdata.SetActiveScalars(name)
+                    foundarr=1
+                if not foundarr:
+                    print('No vtkArray is associated to points', end='')
+                    if hasattr(a, 'legend'):
+                        print(' for actor:', a.legend)
+                    else: print()
+
+            if key == 'K':
+                for i in range(cldata.GetNumberOfArrays()):
+                    name = cldata.GetArrayName(i)
+                    if name == 'Normals': continue
+                    if hasattr(a, 'legend'): print ('actor:', a.legend, end='')
+                    print ('\tfound POINT array', 'tname:', name, end=', ')
+                    print ('type:', arrtypes[cldata.GetArray(i).GetDataType()])
+                    cldata.SetActiveScalars(name)
+                    foundarr=1
+                if not foundarr:
+                    print('No vtkArray is associated to cells', end='')
+                    if hasattr(a, 'legend'):
+                        print(' for actor:', a.legend)
+                    else: print()
+                    
+            a.GetMapper().ScalarVisibilityOn()
+
 
     elif key == "P":
         if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]

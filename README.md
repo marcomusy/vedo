@@ -113,7 +113,7 @@ vp.show(at=4, c=4, actors='data/shuttle.obj')
 vp.show(at=5, c=5, actors='data/shapes/magnolia.vtk')
 vp.show(at=6, c=6, actors='data/shapes/man.vtk', axes=1)
 vp.show(at=7, c=7, actors='data/teapot.xyz', axes=2)
-vp.show(at=8, c=8, actors='data/unstrgrid.vtu', axes=3)
+vp.show(at=8, c=8, actors='data/pulley.vtu', axes=3)
 vp.show(interactive=1)
 ```
 ![objects](https://user-images.githubusercontent.com/32848391/33093360-158b5f2c-cefd-11e7-8cb7-9e3c303b41be.png)
@@ -385,6 +385,15 @@ def vector(x, y, z=0)         # return a numpy vector (2D or 3D)
 def mag(v)                    # return the size of a vector or list of vectors
 def norm(v)                   # return the versor of a vector or list of vectors
 ```
+
+Available color maps from matplotlib:
+```python
+# Example code:
+# transform a scalar value between -10.2 and 123.4 into a RGB color, using the 'jet' map
+from plotter import colorMap
+RGBcol = colorMap(value, name='jet', vmin=-10.2, vmax=123.4)
+```
+![colmaps](https://user-images.githubusercontent.com/32848391/42942959-c8b50eec-8b61-11e8-930a-00dcffdca601.png)
 
 <br />
 Tested on VTK versions 5.8, 6.3, 7.1, 8.1: https://www.vtk.org

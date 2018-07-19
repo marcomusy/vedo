@@ -160,7 +160,7 @@ vp.show(at=4, c=4, actors='data/shuttle.obj')
 vp.show(at=5, c=5, actors='data/shapes/magnolia.vtk')
 vp.show(at=6, c=6, actors='data/shapes/man.vtk', axes=1)
 vp.show(at=7, c=7, actors='data/teapot.xyz')
-vp.show(at=8, c=8, actors='data/unstrgrid.vtu')
+vp.show(at=8, c=8, actors='data/pulley.vtu')
 vp.show(interactive=1)
 
 

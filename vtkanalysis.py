@@ -1013,12 +1013,12 @@ def recoSurface(points, bins=256,
         distance.SetInputData(polyData)
         vu.setInput(distance, polyData)
     else:
-        print ('Recalculating normals for', N, 'points')
         normals = vtk.vtkPCANormalEstimation()
         vu.setInput(normals, polyData)
         normals.SetSampleSize(int(N/50))
         normals.SetNormalOrientationToGraphTraversal()
         distance.SetInputConnection(normals.GetOutputPort())
+        print ('Recalculating normals for', N, 'points, sample size=',int(N/50))
     radius = vu.diagonalSize(polyData)/bins*5
     distance.SetRadius(radius)
     distance.SetDimensions(bins, bins, bins)
