@@ -1,13 +1,12 @@
 
 # vtkPlotter
 
-A python helper class to easily draw, analyse and animate 3D objects.
-<br />A VTK alternative to Vpython.
+A python helper class to easily draw, analyse and animate 3D objects. 
+A VTK alternative to [VPython](http://vpython.org/).
 
 ## Download / Install:
 After installing [VTK](https://www.vtk.org/):
 ```bash
-cd mydirectory
 git clone https://github.com/marcomusy/vtkPlotter.git
 ```
 will download the package.
