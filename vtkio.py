@@ -8,6 +8,10 @@ def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
     fl = filename.lower()
     if '.xml' in fl or '.xml.gz' in fl: # Fenics tetrahedral mesh file
         actor = loadXml(filename, c, alpha, wire, bc, edges, legend)
+    elif '.neutral' in fl:              # neutral tetrahedral mesh file
+        actor = loadNeutral(filename, c, alpha, bc, edges, legend)
+    elif '.gmsh' in fl:                 # gmesh file
+        actor = loadGmesh(filename, c, alpha, bc, legend)
     elif '.pcd' in fl:                  # PCL point-cloud format
         actor = loadPCD(filename, c, alpha, legend)
     elif '.tif' in fl or '.slc' in fl:  # tiff stack or slc
@@ -83,6 +87,7 @@ def loadXml(filename, c, alpha, wire, bc, edges, legend):
     if not os.path.exists(filename): 
         printc(('Error in loadXml: Cannot find', filename), c=1)
         return None
+    import vtkshapes
     import xml.etree.ElementTree as et
     if '.gz' in filename:
         import gzip
@@ -111,45 +116,154 @@ def loadXml(filename, c, alpha, wire, bc, edges, legend):
     points = vtk.vtkPoints()
     for p in coords: points.InsertNextPoint(p)
 
-    ugrid = vtk.vtkUnstructuredGrid()
-    ugrid.SetPoints(points)
-    cellArray = vtk.vtkCellArray()
-    for itet in range(len(connectivity)):
-        tetra = vtk.vtkTetra()
-        for k,j in enumerate(connectivity[itet]):
-            tetra.GetPointIds().SetId(k, j)
-        cellArray.InsertNextCell(tetra)
-    ugrid.SetCells(vtk.VTK_TETRA, cellArray)
+    pts_act = vtkshapes.points(coords, c=c, r=4, legend=legend)
 
-    # 3D cells are mapped only if they are used by only one cell,
-    #  i.e., on the boundary of the data set
-    mapper = vtk.vtkDataSetMapper()
-    if vu.vtkMV: 
-        mapper.SetInputData(ugrid)
-    else:
-        mapper.SetInputConnection(ugrid.GetProducerPort())
-
-    actor = vtk.vtkActor()
-    actor.SetMapper(mapper)
-    actor.GetProperty().SetInterpolationToFlat()
-    actor.GetProperty().SetColor(vc.getColor(c))
-    actor.GetProperty().SetOpacity(alpha/2.)
-    #actor.GetProperty().VertexVisibilityOn()
-    if edges: actor.GetProperty().EdgeVisibilityOn()
-    if wire:  actor.GetProperty().SetRepresentationToWireframe()
-    vpts = vtk.vtkPointSource()
-    vpts.SetNumberOfPoints(len(coords))
-    vpts.Update()
-    vpts.GetOutput().SetPoints(points)
-    pts_act = vu.makeActor(vpts.GetOutput(), c='b', alpha=alpha)
-    pts_act.GetProperty().SetPointSize(3)
-    pts_act.GetProperty().SetRepresentationToPoints()
-    actor2 = vu.makeAssembly([pts_act, actor])
-    setattr(actor2, 'legend', legend)
+    if edges:
+        # 3D cells are mapped only if they are used by only one cell,
+        #  i.e., on the boundary of the data set
+        ugrid = vtk.vtkUnstructuredGrid()
+        ugrid.SetPoints(points)
+        cellArray = vtk.vtkCellArray()
+        for itet in range(len(connectivity)):
+            tetra = vtk.vtkTetra()
+            for k,j in enumerate(connectivity[itet]):
+                tetra.GetPointIds().SetId(k, j)
+            cellArray.InsertNextCell(tetra)
+        ugrid.SetCells(vtk.VTK_TETRA, cellArray)
+        mapper = vtk.vtkDataSetMapper()
+        if vu.vtkMV: 
+            mapper.SetInputData(ugrid)
+        else:
+            mapper.SetInputConnection(ugrid.GetProducerPort())
+        actor = vtk.vtkActor()
+        actor.SetMapper(mapper)
+        actor.GetProperty().SetInterpolationToFlat()
+        actor.GetProperty().SetColor(vc.getColor(c))
+        actor.GetProperty().SetOpacity(alpha/2.)
+        if wire: actor.GetProperty().SetRepresentationToWireframe()
+    else: 
+        return pts_act
+    
+    ass = vu.makeAssembly([pts_act, actor])
+    setattr(ass, 'legend', legend)
     if legend is True: 
-        setattr(actor2, 'legend', os.path.basename(filename))
-    return actor2
- 
+        setattr(ass, 'legend', legend)
+    return ass
+
+
+def loadNeutral(filename, c, alpha, bc, edges, legend):
+    '''Reads a Neutral tetrahedral file format'''
+    import vtkshapes as vs
+    if not os.path.exists(filename): 
+        printc(('Error in loadNeutral: Cannot find', filename), c=1)
+        return None
+    
+    coords, connectivity = convertNeutral2Xml(filename)
+    
+    acts = vs.points(coords, c=c, alpha=alpha)
+    if edges:
+        polylns = vtk.vtkAppendPolyData()
+        for cn in connectivity:
+            p0 = coords[cn[0]]
+            p1 = coords[cn[1]]
+            p2 = coords[cn[2]]
+            p3 = coords[cn[3]]
+            lineSource1 = vtk.vtkLineSource()
+            lineSource2 = vtk.vtkLineSource()
+            lineSource3 = vtk.vtkLineSource()
+            lineSource4 = vtk.vtkLineSource()
+            lineSource5 = vtk.vtkLineSource()
+            lineSource6 = vtk.vtkLineSource()
+            lineSource1.SetPoint1(p0); lineSource1.SetPoint2(p1)
+            lineSource2.SetPoint1(p1); lineSource2.SetPoint2(p2)
+            lineSource3.SetPoint1(p2); lineSource3.SetPoint2(p0)
+            lineSource4.SetPoint1(p0); lineSource4.SetPoint2(p3)
+            lineSource5.SetPoint1(p3); lineSource5.SetPoint2(p1)
+            lineSource6.SetPoint1(p3); lineSource6.SetPoint2(p2)
+            polylns.AddInputConnection(lineSource1.GetOutputPort())
+            polylns.AddInputConnection(lineSource2.GetOutputPort())
+            polylns.AddInputConnection(lineSource3.GetOutputPort())
+            polylns.AddInputConnection(lineSource4.GetOutputPort())
+            polylns.AddInputConnection(lineSource5.GetOutputPort())
+            polylns.AddInputConnection(lineSource6.GetOutputPort())
+        polylns.Update()
+        cl = vtk.vtkCleanPolyData()
+        vu.setInput(cl, polylns.GetOutput())
+        cl.Update()
+        tetslines = vu.makeActor(cl.GetOutput(), c, alpha/5)
+        acts = vu.makeAssembly([acts, tetslines])
+
+    setattr(acts, 'legend', legend)
+    if legend is True: 
+        setattr(acts, 'legend', os.path.basename(filename))
+    return acts
+
+
+def loadGmesh(filename, c, alpha, bc, legend):
+    '''
+    Reads a gmesh file format
+    '''
+    if not os.path.exists(filename): 
+        printc(('Error in loadGmesh: Cannot find', filename), c=1)
+        return None
+   
+    f = open(filename, 'r')
+    lines = f.readlines()
+    f.close()
+    
+    nnodes=0
+    index_nodes=0
+    for i,line in enumerate(lines):
+        if '$Nodes' in line:
+            index_nodes=i+1
+            nnodes = int(lines[index_nodes])
+            break
+    node_coords=[]
+    for i in range(index_nodes+1, index_nodes+1 + nnodes):
+        cn = lines[i].split()
+        node_coords.append([float(cn[1]), float(cn[2]), float(cn[3])])
+
+    nelements=0
+    index_elements=0
+    for i,line in enumerate(lines):
+        if '$Elements' in line:
+            index_elements=i+1
+            nelements = int(lines[index_elements])
+            break
+    elements=[]
+    for i in range(index_elements+1, index_elements+1 + nelements):
+        ele= lines[i].split()
+        elements.append([int(ele[-3]), int(ele[-2]), int(ele[-1])])
+
+    sourcePoints    = vtk.vtkPoints()
+    sourceVertices  = vtk.vtkCellArray()
+    sourceTriangles = vtk.vtkCellArray()
+    for pt in node_coords:
+        aid = sourcePoints.InsertNextPoint(pt[0], pt[1], pt[2])
+        sourceVertices.InsertNextCell(1)
+        sourceVertices.InsertCellPoint(aid)
+    for i,e in enumerate(elements):
+        triangle = vtk.vtkTriangle()
+        triangle.GetPointIds().SetId( 0, e[0]-1 )
+        triangle.GetPointIds().SetId( 1, e[1]-1 )
+        triangle.GetPointIds().SetId( 2, e[2]-1 )
+        sourceTriangles.InsertNextCell ( triangle )
+
+    source = vtk.vtkPolyData()
+    source.SetPoints(sourcePoints)
+    source.SetVerts(sourceVertices)
+    source.SetPolys(sourceTriangles)
+    clp = vtk.vtkCleanPolyData()
+    vu.setInput(clp, source)
+    clp.PointMergingOn()
+    clp.Update()    
+#    rv = vtk.vtkReverseSense()
+#    vu.setInput(rv, clp.GetOutput())
+#    rv.ReverseCellsOff ()
+#    rv.Update()
+
+    return vu.makeActor(clp.GetOutput(), c=c, alpha=alpha, bc=bc, legend=legend)
+
 
 def loadPCD(filename, c, alpha, legend):
     '''Return vtkActor from Point Cloud file format'''            
@@ -441,6 +555,51 @@ class ProgressBar:
         ps = str(self.percent) + "%"
         self.bar = ' '.join([self.bar, ps])
         
+        
+def convertNeutral2Xml(infile, outfile=None):
+    
+    f = open(infile, 'r')
+    lines = f.readlines()
+    f.close()
+    
+    ncoords = int(lines[0])
+    fdolf_coords=[]
+    for i in range(1, ncoords+1):
+        x,y,z = lines[i].split()
+        fdolf_coords.append([float(x),float(y),float(z)])
+
+    ntets = int(lines[ncoords+1])
+    idolf_tets=[]
+    for i in range(ncoords+2, ncoords+ntets+2):
+        text = lines[i].split()
+        v0,v1,v2,v3 = text[1], text[2], text[3], text[4]
+        idolf_tets.append([int(v0)-1,int(v1)-1,int(v2)-1,int(v3)-1])
+
+    if outfile:#write dolfin xml
+        outF = open(outfile, 'w')
+        outF.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+        outF.write('<dolfin xmlns:dolfin="http://www.fenicsproject.org">\n')
+        outF.write('  <mesh celltype="tetrahedron" dim="3">\n')
+    
+        outF.write('    <vertices size="'+str(ncoords)+'">\n')    
+        for i in range(ncoords):
+            x,y,z = fdolf_coords[i]
+            outF.write('      <vertex index="'+str(i)
+                        +'" x="'+str(x)+'" y="'+str(y)+'" z="'+str(z)+'"/>\n')
+        outF.write('    </vertices>\n')
+    
+        outF.write('    <cells size="'+str(ntets)+'">\n')
+        for i in range(ntets):
+            v0,v1,v2,v3 = idolf_tets[i]
+            outF.write('      <tetrahedron index="'+str(i)
+                        +'" v0="'+str(v0)+'" v1="'+str(v1)+'" v2="'+str(v2)+'" v3="'+str(v3)+'"/>\n')
+        outF.write('    </cells>\n')
+    
+        outF.write('  </mesh>\n')
+        outF.write('</dolfin>\n')
+        outF.close()
+    return fdolf_coords, idolf_tets
+
 
 ################################################################### color print
 def printc(strings, c='black', bold=True, separator=' ', end='\n'):

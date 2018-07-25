@@ -470,6 +470,8 @@ def assignPhysicsMethods(actor):
     def _farea(self): return area(self)
     actor.area = types.MethodType(_farea, actor)
 
+    def _fdiagonalSize(self): return diagonalSize(self)
+    actor.diagonalSize = types.MethodType(_fdiagonalSize, actor)
 
 ######################################################### 
 def clone(actor, c=None, alpha=None, wire=False, bc=None,
@@ -643,28 +645,6 @@ def mergeActors(actors, c=None, alpha=1,
 #########################################################
 # Useful Functions
 ######################################################### 
-def makePolyData(spoints, addLines=True):
-    """Try to workout a polydata from ordered points"""
-    sourcePoints = vtk.vtkPoints()
-    sourceVertices = vtk.vtkCellArray()
-    for pt in spoints:
-        if len(pt)==3: #it's 3D!
-            aid = sourcePoints.InsertNextPoint(pt[0], pt[1], pt[2])
-        else:
-            aid = sourcePoints.InsertNextPoint(pt[0], pt[1], 0)
-        sourceVertices.InsertNextCell(1)
-        sourceVertices.InsertCellPoint(aid)
-    source = vtk.vtkPolyData()
-    source.SetPoints(sourcePoints)
-    source.SetVerts(sourceVertices)
-    if addLines:
-        lines = vtk.vtkCellArray()
-        lines.InsertNextCell(len(spoints))
-        for i in range(len(spoints)): lines.InsertCellPoint(i)
-        source.SetLines(lines)
-    return source
-
-
 def isInside(actor, point, tol=0.0001):
     """Return True if point is inside a polydata closed surface"""
     poly = polydata(actor, True)

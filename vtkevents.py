@@ -99,7 +99,8 @@ def keypress(vp, obj, event):
         print ('vp.camera.SetPosition(',  [round(e,3) for e in cam.GetPosition()],  ')')
         print ('vp.camera.SetFocalPoint(',[round(e,3) for e in cam.GetFocalPoint()],')')
         print ('vp.camera.SetViewUp(',    [round(e,3) for e in cam.GetViewUp()],')')
-        print ('vp.camera.SetParallelScale(',round(cam.GetParallelScale(),3),')\n')
+        print ('vp.camera.SetDistance(',   round(cam.GetDistance() ,3),')')
+        print ('vp.camera.SetClippingRange(', [round(e,3) for e in cam.GetClippingRange()],')')
         return
 
     elif key == "w":

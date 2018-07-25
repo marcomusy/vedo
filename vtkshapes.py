@@ -600,7 +600,7 @@ def helix(startPoint=[0,0,0], endPoint=[1,1,1], coils=20, r=None,
     diff = diff/length
     theta = np.arccos(diff[2])
     phi   = np.arctan2(diff[1], diff[0])
-    sp = vu.makePolyData(pts)
+    sp = vu.polydata(line(pts), False)
     t = vtk.vtkTransform()
     t.RotateZ(phi*57.3)
     t.RotateY(theta*57.3)

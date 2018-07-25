@@ -158,7 +158,6 @@ class vtkPlotter:
         self.write = vtkio.write
         self.cutterWidget = vtkanalysis.cutterWidget
         self.ProgressBar = vtkio.ProgressBar
-        self.makePolyData = vtkutils.makePolyData
         self.cellCenters = vtkutils.cellCenters
         self.flipNormals = vtkutils.flipNormals
         self.arange = vtkutils.arange
@@ -411,8 +410,8 @@ class vtkPlotter:
             Press shift-C key in interactive mode to dump a vtkCamera
             parameter for the current camera view.
         '''
-        if isinstance(fraction, int) and self.verbose:
-            printc("Warning in moveCamera(): fraction is integer.", 1)
+        if isinstance(fraction, int):
+            printc("Warning in moveCamera(): fraction should not be an integer",1)
         if fraction>1:
             printc("Warning in moveCamera(): fraction is > 1", 1)
         cam = vtk.vtkCamera()
@@ -420,17 +419,21 @@ class vtkPlotter:
         p1 = array(camstart.GetPosition())
         f1 = array(camstart.GetFocalPoint())
         v1 = array(camstart.GetViewUp())
-        s1 = array(camstart.GetParallelScale())
+        c1 = array(camstart.GetClippingRange())
+        s1 = camstart.GetDistance()
+        
         p2 = array(camstop.GetPosition())
         f2 = array(camstop.GetFocalPoint())
         v2 = array(camstop.GetViewUp())
-        s2 = array(camstop.GetParallelScale())
-        cam.SetPosition(     p2*fraction+p1*(1.-fraction))
-        cam.SetFocalPoint(   f2*fraction+f1*(1.-fraction))
-        cam.SetViewUp(       v2*fraction+v1*(1.-fraction))
-        cam.SetParallelScale(s2*fraction+s1*(1.-fraction))
+        c2 = array(camstop.GetClippingRange())
+        s2 = camstop.GetDistance()
+        cam.SetPosition(     p2*fraction+p1*(1-fraction))
+        cam.SetFocalPoint(   f2*fraction+f1*(1-fraction))
+        cam.SetViewUp(       v2*fraction+v1*(1-fraction))
+        cam.SetDistance(     s2*fraction+s1*(1-fraction))
+        cam.SetClippingRange(c2*fraction+c1*(1-fraction))
         self.camera = cam
-        self.show()
+        self.show(resetcam=0)
 
 
     def light(self, pos=[1,1,1], fp=[0,0,0], deg=25,
@@ -1371,10 +1374,14 @@ class vtkPlotter:
 
         if not self.camera:
             self.camera = self.renderer.GetActiveCamera()
-            self.camera.SetParallelProjection(self.projection)
-            self.camera.SetThickness(self.camThickness)
+        self.camera.SetParallelProjection(self.projection)
+        self.camera.SetThickness(self.camThickness)
+            
         if self.sharecam:
             for r in self.renderers: r.SetActiveCamera(self.camera)
+        
+        if len(self.renderers)==1: 
+            self.renderer.SetActiveCamera(self.camera)
 
         
         ############################### rendering
@@ -1480,21 +1487,20 @@ if __name__ == '__main__':
 ###########################################################################
 #    Basic usage:
 #    plotter.py files*.vtk
-#    # valid formats:
-#    # [vtk,vtu,vts,vtp, ply,obj,stl,xml,pcd,xyz,txt,byu,g, tif,slc, png,jpg]
+#    valid formats:
+#    [vtk,vtu,vts,vtp, ply,obj,stl,xml,neutral,pcd,xyz,txt,byu,g, tif,slc, png,jpg]
     fs = sys.argv[1:]
     alpha = 1
     if len(fs) == 1 :
         leg = False
     else:
         leg = None
-        if len(fs): alpha = 1./len(fs)
-        print ('Loading',len(fs),'files:', fs)
+        if len(fs): alpha = 1/len(fs)
     vp = vtkPlotter(bg2=(.94,.94,1))
     for f in fs:
         vp.load(f, alpha=alpha)
     if len(fs):
-        vp.show(legend=leg, interactive=1)
+        vp.show(legend=leg, interactive=True)
     else:
         help()
 ###########################################################################
