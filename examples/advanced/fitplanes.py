@@ -7,9 +7,9 @@
 # attribute actor.center and actor.normal (direction is arbitrary).
 #
 from __future__ import division, print_function
-from plotter import vtkPlotter
+from vtkplotter import Plotter
 
-vp = vtkPlotter(verbose=0, axes=0)
+vp = Plotter(verbose=0, axes=0)
 
 s = vp.load('data/shapes/cow.vtk').alpha(0.3).subdivide() # remesh
 

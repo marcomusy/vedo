@@ -1,10 +1,10 @@
 # Simulation of bacteria types that divide at a given rate
 # As they divide they occupy more and more space
 from __future__ import division, print_function
-from plotter import vtkPlotter, ProgressBar
+from vtkplotter import Plotter, ProgressBar
 from cell import Cell, Colony
 
-vp = vtkPlotter(verbose=0, interactive=0, axes=3)
+vp = Plotter(verbose=0, interactive=0, axes=3)
 
 # place vtkCamera at a specific position 
 # (get these numbers by pressing Shift-C)

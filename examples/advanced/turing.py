@@ -4,7 +4,7 @@
 # a blue component.
 #
 from __future__ import division, print_function
-from plotter import vector, vtkPlotter, ProgressBar
+from vtkplotter import vector, Plotter, ProgressBar
 import numpy as np
 
 # Load (with numpy) an existing set of mesh points and a list 
@@ -15,7 +15,7 @@ nc,n = conc.shape # nc= nr. of time points, n= nr. of vertices
 
 # Create the vtkPlotter instance and position the camera.
 # (values can be copied in the code by pressing C in the rendering window)
-vp = vtkPlotter(verbose=0, axes=0, interactive=0)
+vp = Plotter(verbose=0, axes=0, interactive=0)
 vp.camera.SetPosition(962, -239, 1034)
 vp.camera.SetFocalPoint(0.0, 0.0, 10.0)
 vp.camera.SetViewUp(-0.693, -0.479, 0.539)

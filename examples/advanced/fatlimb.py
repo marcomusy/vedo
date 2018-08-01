@@ -5,9 +5,9 @@
 # recalculated for the underlying polydata.
 #
 from __future__ import division, print_function
-from plotter import vtkPlotter, norm, mag
+from vtkplotter import Plotter, norm, mag
 
-vp = vtkPlotter(axes=0)
+vp = Plotter(axes=0)
 
 s = vp.load('data/290.vtk', wire=1)
 vp.actors.append( s.clone(c='red 1.0', wire=0) )

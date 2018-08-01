@@ -1,29 +1,28 @@
 
-# vtkPlotter
+# vtkplotter
 
 A python helper class to easily draw, analyse and animate 3D objects. 
 A VTK alternative to [VPython](http://vpython.org/).
 
 ## Download / Install:
-After installing [VTK](https://www.vtk.org/):
+After installing [VTK](https://www.vtk.org/), simply type:
 ```bash
-git clone https://github.com/marcomusy/vtkPlotter.git
+git clone https://github.com/marcomusy/vtkplotter.git
+cd vtkplotter
+pip install .
+# or
+sudo pip install .
+
+# run the tutorial:
+cd examples
+python tutorial.py
 ```
-will download the package.
-To install to a fixed location (e.g. *$HOME/software*):
-```bash
-mv vtkPlotter $HOME/software/
-```
-and add these lines to your *.bashrc*:
-```bash
-export PYTHONPATH=$HOME/software/vtkPlotter:$PYTHONPATH
-alias plotter='$HOME/software/vtkPlotter/plotter.py'
-```
+
 ## Example usage and Tutorial:<br />
 
 Simple command line usage:
 ```bash
-plotter data/*.vtk  
+vtkplotter data/*.vtk  
 # other valid formats: [vtu,vts,vtp, ply,obj,stl,xml,neutral,gmsh,pcd,xyz,txt,byu, tif,slc, png,jpg]
 
 python tutorial.py  ### run a tutorial script (on macOS try pythonw instead)
@@ -33,9 +32,9 @@ python tutorial.py  ### run a tutorial script (on macOS try pythonw instead)
 
 In your python script:
 ```python
-import plotter
+import vtkplotter
 
-vp = plotter.vtkPlotter()  # Declare an instance of the class
+vp = vtkplotter.Plotter()  # Declare an instance of the class
 ```
 
 Load a simple OBJ file and display it.<br />
@@ -49,9 +48,9 @@ vp.show('data/shuttle.obj')
 Load 3 actors assigning each a different color, use their file names as legend entries.<br />
 (the tridimensional shape corresponds to the outer shape of the embryonic mouse
 limb at about 12 days of gestation).<br />
-Graphic objects are stored internally in vp.actors (as vtkActor):
+Graphic objects are stored internally in vp.actors (as vtkActor, filename or vtkPolyData):
 ```python
-vp = plotter.vtkPlotter()
+vp = vtkplotter.Plotter()  
 vp.load('data/250.vtk', c=(1,0.4,0)) # c=(R,G,B) color, name or hex code
 vp.load('data/270.vtk', c=(1,0.6,0))
 vp.load('data/290.vtk', c=(1,0.8,0))
@@ -65,7 +64,7 @@ Draw a spline that goes through a set of points, and show the points too *(nodes
 ```python
 from random import gauss as g
 pts = [(g(0,.1)+i/20., g(0,.1)+i/20., g(0,.1)) for i in range(100)]
-vp = plotter.vtkPlotter()
+vp = vtkplotter.Plotter()  
 vp.spline(pts, s=2, smooth=1.1, nodes=True)
 vp.show()
 ```
@@ -78,7 +77,7 @@ Plot the function *f(x,y) = sin(3*x)*log(x-y)/3* (more examples in *examples/fxy
 <br />
 Red dots in the plot indicate the (x,y) where the function *f* is not a real number:
 ```python
-vp = plotter.vtkPlotter()
+vp = vtkplotter.Plotter()  
 vp.fxy('sin(3*x)*log(x-y)/3', texture='paper')
 vp.show()
 ```
@@ -88,7 +87,7 @@ vp.show()
 
 Draw a bunch of basic goemetric objects on separate parts of the rendering window:
 ```python
-vp = plotter.vtkPlotter(N=6, sharecam=False)
+vp = vtkplotter.Plotter(N=6, sharecam=False)
 vp.show( vp.arrow([0,0,0], [1,1,1]),   at=0, legend='arrow()' )
 vp.show( vp.line([0,0,0], [1,1,1]),    at=1, legend='line()' )
 vp.show( vp.point([1,2,3]),            at=2, legend='point()' )
@@ -103,7 +102,7 @@ vp.show(interactive=1)
 
 Draw a number of mesh objects in various formats and options:
 ```python
-vp = plotter.vtkPlotter(shape=(3,3), sharecam=False, interactive=0)
+vp = vtkplotter.Plotter(shape=(3,3), sharecam=False, interactive=0)
 vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
 vp.show(at=1, c=1, actors='data/cow.g', wire=1)
 vp.show(at=2, c=2, actors='data/limb.pcd')
@@ -122,7 +121,7 @@ vp.show(interactive=1)
 Cut a set of shapes with a plane that goes through the point at x=500 and has normal (0, 0.3, -1).
 Wildcards are ok to load multiple files or directories:
 ```python
-vp = plotter.vtkPlotter()
+vp = vtkplotter.Plotter()  
 vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1)
 for a in vp.actors:
     vp.cutPlane(a, origin=(500,0,0), normal=(0,0.3,-1))
@@ -221,8 +220,8 @@ To produce animated gifs online, check out this great site: https://ezgif.com
 
 ## List of available methods with default values:
 ```python
-def vtkPlotter(shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='vtkPlotter',
-               bg=(1,1,1), bg2=None, axes=0, verbose=True, interactive=True)
+def Plotter(shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='vtkplotter',
+            bg=(1,1,1), bg2=None, axes=0, verbose=True, interactive=True)
 def load(filesOrDirs, c='gold', alpha=0.2, wire=False, bc=None, edges=False, legend=True, texture=None)
 def show(actors=None, at=0, legend=None, axes=0, ruler=False, c='gold', bc=None, 
          alpha=0.2, wire=False, resetcam=True, interactive=None, q=False)
@@ -300,9 +299,9 @@ def booleanOperation(actor1, actor2, operation='plus',  # possible operations: p
 def intersectWithLine(actor, p0, p1)
 ```
 
-Useful *vtkPlotter* attributes:
+Useful *Plotter* attributes:
 ```python
-vp = plotter.vtkPlotter() #e.g.
+vp = vtkplotter.Plotter() #e.g.
 vp.actors       # holds the current list of vtkActors to be shown
 vp.renderer     # holds the current renderer
 vp.renderers    # holds the list of renderers
@@ -314,7 +313,7 @@ vp.sharecam     # (True) share the same camera in multiple renderers
 
 Useful methods:
 ```python
-# Example -- vp = vtkPlotter(); vp.makeActor(myolydata, c='red')
+# Example -- vp = vtkplotter.Plotter(); vp.makeActor(myolydata, c='red')
 def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None)
 def makeAssembly(actors, legend=None)
 def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1)
@@ -377,7 +376,7 @@ actor.intersectWithLine(p0, p1) # get a list of points of intersection with segm
 actor.cutterWidget(outputname='clipped.vtk') # invoke a cutter widget for actor
 ```
 
-Some useful *numpy* shortcuts available in vtkPlotter (*a la vpython*):
+Some useful *numpy* shortcuts available in vtkplotter (*a la vpython*):
 ```python
 def arange(start,stop, step)  # return a range list of floats
 def vector(x, y, z=0)         # return a numpy vector (2D or 3D)
@@ -389,7 +388,7 @@ Available color maps from matplotlib:
 ```python
 # Example code:
 # transform a scalar value between -10.2 and 123.4 into a RGB color, using the 'jet' map
-from plotter import colorMap
+from vtkplotter import colorMap
 RGBcol = colorMap(value, name='jet', vmin=-10.2, vmax=123.4)
 ```
 ![colmaps](https://user-images.githubusercontent.com/32848391/42942959-c8b50eec-8b61-11e8-930a-00dcffdca601.png)

@@ -11,7 +11,7 @@ except:
     print('Please install pyshtools to run this example')
     print('Follow instructions at https://shtools.oca.eu/shtools')
     exit(0)
-import plotter
+import vtkplotter
 import numpy as np
 from numpy import sin, cos
 
@@ -60,7 +60,7 @@ def morph(clm1, clm2, t, lmax):
     return pts
 
 
-vp = plotter.vtkPlotter(shape=[2,2], verbose=0, axes=3, interactive=0)
+vp = vtkplotter.Plotter(shape=[2,2], verbose=0, axes=3, interactive=0)
 
 shape1 = vp.sphere(alpha=0.2)
 shape2 = vp.load('data/shapes/icosahedron.vtk', edges=1).normalize()

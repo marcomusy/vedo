@@ -6,7 +6,7 @@
 
 from __future__ import division, print_function
 from random import random
-import plotter
+import vtkplotter
 import numpy as np
 
 #############################################################
@@ -27,7 +27,7 @@ def reflection(p, pos):
     n = vp.norm(pos)
     return np.dot(np.identity(3)-2*n*n[:,np.newaxis], p)
 
-vp = plotter.vtkPlotter(title='gas in toroid', verbose=0, axes=0)
+vp = vtkplotter.Plotter(title='gas in toroid', verbose=0, axes=0)
 vp.ring(c='g', r=RingRadius, thickness=RingThickness, alpha=.1, wire=1) ### <--
 
 Atoms = []

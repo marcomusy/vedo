@@ -8,9 +8,9 @@
 # Fitted radius can be accessed from attribute actor.radius
 
 from __future__ import division, print_function
-import plotter
+import vtkplotter
 
-vp = plotter.vtkPlotter(verbose=0)
+vp = vtkplotter.Plotter(verbose=0)
 
 # load mesh and increase by a lot (N=2) the nr of surface vertices
 s = vp.load('data/shapes/cow.vtk').alpha(0.3).subdivide(N=2)

@@ -1,12 +1,12 @@
 # Using 1D Moving Least Squares to skeletonize a surface.
 #
 from __future__ import division, print_function
-from plotter import vtkPlotter
+from vtkplotter import Plotter
 
 N=10  # nr of iterations
 f=0.1 # fraction of neighbours 
 
-vp = vtkPlotter(N=N, axes=0)
+vp = Plotter(N=N, axes=0)
 
 pts = vp.load('data/shapes/man.vtk').decimate(0.1).coordinates()
 #pts = vp.load('data/shapes/spider.ply').coordinates()

@@ -10,12 +10,12 @@
 # each point in color scale (left) or in size scale (right).
 #
 from __future__ import division, print_function
-from plotter import vtkPlotter, cos, sqrt, colorMap, vector
+from vtkplotter import Plotter, cos, sqrt, colorMap, vector
 from random import gauss
 import numpy as np
 
 
-vp1 = vtkPlotter(shape=(1,4), axes=0)
+vp1 = Plotter(shape=(1,4), axes=0)
 
 # Generate a random cloud of 20k points in space
 def fnc(p): 
@@ -51,7 +51,7 @@ vp1.show(s1,   at=3, legend='third pass')
 
 
 #################################### draw errors
-vp2 = vtkPlotter(shape=(1,2), axes=3)
+vp2 = Plotter(shape=(1,2), axes=3)
 
 vmin,vmax = np.min(s1.variances), np.max(s1.variances)
 print('min and max of variances:', vmin,vmax)

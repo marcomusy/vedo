@@ -8,7 +8,7 @@
 # details of the regression for some random points
 #
 from __future__ import division, print_function
-from plotter import vtkPlotter, arange, sin, cos
+from vtkplotter import Plotter, arange, sin, cos
 import numpy as np
 
 N = 3  # nr. of iterations
@@ -20,7 +20,7 @@ pts = [ (sin(6*x), sin(2*x)/(x+1), cos(9*x)) for x in arange(0,1, .001)]
 pts += np.random.randn(len(pts), 3)/50 # add noise
 np.random.shuffle(pts) # make sure points are not ordered
 
-vp = vtkPlotter(N=N)
+vp = Plotter(N=N)
 a = vp.points(pts)
 vp.show(a, at=0, legend='cloud')
         

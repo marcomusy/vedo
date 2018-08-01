@@ -2,10 +2,10 @@
 # color points based on the size of the sphere radius
 #
 from __future__ import division, print_function
-from plotter import vtkPlotter, colorMap, norm
+from vtkplotter import Plotter, colorMap, norm
 
 
-vp = vtkPlotter(verbose=0, axes=0)
+vp = Plotter(verbose=0, axes=0)
 
 s = vp.load('data/shapes/cow.vtk', alpha=0.3)#.subdivide()
 

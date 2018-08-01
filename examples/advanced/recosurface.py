@@ -8,11 +8,11 @@
 # NB: recoSurface only works with vtk version >7
 # 
 from __future__ import division, print_function
-from plotter import vtkPlotter
+from vtkplotter import Plotter
 import numpy as np
 
 
-vp = vtkPlotter(shape=(1,4), axes=0)
+vp = Plotter(shape=(1,4), axes=0)
 
 act = vp.load('data/shapes/pumpkin.vtk')
 vp.show(act, at=0)

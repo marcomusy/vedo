@@ -1,5 +1,5 @@
 from __future__ import division, print_function
-from plotter import vtkPlotter, printc
+from vtkplotter import Plotter, printc
 import numpy as np
 
 ############## Constants
@@ -22,7 +22,7 @@ for k in range(1, N+1):
     bob_y.append(bob_y[k-1]+np.sin(alpha)+np.random.normal(0, .1))
 
 # Create the bobs
-vp = vtkPlotter(title="Multiple Pendulum", axes=0, verbose=0)
+vp = Plotter(title="Multiple Pendulum", axes=0, verbose=0)
 vp.box(pos=(bob_x[0], bob_y[0], 0), length=12,
        width=12, height=.7, c='k', wire=1)
 bob = [vp.sphere(pos=(bob_x[0], bob_y[0], 0), r=R/2, c='gray')]

@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+#
+from vtkplotter import Plotter
+import sys
+
+fs = sys.argv[1:]
+alpha = 1.
+if len(fs) == 1 :
+    leg = False
+else:
+    leg = None
+if len(fs): alpha = 1.0/len(fs)
+vp = Plotter(bg2=(.94,.94,1))
+for f in fs:
+    vp.load(f, alpha=alpha)
+if len(fs):
+    vp.show(legend=leg, interactive=True)
+else:
+    vp.help()
+
+

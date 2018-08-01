@@ -10,7 +10,7 @@
 #  reconstruct the projected points in red
 #
 from __future__ import division, print_function
-import plotter
+import vtkplotter
 import numpy as np
 from numpy import sin, cos
 
@@ -22,7 +22,7 @@ rbias = 0.5  # subtract a constant average value
 x0 = [0,0,0] # set object at this position
 ##########################################################
 
-vp = plotter.vtkPlotter(shape=[1,2], verbose=0, axes=0)
+vp = vtkplotter.Plotter(shape=[1,2], verbose=0, axes=0)
 shape = vp.load('data/shapes/icosahedron.vtk', edges=1).normalize().pos(x0)
 
 agrid, pts = [], []

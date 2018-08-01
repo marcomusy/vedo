@@ -5,14 +5,14 @@
 #  using algorithms available in the scipy.optimize package.
 #  
 from __future__ import division, print_function
-import vtk, plotter
+import vtkplotter
 try:
     import scipy.optimize as opt
 except:
     print('This example needs scipy to run.')
     exit()
 
-vp = plotter.vtkPlotter(shape=[1,3], interactive=0)
+vp = vtkplotter.Plotter(shape=[1,3], interactive=0)
 
 class Morpher:
     def __init__(self):

@@ -8,13 +8,13 @@
 # Adapted by M. Musy from E. Velasco (2009)
 #=======================================================
 from __future__ import division, print_function
-import random, plotter
+import random, vtkplotter
 import numpy as np
 
 screen_w = 600
 screen_h = 600  
  
-vp = plotter.vtkPlotter(title="Brownian Motion",  
+vp = vtkplotter.Plotter(title="Brownian Motion",  
                         size=(screen_w,screen_h), axes=0, verbose=0)
 
 # Constants and time step
