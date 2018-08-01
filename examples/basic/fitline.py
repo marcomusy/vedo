@@ -10,7 +10,7 @@ import vtkplotter
 import numpy as np
 
 # declare the class instance
-vp = vtkplotter.Plotter(verbose=False, title='linear fitting')
+vp = vtkplotter.Plotter(verbose=0, title='linear fitting')
 
 # draw 500 fit lines superimposed and very transparent
 for i in range(500): 

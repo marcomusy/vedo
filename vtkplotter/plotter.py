@@ -1,17 +1,16 @@
 from __future__ import division, print_function
 import time, sys, vtk, numpy
-import events, utils, shapes, analysis, vtkio, colors
+
+import vtkplotter.vtkio as vtkio
+import vtkplotter.utils as utils
+import vtkplotter.colors as colors
+import vtkplotter.events as events
+import vtkplotter.shapes as shapes
+import vtkplotter.analysis as analysis 
 
 from numpy import sin, cos, sqrt, exp, log, dot, cross, array
 
-__author__  = "Marco Musy"
-__license__ = "MIT"
-__version__ = "8.0" 
-__maintainer__ = "M. Musy, G. Dalmasso"
-__email__   = "marco.musy@embl.es"
-__status__  = "dev"
-__website__ = "https://github.com/marcomusy/vtkplotter"
-
+__version__ = "8.1"
 
 ########################################################################
 class Plotter:
@@ -40,7 +39,7 @@ class Plotter:
         msg += "\te   to close current window\n"
         msg += "\tEsc to abort and exit\n"
         msg += "---------------------------------------------------------"
-        vtkio.printc(msg, c='blue')
+        colors.printc(msg, c='blue')
 
 
     def __init__(self, shape=(1,1), N=None, size='auto', maxscreensize=(1100,1800), 
@@ -115,7 +114,7 @@ class Plotter:
         self.camera = vtk.vtkCamera()
         
         # share the methods in utils in Plotter class
-        self.printc = vtkio.printc
+        self.printc = colors.printc
         self.makeActor = utils.makeActor
         self.setInput = utils.setInput
         self.makeAssembly = utils.makeAssembly
@@ -126,12 +125,12 @@ class Plotter:
         self.closestPoint = utils.closestPoint
         self.isInside = utils.isInside
         self.insidePoints = utils.insidePoints
-        self.intersectWithLine = analysis.intersectWithLine
+        self.intersectWithLine = utils.intersectWithLine
         self.surfaceIntersection = analysis.surfaceIntersection
         self.maxBoundSize = utils.maxBoundSize
         self.normalize = utils.normalize
         self.clone = utils.clone
-        self.decimate = analysis.decimate
+        self.decimate = utils.decimate
         self.rotate = utils.rotate
         self.shrink = utils.shrink
         self.centerOfMass = utils.centerOfMass
@@ -139,7 +138,7 @@ class Plotter:
         self.volume = utils.volume
         self.area = utils.area
         self.write = vtkio.write
-        self.cutterWidget = analysis.cutterWidget
+        self.cutterWidget = utils.cutterWidget
         self.ProgressBar = vtkio.ProgressBar
         self.cellCenters = utils.cellCenters
         self.flipNormals = utils.flipNormals
@@ -149,7 +148,7 @@ class Plotter:
         self.mag2 = utils.mag2
         self.norm = utils.norm
         self.orientation = utils.orientation
-        self.subdivide = analysis.subdivide
+        self.subdivide = utils.subdivide
         self.xbounds = utils.xbounds
         self.ybounds = utils.ybounds
         self.zbounds = utils.zbounds
@@ -161,7 +160,7 @@ class Plotter:
 
         if N:                # N = number of renderers. Find out the best
             if shape!=(1,1): # arrangement based on minimum nr. of empty renderers
-                vtkio.printc('Warning: having set N, #renderers, shape is ignored.)', c=1)
+                colors.printc('Warning: having set N, #renderers, shape is ignored.)', c=1)
             x = float(maxscreensize[0])
             y = float(maxscreensize[1])
             nx= int(sqrt(int(N*x/y)+1))
@@ -230,7 +229,7 @@ class Plotter:
         self.interactor.SetInteractorStyle(vsty)
 
     def help(self):
-        vtkio.printc("""
+        colors.printc("""
         A python helper class to easily draw VTK tridimensional objects.
         Please follow instructions at:
         https://github.com/marcomusy/vtkplotter\n""", 1)
@@ -283,7 +282,7 @@ class Plotter:
             a = makeActor(inputobj, c, alpha, wire, bc, edges, legend, texture)
             self.actors.append(a)
             if inputobj and inputobj.GetNumberOfPoints()==0:
-                vtkio.printc('Warning: actor has zero points.',5)
+                colors.printc('Warning: actor has zero points.',5)
             return a
 
         acts = []
@@ -302,7 +301,7 @@ class Plotter:
                 acts = vtkio.loadDir(fod, c, alpha, wire, bc, edges, legend, texture,
                                      smoothing, threshold, connectivity, scaling)
         if not len(acts):
-            vtkio.printc(('Error in load(): cannot find', inputobj), 1)
+            colors.printc(('Error in load(): cannot find', inputobj), 1)
             return None
 
         for actor in acts:
@@ -344,7 +343,7 @@ class Plotter:
             if obj is None:
                 acs = self.renderer.GetActors()
             elif obj>=len(self.renderers):
-                vtkio.printc(("Error in getActors: non existing renderer",obj), c=1)
+                colors.printc(("Error in getActors: non existing renderer",obj), c=1)
                 return []
             else:
                 acs = self.renderers[obj].GetActors()
@@ -381,7 +380,7 @@ class Plotter:
             return [obj]
 
         if self.verbose:
-            vtkio.printc(('Warning in getActors: unexpected input type',obj), 1)
+            colors.printc(('Warning in getActors: unexpected input type',obj), 1)
         return []
 
 
@@ -395,9 +394,9 @@ class Plotter:
             parameter for the current camera view.
         '''
         if isinstance(fraction, int):
-            vtkio.printc("Warning in moveCamera(): fraction should not be an integer",1)
+            colors.printc("Warning in moveCamera(): fraction should not be an integer",1)
         if fraction>1:
-            vtkio.printc("Warning in moveCamera(): fraction is > 1", 1)
+            colors.printc("Warning in moveCamera(): fraction is > 1", 1)
         cam = vtk.vtkCamera()
         cam.DeepCopy(camstart)
         p1 = array(camstart.GetPosition())
@@ -719,7 +718,7 @@ class Plotter:
         return actor
 
 
-    ################# from analysis
+    ################# 
     def xyplot(self, points=[[0,0],[1,0],[2,1],[3,2],[4,1]],
                title='', c='b', corner=1, lines=False):
         """
@@ -793,7 +792,7 @@ class Plotter:
         '''
         actor = analysis.fitLine(points, c, lw, alpha, legend)
         if self.verbose:
-            vtkio.printc("fitLine info saved in actor.slope, actor.center, actor.variances",5)
+            colors.printc("fitLine info saved in actor.slope, actor.center, actor.variances",5)
         self.actors.append(actor)
         return actor
 
@@ -806,7 +805,7 @@ class Plotter:
         '''
         actor = analysis.fitPlane(points, c, bc, alpha, legend)
         if self.verbose:
-            vtkio.printc("fitPlane info saved in actor.normal, actor.center, actor.variance",5)
+            colors.printc("fitPlane info saved in actor.normal, actor.center, actor.variance",5)
         self.actors.append(actor)
         return actor
 
@@ -819,7 +818,7 @@ class Plotter:
         '''
         actor = analysis.fitSphere(coords, c, alpha, wire, legend)
         if self.verbose:
-            vtkio.printc("fitSphere info saved in actor.radius, actor.center, actor.residue",5)
+            colors.printc("fitSphere info saved in actor.radius, actor.center, actor.residue",5)
         self.actors.append(actor)
         return actor
 
@@ -834,7 +833,7 @@ class Plotter:
         '''
         actor = analysis.pca(points, pvalue, c, alpha, pcaAxes, legend)
         if self.verbose:
-            vtkio.printc("PCA info saved in actor.sphericity, actor.va, actor.vb, actor.vc",5)
+            colors.printc("PCA info saved in actor.sphericity, actor.va, actor.vb, actor.vc",5)
         self.actors.append(actor)
         return actor
 
@@ -972,7 +971,7 @@ class Plotter:
         
         if actor is None: actor=self.lastActor()
         if not isinstance(actor, vtk.vtkActor) or not hasattr(actor, 'GetMapper'): 
-            vtkio.printc('Error in addScalarBar: input is not a vtkActor.',1)
+            colors.printc('Error in addScalarBar: input is not a vtkActor.',1)
             return None
         lut = actor.GetMapper().GetLookupTable()
         if not lut: return None
@@ -1303,14 +1302,14 @@ class Plotter:
                     out = self.load(a, c, alpha, wire, bc, False)
                     self.actors.pop()
                     if isinstance(out, str):
-                        vtkio.printc(('File not found:', out), 1)
+                        colors.printc(('File not found:', out), 1)
                         scannedacts.append(None)
                     else:
                         scannedacts.append(out) 
                 elif a is None: 
                     pass
                 else: 
-                    vtkio.printc(('Cannot understand input in show():', type(a)), 1)
+                    colors.printc(('Cannot understand input in show():', type(a)), 1)
                     scannedacts.append(None)
             return scannedacts
 
@@ -1326,7 +1325,7 @@ class Plotter:
             if   utils.isSequence(legend): self.legend = list(legend)
             elif isinstance(legend,  str): self.legend = [str(legend)]
             else:
-                vtkio.printc('Error in show(): legend must be list or string.', 1)
+                colors.printc('Error in show(): legend must be list or string.', 1)
                 sys.exit()
         if not (axes is None): self.axes = axes
         if not (interactive is None): self.interactive = interactive
@@ -1337,8 +1336,8 @@ class Plotter:
                 print ('on window', at,'- Interactive mode: ', end='')
             else:
                 print ('- Interactive mode: ', end='')
-            if self.interactive: vtkio.printc('On', 'green', bold=1)
-            else: vtkio.printc('Off', 'red', bold=0)
+            if self.interactive: colors.printc('On', 'green', bold=1)
+            else: colors.printc('Off', 'red', bold=0)
 
         if at is None and len(self.renderers)>1:
             #in case of multiple renderers a call to show w/o specifing
@@ -1353,7 +1352,7 @@ class Plotter:
         if at < len(self.renderers):
             self.renderer = self.renderers[at]
         else:
-            vtkio.printc(("Error in show(): wrong renderer index", at), c=1)
+            colors.printc(("Error in show(): wrong renderer index", at), c=1)
             return
 
         if not self.camera:
@@ -1371,7 +1370,7 @@ class Plotter:
         ############################### rendering
         for ia in actors2show:        # add the actors that are not already in scene            
             if ia: self.renderer.AddActor(ia)
-            else:  vtkio.printc('Warning: Invalid actor in actors list, skip.', 5)
+            else:  colors.printc('Warning: Invalid actor in actors list, skip.', 5)
         for ia in self.getActors(at): # remove the ones that are not in actors2show
             if ia not in actors2show: 
                 self.renderer.RemoveActor(ia)

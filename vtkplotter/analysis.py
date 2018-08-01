@@ -1,11 +1,11 @@
 from __future__ import division, print_function
 import vtk
 import numpy as np
-import utils as vu
-import colors as vc
-import shapes as vs
-import vtkio as vio
 
+import vtkplotter.utils as vu
+import vtkplotter.colors as vc
+import vtkplotter.vtkio as vio
+import vtkplotter.shapes as vs
 
 
 def spline(points, smooth=0.5, degree=2, 
@@ -754,69 +754,6 @@ def align(source, target, iters=100, legend=None):
     return actor
 
 
-def subdivide(actor, N=1, method=0, legend=None):
-    '''
-    Increase the number of points in actor surface
-        N = number of subdivisions
-        method = 0, Loop
-        method = 1, Linear
-        method = 2, Adaptive
-        method = 3, Butterfly
-    '''
-    triangles = vtk.vtkTriangleFilter()
-    vu.setInput(triangles, vu.polydata(actor))
-    triangles.Update()
-    originalMesh = triangles.GetOutput()
-    if   method==0: sdf = vtk.vtkLoopSubdivisionFilter()
-    elif method==1: sdf = vtk.vtkLinearSubdivisionFilter()
-    elif method==2: sdf = vtk.vtkAdaptiveSubdivisionFilter()
-    elif method==3: sdf = vtk.vtkButterflySubdivisionFilter()
-    else:
-        vio.printc('Error in subdivide: unknown method.', 'r')
-        exit(1)
-    if method != 2: sdf.SetNumberOfSubdivisions(N)
-    vu.setInput(sdf, originalMesh)
-    sdf.Update()
-    out = sdf.GetOutput()
-    if legend is None and hasattr(actor, 'legend'): legend=actor.legend
-    sactor = vu.makeActor(out, legend=legend)
-    sactor.GetProperty().SetOpacity(actor.GetProperty().GetOpacity())
-    sactor.GetProperty().SetColor(actor.GetProperty().GetColor())
-    sactor.GetProperty().SetRepresentation(actor.GetProperty().GetRepresentation())
-    return sactor
-
-
-def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
-    '''
-    Downsample the number of vertices in a mesh.
-        fraction gives the desired target of reduction. 
-        E.g. fraction=0.1
-             leaves 10% of the original nr of vertices.
-    '''
-    poly = vu.polydata(actor, True)
-    if N: # N = desired number of points
-        Np = poly.GetNumberOfPoints()
-        fraction = float(N)/Np
-        if fraction >= 1: return actor   
-        
-    decimate = vtk.vtkDecimatePro()
-    vu.setInput(decimate, poly)
-    decimate.SetTargetReduction(1.-fraction)
-    decimate.PreserveTopologyOff()
-    if boundaries: decimate.BoundaryVertexDeletionOn()
-    else: decimate.BoundaryVertexDeletionOff()
-    decimate.Update()
-    if verbose:
-        print ('Input nr. of pts:',poly.GetNumberOfPoints(),end='')
-        print (' output:',decimate.GetOutput().GetNumberOfPoints())
-    mapper = actor.GetMapper()
-    vu.setInput(mapper, decimate.GetOutput())
-    mapper.Update()
-    actor.Modified()
-    if hasattr(actor, 'poly'): actor.poly=decimate.GetOutput()
-    return actor  # return same obj for concatenation
-
-
 def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1, 
                      wire=False, bc=None, edges=False, legend=None, texture=None):
     '''Volumetric union, intersection and subtraction of surfaces'''
@@ -844,124 +781,7 @@ def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1,
     actor = vu.makeActor(bf.GetOutput(), 
                          c, alpha, wire, bc, edges, legend, texture)
     return actor
-       
 
-def intersectWithLine(act, p0, p1):
-    '''Return a list of points between p0 and p1 intersecting the actor'''
-    
-    if not hasattr(act, 'line_locator'):
-        line_locator = vtk.vtkOBBTree()
-        line_locator.SetDataSet(vu.polydata(act, True))
-        line_locator.BuildLocator()
-        setattr(act, 'line_locator', line_locator)
-
-    intersectPoints = vtk.vtkPoints()
-    intersection = [0, 0, 0]
-    act.line_locator.IntersectWithLine(p0, p1, intersectPoints, None)
-    pts=[]
-    for i in range(intersectPoints.GetNumberOfPoints()):
-        intersectPoints.GetPoint(i, intersection)
-        pts.append(list(intersection))
-    return pts
-
-
-def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
-                 bc=(0.7, 0.8, 1), legend=None):
-    '''Pop up a box widget to cut parts of actor. Return largest part.'''
-
-    apd = vu.polydata(obj)
-    
-    planes = vtk.vtkPlanes()
-    planes.SetBounds(apd.GetBounds())
-
-    clipper = vtk.vtkClipPolyData()
-    vu.setInput(clipper, apd)
-    clipper.SetClipFunction(planes)
-    clipper.InsideOutOn()
-    clipper.GenerateClippedOutputOn()
-
-    # check if color string contains a float, in this case ignore alpha
-    al = vc.getAlpha(c)
-    if al: alpha = al
-
-    act0Mapper = vtk.vtkPolyDataMapper() # the part which stays
-    act0Mapper.SetInputConnection(clipper.GetOutputPort())
-    act0 = vtk.vtkActor()
-    act0.SetMapper(act0Mapper)
-    act0.GetProperty().SetColor(vc.getColor(c))
-    act0.GetProperty().SetOpacity(alpha)
-    backProp = vtk.vtkProperty()
-    backProp.SetDiffuseColor(vc.getColor(bc))
-    backProp.SetOpacity(alpha)
-    act0.SetBackfaceProperty(backProp)
-    
-    act0.GetProperty().SetInterpolationToFlat()
-    vu.assignPhysicsMethods(act0)    
-    vu.assignConvenienceMethods(act0, legend)    
-
-    act1Mapper = vtk.vtkPolyDataMapper() # the part which is cut away
-    act1Mapper.SetInputConnection(clipper.GetClippedOutputPort())
-    act1 = vtk.vtkActor()
-    act1.SetMapper(act1Mapper)
-    act1.GetProperty().SetColor(vc.getColor(c))
-    act1.GetProperty().SetOpacity(alpha/10.)
-    act1.GetProperty().SetRepresentationToWireframe()
-    act1.VisibilityOn()
-    
-    ren = vtk.vtkRenderer()
-    ren.SetBackground(1,1,1)
-    
-    ren.AddActor(act0)
-    ren.AddActor(act1)
-    
-    renWin = vtk.vtkRenderWindow()
-    renWin.AddRenderer(ren)
-    renWin.SetSize(600, 700)
-
-    iren = vtk.vtkRenderWindowInteractor()
-    iren.SetRenderWindow(renWin)
-    istyl = vtk.vtkInteractorStyleSwitch()
-    istyl.SetCurrentStyleToTrackballCamera()
-    iren.SetInteractorStyle(istyl)
-    
-    def SelectPolygons(vobj, event): vobj.GetPlanes(planes)
-    
-    boxWidget = vtk.vtkBoxWidget()
-    boxWidget.OutlineCursorWiresOn()
-    boxWidget.GetSelectedOutlineProperty().SetColor(1,0,1)
-    boxWidget.GetOutlineProperty().SetColor(0.1,0.1,0.1)
-    boxWidget.GetOutlineProperty().SetOpacity(0.8)
-    boxWidget.SetPlaceFactor(1.05)
-    boxWidget.SetInteractor(iren)
-    vu.setInput(boxWidget, apd)
-    boxWidget.PlaceWidget()    
-    boxWidget.AddObserver("InteractionEvent", SelectPolygons)
-    boxWidget.On()
-    
-    vio.printc('\nCutterWidget:\n Move handles to cut parts of the actor','m')
-    vio.printc(' Press q to continue, Escape to exit','m')
-    vio.printc((" Press X to save file to", outputname), 'm')
-    def cwkeypress(obj, event):
-        key = obj.GetKeySym()
-        if   key == "q" or key == "space" or key == "Return":
-            iren.ExitCallback()
-        elif key == "X": 
-            confilter = vtk.vtkPolyDataConnectivityFilter()
-            vu.setInput(confilter, clipper.GetOutput())
-            confilter.SetExtractionModeToLargestRegion()
-            confilter.Update()
-            cpd = vtk.vtkCleanPolyData()
-            vu.setInput(cpd, confilter.GetOutput())
-            cpd.Update()
-            vio.write(cpd.GetOutput(), outputname)
-        elif key == "Escape": 
-            exit(0)
-    
-    iren.Initialize()
-    iren.AddObserver("KeyPressEvent", cwkeypress)
-    iren.Start()
-    boxWidget.Off()
-    return act0
 
 
 def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3,
@@ -970,7 +790,7 @@ def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3,
     try:
         bf = vtk.vtkIntersectionPolyDataFilter()
     except AttributeError:
-        vio.printc('surfaceIntersection only possible for vtk version > 6','r')
+        colors.printc('surfaceIntersection only possible for vtk version > 6','r')
         return None
     poly1 = vu.polydata(actor1, True)
     poly2 = vu.polydata(actor2, True)
@@ -981,7 +801,6 @@ def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3,
     actor = vu.makeActor(bf.GetOutput(), c, alpha, 0, legend=legend)
     actor.GetProperty().SetLineWidth(lw)
     return actor
-
 
 def recoSurface(points, bins=256,
                 c='gold', alpha=1, wire=False, bc='t', edges=False, legend=None):

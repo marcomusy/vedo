@@ -1,9 +1,10 @@
 from __future__ import division, print_function
 import vtk
 import numpy as np
-import utils as vu
-import colors as vc
-import vtkio as vio
+
+import vtkplotter.utils as vu
+import vtkplotter.colors as vc
+import vtkplotter.vtkio as vio
 
 
 ########################################################################

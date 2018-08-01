@@ -1,7 +1,8 @@
 from __future__ import division, print_function
 import vtk, os, sys, time
-import utils as vu
-import colors as vc
+
+import vtkplotter.utils as vu
+import vtkplotter.colors as vc
 
 def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
               smoothing, threshold, connectivity, scaling):
@@ -22,7 +23,7 @@ def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
     else:
         poly = loadPoly(filename)
         if not poly:
-            printc(('Unable to load', filename), c=1)
+            vc.printc(('Unable to load', filename), c=1)
             return False
         if legend is True: legend = os.path.basename(filename)
         actor = vu.makeActor(poly, c, alpha, wire, bc, edges, legend, texture)
@@ -33,7 +34,7 @@ def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
 def loadDir(mydir, c, alpha, wire, bc, edges, legend, texture,
              smoothing, threshold, connectivity, scaling):
     if not os.path.exists(mydir): 
-        printc(('Error in loadDir: Cannot find', mydir), c=1)
+        vc.printc(('Error in loadDir: Cannot find', mydir), c=1)
         exit(0)
     acts = []
     for ifile in sorted(os.listdir(mydir)):
@@ -44,7 +45,7 @@ def loadDir(mydir, c, alpha, wire, bc, edges, legend, texture,
 def loadPoly(filename):
     '''Return a vtkPolyData object, NOT a vtkActor'''
     if not os.path.exists(filename): 
-        printc(('Error in loadPoly: Cannot find', filename), c=1)
+        vc.printc(('Error in loadPoly: Cannot find', filename), c=1)
         return None
     fl = filename.lower()
     if   '.vtk' in fl: reader = vtk.vtkPolyDataReader()
@@ -73,7 +74,7 @@ def loadPoly(filename):
     else: poly = reader.GetOutput()
     
     if not poly: 
-        printc(('Unable to load', filename), c=1)
+        vc.printc(('Unable to load', filename), c=1)
         return False
     
     cleanpd = vtk.vtkCleanPolyData()
@@ -85,7 +86,7 @@ def loadPoly(filename):
 def loadXml(filename, c, alpha, wire, bc, edges, legend):
     '''Reads a Fenics/Dolfin file format'''
     if not os.path.exists(filename): 
-        printc(('Error in loadXml: Cannot find', filename), c=1)
+        vc.printc(('Error in loadXml: Cannot find', filename), c=1)
         return None
     import shapes
     import xml.etree.ElementTree as et
@@ -155,7 +156,7 @@ def loadNeutral(filename, c, alpha, bc, edges, legend):
     '''Reads a Neutral tetrahedral file format'''
     import shapes as vs
     if not os.path.exists(filename): 
-        printc(('Error in loadNeutral: Cannot find', filename), c=1)
+        vc.printc(('Error in loadNeutral: Cannot find', filename), c=1)
         return None
     
     coords, connectivity = convertNeutral2Xml(filename)
@@ -204,7 +205,7 @@ def loadGmesh(filename, c, alpha, bc, legend):
     Reads a gmesh file format
     '''
     if not os.path.exists(filename): 
-        printc(('Error in loadGmesh: Cannot find', filename), c=1)
+        vc.printc(('Error in loadGmesh: Cannot find', filename), c=1)
         return None
    
     f = open(filename, 'r')
@@ -268,7 +269,7 @@ def loadGmesh(filename, c, alpha, bc, legend):
 def loadPCD(filename, c, alpha, legend):
     '''Return vtkActor from Point Cloud file format'''            
     if not os.path.exists(filename): 
-        printc(('Error in loadPCD: Cannot find file', filename), c=1)
+        vc.printc(('Error in loadPCD: Cannot find file', filename), c=1)
         return None
     f = open(filename, 'r')
     lines = f.readlines()
@@ -287,14 +288,14 @@ def loadPCD(filename, c, alpha, legend):
         if not start and 'DATA ascii' in text:
             start = True
     if expN != N:
-        printc(('Mismatch in pcd file', expN, len(pts)), 'red')
+        vc.printc(('Mismatch in pcd file', expN, len(pts)), 'red')
     src = vtk.vtkPointSource()
     src.SetNumberOfPoints(len(pts))
     src.Update()
     poly = src.GetOutput()
     for i,p in enumerate(pts): poly.GetPoints().SetPoint(i, p)
     if not poly:
-        printc(('Unable to load', filename), 'red')
+        vc.printc(('Unable to load', filename), 'red')
         return False
     actor = vu.makeActor(poly, vc.getColor(c), alpha)
     actor.GetProperty().SetPointSize(4)
@@ -307,7 +308,7 @@ def loadVolume(filename, c, alpha, wire, bc, edges, legend, texture,
               smoothing, threshold, connectivity, scaling):
     '''Return vtkActor from a TIFF stack or SLC file'''            
     if not os.path.exists(filename): 
-        printc(('Error in loadVolume: Cannot find file', filename), c=1)
+        vc.printc(('Error in loadVolume: Cannot find file', filename), c=1)
         return None
     
     print ('..reading file:', filename)
@@ -316,7 +317,7 @@ def loadVolume(filename, c, alpha, wire, bc, edges, legend, texture,
     elif '.slc' in filename.lower(): 
         reader = vtk.vtkSLCReader() 
         if not reader.CanReadFile(filename):
-            printc('Sorry bad SLC file '+filename, 1)
+            vc.printc('Sorry bad SLC file '+filename, 1)
             exit(1)
     reader.SetFileName(filename) 
     reader.Update() 
@@ -399,24 +400,24 @@ def write(obj, fileoutput):
     elif '.obj' in fr: 
         w = vtk.vtkOBJExporter()
         w.SetFilePrefix(fileoutput.replace('.obj',''))
-        printc('Please use write(vp.renderWin)',3)
+        vc.printc('Please use write(vp.renderWin)',3)
         w.SetInput(obj)
         w.Update()
-        printc("Saved file: "+fileoutput, 'g')
+        vc.printc("Saved file: "+fileoutput, 'g')
         return
     elif '.stl' in fr: w = vtk.vtkSTLWriter()
     elif '.byu' in fr or '.g' in fr: w = vtk.vtkBYUWriter()
     elif '.vtp' in fr: w = vtk.vtkXMLPolyDataWriter()
     else:
-        printc('Unavailable format in file '+fileoutput, c='r')
+        vc.printc('Unavailable format in file '+fileoutput, c='r')
         exit(1)
     try:
         vu.setInput(w, vu.polydata(obj, True))
         w.SetFileName(fileoutput)
         w.Write()
-        printc("Saved file: "+fileoutput, 'g')
+        vc.printc("Saved file: "+fileoutput, 'g')
     except:
-        printc("Error saving: "+fileoutput, 'r')
+        vc.printc("Error saving: "+fileoutput, 'r')
 
 
 ################################################################### Video
@@ -445,7 +446,7 @@ class Video:
         self.frames = []
         if not os.path.exists('/tmp/vpvid'): os.mkdir('/tmp/vpvid')
         for fl in glob.glob("/tmp/vpvid/*.png"): os.remove(fl)
-        printc(("Video", name, "is open..."), 'm')
+        vc.printc(("Video", name, "is open..."), 'm')
         
     def addFrame(self):
         fr = '/tmp/vpvid/'+str(len(self.frames))+'.png'
@@ -465,16 +466,15 @@ class Video:
     def close(self):      
         if self.duration:
             _fps = len(self.frames)/float(self.duration)
-            printc(("Recalculated video FPS to", round(_fps,3)), 'yellow')
+            vc.printc(("Recalculated video FPS to", round(_fps,3)), 'yellow')
         else: _fps = int(_fps)
         self.name = self.name.split('.')[0]+'.mp4'
         out = os.system("ffmpeg -loglevel panic -y -r " + str(_fps)
                         + " -i /tmp/vpvid/%01d.png "+self.name)
-        if out: printc("ffmpeg returning error",1)
-        printc(('Video saved as', self.name), 'green')
+        if out: vc.printc("ffmpeg returning error",1)
+        vc.printc(('Video saved as', self.name), 'green')
         return
     
-
 
 ###########################################################################
 class ProgressBar: 
@@ -530,7 +530,7 @@ class ProgressBar:
             txt = eta + str(txt) 
             s = self.bar + ' ' + eraser + txt + '\r'
             if self.color: 
-                printc(s, c=self.color, end='')
+                vc.printc(s, c=self.color, end='')
             else: 
                 sys.stdout.write(s)
                 sys.stdout.flush()
@@ -600,54 +600,6 @@ def convertNeutral2Xml(infile, outfile=None):
         outF.close()
     return fdolf_coords, idolf_tets
 
-
-################################################################### color print
-def printc(strings, c='black', bold=True, separator=' ', end='\n'):
-    '''
-    Print to terminal in color. 
-    
-    Available colors:
-        black, red, green, yellow, blue, magenta, cyan, white
-    Usage example:
-        cprint( 'anything', c='red', bold=False, end='' )
-        cprint( ['anything', 455.5, vtkObject], 'green')
-        cprint(299792.48, c=4) # 4 is blue
-    '''
-    if isinstance(strings, tuple): strings = list(strings)
-    elif not isinstance(strings, list): strings = [str(strings)]
-    txt = str()
-    for i,s in enumerate(strings):
-        if i == len(strings)-1: separator=''
-        txt = txt + str(s) + separator
-    
-    if _terminal_has_colors:
-        try:
-            if isinstance(c, int): 
-                ncol = c % 8
-            else: 
-                cols = {'black':0, 'red':1, 'green':2, 'yellow':3, 
-                        'blue':4, 'magenta':5, 'cyan':6, 'white':7,
-                        'k':0, 'r':1, 'g':2, 'y':3,
-                        'b':4, 'm':5, 'c':6, 'w':7}
-                ncol = cols[c.lower()]
-            if bold: seq = "\x1b[1;%dm" % (30+ncol)
-            else:    seq = "\x1b[0;%dm" % (30+ncol)
-            sys.stdout.write(seq + txt + "\x1b[0m" +end)
-            sys.stdout.flush()
-        except: print (txt, end=end)
-    else:
-        print (txt, end=end)
-        
-def _has_colors(stream):
-    if not hasattr(stream, "isatty"): return False
-    if not stream.isatty(): return False # auto color only on TTYs
-    try:
-        import curses
-        curses.setupterm()
-        return curses.tigetnum("colors") > 2
-    except:
-        return False
-_terminal_has_colors = _has_colors(sys.stdout)
 
 
     

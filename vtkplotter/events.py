@@ -1,16 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Dec  7 11:15:37 2017
-
-@author: mmusy
-"""
 from __future__ import division, print_function
 import sys
 import vtk
-import utils 
-import colors
-import analysis
-import vtkio
+
+import vtkplotter.utils as utils
+import vtkplotter.colors as colors
 
 
 ############################### mouse event
@@ -52,13 +45,13 @@ def mouseleft(vp, obj, event):
             except: 
                 cn = ''                        
             if indx and isinstance(clickedActor, vtk.vtkAssembly): 
-                vtkio.printc(('-> assembly',indx+':',clickedActor.legend,cn), end=' ')
+                colors.printc(('-> assembly',indx+':',clickedActor.legend,cn), end=' ')
             elif indx:
-                vtkio.printc(('-> actor', indx+':', leg, cn), end=' ')
-            vtkio.printc('N='+str(utils.polydata(clickedActor).GetNumberOfPoints()), end='')
+                colors.printc(('-> actor', indx+':', leg, cn), end=' ')
+            colors.printc('N='+str(clickedActor.GetMapper().GetInput().GetNumberOfPoints()), end='')
             px,py,pz = vp.picked3d
             px,py,pz = str(round(px,1)), str(round(py,1)), str(round(pz,1))
-            vtkio.printc(', p=('+px+','+py+','+pz+')')
+            colors.printc(', p=('+px+','+py+','+pz+')')
 
     vp.clickedActor = clickedActor
     vp.clickedr = clickedr
@@ -88,7 +81,7 @@ def keypress(vp, obj, event):
         sys.exit(0)
 
     elif key == "S":
-        vtkio.printc('Saving window as screenshot.png', 'green')
+        colors.printc('Saving window as screenshot.png', 'green')
         vp.screenshot(vp.renderWin, 'screenshot.png')
         return
 
@@ -322,11 +315,10 @@ def keypress(vp, obj, event):
                 vp.renderer.RemoveActor(vp.clickedActor)
             else: 
                 if vp.verbose:
-                    vtkio.printc('Click an actor and press x to toggle it.',5)
+                    colors.printc('Click an actor and press x to toggle it.',5)
                 return
-            if vp.verbose and hasattr(vp.clickedActor, 'legend') and vp.clickedActor.legend:
-                vtkio.printc('   ...removing actor: '+ str(vp.clickedActor.legend) +
-                          ', press x to put it back')
+            if hasattr(vp.clickedActor, 'legend') and vp.clickedActor.legend:
+                colors.printc('   ...removing actor: '+ str(vp.clickedActor.legend)+', press x to put it back')
         else:
             vp.renderer.AddActor(vp.justremoved)
             vp.renderer.Render()
@@ -340,10 +332,10 @@ def keypress(vp, obj, event):
                 fname = fname.split('.')[0]+'.vtk'
             else: fname = 'clipped.vtk'
             if vp.verbose:
-                vtkio.printc('Move handles to remove part of the actor.',4)
-            analysis.cutterWidget(vp.clickedActor, fname) 
+                colors.printc('Move handles to remove part of the actor.',4)
+            utils.cutterWidget(vp.clickedActor, fname) 
         elif vp.verbose: 
-            vtkio.printc('Click an actor and press X to open the cutter box widget.',4)
+            colors.printc('Click an actor and press X to open the cutter box widget.',4)
 
     elif key == "r":
         vp.renderer.ResetCamera()

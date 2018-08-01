@@ -13,7 +13,7 @@ def my_z(x,y):
     return math.sin(2*x*y) * math.cos(3*y)/2
 
 
-vp = vtkplotter.vtkPlotter(shape=(2,2), axes=2, sharecam=False)
+vp = vtkplotter.Plotter(shape=(2,2), axes=2, sharecam=False)
 
 # draw at renderer nr.0 the first actor, show it with a texture
 # an existing function z(x,y) can be passed:

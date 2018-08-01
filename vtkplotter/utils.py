@@ -4,12 +4,10 @@ import numpy as np
 import vtk
 from vtk.util.numpy_support import numpy_to_vtk
 from vtk.util.numpy_support import vtk_to_numpy
-import colors, analysis, vtkio 
-import warnings
 
+import vtkplotter.colors as colors
 
 ##############################################################################
-warnings.simplefilter(action='ignore', category=FutureWarning)
 vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
 
 def setInput(vtkobj, p, port=0):
@@ -217,10 +215,10 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     if os.path.exists(name): 
         fn = name
     elif not os.path.exists(fn):
-        vtkio.printc(('Texture', name, 'not found in', cdir+'/textures'), 'r')
-        vtkio.printc('Available textures:', c='m', end=' ')
+        colors.printc(('Texture', name, 'not found in', cdir+'/textures'), 'r')
+        colors.printc('Available textures:', c='m', end=' ')
         for ff in os.listdir(cdir + '/textures'):
-            vtkio.printc(ff.split('.')[0], end=' ', c='m')
+            colors.printc(ff.split('.')[0], end=' ', c='m')
         print()
         return 
         
@@ -295,7 +293,7 @@ def assignConvenienceMethods(actor, legend):
     def _fshrink(self, fraction=0.85): return shrink(self, fraction)
     actor.shrink = types.MethodType( _fshrink, actor )
 
-    def _fcutterw(self): return analysis.cutterWidget(self)
+    def _fcutterw(self): return cutterWidget(self)
     actor.cutterWidget = types.MethodType( _fcutterw, actor )
      
     def _fpolydata(self, rebuild=True, index=0): 
@@ -336,11 +334,11 @@ def assignConvenienceMethods(actor, legend):
     actor.stretch = types.MethodType( _fstretch, actor)
 
     def _fsubdivide(self, N=1, method=0, legend=None): 
-        return analysis.subdivide(self, N, method, legend)
+        return subdivide(self, N, method, legend)
     actor.subdivide = types.MethodType( _fsubdivide, actor)
 
     def _fdecimate(self, fraction=0.5, N=None, verbose=True, boundaries=True): 
-        return analysis.decimate(self, fraction, N, verbose, boundaries)
+        return decimate(self, fraction, N, verbose, boundaries)
     actor.decimate = types.MethodType( _fdecimate, actor)
 
     def _fcolor(self, c=None):
@@ -372,7 +370,7 @@ def assignConvenienceMethods(actor, legend):
     actor.closestPoint = types.MethodType( _fclosestPoint, actor)
 
     def _fintersectWithLine(self, p0, p1):
-        return analysis.intersectWithLine(self, p0,p1)
+        return intersectWithLine(self, p0,p1)
     actor.intersectWithLine = types.MethodType(_fintersectWithLine , actor)
 
     def _fisInside(self, point, tol=0.0001):
@@ -482,7 +480,7 @@ def clone(actor, c=None, alpha=None, wire=False, bc=None,
     '''
     poly = polydata(actor, rebuild)
     if not poly.GetNumberOfPoints():
-        vtkio.printc('Limitation: cannot clone textured obj. Returning input.',1)
+        colors.printc('Limitation: cannot clone textured obj. Returning input.',1)
         return actor
     polyCopy = vtk.vtkPolyData()
     polyCopy.DeepCopy(poly)
@@ -599,7 +597,7 @@ def stretch(actor, q1, q2):
     '''Stretch actor between points q1 and q2'''
 
     if not hasattr(actor, 'base'):
-        vtkio.printc('Please define vectors actor.base and actor.top at creation. Exit.','r')
+        colors.printc('Please define vectors actor.base and actor.top at creation. Exit.','r')
         exit(0)
 
     TI = vtk.vtkTransform()
@@ -674,7 +672,7 @@ def insidePoints(actor, points, invert=False, tol=1e-05):
     featureEdge.Update()
     openEdges = featureEdge.GetOutput().GetNumberOfCells()
     if openEdges != 0:
-        vtkio.printc("Warning: polydata is not a closed surface",5)
+        colors.printc("Warning: polydata is not a closed surface",5)
     
     vpoints = vtk.vtkPoints()
     for p in points: vpoints.InsertNextPoint(p)
@@ -836,8 +834,8 @@ def polydata(obj, rebuild=True, index=0):
     elif isinstance(obj, vtk.vtkImageActor):  return obj.GetMapper().GetInput()
     elif obj is None: return None
     
-    vtkio.printc("Fatal Error in polydata(): ", 'r', end='')
-    vtkio.printc(("input is neither a vtkActor nor vtkAssembly.", [obj]), 'r')
+    colors.printc("Fatal Error in polydata(): ", 'r', end='')
+    colors.printc(("input is neither a vtkActor nor vtkAssembly.", [obj]), 'r')
     exit(1)
 
 
@@ -973,7 +971,7 @@ def pointScalars(actor, scalars, name):
         scalars = np.array(scalars) - np.min(scalars)
         scalars = scalars/np.max(scalars)
         if len(scalars) != poly.GetNumberOfPoints():
-            vtkio.printc('Number of scalars != nr. of points',1)
+            colors.printc('Number of scalars != nr. of points',1)
             exit()
         arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
         arr.SetName(name)
@@ -988,7 +986,7 @@ def pointColors(actor, scalars, cmap='jet'):
         """
         poly = polydata(actor, False)
         if len(scalars) != poly.GetNumberOfPoints():
-            vtkio.printc('Number of scalars != nr. of points',1)
+            colors.printc('Number of scalars != nr. of points',1)
             exit()
        
         lut = vtk.vtkLookupTable()
@@ -1016,7 +1014,7 @@ def cellScalars(actor, scalars, name):
         scalars = np.array(scalars) - np.min(scalars)
         scalars = scalars/np.max(scalars)
         if len(scalars) != poly.GetNumberOfCells():
-            vtkio.printc('Number of scalars != nr. of cells',1)
+            colors.printc('Number of scalars != nr. of cells',1)
             exit()
         arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
         arr.SetName(name)
@@ -1031,7 +1029,7 @@ def cellColors(actor, scalars, cmap='jet'):
         """
         poly = polydata(actor, False)
         if len(scalars) != poly.GetNumberOfCells():
-            vtkio.printc('Number of scalars != nr. of cells',1)
+            colors.printc('Number of scalars != nr. of cells',1)
             exit()
        
         lut = vtk.vtkLookupTable()
@@ -1062,3 +1060,186 @@ def scalars(actor, name):
         return None
 
 
+def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
+                 bc=(0.7, 0.8, 1), legend=None):
+    '''Pop up a box widget to cut parts of actor. Return largest part.'''
+
+    apd = polydata(obj)
+    
+    planes = vtk.vtkPlanes()
+    planes.SetBounds(apd.GetBounds())
+
+    clipper = vtk.vtkClipPolyData()
+    setInput(clipper, apd)
+    clipper.SetClipFunction(planes)
+    clipper.InsideOutOn()
+    clipper.GenerateClippedOutputOn()
+
+    # check if color string contains a float, in this case ignore alpha
+    al = colors.getAlpha(c)
+    if al: alpha = al
+
+    act0Mapper = vtk.vtkPolyDataMapper() # the part which stays
+    act0Mapper.SetInputConnection(clipper.GetOutputPort())
+    act0 = vtk.vtkActor()
+    act0.SetMapper(act0Mapper)
+    act0.GetProperty().SetColor(colors.getColor(c))
+    act0.GetProperty().SetOpacity(alpha)
+    backProp = vtk.vtkProperty()
+    backProp.SetDiffuseColor(colors.getColor(bc))
+    backProp.SetOpacity(alpha)
+    act0.SetBackfaceProperty(backProp)
+    
+    act0.GetProperty().SetInterpolationToFlat()
+    assignPhysicsMethods(act0)    
+    assignConvenienceMethods(act0, legend)    
+
+    act1Mapper = vtk.vtkPolyDataMapper() # the part which is cut away
+    act1Mapper.SetInputConnection(clipper.GetClippedOutputPort())
+    act1 = vtk.vtkActor()
+    act1.SetMapper(act1Mapper)
+    act1.GetProperty().SetColor(colors.getColor(c))
+    act1.GetProperty().SetOpacity(alpha/10.)
+    act1.GetProperty().SetRepresentationToWireframe()
+    act1.VisibilityOn()
+    
+    ren = vtk.vtkRenderer()
+    ren.SetBackground(1,1,1)
+    
+    ren.AddActor(act0)
+    ren.AddActor(act1)
+    
+    renWin = vtk.vtkRenderWindow()
+    renWin.AddRenderer(ren)
+    renWin.SetSize(600, 700)
+
+    iren = vtk.vtkRenderWindowInteractor()
+    iren.SetRenderWindow(renWin)
+    istyl = vtk.vtkInteractorStyleSwitch()
+    istyl.SetCurrentStyleToTrackballCamera()
+    iren.SetInteractorStyle(istyl)
+    
+    def SelectPolygons(vobj, event): vobj.GetPlanes(planes)
+    
+    boxWidget = vtk.vtkBoxWidget()
+    boxWidget.OutlineCursorWiresOn()
+    boxWidget.GetSelectedOutlineProperty().SetColor(1,0,1)
+    boxWidget.GetOutlineProperty().SetColor(0.1,0.1,0.1)
+    boxWidget.GetOutlineProperty().SetOpacity(0.8)
+    boxWidget.SetPlaceFactor(1.05)
+    boxWidget.SetInteractor(iren)
+    setInput(boxWidget, apd)
+    boxWidget.PlaceWidget()    
+    boxWidget.AddObserver("InteractionEvent", SelectPolygons)
+    boxWidget.On()
+    
+    colors.printc('\nCutterWidget:\n Move handles to cut parts of the actor','m')
+    colors.printc(' Press q to continue, Escape to exit','m')
+    colors.printc((" Press X to save file to", outputname), 'm')
+    def cwkeypress(obj, event):
+        key = obj.GetKeySym()
+        if   key == "q" or key == "space" or key == "Return":
+            iren.ExitCallback()
+        elif key == "X": 
+            confilter = vtk.vtkPolyDataConnectivityFilter()
+            setInput(confilter, clipper.GetOutput())
+            confilter.SetExtractionModeToLargestRegion()
+            confilter.Update()
+            cpd = vtk.vtkCleanPolyData()
+            setInput(cpd, confilter.GetOutput())
+            cpd.Update()
+            w = vtk.vtkPolyDataWriter()
+            setInput(w, cpd.GetOutput())
+            w.SetFileName(outputname)
+            w.Write()
+            colors.printc("Saved file: "+outputname, 'g')
+        elif key == "Escape": 
+            exit(0)
+    
+    iren.Initialize()
+    iren.AddObserver("KeyPressEvent", cwkeypress)
+    iren.Start()
+    boxWidget.Off()
+    return act0
+
+
+def intersectWithLine(act, p0, p1):
+    '''Return a list of points between p0 and p1 intersecting the actor'''
+    
+    if not hasattr(act, 'line_locator'):
+        line_locator = vtk.vtkOBBTree()
+        line_locator.SetDataSet(polydata(act, True))
+        line_locator.BuildLocator()
+        setattr(act, 'line_locator', line_locator)
+
+    intersectPoints = vtk.vtkPoints()
+    intersection = [0, 0, 0]
+    act.line_locator.IntersectWithLine(p0, p1, intersectPoints, None)
+    pts=[]
+    for i in range(intersectPoints.GetNumberOfPoints()):
+        intersectPoints.GetPoint(i, intersection)
+        pts.append(list(intersection))
+    return pts
+
+
+def subdivide(actor, N=1, method=0, legend=None):
+    '''
+    Increase the number of points in actor surface
+        N = number of subdivisions
+        method = 0, Loop
+        method = 1, Linear
+        method = 2, Adaptive
+        method = 3, Butterfly
+    '''
+    triangles = vtk.vtkTriangleFilter()
+    setInput(triangles, polydata(actor))
+    triangles.Update()
+    originalMesh = triangles.GetOutput()
+    if   method==0: sdf = vtk.vtkLoopSubdivisionFilter()
+    elif method==1: sdf = vtk.vtkLinearSubdivisionFilter()
+    elif method==2: sdf = vtk.vtkAdaptiveSubdivisionFilter()
+    elif method==3: sdf = vtk.vtkButterflySubdivisionFilter()
+    else:
+        colors.printc('Error in subdivide: unknown method.', 'r')
+        exit(1)
+    if method != 2: sdf.SetNumberOfSubdivisions(N)
+    setInput(sdf, originalMesh)
+    sdf.Update()
+    out = sdf.GetOutput()
+    if legend is None and hasattr(actor, 'legend'): legend=actor.legend
+    sactor = makeActor(out, legend=legend)
+    sactor.GetProperty().SetOpacity(actor.GetProperty().GetOpacity())
+    sactor.GetProperty().SetColor(actor.GetProperty().GetColor())
+    sactor.GetProperty().SetRepresentation(actor.GetProperty().GetRepresentation())
+    return sactor
+
+
+def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
+    '''
+    Downsample the number of vertices in a mesh.
+        fraction gives the desired target of reduction. 
+        E.g. fraction=0.1
+             leaves 10% of the original nr of vertices.
+    '''
+    poly = polydata(actor, True)
+    if N: # N = desired number of points
+        Np = poly.GetNumberOfPoints()
+        fraction = float(N)/Np
+        if fraction >= 1: return actor   
+        
+    decimate = vtk.vtkDecimatePro()
+    setInput(decimate, poly)
+    decimate.SetTargetReduction(1.-fraction)
+    decimate.PreserveTopologyOff()
+    if boundaries: decimate.BoundaryVertexDeletionOn()
+    else: decimate.BoundaryVertexDeletionOff()
+    decimate.Update()
+    if verbose:
+        print ('Input nr. of pts:',poly.GetNumberOfPoints(),end='')
+        print (' output:',decimate.GetOutput().GetNumberOfPoints())
+    mapper = actor.GetMapper()
+    setInput(mapper, decimate.GetOutput())
+    mapper.Update()
+    actor.Modified()
+    if hasattr(actor, 'poly'): actor.poly=decimate.GetOutput()
+    return actor  # return same obj for concatenation

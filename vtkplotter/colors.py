@@ -1,12 +1,6 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Dec  4 20:06:00 2017
-
-@author: mmusy
-"""
 from __future__ import division, print_function
-import utils 
 import numpy as np
+import sys
 
 
 #########################################################
@@ -118,6 +112,12 @@ color_nicks.update({   # dark
         'dv': 'darkviolet'})
 
 
+def isSequence(arg): 
+    if hasattr(arg, "strip"): return False
+    if hasattr(arg, "__getslice__"): return True
+    if hasattr(arg, "__iter__"): return True
+    return False
+
 def getColor(rgb=None, hsv=None):
     """
     Convert a color to (r,g,b) format from many input formats, e.g.:
@@ -131,7 +131,7 @@ def getColor(rgb=None, hsv=None):
     """
     if hsv: c = hsv2rgb(hsv)
     else: c = rgb 
-    if utils.isSequence(c) :
+    if isSequence(c) :
         if c[0]<=1 and c[1]<=1 and c[2]<=1: return c #already rgb
         else: return list(np.array(c)/255.) #RGB
 
@@ -332,4 +332,50 @@ for i in range(10):
     colors3.append((r,g,b))
 
 
-
+################################################################### color print
+def printc(strings, c='black', bold=True, separator=' ', end='\n'):
+    '''
+    Print to terminal in color. 
+    
+    Available colors:
+        black, red, green, yellow, blue, magenta, cyan, white
+    Usage example:
+        cprint( 'anything', c='red', bold=False, end='' )
+        cprint( ['anything', 455.5, vtkObject], 'green')
+        cprint(299792.48, c=4) # 4 is blue
+    '''
+    if isinstance(strings, tuple): strings = list(strings)
+    elif not isinstance(strings, list): strings = [str(strings)]
+    txt = str()
+    for i,s in enumerate(strings):
+        if i == len(strings)-1: separator=''
+        txt = txt + str(s) + separator
+    
+    if _terminal_has_colors:
+        try:
+            if isinstance(c, int): 
+                ncol = c % 8
+            else: 
+                cols = {'black':0, 'red':1, 'green':2, 'yellow':3, 
+                        'blue':4, 'magenta':5, 'cyan':6, 'white':7,
+                        'k':0, 'r':1, 'g':2, 'y':3,
+                        'b':4, 'm':5, 'c':6, 'w':7}
+                ncol = cols[c.lower()]
+            if bold: seq = "\x1b[1;%dm" % (30+ncol)
+            else:    seq = "\x1b[0;%dm" % (30+ncol)
+            sys.stdout.write(seq + txt + "\x1b[0m" +end)
+            sys.stdout.flush()
+        except: print (txt, end=end)
+    else:
+        print (txt, end=end)
+        
+def _has_colors(stream):
+    if not hasattr(stream, "isatty"): return False
+    if not stream.isatty(): return False # auto color only on TTYs
+    try:
+        import curses
+        curses.setupterm()
+        return curses.tigetnum("colors") > 2
+    except:
+        return False
+_terminal_has_colors = _has_colors(sys.stdout)

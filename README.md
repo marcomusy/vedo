@@ -1,7 +1,7 @@
 
 # vtkplotter
 A python helper class to easily draw, analyse and animate 3D objects. 
-A VTK alternative to [VPython](http://vpython.org/).
+A [VTK](https://www.vtk.org/) alternative to [VPython](http://vpython.org/).
 
 ## Download, Install and Run:
 Simply type:
@@ -12,7 +12,7 @@ git clone https://github.com/marcomusy/vtkplotter.git
 # Install:
 cd vtkplotter
 pip install .
-# or
+# Or
 sudo pip install .
 
 # Run the tutorial:
@@ -29,7 +29,7 @@ vtkplotter data/*.vtk
 <br />
 
 
-In your python script:
+From within your python script:
 ```python
 from vtkplotter import Plotter
 
@@ -92,7 +92,7 @@ vp.show( vp.line([0,0,0], [1,1,1]),    at=1, legend='line()' )
 vp.show( vp.point([1,2,3]),            at=2, legend='point()' )
 vp.show( vp.text('Hello', bc=(1,0,0)), at=3 )
 vp.show( vp.sphere(),                  at=4 )
-vp.show(vp.cube(),                     at=5, legend='cube()')
+vp.show( vp.cube(),                    at=5, legend='cube()')
 vp.show(interactive=1)
 ```
 ![ex8](https://user-images.githubusercontent.com/32848391/32666975-91690102-c639-11e7-8f7b-ad07bd6019da.png)

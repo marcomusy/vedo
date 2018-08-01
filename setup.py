@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='8.0',
+    version='8.1',
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter'],
     install_requires=['numpy','vtk'],
