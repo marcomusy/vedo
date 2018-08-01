@@ -1,21 +1,23 @@
 
 # vtkplotter
-
 A python helper class to easily draw, analyse and animate 3D objects. 
 A VTK alternative to [VPython](http://vpython.org/).
 
 ## Download, Install and Run:
 After installing [VTK](https://www.vtk.org/), simply type:
 ```bash
+# Download:
 git clone https://github.com/marcomusy/vtkplotter.git
+
+# Install:
 cd vtkplotter
 pip install .
 # or
 sudo pip install .
 
-# run the tutorial:
+# Run the tutorial:
 cd examples
-python tutorial.py  #on macOS try pythonw instead
+python tutorial.py  # on macOS try pythonw instead
 ```
 
 ## More example usage<br />
@@ -29,9 +31,9 @@ vtkplotter data/*.vtk
 
 In your python script:
 ```python
-import vtkplotter
+from vtkplotter import Plotter
 
-vp = vtkplotter.Plotter()  # Declare an instance of the class
+vp = Plotter()  # Declare an instance of the class
 ```
 
 Load a simple OBJ file and display it.<br />
@@ -47,7 +49,7 @@ Load 3 actors assigning each a different color, use their file names as legend e
 limb at about 12 days of gestation).<br />
 Graphic objects are stored internally in vp.actors (as vtkActor, filename or vtkPolyData):
 ```python
-vp = vtkplotter.Plotter()  
+vp = Plotter()  
 vp.load('data/250.vtk', c=(1,0.4,0)) # c=(R,G,B) color, name or hex code
 vp.load('data/270.vtk', c=(1,0.6,0))
 vp.load('data/290.vtk', c=(1,0.8,0))
@@ -61,7 +63,7 @@ Draw a spline that goes through a set of points, and show the points too *(nodes
 ```python
 from random import gauss as g
 pts = [(g(0,.1)+i/20., g(0,.1)+i/20., g(0,.1)) for i in range(100)]
-vp = vtkplotter.Plotter()  
+vp = Plotter()  
 vp.spline(pts, s=2, smooth=1.1, nodes=True)
 vp.show()
 ```
@@ -74,7 +76,7 @@ Plot the function *f(x,y) = sin(3*x)*log(x-y)/3* (more examples in *examples/fxy
 <br />
 Red dots in the plot indicate the (x,y) where the function *f* is not a real number:
 ```python
-vp = vtkplotter.Plotter()  
+vp = Plotter()  
 vp.fxy('sin(3*x)*log(x-y)/3', texture='paper')
 vp.show()
 ```
@@ -84,7 +86,7 @@ vp.show()
 
 Draw a bunch of basic goemetric objects on separate parts of the rendering window:
 ```python
-vp = vtkplotter.Plotter(N=6, sharecam=False)
+vp = Plotter(N=6, sharecam=False)
 vp.show( vp.arrow([0,0,0], [1,1,1]),   at=0, legend='arrow()' )
 vp.show( vp.line([0,0,0], [1,1,1]),    at=1, legend='line()' )
 vp.show( vp.point([1,2,3]),            at=2, legend='point()' )
@@ -99,7 +101,7 @@ vp.show(interactive=1)
 
 Draw a number of mesh objects in various formats and options:
 ```python
-vp = vtkplotter.Plotter(shape=(3,3), sharecam=False, interactive=0)
+vp = Plotter(shape=(3,3), sharecam=False, interactive=0)
 vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
 vp.show(at=1, c=1, actors='data/cow.g', wire=1)
 vp.show(at=2, c=2, actors='data/limb.pcd')
@@ -118,7 +120,7 @@ vp.show(interactive=1)
 Cut a set of shapes with a plane that goes through the point at x=500 and has normal (0, 0.3, -1).
 Wildcards are ok to load multiple files or directories:
 ```python
-vp = vtkplotter.Plotter()  
+vp = Plotter()  
 vp.load('data/*.vtk', c='orange', bc='aqua', alpha=1)
 for a in vp.actors:
     vp.cutPlane(a, origin=(500,0,0), normal=(0,0.3,-1))
