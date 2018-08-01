@@ -4,7 +4,7 @@ A python helper class to easily draw, analyse and animate 3D objects.
 A VTK alternative to [VPython](http://vpython.org/).
 
 ## Download, Install and Run:
-After installing [VTK](https://www.vtk.org/), simply type:
+Simply type:
 ```bash
 # Download:
 git clone https://github.com/marcomusy/vtkplotter.git
