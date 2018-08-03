@@ -8,14 +8,16 @@ Simply type:
 ```bash
 # Install:
 (sudo) pip install vtkplotter
+```
 
-# Download and Run the tutorials:
+## Usage examples<br />
+Download and Run the tutorials:
+```bash
 git clone https://github.com/marcomusy/vtkplotter.git
 cd vtkplotter/examples
 python tutorial.py  # on macOS try pythonw instead
 ```
 
-## Usage examples<br />
 Simple command line usage:
 ```bash
 vtkplotter data/*.vtk  
@@ -24,23 +26,20 @@ vtkplotter data/*.vtk
 <br />
 
 
-From within your python script:
+From within your python script:<br />
+Load a simple OBJ file and display it.<br />
+Press *Esc* to close the window and exit python session or *q* to continue:
 ```python
 from vtkplotter import Plotter
 
 vp = Plotter()  # Declare an instance of the class
-```
-
-Load a simple OBJ file and display it.<br />
-Press *Esc* to close the window and exit python session or *q* to continue:
-```python
 vp.show('data/shuttle.obj')
 ```
 ![shuttle](https://user-images.githubusercontent.com/32848391/35975974-e1235396-0cde-11e8-9880-69335cc7fd43.png)
 <br />
 
 Load 3 actors assigning each a different color, use their file names as legend entries.<br />
-(the tridimensional shape corresponds to the outer shape of the embryonic mouse
+(the tridimensional shape corresponds to the outer shape of an embryonic mouse
 limb at about 12 days of gestation).<br />
 Graphic objects are stored internally in vp.actors (as vtkActor, filename or vtkPolyData):
 ```python
@@ -54,12 +53,12 @@ vp.show()
 ![ex2](https://user-images.githubusercontent.com/32848391/32666969-90a7dc48-c639-11e7-8795-b139166f0504.png)
 <br />
 
-Draw a spline that goes through a set of points, and show the points too *(nodes=True)*:
+Draw a spline that goes through a set of points, do not show the points *(nodes=False)*:
 ```python
 from random import gauss as g
 pts = [(g(0,.1)+i/20., g(0,.1)+i/20., g(0,.1)) for i in range(100)]
 vp = Plotter()  
-vp.spline(pts, s=2, smooth=1.1, nodes=True)
+vp.spline(pts, s=2, smooth=1.1, nodes=False)
 vp.show()
 ```
 ![ex3](https://user-images.githubusercontent.com/32848391/32666970-90c1b38e-c639-11e7-92dd-336f2aa2a2cf.png)
