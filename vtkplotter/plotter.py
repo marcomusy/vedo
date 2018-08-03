@@ -239,8 +239,8 @@ class Plotter:
             import platform
             print ("Python version:", platform.python_version())
         except: pass
-        print('Useful commands on graphic window:')
-        self.tips()
+        #print('Useful commands on graphic window:')
+        #self.tips()
         print( '''
         Command line usage:
             > vtkplotter files*.vtk

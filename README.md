@@ -3,24 +3,19 @@
 A python helper class to easily draw, analyse and animate 3D objects. 
 A [VTK](https://www.vtk.org/) alternative to [VPython](http://vpython.org/).
 
-## Download, Install and Run:
+## Install and Run:
 Simply type:
 ```bash
-# Download:
-git clone https://github.com/marcomusy/vtkplotter.git
-
 # Install:
-cd vtkplotter
-pip install .
-# Or
-sudo pip install .
+(sudo) pip install vtkplotter
 
-# Run the tutorial:
-cd examples
+# Download and Run the tutorials:
+git clone https://github.com/marcomusy/vtkplotter.git
+cd vtkplotter/examples
 python tutorial.py  # on macOS try pythonw instead
 ```
 
-## More example usage<br />
+## Usage examples<br />
 Simple command line usage:
 ```bash
 vtkplotter data/*.vtk  
