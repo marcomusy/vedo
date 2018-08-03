@@ -82,7 +82,7 @@ def keypress(vp, obj, event):
 
     elif key == "S":
         colors.printc('Saving window as screenshot.png', 'green')
-        vp.screenshot(vp.renderWin, 'screenshot.png')
+        vp.screenshot('screenshot.png')
         return
 
     elif key == "C":

@@ -8,8 +8,6 @@ import vtkplotter.events as events
 import vtkplotter.shapes as shapes
 import vtkplotter.analysis as analysis 
 
-from numpy import sin, cos, sqrt, exp, log, dot, cross, array
-
 __version__ = "8.1"
 
 ########################################################################
@@ -163,8 +161,8 @@ class Plotter:
                 colors.printc('Warning: having set N, #renderers, shape is ignored.)', c=1)
             x = float(maxscreensize[0])
             y = float(maxscreensize[1])
-            nx= int(sqrt(int(N*x/y)+1))
-            ny= int(sqrt(int(N*y/x)+1))
+            nx= int(numpy.sqrt(int(N*x/y)+1))
+            ny= int(numpy.sqrt(int(N*y/x)+1))
             lm = [(nx,ny), (nx,ny+1), (nx-1,ny), (nx+1,ny), (nx,ny-1)]
             lm+= [(nx-1,ny+1), (nx+1,ny-1), (nx+1,ny+1), (nx-1,ny-1)]
             minl=100
@@ -229,24 +227,21 @@ class Plotter:
         self.interactor.SetInteractorStyle(vsty)
 
     def help(self):
-        colors.printc("""
-        A python helper class to easily draw VTK tridimensional objects.
-        Please follow instructions at:
-        https://github.com/marcomusy/vtkplotter\n""", 1)
-        print ("vtkplotter version:", __version__)
-        print ("VTK version:", vtk.vtkVersion().GetVTKVersion())
+        colors.printc(["\n\tvtkplotter version:", __version__])
+        colors.printc(["\tVTK version:", vtk.vtkVersion().GetVTKVersion()])
         try:
             import platform
-            print ("Python version:", platform.python_version())
+            colors.printc(["\tPython version:", platform.python_version()])
         except: pass
-        #print('Useful commands on graphic window:')
-        #self.tips()
+        colors.printc("""
+        A python helper class to easily draw 3D objects.
+        Please follow instructions at:""", 2)
+        colors.printc("\thttps://github.com/marcomusy/vtkplotter", 4)
         print( '''
-        Command line usage:
-            > vtkplotter files*.vtk
-            # valid file formats:
-            # [vtk, vtu, vts, vtp, ply, obj, stl, xml,
-            #  gmsh, neutral, pcd, xyz, txt, byu, g, png, jpeg]
+        Basic command line usage:
+        > vtkplotter files*.vtk
+            \n\tValid file formats: vtk,vtu,vts,vtp,ply,obj,stl,xml, 
+                            gmsh,neutral,pcd,xyz,txt,byu,g,png,jpeg
         ''')
 
     ############################################# LOADER
@@ -279,7 +274,7 @@ class Plotter:
         '''
         import os
         if isinstance(inputobj, vtk.vtkPolyData):
-            a = makeActor(inputobj, c, alpha, wire, bc, edges, legend, texture)
+            a = utils.makeActor(inputobj, c, alpha, wire, bc, edges, legend, texture)
             self.actors.append(a)
             if inputobj and inputobj.GetNumberOfPoints()==0:
                 colors.printc('Warning: actor has zero points.',5)
@@ -399,16 +394,16 @@ class Plotter:
             colors.printc("Warning in moveCamera(): fraction is > 1", 1)
         cam = vtk.vtkCamera()
         cam.DeepCopy(camstart)
-        p1 = array(camstart.GetPosition())
-        f1 = array(camstart.GetFocalPoint())
-        v1 = array(camstart.GetViewUp())
-        c1 = array(camstart.GetClippingRange())
+        p1 = numpy.array(camstart.GetPosition())
+        f1 = numpy.array(camstart.GetFocalPoint())
+        v1 = numpy.array(camstart.GetViewUp())
+        c1 = numpy.array(camstart.GetClippingRange())
         s1 = camstart.GetDistance()
         
-        p2 = array(camstop.GetPosition())
-        f2 = array(camstop.GetFocalPoint())
-        v2 = array(camstop.GetViewUp())
-        c2 = array(camstop.GetClippingRange())
+        p2 = numpy.array(camstop.GetPosition())
+        f2 = numpy.array(camstop.GetFocalPoint())
+        v2 = numpy.array(camstop.GetViewUp())
+        c2 = numpy.array(camstop.GetClippingRange())
         s2 = camstop.GetDistance()
         cam.SetPosition(     p2*fraction+p1*(1-fraction))
         cam.SetFocalPoint(   f2*fraction+f1*(1-fraction))
@@ -1128,7 +1123,7 @@ class Plotter:
             centered = False
             x0, x1, y0, y1, z0, z1 = vbb
             dx, dy, dz = x1-x0, y1-y0, z1-z0
-            aves = sqrt(dx*dx+dy*dy+dz*dz)/2
+            aves = numpy.sqrt(dx*dx+dy*dy+dz*dz)/2
             x0, x1 = min(x0, 0), max(x1, 0)
             y0, y1 = min(y0, 0), max(y1, 0)
             z0, z1 = min(z0, 0), max(z1, 0)

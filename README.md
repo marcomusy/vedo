@@ -4,9 +4,9 @@ A python helper class to easily draw, analyse and animate 3D objects.
 A [VTK](https://www.vtk.org/) alternative to [VPython](http://vpython.org/).
 
 ## Install and Run:
-Simply type:
+After installing VTK (e.g. with *conda install -c conda-forge vtk*
+or *sudo apt install vtk7* or *pip install vtk*), simply type:
 ```bash
-# Install:
 (sudo) pip install vtkplotter
 ```
 
@@ -15,7 +15,7 @@ Download and Run the tutorials:
 ```bash
 git clone https://github.com/marcomusy/vtkplotter.git
 cd vtkplotter/examples
-python tutorial.py  # on macOS try pythonw instead
+python tutorial.py  # on mac OSX try pythonw instead
 ```
 
 Simple command line usage:
@@ -26,22 +26,20 @@ vtkplotter data/*.vtk
 <br />
 
 
-From within your python script:<br />
-Load a simple OBJ file and display it.<br />
-Press *Esc* to close the window and exit python session or *q* to continue:
+From within your python script, load a simple OBJ file and display it:
 ```python
 from vtkplotter import Plotter
 
-vp = Plotter()  # Declare an instance of the class
-vp.show('data/shuttle.obj')
+vp = Plotter()              # declare an instance of the class
+vp.show('data/shuttle.obj') # press *Esc* to close and exit or *q* to continue
 ```
 ![shuttle](https://user-images.githubusercontent.com/32848391/35975974-e1235396-0cde-11e8-9880-69335cc7fd43.png)
 <br />
 
 Load 3 actors assigning each a different color, use their file names as legend entries.<br />
-(the tridimensional shape corresponds to the outer shape of an embryonic mouse
+(the 3D shape corresponds to the outer shape of an embryonic mouse
 limb at about 12 days of gestation).<br />
-Graphic objects are stored internally in vp.actors (as vtkActor, filename or vtkPolyData):
+Graphic objects are stored internally as a python list in vp.actors (as vtkActor, filename or vtkPolyData):
 ```python
 vp = Plotter()  
 vp.load('data/250.vtk', c=(1,0.4,0)) # c=(R,G,B) color, name or hex code
@@ -78,7 +76,7 @@ vp.show()
 <br />
 
 
-Draw a bunch of basic goemetric objects on separate parts of the rendering window:
+Draw a bunch of basic geometric objects on separate parts of the rendering window:
 ```python
 vp = Plotter(N=6, sharecam=False)
 vp.show( vp.arrow([0,0,0], [1,1,1]),   at=0, legend='arrow()' )
@@ -203,13 +201,13 @@ python examples/advanced/turing.py
 <br />
 
 
-More examples in directory *examples/* 
+More examples in directory *examples/basic* and *examples/advanced* .
 
 If you need to do more complicated things (define widgets.. etc), you can still have full access to all
 standard VTK objects (e.g. interactors and renderers through *vp.interactor, vp.renderer*... etc).<br />
-Use *vp.openVideo(), video.addFrame()* and *video.close()* to save a *movie.avi* file.
+In linux systems with *ffmpeg* you can use *vp.openVideo(), video.addFrame()* and *video.close()* to save a *movie.avi* file.
 <br />
-To produce animated gifs online, check out this great site: https://ezgif.com
+To produce animated gifs online, check out [this great site](https://ezgif.com).
 
 ## List of available methods with default values:
 ```python
@@ -387,4 +385,4 @@ RGBcol = colorMap(value, name='jet', vmin=-10.2, vmax=123.4)
 ![colmaps](https://user-images.githubusercontent.com/32848391/42942959-c8b50eec-8b61-11e8-930a-00dcffdca601.png)
 
 <br />
-Tested on VTK versions 5.8, 6.3, 7.1, 8.1: https://www.vtk.org
+Tested on VTK versions 5.8, 6.3, 7.1, 8.1

@@ -10,7 +10,7 @@ from vtkplotter.plotter import Plotter
 from vtkplotter.plotter import __version__
 from vtkplotter.colors import colorMap, printc
 from vtkplotter.vtkio import ProgressBar
-from vtkplotter.utils import vector, mag, norm, arange
+from vtkplotter.utils import vector, mag, mag2, norm, arange
 
 from numpy import sin, cos, sqrt, exp, log, dot, cross, array
 import warnings
@@ -18,7 +18,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
-class vtkPlotter:
+class vtkPlotter: #OBSOLETE
     def __init__(self, shape=(1,1), N=None, size='auto', maxscreensize=(1100,1800), 
                  title='vtkPlotter', bg='w', bg2=None, axes=1, projection=False,
                  sharecam=True, verbose=True, interactive=None):
