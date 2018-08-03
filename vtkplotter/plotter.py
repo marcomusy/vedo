@@ -8,7 +8,7 @@ import vtkplotter.events as events
 import vtkplotter.shapes as shapes
 import vtkplotter.analysis as analysis 
 
-__version__ = "8.1"
+__version__ = "8.2"
 
 ########################################################################
 class Plotter:
