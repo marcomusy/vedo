@@ -10,7 +10,7 @@
 #  reconstruct the projected points in red
 #
 from __future__ import division, print_function
-import vtkplotter
+from vtkplotter import Plotter, mag
 import numpy as np
 from numpy import sin, cos
 
@@ -22,7 +22,7 @@ rbias = 0.5  # subtract a constant average value
 x0 = [0,0,0] # set object at this position
 ##########################################################
 
-vp = vtkplotter.Plotter(shape=[1,2], verbose=0, axes=0)
+vp = Plotter(shape=[1,2], verbose=0, axes=0)
 shape = vp.load('data/shapes/icosahedron.vtk', edges=1).normalize().pos(x0)
 
 agrid, pts = [], []
@@ -32,7 +32,7 @@ for th in np.linspace(0, np.pi,   N, endpoint=True):
         p  = np.array([sin(th)*cos(ph), sin(th)*sin(ph), cos(th)])*rmax
         intersections = shape.intersectWithLine([0,0,0], p) ### <--
         if len(intersections):
-            value = vp.mag(intersections[0])
+            value = mag(intersections[0])
             lats.append(value - rbias)
             pts.append(intersections[0])
         else:

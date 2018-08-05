@@ -8,7 +8,7 @@ import vtkplotter.events as events
 import vtkplotter.shapes as shapes
 import vtkplotter.analysis as analysis 
 
-__version__ = "8.2"
+__version__ = "8.2.1" #defined also in setup.py
 
 ########################################################################
 class Plotter:
@@ -19,7 +19,7 @@ class Plotter:
         msg  = '------- vtkplotter '+__version__
         msg += ', vtk '+vtk.vtkVersion().GetVTKVersion()+', python '
         msg += str(sys.version_info[0])+'.'+str(sys.version_info[1])        
-        msg += " -----------\n"
+        msg += " ---------\n"
         msg += "Press:\tm   to minimise opacity of selected actor\n"
         msg += "\t.,  to reduce/increase opacity\n"
         msg += "\t/   to maximize opacity of selected actor\n"
@@ -98,10 +98,10 @@ class Plotter:
         self.picked3d   = None  # 3d coords of a clicked point on an actor 
 
         # mostly internal stuff:
-        self.clickedr   = 0     # clicked renderer number
+        self.clickedr     = 0     # clicked renderer number
         self.camThickness = 2000
-        self.justremoved= None 
-        self.caxes_exist = []
+        self.justremoved  = None 
+        self.caxes_exist  = []
         self.icol1      = 0
         self.icol2      = 0
         self.icol3      = 0
@@ -111,50 +111,12 @@ class Plotter:
         self.initializedIren = False
         self.camera = vtk.vtkCamera()
         
-        # share the methods in utils in Plotter class
-        self.printc = colors.printc
-        self.makeActor = utils.makeActor
-        self.setInput = utils.setInput
+        # share some methods in utils in Plotter class for convenience
         self.makeAssembly = utils.makeAssembly
-        self.polydata = utils.polydata
-        self.coordinates = utils.coordinates
-        self.booleanOperation = analysis.booleanOperation
-        self.mergeActors = utils.mergeActors
         self.closestPoint = utils.closestPoint
-        self.isInside = utils.isInside
         self.insidePoints = utils.insidePoints
-        self.intersectWithLine = utils.intersectWithLine
-        self.surfaceIntersection = analysis.surfaceIntersection
-        self.maxBoundSize = utils.maxBoundSize
-        self.normalize = utils.normalize
-        self.clone = utils.clone
-        self.decimate = utils.decimate
-        self.rotate = utils.rotate
-        self.shrink = utils.shrink
-        self.centerOfMass = utils.centerOfMass
-        self.averageSize = utils.averageSize
-        self.volume = utils.volume
-        self.area = utils.area
-        self.write = vtkio.write
         self.cutterWidget = utils.cutterWidget
-        self.ProgressBar = vtkio.ProgressBar
-        self.cellCenters = utils.cellCenters
-        self.flipNormals = utils.flipNormals
-        self.arange = utils.arange
-        self.vector = utils.vector
-        self.mag = utils.mag
-        self.mag2 = utils.mag2
-        self.norm = utils.norm
-        self.orientation = utils.orientation
-        self.subdivide = utils.subdivide
-        self.xbounds = utils.xbounds
-        self.ybounds = utils.ybounds
-        self.zbounds = utils.zbounds
-        self.cleanPolydata = utils.cleanPolydata
-        self.pointColors = utils.pointColors
-        self.cellColors = utils.cellColors
-        self.pointScalars = utils.pointScalars
-        self.cellScalars = utils.cellScalars
+        self.write = vtkio.write
 
         if N:                # N = number of renderers. Find out the best
             if shape!=(1,1): # arrangement based on minimum nr. of empty renderers
@@ -235,7 +197,7 @@ class Plotter:
         except: pass
         colors.printc("""
         A python helper class to easily draw 3D objects.
-        Please follow instructions at:""", 2)
+        Please follow instructions at:""", 'm')
         colors.printc("\thttps://github.com/marcomusy/vtkplotter", 4)
         print( '''
         Basic command line usage:

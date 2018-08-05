@@ -5,14 +5,14 @@
 #  using algorithms available in the scipy.optimize package.
 #  
 from __future__ import division, print_function
-import vtkplotter
+from vtkplotter import Plotter, vector, mag, mag2
 try:
     import scipy.optimize as opt
 except:
     print('This example needs scipy to run.')
     exit()
 
-vp = vtkplotter.Plotter(shape=[1,3], interactive=0)
+vp = Plotter(shape=[1,3], interactive=0)
 
 class Morpher:
     def __init__(self):
@@ -39,7 +39,7 @@ class Morpher:
         xp = x +2*a1*xy +a4*xx    +2*a2*yz +a5*yy    +2*a3*xz +a6*zz
         yp =   +2*b1*xy +b4*xx +y +2*b2*yz +b5*yy    +2*b3*xz +b6*zz
         zp =   +2*c1*xy +c4*xx    +2*c2*yz +c5*yy +z +2*c3*xz +c6*zz
-        p2 = vp.vector(xp,yp,zp)
+        p2 = vector(xp,yp,zp)
         p2 = (p2 * sz) + pos #take back to original size and position
         return p2   
 
@@ -55,7 +55,7 @@ class Morpher:
             p1 = srcpts.GetPoint(i)
             p2 = self.transform(p1)
             tp = vp.closestPoint(tpoly, p2) # pass the polydata to speed up 2x
-            d2sum += vp.mag2(p2-tp)
+            d2sum += mag2(p2-tp)
             mpts.SetPoint(i, p2)
 
         d2sum /= len(rng)
@@ -69,10 +69,10 @@ class Morpher:
     def morph(self):
         
         def avesize(pts): # helper fnc
-            s, amean = 0, vp.vector(0, 0, 0)
+            s, amean = 0, vector(0, 0, 0)
             for p in pts: amean = amean + p
             amean /= len(pts)
-            for p in pts: s += vp.mag(p - amean)
+            for p in pts: s += mag(p - amean)
             return amean, s/len(pts)
 
         print ('\n..minimizing with '+self.method)

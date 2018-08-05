@@ -1,5 +1,5 @@
 from __future__ import division, print_function
-from vtkplotter import Plotter, ProgressBar
+from vtkplotter import Plotter, ProgressBar, vector
 
 vp = Plotter(title='Spring in viscous medium', verbose=0, axes=3)
 
@@ -11,11 +11,11 @@ b = 0.5   # viscosity friction (proportional to velocity)
 dt= 0.1   # time step
 
 #initial conditions
-v  = vp.vector(0, 0, 0.2)
-x  = vp.vector(x0, 0, 0)
-xr = vp.vector(l_rest, 0, 0)
-sx0 = vp.vector(-0.8, 0, 0)
-offx= vp.vector(0, 0.3, 0)
+v  = vector(0, 0, 0.2)
+x  = vector(x0, 0, 0)
+xr = vector(l_rest, 0, 0)
+sx0 = vector(-0.8, 0, 0)
+offx= vector(0, 0.3, 0)
 
 vp.box(pos=(0, -0.1, 0), length=2.0, width=0.02, height=0.5)  #surface
 vp.box(pos=(-.82,.15,0), length=.04, width=0.50, height=0.3)  #wall

@@ -1,5 +1,5 @@
 from __future__ import division, print_function
-from vtkplotter import Plotter, printc
+from vtkplotter import Plotter, printc, mag, norm, vector
 import numpy as np
 
 ############## Constants
@@ -44,7 +44,7 @@ y_dot_m = [0]*(N+1)
 dij   = [0]*(N+1)  # array with distances to previous bob
 dij_m = [0]*(N+1)
 for k in range(1, N+1):
-    dij[k] = vp.mag([bob_x[k]-bob_x[k-1], bob_y[k]-bob_y[k-1]])
+    dij[k] = mag([bob_x[k]-bob_x[k-1], bob_y[k]-bob_y[k-1]])
 
 fctr = (lambda x: (x-1)/x)
 Dt *= np.sqrt(1/g) 
@@ -73,8 +73,8 @@ while True:  # The main loop
     bob_y = list(map((lambda y, dy: y+Dt*dy), bob_y, y_dot_m))
 
     for k in range(1, N+1):
-        dij[k]   = vp.mag([bob_x[k]  -bob_x[k-1],   bob_y[k]  -bob_y[k-1]])
-        dij_m[k] = vp.mag([bob_x_m[k]-bob_x_m[k-1], bob_y_m[k]-bob_y_m[k-1]])
+        dij[k]   = mag([bob_x[k]  -bob_x[k-1],   bob_y[k]  -bob_y[k-1]])
+        dij_m[k] = mag([bob_x_m[k]-bob_x_m[k-1], bob_y_m[k]-bob_y_m[k-1]])
         factor = fctr(dij_m[k])
         x_dot[k] -= Dt*(Ks*(bob_x_m[k]-bob_x_m[k-1]) * factor + gamma*x_dot_m[k])
         y_dot[k] -= Dt*(Ks*(bob_y_m[k]-bob_y_m[k-1]) * factor + gamma*y_dot_m[k] + g)
@@ -90,13 +90,13 @@ while True:  # The main loop
             dist2 = (bob_x[i]-bob_x[j])**2+(bob_y[i]-bob_y[j])**2
             if dist2 < DiaSq:  # are colliding
                 Ddist = np.sqrt(dist2)-2*R
-                tau = vp.norm(vp.vector(bob_x[j]-bob_x[i], bob_y[j]-bob_y[i]))
+                tau = norm(vector(bob_x[j]-bob_x[i], bob_y[j]-bob_y[i]))
                 DR = Ddist/2*tau
                 bob_x[i] += DR[0]  # DR.x
                 bob_y[i] += DR[1]  # DR.y
                 bob_x[j] -= DR[0]  # DR.x
                 bob_y[j] -= DR[1]  # DR.y
-                Vji = vp.vector(x_dot[j]-x_dot[i], y_dot[j]-y_dot[i])
+                Vji = vector(x_dot[j]-x_dot[i], y_dot[j]-y_dot[i])
                 DV = np.dot(Vji, tau)*tau
                 x_dot[i] += DV[0]  # DV.x
                 y_dot[i] += DV[1]  # DV.y

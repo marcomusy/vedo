@@ -105,7 +105,7 @@ vp.show(at=7, c=7, actors='data/teapot.xyz', axes=2)
 vp.show(at=8, c=8, actors='data/pulley.vtu', axes=3)
 vp.show(interactive=1)
 ```
-![objects](https://user-images.githubusercontent.com/32848391/33093360-158b5f2c-cefd-11e7-8cb7-9e3c303b41be.png)
+![objects](https://user-images.githubusercontent.com/32848391/43654734-8d126a96-974c-11e8-80d6-73cf224c0511.png)
 <br />
 
 
@@ -191,6 +191,13 @@ python examples/gyroscope1.py
 ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)
 <br />
 
+
+Simulation of [Rutherford scattering](https://en.wikipedia.org/wiki/Rutherford_scattering) of electrons on a fixed target (by T. Vandermolen):
+```bash
+python examples/advanced/particle_simulator.py 
+```
+![rutherford](https://user-images.githubusercontent.com/32848391/43688715-5539c47c-98ee-11e8-8525-7865651b2a89.gif)
+<br />
 
 
 Visualizing a Turing system of reaction-diffusion between two molecules:

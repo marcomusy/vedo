@@ -2,19 +2,21 @@
 # 
 # Example of boolean operations with actors or polydata
 #
-import vtkplotter
+from vtkplotter import Plotter
+from vtkplotter.analysis import booleanOperation
+
 
 # declare the instance of the class
-vp = vtkplotter.Plotter(shape=(2,2), interactive=0, axes=3)
+vp = Plotter(shape=(2,2), interactive=0, axes=3)
 
 # build to sphere actors 
 s1 = vp.sphere(pos=[-.7,0,0], c='r', alpha=0.5)
 s2 = vp.sphere(pos=[0.7,0,0], c='g', alpha=0.5)
 
 # make 3 different possible operations:
-b1 = vp.booleanOperation(s1, s2, 'intersect', c='m')
-b2 = vp.booleanOperation(s1, s2, 'plus', c='b', wire=True)
-b3 = vp.booleanOperation(s1, s2, 'minus', c=None)
+b1 = booleanOperation(s1, s2, 'intersect', c='m')
+b2 = booleanOperation(s1, s2, 'plus', c='b', wire=True)
+b3 = booleanOperation(s1, s2, 'minus', c=None)
 
 # show the result in 4 different subwindows 0->3
 vp.show([s1,s2], at=0, legend='2 spheres')

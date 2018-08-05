@@ -6,7 +6,7 @@
 
 from __future__ import division, print_function
 from random import random
-import vtkplotter
+from vtkplotter import Plotter, ProgressBar, vector, arange, mag, norm
 import numpy as np
 
 #############################################################
@@ -24,10 +24,10 @@ dt = 1E-5
 #############################################################
 
 def reflection(p, pos):
-    n = vp.norm(pos)
+    n = norm(pos)
     return np.dot(np.identity(3)-2*n*n[:,np.newaxis], p)
 
-vp = vtkplotter.Plotter(title='gas in toroid', verbose=0, axes=0)
+vp = Plotter(title='gas in toroid', verbose=0, axes=0)
 vp.ring(c='g', r=RingRadius, thickness=RingThickness, alpha=.1, wire=1) ### <--
 
 Atoms = []
@@ -61,14 +61,14 @@ radius = np.array(rlist)
 r = pos-pos[:, np.newaxis] # all pairs of atom-to-atom vectors
 
 ds = (p/m)*(dt/2.)
-if 'False' not in np.less_equal(vp.mag(ds), radius).tolist():
+if 'False' not in np.less_equal(mag(ds), radius).tolist():
     pos = pos+(p/mass)*(dt/2.) # initial half-step
 
-pb = vp.ProgressBar(0,Nsteps, c=1)
+pb = ProgressBar(0,Nsteps, c=1)
 for i in pb.range():
 
     # Update all positions
-    ds = vp.mag((p/m)*(dt/2.))
+    ds = mag((p/m)*(dt/2.))
     if 'False' not in np.less_equal(ds, radius).tolist(): 
         pos = pos+(p/m)*dt
 
@@ -88,10 +88,10 @@ for i in pb.range():
         vj = p[j]/mj
         ri = Ratom
         rj = Ratom
-        a = vp.mag(vj-vi)**2
+        a = mag(vj-vi)**2
         if a == 0: continue                  # exactly same velocities
         b = 2*np.dot(pos[i]-pos[j], vj-vi)
-        c = vp.mag(pos[i]-pos[j])**2-(ri+rj)**2
+        c = mag(pos[i]-pos[j])**2-(ri+rj)**2
         d = b**2-4.*a*c
         if d < 0: continue                   # something wrong; ignore this rare case
         deltat = (-b+np.sqrt(d))/(2.*a)      # t-deltat is when they made contact
@@ -100,7 +100,7 @@ for i in pb.range():
         mtot = mi+mj
         pcmi = p[i]-ptot*mi/mtot             # transform momenta to cm frame
         pcmj = p[j]-ptot*mj/mtot
-        rrel = vp.norm(pos[j]-pos[i])
+        rrel = norm(pos[j]-pos[i])
         pcmi = pcmi-2*np.dot(pcmi,rrel)*rrel # bounce in cm frame
         pcmj = pcmj-2*np.dot(pcmj,rrel)*rrel
         p[i] = pcmi+ptot*mi/mtot             # transform momenta back to lab frame
@@ -110,8 +110,8 @@ for i in pb.range():
 
     # Bounce off the boundary of the torus
     for j in range(Natoms):
-        poscircle[j] = vp.norm(pos[j])*RingRadius*[1,1,0]
-    outside = np.greater_equal(vp.mag(poscircle-pos),RingThickness-2*Ratom)
+        poscircle[j] = norm(pos[j])*RingRadius*[1,1,0]
+    outside = np.greater_equal(mag(poscircle-pos),RingThickness-2*Ratom)
 
     for k in range(len(outside)):
         if outside[k]==1 and np.dot(p[k], pos[k]-poscircle[k])>0:
@@ -119,7 +119,7 @@ for i in pb.range():
             
     # then update positions of display objects
     for i in range(Natoms): Atoms[i].pos(pos[i])                           ### <--
-    outside = np.greater_equal(vp.mag(pos), RingRadius+RingThickness)
+    outside = np.greater_equal(mag(pos), RingRadius+RingThickness)
 
     vp.render(resetcam=1)                                                  ### <--
     vp.camera.Azimuth(.5)

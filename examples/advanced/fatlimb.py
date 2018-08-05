@@ -6,13 +6,14 @@
 #
 from __future__ import division, print_function
 from vtkplotter import Plotter, norm, mag
+from vtkplotter.utils import centerOfMass, averageSize
 
 vp = Plotter(axes=0)
 
 s = vp.load('data/290.vtk', wire=1)
 vp.actors.append( s.clone(c='red 1.0', wire=0) )
 
-c = vp.centerOfMass(s)
+c = centerOfMass(s)
 vp.point(c)
 
 Niter = 4
@@ -20,7 +21,7 @@ for t in range(Niter):
     print('iteration', t)
     coords = s.coordinates()
     normals= s.normals()
-    aves = vp.averageSize(s)*1.5
+    aves = averageSize(s)*1.5
 
     for i in range(s.N()):
         n = normals[i]

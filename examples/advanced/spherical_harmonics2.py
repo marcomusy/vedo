@@ -11,7 +11,7 @@ except:
     print('Please install pyshtools to run this example')
     print('Follow instructions at https://shtools.oca.eu/shtools')
     exit(0)
-import vtkplotter
+from vtkplotter import Plotter, mag, arange
 import numpy as np
 from numpy import sin, cos
 
@@ -31,7 +31,7 @@ def makegrid(shape, N):
             p  = np.array([sin(th)*cos(ph), sin(th)*sin(ph), cos(th)])*rmax
             intersections = shape.intersectWithLine([0,0,0], p) ### <--
             if len(intersections):
-                value = vp.mag(intersections[0])
+                value = mag(intersections[0])
                 lats.append(value - rbias)
                 pts.append(intersections[0])
             else:
@@ -60,7 +60,7 @@ def morph(clm1, clm2, t, lmax):
     return pts
 
 
-vp = vtkplotter.Plotter(shape=[2,2], verbose=0, axes=3, interactive=0)
+vp = Plotter(shape=[2,2], verbose=0, axes=3, interactive=0)
 
 shape1 = vp.sphere(alpha=0.2)
 shape2 = vp.load('data/shapes/icosahedron.vtk', edges=1).normalize()
@@ -78,7 +78,7 @@ clm2  = pyshtools.SHGrid.from_array(agrid2).expand()
 # clm1.plot_spectrum2d() # plot the value of the sph harm. coefficients
 # clm2.plot_spectrum2d() 
 
-for t in vp.arange(0,1, 0.005):
+for t in arange(0,1, 0.005):
     act21 = vp.points(morph(clm2, clm1, t, lmax), c='r', r=4)
     act12 = vp.points(morph(clm1, clm2, t, lmax), c='g', r=4)
     vp.show(at=2, actors=act21, resetcam=0, legend='time: '+str(int(t*100)))

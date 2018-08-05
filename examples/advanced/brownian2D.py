@@ -9,13 +9,14 @@
 #=======================================================
 from __future__ import division, print_function
 import random, vtkplotter
+from vtkplotter import Plotter, ProgressBar, arange
 import numpy as np
 
 screen_w = 600
 screen_h = 600  
  
-vp = vtkplotter.Plotter(title="Brownian Motion",  
-                        size=(screen_w,screen_h), axes=0, verbose=0)
+vp = Plotter(title="Brownian Motion",  
+            size=(screen_w,screen_h), axes=0, verbose=0)
 
 # Constants and time step
 Nsp = 200               # Number of small spheres
@@ -34,8 +35,8 @@ Ls1 = LBox[1]-Rs
 # Start with the big sphere at the center, then put the small
 # spheres at random selected from a grid of possible positions.
 ListPos=[(0,0)]
-PossiblePos=[(x,y) for x in vp.arange(-LBox[0]+2*Rs,LBox[0]-2*Rs,2.2*Rs)
-             for y in vp.arange(-LBox[1]+2*Rs,LBox[1]-2*Rs,2.2*Rs)
+PossiblePos=[(x,y) for x in arange(-LBox[0]+2*Rs,LBox[0]-2*Rs,2.2*Rs)
+             for y in arange(-LBox[1]+2*Rs,LBox[1]-2*Rs,2.2*Rs)
              if x*x+y*y > Rb+Rs]
              
 if Nsp > len(PossiblePos)+1: Nsp = len(PossiblePos)+1
@@ -73,7 +74,7 @@ Dij =  (Radius+Radius[:, np.newaxis])**2 # Matrix Dij=(Ri+Rj)**2
 
 
 # The main loop
-pb = vp.ProgressBar(0,5000, c='r')
+pb = ProgressBar(0,5000, c='r')
 for i in pb.range():
     # Update all positions
     np.add(Pos,Vel*Dt, Pos) # Fast version of Pos = Pos + Vel*Dt

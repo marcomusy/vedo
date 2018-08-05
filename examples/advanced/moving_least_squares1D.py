@@ -9,6 +9,7 @@
 #
 from __future__ import division, print_function
 from vtkplotter import Plotter, arange, sin, cos
+from vtkplotter.utils import cleanPolydata
 import numpy as np
 
 N = 3  # nr. of iterations
@@ -29,7 +30,7 @@ for i in range(1, N):
     vp.smoothMLS1D(a, f=0.4)
     
     # at last iteration make sure points are separated by tol
-    if i==N-1: vp.cleanPolydata(a, tol=.01)
+    if i==N-1: cleanPolydata(a, tol=.01)
 
     print('iteration',i,'#points:',len(a.coordinates()))
     vp.show(a, at=i, legend='iter #'+str(i))
