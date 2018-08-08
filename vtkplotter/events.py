@@ -18,11 +18,13 @@ def mouseleft(vp, obj, event):
     picker = vtk.vtkPropPicker()
     picker.PickProp(x,y, vp.renderer)
     clickedActor = picker.GetActor()
+    clickedActorIsAssembly = False
     if not clickedActor: 
         clickedActor = picker.GetAssembly()
+        clickedActorIsAssembly = True
     vp.picked3d = picker.GetPickPosition()
     vp.justremoved = None
-        
+
     if vp.verbose:
         if len(vp.renderers)>1 or clickedr>0 and vp.clickedr != clickedr:
             print ('Current Renderer:', clickedr, end='')
@@ -48,13 +50,17 @@ def mouseleft(vp, obj, event):
                 colors.printc(('-> assembly',indx+':',clickedActor.legend,cn), end=' ')
             elif indx:
                 colors.printc(('-> actor', indx+':', leg, cn), end=' ')
-            colors.printc('N='+str(clickedActor.GetMapper().GetInput().GetNumberOfPoints()), end='')
+            if not clickedActorIsAssembly:
+                n = clickedActor.GetMapper().GetInput().GetNumberOfPoints()
+            else:
+                n = vp.getActors(clickedActor)[0].GetMapper().GetInput().GetNumberOfPoints()
+            colors.printc('N='+str(n), end='')
             px,py,pz = vp.picked3d
             px,py,pz = str(round(px,1)), str(round(py,1)), str(round(pz,1))
             colors.printc(', p=('+px+','+py+','+pz+')')
 
     vp.clickedActor = clickedActor
-    vp.clickedr = clickedr
+    vp.clickedRenderer = clickedr
 
 
 ############################### keystroke event
@@ -65,6 +71,7 @@ def keypress(vp, obj, event):
 
     if   key == "q" or key == "space" or key == "Return":
         vp.interactor.ExitCallback()
+        return
 
     elif key == "e":
         if vp.verbose: print ("closing window...")
@@ -199,8 +206,8 @@ def keypress(vp, obj, event):
 
     elif key in ["k", "K"]:
         for a in vp.getActors():
-            ptdata = vp.polydata(a).GetPointData()
-            cldata = vp.polydata(a).GetCellData()
+            ptdata = utils.polydata(a).GetPointData()
+            cldata = utils.polydata(a).GetCellData()
 
             arrtypes = dict()
             arrtypes[vtk.VTK_UNSIGNED_CHAR] = 'VTK_UNSIGNED_CHAR'
@@ -313,12 +320,11 @@ def keypress(vp, obj, event):
             if vp.clickedActor in vp.getActors() or isinstance(vp.clickedActor, vtk.vtkAssembly):
                 vp.justremoved = vp.clickedActor
                 vp.renderer.RemoveActor(vp.clickedActor)
+            if hasattr(vp.clickedActor, 'legend') and vp.clickedActor.legend:
+                colors.printc('   ...removing actor: '+ str(vp.clickedActor.legend)+', press x to put it back')
             else: 
                 if vp.verbose:
                     colors.printc('Click an actor and press x to toggle it.',5)
-                return
-            if hasattr(vp.clickedActor, 'legend') and vp.clickedActor.legend:
-                colors.printc('   ...removing actor: '+ str(vp.clickedActor.legend)+', press x to put it back')
         else:
             vp.renderer.AddActor(vp.justremoved)
             vp.renderer.Render()
@@ -328,7 +334,7 @@ def keypress(vp, obj, event):
     elif key == "X":
         if vp.clickedActor:
             if hasattr(vp.clickedActor, 'legend') and vp.clickedActor.legend:
-                fname = 'clipped_'+vp.clickedActor.legend
+                fname = 'clipped_'+str(vp.clickedActor.legend)
                 fname = fname.split('.')[0]+'.vtk'
             else: fname = 'clipped.vtk'
             if vp.verbose:
@@ -339,8 +345,16 @@ def keypress(vp, obj, event):
 
     elif key == "r":
         vp.renderer.ResetCamera()
-        
-    vp.interactor.Render()
+
+
+    if vp.keyPressFunction: 
+        if key not in ['Shift_L', 'Control_L', 'Super_L', 'Alt_L']:
+            if key not in ['Shift_R', 'Control_R', 'Super_R', 'Alt_R']:
+                vp.keyPressFunction(key, vp)
+
+
+    if vp.interactor: vp.interactor.Render()
+
 
 
 

@@ -1,9 +1,8 @@
-
 # vtkplotter
 A python helper class to easily draw, analyse and animate 3D objects. 
 A [VTK](https://www.vtk.org/) alternative to [VPython](http://vpython.org/).
 
-## Install and Run:
+## Download and Install:
 After installing VTK (e.g. with *conda install -c conda-forge vtk*
 or *sudo apt install vtk7* or *pip install vtk*), simply type:
 ```bash
@@ -37,8 +36,7 @@ vp.show('data/shuttle.obj') # press *Esc* to close and exit or *q* to continue
 <br />
 
 Load 3 actors assigning each a different color, use their file names as legend entries.<br />
-(the 3D shape corresponds to the outer shape of an embryonic mouse
-limb at about 12 days of gestation).<br />
+(the 3D shapes correspond to the outer shape of an embryonic mouse limb at about 12 days of gestation).<br />
 Graphic objects are stored internally as a python list in vp.actors (as vtkActor, filename or vtkPolyData):
 ```python
 vp = Plotter()  
@@ -131,18 +129,6 @@ python examples/advanced/moving_least_squares2D.py
 <br />
 
 
-Motion of a large brownian
-particle in a swarm of small particles in 2D motion.
-The spheres collide elastically with themselves and
-with the walls of the box. The masses of the spheres
-are proportional to their volume.
-```bash
-python examples/advanced/brownian2D.py
-```
-![brownian](https://user-images.githubusercontent.com/32848391/36788300-b07fd4f8-1c8d-11e8-9bdd-790c6abddd99.gif)
-<br />
-
-
 Simulation of a spring in a viscous medium:
 ```bash
 python examples/spring.py
@@ -151,7 +137,8 @@ python examples/spring.py
 <br />
 
 
-Motion of particles of gas in a toroidal tank. 
+Motion of particles of gas in a toroidal tank. The spheres collide elastically with themselves and
+with the walls of the tank.
 ```bash
 python examples/advanced/gas.py
 ```
@@ -192,7 +179,7 @@ python examples/gyroscope1.py
 <br />
 
 
-Simulation of [Rutherford scattering](https://en.wikipedia.org/wiki/Rutherford_scattering) of electrons on a fixed target (by T. Vandermolen):
+Simulation of [Rutherford scattering](https://en.wikipedia.org/wiki/Rutherford_scattering) of charged particles on a fixed target (by T. Vandermolen):
 ```bash
 python examples/advanced/particle_simulator.py 
 ```
@@ -210,29 +197,38 @@ python examples/advanced/turing.py
 
 More examples in directory *examples/basic* and *examples/advanced* .
 
-If you need to do more complicated things (define widgets.. etc), you can still have full access to all
+If you need to do more complicated things (define widgets.. etc), you still have full access to all
 standard VTK objects (e.g. interactors and renderers through *vp.interactor, vp.renderer*... etc).<br />
-In linux systems with *ffmpeg* you can use *vp.openVideo(), video.addFrame()* and *video.close()* to save a *movie.avi* file.
+In linux systems with *ffmpeg* you can use *vp.openVideo(), video.addFrame()* and *video.close()* to save a *movie.mp4* file.
 <br />
 To produce animated gifs online, check out [this great site](https://ezgif.com).
 
 ## List of available methods with default values:
 ```python
+#
+# Methods in Plotter class
+# (all methods in vtkplotter.shapes and vtkplotter.analysis are also accessible)
+# Example:
+# from vtkplotter import Plotter
+# vp = Plotter()
+# vp.load('somefile.obj')
+# vp.show()
 def Plotter(shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='vtkplotter',
             bg=(1,1,1), bg2=None, axes=0, verbose=True, interactive=True)
 def load(filesOrDirs, c='gold', alpha=0.2, wire=False, bc=None, edges=False, legend=True, texture=None)
 def show(actors=None, at=0, legend=None, axes=0, ruler=False, c='gold', bc=None, 
          alpha=0.2, wire=False, resetcam=True, interactive=None, q=False)
 def clear(actors=[])
-def render(resetcam=False, rate=10000)
-def getActors(obj=None)
-def mergeActors(actors, c=None, alpha=1, wire=False, bc=None, edges=False, legend=None, texture=None)
-def moveCamera(camstart, camstop, fraction)
-def light(pos, fp, deg=25, diffuse='y', ambient='r', specular='b', showsource=False)
 def addActor(actor)
 def removeActor(actor)
 def lastActor()
+def render(resetcam=False, rate=10000)
+def getActors(obj=None)
+def moveCamera(camstart, camstop, fraction)
+def cube(pt, r=1, c='g', alpha=1, legend=None, texture=None)
+def light(pos, fp, deg=25, diffuse='y', ambient='r', specular='b', showsource=False)
 def screenshot(filename='screenshot.png')
+def write(obj, fileoutputname)
 def addScalarBar(actor=None, c='k', horizontal=False)
 def addScalarBar3D(actor=None, pos, normal=[0,0,1], sx=.1, sy=2, nlabels=9, ncols=256, cmap='jet', c='k', alpha=1)
 def openVideo(name='movie.avi', fps=12, duration=None, format="XVID")
@@ -241,43 +237,40 @@ def pauseVideo(pause)
 def closeVideo()
 #
 # Basic shapes creation
-def point(pos, c='b', r=10, alpha=1, legend=None)
-def points(plist, c='b', tags=[], r=10, alpha=1, legend=None)
-def line(p0, p1, lw=1, tube=False, dotted=False, c='r', alpha=1, legend=None)
-def lines(plist0, plist1=None, lw=1, dotted=False, c='r', alpha=1, legend=None)   
+# Example:
+# from vtkplotter.shapes import sphere
+# mysphere = sphere() # returns the vtkActor
 def arrow(startPoint, endPoint, s=0.03, c='r', alpha=1, legend=None, texture=None)
 def arrows(startPoints, endPoints=None, c='r', s=None, alpha=1, legend=None)
-def sphere(pos, r=1, c='r', alpha=1, legend=None, texture=None)
-def spheres(centers, r=1, c='r', alpha=1, wire=False, legend=None, texture=None, res=8)
-def cube(pt, r=1, c='g', alpha=1, legend=None, texture=None)
-def helix(startPoint, endPoint, coils=12, r=1, thickness=1, c='gray', alpha=1, legend=None, texture=None)
-def cylinder(pos, r, height, axis=[1,1,1], c='teal', alpha=1, edges=False, legend=None, texture=None, res=24)
+def box(pos, length=1, width=2, height=3, normal=(0,0,1),c='g', alpha=1, wire=False, legend=None, texture=None)
 def cone(pos, r, height, axis=[1,1,1], c='g', alpha=1, legend=None, texture=None)
+def cylinder(pos, r, height, axis=[1,1,1], c='teal', alpha=1, edges=False, legend=None, texture=None, res=24)
+def disc(pos, normal=[0,0,1], r1=0.5, r2=1, c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, res=12)
+def ellipsoid(points, c='c', alpha=0.5, legend=None, texture=None, res=24)
+def grid( pos, normal=(0,0,1), sx=1, sy=1, c='g', bc='darkgreen', lw=1, alpha=1, legend=None, resx=10, resy=10)
+def helix(startPoint, endPoint, coils=12, r=1, thickness=1, c='gray', alpha=1, legend=None, texture=None)
+def hyperboloid(pos, a2=1, value=0.5, height=1, axis=[0,0,1], c='m', alpha=1, legend=None, texture=None, res=50)
+def line(p0, p1, lw=1, tube=False, dotted=False, c='r', alpha=1, legend=None)
+def lines(plist0, plist1=None, lw=1, dotted=False, c='r', alpha=1, legend=None)   
+def paraboloid(pos, r=1, height=1, axis=[0,0,1], c='cyan', alpha=1, legend=None, texture=None, res=50)
+def plane(pos, normal=(0,0,1), sx=1, sy=None, c='g', bc='darkgreen', alpha=1, legend=None, texture=None)
+def points(plist, c='b', tags=[], r=10, alpha=1, legend=None)
+def polygon(pos, normal=(0,0,1), nsides=6, r=1, c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, followcam=0)
 def pyramid(pos, s=1, height=1, axis=[0,0,1], c='dg', alpha=1, legend=None, texture=None)
 def ring(pos, r=1, thickness=0.1, axis=[1,1,1], c='khaki', alpha=1, legend=None, texture=None, res=30)
-def ellipsoid(points, c='c', alpha=0.5, legend=None, texture=None, res=24)
-def paraboloid(pos, r=1, height=1, axis=[0,0,1], c='cyan', alpha=1, legend=None, texture=None, res=50)
-def hyperboloid(pos, a2=1, value=0.5, height=1, axis=[0,0,1], 
-                c='magenta', alpha=1, legend=None, texture=None, res=50)
-def plane(pos, normal=(0,0,1), sx=1, sy=None, c='g', bc='darkgreen', alpha=1, legend=None, texture=None)
-def grid( pos, normal=(0,0,1), sx=1, sy=1, c='g', bc='darkgreen', lw=1, alpha=1, legend=None, resx=10, resy=10)
-def polygon(pos, normal=(0,0,1), nsides=6, r=1, 
-            c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, followcam=False):
-def disc(pos, normal=[0,0,1], r1=0.5, r2=1, 
-            c='coral', bc='dg', lw=1, alpha=1, legend=None, texture=None, res=12)
+def sphere(pos, r=1, c='r', alpha=1, legend=None, texture=None)
+def spheres(centers, r=1, c='r', alpha=1, wire=False, legend=None, texture=None, res=8)
 def text(txt, pos, normal=(0,0,1), s=1, c='k', alpha=1, bc=None, texture=None, followcam=False)
 #
-# Analysis methods
+# Analysis methods in vtkplotter.analysis
 def xyplot(points, title='', c='r', pos=1, lines=False)
 def histogram(self, values, bins=10, vrange=None, title='', c='b', corner=1, lines=True)
 def fxy(z='sin(x)+y', x=[0,3], y=[0,3], zlimits=[None, None], showNan=True, zlevels=10, 
         c='b', bc='aqua', alpha=1, legend=True, texture=None, res=100)
-#
 def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
 def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None)
 def boundaries(actor, c='p', lw=5, legend=None)
 def delaunay2D(actor, tol=None) # triangulate after projecting on the xy plane
-#
 def align(source, target, iters=100, legend=None):
 def spline(points, smooth=0.5, degree=2, s=5, c='b', alpha=1., nodes=False, legend=None, res=20)
 def fitLine(points, c='orange', lw=1, alpha=0.6, tube=False, legend=None)
@@ -295,6 +288,50 @@ def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3, c=None, alpha=1, legend
 def booleanOperation(actor1, actor2, operation='plus',  # possible operations: plus, intersect, minus
                      c=None, alpha=1, wire=False, bc=None, edges=False, legend=None, texture=None)
 def intersectWithLine(actor, p0, p1)
+#
+# Methods in vtkplotter.utils
+# Example:
+# from vtkplotter.utils import makeActor
+# makeActor(mypolydata, c='red') # returns a vtkActor
+def area(actor)
+def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1)
+def averageSize(actor)
+def cellCenters(actor)
+def cellColors(actor, scalars, cmap='jet')
+def cellScalars(actor, scalars, name)
+def centerOfMass(actor)
+def cleanPolydata(actor, tol=None)
+def clone(actor, c=None, alpha=None, wire=False, bc=None, edges=False, legend=None, texture=None, rebuild=True)
+def closestPoint(actor, pt, N=1, radius=None, returnIds=False)
+def coordinates(actor, rebuild=True)
+def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1, bc=(0.7, 0.8, 1), legend=None)
+def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True)
+def diagonalSize(actor)
+def flipNormals(actor) # N.B. input argument gets modified
+def insidePoints(actor, points, invert=False, tol=1e-05)
+def intersectWithLine(act, p0, p1)
+def isInside(actor, point, tol=0.0001)
+def isSequence(arg)
+def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None, texture=None)
+def makeAssembly(actors, legend=None)
+def maxBoundSize(actor)
+def mergeActors(actors, c=None, alpha=1, wire=False, bc=None, edges=False, legend=None, texture=None)
+def normalize(actor): # N.B. input argument gets modified
+def orientation(actor, newaxis=None, rotation=0)
+def pointColors(actor, scalars, cmap='jet')
+def pointIsInTriangle(p, p1,p2,p3)
+def pointScalars(actor, scalars, name)
+def polydata(obj, rebuild=True, index=0):
+def rotate(actor, angle, axis, axis_point=[0,0,0], rad=False)
+def scalars(actor, name)
+def shrink(actor, fraction=0.85)   # N.B. input argument gets modified
+def stretch(actor, q1, q2)
+def subdivide(actor, N=1, method=0, legend=None)
+def to_precision(x, p)
+def volume(actor)
+def xbounds(actor)
+def ybounds(actor)
+def zbounds(actor)
 ```
 
 Useful *Plotter* attributes:
@@ -307,23 +344,6 @@ vp.interactor   # holds the vtkWindowInteractor object
 vp.interactive  # (True) allows to interact with renderer after show()
 vp.camera       # holds the current vtkCamera
 vp.sharecam     # (True) share the same camera in multiple renderers
-```
-
-Useful methods:
-```python
-# Example -- vp = vtkplotter.Plotter(); vp.makeActor(myolydata, c='red')
-def makeActor(poly, c='gold', alpha=0.5, wire=False, bc=None, edges=False, legend=None)
-def makeAssembly(actors, legend=None)
-def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1)
-def polydata(actor, index=0, transformed=True)
-def closestPoint(actor, point, locator=None, N=1, radius=None)
-def coordinates(actor)
-def cellCenters(actor)
-def normals(actor)
-def write(actor, outputfilename)
-def colorMap(value, name='rainbow', vmin=0, vmax=1) # return the color in the scale map name
-def cellColors(scalars, cmap='jet')
-def pointColors(scalars, cmap='jet')
 ```
 
 Additional methods of vtkActor object. They return the actor object so that can be concatenated:
@@ -374,12 +394,14 @@ actor.intersectWithLine(p0, p1) # get a list of points of intersection with segm
 actor.cutterWidget(outputname='clipped.vtk') # invoke a cutter widget for actor
 ```
 
-Some useful *numpy* shortcuts available in vtkplotter (*a la vpython*):
+Some useful shortcuts available in vtkplotter (*a la vpython*):
 ```python
 def arange(start,stop, step)  # return a range list of floats
 def vector(x, y, z=0)         # return a numpy vector (2D or 3D)
 def mag(v)                    # return the size of a vector or list of vectors
+def mag2(v)                   # return the square of the size of a vector 
 def norm(v)                   # return the versor of a vector or list of vectors
+def printc(strings, c='black', bold=True, separator=' ', end='\n')
 ```
 
 Available color maps from matplotlib:

@@ -14,14 +14,15 @@ python basic/fitline.py
 python basic/fxy.py
 python basic/gyroscope1.py
 python basic/gyroscope2.py
+python basic/keypress.py
 python basic/lights.py
 python basic/lorenz.py
 python basic/multiwindows.py
 python basic/rotateImage.py
+python basic/shrink.py
 python basic/spring.py
 python basic/manyspheres.py
 python basic/mesh_coloring.py
-python basic/shrink.py
 
 python advanced/brownian2D.py
 python advanced/cell_main.py
@@ -38,6 +39,7 @@ python advanced/moving_least_squares1D.py
 python advanced/moving_least_squares2D.py
 python advanced/recosurface.py
 python advanced/skeletonize.py
+python advanced/particle_simulator.py
 
 #these may fail
 python basic/readVolume.py # fails for vtk version<7

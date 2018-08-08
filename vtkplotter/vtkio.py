@@ -7,17 +7,18 @@ import vtkplotter.colors as vc
 def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
               smoothing, threshold, connectivity, scaling):
     fl = filename.lower()
+    if legend is True: legend = os.path.basename(filename)
     if '.xml' in fl or '.xml.gz' in fl: # Fenics tetrahedral mesh file
         actor = loadXml(filename, c, alpha, wire, bc, edges, legend)
     elif '.neutral' in fl:              # neutral tetrahedral mesh file
-        actor = loadNeutral(filename, c, alpha, bc, edges, legend)
+        actor = loadNeutral(filename, c, alpha, wire, bc, edges, legend)
     elif '.gmsh' in fl:                 # gmesh file
-        actor = loadGmesh(filename, c, alpha, bc, legend)
+        actor = loadGmesh(filename, c, alpha, wire, bc, edges, legend)
     elif '.pcd' in fl:                  # PCL point-cloud format
         actor = loadPCD(filename, c, alpha, legend)
     elif '.tif' in fl or '.slc' in fl:  # tiff stack or slc
         actor = loadVolume(filename, c, alpha, wire, bc, edges, legend, texture,
-                            smoothing, threshold, connectivity, scaling)
+                           smoothing, threshold, connectivity, scaling)
     elif '.png' in fl or '.jpg' in fl or '.jpeg' in fl:  # regular image
         actor = load2Dimage(filename, alpha)
     else:
@@ -25,7 +26,6 @@ def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
         if not poly:
             vc.printc(('Unable to load', filename), c=1)
             return False
-        if legend is True: legend = os.path.basename(filename)
         actor = vu.makeActor(poly, c, alpha, wire, bc, edges, legend, texture)
         if '.txt' in fl or '.xyz' in fl: 
             actor.GetProperty().SetPointSize(4)
@@ -39,7 +39,7 @@ def loadDir(mydir, c, alpha, wire, bc, edges, legend, texture,
     acts = []
     for ifile in sorted(os.listdir(mydir)):
         loadFile(mydir+'/'+ifile, c, alpha, wire, bc, edges, legend, texture,
-                       smoothing, threshold, connectivity, scaling)
+                 smoothing, threshold, connectivity, scaling)
     return acts
 
 def loadPoly(filename):
@@ -88,7 +88,6 @@ def loadXml(filename, c, alpha, wire, bc, edges, legend):
     if not os.path.exists(filename): 
         vc.printc(('Error in loadXml: Cannot find', filename), c=1)
         return None
-    import shapes
     import xml.etree.ElementTree as et
     if '.gz' in filename:
         import gzip
@@ -114,93 +113,57 @@ def loadXml(filename, c, alpha, wire, bc, edges, legend):
                 v2 = int(e.get('v2'))
                 v3 = int(e.get('v3'))
                 connectivity.append([v0,v1,v2,v3])
-    points = vtk.vtkPoints()
-    for p in coords: points.InsertNextPoint(p)
+    # this builds it as vtkUnstructuredGrid
+    # points = vtk.vtkPoints()
+    # for p in coords: points.InsertNextPoint(p)
+    # import vtkplotter.shapes
+    # pts_act = vtkplotter.shapes.points(coords, c=c, r=4, legend=legend)
+    # if edges:
+    #     # 3D cells are mapped only if they are used by only one cell,
+    #     #  i.e., on the boundary of the data set
+    #     ugrid = vtk.vtkUnstructuredGrid()
+    #     ugrid.SetPoints(points)
+    #     cellArray = vtk.vtkCellArray()
+    #     for itet in range(len(connectivity)):
+    #         tetra = vtk.vtkTetra()
+    #         for k,j in enumerate(connectivity[itet]):
+    #             tetra.GetPointIds().SetId(k, j)
+    #         cellArray.InsertNextCell(tetra)
+    #     ugrid.SetCells(vtk.VTK_TETRA, cellArray)
+    #     mapper = vtk.vtkDataSetMapper()
+    #     if vu.vtkMV: 
+    #         mapper.SetInputData(ugrid)
+    #     else:
+    #         mapper.SetInputConnection(ugrid.GetProducerPort())
+    #     actor = vtk.vtkActor()
+    #     actor.SetMapper(mapper)
+    #     actor.GetProperty().SetInterpolationToFlat()
+    #     actor.GetProperty().SetColor(vc.getColor(c))
+    #     actor.GetProperty().SetOpacity(alpha/2.)
+    #     if wire: actor.GetProperty().SetRepresentationToWireframe()
+    # else: 
+    #     return pts_act
+    # ass = vu.makeAssembly([pts_act, actor])
+    # setattr(ass, 'legend', legend)
+    # if legend is True: 
+    #     setattr(ass, 'legend', legend)
+    # return ass
+    poly = buildPolyData(coords, connectivity)
+    return vu.makeActor(poly, c, alpha, wire, bc, edges, legend)
 
-    pts_act = shapes.points(coords, c=c, r=4, legend=legend)
 
-    if edges:
-        # 3D cells are mapped only if they are used by only one cell,
-        #  i.e., on the boundary of the data set
-        ugrid = vtk.vtkUnstructuredGrid()
-        ugrid.SetPoints(points)
-        cellArray = vtk.vtkCellArray()
-        for itet in range(len(connectivity)):
-            tetra = vtk.vtkTetra()
-            for k,j in enumerate(connectivity[itet]):
-                tetra.GetPointIds().SetId(k, j)
-            cellArray.InsertNextCell(tetra)
-        ugrid.SetCells(vtk.VTK_TETRA, cellArray)
-        mapper = vtk.vtkDataSetMapper()
-        if vu.vtkMV: 
-            mapper.SetInputData(ugrid)
-        else:
-            mapper.SetInputConnection(ugrid.GetProducerPort())
-        actor = vtk.vtkActor()
-        actor.SetMapper(mapper)
-        actor.GetProperty().SetInterpolationToFlat()
-        actor.GetProperty().SetColor(vc.getColor(c))
-        actor.GetProperty().SetOpacity(alpha/2.)
-        if wire: actor.GetProperty().SetRepresentationToWireframe()
-    else: 
-        return pts_act
-    
-    ass = vu.makeAssembly([pts_act, actor])
-    setattr(ass, 'legend', legend)
-    if legend is True: 
-        setattr(ass, 'legend', legend)
-    return ass
-
-
-def loadNeutral(filename, c, alpha, bc, edges, legend):
+def loadNeutral(filename, c, alpha, wire, bc, edges, legend):
     '''Reads a Neutral tetrahedral file format'''
-    import shapes as vs
     if not os.path.exists(filename): 
         vc.printc(('Error in loadNeutral: Cannot find', filename), c=1)
         return None
     
     coords, connectivity = convertNeutral2Xml(filename)
-    
-    acts = vs.points(coords, c=c, alpha=alpha)
-    if edges:
-        polylns = vtk.vtkAppendPolyData()
-        for cn in connectivity:
-            p0 = coords[cn[0]]
-            p1 = coords[cn[1]]
-            p2 = coords[cn[2]]
-            p3 = coords[cn[3]]
-            lineSource1 = vtk.vtkLineSource()
-            lineSource2 = vtk.vtkLineSource()
-            lineSource3 = vtk.vtkLineSource()
-            lineSource4 = vtk.vtkLineSource()
-            lineSource5 = vtk.vtkLineSource()
-            lineSource6 = vtk.vtkLineSource()
-            lineSource1.SetPoint1(p0); lineSource1.SetPoint2(p1)
-            lineSource2.SetPoint1(p1); lineSource2.SetPoint2(p2)
-            lineSource3.SetPoint1(p2); lineSource3.SetPoint2(p0)
-            lineSource4.SetPoint1(p0); lineSource4.SetPoint2(p3)
-            lineSource5.SetPoint1(p3); lineSource5.SetPoint2(p1)
-            lineSource6.SetPoint1(p3); lineSource6.SetPoint2(p2)
-            polylns.AddInputConnection(lineSource1.GetOutputPort())
-            polylns.AddInputConnection(lineSource2.GetOutputPort())
-            polylns.AddInputConnection(lineSource3.GetOutputPort())
-            polylns.AddInputConnection(lineSource4.GetOutputPort())
-            polylns.AddInputConnection(lineSource5.GetOutputPort())
-            polylns.AddInputConnection(lineSource6.GetOutputPort())
-        polylns.Update()
-        cl = vtk.vtkCleanPolyData()
-        vu.setInput(cl, polylns.GetOutput())
-        cl.Update()
-        tetslines = vu.makeActor(cl.GetOutput(), c, alpha/5)
-        acts = vu.makeAssembly([acts, tetslines])
-
-    setattr(acts, 'legend', legend)
-    if legend is True: 
-        setattr(acts, 'legend', os.path.basename(filename))
-    return acts
+    poly = buildPolyData(coords, connectivity, indexOffset=0)
+    return vu.makeActor(poly, c, alpha, wire, bc, edges, legend)
 
 
-def loadGmesh(filename, c, alpha, bc, legend):
+def loadGmesh(filename, c, alpha, wire, bc, edges, legend):
     '''
     Reads a gmesh file format
     '''
@@ -236,34 +199,9 @@ def loadGmesh(filename, c, alpha, bc, legend):
         ele= lines[i].split()
         elements.append([int(ele[-3]), int(ele[-2]), int(ele[-1])])
 
-    sourcePoints    = vtk.vtkPoints()
-    sourceVertices  = vtk.vtkCellArray()
-    sourceTriangles = vtk.vtkCellArray()
-    for pt in node_coords:
-        aid = sourcePoints.InsertNextPoint(pt[0], pt[1], pt[2])
-        sourceVertices.InsertNextCell(1)
-        sourceVertices.InsertCellPoint(aid)
-    for i,e in enumerate(elements):
-        triangle = vtk.vtkTriangle()
-        triangle.GetPointIds().SetId( 0, e[0]-1 )
-        triangle.GetPointIds().SetId( 1, e[1]-1 )
-        triangle.GetPointIds().SetId( 2, e[2]-1 )
-        sourceTriangles.InsertNextCell ( triangle )
+    poly = buildPolyData(node_coords, elements, indexOffset=1)
 
-    source = vtk.vtkPolyData()
-    source.SetPoints(sourcePoints)
-    source.SetVerts(sourceVertices)
-    source.SetPolys(sourceTriangles)
-    clp = vtk.vtkCleanPolyData()
-    vu.setInput(clp, source)
-    clp.PointMergingOn()
-    clp.Update()    
-#    rv = vtk.vtkReverseSense()
-#    vu.setInput(rv, clp.GetOutput())
-#    rv.ReverseCellsOff ()
-#    rv.Update()
-
-    return vu.makeActor(clp.GetOutput(), c=c, alpha=alpha, bc=bc, legend=legend)
+    return vu.makeActor(poly, c, alpha, wire, bc, edges, legend)
 
 
 def loadPCD(filename, c, alpha, legend):
@@ -601,5 +539,44 @@ def convertNeutral2Xml(infile, outfile=None):
     return fdolf_coords, idolf_tets
 
 
+def buildPolyData(vertices, faces=None, indexOffset=0):
+    '''
+    Build a vtkPolyData object from a list of vertices=[[x1,y1,z1],[x2,y2,z2], ...] 
+    and the connectivity representing the faces of the polygonal mesh,
+    e.g. faces=[[0,1,2], [1,2,3], ...]
+    Use indexOffset=1 if face numbering starts from 1 instead of 0.
+    '''
+    sourcePoints   = vtk.vtkPoints()
+    sourceVertices = vtk.vtkCellArray()
+    sourcePolygons = vtk.vtkCellArray()
+    for pt in vertices:
+        aid = sourcePoints.InsertNextPoint(pt[0], pt[1], pt[2])
+        sourceVertices.InsertNextCell(1)
+        sourceVertices.InsertCellPoint(aid)
+    if faces:
+        for f in faces:
+            # plg = vtk.vtkPolygon()
+            n = len(f)
+            if n==4:
+                plg = vtk.vtkTetra()
+            elif n==3:
+                plg = vtk.vtkTriangle()
+            else:
+                plg = vtk.vtkPolygon()
+                plg.GetPointIds().SetNumberOfIds(n)
+            for i in range(n):
+                plg.GetPointIds().SetId( i, f[i] - indexOffset )
+            sourcePolygons.InsertNextCell(plg)
+
+    poly = vtk.vtkPolyData()
+    poly.SetPoints(sourcePoints)
+    poly.SetVerts(sourceVertices)
+    if faces: 
+        poly.SetPolys(sourcePolygons)
+    clp = vtk.vtkCleanPolyData()
+    vu.setInput(clp, poly)
+    clp.PointMergingOn()
+    clp.Update()    
+    return clp.GetOutput()
 
     

@@ -8,7 +8,7 @@ import vtkplotter.events as events
 import vtkplotter.shapes as shapes
 import vtkplotter.analysis as analysis 
 
-__version__ = "8.2.1" #defined also in setup.py
+__version__ = "8.3.0" #defined also in setup.py
 
 ########################################################################
 class Plotter:
@@ -24,13 +24,13 @@ class Plotter:
         msg += "\t.,  to reduce/increase opacity\n"
         msg += "\t/   to maximize opacity of selected actor\n"
         msg += "\tw/s to toggle wireframe/solid style\n"
-        msg += "\tpP  to change point size of vertices\n"
-        msg += "\tlL  to change edge line width\n"
+        msg += "\tp/P to change point size of vertices\n"
+        msg += "\tl/L  to change edge line width\n"
         msg += "\tn   to show normals for selected actor\n"
         msg += "\tx   to toggle selected actor visibility\n"
         msg += "\tX   to open a cutter widget for sel. actor\n"
         msg += "\t1-4 to change color scheme\n"
-        msg += "\tkK to use point/cell scalars as color\n"
+        msg += "\tk/K to use point/cell scalars as color\n"
         msg += "\tC   to print current camera info\n"
         msg += "\tS   to save a screenshot\n"
         msg += "\tq   to continue\n"
@@ -74,7 +74,8 @@ class Plotter:
         
         self.verbose    = verbose
         self.actors     = []    # list of actors to be shown
-        self.clickedActor = None# holds the actor that has been clicked
+        self.clickedActor    = None  # holds the actor that has been clicked
+        self.clickedRenderer = 0     # clicked renderer number
         self.renderer   = None  # current renderer
         self.renderers  = []    # list of renderers
         self.size       = [size[1],size[0]] # size of the rendering window
@@ -98,7 +99,6 @@ class Plotter:
         self.picked3d   = None  # 3d coords of a clicked point on an actor 
 
         # mostly internal stuff:
-        self.clickedr     = 0     # clicked renderer number
         self.camThickness = 2000
         self.justremoved  = None 
         self.caxes_exist  = []
@@ -110,6 +110,7 @@ class Plotter:
         self.initializedPlotter= False
         self.initializedIren = False
         self.camera = vtk.vtkCamera()
+        self.keyPressFunction = None
         
         # share some methods in utils in Plotter class for convenience
         self.makeAssembly = utils.makeAssembly
@@ -136,7 +137,7 @@ class Plotter:
                   minl = l
             shape = lm[ind]
             self.size = maxscreensize
-        elif size=='auto':        # figure out a reasonable window size
+        elif size=='auto':  # figure out a reasonable window size
             maxs = maxscreensize
             xs = maxs[0]/2*shape[0]
             ys = maxs[0]/2*shape[1]
@@ -170,8 +171,6 @@ class Plotter:
                 self.renderers.append(arenderer)
                 self.caxes_exist.append(None)
         self.renderWin = vtk.vtkRenderWindow()
-        #self.renderWin.PolygonSmoothingOn()
-        #self.renderWin.LineSmoothingOn()
         self.renderWin.PointSmoothingOn()
         
         if 'full' in size: # full screen
@@ -205,6 +204,7 @@ class Plotter:
             \n\tValid file formats: vtk,vtu,vts,vtp,ply,obj,stl,xml, 
                             gmsh,neutral,pcd,xyz,txt,byu,g,png,jpeg
         ''')
+
 
     ############################################# LOADER
     def load(self, inputobj, c='gold', alpha=1,

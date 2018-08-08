@@ -4,18 +4,30 @@ from vtkplotter import Plotter
 import sys
 
 fs = sys.argv[1:]
-alpha = 1.
-if len(fs) == 1 :
+nfiles = len(fs)
+alpha = 1.0
+
+if nfiles == 1 :
     leg = False
 else:
     leg = None
-if len(fs): alpha = 1.0/len(fs)
-vp = Plotter(bg2=(.94,.94,1))
-for f in fs:
-    vp.load(f, alpha=alpha)
-if len(fs):
-    vp.show(legend=leg, interactive=True)
-else:
-    vp.help()
 
+vp = Plotter(bg2=(0.94, 0.94, 1.0))
+
+if nfiles == 0: 
+    vp.help()
+    sys.exit()
+
+for ic,f in enumerate(fs):
+
+    if '.neutral' in f.lower() or '.xml' in f.lower() or '.gmsh' in f.lower(): 
+        alpha=0.1
+        wire=True
+    else:
+        alpha = 1.0/nfiles
+        wire=False
+    if ic==0: ic='gold'
+    vp.load(f, c=ic, alpha=alpha, wire=wire)
+
+vp.show(legend=leg, interactive=True)
 
