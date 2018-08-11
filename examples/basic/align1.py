@@ -9,7 +9,7 @@ vp = vtkplotter.Plotter()
 a1, a2 = vp.load('data/2[79]0.vtk', alpha=.5) # load 2 files and assign to a1, a2
 
 # the usual vtk way to assign a property is always available
-# (it's easier to set c='g' in the command above!)
+# (..though it's easier to set c='g' in the command above!)
 a1.GetProperty().SetColor(0,1,0) 
 
 # align a1 to a2, store the new actor in a1b

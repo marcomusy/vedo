@@ -1,5 +1,5 @@
 from __future__ import division, print_function
-import time, sys, vtk, numpy
+import time, sys, vtk, numpy, types
 
 import vtkplotter.vtkio as vtkio
 import vtkplotter.utils as utils
@@ -8,7 +8,7 @@ import vtkplotter.events as events
 import vtkplotter.shapes as shapes
 import vtkplotter.analysis as analysis 
 
-__version__ = "8.3.0" #defined also in setup.py
+__version__ = "8.3.1" #defined also in setup.py
 
 ########################################################################
 class Plotter:
@@ -837,22 +837,20 @@ class Plotter:
         return actor
 
 
-    def cutPlane(self, uactor, origin=(0,0,0), normal=(1,0,0), showcut=True):
+    def cutPlane(self, actor, origin=(0,0,0), normal=(1,0,0), showcut=False):
         '''
-        Takes actor and cuts it with the plane defined by a point
-        and a normal. 
+        Takes actor and cuts it with the plane defined by a point and a normal. 
             showcut  = shows the cut away part as thin wireframe
-            
-            showline = marks with a thick line the cut
         '''
-        cactor = analysis.cutPlane(uactor, origin, normal, showcut)
+        cactor = utils.cutPlane(actor, origin, normal, showcut)
         try:
-            i = self.actors.index(uactor)
+            i = self.actors.index(actor)
             self.actors[i] = cactor # substitute original actor with cut one
-        except ValueError: pass
+        except ValueError: 
+            self.actors.append(cactor)
         return cactor #NB: original actor is modified
 
- 
+
     def delaunay2D(self, plist, tol=None, c='gold', alpha=0.5, wire=False, bc=None, 
                    edges=False, legend=None, texture=None):
         '''Create a mesh from points in the XY plane.'''
@@ -1200,6 +1198,75 @@ class Plotter:
         self.renderer.AddActor(vtklegend)
 
 
+    def addTrail(self, actor=None, maxlength=None, n=25, c=None, alpha=None, lw=1):
+        '''
+        Add a trailing line to an existing actor
+
+        maxlength, length of trailing line in absolute units
+        
+        n, number of segments, controls precision
+        '''
+        if not actor:
+            actor = self.actors[-1]
+        if maxlength is None:
+            maxlength = utils.diagonalSize(actor)*20
+        if not hasattr(actor, 'trailPoints'):
+            pos = actor.GetPosition()
+            setattr(actor,'trailPoints', [None]*n)
+            setattr(actor,'trailSegmentSize', maxlength/n)
+
+            ppoints = vtk.vtkPoints() # Generate the polyline
+            poly = vtk.vtkPolyData()
+            for i in range(n): 
+                x,y,z = pos
+                ppoints.InsertPoint(i, x,y,z)
+            lines = vtk.vtkCellArray() 
+            lines.InsertNextCell(n)
+            for i in range(n): lines.InsertCellPoint(i)
+            poly.SetPoints(ppoints)
+            poly.SetLines(lines)
+            mapper = vtk.vtkPolyDataMapper()
+            if c is None:
+                col = actor.GetProperty().GetColor()
+            else:
+                col = colors.getColor(c)
+            al = colors.getAlpha(c)
+            if al: alpha = al
+            if alpha is None:
+                alpha = actor.GetProperty().GetOpacity()
+            utils.setInput(mapper, poly)
+            tline = vtk.vtkActor()
+            tline.SetMapper(mapper)
+            tline.GetProperty().SetColor(col)
+            tline.GetProperty().SetOpacity(alpha)
+            tline.GetProperty().SetLineWidth(lw)
+            setattr(actor,'trail', tline) # holds the vtkActor
+            self.actors.append(tline)
+
+            def _fupdateTrail(self):
+                currentpos = numpy.array(self.GetPosition())
+                lastpos = self.trailPoints[-1]
+                if lastpos is None: # reset list
+                    self.trailPoints = [currentpos]*len(self.trailPoints)
+                    return
+                if numpy.linalg.norm(currentpos-lastpos) < self.trailSegmentSize: 
+                    return 
+                
+                self.trailPoints.append(currentpos) #cycle
+                self.trailPoints.pop(0)    
+
+                poly = utils.polydata(self.trail)
+                vtkpts = poly.GetPoints()
+                for i in range(poly.GetNumberOfPoints()):
+                    x,y,z = self.trailPoints[i]
+                    vtkpts.SetPoint(i, x,y,z)
+                vtkpts.Modified() # needed by vtk<7
+                return self
+            actor.updateTrail = types.MethodType(_fupdateTrail, actor )
+
+            return tline
+
+
     #################################################################################
     def show(self, actors=None, at=None,
              legend=None, axes=None, ruler=False,
@@ -1360,7 +1427,7 @@ class Plotter:
             sys.exit(0)
 
 
-    def render(self, addActor=None, resetcam=False, rate=10000):
+    def render(self, addActor=None, at=None, axes=None, resetcam=False, zoom=False, rate=None):
         if addActor:
             if utils.isSequence(addActor): 
                 for a in addActor: self.addActor(a)
@@ -1369,22 +1436,24 @@ class Plotter:
         if not self.initializedPlotter:
             before = bool(self.interactive)
             self.verbose = False
-            self.show(interactive=0)
+            self.show(interactive=0, at=at, axes=axes, zoom=zoom)
             self.interactive = before
             return
         if resetcam: self.renderer.ResetCamera()
         self.interactor.Render()
 
-        if self.clock is None: # set clock and limit rate
-            self._clockt0 = time.time()
-            self.clock = 0.
-        else:
-            t = time.time() - self._clockt0
-            elapsed = t - self.clock
-            mint = 1./rate
-            if elapsed < mint:
-                time.sleep(mint-elapsed)
-            self.clock = time.time() - self._clockt0
+        if rate:
+            if self.clock is None: # set clock and limit rate
+                self._clockt0 = time.time()
+                self.clock = 0.
+            else:
+                t = time.time() - self._clockt0
+                elapsed = t - self.clock
+                mint = 1./rate
+                if elapsed < mint:
+                    time.sleep(mint-elapsed)
+                self.clock = time.time() - self._clockt0
+
 
     def lastActor(self): return self.actors[-1]
 

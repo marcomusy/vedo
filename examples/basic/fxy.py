@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-#
-# Example of use of function() method.
+# Example for function() method.
 # Draw a surface representing the 3D function specified as a string
 # or as a reference to an external already existing function.
 # Red points indicate where the function does not exist.

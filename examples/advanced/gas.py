@@ -2,7 +2,8 @@
 #
 ## Based on gas.py by Bruce Sherwood for a cube as a container
 ## Sligthly modified by Andrey Antonov for a torus.
-## Adapted by M. Musy for vtkPlotter
+## Adapted by M. Musy for vtkplotter
+## relevant points in the code are marked with '### <--'
 
 from __future__ import division, print_function
 from random import random
@@ -16,11 +17,9 @@ Matom = 4E-3/6E23   # helium mass
 Ratom = 0.025       # wildly exaggerated size of helium atom
 RingThickness=0.3   # thickness of the toroid
 RingRadius=1
-
 k = 1.4E-23         # Boltzmann constant
 T = 300             # room temperature
 dt = 1E-5
-
 #############################################################
 
 def reflection(p, pos):
@@ -41,7 +40,7 @@ for i in range(Natoms):
     x = RingRadius*np.cos(alpha)*.9
     y = RingRadius*np.sin(alpha)*.9
     z = 0
-    Atoms = Atoms + [vp.sphere(pos=(x,y,z), r=Ratom, c=i)]                   ### <--
+    Atoms = Atoms + [vp.sphere(pos=(x,y,z), r=Ratom, c=i)]              ### <--
     theta = np.pi*random()
     phi   = 2*np.pi*random()
     px = pavg*np.sin(theta)*np.cos(phi)

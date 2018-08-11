@@ -8,7 +8,7 @@ vp = Plotter(axes=0)
 vp.load('data/shapes/spider.ply', texture='leather2', alpha=1)
 
 # open a video file and force it to last 3 seconds in total
-video = vp.openVideo(name='spider.avi', duration=3) 
+video = vp.openVideo(name='spider.mp4', duration=3) 
 
 for i in range(100):
     vp.render()          # render the scene first

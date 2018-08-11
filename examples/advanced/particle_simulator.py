@@ -1,151 +1,100 @@
 """
 Particle Simulator
 
-By Tommy Vandermolen, 3 August 2018
-
 Simulates interacting charged particles in 3D space.
 Can also be imported as an independent module.
+By Tommy Vandermolen, 3 August 2018
 """
-from __future__ import print_function, division
-from vtkplotter import Plotter, ProgressBar, mag, mag2, norm, vector
-import itertools
+from vtkplotter import Plotter, mag, mag2, norm, vector
 import numpy as np
+
 K_COULOMB = 8987551787.3681764  # N*m^2/C^2
-
-
-def main():
-    """ 
-    An example simulation of N particles scattering on a charged target
-    See e.g. https://en.wikipedia.org/wiki/Rutherford_scattering
-    """
-
-    N = 60
-    sim = ParticleSim(dt=1e-6, box_length=2)
-    sim.add_particle((0,0,0), charge=15e-6, diameter=0.05, fixed=True)
-    positions = np.random.randn(N,3)/25 + vector(-1,0,0)
-    for ap in positions:
-        sim.add_particle(ap, charge=0.02e-6, mass=0.1e-6, diameter=0.02, vel=(200, 0,0))
- 
-    sim.simulate()
+vp = None # so that it can be also used without visualization
 
 
 class ParticleSim:
-    def __init__(self, dt=0.01, box_length=0):
+    def __init__(self, dt, iterations):
         """ Creates a new particle simulator
                 dt: time step, time between successive calculations of particle motion
-                box_length: the size of the box to be drawn around the simulation, in meters. If 0, no box is drawn """
-        self._dt = dt
-        self._box_length = box_length
-        self._particles = []
+        """
+        self.dt = dt
+        self.particles = []
+        self.iterations = iterations
 
-        # vtkplotter rendering engine
-        self._vp = Plotter(title='Particle Simulator', bg='black', interactive=False, axes=2)
-        self._vp.ytitle = ''
-        self._vp.ztitle = ''
-
-    def add_particle(self, pos=(0, 0, 0), charge=1e-6, mass=1e-3, diameter=0.03, color=None, vel=(0, 0, 0), fixed=False):
-        """ Adds a new particle with specified properties (in SI units)
-                pos: the XYZ starting position of the particle, in meters
-                charge: the charge of the particle, in Coulombs
-                mass: the mass of the particle, in kg
-                diameter: the diameter of the particle, in meters. Purely for appearance, no effect on simulation
-                color: the color of the particle. If None, a default color will be chosen
-                vel: the initial velocity vector, in m/s
-                fixed: if True, particle will remain fixed in place """
-
-        color = color or len(self._particles) # or default color number
+    def add_particle(self, pos=(0,0,0), charge=1e-6, mass=1e-3, radius=0.005, 
+                     color=None, vel=(0,0,0), fixed=False, negligible=False):
+        """ Adds a new particle with specified properties (in SI units) """
+        color = color or len(self.particles) # assigned or default color number
         
-        p = Particle(self._vp, pos, charge, mass, diameter, color, vel, fixed)
-        self._particles.append(p)
+        p = Particle(pos, charge, mass, radius, color, vel, fixed, negligible)
+        self.particles.append(p)
 
     def simulate(self):
-        """ Runs the particle simulation """
-
-        # Initial camera position
-        self._vp.camera.Elevation(20)
-        self._vp.camera.Azimuth(40)
-
-        # Wire frame cube
-        if self._box_length:
-            self._vp.cube((0, 0, 0), length=self._box_length, wire=True, c='white')
-        self._vp.show(interactive=False)
-
+        """ Runs the particle simulation. Simulates one time step, dt, of the particle motion.
+            Calculates the force between each pair of particles and updates particles' motion accordingly
+        """
         # Main simulation loop
-        pb = ProgressBar(0, 200)
-        for i in pb.range():
-            self._update()
-            self._vp.render()
-            self._vp.camera.Azimuth(0.1) # Rotate camera
-            pb.print()
-        self._vp.show(interactive=True, resetcam=False)
-
-    def _update(self):
-        """ Simulates one time step, dt, of the particle motion
-            Calculates the force between each pair of particles and updates the particles' motion accordingly """
-
-        for a, b in itertools.combinations(self._particles, 2):
-            displacement = b.pos - a.pos
-            dist_squared = mag2(displacement)
-            direction = norm(displacement)
-
-            f = direction * (K_COULOMB * a.charge * b.charge) / dist_squared
-            a.update(-f, self._dt)
-            b.update(f, self._dt)
+        for i in range(self.iterations):
+            for a in self.particles:
+                if a.fixed: continue
+                ftot = vector(0,0,0) # total force acting on particle a
+                for b in self.particles:
+                    if a.negligible and b.negligible or a==b: continue
+                    ab = a.pos - b.pos
+                    ftot += ((K_COULOMB * a.charge * b.charge) / mag2(ab)) * norm(ab)
+                a.vel += ftot / a.mass * self.dt # update velocity and position of a
+                a.pos += a.vel * self.dt
+                a.vtk_actor.pos(a.pos).updateTrail()
+            if vp:
+                vp.render(zoom=1.2)
+                vp.camera.Azimuth(0.1) # rotate camera
 
 
 class Particle:
-    def __init__(self, vp, pos, charge, mass, diameter, color, vel, fixed):
+    def __init__(self, pos, charge, mass, radius, color, vel, fixed, negligible):
         """ Creates a new particle with specified properties (in SI units)
-                vp: the vtkplotter rendering engine for the simulation
-                pos: the XYZ starting position of the particle, in meters
-                charge: the charge of the particle, in Coulombs
-                mass: the mass of the particle, in kg
-                diameter: the diameter of the particle, in meters. Purely for appearance, no effect on simulation
-                color: the color of the particle. If None, a default color will be chosen
-                vel: the initial velocity vector, in m/s
+                pos: XYZ starting position of the particle, in meters
+                charge: charge of the particle, in Coulombs
+                mass: mass of the particle, in kg
+                radius: radius of the particle, in meters. No effect on simulation
+                color: color of the particle. If None, a default color will be chosen
+                vel: initial velocity vector, in m/s
                 fixed: if True, particle will remain fixed in place 
+                negligible: assume charge is small wrt other charges to speed up calculation
         """
-        self.pos = np.array(pos, dtype=np.float64)
-        self.diameter = diameter
+        self.pos = vector(pos)
+        self.radius = radius
         self.charge = charge
         self.mass = mass
-        self.vel = np.array(vel, dtype=np.float64)
+        self.vel = vector(vel)
         self.fixed = fixed
+        self.negligible = negligible
         self.color = color
-        self._vp = vp
-        self._old_pos = self.pos.copy()
-
-        # The sphere representing the particle
-        self.vtk_actor = vp.sphere(pos, r=diameter/2, c=color) 
-
-        # The trail behind the particle, a list of lines
-        # When the last line in the list is used, loop back to the beginning
-        def make_trail_iter(length):
-            lines = []
-            for i in range(length):
-                line = self._vp.line((0, 0, 0), (1, 1, 1), c=color, lw=0.2, alpha=0.5)
-                vp.addActor(line)
-                lines.append(line)
-                yield line
-            while True:
-                for line in lines:
-                    yield line
-        self._trail_iter = make_trail_iter(100)
-
-    def update(self, force, dt):
-        """ Calculates the particle's new position based on the given force and time step """
-        if not self.fixed:
-            accel = force / self.mass
-            self.vel += accel * dt
-            self.pos += self.vel * dt
-
-            # Add new segments to the particle's trail once it travelled a significant distance
-            if mag(self.pos - self._old_pos) > 0.02:
-                line = next(self._trail_iter)
-                line.stretch(self._old_pos, self.pos)
-                self._old_pos = self.pos.copy()
-            self.vtk_actor.pos(self.pos)
+        if vp:
+            self.vtk_actor = vp.sphere(pos, r=radius, c=color) # Sphere representing the particle
+            vp.addTrail(alpha=0.4, maxlength=1, n=50) # Add a trail behind the particle
 
 
+#####################################################################################################
 if __name__ == '__main__':
-    main()
+    """ 
+    An example simulation of N particles scattering on a charged target.
+    See e.g. https://en.wikipedia.org/wiki/Rutherford_scattering
+    """
+    vp = Plotter(title='Particle Simulator', bg='black', axes=0, interactive=False)
+    vp.camera.Elevation(20) # Initial camera position
+    vp.camera.Azimuth(40)
+
+    vp.cube(wire=True, c='white') # a wireframe cube
+
+    sim = ParticleSim(dt=5e-6, iterations=200)
+    sim.add_particle((-0.4,0,0), color='w', charge=3e-6, radius=0.01, fixed=True) # the target
+
+    positions = np.random.randn(500, 3)/60 # generate a beam of 500 particles
+    for p in positions:
+        p[0] = -0.5 # Fix x position. Their charge are small/negligible compared to target:
+        sim.add_particle(p, charge=.01e-6, mass=0.1e-6, vel=(1000, 0, 0), negligible=True)
+
+    sim.simulate()
+    vp.show(interactive=True, resetcam=False)
+

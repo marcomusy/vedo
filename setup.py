@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='8.3.0', #change also in plotter.py
+    version='8.3.1', #change also in plotter.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter'],
     install_requires=[], # vtk and numpy are needed but better install it manually
@@ -37,14 +37,12 @@ setup(
 
 # ana3
 # git status
-
 # python -m pip install --user --upgrade twine
 # python setup.py sdist bdist_wheel
-# twine upload dist/vtkplotter-?.?.?.tar.gz -r pypi
-
-# # check status at  https://pypi.org/project/vtkplotter/
 
 # git commit -a -m 'comment'
 # git push
+# twine upload dist/vtkplotter-?.?.?.tar.gz -r pypi
 
+# # check status at  https://pypi.org/project/vtkplotter/
 # # check status at  https://github.com/marcomusy/vtkplotter

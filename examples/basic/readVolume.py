@@ -35,4 +35,4 @@ vp.show(a2, at=2)
 # Can also read SLC files:
 vp2= vtkplotter.Plotter()
 vp2.load('data/embryo.slc', c='g', bc='v', smoothing=1, connectivity=1)
-vp2.show(interactive=1)
+vp2.show()

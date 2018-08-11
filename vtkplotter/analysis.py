@@ -22,7 +22,7 @@ def spline(points, smooth=0.5, degree=2,
     try:
         from scipy.interpolate import splprep, splev
     except ImportError:
-        vio.printc('Warning: ..scipy not installed, using vtkCardinalSpline instead.',5)
+        vc.printc('Warning: ..scipy not installed, using vtkCardinalSpline instead.',5)
         return _vtkspline(points, s, c, alpha, nodes, legend, res)
 
     Nout = len(points)*res # Number of points on the spline
@@ -184,7 +184,7 @@ def fxy(z='sin(3*x)*log(x-y)/3', x=[0,3], y=[0,3],
             exec(code, namespace)
             z = namespace['zfunc']
         except:
-            vio.printc('Syntax Error in fxy()',1)
+            vc.printc('Syntax Error in fxy()',1)
             return None
 
     ps = vtk.vtkPlaneSource()
@@ -229,14 +229,14 @@ def fxy(z='sin(3*x)*log(x-y)/3', x=[0,3], y=[0,3],
         poly = cl.GetOutput()
     
     if not poly.GetNumberOfPoints(): 
-        vio.printc('Function is not real in the domain',1)
+        vc.printc('Function is not real in the domain',1)
         return vtk.vtkActor()
     
     if zlimits[0]:
-        a = cutPlane(poly, (0,0,zlimits[0]), (0,0,1), False)
+        a = utils.cutPlane(poly, (0,0,zlimits[0]), (0,0,1))
         poly = vu.polydata(a)
     if zlimits[1]:
-        a = cutPlane(poly, (0,0,zlimits[1]), (0,0,-1), False)
+        a = utils.cutPlane(poly, (0,0,zlimits[1]), (0,0,-1))
         poly = vu.polydata(a)
 
     if c is None:
@@ -278,50 +278,6 @@ def fxy(z='sin(3*x)*log(x-y)/3', x=[0,3], y=[0,3],
         return asse
     else:
         return actor
-
-
-def cutPlane(actor, origin=(0,0,0), normal=(1,0,0),
-             showcut=True):
-    '''
-    Takes actor and cuts it with the plane defined by a point
-    and a normal. 
-        showcut  = shows the cut away part as thin wireframe
-        showline = marks with a thick line the cut
-    '''
-    plane = vtk.vtkPlane()
-    plane.SetOrigin(origin)
-    plane.SetNormal(normal)
-    poly = vu.polydata(actor)
-    clipper = vtk.vtkClipPolyData()
-    vu.setInput(clipper, poly)
-    clipper.SetClipFunction(plane)
-    clipper.GenerateClippedOutputOn()
-    clipper.SetValue(0.)
-    clipper.Update()
-    if hasattr(actor, 'GetProperty'):
-        alpha = actor.GetProperty().GetOpacity()
-        c = actor.GetProperty().GetColor()
-        bf = actor.GetBackfaceProperty()
-    else:
-        alpha=1
-        c='gold'
-        bf=None
-    leg = None
-    if hasattr(actor, 'legend'): leg = actor.legend
-    clipActor = vu.makeActor(clipper.GetOutput(),c=c,alpha=alpha, legend=leg)
-    clipActor.SetBackfaceProperty(bf)
-
-    acts = [clipActor]
-    if showcut:
-        cpoly = clipper.GetClippedOutput()
-        restActor = vu.makeActor(cpoly, c=c, alpha=0.05, wire=1)
-        acts.append(restActor)
-
-    if len(acts)>1:
-        asse = vu.makeAssembly(acts)
-        return asse
-    else:
-        return clipActor
 
 
 def delaunay2D(plist, tol=None, c='gold', alpha=0.5, wire=False, bc=None, edges=False, 
@@ -517,7 +473,7 @@ def pca(points, pvalue=.95, c='c', alpha=0.5, pcaAxes=False, legend=None):
     try:
         from scipy.stats import f
     except:
-        vio.printc("Error in ellipsoid(): scipy not installed. Skip.",1)
+        vc.printc("Error in ellipsoid(): scipy not installed. Skip.",1)
         return None
     if isinstance(points, vtk.vtkActor): points=vu.coordinates(points)
     if len(points) == 0: return None
@@ -590,7 +546,7 @@ def smoothMLS2D(actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
     if showNPlanes: ndiv = int(nshow/showNPlanes*decimate)
     
     if Ncp<5:
-        vio.printc('Please choose a higher fraction than '+str(f), 1)
+        vc.printc('Please choose a higher fraction than '+str(f), 1)
         Ncp=5
     print('smoothMLS: Searching #neighbours, #pt:', Ncp, ncoords)
     
@@ -661,7 +617,7 @@ def smoothMLS1D(actor, f=0.2, showNLines=0):
     if showNLines: ndiv = int(nshow/showNLines)
     
     if Ncp<3:
-        vio.printc('Please choose a higher fraction than '+str(f), 1)
+        vc.printc('Please choose a higher fraction than '+str(f), 1)
         Ncp=3
     
     poly = vu.polydata(actor, True)
@@ -760,7 +716,7 @@ def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1,
     try:
         bf = vtk.vtkBooleanOperationPolyDataFilter()
     except AttributeError:
-        vio.printc('Boolean operation only possible for vtk version >= 8','r')
+        vc.printc('Boolean operation only possible for vtk version >= 8','r')
         return None
     poly1 = vu.polydata(actor1, True)
     poly2 = vu.polydata(actor2, True)
@@ -790,7 +746,7 @@ def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3,
     try:
         bf = vtk.vtkIntersectionPolyDataFilter()
     except AttributeError:
-        colors.printc('surfaceIntersection only possible for vtk version > 6','r')
+        vc.printc('surfaceIntersection only possible for vtk version > 6','r')
         return None
     poly1 = vu.polydata(actor1, True)
     poly2 = vu.polydata(actor2, True)

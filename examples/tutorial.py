@@ -181,7 +181,7 @@ vp.show(interactive=1)
 vp = vtkplotter.Plotter(title='Cut a surface with a plane')
 vp.load('data/*.vtk', c='orange', bc='aqua')
 for a in vp.actors:
-    vp.cutPlane(a, origin=(500,0,0), normal=(0,0.3,-1))
+    vp.cutPlane(a, origin=(500,0,0), normal=(0,0.3,-1), showcut=True)
 vp.show()
 
 

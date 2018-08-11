@@ -8,7 +8,7 @@
 # Adapted by M. Musy from E. Velasco (2009)
 #=======================================================
 from __future__ import division, print_function
-from vtkplotter import Plotter, ProgressBar, arange
+from vtkplotter import Plotter, ProgressBar, arange, dot
 import random, numpy as np
 
 screen_w = 600
@@ -45,18 +45,15 @@ for s in range(Nsp-1):
     del PossiblePos[n] 
 Pos = np.array(ListPos)
 
-
 # Create an array with all the radius and a list with all the masses
 Radius = np.concatenate( (np.array([Rb]), np.array([Rs]*(Nsp-1))) )
 Mass=[1.0]+[Ms]*(Nsp-1)
-
 
 # Create the initial array of velocities at random with big sphere at rest
 ListVel=[(0.,0.)]
 for s in range(1,Nsp):
     ListVel.append( (Rb*random.uniform(-1,1), Rb*random.uniform(-1,1)) )
 Vel = np.array(ListVel)
-
 
 # Create the spheres 
 Spheres = [vp.sphere(pos=(Pos[0][0],Pos[0][1],0), r=Radius[0], c='red')]
@@ -65,11 +62,9 @@ for s in range(1,Nsp):
     Spheres.append(a)
 vp.grid(sx=screen_w, sy=screen_w)
 
-
 # Auxiliary variables
 Id = np.identity(Nsp)
 Dij =  (Radius+Radius[:, np.newaxis])**2 # Matrix Dij=(Ri+Rj)**2
-
 
 # The main loop
 pb = ProgressBar(0,5000, c='r')
@@ -123,7 +118,7 @@ for i in pb.range():
         x2 = 1-x1                 # x2 = Mass[s2]/(Mass[s1]+Mass[s2])
         Pos[s1] -= x2*DR0
         Pos[s2] += x1*DR0
-        DV0 = 2*np.dot(Vel[s2]-Vel[s1], tau)*tau
+        DV0 = 2*dot(Vel[s2]-Vel[s1], tau)*tau
         Vel[s1] +=  x2*DV0
         Vel[s2] -=  x1*DV0
 

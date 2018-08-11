@@ -1,3 +1,5 @@
+# Example use of removeOutliers() and cluster()
+# needs vtk versions > 6
 from __future__ import division, print_function
 from vtkplotter import Plotter
 import numpy as np
@@ -11,8 +13,8 @@ f = 0.6
 noise1 = np.random.rand(N, 3)*f + np.array([1,1,0])
 noise2 = np.random.rand(N, 3)*f + np.array([1,0,1.2])
 noise3 = np.random.rand(N, 3)*f + np.array([0,1,1])
-
 noise4 = np.random.randn(N, 3)*f/8 + np.array([1,1,1])
+
 noise4 = vp.removeOutliers(noise4, 0.05)
 
 # merge points to lose their identity

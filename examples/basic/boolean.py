@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-# 
 # Example of boolean operations with actors or polydata
 #
 from vtkplotter import Plotter

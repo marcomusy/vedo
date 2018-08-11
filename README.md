@@ -120,12 +120,12 @@ vp.show()
 <br />
 
 
-Apply Moving Least Squares algorithm to a point cloud (20k points) to obtain a smooth surface 
+Apply Moving Least Squares algorithm to a large point cloud to obtain a smooth surface 
 from a set of scattered points in space:
 ```bash
 python examples/advanced/moving_least_squares2D.py
 ```
-![mls](https://user-images.githubusercontent.com/32848391/40891869-dd4df456-678d-11e8-86c4-c131207868e8.png)
+![bunnymls](https://user-images.githubusercontent.com/32848391/43954472-ef161148-9c9c-11e8-914d-1ba57718da74.png)
 <br />
 
 
@@ -183,7 +183,7 @@ Simulation of [Rutherford scattering](https://en.wikipedia.org/wiki/Rutherford_s
 ```bash
 python examples/advanced/particle_simulator.py 
 ```
-![rutherford](https://user-images.githubusercontent.com/32848391/43688715-5539c47c-98ee-11e8-8525-7865651b2a89.gif)
+![ruth](https://user-images.githubusercontent.com/32848391/43984362-5c545a0e-9d00-11e8-8ce5-572b96bb91d1.gif)
 <br />
 
 
@@ -218,17 +218,18 @@ def Plotter(shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='vtk
 def load(filesOrDirs, c='gold', alpha=0.2, wire=False, bc=None, edges=False, legend=True, texture=None)
 def show(actors=None, at=0, legend=None, axes=0, ruler=False, c='gold', bc=None, 
          alpha=0.2, wire=False, resetcam=True, interactive=None, q=False)
+def render(addActor=None, at=None, axes=None, resetcam=False, zoom=False, rate=None) # use inside loops
 def clear(actors=[])
 def addActor(actor)
 def removeActor(actor)
 def lastActor()
-def render(resetcam=False, rate=10000)
 def getActors(obj=None)
 def moveCamera(camstart, camstop, fraction)
 def cube(pt, r=1, c='g', alpha=1, legend=None, texture=None)
 def light(pos, fp, deg=25, diffuse='y', ambient='r', specular='b', showsource=False)
 def screenshot(filename='screenshot.png')
 def write(obj, fileoutputname)
+def addTrail(actor=None, maxlength=None, n=25, c=None, alpha=None, lw=1)
 def addScalarBar(actor=None, c='k', horizontal=False)
 def addScalarBar3D(actor=None, pos, normal=[0,0,1], sx=.1, sy=2, nlabels=9, ncols=256, cmap='jet', c='k', alpha=1)
 def openVideo(name='movie.avi', fps=12, duration=None, format="XVID")
@@ -348,10 +349,10 @@ vp.sharecam     # (True) share the same camera in multiple renderers
 
 Additional methods of vtkActor object. They return the actor object so that can be concatenated:
 ```python
-# Example -- actor.scale(3).pos([1,2,3]).color('blue').alpha(0.5) etc..)
-actor.pos()      # set/get position vector (setters, and getters if no argument is given)
-actor.addpos(v)  # add v to current actor position
-actor.x()        # set/get x component of position (same for y and z)
+# Example: actor.scale(3).pos([1,2,3]).color('blue').alpha(0.5) etc..)
+actor.pos()                   # set/get position vector (setters, and getters if no argument is given)
+actor.addpos(v)               # add v to current actor position
+actor.x()                     # set/get x component of position (same for y and z)
 #
 actor.rotate(angle, axis, axis_point=[0,0,0], rad=False)  # rotate actor around axis
 actor.rotateX(angle, rad=False)  # rotate actor around X (or Y or Z)
@@ -359,9 +360,10 @@ actor.orientation(newaxis=None, rotation=0)  # orient actor along newaxis and ro
 #                      as specified by rotation in degrees (if newaxis=None return polydata orientation)
 actor.clone(c=None, alpha=None, wire=False, bc=None, edges=False, legend=None, texture=None)
 #
-actor.scale()          # set/get scaling factor of actor
-actor.normalize()      # sets actor at origin and scales its average size to 1
-actor.stretch(p1, p2): # stretch actor (typically a spring, cylinder, cone) between two points
+actor.scale()                 # set/get scaling factor of actor
+actor.normalize()             # sets actor at origin and scales its average size to 1
+actor.stretch(p1, p2)         # stretch actor (typically a spring, cylinder, cone) between two points
+actor.updateTrail()           # if actor has a trailing line it updates it based on its current position
 #
 actor.shrink(fraction=0.85)                 # shrinks the polydata triangles for visualization
 actor.subdivide(N=1, method=0, legend=None) # increase the nr of vertices of the surface mesh
@@ -371,7 +373,7 @@ actor.alpha(value)            # sets/gets opacity
 #
 actor.N()                     # get number of vertex points defining the surface actor
 actor.polydata(rebuild=True)  # get the actor's mesh polydata including its current transformation
-                              # (if rebuild is True : get a copy in its current associated vtkTranform)
+                              #     (if rebuild is True : get a copy in its current associated vtkTranform)
 actor.coordinates()           # get a numpy array of all vertex points
 actor.point(i, p=None)        # set/get i-th point in actor's polydata (slow performance!)
 actor isInside(p)             # check if point p is inside actor
@@ -390,7 +392,7 @@ actor.area()                  # get the area of actor's surface
 actor.volume()                # get the volume of actor
 #
 actor.closestPoint(p, N=1, radius=None) # get the closest N point(s) to p on actor's surface
-actor.intersectWithLine(p0, p1) # get a list of points of intersection with segment from p0 to p1
+actor.intersectWithLine(p0, p1)         # get a list of points of intersection with segment from p0 to p1
 actor.cutterWidget(outputname='clipped.vtk') # invoke a cutter widget for actor
 ```
 

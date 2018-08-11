@@ -887,5 +887,3 @@ def text(txt, pos=(0,0,0), normal=(0,0,1), s=1, depth=0.1,
 
 
 
-
-

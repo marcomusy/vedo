@@ -26,8 +26,10 @@ def isSequence(arg):
 def arange(start,stop, step=1): 
     return np.arange(start, stop, step)
 
-def vector(x, y, z=0):
-    return np.array([x,y,z])
+def vector(x, y=None, z=0.):
+    if y is None: #assume x is already [x,y,z]
+        return np.array(x, dtype=np.float64)
+    return np.array([x,y,z], dtype=np.float64)
 
 def mag(z):
     if isinstance(z[0], np.ndarray): 
@@ -292,6 +294,10 @@ def assignConvenienceMethods(actor, legend):
 
     def _fshrink(self, fraction=0.85): return shrink(self, fraction)
     actor.shrink = types.MethodType( _fshrink, actor )
+
+    def _fcutPlane(self, origin=(0,0,0), normal=(1,0,0), showcut=False): 
+        return cutPlane(self, origin, normal, showcut)
+    actor.cutPlane = types.MethodType( _fcutPlane, actor )
 
     def _fcutterw(self): return cutterWidget(self)
     actor.cutterWidget = types.MethodType( _fcutterw, actor )
@@ -625,6 +631,48 @@ def stretch(actor, q1, q2):
     return actor
 
 
+def cutPlane(actor, origin=(0,0,0), normal=(1,0,0), showcut=False):
+    '''
+    Takes actor and cuts it with the plane defined by a point
+    and a normal. 
+        showcut  = shows the cut away part as thin wireframe
+    '''
+    plane = vtk.vtkPlane()
+    plane.SetOrigin(origin)
+    plane.SetNormal(normal)
+    poly = polydata(actor)
+    clipper = vtk.vtkClipPolyData()
+    setInput(clipper, poly)
+    clipper.SetClipFunction(plane)
+    clipper.GenerateClippedOutputOn()
+    clipper.SetValue(0.)
+    clipper.Update()
+    if hasattr(actor, 'GetProperty'):
+        alpha = actor.GetProperty().GetOpacity()
+        c = actor.GetProperty().GetColor()
+        bf = actor.GetBackfaceProperty()
+    else:
+        alpha=1
+        c='gold'
+        bf=None
+    leg = None
+    if hasattr(actor, 'legend'): leg = actor.legend
+    clipActor = makeActor(clipper.GetOutput(),c=c,alpha=alpha, legend=leg)
+    clipActor.SetBackfaceProperty(bf)
+
+    acts = [clipActor]
+    if showcut:
+        cpoly = clipper.GetClippedOutput()
+        restActor = makeActor(cpoly, c=c, alpha=0.05, wire=1)
+        acts.append(restActor)
+
+    if len(acts)>1:
+        asse = makeAssembly(acts)
+        return asse
+    else:
+        return clipActor
+
+
 def mergeActors(actors, c=None, alpha=1, 
                 wire=False, bc=None, edges=False, legend=None, texture=None):
     '''
@@ -829,9 +877,9 @@ def polydata(obj, rebuild=True, index=0):
         tp.Update()
         return tp.GetOutput()
     
-    elif isinstance(obj, vtk.vtkPolyData): return obj
-    elif isinstance(obj, vtk.vtkActor2D):  return obj.GetMapper().GetInput()
-    elif isinstance(obj, vtk.vtkImageActor):  return obj.GetMapper().GetInput()
+    elif isinstance(obj, vtk.vtkPolyData):   return obj
+    elif isinstance(obj, vtk.vtkActor2D):    return obj.GetMapper().GetInput()
+    elif isinstance(obj, vtk.vtkImageActor): return obj.GetMapper().GetInput()
     elif obj is None: return None
     
     colors.printc("Fatal Error in polydata(): ", 'r', end='')
