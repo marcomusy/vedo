@@ -69,7 +69,7 @@ def keypress(vp, obj, event):
     key = obj.GetKeySym()
     #print ('Pressed key:', key, event)
 
-    if   key == "q" or key == "space" or key == "Return":
+    if key == "q" or key == "space" or key == "Return":
         vp.interactor.ExitCallback()
         return
 
@@ -77,7 +77,7 @@ def keypress(vp, obj, event):
         if vp.verbose: print ("closing window...")
         vp.interactor.GetRenderWindow().Finalize()
         vp.interactor.TerminateApp()
-        del vp.renderWin, vp.interactor
+        # del vp.renderWin, vp.interactor
         return
 
     elif key == "Escape":
@@ -86,8 +86,47 @@ def keypress(vp, obj, event):
         vp.interactor.TerminateApp()
         del vp.renderWin, vp.interactor
         sys.exit(0)
+        
+    elif key == "comma":
+        if vp.clickedActor in vp.getActors():
+            ap = vp.clickedActor.GetProperty()
+            ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.05]))
+            bfp = vp.clickedActor.GetBackfaceProperty()
+            if bfp: bfp.SetOpacity(ap.GetOpacity())
+        else:
+            for a in vp.getActors():
+                ap = a.GetProperty()
+                ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.05]))
+                bfp = a.GetBackfaceProperty()
+                if bfp: bfp.SetOpacity(ap.GetOpacity())
 
-    elif key == "S":
+    elif key == "period":
+        if vp.clickedActor in vp.getActors():
+            ap = vp.clickedActor.GetProperty()
+            ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
+            bfp = vp.clickedActor.GetBackfaceProperty()
+            if bfp: bfp.SetOpacity(ap.GetOpacity())
+        else:
+            for a in vp.getActors():
+                ap = a.GetProperty()
+                ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
+                bfp = a.GetBackfaceProperty()
+                if bfp: bfp.SetOpacity(ap.GetOpacity())
+
+    elif key == "r":
+        vp.renderer.ResetCamera()
+
+
+    ### now intercept custom observer
+    if vp.keyPressFunction: 
+        if key not in ['Shift_L', 'Control_L', 'Super_L', 'Alt_L']:
+            if key not in ['Shift_R', 'Control_R', 'Super_R', 'Alt_R']:
+                vp.verbose = False
+                vp.keyPressFunction(key, vp)
+                return
+
+
+    if key == "S":
         colors.printc('Saving window as screenshot.png', 'green')
         vp.screenshot('screenshot.png')
         return
@@ -130,32 +169,6 @@ def keypress(vp, obj, event):
                 bfp = a.GetBackfaceProperty()
                 if bfp: bfp.SetOpacity(0.05)
 
-    elif key == "comma":
-        if vp.clickedActor in vp.getActors():
-            ap = vp.clickedActor.GetProperty()
-            ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.05]))
-            bfp = vp.clickedActor.GetBackfaceProperty()
-            if bfp: bfp.SetOpacity(ap.GetOpacity())
-        else:
-            for a in vp.getActors():
-                ap = a.GetProperty()
-                ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.05]))
-                bfp = a.GetBackfaceProperty()
-                if bfp: bfp.SetOpacity(ap.GetOpacity())
-
-    elif key == "period":
-        if vp.clickedActor in vp.getActors():
-            ap = vp.clickedActor.GetProperty()
-            ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
-            bfp = vp.clickedActor.GetBackfaceProperty()
-            if bfp: bfp.SetOpacity(ap.GetOpacity())
-        else:
-            for a in vp.getActors():
-                ap = a.GetProperty()
-                ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
-                bfp = a.GetBackfaceProperty()
-                if bfp: bfp.SetOpacity(ap.GetOpacity())
-
     elif key == "slash":
         if vp.clickedActor in vp.getActors():
             vp.clickedActor.GetProperty().SetOpacity(1) 
@@ -174,23 +187,23 @@ def keypress(vp, obj, event):
 
     elif key in ["1", "KP_End", "KP_1"]:
         for i,ia in enumerate(vp.getActors()):
-            ia.GetProperty().SetColor(colors.colors1[(i+vp.icol1)%10])
+            ia.GetProperty().SetColor(colors.colors1[(i+vp.icol)%10])
             ia.GetMapper().ScalarVisibilityOff()
-        vp.icol1 += 1
+        vp.icol += 1
         vp._draw_legend()
 
     elif key in ["2", "KP_Down", "KP_2"]:
         for i,ia in enumerate(vp.getActors()):
-            ia.GetProperty().SetColor(colors.colors2[(i+vp.icol2)%10])
+            ia.GetProperty().SetColor(colors.colors2[(i+vp.icol)%10])
             ia.GetMapper().ScalarVisibilityOff()
-        vp.icol2 += 1
+        vp.icol += 1
         vp._draw_legend()
 
     elif key in ["3", "KP_Left", "KP_4"]:
         for i,ia in enumerate(vp.getActors()):
-            ia.GetProperty().SetColor(colors.colors3[(i+vp.icol3)%10])
+            ia.GetProperty().SetColor(colors.colors3[(i+vp.icol)%10])
             ia.GetMapper().ScalarVisibilityOff()
-        vp.icol3 += 1
+        vp.icol += 1
         vp._draw_legend()
 
     elif key in ["4", "KP_Begin", "KP_5"]:
@@ -342,15 +355,6 @@ def keypress(vp, obj, event):
             utils.cutterWidget(vp.clickedActor, fname) 
         elif vp.verbose: 
             colors.printc('Click an actor and press X to open the cutter box widget.',4)
-
-    elif key == "r":
-        vp.renderer.ResetCamera()
-
-
-    if vp.keyPressFunction: 
-        if key not in ['Shift_L', 'Control_L', 'Super_L', 'Alt_L']:
-            if key not in ['Shift_R', 'Control_R', 'Super_R', 'Alt_R']:
-                vp.keyPressFunction(key, vp)
 
 
     if vp.interactor: vp.interactor.Render()

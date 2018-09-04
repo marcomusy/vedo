@@ -26,6 +26,7 @@ v = vector(thetadot, phidot, psidot)
 
 # ############################################################ the scene
 vp = Plotter(verbose=0, axes=3, interactive=0)
+
 shaft = vp.cylinder([[0,0,0],         [Lshaft,0,0]], r=.03, c='dg')
 rotor = vp.cylinder([[Lshaft/2.2,0,0],[Lshaft/1.8,0,0]], r=R, texture='marble')
 base  = vp.sphere([     0, 0, 0], c='dg', r=.03)
@@ -36,7 +37,6 @@ pedestal = vp.box([0,-0.63,0], height=.1, length=.1, width=1, texture='wood5')
 pedbase  = vp.box([0,-1.13,0], height=.5, length=.5, width=.05, texture='wood5')
 pedpin   = vp.pyramid([0,-.08,0], axis=[0,1,0], s=.05, height=.12, texture='wood5')
 formulas = vp.load('data/images/gyro_formulas.png', alpha=.9).scale(.003).pos([-1,-1,-1.1])
-vp.actors = [gyro, pedestal, pedbase, pedpin, formulas]
 
 # ############################################################ the physics
 pb = ProgressBar(0, 4, dt, c='b')
@@ -49,8 +49,8 @@ for i, t in enumerate(pb.range()):
     apsi = phidot*thetadot*st - aphi*ct
     a = vector(atheta, aphi, apsi)
 
-    v = v + a*dt  # update velocities   
-    x = x + v*dt  # update Lagrangian coordinates
+    v += a*dt  # update velocities   
+    x += v*dt  # update Lagrangian coordinates
 
     gaxis = (Lshaft+0.03)*vector(st*sp, ct, st*cp)
     # set orientation along gaxis and rotate it around its axis by psidot*t degrees

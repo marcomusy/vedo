@@ -2,12 +2,12 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='8.3.1', #change also in plotter.py
+    version='8.3.2', #change also in __init__.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter'],
     install_requires=[], # vtk and numpy are needed but better install it manually
-    description='A helper class to easily draw 3D objects',
-    long_description="""A helper class to easily draw 3D objects.
+    description='A helper class to easily draw and analyse 3D shapes',
+    long_description="""A helper class to easily draw and analyse 3D shapes.
     Check out https://github.com/marcomusy/vtkplotter for documentation.""",
     author='Marco Musy',
     author_email='marco.musy@gmail.com',

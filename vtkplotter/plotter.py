@@ -7,12 +7,12 @@ import vtkplotter.colors as colors
 import vtkplotter.events as events
 import vtkplotter.shapes as shapes
 import vtkplotter.analysis as analysis 
-
-__version__ = "8.3.1" #defined also in setup.py
+from vtkplotter import __version__
+from vtkplotter.utils import add_actor
 
 ########################################################################
 class Plotter:
-#########################################################################
+#########################################################################           
 
     def tips(self):
         import sys
@@ -25,7 +25,7 @@ class Plotter:
         msg += "\t/   to maximize opacity of selected actor\n"
         msg += "\tw/s to toggle wireframe/solid style\n"
         msg += "\tp/P to change point size of vertices\n"
-        msg += "\tl/L  to change edge line width\n"
+        msg += "\tl/L to change edge line width\n"
         msg += "\tn   to show normals for selected actor\n"
         msg += "\tx   to toggle selected actor visibility\n"
         msg += "\tX   to open a cutter widget for sel. actor\n"
@@ -102,9 +102,7 @@ class Plotter:
         self.camThickness = 2000
         self.justremoved  = None 
         self.caxes_exist  = []
-        self.icol1      = 0
-        self.icol2      = 0
-        self.icol3      = 0
+        self.icol      = 0
         self.clock      = 0
         self._clockt0   = time.time()
         self.initializedPlotter= False
@@ -113,7 +111,6 @@ class Plotter:
         self.keyPressFunction = None
         
         # share some methods in utils in Plotter class for convenience
-        self.makeAssembly = utils.makeAssembly
         self.closestPoint = utils.closestPoint
         self.insidePoints = utils.insidePoints
         self.cutterWidget = utils.cutterWidget
@@ -375,7 +372,30 @@ class Plotter:
         self.camera = cam
         self.show(resetcam=0)
 
+    @add_actor 
+    def makeActor(self, poly, c='gold', alpha=0.5, 
+                  wire=False, bc=None, edges=False, legend=None, texture=None):
+        '''
+        Return a vtkActor from an input vtkPolyData, optional args:
+            c,       color in RGB format, hex, symbol or name
+            alpha,   transparency (0=invisible)
+            wire,    show surface as wireframe
+            bc,      backface color of internal surface
+            edges,   show edges as line on top of surface
+            legend   optional string
+            texture  jpg file name of surface texture, eg. 'metalfloor1'
+        '''
+        return utils.makeActor(poly, c, alpha, wire, bc, edges, legend, texture)
 
+    @add_actor 
+    def makeAssembly(self, actorlist):
+        '''Group many actors as a single new actor'''
+        for a in actorlist:
+            while a in self.actors: #update internal list
+                self.actors.remove(a)
+        return utils.makeAssembly(actorlist)
+
+        
     def light(self, pos=[1,1,1], fp=[0,0,0], deg=25,
               diffuse='y', ambient='r', specular='b', showsource=False):
         """
@@ -405,11 +425,11 @@ class Plotter:
 
 
     ####################################################### manage basic shapes
+    @add_actor 
     def point(self, pos=[0,0,0], c='b', r=10, alpha=1, legend=None):
-        actor = shapes.points([pos], c, [], r, alpha, legend)
-        self.actors.append(actor)
-        return actor
-
+        return shapes.points([pos], c, [], r, alpha, legend)
+    
+    @add_actor
     def points(self, plist=[[1,0,0],[0,1,0],[0,0,1]],
                 c='b', tags=[], r=5, alpha=1, legend=None):
         '''
@@ -420,18 +440,15 @@ class Plotter:
         If tags (a list of strings) is specified, they will be displayed  
         along with the points.
         '''
-        actor = shapes.points(plist, c, tags, r, alpha, legend)
-        self.actors.append(actor)
-        return actor
+        return shapes.points(plist, c, tags, r, alpha, legend)
 
-
+    @add_actor 
     def sphere(self, pos=[0,0,0], r=1,
                c='r', alpha=1, wire=False, legend=None, texture=None, res=24):
         '''Build a sphere at position pos of radius r.'''
-        actor = shapes.sphere(pos, r, c, alpha, wire, legend, texture, res)
-        self.actors.append(actor)
-        return actor
+        return shapes.sphere(pos, r, c, alpha, wire, legend, texture, res)
 
+    @add_actor 
     def spheres(self, centers, r=1,
                c='r', alpha=1, wire=False, legend=None, texture=None, res=8):
         '''
@@ -439,11 +456,9 @@ class Plotter:
         
         Either c or r can be a list of RGB colors or radii.
         '''
-        actor = shapes.spheres(centers, r, c, alpha, wire, legend, texture, res)
-        self.actors.append(actor)
-        return actor
-
-
+        return shapes.spheres(centers, r, c, alpha, wire, legend, texture, res)
+    
+    @add_actor 
     def line(self, p0, p1=None, lw=1, tube=False, dotted=False,
              c='r', alpha=1., legend=None):
         '''Build the line segment between points p0 and p1.
@@ -452,64 +467,52 @@ class Plotter:
             
             If tube=True, lines are rendered as tubes of radius lw
         '''
-        actor = shapes.line(p0, p1, lw, tube, dotted, c, alpha, legend)
-        self.actors.append(actor)
-        return actor
-
+        return shapes.line(p0, p1, lw, tube, dotted, c, alpha, legend)
+    
+    @add_actor
     def lines(self, plist0, plist1=None, lw=1, dotted=False,
               c='r', alpha=1, legend=None):
         '''Build the line segments between two lists of points plist0 and plist1.
            plist0 can be also passed in the format [[point1, point2], ...]
         '''      
-        actor = shapes.lines(plist0, plist1, lw, dotted, c, alpha, legend)
-        self.actors.append(actor)
-        return actor
-        
-
+        return shapes.lines(plist0, plist1, lw, dotted, c, alpha, legend)
+    
+    @add_actor
     def arrow(self, startPoint, endPoint,
               c='r', s=None, alpha=1, legend=None, texture=None, res=12):
         '''Build a 3D arrow from startPoint to endPoint of section size s,
         expressed as the fraction of the window size.
         If s=None the arrow is scaled proportionally to its length.'''
-        rwSize = self.renderWin.GetSize()
-        actor = shapes.arrow(startPoint, endPoint, c, s, alpha, 
-                                legend, texture, res, rwSize)
-        self.actors.append(actor)
-        return actor
-        
+        return shapes.arrow(startPoint, endPoint, c, s, alpha, 
+                            legend, texture, res, self.renderWin.GetSize())
+    @add_actor
     def arrows(self, startPoints, endPoints=None,
             c='r', s=None, alpha=1, legend=None, res=8):
         '''Build arrows between two lists of points startPoints and endPoints.
            startPoints can be also passed in the form [[point1, point2], ...]
         '''        
         rwSize = self.renderWin.GetSize()
-        actor = shapes.arrows(startPoints, endPoints, c, s, alpha, legend, res, rwSize)
-        self.actors.append(actor)
-        return actor
+        return shapes.arrows(startPoints, endPoints, c, s, alpha, legend, res, rwSize)
 
-
+    @add_actor
     def grid(self, pos=[0,0,0], normal=[0,0,1], sx=1, sy=1, c='g', bc='darkgreen',
              lw=1, alpha=1, legend=None, resx=10, resy=10):
         '''
         Draw a grid of size sx and sy oriented perpendicular to vector normal  
         and so that it passes through point pos.
         '''
-        actor = shapes.grid(pos, normal, sx, sy, c, bc, lw, alpha, legend, resx, resy)
-        self.actors.append(actor)
-        return actor
+        return shapes.grid(pos, normal, sx, sy, c, bc, lw, alpha, legend, resx, resy)
 
-
+    @add_actor
     def plane(self, pos=[0,0,0], normal=[0,0,1], sx=1, sy=None, c='g', bc='darkgreen',
               alpha=1, legend=None, texture=None):
         '''
         Draw a plane of size sx and sy oriented perpendicular to vector normal  
         and so that it passes through point pos.
         '''
-        a = shapes.plane(pos, normal, sx, sy, c, bc, alpha, legend, texture)
-        self.actors.append(a)
-        return a
+        return shapes.plane(pos, normal, sx, sy, c, bc, alpha, legend, texture)
     
-
+    @add_actor
     def polygon(self, pos=[0,0,0], normal=[0,0,1], nsides=6, r=1,
                 c='coral', bc='darkgreen', lw=1, alpha=1,
                 legend=None, texture=None, followcam=False):
@@ -517,29 +520,22 @@ class Plotter:
         
         If followcam=True the polygon will always reorient itself to current camera.
         '''
-        actor= shapes.polygon(pos, normal, nsides, r, c, bc, lw, alpha, legend,
-                                 texture, followcam, camera=self.camera)
-        self.actors.append(actor)
-        return actor
+        return shapes.polygon(pos, normal, nsides, r, c, bc, lw, alpha, legend,
+                              texture, followcam, camera=self.camera)
 
-
+    @add_actor
     def disc(self, pos=[0,0,0], normal=[0,0,1], r1=0.5, r2=1, c='coral', bc='darkgreen',
              lw=1, alpha=1, legend=None, texture=None, res=12):
         '''Build a 2D disc of internal radius r1 and outer radius r2,
         oriented perpendicular to normal'''
-        actor = shapes.disc(pos, normal, r1, r2, c, bc, lw, alpha, legend, texture, res)
-        self.actors.append(actor)
-        return actor
+        return shapes.disc(pos, normal, r1, r2, c, bc, lw, alpha, legend, texture, res)
 
-
+    @add_actor
     def box(self, pos=[0,0,0], length=1, width=2, height=3, normal=(0,0,1),
             c='g', alpha=1, wire=False, legend=None, texture=None):
         '''Build a box of dimensions x=length, y=width and z=height
         oriented along vector normal'''
-        actor = shapes.box(pos, length, width, height, normal,
-                              c, alpha, wire, legend, texture)
-        self.actors.append(actor)
-        return actor
+        return shapes.box(pos, length, width, height, normal, c, alpha, wire, legend, texture)
 
     def cube(self, pos=[0,0,0], length=1, normal=(0,0,1),
              c='g', alpha=1., wire=False, legend=None, texture=None):
@@ -547,18 +543,15 @@ class Plotter:
         return self.box(pos, length, length, length, 
                         normal, c, alpha, wire, legend, texture)
         
-
+    @add_actor
     def helix(self, startPoint=[0,0,0], endPoint=[1,1,1], coils=20, r=None,
               thickness=None, c='grey', alpha=1, legend=None, texture=None):
         '''
         Build a spring actor of specified nr of coils between startPoint and endPoint
         '''
-        actor = shapes.helix(startPoint, endPoint, coils, r,
-                                thickness, c, alpha, legend, texture)        
-        self.actors.append(actor)        
-        return actor
+        return shapes.helix(startPoint, endPoint, coils, r, thickness, c, alpha, legend, texture)        
 
-
+    @add_actor
     def cylinder(self, pos=[0,0,0], r=1, height=1, axis=[0,0,1],
                  c='teal', wire=0, alpha=1, edges=False, 
                  legend=None, texture=None, res=24):
@@ -568,75 +561,57 @@ class Plotter:
         If pos is a list of 2 points, e.g. pos=[v1,v2], build a cylinder with base
         centered at v1 and top at v2.
         '''
-        actor = shapes.cylinder(pos, r, height, axis, c, wire, alpha,
-                                   edges, legend, texture, res)
-        self.actors.append(actor)
-        return actor
+        return shapes.cylinder(pos, r, height, axis, c, wire, alpha, edges, legend, texture, res)
 
-
+    @add_actor
     def paraboloid(self, pos=[0,0,0], r=1, height=1, axis=[0,0,1],
                    c='cyan', alpha=1, legend=None, texture=None, res=50):
         '''
         Build a paraboloid of specified height and radius r, centered at pos.
         '''
-        actor = shapes.paraboloid(pos, r, height, axis,
-                                     c, alpha, legend, texture, res)
-        self.actors.append(actor)
-        return actor
+        return shapes.paraboloid(pos, r, height, axis, c, alpha, legend, texture, res)
 
-
+    @add_actor
     def hyperboloid(self, pos=[0,0,0], a2=1, value=0.5, height=1, axis=[0,0,1],
                     c='magenta', alpha=1, legend=None, texture=None, res=50):
         '''
         Build a hyperboloid of specified aperture a2 and height, centered at pos.
         '''
-        actor = shapes.hyperboloid(pos, a2, value, height, axis,
-                                      c, alpha, legend, texture, res)
-        self.actors.append(actor)
-        return actor
+        return shapes.hyperboloid(pos, a2, value, height, axis, c, alpha, legend, texture, res)
 
-
+    @add_actor
     def cone(self, pos=[0,0,0], r=1, height=1, axis=[0,0,1],
              c='dg', alpha=1, legend=None, texture=None, res=48):
         '''
         Build a cone of specified radius r and height, centered at pos.
         '''
-        actor = shapes.cone(pos, r, height, axis, c, alpha, legend, texture, res)
-        self.actors.append(actor)
-        return actor
+        return shapes.cone(pos, r, height, axis, c, alpha, legend, texture, res)
 
     def pyramid(self, pos=[0,0,0], s=1, height=1, axis=[0,0,1],
                 c='dg', alpha=1, legend=None, texture=None):
         '''
         Build a pyramid of specified base size s and height, centered at pos.
         '''
-        a = self.cone(pos, s, height, axis, c, alpha, legend, texture, 4)
-        return a
+        return self.cone(pos, s, height, axis, c, alpha, legend, texture, 4)
 
-
+    @add_actor
     def ring(self, pos=[0,0,0], r=1, thickness=0.1, axis=[0,0,1],
              c='khaki', alpha=1, wire=False, legend=None, texture=None, res=30):
         '''
         Build a torus of specified outer radius r internal radius thickness, centered at pos.
         '''
-        actor = shapes.ring(pos, r, thickness, axis,
-                               c, alpha, wire, legend, texture, res)
-        self.actors.append(actor)
-        return actor
+        return shapes.ring(pos, r, thickness, axis, c, alpha, wire, legend, texture, res)
 
-
+    @add_actor
     def ellipsoid(self, pos=[0,0,0], axis1=[1,0,0], axis2=[0,2,0], axis3=[0,0,3],
                   c='c', alpha=1, legend=None, texture=None, res=24):
         """
         Build a 3D ellipsoid centered at position pos.
         Axis1 and axis2 are only used to define sizes and one azimuth angle
         """
-        actor = shapes.ellipsoid(pos, axis1, axis2, axis3,
-                                    c, alpha, legend, texture, res)
-        self.actors.append(actor)
-        return self.lastActor()
+        return shapes.ellipsoid(pos, axis1, axis2, axis3, c, alpha, legend, texture, res)
         
-
+    @add_actor
     def spline(self, points, smooth=0.5, degree=2, 
                s=2, c='b', alpha=1, nodes=False, legend=None, res=20):
         '''
@@ -649,12 +624,9 @@ class Plotter:
             
             nodes = True, show also the input points 
         '''
-        actor = analysis.spline(points, smooth, degree, 
-                                   s, c, alpha, nodes, legend, res)
-        self.actors.append(actor)
-        return actor
+        return analysis.spline(points, smooth, degree, s, c, alpha, nodes, legend, res)
 
-
+    @add_actor
     def text(self, txt='Hello', pos=(0,0,0), normal=(0,0,1), s=1, depth=0.1,
              c='k', alpha=1, bc=None, texture=None, followcam=False):
         '''
@@ -669,13 +641,12 @@ class Plotter:
             
             followcam = True, the text will auto-orient itself to it.
         '''
-        actor = shapes.text(txt, pos, normal, s, depth, c, alpha, bc,
-                               texture, followcam, cam=self.camera)
-        self.actors.append(actor)
-        return actor
+        return shapes.text(txt, pos, normal, s, depth, c, alpha, bc,
+                           texture, followcam, cam=self.camera)
 
 
     ################# 
+    @add_actor
     def xyplot(self, points=[[0,0],[1,0],[2,1],[3,2],[4,1]],
                title='', c='b', corner=1, lines=False):
         """
@@ -687,10 +658,8 @@ class Plotter:
             3=bottomleft, 
             4=bottomright.
         """
-        actor = analysis.xyplot(points, title, c, corner, lines)
-        self.actors.append(actor)
-        return actor
-
+        return analysis.xyplot(points, title, c, corner, lines)
+    
     def histogram(self, values, bins=10, vrange=None, 
                   title='', c='g', corner=1, lines=True):
         '''
@@ -711,7 +680,7 @@ class Plotter:
             pts.append( [ (edges[i]+edges[i+1])/2, fs[i] ])
         return self.xyplot(pts, title, c, corner, lines)
 
-
+    @add_actor
     def fxy(self, z='sin(3*x)*log(x-y)/3', x=[0,3], y=[0,3],
             zlimits=[None,None], showNan=True, zlevels=10, wire=False,
             c='aqua', bc='aqua', alpha=1, legend=True, texture='paper', res=100):
@@ -735,51 +704,43 @@ class Plotter:
             
             vp.fxy(lambda x,y: math.sin(x*y))
         '''
-        actor = analysis.fxy(z, x, y, zlimits, showNan, zlevels, 
-                                wire, c, bc, alpha, legend, texture, res)
-        self.actors.append(actor)
-        return actor
+        return analysis.fxy(z, x, y, zlimits, showNan, zlevels, 
+                            wire, c, bc, alpha, legend, texture, res)
     
-
+    @add_actor
     def fitLine(self, points, c='orange', lw=1, alpha=0.6, legend=None):
         '''
         Fits a line through points.
 
         Extra info is stored in actor.slope, actor.center, actor.variances
         '''
-        actor = analysis.fitLine(points, c, lw, alpha, legend)
         if self.verbose:
             colors.printc("fitLine info saved in actor.slope, actor.center, actor.variances",5)
-        self.actors.append(actor)
-        return actor
+        return analysis.fitLine(points, c, lw, alpha, legend)
 
-
+    @add_actor
     def fitPlane(self, points, c='g', bc='darkgreen', alpha=0.8, legend=None):
         '''
         Fits a plane to a set of points.
 
         Extra info is stored in actor.normal, actor.center, actor.variance
         '''
-        actor = analysis.fitPlane(points, c, bc, alpha, legend)
         if self.verbose:
             colors.printc("fitPlane info saved in actor.normal, actor.center, actor.variance",5)
-        self.actors.append(actor)
-        return actor
+        return analysis.fitPlane(points, c, bc, alpha, legend)
 
-
+    @add_actor
     def fitSphere(self, coords, c='r', alpha=1, wire=1, legend=None):
         '''
         Fits a sphere to a set of points.
         
         Extra info is stored in actor.radius, actor.center, actor.residue
         '''
-        actor = analysis.fitSphere(coords, c, alpha, wire, legend)
         if self.verbose:
             colors.printc("fitSphere info saved in actor.radius, actor.center, actor.residue",5)
-        self.actors.append(actor)
-        return actor
+        return analysis.fitSphere(coords, c, alpha, wire, legend)
 
-
+    @add_actor
     def pca(self, points=[[1,0,0],[0,1,0],[0,0,1],[.5,0,1],[0,.2,.3]],
             pvalue=.95, c='c', alpha=0.5, pcaAxes=False, legend=None):
         '''
@@ -788,12 +749,9 @@ class Plotter:
         Extra info is stored in actor.sphericity, actor.va, actor.vb, actor.vc
         (sphericity = 1 for a perfect sphere)
         '''
-        actor = analysis.pca(points, pvalue, c, alpha, pcaAxes, legend)
         if self.verbose:
             colors.printc("PCA info saved in actor.sphericity, actor.va, actor.vb, actor.vc",5)
-        self.actors.append(actor)
-        return actor
-
+        return analysis.pca(points, pvalue, c, alpha, pcaAxes, legend)
 
     def smoothMLS1D(self, actor, f=0.2, showNLines=0):
         '''
@@ -826,16 +784,15 @@ class Plotter:
         actor = analysis.smoothMLS2D(actor, f, decimate, recursive, showNPlanes)
         return actor #NB: original actor is modified
     
-
+    
+    @add_actor
     def align(self, source, target, iters=100, legend=None):
         '''
         Return a copy of source actor which is aligned to
         target actor through vtkIterativeClosestPointTransform() method.
         '''
-        actor = analysis.align(source, target, iters, legend)
-        self.actors.append(actor)
-        return actor
-
+        return analysis.align(source, target, iters, legend)
+        
 
     def cutPlane(self, actor, origin=(0,0,0), normal=(1,0,0), showcut=False):
         '''
@@ -850,25 +807,21 @@ class Plotter:
             self.actors.append(cactor)
         return cactor #NB: original actor is modified
 
-
+    @add_actor
     def delaunay2D(self, plist, tol=None, c='gold', alpha=0.5, wire=False, bc=None, 
                    edges=False, legend=None, texture=None):
         '''Create a mesh from points in the XY plane.'''
-        a = analysis.delaunay2D(plist, tol, c, alpha, wire, bc, edges, legend, texture)
-        self.actors.append(a)
-        return a    
+        return analysis.delaunay2D(plist, tol, c, alpha, wire, bc, edges, legend, texture)
         
-    
+    @add_actor
     def recoSurface(self, points, bins=256,
                     c='gold', alpha=1, wire=False, bc='t', edges=False, legend=None):
         '''
         Surface reconstruction from sparse points.
         '''
-        a = analysis.recoSurface(points, bins, c, alpha, wire, bc, edges, legend)
-        self.actors.append(a)
-        return a    
+        return analysis.recoSurface(points, bins, c, alpha, wire, bc, edges, legend)
     
-
+    @add_actor
     def cluster(self, points, radius, legend=None):
         '''
         Clustering of points in space.
@@ -876,9 +829,7 @@ class Plotter:
         radius, is the radius of local search.
         Individual subsets can be accessed through actor.clusters
         '''
-        a = analysis.cluster(points, radius, legend)
-        self.actors.append(a)
-        return a    
+        return analysis.cluster(points, radius, legend)
         
     
     def removeOutliers(self, points, radius, c='k', alpha=1, legend=None):
@@ -889,32 +840,28 @@ class Plotter:
         '''
         a = analysis.removeOutliers(points, radius, c, alpha, legend)
         if not utils.isSequence(a): self.actors.append(a)
-        return a    
-  
+        return a   
+    
+    @add_actor
     def normals(self, actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
         '''
         Build a vtkActor made of the normals at vertices shown as arrows
         '''
-        aactor = analysis.normals(actor, ratio, c, alpha, legend)
-        self.actors.append(aactor)
-        return aactor
-    
+        return analysis.normals(actor, ratio, c, alpha, legend)
+
+    @add_actor
     def curvature(self, actor, method=1, r=1, alpha=1, lut=None, legend=None):
         '''
         Build a copy of vtkActor that contains the color coded surface
         curvature following four different ways to calculate it:
             method =  0-gaussian, 1-mean, 2-max, 3-min
         '''
-        cactor = analysis.curvature(actor, method, r, alpha, lut, legend)
-        self.actors.append(cactor)
-        if legend: setattr(cactor, 'legend', legend)
-        return cactor
+        return analysis.curvature(actor, method, r, alpha, lut, legend)
 
+    @add_actor
     def boundaries(self, actor, c='p', lw=5, legend=None):
         '''Build a copy of actor that shows the boundary lines of its surface.'''
-        bactor = analysis.boundaries(actor, c, lw, legend)
-        self.actors.append(bactor)
-        return bactor
+        return analysis.boundaries(actor, c, lw, legend)
 
 
     def addScalarBar(self, actor=None, c='k', horizontal=False):
@@ -1263,7 +1210,6 @@ class Plotter:
                 vtkpts.Modified() # needed by vtk<7
                 return self
             actor.updateTrail = types.MethodType(_fupdateTrail, actor )
-
             return tline
 
 
@@ -1489,6 +1435,7 @@ class Plotter:
 
     def screenshot(self, filename='screenshot.png'):
         vtkio.screenshot(self.renderWin, filename)
+
 
 
 

@@ -233,10 +233,10 @@ def fxy(z='sin(3*x)*log(x-y)/3', x=[0,3], y=[0,3],
         return vtk.vtkActor()
     
     if zlimits[0]:
-        a = utils.cutPlane(poly, (0,0,zlimits[0]), (0,0,1))
+        a = vu.cutPlane(poly, (0,0,zlimits[0]), (0,0,1))
         poly = vu.polydata(a)
     if zlimits[1]:
-        a = utils.cutPlane(poly, (0,0,zlimits[1]), (0,0,-1))
+        a = vu.cutPlane(poly, (0,0,zlimits[1]), (0,0,-1))
         poly = vu.polydata(a)
 
     if c is None:

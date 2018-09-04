@@ -10,6 +10,14 @@ import vtkplotter.colors as colors
 ##############################################################################
 vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
 
+def add_actor(f): #decorator
+    def wrapper(*args, **kwargs):
+        actor = f(*args, **kwargs)
+        args[0].actors.append(actor)
+        return actor
+    return wrapper
+
+
 def setInput(vtkobj, p, port=0):
     if isinstance(p, vtk.vtkAlgorithmOutput):
         vtkobj.SetInputConnection(port, p) # passing port
@@ -242,30 +250,6 @@ def assignConvenienceMethods(actor, legend):
     if not hasattr(actor, 'legend'):
         setattr(actor, 'legend', legend)
 
-    def _frotate(self, angle, axis, axis_point=[0,0,0], rad=False): 
-        if rad: angle *= 57.3
-        return rotate(self, angle, axis, axis_point, rad)
-    actor.rotate = types.MethodType( _frotate, actor )
-
-    def _frotateX(self, angle, axis_point=[0,0,0], rad=False): 
-        if rad: angle *= 57.3
-        return rotate(self, angle, [1,0,0], axis_point, rad)
-    actor.rotateX = types.MethodType( _frotateX, actor )
-
-    def _frotateY(self, angle, axis_point=[0,0,0], rad=False): 
-        if rad: angle *= 57.3
-        return rotate(self, angle, [0,1,0], axis_point, rad)
-    actor.rotateY = types.MethodType( _frotateY, actor )
-
-    def _frotateZ(self, angle, axis_point=[0,0,0], rad=False): 
-        if rad: angle *= 57.3
-        return rotate(self, angle, [0,0,1], axis_point, rad)
-    actor.rotateZ = types.MethodType( _frotateZ, actor )
-
-    def _forientation(self, newaxis=None, rotation=0): 
-        return orientation(self, newaxis, rotation)
-    actor.orientation = types.MethodType( _forientation, actor )
-
     def _fclone(self, c=None, alpha=None, wire=False, bc=None,
                 edges=False, legend=None, texture=None, rebuild=True): 
         return clone(self, c, alpha, wire, bc, edges, legend, texture, rebuild)
@@ -464,6 +448,30 @@ def assignPhysicsMethods(actor):
         self.SetScale(p)
         return self # return itself to concatenate methods
     actor.scale = types.MethodType( _fscale, actor )
+
+    def _frotate(self, angle, axis, axis_point=[0,0,0], rad=False): 
+        if rad: angle *= 57.3
+        return rotate(self, angle, axis, axis_point, rad)
+    actor.rotate = types.MethodType( _frotate, actor )
+
+    def _frotateX(self, angle, axis_point=[0,0,0], rad=False): 
+        if rad: angle *= 57.3
+        return rotate(self, angle, [1,0,0], axis_point, rad)
+    actor.rotateX = types.MethodType( _frotateX, actor )
+
+    def _frotateY(self, angle, axis_point=[0,0,0], rad=False): 
+        if rad: angle *= 57.3
+        return rotate(self, angle, [0,1,0], axis_point, rad)
+    actor.rotateY = types.MethodType( _frotateY, actor )
+
+    def _frotateZ(self, angle, axis_point=[0,0,0], rad=False): 
+        if rad: angle *= 57.3
+        return rotate(self, angle, [0,0,1], axis_point, rad)
+    actor.rotateZ = types.MethodType( _frotateZ, actor )
+
+    def _forientation(self, newaxis=None, rotation=0): 
+        return orientation(self, newaxis, rotation)
+    actor.orientation = types.MethodType( _forientation, actor )
 
     def _fcenterOfMass(self): return centerOfMass(self)
     actor.centerOfMass = types.MethodType(_fcenterOfMass, actor)
@@ -677,7 +685,7 @@ def mergeActors(actors, c=None, alpha=1,
                 wire=False, bc=None, edges=False, legend=None, texture=None):
     '''
     Build a new actor formed by the fusion of the polydata of the input objects.
-    Similar to makeAssembly, but in this case the input objects become a single one.
+    Similar to makeAssembly, but in this case the input objects become a single mesh.
     '''
     polylns = vtk.vtkAppendPolyData()
     for a in actors:

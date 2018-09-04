@@ -25,23 +25,23 @@ cm = gpos + 0.5*Ls*gaxis  # center of mass of shaft
 
 # ############################################################ the scene
 vp = Plotter(verbose=0, axes=3, interactive=0)
+
 shaft = vp.cylinder([[0,0,0], Ls*gaxis], r=0.03, c='dg')
 rotor = vp.cylinder([(Ls-0.55)*gaxis, (Ls-0.45)*gaxis], r=R, c='t')
-bar   = vp.cylinder([Ls*gaxis/2-R*vector(0,1,0), 
-                     Ls*gaxis/2+R*vector(0,1,0)], r=R/6, c='r')
+bar   = vp.cylinder([Ls*gaxis/2-R*vector(0,1,0), Ls*gaxis/2+R*vector(0,1,0)], r=R/6, c='r')
+gyro  = vp.makeAssembly([shaft, rotor, bar]) # group actors into a single one
+
 spring= vp.helix(top, gpos, r=0.06, thickness=0.01, c='gray')
 box   = vp.box(top, length=0.2, width=0.02, height=0.2, c='gray')
-gyro  = vp.makeAssembly([shaft, rotor, bar]) # group relevant actors
-vp.actors = [gyro, spring, box] # set the list of actors to be shown
 
 # ############################################################ the physics
 pb = ProgressBar(0, 5, dt, c='b')
 for t in pb.range():
     Fspring = -ks*norm(gpos-top)*(mag(gpos-top)-Lrest)
     torque  = cross(-1/2*Ls*norm(Lrot), Fspring) # torque about center of mass
-    Lrot    = Lrot + torque*dt
-    precess = precess + (Fgrav+Fspring)*dt  # momentum of center of mass
-    cm      = cm + (precess/M)*dt
+    Lrot    += torque*dt
+    precess += (Fgrav+Fspring)*dt  # momentum of center of mass
+    cm      += (precess/M)*dt
     gpos    = cm - 1/2*Ls*norm(Lrot)
 
     # set orientation along gaxis and rotate it around its axis by omega*t degrees
