@@ -24,6 +24,8 @@ python basic/spring.py
 python basic/manyspheres.py
 python basic/mesh_coloring.py
 python basic/trail.py
+python basic/colorpalette.py
+python basic/colortext.py
 
 python advanced/brownian2D.py
 python advanced/cell_main.py

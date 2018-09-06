@@ -225,7 +225,9 @@ try:
     }
 except: mapscales = None
     
-def colorMap(value, name='jet', vmin=0, vmax=1): # maps [0,1] into a color scale
+
+def colorMap(value, name='jet', vmin=0, vmax=1): 
+    '''Map a real value in range [vmin, vmax] to a (r,g,b) color scale'''
     value = value - vmin
     value = value / vmax
     if mapscales:
@@ -239,9 +241,27 @@ def colorMap(value, name='jet', vmin=0, vmax=1): # maps [0,1] into a color scale
     return (0.5,0.5,0.5)
 
 
+
+def makePalette(color1, color2, N, HSV=False):
+    '''Generate N colors starting from color1 to color2 in RGB or HSV space'''
+    if HSV:
+        color1 = rgb2hsv(color1)
+        color2 = rgb2hsv(color2)
+    c1 = np.array(getColor(color1))
+    c2 = np.array(getColor(color2))
+    cols =[]
+    for f in np.linspace(0,1, N, endpoint=True):
+        c = c1 * (1-f) + c2 * f 
+        if HSV: c = np.array(hsv2rgb(c))
+        cols.append( c )
+    return cols
+    
+
+
 def kelvin2rgb(temperature):
     """
-    Converts from K to RGB, algorithm courtesy of 
+    Converts from K to RGB, 
+    algorithm courtesy of 
     http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
     https://gist.github.com/petrklus/b1f427accdf7438606a6#file-rgb_to_kelvin-py
     """
@@ -333,45 +353,85 @@ for i in range(10):
 
 
 ################################################################### color print
-def printc(strings, c='black', bold=True, separator=' ', end='\n'):
+def printc(strings, c='white', bc='', hidden=False, bold=True, 
+           blink=False, underline=False, dim=False, invert=False,
+           separator=' ', box= '', end='\n'):
     '''
     Print to terminal in color. 
     
     Available colors:
         black, red, green, yellow, blue, magenta, cyan, white
     Usage example:
-        cprint( 'anything', c='red', bold=False, end='' )
-        cprint( ['anything', 455.5, vtkObject], 'green')
-        cprint(299792.48, c=4) # 4 is blue
+        printc( 'anything', c='red', bold=False, end='' )
+        printc( ['anything', 455.5, vtkObject], 'green')
+        printc(299792.48, c=4) # 4 is blue
     '''
     if isinstance(strings, tuple): strings = list(strings)
     elif not isinstance(strings, list): strings = [str(strings)]
     txt = str()
     for i,s in enumerate(strings):
         if i == len(strings)-1: separator=''
-        txt = txt + str(s) + separator
+        txt += str(s) + separator
     
     if _terminal_has_colors:
         try:
+            cols = {'black':0, 'red':1, 'green':2, 'yellow':3, 
+                    'blue':4, 'magenta':5, 'cyan':6, 'white':7,
+                    'k':0, 'r':1, 'g':2, 'y':3,
+                    'b':4, 'm':5, 'c':6, 'w':7}
             if isinstance(c, int): 
-                ncol = c % 8
-            else: 
-                cols = {'black':0, 'red':1, 'green':2, 'yellow':3, 
-                        'blue':4, 'magenta':5, 'cyan':6, 'white':7,
-                        'k':0, 'r':1, 'g':2, 'y':3,
-                        'b':4, 'm':5, 'c':6, 'w':7}
-                ncol = cols[c.lower()]
-            if bold: seq = "\x1b[1;%dm" % (30+ncol)
-            else:    seq = "\x1b[0;%dm" % (30+ncol)
-            sys.stdout.write(seq + txt + "\x1b[0m" +end)
+                cf = c % 8
+            elif isinstance(c, str): 
+                cf = cols[c.lower()]
+            else:
+                print('Error in printc(): unknown color c=', c)
+                exit()
+            if bc:
+                if isinstance(bc, int): 
+                    cb = bc % 8
+                elif isinstance(bc, str): 
+                    cb = cols[bc.lower()]
+                else:
+                    print('Error in printc(): unknown color c=', c)
+                    exit()
+
+            special, seq = '', ''            
+            if hidden: 
+                special += '\x1b[8m'
+            else:
+                if c or bc:
+                    seq = "\x1b["+str(30+cf)
+                    if bc: seq += ";"+str(40+cb)
+                    seq += 'm'
+                if underline and not box: special += '\x1b[4m'
+                if dim:    special += '\x1b[2m'
+                if invert: special += '\x1b[7m'
+                if bold:   special += '\x1b[1m'
+                if blink:  special += '\x1b[5m'
+
+            if box and not('\n' in txt):
+                if len(box)>1:
+                    box=box[0]
+                if box in ['_','=','-','+']: 
+                    boxv='|'
+                else:
+                    boxv=box
+                sys.stdout.write(special + seq+ box*(len(txt)+4)+'\n')
+                sys.stdout.write(boxv+' '+txt+' '+boxv+'\n')
+                sys.stdout.write(box*(len(txt)+4)+ "\x1b[0m" +end)
+            else:
+                sys.stdout.write(special + seq + txt + "\x1b[0m" +end)
             sys.stdout.flush()
-        except: print (txt, end=end)
+        except: 
+            print (txt, end=end)
     else:
         print (txt, end=end)
         
 def _has_colors(stream):
-    if not hasattr(stream, "isatty"): return False
-    if not stream.isatty(): return False # auto color only on TTYs
+    if not hasattr(stream, "isatty"): 
+        return False
+    if not stream.isatty(): 
+        return False # auto color only on TTYs
     try:
         import curses
         curses.setupterm()
@@ -379,3 +439,11 @@ def _has_colors(stream):
     except:
         return False
 _terminal_has_colors = _has_colors(sys.stdout)
+
+
+
+
+
+
+
+

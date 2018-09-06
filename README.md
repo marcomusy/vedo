@@ -21,6 +21,31 @@ Simple command-line usage:
 vtkplotter data/*.vtk  # on Windows try python vtkplotter
 # other valid formats: [vtu,vts,vtp, ply,obj,stl,xml,neutral,gmsh,pcd,xyz,txt,byu, tif,slc, png,jpg]
 ```
+to visualize multiple files or files time-sequences try `-n` or `-s` options.<br />
+
+```bash
+usage: vtkplotter files [-h] [-a] [-w] [-p] [-l] [-c] [-k] [-n] [-x] [-f] [-z] [-i] [-b] [-q] [-s]
+
+positional arguments:
+  files                 Input filename(s)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -a, --alpha           alpha value [0-1]
+  -w, --wireframe       use wireframe representation
+  -p, --point-size      specify point size
+  -l, --legend-off      do not show legends
+  -c, --color           mesh color [integer or color name]
+  -k, --show-scalars    use scalars as color
+  -x, --axes-type       specify axes type [0-3]
+  -f, --full-screen     full screen mode
+  -z, --zoom            zooming factor
+  -i, --no-camera-share do not share camera in renderers
+  -b, --background      background color [integer or color name]
+  -q, --quiet           quiet mode, less verbose
+  -n, --sequence-mode   show each file in a separate renderer
+  -s, --scrolling-mode  Scrolling Mode: use arrows to scroll files
+```
 <br />
 
 
@@ -379,7 +404,7 @@ actor isInside(p)             # check if point p is inside actor
 actor insidePoints(pts, invert=False) # return the list of points (among pts) that are inside actor
 actor.normals()               # get the list of normals at the vertices of the surface
 actor.normalAt(i)             # get the normal at point i (slow performance!)
-actor.flipNormals()           # filp all normals directions
+actor.flipNormals()           # flip all normals directions
 #
 actor.xbounds()               # get (xmin, xmax) of actor bounding box (same for y and z)
 actor.maxBoundSize()          # get the maximum of bounds size in x y and z
@@ -402,7 +427,8 @@ def vector(x, y, z=0)         # return a numpy vector (2D or 3D)
 def mag(v)                    # return the size of a vector or list of vectors
 def mag2(v)                   # return the square of the size of a vector 
 def norm(v)                   # return the versor of a vector or list of vectors
-def printc(strings, c='black', bold=True, separator=' ', end='\n')
+def printc(strings, c='white', bc='', hidden=False, bold=True, blink=False,
+           underline=False, dim=False, invert=False, separator=' ', box= '', end='\n')
 ```
 
 Available color maps from matplotlib:

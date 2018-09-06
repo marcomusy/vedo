@@ -40,7 +40,7 @@ class Plotter:
         colors.printc(msg, c='blue')
 
 
-    def __init__(self, shape=(1,1), N=None, size='auto', maxscreensize=(1100,1800), 
+    def __init__(self, shape=(1,1), N=None, size='auto', maxscreensize=(1080,1920), 
                  title='vtkplotter', bg='w', bg2=None, axes=1, projection=False,
                  sharecam=True, verbose=True, interactive=None):
         """
@@ -93,7 +93,7 @@ class Plotter:
         self.bculling   = False # back face culling
         self.fculling   = False # front face culling
         self.legend     = []    # list of legend entries for actors
-        self.legendSize = 0.2   # size of legend
+        self.legendSize = 0.15  # size of legend
         self.legendBG   = (.96,.96,.9) # legend background color
         self.legendPos  = 2     # 1=topright, 2=top-right, 3=bottom-left
         self.picked3d   = None  # 3d coords of a clicked point on an actor 
@@ -115,7 +115,7 @@ class Plotter:
         self.insidePoints = utils.insidePoints
         self.cutterWidget = utils.cutterWidget
         self.write = vtkio.write
-
+        
         if N:                # N = number of renderers. Find out the best
             if shape!=(1,1): # arrangement based on minimum nr. of empty renderers
                 colors.printc('Warning: having set N, #renderers, shape is ignored.)', c=1)
@@ -123,6 +123,12 @@ class Plotter:
             y = float(maxscreensize[1])
             nx= int(numpy.sqrt(int(N*x/y)+1))
             ny= int(numpy.sqrt(int(N*y/x)+1))
+            if nx*ny<N:
+                if nx<ny: nx +=1
+                else: ny +=1
+            if nx*ny<N:
+                if nx>ny: nx +=1
+                else: ny +=1
             lm = [(nx,ny), (nx,ny+1), (nx-1,ny), (nx+1,ny), (nx,ny-1)]
             lm+= [(nx-1,ny+1), (nx+1,ny-1), (nx+1,ny+1), (nx-1,ny-1)]
             minl=100
@@ -1300,14 +1306,10 @@ class Plotter:
         if not (axes is None): self.axes = axes
         if not (interactive is None): self.interactive = interactive
 
-        if self.verbose:
+        if self.verbose and self.interactive:
             print ('Drawing', len(actors2show),'actors ', end='')
             if len(self.renderers)>1 :
-                print ('on window', at,'- Interactive mode: ', end='')
-            else:
-                print ('- Interactive mode: ', end='')
-            if self.interactive: colors.printc('On', 'green', bold=1)
-            else: colors.printc('Off', 'red', bold=0)
+                print ('on window', at,)
 
         if at is None and len(self.renderers)>1:
             #in case of multiple renderers a call to show w/o specifing

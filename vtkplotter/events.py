@@ -74,19 +74,42 @@ def keypress(vp, obj, event):
         return
 
     elif key == "e":
-        if vp.verbose: print ("closing window...")
+        if vp.verbose: 
+            print ("closing window...")
         vp.interactor.GetRenderWindow().Finalize()
         vp.interactor.TerminateApp()
-        # del vp.renderWin, vp.interactor
         return
 
     elif key == "Escape":
+        print()
+        sys.stdout.flush()
         vp.interactor.TerminateApp()
         vp.interactor.GetRenderWindow().Finalize()
         vp.interactor.TerminateApp()
-        del vp.renderWin, vp.interactor
         sys.exit(0)
         
+    elif key == "m":
+        if vp.clickedActor in vp.getActors():
+            vp.clickedActor.GetProperty().SetOpacity(0.05)
+            bfp = vp.clickedActor.GetBackfaceProperty()
+            if bfp: bfp.SetOpacity(0.05)
+        else:
+            for a in vp.getActors(): 
+                a.GetProperty().SetOpacity(.05)
+                bfp = a.GetBackfaceProperty()
+                if bfp: bfp.SetOpacity(0.05)
+
+    elif key == "slash":
+        if vp.clickedActor in vp.getActors():
+            vp.clickedActor.GetProperty().SetOpacity(1) 
+            bfp = vp.clickedActor.GetBackfaceProperty()
+            if bfp: bfp.SetOpacity(1)
+        else:
+            for a in vp.getActors(): 
+                a.GetProperty().SetOpacity(1)
+                bfp = a.GetBackfaceProperty()
+                if bfp: bfp.SetOpacity(1)
+
     elif key == "comma":
         if vp.clickedActor in vp.getActors():
             ap = vp.clickedActor.GetProperty()
@@ -113,11 +136,40 @@ def keypress(vp, obj, event):
                 bfp = a.GetBackfaceProperty()
                 if bfp: bfp.SetOpacity(ap.GetOpacity())
 
+    elif key == "P":
+        if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
+        else: acts = vp.getActors()
+        for ia in acts:
+            try:
+                ps = ia.GetProperty().GetPointSize()
+                if ps>1:
+                    ia.GetProperty().SetPointSize(ps-1)
+                ia.GetProperty().SetRepresentationToPoints()
+            except AttributeError: pass
+
+    elif key == "p":
+        if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
+        else: acts = vp.getActors()
+        for ia in acts:
+            try:
+                ps = ia.GetProperty().GetPointSize()
+                ia.GetProperty().SetPointSize(ps+2)
+                ia.GetProperty().SetRepresentationToPoints()
+            except AttributeError: pass
+
+    elif key == "w":
+        if vp.clickedActor and vp.clickedActor in vp.getActors():
+            vp.clickedActor.GetProperty().SetRepresentationToWireframe()
+        else:
+            for a in vp.getActors(): 
+                if a: 
+                    a.GetProperty().SetRepresentationToWireframe()
+
     elif key == "r":
         vp.renderer.ResetCamera()
 
 
-    ### now intercept custom observer
+    ### now intercept custom observer ###########################
     if vp.keyPressFunction: 
         if key not in ['Shift_L', 'Control_L', 'Super_L', 'Alt_L']:
             if key not in ['Shift_R', 'Control_R', 'Super_R', 'Alt_R']:
@@ -142,14 +194,6 @@ def keypress(vp, obj, event):
         print ('vp.camera.SetClippingRange(', [round(e,3) for e in cam.GetClippingRange()],')')
         return
 
-    elif key == "w":
-        if vp.clickedActor and vp.clickedActor in vp.getActors():
-            vp.clickedActor.GetProperty().SetRepresentationToWireframe()
-        else:
-            for a in vp.getActors(): 
-                if a: 
-                    a.GetProperty().SetRepresentationToWireframe()
-
     elif key == "s":
         if vp.clickedActor and vp.clickedActor in vp.getActors():
             vp.clickedActor.GetProperty().SetRepresentationToSurface()
@@ -157,28 +201,6 @@ def keypress(vp, obj, event):
             for a in vp.getActors(): 
                 if a: 
                     a.GetProperty().SetRepresentationToSurface()
-
-    elif key == "m":
-        if vp.clickedActor in vp.getActors():
-            vp.clickedActor.GetProperty().SetOpacity(0.05)
-            bfp = vp.clickedActor.GetBackfaceProperty()
-            if bfp: bfp.SetOpacity(0.05)
-        else:
-            for a in vp.getActors(): 
-                a.GetProperty().SetOpacity(.05)
-                bfp = a.GetBackfaceProperty()
-                if bfp: bfp.SetOpacity(0.05)
-
-    elif key == "slash":
-        if vp.clickedActor in vp.getActors():
-            vp.clickedActor.GetProperty().SetOpacity(1) 
-            bfp = vp.clickedActor.GetBackfaceProperty()
-            if bfp: bfp.SetOpacity(1)
-        else:
-            for a in vp.getActors(): 
-                a.GetProperty().SetOpacity(1)
-                bfp = a.GetBackfaceProperty()
-                if bfp: bfp.SetOpacity(1)
 
     elif key == "V":
         if not(vp.verbose): vp._tips()
@@ -233,9 +255,10 @@ def keypress(vp, obj, event):
                 for i in range(ptdata.GetNumberOfArrays()):
                     name = ptdata.GetArrayName(i)
                     if name == 'Normals': continue
-                    if hasattr(a, 'legend'): print ('actor:', a.legend, end='')
-                    print ('\tfound POINT array with name:', name, end=', ')
-                    print ('type:', arrtypes[ptdata.GetArray(i).GetDataType()])
+                    if vp.verbose:
+                        if hasattr(a, 'legend'): print ('actor:', a.legend, end='')
+                        print ('\tfound POINT array with name:', name, end=', ')
+                        print ('type:', arrtypes[ptdata.GetArray(i).GetDataType()])
                     ptdata.SetActiveScalars(name)
                     foundarr=1
                 if not foundarr:
@@ -248,9 +271,10 @@ def keypress(vp, obj, event):
                 for i in range(cldata.GetNumberOfArrays()):
                     name = cldata.GetArrayName(i)
                     if name == 'Normals': continue
-                    if hasattr(a, 'legend'): print ('actor:', a.legend, end='')
-                    print ('\tfound POINT array', 'tname:', name, end=', ')
-                    print ('type:', arrtypes[cldata.GetArray(i).GetDataType()])
+                    if vp.verbose:
+                        if hasattr(a, 'legend'): print ('actor:', a.legend, end='')
+                        print ('\tfound POINT array', 'tname:', name, end=', ')
+                        print ('type:', arrtypes[cldata.GetArray(i).GetDataType()])
                     cldata.SetActiveScalars(name)
                     foundarr=1
                 if not foundarr:
@@ -260,28 +284,6 @@ def keypress(vp, obj, event):
                     else: print()
                     
             a.GetMapper().ScalarVisibilityOn()
-
-
-    elif key == "P":
-        if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
-        else: acts = vp.getActors()
-        for ia in acts:
-            try:
-                ps = ia.GetProperty().GetPointSize()
-                if ps>1:
-                    ia.GetProperty().SetPointSize(ps-1)
-                ia.GetProperty().SetRepresentationToPoints()
-            except AttributeError: pass
-
-    elif key == "p":
-        if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
-        else: acts = vp.getActors()
-        for ia in acts:
-            try:
-                ps = ia.GetProperty().GetPointSize()
-                ia.GetProperty().SetPointSize(ps+2)
-                ia.GetProperty().SetRepresentationToPoints()
-            except AttributeError: pass
 
     elif key == "L":
         if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
@@ -357,7 +359,8 @@ def keypress(vp, obj, event):
             colors.printc('Click an actor and press X to open the cutter box widget.',4)
 
 
-    if vp.interactor: vp.interactor.Render()
+    if vp.interactor: 
+        vp.interactor.Render()
 
 
 

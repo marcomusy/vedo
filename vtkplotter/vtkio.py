@@ -1,8 +1,24 @@
 from __future__ import division, print_function
-import vtk, os, sys, time
+import vtk, os, sys, time, re
 
 import vtkplotter.utils as vu
 import vtkplotter.colors as vc
+
+     
+
+def humansort(l):
+    """Sort in place a given list the way humans expect"""
+    def alphanum_key(s):
+        # Turn a string into a list of string and number chunks.
+        # "z23a" -> ["z", 23, "a"]
+        def tryint(s):
+            if s.isdigit():
+                return int(s)
+            return s
+        return [ tryint(c) for c in re.split('([0-9]+)', s) ]
+    l.sort(key=alphanum_key)
+    return
+
 
 def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
               smoothing, threshold, connectivity, scaling):
@@ -37,7 +53,7 @@ def loadDir(mydir, c, alpha, wire, bc, edges, legend, texture,
         vc.printc(('Error in loadDir: Cannot find', mydir), c=1)
         exit(0)
     acts = []
-    for ifile in sorted(os.listdir(mydir)):
+    for ifile in humansort(os.listdir(mydir)):
         loadFile(mydir+'/'+ifile, c, alpha, wire, bc, edges, legend, texture,
                  smoothing, threshold, connectivity, scaling)
     return acts

@@ -1,33 +1,169 @@
 #!/usr/bin/env python
 #
-from vtkplotter import Plotter
-import sys
+from __future__ import division, print_function
+from vtkplotter import Plotter, ProgressBar, printc, __version__
+from vtkplotter.vtkio import humansort
+import sys, argparse
 
-fs = sys.argv[1:]
-nfiles = len(fs)
-alpha = 1.0
+pr = argparse.ArgumentParser(description="""check out home page https://github.com/marcomusy/vtkplotter""")
+pr.add_argument('files', nargs='*',             help="Input filename(s)")
+pr.add_argument("-a", "--alpha",    type=float, help="alpha value [0-1]", default=-1, metavar='')
+pr.add_argument("-w", "--wireframe",            help="use wireframe representation", action="store_true")
+pr.add_argument("-p", "--point-size", type=float, help="specify point size", default=-1, metavar='') 
+pr.add_argument("-l", "--legend-off",           help="do not show legends", action="store_true")
+pr.add_argument("-c", "--color", type=str,      help="mesh color [integer or color name]", default='None', metavar='')
+pr.add_argument("-k", "--show-scalars",         help="use scalars as colors", action="store_true") 
+pr.add_argument("-n", "--sequence-mode",        help="show each file in a separate renderer", action="store_true")
+pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-3]", default=1, metavar='')
+pr.add_argument("-f", "--full-screen",          help="full screen mode", action="store_true")
+pr.add_argument("-z", "--zoom", type=float,     help="zooming factor", default=1.1, metavar='')
+pr.add_argument("-i", "--no-camera-share",      help="do not share camera in renderers", action="store_true")
+pr.add_argument("-b", "--background", type=str, help="background color [integer or color name]", default='w', metavar='')
+pr.add_argument("-q", "--quiet",                help="quiet mode, less verbose", action="store_true")
+pr.add_argument("-s", "--scrolling-mode",       help="Scrolling Mode: use arrows to scroll files", action="store_true") 
+args = pr.parse_args()
 
-if nfiles == 1 :
-    leg = False
+humansort(args.files)
+nfiles = len(args.files)
+if nfiles == 0: sys.exit()
+title = 'vtkplotter '+__version__
+
+wsize = 'auto'
+if args.full_screen: 
+    wsize='full'
+
+N = None
+if args.sequence_mode: 
+    if 1<nfiles<201: 
+        N = nfiles
+    if nfiles>200: 
+        printc("\nWarning: option '-n' allows a maximum of 200 files", 1)
+        printc("         you are trying to load "+str(nfiles)+" files.\n", 1)
+        N = 200
+    vp = Plotter(title=title, size=wsize, N=N, bg=args.background)
 else:
-    leg = None
+   N = nfiles
+   vp = Plotter(title=title, size=wsize, bg=args.background)
+   
+vp.verbose = not args.quiet
+vp.axes = args.axes_type
+vp.sharecam = not args.no_camera_share
 
-vp = Plotter(bg2=(0.94, 0.94, 1.0))
+alpha = 1
+leg = True
+wire= False
+if args.legend_off or nfiles == 1: leg = False
+if args.wireframe: wire = True 
+if args.scrolling_mode and args.sequence_mode:
+    args.scrolling_mode = False
 
-if nfiles == 0: 
-    vp.help()
-    sys.exit()
+########################################################################
+if (not args.scrolling_mode) or nfiles == 1:
 
-for ic,f in enumerate(fs):
-
-    if '.neutral' in f.lower() or '.xml' in f.lower() or '.gmsh' in f.lower(): 
-        alpha=0.1
-        wire=True
+    for i in range(N):
+        f = args.files[i]
+    
+        if '.neutral' in f.lower() or '.xml' in f.lower() or '.gmsh' in f.lower(): 
+            alpha = 0.1
+            wire = True
+        else:
+            if not args.sequence_mode:
+                alpha = 1/N
+            wire = False
+            
+        if 0 < args.alpha <= 1: 
+            alpha = args.alpha
+            
+        if args.wireframe: 
+            wire = True 
+    
+        ic = 'gold'
+        if args.color != 'None' : 
+            if args.color.isdigit(): 
+                ic = int(args.color)
+            else:
+                ic = args.color
+        if args.show_scalars: 
+            ic = None
+        
+        actor = vp.load(f, c=ic, alpha=alpha, wire=wire, legend=leg)
+        
+        if args.point_size > 0:
+            try:
+                ps = actor.GetProperty().GetPointSize()
+                actor.GetProperty().SetPointSize(args.point_size)
+                actor.GetProperty().SetRepresentationToPoints()
+            except AttributeError:
+                print('cannot set point size for', f)
+        
+        if args.sequence_mode: 
+            vp.show(actor, at=i, interactive=False, zoom=args.zoom)
+    
+    if args.sequence_mode: 
+        vp.interactor.Start()
     else:
-        alpha = 1.0/nfiles
-        wire=False
-    if ic==0: ic='gold'
-    vp.load(f, c=ic, alpha=alpha, wire=wire)
+        vp.show(interactive=True, zoom=args.zoom)
+        
+########################################################################        
+else:
 
-vp.show(legend=leg, interactive=True)
+    def _scroll(key, vplt): #observer
+        global _kact
+        n = len(vplt.actors)
+        if key == 'Right' and _kact < n-1: 
+            _kact += 1
+        if key == 'Left'  and _kact > 0: 
+            _kact -= 1
+        
+        step = int(n/5)
+        if key == 'Up':
+            _kact += step
+            if _kact>n-1:_kact= n-1 
+        if key == 'Down':
+            _kact -= step
+            if _kact<0: _kact= 0
+        
+        printc(['showing file #', _kact+1,'/', n, '\t',args.files[_kact],'\r'], 
+                c='yellow', bold=0, dim=1, end='')        
+        vplt.interactor.ExitCallback()
+    
+    
+    vp.keyPressFunction = _scroll #observer
+    
+    if 0 < args.alpha <= 1: 
+        alpha = args.alpha
+    
+    pb = ProgressBar(0, len(args.files))    
+    
+    for i,f in enumerate(args.files):            
+        pb.print('..loading')
+        ic = 'gold'
+        if args.color != 'None' : 
+            if args.color.isdigit(): 
+                ic = int(args.color)
+            else:
+                ic = args.color
+        if args.show_scalars: 
+            ic = None
+    
+        actor = vp.load(f, c=ic, alpha=alpha, wire=wire, legend=leg)
+        
+        if args.point_size > 0:
+            try:
+                ps = actor.GetProperty().GetPointSize()
+                actor.GetProperty().SetPointSize(args.point_size)
+                actor.GetProperty().SetRepresentationToPoints()
+            except AttributeError: 
+                print('cannot set point size for', f)
+
+    printc('Scrolling Mode', c='y', invert=1, end='')
+    printc(', press:', 'y')
+    printc('- Right and Left keys to move through files,', 'y')
+    printc('- Up and Down keys to fast forward and backward.', 'y') 
+    printc('- Esc to exit.', 'y') 
+
+    _kact=0
+    while True:
+        vp.show(vp.actors[_kact], interactive=True, zoom=args.zoom)
+    
 

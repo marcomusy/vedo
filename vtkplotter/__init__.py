@@ -5,7 +5,7 @@ __email__   = "marco.musy@embl.es"
 __status__  = "dev"
 __website__ = "https://github.com/marcomusy/vtkplotter"
 
-__version__ = "8.3.2" #defined also in setup.py
+__version__ = "8.4.0" #defined also in setup.py
 
 from vtkplotter.plotter import Plotter
 from vtkplotter.colors import colorMap, printc
@@ -14,6 +14,6 @@ from vtkplotter.utils import vector, mag, mag2, norm, arange, to_precision
 from vtkplotter.utils import makeActor, makeAssembly
 
 from numpy import sin, cos, sqrt, exp, log, dot, cross, array
-import warnings
 
+import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
