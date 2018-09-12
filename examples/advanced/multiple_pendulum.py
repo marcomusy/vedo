@@ -35,7 +35,7 @@ for k in range(N):
     p0 = bob[k].pos()
     p1 = bob[k+1].pos()
     link[k] = vp.helix(p0, p1, thickness=.015, r=R/3, c='gray')
-printc('\nPress q to start simulation', 'green')
+printc('\nPress q to start simulation', c='green')
 vp.show()
 
 # Create some auxiliary variables
@@ -51,7 +51,7 @@ Dt *= np.sqrt(1/g)
 Dt2 = Dt/2  # Midpoint time step
 DiaSq = (2*R)**2  # Diameter of bob squared
 
-printc('\nHit Ctrl-C to exit.', 'red')
+printc('\nHit Ctrl-C to exit.', c='red')
 while True:  # The main loop
 
     # Compute the midpoint variables

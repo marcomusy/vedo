@@ -22,7 +22,7 @@ def spline(points, smooth=0.5, degree=2,
     try:
         from scipy.interpolate import splprep, splev
     except ImportError:
-        vc.printc('Warning: ..scipy not installed, using vtkCardinalSpline instead.',5)
+        vc.printc('Warning: ..scipy not installed, using vtkCardinalSpline instead.',c=5)
         return _vtkspline(points, s, c, alpha, nodes, legend, res)
 
     Nout = len(points)*res # Number of points on the spline
@@ -184,7 +184,7 @@ def fxy(z='sin(3*x)*log(x-y)/3', x=[0,3], y=[0,3],
             exec(code, namespace)
             z = namespace['zfunc']
         except:
-            vc.printc('Syntax Error in fxy()',1)
+            vc.printc('Syntax Error in fxy()',c=1)
             return None
 
     ps = vtk.vtkPlaneSource()
@@ -229,7 +229,7 @@ def fxy(z='sin(3*x)*log(x-y)/3', x=[0,3], y=[0,3],
         poly = cl.GetOutput()
     
     if not poly.GetNumberOfPoints(): 
-        vc.printc('Function is not real in the domain',1)
+        vc.printc('Function is not real in the domain',c=1)
         return vtk.vtkActor()
     
     if zlimits[0]:
@@ -386,6 +386,25 @@ def boundaries(actor, c='p', lw=5, legend=None):
     return bactor
 
 
+def extractLargestRegion(actor, c=None, alpha=None, wire=False, bc=None,
+                         edges=False, legend=None, texture=None):
+    '''Split actor into a set of disconnected polydata'''
+    conn = vtk.vtkConnectivityFilter()
+    conn.SetExtractionModeToLargestRegion()
+    conn.ScalarConnectivityOff()
+    poly = vu.polydata(actor, True)
+    vu.setInput(conn, poly)
+    conn.Update()
+    epoly = conn.GetOutput()
+    if legend  is True and hasattr(actor, 'legend'): legend = actor.legend
+    if alpha   is None: alpha = actor.GetProperty().GetOpacity()
+    if c       is None: c = actor.GetProperty().GetColor()
+    if texture is None and hasattr(actor, 'texture'): texture = actor.texture
+    eact = vu.makeActor(epoly, c, alpha, wire, bc, edges, legend, texture)
+    eact.GetProperty().SetPointSize(actor.GetProperty().GetPointSize())
+    return eact
+    
+
 ################# working with point clouds
 def fitLine(points, c='orange', lw=1, alpha=0.6, legend=None):
     '''
@@ -473,7 +492,7 @@ def pca(points, pvalue=.95, c='c', alpha=0.5, pcaAxes=False, legend=None):
     try:
         from scipy.stats import f
     except:
-        vc.printc("Error in ellipsoid(): scipy not installed. Skip.",1)
+        vc.printc("Error in ellipsoid(): scipy not installed. Skip.",c=1)
         return None
     if isinstance(points, vtk.vtkActor): points=vu.coordinates(points)
     if len(points) == 0: return None
@@ -546,7 +565,7 @@ def smoothMLS2D(actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
     if showNPlanes: ndiv = int(nshow/showNPlanes*decimate)
     
     if Ncp<5:
-        vc.printc('Please choose a higher fraction than '+str(f), 1)
+        vc.printc('Please choose a higher fraction than '+str(f), c=1)
         Ncp=5
     print('smoothMLS: Searching #neighbours, #pt:', Ncp, ncoords)
     
@@ -617,7 +636,7 @@ def smoothMLS1D(actor, f=0.2, showNLines=0):
     if showNLines: ndiv = int(nshow/showNLines)
     
     if Ncp<3:
-        vc.printc('Please choose a higher fraction than '+str(f), 1)
+        vc.printc('Please choose a higher fraction than '+str(f), c=1)
         Ncp=3
     
     poly = vu.polydata(actor, True)
@@ -716,7 +735,7 @@ def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1,
     try:
         bf = vtk.vtkBooleanOperationPolyDataFilter()
     except AttributeError:
-        vc.printc('Boolean operation only possible for vtk version >= 8','r')
+        vc.printc('Boolean operation only possible for vtk version >= 8', c='r')
         return None
     poly1 = vu.polydata(actor1, True)
     poly2 = vu.polydata(actor2, True)
@@ -746,7 +765,7 @@ def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3,
     try:
         bf = vtk.vtkIntersectionPolyDataFilter()
     except AttributeError:
-        vc.printc('surfaceIntersection only possible for vtk version > 6','r')
+        vc.printc('surfaceIntersection only possible for vtk version > 6',c='r')
         return None
     poly1 = vu.polydata(actor1, True)
     poly2 = vu.polydata(actor2, True)

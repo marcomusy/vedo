@@ -10,79 +10,82 @@ def humansort(l):
     """Sort in place a given list the way humans expect"""
     def alphanum_key(s):
         # Turn a string into a list of string and number chunks.
-        # "z23a" -> ["z", 23, "a"]
+        # e.g. "z23a" -> ["z", 23, "a"]
         def tryint(s):
             if s.isdigit():
                 return int(s)
             return s
         return [ tryint(c) for c in re.split('([0-9]+)', s) ]
     l.sort(key=alphanum_key)
-    return
+    return None # NB: input list is modified
 
 
 def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
               smoothing, threshold, connectivity, scaling):
     fl = filename.lower()
     if legend is True: legend = os.path.basename(filename)
-    if '.xml' in fl or '.xml.gz' in fl: # Fenics tetrahedral mesh file
+    if fl.endswith('.xml') or fl.endswith('.xml.gz'):     # Fenics tetrahedral file
         actor = loadXml(filename, c, alpha, wire, bc, edges, legend)
-    elif '.neutral' in fl:              # neutral tetrahedral mesh file
+    elif fl.endswith('.neutral') or fl.endswith('.neu'):  # neutral tetrahedral file
         actor = loadNeutral(filename, c, alpha, wire, bc, edges, legend)
-    elif '.gmsh' in fl:                 # gmesh file
+    elif fl.endswith('.gmsh'):                            # gmesh file
         actor = loadGmesh(filename, c, alpha, wire, bc, edges, legend)
-    elif '.pcd' in fl:                  # PCL point-cloud format
+    elif fl.endswith('.pcd'):                             # PCL point-cloud format
         actor = loadPCD(filename, c, alpha, legend)
-    elif '.tif' in fl or '.slc' in fl:  # tiff stack or slc
+    elif fl.endswith('.tif') or fl.endswith('.slc'):      # tiff stack or slc
         actor = loadVolume(filename, c, alpha, wire, bc, edges, legend, texture,
                            smoothing, threshold, connectivity, scaling)
-    elif '.png' in fl or '.jpg' in fl or '.jpeg' in fl:  # regular image
+    elif fl.endswith('.png') or fl.endswith('.jpg') or fl.endswith('.jpeg'):
         actor = load2Dimage(filename, alpha)
     else:
         poly = loadPoly(filename)
         if not poly:
-            vc.printc(('Unable to load', filename), c=1)
+            vc.printc('Unable to load', filename, c=1)
             return False
         actor = vu.makeActor(poly, c, alpha, wire, bc, edges, legend, texture)
-        if '.txt' in fl or '.xyz' in fl: 
+        if fl.endswith('.txt') or fl.endswith('.xyz'): 
             actor.GetProperty().SetPointSize(4)
     return actor
     
 def loadDir(mydir, c, alpha, wire, bc, edges, legend, texture,
              smoothing, threshold, connectivity, scaling):
     if not os.path.exists(mydir): 
-        vc.printc(('Error in loadDir: Cannot find', mydir), c=1)
+        vc.printc('Error in loadDir: Cannot find', mydir, c=1)
         exit(0)
     acts = []
-    for ifile in humansort(os.listdir(mydir)):
-        loadFile(mydir+'/'+ifile, c, alpha, wire, bc, edges, legend, texture,
-                 smoothing, threshold, connectivity, scaling)
+    flist = os.listdir(mydir)
+    humansort(flist)
+    for ifile in flist:
+        a = loadFile(mydir+'/'+ifile, c, alpha, wire, bc, edges, legend, texture,
+                     smoothing, threshold, connectivity, scaling)
+        acts.append(a)
     return acts
 
 def loadPoly(filename):
     '''Return a vtkPolyData object, NOT a vtkActor'''
     if not os.path.exists(filename): 
-        vc.printc(('Error in loadPoly: Cannot find', filename), c=1)
+        vc.printc('Error in loadPoly: Cannot find', filename, c=1)
         return None
     fl = filename.lower()
-    if   '.vtk' in fl: reader = vtk.vtkPolyDataReader()
-    elif '.ply' in fl: reader = vtk.vtkPLYReader()
-    elif '.obj' in fl: reader = vtk.vtkOBJReader()
-    elif '.stl' in fl: reader = vtk.vtkSTLReader()
-    elif '.byu' in fl or '.g' in fl: reader = vtk.vtkBYUReader()
-    elif '.vtp' in fl: reader = vtk.vtkXMLPolyDataReader()
-    elif '.vts' in fl: reader = vtk.vtkXMLStructuredGridReader()
-    elif '.vtu' in fl: reader = vtk.vtkXMLUnstructuredGridReader()
-    elif '.txt' in fl: reader = vtk.vtkParticleReader() # (x y z scalar) 
-    elif '.xyz' in fl: reader = vtk.vtkParticleReader()
+    if   fl.endswith('.vtk'): reader = vtk.vtkPolyDataReader()
+    elif fl.endswith('.ply'): reader = vtk.vtkPLYReader()
+    elif fl.endswith('.obj'): reader = vtk.vtkOBJReader()
+    elif fl.endswith('.stl'): reader = vtk.vtkSTLReader()
+    elif fl.endswith('.byu') or fl.endswith('.g'): reader = vtk.vtkBYUReader()
+    elif fl.endswith('.vtp'): reader = vtk.vtkXMLPolyDataReader()
+    elif fl.endswith('.vts'): reader = vtk.vtkXMLStructuredGridReader()
+    elif fl.endswith('.vtu'): reader = vtk.vtkXMLUnstructuredGridReader()
+    elif fl.endswith('.txt'): reader = vtk.vtkParticleReader() # (x y z scalar) 
+    elif fl.endswith('.xyz'): reader = vtk.vtkParticleReader()
     else: reader = vtk.vtkDataReader()
     reader.SetFileName(filename)
     reader.Update()
-    if '.vts' in fl: # structured grid
+    if fl.endswith('.vts'): # structured grid
         gf = vtk.vtkStructuredGridGeometryFilter()
         gf.SetInputConnection(reader.GetOutputPort())
         gf.Update()
         poly = gf.GetOutput()
-    elif '.vtu' in fl: # unstructured grid
+    elif fl.endswith('.vtu'): # unstructured grid
         gf = vtk.vtkGeometryFilter()
         gf.SetInputConnection(reader.GetOutputPort())
         gf.Update()    
@@ -90,7 +93,7 @@ def loadPoly(filename):
     else: poly = reader.GetOutput()
     
     if not poly: 
-        vc.printc(('Unable to load', filename), c=1)
+        vc.printc('Unable to load', filename, c=1)
         return False
     
     cleanpd = vtk.vtkCleanPolyData()
@@ -102,10 +105,10 @@ def loadPoly(filename):
 def loadXml(filename, c, alpha, wire, bc, edges, legend):
     '''Reads a Fenics/Dolfin file format'''
     if not os.path.exists(filename): 
-        vc.printc(('Error in loadXml: Cannot find', filename), c=1)
+        vc.printc('Error in loadXml: Cannot find', filename, c=1)
         return None
     import xml.etree.ElementTree as et
-    if '.gz' in filename:
+    if filename.endswith('.gz'):
         import gzip
         inF = gzip.open(filename, 'rb')
         outF = open('/tmp/filename.xml', 'wb')
@@ -115,7 +118,6 @@ def loadXml(filename, c, alpha, wire, bc, edges, legend):
         tree = et.parse('/tmp/filename.xml')
     else: tree = et.parse(filename)
     coords, connectivity = [], []
-    print('..loading',filename)
     for mesh in tree.getroot():
         for elem in mesh:
             for e in elem.findall('vertex'):
@@ -171,7 +173,7 @@ def loadXml(filename, c, alpha, wire, bc, edges, legend):
 def loadNeutral(filename, c, alpha, wire, bc, edges, legend):
     '''Reads a Neutral tetrahedral file format'''
     if not os.path.exists(filename): 
-        vc.printc(('Error in loadNeutral: Cannot find', filename), c=1)
+        vc.printc('Error in loadNeutral: Cannot find', filename, c=1)
         return None
     
     coords, connectivity = convertNeutral2Xml(filename)
@@ -184,7 +186,7 @@ def loadGmesh(filename, c, alpha, wire, bc, edges, legend):
     Reads a gmesh file format
     '''
     if not os.path.exists(filename): 
-        vc.printc(('Error in loadGmesh: Cannot find', filename), c=1)
+        vc.printc('Error in loadGmesh: Cannot find', filename, c=1)
         return None
    
     f = open(filename, 'r')
@@ -223,7 +225,7 @@ def loadGmesh(filename, c, alpha, wire, bc, edges, legend):
 def loadPCD(filename, c, alpha, legend):
     '''Return vtkActor from Point Cloud file format'''            
     if not os.path.exists(filename): 
-        vc.printc(('Error in loadPCD: Cannot find file', filename), c=1)
+        vc.printc('Error in loadPCD: Cannot find file', filename, c=1)
         return None
     f = open(filename, 'r')
     lines = f.readlines()
@@ -242,14 +244,14 @@ def loadPCD(filename, c, alpha, legend):
         if not start and 'DATA ascii' in text:
             start = True
     if expN != N:
-        vc.printc(('Mismatch in pcd file', expN, len(pts)), 'red')
+        vc.printc('Mismatch in pcd file', expN, len(pts), c='red')
     src = vtk.vtkPointSource()
     src.SetNumberOfPoints(len(pts))
     src.Update()
     poly = src.GetOutput()
     for i,p in enumerate(pts): poly.GetPoints().SetPoint(i, p)
     if not poly:
-        vc.printc(('Unable to load', filename), 'red')
+        vc.printc('Unable to load', filename, c='red')
         return False
     actor = vu.makeActor(poly, vc.getColor(c), alpha)
     actor.GetProperty().SetPointSize(4)
@@ -262,7 +264,7 @@ def loadVolume(filename, c, alpha, wire, bc, edges, legend, texture,
               smoothing, threshold, connectivity, scaling):
     '''Return vtkActor from a TIFF stack or SLC file'''            
     if not os.path.exists(filename): 
-        vc.printc(('Error in loadVolume: Cannot find file', filename), c=1)
+        vc.printc('Error in loadVolume: Cannot find file', filename, c=1)
         return None
     
     print ('..reading file:', filename)
@@ -271,7 +273,7 @@ def loadVolume(filename, c, alpha, wire, bc, edges, legend, texture,
     elif '.slc' in filename.lower(): 
         reader = vtk.vtkSLCReader() 
         if not reader.CanReadFile(filename):
-            vc.printc('Sorry bad SLC file '+filename, 1)
+            vc.printc('Sorry bad SLC/TIFF file '+filename, c=1)
             exit(1)
     reader.SetFileName(filename) 
     reader.Update() 
@@ -289,9 +291,6 @@ def loadVolume(filename, c, alpha, wire, bc, edges, legend, texture,
     scrange = image.GetScalarRange()
     if not threshold:
         threshold = (2*scrange[0]+scrange[1])/3.
-        a = '  isosurfacing volume with automatic iso_threshold ='
-    else: a='  isosurfacing volume with iso_threshold ='
-    print (a, round(threshold,2), scrange)
     cf= vtk.vtkContourFilter()
     vu.setInput(cf, image)
     cf.UseScalarTreeOn()
@@ -348,19 +347,20 @@ def write(obj, fileoutput):
     Write 3D object to file.
     Possile extensions are: .vtk, .ply, .obj, .stl, .byu, .vtp
     '''
+    obj = vu.polydata(obj, True)
     fr = fileoutput.lower()
     if   '.vtk' in fr: w = vtk.vtkPolyDataWriter()
     elif '.ply' in fr: w = vtk.vtkPLYWriter()
     elif '.obj' in fr: 
         w = vtk.vtkOBJExporter()
         w.SetFilePrefix(fileoutput.replace('.obj',''))
-        vc.printc('Please use write(vp.renderWin)',3)
+        vc.printc('Please use write(vp.renderWin)', c=3)
         w.SetInput(obj)
         w.Update()
-        vc.printc("Saved file: "+fileoutput, 'g')
+        vc.printc("Saved file: "+fileoutput, c='g')
         return
     elif '.stl' in fr: w = vtk.vtkSTLWriter()
-    elif '.byu' in fr or '.g' in fr: w = vtk.vtkBYUWriter()
+    elif '.byu' in fr or fr.endswith('.g'): w = vtk.vtkBYUWriter()
     elif '.vtp' in fr: w = vtk.vtkXMLPolyDataWriter()
     else:
         vc.printc('Unavailable format in file '+fileoutput, c='r')
@@ -369,9 +369,9 @@ def write(obj, fileoutput):
         vu.setInput(w, vu.polydata(obj, True))
         w.SetFileName(fileoutput)
         w.Write()
-        vc.printc("Saved file: "+fileoutput, 'g')
+        vc.printc("Saved file: "+fileoutput, c='g')
     except:
-        vc.printc("Error saving: "+fileoutput, 'r')
+        vc.printc("Error saving: "+fileoutput, c='r')
 
 
 ################################################################### Video
@@ -400,7 +400,7 @@ class Video:
         self.frames = []
         if not os.path.exists('/tmp/vpvid'): os.mkdir('/tmp/vpvid')
         for fl in glob.glob("/tmp/vpvid/*.png"): os.remove(fl)
-        vc.printc(("Video", name, "is open..."), 'm')
+        vc.printc("Video", name, "is open...", c='m')
         
     def addFrame(self):
         fr = '/tmp/vpvid/'+str(len(self.frames))+'.png'
@@ -420,13 +420,13 @@ class Video:
     def close(self):      
         if self.duration:
             _fps = len(self.frames)/float(self.duration)
-            vc.printc(("Recalculated video FPS to", round(_fps,3)), 'yellow')
+            vc.printc("Recalculated video FPS to", round(_fps,3), c='yellow')
         else: _fps = int(_fps)
         self.name = self.name.split('.')[0]+'.mp4'
         out = os.system("ffmpeg -loglevel panic -y -r " + str(_fps)
                         + " -i /tmp/vpvid/%01d.png "+self.name)
-        if out: vc.printc("ffmpeg returning error",1)
-        vc.printc(('Video saved as', self.name), 'green')
+        if out: vc.printc("ffmpeg returning error", c=1)
+        vc.printc('Video saved as', self.name, c='green')
         return
     
 

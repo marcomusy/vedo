@@ -8,17 +8,17 @@ from numpy.random import randn
 
 ##############################################################################
 def myfnc(key, vplt):
-    printc('You just pressed: '+key, 'r')
+    printc('You just pressed: '+key, c='r')
     if key != 'c': return
 
     cb = vplt.cube(pos=randn(3,1), length=.2, alpha=.5, legend='cube') 
     vplt.render(cb)
     
-    printc('current #actors : '+str(len(vplt.actors)), 2)
-    printc('clicked renderer: '+str(vplt.clickedRenderer), 2) 
+    printc('current #actors : '+str(len(vplt.actors)), c=2)
+    printc('clicked renderer: '+str(vplt.clickedRenderer), c=2) 
     if vplt.clickedActor: 
-        printc('clicked actor   : '+vplt.clickedActor.legend, 4)
-        printc('clicked 3D point coordinates: '+str(vplt.picked3d), 4)
+        printc('clicked actor   : '+vplt.clickedActor.legend, c=4)
+        printc('clicked 3D point coordinates: '+str(vplt.picked3d), c=4)
     
 ##############################################################################
 
@@ -28,6 +28,6 @@ vp.keyPressFunction = myfnc # make it known to Plotter class
 
 vp.load('data/shapes/bunny.obj', alpha=.5).normalize()
 
-printc('\nPress c to execute myfnc()',1)
+printc('\nPress c to execute myfnc()', c=1)
 
 vp.show()

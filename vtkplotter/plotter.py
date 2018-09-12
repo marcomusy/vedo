@@ -26,16 +26,16 @@ class Plotter:
         msg += "\tw/s to toggle wireframe/solid style\n"
         msg += "\tp/P to change point size of vertices\n"
         msg += "\tl/L to change edge line width\n"
-        msg += "\tn   to show normals for selected actor\n"
         msg += "\tx   to toggle selected actor visibility\n"
         msg += "\tX   to open a cutter widget for sel. actor\n"
         msg += "\t1-4 to change color scheme\n"
-        msg += "\tk/K to use point/cell scalars as color\n"
+        msg += "\tk/K to show point/cell scalars as color\n"
+        msg += "\tn   to show normals for selected actor\n"
         msg += "\tC   to print current camera info\n"
         msg += "\tS   to save a screenshot\n"
         msg += "\tq   to continue\n"
-        msg += "\te   to close current window\n"
-        msg += "\tEsc to abort and exit\n"
+        msg += "\te   to close the rendering window\n"
+        msg += "\tEsc to exit\n"
         msg += "---------------------------------------------------------"
         colors.printc(msg, c='blue')
 
@@ -118,21 +118,14 @@ class Plotter:
         
         if N:                # N = number of renderers. Find out the best
             if shape!=(1,1): # arrangement based on minimum nr. of empty renderers
-                colors.printc('Warning: having set N, #renderers, shape is ignored.)', c=1)
+                colors.printc('Warning: having set N, shape is ignored.', c=1)
             x = float(maxscreensize[0])
             y = float(maxscreensize[1])
             nx= int(numpy.sqrt(int(N*x/y)+1))
             ny= int(numpy.sqrt(int(N*y/x)+1))
-            if nx*ny<N:
-                if nx<ny: nx +=1
-                else: ny +=1
-            if nx*ny<N:
-                if nx>ny: nx +=1
-                else: ny +=1
-            lm = [(nx,ny), (nx,ny+1), (nx-1,ny), (nx+1,ny), (nx,ny-1)]
-            lm+= [(nx-1,ny+1), (nx+1,ny-1), (nx+1,ny+1), (nx-1,ny-1)]
-            minl=100
-            ind = 0
+            lm = [(nx,ny), (nx,ny+1), (nx-1,ny), (nx+1,ny), (nx,ny-1),
+                  (nx-1,ny+1), (nx+1,ny-1), (nx+1,ny+1), (nx-1,ny-1)]
+            ind, minl = 0, 1000
             for i,m in enumerate(lm):
                 l = m[0]*m[1]
                 if N <= l < minl:
@@ -191,16 +184,16 @@ class Plotter:
         self.interactor.SetInteractorStyle(vsty)
 
     def help(self):
-        colors.printc(["\n\tvtkplotter version:", __version__])
-        colors.printc(["\tVTK version:", vtk.vtkVersion().GetVTKVersion()])
+        colors.printc("\n\tvtkplotter version:", __version__)
+        colors.printc("\tVTK version:", vtk.vtkVersion().GetVTKVersion())
         try:
             import platform
-            colors.printc(["\tPython version:", platform.python_version()])
+            colors.printc("\tPython version:", platform.python_version())
         except: pass
         colors.printc("""
         A python helper class to easily draw 3D objects.
-        Please follow instructions at:""", 'm')
-        colors.printc("\thttps://github.com/marcomusy/vtkplotter", 4)
+        Please follow instructions at:""", c='m')
+        colors.printc("\thttps://github.com/marcomusy/vtkplotter", c=4)
         print( '''
         Basic command line usage:
         > vtkplotter files*.vtk
@@ -242,7 +235,7 @@ class Plotter:
             a = utils.makeActor(inputobj, c, alpha, wire, bc, edges, legend, texture)
             self.actors.append(a)
             if inputobj and inputobj.GetNumberOfPoints()==0:
-                colors.printc('Warning: actor has zero points.',5)
+                colors.printc('Warning: actor has zero points.', c=5)
             return a
 
         acts = []
@@ -261,7 +254,7 @@ class Plotter:
                 acts = vtkio.loadDir(fod, c, alpha, wire, bc, edges, legend, texture,
                                      smoothing, threshold, connectivity, scaling)
         if not len(acts):
-            colors.printc(('Error in load(): cannot find', inputobj), 1)
+            colors.printc('Error in load(): cannot find', inputobj, c=1)
             return None
 
         for actor in acts:
@@ -282,8 +275,10 @@ class Plotter:
                 else:             actor.GetProperty().FrontfaceCullingOff()
 
         self.actors += acts
-        if len(acts) == 1: return acts[0]
-        else: return acts
+        if len(acts) == 1: 
+            return acts[0]
+        else: 
+            return acts
 
 
     def getActors(self, obj=None):
@@ -303,7 +298,7 @@ class Plotter:
             if obj is None:
                 acs = self.renderer.GetActors()
             elif obj>=len(self.renderers):
-                colors.printc(("Error in getActors: non existing renderer",obj), c=1)
+                colors.printc("Error in getActors: non existing renderer", obj, c=1)
                 return []
             else:
                 acs = self.renderers[obj].GetActors()
@@ -340,7 +335,7 @@ class Plotter:
             return [obj]
 
         if self.verbose:
-            colors.printc(('Warning in getActors: unexpected input type',obj), 1)
+            colors.printc('Warning in getActors: unexpected input type',obj, c=1)
         return []
 
 
@@ -354,9 +349,9 @@ class Plotter:
             parameter for the current camera view.
         '''
         if isinstance(fraction, int):
-            colors.printc("Warning in moveCamera(): fraction should not be an integer",1)
+            colors.printc("Warning in moveCamera(): fraction should not be an integer", c=1)
         if fraction>1:
-            colors.printc("Warning in moveCamera(): fraction is > 1", 1)
+            colors.printc("Warning in moveCamera(): fraction is > 1", c=1)
         cam = vtk.vtkCamera()
         cam.DeepCopy(camstart)
         p1 = numpy.array(camstart.GetPosition())
@@ -464,6 +459,11 @@ class Plotter:
         '''
         return shapes.spheres(centers, r, c, alpha, wire, legend, texture, res)
     
+    @add_actor 
+    def earth(self, pos=[0,0,0], r=1, lw=1):
+        '''Build a sphere at position pos of radius r.'''
+        return shapes.earth(pos, r, lw)
+
     @add_actor 
     def line(self, p0, p1=None, lw=1, tube=False, dotted=False,
              c='r', alpha=1., legend=None):
@@ -679,7 +679,6 @@ class Plotter:
             3=bottomleft, 
             4=bottomright.         
         '''
-        import numpy
         fs, edges = numpy.histogram(values, bins=bins, range=vrange)
         pts=[]
         for i in range(len(fs)): 
@@ -721,7 +720,7 @@ class Plotter:
         Extra info is stored in actor.slope, actor.center, actor.variances
         '''
         if self.verbose:
-            colors.printc("fitLine info saved in actor.slope, actor.center, actor.variances",5)
+            colors.printc("fitLine info saved in actor.slope, actor.center, actor.variances",c=5)
         return analysis.fitLine(points, c, lw, alpha, legend)
 
     @add_actor
@@ -732,7 +731,7 @@ class Plotter:
         Extra info is stored in actor.normal, actor.center, actor.variance
         '''
         if self.verbose:
-            colors.printc("fitPlane info saved in actor.normal, actor.center, actor.variance",5)
+            colors.printc("fitPlane info saved in actor.normal, actor.center, actor.variance",c=5)
         return analysis.fitPlane(points, c, bc, alpha, legend)
 
     @add_actor
@@ -743,7 +742,7 @@ class Plotter:
         Extra info is stored in actor.radius, actor.center, actor.residue
         '''
         if self.verbose:
-            colors.printc("fitSphere info saved in actor.radius, actor.center, actor.residue",5)
+            colors.printc("fitSphere info saved in actor.radius, actor.center, actor.residue",c=5)
         return analysis.fitSphere(coords, c, alpha, wire, legend)
 
     @add_actor
@@ -756,7 +755,7 @@ class Plotter:
         (sphericity = 1 for a perfect sphere)
         '''
         if self.verbose:
-            colors.printc("PCA info saved in actor.sphericity, actor.va, actor.vb, actor.vc",5)
+            colors.printc("PCA info saved in actor.sphericity, actor.va, actor.vb, actor.vc",c=5)
         return analysis.pca(points, pvalue, c, alpha, pcaAxes, legend)
 
     def smoothMLS1D(self, actor, f=0.2, showNLines=0):
@@ -879,7 +878,7 @@ class Plotter:
         
         if actor is None: actor=self.lastActor()
         if not isinstance(actor, vtk.vtkActor) or not hasattr(actor, 'GetMapper'): 
-            colors.printc('Error in addScalarBar: input is not a vtkActor.',1)
+            colors.printc('Error in addScalarBar: input is not a vtkActor.',c=1)
             return None
         lut = actor.GetMapper().GetLookupTable()
         if not lut: return None
@@ -1004,12 +1003,9 @@ class Plotter:
                     ca.GetLabelTextProperty(i).SetColor(c)
                     ca.GetTitleTextProperty(i).SetColor(c)
                 ca.SetTitleOffset(8)
-                # ca.SetEnableDistanceLOD(0)
-                # ca.SetEnableViewAngleLOD(0)
             else:
                 ca.GetProperty().SetColor(c)
             ca.SetFlyMode(3)
-            # ca.SetInertia(0)
             ca.SetLabelScaling(False, 1,1,1)
             ca.SetXTitle(self.xtitle)
             ca.SetYTitle(self.ytitle)
@@ -1278,14 +1274,14 @@ class Plotter:
                     out = self.load(a, c, alpha, wire, bc, False)
                     self.actors.pop()
                     if isinstance(out, str):
-                        colors.printc(('File not found:', out), 1)
+                        colors.printc('File not found:', out, c=1)
                         scannedacts.append(None)
                     else:
                         scannedacts.append(out) 
                 elif a is None: 
                     pass
                 else: 
-                    colors.printc(('Cannot understand input in show():', type(a)), 1)
+                    colors.printc('Cannot understand input in show():', type(a), c=1)
                     scannedacts.append(None)
             return scannedacts
 
@@ -1301,16 +1297,12 @@ class Plotter:
             if   utils.isSequence(legend): self.legend = list(legend)
             elif isinstance(legend,  str): self.legend = [str(legend)]
             else:
-                colors.printc('Error in show(): legend must be list or string.', 1)
+                colors.printc('Error in show(): legend must be list or string.', c=1)
                 sys.exit()
         if not (axes is None): self.axes = axes
+  
         if not (interactive is None): self.interactive = interactive
-
-        if self.verbose and self.interactive:
-            print ('Drawing', len(actors2show),'actors ', end='')
-            if len(self.renderers)>1 :
-                print ('on window', at,)
-
+  
         if at is None and len(self.renderers)>1:
             #in case of multiple renderers a call to show w/o specifing
             # at which renderer will just render the whole thing and return
@@ -1324,7 +1316,7 @@ class Plotter:
         if at < len(self.renderers):
             self.renderer = self.renderers[at]
         else:
-            colors.printc(("Error in show(): wrong renderer index", at), c=1)
+            colors.printc("Error in show(): wrong renderer index", at, c=1)
             return
 
         if not self.camera:
@@ -1342,7 +1334,7 @@ class Plotter:
         ############################### rendering
         for ia in actors2show:        # add the actors that are not already in scene            
             if ia: self.renderer.AddActor(ia)
-            else:  colors.printc('Warning: Invalid actor in actors list, skip.', 5)
+            else:  colors.printc('Warning: Invalid actor in actors list, skip.', c=5)
         for ia in self.getActors(at): # remove the ones that are not in actors2show
             if ia not in actors2show: 
                 self.renderer.RemoveActor(ia)

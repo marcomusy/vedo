@@ -47,9 +47,9 @@ def mouseleft(vp, obj, event):
             except: 
                 cn = ''                        
             if indx and isinstance(clickedActor, vtk.vtkAssembly): 
-                colors.printc(('-> assembly',indx+':',clickedActor.legend,cn), end=' ')
+                colors.printc('-> assembly',indx+':',clickedActor.legend,cn, end=' ')
             elif indx:
-                colors.printc(('-> actor', indx+':', leg, cn), end=' ')
+                colors.printc('-> actor', indx+':', leg, cn, end=' ')
             if not clickedActorIsAssembly:
                 n = clickedActor.GetMapper().GetInput().GetNumberOfPoints()
             else:
@@ -179,7 +179,7 @@ def keypress(vp, obj, event):
 
 
     if key == "S":
-        colors.printc('Saving window as screenshot.png', 'green')
+        colors.printc('Saving window as screenshot.png', c='green')
         vp.screenshot('screenshot.png')
         return
 
@@ -258,7 +258,10 @@ def keypress(vp, obj, event):
                     if vp.verbose:
                         if hasattr(a, 'legend'): print ('actor:', a.legend, end='')
                         print ('\tfound POINT array with name:', name, end=', ')
-                        print ('type:', arrtypes[ptdata.GetArray(i).GetDataType()])
+                        try: 
+                            print ('type:', arrtypes[ptdata.GetArray(i).GetDataType()])
+                        except:
+                            print ('type:', ptdata.GetArray(i).GetDataType())
                     ptdata.SetActiveScalars(name)
                     foundarr=1
                 if not foundarr:
@@ -274,7 +277,10 @@ def keypress(vp, obj, event):
                     if vp.verbose:
                         if hasattr(a, 'legend'): print ('actor:', a.legend, end='')
                         print ('\tfound POINT array', 'tname:', name, end=', ')
-                        print ('type:', arrtypes[cldata.GetArray(i).GetDataType()])
+                        try:
+                            print ('type:', arrtypes[cldata.GetArray(i).GetDataType()])
+                        except:
+                            print ('type:', cldata.GetArray(i).GetDataType())
                     cldata.SetActiveScalars(name)
                     foundarr=1
                 if not foundarr:
@@ -339,7 +345,7 @@ def keypress(vp, obj, event):
                 colors.printc('   ...removing actor: '+ str(vp.clickedActor.legend)+', press x to put it back')
             else: 
                 if vp.verbose:
-                    colors.printc('Click an actor and press x to toggle it.',5)
+                    colors.printc('Click an actor and press x to toggle it.',c=5)
         else:
             vp.renderer.AddActor(vp.justremoved)
             vp.renderer.Render()
@@ -353,10 +359,10 @@ def keypress(vp, obj, event):
                 fname = fname.split('.')[0]+'.vtk'
             else: fname = 'clipped.vtk'
             if vp.verbose:
-                colors.printc('Move handles to remove part of the actor.',4)
+                colors.printc('Move handles to remove part of the actor.',c=4)
             utils.cutterWidget(vp.clickedActor, fname) 
         elif vp.verbose: 
-            colors.printc('Click an actor and press X to open the cutter box widget.',4)
+            colors.printc('Click an actor and press X to open the cutter box widget.',c=4)
 
 
     if vp.interactor: 

@@ -13,14 +13,15 @@ pr.add_argument("-p", "--point-size", type=float, help="specify point size", def
 pr.add_argument("-l", "--legend-off",           help="do not show legends", action="store_true")
 pr.add_argument("-c", "--color", type=str,      help="mesh color [integer or color name]", default='None', metavar='')
 pr.add_argument("-k", "--show-scalars",         help="use scalars as colors", action="store_true") 
-pr.add_argument("-n", "--sequence-mode",        help="show each file in a separate renderer", action="store_true")
 pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-3]", default=1, metavar='')
 pr.add_argument("-f", "--full-screen",          help="full screen mode", action="store_true")
 pr.add_argument("-z", "--zoom", type=float,     help="zooming factor", default=1.1, metavar='')
 pr.add_argument("-i", "--no-camera-share",      help="do not share camera in renderers", action="store_true")
 pr.add_argument("-b", "--background", type=str, help="background color [integer or color name]", default='w', metavar='')
 pr.add_argument("-q", "--quiet",                help="quiet mode, less verbose", action="store_true")
+pr.add_argument("-n", "--sequence-mode",        help="show each file in a separate renderer", action="store_true")
 pr.add_argument("-s", "--scrolling-mode",       help="Scrolling Mode: use arrows to scroll files", action="store_true") 
+pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode (for SLC/TIFF) files", action="store_true") 
 args = pr.parse_args()
 
 humansort(args.files)
@@ -37,8 +38,8 @@ if args.sequence_mode:
     if 1<nfiles<201: 
         N = nfiles
     if nfiles>200: 
-        printc("\nWarning: option '-n' allows a maximum of 200 files", 1)
-        printc("         you are trying to load "+str(nfiles)+" files.\n", 1)
+        printc("\nWarning: option '-n' allows a maximum of 200 files", c=1)
+        printc("         you are trying to load ", nfiles, " files.\n", c=1)
         N = 200
     vp = Plotter(title=title, size=wsize, N=N, bg=args.background)
 else:
@@ -56,9 +57,93 @@ if args.legend_off or nfiles == 1: leg = False
 if args.wireframe: wire = True 
 if args.scrolling_mode and args.sequence_mode:
     args.scrolling_mode = False
-
+    
+    
 ########################################################################
-if (not args.scrolling_mode) or nfiles == 1:
+# special case of SLC/TIFF volumes with -g option
+if args.ray_cast_mode:
+    import vtk, os.path
+    from vtkplotter.colors import getColor
+
+    ren1 = vtk.vtkRenderer()
+    printc('GPU Ray-casting Mode:', c='b', invert=1)
+    printc('Press r to reset camera', c='b')
+    printc('      q to exit.', c='b')
+
+    for filename in args.files:
+        if not os.path.isfile(filename):
+            printc('File not found:', filename, c=1)
+            continue
+                
+        if   '.tif' in filename.lower(): 
+            reader = vtk.vtkTIFFReader() 
+        elif '.slc' in filename.lower(): 
+            reader = vtk.vtkSLCReader() 
+            if not reader.CanReadFile(filename):
+                printc('Bad SLC file:', filename, c=1)
+                continue
+        reader.SetFileName(filename) 
+        reader.Update() 
+    
+        volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
+        volumeMapper.SetBlendModeToMaximumIntensity()
+        volumeMapper.SetInputConnection(reader.GetOutputPort())
+        printc('scalar range is', reader.GetOutput().GetScalarRange(),
+                'for', filename, c='b', bold=0)
+        smin,smax = reader.GetOutput().GetScalarRange()
+        
+        # Create transfer mapping scalar value to opacity
+        opacityTransferFunction = vtk.vtkPiecewiseFunction()
+        opacityTransferFunction.AddPoint(smin, 0.0)
+        opacityTransferFunction.AddPoint(smin+(smax-smin)/5, 0.0)
+        opacityTransferFunction.AddPoint(smax, 1.0)
+        
+        # Create transfer mapping scalar value to color
+        r,g,b = getColor(args.color)
+        colorTransferFunction = vtk.vtkColorTransferFunction()
+        colorTransferFunction.AddRGBPoint(smin, 1.0, 1.0, 1.0)
+        colorTransferFunction.AddRGBPoint((smax+smin)/2, r/2, g/2, b/2)
+        colorTransferFunction.AddRGBPoint(smax, 0.0, 0.0, 0.0)
+        
+        # The property describes how the data will look
+        volumeProperty = vtk.vtkVolumeProperty()
+        volumeProperty.SetColor(colorTransferFunction)
+        volumeProperty.SetScalarOpacity(opacityTransferFunction)
+        volumeProperty.SetInterpolationTypeToLinear()
+        
+        # volume holds the mapper and the property and can be used to position/orient it
+        volume = vtk.vtkVolume()
+        volume.SetMapper(volumeMapper)
+        volume.SetProperty(volumeProperty)
+    
+        ren1.AddVolume(volume)  
+        
+    ren1.SetBackground(1.0, 1.0, 1.0)
+    renWin = vtk.vtkRenderWindow()
+    renWin.AddRenderer(ren1)
+    renWin.SetSize(1100,1100)
+    
+    iren = vtk.vtkRenderWindowInteractor()
+    iren.SetRenderWindow(renWin)
+    vsty = vtk.vtkInteractorStyleTrackballCamera()
+    iren.SetInteractorStyle(vsty)
+    
+    ren1.ResetCamera()
+    ren1.GetActiveCamera().Zoom(2)
+    renWin.Render()
+    
+    def CheckAbort(obj, event):
+        if obj.GetEventPending() != 0:
+            obj.SetAbortRender(1)
+    renWin.AddObserver("AbortCheckEvent", CheckAbort)
+    
+    iren.Initialize()
+    renWin.Render()
+    iren.Start()
+    
+      
+########################################################################
+elif (not args.scrolling_mode) or nfiles == 1:
 
     for i in range(N):
         f = args.files[i]
@@ -123,8 +208,8 @@ else:
             _kact -= step
             if _kact<0: _kact= 0
         
-        printc(['showing file #', _kact+1,'/', n, '\t',args.files[_kact],'\r'], 
-                c='yellow', bold=0, dim=1, end='')        
+        printc('showing file #', _kact+1,'/', n, '\t',args.files[_kact],'\r', 
+               c='yellow', bold=0, dim=1, end='')        
         vplt.interactor.ExitCallback()
     
     
@@ -157,10 +242,10 @@ else:
                 print('cannot set point size for', f)
 
     printc('Scrolling Mode', c='y', invert=1, end='')
-    printc(', press:', 'y')
-    printc('- Right and Left keys to move through files,', 'y')
-    printc('- Up and Down keys to fast forward and backward.', 'y') 
-    printc('- Esc to exit.', 'y') 
+    printc(', press:', c='y')
+    printc('- Right and Left keys to move through files,', c='y')
+    printc('- Up and Down keys to fast forward and backward.', c='y') 
+    printc('- Esc to exit.', c='y') 
 
     _kact=0
     while True:

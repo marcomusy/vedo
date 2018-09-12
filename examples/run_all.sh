@@ -26,6 +26,9 @@ python basic/mesh_coloring.py
 python basic/trail.py
 python basic/colorpalette.py
 python basic/colortext.py
+python basic/largestregion.py
+python basic/earth.py
+python basic/mirror.py
 
 python advanced/brownian2D.py
 python advanced/cell_main.py

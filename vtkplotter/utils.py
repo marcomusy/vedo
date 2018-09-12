@@ -225,7 +225,7 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     if os.path.exists(name): 
         fn = name
     elif not os.path.exists(fn):
-        colors.printc(('Texture', name, 'not found in', cdir+'/textures'), 'r')
+        colors.printc('Texture', name, 'not found in', cdir+'/textures', c='r')
         colors.printc('Available textures:', c='m', end=' ')
         for ff in os.listdir(cdir + '/textures'):
             colors.printc(ff.split('.')[0], end=' ', c='m')
@@ -251,8 +251,8 @@ def assignConvenienceMethods(actor, legend):
         setattr(actor, 'legend', legend)
 
     def _fclone(self, c=None, alpha=None, wire=False, bc=None,
-                edges=False, legend=None, texture=None, rebuild=True): 
-        return clone(self, c, alpha, wire, bc, edges, legend, texture, rebuild)
+                edges=False, legend=None, texture=None, rebuild=True, mirror=''): 
+        return clone(self, c, alpha, wire, bc, edges, legend, texture, rebuild, mirror)
     actor.clone = types.MethodType( _fclone, actor )
 
     def _fpoint(self, i, p=None): 
@@ -371,10 +371,6 @@ def assignConvenienceMethods(actor, legend):
         return insidePoints(self, points, invert, tol)
     actor.insidePoints = types.MethodType(_finsidePoints , actor)
 
-    def _fflipNormals(self):
-        return flipNormals(self)
-    actor.flipNormals = types.MethodType(_fflipNormals , actor)
-    
     def _fcellCenters(self):
         return cellCenters(self)
     actor.cellCenters = types.MethodType(_fcellCenters, actor)
@@ -487,17 +483,41 @@ def assignPhysicsMethods(actor):
 
 ######################################################### 
 def clone(actor, c=None, alpha=None, wire=False, bc=None,
-          edges=False, legend=None, texture=None, rebuild=True):
+          edges=False, legend=None, texture=None, rebuild=True, mirror=''):
     '''
     Clone a vtkActor.
         If rebuild is True build its polydata in its current position in space
     '''
     poly = polydata(actor, rebuild)
     if not poly.GetNumberOfPoints():
-        colors.printc('Limitation: cannot clone textured obj. Returning input.',1)
+        colors.printc('Limitation: cannot clone textured obj. Returning input.',c=1)
         return actor
     polyCopy = vtk.vtkPolyData()
     polyCopy.DeepCopy(poly)
+    
+    if mirror:
+        sx, sy, sz = 1,1,1
+        dx, dy, dz = actor.GetPosition()
+        if   mirror.lower()=='x': 
+            sx = -1
+        elif mirror.lower()=='y': 
+            sy = -1
+        elif mirror.lower()=='z': 
+            sz = -1
+        else:
+            colors.printc("Error in mirror(): mirror must be set to x, y or z.", c=1)
+            exit()
+        for j in range(polyCopy.GetNumberOfPoints()):
+            p = [0, 0, 0]
+            polyCopy.GetPoint(j, p)
+            polyCopy.GetPoints().SetPoint(j, p[0]*sx-dx*(sx-1), 
+                                             p[1]*sy-dy*(sy-1), 
+                                             p[2]*sz-dz*(sz-1))
+        rs = vtk.vtkReverseSense()
+        setInput(rs, polyCopy)
+        rs.ReverseNormalsOn()
+        rs.Update()
+        polyCopy = rs.GetOutput()
 
     if legend  is True and hasattr(actor, 'legend'): legend = actor.legend
     if alpha   is None: alpha = actor.GetProperty().GetOpacity()
@@ -506,20 +526,6 @@ def clone(actor, c=None, alpha=None, wire=False, bc=None,
     cact = makeActor(polyCopy, c, alpha, wire, bc, edges, legend, texture)
     cact.GetProperty().SetPointSize(actor.GetProperty().GetPointSize())
     return cact
-
-
-def flipNormals(actor): # N.B. input argument gets modified
-    rs = vtk.vtkReverseSense()
-    setInput(rs, polydata(actor, True))
-    rs.ReverseNormalsOn()
-    rs.Update()
-    poly = rs.GetOutput()
-    mapper = actor.GetMapper()
-    setInput(mapper, poly)
-    mapper.Update()
-    actor.Modified()
-    if hasattr(actor, 'poly'): actor.poly=poly
-    return actor  # return same obj for concatenation
 
 
 def normalize(actor): # N.B. input argument gets modified
@@ -591,6 +597,42 @@ def orientation(actor, newaxis=None, rotation=0):
     return actor
 
 
+def mirror(actor, axis='x'):
+    '''Mirror the actor polydata'''
+    poly = polydata(actor, True)
+    sx, sy, sz = 1,1,1
+    dx, dy, dz = actor.GetPosition()
+    if   axis.lower()=='x': 
+        sx = -1
+    elif axis.lower()=='y': 
+        sy = -1
+    elif axis.lower()=='z': 
+        sz = -1
+    else:
+        colors.printc("Error in mirror(): axis must be x, y or z.", c=1)
+        exit()
+    for j in range(poly.GetNumberOfPoints()):
+        p = [0, 0, 0]
+        poly.GetPoint(j, p)
+        poly.GetPoints().SetPoint(j, p[0]*sx-2*dx, p[1]*sy-2*dy, p[2]*sz-2*dz)
+    pnormals = poly.GetPointData().GetNormals()
+    if pnormals:
+        for j in range(pnormals.GetNumberOfTuples()):
+            n = [0,0,0]
+            pnormals.GetTuple(j, n)
+            pnormals.SetTuple(j,  [n[0]*sx, n[1]*sy, n[2]*sz])    
+    cnormals = poly.GetCellData().GetNormals()
+    if cnormals:
+        for j in range(cnormals.GetNumberOfTuples()):
+            n = [0,0,0]
+            cnormals.GetTuple(j, n)
+            cnormals.SetTuple(j, [n[0]*sx, n[1]*sy, n[2]*sz] )    
+        
+    actor.Modified()
+    poly.GetPoints().Modified()
+    return actor
+
+
 ############################################################################
 def shrink(actor, fraction=0.85):   # N.B. input argument gets modified
     '''Shrink the triangle polydata in the representation of actor'''
@@ -611,7 +653,7 @@ def stretch(actor, q1, q2):
     '''Stretch actor between points q1 and q2'''
 
     if not hasattr(actor, 'base'):
-        colors.printc('Please define vectors actor.base and actor.top at creation. Exit.','r')
+        colors.printc('Please define vectors actor.base and actor.top at creation. Exit.',c='r')
         exit(0)
 
     TI = vtk.vtkTransform()
@@ -728,7 +770,7 @@ def insidePoints(actor, points, invert=False, tol=1e-05):
     featureEdge.Update()
     openEdges = featureEdge.GetOutput().GetNumberOfCells()
     if openEdges != 0:
-        colors.printc("Warning: polydata is not a closed surface",5)
+        colors.printc("Warning: polydata is not a closed surface", c=5)
     
     vpoints = vtk.vtkPoints()
     for p in points: vpoints.InsertNextPoint(p)
@@ -890,8 +932,8 @@ def polydata(obj, rebuild=True, index=0):
     elif isinstance(obj, vtk.vtkImageActor): return obj.GetMapper().GetInput()
     elif obj is None: return None
     
-    colors.printc("Fatal Error in polydata(): ", 'r', end='')
-    colors.printc(("input is neither a vtkActor nor vtkAssembly.", [obj]), 'r')
+    colors.printc("Fatal Error in polydata(): ", c='r', end='')
+    colors.printc("input is neither a vtkActor nor vtkAssembly.", [obj], c='r')
     exit(1)
 
 
@@ -1027,7 +1069,7 @@ def pointScalars(actor, scalars, name):
         scalars = np.array(scalars) - np.min(scalars)
         scalars = scalars/np.max(scalars)
         if len(scalars) != poly.GetNumberOfPoints():
-            colors.printc('Number of scalars != nr. of points',1)
+            colors.printc('Number of scalars != nr. of points', c=1)
             exit()
         arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
         arr.SetName(name)
@@ -1042,7 +1084,7 @@ def pointColors(actor, scalars, cmap='jet'):
         """
         poly = polydata(actor, False)
         if len(scalars) != poly.GetNumberOfPoints():
-            colors.printc('Number of scalars != nr. of points',1)
+            colors.printc('Number of scalars != nr. of points', c=1)
             exit()
        
         lut = vtk.vtkLookupTable()
@@ -1070,7 +1112,7 @@ def cellScalars(actor, scalars, name):
         scalars = np.array(scalars) - np.min(scalars)
         scalars = scalars/np.max(scalars)
         if len(scalars) != poly.GetNumberOfCells():
-            colors.printc('Number of scalars != nr. of cells',1)
+            colors.printc('Number of scalars != nr. of cells', c=1)
             exit()
         arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
         arr.SetName(name)
@@ -1085,7 +1127,7 @@ def cellColors(actor, scalars, cmap='jet'):
         """
         poly = polydata(actor, False)
         if len(scalars) != poly.GetNumberOfCells():
-            colors.printc('Number of scalars != nr. of cells',1)
+            colors.printc('Number of scalars != nr. of cells', c=1)
             exit()
        
         lut = vtk.vtkLookupTable()
@@ -1189,9 +1231,9 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
     boxWidget.AddObserver("InteractionEvent", SelectPolygons)
     boxWidget.On()
     
-    colors.printc('\nCutterWidget:\n Move handles to cut parts of the actor','m')
-    colors.printc(' Press q to continue, Escape to exit','m')
-    colors.printc((" Press X to save file to", outputname), 'm')
+    colors.printc('\nCutterWidget:\n Move handles to cut parts of the actor',c='m')
+    colors.printc(' Press q to continue, Escape to exit',c='m')
+    colors.printc(" Press X to save file to", outputname, c='m')
     def cwkeypress(obj, event):
         key = obj.GetKeySym()
         if   key == "q" or key == "space" or key == "Return":
@@ -1208,7 +1250,7 @@ def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
             setInput(w, cpd.GetOutput())
             w.SetFileName(outputname)
             w.Write()
-            colors.printc("Saved file: "+outputname, 'g')
+            colors.printc("Saved file: "+outputname, c='g')
         elif key == "Escape": 
             exit(0)
     
@@ -1256,7 +1298,7 @@ def subdivide(actor, N=1, method=0, legend=None):
     elif method==2: sdf = vtk.vtkAdaptiveSubdivisionFilter()
     elif method==3: sdf = vtk.vtkButterflySubdivisionFilter()
     else:
-        colors.printc('Error in subdivide: unknown method.', 'r')
+        colors.printc('Error in subdivide: unknown method.', c='r')
         exit(1)
     if method != 2: sdf.SetNumberOfSubdivisions(N)
     setInput(sdf, originalMesh)

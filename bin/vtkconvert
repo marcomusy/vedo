@@ -1,0 +1,63 @@
+#!/usr/bin/env python
+# 
+
+from __future__ import division, print_function
+from vtkplotter.vtkio import write, humansort
+from vtkplotter.vtkio import loadFile, convertNeutral2Xml
+from vtkplotter import printc
+import sys, argparse
+
+allowedexts = ['vtk', 'vtp', 'vtu', 'vts', 'ply', 'stl', 'byu', 'xml']
+
+pr = argparse.ArgumentParser(description="Allowed targets: "+str(allowedexts))
+pr.add_argument('files', nargs='*', help="Input filename(s)")
+pr.add_argument("-to", type=str, help="target format [vtk]", default='vtk', metavar='')
+args = pr.parse_args()
+
+humansort(args.files)
+nfiles = len(args.files)
+if nfiles == 0: 
+    sys.exit()
+
+target_ext = args.to.lower()
+
+if target_ext not in allowedexts:
+    printc('Sorry target cannot be',target_ext,
+           '\nMust be', allowedexts, c=1)
+    sys.exit()
+
+for f in args.files:
+    source_ext = f.split('.')[-1]
+    
+    if source_ext=='wrl':
+        import vtk
+        from vtkplotter.utils import polydata
+        importer = vtk.vtkVRMLImporter()
+        importer.SetFileName(f)
+        importer.Read()
+        importer.Update()
+        
+        actors = importer.GetRenderer().GetActors() #vtkActorCollection
+        actors.InitTraversal()
+        
+        polyapp = vtk.vtkAppendPolyData()
+        for i in range(actors.GetNumberOfItems()):
+        	act = actors.GetNextActor()
+        	poly = polydata(act) 
+        	polyapp.AddInputData(poly)
+        	print('merging polydata',i,'with', poly.GetNumberOfPoints(),'points')
+        polyapp.Update()
+        poly = polyapp.GetOutput()
+    else:
+        poly = loadFile(f, 1,1,0,0,0,None,None,0,0,0,0)
+        
+    if target_ext == source_ext:
+        continue
+    newf = f.replace("."+source_ext,"")+"."+target_ext
+    printc('converting',f, '->', newf)
+
+    if ".neu" in f and target_ext=='xml':
+        convertNeutral2Xml(f, newf)
+    else:
+        write(poly, newf)
+ 

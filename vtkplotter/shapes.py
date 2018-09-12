@@ -40,10 +40,10 @@ def points(plist, c='b', tags=[], r=5, alpha=1, legend=None):
 
 def _colorPoints(plist, cols, r, alpha, legend):
     if len(plist) > len(cols):
-        vio.printc(("Mismatch in colorPoints()", len(plist), len(cols)), 1)
+        vio.printc("Mismatch in colorPoints()", len(plist), len(cols), c=1)
         exit()
     if len(plist) != len(cols):
-        vio.printc(("Warning: mismatch in colorPoints()", len(plist), len(cols)))
+        vio.printc("Warning: mismatch in colorPoints()", len(plist), len(cols))
     src = vtk.vtkPointSource()
     src.SetNumberOfPoints(len(plist))
     src.Update()
@@ -266,7 +266,7 @@ def polygon(pos=[0,0,0], normal=[0,0,1], nsides=6, r=1,
         actor = vtk.vtkFollower()
         actor.SetCamera(camera)
         if not camera:
-            vio.printc('Warning: vtkCamera does not yet exist for polygon',5)
+            vio.printc('Warning: vtkCamera does not yet exist for polygon',c=5)
     else:
         actor = vtk.vtkActor()
     actor.SetMapper(mapper)
@@ -369,22 +369,22 @@ def spheres(centers, r=1,
 
     if cisseq:
         if len(centers) > len(c):
-            vio.printc(("Mismatch in spheres() colors", len(centers), len(c)), 1)
+            vio.printc("Mismatch in spheres() colors", len(centers), len(c), c=1)
             exit()
         if len(centers) != len(c):
-            vio.printc(("Warning: mismatch in spheres() colors", len(centers), len(c)))
+            vio.printc("Warning: mismatch in spheres() colors", len(centers), len(c))
             
     risseq=False
     if vu.isSequence(r): risseq=True
 
     if risseq:
         if len(centers) > len(r):
-            vio.printc(("Mismatch in spheres() radius", len(centers), len(r)), 1)
+            vio.printc("Mismatch in spheres() radius", len(centers), len(r), c=1)
             exit()
         if len(centers) != len(r):
-            vio.printc(("Warning: mismatch in spheres() radius", len(centers), len(r)))
+            vio.printc("Warning: mismatch in spheres() radius", len(centers), len(r))
     if cisseq and risseq:
-        vio.printc("Limitation: c and r cannot be both sequences.",1)
+        vio.printc("Limitation: c and r cannot be both sequences.",c=1)
         exit()
 
     src = vtk.vtkSphereSource()
@@ -448,6 +448,42 @@ def spheres(centers, r=1,
             actor.GetProperty().SetColor(vc.getColor(c))
     vu.assignConvenienceMethods(actor, legend)
     return actor
+
+
+def earth(pos=[0,0,0], r=1, lw=1):
+    import os
+    tss = vtk.vtkTexturedSphereSource()
+    tss.SetRadius(r)
+    tss.SetThetaResolution(72)
+    tss.SetPhiResolution(36)
+    earthMapper = vtk.vtkPolyDataMapper()
+    earthMapper.SetInputConnection(tss.GetOutputPort())
+    earthActor = vtk.vtkActor()
+    earthActor.SetMapper(earthMapper)
+    atext = vtk.vtkTexture()
+    pnmReader = vtk.vtkPNMReader()
+    cdir = os.path.dirname(__file__)
+    if cdir == '': cdir = '.'  
+    fn = cdir + '/textures/earth.ppm'
+    pnmReader.SetFileName(fn)
+    atext.SetInputConnection(pnmReader.GetOutputPort())
+    atext.InterpolateOn()
+    earthActor.SetTexture(atext)
+    if not lw: 
+        vu.assignConvenienceMethods(earthActor, None)
+        vu.assignPhysicsMethods(earthActor)
+        earthActor.SetPosition(pos)
+        return earthActor
+    es = vtk.vtkEarthSource()
+    es.SetRadius(r/.995)
+    earth2Mapper = vtk.vtkPolyDataMapper()
+    earth2Mapper.SetInputConnection(es.GetOutputPort())
+    earth2Actor = vtk.vtkActor()
+    earth2Actor.SetMapper(earth2Mapper)
+    earth2Actor.GetProperty().SetLineWidth(lw)
+    ass = vu.makeAssembly([earthActor, earth2Actor])
+    ass.SetPosition(pos)
+    return ass
 
 
 def ellipsoid(pos=[0,0,0], axis1=[1,0,0], axis2=[0,2,0], axis3=[0,0,3],

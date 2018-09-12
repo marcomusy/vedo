@@ -2,8 +2,10 @@
 A python helper class to easily draw, analyse and animate 3D objects.
 
 ## Download and Install:
-After installing [VTK](https://www.vtk.org/) (e.g. with *conda install -c conda-forge vtk*
-or *sudo apt install vtk7* or *pip install vtk*), simply type:
+After installing [VTK](https://www.vtk.org/) (e.g. with 
+`conda install -c conda-forge vtk`
+or `sudo apt install vtk7` 
+or `pip install vtk`), simply type:
 ```bash
 (sudo) pip install --upgrade vtkplotter
 ```
@@ -22,8 +24,12 @@ vtkplotter data/*.vtk  # on Windows try python vtkplotter
 # other valid formats: [vtu,vts,vtp, ply,obj,stl,xml,neutral,gmsh,pcd,xyz,txt,byu, tif,slc, png,jpg]
 ```
 to visualize multiple files or files time-sequences try `-n` or `-s` options.<br />
-
+Voxel-data (*slc*, *tiff* stack) files can also be visualized with option `-g`, e.g.:
 ```bash
+vtkplotter -g -c blue examples/data/embryo.slc
+```
+
+```
 usage: vtkplotter files [-h] [-a] [-w] [-p] [-l] [-c] [-k] [-n] [-x] [-f] [-z] [-i] [-b] [-q] [-s]
 
 positional arguments:
@@ -45,6 +51,15 @@ optional arguments:
   -q, --quiet           quiet mode, less verbose
   -n, --sequence-mode   show each file in a separate renderer
   -s, --scrolling-mode  Scrolling Mode: use arrows to scroll files
+  -g, --ray-cast-mode   GPU Ray-casting Mode (for SLC/TIFF) files
+```
+<br />
+
+The command `vtkconvert -to ply file.vtk` can be used to convert file formats easily:
+```
+usage: vtkconvert [-h] [-to] [files [files ...]]
+
+Allowed targets: ['vtk', 'vtp', 'vtu', 'vts', 'ply', 'stl', 'byu', 'xml']
 ```
 <br />
 
@@ -295,6 +310,7 @@ def fxy(z='sin(x)+y', x=[0,3], y=[0,3], zlimits=[None, None], showNan=True, zlev
 def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None)
 def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None)
 def boundaries(actor, c='p', lw=5, legend=None)
+def extractLargestRegion(actor, c=None, alpha=None, wire=False, bc=None, edges=False, legend=None, texture=None)
 def delaunay2D(actor, tol=None) # triangulate after projecting on the xy plane
 def align(source, target, iters=100, legend=None):
 def spline(points, smooth=0.5, degree=2, s=5, c='b', alpha=1., nodes=False, legend=None, res=20)
@@ -326,7 +342,8 @@ def cellColors(actor, scalars, cmap='jet')
 def cellScalars(actor, scalars, name)
 def centerOfMass(actor)
 def cleanPolydata(actor, tol=None)
-def clone(actor, c=None, alpha=None, wire=False, bc=None, edges=False, legend=None, texture=None, rebuild=True)
+def clone(actor, c=None, alpha=None, wire=False, bc=None, edges=False, 
+          legend=None, texture=None, rebuild=True, mirror='')
 def closestPoint(actor, pt, N=1, radius=None, returnIds=False)
 def coordinates(actor, rebuild=True)
 def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1, bc=(0.7, 0.8, 1), legend=None)

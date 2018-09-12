@@ -352,93 +352,99 @@ for i in range(10):
     colors3.append((r,g,b))
 
 
-################################################################### color print
-def printc(strings, c='white', bc='', hidden=False, bold=True, 
-           blink=False, underline=False, dim=False, invert=False,
-           separator=' ', box= '', end='\n'):
-    '''
-    Print to terminal in color. 
-    
-    Available colors:
-        black, red, green, yellow, blue, magenta, cyan, white
-    Usage example:
-        printc( 'anything', c='red', bold=False, end='' )
-        printc( ['anything', 455.5, vtkObject], 'green')
-        printc(299792.48, c=4) # 4 is blue
-    '''
-    if isinstance(strings, tuple): strings = list(strings)
-    elif not isinstance(strings, list): strings = [str(strings)]
-    txt = str()
-    for i,s in enumerate(strings):
-        if i == len(strings)-1: separator=''
-        txt += str(s) + separator
-    
-    if _terminal_has_colors:
-        try:
-            cols = {'black':0, 'red':1, 'green':2, 'yellow':3, 
-                    'blue':4, 'magenta':5, 'cyan':6, 'white':7,
-                    'k':0, 'r':1, 'g':2, 'y':3,
-                    'b':4, 'm':5, 'c':6, 'w':7}
-            if isinstance(c, int): 
-                cf = c % 8
-            elif isinstance(c, str): 
-                cf = cols[c.lower()]
-            else:
-                print('Error in printc(): unknown color c=', c)
-                exit()
-            if bc:
-                if isinstance(bc, int): 
-                    cb = bc % 8
-                elif isinstance(bc, str): 
-                    cb = cols[bc.lower()]
-                else:
-                    print('Error in printc(): unknown color c=', c)
-                    exit()
-
-            special, seq = '', ''            
-            if hidden: 
-                special += '\x1b[8m'
-            else:
-                if c or bc:
-                    seq = "\x1b["+str(30+cf)
-                    if bc: seq += ";"+str(40+cb)
-                    seq += 'm'
-                if underline and not box: special += '\x1b[4m'
-                if dim:    special += '\x1b[2m'
-                if invert: special += '\x1b[7m'
-                if bold:   special += '\x1b[1m'
-                if blink:  special += '\x1b[5m'
-
-            if box and not('\n' in txt):
-                if len(box)>1:
-                    box=box[0]
-                if box in ['_','=','-','+']: 
-                    boxv='|'
-                else:
-                    boxv=box
-                sys.stdout.write(special + seq+ box*(len(txt)+4)+'\n')
-                sys.stdout.write(boxv+' '+txt+' '+boxv+'\n')
-                sys.stdout.write(box*(len(txt)+4)+ "\x1b[0m" +end)
-            else:
-                sys.stdout.write(special + seq + txt + "\x1b[0m" +end)
-            sys.stdout.flush()
-        except: 
-            print (txt, end=end)
-    else:
-        print (txt, end=end)
-        
+########################################################### terminal color print
 def _has_colors(stream):
     if not hasattr(stream, "isatty"): 
         return False
     if not stream.isatty(): 
-        return False # auto color only on TTYs
+        return False
     try:
         import curses
         curses.setupterm()
         return curses.tigetnum("colors") > 2
     except:
         return False
-_terminal_has_colors = _has_colors(sys.stdout)
+_terminal_has_no_colors = not(_has_colors(sys.stdout))
+_terminal_cols = {'black':0, 'red':1, 'green':2, 'yellow':3, 
+                  'blue':4, 'magenta':5, 'cyan':6, 'white':7,
+                  'k':0, 'r':1, 'g':2, 'y':3,
+                  'b':4, 'm':5, 'c':6, 'w':7}
+
+def printc(*strings, c='white', bc='', hidden=False, bold=True, 
+           blink=False, underline=False, dim=False, invert=False,
+           separator=' ', box= '', flush=True, end='\n'):
+    '''
+    Print to terminal in color. 
+    
+    Available colors:
+        black, red, green, yellow, blue, magenta, cyan, white
+    Usage example:
+        printc('anything', c='red', bold=False, end='' )
+        printc('anything', 455.5, vtkObject, c='green')
+        printc(299792.48, c=4) # 4 is blue
+    '''
+    
+    if _terminal_has_no_colors:
+        print(*strings, end=end)
+        if flush: sys.stdout.flush()
+        return
+
+    try:
+        txt = str()
+        ns = len(strings)-1
+        for i,s in enumerate(strings):
+            if i == ns: separator=''
+            txt += str(s) + separator
+    
+        if isinstance(c, int): 
+            cf = c % 8
+        elif isinstance(c, str): 
+            cf = _terminal_cols[c.lower()]
+        else:
+            print('Error in printc(): unknown color c=', c)
+            exit()
+        if bc:
+            if isinstance(bc, int): 
+                cb = bc % 8
+            elif isinstance(bc, str): 
+                cb = _terminal_cols[bc.lower()]
+            else:
+                print('Error in printc(): unknown color c=', c)
+                exit()
+
+        special, cseq = '', ''            
+        if hidden: 
+            special += '\x1b[8m'
+            box=''
+        else:
+            if c or bc:
+                cseq = "\x1b["+str(30+cf)
+                if bc: 
+                    cseq += ";"+str(40+cb)
+                cseq += 'm'
+            if underline and not box: special += '\x1b[4m'
+            if dim:    special += '\x1b[2m'
+            if invert: special += '\x1b[7m'
+            if bold:   special += '\x1b[1m'
+            if blink:  special += '\x1b[5m'
+
+        if box and not('\n' in txt):
+            if len(box)>1:
+                box=box[0]
+            if box in ['_','=','-','+']: 
+                boxv='|'
+            else:
+                boxv=box
+            sys.stdout.write(special + cseq+ box*(len(txt)+4)+'\n')
+            sys.stdout.write(boxv+' '+txt+' '+boxv+'\n')
+            sys.stdout.write(box*(len(txt)+4)+ "\x1b[0m" +end)
+        else:
+            sys.stdout.write(special + cseq + txt + "\x1b[0m" +end)
+    except: 
+        print(*strings, end=end)
+
+    if flush: sys.stdout.flush()
+
 
 
 

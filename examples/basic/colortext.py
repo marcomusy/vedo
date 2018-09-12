@@ -19,11 +19,11 @@ printc(' 8- Whatever you do, do it well - Walt Disney', c=3, bc=1)
 printc(' 9- What we think, we become - Buddha', c=6, invert=1)
 printc('10- All limitations are self-imposed - Oliver Wendell Holmes', c=7, dim=1)
 printc('11- When words fail, music speaks - Shakespeare')
-printc(['12- If you tell the truth you don’t have to remember anything',
-        'Mark Twain'], separator=' - ', underline=1, invert=1, c=6, dim=1)
+printc('12- If you tell the truth you don’t have to remember anything',
+       'Mark Twain', separator=' - ', underline=1, invert=1, c=6, dim=1)
 
 printc(299792.48, c=4, box='*') 
 
 import vtk
-printc( ['Any string', True, 455.5, vtk.vtkActor], 'green', box='=', invert=1)
+printc( 'Any string', True, 455.5, vtk.vtkActor,  c='green', box='=', invert=1)
 
