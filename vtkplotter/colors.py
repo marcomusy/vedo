@@ -370,24 +370,62 @@ _terminal_cols = {'black':0, 'red':1, 'green':2, 'yellow':3,
                   'k':0, 'r':1, 'g':2, 'y':3,
                   'b':4, 'm':5, 'c':6, 'w':7}
 
-def printc(*strings, c='white', bc='', hidden=False, bold=True, 
-           blink=False, underline=False, dim=False, invert=False,
-           separator=' ', box= '', flush=True, end='\n'):
+def printc(*strings, **keys):
     '''
-    Print to terminal in color. 
+    Print to terminal in colors.
     
+    Keys:
+        c, foreground color ['white']
+        bc, background color ['']
+        hidden, do not show text [False]
+        bold, boldface [True]
+        blink, blinking text [False]
+        underline, underline text [False]
+        dim, make text look dimmer [False]
+        invert, invert background anf forward colors [False]
+        separator, separate inputs with specified text [' ']
+        box, print a box with specified text character ['']
+        flush, flush buffer after printing [True]
+        end, end character to be printed ['\n']
+        
     Available colors:
         black, red, green, yellow, blue, magenta, cyan, white
+        
     Usage example:
         printc('anything', c='red', bold=False, end='' )
         printc('anything', 455.5, vtkObject, c='green')
         printc(299792.48, c=4) # 4 is blue
     '''
-    
+    end='\n'    
+    flush=True
+    if 'end' in keys: end = keys['end']
+    if 'flush' in keys: flush = keys['flush']
+
     if _terminal_has_no_colors:
         print(*strings, end=end)
         if flush: sys.stdout.flush()
         return
+
+    c='white' # to work with python2
+    bc=''
+    hidden=False
+    bold=True
+    blink=False
+    underline=False
+    dim=False
+    invert=False
+    separator=' '
+    box= ''    
+    if 'c' in keys: c = keys['c']
+    if 'bc' in keys: bc = keys['bc']
+    if 'hidden' in keys: hidden = keys['hidden']
+    if 'bold' in keys: bold = keys['bold']
+    if 'blink' in keys: blink = keys['blink']
+    if 'underline' in keys: underline = keys['underline']
+    if 'dim' in keys: dim = keys['dim']
+    if 'invert' in keys: invert = keys['invert']
+    if 'separator' in keys: separator = keys['separator']
+    if 'box' in keys: box = keys['box']
 
     try:
         txt = str()
