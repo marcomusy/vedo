@@ -7,7 +7,7 @@ After installing [VTK](https://www.vtk.org/) (e.g. with
 or `sudo apt install vtk7` 
 or `pip install vtk`), simply type:
 ```bash
-(sudo) pip install --upgrade vtkplotter
+pip install --upgrade vtkplotter
 ```
 
 ## Usage examples
@@ -51,7 +51,7 @@ optional arguments:
   -q, --quiet           quiet mode, less verbose
   -n, --sequence-mode   show each file in a separate renderer
   -s, --scrolling-mode  Scrolling Mode: use arrows to scroll files
-  -g, --ray-cast-mode   GPU Ray-casting Mode (for SLC/TIFF) files
+  -g, --ray-cast-mode   GPU Ray-casting Mode for SLC/TIFF files
 ```
 <br />
 
@@ -116,12 +116,12 @@ vp.show()
 Draw a bunch of basic geometric objects on separate parts of the rendering window:
 ```python
 vp = Plotter(N=6, sharecam=False)
-vp.show( vp.arrow([0,0,0], [1,1,1]),   at=0, legend='arrow()' )
-vp.show( vp.line([0,0,0], [1,1,1]),    at=1, legend='line()' )
-vp.show( vp.point([1,2,3]),            at=2, legend='point()' )
-vp.show( vp.text('Hello', bc=(1,0,0)), at=3 )
-vp.show( vp.sphere(),                  at=4 )
-vp.show( vp.cube(),                    at=5, legend='cube()')
+vp.show(vp.arrow([0,0,0], [1,1,1]),   at=0, legend='arrow()' )
+vp.show(vp.line([0,0,0], [1,1,1]),    at=1, legend='line()' )
+vp.show(vp.point([1,2,3]),            at=2, legend='point()' )
+vp.show(vp.text('Hello', bc=(1,0,0)), at=3 )
+vp.show(vp.sphere(),                  at=4 )
+vp.show(vp.cube(),                    at=5, legend='cube()')
 vp.show(interactive=1)
 ```
 ![ex8](https://user-images.githubusercontent.com/32848391/32666975-91690102-c639-11e7-8f7b-ad07bd6019da.png)
@@ -160,7 +160,7 @@ vp.show()
 
 
 Apply Moving Least Squares algorithm to a large point cloud to obtain a smooth surface 
-from a set of scattered points in space:
+from a set of scattered points in space ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py])):
 ```bash
 python examples/advanced/moving_least_squares2D.py
 ```
@@ -168,16 +168,16 @@ python examples/advanced/moving_least_squares2D.py
 <br />
 
 
-Simulation of a spring in a viscous medium:
+Simulation of a spring in a viscous medium  ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/spring.py)):
 ```bash
-python examples/spring.py
+python examples/basic/spring.py
 ```
 ![spring](https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif)
 <br />
 
 
 Motion of particles of gas in a toroidal tank. The spheres collide elastically with themselves and
-with the walls of the tank.
+with the walls of the tank ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gas.py)):
 ```bash
 python examples/advanced/gas.py
 ```
@@ -186,7 +186,7 @@ python examples/advanced/gas.py
 
 
 
-Simulation of an elastic multiple pendulum with friction:
+Simulation of an elastic multiple pendulum with friction ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/multiple_pendulum.py)):
 ```bash
 python examples/advanced/multiple_pendulum.py
 ```
@@ -194,7 +194,9 @@ python examples/advanced/multiple_pendulum.py
 <br />
 
 
-Direct integration of the wave equation comparing the simple Euler method (green) with the more sofisticated Runge-Kutta 4th order method (red):
+Direct integration of the wave equation comparing the simple Euler method in green
+with the more sofisticated Runge-Kutta 4th order method in red 
+([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/wave_equation.py)):
 ```bash
 python examples/advanced/wave_equation.py
 ```
@@ -202,7 +204,9 @@ python examples/advanced/wave_equation.py
 <br />
 
 
-Simulation of bacteria types that divide at different rates. As they divide they occupy more and more space:
+Simulation of bacteria types that divide at different rates. 
+As they divide they occupy more and more space
+([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/cell_main.py)):
 ```bash
 python examples/advanced/cells_main.py
 ```
@@ -210,15 +214,18 @@ python examples/advanced/cells_main.py
 <br />
 
 
-Simulation of a gyroscope hanging from a spring:
+Simulation of a gyroscope hanging from a spring
+([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/gyroscope1.py)):
 ```bash
-python examples/gyroscope1.py
+python examples/basic/gyroscope1.py
 ```
 ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)
 <br />
 
 
-Simulation of [Rutherford scattering](https://en.wikipedia.org/wiki/Rutherford_scattering) of charged particles on a fixed target (by T. Vandermolen):
+Simulation of [Rutherford scattering](https://en.wikipedia.org/wiki/Rutherford_scattering) 
+of charged particles on a fixed target (by T. Vandermolen)
+([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/particle_simulator.py)):
 ```bash
 python examples/advanced/particle_simulator.py 
 ```
@@ -226,7 +233,8 @@ python examples/advanced/particle_simulator.py
 <br />
 
 
-Visualizing a Turing system of reaction-diffusion between two molecules:
+Visualizing a Turing system of reaction-diffusion between two molecules
+([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/turing.py)):
 ```bash
 python examples/advanced/turing.py
 ```
@@ -234,11 +242,12 @@ python examples/advanced/turing.py
 <br />
 
 
-More examples in directory *examples/basic* and *examples/advanced* .
+More examples can be found in directories *examples/basic* and *examples/advanced* .
 
 If you need to do more complicated things (define widgets.. etc), you still have full access to all
 standard VTK objects (e.g. interactors and renderers through *vp.interactor, vp.renderer*... etc).<br />
-In linux systems with *ffmpeg* you can use *vp.openVideo(), video.addFrame()* and *video.close()* to save a *movie.mp4* file.
+In linux systems with *ffmpeg* you can use *vp.openVideo(), 
+video.addFrame()* and *video.close()* to save a *movie.mp4* file.
 <br />
 To produce animated gifs online, check out [this great site](https://ezgif.com).
 

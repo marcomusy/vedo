@@ -16,7 +16,7 @@ vp = vtkplotter.Plotter(shape=(2,2), axes=2, sharecam=False)
 # draw at renderer nr.0 the first actor, show it with a texture
 # an existing function z(x,y) can be passed:
 f1 = vp.fxy(my_z, texture='paper')
-vp.show(f1, at=0, interactive=0)
+vp.show(f1, at=0)
 
 # c=None shows the original z-scalar color scale. No z-level lines.
 f2 = vp.fxy(lambda x,y: math.sin(x*y), c=None, zlevels=None, texture=None, wire=1)

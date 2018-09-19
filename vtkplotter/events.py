@@ -222,13 +222,6 @@ def keypress(vp, obj, event):
         vp._draw_legend()
 
     elif key in ["3", "KP_Left", "KP_4"]:
-        for i,ia in enumerate(vp.getActors()):
-            ia.GetProperty().SetColor(colors.colors3[(i+vp.icol)%10])
-            ia.GetMapper().ScalarVisibilityOff()
-        vp.icol += 1
-        vp._draw_legend()
-
-    elif key in ["4", "KP_Begin", "KP_5"]:
         c = colors.getColor('gold')
         acs = vp.getActors()
         alpha = 1./len(acs)

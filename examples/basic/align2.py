@@ -19,7 +19,7 @@ pts2 = [ (u(0,x)+3, u(0,x)+i/2+2, u(0,x)+i+1) for i in range(N2) ]
 act1 = vp.points(pts1, c='b', legend='source')
 act2 = vp.points(pts2, c='r', legend='target')
 
-vp.show(at=0, interactive=0)
+vp.show(at=0)
 
 # find best alignment between the 2 sets of points
 alpts1 = vp.align(act1,act2).coordinates()

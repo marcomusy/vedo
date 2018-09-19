@@ -118,6 +118,7 @@ def isSequence(arg):
     if hasattr(arg, "__iter__"): return True
     return False
 
+
 def getColor(rgb=None, hsv=None):
     """
     Convert a color to (r,g,b) format from many input formats, e.g.:
@@ -129,26 +130,31 @@ def getColor(rgb=None, hsv=None):
      int    = 7 picks color #7 in list colors1
      if hsv is set to (hue,saturation,value), rgb is calculated from it 
     """
+    if str(rgb).isdigit(): rgb = int(rgb)
+    
     if hsv: c = hsv2rgb(hsv)
     else: c = rgb 
+    
     if isSequence(c) :
-        if c[0]<=1 and c[1]<=1 and c[2]<=1: return c #already rgb
-        else: return list(np.array(c)/255.) #RGB
+        if c[0]<=1 and c[1]<=1 and c[2]<=1: 
+            return c #already rgb
+        else: 
+            return list(np.array(c)/255.) #RGB
 
     elif isinstance(c, str):
         c = c.replace(',',' ').replace('/',' ').replace('alpha=','')
-        c = c.split()[0] #ignore possible opacity float inside string
-        if 0 < len(c) < 3: 
-            try: # single/double letter color
+        c = c.split()[0] # ignore possible opacity float inside string
+        if 0 < len(c) < 3: # single/double letter color
+            if c.lower() in color_nicks.keys(): 
                 c = color_nicks[c.lower()] 
-            except KeyError:
+            else:
                 print("Unknow color nickname:", c)
                 print ("Available abbreviations:", color_nicks)
-                return [0.5,0.5,0.5]
+                return [0.5, 0.5, 0.5]
     
-        try: # full name color
+        if c.lower() in colors.keys(): # full name color
             c = colors[c.lower()] 
-        except KeyError: 
+        else: 
             import vtk
             if vtk.vtkVersion().GetVTKMajorVersion() > 5:
                 namedColors = vtk.vtkNamedColors()
@@ -165,11 +171,20 @@ def getColor(rgb=None, hsv=None):
             rgbh = np.array(rgb255)/255.
             if np.sum(rgbh)>3: 
                 print("Error in getColor(): Wrong hex color", c)
-                return [0.5,0.5,0.5]
+                return [0.5, 0.5, 0.5]
             return list(rgbh)
             
-    elif isinstance(c, int): 
-        return colors1[c%10] 
+    elif isinstance(c, int):
+        if c>=0:
+            return colors1[c%10]
+        else:
+            return colors2[-c%10]
+
+    elif isinstance(c, float): 
+        if c>=0:
+            return colors1[int(c)%10] 
+        else:
+            return colors2[int(-c)%10] 
 
     print('Unknown color:', c)
     return [0.5,0.5,0.5]
@@ -223,7 +238,8 @@ try:
         'coolwarm':cm_mpl.coolwarm,
         'gist_earth':cm_mpl.gist_earth
     }
-except: mapscales = None
+except: 
+    mapscales = None
     
 
 def colorMap(value, name='jet', vmin=0, vmax=1): 
@@ -318,38 +334,27 @@ def kelvin2rgb(temperature):
     return [red/255, green/255, blue/255]
     
 
-########## other sets of colors
-colors1=[]
-colors1.append((1.0,0.647,0.0))     # orange
-colors1.append((0.59,0.0,0.09))     # dark red
-colors1.append((0.5,1.0,0.0))       # green
-colors1.append((0.5,0.5,0))         # yellow-green
-colors1.append((0.0, 0.66,0.42))    # green blue
-colors1.append((0.0,0.18,0.65))     # blue
-colors1.append((0.4,0.0,0.4))       # plum
-colors1.append((0.4,0.0,0.6))
-colors1.append((0.2,0.4,0.6))
-colors1.append((0.1,0.3,0.2))
+########## default sets of colors
+colors1=[
+    (0.99,0.83,0),       # gold
+    (0.59,0.0,0.09),     # dark red
+    (0.5,1.0,0.0),       # green
+    (0.5,0.5,0),         # yellow-green
+    (0.0, 0.66,0.42),    # green blue
+    (0.0,0.18,0.65),     # blue
+    (0.4,0.0,0.4),       # plum
+    (0.4,0.0,0.6),
+    (0.2,0.4,0.6),
+    (0.1,0.3,0.2)
+]
 
-colors2=[]
-colors2.append((0.99,0.83,0))       # gold
-colors2.append((0.59, 0.0,0.09))    # dark red
-colors2.append((.984,.925,.354))    # yellow
-colors2.append((0.5,  0.5,0))       # yellow-green
-colors2.append((0.5,  1.0,0.0))     # green
-colors2.append((0.0, 0.66,0.42))    # green blue
-colors2.append((0.0, 0.18,0.65))    # blue
-colors2.append((0.4,  0.0,0.4))     # plum
-colors2.append((0.5,  0.5,0))       # yellow-green
-colors2.append((.984,.925,.354))    # yellow
-
-colors3=[]
+colors2=[] # negative integer color number get this:
 for i in range(10):
     pc = (i+0.5)/10
-    r = np.exp(-((pc    )/.2)**2/2)
-    g = np.exp(-((pc-0.5)/.2)**2/2)
-    b = np.exp(-((pc-1.0)/.2)**2/2)
-    colors3.append((r,g,b))
+    r = np.exp(-((pc    )/0.2)**2/2)
+    g = np.exp(-((pc-0.5)/0.2)**2/2)
+    b = np.exp(-((pc-1.0)/0.2)**2/2)
+    colors2.append((r,g,b))
 
 
 ########################################################### terminal color print
@@ -406,16 +411,16 @@ def printc(*strings, **keys):
         if flush: sys.stdout.flush()
         return
 
-    c='white' # to work with python2
-    bc=''
-    hidden=False
-    bold=True
-    blink=False
-    underline=False
-    dim=False
-    invert=False
-    separator=' '
-    box= ''    
+    c = 'white' # to work with python2
+    bc = ''
+    hidden = False
+    bold = True
+    blink = False
+    underline = False
+    dim = False
+    invert = False
+    separator = ' '
+    box = ''    
     if 'c' in keys: c = keys['c']
     if 'bc' in keys: bc = keys['bc']
     if 'hidden' in keys: hidden = keys['hidden']
@@ -435,7 +440,7 @@ def printc(*strings, **keys):
             txt += str(s) + separator
     
         if isinstance(c, int): 
-            cf = c % 8
+            cf = abs(c) % 8
         elif isinstance(c, str): 
             cf = _terminal_cols[c.lower()]
         else:
@@ -443,7 +448,7 @@ def printc(*strings, **keys):
             exit()
         if bc:
             if isinstance(bc, int): 
-                cb = bc % 8
+                cb = abs(bc) % 8
             elif isinstance(bc, str): 
                 cb = _terminal_cols[bc.lower()]
             else:
@@ -473,15 +478,17 @@ def printc(*strings, **keys):
                 boxv='|'
             else:
                 boxv=box
-            sys.stdout.write(special + cseq+ box*(len(txt)+4)+'\n')
-            sys.stdout.write(boxv+' '+txt+' '+boxv+'\n')
-            sys.stdout.write(box*(len(txt)+4)+ "\x1b[0m" +end)
+            outtxt = special + cseq+ box*(len(txt)+4)+'\n'
+            outtxt+= boxv+' '+txt+' '+boxv+'\n'
+            outtxt+= box*(len(txt)+4)+ "\x1b[0m" +end
+            sys.stdout.write(outtxt)
         else:
             sys.stdout.write(special + cseq + txt + "\x1b[0m" +end)
     except: 
         print(*strings, end=end)
 
-    if flush: sys.stdout.flush()
+    if flush: 
+        sys.stdout.flush()
 
 
 

@@ -28,7 +28,7 @@ class Plotter:
         msg += "\tl/L to change edge line width\n"
         msg += "\tx   to toggle selected actor visibility\n"
         msg += "\tX   to open a cutter widget for sel. actor\n"
-        msg += "\t1-4 to change color scheme\n"
+        msg += "\t1-3 to change color scheme\n"
         msg += "\tk/K to show point/cell scalars as color\n"
         msg += "\tn   to show normals for selected actor\n"
         msg += "\tC   to print current camera info\n"
@@ -78,6 +78,7 @@ class Plotter:
         self.clickedRenderer = 0     # clicked renderer number
         self.renderer   = None  # current renderer
         self.renderers  = []    # list of renderers
+        self.shape      = shape
         self.size       = [size[1],size[0]] # size of the rendering window
         self.interactive= interactive # allows to interact with renderer
         self.axes       = axes  # show or hide axes
@@ -109,6 +110,7 @@ class Plotter:
         self.initializedIren = False
         self.camera = vtk.vtkCamera()
         self.keyPressFunction = None
+        self.sliders = []
         
         # share some methods in utils in Plotter class for convenience
         self.closestPoint = utils.closestPoint
@@ -984,7 +986,114 @@ class Plotter:
         return sact
 
 
-    def _draw_axes(self, c=(.2, .2, .6)):
+    def addSlider(self, sliderfunc, xmin=0, xmax=1, value=None, pos=4, 
+                  title='', c='k', showValue=True):
+        '''
+        Add a slider widget with external custom function.
+        
+            sliderfunc, external function to be called by the widget 
+                    
+            xmin, lower value
+            
+            xmax, upper value
+            
+            value, current value
+            
+            pos, position corner number: horizontal [1-4] or vertical [11-14]
+
+            title, title label
+
+            c, color string or number
+            
+            showValue, if true current value is shown                    
+        '''        
+        c = colors.getColor(c)
+        sliderRep = vtk.vtkSliderRepresentation2D()
+        sliderRep.SetMinimumValue(xmin)
+        sliderRep.SetMaximumValue(xmax)
+        if value is None: value=xmin
+        sliderRep.SetValue(value)
+        sliderRep.SetSliderLength(0.015)
+        sliderRep.SetSliderWidth(0.025)
+        sliderRep.SetEndCapLength(0.0015)
+        sliderRep.SetEndCapWidth(0.0125)
+        sliderRep.SetTubeWidth(.0075)
+        sliderRep.GetPoint1Coordinate().SetCoordinateSystemToNormalizedDisplay()
+        sliderRep.GetPoint2Coordinate().SetCoordinateSystemToNormalizedDisplay()
+        if pos==1: #top-left horizontal
+            sliderRep.GetPoint1Coordinate().SetValue(.04 ,.96)
+            sliderRep.GetPoint2Coordinate().SetValue(.45, .96)
+        elif pos==2:
+            sliderRep.GetPoint1Coordinate().SetValue(.55 ,.96)
+            sliderRep.GetPoint2Coordinate().SetValue(.96, .96)
+        elif pos==3:
+            sliderRep.GetPoint1Coordinate().SetValue(.04 ,.04)
+            sliderRep.GetPoint2Coordinate().SetValue(.45, .04)
+        elif pos==4: #bottom-right
+            sliderRep.GetPoint1Coordinate().SetValue(.55 ,.04)
+            sliderRep.GetPoint2Coordinate().SetValue(.96, .04)
+        elif pos==5: #bottom margin horizontal
+            sliderRep.GetPoint1Coordinate().SetValue(.04 ,.04)
+            sliderRep.GetPoint2Coordinate().SetValue(.96, .04)
+        elif pos==11:#top-left vertical
+            sliderRep.GetPoint1Coordinate().SetValue(.04, .54)
+            sliderRep.GetPoint2Coordinate().SetValue(.04 ,.9)
+        elif pos==12:
+            sliderRep.GetPoint1Coordinate().SetValue(.96,.54)
+            sliderRep.GetPoint2Coordinate().SetValue(.96,.9)
+        elif pos==13:
+            sliderRep.GetPoint1Coordinate().SetValue(.04 ,.1)
+            sliderRep.GetPoint2Coordinate().SetValue(.04, .54)
+        elif pos==14:#bottom-right vertical
+            sliderRep.GetPoint1Coordinate().SetValue(.96 ,.1)
+            sliderRep.GetPoint2Coordinate().SetValue(.96, .54)
+        elif pos==15:#right margin vertical
+            sliderRep.GetPoint1Coordinate().SetValue(.96 ,.1)
+            sliderRep.GetPoint2Coordinate().SetValue(.96, .9)
+        if showValue:
+            if isinstance(xmin, int) and isinstance(xmax, int):
+                frm = '%0.0f'
+            else:
+                frm = '%0.1f'
+            sliderRep.SetLabelFormat(frm) # default is '%0.3g'    
+            sliderRep.GetLabelProperty().SetShadow(0)
+            sliderRep.GetLabelProperty().SetBold(0)
+            sliderRep.GetLabelProperty().SetOpacity(0.6)
+            sliderRep.GetLabelProperty().SetColor(c)
+            if pos>10:
+                sliderRep.GetLabelProperty().SetOrientation(90)
+        else:
+            sliderRep.ShowSliderLabelOff()
+        sliderRep.GetTubeProperty().SetColor(c)
+        sliderRep.GetTubeProperty().SetOpacity(0.6)
+        sliderRep.GetSliderProperty().SetColor(c)
+        sliderRep.GetSelectedProperty().SetColor(.8, 0, 0)
+        sliderRep.GetCapProperty().SetColor(c)
+        
+        if title:
+            sliderRep.SetTitleText(title)
+            sliderRep.SetTitleHeight(.015)
+            sliderRep.GetTitleProperty().SetShadow(0)
+            sliderRep.GetTitleProperty().SetColor(c)
+            sliderRep.GetTitleProperty().SetOpacity(.6)
+            sliderRep.GetTitleProperty().SetBold(0)
+            if pos>10:
+                sliderRep.GetTitleProperty().SetOrientation(90)
+       
+        sliderWidget = vtk.vtkSliderWidget()
+        sliderWidget.SetInteractor(self.interactor)
+        sliderWidget.SetRepresentation(sliderRep)
+        sliderWidget.AddObserver("InteractionEvent", sliderfunc)
+        sliderWidget.EnabledOn()      
+        self.sliders.append(sliderWidget)
+        return sliderWidget
+        
+
+    def _draw_axes(self, c=None):
+        if c is None: #automatic black or white
+            c = (1, 1, 1)
+            if numpy.sum(self.renderer.GetBackground()) > 1.5:
+                c = (0.1, 0.1, 0.1)
         r = self.renderers.index(self.renderer)
         if self.caxes_exist[r] or not self.axes: return
         if not self.renderer: return
@@ -1244,8 +1353,7 @@ class Plotter:
             interactive = pause and interact with window (True) or continue execution (False)
             
             q      = force program to quit after show() command
-        '''
-
+        '''    
         def scan(wannabeacts):
             scannedacts=[]
             if not utils.isSequence(wannabeacts): wannabeacts = [wannabeacts]

@@ -123,14 +123,28 @@ def loadXml(filename, c, alpha, wire, bc, edges, legend):
             for e in elem.findall('vertex'):
                 x = float(e.get('x'))
                 y = float(e.get('y'))
-                z = float(e.get('z'))
-                coords.append([x,y,z])
-            for e in elem.findall('tetrahedron'):
-                v0 = int(e.get('v0'))
-                v1 = int(e.get('v1'))
-                v2 = int(e.get('v2'))
-                v3 = int(e.get('v3'))
-                connectivity.append([v0,v1,v2,v3])
+                ez = e.get('z')
+                if ez is None:
+                    coords.append([x,y])
+                else:
+                    z = float(ez)
+                    coords.append([x,y,z])
+
+            tets = elem.findall('tetrahedron')
+            if not len(tets):
+                tris = elem.findall('triangle')
+                for e in tris:
+                    v0 = int(e.get('v0'))
+                    v1 = int(e.get('v1'))
+                    v2 = int(e.get('v2'))
+                    connectivity.append([v0,v1,v2])
+            else:
+                for e in tets:
+                    v0 = int(e.get('v0'))
+                    v1 = int(e.get('v1'))
+                    v2 = int(e.get('v2'))
+                    v3 = int(e.get('v3'))
+                    connectivity.append([v0,v1,v2,v3])
     # this builds it as vtkUnstructuredGrid
     # points = vtk.vtkPoints()
     # for p in coords: points.InsertNextPoint(p)
@@ -267,7 +281,6 @@ def loadVolume(filename, c, alpha, wire, bc, edges, legend, texture,
         vc.printc('Error in loadVolume: Cannot find file', filename, c=1)
         return None
     
-    print ('..reading file:', filename)
     if   '.tif' in filename.lower(): 
         reader = vtk.vtkTIFFReader() 
     elif '.slc' in filename.lower(): 
@@ -566,12 +579,14 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
     sourceVertices = vtk.vtkCellArray()
     sourcePolygons = vtk.vtkCellArray()
     for pt in vertices:
-        aid = sourcePoints.InsertNextPoint(pt[0], pt[1], pt[2])
+        if len(pt)>2:
+            aid = sourcePoints.InsertNextPoint(pt[0], pt[1], pt[2])
+        else:
+            aid = sourcePoints.InsertNextPoint(pt[0], pt[1], 0)
         sourceVertices.InsertNextCell(1)
         sourceVertices.InsertCellPoint(aid)
     if faces:
         for f in faces:
-            # plg = vtk.vtkPolygon()
             n = len(f)
             if n==4:
                 plg = vtk.vtkTetra()

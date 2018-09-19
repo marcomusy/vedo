@@ -150,7 +150,7 @@ def makeActor(poly, c='gold', alpha=0.5,
     #########################################################################     
     ### On some vtk versions/platforms points are redered as ugly squares
     ### in such a case uncomment this line:
-    if vtk.vtkVersion().GetVTKMajorVersion()>6: prp.RenderPointsAsSpheresOn()
+    if vtk.vtkVersion().GetVTKMajorVersion()>7: prp.RenderPointsAsSpheresOn()
     ######################################################################### 
     
     if c is None: 

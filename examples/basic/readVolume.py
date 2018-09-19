@@ -23,7 +23,7 @@ import vtkplotter
 # Read volume data from a tif file:
 f = 'data/embryo.tif'
 
-vp = vtkplotter.Plotter(shape=(1,3), interactive=0)
+vp = vtkplotter.Plotter(shape=(1,3))
 a0= vp.load(f, bc='v', threshold=80, connectivity=1, legend='connectivity=True')
 a1= vp.load(f, bc='v', threshold=80, connectivity=0, legend='connectivity=False')
 a2= vp.load(f, bc='v', smoothing=2, legend='thres=automatic\nsmoothing=2')

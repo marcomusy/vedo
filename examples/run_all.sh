@@ -29,6 +29,8 @@ python basic/colortext.py
 python basic/largestregion.py
 python basic/earth.py
 python basic/mirror.py
+python basic/sliders.py
+
 
 python advanced/brownian2D.py
 python advanced/cell_main.py
