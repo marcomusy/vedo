@@ -910,7 +910,7 @@ def removeOutliers(points, radius, c='k', alpha=1, legend=None):
     actor = vs.points(outpts, c=c, alpha=alpha, legend=legend)
     return actor  # return same obj for concatenation
 
-          
+
 
     
     

@@ -18,6 +18,15 @@ def mouseleft(vp, obj, event):
     picker = vtk.vtkPropPicker()
     picker.PickProp(x,y, vp.renderer)
     clickedActor = picker.GetActor()
+    
+    # check if any button objects were created
+    clickedActor2D = picker.GetActor2D()
+    if clickedActor2D:
+        for bt in vp.buttons:
+            if clickedActor2D == bt.actor:
+                bt.function()
+                break
+        
     clickedActorIsAssembly = False
     if not clickedActor: 
         clickedActor = picker.GetAssembly()
@@ -346,21 +355,32 @@ def keypress(vp, obj, event):
         vp._draw_legend()
 
     elif key == "X":
+        if len(vp.actors):
+            vp.clickedActor = vp.actors[-1]
         if vp.clickedActor:
-            if hasattr(vp.clickedActor, 'legend') and vp.clickedActor.legend:
-                fname = 'clipped_'+str(vp.clickedActor.legend)
-                fname = fname.split('.')[0]+'.vtk'
-            else: fname = 'clipped.vtk'
-            if vp.verbose:
-                colors.printc('Move handles to remove part of the actor.',c=4)
-            utils.cutterWidget(vp.clickedActor, fname) 
-        elif vp.verbose: 
+            if not vp.cutterWidget:
+                vp.cutterWidget = vp.addCutterTool(vp.clickedActor)
+            else:
+                fname = 'clipped.vtk'
+                confilter = vtk.vtkPolyDataConnectivityFilter()
+                utils.setInput(confilter, utils.polydata(vp.clickedActor, True))
+                confilter.SetExtractionModeToLargestRegion()
+                confilter.Update()
+                cpd = vtk.vtkCleanPolyData()
+                utils.setInput(cpd, confilter.GetOutput())
+                cpd.Update()
+                w = vtk.vtkPolyDataWriter()
+                utils.setInput(w, cpd.GetOutput())
+                w.SetFileName(fname)
+                w.Write()
+                colors.printc("  -> Saved file:", fname, c='g')
+                vp.cutterWidget.Off()
+                vp.cutterWidget = None
+            
+        else: 
             colors.printc('Click an actor and press X to open the cutter box widget.',c=4)
 
 
     if vp.interactor: 
         vp.interactor.Render()
-
-
-
 

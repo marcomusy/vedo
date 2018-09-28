@@ -380,17 +380,29 @@ def printc(*strings, **keys):
     Print to terminal in colors.
     
     Keys:
-        c, foreground color ['white']
+        
+        c, foreground color ['']
+        
         bc, background color ['']
+        
         hidden, do not show text [False]
+        
         bold, boldface [True]
+        
         blink, blinking text [False]
+        
         underline, underline text [False]
+        
         dim, make text look dimmer [False]
+        
         invert, invert background anf forward colors [False]
+        
         separator, separate inputs with specified text [' ']
+        
         box, print a box with specified text character ['']
+        
         flush, flush buffer after printing [True]
+        
         end, end character to be printed ['\n']
         
     Available colors:
@@ -411,8 +423,8 @@ def printc(*strings, **keys):
         if flush: sys.stdout.flush()
         return
 
-    c = 'white' # to work with python2
-    bc = ''
+    c = None # to work with python2
+    bc = None
     hidden = False
     bold = True
     blink = False
@@ -438,14 +450,14 @@ def printc(*strings, **keys):
         for i,s in enumerate(strings):
             if i == ns: separator=''
             txt += str(s) + separator
-    
-        if isinstance(c, int): 
-            cf = abs(c) % 8
-        elif isinstance(c, str): 
-            cf = _terminal_cols[c.lower()]
-        else:
-            print('Error in printc(): unknown color c=', c)
-            exit()
+        if c:
+            if isinstance(c, int): 
+                cf = abs(c) % 8
+            elif isinstance(c, str): 
+                cf = _terminal_cols[c.lower()]
+            else:
+                print('Error in printc(): unknown color c=', c)
+                exit()
         if bc:
             if isinstance(bc, int): 
                 cb = abs(bc) % 8
@@ -460,11 +472,8 @@ def printc(*strings, **keys):
             special += '\x1b[8m'
             box=''
         else:
-            if c or bc:
-                cseq = "\x1b["+str(30+cf)
-                if bc: 
-                    cseq += ";"+str(40+cb)
-                cseq += 'm'
+            if c:  cseq += "\x1b["+str(30+cf)+'m'
+            if bc: cseq += "\x1b["+str(40+cb)+'m'
             if underline and not box: special += '\x1b[4m'
             if dim:    special += '\x1b[2m'
             if invert: special += '\x1b[7m'
@@ -478,9 +487,20 @@ def printc(*strings, **keys):
                 boxv='|'
             else:
                 boxv=box
-            outtxt = special + cseq+ box*(len(txt)+4)+'\n'
+
+            if box=='_': 
+                outtxt = special + cseq+ ' '+box*(len(txt)+2)+' \n'
+                outtxt+='|'+' '*(len(txt)+2)+'|\n'
+            else:
+                outtxt = special + cseq+ box*(len(txt)+4)+'\n'
+                
             outtxt+= boxv+' '+txt+' '+boxv+'\n'
-            outtxt+= box*(len(txt)+4)+ "\x1b[0m" +end
+            
+            if box=='_': 
+                outtxt+='|'+box*(len(txt)+2)+'|'+ "\x1b[0m" +end
+            else:
+                outtxt+= box*(len(txt)+4)+ "\x1b[0m" +end
+                
             sys.stdout.write(outtxt)
         else:
             sys.stdout.write(special + cseq + txt + "\x1b[0m" +end)

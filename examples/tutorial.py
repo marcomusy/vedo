@@ -184,8 +184,3 @@ for a in vp.actors:
     vp.cutPlane(a, origin=(500,0,0), normal=(0,0.3,-1), showcut=True)
 vp.show()
 
-
-#########################################################################################
-a = vp.load('data/cow.g')
-a.cutterWidget() # invoke cutter widget
-

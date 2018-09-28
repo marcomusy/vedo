@@ -111,11 +111,13 @@ class Plotter:
         self.camera = vtk.vtkCamera()
         self.keyPressFunction = None
         self.sliders = []
+        self.buttons = []
+        self.widgets = []
+        self.cutterWidget = None
         
         # share some methods in utils in Plotter class for convenience
         self.closestPoint = utils.closestPoint
         self.insidePoints = utils.insidePoints
-        self.cutterWidget = utils.cutterWidget
         self.write = vtkio.write
         
         if N:                # N = number of renderers. Find out the best
@@ -154,6 +156,7 @@ class Plotter:
 
         ############################
         # build the renderers scene:
+        self.shape = shape
         for i in reversed(range(shape[0])):
             for j in range(shape[1]):
                 arenderer = vtk.vtkRenderer()
@@ -758,39 +761,7 @@ class Plotter:
         '''
         if self.verbose:
             colors.printc("PCA info saved in actor.sphericity, actor.va, actor.vb, actor.vc",c=5)
-        return analysis.pca(points, pvalue, c, alpha, pcaAxes, legend)
-
-    def smoothMLS1D(self, actor, f=0.2, showNLines=0):
-        '''
-        Smooth actor or points with a Moving Least Squares variant.
-        The list actor.variances contain the residue calculated for each point.
-        Input actor's polydata is modified.
-        
-            f, smoothing factor - typical range s [0,2]
-            
-            showNLines, build an actor showing the fitting line for N random points            
-        '''        
-        actor = analysis.smoothMLS1D(actor, f, showNLines)
-        return actor #NB: original actor is modified
-
-
-    def smoothMLS2D(self, actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
-        '''
-        Smooth actor or points with a Moving Least Squares variant.
-        The list actor.variances contain the residue calculated for each point.
-        Input actor's polydata is modified.
-        
-            f, smoothing factor - typical range s [0,2]
-            
-            decimate, decimation factor (an integer number) 
-            
-            recursive, move points while algorithm proceedes
-            
-            showNPlanes, build an actor showing the fitting plane for N random points            
-        '''        
-        actor = analysis.smoothMLS2D(actor, f, decimate, recursive, showNPlanes)
-        return actor #NB: original actor is modified
-    
+        return analysis.pca(points, pvalue, c, alpha, pcaAxes, legend)    
     
     @add_actor
     def align(self, source, target, iters=100, legend=None):
@@ -800,20 +771,6 @@ class Plotter:
         '''
         return analysis.align(source, target, iters, legend)
         
-
-    def cutPlane(self, actor, origin=(0,0,0), normal=(1,0,0), showcut=False):
-        '''
-        Takes actor and cuts it with the plane defined by a point and a normal. 
-            showcut  = shows the cut away part as thin wireframe
-        '''
-        cactor = utils.cutPlane(actor, origin, normal, showcut)
-        try:
-            i = self.actors.index(actor)
-            self.actors[i] = cactor # substitute original actor with cut one
-        except ValueError: 
-            self.actors.append(cactor)
-        return cactor #NB: original actor is modified
-
     @add_actor
     def delaunay2D(self, plist, tol=None, c='gold', alpha=0.5, wire=False, bc=None, 
                    edges=False, legend=None, texture=None):
@@ -838,7 +795,6 @@ class Plotter:
         '''
         return analysis.cluster(points, radius, legend)
         
-    
     def removeOutliers(self, points, radius, c='k', alpha=1, legend=None):
         '''
         Remove outliers from a cloud of points within radius search.
@@ -848,7 +804,7 @@ class Plotter:
         a = analysis.removeOutliers(points, radius, c, alpha, legend)
         if not utils.isSequence(a): self.actors.append(a)
         return a   
-    
+
     @add_actor
     def normals(self, actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
         '''
@@ -871,6 +827,50 @@ class Plotter:
         return analysis.boundaries(actor, c, lw, legend)
 
 
+    def cutPlane(self, actor, origin=(0,0,0), normal=(1,0,0), showcut=False):
+        '''
+        Takes actor and cuts it with the plane defined by a point and a normal. 
+            showcut  = shows the cut away part as thin wireframe
+        '''
+        cactor = utils.cutPlane(actor, origin, normal, showcut)
+        try:
+            i = self.actors.index(actor)
+            self.actors[i] = cactor # substitute original actor with cut one
+        except ValueError: 
+            self.actors.append(cactor)
+        return cactor #NB: original actor is modified
+
+    def smoothMLS1D(self, actor, f=0.2, showNLines=0):
+        '''
+        Smooth actor or points with a Moving Least Squares variant.
+        The list actor.variances contain the residue calculated for each point.
+        Input actor's polydata is modified.
+        
+            f, smoothing factor - typical range s [0,2]
+            
+            showNLines, build an actor showing the fitting line for N random points            
+        '''        
+        actor = analysis.smoothMLS1D(actor, f, showNLines)
+        return actor #NB: original actor is modified
+
+    def smoothMLS2D(self, actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
+        '''
+        Smooth actor or points with a Moving Least Squares variant.
+        The list actor.variances contain the residue calculated for each point.
+        Input actor's polydata is modified.
+        
+            f, smoothing factor - typical range s [0,2]
+            
+            decimate, decimation factor (an integer number) 
+            
+            recursive, move points while algorithm proceedes
+            
+            showNPlanes, build an actor showing the fitting plane for N random points            
+        '''        
+        actor = analysis.smoothMLS2D(actor, f, decimate, recursive, showNPlanes)
+        return actor #NB: original actor is modified
+
+    
     def addScalarBar(self, actor=None, c='k', horizontal=False):
         """
         Add a 2D scalar bar for the specified actor.
@@ -1007,6 +1007,9 @@ class Plotter:
             
             showValue, if true current value is shown                    
         '''        
+        if not self.renderer:
+            colors.printc('Error: Use addSlider() after rendering the scene.', c=1)
+            return
         c = colors.getColor(c)
         sliderRep = vtk.vtkSliderRepresentation2D()
         sliderRep.SetMinimumValue(xmin)
@@ -1088,172 +1091,105 @@ class Plotter:
         self.sliders.append(sliderWidget)
         return sliderWidget
         
+    
+    def addButton(self, fnc, states=['On', 'Off'], c=['w','w'], bc=['dg','dr'],
+                  pos=[20,40], size=24, font='arial', bold=False, italic=False, alpha=1, angle=0):
+        if not self.renderer:
+            colors.printc('Error: Use addButton() after rendering the scene.', c=1)
+            return
+        bu = vtkio.Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
+        self.renderer.AddActor2D(bu.actor)
+        self.renderWin.Render()
+        self.buttons.append(bu)
+        return bu
+    
+    
+    def addCutterTool(self, actor):  
+        '''Create handles to cut away parts of a mesh'''
+        
+        if not self.renderer:
+            self.render()
+        
+        self.clickedActor = actor
+        apd = utils.polydata(actor)
+        
+        planes = vtk.vtkPlanes()
+        planes.SetBounds(apd.GetBounds())
+    
+        clipper = vtk.vtkClipPolyData()
+        utils.setInput(clipper, apd)
+        clipper.SetClipFunction(planes)
+        clipper.InsideOutOn()
+        clipper.GenerateClippedOutputOn()
+    
+        act0Mapper = vtk.vtkPolyDataMapper() # the part which stays
+        act0Mapper.SetInputConnection(clipper.GetOutputPort())
+        act0 = vtk.vtkActor()
+        act0.SetMapper(act0Mapper)
+        act0.GetProperty().SetColor(actor.GetProperty().GetColor())
+        act0.GetProperty().SetOpacity(1)
+        
+        act1Mapper = vtk.vtkPolyDataMapper() # the part which is cut away
+        act1Mapper.SetInputConnection(clipper.GetClippedOutputPort())
+        act1 = vtk.vtkActor()
+        act1.SetMapper(act1Mapper)
+        act1.GetProperty().SetOpacity(.05)
+        act1.GetProperty().SetRepresentationToWireframe()
+        act1.VisibilityOn()
 
-    def _draw_axes(self, c=None):
-        if c is None: #automatic black or white
-            c = (1, 1, 1)
-            if numpy.sum(self.renderer.GetBackground()) > 1.5:
-                c = (0.1, 0.1, 0.1)
-        r = self.renderers.index(self.renderer)
-        if self.caxes_exist[r] or not self.axes: return
-        if not self.renderer: return
-        vbb = self.renderer.ComputeVisiblePropBounds()
+        self.renderer.AddActor(act0)
+        self.renderer.AddActor(act1)
+        self.renderer.RemoveActor(actor)
+        
+        def SelectPolygons(vobj, event): 
+            vobj.GetPlanes(planes)
+        
+        boxWidget = vtk.vtkBoxWidget()
+        boxWidget.OutlineCursorWiresOn()
+        boxWidget.GetSelectedOutlineProperty().SetColor(1,0,1)
+        boxWidget.GetOutlineProperty().SetColor(0.1,0.1,0.1)
+        boxWidget.GetOutlineProperty().SetOpacity(0.8)
+        boxWidget.SetPlaceFactor(1.05)
+        boxWidget.SetInteractor(self.interactor)
+        utils.setInput(boxWidget, apd)
+        boxWidget.PlaceWidget()    
+        boxWidget.AddObserver("InteractionEvent", SelectPolygons)
+        boxWidget.On()
+        
+        self.cutterWidget = boxWidget
+        self.clickedActor = act0
+        ia = self.actors.index(actor)
+        self.actors[ia] = act0
+        
+        colors.printc('Mesh Cutter Tool:', c='m', invert=1)
+        colors.printc('  Move gray handles to cut away parts of the mesh', c='m')
+        colors.printc("  Press X to save file to: clipped.vtk", c='m')
+        
+        self.interactor.Start()
+        boxWidget.Off()
 
-        if self.axes == 1 or self.axes == True:
-            ca = vtk.vtkCubeAxesActor()
-            ca.SetBounds(vbb)
-            if self.camera: ca.SetCamera(self.camera)
-            else: ca.SetCamera(self.renderer.GetActiveCamera())
-            if utils.vtkMV:
-                ca.GetXAxesLinesProperty().SetColor(c)
-                ca.GetYAxesLinesProperty().SetColor(c)
-                ca.GetZAxesLinesProperty().SetColor(c)
-                for i in range(3):
-                    ca.GetLabelTextProperty(i).SetColor(c)
-                    ca.GetTitleTextProperty(i).SetColor(c)
-                ca.SetTitleOffset(8)
-            else:
-                ca.GetProperty().SetColor(c)
-            ca.SetFlyMode(3)
-            ca.SetLabelScaling(False, 1,1,1)
-            ca.SetXTitle(self.xtitle)
-            ca.SetYTitle(self.ytitle)
-            ca.SetZTitle(self.ztitle)
-            if self.xtitle=='': 
-                ca.SetXAxisVisibility(0)
-                ca.XAxisLabelVisibilityOff()
-            if self.ytitle=='': 
-                ca.SetYAxisVisibility(0)
-                ca.YAxisLabelVisibilityOff()
-            if self.ztitle=='': 
-                ca.SetZAxisVisibility(0)
-                ca.ZAxisLabelVisibilityOff()
-            ca.XAxisMinorTickVisibilityOff()
-            ca.YAxisMinorTickVisibilityOff()
-            ca.ZAxisMinorTickVisibilityOff()
-            self.caxes_exist[r] = ca
-            self.renderer.AddActor(ca)
-
-        elif self.axes > 1:
-            xcol, ycol, zcol = 'db', 'dg', 'dr' # dark blue, green red
-            s = 1
-            alpha = 1
-            centered = False
-            x0, x1, y0, y1, z0, z1 = vbb
-            dx, dy, dz = x1-x0, y1-y0, z1-z0
-            aves = numpy.sqrt(dx*dx+dy*dy+dz*dz)/2
-            x0, x1 = min(x0, 0), max(x1, 0)
-            y0, y1 = min(y0, 0), max(y1, 0)
-            z0, z1 = min(z0, 0), max(z1, 0)
-            if self.axes==3: 
-                if x1>0: x0=0
-                if y1>0: y0=0
-                if z1>0: z0=0
-
-            dx, dy, dz = x1-x0, y1-y0, z1-z0
-            acts=[]
-            if (x0*x1<=0 or y0*z1<=0 or z0*z1<=0): # some ranges contain origin
-                zero = self.sphere(r=aves/120*s, c='k', alpha=alpha, res=10)
-                acts += [zero]
-                self.actors.pop()
-
-            if len(self.xtitle) and dx>aves/100:
-                xl = shapes.cylinder([[x0, 0, 0], [x1, 0, 0]], r=aves/250*s, c=xcol, alpha=alpha)
-                xc = shapes.cone(pos=[x1, 0, 0], c=xcol, alpha=alpha,
-                                    r=aves/100*s, height=aves/25*s, axis=[1, 0, 0], res=10)
-                wpos = [x1-(len(self.xtitle)+1)*aves/40*s, -aves/25*s, 0] # aligned to arrow tip
-                if centered: wpos = [(x0+x1)/2-len(self.xtitle)/2*aves/40*s, -aves/25*s, 0] 
-                xt = shapes.text(self.xtitle, pos=wpos, normal=(0,0,1) , s=aves/40*s, c=xcol)
-                acts += [xl,xc,xt]
-
-            if len(self.ytitle) and dy>aves/100:
-                yl = shapes.cylinder([[0, y0, 0], [0, y1, 0]], r=aves/250*s, c=ycol, alpha=alpha)
-                yc = shapes.cone(pos=[0, y1, 0], c=ycol, alpha=alpha,
-                                    r=aves/100*s, height=aves/25*s, axis=[0, 1, 0], res=10)
-                wpos = [-aves/40*s, y1-(len(self.ytitle)+1)*aves/40*s, 0]
-                if centered: wpos = [ -aves/40*s, (y0+y1)/2-len(self.ytitle)/2*aves/40*s, 0] 
-                yt = shapes.text(self.ytitle, normal=(0,0,1) , s=aves/40*s, c=ycol)
-                yt.rotate(90, [0,0,1]).pos(wpos)
-                acts += [yl,yc,yt]
-
-            if len(self.ztitle) and dz>aves/100:
-                zl = shapes.cylinder([[0, 0, z0], [0, 0, z1]], r=aves/250*s, c=zcol, alpha=alpha)
-                zc = shapes.cone(pos=[0, 0, z1], c=zcol, alpha=alpha,
-                                    r=aves/100*s, height=aves/25*s, axis=[0, 0, 1], res=10)
-                wpos = [-aves/50*s, -aves/50*s, z1-(len(self.ztitle)+1)*aves/40*s]
-                if centered: wpos = [ -aves/50*s,  -aves/50*s, (z0+z1)/2-len(self.ztitle)/2*aves/40*s]
-                zt = shapes.text(self.ztitle, normal=(1, -1,0) , s=aves/40*s, c=zcol)
-                zt.rotate(180, (1, -1, 0)).pos(wpos)
-                acts += [zl,zc,zt]
-            ass = utils.makeAssembly(acts)
-            self.caxes_exist[r] = ass
-            self.renderer.AddActor(ass)
-
-
-    def _draw_ruler(self):
-        #draws a simple ruler at the bottom of the window
-        ls = vtk.vtkLegendScaleActor()
-        ls.RightAxisVisibilityOff()
-        ls.TopAxisVisibilityOff()
-        ls.LegendVisibilityOff()
-        ls.LeftAxisVisibilityOff()
-        ls.GetBottomAxis().SetNumberOfMinorTicks(1)
-        ls.GetBottomAxis().GetProperty().SetColor(0,0,0)
-        ls.GetBottomAxis().GetLabelTextProperty().SetColor(0,0,0)
-        ls.GetBottomAxis().GetLabelTextProperty().BoldOff()
-        ls.GetBottomAxis().GetLabelTextProperty().ItalicOff()
-        ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
-        self.renderer.AddActor(ls)
-
-
-    def _draw_legend(self):
-        if not utils.isSequence(self.legend): return
-
-        # remove old legend if present on current renderer:
-        acs = self.renderer.GetActors2D()
-        acs.InitTraversal()
-        for i in range(acs.GetNumberOfItems()):
-            a = acs.GetNextItem()
-            if isinstance(a, vtk.vtkLegendBoxActor):
-                self.renderer.RemoveActor(a)
-
-        actors = self.getActors()
-        acts, texts = [], []
-        for i in range(len(actors)):
-            a = actors[i]
-            if i<len(self.legend) and self.legend[i]!='':
-                if isinstance(self.legend[i], str):
-                    texts.append(self.legend[i])
-                    acts.append(a)
-            elif hasattr(a, 'legend') and a.legend:
-                if isinstance(a.legend, str):
-                    texts.append(a.legend)
-                    acts.append(a)
-
-        NT = len(texts)
-        if NT>25: NT=25
-        vtklegend = vtk.vtkLegendBoxActor()
-        vtklegend.SetNumberOfEntries(NT)
-        for i in range(NT):
-            ti = texts[i]
-            a  = acts[i]
-            c = a.GetProperty().GetColor()
-            if c==(1,1,1): c=(0.2,0.2,0.2)
-            vtklegend.SetEntry(i, utils.polydata(a), "  "+ti, c)
-        pos = self.legendPos
-        width = self.legendSize
-        vtklegend.SetWidth(width)
-        vtklegend.SetHeight(width/5.*NT)
-        sx, sy = 1-width, 1-width/5.*NT
-        if   pos==1: vtklegend.GetPositionCoordinate().SetValue(  0, sy)
-        elif pos==2: vtklegend.GetPositionCoordinate().SetValue( sx, sy) #default
-        elif pos==3: vtklegend.GetPositionCoordinate().SetValue(  0,  0)
-        elif pos==4: vtklegend.GetPositionCoordinate().SetValue( sx,  0)
-        vtklegend.UseBackgroundOn()
-        vtklegend.SetBackgroundColor(self.legendBG)
-        vtklegend.SetBackgroundOpacity(0.6)
-        vtklegend.LockBorderOn()
-        self.renderer.AddActor(vtklegend)
+        self.widgets.append(boxWidget)
+        return act0
+    
+    
+    def addIcon(self, iconActor, pos=3, size=0.08):                
+        if not self.renderer:
+            colors.printc('Error: Use addOrientationMarker() after rendering the scene.', c=1)
+            return        
+        widget = vtk.vtkOrientationMarkerWidget()
+        widget.SetOrientationMarker( iconActor )
+        widget.SetInteractor( self.interactor )
+        if utils.isSequence(pos):
+            widget.SetViewport( pos[0]-size, pos[1]-size, pos[0]+size, pos[1]+size )
+        else:
+            if   pos<2:  widget.SetViewport( 0, 1-2*size, size*2, 1 )
+            elif pos==2: widget.SetViewport( 1-2*size, 1-2*size ,1, 1)
+            elif pos==3: widget.SetViewport( 0.0, 0.0, size*2, size*2 )
+            elif pos==4: widget.SetViewport( 1-2*size, 0.0, 1, size*2 )
+        widget.EnabledOn()
+        widget.InteractiveOff()
+        self.widgets.append(widget)
+        return widget
 
 
     def addTrail(self, actor=None, maxlength=None, n=25, c=None, alpha=None, lw=1):
@@ -1324,6 +1260,212 @@ class Plotter:
             return tline
 
 
+    def _draw_axes(self, c=None):
+        if c is None: #automatic black or white
+            c = (1, 1, 1)
+            if numpy.sum(self.renderer.GetBackground()) > 1.5:
+                c = (0.1, 0.1, 0.1)
+        r = self.renderers.index(self.renderer)
+        if self.caxes_exist[r] or not self.axes: return
+        if not self.renderer: return
+        vbb = self.renderer.ComputeVisiblePropBounds()
+
+        if self.axes == 1 or self.axes == True:
+            ca = vtk.vtkCubeAxesActor()
+            ca.SetBounds(vbb)
+            if self.camera: ca.SetCamera(self.camera)
+            else: ca.SetCamera(self.renderer.GetActiveCamera())
+            if utils.vtkMV:
+                ca.GetXAxesLinesProperty().SetColor(c)
+                ca.GetYAxesLinesProperty().SetColor(c)
+                ca.GetZAxesLinesProperty().SetColor(c)
+                for i in range(3):
+                    ca.GetLabelTextProperty(i).SetColor(c)
+                    ca.GetTitleTextProperty(i).SetColor(c)
+                ca.SetTitleOffset(8)
+            else:
+                ca.GetProperty().SetColor(c)
+            ca.SetFlyMode(3)
+            ca.SetLabelScaling(False, 1,1,1)
+            ca.SetXTitle(self.xtitle)
+            ca.SetYTitle(self.ytitle)
+            ca.SetZTitle(self.ztitle)
+            if self.xtitle=='': 
+                ca.SetXAxisVisibility(0)
+                ca.XAxisLabelVisibilityOff()
+            if self.ytitle=='': 
+                ca.SetYAxisVisibility(0)
+                ca.YAxisLabelVisibilityOff()
+            if self.ztitle=='': 
+                ca.SetZAxisVisibility(0)
+                ca.ZAxisLabelVisibilityOff()
+            ca.XAxisMinorTickVisibilityOff()
+            ca.YAxisMinorTickVisibilityOff()
+            ca.ZAxisMinorTickVisibilityOff()
+            self.caxes_exist[r] = ca
+            self.renderer.AddActor(ca)
+
+        elif 1 < self.axes < 4:
+            xcol, ycol, zcol = 'db', 'dg', 'dr' # dark blue, green red
+            s = 1
+            alpha = 1
+            centered = False
+            x0, x1, y0, y1, z0, z1 = vbb
+            dx, dy, dz = x1-x0, y1-y0, z1-z0
+            aves = numpy.sqrt(dx*dx+dy*dy+dz*dz)/2
+            x0, x1 = min(x0, 0), max(x1, 0)
+            y0, y1 = min(y0, 0), max(y1, 0)
+            z0, z1 = min(z0, 0), max(z1, 0)
+            if self.axes==3: 
+                if x1>0: x0=0
+                if y1>0: y0=0
+                if z1>0: z0=0
+
+            dx, dy, dz = x1-x0, y1-y0, z1-z0
+            acts=[]
+            if (x0*x1<=0 or y0*z1<=0 or z0*z1<=0): # some ranges contain origin
+                zero = self.sphere(r=aves/120*s, c='k', alpha=alpha, res=10)
+                acts += [zero]
+                self.actors.pop()
+
+            if len(self.xtitle) and dx>aves/100:
+                xl = shapes.cylinder([[x0, 0, 0], [x1, 0, 0]], r=aves/250*s, c=xcol, alpha=alpha)
+                xc = shapes.cone(pos=[x1, 0, 0], c=xcol, alpha=alpha,
+                                    r=aves/100*s, height=aves/25*s, axis=[1, 0, 0], res=10)
+                wpos = [x1-(len(self.xtitle)+1)*aves/40*s, -aves/25*s, 0] # aligned to arrow tip
+                if centered: wpos = [(x0+x1)/2-len(self.xtitle)/2*aves/40*s, -aves/25*s, 0] 
+                xt = shapes.text(self.xtitle, pos=wpos, normal=(0,0,1) , s=aves/40*s, c=xcol)
+                acts += [xl,xc,xt]
+
+            if len(self.ytitle) and dy>aves/100:
+                yl = shapes.cylinder([[0, y0, 0], [0, y1, 0]], r=aves/250*s, c=ycol, alpha=alpha)
+                yc = shapes.cone(pos=[0, y1, 0], c=ycol, alpha=alpha,
+                                    r=aves/100*s, height=aves/25*s, axis=[0, 1, 0], res=10)
+                wpos = [-aves/40*s, y1-(len(self.ytitle)+1)*aves/40*s, 0]
+                if centered: wpos = [ -aves/40*s, (y0+y1)/2-len(self.ytitle)/2*aves/40*s, 0] 
+                yt = shapes.text(self.ytitle, normal=(0,0,1) , s=aves/40*s, c=ycol)
+                yt.rotate(90, [0,0,1]).pos(wpos)
+                acts += [yl,yc,yt]
+
+            if len(self.ztitle) and dz>aves/100:
+                zl = shapes.cylinder([[0, 0, z0], [0, 0, z1]], r=aves/250*s, c=zcol, alpha=alpha)
+                zc = shapes.cone(pos=[0, 0, z1], c=zcol, alpha=alpha,
+                                    r=aves/100*s, height=aves/25*s, axis=[0, 0, 1], res=10)
+                wpos = [-aves/50*s, -aves/50*s, z1-(len(self.ztitle)+1)*aves/40*s]
+                if centered: wpos = [ -aves/50*s,  -aves/50*s, (z0+z1)/2-len(self.ztitle)/2*aves/40*s]
+                zt = shapes.text(self.ztitle, normal=(1, -1,0) , s=aves/40*s, c=zcol)
+                zt.rotate(180, (1, -1, 0)).pos(wpos)
+                acts += [zl,zc,zt]
+            ass = utils.makeAssembly(acts)
+            self.caxes_exist[r] = ass
+            self.renderer.AddActor(ass)
+
+        elif self.axes == 4:
+            axact = vtk.vtkAxesActor()
+            axact.SetShaftTypeToCylinder()
+            axact.SetCylinderRadius(.03)
+            axact.SetXAxisLabelText(self.xtitle)
+            axact.SetYAxisLabelText(self.ytitle)
+            axact.SetZAxisLabelText(self.ztitle)
+            axact.GetXAxisShaftProperty().SetColor(0,0,1)
+            axact.GetZAxisShaftProperty().SetColor(1,0,0)
+            axact.GetXAxisTipProperty().SetColor(0,0,1)
+            axact.GetZAxisTipProperty().SetColor(1,0,0)
+            bc = numpy.array(self.renderer.GetBackground())
+            if numpy.sum(bc)<1.5: lc=(1,1,1)
+            else: lc=(0,0,0)
+            axact.GetXAxisCaptionActor2D().GetCaptionTextProperty().ShadowOff()
+            axact.GetYAxisCaptionActor2D().GetCaptionTextProperty().ShadowOff()
+            axact.GetZAxisCaptionActor2D().GetCaptionTextProperty().ShadowOff()
+            axact.GetXAxisCaptionActor2D().GetCaptionTextProperty().SetColor(lc)
+            axact.GetYAxisCaptionActor2D().GetCaptionTextProperty().SetColor(lc)
+            axact.GetZAxisCaptionActor2D().GetCaptionTextProperty().SetColor(lc)
+            self.addIcon(axact)
+
+        elif self.axes == 5:
+            axact = vtk.vtkAnnotatedCubeActor()
+            axact.GetCubeProperty().SetColor(.75,.75,.75)
+            axact.SetTextEdgesVisibility(0)
+            axact.SetFaceTextScale(.4)
+            axact.GetXPlusFaceProperty().SetColor(colors.getColor('b'))
+            axact.GetXMinusFaceProperty().SetColor(colors.getColor('db'))
+            axact.GetYPlusFaceProperty().SetColor(colors.getColor('g'))
+            axact.GetYMinusFaceProperty().SetColor(colors.getColor('dg'))
+            axact.GetZPlusFaceProperty().SetColor(colors.getColor('r'))
+            axact.GetZMinusFaceProperty().SetColor(colors.getColor('dr'))
+            self.addIcon(axact, size=.06)
+        
+        else:
+            colors.printc('axes type keyword must be in range [1-5]', c=1)
+
+
+    def _draw_ruler(self):
+        #draws a simple ruler at the bottom of the window
+        ls = vtk.vtkLegendScaleActor()
+        ls.RightAxisVisibilityOff()
+        ls.TopAxisVisibilityOff()
+        ls.LegendVisibilityOff()
+        ls.LeftAxisVisibilityOff()
+        ls.GetBottomAxis().SetNumberOfMinorTicks(1)
+        ls.GetBottomAxis().GetProperty().SetColor(0,0,0)
+        ls.GetBottomAxis().GetLabelTextProperty().SetColor(0,0,0)
+        ls.GetBottomAxis().GetLabelTextProperty().BoldOff()
+        ls.GetBottomAxis().GetLabelTextProperty().ItalicOff()
+        ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
+        self.renderer.AddActor(ls)
+
+
+    def _draw_legend(self):
+        if not utils.isSequence(self.legend): return
+
+        # remove old legend if present on current renderer:
+        acs = self.renderer.GetActors2D()
+        acs.InitTraversal()
+        for i in range(acs.GetNumberOfItems()):
+            a = acs.GetNextItem()
+            if isinstance(a, vtk.vtkLegendBoxActor):
+                self.renderer.RemoveActor(a)
+
+        actors = self.getActors()
+        acts, texts = [], []
+        for i in range(len(actors)):
+            a = actors[i]
+            if i<len(self.legend) and self.legend[i]!='':
+                if isinstance(self.legend[i], str):
+                    texts.append(self.legend[i])
+                    acts.append(a)
+            elif hasattr(a, 'legend') and a.legend:
+                if isinstance(a.legend, str):
+                    texts.append(a.legend)
+                    acts.append(a)
+
+        NT = len(texts)
+        if NT>25: NT=25
+        vtklegend = vtk.vtkLegendBoxActor()
+        vtklegend.SetNumberOfEntries(NT)
+        for i in range(NT):
+            ti = texts[i]
+            a  = acts[i]
+            c = a.GetProperty().GetColor()
+            if c==(1,1,1): c=(0.2,0.2,0.2)
+            vtklegend.SetEntry(i, utils.polydata(a), "  "+ti, c)
+        pos = self.legendPos
+        width = self.legendSize
+        vtklegend.SetWidth(width)
+        vtklegend.SetHeight(width/5.*NT)
+        sx, sy = 1-width, 1-width/5.*NT
+        if   pos==1: vtklegend.GetPositionCoordinate().SetValue(  0, sy)
+        elif pos==2: vtklegend.GetPositionCoordinate().SetValue( sx, sy) #default
+        elif pos==3: vtklegend.GetPositionCoordinate().SetValue(  0,  0)
+        elif pos==4: vtklegend.GetPositionCoordinate().SetValue( sx,  0)
+        vtklegend.UseBackgroundOn()
+        vtklegend.SetBackgroundColor(self.legendBG)
+        vtklegend.SetBackgroundOpacity(0.6)
+        vtklegend.LockBorderOn()
+        self.renderer.AddActor(vtklegend)
+
+
+
     #################################################################################
     def show(self, actors=None, at=None,
              legend=None, axes=None, ruler=False,
@@ -1353,7 +1495,8 @@ class Plotter:
             interactive = pause and interact with window (True) or continue execution (False)
             
             q      = force program to quit after show() command
-        '''    
+        '''
+        
         def scan(wannabeacts):
             scannedacts=[]
             if not utils.isSequence(wannabeacts): wannabeacts = [wannabeacts]
@@ -1419,6 +1562,7 @@ class Plotter:
                 self.interactor.Render()
                 if self.interactive: self.interactor.Start()
                 return
+            
         if at is None: at=0
 
         if at < len(self.renderers):
@@ -1537,10 +1681,6 @@ class Plotter:
 
     def screenshot(self, filename='screenshot.png'):
         vtkio.screenshot(self.renderWin, filename)
-
-
-
-
 
 
 

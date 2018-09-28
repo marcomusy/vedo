@@ -15,7 +15,7 @@ Download and Run the tutorials:
 ```bash
 git clone https://github.com/marcomusy/vtkplotter.git
 cd vtkplotter/examples
-python tutorial.py  # on mac OSX try pythonw instead
+python tutorial.py  # on mac OSX try 'pythonw' instead
 ```
 
 Simple command-line usage:
@@ -101,7 +101,8 @@ vp.show()
 
 
 
-Plot the function *f(x,y) = sin(3*x)*log(x-y)/3* (more examples in *examples/fxy.py*).
+Plot the function *f(x,y) = sin(3*x)*log(x-y)/3* (more 
+examples [here](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fxy.py)).
 <br />
 Red dots in the plot indicate the (x,y) where the function *f* is not a real number:
 ```python
@@ -160,7 +161,7 @@ vp.show()
 
 
 Apply Moving Least Squares algorithm to a large point cloud to obtain a smooth surface 
-from a set of scattered points in space ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py])):
+from a set of scattered points in space ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py)):
 ```bash
 python examples/advanced/moving_least_squares2D.py
 ```
@@ -242,10 +243,12 @@ python examples/advanced/turing.py
 <br />
 
 
-More examples can be found in directories *examples/basic* and *examples/advanced* .
+More examples can be found in directories: *examples/basic* and *examples/advanced* .
 
-If you need to do more complicated things (define widgets.. etc), you still have full access to all
-standard VTK objects (e.g. interactors and renderers through *vp.interactor, vp.renderer*... etc).<br />
+If you need to do more complicated things (define widgets.. etc), 
+you still have full access to all
+standard VTK objects (e.g. interactors and renderers 
+through *vp.interactor, vp.renderer*... etc).<br />
 In linux systems with *ffmpeg* you can use *vp.openVideo(), 
 video.addFrame()* and *video.close()* to save a *movie.mp4* file.
 <br />
@@ -280,6 +283,11 @@ def write(obj, fileoutputname)
 def addTrail(actor=None, maxlength=None, n=25, c=None, alpha=None, lw=1)
 def addScalarBar(actor=None, c='k', horizontal=False)
 def addScalarBar3D(actor=None, pos, normal=[0,0,1], sx=.1, sy=2, nlabels=9, ncols=256, cmap='jet', c='k', alpha=1)
+def addSlider(sliderfunc, xmin=0, xmax=1, value=None, pos=4, title='', c='k', showValue=True)
+def addButton(buttonfunc, states=['On', 'Off'], c=['w','w'], bc=['dg','dr'],
+              pos=[20,40], size=24, font='arial', bold=False, italic=False, alpha=1, angle=0)
+def addIcon(iconActor, pos=3, size=0.08)               
+def addCutterTool(actor) 
 def openVideo(name='movie.avi', fps=12, duration=None, format="XVID")
 def addFrameVideo()
 def pauseVideo(pause)
@@ -355,7 +363,6 @@ def clone(actor, c=None, alpha=None, wire=False, bc=None, edges=False,
           legend=None, texture=None, rebuild=True, mirror='')
 def closestPoint(actor, pt, N=1, radius=None, returnIds=False)
 def coordinates(actor, rebuild=True)
-def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1, bc=(0.7, 0.8, 1), legend=None)
 def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True)
 def diagonalSize(actor)
 def flipNormals(actor) # N.B. input argument gets modified
@@ -443,7 +450,6 @@ actor.volume()                # get the volume of actor
 #
 actor.closestPoint(p, N=1, radius=None) # get the closest N point(s) to p on actor's surface
 actor.intersectWithLine(p0, p1)         # get a list of points of intersection with segment from p0 to p1
-actor.cutterWidget(outputname='clipped.vtk') # invoke a cutter widget for actor
 ```
 
 Some useful shortcuts available in vtkplotter (*a la vpython*):
@@ -467,4 +473,4 @@ RGBcol = colorMap(value, name='jet', vmin=-10.2, vmax=123.4)
 ![colmaps](https://user-images.githubusercontent.com/32848391/42942959-c8b50eec-8b61-11e8-930a-00dcffdca601.png)
 
 <br />
-Tested on VTK versions 5.8, 6.3, 7.1, 8.1
+Tested on VTK versions 6.3, 7.1, 8.1

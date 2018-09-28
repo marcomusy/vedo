@@ -1,11 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 #
 from __future__ import division, print_function
 from vtkplotter import Plotter, ProgressBar, printc, __version__
 from vtkplotter.vtkio import humansort
 import sys, argparse
 
-pr = argparse.ArgumentParser(description="""check out home page https://github.com/marcomusy/vtkplotter""")
+pr = argparse.ArgumentParser(description="version "+str(__version__)+""" -                              
+                             check out home page https://github.com/marcomusy/vtkplotter""")
 pr.add_argument('files', nargs='*',             help="Input filename(s)")
 pr.add_argument("-a", "--alpha",    type=float, help="alpha value [0-1]", default=-1, metavar='')
 pr.add_argument("-w", "--wireframe",            help="use wireframe representation", action="store_true")

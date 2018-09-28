@@ -3,7 +3,7 @@ import vtk, os, sys, time, re
 
 import vtkplotter.utils as vu
 import vtkplotter.colors as vc
-
+import numpy
      
 
 def humansort(l):
@@ -41,7 +41,7 @@ def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
         poly = loadPoly(filename)
         if not poly:
             vc.printc('Unable to load', filename, c=1)
-            return False
+            return None
         actor = vu.makeActor(poly, c, alpha, wire, bc, edges, legend, texture)
         if fl.endswith('.txt') or fl.endswith('.xyz'): 
             actor.GetProperty().SetPointSize(4)
@@ -77,24 +77,30 @@ def loadPoly(filename):
     elif fl.endswith('.vtu'): reader = vtk.vtkXMLUnstructuredGridReader()
     elif fl.endswith('.txt'): reader = vtk.vtkParticleReader() # (x y z scalar) 
     elif fl.endswith('.xyz'): reader = vtk.vtkParticleReader()
-    else: reader = vtk.vtkDataReader()
+    else: 
+        reader = vtk.vtkDataReader()
     reader.SetFileName(filename)
-    reader.Update()
     if fl.endswith('.vts'): # structured grid
+        reader.Update()
         gf = vtk.vtkStructuredGridGeometryFilter()
         gf.SetInputConnection(reader.GetOutputPort())
         gf.Update()
         poly = gf.GetOutput()
     elif fl.endswith('.vtu'): # unstructured grid
+        reader.Update()
         gf = vtk.vtkGeometryFilter()
         gf.SetInputConnection(reader.GetOutputPort())
         gf.Update()    
         poly = gf.GetOutput()
-    else: poly = reader.GetOutput()
-    
+    else:
+        try:
+            reader.Update()
+            poly = reader.GetOutput()
+        except:
+            poly = None
+            
     if not poly: 
-        vc.printc('Unable to load', filename, c=1)
-        return False
+        return None
     
     cleanpd = vtk.vtkCleanPolyData()
     vu.setInput(cleanpd, poly)
@@ -610,4 +616,70 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
     clp.Update()    
     return clp.GetOutput()
 
-    
+
+#############          
+class Button:
+    '''
+    Build a Button object to be shown in the rendering window
+    '''
+    def __init__(self, fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle):
+        
+        self._status = 0
+        self.states = states
+        self.colors = c
+        self.bcolors = bc
+        self.function = fnc
+        self.actor = vtk.vtkTextActor()
+        self.actor.SetDisplayPosition(pos[0], pos[1])
+        self.framewidth = 3
+        self.offset = 5
+        self.spacer = ' '
+        
+        self.textproperty = self.actor.GetTextProperty()
+        self.textproperty.SetJustificationToCentered()
+        if font.lower()=='courier': 
+            self.textproperty.SetFontFamilyToCourier()
+        elif font.lower()=='times': 
+            self.textproperty.SetFontFamilyToTimes()
+        else: 
+            self.textproperty.SetFontFamilyToArial()
+        self.textproperty.SetFontSize(size) 
+        self.textproperty.SetBackgroundOpacity(alpha)
+        self.textproperty.BoldOff()
+        if bold: 
+            self.textproperty.BoldOn()
+        self.textproperty.ItalicOff()
+        if italic: 
+            self.textproperty.ItalicOn()
+        self.textproperty.ShadowOff()
+        self.textproperty.SetOrientation(angle)
+        self.showframe = hasattr(self.textproperty, 'FrameOn')
+        self.status(0)
+        
+    def status(self, s=None):
+        '''
+        Set/Get the status of the button
+        '''
+        if s is None:
+            return self.states[self._status]
+        if isinstance(s, str):
+            s = self.states.index(s)
+        self._status = s
+        self.textproperty.SetLineOffset(self.offset)
+        self.actor.SetInput(self.spacer + self.states[s] + self.spacer)
+        s = s % len(self.colors) # to avoid mismatch
+        self.textproperty.SetColor(vc.getColor(self.colors[s]))
+        bcc = numpy.array(vc.getColor(self.bcolors[s]))
+        self.textproperty.SetBackgroundColor(bcc)
+        if self.showframe:
+            self.textproperty.FrameOn()
+            self.textproperty.SetFrameWidth(self.framewidth)
+            self.textproperty.SetFrameColor(numpy.sqrt(bcc))
+
+    def switch(self):
+        '''
+        Change/cycle button status to the next defined status in states list.
+        '''
+        self._status = (self._status+1) % len(self.states)
+        self.status(self._status)
+

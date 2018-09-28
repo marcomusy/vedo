@@ -15,7 +15,6 @@ python basic/fxy.py
 python basic/gyroscope1.py
 python basic/gyroscope2.py
 python basic/keypress.py
-python basic/lights.py
 python basic/lorenz.py
 python basic/multiwindows.py
 python basic/rotateImage.py
@@ -30,7 +29,8 @@ python basic/largestregion.py
 python basic/earth.py
 python basic/mirror.py
 python basic/sliders.py
-
+python basic/buttons.py
+python basic/cutter.py
 
 python advanced/brownian2D.py
 python advanced/cell_main.py

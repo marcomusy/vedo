@@ -283,9 +283,6 @@ def assignConvenienceMethods(actor, legend):
         return cutPlane(self, origin, normal, showcut)
     actor.cutPlane = types.MethodType( _fcutPlane, actor )
 
-    def _fcutterw(self): return cutterWidget(self)
-    actor.cutterWidget = types.MethodType( _fcutterw, actor )
-     
     def _fpolydata(self, rebuild=True, index=0): 
         return polydata(self, rebuild, index)
     actor.polydata = types.MethodType( _fpolydata, actor )
@@ -340,7 +337,7 @@ def assignConvenienceMethods(actor, legend):
     actor.color = types.MethodType( _fcolor, actor)
 
     def _falpha(self, a=None):
-        if a: 
+        if a is not None: 
             self.GetProperty().SetOpacity(a)
             return self
         else: 
@@ -1156,109 +1153,6 @@ def scalars(actor, name):
         if not arr: arr = poly.GetCellData().GetArray(name)
         if arr: return vtk_to_numpy(arr)
         return None
-
-
-def cutterWidget(obj, outputname='clipped.vtk', c=(0.2, 0.2, 1), alpha=1,
-                 bc=(0.7, 0.8, 1), legend=None):
-    '''Pop up a box widget to cut parts of actor. Return largest part.'''
-
-    apd = polydata(obj)
-    
-    planes = vtk.vtkPlanes()
-    planes.SetBounds(apd.GetBounds())
-
-    clipper = vtk.vtkClipPolyData()
-    setInput(clipper, apd)
-    clipper.SetClipFunction(planes)
-    clipper.InsideOutOn()
-    clipper.GenerateClippedOutputOn()
-
-    # check if color string contains a float, in this case ignore alpha
-    al = colors.getAlpha(c)
-    if al: alpha = al
-
-    act0Mapper = vtk.vtkPolyDataMapper() # the part which stays
-    act0Mapper.SetInputConnection(clipper.GetOutputPort())
-    act0 = vtk.vtkActor()
-    act0.SetMapper(act0Mapper)
-    act0.GetProperty().SetColor(colors.getColor(c))
-    act0.GetProperty().SetOpacity(alpha)
-    backProp = vtk.vtkProperty()
-    backProp.SetDiffuseColor(colors.getColor(bc))
-    backProp.SetOpacity(alpha)
-    act0.SetBackfaceProperty(backProp)
-    
-    act0.GetProperty().SetInterpolationToFlat()
-    assignPhysicsMethods(act0)    
-    assignConvenienceMethods(act0, legend)    
-
-    act1Mapper = vtk.vtkPolyDataMapper() # the part which is cut away
-    act1Mapper.SetInputConnection(clipper.GetClippedOutputPort())
-    act1 = vtk.vtkActor()
-    act1.SetMapper(act1Mapper)
-    act1.GetProperty().SetColor(colors.getColor(c))
-    act1.GetProperty().SetOpacity(alpha/10.)
-    act1.GetProperty().SetRepresentationToWireframe()
-    act1.VisibilityOn()
-    
-    ren = vtk.vtkRenderer()
-    ren.SetBackground(1,1,1)
-    
-    ren.AddActor(act0)
-    ren.AddActor(act1)
-    
-    renWin = vtk.vtkRenderWindow()
-    renWin.AddRenderer(ren)
-    renWin.SetSize(600, 700)
-
-    iren = vtk.vtkRenderWindowInteractor()
-    iren.SetRenderWindow(renWin)
-    istyl = vtk.vtkInteractorStyleSwitch()
-    istyl.SetCurrentStyleToTrackballCamera()
-    iren.SetInteractorStyle(istyl)
-    
-    def SelectPolygons(vobj, event): vobj.GetPlanes(planes)
-    
-    boxWidget = vtk.vtkBoxWidget()
-    boxWidget.OutlineCursorWiresOn()
-    boxWidget.GetSelectedOutlineProperty().SetColor(1,0,1)
-    boxWidget.GetOutlineProperty().SetColor(0.1,0.1,0.1)
-    boxWidget.GetOutlineProperty().SetOpacity(0.8)
-    boxWidget.SetPlaceFactor(1.05)
-    boxWidget.SetInteractor(iren)
-    setInput(boxWidget, apd)
-    boxWidget.PlaceWidget()    
-    boxWidget.AddObserver("InteractionEvent", SelectPolygons)
-    boxWidget.On()
-    
-    colors.printc('\nCutterWidget:\n Move handles to cut parts of the actor',c='m')
-    colors.printc(' Press q to continue, Escape to exit',c='m')
-    colors.printc(" Press X to save file to", outputname, c='m')
-    def cwkeypress(obj, event):
-        key = obj.GetKeySym()
-        if   key == "q" or key == "space" or key == "Return":
-            iren.ExitCallback()
-        elif key == "X": 
-            confilter = vtk.vtkPolyDataConnectivityFilter()
-            setInput(confilter, clipper.GetOutput())
-            confilter.SetExtractionModeToLargestRegion()
-            confilter.Update()
-            cpd = vtk.vtkCleanPolyData()
-            setInput(cpd, confilter.GetOutput())
-            cpd.Update()
-            w = vtk.vtkPolyDataWriter()
-            setInput(w, cpd.GetOutput())
-            w.SetFileName(outputname)
-            w.Write()
-            colors.printc("Saved file: "+outputname, c='g')
-        elif key == "Escape": 
-            exit(0)
-    
-    iren.Initialize()
-    iren.AddObserver("KeyPressEvent", cwkeypress)
-    iren.Start()
-    boxWidget.Off()
-    return act0
 
 
 def intersectWithLine(act, p0, p1):
