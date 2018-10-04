@@ -474,4 +474,4 @@ RGBcol = colorMap(value, name='jet', vmin=-10.2, vmax=123.4)
 
 <br />
 Tested on VTK versions 6.3, 7.1, 8.1<br />
-[![Downloads](https://pepy.tech/badge/vtk)](https://pepy.tech/project/vtkplotter)
+![Downloads](https://pepy.tech/badge/vtk)](https://pepy.tech/project/vtkplotter)
