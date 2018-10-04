@@ -4,12 +4,25 @@ import numpy as np
 import vtk
 from vtk.util.numpy_support import numpy_to_vtk
 from vtk.util.numpy_support import vtk_to_numpy
-
 import vtkplotter.colors as colors
+
+
 
 ##############################################################################
 vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
 
+_cdir = os.path.dirname(__file__)
+if _cdir == '': _cdir = '.'  
+textures_path = _cdir + '/textures/'
+
+textures=[]
+for f in os.listdir( textures_path ):
+    textures.append(f.split('.')[0])
+textures.remove('earth')
+textures = list(sorted(textures))
+
+
+##############################################################################
 def add_actor(f): #decorator
     def wrapper(*args, **kwargs):
         actor = f(*args, **kwargs)
@@ -202,6 +215,7 @@ def makeAssembly(actors, legend=None):
 
 def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     '''Assign a texture to actor from file or name in /textures directory'''
+    global textures_path
     if   mapTo == 1: tmapper = vtk.vtkTextureMapToCylinder()
     elif mapTo == 2: tmapper = vtk.vtkTextureMapToSphere()
     elif mapTo == 3: tmapper = vtk.vtkTextureMapToPlane()
@@ -218,16 +232,14 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     mapper = vtk.vtkDataSetMapper()
     mapper.SetInputConnection(xform.GetOutputPort())
     mapper.ScalarVisibilityOff()
-    
-    cdir = os.path.dirname(__file__)
-    if cdir == '': cdir = '.'  
-    fn = cdir + '/textures/' + name + ".jpg"
+      
+    fn = textures_path + name + ".jpg"
     if os.path.exists(name): 
         fn = name
     elif not os.path.exists(fn):
-        colors.printc('Texture', name, 'not found in', cdir+'/textures', c='r')
+        colors.printc('Texture', name, 'not found in', textures_path, c='r')
         colors.printc('Available textures:', c='m', end=' ')
-        for ff in os.listdir(cdir + '/textures'):
+        for ff in os.listdir(textures_path):
             colors.printc(ff.split('.')[0], end=' ', c='m')
         print()
         return 
@@ -287,8 +299,8 @@ def assignConvenienceMethods(actor, legend):
         return polydata(self, rebuild, index)
     actor.polydata = types.MethodType( _fpolydata, actor )
 
-    def _fcoordinates(self, rebuild=True): 
-        return coordinates(self, rebuild)
+    def _fcoordinates(self, rebuild=True, copy=True): 
+        return coordinates(self, rebuild, copy)
     actor.coordinates = types.MethodType( _fcoordinates, actor )
 
     def _fxbounds(self): 
@@ -477,6 +489,7 @@ def assignPhysicsMethods(actor):
 
     def _fdiagonalSize(self): return diagonalSize(self)
     actor.diagonalSize = types.MethodType(_fdiagonalSize, actor)
+
 
 ######################################################### 
 def clone(actor, c=None, alpha=None, wire=False, bc=None,
@@ -831,7 +844,7 @@ def cellCenters(actor):
     vcen = vtk.vtkCellCenters()
     setInput(vcen, polydata(actor, True))
     vcen.Update()
-    return coordinates(vcen.GetOutput())
+    return coordinates(vcen.GetOutput(), copy=True)
 
 
 def isIdentity(M, tol=1e-06):
@@ -845,11 +858,11 @@ def isIdentity(M, tol=1e-06):
     return True
 
 
-def cleanPolydata(actor, tol=None):
+def clean(actor, tol=None):
     '''
-    Clean actor's polydata.
+    Clean actor's polydata. Can also be used to decimate a mesh if tol is large.
         tol paramenter defines how far should be the points from each other
-        in terms of fraction of bounding box length.
+        in terms of fraction of the bounding box length.
     '''
     poly = polydata(actor, False)
     cleanPolyData = vtk.vtkCleanPolyData()
@@ -934,15 +947,20 @@ def polydata(obj, rebuild=True, index=0):
     exit(1)
 
 
-def coordinates(actor, rebuild=True):
-    """Return a merged list of coordinates of actors or polys"""
-    pts = []
+def coordinates(actor, rebuild=True, copy=True):
+    """
+    Return the list of coordinates of an actor or polydata.
+    
+    rebuild, if False ignore any previous trasformation applied to the mesh.
+    
+    copy, if False return the reference to the points so that they can be 
+    modified in place.
+    """
     poly = polydata(actor, rebuild)
-    for j in range(poly.GetNumberOfPoints()):
-        p = [0, 0, 0]
-        poly.GetPoint(j, p)
-        pts.append(p)
-    return np.array(pts)
+    if copy:
+        return np.array(vtk_to_numpy(poly.GetPoints().GetData()))
+    else:
+        return vtk_to_numpy(poly.GetPoints().GetData())
 
 
 def xbounds(actor):
@@ -969,13 +987,14 @@ def centerOfMass(actor):
         c = cmf.GetCenter()
         return np.array(c)
     else:
-        pts = coordinates(actor, True)
+        pts = coordinates(actor, copy=False)
         if not len(pts): return np.array([0,0,0])
         return np.mean(pts, axis=0)       
 
 def volume(actor):
     '''Get the volume occupied by actor'''
     mass = vtk.vtkMassProperties()
+    mass.SetGlobalWarningDisplay(0)
     setInput(mass, polydata(actor))
     mass.Update() 
     return mass.GetVolume()
@@ -983,17 +1002,22 @@ def volume(actor):
 def area(actor):
     '''Get the surface area of actor'''
     mass = vtk.vtkMassProperties()
+    mass.SetGlobalWarningDisplay(0)
     setInput(mass, polydata(actor))
     mass.Update() 
     return mass.GetSurfaceArea()
 
 def averageSize(actor):
     cm = centerOfMass(actor)
-    coords = coordinates(actor, True)
-    if not len(coords) : return
-    pts = coords - cm
-    xyz2 = np.sum(pts * pts, axis=0)
-    return np.sqrt(np.sum(xyz2)/len(pts))
+    coords = coordinates(actor, copy=False)
+    if not len(coords) : return 0
+    s, c = 0.0, 0.0
+    n = len(coords)
+    step = int(n/10000.)+1
+    for i in arange(0,n, step):
+        s += mag(coords[i] - cm)
+        c += 1
+    return s/c
 
 def diagonalSize(actor):
     '''Get the length of the diagonal of actor bounding box'''
@@ -1235,3 +1259,156 @@ def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
     actor.Modified()
     if hasattr(actor, 'poly'): actor.poly=decimate.GetOutput()
     return actor  # return same obj for concatenation
+
+
+def printInfo(obj): #############################################################
+
+    def printvtkactor(actor, tab=''):
+        poly = polydata(actor)
+        pro = actor.GetProperty()
+        pos = actor.GetPosition()
+        bnds = actor.GetBounds()
+        col = pro.GetColor()
+        colr = to_precision(col[0],3)
+        colg = to_precision(col[1],3)
+        colb = to_precision(col[2],3) 
+        alpha = pro.GetOpacity()
+        npt = poly.GetNumberOfPoints()
+        ncl = poly.GetNumberOfCells()
+        
+        print(tab, end='')
+        colors.printc('vtkActor', c='g', bold=1, invert=1, dim=1, end=' ')
+        
+        if hasattr(actor, 'legend') and actor.legend:
+            colors.printc('legend: ', c='g', bold=1, end='')
+            colors.printc(actor.legend, c='g', bold=0)
+        else:
+            print()
+            
+        if hasattr(actor, 'filename'):
+            colors.printc(tab+'           file: ', c='g', bold=1, end='')
+            colors.printc(actor.filename, c='g', bold=0)
+            
+        colors.printc(tab+'          color: ', c='g', bold=1, end='')
+        if actor.GetMapper().GetScalarVisibility():
+            colors.printc('defined by point or cell data', c='g', bold=0)
+        else:
+            colors.printc(colors.getColorName(col) + ', rgb=('+colr+', '
+                          +colg+', '+colb+'), alpha='+str(alpha), c='g', bold=0)
+            
+            if actor.GetBackfaceProperty():
+                bcol = actor.GetBackfaceProperty().GetDiffuseColor()
+                bcolr = to_precision(bcol[0],3)
+                bcolg = to_precision(bcol[1],3)
+                bcolb = to_precision(bcol[2],3) 
+                colors.printc(tab+'     back color: ', c='g', bold=1, end='')
+                colors.printc(colors.getColorName(bcol) + ', rgb=('+bcolr+', '
+                              +bcolg+', ' +bcolb+')', c='g', bold=0)
+
+        colors.printc(tab+'         points: ', c='g', bold=1, end='')
+        colors.printc(npt, c='g', bold=0)
+        
+        colors.printc(tab+'          cells: ', c='g', bold=1, end='' )
+        colors.printc(ncl, c='g', bold=0)
+        
+        colors.printc(tab+'       position: ', c='g', bold=1, end='' )
+        colors.printc(pos , c='g', bold=0)
+
+        colors.printc(tab+'     c. of mass: ', c='g', bold=1, end='' )
+        colors.printc(centerOfMass(poly) , c='g', bold=0)
+        
+        colors.printc(tab+'      ave. size: ', c='g', bold=1, end='' )
+        colors.printc(to_precision(averageSize(poly), 4), c='g', bold=0)
+        
+        colors.printc(tab+'     diag. size: ', c='g', bold=1, end='' )
+        colors.printc(diagonalSize(poly) , c='g', bold=0)
+        
+        colors.printc(tab+'         bounds: ', c='g', bold=1, end='' )
+        bx1,bx2 = to_precision(bnds[0],3), to_precision(bnds[1],3)
+        colors.printc('x=('+bx1+', '+bx2+')' , c='g', bold=0, end='')
+        by1,by2 = to_precision(bnds[2],3), to_precision(bnds[3],3)
+        colors.printc(' y=('+by1+', '+by2+')' , c='g', bold=0, end='')
+        bz1,bz2 = to_precision(bnds[4],3), to_precision(bnds[5],3)
+        colors.printc(' z=('+bz1+', '+bz2+')' , c='g', bold=0)
+        
+        colors.printc(tab+'           area: ', c='g', bold=1, end='' )
+        colors.printc(to_precision(area(poly), 8) , c='g', bold=0)
+
+        colors.printc(tab+'         volume: ', c='g', bold=1, end='' )
+        colors.printc(to_precision(volume(poly), 8) , c='g', bold=0)
+        
+        arrtypes = dict()
+        arrtypes[vtk.VTK_UNSIGNED_CHAR] = 'VTK_UNSIGNED_CHAR'
+        arrtypes[vtk.VTK_UNSIGNED_INT]  = 'VTK_UNSIGNED_INT'
+        arrtypes[vtk.VTK_FLOAT]  = 'VTK_FLOAT'
+        arrtypes[vtk.VTK_DOUBLE] = 'VTK_DOUBLE'
+
+        if poly.GetPointData():
+            ptdata = poly.GetPointData()
+            for i in range(ptdata.GetNumberOfArrays()):
+                name = ptdata.GetArrayName(i)
+                if name:
+                    colors.printc(tab+'     point data: ', c='g', bold=1, end='')
+                    try: 
+                        tt = arrtypes[ptdata.GetArray(i).GetDataType()]
+                        colors.printc('name='+name,'type='+tt, c='g', bold=0)
+                    except:
+                        tt = ptdata.GetArray(i).GetDataType()
+                        colors.printc('name='+name,'type=', tt, c='g', bold=0)
+
+        if poly.GetCellData():
+            cldata = poly.GetCellData()
+            for i in range(cldata.GetNumberOfArrays()):
+                name = cldata.GetArrayName(i)
+                if name:
+                    colors.printc(tab+'      cell data: ', c='g', bold=1, end='')
+                    try: 
+                        tt = arrtypes[cldata.GetArray(i).GetDataType()]
+                        colors.printc('name='+name,'type='+tt, c='g', bold=0)
+                    except:
+                        tt = cldata.GetArray(i).GetDataType()
+                        colors.printc('name='+name,'type=', tt, c='g', bold=0)
+    
+    if not obj:
+        colors.printc('Click an object and press i', c='y')
+        return
+    
+    elif isinstance( obj, vtk.vtkActor ):
+        colors.printc('_'*60, c='g', bold=0)
+        printvtkactor(obj)
+        
+    elif isinstance( obj, vtk.vtkAssembly ):
+        colors.printc('_'*60, c='g', bold=0)
+        colors.printc('vtkAssembly', c='g', bold=1, invert=1, end=' ')
+        if hasattr(obj, 'legend'):
+            colors.printc('legend: ', c='g', bold=1, end='')
+            colors.printc(obj.legend, c='g', bold=0)
+        else:
+            print()          
+            
+        pos = obj.GetPosition()
+        bnds = obj.GetBounds()
+        colors.printc('          position: ', c='g', bold=1, end='' )
+        colors.printc(pos , c='g', bold=0)
+            
+        colors.printc('            bounds: ', c='g', bold=1, end='' )
+        bx1,bx2 = to_precision(bnds[0],3), to_precision(bnds[1],3)
+        colors.printc('x=('+bx1+', '+bx2+')' , c='g', bold=0, end='')
+        by1,by2 = to_precision(bnds[2],3), to_precision(bnds[3],3)
+        colors.printc(' y=('+by1+', '+by2+')' , c='g', bold=0, end='')
+        bz1,bz2 = to_precision(bnds[4],3), to_precision(bnds[5],3)
+        colors.printc(' z=('+bz1+', '+bz2+')' , c='g', bold=0)
+            
+        cl = vtk.vtkPropCollection()
+        obj.GetActors(cl)
+        cl.InitTraversal()
+        for i in range(obj.GetNumberOfPaths()):
+            act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
+            if isinstance(act, vtk.vtkActor): 
+                printvtkactor(act, tab='     ')
+    else:
+        colors.printc('_'*60, c='g', bold=0)
+        colors.printc(obj, c='g')
+        colors.printc(type(obj), c='g', invert=1)
+        
+  

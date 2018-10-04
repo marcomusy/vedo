@@ -45,6 +45,7 @@ def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
         actor = vu.makeActor(poly, c, alpha, wire, bc, edges, legend, texture)
         if fl.endswith('.txt') or fl.endswith('.xyz'): 
             actor.GetProperty().SetPointSize(4)
+    setattr(actor, 'filename', filename)
     return actor
     
 def loadDir(mydir, c, alpha, wire, bc, edges, legend, texture,
@@ -355,6 +356,7 @@ def load2Dimage(filename, alpha):
     picr.Update()
     vactor = vtk.vtkImageActor()
     vu.setInput(vactor, picr.GetOutput())
+    if alpha is None: alpha=1
     vactor.SetOpacity(alpha)
     vu.assignConvenienceMethods(vactor, False)    
     vu.assignPhysicsMethods(vactor)    
@@ -615,6 +617,29 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
     clp.PointMergingOn()
     clp.Update()    
     return clp.GetOutput()
+
+ 
+def grepTAG(filename, tag, firstOccurrence=False):
+    '''Greps the line that starts with a specific tag string from inside a file.'''
+    import re
+    try:
+        afile = open(filename, "r")
+    except:
+        print('Error in utils.grep(): cannot open file', filename)
+        exit()
+    content = None
+    for line in afile:
+        if re.search(tag, line):
+            content = line.split()
+            if firstOccurrence: break
+    if content:
+        if len(content) == 2: 
+            content = content[1]
+        else:
+            content = content[1:]
+    afile.close()
+    return content
+
 
 
 #############          

@@ -43,12 +43,13 @@ if args.sequence_mode:
         printc("         you are trying to load ", nfiles, " files.\n", c=1)
         N = 200
     vp = Plotter(title=title, size=wsize, N=N, bg=args.background)
+    vp.axes = 4 #triad
 else:
    N = nfiles
    vp = Plotter(title=title, size=wsize, bg=args.background)
+   vp.axes = args.axes_type
    
 vp.verbose = not args.quiet
-vp.axes = args.axes_type
 vp.sharecam = not args.no_camera_share
 
 alpha = 1

@@ -1,7 +1,7 @@
 # Example to show how to use recoSurface() to reconstruct a surface from points.
 # 1. An object is loaded and noise is added to its vertices.
 # 2. the point cloud is smoothened with MLS (see moving_least_squares.py)
-# 3. cleanPolydata imposes a minimum distance among points where 
+# 3. clean(actor) imposes a minimum distance among mesh points where 
 #    'tol' is the fraction of the actor size.
 # 4. a triangular mesh is extracted from this set of sparse points
 #    'bins' is the number of voxels of the subdivision
@@ -9,7 +9,7 @@
 # 
 from __future__ import division, print_function
 from vtkplotter import Plotter
-from vtkplotter.utils import cleanPolydata
+from vtkplotter.utils import clean
 import numpy as np
 
 
@@ -26,9 +26,9 @@ vp.show(act_pts0, at=1, legend='noisy cloud')
 
 vp.smoothMLS2D(act_pts1, f=0.4) #smooth cloud
 
-print('Nr of points before cleanPolydata:', act_pts1.N())
-cleanPolydata(act_pts1, tol=0.01) #impose a min distance among points
-print('             after  cleanPolydata:', act_pts1.N())
+print('Nr of points before cleaning polydata:', act_pts1.N())
+clean(act_pts1, tol=0.01) #impose a min distance among mesh points
+print('             after  cleaning polydata:', act_pts1.N())
 
 vp.show(act_pts1, at=2, legend='smooth cloud')
 

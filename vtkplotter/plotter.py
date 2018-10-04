@@ -10,53 +10,60 @@ import vtkplotter.analysis as analysis
 from vtkplotter import __version__
 from vtkplotter.utils import add_actor
 
+
 ########################################################################
 class Plotter:
 #########################################################################           
 
-    def tips(self):
-        import sys
-        msg  = '------- vtkplotter '+__version__
-        msg += ', vtk '+vtk.vtkVersion().GetVTKVersion()+', python '
-        msg += str(sys.version_info[0])+'.'+str(sys.version_info[1])        
-        msg += " ---------\n"
-        msg += "Press:\tm   to minimise opacity of selected actor\n"
-        msg += "\t.,  to reduce/increase opacity\n"
-        msg += "\t/   to maximize opacity of selected actor\n"
-        msg += "\tw/s to toggle wireframe/solid style\n"
-        msg += "\tp/P to change point size of vertices\n"
-        msg += "\tl/L to change edge line width\n"
-        msg += "\tx   to toggle selected actor visibility\n"
-        msg += "\tX   to open a cutter widget for sel. actor\n"
-        msg += "\t1-3 to change color scheme\n"
-        msg += "\tk/K to show point/cell scalars as color\n"
-        msg += "\tn   to show normals for selected actor\n"
-        msg += "\tC   to print current camera info\n"
-        msg += "\tS   to save a screenshot\n"
-        msg += "\tq   to continue\n"
-        msg += "\te   to close the rendering window\n"
-        msg += "\tEsc to exit\n"
-        msg += "---------------------------------------------------------"
+    def tips(self):       
+        #vvers = ' vtkplotter '+__version__+' '
+        vvers = ' vtkplotter '+__version__+', vtk '+vtk.vtkVersion().GetVTKVersion()
+        vvers+= ', python ' + str(sys.version_info[0])+'.'+str(sys.version_info[1])+' '
+        n = len(vvers)
+        if not colors._terminal_has_colors: n=0
+        colors.printc(' '*n+'_'*(59-n), c='blue')        
+        colors.printc(vvers, invert=1, dim=1, c='blue', end='')        
+        msg = ' '*(59-n)+'|\n' + '|'+' '*58+'|\n|Press:'
+        msg += "\ti     to print info about selected object          |\n"
+        msg += "|\tm     to minimise opacity of selected mesh         |\n"
+        msg += "|\t.,    to reduce/increase opacity                   |\n"
+        msg += "|\t/     to maximize opacity                          |\n"
+        msg += "|\tw/s   to toggle wireframe/solid style              |\n"
+        msg += "|\tp/P   to change point size of vertices             |\n"
+        msg += "|\tl/L   to change edge line width                    |\n"
+        msg += "|\tx     to toggle mesh visibility                    |\n"
+        msg += "|\tX     to pop up a cutter widget tool               |\n"
+        msg += "|\t1-3   to change mesh color                         |\n"
+        msg += "|\tk/K   to show point/cell scalars as color          |\n"
+        msg += "|\tn     to show surface mesh normals                 |\n"
+        msg += "|\tC     to print current camera info                 |\n"
+        msg += "|\tS     to save a screenshot                         |\n"
+        msg += "|\tq/e   to continue/close the rendering window       |\n"
+        msg += "|\tEsc   to exit program                              |\n"
+        msg += '|'+'_'*58+'|\n'
         colors.printc(msg, c='blue')
 
 
-    def __init__(self, shape=(1,1), N=None, size='auto', maxscreensize=(1080,1920), 
-                 title='vtkplotter', bg='w', bg2=None, axes=1, projection=False,
+    def __init__(self, shape=(1,1), N=None, pos=(0,0),
+                 size='auto', screensize='auto', title='', 
+                 bg='w', bg2=None, axes=1, projection=False,
                  sharecam=True, verbose=True, interactive=None):
-        """
-        size = size of the rendering window. If 'auto', guess it based on screensize.
-        
-        N = number of desired renderers arranged in a grid automatically.
-        
+        """        
         shape= shape of the grid of renderers in format (rows, columns). Ignored if N is specified.
+
+        N = number of desired renderers arranged in a grid automatically.
+                
+        pos, (x,y) position in pixels of top-left corneer of the rendering window on the screen
         
-        maxscreensize = physical size of the monitor screen
+        size = size of the rendering window. If 'auto', guess it based on screensize.
+
+        screensize = physical size of the monitor screen
         
         bg = background color
         
         bg2 = background color of a gradient towards the top
         
-        axes, no axes (0), vtkCubeAxes (1), cartesian (2), positive cartesian (3)
+        axes, no axes (0), vtkCubeAxes (1), cartesian (2), positive cartesian (3), triad (4), cube (5)
         
         projection,  if True fugue point is set at infinity (no perspective effects)
         
@@ -79,6 +86,7 @@ class Plotter:
         self.renderer   = None  # current renderer
         self.renderers  = []    # list of renderers
         self.shape      = shape
+        self.pos        = pos
         self.size       = [size[1],size[0]] # size of the rendering window
         self.interactive= interactive # allows to interact with renderer
         self.axes       = axes  # show or hide axes
@@ -103,9 +111,9 @@ class Plotter:
         self.camThickness = 2000
         self.justremoved  = None 
         self.caxes_exist  = []
-        self.icol      = 0
-        self.clock      = 0
-        self._clockt0   = time.time()
+        self.icol         = 0
+        self.clock        = 0
+        self._clockt0     = time.time()
         self.initializedPlotter= False
         self.initializedIren = False
         self.camera = vtk.vtkCamera()
@@ -120,13 +128,23 @@ class Plotter:
         self.insidePoints = utils.insidePoints
         self.write = vtkio.write
         
+        # sort out screen size
+        self.renderWin = vtk.vtkRenderWindow()
+        self.renderWin.PointSmoothingOn()
+        if screensize == 'auto':
+            aus = self.renderWin.GetScreenSize()
+            if aus and len(aus)==2 and aus[0]>100 and aus[1]>100: #seems ok
+                if aus[0]/aus[1] > 2: # looks like there are 2 or more screens
+                    screensize = (int(aus[0]/2), aus[1])
+            else: # it went wrong, use a default 1.5 ratio
+                screensize = (2160, 1440)
+            
+        x, y = screensize
         if N:                # N = number of renderers. Find out the best
             if shape!=(1,1): # arrangement based on minimum nr. of empty renderers
                 colors.printc('Warning: having set N, shape is ignored.', c=1)
-            x = float(maxscreensize[0])
-            y = float(maxscreensize[1])
-            nx= int(numpy.sqrt(int(N*x/y)+1))
-            ny= int(numpy.sqrt(int(N*y/x)+1))
+            nx= int(numpy.sqrt(int(N*y/x)+1))
+            ny= int(numpy.sqrt(int(N*x/y)+1))
             lm = [(nx,ny), (nx,ny+1), (nx-1,ny), (nx+1,ny), (nx,ny-1),
                   (nx-1,ny+1), (nx+1,ny-1), (nx+1,ny+1), (nx-1,ny-1)]
             ind, minl = 0, 1000
@@ -136,23 +154,21 @@ class Plotter:
                   ind = i
                   minl = l
             shape = lm[ind]
-            self.size = maxscreensize
-        elif size=='auto':  # figure out a reasonable window size
-            maxs = maxscreensize
-            xs = maxs[0]/2*shape[0]
-            ys = maxs[0]/2*shape[1]
-            if xs>maxs[0]:  # shrink
-                xs = maxs[0]
-                ys = maxs[0]/shape[0]*shape[1]
-            if ys>maxs[1]:
-                ys = maxs[1]
-                xs = maxs[1]/shape[1]*shape[0]
-            self.size = (xs,ys)
+        if size=='auto':  # figure out a reasonable window size
+            f=1.5
+            xs = y/f*shape[1] # because y<x
+            ys = y/f*shape[0]
+            if xs>x/f:  # shrink
+                xs = x/f
+                ys = xs/shape[1]*shape[0]
+            if ys>y/f:
+                ys = y/f
+                xs = ys/shape[0]*shape[1]
+            self.size = (int(xs),int(ys))
             if shape==(1,1):
-                self.size = (maxs[1]/2,maxs[1]/2)
-
+                self.size = (int(y/f), int(y/f))# because y<x
             if self.verbose and shape!=(1,1):
-                print ('Window size =', self.size, 'shape =',shape)            
+                print ('Window size =', self.size, 'shape =', shape)            
 
         ############################
         # build the renderers scene:
@@ -171,15 +187,17 @@ class Plotter:
                 arenderer.SetViewport(y0,x0, y1,x1)
                 self.renderers.append(arenderer)
                 self.caxes_exist.append(None)
-        self.renderWin = vtk.vtkRenderWindow()
-        self.renderWin.PointSmoothingOn()
         
         if 'full' in size: # full screen
             self.renderWin.SetFullScreen(True)
             self.renderWin.BordersOn()
         else:
-            self.renderWin.SetSize(int(self.size[1]), int(self.size[0]))
-            
+            self.renderWin.SetSize(int(self.size[0]), int(self.size[1]))
+        
+        self.renderWin.SetPosition(pos)
+        if not title:
+            title = ' vtkplotter '+__version__+', vtk '+vtk.vtkVersion().GetVTKVersion()
+            title+= ', python ' + str(sys.version_info[0])+'.'+str(sys.version_info[1])
         self.renderWin.SetWindowName(title)
         for r in self.renderers: self.renderWin.AddRenderer(r)
 
@@ -187,25 +205,7 @@ class Plotter:
         self.interactor.SetRenderWindow(self.renderWin)
         vsty = vtk.vtkInteractorStyleTrackballCamera()
         self.interactor.SetInteractorStyle(vsty)
-
-    def help(self):
-        colors.printc("\n\tvtkplotter version:", __version__)
-        colors.printc("\tVTK version:", vtk.vtkVersion().GetVTKVersion())
-        try:
-            import platform
-            colors.printc("\tPython version:", platform.python_version())
-        except: pass
-        colors.printc("""
-        A python helper class to easily draw 3D objects.
-        Please follow instructions at:""", c='m')
-        colors.printc("\thttps://github.com/marcomusy/vtkplotter", c=4)
-        print( '''
-        Basic command line usage:
-        > vtkplotter files*.vtk
-            \n\tValid file formats: vtk,vtu,vts,vtp,ply,obj,stl,xml, 
-                            gmsh,neutral,pcd,xyz,txt,byu,g,png,jpeg
-        ''')
-
+       
 
     ############################################# LOADER
     def load(self, inputobj, c='gold', alpha=1,
@@ -764,12 +764,12 @@ class Plotter:
         return analysis.pca(points, pvalue, c, alpha, pcaAxes, legend)    
     
     @add_actor
-    def align(self, source, target, iters=100, legend=None):
+    def align(self, source, target, iters=100, rigid=False, legend=None):
         '''
         Return a copy of source actor which is aligned to
         target actor through vtkIterativeClosestPointTransform() method.
         '''
-        return analysis.align(source, target, iters, legend)
+        return analysis.align(source, target, iters, rigid, legend)
         
     @add_actor
     def delaunay2D(self, plist, tol=None, c='gold', alpha=0.5, wire=False, bc=None, 
@@ -1007,9 +1007,6 @@ class Plotter:
             
             showValue, if true current value is shown                    
         '''        
-        if not self.renderer:
-            colors.printc('Error: Use addSlider() after rendering the scene.', c=1)
-            return
         c = colors.getColor(c)
         sliderRep = vtk.vtkSliderRepresentation2D()
         sliderRep.SetMinimumValue(xmin)
@@ -1107,6 +1104,9 @@ class Plotter:
     def addCutterTool(self, actor):  
         '''Create handles to cut away parts of a mesh'''
         
+        if not isinstance(actor, vtk.vtkActor):
+            return None
+        
         if not self.renderer:
             self.render()
         
@@ -1172,10 +1172,15 @@ class Plotter:
         return act0
     
     
-    def addIcon(self, iconActor, pos=3, size=0.08):                
+    def addIcon(self, iconActor, pos=3, size=0.08):
+        '''
+        Add an inset icon mesh into the same renderer.
+        pos, can be in the range [1-4] indicating the 4 corners,
+             or can be a tuple (x,y) in fraction of the renderer size.
+        '''              
         if not self.renderer:
-            colors.printc('Error: Use addOrientationMarker() after rendering the scene.', c=1)
-            return        
+            colors.printc('Warning: Use addIcon() after rendering the scene.', c=3)
+            self.render()
         widget = vtk.vtkOrientationMarkerWidget()
         widget.SetOrientationMarker( iconActor )
         widget.SetInteractor( self.interactor )
@@ -1374,13 +1379,19 @@ class Plotter:
             bc = numpy.array(self.renderer.GetBackground())
             if numpy.sum(bc)<1.5: lc=(1,1,1)
             else: lc=(0,0,0)
+            axact.GetXAxisCaptionActor2D().GetCaptionTextProperty().BoldOff()
+            axact.GetYAxisCaptionActor2D().GetCaptionTextProperty().BoldOff()
+            axact.GetZAxisCaptionActor2D().GetCaptionTextProperty().BoldOff()
+            axact.GetXAxisCaptionActor2D().GetCaptionTextProperty().ItalicOff()
+            axact.GetYAxisCaptionActor2D().GetCaptionTextProperty().ItalicOff()
+            axact.GetZAxisCaptionActor2D().GetCaptionTextProperty().ItalicOff()
             axact.GetXAxisCaptionActor2D().GetCaptionTextProperty().ShadowOff()
             axact.GetYAxisCaptionActor2D().GetCaptionTextProperty().ShadowOff()
             axact.GetZAxisCaptionActor2D().GetCaptionTextProperty().ShadowOff()
             axact.GetXAxisCaptionActor2D().GetCaptionTextProperty().SetColor(lc)
             axact.GetYAxisCaptionActor2D().GetCaptionTextProperty().SetColor(lc)
             axact.GetZAxisCaptionActor2D().GetCaptionTextProperty().SetColor(lc)
-            self.addIcon(axact)
+            self.addIcon(axact, size=0.1)
 
         elif self.axes == 5:
             axact = vtk.vtkAnnotatedCubeActor()
@@ -1480,7 +1491,13 @@ class Plotter:
             
             legend = a string or list of string for each actor, if False will not show it
             
-            axes   = show xyz axes
+            axes   = show axes, types are:
+                     0 = no axes,
+                     1 = show vtk default axes,
+                     2 = show negative axes starting from origin
+                     3 = show positive axes starting from origin
+                     4 = show axis widget as a triad on the bottom left corner
+                     5 = show annotated cube widget on the bottom left corner
             
             ruler  = draws a simple ruler at the bottom
             

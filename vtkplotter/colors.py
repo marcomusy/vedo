@@ -20,22 +20,22 @@ colors = { # from matplotlib
     'cyan':                 '#00FFFF', 'darkblue':             '#00008B',
     'darkcyan':             '#008B8B', 'darkgoldenrod':        '#B8860B',
     'darkgray':             '#A9A9A9', 'darkgreen':            '#006400',
-    'darkgrey':             '#A9A9A9', 'darkkhaki':            '#BDB76B',
+    'darkkhaki':            '#BDB76B',
     'darkmagenta':          '#8B008B', 'darkolivegreen':       '#556B2F',
     'darkorange':           '#FF8C00', 'darkorchid':           '#9932CC',
     'darkred':              '#8B0000', 'darksalmon':           '#E9967A',
     'darkseagreen':         '#8FBC8F', 'darkslateblue':        '#483D8B',
-    'darkslategray':        '#2F4F4F', 'darkslategrey':        '#2F4F4F',
+    'darkslategray':        '#2F4F4F', 
     'darkturquoise':        '#00CED1', 'darkviolet':           '#9400D3',
     'deeppink':             '#FF1493', 'deepskyblue':          '#00BFFF',
-    'dimgray':              '#696969', 'dimgrey':              '#696969',
+    'dimgray':              '#696969', 
     'dodgerblue':           '#1E90FF', 'firebrick':            '#B22222',
     'floralwhite':          '#FFFAF0', 'forestgreen':          '#228B22',
     'fuchsia':              '#FF00FF', 'gainsboro':            '#DCDCDC',
     'ghostwhite':           '#F8F8FF', 'gold':                 '#FFD700',
     'goldenrod':            '#DAA520', 'gray':                 '#808080',
     'green':                '#008000', 'greenyellow':          '#ADFF2F',
-    'grey':                 '#808080', 'honeydew':             '#F0FFF0',
+    'honeydew':             '#F0FFF0',
     'hotpink':              '#FF69B4', 'indianred':            '#CD5C5C',
     'indigo':               '#4B0082', 'ivory':                '#FFFFF0',
     'khaki':                '#F0E68C', 'lavender':             '#E6E6FA',
@@ -43,10 +43,10 @@ colors = { # from matplotlib
     'lemonchiffon':         '#FFFACD', 'lightblue':            '#ADD8E6',
     'lightcoral':           '#F08080', 'lightcyan':            '#E0FFFF',
     'lightgray':            '#D3D3D3', 'lightgreen':           '#90EE90',
-    'lightgrey':            '#D3D3D3', 'lightpink':            '#FFB6C1',
+    'lightpink':            '#FFB6C1',
     'lightsalmon':          '#FFA07A', 'lightseagreen':        '#20B2AA',
-    'lightskyblue':         '#87CEFA', 'lightslategray':       '#778899',
-    'lightslategrey':       '#778899', 'lightsteelblue':       '#B0C4DE',
+    'lightskyblue':         '#87CEFA', 
+    'lightsteelblue':       '#B0C4DE',
     'lightyellow':          '#FFFFE0', 'lime':                 '#00FF00',
     'limegreen':            '#32CD32', 'linen':                '#FAF0E6',
     'magenta':              '#FF00FF', 'maroon':               '#800000',
@@ -73,7 +73,7 @@ colors = { # from matplotlib
     'seashell':             '#FFF5EE', 'sienna':               '#A0522D',
     'silver':               '#C0C0C0', 'skyblue':              '#87CEEB',
     'slateblue':            '#6A5ACD', 'slategray':            '#708090',
-    'slategrey':            '#708090', 'snow':                 '#FFFAFA',
+    'snow':                 '#FFFAFA',
     'springgreen':          '#00FF7F', 'steelblue':            '#4682B4',
     'tan':                  '#D2B48C', 'teal':                 '#008080',
     'thistle':              '#D8BFD8', 'tomato':               '#FF6347',
@@ -143,7 +143,8 @@ def getColor(rgb=None, hsv=None):
 
     elif isinstance(c, str):
         c = c.replace(',',' ').replace('/',' ').replace('alpha=','')
-        c = c.split()[0] # ignore possible opacity float inside string
+        c = c.replace('grey','gray')
+        c = c.split()[0]   # ignore possible opacity float inside string
         if 0 < len(c) < 3: # single/double letter color
             if c.lower() in color_nicks.keys(): 
                 c = color_nicks[c.lower()] 
@@ -357,7 +358,7 @@ for i in range(10):
     colors2.append((r,g,b))
 
 
-########################################################### terminal color print
+############################################# terminal color print
 def _has_colors(stream):
     if not hasattr(stream, "isatty"): 
         return False
@@ -369,7 +370,7 @@ def _has_colors(stream):
         return curses.tigetnum("colors") > 2
     except:
         return False
-_terminal_has_no_colors = not(_has_colors(sys.stdout))
+_terminal_has_colors = _has_colors(sys.stdout)
 _terminal_cols = {'black':0, 'red':1, 'green':2, 'yellow':3, 
                   'blue':4, 'magenta':5, 'cyan':6, 'white':7,
                   'k':0, 'r':1, 'g':2, 'y':3,
@@ -413,36 +414,25 @@ def printc(*strings, **keys):
         printc('anything', 455.5, vtkObject, c='green')
         printc(299792.48, c=4) # 4 is blue
     '''
-    end='\n'    
-    flush=True
-    if 'end' in keys: end = keys['end']
-    if 'flush' in keys: flush = keys['flush']
+    
+    end = keys.pop('end', '\n')
+    flush = keys.pop('flush', True)
 
-    if _terminal_has_no_colors:
+    if not _terminal_has_colors:
         print(*strings, end=end)
         if flush: sys.stdout.flush()
         return
 
-    c = None # to work with python2
-    bc = None
-    hidden = False
-    bold = True
-    blink = False
-    underline = False
-    dim = False
-    invert = False
-    separator = ' '
-    box = ''    
-    if 'c' in keys: c = keys['c']
-    if 'bc' in keys: bc = keys['bc']
-    if 'hidden' in keys: hidden = keys['hidden']
-    if 'bold' in keys: bold = keys['bold']
-    if 'blink' in keys: blink = keys['blink']
-    if 'underline' in keys: underline = keys['underline']
-    if 'dim' in keys: dim = keys['dim']
-    if 'invert' in keys: invert = keys['invert']
-    if 'separator' in keys: separator = keys['separator']
-    if 'box' in keys: box = keys['box']
+    c = keys.pop('c', None) # hack to work with python2
+    bc = keys.pop('bc', None)
+    hidden = keys.pop('hidden', False)
+    bold = keys.pop('bold', True)
+    blink = keys.pop('blink', False)
+    underline = keys.pop('underline', False)
+    dim = keys.pop('dim', False)
+    invert = keys.pop('invert', False)
+    separator = keys.pop('separator', ' ')
+    box = keys.pop('box', '')
 
     try:
         txt = str()

@@ -18,17 +18,15 @@ a = vp1.load('data/shapes/airboat.vtk', legend='some legend')
 b = vp1.load('data/shapes/cessna.vtk', c='red')
 c = vp1.load('data/shapes/atc.ply')
 
-# don't hold script execution after the show() is called
-vp1.interactive = False
-
-vp1.show(at=10, actors=[a,b])
-vp1.show(at=11, actors=a)
-vp1.show(at=12, actors=b)
-vp1.show(at=15, actors=[b,c])
-vp1.show(at=24, actors=c)
+# with shape=(a,b) script execution after the show() is not held
+vp1.show(a, at=10)
+vp1.show(a, at=11)
+vp1.show(b, at=12)
+vp1.show(c, at=15)
+vp1.show(c, at=24)
 
 # declare a second independent instance of the class Plotter
-vp2 = Plotter(bg=(0.9,0.9,1)) # blue-ish background
+vp2 = Plotter(pos=(500,250), bg=(0.9,0.9,1)) # blue-ish background
 
 vp2.load('data/shapes/porsche.ply', legend='an other window')
 

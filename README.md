@@ -264,7 +264,7 @@ To produce animated gifs online, check out [this great site](https://ezgif.com).
 # vp = Plotter()
 # vp.load('somefile.obj')
 # vp.show()
-def Plotter(shape=(1,1), size='auto', N=None, screensize=(1100,1800), title='vtkplotter',
+def Plotter(shape=(1,1), size='auto', N=None, pos=(0,0), screensize='auto', title='vtkplotter',
             bg=(1,1,1), bg2=None, axes=0, verbose=True, interactive=True)
 def load(filesOrDirs, c='gold', alpha=0.2, wire=False, bc=None, edges=False, legend=True, texture=None)
 def show(actors=None, at=0, legend=None, axes=0, ruler=False, c='gold', bc=None, 
@@ -431,7 +431,7 @@ actor.alpha(value)            # sets/gets opacity
 actor.N()                     # get number of vertex points defining the surface actor
 actor.polydata(rebuild=True)  # get the actor's mesh polydata including its current transformation
                               #     (if rebuild is True : get a copy in its current associated vtkTranform)
-actor.coordinates()           # get a numpy array of all vertex points
+actor.coordinates()           # get a copy of vertex points coordinates (use copy=False to get references)
 actor.point(i, p=None)        # set/get i-th point in actor's polydata (slow performance!)
 actor isInside(p)             # check if point p is inside actor
 actor insidePoints(pts, invert=False) # return the list of points (among pts) that are inside actor
@@ -473,4 +473,5 @@ RGBcol = colorMap(value, name='jet', vmin=-10.2, vmax=123.4)
 ![colmaps](https://user-images.githubusercontent.com/32848391/42942959-c8b50eec-8b61-11e8-930a-00dcffdca601.png)
 
 <br />
-Tested on VTK versions 6.3, 7.1, 8.1
+Tested on VTK versions 6.3, 7.1, 8.1<br />
+[![Downloads](https://pepy.tech/badge/vtk)](https://pepy.tech/project/vtkplotter)

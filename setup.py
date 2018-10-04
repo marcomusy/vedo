@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='8.5.3',     # change also in __init__.py
+    version='8.5.5',     # change also in vtkplotter/__init__.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=[], # vtk and numpy are needed but better install manually
@@ -29,11 +29,11 @@ setup(
 ##############################################################
 # # check examples
 # cd ~/Projects/vtkplotter/
-# sudo -H pip install .
+# pip install .
 # cd examples
 # ./run_all.sh
 
-# # check version number here and in __init__.py
+# # check version number here and in vtkplotter/__init__.py
 
 # git status
 # (sudo apt install twine)
@@ -41,8 +41,12 @@ setup(
 # python setup.py sdist bdist_wheel
 # twine upload dist/vtkplotter-?.?.?.tar.gz -r pypi
 
+# git status
 # git commit -a -m 'comment'
 # git push
 
-# # check status at  https://pypi.org/project/vtkplotter/
+# pip:
+# # https://pypi.org/project/vtkplotter
+# # https://pepy.tech/project/vtkplotter # downloads
+# git:
 # # check status at  https://github.com/marcomusy/vtkplotter

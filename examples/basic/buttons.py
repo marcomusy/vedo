@@ -20,7 +20,7 @@ def buttonfunc():
     printc(bu.status(), box='_', dim=True)
 
 bu = vp.addButton(buttonfunc, 
-                  pos=(400, 20),  # x,y pixels from bottom left corner
+                  pos=(350, 20),  # x,y pixels from bottom left corner
                   states=['press to hide', 'press to show'],
                   c=['w', 'w'], bc=['dg', 'dv'], # colors of states
                   font='courier', size=18, bold=True, italic=False)

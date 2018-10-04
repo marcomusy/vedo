@@ -51,22 +51,21 @@ def mouseleft(vp, obj, event):
             try: 
                 rgb = list(clickedActor.GetProperty().GetColor())
                 cn = colors.getColorName(rgb)
-                if cn == 'white': cn = ''
-                else: cn = '('+cn+'),'
+                cn = '('+cn+'),'
             except: 
                 cn = ''                        
             if indx and isinstance(clickedActor, vtk.vtkAssembly): 
                 colors.printc('-> assembly',indx+':',clickedActor.legend,cn, end=' ')
             elif indx:
-                colors.printc('-> actor', indx+':', leg, cn, end=' ')
+                colors.printc('-> actor', indx+':', leg, cn, dim=1, end=' ')
             if not clickedActorIsAssembly:
                 n = clickedActor.GetMapper().GetInput().GetNumberOfPoints()
             else:
                 n = vp.getActors(clickedActor)[0].GetMapper().GetInput().GetNumberOfPoints()
-            colors.printc('N='+str(n), end='')
+            colors.printc('N='+str(n), dim=1, end='')
             px,py,pz = vp.picked3d
             px,py,pz = str(round(px,1)), str(round(py,1)), str(round(pz,1))
-            colors.printc(', p=('+px+','+py+','+pz+')')
+            colors.printc(', p=('+px+','+py+','+pz+')', dim=1)
 
     vp.clickedActor = clickedActor
     vp.clickedRenderer = clickedr
@@ -188,8 +187,8 @@ def keypress(vp, obj, event):
 
 
     if key == "S":
-        colors.printc('Saving window as screenshot.png', c='green')
         vp.screenshot('screenshot.png')
+        colors.printc('Saved rendering window as screenshot.png', c='blue')
         return
 
     elif key == "C":
@@ -217,9 +216,12 @@ def keypress(vp, obj, event):
         print ("Verbose: ", vp.verbose)
 
     elif key in ["1", "KP_End", "KP_1"]:
-        for i,ia in enumerate(vp.getActors()):
-            ia.GetProperty().SetColor(colors.colors1[(i+vp.icol)%10])
-            ia.GetMapper().ScalarVisibilityOff()
+        if vp.clickedActor and hasattr(vp.clickedActor,'GetProperty'):
+            vp.clickedActor.GetProperty().SetColor(colors.colors1[(vp.icol)%10])
+        else:
+            for i,ia in enumerate(vp.getActors()):
+                ia.GetProperty().SetColor(colors.colors1[(i+vp.icol)%10])
+                ia.GetMapper().ScalarVisibilityOff()
         vp.icol += 1
         vp._draw_legend()
 
@@ -257,13 +259,6 @@ def keypress(vp, obj, event):
                 for i in range(ptdata.GetNumberOfArrays()):
                     name = ptdata.GetArrayName(i)
                     if name == 'Normals': continue
-                    if vp.verbose:
-                        if hasattr(a, 'legend'): print ('actor:', a.legend, end='')
-                        print ('\tfound POINT array with name:', name, end=', ')
-                        try: 
-                            print ('type:', arrtypes[ptdata.GetArray(i).GetDataType()])
-                        except:
-                            print ('type:', ptdata.GetArray(i).GetDataType())
                     ptdata.SetActiveScalars(name)
                     foundarr=1
                 if not foundarr:
@@ -276,13 +271,6 @@ def keypress(vp, obj, event):
                 for i in range(cldata.GetNumberOfArrays()):
                     name = cldata.GetArrayName(i)
                     if name == 'Normals': continue
-                    if vp.verbose:
-                        if hasattr(a, 'legend'): print ('actor:', a.legend, end='')
-                        print ('\tfound POINT array', 'tname:', name, end=', ')
-                        try:
-                            print ('type:', arrtypes[cldata.GetArray(i).GetDataType()])
-                        except:
-                            print ('type:', cldata.GetArray(i).GetDataType())
                     cldata.SetActiveScalars(name)
                     foundarr=1
                 if not foundarr:
@@ -373,14 +361,34 @@ def keypress(vp, obj, event):
                 utils.setInput(w, cpd.GetOutput())
                 w.SetFileName(fname)
                 w.Write()
-                colors.printc("  -> Saved file:", fname, c='g')
+                colors.printc("  -> Saved file:", fname, c='m')
                 vp.cutterWidget.Off()
                 vp.cutterWidget = None
             
         else: 
             colors.printc('Click an actor and press X to open the cutter box widget.',c=4)
 
+    elif key =='i': ### print info
+          utils.printInfo(vp.clickedActor)
+          
 
     if vp.interactor: 
         vp.interactor.Render()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -467,7 +467,7 @@ def fitSphere(coords, c='r', alpha=1, wire=1, legend=None):
     y = coords[:,1]
     z = coords[:,2]
     f[:,0] = x*x+ y*y +z*z
-    C, residue, rank, sv = np.linalg.lstsq(A,f, rcond=None) # solve AC=f
+    C, residue, rank, sv = np.linalg.lstsq(A,f) # solve AC=f
     if rank<4: return None
     t = (C[0]*C[0]) + (C[1]*C[1]) + (C[2]*C[2]) +C[3]
     radius = np.sqrt(t)[0]
@@ -479,7 +479,6 @@ def fitSphere(coords, c='r', alpha=1, wire=1, legend=None):
     setattr(s, 'center', center)
     setattr(s, 'residue', residue)
     return s
-
 
 
 def pca(points, pvalue=.95, c='c', alpha=0.5, pcaAxes=False, legend=None):
@@ -542,6 +541,128 @@ def pca(points, pvalue=.95, c='c', alpha=0.5, pcaAxes=False, legend=None):
     setattr(finact, 'vb', ub)
     setattr(finact, 'vc', uc)
     return finact
+
+
+def align(source, target, iters=100, rigid=False, legend=None):
+    '''
+    Return a copy of source actor which is aligned to
+    target actor through vtkIterativeClosestPointTransform() method.
+    The core of the algorithm is to match each vertex in one surface with
+    the closest surface point on the other, then apply the transformation 
+    that modify one surface to best match the other (in a least square sense). 
+    '''
+    source = vu.polydata(source)
+    target = vu.polydata(target)
+    icp = vtk.vtkIterativeClosestPointTransform()
+    icp.SetSource(source)
+    icp.SetTarget(target)
+    icp.SetMaximumNumberOfIterations(iters)
+    if rigid: icp.GetLandmarkTransform().SetModeToRigidBody()
+    icp.StartByMatchingCentroidsOn()
+    icp.Update()
+    icpTransformFilter = vtk.vtkTransformPolyDataFilter()
+    vu.setInput(icpTransformFilter, source)
+    icpTransformFilter.SetTransform(icp)
+    icpTransformFilter.Update()
+    poly = icpTransformFilter.GetOutput()
+    actor = vu.makeActor(poly, legend=legend)
+    if hasattr(source, 'GetProperty'):
+        actor.SetProperty(source.GetProperty())
+    setattr(actor, 'transform', icp.GetLandmarkTransform())
+    return actor
+
+
+def alignInTwoSteps(source, target, iters=100, rigid=False, legend=None):
+    '''
+    Match two surfaces using the iterative closest point (ICP) algorithm. 
+    In two steps, to improve on precision.
+    '''
+    source = vu.polydata(source)
+    target = vu.polydata(target)
+    icp = vtk.vtkIterativeClosestPointTransform()
+    icp.SetSource(source)
+    icp.SetTarget(target)
+    icp.SetMaximumNumberOfIterations(iters)
+    icp.StartByMatchingCentroidsOn()
+    if rigid: icp.GetLandmarkTransform().SetModeToRigidBody()
+    icp.Modified()
+    icp.Update()
+    icpTransformFilter = vtk.vtkTransformPolyDataFilter()
+    icpTransformFilter.SetInputData(source)
+    icpTransformFilter.SetTransform(icp)
+    icpTransformFilter.Update()
+    tsource1 = icpTransformFilter.GetOutput()
+
+    for i in range(tsource1.GetNumberOfPoints()):
+        p = np.array([0,0,0])
+        q = np.array([0,0,0])
+        source.GetPoints().GetPoint(i, p)
+        tsource1.GetPoint(i, q)
+        tsource1.GetPoints().SetPoint(i, (p+q)/2) # divide by half the shift
+
+    icp2 = vtk.vtkIterativeClosestPointTransform()
+    icp2.SetSource(tsource1)
+    icp2.SetTarget(target)
+    icp2.SetMaximumNumberOfIterations(iters)
+    if rigid: icp2.GetLandmarkTransform().SetModeToRigidBody()
+    icp2.StartByMatchingCentroidsOff()
+    icp2.Modified()
+    icp2.Update()
+    icp2TransformFilter = vtk.vtkTransformPolyDataFilter()
+    icp2TransformFilter.SetInputData(tsource1)
+    icp2TransformFilter.SetTransform(icp2)
+    icp2TransformFilter.Update()
+    actor = vu.makeActor(icp2TransformFilter.GetOutput(), legend=legend)
+    #    if hasattr(source, 'GetProperty'):
+    #        actor.SetProperty(source.GetProperty())
+    #    icp.GetLandmarkTransform().Concatenate(icp2.GetLandmarkTransform())
+    #    setattr(actor, 'transform', icp.GetLandmarkTransform() )
+    return actor
+
+
+def smoothLaplacian(actor, niter=15, relaxfact=0.1, edgeAngle=15, featureAngle=60):
+    '''
+    Adjust mesh point positions using Laplacian smoothing
+    '''
+    poly = vu.polydata(actor)
+    cl = vtk.vtkCleanPolyData()
+    cl.SetInputData(poly)
+    cl.Update()
+    poly = cl.GetOutput() ## removes the boudaries duplication
+    smoothFilter = vtk.vtkSmoothPolyDataFilter()
+    smoothFilter.SetInputData(poly)
+    smoothFilter.SetNumberOfIterations(niter)
+    smoothFilter.SetRelaxationFactor(relaxfact)
+    smoothFilter.SetEdgeAngle(edgeAngle)
+    smoothFilter.SetFeatureAngle(featureAngle)
+    smoothFilter.BoundarySmoothingOn()
+    smoothFilter.FeatureEdgeSmoothingOn()
+    smoothFilter.GenerateErrorScalarsOn()
+    smoothFilter.Update()
+    return align(smoothFilter.GetOutput(), poly)
+
+
+def smoothWSinc(actor, niter=15, passBand=0.1, edgeAngle=15, featureAngle=60):
+    '''
+    Adjust mesh point positions using a windowed sinc function interpolation kernel
+    '''
+    poly = vu.polydata(actor)
+    cl = vtk.vtkCleanPolyData()
+    cl.SetInputData(poly)
+    cl.Update()
+    poly = cl.GetOutput() ## removes the boudaries duplication
+    smoothFilter = vtk.vtkWindowedSincPolyDataFilter()
+    smoothFilter.SetInputData(poly)
+    smoothFilter.SetNumberOfIterations(niter)
+    smoothFilter.SetEdgeAngle(edgeAngle)
+    smoothFilter.SetFeatureAngle(featureAngle)
+    smoothFilter.SetPassBand(passBand)
+    smoothFilter.NormalizeCoordinatesOn()
+    smoothFilter.NonManifoldSmoothingOn()
+    smoothFilter.FeatureEdgeSmoothingOn()
+    smoothFilter.BoundarySmoothingOn()
+    smoothFilter.Update()
+    return align(smoothFilter.GetOutput(), poly)
 
 
 def smoothMLS2D(actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
@@ -680,7 +801,7 @@ def smoothMLS1D(actor, f=0.2, showNLines=0):
    
 
 def extractLines(actor, n=5):
-    
+    '''undocumented'''
     coords  = vu.coordinates(actor)
     poly = vu.polydata(actor, True)
     vpts = poly.GetPoints()
@@ -701,32 +822,6 @@ def extractLines(actor, n=5):
         if len(np.unique(np.sign(dots)))==1:
             spts.append(p)
     return np.array(spts)
-
-
-
-def align(source, target, iters=100, legend=None):
-    '''
-    Return a copy of source actor which is aligned to
-    target actor through vtkIterativeClosestPointTransform() method.
-    '''
-    sprop = source.GetProperty()
-    source = vu.polydata(source)
-    target = vu.polydata(target)
-    icp = vtk.vtkIterativeClosestPointTransform()
-    icp.SetSource(source)
-    icp.SetTarget(target)
-    icp.SetMaximumNumberOfIterations(iters)
-    icp.StartByMatchingCentroidsOn()
-    icp.Update()
-    icpTransformFilter = vtk.vtkTransformPolyDataFilter()
-    vu.setInput(icpTransformFilter, source)
-    icpTransformFilter.SetTransform(icp)
-    icpTransformFilter.Update()
-    poly = icpTransformFilter.GetOutput()
-    actor = vu.makeActor(poly, legend=legend)
-    actor.SetProperty(sprop)
-    setattr(actor, 'transform', icp.GetLandmarkTransform())
-    return actor
 
 
 def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1, 
@@ -758,7 +853,6 @@ def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1,
     return actor
 
 
-
 def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3,
                         c=None, alpha=1, legend=None):
     '''Intersect 2 surfaces and return a line actor'''
@@ -776,6 +870,7 @@ def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3,
     actor = vu.makeActor(bf.GetOutput(), c, alpha, 0, legend=legend)
     actor.GetProperty().SetLineWidth(lw)
     return actor
+
 
 def recoSurface(points, bins=256,
                 c='gold', alpha=1, wire=False, bc='t', edges=False, legend=None):
@@ -911,16 +1006,6 @@ def removeOutliers(points, radius, c='k', alpha=1, legend=None):
     return actor  # return same obj for concatenation
 
 
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     
     
