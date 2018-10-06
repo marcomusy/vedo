@@ -136,9 +136,11 @@ class Plotter:
             if aus and len(aus)==2 and aus[0]>100 and aus[1]>100: #seems ok
                 if aus[0]/aus[1] > 2: # looks like there are 2 or more screens
                     screensize = (int(aus[0]/2), aus[1])
+                else:
+                    screensize = aus
             else: # it went wrong, use a default 1.5 ratio
                 screensize = (2160, 1440)
-            
+        
         x, y = screensize
         if N:                # N = number of renderers. Find out the best
             if shape!=(1,1): # arrangement based on minimum nr. of empty renderers

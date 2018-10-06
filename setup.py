@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='8.5.5',     # change also in vtkplotter/__init__.py
+    version='8.5.6',     # change also in vtkplotter/__init__.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=[], # vtk and numpy are needed but better install manually
