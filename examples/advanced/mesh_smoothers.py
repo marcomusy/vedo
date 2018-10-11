@@ -14,11 +14,11 @@ vp.show(a0, at=0)
 
 # Adjust mesh using Laplacian smoothing
 a1 = smoothLaplacian(a0).color('crimson').alpha(1)
-vp.show(a1, at=1, legend='smoothFilter')
+vp.show(a1, at=1, legend='laplacian')
 
 # Adjust mesh using a windowed sinc function interpolation kernel
 a2 = smoothWSinc(a0).color('seagreen').alpha(1)
-vp.show(a2, at=2, legend='smoothWSinc')
+vp.show(a2, at=2, legend='window sinc')
 
 vp.renderers[0].SetBackground(0.8,1,1) # set first renderer color
 vp.show(zoom=1.4, interactive=True)

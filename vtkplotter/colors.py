@@ -1,3 +1,7 @@
+"""
+Colors definitions and printing methods.
+"""
+
 from __future__ import division, print_function
 import numpy as np
 import sys
@@ -113,6 +117,7 @@ color_nicks.update({   # dark
 
 
 def isSequence(arg): 
+    '''Check if input is iterable.'''
     if hasattr(arg, "strip"): return False
     if hasattr(arg, "__getslice__"): return True
     if hasattr(arg, "__iter__"): return True
@@ -122,13 +127,24 @@ def isSequence(arg):
 def getColor(rgb=None, hsv=None):
     """
     Convert a color to (r,g,b) format from many input formats, e.g.:
-     RGB    = (255, 255, 255), corresponds to white
-     rgb    = (1,1,1) 
-     hex    = #FFFF00 is yellow
-     string = 'white'
-     string = 'dr' is darkred
-     int    = 7 picks color #7 in list colors1
-     if hsv is set to (hue,saturation,value), rgb is calculated from it 
+    
+    Options:
+        
+         RGB    = (255, 255, 255), corresponds to white
+         
+         rgb    = (1,1,1) 
+         
+         hex    = #FFFF00 is yellow
+         
+         string = 'white'
+         
+         string = 'dr' is darkred
+         
+         int    = 7 picks color #7 in list colors1
+         
+         if hsv is set to (hue,saturation,value), rgb is calculated from it 
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py)    
     """
     if str(rgb).isdigit(): rgb = int(rgb)
     
@@ -192,7 +208,7 @@ def getColor(rgb=None, hsv=None):
     
 
 def getAlpha(c):
-    "Check if color string contains a float representing opacity"
+    "Check if color string contains a float representing opacity."
     if isinstance(c, str):
         sc = c.replace(',',' ').replace('/',' ').replace('alpha=','').split()
         if len(sc)==1: return None
@@ -201,7 +217,10 @@ def getAlpha(c):
 
 
 def getColorName(c):
-    """Convert any rgb color or numeric code to closest name color"""
+    """Convert any rgb color or numeric code to closest name color.
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorpalette.py)    
+    """
     c = np.array(getColor(c)) #reformat to rgb
     mdist = 99.
     kclosest = ''
@@ -215,17 +234,19 @@ def getColorName(c):
 
 
 def hsv2rgb(hsv):
+    '''Convert HSV to RGB color.'''
     import vtk
     ma = vtk.vtkMath()
     return ma.HSVToRGB(hsv)    
 def rgb2hsv(rgb):
+    '''Convert RGB to HSV color.'''
     import vtk
     ma = vtk.vtkMath()
     return ma.RGBToHSV(getColor(rgb))
 
 try:
     import matplotlib.cm as cm_mpl
-    mapscales = {
+    _mapscales = {
         'jet':cm_mpl.jet,
         'hot':cm_mpl.hot,
         'afmhot':cm_mpl.afmhot,
@@ -240,27 +261,35 @@ try:
         'gist_earth':cm_mpl.gist_earth
     }
 except: 
-    mapscales = None
+    _mapscales = None
     
 
 def colorMap(value, name='jet', vmin=0, vmax=1): 
-    '''Map a real value in range [vmin, vmax] to a (r,g,b) color scale'''
+    '''Map a real value in range [vmin, vmax] to a (r,g,b) color scale.
+    
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colormaps.py)    
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py)    
+    [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py)    
+    '''
     value = value - vmin
     value = value / vmax
-    if mapscales:
+    if _mapscales:
         if value>.999: value=.999
         elif value<0: value=0
         try: 
-            return mapscales[name](value)[0:3]
+            return _mapscales[name](value)[0:3]
         except:
-            print('Error in colorMap(): avaliable maps =', sorted(mapscales.keys()))
+            print('Error in colorMap(): avaliable maps =', sorted(_mapscales.keys()))
             exit(0)
     return (0.5,0.5,0.5)
 
 
 
 def makePalette(color1, color2, N, HSV=False):
-    '''Generate N colors starting from color1 to color2 in RGB or HSV space'''
+    '''Generate N colors starting from color1 to color2 in RGB or HSV space.
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorpalette.py)    
+    '''
     if HSV:
         color1 = rgb2hsv(color1)
         color2 = rgb2hsv(color2)
@@ -277,8 +306,9 @@ def makePalette(color1, color2, N, HSV=False):
 
 def kelvin2rgb(temperature):
     """
-    Converts from K to RGB, 
-    algorithm courtesy of 
+    Converts from Kelvin temperature to an RGB color.
+    
+    Algorithm credits: 
     http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
     https://gist.github.com/petrklus/b1f427accdf7438606a6#file-rgb_to_kelvin-py
     """
@@ -350,12 +380,12 @@ colors1=[
 ]
 
 colors2=[] # negative integer color number get this:
-for i in range(10):
-    pc = (i+0.5)/10
-    r = np.exp(-((pc    )/0.2)**2/2)
-    g = np.exp(-((pc-0.5)/0.2)**2/2)
-    b = np.exp(-((pc-1.0)/0.2)**2/2)
-    colors2.append((r,g,b))
+for _i in range(10):
+    _pc = (_i+0.5)/10
+    _r = np.exp(-((_pc    )/0.2)**2/2)
+    _g = np.exp(-((_pc-0.5)/0.2)**2/2)
+    _b = np.exp(-((_pc-1.0)/0.2)**2/2)
+    colors2.append((_r,_g,_b))
 
 
 ############################################# terminal color print
@@ -380,7 +410,10 @@ def printc(*strings, **keys):
     '''
     Print to terminal in colors.
     
-    Keys:
+    Available colors are:
+        black, red, green, yellow, blue, magenta, cyan, white
+        
+    Options:        
         
         c, foreground color ['']
         
@@ -404,15 +437,19 @@ def printc(*strings, **keys):
         
         flush, flush buffer after printing [True]
         
-        end, end character to be printed ['\n']
+        end, end character to be printed [return]
         
-    Available colors:
-        black, red, green, yellow, blue, magenta, cyan, white
+    Basic usage example:
         
-    Usage example:
+        from vtkplotter.colors import printc
+        
         printc('anything', c='red', bold=False, end='' )
+        
         printc('anything', 455.5, vtkObject, c='green')
+        
         printc(299792.48, c=4) # 4 is blue
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorprint.py)    
     '''
     
     end = keys.pop('end', '\n')
@@ -473,14 +510,14 @@ def printc(*strings, **keys):
         if box and not('\n' in txt):
             if len(box)>1:
                 box=box[0]
-            if box in ['_','=','-','+']: 
+            if box in ['_','=','-','+','~']: 
                 boxv='|'
             else:
                 boxv=box
 
-            if box=='_': 
+            if box=='_' or box=='.': 
                 outtxt = special + cseq+ ' '+box*(len(txt)+2)+' \n'
-                outtxt+='|'+' '*(len(txt)+2)+'|\n'
+                outtxt+=boxv+' '*(len(txt)+2)+boxv+'\n'
             else:
                 outtxt = special + cseq+ box*(len(txt)+4)+'\n'
                 

@@ -9,7 +9,7 @@ vp = Plotter(shape=(2,1))
 act1 = vp.load('data/embryo.slc', c='y')
 printc('area1 =', area(act1), c='y')
 
-act2 = extractLargestRegion(act1, c='b')
+act2 = extractLargestRegion(act1).color('b')
 printc('area2 =', area(act2), c='b')
 
 vp.show(act1, at=0)

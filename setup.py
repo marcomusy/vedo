@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='8.5.5',     # change also in vtkplotter/__init__.py
+    version='8.5.7',     # change also in vtkplotter/__init__.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=[], # vtk and numpy are needed but better install manually
@@ -50,3 +50,11 @@ setup(
 # # https://pepy.tech/project/vtkplotter # downloads
 # git:
 # # check status at  https://github.com/marcomusy/vtkplotter
+
+## to generate gif: ezgif.com
+
+## to generate documentation:
+# cd ~
+# pdoc --overwrite --html vtkplotter
+# mount_staging
+# cp vtkplotter/* ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es

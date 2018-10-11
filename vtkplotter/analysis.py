@@ -1,3 +1,7 @@
+"""
+Defines methods useful to analise 3D meshes.
+"""
+
 from __future__ import division, print_function
 import vtk
 import numpy as np
@@ -11,13 +15,21 @@ import vtkplotter.shapes as vs
 def spline(points, smooth=0.5, degree=2, 
            s=2, c='b', alpha=1., nodes=False, legend=None, res=20):
     '''
-    Return a vtkActor for a spline that doesnt necessarly 
-    pass exactly throught all points.
-        smooth = smoothing factor:
-            0 = interpolate points exactly, 
-            1 = average point positions
+    Return a vtkActor for a spline that doesnt necessarly pass exactly throught all points.
+        
+    Options:
+ 
+        smooth, smoothing factor:
+                0 = interpolate points exactly, 
+                1 = average point positions
+                
         degree = degree of the spline (1<degree<5)
+        
         nodes = True shows also original the points 
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)
+
+    ![rspline](https://user-images.githubusercontent.com/32848391/35976041-15781de8-0cdf-11e8-997f-aeb725bc33cc.png)
     '''
     try:
         from scipy.interpolate import splprep, splev
@@ -105,10 +117,16 @@ def xyplot(points, title='', c='b', corner=1, lines=False):
     Return a vtkActor that is a plot of 2D points in x and y.
 
     Use corner to assign its position:
+        
         1=topleft, 
+        
         2=topright, 
+        
         3=bottomleft, 
+        
         4=bottomright.
+        
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)
     """
     c = vc.getColor(c) # allow different codings
     array_x = vtk.vtkFloatArray()
@@ -168,13 +186,9 @@ def fxy(z='sin(3*x)*log(x-y)/3', x=[0,3], y=[0,3],
 
     zlevels will draw the specified number of z-levels contour lines.
 
-    Examples:
-        vp = vtkplotter.Plotter()
-        vp.fxy('sin(3*x)*log(x-y)/3')
-        or
-        def z(x,y): return math.sin(x*y)
-        vp.fxy(z) # or equivalently:
-        vp.fxy(lambda x,y: math.sin(x*y))
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fxy.py)    
+
+    ![fxy](https://user-images.githubusercontent.com/32848391/36611824-fd524fac-18d4-11e8-8c76-d3d1b1bb3954.png)
     '''
     if isinstance(z, str):
         try:
@@ -284,6 +298,8 @@ def delaunay2D(plist, tol=None, c='gold', alpha=0.5, wire=False, bc=None, edges=
                legend=None, texture=None):
     '''
     Create a mesh from points in the XY plane.
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/delaunay2d.py)
     '''
     src = vtk.vtkPointSource()
     src.SetNumberOfPoints(len(plist))
@@ -300,6 +316,9 @@ def delaunay2D(plist, tol=None, c='gold', alpha=0.5, wire=False, bc=None, edges=
 def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
     '''
     Build a vtkActor made of the normals at vertices shown as arrows
+
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)    
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fatlimb.py)    
     '''
     maskPts = vtk.vtkMaskPoints()
     maskPts.SetOnRatio(ratio)
@@ -342,6 +361,8 @@ def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None):
     Build a copy of vtkActor that contains the color coded surface
     curvature following four different ways to calculate it:
         method =  0-gaussian, 1-mean, 2-max, 3-min
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)
     '''
     poly = vu.polydata(actor)
     cleaner = vtk.vtkCleanPolyData()
@@ -372,7 +393,10 @@ def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None):
 
 
 def boundaries(actor, c='p', lw=5, legend=None):
-    '''Build a copy of actor that shows the boundary lines of its surface.'''
+    '''Build a copy of actor that shows the boundary lines of its surface.
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)    
+    '''
     fe = vtk.vtkFeatureEdges()
     vu.setInput(fe, vu.polydata(actor))
     fe.BoundaryEdgesOn()
@@ -386,9 +410,11 @@ def boundaries(actor, c='p', lw=5, legend=None):
     return bactor
 
 
-def extractLargestRegion(actor, c=None, alpha=None, wire=False, bc=None,
-                         edges=False, legend=None, texture=None):
-    '''Split actor into a set of disconnected polydata'''
+def extractLargestRegion(actor, legend=None):
+    '''Keep only the largest connected part of a mesh and discard all the smaller pieces.
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/largestregion.py)
+    '''
     conn = vtk.vtkConnectivityFilter()
     conn.SetExtractionModeToLargestRegion()
     conn.ScalarConnectivityOff()
@@ -397,11 +423,10 @@ def extractLargestRegion(actor, c=None, alpha=None, wire=False, bc=None,
     conn.Update()
     epoly = conn.GetOutput()
     if legend  is True and hasattr(actor, 'legend'): legend = actor.legend
-    if alpha   is None: alpha = actor.GetProperty().GetOpacity()
-    if c       is None: c = actor.GetProperty().GetColor()
-    if texture is None and hasattr(actor, 'texture'): texture = actor.texture
-    eact = vu.makeActor(epoly, c, alpha, wire, bc, edges, legend, texture)
-    eact.GetProperty().SetPointSize(actor.GetProperty().GetPointSize())
+    eact = vu.makeActor(epoly, legend)
+    pr = vtk.vtkProperty()
+    pr.DeepCopy(actor.GetProperty())
+    eact.SetProperty(pr)
     return eact
     
 
@@ -411,6 +436,8 @@ def fitLine(points, c='orange', lw=1, alpha=0.6, legend=None):
     Fits a line through points.
 
     Extra info is stored in actor.slope, actor.center, actor.variances
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fitline.py)
     '''
     data = np.array(points)
     datamean = data.mean(axis=0)
@@ -436,6 +463,9 @@ def fitPlane(points, c='g', bc='darkgreen', alpha=0.8, legend=None):
     Fits a plane to a set of points.
 
     Extra info is stored in actor.normal, actor.center, actor.variance
+
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fitline.py)    
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitplanes.py)
     '''
     data = np.array(points)
     datamean = data.mean(axis=0)
@@ -456,6 +486,9 @@ def fitSphere(coords, c='r', alpha=1, wire=1, legend=None):
     Fits a sphere to a set of points.
     
     Extra info is stored in actor.radius, actor.center, actor.residue
+
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres1.py)
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py)
     '''
     coords = np.array(coords)
     n = len(coords)
@@ -484,9 +517,14 @@ def fitSphere(coords, c='r', alpha=1, wire=1, legend=None):
 def pca(points, pvalue=.95, c='c', alpha=0.5, pcaAxes=False, legend=None):
     '''
     Show the oriented PCA ellipsoid that contains fraction pvalue of points.
-        axes = True, show the 3 PCA semi axes
+        
+    axes = True, show the 3 PCA semi axes
+    
     Extra info is stored in actor.sphericity, actor.va, actor.vb, actor.vc
     (sphericity = 1 for a perfect sphere)
+    
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/cell_main.py)
     '''
     try:
         from scipy.stats import f
@@ -549,7 +587,10 @@ def align(source, target, iters=100, rigid=False, legend=None):
     target actor through vtkIterativeClosestPointTransform() method.
     The core of the algorithm is to match each vertex in one surface with
     the closest surface point on the other, then apply the transformation 
-    that modify one surface to best match the other (in a least square sense). 
+    that modify one surface to best match the other (in the least-square sense). 
+
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/align1.py)
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/align2.py)
     '''
     source = vu.polydata(source)
     target = vu.polydata(target)
@@ -622,7 +663,9 @@ def alignInTwoSteps(source, target, iters=100, rigid=False, legend=None):
 
 def smoothLaplacian(actor, niter=15, relaxfact=0.1, edgeAngle=15, featureAngle=60):
     '''
-    Adjust mesh point positions using Laplacian smoothing
+    Adjust mesh point positions using Laplacian smoothing.
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/mesh_smoothers.py)
     '''
     poly = vu.polydata(actor)
     cl = vtk.vtkCleanPolyData()
@@ -644,7 +687,9 @@ def smoothLaplacian(actor, niter=15, relaxfact=0.1, edgeAngle=15, featureAngle=6
 
 def smoothWSinc(actor, niter=15, passBand=0.1, edgeAngle=15, featureAngle=60):
     '''
-    Adjust mesh point positions using a windowed sinc function interpolation kernel
+    Adjust mesh point positions using the windowed sinc function interpolation kernel.
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/mesh_smoothers.py)
     '''
     poly = vu.polydata(actor)
     cl = vtk.vtkCleanPolyData()
@@ -671,13 +716,19 @@ def smoothMLS2D(actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
     The list actor.variances contain the residue calculated for each point.
     Input actor's polydata is modified.
     
+    Options:
+    
         f, smoothing factor - typical range s [0,2]
         
         decimate, decimation factor (an integer number) 
         
         recursive, move points while algorithm proceedes
         
-        showNPlanes, build an actor showing the fitting plane for N random points            
+        showNPlanes, build an actor showing the fitting plane for N random points          
+    
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/mesh_smoothers.py)    
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py)    
+    [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/recosurface.py)    
     '''        
     coords  = vu.coordinates(actor)
     ncoords = len(coords)
@@ -746,9 +797,16 @@ def smoothMLS1D(actor, f=0.2, showNLines=0):
     The list actor.variances contain the residue calculated for each point.
     Input actor's polydata is modified.
     
+    Options:
+
         f, smoothing factor - typical range s [0,2]
                       
         showNLines, build an actor showing the fitting line for N random points            
+
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares1D.py)    
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/skeletonize.py)    
+    
+    ![skel](https://user-images.githubusercontent.com/32848391/46820954-c5f13b00-cd87-11e8-87aa-286528a09de8.png)
     '''        
     coords  = vu.coordinates(actor)
     ncoords = len(coords)
@@ -801,7 +859,7 @@ def smoothMLS1D(actor, f=0.2, showNLines=0):
    
 
 def extractLines(actor, n=5):
-    '''undocumented'''
+    '''undocumented, internal use.'''
     coords  = vu.coordinates(actor)
     poly = vu.polydata(actor, True)
     vpts = poly.GetPoints()
@@ -826,7 +884,10 @@ def extractLines(actor, n=5):
 
 def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1, 
                      wire=False, bc=None, edges=False, legend=None, texture=None):
-    '''Volumetric union, intersection and subtraction of surfaces'''
+    '''Volumetric union, intersection and subtraction of surfaces
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/boolean.py)        
+    '''
     try:
         bf = vtk.vtkBooleanOperationPolyDataFilter()
     except AttributeError:
@@ -855,7 +916,10 @@ def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1,
 
 def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3,
                         c=None, alpha=1, legend=None):
-    '''Intersect 2 surfaces and return a line actor'''
+    '''Intersect 2 surfaces and return a line actor.
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/surfIntersect.py)    
+    '''
     try:
         bf = vtk.vtkIntersectionPolyDataFilter()
     except AttributeError:
@@ -876,6 +940,10 @@ def recoSurface(points, bins=256,
                 c='gold', alpha=1, wire=False, bc='t', edges=False, legend=None):
     '''
     Surface reconstruction from sparse points.
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/recosurface.py)  
+    
+    ![reco](https://user-images.githubusercontent.com/32848391/46817107-b3263880-cd7e-11e8-985d-f5d158992f0c.png)
     '''
     
     if isinstance(points, vtk.vtkActor): points = vu.coordinates(points)
@@ -929,6 +997,10 @@ def cluster(points, radius, legend=None):
     Clustering of points in space.
     radius, is the radius of local search.
     Individual subsets can be accessed through actor.clusters
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/clustering.py)    
+
+    ![cluster](https://user-images.githubusercontent.com/32848391/46817286-2039ce00-cd7f-11e8-8b29-42925e03c974.png)
     '''
     if isinstance(points, vtk.vtkActor): 
         poly = vu.polydata(points)
@@ -973,6 +1045,8 @@ def cluster(points, radius, legend=None):
 def removeOutliers(points, radius, c='k', alpha=1, legend=None):
     '''
     Remove outliers from a cloud of points within radius search
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/clustering.py)    
     '''
     isactor=False
     if isinstance(points, vtk.vtkActor): 

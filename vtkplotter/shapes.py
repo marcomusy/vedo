@@ -1,3 +1,7 @@
+"""
+Submodule to generate basic geometric shapes.
+"""
+
 from __future__ import division, print_function
 import vtk
 import numpy as np
@@ -16,6 +20,10 @@ def points(plist, c='b', tags=[], r=5, alpha=1, legend=None):
     
     If tags (a list of strings) is specified, is displayed along 
     with the points.
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lorenz.py)    
+
+    ![lorenz](https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png)
     '''
 
     if len(plist) == 0: return None
@@ -80,9 +88,9 @@ def line(p0, p1=None, lw=1, tube=False, dotted=False,
             c='r', alpha=1., legend=None):
     '''Build the line segment between points p0 and p1.
         
-        if p0 is a list of points returns the line connecting them.
+        If p0 is a list of points returns the line connecting them,
         
-        if tube=True, lines are rendered as tubes of radius lw
+        if tube=True, lines are rendered as tubes of radius lw.
     '''
 
     #detect if user is passing a list of points:
@@ -128,7 +136,9 @@ def line(p0, p1=None, lw=1, tube=False, dotted=False,
 def lines(plist0, plist1=None, lw=1, dotted=False,
             c='r', alpha=1, legend=None):
     '''Build the line segments between two lists of points plist0 and plist1.
-        plist0 can be also passed in the form [[point1, point2], ...]
+        plist0 can be also passed in the form [[point1, point2], ...].
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py)    
     '''        
     if plist1 is not None:
         plist0 = list(zip(plist0,plist1))
@@ -293,7 +303,7 @@ def disc(pos=[0,0,0], normal=[0,0,1], r1=0.5, r2=1,
          c='coral', bc='darkgreen', lw=1, alpha=1, 
          legend=None, texture=None, res=12):
     '''Build a 2D disc of internal radius r1 and outer radius r2,
-    oriented perpendicular to normal'''
+    oriented perpendicular to normal.'''
     ps = vtk.vtkDiskSource()
     ps.SetInnerRadius(r1)
     ps.SetOuterRadius(r2)
@@ -362,6 +372,9 @@ def spheres(centers, r=1,
     Build a (possibly large) set of spheres at centers of radius r.
     
     Either c or r can be a list of RGB colors or radii.
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/manyspheres.py)    
+    ![manysph](https://user-images.githubusercontent.com/32848391/46818673-1f566b80-cd82-11e8-9a61-be6a56160f1c.png)
     '''
 
     cisseq=False
@@ -451,6 +464,10 @@ def spheres(centers, r=1,
 
 
 def earth(pos=[0,0,0], r=1, lw=1):
+    '''Build a textured actor representing the Earth.        
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/earth.py)    
+    '''
     import os
     tss = vtk.vtkTexturedSphereSource()
     tss.SetRadius(r)
@@ -490,7 +507,7 @@ def ellipsoid(pos=[0,0,0], axis1=[1,0,0], axis2=[0,2,0], axis3=[0,0,3],
               c='c', alpha=1, legend=None, texture=None, res=24):
     """
     Build a 3D ellipsoid centered at position pos.
-    Axis1 and axis2 are only used to define sizes and one azimuth angle
+    Axis1 and axis2 are only used to define sizes and one azimuth angle.
     """
     elliSource = vtk.vtkSphereSource()
     elliSource.SetThetaResolution(res)
@@ -527,7 +544,10 @@ def ellipsoid(pos=[0,0,0], axis1=[1,0,0], axis2=[0,2,0], axis3=[0,0,3],
 
 def grid(pos=[0,0,0], normal=[0,0,1], sx=1, sy=1, c='g', bc='darkgreen',
          lw=1, alpha=1, legend=None, resx=10, resy=10):
-    '''Return a grid plane'''
+    '''Return a grid plane.
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/brownian2D.py)    
+    '''
     ps = vtk.vtkPlaneSource()
     ps.SetResolution(resx, resy)
     ps.Update()
@@ -593,8 +613,10 @@ def plane(pos=[0,0,0], normal=[0,0,1], sx=1, sy=None, c='g', bc='darkgreen',
 
 def box(pos=[0,0,0], length=1, width=2, height=3, normal=(0,0,1),
         c='g', alpha=1, wire=False, legend=None, texture=None):
-    '''Build a box of dimensions x=length, y=width and z=height
-    oriented along vector normal'''
+    '''Build a box of dimensions x=length, y=width and z=height oriented along vector normal.
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/spring.py)    
+    '''
     src = vtk.vtkCubeSource()
     src.SetXLength(length)
     src.SetYLength(width)
@@ -624,7 +646,11 @@ def box(pos=[0,0,0], length=1, width=2, height=3, normal=(0,0,1),
 def helix(startPoint=[0,0,0], endPoint=[1,1,1], coils=20, r=None,
           thickness=None, c='grey', alpha=1, legend=None, texture=None):
     '''
-    Build a spring actor of specified nr of coils between startPoint and endPoint
+    Build a spring of specified nr of coils between startPoint and endPoint.
+
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/spring.py)    
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
+    [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/multiple_pendulum.py)    
     '''
     diff = endPoint-np.array(startPoint)
     length = np.linalg.norm(diff)
@@ -669,6 +695,9 @@ def cylinder(pos=[0,0,0], r=1, height=1, axis=[0,0,1],
     
     If pos is a list of 2 points, e.g. pos=[v1,v2], build a cylinder with base
     centered at v1 and top at v2.
+
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/turing.py)    
     '''
     
     if vu.isSequence(pos[0]): # assume user is passing pos=[base, top]
@@ -735,6 +764,10 @@ def ring(pos=[0,0,0], r=1, thickness=0.1, axis=[0,0,1],
          c='khaki', alpha=1, wire=False, legend=None, texture=None, res=30):
     '''
     Build a torus of specified outer radius r internal radius thickness, centered at pos.
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gas.py)    
+    
+    ![gas](https://user-images.githubusercontent.com/32848391/39139206-90d644ca-4721-11e8-95b9-8aceeb3ac742.gif)
     '''
     rs = vtk.vtkParametricTorus()
     rs.SetRingRadius(r)
@@ -851,12 +884,20 @@ def text(txt, pos=(0,0,0), normal=(0,0,1), s=1, depth=0.1,
          c='k', alpha=1, bc=None, texture=None, followcam=False, cam=None):
     '''
     Returns a vtkActor that shows a text in 3D.
+    
+    Options:
         
         pos = position in 3D space
-              if an integer is passed [1 -> 8], places text in a corner
+        if an integer is passed [1 -> 8], places text in one of the corners
+        
         s = size of text 
+        
         depth = text thickness
-        followcam = True, the text will auto-orient itself to it
+        
+        followcam = False, if True the text will auto-orient itself to it.
+
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py)    
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
     '''
     if isinstance(pos, int):
         cornerAnnotation = vtk.vtkCornerAnnotation()

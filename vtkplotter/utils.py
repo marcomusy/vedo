@@ -1,11 +1,16 @@
+"""
+Utilities submodule. 
+Contains methods to perform simple operations with meshes.
+"""
+
 from __future__ import division, print_function
 import os, types
 import numpy as np
+from numpy import arange
 import vtk
 from vtk.util.numpy_support import numpy_to_vtk
 from vtk.util.numpy_support import vtk_to_numpy
 import vtkplotter.colors as colors
-
 
 
 ##############################################################################
@@ -16,21 +21,13 @@ if _cdir == '': _cdir = '.'
 textures_path = _cdir + '/textures/'
 
 textures=[]
-for f in os.listdir( textures_path ):
-    textures.append(f.split('.')[0])
+for _f in os.listdir( textures_path ):
+    textures.append(_f.split('.')[0])
 textures.remove('earth')
 textures = list(sorted(textures))
 
 
 ##############################################################################
-def add_actor(f): #decorator
-    def wrapper(*args, **kwargs):
-        actor = f(*args, **kwargs)
-        args[0].actors.append(actor)
-        return actor
-    return wrapper
-
-
 def setInput(vtkobj, p, port=0):
     if isinstance(p, vtk.vtkAlgorithmOutput):
         vtkobj.SetInputConnection(port, p) # passing port
@@ -38,30 +35,32 @@ def setInput(vtkobj, p, port=0):
     if vtkMV: vtkobj.SetInputData(p)
     else: vtkobj.SetInput(p)
 
-def isSequence(arg): 
+def isSequence(arg):
+    '''Check if input is iterable.'''
     if hasattr(arg, "strip"): return False
     if hasattr(arg, "__getslice__"): return True
     if hasattr(arg, "__iter__"): return True
     return False
 
-def arange(start,stop, step=1): 
-    return np.arange(start, stop, step)
-
 def vector(x, y=None, z=0.):
+    '''Return a 2D or 3D numpy array.'''
     if y is None: #assume x is already [x,y,z]
         return np.array(x, dtype=np.float64)
     return np.array([x,y,z], dtype=np.float64)
 
 def mag(z):
+    '''Get the magnitude of a vector.'''
     if isinstance(z[0], np.ndarray): 
         return np.array(list(map(np.linalg.norm, z)))
     else: 
         return np.linalg.norm(z)
 
 def mag2(z):
+    '''Get the squared magnitude of a vector.'''
     return np.dot(z,z)
 
 def norm(v):
+    '''Return the unit vector.'''
     if isinstance(v[0], np.ndarray):
         return np.divide(v, mag(v)[:,None])
     else: 
@@ -69,11 +68,12 @@ def norm(v):
     
 def to_precision(x, p):
     """
-    Returns a string representation of x formatted with a precision of p
+    Returns a string representation of x formatted with precision p.
 
-    Based on the webkit javascript implementation taken from here:
-    https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/kjs/number_object.cpp
-    Implemented in https://github.com/randlet/to-precision    
+    *Based on the webkit javascript implementation taken from here:
+    https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/
+    kjs/number_object.cpp.
+    Implemented in https://github.com/randlet/to-precision*
     """
     import math
     x = float(x)
@@ -128,16 +128,26 @@ def to_precision(x, p):
 def makeActor(poly, c='gold', alpha=0.5, 
               wire=False, bc=None, edges=False, legend=None, texture=None):
     '''
-    Return a vtkActor from an input vtkPolyData, optional args:
+    Return a vtkActor from an input vtkPolyData.
+    
+    Options:
+        
         c,       color in RGB format, hex, symbol or name
-        alpha,   transparency (0=invisible)
+        
+        alpha,   opacity value
+        
         wire,    show surface as wireframe
+        
         bc,      backface color of internal surface
+        
         edges,   show edges as line on top of surface
-        legend   optional string
-        texture  jpg file name of surface texture, eg. 'metalfloor1'
+        
+        legend,  optional string
+        
+        texture, jpg file name or surface texture name
     '''
     clp = vtk.vtkCleanPolyData()
+    clp.SetTolerance(0.0)
     setInput(clp, poly)
     clp.Update()
     pdnorm = vtk.vtkPolyDataNormals()
@@ -149,13 +159,13 @@ def makeActor(poly, c='gold', alpha=0.5,
     pdnorm.Update()
 
     mapper = vtk.vtkPolyDataMapper()
+    setInput(mapper, pdnorm.GetOutput())
 
     # check if color string contains a float, in this case ignore alpha
     if alpha is None: alpha=0.5
     al = colors.getAlpha(c)
     if al: alpha = al
 
-    setInput(mapper, pdnorm.GetOutput())
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
     prp = actor.GetProperty()
@@ -201,7 +211,11 @@ def makeActor(poly, c='gold', alpha=0.5,
 
 
 def makeAssembly(actors, legend=None):
-    '''Group many actors as a single new actor'''
+    '''Group many actors as a single new actor.
+    
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py)    
+    '''
     assembly = vtk.vtkAssembly()
     for a in actors: assembly.AddPart(a)
     setattr(assembly, 'legend', legend) 
@@ -214,7 +228,7 @@ def makeAssembly(actors, legend=None):
 
 
 def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
-    '''Assign a texture to actor from file or name in /textures directory'''
+    '''Assign a texture to actor from file or name in /textures directory.'''
     global textures_path
     if   mapTo == 1: tmapper = vtk.vtkTextureMapToCylinder()
     elif mapTo == 2: tmapper = vtk.vtkTextureMapToSphere()
@@ -257,246 +271,17 @@ def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     actor.SetTexture(atext)
 
 
-# ###########################################################################
-def assignConvenienceMethods(actor, legend):
-    if not hasattr(actor, 'legend'):
-        setattr(actor, 'legend', legend)
-
-    def _fclone(self, c=None, alpha=None, wire=False, bc=None,
-                edges=False, legend=None, texture=None, rebuild=True, mirror=''): 
-        return clone(self, c, alpha, wire, bc, edges, legend, texture, rebuild, mirror)
-    actor.clone = types.MethodType( _fclone, actor )
-
-    def _fpoint(self, i, p=None): 
-        if p is None : 
-            poly = polydata(self, True, 0)
-            p = [0,0,0]
-            poly.GetPoints().GetPoint(i, p)
-            return np.array(p)
-        else:
-            poly = polydata(self, False, 0)
-            poly.GetPoints().SetPoint(i, p)
-            TI = vtk.vtkTransform()
-            actor.SetUserMatrix(TI.GetMatrix()) # reset
-        return self
-    actor.point = types.MethodType( _fpoint, actor )
-
-    def _fN(self, index=0): 
-        return polydata(self, False, index).GetNumberOfPoints()
-    actor.N = types.MethodType( _fN, actor )
-
-    def _fnormalize(self): return normalize(self)
-    actor.normalize = types.MethodType( _fnormalize, actor )
-
-    def _fshrink(self, fraction=0.85): return shrink(self, fraction)
-    actor.shrink = types.MethodType( _fshrink, actor )
-
-    def _fcutPlane(self, origin=(0,0,0), normal=(1,0,0), showcut=False): 
-        return cutPlane(self, origin, normal, showcut)
-    actor.cutPlane = types.MethodType( _fcutPlane, actor )
-
-    def _fpolydata(self, rebuild=True, index=0): 
-        return polydata(self, rebuild, index)
-    actor.polydata = types.MethodType( _fpolydata, actor )
-
-    def _fcoordinates(self, rebuild=True, copy=True): 
-        return coordinates(self, rebuild, copy)
-    actor.coordinates = types.MethodType( _fcoordinates, actor )
-
-    def _fxbounds(self): 
-        b = polydata(actor, True).GetBounds()
-        return (b[0],b[1])
-    actor.xbounds = types.MethodType( _fxbounds, actor )
-    def _fybounds(self): 
-        b = polydata(actor, True).GetBounds()
-        return (b[2],b[3])
-    actor.ybounds = types.MethodType( _fybounds, actor )
-    def _fzbounds(self): 
-        b = polydata(actor, True).GetBounds()
-        return (b[4],b[5])
-    actor.zbounds = types.MethodType( _fzbounds, actor )
-
-
-    def _fnormalAt(self, index): 
-        normals = polydata(self, True).GetPointData().GetNormals()
-        return np.array(normals.GetTuple(index))
-    actor.normalAt = types.MethodType( _fnormalAt, actor )
-
-    def _fnormals(self): 
-        vtknormals = polydata(self, True).GetPointData().GetNormals()
-        as_numpy = vtk_to_numpy(vtknormals)
-        return as_numpy
-    actor.normals = types.MethodType( _fnormals, actor )
-
-    def _fstretch(self, startpt, endpt): 
-        return stretch(self, startpt, endpt)
-    actor.stretch = types.MethodType( _fstretch, actor)
-
-    def _fsubdivide(self, N=1, method=0, legend=None): 
-        return subdivide(self, N, method, legend)
-    actor.subdivide = types.MethodType( _fsubdivide, actor)
-
-    def _fdecimate(self, fraction=0.5, N=None, verbose=True, boundaries=True): 
-        return decimate(self, fraction, N, verbose, boundaries)
-    actor.decimate = types.MethodType( _fdecimate, actor)
-
-    def _fcolor(self, c=None):
-        if c is not None: 
-            self.GetProperty().SetColor(colors.getColor(c))
-            return self
-        else: 
-            return np.array(self.GetProperty().GetColor())
-    actor.color = types.MethodType( _fcolor, actor)
-
-    def _falpha(self, a=None):
-        if a is not None: 
-            self.GetProperty().SetOpacity(a)
-            return self
-        else: 
-            return self.GetProperty().GetOpacity()
-    actor.alpha = types.MethodType( _falpha, actor)
-
-    def _fwire(self, a=True):
-        if a: 
-            self.GetProperty().SetRepresentationToWireframe()
-        else:
-            self.GetProperty().SetRepresentationToSurface()
-        return self
-    actor.wire = types.MethodType( _fwire, actor)
-
-    def _fclosestPoint(self, pt, N=1, radius=None):
-        return closestPoint(self, pt, N, radius)
-    actor.closestPoint = types.MethodType( _fclosestPoint, actor)
-
-    def _fintersectWithLine(self, p0, p1):
-        return intersectWithLine(self, p0,p1)
-    actor.intersectWithLine = types.MethodType(_fintersectWithLine , actor)
-
-    def _fisInside(self, point, tol=0.0001):
-        return isInside(self, point, tol)
-    actor.isInside = types.MethodType(_fisInside , actor)
-   
-    def _finsidePoints(self, points, invert=False, tol=1e-05):
-        return insidePoints(self, points, invert, tol)
-    actor.insidePoints = types.MethodType(_finsidePoints , actor)
-
-    def _fcellCenters(self):
-        return cellCenters(self)
-    actor.cellCenters = types.MethodType(_fcellCenters, actor)
-    
-    def _fpointScalars(self, scalars, name):
-        return pointScalars(self, scalars, name)
-    actor.pointScalars = types.MethodType(_fpointScalars , actor)
-    
-    def _fpointColors(self, scalars, cmap='jet'):
-        return pointColors(self, scalars, cmap)
-    actor.pointColors = types.MethodType(_fpointColors , actor)
-    
-    def _fcellScalars(self, scalars, name):
-        return cellScalars(self, scalars, name)
-    actor.cellScalars = types.MethodType(_fcellScalars , actor)
-
-    def _fcellColors(self, scalars, cmap='jet'):
-        return cellColors(self, scalars, cmap)
-    actor.cellColors = types.MethodType(_fcellColors , actor)
-
-    def _fscalars(self, name):
-        return scalars(self, name)
-    actor.scalars = types.MethodType(_fscalars , actor)
-
-
-# ###########################################################################
-def assignPhysicsMethods(actor):
-    
-    def _fpos(self, p=None): 
-        if p is None: 
-            return np.array(self.GetPosition())
-        self.SetPosition(p)
-        return self # return itself to concatenate methods
-    actor.pos = types.MethodType( _fpos, actor )
-
-    def _faddpos(self, dp): 
-        self.SetPosition(np.array(self.GetPosition()) +dp )
-        return self
-    actor.addpos = types.MethodType( _faddpos, actor )
-
-    def _fpx(self, px=None):               # X  
-        _pos = self.GetPosition()
-        if px is None: 
-            return _pos[0]
-        newp = [px, _pos[1], _pos[2]]
-        self.SetPosition(newp)
-        return self
-    actor.x = types.MethodType( _fpx, actor )
-
-    def _fpy(self, py=None):               # Y  
-        _pos = self.GetPosition()
-        if py is None: 
-            return _pos[1]
-        newp = [_pos[0], py, _pos[2]]
-        self.SetPosition(newp)
-        return self
-    actor.y = types.MethodType( _fpy, actor )
-
-    def _fpz(self, pz=None):               # Z  
-        _pos = self.GetPosition()
-        if pz is None: 
-            return _pos[2]
-        newp = [_pos[0], _pos[1], pz]
-        self.SetPosition(newp)
-        return self
-    actor.z = types.MethodType( _fpz, actor )
-
-    def _fscale(self, p=None): 
-        if p is None: 
-            return np.array(self.GetScale())
-        self.SetScale(p)
-        return self # return itself to concatenate methods
-    actor.scale = types.MethodType( _fscale, actor )
-
-    def _frotate(self, angle, axis, axis_point=[0,0,0], rad=False): 
-        if rad: angle *= 57.3
-        return rotate(self, angle, axis, axis_point, rad)
-    actor.rotate = types.MethodType( _frotate, actor )
-
-    def _frotateX(self, angle, axis_point=[0,0,0], rad=False): 
-        if rad: angle *= 57.3
-        return rotate(self, angle, [1,0,0], axis_point, rad)
-    actor.rotateX = types.MethodType( _frotateX, actor )
-
-    def _frotateY(self, angle, axis_point=[0,0,0], rad=False): 
-        if rad: angle *= 57.3
-        return rotate(self, angle, [0,1,0], axis_point, rad)
-    actor.rotateY = types.MethodType( _frotateY, actor )
-
-    def _frotateZ(self, angle, axis_point=[0,0,0], rad=False): 
-        if rad: angle *= 57.3
-        return rotate(self, angle, [0,0,1], axis_point, rad)
-    actor.rotateZ = types.MethodType( _frotateZ, actor )
-
-    def _forientation(self, newaxis=None, rotation=0): 
-        return orientation(self, newaxis, rotation)
-    actor.orientation = types.MethodType( _forientation, actor )
-
-    def _fcenterOfMass(self): return centerOfMass(self)
-    actor.centerOfMass = types.MethodType(_fcenterOfMass, actor)
-
-    def _fvolume(self): return volume(self)
-    actor.volume = types.MethodType(_fvolume, actor)
-
-    def _farea(self): return area(self)
-    actor.area = types.MethodType(_farea, actor)
-
-    def _fdiagonalSize(self): return diagonalSize(self)
-    actor.diagonalSize = types.MethodType(_fdiagonalSize, actor)
-
-
 ######################################################### 
 def clone(actor, c=None, alpha=None, wire=False, bc=None,
           edges=False, legend=None, texture=None, rebuild=True, mirror=''):
     '''
     Clone a vtkActor.
-        If rebuild is True build its polydata in its current position in space
+    If rebuild is True build its polydata in its current position in space.
+
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/carcrash.py)    
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mirror.py)    
+    [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/skeletonize.py)    
+    [**Example4**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/recosurface.py)    
     '''
     poly = polydata(actor, rebuild)
     if not poly.GetNumberOfPoints():
@@ -515,7 +300,7 @@ def clone(actor, c=None, alpha=None, wire=False, bc=None,
         elif mirror.lower()=='z': 
             sz = -1
         else:
-            colors.printc("Error in mirror(): mirror must be set to x, y or z.", c=1)
+            colors.printc("Error in mirror(): mirror must be set to x, y or z.",c=1)
             exit()
         for j in range(polyCopy.GetNumberOfPoints()):
             p = [0, 0, 0]
@@ -541,6 +326,9 @@ def clone(actor, c=None, alpha=None, wire=False, bc=None,
 def normalize(actor): # N.B. input argument gets modified
     '''
     Shift actor's center of mass at origin and scale its average size to unit.
+
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/carcrash.py)    
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/keypress.py)    
     '''
     cm = centerOfMass(actor)
     coords = coordinates(actor)
@@ -564,7 +352,7 @@ def normalize(actor): # N.B. input argument gets modified
 
     
 def rotate(actor, angle, axis, axis_point=[0,0,0], rad=False): 
-    '''Rotate an actor around an arbitrary axis passing through axis_point'''
+    '''Rotate an actor around an arbitrary axis passing through axis_point.'''
     anglerad = angle
     if not rad: anglerad = angle/57.3
     axis = norm(axis)
@@ -587,7 +375,9 @@ def rotate(actor, angle, axis, axis_point=[0,0,0], rad=False):
 def orientation(actor, newaxis=None, rotation=0):
     '''
     Set/Get actor orientation.
-        If rotation != 0 rotate actor around newaxis (in degree units)
+    If rotation != 0 rotate actor around newaxis (in degree units).
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
     '''
     initaxis = norm(actor.top - actor.base)
     if newaxis is None: return initaxis
@@ -608,7 +398,10 @@ def orientation(actor, newaxis=None, rotation=0):
 
 
 def mirror(actor, axis='x'):
-    '''Mirror the actor polydata'''
+    '''Mirror the actor polydata along one of the cartesian axes.
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mirror.py)    
+    '''
     poly = polydata(actor, True)
     sx, sy, sz = 1,1,1
     dx, dy, dz = actor.GetPosition()
@@ -645,8 +438,12 @@ def mirror(actor, axis='x'):
 
 ############################################################################
 def shrink(actor, fraction=0.85):   # N.B. input argument gets modified
-    '''Shrink the triangle polydata in the representation of actor'''
-
+    '''Shrink the triangle polydata in the representation of actor.
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/shrink.py)    
+    
+    ![shrink](https://user-images.githubusercontent.com/32848391/46819143-41042280-cd83-11e8-9492-4f53679887fa.png)
+    '''
     poly = polydata(actor, True)
     shrink = vtk.vtkShrinkPolyData()
     setInput(shrink, poly)
@@ -660,8 +457,14 @@ def shrink(actor, fraction=0.85):   # N.B. input argument gets modified
 
 
 def stretch(actor, q1, q2): 
-    '''Stretch actor between points q1 and q2'''
+    '''Stretch actor between points q1 and q2.
+    
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/spring.py)    
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
+    [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/multiple_pendulum.py)    
 
+    ![spring](https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif)
+    '''
     if not hasattr(actor, 'base'):
         colors.printc('Please define vectors actor.base and actor.top at creation. Exit.',c='r')
         exit(0)
@@ -693,9 +496,13 @@ def stretch(actor, q1, q2):
 
 def cutPlane(actor, origin=(0,0,0), normal=(1,0,0), showcut=False):
     '''
-    Takes actor and cuts it with the plane defined by a point
-    and a normal. 
-        showcut  = shows the cut away part as thin wireframe
+    Takes actor and cuts it with the plane defined by a point and a normal. 
+    
+    showcut = shows the cut away part as thin wireframe
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/trail.py)    
+
+    ![tea1](https://user-images.githubusercontent.com/32848391/46815773-dc919500-cd7b-11e8-8e80-8b83f760a303.png)
     '''
     plane = vtk.vtkPlane()
     plane.SetOrigin(origin)
@@ -752,7 +559,7 @@ def mergeActors(actors, c=None, alpha=1,
 # Useful Functions
 ######################################################### 
 def isInside(actor, point, tol=0.0001):
-    """Return True if point is inside a polydata closed surface"""
+    """Return True if point is inside a polydata closed surface."""
     poly = polydata(actor, True)
     points = vtk.vtkPoints()
     points.InsertNextPoint(point)
@@ -769,7 +576,7 @@ def isInside(actor, point, tol=0.0001):
 
 
 def insidePoints(actor, points, invert=False, tol=1e-05):
-    """Return list of points that are inside a polydata closed surface"""
+    """Return list of points that are inside a polydata closed surface."""
     poly = polydata(actor, True)
     # check if the stl file is closed
     featureEdge = vtk.vtkFeatureEdges()
@@ -807,8 +614,7 @@ def insidePoints(actor, points, invert=False, tol=1e-05):
    
 def pointIsInTriangle(p, p1,p2,p3):
     '''
-    Return True if a point is inside (or above/below) a triangle
-    defined by 3 points in space.
+    Return True if a point is inside (or above/below) a triangle defined by 3 points in space.
     '''
     p = np.array(p) 
     u = np.array(p2) - p1
@@ -840,7 +646,11 @@ def fillHoles(actor, size=None, legend=None): # not tested properly
 
 
 def cellCenters(actor):
-    '''Get the list of cell centers of the mesh surface'''
+    '''Get the list of cell centers of the mesh surface.
+    
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/delaunay2d.py)    
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
+    '''
     vcen = vtk.vtkCellCenters()
     setInput(vcen, polydata(actor, True))
     vcen.Update()
@@ -848,7 +658,7 @@ def cellCenters(actor):
 
 
 def isIdentity(M, tol=1e-06):
-    '''Check if vtkMatrix4x4 is Identity'''
+    '''Check if vtkMatrix4x4 is Identity.'''
     for i in [0,1,2,3]: 
         for j in [0,1,2,3]: 
             e = M.GetElement(i,j)
@@ -861,8 +671,12 @@ def isIdentity(M, tol=1e-06):
 def clean(actor, tol=None):
     '''
     Clean actor's polydata. Can also be used to decimate a mesh if tol is large.
-        tol paramenter defines how far should be the points from each other
-        in terms of fraction of the bounding box length.
+    
+    tol, defines how far should be the points from each other
+    in terms of fraction of the bounding box length.
+
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares1D.py)    
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/recosurface.py)    
     '''
     poly = polydata(actor, False)
     cleanPolyData = vtk.vtkCleanPolyData()
@@ -882,11 +696,14 @@ def clean(actor, tol=None):
 def polydata(obj, rebuild=True, index=0): 
     '''
     Returns the vtkPolyData of a vtkActor or vtkAssembly.
-        If rebuild=True returns a copy of polydata
-        that corresponds to the current actor's position in space.
-        If a vtkAssembly is passed, return the polydata of component index.
-    '''
-   
+           
+    If rebuild=True returns a copy of polydata
+    that corresponds to the current actor's position in space.
+        
+    If a vtkAssembly is passed, return the polydata of component index.
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/quadratic_morphing.py)    
+    '''   
     if isinstance(obj, vtk.vtkActor):   
         if not rebuild: 
             if hasattr(obj, 'poly') :
@@ -950,11 +767,14 @@ def polydata(obj, rebuild=True, index=0):
 def coordinates(actor, rebuild=True, copy=True):
     """
     Return the list of coordinates of an actor or polydata.
+
+    Options:
     
-    rebuild, if False ignore any previous trasformation applied to the mesh.
-    
-    copy, if False return the reference to the points so that they can be 
-    modified in place.
+        rebuild, if False ignore any previous trasformation applied to the mesh.
+        
+        copy, if False return the reference to the points so that they can be modified in place.
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/align1.py)    
     """
     poly = polydata(actor, rebuild)
     if copy:
@@ -964,22 +784,34 @@ def coordinates(actor, rebuild=True, copy=True):
 
 
 def xbounds(actor):
-    '''Get the the actor bounding [xmin,xmax] '''
+    '''Get the actor bounds [xmin,xmax].
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colormaps.py)    
+    '''
     b = polydata(actor, True).GetBounds()
     return (b[0],b[1])
 
 def ybounds(actor):
-    '''Get the the actor bounding [ymin,ymax] '''
+    '''Get the actor bounds [ymin,ymax].
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colormaps.py)    
+    '''
     b = polydata(actor, True).GetBounds()
     return (b[2],b[3])
 
 def zbounds(actor):
-    '''Get the the actor bounding [zmin,zmax] '''
+    '''Get the actor bounds [zmin,zmax].
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colormaps.py)    
+    '''
     b = polydata(actor, True).GetBounds()
     return (b[4],b[5])
 
 def centerOfMass(actor):
-    '''Get the Center of Mass of the actor'''
+    '''Get the center of mass of actor.
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fatlimb.py)    
+    '''
     if vtkMV: #faster
         cmf = vtk.vtkCenterOfMass()
         setInput(cmf, polydata(actor, True))
@@ -992,7 +824,7 @@ def centerOfMass(actor):
         return np.mean(pts, axis=0)       
 
 def volume(actor):
-    '''Get the volume occupied by actor'''
+    '''Get the volume occupied by actor.'''
     mass = vtk.vtkMassProperties()
     mass.SetGlobalWarningDisplay(0)
     setInput(mass, polydata(actor))
@@ -1000,7 +832,10 @@ def volume(actor):
     return mass.GetVolume()
 
 def area(actor):
-    '''Get the surface area of actor'''
+    '''Get the surface area of actor.
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/largestregion.py)    
+    '''
     mass = vtk.vtkMassProperties()
     mass.SetGlobalWarningDisplay(0)
     setInput(mass, polydata(actor))
@@ -1008,6 +843,7 @@ def area(actor):
     return mass.GetSurfaceArea()
 
 def averageSize(actor):
+    '''Calculate the average size of a mesh.'''
     cm = centerOfMass(actor)
     coords = coordinates(actor, copy=False)
     if not len(coords) : return 0
@@ -1020,12 +856,12 @@ def averageSize(actor):
     return s/c
 
 def diagonalSize(actor):
-    '''Get the length of the diagonal of actor bounding box'''
+    '''Get the length of the diagonal of actor bounding box.'''
     b = polydata(actor).GetBounds()
     return np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])**2 + (b[5]-b[4])**2)
 
 def maxBoundSize(actor):
-    '''Get the maximum dimension in x, y or z of the actor bounding box'''
+    '''Get the maximum dimension in x, y or z of the actor bounding box.'''
     b = polydata(actor, True).GetBounds()
     return max(abs(b[1]-b[0]), abs(b[3]-b[2]), abs(b[5]-b[4]))
 
@@ -1037,6 +873,11 @@ def closestPoint(actor, pt, N=1, radius=None, returnIds=False):
     The appropriate locator is built on the fly and cached for speed.
         If N>1, return a list of N ordered closest points.
         If radius is given, get all points within.
+
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/align1.py)    
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitplanes.py)    
+    [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres1.py)    
+    [**Example4**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/quadratic_morphing.py)    
     """
     poly = polydata(actor, True)
 
@@ -1083,105 +924,118 @@ def closestPoint(actor, pt, N=1, radius=None, returnIds=False):
 
 
 def pointScalars(actor, scalars, name):
-        """
-        Set point scalars to the polydata
-        """
-        poly = polydata(actor, False)
-        scalars = np.array(scalars) - np.min(scalars)
-        scalars = scalars/np.max(scalars)
-        if len(scalars) != poly.GetNumberOfPoints():
-            colors.printc('Number of scalars != nr. of points', c=1)
-            exit()
-        arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
-        arr.SetName(name)
-        poly.GetPointData().AddArray(arr)
-        poly.GetPointData().SetActiveScalars(name)
-        actor.GetMapper().ScalarVisibilityOn()
+    """
+    Set point scalars to the polydata.
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
+    """
+    poly = polydata(actor, False)
+    scalars = np.array(scalars) - np.min(scalars)
+    scalars = scalars/np.max(scalars)
+    if len(scalars) != poly.GetNumberOfPoints():
+        colors.printc('Number of scalars != nr. of points', c=1)
+        exit()
+    arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
+    arr.SetName(name)
+    poly.GetPointData().AddArray(arr)
+    poly.GetPointData().SetActiveScalars(name)
+    actor.GetMapper().ScalarVisibilityOn()
 
 
 def pointColors(actor, scalars, cmap='jet'):
-        """
-        Set individual point colors by setting a scalar
-        """
-        poly = polydata(actor, False)
-        if len(scalars) != poly.GetNumberOfPoints():
-            colors.printc('Number of scalars != nr. of points', c=1)
-            exit()
-       
-        lut = vtk.vtkLookupTable()
-        lut.SetNumberOfTableValues(len(scalars))
-        lut.Build()
-        vmin, vmax = np.min(scalars), np.max(scalars)
-        n = len(scalars)
-        for i in range(n):
-            c = colors.colorMap(i, cmap, 0, n)
-            lut.SetTableValue(i, c[0], c[1], c[2], 1)
-        arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
-        arr.SetName('pointcolors_'+cmap)
-        poly.GetPointData().AddArray(arr)
-        poly.GetPointData().SetActiveScalars('pointcolors_'+cmap)            
-        actor.GetMapper().SetScalarRange(vmin, vmax)
-        actor.GetMapper().SetLookupTable(lut)
-        actor.GetMapper().ScalarVisibilityOn()
+    """
+    Set individual point colors by setting a scalar.
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
+    """
+    poly = polydata(actor, False)
+    if len(scalars) != poly.GetNumberOfPoints():
+        colors.printc('Number of scalars != nr. of points', c=1)
+        exit()
+   
+    lut = vtk.vtkLookupTable()
+    lut.SetNumberOfTableValues(len(scalars))
+    lut.Build()
+    vmin, vmax = np.min(scalars), np.max(scalars)
+    n = len(scalars)
+    for i in range(n):
+        c = colors.colorMap(i, cmap, 0, n)
+        lut.SetTableValue(i, c[0], c[1], c[2], 1)
+    arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
+    arr.SetName('pointcolors_'+cmap)
+    poly.GetPointData().AddArray(arr)
+    poly.GetPointData().SetActiveScalars('pointcolors_'+cmap)            
+    actor.GetMapper().SetScalarRange(vmin, vmax)
+    actor.GetMapper().SetLookupTable(lut)
+    actor.GetMapper().ScalarVisibilityOn()
         
  
 def cellScalars(actor, scalars, name):
-        """
-        Set cell scalars to the polydata
-        """
-        poly = polydata(actor, False)
-        scalars = np.array(scalars) - np.min(scalars)
-        scalars = scalars/np.max(scalars)
-        if len(scalars) != poly.GetNumberOfCells():
-            colors.printc('Number of scalars != nr. of cells', c=1)
-            exit()
-        arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
-        arr.SetName(name)
-        poly.GetCellData().AddArray(arr)
-        poly.GetCellData().SetActiveScalars(name)
-        actor.GetMapper().ScalarVisibilityOn()
+    """
+    Set cell scalars to the polydata.
+    """
+    poly = polydata(actor, False)
+    scalars = np.array(scalars) - np.min(scalars)
+    scalars = scalars/np.max(scalars)
+    if len(scalars) != poly.GetNumberOfCells():
+        colors.printc('Number of scalars != nr. of cells', c=1)
+        exit()
+    arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
+    arr.SetName(name)
+    poly.GetCellData().AddArray(arr)
+    poly.GetCellData().SetActiveScalars(name)
+    actor.GetMapper().ScalarVisibilityOn()
 
 
 def cellColors(actor, scalars, cmap='jet'):
-        """
-        Set individual cell colors by setting a scalar
-        """
-        poly = polydata(actor, False)
-        if len(scalars) != poly.GetNumberOfCells():
-            colors.printc('Number of scalars != nr. of cells', c=1)
-            exit()
-       
-        lut = vtk.vtkLookupTable()
-        lut.SetNumberOfTableValues(len(scalars))
-        lut.Build()
-        vmin, vmax = np.min(scalars), np.max(scalars)
-        n = len(scalars)
-        for i in range(n):
-            c = colors.colorMap(i, cmap, 0, n)
-            lut.SetTableValue(i, c[0], c[1], c[2], 1)
-        arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
-        arr.SetName('cellcolors_'+cmap)
-        poly.GetCellData().AddArray(arr)
-        poly.GetCellData().SetActiveScalars('cellcolors_'+cmap)            
-        actor.GetMapper().SetScalarRange(vmin, vmax)
-        actor.GetMapper().SetLookupTable(lut)
-        actor.GetMapper().ScalarVisibilityOn()
-        
+    """
+    Set individual cell colors by setting a scalar.
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
+    
+    ![mcol](https://user-images.githubusercontent.com/32848391/46818965-c509da80-cd82-11e8-91fd-4c686da4a761.png)
+    """
+    poly = polydata(actor, False)
+    if len(scalars) != poly.GetNumberOfCells():
+        colors.printc('Number of scalars != nr. of cells', c=1)
+        exit()
+   
+    lut = vtk.vtkLookupTable()
+    lut.SetNumberOfTableValues(len(scalars))
+    lut.Build()
+    vmin, vmax = np.min(scalars), np.max(scalars)
+    n = len(scalars)
+    for i in range(n):
+        c = colors.colorMap(i, cmap, 0, n)
+        lut.SetTableValue(i, c[0], c[1], c[2], 1)
+    arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
+    arr.SetName('cellcolors_'+cmap)
+    poly.GetCellData().AddArray(arr)
+    poly.GetCellData().SetActiveScalars('cellcolors_'+cmap)            
+    actor.GetMapper().SetScalarRange(vmin, vmax)
+    actor.GetMapper().SetLookupTable(lut)
+    actor.GetMapper().ScalarVisibilityOn()
+    
            
 def scalars(actor, name):
-        """
-        Retrieve point or cell scalars using array name
-        """
-        poly = polydata(actor, False)
-        arr = poly.GetPointData().GetArray(name)
-        if not arr: arr = poly.GetCellData().GetArray(name)
-        if arr: return vtk_to_numpy(arr)
-        return None
+    """
+    Retrieve point or cell scalars using array name.
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
+    """
+    poly = polydata(actor, False)
+    arr = poly.GetPointData().GetArray(name)
+    if not arr: arr = poly.GetCellData().GetArray(name)
+    if arr: return vtk_to_numpy(arr)
+    return None
 
 
 def intersectWithLine(act, p0, p1):
-    '''Return a list of points between p0 and p1 intersecting the actor'''
+    '''Return a list of points between p0 and p1 intersecting the actor.
     
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/spherical_harmonics1.py)    
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/spherical_harmonics2.py)    
+    '''
     if not hasattr(act, 'line_locator'):
         line_locator = vtk.vtkOBBTree()
         line_locator.SetDataSet(polydata(act, True))
@@ -1199,13 +1053,22 @@ def intersectWithLine(act, p0, p1):
 
 
 def subdivide(actor, N=1, method=0, legend=None):
-    '''
-    Increase the number of points in actor surface
+    '''Increase the number of points of actor surface mesh.
+    
+    Options:
+        
         N = number of subdivisions
+        
         method = 0, Loop
+        
         method = 1, Linear
+        
         method = 2, Adaptive
+        
         method = 3, Butterfly
+        
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)    
+    ![beeth](https://user-images.githubusercontent.com/32848391/46819341-ca1b5980-cd83-11e8-97b7-12b053d76aac.png)
     '''
     triangles = vtk.vtkTriangleFilter()
     setInput(triangles, polydata(actor))
@@ -1232,10 +1095,13 @@ def subdivide(actor, N=1, method=0, legend=None):
 
 def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
     '''
-    Downsample the number of vertices in a mesh.
-        fraction gives the desired target of reduction. 
-        E.g. fraction=0.1
-             leaves 10% of the original nr of vertices.
+    Downsample the number of vertices in a mesh,
+    
+    fraction gives the desired target of reduction. 
+    
+    E.g. fraction=0.1 leaves 10% of the original nr of vertices.
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/skeletonize.py)    
     '''
     poly = polydata(actor, True)
     if N: # N = desired number of points
@@ -1262,7 +1128,8 @@ def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
 
 
 def printInfo(obj): #############################################################
-
+    '''Print information about a vtkActor or vtkAssembly.'''
+    
     def printvtkactor(actor, tab=''):
         poly = polydata(actor)
         pro = actor.GetProperty()
@@ -1412,3 +1279,251 @@ def printInfo(obj): ############################################################
         colors.printc(type(obj), c='g', invert=1)
         
   
+
+# ###########################################################################
+def add_actor(f):
+    '''decorator, internal use only'''
+    def wrapper(*args, **kwargs):
+        actor = f(*args, **kwargs)
+        args[0].actors.append(actor)
+        return actor
+    wrapper.__name__ = f.__name__
+    wrapper.__doc__ = f.__doc__
+    return wrapper
+
+
+# ###########################################################################
+def assignConvenienceMethods(actor, legend):
+    '''for internal use.'''
+    if not hasattr(actor, 'legend'):
+        setattr(actor, 'legend', legend)
+
+    def _fclone(self, c=None, alpha=None, wire=False, bc=None,
+                edges=False, legend=None, texture=None, rebuild=True, mirror=''): 
+        return clone(self, c, alpha, wire, bc, edges, legend, texture, rebuild, mirror)
+    actor.clone = types.MethodType( _fclone, actor )
+
+    def _fpoint(self, i, p=None): 
+        if p is None : 
+            poly = polydata(self, True, 0)
+            p = [0,0,0]
+            poly.GetPoints().GetPoint(i, p)
+            return np.array(p)
+        else:
+            poly = polydata(self, False, 0)
+            poly.GetPoints().SetPoint(i, p)
+            TI = vtk.vtkTransform()
+            actor.SetUserMatrix(TI.GetMatrix()) # reset
+        return self
+    actor.point = types.MethodType( _fpoint, actor )
+
+    def _fN(self, index=0): 
+        return polydata(self, False, index).GetNumberOfPoints()
+    actor.N = types.MethodType( _fN, actor )
+
+    def _fnormalize(self): return normalize(self)
+    actor.normalize = types.MethodType( _fnormalize, actor )
+
+    def _fshrink(self, fraction=0.85): return shrink(self, fraction)
+    actor.shrink = types.MethodType( _fshrink, actor )
+
+    def _fcutPlane(self, origin=(0,0,0), normal=(1,0,0), showcut=False): 
+        return cutPlane(self, origin, normal, showcut)
+    actor.cutPlane = types.MethodType( _fcutPlane, actor )
+
+    def _fpolydata(self, rebuild=True, index=0): 
+        return polydata(self, rebuild, index)
+    actor.polydata = types.MethodType( _fpolydata, actor )
+
+    def _fcoordinates(self, rebuild=True, copy=True): 
+        return coordinates(self, rebuild, copy)
+    actor.coordinates = types.MethodType( _fcoordinates, actor )
+
+    def _fxbounds(self): 
+        b = polydata(actor, True).GetBounds()
+        return (b[0],b[1])
+    actor.xbounds = types.MethodType( _fxbounds, actor )
+    def _fybounds(self): 
+        b = polydata(actor, True).GetBounds()
+        return (b[2],b[3])
+    actor.ybounds = types.MethodType( _fybounds, actor )
+    def _fzbounds(self): 
+        b = polydata(actor, True).GetBounds()
+        return (b[4],b[5])
+    actor.zbounds = types.MethodType( _fzbounds, actor )
+
+
+    def _fnormalAt(self, index): 
+        normals = polydata(self, True).GetPointData().GetNormals()
+        return np.array(normals.GetTuple(index))
+    actor.normalAt = types.MethodType( _fnormalAt, actor )
+
+    def _fnormals(self): 
+        vtknormals = polydata(self, True).GetPointData().GetNormals()
+        as_numpy = vtk_to_numpy(vtknormals)
+        return as_numpy
+    actor.normals = types.MethodType( _fnormals, actor )
+
+    def _fstretch(self, startpt, endpt): 
+        return stretch(self, startpt, endpt)
+    actor.stretch = types.MethodType( _fstretch, actor)
+
+    def _fsubdivide(self, N=1, method=0, legend=None): 
+        return subdivide(self, N, method, legend)
+    actor.subdivide = types.MethodType( _fsubdivide, actor)
+
+    def _fdecimate(self, fraction=0.5, N=None, verbose=True, boundaries=True): 
+        return decimate(self, fraction, N, verbose, boundaries)
+    actor.decimate = types.MethodType( _fdecimate, actor)
+
+    def _fcolor(self, c=None):
+        if c is not None: 
+            self.GetProperty().SetColor(colors.getColor(c))
+            return self
+        else: 
+            return np.array(self.GetProperty().GetColor())
+    actor.color = types.MethodType( _fcolor, actor)
+
+    def _falpha(self, a=None):
+        if a is not None: 
+            self.GetProperty().SetOpacity(a)
+            return self
+        else: 
+            return self.GetProperty().GetOpacity()
+    actor.alpha = types.MethodType( _falpha, actor)
+
+    def _fwire(self, a=True):
+        if a: 
+            self.GetProperty().SetRepresentationToWireframe()
+        else:
+            self.GetProperty().SetRepresentationToSurface()
+        return self
+    actor.wire = types.MethodType( _fwire, actor)
+
+    def _fclosestPoint(self, pt, N=1, radius=None):
+        return closestPoint(self, pt, N, radius)
+    actor.closestPoint = types.MethodType( _fclosestPoint, actor)
+
+    def _fintersectWithLine(self, p0, p1):
+        return intersectWithLine(self, p0,p1)
+    actor.intersectWithLine = types.MethodType(_fintersectWithLine , actor)
+
+    def _fisInside(self, point, tol=0.0001):
+        return isInside(self, point, tol)
+    actor.isInside = types.MethodType(_fisInside , actor)
+   
+    def _finsidePoints(self, points, invert=False, tol=1e-05):
+        return insidePoints(self, points, invert, tol)
+    actor.insidePoints = types.MethodType(_finsidePoints , actor)
+
+    def _fcellCenters(self):
+        return cellCenters(self)
+    actor.cellCenters = types.MethodType(_fcellCenters, actor)
+    
+    def _fpointScalars(self, scalars, name):
+        return pointScalars(self, scalars, name)
+    actor.pointScalars = types.MethodType(_fpointScalars , actor)
+    
+    def _fpointColors(self, scalars, cmap='jet'):
+        return pointColors(self, scalars, cmap)
+    actor.pointColors = types.MethodType(_fpointColors , actor)
+    
+    def _fcellScalars(self, scalars, name):
+        return cellScalars(self, scalars, name)
+    actor.cellScalars = types.MethodType(_fcellScalars , actor)
+
+    def _fcellColors(self, scalars, cmap='jet'):
+        return cellColors(self, scalars, cmap)
+    actor.cellColors = types.MethodType(_fcellColors , actor)
+
+    def _fscalars(self, name):
+        return scalars(self, name)
+    actor.scalars = types.MethodType(_fscalars , actor)
+
+
+# ###########################################################################
+def assignPhysicsMethods(actor):
+    '''for internal use.'''
+    
+    def _fpos(self, p=None): 
+        if p is None: 
+            return np.array(self.GetPosition())
+        self.SetPosition(p)
+        return self # return itself to concatenate methods
+    actor.pos = types.MethodType( _fpos, actor )
+
+    def _faddpos(self, dp): 
+        self.SetPosition(np.array(self.GetPosition()) +dp )
+        return self
+    actor.addpos = types.MethodType( _faddpos, actor )
+
+    def _fpx(self, px=None):               # X  
+        _pos = self.GetPosition()
+        if px is None: 
+            return _pos[0]
+        newp = [px, _pos[1], _pos[2]]
+        self.SetPosition(newp)
+        return self
+    actor.x = types.MethodType( _fpx, actor )
+
+    def _fpy(self, py=None):               # Y  
+        _pos = self.GetPosition()
+        if py is None: 
+            return _pos[1]
+        newp = [_pos[0], py, _pos[2]]
+        self.SetPosition(newp)
+        return self
+    actor.y = types.MethodType( _fpy, actor )
+
+    def _fpz(self, pz=None):               # Z  
+        _pos = self.GetPosition()
+        if pz is None: 
+            return _pos[2]
+        newp = [_pos[0], _pos[1], pz]
+        self.SetPosition(newp)
+        return self
+    actor.z = types.MethodType( _fpz, actor )
+
+    def _fscale(self, p=None): 
+        if p is None: 
+            return np.array(self.GetScale())
+        self.SetScale(p)
+        return self # return itself to concatenate methods
+    actor.scale = types.MethodType( _fscale, actor )
+
+    def _frotate(self, angle, axis, axis_point=[0,0,0], rad=False): 
+        if rad: angle *= 57.3
+        return rotate(self, angle, axis, axis_point, rad)
+    actor.rotate = types.MethodType( _frotate, actor )
+
+    def _frotateX(self, angle, axis_point=[0,0,0], rad=False): 
+        if rad: angle *= 57.3
+        return rotate(self, angle, [1,0,0], axis_point, rad)
+    actor.rotateX = types.MethodType( _frotateX, actor )
+
+    def _frotateY(self, angle, axis_point=[0,0,0], rad=False): 
+        if rad: angle *= 57.3
+        return rotate(self, angle, [0,1,0], axis_point, rad)
+    actor.rotateY = types.MethodType( _frotateY, actor )
+
+    def _frotateZ(self, angle, axis_point=[0,0,0], rad=False): 
+        if rad: angle *= 57.3
+        return rotate(self, angle, [0,0,1], axis_point, rad)
+    actor.rotateZ = types.MethodType( _frotateZ, actor )
+
+    def _forientation(self, newaxis=None, rotation=0): 
+        return orientation(self, newaxis, rotation)
+    actor.orientation = types.MethodType( _forientation, actor )
+
+    def _fcenterOfMass(self): return centerOfMass(self)
+    actor.centerOfMass = types.MethodType(_fcenterOfMass, actor)
+
+    def _fvolume(self): return volume(self)
+    actor.volume = types.MethodType(_fvolume, actor)
+
+    def _farea(self): return area(self)
+    actor.area = types.MethodType(_farea, actor)
+
+    def _fdiagonalSize(self): return diagonalSize(self)
+    actor.diagonalSize = types.MethodType(_fdiagonalSize, actor)
+

@@ -1,10 +1,13 @@
+"""
+Defines main class Plotter() to manage actors and 3D rendering.
+"""
+
 from __future__ import division, print_function
 import time, sys, vtk, numpy, types
 
 import vtkplotter.vtkio as vtkio
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
-import vtkplotter.events as events
 import vtkplotter.shapes as shapes
 import vtkplotter.analysis as analysis 
 from vtkplotter import __version__
@@ -15,8 +18,7 @@ from vtkplotter.utils import add_actor
 class Plotter:
 #########################################################################           
 
-    def tips(self):       
-        #vvers = ' vtkplotter '+__version__+' '
+    def _tips(self):       
         vvers = ' vtkplotter '+__version__+', vtk '+vtk.vtkVersion().GetVTKVersion()
         vvers+= ', python ' + str(sys.version_info[0])+'.'+str(sys.version_info[1])+' '
         n = len(vvers)
@@ -48,28 +50,37 @@ class Plotter:
                  size='auto', screensize='auto', title='', 
                  bg='w', bg2=None, axes=1, projection=False,
                  sharecam=True, verbose=True, interactive=None):
-        """        
-        shape= shape of the grid of renderers in format (rows, columns). Ignored if N is specified.
+        """Main class to manage actors.
+        
+           Optional args:
 
-        N = number of desired renderers arranged in a grid automatically.
+               shape= shape of the grid of renderers in format (rows, columns). Ignored if N is specified.
                 
-        pos, (x,y) position in pixels of top-left corneer of the rendering window on the screen
+                N = number of desired renderers arranged in a grid automatically.
+            
+                pos, (x,y) position in pixels of top-left corneer of the rendering window on the screen
+                
+                size = size of the rendering window. If 'auto', guess it based on screensize.
         
-        size = size of the rendering window. If 'auto', guess it based on screensize.
-
-        screensize = physical size of the monitor screen
-        
-        bg = background color
-        
-        bg2 = background color of a gradient towards the top
-        
-        axes, no axes (0), vtkCubeAxes (1), cartesian (2), positive cartesian (3), triad (4), cube (5)
-        
-        projection,  if True fugue point is set at infinity (no perspective effects)
-        
-        sharecam,    if False each renderer will have an independent vtkCamera
-        
-        interactive, if True will stop after show() to allow interaction w/ window
+                screensize = physical size of the monitor screen
+                
+                bg = background color
+                
+                bg2 = background color of a gradient towards the top
+                
+                axes: 
+                      0 = no axes, 
+                      1 = vtkCubeAxes, 
+                      2 = cartesian, 
+                      3 = positive cartesian, 
+                      4 = triad, 
+                      5 = cube.
+                
+                projection,  if True fugue point is set at infinity (no perspective effects)
+                
+                sharecam,    if False each renderer will have an independent vtkCamera
+                
+                interactive, if True will stop after show() to allow interaction w/ window
         """
         
         if interactive is None:
@@ -105,7 +116,8 @@ class Plotter:
         self.legendSize = 0.15  # size of legend
         self.legendBG   = (.96,.96,.9) # legend background color
         self.legendPos  = 2     # 1=topright, 2=top-right, 3=bottom-left
-        self.picked3d   = None  # 3d coords of a clicked point on an actor 
+        self.picked3d   = None  # 3d coords of a clicked point on an actor
+        self.backgrcol  = bg
 
         # mostly internal stuff:
         self.camThickness = 2000
@@ -136,6 +148,8 @@ class Plotter:
             if aus and len(aus)==2 and aus[0]>100 and aus[1]>100: #seems ok
                 if aus[0]/aus[1] > 2: # looks like there are 2 or more screens
                     screensize = (int(aus[0]/2), aus[1])
+                else:
+                    screensize = aus
             else: # it went wrong, use a default 1.5 ratio
                 screensize = (2160, 1440)
             
@@ -214,6 +228,7 @@ class Plotter:
         ''' Returns a vtkActor from reading a file, directory or vtkPolyData.
            
             Optional args:
+                
                 c,       color in RGB format, hex, symbol or name
                 
                 alpha,   transparency (0=invisible)
@@ -227,6 +242,7 @@ class Plotter:
                 texture, any png/jpg file can be used as texture
            
             For volumetric data (tiff, slc files):
+                
                 smoothing,    gaussian filter to smooth vtkImageData
                 
                 threshold,    value to draw the isosurface
@@ -287,15 +303,17 @@ class Plotter:
 
 
     def getActors(self, obj=None):
-        '''
-        Return an actors list
-            If None, return actors of current renderer  
-            
-            If obj is a int, return actors of renderer #obj
-            
-            If obj is a vtkAssembly return the contained actors
-            
-            If obj is a string, return actors matching legend name
+        '''Return an actors list.
+        
+           Optional args:
+
+               If None, return actors of current renderer  
+              
+               If obj is a int, return actors of renderer #obj
+                
+               If obj is a vtkAssembly return the contained actors
+                
+               If obj is a string, return actors matching legend name
         '''
         if not self.renderer: return []
         
@@ -345,9 +363,9 @@ class Plotter:
 
 
     def moveCamera(self, camstart, camstop, fraction):
-        '''
-        Takes as input two vtkCamera objects and returns
-        a new vtkCamera that is at intermediate position:
+        '''Takes as input two vtkCamera objects and returns a 
+        new vtkCamera that is at intermediate position:
+            
             fraction=0 -> camstart,  fraction=1 -> camstop.
             
             Press shift-C key in interactive mode to dump a vtkCamera
@@ -382,20 +400,33 @@ class Plotter:
     def makeActor(self, poly, c='gold', alpha=0.5, 
                   wire=False, bc=None, edges=False, legend=None, texture=None):
         '''
-        Return a vtkActor from an input vtkPolyData, optional args:
+        Return a vtkActor from an input vtkPolyData.
+        
+        Options:
+            
             c,       color in RGB format, hex, symbol or name
-            alpha,   transparency (0=invisible)
+            
+            alpha,   opacity value 
+            
             wire,    show surface as wireframe
+            
             bc,      backface color of internal surface
+            
             edges,   show edges as line on top of surface
+            
             legend   optional string
-            texture  jpg file name of surface texture, eg. 'metalfloor1'
+            
+            texture  jpg file name of surface texture
         '''
         return utils.makeActor(poly, c, alpha, wire, bc, edges, legend, texture)
 
     @add_actor 
     def makeAssembly(self, actorlist):
-        '''Group many actors as a single new actor'''
+        '''Group many actors as a single new actor.
+        
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py)    
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
+        '''
         for a in actorlist:
             while a in self.actors: #update internal list
                 self.actors.remove(a)
@@ -406,10 +437,16 @@ class Plotter:
               diffuse='y', ambient='r', specular='b', showsource=False):
         """
         Generate a source of light placed at pos, directed to focal point fp.
-        If fp is a vtkActor use its position
+        If fp is a vtkActor use its position.
+        
+        Options:
+        
             deg = aperture angle of the light source
+        
             showsource, if True, will show a vtk representation 
             of the source of light as an extra actor
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lights.py)    
         """
         if isinstance(fp, vtk.vtkActor): fp = fp.GetPosition()
         light = vtk.vtkLight()
@@ -433,6 +470,7 @@ class Plotter:
     ####################################################### manage basic shapes
     @add_actor 
     def point(self, pos=[0,0,0], c='b', r=10, alpha=1, legend=None):
+        '''Create a simple point actor.'''
         return shapes.points([pos], c, [], r, alpha, legend)
     
     @add_actor
@@ -445,6 +483,10 @@ class Plotter:
         
         If tags (a list of strings) is specified, they will be displayed  
         along with the points.
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lorenz.py)    
+
+        ![lorenz](https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png)
         '''
         return shapes.points(plist, c, tags, r, alpha, legend)
 
@@ -461,12 +503,19 @@ class Plotter:
         Build a (possibly large) set of spheres at centers of radius r.
         
         Either c or r can be a list of RGB colors or radii.
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/manyspheres.py)    
+
+        ![manysph](https://user-images.githubusercontent.com/32848391/46818673-1f566b80-cd82-11e8-9a61-be6a56160f1c.png)
         '''
         return shapes.spheres(centers, r, c, alpha, wire, legend, texture, res)
     
     @add_actor 
     def earth(self, pos=[0,0,0], r=1, lw=1):
-        '''Build a sphere at position pos of radius r.'''
+        '''Build a textured actor representing the Earth.
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/earth.py)    
+        '''
         return shapes.earth(pos, r, lw)
 
     @add_actor 
@@ -474,9 +523,9 @@ class Plotter:
              c='r', alpha=1., legend=None):
         '''Build the line segment between points p0 and p1.
             
-            If p0 is a list of points returns the line connecting them.
+           If p0 is a list of points returns the line connecting them.
             
-            If tube=True, lines are rendered as tubes of radius lw
+           If tube=True, lines are rendered as tubes of radius lw
         '''
         return shapes.line(p0, p1, lw, tube, dotted, c, alpha, legend)
     
@@ -485,6 +534,8 @@ class Plotter:
               c='r', alpha=1, legend=None):
         '''Build the line segments between two lists of points plist0 and plist1.
            plist0 can be also passed in the format [[point1, point2], ...]
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py)    
         '''      
         return shapes.lines(plist0, plist1, lw, dotted, c, alpha, legend)
     
@@ -508,9 +559,10 @@ class Plotter:
     @add_actor
     def grid(self, pos=[0,0,0], normal=[0,0,1], sx=1, sy=1, c='g', bc='darkgreen',
              lw=1, alpha=1, legend=None, resx=10, resy=10):
-        '''
-        Draw a grid of size sx and sy oriented perpendicular to vector normal  
-        and so that it passes through point pos.
+        '''Draw a grid of size sx and sy oriented perpendicular to vector normal
+        so that it passes through point pos.
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/brownian2D.py)    
         '''
         return shapes.grid(pos, normal, sx, sy, c, bc, lw, alpha, legend, resx, resy)
 
@@ -520,6 +572,8 @@ class Plotter:
         '''
         Draw a plane of size sx and sy oriented perpendicular to vector normal  
         and so that it passes through point pos.
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/carcrash.py)    
         '''
         return shapes.plane(pos, normal, sx, sy, c, bc, alpha, legend, texture)
     
@@ -538,19 +592,24 @@ class Plotter:
     def disc(self, pos=[0,0,0], normal=[0,0,1], r1=0.5, r2=1, c='coral', bc='darkgreen',
              lw=1, alpha=1, legend=None, texture=None, res=12):
         '''Build a 2D disc of internal radius r1 and outer radius r2,
-        oriented perpendicular to normal'''
+        oriented perpendicular to normal.'''
         return shapes.disc(pos, normal, r1, r2, c, bc, lw, alpha, legend, texture, res)
 
     @add_actor
     def box(self, pos=[0,0,0], length=1, width=2, height=3, normal=(0,0,1),
             c='g', alpha=1, wire=False, legend=None, texture=None):
-        '''Build a box of dimensions x=length, y=width and z=height
-        oriented along vector normal'''
+        '''Build a box of dimensions x=length, y=width and z=height oriented along vector normal.
+        
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/spring.py)    
+        '''
         return shapes.box(pos, length, width, height, normal, c, alpha, wire, legend, texture)
 
     def cube(self, pos=[0,0,0], length=1, normal=(0,0,1),
              c='g', alpha=1., wire=False, legend=None, texture=None):
-        '''Build a cube of dimensions length oriented along vector normal'''
+        '''Build a cube of dimensions length oriented along vector normal.
+        
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/texturecubes.py)    
+        '''
         return self.box(pos, length, length, length, 
                         normal, c, alpha, wire, legend, texture)
         
@@ -558,7 +617,11 @@ class Plotter:
     def helix(self, startPoint=[0,0,0], endPoint=[1,1,1], coils=20, r=None,
               thickness=None, c='grey', alpha=1, legend=None, texture=None):
         '''
-        Build a spring actor of specified nr of coils between startPoint and endPoint
+        Build a spring actor of specified nr of coils between startPoint and endPoint.
+
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/spring.py)    
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
+        [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/multiple_pendulum.py)    
         '''
         return shapes.helix(startPoint, endPoint, coils, r, thickness, c, alpha, legend, texture)        
 
@@ -571,6 +634,9 @@ class Plotter:
         
         If pos is a list of 2 points, e.g. pos=[v1,v2], build a cylinder with base
         centered at v1 and top at v2.
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/turing.py)    
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
         '''
         return shapes.cylinder(pos, r, height, axis, c, wire, alpha, edges, legend, texture, res)
 
@@ -602,6 +668,8 @@ class Plotter:
                 c='dg', alpha=1, legend=None, texture=None):
         '''
         Build a pyramid of specified base size s and height, centered at pos.
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope2.py)    
         '''
         return self.cone(pos, s, height, axis, c, alpha, legend, texture, 4)
 
@@ -610,14 +678,18 @@ class Plotter:
              c='khaki', alpha=1, wire=False, legend=None, texture=None, res=30):
         '''
         Build a torus of specified outer radius r internal radius thickness, centered at pos.
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gas.py)    
+        
+        ![gas](https://user-images.githubusercontent.com/32848391/39139206-90d644ca-4721-11e8-95b9-8aceeb3ac742.gif)
         '''
         return shapes.ring(pos, r, thickness, axis, c, alpha, wire, legend, texture, res)
 
     @add_actor
     def ellipsoid(self, pos=[0,0,0], axis1=[1,0,0], axis2=[0,2,0], axis3=[0,0,3],
                   c='c', alpha=1, legend=None, texture=None, res=24):
-        """
-        Build a 3D ellipsoid centered at position pos.
+        """Build a 3D ellipsoid centered at position pos.
+        
         Axis1 and axis2 are only used to define sizes and one azimuth angle
         """
         return shapes.ellipsoid(pos, axis1, axis2, axis3, c, alpha, legend, texture, res)
@@ -626,14 +698,21 @@ class Plotter:
     def spline(self, points, smooth=0.5, degree=2, 
                s=2, c='b', alpha=1, nodes=False, legend=None, res=20):
         '''
-        Return a vtkActor for a spline that doesnt necessarly 
-        pass exactly throught all points.
-            smooth = smoothing factor:
-                0 = interpolate points exactly, 
-                1 = average point positions
+        Return a vtkActor for a spline that doesnt necessarly pass exactly throught all points.
+
+        Options:
+            
+            smooth, smoothing factor:
+                    0 = interpolate points exactly, 
+                    1 = average point positions
+
             degree = degree of the spline (1<degree<5)
             
             nodes = True, show also the input points 
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)
+
+        ![rspline](https://user-images.githubusercontent.com/32848391/35976041-15781de8-0cdf-11e8-997f-aeb725bc33cc.png)
         '''
         return analysis.spline(points, smooth, degree, s, c, alpha, nodes, legend, res)
 
@@ -643,6 +722,8 @@ class Plotter:
         '''
         Returns a vtkActor that shows a text in 3D.
         
+        Options:
+            
             pos = position in 3D space
             if an integer is passed [1 -> 8], places text in one of the corners
             
@@ -650,7 +731,10 @@ class Plotter:
             
             depth = text thickness
             
-            followcam = True, the text will auto-orient itself to it.
+            followcam = False, if True the text will auto-orient itself to it.
+
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py)    
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
         '''
         return shapes.text(txt, pos, normal, s, depth, c, alpha, bc,
                            texture, followcam, cam=self.camera)
@@ -664,10 +748,12 @@ class Plotter:
         Return a vtkActor that is a plot of 2D points in x and y.
 
         Use corner to assign its position:
-            1=topleft, 
-            2=topright, 
-            3=bottomleft, 
-            4=bottomright.
+            1 -> topleft, 
+            2 -> topright, 
+            3 -> bottomleft, 
+            4 -> bottomright.         
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)
         """
         return analysis.xyplot(points, title, c, corner, lines)
     
@@ -676,13 +762,16 @@ class Plotter:
         '''
         Build a 2D histogram from a list of values in n bins.
 
-        Use vrange to restrict the range of the histogram.
+        Use *vrange* to restrict the range of the histogram.
 
-        Use corner to assign its position:
-            1=topleft, 
-            2=topright, 
-            3=bottomleft, 
-            4=bottomright.         
+        Use *corner* to assign its position:
+            1 -> topleft, 
+            2 -> topright, 
+            3 -> bottomleft, 
+            4 -> bottomright.         
+
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitplanes.py)
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres1.py)
         '''
         fs, edges = numpy.histogram(values, bins=bins, range=vrange)
         pts=[]
@@ -698,21 +787,12 @@ class Plotter:
         Build a surface representing the 3D function specified as a string
         or as a reference to an external function.
         Red points indicate where the function does not exist (showNan).
-
+    
         zlevels will draw the specified number of z-levels contour lines.
+        
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fxy.py)    
 
-        Examples:
-            vp = vtkplotter.Plotter()
-            
-            vp.fxy('sin(3*x)*log(x-y)/3')
-            
-            or
-            
-            def z(x,y): return math.sin(x*y)
-            
-            vp.fxy(z) # or equivalently:
-            
-            vp.fxy(lambda x,y: math.sin(x*y))
+        ![fxy](https://user-images.githubusercontent.com/32848391/36611824-fd524fac-18d4-11e8-8c76-d3d1b1bb3954.png)
         '''
         return analysis.fxy(z, x, y, zlimits, showNan, zlevels, 
                             wire, c, bc, alpha, legend, texture, res)
@@ -723,6 +803,8 @@ class Plotter:
         Fits a line through points.
 
         Extra info is stored in actor.slope, actor.center, actor.variances
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fitline.py)
         '''
         if self.verbose:
             colors.printc("fitLine info saved in actor.slope, actor.center, actor.variances",c=5)
@@ -734,6 +816,9 @@ class Plotter:
         Fits a plane to a set of points.
 
         Extra info is stored in actor.normal, actor.center, actor.variance
+
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fitline.py)    
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitplanes.py)
         '''
         if self.verbose:
             colors.printc("fitPlane info saved in actor.normal, actor.center, actor.variance",c=5)
@@ -745,6 +830,9 @@ class Plotter:
         Fits a sphere to a set of points.
         
         Extra info is stored in actor.radius, actor.center, actor.residue
+
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres1.py)
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py)
         '''
         if self.verbose:
             colors.printc("fitSphere info saved in actor.radius, actor.center, actor.residue",c=5)
@@ -755,9 +843,14 @@ class Plotter:
             pvalue=.95, c='c', alpha=0.5, pcaAxes=False, legend=None):
         '''
         Show the oriented PCA ellipsoid that contains fraction pvalue of points.
-            axes = True, show the 3 PCA semi axes
+        
+        axes = True, show the 3 PCA semi axes
+        
         Extra info is stored in actor.sphericity, actor.va, actor.vb, actor.vc
         (sphericity = 1 for a perfect sphere)
+        
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/cell_main.py)
         '''
         if self.verbose:
             colors.printc("PCA info saved in actor.sphericity, actor.va, actor.vb, actor.vc",c=5)
@@ -768,13 +861,20 @@ class Plotter:
         '''
         Return a copy of source actor which is aligned to
         target actor through vtkIterativeClosestPointTransform() method.
+    
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/align1.py)
+        
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/align2.py)
         '''
         return analysis.align(source, target, iters, rigid, legend)
         
     @add_actor
     def delaunay2D(self, plist, tol=None, c='gold', alpha=0.5, wire=False, bc=None, 
                    edges=False, legend=None, texture=None):
-        '''Create a mesh from points in the XY plane.'''
+        '''Create a mesh from points in the XY plane.
+        
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/delaunay2d.py)
+        '''
         return analysis.delaunay2D(plist, tol, c, alpha, wire, bc, edges, legend, texture)
         
     @add_actor
@@ -782,6 +882,10 @@ class Plotter:
                     c='gold', alpha=1, wire=False, bc='t', edges=False, legend=None):
         '''
         Surface reconstruction from sparse points.
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/recosurface.py)    
+        
+        ![reco](https://user-images.githubusercontent.com/32848391/46817107-b3263880-cd7e-11e8-985d-f5d158992f0c.png)
         '''
         return analysis.recoSurface(points, bins, c, alpha, wire, bc, edges, legend)
     
@@ -792,6 +896,10 @@ class Plotter:
         
         radius, is the radius of local search.
         Individual subsets can be accessed through actor.clusters
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/clustering.py)    
+
+        ![cluster](https://user-images.githubusercontent.com/32848391/46817286-2039ce00-cd7f-11e8-8b29-42925e03c974.png)
         '''
         return analysis.cluster(points, radius, legend)
         
@@ -800,6 +908,8 @@ class Plotter:
         Remove outliers from a cloud of points within radius search.
         If points is a list of [x,y,z] return a reduced list of points
         If input is a vtkActor return a vtkActor.
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/clustering.py)    
         '''
         a = analysis.removeOutliers(points, radius, c, alpha, legend)
         if not utils.isSequence(a): self.actors.append(a)
@@ -808,7 +918,10 @@ class Plotter:
     @add_actor
     def normals(self, actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
         '''
-        Build a vtkActor made of the normals at vertices shown as arrows
+        Build a vtkActor made of the normals at vertices shown as arrows.
+    
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)    
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fatlimb.py)    
         '''
         return analysis.normals(actor, ratio, c, alpha, legend)
 
@@ -818,12 +931,17 @@ class Plotter:
         Build a copy of vtkActor that contains the color coded surface
         curvature following four different ways to calculate it:
             method =  0-gaussian, 1-mean, 2-max, 3-min
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)
         '''
         return analysis.curvature(actor, method, r, alpha, lut, legend)
 
     @add_actor
     def boundaries(self, actor, c='p', lw=5, legend=None):
-        '''Build a copy of actor that shows the boundary lines of its surface.'''
+        '''Build a copy of actor that shows the boundary lines of its surface.
+        
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)    
+        '''
         return analysis.boundaries(actor, c, lw, legend)
 
 
@@ -831,6 +949,9 @@ class Plotter:
         '''
         Takes actor and cuts it with the plane defined by a point and a normal. 
             showcut  = shows the cut away part as thin wireframe
+
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)    
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/trail.py)            
         '''
         cactor = utils.cutPlane(actor, origin, normal, showcut)
         try:
@@ -840,15 +961,23 @@ class Plotter:
             self.actors.append(cactor)
         return cactor #NB: original actor is modified
 
+
     def smoothMLS1D(self, actor, f=0.2, showNLines=0):
         '''
         Smooth actor or points with a Moving Least Squares variant.
         The list actor.variances contain the residue calculated for each point.
         Input actor's polydata is modified.
         
-            f, smoothing factor - typical range s [0,2]
+        Options:
+
+            f, smoothing factor - typical range s [0,2] 
             
             showNLines, build an actor showing the fitting line for N random points            
+    
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares1D.py)    
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/skeletonize.py)    
+
+        ![skel](https://user-images.githubusercontent.com/32848391/46820954-c5f13b00-cd87-11e8-87aa-286528a09de8.png)
         '''        
         actor = analysis.smoothMLS1D(actor, f, showNLines)
         return actor #NB: original actor is modified
@@ -859,6 +988,8 @@ class Plotter:
         The list actor.variances contain the residue calculated for each point.
         Input actor's polydata is modified.
         
+        Options:
+        
             f, smoothing factor - typical range s [0,2]
             
             decimate, decimation factor (an integer number) 
@@ -866,6 +997,10 @@ class Plotter:
             recursive, move points while algorithm proceedes
             
             showNPlanes, build an actor showing the fitting plane for N random points            
+        
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/mesh_smoothers.py)    
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py)    
+        [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/recosurface.py.py)    
         '''        
         actor = analysis.smoothMLS2D(actor, f, decimate, recursive, showNPlanes)
         return actor #NB: original actor is modified
@@ -876,6 +1011,10 @@ class Plotter:
         Add a 2D scalar bar for the specified actor.
 
         If actor is None will add it to the last actor in self.actors
+
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/boolean.py)    
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
+        [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py)    
         """
         
         if actor is None: actor=self.lastActor()
@@ -936,6 +1075,8 @@ class Plotter:
             
             a vtkActor containing a set of scalars associated to vertices or cells,
             if None the last actor in the list of actors will be used.
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
         '''
         gap = 0.4
         if obj is None: obj = self.lastActor()
@@ -986,10 +1127,12 @@ class Plotter:
         return sact
 
 
-    def addSlider(self, sliderfunc, xmin=0, xmax=1, value=None, pos=4, 
+    def addSlider(self, sliderfunc, xmin=0, xmax=1, value=None, pos=4, s=.04,
                   title='', c='k', showValue=True):
         '''
         Add a slider widget with external custom function.
+        
+        Options:
         
             sliderfunc, external function to be called by the widget 
                     
@@ -1000,14 +1143,19 @@ class Plotter:
             value, current value
             
             pos, position corner number: horizontal [1-4] or vertical [11-14]
+                 it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
 
             title, title label
 
             c, color string or number
             
             showValue, if true current value is shown                    
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/sliders.py)    
         '''        
+        if numpy.sum(colors.getColor(self.backgrcol)) < 3 and c=='k': c='w'
         c = colors.getColor(c)
+            
         sliderRep = vtk.vtkSliderRepresentation2D()
         sliderRep.SetMinimumValue(xmin)
         sliderRep.SetMaximumValue(xmax)
@@ -1020,7 +1168,10 @@ class Plotter:
         sliderRep.SetTubeWidth(.0075)
         sliderRep.GetPoint1Coordinate().SetCoordinateSystemToNormalizedDisplay()
         sliderRep.GetPoint2Coordinate().SetCoordinateSystemToNormalizedDisplay()
-        if pos==1: #top-left horizontal
+        if utils.isSequence(pos):
+            sliderRep.GetPoint1Coordinate().SetValue(pos[0][0],pos[0][1])
+            sliderRep.GetPoint2Coordinate().SetValue(pos[1][0],pos[1][1])
+        elif pos==1: #top-left horizontal
             sliderRep.GetPoint1Coordinate().SetValue(.04 ,.96)
             sliderRep.GetPoint2Coordinate().SetValue(.45, .96)
         elif pos==2:
@@ -1050,6 +1201,7 @@ class Plotter:
         elif pos==15:#right margin vertical
             sliderRep.GetPoint1Coordinate().SetValue(.96 ,.1)
             sliderRep.GetPoint2Coordinate().SetValue(.96, .9)
+
         if showValue:
             if isinstance(xmin, int) and isinstance(xmax, int):
                 frm = '%0.0f'
@@ -1077,20 +1229,52 @@ class Plotter:
             sliderRep.GetTitleProperty().SetColor(c)
             sliderRep.GetTitleProperty().SetOpacity(.6)
             sliderRep.GetTitleProperty().SetBold(0)
-            if pos>10:
-                sliderRep.GetTitleProperty().SetOrientation(90)
+            if not utils.isSequence(pos) :
+                if pos>10:
+                    sliderRep.GetTitleProperty().SetOrientation(90)
+            else:
+                if abs(pos[0][0]-pos[1][0])<.1:
+                    sliderRep.GetTitleProperty().SetOrientation(90)
        
         sliderWidget = vtk.vtkSliderWidget()
         sliderWidget.SetInteractor(self.interactor)
         sliderWidget.SetRepresentation(sliderRep)
         sliderWidget.AddObserver("InteractionEvent", sliderfunc)
         sliderWidget.EnabledOn()      
-        self.sliders.append(sliderWidget)
+        self.sliders.append([sliderWidget, sliderfunc])
         return sliderWidget
         
     
     def addButton(self, fnc, states=['On', 'Off'], c=['w','w'], bc=['dg','dr'],
-                  pos=[20,40], size=24, font='arial', bold=False, italic=False, alpha=1, angle=0):
+                  pos=[20,40], size=24, font='arial', bold=False, italic=False, 
+                  alpha=1, angle=0):
+        '''Add a button to the renderer window.
+
+        Options:
+            
+            states, a list of possible states ['On', 'Off']
+            
+            c,      color for each state
+            
+            bc,     background color for each state 
+            
+            pos,    2d position in pixels from left-bottom corner
+            
+            size,   size of button font
+            
+            font,   font type (arial, courier, times)
+            
+            bold,   bold face
+            
+            italic, italic face
+            
+            alpha,  opacity level
+            
+            angle,  anticlockwise rotation in degrees           
+
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buttons.py)    
+        '''
         if not self.renderer:
             colors.printc('Error: Use addButton() after rendering the scene.', c=1)
             return
@@ -1102,8 +1286,10 @@ class Plotter:
     
     
     def addCutterTool(self, actor):  
-        '''Create handles to cut away parts of a mesh'''
+        '''Create handles to cut away parts of a mesh.
         
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/cutter.py)    
+        '''
         if not isinstance(actor, vtk.vtkActor):
             return None
         
@@ -1175,8 +1361,15 @@ class Plotter:
     def addIcon(self, iconActor, pos=3, size=0.08):
         '''
         Add an inset icon mesh into the same renderer.
-        pos, can be in the range [1-4] indicating the 4 corners,
-             or can be a tuple (x,y) in fraction of the renderer size.
+        
+        Options:
+            
+            pos, can be in the range [1-4] indicating one of the 4 corners,
+                 or can be a tuple (x,y) in fraction of the renderer size.
+                
+            size, size of the square inset.
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py)    
         '''              
         if not self.renderer:
             colors.printc('Warning: Use addIcon() after rendering the scene.', c=3)
@@ -1185,25 +1378,31 @@ class Plotter:
         widget.SetOrientationMarker( iconActor )
         widget.SetInteractor( self.interactor )
         if utils.isSequence(pos):
-            widget.SetViewport( pos[0]-size, pos[1]-size, pos[0]+size, pos[1]+size )
+            widget.SetViewport(pos[0]-size, pos[1]-size, pos[0]+size, pos[1]+size)
         else:
-            if   pos<2:  widget.SetViewport( 0, 1-2*size, size*2, 1 )
-            elif pos==2: widget.SetViewport( 1-2*size, 1-2*size ,1, 1)
-            elif pos==3: widget.SetViewport( 0.0, 0.0, size*2, size*2 )
-            elif pos==4: widget.SetViewport( 1-2*size, 0.0, 1, size*2 )
+            if   pos <2: widget.SetViewport(        0, 1-2*size, size*2,      1 )
+            elif pos==2: widget.SetViewport( 1-2*size, 1-2*size,      1,      1 )
+            elif pos==3: widget.SetViewport(        0,        0, size*2, size*2 )
+            elif pos==4: widget.SetViewport( 1-2*size,        0,      1, size*2 )
         widget.EnabledOn()
         widget.InteractiveOff()
         self.widgets.append(widget)
+        if iconActor in self.actors:
+            self.actors.remove(iconActor)
         return widget
 
 
     def addTrail(self, actor=None, maxlength=None, n=25, c=None, alpha=None, lw=1):
         '''
-        Add a trailing line to an existing actor
-
-        maxlength, length of trailing line in absolute units
+        Add a trailing line to an existing actor.
         
-        n, number of segments, controls precision
+        Options:
+
+            maxlength, length of trailing line in absolute units
+            
+            n, number of segments, controls precision
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/trail.py)    
         '''
         if not actor:
             actor = self.actors[-1]
@@ -1482,22 +1681,29 @@ class Plotter:
              legend=None, axes=None, ruler=False,
              c=None, alpha=None , wire=False, bc=None, 
              resetcam=True, zoom=False, interactive=None, q=False):
-        '''
-        Render a list of actors.
-            actors = a mixed list of vtkActors, vtkAssembly, 
-            vtkPolydata or filename strings
+        '''Render a list of actors.
+        
+        Options:
+            
+            actors = a mixed list of vtkActors, vtkAssembly, vtkPolydata or filename strings
             
             at     = number of the renderer to plot to, if more than one exists
             
             legend = a string or list of string for each actor, if False will not show it
             
-            axes   = show axes, types are:
-                     0 = no axes,
-                     1 = show vtk default axes,
-                     2 = show negative axes starting from origin
-                     3 = show positive axes starting from origin
-                     4 = show axis widget as a triad on the bottom left corner
-                     5 = show annotated cube widget on the bottom left corner
+            axes   = set typ of axes to be shown:
+                
+                     0, no axes,
+                
+                     1, show vtk default axes,
+                     
+                     2, show negative axes starting from origin
+                     
+                     3, show positive axes starting from origin
+                     
+                     4, show axis widget as a triad on the bottom left corner
+                     
+                     5, show annotated cube widget on the bottom left corner
             
             ruler  = draws a simple ruler at the bottom
             
@@ -1511,7 +1717,7 @@ class Plotter:
             
             interactive = pause and interact with window (True) or continue execution (False)
             
-            q      = force program to quit after show() command
+            q      = force program to quit after show() command returns
         '''
         
         def scan(wannabeacts):
@@ -1617,12 +1823,12 @@ class Plotter:
         if not self.initializedIren:
             self.initializedIren = True
             self.interactor.Initialize()
-            def mouseleft(obj, e): events.mouseleft(self, obj, e)
-            def keypress(obj, e):  events.keypress(self, obj, e)
+            def mouseleft(obj, e): vtkio._mouseleft(self, obj, e)
+            def keypress( obj, e): vtkio._keypress( self, obj, e)
             self.interactor.RemoveObservers('CharEvent')
             self.interactor.AddObserver("LeftButtonPressEvent", mouseleft)
             self.interactor.AddObserver("KeyPressEvent", keypress)
-            if self.verbose and self.interactive: self.tips()
+            if self.verbose and self.interactive: self._tips()
         self.initializedPlotter = True
 
         if zoom: self.camera.Zoom(zoom)
@@ -1637,6 +1843,7 @@ class Plotter:
 
 
     def render(self, addActor=None, at=None, axes=None, resetcam=False, zoom=False, rate=None):
+        '''Render current window.'''
         if addActor:
             if utils.isSequence(addActor): 
                 for a in addActor: self.addActor(a)
@@ -1667,6 +1874,7 @@ class Plotter:
     def lastActor(self): return self.actors[-1]
 
     def addActor(self, a):
+        '''Add a vtkActor to current renderer.'''
         if not self.initializedPlotter:
             before = bool(self.interactive)
             self.show(interactive=0)
@@ -1676,6 +1884,7 @@ class Plotter:
         self.renderer.AddActor(a)
 
     def removeActor(self, a):
+        '''Remove vtkActor or actor index from current renderer.'''
         try:
             if not self.initializedPlotter:
                 self.show()
@@ -1694,9 +1903,14 @@ class Plotter:
             self.actors = []
     
     def openVideo(self, name='movie.avi', fps=12, duration=None):
+        '''Open a video file.
+        
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/makeVideo.py)    
+        '''
         return vtkio.Video(self.renderWin, name, fps, duration)
 
     def screenshot(self, filename='screenshot.png'):
+        '''Save a screenshot of the current rendering window.'''
         vtkio.screenshot(self.renderWin, filename)
 
 

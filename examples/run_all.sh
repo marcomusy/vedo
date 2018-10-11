@@ -4,6 +4,7 @@
 echo Running tutorial.py
 python tutorial.py
 
+
 echo Running basic/align1.py
 python basic/align1.py
 
@@ -31,11 +32,8 @@ python basic/fitline.py
 echo Running basic/fxy.py
 python basic/fxy.py
 
-echo Running basic/gyroscope1.py
-python basic/gyroscope1.py
-
-echo Running basic/gyroscope2.py
-python basic/gyroscope2.py
+echo Running basic/addicon.py
+python basic/addicon.py
 
 echo Running basic/keypress.py
 python basic/keypress.py
@@ -94,6 +92,11 @@ python basic/buttons.py
 echo Running basic/cutter.py
 python basic/cutter.py
 
+echo Running basic/texturecubes.py
+python basic/texturecubes.py
+
+####################################
+
 echo Running advanced/brownian2D.py
 python advanced/brownian2D.py
 
@@ -114,6 +117,12 @@ python advanced/fitspheres2.py
 
 echo Running advanced/gas.py
 python advanced/gas.py
+
+echo Running advanced/gyroscope1.py
+python advanced/gyroscope1.py
+
+echo Running advanced/gyroscope2.py
+python advanced/gyroscope2.py
 
 echo Running advanced/multiple_pendulum.py
 python advanced/multiple_pendulum.py

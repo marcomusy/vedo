@@ -11,8 +11,8 @@ from __future__ import division, print_function
 from vtkplotter import Plotter, ProgressBar, arange, dot
 import random, numpy as np
 
-screen_w = 600
-screen_h = 600  
+screen_w = 800
+screen_h = 800  
  
 vp = Plotter(title="Brownian Motion", size=(screen_w,screen_h), axes=0, verbose=0)
 
@@ -67,7 +67,7 @@ Id = np.identity(Nsp)
 Dij =  (Radius+Radius[:, np.newaxis])**2 # Matrix Dij=(Ri+Rj)**2
 
 # The main loop
-pb = ProgressBar(0,5000, c='r')
+pb = ProgressBar(0,2000, c='r')
 for i in pb.range():
     # Update all positions
     np.add(Pos,Vel*Dt, Pos) # Fast version of Pos = Pos + Vel*Dt

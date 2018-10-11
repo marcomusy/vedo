@@ -12,7 +12,7 @@ except:
 
 ########################################### PyTMesh repair
 inputmesh = bunny_scan # 'pymeshfix/examples/StanfordBunny.ply'
-ouputmesh = 'repaired.ply' # try e.g. vtkconvert -to vtk repaired.ply
+ouputmesh = 'meshfix_repaired.ply' # try e.g. vtkconvert -to vtk repaired.ply
 
 tm = PyTMesh()
 tm.LoadFile(inputmesh)

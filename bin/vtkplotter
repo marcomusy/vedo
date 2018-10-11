@@ -23,6 +23,8 @@ pr.add_argument("-q", "--quiet",                help="quiet mode, less verbose",
 pr.add_argument("-n", "--sequence-mode",        help="show each file in a separate renderer", action="store_true")
 pr.add_argument("-s", "--scrolling-mode",       help="Scrolling Mode: use arrows to scroll files", action="store_true") 
 pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode for SLC/TIFF files", action="store_true") 
+pr.add_argument("-gz", "--z-spacing", type=float, help="Volume z-spacing factor [1]", default=None, metavar='') 
+pr.add_argument("-gy", "--y-spacing", type=float, help="Volume y-spacing factor [1]", default=None, metavar='') 
 args = pr.parse_args()
 
 humansort(args.files)
@@ -63,95 +65,16 @@ if args.scrolling_mode and args.sequence_mode:
     
 ########################################################################
 # special case of SLC/TIFF volumes with -g option
-if args.ray_cast_mode:
-    import vtk, os.path
-    from vtkplotter.colors import getColor
-
-    ren1 = vtk.vtkRenderer()
-    printc('GPU Ray-casting Mode:', c='b', invert=1)
-    printc('Press r to reset camera', c='b')
-    printc('      q to exit.', c='b')
-
-    for filename in args.files:
-        if not os.path.isfile(filename):
-            printc('File not found:', filename, c=1)
-            continue
-                
-        if   '.tif' in filename.lower(): 
-            reader = vtk.vtkTIFFReader() 
-        elif '.slc' in filename.lower(): 
-            reader = vtk.vtkSLCReader() 
-            if not reader.CanReadFile(filename):
-                printc('Bad SLC file:', filename, c=1)
-                continue
-        else:
-            printc('Use -g option only with SLC or TIFF files.', c=1)
-            continue
-        reader.SetFileName(filename) 
-        reader.Update() 
-    
-        volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
-        volumeMapper.SetBlendModeToMaximumIntensity()
-        volumeMapper.SetInputConnection(reader.GetOutputPort())
-        printc('scalar range is', reader.GetOutput().GetScalarRange(),
-                'for', filename.split('/')[-1], c='b', bold=0)
-        smin,smax = reader.GetOutput().GetScalarRange()
-        
-        # Create transfer mapping scalar value to opacity
-        opacityTransferFunction = vtk.vtkPiecewiseFunction()
-        opacityTransferFunction.AddPoint(smin, 0.0)
-        opacityTransferFunction.AddPoint(smin+(smax-smin)/10, 0.0)
-        opacityTransferFunction.AddPoint(smax, 1.0)
-        
-        # Create transfer mapping scalar value to color
-        if args.color is None: 
-            r,g,b = (0,0,0.6)
-        else:
-            r,g,b = getColor(args.color)
-        colorTransferFunction = vtk.vtkColorTransferFunction()
-        colorTransferFunction.AddRGBPoint(smin, 1.0, 1.0, 1.0)
-        colorTransferFunction.AddRGBPoint((smax+smin)/2, r/2, g/2, b/2)
-        colorTransferFunction.AddRGBPoint(smax, 0.0, 0.0, 0.0)
-        
-        # The property describes how the data will look
-        volumeProperty = vtk.vtkVolumeProperty()
-        volumeProperty.SetColor(colorTransferFunction)
-        volumeProperty.SetScalarOpacity(opacityTransferFunction)
-        volumeProperty.SetInterpolationTypeToLinear()
-        
-        # volume holds the mapper and the property and can be used to position/orient it
-        volume = vtk.vtkVolume()
-        volume.SetMapper(volumeMapper)
-        volume.SetProperty(volumeProperty)
-    
-        ren1.AddVolume(volume)  
-        
-    ren1.SetBackground(getColor(args.background))
-    renWin = vtk.vtkRenderWindow()
-    renWin.AddRenderer(ren1)
-    renWin.SetSize(1100,1100)
-    
-    iren = vtk.vtkRenderWindowInteractor()
-    iren.SetRenderWindow(renWin)
-    vsty = vtk.vtkInteractorStyleTrackballCamera()
-    iren.SetInteractorStyle(vsty)
-    
-    ren1.ResetCamera()
-    ren1.GetActiveCamera().Zoom(2)
-    ren1.GetActiveCamera().SetParallelProjection(False)
-    renWin.Render()
-    
-    def CheckAbort(obj, event):
-        if obj.GetEventPending() != 0:
-            obj.SetAbortRender(1)
-    renWin.AddObserver("AbortCheckEvent", CheckAbort)
-    
-    iren.Initialize()
-    renWin.Render()
-    iren.Start()
-    
+if args.ray_cast_mode or args.z_spacing or args.y_spacing:
+    from vtkplotter.vtkio import _showVoxelImage
+    wsize = 'auto'
+    if args.full_screen: 
+        wsize='full'    
+    _showVoxelImage(vp, args)
+    exit()
       
 ########################################################################
+# normal mode for single file or sequence
 elif (not args.scrolling_mode) or nfiles == 1:
 
     for i in range(N):
@@ -198,10 +121,10 @@ elif (not args.scrolling_mode) or nfiles == 1:
     else:
         vp.show(interactive=True, zoom=args.zoom)
         
-########################################################################        
+######################################################################## 
+# scroll mode       
 else:
     import numpy 
-    from vtkplotter.colors import getColor
 
     def _scroll(key, vplt): #observer
         global _kact

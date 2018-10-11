@@ -1,3 +1,7 @@
+"""
+Submodule to load meshes of different formats, and other I/O functionalities.
+"""
+
 from __future__ import division, print_function
 import vtk, os, sys, time, re
 
@@ -7,7 +11,10 @@ import numpy
      
 
 def humansort(l):
-    """Sort in place a given list the way humans expect"""
+    """Sort in place a given list the way humans expect.
+    
+    E.g. ['file11', 'file1'] -> ['file1', 'file11']
+    """
     def alphanum_key(s):
         # Turn a string into a list of string and number chunks.
         # e.g. "z23a" -> ["z", 23, "a"]
@@ -22,6 +29,7 @@ def humansort(l):
 
 def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
               smoothing, threshold, connectivity, scaling):
+    '''Load a file of various formats.'''
     fl = filename.lower()
     if legend is True: legend = os.path.basename(filename)
     if fl.endswith('.xml') or fl.endswith('.xml.gz'):     # Fenics tetrahedral file
@@ -50,6 +58,7 @@ def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
     
 def loadDir(mydir, c, alpha, wire, bc, edges, legend, texture,
              smoothing, threshold, connectivity, scaling):
+    '''Load files contained in directory of various formats.'''
     if not os.path.exists(mydir): 
         vc.printc('Error in loadDir: Cannot find', mydir, c=1)
         exit(0)
@@ -63,7 +72,7 @@ def loadDir(mydir, c, alpha, wire, bc, edges, legend, texture,
     return acts
 
 def loadPoly(filename):
-    '''Return a vtkPolyData object, NOT a vtkActor'''
+    '''Load a file and return a vtkPolyData object (not a vtkActor).'''
     if not os.path.exists(filename): 
         vc.printc('Error in loadPoly: Cannot find', filename, c=1)
         return None
@@ -343,6 +352,128 @@ def loadVolume(filename, c, alpha, wire, bc, edges, legend, texture,
     return vu.makeActor(image, c, alpha, wire, bc, edges, legend, texture)
 
 
+###########################################################
+_value_alphaslider1, _value_alphaslider2 = 0.4, 0.9 #defaults
+
+def _showVoxelImage(vp, args): # used by bin/vtkplotter script
+        
+    vc.printc('GPU Ray-casting Mode:', c='b', invert=1)
+    vp.render()
+    
+    for filename in args.files:
+        if not os.path.isfile(filename):
+            vc.printc('File not found:', filename, c=1)
+            continue
+        vc.printc('...loading', filename, c='b', bold=0)
+                
+        if   '.tif' in filename.lower(): 
+            reader = vtk.vtkTIFFReader() 
+            
+        elif '.slc' in filename.lower(): 
+            reader = vtk.vtkSLCReader() 
+            if not reader.CanReadFile(filename):
+                vc.printc('Bad SLC file:', filename, c=1)
+                continue
+        else:
+            vc.printc('Use -g option only with SLC or TIFF files.', c=1)
+            continue
+        reader.SetFileName(filename) 
+        reader.Update() 
+        img = reader.GetOutput()
+    
+        if args.z_spacing:
+            ispa = img.GetSpacing()
+            img.SetSpacing(ispa[0], ispa[1], ispa[2]*args.z_spacing)
+        if args.y_spacing:
+            ispa = img.GetSpacing()
+            img.SetSpacing(ispa[0], ispa[1]*args.y_spacing, ispa[2])
+    
+        volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
+        volumeMapper.SetBlendModeToMaximumIntensity()
+        volumeMapper.SetInputConnection(reader.GetOutputPort())
+        vc.printc('scalar range is ', img.GetScalarRange(), c='b', bold=0)
+        vc.printc('voxel spacing is', img.GetSpacing(), c='b', bold=0)
+        smin,smax = reader.GetOutput().GetScalarRange()
+        
+        # Create transfer mapping scalar value to color
+        if args.color is None: 
+            r,g,b = (0,0,0.6)
+        else:
+            r,g,b = vc.getColor(args.color)
+        colorTransferFunction = vtk.vtkColorTransferFunction()
+        colorTransferFunction.AddRGBPoint(smin, 1.0, 1.0, 1.0)
+        colorTransferFunction.AddRGBPoint((smax+smin)/3, r/2, g/2, b/2)
+        colorTransferFunction.AddRGBPoint(smax, 0.0, 0.0, 0.0)
+        
+        x1alpha = smin+(smax-smin)*0.33
+        x2alpha = smin+(smax-smin)*0.66
+        # Create transfer mapping scalar value to opacity
+        opacityTransferFunction = vtk.vtkPiecewiseFunction()
+        opacityTransferFunction.AddPoint(smin, 0.0)
+        opacityTransferFunction.AddPoint(x1alpha, _value_alphaslider1)
+        opacityTransferFunction.AddPoint(x2alpha, _value_alphaslider2)
+        opacityTransferFunction.AddPoint(smax, 1.0)
+      
+        # The property describes how the data will look
+        volumeProperty = vtk.vtkVolumeProperty()
+        volumeProperty.SetColor(colorTransferFunction)
+        volumeProperty.SetScalarOpacity(opacityTransferFunction)
+        volumeProperty.SetInterpolationTypeToLinear()
+        
+        # volume holds the mapper and the property and can be used to position/orient it
+        volume = vtk.vtkVolume()
+        volume.SetMapper(volumeMapper)
+        volume.SetProperty(volumeProperty)
+    
+        vp.renderer.AddVolume(volume) 
+    
+    ############################## brightness slider
+    def slider1(widget, event):
+        value = widget.GetRepresentation().GetValue() 
+        colorTransferFunction.RemoveAllPoints ()
+        colorTransferFunction.AddRGBPoint(smin, 1.0, 1.0, 1.0) #white
+        colorTransferFunction.AddRGBPoint(value, r/2, g/2, b/2)
+        colorTransferFunction.AddRGBPoint(smax, 0.0, 0.0, 0.0) #black
+    w1 = vp.addSlider(slider1, smin, smax, value=(smin+smax)/3.0, 
+                      pos=4, title='color intensity')
+    
+    ############################## alpha sliders    
+    def sliderA1(widget, event):
+        global _value_alphaslider1, _value_alphaslider2
+        _value_alphaslider1 = widget.GetRepresentation().GetValue() 
+        opacityTransferFunction.RemoveAllPoints()
+        opacityTransferFunction.AddPoint(smin, 0.0)
+        opacityTransferFunction.AddPoint(x1alpha, _value_alphaslider1)
+        opacityTransferFunction.AddPoint(x2alpha, _value_alphaslider2)
+        opacityTransferFunction.AddPoint(smax, 1.0)
+    w2 = vp.addSlider(sliderA1, 0,1, value=_value_alphaslider1,
+                      pos=[(.93 ,.1),(.93, .44)] , title='', showValue=0)
+    
+    def sliderA2(widget, event):
+        global _value_alphaslider1, _value_alphaslider2
+        _value_alphaslider2 = widget.GetRepresentation().GetValue() 
+        opacityTransferFunction.RemoveAllPoints()
+        opacityTransferFunction.AddPoint(smin, 0.0)
+        opacityTransferFunction.AddPoint(x1alpha, _value_alphaslider1)
+        opacityTransferFunction.AddPoint(x2alpha, _value_alphaslider2)
+        opacityTransferFunction.AddPoint(smax, 1.0)
+    
+    w3 = vp.addSlider(sliderA2, 0,1, value=_value_alphaslider2, 
+                      pos=[(.96 ,.1),(.96, .44)], title='alpha thresholds', showValue=0)
+        
+    def CheckAbort(obj, event):
+        if obj.GetEventPending() != 0:
+            obj.SetAbortRender(1)
+    vp.renderWin.AddObserver("AbortCheckEvent", CheckAbort)
+    
+    vc.printc('Press r to reset camera', c='b')
+    vc.printc('      q to exit.', c='b')
+    vp.show(zoom=1.2)
+    w1.SetEnabled(0)
+    w2.SetEnabled(0)
+    w3.SetEnabled(0)
+
+
 def load2Dimage(filename, alpha):
     fl = filename.lower()
     if   '.png' in fl:
@@ -366,6 +497,7 @@ def load2Dimage(filename, alpha):
 def write(obj, fileoutput):
     '''
     Write 3D object to file.
+    
     Possile extensions are: .vtk, .ply, .obj, .stl, .byu, .vtp
     '''
     obj = vu.polydata(obj, True)
@@ -411,8 +543,18 @@ def screenshot(renderWin, filename='screenshot.png'):
 
 class Video:
     def __init__(self, renderWindow, name='movie.avi', fps=12, duration=None):
-        # if duration is given, fps will be recalculated
+        '''Class to generate a video from the specified rendering window.
         
+        Options:
+            
+            name, name of the output file
+            
+            fps,  frames per second
+            
+            duration, total duration of the video. If given, fps will be recalculated.
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/makeVideo.py)    
+        '''       
         import glob  
         self.renderWindow = renderWindow
         self.name = name
@@ -424,12 +566,13 @@ class Video:
         vc.printc("Video", name, "is open...", c='m')
         
     def addFrame(self):
+        '''Add frame to current video'''
         fr = '/tmp/vpvid/'+str(len(self.frames))+'.png'
         screenshot(self.renderWindow, fr)
         self.frames.append(fr)
     
     def pause(self, pause=0):
-        '''inserts a pause, in seconds'''
+        '''Iinsert a pause, in seconds'''
         import os
         fr = self.frames[-1]
         n = int(self.fps*pause)
@@ -438,7 +581,8 @@ class Video:
             self.frames.append(fr2)
             os.system("cp -f %s %s" % (fr, fr2))
     
-    def close(self):      
+    def close(self):  
+        '''Render the video and write to file.'''
         if self.duration:
             _fps = len(self.frames)/float(self.duration)
             vc.printc("Recalculated video FPS to", round(_fps,3), c='yellow')
@@ -453,14 +597,19 @@ class Video:
 
 ###########################################################################
 class ProgressBar: 
-    '''Class to print a progress bar with optional text on its right
+    '''Class to print a progress bar with optional text message.
     
-    Usage example:
+    Basic usage example:
+        
         import time                        
+        
         pb = ProgressBar(0,400, c='red')
+        
         for i in pb.range():
-            time.sleep(.1)
+            time.sleep(.1)            
             pb.print('some message') # or pb.print(counts=i)
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/diffusion.py)    
     ''' 
 
     def __init__(self, start, stop, step=1, c=None, ETA=True, width=25):
@@ -578,9 +727,12 @@ def convertNeutral2Xml(infile, outfile=None):
 
 def buildPolyData(vertices, faces=None, indexOffset=0):
     '''
-    Build a vtkPolyData object from a list of vertices=[[x1,y1,z1],[x2,y2,z2], ...] 
-    and the connectivity representing the faces of the polygonal mesh,
-    e.g. faces=[[0,1,2], [1,2,3], ...]
+    Build a vtkPolyData object from a list of vertices
+    and the connectivity representing the faces of the polygonal mesh.
+    
+    E.g. faces=[[0,1,2], [1,2,3], ...], 
+         vertices=[[x1,y1,z1],[x2,y2,z2], ...] 
+    
     Use indexOffset=1 if face numbering starts from 1 instead of 0.
     '''
     sourcePoints   = vtk.vtkPoints()
@@ -708,3 +860,377 @@ class Button:
         self._status = (self._status+1) % len(self.states)
         self.status(self._status)
 
+
+##################################################################################### Events
+############################### mouse event
+def _mouseleft(vp, obj, event):
+
+    x,y = vp.interactor.GetEventPosition()
+    #print ('mouse at',x,y)
+    
+    vp.renderer = obj.FindPokedRenderer(x,y)
+    vp.renderWin = obj.GetRenderWindow()
+    clickedr = vp.renderers.index(vp.renderer)
+    picker = vtk.vtkPropPicker()
+    picker.PickProp(x,y, vp.renderer)
+    clickedActor = picker.GetActor()
+    
+    # check if any button objects were created
+    clickedActor2D = picker.GetActor2D()
+    if clickedActor2D:
+        for bt in vp.buttons:
+            if clickedActor2D == bt.actor:
+                bt.function()
+                break
+        
+    clickedActorIsAssembly = False
+    if not clickedActor: 
+        clickedActor = picker.GetAssembly()
+        clickedActorIsAssembly = True
+    vp.picked3d = picker.GetPickPosition()
+    vp.justremoved = None
+
+    if vp.verbose:
+        if len(vp.renderers)>1 or clickedr>0 and vp.clickedr != clickedr:
+            print ('Current Renderer:', clickedr, end='')
+            print (', nr. of actors =', len(vp.getActors()))
+        
+        leg, oldleg = '', ''
+        if hasattr(clickedActor,'legend'): leg = clickedActor.legend
+        if hasattr(vp.clickedActor,'legend'): oldleg = vp.clickedActor.legend
+        #detect if clickin the same obj
+        if leg and isinstance(leg, str) and len(leg) and oldleg != leg: 
+            try: indx = str(vp.getActors().index(clickedActor))
+            except ValueError: indx = None                        
+            try: indx = str(vp.actors.index(clickedActor))
+            except ValueError: indx = None                        
+            try: 
+                rgb = list(clickedActor.GetProperty().GetColor())
+                cn = vc.getColorName(rgb)
+                cn = '('+cn+'),'
+            except: 
+                cn = ''                        
+            if indx and isinstance(clickedActor, vtk.vtkAssembly): 
+                vc.printc('-> assembly',indx+':',clickedActor.legend,cn, end=' ')
+            elif indx:
+                vc.printc('-> actor', indx+':', leg, cn, dim=1, end=' ')
+            if not clickedActorIsAssembly:
+                n = clickedActor.GetMapper().GetInput().GetNumberOfPoints()
+            else:
+                n = vp.getActors(clickedActor)[0].GetMapper().GetInput().GetNumberOfPoints()
+            vc.printc('N='+str(n), dim=1, end='')
+            px,py,pz = vp.picked3d
+            px,py,pz = str(round(px,1)), str(round(py,1)), str(round(pz,1))
+            vc.printc(', p=('+px+','+py+','+pz+')', dim=1)
+
+    vp.clickedActor = clickedActor
+    vp.clickedRenderer = clickedr
+
+
+############################### keystroke event
+def _keypress(vp, obj, event):
+    
+    key = obj.GetKeySym()
+    #print ('Pressed key:', key, event)
+
+    if key == "q" or key == "space" or key == "Return":
+        vp.interactor.ExitCallback()
+        return
+
+    elif key == "e":
+        if vp.verbose: 
+            print ("closing window...")
+        vp.interactor.GetRenderWindow().Finalize()
+        vp.interactor.TerminateApp()
+        return
+
+    elif key == "Escape":
+        print()
+        sys.stdout.flush()
+        vp.interactor.TerminateApp()
+        vp.interactor.GetRenderWindow().Finalize()
+        vp.interactor.TerminateApp()
+        sys.exit(0)
+        
+    elif key == "m":
+        if vp.clickedActor in vp.getActors():
+            vp.clickedActor.GetProperty().SetOpacity(0.05)
+            bfp = vp.clickedActor.GetBackfaceProperty()
+            if bfp: bfp.SetOpacity(0.05)
+        else:
+            for a in vp.getActors(): 
+                a.GetProperty().SetOpacity(.05)
+                bfp = a.GetBackfaceProperty()
+                if bfp: bfp.SetOpacity(0.05)
+
+    elif key == "slash":
+        if vp.clickedActor in vp.getActors():
+            vp.clickedActor.GetProperty().SetOpacity(1) 
+            bfp = vp.clickedActor.GetBackfaceProperty()
+            if bfp: bfp.SetOpacity(1)
+        else:
+            for a in vp.getActors(): 
+                a.GetProperty().SetOpacity(1)
+                bfp = a.GetBackfaceProperty()
+                if bfp: bfp.SetOpacity(1)
+
+    elif key == "comma":
+        if vp.clickedActor in vp.getActors():
+            ap = vp.clickedActor.GetProperty()
+            ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.05]))
+            bfp = vp.clickedActor.GetBackfaceProperty()
+            if bfp: bfp.SetOpacity(ap.GetOpacity())
+        else:
+            for a in vp.getActors():
+                ap = a.GetProperty()
+                ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.05]))
+                bfp = a.GetBackfaceProperty()
+                if bfp: bfp.SetOpacity(ap.GetOpacity())
+
+    elif key == "period":
+        if vp.clickedActor in vp.getActors():
+            ap = vp.clickedActor.GetProperty()
+            ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
+            bfp = vp.clickedActor.GetBackfaceProperty()
+            if bfp: bfp.SetOpacity(ap.GetOpacity())
+        else:
+            for a in vp.getActors():
+                ap = a.GetProperty()
+                ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
+                bfp = a.GetBackfaceProperty()
+                if bfp: bfp.SetOpacity(ap.GetOpacity())
+
+    elif key == "P":
+        if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
+        else: acts = vp.getActors()
+        for ia in acts:
+            try:
+                ps = ia.GetProperty().GetPointSize()
+                if ps>1:
+                    ia.GetProperty().SetPointSize(ps-1)
+                ia.GetProperty().SetRepresentationToPoints()
+            except AttributeError: pass
+
+    elif key == "p":
+        if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
+        else: acts = vp.getActors()
+        for ia in acts:
+            try:
+                ps = ia.GetProperty().GetPointSize()
+                ia.GetProperty().SetPointSize(ps+2)
+                ia.GetProperty().SetRepresentationToPoints()
+            except AttributeError: pass
+
+    elif key == "w":
+        if vp.clickedActor and vp.clickedActor in vp.getActors():
+            vp.clickedActor.GetProperty().SetRepresentationToWireframe()
+        else:
+            for a in vp.getActors(): 
+                if a: 
+                    a.GetProperty().SetRepresentationToWireframe()
+
+    elif key == "r":
+        vp.renderer.ResetCamera()
+
+
+    ### now intercept custom observer ###########################
+    if vp.keyPressFunction: 
+        if key not in ['Shift_L', 'Control_L', 'Super_L', 'Alt_L']:
+            if key not in ['Shift_R', 'Control_R', 'Super_R', 'Alt_R']:
+                vp.verbose = False
+                vp.keyPressFunction(key, vp)
+                return
+
+
+    if key == "S":
+        vp.screenshot('screenshot.png')
+        vc.printc('Saved rendering window as screenshot.png', c='blue')
+        return
+
+    elif key == "C":
+        cam = vp.renderer.GetActiveCamera()
+        print ('\n### Example code to position this vtkCamera:')
+        print ('vp = vtkplotter.Plotter()\n...')
+        print ('vp.camera.SetPosition(',  [round(e,3) for e in cam.GetPosition()],  ')')
+        print ('vp.camera.SetFocalPoint(',[round(e,3) for e in cam.GetFocalPoint()],')')
+        print ('vp.camera.SetViewUp(',    [round(e,3) for e in cam.GetViewUp()],')')
+        print ('vp.camera.SetDistance(',   round(cam.GetDistance() ,3),')')
+        print ('vp.camera.SetClippingRange(', [round(e,3) for e in cam.GetClippingRange()],')')
+        return
+
+    elif key == "s":
+        if vp.clickedActor and vp.clickedActor in vp.getActors():
+            vp.clickedActor.GetProperty().SetRepresentationToSurface()
+        else:
+            for a in vp.getActors(): 
+                if a: 
+                    a.GetProperty().SetRepresentationToSurface()
+
+    elif key == "V":
+        if not(vp.verbose): vp._tips()
+        vp.verbose = not(vp.verbose)
+        print ("Verbose: ", vp.verbose)
+
+    elif key in ["1", "KP_End", "KP_1"]:
+        if vp.clickedActor and hasattr(vp.clickedActor,'GetProperty'):
+            vp.clickedActor.GetProperty().SetColor(vc.colors1[(vp.icol)%10])
+        else:
+            for i,ia in enumerate(vp.getActors()):
+                ia.GetProperty().SetColor(
+                        vc.colors1[(i+vp.icol)%10])
+                ia.GetMapper().ScalarVisibilityOff()
+        vp.icol += 1
+        vp._draw_legend()
+
+    elif key in ["2", "KP_Down", "KP_2"]:
+        if vp.clickedActor and hasattr(vp.clickedActor,'GetProperty'):
+            vp.clickedActor.GetProperty().SetColor(vc.colors2[(vp.icol)%10])
+        else:
+            for i,ia in enumerate(vp.getActors()):
+                ia.GetProperty().SetColor(vc.colors2[(i+vp.icol)%10])
+                ia.GetMapper().ScalarVisibilityOff()
+        vp.icol += 1
+        vp._draw_legend()
+
+    elif key in ["3", "KP_Left", "KP_4"]:
+        c = vc.getColor('gold')
+        acs = vp.getActors()
+        alpha = 1./len(acs)
+        for ia in acs:
+            ia.GetProperty().SetColor(c)
+            ia.GetProperty().SetOpacity(alpha)
+            ia.GetMapper().ScalarVisibilityOff()
+        vp._draw_legend()
+
+
+    elif key in ["k", "K"]:
+        for a in vp.getActors():
+            ptdata = vu.polydata(a).GetPointData()
+            cldata = vu.polydata(a).GetCellData()
+
+            arrtypes = dict()
+            arrtypes[vtk.VTK_UNSIGNED_CHAR] = 'VTK_UNSIGNED_CHAR'
+            arrtypes[vtk.VTK_UNSIGNED_INT] = 'VTK_UNSIGNED_INT'
+            arrtypes[vtk.VTK_FLOAT] = 'VTK_FLOAT'
+            arrtypes[vtk.VTK_DOUBLE] = 'VTK_DOUBLE'
+            foundarr=0
+
+            if key == 'k':
+                for i in range(ptdata.GetNumberOfArrays()):
+                    name = ptdata.GetArrayName(i)
+                    if name == 'Normals': continue
+                    ptdata.SetActiveScalars(name)
+                    foundarr=1
+                if not foundarr:
+                    print('No vtkArray is associated to points', end='')
+                    if hasattr(a, 'legend'):
+                        print(' for actor:', a.legend)
+                    else: print()
+
+            if key == 'K':
+                for i in range(cldata.GetNumberOfArrays()):
+                    name = cldata.GetArrayName(i)
+                    if name == 'Normals': continue
+                    cldata.SetActiveScalars(name)
+                    foundarr=1
+                if not foundarr:
+                    print('No vtkArray is associated to cells', end='')
+                    if hasattr(a, 'legend'):
+                        print(' for actor:', a.legend)
+                    else: print()
+                    
+            a.GetMapper().ScalarVisibilityOn()
+
+    elif key == "L":
+        if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
+        else: acts = vp.getActors()
+        for ia in acts:
+            try:
+                ia.GetProperty().SetRepresentationToSurface()
+                ls = ia.GetProperty().GetLineWidth()
+                if ls<=1: 
+                    ls=1
+                    ia.GetProperty().EdgeVisibilityOff()
+                else: 
+                    ia.GetProperty().EdgeVisibilityOn()
+                    ia.GetProperty().SetLineWidth(ls-1)
+            except AttributeError: pass
+
+    elif key == "l":
+        if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
+        else: acts = vp.getActors()
+        for ia in acts:
+            try:
+                ia.GetProperty().EdgeVisibilityOn()
+                c = ia.GetProperty().GetColor()
+                ia.GetProperty().SetEdgeColor(c)
+                ls = ia.GetProperty().GetLineWidth()
+                ia.GetProperty().SetLineWidth(ls+1)
+            except AttributeError: pass
+
+    elif key == "n": # show normals to an actor
+        if vp.clickedActor in vp.getActors(): 
+            acts=[vp.clickedActor]
+        else: 
+            acts = vp.getActors()
+        for ia in acts:
+            alpha = ia.GetProperty().GetOpacity()
+            c = ia.GetProperty().GetColor()
+            a = vp.normals(ia, ratio=1, c=c, alpha=alpha)
+            vp.actors.pop() #remove from list
+            try:
+                i = vp.actors.index(ia)
+                vp.actors[i] = a
+                vp.renderer.RemoveActor(ia)
+                vp.interactor.Render()
+            except ValueError: pass
+            vp.render(a)
+
+    elif key == "x":
+        if vp.justremoved is None:                    
+            if vp.clickedActor in vp.getActors() or isinstance(vp.clickedActor, vtk.vtkAssembly):
+                vp.justremoved = vp.clickedActor
+                vp.renderer.RemoveActor(vp.clickedActor)
+            if hasattr(vp.clickedActor, 'legend') and vp.clickedActor.legend:
+                vc.printc('...removing actor: '+ str(vp.clickedActor.legend)+', press x to put it back')
+            else: 
+                if vp.verbose:
+                    vc.printc('Click an actor and press x to toggle it.',c=5)
+        else:
+            vp.renderer.AddActor(vp.justremoved)
+            vp.renderer.Render()
+            vp.justremoved = None
+        vp._draw_legend()
+
+    elif key == "X":
+        if len(vp.actors):
+            vp.clickedActor = vp.actors[-1]
+        if vp.clickedActor:
+            if not vp.cutterWidget:
+                vp.cutterWidget = vp.addCutterTool(vp.clickedActor)
+            else:
+                fname = 'clipped.vtk'
+                confilter = vtk.vtkPolyDataConnectivityFilter()
+                vu.setInput(confilter, vu.polydata(vp.clickedActor, True))
+                confilter.SetExtractionModeToLargestRegion()
+                confilter.Update()
+                cpd = vtk.vtkCleanPolyData()
+                vu.setInput(cpd, confilter.GetOutput())
+                cpd.Update()
+                w = vtk.vtkPolyDataWriter()
+                vu.setInput(w, cpd.GetOutput())
+                w.SetFileName(fname)
+                w.Write()
+                vc.printc("  -> Saved file:", fname, c='m')
+                vp.cutterWidget.Off()
+                vp.cutterWidget = None
+            
+        else: 
+            vc.printc('Click an actor and press X to open the cutter box widget.',c=4)
+
+    elif key =='i': ### print info
+          vu.printInfo(vp.clickedActor)
+          
+
+    if vp.interactor: 
+        vp.interactor.Render()
