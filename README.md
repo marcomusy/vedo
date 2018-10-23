@@ -1,13 +1,5 @@
 # vtkplotter
 
-..
-PyPi
-.. image:: https://img.shields.io/pypi/v/vtkplotter.svg
-:target: https://pypi.org/project/vtkplotter/
-
-.. image:: https://pepy.tech/badge/vtkplotter
-:target: https://pepy.tech/project/vtkplotter
-
 A python class to easily draw, analyse and animate 3D objects with [VTK](https://www.vtk.org/) 
 and [numpy](http://www.numpy.org/).
 
@@ -118,7 +110,7 @@ optional arguments:
 <br />
 
 
-## Examples gallery
+## Examples Gallery
 A get-started tutorial script is available for download:
 ```bash
 git clone https://github.com/marcomusy/vtkplotter.git
@@ -162,7 +154,8 @@ of charged particles on a fixed target (by T. Vandermolen,
 
 - Quantum-tunnelling effect using 4th order Runge-Kutta method. 
 The animation shows the evolution of a particle in a box hitting a potential barrier
-([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/tunnelling.py)):
+([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/tunnelling.py)):<br />
+`python examples/advanced/tunnelling.py`<br />
 ![tunnelling](https://user-images.githubusercontent.com/32848391/47310127-7daf0400-d636-11e8-860b-e0f09b4cf465.gif)
 <br />
 
@@ -228,5 +221,5 @@ r, g, b = colorMap(value, name='jet', vmin=-10.2, vmax=123.4)
 ```
 ![colmaps](https://user-images.githubusercontent.com/32848391/42942959-c8b50eec-8b61-11e8-930a-00dcffdca601.png)
 
-The list of available vtk color names is given [here](https://vtkplotter.embl.es/vtkcolors.html).
+A list of available vtk color names is given [here](https://vtkplotter.embl.es/vtkcolors.html).
 <br />
