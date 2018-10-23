@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='8.5.7',     # change also in vtkplotter/__init__.py
+    version='8.5.8',     # change also in vtkplotter/__init__.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=[], # vtk and numpy are needed but better install manually
@@ -58,3 +58,9 @@ setup(
 # pdoc --overwrite --html vtkplotter
 # mount_staging
 # cp vtkplotter/* ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es
+# remove trig entries in index.htm
+#
+
+
+
+

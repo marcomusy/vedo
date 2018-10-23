@@ -11,7 +11,7 @@ import vtkplotter.colors as colors
 import vtkplotter.shapes as shapes
 import vtkplotter.analysis as analysis 
 from vtkplotter import __version__
-from vtkplotter.utils import add_actor
+from vtkplotter.utils import add_actor  
 
 
 ########################################################################
@@ -64,7 +64,7 @@ class Plotter:
         
                 screensize = physical size of the monitor screen
                 
-                bg = background color
+                bg = background color or specify jpg image file name with path
                 
                 bg2 = background color of a gradient towards the top
                 
@@ -134,7 +134,11 @@ class Plotter:
         self.buttons = []
         self.widgets = []
         self.cutterWidget = None
-        
+        self.backgroundRenderer = None
+        self.mouseLeftClickFunction = None
+        self.mouseMiddleClickFunction = None
+        self.mouseRightClickFunction = None
+
         # share some methods in utils in Plotter class for convenience
         self.closestPoint = utils.closestPoint
         self.insidePoints = utils.insidePoints
@@ -190,10 +194,34 @@ class Plotter:
         for i in reversed(range(shape[0])):
             for j in range(shape[1]):
                 arenderer = vtk.vtkRenderer()
-                arenderer.SetBackground(colors.getColor(bg))
-                if bg2:
-                    arenderer.GradientBackgroundOn()
-                    arenderer.SetBackground2(colors.getColor(bg2))
+                if 'jpg' in str(bg).lower()  or 'jpeg' in str(bg).lower():
+                    if i==0 :
+                        jpeg_reader = vtk.vtkJPEGReader()
+                        if not jpeg_reader.CanReadFile(bg):
+                            colors.printc("Error reading background image file", bg, c=1)
+                            sys.exit()
+                        jpeg_reader.SetFileName(bg)
+                        jpeg_reader.Update()
+                        image_data = jpeg_reader.GetOutput()
+                        image_actor = vtk.vtkImageActor()
+                        image_actor.InterpolateOn()
+                        utils.setInput(image_actor, image_data)
+                        self.backgroundRenderer = vtk.vtkRenderer()
+                        self.backgroundRenderer.SetLayer(0)
+                        self.backgroundRenderer.InteractiveOff()
+                        if bg2: 
+                            self.backgroundRenderer.SetBackground(colors.getColor(bg2))
+                        else:
+                            self.backgroundRenderer.SetBackground(1,1,1)
+                        arenderer.SetLayer(1)
+                        self.renderWin.SetNumberOfLayers(2)
+                        self.renderWin.AddRenderer(self.backgroundRenderer)
+                        self.backgroundRenderer.AddActor(image_actor)
+                else:
+                    arenderer.SetBackground(colors.getColor(bg))
+                    if bg2:
+                        arenderer.GradientBackgroundOn()
+                        arenderer.SetBackground2(colors.getColor(bg2))
                 x0 = i/shape[0]
                 y0 = j/shape[1]
                 x1 = (i+1)/shape[0]
@@ -1823,10 +1851,14 @@ class Plotter:
         if not self.initializedIren:
             self.initializedIren = True
             self.interactor.Initialize()
-            def mouseleft(obj, e): vtkio._mouseleft(self, obj, e)
-            def keypress( obj, e): vtkio._keypress( self, obj, e)
             self.interactor.RemoveObservers('CharEvent')
+            def mouseleft(obj, e): vtkio._mouseleft(self, obj, e)
             self.interactor.AddObserver("LeftButtonPressEvent", mouseleft)
+            def mouseright(obj, e): vtkio._mouseright(self, obj, e)
+            self.interactor.AddObserver("RightButtonPressEvent", mouseright)
+            def mousemiddle(obj, e): vtkio._mousemiddle(self, obj, e)
+            self.interactor.AddObserver("MiddleButtonPressEvent", mousemiddle)
+            def keypress( obj, e): vtkio._keypress( self, obj, e)
             self.interactor.AddObserver("KeyPressEvent", keypress)
             if self.verbose and self.interactive: self._tips()
         self.initializedPlotter = True

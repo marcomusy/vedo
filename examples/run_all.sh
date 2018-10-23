@@ -32,8 +32,8 @@ python basic/fitline.py
 echo Running basic/fxy.py
 python basic/fxy.py
 
-echo Running basic/addicon.py
-python basic/addicon.py
+echo Running basic/icon.py
+python basic/icon.py
 
 echo Running basic/keypress.py
 python basic/keypress.py
@@ -95,13 +95,17 @@ python basic/cutter.py
 echo Running basic/texturecubes.py
 python basic/texturecubes.py
 
+echo Running basic/bgImage.py
+python basic/bgImage.py
+
+echo Running basic/mouseclick.py
+python basic/mouseclick.py
+
+
 ####################################
 
 echo Running advanced/brownian2D.py
 python advanced/brownian2D.py
-
-echo Running advanced/cell_main.py
-python advanced/cell_main.py
 
 echo Running advanced/fatlimb.py
 python advanced/fatlimb.py
@@ -153,6 +157,14 @@ python advanced/skeletonize.py
 
 echo Running advanced/particle_simulator.py
 python advanced/particle_simulator.py
+
+echo Running advanced/doubleslit.py
+python advanced/doubleslit.py
+
+echo Running advanced/tunnelling.py
+python advanced/tunnelling.py
+
+
 
 
 #these may fail

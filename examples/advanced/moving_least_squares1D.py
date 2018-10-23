@@ -8,26 +8,27 @@
 # details of the regression for some random points
 #
 from __future__ import division, print_function
-from vtkplotter import Plotter, arange, sin, cos
+from vtkplotter import Plotter, arange, sin, cos, sqrt
 from vtkplotter.utils import clean
 import numpy as np
 
-N = 3  # nr. of iterations
+N = 9  # nr. of iterations
 
 # build some initial cloud of noisy points along a line
-pts = [ (sin(6*x), sin(2*x)/(x+1), cos(9*x)) for x in arange(0,1, .001)]
-#pts = [ (0, sin(x), cos(x)) for x in arange(0,6, .01) ]
+#pts = [ (sin(6*x), sin(2*x)/(x+1), cos(9*x)) for x in arange(0,1, .001)]
+#pts = [ (0, sin(x), cos(x)) for x in arange(0,6, .002) ]
+pts = [ (sqrt(x), sin(x), x/10) for x in arange(0,16, .01) ]
 
-pts += np.random.randn(len(pts), 3)/50 # add noise
+pts += np.random.randn(len(pts), 3)/10# add noise
 np.random.shuffle(pts) # make sure points are not ordered
 
-vp = Plotter(N=N)
+vp = Plotter(N=N, axes=5)
 a = vp.points(pts)
 vp.show(a, at=0, legend='cloud')
         
 for i in range(1, N):
     a = a.clone().color(i)
-    vp.smoothMLS1D(a, f=0.4)
+    vp.smoothMLS1D(a, f=0.2)
     
     # at last iteration make sure points are separated by tol
     if i==N-1: clean(a, tol=.01)

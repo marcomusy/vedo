@@ -8,17 +8,17 @@ import sys, argparse
 pr = argparse.ArgumentParser(description="version "+str(__version__)+""" -                              
                              check out home page https://github.com/marcomusy/vtkplotter""")
 pr.add_argument('files', nargs='*',             help="Input filename(s)")
+pr.add_argument("-c", "--color", type=str,      help="mesh color [integer or color name]", default=None, metavar='')
 pr.add_argument("-a", "--alpha",    type=float, help="alpha value [0-1]", default=-1, metavar='')
 pr.add_argument("-w", "--wireframe",            help="use wireframe representation", action="store_true")
 pr.add_argument("-p", "--point-size", type=float, help="specify point size", default=-1, metavar='') 
-pr.add_argument("-l", "--legend-off",           help="do not show legends", action="store_true")
-pr.add_argument("-c", "--color", type=str,      help="mesh color [integer or color name]", default=None, metavar='')
 pr.add_argument("-k", "--show-scalars",         help="use scalars as colors", action="store_true") 
 pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-3]", default=1, metavar='')
-pr.add_argument("-f", "--full-screen",          help="full screen mode", action="store_true")
-pr.add_argument("-z", "--zoom", type=float,     help="zooming factor", default=1.1, metavar='')
 pr.add_argument("-i", "--no-camera-share",      help="do not share camera in renderers", action="store_true")
+pr.add_argument("-l", "--legend-off",           help="do not show legends", action="store_true")
+pr.add_argument("-f", "--full-screen",          help="full screen mode", action="store_true")
 pr.add_argument("-b", "--background", type=str, help="background color [integer or color name]", default=(1,1,1), metavar='')
+pr.add_argument("-z", "--zoom", type=float,     help="zooming factor", default=1.1, metavar='')
 pr.add_argument("-q", "--quiet",                help="quiet mode, less verbose", action="store_true")
 pr.add_argument("-n", "--sequence-mode",        help="show each file in a separate renderer", action="store_true")
 pr.add_argument("-s", "--scrolling-mode",       help="Scrolling Mode: use arrows to scroll files", action="store_true") 
@@ -126,9 +126,9 @@ elif (not args.scrolling_mode) or nfiles == 1:
 else:
     import numpy 
 
-    def _scroll(key, vplt): #observer
+    def _scroll(key): #observer
         global _kact
-        n = len(vplt.actors)
+        n = len(vp.actors)
         if key == 'Right' and _kact < n-1: 
             _kact += 1
         if key == 'Left'  and _kact > 0: 
@@ -142,7 +142,7 @@ else:
             _kact -= step
             if _kact<0: _kact= 0
         sliderRep.SetValue(_kact)
-        vplt.interactor.ExitCallback()
+        vp.interactor.ExitCallback()
         
     if 0 < args.alpha <= 1: 
         alpha = args.alpha

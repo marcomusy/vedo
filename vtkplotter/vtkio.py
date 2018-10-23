@@ -40,6 +40,8 @@ def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
         actor = loadGmesh(filename, c, alpha, wire, bc, edges, legend)
     elif fl.endswith('.pcd'):                             # PCL point-cloud format
         actor = loadPCD(filename, c, alpha, legend)
+    elif fl.endswith('.3ds'):                             # PCL point-cloud format
+        actor = load3DS(filename, legend)
     elif fl.endswith('.tif') or fl.endswith('.slc'):      # tiff stack or slc
         actor = loadVolume(filename, c, alpha, wire, bc, edges, legend, texture,
                            smoothing, threshold, connectivity, scaling)
@@ -116,6 +118,27 @@ def loadPoly(filename):
     vu.setInput(cleanpd, poly)
     cleanpd.Update()
     return cleanpd.GetOutput()
+
+
+def load3DS(filename, legend):
+
+    renderer = vtk.vtkRenderer()
+    renWin = vtk.vtkRenderWindow()
+    renWin.AddRenderer(renderer)
+
+    importer = vtk.vtk3DSImporter()
+    importer.SetFileName(filename)
+    importer.ComputeNormalsOn()
+    importer.SetRenderWindow(renWin)
+    importer.Update()
+
+    actors = renderer.GetActors() # vtkActorCollection
+    acts=[]
+    for i in range(actors.GetNumberOfItems()):
+        a = actors.GetItemAsObject(i)
+        acts.append(a)
+    del renWin
+    return vu.makeAssembly(acts, legend=legend)
 
 
 def loadXml(filename, c, alpha, wire, bc, edges, legend):
@@ -498,7 +521,7 @@ def write(obj, fileoutput):
     '''
     Write 3D object to file.
     
-    Possile extensions are: .vtk, .ply, .obj, .stl, .byu, .vtp
+    Possile extensions are: .vtk, .ply, .obj, .stl, .byu, .vtp, .xyz
     '''
     obj = vu.polydata(obj, True)
     fr = fileoutput.lower()
@@ -515,6 +538,7 @@ def write(obj, fileoutput):
     elif '.stl' in fr: w = vtk.vtkSTLWriter()
     elif '.byu' in fr or fr.endswith('.g'): w = vtk.vtkBYUWriter()
     elif '.vtp' in fr: w = vtk.vtkXMLPolyDataWriter()
+    elif '.xyz' in fr: w = vtk.vtkSimplePointsWriter()
     else:
         vc.printc('Unavailable format in file '+fileoutput, c='r')
         exit(1)
@@ -926,6 +950,69 @@ def _mouseleft(vp, obj, event):
     vp.clickedActor = clickedActor
     vp.clickedRenderer = clickedr
 
+    if vp.mouseLeftClickFunction:
+        vp.mouseLeftClickFunction(clickedActor)
+
+
+def _mouseright(vp, obj, event):
+
+    x,y = vp.interactor.GetEventPosition()
+    
+    vp.renderer = obj.FindPokedRenderer(x,y)
+    vp.renderWin = obj.GetRenderWindow()
+    clickedr = vp.renderers.index(vp.renderer)
+    picker = vtk.vtkPropPicker()
+    picker.PickProp(x,y, vp.renderer)
+    clickedActor = picker.GetActor()
+    
+    # check if any button objects were created
+    clickedActor2D = picker.GetActor2D()
+    if clickedActor2D:
+        for bt in vp.buttons:
+            if clickedActor2D == bt.actor:
+                bt.function()
+                break
+        
+    if not clickedActor: 
+        clickedActor = picker.GetAssembly()
+    vp.picked3d = picker.GetPickPosition()
+
+    vp.clickedActor = clickedActor
+    vp.clickedRenderer = clickedr
+    
+    if vp.mouseRightClickFunction:
+        vp.mouseRightClickFunction(clickedActor)
+
+
+def _mousemiddle(vp, obj, event):
+
+    x,y = vp.interactor.GetEventPosition()
+    
+    vp.renderer = obj.FindPokedRenderer(x,y)
+    vp.renderWin = obj.GetRenderWindow()
+    clickedr = vp.renderers.index(vp.renderer)
+    picker = vtk.vtkPropPicker()
+    picker.PickProp(x,y, vp.renderer)
+    clickedActor = picker.GetActor()
+    
+    # check if any button objects were created
+    clickedActor2D = picker.GetActor2D()
+    if clickedActor2D:
+        for bt in vp.buttons:
+            if clickedActor2D == bt.actor:
+                bt.function()
+                break
+        
+    if not clickedActor: 
+        clickedActor = picker.GetAssembly()
+    vp.picked3d = picker.GetPickPosition()
+
+    vp.clickedActor = clickedActor
+    vp.clickedRenderer = clickedr
+    
+    if vp.mouseMiddleClickFunction:
+        vp.mouseMiddleClickFunction(vp.clickedActor)
+
 
 ############################### keystroke event
 def _keypress(vp, obj, event):
@@ -1038,7 +1125,7 @@ def _keypress(vp, obj, event):
         if key not in ['Shift_L', 'Control_L', 'Super_L', 'Alt_L']:
             if key not in ['Shift_R', 'Control_R', 'Super_R', 'Alt_R']:
                 vp.verbose = False
-                vp.keyPressFunction(key, vp)
+                vp.keyPressFunction(key)
                 return
 
 

@@ -630,6 +630,12 @@ def pointIsInTriangle(p, p1,p2,p3):
     return False
 
 
+def pointToLineDistance(p, p1,p2):
+    '''Compute the distance of a point to a line (not the segment) defined by p1 and p2.'''
+    d = np.sqrt(vtk.vtkLine.DistanceToLine(p, p1, p2))
+    return d
+
+
 def fillHoles(actor, size=None, legend=None): # not tested properly
     fh = vtk.vtkFillHolesFilter()
     if not size:

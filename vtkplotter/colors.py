@@ -150,7 +150,7 @@ def getColor(rgb=None, hsv=None):
     
     if hsv: c = hsv2rgb(hsv)
     else: c = rgb 
-    
+   
     if isSequence(c) :
         if c[0]<=1 and c[1]<=1 and c[2]<=1: 
             return c #already rgb
@@ -168,19 +168,19 @@ def getColor(rgb=None, hsv=None):
                 print("Unknow color nickname:", c)
                 print ("Available abbreviations:", color_nicks)
                 return [0.5, 0.5, 0.5]
-    
-        if c.lower() in colors.keys(): # full name color
+
+        if c.lower() in colors.keys(): # full matplotlib name color
             c = colors[c.lower()] 
-        else: 
+        else:                          # full vtk name color
             import vtk
             if vtk.vtkVersion().GetVTKMajorVersion() > 5:
                 namedColors = vtk.vtkNamedColors()
-                rgba=[0,0,0,0]
+                rgba = [0,0,0,0]
                 namedColors.GetColor(c, rgba)
-                return rgba[0:3]
+                return list(np.array(rgba[0:3])/255.)
             print("Unknow color name:", c)
             print ("Available colors:", colors.keys())
-            return [0.5,0.5,0.5]
+            return [0.5, 0.5, 0.5]
 
         if '#' in c: #hex to rgb
             h = c.lstrip('#')

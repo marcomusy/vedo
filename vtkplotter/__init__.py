@@ -12,7 +12,7 @@ __maintainer__ = "M. Musy, G. Dalmasso"
 __email__      = "marco.musy@embl.es"
 __status__     = "dev"
 __website__    = "https://github.com/marcomusy/vtkplotter"
-__version__    = "8.5.7" #defined also in setup.py
+__version__    = "8.5.8" #defined also in setup.py
 
 from vtkplotter.plotter import Plotter
 from vtkplotter.colors import colorMap, printc
