@@ -15,4 +15,7 @@ a2 = vp.load('data/290.vtk', alpha=.4)
 icon = vp.makeAssembly([a1, a2])
 vp.addIcon(icon, pos=4) # 4=bottom-right
 
+lg = vp.load('data/images/embl_logo.jpg')
+vp.addIcon(lg, pos=1)
+
 vp.show(act)

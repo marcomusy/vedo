@@ -936,6 +936,82 @@ def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3,
     return actor
 
 
+def probeLine(img, p1, p2, res=100):
+    '''
+    Takes a vtkImageData and probes its scalars along a line defined by 2 points. 
+    '''
+    line = vtk.vtkLineSource()
+    line.SetResolution(res)
+    line.SetPoint1(p1)
+    line.SetPoint2(p2)
+    probeFilter = vtk.vtkProbeFilter() 
+    probeFilter.SetSourceData(img)
+    probeFilter.SetInputConnection(line.GetOutputPort())
+    probeFilter.Update()
+
+    lact = vu.makeActor(probeFilter.GetOutput(), c=None)#ScalarVisibilityOn
+    mapper = lact.GetMapper()
+    mapper.SetScalarRange(img.GetScalarRange())
+    return lact
+
+
+def probePlane(img, origin=(0,0,0), normal=(1,0,0)):
+    plane = vtk.vtkPlane()
+    plane.SetOrigin(origin)
+    plane.SetNormal(normal)
+
+    planeCut = vtk.vtkCutter()
+    planeCut.SetInputData(img)
+    planeCut.SetCutFunction(plane)
+    planeCut.Update()
+    cutActor = vu.makeActor(planeCut.GetOutput(), c=None) #ScalarVisibilityOn
+    cutMapper = cutActor.GetMapper()
+    cutMapper.SetScalarRange(img.GetPointData().GetScalars().GetRange())
+    return cutActor
+
+
+def gradient(image, dim=3, mod=True):
+    '''Calculate the gradient of a vtkImageData.
+    If mod=False 3 components are saved to the vector gradient.'''
+    grad = vtk.vtkImageGradient()
+    grad.SetInputData(image)
+    grad.SetDimensionality(dim)
+    grad.Update()
+    if not mod:
+        return grad.GetOutput()
+    magimg = vtk.vtkImageGradientMagnitude()
+    magimg.SetInputConnection(grad.GetOutputPort())
+    magimg.Update()
+    return magimg.GetOutput()
+    
+
+def divergence(image):
+    '''Calculate the divergence of a vtkImageData.'''
+    grad = vtk.vtkImageDivergence()
+    grad.SetInputData(image)
+    grad.Update()
+    return grad.GetOutput()
+
+
+def laplacian(image, dim=3):
+    '''Calculate the laplacian of a vtkImageData.'''
+    lap = vtk.vtkImageLaplacian()
+    lap.SetInputData(image)
+    lap.SetDimensionality(dim)
+    lap.Update()
+    return lap.GetOutput()
+
+
+def logarithm(image, const=0): #untested
+    '''Calculate the logarithm of a vtkImageData.'''
+    lg = vtk.vtkImageLogarithmicScale()
+    lg.SetInputData(image)
+    if const:
+        lg.SetConstant(const)
+    lg.Update()
+    return lg.GetOutput()
+
+
 def recoSurface(points, bins=256,
                 c='gold', alpha=1, wire=False, bc='t', edges=False, legend=None):
     '''

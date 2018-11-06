@@ -48,7 +48,7 @@ class Plotter:
 
     def __init__(self, shape=(1,1), N=None, pos=(0,0),
                  size='auto', screensize='auto', title='', 
-                 bg='w', bg2=None, axes=1, projection=False,
+                 bg='w', bg2=None, axes=1, infinity=False,
                  sharecam=True, verbose=True, interactive=None):
         """Main class to manage actors.
         
@@ -106,7 +106,7 @@ class Plotter:
         self.ztitle     = 'z'   # z axis label and units
         self.camera     = None  # current vtkCamera
         self.sharecam   = sharecam  # share the same camera if multiple renderers
-        self.projection = projection # ParallelProjection On or Off
+        self.infinity   = infinity  # ParallelProjection On or Off
         self.flat       = True  # sets interpolation style to 'flat'
         self.phong      = False # sets interpolation style to 'phong'
         self.gouraud    = False # sets interpolation style to 'gouraud'
@@ -638,8 +638,7 @@ class Plotter:
         
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/texturecubes.py)    
         '''
-        return self.box(pos, length, length, length, 
-                        normal, c, alpha, wire, legend, texture)
+        return self.box(pos, length, length, length, normal, c, alpha, wire, legend, texture)
         
     @add_actor
     def helix(self, startPoint=[0,0,0], endPoint=[1,1,1], coils=20, r=None,
@@ -1705,15 +1704,16 @@ class Plotter:
 
 
     #################################################################################
-    def show(self, actors=None, at=None,
-             legend=None, axes=None, ruler=False,
+    def show(self, actors=None, at=None, legend=None, axes=None, ruler=False,
              c=None, alpha=None , wire=False, bc=None, 
-             resetcam=True, zoom=False, interactive=None, q=False):
+             resetcam=True, zoom=False, interactive=None, execute=None, 
+             azimuth=0, elevation=0,
+             q=False):
         '''Render a list of actors.
         
         Options:
             
-            actors = a mixed list of vtkActors, vtkAssembly, vtkPolydata or filename strings
+            actors = a mixed list of vtkActor, vtkAssembly, vtkPolydata, vtkVolume or filename strings
             
             at     = number of the renderer to plot to, if more than one exists
             
@@ -1745,6 +1745,8 @@ class Plotter:
             
             interactive = pause and interact with window (True) or continue execution (False)
             
+            execute = holds an external function to be called, allowing interaction with scene
+            
             q      = force program to quit after show() command returns
         '''
         
@@ -1768,6 +1770,7 @@ class Plotter:
                 elif isinstance(a, vtk.vtkAssembly):   scannedacts.append(a)
                 elif isinstance(a, vtk.vtkActor2D):    scannedacts.append(a)
                 elif isinstance(a, vtk.vtkImageActor): scannedacts.append(a)
+                elif isinstance(a, vtk.vtkVolume):     scannedacts.append(a)
                 elif isinstance(a, vtk.vtkPolyData):
                     out = self.load(a, c, alpha, wire, bc, False)
                     self.actors.pop()
@@ -1824,7 +1827,7 @@ class Plotter:
 
         if not self.camera:
             self.camera = self.renderer.GetActiveCamera()
-        self.camera.SetParallelProjection(self.projection)
+        self.camera.SetParallelProjection(self.infinity)
         self.camera.SetThickness(self.camThickness)
             
         if self.sharecam:
@@ -1836,8 +1839,13 @@ class Plotter:
         
         ############################### rendering
         for ia in actors2show:        # add the actors that are not already in scene            
-            if ia: self.renderer.AddActor(ia)
-            else:  colors.printc('Warning: Invalid actor in actors list, skip.', c=5)
+            if ia: 
+                if isinstance(ia, vtk.vtkVolume):
+                    self.renderer.AddVolume(ia)
+                else:
+                    self.renderer.AddActor(ia)
+            else:  
+                colors.printc('Warning: Invalid actor in actors list, skip.', c=5)
         for ia in self.getActors(at): # remove the ones that are not in actors2show
             if ia not in actors2show: 
                 self.renderer.RemoveActor(ia)
@@ -1860,13 +1868,19 @@ class Plotter:
             self.interactor.AddObserver("MiddleButtonPressEvent", mousemiddle)
             def keypress( obj, e): vtkio._keypress( self, obj, e)
             self.interactor.AddObserver("KeyPressEvent", keypress)
+            if execute:
+                self.interactor.AddObserver('TimerEvent', execute) #vtkTimerCallback()
+                self.interactor.CreateRepeatingTimer(1) # calls execute every millisecond
             if self.verbose and self.interactive: self._tips()
+
         self.initializedPlotter = True
 
         if zoom: self.camera.Zoom(zoom)
+        if elevation: self.camera.Elevation(elevation)
+        if azimuth: self.camera.Azimuth(azimuth)
         self.interactor.Render()
 
-        if self.interactive: 
+        if self.interactive:                
             self.interactor.Start()
 
         if q : # gracefully exit

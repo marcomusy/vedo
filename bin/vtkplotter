@@ -3,7 +3,9 @@
 from __future__ import division, print_function
 from vtkplotter import Plotter, ProgressBar, printc, __version__
 from vtkplotter.vtkio import humansort
-import sys, argparse
+import vtkplotter.colors as vc
+import vtk
+import sys, argparse, os
 
 pr = argparse.ArgumentParser(description="version "+str(__version__)+""" -                              
                              check out home page https://github.com/marcomusy/vtkplotter""")
@@ -64,9 +66,132 @@ if args.scrolling_mode and args.sequence_mode:
     
     
 ########################################################################
+_value_alphaslider1, _value_alphaslider2 = 0.4, 0.9 #defaults
+def _showVoxelImage(vp, args): # used by bin/vtkplotter script
+        
+    vc.printc('GPU Ray-casting Mode:', c='b', invert=1)
+    vp.render()
+    
+    for filename in args.files:
+        if not os.path.isfile(filename):
+            vc.printc('File not found:', filename, c=1)
+            continue
+        vc.printc('...loading', filename, c='b', bold=0)
+                
+        if   '.tif' in filename.lower(): 
+            reader = vtk.vtkTIFFReader() 
+            
+        elif '.slc' in filename.lower(): 
+            reader = vtk.vtkSLCReader() 
+            if not reader.CanReadFile(filename):
+                vc.printc('Bad SLC file:', filename, c=1)
+                continue
+        else:
+            vc.printc('Use -g option only with SLC or TIFF files.', c=1)
+            continue
+        reader.SetFileName(filename) 
+        reader.Update() 
+        img = reader.GetOutput()
+    
+        if args.z_spacing:
+            ispa = img.GetSpacing()
+            img.SetSpacing(ispa[0], ispa[1], ispa[2]*args.z_spacing)
+        if args.y_spacing:
+            ispa = img.GetSpacing()
+            img.SetSpacing(ispa[0], ispa[1]*args.y_spacing, ispa[2])
+    
+        volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
+        volumeMapper.SetBlendModeToMaximumIntensity()
+        volumeMapper.SetInputConnection(reader.GetOutputPort())
+        vc.printc('scalar range is ', img.GetScalarRange(), c='b', bold=0)
+        smin,smax = reader.GetOutput().GetScalarRange()
+        if smax>1e10: 
+            print("Warning, high scalar range detected:", smax)
+            smax = abs(10*smin)+.1
+            print("         reset to:", smax)
+        vc.printc('voxel spacing is', img.GetSpacing(), c='b', bold=0)
+        
+        # Create transfer mapping scalar value to color
+        if args.color is None: 
+            r,g,b = (0,0,0.6)
+        else:
+            r,g,b = vc.getColor(args.color)
+        colorTransferFunction = vtk.vtkColorTransferFunction()
+        colorTransferFunction.AddRGBPoint(smin, 1.0, 1.0, 1.0)
+        colorTransferFunction.AddRGBPoint((smax+smin)/3, r/2, g/2, b/2)
+        colorTransferFunction.AddRGBPoint(smax, 0.0, 0.0, 0.0)
+        
+        x1alpha = smin+(smax-smin)*0.33
+        x2alpha = smin+(smax-smin)*0.66
+        # Create transfer mapping scalar value to opacity
+        opacityTransferFunction = vtk.vtkPiecewiseFunction()
+        opacityTransferFunction.AddPoint(smin, 0.0)
+        opacityTransferFunction.AddPoint(x1alpha, _value_alphaslider1)
+        opacityTransferFunction.AddPoint(x2alpha, _value_alphaslider2)
+        opacityTransferFunction.AddPoint(smax, 1.0)
+      
+        # The property describes how the data will look
+        volumeProperty = vtk.vtkVolumeProperty()
+        volumeProperty.SetColor(colorTransferFunction)
+        volumeProperty.SetScalarOpacity(opacityTransferFunction)
+        volumeProperty.SetInterpolationTypeToLinear()
+        
+        # volume holds the mapper and the property and can be used to position/orient it
+        volume = vtk.vtkVolume()
+        volume.SetMapper(volumeMapper)
+        volume.SetProperty(volumeProperty)
+    
+        vp.renderer.AddVolume(volume) 
+    
+    ############################## brightness slider
+    def slider1(widget, event):
+        value = widget.GetRepresentation().GetValue() 
+        colorTransferFunction.RemoveAllPoints ()
+        colorTransferFunction.AddRGBPoint(smin, 1.0, 1.0, 1.0) #white
+        colorTransferFunction.AddRGBPoint(value, r/2, g/2, b/2)
+        colorTransferFunction.AddRGBPoint(smax, 0.0, 0.0, 0.0) #black
+    w1 = vp.addSlider(slider1, smin, smax, value=(smin+smax)/3.0, 
+                      pos=4, title='color intensity')
+    
+    ############################## alpha sliders    
+    def sliderA1(widget, event):
+        global _value_alphaslider1, _value_alphaslider2
+        _value_alphaslider1 = widget.GetRepresentation().GetValue() 
+        opacityTransferFunction.RemoveAllPoints()
+        opacityTransferFunction.AddPoint(smin, 0.0)
+        opacityTransferFunction.AddPoint(x1alpha, _value_alphaslider1)
+        opacityTransferFunction.AddPoint(x2alpha, _value_alphaslider2)
+        opacityTransferFunction.AddPoint(smax, 1.0)
+    w2 = vp.addSlider(sliderA1, 0,1, value=_value_alphaslider1,
+                      pos=[(.93 ,.1),(.93, .44)] , title='', showValue=0)
+    
+    def sliderA2(widget, event):
+        global _value_alphaslider1, _value_alphaslider2
+        _value_alphaslider2 = widget.GetRepresentation().GetValue() 
+        opacityTransferFunction.RemoveAllPoints()
+        opacityTransferFunction.AddPoint(smin, 0.0)
+        opacityTransferFunction.AddPoint(x1alpha, _value_alphaslider1)
+        opacityTransferFunction.AddPoint(x2alpha, _value_alphaslider2)
+        opacityTransferFunction.AddPoint(smax, 1.0)
+    
+    w3 = vp.addSlider(sliderA2, 0,1, value=_value_alphaslider2, 
+                      pos=[(.96 ,.1),(.96, .44)], title='alpha thresholds', showValue=0)
+        
+    def CheckAbort(obj, event):
+        if obj.GetEventPending() != 0:
+            obj.SetAbortRender(1)
+    vp.renderWin.AddObserver("AbortCheckEvent", CheckAbort)
+    
+    vc.printc('Press r to reset camera', c='b')
+    vc.printc('      q to exit.', c='b')
+    vp.show(zoom=1.2)
+    w1.SetEnabled(0)
+    w2.SetEnabled(0)
+    w3.SetEnabled(0)
+    
+##########################################################
 # special case of SLC/TIFF volumes with -g option
 if args.ray_cast_mode or args.z_spacing or args.y_spacing:
-    from vtkplotter.vtkio import _showVoxelImage
     wsize = 'auto'
     if args.full_screen: 
         wsize='full'    

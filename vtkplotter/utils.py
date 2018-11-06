@@ -227,6 +227,101 @@ def makeAssembly(actors, legend=None):
     return assembly
 
 
+def makeVolume(img, c=(0,0,0.6), alphas=[0, 0.4, 0.9, 1]):
+    '''Make a volume actor'''
+    
+    volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
+    volumeMapper.SetBlendModeToMaximumIntensity()
+    volumeMapper.SetInputData(img)
+    colors.printc('scalar range is ', img.GetScalarRange(), c='b', bold=0)
+    smin,smax = img.GetScalarRange()
+    if smax>1e10: 
+        print("Warning, high scalar range detected:", smax)
+        smax = abs(10*smin)+.1
+        print("         reset to:", smax)
+    
+    # Create transfer mapping scalar value to color
+    r,g,b = colors.getColor(c)
+    colorTransferFunction = vtk.vtkColorTransferFunction()
+    colorTransferFunction.AddRGBPoint(smin, 1.0, 1.0, 1.0)
+    colorTransferFunction.AddRGBPoint((smax+smin)/3, r/2, g/2, b/2)
+    colorTransferFunction.AddRGBPoint(smax, 0.0, 0.0, 0.0)
+    
+    opacityTransferFunction = vtk.vtkPiecewiseFunction()
+    for i,al in enumerate(alphas):
+        xalpha = smin+(smax-smin)*i/(len(alphas)-1)
+        # Create transfer mapping scalar value to opacity
+        opacityTransferFunction.AddPoint(xalpha, al)
+        colors.printc('\talpha at', round(xalpha,1), '\tset to', al, c='b', bold=0)
+  
+    # The property describes how the data will look
+    volumeProperty = vtk.vtkVolumeProperty()
+    volumeProperty.SetColor(colorTransferFunction)
+    volumeProperty.SetScalarOpacity(opacityTransferFunction)
+    volumeProperty.SetInterpolationTypeToLinear()
+    
+    # volume holds the mapper and the property and can be used to position/orient it
+    volume = vtk.vtkVolume()
+    volume.SetMapper(volumeMapper)
+    volume.SetProperty(volumeProperty)
+
+    return volume
+
+
+def makeIsosurface(image, c, alpha, wire, bc, edges, legend, texture, 
+                   smoothing, threshold, connectivity, scaling):
+    '''Return a vtkActor isosurface from a vtkImageData object.'''            
+
+    if smoothing:
+        print ('  gaussian smoothing data with volume_smoothing =', smoothing)
+        smImg = vtk.vtkImageGaussianSmooth()
+        smImg.SetDimensionality(3)
+        setInput(smImg, image)
+        smImg.SetStandardDeviations(smoothing, smoothing, smoothing)
+        smImg.Update()
+        image = smImg.GetOutput()
+    
+    scrange = image.GetScalarRange()
+    
+    if not threshold:
+        if scrange[1]>1e10: 
+            threshold = (2*scrange[0]+abs(10*scrange[0]))/3.
+            print("Warning, high scalar range detected:", scrange[1])
+            print("         setting threshold to:", threshold)
+        else:
+            threshold = (2*scrange[0]+scrange[1])/3.
+    cf= vtk.vtkContourFilter()
+    setInput(cf, image)
+    cf.UseScalarTreeOn()
+    cf.ComputeScalarsOff()
+    cf.SetValue(0, threshold)
+    cf.Update()
+    
+    clp = vtk.vtkCleanPolyData()
+    setInput(clp, cf.GetOutput())
+    clp.Update()
+    image = clp.GetOutput()
+    
+    if connectivity:
+        print ('  applying connectivity filter, select largest region')
+        conn = vtk.vtkPolyDataConnectivityFilter()
+        conn.SetExtractionModeToLargestRegion() 
+        setInput(conn, image)
+        conn.Update()
+        image = conn.GetOutput()
+
+    if scaling:
+        print ('  scaling xyz by factors', scaling)
+        tf = vtk.vtkTransformPolyDataFilter()
+        setInput(tf, image)
+        trans = vtk.vtkTransform()
+        trans.Scale(scaling)
+        tf.SetTransform(trans)
+        tf.Update()
+        image = tf.GetOutput()
+    return makeActor(image, c, alpha, wire, bc, edges, legend, texture)
+
+
 def assignTexture(actor, name, scale=1, falsecolors=False, mapTo=1):
     '''Assign a texture to actor from file or name in /textures directory.'''
     global textures_path
@@ -496,7 +591,7 @@ def stretch(actor, q1, q2):
 
 def cutPlane(actor, origin=(0,0,0), normal=(1,0,0), showcut=False):
     '''
-    Takes actor and cuts it with the plane defined by a point and a normal. 
+    Takes a vtkActor and cuts it with the plane defined by a point and a normal. 
     
     showcut = shows the cut away part as thin wireframe
 
@@ -507,6 +602,7 @@ def cutPlane(actor, origin=(0,0,0), normal=(1,0,0), showcut=False):
     plane = vtk.vtkPlane()
     plane.SetOrigin(origin)
     plane.SetNormal(normal)
+    
     poly = polydata(actor)
     clipper = vtk.vtkClipPolyData()
     setInput(clipper, poly)
@@ -948,25 +1044,33 @@ def pointScalars(actor, scalars, name):
     actor.GetMapper().ScalarVisibilityOn()
 
 
-def pointColors(actor, scalars, cmap='jet'):
+def pointColors(actor, scalars, cmap='jet', alpha=1):
     """
-    Set individual point colors by setting a scalar.
+    Set individual point colors by setting an array of scalars.
+    Scalars can be a string name.
 
     [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
     """
     poly = polydata(actor, False)
-    if len(scalars) != poly.GetNumberOfPoints():
+    
+    if isinstance(scalars, str):
+        scalars = vtk_to_numpy(poly.GetPointData().GetArray(scalars))
+    
+    n = len(scalars)
+    if n != poly.GetNumberOfPoints():
         colors.printc('Number of scalars != nr. of points', c=1)
         exit()
    
-    lut = vtk.vtkLookupTable()
-    lut.SetNumberOfTableValues(len(scalars))
-    lut.Build()
     vmin, vmax = np.min(scalars), np.max(scalars)
-    n = len(scalars)
+    lut = vtk.vtkLookupTable()
+    lut.SetTableRange(vmin, vmax)
+    if n>1000: n=1000
+    lut.SetNumberOfTableValues(n)
+    lut.Build()
     for i in range(n):
         c = colors.colorMap(i, cmap, 0, n)
-        lut.SetTableValue(i, c[0], c[1], c[2], 1)
+        lut.SetTableValue(i, c[0], c[1], c[2], 1-i/n*(1-alpha))
+
     arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
     arr.SetName('pointcolors_'+cmap)
     poly.GetPointData().AddArray(arr)
@@ -978,9 +1082,12 @@ def pointColors(actor, scalars, cmap='jet'):
  
 def cellScalars(actor, scalars, name):
     """
-    Set cell scalars to the polydata.
+    Set cell scalars to the polydata. Scalars can be a string name.
     """
     poly = polydata(actor, False)
+    if isinstance(scalars, str):
+        scalars = vtk_to_numpy(poly.GetPointData().GetArray(scalars))
+
     scalars = np.array(scalars) - np.min(scalars)
     scalars = scalars/np.max(scalars)
     if len(scalars) != poly.GetNumberOfCells():
@@ -993,7 +1100,7 @@ def cellScalars(actor, scalars, name):
     actor.GetMapper().ScalarVisibilityOn()
 
 
-def cellColors(actor, scalars, cmap='jet'):
+def cellColors(actor, scalars, cmap='jet', alpha=1):
     """
     Set individual cell colors by setting a scalar.
 
@@ -1013,7 +1120,7 @@ def cellColors(actor, scalars, cmap='jet'):
     n = len(scalars)
     for i in range(n):
         c = colors.colorMap(i, cmap, 0, n)
-        lut.SetTableValue(i, c[0], c[1], c[2], 1)
+        lut.SetTableValue(i, c[0], c[1], c[2], 1-i/n*(1-alpha))
     arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
     arr.SetName('cellcolors_'+cmap)
     poly.GetCellData().AddArray(arr)
@@ -1025,7 +1132,7 @@ def cellColors(actor, scalars, cmap='jet'):
            
 def scalars(actor, name):
     """
-    Retrieve point or cell scalars using array name.
+    Retrieve point or cell scalars using array name or index number.
 
     [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
     """
@@ -1430,22 +1537,32 @@ def assignConvenienceMethods(actor, legend):
         return pointScalars(self, scalars, name)
     actor.pointScalars = types.MethodType(_fpointScalars , actor)
     
-    def _fpointColors(self, scalars, cmap='jet'):
-        return pointColors(self, scalars, cmap)
+    def _fpointColors(self, scalars, cmap='jet', alpha=1):
+        return pointColors(self, scalars, cmap, alpha)
     actor.pointColors = types.MethodType(_fpointColors , actor)
     
     def _fcellScalars(self, scalars, name):
         return cellScalars(self, scalars, name)
     actor.cellScalars = types.MethodType(_fcellScalars , actor)
 
-    def _fcellColors(self, scalars, cmap='jet'):
-        return cellColors(self, scalars, cmap)
+    def _fcellColors(self, scalars, cmap='jet', alpha=1):
+        return cellColors(self, scalars, cmap, alpha)
     actor.cellColors = types.MethodType(_fcellColors , actor)
 
     def _fscalars(self, name):
         return scalars(self, name)
     actor.scalars = types.MethodType(_fscalars , actor)
 
+    def _fpointSize(self, s):
+        self.GetProperty().SetRepresentationToPoints()
+        self.GetProperty().SetPointSize(s)
+        return self
+    actor.pointSize = types.MethodType(_fpointSize , actor)
+
+    def _flineWidth(self, lw):
+        self.GetProperty().SetLineWidth(lw)
+        return self
+    actor.lineWidth = types.MethodType(_flineWidth , actor)
 
 # ###########################################################################
 def assignPhysicsMethods(actor):

@@ -97,9 +97,13 @@ def line(p0, p1=None, lw=1, tube=False, dotted=False,
     if vu.isSequence(p0[0]):
         ppoints = vtk.vtkPoints() # Generate the polyline
         poly = vtk.vtkPolyData()
+        dim = len((p0[0]))
         for i in range(len(p0)):
             p = p0[i]
-            ppoints.InsertPoint(i, p[0],p[1],p[2])
+            if dim==2:
+                ppoints.InsertPoint(i, p[0],p[1],0)
+            else:
+                ppoints.InsertPoint(i, p[0],p[1],p[2])
         lines = vtk.vtkCellArray() # Create the polyline.
         lines.InsertNextCell(len(p0))
         for i in range(len(p0)): lines.InsertCellPoint(i)
@@ -115,7 +119,6 @@ def line(p0, p1=None, lw=1, tube=False, dotted=False,
     if tube:
         tuf = vtk.vtkTubeFilter()
         tuf.SetNumberOfSides(12)
-        #tuf.CappingOn()
         vu.setInput(tuf, poly)
         tuf.SetRadius(lw)
         tuf.Update()
@@ -642,6 +645,13 @@ def box(pos=[0,0,0], length=1, width=2, height=3, normal=(0,0,1),
     actor.SetPosition(pos)
     return actor
 
+def cube(pos=[0,0,0], length=1, normal=(0,0,1),
+         c='g', alpha=1., wire=False, legend=None, texture=None):
+    '''Build a cube of dimensions length oriented along vector normal.
+    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/texturecubes.py)    
+    '''
+    return box(pos, length, length, length, normal, c, alpha, wire, legend, texture)
 
 def helix(startPoint=[0,0,0], endPoint=[1,1,1], coils=20, r=None,
           thickness=None, c='grey', alpha=1, legend=None, texture=None):

@@ -20,14 +20,14 @@ Complete module documentation can be found [**here**](https://vtkplotter.embl.es
 
 
 ## Basic usage examples
-From within your python script, load a simple OBJ file and display it:
+From within your python script, load a simple 3DS file and display it:
 ```python
 from vtkplotter import Plotter
 
-vp = Plotter()              # declare an instance of the class
-vp.show('data/shuttle.obj') # press *Esc* to close and exit or *q* to continue
+vp = Plotter()                      # declare an instance of the class
+vp.show('data/shapes/flamingo.3ds') # press *Esc* to close and exit or *q* to continue
 ```
-![shuttle](https://user-images.githubusercontent.com/32848391/35975974-e1235396-0cde-11e8-9880-69335cc7fd43.png)
+![flam](https://user-images.githubusercontent.com/32848391/47579206-9b88ab80-d94b-11e8-9f04-132698fd5ea3.png)
 <br />
 
 
@@ -152,11 +152,11 @@ of charged particles on a fixed target (by T. Vandermolen,
 <br />
 
 
-- Quantum-tunnelling effect using 4th order Runge-Kutta method. 
-The animation shows the evolution of a particle in a box hitting a potential barrier
-([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/tunnelling.py)):<br />
-`python examples/advanced/tunnelling.py`<br />
-![tunnelling](https://user-images.githubusercontent.com/32848391/47310127-7daf0400-d636-11e8-860b-e0f09b4cf465.gif)
+- Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. 
+The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier
+([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/tunnelling2.py)):<br />
+`python examples/advanced/tunnelling2.py`<br />
+![qsine2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)
 <br />
 
 

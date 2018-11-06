@@ -4,6 +4,7 @@
 echo Running tutorial.py
 python tutorial.py
 
+####################################
 
 echo Running basic/align1.py
 python basic/align1.py
@@ -102,6 +103,7 @@ echo Running basic/mouseclick.py
 python basic/mouseclick.py
 
 
+
 ####################################
 
 echo Running advanced/brownian2D.py
@@ -146,9 +148,6 @@ python advanced/moving_least_squares1D.py
 echo Running advanced/moving_least_squares2D.py
 python advanced/moving_least_squares2D.py
 
-echo Running advanced/mesh_smoothers.py
-python advanced/mesh_smoothers.py
-
 echo Running advanced/recosurface.py
 python advanced/recosurface.py
 
@@ -161,15 +160,40 @@ python advanced/particle_simulator.py
 echo Running advanced/doubleslit.py
 python advanced/doubleslit.py
 
-echo Running advanced/tunnelling.py
-python advanced/tunnelling.py
+echo Running advanced/tunnelling2.py
+python advanced/tunnelling2.py
+
+echo Running advanced/blackbody.py
+python advanced/blackbody.py
+
+echo Running advanced/interactor.py
+python advanced/interactor.py
 
 
+################################### volumetric
+echo Running volumetric/mesh_smoothers.py
+python volumetric/mesh_smoothers.py
+
+echo Running volumetric/readVolumeAsIsoSurface.py
+python volumetric/readVolumeAsIsoSurface.py 
+
+echo Running volumetric/readVolume.py
+python volumetric/readVolume.py 
+
+echo Running basic/readStructuredPoints.py
+python volumetric/readStructuredPoints.py
+
+echo Running basic/probeLine.py
+python volumetric/probeLine.py
+
+echo Running basic/probePlane.py
+python volumetric/probePlane.py
+
+echo Running basic/gradient.py
+python volumetric/gradient.py
 
 
-#these may fail
-echo Running basic/readVolume.py
-python basic/readVolume.py # fails for vtk version<7
+####################################these may fail
 
 echo Running basic/surfIntersect.py
 python basic/surfIntersect.py # fails for vtk version<7

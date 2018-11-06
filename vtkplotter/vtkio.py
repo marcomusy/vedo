@@ -33,7 +33,7 @@ def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
     fl = filename.lower()
     if legend is True: legend = os.path.basename(filename)
     if fl.endswith('.xml') or fl.endswith('.xml.gz'):     # Fenics tetrahedral file
-        actor = loadXml(filename, c, alpha, wire, bc, edges, legend)
+        actor = loadDolfin(filename, c, alpha, wire, bc, edges, legend)
     elif fl.endswith('.neutral') or fl.endswith('.neu'):  # neutral tetrahedral file
         actor = loadNeutral(filename, c, alpha, wire, bc, edges, legend)
     elif fl.endswith('.gmsh'):                            # gmesh file
@@ -43,12 +43,13 @@ def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
     elif fl.endswith('.3ds'):                             # PCL point-cloud format
         actor = load3DS(filename, legend)
     elif fl.endswith('.tif') or fl.endswith('.slc'):      # tiff stack or slc
-        actor = loadVolume(filename, c, alpha, wire, bc, edges, legend, texture,
-                           smoothing, threshold, connectivity, scaling)
+        img = loadImageData(filename)
+        actor = vu.makeIsosurface(img, c, alpha, wire, bc, edges, legend, texture,
+                                  smoothing, threshold, connectivity, scaling)
     elif fl.endswith('.png') or fl.endswith('.jpg') or fl.endswith('.jpeg'):
         actor = load2Dimage(filename, alpha)
     else:
-        poly = loadPoly(filename)
+        poly = loadPolyData(filename)
         if not poly:
             vc.printc('Unable to load', filename, c=1)
             return None
@@ -73,10 +74,10 @@ def loadDir(mydir, c, alpha, wire, bc, edges, legend, texture,
         acts.append(a)
     return acts
 
-def loadPoly(filename):
+def loadPolyData(filename):
     '''Load a file and return a vtkPolyData object (not a vtkActor).'''
     if not os.path.exists(filename): 
-        vc.printc('Error in loadPoly: Cannot find', filename, c=1)
+        vc.printc('Error in loadPolyData: Cannot find', filename, c=1)
         return None
     fl = filename.lower()
     if   fl.endswith('.vtk'): reader = vtk.vtkPolyDataReader()
@@ -119,9 +120,55 @@ def loadPoly(filename):
     cleanpd.Update()
     return cleanpd.GetOutput()
 
+def loadXML(filename): #not tested
+    '''Read any type of vtk data object encoded in XML format and return a vtkActor.'''
+    reader = vtk.vtkXMLGenericDataObjectReader()
+    reader.SetFileName(filename)
+    reader.Update()
+    return vu.makeActor(reader.GetOutput())
+
+def loadStructuredPoints(filename):
+    '''Load a vtkStructuredPoints object from file and return a vtkActor.'''
+    reader = vtk.vtkStructuredPointsReader()
+    reader.SetFileName(filename)
+    reader.Update()
+    gf = vtk.vtkImageDataGeometryFilter()
+    gf.SetInputConnection(reader.GetOutputPort())
+    gf.Update()    
+    return vu.makeActor(gf.GetOutput())
+
+def loadStructuredGrid(filename): #not tested
+    '''Load a vtkStructuredGrid object from file and return a vtkActor.'''
+    reader = vtk.vtkStructuredGridReader()
+    reader.SetFileName(filename)
+    reader.Update()
+    gf = vtk.vtkStructuredGridGeometryFilter()
+    gf.SetInputConnection(reader.GetOutputPort())
+    gf.Update()    
+    return vu.makeActor(gf.GetOutput())
+
+def loadUnStructuredGrid(filename): #not tested
+    '''Load a vtkunStructuredGrid object from file and return a vtkActor.'''
+    reader = vtk.vtkUnstructuredGridReader()
+    reader.SetFileName(filename)
+    reader.Update()
+    gf = vtk.vtkUnstructuredGridGeometryFilter()
+    gf.SetInputConnection(reader.GetOutputPort())
+    gf.Update()    
+    return vu.makeActor(gf.GetOutput())
+    
+def loadRectilinearGrid(filename): #not tested
+    '''Load a vtkRectilinearGrid object from file and return a vtkActor.'''
+    reader = vtk.vtkRectilinearGridReader()
+    reader.SetFileName(filename)
+    reader.Update()
+    gf = vtk.vtkRectilinearGridGeometryFilter()
+    gf.SetInputConnection(reader.GetOutputPort())
+    gf.Update()    
+    return vu.makeActor(gf.GetOutput())
+    
 
 def load3DS(filename, legend):
-
     renderer = vtk.vtkRenderer()
     renWin = vtk.vtkRenderWindow()
     renWin.AddRenderer(renderer)
@@ -141,10 +188,10 @@ def load3DS(filename, legend):
     return vu.makeAssembly(acts, legend=legend)
 
 
-def loadXml(filename, c, alpha, wire, bc, edges, legend):
+def loadDolfin(filename, c, alpha, wire, bc, edges, legend):
     '''Reads a Fenics/Dolfin file format'''
     if not os.path.exists(filename): 
-        vc.printc('Error in loadXml: Cannot find', filename, c=1)
+        vc.printc('Error in loadDolfin: Cannot find', filename, c=1)
         return None
     import xml.etree.ElementTree as et
     if filename.endswith('.gz'):
@@ -313,11 +360,10 @@ def loadPCD(filename, c, alpha, legend):
     return actor
 
 
-def loadVolume(filename, c, alpha, wire, bc, edges, legend, texture, 
-              smoothing, threshold, connectivity, scaling):
-    '''Return vtkActor from a TIFF stack or SLC file'''            
-    if not os.path.exists(filename): 
-        vc.printc('Error in loadVolume: Cannot find file', filename, c=1)
+def loadImageData(filename, spacing=[]):
+    
+    if not os.path.isfile(filename):
+        vc.printc('File not found:', filename, c=1)
         return None
     
     if   '.tif' in filename.lower(): 
@@ -330,173 +376,13 @@ def loadVolume(filename, c, alpha, wire, bc, edges, legend, texture,
     reader.SetFileName(filename) 
     reader.Update() 
     image = reader.GetOutput()
-
-    if smoothing:
-        print ('  gaussian smoothing data with volume_smoothing =',smoothing)
-        smImg = vtk.vtkImageGaussianSmooth()
-        smImg.SetDimensionality(3)
-        vu.setInput(smImg, image)
-        smImg.SetStandardDeviations(smoothing, smoothing, smoothing)
-        smImg.Update()
-        image = smImg.GetOutput()
-    
-    scrange = image.GetScalarRange()
-    if not threshold:
-        threshold = (2*scrange[0]+scrange[1])/3.
-    cf= vtk.vtkContourFilter()
-    vu.setInput(cf, image)
-    cf.UseScalarTreeOn()
-    cf.ComputeScalarsOff()
-    cf.SetValue(0, threshold)
-    cf.Update()
-    
-    clp = vtk.vtkCleanPolyData()
-    vu.setInput(clp, cf.GetOutput())
-    clp.Update()
-    image = clp.GetOutput()
-    
-    if connectivity:
-        print ('  applying connectivity filter, select largest region')
-        conn = vtk.vtkPolyDataConnectivityFilter()
-        conn.SetExtractionModeToLargestRegion() 
-        vu.setInput(conn, image)
-        conn.Update()
-        image = conn.GetOutput()
-
-    if scaling:
-        print ('  scaling xyz by factors', scaling)
-        tf = vtk.vtkTransformPolyDataFilter()
-        vu.setInput(tf, image)
-        trans = vtk.vtkTransform()
-        trans.Scale(scaling)
-        tf.SetTransform(trans)
-        tf.Update()
-        image = tf.GetOutput()
-    return vu.makeActor(image, c, alpha, wire, bc, edges, legend, texture)
+    if len(spacing)==3:
+        image.SetSpacing(spacing[0], spacing[1], spacing[2])
+    vc.printc('voxel spacing is', image.GetSpacing(), c='b', bold=0)
+    return image
 
 
 ###########################################################
-_value_alphaslider1, _value_alphaslider2 = 0.4, 0.9 #defaults
-
-def _showVoxelImage(vp, args): # used by bin/vtkplotter script
-        
-    vc.printc('GPU Ray-casting Mode:', c='b', invert=1)
-    vp.render()
-    
-    for filename in args.files:
-        if not os.path.isfile(filename):
-            vc.printc('File not found:', filename, c=1)
-            continue
-        vc.printc('...loading', filename, c='b', bold=0)
-                
-        if   '.tif' in filename.lower(): 
-            reader = vtk.vtkTIFFReader() 
-            
-        elif '.slc' in filename.lower(): 
-            reader = vtk.vtkSLCReader() 
-            if not reader.CanReadFile(filename):
-                vc.printc('Bad SLC file:', filename, c=1)
-                continue
-        else:
-            vc.printc('Use -g option only with SLC or TIFF files.', c=1)
-            continue
-        reader.SetFileName(filename) 
-        reader.Update() 
-        img = reader.GetOutput()
-    
-        if args.z_spacing:
-            ispa = img.GetSpacing()
-            img.SetSpacing(ispa[0], ispa[1], ispa[2]*args.z_spacing)
-        if args.y_spacing:
-            ispa = img.GetSpacing()
-            img.SetSpacing(ispa[0], ispa[1]*args.y_spacing, ispa[2])
-    
-        volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
-        volumeMapper.SetBlendModeToMaximumIntensity()
-        volumeMapper.SetInputConnection(reader.GetOutputPort())
-        vc.printc('scalar range is ', img.GetScalarRange(), c='b', bold=0)
-        vc.printc('voxel spacing is', img.GetSpacing(), c='b', bold=0)
-        smin,smax = reader.GetOutput().GetScalarRange()
-        
-        # Create transfer mapping scalar value to color
-        if args.color is None: 
-            r,g,b = (0,0,0.6)
-        else:
-            r,g,b = vc.getColor(args.color)
-        colorTransferFunction = vtk.vtkColorTransferFunction()
-        colorTransferFunction.AddRGBPoint(smin, 1.0, 1.0, 1.0)
-        colorTransferFunction.AddRGBPoint((smax+smin)/3, r/2, g/2, b/2)
-        colorTransferFunction.AddRGBPoint(smax, 0.0, 0.0, 0.0)
-        
-        x1alpha = smin+(smax-smin)*0.33
-        x2alpha = smin+(smax-smin)*0.66
-        # Create transfer mapping scalar value to opacity
-        opacityTransferFunction = vtk.vtkPiecewiseFunction()
-        opacityTransferFunction.AddPoint(smin, 0.0)
-        opacityTransferFunction.AddPoint(x1alpha, _value_alphaslider1)
-        opacityTransferFunction.AddPoint(x2alpha, _value_alphaslider2)
-        opacityTransferFunction.AddPoint(smax, 1.0)
-      
-        # The property describes how the data will look
-        volumeProperty = vtk.vtkVolumeProperty()
-        volumeProperty.SetColor(colorTransferFunction)
-        volumeProperty.SetScalarOpacity(opacityTransferFunction)
-        volumeProperty.SetInterpolationTypeToLinear()
-        
-        # volume holds the mapper and the property and can be used to position/orient it
-        volume = vtk.vtkVolume()
-        volume.SetMapper(volumeMapper)
-        volume.SetProperty(volumeProperty)
-    
-        vp.renderer.AddVolume(volume) 
-    
-    ############################## brightness slider
-    def slider1(widget, event):
-        value = widget.GetRepresentation().GetValue() 
-        colorTransferFunction.RemoveAllPoints ()
-        colorTransferFunction.AddRGBPoint(smin, 1.0, 1.0, 1.0) #white
-        colorTransferFunction.AddRGBPoint(value, r/2, g/2, b/2)
-        colorTransferFunction.AddRGBPoint(smax, 0.0, 0.0, 0.0) #black
-    w1 = vp.addSlider(slider1, smin, smax, value=(smin+smax)/3.0, 
-                      pos=4, title='color intensity')
-    
-    ############################## alpha sliders    
-    def sliderA1(widget, event):
-        global _value_alphaslider1, _value_alphaslider2
-        _value_alphaslider1 = widget.GetRepresentation().GetValue() 
-        opacityTransferFunction.RemoveAllPoints()
-        opacityTransferFunction.AddPoint(smin, 0.0)
-        opacityTransferFunction.AddPoint(x1alpha, _value_alphaslider1)
-        opacityTransferFunction.AddPoint(x2alpha, _value_alphaslider2)
-        opacityTransferFunction.AddPoint(smax, 1.0)
-    w2 = vp.addSlider(sliderA1, 0,1, value=_value_alphaslider1,
-                      pos=[(.93 ,.1),(.93, .44)] , title='', showValue=0)
-    
-    def sliderA2(widget, event):
-        global _value_alphaslider1, _value_alphaslider2
-        _value_alphaslider2 = widget.GetRepresentation().GetValue() 
-        opacityTransferFunction.RemoveAllPoints()
-        opacityTransferFunction.AddPoint(smin, 0.0)
-        opacityTransferFunction.AddPoint(x1alpha, _value_alphaslider1)
-        opacityTransferFunction.AddPoint(x2alpha, _value_alphaslider2)
-        opacityTransferFunction.AddPoint(smax, 1.0)
-    
-    w3 = vp.addSlider(sliderA2, 0,1, value=_value_alphaslider2, 
-                      pos=[(.96 ,.1),(.96, .44)], title='alpha thresholds', showValue=0)
-        
-    def CheckAbort(obj, event):
-        if obj.GetEventPending() != 0:
-            obj.SetAbortRender(1)
-    vp.renderWin.AddObserver("AbortCheckEvent", CheckAbort)
-    
-    vc.printc('Press r to reset camera', c='b')
-    vc.printc('      q to exit.', c='b')
-    vp.show(zoom=1.2)
-    w1.SetEnabled(0)
-    w2.SetEnabled(0)
-    w3.SetEnabled(0)
-
-
 def load2Dimage(filename, alpha):
     fl = filename.lower()
     if   '.png' in fl:
@@ -521,13 +407,17 @@ def write(obj, fileoutput):
     '''
     Write 3D object to file.
     
-    Possile extensions are: .vtk, .ply, .obj, .stl, .byu, .vtp, .xyz
+    Possile extensions are: .vtk, .ply, .obj, .stl, .byu, .vtp, .xyz, .tif
     '''
-    obj = vu.polydata(obj, True)
     fr = fileoutput.lower()
     if   '.vtk' in fr: w = vtk.vtkPolyDataWriter()
     elif '.ply' in fr: w = vtk.vtkPLYWriter()
+    elif '.stl' in fr: w = vtk.vtkSTLWriter()
+    elif '.vtp' in fr: w = vtk.vtkXMLPolyDataWriter()
+    elif '.xyz' in fr: w = vtk.vtkSimplePointsWriter()
+    elif '.byu' in fr or fr.endswith('.g'): w = vtk.vtkBYUWriter()
     elif '.obj' in fr: 
+        obj = vu.polydata(obj, True)
         w = vtk.vtkOBJExporter()
         w.SetFilePrefix(fileoutput.replace('.obj',''))
         vc.printc('Please use write(vp.renderWin)', c=3)
@@ -535,14 +425,20 @@ def write(obj, fileoutput):
         w.Update()
         vc.printc("Saved file: "+fileoutput, c='g')
         return
-    elif '.stl' in fr: w = vtk.vtkSTLWriter()
-    elif '.byu' in fr or fr.endswith('.g'): w = vtk.vtkBYUWriter()
-    elif '.vtp' in fr: w = vtk.vtkXMLPolyDataWriter()
-    elif '.xyz' in fr: w = vtk.vtkSimplePointsWriter()
+    elif '.tif' in fr:
+        wr = vtk.vtkTIFFWriter()
+        wr.SetFileDimensionality(len(obj.GetDimensions()))
+        vu.setInput(wr, obj)
+        wr.SetFileName(fileoutput)
+        wr.Write()        
+        vc.printc("TIFF stack saved as: "+fileoutput, c='g')
+        return 
     else:
         vc.printc('Unavailable format in file '+fileoutput, c='r')
         exit(1)
+        
     try:
+        obj = vu.polydata(obj, True)
         vu.setInput(w, vu.polydata(obj, True))
         w.SetFileName(fileoutput)
         w.Write()
@@ -1041,14 +937,14 @@ def _keypress(vp, obj, event):
         
     elif key == "m":
         if vp.clickedActor in vp.getActors():
-            vp.clickedActor.GetProperty().SetOpacity(0.05)
+            vp.clickedActor.GetProperty().SetOpacity(0.02)
             bfp = vp.clickedActor.GetBackfaceProperty()
-            if bfp: bfp.SetOpacity(0.05)
+            if bfp: bfp.SetOpacity(0.02)
         else:
             for a in vp.getActors(): 
-                a.GetProperty().SetOpacity(.05)
+                a.GetProperty().SetOpacity(0.02)
                 bfp = a.GetBackfaceProperty()
-                if bfp: bfp.SetOpacity(0.05)
+                if bfp: bfp.SetOpacity(0.02)
 
     elif key == "slash":
         if vp.clickedActor in vp.getActors():
@@ -1064,26 +960,26 @@ def _keypress(vp, obj, event):
     elif key == "comma":
         if vp.clickedActor in vp.getActors():
             ap = vp.clickedActor.GetProperty()
-            ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.05]))
+            ap.SetOpacity(max([ap.GetOpacity()*0.75, 0.01]))
             bfp = vp.clickedActor.GetBackfaceProperty()
             if bfp: bfp.SetOpacity(ap.GetOpacity())
         else:
             for a in vp.getActors():
                 ap = a.GetProperty()
-                ap.SetOpacity(max([ap.GetOpacity()-0.05, 0.05]))
+                ap.SetOpacity(max([ap.GetOpacity()*0.75, 0.01]))
                 bfp = a.GetBackfaceProperty()
                 if bfp: bfp.SetOpacity(ap.GetOpacity())
 
     elif key == "period":
         if vp.clickedActor in vp.getActors():
             ap = vp.clickedActor.GetProperty()
-            ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
+            ap.SetOpacity(min([ap.GetOpacity()*1.25, 1.0]))
             bfp = vp.clickedActor.GetBackfaceProperty()
             if bfp: bfp.SetOpacity(ap.GetOpacity())
         else:
             for a in vp.getActors():
                 ap = a.GetProperty()
-                ap.SetOpacity(min([ap.GetOpacity()+0.05, 1.0]))
+                ap.SetOpacity(min([ap.GetOpacity()*1.25, 1.0]))
                 bfp = a.GetBackfaceProperty()
                 if bfp: bfp.SetOpacity(ap.GetOpacity())
 
