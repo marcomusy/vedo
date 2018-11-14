@@ -11,6 +11,7 @@
 #
 from __future__ import division, print_function
 from vtkplotter import Plotter, colorMap
+from vtkplotter.analysis import smoothMLS2D
 import numpy as np
 
 
@@ -32,13 +33,13 @@ s1 = s0.clone(c='dg')                 # a dark green copy of s0
 
 # project s1 points into a smooth surface of points 
 # return a demo actor showing 30 regressions at random points
-mls1 = vp1.smoothMLS2D(s1, f=0.5, showNPlanes=30) # first pass
+mls1 = smoothMLS2D(s1, f=0.5, showNPlanes=30) # first pass
 vp1.show(mls1, at=1, legend='first pass') 
 
-mls2 = vp1.smoothMLS2D(s1, f=0.3, showNPlanes=30) # second pass
+mls2 = smoothMLS2D(s1, f=0.3, showNPlanes=30) # second pass
 vp1.show(mls2, at=2, legend='second pass') 
 
-mls3 = vp1.smoothMLS2D(s1, f=0.1)                 # third pass
+mls3 = smoothMLS2D(s1, f=0.1)                 # third pass
 vp1.show(s1,   at=3, legend='third pass', zoom=1.3) 
 
 

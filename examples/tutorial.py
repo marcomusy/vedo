@@ -72,12 +72,15 @@ vp.show()
 #########################################################################################
 # Draw the PCA (Principal Component Analysis) ellipsoid that contains 50% of 
 # a cloud of points, then check if points are inside the actor surface:
+from vtkplotter.analysis import pca
+from vtkplotter.utils import insidePoints
 vp = Plotter(title='Example of PCA analysys')
 pts = [(gauss(0,1), gauss(0,2), gauss(0,3)) for i in range(1000)]
-a = vp.pca(pts, pvalue=0.5, pcaAxes=1, legend='PCA ellipsoid')
+a = pca(pts, pvalue=0.5, pcaAxes=1, legend='PCA ellipsoid')
+vp.actors.append(a) # add actor to the list of actors to be shown (not automatic)
 
-ipts = vp.insidePoints(a, pts)
-opts = vp.insidePoints(a, pts, invert=True)
+ipts = insidePoints(a, pts)
+opts = insidePoints(a, pts, invert=True)
 vp.points(ipts, c='g', legend='in  points #'+str(len(ipts)))
 vp.points(opts, c='r', legend='out points #'+str(len(opts)))
 vp.show()
@@ -93,16 +96,6 @@ vp.xyplot( xycoords )
 #
 vp.fxy( 'sin(3*x)*log(x-y)/3' )
 vp.show()
-
-
-#########################################################################################
-# Show the boundaries of a vtk surface and its normals
-# (ratio reduces the total nr of arrows by the indicated factor):
-vp = Plotter(title='Normals and surface edges')
-va = vp.load('data/290.vtk', c='maroon', legend=0)
-vp.normals(va, ratio=5, legend=False)
-vp.boundaries(va)
-vp.show(legend='shape w/ edges')
 
 
 #########################################################################################
@@ -124,10 +117,11 @@ vp.show([a2, pts2], at=1, interactive=True)
 # Load a surface and show its curvature based on 4 different schemes.
 # All four shapes share a common vtkCamera:
 # 0-gaussian, 1-mean, 2-max, 3-min
+from vtkplotter.analysis import curvature
 vp = Plotter(shape=(1,4), title='surface curvature', axes=0)
 v = vp.load('data/290.vtk')
 for i in [0,1,2,3]:
-    c = vp.curvature(v, method=i, r=1, alpha=0.8)
+    c = curvature(v, method=i, r=1, alpha=0.8)
     vp.show(c, at=i, legend='method #'+str(i+1))
 vp.show(interactive=1)
 
@@ -179,7 +173,7 @@ vp.show(interactive=1)
 # point at x=500 and has normal (0, 0.3, -1).
 # Wildcards can be used to load multiple files or entire directories:
 vp = Plotter(title='Cut a surface with a plane')
-vp.load('data/*.vtk', c='orange', bc='aqua')
+vp.load('data/2*0.vtk', c='orange', bc='aqua')
 for a in vp.actors:
     vp.cutPlane(a, origin=(500,0,0), normal=(0,0.3,-1), showcut=True)
 vp.show()

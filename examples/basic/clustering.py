@@ -2,6 +2,7 @@
 # needs vtk versions > 6
 from __future__ import division, print_function
 from vtkplotter import Plotter
+from vtkplotter.analysis import cluster, removeOutliers
 import numpy as np
 
 
@@ -15,15 +16,15 @@ noise2 = np.random.rand(N, 3)*f + np.array([1,0,1.2])
 noise3 = np.random.rand(N, 3)*f + np.array([0,1,1])
 noise4 = np.random.randn(N, 3)*f/8 + np.array([1,1,1])
 
-noise4 = vp.removeOutliers(noise4, 0.05)
+noise4 = removeOutliers(noise4, 0.05)
 
 # merge points to lose their identity
 pts = noise1.tolist() +noise2.tolist() +noise3.tolist() +noise4.tolist()
 
 # find back their identity through clustering
-vp.cluster(pts, radius=0.1) # returns and stores a vtkAssembly
+cl = cluster(pts, radius=0.1) # returns and stores a vtkAssembly
 
-vp.show()
+vp.show(cl)
 
 
 

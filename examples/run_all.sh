@@ -4,8 +4,7 @@
 echo Running tutorial.py
 python tutorial.py
 
-####################################
-
+#################################### basic
 echo Running basic/align1.py
 python basic/align1.py
 
@@ -104,8 +103,7 @@ python basic/mouseclick.py
 
 
 
-####################################
-
+#################################### advanced
 echo Running advanced/brownian2D.py
 python advanced/brownian2D.py
 
@@ -148,6 +146,9 @@ python advanced/moving_least_squares1D.py
 echo Running advanced/moving_least_squares2D.py
 python advanced/moving_least_squares2D.py
 
+echo Running advanced/moving_least_squares3D.py
+python advanced/moving_least_squares3D.py
+
 echo Running advanced/recosurface.py
 python advanced/recosurface.py
 
@@ -169,11 +170,11 @@ python advanced/blackbody.py
 echo Running advanced/interactor.py
 python advanced/interactor.py
 
+echo Running advanced/mesh_smoothers.py
+python advanced/mesh_smoothers.py
+
 
 ################################### volumetric
-echo Running volumetric/mesh_smoothers.py
-python volumetric/mesh_smoothers.py
-
 echo Running volumetric/readVolumeAsIsoSurface.py
 python volumetric/readVolumeAsIsoSurface.py 
 
@@ -189,8 +190,11 @@ python volumetric/probeLine.py
 echo Running basic/probePlane.py
 python volumetric/probePlane.py
 
-echo Running basic/gradient.py
-python volumetric/gradient.py
+echo Running basic/imageOperations.py
+python volumetric/imageOperations.py
+
+echo Running basic/signedDistance.py
+python volumetric/signedDistance.py
 
 
 ####################################these may fail

@@ -8,6 +8,7 @@
 #
 from __future__ import division, print_function
 from vtkplotter import Plotter
+from vtkplotter.analysis import fitPlane
 
 vp = Plotter(verbose=0, axes=0)
 
@@ -17,7 +18,8 @@ variances = []
 for i, p in enumerate(s.coordinates()):
     if i%100: continue            # skip most points
     pts = s.closestPoint(p, N=12) # find the N closest points to p
-    plane = vp.fitPlane(pts, bc='r', alpha=0.3) # find the fitting plane
+    plane = fitPlane(pts, bc='r', alpha=0.3) # find the fitting plane
+    vp.actors.append(plane)
     vp.points(pts)                # blue points
     vp.point(p, c='red 0.2')      # mark in red the current point
     vp.arrow(plane.center, plane.center+plane.normal/15, c='g')

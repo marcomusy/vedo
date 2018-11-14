@@ -6,6 +6,7 @@
 #  
 from __future__ import division, print_function
 from vtkplotter import Plotter, vector, mag, mag2
+from vtkplotter.utils import closestPoint
 try:
     import scipy.optimize as opt
 except:
@@ -54,7 +55,7 @@ class Morpher:
         for i in rng:
             p1 = srcpts.GetPoint(i)
             p2 = self.transform(p1)
-            tp = vp.closestPoint(tpoly, p2) # pass the polydata to speed up 2x
+            tp = closestPoint(tpoly, p2) # pass the polydata to speed up 2x
             d2sum += mag2(p2-tp)
             mpts.SetPoint(i, p2)
 

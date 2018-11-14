@@ -15,7 +15,7 @@ pr.add_argument("-a", "--alpha",    type=float, help="alpha value [0-1]", defaul
 pr.add_argument("-w", "--wireframe",            help="use wireframe representation", action="store_true")
 pr.add_argument("-p", "--point-size", type=float, help="specify point size", default=-1, metavar='') 
 pr.add_argument("-k", "--show-scalars",         help="use scalars as colors", action="store_true") 
-pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-3]", default=1, metavar='')
+pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-5]", default=1, metavar='')
 pr.add_argument("-i", "--no-camera-share",      help="do not share camera in renderers", action="store_true")
 pr.add_argument("-l", "--legend-off",           help="do not show legends", action="store_true")
 pr.add_argument("-f", "--full-screen",          help="full screen mode", action="store_true")
@@ -27,6 +27,7 @@ pr.add_argument("-s", "--scrolling-mode",       help="Scrolling Mode: use arrows
 pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode for SLC/TIFF files", action="store_true") 
 pr.add_argument("-gz", "--z-spacing", type=float, help="Volume z-spacing factor [1]", default=None, metavar='') 
 pr.add_argument("-gy", "--y-spacing", type=float, help="Volume y-spacing factor [1]", default=None, metavar='') 
+pr.add_argument("--slicer",                     help="Slicer Mode for SLC/TIFF files", action="store_true")
 args = pr.parse_args()
 
 humansort(args.files)
@@ -66,8 +67,8 @@ if args.scrolling_mode and args.sequence_mode:
     
     
 ########################################################################
-_value_alphaslider1, _value_alphaslider2 = 0.4, 0.9 #defaults
-def _showVoxelImage(vp, args): # used by bin/vtkplotter script
+def _showVoxelImage(): 
+    _value_alphaslider1, _value_alphaslider2 = 0.4, 0.9 #defaults
         
     vc.printc('GPU Ray-casting Mode:', c='b', invert=1)
     vp.render()
@@ -155,7 +156,6 @@ def _showVoxelImage(vp, args): # used by bin/vtkplotter script
     
     ############################## alpha sliders    
     def sliderA1(widget, event):
-        global _value_alphaslider1, _value_alphaslider2
         _value_alphaslider1 = widget.GetRepresentation().GetValue() 
         opacityTransferFunction.RemoveAllPoints()
         opacityTransferFunction.AddPoint(smin, 0.0)
@@ -166,7 +166,6 @@ def _showVoxelImage(vp, args): # used by bin/vtkplotter script
                       pos=[(.93 ,.1),(.93, .44)] , title='', showValue=0)
     
     def sliderA2(widget, event):
-        global _value_alphaslider1, _value_alphaslider2
         _value_alphaslider2 = widget.GetRepresentation().GetValue() 
         opacityTransferFunction.RemoveAllPoints()
         opacityTransferFunction.AddPoint(smin, 0.0)
@@ -192,12 +191,85 @@ def _showVoxelImage(vp, args): # used by bin/vtkplotter script
 ##########################################################
 # special case of SLC/TIFF volumes with -g option
 if args.ray_cast_mode or args.z_spacing or args.y_spacing:
+    if args.axes_type in [1,2,3]:
+        vp.axes = 4
     wsize = 'auto'
     if args.full_screen: 
         wsize='full'    
-    _showVoxelImage(vp, args)
+    _showVoxelImage()
     exit()
-      
+
+##########################################################
+# special case of SLC/TIFF volumes with --slicer option
+elif args.slicer:
+
+    filename = args.files[0]
+    if not os.path.isfile(filename):
+        vc.printc('File not found:', filename, c=1)
+    vc.printc('...loading', filename, c='m', bold=0)
+            
+    if   '.tif' in filename.lower(): 
+        reader = vtk.vtkTIFFReader() 
+        
+    elif '.slc' in filename.lower(): 
+        reader = vtk.vtkSLCReader() 
+        if not reader.CanReadFile(filename):
+            vc.printc('Bad SLC file:', filename, c=1)
+    else:
+        vc.printc('Use --slicer option only with SLC or TIFF files.', c=1)
+    reader.SetFileName(filename) 
+    reader.Update() 
+    img = reader.GetOutput()
+    
+    ren1 = vtk.vtkRenderer()
+    renWin = vtk.vtkRenderWindow()
+    renWin.AddRenderer(ren1)
+    iren = vtk.vtkRenderWindowInteractor()
+    iren.SetRenderWindow(renWin)
+    
+    im = vtk.vtkImageResliceMapper()
+    im.SetInputData(img)
+    im.SliceFacesCameraOn()
+    im.SliceAtFocalPointOn()
+    im.BorderOn()
+    
+    ip = vtk.vtkImageProperty()
+    ip.SetInterpolationTypeToLinear()
+    
+    ia = vtk.vtkImageSlice()
+    ia.SetMapper(im)
+    ia.SetProperty(ip)
+    
+    ren1.AddViewProp(ia)
+    ren1.SetBackground(0.6,0.6,0.7)
+    renWin.SetSize(900, 900)
+    
+    iren = vtk.vtkRenderWindowInteractor()
+    style = vtk.vtkInteractorStyleImage()
+    style.SetInteractionModeToImage3D()
+    iren.SetInteractorStyle(style)
+    renWin.SetInteractor(iren)
+    
+    renWin.Render()
+    cam1 = ren1.GetActiveCamera()
+    cam1.ParallelProjectionOn()
+    ren1.ResetCameraClippingRange()
+    cam1.Zoom(1.3)
+    renWin.Render()
+    
+    vc.printc('Slicer Mode:', invert=1, c='m')
+    vc.printc('''Press  SHIFT+Left mouse    to rotate the camera for oblique slicing
+       SHIFT+Middle mouse  to slice perpendicularly through the image
+       Left mouse and Drag to modify luminosity and contrast
+       X                   to Reset to sagittal view
+       Y                   to Reset to coronal view
+       Z                   to Reset to axial view
+       R                   to Reset the Window/Levels
+       Q                   to Quit.''', c='m')
+    
+    iren.Start()
+    exit()
+ 
 ########################################################################
 # normal mode for single file or sequence
 elif (not args.scrolling_mode) or nfiles == 1:

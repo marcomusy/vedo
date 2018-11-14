@@ -10,6 +10,7 @@
 from __future__ import division, print_function
 from vtkplotter import Plotter, arange, sin, cos, sqrt
 from vtkplotter.utils import clean
+from vtkplotter.analysis import smoothMLS1D
 import numpy as np
 
 N = 9  # nr. of iterations
@@ -28,10 +29,11 @@ vp.show(a, at=0, legend='cloud')
         
 for i in range(1, N):
     a = a.clone().color(i)
-    vp.smoothMLS1D(a, f=0.2)
+    smoothMLS1D(a, f=0.2)
     
     # at last iteration make sure points are separated by tol
-    if i==N-1: clean(a, tol=.01)
+    if i==N-1: 
+    	clean(a, tol=.01)
 
     print('iteration',i,'#points:',len(a.coordinates()))
     vp.show(a, at=i, legend='iter #'+str(i))

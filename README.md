@@ -34,15 +34,15 @@ vp.show('data/shapes/flamingo.3ds') # press *Esc* to close and exit or *q* to co
 Load meshes of various formats with different options:
 ```python
 vp = Plotter(shape=(3,3), sharecam=False)
-vp.show(at=0, c=0, actors='data/beethoven.ply', ruler=1, axes=0)
-vp.show(at=1, c=1, actors='data/cow.g', wire=1)
-vp.show(at=2, c=2, actors='data/limb.pcd') # point cloud format (pcl)
-vp.show(at=3, c=3, actors='data/shapes/spider.ply')
-vp.show(at=4, c=4, actors='data/shuttle.obj')
-vp.show(at=5, c=5, actors='data/shapes/magnolia.vtk')
-vp.show(at=6, c=6, actors='data/shapes/man.vtk', axes=1)
-vp.show(at=7, c=7, actors='data/teapot.xyz', axes=2)
-vp.show(at=8, actors='data/pulley.vtu', axes=3)
+vp.show('data/beethoven.ply',      at=0, c=0, ruler=1, axes=0)
+vp.show('data/cow.g',              at=1, c=1, wire=1)
+vp.show('data/limb.pcd',           at=2, c=2) # point cloud format (pcl)
+vp.show('data/shapes/spider.ply',  at=3, c=3)
+vp.show('data/shuttle.obj',        at=4, c=4)
+vp.show('data/shapes/magnolia.vtk',at=5, c=5)
+vp.show('data/shapes/man.vtk',     at=6, c=6, axes=1)
+vp.show('data/teapot.xyz',         at=7, c=7, axes=2)
+vp.show('data/pulley.vtu',         at=8, c=8, axes=3)
 vp.show(interactive=1)
 ```
 ![objects](https://user-images.githubusercontent.com/32848391/43654734-8d126a96-974c-11e8-80d6-73cf224c0511.png)
@@ -50,13 +50,14 @@ vp.show(interactive=1)
 
 Draw a bunch of basic geometric objects on separate parts of the rendering window:
 ```python
-vp = Plotter(N=6, sharecam=False)
-vp.show(vp.arrow([0,0,0], [1,1,1]),   at=0, legend='arrow()' )
-vp.show(vp.line([0,0,0], [1,1,1]),    at=1, legend='line()' )
-vp.show(vp.point([1,2,3]),            at=2, legend='point()' )
-vp.show(vp.text('Hello', bc=(1,0,0)), at=3 )
-vp.show(vp.sphere(),                  at=4 )
-vp.show(vp.cube(),                    at=5, legend='cube()')
+from vtkplotter.shapes import arrow, line, point, text, sphere, cube
+vp = Plotter(N=6, sharecam=False)  # subdivide window in 6 independent parts
+vp.show(arrow([0,0,0], [1,1,1]),   at=0, legend='an arrow')
+vp.show(line( [0,0,0], [1,1,1]),   at=1, legend='a line')
+vp.show(point([1,2,3], r=20),      at=2, legend='a point')
+vp.show(text('Hello', bc=(1,0,0)), at=3)
+vp.show(sphere(),                  at=4)
+vp.show(cube(),                    at=5, legend='a cube')
 vp.show(interactive=1)
 ```
 ![ex8](https://user-images.githubusercontent.com/32848391/32666975-91690102-c639-11e7-8f7b-ad07bd6019da.png)
@@ -64,7 +65,8 @@ vp.show(interactive=1)
 
 
 If you need to do more complicated things (define widgets.. etc), you still have full access 
-to all standard VTK objects (e.g. interactors and renderers through *vp.interactor, vp.renderer*... etc).
+to all standard VTK native objects 
+(e.g. interactors and renderers through *vp.interactor, vp.renderer, vtkActor*... etc).
 <br />
 
 
@@ -75,10 +77,13 @@ vtkplotter meshfile.vtk  # on Windows try 'python vtkplotter'
 # other valid formats: [vtu,vts,vtp, ply,obj,stl,xml,neutral,gmsh,pcd,xyz,txt,byu, tif,slc, png,jpg]
 ```
 to visualize multiple files or files time-sequences try `-n` or `-s` options.<br />
-Voxel-data (*slc*, *tiff* stack) files can also be visualized with option `-g`, e.g.:
+Voxel-data (*slc*, *tiff* stack) files can also be visualized with options `-g` and `--slicer`,
+e.g.:
 ```bash
-vtkplotter -g -c blue examples/data/embryo.slc
+vtkplotter -g -c blue examples/data/embryo.slc  # (3D scan of a mouse embryo)
+vtkplotter --slicer   examples/data/embryo.slc    
 ```
+![e2](https://user-images.githubusercontent.com/32848391/48278506-00fd9180-e44e-11e8-94e6-6ee5f2a56ff7.jpg)
 
 ```
 usage: vtkplotter files [-h] [-a] [-w] [-p] [-l] [-c] [-k] [-n] [-x] [-f] [-z] [-i] [-b] [-q] [-s]
@@ -97,8 +102,7 @@ optional arguments:
   -x , --axes-type      specify axes type [0-3]
   -f, --full-screen     full screen mode
   -z , --zoom           zooming factor
-  -i, --no-camera-share
-                        do not share camera in renderers
+  -i, --no-camera-share  do not share camera in renderers
   -b , --background     background color [integer or color name]
   -q, --quiet           quiet mode, less verbose
   -n, --sequence-mode   show each file in a separate renderer
@@ -106,6 +110,7 @@ optional arguments:
   -g, --ray-cast-mode   GPU Ray-casting Mode for SLC/TIFF files
   -gz , --z-spacing     Volume z-spacing factor [1]
   -gy , --y-spacing     Volume y-spacing factor [1]
+  --slicer              Slicer Mode for SLC/TIFF files
 ```
 <br />
 
@@ -117,11 +122,12 @@ git clone https://github.com/marcomusy/vtkplotter.git
 cd vtkplotter/examples
 python tutorial.py  # on mac OSX try 'pythonw' instead
 ```
-Many more examples can be found in directories: **examples/basic** and **examples/advanced**.
+Many more examples can be found in directories: **examples/basic**, **examples/advanced**
+and **examples/volumetric**.
 <br />
 
 
-- Apply Moving Least Squares algorithm to a large point cloud to obtain a smooth surface 
+- Apply a Moving Least Squares algorithm to a large point cloud to obtain a smooth surface 
 from a set of scattered points in space 
 ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py)):<br />
 `python examples/advanced/moving_least_squares2D.py`<br />
@@ -182,7 +188,7 @@ vp.sharecam     # (True) share the same camera in multiple renderers
 
 
 ### Some useful additional methods of vtkActor object
-Theese methods return the actor object so that they can be concatenated,
+These methods return the actor object so that they can be concatenated,
 (E.g.: `actor.scale(3).pos([1,2,3]).color('blue').alpha(0.5)` etc..).
 ```python
 actor.pos()                   # set/get position vector (setters, and getters if no argument is given)

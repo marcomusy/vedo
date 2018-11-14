@@ -2,6 +2,7 @@
 # As they divide they occupy more and more space
 from __future__ import division, print_function
 from vtkplotter import Plotter, ProgressBar
+from vtkplotter.analysis import pca
 from cell import Cell, Colony
 
 vp = Plotter(verbose=0, interactive=0, axes=3)
@@ -22,7 +23,7 @@ c3 = Colony( [ Cell([0,0,1], tdiv=10) ], c='r')
 colonies = [c1, c2, c3]
 
 # time goes from 0 to 90 hours 
-pb = ProgressBar(0, 90, step=0.1, c=1)
+pb = ProgressBar(0, 50, step=0.1, c=1)
 for t in pb.range():
     msg = '[Nb,Ng,Nr,t] = '
     vp.actors = [] # clean up the list of actors
@@ -51,6 +52,7 @@ for t in pb.range():
 # draw the oriented ellipsoid that contains 50% of the cells
 for colony in colonies: 
     pts = [c.pos for c in colony.cells]
-    vp.pca(pts, pvalue=0.5, c=colony.color, pcaAxes=0, alpha=.3,
-           legend='1/rate='+str(colony.cells[0].tdiv)+'h')
+    a = pca(pts, pvalue=0.5, c=colony.color, pcaAxes=0, alpha=.3,
+            legend='1/rate='+str(colony.cells[0].tdiv)+'h')
+    vp.actors.append(a)
 vp.show(resetcam=0, interactive=1)

@@ -6,6 +6,7 @@
 from __future__ import division, print_function
 from random import uniform as u
 import vtkplotter
+from vtkplotter.analysis import align
 
 vp = vtkplotter.Plotter(shape=[1,2], verbose=0, axes=2)
 
@@ -22,7 +23,7 @@ act2 = vp.points(pts2, c='r', legend='target')
 vp.show(at=0)
 
 # find best alignment between the 2 sets of points
-alpts1 = vp.align(act1,act2).coordinates()
+alpts1 = align(act1, act2).coordinates()
 
 for i in range(N1): #draw arrows to see where points end up
     vp.arrow(pts1[i], alpts1[i], c='k', s=0.007, alpha=.1) 

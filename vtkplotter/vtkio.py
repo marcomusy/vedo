@@ -3,16 +3,20 @@ Submodule to load meshes of different formats, and other I/O functionalities.
 """
 
 from __future__ import division, print_function
-import vtk, os, sys, time, re
+import vtk
+import os
+import sys
+import time
+import re
 
 import vtkplotter.utils as vu
 import vtkplotter.colors as vc
 import numpy
-     
+
 
 def humansort(l):
     """Sort in place a given list the way humans expect.
-    
+
     E.g. ['file11', 'file1'] -> ['file1', 'file11']
     """
     def alphanum_key(s):
@@ -22,16 +26,17 @@ def humansort(l):
             if s.isdigit():
                 return int(s)
             return s
-        return [ tryint(c) for c in re.split('([0-9]+)', s) ]
+        return [tryint(c) for c in re.split('([0-9]+)', s)]
     l.sort(key=alphanum_key)
-    return None # NB: input list is modified
+    return None  # NB: input list is modified
 
 
 def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
-              smoothing, threshold, connectivity, scaling):
+             smoothing, threshold, connectivity, scaling):
     '''Load a file of various formats.'''
     fl = filename.lower()
-    if legend is True: legend = os.path.basename(filename)
+    if legend is True:
+        legend = os.path.basename(filename)
     if fl.endswith('.xml') or fl.endswith('.xml.gz'):     # Fenics tetrahedral file
         actor = loadDolfin(filename, c, alpha, wire, bc, edges, legend)
     elif fl.endswith('.neutral') or fl.endswith('.neu'):  # neutral tetrahedral file
@@ -54,15 +59,16 @@ def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
             vc.printc('Unable to load', filename, c=1)
             return None
         actor = vu.makeActor(poly, c, alpha, wire, bc, edges, legend, texture)
-        if fl.endswith('.txt') or fl.endswith('.xyz'): 
+        if fl.endswith('.txt') or fl.endswith('.xyz'):
             actor.GetProperty().SetPointSize(4)
     setattr(actor, 'filename', filename)
     return actor
-    
+
+
 def loadDir(mydir, c, alpha, wire, bc, edges, legend, texture,
-             smoothing, threshold, connectivity, scaling):
+            smoothing, threshold, connectivity, scaling):
     '''Load files contained in directory of various formats.'''
-    if not os.path.exists(mydir): 
+    if not os.path.exists(mydir):
         vc.printc('Error in loadDir: Cannot find', mydir, c=1)
         exit(0)
     acts = []
@@ -74,36 +80,47 @@ def loadDir(mydir, c, alpha, wire, bc, edges, legend, texture,
         acts.append(a)
     return acts
 
+
 def loadPolyData(filename):
     '''Load a file and return a vtkPolyData object (not a vtkActor).'''
-    if not os.path.exists(filename): 
+    if not os.path.exists(filename):
         vc.printc('Error in loadPolyData: Cannot find', filename, c=1)
         return None
     fl = filename.lower()
-    if   fl.endswith('.vtk'): reader = vtk.vtkPolyDataReader()
-    elif fl.endswith('.ply'): reader = vtk.vtkPLYReader()
-    elif fl.endswith('.obj'): reader = vtk.vtkOBJReader()
-    elif fl.endswith('.stl'): reader = vtk.vtkSTLReader()
-    elif fl.endswith('.byu') or fl.endswith('.g'): reader = vtk.vtkBYUReader()
-    elif fl.endswith('.vtp'): reader = vtk.vtkXMLPolyDataReader()
-    elif fl.endswith('.vts'): reader = vtk.vtkXMLStructuredGridReader()
-    elif fl.endswith('.vtu'): reader = vtk.vtkXMLUnstructuredGridReader()
-    elif fl.endswith('.txt'): reader = vtk.vtkParticleReader() # (x y z scalar) 
-    elif fl.endswith('.xyz'): reader = vtk.vtkParticleReader()
-    else: 
+    if fl.endswith('.vtk'):
+        reader = vtk.vtkPolyDataReader()
+    elif fl.endswith('.ply'):
+        reader = vtk.vtkPLYReader()
+    elif fl.endswith('.obj'):
+        reader = vtk.vtkOBJReader()
+    elif fl.endswith('.stl'):
+        reader = vtk.vtkSTLReader()
+    elif fl.endswith('.byu') or fl.endswith('.g'):
+        reader = vtk.vtkBYUReader()
+    elif fl.endswith('.vtp'):
+        reader = vtk.vtkXMLPolyDataReader()
+    elif fl.endswith('.vts'):
+        reader = vtk.vtkXMLStructuredGridReader()
+    elif fl.endswith('.vtu'):
+        reader = vtk.vtkXMLUnstructuredGridReader()
+    elif fl.endswith('.txt'):
+        reader = vtk.vtkParticleReader()  # (x y z scalar)
+    elif fl.endswith('.xyz'):
+        reader = vtk.vtkParticleReader()
+    else:
         reader = vtk.vtkDataReader()
     reader.SetFileName(filename)
-    if fl.endswith('.vts'): # structured grid
+    if fl.endswith('.vts'):  # structured grid
         reader.Update()
         gf = vtk.vtkStructuredGridGeometryFilter()
         gf.SetInputConnection(reader.GetOutputPort())
         gf.Update()
         poly = gf.GetOutput()
-    elif fl.endswith('.vtu'): # unstructured grid
+    elif fl.endswith('.vtu'):  # unstructured grid
         reader.Update()
         gf = vtk.vtkGeometryFilter()
         gf.SetInputConnection(reader.GetOutputPort())
-        gf.Update()    
+        gf.Update()
         poly = gf.GetOutput()
     else:
         try:
@@ -111,62 +128,72 @@ def loadPolyData(filename):
             poly = reader.GetOutput()
         except:
             poly = None
-            
-    if not poly: 
+
+    if not poly:
         return None
-    
+
     cleanpd = vtk.vtkCleanPolyData()
     vu.setInput(cleanpd, poly)
     cleanpd.Update()
     return cleanpd.GetOutput()
 
-def loadXML(filename): #not tested
-    '''Read any type of vtk data object encoded in XML format and return a vtkActor.'''
+
+def loadXMLData(filename):  # not tested
+    '''Read any type of vtk data object encoded in XML format.'''
     reader = vtk.vtkXMLGenericDataObjectReader()
     reader.SetFileName(filename)
     reader.Update()
-    return vu.makeActor(reader.GetOutput())
+    return reader.GetOutput()
+
 
 def loadStructuredPoints(filename):
-    '''Load a vtkStructuredPoints object from file and return a vtkActor.'''
+    '''Load a vtkStructuredPoints object from file and return a vtkActor.
+
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/readStructuredPoints.py)
+
+    ![atomp2](https://user-images.githubusercontent.com/32848391/48198462-3b393700-e359-11e8-8272-670bd5f2db42.jpg)
+    '''
     reader = vtk.vtkStructuredPointsReader()
     reader.SetFileName(filename)
     reader.Update()
     gf = vtk.vtkImageDataGeometryFilter()
     gf.SetInputConnection(reader.GetOutputPort())
-    gf.Update()    
+    gf.Update()
     return vu.makeActor(gf.GetOutput())
 
-def loadStructuredGrid(filename): #not tested
+
+def loadStructuredGrid(filename):  # not tested
     '''Load a vtkStructuredGrid object from file and return a vtkActor.'''
     reader = vtk.vtkStructuredGridReader()
     reader.SetFileName(filename)
     reader.Update()
     gf = vtk.vtkStructuredGridGeometryFilter()
     gf.SetInputConnection(reader.GetOutputPort())
-    gf.Update()    
+    gf.Update()
     return vu.makeActor(gf.GetOutput())
 
-def loadUnStructuredGrid(filename): #not tested
+
+def loadUnStructuredGrid(filename):  # not tested
     '''Load a vtkunStructuredGrid object from file and return a vtkActor.'''
     reader = vtk.vtkUnstructuredGridReader()
     reader.SetFileName(filename)
     reader.Update()
     gf = vtk.vtkUnstructuredGridGeometryFilter()
     gf.SetInputConnection(reader.GetOutputPort())
-    gf.Update()    
+    gf.Update()
     return vu.makeActor(gf.GetOutput())
-    
-def loadRectilinearGrid(filename): #not tested
+
+
+def loadRectilinearGrid(filename):  # not tested
     '''Load a vtkRectilinearGrid object from file and return a vtkActor.'''
     reader = vtk.vtkRectilinearGridReader()
     reader.SetFileName(filename)
     reader.Update()
     gf = vtk.vtkRectilinearGridGeometryFilter()
     gf.SetInputConnection(reader.GetOutputPort())
-    gf.Update()    
+    gf.Update()
     return vu.makeActor(gf.GetOutput())
-    
+
 
 def load3DS(filename, legend):
     renderer = vtk.vtkRenderer()
@@ -179,8 +206,8 @@ def load3DS(filename, legend):
     importer.SetRenderWindow(renWin)
     importer.Update()
 
-    actors = renderer.GetActors() # vtkActorCollection
-    acts=[]
+    actors = renderer.GetActors()  # vtkActorCollection
+    acts = []
     for i in range(actors.GetNumberOfItems()):
         a = actors.GetItemAsObject(i)
         acts.append(a)
@@ -190,7 +217,7 @@ def load3DS(filename, legend):
 
 def loadDolfin(filename, c, alpha, wire, bc, edges, legend):
     '''Reads a Fenics/Dolfin file format'''
-    if not os.path.exists(filename): 
+    if not os.path.exists(filename):
         vc.printc('Error in loadDolfin: Cannot find', filename, c=1)
         return None
     import xml.etree.ElementTree as et
@@ -198,11 +225,12 @@ def loadDolfin(filename, c, alpha, wire, bc, edges, legend):
         import gzip
         inF = gzip.open(filename, 'rb')
         outF = open('/tmp/filename.xml', 'wb')
-        outF.write( inF.read() )
+        outF.write(inF.read())
         outF.close()
         inF.close()
         tree = et.parse('/tmp/filename.xml')
-    else: tree = et.parse(filename)
+    else:
+        tree = et.parse(filename)
     coords, connectivity = [], []
     for mesh in tree.getroot():
         for elem in mesh:
@@ -211,10 +239,10 @@ def loadDolfin(filename, c, alpha, wire, bc, edges, legend):
                 y = float(e.get('y'))
                 ez = e.get('z')
                 if ez is None:
-                    coords.append([x,y])
+                    coords.append([x, y])
                 else:
                     z = float(ez)
-                    coords.append([x,y,z])
+                    coords.append([x, y, z])
 
             tets = elem.findall('tetrahedron')
             if not len(tets):
@@ -223,14 +251,14 @@ def loadDolfin(filename, c, alpha, wire, bc, edges, legend):
                     v0 = int(e.get('v0'))
                     v1 = int(e.get('v1'))
                     v2 = int(e.get('v2'))
-                    connectivity.append([v0,v1,v2])
+                    connectivity.append([v0, v1, v2])
             else:
                 for e in tets:
                     v0 = int(e.get('v0'))
                     v1 = int(e.get('v1'))
                     v2 = int(e.get('v2'))
                     v3 = int(e.get('v3'))
-                    connectivity.append([v0,v1,v2,v3])
+                    connectivity.append([v0, v1, v2, v3])
     # this builds it as vtkUnstructuredGrid
     # points = vtk.vtkPoints()
     # for p in coords: points.InsertNextPoint(p)
@@ -249,7 +277,7 @@ def loadDolfin(filename, c, alpha, wire, bc, edges, legend):
     #         cellArray.InsertNextCell(tetra)
     #     ugrid.SetCells(vtk.VTK_TETRA, cellArray)
     #     mapper = vtk.vtkDataSetMapper()
-    #     if vu.vtkMV: 
+    #     if vu.vtkMV:
     #         mapper.SetInputData(ugrid)
     #     else:
     #         mapper.SetInputConnection(ugrid.GetProducerPort())
@@ -259,11 +287,11 @@ def loadDolfin(filename, c, alpha, wire, bc, edges, legend):
     #     actor.GetProperty().SetColor(vc.getColor(c))
     #     actor.GetProperty().SetOpacity(alpha/2.)
     #     if wire: actor.GetProperty().SetRepresentationToWireframe()
-    # else: 
+    # else:
     #     return pts_act
     # ass = vu.makeAssembly([pts_act, actor])
     # setattr(ass, 'legend', legend)
-    # if legend is True: 
+    # if legend is True:
     #     setattr(ass, 'legend', legend)
     # return ass
     poly = buildPolyData(coords, connectivity)
@@ -272,10 +300,10 @@ def loadDolfin(filename, c, alpha, wire, bc, edges, legend):
 
 def loadNeutral(filename, c, alpha, wire, bc, edges, legend):
     '''Reads a Neutral tetrahedral file format'''
-    if not os.path.exists(filename): 
+    if not os.path.exists(filename):
         vc.printc('Error in loadNeutral: Cannot find', filename, c=1)
         return None
-    
+
     coords, connectivity = convertNeutral2Xml(filename)
     poly = buildPolyData(coords, connectivity, indexOffset=0)
     return vu.makeActor(poly, c, alpha, wire, bc, edges, legend)
@@ -285,36 +313,36 @@ def loadGmesh(filename, c, alpha, wire, bc, edges, legend):
     '''
     Reads a gmesh file format
     '''
-    if not os.path.exists(filename): 
+    if not os.path.exists(filename):
         vc.printc('Error in loadGmesh: Cannot find', filename, c=1)
         return None
-   
+
     f = open(filename, 'r')
     lines = f.readlines()
     f.close()
-    
-    nnodes=0
-    index_nodes=0
-    for i,line in enumerate(lines):
+
+    nnodes = 0
+    index_nodes = 0
+    for i, line in enumerate(lines):
         if '$Nodes' in line:
-            index_nodes=i+1
+            index_nodes = i+1
             nnodes = int(lines[index_nodes])
             break
-    node_coords=[]
+    node_coords = []
     for i in range(index_nodes+1, index_nodes+1 + nnodes):
         cn = lines[i].split()
         node_coords.append([float(cn[1]), float(cn[2]), float(cn[3])])
 
-    nelements=0
-    index_elements=0
-    for i,line in enumerate(lines):
+    nelements = 0
+    index_elements = 0
+    for i, line in enumerate(lines):
         if '$Elements' in line:
-            index_elements=i+1
+            index_elements = i+1
             nelements = int(lines[index_elements])
             break
-    elements=[]
+    elements = []
     for i in range(index_elements+1, index_elements+1 + nelements):
-        ele= lines[i].split()
+        ele = lines[i].split()
         elements.append([int(ele[-3]), int(ele[-2]), int(ele[-1])])
 
     poly = buildPolyData(node_coords, elements, indexOffset=1)
@@ -323,8 +351,8 @@ def loadGmesh(filename, c, alpha, wire, bc, edges, legend):
 
 
 def loadPCD(filename, c, alpha, legend):
-    '''Return vtkActor from Point Cloud file format'''            
-    if not os.path.exists(filename): 
+    '''Return vtkActor from Point Cloud file format'''
+    if not os.path.exists(filename):
         vc.printc('Error in loadPCD: Cannot find file', filename, c=1)
         return None
     f = open(filename, 'r')
@@ -335,12 +363,13 @@ def loadPCD(filename, c, alpha, legend):
     N, expN = 0, 0
     for text in lines:
         if start:
-            if N >= expN: break
+            if N >= expN:
+                break
             l = text.split()
-            pts.append([float(l[0]),float(l[1]),float(l[2])])
+            pts.append([float(l[0]), float(l[1]), float(l[2])])
             N += 1
         if not start and 'POINTS' in text:
-            expN= int(text.split()[1])
+            expN = int(text.split()[1])
         if not start and 'DATA ascii' in text:
             start = True
     if expN != N:
@@ -349,34 +378,37 @@ def loadPCD(filename, c, alpha, legend):
     src.SetNumberOfPoints(len(pts))
     src.Update()
     poly = src.GetOutput()
-    for i,p in enumerate(pts): poly.GetPoints().SetPoint(i, p)
+    for i, p in enumerate(pts):
+        poly.GetPoints().SetPoint(i, p)
     if not poly:
         vc.printc('Unable to load', filename, c='red')
         return False
     actor = vu.makeActor(poly, vc.getColor(c), alpha)
     actor.GetProperty().SetPointSize(4)
-    if legend: setattr(actor, 'legend', legend)
-    if legend is True: setattr(actor, 'legend', os.path.basename(filename))
+    if legend:
+        setattr(actor, 'legend', legend)
+    if legend is True:
+        setattr(actor, 'legend', os.path.basename(filename))
     return actor
 
 
 def loadImageData(filename, spacing=[]):
-    
+
     if not os.path.isfile(filename):
         vc.printc('File not found:', filename, c=1)
         return None
-    
-    if   '.tif' in filename.lower(): 
-        reader = vtk.vtkTIFFReader() 
-    elif '.slc' in filename.lower(): 
-        reader = vtk.vtkSLCReader() 
+
+    if '.tif' in filename.lower():
+        reader = vtk.vtkTIFFReader()
+    elif '.slc' in filename.lower():
+        reader = vtk.vtkSLCReader()
         if not reader.CanReadFile(filename):
             vc.printc('Sorry bad SLC/TIFF file '+filename, c=1)
             exit(1)
-    reader.SetFileName(filename) 
-    reader.Update() 
+    reader.SetFileName(filename)
+    reader.Update()
     image = reader.GetOutput()
-    if len(spacing)==3:
+    if len(spacing) == 3:
         image.SetSpacing(spacing[0], spacing[1], spacing[2])
     vc.printc('voxel spacing is', image.GetSpacing(), c='b', bold=0)
     return image
@@ -385,7 +417,7 @@ def loadImageData(filename, spacing=[]):
 ###########################################################
 def load2Dimage(filename, alpha):
     fl = filename.lower()
-    if   '.png' in fl:
+    if '.png' in fl:
         picr = vtk.vtkPNGReader()
     elif '.jpg' in fl or '.jpeg' in fl:
         picr = vtk.vtkJPEGReader()
@@ -396,30 +428,37 @@ def load2Dimage(filename, alpha):
     picr.Update()
     vactor = vtk.vtkImageActor()
     vu.setInput(vactor, picr.GetOutput())
-    if alpha is None: alpha=1
+    if alpha is None:
+        alpha = 1
     vactor.SetOpacity(alpha)
-    vu.assignConvenienceMethods(vactor, False)    
-    vu.assignPhysicsMethods(vactor)    
+    vu.assignConvenienceMethods(vactor, False)
+    vu.assignPhysicsMethods(vactor)
     return vactor
 
- 
+
 def write(obj, fileoutput):
     '''
     Write 3D object to file.
-    
+
     Possile extensions are: .vtk, .ply, .obj, .stl, .byu, .vtp, .xyz, .tif
     '''
     fr = fileoutput.lower()
-    if   '.vtk' in fr: w = vtk.vtkPolyDataWriter()
-    elif '.ply' in fr: w = vtk.vtkPLYWriter()
-    elif '.stl' in fr: w = vtk.vtkSTLWriter()
-    elif '.vtp' in fr: w = vtk.vtkXMLPolyDataWriter()
-    elif '.xyz' in fr: w = vtk.vtkSimplePointsWriter()
-    elif '.byu' in fr or fr.endswith('.g'): w = vtk.vtkBYUWriter()
-    elif '.obj' in fr: 
+    if '.vtk' in fr:
+        w = vtk.vtkPolyDataWriter()
+    elif '.ply' in fr:
+        w = vtk.vtkPLYWriter()
+    elif '.stl' in fr:
+        w = vtk.vtkSTLWriter()
+    elif '.vtp' in fr:
+        w = vtk.vtkXMLPolyDataWriter()
+    elif '.xyz' in fr:
+        w = vtk.vtkSimplePointsWriter()
+    elif '.byu' in fr or fr.endswith('.g'):
+        w = vtk.vtkBYUWriter()
+    elif '.obj' in fr:
         obj = vu.polydata(obj, True)
         w = vtk.vtkOBJExporter()
-        w.SetFilePrefix(fileoutput.replace('.obj',''))
+        w.SetFilePrefix(fileoutput.replace('.obj', ''))
         vc.printc('Please use write(vp.renderWin)', c=3)
         w.SetInput(obj)
         w.Update()
@@ -430,13 +469,13 @@ def write(obj, fileoutput):
         wr.SetFileDimensionality(len(obj.GetDimensions()))
         vu.setInput(wr, obj)
         wr.SetFileName(fileoutput)
-        wr.Write()        
+        wr.Write()
         vc.printc("TIFF stack saved as: "+fileoutput, c='g')
-        return 
+        return
     else:
         vc.printc('Unavailable format in file '+fileoutput, c='r')
         exit(1)
-        
+
     try:
         obj = vu.polydata(obj, True)
         vu.setInput(w, vu.polydata(obj, True))
@@ -447,198 +486,212 @@ def write(obj, fileoutput):
         vc.printc("Error saving: "+fileoutput, c='r')
 
 
-################################################################### Video
+# Video
 def screenshot(renderWin, filename='screenshot.png'):
     '''Take a screenshot of current rendering window'''
     w2if = vtk.vtkWindowToImageFilter()
     w2if.ShouldRerenderOff()
     w2if.SetInput(renderWin)
-    w2if.ReadFrontBufferOff() # read from the back buffer
-    w2if.Update()         
+    w2if.ReadFrontBufferOff()  # read from the back buffer
+    w2if.Update()
     pngwriter = vtk.vtkPNGWriter()
     pngwriter.SetFileName(filename)
     pngwriter.SetInputConnection(w2if.GetOutputPort())
     pngwriter.Write()
- 
+
 
 class Video:
     def __init__(self, renderWindow, name='movie.avi', fps=12, duration=None):
         '''Class to generate a video from the specified rendering window.
-        
+
         Options:
-            
+
             name, name of the output file
-            
+
             fps,  frames per second
-            
+
             duration, total duration of the video. If given, fps will be recalculated.
 
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/makeVideo.py)    
-        '''       
-        import glob  
+        '''
+        import glob
         self.renderWindow = renderWindow
         self.name = name
         self.duration = duration
-        self.fps = float(fps) 
+        self.fps = float(fps)
         self.frames = []
-        if not os.path.exists('/tmp/vpvid'): os.mkdir('/tmp/vpvid')
-        for fl in glob.glob("/tmp/vpvid/*.png"): os.remove(fl)
+        if not os.path.exists('/tmp/vpvid'):
+            os.mkdir('/tmp/vpvid')
+        for fl in glob.glob("/tmp/vpvid/*.png"):
+            os.remove(fl)
         vc.printc("Video", name, "is open...", c='m')
-        
+
     def addFrame(self):
         '''Add frame to current video'''
         fr = '/tmp/vpvid/'+str(len(self.frames))+'.png'
         screenshot(self.renderWindow, fr)
         self.frames.append(fr)
-    
+
     def pause(self, pause=0):
         '''Iinsert a pause, in seconds'''
         import os
         fr = self.frames[-1]
         n = int(self.fps*pause)
-        for i in range(n): 
-            fr2='/tmp/vpvid/'+str(len(self.frames))+'.png'
+        for i in range(n):
+            fr2 = '/tmp/vpvid/'+str(len(self.frames))+'.png'
             self.frames.append(fr2)
             os.system("cp -f %s %s" % (fr, fr2))
-    
-    def close(self):  
+
+    def close(self):
         '''Render the video and write to file.'''
         if self.duration:
             _fps = len(self.frames)/float(self.duration)
-            vc.printc("Recalculated video FPS to", round(_fps,3), c='yellow')
-        else: _fps = int(_fps)
+            vc.printc("Recalculated video FPS to", round(_fps, 3), c='yellow')
+        else:
+            _fps = int(_fps)
         self.name = self.name.split('.')[0]+'.mp4'
         out = os.system("ffmpeg -loglevel panic -y -r " + str(_fps)
                         + " -i /tmp/vpvid/%01d.png "+self.name)
-        if out: vc.printc("ffmpeg returning error", c=1)
+        if out:
+            vc.printc("ffmpeg returning error", c=1)
         vc.printc('Video saved as', self.name, c='green')
         return
-    
+
 
 ###########################################################################
-class ProgressBar: 
+class ProgressBar:
     '''Class to print a progress bar with optional text message.
-    
+
     Basic usage example:
-        
+
         import time                        
-        
+
         pb = ProgressBar(0,400, c='red')
-        
+
         for i in pb.range():
             time.sleep(.1)            
             pb.print('some message') # or pb.print(counts=i)
 
     [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/diffusion.py)    
-    ''' 
+    '''
 
     def __init__(self, start, stop, step=1, c=None, ETA=True, width=25):
-        self.start  = start
-        self.stop   = stop
-        self.step   = step
-        self.color  = c
-        self.width  = width
-        self.bar    = ""  
-        self.percent= 0
+        self.start = start
+        self.stop = stop
+        self.step = step
+        self.color = c
+        self.width = width
+        self.bar = ""
+        self.percent = 0
         self.clock0 = 0
-        self.ETA    = ETA
+        self.ETA = ETA
         self.clock0 = time.time()
         self._update(0)
-        self._counts= 0
-        self._oldbar= ""
-        self._lentxt= 0
+        self._counts = 0
+        self._oldbar = ""
+        self._lentxt = 0
         self._range = vu.arange(start, stop, step)
-        self._len   = len(self._range)
-        
+        self._len = len(self._range)
+
     def print(self, txt='', counts=None):
-        if counts: self._update(counts)
-        else:      self._update(self._counts + self.step)
+        if counts:
+            self._update(counts)
+        else:
+            self._update(self._counts + self.step)
         if self.bar != self._oldbar:
             self._oldbar = self.bar
-            eraser = [' ']*self._lentxt + ['\b']*self._lentxt 
+            eraser = [' ']*self._lentxt + ['\b']*self._lentxt
             eraser = ''.join(eraser)
             if self.ETA:
-                vel  = self._counts/(time.time() - self.clock0)
-                remt =  (self.stop-self._counts)/vel
-                if remt>60:
+                vel = self._counts/(time.time() - self.clock0)
+                remt = (self.stop-self._counts)/vel
+                if remt > 60:
                     mins = int(remt/60)
                     secs = remt - 60*mins
                     mins = str(mins)+'m'
                     secs = str(int(secs))+'s '
                 else:
                     mins = ''
-                    secs= str(int(remt))+'s '
-                vel = str(round(vel,1))
+                    secs = str(int(remt))+'s '
+                vel = str(round(vel, 1))
                 eta = 'ETA: '+mins+secs+'('+vel+' it/s) '
-            else: eta = ''
-            txt = eta + str(txt) 
+            else:
+                eta = ''
+            txt = eta + str(txt)
             s = self.bar + ' ' + eraser + txt + '\r'
-            if self.color: 
+            if self.color:
                 vc.printc(s, c=self.color, end='')
-            else: 
+            else:
                 sys.stdout.write(s)
                 sys.stdout.flush()
-            if self.percent==100: print('')
+            if self.percent == 100:
+                print('')
             self._lentxt = len(txt)
 
     def range(self): return self._range
+
     def len(self): return self._len
- 
+
     def _update(self, counts):
-        if counts < self.start: counts = self.start
-        elif counts > self.stop: counts = self.stop
+        if counts < self.start:
+            counts = self.start
+        elif counts > self.stop:
+            counts = self.stop
         self._counts = counts
         self.percent = (self._counts - self.start)*100
         self.percent /= self.stop - self.start
         self.percent = int(round(self.percent))
         af = self.width - 2
-        nh = int(round( self.percent/100 * af ))
-        if   nh==0:  self.bar = "[>%s]" % (' '*(af-1))
-        elif nh==af: self.bar = "[%s]" % ('='*af)
-        else:        self.bar = "[%s>%s]" % ('='*(nh-1), ' '*(af-nh))
+        nh = int(round(self.percent/100 * af))
+        if nh == 0:
+            self.bar = "[>%s]" % (' '*(af-1))
+        elif nh == af:
+            self.bar = "[%s]" % ('='*af)
+        else:
+            self.bar = "[%s>%s]" % ('='*(nh-1), ' '*(af-nh))
         ps = str(self.percent) + "%"
         self.bar = ' '.join([self.bar, ps])
-        
-        
+
+
 def convertNeutral2Xml(infile, outfile=None):
-    
+
     f = open(infile, 'r')
     lines = f.readlines()
     f.close()
-    
+
     ncoords = int(lines[0])
-    fdolf_coords=[]
+    fdolf_coords = []
     for i in range(1, ncoords+1):
-        x,y,z = lines[i].split()
-        fdolf_coords.append([float(x),float(y),float(z)])
+        x, y, z = lines[i].split()
+        fdolf_coords.append([float(x), float(y), float(z)])
 
     ntets = int(lines[ncoords+1])
-    idolf_tets=[]
+    idolf_tets = []
     for i in range(ncoords+2, ncoords+ntets+2):
         text = lines[i].split()
-        v0,v1,v2,v3 = text[1], text[2], text[3], text[4]
-        idolf_tets.append([int(v0)-1,int(v1)-1,int(v2)-1,int(v3)-1])
+        v0, v1, v2, v3 = text[1], text[2], text[3], text[4]
+        idolf_tets.append([int(v0)-1, int(v1)-1, int(v2)-1, int(v3)-1])
 
-    if outfile:#write dolfin xml
+    if outfile:  # write dolfin xml
         outF = open(outfile, 'w')
         outF.write('<?xml version="1.0" encoding="UTF-8"?>\n')
         outF.write('<dolfin xmlns:dolfin="http://www.fenicsproject.org">\n')
         outF.write('  <mesh celltype="tetrahedron" dim="3">\n')
-    
-        outF.write('    <vertices size="'+str(ncoords)+'">\n')    
+
+        outF.write('    <vertices size="'+str(ncoords)+'">\n')
         for i in range(ncoords):
-            x,y,z = fdolf_coords[i]
+            x, y, z = fdolf_coords[i]
             outF.write('      <vertex index="'+str(i)
-                        +'" x="'+str(x)+'" y="'+str(y)+'" z="'+str(z)+'"/>\n')
+                       + '" x="'+str(x)+'" y="'+str(y)+'" z="'+str(z)+'"/>\n')
         outF.write('    </vertices>\n')
-    
+
         outF.write('    <cells size="'+str(ntets)+'">\n')
         for i in range(ntets):
-            v0,v1,v2,v3 = idolf_tets[i]
+            v0, v1, v2, v3 = idolf_tets[i]
             outF.write('      <tetrahedron index="'+str(i)
-                        +'" v0="'+str(v0)+'" v1="'+str(v1)+'" v2="'+str(v2)+'" v3="'+str(v3)+'"/>\n')
+                       + '" v0="'+str(v0)+'" v1="'+str(v1)+'" v2="'+str(v2)+'" v3="'+str(v3)+'"/>\n')
         outF.write('    </cells>\n')
-    
+
         outF.write('  </mesh>\n')
         outF.write('</dolfin>\n')
         outF.close()
@@ -649,17 +702,17 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
     '''
     Build a vtkPolyData object from a list of vertices
     and the connectivity representing the faces of the polygonal mesh.
-    
+
     E.g. faces=[[0,1,2], [1,2,3], ...], 
          vertices=[[x1,y1,z1],[x2,y2,z2], ...] 
-    
+
     Use indexOffset=1 if face numbering starts from 1 instead of 0.
     '''
-    sourcePoints   = vtk.vtkPoints()
+    sourcePoints = vtk.vtkPoints()
     sourceVertices = vtk.vtkCellArray()
     sourcePolygons = vtk.vtkCellArray()
     for pt in vertices:
-        if len(pt)>2:
+        if len(pt) > 2:
             aid = sourcePoints.InsertNextPoint(pt[0], pt[1], pt[2])
         else:
             aid = sourcePoints.InsertNextPoint(pt[0], pt[1], 0)
@@ -668,29 +721,29 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
     if faces:
         for f in faces:
             n = len(f)
-            if n==4:
+            if n == 4:
                 plg = vtk.vtkTetra()
-            elif n==3:
+            elif n == 3:
                 plg = vtk.vtkTriangle()
             else:
                 plg = vtk.vtkPolygon()
                 plg.GetPointIds().SetNumberOfIds(n)
             for i in range(n):
-                plg.GetPointIds().SetId( i, f[i] - indexOffset )
+                plg.GetPointIds().SetId(i, f[i] - indexOffset)
             sourcePolygons.InsertNextCell(plg)
 
     poly = vtk.vtkPolyData()
     poly.SetPoints(sourcePoints)
     poly.SetVerts(sourceVertices)
-    if faces: 
+    if faces:
         poly.SetPolys(sourcePolygons)
     clp = vtk.vtkCleanPolyData()
     vu.setInput(clp, poly)
     clp.PointMergingOn()
-    clp.Update()    
+    clp.Update()
     return clp.GetOutput()
 
- 
+
 def grepTAG(filename, tag, firstOccurrence=False):
     '''Greps the line that starts with a specific tag string from inside a file.'''
     import re
@@ -703,9 +756,10 @@ def grepTAG(filename, tag, firstOccurrence=False):
     for line in afile:
         if re.search(tag, line):
             content = line.split()
-            if firstOccurrence: break
+            if firstOccurrence:
+                break
     if content:
-        if len(content) == 2: 
+        if len(content) == 2:
             content = content[1]
         else:
             content = content[1:]
@@ -713,14 +767,14 @@ def grepTAG(filename, tag, firstOccurrence=False):
     return content
 
 
-
-#############          
+#############
 class Button:
     '''
     Build a Button object to be shown in the rendering window
     '''
+
     def __init__(self, fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle):
-        
+
         self._status = 0
         self.states = states
         self.colors = c
@@ -731,28 +785,28 @@ class Button:
         self.framewidth = 3
         self.offset = 5
         self.spacer = ' '
-        
+
         self.textproperty = self.actor.GetTextProperty()
         self.textproperty.SetJustificationToCentered()
-        if font.lower()=='courier': 
+        if font.lower() == 'courier':
             self.textproperty.SetFontFamilyToCourier()
-        elif font.lower()=='times': 
+        elif font.lower() == 'times':
             self.textproperty.SetFontFamilyToTimes()
-        else: 
+        else:
             self.textproperty.SetFontFamilyToArial()
-        self.textproperty.SetFontSize(size) 
+        self.textproperty.SetFontSize(size)
         self.textproperty.SetBackgroundOpacity(alpha)
         self.textproperty.BoldOff()
-        if bold: 
+        if bold:
             self.textproperty.BoldOn()
         self.textproperty.ItalicOff()
-        if italic: 
+        if italic:
             self.textproperty.ItalicOn()
         self.textproperty.ShadowOff()
         self.textproperty.SetOrientation(angle)
         self.showframe = hasattr(self.textproperty, 'FrameOn')
         self.status(0)
-        
+
     def status(self, s=None):
         '''
         Set/Get the status of the button
@@ -764,7 +818,7 @@ class Button:
         self._status = s
         self.textproperty.SetLineOffset(self.offset)
         self.actor.SetInput(self.spacer + self.states[s] + self.spacer)
-        s = s % len(self.colors) # to avoid mismatch
+        s = s % len(self.colors)  # to avoid mismatch
         self.textproperty.SetColor(vc.getColor(self.colors[s]))
         bcc = numpy.array(vc.getColor(self.bcolors[s]))
         self.textproperty.SetBackgroundColor(bcc)
@@ -781,20 +835,20 @@ class Button:
         self.status(self._status)
 
 
-##################################################################################### Events
-############################### mouse event
+# Events
+# mouse event
 def _mouseleft(vp, obj, event):
 
-    x,y = vp.interactor.GetEventPosition()
+    x, y = vp.interactor.GetEventPosition()
     #print ('mouse at',x,y)
-    
-    vp.renderer = obj.FindPokedRenderer(x,y)
+
+    vp.renderer = obj.FindPokedRenderer(x, y)
     vp.renderWin = obj.GetRenderWindow()
     clickedr = vp.renderers.index(vp.renderer)
     picker = vtk.vtkPropPicker()
-    picker.PickProp(x,y, vp.renderer)
+    picker.PickProp(x, y, vp.renderer)
     clickedActor = picker.GetActor()
-    
+
     # check if any button objects were created
     clickedActor2D = picker.GetActor2D()
     if clickedActor2D:
@@ -802,45 +856,54 @@ def _mouseleft(vp, obj, event):
             if clickedActor2D == bt.actor:
                 bt.function()
                 break
-        
+
     clickedActorIsAssembly = False
-    if not clickedActor: 
+    if not clickedActor:
         clickedActor = picker.GetAssembly()
         clickedActorIsAssembly = True
     vp.picked3d = picker.GetPickPosition()
     vp.justremoved = None
 
     if vp.verbose:
-        if len(vp.renderers)>1 or clickedr>0 and vp.clickedr != clickedr:
-            print ('Current Renderer:', clickedr, end='')
-            print (', nr. of actors =', len(vp.getActors()))
-        
+        if len(vp.renderers) > 1 or clickedr > 0 and vp.clickedr != clickedr:
+            print('Current Renderer:', clickedr, end='')
+            print(', nr. of actors =', len(vp.getActors()))
+
         leg, oldleg = '', ''
-        if hasattr(clickedActor,'legend'): leg = clickedActor.legend
-        if hasattr(vp.clickedActor,'legend'): oldleg = vp.clickedActor.legend
-        #detect if clickin the same obj
-        if leg and isinstance(leg, str) and len(leg) and oldleg != leg: 
-            try: indx = str(vp.getActors().index(clickedActor))
-            except ValueError: indx = None                        
-            try: indx = str(vp.actors.index(clickedActor))
-            except ValueError: indx = None                        
-            try: 
+        if hasattr(clickedActor, 'legend'):
+            leg = clickedActor.legend
+        if hasattr(vp.clickedActor, 'legend'):
+            oldleg = vp.clickedActor.legend
+        # detect if clickin the same obj
+        if leg and isinstance(leg, str) and len(leg) and oldleg != leg:
+            try:
+                indx = str(vp.getActors().index(clickedActor))
+            except ValueError:
+                indx = None
+            try:
+                indx = str(vp.actors.index(clickedActor))
+            except ValueError:
+                indx = None
+            try:
                 rgb = list(clickedActor.GetProperty().GetColor())
                 cn = vc.getColorName(rgb)
                 cn = '('+cn+'),'
-            except: 
-                cn = ''                        
-            if indx and isinstance(clickedActor, vtk.vtkAssembly): 
-                vc.printc('-> assembly',indx+':',clickedActor.legend,cn, end=' ')
+            except:
+                cn = ''
+            if indx and isinstance(clickedActor, vtk.vtkAssembly):
+                vc.printc('-> assembly', indx+':',
+                          clickedActor.legend, cn, end=' ')
             elif indx:
                 vc.printc('-> actor', indx+':', leg, cn, dim=1, end=' ')
             if not clickedActorIsAssembly:
                 n = clickedActor.GetMapper().GetInput().GetNumberOfPoints()
             else:
-                n = vp.getActors(clickedActor)[0].GetMapper().GetInput().GetNumberOfPoints()
+                n = vp.getActors(clickedActor)[
+                    0].GetMapper().GetInput().GetNumberOfPoints()
             vc.printc('N='+str(n), dim=1, end='')
-            px,py,pz = vp.picked3d
-            px,py,pz = str(round(px,1)), str(round(py,1)), str(round(pz,1))
+            px, py, pz = vp.picked3d
+            px, py, pz = str(round(px, 1)), str(
+                round(py, 1)), str(round(pz, 1))
             vc.printc(', p=('+px+','+py+','+pz+')', dim=1)
 
     vp.clickedActor = clickedActor
@@ -852,15 +915,15 @@ def _mouseleft(vp, obj, event):
 
 def _mouseright(vp, obj, event):
 
-    x,y = vp.interactor.GetEventPosition()
-    
-    vp.renderer = obj.FindPokedRenderer(x,y)
+    x, y = vp.interactor.GetEventPosition()
+
+    vp.renderer = obj.FindPokedRenderer(x, y)
     vp.renderWin = obj.GetRenderWindow()
     clickedr = vp.renderers.index(vp.renderer)
     picker = vtk.vtkPropPicker()
-    picker.PickProp(x,y, vp.renderer)
+    picker.PickProp(x, y, vp.renderer)
     clickedActor = picker.GetActor()
-    
+
     # check if any button objects were created
     clickedActor2D = picker.GetActor2D()
     if clickedActor2D:
@@ -868,29 +931,29 @@ def _mouseright(vp, obj, event):
             if clickedActor2D == bt.actor:
                 bt.function()
                 break
-        
-    if not clickedActor: 
+
+    if not clickedActor:
         clickedActor = picker.GetAssembly()
     vp.picked3d = picker.GetPickPosition()
 
     vp.clickedActor = clickedActor
     vp.clickedRenderer = clickedr
-    
+
     if vp.mouseRightClickFunction:
         vp.mouseRightClickFunction(clickedActor)
 
 
 def _mousemiddle(vp, obj, event):
 
-    x,y = vp.interactor.GetEventPosition()
-    
-    vp.renderer = obj.FindPokedRenderer(x,y)
+    x, y = vp.interactor.GetEventPosition()
+
+    vp.renderer = obj.FindPokedRenderer(x, y)
     vp.renderWin = obj.GetRenderWindow()
     clickedr = vp.renderers.index(vp.renderer)
     picker = vtk.vtkPropPicker()
-    picker.PickProp(x,y, vp.renderer)
+    picker.PickProp(x, y, vp.renderer)
     clickedActor = picker.GetActor()
-    
+
     # check if any button objects were created
     clickedActor2D = picker.GetActor2D()
     if clickedActor2D:
@@ -898,21 +961,21 @@ def _mousemiddle(vp, obj, event):
             if clickedActor2D == bt.actor:
                 bt.function()
                 break
-        
-    if not clickedActor: 
+
+    if not clickedActor:
         clickedActor = picker.GetAssembly()
     vp.picked3d = picker.GetPickPosition()
 
     vp.clickedActor = clickedActor
     vp.clickedRenderer = clickedr
-    
+
     if vp.mouseMiddleClickFunction:
         vp.mouseMiddleClickFunction(vp.clickedActor)
 
 
-############################### keystroke event
+# keystroke event
 def _keypress(vp, obj, event):
-    
+
     key = obj.GetKeySym()
     #print ('Pressed key:', key, event)
 
@@ -921,8 +984,8 @@ def _keypress(vp, obj, event):
         return
 
     elif key == "e":
-        if vp.verbose: 
-            print ("closing window...")
+        if vp.verbose:
+            print("closing window...")
         vp.interactor.GetRenderWindow().Finalize()
         vp.interactor.TerminateApp()
         return
@@ -934,96 +997,108 @@ def _keypress(vp, obj, event):
         vp.interactor.GetRenderWindow().Finalize()
         vp.interactor.TerminateApp()
         sys.exit(0)
-        
+
     elif key == "m":
         if vp.clickedActor in vp.getActors():
             vp.clickedActor.GetProperty().SetOpacity(0.02)
             bfp = vp.clickedActor.GetBackfaceProperty()
-            if bfp: bfp.SetOpacity(0.02)
+            if bfp:
+                bfp.SetOpacity(0.02)
         else:
-            for a in vp.getActors(): 
+            for a in vp.getActors():
                 a.GetProperty().SetOpacity(0.02)
                 bfp = a.GetBackfaceProperty()
-                if bfp: bfp.SetOpacity(0.02)
+                if bfp:
+                    bfp.SetOpacity(0.02)
 
     elif key == "slash":
         if vp.clickedActor in vp.getActors():
-            vp.clickedActor.GetProperty().SetOpacity(1) 
+            vp.clickedActor.GetProperty().SetOpacity(1)
             bfp = vp.clickedActor.GetBackfaceProperty()
-            if bfp: bfp.SetOpacity(1)
+            if bfp:
+                bfp.SetOpacity(1)
         else:
-            for a in vp.getActors(): 
+            for a in vp.getActors():
                 a.GetProperty().SetOpacity(1)
                 bfp = a.GetBackfaceProperty()
-                if bfp: bfp.SetOpacity(1)
+                if bfp:
+                    bfp.SetOpacity(1)
 
     elif key == "comma":
         if vp.clickedActor in vp.getActors():
             ap = vp.clickedActor.GetProperty()
             ap.SetOpacity(max([ap.GetOpacity()*0.75, 0.01]))
             bfp = vp.clickedActor.GetBackfaceProperty()
-            if bfp: bfp.SetOpacity(ap.GetOpacity())
+            if bfp:
+                bfp.SetOpacity(ap.GetOpacity())
         else:
             for a in vp.getActors():
                 ap = a.GetProperty()
                 ap.SetOpacity(max([ap.GetOpacity()*0.75, 0.01]))
                 bfp = a.GetBackfaceProperty()
-                if bfp: bfp.SetOpacity(ap.GetOpacity())
+                if bfp:
+                    bfp.SetOpacity(ap.GetOpacity())
 
     elif key == "period":
         if vp.clickedActor in vp.getActors():
             ap = vp.clickedActor.GetProperty()
             ap.SetOpacity(min([ap.GetOpacity()*1.25, 1.0]))
             bfp = vp.clickedActor.GetBackfaceProperty()
-            if bfp: bfp.SetOpacity(ap.GetOpacity())
+            if bfp:
+                bfp.SetOpacity(ap.GetOpacity())
         else:
             for a in vp.getActors():
                 ap = a.GetProperty()
                 ap.SetOpacity(min([ap.GetOpacity()*1.25, 1.0]))
                 bfp = a.GetBackfaceProperty()
-                if bfp: bfp.SetOpacity(ap.GetOpacity())
+                if bfp:
+                    bfp.SetOpacity(ap.GetOpacity())
 
     elif key == "P":
-        if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
-        else: acts = vp.getActors()
+        if vp.clickedActor in vp.getActors():
+            acts = [vp.clickedActor]
+        else:
+            acts = vp.getActors()
         for ia in acts:
             try:
                 ps = ia.GetProperty().GetPointSize()
-                if ps>1:
+                if ps > 1:
                     ia.GetProperty().SetPointSize(ps-1)
                 ia.GetProperty().SetRepresentationToPoints()
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
     elif key == "p":
-        if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
-        else: acts = vp.getActors()
+        if vp.clickedActor in vp.getActors():
+            acts = [vp.clickedActor]
+        else:
+            acts = vp.getActors()
         for ia in acts:
             try:
                 ps = ia.GetProperty().GetPointSize()
                 ia.GetProperty().SetPointSize(ps+2)
                 ia.GetProperty().SetRepresentationToPoints()
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
     elif key == "w":
         if vp.clickedActor and vp.clickedActor in vp.getActors():
             vp.clickedActor.GetProperty().SetRepresentationToWireframe()
         else:
-            for a in vp.getActors(): 
-                if a: 
+            for a in vp.getActors():
+                if a:
                     a.GetProperty().SetRepresentationToWireframe()
 
     elif key == "r":
         vp.renderer.ResetCamera()
 
-
     ### now intercept custom observer ###########################
-    if vp.keyPressFunction: 
+    if vp.keyPressFunction:
         if key not in ['Shift_L', 'Control_L', 'Super_L', 'Alt_L']:
             if key not in ['Shift_R', 'Control_R', 'Super_R', 'Alt_R']:
                 vp.verbose = False
                 vp.keyPressFunction(key)
                 return
-
 
     if key == "S":
         vp.screenshot('screenshot.png')
@@ -1032,45 +1107,50 @@ def _keypress(vp, obj, event):
 
     elif key == "C":
         cam = vp.renderer.GetActiveCamera()
-        print ('\n### Example code to position this vtkCamera:')
-        print ('vp = vtkplotter.Plotter()\n...')
-        print ('vp.camera.SetPosition(',  [round(e,3) for e in cam.GetPosition()],  ')')
-        print ('vp.camera.SetFocalPoint(',[round(e,3) for e in cam.GetFocalPoint()],')')
-        print ('vp.camera.SetViewUp(',    [round(e,3) for e in cam.GetViewUp()],')')
-        print ('vp.camera.SetDistance(',   round(cam.GetDistance() ,3),')')
-        print ('vp.camera.SetClippingRange(', [round(e,3) for e in cam.GetClippingRange()],')')
+        print('\n### Example code to position this vtkCamera:')
+        print('vp = vtkplotter.Plotter()\n...')
+        print('vp.camera.SetPosition(',  [round(e, 3)
+                                          for e in cam.GetPosition()],  ')')
+        print('vp.camera.SetFocalPoint(', [round(e, 3)
+                                           for e in cam.GetFocalPoint()], ')')
+        print('vp.camera.SetViewUp(',    [round(e, 3)
+                                          for e in cam.GetViewUp()], ')')
+        print('vp.camera.SetDistance(',   round(cam.GetDistance(), 3), ')')
+        print('vp.camera.SetClippingRange(', [
+              round(e, 3) for e in cam.GetClippingRange()], ')')
         return
 
     elif key == "s":
         if vp.clickedActor and vp.clickedActor in vp.getActors():
             vp.clickedActor.GetProperty().SetRepresentationToSurface()
         else:
-            for a in vp.getActors(): 
-                if a: 
+            for a in vp.getActors():
+                if a:
                     a.GetProperty().SetRepresentationToSurface()
 
     elif key == "V":
-        if not(vp.verbose): vp._tips()
+        if not(vp.verbose):
+            vp._tips()
         vp.verbose = not(vp.verbose)
-        print ("Verbose: ", vp.verbose)
+        print("Verbose: ", vp.verbose)
 
     elif key in ["1", "KP_End", "KP_1"]:
-        if vp.clickedActor and hasattr(vp.clickedActor,'GetProperty'):
-            vp.clickedActor.GetProperty().SetColor(vc.colors1[(vp.icol)%10])
+        if vp.clickedActor and hasattr(vp.clickedActor, 'GetProperty'):
+            vp.clickedActor.GetProperty().SetColor(vc.colors1[(vp.icol) % 10])
         else:
-            for i,ia in enumerate(vp.getActors()):
+            for i, ia in enumerate(vp.getActors()):
                 ia.GetProperty().SetColor(
-                        vc.colors1[(i+vp.icol)%10])
+                    vc.colors1[(i+vp.icol) % 10])
                 ia.GetMapper().ScalarVisibilityOff()
         vp.icol += 1
         vp._draw_legend()
 
     elif key in ["2", "KP_Down", "KP_2"]:
-        if vp.clickedActor and hasattr(vp.clickedActor,'GetProperty'):
-            vp.clickedActor.GetProperty().SetColor(vc.colors2[(vp.icol)%10])
+        if vp.clickedActor and hasattr(vp.clickedActor, 'GetProperty'):
+            vp.clickedActor.GetProperty().SetColor(vc.colors2[(vp.icol) % 10])
         else:
-            for i,ia in enumerate(vp.getActors()):
-                ia.GetProperty().SetColor(vc.colors2[(i+vp.icol)%10])
+            for i, ia in enumerate(vp.getActors()):
+                ia.GetProperty().SetColor(vc.colors2[(i+vp.icol) % 10])
                 ia.GetMapper().ScalarVisibilityOff()
         vp.icol += 1
         vp._draw_legend()
@@ -1096,52 +1176,61 @@ def _keypress(vp, obj, event):
             arrtypes[vtk.VTK_UNSIGNED_INT] = 'VTK_UNSIGNED_INT'
             arrtypes[vtk.VTK_FLOAT] = 'VTK_FLOAT'
             arrtypes[vtk.VTK_DOUBLE] = 'VTK_DOUBLE'
-            foundarr=0
+            foundarr = 0
 
             if key == 'k':
                 for i in range(ptdata.GetNumberOfArrays()):
                     name = ptdata.GetArrayName(i)
-                    if name == 'Normals': continue
+                    if name == 'Normals':
+                        continue
                     ptdata.SetActiveScalars(name)
-                    foundarr=1
+                    foundarr = 1
                 if not foundarr:
                     print('No vtkArray is associated to points', end='')
                     if hasattr(a, 'legend'):
                         print(' for actor:', a.legend)
-                    else: print()
+                    else:
+                        print()
 
             if key == 'K':
                 for i in range(cldata.GetNumberOfArrays()):
                     name = cldata.GetArrayName(i)
-                    if name == 'Normals': continue
+                    if name == 'Normals':
+                        continue
                     cldata.SetActiveScalars(name)
-                    foundarr=1
+                    foundarr = 1
                 if not foundarr:
                     print('No vtkArray is associated to cells', end='')
                     if hasattr(a, 'legend'):
                         print(' for actor:', a.legend)
-                    else: print()
-                    
+                    else:
+                        print()
+
             a.GetMapper().ScalarVisibilityOn()
 
     elif key == "L":
-        if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
-        else: acts = vp.getActors()
+        if vp.clickedActor in vp.getActors():
+            acts = [vp.clickedActor]
+        else:
+            acts = vp.getActors()
         for ia in acts:
             try:
                 ia.GetProperty().SetRepresentationToSurface()
                 ls = ia.GetProperty().GetLineWidth()
-                if ls<=1: 
-                    ls=1
+                if ls <= 1:
+                    ls = 1
                     ia.GetProperty().EdgeVisibilityOff()
-                else: 
+                else:
                     ia.GetProperty().EdgeVisibilityOn()
                     ia.GetProperty().SetLineWidth(ls-1)
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
     elif key == "l":
-        if vp.clickedActor in vp.getActors(): acts=[vp.clickedActor]
-        else: acts = vp.getActors()
+        if vp.clickedActor in vp.getActors():
+            acts = [vp.clickedActor]
+        else:
+            acts = vp.getActors()
         for ia in acts:
             try:
                 ia.GetProperty().EdgeVisibilityOn()
@@ -1149,36 +1238,39 @@ def _keypress(vp, obj, event):
                 ia.GetProperty().SetEdgeColor(c)
                 ls = ia.GetProperty().GetLineWidth()
                 ia.GetProperty().SetLineWidth(ls+1)
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
-    elif key == "n": # show normals to an actor
-        if vp.clickedActor in vp.getActors(): 
-            acts=[vp.clickedActor]
-        else: 
+    elif key == "n":  # show normals to an actor
+        if vp.clickedActor in vp.getActors():
+            acts = [vp.clickedActor]
+        else:
             acts = vp.getActors()
         for ia in acts:
             alpha = ia.GetProperty().GetOpacity()
             c = ia.GetProperty().GetColor()
             a = vp.normals(ia, ratio=1, c=c, alpha=alpha)
-            vp.actors.pop() #remove from list
+            vp.actors.pop()  # remove from list
             try:
                 i = vp.actors.index(ia)
                 vp.actors[i] = a
                 vp.renderer.RemoveActor(ia)
                 vp.interactor.Render()
-            except ValueError: pass
+            except ValueError:
+                pass
             vp.render(a)
 
     elif key == "x":
-        if vp.justremoved is None:                    
+        if vp.justremoved is None:
             if vp.clickedActor in vp.getActors() or isinstance(vp.clickedActor, vtk.vtkAssembly):
                 vp.justremoved = vp.clickedActor
                 vp.renderer.RemoveActor(vp.clickedActor)
             if hasattr(vp.clickedActor, 'legend') and vp.clickedActor.legend:
-                vc.printc('...removing actor: '+ str(vp.clickedActor.legend)+', press x to put it back')
-            else: 
+                vc.printc('...removing actor: ' +
+                          str(vp.clickedActor.legend)+', press x to put it back')
+            else:
                 if vp.verbose:
-                    vc.printc('Click an actor and press x to toggle it.',c=5)
+                    vc.printc('Click an actor and press x to toggle it.', c=5)
         else:
             vp.renderer.AddActor(vp.justremoved)
             vp.renderer.Render()
@@ -1207,13 +1299,13 @@ def _keypress(vp, obj, event):
                 vc.printc("  -> Saved file:", fname, c='m')
                 vp.cutterWidget.Off()
                 vp.cutterWidget = None
-            
-        else: 
-            vc.printc('Click an actor and press X to open the cutter box widget.',c=4)
 
-    elif key =='i': ### print info
-          vu.printInfo(vp.clickedActor)
-          
+        else:
+            vc.printc(
+                'Click an actor and press X to open the cutter box widget.', c=4)
 
-    if vp.interactor: 
+    elif key == 'i':  # print info
+        vu.printInfo(vp.clickedActor)
+
+    if vp.interactor:
         vp.interactor.Render()

@@ -1,24 +1,29 @@
-#!/usr/bin/env python
-#
 # Align 2 shapes and for each vertex of the first draw
 # and arrow to the closest point of the second.
-# The corresponding transformation is saved in actor.transform
-import vtkplotter
+# The source transformation is saved in actor.transform
+#  rigid=True doesn't allow scaling
+#
+from __future__ import print_function
+from vtkplotter import Plotter, printc, mag2
+from vtkplotter.analysis import align
 
-vp = vtkplotter.Plotter()
-a1, a2 = vp.load('data/2[79]0.vtk', alpha=.5) # load 2 files and assign to a1, a2
+vp = Plotter(verbose=0, axes=4)
 
-# the usual vtk way to assign a property is always available
-# (..though it's easier to set c='g' in the command above!)
-a1.GetProperty().SetColor(0,1,0) 
+limb = vp.load('data/270.vtk', alpha=0.3)
+rim  = vp.load('data/270_rim.vtk')
+rim.color('r').lineWidth(4)
 
-# align a1 to a2, store the new actor in a1b
-a1b = vp.align(a1, a2) 
-#print('transformation matrix:', a1b.transform)
+arim = align(rim, limb, iters=100, rigid=True)
+arim.color('g').lineWidth(4)
+vp.actors.append(arim)
 
-ps1b = a1b.coordinates() # coordinates of actor a1b
-# for each point in a1b draw an arrow towards the closest point on a2
-for p in ps1b: 
-    vp.arrow(p, a2.closestPoint(p), s=0.3)
+d = 0
+prim = arim.coordinates()
+for p in prim: 
+    cpt = limb.closestPoint(p)
+    vp.arrow(p, cpt, c='g')
+    d += mag2(p-cpt) # square of residual distance
 
-vp.show(legend=['Source','Target','Aligned','Links'])
+printc('ave. squared distance =', d/len(prim), c='g')
+
+vp.show()

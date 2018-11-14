@@ -9,7 +9,9 @@
 # 
 from __future__ import division, print_function
 from vtkplotter import Plotter
+from vtkplotter.analysis import recoSurface
 from vtkplotter.utils import clean
+from vtkplotter.analysis import smoothMLS2D
 import numpy as np
 
 
@@ -24,7 +26,7 @@ act_pts0 = vp.points(act.coordinates()+noise, r=3) #add noise
 act_pts1 = act_pts0.clone()   #make a copy to modify
 vp.show(act_pts0, at=1, legend='noisy cloud')
 
-vp.smoothMLS2D(act_pts1, f=0.4) #smooth cloud
+smoothMLS2D(act_pts1, f=0.4)  #smooth cloud, input actor is modified 
 
 print('Nr of points before cleaning polydata:', act_pts1.N())
 clean(act_pts1, tol=0.01) #impose a min distance among mesh points
@@ -32,7 +34,7 @@ print('             after  cleaning polydata:', act_pts1.N())
 
 vp.show(act_pts1, at=2, legend='smooth cloud')
 
-act_reco = vp.recoSurface(act_pts1, bins=128) #reconstructed from points
+act_reco = recoSurface(act_pts1, bins=128) #reconstructed from points
 vp.show(act_reco, at=3, ruler=1, interactive=1, legend='surf reco')
 
 

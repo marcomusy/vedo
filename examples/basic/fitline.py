@@ -6,11 +6,12 @@
 # also show the first set of 20 points and fit a plane to them
 #
 from __future__ import division, print_function
-import vtkplotter
 import numpy as np
+from vtkplotter import Plotter
+from vtkplotter.analysis import fitLine, fitPlane
 
 # declare the class instance
-vp = vtkplotter.Plotter(verbose=0, title='linear fitting')
+vp = Plotter(verbose=0, title='linear fitting')
 
 # draw 500 fit lines superimposed and very transparent
 for i in range(500): 
@@ -21,15 +22,17 @@ for i in range(500):
     data = np.array(list(zip(x,y,z)))
     data+= np.random.normal(size=data.shape)*0.8 # add gauss noise
     
-    l = vp.fitLine(data, lw=4, alpha=0.03) # fit a line
+    l = fitLine(data, lw=4, alpha=0.03) # fit a line
+    vp.actors.append(l)
 
 # 'data' still contains the last iteration points
 vp.points(data, r=10, c='red', legend='random points')
 
-# the last fitted slope direction is stored in actor.slope and actor.normal
-print('Line Fit slope = ', l.slope) 
+# the first fitted slope direction is stored in actor.slope and actor.normal
+print('Line Fit slope = ', vp.actors[0].slope) 
 
-plane = vp.fitPlane(data, legend='fitting plane') # fit a plane
+plane = fitPlane(data, legend='fitting plane') # fit a plane
+vp.actors.append(plane)
 print('Plan Fit normal=', plane.normal) 
 
 vp.show()

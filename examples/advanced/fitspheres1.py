@@ -9,6 +9,7 @@
 
 from __future__ import division, print_function
 import vtkplotter
+from vtkplotter.analysis import fitSphere
 
 vp = vtkplotter.Plotter(verbose=0)
 
@@ -19,8 +20,10 @@ reds, invr = [], []
 for i, p in enumerate(s.coordinates()):
     if i%1000: continue           # skip most points
     pts = s.closestPoint(p, N=16) # find the N closest points to p
-    sph = vp.fitSphere(pts, alpha=0.05) # find the fitting sphere
-    if sph is None: continue # may fail if all points sit on a plane
+    sph = fitSphere(pts, alpha=0.05) # find the fitting sphere
+    if sph is None: 
+    	continue # may fail if all points sit on a plane
+    vp.actors.append(sph)
     vp.points(pts)
     vp.line(sph.center, p, lw=2)
     reds.append(sph.residue)

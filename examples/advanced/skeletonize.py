@@ -2,6 +2,7 @@
 #
 from __future__ import division, print_function
 from vtkplotter import Plotter
+from vtkplotter.analysis import smoothMLS1D
 
 N=10  # nr of iterations
 f=0.1 # fraction of neighbours 
@@ -18,7 +19,7 @@ a = vp.points(pts)
 for i in range(N):
     vp.show(a, at=i, legend='iter #'+str(i))
     a = a.clone().color(i)
-    vp.smoothMLS1D(a, f)
+    smoothMLS1D(a, f)
     
 vp.show(interactive=1)
 

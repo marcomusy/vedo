@@ -1,5 +1,6 @@
 ########################################### imports
 from vtkplotter import Plotter
+from vtkplotter.analysis import boundaries
 try:
 	# Credits:
 	# https://github.com/MarcoAttene/MeshFix-V2.1
@@ -23,10 +24,10 @@ tm.SaveFile(ouputmesh)
 vp = Plotter(shape=(2,1))
 
 act_original = vp.load(inputmesh)
-bo = vp.boundaries(act_original)
+bo = boundaries(act_original)
 
 act_repaired = vp.load(ouputmesh)
-br = vp.boundaries(act_repaired)
+br = boundaries(act_repaired)
 
 vp.show([act_original, bo], at=0)
 vp.show([act_repaired, br], at=1, interactive=1)
