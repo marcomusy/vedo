@@ -5,4 +5,5 @@ include examples/advanced/*
 include examples/data/*
 include examples/data/images/*
 include examples/data/shapes/*
+include examples/data/timecourse/*
 include bin/*
