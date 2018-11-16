@@ -1,29 +1,31 @@
-# Load a whole directory of 2D shapes
-# Make a cloud of points, add noise and smooth it with 
-# Moving Least Squares (smoothMLS3D).
+# Generate a time sequence of 3D shapes (from a sphere to a tetrahedron)
+# as noisy cloud points, and smooth it with Moving Least Squares (smoothMLS3D).
 # This make a simultaneus fit in 4D (space+time).
-# smoothMLS3D returns a vtkAssembly where points are code colored
+# smoothMLS3D method returns a vtkActor where points are color coded
 # in bins of fitted time. 
-# The nr of time slices is specified by N.
-# The natural pread of the data is estimated by dx and dt.
-# A min nr of neighbours in the local fitting can be imposed,
-#  if condition is not met the point is discarded.
-# Artificial gaussian noise is added for the purpose of testing.
+# Data itself can suggest a meaningful time separation based on the spatial 
+# distribution of points.
+# The nr neighbours in the local 4D fitting must be specified.
 # 
+import numpy as np
 from vtkplotter import Plotter
+from vtkplotter.shapes import sphere
 from vtkplotter.analysis import smoothMLS3D
 
 
-vp = Plotter()
+vp = Plotter(N=2, axes=0)
 
-acts = vp.load('data/timecourse/reference_28*', legend=0)
+# generate uniform points on sphere (tol separates points by 2% of actor size)
+cc = sphere(res=200).clean(tol=0.02).coordinates() 
 
-for i,a in enumerate(acts): 
-    a.pos([0,0,i*.1]).lineWidth(3).color(i).alpha(0.5)
+a, b, noise = .2, .4, .1 # some random warping paramenters, and noise factor
+for i in range(5):       # generate a time sequence of 5 shapes
+    cs = cc + a * i * cc**2 + b * i * cc**3  # warp sphere in weird ways
+    # set absolute time of points actor, and add 1% noise on positions
+    vp.points(cs, c=i, alpha=0.5).gaussNoise(1.0).time(0.2*i)
+    vp.show(at=0, zoom=1.4)                  # show input clouds as func(time)
+    
+asse = smoothMLS3D(vp.actors, neighbours=50)
 
-pts4d, lost = smoothMLS3D(acts, dx=0.1, dt=0.1, neighbours=5,
-                    	  N=10, addnoise=0.2)
-
-vp.show(acts+[pts4d, lost])
-
-
+vp.addScalarBar3D(asse, at=1, pos=(-2,0,-1)) # color indicates fitted time
+vp.show(asse, at=1, zoom=1.4, axes=4, interactive=1)

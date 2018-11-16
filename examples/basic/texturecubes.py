@@ -1,7 +1,6 @@
 # Show a cube for each available texture name
 # any jpg file can be used as texture.
 #
-import os
 from vtkplotter import Plotter
 from vtkplotter.utils import textures, textures_path
 

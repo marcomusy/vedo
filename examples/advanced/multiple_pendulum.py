@@ -35,14 +35,12 @@ for k in range(N):
     p0 = bob[k].pos()
     p1 = bob[k+1].pos()
     link[k] = vp.helix(p0, p1, thickness=.015, r=R/3, c='gray')
-printc('\nPress q to start simulation', c='green')
-vp.show()
 
 # Create some auxiliary variables
 x_dot_m = [0]*(N+1)
 y_dot_m = [0]*(N+1)
-dij   = [0]*(N+1)  # array with distances to previous bob
-dij_m = [0]*(N+1)
+dij     = [0]*(N+1)  # array with distances to previous bob
+dij_m   = [0]*(N+1)
 for k in range(1, N+1):
     dij[k] = mag([bob_x[k]-bob_x[k-1], bob_y[k]-bob_y[k-1]])
 
@@ -51,8 +49,9 @@ Dt *= np.sqrt(1/g)
 Dt2 = Dt/2  # Midpoint time step
 DiaSq = (2*R)**2  # Diameter of bob squared
 
-printc('\nHit Ctrl-C to exit.', c='red')
-while True:  # The main loop
+
+def loop(*event): ##################################################################
+    global bob_x, x_dot, bob_y, y_dot
 
     # Compute the midpoint variables
     bob_x_m = list(map((lambda x, dx: x+Dt2*dx), bob_x, x_dot)) # midpoint variables
@@ -108,5 +107,8 @@ while True:  # The main loop
         bob[k].pos([bob_x[k], bob_y[k], 0])
         link[k-1].stretch(bob[k-1].pos(), bob[k].pos())
 
-    vp.render(resetcam=True)
-    vp.camera.Azimuth(0.2) # move camera a bit
+    vp.render(resetcam=True) # show() would cause exiting the loop
+    vp.camera.Azimuth(0.1)   # move camera a bit
+
+printc('Press q to exit.', c='red')
+vp.show(execute=loop)

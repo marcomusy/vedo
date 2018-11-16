@@ -2,11 +2,10 @@
 # or point of an actor's mesh. 
 # Last example shows the usage of addScalarBar3D().
 # Needs matplotlib.
-from __future__ import division, print_function
-import vtkplotter
+from vtkplotter import Plotter
 
 
-vp = vtkplotter.Plotter(shape=(1,3), axes=1, size='fullscreen')
+vp = Plotter(shape=(1,3), axes=1, size='fullscreen')
 
 
 #####################################
@@ -39,6 +38,6 @@ txt = vp.text('floor temperature is 35C', s=.1).rotateZ(90).pos([1,-.9,-1.7])
 vp.show([txt, man3], at=2, legend=['','setCellColors'], axes=0)
 
 # add a fancier 3D scalar bar
-vp.addScalarBar3D(man3, pos=(-1,0,-1.7), cmap='afmhot')
+vp.addScalarBar3D(man3, at=2, pos=(-1,0,-1.7), cmap='afmhot')
 
 vp.show(interactive=1, zoom=1.4)

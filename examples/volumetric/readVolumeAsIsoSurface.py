@@ -18,21 +18,22 @@
 # - If the spacing of the tiff stack is uneven in xyz, this can be 
 # corrected by setting scaling factors with scaling=[xfac,yfac,zfac]
 
-import vtkplotter
+from vtkplotter import Plotter, load
 
 # Read volume data from a tif file:
 f = 'data/embryo.tif'
 
-vp = vtkplotter.Plotter(shape=(1,3))
-a0= vp.load(f, bc='v', threshold=80, connectivity=1, legend='connectivity=True')
-a1= vp.load(f, bc='v', threshold=80, connectivity=0, legend='connectivity=False')
-a2= vp.load(f, bc='v', smoothing=2, legend='thres=automatic\nsmoothing=2')
+vp = Plotter(shape=(1,3))
+a0 = load(f, bc='v', threshold=80, connectivity=1, legend='connectivity=True')
+a1 = load(f, bc='v', threshold=80, connectivity=0, legend='connectivity=False')
+a2 = load(f, bc='v', smoothing=2, legend='thres=automatic\nsmoothing=2')
 
 vp.show(a0, at=0)
 vp.show(a1, at=1)
 vp.show(a2, at=2)
 
-# Can also read SLC files:
-vp2= vtkplotter.Plotter(pos=(300,300))
+# Can also read SLC files 
+#(NB: vp2.load instead of load. This appends the new actor in vp2.actors):
+vp2= Plotter(pos=(300,300))
 vp2.load('data/embryo.slc', c='g', bc='v', smoothing=1, connectivity=1)
 vp2.show()

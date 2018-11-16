@@ -236,6 +236,8 @@ def makeAssembly(actors, legend=None):
     [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
     [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py)    
     '''
+    if len(actors) == 0:
+        return None
     assembly = vtk.vtkAssembly()
     for a in actors:
         assembly.AddPart(a)
@@ -248,8 +250,22 @@ def makeAssembly(actors, legend=None):
     return assembly
 
 
+def getActors(assembly):
+    '''Unpack a list of vtkActor objects from a vtkAssembly'''
+    cl = vtk.vtkPropCollection()
+    assembly.GetActors(cl)
+    actors = []
+    cl.InitTraversal()
+    for i in range(assembly.GetNumberOfPaths()):
+        act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
+        if isinstance(act, vtk.vtkCubeAxesActor):
+            continue
+        actors.append(act)
+    return actors
+        
+        
 def makeVolume(img, c=(0, 0, 0.6), alphas=[0, 0.4, 0.9, 1]):
-    '''Make a volume actor'''
+    '''Make a vtkVolume actor'''
 
     volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
     volumeMapper.SetBlendModeToMaximumIntensity()
@@ -1206,18 +1222,34 @@ def cellColors(actor, scalars, cmap='jet', alpha=1):
     actor.GetMapper().ScalarVisibilityOn()
 
 
-def scalars(actor, name):
+def scalars(actor, name=None):
     """
     Retrieve point or cell scalars using array name or index number.
+    If no name is given return the list of names of existing arrays.
 
     [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
     """
     poly = polydata(actor, False)
+
+    if name is None:
+        ncd = poly.GetCellData().GetNumberOfArrays()
+        npd = poly.GetPointData().GetNumberOfArrays()
+        arrs=[]
+        for i in range(npd):
+            arrs.append(poly.GetPointData().GetArrayName(i))
+        for i in range(ncd):
+            arrs.append(poly.GetCellData().GetArrayName(i))
+        return arrs
+
     arr = poly.GetPointData().GetArray(name)
     if arr:
+        if isinstance(name, int): 
+            name = poly.GetPointData().GetArrayName(name)
         poly.GetPointData().SetActiveScalars(name)
         return vtk_to_numpy(arr)
     else:
+        if isinstance(name, int): 
+            name = poly.GetCellData().GetArrayName(name)
         arr = poly.GetCellData().GetArray(name)
         if arr:
             poly.GetCellData().SetActiveScalars(name)
@@ -1332,6 +1364,22 @@ def decimate(actor, fraction=0.5, N=None, verbose=True, boundaries=True):
     return actor  # return same obj for concatenation
 
 
+def gaussNoise(actor, sigma):
+    '''
+    Add gaussian noise in percent of the diagonal size of actor.
+    '''
+    sz = diagonalSize(actor)
+    pts = coordinates(actor)
+    n = len(pts)
+    ns = np.random.randn(n, 3)*sigma*sz/100
+    vpts = vtk.vtkPoints()
+    vpts.SetNumberOfPoints(n)
+    vpts.SetData(numpy_to_vtk(pts+ns))
+    actor.GetMapper().GetInput().SetPoints(vpts)
+    actor.GetMapper().GetInput().GetPoints().Modified()
+    return actor
+    
+    
 def printInfo(obj):
     '''Print information about a vtkActor or vtkAssembly.'''
 
@@ -1500,7 +1548,7 @@ def add_actor(f):
 
 # ###########################################################################
 def assignConvenienceMethods(actor, legend):
-    '''for internal use.'''
+    '''Set convenience methods to vtkActor object.'''
     if not hasattr(actor, 'legend'):
         setattr(actor, 'legend', legend)
 
@@ -1615,6 +1663,10 @@ def assignConvenienceMethods(actor, legend):
         return intersectWithLine(self, p0, p1)
     actor.intersectWithLine = types.MethodType(_fintersectWithLine, actor)
 
+    def _fclean(self, tol=None):
+        return clean(self, tol)
+    actor.clean = types.MethodType(_fclean, actor)
+
     def _fisInside(self, point, tol=0.0001):
         return isInside(self, point, tol)
     actor.isInside = types.MethodType(_fisInside, actor)
@@ -1643,7 +1695,7 @@ def assignConvenienceMethods(actor, legend):
         return cellColors(self, scalars, cmap, alpha)
     actor.cellColors = types.MethodType(_fcellColors, actor)
 
-    def _fscalars(self, name):
+    def _fscalars(self, name=None):
         return scalars(self, name)
     actor.scalars = types.MethodType(_fscalars, actor)
 
@@ -1667,10 +1719,8 @@ def assignConvenienceMethods(actor, legend):
     actor.lineWidth = types.MethodType(_flineWidth, actor)
 
 # ###########################################################################
-
-
 def assignPhysicsMethods(actor):
-    '''for internal use.'''
+    '''Set convenient physics methods to vtkActor object.'''
 
     def _fpos(self, p=None):
         if p is None:
@@ -1679,10 +1729,10 @@ def assignPhysicsMethods(actor):
         return self  # return itself to concatenate methods
     actor.pos = types.MethodType(_fpos, actor)
 
-    def _faddpos(self, dp):
+    def _faddPos(self, dp):
         self.SetPosition(np.array(self.GetPosition()) + dp)
         return self
-    actor.addpos = types.MethodType(_faddpos, actor)
+    actor.addPos = types.MethodType(_faddPos, actor)
 
     def _fpx(self, px=None):               # X
         _pos = self.GetPosition()
@@ -1710,6 +1760,15 @@ def assignPhysicsMethods(actor):
         self.SetPosition(newp)
         return self
     actor.z = types.MethodType(_fpz, actor)
+
+    if not hasattr(actor, '_time'):
+        setattr(actor, '_time', 0.0)
+    def _ftime(self, t=None):
+        if t is None:
+            return self._time
+        self._time = t
+        return self  # return itself to concatenate methods
+    actor.time = types.MethodType(_ftime, actor)
 
     def _fscale(self, p=None):
         if p is None:
@@ -1757,3 +1816,18 @@ def assignPhysicsMethods(actor):
 
     def _fdiagonalSize(self): return diagonalSize(self)
     actor.diagonalSize = types.MethodType(_fdiagonalSize, actor)
+
+    def _fgaussNoise(self, sigma): return gaussNoise(self, sigma)
+    actor.gaussNoise = types.MethodType(_fgaussNoise, actor)
+
+
+
+
+
+
+
+
+
+
+
+

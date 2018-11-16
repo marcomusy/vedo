@@ -7,11 +7,8 @@
 from __future__ import division, print_function
 from vtkplotter import Plotter, vector, mag, mag2
 from vtkplotter.utils import closestPoint
-try:
-    import scipy.optimize as opt
-except:
-    print('This example needs scipy to run.')
-    exit()
+import scipy.optimize as opt
+
 
 vp = Plotter(shape=[1,3], interactive=0)
 

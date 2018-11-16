@@ -3,11 +3,10 @@
 # or different radius. Resolution (res) can be specified.
 # (vtk versions<8.0 might be slow)
 #
-from __future__ import division, print_function
 from vtkplotter import Plotter
 from random import gauss
 
-N=100000
+N = 100000
 
 vp = Plotter(N=2, axes=3, interactive=0)
 

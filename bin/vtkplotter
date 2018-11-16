@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
 from __future__ import division, print_function
 from vtkplotter import Plotter, ProgressBar, printc, __version__
@@ -33,7 +33,6 @@ args = pr.parse_args()
 humansort(args.files)
 nfiles = len(args.files)
 if nfiles == 0: sys.exit()
-title = 'vtkplotter '+__version__
 
 wsize = 'auto'
 if args.full_screen: 
@@ -47,11 +46,11 @@ if args.sequence_mode:
         printc("\nWarning: option '-n' allows a maximum of 200 files", c=1)
         printc("         you are trying to load ", nfiles, " files.\n", c=1)
         N = 200
-    vp = Plotter(title=title, size=wsize, N=N, bg=args.background)
+    vp = Plotter(size=wsize, N=N, bg=args.background)
     vp.axes = 4 #triad
 else:
    N = nfiles
-   vp = Plotter(title=title, size=wsize, bg=args.background)
+   vp = Plotter(size=wsize, bg=args.background)
    vp.axes = args.axes_type
    
 vp.verbose = not args.quiet

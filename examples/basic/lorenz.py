@@ -2,8 +2,7 @@ from __future__ import division, print_function
 from vtkplotter import Plotter, mag
 import numpy as np
 
-scene = Plotter(title='Lorenz attractor', axes=2)
-scene.verbose = 0
+scene = Plotter(title='Lorenz attractor', axes=2, verbose = 0)
 
 dt = 0.001
 y = [25, -10, -7] # Starting point (initial condition)

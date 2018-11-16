@@ -9,9 +9,8 @@
 # 
 from __future__ import division, print_function
 from vtkplotter import Plotter
-from vtkplotter.analysis import recoSurface
+from vtkplotter.analysis import recoSurface, smoothMLS2D
 from vtkplotter.utils import clean
-from vtkplotter.analysis import smoothMLS2D
 import numpy as np
 
 

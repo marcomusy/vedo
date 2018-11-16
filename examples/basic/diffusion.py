@@ -13,10 +13,8 @@ for i in range(N):              # generate a grid of points
         for k in range(N):
             p = [i/N, j/N, k/N]
             scene.point(p, c=p) # color point by its own position
-printc('Scene is ready, press q to continue', c='green')
-scene.show()
 
-pb = ProgressBar(0,100, c='red')
+pb = ProgressBar(0, 80, c='red')
 for t in pb.range():            # loop of 400 steps
     pb.print()   
     

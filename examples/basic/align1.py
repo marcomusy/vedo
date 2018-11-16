@@ -3,7 +3,6 @@
 # The source transformation is saved in actor.transform
 #  rigid=True doesn't allow scaling
 #
-from __future__ import print_function
 from vtkplotter import Plotter, printc, mag2
 from vtkplotter.analysis import align
 

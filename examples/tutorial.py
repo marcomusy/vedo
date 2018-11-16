@@ -113,19 +113,6 @@ pts2 = vp.points(coords2, r=1, legend='#points = '+str(len(coords2)))
 vp.show([a2, pts2], at=1, interactive=True)
 
 
-#########################################################################################
-# Load a surface and show its curvature based on 4 different schemes.
-# All four shapes share a common vtkCamera:
-# 0-gaussian, 1-mean, 2-max, 3-min
-from vtkplotter.analysis import curvature
-vp = Plotter(shape=(1,4), title='surface curvature', axes=0)
-v = vp.load('data/290.vtk')
-for i in [0,1,2,3]:
-    c = curvature(v, method=i, r=1, alpha=0.8)
-    vp.show(c, at=i, legend='method #'+str(i+1))
-vp.show(interactive=1)
-
-
 ########################################################################################
 # Draw a bunch of simple objects on separate parts of the rendering window:
 # split window to best accomodate 9 renderers

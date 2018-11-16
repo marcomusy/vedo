@@ -5,10 +5,10 @@
 #
 from __future__ import division, print_function
 from random import uniform as u
-import vtkplotter
+from vtkplotter import Plotter
 from vtkplotter.analysis import align
 
-vp = vtkplotter.Plotter(shape=[1,2], verbose=0, axes=2)
+vp = Plotter(shape=[1,2], verbose=0, axes=2)
 
 N1 = 15  # number of points of first set
 N2 = 10  # number of points of second set

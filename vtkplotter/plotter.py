@@ -918,7 +918,7 @@ class Plotter:
         self.render()
         return sb
 
-    def addScalarBar3D(self, obj=None, pos=[0, 0, 0], normal=[0, 0, 1], sx=.1, sy=2,
+    def addScalarBar3D(self, obj=None, at=0, pos=[0, 0, 0], normal=[0, 0, 1], sx=.1, sy=2,
                        nlabels=9, ncols=256, cmap='jet', c='k', alpha=1):
         '''
         Draw a 3D scalar bar.
@@ -981,9 +981,9 @@ class Plotter:
         sact.SetPosition(pos)
         utils.assignConvenienceMethods(sact, None)
         utils.assignPhysicsMethods(sact)
-        if not self.renderer:
+        if not self.renderers[at]:
             self.render()
-        self.renderer.AddActor(sact)
+        self.renderers[at].AddActor(sact)
         self.render()
         return sact
 

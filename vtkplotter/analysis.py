@@ -684,70 +684,65 @@ def smoothWSinc(actor, niter=15, passBand=0.1, edgeAngle=15, featureAngle=60):
     return align(smoothFilter.GetOutput(), poly)
 
 
-def smoothMLS3D(actors, dx=0.2, dt=0.2, neighbours=5, N=10, addnoise=0.02, showLost=False):
+def smoothMLS3D(actors, neighbours=10):
     '''
-    A time sequence of actors is being smoothed in 4D using MLS.
+    A time sequence of actors is being smoothed in 4D 
+    using a MLS (Moving Least Squares) variant.
+    Time assciated to an actor must be specified in advance with actor.time(t).
+    Data itself can suggest a meaningful time separation based on the spatial 
+    distribution of points.
+    
+    neighbours, fixed nr of neighbours in space-time to take into account in fit.
     '''
-    t = 0
-    coords4d = [] 
+    from scipy.spatial import KDTree
+    
+    coords4d = []
     for a in actors: # build the list of 4d coordinates
         coords3d = vu.coordinates(a)    
         n = len(coords3d) 
-        times=[]
-        if addnoise: # add artificial noise,
-            for i in range(n):
-                times.append([t+ np.random.randn()*addnoise*dt])
-        else:
-            times = [[t]]*n        
-        coords4d += np.append(coords3d, times, axis=1).tolist()
-        t += dt
+        pttimes = [[a.time()]]*n        
+        coords4d += np.append(coords3d, pttimes, axis=1).tolist()
+        
+    avedt = float(actors[-1].time()-actors[0].time())/len(actors)
+    print("Average time separation between actors dt =", round(avedt, 3))        
     
     coords4d = np.array(coords4d)
-    newcoords4d, lostpoints = [], []
-    dr = np.sqrt(3*dx**2+dt**2)
+    newcoords4d = []
+    kd = KDTree(coords4d, leafsize=neighbours)
+    suggest=''
     
     pb = vio.ProgressBar(0, len(coords4d))
     for i in pb.range():
         mypt = coords4d[i]
         
-        closest = [] # find closest points (slow..)
-        for p in coords4d:
-            d = np.linalg.norm(p-mypt)
-            if d < dr and d > 0: closest.append(p)
+        #dr = np.sqrt(3*dx**2+dt**2)
+        #iclosest = kd.query_ball_point(mypt, r=dr)
+        #dists, iclosest = kd.query(mypt, k=None, distance_upper_bound=dr)
+        dists, iclosest = kd.query(mypt, k=neighbours)
+        closest = coords4d[iclosest]
         
         nc = len(closest)
-        if nc > neighbours:
-            m = np.linalg.lstsq(closest, [1]*nc, rcond=None)[0]
+        if nc >= neighbours and nc > 5:
+            m = np.linalg.lstsq(closest, [1.]*nc, rcond=None)[0]
             vers = m/np.linalg.norm(m)
             hpcenter = np.mean(closest, axis=0)  # hyperplane center
-        
             dist = np.dot(mypt-hpcenter, vers)
             projpt = mypt - dist*vers
-            
             newcoords4d.append(projpt)
-        else:
-            lostpoints.append(mypt) 
+            
+            if not i%1000: # work out some stats
+                v = np.std(closest, axis=0)
+                vx = round((v[0]+v[1]+v[2])/3, 3)
+                suggest='data suggest dt='+str(vx)
                 
-        pb.print('nclosest:'+str(len(closest)))
+        pb.print(suggest)
     newcoords4d = np.array(newcoords4d)
 
-    acts = []
-    ctimes = newcoords4d[:,3]
-    bins = np.linspace(ctimes[0], ctimes[-1], N)
-    for i in range(N-1):
-        
-        ccoords4d = newcoords4d[ (bins[i]<ctimes) & (ctimes<bins[i+1]) ]
-        print('assembling #', i, 't=',(bins[i]+bins[i+1])/2., '#pts', len(ccoords4d))
-        if len(ccoords4d):
-            ccoords3d = np.delete(ccoords4d, 3, axis=1) # get rid of time column
-            act = vs.points(ccoords3d, c=i)
-            acts.append(act)
-    assem = vu.makeAssembly(acts)
-    if showLost and len(lostpoints):
-        actlost = vs.points(np.delete(lostpoints, 3, axis=1), c='red')
-        return assem, actlost
-    else:
-        return assem, None
+    ctimes = newcoords4d[:, 3]
+    ccoords3d = np.delete(newcoords4d, 3, axis=1) # get rid of time
+    act = vs.points(ccoords3d)
+    act.pointColors(ctimes, 'jet') # use a colormap to associate a color to time
+    return act
     
     
 def smoothMLS2D(actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
@@ -906,29 +901,29 @@ def smoothMLS1D(actor, f=0.2, showNLines=0):
     return actor  # NB: original actor is modified
 
 
-def extractLines(actor, n=5):
-    '''undocumented, internal use.'''
-    coords = vu.coordinates(actor)
-    poly = vu.polydata(actor, True)
-    vpts = poly.GetPoints()
-    locator = vtk.vtkPointLocator()
-    locator.SetDataSet(poly)
-    locator.BuildLocator()
-    vtklist = vtk.vtkIdList()
-    spts = []
-    for i, p in enumerate(coords):
-        locator.FindClosestNPoints(n, p, vtklist)
-        points = []
-        for j in range(vtklist.GetNumberOfIds()):
-            trgp = [0, 0, 0]
-            vpts.GetPoint(vtklist.GetId(j), trgp)
-            if (p-trgp).any():
-                points.append(trgp)
-        p0 = points.pop()-p
-        dots = [np.dot(p0, ps-p) for ps in points]
-        if len(np.unique(np.sign(dots))) == 1:
-            spts.append(p)
-    return np.array(spts)
+#def extractLines(actor, n=5):
+#    '''undocumented, internal use.'''
+#    coords = vu.coordinates(actor)
+#    poly = vu.polydata(actor, True)
+#    vpts = poly.GetPoints()
+#    locator = vtk.vtkPointLocator()
+#    locator.SetDataSet(poly)
+#    locator.BuildLocator()
+#    vtklist = vtk.vtkIdList()
+#    spts = []
+#    for i, p in enumerate(coords):
+#        locator.FindClosestNPoints(n, p, vtklist)
+#        points = []
+#        for j in range(vtklist.GetNumberOfIds()):
+#            trgp = [0, 0, 0]
+#            vpts.GetPoint(vtklist.GetId(j), trgp)
+#            if (p-trgp).any():
+#                points.append(trgp)
+#        p0 = points.pop()-p
+#        dots = [np.dot(p0, ps-p) for ps in points]
+#        if len(np.unique(np.sign(dots))) == 1:
+#            spts.append(p)
+#    return np.array(spts)
 
 
 def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1,

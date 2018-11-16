@@ -31,6 +31,69 @@ def humansort(l):
     return None  # NB: input list is modified
 
 
+def load(inputobj, c='gold', alpha=1,
+         wire=False, bc=None, edges=False, legend=True, texture=None,
+         smoothing=None, threshold=None, connectivity=False, scaling=None):
+    
+        ''' Returns a vtkActor from reading a file, directory or vtkPolyData.
+
+            Optional args:
+
+                c,       color in RGB format, hex, symbol or name
+
+                alpha,   transparency (0=invisible)
+
+                wire,    show surface as wireframe      
+
+                bc,      backface color of internal surface      
+
+                legend,  text to show on legend, True picks filename
+
+                texture, any png/jpg file can be used as texture
+
+            For volumetric data (tiff, slc files):
+
+                smoothing,    gaussian filter to smooth vtkImageData
+
+                threshold,    value to draw the isosurface
+
+                connectivity, if True only keeps the largest portion of the polydata
+
+                scaling,      scaling factors for x y an z coordinates 
+        '''
+        import os
+        if isinstance(inputobj, vtk.vtkPolyData):
+            a = vu.makeActor(inputobj, c, alpha, wire, bc, edges, legend, texture)
+            if inputobj and inputobj.GetNumberOfPoints() == 0:
+                vc.printc('Warning: actor has zero points.', c=5)
+            return a
+
+        acts = []
+        if isinstance(legend, int):
+            legend = bool(legend)
+        if isinstance(inputobj, list):
+            flist = inputobj
+        else:
+            import glob
+            flist = sorted(glob.glob(inputobj))
+        for fod in flist:
+            if os.path.isfile(fod):
+                a = loadFile(fod, c, alpha, wire, bc, edges, legend, texture,
+                             smoothing, threshold, connectivity, scaling)
+                acts.append(a)
+            elif os.path.isdir(fod):
+                acts = loadDir(fod, c, alpha, wire, bc, edges, legend, texture,
+                               smoothing, threshold, connectivity, scaling)
+        if not len(acts):
+            vc.printc('Error in load(): cannot find', inputobj, c=1)
+            return None
+
+        if len(acts) == 1:
+            return acts[0]
+        else:
+            return acts
+    
+
 def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
              smoothing, threshold, connectivity, scaling):
     '''Load a file of various formats.'''
@@ -1242,6 +1305,7 @@ def _keypress(vp, obj, event):
                 pass
 
     elif key == "n":  # show normals to an actor
+        from vtkplotter.analysis import normals as ana_normals
         if vp.clickedActor in vp.getActors():
             acts = [vp.clickedActor]
         else:
@@ -1249,8 +1313,7 @@ def _keypress(vp, obj, event):
         for ia in acts:
             alpha = ia.GetProperty().GetOpacity()
             c = ia.GetProperty().GetColor()
-            a = vp.normals(ia, ratio=1, c=c, alpha=alpha)
-            vp.actors.pop()  # remove from list
+            a = ana_normals(ia, ratio=1, c=c, alpha=alpha)
             try:
                 i = vp.actors.index(ia)
                 vp.actors[i] = a
