@@ -9,6 +9,8 @@ import numpy as np
 import vtkplotter.utils as vu
 import vtkplotter.colors as vc
 import vtkplotter.vtkio as vio
+from vtkplotter.actors import Actor, Assembly
+from vtk.util.numpy_support import numpy_to_vtk
 
 
 ########################################################################
@@ -40,13 +42,10 @@ def points(plist, c='b', tags=[], r=5, alpha=1, legend=None):
     else:
         for i, p in enumerate(plist):
             pd.GetPoints().SetPoint(i, p)
-    actor = vu.makeActor(pd, c, alpha)
+    actor = Actor(pd, c, alpha)
     actor.GetProperty().SetPointSize(r)
     if len(plist) == 1:
         actor.SetPosition(plist[0])
-
-    if legend:
-        setattr(actor, 'legend', legend)
     return actor
 
 
@@ -82,7 +81,7 @@ def _colorPoints(plist, cols, r, alpha, legend):
     mapper = vtk.vtkPolyDataMapper()
     vu.setInput(mapper, pd)
     mapper.ScalarVisibilityOn()
-    actor = vtk.vtkActor()
+    actor = Actor()#vtk.vtkActor()
     actor.SetMapper(mapper)
     actor.GetProperty().SetInterpolationToFlat()
     # check if color string contains a float, in this case ignore alpha
@@ -106,18 +105,18 @@ def line(p0, p1=None, lw=1, tube=False, dotted=False,
     # detect if user is passing a list of points:
     if vu.isSequence(p0[0]):
         ppoints = vtk.vtkPoints()  # Generate the polyline
-        poly = vtk.vtkPolyData()
         dim = len((p0[0]))
-        for i in range(len(p0)):
-            p = p0[i]
-            if dim == 2:
+        if dim == 2:
+            for i in range(len(p0)):
+                p = p0[i]
                 ppoints.InsertPoint(i, p[0], p[1], 0)
-            else:
-                ppoints.InsertPoint(i, p[0], p[1], p[2])
+        else:
+            ppoints.SetData(numpy_to_vtk(p0))
         lines = vtk.vtkCellArray()  # Create the polyline.
         lines.InsertNextCell(len(p0))
         for i in range(len(p0)):
             lines.InsertCellPoint(i)
+        poly = vtk.vtkPolyData()
         poly.SetPoints(ppoints)
         poly.SetLines(lines)
     else:  # or just 2 points to link
@@ -134,16 +133,16 @@ def line(p0, p1=None, lw=1, tube=False, dotted=False,
         tuf.SetRadius(lw)
         tuf.Update()
         poly = tuf.GetOutput()
-        actor = vu.makeActor(poly, c, alpha, legend=legend)
+        actor = Actor(poly, c, alpha, legend=legend)
         actor.GetProperty().SetInterpolationToPhong()
     else:
-        actor = vu.makeActor(poly, c, alpha, legend=legend)
+        actor = Actor(poly, c, alpha, legend=legend)
         actor.GetProperty().SetLineWidth(lw)
         if dotted:
             actor.GetProperty().SetLineStipplePattern(0xf0f0)
             actor.GetProperty().SetLineStippleRepeatFactor(1)
-    setattr(actor, 'base', np.array(p0))
-    setattr(actor, 'top',  np.array(p1))
+    actor.base = np.array(p0)
+    actor.top = np.array(p1)
     return actor
 
 
@@ -165,12 +164,72 @@ def lines(plist0, plist1=None, lw=1, dotted=False,
         polylns.AddInputConnection(lineSource.GetOutputPort())
     polylns.Update()
 
-    actor = vu.makeActor(polylns.GetOutput(), c, alpha, legend=legend)
+    actor = Actor(polylns.GetOutput(), c, alpha, legend=legend)
     actor.GetProperty().SetLineWidth(lw)
     if dotted:
         actor.GetProperty().SetLineStipplePattern(0xf0f0)
         actor.GetProperty().SetLineStippleRepeatFactor(1)
     return actor
+
+
+def ribbon(line1, line2, c='m', alpha=1, legend=None, res=(200,5)):
+    
+    if isinstance(line1, Actor):
+        line1 = line1.coordinates()
+    if isinstance(line2, Actor):
+        line2 = line2.coordinates()
+       
+    ppoints1 = vtk.vtkPoints()  # Generate the polyline1
+    ppoints1.SetData(numpy_to_vtk(line1))
+    lines1 = vtk.vtkCellArray() 
+    lines1.InsertNextCell(len(line1))
+    for i in range(len(line1)):
+        lines1.InsertCellPoint(i)
+    poly1 = vtk.vtkPolyData()
+    poly1.SetPoints(ppoints1)
+    poly1.SetLines(lines1)
+    
+    ppoints2 = vtk.vtkPoints()  # Generate the polyline2
+    ppoints2.SetData(numpy_to_vtk(line2))
+    lines2 = vtk.vtkCellArray()  
+    lines2.InsertNextCell(len(line2))
+    for i in range(len(line2)):
+        lines2.InsertCellPoint(i)
+    poly2 = vtk.vtkPolyData()
+    poly2.SetPoints(ppoints2)
+    poly2.SetLines(lines2)
+
+    # build the lines
+    lines1 = vtk.vtkCellArray()
+    lines1.InsertNextCell(poly1.GetNumberOfPoints())
+    for i in range(poly1.GetNumberOfPoints()): 
+        lines1.InsertCellPoint(i)
+
+    polygon1 = vtk.vtkPolyData()
+    polygon1.SetPoints(ppoints1)
+    polygon1.SetLines(lines1)
+
+    lines2 = vtk.vtkCellArray()
+    lines2.InsertNextCell(poly2.GetNumberOfPoints())
+    for i in range(poly2.GetNumberOfPoints()): 
+        lines2.InsertCellPoint(i)
+
+    polygon2 = vtk.vtkPolyData()
+    polygon2.SetPoints(ppoints2)
+    polygon2.SetLines(lines2)
+    
+    mergedPolyData = vtk.vtkAppendPolyData()
+    mergedPolyData.AddInputData(polygon1)
+    mergedPolyData.AddInputData(polygon2)
+    mergedPolyData.Update()
+
+    rsf = vtk.vtkRuledSurfaceFilter()
+    rsf.CloseSurfaceOff()
+    rsf.SetRuledModeToResample()
+    rsf.SetResolution(res[0], res[1])
+    vu.setInput(rsf, mergedPolyData.GetOutput())
+    rsf.Update()    
+    return Actor(rsf.GetOutput(), c=c, alpha=alpha, legend=legend)  
 
 
 def arrow(startPoint, endPoint, c='r', s=None, alpha=1,
@@ -210,14 +269,14 @@ def arrow(startPoint, endPoint, c='r', s=None, alpha=1,
     tf.SetTransform(t)
     tf.Update()
 
-    actor = vu.makeActor(tf.GetOutput(),
+    actor = Actor(tf.GetOutput(),
                          c, alpha, legend=legend, texture=texture)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(startPoint)
     actor.DragableOff()
     actor.PickableOff()
-    setattr(actor, 'base', np.array(startPoint))
-    setattr(actor, 'top',  np.array(endPoint))
+    actor.base = np.array(startPoint)
+    actor.top = np.array(endPoint)
     return actor
 
 
@@ -264,7 +323,7 @@ def arrows(startPoints, endPoints=None,
         polyapp.AddInputConnection(tf.GetOutputPort())
 
     polyapp.Update()
-    actor = vu.makeActor(polyapp.GetOutput(), c, alpha, legend=legend)
+    actor = Actor(polyapp.GetOutput(), c, alpha, legend=legend)
     return actor
 
 
@@ -293,7 +352,7 @@ def polygon(pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
         if not camera:
             vio.printc('Warning: vtkCamera does not yet exist for polygon', c=5)
     else:
-        actor = vtk.vtkActor()
+        actor = Actor()# vtk.vtkActor()
     actor.SetMapper(mapper)
     actor.GetProperty().SetColor(vc.getColor(c))
     # check if color string contains a float, in this case ignore alpha
@@ -309,9 +368,7 @@ def polygon(pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
         backProp.SetOpacity(alpha)
         actor.SetBackfaceProperty(backProp)
     if texture:
-        vu.assignTexture(actor, texture)
-    vu.assignPhysicsMethods(actor)
-    vu.assignConvenienceMethods(actor, legend)
+        actor.texture(texture)
     actor.SetPosition(pos)
     return actor
 
@@ -347,7 +404,7 @@ def disc(pos=[0, 0, 0], normal=[0, 0, 1], r1=0.5, r2=1,
     mapper = vtk.vtkPolyDataMapper()
     vu.setInput(mapper, pd)
 
-    actor = vtk.vtkActor()
+    actor = Actor()# vtk.vtkActor()
     actor.SetMapper(mapper)
     actor.GetProperty().SetColor(vc.getColor(c))
     # check if color string contains a float, in this case ignore alpha
@@ -363,9 +420,7 @@ def disc(pos=[0, 0, 0], normal=[0, 0, 1], r1=0.5, r2=1,
         backProp.SetOpacity(alpha)
         actor.SetBackfaceProperty(backProp)
     if texture:
-        vu.assignTexture(actor, texture)
-    vu.assignPhysicsMethods(actor)
-    vu.assignConvenienceMethods(actor, legend)
+        actor.texture(texture)
     actor.SetPosition(pos)
     return actor
 
@@ -375,11 +430,11 @@ def sphere(pos=[0, 0, 0], r=1,
     '''Build a sphere at position pos of radius r.'''
     ss = vtk.vtkSphereSource()
     ss.SetRadius(r)
-    ss.SetThetaResolution(res)
+    ss.SetThetaResolution(2*res)
     ss.SetPhiResolution(res)
     ss.Update()
     pd = ss.GetOutput()
-    actor = vu.makeActor(pd, c, alpha, wire, legend=legend, texture=texture)
+    actor = Actor(pd, c, alpha, wire, legend=legend, texture=texture)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
     return actor
@@ -429,7 +484,7 @@ def spheres(centers, r=1,
     if not risseq:
         src.SetRadius(r)
     src.SetPhiResolution(res)
-    src.SetThetaResolution(res)
+    src.SetThetaResolution(2*res)
     src.Update()
     glyph = vtk.vtkGlyph3D()
     glyph.SetSourceConnection(src.GetOutputPort())
@@ -475,7 +530,7 @@ def spheres(centers, r=1,
         mapper.ScalarVisibilityOn()
     else:
         mapper.ScalarVisibilityOff()
-    actor = vtk.vtkActor()
+    actor = Actor()#vtk.vtkActor()
     actor.SetMapper(mapper)
     actor.GetProperty().SetInterpolationToPhong()
     # check if color string contains a float, in this case ignore alpha
@@ -485,11 +540,10 @@ def spheres(centers, r=1,
     actor.GetProperty().SetOpacity(alpha)
     if not cisseq:
         if texture is not None:
-            vu.assignTexture(actor, texture)
+            actor.texture(texture)
             mapper.ScalarVisibilityOff()
         else:
             actor.GetProperty().SetColor(vc.getColor(c))
-    vu.assignConvenienceMethods(actor, legend)
     return actor
 
 
@@ -505,7 +559,7 @@ def earth(pos=[0, 0, 0], r=1, lw=1):
     tss.SetPhiResolution(36)
     earthMapper = vtk.vtkPolyDataMapper()
     earthMapper.SetInputConnection(tss.GetOutputPort())
-    earthActor = vtk.vtkActor()
+    earthActor = Actor()#vtk.vtkActor()
     earthActor.SetMapper(earthMapper)
     atext = vtk.vtkTexture()
     pnmReader = vtk.vtkPNMReader()
@@ -518,18 +572,16 @@ def earth(pos=[0, 0, 0], r=1, lw=1):
     atext.InterpolateOn()
     earthActor.SetTexture(atext)
     if not lw:
-        vu.assignConvenienceMethods(earthActor, None)
-        vu.assignPhysicsMethods(earthActor)
         earthActor.SetPosition(pos)
         return earthActor
     es = vtk.vtkEarthSource()
     es.SetRadius(r/.995)
     earth2Mapper = vtk.vtkPolyDataMapper()
     earth2Mapper.SetInputConnection(es.GetOutputPort())
-    earth2Actor = vtk.vtkActor()
+    earth2Actor = Actor()# vtk.vtkActor()
     earth2Actor.SetMapper(earth2Mapper)
     earth2Actor.GetProperty().SetLineWidth(lw)
-    ass = vu.makeAssembly([earthActor, earth2Actor])
+    ass = Assembly([earthActor, earth2Actor])
     ass.SetPosition(pos)
     return ass
 
@@ -566,7 +618,7 @@ def ellipsoid(pos=[0, 0, 0], axis1=[1, 0, 0], axis2=[0, 2, 0], axis3=[0, 0, 3],
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = vu.makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
+    actor = Actor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
     actor.GetProperty().BackfaceCullingOn()
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
@@ -602,7 +654,7 @@ def grid(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=1, c='g', bc='darkgreen',
     tf.SetTransform(t)
     tf.Update()
     pd = tf.GetOutput()
-    actor = vu.makeActor(pd, c=c, bc=bc, alpha=alpha, legend=legend)
+    actor = Actor(pd, c=c, bc=bc, alpha=alpha, legend=legend)
     actor.GetProperty().SetRepresentationToWireframe()
     actor.GetProperty().SetLineWidth(lw)
     actor.SetPosition(pos)
@@ -637,7 +689,7 @@ def plane(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=None, c='g', bc='darkgreen',
     tf.SetTransform(t)
     tf.Update()
     pd = tf.GetOutput()
-    actor = vu.makeActor(pd, c=c, bc=bc, alpha=alpha,
+    actor = Actor(pd, c=c, bc=bc, alpha=alpha,
                          legend=legend, texture=texture)
     actor.SetPosition(pos)
     actor.PickableOff()
@@ -671,7 +723,7 @@ def box(pos=[0, 0, 0], length=1, width=2, height=3, normal=(0, 0, 1),
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = vu.makeActor(pd, c, alpha, wire, legend=legend, texture=texture)
+    actor = Actor(pd, c, alpha, wire, legend=legend, texture=texture)
     actor.SetPosition(pos)
     return actor
 
@@ -707,7 +759,7 @@ def helix(startPoint=[0, 0, 0], endPoint=[1, 1, 1], coils=20, r=None,
     diff = diff/length
     theta = np.arccos(diff[2])
     phi = np.arctan2(diff[1], diff[0])
-    sp = vu.polydata(line(pts), False)
+    sp = line(pts).polydata(False)
     t = vtk.vtkTransform()
     t.RotateZ(phi*57.3)
     t.RotateY(theta*57.3)
@@ -724,11 +776,11 @@ def helix(startPoint=[0, 0, 0], endPoint=[1, 1, 1], coils=20, r=None,
     tuf.SetRadius(thickness)
     tuf.Update()
     poly = tuf.GetOutput()
-    actor = vu.makeActor(poly, c, alpha, legend=legend, texture=texture)
+    actor = Actor(poly, c, alpha, legend=legend, texture=texture)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(startPoint)
-    setattr(actor, 'base', np.array(startPoint))
-    setattr(actor, 'top', np.array(endPoint))
+    actor.base = np.array(startPoint)
+    actor.top = np.array(endPoint)
     return actor
 
 
@@ -776,12 +828,12 @@ def cylinder(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = vu.makeActor(pd, c, alpha, wire, edges=edges,
+    actor = Actor(pd, c, alpha, wire, edges=edges,
                          legend=legend, texture=texture)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
-    setattr(actor, 'base', base)
-    setattr(actor, 'top', top)
+    actor.base = base
+    actor.top = top
     return actor
 
 
@@ -796,13 +848,13 @@ def cone(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
     con.SetHeight(height)
     con.SetDirection(axis)
     con.Update()
-    actor = vu.makeActor(con.GetOutput(), c, alpha,
+    actor = Actor(con.GetOutput(), c, alpha,
                          legend=legend, texture=texture)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
     v = vu.norm(axis)*height/2
-    setattr(actor, 'base', pos - v)
-    setattr(actor, 'top',  pos + v)
+    actor.base = pos - v
+    actor.top = pos + v
     return actor
 
 
@@ -839,7 +891,7 @@ def ring(pos=[0, 0, 0], r=1, thickness=0.1, axis=[0, 0, 1],
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = vu.makeActor(pd, c=c, alpha=alpha, wire=wire,
+    actor = Actor(pd, c=c, alpha=alpha, wire=wire,
                          legend=legend, texture=texture)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
@@ -880,7 +932,7 @@ def paraboloid(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = vu.makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
+    actor = Actor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
     actor.GetProperty().SetInterpolationToPhong()
     actor.GetMapper().ScalarVisibilityOff()
     actor.SetPosition(pos)
@@ -920,7 +972,7 @@ def hyperboloid(pos=[0, 0, 0], a2=1, value=0.5, height=1, axis=[0, 0, 1],
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = vu.makeActor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
+    actor = Actor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
     actor.GetProperty().SetInterpolationToPhong()
     actor.GetMapper().ScalarVisibilityOff()
     actor.SetPosition(pos)
@@ -970,7 +1022,7 @@ def text(txt, pos=(0, 0, 0), normal=(0, 0, 1), s=1, depth=0.1,
         ttactor = vtk.vtkFollower()
         ttactor.SetCamera(cam)
     else:
-        ttactor = vtk.vtkActor()
+        ttactor = Actor()#vtk.vtkActor()
     ttactor.SetMapper(ttmapper)
     ttactor.GetProperty().SetColor(vc.getColor(c))
 
@@ -995,7 +1047,5 @@ def text(txt, pos=(0, 0, 0), normal=(0, 0, 1), s=1, depth=0.1,
         backProp.SetOpacity(alpha)
         ttactor.SetBackfaceProperty(backProp)
     if texture:
-        vu.assignTexture(ttactor, texture)
-    vu.assignConvenienceMethods(ttactor, None)
-    vu.assignPhysicsMethods(ttactor)
+        ttactor.texture(texture)
     return ttactor

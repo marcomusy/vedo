@@ -3,7 +3,8 @@
 # a polydata, save it to stack.tif file,
 # then extract an isosurface from the 3d image.
 #
-from vtkplotter import vtk, Plotter
+import vtk
+from vtkplotter import Plotter
 
 vp = Plotter()
 

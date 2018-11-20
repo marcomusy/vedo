@@ -7,7 +7,6 @@
 #
 from numpy import conj, real, pi, array, sin, cos, exp
 from vtkplotter import Plotter, arange, mag
-from vtkplotter.utils import pointColors
 from vtkplotter.shapes import grid
 
 #########################################
@@ -43,7 +42,7 @@ for i, t in enumerate(screen.coordinates()):
     amplitudes.append(psi2)
     screen.point(i, t+[0,0, D+psi2/norm]) # elevate grid in z
 
-pointColors(screen, amplitudes, cmap='hot')
+screen.pointColors(amplitudes, cmap='hot')
 
 vp.points(array(slits)*200, c='w')    # slits scale magnified by factor 200
 

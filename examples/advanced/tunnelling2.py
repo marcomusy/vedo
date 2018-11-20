@@ -66,8 +66,8 @@ bck.alpha(1)
 for i in range(Nsteps):
     p = [0, 0, size*i/Nsteps] # shift along z
     l, a = lines[i]
-    #utils.pointColors(l, a, cmap='rainbow')
-    utils.pointColors(l, -a, cmap='gist_earth') # inverted gist_earth
+    #l.pointColors(a, cmap='rainbow')
+    l.pointColors(-a, cmap='gist_earth') # inverted gist_earth
     vp.render([l.pos(p), barrier.clone().alpha(.3).pos(p)], resetcam=1)
 
 vp.show(interactive=1)

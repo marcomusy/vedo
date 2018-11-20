@@ -72,18 +72,17 @@ vp.show()
 #########################################################################################
 # Draw the PCA (Principal Component Analysis) ellipsoid that contains 50% of 
 # a cloud of points, then check if points are inside the actor surface:
-from vtkplotter.analysis import pca
-from vtkplotter.utils import insidePoints
-vp = Plotter(title='Example of PCA analysys')
-pts = [(gauss(0,1), gauss(0,2), gauss(0,3)) for i in range(1000)]
-a = pca(pts, pvalue=0.5, pcaAxes=1, legend='PCA ellipsoid')
-vp.actors.append(a) # add actor to the list of actors to be shown (not automatic)
+# from vtkplotter.analysis import pca
+# vp = Plotter(title='Example of PCA analysys')
+# pts = [(gauss(0,1), gauss(0,2), gauss(0,3)) for i in range(1000)]
+# a = pca(pts, pvalue=0.5, pcaAxes=1, legend='PCA ellipsoid')
+# vp.actors.append(a) # add actor to the list of actors to be shown (not automatic)
 
-ipts = insidePoints(a, pts)
-opts = insidePoints(a, pts, invert=True)
-vp.points(ipts, c='g', legend='in  points #'+str(len(ipts)))
-vp.points(opts, c='r', legend='out points #'+str(len(opts)))
-vp.show()
+# ipts = a.insidePoints(pts)
+# opts = a.insidePoints(pts, invert=True)
+# vp.points(ipts, c='g', legend='in  points #'+str(len(ipts)))
+# vp.points(opts, c='r', legend='out points #'+str(len(opts)))
+# vp.show()
 
 
 #########################################################################################

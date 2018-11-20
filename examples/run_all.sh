@@ -59,6 +59,9 @@ python basic/spring.py
 echo Running basic/mesh_coloring.py
 python basic/mesh_coloring.py
 
+echo Running basic/mesh_alphas.py
+python basic/mesh_alphas.py
+
 echo Running basic/trail.py
 python basic/trail.py
 
@@ -101,6 +104,8 @@ python basic/bgImage.py
 echo Running basic/mouseclick.py
 python basic/mouseclick.py
 
+echo Running basic/ribbon.py
+python basic/ribbon.py
 
 
 #################################### advanced
@@ -115,9 +120,6 @@ python advanced/fitplanes.py
 
 echo Running advanced/fitspheres1.py
 python advanced/fitspheres1.py
-
-echo Running advanced/fitspheres2.py
-python advanced/fitspheres2.py
 
 echo Running advanced/gas.py
 python advanced/gas.py

@@ -28,11 +28,12 @@ for i in range(500):
 # 'data' still contains the last iteration points
 vp.points(data, r=10, c='red', legend='random points')
 
-# the first fitted slope direction is stored in actor.slope and actor.normal
-print('Line Fit slope = ', vp.actors[0].slope) 
+# the first fitted slope direction is stored 
+# in actor.info['slope] and actor.info['normal]
+print('Line Fit slope = ', vp.actors[0].info['slope']) 
 
 plane = fitPlane(data, legend='fitting plane') # fit a plane
 vp.actors.append(plane)
-print('Plan Fit normal=', plane.normal) 
+print('Plan Fit normal=', plane.info['normal']) 
 
 vp.show()

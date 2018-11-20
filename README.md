@@ -188,7 +188,7 @@ vp.sharecam     # (True) share the same camera in multiple renderers
 
 
 ### Some useful additional methods of vtkActor object
-These methods return the actor object so that they can be concatenated,
+These methods return the Actor object so that they can be concatenated,
 (E.g.: `actor.scale(3).pos([1,2,3]).color('blue').alpha(0.5)` etc..).
 ```python
 actor.pos()                   # set/get position vector (setters, and getters if no argument is given)
@@ -196,15 +196,16 @@ actor.addpos(v)               # add v to current actor position
 actor.x()                     # set/get x component of position (same for y and z)
 actor.scale()                 # set/get scaling factor of actor
 actor.normalize()             # sets actor at origin and scales its average size to 1
-actor.color(value)            # sets/gets color
+actor.color(name)             # sets/gets color
 actor.alpha(value)            # sets/gets opacity
-actor.N()                     # get number of vertex points defining the surface actor
-actor.polydata()              # get the actor's mesh polydata including its current transformation
-actor.coordinates()           # get a copy of vertex points coordinates (use copy=False to get references)
+actor.N()                     # get number of vertex points defining the actor's mesh
+actor.polydata(True)          # get the actor's mesh polydata in its current transformation (True_
+actor.coordinates()           # get a copy of vertex points coordinates (set copy=False to get references)
 actor.normals()               # get the list of normals at the vertices of the surface
 actor.xbounds()               # get (xmin, xmax) of actor bounding box (same for y and z)
 actor.rotate(angle, axis, axis_point=[0,0,0], rad=False)  # rotate actor around axis
 actor.clone(c=None, alpha=None, wire=False, bc=None, edges=False, legend=None, texture=None)
+...
 ```
 
 

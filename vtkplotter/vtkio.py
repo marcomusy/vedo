@@ -12,6 +12,7 @@ import re
 import vtkplotter.utils as vu
 import vtkplotter.colors as vc
 import numpy
+from vtkplotter.actors import Actor, Assembly, ImageActor
 
 
 def humansort(l):
@@ -63,7 +64,7 @@ def load(inputobj, c='gold', alpha=1,
         '''
         import os
         if isinstance(inputobj, vtk.vtkPolyData):
-            a = vu.makeActor(inputobj, c, alpha, wire, bc, edges, legend, texture)
+            a = Actor(inputobj, c, alpha, wire, bc, edges, legend, texture)
             if inputobj and inputobj.GetNumberOfPoints() == 0:
                 vc.printc('Warning: actor has zero points.', c=5)
             return a
@@ -112,8 +113,8 @@ def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
         actor = load3DS(filename, legend)
     elif fl.endswith('.tif') or fl.endswith('.slc'):      # tiff stack or slc
         img = loadImageData(filename)
-        actor = vu.makeIsosurface(img, c, alpha, wire, bc, edges, legend, texture,
-                                  smoothing, threshold, connectivity, scaling)
+        actor = vu.isosurface(img, c, alpha, wire, bc, edges, legend, texture,
+                              smoothing, threshold, connectivity, scaling)
     elif fl.endswith('.png') or fl.endswith('.jpg') or fl.endswith('.jpeg'):
         actor = load2Dimage(filename, alpha)
     else:
@@ -121,10 +122,10 @@ def loadFile(filename, c, alpha, wire, bc, edges, legend, texture,
         if not poly:
             vc.printc('Unable to load', filename, c=1)
             return None
-        actor = vu.makeActor(poly, c, alpha, wire, bc, edges, legend, texture)
+        actor = Actor(poly, c, alpha, wire, bc, edges, legend, texture)
         if fl.endswith('.txt') or fl.endswith('.xyz'):
             actor.GetProperty().SetPointSize(4)
-    setattr(actor, 'filename', filename)
+    actor.filename = filename
     return actor
 
 
@@ -222,7 +223,7 @@ def loadStructuredPoints(filename):
     gf = vtk.vtkImageDataGeometryFilter()
     gf.SetInputConnection(reader.GetOutputPort())
     gf.Update()
-    return vu.makeActor(gf.GetOutput())
+    return Actor(gf.GetOutput())
 
 
 def loadStructuredGrid(filename):  # not tested
@@ -233,7 +234,7 @@ def loadStructuredGrid(filename):  # not tested
     gf = vtk.vtkStructuredGridGeometryFilter()
     gf.SetInputConnection(reader.GetOutputPort())
     gf.Update()
-    return vu.makeActor(gf.GetOutput())
+    return Actor(gf.GetOutput())
 
 
 def loadUnStructuredGrid(filename):  # not tested
@@ -244,7 +245,7 @@ def loadUnStructuredGrid(filename):  # not tested
     gf = vtk.vtkUnstructuredGridGeometryFilter()
     gf.SetInputConnection(reader.GetOutputPort())
     gf.Update()
-    return vu.makeActor(gf.GetOutput())
+    return Actor(gf.GetOutput())
 
 
 def loadRectilinearGrid(filename):  # not tested
@@ -255,7 +256,7 @@ def loadRectilinearGrid(filename):  # not tested
     gf = vtk.vtkRectilinearGridGeometryFilter()
     gf.SetInputConnection(reader.GetOutputPort())
     gf.Update()
-    return vu.makeActor(gf.GetOutput())
+    return Actor(gf.GetOutput())
 
 
 def load3DS(filename, legend):
@@ -275,7 +276,7 @@ def load3DS(filename, legend):
         a = actors.GetItemAsObject(i)
         acts.append(a)
     del renWin
-    return vu.makeAssembly(acts, legend=legend)
+    return Assembly(acts, legend=legend)
 
 
 def loadDolfin(filename, c, alpha, wire, bc, edges, legend):
@@ -352,13 +353,11 @@ def loadDolfin(filename, c, alpha, wire, bc, edges, legend):
     #     if wire: actor.GetProperty().SetRepresentationToWireframe()
     # else:
     #     return pts_act
-    # ass = vu.makeAssembly([pts_act, actor])
-    # setattr(ass, 'legend', legend)
-    # if legend is True:
-    #     setattr(ass, 'legend', legend)
+    # ass = Assembly([pts_act, actor])
+    # ass.legend = legend
     # return ass
     poly = buildPolyData(coords, connectivity)
-    return vu.makeActor(poly, c, alpha, wire, bc, edges, legend)
+    return Actor(poly, c, alpha, wire, bc, edges, legend)
 
 
 def loadNeutral(filename, c, alpha, wire, bc, edges, legend):
@@ -369,7 +368,7 @@ def loadNeutral(filename, c, alpha, wire, bc, edges, legend):
 
     coords, connectivity = convertNeutral2Xml(filename)
     poly = buildPolyData(coords, connectivity, indexOffset=0)
-    return vu.makeActor(poly, c, alpha, wire, bc, edges, legend)
+    return Actor(poly, c, alpha, wire, bc, edges, legend)
 
 
 def loadGmesh(filename, c, alpha, wire, bc, edges, legend):
@@ -410,7 +409,7 @@ def loadGmesh(filename, c, alpha, wire, bc, edges, legend):
 
     poly = buildPolyData(node_coords, elements, indexOffset=1)
 
-    return vu.makeActor(poly, c, alpha, wire, bc, edges, legend)
+    return Actor(poly, c, alpha, wire, bc, edges, legend)
 
 
 def loadPCD(filename, c, alpha, legend):
@@ -446,12 +445,10 @@ def loadPCD(filename, c, alpha, legend):
     if not poly:
         vc.printc('Unable to load', filename, c='red')
         return False
-    actor = vu.makeActor(poly, vc.getColor(c), alpha)
+    actor = Actor(poly, vc.getColor(c), alpha)
     actor.GetProperty().SetPointSize(4)
-    if legend:
-        setattr(actor, 'legend', legend)
     if legend is True:
-        setattr(actor, 'legend', os.path.basename(filename))
+        actor.legend = os.path.basename(filename)
     return actor
 
 
@@ -489,13 +486,11 @@ def load2Dimage(filename, alpha):
         exit(1)
     picr.SetFileName(filename)
     picr.Update()
-    vactor = vtk.vtkImageActor()
+    vactor = ImageActor() #vtk.vtkImageActor()
     vu.setInput(vactor, picr.GetOutput())
     if alpha is None:
         alpha = 1
     vactor.SetOpacity(alpha)
-    vu.assignConvenienceMethods(vactor, False)
-    vu.assignPhysicsMethods(vactor)
     return vactor
 
 
@@ -505,6 +500,11 @@ def write(obj, fileoutput):
 
     Possile extensions are: .vtk, .ply, .obj, .stl, .byu, .vtp, .xyz, .tif
     '''
+    if isinstance(obj, Actor):
+        obj = obj.polydata(True)
+    elif isinstance(obj, vtk.vtkActor):
+        obj = obj.GetMapper().GetInput()
+
     fr = fileoutput.lower()
     if '.vtk' in fr:
         w = vtk.vtkPolyDataWriter()
@@ -519,7 +519,7 @@ def write(obj, fileoutput):
     elif '.byu' in fr or fr.endswith('.g'):
         w = vtk.vtkBYUWriter()
     elif '.obj' in fr:
-        obj = vu.polydata(obj, True)
+        obj = obj.polydata(True)
         w = vtk.vtkOBJExporter()
         w.SetFilePrefix(fileoutput.replace('.obj', ''))
         vc.printc('Please use write(vp.renderWin)', c=3)
@@ -540,8 +540,7 @@ def write(obj, fileoutput):
         exit(1)
 
     try:
-        obj = vu.polydata(obj, True)
-        vu.setInput(w, vu.polydata(obj, True))
+        vu.setInput(w, obj)
         w.SetFileName(fileoutput)
         w.Write()
         vc.printc("Saved file: "+fileoutput, c='g')
@@ -653,7 +652,7 @@ class ProgressBar:
         self._counts = 0
         self._oldbar = ""
         self._lentxt = 0
-        self._range = vu.arange(start, stop, step)
+        self._range = numpy.arange(start, stop, step)
         self._len = len(self._range)
 
     def print(self, txt='', counts=None):
@@ -1231,8 +1230,8 @@ def _keypress(vp, obj, event):
 
     elif key in ["k", "K"]:
         for a in vp.getActors():
-            ptdata = vu.polydata(a).GetPointData()
-            cldata = vu.polydata(a).GetCellData()
+            ptdata = a.polydata().GetPointData()
+            cldata = a.polydata().GetCellData()
 
             arrtypes = dict()
             arrtypes[vtk.VTK_UNSIGNED_CHAR] = 'VTK_UNSIGNED_CHAR'
@@ -1349,7 +1348,7 @@ def _keypress(vp, obj, event):
             else:
                 fname = 'clipped.vtk'
                 confilter = vtk.vtkPolyDataConnectivityFilter()
-                vu.setInput(confilter, vu.polydata(vp.clickedActor, True))
+                vu.setInput(confilter, vp.clickedActor.polydata(True))
                 confilter.SetExtractionModeToLargestRegion()
                 confilter.Update()
                 cpd = vtk.vtkCleanPolyData()

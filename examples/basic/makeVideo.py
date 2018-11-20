@@ -1,9 +1,11 @@
 # Make a video (needs ffmpeg)
+# Set offscreen=True to only produce the video without 
+# any graphical window showing
 #
 from vtkplotter import Plotter
 
 # declare the class instance
-vp = Plotter(axes=0)
+vp = Plotter(axes=0, offscreen=False)
 
 vp.load('data/shapes/spider.ply', texture='leather2', alpha=1)
 

@@ -18,7 +18,7 @@ scals = actor.scalars('probability_density') # retrieve the array
 scals[scals < 0.1] = 0.0 # put to zero low values (noise)
 print('scalars min, max =', np.min(scals), np.max(scals))
 
-# alpha=0 makes low values transparent, minus sign inverts color map
-actor.pointColors(-scals, cmap='hot', alpha=0)
+# minus sign inverts color map
+actor.pointColors(-scals, cmap='hot', alpha=0.05)
 
-vp.show(actor, zoom=2)
+vp.show(actor)

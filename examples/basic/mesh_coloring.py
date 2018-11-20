@@ -21,21 +21,21 @@ vp.addScalarBar()  # add a scalarbar to last drawn actor
 #####################################
 man2 = vp.load('data/shapes/man.vtk')
 pscals = man2.coordinates()[:,1] + 37    # pick y coordinates of vertices
-man2.pointColors(pscals, 'bone')         # use a colormap to associate a color
-#print(man2.scalars('pointcolors_bone')) # info can be retrieved this way
-vp.show(man2, at=1, legend='setPointColors')
+man2.pointColors(pscals, cmap='bone')    # use a colormap to associate a color
+#print(man2.scalars('pointColors_bone')) # info can be retrieved this way
+vp.show(man2, at=1, legend='pointColors')
 vp.addScalarBar(horizontal=True)
 
 
 #####################################
 man3 = vp.load('data/shapes/man.vtk')
 cscals = man3.cellCenters()[:,2] + 37    # pick z coordinates of cells
-man3.cellColors(cscals, 'afmhot')
+man3.cellColors(cscals, cmap='afmhot')
 
 # add some oriented 3D text
 txt = vp.text('floor temperature is 35C', s=.1).rotateZ(90).pos([1,-.9,-1.7])
 
-vp.show([txt, man3], at=2, legend=['','setCellColors'], axes=0)
+vp.show([txt, man3], at=2, legend=['','cellColors'], axes=0)
 
 # add a fancier 3D scalar bar
 vp.addScalarBar3D(man3, at=2, pos=(-1,0,-1.7), cmap='afmhot')

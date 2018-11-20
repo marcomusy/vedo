@@ -2,10 +2,10 @@
 #
 from vtkplotter import Plotter, sin
 
-vp = Plotter(axes=1, interactive=0)
+vp = Plotter(axes=1)
 
-c = vp.cube()
-vp.cutPlane(c, [-0.4,0,0]) #cut away the left face
+c = vp.sphere(c='green', res=24)
+vp.cutPlane(c, [-0.9,0,0], showcut=True) #cut left part of sphere
 
 s = vp.sphere([1,1,1], r=.03, c='db')
 
@@ -13,8 +13,8 @@ s = vp.sphere([1,1,1], r=.03, c='db')
 vp.addTrail(c='k', lw=3, maxlength=.5, n=50) 
 
 for i in range(200):
-    s.pos([-2. +i/100., sin(i/5.)/10., 0]).updateTrail()
+    s.pos([-2 +i/100., sin(i/5.)/10, 0]).updateTrail()
     vp.render()
-    vp.camera.Azimuth(-.3)
+    vp.camera.Azimuth(-0.2)
 
-vp.show(interactive=1)
+vp.show()

@@ -46,12 +46,13 @@ vp1.show(s1,   at=3, legend='third pass', zoom=1.3)
 #################################### draw errors
 vp2 = Plotter(pos=(200,400), shape=(1,2), axes=4)
 
-vmin,vmax = np.min(s1.variances), np.max(s1.variances)
+variances = s1.info['variances']
+vmin,vmax = np.min(variances), np.max(variances)
 print('min and max of variances:', vmin,vmax)
-vcols = [ colorMap(v, 'jet', vmin, vmax) for v in s1.variances ] # scalars->colors
+vcols = [ colorMap(v, 'jet', vmin, vmax) for v in variances ] # scalars->colors
 
 a0= vp2.spheres(s1.coordinates(), c=vcols, r=0.03, legend='variance')
-a1= vp2.spheres(s1.coordinates(), c='red', r=s1.variances, legend='variance')
+a1= vp2.spheres(s1.coordinates(), c='red', r=variances, legend='variance')
 
 vp2.show(a0, at=0)
 vp2.show([a1, act], at=1, zoom=1.3, interactive=1)

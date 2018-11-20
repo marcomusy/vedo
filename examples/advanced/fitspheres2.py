@@ -17,9 +17,9 @@ for i, p in enumerate(s.coordinates()):
     sph = fitSphere(pts)       # find the fitting sphere     
     if sph is None: continue
 
-    value = sph.radius*10
+    value = sph.info['radius']*10
     color = colorMap(value, name='jet') # map value to a RGB color
-    n = norm(p-sph.center) # unit vector from sphere center to p
+    n = norm(p-sph.info['center']) # unit vector from sphere center to p
     vals.append(value)
     cols.append(color) 
     pts1.append(p)

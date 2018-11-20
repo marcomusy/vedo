@@ -1,6 +1,7 @@
 # Work with vtkVolume objects (voxel datasets) and surfaces.
 #
 from vtkplotter import vtkio, utils, Plotter
+from vtkplotter.actors import Volume
 
 vp = Plotter()
 
@@ -12,7 +13,7 @@ img = vtkio.loadImageData('data/embryo.slc', spacing=[1,1,1])
 # to define the opacity transfer function in the range of the scalar.
 #  E.g.: setting alphas=[0, 0, 0, 1, 0, 0, 0] would make visible
 #  only voxels with value close to 98.5 (see print output).
-vol = utils.makeVolume(img, c='green', alphas=[0, 0.4, 0.9, 1]) 
+vol = Volume(img, c='green', alphas=[0, 0.4, 0.9, 1]) 
 
 sph = vp.sphere(pos=[100,100,100], r=20) # add a dummy surface
 

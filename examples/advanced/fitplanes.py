@@ -4,7 +4,7 @@
 # Blue points are the N points used for fitting.
 # Green histogram is the distribution of residuals from the fitting.
 # Both plane center and normal can be accessed from the 
-# attribute actor.center and actor.normal (direction is arbitrary).
+# attribute plane.info['center'] and plane.info['normal'].
 #
 from __future__ import division, print_function
 from vtkplotter import Plotter
@@ -22,8 +22,9 @@ for i, p in enumerate(s.coordinates()):
     vp.actors.append(plane)
     vp.points(pts)                # blue points
     vp.point(p, c='red 0.2')      # mark in red the current point
-    vp.arrow(plane.center, plane.center+plane.normal/15, c='g')
-    variances.append(plane.variance)
+    cn, v = plane.info['center'], plane.info['normal']
+    vp.arrow(cn, cn+v/15, c='g')
+    variances.append(plane.info['variance'])
 
 vp.histogram(variances, title='variance', c='g')
 vp.show()

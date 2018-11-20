@@ -25,9 +25,9 @@ for i, p in enumerate(s.coordinates()):
     	continue # may fail if all points sit on a plane
     vp.actors.append(sph)
     vp.points(pts)
-    vp.line(sph.center, p, lw=2)
-    reds.append(sph.residue)
-    invr.append(1/sph.radius**2)
+    vp.line(sph.info['center'], p, lw=2)
+    reds.append(sph.info['residue'])
+    invr.append(1/sph.info['radius']**2)
 
 h1 = vp.histogram(reds, title='residue', bins=12, c='g', corner=3)
 h2 = vp.histogram(invr, title='1/r**2',  bins=12, c='r', corner=4)

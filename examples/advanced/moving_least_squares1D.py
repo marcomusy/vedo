@@ -9,7 +9,6 @@
 #
 from __future__ import division, print_function
 from vtkplotter import Plotter, arange, sin, cos, sqrt
-from vtkplotter.utils import clean
 from vtkplotter.analysis import smoothMLS1D
 import numpy as np
 
@@ -33,7 +32,7 @@ for i in range(1, N):
     
     # at last iteration make sure points are separated by tol
     if i==N-1: 
-    	clean(a, tol=.01)
+    	a.clean(tol=.01)
 
     print('iteration',i,'#points:',len(a.coordinates()))
     vp.show(a, at=i, legend='iter #'+str(i))

@@ -12,16 +12,18 @@ __maintainer__ = "M. Musy, G. Dalmasso"
 __email__      = "marco.musy@embl.es"
 __status__     = "dev"
 __website__    = "https://github.com/marcomusy/vtkplotter"
-__version__    = "8.6.2" #defined also in setup.py
 
-import vtk
+__version__    = "8.7.0" ### defined also in setup.py
+
+
+# frequently used stuff
 from vtkplotter.plotter import Plotter
 from vtkplotter.colors import colorMap, printc
 from vtkplotter.vtkio import ProgressBar, load
-from vtkplotter.utils import vector, mag, mag2, norm, arange, to_precision
-from vtkplotter.utils import makeActor, makeAssembly
+from vtkplotter.utils import vector, mag, mag2, norm, to_precision
+from vtkplotter.actors import Actor, Assembly, ImageActor
 
-from numpy import sin, cos, sqrt, exp, log, dot, cross, array
+from numpy import sin, cos, sqrt, exp, log, dot, cross, array, arange
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
