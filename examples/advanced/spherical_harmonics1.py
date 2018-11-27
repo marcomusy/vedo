@@ -23,7 +23,7 @@ x0 = [0,0,0] # set object at this position
 ##########################################################
 
 vp = Plotter(shape=[1,2], verbose=0, axes=0)
-shape = vp.load('data/shapes/icosahedron.vtk', edges=1).normalize().pos(x0)
+shape = vp.load('data/shapes/icosahedron.vtk').normalize().pos(x0).lineWidth(2)
 
 agrid, pts = [], []
 for th in np.linspace(0, np.pi,   N, endpoint=True):

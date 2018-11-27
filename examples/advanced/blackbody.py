@@ -13,7 +13,7 @@ def planck(l, T):
     b = h*c/(l*k*T)
     return a / ( l**5 * (exp(b)-1) ) * 1e-13 # Planck formula
 
-vp = Plotter(interactive=0, verbose=0, bg='k')
+vp = Plotter(interactive=0, verbose=0, bg='k', axes=0)
 vp.infinity = True # view from infinity (axes are kept orthogonal)
 vp.xtitle = ''
 vp.ytitle = 'Intensity'
@@ -29,4 +29,4 @@ for T in range(3000, 9000, 50):
     lineact.pointColors(wavelengths*2e+6, cmap='jet')
     vp.show(elevation=.1, azimuth=0.1)
 
-vp.show(interactive=1)
+vp.show(axes=1, interactive=1)

@@ -5,10 +5,7 @@ and [numpy](http://www.numpy.org/).
 
 
 ## Download and Install:
-After installing [VTK](https://www.vtk.org/) (e.g. with 
-`conda install -c conda-forge vtk`
-or `sudo apt install vtk7` 
-or `pip install vtk`), simply type:
+Simply type:
 ```bash
 pip install --upgrade vtkplotter
 ```
@@ -31,10 +28,10 @@ vp.show('data/shapes/flamingo.3ds') # press *Esc* to close and exit or *q* to co
 <br />
 
 
-Load meshes of various formats with different options:
+Load meshes of various formats with different options on separate parts of the rendering window:
 ```python
-vp = Plotter(shape=(3,3), sharecam=False)
-vp.show('data/beethoven.ply',      at=0, c=0, ruler=1, axes=0)
+vp = Plotter(shape=(3,3), sharecam=False) # subdivide window in 9 independent parts
+vp.show('data/beethoven.ply',      at=0, c=0)
 vp.show('data/cow.g',              at=1, c=1, wire=1)
 vp.show('data/limb.pcd',           at=2, c=2) # point cloud format (pcl)
 vp.show('data/shapes/spider.ply',  at=3, c=3)
@@ -48,7 +45,7 @@ vp.show(interactive=1)
 ![objects](https://user-images.githubusercontent.com/32848391/43654734-8d126a96-974c-11e8-80d6-73cf224c0511.png)
 <br />
 
-Draw a bunch of basic geometric objects on separate parts of the rendering window:
+Draw a bunch of basic geometric objects:
 ```python
 from vtkplotter.shapes import arrow, line, point, text, sphere, cube
 vp = Plotter(N=6, sharecam=False)  # subdivide window in 6 independent parts
@@ -64,8 +61,7 @@ vp.show(interactive=1)
 <br />
 
 
-If you need to do more complicated things (define widgets.. etc), you still have full access 
-to all standard VTK native objects 
+For more complicated operations, you still have full access to all standard VTK native objects 
 (e.g. interactors and renderers through *vp.interactor, vp.renderer, vtkActor*... etc).
 <br />
 
@@ -107,10 +103,10 @@ optional arguments:
   -q, --quiet           quiet mode, less verbose
   -n, --sequence-mode   show each file in a separate renderer
   -s, --scrolling-mode  Scrolling Mode: use arrows to scroll files
-  -g, --ray-cast-mode   GPU Ray-casting Mode for SLC/TIFF files
+  -g, --ray-cast-mode   GPU Ray-casting Mode for 3D image files
   -gz , --z-spacing     Volume z-spacing factor [1]
   -gy , --y-spacing     Volume y-spacing factor [1]
-  --slicer              Slicer Mode for SLC/TIFF files
+  --slicer              Slicer Mode for 3D image files
 ```
 <br />
 
@@ -188,7 +184,8 @@ vp.sharecam     # (True) share the same camera in multiple renderers
 
 
 ### Some useful additional methods of vtkActor object
-These methods return the Actor object so that they can be concatenated,
+These methods return the Actor(vtkActor) object so that they can be concatenated,
+check out [Actor methods here](https://vtkplotter.embl.es/actors.m.html). <br />
 (E.g.: `actor.scale(3).pos([1,2,3]).color('blue').alpha(0.5)` etc..).
 ```python
 actor.pos()                   # set/get position vector (setters, and getters if no argument is given)
@@ -204,7 +201,7 @@ actor.coordinates()           # get a copy of vertex points coordinates (set cop
 actor.normals()               # get the list of normals at the vertices of the surface
 actor.xbounds()               # get (xmin, xmax) of actor bounding box (same for y and z)
 actor.rotate(angle, axis, axis_point=[0,0,0], rad=False)  # rotate actor around axis
-actor.clone(c=None, alpha=None, wire=False, bc=None, edges=False, legend=None, texture=None)
+actor.clone(c=None, alpha=None, wire=False, bc=None, legend=None, texture=None)
 ...
 ```
 

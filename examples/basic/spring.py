@@ -1,7 +1,7 @@
 from __future__ import division, print_function
 from vtkplotter import Plotter, ProgressBar, vector
 
-vp = Plotter(title='Spring in viscous medium', verbose=0, axes=3)
+vp = Plotter(title='Spring in viscous medium', verbose=0, axes=0)
 
 l_rest = 0.1 # spring x position at rest
 x0 = 0.85 # initial x-coordinate of the block
@@ -36,7 +36,7 @@ for i in pb.range():
     vp.camera.Azimuth(.1)
     vp.camera.Elevation(.1)
     vp.render(trace) # add trace to the list of actors and render
-    pb.print('Fx='+str(F[0]))
+    pb.print('Fx='+str(round(F[0],2)))
 
 vp.show(interactive=1)
  

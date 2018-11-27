@@ -13,11 +13,11 @@ __email__      = "marco.musy@embl.es"
 __status__     = "dev"
 __website__    = "https://github.com/marcomusy/vtkplotter"
 
-__version__    = "8.7.0" ### defined also in setup.py
+__version__    = "8.7.1" ### defined also in setup.py
 
 
 # frequently used stuff
-from vtkplotter.plotter import Plotter
+from vtkplotter.plotter import Plotter, show
 from vtkplotter.colors import colorMap, printc
 from vtkplotter.vtkio import ProgressBar, load
 from vtkplotter.utils import vector, mag, mag2, norm, to_precision

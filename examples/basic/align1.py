@@ -13,7 +13,7 @@ limb = vp.load('data/270.vtk', alpha=0.3)
 rim  = vp.load('data/270_rim.vtk')
 rim.color('r').lineWidth(4)
 
-arim = align(rim, limb, iters=100, rigid=True, method='ICP')
+arim = align(rim, limb, iters=100, rigid=True)
 arim.color('g').lineWidth(4)
 vp.actors.append(arim)
 

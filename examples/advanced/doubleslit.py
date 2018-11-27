@@ -33,14 +33,14 @@ k  = 0.0 + 1j * 2*pi/lambda1 # complex wave number
 norm = len(slits)*5e+5
 amplitudes = []
 
-for i, t in enumerate(screen.coordinates()):
+for i, x in enumerate(screen.coordinates()):
     psi = 0
     for s in slits:
-        r = mag(t-s)
+        r = mag(x-s)
         psi += exp( k * r )/r
     psi2 = real( psi * conj(psi) ) # psi squared
     amplitudes.append(psi2)
-    screen.point(i, t+[0,0, D+psi2/norm]) # elevate grid in z
+    screen.point(i, x+[0,0, psi2/norm]) # elevate grid in z
 
 screen.pointColors(amplitudes, cmap='hot')
 

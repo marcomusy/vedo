@@ -12,7 +12,7 @@ def myfnc(key):
         printc('click an actor and press c.', c='r')
         return
     
-    cb = vp.sphere(pos=vp.picked3d, r=.05, alpha=.3, c='v') 
+    cb = vp.sphere(pos=vp.picked3d, r=.05, c='v') 
     vp.render(cb)
     
     printc('clicked actor   :', vp.clickedActor.legend, c=4)
@@ -26,7 +26,7 @@ vp = Plotter(verbose=0)
 
 vp.keyPressFunction = myfnc # make it known to Plotter class
 
-vp.load('data/shapes/bunny.obj', alpha=.5).normalize()
+vp.load('data/shapes/bunny.obj').normalize()
 
 printc('\nPress c to execute myfnc()', c=1)
 

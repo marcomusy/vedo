@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # 
 from __future__ import division, print_function
-from vtkplotter.vtkio import write, humansort
+from vtkplotter.vtkio import write
 from vtkplotter.vtkio import loadFile, convertNeutral2Xml
+from vtkplotter.utils import humansort
 from vtkplotter import printc
 import sys, argparse
 

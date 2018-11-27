@@ -1,8 +1,8 @@
 # Example use of addTrail() and updateTrail()
 #
-from vtkplotter import Plotter, sin
+from vtkplotter import Plotter, sin, Assembly
 
-vp = Plotter(axes=1)
+vp = Plotter(axes=6)
 
 c = vp.sphere(c='green', res=24)
 vp.cutPlane(c, [-0.9,0,0], showcut=True) #cut left part of sphere
@@ -17,4 +17,4 @@ for i in range(200):
     vp.render()
     vp.camera.Azimuth(-0.2)
 
-vp.show()
+vp.show(resetcam=0)

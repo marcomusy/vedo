@@ -40,8 +40,9 @@ def points(plist, c='b', tags=[], r=5, alpha=1, legend=None):
     if len(plist) == 1:  # passing just one point
         pd.GetPoints().SetPoint(0, [0, 0, 0])
     else:
-        for i, p in enumerate(plist):
-            pd.GetPoints().SetPoint(i, p)
+        pd.GetPoints().SetData(numpy_to_vtk(plist))
+#        for i, p in enumerate(plist):
+#            pd.GetPoints().SetPoint(i, p)
     actor = Actor(pd, c, alpha)
     actor.GetProperty().SetPointSize(r)
     if len(plist) == 1:
@@ -64,7 +65,7 @@ def _colorPoints(plist, cols, r, alpha, legend):
     src.SetNumberOfPoints(len(plist))
     src.Update()
     vertexFilter = vtk.vtkVertexGlyphFilter()
-    vu.setInput(vertexFilter, src.GetOutput())
+    vertexFilter.SetInputData(src.GetOutput())
     vertexFilter.Update()
     pd = vertexFilter.GetOutput()
     ucols = vtk.vtkUnsignedCharArray()
@@ -73,13 +74,10 @@ def _colorPoints(plist, cols, r, alpha, legend):
     for i, p in enumerate(plist):
         pd.GetPoints().SetPoint(i, p)
         c = np.array(vc.getColor(cols[i]))*255
-        if vu.vtkMV:
-            ucols.InsertNextTuple3(c[0], c[1], c[2])
-        else:
-            ucols.InsertNextTupleValue(c)
+        ucols.InsertNextTuple3(c[0], c[1], c[2])
     pd.GetPointData().SetScalars(ucols)
     mapper = vtk.vtkPolyDataMapper()
-    vu.setInput(mapper, pd)
+    mapper.SetInputData(pd)
     mapper.ScalarVisibilityOn()
     actor = Actor()#vtk.vtkActor()
     actor.SetMapper(mapper)
@@ -93,15 +91,11 @@ def _colorPoints(plist, cols, r, alpha, legend):
     return actor
 
 
-def line(p0, p1=None, lw=1, tube=False, dotted=False,
-         c='r', alpha=1., legend=None):
+def line(p0, p1=None, lw=1, dotted=False, c='r', alpha=1, legend=None):
     '''Build the line segment between points p0 and p1.
 
         If p0 is a list of points returns the line connecting them,
-
-        if tube=True, lines are rendered as tubes of radius lw.
     '''
-
     # detect if user is passing a list of points:
     if vu.isSequence(p0[0]):
         ppoints = vtk.vtkPoints()  # Generate the polyline
@@ -126,23 +120,40 @@ def line(p0, p1=None, lw=1, tube=False, dotted=False,
         lineSource.Update()
         poly = lineSource.GetOutput()
 
-    if tube:
-        tuf = vtk.vtkTubeFilter()
-        tuf.SetNumberOfSides(12)
-        vu.setInput(tuf, poly)
-        tuf.SetRadius(lw)
-        tuf.Update()
-        poly = tuf.GetOutput()
-        actor = Actor(poly, c, alpha, legend=legend)
-        actor.GetProperty().SetInterpolationToPhong()
-    else:
-        actor = Actor(poly, c, alpha, legend=legend)
-        actor.GetProperty().SetLineWidth(lw)
-        if dotted:
-            actor.GetProperty().SetLineStipplePattern(0xf0f0)
-            actor.GetProperty().SetLineStippleRepeatFactor(1)
+    actor = Actor(poly, c, alpha, legend=legend)
+    actor.GetProperty().SetLineWidth(lw)
+    if dotted:
+        actor.GetProperty().SetLineStipplePattern(0xf0f0)
+        actor.GetProperty().SetLineStippleRepeatFactor(1)
     actor.base = np.array(p0)
     actor.top = np.array(p1)
+    return actor
+
+
+def tube(points, r=1, c='r', alpha=1, legend=None, res=12):
+    '''Build a tube of radius r along line defined py points.'''
+
+    ppoints = vtk.vtkPoints()  # Generate the polyline
+    ppoints.SetData(numpy_to_vtk(points))
+    lines = vtk.vtkCellArray()  # Create the polyline.
+    lines.InsertNextCell(len(points))
+    for i in range(len(points)):
+        lines.InsertCellPoint(i)
+    poly = vtk.vtkPolyData()
+    poly.SetPoints(ppoints)
+    poly.SetLines(lines)
+        
+    tuf = vtk.vtkTubeFilter()
+    tuf.SetNumberOfSides(res)
+    tuf.SetInputData(poly)
+    tuf.SetRadius(r)
+    tuf.CappingOn()
+    tuf.Update()
+    poly = tuf.GetOutput()
+    actor = Actor(poly, c, alpha, legend=legend)
+    actor.GetProperty().SetInterpolationToPhong()
+    actor.base = np.array(points[0])
+    actor.top = np.array(points[-1])
     return actor
 
 
@@ -173,7 +184,7 @@ def lines(plist0, plist1=None, lw=1, dotted=False,
 
 
 def ribbon(line1, line2, c='m', alpha=1, legend=None, res=(200,5)):
-    
+    '''Connect two lines to generate the surface inbetween.'''
     if isinstance(line1, Actor):
         line1 = line1.coordinates()
     if isinstance(line2, Actor):
@@ -227,16 +238,17 @@ def ribbon(line1, line2, c='m', alpha=1, legend=None, res=(200,5)):
     rsf.CloseSurfaceOff()
     rsf.SetRuledModeToResample()
     rsf.SetResolution(res[0], res[1])
-    vu.setInput(rsf, mergedPolyData.GetOutput())
+    rsf.SetInputData(mergedPolyData.GetOutput())
     rsf.Update()    
     return Actor(rsf.GetOutput(), c=c, alpha=alpha, legend=legend)  
 
 
 def arrow(startPoint, endPoint, c='r', s=None, alpha=1,
-          legend=None, texture=None, res=12, rwSize=None):
+          legend=None, texture=None, res=12, rwSize=(800,800)):
     '''Build a 3D arrow from startPoint to endPoint of section size s,
     expressed as the fraction of the window size.
-    If s=None the arrow is scaled proportionally to its length.'''
+    If s=None the arrow is scaled proportionally to its length,
+    otherwise it represents the fraction of the window size.'''
 
     axis = np.array(endPoint) - np.array(startPoint)
     length = np.linalg.norm(axis)
@@ -265,12 +277,12 @@ def arrow(startPoint, endPoint, c='r', s=None, alpha=1,
     else:
         t.Scale(length, length, length)
     tf = vtk.vtkTransformPolyDataFilter()
-    vu.setInput(tf, arr.GetOutput())
+    tf.SetInputData(arr.GetOutput())
     tf.SetTransform(t)
     tf.Update()
 
     actor = Actor(tf.GetOutput(),
-                         c, alpha, legend=legend, texture=texture)
+                  c, alpha, legend=legend, texture=texture)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(startPoint)
     actor.DragableOff()
@@ -341,11 +353,11 @@ def polygon(pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
     ps.Update()
 
     tf = vtk.vtkTriangleFilter()
-    vu.setInput(tf, ps.GetOutputPort())
+    tf.SetInputConnection(ps.GetOutputPort())
     tf.Update()
 
     mapper = vtk.vtkPolyDataMapper()
-    vu.setInput(mapper, tf.GetOutputPort())
+    mapper.SetInputConnection(tf.GetOutputPort())
     if followcam:  # follow cam
         actor = vtk.vtkFollower()
         actor.SetCamera(camera)
@@ -382,11 +394,8 @@ def disc(pos=[0, 0, 0], normal=[0, 0, 1], r1=0.5, r2=1,
     ps.SetInnerRadius(r1)
     ps.SetOuterRadius(r2)
     ps.SetRadialResolution(res)
-    ps.SetCircumferentialResolution(res*4)
+    ps.SetCircumferentialResolution(res*6) # ~2pi
     ps.Update()
-    tr = vtk.vtkTriangleFilter()
-    vu.setInput(tr, ps.GetOutputPort())
-    tr.Update()
 
     axis = np.array(normal)/np.linalg.norm(normal)
     theta = np.arccos(axis[2])
@@ -396,13 +405,13 @@ def disc(pos=[0, 0, 0], normal=[0, 0, 1], r1=0.5, r2=1,
     t.RotateY(theta*57.3)
     t.RotateZ(phi*57.3)
     tf = vtk.vtkTransformPolyDataFilter()
-    vu.setInput(tf, tr.GetOutput())
+    tf.SetInputData(ps.GetOutput())
     tf.SetTransform(t)
     tf.Update()
 
     pd = tf.GetOutput()
     mapper = vtk.vtkPolyDataMapper()
-    vu.setInput(mapper, pd)
+    mapper.SetInputData(pd)
 
     actor = Actor()# vtk.vtkActor()
     actor.SetMapper(mapper)
@@ -503,10 +512,7 @@ def spheres(centers, r=1,
         for i, p in enumerate(centers):
             vpts.SetPoint(i, p)
             cc = np.array(vc.getColor(c[i]))*255
-            if vu.vtkMV:
-                ucols.InsertNextTuple3(cc[0], cc[1], cc[2])
-            else:
-                ucols.InsertNextTupleValue(cc)
+            ucols.InsertNextTuple3(cc[0], cc[1], cc[2])
             pd.GetPointData().SetScalars(ucols)
             glyph.ScalingOff()
     elif risseq:
@@ -521,11 +527,11 @@ def spheres(centers, r=1,
         for i, p in enumerate(centers):
             vpts.SetPoint(i, p)
 
-    vu.setInput(glyph, pd)
+    glyph.SetInputData(pd)
     glyph.Update()
 
     mapper = vtk.vtkPolyDataMapper()
-    vu.setInput(mapper, glyph.GetOutput())
+    mapper.SetInputData(glyph.GetOutput())
     if cisseq:
         mapper.ScalarVisibilityOn()
     else:
@@ -613,7 +619,7 @@ def ellipsoid(pos=[0, 0, 0], axis1=[1, 0, 0], axis2=[0, 2, 0], axis3=[0, 0, 3],
     t.RotateY(theta*57.3)
     t.RotateZ(phi*57.3)
     tf = vtk.vtkTransformPolyDataFilter()
-    vu.setInput(tf, elliSource.GetOutput())
+    tf.SetInputData(elliSource.GetOutput())
     tf.SetTransform(t)
     tf.Update()
     pd = tf.GetOutput()
@@ -638,7 +644,7 @@ def grid(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=1, c='g', bc='darkgreen',
     t0 = vtk.vtkTransform()
     t0.Scale(sx, sy, 1)
     tf0 = vtk.vtkTransformPolyDataFilter()
-    vu.setInput(tf0, poly0)
+    tf0.SetInputData(poly0)
     tf0.SetTransform(t0)
     tf0.Update()
     poly = tf0.GetOutput()
@@ -650,7 +656,7 @@ def grid(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=1, c='g', bc='darkgreen',
     t.RotateY(theta*57.3)
     t.RotateZ(phi*57.3)
     tf = vtk.vtkTransformPolyDataFilter()
-    vu.setInput(tf, poly)
+    tf.SetInputData(poly)
     tf.SetTransform(t)
     tf.Update()
     pd = tf.GetOutput()
@@ -685,7 +691,7 @@ def plane(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=None, c='g', bc='darkgreen',
     t.RotateY(theta*57.3)
     t.RotateZ(phi*57.3)
     tf = vtk.vtkTransformPolyDataFilter()
-    vu.setInput(tf, poly)
+    tf.SetInputData(poly)
     tf.SetTransform(t)
     tf.Update()
     pd = tf.GetOutput()
@@ -718,7 +724,7 @@ def box(pos=[0, 0, 0], length=1, width=2, height=3, normal=(0, 0, 1),
     t.RotateZ(phi*57.3)
 
     tf = vtk.vtkTransformPolyDataFilter()
-    vu.setInput(tf, poly)
+    tf.SetInputData(poly)
     tf.SetTransform(t)
     tf.Update()
     pd = tf.GetOutput()
@@ -764,13 +770,13 @@ def helix(startPoint=[0, 0, 0], endPoint=[1, 1, 1], coils=20, r=None,
     t.RotateZ(phi*57.3)
     t.RotateY(theta*57.3)
     tf = vtk.vtkTransformPolyDataFilter()
-    vu.setInput(tf, sp)
+    tf.SetInputData(sp)
     tf.SetTransform(t)
     tf.Update()
     tuf = vtk.vtkTubeFilter()
     tuf.SetNumberOfSides(12)
     tuf.CappingOn()
-    vu.setInput(tuf, tf.GetOutput())
+    tuf.SetInputData(tf.GetOutput())
     if not thickness:
         thickness = r/10
     tuf.SetRadius(thickness)
@@ -785,8 +791,7 @@ def helix(startPoint=[0, 0, 0], endPoint=[1, 1, 1], coils=20, r=None,
 
 
 def cylinder(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
-             c='teal', wire=0, alpha=1, edges=False,
-             legend=None, texture=None, res=24):
+             c='teal', wire=0, alpha=1, legend=None, texture=None, res=24):
     '''
     Build a cylinder of specified height and radius r, centered at pos.
 
@@ -823,13 +828,12 @@ def cylinder(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
     t.RotateY(theta*57.3)
     t.RotateZ(phi*57.3)
     tf = vtk.vtkTransformPolyDataFilter()
-    vu.setInput(tf, cyl.GetOutput())
+    tf.SetInputData(cyl.GetOutput())
     tf.SetTransform(t)
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = Actor(pd, c, alpha, wire, edges=edges,
-                         legend=legend, texture=texture)
+    actor = Actor(pd, c, alpha, wire, legend=legend, texture=texture)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
     actor.base = base
@@ -886,7 +890,7 @@ def ring(pos=[0, 0, 0], r=1, thickness=0.1, axis=[0, 0, 1],
     t.RotateY(theta*57.3)
     t.RotateZ(phi*57.3)
     tf = vtk.vtkTransformPolyDataFilter()
-    vu.setInput(tf, pfs.GetOutput())
+    tf.SetInputData(pfs.GetOutput())
     tf.SetTransform(t)
     tf.Update()
     pd = tf.GetOutput()
@@ -927,7 +931,7 @@ def paraboloid(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
     t.RotateZ(phi*57.3)
     t.Scale(r, r, r)
     tf = vtk.vtkTransformPolyDataFilter()
-    vu.setInput(tf, contours.GetOutput())
+    tf.SetInputData(contours.GetOutput())
     tf.SetTransform(t)
     tf.Update()
     pd = tf.GetOutput()
@@ -967,7 +971,7 @@ def hyperboloid(pos=[0, 0, 0], a2=1, value=0.5, height=1, axis=[0, 0, 1],
     t.RotateZ(phi*57.3)
     t.Scale(1, 1, height)
     tf = vtk.vtkTransformPolyDataFilter()
-    vu.setInput(tf, contours.GetOutput())
+    tf.SetInputData(contours.GetOutput())
     tf.SetTransform(t)
     tf.Update()
     pd = tf.GetOutput()

@@ -2,7 +2,7 @@
 #
 from __future__ import division, print_function
 from vtkplotter import Plotter, ProgressBar, printc, __version__
-from vtkplotter.vtkio import humansort
+from vtkplotter.utils import humansort
 import vtkplotter.colors as vc
 import vtk
 import sys, argparse, os
@@ -24,10 +24,10 @@ pr.add_argument("-z", "--zoom", type=float,     help="zooming factor", default=1
 pr.add_argument("-q", "--quiet",                help="quiet mode, less verbose", action="store_true")
 pr.add_argument("-n", "--sequence-mode",        help="show each file in a separate renderer", action="store_true")
 pr.add_argument("-s", "--scrolling-mode",       help="Scrolling Mode: use arrows to scroll files", action="store_true") 
-pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode for SLC/TIFF files", action="store_true") 
+pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode for 3D image files", action="store_true") 
 pr.add_argument("-gz", "--z-spacing", type=float, help="Volume z-spacing factor [1]", default=None, metavar='') 
 pr.add_argument("-gy", "--y-spacing", type=float, help="Volume y-spacing factor [1]", default=None, metavar='') 
-pr.add_argument("--slicer",                     help="Slicer Mode for SLC/TIFF files", action="store_true")
+pr.add_argument("--slicer",                     help="Slicer Mode for 3D image files", action="store_true")
 args = pr.parse_args()
 
 humansort(args.files)
@@ -86,6 +86,10 @@ def _showVoxelImage():
             if not reader.CanReadFile(filename):
                 vc.printc('Bad SLC file:', filename, c=1)
                 continue
+            
+        elif '.vti' in filename.lower(): 
+            reader = vtk.vtkXMLImageDataReader() 
+#            reader = vtk.vtkImageReader()
         else:
             vc.printc('Use -g option only with SLC or TIFF files.', c=1)
             continue
@@ -214,6 +218,10 @@ elif args.slicer:
         reader = vtk.vtkSLCReader() 
         if not reader.CanReadFile(filename):
             vc.printc('Bad SLC file:', filename, c=1)
+    
+    elif '.vti' in filename.lower(): 
+        reader = vtk.vtkXMLImageDataReader() 
+        
     else:
         vc.printc('Use --slicer option only with SLC or TIFF files.', c=1)
     reader.SetFileName(filename) 

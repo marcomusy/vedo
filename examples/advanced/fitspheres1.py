@@ -8,10 +8,10 @@
 # Fitted radius can be accessed from attribute actor.radius
 
 from __future__ import division, print_function
-import vtkplotter
+from vtkplotter import Plotter
 from vtkplotter.analysis import fitSphere
 
-vp = vtkplotter.Plotter(verbose=0)
+vp = Plotter(verbose=0, axes=0)
 
 # load mesh and increase by a lot (N=2) the nr of surface vertices
 s = vp.load('data/shapes/cow.vtk').alpha(0.3).subdivide(N=2)
@@ -29,7 +29,7 @@ for i, p in enumerate(s.coordinates()):
     reds.append(sph.info['residue'])
     invr.append(1/sph.info['radius']**2)
 
-h1 = vp.histogram(reds, title='residue', bins=12, c='g', corner=3)
-h2 = vp.histogram(invr, title='1/r**2',  bins=12, c='r', corner=4)
+vp.histogram(reds, title='residue', bins=12, c='g', corner=3)
+vp.histogram(invr, title='1/r**2',  bins=12, c='r', corner=4)
 
 vp.show()

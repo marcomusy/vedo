@@ -31,7 +31,7 @@ act = vp.load('data/290.vtk', wire=1)
 vp.show()               # picks what is automatically stored in vp.actors
 #vp.show(act)           # same: store act in vp.actors and draws act only
 #vp.show(actors=[act])  # same as above
-# wire=1, equivalent to VTK command: act.GetProperty().SetRepresentationToWireframe()
+# wire=1 is equivalent to VTK command: act.GetProperty().SetRepresentationToWireframe()
 
 
 #########################################################################################
@@ -70,22 +70,6 @@ vp.show()
 
 
 #########################################################################################
-# Draw the PCA (Principal Component Analysis) ellipsoid that contains 50% of 
-# a cloud of points, then check if points are inside the actor surface:
-# from vtkplotter.analysis import pca
-# vp = Plotter(title='Example of PCA analysys')
-# pts = [(gauss(0,1), gauss(0,2), gauss(0,3)) for i in range(1000)]
-# a = pca(pts, pvalue=0.5, pcaAxes=1, legend='PCA ellipsoid')
-# vp.actors.append(a) # add actor to the list of actors to be shown (not automatic)
-
-# ipts = a.insidePoints(pts)
-# opts = a.insidePoints(pts, invert=True)
-# vp.points(ipts, c='g', legend='in  points #'+str(len(ipts)))
-# vp.points(opts, c='r', legend='out points #'+str(len(opts)))
-# vp.show()
-
-
-#########################################################################################
 # Show a dummy sine plot on top left,  
 # and a 3D function f(x,y) = sin(3*x)*log(x-y)/3 (more examples in basic/fxy.py)
 # red points indicate where the function is not real
@@ -115,8 +99,8 @@ vp.show([a2, pts2], at=1, interactive=True)
 ########################################################################################
 # Draw a bunch of simple objects on separate parts of the rendering window:
 # split window to best accomodate 9 renderers
-vp = Plotter(N=9, title='basic shapes')
-vp.sharecam = False                     # each object can be moved independently
+vp = Plotter(N=9, title='basic shapes', axes=0) # split window in 9 frames
+vp.sharecam = False                             # each object can be moved independently
 vp.show(at=0, actors=vp.arrow([0,0,0],[1,1,1]),    legend='arrow' )
 vp.show(at=1, actors=vp.line([0,0,0],[1,1,1]),     legend='line' )
 vp.show(at=2, actors=vp.points([[0,0,0],[1,1,1]]), legend='points' )
@@ -132,7 +116,7 @@ vp.show(at=8, actors=vp.cylinder(), legend='cylinder', interactive=1)
 # Draw a bunch of objects from various mesh formats. Loading is automatic.
 vp = Plotter(shape=(3,3), title='mesh formats') # split window in 3 rows and 3 columns
 vp.sharecam = False                             # each object can be moved independently
-vp.show('data/beethoven.ply', at=0, c=0, axes=0, ruler=1) # dont show axes, add a ruler
+vp.show('data/beethoven.ply', at=0, c=0, axes=0)    # dont show axes, add a ruler
 vp.show('data/cow.g',         at=1, c=1, zoom=1.15) # make it 15% bigger
 vp.show('data/limb.pcd',      at=2, c=2)
 vp.show('data/ring.gmsh',     at=3, c=3, wire=1)

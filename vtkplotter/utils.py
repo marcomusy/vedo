@@ -10,8 +10,6 @@ import vtkplotter.colors as colors
 
 
 ##############################################################################
-vtkMV = vtk.vtkVersion().GetVTKMajorVersion() > 5
-
 _cdir = os.path.dirname(__file__)
 if _cdir == '':
     _cdir = '.'
@@ -25,16 +23,6 @@ textures = list(sorted(textures))
 
 
 ##############################################################################
-def setInput(vtkobj, p, port=0):
-    if isinstance(p, vtk.vtkAlgorithmOutput):
-        vtkobj.SetInputConnection(port, p)  # passing port
-        return
-    if vtkMV:
-        vtkobj.SetInputData(p)
-    else:
-        vtkobj.SetInput(p)
-
-
 def isSequence(arg):
     '''Check if input is iterable.'''
     if hasattr(arg, "strip"):
@@ -44,6 +32,24 @@ def isSequence(arg):
     if hasattr(arg, "__iter__"):
         return True
     return False
+
+
+def humansort(l):
+    """Sort in place a given list the way humans expect.
+
+    E.g. ['file11', 'file1'] -> ['file1', 'file11']
+    """
+    import re
+    def alphanum_key(s):
+        # Turn a string into a list of string and number chunks.
+        # e.g. "z23a" -> ["z", 23, "a"]
+        def tryint(s):
+            if s.isdigit():
+                return int(s)
+            return s
+        return [tryint(c) for c in re.split('([0-9]+)', s)]
+    l.sort(key=alphanum_key)
+    return None  # NB: input list is modified
 
 
 def vector(x, y=None, z=0.):
@@ -171,6 +177,29 @@ def isIdentity(M, tol=1e-06):
             elif np.abs(e) > tol:
                 return False
     return True
+
+
+def grepTag(filename, tag, firstOccurrence=False):
+    '''Greps the line that starts with a specific tag string from inside a file.'''
+    import re
+    try:
+        afile = open(filename, "r")
+    except:
+        print('Error in utils.grep(): cannot open file', filename)
+        exit()
+    content = None
+    for line in afile:
+        if re.search(tag, line):
+            content = line.split()
+            if firstOccurrence:
+                break
+    if content:
+        if len(content) == 2:
+            content = content[1]
+        else:
+            content = content[1:]
+    afile.close()
+    return content
 
     
 def printInfo(obj):
@@ -328,19 +357,9 @@ def printInfo(obj):
 
 
 # ###########################################################################
-def add_actor(f):
-    '''decorator, internal use only'''
-    def wrapper(*args, **kwargs):
-        actor = f(*args, **kwargs)
-        args[0].actors.append(actor)
-        return actor
-    wrapper.__name__ = f.__name__
-    wrapper.__doc__ = f.__doc__
-    return wrapper
 
-
-def isosurface(image, c, alpha, wire, bc, edges, legend, texture,
-               smoothing, threshold, connectivity, scaling):
+def isosurface(image, c, alpha, wire, bc, legend, texture,
+               smoothing, threshold, connectivity):
     '''Return a vtkActor isosurface from a vtkImageData object.'''
     from vtkplotter.actors import Actor
 
@@ -348,7 +367,7 @@ def isosurface(image, c, alpha, wire, bc, edges, legend, texture,
         print('  gaussian smoothing data with volume_smoothing =', smoothing)
         smImg = vtk.vtkImageGaussianSmooth()
         smImg.SetDimensionality(3)
-        setInput(smImg, image)
+        smImg.SetInputData(image)
         smImg.SetStandardDeviations(smoothing, smoothing, smoothing)
         smImg.Update()
         image = smImg.GetOutput()
@@ -363,14 +382,14 @@ def isosurface(image, c, alpha, wire, bc, edges, legend, texture,
         else:
             threshold = (2*scrange[0]+scrange[1])/3.
     cf = vtk.vtkContourFilter()
-    setInput(cf, image)
+    cf.SetInputData(image)
     cf.UseScalarTreeOn()
     cf.ComputeScalarsOff()
     cf.SetValue(0, threshold)
     cf.Update()
 
     clp = vtk.vtkCleanPolyData()
-    setInput(clp, cf.GetOutput())
+    clp.SetInputData(cf.GetOutput())
     clp.Update()
     image = clp.GetOutput()
 
@@ -378,20 +397,11 @@ def isosurface(image, c, alpha, wire, bc, edges, legend, texture,
         print('  applying connectivity filter, select largest region')
         conn = vtk.vtkPolyDataConnectivityFilter()
         conn.SetExtractionModeToLargestRegion()
-        setInput(conn, image)
+        conn.SetInputData(image)
         conn.Update()
         image = conn.GetOutput()
 
-    if scaling:
-        print('  scaling xyz by factors', scaling)
-        tf = vtk.vtkTransformPolyDataFilter()
-        setInput(tf, image)
-        trans = vtk.vtkTransform()
-        trans.Scale(scaling)
-        tf.SetTransform(trans)
-        tf.Update()
-        image = tf.GetOutput()
-    return Actor(image, c, alpha, wire, bc, edges, legend, texture)
+    return Actor(image, c, alpha, wire, bc, legend, texture)
 
 
 def triangleFilter(actor, verts=True, lines=True):
@@ -406,7 +416,7 @@ def triangleFilter(actor, verts=True, lines=True):
     tf = vtk.vtkTriangleFilter()
     tf.SetPassLines(lines)
     tf.SetPassVerts(verts)
-    setInput(tf, poly)
+    tf.SetInputData(poly)
     tf.Update()    
     prop = vtk.vtkProperty()
     prop.DeepCopy(actor.GetProperty())

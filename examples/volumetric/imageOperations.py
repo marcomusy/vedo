@@ -3,13 +3,13 @@
 #   min, max, atan, atan2, median, mag, dot, gradient, divergence, laplacian.
 # Alphas defines the opacity transfer function in the scalar range.
 #
-from vtkplotter import Plotter, vtkio,  utils
+from vtkplotter import Plotter, vtkio
 from vtkplotter.analysis import imageOperation
-from vtkplotter.actor import Volume
+from vtkplotter.actors import Volume
 
 vp = Plotter(N=8, axes=4)
 
-img0 = vtkio.loadImageData('data/embryo.slc')
+img0 = vtkio.loadImageData('data/embryo.slc') # vtkImageData object
 v0 = Volume(img0, c=0) # build a vtk.vtkVolume derived object
 vp.show(v0, at=0)
 

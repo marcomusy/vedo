@@ -5,7 +5,7 @@
 from vtkplotter import Plotter
 
 
-vp = Plotter(shape=(1,3), axes=1, size='fullscreen')
+vp = Plotter(shape=(1,3), size='fullscreen')
 
 
 #####################################
@@ -14,7 +14,7 @@ Np = man1.N()
 pscals = range(Np) # coloring will be by index nr of the vertex
 man1.pointScalars(pscals, 'mypointscalars') # add a vtkArray to actor
 #print(man1.scalars('mypointscalars')) # info can be retrieved this way
-vp.show(man1, at=0)
+vp.show(man1, at=0, axes=1)
 vp.addScalarBar()  # add a scalarbar to last drawn actor
 
 
@@ -23,7 +23,7 @@ man2 = vp.load('data/shapes/man.vtk')
 pscals = man2.coordinates()[:,1] + 37    # pick y coordinates of vertices
 man2.pointColors(pscals, cmap='bone')    # use a colormap to associate a color
 #print(man2.scalars('pointColors_bone')) # info can be retrieved this way
-vp.show(man2, at=1, legend='pointColors')
+vp.show(man2, at=1, axes=0, legend='pointColors')
 vp.addScalarBar(horizontal=True)
 
 

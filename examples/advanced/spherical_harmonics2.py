@@ -63,7 +63,7 @@ def morph(clm1, clm2, t, lmax):
 vp = Plotter(shape=[2,2], verbose=0, axes=3, interactive=0)
 
 shape1 = vp.sphere(alpha=0.2)
-shape2 = vp.load('data/shapes/icosahedron.vtk', edges=1).normalize()
+shape2 = vp.load('data/shapes/icosahedron.vtk').normalize().lineWidth(1)
 
 agrid1, actorpts1 = makegrid(shape1, N)
 vp.show(at=0, actors=[shape1, actorpts1])

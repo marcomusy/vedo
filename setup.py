@@ -2,10 +2,10 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='8.7.0',     # change also in vtkplotter/__init__.py
+    version='8.7.1',     # change also in vtkplotter/__init__.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
-    install_requires=[], # vtk and numpy are needed but better install manually
+    install_requires=['vtk', 'numpy'],
     description='A helper class to easily draw and analyse 3D shapes',
     long_description="""A helper class to easily draw and analyse 3D shapes.
     Check out https://github.com/marcomusy/vtkplotter for documentation.""",
@@ -32,6 +32,8 @@ setup(
 # pip install .
 # cd examples
 # ./run_all.sh
+# vtkplotter -g -c blue examples/data/embryo.slc
+# vtkplotter --slicer   examples/data/embryo.slc
 
 # # check version number here and in vtkplotter/__init__.py
 

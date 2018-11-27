@@ -49,8 +49,8 @@ for j in range(200):
         Psi += d_dt(Psi) * dt  # integrate for a while
     
     A = np.real( Psi*np.conj(Psi) )*1.5 # psi squared, probability(x)
-    coords = list(zip(x, A))
-    Aline = vp.line(coords, c='db', tube=True, lw=.08)
+    coords = list(zip(x, A, [0]*len(x)))
+    Aline = vp.tube(coords, c='db', r=.08)
     vp.show([Aline, barrier, bck])
     lines.append(Aline)
 

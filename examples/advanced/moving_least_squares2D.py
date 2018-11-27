@@ -27,8 +27,6 @@ pts += np.random.randn(len(pts),3)/40 # add noise, will not mess up the original
 s0 = vp1.points(pts, c='blue', r=3, legend='point cloud') 
 vp1.show(s0, at=0) 
 
-#print(vp1.renderWin.GetScreenSize (), vp1.renderWin.SetPosition (60, 60))
-
 s1 = s0.clone(c='dg')                 # a dark green copy of s0
 
 # project s1 points into a smooth surface of points 

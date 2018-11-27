@@ -100,8 +100,8 @@ class Morpher:
         for i in range(sphere0.N()):
             p = sphere0.point(i)
             newp = self.transform(p)
-            sphere1.point(i, newp-pos)
-            hairsacts.append( vp.arrow(p, newp, alpha=.5) )
+            sphere1.point(i, newp)
+            hairsacts.append( vp.arrow(p, newp, s=0.3, alpha=.5) )
 
         zero = vp.point(pos, c='black')
         x1,x2, y1,y2, z1,z2 = self.target.polydata().GetBounds()

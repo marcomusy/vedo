@@ -5,7 +5,7 @@ from vtkplotter.analysis import delaunay2D
 
 vp = vtkplotter.Plotter(shape=(1,2), interactive=0)
 
-d0 = vp.load('data/250.vtk', edges=1, legend='original mesh').rotateY(-90)
+d0 = vp.load('data/250.vtk', legend='original mesh').rotateY(-90)
 
 coords = d0.coordinates() # get the coordinates of the mesh vertices
 # Build a mesh starting from points in space 

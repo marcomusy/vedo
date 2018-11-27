@@ -11,6 +11,9 @@ python basic/align1.py
 echo Running basic/align2.py
 python basic/align2.py
 
+echo Running basic/align3.py
+python basic/align3.py
+
 echo Running basic/carcrash.py
 python basic/carcrash.py
 
@@ -62,6 +65,12 @@ python basic/mesh_coloring.py
 echo Running basic/mesh_alphas.py
 python basic/mesh_alphas.py
 
+echo Running basic/mesh_modify.py
+python basic/mesh_modify.py
+
+echo Running basic/pca.py
+python basic/pca.py
+
 echo Running basic/trail.py
 python basic/trail.py
 
@@ -106,6 +115,10 @@ python basic/mouseclick.py
 
 echo Running basic/ribbon.py
 python basic/ribbon.py
+
+echo Running basic/histo2D.py
+python basic/histo2D.py
+
 
 
 #################################### advanced
@@ -198,9 +211,11 @@ python volumetric/imageOperations.py
 echo Running basic/signedDistance.py
 python volumetric/signedDistance.py
 
+echo Running volumetric/read_vti.py
+python volumetric/read_vti.py
+
 
 ####################################these may fail
-
 echo Running basic/surfIntersect.py
 python basic/surfIntersect.py # fails for vtk version<7
 
@@ -212,3 +227,8 @@ python advanced/spherical_harmonics1.py # fails if sphtool not installed
 
 echo Running advanced/spherical_harmonics2.py
 python advanced/spherical_harmonics2.py # fails if sphtool not installed
+
+
+
+
+

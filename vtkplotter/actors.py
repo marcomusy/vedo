@@ -2,59 +2,227 @@
 Submodule extending the vtkActor, vtkVolume and vtkImageData objects functionality.
 """
 
+from __future__ import division, print_function
 import vtk
 import numpy as np
 import vtkplotter.colors as colors
 import vtkplotter.utils as utils
 from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
+
+
+################################################# functions
+def mergeActors(actors, c=None, alpha=1,
+                wire=False, bc=None, legend=None, texture=None):
+    '''
+    Build a new actor formed by the fusion of the polydatas of input objects.
+    Similar to Assembly, but in this case the input objects become a single mesh.
+    '''
+    polylns = vtk.vtkAppendPolyData()
+    for a in actors:
+        polylns.AddInputData(a.polydata(True))
+    polylns.Update()
+    pd = polylns.GetOutput()
+    return Actor(pd, c, alpha, wire, bc, legend, texture)  
+
+
+################################################# classes
+class Prop(): # adds to Actor, Assembly, vtkImageData and vtkVolume
     
+    def __init__(self):
+
+        self.filename = ''
+        self.trail = None
+        self.trailPoints = []
+        self.trailSegmentSize = 0
+        self.top = None
+        self.base = None
+        self._time = 0
+
+
+    def pos(self, p_x=None, y=None, z=None):
+        '''Set/Get actor position.'''
+        if p_x is None:
+            return np.array(self.GetPosition())
+        if z is None:  # assume p_x is of the form (x,y,z)
+            self.SetPosition(p_x)
+        else:
+            self.SetPosition(p_x, y, z)
+        return self    # return itself to concatenate methods
+
+    def addPos(self, dp_x=None, dy=None, dz=None):
+        '''Add vector to current actor position.'''
+        p = np.array(self.GetPosition())
+        if dz is None: # assume dp_x is of the form (x,y,z)
+            self.SetPosition(p + dp_x)
+        else:
+            self.SetPosition(p + [dp_x, dy, dz])
+        return self
+
+    def x(self, position=None):              
+        '''Set/Get actor position along x axis.'''
+        p = self.GetPosition()
+        if position is None:
+            return p[0]
+        self.SetPosition(position, p[1], p[2])
+        return self
+
+    def y(self, position=None):              
+        '''Set/Get actor position along y axis.'''
+        p = self.GetPosition()
+        if position is None:
+            return p[1]
+        self.SetPosition(p[0], position, p[2])
+        return self
+
+    def z(self, position=None):               
+        '''Set/Get actor position along z axis.'''
+        p = self.GetPosition()
+        if position is None:
+            return p[2]
+        self.SetPosition(p[0], p[1], position)
+        return self
+
+    def rotate(self, angle, axis=[1, 0, 0], axis_point=[0, 0, 0], rad=False):
+        '''Rotate actor around an arbitrary axis passing through axis_point.'''
+        if rad:
+            anglerad = angle
+        else:
+            anglerad = angle/57.29578
+        axis = utils.norm(axis)
+        a = np.cos(anglerad / 2)
+        b, c, d = -axis * np.sin(anglerad / 2)
+        aa, bb, cc, dd = a * a, b * b, c * c, d * d
+        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+        R = np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                      [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                      [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+        rv = np.dot(R, self.GetPosition()-np.array(axis_point)) + axis_point
+    
+        if rad:
+            angle *= 57.29578
+        # this vtk method only rotates in the origin of the actor:
+        self.RotateWXYZ(angle, axis[0], axis[1], axis[2])
+        self.SetPosition(rv)
+        return self
+
+    def rotateX(self, angle, axis_point=[0, 0, 0], rad=False):
+        '''Rotate around x-axis. If angle is in radians set rad=True.'''
+        if rad: angle *= 57.29578
+        self.RotateX(angle)
+        return self
+
+    def rotateY(self, angle, axis_point=[0, 0, 0], rad=False):
+        '''Rotate around y-axis. If angle is in radians set rad=True.'''
+        if rad: angle *= 57.29578
+        self.RotateY(angle)
+        return self
+
+    def rotateZ(self, angle, axis_point=[0, 0, 0], rad=False):
+        '''Rotate around z-axis. If angle is in radians set rad=True.'''
+        if rad: angle *= 57.29578
+        self.RotateZ(angle)
+        return self
+
+    def orientation(self, newaxis=None, rotation=0, rad=False):
+        '''
+        Set/Get actor orientation.
+        If rotation != 0 rotate actor around newaxis.
+        If angle is in radians set rad=True.
+    
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
+        '''        
+        if rad: rotation *= 57.29578
+        initaxis = utils.norm(self.top - self.base)
+        if newaxis is None:
+            return initaxis
+        newaxis = utils.norm(newaxis)
+        pos = np.array(self.GetPosition())
+        crossvec = np.cross(initaxis, newaxis)
+        angle = np.arccos(np.dot(initaxis, newaxis))
+        T = vtk.vtkTransform()
+        T.PostMultiply()
+        T.Translate(-pos)
+        if rotation:
+            T.RotateWXYZ(rotation, initaxis)
+        T.RotateWXYZ(angle*57.29578, crossvec)
+        T.Translate(pos)
+        self.SetUserMatrix(T.GetMatrix())
+        return self
+
+    def scale(self, s=None):
+        '''Set/get actor's scaling factor.'''
+        if s is None:
+            return np.array(self.GetScale())
+        self.SetScale(s)
+        return self  # return itself to concatenate methods
+
+
+    def time(self, t=None):
+        '''Set/get actor's absolute time.'''
+        if t is None:
+            return self._time
+        self._time = t
+        return self  # return itself to concatenate methods
+
+    
+    def updateTrail(self):
+        currentpos = np.array(self.GetPosition())
+        lastpos = self.trailPoints[-1]
+        if lastpos is None:  # reset list
+            self.trailPoints = [currentpos]*len(self.trailPoints)
+            return
+        if np.linalg.norm(currentpos-lastpos) < self.trailSegmentSize:
+            return
+
+        self.trailPoints.append(currentpos)  # cycle
+        self.trailPoints.pop(0)
+
+        poly = self.trail.polydata()
+        poly.GetPoints().SetData(numpy_to_vtk(self.trailPoints))  
+        return self
+
 
 #################################################### 
-# Actor inherits from vtkActor
-class Actor(vtk.vtkActor):
-    '''
-    Build an instance of object Actor derived from vtkActor.
-    A vtkPolyData is normally passed as input.
-
-    Options:
-
-        c,       color in RGB format, hex, symbol or name
-
-        alpha,   opacity value
-
-        wire,    show surface as wireframe
-
-        bc,      backface color of internal surface
-
-        edges,   show edges as line on top of surface
-
-        legend,  optional string
-
-        texture, jpg file name or surface texture name
-    '''
+# Actor inherits from vtkActor and Prop
+class Actor(vtk.vtkActor, Prop):
 
     def __init__(self, poly=None, c='gold', alpha=0.5,
-              wire=False, bc=None, edges=False, legend=None, texture=None):
+              wire=False, bc=None, legend=None, texture=None):
+        '''
+        Build an instance of object Actor derived from vtkActor.
+        A vtkPolyData is normally passed as input.
+    
+        Options:
+    
+            c,       color in RGB format, hex, symbol or name
+    
+            alpha,   opacity value
+    
+            wire,    show surface as wireframe
+    
+            bc,      backface color of internal surface
+    
+            legend,  optional string
+    
+            texture, jpg file name or surface texture name
+        '''
         super(Actor, self).__init__()
 
         self.legend = legend
         self.point_locator = None
         self.cell_locator = None
         self.line_locator = None
-        self._time = 0
-        self._poly = None # cache vtkPolyData for speed
-        self.base = None
-        self.top = None
-        self.filename = ''
         self.info = dict()
-        
+        self.trailPoints = [] # needed by python2
+        self._poly = None # cache vtkPolyData for speed
+
         if poly:
             clp = vtk.vtkCleanPolyData()
             clp.SetTolerance(0.0)
-            utils.setInput(clp, poly)
+            clp.SetInputData(poly)
             clp.Update()
             pdnorm = vtk.vtkPolyDataNormals()
-            utils.setInput(pdnorm, clp.GetOutput())
+            pdnorm.SetInputData(clp.GetOutput())
             pdnorm.ComputePointNormalsOn()
             pdnorm.ComputeCellNormalsOn()
             pdnorm.FlipNormalsOff()
@@ -62,7 +230,7 @@ class Actor(vtk.vtkActor):
             pdnorm.Update()
         
             mapper = vtk.vtkPolyDataMapper()
-            utils.setInput(mapper, pdnorm.GetOutput())
+            mapper.SetInputData(pdnorm.GetOutput())
         
             # check if color string contains a float, in this case ignore alpha
             if alpha is None:
@@ -76,9 +244,7 @@ class Actor(vtk.vtkActor):
         
             #########################################################################
             # On some vtk versions/platforms points are redered as ugly squares
-            # in such a case uncomment this line:
-            if vtk.vtkVersion().GetVTKMajorVersion() > 7:
-                prp.RenderPointsAsSpheresOn()
+            prp.RenderPointsAsSpheresOn()
             #########################################################################
         
             if c is None:
@@ -98,9 +264,7 @@ class Actor(vtk.vtkActor):
         
                 prp.SetDiffuse(1)
                 prp.SetDiffuseColor(c)
-        
-            if edges:
-                prp.EdgeVisibilityOn()
+
             if wire:
                 prp.SetRepresentationToWireframe()
             if texture:
@@ -111,9 +275,8 @@ class Actor(vtk.vtkActor):
                 backProp.SetDiffuseColor(colors.getColor(bc))
                 backProp.SetOpacity(alpha)
                 self.SetBackfaceProperty(backProp)
-    
 
-        
+
     def polydata(self, rebuild=True):
         '''
         Returns the vtkPolyData of a vtkActor or vtkAssembly.
@@ -139,7 +302,7 @@ class Actor(vtk.vtkActor):
         transform.SetMatrix(M)
         tp = vtk.vtkTransformPolyDataFilter()
         tp.SetTransform(transform)
-        utils.setInput(tp, self.GetMapper().GetInput())
+        tp.SetInputData(self.GetMapper().GetInput())
         tp.Update()
         return tp.GetOutput()
 
@@ -162,43 +325,9 @@ class Actor(vtk.vtkActor):
         else:
             return vtk_to_numpy(poly.GetPoints().GetData())
 
-
     def N(self):
+        '''Retrieve number of mesh vertices.'''
         return self.polydata(False).GetNumberOfPoints()
-
-    def pos(self, p=None):
-        if p is None:
-            return np.array(self.GetPosition())
-        self.SetPosition(p)
-        return self  # return itself to concatenate methods
-
-    def addPos(self, dp):
-        self.SetPosition(np.array(self.GetPosition()) + dp)
-        return self
-
-    def px(self, px=None):               # X
-        self._pos = self.GetPosition()
-        if px is None:
-            return self._pos[0]
-        newp = [px, self._pos[1], self._pos[2]]
-        self.SetPosition(newp)
-        return self
-
-    def py(self, py=None):               # Y
-        self._pos = self.GetPosition()
-        if py is None:
-            return self._pos[1]
-        newp = [self._pos[0], py, self._pos[2]]
-        self.SetPosition(newp)
-        return self
-
-    def pz(self, pz=None):               # Z
-        self._pos = self.GetPosition()
-        if pz is None:
-            return self._pos[2]
-        newp = [self._pos[0], self._pos[1], pz]
-        self.SetPosition(newp)
-        return self
 
 
     def texture(self, name, scale=1, falsecolors=False, mapTo=1):
@@ -211,7 +340,7 @@ class Actor(vtk.vtkActor):
         elif mapTo == 3:
             tmapper = vtk.vtkTextureMapToPlane()
     
-        utils.setInput(tmapper, self.polydata(False))
+        tmapper.SetInputData(self.polydata(False))
         if mapTo == 1:
             tmapper.PreventSeamOn()
     
@@ -252,7 +381,7 @@ class Actor(vtk.vtkActor):
 
     
     def clone(self, c=None, alpha=None, wire=False, bc=None,
-              edges=False, legend=None, texture=None, rebuild=True):
+              legend=None, texture=None, rebuild=True):
         '''
         Clone a vtkActor.
         If rebuild is True build its polydata in its current position in space.
@@ -272,7 +401,7 @@ class Actor(vtk.vtkActor):
             alpha = self.GetProperty().GetOpacity()
         if c is None:
             c = self.GetProperty().GetColor()
-        cact = Actor(polyCopy, c, alpha, wire, bc, edges, legend, texture)
+        cact = Actor(polyCopy, c, alpha, wire, bc, legend, texture)
         cact.GetProperty().SetPointSize(self.GetProperty().GetPointSize())
         return cact
         
@@ -295,75 +424,15 @@ class Actor(vtk.vtkActor):
         t.Scale(scale, scale, scale)
         t.Translate(-cm)
         tf = vtk.vtkTransformPolyDataFilter()
-        utils.setInput(tf, self.GetMapper().GetInput())
+        tf.SetInputData(self.GetMapper().GetInput())
         tf.SetTransform(t)
         tf.Update()
         mapper = self.GetMapper()
-        utils.setInput(mapper, tf.GetOutput())
+        mapper.SetInputData(tf.GetOutput())
         mapper.Update()
         self._poly = tf.GetOutput()
         self.Modified()
         return self  # return same obj for concatenation
-
-
-    def rotate(self, angle, axis, axis_point=[0, 0, 0], rad=False):
-        '''Rotate an actor around an arbitrary axis passing through axis_point.'''
-        if rad:
-            anglerad = angle
-        else:
-            anglerad = angle/57.3
-        axis = utils.norm(axis)
-        a = np.cos(anglerad / 2)
-        b, c, d = -axis * np.sin(anglerad / 2)
-        aa, bb, cc, dd = a * a, b * b, c * c, d * d
-        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-        R = np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
-                      [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
-                      [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
-        rv = np.dot(R, self.GetPosition()-np.array(axis_point)) + axis_point
-    
-        if rad:
-            angle *= 57.3
-        # this vtk method only rotates in the origin of the actor:
-        self.RotateWXYZ(angle, axis[0], axis[1], axis[2])
-        self.SetPosition(rv)
-        return self
-
-    def rotateX(self, angle, axis_point=[0, 0, 0], rad=False):
-        return self.rotate(angle, [1, 0, 0], axis_point, rad)
-
-    def rotateY(self, angle, axis_point=[0, 0, 0], rad=False):
-        return self.rotate(angle, [0, 1, 0], axis_point, rad)
-
-    def rotateZ(self, angle, axis_point=[0, 0, 0], rad=False):
-        return self.rotate(angle, [0, 0, 1], axis_point, rad)
-
-
-    def orientation(self, newaxis=None, rotation=0):
-        '''
-        Set/Get actor orientation.
-        If rotation != 0 rotate actor around newaxis (in degree units).
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
-        '''
-        initaxis = utils.norm(self.top - self.base)
-        if newaxis is None:
-            return initaxis
-        newaxis = utils.norm(newaxis)
-        TI = vtk.vtkTransform()
-        self.SetUserMatrix(TI.GetMatrix())  # reset
-        pos = np.array(self.GetPosition())
-        crossvec = np.cross(initaxis, newaxis)
-        angle = np.arccos(np.dot(initaxis, newaxis))
-        T = vtk.vtkTransform()
-        T.PostMultiply()
-        T.Translate(-pos)
-        if rotation:
-            T.RotateWXYZ(rotation, initaxis)
-        T.RotateWXYZ(angle*57.3, crossvec)
-        T.Translate(pos)
-        self.SetUserMatrix(T.GetMatrix())
-        return self
     
     
     def mirror(self, axis='x'):
@@ -391,10 +460,10 @@ class Actor(vtk.vtkActor):
             p = [0, 0, 0]
             polyCopy.GetPoint(j, p)
             polyCopy.GetPoints().SetPoint(j, p[0]*sx-dx*(sx-1),
-                                          p[1]*sy-dy*(sy-1),
-                                          p[2]*sz-dz*(sz-1))
+                                             p[1]*sy-dy*(sy-1),
+                                             p[2]*sz-dz*(sz-1))
         rs = vtk.vtkReverseSense()
-        utils.setInput(rs, polyCopy)
+        rs.SetInputData(polyCopy)
         rs.ReverseNormalsOn()
         rs.Update()
         polyCopy = rs.GetOutput()
@@ -414,11 +483,11 @@ class Actor(vtk.vtkActor):
         '''
         poly = self.polydata(True)
         shrink = vtk.vtkShrinkPolyData()
-        utils.setInput(shrink, poly)
+        shrink.SetInputData(poly)
         shrink.SetShrinkFactor(fraction)
         shrink.Update()
         mapper = self.GetMapper()
-        utils.setInput(mapper, shrink.GetOutput())
+        mapper.SetInputData(shrink.GetOutput())
         mapper.Update()
         self.Modified()
         return self   
@@ -436,9 +505,6 @@ class Actor(vtk.vtkActor):
         if self.base is None:
             colors.printc('stretch(): Please define vectors actor.base and actor.top at creation. Exit.', c='r')
             exit(0)
-    
-        TI = vtk.vtkTransform()
-        self.SetUserMatrix(TI.GetMatrix())  # reset
     
         p1, p2 = self.base, self.top
         q1, q2, z = np.array(q1), np.array(q2), np.array([0, 0, 1])
@@ -479,7 +545,7 @@ class Actor(vtk.vtkActor):
     
         poly = self.polydata()
         clipper = vtk.vtkClipPolyData()
-        utils.setInput(clipper, poly)
+        clipper.SetInputData(poly)
         clipper.SetClipFunction(plane)
         if showcut: 
             clipper.GenerateClippedOutputOn()
@@ -495,6 +561,12 @@ class Actor(vtk.vtkActor):
         prop.DeepCopy(self.GetProperty())
         clippedact.SetProperty(prop)
         
+        bf = self.GetBackfaceProperty()
+        if bf:
+            backProp = vtk.vtkProperty()
+            backProp.DeepCopy(bf)
+            clippedact.SetBackfaceProperty(backProp)
+
         acts = [clippedact]
         if showcut:
             c = self.GetProperty().GetColor()
@@ -506,7 +578,7 @@ class Actor(vtk.vtkActor):
             asse = Assembly(acts)            
             return asse
         else:
-            return  clippedact#self # original actor is modified
+            return clippedact
 
 
     def isInside(self, point, tol=0.0001):
@@ -519,11 +591,8 @@ class Actor(vtk.vtkActor):
         sep = vtk.vtkSelectEnclosedPoints()
         sep.SetTolerance(tol)
         sep.CheckSurfaceOff()
-        utils.setInput(sep, pointsPolydata)
-        if utils.vtkMV:
-            sep.SetSurfaceData(poly)
-        else:
-            sep.SetSurface(poly)
+        sep.SetInputData(pointsPolydata)
+        sep.SetSurfaceData(poly)
         sep.Update()
         return sep.IsInside(0)
 
@@ -536,25 +605,20 @@ class Actor(vtk.vtkActor):
         featureEdge.FeatureEdgesOff()
         featureEdge.BoundaryEdgesOn()
         featureEdge.NonManifoldEdgesOn()
-        utils.setInput(featureEdge, poly)
+        featureEdge.SetInputData(poly)
         featureEdge.Update()
         openEdges = featureEdge.GetOutput().GetNumberOfCells()
         if openEdges != 0:
             colors.printc("Warning: polydata is not a closed surface", c=5)
     
         vpoints = vtk.vtkPoints()
-#        for p in points:
-#            vpoints.InsertNextPoint(p)
         vpoints.SetData(numpy_to_vtk(points))
         pointsPolydata = vtk.vtkPolyData()
         pointsPolydata.SetPoints(vpoints)
         sep = vtk.vtkSelectEnclosedPoints()
         sep.SetTolerance(tol)
-        utils.setInput(sep, pointsPolydata)
-        if utils.vtkMV:
-            sep.SetSurfaceData(poly)
-        else:
-            sep.SetSurface(poly)
+        sep.SetInputData(pointsPolydata)
+        sep.SetSurfaceData(poly)
         sep.Update()
     
         mask1, mask2 = [], []
@@ -576,7 +640,7 @@ class Actor(vtk.vtkActor):
             size = mb/20
         fh.SetHoleSize(size)
         poly = self.polydata()
-        utils.setInput(fh, poly)
+        fh.SetInputData(poly)
         fh.Update()
         fpoly = fh.GetOutput()
         factor = Actor(fpoly, legend=legend)
@@ -591,7 +655,7 @@ class Actor(vtk.vtkActor):
         [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
         '''
         vcen = vtk.vtkCellCenters()
-        utils.setInput(vcen, self.polydata(True))
+        vcen.SetInputData(self.polydata(True))
         vcen.Update()
         return vtk_to_numpy(vcen.GetOutput().GetPoints().GetData())
 
@@ -608,13 +672,13 @@ class Actor(vtk.vtkActor):
         '''
         poly = self.polydata(False)
         cleanPolyData = vtk.vtkCleanPolyData()
-        utils.setInput(cleanPolyData, poly)
+        cleanPolyData.SetInputData(poly)
         if tol:
             cleanPolyData.SetTolerance(tol)
         cleanPolyData.PointMergingOn()
         cleanPolyData.Update()
         mapper = self.GetMapper()
-        utils.setInput(mapper, cleanPolyData.GetOutput())
+        mapper.SetInputData(cleanPolyData.GetOutput())
         mapper.Update()
         self._poly = cleanPolyData.GetOutput()
         self.Modified()
@@ -651,24 +715,17 @@ class Actor(vtk.vtkActor):
     
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fatlimb.py)    
         '''
-        if utils.vtkMV:  # faster
-            cmf = vtk.vtkCenterOfMass()
-            utils.setInput(cmf, self.polydata(True))
-            cmf.Update()
-            c = cmf.GetCenter()
-            return np.array(c)
-        else:
-            pts = self.coordinates(copy=False)
-            if not len(pts):
-                return np.array([0, 0, 0])
-            return np.mean(pts, axis=0)
-    
+        cmf = vtk.vtkCenterOfMass()
+        cmf.SetInputData(self.polydata(True))
+        cmf.Update()
+        c = cmf.GetCenter()
+        return np.array(c)    
     
     def volume(self):
         '''Get the volume occupied by actor.'''
         mass = vtk.vtkMassProperties()
         mass.SetGlobalWarningDisplay(0)
-        utils.setInput(mass, self.polydata())
+        mass.SetInputData(self.polydata())        
         mass.Update()
         return mass.GetVolume()
     
@@ -680,7 +737,7 @@ class Actor(vtk.vtkActor):
         '''
         mass = vtk.vtkMassProperties()
         mass.SetGlobalWarningDisplay(0)
-        utils.setInput(mass, self.polydata())
+        mass.SetInputData(self.polydata())
         mass.Update()
         return mass.GetSurfaceArea()
     
@@ -961,7 +1018,7 @@ class Actor(vtk.vtkActor):
         ![beeth](https://user-images.githubusercontent.com/32848391/46819341-ca1b5980-cd83-11e8-97b7-12b053d76aac.png)
         '''
         triangles = vtk.vtkTriangleFilter()
-        utils.setInput(triangles, self.polydata())
+        triangles.SetInputData(self.polydata())
         triangles.Update()
         originalMesh = triangles.GetOutput()
         if method == 0:
@@ -977,7 +1034,7 @@ class Actor(vtk.vtkActor):
             exit(1)
         if method != 2:
             sdf.SetNumberOfSubdivisions(N)
-        utils.setInput(sdf, originalMesh)
+        sdf.SetInputData(originalMesh)
         sdf.Update()
         out = sdf.GetOutput()
         if legend is None:
@@ -1007,7 +1064,7 @@ class Actor(vtk.vtkActor):
                 return self
     
         decimate = vtk.vtkDecimatePro()
-        utils.setInput(decimate, poly)
+        decimate.SetInputData(poly)
         decimate.SetTargetReduction(1.-fraction)
         decimate.PreserveTopologyOff()
         if boundaries:
@@ -1019,7 +1076,7 @@ class Actor(vtk.vtkActor):
             print('Input nr. of pts:', poly.GetNumberOfPoints(), end='')
             print(' output:', decimate.GetOutput().GetNumberOfPoints())
         mapper = self.GetMapper()
-        utils.setInput(mapper, decimate.GetOutput())
+        mapper.SetInputData(decimate.GetOutput())
         mapper.Update()
         self.Modified()
         self._poly = decimate.GetOutput()
@@ -1046,6 +1103,7 @@ class Actor(vtk.vtkActor):
     def point(self, i, p=None):
         '''
         Retrieve/set specific i-th point coordinates in mesh. (slow).
+        Actor transformation is reset to its mesh position/orientation.
         '''
         if p is None:
             poly = self.polydata(True)
@@ -1055,14 +1113,22 @@ class Actor(vtk.vtkActor):
         else:
             poly = self.polydata(False)
             poly.GetPoints().SetPoint(i, p)
-            TI = vtk.vtkTransform()
-            self.SetUserMatrix(TI.GetMatrix())  # reset
+            # reset actor to identity matrix position/rotation:
+            self.PokeMatrix(vtk.vtkMatrix4x4())  
         return self
 
+    def points(self, pts):
+        '''
+        Set specific points coordinates in mesh. Input is a python list.
+        Actor transformation is reset to its mesh position/orientation.
+        '''
+        vpts = vtk.vtkPoints()
+        vpts.SetData(numpy_to_vtk(pts))
+        self.GetMapper().GetInput().SetPoints(vpts)
+        # reset actor to identity matrix position/rotation:
+        self.PokeMatrix(vtk.vtkMatrix4x4())  
+        return self
 
-    def N(self):
-        '''Retrieve number of mesh vertices.'''
-        return self.polydata(False).GetNumberOfPoints()
 
     def normalAt(self, i):
         '''Calculate normal at vertex point i.'''
@@ -1074,6 +1140,7 @@ class Actor(vtk.vtkActor):
         vtknormals = self.polydata(True).GetPointData().GetNormals()
         as_numpy = vtk_to_numpy(vtknormals)
         return as_numpy
+
 
     def alpha(self, a=None):
         '''Set/get actor's transparency.'''
@@ -1114,55 +1181,47 @@ class Actor(vtk.vtkActor):
         else:
             return np.array(self.GetProperty().GetColor())
 
+    def backColor(self, bc=None):
+        '''Set actor's backface color.'''
+        backProp = self.GetBackfaceProperty()
+        if not backProp:
+            backProp = vtk.vtkProperty()
+        
+        backProp.SetDiffuseColor(colors.getColor(bc))
+        backProp.SetOpacity(self.GetProperty().GetOpacity())
+        self.SetBackfaceProperty(backProp)
+        if bc is not None:
+            self.GetProperty().SetColor(colors.getColor(bc))
+            return self
+        else:
+            return np.array(self.GetProperty().GetColor())
+
     def lineWidth(self, lw):
         '''Set actor's line width of edges.'''
-        self.GetProperty().SetLineWidth(lw)
+        if lw:
+            self.GetProperty().EdgeVisibilityOn()           
+            self.GetProperty().SetLineWidth(lw)
+        else:
+            self.GetProperty().EdgeVisibilityOff() 
         return self
-
-    def time(self, t=None):
-        '''Set/get actor's absolute time.'''
-        if t is None:
-            return self._time
-        self._time = t
-        return self  # return itself to concatenate methods
-
-    def scale(self, s=None):
-        '''Set/get actor's scaling factor.'''
-        if s is None:
-            return np.array(self.GetScale())
-        self.SetScale(s)
-        return self  # return itself to concatenate methods
-
-
-
-################################################# functions
-def mergeActors(actors, c=None, alpha=1,
-                wire=False, bc=None, edges=False, legend=None, texture=None):
-    '''
-    Build a new actor formed by the fusion of the polydatas of input objects.
-    Similar to Assembly, but in this case the input objects become a single mesh.
-    '''
-    polylns = vtk.vtkAppendPolyData()
-    for a in actors:
-        polylns.AddInputData(a.polydata(True))
-    polylns.Update()
-    pd = polylns.GetOutput()
-    return Actor(pd, c, alpha, wire, bc, edges, legend, texture)
-
 
 
 #################################################
-class Assembly(vtk.vtkAssembly, Actor):
-    '''Group many actors as a single new actor.
+class Assembly(vtk.vtkAssembly, Prop):
 
-    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
-    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py)    
-    '''
     def __init__(self, actors, legend=None):
+        '''Group many actors as a single new actor.
+    
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py)    
+        '''
         super(Assembly, self).__init__()
 
         self.actors = actors
         self.legend = legend
+        self.info = dict()
+        self.trailPoints = [] # needed by python2
+
         if len(actors) and hasattr(actors[0], 'base'):
             self.base = actors[0].base
             self.top = actors[0].top
@@ -1171,8 +1230,8 @@ class Assembly(vtk.vtkAssembly, Actor):
             self.top = None
             
         for a in actors:
-            self.AddPart(a)
-
+            if a:
+                self.AddPart(a)
 
     def getActors(self):
         '''Unpack a list of vtkActor objects from a vtkAssembly'''
@@ -1182,52 +1241,28 @@ class Assembly(vtk.vtkAssembly, Actor):
         cl.InitTraversal()
         for i in range(self.GetNumberOfPaths()):
             act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
-            if isinstance(act, vtk.vtkCubeAxesActor):
-                continue
-            self.actors.append(act)
+            if act.GetPickable():
+                self.actors.append(act)
         return self.actors
 
+    def getActor(self, i):
+        '''Get i-th vtkActor object from a vtkAssembly'''
+        return self.getActors()[i]
+
+    def diagonalSize(self):
+        szs = [a.diagonalSize() for a in self.actors]
+        return np.max(szs)
 
 
 #################################################
-class ImageActor(vtk.vtkImageActor):
-    '''Group many actors as a single new actor.
+class ImageActor(vtk.vtkImageActor, Prop):
 
-    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
-    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py)    
-    '''
     def __init__(self):
+        '''
+        Derived class of vtkImageActor.
+        '''
         super(ImageActor, self).__init__()
-        
-    def scale(self, s):
-        '''Set image scale.'''
-        self.SetScale(s, s, s)
-        return self  # return itself to concatenate methods
-
-    def pos(self, p=None):
-        '''Set/get image position.'''
-        if p is None:
-            return np.array(self.GetPosition())
-        self.SetPosition(p)
-        return self  # return itself to concatenate methods
-
-    def rotateX(self, angle, axis_point=[0, 0, 0], rad=False):
-        '''Rotate image around x-axis.'''
-        if rad: angle *= 57.3
-        self.RotateX(angle)
-        return self
-
-    def rotateY(self, angle, axis_point=[0, 0, 0], rad=False):
-        '''Rotate image around y-axis.'''
-        if rad: angle *= 57.3
-        self.RotateY(angle)
-        return self
-
-    def rotateZ(self, angle, axis_point=[0, 0, 0], rad=False):
-        '''Rotate image around z-axis.'''
-        if rad: angle *= 57.3
-        self.RotateZ(angle)
-        return self
+        self.info = dict()
 
     def alpha(self, a=None):
         '''Set/get actor's transparency.'''
@@ -1238,13 +1273,18 @@ class ImageActor(vtk.vtkImageActor):
             return self.GetProperty().GetOpacity()
 
 
-
 ##########################################################################
-class Volume(vtk.vtkVolume):
-    '''Derived class of vtkVolume.'''
+class Volume(vtk.vtkVolume, Prop):
 
-    def __init__(self, img, c=(0, 0, 0.6), alphas=[0, 0.4, 0.9, 1]):
+    def __init__(self, img, c='blue', alphas=[0, 0.4, 0.9, 1]):
+        '''Derived class of vtkVolume.
+        
+        c can be a list to set colors along the scalar range
+        
+        alphas defines the opacity transfer function in the scalar range
+        '''
         super(Volume, self).__init__()
+        self.info = dict()
 
         volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
         volumeMapper.SetBlendModeToMaximumIntensity()
@@ -1256,13 +1296,21 @@ class Volume(vtk.vtkVolume):
             smax = abs(10*smin)+.1
             print("         reset to:", smax)
     
-        # Create transfer mapping scalar value to color
-        r, g, b = colors.getColor(c)
         colorTransferFunction = vtk.vtkColorTransferFunction()
-        colorTransferFunction.AddRGBPoint(smin, 1.0, 1.0, 1.0)
-        colorTransferFunction.AddRGBPoint((smax+smin)/3, r/2, g/2, b/2)
-        colorTransferFunction.AddRGBPoint(smax, 0.0, 0.0, 0.0)
-    
+        if utils.isSequence(c):
+            for i,ci in enumerate(c):
+                r, g, b = colors.getColor(ci)
+                xalpha = smin+(smax-smin)*i/(len(c)-1)
+                colorTransferFunction.AddRGBPoint(xalpha, r,g,b)
+                colors.printc('\tcolor at', round(xalpha, 1),
+                              '\tset to', colors.getColorName((r,g,b)), c='b', bold=0)
+        else:
+            # Create transfer mapping scalar value to color
+            r, g, b = colors.getColor(c)
+            colorTransferFunction.AddRGBPoint(smin, 1.0, 1.0, 1.0)
+            colorTransferFunction.AddRGBPoint((smax+smin)/3, r/2, g/2, b/2)
+            colorTransferFunction.AddRGBPoint(smax, 0.0, 0.0, 0.0)
+                
         opacityTransferFunction = vtk.vtkPiecewiseFunction()
         for i, al in enumerate(alphas):
             xalpha = smin+(smax-smin)*i/(len(alphas)-1)
@@ -1270,12 +1318,13 @@ class Volume(vtk.vtkVolume):
             opacityTransferFunction.AddPoint(xalpha, al)
             colors.printc('\talpha at', round(xalpha, 1),
                           '\tset to', al, c='b', bold=0)
-    
+
         # The property describes how the data will look
         volumeProperty = vtk.vtkVolumeProperty()
         volumeProperty.SetColor(colorTransferFunction)
         volumeProperty.SetScalarOpacity(opacityTransferFunction)
         volumeProperty.SetInterpolationTypeToLinear()
+        #volumeProperty.SetScalarOpacityUnitDistance(1)
     
         # volume holds the mapper and the property and can be used to position/orient it
         self.SetMapper(volumeMapper)

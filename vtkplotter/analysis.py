@@ -6,7 +6,6 @@ from __future__ import division, print_function
 import vtk
 import numpy as np
 
-import vtkplotter.utils as vu
 import vtkplotter.colors as vc
 import vtkplotter.vtkio as vio
 import vtkplotter.shapes as vs
@@ -36,8 +35,7 @@ def spline(points, smooth=0.5, degree=2,
     try:
         from scipy.interpolate import splprep, splev
     except ImportError:
-        vc.printc(
-            'Warning: ..scipy not installed, using vtkCardinalSpline instead.', c=5)
+        vc.printc('Warning: ..scipy not installed, using vtkCardinalSpline instead.', c=5)
         return _vtkspline(points, s, c, alpha, nodes, legend, res)
 
     Nout = len(points)*res  # Number of points on the spline
@@ -93,7 +91,7 @@ def _vtkspline(points, s, c, alpha, nodes, legend, res):
     inputData.SetPoints(inputPoints)
     points = vtk.vtkPoints()
     profileData = vtk.vtkPolyData()
-    for i in range(0, numberOfOutputPoints):
+    for i in range(numberOfOutputPoints):
         t = (numberOfInputPoints-1.)/(numberOfOutputPoints-1.)*i
         x, y, z = aSplineX.Evaluate(
             t), aSplineY.Evaluate(t), aSplineZ.Evaluate(t)
@@ -101,7 +99,7 @@ def _vtkspline(points, s, c, alpha, nodes, legend, res):
 
     lines = vtk.vtkCellArray()  # Create the polyline.
     lines.InsertNextCell(numberOfOutputPoints)
-    for i in range(0, numberOfOutputPoints):
+    for i in range(numberOfOutputPoints):
         lines.InsertCellPoint(i)
 
     profileData.SetPoints(points)
@@ -217,7 +215,7 @@ def fxy(z='sin(3*x)*log(x-y)/3', x=[0, 3], y=[0, 3],
 
     if zlevels:
         tf = vtk.vtkTriangleFilter()
-        vu.setInput(tf, poly)
+        tf.SetInputData(poly)
         tf.Update()
         poly = tf.GetOutput()
 
@@ -243,7 +241,7 @@ def fxy(z='sin(3*x)*log(x-y)/3', x=[0, 3], y=[0, 3],
 
         poly.RemoveDeletedCells()
         cl = vtk.vtkCleanPolyData()
-        vu.setInput(cl, poly)
+        cl.SetInputData(poly)
         cl.Update()
         poly = cl.GetOutput()
 
@@ -262,7 +260,7 @@ def fxy(z='sin(3*x)*log(x-y)/3', x=[0, 3], y=[0, 3],
 
     if c is None:
         elev = vtk.vtkElevationFilter()
-        vu.setInput(elev, poly)
+        elev.SetInputData(poly)
         elev.Update()
         poly = elev.GetOutput()
 
@@ -271,13 +269,13 @@ def fxy(z='sin(3*x)*log(x-y)/3', x=[0, 3], y=[0, 3],
     acts = [actor]
     if zlevels:
         elevation = vtk.vtkElevationFilter()
-        vu.setInput(elevation, poly)
+        elevation.SetInputData(poly)
         bounds = poly.GetBounds()
-        elevation.SetLowPoint(0, 0, bounds[4])
+        elevation.SetLowPoint( 0, 0, bounds[4])
         elevation.SetHighPoint(0, 0, bounds[5])
         elevation.Update()
         bcf = vtk.vtkBandedPolyDataContourFilter()
-        vu.setInput(bcf, elevation.GetOutput())
+        bcf.SetInputData(elevation.GetOutput())
         bcf.SetScalarModeToValue()
         bcf.GenerateContourEdgesOn()
         bcf.GenerateValues(zlevels, elevation.GetScalarRange())
@@ -301,25 +299,102 @@ def fxy(z='sin(3*x)*log(x-y)/3', x=[0, 3], y=[0, 3],
         return actor
 
 
-def delaunay2D(plist, tol=None, c='gold', alpha=0.5, wire=False, bc=None, edges=False,
+def histogram2D(xvalues, yvalues, bins=12, norm=1, c='g', alpha=1, fill=False):        
+    '''
+    Build a 2D hexagonal histogram from a list of x and y values.
+    
+    bins, nr of bins for the smaller range in x or y
+    
+    norm, sets a scaling factor for the z axis
+    
+    fill, draw solid hexagons
+    '''       
+    xmin, xmax = np.min(xvalues), np.max(xvalues)
+    ymin, ymax = np.min(yvalues), np.max(yvalues)
+    dx, dy = xmax-xmin, ymax-ymin
+    
+    if xmax-xmin < ymax - ymin:
+        n = bins
+        m = np.rint(dy/dx*n/1.2+.5).astype(int)
+    else:
+        m = bins
+        n = np.rint(dx/dy*m*1.2+.5).astype(int)
+   
+    src = vtk.vtkPointSource()
+    src.SetNumberOfPoints(len(xvalues))
+    src.Update()
+    pointsPolydata = src.GetOutput()
+    
+    values = list(zip(xvalues, yvalues))
+    zs = [[0.0]]*len(values) 
+    values = np.append(values, zs, axis=1)
+
+    pointsPolydata.GetPoints().SetData(numpy_to_vtk(values))
+    cloud = Actor(pointsPolydata)
+    
+    c1 = vc.getColor(c)
+    c2 = np.array(c1)*.7
+    r = 0.47/n*1.2*dx
+
+    hexs, binmax = [], 0
+    for i in range(n+3):
+        for j in range(m+2):
+            cyl = vtk.vtkCylinderSource()
+            cyl.SetResolution(6)
+            cyl.CappingOn()
+            cyl.SetRadius(0.5)
+            cyl.SetHeight(0.1)
+            cyl.Update()
+            t = vtk.vtkTransform()
+            if not i%2:
+                p = (i/1.33, j/1.12, 0) 
+                c = c1
+            else:
+                p = (i/1.33, j/1.12+0.443, 0)
+                c = c2
+            q = (p[0]/n*1.2*dx+xmin, p[1]/m*dy+ymin, 0)
+            ids = cloud.closestPoint(q, radius=r, returnIds=True)
+            ne = len(ids)
+            if fill:
+                t.Translate(p[0], p[1], ne/2)
+                t.Scale(1, 1, ne*5)
+            else:
+                t.Translate(p[0], p[1], ne)
+            t.RotateX(90)  # put it along Z
+            tf = vtk.vtkTransformPolyDataFilter()
+            tf.SetInputData(cyl.GetOutput())
+            tf.SetTransform(t)
+            tf.Update()
+            h = Actor(tf.GetOutput(), c=c, alpha=alpha)
+            h.PickableOff()
+            hexs.append(h)
+            if ne > binmax:
+                binmax = ne
+
+    asse = Assembly(hexs)
+    asse.PickableOff()
+    asse.SetScale(1/n*1.2*dx, 1/m*dy, norm/binmax*(dx+dy)/4)
+    asse.SetPosition(xmin,ymin,0)
+    return asse
+
+
+def delaunay2D(plist, tol=None, c='gold', alpha=0.5, wire=False, bc=None,
                legend=None, texture=None):
     '''
     Create a mesh from points in the XY plane.
 
     [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/delaunay2d.py)
     '''
-    src = vtk.vtkPointSource()
-    src.SetNumberOfPoints(len(plist))
-    src.Update()
-    pd = src.GetOutput()
-    for i, p in enumerate(plist):
-        pd.GetPoints().SetPoint(i, p)
+    pd = vtk.vtkPolyData()
+    vpts = vtk.vtkPoints()
+    vpts.SetData(numpy_to_vtk(plist))
+    pd.SetPoints(vpts)
     delny = vtk.vtkDelaunay2D()
-    vu.setInput(delny, pd)
+    delny.SetInputData(pd)
     if tol:
         delny.SetTolerance(tol)
     delny.Update()
-    return Actor(delny.GetOutput(), c, alpha, wire, bc, edges, legend, texture)
+    return Actor(delny.GetOutput(), c, alpha, wire, bc, legend, texture)
 
 
 def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
@@ -333,9 +408,10 @@ def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
     maskPts.SetOnRatio(ratio)
     maskPts.RandomModeOff()
     src = actor.polydata()
-    vu.setInput(maskPts, src)
-    arrow = vtk.vtkArrowSource()
-    arrow.SetTipRadius(0.075)
+    maskPts.SetInputData(src)
+    arrow = vtk.vtkLineSource()
+    arrow.SetPoint1(0,0,0)
+    arrow.SetPoint2(.75,0,0)
     glyph = vtk.vtkGlyph3D()
     glyph.SetSourceConnection(arrow.GetOutputPort())
     glyph.SetInputConnection(maskPts.GetOutputPort())
@@ -362,6 +438,7 @@ def normals(actor, ratio=5, c=(0.6, 0.6, 0.6), alpha=0.8, legend=None):
     if al:
         alpha = al
     glyphActor.GetProperty().SetOpacity(alpha)
+    glyphActor.PickableOff()
     aactor = Assembly([actor, glyphActor], legend=legend)
     return aactor
 
@@ -376,7 +453,7 @@ def curvature(actor, method=1, r=1, alpha=1, lut=None, legend=None):
     '''
     poly = actor.polydata()
     cleaner = vtk.vtkCleanPolyData()
-    vu.setInput(cleaner, poly)
+    cleaner.SetInputData(poly)
     curve = vtk.vtkCurvatures()
     curve.SetInputConnection(cleaner.GetOutputPort())
     curve.SetCurvatureType(method)
@@ -408,7 +485,7 @@ def boundaries(actor, c='p', lw=5, legend=None):
     [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)    
     '''
     fe = vtk.vtkFeatureEdges()
-    vu.setInput(fe, actor.polydata())
+    fe.SetInputData(actor.polydata())
     fe.BoundaryEdgesOn()
     fe.FeatureEdgesOn()
     fe.ManifoldEdgesOn()
@@ -429,7 +506,7 @@ def extractLargestRegion(actor, legend=None):
     conn.SetExtractionModeToLargestRegion()
     conn.ScalarConnectivityOff()
     poly = actor.polydata(True)
-    vu.setInput(conn, poly)
+    conn.SetInputData(poly)
     conn.Update()
     epoly = conn.GetOutput()
     if legend is True:
@@ -441,66 +518,71 @@ def extractLargestRegion(actor, legend=None):
     return eact
     
 
-def align(source, target, iters=100, rigid=False, method='ICP', legend=None):
+def align(source, target, iters=100, rigid=False, legend=None):
     '''
     Return a copy of source actor which is aligned to
-    target actor through vtkIterativeClosestPointTransform
-    or vtkProcrustesAlignmentFilter classes.
+    target actor through vtkIterativeClosestPointTransform class.
     
-    With ICP: the core of the algorithm is to match each vertex in one surface with
+    The core of the algorithm is to match each vertex in one surface with
     the closest surface point on the other, then apply the transformation 
     that modify one surface to best match the other (in the least-square sense). 
     
-    With Procrustes: takes a set of points and aligns them in a least-squares sense 
-    to their mutual mean. The algorithm is iterated until convergence, 
-    as the mean must be recomputed after each alignment.
-
     [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/align1.py)
     [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/align2.py)
     '''
     if isinstance(source, Actor): source = source.polydata()
     if isinstance(target, Actor): target = target.polydata()
     
-    if method.lower() == 'icp':
-        icp = vtk.vtkIterativeClosestPointTransform()
-        icp.SetSource(source)
-        icp.SetTarget(target)
-        icp.SetMaximumNumberOfIterations(iters)
-        if rigid:
-            icp.GetLandmarkTransform().SetModeToRigidBody()
-        icp.StartByMatchingCentroidsOn()
-        icp.Update()
-        icpTransformFilter = vtk.vtkTransformPolyDataFilter()
-        vu.setInput(icpTransformFilter, source)
-        icpTransformFilter.SetTransform(icp)
-        icpTransformFilter.Update()
-        poly = icpTransformFilter.GetOutput()
-        actor = Actor(poly, legend=legend)
-        actor.info['transform'] = icp.GetLandmarkTransform()
-        return actor
+    icp = vtk.vtkIterativeClosestPointTransform()
+    icp.SetSource(source)
+    icp.SetTarget(target)
+    icp.SetMaximumNumberOfIterations(iters)
+    if rigid:
+        icp.GetLandmarkTransform().SetModeToRigidBody()
+    icp.StartByMatchingCentroidsOn()
+    icp.Update()
+    icpTransformFilter = vtk.vtkTransformPolyDataFilter()
+    icpTransformFilter.SetInputData(source)
+    icpTransformFilter.SetTransform(icp)
+    icpTransformFilter.Update()
+    poly = icpTransformFilter.GetOutput()
+    actor = Actor(poly, legend=legend)
+    actor.info['transform'] = icp.GetLandmarkTransform()
+    return actor
     
-    elif method.lower() == 'procrustes': 
-        if source.GetNumberOfPoints() != target.GetNumberOfPoints():
+
+def procrustes(sources, rigid=False, legend=None):
+    '''
+    Return an Assembly of aligned source actors with
+    the vtkProcrustesAlignmentFilter class. Assembly is normalized in space.
+    
+    Takes N set of points and aligns them in a least-squares sense 
+    to their mutual mean. The algorithm is iterated until convergence, 
+    as the mean must be recomputed after each alignment.
+    '''
+    group = vtk.vtkMultiBlockDataGroupFilter()
+    for source in sources:
+        if sources[0].N() != source.N():
             vc.printc('Procrustes error in align():' , c=1)
-            vc.printc(' source and target have different nr of points', c=1)
+            vc.printc(' sources have different nr of points', c=1)
             exit(0)
-        group = vtk.vtkMultiBlockDataGroupFilter()
-        group.AddInputData(source)
-        group.AddInputData(target)
-        procrustes = vtk.vtkProcrustesAlignmentFilter()
-        procrustes.StartFromCentroidOn()
-        procrustes.SetInputConnection(group.GetOutputPort())
-        if rigid:
-            procrustes.GetLandmarkTransform().SetModeToRigidBody()
-        procrustes.Update()
-        poly = procrustes.GetOutput().GetBlock(0)
-        actor = Actor(poly, legend=legend)
-        actor.info['transform'] = procrustes.GetLandmarkTransform()
-        return actor
-      
-    else:
-        vc.printc('Align error: Method must be either ICP or Procrustes.', c=1)
-        exit(0)
+        group.AddInputData(source.polydata())
+    procrustes = vtk.vtkProcrustesAlignmentFilter()
+    procrustes.StartFromCentroidOn()
+    procrustes.SetInputConnection(group.GetOutputPort())
+    if rigid:
+        procrustes.GetLandmarkTransform().SetModeToRigidBody()
+    procrustes.Update()
+    
+    acts = []
+    for i in range(len(sources)):
+        poly = procrustes.GetOutput().GetBlock(i)
+        actor = Actor(poly)
+        actor.SetProperty(sources[i].GetProperty())
+        acts.append(actor)
+    assem = Assembly(acts, legend=legend)
+    assem.info['transform'] = procrustes.GetLandmarkTransform()
+    return assem
 
 
 ################# working with point clouds
@@ -617,9 +699,9 @@ def pca(points, pvalue=.95, c='c', alpha=0.5, pcaAxes=False, legend=None):
     U, s, R = np.linalg.svd(cov)   # singular value decomposition
     p, n = s.size, P.shape[0]
     fppf = f.ppf(pvalue, p, n-p)*(n-1)*p*(n+1)/n/(n-p)  # f % point function
-    ua, ub, uc = np.sqrt(s*fppf)*2   # semi-axes (largest first)
+    ua, ub, uc = np.sqrt(s*fppf)*2 # semi-axes (largest first)
     center = np.mean(P, axis=0)    # centroid of the hyperellipsoid
-    sphericity = (((ua-ub)/(ua+ub))**2
+    sphericity = (  ((ua-ub)/(ua+ub))**2
                   + ((ua-uc)/(ua+uc))**2
                   + ((ub-uc)/(ub+uc))**2)/3. * 4.
     elliSource = vtk.vtkSphereSource()
@@ -647,9 +729,9 @@ def pca(points, pvalue=.95, c='c', alpha=0.5, pcaAxes=False, legend=None):
             l.Update()
             t = vtk.vtkTransformFilter()
             t.SetTransform(vtra)
-            vu.setInput(t, l.GetOutput())
+            t.SetInputData(l.GetOutput())
             t.Update()
-            axs.append(Actor(t.GetOutput(), c, alpha))
+            axs.append(Actor(t.GetOutput(), c, alpha).lineWidth(3))
         finact = Assembly([actor_elli]+axs, legend=legend)
     else:
         finact = actor_elli
@@ -668,7 +750,7 @@ def smoothLaplacian(actor, niter=15, relaxfact=0.1, edgeAngle=15, featureAngle=6
     '''
     poly = actor.polydata()
     cl = vtk.vtkCleanPolyData()
-    vu.setInput(cl, poly)
+    cl.SetInputData(poly)
     cl.Update()
     poly = cl.GetOutput()  # removes the boudaries duplication
     smoothFilter = vtk.vtkSmoothPolyDataFilter()
@@ -692,11 +774,11 @@ def smoothWSinc(actor, niter=15, passBand=0.1, edgeAngle=15, featureAngle=60):
     '''
     poly = actor.polydata()
     cl = vtk.vtkCleanPolyData()
-    vu.setInput(cl, poly)
+    cl.SetInputData(poly)
     cl.Update()
     poly = cl.GetOutput()  # removes the boudaries duplication
     smoothFilter = vtk.vtkWindowedSincPolyDataFilter()
-    vu.setInput(smoothFilter, poly)
+    smoothFilter.SetInputData(poly)
     smoothFilter.SetNumberOfIterations(niter)
     smoothFilter.SetEdgeAngle(edgeAngle)
     smoothFilter.SetFeatureAngle(featureAngle)
@@ -927,8 +1009,8 @@ def smoothMLS1D(actor, f=0.2, showNLines=0):
 
 
 def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1,
-                     wire=False, bc=None, edges=False, legend=None, texture=None):
-    '''Volumetric union, intersection and subtraction of surfaces
+                     wire=False, bc=None, legend=None, texture=None):
+    '''Volumetric union, intersection and subtraction of surfaces.
 
     [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/boolean.py)        
     '''
@@ -946,15 +1028,10 @@ def booleanOperation(actor1, actor2, operation='plus', c=None, alpha=1,
     elif operation.lower() == 'minus':
         bf.SetOperationToDifference()
         bf.ReorientDifferenceCellsOn()
-    if vu.vtkMV:
-        bf.SetInputData(0, poly1)
-        bf.SetInputData(1, poly2)
-    else:
-        bf.SetInputConnection(0, poly1.GetProducerPort())
-        bf.SetInputConnection(1, poly2.GetProducerPort())
+    bf.SetInputData(0, poly1)
+    bf.SetInputData(1, poly2)
     bf.Update()
-    actor = Actor(bf.GetOutput(),
-                         c, alpha, wire, bc, edges, legend, texture)
+    actor = Actor(bf.GetOutput(), c, alpha, wire, bc, legend, texture)
     return actor
 
 
@@ -1040,12 +1117,12 @@ def imageOperation(image1, operation='+', image2=None):
 
     if op in ['median']:
         mf = vtk.vtkImageMedian3D()
-        vu.setInput(mf, image1)
+        mf.SetInputData(image1)
         mf.Update()
         return mf.GetOutput()
     elif op in ['mag']:
         mf = vtk.vtkImageMagnitude()
-        vu.setInput(mf, image1)
+        mf.SetInputData(image1)
         mf.Update()
         return mf.GetOutput()
     elif op in ['dot', 'dotproduct']:
@@ -1057,18 +1134,18 @@ def imageOperation(image1, operation='+', image2=None):
     elif op in ['grad', 'gradient']:
         mf = vtk.vtkImageGradient()
         mf.SetDimensionality(3)
-        vu.setInput(mf, image1)
+        mf.SetInputData(image1)
         mf.Update()
         return mf.GetOutput()
     elif op in ['div', 'divergence']:
         mf = vtk.vtkImageDivergence()
-        vu.setInput(mf, image1)
+        mf.SetInputData(image1)
         mf.Update()
         return mf.GetOutput()
     elif op in ['laplacian']:
         mf = vtk.vtkImageLaplacian()
         mf.SetDimensionality(3)
-        vu.setInput(mf, image1)
+        mf.SetInputData(image1)
         mf.Update()
         return mf.GetOutput()
 
@@ -1141,7 +1218,7 @@ def imageOperation(image1, operation='+', image2=None):
 
 
 def recoSurface(points, bins=256,
-                c='gold', alpha=1, wire=False, bc='t', edges=False, legend=None):
+                c='gold', alpha=1, wire=False, bc='t', legend=None):
     '''
     Surface reconstruction from sparse points.
 
@@ -1174,10 +1251,9 @@ def recoSurface(points, bins=256,
                        z0-(z1-z0)*f, z1+(z1-z0)*f)
     if polyData.GetPointData().GetNormals():
         distance.SetInputData(polyData)
-        vu.setInput(distance, polyData)
     else:
         normals = vtk.vtkPCANormalEstimation()
-        vu.setInput(normals, polyData)
+        normals.SetInputData(polyData)
         normals.SetSampleSize(int(N/50))
         normals.SetNormalOrientationToGraphTraversal()
         distance.SetInputConnection(normals.GetOutputPort())
@@ -1199,7 +1275,7 @@ def recoSurface(points, bins=256,
     surface.ComputeGradientsOff()
     surface.SetInputConnection(distance.GetOutputPort())
     surface.Update()
-    return Actor(surface.GetOutput(), c, alpha, wire, bc, edges, legend)
+    return Actor(surface.GetOutput(), c, alpha, wire, bc, legend)
 
 
 def cluster(points, radius, legend=None):
@@ -1224,7 +1300,7 @@ def cluster(points, radius, legend=None):
         poly = src.GetOutput()
 
     cluster = vtk.vtkEuclideanClusterExtraction()
-    vu.setInput(cluster, poly)
+    cluster.SetInputData(poly)
     cluster.SetExtractionModeToAllClusters()
     cluster.SetRadius(radius)
     cluster.ColorClustersOn()
@@ -1276,8 +1352,7 @@ def removeOutliers(points, radius, c='k', alpha=1, legend=None):
         poly = src.GetOutput()
 
     removal = vtk.vtkRadiusOutlierRemoval()
-    vu.setInput(removal, poly)
-
+    removal.SetInputData(poly)
     removal.SetRadius(radius)
     removal.SetNumberOfNeighbors(5)
     removal.GenerateOutliersOff()

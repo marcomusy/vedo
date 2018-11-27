@@ -7,7 +7,6 @@ import time
 import sys
 import vtk
 import numpy
-import types
 
 import vtkplotter.vtkio as vtkio
 import vtkplotter.utils as utils
@@ -15,7 +14,6 @@ import vtkplotter.colors as colors
 import vtkplotter.shapes as shapes
 import vtkplotter.analysis as analysis
 from vtkplotter import __version__
-from vtkplotter.utils import add_actor
 from vtkplotter.actors import Assembly, Actor
 
 ########################################################################
@@ -53,7 +51,7 @@ class Plotter:
 
     def __init__(self, shape=(1, 1), N=None, pos=(0, 0),
                  size='auto', screensize='auto', title='',
-                 bg='w', bg2=None, axes=1, infinity=False,
+                 bg=(1, 1, 1), bg2=None, axes=1, infinity=False,
                  sharecam=True, verbose=True, interactive=None, offscreen=False):
         """Main class to manage actors.
 
@@ -61,34 +59,45 @@ class Plotter:
 
                shape= shape of the grid of renderers in format (rows, columns). Ignored if N is specified.
 
-                N = number of desired renderers arranged in a grid automatically.
+               N = number of desired renderers arranged in a grid automatically.
 
-                pos, (x,y) position in pixels of top-left corneer of the rendering window on the screen
+               pos, (x,y) position in pixels of top-left corneer of the rendering window on the screen
 
-                size = size of the rendering window. If 'auto', guess it based on screensize.
+               size = size of the rendering window. If 'auto', guess it based on screensize.
 
-                screensize = physical size of the monitor screen
+               screensize = physical size of the monitor screen
 
-                bg = background color or specify jpg image file name with path
+               bg = background color or specify jpg image file name with path
 
-                bg2 = background color of a gradient towards the top
+               bg2 = background color of a gradient towards the top
 
-                axes: 
-                      0 = no axes, 
-                      1 = vtkCubeAxes, 
-                      2 = cartesian, 
-                      3 = positive cartesian, 
-                      4 = triad, 
-                      5 = cube,
-                      6 = corners outline.
+               axes: 
+                  
+                    0 = no axes, 
+                  
+                    1 = draws three gray grid walls 
+                  
+                    2 = show cartesian axes from (0,0,0) 
+                      
+                    3 = show positive range of cartesian axes from (0,0,0)
+                      
+                    4 = show a triad at bottom left
+                      
+                    5 = show a cube at bottom left
+                      
+                    6 = mark the corners of the bounding box
+                      
+                    7 = draws a simple ruler at the bottom of the window
+                      
+                    8 = show the vtkCubeAxesActor object
+  
+               projection,  if True fugue point is set at infinity (no perspective effects)
 
-                projection,  if True fugue point is set at infinity (no perspective effects)
+               sharecam,    if False each renderer will have an independent vtkCamera
 
-                sharecam,    if False each renderer will have an independent vtkCamera
-
-                interactive, if True will stop after show() to allow interaction w/ window
+               interactive, if True will stop after show() to allow interaction w/ window
                 
-                offscreen,   if True will not show the rendering window 
+               offscreen,   if True will not show the rendering window 
         """
 
         if interactive is None:
@@ -96,6 +105,7 @@ class Plotter:
                 interactive = False
             else:
                 interactive = True
+                
         if not interactive:
             verbose = False
 
@@ -109,10 +119,16 @@ class Plotter:
         self.pos = pos
         self.size = [size[1], size[0]]  # size of the rendering window
         self.interactive = interactive  # allows to interact with renderer
-        self.axes = axes  # show or hide axes
-        self.xtitle = 'x'   # x axis label and units
-        self.ytitle = 'y'   # y axis label and units
-        self.ztitle = 'z'   # z axis label and units
+        self.axes = axes        # show axes type nr.
+        self.xtitle = 'x'       # x axis label and units
+        self.ytitle = 'y'       # y axis label and units
+        self.ztitle = 'z'       # z axis label and units
+#        self.xLabelPos = 0.5    # fractional position along x axis
+#        self.yLabelPos = 0.5    # fractional position along y axis
+#        self.zLabelPos = 0.5    # fractional position along z axis
+#        self.xLabelSize = 0.2   # label text size of x axis
+#        self.yLabelSize = 0.2   # label text size of y axis
+#        self.zLabelSize = 0.2   # label text size of z axis
         self.camera = None  # current vtkCamera
         self.sharecam = sharecam  # share the same camera if multiple renderers
         self.infinity = infinity  # ParallelProjection On or Off
@@ -132,7 +148,7 @@ class Plotter:
         # mostly internal stuff:
         self.camThickness = 2000
         self.justremoved = None
-        self.caxes_exist = []
+        self.axes_exist = []
         self.icol = 0
         self.clock = 0
         self._clockt0 = time.time()
@@ -205,15 +221,14 @@ class Plotter:
                     if i == 0:
                         jpeg_reader = vtk.vtkJPEGReader()
                         if not jpeg_reader.CanReadFile(bg):
-                            colors.printc(
-                                "Error reading background image file", bg, c=1)
+                            colors.printc("Error reading background image file", bg, c=1)
                             sys.exit()
                         jpeg_reader.SetFileName(bg)
                         jpeg_reader.Update()
                         image_data = jpeg_reader.GetOutput()
                         image_actor = vtk.vtkImageActor()
                         image_actor.InterpolateOn()
-                        utils.setInput(image_actor, image_data)
+                        image_actor.SetInputData(image_data)
                         self.backgroundRenderer = vtk.vtkRenderer()
                         self.backgroundRenderer.SetLayer(0)
                         self.backgroundRenderer.InteractiveOff()
@@ -237,7 +252,7 @@ class Plotter:
                 y1 = (j+1)/shape[1]
                 arenderer.SetViewport(y0, x0, y1, x1)
                 self.renderers.append(arenderer)
-                self.caxes_exist.append(None)
+                self.axes_exist.append(None)
 
         if 'full' in size and not offscreen:  # full screen
             self.renderWin.SetFullScreen(True)
@@ -266,8 +281,8 @@ class Plotter:
 
     # LOADER
     def load(self, inputobj, c='gold', alpha=1,
-             wire=False, bc=None, edges=False, legend=True, texture=None,
-             smoothing=None, threshold=None, connectivity=False, scaling=None):
+             wire=False, bc=None, legend=True, texture=None,
+             smoothing=None, threshold=None, connectivity=False):
         ''' Returns a vtkActor from reading a file, directory or vtkPolyData.
 
             Optional args:
@@ -291,12 +306,10 @@ class Plotter:
                 threshold,    value to draw the isosurface
 
                 connectivity, if True only keeps the largest portion of the polydata
-
-                scaling,      scaling factors for x y an z coordinates 
         '''
         import os
         if isinstance(inputobj, vtk.vtkPolyData):
-            a = Actor(inputobj, c, alpha, wire, bc, edges, legend, texture)
+            a = Actor(inputobj, c, alpha, wire, bc, legend, texture)
             self.actors.append(a)
             if inputobj and inputobj.GetNumberOfPoints() == 0:
                 colors.printc('Warning: actor has zero points.', c=5)
@@ -312,28 +325,31 @@ class Plotter:
             flist = sorted(glob.glob(inputobj))
         for fod in flist:
             if os.path.isfile(fod):
-                a = vtkio.loadFile(fod, c, alpha, wire, bc, edges, legend, texture,
-                                   smoothing, threshold, connectivity, scaling)
+                a = vtkio.loadFile(fod, c, alpha, wire, bc, legend, texture,
+                                   smoothing, threshold, connectivity)
                 acts.append(a)
             elif os.path.isdir(fod):
-                acts = vtkio.loadDir(fod, c, alpha, wire, bc, edges, legend, texture,
-                                     smoothing, threshold, connectivity, scaling)
+                acts = vtkio.loadDir(fod, c, alpha, wire, bc, legend, texture,
+                                     smoothing, threshold, connectivity)
         if not len(acts):
             colors.printc('Error in load(): cannot find', inputobj, c=1)
             return None
 
         for actor in acts:
-            if hasattr(actor.GetProperty(), 'SetInterpolationToFlat'):
+            if isinstance(actor, vtk.vtkActor):
                 if self.flat:
                     actor.GetProperty().SetInterpolationToFlat()
-                    self.phong = self.gouraud = False
+                    self.phong = False
+                    self.gouraud = False
                     actor.GetProperty().SetSpecular(0)
                 if self.phong:
                     actor.GetProperty().SetInterpolationToPhong()
-                    self.flat = self.gouraud = False
+                    self.flat = False
+                    self.gouraud = False
                 if self.gouraud:
                     actor.GetProperty().SetInterpolationToGouraud()
-                    self.flat = self.phong = False
+                    self.flat = False
+                    self.phong = False
                 if self.bculling:
                     actor.GetProperty().BackfaceCullingOn()
                 else:
@@ -369,8 +385,7 @@ class Plotter:
             if obj is None:
                 acs = self.renderer.GetActors()
             elif obj >= len(self.renderers):
-                colors.printc(
-                    "Error in getActors: non existing renderer", obj, c=1)
+                colors.printc("Error in getActors: non existing renderer", obj, c=1)
                 return []
             else:
                 acs = self.renderers[obj].GetActors()
@@ -378,14 +393,11 @@ class Plotter:
             acs.InitTraversal()
             for i in range(acs.GetNumberOfItems()):
                 a = acs.GetNextItem()
-                if isinstance(a, vtk.vtkCubeAxesActor):
-                    continue
-                r = self.renderers.index(self.renderer)
-                if a == self.caxes_exist[r]:
-                    continue
-                if isinstance(a, vtk.vtkLightActor):
-                    continue
-                actors.append(a)
+                if a.GetPickable():
+                    r = self.renderers.index(self.renderer)
+                    if a == self.axes_exist[r]:
+                        continue
+                    actors.append(a)
             return actors
 
         elif isinstance(obj, vtk.vtkAssembly):
@@ -395,15 +407,14 @@ class Plotter:
             cl.InitTraversal()
             for i in range(obj.GetNumberOfPaths()):
                 act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
-                if isinstance(act, vtk.vtkCubeAxesActor):
-                    continue
-                actors.append(act)
+                if act.GetPickable():               
+                    actors.append(act)
             return actors
 
         elif isinstance(obj, str):  # search the actor by the legend name
             actors = []
             for a in self.actors:
-                if hasattr(a, 'legend') and obj in a.legend:
+                if hasattr(a, 'legend') and obj in a.legend and a.GetPickable():
                     actors.append(a)
             return actors
 
@@ -450,9 +461,8 @@ class Plotter:
         self.camera = cam
         self.show(resetcam=0)
 
-    @add_actor
     def Actor(self, poly=None, c='gold', alpha=0.5,
-              wire=False, bc=None, edges=False, legend=None, texture=None):
+              wire=False, bc=None, legend=None, texture=None):
         '''
         Return a vtkActor from an input vtkPolyData.
 
@@ -466,15 +476,15 @@ class Plotter:
 
             bc,      backface color of internal surface
 
-            edges,   show edges as line on top of surface
-
             legend   optional string
 
             texture  jpg file name of surface texture
         '''
-        return Actor(poly, c, alpha, wire, bc, edges, legend, texture)
+        a = Actor(poly, c, alpha, wire, bc, legend, texture)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def Assembly(self, actorlist):
         '''Group many actors as a single new actor.
 
@@ -484,7 +494,9 @@ class Plotter:
         for a in actorlist:
             while a in self.actors:  # update internal list
                 self.actors.remove(a)
-        return Assembly(actorlist)
+        a = Assembly(actorlist)
+        self.actors.append(a)
+        return a
 
     def light(self, pos=[1, 1, 1], fp=[0, 0, 0], deg=25,
               diffuse='y', ambient='r', specular='b', showsource=False):
@@ -521,12 +533,14 @@ class Plotter:
         return light
 
     # manage basic shapes
-    @add_actor
+    
     def point(self, pos=[0, 0, 0], c='b', r=10, alpha=1, legend=None):
         '''Create a simple point actor.'''
-        return shapes.point(pos, c, r, alpha, legend)
+        a = shapes.point(pos, c, r, alpha, legend)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def points(self, plist=[[1, 0, 0], [0, 1, 0], [0, 0, 1]],
                c='b', tags=[], r=5, alpha=1, legend=None):
         '''
@@ -541,15 +555,19 @@ class Plotter:
 
         ![lorenz](https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png)
         '''
-        return shapes.points(plist, c, tags, r, alpha, legend)
+        a = shapes.points(plist, c, tags, r, alpha, legend)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def sphere(self, pos=[0, 0, 0], r=1,
                c='r', alpha=1, wire=False, legend=None, texture=None, res=24):
         '''Build a sphere at position pos of radius r.'''
-        return shapes.sphere(pos, r, c, alpha, wire, legend, texture, res)
+        a = shapes.sphere(pos, r, c, alpha, wire, legend, texture, res)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def spheres(self, centers, r=1,
                 c='r', alpha=1, wire=False, legend=None, texture=None, res=8):
         '''
@@ -561,28 +579,38 @@ class Plotter:
 
         ![manysph](https://user-images.githubusercontent.com/32848391/46818673-1f566b80-cd82-11e8-9a61-be6a56160f1c.png)
         '''
-        return shapes.spheres(centers, r, c, alpha, wire, legend, texture, res)
+        a = shapes.spheres(centers, r, c, alpha, wire, legend, texture, res)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def earth(self, pos=[0, 0, 0], r=1, lw=1):
         '''Build a textured actor representing the Earth.
 
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/earth.py)    
         '''
-        return shapes.earth(pos, r, lw)
+        a = shapes.earth(pos, r, lw)
+        self.actors.append(a)
+        return a
 
-    @add_actor
-    def line(self, p0, p1=None, lw=1, tube=False, dotted=False,
+    
+    def line(self, p0, p1=None, lw=1, dotted=False,
              c='r', alpha=1., legend=None):
         '''Build the line segment between points p0 and p1.
 
            If p0 is a list of points returns the line connecting them.
-
-           If tube=True, lines are rendered as tubes of radius lw
         '''
-        return shapes.line(p0, p1, lw, tube, dotted, c, alpha, legend)
+        a = shapes.line(p0, p1, lw, dotted, c, alpha, legend)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    def tube(self, points, r=1, c='r', alpha=1, legend=None, res=12):
+        '''Build a tube of radius r along line defined py points.'''
+        a = shapes.tube(points, r, c, alpha, legend, res)
+        self.actors.append(a)
+        return a
+
+    
     def lines(self, plist0, plist1=None, lw=1, dotted=False,
               c='r', alpha=1, legend=None):
         '''Build the line segments between two lists of points plist0 and plist1.
@@ -590,35 +618,43 @@ class Plotter:
 
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py)    
         '''
-        return shapes.lines(plist0, plist1, lw, dotted, c, alpha, legend)
+        a = shapes.lines(plist0, plist1, lw, dotted, c, alpha, legend)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def ribbon(self, line1, line2, c='m', alpha=1, legend=None, res=(200,5)):
         '''Build a ribbon connecting two lines.
 
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/ribbon.py)    
         '''
-        return shapes.ribbon(line1, line2, c, alpha, legend, res)
+        a = shapes.ribbon(line1, line2, c, alpha, legend, res)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def arrow(self, startPoint, endPoint,
               c='r', s=None, alpha=1, legend=None, texture=None, res=12):
         '''Build a 3D arrow from startPoint to endPoint of section size s,
         expressed as the fraction of the window size.
         If s=None the arrow is scaled proportionally to its length.'''
-        return shapes.arrow(startPoint, endPoint, c, s, alpha,
-                            legend, texture, res, self.renderWin.GetSize())
+        a = shapes.arrow(startPoint, endPoint, c, s, alpha,
+                         legend, texture, res, self.renderWin.GetSize())
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def arrows(self, startPoints, endPoints=None,
                c='r', s=None, alpha=1, legend=None, res=8):
         '''Build arrows between two lists of points startPoints and endPoints.
            startPoints can be also passed in the form [[point1, point2], ...]
         '''
         rwSize = self.renderWin.GetSize()
-        return shapes.arrows(startPoints, endPoints, c, s, alpha, legend, res, rwSize)
+        a = shapes.arrows(startPoints, endPoints, c, s, alpha, legend, res, rwSize)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def grid(self, pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=1, c='g', bc='darkgreen',
              lw=1, alpha=1, legend=None, resx=10, resy=10):
         '''Draw a grid of size sx and sy oriented perpendicular to vector normal
@@ -626,9 +662,11 @@ class Plotter:
 
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/brownian2D.py)    
         '''
-        return shapes.grid(pos, normal, sx, sy, c, bc, lw, alpha, legend, resx, resy)
+        a = shapes.grid(pos, normal, sx, sy, c, bc, lw, alpha, legend, resx, resy)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def plane(self, pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=None, c='g', bc='darkgreen',
               alpha=1, legend=None, texture=None):
         '''
@@ -637,9 +675,11 @@ class Plotter:
 
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/carcrash.py)    
         '''
-        return shapes.plane(pos, normal, sx, sy, c, bc, alpha, legend, texture)
+        a = shapes.plane(pos, normal, sx, sy, c, bc, alpha, legend, texture)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def polygon(self, pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
                 c='coral', bc='darkgreen', lw=1, alpha=1,
                 legend=None, texture=None, followcam=False):
@@ -647,24 +687,30 @@ class Plotter:
 
         If followcam=True the polygon will always reorient itself to current camera.
         '''
-        return shapes.polygon(pos, normal, nsides, r, c, bc, lw, alpha, legend,
-                              texture, followcam, camera=self.camera)
+        a = shapes.polygon(pos, normal, nsides, r, c, bc, lw, alpha, legend,
+                           texture, followcam, camera=self.camera)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def disc(self, pos=[0, 0, 0], normal=[0, 0, 1], r1=0.5, r2=1, c='coral', bc='darkgreen',
              lw=1, alpha=1, legend=None, texture=None, res=12):
         '''Build a 2D disc of internal radius r1 and outer radius r2,
         oriented perpendicular to normal.'''
-        return shapes.disc(pos, normal, r1, r2, c, bc, lw, alpha, legend, texture, res)
+        a = shapes.disc(pos, normal, r1, r2, c, bc, lw, alpha, legend, texture, res)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def box(self, pos=[0, 0, 0], length=1, width=2, height=3, normal=(0, 0, 1),
             c='g', alpha=1, wire=False, legend=None, texture=None):
         '''Build a box of dimensions x=length, y=width and z=height oriented along vector normal.
 
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/spring.py)    
         '''
-        return shapes.box(pos, length, width, height, normal, c, alpha, wire, legend, texture)
+        a = shapes.box(pos, length, width, height, normal, c, alpha, wire, legend, texture)
+        self.actors.append(a)
+        return a
 
     def cube(self, pos=[0, 0, 0], length=1, normal=(0, 0, 1),
              c='g', alpha=1., wire=False, legend=None, texture=None):
@@ -672,9 +718,11 @@ class Plotter:
 
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/texturecubes.py)    
         '''
-        return self.box(pos, length, length, length, normal, c, alpha, wire, legend, texture)
+        a = self.box(pos, length, length, length, normal, c, alpha, wire, legend, texture)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def helix(self, startPoint=[0, 0, 0], endPoint=[1, 1, 1], coils=20, r=None,
               thickness=None, c='grey', alpha=1, legend=None, texture=None):
         '''
@@ -684,12 +732,13 @@ class Plotter:
         [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
         [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/multiple_pendulum.py)    
         '''
-        return shapes.helix(startPoint, endPoint, coils, r, thickness, c, alpha, legend, texture)
+        a = shapes.helix(startPoint, endPoint, coils, r, thickness, c, alpha, legend, texture)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def cylinder(self, pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
-                 c='teal', wire=0, alpha=1, edges=False,
-                 legend=None, texture=None, res=24):
+                 c='teal', wire=0, alpha=1, legend=None, texture=None, res=24):
         '''
         Build a cylinder of specified height and radius r, centered at pos.
 
@@ -699,31 +748,39 @@ class Plotter:
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/turing.py)    
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
         '''
-        return shapes.cylinder(pos, r, height, axis, c, wire, alpha, edges, legend, texture, res)
+        a = shapes.cylinder(pos, r, height, axis, c, wire, alpha, legend, texture, res)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def paraboloid(self, pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
                    c='cyan', alpha=1, legend=None, texture=None, res=50):
         '''
         Build a paraboloid of specified height and radius r, centered at pos.
         '''
-        return shapes.paraboloid(pos, r, height, axis, c, alpha, legend, texture, res)
+        a = shapes.paraboloid(pos, r, height, axis, c, alpha, legend, texture, res)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def hyperboloid(self, pos=[0, 0, 0], a2=1, value=0.5, height=1, axis=[0, 0, 1],
                     c='magenta', alpha=1, legend=None, texture=None, res=50):
         '''
         Build a hyperboloid of specified aperture a2 and height, centered at pos.
         '''
-        return shapes.hyperboloid(pos, a2, value, height, axis, c, alpha, legend, texture, res)
+        a = shapes.hyperboloid(pos, a2, value, height, axis, c, alpha, legend, texture, res)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def cone(self, pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
              c='dg', alpha=1, legend=None, texture=None, res=48):
         '''
         Build a cone of specified radius r and height, centered at pos.
         '''
-        return shapes.cone(pos, r, height, axis, c, alpha, legend, texture, res)
+        a = shapes.cone(pos, r, height, axis, c, alpha, legend, texture, res)
+        self.actors.append(a)
+        return a
 
     def pyramid(self, pos=[0, 0, 0], s=1, height=1, axis=[0, 0, 1],
                 c='dg', alpha=1, legend=None, texture=None):
@@ -732,9 +789,11 @@ class Plotter:
 
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope2.py)    
         '''
-        return self.cone(pos, s, height, axis, c, alpha, legend, texture, 4)
+        a = self.cone(pos, s, height, axis, c, alpha, legend, texture, 4)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def ring(self, pos=[0, 0, 0], r=1, thickness=0.1, axis=[0, 0, 1],
              c='khaki', alpha=1, wire=False, legend=None, texture=None, res=30):
         '''
@@ -744,18 +803,22 @@ class Plotter:
 
         ![gas](https://user-images.githubusercontent.com/32848391/39139206-90d644ca-4721-11e8-95b9-8aceeb3ac742.gif)
         '''
-        return shapes.ring(pos, r, thickness, axis, c, alpha, wire, legend, texture, res)
+        a = shapes.ring(pos, r, thickness, axis, c, alpha, wire, legend, texture, res)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def ellipsoid(self, pos=[0, 0, 0], axis1=[1, 0, 0], axis2=[0, 2, 0], axis3=[0, 0, 3],
                   c='c', alpha=1, legend=None, texture=None, res=24):
         """Build a 3D ellipsoid centered at position pos.
 
         Axis1 and axis2 are only used to define sizes and one azimuth angle
         """
-        return shapes.ellipsoid(pos, axis1, axis2, axis3, c, alpha, legend, texture, res)
+        a = shapes.ellipsoid(pos, axis1, axis2, axis3, c, alpha, legend, texture, res)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def spline(self, points, smooth=0.5, degree=2,
                s=2, c='b', alpha=1, nodes=False, legend=None, res=20):
         '''
@@ -775,9 +838,11 @@ class Plotter:
 
         ![rspline](https://user-images.githubusercontent.com/32848391/35976041-15781de8-0cdf-11e8-997f-aeb725bc33cc.png)
         '''
-        return analysis.spline(points, smooth, degree, s, c, alpha, nodes, legend, res)
+        a = analysis.spline(points, smooth, degree, s, c, alpha, nodes, legend, res)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def text(self, txt='Hello', pos=(0, 0, 0), normal=(0, 0, 1), s=1, depth=0.1,
              c='k', alpha=1, bc=None, texture=None, followcam=False):
         '''
@@ -797,10 +862,12 @@ class Plotter:
         [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py)    
         [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
         '''
-        return shapes.text(txt, pos, normal, s, depth, c, alpha, bc,
-                           texture, followcam, cam=self.camera)
+        a = shapes.text(txt, pos, normal, s, depth, c, alpha, bc,
+                        texture, followcam, cam=self.camera)
+        self.actors.append(a)
+        return a
 
-    @add_actor
+    
     def xyplot(self, points=[[0, 0], [1, 0], [2, 1], [3, 2], [4, 1]],
                title='', c='b', corner=1, lines=False):
         """
@@ -814,7 +881,9 @@ class Plotter:
 
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)
         """
-        return analysis.xyplot(points, title, c, corner, lines)
+        a = analysis.xyplot(points, title, c, corner, lines)
+        self.actors.append(a)
+        return a
 
     def histogram(self, values, bins=10, vrange=None,
                   title='', c='g', corner=1, lines=True):
@@ -838,7 +907,22 @@ class Plotter:
             pts.append([(edges[i]+edges[i+1])/2, fs[i]])
         return self.xyplot(pts, title, c, corner, lines)
 
-    @add_actor
+
+    def histogram2D(self, xvalues, yvalues, bins=12, norm=1, c='g', alpha=1, fill=False):
+        '''
+        Build a 2D hexagonal histogram from a list of  x and y values.
+    
+        bins, nr of bins for the smaller range in x or y
+        
+        norm, sets a scaling factor for the z axis
+        
+        fill, draw solid hexagons
+        '''   
+        a = analysis.histogram2D(xvalues, yvalues, bins, norm, c, alpha, fill)
+        self.actors.append(a)
+        return a
+    
+    
     def fxy(self, z='sin(3*x)*log(x-y)/3', x=[0, 3], y=[0, 3],
             zlimits=[None, None], showNan=True, zlevels=10, wire=False,
             c='aqua', bc='aqua', alpha=1, legend=True, texture='paper', res=100):
@@ -853,8 +937,10 @@ class Plotter:
 
         ![fxy](https://user-images.githubusercontent.com/32848391/36611824-fd524fac-18d4-11e8-8c76-d3d1b1bb3954.png)
         '''
-        return analysis.fxy(z, x, y, zlimits, showNan, zlevels,
-                            wire, c, bc, alpha, legend, texture, res)
+        a = analysis.fxy(z, x, y, zlimits, showNan, zlevels,
+                         wire, c, bc, alpha, legend, texture, res)
+        self.actors.append(a)
+        return a
 
     #################
 
@@ -1004,7 +1090,7 @@ class Plotter:
         return sact
 
     def addSlider(self, sliderfunc, xmin=0, xmax=1, value=None, pos=4, s=.04,
-                  title='', c='k', showValue=True):
+                  title='', c=None, showValue=True):
         '''
         Add a slider widget with external custom function.
 
@@ -1029,8 +1115,13 @@ class Plotter:
 
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/sliders.py)    
         '''
-        if numpy.sum(colors.getColor(self.backgrcol)) < 3 and c == 'k':
-            c = 'w'
+        if c is None:  # automatic black or white
+            c = (0.9, 0.9, 0.9)
+            if numpy.sum(colors.getColor(self.backgrcol)) > 1.5:
+                c = (0.1, 0.1, 0.1)
+
+#        if numpy.sum(colors.getColor(self.backgrcol)) < 3 and c == 'k':
+#            c = 'w'
         c = colors.getColor(c)
 
         sliderRep = vtk.vtkSliderRepresentation2D()
@@ -1181,7 +1272,7 @@ class Plotter:
         planes.SetBounds(apd.GetBounds())
 
         clipper = vtk.vtkClipPolyData()
-        utils.setInput(clipper, apd)
+        clipper.SetInputData(apd)
         clipper.SetClipFunction(planes)
         clipper.InsideOutOn()
         clipper.GenerateClippedOutputOn()
@@ -1215,7 +1306,7 @@ class Plotter:
         boxWidget.GetOutlineProperty().SetOpacity(0.8)
         boxWidget.SetPlaceFactor(1.05)
         boxWidget.SetInteractor(self.interactor)
-        utils.setInput(boxWidget, apd)
+        boxWidget.SetInputData(apd)
         boxWidget.PlaceWidget()
         boxWidget.AddObserver("InteractionEvent", SelectPolygons)
         boxWidget.On()
@@ -1291,10 +1382,11 @@ class Plotter:
             actor = self.actors[-1]
         if maxlength is None:
             maxlength = utils.diagonalSize(actor)*20
-        if not hasattr(actor, 'trailPoints'):
+
+        if not actor.trailPoints:
             pos = actor.GetPosition()
-            setattr(actor, 'trailPoints', [None]*n)
-            setattr(actor, 'trailSegmentSize', maxlength/n)
+            actor.trailPoints = [None]*n
+            actor.trailSegmentSize = maxlength/n
 
             ppoints = vtk.vtkPoints()  # Generate the polyline
             poly = vtk.vtkPolyData()
@@ -1317,87 +1409,195 @@ class Plotter:
                 alpha = al
             if alpha is None:
                 alpha = actor.GetProperty().GetOpacity()
-            utils.setInput(mapper, poly)
-            tline = Actor()# vtk.vtkActor()
+            mapper.SetInputData(poly)
+            tline = Actor() # vtk.vtkActor()
             tline.SetMapper(mapper)
             tline.GetProperty().SetColor(col)
             tline.GetProperty().SetOpacity(alpha)
             tline.GetProperty().SetLineWidth(lw)
-            setattr(actor, 'trail', tline)  # holds the vtkActor
+            actor.trail = tline  # holds the vtkActor
             self.actors.append(tline)
-
-            def _fupdateTrail(self):
-                currentpos = numpy.array(self.GetPosition())
-                lastpos = self.trailPoints[-1]
-                if lastpos is None:  # reset list
-                    self.trailPoints = [currentpos]*len(self.trailPoints)
-                    return
-                if numpy.linalg.norm(currentpos-lastpos) < self.trailSegmentSize:
-                    return
-
-                self.trailPoints.append(currentpos)  # cycle
-                self.trailPoints.pop(0)
-
-                poly = self.trail.polydata()
-                vtkpts = poly.GetPoints()
-                for i in range(poly.GetNumberOfPoints()):
-                    x, y, z = self.trailPoints[i]
-                    vtkpts.SetPoint(i, x, y, z)
-                vtkpts.Modified()  # needed by vtk<7
-                return self
-            actor.updateTrail = types.MethodType(_fupdateTrail, actor)
             return tline
 
-    def _draw_axes(self, c=None):
+
+    def drawAxes(self, axtype=None, c=None):
+        '''
+        Draw axes on scene. Available axes types:
+            
+              0 = no axes, 
+              
+              1 = default vtkCubeAxesActor object, 
+              
+              2 = show cartesian axes from (0,0,0) 
+              
+              3 = show positive range of cartesian axes from (0,0,0)
+              
+              4 = show a triad at bottom left
+              
+              5 = show a cube at bottom left
+              
+              6 = mark the corners of the bounding box
+              
+              7 = draw a simple ruler at the bottom of the window
+              
+              8 = draw three gray grid walls
+        '''
+        if axtype is not None:
+            self.axes = axtype # overrride
+            
+        if not self.axes:
+            return
+
         if c is None:  # automatic black or white
-            c = (1, 1, 1)
+            c = (0.9, 0.9, 0.9)
             if numpy.sum(self.renderer.GetBackground()) > 1.5:
                 c = (0.1, 0.1, 0.1)
-        r = self.renderers.index(self.renderer)
-        if self.caxes_exist[r] or not self.axes:
-            return
+        
         if not self.renderer:
             return
+
+        r = self.renderers.index(self.renderer)
+        if self.axes_exist[r]:
+            return
+        self.axes_exist[r] = True
+        
         vbb = self.renderer.ComputeVisiblePropBounds()
 
-        if self.axes == 1 or self.axes == True:
-            ca = vtk.vtkCubeAxesActor()
-            ca.SetBounds(vbb)
-            if self.camera:
-                ca.SetCamera(self.camera)
-            else:
-                ca.SetCamera(self.renderer.GetActiveCamera())
-            if utils.vtkMV:
-                ca.GetXAxesLinesProperty().SetColor(c)
-                ca.GetYAxesLinesProperty().SetColor(c)
-                ca.GetZAxesLinesProperty().SetColor(c)
-                for i in range(3):
-                    ca.GetLabelTextProperty(i).SetColor(c)
-                    ca.GetTitleTextProperty(i).SetColor(c)
-                ca.SetTitleOffset(8)
-            else:
-                ca.GetProperty().SetColor(c)
-            ca.SetFlyMode(3)
-            ca.SetLabelScaling(False, 1, 1, 1)
-            ca.SetXTitle(self.xtitle)
-            ca.SetYTitle(self.ytitle)
-            ca.SetZTitle(self.ztitle)
-            if self.xtitle == '':
-                ca.SetXAxisVisibility(0)
-                ca.XAxisLabelVisibilityOff()
-            if self.ytitle == '':
-                ca.SetYAxisVisibility(0)
-                ca.YAxisLabelVisibilityOff()
-            if self.ztitle == '':
-                ca.SetZAxisVisibility(0)
-                ca.ZAxisLabelVisibilityOff()
-            ca.XAxisMinorTickVisibilityOff()
-            ca.YAxisMinorTickVisibilityOff()
-            ca.ZAxisMinorTickVisibilityOff()
-            self.caxes_exist[r] = ca
-            self.renderer.AddActor(ca)
+            
+#        if self.axes == 1 or self.axes == True: # gray grid walls
+#            r = 4 # number of divisions in the smallest range
+#            off = -0.04 # label offset
+#            bns = []
+#            for a in self.actors:
+#                b = a.GetBounds()
+#                if b is not None: bns.append(b)
+#            if len(bns) == 0: return
+#            max_bns = numpy.max(bns, axis=0)
+#            min_bns = numpy.min(bns, axis=0)
+#            sizes = (max_bns[1]-min_bns[0],
+#                     max_bns[3]-min_bns[2],
+#                     max_bns[5]-min_bns[4])
+#            step  = numpy.min(sizes)/r
+#            if not step: return
+#            rx, ry, rz = numpy.rint(sizes/step).astype(int)
+#            if max([rx/ry,ry/rx,rx/rz,rz/rx,ry/rz,rz/ry])>15:
+#                self.drawAxes(axtype=8, c=c)
+#                return # bad proportions, use vtkCubeAxes
+#
+#            gxy = shapes.grid(pos=(.5,.5,0), normal=[0,0,1], bc=None, resx=rx, resy=ry)
+#            gxz = shapes.grid(pos=(.5,0,.5), normal=[0,1,0], bc=None, resx=rz, resy=rx)
+#            gyz = shapes.grid(pos=(0,.5,.5), normal=[1,0,0], bc=None, resx=rz, resy=ry)
+#            gxy.alpha(0.07).wire(False).color(c).lineWidth(1)
+#            gxz.alpha(0.05).wire(False).color(c).lineWidth(1)
+#            gyz.alpha(0.05).wire(False).color(c).lineWidth(1)
+#            
+#            xa = shapes.line([0,0,0], [1,0,0], c=c, lw=1)
+#            ya = shapes.line([0,0,0], [0,1,0], c=c, lw=1)
+#            za = shapes.line([0,0,0], [0,0,1], c=c, lw=1)
+#            
+#            tfx, tfy, tfz = self.xLabelSize, self.yLabelSize, self.zLabelSize
+#            sx, sy, sz = sizes
+#            print(sizes)
+#            print('tfx, tfy, tfz',tfx, tfy, tfz)
+#            xt, yt, zt = None, None, None
+#            if self.xtitle:
+#                if len(self.xtitle) == 1: # add axis length info
+#                    self.xtitle += ' /' + utils.to_precision(sx, 4)
+#                wpos = [self.xLabelPos, off*.2, 0] 
+#                xt = shapes.text(self.xtitle, pos=wpos, normal=(0,0,1), s=.025, c=c)
+##                xt.SetScale(tfx*1/sx, tfx*sy, tfx*sz)
+#            if self.ytitle:
+#                yt = shapes.text(self.ytitle, normal=(0,0,1), s=.025, c=c)
+#                if len(self.ytitle) == 1: 
+#                    yt.SetScale(tfy/numpy.array(sizes)) #compensate S
+#                    yt.pos(off*tfy*5.5, self.yLabelPos,  0)
+#                else:
+#                    yt.SetScale(tfy/sizes[1], tfy/sizes[0], tfy/sizes[2]) #compensate S
+#                    yt.rotateZ(90).pos(off*tfy*3.5, self.yLabelPos,  0)
+#            if self.ztitle:
+#                zt = shapes.text(self.ztitle, normal=(0,0,1), depth=0.05, s=.025, c=c)
+#                if len(self.ztitle) == 1: 
+#                    zt.SetScale(tfz/sizes[1], tfz/sizes[2], tfz/sizes[0])
+#                    zt.rotateY(-90).rotateX(135).rotate(-90, axis=(1,-1,0))
+#                    zt.pos(off*tfz*3, off*tfz*3, self.zLabelPos)
+#                else:
+#                    zt.SetScale(tfz/sizes[2], tfz/sizes[0], tfz/sizes[1])
+#                    zt.rotateY(-90).rotateX(135).pos(off*1.5, off*1.5, self.zLabelPos)
+#            acts = [gxy, gxz, gyz, xa, ya, za, xt, yt, zt]
+#            
+#            for a in acts: 
+#                if a: a.PickableOff()
+#            aa = Assembly(acts)
+#            aa.pos(min_bns[0], min_bns[2], min_bns[4])
+#            aa.SetScale(sizes) # S
+#            aa.PickableOff()
+#            self.renderer.AddActor(aa)
 
-        elif 1 < self.axes < 4:
+
+        if self.axes == 1 or self.axes == True: # gray grid walls
+            r = 4 # number of divisions in the smallest range
+            off = -0.04 # label offset
+            bns = []
+            for a in self.actors:
+                b = a.GetBounds()
+                if b is not None: bns.append(b)
+            if len(bns) == 0: return
+            max_bns = numpy.max(bns, axis=0)
+            min_bns = numpy.min(bns, axis=0)
+            sizes = (max_bns[1]-min_bns[0],
+                     max_bns[3]-min_bns[2],
+                     max_bns[5]-min_bns[4])
+            step  = numpy.min(sizes)/r
+            if not step: return
+            rx, ry, rz = numpy.rint(sizes/step).astype(int)
+            if max([rx/ry,ry/rx,rx/rz,rz/rx,ry/rz,rz/ry])>15:
+                self.drawAxes(axtype=8, c=c) # bad proportions, use vtkCubeAxesActor
+                self.axes = 1
+                return 
+
+            gxy = shapes.grid(pos=(.5,.5,0), normal=[0,0,1], bc=None, resx=rx, resy=ry)
+            gxz = shapes.grid(pos=(.5,0,.5), normal=[0,1,0], bc=None, resx=rz, resy=rx)
+            gyz = shapes.grid(pos=(0,.5,.5), normal=[1,0,0], bc=None, resx=rz, resy=ry)
+            gxy.alpha(0.07).wire(False).color(c).lineWidth(1)
+            gxz.alpha(0.05).wire(False).color(c).lineWidth(1)
+            gyz.alpha(0.05).wire(False).color(c).lineWidth(1)
+            
+            xa = shapes.line([0,0,0], [1,0,0], c=c, lw=1)
+            ya = shapes.line([0,0,0], [0,1,0], c=c, lw=1)
+            za = shapes.line([0,0,0], [0,0,1], c=c, lw=1)
+            
+            xt, yt, zt = None, None, None
+            if self.xtitle:
+                if len(self.xtitle) == 1: # add axis length info
+                    self.xtitle += ' /' + utils.to_precision(sizes[0], 4)
+                wpos = [1-(len(self.xtitle)+1)/40, off, 0] 
+                xt = shapes.text(self.xtitle, pos=wpos, normal=(0,0,1), s=.025, c=c)
+            if self.ytitle:
+                yt = shapes.text(self.ytitle, normal=(0,0,1), s=.025, c=c)
+                if len(self.ytitle) == 1: 
+                    wpos = [off, 1-(len(self.ytitle)+1)/40,  0] 
+                    yt.pos(wpos)
+                else:
+                    wpos = [off*.7, 1-(len(self.ytitle)+1)/40,  0] 
+                    yt.rotateZ(90).pos(wpos)
+            if self.ztitle:
+                zt = shapes.text(self.ztitle, normal=(1,-1,0), s=.025, c=c)
+                if len(self.ztitle) == 1: 
+                    wpos = [off*.6, off*.6, 1-(len(self.ztitle)+1)/40] 
+                    zt.rotate(90, (1,-1,0)).pos(wpos)
+                else:
+                    wpos = [off*.3, off*.3, 1-(len(self.ztitle)+1)/40] 
+                    zt.rotate(180, (1,-1,0)).pos(wpos)
+            acts = [gxy, gxz, gyz, xa, ya, za, xt, yt, zt]
+            for a in acts: 
+                if a: a.PickableOff()
+            aa = Assembly(acts)
+            aa.pos(min_bns[0], min_bns[2], min_bns[4])
+            aa.SetScale(sizes)
+            aa.PickableOff()
+            self.renderer.AddActor(aa)
+
+        elif self.axes == 2 or self.axes == 3:
             xcol, ycol, zcol = 'db', 'dg', 'dr'  # dark blue, green red
             s = 1
             alpha = 1
@@ -1408,6 +1608,7 @@ class Plotter:
             x0, x1 = min(x0, 0), max(x1, 0)
             y0, y1 = min(y0, 0), max(y1, 0)
             z0, z1 = min(z0, 0), max(z1, 0)
+            
             if self.axes == 3:
                 if x1 > 0:
                     x0 = 0
@@ -1424,48 +1625,40 @@ class Plotter:
                 self.actors.pop()
 
             if len(self.xtitle) and dx > aves/100:
-                xl = shapes.cylinder(
-                    [[x0, 0, 0], [x1, 0, 0]], r=aves/250*s, c=xcol, alpha=alpha)
+                xl = shapes.cylinder([[x0, 0, 0], [x1, 0, 0]], r=aves/250*s, c=xcol, alpha=alpha)
                 xc = shapes.cone(pos=[x1, 0, 0], c=xcol, alpha=alpha,
                                  r=aves/100*s, height=aves/25*s, axis=[1, 0, 0], res=10)
-                wpos = [x1-(len(self.xtitle)+1)*aves/40*s, -
-                        aves/25*s, 0]  # aligned to arrow tip
+                wpos = [x1-(len(self.xtitle)+1)*aves/40*s, -aves/25*s, 0]  # aligned to arrow tip
                 if centered:
-                    wpos = [(x0+x1)/2-len(self.xtitle) /
-                            2*aves/40*s, -aves/25*s, 0]
-                xt = shapes.text(self.xtitle, pos=wpos, normal=(
-                    0, 0, 1), s=aves/40*s, c=xcol)
+                    wpos = [(x0+x1)/2-len(self.xtitle) / 2*aves/40*s, -aves/25*s, 0]
+                xt = shapes.text(self.xtitle, pos=wpos, normal=(0, 0, 1), s=aves/40*s, c=xcol)
                 acts += [xl, xc, xt]
 
             if len(self.ytitle) and dy > aves/100:
-                yl = shapes.cylinder(
-                    [[0, y0, 0], [0, y1, 0]], r=aves/250*s, c=ycol, alpha=alpha)
+                yl = shapes.cylinder([[0, y0, 0], [0, y1, 0]], r=aves/250*s, c=ycol, alpha=alpha)
                 yc = shapes.cone(pos=[0, y1, 0], c=ycol, alpha=alpha,
                                  r=aves/100*s, height=aves/25*s, axis=[0, 1, 0], res=10)
                 wpos = [-aves/40*s, y1-(len(self.ytitle)+1)*aves/40*s, 0]
                 if centered:
-                    wpos = [-aves/40*s, (y0+y1)/2 -
-                            len(self.ytitle)/2*aves/40*s, 0]
+                    wpos = [-aves/40*s, (y0+y1)/2 - len(self.ytitle)/2*aves/40*s, 0]
                 yt = shapes.text(self.ytitle, normal=(0, 0, 1), s=aves/40*s, c=ycol)
                 yt.rotate(90, [0, 0, 1]).pos(wpos)
                 acts += [yl, yc, yt]
 
             if len(self.ztitle) and dz > aves/100:
-                zl = shapes.cylinder(
-                    [[0, 0, z0], [0, 0, z1]], r=aves/250*s, c=zcol, alpha=alpha)
+                zl = shapes.cylinder([[0, 0, z0], [0, 0, z1]], r=aves/250*s, c=zcol, alpha=alpha)
                 zc = shapes.cone(pos=[0, 0, z1], c=zcol, alpha=alpha,
                                  r=aves/100*s, height=aves/25*s, axis=[0, 0, 1], res=10)
-                wpos = [-aves/50*s, -aves/50*s, z1 -
-                        (len(self.ztitle)+1)*aves/40*s]
+                wpos = [-aves/50*s, -aves/50*s, z1 - (len(self.ztitle)+1)*aves/40*s]
                 if centered:
-                    wpos = [-aves/50*s,  -aves/50*s,
-                            (z0+z1)/2-len(self.ztitle)/2*aves/40*s]
+                    wpos = [-aves/50*s, -aves/50*s, (z0+z1)/2-len(self.ztitle)/2*aves/40*s]
                 zt = shapes.text(self.ztitle, normal=(
                     1, -1, 0), s=aves/40*s, c=zcol)
                 zt.rotate(180, (1, -1, 0)).pos(wpos)
                 acts += [zl, zc, zt]
+            for a in acts: a.PickableOff()
             ass = Assembly(acts)
-            self.caxes_exist[r] = ass
+            ass.PickableOff()
             self.renderer.AddActor(ass)
 
         elif self.axes == 4:
@@ -1496,6 +1689,7 @@ class Plotter:
             axact.GetXAxisCaptionActor2D().GetCaptionTextProperty().SetColor(lc)
             axact.GetYAxisCaptionActor2D().GetCaptionTextProperty().SetColor(lc)
             axact.GetZAxisCaptionActor2D().GetCaptionTextProperty().SetColor(lc)
+            axact.PickableOff()
             self.addIcon(axact, size=0.1)
 
         elif self.axes == 5:
@@ -1509,6 +1703,7 @@ class Plotter:
             axact.GetYMinusFaceProperty().SetColor(colors.getColor('dg'))
             axact.GetZPlusFaceProperty().SetColor(colors.getColor('r'))
             axact.GetZMinusFaceProperty().SetColor(colors.getColor('dr'))
+            axact.PickableOff()
             self.addIcon(axact, size=.06)
 
         elif self.axes == 6:
@@ -1520,7 +1715,10 @@ class Plotter:
                 if sz < d:
                     largestact = a
                     sz = d
-            utils.setInput(ocf, largestact.polydata())
+            if isinstance(largestact, Assembly):
+                ocf.SetInputData(largestact.getActor(0).polydata())
+            else:
+                ocf.SetInputData(largestact.polydata())
             ocf.Update()
             ocMapper = vtk.vtkHierarchicalPolyDataMapper()
             ocMapper.SetInputConnection(0, ocf.GetOutputPort(0))
@@ -1535,23 +1733,70 @@ class Plotter:
             ocActor.PickableOff()
             self.renderer.AddActor(ocActor)
             
-        else:
-            colors.printc('axes type number must be in range [0-6]', c=1)
+        elif self.axes == 7:
+            # draws a simple ruler at the bottom of the window
+            ls = vtk.vtkLegendScaleActor()
+            ls.RightAxisVisibilityOff()
+            ls.TopAxisVisibilityOff()
+            ls.LegendVisibilityOff()
+            ls.LeftAxisVisibilityOff()
+            ls.GetBottomAxis().SetNumberOfMinorTicks(1)
+            ls.GetBottomAxis().GetProperty().SetColor(0, 0, 0)
+            ls.GetBottomAxis().GetLabelTextProperty().SetColor(0, 0, 0)
+            ls.GetBottomAxis().GetLabelTextProperty().BoldOff()
+            ls.GetBottomAxis().GetLabelTextProperty().ItalicOff()
+            ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
+            ls.PickableOff()
+            self.renderer.AddActor(ls)
+            
+        elif self.axes == 8:
+            ca = vtk.vtkCubeAxesActor()
+            ca.SetBounds(vbb)
+            if self.camera:
+                ca.SetCamera(self.camera)
+            else:
+                ca.SetCamera(self.renderer.GetActiveCamera())
+            ca.GetXAxesLinesProperty().SetColor(c)
+            ca.GetYAxesLinesProperty().SetColor(c)
+            ca.GetZAxesLinesProperty().SetColor(c)
+            for i in range(3):
+                ca.GetLabelTextProperty(i).SetColor(c)
+                ca.GetTitleTextProperty(i).SetColor(c)
+            ca.SetTitleOffset(8)
+            ca.SetFlyMode(3)
+            ca.SetLabelScaling(False, 1, 1, 1)
+            ca.SetXTitle(self.xtitle)
+            ca.SetYTitle(self.ytitle)
+            ca.SetZTitle(self.ztitle)
+            if self.xtitle == '':
+                ca.SetXAxisVisibility(0)
+                ca.XAxisLabelVisibilityOff()
+            if self.ytitle == '':
+                ca.SetYAxisVisibility(0)
+                ca.YAxisLabelVisibilityOff()
+            if self.ztitle == '':
+                ca.SetZAxisVisibility(0)
+                ca.ZAxisLabelVisibilityOff()
+            ca.XAxisMinorTickVisibilityOff()
+            ca.YAxisMinorTickVisibilityOff()
+            ca.ZAxisMinorTickVisibilityOff()
+            ca.PickableOff()
+            self.renderer.AddActor(ca)
 
-    def _draw_ruler(self):
-        # draws a simple ruler at the bottom of the window
-        ls = vtk.vtkLegendScaleActor()
-        ls.RightAxisVisibilityOff()
-        ls.TopAxisVisibilityOff()
-        ls.LegendVisibilityOff()
-        ls.LeftAxisVisibilityOff()
-        ls.GetBottomAxis().SetNumberOfMinorTicks(1)
-        ls.GetBottomAxis().GetProperty().SetColor(0, 0, 0)
-        ls.GetBottomAxis().GetLabelTextProperty().SetColor(0, 0, 0)
-        ls.GetBottomAxis().GetLabelTextProperty().BoldOff()
-        ls.GetBottomAxis().GetLabelTextProperty().ItalicOff()
-        ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
-        self.renderer.AddActor(ls)
+        else:
+            colors.printc('Keyword axes must be in range [0-8].', c=1)
+            colors.printc('''Available axes types:
+      0 = no axes, 
+      1 = draws three gray grid walls 
+      2 = show cartesian axes from (0,0,0) 
+      3 = show positive range of cartesian axes from (0,0,0)
+      4 = show a triad at bottom left
+      5 = show a cube at bottom left
+      6 = mark the corners of the bounding box
+      7 = draws a simple ruler at the bottom of the window
+      8 = show the vtkCubeAxesActor object''', c=1, bold=0)
+        return
+
 
     def _draw_legend(self):
         if not utils.isSequence(self.legend):
@@ -1610,8 +1855,7 @@ class Plotter:
         self.renderer.AddActor(vtklegend)
 
     #################################################################################
-
-    def show(self, actors=None, at=None, legend=None, axes=None, ruler=False,
+    def show(self, actors=None, at=None, legend=None, axes=None,
              c=None, alpha=None, wire=False, bc=None,
              resetcam=True, zoom=False, interactive=None, execute=None,
              azimuth=0, elevation=0,
@@ -1639,8 +1883,6 @@ class Plotter:
                      4, show axis widget as a triad on the bottom left corner
 
                      5, show annotated cube widget on the bottom left corner
-
-            ruler  = draws a simple ruler at the bottom
 
             c      = surface color, in rgb, hex or name formats
 
@@ -1779,10 +2021,8 @@ class Plotter:
             if ia not in actors2show:
                 self.renderer.RemoveActor(ia)
 
-        if ruler:
-            self._draw_ruler()
         if self.axes:
-            self._draw_axes()
+            self.drawAxes()
         self._draw_legend()
 
         if resetcam:
@@ -1910,3 +2150,16 @@ class Plotter:
     def screenshot(self, filename='screenshot.png'):
         '''Save a screenshot of the current rendering window.'''
         vtkio.screenshot(self.renderWin, filename)
+
+
+def show(obj, axes=0, zoom=None, interactive=True):
+    
+    vp = Plotter(axes=axes)
+    vp.show(obj, zoom=zoom, interactive=interactive)
+    return vp
+    
+    
+    
+    
+    
+    
