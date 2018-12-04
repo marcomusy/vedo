@@ -188,6 +188,9 @@ python advanced/interactor.py
 echo Running advanced/mesh_smoothers.py
 python advanced/mesh_smoothers.py
 
+echo Running advanced/interpolate.py
+python advanced/interpolate.py
+
 
 ################################### volumetric
 echo Running volumetric/readVolumeAsIsoSurface.py
@@ -213,6 +216,9 @@ python volumetric/signedDistance.py
 
 echo Running volumetric/read_vti.py
 python volumetric/read_vti.py
+
+echo Running volumetric/interpolateVolume.py
+python volumetric/interpolateVolume.py
 
 
 ####################################these may fail

@@ -12,4 +12,4 @@ vp.tube(l2, c='b', r=0.02)
 
 vp.ribbon(l1, l2, alpha=.2, res=(200,5), legend='ruled surf').wire(1)
 
-vp.show()
+vp.show(viewup='z')

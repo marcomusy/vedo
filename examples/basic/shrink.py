@@ -9,5 +9,5 @@ vp.load('data/shapes/teapot.vtk').shrink(0.8)
 
 vp.sphere(r=0.2).pos([0,0,-0.5])
 
-vp.show(zoom=1.2)
+vp.show(viewup='z', zoom=1.2)
 

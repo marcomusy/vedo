@@ -13,17 +13,17 @@ mesh, conc, cgradfac = np.load('data/turing_data.npy', encoding='latin1')
 conc = conc/1000. # normalize concentrations read from file
 nc,n = conc.shape # nc= nr. of time points, n= nr. of vertices
 
-# Create the vtkPlotter instance and position the camera.
+# Create the Plotter instance and position the camera.
 # (values can be copied in the code by pressing C in the rendering window)
-vp = Plotter(verbose=0, axes=0, interactive=0)
+vp = Plotter(verbose=0, axes=0, interactive=0, size=(700,700))
 vp.camera.SetPosition(962, -239, 1034)
 vp.camera.SetFocalPoint(0.0, 0.0, 10.0)
 vp.camera.SetViewUp(-0.693, -0.479, 0.539)
 
 pb = ProgressBar(0,nc, c='g') # a green progress bar
 for t1 in pb.range():  # for each time point
-    t2=t1+1
-    if t1==nc-1: t2=t1 # avoid index overflow with last time point
+    t2 = t1+1
+    if t1 == nc-1: t2=t1 # avoid index overflow with last time point
     
     vp.actors=[]       # clean up the list of actors at each iteration
     vp.cylinder([0,0,-15], r=260, height=10, texture='marble', res=60)
@@ -35,7 +35,7 @@ for t1 in pb.range():  # for each time point
         cgrad = abs(c2-c1)*cgradfac     # intensity of variation
         gx, gy, gz = np.random.randn(3) # make points wiggle a bit
         pts.append(p + vector(gx/4, gy/4, gz + c1*20))
-        cols.append([0, c1, cgrad])     # RGB color
+        cols.append([0., c1, cgrad])     # RGB color
 
     vp.points(pts, c=cols, alpha=1.0, r=6)  # points actor
     vp.points(pts, c=cols, alpha=0.1, r=30) # halos actor

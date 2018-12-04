@@ -75,7 +75,7 @@ def _showVoxelImage():
     for filename in args.files:
         if not os.path.isfile(filename):
             vc.printc('File not found:', filename, c=1)
-            continue
+            exit()
         vc.printc('...loading', filename, c='b', bold=0)
                 
         if   '.tif' in filename.lower(): 
@@ -209,6 +209,7 @@ elif args.slicer:
     filename = args.files[0]
     if not os.path.isfile(filename):
         vc.printc('File not found:', filename, c=1)
+        exit()
     vc.printc('...loading', filename, c='m', bold=0)
             
     if   '.tif' in filename.lower(): 

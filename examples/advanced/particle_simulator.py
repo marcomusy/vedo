@@ -44,7 +44,7 @@ class ParticleSim:
                     ftot += ((K_COULOMB * a.charge * b.charge) / mag2(ab)) * norm(ab)
                 a.vel += ftot / a.mass * self.dt # update velocity and position of a
                 a.pos += a.vel * self.dt
-                a.vtk_actor.pos(a.pos).updateTrail()
+                a.vtk_actor.pos(a.pos)
             if vp:
                 vp.render(zoom=1.2)
                 vp.camera.Azimuth(0.1) # rotate camera
@@ -72,7 +72,10 @@ class Particle:
         self.color = color
         if vp:
             self.vtk_actor = vp.sphere(pos, r=radius, c=color) # Sphere representing the particle
-            vp.addTrail(alpha=0.4, maxlength=1, n=50) # Add a trail behind the particle
+            # vp.addTrail(alpha=0.4, maxlength=1, n=50) 
+            # Add a trail behind the particle
+            self.vtk_actor.addTrail(alpha=0.4, maxlength=1, n=50) 
+
 
 
 #####################################################################################################

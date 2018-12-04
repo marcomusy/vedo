@@ -11,7 +11,7 @@ def my_z(x,y):
     return math.sin(2*x*y) * math.cos(3*y)/2
 
 
-vp = vtkplotter.Plotter(shape=(2,2), axes=2, sharecam=False)
+vp = vtkplotter.Plotter(shape=(2,2), sharecam=False)
 
 # draw at renderer nr.0 the first actor, show it with a texture
 # an existing function z(x,y) can be passed:
@@ -29,6 +29,6 @@ vp.show(f3, at=2)
 
 # specify x and y ranges and z vertical limits:
 f4 = vp.fxy('log(x**2+y**2 - 1)', x=[-2,2], y=[-2,2], zlimits=[-1,1.5])
-vp.show(f4, at=3, interactive=1)
+vp.show(f4, at=3, axes=2, interactive=1)
 
 

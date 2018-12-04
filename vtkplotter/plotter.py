@@ -16,10 +16,22 @@ import vtkplotter.analysis as analysis
 from vtkplotter import __version__
 from vtkplotter.actors import Assembly, Actor
 
+
+########################################################################
+def show(obj, axes=1, c=None, alpha=None, wire=False, bc=None,
+         zoom=None, viewup='', azimuth=0, elevation=0, roll=0,
+         interactive=True):
+    
+    vp = Plotter(axes=axes)
+    vp.show(obj, c=c, alpha=alpha, wire=wire, bc=bc, zoom=zoom, 
+            viewup=viewup, azimuth=azimuth, elevation=elevation, roll=roll,
+            interactive=interactive)
+    return vp
+
+
 ########################################################################
 class Plotter:
-    #########################################################################
-
+    
     def _tips(self):
         vvers = ' vtkplotter '+__version__+', vtk '+vtk.vtkVersion().GetVTKVersion()
         vvers += ', python ' + \
@@ -123,12 +135,6 @@ class Plotter:
         self.xtitle = 'x'       # x axis label and units
         self.ytitle = 'y'       # y axis label and units
         self.ztitle = 'z'       # z axis label and units
-#        self.xLabelPos = 0.5    # fractional position along x axis
-#        self.yLabelPos = 0.5    # fractional position along y axis
-#        self.zLabelPos = 0.5    # fractional position along z axis
-#        self.xLabelSize = 0.2   # label text size of x axis
-#        self.yLabelSize = 0.2   # label text size of y axis
-#        self.zLabelSize = 0.2   # label text size of z axis
         self.camera = None  # current vtkCamera
         self.sharecam = sharecam  # share the same camera if multiple renderers
         self.infinity = infinity  # ParallelProjection On or Off
@@ -532,30 +538,26 @@ class Plotter:
             self.renderer.AddLight(light)
         return light
 
-    # manage basic shapes
-    
-    def point(self, pos=[0, 0, 0], c='b', r=10, alpha=1, legend=None):
+
+    ################################################################## manage basic shapes
+    def point(self, pos=[0, 0, 0], c='k', r=10, alpha=1, legend=None):
         '''Create a simple point actor.'''
         a = shapes.point(pos, c, r, alpha, legend)
         self.actors.append(a)
         return a
 
-    
     def points(self, plist=[[1, 0, 0], [0, 1, 0], [0, 0, 1]],
-               c='b', tags=[], r=5, alpha=1, legend=None):
+               c='k', r=4, alpha=1, legend=None):
         '''
         Build a vtkActor for a list of points.
 
         c can be a list of [R,G,B] colors of same length as plist
 
-        If tags (a list of strings) is specified, they will be displayed  
-        along with the points.
-
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lorenz.py)    
 
         ![lorenz](https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png)
         '''
-        a = shapes.points(plist, c, tags, r, alpha, legend)
+        a = shapes.points(plist, c, r, alpha, legend)
         self.actors.append(a)
         return a
 
@@ -566,7 +568,6 @@ class Plotter:
         a = shapes.sphere(pos, r, c, alpha, wire, legend, texture, res)
         self.actors.append(a)
         return a
-
     
     def spheres(self, centers, r=1,
                 c='r', alpha=1, wire=False, legend=None, texture=None, res=8):
@@ -1366,59 +1367,6 @@ class Plotter:
             self.actors.remove(iconActor)
         return widget
 
-    def addTrail(self, actor=None, maxlength=None, n=25, c=None, alpha=None, lw=1):
-        '''
-        Add a trailing line to an existing actor.
-
-        Options:
-
-            maxlength, length of trailing line in absolute units
-
-            n, number of segments, controls precision
-
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/trail.py)    
-        '''
-        if not actor:
-            actor = self.actors[-1]
-        if maxlength is None:
-            maxlength = utils.diagonalSize(actor)*20
-
-        if not actor.trailPoints:
-            pos = actor.GetPosition()
-            actor.trailPoints = [None]*n
-            actor.trailSegmentSize = maxlength/n
-
-            ppoints = vtk.vtkPoints()  # Generate the polyline
-            poly = vtk.vtkPolyData()
-            x, y, z = pos
-            for i in range(n):
-                ppoints.InsertPoint(i, x, y, z)
-            lines = vtk.vtkCellArray()
-            lines.InsertNextCell(n)
-            for i in range(n):
-                lines.InsertCellPoint(i)
-            poly.SetPoints(ppoints)
-            poly.SetLines(lines)
-            mapper = vtk.vtkPolyDataMapper()
-            if c is None:
-                col = actor.GetProperty().GetColor()
-            else:
-                col = colors.getColor(c)
-            al = colors.getAlpha(c)
-            if al:
-                alpha = al
-            if alpha is None:
-                alpha = actor.GetProperty().GetOpacity()
-            mapper.SetInputData(poly)
-            tline = Actor() # vtk.vtkActor()
-            tline.SetMapper(mapper)
-            tline.GetProperty().SetColor(col)
-            tline.GetProperty().SetOpacity(alpha)
-            tline.GetProperty().SetLineWidth(lw)
-            actor.trail = tline  # holds the vtkActor
-            self.actors.append(tline)
-            return tline
-
 
     def drawAxes(self, axtype=None, c=None):
         '''
@@ -1426,7 +1374,7 @@ class Plotter:
             
               0 = no axes, 
               
-              1 = default vtkCubeAxesActor object, 
+              1 = draw three gray grid walls
               
               2 = show cartesian axes from (0,0,0) 
               
@@ -1440,7 +1388,7 @@ class Plotter:
               
               7 = draw a simple ruler at the bottom of the window
               
-              8 = draw three gray grid walls
+              8 = default vtkCubeAxesActor object
         '''
         if axtype is not None:
             self.axes = axtype # overrride
@@ -1462,95 +1410,26 @@ class Plotter:
         self.axes_exist[r] = True
         
         vbb = self.renderer.ComputeVisiblePropBounds()
-
-            
-#        if self.axes == 1 or self.axes == True: # gray grid walls
-#            r = 4 # number of divisions in the smallest range
-#            off = -0.04 # label offset
-#            bns = []
-#            for a in self.actors:
-#                b = a.GetBounds()
-#                if b is not None: bns.append(b)
-#            if len(bns) == 0: return
-#            max_bns = numpy.max(bns, axis=0)
-#            min_bns = numpy.min(bns, axis=0)
-#            sizes = (max_bns[1]-min_bns[0],
-#                     max_bns[3]-min_bns[2],
-#                     max_bns[5]-min_bns[4])
-#            step  = numpy.min(sizes)/r
-#            if not step: return
-#            rx, ry, rz = numpy.rint(sizes/step).astype(int)
-#            if max([rx/ry,ry/rx,rx/rz,rz/rx,ry/rz,rz/ry])>15:
-#                self.drawAxes(axtype=8, c=c)
-#                return # bad proportions, use vtkCubeAxes
-#
-#            gxy = shapes.grid(pos=(.5,.5,0), normal=[0,0,1], bc=None, resx=rx, resy=ry)
-#            gxz = shapes.grid(pos=(.5,0,.5), normal=[0,1,0], bc=None, resx=rz, resy=rx)
-#            gyz = shapes.grid(pos=(0,.5,.5), normal=[1,0,0], bc=None, resx=rz, resy=ry)
-#            gxy.alpha(0.07).wire(False).color(c).lineWidth(1)
-#            gxz.alpha(0.05).wire(False).color(c).lineWidth(1)
-#            gyz.alpha(0.05).wire(False).color(c).lineWidth(1)
-#            
-#            xa = shapes.line([0,0,0], [1,0,0], c=c, lw=1)
-#            ya = shapes.line([0,0,0], [0,1,0], c=c, lw=1)
-#            za = shapes.line([0,0,0], [0,0,1], c=c, lw=1)
-#            
-#            tfx, tfy, tfz = self.xLabelSize, self.yLabelSize, self.zLabelSize
-#            sx, sy, sz = sizes
-#            print(sizes)
-#            print('tfx, tfy, tfz',tfx, tfy, tfz)
-#            xt, yt, zt = None, None, None
-#            if self.xtitle:
-#                if len(self.xtitle) == 1: # add axis length info
-#                    self.xtitle += ' /' + utils.to_precision(sx, 4)
-#                wpos = [self.xLabelPos, off*.2, 0] 
-#                xt = shapes.text(self.xtitle, pos=wpos, normal=(0,0,1), s=.025, c=c)
-##                xt.SetScale(tfx*1/sx, tfx*sy, tfx*sz)
-#            if self.ytitle:
-#                yt = shapes.text(self.ytitle, normal=(0,0,1), s=.025, c=c)
-#                if len(self.ytitle) == 1: 
-#                    yt.SetScale(tfy/numpy.array(sizes)) #compensate S
-#                    yt.pos(off*tfy*5.5, self.yLabelPos,  0)
-#                else:
-#                    yt.SetScale(tfy/sizes[1], tfy/sizes[0], tfy/sizes[2]) #compensate S
-#                    yt.rotateZ(90).pos(off*tfy*3.5, self.yLabelPos,  0)
-#            if self.ztitle:
-#                zt = shapes.text(self.ztitle, normal=(0,0,1), depth=0.05, s=.025, c=c)
-#                if len(self.ztitle) == 1: 
-#                    zt.SetScale(tfz/sizes[1], tfz/sizes[2], tfz/sizes[0])
-#                    zt.rotateY(-90).rotateX(135).rotate(-90, axis=(1,-1,0))
-#                    zt.pos(off*tfz*3, off*tfz*3, self.zLabelPos)
-#                else:
-#                    zt.SetScale(tfz/sizes[2], tfz/sizes[0], tfz/sizes[1])
-#                    zt.rotateY(-90).rotateX(135).pos(off*1.5, off*1.5, self.zLabelPos)
-#            acts = [gxy, gxz, gyz, xa, ya, za, xt, yt, zt]
-#            
-#            for a in acts: 
-#                if a: a.PickableOff()
-#            aa = Assembly(acts)
-#            aa.pos(min_bns[0], min_bns[2], min_bns[4])
-#            aa.SetScale(sizes) # S
-#            aa.PickableOff()
-#            self.renderer.AddActor(aa)
-
+        
 
         if self.axes == 1 or self.axes == True: # gray grid walls
-            r = 4 # number of divisions in the smallest range
+            nd  = 4     # number of divisions in the smallest axis
             off = -0.04 # label offset
             bns = []
             for a in self.actors:
                 b = a.GetBounds()
-                if b is not None: bns.append(b)
+                if b is not None: 
+                    bns.append(b)
             if len(bns) == 0: return
             max_bns = numpy.max(bns, axis=0)
             min_bns = numpy.min(bns, axis=0)
             sizes = (max_bns[1]-min_bns[0],
                      max_bns[3]-min_bns[2],
                      max_bns[5]-min_bns[4])
-            step  = numpy.min(sizes)/r
+            step  = numpy.min(sizes)/nd
             if not step: return
             rx, ry, rz = numpy.rint(sizes/step).astype(int)
-            if max([rx/ry,ry/rx,rx/rz,rz/rx,ry/rz,rz/ry])>15:
+            if max([rx/ry,ry/rx,rx/rz,rz/rx,ry/rz,rz/ry]) > 15:
                 self.drawAxes(axtype=8, c=c) # bad proportions, use vtkCubeAxesActor
                 self.axes = 1
                 return 
@@ -1558,21 +1437,26 @@ class Plotter:
             gxy = shapes.grid(pos=(.5,.5,0), normal=[0,0,1], bc=None, resx=rx, resy=ry)
             gxz = shapes.grid(pos=(.5,0,.5), normal=[0,1,0], bc=None, resx=rz, resy=rx)
             gyz = shapes.grid(pos=(0,.5,.5), normal=[1,0,0], bc=None, resx=rz, resy=ry)
-            gxy.alpha(0.07).wire(False).color(c).lineWidth(1)
-            gxz.alpha(0.05).wire(False).color(c).lineWidth(1)
-            gyz.alpha(0.05).wire(False).color(c).lineWidth(1)
+            gxy.alpha(0.06).wire(False).color(c).lineWidth(1)
+            gxz.alpha(0.04).wire(False).color(c).lineWidth(1)
+            gyz.alpha(0.04).wire(False).color(c).lineWidth(1)
             
             xa = shapes.line([0,0,0], [1,0,0], c=c, lw=1)
             ya = shapes.line([0,0,0], [0,1,0], c=c, lw=1)
             za = shapes.line([0,0,0], [0,0,1], c=c, lw=1)
             
-            xt, yt, zt = None, None, None
+            xt, yt, zt, ox, oy, oz = [None]*6
             if self.xtitle:
+                if min_bns[0]<=0 and max_bns[1]>0: # mark x origin
+                    ox = shapes.cube([-min_bns[0]/sizes[0],0,0], length=.008, c=c)
                 if len(self.xtitle) == 1: # add axis length info
                     self.xtitle += ' /' + utils.to_precision(sizes[0], 4)
                 wpos = [1-(len(self.xtitle)+1)/40, off, 0] 
                 xt = shapes.text(self.xtitle, pos=wpos, normal=(0,0,1), s=.025, c=c)
+                
             if self.ytitle:
+                if min_bns[2]<=0 and max_bns[3]>0: # mark y origin
+                    oy = shapes.cube([0,-min_bns[2]/sizes[1],0], length=.008, c=c)
                 yt = shapes.text(self.ytitle, normal=(0,0,1), s=.025, c=c)
                 if len(self.ytitle) == 1: 
                     wpos = [off, 1-(len(self.ytitle)+1)/40,  0] 
@@ -1580,7 +1464,10 @@ class Plotter:
                 else:
                     wpos = [off*.7, 1-(len(self.ytitle)+1)/40,  0] 
                     yt.rotateZ(90).pos(wpos)
+                    
             if self.ztitle:
+                if min_bns[4]<=0 and max_bns[5]>0: # mark z origin
+                    oz = shapes.cube([0,0,-min_bns[4]/sizes[2]], length=.008, c=c)
                 zt = shapes.text(self.ztitle, normal=(1,-1,0), s=.025, c=c)
                 if len(self.ztitle) == 1: 
                     wpos = [off*.6, off*.6, 1-(len(self.ztitle)+1)/40] 
@@ -1588,7 +1475,8 @@ class Plotter:
                 else:
                     wpos = [off*.3, off*.3, 1-(len(self.ztitle)+1)/40] 
                     zt.rotate(180, (1,-1,0)).pos(wpos)
-            acts = [gxy, gxz, gyz, xa, ya, za, xt, yt, zt]
+            
+            acts = [gxy, gxz, gyz, xa, ya, za, xt, yt, zt, ox, oy, oz]
             for a in acts: 
                 if a: a.PickableOff()
             aa = Assembly(acts)
@@ -1762,9 +1650,8 @@ class Plotter:
             for i in range(3):
                 ca.GetLabelTextProperty(i).SetColor(c)
                 ca.GetTitleTextProperty(i).SetColor(c)
-            ca.SetTitleOffset(8)
+            ca.SetTitleOffset(5)
             ca.SetFlyMode(3)
-            ca.SetLabelScaling(False, 1, 1, 1)
             ca.SetXTitle(self.xtitle)
             ca.SetYTitle(self.ytitle)
             ca.SetZTitle(self.ztitle)
@@ -1777,9 +1664,6 @@ class Plotter:
             if self.ztitle == '':
                 ca.SetZAxisVisibility(0)
                 ca.ZAxisLabelVisibilityOff()
-            ca.XAxisMinorTickVisibilityOff()
-            ca.YAxisMinorTickVisibilityOff()
-            ca.ZAxisMinorTickVisibilityOff()
             ca.PickableOff()
             self.renderer.AddActor(ca)
 
@@ -1787,13 +1671,13 @@ class Plotter:
             colors.printc('Keyword axes must be in range [0-8].', c=1)
             colors.printc('''Available axes types:
       0 = no axes, 
-      1 = draws three gray grid walls 
+      1 = draw three gray grid walls 
       2 = show cartesian axes from (0,0,0) 
       3 = show positive range of cartesian axes from (0,0,0)
       4 = show a triad at bottom left
       5 = show a cube at bottom left
       6 = mark the corners of the bounding box
-      7 = draws a simple ruler at the bottom of the window
+      7 = draw a simple ruler at the bottom of the window
       8 = show the vtkCubeAxesActor object''', c=1, bold=0)
         return
 
@@ -1858,9 +1742,10 @@ class Plotter:
     def show(self, actors=None, at=None, legend=None, axes=None,
              c=None, alpha=None, wire=False, bc=None,
              resetcam=True, zoom=False, interactive=None, execute=None,
-             azimuth=0, elevation=0,
+             viewup='', azimuth=0, elevation=0, roll=0,
              q=False):
-        '''Render a list of actors.
+        '''
+        Render a list of actors.
 
         Options:
 
@@ -1871,24 +1756,34 @@ class Plotter:
             legend = a string or list of string for each actor, if False will not show it
 
             axes   = set typ of axes to be shown:
+    
+                  0 = no axes, 
+                  
+                  1 = draw three gray grid walls
+                  
+                  2 = show cartesian axes from (0,0,0) 
+                  
+                  3 = show positive range of cartesian axes from (0,0,0)
+                  
+                  4 = show a triad at bottom left
+                  
+                  5 = show a cube at bottom left
+                  
+                  6 = mark the corners of the bounding box
+                  
+                  7 = draw a simple ruler at the bottom of the window
+                  
+                  8 = default vtkCubeAxesActor object, 
 
-                     0, no axes,
+            c    = surface color, in rgb, hex or name formats
 
-                     1, show vtk default axes,
+            bc   = set a color for the internal surface face
 
-                     2, show negative axes starting from origin
-
-                     3, show positive axes starting from origin
-
-                     4, show axis widget as a triad on the bottom left corner
-
-                     5, show annotated cube widget on the bottom left corner
-
-            c      = surface color, in rgb, hex or name formats
-
-            bc     = set a color for the internal surface face
-
-            wire   = show actor in wireframe representation
+            wire = show actor in wireframe representation
+            
+            azimuth/elevation/roll = move camera accordingly
+            
+            viewup = either ['x', 'y', 'z'] or a vector to set vertical direction
 
             resetcam = re-adjust camera position to fit objects
 
@@ -1896,7 +1791,7 @@ class Plotter:
 
             execute = holds an external function to be called, allowing interaction with scene
 
-            q      = force program to quit after show() command returns
+            q = force program to quit after show() command returns
         '''
 
         if self.offscreen:
@@ -1922,8 +1817,12 @@ class Plotter:
                             backProp.SetOpacity(alpha)
                         a.SetBackfaceProperty(backProp)
                     scannedacts.append(a)
+                    if hasattr(a, 'trail') and a.trail and not a.trail in self.actors:
+                        scannedacts.append(a.trail)
                 elif isinstance(a, vtk.vtkAssembly):
                     scannedacts.append(a)
+                    if a.trail and not a.trail in self.actors:
+                        scannedacts.append(a.trail)
                 elif isinstance(a, vtk.vtkActor2D):
                     scannedacts.append(a)
                 elif isinstance(a, vtk.vtkImageActor):
@@ -2054,11 +1953,26 @@ class Plotter:
 
         if zoom:
             self.camera.Zoom(zoom)
-        if elevation:
-            self.camera.Elevation(elevation)
         if azimuth:
             self.camera.Azimuth(azimuth)
-        
+        if elevation:
+            self.camera.Elevation(elevation)
+        if roll:
+            self.camera.Roll(roll)
+        if len(viewup):
+            if viewup == 'x':
+                viewup = [1,0,0]
+            elif viewup == 'y':
+                viewup = [0,1,0]
+            elif viewup == 'z':
+                viewup = [0,0,1]
+                self.camera.Azimuth(60)
+                self.camera.Elevation(30)
+            self.camera.Azimuth(0.01) #otherwise camera gets stuck
+            self.camera.SetViewUp(viewup)
+            
+        self.renderer.ResetCameraClippingRange()
+
         self.renderWin.Render()
 
         if self.interactor and self.interactive:
@@ -2068,8 +1982,10 @@ class Plotter:
             if self.verbose:
                 print('q flag set to True. Exit.')
             sys.exit(0)
+    
 
-    def render(self, addActor=None, at=None, axes=None, resetcam=False, zoom=False, rate=None):
+    def render(self, addActor=None, at=None, axes=None, resetcam=False, 
+               zoom=False, rate=None):
         '''Render current window.'''
 
         if self.offscreen:
@@ -2104,6 +2020,7 @@ class Plotter:
                 if elapsed < mint:
                     time.sleep(mint-elapsed)
                 self.clock = time.time() - self._clockt0
+
 
     def lastActor(self): return self.actors[-1]
 
@@ -2152,13 +2069,6 @@ class Plotter:
         vtkio.screenshot(self.renderWin, filename)
 
 
-def show(obj, axes=0, zoom=None, interactive=True):
-    
-    vp = Plotter(axes=axes)
-    vp.show(obj, zoom=zoom, interactive=interactive)
-    return vp
-    
-    
     
     
     

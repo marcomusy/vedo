@@ -35,7 +35,7 @@ def load(inputobj, c='gold', alpha=1,
 
                 texture, any png/jpg file can be used as texture
 
-            For volumetric data (tiff, slc, vti files):
+            For volumetric data (tiff, slc, vti files), an isosurface is calculated:
 
                 smoothing,    gaussian filter to smooth vtkImageData
 
@@ -511,16 +511,19 @@ def write(obj, fileoutput):
         colors.printc("Saved file: "+fileoutput, c='g')
         return
     elif '.tif' in fr:
-        wr = vtk.vtkTIFFWriter()
-        wr.SetFileDimensionality(len(obj.GetDimensions()))
-        wr.SetInputData(obj)
-        wr.SetFileName(fileoutput)
-        wr.Write()
-        colors.printc("TIFF stack saved as: "+fileoutput, c='g')
-        return
+        w = vtk.vtkTIFFWriter()
+        w.SetFileDimensionality(len(obj.GetDimensions()))
+    elif '.vti' in fr:
+        w = vtk.vtkXMLImageDataWriter()
+    elif '.png' in fr:
+        w = vtk.vtkPNGWriter()
+    elif '.jpg' in fr:
+        w = vtk.vtkJPEGWriter()
+    elif '.bmp' in fr:
+        w = vtk.vtkBMPWriter()
     else:
-        colors.printc('Unavailable format in file '+fileoutput, c='r')
-        exit(1)
+        colors.printc('Unknown format', fileoutput, 'file not saved.', c='r')
+        return
 
     try:
         w.SetInputData(obj)
@@ -529,9 +532,10 @@ def write(obj, fileoutput):
         colors.printc("Saved file: "+fileoutput, c='g')
     except:
         colors.printc("Error saving: "+fileoutput, c='r')
+    return
 
 
-# Video
+########################################################## Video
 def screenshot(renderWin, filename='screenshot.png'):
     '''Take a screenshot of current rendering window'''
     w2if = vtk.vtkWindowToImageFilter()
@@ -620,12 +624,13 @@ class ProgressBar:
     [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/diffusion.py)    
     '''
 
-    def __init__(self, start, stop, step=1, c=None, ETA=True, width=25):
+    def __init__(self, start, stop, step=1, c=None, ETA=True, width=24, char='='):
         self.start = start
         self.stop = stop
         self.step = step
         self.color = c
         self.width = width
+        self.char = char
         self.bar = ""
         self.percent = 0
         self.clock0 = 0
@@ -654,12 +659,24 @@ class ProgressBar:
                     mins = int(remt/60)
                     secs = remt - 60*mins
                     mins = str(mins)+'m'
-                    secs = str(int(secs))+'s '
+                    secs = str(int(secs+0.5))+'s '
                 else:
                     mins = ''
-                    secs = str(int(remt))+'s '
+                    secs = str(int(remt+0.5))+'s '
                 vel = str(round(vel, 1))
                 eta = 'ETA: '+mins+secs+'('+vel+' it/s) '
+                if remt < 1:
+                    dt = time.time() - self.clock0
+                    if dt > 60:
+                        mins = int(dt/60)
+                        secs = dt - 60*mins
+                        mins = str(mins)+'m'
+                        secs = str(int(secs+0.5))+'s '
+                    else:
+                        mins = ''
+                        secs = str(int(dt+0.5))+'s '
+                    eta = 'Elapsed time: '+mins+secs+'('+vel+' it/s)        '
+                    txt = ''
             else:
                 eta = ''
             txt = eta + str(txt)
@@ -691,11 +708,14 @@ class ProgressBar:
         if nh == 0:
             self.bar = "[>%s]" % (' '*(af-1))
         elif nh == af:
-            self.bar = "[%s]" % ('='*af)
+            self.bar = "[%s]" % (self.char*af)
         else:
-            self.bar = "[%s>%s]" % ('='*(nh-1), ' '*(af-nh))
-        ps = str(self.percent) + "%"
-        self.bar = ' '.join([self.bar, ps])
+            self.bar = "[%s>%s]" % (self.char*(nh-1), ' '*(af-nh))
+        if self.percent < 100:
+            ps = ' '+str(self.percent) + "%"
+        else: 
+            ps = ''
+        self.bar += ps
 
 
 def convertNeutral2Xml(infile, outfile=None):
@@ -1000,7 +1020,7 @@ def _keypress(vp, obj, event):
     key = obj.GetKeySym()
     #print ('Pressed key:', key, event)
 
-    if key == "q" or key == "space" or key == "Return":
+    if key in ["q", "Q", "space", "Return"]:
         vp.interactor.ExitCallback()
         return
 
@@ -1136,15 +1156,11 @@ def _keypress(vp, obj, event):
         cam = vp.renderer.GetActiveCamera()
         print('\n### Example code to position this vtkCamera:')
         print('vp = vtkplotter.Plotter()\n...')
-        print('vp.camera.SetPosition(',  [round(e, 3)
-                                          for e in cam.GetPosition()],  ')')
-        print('vp.camera.SetFocalPoint(', [round(e, 3)
-                                           for e in cam.GetFocalPoint()], ')')
-        print('vp.camera.SetViewUp(',    [round(e, 3)
-                                          for e in cam.GetViewUp()], ')')
+        print('vp.camera.SetPosition(',   [round(e, 3) for e in cam.GetPosition()],  ')')
+        print('vp.camera.SetFocalPoint(', [round(e, 3) for e in cam.GetFocalPoint()], ')')
+        print('vp.camera.SetViewUp(',     [round(e, 3) for e in cam.GetViewUp()], ')')
         print('vp.camera.SetDistance(',   round(cam.GetDistance(), 3), ')')
-        print('vp.camera.SetClippingRange(', [
-              round(e, 3) for e in cam.GetClippingRange()], ')')
+        print('vp.camera.SetClippingRange(', [round(e, 3) for e in cam.GetClippingRange()], ')')
         return
 
     elif key == "s":

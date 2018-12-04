@@ -53,7 +53,7 @@ def spline(points, smooth=0.5, degree=2,
 
     ppoints = vtk.vtkPoints()  # Generate the polyline for the spline
     profileData = vtk.vtkPolyData()
-    ppoints.SetData(numpy_to_vtk(list(zip(xnew, ynew, znew))))
+    ppoints.SetData(numpy_to_vtk( list(zip(xnew, ynew, znew)), deep=True))
     lines = vtk.vtkCellArray()  # Create the polyline
     lines.InsertNextCell(Nout)
     for i in range(Nout):
@@ -329,7 +329,7 @@ def histogram2D(xvalues, yvalues, bins=12, norm=1, c='g', alpha=1, fill=False):
     zs = [[0.0]]*len(values) 
     values = np.append(values, zs, axis=1)
 
-    pointsPolydata.GetPoints().SetData(numpy_to_vtk(values))
+    pointsPolydata.GetPoints().SetData(numpy_to_vtk(values, deep=True))
     cloud = Actor(pointsPolydata)
     
     c1 = vc.getColor(c)
@@ -387,7 +387,7 @@ def delaunay2D(plist, tol=None, c='gold', alpha=0.5, wire=False, bc=None,
     '''
     pd = vtk.vtkPolyData()
     vpts = vtk.vtkPoints()
-    vpts.SetData(numpy_to_vtk(plist))
+    vpts.SetData(numpy_to_vtk(plist, deep=True))
     pd.SetPoints(vpts)
     delny = vtk.vtkDelaunay2D()
     delny.SetInputData(pd)

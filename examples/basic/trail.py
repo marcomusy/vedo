@@ -1,19 +1,19 @@
-# Example use of addTrail() and updateTrail()
+# Example usage of addTrail()
 #
-from vtkplotter import Plotter, sin, Assembly
+from vtkplotter import Plotter, sin
 
 vp = Plotter(axes=6)
 
-c = vp.sphere(c='green', res=24)
-vp.cutPlane(c, [-0.9,0,0], showcut=True) #cut left part of sphere
+s = vp.sphere(c='green', res=24)
+vp.cutPlane(s, [-0.9,0,0], showcut=True) #cut left part of sphere
 
-s = vp.sphere([1,1,1], r=.03, c='db')
+p = vp.point([1,1,1], r=12)
 
-# add a trail to last created actor with max 50 segments
-vp.addTrail(c='k', lw=3, maxlength=.5, n=50) 
+# add a trail to point p with maximum length 0.5 and 50 segments
+p.addTrail(c='k', lw=3, maxlength=0.5, n=50) 
 
 for i in range(200):
-    s.pos([-2 +i/100., sin(i/5.)/10, 0]).updateTrail()
+    p.pos([-2 +i/100., sin(i/5.)/15, 0])
     vp.render()
     vp.camera.Azimuth(-0.2)
 

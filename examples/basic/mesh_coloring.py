@@ -2,16 +2,15 @@
 # or point of an actor's mesh. 
 # Last example shows the usage of addScalarBar3D().
 # Needs matplotlib.
-from vtkplotter import Plotter
+from vtkplotter import Plotter, arange
 
 
 vp = Plotter(shape=(1,3), size='fullscreen')
 
-
 #####################################
 man1 = vp.load('data/shapes/man.vtk')
-Np = man1.N()
-pscals = range(Np) # coloring will be by index nr of the vertex
+Np = man1.N()                # nr. of vertices
+pscals = arange(0, 1, 1./Np) # coloring will be by index nr of the vertex
 man1.pointScalars(pscals, 'mypointscalars') # add a vtkArray to actor
 #print(man1.scalars('mypointscalars')) # info can be retrieved this way
 vp.show(man1, at=0, axes=1)

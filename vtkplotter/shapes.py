@@ -6,63 +6,64 @@ from __future__ import division, print_function
 import vtk
 import numpy as np
 
-import vtkplotter.utils as vu
-import vtkplotter.colors as vc
-import vtkplotter.vtkio as vio
+import vtkplotter.utils as utils
+import vtkplotter.colors as colors
 from vtkplotter.actors import Actor, Assembly
 from vtk.util.numpy_support import numpy_to_vtk
 
 
 ########################################################################
-def points(plist, c='b', tags=[], r=5, alpha=1, legend=None):
+def point(pos, c='k', r=5, alpha=1, legend=None):
+    '''Create a simple point actor.'''
+    return points([pos], c, r, alpha, legend)
+
+def points(plist, c='k', r=4, alpha=1, legend=None):
     '''
     Build a vtkActor for a list of points.
 
     c can be a list of [R,G,B] colors of same length as plist
 
-    If tags (a list of strings) is specified, is displayed along 
-    with the points.
-
     [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lorenz.py)    
 
     ![lorenz](https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png)
     '''
-
-    if len(plist) == 0:
+    n = len(plist)
+    if n == 0:
         return None
-    if vu.isSequence(c) and vu.isSequence(c[0]):
+    elif n == 3: # assume plist is in the format [all_x, all_y, all_z]
+        if utils.isSequence(plist[0]) and len(plist[0]) > 3:
+            plist = list(zip(plist[0], plist[1], plist[2]))
+    elif n == 2: # assume plist is in the format [all_x, all_y, 0]
+        if utils.isSequence(plist[0]) and len(plist[0]) > 3:
+            plist = list(zip(plist[0], plist[1], [0]*len(plist[0])))
+            
+    if utils.isSequence(c) and utils.isSequence(c[0]) and len(c[0])==3:
         return _colorPoints(plist, c, r, alpha, legend)
-
+    
+    n = len(plist) # refresh
     src = vtk.vtkPointSource()
-    src.SetNumberOfPoints(len(plist))
+    src.SetNumberOfPoints(n)
     src.Update()
     pd = src.GetOutput()
-    if len(plist) == 1:  # passing just one point
+    if n == 1:  # passing just one point
         pd.GetPoints().SetPoint(0, [0, 0, 0])
     else:
-        pd.GetPoints().SetData(numpy_to_vtk(plist))
-#        for i, p in enumerate(plist):
-#            pd.GetPoints().SetPoint(i, p)
-    actor = Actor(pd, c, alpha)
+        pd.GetPoints().SetData(numpy_to_vtk(plist, deep=True))
+    actor = Actor(pd, c, alpha, legend=legend)
     actor.GetProperty().SetPointSize(r)
-    if len(plist) == 1:
+    if n == 1:
         actor.SetPosition(plist[0])
     return actor
 
-
-def point(pos, c='b', r=5, alpha=1, legend=None):
-    '''Create a simple point actor.'''
-    return points([pos], c, [], r, alpha, legend)
-
-
 def _colorPoints(plist, cols, r, alpha, legend):
-    if len(plist) > len(cols):
-        vio.printc("Mismatch in colorPoints()", len(plist), len(cols), c=1)
+    n = len(plist) 
+    if n > len(cols):
+        colors.printc("Mismatch in colorPoints()", n, len(cols), c=1)
         exit()
-    if len(plist) != len(cols):
-        vio.printc("Warning: mismatch in colorPoints()", len(plist), len(cols))
+    if n != len(cols):
+        colors.printc("Warning: mismatch in colorPoints()", n, len(cols))
     src = vtk.vtkPointSource()
-    src.SetNumberOfPoints(len(plist))
+    src.SetNumberOfPoints(n)
     src.Update()
     vertexFilter = vtk.vtkVertexGlyphFilter()
     vertexFilter.SetInputData(src.GetOutput())
@@ -72,32 +73,31 @@ def _colorPoints(plist, cols, r, alpha, legend):
     ucols.SetNumberOfComponents(3)
     ucols.SetName("RGB")
     for i, p in enumerate(plist):
-        pd.GetPoints().SetPoint(i, p)
-        c = np.array(vc.getColor(cols[i]))*255
+        c = np.array(colors.getColor(cols[i]))*255
         ucols.InsertNextTuple3(c[0], c[1], c[2])
+    #    ucols.DeepCopy(numpy_to_vtk(cols, deep=True, 
+    #        array_type=vtk.vtkUnsignedCharArray().GetDataType()))
+    pd.GetPoints().SetData(numpy_to_vtk(plist, deep=True))
     pd.GetPointData().SetScalars(ucols)
     mapper = vtk.vtkPolyDataMapper()
     mapper.SetInputData(pd)
     mapper.ScalarVisibilityOn()
-    actor = Actor()#vtk.vtkActor()
+    actor = Actor() #vtk.vtkActor()
     actor.SetMapper(mapper)
     actor.GetProperty().SetInterpolationToFlat()
-    # check if color string contains a float, in this case ignore alpha
-    al = vc.getAlpha(c)
-    if al:
-        alpha = al
     actor.GetProperty().SetOpacity(alpha)
     actor.GetProperty().SetPointSize(r)
     return actor
 
 
 def line(p0, p1=None, lw=1, dotted=False, c='r', alpha=1, legend=None):
-    '''Build the line segment between points p0 and p1.
+    '''
+    Build the line segment between points p0 and p1.
 
-        If p0 is a list of points returns the line connecting them,
+    If p0 is a list of points returns the line connecting them.
     '''
     # detect if user is passing a list of points:
-    if vu.isSequence(p0[0]):
+    if utils.isSequence(p0[0]):
         ppoints = vtk.vtkPoints()  # Generate the polyline
         dim = len((p0[0]))
         if dim == 2:
@@ -105,7 +105,7 @@ def line(p0, p1=None, lw=1, dotted=False, c='r', alpha=1, legend=None):
                 p = p0[i]
                 ppoints.InsertPoint(i, p[0], p[1], 0)
         else:
-            ppoints.SetData(numpy_to_vtk(p0))
+            ppoints.SetData(numpy_to_vtk(p0, deep=True))
         lines = vtk.vtkCellArray()  # Create the polyline.
         lines.InsertNextCell(len(p0))
         for i in range(len(p0)):
@@ -134,7 +134,7 @@ def tube(points, r=1, c='r', alpha=1, legend=None, res=12):
     '''Build a tube of radius r along line defined py points.'''
 
     ppoints = vtk.vtkPoints()  # Generate the polyline
-    ppoints.SetData(numpy_to_vtk(points))
+    ppoints.SetData(numpy_to_vtk(points, deep=True))
     lines = vtk.vtkCellArray()  # Create the polyline.
     lines.InsertNextCell(len(points))
     for i in range(len(points)):
@@ -159,8 +159,9 @@ def tube(points, r=1, c='r', alpha=1, legend=None, res=12):
 
 def lines(plist0, plist1=None, lw=1, dotted=False,
           c='r', alpha=1, legend=None):
-    '''Build the line segments between two lists of points plist0 and plist1.
-        plist0 can be also passed in the form [[point1, point2], ...].
+    '''
+    Build the line segments between two lists of points plist0 and plist1.
+    plist0 can be also passed in the form [[point1, point2], ...].
 
     [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py)    
     '''
@@ -191,7 +192,7 @@ def ribbon(line1, line2, c='m', alpha=1, legend=None, res=(200,5)):
         line2 = line2.coordinates()
        
     ppoints1 = vtk.vtkPoints()  # Generate the polyline1
-    ppoints1.SetData(numpy_to_vtk(line1))
+    ppoints1.SetData(numpy_to_vtk(line1, deep=True))
     lines1 = vtk.vtkCellArray() 
     lines1.InsertNextCell(len(line1))
     for i in range(len(line1)):
@@ -201,7 +202,7 @@ def ribbon(line1, line2, c='m', alpha=1, legend=None, res=(200,5)):
     poly1.SetLines(lines1)
     
     ppoints2 = vtk.vtkPoints()  # Generate the polyline2
-    ppoints2.SetData(numpy_to_vtk(line2))
+    ppoints2.SetData(numpy_to_vtk(line2, deep=True))
     lines2 = vtk.vtkCellArray()  
     lines2.InsertNextCell(len(line2))
     for i in range(len(line2)):
@@ -245,11 +246,12 @@ def ribbon(line1, line2, c='m', alpha=1, legend=None, res=(200,5)):
 
 def arrow(startPoint, endPoint, c='r', s=None, alpha=1,
           legend=None, texture=None, res=12, rwSize=(800,800)):
-    '''Build a 3D arrow from startPoint to endPoint of section size s,
+    '''
+    Build a 3D arrow from startPoint to endPoint of section size s,
     expressed as the fraction of the window size.
     If s=None the arrow is scaled proportionally to its length,
-    otherwise it represents the fraction of the window size.'''
-
+    otherwise it represents the fraction of the window size.
+    '''
     axis = np.array(endPoint) - np.array(startPoint)
     length = np.linalg.norm(axis)
     if not length:
@@ -294,8 +296,9 @@ def arrow(startPoint, endPoint, c='r', s=None, alpha=1,
 
 def arrows(startPoints, endPoints=None,
            c='r', s=None, alpha=1, legend=None, res=8, rwSize=None):
-    '''Build arrows between two lists of points startPoints and endPoints.
-        startPoints can be also passed in the form [[point1, point2], ...]
+    '''
+    Build arrows between two lists of points startPoints and endPoints.
+    startPoints can be also passed in the form [[point1, point2], ...]
     '''
     if endPoints is not None:
         startPoints = list(zip(startPoints, endPoints))
@@ -342,7 +345,8 @@ def arrows(startPoints, endPoints=None,
 def polygon(pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
             c='coral', bc='darkgreen', lw=1, alpha=1,
             legend=None, texture=None, followcam=False, camera=None):
-    '''Build a 2D polygon of nsides of radius r oriented as normal
+    '''
+    Build a 2D polygon of nsides of radius r oriented as normal.
 
     If followcam=True the polygon will always reorient itself to current camera.
     '''
@@ -362,13 +366,13 @@ def polygon(pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
         actor = vtk.vtkFollower()
         actor.SetCamera(camera)
         if not camera:
-            vio.printc('Warning: vtkCamera does not yet exist for polygon', c=5)
+            colors.printc('Warning: vtkCamera does not yet exist for polygon', c=5)
     else:
         actor = Actor()# vtk.vtkActor()
     actor.SetMapper(mapper)
-    actor.GetProperty().SetColor(vc.getColor(c))
+    actor.GetProperty().SetColor(colors.getColor(c))
     # check if color string contains a float, in this case ignore alpha
-    al = vc.getAlpha(c)
+    al = colors.getAlpha(c)
     if al:
         alpha = al
     actor.GetProperty().SetOpacity(alpha)
@@ -376,7 +380,7 @@ def polygon(pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
     actor.GetProperty().SetInterpolationToFlat()
     if bc:  # defines a specific color for the backface
         backProp = vtk.vtkProperty()
-        backProp.SetDiffuseColor(vc.getColor(bc))
+        backProp.SetDiffuseColor(colors.getColor(bc))
         backProp.SetOpacity(alpha)
         actor.SetBackfaceProperty(backProp)
     if texture:
@@ -388,8 +392,10 @@ def polygon(pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
 def disc(pos=[0, 0, 0], normal=[0, 0, 1], r1=0.5, r2=1,
          c='coral', bc='darkgreen', lw=1, alpha=1,
          legend=None, texture=None, res=12):
-    '''Build a 2D disc of internal radius r1 and outer radius r2,
-    oriented perpendicular to normal.'''
+    '''
+    Build a 2D disc of internal radius r1 and outer radius r2,
+    oriented perpendicular to normal.
+    '''
     ps = vtk.vtkDiskSource()
     ps.SetInnerRadius(r1)
     ps.SetOuterRadius(r2)
@@ -415,9 +421,9 @@ def disc(pos=[0, 0, 0], normal=[0, 0, 1], r1=0.5, r2=1,
 
     actor = Actor()# vtk.vtkActor()
     actor.SetMapper(mapper)
-    actor.GetProperty().SetColor(vc.getColor(c))
+    actor.GetProperty().SetColor(colors.getColor(c))
     # check if color string contains a float, in this case ignore alpha
-    al = vc.getAlpha(c)
+    al = colors.getAlpha(c)
     if al:
         alpha = al
     actor.GetProperty().SetOpacity(alpha)
@@ -425,7 +431,7 @@ def disc(pos=[0, 0, 0], normal=[0, 0, 1], r1=0.5, r2=1,
     actor.GetProperty().SetInterpolationToFlat()
     if bc:  # defines a specific color for the backface
         backProp = vtk.vtkProperty()
-        backProp.SetDiffuseColor(vc.getColor(bc))
+        backProp.SetDiffuseColor(colors.getColor(bc))
         backProp.SetOpacity(alpha)
         actor.SetBackfaceProperty(backProp)
     if texture:
@@ -461,32 +467,28 @@ def spheres(centers, r=1,
     '''
 
     cisseq = False
-    if vu.isSequence(c):
+    if utils.isSequence(c):
         cisseq = True
 
     if cisseq:
         if len(centers) > len(c):
-            vio.printc("Mismatch in spheres() colors",
-                       len(centers), len(c), c=1)
+            colors.printc("Mismatch in spheres() colors", len(centers), len(c), c=1)
             exit()
         if len(centers) != len(c):
-            vio.printc("Warning: mismatch in spheres() colors",
-                       len(centers), len(c))
+            colors.printc("Warning: mismatch in spheres() colors", len(centers), len(c))
 
     risseq = False
-    if vu.isSequence(r):
+    if utils.isSequence(r):
         risseq = True
 
     if risseq:
         if len(centers) > len(r):
-            vio.printc("Mismatch in spheres() radius",
-                       len(centers), len(r), c=1)
+            colors.printc("Mismatch in spheres() radius", len(centers), len(r), c=1)
             exit()
         if len(centers) != len(r):
-            vio.printc("Warning: mismatch in spheres() radius",
-                       len(centers), len(r))
+            colors.printc("Warning: mismatch in spheres() radius", len(centers), len(r))
     if cisseq and risseq:
-        vio.printc("Limitation: c and r cannot be both sequences.", c=1)
+        colors.printc("Limitation: c and r cannot be both sequences.", c=1)
         exit()
 
     src = vtk.vtkSphereSource()
@@ -511,7 +513,7 @@ def spheres(centers, r=1,
         ucols.SetName("colors")
         for i, p in enumerate(centers):
             vpts.SetPoint(i, p)
-            cc = np.array(vc.getColor(c[i]))*255
+            cc = np.array(colors.getColor(c[i]))*255
             ucols.InsertNextTuple3(cc[0], cc[1], cc[2])
             pd.GetPointData().SetScalars(ucols)
             glyph.ScalingOff()
@@ -540,7 +542,7 @@ def spheres(centers, r=1,
     actor.SetMapper(mapper)
     actor.GetProperty().SetInterpolationToPhong()
     # check if color string contains a float, in this case ignore alpha
-    al = vc.getAlpha(c)
+    al = colors.getAlpha(c)
     if al:
         alpha = al
     actor.GetProperty().SetOpacity(alpha)
@@ -549,7 +551,7 @@ def spheres(centers, r=1,
             actor.texture(texture)
             mapper.ScalarVisibilityOff()
         else:
-            actor.GetProperty().SetColor(vc.getColor(c))
+            actor.GetProperty().SetColor(colors.getColor(c))
     return actor
 
 
@@ -802,15 +804,15 @@ def cylinder(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
     [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/turing.py)    
     '''
 
-    if vu.isSequence(pos[0]):  # assume user is passing pos=[base, top]
+    if utils.isSequence(pos[0]):  # assume user is passing pos=[base, top]
         base = np.array(pos[0])
         top = np.array(pos[1])
         pos = (base+top)/2
         height = np.linalg.norm(top-base)
         axis = top-base
-        axis = vu.norm(axis)
+        axis = utils.norm(axis)
     else:
-        axis = vu.norm(axis)
+        axis = utils.norm(axis)
         base = pos - axis*height/2
         top = pos + axis*height/2
 
@@ -856,7 +858,7 @@ def cone(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
                          legend=legend, texture=texture)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
-    v = vu.norm(axis)*height/2
+    v = utils.norm(axis)*height/2
     actor.base = pos - v
     actor.top = pos + v
     return actor
@@ -1006,7 +1008,7 @@ def text(txt, pos=(0, 0, 0), normal=(0, 0, 1), s=1, depth=0.1,
         cornerAnnotation = vtk.vtkCornerAnnotation()
         cornerAnnotation.SetNonlinearFontScaleFactor(s/3)
         cornerAnnotation.SetText(pos-1, txt)
-        cornerAnnotation.GetTextProperty().SetColor(vc.getColor(c))
+        cornerAnnotation.GetTextProperty().SetColor(colors.getColor(c))
         return cornerAnnotation
 
     tt = vtk.vtkVectorText()
@@ -1028,10 +1030,10 @@ def text(txt, pos=(0, 0, 0), normal=(0, 0, 1), s=1, depth=0.1,
     else:
         ttactor = Actor()#vtk.vtkActor()
     ttactor.SetMapper(ttmapper)
-    ttactor.GetProperty().SetColor(vc.getColor(c))
+    ttactor.GetProperty().SetColor(colors.getColor(c))
 
     # check if color string contains a float, in this case ignore alpha
-    al = vc.getAlpha(c)
+    al = colors.getAlpha(c)
     if al:
         alpha = al
     ttactor.GetProperty().SetOpacity(alpha)
@@ -1047,7 +1049,7 @@ def text(txt, pos=(0, 0, 0), normal=(0, 0, 1), s=1, depth=0.1,
     ttactor.SetPosition(pos)
     if bc:  # defines a specific color for the backface
         backProp = vtk.vtkProperty()
-        backProp.SetDiffuseColor(vc.getColor(bc))
+        backProp.SetDiffuseColor(colors.getColor(bc))
         backProp.SetOpacity(alpha)
         ttactor.SetBackfaceProperty(backProp)
     if texture:

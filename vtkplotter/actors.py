@@ -34,6 +34,7 @@ class Prop(): # adds to Actor, Assembly, vtkImageData and vtkVolume
         self.trail = None
         self.trailPoints = []
         self.trailSegmentSize = 0
+        self.trailOffset = None
         self.top = None
         self.base = None
         self._time = 0
@@ -47,6 +48,8 @@ class Prop(): # adds to Actor, Assembly, vtkImageData and vtkVolume
             self.SetPosition(p_x)
         else:
             self.SetPosition(p_x, y, z)
+        if self.trail:
+            self.updateTrail()
         return self    # return itself to concatenate methods
 
     def addPos(self, dp_x=None, dy=None, dz=None):
@@ -56,6 +59,8 @@ class Prop(): # adds to Actor, Assembly, vtkImageData and vtkVolume
             self.SetPosition(p + dp_x)
         else:
             self.SetPosition(p + [dp_x, dy, dz])
+        if self.trail:
+            self.updateTrail()
         return self
 
     def x(self, position=None):              
@@ -64,6 +69,8 @@ class Prop(): # adds to Actor, Assembly, vtkImageData and vtkVolume
         if position is None:
             return p[0]
         self.SetPosition(position, p[1], p[2])
+        if self.trail:
+            self.updateTrail()
         return self
 
     def y(self, position=None):              
@@ -72,6 +79,8 @@ class Prop(): # adds to Actor, Assembly, vtkImageData and vtkVolume
         if position is None:
             return p[1]
         self.SetPosition(p[0], position, p[2])
+        if self.trail:
+            self.updateTrail()
         return self
 
     def z(self, position=None):               
@@ -80,6 +89,8 @@ class Prop(): # adds to Actor, Assembly, vtkImageData and vtkVolume
         if position is None:
             return p[2]
         self.SetPosition(p[0], p[1], position)
+        if self.trail:
+            self.updateTrail()
         return self
 
     def rotate(self, angle, axis=[1, 0, 0], axis_point=[0, 0, 0], rad=False):
@@ -103,24 +114,32 @@ class Prop(): # adds to Actor, Assembly, vtkImageData and vtkVolume
         # this vtk method only rotates in the origin of the actor:
         self.RotateWXYZ(angle, axis[0], axis[1], axis[2])
         self.SetPosition(rv)
+        if self.trail:
+            self.updateTrail()
         return self
 
     def rotateX(self, angle, axis_point=[0, 0, 0], rad=False):
         '''Rotate around x-axis. If angle is in radians set rad=True.'''
         if rad: angle *= 57.29578
         self.RotateX(angle)
+        if self.trail:
+            self.updateTrail()
         return self
 
     def rotateY(self, angle, axis_point=[0, 0, 0], rad=False):
         '''Rotate around y-axis. If angle is in radians set rad=True.'''
         if rad: angle *= 57.29578
         self.RotateY(angle)
+        if self.trail:
+            self.updateTrail()
         return self
 
     def rotateZ(self, angle, axis_point=[0, 0, 0], rad=False):
         '''Rotate around z-axis. If angle is in radians set rad=True.'''
         if rad: angle *= 57.29578
         self.RotateZ(angle)
+        if self.trail:
+            self.updateTrail()
         return self
 
     def orientation(self, newaxis=None, rotation=0, rad=False):
@@ -147,6 +166,8 @@ class Prop(): # adds to Actor, Assembly, vtkImageData and vtkVolume
         T.RotateWXYZ(angle*57.29578, crossvec)
         T.Translate(pos)
         self.SetUserMatrix(T.GetMatrix())
+        if self.trail:
+            self.updateTrail()
         return self
 
     def scale(self, s=None):
@@ -165,8 +186,66 @@ class Prop(): # adds to Actor, Assembly, vtkImageData and vtkVolume
         return self  # return itself to concatenate methods
 
     
+    def addTrail(self, offset=None, maxlength=None, n=25, c=None, alpha=None, lw=1):
+        '''
+        Add a trailing line to actor.
+
+        Options:
+
+            maxlength, length of trailing line in absolute units
+
+            n, number of segments, controls precision
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/trail.py)    
+        '''
+        if maxlength is None:
+            maxlength = self.diagonalSize()*20
+            if maxlength == 0: maxlength=1
+
+        if self.trail is None:
+            pos = self.GetPosition()
+            self.trailPoints = [None]*n
+            self.trailSegmentSize = maxlength/n
+            self.trailOffset = offset
+
+            ppoints = vtk.vtkPoints()  # Generate the polyline
+            poly = vtk.vtkPolyData()
+            ppoints.SetData(numpy_to_vtk([pos]*n))  
+            poly.SetPoints(ppoints)
+            lines = vtk.vtkCellArray()
+            lines.InsertNextCell(n)
+            for i in range(n):
+                lines.InsertCellPoint(i)
+            poly.SetPoints(ppoints)
+            poly.SetLines(lines)
+            mapper = vtk.vtkPolyDataMapper()
+            
+            if c is None:
+                if hasattr(self, 'GetProperty'):
+                    col = self.GetProperty().GetColor()
+                else:
+                    col = (0.1,0.1,0.1)
+            else:
+                col = colors.getColor(c)
+            al = colors.getAlpha(c)
+            if al:
+                alpha = al
+            if alpha is None:
+                alpha = 1
+                if hasattr(self, 'GetProperty'):
+                    alpha = self.GetProperty().GetOpacity()
+            mapper.SetInputData(poly)
+            tline = Actor()
+            tline.SetMapper(mapper)
+            tline.GetProperty().SetColor(col)
+            tline.GetProperty().SetOpacity(alpha)
+            tline.GetProperty().SetLineWidth(lw)
+            self.trail = tline  # holds the vtkActor
+            return self
+
     def updateTrail(self):
         currentpos = np.array(self.GetPosition())
+        if self.trailOffset: currentpos += self.trailOffset
         lastpos = self.trailPoints[-1]
         if lastpos is None:  # reset list
             self.trailPoints = [currentpos]*len(self.trailPoints)
@@ -177,7 +256,7 @@ class Prop(): # adds to Actor, Assembly, vtkImageData and vtkVolume
         self.trailPoints.append(currentpos)  # cycle
         self.trailPoints.pop(0)
 
-        poly = self.trail.polydata()
+        poly = self.trail.GetMapper().GetInput()
         poly.GetPoints().SetData(numpy_to_vtk(self.trailPoints))  
         return self
 
@@ -217,21 +296,18 @@ class Actor(vtk.vtkActor, Prop):
         self._poly = None # cache vtkPolyData for speed
 
         if poly:
-            clp = vtk.vtkCleanPolyData()
-            clp.SetTolerance(0.0)
-            clp.SetInputData(poly)
-            clp.Update()
             pdnorm = vtk.vtkPolyDataNormals()
-            pdnorm.SetInputData(clp.GetOutput())
+            pdnorm.SetInputData(poly)
             pdnorm.ComputePointNormalsOn()
             pdnorm.ComputeCellNormalsOn()
             pdnorm.FlipNormalsOff()
             pdnorm.ConsistencyOn()
             pdnorm.Update()
+            self._poly = pdnorm.GetOutput()
         
             mapper = vtk.vtkPolyDataMapper()
-            mapper.SetInputData(pdnorm.GetOutput())
-        
+            mapper.SetInputData(self._poly)
+
             # check if color string contains a float, in this case ignore alpha
             if alpha is None:
                 alpha = 0.5
@@ -525,6 +601,8 @@ class Actor(vtk.vtkActor, Prop):
         T.Translate(q1)
     
         self.SetUserMatrix(T.GetMatrix())
+        if self.trail:
+            self.updateTrail()
         return self
 
 
@@ -612,7 +690,7 @@ class Actor(vtk.vtkActor, Prop):
             colors.printc("Warning: polydata is not a closed surface", c=5)
     
         vpoints = vtk.vtkPoints()
-        vpoints.SetData(numpy_to_vtk(points))
+        vpoints.SetData(numpy_to_vtk(points, deep=True))
         pointsPolydata = vtk.vtkPolyData()
         pointsPolydata.SetPoints(vpoints)
         sep = vtk.vtkSelectEnclosedPoints()
@@ -827,15 +905,14 @@ class Actor(vtk.vtkActor, Prop):
     
     def pointScalars(self, scalars, name):
         """
-        Set point scalars to the polydata.
+        Set point scalars to the actor's polydata.
     
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
         """
         poly = self.polydata(False)
-        scalars = np.array(scalars) - np.min(scalars)
-        scalars = scalars/np.max(scalars)
         if len(scalars) != poly.GetNumberOfPoints():
-            colors.printc('Number of scalars != nr. of points', c=1)
+            colors.printc('pointScalars Error: Number of scalars != nr. of points', 
+                          len(scalars), poly.GetNumberOfPoints(), c=1)
             exit()
         arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
         arr.SetName(name)
@@ -846,14 +923,14 @@ class Actor(vtk.vtkActor, Prop):
     
     def pointColors(self, scalars, alpha=1, cmap='jet'):
         """
-        Set individual point colors by setting an array of scalars.
+        Set individual point colors by setting an array of scalars and a color map.
         Scalars can be a string name.
         Alpha can be a list of values of the same length as scalars.
     
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_alphas.py)    
         """
-        poly = self.polydata(False)
+        poly = self.polydata(True)
     
         if isinstance(scalars, str):
             scalars = vtk_to_numpy(poly.GetPointData().GetArray(scalars))
@@ -861,12 +938,14 @@ class Actor(vtk.vtkActor, Prop):
         n = len(scalars)
         useAlpha = False
         if n != poly.GetNumberOfPoints():
-            colors.printc('Number of scalars != nr. of points', c=1)
+            colors.printc('pointColors Error: nr. of scalars != nr. of points', 
+                          n, poly.GetNumberOfPoints(), c=1)
         if utils.isSequence(alpha):
             useAlpha = True
             nscals = len(scalars)
             if len(alpha) != n:
-                colors.printc('Number of scalars != nr. of alpha values', c=1)
+                colors.printc('pointColors Error: nr. of scalars != nr. of alpha values', 
+                              n, len(alpha), c=1)
     
         vmin, vmax = np.min(scalars), np.max(scalars)
         lut = vtk.vtkLookupTable()
@@ -900,8 +979,6 @@ class Actor(vtk.vtkActor, Prop):
         if isinstance(scalars, str):
             scalars = vtk_to_numpy(poly.GetPointData().GetArray(scalars))
     
-        scalars = np.array(scalars) - np.min(scalars)
-        scalars = scalars/np.max(scalars)
         if len(scalars) != poly.GetNumberOfCells():
             colors.printc('Number of scalars != nr. of cells', c=1)
             exit()
@@ -1094,7 +1171,7 @@ class Actor(vtk.vtkActor, Prop):
         ns = np.random.randn(n, 3)*sigma*sz/100
         vpts = vtk.vtkPoints()
         vpts.SetNumberOfPoints(n)
-        vpts.SetData(numpy_to_vtk(pts+ns))
+        vpts.SetData(numpy_to_vtk(pts+ns, deep=True))
         self.GetMapper().GetInput().SetPoints(vpts)
         self.GetMapper().GetInput().GetPoints().Modified()
         return self
@@ -1123,7 +1200,7 @@ class Actor(vtk.vtkActor, Prop):
         Actor transformation is reset to its mesh position/orientation.
         '''
         vpts = vtk.vtkPoints()
-        vpts.SetData(numpy_to_vtk(pts))
+        vpts.SetData(numpy_to_vtk(pts, deep=True))
         self.GetMapper().GetInput().SetPoints(vpts)
         # reset actor to identity matrix position/rotation:
         self.PokeMatrix(vtk.vtkMatrix4x4())  
@@ -1276,7 +1353,7 @@ class ImageActor(vtk.vtkImageActor, Prop):
 ##########################################################################
 class Volume(vtk.vtkVolume, Prop):
 
-    def __init__(self, img, c='blue', alphas=[0, 0.4, 0.9, 1]):
+    def __init__(self, img, c='blue', alphas=[0.0, 0.4, 0.9, 1]):
         '''Derived class of vtkVolume.
         
         c can be a list to set colors along the scalar range
@@ -1289,7 +1366,7 @@ class Volume(vtk.vtkVolume, Prop):
         volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
         volumeMapper.SetBlendModeToMaximumIntensity()
         volumeMapper.SetInputData(img)
-        colors.printc('scalar range is ', img.GetScalarRange(), c='b', bold=0)
+        colors.printc('scalar range is', np.round(img.GetScalarRange(),4), c='b', bold=0)
         smin, smax = img.GetScalarRange()
         if smax > 1e10:
             print("Warning, high scalar range detected:", smax)

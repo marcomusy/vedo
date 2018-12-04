@@ -55,7 +55,7 @@ vp.points(pts, legend='random points')                 # create the vtkActor
 
 for i in range(10):
     vp.spline(pts, smooth=i/10, degree=2, c=i, legend='smoothing '+str(i/10))
-vp.show()
+vp.show(viewup='z')
 
 
 #########################################################################################
@@ -78,7 +78,7 @@ xycoords = [(math.exp(i/10), math.sin(i/5)) for i in range(40)]
 vp.xyplot( xycoords )
 #
 vp.fxy( 'sin(3*x)*log(x-y)/3' )
-vp.show()
+vp.show(viewup='z')
 
 
 #########################################################################################

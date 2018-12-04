@@ -18,7 +18,7 @@ dist.SetBounds(-2,2, -2,2, -2,2)
 dist.SetDimensions(80, 80, 80)
 dist.Update()
 
-#vp.write(dist.GetOutput(), 'stack.tif')
+# vp.write(dist.GetOutput(), 'stack.tif')
 
 fe = vtk.vtkExtractSurface()
 fe.SetInputConnection(dist.GetOutputPort())
