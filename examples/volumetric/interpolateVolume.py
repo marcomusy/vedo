@@ -3,6 +3,7 @@
 # This is obtained by using RBF (radial basis function).
 # @Author: Giovanni Dalmasso
 #
+from __future__ import print_function
 import numpy as np
 import vtk
 from vtkplotter import Plotter, ProgressBar, vector, mag2

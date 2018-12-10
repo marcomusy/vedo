@@ -26,7 +26,7 @@ def mergeActors(actors, c=None, alpha=1,
 
 
 ################################################# classes
-class Prop(): # adds to Actor, Assembly, vtkImageData and vtkVolume
+class Prop(object): # adds to Actor, Assembly, vtkImageData and vtkVolume
     
     def __init__(self):
 
@@ -37,6 +37,7 @@ class Prop(): # adds to Actor, Assembly, vtkImageData and vtkVolume
         self.trailOffset = None
         self.top = None
         self.base = None
+        self.info = dict()
         self._time = 0
 
 
@@ -285,14 +286,13 @@ class Actor(vtk.vtkActor, Prop):
     
             texture, jpg file name or surface texture name
         '''
-        super(Actor, self).__init__()
+        vtk.vtkActor.__init__(self)
+        Prop.__init__(self)
 
         self.legend = legend
         self.point_locator = None
         self.cell_locator = None
         self.line_locator = None
-        self.info = dict()
-        self.trailPoints = [] # needed by python2
         self._poly = None # cache vtkPolyData for speed
 
         if poly:
@@ -331,15 +331,15 @@ class Actor(vtk.vtkActor, Prop):
                 prp.SetColor(c)
                 prp.SetOpacity(alpha)
         
-                prp.SetSpecular(0.1)
-                prp.SetSpecularColor(c)
-                prp.SetSpecularPower(1)
+#                prp.SetSpecular(1)
+#                prp.SetSpecularColor(c)
+#                prp.SetSpecularPower(2)
         
                 prp.SetAmbient(0.1)
                 prp.SetAmbientColor(c)
         
                 prp.SetDiffuse(1)
-                prp.SetDiffuseColor(c)
+#                prp.SetDiffuseColor(c)
 
             if wire:
                 prp.SetRepresentationToWireframe()
@@ -1292,12 +1292,11 @@ class Assembly(vtk.vtkAssembly, Prop):
         [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
         [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py)    
         '''
-        super(Assembly, self).__init__()
+        vtk.vtkAssembly.__init__(self)
+        Prop.__init__(self)
 
         self.actors = actors
         self.legend = legend
-        self.info = dict()
-        self.trailPoints = [] # needed by python2
 
         if len(actors) and hasattr(actors[0], 'base'):
             self.base = actors[0].base
@@ -1338,8 +1337,8 @@ class ImageActor(vtk.vtkImageActor, Prop):
         '''
         Derived class of vtkImageActor.
         '''
-        super(ImageActor, self).__init__()
-        self.info = dict()
+        vtk.vtkImageActor.__init__(self)
+        Prop.__init__(self)
 
     def alpha(self, a=None):
         '''Set/get actor's transparency.'''
@@ -1360,8 +1359,8 @@ class Volume(vtk.vtkVolume, Prop):
         
         alphas defines the opacity transfer function in the scalar range
         '''
-        super(Volume, self).__init__()
-        self.info = dict()
+        vtk.vtkVolume.__init__(self)
+        Prop.__init__(self)
 
         volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
         volumeMapper.SetBlendModeToMaximumIntensity()

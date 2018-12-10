@@ -64,10 +64,11 @@ if args.wireframe: wire = True
 if args.scrolling_mode and args.sequence_mode:
     args.scrolling_mode = False
     
-    
+_alphaslider1, _alphaslider2 = 0.4, 0.9 #defaults
+
 ########################################################################
 def _showVoxelImage(): 
-    _value_alphaslider1, _value_alphaslider2 = 0.4, 0.9 #defaults
+#    global _alphaslider1, _alphaslider2
         
     vc.printc('GPU Ray-casting Mode:', c='b', invert=1)
     vp.render()
@@ -80,18 +81,16 @@ def _showVoxelImage():
                 
         if   '.tif' in filename.lower(): 
             reader = vtk.vtkTIFFReader() 
-            
         elif '.slc' in filename.lower(): 
             reader = vtk.vtkSLCReader() 
             if not reader.CanReadFile(filename):
                 vc.printc('Bad SLC file:', filename, c=1)
                 continue
-            
         elif '.vti' in filename.lower(): 
             reader = vtk.vtkXMLImageDataReader() 
 #            reader = vtk.vtkImageReader()
         else:
-            vc.printc('Use -g option only with SLC or TIFF files.', c=1)
+            vc.printc('Use -g option only with VTI, SLC or TIFF files.', c=1)
             continue
         reader.SetFileName(filename) 
         reader.Update() 
@@ -103,12 +102,14 @@ def _showVoxelImage():
         if args.y_spacing:
             ispa = img.GetSpacing()
             img.SetSpacing(ispa[0], ispa[1]*args.y_spacing, ispa[2])
-    
+        
         volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
-        volumeMapper.SetBlendModeToMaximumIntensity()
+#        volumeMapper.SetBlendModeToComposite()
+        volumeMapper.SetBlendModeToMaximumIntensity ()
+        volumeMapper.UseJitteringOn()
         volumeMapper.SetInputConnection(reader.GetOutputPort())
         vc.printc('scalar range is ', img.GetScalarRange(), c='b', bold=0)
-        smin,smax = reader.GetOutput().GetScalarRange()
+        smin,smax = img.GetScalarRange()
         if smax>1e10: 
             print("Warning, high scalar range detected:", smax)
             smax = abs(10*smin)+.1
@@ -122,7 +123,7 @@ def _showVoxelImage():
             r,g,b = vc.getColor(args.color)
         colorTransferFunction = vtk.vtkColorTransferFunction()
         colorTransferFunction.AddRGBPoint(smin, 1.0, 1.0, 1.0)
-        colorTransferFunction.AddRGBPoint((smax+smin)/3, r/2, g/2, b/2)
+        colorTransferFunction.AddRGBPoint((smax+smin)/2, r/2, g/2, b/2)
         colorTransferFunction.AddRGBPoint(smax, 0.0, 0.0, 0.0)
         
         x1alpha = smin+(smax-smin)*0.33
@@ -130,24 +131,30 @@ def _showVoxelImage():
         # Create transfer mapping scalar value to opacity
         opacityTransferFunction = vtk.vtkPiecewiseFunction()
         opacityTransferFunction.AddPoint(smin, 0.0)
-        opacityTransferFunction.AddPoint(x1alpha, _value_alphaslider1)
-        opacityTransferFunction.AddPoint(x2alpha, _value_alphaslider2)
+        opacityTransferFunction.AddPoint(smin+(smax-smin)*0.1, 0.0)
+        opacityTransferFunction.AddPoint(x1alpha, _alphaslider1)
+        opacityTransferFunction.AddPoint(x2alpha, _alphaslider2)
         opacityTransferFunction.AddPoint(smax, 1.0)
-      
+     
         # The property describes how the data will look
         volumeProperty = vtk.vtkVolumeProperty()
         volumeProperty.SetColor(colorTransferFunction)
         volumeProperty.SetScalarOpacity(opacityTransferFunction)
         volumeProperty.SetInterpolationTypeToLinear()
+#        volumeProperty.ShadeOn()
+#        volumeProperty.SetAmbient(0.1)
+#        volumeProperty.SetDiffuse(1)
+#        volumeProperty.SetSpecular(1)
+#        volumeProperty.SetSpecularPower(2.0)
         
         # volume holds the mapper and the property and can be used to position/orient it
         volume = vtk.vtkVolume()
         volume.SetMapper(volumeMapper)
         volume.SetProperty(volumeProperty)
-    
+
         vp.renderer.AddVolume(volume) 
     
-    ############################## brightness slider
+    ############################## color intensity slider
     def slider1(widget, event):
         value = widget.GetRepresentation().GetValue() 
         colorTransferFunction.RemoveAllPoints ()
@@ -155,28 +162,35 @@ def _showVoxelImage():
         colorTransferFunction.AddRGBPoint(value, r/2, g/2, b/2)
         colorTransferFunction.AddRGBPoint(smax, 0.0, 0.0, 0.0) #black
     w1 = vp.addSlider(slider1, smin, smax, value=(smin+smax)/3.0, 
-                      pos=4, title='color intensity')
+                      pos=4, title='color brightness')
     
     ############################## alpha sliders    
     def sliderA1(widget, event):
-        _value_alphaslider1 = widget.GetRepresentation().GetValue() 
+        global _alphaslider1
+        _alphaslider1 = widget.GetRepresentation().GetValue() 
         opacityTransferFunction.RemoveAllPoints()
         opacityTransferFunction.AddPoint(smin, 0.0)
-        opacityTransferFunction.AddPoint(x1alpha, _value_alphaslider1)
-        opacityTransferFunction.AddPoint(x2alpha, _value_alphaslider2)
+        opacityTransferFunction.AddPoint(smin+(smax-smin)*0.1, 0.0)
+        opacityTransferFunction.AddPoint(x1alpha, _alphaslider1)
+        opacityTransferFunction.AddPoint(x2alpha, _alphaslider2)
         opacityTransferFunction.AddPoint(smax, 1.0)
-    w2 = vp.addSlider(sliderA1, 0,1, value=_value_alphaslider1,
+#        print(_alphaslider1,_alphaslider2)
+#    _alphaslider1 /= smax
+    w2 = vp.addSlider(sliderA1, 0,1, value=_alphaslider1,
                       pos=[(.93 ,.1),(.93, .44)] , title='', showValue=0)
     
     def sliderA2(widget, event):
-        _value_alphaslider2 = widget.GetRepresentation().GetValue() 
+        global _alphaslider2
+        _alphaslider2 = widget.GetRepresentation().GetValue() 
         opacityTransferFunction.RemoveAllPoints()
         opacityTransferFunction.AddPoint(smin, 0.0)
-        opacityTransferFunction.AddPoint(x1alpha, _value_alphaslider1)
-        opacityTransferFunction.AddPoint(x2alpha, _value_alphaslider2)
+        opacityTransferFunction.AddPoint(smin+(smax-smin)*0.1, 0.0)
+        opacityTransferFunction.AddPoint(x1alpha, _alphaslider1)
+        opacityTransferFunction.AddPoint(x2alpha, _alphaslider2)
         opacityTransferFunction.AddPoint(smax, 1.0)
-    
-    w3 = vp.addSlider(sliderA2, 0,1, value=_value_alphaslider2, 
+#        print(_alphaslider1,_alphaslider2)
+#    _alphaslider2 /= smax
+    w3 = vp.addSlider(sliderA2, 0,1, value=_alphaslider2, 
                       pos=[(.96 ,.1),(.96, .44)], title='alpha thresholds', showValue=0)
         
     def CheckAbort(obj, event):
@@ -190,6 +204,7 @@ def _showVoxelImage():
     w1.SetEnabled(0)
     w2.SetEnabled(0)
     w3.SetEnabled(0)
+    
     
 ##########################################################
 # special case of SLC/TIFF volumes with -g option

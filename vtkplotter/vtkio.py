@@ -636,6 +636,7 @@ class ProgressBar:
         self.clock0 = 0
         self.ETA = ETA
         self.clock0 = time.time()
+        self._remt = 1e10
         self._update(0)
         self._counts = 0
         self._oldbar = ""
@@ -654,18 +655,18 @@ class ProgressBar:
             eraser = ''.join(eraser)
             if self.ETA:
                 vel = self._counts/(time.time() - self.clock0)
-                remt = (self.stop-self._counts)/vel
-                if remt > 60:
-                    mins = int(remt/60)
-                    secs = remt - 60*mins
+                self._remt = (self.stop-self._counts)/vel
+                if self._remt > 60:
+                    mins = int(self._remt/60)
+                    secs = self._remt - 60*mins
                     mins = str(mins)+'m'
                     secs = str(int(secs+0.5))+'s '
                 else:
                     mins = ''
-                    secs = str(int(remt+0.5))+'s '
+                    secs = str(int(self._remt+0.5))+'s '
                 vel = str(round(vel, 1))
                 eta = 'ETA: '+mins+secs+'('+vel+' it/s) '
-                if remt < 1:
+                if self._remt < 1:
                     dt = time.time() - self.clock0
                     if dt > 60:
                         mins = int(dt/60)
@@ -711,7 +712,7 @@ class ProgressBar:
             self.bar = "[%s]" % (self.char*af)
         else:
             self.bar = "[%s>%s]" % (self.char*(nh-1), ' '*(af-nh))
-        if self.percent < 100:
+        if self.percent < 100:# and self._remt > 1:
             ps = ' '+str(self.percent) + "%"
         else: 
             ps = ''

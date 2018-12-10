@@ -1388,7 +1388,9 @@ class Plotter:
               
               7 = draw a simple ruler at the bottom of the window
               
-              8 = default vtkCubeAxesActor object
+              8 = draw vtkCubeAxesActor object
+              
+              9 = draw the bounding box outline
         '''
         if axtype is not None:
             self.axes = axtype # overrride
@@ -1667,8 +1669,29 @@ class Plotter:
             ca.PickableOff()
             self.renderer.AddActor(ca)
 
+        elif self.axes == 9:
+            bns = []
+            for a in self.actors:
+                b = a.GetBounds()
+                if b is not None: 
+                    bns.append(b)
+            if len(bns) == 0: return
+            max_bns = numpy.max(bns, axis=0)
+            min_bns = numpy.min(bns, axis=0)
+            src = vtk.vtkCubeSource()
+            src.SetXLength(max_bns[1]-min_bns[0])
+            src.SetYLength(max_bns[3]-min_bns[2])
+            src.SetZLength(max_bns[5]-min_bns[4])
+            src.Update()
+            ca = Actor(src.GetOutput(), c='k', alpha=0.5, wire=1)
+            ca.pos((min_bns[0]+max_bns[1])/2, 
+                   (max_bns[3]+min_bns[2])/2, 
+                   (max_bns[5]+min_bns[4])/2)
+            ca.PickableOff()
+            self.renderer.AddActor(ca)
+        
         else:
-            colors.printc('Keyword axes must be in range [0-8].', c=1)
+            colors.printc('Keyword axes must be in range [0-9].', c=1)
             colors.printc('''Available axes types:
       0 = no axes, 
       1 = draw three gray grid walls 
@@ -1678,7 +1701,8 @@ class Plotter:
       5 = show a cube at bottom left
       6 = mark the corners of the bounding box
       7 = draw a simple ruler at the bottom of the window
-      8 = show the vtkCubeAxesActor object''', c=1, bold=0)
+      8 = show the vtkCubeAxesActor object
+      9 = show the bounding box outline''', c=1, bold=0)
         return
 
 
@@ -1773,7 +1797,9 @@ class Plotter:
                   
                   7 = draw a simple ruler at the bottom of the window
                   
-                  8 = default vtkCubeAxesActor object, 
+                  8 = show the vtkCubeAxesActor object, 
+
+                  9 = show the bounding box outline, 
 
             c    = surface color, in rgb, hex or name formats
 
