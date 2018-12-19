@@ -122,32 +122,33 @@ class Plotter:
             verbose = False
 
         self.verbose = verbose
-        self.actors = []    # list of actors to be shown
+        self.actors = []      # list of actors to be shown
         self.clickedActor = None  # holds the actor that has been clicked
-        self.clickedRenderer = 0     # clicked renderer number
+        self.clickedRenderer = 0  # clicked renderer number
         self.renderer = None  # current renderer
-        self.renderers = []    # list of renderers
+        self.renderers = []   # list of renderers
         self.shape = shape
         self.pos = pos
         self.size = [size[1], size[0]]  # size of the rendering window
         self.interactive = interactive  # allows to interact with renderer
         self.axes = axes        # show axes type nr.
+        self.title = title      # window title
         self.xtitle = 'x'       # x axis label and units
         self.ytitle = 'y'       # y axis label and units
         self.ztitle = 'z'       # z axis label and units
-        self.camera = None  # current vtkCamera
+        self.camera = None        # current vtkCamera
         self.sharecam = sharecam  # share the same camera if multiple renderers
         self.infinity = infinity  # ParallelProjection On or Off
-        self.flat = True  # sets interpolation style to 'flat'
-        self.phong = False  # sets interpolation style to 'phong'
-        self.gouraud = False  # sets interpolation style to 'gouraud'
+        self.flat = True       # sets interpolation style to 'flat'
+        self.phong = False     # sets interpolation style to 'phong'
+        self.gouraud = False   # sets interpolation style to 'gouraud'
         self.bculling = False  # back face culling
         self.fculling = False  # front face culling
-        self.legend = []    # list of legend entries for actors
+        self.legend = []       # list of legend entries for actors
         self.legendSize = 0.15  # size of legend
-        self.legendBG = (.96, .96, .9)  # legend background color
-        self.legendPos = 2     # 1=topright, 2=top-right, 3=bottom-left
-        self.picked3d = None  # 3d coords of a clicked point on an actor
+        self.legendBack = (.96, .96, .9)  # legend background color
+        self.legendPos = 2      # 1=topright, 2=top-right, 3=bottom-left
+        self.picked3d = None    # 3d coords of a clicked point on an actor
         self.backgrcol = bg
         self.offscreen = offscreen
 
@@ -285,7 +286,7 @@ class Plotter:
             vsty = vtk.vtkInteractorStyleTrackballCamera()
             self.interactor.SetInteractorStyle(vsty)
 
-    # LOADER
+    #################################################### LOADER
     def load(self, inputobj, c='gold', alpha=1,
              wire=False, bc=None, legend=True, texture=None,
              smoothing=None, threshold=None, connectivity=False):
@@ -331,12 +332,12 @@ class Plotter:
             flist = sorted(glob.glob(inputobj))
         for fod in flist:
             if os.path.isfile(fod):
-                a = vtkio.loadFile(fod, c, alpha, wire, bc, legend, texture,
-                                   smoothing, threshold, connectivity)
+                a = vtkio._loadFile(fod, c, alpha, wire, bc, legend, texture,
+                                    smoothing, threshold, connectivity)
                 acts.append(a)
             elif os.path.isdir(fod):
-                acts = vtkio.loadDir(fod, c, alpha, wire, bc, legend, texture,
-                                     smoothing, threshold, connectivity)
+                acts = vtkio._loadDir(fod, c, alpha, wire, bc, legend, texture,
+                                      smoothing, threshold, connectivity)
         if not len(acts):
             colors.printc('Error in load(): cannot find', inputobj, c=1)
             return None
@@ -1121,8 +1122,6 @@ class Plotter:
             if numpy.sum(colors.getColor(self.backgrcol)) > 1.5:
                 c = (0.1, 0.1, 0.1)
 
-#        if numpy.sum(colors.getColor(self.backgrcol)) < 3 and c == 'k':
-#            c = 'w'
         c = colors.getColor(c)
 
         sliderRep = vtk.vtkSliderRepresentation2D()
@@ -1182,7 +1181,7 @@ class Plotter:
             sliderRep.GetLabelProperty().SetBold(0)
             sliderRep.GetLabelProperty().SetOpacity(0.6)
             sliderRep.GetLabelProperty().SetColor(c)
-            if pos > 10:
+            if isinstance(pos, int) and pos > 10:
                 sliderRep.GetLabelProperty().SetOrientation(90)
         else:
             sliderRep.ShowSliderLabelOff()
@@ -1200,7 +1199,7 @@ class Plotter:
             sliderRep.GetTitleProperty().SetOpacity(.6)
             sliderRep.GetTitleProperty().SetBold(0)
             if not utils.isSequence(pos):
-                if pos > 10:
+                if isinstance(pos, int) and pos > 10:
                     sliderRep.GetTitleProperty().SetOrientation(90)
             else:
                 if abs(pos[0][0]-pos[1][0]) < 0.1:
@@ -1757,7 +1756,7 @@ class Plotter:
         elif pos == 4:
             vtklegend.GetPositionCoordinate().SetValue(sx,  0)
         vtklegend.UseBackgroundOn()
-        vtklegend.SetBackgroundColor(self.legendBG)
+        vtklegend.SetBackgroundColor(self.legendBack)
         vtklegend.SetBackgroundOpacity(0.6)
         vtklegend.LockBorderOn()
         self.renderer.AddActor(vtklegend)

@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='8.7.3',     # change also in vtkplotter/__init__.py
+    version='8.7.4',     # change also in vtkplotter/__init__.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=['vtk', 'numpy'],
@@ -33,6 +33,7 @@ setup(
 # cd examples
 # ./run_all.sh
 # vtkplotter -g -c blue examples/data/embryo.slc
+# vtkplotter            examples/data/embryo.tif
 # vtkplotter --slicer   examples/data/embryo.slc
 
 # # check version number here and in vtkplotter/__init__.py

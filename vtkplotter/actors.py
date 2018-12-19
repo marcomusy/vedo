@@ -267,7 +267,7 @@ class Prop(object): # adds to Actor, Assembly, vtkImageData and vtkVolume
 class Actor(vtk.vtkActor, Prop):
 
     def __init__(self, poly=None, c='gold', alpha=0.5,
-              wire=False, bc=None, legend=None, texture=None):
+                 wire=False, bc=None, legend=None, texture=None):
         '''
         Build an instance of object Actor derived from vtkActor.
         A vtkPolyData is normally passed as input.
@@ -513,6 +513,8 @@ class Actor(vtk.vtkActor, Prop):
     
     def mirror(self, axis='x'):
         '''Mirror the actor polydata along one of the cartesian axes.
+        
+        if axes='n', flip normals only.
     
         [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mirror.py)    
         '''
@@ -528,16 +530,19 @@ class Actor(vtk.vtkActor, Prop):
             sy = -1
         elif axis.lower() == 'z':
             sz = -1
+        elif axis.lower() == 'n':
+            pass
         else:
             colors.printc(
-                "Error in mirror(): mirror must be set to x, y or z.", c=1)
+                "Error in mirror(): mirror must be set to x, y, z or n.", c=1)
             exit()
-        for j in range(polyCopy.GetNumberOfPoints()):
-            p = [0, 0, 0]
-            polyCopy.GetPoint(j, p)
-            polyCopy.GetPoints().SetPoint(j, p[0]*sx-dx*(sx-1),
-                                             p[1]*sy-dy*(sy-1),
-                                             p[2]*sz-dz*(sz-1))
+        if axis != 'n':
+            for j in range(polyCopy.GetNumberOfPoints()):
+                p = [0, 0, 0]
+                polyCopy.GetPoint(j, p)
+                polyCopy.GetPoints().SetPoint(j, p[0]*sx-dx*(sx-1),
+                                                 p[1]*sy-dy*(sy-1),
+                                                 p[2]*sz-dz*(sz-1))
         rs = vtk.vtkReverseSense()
         rs.SetInputData(polyCopy)
         rs.ReverseNormalsOn()

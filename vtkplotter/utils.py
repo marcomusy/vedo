@@ -204,6 +204,7 @@ def grepTag(filename, tag, firstOccurrence=False):
     
 def printInfo(obj):
     '''Print information about a vtkActor or vtkAssembly.'''
+    print([obj])
 
     def printvtkactor(actor, tab=''):
         poly = actor.polydata()
@@ -265,6 +266,7 @@ def printInfo(obj):
         colors.printc(tab+'     diag. size: ', c='g', bold=1, end='')
         colors.printc(actor.diagonalSize(), c='g', bold=0)
 
+        #colors.printc('      clicked point:', obj.picked3d, bold=0, c='c')
         colors.printc(tab+'         bounds: ', c='g', bold=1, end='')
         bx1, bx2 = to_precision(bnds[0], 3), to_precision(bnds[1], 3)
         colors.printc('x=('+bx1+', '+bx2+')', c='g', bold=0, end='')
@@ -314,7 +316,6 @@ def printInfo(obj):
                         colors.printc('name='+name, 'type=', tt, c='g', bold=0)
 
     if not obj:
-        colors.printc('Click an object and press i', c='y')
         return
 
     elif isinstance(obj, vtk.vtkActor):
@@ -350,6 +351,61 @@ def printInfo(obj):
             act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
             if isinstance(act, vtk.vtkActor):
                 printvtkactor(act, tab='     ')
+    
+    elif hasattr(obj, 'interactor'): # dumps Plotter info
+        axtype = {0 : '(no axes)',                   
+                  1 : '(three gray grid walls)',
+                  2 : '(cartesian axes from origin',
+                  3 : '(positive range of cartesian axes from origin',
+                  4 : '(axes triad at bottom left)',
+                  5 : '(oriented cube at bottom left)',
+                  6 : '(mark the corners of the bounding box)',
+                  7 : '(ruler at the bottom of the window)',
+                  8 : '(the vtkCubeAxesActor object)', 
+                  9 : '(the bounding box outline)'}
+        bns, totpt = [], 0
+        for a in obj.actors:
+            b = a.GetBounds()
+            if b is not None: 
+                if isinstance(obj, vtk.vtkVolume): # dumps Volume info
+                    colors.printc('Volume', invert=1, dim=1, c='b')
+                    colors.printc('      scalar range:', 
+                                  np.round(obj.GetScalarRange(),4), c='b', bold=0)
+                    bnds = obj.GetBounds()  
+                    colors.printc('            bounds: ', c='g', bold=1, end='')
+                    bx1, bx2 = to_precision(bnds[0], 3), to_precision(bnds[1], 3)
+                    colors.printc('x=('+bx1+', '+bx2+')', c='g', bold=0, end='')
+                    by1, by2 = to_precision(bnds[2], 3), to_precision(bnds[3], 3)
+                    colors.printc(' y=('+by1+', '+by2+')', c='g', bold=0, end='')
+                    bz1, bz2 = to_precision(bnds[4], 3), to_precision(bnds[5], 3)
+                    colors.printc(' z=('+bz1+', '+bz2+')', c='g', bold=0)
+                elif isinstance(obj, vtk.vtkActor):
+                    totpt += a.GetMapper().GetInput().GetNumberOfPoints()
+                bns.append(b)
+        if len(bns) == 0: 
+            return
+        acts = obj.getActors()
+        colors.printc('_'*60, c='c', bold=0)
+        colors.printc('Plotter', invert=1, dim=1, c='c', end=' ')
+        otit = obj.title
+        if not otit:
+            otit = None
+        colors.printc('   title:', otit, bold=0, c='c')
+        colors.printc(' active renderer:', obj.renderers.index(obj.renderer), bold=0, c='c')
+        colors.printc('   nr. of actors:', len(acts), bold=0, c='c', end='')
+        colors.printc(' ('+str(totpt), 'vertices)', bold=0, c='c')
+        max_bns = np.max(bns, axis=0)
+        min_bns = np.min(bns, axis=0)
+        colors.printc('      max bounds: ', c='c', bold=0, end='')
+        bx1, bx2 = to_precision(min_bns[0], 3), to_precision(max_bns[1], 3)
+        colors.printc('x=('+bx1+', '+bx2+')', c='c', bold=0, end='')
+        by1, by2 = to_precision(min_bns[2], 3), to_precision(max_bns[3], 3)
+        colors.printc(' y=('+by1+', '+by2+')', c='c', bold=0, end='')
+        bz1, bz2 = to_precision(min_bns[4], 3), to_precision(max_bns[5], 3)
+        colors.printc(' z=('+bz1+', '+bz2+')', c='c', bold=0)
+        colors.printc('       axes type:', obj.axes, axtype[obj.axes], bold=0, c='c')
+        colors.printc(' click actor and press i for more info.', c='c')
+
     else:
         colors.printc('_'*60, c='g', bold=0)
         colors.printc(obj, c='g')

@@ -992,8 +992,8 @@ def text(txt, pos=(0, 0, 0), normal=(0, 0, 1), s=1, depth=0.1,
 
     Options:
 
-        pos = position in 3D space
-        if an integer is passed [1 -> 8], places text in one of the corners
+        pos = position in 3D space,
+              if an integer is passed [1 -> 8], places text in one of the 4 corners
 
         s = size of text 
 
@@ -1007,14 +1007,17 @@ def text(txt, pos=(0, 0, 0), normal=(0, 0, 1), s=1, depth=0.1,
     if isinstance(pos, int):
         cornerAnnotation = vtk.vtkCornerAnnotation()
         cornerAnnotation.SetNonlinearFontScaleFactor(s/3)
-        cornerAnnotation.SetText(pos-1, txt)
+        cornerAnnotation.SetText(pos-1, str(txt))
         cornerAnnotation.GetTextProperty().SetColor(colors.getColor(c))
         return cornerAnnotation
 
     tt = vtk.vtkVectorText()
-    tt.SetText(txt)
+    tt.SetText(str(txt))
     tt.Update()
     ttmapper = vtk.vtkPolyDataMapper()
+    if followcam:
+        depth = 0
+        normal = (0, 0, 1)
     if depth:
         extrude = vtk.vtkLinearExtrusionFilter()
         extrude.SetInputConnection(tt.GetOutputPort())
@@ -1024,11 +1027,11 @@ def text(txt, pos=(0, 0, 0), normal=(0, 0, 1), s=1, depth=0.1,
         ttmapper.SetInputConnection(extrude.GetOutputPort())
     else:
         ttmapper.SetInputConnection(tt.GetOutputPort())
-    if followcam:  # follow cam
+    if followcam:  
         ttactor = vtk.vtkFollower()
         ttactor.SetCamera(cam)
     else:
-        ttactor = Actor()#vtk.vtkActor()
+        ttactor = Actor()
     ttactor.SetMapper(ttmapper)
     ttactor.GetProperty().SetColor(colors.getColor(c))
 

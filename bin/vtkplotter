@@ -174,7 +174,6 @@ def _showVoxelImage():
         opacityTransferFunction.AddPoint(x1alpha, _alphaslider1)
         opacityTransferFunction.AddPoint(x2alpha, _alphaslider2)
         opacityTransferFunction.AddPoint(smax, 1.0)
-#        print(_alphaslider1,_alphaslider2)
 #    _alphaslider1 /= smax
     w2 = vp.addSlider(sliderA1, 0,1, value=_alphaslider1,
                       pos=[(.93 ,.1),(.93, .44)] , title='', showValue=0)
@@ -188,7 +187,6 @@ def _showVoxelImage():
         opacityTransferFunction.AddPoint(x1alpha, _alphaslider1)
         opacityTransferFunction.AddPoint(x2alpha, _alphaslider2)
         opacityTransferFunction.AddPoint(smax, 1.0)
-#        print(_alphaslider1,_alphaslider2)
 #    _alphaslider2 /= smax
     w3 = vp.addSlider(sliderA2, 0,1, value=_alphaslider2, 
                       pos=[(.96 ,.1),(.96, .44)], title='alpha thresholds', showValue=0)
@@ -239,7 +237,7 @@ elif args.slicer:
         reader = vtk.vtkXMLImageDataReader() 
         
     else:
-        vc.printc('Use --slicer option only with SLC or TIFF files.', c=1)
+        vc.printc('Use --slicer option only with voxel data files [slc,tif,vti].', c=1)
     reader.SetFileName(filename) 
     reader.Update() 
     img = reader.GetOutput()
@@ -293,6 +291,56 @@ elif args.slicer:
     iren.Start()
     exit()
  
+    
+########################################################################
+# normal mode for single VOXEL file with Isosurface Slider
+elif nfiles == 1 and ('.slc' in args.files[0] 
+                        or '.vti' in args.files[0] 
+                        or '.tif' in args.files[0] ):
+    from vtkplotter.vtkio import loadImageData
+    from vtkplotter import Actor
+    
+    image = loadImageData(args.files[0])
+    scrange = image.GetScalarRange()
+    cf = vtk.vtkContourFilter()
+    cf.SetInputData(image)
+    cf.UseScalarTreeOn()
+    cf.ComputeScalarsOff()
+    ic = 'gold'
+    if args.color is not None : 
+        if args.color.isdigit(): 
+            ic = int(args.color)
+        else:
+            ic = args.color
+    if args.show_scalars: 
+        ic = None
+    
+    threshold = (2*scrange[0]+scrange[1])/3.
+    cf.SetValue(0, threshold)
+    cf.Update()
+    act = Actor(cf.GetOutput(), ic, alpha=abs(args.alpha), wire=args.wireframe)
+
+    ############################## threshold slider   
+    def sliderThres(widget, event):
+        cf.SetValue(0, widget.GetRepresentation().GetValue())
+        cf.Update()
+        poly = cf.GetOutput()
+        a = Actor(poly, ic, alpha=act.alpha(), wire=args.wireframe)
+        vp.actors = []
+        vp.renderer.RemoveActor(vp.getActors()[0])
+        vp.render(a)
+    dr = scrange[1] - scrange[0]
+    vp.addSlider(sliderThres, scrange[0]+0.025*dr,scrange[1]-0.025*dr,
+                 value=threshold, title='isosurface threshold')
+        
+    def CheckAbort(obj, event):
+        if obj.GetEventPending() != 0:
+            obj.SetAbortRender(1)
+    vp.renderWin.AddObserver("AbortCheckEvent", CheckAbort)
+
+    vp.show(act, zoom=args.zoom, legend=leg)
+    
+    
 ########################################################################
 # normal mode for single file or sequence
 elif (not args.scrolling_mode) or nfiles == 1:

@@ -7,10 +7,10 @@ import vtk
 import os
 import sys
 import time
+import numpy
 
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
-import numpy
 from vtkplotter.actors import Actor, Assembly, ImageActor
 
 
@@ -43,7 +43,6 @@ def load(inputobj, c='gold', alpha=1,
 
                 connectivity, if True only keeps the largest portion of the polydata
         '''
-        import os
         if isinstance(inputobj, vtk.vtkPolyData):
             a = Actor(inputobj, c, alpha, wire, bc, legend, texture)
             if inputobj and inputobj.GetNumberOfPoints() == 0:
@@ -60,12 +59,12 @@ def load(inputobj, c='gold', alpha=1,
             flist = sorted(glob.glob(inputobj))
         for fod in flist:
             if os.path.isfile(fod):
-                a = loadFile(fod, c, alpha, wire, bc, legend, texture,
-                             smoothing, threshold, connectivity)
+                a = _loadFile(fod, c, alpha, wire, bc, legend, texture,
+                              smoothing, threshold, connectivity)
                 acts.append(a)
             elif os.path.isdir(fod):
-                acts = loadDir(fod, c, alpha, wire, bc, legend, texture,
-                               smoothing, threshold, connectivity)
+                acts = _loadDir(fod, c, alpha, wire, bc, legend, texture,
+                                smoothing, threshold, connectivity)
         if not len(acts):
             colors.printc('Error in load(): cannot find', inputobj, c=1)
             return None
@@ -76,9 +75,8 @@ def load(inputobj, c='gold', alpha=1,
             return acts
     
 
-def loadFile(filename, c, alpha, wire, bc, legend, texture,
+def _loadFile(filename, c, alpha, wire, bc, legend, texture,
              smoothing, threshold, connectivity):
-    '''Load a file of various formats.'''
     fl = filename.lower()
     if legend is True:
         legend = os.path.basename(filename)
@@ -111,9 +109,8 @@ def loadFile(filename, c, alpha, wire, bc, legend, texture,
     return actor
 
 
-def loadDir(mydir, c, alpha, wire, bc, legend, texture,
-            smoothing, threshold, connectivity):
-    '''Load files contained in directory of various formats.'''
+def _loadDir(mydir, c, alpha, wire, bc, legend, texture,
+             smoothing, threshold, connectivity):
     if not os.path.exists(mydir):
         colors.printc('Error in loadDir: Cannot find', mydir, c=1)
         exit(0)
@@ -121,8 +118,8 @@ def loadDir(mydir, c, alpha, wire, bc, legend, texture,
     flist = os.listdir(mydir)
     utils.humansort(flist)
     for ifile in flist:
-        a = loadFile(mydir+'/'+ifile, c, alpha, wire, bc, legend, texture,
-                     smoothing, threshold, connectivity)
+        a = _loadFile(mydir+'/'+ifile, c, alpha, wire, bc, legend, texture,
+                      smoothing, threshold, connectivity)
         acts.append(a)
     return acts
 
@@ -241,7 +238,7 @@ def loadRectilinearGrid(filename):  # not tested
     return Actor(gf.GetOutput())
 
 
-def load3DS(filename, legend):
+def load3DS(filename, legend=None):
     renderer = vtk.vtkRenderer()
     renWin = vtk.vtkRenderWindow()
     renWin.AddRenderer(renderer)
@@ -261,7 +258,7 @@ def load3DS(filename, legend):
     return Assembly(acts, legend=legend)
 
 
-def loadDolfin(filename, c, alpha, wire, bc, legend):
+def loadDolfin(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
     '''Reads a Fenics/Dolfin file format'''
     if not os.path.exists(filename):
         colors.printc('Error in loadDolfin: Cannot find', filename, c=1)
@@ -341,7 +338,7 @@ def loadDolfin(filename, c, alpha, wire, bc, legend):
     return Actor(poly, c, alpha, wire, bc, legend)
 
 
-def loadNeutral(filename, c, alpha, wire, bc, legend):
+def loadNeutral(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
     '''Reads a Neutral tetrahedral file format'''
     if not os.path.exists(filename):
         colors.printc('Error in loadNeutral: Cannot find', filename, c=1)
@@ -352,7 +349,7 @@ def loadNeutral(filename, c, alpha, wire, bc, legend):
     return Actor(poly, c, alpha, wire, bc, legend)
 
 
-def loadGmesh(filename, c, alpha, wire, bc, legend):
+def loadGmesh(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
     '''
     Reads a gmesh file format
     '''
@@ -393,7 +390,7 @@ def loadGmesh(filename, c, alpha, wire, bc, legend):
     return Actor(poly, c, alpha, wire, bc, legend)
 
 
-def loadPCD(filename, c, alpha, legend):
+def loadPCD(filename, c='gold', alpha=1, legend=None):
     '''Return vtkActor from Point Cloud file format'''
     if not os.path.exists(filename):
         colors.printc('Error in loadPCD: Cannot find file', filename, c=1)
@@ -444,7 +441,7 @@ def loadImageData(filename, spacing=[]):
     elif '.slc' in filename.lower():
         reader = vtk.vtkSLCReader()
         if not reader.CanReadFile(filename):
-            colors.printc('Sorry bad SLC/TIFF file '+filename, c=1)
+            colors.printc('Sorry bad slc file '+filename, c=1)
             exit(1)
     elif '.vti' in filename.lower():
         reader = vtk.vtkXMLImageDataReader()
@@ -453,12 +450,11 @@ def loadImageData(filename, spacing=[]):
     image = reader.GetOutput()
     if len(spacing) == 3:
         image.SetSpacing(spacing[0], spacing[1], spacing[2])
-    colors.printc('voxel spacing is', image.GetSpacing(), c='b', bold=0)
     return image
 
 
 ###########################################################
-def load2Dimage(filename, alpha):
+def load2Dimage(filename, alpha=1):
     fl = filename.lower()
     if '.png' in fl:
         picr = vtk.vtkPNGReader()
@@ -477,11 +473,12 @@ def load2Dimage(filename, alpha):
     return vactor
 
 
-def write(obj, fileoutput):
+def write(obj, fileoutput, binary=True):
     '''
     Write 3D object to file.
 
-    Possile extensions are: .vtk, .ply, .obj, .stl, .byu, .vtp, .xyz, .tif
+    Possile extensions are: 
+        vtk, vti, ply, obj, stl, byu, vtp, xyz, tif, png, bmp
     '''
     if isinstance(obj, Actor):
         obj = obj.polydata(True)
@@ -526,12 +523,16 @@ def write(obj, fileoutput):
         return
 
     try:
+        if binary:
+            w.SetFileTypeToBinary()
+        else:
+            w.SetFileTypeToASCII()
         w.SetInputData(obj)
         w.SetFileName(fileoutput)
         w.Write()
         colors.printc("Saved file: "+fileoutput, c='g')
-    except:
-        colors.printc("Error saving: "+fileoutput, c='r')
+    except Exception as e:
+        colors.printc("Error saving: "+fileoutput, '\n', e, c='r')
     return
 
 
@@ -583,7 +584,6 @@ class Video:
 
     def pause(self, pause=0):
         '''Iinsert a pause, in seconds'''
-        import os
         fr = self.frames[-1]
         n = int(self.fps*pause)
         for i in range(n):
@@ -612,11 +612,8 @@ class ProgressBar:
     '''Class to print a progress bar with optional text message.
 
     Basic usage example:
-
         import time                        
-
         pb = ProgressBar(0,400, c='red')
-
         for i in pb.range():
             time.sleep(.1)            
             pb.print('some message') # or pb.print(counts=i)
@@ -1353,7 +1350,10 @@ def _keypress(vp, obj, event):
             colors.printc('Click an actor and press X to open the cutter box widget.', c=4)
 
     elif key == 'i':  # print info
-        utils.printInfo(vp.clickedActor)
+        if vp.clickedActor:
+            utils.printInfo(vp.clickedActor)    
+        else:
+            utils.printInfo(vp)   
 
     if vp.interactor:
         vp.interactor.Render()

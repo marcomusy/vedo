@@ -7,7 +7,7 @@ and [numpy](http://www.numpy.org/).
 ## Download and Install:
 Simply type:
 ```bash
-pip install --upgrade vtkplotter
+pip install vtkplotter
 ```
 
 
