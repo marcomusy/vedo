@@ -35,8 +35,8 @@ python basic/fitline.py
 echo Running basic/fxy.py
 python basic/fxy.py
 
-echo Running basic/icon.py
-python basic/icon.py
+echo Running other/icon.py
+python other/icon.py
 
 echo Running basic/keypress.py
 python basic/keypress.py
@@ -75,12 +75,12 @@ echo Running basic/trail.py
 python basic/trail.py
 
 echo
-echo Running basic/colorpalette.py
-python basic/colorpalette.py
+echo Running other/colorpalette.py
+python other/colorpalette.py
 
 echo
-echo Running basic/colorprint.py
-python basic/colorprint.py
+echo Running other/colorprint.py
+python other/colorprint.py
 
 echo
 echo Running basic/colorcubes.py
@@ -228,11 +228,11 @@ python basic/surfIntersect.py # fails for vtk version<7
 echo Running basic/boolean.py
 python basic/boolean.py   # fails for vtk version<7
 
-echo Running advanced/spherical_harmonics1.py
-python advanced/spherical_harmonics1.py # fails if sphtool not installed
+echo Running other/spherical_harmonics1.py
+python other/spherical_harmonics1.py # fails if sphtool not installed
 
-echo Running advanced/spherical_harmonics2.py
-python advanced/spherical_harmonics2.py # fails if sphtool not installed
+echo Running other/spherical_harmonics2.py
+python other/spherical_harmonics2.py # fails if sphtool not installed
 
 
 

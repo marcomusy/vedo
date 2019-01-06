@@ -260,6 +260,10 @@ class Prop(object): # adds to Actor, Assembly, vtkImageData and vtkVolume
         poly = self.trail.GetMapper().GetInput()
         poly.GetPoints().SetData(numpy_to_vtk(self.trailPoints))  
         return self
+    
+    def print(self):
+        utils.printInfo(self)
+        return self
 
 
 #################################################### 

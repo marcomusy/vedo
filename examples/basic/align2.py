@@ -1,7 +1,6 @@
 # Example usage of align() method:
 # generate two random sets of points as 2 actors 
-# and align them using vtkProcrustesAlignmentFilter.
-# Retrieve the vtk transformation matrix.
+# and align them using the Iterative Closest Point algorithm.
 #
 from __future__ import division, print_function
 from random import uniform as u
