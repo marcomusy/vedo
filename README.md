@@ -68,7 +68,7 @@ vp.show(cube(),                    at=5, interactive=True)
 vtkplotter meshfile.vtk 
 # other valid formats: [vtu,vts,vtp,ply,obj,stl,xml,neutral,gmsh,pcd,xyz,txt,byu,tif,slc,vti,png,jpg]
 ```
-to visualize multiple files or files time-sequences try `-n` or `-s` options.<br />. Try `-h` for help.
+to visualize multiple files or files time-sequences try `-n` or `-s` options. Try `-h` for help.<br> 
 Voxel-data (vti, slc, tiff) files can also be visualized with options `-g` and `--slicer`,
 e.g.:
 ```bash
@@ -86,13 +86,13 @@ A get-started tutorial script is available for download:
 ```bash
 git clone https://github.com/marcomusy/vtkplotter.git
 cd vtkplotter/examples
-python tutorial.py  # on mac OSX try 'pythonw' instead
+python tutorial.py  
 ```
 **Many more examples can be found in directories:** <br>
 [**examples/basic**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic), 
 [**examples/advanced**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced),
 [**examples/volumetric**](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric)
-and [**examples/others**](https://github.com/marcomusy/vtkplotter/blob/master/examples/others).
+and [**examples/others**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other).
 
 |    |    |
 |:-------------:|:-----|
@@ -127,7 +127,6 @@ check out [Actor methods here](https://vtkplotter.embl.es/actors.m.html). <br />
 (E.g.: `actor.scale(3).pos([1,2,3]).color('blue').alpha(0.5)` etc..).
 ```python
 actor.pos()               # set/get position vector (setters, and getters if no argument is given)
-actor.x()                 # set/get x component of position (same for y and z)
 actor.scale()             # set/get scaling factor of actor
 actor.normalize()         # sets actor at origin and scales its average size to 1
 actor.rotate(angle, axis) # rotate actor around axis
