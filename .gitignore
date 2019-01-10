@@ -2,3 +2,6 @@ store/
 *pyc
 .DS_Store
 
+docs/build/
+docs/source/content
+docs/source/index.rst

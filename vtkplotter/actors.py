@@ -1,8 +1,18 @@
 """
 Submodule extending the vtkActor, vtkVolume and vtkImageData objects functionality.
 """
-
 from __future__ import division, print_function
+
+__all__ = [
+    'mergeActors',
+    'Prop',
+    'Actor',
+    'Assembly',
+    'ImageActor',
+    'Volume',
+
+]
+
 import vtk
 import numpy as np
 import vtkplotter.colors as colors
@@ -22,12 +32,12 @@ def mergeActors(actors, c=None, alpha=1,
         polylns.AddInputData(a.polydata(True))
     polylns.Update()
     pd = polylns.GetOutput()
-    return Actor(pd, c, alpha, wire, bc, legend, texture)  
+    return Actor(pd, c, alpha, wire, bc, legend, texture)
 
 
 ################################################# classes
 class Prop(object): # adds to Actor, Assembly, vtkImageData and vtkVolume
-    
+
     def __init__(self):
 
         self.filename = ''
@@ -64,7 +74,7 @@ class Prop(object): # adds to Actor, Assembly, vtkImageData and vtkVolume
             self.updateTrail()
         return self
 
-    def x(self, position=None):              
+    def x(self, position=None):
         '''Set/Get actor position along x axis.'''
         p = self.GetPosition()
         if position is None:
@@ -74,7 +84,7 @@ class Prop(object): # adds to Actor, Assembly, vtkImageData and vtkVolume
             self.updateTrail()
         return self
 
-    def y(self, position=None):              
+    def y(self, position=None):
         '''Set/Get actor position along y axis.'''
         p = self.GetPosition()
         if position is None:
@@ -84,7 +94,7 @@ class Prop(object): # adds to Actor, Assembly, vtkImageData and vtkVolume
             self.updateTrail()
         return self
 
-    def z(self, position=None):               
+    def z(self, position=None):
         '''Set/Get actor position along z axis.'''
         p = self.GetPosition()
         if position is None:
@@ -109,7 +119,7 @@ class Prop(object): # adds to Actor, Assembly, vtkImageData and vtkVolume
                       [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
                       [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
         rv = np.dot(R, self.GetPosition()-np.array(axis_point)) + axis_point
-    
+
         if rad:
             angle *= 57.29578
         # this vtk method only rotates in the origin of the actor:
@@ -148,9 +158,9 @@ class Prop(object): # adds to Actor, Assembly, vtkImageData and vtkVolume
         Set/Get actor orientation.
         If rotation != 0 rotate actor around newaxis.
         If angle is in radians set rad=True.
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
-        '''        
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)
+        '''
         if rad: rotation *= 57.29578
         initaxis = utils.norm(self.top - self.base)
         if newaxis is None:
@@ -186,7 +196,7 @@ class Prop(object): # adds to Actor, Assembly, vtkImageData and vtkVolume
         self._time = t
         return self  # return itself to concatenate methods
 
-    
+
     def addTrail(self, offset=None, maxlength=None, n=25, c=None, alpha=None, lw=1):
         '''
         Add a trailing line to actor.
@@ -197,7 +207,7 @@ class Prop(object): # adds to Actor, Assembly, vtkImageData and vtkVolume
 
             n, number of segments, controls precision
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/trail.py)    
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/trail.py)
         '''
         if maxlength is None:
             maxlength = self.diagonalSize()*20
@@ -211,7 +221,7 @@ class Prop(object): # adds to Actor, Assembly, vtkImageData and vtkVolume
 
             ppoints = vtk.vtkPoints()  # Generate the polyline
             poly = vtk.vtkPolyData()
-            ppoints.SetData(numpy_to_vtk([pos]*n))  
+            ppoints.SetData(numpy_to_vtk([pos]*n))
             poly.SetPoints(ppoints)
             lines = vtk.vtkCellArray()
             lines.InsertNextCell(n)
@@ -220,7 +230,7 @@ class Prop(object): # adds to Actor, Assembly, vtkImageData and vtkVolume
             poly.SetPoints(ppoints)
             poly.SetLines(lines)
             mapper = vtk.vtkPolyDataMapper()
-            
+
             if c is None:
                 if hasattr(self, 'GetProperty'):
                     col = self.GetProperty().GetColor()
@@ -258,15 +268,15 @@ class Prop(object): # adds to Actor, Assembly, vtkImageData and vtkVolume
         self.trailPoints.pop(0)
 
         poly = self.trail.GetMapper().GetInput()
-        poly.GetPoints().SetData(numpy_to_vtk(self.trailPoints))  
+        poly.GetPoints().SetData(numpy_to_vtk(self.trailPoints))
         return self
-    
+
     def print(self):
         utils.printInfo(self)
         return self
 
 
-#################################################### 
+####################################################
 # Actor inherits from vtkActor and Prop
 class Actor(vtk.vtkActor, Prop):
 
@@ -275,19 +285,19 @@ class Actor(vtk.vtkActor, Prop):
         '''
         Build an instance of object Actor derived from vtkActor.
         A vtkPolyData is normally passed as input.
-    
+
         Options:
-    
+
             c,       color in RGB format, hex, symbol or name
-    
+
             alpha,   opacity value
-    
+
             wire,    show surface as wireframe
-    
+
             bc,      backface color of internal surface
-    
+
             legend,  optional string
-    
+
             texture, jpg file name or surface texture name
         '''
         vtk.vtkActor.__init__(self)
@@ -308,7 +318,7 @@ class Actor(vtk.vtkActor, Prop):
             pdnorm.ConsistencyOn()
             pdnorm.Update()
             self._poly = pdnorm.GetOutput()
-        
+
             mapper = vtk.vtkPolyDataMapper()
             mapper.SetInputData(self._poly)
 
@@ -318,15 +328,15 @@ class Actor(vtk.vtkActor, Prop):
             al = colors.getAlpha(c)
             if al:
                 alpha = al
-        
+
             self.SetMapper(mapper)
             prp = self.GetProperty()
-        
+
             #########################################################################
             # On some vtk versions/platforms points are redered as ugly squares
             prp.RenderPointsAsSpheresOn()
             #########################################################################
-        
+
             if c is None:
                 mapper.ScalarVisibilityOn()
             else:
@@ -334,14 +344,14 @@ class Actor(vtk.vtkActor, Prop):
                 c = colors.getColor(c)
                 prp.SetColor(c)
                 prp.SetOpacity(alpha)
-        
+
 #                prp.SetSpecular(1)
 #                prp.SetSpecularColor(c)
 #                prp.SetSpecularPower(2)
-        
+
                 prp.SetAmbient(0.1)
                 prp.SetAmbientColor(c)
-        
+
                 prp.SetDiffuse(1)
 #                prp.SetDiffuseColor(c)
 
@@ -364,7 +374,7 @@ class Actor(vtk.vtkActor, Prop):
         If rebuild=True returns a copy of polydata
         that corresponds to the current actor's position in space.
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/quadratic_morphing.py)    
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/quadratic_morphing.py)
         '''
         if not rebuild:
             if not self._poly:
@@ -386,18 +396,18 @@ class Actor(vtk.vtkActor, Prop):
         tp.Update()
         return tp.GetOutput()
 
-    
+
     def coordinates(self, rebuild=True, copy=True):
         """
         Return the list of coordinates of an actor or polydata.
-    
+
         Options:
-    
+
             rebuild, if False ignore any previous trasformation applied to the mesh.
-    
+
             copy, if False return the reference to the points so that they can be modified in place.
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/align1.py)    
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/align1.py)
         """
         poly = self.polydata(rebuild)
         if copy:
@@ -419,22 +429,22 @@ class Actor(vtk.vtkActor, Prop):
             tmapper = vtk.vtkTextureMapToSphere()
         elif mapTo == 3:
             tmapper = vtk.vtkTextureMapToPlane()
-    
+
         tmapper.SetInputData(self.polydata(False))
         if mapTo == 1:
             tmapper.PreventSeamOn()
-    
+
         xform = vtk.vtkTransformTextureCoords()
         xform.SetInputConnection(tmapper.GetOutputPort())
         xform.SetScale(scale, scale, scale)
         if mapTo == 1:
             xform.FlipSOn()
         xform.Update()
-    
+
         mapper = vtk.vtkDataSetMapper()
         mapper.SetInputConnection(xform.GetOutputPort())
         mapper.ScalarVisibilityOff()
-    
+
         fn = utils.textures_path + name + ".jpg"
         if os.path.exists(name):
             fn = name
@@ -445,7 +455,7 @@ class Actor(vtk.vtkActor, Prop):
                 colors.printc(ff.split('.')[0], end=' ', c='m')
             print()
             return
-    
+
         jpgReader = vtk.vtkJPEGReader()
         jpgReader.SetFileName(fn)
         atext = vtk.vtkTexture()
@@ -459,22 +469,22 @@ class Actor(vtk.vtkActor, Prop):
         self.SetMapper(mapper)
         self.SetTexture(atext)
 
-    
+
     def clone(self, c=None, alpha=None, wire=False, bc=None,
               legend=None, texture=None, rebuild=True):
         '''
         Clone a vtkActor.
         If rebuild is True build its polydata in its current position in space.
-    
-        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/carcrash.py)    
-        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mirror.py)    
-        [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/skeletonize.py)    
-        [**Example4**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/recosurface.py)    
+
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/carcrash.py)
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mirror.py)
+        [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/skeletonize.py)
+        [**Example4**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/recosurface.py)
         '''
         poly = self.polydata(rebuild=rebuild)
         polyCopy = vtk.vtkPolyData()
         polyCopy.DeepCopy(poly)
-    
+
         if legend is True:
             legend = self.legend
         if alpha is None:
@@ -484,14 +494,14 @@ class Actor(vtk.vtkActor, Prop):
         cact = Actor(polyCopy, c, alpha, wire, bc, legend, texture)
         cact.GetProperty().SetPointSize(self.GetProperty().GetPointSize())
         return cact
-        
-        
+
+
     def normalize(self):  # N.B. input argument gets modified
         '''
         Shift actor's center of mass at origin and scale its average size to unit.
-    
-        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/carcrash.py)    
-        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/keypress.py)    
+
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/carcrash.py)
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/keypress.py)
         '''
         cm = self.centerOfMass()
         coords = self.coordinates()
@@ -513,14 +523,14 @@ class Actor(vtk.vtkActor, Prop):
         self._poly = tf.GetOutput()
         self.Modified()
         return self  # return same obj for concatenation
-    
-    
+
+
     def mirror(self, axis='x'):
         '''Mirror the actor polydata along one of the cartesian axes.
-        
+
         if axes='n', flip normals only.
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mirror.py)    
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mirror.py)
         '''
         poly = self.polydata(rebuild=True)
         polyCopy = vtk.vtkPolyData()
@@ -558,12 +568,12 @@ class Actor(vtk.vtkActor, Prop):
         a.SetProperty(pr)
         return a
 
-    
+
     def shrink(self, fraction=0.85):   # N.B. input argument gets modified
         '''Shrink the triangle polydata in the representation of actor.
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/shrink.py)    
-    
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/shrink.py)
+
         ![shrink](https://user-images.githubusercontent.com/32848391/46819143-41042280-cd83-11e8-9492-4f53679887fa.png)
         '''
         poly = self.polydata(True)
@@ -575,22 +585,22 @@ class Actor(vtk.vtkActor, Prop):
         mapper.SetInputData(shrink.GetOutput())
         mapper.Update()
         self.Modified()
-        return self   
+        return self
 
-    
+
     def stretch(self, q1, q2):
         '''Stretch actor between points q1 and q2.
-    
-        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/spring.py)    
-        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
-        [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/multiple_pendulum.py)    
-    
+
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/spring.py)
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)
+        [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/multiple_pendulum.py)
+
         ![spring](https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif)
         '''
         if self.base is None:
             colors.printc('stretch(): Please define vectors actor.base and actor.top at creation. Exit.', c='r')
             exit(0)
-    
+
         p1, p2 = self.base, self.top
         q1, q2, z = np.array(q1), np.array(q2), np.array([0, 0, 1])
         plength = np.linalg.norm(p2-p1)
@@ -601,14 +611,14 @@ class Actor(vtk.vtkActor, Prop):
         cosa = np.dot(p2-p1, z)/plength
         n = np.cross(p2-p1, z)
         T.RotateWXYZ(np.arccos(cosa)*57.3, n)
-    
+
         T.Scale(1, 1, qlength/plength)
-    
+
         cosa = np.dot(q2-q1, z)/qlength
         n = np.cross(q2-q1, z)
         T.RotateWXYZ(-np.arccos(cosa)*57.3, n)
         T.Translate(q1)
-    
+
         self.SetUserMatrix(T.GetMatrix())
         if self.trail:
             self.updateTrail()
@@ -617,37 +627,37 @@ class Actor(vtk.vtkActor, Prop):
 
     def cutPlane(self, origin=(0, 0, 0), normal=(1, 0, 0), showcut=False):
         '''
-        Takes a vtkActor and cuts it with the plane defined by a point and a normal. 
+        Takes a vtkActor and cuts it with the plane defined by a point and a normal.
         Original actor is NOT modified.
-    
+
         showcut = shows the cut away part as thin wireframe
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/trail.py)    
-    
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/trail.py)
+
         ![tea1](https://user-images.githubusercontent.com/32848391/46815773-dc919500-cd7b-11e8-8e80-8b83f760a303.png)
         '''
         plane = vtk.vtkPlane()
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
-    
+
         poly = self.polydata()
         clipper = vtk.vtkClipPolyData()
         clipper.SetInputData(poly)
         clipper.SetClipFunction(plane)
-        if showcut: 
+        if showcut:
             clipper.GenerateClippedOutputOn()
         else:
             clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
         clipper.SetValue(0)
         clipper.Update()
-    
+
         clipped = clipper.GetOutput()
         clippedact = Actor(clipped)
         prop = vtk.vtkProperty()
         prop.DeepCopy(self.GetProperty())
         clippedact.SetProperty(prop)
-        
+
         bf = self.GetBackfaceProperty()
         if bf:
             backProp = vtk.vtkProperty()
@@ -660,9 +670,9 @@ class Actor(vtk.vtkActor, Prop):
             cpoly = clipper.GetClippedOutput()
             restActor = Actor(cpoly, c=c, alpha=0.05, wire=1)
             acts.append(restActor)
-    
+
         if len(acts) > 1:
-            asse = Assembly(acts)            
+            asse = Assembly(acts)
             return asse
         else:
             return clippedact
@@ -683,7 +693,7 @@ class Actor(vtk.vtkActor, Prop):
         sep.Update()
         return sep.IsInside(0)
 
-    
+
     def insidePoints(self, points, invert=False, tol=1e-05):
         """Return the sublist of points that are inside a polydata closed surface."""
         poly = self.polydata(True)
@@ -697,7 +707,7 @@ class Actor(vtk.vtkActor, Prop):
         openEdges = featureEdge.GetOutput().GetNumberOfCells()
         if openEdges != 0:
             colors.printc("Warning: polydata is not a closed surface", c=5)
-    
+
         vpoints = vtk.vtkPoints()
         vpoints.SetData(numpy_to_vtk(points, deep=True))
         pointsPolydata = vtk.vtkPolyData()
@@ -707,7 +717,7 @@ class Actor(vtk.vtkActor, Prop):
         sep.SetInputData(pointsPolydata)
         sep.SetSurfaceData(poly)
         sep.Update()
-    
+
         mask1, mask2 = [], []
         for i, p in enumerate(points):
             if sep.IsInside(i):
@@ -734,28 +744,28 @@ class Actor(vtk.vtkActor, Prop):
         factor.SetProperty(self.GetProperty())
         return factor
 
-    
+
     def cellCenters(self):
         '''Get the list of cell centers of the mesh surface.
-    
-        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/delaunay2d.py)    
-        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
+
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/delaunay2d.py)
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)
         '''
         vcen = vtk.vtkCellCenters()
         vcen.SetInputData(self.polydata(True))
         vcen.Update()
         return vtk_to_numpy(vcen.GetOutput().GetPoints().GetData())
 
-    
+
     def clean(self, tol=None):
         '''
         Clean actor's polydata. Can also be used to decimate a mesh if tol is large.
-    
+
         tol, defines how far should be the points from each other
         in terms of fraction of the bounding box length.
-    
-        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares1D.py)    
-        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/recosurface.py)    
+
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares1D.py)
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/recosurface.py)
         '''
         poly = self.polydata(False)
         cleanPolyData = vtk.vtkCleanPolyData()
@@ -770,65 +780,65 @@ class Actor(vtk.vtkActor, Prop):
         self._poly = cleanPolyData.GetOutput()
         self.Modified()
         return self  # NB: polydata is being changed
-    
-    
+
+
     def xbounds(self):
         '''Get the actor bounds [xmin,xmax].
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colormaps.py)    
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colormaps.py)
         '''
         b = self.polydata(True).GetBounds()
         return (b[0], b[1])
-    
+
     def ybounds(self):
         '''Get the actor bounds [ymin,ymax].
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colormaps.py)    
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colormaps.py)
         '''
         b = self.polydata(True).GetBounds()
         return (b[2], b[3])
-    
+
     def zbounds(self):
         '''Get the actor bounds [zmin,zmax].
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colormaps.py)    
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colormaps.py)
         '''
         b = self.polydata(True).GetBounds()
         return (b[4], b[5])
 
-    
+
     def centerOfMass(self):
         '''Get the center of mass of actor.
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fatlimb.py)    
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fatlimb.py)
         '''
         cmf = vtk.vtkCenterOfMass()
         cmf.SetInputData(self.polydata(True))
         cmf.Update()
         c = cmf.GetCenter()
-        return np.array(c)    
-    
+        return np.array(c)
+
     def volume(self):
         '''Get the volume occupied by actor.'''
         mass = vtk.vtkMassProperties()
         mass.SetGlobalWarningDisplay(0)
-        mass.SetInputData(self.polydata())        
+        mass.SetInputData(self.polydata())
         mass.Update()
         return mass.GetVolume()
-    
-    
+
+
     def area(self):
         '''Get the surface area of actor.
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/largestregion.py)    
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/largestregion.py)
         '''
         mass = vtk.vtkMassProperties()
         mass.SetGlobalWarningDisplay(0)
         mass.SetInputData(self.polydata())
         mass.Update()
         return mass.GetSurfaceArea()
-    
-    
+
+
     def averageSize(self):
         '''Calculate the average size of a mesh.'''
         cm = self.centerOfMass()
@@ -842,34 +852,34 @@ class Actor(vtk.vtkActor, Prop):
             s += utils.mag(coords[i] - cm)
             c += 1
         return s/c
-    
-    
+
+
     def diagonalSize(self):
         '''Get the length of the diagonal of actor bounding box.'''
         b = self.polydata().GetBounds()
         return np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])**2 + (b[5]-b[4])**2)
-    
-    
+
+
     def maxBoundSize(self):
         '''Get the maximum dimension in x, y or z of the actor bounding box.'''
         b = self.polydata(True).GetBounds()
         return max(abs(b[1]-b[0]), abs(b[3]-b[2]), abs(b[5]-b[4]))
-    
+
 
     def closestPoint(self, pt, N=1, radius=None, returnIds=False):
         """
         Find the closest point on a polydata given an other point.
         The appropriate locator is built on the fly and cached for speed.
-            If N>1, return a list of N ordered closest points.
-            If radius is given, get all points within.
-    
-        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/align1.py)    
-        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitplanes.py)    
-        [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres1.py)    
-        [**Example4**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/quadratic_morphing.py)    
+        If N>1, return a list of N ordered closest points.
+        If radius is given, get all points within.
+
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/align1.py)
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitplanes.py)
+        [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres1.py)
+        [**Example4**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/quadratic_morphing.py)
         """
         poly = self.polydata(True)
-    
+
         if N > 1 or radius:
             plocexists = self.point_locator
             if not plocexists or (plocexists and self.point_locator is None):
@@ -877,7 +887,7 @@ class Actor(vtk.vtkActor, Prop):
                 point_locator.SetDataSet(poly)
                 point_locator.BuildLocator()
                 self.point_locator = point_locator
-    
+
             vtklist = vtk.vtkIdList()
             if N > 1:
                 self.point_locator.FindClosestNPoints(N, pt, vtklist)
@@ -893,14 +903,14 @@ class Actor(vtk.vtkActor, Prop):
                     poly.GetPoints().GetPoint(vi, trgp_)
                     trgp.append(trgp_)
                 return np.array(trgp)
-    
+
         clocexists = self.cell_locator
         if not clocexists or (clocexists and self.cell_locator is None):
             cell_locator = vtk.vtkCellLocator()
             cell_locator.SetDataSet(poly)
             cell_locator.BuildLocator()
             self.cell_locator = cell_locator
-    
+
         trgp = [0, 0, 0]
         cid = vtk.mutable(0)
         dist2 = vtk.mutable(0)
@@ -911,16 +921,16 @@ class Actor(vtk.vtkActor, Prop):
         else:
             return np.array(trgp)
 
-    
+
     def pointScalars(self, scalars, name):
         """
         Set point scalars to the actor's polydata.
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)
         """
         poly = self.polydata(False)
         if len(scalars) != poly.GetNumberOfPoints():
-            colors.printc('pointScalars Error: Number of scalars != nr. of points', 
+            colors.printc('pointScalars Error: Number of scalars != nr. of points',
                           len(scalars), poly.GetNumberOfPoints(), c=1)
             exit()
         arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
@@ -928,34 +938,34 @@ class Actor(vtk.vtkActor, Prop):
         poly.GetPointData().AddArray(arr)
         poly.GetPointData().SetActiveScalars(name)
         self.GetMapper().ScalarVisibilityOn()
-    
-    
+
+
     def pointColors(self, scalars, alpha=1, cmap='jet'):
         """
         Set individual point colors by setting an array of scalars and a color map.
         Scalars can be a string name.
         Alpha can be a list of values of the same length as scalars.
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_alphas.py)    
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_alphas.py)
         """
         poly = self.polydata(True)
-    
+
         if isinstance(scalars, str):
             scalars = vtk_to_numpy(poly.GetPointData().GetArray(scalars))
-    
+
         n = len(scalars)
         useAlpha = False
         if n != poly.GetNumberOfPoints():
-            colors.printc('pointColors Error: nr. of scalars != nr. of points', 
+            colors.printc('pointColors Error: nr. of scalars != nr. of points',
                           n, poly.GetNumberOfPoints(), c=1)
         if utils.isSequence(alpha):
             useAlpha = True
             nscals = len(scalars)
             if len(alpha) != n:
-                colors.printc('pointColors Error: nr. of scalars != nr. of alpha values', 
+                colors.printc('pointColors Error: nr. of scalars != nr. of alpha values',
                               n, len(alpha), c=1)
-    
+
         vmin, vmax = np.min(scalars), np.max(scalars)
         lut = vtk.vtkLookupTable()
         lut.SetTableRange(vmin, vmax)
@@ -970,7 +980,7 @@ class Actor(vtk.vtkActor, Prop):
                 lut.SetTableValue(i, c[0], c[1], c[2], alpha[idx])
             else:
                 lut.SetTableValue(i, c[0], c[1], c[2], alpha)
-    
+
         arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
         arr.SetName('pointColors_'+cmap)
         poly.GetPointData().AddArray(arr)
@@ -979,7 +989,7 @@ class Actor(vtk.vtkActor, Prop):
         self.GetMapper().SetLookupTable(lut)
         self.GetMapper().ScalarVisibilityOn()
 
-    
+
     def cellScalars(self, scalars, name):
         """
         Set cell scalars to the polydata. Scalars can be a string name.
@@ -987,7 +997,7 @@ class Actor(vtk.vtkActor, Prop):
         poly = self.polydata(False)
         if isinstance(scalars, str):
             scalars = vtk_to_numpy(poly.GetPointData().GetArray(scalars))
-    
+
         if len(scalars) != poly.GetNumberOfCells():
             colors.printc('Number of scalars != nr. of cells', c=1)
             exit()
@@ -996,21 +1006,21 @@ class Actor(vtk.vtkActor, Prop):
         poly.GetCellData().AddArray(arr)
         poly.GetCellData().SetActiveScalars(name)
         self.GetMapper().ScalarVisibilityOn()
-    
-    
+
+
     def cellColors(self, scalars, cmap='jet', alpha=1):
         """
         Set individual cell colors by setting a scalar.
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
-    
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)
+
         ![mcol](https://user-images.githubusercontent.com/32848391/46818965-c509da80-cd82-11e8-91fd-4c686da4a761.png)
         """
         poly = self.polydata(False)
         if len(scalars) != poly.GetNumberOfCells():
             colors.printc('Number of scalars != nr. of cells', c=1)
             exit()
-    
+
         lut = vtk.vtkLookupTable()
         lut.SetNumberOfTableValues(len(scalars))
         lut.Build()
@@ -1026,17 +1036,17 @@ class Actor(vtk.vtkActor, Prop):
         self.GetMapper().SetScalarRange(vmin, vmax)
         self.GetMapper().SetLookupTable(lut)
         self.GetMapper().ScalarVisibilityOn()
-    
+
 
     def scalars(self, name=None):
         """
         Retrieve point or cell scalars using array name or index number.
         If no name is given return the list of names of existing arrays.
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)
         """
         poly = self.polydata(False)
-    
+
         if name is None:
             ncd = poly.GetCellData().GetNumberOfArrays()
             npd = poly.GetPointData().GetNumberOfArrays()
@@ -1046,15 +1056,15 @@ class Actor(vtk.vtkActor, Prop):
             for i in range(ncd):
                 arrs.append(poly.GetCellData().GetArrayName(i))
             return arrs
-    
+
         arr = poly.GetPointData().GetArray(name)
         if arr:
-            if isinstance(name, int): 
+            if isinstance(name, int):
                 name = poly.GetPointData().GetArrayName(name)
             poly.GetPointData().SetActiveScalars(name)
             return vtk_to_numpy(arr)
         else:
-            if isinstance(name, int): 
+            if isinstance(name, int):
                 name = poly.GetCellData().GetArrayName(name)
             arr = poly.GetCellData().GetArray(name)
             if arr:
@@ -1062,19 +1072,19 @@ class Actor(vtk.vtkActor, Prop):
                 return vtk_to_numpy(arr)
         return None
 
-    
+
     def intersectWithLine(self, p0, p1):
         '''Return the list of points intersecting the actor along segment p0 and p1.
-    
-        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/spherical_harmonics1.py)    
-        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/spherical_harmonics2.py)    
+
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/spherical_harmonics1.py)
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/spherical_harmonics2.py)
         '''
         if not self.line_locator:
             line_locator = vtk.vtkOBBTree()
             line_locator.SetDataSet(self.polydata(True))
             line_locator.BuildLocator()
             self.line_locator = line_locator
-    
+
         intersectPoints = vtk.vtkPoints()
         intersection = [0, 0, 0]
         self.line_locator.IntersectWithLine(p0, p1, intersectPoints, None)
@@ -1083,24 +1093,24 @@ class Actor(vtk.vtkActor, Prop):
             intersectPoints.GetPoint(i, intersection)
             pts.append(list(intersection))
         return pts
-   
+
 
     def subdivide(self, N=1, method=0, legend=None):
         '''Increase the number of points of self surface mesh.
-    
+
         Options:
-    
+
             N = number of subdivisions
-    
+
             method = 0, Loop
-    
+
             method = 1, Linear
-    
+
             method = 2, Adaptive
-    
+
             method = 3, Butterfly
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)    
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)
         ![beeth](https://user-images.githubusercontent.com/32848391/46819341-ca1b5980-cd83-11e8-97b7-12b053d76aac.png)
         '''
         triangles = vtk.vtkTriangleFilter()
@@ -1130,17 +1140,17 @@ class Actor(vtk.vtkActor, Prop):
         sactor.GetProperty().SetColor(self.GetProperty().GetColor())
         sactor.GetProperty().SetRepresentation(self.GetProperty().GetRepresentation())
         return sactor
-    
+
 
     def decimate(self, fraction=0.5, N=None, verbose=True, boundaries=True):
         '''
         Downsample the number of vertices in a mesh,
-    
-        fraction gives the desired target of reduction. 
-    
+
+        fraction gives the desired target of reduction.
+
         E.g. fraction=0.1 leaves 10% of the original nr of vertices.
-    
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/skeletonize.py)    
+
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/skeletonize.py)
         '''
         poly = self.polydata(True)
         if N:  # N = desired number of points
@@ -1148,7 +1158,7 @@ class Actor(vtk.vtkActor, Prop):
             fraction = float(N)/Np
             if fraction >= 1:
                 return self
-    
+
         decimate = vtk.vtkDecimatePro()
         decimate.SetInputData(poly)
         decimate.SetTargetReduction(1.-fraction)
@@ -1200,7 +1210,7 @@ class Actor(vtk.vtkActor, Prop):
             poly = self.polydata(False)
             poly.GetPoints().SetPoint(i, p)
             # reset actor to identity matrix position/rotation:
-            self.PokeMatrix(vtk.vtkMatrix4x4())  
+            self.PokeMatrix(vtk.vtkMatrix4x4())
         return self
 
     def points(self, pts):
@@ -1212,7 +1222,7 @@ class Actor(vtk.vtkActor, Prop):
         vpts.SetData(numpy_to_vtk(pts, deep=True))
         self.GetMapper().GetInput().SetPoints(vpts)
         # reset actor to identity matrix position/rotation:
-        self.PokeMatrix(vtk.vtkMatrix4x4())  
+        self.PokeMatrix(vtk.vtkMatrix4x4())
         return self
 
 
@@ -1272,7 +1282,7 @@ class Actor(vtk.vtkActor, Prop):
         backProp = self.GetBackfaceProperty()
         if not backProp:
             backProp = vtk.vtkProperty()
-        
+
         backProp.SetDiffuseColor(colors.getColor(bc))
         backProp.SetOpacity(self.GetProperty().GetOpacity())
         self.SetBackfaceProperty(backProp)
@@ -1285,10 +1295,10 @@ class Actor(vtk.vtkActor, Prop):
     def lineWidth(self, lw):
         '''Set actor's line width of edges.'''
         if lw:
-            self.GetProperty().EdgeVisibilityOn()           
+            self.GetProperty().EdgeVisibilityOn()
             self.GetProperty().SetLineWidth(lw)
         else:
-            self.GetProperty().EdgeVisibilityOff() 
+            self.GetProperty().EdgeVisibilityOff()
         return self
 
 
@@ -1297,9 +1307,9 @@ class Assembly(vtk.vtkAssembly, Prop):
 
     def __init__(self, actors, legend=None):
         '''Group many actors as a single new actor.
-    
-        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
-        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py)    
+
+        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)
+        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py)
         '''
         vtk.vtkAssembly.__init__(self)
         Prop.__init__(self)
@@ -1313,7 +1323,7 @@ class Assembly(vtk.vtkAssembly, Prop):
         else:
             self.base = None
             self.top = None
-            
+
         for a in actors:
             if a:
                 self.AddPart(a)
@@ -1363,9 +1373,9 @@ class Volume(vtk.vtkVolume, Prop):
 
     def __init__(self, img, c='blue', alphas=[0.0, 0.4, 0.9, 1]):
         '''Derived class of vtkVolume.
-        
+
         c can be a list to set colors along the scalar range
-        
+
         alphas defines the opacity transfer function in the scalar range
         '''
         vtk.vtkVolume.__init__(self)
@@ -1380,7 +1390,7 @@ class Volume(vtk.vtkVolume, Prop):
             print("Warning, high scalar range detected:", smax)
             smax = abs(10*smin)+.1
             print("         reset to:", smax)
-    
+
         colorTransferFunction = vtk.vtkColorTransferFunction()
         if utils.isSequence(c):
             for i,ci in enumerate(c):
@@ -1395,7 +1405,7 @@ class Volume(vtk.vtkVolume, Prop):
             colorTransferFunction.AddRGBPoint(smin, 1.0, 1.0, 1.0)
             colorTransferFunction.AddRGBPoint((smax+smin)/3, r/2, g/2, b/2)
             colorTransferFunction.AddRGBPoint(smax, 0.0, 0.0, 0.0)
-                
+
         opacityTransferFunction = vtk.vtkPiecewiseFunction()
         for i, al in enumerate(alphas):
             xalpha = smin+(smax-smin)*i/(len(alphas)-1)
@@ -1410,13 +1420,7 @@ class Volume(vtk.vtkVolume, Prop):
         volumeProperty.SetScalarOpacity(opacityTransferFunction)
         volumeProperty.SetInterpolationTypeToLinear()
         #volumeProperty.SetScalarOpacityUnitDistance(1)
-    
+
         # volume holds the mapper and the property and can be used to position/orient it
         self.SetMapper(volumeMapper)
         self.SetProperty(volumeProperty)
-
-
-
-
-
-

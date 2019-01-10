@@ -3,6 +3,40 @@ Submodule to load meshes of different formats, and other I/O functionalities.
 """
 
 from __future__ import division, print_function
+
+
+__all__ = [
+    'load',
+    '_loadFile',
+    '_loadDir',
+    'loadPolyData',
+    'loadXMLData',
+    'loadStructuredPoints',
+    'loadStructuredGrid',
+    'loadUnStructuredGrid',
+    'loadRectilinearGrid',
+    'load3DS',
+    'loadDolfin',
+    'loadNeutral',
+    'loadGmesh',
+    'loadPCD',
+    'loadImageData',
+    'load2Dimage',
+    'write',
+    'screenshot',
+    'Video',
+    'ProgressBar',
+    'convertNeutral2Xml',
+    'buildPolyData',
+    'Button',
+    '_mouseleft',
+    '_mouseright',
+    '_mousemiddle',
+    '_keypress',
+
+]
+
+
 import vtk
 import os
 import sys
@@ -18,7 +52,7 @@ from vtkplotter.actors import Actor, Assembly, ImageActor
 def load(inputobj, c='gold', alpha=1,
          wire=False, bc=None, legend=True, texture=None,
          smoothing=None, threshold=None, connectivity=False):
-    
+
         ''' Returns a vtkActor from reading a file, directory or vtkPolyData.
 
             Optional args:
@@ -27,9 +61,9 @@ def load(inputobj, c='gold', alpha=1,
 
                 alpha,   transparency (0=invisible)
 
-                wire,    show surface as wireframe      
+                wire,    show surface as wireframe
 
-                bc,      backface color of internal surface      
+                bc,      backface color of internal surface
 
                 legend,  text to show on legend, True picks filename
 
@@ -73,7 +107,7 @@ def load(inputobj, c='gold', alpha=1,
             return acts[0]
         else:
             return acts
-    
+
 
 def _loadFile(filename, c, alpha, wire, bc, legend, texture,
              smoothing, threshold, connectivity):
@@ -90,7 +124,7 @@ def _loadFile(filename, c, alpha, wire, bc, legend, texture,
         actor = loadPCD(filename, c, alpha, legend)
     elif fl.endswith('.3ds'):                             # PCL point-cloud format
         actor = load3DS(filename, legend)
-    elif fl.endswith('.tif') or fl.endswith('.slc') or fl.endswith('.vti'): 
+    elif fl.endswith('.tif') or fl.endswith('.slc') or fl.endswith('.vti'):
         # tiff stack or slc or vti
         img = loadImageData(filename)
         actor = utils.isosurface(img, c, alpha, wire, bc, legend, texture,
@@ -302,7 +336,7 @@ def loadDolfin(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
                     v2 = int(e.get('v2'))
                     v3 = int(e.get('v3'))
                     connectivity.append([v0, v1, v2, v3])
-                    
+
     # this builds it as vtkUnstructuredGrid
     # points = vtk.vtkPoints()
     # for p in coords: points.InsertNextPoint(p)
@@ -333,7 +367,7 @@ def loadDolfin(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
     # ass = Assembly([pts_act, actor])
     # ass.legend = legend
     # return ass
-    
+
     poly = buildPolyData(coords, connectivity)
     return Actor(poly, c, alpha, wire, bc, legend)
 
@@ -477,7 +511,7 @@ def write(obj, fileoutput, binary=True):
     '''
     Write 3D object to file.
 
-    Possile extensions are: 
+    Possile extensions are:
         vtk, vti, ply, obj, stl, byu, vtp, xyz, tif, png, bmp
     '''
     if isinstance(obj, Actor):
@@ -562,7 +596,7 @@ class Video:
 
             duration, total duration of the video. If given, fps will be recalculated.
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/makeVideo.py)    
+        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/makeVideo.py)
         '''
         import glob
         self.renderWindow = renderWindow
@@ -611,14 +645,17 @@ class Video:
 class ProgressBar:
     '''Class to print a progress bar with optional text message.
 
-    Basic usage example:
-        import time                        
-        pb = ProgressBar(0,400, c='red')
-        for i in pb.range():
-            time.sleep(.1)            
-            pb.print('some message') # or pb.print(counts=i)
+    Example:
+        >>> import time
+        >>> pb = ProgressBar(0,400, c='red')
+        >>> for i in pb.range():
+        >>>     time.sleep(.1)
+        >>>     pb.print('some message') # or pb.print(counts=i)
 
-    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/diffusion.py)    
+    `Example`_
+
+    .. _Example: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/diffusion.py
+
     '''
 
     def __init__(self, start, stop, step=1, c=None, ETA=True, width=24, char='='):
@@ -711,7 +748,7 @@ class ProgressBar:
             self.bar = "[%s>%s]" % (self.char*(nh-1), ' '*(af-nh))
         if self.percent < 100:# and self._remt > 1:
             ps = ' '+str(self.percent) + "%"
-        else: 
+        else:
             ps = ''
         self.bar += ps
 
@@ -766,8 +803,8 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
     Build a vtkPolyData object from a list of vertices
     and the connectivity representing the faces of the polygonal mesh.
 
-    E.g. faces=[[0,1,2], [1,2,3], ...], 
-         vertices=[[x1,y1,z1],[x2,y2,z2], ...] 
+    E.g. faces=[[0,1,2], [1,2,3], ...],
+         vertices=[[x1,y1,z1],[x2,y2,z2], ...]
 
     Use indexOffset=1 if face numbering starts from 1 instead of 0.
     '''
@@ -1351,9 +1388,9 @@ def _keypress(vp, obj, event):
 
     elif key == 'i':  # print info
         if vp.clickedActor:
-            utils.printInfo(vp.clickedActor)    
+            utils.printInfo(vp.clickedActor)
         else:
-            utils.printInfo(vp)   
+            utils.printInfo(vp)
 
     if vp.interactor:
         vp.interactor.Render()

@@ -3,6 +3,30 @@ Colors definitions and printing methods.
 """
 
 from __future__ import division, print_function
+
+
+__all__ = [
+    'colors',
+    'color_nicks',
+    'isSequence',
+    'getColor',
+    'getAlpha',
+    'getColorName',
+    'hsv2rgb',
+    'rgb2hsv',
+    '_mapscales',
+    'colorMap',
+    'makePalette',
+    'kelvin2rgb',
+    'colors1',
+    'colors2',
+    '_has_colors',
+    '_terminal_has_colors',
+    '_terminal_cols',
+    'printc',
+]
+
+
 import numpy as np
 import sys
 
@@ -135,7 +159,7 @@ def getColor(rgb=None, hsv=None):
 
          RGB    = (255, 255, 255), corresponds to white
 
-         rgb    = (1,1,1) 
+         rgb    = (1,1,1)
 
          hex    = #FFFF00 is yellow
 
@@ -145,9 +169,9 @@ def getColor(rgb=None, hsv=None):
 
          int    = 7 picks color #7 in list colors1
 
-         if hsv is set to (hue,saturation,value), rgb is calculated from it 
+         if hsv is set to (hue,saturation,value), rgb is calculated from it
 
-    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py)    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py)
     """
     if str(rgb).isdigit():
         rgb = int(rgb)
@@ -227,7 +251,7 @@ def getAlpha(c):
 def getColorName(c):
     """Convert any rgb color or numeric code to closest name color.
 
-    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorpalette.py)    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorpalette.py)
     """
     c = np.array(getColor(c))  # reformat to rgb
     mdist = 99.
@@ -278,9 +302,9 @@ except:
 def colorMap(value, name='jet', vmin=0, vmax=1):
     '''Map a real value in range [vmin, vmax] to a (r,g,b) color scale.
 
-    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colormaps.py)    
-    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py)    
-    [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py)    
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colormaps.py)
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py)
+    [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py)
     '''
     value = value - vmin
     value = value / vmax
@@ -301,7 +325,7 @@ def colorMap(value, name='jet', vmin=0, vmax=1):
 def makePalette(color1, color2, N, HSV=False):
     '''Generate N colors starting from color1 to color2 in RGB or HSV space.
 
-    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorpalette.py)    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorpalette.py)
     '''
     if HSV:
         color1 = rgb2hsv(color1)
@@ -321,7 +345,7 @@ def kelvin2rgb(temperature):
     """
     Converts from Kelvin temperature to an RGB color.
 
-    Algorithm credits: 
+    Algorithm credits:
     http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
     https://gist.github.com/petrklus/b1f427accdf7438606a6#file-rgb_to_kelvin-py
     """
@@ -431,7 +455,7 @@ def printc(*strings, **keys):
     Available colors are:
         black, red, green, yellow, blue, magenta, cyan, white
 
-    Options:        
+    Options:
 
         c, foreground color ['']
 
@@ -467,7 +491,7 @@ def printc(*strings, **keys):
 
         printc(299792.48, c=4) # 4 is blue
 
-    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorprint.py)    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorprint.py)
     '''
 
     end = keys.pop('end', '\n')
