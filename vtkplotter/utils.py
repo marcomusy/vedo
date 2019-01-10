@@ -1,8 +1,29 @@
 """
-Utilities submodule. 
+Utilities submodule.
 """
 
 from __future__ import division, print_function
+
+
+__all__ = [
+    'textures',
+    'isSequence',
+    'humansort',
+    'vector',
+    'mag',
+    'mag2',
+    'norm',
+    'to_precision',
+    'pointIsInTriangle',
+    'pointToLineDistance',
+    'isIdentity',
+    'grepTag',
+    'printInfo',
+    'isosurface',
+    'triangleFilter',
+]
+
+
 import os
 import vtk
 import numpy as np
@@ -139,7 +160,7 @@ def to_precision(x, p):
         out.append(m)
     return "".join(out)
 
-        
+
 def pointIsInTriangle(p, p1, p2, p3):
     '''
     Return True if a point is inside (or above/below) a triangle defined by 3 points in space.
@@ -201,7 +222,7 @@ def grepTag(filename, tag, firstOccurrence=False):
     afile.close()
     return content
 
-    
+
 def printInfo(obj):
     '''Print information about a vtkActor or vtkAssembly.'''
     print([obj])
@@ -351,9 +372,9 @@ def printInfo(obj):
             act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
             if isinstance(act, vtk.vtkActor):
                 printvtkactor(act, tab='     ')
-    
+
     elif hasattr(obj, 'interactor'): # dumps Plotter info
-        axtype = {0 : '(no axes)',                   
+        axtype = {0 : '(no axes)',
                   1 : '(three gray grid walls)',
                   2 : '(cartesian axes from origin',
                   3 : '(positive range of cartesian axes from origin',
@@ -361,17 +382,17 @@ def printInfo(obj):
                   5 : '(oriented cube at bottom left)',
                   6 : '(mark the corners of the bounding box)',
                   7 : '(ruler at the bottom of the window)',
-                  8 : '(the vtkCubeAxesActor object)', 
+                  8 : '(the vtkCubeAxesActor object)',
                   9 : '(the bounding box outline)'}
         bns, totpt = [], 0
         for a in obj.actors:
             b = a.GetBounds()
-            if b is not None: 
+            if b is not None:
                 if isinstance(obj, vtk.vtkVolume): # dumps Volume info
                     colors.printc('Volume', invert=1, dim=1, c='b')
-                    colors.printc('      scalar range:', 
+                    colors.printc('      scalar range:',
                                   np.round(obj.GetScalarRange(),4), c='b', bold=0)
-                    bnds = obj.GetBounds()  
+                    bnds = obj.GetBounds()
                     colors.printc('            bounds: ', c='g', bold=1, end='')
                     bx1, bx2 = to_precision(bnds[0], 3), to_precision(bnds[1], 3)
                     colors.printc('x=('+bx1+', '+bx2+')', c='g', bold=0, end='')
@@ -382,7 +403,7 @@ def printInfo(obj):
                 elif isinstance(obj, vtk.vtkActor):
                     totpt += a.GetMapper().GetInput().GetNumberOfPoints()
                 bns.append(b)
-        if len(bns) == 0: 
+        if len(bns) == 0:
             return
         acts = obj.getActors()
         colors.printc('_'*60, c='c', bold=0)
@@ -462,30 +483,20 @@ def isosurface(image, c, alpha, wire, bc, legend, texture,
 
 def triangleFilter(actor, verts=True, lines=True):
     '''
-    Convert actor polygons and strips to triangles. 
+    Convert actor polygons and strips to triangles.
     Returns a new vtkActor.
     '''
     from vtkplotter.actors import Actor
-    
+
     poly = actor.polydata(False)
-    
+
     tf = vtk.vtkTriangleFilter()
     tf.SetPassLines(lines)
     tf.SetPassVerts(verts)
     tf.SetInputData(poly)
-    tf.Update()    
+    tf.Update()
     prop = vtk.vtkProperty()
     prop.DeepCopy(actor.GetProperty())
     tfa = Actor(tf.GetOutput())
     tfa.SetProperty(prop)
     return tfa
-
-    
-    
-    
-    
-    
-    
-    
-    
-    

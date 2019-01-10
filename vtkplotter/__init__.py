@@ -1,19 +1,22 @@
 """
-A python class to easily draw, analyse and animate 3D objects.
+A python class to easily draw, analyse and animate 3D objects. Check out the
+`GitHub repository`_.
 
-![tea1](https://user-images.githubusercontent.com/32848391/46815773-dc919500-cd7b-11e8-8e80-8b83f760a303.png)
+.. image:: https://user-images.githubusercontent.com/32848391/46815773-dc919500-cd7b-11e8-8e80-8b83f760a303.png
+   :alt: tea1
 
-## [**Git website**](https://github.com/marcomusy/vtkplotter) 
+.. _GitHub repository: https://github.com/marcomusy/vtkplotter
+
 """
 
 __author__     = "Marco Musy"
-__license__    = "MIT" 
+__license__    = "MIT"
 __maintainer__ = "M. Musy, G. Dalmasso"
 __email__      = "marco.musy@embl.es"
 __status__     = "dev"
 __website__    = "https://github.com/marcomusy/vtkplotter"
 
-__version__    = "8.7.5" ### defined also in setup.py
+__version__    = "8.7.5" ### defined also in setup.py and docs/source/conf.py
 
 
 # frequently used stuff
@@ -25,7 +28,9 @@ from vtkplotter.actors import Actor, Assembly, ImageActor
 
 from numpy import sin, cos, sqrt, exp, log, dot, cross, array, arange
 
-import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
+def ignore_warnings():
+    """Call to ignore ``FutureWarning``s"""
+    import warnings
+    warnings.simplefilter(action='ignore', category=FutureWarning)
 
-
+ignore_warnings()

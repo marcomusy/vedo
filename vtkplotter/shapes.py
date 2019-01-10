@@ -3,6 +3,38 @@ Submodule to generate basic geometric shapes.
 """
 
 from __future__ import division, print_function
+
+
+__all__ = [
+    'point',
+    'points',
+    '_colorPoints',
+    'line',
+    'tube',
+    'lines',
+    'ribbon',
+    'arrow',
+    'arrows',
+    'polygon',
+    'disc',
+    'sphere',
+    'spheres',
+    'earth',
+    'ellipsoid',
+    'grid',
+    'plane',
+    'box',
+    'cube',
+    'helix',
+    'cylinder',
+    'cone',
+    'ring',
+    'paraboloid',
+    'hyperboloid',
+    'text',
+]
+
+
 import vtk
 import numpy as np
 
@@ -23,7 +55,7 @@ def points(plist, c='k', r=4, alpha=1, legend=None):
 
     c can be a list of [R,G,B] colors of same length as plist
 
-    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lorenz.py)    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lorenz.py)
 
     ![lorenz](https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png)
     '''
@@ -36,10 +68,10 @@ def points(plist, c='k', r=4, alpha=1, legend=None):
     elif n == 2: # assume plist is in the format [all_x, all_y, 0]
         if utils.isSequence(plist[0]) and len(plist[0]) > 3:
             plist = list(zip(plist[0], plist[1], [0]*len(plist[0])))
-            
+
     if utils.isSequence(c) and utils.isSequence(c[0]) and len(c[0])==3:
         return _colorPoints(plist, c, r, alpha, legend)
-    
+
     n = len(plist) # refresh
     src = vtk.vtkPointSource()
     src.SetNumberOfPoints(n)
@@ -56,7 +88,7 @@ def points(plist, c='k', r=4, alpha=1, legend=None):
     return actor
 
 def _colorPoints(plist, cols, r, alpha, legend):
-    n = len(plist) 
+    n = len(plist)
     if n > len(cols):
         colors.printc("Mismatch in colorPoints()", n, len(cols), c=1)
         exit()
@@ -75,7 +107,7 @@ def _colorPoints(plist, cols, r, alpha, legend):
     for i, p in enumerate(plist):
         c = np.array(colors.getColor(cols[i]))*255
         ucols.InsertNextTuple3(c[0], c[1], c[2])
-    #    ucols.DeepCopy(numpy_to_vtk(cols, deep=True, 
+    #    ucols.DeepCopy(numpy_to_vtk(cols, deep=True,
     #        array_type=vtk.vtkUnsignedCharArray().GetDataType()))
     pd.GetPoints().SetData(numpy_to_vtk(plist, deep=True))
     pd.GetPointData().SetScalars(ucols)
@@ -142,7 +174,7 @@ def tube(points, r=1, c='r', alpha=1, legend=None, res=12):
     poly = vtk.vtkPolyData()
     poly.SetPoints(ppoints)
     poly.SetLines(lines)
-        
+
     tuf = vtk.vtkTubeFilter()
     tuf.SetNumberOfSides(res)
     tuf.SetInputData(poly)
@@ -163,7 +195,7 @@ def lines(plist0, plist1=None, lw=1, dotted=False,
     Build the line segments between two lists of points plist0 and plist1.
     plist0 can be also passed in the form [[point1, point2], ...].
 
-    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py)    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py)
     '''
     if plist1 is not None:
         plist0 = list(zip(plist0, plist1))
@@ -190,20 +222,20 @@ def ribbon(line1, line2, c='m', alpha=1, legend=None, res=(200,5)):
         line1 = line1.coordinates()
     if isinstance(line2, Actor):
         line2 = line2.coordinates()
-       
+
     ppoints1 = vtk.vtkPoints()  # Generate the polyline1
     ppoints1.SetData(numpy_to_vtk(line1, deep=True))
-    lines1 = vtk.vtkCellArray() 
+    lines1 = vtk.vtkCellArray()
     lines1.InsertNextCell(len(line1))
     for i in range(len(line1)):
         lines1.InsertCellPoint(i)
     poly1 = vtk.vtkPolyData()
     poly1.SetPoints(ppoints1)
     poly1.SetLines(lines1)
-    
+
     ppoints2 = vtk.vtkPoints()  # Generate the polyline2
     ppoints2.SetData(numpy_to_vtk(line2, deep=True))
-    lines2 = vtk.vtkCellArray()  
+    lines2 = vtk.vtkCellArray()
     lines2.InsertNextCell(len(line2))
     for i in range(len(line2)):
         lines2.InsertCellPoint(i)
@@ -214,7 +246,7 @@ def ribbon(line1, line2, c='m', alpha=1, legend=None, res=(200,5)):
     # build the lines
     lines1 = vtk.vtkCellArray()
     lines1.InsertNextCell(poly1.GetNumberOfPoints())
-    for i in range(poly1.GetNumberOfPoints()): 
+    for i in range(poly1.GetNumberOfPoints()):
         lines1.InsertCellPoint(i)
 
     polygon1 = vtk.vtkPolyData()
@@ -223,13 +255,13 @@ def ribbon(line1, line2, c='m', alpha=1, legend=None, res=(200,5)):
 
     lines2 = vtk.vtkCellArray()
     lines2.InsertNextCell(poly2.GetNumberOfPoints())
-    for i in range(poly2.GetNumberOfPoints()): 
+    for i in range(poly2.GetNumberOfPoints()):
         lines2.InsertCellPoint(i)
 
     polygon2 = vtk.vtkPolyData()
     polygon2.SetPoints(ppoints2)
     polygon2.SetLines(lines2)
-    
+
     mergedPolyData = vtk.vtkAppendPolyData()
     mergedPolyData.AddInputData(polygon1)
     mergedPolyData.AddInputData(polygon2)
@@ -240,8 +272,8 @@ def ribbon(line1, line2, c='m', alpha=1, legend=None, res=(200,5)):
     rsf.SetRuledModeToResample()
     rsf.SetResolution(res[0], res[1])
     rsf.SetInputData(mergedPolyData.GetOutput())
-    rsf.Update()    
-    return Actor(rsf.GetOutput(), c=c, alpha=alpha, legend=legend)  
+    rsf.Update()
+    return Actor(rsf.GetOutput(), c=c, alpha=alpha, legend=legend)
 
 
 def arrow(startPoint, endPoint, c='r', s=None, alpha=1,
@@ -462,7 +494,7 @@ def spheres(centers, r=1,
 
     Either c or r can be a list of RGB colors or radii.
 
-    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/manyspheres.py)    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/manyspheres.py)
     ![manysph](https://user-images.githubusercontent.com/32848391/46818673-1f566b80-cd82-11e8-9a61-be6a56160f1c.png)
     '''
 
@@ -556,9 +588,9 @@ def spheres(centers, r=1,
 
 
 def earth(pos=[0, 0, 0], r=1, lw=1):
-    '''Build a textured actor representing the Earth.        
+    '''Build a textured actor representing the Earth.
 
-    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/earth.py)    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/earth.py)
     '''
     import os
     tss = vtk.vtkTexturedSphereSource()
@@ -637,7 +669,7 @@ def grid(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=1, c='g', bc='darkgreen',
          lw=1, alpha=1, legend=None, resx=10, resy=10):
     '''Return a grid plane.
 
-    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/brownian2D.py)    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/brownian2D.py)
     '''
     ps = vtk.vtkPlaneSource()
     ps.SetResolution(resx, resy)
@@ -673,7 +705,7 @@ def grid(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=1, c='g', bc='darkgreen',
 def plane(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=None, c='g', bc='darkgreen',
           alpha=1, legend=None, texture=None):
     '''
-    Draw a plane of size sx and sy oriented perpendicular to vector normal  
+    Draw a plane of size sx and sy oriented perpendicular to vector normal
     and so that it passes through point pos.
     '''
     if sy is None:
@@ -708,7 +740,7 @@ def box(pos=[0, 0, 0], length=1, width=2, height=3, normal=(0, 0, 1),
         c='g', alpha=1, wire=False, legend=None, texture=None):
     '''Build a box of dimensions x=length, y=width and z=height oriented along vector normal.
 
-    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/spring.py)    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/spring.py)
     '''
     src = vtk.vtkCubeSource()
     src.SetXLength(length)
@@ -740,7 +772,7 @@ def cube(pos=[0, 0, 0], length=1, normal=(0, 0, 1),
          c='g', alpha=1., wire=False, legend=None, texture=None):
     '''Build a cube of dimensions length oriented along vector normal.
 
-    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/texturecubes.py)    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/texturecubes.py)
     '''
     return box(pos, length, length, length, normal, c, alpha, wire, legend, texture)
 
@@ -750,9 +782,9 @@ def helix(startPoint=[0, 0, 0], endPoint=[1, 1, 1], coils=20, r=None,
     '''
     Build a spring of specified nr of coils between startPoint and endPoint.
 
-    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/spring.py)    
-    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
-    [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/multiple_pendulum.py)    
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/spring.py)
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)
+    [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/multiple_pendulum.py)
     '''
     diff = endPoint-np.array(startPoint)
     length = np.linalg.norm(diff)
@@ -800,8 +832,8 @@ def cylinder(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
     If pos is a list of 2 points, e.g. pos=[v1,v2], build a cylinder with base
     centered at v1 and top at v2.
 
-    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)    
-    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/turing.py)    
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/turing.py)
     '''
 
     if utils.isSequence(pos[0]):  # assume user is passing pos=[base, top]
@@ -869,7 +901,7 @@ def ring(pos=[0, 0, 0], r=1, thickness=0.1, axis=[0, 0, 1],
     '''
     Build a torus of specified outer radius r internal radius thickness, centered at pos.
 
-    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gas.py)    
+    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gas.py)
 
     ![gas](https://user-images.githubusercontent.com/32848391/39139206-90d644ca-4721-11e8-95b9-8aceeb3ac742.gif)
     '''
@@ -995,14 +1027,14 @@ def text(txt, pos=(0, 0, 0), normal=(0, 0, 1), s=1, depth=0.1,
         pos = position in 3D space,
               if an integer is passed [1 -> 8], places text in one of the 4 corners
 
-        s = size of text 
+        s = size of text
 
         depth = text thickness
 
         followcam = False, if True the text will auto-orient itself to it.
 
-    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py)    
-    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)    
+    [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py)
+    [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)
     '''
     if isinstance(pos, int):
         cornerAnnotation = vtk.vtkCornerAnnotation()
@@ -1027,7 +1059,7 @@ def text(txt, pos=(0, 0, 0), normal=(0, 0, 1), s=1, depth=0.1,
         ttmapper.SetInputConnection(extrude.GetOutputPort())
     else:
         ttmapper.SetInputConnection(tt.GetOutputPort())
-    if followcam:  
+    if followcam:
         ttactor = vtk.vtkFollower()
         ttactor.SetCamera(cam)
     else:
