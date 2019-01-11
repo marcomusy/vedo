@@ -10,5 +10,3 @@ vp = Plotter(axes=4)
 act = vp.load('data/embryo.tif', c='blue')
 
 vp.addCutterTool(act)
-
-vp.show()

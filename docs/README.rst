@@ -25,9 +25,13 @@ vtkplotter
    :target: https://pypi.org/project/vtkplotter
    :alt: pythvers
 
+.. image:: https://img.shields.io/badge/docs%20by-gendocs-blue.svg
+   :target: https://gendocs.readthedocs.io/en/latest/
+   :alt: Documentation Built by gendocs
 
 A python module to easily draw, analyse and animate 3D objects with `VTK <https://www.vtk.org/>`_
 and `numpy <http://www.numpy.org/>`_.
+
 
 Download and Install:
 ---------------------
@@ -38,14 +42,8 @@ Simply type:
 
    pip install vtkplotter
 
-Documentation
--------------
 
-`Complete module documentation can be found here`_.
-
-.. _Complete module documentation can be found here: https://vtkplotter.embl.es
-
-Get-started example
+Get Started example
 -------------------
 
 
@@ -59,7 +57,7 @@ In your python script, load a simple ``3DS`` file and display it:
     vp.show('data/shapes/flamingo.3ds') # press *Esc* to close and exit or *q* to continue
 
 
-.. image:: https://user-images.githubusercontent.com/32848391/50738813-58af4380-11d8-11e9-84ce-53579c1dba65.png)
+.. image:: https://user-images.githubusercontent.com/32848391/50738813-58af4380-11d8-11e9-84ce-53579c1dba65.png
    :alt: flam
 
 
@@ -145,28 +143,28 @@ Many more examples can be found in directories:
 
 
 Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a
-large cloud of scattered points in space (`advanced/moving_least_squares2D.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py>`_ )
+large cloud of scattered points in space (`moving_least_squares2D.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py>`_ )
 
 .. image:: https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg
    :target: https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg
    :alt: rabbit
 
 
-Simulation of a gyroscope hanging from a spring (\ `advanced/gyroscope1.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py>`_\ )
+Simulation of a gyroscope hanging from a spring (\ `gyroscope1.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py>`_\ )
 
 .. image:: https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif
    :target: https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif
    :alt: gyro
 
 
-Simulation of `Rutherford scattering <https://en.wikipedia.org/wiki/Rutherford_scattering>`_ of charged particles on a fixed target (\ `advanced/particle_simulator.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/particle_simulator.py>`_\ )
+Simulation of `Rutherford scattering <https://en.wikipedia.org/wiki/Rutherford_scattering>`_ of charged particles on a fixed target (\ `particle_simulator.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/particle_simulator.py>`_\ )
 
 .. image:: https://user-images.githubusercontent.com/32848391/43984362-5c545a0e-9d00-11e8-8ce5-572b96bb91d1.gif
    :target: https://user-images.githubusercontent.com/32848391/43984362-5c545a0e-9d00-11e8-8ce5-572b96bb91d1.gif
    :alt: ruth
 
 
-Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. (\ `advanced/tunnelling2.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/tunnelling2.py>`_\ )
+Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. (\ `tunnelling2.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/tunnelling2.py>`_\ )
 
 .. image:: https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif
    :target: https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif
@@ -174,7 +172,7 @@ Quantum-tunnelling effect integrating the Schroedinger equation with 4th order R
 
 
 
-Visualizing a Turing system of reaction-diffusion between two molecules (\ `advanced/turing.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/turing.py>`_\ )
+Visualizing a Turing system of reaction-diffusion between two molecules (\ `turing.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/turing.py>`_\ )
 
 .. image:: https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif
    :target: https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif
@@ -182,14 +180,12 @@ Visualizing a Turing system of reaction-diffusion between two molecules (\ `adva
 
 
 
-
-
 Some useful ``Plotter`` attributes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Remember that you always have full access to all standard VTK native objects
-(e.g. vtkRenderWindowInteractor, vtkRenderer and vtkActor through *vp.interactor,
-vp.renderer, vp.actors*... etc).
+(e.g. `vtkRenderWindowInteractor`, `vtkRenderer` and `vtkActor` through `vp.interactor`,
+`vp.renderer`, `vp.actors`... etc).
 
 .. code-block:: python
 
@@ -202,11 +198,12 @@ vp.renderer, vp.actors*... etc).
    vp.camera       # holds the current vtkCamera
    vp.sharecam     # (True) share the same camera in multiple renderers
 
+
 Some useful additional methods to manage 3D objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 These methods return the Actor(vtkActor) object so that they can be concatenated,
-check out `Actor methods here <https://vtkplotter.embl.es/actors.m.html>`_. :raw-html-m2r:`<br />`
+check out ``Actor`` `methods here <https://vtkplotter.embl.es/actors.m.html>`_. :raw-html-m2r:`<br />`
 (E.g.: ``actor.scale(3).pos([1,2,3]).color('blue').alpha(0.5)`` etc..).
 
 .. code-block:: python
@@ -223,6 +220,7 @@ check out `Actor methods here <https://vtkplotter.embl.es/actors.m.html>`_. :raw
    actor.normals()           # get the list of normals at the vertices of the surface
    actor.clone()             # get a copy of actor
    ...
+
 
 Mesh format conversion
 ^^^^^^^^^^^^^^^^^^^^^^

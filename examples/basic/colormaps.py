@@ -1,23 +1,21 @@
-# ################################################################
-# Example usage of pointColors
-# This method returns a color from a float in the range [0,1]
+# ##################################################################
+# Example usage of pointColors to assign a color to each mesh vertex 
 # by looking it up in matplotlib database of colormaps
-# ################################################################
-from __future__ import division, print_function
+# ##################################################################
 from vtkplotter import Plotter
 
 # these are the available color maps
 mapkeys = ['afmhot', 'binary', 'bone', 'cool', 'coolwarm', 'copper', 
            'gist_earth', 'gray', 'hot', 'jet', 'rainbow', 'winter']
 
-vp = Plotter(N=len(mapkeys), axes=0, verbose=0, interactive=0)
+vp = Plotter(N=len(mapkeys), axes=4)
 
-#load actor and subdivide mesh to increase the nr of vertex points
-# make it invisible:
-pts = vp.load('data/shapes/mug.ply', alpha=0).subdivide().coordinates()
+mug = vp.load('data/shapes/mug.ply')
+scalars = mug.coordinates()[:,1] # let y-coord be the scalar
 
 for i,key in enumerate(mapkeys): # for each available color map name
-    apts = vp.points(pts).pointColors(pts[:,1], cmap=key)    
-    vp.show(apts, at=i, legend=key)
+    imug = mug.clone()
+    imug.pointColors(scalars, cmap=key)    
+    vp.show(imug, at=i, legend=key)
 
 vp.show(interactive=1)

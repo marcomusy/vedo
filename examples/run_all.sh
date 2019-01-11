@@ -20,6 +20,9 @@ python basic/carcrash.py
 echo Running basic/colormaps.py
 python basic/colormaps.py
 
+echo Running basic/buildpolydata.py
+python basic/buildpolydata.py
+
 echo Running basic/delaunay2d.py
 python basic/delaunay2d.py
 

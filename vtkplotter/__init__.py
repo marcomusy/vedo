@@ -16,7 +16,7 @@ __email__      = "marco.musy@embl.es"
 __status__     = "dev"
 __website__    = "https://github.com/marcomusy/vtkplotter"
 
-__version__    = "8.7.5" ### defined also in setup.py and docs/source/conf.py
+__version__    = "8.7.6" ### defined also in setup.py and docs/source/conf.py
 
 
 # frequently used stuff

@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='8.7.5',     # change also in vtkplotter/__init__.py
+    version='8.7.6',     # change also in vtkplotter/__init__.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=['vtk', 'numpy'],
@@ -22,7 +22,12 @@ setup(
                 'Topic :: Scientific/Engineering :: Visualization',
                 'Topic :: Scientific/Engineering :: Physics',
                 'Topic :: Scientific/Engineering :: Medical Science Apps.',
-                'Topic :: Scientific/Engineering :: Information Analysis'],
+                'Topic :: Scientific/Engineering :: Information Analysis',
+                'Programming Language :: Python :: 2.7',
+                'Programming Language :: Python :: 3.5',
+                'Programming Language :: Python :: 3.6',
+                'Programming Language :: Python :: 3.7'
+                ],
     include_package_data=True
 )
 
@@ -50,7 +55,6 @@ setup(
 
 # pip:
 # # https://pypi.org/project/vtkplotter
-# # https://pepy.tech/project/vtkplotter # downloads
 # git:
 # # check status at  https://github.com/marcomusy/vtkplotter
 

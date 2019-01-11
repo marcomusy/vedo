@@ -7,8 +7,6 @@ from __future__ import division, print_function
 
 __all__ = [
     'load',
-    '_loadFile',
-    '_loadDir',
     'loadPolyData',
     'loadXMLData',
     'loadStructuredPoints',
@@ -29,11 +27,6 @@ __all__ = [
     'convertNeutral2Xml',
     'buildPolyData',
     'Button',
-    '_mouseleft',
-    '_mouseright',
-    '_mousemiddle',
-    '_keypress',
-
 ]
 
 
@@ -226,9 +219,9 @@ def loadXMLData(filename):  # not tested
 def loadStructuredPoints(filename):
     '''Load a vtkStructuredPoints object from file and return a vtkActor.
 
-    [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/readStructuredPoints.py)
+    `readStructuredPoints.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/readStructuredPoints.py>`_
 
-    ![atomp2](https://user-images.githubusercontent.com/32848391/48198462-3b393700-e359-11e8-8272-670bd5f2db42.jpg)
+    .. image:: https://user-images.githubusercontent.com/32848391/48198462-3b393700-e359-11e8-8272-670bd5f2db42.jpg
     '''
     reader = vtk.vtkStructuredPointsReader()
     reader.SetFileName(filename)
@@ -585,19 +578,22 @@ def screenshot(renderWin, filename='screenshot.png'):
 
 
 class Video:
+    '''Class to generate a video from the specified rendering window.
+
+    Options:
+
+        name, name of the output file
+
+        fps,  frames per second
+
+        duration, total duration of the video. If given, fps will be recalculated.
+        
+    `makeVideo.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/makeVideo.py>`_
+
+    .. image:: https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg
+    '''
+   
     def __init__(self, renderWindow, name='movie.avi', fps=12, duration=None):
-        '''Class to generate a video from the specified rendering window.
-
-        Options:
-
-            name, name of the output file
-
-            fps,  frames per second
-
-            duration, total duration of the video. If given, fps will be recalculated.
-
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/makeVideo.py)
-        '''
         import glob
         self.renderWindow = renderWindow
         self.name = name
@@ -803,10 +799,16 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
     Build a vtkPolyData object from a list of vertices
     and the connectivity representing the faces of the polygonal mesh.
 
-    E.g. faces=[[0,1,2], [1,2,3], ...],
-         vertices=[[x1,y1,z1],[x2,y2,z2], ...]
+    E.g. :
+        
+        vertices=[[x1,y1,z1],[x2,y2,z2], ...]
+        faces=[[0,1,2], [1,2,3], ...]
 
     Use indexOffset=1 if face numbering starts from 1 instead of 0.
+    
+    `buildpolydata.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buildpolydata.py>`_
+    
+    .. image:: https://user-images.githubusercontent.com/32848391/51032546-bf4dac00-15a0-11e9-9e1e-035fff9c05eb.png
     '''
     sourcePoints = vtk.vtkPoints()
     sourceVertices = vtk.vtkCellArray()
@@ -847,7 +849,11 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
 #############
 class Button:
     '''
-    Build a Button object to be shown in the rendering window
+    Build a Button object to be shown in the rendering window.
+
+    `buttons.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buttons.py>`_
+
+    .. image:: https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg
     '''
 
     def __init__(self, fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle):
@@ -1369,7 +1375,13 @@ def _keypress(vp, obj, event):
             else:
                 fname = 'clipped.vtk'
                 confilter = vtk.vtkPolyDataConnectivityFilter()
-                confilter.SetInputData(vp.clickedActor.polydata(True))
+                if isinstance(vp.clickedActor, vtk.vtkActor):
+                    confilter.SetInputData(vp.clickedActor.GetMapper().GetInput())
+                elif isinstance(vp.clickedActor, vtk.vtkAssembly):
+                    act = vp.clickedActor.getActors()[0]
+                    confilter.SetInputData(act.GetMapper().GetInput())
+                else:
+                    confilter.SetInputData(vp.clickedActor.polydata(True))
                 confilter.SetExtractionModeToLargestRegion()
                 confilter.Update()
                 cpd = vtk.vtkCleanPolyData()

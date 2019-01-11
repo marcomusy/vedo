@@ -29,7 +29,10 @@ from vtkplotter.actors import Assembly, Actor
 def show(obj, axes=1, c=None, alpha=None, wire=False, bc=None,
          zoom=None, viewup='', azimuth=0, elevation=0, roll=0,
          interactive=True):
-
+    '''
+    Create an instance of Plotter and show the object provided.
+    Return the Plotter class instance.
+    '''
     vp = Plotter(axes=axes)
     vp.show(obj, c=c, alpha=alpha, wire=wire, bc=bc, zoom=zoom,
             viewup=viewup, azimuth=azimuth, elevation=elevation, roll=roll,
@@ -72,7 +75,8 @@ class Plotter:
     def __init__(self, shape=(1, 1), N=None, pos=(0, 0),
                  size='auto', screensize='auto', title='',
                  bg=(1, 1, 1), bg2=None, axes=1, infinity=False,
-                 sharecam=True, verbose=True, interactive=None, offscreen=False):
+                 sharecam=True, verbose=True, interactive=None, offscreen=False, 
+                 depthpeeling=False):
         """Main class to manage actors.
 
            Optional args:
@@ -116,8 +120,10 @@ class Plotter:
                sharecam,    if False each renderer will have an independent vtkCamera
 
                interactive, if True will stop after show() to allow interaction w/ window
-
-               offscreen,   if True will not show the rendering window
+                
+               offscreen,   if True will not show the rendering window 
+               
+               depthpeeling, depth-peel volumes along with the translucent geometry
         """
 
         if interactive is None:
@@ -232,6 +238,7 @@ class Plotter:
         for i in reversed(range(shape[0])):
             for j in range(shape[1]):
                 arenderer = vtk.vtkRenderer()
+                arenderer.SetUseDepthPeeling(depthpeeling)
                 if 'jpg' in str(bg).lower() or 'jpeg' in str(bg).lower():
                     if i == 0:
                         jpeg_reader = vtk.vtkJPEGReader()
@@ -503,8 +510,13 @@ class Plotter:
     def Assembly(self, actorlist):
         '''Group many actors as a single new actor.
 
-        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py)
-        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)
+        `icon.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py>`_
+    
+        .. image:: https://user-images.githubusercontent.com/32848391/50739009-2bfc2b80-11da-11e9-9e2e-a5e0e987a91a.jpg
+        
+        `gyroscope2.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope2.py>`_ 
+        
+        .. image:: https://user-images.githubusercontent.com/32848391/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif
         '''
         for a in actorlist:
             while a in self.actors:  # update internal list
@@ -526,7 +538,7 @@ class Plotter:
             showsource, if True, will show a vtk representation
             of the source of light as an extra actor
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lights.py)
+        `lights.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lights.py>`_
         """
         if isinstance(fp, vtk.vtkActor):
             fp = fp.GetPosition()
@@ -562,9 +574,9 @@ class Plotter:
 
         c can be a list of [R,G,B] colors of same length as plist
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lorenz.py)
-
-        ![lorenz](https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png)
+        `lorenz.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lorenz.py>`_
+    
+        .. image:: https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png
         '''
         a = shapes.points(plist, c, r, alpha, legend)
         self.actors.append(a)
@@ -585,9 +597,9 @@ class Plotter:
 
         Either c or r can be a list of RGB colors or radii.
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/manyspheres.py)
-
-        ![manysph](https://user-images.githubusercontent.com/32848391/46818673-1f566b80-cd82-11e8-9a61-be6a56160f1c.png)
+        `manyspheres.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/manyspheres.py>`_
+        
+        .. image:: https://user-images.githubusercontent.com/32848391/46818673-1f566b80-cd82-11e8-9a61-be6a56160f1c.png
         '''
         a = shapes.spheres(centers, r, c, alpha, wire, legend, texture, res)
         self.actors.append(a)
@@ -597,7 +609,9 @@ class Plotter:
     def earth(self, pos=[0, 0, 0], r=1, lw=1):
         '''Build a textured actor representing the Earth.
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/earth.py)
+        `earth.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/earth.py>`_
+        
+        .. image:: https://user-images.githubusercontent.com/32848391/51031592-5a448700-159d-11e9-9b66-bee6abb18679.png
         '''
         a = shapes.earth(pos, r, lw)
         self.actors.append(a)
@@ -626,7 +640,7 @@ class Plotter:
         '''Build the line segments between two lists of points plist0 and plist1.
            plist0 can be also passed in the format [[point1, point2], ...]
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py)
+        `fitspheres2.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py>`_
         '''
         a = shapes.lines(plist0, plist1, lw, dotted, c, alpha, legend)
         self.actors.append(a)
@@ -634,9 +648,11 @@ class Plotter:
 
 
     def ribbon(self, line1, line2, c='m', alpha=1, legend=None, res=(200,5)):
-        '''Build a ribbon connecting two lines.
+        '''Connect two lines to generate the surface inbetween.
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/ribbon.py)
+        `ribbon.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/ribbon.py>`_
+
+        .. image:: https://user-images.githubusercontent.com/32848391/50738851-be9bcb00-11d8-11e9-80ee-bd73c1c29c06.jpg
         '''
         a = shapes.ribbon(line1, line2, c, alpha, legend, res)
         self.actors.append(a)
@@ -670,7 +686,9 @@ class Plotter:
         '''Draw a grid of size sx and sy oriented perpendicular to vector normal
         so that it passes through point pos.
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/brownian2D.py)
+        `brownian2D.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/brownian2D.py>`_
+    
+        .. image:: https://user-images.githubusercontent.com/32848391/50738948-73ce8300-11d9-11e9-8ef6-fc4f64c4a9ce.gif
         '''
         a = shapes.grid(pos, normal, sx, sy, c, bc, lw, alpha, legend, resx, resy)
         self.actors.append(a)
@@ -682,8 +700,6 @@ class Plotter:
         '''
         Draw a plane of size sx and sy oriented perpendicular to vector normal
         and so that it passes through point pos.
-
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/carcrash.py)
         '''
         a = shapes.plane(pos, normal, sx, sy, c, bc, alpha, legend, texture)
         self.actors.append(a)
@@ -716,7 +732,9 @@ class Plotter:
             c='g', alpha=1, wire=False, legend=None, texture=None):
         '''Build a box of dimensions x=length, y=width and z=height oriented along vector normal.
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/spring.py)
+        `aspring.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/aspring.py>`_
+    
+        .. image:: https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif
         '''
         a = shapes.box(pos, length, width, height, normal, c, alpha, wire, legend, texture)
         self.actors.append(a)
@@ -726,7 +744,9 @@ class Plotter:
              c='g', alpha=1., wire=False, legend=None, texture=None):
         '''Build a cube of dimensions length oriented along vector normal.
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/texturecubes.py)
+        `colorcubes.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py>`_
+        
+        .. image:: https://user-images.githubusercontent.com/32848391/50738867-c0658e80-11d8-11e9-9e05-ac69b546b7ec.png
         '''
         a = self.box(pos, length, length, length, normal, c, alpha, wire, legend, texture)
         self.actors.append(a)
@@ -738,9 +758,9 @@ class Plotter:
         '''
         Build a spring actor of specified nr of coils between startPoint and endPoint.
 
-        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/spring.py)
-        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)
-        [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/multiple_pendulum.py)
+        `aspring.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/aspring.py>`_
+    
+        .. image:: https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif
         '''
         a = shapes.helix(startPoint, endPoint, coils, r, thickness, c, alpha, legend, texture)
         self.actors.append(a)
@@ -754,9 +774,6 @@ class Plotter:
 
         If pos is a list of 2 points, e.g. pos=[v1,v2], build a cylinder with base
         centered at v1 and top at v2.
-
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/turing.py)
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)
         '''
         a = shapes.cylinder(pos, r, height, axis, c, wire, alpha, legend, texture, res)
         self.actors.append(a)
@@ -796,8 +813,6 @@ class Plotter:
                 c='dg', alpha=1, legend=None, texture=None):
         '''
         Build a pyramid of specified base size s and height, centered at pos.
-
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope2.py)
         '''
         a = self.cone(pos, s, height, axis, c, alpha, legend, texture, 4)
         self.actors.append(a)
@@ -809,9 +824,9 @@ class Plotter:
         '''
         Build a torus of specified outer radius r internal radius thickness, centered at pos.
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gas.py)
-
-        ![gas](https://user-images.githubusercontent.com/32848391/39139206-90d644ca-4721-11e8-95b9-8aceeb3ac742.gif)
+        `gas.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gas.py>`_
+        
+        .. image:: https://user-images.githubusercontent.com/32848391/50738954-7e891800-11d9-11e9-95aa-67c92ca6476b.gif
         '''
         a = shapes.ring(pos, r, thickness, axis, c, alpha, wire, legend, texture, res)
         self.actors.append(a)
@@ -844,9 +859,9 @@ class Plotter:
 
             nodes = True, show also the input points
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)
+        `tutorial.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py>`_
 
-        ![rspline](https://user-images.githubusercontent.com/32848391/35976041-15781de8-0cdf-11e8-997f-aeb725bc33cc.png)
+        .. image:: https://user-images.githubusercontent.com/32848391/35976041-15781de8-0cdf-11e8-997f-aeb725bc33cc.png
         '''
         a = analysis.spline(points, smooth, degree, s, c, alpha, nodes, legend, res)
         self.actors.append(a)
@@ -869,8 +884,9 @@ class Plotter:
 
             followcam = False, if True the text will auto-orient itself to it.
 
-        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py)
-        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)
+        `colorcubes.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py>`_
+        
+        .. image:: https://user-images.githubusercontent.com/32848391/50738867-c0658e80-11d8-11e9-9e05-ac69b546b7ec.png
         '''
         a = shapes.text(txt, pos, normal, s, depth, c, alpha, bc,
                         texture, followcam, cam=self.camera)
@@ -889,7 +905,7 @@ class Plotter:
             3 -> bottomleft,
             4 -> bottomright.
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)
+        `tutorial.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py>`_
         """
         a = analysis.xyplot(points, title, c, corner, lines)
         self.actors.append(a)
@@ -908,8 +924,7 @@ class Plotter:
             3 -> bottomleft,
             4 -> bottomright.
 
-        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitplanes.py)
-        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres1.py)
+        `fitplanes.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitplanes.py>`_
         '''
         fs, edges = numpy.histogram(values, bins=bins, range=vrange)
         pts = []
@@ -920,14 +935,18 @@ class Plotter:
 
     def histogram2D(self, xvalues, yvalues, bins=12, norm=1, c='g', alpha=1, fill=False):
         '''
-        Build a 2D hexagonal histogram from a list of  x and y values.
-
+        Build a 2D hexagonal histogram from a list of x and y values.
+    
         bins, nr of bins for the smaller range in x or y
-
+    
         norm, sets a scaling factor for the z axis
-
+    
         fill, draw solid hexagons
-        '''
+        
+        `histo2D.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/histo2D.py>`_    
+    
+        .. image:: https://user-images.githubusercontent.com/32848391/50738861-bfccf800-11d8-11e9-9698-c0b9dccdba4d.jpg    
+        '''   
         a = analysis.histogram2D(xvalues, yvalues, bins, norm, c, alpha, fill)
         self.actors.append(a)
         return a
@@ -940,20 +959,20 @@ class Plotter:
         Build a surface representing the 3D function specified as a string
         or as a reference to an external function.
         Red points indicate where the function does not exist (showNan).
-
+    
         zlevels will draw the specified number of z-levels contour lines.
-
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fxy.py)
-
-        ![fxy](https://user-images.githubusercontent.com/32848391/36611824-fd524fac-18d4-11e8-8c76-d3d1b1bb3954.png)
+    
+        `fxy.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fxy.py>`_
+    
+        .. image:: https://user-images.githubusercontent.com/32848391/36611824-fd524fac-18d4-11e8-8c76-d3d1b1bb3954.png
         '''
         a = analysis.fxy(z, x, y, zlimits, showNan, zlevels,
                          wire, c, bc, alpha, legend, texture, res)
         self.actors.append(a)
         return a
 
-    #################
 
+    #################
     def cutPlane(self, actor, origin=(0, 0, 0), normal=(1, 0, 0), showcut=False):
         '''
         Takes actor and cuts it with the plane defined by a point and a normal.
@@ -961,8 +980,9 @@ class Plotter:
 
             showcut  = shows the cut away part as thin wireframe
 
-        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py)
-        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/trail.py)
+        `trail.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/trail.py>`_
+
+        .. image:: https://user-images.githubusercontent.com/32848391/46815773-dc919500-cd7b-11e8-8e80-8b83f760a303.png
         '''
         cactor = actor.cutPlane(origin, normal, showcut)
         try:
@@ -978,9 +998,11 @@ class Plotter:
 
         If actor is None will add it to the last actor in self.actors
 
-        [**Example1**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/boolean.py)
-        [**Example2**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)
-        [**Example3**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py)
+        .. _boolean.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/boolean.py
+        
+        .. image:: https://user-images.githubusercontent.com/32848391/50738871-c0fe2500-11d8-11e9-8812-442b69be6db9.png
+
+        `mesh_coloring.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py>`_
         """
 
         if actor is None:
@@ -1045,7 +1067,9 @@ class Plotter:
             a vtkActor containing a set of scalars associated to vertices or cells,
             if None the last actor in the list of actors will be used.
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)
+        `mesh_coloring.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py>`_
+
+        .. image:: https://user-images.githubusercontent.com/32848391/46818965-c509da80-cd82-11e8-91fd-4c686da4a761.png
         '''
         from vtk.util.numpy_support import vtk_to_numpy
         gap = 0.4
@@ -1123,7 +1147,9 @@ class Plotter:
 
             showValue, if true current value is shown
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/sliders.py)
+        `sliders.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/sliders.py>`_
+
+        .. image:: https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg
         '''
         if c is None:  # automatic black or white
             c = (0.9, 0.9, 0.9)
@@ -1248,12 +1274,12 @@ class Plotter:
 
             angle,  anticlockwise rotation in degrees
 
+        `buttons.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buttons.py>`_
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buttons.py)
+        .. image:: https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg
         '''
         if not self.renderer:
-            colors.printc(
-                'Error: Use addButton() after rendering the scene.', c=1)
+            colors.printc('Error: Use addButton() after rendering the scene.', c=1)
             return
         bu = vtkio.Button(fnc, states, c, bc, pos, size,
                           font, bold, italic, alpha, angle)
@@ -1265,7 +1291,9 @@ class Plotter:
     def addCutterTool(self, actor):
         '''Create handles to cut away parts of a mesh.
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/cutter.py)
+        `cutter.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/cutter.py>`_
+
+        .. image:: https://user-images.githubusercontent.com/32848391/50738866-c0658e80-11d8-11e9-955b-551d4d8b0db5.jpg
         '''
         if not isinstance(actor, vtk.vtkActor):
             return None
@@ -1334,6 +1362,7 @@ class Plotter:
 
         self.widgets.append(boxWidget)
         return act0
+    
 
     def addIcon(self, iconActor, pos=3, size=0.08):
         '''
@@ -1346,7 +1375,9 @@ class Plotter:
 
             size, size of the square inset.
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py)
+        `icon.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py>`_
+    
+        .. image:: https://user-images.githubusercontent.com/32848391/50739009-2bfc2b80-11da-11e9-9e2e-a5e0e987a91a.jpg
         '''
         if not self.renderer:
             colors.printc(
@@ -2093,7 +2124,9 @@ class Plotter:
     def openVideo(self, name='movie.avi', fps=12, duration=None):
         '''Open a video file.
 
-        [**Example**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/makeVideo.py)
+        `makeVideo.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/makeVideo.py>`_
+    
+        .. image:: https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg
         '''
         return vtkio.Video(self.renderWin, name, fps, duration)
 

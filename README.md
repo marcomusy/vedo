@@ -3,8 +3,9 @@
 [![Downloads](https://pepy.tech/badge/vtkplotter/week)](https://pepy.tech/project/vtkplotter)
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![pythvers](https://img.shields.io/badge/python-2.7%7C3.6-brightgreen.svg)](https://pypi.org/project/vtkplotter)
+[![gdocs](https://img.shields.io/badge/docs%20by-gendocs-blue.svg)](https://gendocs.readthedocs.io/en/latest)
 
-A python module to easily draw, analyse and animate 3D objects with [VTK](https://www.vtk.org/) 
+A python module to easily draw, analyse and animate 3D objects and point clouds with [VTK](https://www.vtk.org/) 
 and [numpy](http://www.numpy.org/).
 
 
@@ -15,7 +16,9 @@ pip install vtkplotter
 ```
 
 ## Documentation
-Complete module documentation can be found [**here**](https://vtkplotter.embl.es).
+Automatically generated documentation can be found [**here**](https://vtkplotter.embl.es).
+(thanks to [gendocs](https://gendocs.readthedocs.io/en/latest)  
+package by [B. Sullivan](https://github.com/banesullivan>))
 <br />
 <br />
 
