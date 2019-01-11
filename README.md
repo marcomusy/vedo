@@ -17,8 +17,7 @@ pip install vtkplotter
 
 ## Documentation
 Automatically generated documentation can be found [**here**](https://vtkplotter.embl.es).
-(thanks to [gendocs](https://gendocs.readthedocs.io/en/latest)  
-package by [B. Sullivan](https://github.com/banesullivan>))
+(thanks to [gendocs](https://gendocs.readthedocs.io/en/latest) package by [B. Sullivan](https://github.com/banesullivan>))
 <br />
 <br />
 
