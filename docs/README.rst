@@ -42,6 +42,7 @@ Simply type:
 
    pip install vtkplotter
 
+Check out the **Git repository** here: https://github.com/marcomusy/vtkplotter
 
 Get Started example
 -------------------
@@ -105,10 +106,11 @@ Command-line usage
 .. code-block:: bash
 
     vtkplotter meshfile.vtk
-    # other valid formats: [vtu,vts,vtp,ply,obj,stl,xml,neutral,gmsh,pcd,xyz,txt,byu,tif,slc,vti,png,jpg]
+    # other valid formats: 
+    # [vtu,vts,vtp,ply,obj,stl,xml,neutral,gmsh,pcd,xyz,txt,byu,tif,slc,vti,png,jpg]
 
 to visualize multiple files or files time-sequences try ``-n`` or ``-s`` options. Try ``-h`` for help.\ :raw-html-m2r:`<br>`
-Voxel-data (vti, slc, tiff) files can also be visualized with options ``-g`` and ``--slicer``\ ,
+Voxel-data (vti, slc, tiff) files can also be visualized with options ``-g`` and ``--slicer``,
 e.g.:
 
 .. code-block:: bash
@@ -138,33 +140,39 @@ Many more examples can be found in directories:
 
 - `examples/basic <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic>`_ ,
 - `examples/advanced <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced>`_ ,
-- `examples/volumetric <https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric>`_
+- `examples/volumetric <https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric>`_,
 - `examples/others <https://github.com/marcomusy/vtkplotter/blob/master/examples/other>`_.
 
 
 Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a
-large cloud of scattered points in space (`moving_least_squares2D.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py>`_ )
+large cloud of scattered points in space 
+(`moving_least_squares2D.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg
    :target: https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg
    :alt: rabbit
 
 
-Simulation of a gyroscope hanging from a spring (\ `gyroscope1.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py>`_\ )
+Simulation of a gyroscope hanging from a spring 
+(`gyroscope1.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif
    :target: https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif
    :alt: gyro
 
 
-Simulation of `Rutherford scattering <https://en.wikipedia.org/wiki/Rutherford_scattering>`_ of charged particles on a fixed target (\ `particle_simulator.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/particle_simulator.py>`_\ )
+Simulation of `Rutherford scattering <https://en.wikipedia.org/wiki/Rutherford_scattering>`_ 
+of charged particles on a fixed target 
+(`particle_simulator.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/particle_simulator.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/43984362-5c545a0e-9d00-11e8-8ce5-572b96bb91d1.gif
    :target: https://user-images.githubusercontent.com/32848391/43984362-5c545a0e-9d00-11e8-8ce5-572b96bb91d1.gif
    :alt: ruth
 
 
-Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. (\ `tunnelling2.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/tunnelling2.py>`_\ )
+Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. 
+The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier
+(`tunnelling2.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/tunnelling2.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif
    :target: https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif
@@ -172,7 +180,8 @@ Quantum-tunnelling effect integrating the Schroedinger equation with 4th order R
 
 
 
-Visualizing a Turing system of reaction-diffusion between two molecules (\ `turing.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/turing.py>`_\ )
+Visualizing a Turing system of reaction-diffusion between two molecules
+(`turing.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/turing.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif
    :target: https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif
@@ -202,9 +211,9 @@ Remember that you always have full access to all standard VTK native objects
 Some useful additional methods to manage 3D objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-These methods return the Actor(vtkActor) object so that they can be concatenated,
+These methods return the ``Actor(vtkActor)`` object so that they can be concatenated,
 check out ``Actor`` `methods here <https://vtkplotter.embl.es/actors.m.html>`_. :raw-html-m2r:`<br />`
-(E.g.: ``actor.scale(3).pos([1,2,3]).color('blue').alpha(0.5)`` etc..).
+(E.g.: `actor.scale(3).pos([1,2,3]).color('blue').alpha(0.5)` etc..).
 
 .. code-block:: python
 

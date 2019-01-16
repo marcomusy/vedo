@@ -70,17 +70,18 @@ vp.show()
 ```python
 # Draw a bunch of simple objects on separate parts of the rendering window:
 # split window automatically to best accomodate 9 renderers
+from vtkplotter.shapes import *
 vp = Plotter(N=9, title='basic shapes', axes=0) # split window in 9 frames
 vp.sharecam = False                             # each object can be moved independently
-vp.show(at=0, actors=vp.arrow([0,0,0],[1,1,1]),    legend='arrow' )
-vp.show(at=1, actors=vp.line([0,0,0],[1,1,1]),     legend='line' )
-vp.show(at=2, actors=vp.points([[0,0,0],[1,1,1]]), legend='points' )
-vp.show(at=3, actors=vp.text('Hello!') )
-vp.show(at=4, actors=vp.sphere() )
-vp.show(at=5, actors=vp.cube(),     legend='cube')
-vp.show(at=6, actors=vp.ring(),     legend='ring')
-vp.show(at=7, actors=vp.helix(),    legend='helix')
-vp.show(at=8, actors=vp.cylinder(), legend='cylinder', interactive=1)
+vp.show(at=0, actors=arrow([0,0,0],[1,1,1]),    legend='arrow' )
+vp.show(at=1, actors=line([0,0,0],[1,1,1]),     legend='line' )
+vp.show(at=2, actors=points([[0,0,0],[1,1,1]]), legend='points' )
+vp.show(at=3, actors=text('Hello!') )
+vp.show(at=4, actors=sphere() )
+vp.show(at=5, actors=cube(),     legend='cube')
+vp.show(at=6, actors=torus(),    legend='torus')
+vp.show(at=7, actors=helix(),    legend='helix')
+vp.show(at=8, actors=cylinder(), legend='cylinder', interactive=1)
 ```
 ![tut6](https://user-images.githubusercontent.com/32848391/50738976-d889dd80-11d9-11e9-8b13-9bc3436956ac.jpg)
 

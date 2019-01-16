@@ -52,19 +52,17 @@ def spline(points, smooth=0.5, degree=2,
     '''
     Return a vtkActor for a spline that doesnt necessarly pass exactly throught all points.
 
-    Options:
-
-        smooth, smoothing factor:
-                0 = interpolate points exactly,
-                1 = average point positions
-
-        degree = degree of the spline (1<degree<5)
-
-        nodes = True shows also original the points
+    :param smooth: smoothing factor
+    
+                    0 = interpolate points exactly,
+    
+                    1 = average point positions
+    :param degree: degree of the spline (1<degree<5)
+    :param nodes: if `True`, show also the input points.
 
     `tutorial.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py>`_
 
-    .. image:: https://user-images.githubusercontent.com/32848391/50738978-d889dd80-11d9-11e9-90f1-485dc8212760.jpg
+    .. image:: https://user-images.githubusercontent.com/32848391/35976041-15781de8-0cdf-11e8-997f-aeb725bc33cc.png
     '''
     try:
         from scipy.interpolate import splprep, splev
@@ -148,15 +146,11 @@ def xyplot(points, title='', c='b', corner=1, lines=False):
     """
     Return a vtkActor that is a plot of 2D points in x and y.
 
-    Use corner to assign its position:
-
-        1=topleft,
-
-        2=topright,
-
-        3=bottomleft,
-
-        4=bottomright.
+    Use `corner` to assign its position:            
+        - 1 -> topleft,
+        - 2 -> topright,
+        - 3 -> bottomleft,
+        - 4 -> bottomright.
 
     `tutorial.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py>`_
     """
@@ -217,11 +211,15 @@ def fxy(z='sin(3*x)*log(x-y)/3', x=[0, 3], y=[0, 3],
         zlimits=[None, None], showNan=True, zlevels=10, wire=False,
         c='b', bc='aqua', alpha=1, legend=True, texture=None, res=100):
     '''
-    Build a surface representing the 3D function specified as a string
+    Build a surface representing the function f(x,y) specified as a string
     or as a reference to an external function.
-    Red points indicate where the function does not exist (showNan).
 
-    zlevels will draw the specified number of z-levels contour lines.
+    :param x: x range of values.
+    :param y: y range of values.
+    :param zlimits: limit the z range of the independent variable.
+    :param zlevels: will draw the specified number of z-levels contour lines.
+    :param showNan: show where the function does not exist as red points.
+    :param wire: show surface as wireframe.
 
     `fxy.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fxy.py>`_
 
@@ -337,11 +335,9 @@ def histogram2D(xvalues, yvalues, bins=12, norm=1, c='g', alpha=1, fill=False):
     '''
     Build a 2D hexagonal histogram from a list of x and y values.
 
-    bins, nr of bins for the smaller range in x or y
-
-    norm, sets a scaling factor for the z axis
-
-    fill, draw solid hexagons
+    :param bins: nr of bins for the smaller range in x or y.
+    :param norm: sets a scaling factor for the z axis.
+    :param fill: draw solid hexagons.
     
     `histo2D.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/histo2D.py>`_    
 
@@ -668,7 +664,7 @@ def fitPlane(points, c='g', bc='darkgreen', alpha=0.8, legend=None):
     '''
     Fits a plane to a set of points.
 
-    Extra info is stored in actor.normal, actor.center, actor.variance
+    Extra info is stored in `actor.normal, actor.center, actor.variance`
 
     `fitline.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitline.py>`_
     
@@ -692,7 +688,7 @@ def fitSphere(coords, c='r', alpha=1, wire=1, legend=None):
     '''
     Fits a sphere to a set of points.
 
-    Extra info is stored in actor.radius, actor.center, actor.residue
+    Extra info is stored in `actor.radius, actor.center, actor.residue`
 
     `fitspheres1.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres1.py>`_
     
@@ -731,10 +727,10 @@ def pca(points, pvalue=.95, c='c', alpha=0.5, pcaAxes=False, legend=None):
     '''
     Show the oriented PCA ellipsoid that contains fraction pvalue of points.
 
-    axes = True, show the 3 PCA semi axes
+    :param pcaAxes: if `True`, show the 3 PCA semi axes.
 
-    Extra info is stored in actor.sphericity, actor.va, actor.vb, actor.vc
-    (sphericity = 1 for a perfect sphere)
+    Extra info is stored in `actor.sphericity, actor.va, actor.vb, actor.vc`
+    (sphericity is equal to 1 for a perfect sphere)
 
     `tutorial.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py>`_
     
@@ -926,18 +922,13 @@ def smoothMLS3D(actors, neighbours=10):
 def smoothMLS2D(actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
     '''
     Smooth actor or points with a Moving Least Squares variant.
-    The list actor.variances contain the residue calculated for each point.
+    The list `actor.variances` contain the residue calculated for each point.
     Input actor's polydata is modified.
 
-    Options:
-
-        f, smoothing factor - typical range s [0,2]
-
-        decimate, decimation factor (an integer number)
-
-        recursive, move points while algorithm proceedes
-
-        showNPlanes, build an actor showing the fitting plane for N random points
+    :param f: smoothing factor - typical range is [0,2].
+    :param decimate: decimation factor (an integer number).
+    :param recursive: move points while algorithm proceedes.
+    :param showNPlanes: build an actor showing the fitting plane for N random points.
 
     `mesh_smoothers.py`_
     
@@ -1029,11 +1020,9 @@ def smoothMLS1D(actor, f=0.2, showNLines=0):
     The list actor.variances contain the residue calculated for each point.
     Input actor's polydata is modified.
 
-    Options:
+    :param f: smoothing factor - typical range is [0,2].
 
-        f, smoothing factor - typical range is [0,2]
-
-        showNLines, build an actor showing the fitting line for N random points
+    :param showNLines: build an actor showing the fitting line for N random points.
 
     `moving_least_squares1D.py`_
     
@@ -1322,8 +1311,7 @@ def imageOperation(image1, operation='+', image2=None):
     return mat.GetOutput()
 
 
-def recoSurface(points, bins=256,
-                c='gold', alpha=1, wire=False, bc='t', legend=None):
+def recoSurface(points, bins=256, c='gold', alpha=1, wire=False, bc='t', legend=None):
     '''
     Surface reconstruction from sparse points.
 

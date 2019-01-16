@@ -38,10 +38,7 @@ copyright = '2019, M. Musy & G. Dalmasso'
 author = 'Marco Musy'
 
 # The short X.Y version
-version = '8.7.5'
-# The full version, including alpha/beta/rc tags
-# release = '8.7.5'
-
+version = '8.7.7'
 
 # -- General configuration ---------------------------------------------------
 

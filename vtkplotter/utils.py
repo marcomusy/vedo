@@ -17,11 +17,10 @@ __all__ = [
     'pointIsInTriangle',
     'pointToLineDistance',
     'isIdentity',
-    'grepTag',
+    'grep',
     'printInfo',
     'isosurface',
     'triangleFilter',
-    'DummyClass1',
 ]
 
 
@@ -29,132 +28,6 @@ import os
 import vtk
 import numpy as np
 import vtkplotter.colors as colors
-
-
-
-
-class DummyClass1(object):
-    """This class docstring shows how to use sphinx and rst syntax
-
-    The first line is brief explanation, which may be completed with 
-    a longer one. For instance to discuss about its methods. The only
-    method here is :func:`function1`'s. The main idea is to document
-    the class and methods's arguments with 
-
-    - **parameters**, **types**, **return** and **return types**::
-
-          :param arg1: description
-          :param arg2: description
-          :type arg1: type description
-          :type arg1: type description
-          :return: return description
-          :rtype: the return type description
-
-    - and to provide sections such as **Example** using the double commas syntax::
-
-          :Example:
-
-          followed by a blank line !
-
-      which appears as follow:
-
-      :Example:
-
-      followed by a blank line
-
-    - Finally special sections such as **See Also**, **Warnings**, **Notes**
-      use the sphinx syntax (*paragraph directives*)::
-
-          .. seealso:: blabla
-          .. warnings also:: blabla
-          .. note:: blabla
-          .. todo:: blabla
-
-    .. note::
-        There are many other Info fields but they may be redundant:
-            * param, parameter, arg, argument, key, keyword: Description of a
-              parameter.
-            * type: Type of a parameter.
-            * raises, raise, except, exception: That (and when) a specific
-              exception is raised.
-            * var, ivar, cvar: Description of a variable.
-            * returns, return: Description of the return value.
-            * rtype: Return type.
-
-    .. note::
-        There are many other directives such as versionadded, versionchanged,
-        rubric, centered, ... See the sphinx documentation for more details.
-
-    Here below is the results of the :func:`function1` docstring.
-
-    """
-
-    def function1(self, arg1, arg2, arg3):
-        """returns (arg1 / arg2) + arg3
-
-        This is a longer explanation, which may include math with latex syntax
-        :math:`\\alpha`.
-        Then, you need to provide optional subsection in this order (just to be
-        consistent and have a uniform documentation. Nothing prevent you to
-        switch the order):
-
-          - parameters using ``:param <name>: <description>``
-          - type of the parameters ``:type <name>: <description>``
-          - returns using ``:returns: <description>``
-          - examples (doctest)
-          - seealso using ``.. seealso:: text``
-          - notes using ``.. note:: text``
-          - warning using ``.. warning:: text``
-          - todo ``.. todo:: text``
-
-        **Advantages**:
-         - Uses sphinx markups, which will certainly be improved in future
-           version
-         - Nice HTML output with the See Also, Note, Warnings directives
-
-
-        **Drawbacks**:
-         - Just looking at the docstring, the parameter, type and  return
-           sections do not appear nicely
-
-        :param arg1: the first value
-        :param arg2: the first value
-        :param arg3: the first value
-        :type arg1: int, float,...
-        :type arg2: int, float,...
-        :type arg3: int, float,...
-        :returns: arg1/arg2 +arg3
-        :rtype: int, float
-
-        :Example:
-
-        >>> import template
-        >>> a = template.MainClass1()
-        >>> a.function1(1,1,1)
-        2
-
-        .. note:: can be useful to emphasize
-            important feature
-        .. seealso:: :class:`MainClass2`
-        .. warning:: arg2 must be non-zero.
-        .. todo:: check that arg2 is non zero.
-        """
-        return arg1/arg2 + arg3
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ##############################################################################
@@ -230,12 +103,11 @@ def norm(v):
 
 def to_precision(x, p):
     """
-    Returns a string representation of x formatted with precision p.
+    Returns a string representation of `x` formatted with precision `p`.
 
-    *Based on the webkit javascript implementation taken from here:
-    https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/
-    kjs/number_object.cpp.
-    Implemented in https://github.com/randlet/to-precision*
+    Based on the webkit javascript implementation taken 
+    `from here <https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/kjs/number_object.cpp>`_,
+    and implemented by `randlet <https://github.com/randlet/to-precision>`_.
     """
     import math
     x = float(x)
@@ -309,7 +181,7 @@ def pointIsInTriangle(p, p1, p2, p3):
 
 
 def pointToLineDistance(p, p1, p2):
-    '''Compute the distance of a point to a line (not the segment) defined by p1 and p2.'''
+    '''Compute the distance of a point to a line (not the segment) defined by `p1` and `p2`.'''
     d = np.sqrt(vtk.vtkLine.DistanceToLine(p, p1, p2))
     return d
 
@@ -327,8 +199,8 @@ def isIdentity(M, tol=1e-06):
     return True
 
 
-def grepTag(filename, tag, firstOccurrence=False):
-    '''Greps the line that starts with a specific tag string from inside a file.'''
+def grep(filename, tag, firstOccurrence=False):
+    '''Greps the line that starts with a specific `tag` string from inside a file.'''
     import re
     try:
         afile = open(filename, "r")
@@ -351,7 +223,7 @@ def grepTag(filename, tag, firstOccurrence=False):
 
 
 def printInfo(obj):
-    '''Print information about a vtkActor or vtkAssembly.'''
+    '''Print information about a vtk object.'''
 
     def printvtkactor(actor, tab=''):
         if hasattr(actor, 'polydata'):
@@ -378,7 +250,7 @@ def printInfo(obj):
         else:
             print()
 
-        if hasattr(actor, 'filename'):
+        if hasattr(actor, 'filename') and actor.filename:
             colors.printc(tab+'           file: ', c='g', bold=1, end='')
             colors.printc(actor.filename, c='g', bold=0)
 
@@ -516,20 +388,8 @@ def printInfo(obj):
         bns, totpt = [], 0
         for a in obj.actors:
             b = a.GetBounds()
-            if b is not None:
-                if isinstance(obj, vtk.vtkVolume): # dumps Volume info
-                    colors.printc('Volume', invert=1, dim=1, c='b')
-                    colors.printc('      scalar range:',
-                                  np.round(obj.GetScalarRange(),4), c='b', bold=0)
-                    bnds = obj.GetBounds()
-                    colors.printc('            bounds: ', c='g', bold=1, end='')
-                    bx1, bx2 = to_precision(bnds[0], 3), to_precision(bnds[1], 3)
-                    colors.printc('x=('+bx1+', '+bx2+')', c='g', bold=0, end='')
-                    by1, by2 = to_precision(bnds[2], 3), to_precision(bnds[3], 3)
-                    colors.printc(' y=('+by1+', '+by2+')', c='g', bold=0, end='')
-                    bz1, bz2 = to_precision(bnds[4], 3), to_precision(bnds[5], 3)
-                    colors.printc(' z=('+bz1+', '+bz2+')', c='g', bold=0)
-                elif isinstance(obj, vtk.vtkActor):
+            if a.GetBounds() is not None:
+                if isinstance(a, vtk.vtkActor):
                     totpt += a.GetMapper().GetInput().GetNumberOfPoints()
                 bns.append(b)
         if len(bns) == 0:
@@ -554,7 +414,25 @@ def printInfo(obj):
         bz1, bz2 = to_precision(min_bns[4], 3), to_precision(max_bns[5], 3)
         colors.printc(' z=('+bz1+', '+bz2+')', c='c', bold=0)
         colors.printc('       axes type:', obj.axes, axtype[obj.axes], bold=0, c='c')
-        colors.printc(' click actor and press i for more info.', c='c')
+
+        for a in obj.actors:
+            if a.GetBounds() is not None:
+                if isinstance(a, vtk.vtkVolume): # dumps Volume info
+                    img = a.GetMapper ().GetDataSetInput ()
+                    colors.printc('_'*60, c='b', bold=0)
+                    colors.printc('Volume', invert=1, dim=1, c='b')
+                    colors.printc('      scalar range:',
+                                  np.round(img.GetScalarRange(),4), c='b', bold=0)
+                    bnds = a.GetBounds()
+                    colors.printc('            bounds: ', c='b', bold=0, end='')
+                    bx1, bx2 = to_precision(bnds[0], 3), to_precision(bnds[1], 3)
+                    colors.printc('x=('+bx1+', '+bx2+')', c='b', bold=0, end='')
+                    by1, by2 = to_precision(bnds[2], 3), to_precision(bnds[3], 3)
+                    colors.printc(' y=('+by1+', '+by2+')', c='b', bold=0, end='')
+                    bz1, bz2 = to_precision(bnds[4], 3), to_precision(bnds[5], 3)
+                    colors.printc(' z=('+bz1+', '+bz2+')', c='b', bold=0)
+
+        colors.printc(' Click actor and press i for Actor info.', c='c')
 
     else:
         colors.printc('_'*60, c='g', bold=0)
@@ -563,10 +441,20 @@ def printInfo(obj):
 
 
 # ###########################################################################
-
 def isosurface(image, c, alpha, wire, bc, legend, texture,
                smoothing, threshold, connectivity):
-    '''Return a vtkActor isosurface from a vtkImageData object.'''
+    '''Return a ``vtkActor`` isosurface extracted from a ``vtkImageData`` object.
+    
+    :param c: color in RGB format, hex, symbol or name
+    :param alpha:   transparency (0=invisible)
+    :param wire:    show surface as wireframe
+    :param bc:      backface color of internal surface
+    :param legend:  text to show on legend, True picks filename
+    :param texture: any png/jpg file can be used as texture
+    :param smoothing:    gaussian filter to smooth vtkImageData
+    :param threshold:    value to draw the isosurface
+    :param connectivity: if True only keeps the largest portion of the polydata
+    '''
     from vtkplotter.actors import Actor
 
     if smoothing:
@@ -613,7 +501,7 @@ def isosurface(image, c, alpha, wire, bc, legend, texture,
 def triangleFilter(actor, verts=True, lines=True):
     '''
     Convert actor polygons and strips to triangles.
-    Returns a new vtkActor.
+    Returns a new Actor.
     '''
     from vtkplotter.actors import Actor
 
@@ -629,3 +517,29 @@ def triangleFilter(actor, verts=True, lines=True):
     tfa = Actor(tf.GetOutput())
     tfa.SetProperty(prop)
     return tfa
+
+
+def makeBands(inputlist, numberOfBands):
+    '''
+    Group values of a list into bands of equal value.
+    :param numberOfBands: number of bands, a positive integer > 2.
+    :return: a binned list of the same length as the input.
+    '''
+    if numberOfBands<2: 
+        return inputlist
+    vmin = np.min(inputlist)
+    vmax = np.max(inputlist)
+    bb = np.linspace(vmin, vmax, numberOfBands, endpoint=0)
+    dr = bb[1]-bb[0]
+    bb += dr/2
+    tol = dr/2*1.001
+
+    newlist=[]
+    for s in inputlist:
+        for b in bb:
+            if abs(s-b) < tol:
+                newlist.append(b)
+                break
+
+    return np.array(newlist)
+

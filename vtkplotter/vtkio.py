@@ -45,30 +45,21 @@ from vtkplotter.actors import Actor, Assembly, ImageActor
 def load(inputobj, c='gold', alpha=1,
          wire=False, bc=None, legend=True, texture=None,
          smoothing=None, threshold=None, connectivity=False):
+        ''' 
+        Returns a vtkActor from reading a file, directory or vtkPolyData.
 
-        ''' Returns a vtkActor from reading a file, directory or vtkPolyData.
+        :param c: color in RGB format, hex, symbol or name
+        :param alpha:   transparency (0=invisible)
+        :param wire:    show surface as wireframe
+        :param bc:      backface color of internal surface
+        :param legend:  text to show on legend, True picks filename
+        :param texture: any png/jpg file can be used as texture
 
-            Optional args:
+        For volumetric data (tiff, slc, vti files):
 
-                c,       color in RGB format, hex, symbol or name
-
-                alpha,   transparency (0=invisible)
-
-                wire,    show surface as wireframe
-
-                bc,      backface color of internal surface
-
-                legend,  text to show on legend, True picks filename
-
-                texture, any png/jpg file can be used as texture
-
-            For volumetric data (tiff, slc, vti files), an isosurface is calculated:
-
-                smoothing,    gaussian filter to smooth vtkImageData
-
-                threshold,    value to draw the isosurface
-
-                connectivity, if True only keeps the largest portion of the polydata
+        :param smoothing:    gaussian filter to smooth vtkImageData
+        :param threshold:    value to draw the isosurface
+        :param connectivity: if True only keeps the largest portion of the polydata
         '''
         if isinstance(inputobj, vtk.vtkPolyData):
             a = Actor(inputobj, c, alpha, wire, bc, legend, texture)
@@ -266,6 +257,7 @@ def loadRectilinearGrid(filename):  # not tested
 
 
 def load3DS(filename, legend=None):
+    '''Load 3DS file format from file. Return a vtkAssembly.'''
     renderer = vtk.vtkRenderer()
     renWin = vtk.vtkRenderWindow()
     renWin.AddRenderer(renderer)
@@ -366,7 +358,7 @@ def loadDolfin(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
 
 
 def loadNeutral(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
-    '''Reads a Neutral tetrahedral file format'''
+    '''Reads a Neutral tetrahedral file format.'''
     if not os.path.exists(filename):
         colors.printc('Error in loadNeutral: Cannot find', filename, c=1)
         return None
@@ -377,9 +369,7 @@ def loadNeutral(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
 
 
 def loadGmesh(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
-    '''
-    Reads a gmesh file format
-    '''
+    '''Reads a gmesh file format.'''
     if not os.path.exists(filename):
         colors.printc('Error in loadGmesh: Cannot find', filename, c=1)
         return None
@@ -418,7 +408,7 @@ def loadGmesh(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
 
 
 def loadPCD(filename, c='gold', alpha=1, legend=None):
-    '''Return vtkActor from Point Cloud file format'''
+    '''Return vtkActor from Point Cloud file format.'''
     if not os.path.exists(filename):
         colors.printc('Error in loadPCD: Cannot find file', filename, c=1)
         return None
@@ -458,7 +448,7 @@ def loadPCD(filename, c='gold', alpha=1, legend=None):
 
 
 def loadImageData(filename, spacing=[]):
-
+    '''Read a vtkImageData from file.'''
     if not os.path.isfile(filename):
         colors.printc('File not found:', filename, c=1)
         return None
@@ -482,6 +472,7 @@ def loadImageData(filename, spacing=[]):
 
 ###########################################################
 def load2Dimage(filename, alpha=1):
+    '''Read a JPEG/PNG image from file.'''
     fl = filename.lower()
     if '.png' in fl:
         picr = vtk.vtkPNGReader()
@@ -505,7 +496,7 @@ def write(obj, fileoutput, binary=True):
     Write 3D object to file.
 
     Possile extensions are:
-        vtk, vti, ply, obj, stl, byu, vtp, xyz, tif, png, bmp
+        - vtk, vti, ply, obj, stl, byu, vtp, xyz, tif, png, bmp
     '''
     if isinstance(obj, Actor):
         obj = obj.polydata(True)
@@ -578,15 +569,12 @@ def screenshot(renderWin, filename='screenshot.png'):
 
 
 class Video:
-    '''Class to generate a video from the specified rendering window.
+    '''
+    Class to generate a video from the specified rendering window.
 
-    Options:
-
-        name, name of the output file
-
-        fps,  frames per second
-
-        duration, total duration of the video. If given, fps will be recalculated.
+    :param name: name of the output file.
+    :param fps: set the number of frames per second.
+    :param duration: set the total `duration` of the video and recalculates `fps` accordingly.
         
     `makeVideo.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/makeVideo.py>`_
 
@@ -594,6 +582,17 @@ class Video:
     '''
    
     def __init__(self, renderWindow, name='movie.avi', fps=12, duration=None):
+        '''
+        Class to generate a video from the specified rendering window.
+    
+        :param name: name of the output file.
+        :param fps: set the number of frames per second.
+        :param duration: set the total `duration` of the video and recalculates `fps` accordingly.
+            
+        `makeVideo.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/makeVideo.py>`_
+    
+        .. image:: https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg
+        '''
         import glob
         self.renderWindow = renderWindow
         self.name = name
@@ -613,7 +612,7 @@ class Video:
         self.frames.append(fr)
 
     def pause(self, pause=0):
-        '''Iinsert a pause, in seconds'''
+        '''Insert a `pause`, in seconds'''
         fr = self.frames[-1]
         n = int(self.fps*pause)
         for i in range(n):
@@ -639,22 +638,38 @@ class Video:
 
 ###########################################################################
 class ProgressBar:
-    '''Class to print a progress bar with optional text message.
+    '''
+    Class to print a progress bar with optional text message.
 
-    Example:
+    :Example:
+
+    >>> import time
+    >>> pb = ProgressBar(0,400, c='red')
+    >>> for i in pb.range():
+    >>>     time.sleep(.1)
+    >>>     pb.print('some message') # or pb.print(counts=i)
+
+    `Example1`_
+
+    .. _Example1: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/diffusion.py
+    '''
+
+    def __init__(self, start, stop, step=1, c=None, ETA=True, width=24, char='='):
+        '''
+        Class to print a progress bar with optional text message.
+    
+        :Example:
+    
         >>> import time
         >>> pb = ProgressBar(0,400, c='red')
         >>> for i in pb.range():
         >>>     time.sleep(.1)
         >>>     pb.print('some message') # or pb.print(counts=i)
-
-    `Example`_
-
-    .. _Example: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/diffusion.py
-
-    '''
-
-    def __init__(self, start, stop, step=1, c=None, ETA=True, width=24, char='='):
+    
+        `Example1`_
+    
+        .. _Example1: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/diffusion.py
+        '''
         self.start = start
         self.stop = stop
         self.step = step
@@ -800,11 +815,10 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
     and the connectivity representing the faces of the polygonal mesh.
 
     E.g. :
-        
-        vertices=[[x1,y1,z1],[x2,y2,z2], ...]
-        faces=[[0,1,2], [1,2,3], ...]
+        - vertices=[[x1,y1,z1],[x2,y2,z2], ...]
+        - faces=[[0,1,2], [1,2,3], ...]
 
-    Use indexOffset=1 if face numbering starts from 1 instead of 0.
+    Use `indexOffset=1` if face numbering starts from 1 instead of 0.
     
     `buildpolydata.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buildpolydata.py>`_
     
@@ -857,6 +871,13 @@ class Button:
     '''
 
     def __init__(self, fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle):
+        '''
+        Build a Button object to be shown in the rendering window.
+    
+        `buttons.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buttons.py>`_
+    
+        .. image:: https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg
+        '''
 
         self._status = 0
         self.states = states
@@ -892,7 +913,7 @@ class Button:
 
     def status(self, s=None):
         '''
-        Set/Get the status of the button
+        Set/Get the status of the button.
         '''
         if s is None:
             return self.states[self._status]

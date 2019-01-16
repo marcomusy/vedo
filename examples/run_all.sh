@@ -56,14 +56,17 @@ python basic/rotateImage.py
 echo Running basic/shrink.py
 python basic/shrink.py
 
-echo Running basic/spring.py
-python basic/spring.py
+echo Running advanced/aspring.py
+python advanced/aspring.py
 
 #echo Running basic/manyspheres.py
 #python basic/manyspheres.py
 
 echo Running basic/mesh_coloring.py
 python basic/mesh_coloring.py
+
+echo Running basic/mesh_bands.py
+python basic/mesh_bands.py
 
 echo Running basic/mesh_alphas.py
 python basic/mesh_alphas.py

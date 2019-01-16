@@ -147,23 +147,17 @@ def isSequence(arg):
 
 def getColor(rgb=None, hsv=None):
     """
-    Convert a color to (r,g,b) format from many input formats, e.g.:
+    Convert a color to (r,g,b) format from many input formats.
 
-    Options:
-
-         RGB    = (255, 255, 255), corresponds to white
-
-         rgb    = (1,1,1)
-
-         hex    = #FFFF00 is yellow
-
-         string = 'white'
-
-         string = 'dr' is darkred
-
-         int    = 7 picks color #7 in list colors1
-
-         if hsv is set to (hue,saturation,value), rgb is calculated from it
+    Example:
+         - RGB    = (255, 255, 255), corresponds to white
+         - rgb    = (1,1,1) is white
+         - hex    = #FFFF00 is yellow
+         - string = 'white'
+         - string = 'w' is white nickname
+         - string = 'dr' is darkred
+         - int    = 7 picks color nr. 7 in predefined list
+    if hsv is set to (hue,saturation,value), rgb is calculated from it
 
     `colorcubes.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py>`_
     
@@ -236,8 +230,7 @@ def getColor(rgb=None, hsv=None):
 def getAlpha(c):
     "Check if color string contains a float representing opacity."
     if isinstance(c, str):
-        sc = c.replace(',', ' ').replace(
-            '/', ' ').replace('alpha=', '').split()
+        sc = c.replace(',', ' ').replace('/', ' ').replace('alpha=', '').split()
         if len(sc) == 1:
             return None
         return float(sc[-1])
@@ -294,36 +287,58 @@ try:
         'gist_earth': cm_mpl.gist_earth
     }
 except:
+    print("\n-------------------------------------------------------------------")
+    print("WARNING : cannot import matplotlib.cm (colormaps will show up gray).")
+    print("Try e.g.: sudo apt-get install python3-matplotlib")
+    print("     or : pip install matplotlib")
+    print("-------------------------------------------------------------------\n")
     _mapscales = None
 
 
-def colorMap(value, name='jet', vmin=0, vmax=1):
+def colorMap(value, name='jet', vmin=None, vmax=None):
     '''Map a real value in range [vmin, vmax] to a (r,g,b) color scale.
 
-    `colormaps.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colormaps.py>`_
+    Available color maps:
+        
+    .. image:: https://user-images.githubusercontent.com/32848391/50738804-577e1680-11d8-11e9-929e-fca17a8ac6f3.jpg
     '''
-    value = value - vmin
-    value = value / vmax
-    if _mapscales:
+    if not _mapscales:
+        return (0.5, 0.5, 0.5)
+    try:
+        mp = _mapscales[name]
+    except:
+        print('Error in colorMap(): avaliable maps =',
+              sorted(_mapscales.keys()))
+        exit(0)
+    
+    if isSequence(value):
+        values = np.array(value)
+        if vmin is None:
+            vmin = np.min(values)
+        if vmax is None:
+            vmax = np.max(values)
+        values = np.clip(values, vmin, vmax)
+        values -= vmin
+        values /= vmax-vmin
+        cols = []
+        mp = _mapscales[name]
+        for v in values:
+            cols.append(mp(v)[0:3])
+        return np.array(cols)
+    else:
+        value -= vmin
+        value /= vmax-vmin
         if value > .999:
             value = .999
         elif value < 0:
             value = 0
-        try:
-            return _mapscales[name](value)[0:3]
-        except:
-            print('Error in colorMap(): avaliable maps =',
-                  sorted(_mapscales.keys()))
-            exit(0)
-    return (0.5, 0.5, 0.5)
+        return mp(value)[0:3]
 
 
 def makePalette(color1, color2, N, HSV=False):
     '''Generate N colors starting from color1 to color2 in RGB or HSV space.
 
     `colorpalette.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/colorpalette.py>`_
-    
-    .. image:: https://user-images.githubusercontent.com/32848391/50739011-2c94c200-11da-11e9-8f36-ede1b2a014a8.jpg
     '''
     if HSV:
         color1 = rgb2hsv(color1)
@@ -344,7 +359,7 @@ def kelvin2rgb(temperature):
     Converts from Kelvin temperature to an RGB color.
 
     Algorithm credits:
-    `tannerhelland <http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code>`_
+    `tannerhelland <http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code>`_.
     """
     # range check
     if temperature < 1000:
@@ -450,43 +465,27 @@ def printc(*strings, **keys):
     Print to terminal in colors.
 
     Available colors are:
-        black, red, green, yellow, blue, magenta, cyan, white
+        black, red, green, yellow, blue, magenta, cyan, white.
 
-    Options:
+    :param c: foreground color ['']
+    :param bc: background color ['']
+    :param hidden: do not show text [False]
+    :param bold: boldface [True]
+    :param blink: blinking text [False]
+    :param underline: underline text [False]
+    :param dim: make text look dimmer [False]
+    :param invert: invert background anf forward colors [False]
+    :param separator: separate inputs with specified text [' ']
+    :param box: print a box with specified text character ['']
+    :param flush: flush buffer after printing [True]
+    :param end: end character to be printed [return]
 
-        c, foreground color ['']
-
-        bc, background color ['']
-
-        hidden, do not show text [False]
-
-        bold, boldface [True]
-
-        blink, blinking text [False]
-
-        underline, underline text [False]
-
-        dim, make text look dimmer [False]
-
-        invert, invert background anf forward colors [False]
-
-        separator, separate inputs with specified text [' ']
-
-        box, print a box with specified text character ['']
-
-        flush, flush buffer after printing [True]
-
-        end, end character to be printed [return]
-
-    Basic usage example:
-
-        from vtkplotter.colors import printc
-
-        printc('anything', c='red', bold=False, end='' )
-
-        printc('anything', 455.5, vtkObject, c='green')
-
-        printc(299792.48, c=4) # 4 is blue
+    :Example:
+        
+    >>>  from vtkplotter.colors import printc
+    >>>  printc('anything', c='red', bold=False, end='' )
+    >>>  printc('anything', 455.5, vtkObject, c='green')
+    >>>  printc(299792.48, c=4) # 4 is blue
 
     `colorprint.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/colorprint.py>`_
 

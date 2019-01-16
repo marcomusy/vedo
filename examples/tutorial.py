@@ -107,7 +107,7 @@ vp.show(at=2, actors=vp.points([[0,0,0],[1,1,1]]), legend='points' )
 vp.show(at=3, actors=vp.text('Hello!') )
 vp.show(at=4, actors=vp.sphere() )
 vp.show(at=5, actors=vp.cube(),     legend='cube')
-vp.show(at=6, actors=vp.ring(),     legend='ring')
+vp.show(at=6, actors=vp.torus(),    legend='torus')
 vp.show(at=7, actors=vp.helix(),    legend='helix')
 vp.show(at=8, actors=vp.cylinder(), legend='cylinder', interactive=1)
 

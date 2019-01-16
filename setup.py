@@ -2,13 +2,13 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='8.7.6',     # change also in vtkplotter/__init__.py
+    version='8.7.7', # change also in vtkplotter/__init__.py and docs/source/conf.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=['vtk', 'numpy'],
-    description='A helper class to easily draw and analyse 3D shapes',
-    long_description="""A helper class to easily draw and analyse 3D shapes.
-    Check out https://github.com/marcomusy/vtkplotter for documentation.""",
+    description='A module to draw and analyse 3D and point clouds with VTK.',
+    long_description="""A module to draw and analyse 3D and point clouds with VTK.
+    Check out https://vtkplotter.embl.es for documentation.""",
     author='Marco Musy',
     author_email='marco.musy@gmail.com',
     license='MIT',
@@ -37,9 +37,11 @@ setup(
 # pip install .
 # cd examples
 # ./run_all.sh
-# vtkplotter -g -c blue examples/data/embryo.slc
 # vtkplotter            examples/data/embryo.tif
+# vtkplotter -g -c blue examples/data/embryo.slc
 # vtkplotter --slicer   examples/data/embryo.slc
+# vtkplotter -s -c k    examples/data/timecourse/*vtk
+# vtkplotter -n -c k    examples/data/timecourse/reference_3*
 
 # # check version number here and in vtkplotter/__init__.py
 
@@ -61,6 +63,15 @@ setup(
 ## to generate gif: ezgif.com
 
 ## to generate documentation:
+# Install the dependencies in docs/requirements.txt
+#  pip install -r docs/requirements.txt
+# Run the documentaion generation:
+#  cd docs
+#  make html
+# Open the HTML webpage
+#  build/html/index.html
+#
+## Old pdoc:
 # cd ~
 # pdoc --overwrite --html vtkplotter
 # mount_staging
