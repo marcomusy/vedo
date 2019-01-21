@@ -2,12 +2,12 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='8.7.7', # change also in vtkplotter/__init__.py and docs/source/conf.py
+    version='8.8.0', # change also in vtkplotter/version.py 
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=['vtk', 'numpy'],
-    description='A module to draw and analyse 3D and point clouds with VTK.',
-    long_description="""A module to draw and analyse 3D and point clouds with VTK.
+    description='A module to draw and analyse 3D objects and point clouds with VTK.',
+    long_description="""A module to draw and analyse 3D objects and point clouds with VTK.
     Check out https://vtkplotter.embl.es for documentation.""",
     author='Marco Musy',
     author_email='marco.musy@gmail.com',
@@ -69,14 +69,10 @@ setup(
 #  cd docs
 #  make html
 # Open the HTML webpage
-#  build/html/index.html
+#  open build/html/index.html
 #
-## Old pdoc:
-# cd ~
-# pdoc --overwrite --html vtkplotter
 # mount_staging
-# cp vtkplotter/* ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es
-# remove trig entries in index.htm
+# cp to ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es
 #
 
 

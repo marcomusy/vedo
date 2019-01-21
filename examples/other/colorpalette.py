@@ -5,7 +5,7 @@ from __future__ import print_function
 from vtkplotter.colors import makePalette, getColorName
 
 
-cols = makePalette('red', 'blue', 10, HSV=True)
+cols = makePalette('red', 'blue', 10, hsv=True)
 
 for c in cols:
     print('rgb =', c, ' closest color is:', getColorName(c))

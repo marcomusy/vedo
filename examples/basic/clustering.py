@@ -1,12 +1,9 @@
 # Example use of removeOutliers() and cluster()
 # needs vtk versions > 6
 from __future__ import division, print_function
-from vtkplotter import Plotter
-from vtkplotter.analysis import cluster, removeOutliers
+from vtkplotter import show, cluster, removeOutliers
 import numpy as np
 
-
-vp = Plotter()
 
 # generate 4 random sets of N points in space
 N = 2000
@@ -24,7 +21,7 @@ pts = noise1.tolist() +noise2.tolist() +noise3.tolist() +noise4.tolist()
 # find back their identity through clustering
 cl = cluster(pts, radius=0.1) # returns and stores a vtkAssembly
 
-vp.show(cl)
+show(cl, verbose=0)
 
 
 

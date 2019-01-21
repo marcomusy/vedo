@@ -8,6 +8,7 @@
 from __future__ import division, print_function
 from random import random
 from vtkplotter import Plotter, ProgressBar, vector, arange, mag, norm
+from vtkplotter import torus, sphere
 import numpy as np
 
 #############################################################
@@ -27,7 +28,8 @@ def reflection(p, pos):
     return np.dot(np.identity(3)-2*n*n[:,np.newaxis], p)
 
 vp = Plotter(title='gas in toroid', verbose=0, axes=0)
-vp.torus(c='g', r=RingRadius, thickness=RingThickness, alpha=.1, wire=1) ### <--
+
+vp.add(torus(c='g', r=RingRadius, thickness=RingThickness, alpha=.1, wire=1)) ### <--
 
 Atoms = []
 poslist = []
@@ -40,7 +42,7 @@ for i in range(Natoms):
     x = RingRadius*np.cos(alpha)*.9
     y = RingRadius*np.sin(alpha)*.9
     z = 0
-    Atoms = Atoms + [vp.sphere(pos=(x,y,z), r=Ratom, c=i)]              ### <--
+    Atoms = Atoms + [vp.add(sphere(pos=(x,y,z), r=Ratom, c=i))]              ### <--
     theta = np.pi*random()
     phi   = 2*np.pi*random()
     px = pavg*np.sin(theta)*np.cos(phi)

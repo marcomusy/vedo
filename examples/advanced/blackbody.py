@@ -2,7 +2,7 @@
 # for the visible range of wavelenghts [400nm, 700nm]. Colors are fairly
 # well matched to the "jet" and "rainbow" maps in pointColors() method.
 #
-from vtkplotter import Plotter, arange, exp
+from vtkplotter import Plotter, arange, exp, line
 
 c = 2.9979246e+8
 k = 1.3806485e-23 # boltzmann constant
@@ -25,7 +25,7 @@ intensities = []
 for T in range(3000, 9000, 50):
     I = planck(wavelengths, T)
     coords = list(zip(wavelengths*2e+6, I*0.02, [T*5e-5]*len(I)))
-    lineact = vp.line(coords, lw=4, alpha=.5)
+    lineact = vp.add(line(coords, lw=4, alpha=.5))
     lineact.pointColors(wavelengths*2e+6, cmap='jet')
     vp.show(elevation=.1, azimuth=0.1)
 

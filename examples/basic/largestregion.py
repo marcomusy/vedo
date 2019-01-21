@@ -1,7 +1,6 @@
 # Extract the mesh region that has the largest connected surface
 #
-from vtkplotter.analysis import extractLargestRegion
-from vtkplotter import Plotter, printc
+from vtkplotter import Plotter, printc, extractLargestRegion
 
 vp = Plotter(shape=(2,1))
 

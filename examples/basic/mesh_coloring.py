@@ -19,8 +19,9 @@ vp.addScalarBar()  # add a scalarbar to last drawn actor
 
 ##################################### pointColors
 man2 = vp.load('data/shapes/man.vtk')
-scals = man2.coordinates()[:,1] + 37    # pick y coordinates of vertices
-man2.pointColors(scals, cmap='bone')    # use a colormap to associate a color
+scals = man2.coordinates()[:,1] + 37   # pick y coordinates of vertices
+
+man2.pointColors(scals, cmap='bone', vmin=36.2, vmax=36.7) # right dark arm
 vp.show(man2, at=1, axes=0, legend='pointColors')
 vp.addScalarBar(horizontal=True)
 
@@ -39,3 +40,8 @@ vp.show([man3, txt], at=2, legend='cellColors')
 vp.addScalarBar3D(man3, at=2, pos=(-1,0,-1.7))
 
 vp.show(interactive=1)
+
+
+# N.B. in the above example one can also do:
+# import matplotlib.cm as cm
+# man2.pointColors(scals, cmap=cm.bone)

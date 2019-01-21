@@ -6,21 +6,17 @@ from __future__ import division, print_function
 
 
 __all__ = [
-    'textures',
     'isSequence',
-    'humansort',
     'vector',
     'mag',
     'mag2',
     'norm',
-    'to_precision',
+    'precision',
     'pointIsInTriangle',
     'pointToLineDistance',
-    'isIdentity',
     'grep',
     'printInfo',
-    'isosurface',
-    'triangleFilter',
+    'makeBands',
 ]
 
 
@@ -74,7 +70,10 @@ def humansort(l):
 
 
 def vector(x, y=None, z=0.):
-    '''Return a 2D or 3D numpy array.'''
+    '''Return a 3D numpy array representing a vector (of type `numpy.float64`).
+    
+    If `y` is ``None``, assume input is already in the form `[x,y,z]`.
+    '''
     if y is None:  # assume x is already [x,y,z]
         return np.array(x, dtype=np.float64)
     return np.array([x, y, z], dtype=np.float64)
@@ -101,7 +100,7 @@ def norm(v):
         return v/mag(v)
 
 
-def to_precision(x, p):
+def precision(x, p):
     """
     Returns a string representation of `x` formatted with precision `p`.
 
@@ -234,9 +233,9 @@ def printInfo(obj):
         pos = actor.GetPosition()
         bnds = actor.GetBounds()
         col = pro.GetColor()
-        colr = to_precision(col[0], 3)
-        colg = to_precision(col[1], 3)
-        colb = to_precision(col[2], 3)
+        colr = precision(col[0], 3)
+        colg = precision(col[1], 3)
+        colb = precision(col[2], 3)
         alpha = pro.GetOpacity()
         npt = poly.GetNumberOfPoints()
         ncl = poly.GetNumberOfCells()
@@ -244,9 +243,9 @@ def printInfo(obj):
         print(tab, end='')
         colors.printc('vtkActor', c='g', bold=1, invert=1, dim=1, end=' ')
 
-        if hasattr(actor, 'legend') and actor.legend:
+        if hasattr(actor, '_legend') and actor._legend:
             colors.printc('legend: ', c='g', bold=1, end='')
-            colors.printc(actor.legend, c='g', bold=0)
+            colors.printc(actor._legend, c='g', bold=0)
         else:
             print()
 
@@ -263,9 +262,9 @@ def printInfo(obj):
 
             if actor.GetBackfaceProperty():
                 bcol = actor.GetBackfaceProperty().GetDiffuseColor()
-                bcolr = to_precision(bcol[0], 3)
-                bcolg = to_precision(bcol[1], 3)
-                bcolb = to_precision(bcol[2], 3)
+                bcolr = precision(bcol[0], 3)
+                bcolg = precision(bcol[1], 3)
+                bcolb = precision(bcol[2], 3)
                 colors.printc(tab+'     back color: ', c='g', bold=1, end='')
                 colors.printc(colors.getColorName(bcol) + ', rgb=('+bcolr+', '
                               + bcolg+', ' + bcolb+')', c='g', bold=0)
@@ -284,23 +283,23 @@ def printInfo(obj):
             colors.printc(actor.centerOfMass(), c='g', bold=0)
     
             colors.printc(tab+'      ave. size: ', c='g', bold=1, end='')
-            colors.printc(to_precision(actor.averageSize(), 4), c='g', bold=0)
+            colors.printc(precision(actor.averageSize(), 4), c='g', bold=0)
     
             colors.printc(tab+'     diag. size: ', c='g', bold=1, end='')
             colors.printc(actor.diagonalSize(), c='g', bold=0)
 
             colors.printc(tab+'           area: ', c='g', bold=1, end='')
-            colors.printc(to_precision(actor.area(), 8), c='g', bold=0)
+            colors.printc(precision(actor.area(), 8), c='g', bold=0)
     
             colors.printc(tab+'         volume: ', c='g', bold=1, end='')
-            colors.printc(to_precision(actor.volume(), 8), c='g', bold=0)
+            colors.printc(precision(actor.volume(), 8), c='g', bold=0)
 
         colors.printc(tab+'         bounds: ', c='g', bold=1, end='')
-        bx1, bx2 = to_precision(bnds[0], 3), to_precision(bnds[1], 3)
+        bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
         colors.printc('x=('+bx1+', '+bx2+')', c='g', bold=0, end='')
-        by1, by2 = to_precision(bnds[2], 3), to_precision(bnds[3], 3)
+        by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
         colors.printc(' y=('+by1+', '+by2+')', c='g', bold=0, end='')
-        bz1, bz2 = to_precision(bnds[4], 3), to_precision(bnds[5], 3)
+        bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
         colors.printc(' z=('+bz1+', '+bz2+')', c='g', bold=0)
 
         arrtypes = dict()
@@ -347,7 +346,7 @@ def printInfo(obj):
     elif isinstance(obj, vtk.vtkAssembly):
         colors.printc('_'*60, c='g', bold=0)
         colors.printc('vtkAssembly', c='g', bold=1, invert=1, end=' ')
-        if hasattr(obj, 'legend'):
+        if hasattr(obj, '_legend'):
             colors.printc('legend: ', c='g', bold=1, end='')
             colors.printc(obj.legend, c='g', bold=0)
         else:
@@ -359,11 +358,11 @@ def printInfo(obj):
         colors.printc(pos, c='g', bold=0)
 
         colors.printc('            bounds: ', c='g', bold=1, end='')
-        bx1, bx2 = to_precision(bnds[0], 3), to_precision(bnds[1], 3)
+        bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
         colors.printc('x=('+bx1+', '+bx2+')', c='g', bold=0, end='')
-        by1, by2 = to_precision(bnds[2], 3), to_precision(bnds[3], 3)
+        by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
         colors.printc(' y=('+by1+', '+by2+')', c='g', bold=0, end='')
-        bz1, bz2 = to_precision(bnds[4], 3), to_precision(bnds[5], 3)
+        bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
         colors.printc(' z=('+bz1+', '+bz2+')', c='g', bold=0)
 
         cl = vtk.vtkPropCollection()
@@ -407,11 +406,11 @@ def printInfo(obj):
         max_bns = np.max(bns, axis=0)
         min_bns = np.min(bns, axis=0)
         colors.printc('      max bounds: ', c='c', bold=0, end='')
-        bx1, bx2 = to_precision(min_bns[0], 3), to_precision(max_bns[1], 3)
+        bx1, bx2 = precision(min_bns[0], 3), precision(max_bns[1], 3)
         colors.printc('x=('+bx1+', '+bx2+')', c='c', bold=0, end='')
-        by1, by2 = to_precision(min_bns[2], 3), to_precision(max_bns[3], 3)
+        by1, by2 = precision(min_bns[2], 3), precision(max_bns[3], 3)
         colors.printc(' y=('+by1+', '+by2+')', c='c', bold=0, end='')
-        bz1, bz2 = to_precision(min_bns[4], 3), to_precision(max_bns[5], 3)
+        bz1, bz2 = precision(min_bns[4], 3), precision(max_bns[5], 3)
         colors.printc(' z=('+bz1+', '+bz2+')', c='c', bold=0)
         colors.printc('       axes type:', obj.axes, axtype[obj.axes], bold=0, c='c')
 
@@ -425,11 +424,11 @@ def printInfo(obj):
                                   np.round(img.GetScalarRange(),4), c='b', bold=0)
                     bnds = a.GetBounds()
                     colors.printc('            bounds: ', c='b', bold=0, end='')
-                    bx1, bx2 = to_precision(bnds[0], 3), to_precision(bnds[1], 3)
+                    bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
                     colors.printc('x=('+bx1+', '+bx2+')', c='b', bold=0, end='')
-                    by1, by2 = to_precision(bnds[2], 3), to_precision(bnds[3], 3)
+                    by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
                     colors.printc(' y=('+by1+', '+by2+')', c='b', bold=0, end='')
-                    bz1, bz2 = to_precision(bnds[4], 3), to_precision(bnds[5], 3)
+                    bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
                     colors.printc(' z=('+bz1+', '+bz2+')', c='b', bold=0)
 
         colors.printc(' Click actor and press i for Actor info.', c='c')
@@ -440,89 +439,11 @@ def printInfo(obj):
         colors.printc(type(obj), c='g', invert=1)
 
 
-# ###########################################################################
-def isosurface(image, c, alpha, wire, bc, legend, texture,
-               smoothing, threshold, connectivity):
-    '''Return a ``vtkActor`` isosurface extracted from a ``vtkImageData`` object.
-    
-    :param c: color in RGB format, hex, symbol or name
-    :param alpha:   transparency (0=invisible)
-    :param wire:    show surface as wireframe
-    :param bc:      backface color of internal surface
-    :param legend:  text to show on legend, True picks filename
-    :param texture: any png/jpg file can be used as texture
-    :param smoothing:    gaussian filter to smooth vtkImageData
-    :param threshold:    value to draw the isosurface
-    :param connectivity: if True only keeps the largest portion of the polydata
-    '''
-    from vtkplotter.actors import Actor
-
-    if smoothing:
-        print('  gaussian smoothing data with volume_smoothing =', smoothing)
-        smImg = vtk.vtkImageGaussianSmooth()
-        smImg.SetDimensionality(3)
-        smImg.SetInputData(image)
-        smImg.SetStandardDeviations(smoothing, smoothing, smoothing)
-        smImg.Update()
-        image = smImg.GetOutput()
-
-    scrange = image.GetScalarRange()
-
-    if not threshold:
-        if scrange[1] > 1e10:
-            threshold = (2*scrange[0]+abs(10*scrange[0]))/3.
-            print("Warning, high scalar range detected:", scrange[1])
-            print("         setting threshold to:", threshold)
-        else:
-            threshold = (2*scrange[0]+scrange[1])/3.
-    cf = vtk.vtkContourFilter()
-    cf.SetInputData(image)
-    cf.UseScalarTreeOn()
-    cf.ComputeScalarsOff()
-    cf.SetValue(0, threshold)
-    cf.Update()
-
-    clp = vtk.vtkCleanPolyData()
-    clp.SetInputData(cf.GetOutput())
-    clp.Update()
-    image = clp.GetOutput()
-
-    if connectivity:
-        print('  applying connectivity filter, select largest region')
-        conn = vtk.vtkPolyDataConnectivityFilter()
-        conn.SetExtractionModeToLargestRegion()
-        conn.SetInputData(image)
-        conn.Update()
-        image = conn.GetOutput()
-
-    return Actor(image, c, alpha, wire, bc, legend, texture)
-
-
-def triangleFilter(actor, verts=True, lines=True):
-    '''
-    Convert actor polygons and strips to triangles.
-    Returns a new Actor.
-    '''
-    from vtkplotter.actors import Actor
-
-    poly = actor.polydata(False)
-
-    tf = vtk.vtkTriangleFilter()
-    tf.SetPassLines(lines)
-    tf.SetPassVerts(verts)
-    tf.SetInputData(poly)
-    tf.Update()
-    prop = vtk.vtkProperty()
-    prop.DeepCopy(actor.GetProperty())
-    tfa = Actor(tf.GetOutput())
-    tfa.SetProperty(prop)
-    return tfa
-
-
 def makeBands(inputlist, numberOfBands):
     '''
     Group values of a list into bands of equal value.
-    :param numberOfBands: number of bands, a positive integer > 2.
+    
+    :param int numberOfBands: number of bands, a positive integer > 2.
     :return: a binned list of the same length as the input.
     '''
     if numberOfBands<2: 

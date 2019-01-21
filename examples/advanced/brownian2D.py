@@ -9,6 +9,7 @@
 #=======================================================
 from __future__ import division, print_function
 from vtkplotter import Plotter, ProgressBar, arange, dot
+from vtkplotter import torus, grid, sphere
 import random, numpy as np
 
 screen_w = 800
@@ -56,11 +57,11 @@ for s in range(1,Nsp):
 Vel = np.array(ListVel)
 
 # Create the spheres 
-Spheres = [vp.sphere(pos=(Pos[0][0],Pos[0][1],0), r=Radius[0], c='red')]
+Spheres = [vp.add(sphere(pos=(Pos[0][0],Pos[0][1],0), r=Radius[0], c='red'))]
 for s in range(1,Nsp):
-    a = vp.sphere(pos=(Pos[s][0],Pos[s][1],0), r=Radius[s], c='blue')
+    a = vp.add(sphere(pos=(Pos[s][0],Pos[s][1],0), r=Radius[s], c='blue'))
     Spheres.append(a)
-vp.grid(sx=screen_w, sy=screen_w)
+vp.add(grid(sx=screen_w, sy=screen_w))
 
 # Auxiliary variables
 Id = np.identity(Nsp)
@@ -128,9 +129,9 @@ for i in pb.range():
     if not int(i)%10:                   # every ten steps:
         rsp = [Pos[0][0],Pos[0][1],0]
         rsv = [Vel[0][0],Vel[0][1],0]
-        p = vp.torus(pos=rsp, axis=rsv, r=Rb/4, thickness=Rb/40, 
-                     c='r', alpha=0.05) # leave an oriented trace
-        vp.render(p)                    # add actor p and render scene   
+        p = torus(pos=rsp, axis=rsv, r=Rb/4, thickness=Rb/40, 
+                  c='r', alpha=0.05) # leave an oriented trace
+        vp.render(p)                 # add actor p and render scene   
     pb.print('#actors='+str(len(vp.actors)))
     
 vp.show(interactive=1)

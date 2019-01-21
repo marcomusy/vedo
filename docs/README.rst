@@ -128,7 +128,8 @@ e.g.:
 Examples Gallery
 ----------------
 
-A get-started tutorial script is available for download:
+A get-started `tutorial <https://github.com/marcomusy/vtkplotter/blob/master/examples>`_ 
+script is available for download:
 
 .. code-block:: bash
 

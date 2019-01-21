@@ -1,18 +1,23 @@
-#Create a map of transparencies which can be passed
+# Create a set of transparencies which can be passed
 # to method pointColors()
 #
 from vtkplotter import Plotter, arange
 
-vp = Plotter(axes=6) # type 6 marks bounding box corners
+vp = Plotter(axes=6) # type 6 = mark bounding box corners
 
-act = vp.load('data/beethoven.ply')
+mesh = vp.load('data/beethoven.ply')
 
 # pick y coordinates of vertices and use them as scalars
-pscals = act.coordinates()[:,1]
+scals = mesh.coordinates()[:,1]
 
-# make a range of transparencies from bottom (0) to top (1)    
-alphas = arange(0,1, 1./len(pscals))
+# define opacities in the range of the scalar, 
+# at min(scals) alpha is 0.1, 
+# at max(scals) alpha is 0.9:
+alphas = [0.1, 0.1, 0.3, 0.4, 0.9]
+# or e.g.:
+#alphas = arange(0.1, 0.9, 1./len(scals))
 
-act.pointColors(pscals, alpha=alphas, cmap='copper')
+mesh.pointColors(scals, alpha=alphas, cmap='copper')
+#print(mesh.scalars('pointColors_copper')) # retrieve scalars
 
-vp.show(act)
+vp.show()

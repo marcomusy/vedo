@@ -2,6 +2,7 @@
 # (adapted by M. Musy from Bruce Sherwood, 2009)
 from __future__ import division, print_function
 from vtkplotter import Plotter, ProgressBar, vector, mag, norm, cross
+from vtkplotter import cylinder, helix, box
 
 # ############################################################ parameters
 dt = 0.005      # time step
@@ -26,14 +27,16 @@ cm = gpos + 0.5*Ls*gaxis  # center of mass of shaft
 # ############################################################ the scene
 vp = Plotter(verbose=0, axes=0, interactive=0)
 
-shaft = vp.cylinder([[0,0,0], Ls*gaxis], r=0.03, c='dg')
-rotor = vp.cylinder([(Ls-0.55)*gaxis, (Ls-0.45)*gaxis], r=R, c='t')
-bar   = vp.cylinder([Ls*gaxis/2-R*vector(0,1,0), Ls*gaxis/2+R*vector(0,1,0)], r=R/6, c='r')
+shaft = cylinder([[0,0,0], Ls*gaxis], r=0.03, c='dg')
+rotor = cylinder([(Ls-0.55)*gaxis, (Ls-0.45)*gaxis], r=R, c='t')
+bar   = cylinder([Ls*gaxis/2-R*vector(0,1,0), Ls*gaxis/2+R*vector(0,1,0)], r=R/6, c='r')
 gyro  = vp.Assembly([shaft, rotor, bar]) # group actors into a single one
 
-spring= vp.helix(top, gpos, r=0.06, thickness=0.01, c='gray')
-vp.box(top, length=0.2, width=0.02, height=0.2, c='gray')
-vp.box(pos=(0,.5,0), length=2.2, width=3, height=2.2, c='gray', wire=1, alpha=.2)
+spring= vp.add(helix(top, gpos, r=0.06, thickness=0.01, c='gray'))
+# NB: vp.add() acts like vp.actors.append(spring)
+
+vp.add(box(top, length=0.2, width=0.02, height=0.2, c='gray'))
+vp.add(box(pos=(0,.5,0), length=2.2, width=3, height=2.2, c='gray', wire=1, alpha=.2))
 
 # ############################################################ the physics
 pb = ProgressBar(0, 5, dt, c='b')

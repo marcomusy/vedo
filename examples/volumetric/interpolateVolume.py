@@ -6,8 +6,7 @@
 from __future__ import print_function
 import numpy as np
 import vtk
-from vtkplotter import Plotter, ProgressBar, vector, mag2
-from vtkplotter.actors import Volume
+from vtkplotter import Plotter, Volume, ProgressBar, vector, mag2
 
 
 bins = 25                        # nr. of voxels per axis

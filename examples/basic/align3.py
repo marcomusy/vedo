@@ -4,8 +4,7 @@
 #
 from __future__ import division, print_function
 from random import uniform as u
-from vtkplotter import Plotter
-from vtkplotter.analysis import procrustes
+from vtkplotter import Plotter, procrustes
 
 vp = Plotter(shape=[1,2], verbose=0, axes=2, sharecam=0)
 

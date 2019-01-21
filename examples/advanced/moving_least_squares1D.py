@@ -8,8 +8,7 @@
 # details of the regression for some random points
 #
 from __future__ import division, print_function
-from vtkplotter import Plotter, arange, sin, cos, sqrt
-from vtkplotter.analysis import smoothMLS1D
+from vtkplotter import Plotter, arange, sin, cos, sqrt, smoothMLS1D
 import numpy as np
 
 N = 9  # nr. of iterations

@@ -3,8 +3,7 @@
 # See also analogous Plotter method smoothMLS2D()
 # in exammples/advanced/moving_least_squares2D.py 
 
-from vtkplotter import Plotter
-from vtkplotter.analysis import smoothLaplacian, smoothWSinc
+from vtkplotter import Plotter, smoothLaplacian, smoothWSinc
 
 vp = Plotter(shape=(1,3), axes=4)
 

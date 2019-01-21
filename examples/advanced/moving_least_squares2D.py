@@ -10,8 +10,7 @@
 # each point in color scale (left) or in size scale (right).
 #
 from __future__ import division, print_function
-from vtkplotter import Plotter, colorMap
-from vtkplotter.analysis import smoothMLS2D
+from vtkplotter import Plotter, colorMap, smoothMLS2D, spheres
 import numpy as np
 
 
@@ -49,8 +48,8 @@ vmin,vmax = np.min(variances), np.max(variances)
 print('min and max of variances:', vmin,vmax)
 vcols = [ colorMap(v, 'jet', vmin, vmax) for v in variances ] # scalars->colors
 
-a0= vp2.spheres(s1.coordinates(), c=vcols, r=0.03, legend='variance')
-a1= vp2.spheres(s1.coordinates(), c='red', r=variances, legend='variance')
+a0 = spheres(s1.coordinates(), c=vcols, r=0.03, legend='variance')
+a1 = spheres(s1.coordinates(), c='red', r=variances, legend='variance')
 
 vp2.show(a0, at=0)
 vp2.show([a1, act], at=1, zoom=1.3, interactive=1)

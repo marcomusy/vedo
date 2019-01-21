@@ -1,12 +1,11 @@
 # Work with vtkVolume objects and surfaces.
 #
-from vtkplotter import vtkio, Plotter
-from vtkplotter.actors import Volume
+from vtkplotter import loadImageData, Plotter, Volume, sphere
 
 vp = Plotter()
 
 # Load a 3D voxel dataset (returns a vtkImageData object):
-img = vtkio.loadImageData('data/embryo.slc', spacing=[1,1,1])
+img = loadImageData('data/embryo.slc', spacing=[1,1,1])
 
 # Build a vtkVolume object. 
 # A set of transparency values - of any length - can be passed
@@ -18,7 +17,7 @@ vol = Volume(img, c='green', alphas=[0, 0.4, 0.9, 1]) # vtkVolume
 # can relocate volume in space:
 #vol.scale(0.3).pos([10,100,0]).rotate(90, axis=[0,1,1])
 
-sph = vp.sphere(pos=[100,100,100], r=20) # add a dummy surface
+sph = sphere(pos=[100,100,100], r=20) # add a dummy surface
 
 vp.show([vol, sph], zoom=1.4) # show both vtkVolume and vtkActor
 

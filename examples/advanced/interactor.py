@@ -2,8 +2,7 @@
 # (by rotating 3D scene with mouse and remain responsive to key press).
 # While using the mouse, calls to myloop() function will be suspended.
 #
-from vtkplotter import Plotter, printc, sin
-from vtkplotter.shapes import cube, sphere
+from vtkplotter import Plotter, printc, sin, cube, sphere
 from random import uniform as u
 
 vp = Plotter(axes=4)

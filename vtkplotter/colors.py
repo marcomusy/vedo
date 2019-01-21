@@ -4,23 +4,16 @@ Colors definitions and printing methods.
 
 from __future__ import division, print_function
 
-
 __all__ = [
-    'colors',
-    'color_nicks',
+    'printc',
     'getColor',
     'getColorName',
-    'hsv2rgb',
-    'rgb2hsv',
     'colorMap',
     'makePalette',
-    'kelvin2rgb',
-    'colors1',
-    'colors2',
-    'printc',
+    'makeLUTfromCTF',
 ]
 
-
+import vtk
 import numpy as np
 import sys
 
@@ -104,7 +97,7 @@ colors = {  # from matplotlib
     'whitesmoke':           '#F5F5F5', 'yellow':               '#FFFF00',
     'yellowgreen':          '#9ACD32'}
 
-color_nicks = {
+color_nicks = {       # color nicknames
     'b': 'blue',
     'g': 'green',
     'r': 'red',
@@ -117,25 +110,24 @@ color_nicks = {
     'o': 'olive',
     'p': 'purple',
     's': 'salmon',
-    'v': 'violet'}
-color_nicks.update({   # light
-    'lb': 'lightblue',
+    'v': 'violet',       
+    'lb': 'lightblue',  # light
     'lg': 'lightgreen',
     'lc': 'lightcyan',
     'ls': 'lightsalmon',
-    'ly': 'lightyellow'})
-color_nicks.update({   # dark
-    'dr': 'darkred',
+    'ly': 'lightyellow', 
+    'dr': 'darkred',    # dark
     'db': 'darkblue',
     'dg': 'darkgreen',
     'dm': 'darkmagenta',
     'dc': 'darkcyan',
     'ds': 'darksalmon',
-    'dv': 'darkviolet'})
+    'dv': 'darkviolet'
+    }
 
 
-def isSequence(arg):
-    '''Check if input is iterable.'''
+def _isSequence(arg):
+    #Check if input is iterable.
     if hasattr(arg, "strip"):
         return False
     if hasattr(arg, "__getslice__"):
@@ -144,10 +136,21 @@ def isSequence(arg):
         return True
     return False
 
+def _getAlpha(c):
+    #Check if color string contains a float representing opacity
+    if isinstance(c, str):
+        sc = c.replace(',', ' ').replace('/', ' ').replace('alpha=', '').split()
+        if len(sc) == 1:
+            return None
+        return float(sc[-1])
+    return None
+
 
 def getColor(rgb=None, hsv=None):
     """
     Convert a color to (r,g,b) format from many input formats.
+
+    :param bool hsv: if set to `True`, rgb is assumed as (hue, saturation, value).
 
     Example:
          - RGB    = (255, 255, 255), corresponds to white
@@ -156,12 +159,12 @@ def getColor(rgb=None, hsv=None):
          - string = 'white'
          - string = 'w' is white nickname
          - string = 'dr' is darkred
-         - int    = 7 picks color nr. 7 in predefined list
-    if hsv is set to (hue,saturation,value), rgb is calculated from it
+         - int    = 7 picks color nr. 7 in a predefined color list
+         - int    = -7 picks color nr. 7 in a different predefined list
 
-    `colorcubes.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py>`_
+    .. hint:: Example: `colorcubes.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py>`_
     
-    .. image:: https://user-images.githubusercontent.com/32848391/50738867-c0658e80-11d8-11e9-9e05-ac69b546b7ec.png
+        .. image:: https://user-images.githubusercontent.com/32848391/50738867-c0658e80-11d8-11e9-9e05-ac69b546b7ec.png
     """
     if str(rgb).isdigit():
         rgb = int(rgb)
@@ -171,13 +174,16 @@ def getColor(rgb=None, hsv=None):
     else:
         c = rgb
 
-    if isSequence(c):
+    if _isSequence(c):
         if c[0] <= 1 and c[1] <= 1 and c[2] <= 1:
             return c  # already rgb
         else:
-            return list(np.array(c)/255.)  # RGB
+            if len(c) == 3:
+                return list(np.array(c)/255.)  # RGB
+            else:
+                return [c[0]/255., c[1]/255., c[2]/255., c[3]]  # RGBA
 
-    elif isinstance(c, str):
+    elif isinstance(c, str): # is string
         c = c.replace(',', ' ').replace('/', ' ').replace('alpha=', '')
         c = c.replace('grey', 'gray')
         c = c.split()[0]   # ignore possible opacity float inside string
@@ -189,18 +195,13 @@ def getColor(rgb=None, hsv=None):
                 print("Available abbreviations:", color_nicks)
                 return [0.5, 0.5, 0.5]
 
-        if c.lower() in colors.keys():  # full matplotlib name color
+        if c.lower() in colors.keys():  # matplotlib name color
             c = colors[c.lower()]
-        else:                          # full vtk name color
-            import vtk
-            if vtk.vtkVersion().GetVTKMajorVersion() > 5:
-                namedColors = vtk.vtkNamedColors()
-                rgba = [0, 0, 0, 0]
-                namedColors.GetColor(c, rgba)
-                return list(np.array(rgba[0:3])/255.)
-            print("Unknow color name:", c)
-            print("Available colors:", colors.keys())
-            return [0.5, 0.5, 0.5]
+        else:                           # vtk name color
+            namedColors = vtk.vtkNamedColors()
+            rgba = [0, 0, 0, 0]
+            namedColors.GetColor(c, rgba)
+            return list(np.array(rgba[0:3])/255.)
 
         if '#' in c:  # hex to rgb
             h = c.lstrip('#')
@@ -211,7 +212,7 @@ def getColor(rgb=None, hsv=None):
                 return [0.5, 0.5, 0.5]
             return list(rgbh)
 
-    elif isinstance(c, int):
+    elif isinstance(c, int): # color number
         if c >= 0:
             return colors1[c % 10]
         else:
@@ -227,22 +228,12 @@ def getColor(rgb=None, hsv=None):
     return [0.5, 0.5, 0.5]
 
 
-def getAlpha(c):
-    "Check if color string contains a float representing opacity."
-    if isinstance(c, str):
-        sc = c.replace(',', ' ').replace('/', ' ').replace('alpha=', '').split()
-        if len(sc) == 1:
-            return None
-        return float(sc[-1])
-    return None
-
-
 def getColorName(c):
-    """Convert any rgb color or numeric code to closest name color.
+    """Find the name of a color.
 
-    `colorpalette.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/colorpalette.py>`_
+    .. hint:: Example: `colorpalette.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/colorpalette.py>`_
     
-    .. image:: https://user-images.githubusercontent.com/32848391/50739011-2c94c200-11da-11e9-8f36-ede1b2a014a8.jpg
+        .. image:: https://user-images.githubusercontent.com/32848391/50739011-2c94c200-11da-11e9-8f36-ede1b2a014a8.jpg
     """
     c = np.array(getColor(c))  # reformat to rgb
     mdist = 99.
@@ -258,7 +249,6 @@ def getColorName(c):
 
 def hsv2rgb(hsv):
     '''Convert HSV to RGB color.'''
-    import vtk
     ma = vtk.vtkMath()
     return ma.HSVToRGB(hsv)
 
@@ -271,6 +261,7 @@ def rgb2hsv(rgb):
 
 
 try:
+    import matplotlib
     import matplotlib.cm as cm_mpl
     _mapscales = {
         'jet': cm_mpl.jet,
@@ -287,31 +278,49 @@ try:
         'gist_earth': cm_mpl.gist_earth
     }
 except:
-    print("\n-------------------------------------------------------------------")
-    print("WARNING : cannot import matplotlib.cm (colormaps will show up gray).")
-    print("Try e.g.: sudo apt-get install python3-matplotlib")
-    print("     or : pip install matplotlib")
-    print("-------------------------------------------------------------------\n")
     _mapscales = None
 
 
 def colorMap(value, name='jet', vmin=None, vmax=None):
     '''Map a real value in range [vmin, vmax] to a (r,g,b) color scale.
 
-    Available color maps:
+    :param value: scalar value to transform into a color
+    :type value: float, list
+    :param name: color map name
+    :type name: str, matplotlib.colors.LinearSegmentedColormap
+    
+    :return: (r,g,b) color, or a list of (r,g,b) colors.
+    
+    .. note:: Available color maps:
         
-    .. image:: https://user-images.githubusercontent.com/32848391/50738804-577e1680-11d8-11e9-929e-fca17a8ac6f3.jpg
+        .. image:: https://user-images.githubusercontent.com/32848391/50738804-577e1680-11d8-11e9-929e-fca17a8ac6f3.jpg
+
+    .. tip:: Can also use directly a matplotlib color map:
+        
+        :Example:
+            >>> from vtkplotter import colorMap
+            >>> import matplotlib.cm as cm
+            >>> print( colorMap(0.2, cm.flag, 0, 1) )
+            (1.0, 0.809016994374948, 0.6173258487801733)
     '''
     if not _mapscales:
+        print("-------------------------------------------------------------------")
+        print("WARNING : cannot import matplotlib.cm (colormaps will show up gray).")
+        print("Try e.g.: sudo apt-get install python3-matplotlib")
+        print("     or : pip install matplotlib")
+        print("     or : build your own map (see example in basic/mesh_custom.py).")
         return (0.5, 0.5, 0.5)
-    try:
-        mp = _mapscales[name]
-    except:
-        print('Error in colorMap(): avaliable maps =',
-              sorted(_mapscales.keys()))
-        exit(0)
+
+    if isinstance(name, matplotlib.colors.LinearSegmentedColormap):
+        mp = name
+    else:
+        if name in _mapscales.keys():
+            mp = _mapscales[name]
+        else:
+            print('Error in colorMap(): avaliable maps =', sorted(_mapscales.keys()))
+            exit(0)
     
-    if isSequence(value):
+    if _isSequence(value):
         values = np.array(value)
         if vmin is None:
             vmin = np.min(values)
@@ -335,23 +344,61 @@ def colorMap(value, name='jet', vmin=None, vmax=None):
         return mp(value)[0:3]
 
 
-def makePalette(color1, color2, N, HSV=False):
-    '''Generate N colors starting from color1 to color2 in RGB or HSV space.
-
-    `colorpalette.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/colorpalette.py>`_
+def makePalette(color1, color2, N, hsv=True):
     '''
-    if HSV:
+    Generate N colors starting from `color1` to `color2` 
+    by linear interpolation HSV in or RGB spaces.
+    
+    :param int N: number of output colors.
+    :param color1: first rgb color.
+    :param color2: second rgb color.
+    :param bool hsv: if `False`, interpolation is calculated in RGB space.
+
+    .. hint:: Example: `colorpalette.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/colorpalette.py>`_
+    '''
+    if hsv:
         color1 = rgb2hsv(color1)
         color2 = rgb2hsv(color2)
     c1 = np.array(getColor(color1))
     c2 = np.array(getColor(color2))
     cols = []
-    for f in np.linspace(0, 1, N, endpoint=True):
+    for f in np.linspace(0, 1, N-1, endpoint=True):
         c = c1 * (1-f) + c2 * f
-        if HSV:
+        if hsv:
             c = np.array(hsv2rgb(c))
         cols.append(c)
     return cols
+
+
+def makeLUTfromCTF(sclist, N=None):
+    '''
+    Use a Color Transfer Function to generate colors in a vtk lookup table.
+    See `here <http://www.vtk.org/doc/nightly/html/classvtkColorTransferFunction.html>`_.
+    
+    :param list sclist: a list in the form ``[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]``.     
+    :return: the lookup table object ``vtkLookupTable``. This can be fed into ``colorMap``.
+    '''
+    
+    ctf = vtk.vtkColorTransferFunction()
+    ctf.SetColorSpaceToDiverging()
+
+    for sc in sclist:
+        scalar, col = sc
+        r,g,b = getColor(col)
+        ctf.AddRGBPoint(scalar, r,g,b)
+    
+    if N is None:
+        N = len(sclist)
+        
+    lut = vtk.vtkLookupTable()
+    lut.SetNumberOfTableValues(N)
+    lut.Build()
+
+    for i in range(N):
+        rgb = list(ctf.GetColor(float(i)/N))+[1]
+        lut.SetTableValue(i, rgb)
+
+    return lut
 
 
 def kelvin2rgb(temperature):
@@ -487,9 +534,9 @@ def printc(*strings, **keys):
     >>>  printc('anything', 455.5, vtkObject, c='green')
     >>>  printc(299792.48, c=4) # 4 is blue
 
-    `colorprint.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/colorprint.py>`_
+    .. hint:: `colorprint.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/colorprint.py>`_
 
-    .. image:: https://user-images.githubusercontent.com/32848391/50739010-2bfc2b80-11da-11e9-94de-011e50a86e61.jpg
+        .. image:: https://user-images.githubusercontent.com/32848391/50739010-2bfc2b80-11da-11e9-94de-011e50a86e61.jpg
     '''
 
     end = keys.pop('end', '\n')

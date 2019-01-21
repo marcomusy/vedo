@@ -3,7 +3,7 @@
 # Every time a key is pressed the picked point of the mesh is used 
 # to add a sphere and some info is printed.
 # 
-from vtkplotter import Plotter, printc 
+from vtkplotter import Plotter, printc, sphere
 
 
 ##############################################################################
@@ -12,7 +12,7 @@ def myfnc(key):
         printc('click an actor and press c.', c='r')
         return
     
-    cb = vp.sphere(pos=vp.picked3d, r=.05, c='v') 
+    cb = sphere(pos=vp.picked3d, r=.05, c='v') 
     vp.render(cb)
     
     printc('clicked actor   :', vp.clickedActor.legend, c=4)

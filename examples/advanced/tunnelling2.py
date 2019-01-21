@@ -4,7 +4,7 @@
 # (hence undefined position) in a box hitting a potential barrier.
 # Uncomment below for more examples of the potential V(x).
 import numpy as np
-from vtkplotter import Plotter, shapes, utils
+from vtkplotter import Plotter, line
 
 Nsteps = 250 # number of steps in time
 dt = 0.004   # time step
@@ -45,7 +45,7 @@ vp.ytitle = 'Psi^2(x,t)'
 vp.ztitle = ''
 
 bck = vp.load('data/images/schrod.png', alpha=.3).scale(.0255).pos([0,-5,-.1])
-barrier = shapes.line(list(zip(x, V*15,  [0]*len(x))), c='black', lw=2)
+barrier = line(list(zip(x, V*15,  [0]*len(x))), c='black', lw=2)
 
 lines = []
 for i in range(0, Nsteps):	
@@ -53,7 +53,7 @@ for i in range(0, Nsteps):
         Psi += d_dt(Psi) * dt # integrate for a while before showing things
     A = np.real( Psi*np.conj(Psi) )*1.5 # psi squared, probability(x)
     coords = list(zip(x, A,  [0]*len(x)))
-    Aline = shapes.line(coords, c='db', lw=3)
+    Aline = line(coords, c='db', lw=3)
     vp.show([Aline, barrier, bck])
     lines.append([Aline, A]) # store objects
 

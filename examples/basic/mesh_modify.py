@@ -1,13 +1,13 @@
 # Modify mesh vertex positions.
 # (vtkActor transformation matrix is reset when mesh is modified)
 #
-from vtkplotter import Plotter
+from vtkplotter import Plotter, disc
 import numpy as np
 
 
 vp = Plotter(axes=4, interactive=0)
 
-dsc = vp.disc()
+dsc = disc()
 
 coords = dsc.coordinates()
 
@@ -16,6 +16,6 @@ for i in range(50):
     noise[:,0] = 0 # only perturb z
     noise[:,1] = 0  
     dsc.points(coords+noise) # modify mesh
-    vp.show(elevation=-1)
+    vp.show(dsc, elevation=-1)
     
 vp.show(interactive=1) 

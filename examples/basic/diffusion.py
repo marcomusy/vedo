@@ -1,12 +1,13 @@
 from __future__ import division, print_function
 from random import uniform as u
-from vtkplotter import printc, ProgressBar, Plotter
+from vtkplotter import printc, ProgressBar, Plotter, plane
 
 N = 10      # nr of particles along axis
 s = 0.01    # random step size
 
 scene = Plotter(verbose=0, axes=0)
-scene.plane(pos=[.44,.44,-.1], texture='wood7')
+
+scene.add(plane(pos=[.44,.44,-.1], texture='wood7'))
 
 for i in range(N):              # generate a grid of points
     for j in range(N): 

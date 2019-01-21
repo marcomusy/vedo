@@ -9,9 +9,7 @@ from vtkplotter import Plotter, norm, mag
 
 vp = Plotter(axes=0)
 
-s = vp.load('data/290.vtk', c='red')
-vp.actors.append( s.clone().color('gold').wire(True) )
-
+s = vp.load('data/290.vtk', c='red', bc='plum')
 c = s.centerOfMass()
 vp.point(c)
 
@@ -34,6 +32,6 @@ for t in range(Niter):
         
     #refresh actor, so polydata normals are recalculated
     s = s.clone().alpha(0.1).color('gold').wire(True)
-    vp.actors.append(s)
+    vp.add(s)
 
 vp.show()

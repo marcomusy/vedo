@@ -1,10 +1,11 @@
 # Example usage of addTrail()
 #
-from vtkplotter import Plotter, sin
+from vtkplotter import Plotter, sin, sphere
+
 
 vp = Plotter(axes=6)
 
-s = vp.sphere(c='green', res=24)
+s = sphere(c='green', res=24)
 vp.cutPlane(s, [-0.9,0,0], showcut=True) #cut left part of sphere
 
 p = vp.point([1,1,1], r=12)

@@ -14,31 +14,29 @@
 #
 import os
 import sys
+
 path = os.path.abspath('../..')
 sys.path.insert(0, path)
 
+
 # -- Automatic Doc Pages Generation ------------------------------------------
-
-
 import vtkplotter # for documenting
 from gendocs import Generator
 
 # Automatically generate documentaion pages
 Generator().DocumentPackages([vtkplotter],
                              '../README.rst',
-                             showprivate=True,
-                             notify=False,
-                            )
+                             showprivate=False,
+                             notify=False,      )
 
 
 # -- Project information -----------------------------------------------------
-
 project = 'vtkplotter'
 copyright = '2019, M. Musy & G. Dalmasso'
 author = 'Marco Musy'
 
 # The short X.Y version
-version = '8.7.7'
+version = '8.8.0'
 
 # -- General configuration ---------------------------------------------------
 

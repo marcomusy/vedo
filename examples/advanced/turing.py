@@ -4,7 +4,7 @@
 # a blue component.
 #
 from __future__ import division, print_function
-from vtkplotter import vector, Plotter, ProgressBar
+from vtkplotter import vector, Plotter, ProgressBar, cylinder
 import numpy as np
 
 # Load (with numpy) an existing set of mesh points and a list 
@@ -26,8 +26,8 @@ for t1 in pb.range():  # for each time point
     if t1 == nc-1: t2=t1 # avoid index overflow with last time point
     
     vp.actors=[]       # clean up the list of actors at each iteration
-    vp.cylinder([0,0,-15], r=260, height=10, texture='marble', res=60)
-    vp.cylinder([0,0, 10], r=260, height=50, wire=1, c='gray', res=60)
+    vp.add(cylinder([0,0,-15], r=260, height=10, texture='marble', res=60))
+    vp.add(cylinder([0,0, 10], r=260, height=50, wire=1, c='gray', res=60))
 
     pts, cols = [],[]    
     for i,p in enumerate(mesh): # for each vertex in the mesh

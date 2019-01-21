@@ -1,8 +1,7 @@
 # Simulation of bacteria types that divide at a given rate
 # As they divide they occupy more and more space
 from __future__ import division, print_function
-from vtkplotter import Plotter, ProgressBar
-from vtkplotter.analysis import pca
+from vtkplotter import Plotter, ProgressBar, pcaEllipsoid, line
 from cell import Cell, Colony
 
 vp = Plotter(verbose=0, interactive=0, axes=3)
@@ -36,7 +35,7 @@ for t in pb.range():
             if cell.dieAt(t): continue
             if cell.divideAt(t): 
                 newc = cell.split() # make daughter cell
-                vp.line(cell.pos, newc.pos, c='k', lw=3, alpha=.5)
+                vp.add(line(cell.pos, newc.pos, c='k', lw=3, alpha=.5))
                 newcells.append(newc)
             newcells.append(cell)
         colony.cells = newcells
@@ -52,7 +51,7 @@ for t in pb.range():
 # draw the oriented ellipsoid that contains 50% of the cells
 for colony in colonies: 
     pts = [c.pos for c in colony.cells]
-    a = pca(pts, pvalue=0.5, c=colony.color, pcaAxes=0, alpha=.3,
-            legend='1/rate='+str(colony.cells[0].tdiv)+'h')
-    vp.actors.append(a)
+    a = pcaEllipsoid(pts, pvalue=0.5, c=colony.color, pcaAxes=0, alpha=.3,
+            		 legend='1/rate='+str(colony.cells[0].tdiv)+'h')
+    vp.add(a)
 vp.show(resetcam=0, interactive=1)

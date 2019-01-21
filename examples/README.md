@@ -12,8 +12,7 @@ python tutorial.py  # on mac OSX try 'pythonw' instead
 The content of the python script and its output is the following:
 ```python
 from random import gauss, uniform as u
-from vtkplotter import Plotter
-import math
+from vtkplotter import *
 
 # Declare an instance of the class
 vp = Plotter(title='first example')
@@ -50,8 +49,9 @@ pts = [ (u(0,2), u(0,2), u(0,2)+i) for i in range(8) ] # build python list of po
 vp.points(pts, legend='random points')                 # create the Actor
 
 for i in range(10):
-    vp.spline(pts, smooth=i/10., degree=2, c=i, legend='smoothing '+str(i/10.))
-vp.show(viewup='z')
+    sp = spline(pts, smooth=i/10, degree=2, c=i, legend='smoothing '+str(i/10))
+    vp.add(sp) # add the actor to the internal list of actors to be shown
+vp.show(viewup='z', interactive=1)
 ```
 ![tut3](https://user-images.githubusercontent.com/32848391/50738978-d889dd80-11d9-11e9-90f1-485dc8212760.jpg)
 
@@ -70,7 +70,6 @@ vp.show()
 ```python
 # Draw a bunch of simple objects on separate parts of the rendering window:
 # split window automatically to best accomodate 9 renderers
-from vtkplotter.shapes import *
 vp = Plotter(N=9, title='basic shapes', axes=0) # split window in 9 frames
 vp.sharecam = False                             # each object can be moved independently
 vp.show(at=0, actors=arrow([0,0,0],[1,1,1]),    legend='arrow' )
@@ -133,6 +132,48 @@ vp.show()
 ```
 ![tut8](https://user-images.githubusercontent.com/32848391/50738973-d889dd80-11d9-11e9-9885-1c2d0a7df30d.jpg)
 
+​
+### Some useful *Plotter* attributes
+Remember that you always have full access to all standard VTK native objects 
+(e.g. vtkRenderWindowInteractor, vtkRenderer and vtkActor through *vp.interactor, vp.renderer, vp.actors*... etc).
+```python
+vp = vtkplotter.Plotter() #e.g.
+vp.actors       # holds the current list of vtkActors to be shown
+vp.renderer     # holds the current vtkRenderer
+vp.renderers    # holds the list of renderers
+vp.interactor   # holds the vtkWindowInteractor object
+vp.interactive  # (True) allows to interact with renderer after show()
+vp.camera       # holds the current vtkCamera
+vp.sharecam     # (True) share the same camera in multiple renderers
+```
+​
+### Some useful additional methods to manage 3D objects
+These methods return the Actor(vtkActor) object so that they can be concatenated,
+check out [Actor methods here](https://vtkplotter.embl.es/actors.m.html). <br />
+(E.g.: `actor.scale(3).pos([1,2,3]).color('blue').alpha(0.5)` etc..).
+```python
+actor.pos()               # set/get position vector (setters, and getters if no argument is given)
+actor.scale()             # set/get scaling factor of actor
+actor.normalize()         # sets actor at origin and scales its average size to 1
+actor.rotate(angle, axis) # rotate actor around axis
+actor.color(name)         # sets/gets color
+actor.alpha(value)        # sets/gets opacity
+actor.N()                 # get number of vertex points defining the actor's mesh
+actor.polydata()          # get the actor's mesh polydata in its current transformation
+actor.coordinates()       # get a copy of vertex points coordinates (copy=False to get references)
+actor.normals()           # get the list of normals at the vertices of the surface
+actor.clone()             # get a copy of actor
+...
+```
+
+### Available color maps from *matplotlib* and *vtkNamedColors*
+```python
+# Example: transform a scalar value between -10.2 and 123 into a (R,G,B) color using the 'jet' map:
+r, g, b = colorMap(value, name='jet', vmin=-10.2, vmax=123)
+```
+![colormaps](https://user-images.githubusercontent.com/32848391/50738804-577e1680-11d8-11e9-929e-fca17a8ac6f3.jpg)
+
+A list of available vtk color names is given [here](https://vtkplotter.embl.es/vtkcolors.html).
 
 
 

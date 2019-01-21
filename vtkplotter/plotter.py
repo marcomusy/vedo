@@ -4,12 +4,10 @@ Defines main class ``Plotter`` to manage actors and 3D rendering.
 
 from __future__ import division, print_function
 
-
 __all__ = [
     'show',
     'Plotter',
 ]
-
 
 import time
 import sys
@@ -21,23 +19,30 @@ import vtkplotter.vtkio as vtkio
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
 import vtkplotter.shapes as shapes
-import vtkplotter.analysis as analysis
 from vtkplotter.actors import Assembly, Actor
 
 
 ########################################################################
-def show(obj, axes=1, c=None, alpha=None, wire=False, bc=None,
-         zoom=None, viewup='', azimuth=0, elevation=0, roll=0,
-         interactive=True):
+def show(obj, 
+         pos=(0, 0), size='auto', screensize='auto', title='',
+         bg=(1, 1, 1), bg2=None, axes=1, infinity=False,
+         verbose=True, interactive=None, offscreen=False, 
+         c=None, alpha=None, wire=False, bc=None,
+         zoom=None, viewup='', azimuth=0, elevation=0, roll=0):
     '''
-    Create an instance of class ``Plotter`` and show the object provided.
+    Create an instance of class ``Plotter`` and show the object(s) provided.
     
-    Return the ``Plotter`` class instance.
+    :return: the ``Plotter`` class instance.
+    
+    .. hint:: Example: `thinplate_grid.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/thinplate_grid.py>`_    
     '''
-    vp = Plotter(axes=axes)
+    vp = Plotter(pos=pos, size=size, screensize=screensize, title=title,
+                 bg=bg, bg2=bg2, axes=axes, infinity=infinity,
+                 verbose=verbose, interactive=interactive, offscreen=offscreen)
+
     vp.show(obj, c=c, alpha=alpha, wire=wire, bc=bc, zoom=zoom,
-            viewup=viewup, azimuth=azimuth, elevation=elevation, roll=roll,
-            interactive=interactive)
+            viewup=viewup, azimuth=azimuth, elevation=elevation, roll=roll)
+
     return vp
 
 
@@ -46,14 +51,14 @@ class Plotter:
     """
     Main class to manage actors.
 
-    :param shape: shape of the grid of renderers in format (rows, columns). Ignored if N is specified.
-    :param N: number of desired renderers arranged in a grid automatically.
-    :param pos: (x,y) position in pixels of top-left corneer of the rendering window on the screen
+    :param list shape: shape of the grid of renderers in format (rows, columns). Ignored if N is specified.
+    :param int N: number of desired renderers arranged in a grid automatically.
+    :param list pos: (x,y) position in pixels of top-left corneer of the rendering window on the screen
     :param size: size of the rendering window. If 'auto', guess it based on screensize.
     :param screensize: physical size of the monitor screen 
     :param bg: background color or specify jpg image file name with path
     :param bg2: background color of a gradient towards the top
-    :param axes: 0 = no axes,   
+    :param int axes: 0 = no axes,   
      
                 1 = draws three gray grid walls
 
@@ -69,20 +74,21 @@ class Plotter:
 
                 7 = draws a simple ruler at the bottom of the window
 
-                8 = show the vtkCubeAxesActor object
-    :param projection:  if True fugue point is set at infinity (no perspective effects)
-    :param sharecam:    if False each renderer will have an independent vtkCamera
-    :param interactive: if True will stop after show() to allow interaction w/ window
-    :param offscreen:   if True will not show the rendering window    
-    :param depthpeeling: depth-peel volumes along with the translucent geometry
+                8 = show the ``vtkCubeAxesActor`` object
+
+                9 = show the bounding box outline
+    :param bool projection:  if True fugue point is set at infinity (no perspective effects)
+    :param bool sharecam:    if False each renderer will have an independent vtkCamera
+    :param bool interactive: if True will stop after show() to allow interaction w/ window
+    :param bool offscreen:   if True will not show the rendering window    
+    :param bool depthpeeling: depth-peel volumes along with the translucent geometry
     """
     def _tips(self):
         vvers = ' vtkplotter '+__version__+', vtk '+vtk.vtkVersion().GetVTKVersion()
         vvers += ', python ' + \
             str(sys.version_info[0])+'.'+str(sys.version_info[1])+' '
         n = len(vvers)
-        if not colors._terminal_has_colors:
-            n = 0
+        if not colors._terminal_has_colors: n = 0
         colors.printc(' '*n+'_'*(59-n), c='blue')
         colors.printc(vvers, invert=1, dim=1, c='blue', end='')
         msg = ' '*(59-n)+'|\n' + '|'+' '*58+'|\n|Press:'
@@ -110,39 +116,7 @@ class Plotter:
                  bg=(1, 1, 1), bg2=None, axes=1, infinity=False,
                  sharecam=True, verbose=True, interactive=None, offscreen=False, 
                  depthpeeling=False):
-        """
-        Main class to manage actors.
-    
-        :param shape: shape of the grid of renderers in format (rows, columns). Ignored if N is specified.
-        :param N: number of desired renderers arranged in a grid automatically.
-        :param pos: (x,y) position in pixels of top-left corneer of the rendering window on the screen
-        :param size: size of the rendering window. If 'auto', guess it based on screensize.
-        :param screensize: physical size of the monitor screen 
-        :param bg: background color or specify jpg image file name with path
-        :param bg2: background color of a gradient towards the top
-        :param axes: 0 = no axes,   
-         
-                    1 = draws three gray grid walls
-    
-                    2 = show cartesian axes from (0,0,0)
-    
-                    3 = show positive range of cartesian axes from (0,0,0)
-    
-                    4 = show a triad at bottom left
-    
-                    5 = show a cube at bottom left
-    
-                    6 = mark the corners of the bounding box
-    
-                    7 = draws a simple ruler at the bottom of the window
-    
-                    8 = show the vtkCubeAxesActor object
-        :param projection:  if True fugue point is set at infinity (no perspective effects)
-        :param sharecam:    if False each renderer will have an independent vtkCamera
-        :param interactive: if True will stop after show() to allow interaction w/ window
-        :param offscreen:   if True will not show the rendering window    
-        :param depthpeeling: depth-peel volumes along with the translucent geometry
-        """
+
         if interactive is None:
             if N or shape != (1, 1):
                 interactive = False
@@ -175,9 +149,9 @@ class Plotter:
         self.gouraud = False   # sets interpolation style to 'gouraud'
         self.bculling = False  # back face culling
         self.fculling = False  # front face culling
-        self.legend = []       # list of legend entries for actors
+        self._legend = []       # list of legend entries for actors
         self.legendSize = 0.15  # size of legend
-        self.legendBack = (.96, .96, .9)  # legend background color
+        self.legendBC = (.96, .96, .9)  # legend background color
         self.legendPos = 2      # 1=topright, 2=top-right, 3=bottom-left
         self.picked3d = None    # 3d coords of a clicked point on an actor
         self.backgrcol = bg
@@ -219,7 +193,7 @@ class Plotter:
                 screensize = (2160, 1440)
 
         x, y = screensize
-        if N:                # N = number of renderers. Find out the best
+        if N:                    # N = number of renderers. Find out the best
             if shape != (1, 1):  # arrangement based on minimum nr. of empty renderers
                 colors.printc('Warning: having set N, shape is ignored.', c=1)
             nx = int(numpy.sqrt(int(N*y/x)+1))
@@ -300,11 +274,13 @@ class Plotter:
             self.renderWin.SetSize(int(self.size[0]), int(self.size[1]))
 
         self.renderWin.SetPosition(pos)
+        
         if not title:
             title = ' vtkplotter '+__version__+', vtk '+vtk.vtkVersion().GetVTKVersion()
-            title += ', python ' + \
-                str(sys.version_info[0])+'.'+str(sys.version_info[1])
+            title += ', python ' + str(sys.version_info[0])+'.'+str(sys.version_info[1])
+        
         self.renderWin.SetWindowName(title)
+        
         for r in self.renderers:
             self.renderWin.AddRenderer(r)
 
@@ -318,12 +294,13 @@ class Plotter:
             vsty = vtk.vtkInteractorStyleTrackballCamera()
             self.interactor.SetInteractorStyle(vsty)
 
+
     #################################################### LOADER
     def load(self, inputobj, c='gold', alpha=1,
              wire=False, bc=None, legend=True, texture=None,
              smoothing=None, threshold=None, connectivity=False):
         ''' 
-        Returns a vtkActor from reading a file, directory or vtkPolyData.
+        Returns a ``vtkActor`` from reading a file, directory or ``vtkPolyData``.
 
         :param c: color in RGB format, hex, symbol or name
         :param alpha:   transparency (0=invisible)
@@ -336,7 +313,7 @@ class Plotter:
 
         :param smoothing:    gaussian filter to smooth vtkImageData
         :param threshold:    value to draw the isosurface
-        :param connectivity: if True only keeps the largest portion of the polydata
+        :param bool connectivity: if True only keeps the largest portion of the polydata
         '''
         import os
         if isinstance(inputobj, vtk.vtkPolyData):
@@ -445,7 +422,7 @@ class Plotter:
         elif isinstance(obj, str):  # search the actor by the legend name
             actors = []
             for a in self.actors:
-                if hasattr(a, 'legend') and obj in a.legend and a.GetPickable():
+                if hasattr(a, '_legend') and obj in a._legend and a.GetPickable():
                     actors.append(a)
             return actors
 
@@ -457,15 +434,30 @@ class Plotter:
                 'Warning in getActors: unexpected input type', obj, c=1)
         return []
 
+
+    def add(self, actors):
+        '''Append input object to the internal list of actors to be shown.
+        
+        :return: returns input actor for possible concatenation.
+        '''
+        if utils.isSequence(actors):
+            for a in actors:
+                if a not in self.actors:
+                    self.actors.append(a)
+            return None
+        else:
+           self.actors.append(actors)
+           return actors
+
     def moveCamera(self, camstart, camstop, fraction):
         '''
-        Takes as input two vtkCamera objects and returns a
-        new vtkCamera that is at an intermediate position:
+        Takes as input two ``vtkCamera`` objects and returns a
+        new ``vtkCamera`` that is at an intermediate position:
 
         fraction=0 -> camstart,  fraction=1 -> camstop.
 
-        Press shift-C key in interactive mode to dump a vtkCamera
-        parameter template for the current camera view.
+        Press ``shift-C`` key in interactive mode to dump a python snipplet
+        of parameters for the current camera view.
         '''
         if isinstance(fraction, int):
             colors.printc(
@@ -496,19 +488,16 @@ class Plotter:
     def Actor(self, poly=None, c='gold', alpha=0.5,
               wire=False, bc=None, legend=None, texture=None):
         '''
-        Return a `vtkActor` from an input `vtkPolyData`.
+        Return a ``vtkActor`` from an input ``vtkPolyData``.
 
         :param c: color name, number, or list of [R,G,B] colors
         :type c: int, str, list
-        :param alpha: transparency in range [0,1].
-        :type alpha: float
-        :param wire: show surface as wireframe
-        :type wire: bool
+        :param float alpha: transparency in range [0,1].
+        :param bool wire: show surface as wireframe
         :param bc: backface color of the internal surface
         :type c: int, str, list
-        :param legend: legend text
-        :type  legend: str
-        :param texture: jpg file name of surface texture
+        :param str legend: legend text
+        :param str texture: jpg file name of surface texture
         '''
         a = Actor(poly, c, alpha, wire, bc, legend, texture)
         self.actors.append(a)
@@ -516,15 +505,15 @@ class Plotter:
 
 
     def Assembly(self, actorlist):
-        '''Group many actors as a single new actor.
+        '''Group many actors as a single new actor which is a ``vtkAssembly`` derived object.
 
-        `icon.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py>`_
+        .. hint:: Examples: `icon.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py>`_
     
-        .. image:: https://user-images.githubusercontent.com/32848391/50739009-2bfc2b80-11da-11e9-9e2e-a5e0e987a91a.jpg
+            .. image:: https://user-images.githubusercontent.com/32848391/50739009-2bfc2b80-11da-11e9-9e2e-a5e0e987a91a.jpg
         
-        `gyroscope2.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope2.py>`_ 
+            `gyroscope2.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope2.py>`_ 
         
-        .. image:: https://user-images.githubusercontent.com/32848391/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif
+            .. image:: https://user-images.githubusercontent.com/32848391/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif
         '''
         for a in actorlist:
             while a in self.actors:  # update internal list
@@ -538,14 +527,13 @@ class Plotter:
         """
         Generate a source of light placed at pos, directed to focal point fp.
 
-        :param fp: focal point, if this is a vtkActor use its position.
+        :param fp: focal point, if this is a ``vtkActor`` use its position.
         :type fp: vtkActor, list
         :param deg: aperture angle of the light source
-
         :param showsource: if `True`, will show a vtk representation
                             of the source of light as an extra actor
 
-        `lights.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lights.py>`_
+        .. hint:: Example: `lights.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lights.py>`_
         """
         if isinstance(fp, vtk.vtkActor):
             fp = fp.GetPosition()
@@ -567,7 +555,8 @@ class Plotter:
         return light
 
 
-    ################################################################## manage basic shapes
+    ################################################################## 
+    #
     def point(self, pos=[0, 0, 0], r=10, c='k', alpha=1, legend=None):
         '''Create a simple point actor.'''
         a = shapes.point(pos, r, c, alpha, legend)
@@ -577,433 +566,43 @@ class Plotter:
     def points(self, plist=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], r=4,
                c='k', alpha=1, legend=None):
         '''
-        Build a vtkActor for a list of points.
+        Build a ``vtkActor`` for a list of points.
 
-        :param r: point radius.
-        :type r: float
+        :param float r: point radius.
         :param c: color name, number, or list of [R,G,B] colors of same length as plist.
         :type c: int, str, list
-        :param alpha: transparency in range [0,1].
-        :type alpha: float
+        :param float alpha: transparency in range [0,1].
 
-        `lorenz.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lorenz.py>`_
+        .. hint:: Example: `lorenz.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lorenz.py>`_
     
-        .. image:: https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png
+            .. image:: https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png
         '''
         a = shapes.points(plist, r, c, alpha, legend)
-        self.actors.append(a)
-        return a
-
-
-    def sphere(self, pos=[0, 0, 0], r=1,
-               c='r', alpha=1, wire=False, legend=None, texture=None, res=24):
-        '''Build a sphere at position `pos` of radius `r`.'''
-        a = shapes.sphere(pos, r, c, alpha, wire, legend, texture, res)
-        self.actors.append(a)
-        return a
-
-    def spheres(self, centers, r=1,
-                c='r', alpha=1, wire=False, legend=None, texture=None, res=8):
-        '''
-        Build a (possibly large) set of spheres at `centers` of radius `r`.
-
-        Either `c` or `r` can be a list of RGB colors or radii.
-
-        `manyspheres.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/manyspheres.py>`_
-        
-        .. image:: https://user-images.githubusercontent.com/32848391/46818673-1f566b80-cd82-11e8-9a61-be6a56160f1c.png
-        '''
-        a = shapes.spheres(centers, r, c, alpha, wire, legend, texture, res)
-        self.actors.append(a)
-        return a
-
-
-    def earth(self, pos=[0, 0, 0], r=1, lw=1):
-        '''Build a textured actor representing the Earth.
-
-        `earth.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/earth.py>`_
-        
-        .. image:: https://user-images.githubusercontent.com/32848391/51031592-5a448700-159d-11e9-9b66-bee6abb18679.png
-        '''
-        a = shapes.earth(pos, r, lw)
-        self.actors.append(a)
-        return a
-
-
-    def line(self, p0, p1=None, lw=1,
-             c='r', alpha=1, dotted=False, legend=None):
-        '''
-        Build the line segment between points p0 and p1.
-        If p0 is a list of points returns the line connecting them.
-         
-        :param lw: line width.
-        :param c: color name, number, or list of [R,G,B] colors.
-        :type c: int, str, list
-        :param alpha: transparency in range [0,1].
-        :type alpha: float
-        :param dotted: draw a dotted line
-        :type dotted: bool
-        '''
-        a = shapes.line(p0, p1, lw, c, alpha, dotted, legend)
-        self.actors.append(a)
-        return a
-
-    def tube(self, points, r=1, c='r', alpha=1, legend=None, res=12):
-        '''Build a tube of radius `r` along line defined by a set of points.'''
-        a = shapes.tube(points, r, c, alpha, legend, res)
-        self.actors.append(a)
-        return a
-
-
-    def lines(self, plist0, plist1=None, lw=1,
-              c='r', alpha=1, dotted=False, legend=None):
-        '''
-        Build the line segments between two lists of points `plist0` and `plist1`.
-        `plist0` can be also passed in the format ``[[point1, point2], ...]``.
-
-        `fitspheres2.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py>`_
-        '''
-        a = shapes.lines(plist0, plist1, lw, c, alpha, dotted, legend)
-        self.actors.append(a)
-        return a
-
-
-    def ribbon(self, line1, line2, c='m', alpha=1, legend=None, res=(200,5)):
-        '''Connect two lines to generate the surface inbetween.
-
-        `ribbon.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/ribbon.py>`_
-
-        .. image:: https://user-images.githubusercontent.com/32848391/50738851-be9bcb00-11d8-11e9-80ee-bd73c1c29c06.jpg
-        '''
-        a = shapes.ribbon(line1, line2, c, alpha, legend, res)
-        self.actors.append(a)
-        return a
-
-
-    def arrow(self, startPoint, endPoint,
-              c='r', s=None, alpha=1, legend=None, texture=None, res=12):
-        '''
-        Build a 3D arrow from `startPoint` to `endPoint` of section size `s`,
-        expressed as the fraction of the window size.
-    
-        .. note:: If ``s=None`` the arrow is scaled proportionally to its length,
-                  otherwise it represents the fraction of the window size.
-        '''
-        a = shapes.arrow(startPoint, endPoint, c, s, alpha,
-                         legend, texture, res, self.renderWin.GetSize())
-        self.actors.append(a)
-        return a
-
-
-    def arrows(self, startPoints, endPoints=None,
-               c='r', s=None, alpha=1, legend=None, res=8):
-        '''
-        Build arrows between two lists of points `startPoints` and `endPoints`.
-        `startPoints` can be also passed in the form ``[[point1, point2], ...]``
-        '''
-        rwSize = self.renderWin.GetSize()
-        a = shapes.arrows(startPoints, endPoints, c, s, alpha, legend, res, rwSize)
-        self.actors.append(a)
-        return a
-
-
-    def grid(self, pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=1, c='g', bc='darkgreen',
-             lw=1, alpha=1, legend=None, resx=10, resy=10):
-        '''
-        Draw a grid of size `sx` and `sy` oriented perpendicular to vector `normal`
-        so that it passes through point `pos`.
-
-        `brownian2D.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/brownian2D.py>`_
-    
-        .. image:: https://user-images.githubusercontent.com/32848391/50738948-73ce8300-11d9-11e9-8ef6-fc4f64c4a9ce.gif
-        '''
-        a = shapes.grid(pos, normal, sx, sy, c, bc, lw, alpha, legend, resx, resy)
-        self.actors.append(a)
-        return a
-
-
-    def plane(self, pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=None, c='g', bc='darkgreen',
-              alpha=1, legend=None, texture=None):
-        '''
-        Draw a plane of size `sx` and `sy` oriented perpendicular to vector `normal`
-        and so that it passes through point `pos`.
-        '''
-        a = shapes.plane(pos, normal, sx, sy, c, bc, alpha, legend, texture)
-        self.actors.append(a)
-        return a
-
-
-    def polygon(self, pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
-                c='coral', bc='darkgreen', lw=1, alpha=1,
-                legend=None, texture=None, followcam=False):
-        '''Build a 2D polygon of nsides of radius r oriented as normal
-
-        If ``followcam=True`` the polygon will always reorient itself to current camera.
-        '''
-        a = shapes.polygon(pos, normal, nsides, r, c, bc, lw, alpha, legend,
-                           texture, followcam, camera=self.camera)
-        self.actors.append(a)
-        return a
-
-
-    def disc(self, pos=[0, 0, 0], normal=[0, 0, 1], r1=0.5, r2=1, c='coral', bc='darkgreen',
-             lw=1, alpha=1, legend=None, texture=None, res=12):
-        '''Build a 2D disc of internal radius `r1` and outer radius `r2`,
-        oriented perpendicular to `normal`.'''
-        a = shapes.disc(pos, normal, r1, r2, c, bc, lw, alpha, legend, texture, res)
-        self.actors.append(a)
-        return a
-
-
-    def box(self, pos=[0, 0, 0], length=1, width=2, height=3, normal=(0, 0, 1),
-            c='g', alpha=1, wire=False, legend=None, texture=None):
-        '''Build a box of dimensions `x=length, y=width and z=height` oriented along vector `normal`.
-
-        `aspring.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/aspring.py>`_
-    
-        .. image:: https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif
-        '''
-        a = shapes.box(pos, length, width, height, normal, c, alpha, wire, legend, texture)
-        self.actors.append(a)
-        return a
-
-    def cube(self, pos=[0, 0, 0], length=1, normal=(0, 0, 1),
-             c='g', alpha=1., wire=False, legend=None, texture=None):
-        '''Build a cube of dimensions length oriented along vector `normal`.
-
-        `colorcubes.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py>`_
-        
-        .. image:: https://user-images.githubusercontent.com/32848391/50738867-c0658e80-11d8-11e9-9e05-ac69b546b7ec.png
-        '''
-        a = self.box(pos, length, length, length, normal, c, alpha, wire, legend, texture)
-        self.actors.append(a)
-        return a
-
-
-    def helix(self, startPoint=[0, 0, 0], endPoint=[1, 1, 1], coils=20, r=None,
-              thickness=None, c='grey', alpha=1, legend=None, texture=None):
-        '''
-        Build a spring actor of specified nr of `coils` between `startPoint` and `endPoint`.
-
-        `aspring.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/aspring.py>`_
-    
-        .. image:: https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif
-        '''
-        a = shapes.helix(startPoint, endPoint, coils, r, thickness, c, alpha, legend, texture)
-        self.actors.append(a)
-        return a
-
-
-    def cylinder(self, pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
-                 c='teal', wire=0, alpha=1, legend=None, texture=None, res=24):
-        '''
-        Build a cylinder of specified height and radius `r`, centered at `pos`.
-
-        If `pos` is a list of 2 points, e.g. `pos=[v1,v2]`, build a cylinder with base
-        centered at `v1` and top at `v2`.
-        '''
-        a = shapes.cylinder(pos, r, height, axis, c, wire, alpha, legend, texture, res)
-        self.actors.append(a)
-        return a
-
-
-    def paraboloid(self, pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
-                   c='cyan', alpha=1, legend=None, texture=None, res=50):
-        '''
-        Build a paraboloid of specified height and radius `r`, centered at `pos`.
-           
-        Full volumetric expression is:
-            :math:`F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
-    
-        .. image:: https://user-images.githubusercontent.com/32848391/51211547-260ef480-1916-11e9-95f6-4a677e37e355.png
-        '''
-        a = shapes.paraboloid(pos, r, height, axis, c, alpha, legend, texture, res)
-        self.actors.append(a)
-        return a
-
-
-    def hyperboloid(self, pos=[0, 0, 0], a2=1, value=0.5, height=1, axis=[0, 0, 1],
-                    c='magenta', alpha=1, legend=None, texture=None, res=50):
-        '''
-        Build a hyperboloid of specified aperture `a2` and `height`, centered at `pos`.
-        
-        Full volumetric expression is:
-            :math:`F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
-        '''
-        a = shapes.hyperboloid(pos, a2, value, height, axis, c, alpha, legend, texture, res)
-        self.actors.append(a)
-        return a
-
-
-    def cone(self, pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
-             c='dg', alpha=1, legend=None, texture=None, res=48):
-        '''
-        Build a cone of specified radius `r` and `height`, centered at `pos`.
-        '''
-        a = shapes.cone(pos, r, height, axis, c, alpha, legend, texture, res)
-        self.actors.append(a)
-        return a
-
-    def pyramid(self, pos=[0, 0, 0], s=1, height=1, axis=[0, 0, 1],
-                c='dg', alpha=1, legend=None, texture=None):
-        '''
-        Build a pyramid of specified base size `s` and `height`, centered at `pos`.
-        '''
-        a = self.cone(pos, s, height, axis, c, alpha, legend, texture, 4)
-        self.actors.append(a)
-        return a
-
-
-    def torus(self, pos=[0, 0, 0], r=1, thickness=0.1, axis=[0, 0, 1],
-              c='khaki', alpha=1, wire=False, legend=None, texture=None, res=30):
-        '''
-        Build a torus of specified outer radius `r` internal radius `thickness`, centered at `pos`.
-
-        `gas.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gas.py>`_
-        
-        .. image:: https://user-images.githubusercontent.com/32848391/50738954-7e891800-11d9-11e9-95aa-67c92ca6476b.gif
-        '''
-        a = shapes.torus(pos, r, thickness, axis, c, alpha, wire, legend, texture, res)
-        self.actors.append(a)
-        return a
-
-
-    def ellipsoid(self, pos=[0, 0, 0], axis1=[1, 0, 0], axis2=[0, 2, 0], axis3=[0, 0, 3],
-                  c='c', alpha=1, legend=None, texture=None, res=24):
-        """Build a 3D ellipsoid centered at position `pos`.
-
-        `axis1` and `axis2` are only used to define sizes and one azimuth angle.
-        """
-        a = shapes.ellipsoid(pos, axis1, axis2, axis3, c, alpha, legend, texture, res)
-        self.actors.append(a)
-        return a
-
-
-    def spline(self, points, smooth=0.5, degree=2,
-               s=2, c='b', alpha=1, nodes=False, legend=None, res=20):
-        '''
-        Return a vtkActor for a spline that doesnt necessarly pass exactly throught all points.
-
-        :param smooth: smoothing factor
-        
-                        0 = interpolate points exactly,
-        
-                        1 = average point positions
-        :param degree: degree of the spline (1<degree<5)
-        :param nodes: if `True`, show also the input points.
-
-        `tutorial.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py>`_
-
-        .. image:: https://user-images.githubusercontent.com/32848391/35976041-15781de8-0cdf-11e8-997f-aeb725bc33cc.png
-        '''
-        a = analysis.spline(points, smooth, degree, s, c, alpha, nodes, legend, res)
-        self.actors.append(a)
+        self.add(a)
         return a
 
 
     def text(self, txt='Hello', pos=(0, 0, 0), normal=(0, 0, 1), s=1, depth=0.1, justify='bottom-left',
              c='k', alpha=1, bc=None, texture=None, followcam=False):
         '''
-        Returns a vtkActor that shows a 3D text.
+        Returns a ``vtkActor`` that shows a 3D text.
     
         :param pos: position in 3D space, 
                     if an integer is passed [1 -> 8], place text in one of the 4 corners
         :type pos: list, int
-        :param s: size of text
-        :type s: float
-        :param depth: text thickness
-        :type depth: float
-        :param justify: text justification (bottom-left, bottom-right, top-left, top-right, centered)
-        :type justify: str
-        :param followcam: if `True` the text will auto-orient itself to the cam.
+        :param float s: size of text
+        :param float depth: text thickness
+        :param str justify: text justification (bottom-left, bottom-right, top-left, top-right, centered)
+        :param bool followcam: if `True` the text will auto-orient itself to the cam.
     
-        `colorcubes.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py>`_
+        .. hint:: Example: `colorcubes.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py>`_,
+            `text_just.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/text_just.py>`_
         
-        .. image:: https://user-images.githubusercontent.com/32848391/50738867-c0658e80-11d8-11e9-9e05-ac69b546b7ec.png
+            .. image:: https://user-images.githubusercontent.com/32848391/50738867-c0658e80-11d8-11e9-9e05-ac69b546b7ec.png
         '''
         a = shapes.text(txt, pos, normal, s, depth, justify, c, alpha, bc,
                         texture, followcam, cam=self.camera)
-        self.actors.append(a)
-        return a
-
-
-    def xyplot(self, points=[[0, 0], [1, 0], [2, 1], [3, 2], [4, 1]],
-               title='', c='b', corner=1, lines=False):
-        """
-        Return a vtkActor that is a plot of 2D points in x and y.
-
-        Use `corner` to assign its position:            
-            - 1 -> topleft,
-            - 2 -> topright,
-            - 3 -> bottomleft,
-            - 4 -> bottomright.
-
-        `tutorial.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py>`_
-        """
-        a = analysis.xyplot(points, title, c, corner, lines)
-        self.actors.append(a)
-        return a
-
-    def histogram(self, values, bins=10, vrange=None,
-                  title='', c='g', corner=1, lines=True):
-        '''
-        Build a 2D histogram from a list of values in n bins.
-
-        Use *vrange* to restrict the range of the histogram.
-
-        Use *corner* to assign its position:
-            - 1 -> topleft,
-            - 2 -> topright,
-            - 3 -> bottomleft,
-            - 4 -> bottomright.
-
-        `fitplanes.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitplanes.py>`_
-        '''
-        fs, edges = numpy.histogram(values, bins=bins, range=vrange)
-        pts = []
-        for i in range(len(fs)):
-            pts.append([(edges[i]+edges[i+1])/2, fs[i]])
-        return self.xyplot(pts, title, c, corner, lines)
-
-
-    def histogram2D(self, xvalues, yvalues, bins=12, norm=1, c='g', alpha=1, fill=False):
-        '''
-        Build a 2D hexagonal histogram from a list of x and y values.
-    
-        :param bins: nr of bins for the smaller range in x or y.
-        :param norm: sets a scaling factor for the z axis.
-        :param fill: draw solid hexagons.
-        
-        `histo2D.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/histo2D.py>`_    
-    
-        .. image:: https://user-images.githubusercontent.com/32848391/50738861-bfccf800-11d8-11e9-9698-c0b9dccdba4d.jpg    
-        '''   
-        a = analysis.histogram2D(xvalues, yvalues, bins, norm, c, alpha, fill)
-        self.actors.append(a)
-        return a
-
-
-    def fxy(self, z='sin(3*x)*log(x-y)/3', x=[0, 3], y=[0, 3],
-            zlimits=[None, None], zlevels=10, showNan=True, wire=False,
-            c='aqua', bc='aqua', alpha=1, legend=True, texture='paper', res=100):
-        '''
-        Build a surface representing the function f(x,y) specified as a string
-        or as a reference to an external function.
-    
-        :param x: x range of values.
-        :param y: y range of values.
-        :param zlimits: limit the z range of the independent variable.
-        :param zlevels: will draw the specified number of z-levels contour lines.
-        :param showNan: show where the function does not exist as red points.
-        :param wire: show surface as wireframe.
-
-        `fxy.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fxy.py>`_
-    
-        .. image:: https://user-images.githubusercontent.com/32848391/36611824-fd524fac-18d4-11e8-8c76-d3d1b1bb3954.png
-        '''
-        a = analysis.fxy(z, x, y, zlimits, showNan, zlevels,
-                         wire, c, bc, alpha, legend, texture, res)
-        self.actors.append(a)
+        self.add(a)
         return a
 
 
@@ -1015,9 +614,9 @@ class Plotter:
 
         :param showcut: shows the cut away part as thin wireframe.
 
-        `trail.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/trail.py>`_
+        .. hint:: Example: `trail.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/trail.py>`_
 
-        .. image:: https://user-images.githubusercontent.com/32848391/46815773-dc919500-cd7b-11e8-8e80-8b83f760a303.png
+            .. image:: https://user-images.githubusercontent.com/32848391/46815773-dc919500-cd7b-11e8-8e80-8b83f760a303.png
         '''
         cactor = actor.cutPlane(origin, normal, showcut)
         try:
@@ -1032,13 +631,11 @@ class Plotter:
         """
         Add a 2D scalar bar for the specified actor.
 
-        If actor is None will add it to the last actor in self.actors
+        If `actor` is ``None`` will add it to the last actor in ``self.actors``.
+       
+        .. hint:: Example: `mesh_bands.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_bands.py>`_
 
-        .. _boolean.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/boolean.py
-        
-        .. image:: https://user-images.githubusercontent.com/32848391/50738871-c0fe2500-11d8-11e9-8812-442b69be6db9.png
-
-        `mesh_coloring.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py>`_
+            .. image:: https://user-images.githubusercontent.com/32848391/51211548-26a78b00-1916-11e9-9306-67b677d1be3a.png
         """
 
         if actor is None:
@@ -1107,13 +704,13 @@ class Plotter:
 
         ``obj`` input can be:
             - a list of numbers,
-            - a list of two numbers in the form (min, max)
-            - a `vtkActor` already containing a set of scalars associated to vertices or cells,
-            - if `None` the last actor in the list of actors will be used.
+            - a list of two numbers in the form `(min, max)`,
+            - a ``vtkActor`` already containing a set of scalars associated to vertices or cells,
+            - if ``None`` the last actor in the list of actors will be used.
 
-        `mesh_coloring.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py>`_
+        .. hint:: Example: `mesh_coloring.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py>`_
 
-        .. image:: https://user-images.githubusercontent.com/32848391/46818965-c509da80-cd82-11e8-91fd-4c686da4a761.png
+            .. image:: https://user-images.githubusercontent.com/32848391/46818965-c509da80-cd82-11e8-91fd-4c686da4a761.png
         '''
         from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
         
@@ -1136,7 +733,7 @@ class Plotter:
             vmin, vmax = numpy.min(obj), numpy.max(obj)
             vtkscalars_name = 'jet'
         else:
-            print('Error in addScalarBar3D: input must be vtkActor or list.', type(obj))
+            print('Error in addScalarBar3D(): input must be vtkActor or list.', type(obj))
             sys.exit()
         
         if cmap is None:
@@ -1173,7 +770,7 @@ class Plotter:
         prec = (vmax-vmin)/abs(vmax+vmin)*2
         prec = int(3+abs(numpy.log10(prec+1)))
         for i, t in enumerate(tlabs):
-            tx = utils.to_precision(t, prec)
+            tx = utils.precision(t, prec)
             y = -sy/1.98+sy*i/(nlabels-1)
             a = shapes.text(tx, pos=[sx*gap, y, 0],
                             s=sy/50, c=c, alpha=alpha, depth=0)
@@ -1201,17 +798,17 @@ class Plotter:
         Add a slider widget with external custom function.
 
         :param sliderfunc: external function to be called by the widget
-        :param xmin:  lower value
-        :param xmax:  upper value
-        :param value: current value
-        :param pos:  position corner number: horizontal [1-4] or vertical [11-14]
-                     it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
-        :param title:  title text
-        :param showValue:  if true current value is shown
+        :param float xmin:  lower value
+        :param float xmax:  upper value
+        :param float value: current value
+        :param list pos:  position corner number: horizontal [1-4] or vertical [11-14]
+                            it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
+        :param str title: title text
+        :param bool showValue:  if true current value is shown
 
-        `sliders.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/sliders.py>`_
+        .. hint:: Example: `sliders.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/sliders.py>`_
 
-        .. image:: https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg
+            .. image:: https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg
         '''
         if c is None:  # automatic black or white
             c = (0.9, 0.9, 0.9)
@@ -1314,20 +911,20 @@ class Plotter:
                   alpha=1, angle=0):
         '''Add a button to the renderer window.
 
-        :param states: a list of possible states ['On', 'Off']
+        :param list states: a list of possible states ['On', 'Off']
         :param c:      a list of colors for each state
         :param bc:     a list of background colors for each state
         :param pos:    2D position in pixels from left-bottom corner
         :param size:   size of button font
-        :param font:   font type (arial, courier, times)
-        :param bold:   bold face (False)
-        :param italic: italic face (False)
-        :param alpha:  opacity level
-        :param angle:  anticlockwise rotation in degrees
+        :param str font:   font type (arial, courier, times)
+        :param bool bold:   bold face (False)
+        :param bool italic: italic face (False)
+        :param float alpha:  opacity level
+        :param float angle:  anticlockwise rotation in degrees
 
-        `buttons.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buttons.py>`_
+        .. hint:: Example: `buttons.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buttons.py>`_
 
-        .. image:: https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg
+            .. image:: https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg
         '''
         if not self.renderer:
             colors.printc('Error: Use addButton() after rendering the scene.', c=1)
@@ -1342,9 +939,9 @@ class Plotter:
     def addCutterTool(self, actor):
         '''Create handles to cut away parts of a mesh.
 
-        `cutter.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/cutter.py>`_
+        .. hint:: Example: `cutter.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/cutter.py>`_
 
-        .. image:: https://user-images.githubusercontent.com/32848391/50738866-c0658e80-11d8-11e9-955b-551d4d8b0db5.jpg
+            .. image:: https://user-images.githubusercontent.com/32848391/50738866-c0658e80-11d8-11e9-955b-551d4d8b0db5.jpg
         '''
         if not isinstance(actor, vtk.vtkActor):
             return None
@@ -1421,11 +1018,11 @@ class Plotter:
 
         :param pos: icon position in the range [1-4] indicating one of the 4 corners,
                     or it can be a tuple (x,y) as a fraction of the renderer size.
-        :param size: size of the square inset.
+        :param float size: size of the square inset.
 
-        `icon.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py>`_
+        .. hint:: Example: `icon.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py>`_
     
-        .. image:: https://user-images.githubusercontent.com/32848391/50739009-2bfc2b80-11da-11e9-9e2e-a5e0e987a91a.jpg
+            .. image:: https://user-images.githubusercontent.com/32848391/50739009-2bfc2b80-11da-11e9-9e2e-a5e0e987a91a.jpg
         '''
         if not self.renderer:
             colors.printc(
@@ -1458,7 +1055,7 @@ class Plotter:
         '''
         Draw axes on scene. Available axes types:
 
-        :param axtype: 0 = no axes,   
+        :param int axtype: 0 = no axes,   
          
                     1 = draws three gray grid walls
     
@@ -1474,7 +1071,9 @@ class Plotter:
     
                     7 = draws a simple ruler at the bottom of the window
     
-                    8 = show the vtkCubeAxesActor object
+                    8 = show the ``vtkCubeAxesActor`` object
+
+                    9 = show the bounding box outline,
         '''
         if axtype is not None:
             self.axes = axtype # overrride
@@ -1536,7 +1135,7 @@ class Plotter:
                 if min_bns[0]<=0 and max_bns[1]>0: # mark x origin
                     ox = shapes.cube([-min_bns[0]/sizes[0],0,0], length=.008, c=c)
                 if len(self.xtitle) == 1: # add axis length info
-                    self.xtitle += ' /' + utils.to_precision(sizes[0], 4)
+                    self.xtitle += ' /' + utils.precision(sizes[0], 4)
                 wpos = [1-(len(self.xtitle)+1)/40, off, 0]
                 xt = shapes.text(self.xtitle, pos=wpos, normal=(0,0,1), s=.025, c=c)
 
@@ -1594,9 +1193,8 @@ class Plotter:
             dx, dy, dz = x1-x0, y1-y0, z1-z0
             acts = []
             if (x0*x1 <= 0 or y0*z1 <= 0 or z0*z1 <= 0):  # some ranges contain origin
-                zero = self.sphere(r=aves/120*s, c='k', alpha=alpha, res=10)
+                zero = shapes.sphere(r=aves/120*s, c='k', alpha=alpha, res=10)
                 acts += [zero]
-                self.actors.pop()
 
             if len(self.xtitle) and dx > aves/100:
                 xl = shapes.cylinder([[x0, 0, 0], [x1, 0, 0]], r=aves/250*s, c=xcol, alpha=alpha)
@@ -1791,7 +1389,7 @@ class Plotter:
 
 
     def _draw_legend(self):
-        if not utils.isSequence(self.legend):
+        if not utils.isSequence(self._legend):
             return
 
         # remove old legend if present on current renderer:
@@ -1806,13 +1404,13 @@ class Plotter:
         acts, texts = [], []
         for i in range(len(actors)):
             a = actors[i]
-            if i < len(self.legend) and self.legend[i] != '':
-                if isinstance(self.legend[i], str):
-                    texts.append(self.legend[i])
+            if i < len(self._legend) and self._legend[i] != '':
+                if isinstance(self._legend[i], str):
+                    texts.append(self._legend[i])
                     acts.append(a)
-            elif hasattr(a, 'legend') and a.legend:
-                if isinstance(a.legend, str):
-                    texts.append(a.legend)
+            elif hasattr(a, '_legend') and a._legend:
+                if isinstance(a._legend, str):
+                    texts.append(a._legend)
                     acts.append(a)
 
         NT = len(texts)
@@ -1841,7 +1439,7 @@ class Plotter:
         elif pos == 4:
             vtklegend.GetPositionCoordinate().SetValue(sx,  0)
         vtklegend.UseBackgroundOn()
-        vtklegend.SetBackgroundColor(self.legendBack)
+        vtklegend.SetBackgroundColor(self.legendBC)
         vtklegend.SetBackgroundOpacity(0.6)
         vtklegend.LockBorderOn()
         self.renderer.AddActor(vtklegend)
@@ -1855,10 +1453,10 @@ class Plotter:
         '''
         Render a list of actors.
 
-        :param actors: a mixed list of vtkActor, vtkAssembly, vtkPolydata, vtkVolume or filename strings
-        :param at:     number of the renderer to plot to, if more than one exists
+        :param actors: a mixed list of ``vtkActor``, ``vtkAssembly``, ``vtkPolydata``, ``vtkVolume`` or filename strings
+        :param int at: number of the renderer to plot to, if more than one exists
         :param legend: a string or list of string for each actor, if False will not show it
-        :param axes:   set the type of axes to be shown
+        :param int axes: set the type of axes to be shown
 
               0 = no axes,
 
@@ -1876,7 +1474,7 @@ class Plotter:
 
               7 = draw a simple ruler at the bottom of the window
 
-              8 = show the vtkCubeAxesActor object,
+              8 = show the ``vtkCubeAxesActor`` object,
 
               9 = show the bounding box outline,
         :param c:     surface color, in rgb, hex or name formats
@@ -1884,10 +1482,10 @@ class Plotter:
         :param wire:  show actor in wireframe representation
         :param azimuth/elevation/roll:  move camera accordingly
         :param viewup:  either ['x', 'y', 'z'] or a vector to set vertical direction
-        :param resetcam:  re-adjust camera position to fit objects
-        :param interactive:  pause and interact with window (True) or continue execution (False)
+        :param bool resetcam:  re-adjust camera position to fit objects
+        :param bool interactive:  pause and interact with window (True) or continue execution (False)
         :param execute:  holds an external function to be called, allowing interaction with scene
-        :param q:  force program to quit after show() command returns
+        :param bool q:  force program to quit after show() command returns
         '''
 
         if self.offscreen:
@@ -1956,9 +1554,9 @@ class Plotter:
 
         if legend:
             if utils.isSequence(legend):
-                self.legend = list(legend)
+                self._legend = list(legend)
             elif isinstance(legend,  str):
-                self.legend = [str(legend)]
+                self._legend = [str(legend)]
             else:
                 colors.printc(
                     'Error in show(): legend must be list or string.', c=1)
@@ -2119,11 +1717,11 @@ class Plotter:
 
 
     def lastActor(self):
-        '''Return last added `Actor`.'''
+        '''Return last added ``Actor``.'''
         return self.actors[-1]
 
     def addActor(self, a):
-        '''Add a vtkActor to current renderer.'''
+        '''Add a ``vtkActor`` to current renderer.'''
         if not self.initializedPlotter:
             before = bool(self.interactive)
             self.show(interactive=0)
@@ -2133,7 +1731,7 @@ class Plotter:
         self.renderer.AddActor(a)
 
     def removeActor(self, a):
-        '''Remove vtkActor or actor index from current renderer.'''
+        '''Remove ``vtkActor`` or actor index from current renderer.'''
         try:
             if not self.initializedPlotter:
                 self.show()
@@ -2158,12 +1756,12 @@ class Plotter:
     def openVideo(self, name='movie.avi', fps=12, duration=None):
         '''Open a video file.
 
-        :param fps: set the number of frames per second.
-        :param duration: set the total `duration` of the video and recalculates `fps` accordingly.
+        :param int fps: set the number of frames per second.
+        :param flaot duration: set the total `duration` of the video and recalculates `fps` accordingly.
 
-        `makeVideo.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/makeVideo.py>`_
+        .. hint:: Example: `makeVideo.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/makeVideo.py>`_
     
-        .. image:: https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg
+            .. image:: https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg
         '''
         return vtkio.Video(self.renderWin, name, fps, duration)
 

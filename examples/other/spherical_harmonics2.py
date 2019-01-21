@@ -11,9 +11,9 @@ except:
     print('Please install pyshtools to run this example')
     print('Follow instructions at https://shtools.oca.eu/shtools')
     exit(0)
-from vtkplotter import Plotter, mag, arange
+    
+from vtkplotter import Plotter, mag, arange, sphere, sin, cos
 import numpy as np
-from numpy import sin, cos
 
 ##########################################################
 N = 100      # number of sample points on the unit sphere
@@ -62,7 +62,7 @@ def morph(clm1, clm2, t, lmax):
 
 vp = Plotter(shape=[2,2], verbose=0, axes=3, interactive=0)
 
-shape1 = vp.sphere(alpha=0.2)
+shape1 = sphere(alpha=0.2)
 shape2 = vp.load('data/shapes/icosahedron.vtk').normalize().lineWidth(1)
 
 agrid1, actorpts1 = makegrid(shape1, N)

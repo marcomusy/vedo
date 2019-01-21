@@ -14,19 +14,16 @@ img = reader.GetOutput()
 
 
 #################################
-from vtkplotter.actors import Volume
+from vtkplotter import Volume, load, show
 
 # can set colors and transparencies along the scalar range
 vol = Volume(img, 
 			 c=['gray','fuchsia','dg',(0,0,1)], 
 			 alphas=[0.1, 0.2, 0.3, 0.8]) 
 
-
-from vtkplotter import load, show
-
 # load command returns an isosurface (vtkActor) of the 3d image
 iso = load('data/vase.vti', threshold=140).wire(True).alpha(0.1)
 
 # show command creates and returns an instance of class Plotter
-show([vol,iso]) 
+show([vol,iso], verbose=0) 
 

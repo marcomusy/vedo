@@ -21,7 +21,7 @@ c = vp1.load('data/shapes/atc.ply')
 
 # show a text in each renderer
 for i in range(22):
-    txt = vp1.text('renderer\n nr.'+str(i), c=i, s=0.5, justify='centered')
+    txt = vp1.text('renderer\nnr.'+str(i), c=i, s=0.5, justify='centered')
     vp1.show(txt, at=i)
 
 vp1.show(a, at=22)

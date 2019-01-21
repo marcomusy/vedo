@@ -25,7 +25,7 @@ Automatically generated documentation can be found [**here**](https://vtkplotter
 ## Get-started example
 - In your python script, load a simple `3DS` file and display it:
 ```python
-from vtkplotter import Plotter
+from vtkplotter import *
 
 vp = Plotter()                      # declare an instance of the class
 vp.show('data/shapes/flamingo.3ds') # press *Esc* to close and exit or *q* to continue
@@ -53,7 +53,6 @@ vp.show(interactive=1)
 
 Draw a bunch of basic geometric objects:
 ```python
-from vtkplotter.shapes import arrow, line, point, text, sphere, cube
 vp = Plotter(N=6, sharecam=False)  # automatically subdivide window in 6 independent parts
 vp.show(arrow([0,0,0], [1,1,1]),   at=0)
 vp.show(line( [0,0,0], [1,1,1]),   at=1)
@@ -68,7 +67,7 @@ vp.show(cube(),                    at=5, interactive=True)
 ## Command-line usage
 ```bash
 vtkplotter meshfile.vtk 
-# other valid formats: [vtu,vts,vtp,ply,obj,stl,xml,neutral,gmsh,pcd,xyz,txt,byu,tif,slc,vti,png,jpg]
+# other valid formats: [vtu,vts,vtp,ply,obj,stl,3ds,xml,neutral,gmsh,pcd,xyz,txt,byu,tif,slc,vti,png,jpg]
 ```
 to visualize multiple files or files time-sequences try `-n` or `-s` options. Try `-h` for help.<br> 
 Voxel-data (vti, slc, tiff) files can also be visualized with options `-g` and `--slicer`,
@@ -109,38 +108,6 @@ and [**examples/others**](https://github.com/marcomusy/vtkplotter/blob/master/ex
 | ![turing](https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif)   |  Visualizing a Turing system of reaction-diffusion between two molecules ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/turing.py)) <br /> `python advanced/turing.py`  |
 <br />
 
-### Some useful *Plotter* attributes
-Remember that you always have full access to all standard VTK native objects 
-(e.g. vtkRenderWindowInteractor, vtkRenderer and vtkActor through *vp.interactor, vp.renderer, vp.actors*... etc).
-```python
-vp = vtkplotter.Plotter() #e.g.
-vp.actors       # holds the current list of vtkActors to be shown
-vp.renderer     # holds the current vtkRenderer
-vp.renderers    # holds the list of renderers
-vp.interactor   # holds the vtkWindowInteractor object
-vp.interactive  # (True) allows to interact with renderer after show()
-vp.camera       # holds the current vtkCamera
-vp.sharecam     # (True) share the same camera in multiple renderers
-```
-
-### Some useful additional methods to manage 3D objects
-These methods return the Actor(vtkActor) object so that they can be concatenated,
-check out [Actor methods here](https://vtkplotter.embl.es/actors.m.html). <br />
-(E.g.: `actor.scale(3).pos([1,2,3]).color('blue').alpha(0.5)` etc..).
-```python
-actor.pos()               # set/get position vector (setters, and getters if no argument is given)
-actor.scale()             # set/get scaling factor of actor
-actor.normalize()         # sets actor at origin and scales its average size to 1
-actor.rotate(angle, axis) # rotate actor around axis
-actor.color(name)         # sets/gets color
-actor.alpha(value)        # sets/gets opacity
-actor.N()                 # get number of vertex points defining the actor's mesh
-actor.polydata()          # get the actor's mesh polydata in its current transformation
-actor.coordinates()       # get a copy of vertex points coordinates (copy=False to get references)
-actor.normals()           # get the list of normals at the vertices of the surface
-actor.clone()             # get a copy of actor
-...
-```
 
 
 ### Mesh format conversion
@@ -151,15 +118,3 @@ allowed targets formats: [vtk, vtp, vtu, vts, ply, stl, byu, xml]
 
 Example: > vtkconvert myfile.vtk -to ply
 ```
-
-
-### Available color maps from *matplotlib* and *vtkNamedColors*
-```python
-# Example: transform a scalar value between -10.2 and 123 into a (R,G,B) color using the 'jet' map:
-from vtkplotter import colorMap
-r, g, b = colorMap(value, name='jet', vmin=-10.2, vmax=123)
-```
-![colormaps](https://user-images.githubusercontent.com/32848391/50738804-577e1680-11d8-11e9-929e-fca17a8ac6f3.jpg)
-
-A list of available vtk color names is given [here](https://vtkplotter.embl.es/vtkcolors.html).
-<br />

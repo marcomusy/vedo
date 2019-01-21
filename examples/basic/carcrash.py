@@ -5,11 +5,11 @@
 # rate=10 limits the speed of the loop to maximum 10 fps
 
 from __future__ import division, print_function
-import vtkplotter
+from vtkplotter import Plotter, plane
 
-vp = vtkplotter.Plotter(verbose=0, axes=0)
+vp = Plotter(verbose=0, axes=0)
 
-vp.plane(pos=(4,0,-.45), sx=12, texture='metalfloor1')
+vp.add(plane(pos=(4,0,-.45), sx=12, texture='metalfloor1'))
 
 # load and set its position (methods can be concatenated)
 vp.load('data/shapes/lamp.vtk').pos([1.7, -0.4, 2])

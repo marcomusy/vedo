@@ -3,14 +3,15 @@
 # a polydata, save it to stack.tif file,
 # then extract an isosurface from the 3d image.
 #
-import vtk
 from vtkplotter import Plotter
 
-vp = Plotter()
+vp = Plotter(verbose=0)
 
 act = vp.load("data/290.vtk").normalize().subdivide()
 
 # Generate signed distance function and contour it
+import vtk
+
 dist = vtk.vtkSignedDistance()
 dist.SetInputData(act.polydata())
 dist.SetRadius(0.2) #how far out to propagate distance calculation

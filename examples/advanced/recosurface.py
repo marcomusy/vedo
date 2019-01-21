@@ -8,8 +8,7 @@
 # NB: recoSurface only works with vtk version >7
 # 
 from __future__ import division, print_function
-from vtkplotter import Plotter
-from vtkplotter.analysis import recoSurface, smoothMLS2D
+from vtkplotter import Plotter, recoSurface, smoothMLS2D
 import numpy as np
 
 

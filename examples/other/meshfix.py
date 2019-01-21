@@ -1,6 +1,5 @@
 ########################################### imports
-from vtkplotter import Plotter
-from vtkplotter.analysis import boundaries
+from vtkplotter import Plotter, boundaries
 try:
 	# Credits:
 	# https://github.com/MarcoAttene/MeshFix-V2.1

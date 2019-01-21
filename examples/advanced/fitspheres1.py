@@ -8,8 +8,7 @@
 # Fitted radius can be accessed from attribute actor.radius
 
 from __future__ import division, print_function
-from vtkplotter import Plotter
-from vtkplotter.analysis import fitSphere
+from vtkplotter import Plotter, fitSphere, histogram, line
 
 vp = Plotter(verbose=0, axes=0)
 
@@ -23,13 +22,13 @@ for i, p in enumerate(s.coordinates()):
     sph = fitSphere(pts, alpha=0.05) # find the fitting sphere
     if sph is None: 
     	continue # may fail if all points sit on a plane
-    vp.actors.append(sph)
+    vp.add(sph)
     vp.points(pts)
-    vp.line(sph.info['center'], p, lw=2)
+    vp.add(line(sph.info['center'], p, lw=2))
     reds.append(sph.info['residue'])
     invr.append(1/sph.info['radius']**2)
 
-vp.histogram(reds, title='residue', bins=12, c='g', corner=3)
-vp.histogram(invr, title='1/r**2',  bins=12, c='r', corner=4)
+vp.add(histogram(reds, title='residue', bins=12, c='g', corner=3))
+vp.add(histogram(invr, title='1/r**2',  bins=12, c='r', corner=4))
 
-vp.show()
+vp.show(viewup='z')

@@ -6,11 +6,11 @@
 # pressing i in the rendering window.
 #
 import numpy as np
-from vtkplotter import Plotter, vtkio
+from vtkplotter import Plotter, loadStructuredPoints
 
 vp = Plotter(axes=4)
 
-actor = vtkio.loadStructuredPoints('data/hydrogen.vtk')
+actor = loadStructuredPoints('data/hydrogen.vtk')
 
 actor.alpha(0.2).pointSize(15)
 

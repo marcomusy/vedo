@@ -1,15 +1,12 @@
 # Load a mesh, extract the vertex coordinates, and build a new vtkPolyData
 # object. Faces (vertex connectivity) can be specified too.
 # 
-from vtkplotter import Plotter
-from vtkplotter.vtkio import buildPolyData
+from vtkplotter import show, load, buildPolyData
 
 
-vp = Plotter()
+pts = load('data/shapes/bunny.obj').subdivide(N=2).coordinates()
 
-verts = vp.load('data/shapes/bunny.obj').subdivide(N=2).coordinates()
+poly = buildPolyData(pts, faces=None) # vtkPolyData made of just vertices
 
-poly = buildPolyData(verts, faces=None) # vtkPolyData
-
-vp.show(poly)  # (press p to increase point size)
+show(poly)  # (press p to increase point size)
 

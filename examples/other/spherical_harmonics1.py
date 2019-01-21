@@ -10,9 +10,8 @@
 #  reconstruct the projected points in red
 #
 from __future__ import division, print_function
-from vtkplotter import Plotter, mag
+from vtkplotter import Plotter, mag, sin, cos
 import numpy as np
-from numpy import sin, cos
 
 ##########################################################
 N = 100      # number of sample points on the unit sphere

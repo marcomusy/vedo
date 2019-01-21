@@ -5,7 +5,7 @@
 # The wave function is forced to be zero at the box walls (line 23).
 #
 import numpy as np
-from vtkplotter import Plotter
+from vtkplotter import Plotter, tube, line
 
 dt = 0.004   # time step
 x0 = 5       # peak initial position
@@ -41,27 +41,18 @@ vp.ytitle = 'Psi^2(x,t)'
 vp.ztitle = ''
 
 bck = vp.load('data/images/schrod.png').scale(0.012).pos([0,0,-.5])
-barrier = vp.line(list(zip(x, V*15)), c='dr', lw=3)
+barrier = line(list(zip(x, V*15)), c='dr', lw=3)
 
 lines = []
-for j in range(200):	
+for j in range(150):	
     for i in range(500): 
         Psi += d_dt(Psi) * dt  # integrate for a while
     
     A = np.real( Psi*np.conj(Psi) )*1.5 # psi squared, probability(x)
     coords = list(zip(x, A, [0]*len(x)))
-    Aline = vp.tube(coords, c='db', r=.08)
+    Aline = tube(coords, c='db', r=.08)
     vp.show([Aline, barrier, bck])
     lines.append(Aline)
-
-# now show the same lines along z representing time
-vp.clear()
-vp.camera.Elevation(20)
-vp.camera.Azimuth(20)
-
-for i,l in enumerate(lines):
-    p = [0, 0, 20*i/len(lines)] # shift along z
-    vp.render([l.pos(p), barrier.clone().pos(p)], resetcam=True)
 
 vp.show(interactive=1)
 

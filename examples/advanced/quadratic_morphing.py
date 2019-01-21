@@ -5,7 +5,7 @@
 #  using algorithms available in the scipy.optimize package.
 #  
 from __future__ import division, print_function
-from vtkplotter import Plotter, vector, mag, mag2
+from vtkplotter import Plotter, vector, mag, mag2, sphere, arrow
 import scipy.optimize as opt
 
 
@@ -93,15 +93,15 @@ class Morpher:
         
         pos, sz = self.s_size[0], self.s_size[1]
         
-        sphere0 = vp.sphere(pos, c='gray', r=sz, alpha=.8, wire=1, res=16)
-        sphere1 = vp.sphere(pos, c='gray', r=sz, alpha=.2, res=16)
+        sphere0 = sphere(pos, c='gray', r=sz, alpha=.8, wire=1, res=16)
+        sphere1 = sphere(pos, c='gray', r=sz, alpha=.2, res=16)
 
         hairsacts=[]
         for i in range(sphere0.N()):
             p = sphere0.point(i)
             newp = self.transform(p)
             sphere1.point(i, newp)
-            hairsacts.append( vp.arrow(p, newp, s=0.3, alpha=.5) )
+            hairsacts.append( arrow(p, newp, s=0.3, alpha=.5) )
 
         zero = vp.point(pos, c='black')
         x1,x2, y1,y2, z1,z2 = self.target.polydata().GetBounds()

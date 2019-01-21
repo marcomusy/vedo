@@ -1,5 +1,5 @@
 # Other examples
-In this directory you will find special examples that might need other external modules.
+In this directory you will find other special examples, or examples that might need other external modules.
 ```bash
 git clone https://github.com/marcomusy/vtkplotter.git
 cd vtkplotter/examples/other

@@ -8,9 +8,7 @@
 # The nr neighbours in the local 4D fitting must be specified.
 # 
 import numpy as np
-from vtkplotter import Plotter
-from vtkplotter.shapes import sphere
-from vtkplotter.analysis import smoothMLS3D
+from vtkplotter import Plotter, sphere, smoothMLS3D
 
 
 vp = Plotter(N=2, axes=0)

@@ -8,7 +8,7 @@ from __future__ import division, print_function
 __all__ = [
     'load',
     'loadPolyData',
-    'loadXMLData',
+    'loadXMLGenericData',
     'loadStructuredPoints',
     'loadStructuredGrid',
     'loadUnStructuredGrid',
@@ -38,7 +38,7 @@ import numpy
 
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
-from vtkplotter.actors import Actor, Assembly, ImageActor
+from vtkplotter.actors import Actor, Assembly, ImageActor, isosurface
 
 
 
@@ -46,7 +46,7 @@ def load(inputobj, c='gold', alpha=1,
          wire=False, bc=None, legend=True, texture=None,
          smoothing=None, threshold=None, connectivity=False):
         ''' 
-        Returns a vtkActor from reading a file, directory or vtkPolyData.
+        Returns a ``vtkActor`` from reading a file, directory or ``vtkPolyData``.
 
         :param c: color in RGB format, hex, symbol or name
         :param alpha:   transparency (0=invisible)
@@ -111,8 +111,8 @@ def _loadFile(filename, c, alpha, wire, bc, legend, texture,
     elif fl.endswith('.tif') or fl.endswith('.slc') or fl.endswith('.vti'):
         # tiff stack or slc or vti
         img = loadImageData(filename)
-        actor = utils.isosurface(img, c, alpha, wire, bc, legend, texture,
-                                 smoothing, threshold, connectivity)
+        actor = isosurface(img, c, alpha, wire, bc, legend, texture,
+                           smoothing, threshold, connectivity)
     elif fl.endswith('.png') or fl.endswith('.jpg') or fl.endswith('.jpeg'):
         actor = load2Dimage(filename, alpha)
     else:
@@ -143,7 +143,7 @@ def _loadDir(mydir, c, alpha, wire, bc, legend, texture,
 
 
 def loadPolyData(filename):
-    '''Load a file and return a vtkPolyData object (not a vtkActor).'''
+    '''Load a file and return a ``vtkPolyData`` object (not a ``vtkActor``).'''
     if not os.path.exists(filename):
         colors.printc('Error in loadPolyData: Cannot find', filename, c=1)
         return None
@@ -199,20 +199,20 @@ def loadPolyData(filename):
     return cleanpd.GetOutput()
 
 
-def loadXMLData(filename):  # not tested
-    '''Read any type of vtk data object encoded in XML format.'''
+def loadXMLGenericData(filename):  # not tested
+    '''Read any type of vtk data object encoded in XML format. Return an ``Actor(vtkActor)`` object.'''
     reader = vtk.vtkXMLGenericDataObjectReader()
     reader.SetFileName(filename)
     reader.Update()
-    return reader.GetOutput()
+    return Actor(reader.GetOutput())
 
 
 def loadStructuredPoints(filename):
-    '''Load a vtkStructuredPoints object from file and return a vtkActor.
+    '''Load a ``vtkStructuredPoints`` object from file and return an ``Actor(vtkActor)`` object.
 
-    `readStructuredPoints.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/readStructuredPoints.py>`_
+    .. hint:: Example: `readStructuredPoints.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/readStructuredPoints.py>`_
 
-    .. image:: https://user-images.githubusercontent.com/32848391/48198462-3b393700-e359-11e8-8272-670bd5f2db42.jpg
+        .. image:: https://user-images.githubusercontent.com/32848391/48198462-3b393700-e359-11e8-8272-670bd5f2db42.jpg
     '''
     reader = vtk.vtkStructuredPointsReader()
     reader.SetFileName(filename)
@@ -224,7 +224,7 @@ def loadStructuredPoints(filename):
 
 
 def loadStructuredGrid(filename):  # not tested
-    '''Load a vtkStructuredGrid object from file and return a vtkActor.'''
+    '''Load a ``vtkStructuredGrid`` object from file and return a ``Actor(vtkActor)`` object.'''
     reader = vtk.vtkStructuredGridReader()
     reader.SetFileName(filename)
     reader.Update()
@@ -235,7 +235,7 @@ def loadStructuredGrid(filename):  # not tested
 
 
 def loadUnStructuredGrid(filename):  # not tested
-    '''Load a vtkunStructuredGrid object from file and return a vtkActor.'''
+    '''Load a ``vtkunStructuredGrid`` object from file and return a ``Actor(vtkActor)`` object.'''
     reader = vtk.vtkUnstructuredGridReader()
     reader.SetFileName(filename)
     reader.Update()
@@ -246,7 +246,7 @@ def loadUnStructuredGrid(filename):  # not tested
 
 
 def loadRectilinearGrid(filename):  # not tested
-    '''Load a vtkRectilinearGrid object from file and return a vtkActor.'''
+    '''Load a ``vtkRectilinearGrid`` object from file and return a ``Actor(vtkActor)`` object.'''
     reader = vtk.vtkRectilinearGridReader()
     reader.SetFileName(filename)
     reader.Update()
@@ -257,7 +257,7 @@ def loadRectilinearGrid(filename):  # not tested
 
 
 def load3DS(filename, legend=None):
-    '''Load 3DS file format from file. Return a vtkAssembly.'''
+    '''Load ``3DS`` file format from file. Return an ``Assembly(vtkAssembly)`` object.'''
     renderer = vtk.vtkRenderer()
     renWin = vtk.vtkRenderWindow()
     renWin.AddRenderer(renderer)
@@ -278,7 +278,7 @@ def load3DS(filename, legend=None):
 
 
 def loadDolfin(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
-    '''Reads a Fenics/Dolfin file format'''
+    '''Reads a `Fenics/Dolfin` file format. Return an ``Actor(vtkActor)`` object.'''
     if not os.path.exists(filename):
         colors.printc('Error in loadDolfin: Cannot find', filename, c=1)
         return None
@@ -358,7 +358,7 @@ def loadDolfin(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
 
 
 def loadNeutral(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
-    '''Reads a Neutral tetrahedral file format.'''
+    '''Reads a `Neutral` tetrahedral file format. Return an ``Actor(vtkActor)`` object.'''
     if not os.path.exists(filename):
         colors.printc('Error in loadNeutral: Cannot find', filename, c=1)
         return None
@@ -369,7 +369,7 @@ def loadNeutral(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
 
 
 def loadGmesh(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
-    '''Reads a gmesh file format.'''
+    '''Reads a `gmesh` file format. Return an ``Actor(vtkActor)`` object.'''
     if not os.path.exists(filename):
         colors.printc('Error in loadGmesh: Cannot find', filename, c=1)
         return None
@@ -408,7 +408,7 @@ def loadGmesh(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
 
 
 def loadPCD(filename, c='gold', alpha=1, legend=None):
-    '''Return vtkActor from Point Cloud file format.'''
+    '''Return ``vtkActor`` from `Point Cloud` file format. Return an ``Actor(vtkActor)`` object.'''
     if not os.path.exists(filename):
         colors.printc('Error in loadPCD: Cannot find file', filename, c=1)
         return None
@@ -448,7 +448,7 @@ def loadPCD(filename, c='gold', alpha=1, legend=None):
 
 
 def loadImageData(filename, spacing=[]):
-    '''Read a vtkImageData from file.'''
+    '''Read and return a ``vtkImageData`` object from file.'''
     if not os.path.isfile(filename):
         colors.printc('File not found:', filename, c=1)
         return None
@@ -472,7 +472,7 @@ def loadImageData(filename, spacing=[]):
 
 ###########################################################
 def load2Dimage(filename, alpha=1):
-    '''Read a JPEG/PNG image from file.'''
+    '''Read a JPEG/PNG image from file. Return an ``ImageActor(vtkImageActor)`` object.'''
     fl = filename.lower()
     if '.png' in fl:
         picr = vtk.vtkPNGReader()
@@ -496,7 +496,7 @@ def write(obj, fileoutput, binary=True):
     Write 3D object to file.
 
     Possile extensions are:
-        - vtk, vti, ply, obj, stl, byu, vtp, xyz, tif, png, bmp
+        - vtk, vti, ply, obj, stl, byu, vtp, xyz, tif, png, bmp.
     '''
     if isinstance(obj, Actor):
         obj = obj.polydata(True)
@@ -556,7 +556,7 @@ def write(obj, fileoutput, binary=True):
 
 ########################################################## Video
 def screenshot(renderWin, filename='screenshot.png'):
-    '''Take a screenshot of current rendering window'''
+    '''Save a screenshot of the current rendering window.'''
     w2if = vtk.vtkWindowToImageFilter()
     w2if.ShouldRerenderOff()
     w2if.SetInput(renderWin)
@@ -572,27 +572,17 @@ class Video:
     '''
     Class to generate a video from the specified rendering window.
 
-    :param name: name of the output file.
-    :param fps: set the number of frames per second.
-    :param duration: set the total `duration` of the video and recalculates `fps` accordingly.
+    :param str name: name of the output file.
+    :param int fps: set the number of frames per second.
+    :param float duration: set the total `duration` of the video and recalculates `fps` accordingly.
         
-    `makeVideo.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/makeVideo.py>`_
+    .. hint:: Example: `makeVideo.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/makeVideo.py>`_
 
-    .. image:: https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg
+        .. image:: https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg
     '''
    
     def __init__(self, renderWindow, name='movie.avi', fps=12, duration=None):
-        '''
-        Class to generate a video from the specified rendering window.
-    
-        :param name: name of the output file.
-        :param fps: set the number of frames per second.
-        :param duration: set the total `duration` of the video and recalculates `fps` accordingly.
-            
-        `makeVideo.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/makeVideo.py>`_
-    
-        .. image:: https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg
-        '''
+
         import glob
         self.renderWindow = renderWindow
         self.name = name
@@ -606,13 +596,13 @@ class Video:
         colors.printc("Video", name, "is open...", c='m')
 
     def addFrame(self):
-        '''Add frame to current video'''
+        '''Add frame to current video.'''
         fr = '/tmp/vpvid/'+str(len(self.frames))+'.png'
         screenshot(self.renderWindow, fr)
         self.frames.append(fr)
 
     def pause(self, pause=0):
-        '''Insert a `pause`, in seconds'''
+        '''Insert a `pause`, in seconds.'''
         fr = self.frames[-1]
         n = int(self.fps*pause)
         for i in range(n):
@@ -648,28 +638,10 @@ class ProgressBar:
     >>> for i in pb.range():
     >>>     time.sleep(.1)
     >>>     pb.print('some message') # or pb.print(counts=i)
-
-    `Example1`_
-
-    .. _Example1: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/diffusion.py
     '''
 
     def __init__(self, start, stop, step=1, c=None, ETA=True, width=24, char='='):
-        '''
-        Class to print a progress bar with optional text message.
-    
-        :Example:
-    
-        >>> import time
-        >>> pb = ProgressBar(0,400, c='red')
-        >>> for i in pb.range():
-        >>>     time.sleep(.1)
-        >>>     pb.print('some message') # or pb.print(counts=i)
-    
-        `Example1`_
-    
-        .. _Example1: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/diffusion.py
-        '''
+
         self.start = start
         self.stop = stop
         self.step = step
@@ -765,7 +737,8 @@ class ProgressBar:
 
 
 def convertNeutral2Xml(infile, outfile=None):
-
+    '''Convert Neutral file format to Dolfin XML.'''
+    
     f = open(infile, 'r')
     lines = f.readlines()
     f.close()
@@ -811,18 +784,18 @@ def convertNeutral2Xml(infile, outfile=None):
 
 def buildPolyData(vertices, faces=None, indexOffset=0):
     '''
-    Build a vtkPolyData object from a list of vertices
-    and the connectivity representing the faces of the polygonal mesh.
+    Build a ``vtkPolyData`` object from a list of vertices
+    where faces represents the connectivity of the polygonal mesh.
 
     E.g. :
-        - vertices=[[x1,y1,z1],[x2,y2,z2], ...]
-        - faces=[[0,1,2], [1,2,3], ...]
+        - ``vertices=[[x1,y1,z1],[x2,y2,z2], ...]``
+        - ``faces=[[0,1,2], [1,2,3], ...]``
 
-    Use `indexOffset=1` if face numbering starts from 1 instead of 0.
+    Use ``indexOffset=1`` if face numbering starts from 1 instead of 0.
     
-    `buildpolydata.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buildpolydata.py>`_
+    .. hint:: Example: `buildpolydata.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buildpolydata.py>`_
     
-    .. image:: https://user-images.githubusercontent.com/32848391/51032546-bf4dac00-15a0-11e9-9e1e-035fff9c05eb.png
+        .. image:: https://user-images.githubusercontent.com/32848391/51032546-bf4dac00-15a0-11e9-9e1e-035fff9c05eb.png
     '''
     sourcePoints = vtk.vtkPoints()
     sourceVertices = vtk.vtkCellArray()
@@ -865,20 +838,15 @@ class Button:
     '''
     Build a Button object to be shown in the rendering window.
 
-    `buttons.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buttons.py>`_
+    .. hint:: Example: `buttons.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buttons.py>`_
 
-    .. image:: https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg
+        .. image:: https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg
     '''
 
     def __init__(self, fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle):
         '''
         Build a Button object to be shown in the rendering window.
-    
-        `buttons.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buttons.py>`_
-    
-        .. image:: https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg
         '''
-
         self._status = 0
         self.states = states
         self.colors = c
@@ -938,7 +906,6 @@ class Button:
         self._status = (self._status+1) % len(self.states)
         self.status(self._status)
 
-
 # ############################################################### Events
 # mouse event
 def _mouseleft(vp, obj, event):
@@ -974,10 +941,10 @@ def _mouseleft(vp, obj, event):
             print(', nr. of actors =', len(vp.getActors()))
 
         leg, oldleg = '', ''
-        if hasattr(clickedActor, 'legend'):
-            leg = clickedActor.legend
-        if hasattr(vp.clickedActor, 'legend'):
-            oldleg = vp.clickedActor.legend
+        if hasattr(clickedActor, '_legend'):
+            leg = clickedActor._legend
+        if hasattr(vp.clickedActor, '_legend'):
+            oldleg = vp.clickedActor._legend
         # detect if clickin the same obj
         if leg and isinstance(leg, str) and len(leg) and oldleg != leg:
             try:
@@ -995,7 +962,7 @@ def _mouseleft(vp, obj, event):
             except:
                 cn = ''
             if indx and isinstance(clickedActor, vtk.vtkAssembly):
-                colors.printc('-> assembly', indx+':', clickedActor.legend, cn, end=' ')
+                colors.printc('-> assembly', indx+':', clickedActor._legend, cn, end=' ')
             elif indx:
                 colors.printc('-> actor', indx+':', leg, cn, dim=1, end=' ')
             if not clickedActorIsAssembly:
@@ -1294,8 +1261,8 @@ def _keypress(vp, obj, event):
                     foundarr = 1
                 if not foundarr:
                     print('No vtkArray is associated to points', end='')
-                    if hasattr(a, 'legend'):
-                        print(' for actor:', a.legend)
+                    if hasattr(a, '_legend'):
+                        print(' for actor:', a._legend)
                     else:
                         print()
 
@@ -1308,8 +1275,8 @@ def _keypress(vp, obj, event):
                     foundarr = 1
                 if not foundarr:
                     print('No vtkArray is associated to cells', end='')
-                    if hasattr(a, 'legend'):
-                        print(' for actor:', a.legend)
+                    if hasattr(a, '_legend'):
+                        print(' for actor:', a._legend)
                     else:
                         print()
 
@@ -1375,9 +1342,9 @@ def _keypress(vp, obj, event):
             if vp.clickedActor in vp.getActors() or isinstance(vp.clickedActor, vtk.vtkAssembly):
                 vp.justremoved = vp.clickedActor
                 vp.renderer.RemoveActor(vp.clickedActor)
-            if hasattr(vp.clickedActor, 'legend') and vp.clickedActor.legend:
+            if hasattr(vp.clickedActor, '_legend') and vp.clickedActor._legend:
                 colors.printc('...removing actor: ' +
-                              str(vp.clickedActor.legend)+', press x to put it back')
+                              str(vp.clickedActor._legend)+', press x to put it back')
             else:
                 if vp.verbose:
                     colors.printc('Click an actor and press x to toggle it.', c=5)

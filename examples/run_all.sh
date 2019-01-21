@@ -59,11 +59,14 @@ python basic/shrink.py
 echo Running advanced/aspring.py
 python advanced/aspring.py
 
-#echo Running basic/manyspheres.py
-#python basic/manyspheres.py
+echo Running basic/manyspheres.py
+python basic/manyspheres.py
 
 echo Running basic/mesh_coloring.py
 python basic/mesh_coloring.py
+
+echo Running basic/mesh_custom.py
+python basic/mesh_custom.py
 
 echo Running basic/mesh_bands.py
 python basic/mesh_bands.py
@@ -125,6 +128,8 @@ python basic/ribbon.py
 echo Running basic/histo2D.py
 python basic/histo2D.py
 
+echo Running basic/fillholes.py
+python basic/fillholes.py
 
 
 #################################### advanced
@@ -197,6 +202,12 @@ python advanced/mesh_smoothers.py
 echo Running advanced/interpolate.py
 python advanced/interpolate.py
 
+echo Running advanced/thinplate.py
+python advanced/thinplate.py
+
+echo Running advanced/thinplate_grid.py
+python advanced/thinplate_grid.py
+
 
 ################################### volumetric
 echo Running volumetric/readVolumeAsIsoSurface.py
@@ -205,19 +216,19 @@ python volumetric/readVolumeAsIsoSurface.py
 echo Running volumetric/readVolume.py
 python volumetric/readVolume.py 
 
-echo Running basic/readStructuredPoints.py
+echo Running volumetric/readStructuredPoints.py
 python volumetric/readStructuredPoints.py
 
-echo Running basic/probeLine.py
+echo Running volumetric/probeLine.py
 python volumetric/probeLine.py
 
-echo Running basic/probePlane.py
+echo Running volumetric/probePlane.py
 python volumetric/probePlane.py
 
-echo Running basic/imageOperations.py
+echo Running volumetric/imageOperations.py
 python volumetric/imageOperations.py
 
-echo Running basic/signedDistance.py
+echo Running volumetric/signedDistance.py
 python volumetric/signedDistance.py
 
 echo Running volumetric/read_vti.py

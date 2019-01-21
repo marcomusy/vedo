@@ -2,13 +2,18 @@
 #
 from __future__ import division, print_function
 from random import gauss, uniform as u
-from vtkplotter import Plotter
 import math
-  
+from vtkplotter import *
+
+
 #########################################################################################
 #
 # Quick tutorial.
-# Check out more examples in directories examples/basic and examples/advanced
+# Check out more examples in directories 
+#	examples/basic 
+#	examples/advanced
+#	examples/volumetric
+#	examples/other
 #
 #########################################################################################
 
@@ -19,9 +24,9 @@ vp = Plotter(title='first example')
 # Load a vtk file as a vtkActor and visualize it.
 # (The actual mesh corresponds to the outer shape of 
 # an embryonic mouse limb at about 11 days of gestation).
-# Choose a tomato color for the internal surface of the mesh, and no transparency.
+# Choose a tomato color for the internal surface of the mesh.
 vp.load('data/270.vtk', c='b', bc='tomato', alpha=1) # c=(R,G,B), letter or color name
-vp.show()             # picks what is automatically stored in python list vp.actors 
+vp.show()  # picks what is automatically stored in python list vp.actors 
 # Press Esc to close the window and exit python session, or q to continue
 
 
@@ -39,9 +44,9 @@ vp.show()               # picks what is automatically stored in vp.actors
 # by default use their file names as legend entries.
 # No need to use any variables, as actors are stored internally in vp.actors:
 vp = Plotter(title='3 shapes')
-vp.load('data/250.vtk', c=(1,0.4,0), alpha=.3)
-vp.load('data/270.vtk', c=(1,0.6,0), alpha=.3)
-vp.load('data/290.vtk', c=(1,0.8,0), alpha=.3)
+vp.load('data/250.vtk', c=(1,0.4,0), alpha=0.3)
+vp.load('data/270.vtk', c=(1,0.6,0), alpha=0.3)
+vp.load('data/290.vtk', c=(1,0.8,0), alpha=0.3)
 print('Loaded vtkActors: ', len(vp.actors))
 vp.show()
 
@@ -54,8 +59,9 @@ pts = [ (u(0,2), u(0,2), u(0,2)+i) for i in range(8) ] # build python list of po
 vp.points(pts, legend='random points')                 # create the vtkActor
 
 for i in range(10):
-    vp.spline(pts, smooth=i/10, degree=2, c=i, legend='smoothing '+str(i/10))
-vp.show(viewup='z')
+    sp = spline(pts, smooth=i/10, degree=2, c=i, legend='smoothing '+str(i/10))
+    vp.add(sp) # add the actor to the internal list of actors to be shown
+vp.show(viewup='z', interactive=1)
 
 
 #########################################################################################
@@ -75,14 +81,14 @@ vp.show()
 # red points indicate where the function is not real
 vp = Plotter(title='Example of a 3D function plotting', axes=2)
 xycoords = [(math.exp(i/10), math.sin(i/5)) for i in range(40)]
-vp.xyplot( xycoords )
+xplt = xyplot( xycoords )
 #
-vp.fxy( 'sin(3*x)*log(x-y)/3' )
-vp.show(viewup='z')
+f = fxy( 'sin(3*x)*log(x-y)/3' )
+vp.show([xplt, f], viewup='z')
 
 
 #########################################################################################
-# Increases the number of points in a vtk mesh using subdivide()
+# Increase the number of points in a vtk mesh using subdivide()
 # and show both before and after the cure in two separate renderers defined by shape=(1,2)
 vp = Plotter(shape=(1,2), axes=False)
 a1 = vp.load('data/beethoven.ply', alpha=1)
@@ -101,15 +107,15 @@ vp.show([a2, pts2], at=1, interactive=True)
 # split window to best accomodate 9 renderers
 vp = Plotter(N=9, title='basic shapes', axes=0) # split window in 9 frames
 vp.sharecam = False                             # each object can be moved independently
-vp.show(at=0, actors=vp.arrow([0,0,0],[1,1,1]),    legend='arrow' )
-vp.show(at=1, actors=vp.line([0,0,0],[1,1,1]),     legend='line' )
-vp.show(at=2, actors=vp.points([[0,0,0],[1,1,1]]), legend='points' )
-vp.show(at=3, actors=vp.text('Hello!') )
-vp.show(at=4, actors=vp.sphere() )
-vp.show(at=5, actors=vp.cube(),     legend='cube')
-vp.show(at=6, actors=vp.torus(),    legend='torus')
-vp.show(at=7, actors=vp.helix(),    legend='helix')
-vp.show(at=8, actors=vp.cylinder(), legend='cylinder', interactive=1)
+vp.show(at=0, actors=arrow([0,0,0],[1,1,1]),    legend='arrow' )
+vp.show(at=1, actors=line([0,0,0],[1,1,1]),     legend='line' )
+vp.show(at=2, actors=points([[0,0,0],[1,1,1]]), legend='points' )
+vp.show(at=3, actors=text('Hello!') )
+vp.show(at=4, actors=sphere() )
+vp.show(at=5, actors=cube(),     legend='cube')
+vp.show(at=6, actors=torus(),    legend='torus')
+vp.show(at=7, actors=helix(),    legend='helix')
+vp.show(at=8, actors=cylinder(), legend='cylinder', interactive=1)
 
 
 ########################################################################################

@@ -4,10 +4,7 @@
 
 A python class to easily draw, analyse and animate 3D objects and point clouds with VTK.
 
-Check out the `GitHub repository`_.
-
-.. _GitHub repository: https://github.com/marcomusy/vtkplotter
-
+Check out the `GitHub repository <https://github.com/marcomusy/vtkplotter>`_.
 """
 
 __author__     = "Marco Musy"
@@ -16,22 +13,29 @@ __maintainer__ = "M. Musy, G. Dalmasso"
 __email__      = "marco.musy@embl.es"
 __status__     = "dev"
 __website__    = "https://github.com/marcomusy/vtkplotter"
+__version__    = "8.8.0" ### defined also in setup.py and docs/source/conf.py
 
-__version__    = "8.7.7" ### defined also in setup.py and docs/source/conf.py
-
-
-# frequently used stuff
-from vtkplotter.plotter import Plotter, show
-from vtkplotter.colors import colorMap, printc
-from vtkplotter.vtkio import ProgressBar, load
-from vtkplotter.utils import vector, mag, mag2, norm, to_precision
-from vtkplotter.actors import Actor, Assembly, ImageActor
+from vtkplotter.plotter import *
+from vtkplotter.analysis import *
+from vtkplotter.shapes import *
+from vtkplotter.vtkio import *
+from vtkplotter.actors import *
+from vtkplotter.utils import *
+from vtkplotter.colors import *
 
 from numpy import sin, cos, sqrt, exp, log, dot, cross, array, arange
 
-def ignore_warnings():
-    """Call to ignore ``FutureWarning``s"""
+
+def _ignore_warnings():
     import warnings
     warnings.simplefilter(action='ignore', category=FutureWarning)
+_ignore_warnings()
 
-ignore_warnings()
+# imports
+# plotter : utils, colors, actors, vtkio, shapes
+# analysis:        colors, actors, vtkio, shapes
+# shapes  : utils, colors, actors
+# vtkio   : utils, colors, actors
+# actors  : utils, colors
+# utils   :        colors
+# colors  : -

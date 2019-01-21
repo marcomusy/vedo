@@ -2,8 +2,7 @@
 # color points based on the size of the sphere radius
 #
 from __future__ import division, print_function
-from vtkplotter import Plotter, colorMap, norm
-from vtkplotter.analysis import fitSphere
+from vtkplotter import Plotter, colorMap, norm, fitSphere, histogram, lines
 
 
 vp = Plotter(verbose=0, axes=0)
@@ -14,11 +13,11 @@ pts1, pts2, vals, cols = [], [], [], []
 
 for i, p in enumerate(s.coordinates()):
     pts = s.closestPoint(p, N=12) # find the N closest points to p
-    sph = fitSphere(pts)       # find the fitting sphere     
+    sph = fitSphere(pts)          # find the fitting sphere     
     if sph is None: continue
 
     value = sph.info['radius']*10
-    color = colorMap(value, name='jet') # map value to a RGB color
+    color = colorMap(value, 'jet', 0 ,1) # map value to a RGB color
     n = norm(p-sph.info['center']) # unit vector from sphere center to p
     vals.append(value)
     cols.append(color) 
@@ -29,8 +28,8 @@ for i, p in enumerate(s.coordinates()):
     
 vp.points(pts1, c=cols)
 vp.addScalarBar()
-vp.lines(pts1, pts2, c='black 0.2')
-vp.histogram(vals, title='values', bins=20, vrange=[0,1])
+vp.add(lines(pts1, pts2, c='black 0.2'))
+vp.add(histogram(vals, title='values', bins=20, vrange=[0,1]))
 
 vp.show()
 

@@ -1,9 +1,8 @@
 # Example for delaunay2D() and cellCenters()
 # 
-import vtkplotter
-from vtkplotter.analysis import delaunay2D
+from vtkplotter import Plotter, delaunay2D
 
-vp = vtkplotter.Plotter(shape=(1,2), interactive=0)
+vp = Plotter(shape=(1,2), interactive=0)
 
 d0 = vp.load('data/250.vtk', legend='original mesh').rotateY(-90)
 

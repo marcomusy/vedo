@@ -33,7 +33,7 @@ python example.py
 |    |    |
 | [![delaunay2d](https://user-images.githubusercontent.com/32848391/50738865-c0658e80-11d8-11e9-8616-b77363aa4695.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/delaunay2d.py)<br/> `delaunay2d.py` |  Build a mesh starting from points in space using *Delaunay* triangulation (points must be projectable on the *xy* plane). |
 |    |    |
-| [![fitline](https://user-images.githubusercontent.com/32848391/50738864-c0658e80-11d8-11e9-8754-c670f1f331d6.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fitline.py)<br/> `fitline.py` | Draw a line in 3D that fits a cloud of points. <br/>The example also fits a plane to the points.|
+| [![fitline](https://user-images.githubusercontent.com/32848391/50738864-c0658e80-11d8-11e9-8754-c670f1f331d6.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fitline.py)<br/> `fitline.py` | Draw a line in 3D that fits a cloud of points. <br/>The example also fits a plane to the same points.|
 |    |    |
 | [![fxy](https://user-images.githubusercontent.com/32848391/50738863-bfccf800-11d8-11e9-882d-7b217aceb55a.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fxy.py)<br/> `fxy.py` |  Draw a surface representing a function *f(x, y)* defined as a string/formula or as a reference to an external already existing function. <br/>Red points indicate where the function does not exist.|
 |    |    |
@@ -43,11 +43,15 @@ python example.py
 |    |    |
 | [![largestregion](https://user-images.githubusercontent.com/32848391/50738859-bfccf800-11d8-11e9-8c59-17c0ca4d8e06.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/largestregion.py)<br/> `largestregion.py` | Extract the mesh region that has the largest connected surface with method `analysis.extractLargestRegion()`. |
 |    |    |
-| [![manyspheres](https://user-images.githubusercontent.com/32848391/50738858-bfccf800-11d8-11e9-9daf-3b11eedf72ac.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/manyspheres.py)<br/> `manyspheres.py` |Draw a very large number of spheres (same for points, lines) with different colors or different radius. <br/>Sphere resolution `res` can be specified (in vtk versions<8.0 might be very slow).|
+| [![manyspheres](https://user-images.githubusercontent.com/32848391/50738858-bfccf800-11d8-11e9-9daf-3b11eedf72ac.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/manyspheres.py)<br/> `manyspheres.py` |Draw a very large number of spheres (200.000) with different colors or different radii (for vtk versions<8.0 this might be slow).|
+|    |    |
+| [![mesh_coloring](https://user-images.githubusercontent.com/32848391/50738856-bf346180-11d8-11e9-909c-a3f9d32c4e8c.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)<br/> `mesh_coloring.py` | How to specify a color for each individual cell or point of an actor's mesh. <br/>The example also shows the usage of `addScalarBar3D()`.|
+|    |    |
+| [![mesh_custom](https://user-images.githubusercontent.com/32848391/51390972-20d9c180-1b31-11e9-955d-025f1ef24cb7.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_custom.py)<br/> `mesh_custom.py` | Build a custom color map to specify the color for each vertex of a mesh. |
 |    |    |
 | [![mesh_alphas](https://user-images.githubusercontent.com/32848391/50738857-bf346180-11d8-11e9-80a1-d283aed0b305.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_alphas.py)<br/> `mesh_alphas.py` |  Create a set of transparencies which can be passed to method `pointColors()`.|
 |    |    |
-| [![mesh_coloring](https://user-images.githubusercontent.com/32848391/50738856-bf346180-11d8-11e9-909c-a3f9d32c4e8c.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)<br/> `mesh_coloring.py` | How to specify a color for each individual cell or point of an actor's mesh. <br/>The example also shows the usage of `addScalarBar3D()`.|
+| [![mesh_bands](https://user-images.githubusercontent.com/32848391/51211548-26a78b00-1916-11e9-9306-67b677d1be3a.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_bands.py)<br/> `mesh_coloring.py` | Use a scalar to paint colored bands on a mesh. This can be combined with opacities values for each vertex.<br/>Keyword `depthpeeling` improves the rendering of translucent objects.|
 |    |    |
 | [![mirror](https://user-images.githubusercontent.com/32848391/50738855-bf346180-11d8-11e9-97a0-c9aaae6ce052.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mirror.py)<br/> `mirror.py` |  Mirror-reflect a mesh with respect to one of the cartesian axes. |
 |    |    |
@@ -57,11 +61,11 @@ python example.py
 |    |    |
 | [![pca](https://user-images.githubusercontent.com/32848391/50738852-be9bcb00-11d8-11e9-8ac8-ad9278d9cee0.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/pca.py)<br/> `pca.py` |  Draw the PCA (Principal Component Analysis) ellipsoid that contains 50% of a cloud of points, then check how many points are indeed inside the surface. <br/>Extra info is stored in `actor.info['sphericity', 'va', 'vb', 'vc']`.|
 |    |    |
-| [![ribbon](https://user-images.githubusercontent.com/32848391/50738851-be9bcb00-11d8-11e9-80ee-bd73c1c29c06.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/ribbon.py)<br/> `ribbon.py` |  Form a surface by joining two lines in space.|
+| [![ribbon](https://user-images.githubusercontent.com/32848391/50738851-be9bcb00-11d8-11e9-80ee-bd73c1c29c06.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/ribbon.py)<br/> `ribbon.py` |  Form a surface by joining two nearby lines in space.|
 |    |    |
 | [![rotateimage](https://user-images.githubusercontent.com/32848391/50738850-be9bcb00-11d8-11e9-99e0-1f981dda53d5.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/rotateImage.py)<br/> `rotateImage.py` | Normal jpg/png images can be loaded and rendered like any other actor.|
 |    |    |
-| [![shrink](https://user-images.githubusercontent.com/32848391/50738849-be9bcb00-11d8-11e9-8ec7-1a14bec6b8ed.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/shrink.py)<br/> `shrink.py` | Shrink the triangulation of a mesh to make the inside visible. |
+| [![shrink](https://user-images.githubusercontent.com/32848391/50738849-be9bcb00-11d8-11e9-8ec7-1a14bec6b8ed.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/shrink.py)<br/> `shrink.py` | Shrink the faces of a mesh to make the inside visible. |
 |    |    |
 | [![sliders](https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/sliders.py)<br/> `sliders.py` | Use two sliders to modify interactively color and transparency of a mesh.|
 |    |    |

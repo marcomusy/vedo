@@ -6,8 +6,7 @@
 #  a circular object shadow (https://en.wikipedia.org/wiki/Arago_spot).
 #
 from numpy import conj, real, pi, array, sin, cos, exp
-from vtkplotter import Plotter, arange, mag
-from vtkplotter.shapes import grid
+from vtkplotter import Plotter, arange, mag, grid, line
 
 #########################################
 lambda1 = 680e-9   # red wavelength 680nm
@@ -26,7 +25,7 @@ slits = slit1 + slit2
 
 vp = Plotter(title='The Double Slit Experiment', axes=0, verbose=0, bg='black')
 
-screen = vp.grid(pos=[0,0,-D], sx=0.1, sy=0.1, resx=200, resy=50)
+screen = vp.add(grid(pos=[0,0,-D], sx=0.1, sy=0.1, resx=200, resy=50))
 screen.wire(False) # show it as a solid plane (not as wireframe)
 
 k  = 0.0 + 1j * 2*pi/lambda1 # complex wave number
@@ -46,8 +45,8 @@ screen.pointColors(amplitudes, cmap='hot')
 
 vp.points(array(slits)*200, c='w')    # slits scale magnified by factor 200
 
-vp.grid(sx=0.1, sy=0.1, resx=6, resy=6, c='white/.1') # add some annotation
-vp.line([0,0,0], [0,0,-D], c='white/.1')
+vp.add(grid(sx=0.1, sy=0.1, resx=6, resy=6, c='white/.1')) # add some annotation
+vp.add(line([0,0,0], [0,0,-D], c='white/.1'))
 vp.text("source plane", pos=[-.05,-.053,0], s=.002, c='gray')
 vp.text('detector plane D = '+str(D)+' m', pos=[-.05,-.053,-D], s=.002, c='gray')
 

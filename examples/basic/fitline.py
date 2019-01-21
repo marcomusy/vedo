@@ -7,8 +7,7 @@
 #
 from __future__ import division, print_function
 import numpy as np
-from vtkplotter import Plotter
-from vtkplotter.analysis import fitLine, fitPlane
+from vtkplotter import Plotter, fitLine, fitPlane
 
 # declare the class instance
 vp = Plotter(verbose=0, title='linear fitting')
@@ -22,8 +21,7 @@ for i in range(500):
     data = np.array(list(zip(x,y,z)))
     data+= np.random.normal(size=data.shape)*0.8 # add gauss noise
     
-    l = fitLine(data, lw=4, alpha=0.03) # fit a line
-    vp.actors.append(l)
+    vp.add( fitLine(data, lw=4, alpha=0.03) ) # fit a line
 
 # 'data' still contains the last iteration points
 vp.points(data, r=10, c='red', legend='random points')
@@ -32,8 +30,7 @@ vp.points(data, r=10, c='red', legend='random points')
 # in actor.info['slope] and actor.info['normal]
 print('Line Fit slope = ', vp.actors[0].info['slope']) 
 
-plane = fitPlane(data, legend='fitting plane') # fit a plane
-vp.actors.append(plane)
+plane = vp.add( fitPlane(data, legend='fitting plane') ) # fit a plane
 print('Plan Fit normal=', plane.info['normal']) 
 
 vp.show()

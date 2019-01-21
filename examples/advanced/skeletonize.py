@@ -1,8 +1,6 @@
 # Using 1D Moving Least Squares to skeletonize a surface.
 #
-from __future__ import division, print_function
-from vtkplotter import Plotter
-from vtkplotter.analysis import smoothMLS1D
+from vtkplotter import Plotter, smoothMLS1D
 
 N=10  # nr of iterations
 f=0.1 # fraction of neighbours 
