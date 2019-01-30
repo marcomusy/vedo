@@ -1,6 +1,10 @@
-# Simulation of bacteria types that divide at a given rate
-# As they divide they occupy more and more space
+'''
+Simulation of bacteria types that divide at a given rate
+As they divide they occupy more and more space
+'''
 from __future__ import division, print_function
+print(__doc__)
+
 from vtkplotter import Plotter, ProgressBar, pcaEllipsoid, line
 from cell import Cell, Colony
 

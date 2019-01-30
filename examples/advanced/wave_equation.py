@@ -1,15 +1,16 @@
-# Simulate a discrete collection of oscillators
-# We will use this as a model of a vibrating string and 
-# compare two methods of integration: Euler and Runge-Kutta4.
-# For too large values of dt the simple Euler can diverge.
-# 
+'''
+Simulate a discrete collection of oscillators
+We will use this as a model of a vibrating string and 
+compare two methods of integration: Euler and Runge-Kutta4.
+For too large values of dt the simple Euler can diverge.
+'''
 # To model 'N' oscillators, we will use N+2 points, numbered
 # 0, 1, 2, 3, ... N+1.  Points 0 and N+1 are actually the boundaries.
 # We will keep them fixed, but adding them in as if they were
-# masses makes the programming easier.  
+# masses makes the programming easier. 
 # Adapted from B.Martin (2009) http://www.kcvs.ca/martin by M.Musy
 from __future__ import division, print_function
-from vtkplotter import Plotter, ProgressBar
+from vtkplotter import Plotter, ProgressBar, text
 import numpy as np
 
 ####################################################
@@ -91,7 +92,7 @@ for i in pb.range():
 ####################################################
 # Visualize the result
 ####################################################
-vp = Plotter(verbose=0, axes=2) # choose axes type nr.2
+vp = Plotter(interactive=0, axes=2) # choose axes type nr.2
 vp.ytitle = 'u(x,t)'
 vp.ztitle = '' # will not draw z axis
 
@@ -110,6 +111,7 @@ vp.actors = pts_actors_eu + pts_actors_rk
 
 # let's also add a fancy background image from wikipedia
 vp.load('data/images/wave_wiki.png', alpha=.8).scale(0.4).pos([0,-100,-20])
+vp.add(text(__doc__))
 
 pb = ProgressBar(0, Nsteps, c='red', ETA=1)
 for i in pb.range():
@@ -117,8 +119,9 @@ for i in pb.range():
     y_rk = positions_rk[i]
     for j,act in enumerate(pts_actors_eu): act.pos([j, y_eu[j], 0])
     for j,act in enumerate(pts_actors_rk): act.pos([j, y_rk[j], 0])
-    vp.render()
+    vp.show()
     pb.print('Moving actors loop')
+    
 vp.show(interactive=1, resetcam=0)
 
 

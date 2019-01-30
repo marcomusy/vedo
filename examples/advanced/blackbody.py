@@ -1,8 +1,9 @@
-# Black body intensity radiation for different temperatures in [3000K, 9000K] 
-# for the visible range of wavelenghts [400nm, 700nm]. Colors are fairly
-# well matched to the "jet" and "rainbow" maps in pointColors() method.
-#
-from vtkplotter import Plotter, arange, exp, line
+'''
+Black body intensity radiation for different temperatures in [3000K, 9000K] 
+for the visible range of wavelenghts [400nm, 700nm]. Colors are fairly
+well matched to the "jet" and "rainbow" maps in pointColors() method.
+'''
+from vtkplotter import Plotter, arange, exp, line, text
 
 c = 2.9979246e+8
 k = 1.3806485e-23 # boltzmann constant
@@ -19,6 +20,7 @@ vp.xtitle = ''
 vp.ytitle = 'Intensity'
 vp.ztitle = 'Temperature'
 vp.load('data/images/light.jpg').scale(.00118).pos([.72,-.11,.14])
+vp.add(text(__doc__, c='w'))
 
 wavelengths = arange(400, 700, 10)*1e-9
 intensities = []

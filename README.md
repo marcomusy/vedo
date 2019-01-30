@@ -5,19 +5,18 @@
 [![pythvers](https://img.shields.io/badge/python-2.7%7C3.6-brightgreen.svg)](https://pypi.org/project/vtkplotter)
 [![gdocs](https://img.shields.io/badge/docs%20by-gendocs-blue.svg)](https://gendocs.readthedocs.io/en/latest)
 
-A python module to easily draw, analyse and animate 3D objects and point clouds with [VTK](https://www.vtk.org/) 
+A python module for scientific visualization, analysis and animation of 3D objects 
+and point clouds based on [VTK](https://www.vtk.org/) 
 and [numpy](http://www.numpy.org/).
 
 
 ## Download and Install:
-Simply type:
 ```bash
 pip install vtkplotter
 ```
 
 ## Documentation
 Automatically generated documentation can be found [**here**](https://vtkplotter.embl.es).<br />
-(thanks to [gendocs](https://gendocs.readthedocs.io/en/latest) package by [B. Sullivan](https://github.com/banesullivan))
 <br />
 <br />
 
@@ -27,7 +26,7 @@ Automatically generated documentation can be found [**here**](https://vtkplotter
 ```python
 from vtkplotter import *
 
-vp = Plotter()                      # declare an instance of the class
+vp = Plotter()                      # declare an instance of class Plotter
 vp.show('data/shapes/flamingo.3ds') # press *Esc* to close and exit or *q* to continue
 ```
 ![flam](https://user-images.githubusercontent.com/32848391/50738813-58af4380-11d8-11e9-84ce-53579c1dba65.png)
@@ -48,20 +47,6 @@ vp.show(interactive=1)
 ```
 ![shapes](https://user-images.githubusercontent.com/32848391/50738812-58af4380-11d8-11e9-96d6-cc3780c2bac2.jpg)
 <br />
-<br />
-
-
-Draw a bunch of basic geometric objects:
-```python
-vp = Plotter(N=6, sharecam=False)  # automatically subdivide window in 6 independent parts
-vp.show(arrow([0,0,0], [1,1,1]),   at=0)
-vp.show(line( [0,0,0], [1,1,1]),   at=1)
-vp.show(point([1,2,3], r=20),      at=2)
-vp.show(text('Hello', bc=(1,0,0)), at=3)
-vp.show(sphere(),                  at=4)
-vp.show(cube(),                    at=5, interactive=True)
-```
-![ex8](https://user-images.githubusercontent.com/32848391/50738811-58af4380-11d8-11e9-9bfb-378c27c9d26f.png)
 <br />
 
 ## Command-line usage
@@ -90,10 +75,10 @@ cd vtkplotter/examples
 python tutorial.py  
 ```
 **Many more examples can be found in directories:** <br>
-[**examples/basic**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic), 
-[**examples/advanced**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced),
-[**examples/volumetric**](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric)
-and [**examples/others**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other).
+[**examples/basic**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic), <br>
+[**examples/advanced**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced),<br>
+[**examples/volumetric**](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric) and<br>
+[**examples/others**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other).
 
 |    |    |
 |:-------------:|:-----|

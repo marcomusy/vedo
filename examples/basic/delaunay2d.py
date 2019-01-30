@@ -1,5 +1,8 @@
-# Example for delaunay2D() and cellCenters()
-# 
+'''
+Example for delaunay2D() and cellCenters() functions.
+'''
+print(__doc__)
+
 from vtkplotter import Plotter, delaunay2D
 
 vp = Plotter(shape=(1,2), interactive=0)
@@ -9,7 +12,8 @@ d0 = vp.load('data/250.vtk', legend='original mesh').rotateY(-90)
 coords = d0.coordinates() # get the coordinates of the mesh vertices
 # Build a mesh starting from points in space 
 #  (points must be projectable on the XY plane)
-d1 = delaunay2D(coords, c='r', wire=1, legend='delaunay mesh')
+d1 = delaunay2D(coords)
+d1.color('r').wire(True).legend('delaunay mesh')
 
 cents = d1.cellCenters()
 ap = vp.points(cents, legend='cell centers')

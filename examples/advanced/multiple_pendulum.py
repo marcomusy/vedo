@@ -23,8 +23,8 @@ for k in range(1, N+1):
     bob_y.append(bob_y[k-1]+np.sin(alpha)+np.random.normal(0, .1))
 
 # Create the bobs
-vp = Plotter(title="Multiple Pendulum", axes=0, verbose=0)
-vp.add(box(pos=(bob_x[0], bob_y[0], 0), length=12,
+vp = Plotter(title="Multiple Pendulum", axes=0, interactive=0)
+vp.add(box(pos=(0,-5, 0), length=12,
            width=12, height=.7, c='k', wire=1))
 bob = [vp.add(sphere(pos=(bob_x[0], bob_y[0], 0), r=R/2, c='gray'))]
 for k in range(1, N+1):
@@ -50,11 +50,9 @@ Dt *= np.sqrt(1/g)
 Dt2 = Dt/2  # Midpoint time step
 DiaSq = (2*R)**2  # Diameter of bob squared
 
+printc('Press Esc to exit.', c='red')
 
-def loop(*event): ##################################################################
-    global bob_x, x_dot, bob_y, y_dot
-
-    # Compute the midpoint variables
+while(True):
     bob_x_m = list(map((lambda x, dx: x+Dt2*dx), bob_x, x_dot)) # midpoint variables
     bob_y_m = list(map((lambda y, dy: y+Dt2*dy), bob_y, y_dot))
 
@@ -108,8 +106,5 @@ def loop(*event): ##############################################################
         bob[k].pos([bob_x[k], bob_y[k], 0])
         link[k-1].stretch(bob[k-1].pos(), bob[k].pos())
 
-    vp.render(resetcam=True) # show() would cause exiting the loop
-    vp.camera.Azimuth(0.1)   # move camera a bit
+    vp.show()
 
-printc('Press q to exit.', c='red')
-vp.show(execute=loop)

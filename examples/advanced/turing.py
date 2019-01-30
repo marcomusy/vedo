@@ -1,11 +1,14 @@
-# Scalar values are read from a file and represented on a green scale
-# on a mesh as a function of time.
-# The difference between one time point and the next is shown as
-# a blue component.
-#
+'''
+Scalar values are read from a file and represented 
+on a green scale on a mesh as a function of time.
+The difference between one time point and the next 
+is shown as a blue component.
+'''
 from __future__ import division, print_function
-from vtkplotter import vector, Plotter, ProgressBar, cylinder
+from vtkplotter import vector, Plotter, ProgressBar, cylinder, text
 import numpy as np
+
+doc = text(__doc__)
 
 # Load (with numpy) an existing set of mesh points and a list 
 # of scalars that represent the concentration of a substance
@@ -16,16 +19,17 @@ nc,n = conc.shape # nc= nr. of time points, n= nr. of vertices
 # Create the Plotter instance and position the camera.
 # (values can be copied in the code by pressing C in the rendering window)
 vp = Plotter(verbose=0, axes=0, interactive=0, size=(700,700))
+
 vp.camera.SetPosition(962, -239, 1034)
 vp.camera.SetFocalPoint(0.0, 0.0, 10.0)
 vp.camera.SetViewUp(-0.693, -0.479, 0.539)
 
 pb = ProgressBar(0,nc, c='g') # a green progress bar
-for t1 in pb.range():  # for each time point
+for t1 in pb.range():    # for each time point
     t2 = t1+1
     if t1 == nc-1: t2=t1 # avoid index overflow with last time point
     
-    vp.actors=[]       # clean up the list of actors at each iteration
+    vp.actors=[doc]      # clean up the list of actors at each iteration
     vp.add(cylinder([0,0,-15], r=260, height=10, texture='marble', res=60))
     vp.add(cylinder([0,0, 10], r=260, height=50, wire=1, c='gray', res=60))
 

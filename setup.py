@@ -2,12 +2,14 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='8.8.0', # change also in vtkplotter/version.py 
+    version='8.8.1', # change also in vtkplotter/__init__.py and docs/source/conf.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=['vtk', 'numpy'],
-    description='A module to draw and analyse 3D objects and point clouds with VTK.',
-    long_description="""A module to draw and analyse 3D objects and point clouds with VTK.
+    description='''A python module for scientific visualization,  
+    analysis and animation of 3D objects and point clouds based on VTK.''',
+    long_description="""A python module for scientific visualization,  
+    analysis and animation of 3D objects and point clouds based on VTK.
     Check out https://vtkplotter.embl.es for documentation.""",
     author='Marco Musy',
     author_email='marco.musy@gmail.com',
@@ -37,11 +39,6 @@ setup(
 # pip install .
 # cd examples
 # ./run_all.sh
-# vtkplotter            examples/data/embryo.tif
-# vtkplotter -g -c blue examples/data/embryo.slc
-# vtkplotter --slicer   examples/data/embryo.slc
-# vtkplotter -s -c k    examples/data/timecourse/*vtk
-# vtkplotter -n -c k    examples/data/timecourse/reference_3*
 
 # # check version number here and in vtkplotter/__init__.py
 

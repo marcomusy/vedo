@@ -1,14 +1,4 @@
-"""
-Defines main class ``Plotter`` to manage actors and 3D rendering.
-"""
-
 from __future__ import division, print_function
-
-__all__ = [
-    'show',
-    'Plotter',
-]
-
 import time
 import sys
 import vtk
@@ -20,29 +10,94 @@ import vtkplotter.utils as utils
 import vtkplotter.colors as colors
 import vtkplotter.shapes as shapes
 from vtkplotter.actors import Assembly, Actor
+import vtkplotter.docs as docs
+import vtkplotter.settings as settings
 
+__doc__="""
+Defines main class ``Plotter`` to manage actors and 3D rendering.dd
+"""+docs._defs
+
+__all__ = [
+    'show',
+    'Plotter',
+]
+
+_plotter_instance = None
 
 ########################################################################
-def show(obj, 
+def show(actors=None, 
+         at=None, shape=(1, 1), N=None,
          pos=(0, 0), size='auto', screensize='auto', title='',
          bg=(1, 1, 1), bg2=None, axes=1, infinity=False,
-         verbose=True, interactive=None, offscreen=False, 
-         c=None, alpha=None, wire=False, bc=None,
-         zoom=None, viewup='', azimuth=0, elevation=0, roll=0):
+         verbose=True, interactive=None, offscreen=False,
+         zoom=None, viewup='', azimuth=0, elevation=0, roll=0, 
+         interactorStyle=0, uniquePlotter=True):
     '''
-    Create an instance of class ``Plotter`` and show the object(s) provided.
+    Create on the fly an instance of class ``Plotter`` and show the object(s) provided.
     
-    :return: the ``Plotter`` class instance.
+    :param bool uniquePlotter: if set to `False`, each call to ``show`` will instantiate
+        a new ``Plotter`` object instead of reusing the first created.
+    :return: the current ``Plotter`` class instance.
     
-    .. hint:: Example: `thinplate_grid.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/thinplate_grid.py>`_    
+    .. note:: With multiple renderers, keyword ``at`` can become a `list`, e.g.:
+    
+        >>> from vtkplotter import *
+        >>> s = sphere()
+        >>> c = cube()
+        >>> p = paraboloid()
+        >>> show([s, c], at=[0, 1], shape=(3,1))
+        >>> show(p, at=2)
+        >>> #
+        >>> # is equivalent to:
+        >>> vp = Plotter(shape=(3,1))
+        >>> s = sphere()
+        >>> c = cube()
+        >>> p = paraboloid()
+        >>> vp.show(s, at=0)
+        >>> vp.show(p, at=1)
+        >>> vp.show(c, at=2, interactive=True)
     '''
-    vp = Plotter(pos=pos, size=size, screensize=screensize, title=title,
-                 bg=bg, bg2=bg2, axes=axes, infinity=infinity,
-                 verbose=verbose, interactive=interactive, offscreen=offscreen)
 
-    vp.show(obj, c=c, alpha=alpha, wire=wire, bc=bc, zoom=zoom,
-            viewup=viewup, azimuth=azimuth, elevation=elevation, roll=roll)
+    global _plotter_instance
+    
+    if _plotter_instance is None:
+        if utils.isSequence(at):
+            if not utils.isSequence(actors):
+                colors.printc("show() Error: input must be a list.", c=1)
+                exit()
+            if len(at) != len(actors):
+                colors.printc("show() Error: lists 'input' and 'at', must have equal lengths.", c=1)
+                exit()
+            if len(at)>1 and shape==(1,1) and N==None:
+                N = len(at)
+        elif at is None and (N or shape!=(1,1)):
+            if not utils.isSequence(actors):
+                colors.printc('show() Error: N or shape is set, but actor is not a sequence.', c=1)
+                exit()
+            at = range(len(actors))
+    
+        vp = Plotter(shape=shape, N=N,
+                     pos=pos, size=size, screensize=screensize, title=title,
+                     bg=bg, bg2=bg2, axes=axes, infinity=infinity,
+                     verbose=verbose, interactive=interactive, offscreen=offscreen)
+        if uniquePlotter:
+            _plotter_instance = vp
+    else:
+        vp = _plotter_instance
 
+        
+    if utils.isSequence(at):
+        no = len(actors)-1
+        for i, a in enumerate(actors):
+            if i==no and interactive is None:
+                interactive = True
+            vp.show(a, at=i, zoom=zoom,
+                    viewup=viewup, azimuth=azimuth, elevation=elevation, roll=roll,
+                    interactive=interactive, interactorStyle=interactorStyle)            
+    else:
+        vp.show(actors, at=at, zoom=zoom,
+                viewup=viewup, azimuth=azimuth, elevation=elevation, roll=roll,
+                interactive=interactive, interactorStyle=interactorStyle)
     return vp
 
 
@@ -51,71 +106,43 @@ class Plotter:
     """
     Main class to manage actors.
 
-    :param list shape: shape of the grid of renderers in format (rows, columns). Ignored if N is specified.
+    :param list shape: shape of the grid of renderers in format (rows, columns). 
+        Ignored if N is specified.
     :param int N: number of desired renderers arranged in a grid automatically.
-    :param list pos: (x,y) position in pixels of top-left corneer of the rendering window on the screen
+    :param list pos: (x,y) position in pixels of top-left corneer of the rendering window 
+        on the screen
     :param size: size of the rendering window. If 'auto', guess it based on screensize.
     :param screensize: physical size of the monitor screen 
     :param bg: background color or specify jpg image file name with path
     :param bg2: background color of a gradient towards the top
-    :param int axes: 0 = no axes,   
+    :param int axes:  
      
-                1 = draws three gray grid walls
-
-                2 = show cartesian axes from (0,0,0)
-
-                3 = show positive range of cartesian axes from (0,0,0)
-
-                4 = show a triad at bottom left
-
-                5 = show a cube at bottom left
-
-                6 = mark the corners of the bounding box
-
-                7 = draws a simple ruler at the bottom of the window
-
-                8 = show the ``vtkCubeAxesActor`` object
-
-                9 = show the bounding box outline
+      - 0,  no axes,
+      - 1,  draw three gray grid walls
+      - 2,  show cartesian axes from (0,0,0)
+      - 3,  show positive range of cartesian axes from (0,0,0)
+      - 4,  show a triad at bottom left
+      - 5,  show a cube at bottom left
+      - 6,  mark the corners of the bounding box
+      - 7,  draw a simple ruler at the bottom of the window
+      - 8,  show the ``vtkCubeAxesActor`` object,
+      - 9,  show the bounding box outline,
+               
     :param bool projection:  if True fugue point is set at infinity (no perspective effects)
     :param bool sharecam:    if False each renderer will have an independent vtkCamera
     :param bool interactive: if True will stop after show() to allow interaction w/ window
     :param bool offscreen:   if True will not show the rendering window    
     :param bool depthpeeling: depth-peel volumes along with the translucent geometry
+    
+    |multiwindows|
     """
-    def _tips(self):
-        vvers = ' vtkplotter '+__version__+', vtk '+vtk.vtkVersion().GetVTKVersion()
-        vvers += ', python ' + \
-            str(sys.version_info[0])+'.'+str(sys.version_info[1])+' '
-        n = len(vvers)
-        if not colors._terminal_has_colors: n = 0
-        colors.printc(' '*n+'_'*(59-n), c='blue')
-        colors.printc(vvers, invert=1, dim=1, c='blue', end='')
-        msg = ' '*(59-n)+'|\n' + '|'+' '*58+'|\n|Press:'
-        msg += "\ti     to print info about selected object          |\n"
-        msg += "|\tm     to minimise opacity of selected mesh         |\n"
-        msg += "|\t.,    to reduce/increase opacity                   |\n"
-        msg += "|\t/     to maximize opacity                          |\n"
-        msg += "|\tw/s   to toggle wireframe/solid style              |\n"
-        msg += "|\tp/P   to change point size of vertices             |\n"
-        msg += "|\tl/L   to change edge line width                    |\n"
-        msg += "|\tx     to toggle mesh visibility                    |\n"
-        msg += "|\tX     to pop up a cutter widget tool               |\n"
-        msg += "|\t1-3   to change mesh color                         |\n"
-        msg += "|\tk/K   to show point/cell scalars as color          |\n"
-        msg += "|\tn     to show surface mesh normals                 |\n"
-        msg += "|\tC     to print current camera info                 |\n"
-        msg += "|\tS     to save a screenshot                         |\n"
-        msg += "|\tq/e   to continue/close the rendering window       |\n"
-        msg += "|\tEsc   to exit program                              |\n"
-        msg += '|'+'_'*58+'|\n'
-        colors.printc(msg, c='blue')
 
     def __init__(self, shape=(1, 1), N=None, pos=(0, 0),
                  size='auto', screensize='auto', title='',
                  bg=(1, 1, 1), bg2=None, axes=1, infinity=False,
                  sharecam=True, verbose=True, interactive=None, offscreen=False, 
                  depthpeeling=False):
+
 
         if interactive is None:
             if N or shape != (1, 1):
@@ -176,7 +203,7 @@ class Plotter:
         self.mouseLeftClickFunction = None
         self.mouseMiddleClickFunction = None
         self.mouseRightClickFunction = None
-
+        
         self.write = vtkio.write
 
         # sort out screen size
@@ -281,18 +308,58 @@ class Plotter:
         
         self.renderWin.SetWindowName(title)
         
-        for r in self.renderers:
-            self.renderWin.AddRenderer(r)
+        if not settings.usingQt:
+            for r in self.renderers:
+                self.renderWin.AddRenderer(r)
 
         if offscreen:
             self.renderWin.SetOffScreenRendering(True)
             self.interactive = False
             self.interactor = None
-        else:
-            self.interactor = vtk.vtkRenderWindowInteractor()
-            self.interactor.SetRenderWindow(self.renderWin)
-            vsty = vtk.vtkInteractorStyleTrackballCamera()
-            self.interactor.SetInteractorStyle(vsty)
+            ######
+            return
+            ######
+        
+        self.interactor = vtk.vtkRenderWindowInteractor()
+        self.interactor.SetRenderWindow(self.renderWin)
+        vsty = vtk.vtkInteractorStyleTrackballCamera()
+        self.interactor.SetInteractorStyle(vsty)
+        
+        def mouseleft(obj, e): 
+            vtkio._mouseleft(self, obj, e)
+        self.interactor.AddObserver("LeftButtonPressEvent", mouseleft)
+
+        def mouseright(obj, e): 
+            vtkio._mouseright(self, obj, e)
+        self.interactor.AddObserver("RightButtonPressEvent", mouseright)
+
+        def mousemiddle(obj, e): 
+            vtkio._mousemiddle(self, obj, e)
+        self.interactor.AddObserver("MiddleButtonPressEvent", mousemiddle)
+
+        def keypress(obj, e): 
+            vtkio._keypress(self, obj, e)
+        self.interactor.AddObserver("KeyPressEvent", keypress)
+        
+        global _plotter_instance
+        _plotter_instance = self
+
+        if settings.allowInteraction:
+            self._update_observer = None
+            self._update_win_clock = time.time()
+            def win_interact(iren, event):
+                if event == 'TimerEvent':
+                    iren.TerminateApp()
+            self.interactor.AddObserver('TimerEvent', win_interact) 
+            
+            def _allowInteraction():
+                timenow = time.time()
+                if timenow - self._update_win_clock > 0.1:
+                    self._update_win_clock = timenow
+                    self._update_observer = self.interactor.CreateRepeatingTimer(1)
+                    self.interactor.Start()
+                    self.interactor.DestroyTimer(self._update_observer)
+            self.allowInteraction = _allowInteraction
 
 
     #################################################### LOADER
@@ -483,7 +550,9 @@ class Plotter:
         cam.SetDistance(s2*fraction+s1*(1-fraction))
         cam.SetClippingRange(c2*fraction+c1*(1-fraction))
         self.camera = cam
-        self.show(resetcam=0)
+        save_int = self.interactive
+        self.show(resetcam=0, interactive=0)
+        self.interactive = save_int
 
     def Actor(self, poly=None, c='gold', alpha=0.5,
               wire=False, bc=None, legend=None, texture=None):
@@ -507,13 +576,8 @@ class Plotter:
     def Assembly(self, actorlist):
         '''Group many actors as a single new actor which is a ``vtkAssembly`` derived object.
 
-        .. hint:: Examples: `icon.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py>`_
-    
-            .. image:: https://user-images.githubusercontent.com/32848391/50739009-2bfc2b80-11da-11e9-9e2e-a5e0e987a91a.jpg
+        .. hint:: |icon| |icon.py|_
         
-            `gyroscope2.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope2.py>`_ 
-        
-            .. image:: https://user-images.githubusercontent.com/32848391/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif
         '''
         for a in actorlist:
             while a in self.actors:  # update internal list
@@ -533,7 +597,7 @@ class Plotter:
         :param showsource: if `True`, will show a vtk representation
                             of the source of light as an extra actor
 
-        .. hint:: Example: `lights.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lights.py>`_
+        .. hint:: |lights.py|_
         """
         if isinstance(fp, vtk.vtkActor):
             fp = fp.GetPosition()
@@ -546,7 +610,9 @@ class Plotter:
         light.SetDiffuseColor(colors.getColor(diffuse))
         light.SetAmbientColor(colors.getColor(ambient))
         light.SetSpecularColor(colors.getColor(specular))
-        self.render()
+        save_int = self.interactive
+        self.show(interactive=0)
+        self.interactive = save_int
         if showsource:
             lightActor = vtk.vtkLightActor()
             lightActor.SetLight(light)
@@ -556,11 +622,10 @@ class Plotter:
 
 
     ################################################################## 
-    #
     def point(self, pos=[0, 0, 0], r=10, c='k', alpha=1, legend=None):
         '''Create a simple point actor.'''
         a = shapes.point(pos, r, c, alpha, legend)
-        self.actors.append(a)
+        self.add(a)
         return a
 
     def points(self, plist=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], r=4,
@@ -573,40 +638,13 @@ class Plotter:
         :type c: int, str, list
         :param float alpha: transparency in range [0,1].
 
-        .. hint:: Example: `lorenz.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lorenz.py>`_
-    
-            .. image:: https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png
+        .. hint:: |lorenz| |lorenz.py|_
         '''
         a = shapes.points(plist, r, c, alpha, legend)
         self.add(a)
         return a
 
 
-    def text(self, txt='Hello', pos=(0, 0, 0), normal=(0, 0, 1), s=1, depth=0.1, justify='bottom-left',
-             c='k', alpha=1, bc=None, texture=None, followcam=False):
-        '''
-        Returns a ``vtkActor`` that shows a 3D text.
-    
-        :param pos: position in 3D space, 
-                    if an integer is passed [1 -> 8], place text in one of the 4 corners
-        :type pos: list, int
-        :param float s: size of text
-        :param float depth: text thickness
-        :param str justify: text justification (bottom-left, bottom-right, top-left, top-right, centered)
-        :param bool followcam: if `True` the text will auto-orient itself to the cam.
-    
-        .. hint:: Example: `colorcubes.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py>`_,
-            `text_just.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/text_just.py>`_
-        
-            .. image:: https://user-images.githubusercontent.com/32848391/50738867-c0658e80-11d8-11e9-9e05-ac69b546b7ec.png
-        '''
-        a = shapes.text(txt, pos, normal, s, depth, justify, c, alpha, bc,
-                        texture, followcam, cam=self.camera)
-        self.add(a)
-        return a
-
-
-    #################
     def cutPlane(self, actor, origin=(0, 0, 0), normal=(1, 0, 0), showcut=False):
         '''
         Takes actor and cuts it with the plane defined by a point and a normal.
@@ -614,9 +652,7 @@ class Plotter:
 
         :param showcut: shows the cut away part as thin wireframe.
 
-        .. hint:: Example: `trail.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/trail.py>`_
-
-            .. image:: https://user-images.githubusercontent.com/32848391/46815773-dc919500-cd7b-11e8-8e80-8b83f760a303.png
+        .. hint:: |trail| |trail.py|_
         '''
         cactor = actor.cutPlane(origin, normal, showcut)
         try:
@@ -627,15 +663,13 @@ class Plotter:
         return cactor  # NB: original actor is modified
 
 
-    def addScalarBar(self, actor=None, c='k', title='', horizontal=False):
+    def addScalarBar(self, actor=None, c=None, title='', horizontal=False):
         """
         Add a 2D scalar bar for the specified actor.
 
         If `actor` is ``None`` will add it to the last actor in ``self.actors``.
        
-        .. hint:: Example: `mesh_bands.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_bands.py>`_
-
-            .. image:: https://user-images.githubusercontent.com/32848391/51211548-26a78b00-1916-11e9-9306-67b677d1be3a.png
+        .. hint:: |mesh_bands| |mesh_bands.py|_
         """
 
         if actor is None:
@@ -647,6 +681,14 @@ class Plotter:
         lut = actor.GetMapper().GetLookupTable()
         if not lut:
             return None
+
+        if c is None:
+            if self.renderer:  # automatic black or white
+                c = (0.9, 0.9, 0.9)
+                if numpy.sum(self.renderer.GetBackground()) > 1.5:
+                    c = (0.1, 0.1, 0.1)
+            else:
+                c='k'
 
         c = colors.getColor(c)
         sb = vtk.vtkScalarBarActor()
@@ -691,9 +733,12 @@ class Plotter:
         sctxt.SetBold(0)
         sctxt.SetFontSize(12)
         if not self.renderer:
-            self.render()
+            save_int = self.interactive
+            self.show(interactive=0)
+            self.interactive = save_int
+        sb.PickableOff()
         self.renderer.AddActor(sb)
-        self.render()
+        self.renderer.Render()
         return sb
 
 
@@ -708,9 +753,7 @@ class Plotter:
             - a ``vtkActor`` already containing a set of scalars associated to vertices or cells,
             - if ``None`` the last actor in the list of actors will be used.
 
-        .. hint:: Example: `mesh_coloring.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py>`_
-
-            .. image:: https://user-images.githubusercontent.com/32848391/46818965-c509da80-cd82-11e8-91fd-4c686da4a761.png
+        .. hint:: |mesh_coloring| |mesh_coloring.py|_
         '''
         from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
         
@@ -786,9 +829,11 @@ class Plotter:
         sact.RotateY(theta*57.3)
         sact.SetPosition(pos)
         if not self.renderers[at]:
-            self.render()
+            save_int = self.interactive
+            self.show(interactive=0)
+            self.interactive = save_int
         self.renderers[at].AddActor(sact)
-        self.render()
+        self.renderers[at].Render()
         return sact
     
 
@@ -806,9 +851,7 @@ class Plotter:
         :param str title: title text
         :param bool showValue:  if true current value is shown
 
-        .. hint:: Example: `sliders.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/sliders.py>`_
-
-            .. image:: https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg
+        .. hint:: |sliders| |sliders.py|_
         '''
         if c is None:  # automatic black or white
             c = (0.9, 0.9, 0.9)
@@ -922,9 +965,7 @@ class Plotter:
         :param float alpha:  opacity level
         :param float angle:  anticlockwise rotation in degrees
 
-        .. hint:: Example: `buttons.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buttons.py>`_
-
-            .. image:: https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg
+        .. hint:: |buttons| |buttons.py|_
         '''
         if not self.renderer:
             colors.printc('Error: Use addButton() after rendering the scene.', c=1)
@@ -939,18 +980,22 @@ class Plotter:
     def addCutterTool(self, actor):
         '''Create handles to cut away parts of a mesh.
 
-        .. hint:: Example: `cutter.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/cutter.py>`_
-
-            .. image:: https://user-images.githubusercontent.com/32848391/50738866-c0658e80-11d8-11e9-955b-551d4d8b0db5.jpg
+        .. hint:: |cutter| |cutter.py|_
         '''
         if not isinstance(actor, vtk.vtkActor):
             return None
 
         if not self.renderer:
-            self.render()
+            save_int = self.interactive
+            self.show(interactive=0)
+            self.interactive = save_int
 
         self.clickedActor = actor
-        apd = actor.polydata()
+        if hasattr(actor, 'polydata'):
+            apd = actor.polydata()
+        else:
+            apd = actor.GetMapper().GetInput()
+
 
         planes = vtk.vtkPlanes()
         planes.SetBounds(apd.GetBounds())
@@ -1020,14 +1065,13 @@ class Plotter:
                     or it can be a tuple (x,y) as a fraction of the renderer size.
         :param float size: size of the square inset.
 
-        .. hint:: Example: `icon.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/icon.py>`_
-    
-            .. image:: https://user-images.githubusercontent.com/32848391/50739009-2bfc2b80-11da-11e9-9e2e-a5e0e987a91a.jpg
+        .. hint:: |icon| |icon.py|_
         '''
         if not self.renderer:
-            colors.printc(
-                'Warning: Use addIcon() after first rendering the scene.', c=3)
-            self.render()
+            colors.printc('Warning: Use addIcon() after first rendering the scene.', c=3)
+            save_int = self.interactive
+            self.show(interactive=0)
+            self.interactive = save_int
         widget = vtk.vtkOrientationMarkerWidget()
         widget.SetOrientationMarker(iconActor)
         widget.SetInteractor(self.interactor)
@@ -1057,23 +1101,16 @@ class Plotter:
 
         :param int axtype: 0 = no axes,   
          
-                    1 = draws three gray grid walls
-    
-                    2 = show cartesian axes from (0,0,0)
-    
-                    3 = show positive range of cartesian axes from (0,0,0)
-    
-                    4 = show a triad at bottom left
-    
-                    5 = show a cube at bottom left
-    
-                    6 = mark the corners of the bounding box
-    
-                    7 = draws a simple ruler at the bottom of the window
-    
-                    8 = show the ``vtkCubeAxesActor`` object
-
-                    9 = show the bounding box outline,
+              - 0,  no axes,
+              - 1,  draw three gray grid walls
+              - 2,  show cartesian axes from (0,0,0)
+              - 3,  show positive range of cartesian axes from (0,0,0)
+              - 4,  show a triad at bottom left
+              - 5,  show a cube at bottom left
+              - 6,  mark the corners of the bounding box
+              - 7,  draw a simple ruler at the bottom of the window
+              - 8,  show the ``vtkCubeAxesActor`` object,
+              - 9,  show the bounding box outline,
         '''
         if axtype is not None:
             self.axes = axtype # overrride
@@ -1142,7 +1179,7 @@ class Plotter:
             if self.ytitle:
                 if min_bns[2]<=0 and max_bns[3]>0: # mark y origin
                     oy = shapes.cube([0,-min_bns[2]/sizes[1],0], length=.008, c=c)
-                yt = shapes.text(self.ytitle, normal=(0,0,1), s=.025, c=c)
+                yt = shapes.text(self.ytitle, pos=(0,0,0), normal=(0,0,1), s=.025, c=c)
                 if len(self.ytitle) == 1:
                     wpos = [off, 1-(len(self.ytitle)+1)/40,  0]
                     yt.pos(wpos)
@@ -1153,7 +1190,7 @@ class Plotter:
             if self.ztitle:
                 if min_bns[4]<=0 and max_bns[5]>0: # mark z origin
                     oz = shapes.cube([0,0,-min_bns[4]/sizes[2]], length=.008, c=c)
-                zt = shapes.text(self.ztitle, normal=(1,-1,0), s=.025, c=c)
+                zt = shapes.text(self.ztitle, pos=(0,0,0), normal=(1,-1,0), s=.025, c=c)
                 if len(self.ztitle) == 1:
                     wpos = [off*.6, off*.6, 1-(len(self.ztitle)+1)/40]
                     zt.rotate(90, (1,-1,0)).pos(wpos)
@@ -1213,7 +1250,7 @@ class Plotter:
                 wpos = [-aves/40*s, y1-(len(self.ytitle)+1)*aves/40*s, 0]
                 if centered:
                     wpos = [-aves/40*s, (y0+y1)/2 - len(self.ytitle)/2*aves/40*s, 0]
-                yt = shapes.text(self.ytitle, normal=(0, 0, 1), s=aves/40*s, c=ycol)
+                yt = shapes.text(self.ytitle, pos=(0,0,0), normal=(0, 0, 1), s=aves/40*s, c=ycol)
                 yt.rotate(90, [0, 0, 1]).pos(wpos)
                 acts += [yl, yc, yt]
 
@@ -1224,8 +1261,7 @@ class Plotter:
                 wpos = [-aves/50*s, -aves/50*s, z1 - (len(self.ztitle)+1)*aves/40*s]
                 if centered:
                     wpos = [-aves/50*s, -aves/50*s, (z0+z1)/2-len(self.ztitle)/2*aves/40*s]
-                zt = shapes.text(self.ztitle, normal=(
-                    1, -1, 0), s=aves/40*s, c=zcol)
+                zt = shapes.text(self.ztitle, pos=(0,0,0), normal=(1, -1, 0), s=aves/40*s, c=zcol)
                 zt.rotate(180, (1, -1, 0)).pos(wpos)
                 acts += [zl, zc, zt]
             for a in acts: a.PickableOff()
@@ -1283,10 +1319,11 @@ class Plotter:
             ocf.SetCornerFactor(0.1)
             largestact, sz = None, -1
             for a in self.actors:
-                d = a.diagonalSize()
-                if sz < d:
-                    largestact = a
-                    sz = d
+                if a.GetPickable():
+                    d = a.diagonalSize()
+                    if sz < d:
+                        largestact = a
+                        sz = d
             if isinstance(largestact, Assembly):
                 ocf.SetInputData(largestact.getActor(0).polydata())
             else:
@@ -1447,45 +1484,49 @@ class Plotter:
     #################################################################################
     def show(self, actors=None, at=None, legend=None, axes=None,
              c=None, alpha=None, wire=False, bc=None,
-             resetcam=True, zoom=False, interactive=None, execute=None,
+             resetcam=True, zoom=False, interactive=None, rate=None,
              viewup='', azimuth=0, elevation=0, roll=0,
-             q=False):
+             interactorStyle=0, q=False):
         '''
         Render a list of actors.
 
-        :param actors: a mixed list of ``vtkActor``, ``vtkAssembly``, ``vtkPolydata``, ``vtkVolume`` or filename strings
+        :param actors: a mixed list of ``vtkActor``, ``vtkAssembly``, ``vtkPolydata``, 
+            ``vtkVolume`` or filename strings
         :param int at: number of the renderer to plot to, if more than one exists
-        :param legend: a string or list of string for each actor, if False will not show it
+        :param legend: a string or list of string for each actor, if False will not show it.
         :param int axes: set the type of axes to be shown
 
-              0 = no axes,
-
-              1 = draw three gray grid walls
-
-              2 = show cartesian axes from (0,0,0)
-
-              3 = show positive range of cartesian axes from (0,0,0)
-
-              4 = show a triad at bottom left
-
-              5 = show a cube at bottom left
-
-              6 = mark the corners of the bounding box
-
-              7 = draw a simple ruler at the bottom of the window
-
-              8 = show the ``vtkCubeAxesActor`` object,
-
-              9 = show the bounding box outline,
+              - 0,  no axes,
+              - 1,  draw three gray grid walls
+              - 2,  show cartesian axes from (0,0,0)
+              - 3,  show positive range of cartesian axes from (0,0,0)
+              - 4,  show a triad at bottom left
+              - 5,  show a cube at bottom left
+              - 6,  mark the corners of the bounding box
+              - 7,  draw a simple ruler at the bottom of the window
+              - 8,  show the ``vtkCubeAxesActor`` object,
+              - 9,  show the bounding box outline,
+              
         :param c:     surface color, in rgb, hex or name formats
         :param bc:    set a color for the internal surface face
-        :param wire:  show actor in wireframe representation
-        :param azimuth/elevation/roll:  move camera accordingly
-        :param viewup:  either ['x', 'y', 'z'] or a vector to set vertical direction
+        :param bool wire:  show actor in wireframe representation
+        :param float azimuth/elevation/roll:  move camera accordingly
+        :param str viewup:  either ['x', 'y', 'z'] or a vector to set vertical direction
         :param bool resetcam:  re-adjust camera position to fit objects
-        :param bool interactive:  pause and interact with window (True) or continue execution (False)
-        :param execute:  holds an external function to be called, allowing interaction with scene
-        :param bool q:  force program to quit after show() command returns
+        :param bool interactive:  pause and interact with window (True) 
+            or continue execution (False)
+        :param float rate:  maximum rate of `show()` in Hertz
+        :param int interactorStyle: set the type of interaction
+        
+            - 0, TrackballCamera
+            - 1, TrackballActor
+            - 2, JoystickCamera
+            - 3, Unicam
+            - 4, Flight
+            - 5, RubberBand3D
+            - 6, RubberBandZoom
+            
+        :param bool q:  force program to quit after `show()` command returns.
         '''
 
         if self.offscreen:
@@ -1538,8 +1579,7 @@ class Plotter:
                 elif a is None:
                     pass
                 else:
-                    colors.printc(
-                        'Cannot understand input in show():', type(a), c=1)
+                    colors.printc('Cannot understand input in show():', type(a), c=1)
                     scannedacts.append(None)
             return scannedacts
 
@@ -1561,6 +1601,7 @@ class Plotter:
                 colors.printc(
                     'Error in show(): legend must be list or string.', c=1)
                 sys.exit()
+                
         if not (axes is None):
             self.axes = axes
 
@@ -1589,6 +1630,7 @@ class Plotter:
 
         if not self.camera:
             self.camera = self.renderer.GetActiveCamera()
+            
         self.camera.SetParallelProjection(self.infinity)
         self.camera.SetThickness(self.camThickness)
 
@@ -1618,7 +1660,7 @@ class Plotter:
             self.drawAxes()
         self._draw_legend()
 
-        if resetcam:
+        if resetcam or self.initializedIren==False:
             self.renderer.ResetCamera()
 
         if not self.initializedIren and self.interactor:
@@ -1626,22 +1668,8 @@ class Plotter:
             self.interactor.Initialize()
             self.interactor.RemoveObservers('CharEvent')
 
-            def mouseleft(obj, e): vtkio._mouseleft(self, obj, e)
-            self.interactor.AddObserver("LeftButtonPressEvent", mouseleft)
-
-            def mouseright(obj, e): vtkio._mouseright(self, obj, e)
-            self.interactor.AddObserver("RightButtonPressEvent", mouseright)
-
-            def mousemiddle(obj, e): vtkio._mousemiddle(self, obj, e)
-            self.interactor.AddObserver("MiddleButtonPressEvent", mousemiddle)
-
-            def keypress(obj, e): vtkio._keypress(self, obj, e)
-            self.interactor.AddObserver("KeyPressEvent", keypress)
-            if execute:
-                self.interactor.AddObserver('TimerEvent', execute) # vtkTimerCallback()
-                self.interactor.CreateRepeatingTimer(1) # calls execute every millisecond
             if self.verbose and self.interactive:
-                self._tips()
+                docs._tips()
 
         self.initializedPlotter = True
 
@@ -1653,8 +1681,9 @@ class Plotter:
             self.camera.Elevation(elevation)
         if roll:
             self.camera.Roll(roll)
+            
         if len(viewup):
-            if viewup == 'x':
+            if   viewup == 'x':
                 viewup = [1,0,0]
             elif viewup == 'y':
                 viewup = [0,1,0]
@@ -1666,42 +1695,32 @@ class Plotter:
             self.camera.SetViewUp(viewup)
 
         self.renderer.ResetCameraClippingRange()
-
+        
         self.renderWin.Render()
+        
+        if settings.allowInteraction and not self.offscreen:
+            self.allowInteraction()
+
+        if settings.interactorStyle is not None:
+            interactorStyle = settings.interactorStyle
+
+        if   interactorStyle == 0 or interactorStyle=='TrackballCamera':
+            pass
+        elif interactorStyle == 1 or interactorStyle=='TrackballActor':
+            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
+        elif interactorStyle == 2 or interactorStyle=='JoystickCamera':
+            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleJoystickCamera())
+        elif interactorStyle == 3 or interactorStyle=='Unicam':
+            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleUnicam())
+        elif interactorStyle == 4 or interactorStyle=='Flight':
+            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleFlight())
+        elif interactorStyle == 5 or interactorStyle=='RubberBand3D':
+            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand3D())
+        elif interactorStyle == 6 or interactorStyle=='RubberBandZoom':
+            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBandZoom())
 
         if self.interactor and self.interactive:
             self.interactor.Start()
-
-        if q:  # gracefully exit
-            if self.verbose:
-                print('q flag set to True. Exit.')
-            sys.exit(0)
-
-
-    def render(self, addActor=None, at=None, axes=None, resetcam=False,
-               zoom=False, rate=None):
-        '''Render current window.'''
-
-        if self.offscreen:
-            self.interactive = False
-
-        if addActor:
-            if utils.isSequence(addActor):
-                for a in addActor:
-                    self.addActor(a)
-            else:
-                self.addActor(addActor)
-
-        if not self.initializedPlotter:
-            before = bool(self.interactive)
-            self.verbose = False
-            self.show(interactive=0, at=at, axes=axes, zoom=zoom)
-            self.interactive = before
-            return
-        if resetcam:
-            self.renderer.ResetCamera()
-
-        self.renderWin.Render()
 
         if rate:
             if self.clock is None:  # set clock and limit rate
@@ -1715,26 +1734,23 @@ class Plotter:
                     time.sleep(mint-elapsed)
                 self.clock = time.time() - self._clockt0
 
+        if q:  # gracefully exit
+            if self.verbose:
+                print('q flag set to True. Exit.')
+            sys.exit(0)
+
 
     def lastActor(self):
         '''Return last added ``Actor``.'''
         return self.actors[-1]
 
-    def addActor(self, a):
-        '''Add a ``vtkActor`` to current renderer.'''
-        if not self.initializedPlotter:
-            before = bool(self.interactive)
-            self.show(interactive=0)
-            self.interactive = before
-            return
-        self.actors.append(a)
-        self.renderer.AddActor(a)
-
     def removeActor(self, a):
         '''Remove ``vtkActor`` or actor index from current renderer.'''
         try:
             if not self.initializedPlotter:
-                self.show()
+                save_int = self.interactive
+                self.show(interactive=0)
+                self.interactive = save_int
                 return
             if self.renderer:
                 self.renderer.RemoveActor(a)
@@ -1753,15 +1769,14 @@ class Plotter:
                 self.renderer.RemoveActor(a)
             self.actors = []
 
-    def openVideo(self, name='movie.avi', fps=12, duration=None):
+    def Video(self, name='movie.avi', fps=12, duration=None):
         '''Open a video file.
 
         :param int fps: set the number of frames per second.
-        :param flaot duration: set the total `duration` of the video and recalculates `fps` accordingly.
+        :param flaot duration: set the total `duration` of the video and 
+            recalculates `fps` accordingly.
 
-        .. hint:: Example: `makeVideo.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/makeVideo.py>`_
-    
-            .. image:: https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg
+        .. hint:: |makeVideo| |makeVideo.py|_
         '''
         return vtkio.Video(self.renderWin, name, fps, duration)
 

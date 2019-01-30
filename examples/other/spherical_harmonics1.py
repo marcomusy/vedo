@@ -1,15 +1,17 @@
-##########################################################
-# Example on how to use the intersectWithLine() method:
-#  intersect an actor with lines from the origin
-#  and draw the intersection points in blue
-#
-# Second part of the example:
-#  Expand an arbitrary closed shape in spherical harmonics 
-#  using SHTOOLS (https://shtools.oca.eu/shtools/)
-#  and then truncate the expansion to a specific lmax and 
-#  reconstruct the projected points in red
-#
+'''
+Example on how to use the intersectWithLine() method:
+ intersect an actor with lines from the origin
+ and draw the intersection points in blue
+
+Second part of the example:
+ Expand an arbitrary closed shape in spherical harmonics 
+ using SHTOOLS (https://shtools.oca.eu/shtools/)
+ and then truncate the expansion to a specific lmax and 
+ reconstruct the projected points in red
+'''
 from __future__ import division, print_function
+print(__doc__)
+
 from vtkplotter import Plotter, mag, sin, cos
 import numpy as np
 

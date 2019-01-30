@@ -1,13 +1,12 @@
-# Thin Plate Spline transformations describe a nonlinear warp 
-# transform defined by a set of source and target landmarks. 
-# Any point on the mesh close to a source landmark will 
-# be moved to a place close to the corresponding target landmark. 
-# The points in between are interpolated using Bookstein's algorithm.   
-#
-# NB: in this example, class Plotter is bypassed.
-#
-from vtkplotter import show, thinPlateSpline
-from vtkplotter import grid, arrows, points, mergeActors
+'''
+Thin Plate Spline transformations describe a nonlinear warp 
+transform defined by a set of source and target landmarks. 
+Any point on the mesh close to a source landmark will 
+be moved to a place close to the corresponding target landmark. 
+The points in between are interpolated using Bookstein's algorithm.   
+'''
+
+from vtkplotter import *
 import numpy as np
 np.random.seed(2)
 
@@ -32,5 +31,6 @@ warped.alpha(0.2).color('b')
 apts = points(ptsource, r=5, c='r')
 arrs = arrows(ptsource, pttarget)
 
-show([warped, apts, arrs], axes=9, viewup='z', verbose=0)
+show([warped, apts, arrs, text(__doc__)],
+     axes=9, viewup='z', verbose=0)
 

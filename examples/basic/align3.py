@@ -1,10 +1,12 @@
-# Example usage of align() method:
-# generate 3 random sets of points
-# and align them using vtkProcrustesAlignmentFilter.
-#
+'''
+Example usage of align() method:
+ generate 3 random sets of points
+ and align them using vtkProcrustesAlignmentFilter.
+'''
 from __future__ import division, print_function
 from random import uniform as u
-from vtkplotter import Plotter, procrustes
+
+from vtkplotter import Plotter, procrustes, text
 
 vp = Plotter(shape=[1,2], verbose=0, axes=2, sharecam=0)
 
@@ -27,6 +29,6 @@ aligned = procrustes([act1, act2, act3])
 
 #print(aligned.info['transform'])
 
-vp.show(aligned, at=1, interactive=1)
+vp.show([aligned, text(__doc__)], at=1, interactive=1)
 
 

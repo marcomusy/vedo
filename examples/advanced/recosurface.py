@@ -1,18 +1,27 @@
-# Example to show how to use recoSurface() to reconstruct a surface from points.
-# 1. An object is loaded and noise is added to its vertices.
-# 2. the point cloud is smoothened with MLS (see moving_least_squares.py)
-# 3. clean(actor) imposes a minimum distance among mesh points where 
-#    'tol' is the fraction of the actor size.
-# 4. a triangular mesh is extracted from this set of sparse points
-#    'bins' is the number of voxels of the subdivision
-# NB: recoSurface only works with vtk version >7
-# 
+'''
+Example to show how to use recoSurface() 
+to reconstruct a surface from points.
+
+ 1. An object is loaded and 
+    noise is added to its vertices.
+ 2. the point cloud is smoothened with MLS 
+    (see moving_least_squares.py)
+ 3. clean(actor) imposes a minimum distance 
+    among mesh points where 'tol' is the 
+    fraction of the actor size.
+ 4. a triangular mesh is extracted from 
+    this set of sparse points, 'bins' is the 
+    number of voxels of the subdivision
+
+NB: recoSurface only works with vtk version >7
+'''
 from __future__ import division, print_function
-from vtkplotter import Plotter, recoSurface, smoothMLS2D
+from vtkplotter import Plotter, recoSurface, smoothMLS2D, text
 import numpy as np
 
 
-vp = Plotter(shape=(1,4), axes=0)
+vp = Plotter(shape=(1,5), axes=0)
+vp.show(text(__doc__), at=4)
 
 act = vp.load('data/shapes/pumpkin.vtk')
 vp.show(act, at=0)

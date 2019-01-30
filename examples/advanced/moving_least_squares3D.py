@@ -1,14 +1,15 @@
-# Generate a time sequence of 3D shapes (from a sphere to a tetrahedron)
-# as noisy cloud points, and smooth it with Moving Least Squares (smoothMLS3D).
-# This make a simultaneus fit in 4D (space+time).
-# smoothMLS3D method returns a vtkActor where points are color coded
-# in bins of fitted time. 
-# Data itself can suggest a meaningful time separation based on the spatial 
-# distribution of points.
-# The nr neighbours in the local 4D fitting must be specified.
-# 
+'''
+Generate a time sequence of 3D shapes (from a sphere to a tetrahedron)
+as noisy cloud points, and smooth it with Moving Least Squares (smoothMLS3D).
+This make a simultaneus fit in 4D (space+time).
+smoothMLS3D method returns a vtkActor where points are color coded
+in bins of fitted time. 
+Data itself can suggest a meaningful time separation based on the spatial 
+distribution of points.
+The nr neighbours in the local 4D fitting must be specified.
+'''
 import numpy as np
-from vtkplotter import Plotter, sphere, smoothMLS3D
+from vtkplotter import Plotter, sphere, smoothMLS3D, text
 
 
 vp = Plotter(N=2, axes=0)
@@ -26,4 +27,5 @@ for i in range(5):       # generate a time sequence of 5 shapes
 asse = smoothMLS3D(vp.actors, neighbours=50)
 
 vp.addScalarBar3D(asse, at=1, pos=(-2,0,-1)) # color indicates fitted time
-vp.show(asse, at=1, zoom=1.4, axes=4, interactive=1)
+
+vp.show([asse, text(__doc__)], at=1, zoom=1.4, axes=4, interactive=1)

@@ -1,6 +1,8 @@
-# Work with vtkVolume objects and surfaces.
-#
-from vtkplotter import loadImageData, Plotter, Volume, sphere
+'''
+Work with vtkVolume objects and surface meshes 
+in the same rendering window.
+'''
+from vtkplotter import loadImageData, Plotter, Volume, sphere, text
 
 vp = Plotter()
 
@@ -19,6 +21,8 @@ vol = Volume(img, c='green', alphas=[0, 0.4, 0.9, 1]) # vtkVolume
 
 sph = sphere(pos=[100,100,100], r=20) # add a dummy surface
 
-vp.show([vol, sph], zoom=1.4) # show both vtkVolume and vtkActor
+doc = text(__doc__, pos=3)
 
+# show both vtkVolume and vtkActor
+vp.show([vol, sph, text(__doc__)], zoom=1.4) 
 

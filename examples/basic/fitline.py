@@ -1,13 +1,12 @@
-#!/usr/bin/env python
-# 
-# Usage example of fitLine() and fitPlane()
-#
-# Draw a line in 3D that fits a cloud of 20 points,
-# also show the first set of 20 points and fit a plane to them
-#
+'''
+Usage example of fitLine() and fitPlane()
+
+Draw a line in 3D that fits a cloud of 20 points,
+Show the first set of 20 points and fit a plane to them.
+'''
 from __future__ import division, print_function
 import numpy as np
-from vtkplotter import Plotter, fitLine, fitPlane
+from vtkplotter import Plotter, fitLine, fitPlane, text
 
 # declare the class instance
 vp = Plotter(verbose=0, title='linear fitting')
@@ -21,7 +20,7 @@ for i in range(500):
     data = np.array(list(zip(x,y,z)))
     data+= np.random.normal(size=data.shape)*0.8 # add gauss noise
     
-    vp.add( fitLine(data, lw=4, alpha=0.03) ) # fit a line
+    vp.add( fitLine(data, lw=4).alpha(0.03) ) # fit a line
 
 # 'data' still contains the last iteration points
 vp.points(data, r=10, c='red', legend='random points')
@@ -30,7 +29,9 @@ vp.points(data, r=10, c='red', legend='random points')
 # in actor.info['slope] and actor.info['normal]
 print('Line Fit slope = ', vp.actors[0].info['slope']) 
 
-plane = vp.add( fitPlane(data, legend='fitting plane') ) # fit a plane
+plane = vp.add( fitPlane(data) ) # fit a plane
 print('Plan Fit normal=', plane.info['normal']) 
+
+vp.add(text(__doc__))
 
 vp.show()

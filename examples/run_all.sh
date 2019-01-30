@@ -1,6 +1,29 @@
 #!/bin/bash
 # source run_all.sh
 #
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo #############################################
+echo    Press Esc at anytime to skip example
+echo #############################################
+echo
+echo
+echo
+
+####################################
 echo Running tutorial.py
 python tutorial.py
 
@@ -29,17 +52,14 @@ python basic/delaunay2d.py
 echo Running basic/clustering.py
 python basic/clustering.py
 
-echo Running basic/diffusion.py
-python basic/diffusion.py
+echo Running basic/connVtx.py
+python basic/connVtx.py
 
 echo Running basic/fitline.py
 python basic/fitline.py
 
 echo Running basic/fxy.py
 python basic/fxy.py
-
-echo Running other/icon.py
-python other/icon.py
 
 echo Running basic/keypress.py
 python basic/keypress.py
@@ -74,6 +94,12 @@ python basic/mesh_bands.py
 echo Running basic/mesh_alphas.py
 python basic/mesh_alphas.py
 
+echo Running basic/mesh_sharemap.py
+python basic/mesh_sharemap.py
+
+echo Running basic/mesh_threshold.py
+python basic/mesh_threshold.py
+
 echo Running basic/mesh_modify.py
 python basic/mesh_modify.py
 
@@ -83,23 +109,11 @@ python basic/pca.py
 echo Running basic/trail.py
 python basic/trail.py
 
-echo
-echo Running other/colorpalette.py
-python other/colorpalette.py
-
-echo
-echo Running other/colorprint.py
-python other/colorprint.py
-
-echo
 echo Running basic/colorcubes.py
 python basic/colorcubes.py
 
 echo Running basic/largestregion.py
 python basic/largestregion.py
-
-echo Running basic/earth.py
-python basic/earth.py
 
 echo Running basic/mirror.py
 python basic/mirror.py
@@ -130,6 +144,18 @@ python basic/histo2D.py
 
 echo Running basic/fillholes.py
 python basic/fillholes.py
+
+echo Running basic/interactionstyle.py
+python basic/interactionstyle.py
+
+echo Running basic/tube.py
+python basic/tube.py
+
+echo Running basic/boolean.py
+python basic/boolean.py       # fails for vtk version<7
+
+echo Running basic/annotations.py
+python basic/annotations.py    
 
 
 #################################### advanced
@@ -193,9 +219,6 @@ python advanced/tunnelling2.py
 echo Running advanced/blackbody.py
 python advanced/blackbody.py
 
-echo Running advanced/interactor.py
-python advanced/interactor.py
-
 echo Running advanced/mesh_smoothers.py
 python advanced/mesh_smoothers.py
 
@@ -207,6 +230,18 @@ python advanced/thinplate.py
 
 echo Running advanced/thinplate_grid.py
 python advanced/thinplate_grid.py
+
+echo Running advanced/meshquality.py
+python advanced/meshquality.py
+
+echo Running advanced/cutWithMesh.py
+python advanced/cutWithMesh.py
+
+echo Running advanced/cutAndCap.py
+python advanced/cutAndCap.py
+
+echo Running advanced/geodesic.py
+python advanced/geodesic.py
 
 
 ################################### volumetric
@@ -237,21 +272,74 @@ python volumetric/read_vti.py
 echo Running volumetric/interpolateVolume.py
 python volumetric/interpolateVolume.py
 
+echo Running volumetric/isosurfaces.py
+python volumetric/isosurfaces.py
 
-####################################these may fail
-echo Running basic/surfIntersect.py
-python basic/surfIntersect.py # fails for vtk version<7
+echo Running volumetric/mesh2volume.py
+python volumetric/mesh2volume.py
 
-echo Running basic/boolean.py
-python basic/boolean.py   # fails for vtk version<7
+
+#################################### Other
+echo Running other/colorpalette.py
+python other/colorpalette.py
+
+echo Running other/colorprint.py
+python other/colorprint.py
+
+echo Running other/icon.py
+python other/icon.py
+
+echo Running other/qt_embed.py # needs qt5
+python other/qt_embed.py
 
 echo Running other/spherical_harmonics1.py
 python other/spherical_harmonics1.py # fails if sphtool not installed
 
-echo Running other/spherical_harmonics2.py
-python other/spherical_harmonics2.py # fails if sphtool not installed
+#echo Running other/spherical_harmonics2.py
+#python other/spherical_harmonics2.py # fails if sphtool not installed
 
 
+##################################### not ran/ignored:
+#basic/text_just.py
+#basic/lights.py
+#basic/pointsampler.py
+#basic/ids.py
+#basic/surfIntersect.py
+#advanced/mapper_cubes.py
+#other/makeVideo.py
+#other/meshfix.py
+
+
+#################################### 
+echo
+echo
+echo '---------------------------- command lines'
+echo vtkplotter            data/2*.vtk
+vtkplotter data/2*.vtk
+
+echo '----------------------------'
+echo vtkplotter            data/embryo.tif
+vtkplotter data/embryo.tif
+
+echo '----------------------------'
+echo vtkplotter -g -c blue data/embryo.slc
+vtkplotter -g -c blue data/embryo.slc
+
+echo '----------------------------'
+echo vtkplotter --slicer   data/embryo.slc
+vtkplotter --slicer data/embryo.slc
+
+echo '----------------------------'
+echo vtkplotter -s -c k    data/timecourse/*vtk
+vtkplotter -s -c k data/timecourse/*vtk
+
+echo '----------------------------'
+echo vtkplotter -n -c k    data/timecourse/reference_3*
+vtkplotter -n -c k data/timecourse/reference_3*
+
+echo '----------------------------'
+echo vtkplotter -n         ../vtkplotter/icons/*png
+vtkplotter -n ../vtkplotter/icons/*png
 
 
 

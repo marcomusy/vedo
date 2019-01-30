@@ -1,21 +1,19 @@
 #!/usr/bin/env python
 #
-from __future__ import division, print_function
-from random import gauss, uniform as u
-import math
-from vtkplotter import *
-
-
 #########################################################################################
 #
 # Quick tutorial.
-# Check out more examples in directories 
+# Check out more examples in directories:
 #	examples/basic 
 #	examples/advanced
 #	examples/volumetric
 #	examples/other
 #
 #########################################################################################
+#
+from __future__ import division, print_function
+from random import gauss, uniform as u
+from vtkplotter import *
 
 
 # Declare an instance of the class
@@ -53,7 +51,7 @@ vp.show()
 
 #########################################################################################
 # Draw a spline through a set of points:
-vp = Plotter(title='Example of splines through 8 random points')
+vp = Plotter(title='Example of splines through 8 random points', verbose=0)
 
 pts = [ (u(0,2), u(0,2), u(0,2)+i) for i in range(8) ] # build python list of points
 vp.points(pts, legend='random points')                 # create the vtkActor
@@ -67,7 +65,7 @@ vp.show(viewup='z', interactive=1)
 #########################################################################################
 # Draw a cloud of points each one with a different color
 # which depends on the point position itself
-vp = Plotter(title='color points')
+vp = Plotter(title='color points', verbose=0)
 
 rgb = [(u(0,255), u(0,255), u(0,255)) for i in range(5000)]
 
@@ -79,8 +77,8 @@ vp.show()
 # Show a dummy sine plot on top left,  
 # and a 3D function f(x,y) = sin(3*x)*log(x-y)/3 (more examples in basic/fxy.py)
 # red points indicate where the function is not real
-vp = Plotter(title='Example of a 3D function plotting', axes=2)
-xycoords = [(math.exp(i/10), math.sin(i/5)) for i in range(40)]
+vp = Plotter(title='Example of a 3D function plotting', axes=2, verbose=0)
+xycoords = [(exp(i/10), sin(i/5)) for i in range(40)]
 xplt = xyplot( xycoords )
 #
 f = fxy( 'sin(3*x)*log(x-y)/3' )
@@ -148,7 +146,7 @@ vp.show(interactive=1)
 # Cut a set of shapes with a plane that goes through the
 # point at x=500 and has normal (0, 0.3, -1).
 # Wildcards can be used to load multiple files or entire directories:
-vp = Plotter(title='Cut a surface with a plane')
+vp = Plotter(title='Cut a surface with a plane', verbose=0)
 vp.load('data/2*0.vtk', c='orange', bc='aqua')
 for a in vp.actors:
     vp.cutPlane(a, origin=(500,0,0), normal=(0,0.3,-1), showcut=True)

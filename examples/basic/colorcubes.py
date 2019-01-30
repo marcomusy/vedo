@@ -1,5 +1,7 @@
-# Show a cube for each available color name
-#
+'''
+Show a cube for each available color name
+'''
+print(__doc__)
 from vtkplotter import Plotter, cube, text
 from vtkplotter.colors import colors, getColor
 from operator import itemgetter

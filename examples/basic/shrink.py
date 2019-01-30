@@ -1,13 +1,10 @@
-# Shrink the triangulation of a mesh to make the inside visible
-#
-from vtkplotter import Plotter, sphere
+'''
+Shrink the triangulation of a mesh to make the inside visible.
+'''
+from vtkplotter import load, sphere, show, text
 
+pot = load('data/shapes/teapot.vtk').shrink(0.75)
 
-vp = Plotter()
+s = sphere(r=0.2).pos(0,0,-0.5)
 
-vp.load('data/shapes/teapot.vtk').shrink(0.75)
-
-vp.add(sphere(r=0.2).pos([0,0,-0.5]))
-
-vp.show(viewup='z')
-
+show([pot, s, text(__doc__)], viewup='z')

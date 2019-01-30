@@ -1,13 +1,16 @@
-# In this example we modify the mesh of a shape
-# by moving the points along the normals to the surface
-# and along the radius of a sphere centered at the center of mass.
-# At each step we redefine the actor so that the normals are
-# recalculated for the underlying polydata.
-#
+'''
+In this example we modify the mesh of a shape
+by moving the points along the normals to the surface
+and along the radius of a sphere centered at the center of mass.
+At each step we redefine the actor so that the normals are
+recalculated for the underlying polydata.
+'''
 from __future__ import division, print_function
-from vtkplotter import Plotter, norm, mag
+from vtkplotter import Plotter, norm, mag, settings, text
 
-vp = Plotter(axes=0)
+settings.computeNormals = True # on object creation by default
+
+vp = Plotter(axes=0, verbose=0)
 
 s = vp.load('data/290.vtk', c='red', bc='plum')
 c = s.centerOfMass()
@@ -31,7 +34,9 @@ for t in range(Niter):
         s.point(i, newp)
         
     #refresh actor, so polydata normals are recalculated
-    s = s.clone().alpha(0.1).color('gold').wire(True)
+    s = s.clone()
+    s.alpha(0.1).color('gold').wire(True)
     vp.add(s)
 
+vp.add(text(__doc__))
 vp.show()

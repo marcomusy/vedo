@@ -1,7 +1,7 @@
-# Create a set of transparencies which can be passed
-# to method pointColors()
-#
-from vtkplotter import Plotter, arange
+'''
+Create a set of transparencies which can be passed to method pointColors()
+'''
+from vtkplotter import Plotter, arange, text
 
 vp = Plotter(axes=6) # type 6 = mark bounding box corners
 
@@ -20,4 +20,5 @@ alphas = [0.1, 0.1, 0.3, 0.4, 0.9]
 mesh.pointColors(scals, alpha=alphas, cmap='copper')
 #print(mesh.scalars('pointColors_copper')) # retrieve scalars
 
+vp.add(text(__doc__))
 vp.show()

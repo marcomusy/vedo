@@ -1,6 +1,7 @@
-# Intersect a vtkImageData (voxel dataset) with planes
-#
-from vtkplotter import show, loadImageData, probeLine, vector
+'''
+Intersect a vtkImageData (voxel dataset) with planes.
+'''
+from vtkplotter import show, loadImageData, probeLine, vector, text
 
 img = loadImageData('data/embryo.slc')
 
@@ -16,4 +17,4 @@ for i in range(60): # probe scalars on 60 parallel lines
     #print(a.scalars(0)) # numpy scalars can be access here
     #print(a.scalars('vtkValidPointMask')) # the mask of valid points
 
-show(lines, axes=4, verbose=0)
+show(lines + [text(__doc__)], axes=4, verbose=0)

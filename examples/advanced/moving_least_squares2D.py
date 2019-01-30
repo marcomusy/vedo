@@ -1,18 +1,18 @@
-#  This example shows how to use a variant of the 
-# Moving Least Squares (MLS) algorithm to project a cloud 
-# of points to become a smooth surface.
-# The parameter f controls the size of the local regression.
-# The input actor's polydata is modified by the method
-# so more than one pass is possible.
-# If showNPlanes>0 an actor is built demonstrating the 
-# details of the regression for some random points
-#  In the second window we show the error estimated for
-# each point in color scale (left) or in size scale (right).
-#
+'''
+This example shows how to use a variant of the 
+Moving Least Squares (MLS) algorithm to project a cloud 
+of points to become a smooth surface.
+The parameter f controls the size of the local regression.
+The input actor's polydata is modified by the method
+so more than one pass is possible.
+If showNPlanes>0 an actor is built demonstrating the 
+details of the regression for some random points
+In the second window we show the error estimated for
+each point in color scale (left) or in size scale (right).
+'''
 from __future__ import division, print_function
-from vtkplotter import Plotter, colorMap, smoothMLS2D, spheres
+from vtkplotter import Plotter, colorMap, smoothMLS2D, spheres, text
 import numpy as np
-
 
 vp1 = Plotter(shape=(1,4), axes=4)
 
@@ -26,7 +26,7 @@ pts += np.random.randn(len(pts),3)/40 # add noise, will not mess up the original
 s0 = vp1.points(pts, c='blue', r=3, legend='point cloud') 
 vp1.show(s0, at=0) 
 
-s1 = s0.clone(c='dg')                 # a dark green copy of s0
+s1 = s0.clone().color('dg')                   # a dark green copy of s0
 
 # project s1 points into a smooth surface of points 
 # return a demo actor showing 30 regressions at random points
@@ -52,4 +52,4 @@ a0 = spheres(s1.coordinates(), c=vcols, r=0.03, legend='variance')
 a1 = spheres(s1.coordinates(), c='red', r=variances, legend='variance')
 
 vp2.show(a0, at=0)
-vp2.show([a1, act], at=1, zoom=1.3, interactive=1)
+vp2.show([a1, act, text(__doc__)], at=1, zoom=1.3, interactive=1)

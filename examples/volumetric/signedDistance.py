@@ -1,13 +1,15 @@
-# A mixed example with class vtkSignedDistance:
-# generate a scalar field by the signed distance from
-# a polydata, save it to stack.tif file,
-# then extract an isosurface from the 3d image.
-#
-from vtkplotter import Plotter
+'''
+A mixed example with class vtkSignedDistance:
+
+generate a scalar field by the signed distance from a polydata, 
+save it to stack.tif file,
+then extract an isosurface from the 3d image.
+'''
+from vtkplotter import Plotter, text
 
 vp = Plotter(verbose=0)
 
-act = vp.load("data/290.vtk").normalize().subdivide()
+act = vp.load("data/290.vtk").normalize().subdivide().computeNormals()
 
 # Generate signed distance function and contour it
 import vtk
@@ -28,5 +30,5 @@ fe.Update()
 
 pts = vp.points(act.coordinates())
 
-vp.show([fe.GetOutput(), pts])
+vp.show( [fe.GetOutput(), pts, text(__doc__)] )
 

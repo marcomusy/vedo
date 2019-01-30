@@ -1,9 +1,18 @@
-"""
-Submodule to load meshes of different formats, and other I/O functionalities.
-"""
-
 from __future__ import division, print_function
+import vtk
+import os
+import sys
+import time
+import numpy
 
+import vtkplotter.utils as utils
+import vtkplotter.colors as colors
+from vtkplotter.actors import Actor, Assembly, ImageActor, isosurface
+import vtkplotter.docs as docs
+
+__doc__="""
+Submodule to load meshes of different formats, and other I/O functionalities.
+"""+docs._defs
 
 __all__ = [
     'load',
@@ -14,7 +23,7 @@ __all__ = [
     'loadUnStructuredGrid',
     'loadRectilinearGrid',
     'load3DS',
-    'loadDolfin',
+    'loadDolfin', 
     'loadNeutral',
     'loadGmesh',
     'loadPCD',
@@ -28,17 +37,6 @@ __all__ = [
     'buildPolyData',
     'Button',
 ]
-
-
-import vtk
-import os
-import sys
-import time
-import numpy
-
-import vtkplotter.utils as utils
-import vtkplotter.colors as colors
-from vtkplotter.actors import Actor, Assembly, ImageActor, isosurface
 
 
 
@@ -210,9 +208,7 @@ def loadXMLGenericData(filename):  # not tested
 def loadStructuredPoints(filename):
     '''Load a ``vtkStructuredPoints`` object from file and return an ``Actor(vtkActor)`` object.
 
-    .. hint:: Example: `readStructuredPoints.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/readStructuredPoints.py>`_
-
-        .. image:: https://user-images.githubusercontent.com/32848391/48198462-3b393700-e359-11e8-8272-670bd5f2db42.jpg
+    .. hint:: |readStructuredPoints| |readStructuredPoints.py|_
     '''
     reader = vtk.vtkStructuredPointsReader()
     reader.SetFileName(filename)
@@ -465,6 +461,7 @@ def loadImageData(filename, spacing=[]):
     reader.SetFileName(filename)
     reader.Update()
     image = reader.GetOutput()
+    print(filename,"scalar range:", image.GetScalarRange())
     if len(spacing) == 3:
         image.SetSpacing(spacing[0], spacing[1], spacing[2])
     return image
@@ -541,10 +538,11 @@ def write(obj, fileoutput, binary=True):
         return
 
     try:
-        if binary:
-            w.SetFileTypeToBinary()
-        else:
-            w.SetFileTypeToASCII()
+        if not '.tif' in fr and not '.vti' in fr:
+            if binary and not '.tif' in fr and not '.vti' in fr:
+                w.SetFileTypeToBinary()
+            else:
+                w.SetFileTypeToASCII()
         w.SetInputData(obj)
         w.SetFileName(fileoutput)
         w.Write()
@@ -576,9 +574,7 @@ class Video:
     :param int fps: set the number of frames per second.
     :param float duration: set the total `duration` of the video and recalculates `fps` accordingly.
         
-    .. hint:: Example: `makeVideo.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/makeVideo.py>`_
-
-        .. image:: https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg
+    .. hint:: |makeVideo| |makeVideo.py|_
     '''
    
     def __init__(self, renderWindow, name='movie.avi', fps=12, duration=None):
@@ -638,6 +634,8 @@ class ProgressBar:
     >>> for i in pb.range():
     >>>     time.sleep(.1)
     >>>     pb.print('some message') # or pb.print(counts=i)
+    
+    |progbar|
     '''
 
     def __init__(self, start, stop, step=1, c=None, ETA=True, width=24, char='='):
@@ -793,9 +791,7 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
 
     Use ``indexOffset=1`` if face numbering starts from 1 instead of 0.
     
-    .. hint:: Example: `buildpolydata.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buildpolydata.py>`_
-    
-        .. image:: https://user-images.githubusercontent.com/32848391/51032546-bf4dac00-15a0-11e9-9e1e-035fff9c05eb.png
+    .. hint:: |buildpolydata| |buildpolydata.py|_
     '''
     sourcePoints = vtk.vtkPoints()
     sourceVertices = vtk.vtkCellArray()
@@ -838,9 +834,7 @@ class Button:
     '''
     Build a Button object to be shown in the rendering window.
 
-    .. hint:: Example: `buttons.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buttons.py>`_
-
-        .. image:: https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg
+    .. hint:: |buttons| |buttons.py|_
     '''
 
     def __init__(self, fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle):
@@ -908,13 +902,13 @@ class Button:
 
 # ############################################################### Events
 # mouse event
-def _mouseleft(vp, obj, event):
+def _mouseleft(vp, iren, event):
 
-    x, y = vp.interactor.GetEventPosition()
+    x, y = iren.GetEventPosition()
     #print ('mouse at',x,y)
 
-    vp.renderer = obj.FindPokedRenderer(x, y)
-    vp.renderWin = obj.GetRenderWindow()
+    vp.renderer = iren.FindPokedRenderer(x, y)
+    vp.renderWin = iren.GetRenderWindow()
     clickedr = vp.renderers.index(vp.renderer)
     picker = vtk.vtkPropPicker()
     picker.PickProp(x, y, vp.renderer)
@@ -983,12 +977,12 @@ def _mouseleft(vp, obj, event):
         vp.mouseLeftClickFunction(clickedActor)
 
 
-def _mouseright(vp, obj, event):
+def _mouseright(vp, iren, event):
 
-    x, y = vp.interactor.GetEventPosition()
+    x, y = iren.GetEventPosition()
 
-    vp.renderer = obj.FindPokedRenderer(x, y)
-    vp.renderWin = obj.GetRenderWindow()
+    vp.renderer = iren.FindPokedRenderer(x, y)
+    vp.renderWin = iren.GetRenderWindow()
     clickedr = vp.renderers.index(vp.renderer)
     picker = vtk.vtkPropPicker()
     picker.PickProp(x, y, vp.renderer)
@@ -1013,12 +1007,12 @@ def _mouseright(vp, obj, event):
         vp.mouseRightClickFunction(clickedActor)
 
 
-def _mousemiddle(vp, obj, event):
+def _mousemiddle(vp, iren, event):
 
-    x, y = vp.interactor.GetEventPosition()
+    x, y = iren.GetEventPosition()
 
-    vp.renderer = obj.FindPokedRenderer(x, y)
-    vp.renderWin = obj.GetRenderWindow()
+    vp.renderer = iren.FindPokedRenderer(x, y)
+    vp.renderWin = iren.GetRenderWindow()
     clickedr = vp.renderers.index(vp.renderer)
     picker = vtk.vtkPropPicker()
     picker.PickProp(x, y, vp.renderer)
@@ -1044,28 +1038,29 @@ def _mousemiddle(vp, obj, event):
 
 
 # keystroke event
-def _keypress(vp, obj, event):
+def _keypress(vp, iren, event):
+    # qt creates and passes a vtkGenericRenderWindowInteractor
 
-    key = obj.GetKeySym()
+    key = iren.GetKeySym()
     #print ('Pressed key:', key, event)
 
     if key in ["q", "Q", "space", "Return"]:
-        vp.interactor.ExitCallback()
+        iren.ExitCallback()
         return
 
     elif key == "e":
         if vp.verbose:
             print("closing window...")
-        vp.interactor.GetRenderWindow().Finalize()
-        vp.interactor.TerminateApp()
+        iren.GetRenderWindow().Finalize()
+        iren.TerminateApp()
         return
 
     elif key == "Escape":
         print()
         sys.stdout.flush()
-        vp.interactor.TerminateApp()
-        vp.interactor.GetRenderWindow().Finalize()
-        vp.interactor.TerminateApp()
+        iren.TerminateApp()
+        iren.GetRenderWindow().Finalize()
+        iren.TerminateApp()
         sys.exit(0)
 
     elif key == "m":
@@ -1324,19 +1319,18 @@ def _keypress(vp, obj, event):
         else:
             acts = vp.getActors()
         for ia in acts:
-            if not ia.GetPickable(): continue
+            if not ia.GetPickable(): 
+                continue
             alpha = ia.GetProperty().GetOpacity()
             c = ia.GetProperty().GetColor()
             a = ana_normals(ia, ratio=1, c=c, alpha=alpha)
-            try:
+            vp.renderer.AddActor(a)
+            vp.renderer.RemoveActor(ia)
+            iren.Render()
+            if ia in vp.actors:
                 i = vp.actors.index(ia)
                 vp.actors[i] = a
-                vp.renderer.RemoveActor(ia)
-                vp.interactor.Render()
-            except ValueError:
-                pass
-            vp.render(a)
-
+            
     elif key == "x":
         if vp.justremoved is None:
             if vp.clickedActor in vp.getActors() or isinstance(vp.clickedActor, vtk.vtkAssembly):
@@ -1392,5 +1386,5 @@ def _keypress(vp, obj, event):
         else:
             utils.printInfo(vp)
 
-    if vp.interactor:
-        vp.interactor.Render()
+    if iren:
+        iren.Render()

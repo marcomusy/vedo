@@ -1,16 +1,20 @@
-# Example on how to specify a color for each individual cell 
-# or point of an actor's mesh. 
-# Last example also shows the usage of addScalarBar3D().
-#
-from vtkplotter import Plotter, arange
+'''
+Example on how to specify a color for each individual cell 
+or point of an actor's mesh. 
+Last example also shows the usage of addScalarBar3D().
+'''
+print(__doc__)
 
+from vtkplotter import Plotter, arange, text
+import numpy as np
 
 vp = Plotter(N=3)
 
 ##################################### addPointScalars
 man1 = vp.load('data/shapes/man.vtk')
 Np = man1.N()                # nr. of vertices
-scals = arange(0, 1, 1./Np)  # coloring by index nr of vertex
+scals = np.linspace(0,1, Np) # coloring by index nr of vertex
+
 man1.addPointScalars(scals, 'mypointscalars') # add a vtkArray to actor
 #print(man1.scalars('mypointscalars')) # info can be retrieved this way
 vp.show(man1, at=0, elevation=-60)
@@ -33,7 +37,7 @@ man3.cellColors(scals, cmap='afmhot')
 #print(man3.scalars('cellColors_afmhot')) # info can be retrieved this way
 
 # add some oriented 3D text
-txt = vp.text('Floor temperature is 35C', s=.1).rotateZ(90).pos([1,-.9,-1.7])
+txt = text('Floor temperature is 35C', pos=[1,-.9,-1.7], s=.1).rotateZ(90)
 vp.show([man3, txt], at=2, legend='cellColors')
 
 # add a fancier 3D scalar bar embedded in the scene

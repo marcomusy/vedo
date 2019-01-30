@@ -1,5 +1,6 @@
-# Form a surface by joining two lines.
-#
+'''
+Form a surface by joining two close lines.
+'''
 from vtkplotter import *
 
 
@@ -11,4 +12,5 @@ t2 = tube(l2, c='b', r=0.02)
 
 r = ribbon(l1, l2, alpha=.2, res=(200,5), legend='ruled surf').wire(1)
 
-show([r,t1,t2], viewup='z')
+doc = text(__doc__)
+show([r,t1,t2, doc], viewup='z', verbose=0)

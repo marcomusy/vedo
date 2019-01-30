@@ -1,12 +1,15 @@
-# Align 2 shapes and for each vertex of the first draw
-# and arrow to the closest point of the second.
-# The default method is the Iterative Closest Point algorithm.
-# The source transformation is saved in actor.info['transform']
-#  rigid=True doesn't allow scaling
-#
-from vtkplotter import Plotter, printc, mag2, align, arrow
+'''
+Align 2 shapes and for each vertex of the first draw
+and arrow to the closest point of the second.
+The default method is the Iterative Closest Point algorithm.
+The source transformation is saved in actor.info['transform']
+rigid=True doesn't allow scaling
+'''
+from vtkplotter import Plotter, printc, mag2, align, arrow, text
 
 vp = Plotter(verbose=0, axes=4)
+
+vp.add(text(__doc__)) # add comment above
 
 limb = vp.load('data/270.vtk', alpha=0.3)
 rim  = vp.load('data/270_rim.vtk')

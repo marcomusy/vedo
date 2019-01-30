@@ -1,9 +1,10 @@
-# Example that shows how to draw very large number of 
-# spheres (same for points, lines) with different colors
-# or different radius. Resolution (res) can be specified.
-# (vtk versions<8.0 might be slow)
-#
-from vtkplotter import Plotter, spheres
+'''
+Example that shows how to draw very large number of 
+spheres (same for points, lines) with different colors
+or different radius. Resolution (res) can be specified.
+(vtk versions<8.0 might be slow)
+'''
+from vtkplotter import Plotter, spheres, text
 from random import gauss
 
 N = 50000
@@ -22,6 +23,7 @@ s0 = spheres(pts, c=cols, r=0.1, res=3) # res=resolution
 s1 = spheres(pts, r=rads, res=10, texture='gold1') 
 
 vp.show(s0, at=0)
+
 print('..rendering spheres:', N*2)
-vp.show(s1, at=1, legend='N='+str(N), interactive=1)
+vp.show([s1, text(__doc__)], at=1, interactive=1)
 

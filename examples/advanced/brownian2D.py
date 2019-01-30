@@ -1,13 +1,14 @@
-#=======================================================
-# Simple demo to illustrate the motion of a Big brownian
-# particle in a swarm of small particles in 2D motion.
-# The spheres collide elastically with themselves and
-# with the walls of the box. The masses of the spheres
-# are proportional to their radius**3 (as in 3D).
-#
+'''
+Simple demo to illustrate the motion of a Big brownian
+particle in a swarm of small particles in 2D motion.
+The spheres collide elastically with themselves and
+with the walls of the box. The masses of the spheres
+are proportional to their radius**3 (as in 3D).
+'''
 # Adapted by M. Musy from E. Velasco (2009)
-#=======================================================
 from __future__ import division, print_function
+print(__doc__)
+
 from vtkplotter import Plotter, ProgressBar, arange, dot
 from vtkplotter import torus, grid, sphere
 import random, numpy as np
@@ -15,7 +16,7 @@ import random, numpy as np
 screen_w = 800
 screen_h = 800  
  
-vp = Plotter(title="Brownian Motion", size=(screen_w,screen_h), axes=0, verbose=0)
+vp = Plotter(size=(screen_w,screen_h), axes=0, interactive=0)
 
 # Constants and time step
 Nsp = 200               # Number of small spheres
@@ -129,9 +130,8 @@ for i in pb.range():
     if not int(i)%10:                   # every ten steps:
         rsp = [Pos[0][0],Pos[0][1],0]
         rsv = [Vel[0][0],Vel[0][1],0]
-        p = torus(pos=rsp, axis=rsv, r=Rb/4, thickness=Rb/40, 
-                  c='r', alpha=0.05) # leave an oriented trace
-        vp.render(p)                 # add actor p and render scene   
+        vp.point(rsp, c='r', r=5, alpha=0.1)  # leave a point trace
+        vp.show()                    # render scene   
     pb.print('#actors='+str(len(vp.actors)))
     
 vp.show(interactive=1)

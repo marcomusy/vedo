@@ -1,9 +1,15 @@
-"""
-Submodule to generate basic geometric shapes.
-"""
-
 from __future__ import division, print_function
+import vtk
+import numpy as np
+from vtk.util.numpy_support import numpy_to_vtk
+import vtkplotter.utils as utils
+import vtkplotter.colors as colors
+from vtkplotter.actors import Actor, Assembly
+import vtkplotter.docs as docs
 
+__doc__="""
+Submodule to generate basic geometric shapes.
+"""+docs._defs
 
 __all__ = [
     'point',
@@ -15,6 +21,7 @@ __all__ = [
     'arrow',
     'arrows',
     'polygon',
+    'rectangle',
     'disc',
     'sphere',
     'spheres',
@@ -35,17 +42,8 @@ __all__ = [
 ]
 
 
-import vtk
-import numpy as np
-from vtk.util.numpy_support import numpy_to_vtk
-
-import vtkplotter.utils as utils
-import vtkplotter.colors as colors
-from vtkplotter.actors import Actor, Assembly
-
-
 ########################################################################
-def point(pos, r=5, c='k', alpha=1, legend=None):
+def point(pos=[0,0,0], r=5, c='k', alpha=1, legend=None):
     '''Create a simple point actor.'''
     return points([pos], r, c, alpha, legend)
 
@@ -53,15 +51,12 @@ def points(plist, r=4, c='k', alpha=1, legend=None):
     '''
     Build a point ``Actor`` for a list of points.
 
-    :param r: point radius.
-    :type r: float
+    :param float r: point radius.
     :param c: color name, number, or list of [R,G,B] colors of same length as plist.
     :type c: int, str, list
     :param float alpha: transparency in range [0,1].
 
-    .. hint:: Example: `lorenz.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/lorenz.py>`_
-
-        .. image:: https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png
+    .. hint:: |lorenz| |lorenz.py|_
     '''
     n = len(plist)
     if n == 0:
@@ -171,32 +166,59 @@ def line(p0, p1=None, lw=1, c='r', alpha=1, dotted=False, legend=None):
 
 def tube(points, r=1, c='r', alpha=1, legend=None, res=12):
     '''Build a tube of radius `r` along line defined by a set of points.
-    
-    .. hint:: Example: `ribbon.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/ribbon.py>`_
 
-        .. image:: https://user-images.githubusercontent.com/32848391/50738851-be9bcb00-11d8-11e9-80ee-bd73c1c29c06.jpg    
+    .. hint:: |ribbon| |ribbon.py|_
+    
+        |tube| |tube.py|_
     '''
     ppoints = vtk.vtkPoints()  # Generate the polyline
     ppoints.SetData(numpy_to_vtk(points, deep=True))
-    lines = vtk.vtkCellArray()  # Create the polyline.
+    lines = vtk.vtkCellArray()
     lines.InsertNextCell(len(points))
     for i in range(len(points)):
         lines.InsertCellPoint(i)
-    poly = vtk.vtkPolyData()
-    poly.SetPoints(ppoints)
-    poly.SetLines(lines)
+    polyln = vtk.vtkPolyData()
+    polyln.SetPoints(ppoints)
+    polyln.SetLines(lines)
 
     tuf = vtk.vtkTubeFilter()
-    tuf.SetNumberOfSides(res)
-    tuf.SetInputData(poly)
-    tuf.SetRadius(r)
     tuf.CappingOn()
+    tuf.SetNumberOfSides(res)
+    tuf.SetInputData(polyln)
+    if utils.isSequence(r):
+        arr = numpy_to_vtk(np.ascontiguousarray(r), deep=True)
+        arr.SetName('TubeRadius')
+        polyln.GetPointData().AddArray(arr)
+        polyln.GetPointData().SetActiveScalars('TubeRadius')
+        tuf.SetVaryRadiusToVaryRadiusByAbsoluteScalar()
+    else:
+        tuf.SetRadius(r)
+
+    usingColScals = False
+    if utils.isSequence(c) and len(c)!=3:
+        usingColScals = True
+        cc = vtk.vtkUnsignedCharArray()
+        cc.SetName("TubeColors")
+        cc.SetNumberOfComponents(3)
+        cc.SetNumberOfTuples(len(c))
+        for i,ic in enumerate(c):
+            r,g,b = colors.getColor(ic)
+            cc.InsertTuple3(i, int(255*r), int(255*g), int(255*b))
+        polyln.GetPointData().AddArray(cc)
+        c = None
+
     tuf.Update()
-    poly = tuf.GetOutput()
-    actor = Actor(poly, c, alpha, legend=legend)
-    actor.GetProperty().SetInterpolationToPhong()
+    polytu = tuf.GetOutput()
+ 
+    actor = Actor(polytu, c=c, alpha=alpha, legend=legend, computeNormals=0)
+    if usingColScals:
+        actor.mapper.SetScalarModeToUsePointFieldData()
+        actor.mapper.ScalarVisibilityOn()
+        actor.mapper.SelectColorArray("TubeColors")
+        actor.mapper.Modified()
+        
     actor.base = np.array(points[0])
-    actor.top = np.array(points[-1])
+    actor.top  = np.array(points[-1])
     return actor
 
 
@@ -205,7 +227,7 @@ def lines(plist0, plist1=None, lw=1, c='r', alpha=1, dotted=False, legend=None):
     Build the line segments between two lists of points `plist0` and `plist1`.
     `plist0` can be also passed in the form ``[[point1, point2], ...]``.
 
-    .. hint:: Example: `fitspheres2.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitspheres2.py>`_
+    .. hint:: |fitspheres2.py|_    
     '''
     if plist1 is not None:
         plist0 = list(zip(plist0, plist1))
@@ -229,9 +251,7 @@ def lines(plist0, plist1=None, lw=1, c='r', alpha=1, dotted=False, legend=None):
 def ribbon(line1, line2, c='m', alpha=1, legend=None, res=(200,5)):
     '''Connect two lines to generate the surface inbetween.
 
-    .. hint:: Example: `ribbon.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/ribbon.py>`_
-
-        .. image:: https://user-images.githubusercontent.com/32848391/50738851-be9bcb00-11d8-11e9-80ee-bd73c1c29c06.jpg
+    .. hint:: |ribbon| |ribbon.py|_    
     '''
     if isinstance(line1, Actor):
         line1 = line1.coordinates()
@@ -437,6 +457,18 @@ def polygon(pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
     return actor
 
 
+def rectangle(p1=[0,0,0], p2=[2,1,0],
+              c='k', bc='dg', lw=1, alpha=1, legend=None, texture=None):
+    '''Build a rectangle in the xy plane identified by two corner points.'''
+    p1 = np.array(p1)
+    p2 = np.array(p2)
+    pos = (p1+p2)/2
+    length = abs(p2[0]-p1[0])
+    height = abs(p2[1]-p1[1])
+    rec = plane(pos, [0,0,-1], length, height, c, bc, alpha, legend, texture)
+    return rec
+    
+    
 def disc(pos=[0, 0, 0], normal=[0, 0, 1], r1=0.5, r2=1,
          c='coral', bc='darkgreen', lw=1, alpha=1,
          legend=None, texture=None, res=12):
@@ -509,9 +541,7 @@ def spheres(centers, r=1, c='r', alpha=1, wire=False, legend=None, texture=None,
 
     Either `c` or `r` can be a list of RGB colors or radii.
 
-    .. hint:: Example: `manyspheres.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/manyspheres.py>`_
-    
-        .. image:: https://user-images.githubusercontent.com/32848391/46818673-1f566b80-cd82-11e8-9a61-be6a56160f1c.png
+    .. hint:: |manyspheres| |manyspheres.py|_    
     '''
 
     cisseq = False
@@ -606,9 +636,7 @@ def spheres(centers, r=1, c='r', alpha=1, wire=False, legend=None, texture=None,
 def earth(pos=[0, 0, 0], r=1, lw=1):
     '''Build a textured actor representing the Earth.
 
-    .. hint:: Example: `earth.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/earth.py>`_
-    
-        .. image:: https://user-images.githubusercontent.com/32848391/51031592-5a448700-159d-11e9-9b66-bee6abb18679.png
+    .. hint:: |geodesic| |geodesic.py|_    
     '''
     import os
     tss = vtk.vtkTexturedSphereSource()
@@ -688,9 +716,7 @@ def grid(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=1, c='g', bc='darkgreen',
          lw=1, alpha=1, legend=None, resx=10, resy=10):
     '''Return a grid plane.
 
-    .. hint:: Example: `brownian2D.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/brownian2D.py>`_
-
-        .. image:: https://user-images.githubusercontent.com/32848391/50738948-73ce8300-11d9-11e9-8ef6-fc4f64c4a9ce.gif
+    .. hint:: |brownian2D| |brownian2D.py|_    
     '''
     ps = vtk.vtkPlaneSource()
     ps.SetResolution(resx, resy)
@@ -761,9 +787,7 @@ def box(pos=[0, 0, 0], length=1, width=2, height=3, normal=(0, 0, 1),
         c='g', alpha=1, wire=False, legend=None, texture=None):
     '''Build a box of dimensions `x=length, y=width and z=height` oriented along vector `normal`.
 
-    .. hint:: Example: `aspring.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/aspring.py>`_
-
-        .. image:: https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif
+    .. hint:: |aspring| |aspring.py|_    
     '''
     src = vtk.vtkCubeSource()
     src.SetXLength(length)
@@ -795,9 +819,7 @@ def cube(pos=[0, 0, 0], length=1, normal=(0, 0, 1),
          c='g', alpha=1., wire=False, legend=None, texture=None):
     '''Build a cube of size `length` oriented along vector `normal`.
 
-    .. hint:: Example: `colorcubes.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py>`_
-    
-        .. image:: https://user-images.githubusercontent.com/32848391/50738867-c0658e80-11d8-11e9-9e05-ac69b546b7ec.png
+    .. hint:: |colorcubes| |colorcubes.py|_    
     '''
     return box(pos, length, length, length, normal, c, alpha, wire, legend, texture)
 
@@ -807,9 +829,7 @@ def helix(startPoint=[0, 0, 0], endPoint=[1, 0, 0], coils=20, r=None,
     '''
     Build a spring of specified nr of `coils` between `startPoint` and `endPoint`.
 
-    .. hint:: Example: `aspring.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/aspring.py>`_
-
-        .. image:: https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif
+    .. hint:: |aspring| |aspring.py|_    
     '''
     diff = endPoint-np.array(startPoint)
     length = np.linalg.norm(diff)
@@ -897,7 +917,7 @@ def cylinder(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
     return actor
 
 
-def cone(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
+def cone(pos=[0, 0, 0], r=1, height=3, axis=[0, 0, 1],
          c='dg', alpha=1, legend=None, texture=None, res=48):
     '''
     Build a cone of specified radius `r` and `height`, centered at `pos`.
@@ -930,9 +950,7 @@ def torus(pos=[0, 0, 0], r=1, thickness=0.1, axis=[0, 0, 1],
     '''
     Build a torus of specified outer radius `r` internal radius `thickness`, centered at `pos`.
 
-    .. hint:: Example: `gas.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gas.py>`_
-    
-        .. image:: https://user-images.githubusercontent.com/32848391/50738954-7e891800-11d9-11e9-95aa-67c92ca6476b.gif
+    .. hint:: |gas| |gas.py|_    
     '''
     rs = vtk.vtkParametricTorus()
     rs.SetRingRadius(r)
@@ -973,8 +991,8 @@ def paraboloid(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
     .. note::
         Full volumetric expression is:
             :math:`F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
-    
-        .. image:: https://user-images.githubusercontent.com/32848391/51211547-260ef480-1916-11e9-95f6-4a677e37e355.png
+
+            |paraboloid|  
     '''
     quadric = vtk.vtkQuadric()
     quadric.SetCoefficients(1, 1, 0, 0, 0, 0, 0, 0, height/4, 0)
@@ -1006,7 +1024,7 @@ def paraboloid(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
 
     actor = Actor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
     actor.GetProperty().SetInterpolationToPhong()
-    actor.GetMapper().ScalarVisibilityOff()
+    actor.mapper.ScalarVisibilityOff()
     actor.SetPosition(pos)
     return actor
 
@@ -1019,9 +1037,7 @@ def hyperboloid(pos=[0, 0, 0], a2=1, value=0.5, height=1, axis=[0, 0, 1],
     Full volumetric expression is:
         :math:`F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
 
-    .. hint:: Example: `mesh_bands.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_bands.py>`_
-
-        .. image:: https://user-images.githubusercontent.com/32848391/51211548-26a78b00-1916-11e9-9306-67b677d1be3a.png
+    .. hint:: |mesh_bands| |mesh_bands.py|_    
     '''
     q = vtk.vtkQuadric()
     q.SetCoefficients(2, 2, -1/a2, 0, 0, 0, 0, 0, 0, 0)
@@ -1053,34 +1069,54 @@ def hyperboloid(pos=[0, 0, 0], a2=1, value=0.5, height=1, axis=[0, 0, 1],
 
     actor = Actor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
     actor.GetProperty().SetInterpolationToPhong()
-    actor.GetMapper().ScalarVisibilityOff()
+    actor.mapper.ScalarVisibilityOff()
     actor.SetPosition(pos)
     return actor
 
 
-def text(txt, pos=(0, 0, 0), normal=(0, 0, 1), s=1, depth=0.1, justify='bottom-left',
-         c='k', alpha=1, bc=None, texture=None, followcam=False, cam=None):
+def text(txt, pos=3, normal=(0, 0, 1), s=1, depth=0.1, justify='bottom-left',
+         c='k', alpha=1, bc=None, bg=None, font='arial',
+         texture=None, followcam=False, cam=None):
     '''
     Returns a ``vtkActor`` that shows a 3D text.
 
     :param pos: position in 3D space, 
-                if an integer is passed [1,8], place text in one of the 4 corners.
+                if an integer is passed [1,8], place a 2D text in one of the 4 corners.
     :type pos: list, int
     :param float s: size of text.
     :param float depth: text thickness.
-    :param str justify: text justification (bottom-left, bottom-right, top-left, top-right, centered).
+    :param str justify: text justification 
+        (bottom-left, bottom-right, top-left, top-right, centered).
     :param bool followcam: if `True` the text will auto-orient itself to the cam.
-
-    .. hint:: Example: `colorcubes.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py>`_
+    :param bg: background color of corner annotations. Only applies of `pos` is ``int``.
+    :param str font: either `arial`, `courier` or `times`. Only applies of `pos` is ``int``.
     
-        .. image:: https://user-images.githubusercontent.com/32848391/50738867-c0658e80-11d8-11e9-9e05-ac69b546b7ec.png
+    .. hint:: |colorcubes| |colorcubes.py|_ 
+    
+        |annotations.py|_ read a text file and show it in the rendering window.
     '''
     if isinstance(pos, int):
-        cornerAnnotation = vtk.vtkCornerAnnotation()
-        cornerAnnotation.SetNonlinearFontScaleFactor(s/3)
-        cornerAnnotation.SetText(pos-1, str(txt))
-        cornerAnnotation.GetTextProperty().SetColor(colors.getColor(c))
-        return cornerAnnotation
+        if pos>8: pos=8
+        if pos<1: pos=1
+        ca = vtk.vtkCornerAnnotation()
+        ca.SetNonlinearFontScaleFactor(s/3)
+        ca.SetText(pos-1, str(txt))
+        ca.PickableOff()
+        cap = ca.GetTextProperty()
+        cap.SetColor(colors.getColor(c))
+        if font.lower() == 'courier':
+            cap.SetFontFamilyToCourier()
+        elif font.lower() == 'times':
+            cap.SetFontFamilyToTimes()
+        else:
+            cap.SetFontFamilyToArial()
+        if bg:
+            bgcol = colors.getColor(bg)
+            cap.SetBackgroundColor(bgcol)
+            cap.SetBackgroundOpacity(alpha*0.5)
+            cap.SetFrameColor(bgcol)
+            cap.FrameOn()
+        return ca
 
     tt = vtk.vtkVectorText()
     tt.SetText(str(txt))

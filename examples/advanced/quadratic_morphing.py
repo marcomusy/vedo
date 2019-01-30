@@ -1,11 +1,14 @@
-# Takes 2 shapes, source and target, and morphs source on target
-# this is obtained by fitting 18 parameters of a non linear, 
-# quadratic, transformation defined in transform()
-#  The fitting minimizes the distance to the target surface
-#  using algorithms available in the scipy.optimize package.
-#  
+'''
+Takes 2 shapes, source and target, and morphs source on target
+this is obtained by fitting 18 parameters of a non linear, 
+quadratic, transformation defined in transform()
+The fitting minimizes the distance to the target surface
+using algorithms available in the scipy.optimize package.
+'''  
 from __future__ import division, print_function
-from vtkplotter import Plotter, vector, mag, mag2, sphere, arrow
+print(__doc__)
+
+from vtkplotter import Plotter, vector, mag, mag2, sphere, arrow, text
 import scipy.optimize as opt
 
 
@@ -72,7 +75,7 @@ class Morpher:
             return amean, s/len(pts)
 
         print ('\n..minimizing with '+self.method)
-        self.msource = self.source.clone(legend=True) # copy legend too
+        self.msource = self.source.clone()
 
         self.s_size = avesize(self.source.coordinates())
         bnds = [(-self.bound, self.bound)]*18
@@ -106,9 +109,9 @@ class Morpher:
         zero = vp.point(pos, c='black')
         x1,x2, y1,y2, z1,z2 = self.target.polydata().GetBounds()
         tpos = [x1, y2, z1]
-        text1 = vp.text('source vs target',  tpos, s=sz/10, c='dg')
-        text2 = vp.text('morphed vs target', tpos, s=sz/10, c='dg')
-        text3 = vp.text('deformation',       tpos, s=sz/10, c='dr')
+        text1 = text('source vs target',  tpos, s=sz/10, c='dg')
+        text2 = text('morphed vs target', tpos, s=sz/10, c='dg')
+        text3 = text('deformation',       tpos, s=sz/10, c='dr')
 
         vp.show([sphere0, sphere1, zero, text3] + hairsacts, at=2)
         vp.show([self.msource, self.target, text2], at=1) 

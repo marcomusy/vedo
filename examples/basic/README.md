@@ -29,6 +29,8 @@ python example.py
 |    |    |
 | [![colormaps](https://user-images.githubusercontent.com/46051455/50486966-a8ce1f00-09fc-11e9-84f4-d5cf5e716e5c.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colormaps.py)<br/> `colormaps.py` | Map a scalar to a color a point cloud with `pointColors()`. <br/>Available color maps are `'afmhot', 'binary', 'bone', 'cool', 'coolwarm', 'copper', 'gist_earth', 'gray', 'hot', 'jet', 'rainbow', 'winter'`|
 |    |    |
+| [![connvtx](https://user-images.githubusercontent.com/32848391/51496028-ae7e1100-1dbe-11e9-873f-40ca52dbb2c4.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/connVtx.py)<br/> `connVtx.py` | Find the vertices that are connected to a specific vertex in a mesh. |
+|    |    |
 | [![cutter](https://user-images.githubusercontent.com/32848391/50738866-c0658e80-11d8-11e9-955b-551d4d8b0db5.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/cutter.py)<br/> `cutter.py` |  Invoke an interactive tool to cut off parts of a mesh. <br/>Pressing `X` saves the mesh to file or adds new cut planes.|
 |    |    |
 | [![delaunay2d](https://user-images.githubusercontent.com/32848391/50738865-c0658e80-11d8-11e9-8616-b77363aa4695.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/delaunay2d.py)<br/> `delaunay2d.py` |  Build a mesh starting from points in space using *Delaunay* triangulation (points must be projectable on the *xy* plane). |

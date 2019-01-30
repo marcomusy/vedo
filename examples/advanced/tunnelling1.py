@@ -1,9 +1,12 @@
-# Quantum Tunnelling effect using 4th order Runge-Kutta method
-# with arbitrary potential shape.
-# The animation shows the evolution of a particle of well defined momentum
-# (hence undefined position) in a box hitting a potential barrier.
-# The wave function is forced to be zero at the box walls (line 23).
-#
+'''
+Quantum Tunnelling effect using 4th order Runge-Kutta method
+with arbitrary potential shape.
+The animation shows the evolution of a particle of well defined momentum
+(hence undefined position) in a box hitting a potential barrier.
+The wave function is forced to be zero at the box walls (line 23).
+'''
+print(__doc__)
+
 import numpy as np
 from vtkplotter import Plotter, tube, line
 

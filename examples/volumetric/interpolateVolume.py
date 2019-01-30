@@ -1,15 +1,16 @@
-# Generate a voxel dataset (vtkImageData) by interpolating a scalar which
-# is only known on a scattered set of points.
-# This is obtained by using RBF (radial basis function).
+'''
+Generate a voxel dataset (vtkImageData) by interpolating a scalar 
+which is only known on a scattered set of points.
+This is obtained by using RBF (radial basis function).
+'''
 # @Author: Giovanni Dalmasso
-#
 from __future__ import print_function
-import numpy as np
 import vtk
-from vtkplotter import Plotter, Volume, ProgressBar, vector, mag2
+from vtkplotter import Plotter, Volume, ProgressBar, vector, mag2, text
+import numpy as np
 
 
-bins = 25                        # nr. of voxels per axis
+bins = 30                        # nr. of voxels per axis
 npts = 60                        # nr. of points of known scalar value
 
 img = vtk.vtkImageData()
@@ -41,12 +42,13 @@ for iz in pb.range():
                 den += invdist       
             img.SetScalarComponentFromFloat(ix, iy, iz, 0, num/den) 
 
-#vp.write(img, 'imgcube.tif') # or .vti
+# vp.write(img, 'imgcube.tif') # or .vti
 
 # set colors and transparencies along the scalar range
 vol = Volume(img, c=['r','g','b'], alphas=[0.4, 0.8]) #vtkVolume
 act = vp.points(coords/fact)
-vp.show([vol, act], viewup='z')
+
+vp.show([vol, act, text(__doc__)], viewup='z')
 
 
 

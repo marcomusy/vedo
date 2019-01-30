@@ -1,8 +1,10 @@
-# Quantum Tunnelling effect using 4th order Runge-Kutta method
-# with arbitrary potential shape.
-# The animation shows the evolution of a particle of well defined momentum
-# (hence undefined position) in a box hitting a potential barrier.
-# Uncomment below for more examples of the potential V(x).
+'''
+Quantum Tunnelling effect using 4th order Runge-Kutta method
+with arbitrary potential shape.
+The animation shows the evolution of a particle of relatively well defined 
+momentum (hence undefined position) in a box hitting a potential barrier.
+'''
+print(__doc__)
 import numpy as np
 from vtkplotter import Plotter, line
 
@@ -17,6 +19,7 @@ N = 300      # number of points in space
 size = 20.0  # x axis span [0, size]
 x = np.linspace(0, size, N+2) 
 
+# Uncomment below for more examples of the potential V(x).
 #V = Vmax*(np.abs(x-11) < 0.5)-.01  # simple square barrier potential
 #V = -1.2*(np.abs(x-11) < 1.7)-.01  # a wide square well potential
 #V = 0.008*(x-10)**2                # elastic potential well
@@ -39,7 +42,7 @@ def d_dt(psi): # find Psi(t+dt)-Psi(t) /dt with 4th order Runge-Kutta method
     k4 = f(psi +dt  *k3)    
     return (k1 + 2*k2 + 2*k3 + k4)/6
 
-vp = Plotter(interactive=0, axes=2, verbose=0, bg=(0.95,0.95,1))
+vp = Plotter(interactive=0, axes=2, bg=(0.95,0.95,1))
 vp.xtitle = ''
 vp.ytitle = 'Psi^2(x,t)'
 vp.ztitle = ''
@@ -68,7 +71,8 @@ for i in range(Nsteps):
     l, a = lines[i]
     #l.pointColors(a, cmap='rainbow')
     l.pointColors(-a, cmap='gist_earth') # inverted gist_earth
-    vp.render([l.pos(p), barrier.clone().alpha(.3).pos(p)], resetcam=1)
+    vp.add([l.pos(p), barrier.clone().alpha(.3).pos(p)])
+    vp.show()
 
 vp.show(interactive=1)
 

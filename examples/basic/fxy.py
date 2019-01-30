@@ -1,8 +1,10 @@
-# Example for function() method.
-# Draw a surface representing the 3D function specified as a string
-# or as a reference to an external already existing function.
-# Red points indicate where the function does not exist.
-#
+'''
+Example for function() method.
+Draw a surface representing the 3D function specified as a string
+or as a reference to an external already existing function.
+Red points indicate where the function does not exist.
+'''
+print(__doc__)
 import math
 from vtkplotter import Plotter, fxy
 
@@ -15,7 +17,7 @@ vp = Plotter(shape=(2,2), sharecam=False)
 
 # draw at renderer nr.0 the first actor, show it with a texture
 # an existing function z(x,y) can be passed:
-f1 = fxy(my_z, texture='paper')
+f1 = fxy(my_z)
 vp.show(f1, at=0)
 
 # c=None shows the original z-scalar color scale. No z-level lines.

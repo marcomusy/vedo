@@ -1,8 +1,11 @@
-# Perform other simple mathematical operation between 3d images.
-# Possible operations are: +, -, /, 1/x, sin, cos, exp, log, abs, **2, sqrt, 
-#   min, max, atan, atan2, median, mag, dot, gradient, divergence, laplacian.
-# Alphas defines the opacity transfer function in the scalar range.
-#
+'''
+Perform other simple mathematical operation between 3d images.
+Possible operations are: +, -, /, 1/x, sin, cos, exp, log, abs, **2, sqrt, 
+  min, max, atan, atan2, median, mag, dot, gradient, divergence, laplacian.
+Alphas defines the opacity transfer function in the scalar range.
+'''
+print(__doc__)
+
 from vtkplotter import Plotter, loadImageData
 from vtkplotter import imageOperation, Volume
 

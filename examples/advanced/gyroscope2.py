@@ -1,12 +1,13 @@
-# Gyroscope sitting on a pedestal
-#
-# The analysis is in terms of Lagrangian mechanics.
-# The Lagrangian variables are polar angle theta, azimuthal
-# angle phi, and spin angle psi. 
+'''
+A gyroscope sitting on a pedestal.
+
+The analysis is in terms of Lagrangian mechanics.
+The Lagrangian variables are polar angle theta, 
+azimuthal angle phi, and spin angle psi. 
+'''
 # (adapted from http://www.glowscript.org)
 from __future__ import division, print_function
-from vtkplotter import Plotter, ProgressBar, vector, sin, cos
-from vtkplotter import cylinder, helix, sphere, pyramid, box
+from vtkplotter import *
 
 # ############################################################ parameters
 dt = 5e-05      # time step
@@ -26,7 +27,8 @@ x = vector(theta, phi, psi) # Lagrangian coordinates
 v = vector(thetadot, phidot, psidot)
 
 # ############################################################ the scene
-vp = Plotter(verbose=0, axes=0, interactive=0)
+vp = Plotter(axes=0, interactive=0)
+vp.add(text(__doc__))
 
 shaft = cylinder([[0,0,0],         [Lshaft,0,0]], r=.03, c='dg')
 rotor = cylinder([[Lshaft/2.2,0,0],[Lshaft/1.8,0,0]], r=R, texture='marble')
@@ -59,8 +61,8 @@ for i, t in enumerate(pb.range()):
     # set orientation along gaxis and rotate it around its axis by psidot*t degrees
     gyro.orientation(gaxis, rotation=psidot*t*57.3)
     if not i%200: # add trace and render all, every 200 iterations
-        trace = vp.point(gaxis, r=3, c='r')
-        vp.render(trace, resetcam=1) 
+        vp.point(gaxis, r=3, c='r')
+        vp.show() 
     pb.print()
 
 vp.show(interactive=1)

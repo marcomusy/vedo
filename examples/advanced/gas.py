@@ -1,13 +1,13 @@
-# A model of an ideal gas with hard-sphere collisions
-#
+'''
+A model of an ideal gas with hard-sphere collisions.
+'''
 ## Based on gas.py by Bruce Sherwood for a cube as a container
 ## Sligthly modified by Andrey Antonov for a torus.
 ## Adapted by M. Musy for vtkplotter
 ## relevant points in the code are marked with '### <--'
-
 from __future__ import division, print_function
 from random import random
-from vtkplotter import Plotter, ProgressBar, vector, arange, mag, norm
+from vtkplotter import Plotter, ProgressBar, vector, arange, mag, norm, text
 from vtkplotter import torus, sphere
 import numpy as np
 
@@ -27,7 +27,9 @@ def reflection(p, pos):
     n = norm(pos)
     return np.dot(np.identity(3)-2*n*n[:,np.newaxis], p)
 
-vp = Plotter(title='gas in toroid', verbose=0, axes=0)
+vp = Plotter(title='gas in toroid', interactive=0, axes=0)
+
+vp.add(text(__doc__))
 
 vp.add(torus(c='g', r=RingRadius, thickness=RingThickness, alpha=.1, wire=1)) ### <--
 
@@ -122,11 +124,11 @@ for i in pb.range():
     for i in range(Natoms): Atoms[i].pos(pos[i])                           ### <--
     outside = np.greater_equal(mag(pos), RingRadius+RingThickness)
 
-    vp.render(resetcam=1)                                                  ### <--
+    vp.show()                                                              ### <--
     vp.camera.Azimuth(.5)
     vp.camera.Elevation(.1)
     pb.print()
 
-vp.show()
+vp.show(interactive=1)
 
 

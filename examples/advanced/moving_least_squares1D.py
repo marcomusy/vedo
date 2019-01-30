@@ -1,14 +1,16 @@
-#  This example shows how to use a variant of a 1 dimensional 
-# Moving Least Squares (MLS) algorithm to project a cloud 
-# of unordered points to become a smooth line.
-# The parameter f controls the size of the local regression.
-# The input actor's polydata is modified by the method
-# so more than one pass is possible.
-# If showNLines>0 an actor is built demonstrating the 
-# details of the regression for some random points
-#
+'''
+This example shows how to use a variant of a 1 dimensional 
+Moving Least Squares (MLS) algorithm to project a cloud 
+of unordered points to become a smooth line.
+The parameter f controls the size of the local regression.
+The input actor's polydata is modified by the method
+so more than one pass is possible.
+If showNLines>0 an actor is built demonstrating the 
+details of the regression for some random points
+'''
 from __future__ import division, print_function
-from vtkplotter import Plotter, arange, sin, cos, sqrt, smoothMLS1D
+print(__doc__)
+from vtkplotter import Plotter, smoothMLS1D, arange, sin, cos, sqrt
 import numpy as np
 
 N = 9  # nr. of iterations
@@ -18,7 +20,7 @@ N = 9  # nr. of iterations
 #pts = [ (0, sin(x), cos(x)) for x in arange(0,6, .002) ]
 pts = [ (sqrt(x), sin(x), x/10) for x in arange(0,16, .01) ]
 
-pts += np.random.randn(len(pts), 3)/10# add noise
+pts += np.random.randn(len(pts), 3)/15# add noise
 np.random.shuffle(pts) # make sure points are not ordered
 
 vp = Plotter(N=N, axes=5)

@@ -1,8 +1,12 @@
-"""
-Colors definitions and printing methods.
-"""
-
 from __future__ import division, print_function
+import vtk
+import numpy as np
+import sys
+import vtkplotter.docs as docs
+
+__doc__="""
+Colors definitions and printing methods.
+"""+docs._defs
 
 __all__ = [
     'printc',
@@ -11,11 +15,8 @@ __all__ = [
     'colorMap',
     'makePalette',
     'makeLUTfromCTF',
+    'kelvin2rgb',
 ]
-
-import vtk
-import numpy as np
-import sys
 
 
 #########################################################
@@ -88,14 +89,15 @@ colors = {  # from matplotlib
     'seashell':             '#FFF5EE', 'sienna':               '#A0522D',
     'silver':               '#C0C0C0', 'skyblue':              '#87CEEB',
     'slateblue':            '#6A5ACD', 'slategray':            '#708090',
-    'snow':                 '#FFFAFA',
+    'snow':                 '#FFFAFA', 'blackboard':           '#3c3c3c',
     'springgreen':          '#00FF7F', 'steelblue':            '#4682B4',
     'tan':                  '#D2B48C', 'teal':                 '#008080',
     'thistle':              '#D8BFD8', 'tomato':               '#FF6347',
     'turquoise':            '#40E0D0', 'violet':               '#EE82EE',
     'wheat':                '#F5DEB3', 'white':                '#FFFFFF',
     'whitesmoke':           '#F5F5F5', 'yellow':               '#FFFF00',
-    'yellowgreen':          '#9ACD32'}
+    'yellowgreen':          '#9ACD32',
+    }
 
 color_nicks = {       # color nicknames
     'b': 'blue',
@@ -162,9 +164,7 @@ def getColor(rgb=None, hsv=None):
          - int    = 7 picks color nr. 7 in a predefined color list
          - int    = -7 picks color nr. 7 in a different predefined list
 
-    .. hint:: Example: `colorcubes.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py>`_
-    
-        .. image:: https://user-images.githubusercontent.com/32848391/50738867-c0658e80-11d8-11e9-9e05-ac69b546b7ec.png
+    .. hint:: |colorcubes| |colorcubes.py|_
     """
     if str(rgb).isdigit():
         rgb = int(rgb)
@@ -231,9 +231,7 @@ def getColor(rgb=None, hsv=None):
 def getColorName(c):
     """Find the name of a color.
 
-    .. hint:: Example: `colorpalette.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/colorpalette.py>`_
-    
-        .. image:: https://user-images.githubusercontent.com/32848391/50739011-2c94c200-11da-11e9-8f36-ede1b2a014a8.jpg
+    .. hint:: |colorpalette| |colorpalette.py|_
     """
     c = np.array(getColor(c))  # reformat to rgb
     mdist = 99.
@@ -292,8 +290,8 @@ def colorMap(value, name='jet', vmin=None, vmax=None):
     :return: (r,g,b) color, or a list of (r,g,b) colors.
     
     .. note:: Available color maps:
-        
-        .. image:: https://user-images.githubusercontent.com/32848391/50738804-577e1680-11d8-11e9-929e-fca17a8ac6f3.jpg
+                
+        |colormaps|
 
     .. tip:: Can also use directly a matplotlib color map:
         
@@ -354,7 +352,7 @@ def makePalette(color1, color2, N, hsv=True):
     :param color2: second rgb color.
     :param bool hsv: if `False`, interpolation is calculated in RGB space.
 
-    .. hint:: Example: `colorpalette.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/colorpalette.py>`_
+    .. hint:: Example: |colorpalette.py|_
     '''
     if hsv:
         color1 = rgb2hsv(color1)
@@ -378,7 +376,6 @@ def makeLUTfromCTF(sclist, N=None):
     :param list sclist: a list in the form ``[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]``.     
     :return: the lookup table object ``vtkLookupTable``. This can be fed into ``colorMap``.
     '''
-    
     ctf = vtk.vtkColorTransferFunction()
     ctf.SetColorSpaceToDiverging()
 
@@ -405,8 +402,7 @@ def kelvin2rgb(temperature):
     """
     Converts from Kelvin temperature to an RGB color.
 
-    Algorithm credits:
-    `tannerhelland <http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code>`_.
+    Algorithm credits: |tannerhelland|_
     """
     # range check
     if temperature < 1000:
@@ -534,9 +530,7 @@ def printc(*strings, **keys):
     >>>  printc('anything', 455.5, vtkObject, c='green')
     >>>  printc(299792.48, c=4) # 4 is blue
 
-    .. hint:: `colorprint.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/colorprint.py>`_
-
-        .. image:: https://user-images.githubusercontent.com/32848391/50739010-2bfc2b80-11da-11e9-94de-011e50a86e61.jpg
+    .. hint:: |colorprint| |colorprint.py|_
     '''
 
     end = keys.pop('end', '\n')

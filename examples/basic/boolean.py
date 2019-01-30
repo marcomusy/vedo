@@ -1,5 +1,8 @@
-# Example of boolean operations with actors or polydata
-#
+'''
+Example of boolean operations with actors or polydata
+'''
+print(__doc__)
+
 from vtkplotter import Plotter, booleanOperation, sphere
 
 

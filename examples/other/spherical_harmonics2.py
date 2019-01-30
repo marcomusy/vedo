@@ -1,12 +1,12 @@
-##########################################################
-# Morph one shape into another using spherical harmonics
-# package shtools.
-# In this example we morph a sphere into a octahedron
-# and viceversa
-##########################################################
+'''
+Morph one shape into another using spherical harmonics package shtools.
+In this example we morph a sphere into a octahedron and viceversa.
+'''
 from __future__ import division, print_function
+
 try:
     import pyshtools
+    print(__doc__)
 except:
     print('Please install pyshtools to run this example')
     print('Follow instructions at https://shtools.oca.eu/shtools')

@@ -1,6 +1,7 @@
-# Use two sliders to change color and transparency of a mesh.
-# pos = position corner number: horizontal [1-4] or vertical [11-14]
-#
+'''Use two sliders to change color and transparency of a mesh.
+ pos = position corner number: horizontal [1-4] or vertical [11-14]
+'''
+print(__doc__)
 from vtkplotter import Plotter
 
 vp = Plotter(axes=0)

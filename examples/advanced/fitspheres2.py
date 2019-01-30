@@ -1,9 +1,9 @@
-# For each point finds the 9 closest ones and fit a sphere
-# color points based on the size of the sphere radius
-#
+'''
+For each point finds the 9 closest ones and fit a sphere
+color points based on the size of the sphere radius
+'''
 from __future__ import division, print_function
-from vtkplotter import Plotter, colorMap, norm, fitSphere, histogram, lines
-
+from vtkplotter import *
 
 vp = Plotter(verbose=0, axes=0)
 
@@ -30,7 +30,7 @@ vp.points(pts1, c=cols)
 vp.addScalarBar()
 vp.add(lines(pts1, pts2, c='black 0.2'))
 vp.add(histogram(vals, title='values', bins=20, vrange=[0,1]))
-
+vp.add(text(__doc__, pos=1))
 vp.show()
 
 

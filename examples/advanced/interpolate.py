@@ -1,7 +1,8 @@
-# Use scipy to interpolate the value of a scalar known on a set of points
-# on a new set of points where the scalar is not defined.
-# Two interpolation methods: Radial Basis Function, Nearest point
-# 
+'''
+Use scipy to interpolate the value of a scalar known on a set of points
+on a new set of points where the scalar is not defined.
+Two interpolation methods exist: Radial Basis Function, Nearest point
+''' 
 from scipy.interpolate import Rbf, NearestNDInterpolator as Near
 import numpy as np
 # np.random.seed(0)
@@ -24,8 +25,10 @@ xi, yi, zi = [np.sin(t)/10+.5, np.cos(t)/5+.5, (t-1)/5] # an helix
 scalsi = itr(xi, yi, zi)                    
 
 
-from vtkplotter import Plotter
+from vtkplotter import Plotter, text
 vp = Plotter(verbose=0)
 vp.points([x,y,z], r=10, alpha=0.5).pointColors(scals) 
 vp.points([xi,yi,zi]).pointColors(scalsi)
+
+vp.add(text(__doc__, pos=1))
 vp.show(viewup='z')

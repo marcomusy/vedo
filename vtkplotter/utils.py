@@ -1,9 +1,13 @@
-"""
-Utilities submodule.
-"""
-
 from __future__ import division, print_function
+import os
+import vtk
+import numpy as np
+import vtkplotter.colors as colors
+import vtkplotter.docs as docs
 
+__doc__="""
+Utilities submodule.
+"""+docs._defs
 
 __all__ = [
     'isSequence',
@@ -17,16 +21,13 @@ __all__ = [
     'grep',
     'printInfo',
     'makeBands',
+    'spher2cart',
+    'cart2spher',
+    'cart2pol',
+    'pol2cart',   
 ]
 
 
-import os
-import vtk
-import numpy as np
-import vtkplotter.colors as colors
-
-
-##############################################################################
 _cdir = os.path.dirname(__file__)
 if _cdir == '':
     _cdir = '.'
@@ -183,6 +184,39 @@ def pointToLineDistance(p, p1, p2):
     '''Compute the distance of a point to a line (not the segment) defined by `p1` and `p2`.'''
     d = np.sqrt(vtk.vtkLine.DistanceToLine(p, p1, p2))
     return d
+
+
+def spher2cart(rho, theta, phi):
+    '''Spherical to Cartesian coordinate conversion.'''
+    st = np.sin(theta)
+    sp = np.sin(phi)
+    ct = np.cos(theta)
+    cp = np.cos(phi)
+    rhost = rho * st
+    x = rhost * cp
+    y = rhost * sp
+    z = rho * ct
+    return np.array([x, y, z])
+
+def cart2spher(x, y, z):
+    '''Cartesian to Spherical coordinate conversion.'''
+    hxy = np.hypot(x, y)
+    r = np.hypot(hxy, z)
+    theta = np.arctan2(z, hxy)
+    phi = np.arctan2(y, x)
+    return r, theta, phi
+
+def cart2pol(x, y):
+    '''Cartesian to Polar coordinates conversion.'''
+    theta = np.arctan2(y, x)
+    rho = np.hypot(x, y)
+    return theta, rho
+
+def pol2cart(theta, rho):
+    '''Polar to Cartesian coordinates conversion.'''
+    x = rho * np.cos(theta)
+    y = rho * np.sin(theta)
+    return x, y
 
 
 def isIdentity(M, tol=1e-06):
@@ -348,7 +382,7 @@ def printInfo(obj):
         colors.printc('vtkAssembly', c='g', bold=1, invert=1, end=' ')
         if hasattr(obj, '_legend'):
             colors.printc('legend: ', c='g', bold=1, end='')
-            colors.printc(obj.legend, c='g', bold=0)
+            colors.printc(obj._legend, c='g', bold=0)
         else:
             print()
 

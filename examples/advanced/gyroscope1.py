@@ -1,8 +1,9 @@
-# Gyroscope hanging from a spring
+'''
+Simulation of a gyroscope hanging from a spring.
+'''
 # (adapted by M. Musy from Bruce Sherwood, 2009)
 from __future__ import division, print_function
-from vtkplotter import Plotter, ProgressBar, vector, mag, norm, cross
-from vtkplotter import cylinder, helix, box
+from vtkplotter import *
 
 # ############################################################ parameters
 dt = 0.005      # time step
@@ -25,7 +26,8 @@ Lrot = I*omega*gaxis      # angular momentum
 cm = gpos + 0.5*Ls*gaxis  # center of mass of shaft
 
 # ############################################################ the scene
-vp = Plotter(verbose=0, axes=0, interactive=0)
+vp = Plotter(axes=0, interactive=0)
+vp.add(text(__doc__))
 
 shaft = cylinder([[0,0,0], Ls*gaxis], r=0.03, c='dg')
 rotor = cylinder([(Ls-0.55)*gaxis, (Ls-0.45)*gaxis], r=R, c='t')
@@ -36,7 +38,7 @@ spring= vp.add(helix(top, gpos, r=0.06, thickness=0.01, c='gray'))
 # NB: vp.add() acts like vp.actors.append(spring)
 
 vp.add(box(top, length=0.2, width=0.02, height=0.2, c='gray'))
-vp.add(box(pos=(0,.5,0), length=2.2, width=3, height=2.2, c='gray', wire=1, alpha=.2))
+vp.add(box(pos=(0,.5,0), length=2.6, width=3, height=2.6, c='gray', wire=1, alpha=.2))
 
 # ############################################################ the physics
 pb = ProgressBar(0, 5, dt, c='b')
@@ -51,8 +53,7 @@ for t in pb.range():
     # set orientation along gaxis and rotate it around its axis by omega*t degrees
     gyro.orientation(Lrot, rotation=omega*t*57.3).pos(gpos)
     spring.stretch(top, gpos)
-    vp.point(gpos + Ls*norm(Lrot), r=1, c='g') # add trace point to show in the end
-    vp.render() 
+    vp.show() 
     pb.print()
 
 vp.show(interactive=1)

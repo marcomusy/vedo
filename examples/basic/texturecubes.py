@@ -1,6 +1,8 @@
-# Show a cube for each available texture name
-# any jpg file can be used as texture.
-#
+'''
+Show a cube for each available texture name
+any jpg file can be used as texture.
+'''
+print(__doc__)
 from vtkplotter import Plotter, cube, text
 from vtkplotter.utils import textures, textures_path
 

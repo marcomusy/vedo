@@ -1,5 +1,7 @@
-# histogram2D example 
-#
+'''
+2D histogram with hexagonal binning.
+'''
+print(__doc__)
 from vtkplotter import Plotter, histogram2D
 import numpy as np
 

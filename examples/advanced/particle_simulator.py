@@ -3,8 +3,9 @@ Particle Simulator
 
 Simulates interacting charged particles in 3D space.
 Can also be imported as an independent module.
-By Tommy Vandermolen, 3 August 2018
 """
+#By Tommy Vandermolen, 3 August 2018
+print(__doc__)
 from vtkplotter import Plotter, mag, mag2, norm, vector, cube, sphere
 import numpy as np
 
@@ -46,7 +47,7 @@ class ParticleSim:
                 a.pos += a.vel * self.dt
                 a.vtk_actor.pos(a.pos)
             if vp:
-                vp.render(zoom=1.2)
+                vp.show(zoom=1.2)
                 vp.camera.Azimuth(0.1) # rotate camera
 
 

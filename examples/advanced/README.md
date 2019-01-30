@@ -25,9 +25,9 @@ python example.py  # on mac OSX try 'pythonw' instead
 |    |    |
 | [![gas](https://user-images.githubusercontent.com/32848391/50738954-7e891800-11d9-11e9-95aa-67c92ca6476b.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gas.py)<br/> `gas.py` | A model of an ideal gas with hard-sphere collisions.|
 |    |    |
-| [![gyro2](https://user-images.githubusercontent.com/32848391/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyro2.py)<br/> `gyroscope2.py` | Gyroscope sitting on a pedestal at one end. <br/>The analysis is made in terms of Lagrangian mechanics. |
+| [![geodesic](https://user-images.githubusercontent.com/32848391/51855637-015f4780-232e-11e9-92ca-053a558e7f70.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/geodesic.py)<br/> `geodesic.py` | Dijkstra algorithm to compute the mesh geodesic shortest path. |
 |    |    |
-| [![interactor](https://user-images.githubusercontent.com/32848391/50738941-687b5780-11d9-11e9-8b00-7af4d1d93027.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/interactor.py)<br/> `interactor.py` | How to keep interacting with the 3D scene while the program is running (by rotating 3D scene with mouse and remain responsive to key press). While using the mouse, calls to custom loop function are suspended.|
+| [![gyro2](https://user-images.githubusercontent.com/32848391/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyro2.py)<br/> `gyroscope2.py` | Gyroscope sitting on a pedestal at one end. <br/>The analysis is made in terms of Lagrangian mechanics. |
 |    |    |
 | [![interpolate](https://user-images.githubusercontent.com/32848391/50738940-687b5780-11d9-11e9-9739-b084c5cfffaa.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/interpolate.py)<br/> `interpolate.py` | Interpolate the value of a scalar only known on a set of points to a new set of points where the scalar is not defined. <br>Two interpolation methods are possible: *Radial Basis Function* and *Nearest point*.|
 |    |    |
@@ -39,10 +39,6 @@ python example.py  # on mac OSX try 'pythonw' instead
 |    |    |
 | [![mls3](https://user-images.githubusercontent.com/32848391/50738935-61544980-11d9-11e9-9c20-f2ce944d2238.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares3D.py)<br/> `moving_least_squares3D.py` | Generate a time sequence of 3D shapes (from a blue sphere to a red tetrahedron) as noisy cloud points, and smooth it with *Moving Least Squares*. This make a simultaneus fit in 4D (space+time). <br>`smoothMLS3D()` method returns an actor where points are color coded in bins of fitted time. |
 |    |    |
-| [![thinplate](https://user-images.githubusercontent.com/32848391/51403917-34495480-1b52-11e9-956c-918c7805a9b5.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/thinplate.py)<br/> `thinplate.py` | Perform a nonlinear warp transformation defined by a set of source and target landmarks. |
-|    |    |
-| [![thinplate_grid](https://user-images.githubusercontent.com/32848391/51433540-d188b380-1c4c-11e9-81e7-a1cf4642c54b.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/thinplate_grid.py)<br/> `thinplate_grid.py` | Move a set of control points to warp space in their vicinity. Warping is visualised through a set of horizontal grids. |
-|    |    |
 | [![mpend](https://user-images.githubusercontent.com/32848391/50738892-db380300-11d8-11e9-807c-fb320c7b7917.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/multiple_pendulum.py)<br/> `multiple_pendulum.py` | Simulation of an elastic multiple pendulum with viscuos friction. |
 |    |    |
 | [![ruth](https://user-images.githubusercontent.com/32848391/50738891-db380300-11d8-11e9-84c2-0f55be7228f1.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/particle_simulator.py)<br/> `particle_simulator.py` | Simulates interacting charged particles in 3D space. |
@@ -52,6 +48,10 @@ python example.py  # on mac OSX try 'pythonw' instead
 | [![recosurface](https://user-images.githubusercontent.com/32848391/50738889-db380300-11d8-11e9-8854-2e3c70aefeb9.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/recosurface.py)<br/> `recosurface.py` | Reconstruct a surface from a point cloud.<br>1. An mesh is loaded and noise is added to its vertices. <br>2. the point cloud is smoothened with MLS (see `moving_least_squares2D.py`) <br>3. `mesh.clean()` imposes a minimum distance among mesh points. <br>4. a triangular mesh is extracted from this smoother point cloud.|
 |    |    |
 | [![skeletonize](https://user-images.githubusercontent.com/32848391/50738888-db380300-11d8-11e9-86dd-742c1b887337.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/skeletonize.py)<br/> `skeletonize.py` | Using 1D *Moving Least Squares* to skeletonize a surface. |
+|    |    |
+| [![thinplate](https://user-images.githubusercontent.com/32848391/51403917-34495480-1b52-11e9-956c-918c7805a9b5.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/thinplate.py)<br/> `thinplate.py` | Perform a nonlinear warp transformation defined by a set of source and target landmarks. |
+|    |    |
+| [![thinplate_grid](https://user-images.githubusercontent.com/32848391/51433540-d188b380-1c4c-11e9-81e7-a1cf4642c54b.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/thinplate_grid.py)<br/> `thinplate_grid.py` | Move a set of control points to warp space in their vicinity. Warping is visualised through a set of horizontal grids. |
 |    |    |
 | [![tunneling1](https://vtkplotter.embl.es/gifs/tunnelling2.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/tunnelling1.py)<br/> `tunnelling1.py` | Quantum Tunnelling effect using 4th order Runge-Kutta method with arbitrary potential shape. <br>The animation shows the evolution of a particle of relatively well defined momentum (hence undefined position) in a box hitting a potential barrier. The wave function is forced to be zero at the box walls. |
 |    |    |

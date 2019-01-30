@@ -13,6 +13,8 @@ python example.py  # on mac OSX try 'pythonw' instead
 |    |    |
 | [![interpolateVolume](https://user-images.githubusercontent.com/32848391/50739033-6b2a7c80-11da-11e9-86fd-6026b22737df.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/interpolateVolume.py)<br/> `interpolateVolume.py` | Generate a voxel dataset (`vtkImageData`) by interpolating a scalar which is only known on a small set of points. Interpolation is based on RBF (Radial Basis Function).|
 |    |    |
+| [![isosurfaces](https://user-images.githubusercontent.com/32848391/51558920-ec436e00-1e80-11e9-9d96-aa9b7c72d58b.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/isosurfaces.py)<br/> `signedDistance.py` | Generate the isosurfaces corresponding to an input set of thresholds on volumetric data.|
+|    |    |
 | [![probeLine](https://user-images.githubusercontent.com/32848391/48198460-3aa0a080-e359-11e8-982d-23fadf4de66f.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/probeLine.py)<br/> `probeLine.py` | Find and visualize the scalar value along a line intersecting a volume. |
 |    |    |
 | [![probePlane](https://user-images.githubusercontent.com/32848391/48198461-3aa0a080-e359-11e8-8c29-18f287f105e6.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/probePlane.py)<br/> `probePlane.py` | Slice a `vtkImageData` (voxel dataset) with a plane and visualize the scalar value on it.|

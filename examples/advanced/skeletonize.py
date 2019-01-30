@@ -1,5 +1,8 @@
-# Using 1D Moving Least Squares to skeletonize a surface.
-#
+'''
+Using 1D Moving Least Squares to skeletonize a surface.
+'''
+print(__doc__)
+
 from vtkplotter import Plotter, smoothMLS1D
 
 N=10  # nr of iterations

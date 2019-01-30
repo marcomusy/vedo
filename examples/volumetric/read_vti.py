@@ -1,6 +1,7 @@
-# Using normal vtk commands to load a xml vti file
-# then use vtkplotter to show the resulting 3d image.
-#
+'''
+Using normal vtk commands to load a xml vti file
+then use vtkplotter to show the resulting 3d image.
+'''
 import vtk 
 
 # Create the reader for the data. 
@@ -14,7 +15,7 @@ img = reader.GetOutput()
 
 
 #################################
-from vtkplotter import Volume, load, show
+from vtkplotter import Volume, load, show, text
 
 # can set colors and transparencies along the scalar range
 vol = Volume(img, 
@@ -25,5 +26,5 @@ vol = Volume(img,
 iso = load('data/vase.vti', threshold=140).wire(True).alpha(0.1)
 
 # show command creates and returns an instance of class Plotter
-show([vol,iso], verbose=0) 
+show([vol, iso, text(__doc__)], verbose=0) 
 

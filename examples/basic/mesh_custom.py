@@ -1,9 +1,9 @@
-# Example on how to specify a color for each individual cell 
-# or point of an actor's mesh. 
-# Keyword depthpeeling may improve the rendering
-# of transparent objects.
-#
-from vtkplotter import Plotter
+'''
+Example on how to specify a color for each 
+individual cell or point of an actor's mesh. 
+Keyword depthpeeling may improve the rendering of transparent objects.
+'''
+from vtkplotter import Plotter, text
 
 
 vp = Plotter(axes=8, depthpeeling=1)
@@ -26,5 +26,7 @@ mymap = ['darkblue', 'cyan 0.2', (1,0,0, 0.8)]
 man.pointColors(scals, cmap=mymap)
 
 vp.addScalarBar()
+
+vp.add(text(__doc__, pos=1))
 
 vp.show(viewup='z')

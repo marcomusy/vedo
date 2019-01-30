@@ -1,7 +1,8 @@
-# Example use of removeOutliers() and cluster()
-# needs vtk versions > 6
+'''
+Example use of removeOutliers() and cluster() methods.
+'''
 from __future__ import division, print_function
-from vtkplotter import show, cluster, removeOutliers
+from vtkplotter import show, cluster, removeOutliers, text
 import numpy as np
 
 
@@ -21,7 +22,7 @@ pts = noise1.tolist() +noise2.tolist() +noise3.tolist() +noise4.tolist()
 # find back their identity through clustering
 cl = cluster(pts, radius=0.1) # returns and stores a vtkAssembly
 
-show(cl, verbose=0)
+show([cl, text(__doc__)], verbose=0)
 
 
 

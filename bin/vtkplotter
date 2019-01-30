@@ -40,14 +40,15 @@ if args.full_screen:
 
 N = None
 if args.sequence_mode: 
-    if 1<nfiles<201: 
+    if nfiles<201: 
         N = nfiles
     if nfiles>200: 
         printc("\nWarning: option '-n' allows a maximum of 200 files", c=1)
         printc("         you are trying to load ", nfiles, " files.\n", c=1)
         N = 200
     vp = Plotter(size=wsize, N=N, bg=args.background)
-    vp.axes = 4 #triad
+    if args.axes_type == 1:
+        vp.axes = 0
 else:
    N = nfiles
    vp = Plotter(size=wsize, bg=args.background)
@@ -71,7 +72,7 @@ def _showVoxelImage():
 #    global _alphaslider1, _alphaslider2
         
     vc.printc('GPU Ray-casting Mode:', c='b', invert=1)
-    vp.render()
+    vp.show(interactive=0)
     
     for filename in args.files:
         if not os.path.isfile(filename):
@@ -198,7 +199,7 @@ def _showVoxelImage():
     
     vc.printc('Press r to reset camera', c='b')
     vc.printc('      q to exit.', c='b')
-    vp.show(zoom=1.2)
+    vp.show(zoom=1.2, interactive=1)
     w1.SetEnabled(0)
     w2.SetEnabled(0)
     w3.SetEnabled(0)
@@ -328,7 +329,8 @@ elif nfiles == 1 and ('.slc' in args.files[0]
         a = Actor(poly, ic, alpha=act.alpha(), wire=args.wireframe)
         vp.actors = []
         vp.renderer.RemoveActor(vp.getActors()[0])
-        vp.render(a)
+        vp.renderer.AddActor(a)
+        vp.renderer.Render()
     dr = scrange[1] - scrange[0]
     vp.addSlider(sliderThres, scrange[0]+0.025*dr,scrange[1]-0.025*dr,
                  value=threshold, title='isosurface threshold')
