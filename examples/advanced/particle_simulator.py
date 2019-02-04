@@ -89,7 +89,7 @@ if __name__ == '__main__':
     vp.camera.Elevation(20) # Initial camera position
     vp.camera.Azimuth(40)
 
-    vp.add(cube(wire=True, c='white')) # a wireframe cube
+    vp.add(cube(c='white').wire(1)) # a wireframe cube
 
     sim = ParticleSim(dt=5e-6, iterations=200)
     sim.add_particle((-0.4,0,0), color='w', charge=3e-6, radius=0.01, fixed=True) # the target

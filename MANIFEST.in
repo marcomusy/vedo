@@ -1,11 +1,8 @@
 include vtkplotter/textures/*
+include vtkplotter/icons/*
 include examples/*
 include examples/basic/*
 include examples/advanced/*
 include examples/volumetric/*
 include examples/other/*
-include examples/data/*
-include examples/data/images/*
-include examples/data/shapes/*
-include examples/data/timecourse/*
 include bin/*

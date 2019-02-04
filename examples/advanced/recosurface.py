@@ -16,7 +16,7 @@ to reconstruct a surface from points.
 NB: recoSurface only works with vtk version >7
 '''
 from __future__ import division, print_function
-from vtkplotter import Plotter, recoSurface, smoothMLS2D, text
+from vtkplotter import Plotter, recoSurface, smoothMLS2D, points, text
 import numpy as np
 
 
@@ -28,7 +28,7 @@ vp.show(act, at=0)
 
 noise = np.random.randn(act.N(), 3)*0.05
 
-act_pts0 = vp.points(act.coordinates()+noise, r=3) #add noise
+act_pts0 = points(act.coordinates()+noise, r=3) #add noise
 act_pts1 = act_pts0.clone()   #make a copy to modify
 vp.show(act_pts0, at=1, legend='noisy cloud')
 

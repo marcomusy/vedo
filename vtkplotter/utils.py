@@ -259,6 +259,10 @@ def printInfo(obj):
     '''Print information about a vtk object.'''
 
     def printvtkactor(actor, tab=''):
+        
+        if not actor.GetPickable():
+            return
+        
         if hasattr(actor, 'polydata'):
             poly = actor.polydata()
         else:

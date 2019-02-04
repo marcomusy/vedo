@@ -24,6 +24,6 @@ from vtkplotter import isosurface, show, text
 ts = [.1,.25,.4,.6,.75,.9]
 
 # Use c=None to use the default vtk color map. isos is of type Actor
-isos = isosurface(img, c=None, threshold=ts) 
+isos = isosurface(img, threshold=ts) 
 
 show([isos, text(__doc__)])

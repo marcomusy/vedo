@@ -43,11 +43,11 @@ __all__ = [
 
 
 ########################################################################
-def point(pos=[0,0,0], r=5, c='k', alpha=1, legend=None):
+def point(pos=[0,0,0], r=5, c='k', alpha=1):
     '''Create a simple point actor.'''
-    return points([pos], r, c, alpha, legend)
+    return points([pos], r, c, alpha)
 
-def points(plist, r=4, c='k', alpha=1, legend=None):
+def points(plist, r=4, c='k', alpha=1):
     '''
     Build a point ``Actor`` for a list of points.
 
@@ -69,7 +69,7 @@ def points(plist, r=4, c='k', alpha=1, legend=None):
             plist = list(zip(plist[0], plist[1], [0]*len(plist[0])))
 
     if utils.isSequence(c) and utils.isSequence(c[0]) and len(c[0])==3:
-        return _colorPoints(plist, c, r, alpha, legend)
+        return _colorPoints(plist, c, r, alpha)
 
     n = len(plist) # refresh
     src = vtk.vtkPointSource()
@@ -80,13 +80,13 @@ def points(plist, r=4, c='k', alpha=1, legend=None):
         pd.GetPoints().SetPoint(0, [0, 0, 0])
     else:
         pd.GetPoints().SetData(numpy_to_vtk(plist, deep=True))
-    actor = Actor(pd, c, alpha, legend=legend)
+    actor = Actor(pd, c, alpha)
     actor.GetProperty().SetPointSize(r)
     if n == 1:
         actor.SetPosition(plist[0])
     return actor
 
-def _colorPoints(plist, cols, r, alpha, legend):
+def _colorPoints(plist, cols, r, alpha):
     n = len(plist)
     if n > len(cols):
         colors.printc("Mismatch in colorPoints()", n, len(cols), c=1)
@@ -111,7 +111,7 @@ def _colorPoints(plist, cols, r, alpha, legend):
     mapper = vtk.vtkPolyDataMapper()
     mapper.SetInputData(pd)
     mapper.ScalarVisibilityOn()
-    actor = Actor() #vtk.vtkActor()
+    actor = Actor() 
     actor.SetMapper(mapper)
     actor.GetProperty().SetInterpolationToFlat()
     actor.GetProperty().SetOpacity(alpha)
@@ -119,7 +119,7 @@ def _colorPoints(plist, cols, r, alpha, legend):
     return actor
 
 
-def line(p0, p1=None, lw=1, c='r', alpha=1, dotted=False, legend=None):
+def line(p0, p1=None, lw=1, c='r', alpha=1, dotted=False):
     '''
     Build the line segment between points `p0` and `p1`.
     If `p0` is a list of points returns the line connecting them.
@@ -154,7 +154,7 @@ def line(p0, p1=None, lw=1, c='r', alpha=1, dotted=False, legend=None):
         lineSource.Update()
         poly = lineSource.GetOutput()
 
-    actor = Actor(poly, c, alpha, legend=legend)
+    actor = Actor(poly, c, alpha)
     actor.GetProperty().SetLineWidth(lw)
     if dotted:
         actor.GetProperty().SetLineStipplePattern(0xf0f0)
@@ -164,9 +164,14 @@ def line(p0, p1=None, lw=1, c='r', alpha=1, dotted=False, legend=None):
     return actor
 
 
-def tube(points, r=1, c='r', alpha=1, legend=None, res=12):
-    '''Build a tube of radius `r` along line defined by a set of points.
+def tube(points, r=1, c='r', alpha=1, res=12):
+    '''Build a tube along the line defined by a set of points.
 
+    :param r: constant radius or list of radii.
+    :type r: float, list
+    :param c: constant color or list of colors for each point.
+    :type c: float, list
+    
     .. hint:: |ribbon| |ribbon.py|_
     
         |tube| |tube.py|_
@@ -210,7 +215,7 @@ def tube(points, r=1, c='r', alpha=1, legend=None, res=12):
     tuf.Update()
     polytu = tuf.GetOutput()
  
-    actor = Actor(polytu, c=c, alpha=alpha, legend=legend, computeNormals=0)
+    actor = Actor(polytu, c=c, alpha=alpha, computeNormals=0)
     if usingColScals:
         actor.mapper.SetScalarModeToUsePointFieldData()
         actor.mapper.ScalarVisibilityOn()
@@ -222,7 +227,7 @@ def tube(points, r=1, c='r', alpha=1, legend=None, res=12):
     return actor
 
 
-def lines(plist0, plist1=None, lw=1, c='r', alpha=1, dotted=False, legend=None):
+def lines(plist0, plist1=None, lw=1, c='r', alpha=1, dotted=False):
     '''
     Build the line segments between two lists of points `plist0` and `plist1`.
     `plist0` can be also passed in the form ``[[point1, point2], ...]``.
@@ -240,7 +245,7 @@ def lines(plist0, plist1=None, lw=1, c='r', alpha=1, dotted=False, legend=None):
         polylns.AddInputConnection(lineSource.GetOutputPort())
     polylns.Update()
 
-    actor = Actor(polylns.GetOutput(), c, alpha, legend=legend)
+    actor = Actor(polylns.GetOutput(), c, alpha)
     actor.GetProperty().SetLineWidth(lw)
     if dotted:
         actor.GetProperty().SetLineStipplePattern(0xf0f0)
@@ -248,7 +253,7 @@ def lines(plist0, plist1=None, lw=1, c='r', alpha=1, dotted=False, legend=None):
     return actor
 
 
-def ribbon(line1, line2, c='m', alpha=1, legend=None, res=(200,5)):
+def ribbon(line1, line2, c='m', alpha=1, res=(200,5)):
     '''Connect two lines to generate the surface inbetween.
 
     .. hint:: |ribbon| |ribbon.py|_    
@@ -308,17 +313,19 @@ def ribbon(line1, line2, c='m', alpha=1, legend=None, res=(200,5)):
     rsf.SetResolution(res[0], res[1])
     rsf.SetInputData(mergedPolyData.GetOutput())
     rsf.Update()
-    return Actor(rsf.GetOutput(), c=c, alpha=alpha, legend=legend)
+    return Actor(rsf.GetOutput(), c=c, alpha=alpha)
 
 
-def arrow(startPoint, endPoint, c='r', s=None, alpha=1,
-          legend=None, texture=None, res=12, rwSize=(800,800)):
+def arrow(startPoint, endPoint, s=None, c='r', alpha=1,
+          res=12, rwSize=(800,800)):
     '''
     Build a 3D arrow from `startPoint` to `endPoint` of section size `s`,
     expressed as the fraction of the window size.
     
     .. note:: If ``s=None`` the arrow is scaled proportionally to its length,
               otherwise it represents the fraction of the window size.
+              
+    |OrientedArrow|
     '''
     axis = np.array(endPoint) - np.array(startPoint)
     length = np.linalg.norm(axis)
@@ -351,8 +358,7 @@ def arrow(startPoint, endPoint, c='r', s=None, alpha=1,
     tf.SetTransform(t)
     tf.Update()
 
-    actor = Actor(tf.GetOutput(),
-                  c, alpha, legend=legend, texture=texture)
+    actor = Actor(tf.GetOutput(), c, alpha)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(startPoint)
     actor.DragableOff()
@@ -363,7 +369,7 @@ def arrow(startPoint, endPoint, c='r', s=None, alpha=1,
 
 
 def arrows(startPoints, endPoints=None,
-           c='r', s=None, alpha=1, legend=None, res=8, rwSize=None):
+           s=None, c='r', alpha=1, res=8, rwSize=(800,800)):
     '''
     Build arrows between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
@@ -406,17 +412,20 @@ def arrows(startPoints, endPoints=None,
         polyapp.AddInputConnection(tf.GetOutputPort())
 
     polyapp.Update()
-    actor = Actor(polyapp.GetOutput(), c, alpha, legend=legend)
+    actor = Actor(polyapp.GetOutput(), c, alpha)
     return actor
 
 
 def polygon(pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
-            c='coral', bc='darkgreen', lw=1, alpha=1,
-            legend=None, texture=None, followcam=False, camera=None):
+            c='coral', bc='darkgreen', lw=1, alpha=1, followcam=False):
     '''
     Build a 2D polygon of `nsides` of radius `r` oriented as `normal`.
 
-    If ``followcam=True`` the polygon will always reorient itself to current camera.
+    :param followcam: if `True` the text will auto-orient itself to the active camera.
+        A ``vtkCamera`` object can also be passed.
+    :type followcam: bool, vtkCamera  
+    
+    |Polygon|
     '''
     ps = vtk.vtkRegularPolygonSource()
     ps.SetNumberOfSides(nsides)
@@ -430,13 +439,16 @@ def polygon(pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
 
     mapper = vtk.vtkPolyDataMapper()
     mapper.SetInputConnection(tf.GetOutputPort())
-    if followcam:  # follow cam
+    if followcam:
+        import vtkplotter.plotter as plt
         actor = vtk.vtkFollower()
-        actor.SetCamera(camera)
-        if not camera:
-            colors.printc('Warning: vtkCamera does not yet exist for polygon', c=5)
+        if isinstance(followcam, vtk.vtkCamera):
+            actor.SetCamera(followcam)
+        else:
+            actor.SetCamera(plt._plotter_instance.camera)
     else:
-        actor = Actor()# vtk.vtkActor()
+        actor = Actor()
+
     actor.SetMapper(mapper)
     actor.GetProperty().SetColor(colors.getColor(c))
     # check if color string contains a float, in this case ignore alpha
@@ -451,30 +463,29 @@ def polygon(pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
         backProp.SetDiffuseColor(colors.getColor(bc))
         backProp.SetOpacity(alpha)
         actor.SetBackfaceProperty(backProp)
-    if texture:
-        actor.texture(texture)
     actor.SetPosition(pos)
     return actor
 
 
 def rectangle(p1=[0,0,0], p2=[2,1,0],
-              c='k', bc='dg', lw=1, alpha=1, legend=None, texture=None):
+              c='k', bc='dg', lw=1, alpha=1, texture=None):
     '''Build a rectangle in the xy plane identified by two corner points.'''
     p1 = np.array(p1)
     p2 = np.array(p2)
     pos = (p1+p2)/2
     length = abs(p2[0]-p1[0])
     height = abs(p2[1]-p1[1])
-    rec = plane(pos, [0,0,-1], length, height, c, bc, alpha, legend, texture)
+    rec = plane(pos, [0,0,-1], length, height, c, bc, alpha, None, texture)
     return rec
     
     
 def disc(pos=[0, 0, 0], normal=[0, 0, 1], r1=0.5, r2=1,
-         c='coral', bc='darkgreen', lw=1, alpha=1,
-         legend=None, texture=None, res=12):
+         c='coral', bc='darkgreen', lw=1, alpha=1,res=12):
     '''
     Build a 2D disc of internal radius `r1` and outer radius `r2`,
     oriented perpendicular to `normal`.
+    
+    |Disk|
     '''
     ps = vtk.vtkDiskSource()
     ps.SetInnerRadius(r1)
@@ -514,28 +525,28 @@ def disc(pos=[0, 0, 0], normal=[0, 0, 1], r1=0.5, r2=1,
         backProp.SetDiffuseColor(colors.getColor(bc))
         backProp.SetOpacity(alpha)
         actor.SetBackfaceProperty(backProp)
-    if texture:
-        actor.texture(texture)
     actor.SetPosition(pos)
     return actor
 
 
-def sphere(pos=[0, 0, 0], r=1,
-           c='r', alpha=1, wire=False, legend=None, texture=None, res=24):
-    '''Build a sphere at position `pos` of radius `r`.'''
+def sphere(pos=[0, 0, 0], r=1, c='r', alpha=1, res=24):
+    '''Build a sphere at position `pos` of radius `r`.
+    
+    |Sphere|
+    '''
     ss = vtk.vtkSphereSource()
     ss.SetRadius(r)
     ss.SetThetaResolution(2*res)
     ss.SetPhiResolution(res)
     ss.Update()
     pd = ss.GetOutput()
-    actor = Actor(pd, c, alpha, wire, legend=legend, texture=texture)
+    actor = Actor(pd, c, alpha)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
     return actor
 
 
-def spheres(centers, r=1, c='r', alpha=1, wire=False, legend=None, texture=None, res=8):
+def spheres(centers, r=1, c='r', alpha=1, res=8):
     '''
     Build a (possibly large) set of spheres at `centers` of radius `r`.
 
@@ -612,24 +623,20 @@ def spheres(centers, r=1, c='r', alpha=1, wire=False, legend=None, texture=None,
 
     mapper = vtk.vtkPolyDataMapper()
     mapper.SetInputData(glyph.GetOutput())
+
+    actor = Actor()
+    actor.SetMapper(mapper)
+    actor.GetProperty().SetInterpolationToPhong()
     if cisseq:
         mapper.ScalarVisibilityOn()
     else:
         mapper.ScalarVisibilityOff()
-    actor = Actor()#vtk.vtkActor()
-    actor.SetMapper(mapper)
-    actor.GetProperty().SetInterpolationToPhong()
+        actor.GetProperty().SetColor(colors.getColor(c))
     # check if color string contains a float, in this case ignore alpha
     al = colors._getAlpha(c)
     if al:
         alpha = al
     actor.GetProperty().SetOpacity(alpha)
-    if not cisseq:
-        if texture is not None:
-            actor.texture(texture)
-            mapper.ScalarVisibilityOff()
-        else:
-            actor.GetProperty().SetColor(colors.getColor(c))
     return actor
 
 
@@ -645,7 +652,7 @@ def earth(pos=[0, 0, 0], r=1, lw=1):
     tss.SetPhiResolution(36)
     earthMapper = vtk.vtkPolyDataMapper()
     earthMapper.SetInputConnection(tss.GetOutputPort())
-    earthActor = Actor()#vtk.vtkActor()
+    earthActor = Actor(c='w')
     earthActor.SetMapper(earthMapper)
     atext = vtk.vtkTexture()
     pnmReader = vtk.vtkPNMReader()
@@ -666,6 +673,7 @@ def earth(pos=[0, 0, 0], r=1, lw=1):
     earth2Mapper.SetInputConnection(es.GetOutputPort())
     earth2Actor = Actor()# vtk.vtkActor()
     earth2Actor.SetMapper(earth2Mapper)
+    earth2Mapper.ScalarVisibilityOff()
     earth2Actor.GetProperty().SetLineWidth(lw)
     ass = Assembly([earthActor, earth2Actor])
     ass.SetPosition(pos)
@@ -673,7 +681,7 @@ def earth(pos=[0, 0, 0], r=1, lw=1):
 
 
 def ellipsoid(pos=[0, 0, 0], axis1=[1, 0, 0], axis2=[0, 2, 0], axis3=[0, 0, 3],
-              c='c', alpha=1, legend=None, texture=None, res=24):
+              c='c', alpha=1, res=24):
     """
     Build a 3D ellipsoid centered at position `pos`.
     
@@ -705,7 +713,7 @@ def ellipsoid(pos=[0, 0, 0], axis1=[1, 0, 0], axis2=[0, 2, 0], axis3=[0, 0, 3],
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = Actor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
+    actor = Actor(pd, c=c, alpha=alpha)
     actor.GetProperty().BackfaceCullingOn()
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
@@ -713,7 +721,7 @@ def ellipsoid(pos=[0, 0, 0], axis1=[1, 0, 0], axis2=[0, 2, 0], axis3=[0, 0, 3],
 
 
 def grid(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=1, c='g', bc='darkgreen',
-         lw=1, alpha=1, legend=None, resx=10, resy=10):
+         lw=1, alpha=1, resx=10, resy=10):
     '''Return a grid plane.
 
     .. hint:: |brownian2D| |brownian2D.py|_    
@@ -741,7 +749,7 @@ def grid(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=1, c='g', bc='darkgreen',
     tf.SetTransform(t)
     tf.Update()
     pd = tf.GetOutput()
-    actor = Actor(pd, c=c, bc=bc, alpha=alpha, legend=legend)
+    actor = Actor(pd, c=c, bc=bc, alpha=alpha)
     actor.GetProperty().SetRepresentationToWireframe()
     actor.GetProperty().SetLineWidth(lw)
     actor.SetPosition(pos)
@@ -750,10 +758,12 @@ def grid(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=1, c='g', bc='darkgreen',
 
 
 def plane(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=None, c='g', bc='darkgreen',
-          alpha=1, legend=None, texture=None):
+          alpha=1, texture=None):
     '''
     Draw a plane of size `sx` and `sy` oriented perpendicular to vector `normal`
     and so that it passes through point `pos`.
+    
+    |Plane| 
     '''
     if sy is None:
         sy = sx
@@ -776,15 +786,14 @@ def plane(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=None, c='g', bc='darkgreen',
     tf.SetTransform(t)
     tf.Update()
     pd = tf.GetOutput()
-    actor = Actor(pd, c=c, bc=bc, alpha=alpha,
-                         legend=legend, texture=texture)
+    actor = Actor(pd, c=c, bc=bc, alpha=alpha, texture=texture)
     actor.SetPosition(pos)
     actor.PickableOff()
     return actor
 
 
 def box(pos=[0, 0, 0], length=1, width=2, height=3, normal=(0, 0, 1),
-        c='g', alpha=1, wire=False, legend=None, texture=None):
+        c='g', alpha=1, texture=None):
     '''Build a box of dimensions `x=length, y=width and z=height` oriented along vector `normal`.
 
     .. hint:: |aspring| |aspring.py|_    
@@ -810,24 +819,29 @@ def box(pos=[0, 0, 0], length=1, width=2, height=3, normal=(0, 0, 1),
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = Actor(pd, c, alpha, wire, legend=legend, texture=texture)
+    actor = Actor(pd, c, alpha, texture=texture)
     actor.SetPosition(pos)
     return actor
 
 
 def cube(pos=[0, 0, 0], length=1, normal=(0, 0, 1),
-         c='g', alpha=1., wire=False, legend=None, texture=None):
+         c='g', alpha=1., texture=None):
     '''Build a cube of size `length` oriented along vector `normal`.
 
     .. hint:: |colorcubes| |colorcubes.py|_    
     '''
-    return box(pos, length, length, length, normal, c, alpha, wire, legend, texture)
+    return box(pos, length, length, length, normal, c, alpha, texture)
 
 
-def helix(startPoint=[0, 0, 0], endPoint=[1, 0, 0], coils=20, r=None,
-          thickness=None, c='grey', alpha=1, legend=None, texture=None):
+def helix(startPoint=[0, 0, 0], endPoint=[1, 0, 0], coils=20, r=0.1, r2=None,
+          thickness=None, c='grey', alpha=1):
     '''
     Build a spring of specified nr of `coils` between `startPoint` and `endPoint`.
+
+    :param int coils: number of coils
+    :param float r: radius at start point
+    :param float r2: radius at end point
+    :param float thickness: thickness of the coil section
 
     .. hint:: |aspring| |aspring.py|_    
     '''
@@ -839,7 +853,14 @@ def helix(startPoint=[0, 0, 0], endPoint=[1, 0, 0], coils=20, r=None,
         r = length/20
     trange = np.linspace(0, length, num=50*coils)
     om = 6.283*(coils-.5)/length
-    pts = [[r*np.cos(om*t), r*np.sin(om*t), t] for t in trange]
+    if not r2:
+        r2=r 
+    pts= []
+    for t in trange:
+        f = (length-t)/length
+        rd = r*f + r2*(1-f)
+        pts.append([rd*np.cos(om*t), rd*np.sin(om*t), t])
+    
     pts = [[0, 0, 0]] + pts + [[0, 0, length]]
     diff = diff/length
     theta = np.arccos(diff[2])
@@ -861,7 +882,7 @@ def helix(startPoint=[0, 0, 0], endPoint=[1, 0, 0], coils=20, r=None,
     tuf.SetRadius(thickness)
     tuf.Update()
     poly = tuf.GetOutput()
-    actor = Actor(poly, c, alpha, legend=legend, texture=texture)
+    actor = Actor(poly, c, alpha)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(startPoint)
     actor.base = np.array(startPoint)
@@ -869,13 +890,14 @@ def helix(startPoint=[0, 0, 0], endPoint=[1, 0, 0], coils=20, r=None,
     return actor
 
 
-def cylinder(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
-             c='teal', wire=0, alpha=1, legend=None, texture=None, res=24):
+def cylinder(pos=[0,0,0], r=1, height=1, axis=[0, 0, 1], c='teal', alpha=1, res=24):
     '''
     Build a cylinder of specified height and radius `r`, centered at `pos`.
 
     If `pos` is a list of 2 points, e.g. `pos=[v1,v2]`, build a cylinder with base
     centered at `v1` and top at `v2`.
+    
+    |Cylinder|
     '''
 
     if utils.isSequence(pos[0]):  # assume user is passing pos=[base, top]
@@ -909,7 +931,7 @@ def cylinder(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = Actor(pd, c, alpha, wire, legend=legend, texture=texture)
+    actor = Actor(pd, c, alpha)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
     actor.base = base
@@ -918,9 +940,11 @@ def cylinder(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
 
 
 def cone(pos=[0, 0, 0], r=1, height=3, axis=[0, 0, 1],
-         c='dg', alpha=1, legend=None, texture=None, res=48):
+         c='dg', alpha=1, res=48):
     '''
     Build a cone of specified radius `r` and `height`, centered at `pos`.
+    
+    |Cone|
     '''
     con = vtk.vtkConeSource()
     con.SetResolution(res)
@@ -928,8 +952,7 @@ def cone(pos=[0, 0, 0], r=1, height=3, axis=[0, 0, 1],
     con.SetHeight(height)
     con.SetDirection(axis)
     con.Update()
-    actor = Actor(con.GetOutput(), c, alpha,
-                         legend=legend, texture=texture)
+    actor = Actor(con.GetOutput(), c, alpha)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
     v = utils.norm(axis)*height/2
@@ -938,15 +961,14 @@ def cone(pos=[0, 0, 0], r=1, height=3, axis=[0, 0, 1],
     return actor
 
 def pyramid(pos=[0, 0, 0], s=1, height=1, axis=[0, 0, 1],
-            c='dg', alpha=1, legend=None, texture=None):
+            c='dg', alpha=1):
     '''
     Build a pyramid of specified base size `s` and `height`, centered at `pos`.
     '''
-    return cone(pos, s, height, axis, c, alpha, legend, texture, 4)
+    return cone(pos, s, height, axis, c, alpha, 4)
 
 
-def torus(pos=[0, 0, 0], r=1, thickness=0.1, axis=[0, 0, 1],
-          c='khaki', alpha=1, wire=False, legend=None, texture=None, res=30):
+def torus(pos=[0,0,0], r=1, thickness=0.1, axis=[0,0,1], c='khaki', alpha=1, res=30):
     '''
     Build a torus of specified outer radius `r` internal radius `thickness`, centered at `pos`.
 
@@ -976,15 +998,13 @@ def torus(pos=[0, 0, 0], r=1, thickness=0.1, axis=[0, 0, 1],
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = Actor(pd, c=c, alpha=alpha, wire=wire, legend=legend, texture=texture)
+    actor = Actor(pd, c, alpha)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
     return actor
 
 
-###################################################################
-def paraboloid(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
-               c='cyan', alpha=1, legend=None, texture=None, res=100):
+def paraboloid(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1], c='cyan', alpha=1, res=100):
     '''
     Build a paraboloid of specified height and radius `r`, centered at `pos`.
     
@@ -1022,7 +1042,7 @@ def paraboloid(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = Actor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
+    actor = Actor(pd, c, alpha)
     actor.GetProperty().SetInterpolationToPhong()
     actor.mapper.ScalarVisibilityOff()
     actor.SetPosition(pos)
@@ -1030,7 +1050,7 @@ def paraboloid(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1],
 
 
 def hyperboloid(pos=[0, 0, 0], a2=1, value=0.5, height=1, axis=[0, 0, 1],
-                c='magenta', alpha=1, legend=None, texture=None, res=100):
+                c='magenta', alpha=1, res=100):
     '''
     Build a hyperboloid of specified aperture `a2` and `height`, centered at `pos`.
     
@@ -1067,7 +1087,7 @@ def hyperboloid(pos=[0, 0, 0], a2=1, value=0.5, height=1, axis=[0, 0, 1],
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = Actor(pd, c=c, alpha=alpha, legend=legend, texture=texture)
+    actor = Actor(pd, c, alpha)
     actor.GetProperty().SetInterpolationToPhong()
     actor.mapper.ScalarVisibilityOff()
     actor.SetPosition(pos)
@@ -1075,8 +1095,7 @@ def hyperboloid(pos=[0, 0, 0], a2=1, value=0.5, height=1, axis=[0, 0, 1],
 
 
 def text(txt, pos=3, normal=(0, 0, 1), s=1, depth=0.1, justify='bottom-left',
-         c='k', alpha=1, bc=None, bg=None, font='arial',
-         texture=None, followcam=False, cam=None):
+         c=(0.7,0.7,0.7), alpha=1, bc=None, bg=None, font='arial', followcam=False):
     '''
     Returns a ``vtkActor`` that shows a 3D text.
 
@@ -1087,13 +1106,17 @@ def text(txt, pos=3, normal=(0, 0, 1), s=1, depth=0.1, justify='bottom-left',
     :param float depth: text thickness.
     :param str justify: text justification 
         (bottom-left, bottom-right, top-left, top-right, centered).
-    :param bool followcam: if `True` the text will auto-orient itself to the cam.
     :param bg: background color of corner annotations. Only applies of `pos` is ``int``.
     :param str font: either `arial`, `courier` or `times`. Only applies of `pos` is ``int``.
+    :param followcam: if `True` the text will auto-orient itself to the active camera.
+        A ``vtkCamera`` object can also be passed.
+    :type followcam: bool, vtkCamera  
     
     .. hint:: |colorcubes| |colorcubes.py|_ 
     
-        |annotations.py|_ read a text file and show it in the rendering window.
+        |markpoint| |markpoint.py|_
+    
+        |annotations.py|_ Allows to read a text file and show it in the rendering window.
     '''
     if isinstance(pos, int):
         if pos>8: pos=8
@@ -1135,8 +1158,12 @@ def text(txt, pos=3, normal=(0, 0, 1), s=1, depth=0.1, justify='bottom-left',
     else:
         ttmapper.SetInputConnection(tt.GetOutputPort())
     if followcam:
+        import vtkplotter.plotter as plt
         ttactor = vtk.vtkFollower()
-        ttactor.SetCamera(cam)
+        if isinstance(followcam, vtk.vtkCamera):
+            ttactor.SetCamera(followcam)
+        else:
+            ttactor.SetCamera(plt._plotter_instance.camera)
     else:
         ttactor = Actor()
     ttactor.SetMapper(ttmapper)
@@ -1180,7 +1207,5 @@ def text(txt, pos=3, normal=(0, 0, 1), s=1, depth=0.1, justify='bottom-left',
         backProp.SetDiffuseColor(colors.getColor(bc))
         backProp.SetOpacity(alpha)
         ttactor.SetBackfaceProperty(backProp)
-    if texture:
-        ttactor.texture(texture)
     ttactor.PickableOff()
     return ttactor

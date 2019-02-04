@@ -8,7 +8,7 @@ print(__doc__)
 from vtkplotter import Plotter
 
 
-vp = Plotter(axes=4)
+vp = Plotter(axes=4, bg='w')
 
 act = vp.load('data/embryo.tif', c='blue')
 

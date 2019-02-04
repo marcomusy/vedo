@@ -10,7 +10,7 @@ details of the regression for some random points
 '''
 from __future__ import division, print_function
 print(__doc__)
-from vtkplotter import Plotter, smoothMLS1D, arange, sin, cos, sqrt
+from vtkplotter import *
 import numpy as np
 
 N = 9  # nr. of iterations
@@ -24,7 +24,7 @@ pts += np.random.randn(len(pts), 3)/15# add noise
 np.random.shuffle(pts) # make sure points are not ordered
 
 vp = Plotter(N=N, axes=5)
-a = vp.points(pts)
+a = points(pts)
 vp.show(a, at=0, legend='cloud')
         
 for i in range(1, N):

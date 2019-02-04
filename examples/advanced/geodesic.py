@@ -1,8 +1,8 @@
 """
 Dijkstra algorithm to compute the graph geodesic.
 
-Takes as input a polygonal mesh and performs a single 
-source shortest path calculation. 
+Takes as input a polygonal mesh and performs 
+a shortest path calculation 20 times. 
 """
 from vtkplotter import * 
 
@@ -15,5 +15,4 @@ for i in range(20):
 
 doc = text(__doc__, c='w')
 
-show( [s, earth(lw=0), doc] + paths, 
-	  viewup='z', bg='blackboard', verbose=0 )
+show( [s, earth(lw=1), doc] + paths, viewup='z', verbose=0 )

@@ -8,11 +8,11 @@ using algorithms available in the scipy.optimize package.
 from __future__ import division, print_function
 print(__doc__)
 
-from vtkplotter import Plotter, vector, mag, mag2, sphere, arrow, text
+from vtkplotter import *
 import scipy.optimize as opt
 
 
-vp = Plotter(shape=[1,3], interactive=0)
+vp = Plotter(shape=[1,3], interactive=0, bg='w')
 
 class Morpher:
     def __init__(self):
@@ -96,7 +96,7 @@ class Morpher:
         
         pos, sz = self.s_size[0], self.s_size[1]
         
-        sphere0 = sphere(pos, c='gray', r=sz, alpha=.8, wire=1, res=16)
+        sphere0 = sphere(pos, c='gray', r=sz, alpha=.8, res=16).wire(1)
         sphere1 = sphere(pos, c='gray', r=sz, alpha=.2, res=16)
 
         hairsacts=[]
@@ -106,7 +106,7 @@ class Morpher:
             sphere1.point(i, newp)
             hairsacts.append( arrow(p, newp, s=0.3, alpha=.5) )
 
-        zero = vp.point(pos, c='black')
+        zero = point(pos, c='black')
         x1,x2, y1,y2, z1,z2 = self.target.polydata().GetBounds()
         tpos = [x1, y2, z1]
         text1 = text('source vs target',  tpos, s=sz/10, c='dg')

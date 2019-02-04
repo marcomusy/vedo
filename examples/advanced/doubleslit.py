@@ -7,7 +7,7 @@ Can simulate the 'Arago spot', the bright point at the center of
  a circular object shadow (https://en.wikipedia.org/wiki/Arago_spot).
 '''
 from numpy import conj, real, pi, array, sin, cos, exp
-from vtkplotter import Plotter, arange, mag, grid, line, text
+from vtkplotter import Plotter, arange, mag, grid, line, points, text
 
 #########################################
 lambda1 = 680e-9   # red wavelength 680nm
@@ -44,7 +44,7 @@ for i, x in enumerate(screen.coordinates()):
 
 screen.pointColors(amplitudes, cmap='hot')
 
-vp.points(array(slits)*200, c='w')    # slits scale magnified by factor 200
+vp.add(points(array(slits)*200, c='w')) # slits scale magnified by factor 200
 
 vp.add(grid(sx=0.1, sy=0.1, resx=6, resy=6, c='white/.1')) # add some annotation
 vp.add(line([0,0,0], [0,0,-D], c='white/.1'))

@@ -3,7 +3,7 @@ Using 1D Moving Least Squares to skeletonize a surface.
 '''
 print(__doc__)
 
-from vtkplotter import Plotter, smoothMLS1D
+from vtkplotter import Plotter, smoothMLS1D, points
 
 N=10  # nr of iterations
 f=0.1 # fraction of neighbours 
@@ -16,9 +16,9 @@ pts = vp.load('data/shapes/man.vtk').decimate(0.1).coordinates()
 #pts = vp.load('data/shapes/pumpkin.vtk').coordinates()
 #pts = vp.load('data/shapes/teapot.vtk').coordinates()
 
-a = vp.points(pts)
+a = points(pts)
 for i in range(N):
-    vp.show(a, at=i, legend='iter #'+str(i))
+    vp.show(a, at=i, elevation=-5)
     a = a.clone().color(i)
     smoothMLS1D(a, f)
     

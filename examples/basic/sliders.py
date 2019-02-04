@@ -4,7 +4,7 @@
 print(__doc__)
 from vtkplotter import Plotter
 
-vp = Plotter(axes=0)
+vp = Plotter(axes=0, bg='w')
 
 mesh = vp.load('data/shapes/magnolia.vtk', c=0)
 

@@ -20,18 +20,18 @@ RingThickness=0.3   # thickness of the toroid
 RingRadius=1
 k = 1.4E-23         # Boltzmann constant
 T = 300             # room temperature
-dt = 1E-5
+dt = 1.5E-5
 #############################################################
 
 def reflection(p, pos):
     n = norm(pos)
     return np.dot(np.identity(3)-2*n*n[:,np.newaxis], p)
 
-vp = Plotter(title='gas in toroid', interactive=0, axes=0)
+vp = Plotter(title='gas in toroid', interactive=0, axes=0, bg='w')
 
 vp.add(text(__doc__))
 
-vp.add(torus(c='g', r=RingRadius, thickness=RingThickness, alpha=.1, wire=1)) ### <--
+vp.add(torus(c='g', r=RingRadius, thickness=RingThickness, alpha=.1).wire(1)) ### <--
 
 Atoms = []
 poslist = []

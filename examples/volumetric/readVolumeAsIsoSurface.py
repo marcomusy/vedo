@@ -1,6 +1,6 @@
 '''
 Example to read volumetric data in the form of a tiff stack 
-or SLC (StereoLithography Contour) files:
+or SLC (StereoLithography Contour) from files with automatic isosurfacing:
 
 A tiff stack is a set of image slices in z. The scalar value 
 (intensity of white) is used to create an isosurface by fixing a threshold.
@@ -14,28 +14,22 @@ surface and only keeps the largest connected surface.
 which is expressed in units of pixels.
 
 - If the spacing of the tiff stack is uneven in xyz, this can be 
-corrected by setting scaling factors with scaling=[xfac,yfac,zfac]
+fixed by setting scaling factors with scaling=[xfac,yfac,zfac]
 '''
-from vtkplotter import Plotter, load, text
+print(__doc__)
+from vtkplotter import show, load
 
 # Read volume data from a tif file:
 f = 'data/embryo.tif'
+a0 = load(f, threshold=80, connectivity=1)
+a1 = load(f, threshold=80, connectivity=0)
+a2 = load(f, smoothing=2)
 
-vp = Plotter(shape=(1,4), axes=0)
-
-vp.show(text(__doc__), at=3)
-
-a0 = load(f, threshold=80, connectivity=1, legend='connectivity=True')
-a1 = load(f, threshold=80, connectivity=0, legend='connectivity=False')
-a2 = load(f, smoothing=2, legend='thres=automatic\nsmoothing=2')
-
-vp.show(a0, at=0)
-vp.show(a1, at=1)
-vp.show(a2, at=2)
-
+show([a0,a1,a2], shape=(1,3), axes=0, interactive=0)
 
 #### Can also read SLC files 
-#(NB: vp2.load instead of load. This appends the new actor in vp2.actors):
-vp2= Plotter(pos=(300,300))
-vp2.load('data/embryo.slc', c='g', smoothing=1, connectivity=1)
-vp2.show()
+a3 = load('data/embryo.slc', c='g', smoothing=1, connectivity=1)
+
+# newPlotter triggers the instantiation of a new Plotter object
+show(a3, verbose=0, pos=(300,300), newPlotter=True)
+

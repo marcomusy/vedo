@@ -6,7 +6,7 @@ This is obtained by using RBF (radial basis function).
 # @Author: Giovanni Dalmasso
 from __future__ import print_function
 import vtk
-from vtkplotter import Plotter, Volume, ProgressBar, vector, mag2, text
+from vtkplotter import *
 import numpy as np
 
 
@@ -21,9 +21,9 @@ coords = np.random.rand(npts, 3) # range is [0, 1]
 scals  = np.abs(coords[:, 2])    # let the scalar be the z of point itself
 fact   = 1./(bins-1)             # conversion factor btw the 2 ranges
 
-vp = Plotter(verbose=0)
+vp = Plotter(verbose=0, bg='white')
 vp.ztitle = 'z == scalar value'
-cloud = vp.points(coords)
+cloud = points(coords)
 
 # fill the vtkImageData object
 pb = ProgressBar(0, bins, c=4)
@@ -46,7 +46,7 @@ for iz in pb.range():
 
 # set colors and transparencies along the scalar range
 vol = Volume(img, c=['r','g','b'], alphas=[0.4, 0.8]) #vtkVolume
-act = vp.points(coords/fact)
+act = points(coords/fact)
 
 vp.show([vol, act, text(__doc__)], viewup='z')
 

@@ -10,7 +10,7 @@ For too large values of dt the simple Euler can diverge.
 # masses makes the programming easier. 
 # Adapted from B.Martin (2009) http://www.kcvs.ca/martin by M.Musy
 from __future__ import division, print_function
-from vtkplotter import Plotter, ProgressBar, text
+from vtkplotter import Plotter, ProgressBar, point, text
 import numpy as np
 
 ####################################################
@@ -92,17 +92,19 @@ for i in pb.range():
 ####################################################
 # Visualize the result
 ####################################################
-vp = Plotter(interactive=0, axes=2) # choose axes type nr.2
+vp = Plotter(interactive=0, axes=2, bg='w') # choose axes type nr.2
 vp.ytitle = 'u(x,t)'
 vp.ztitle = '' # will not draw z axis
 
-for i in x: vp.point([i, 0, 0], c='green', r=6)
+for i in x: 
+    vp.add(point([i, 0, 0], c='green', r=6))
 pts_actors_eu = vp.actors # save a copy of the actors list
 pts_actors_eu[0].legend = 'Euler method'
 
 vp.actors=[] # clean up the list
 
-for i in x: vp.point([i, 0, 0], c='red', r=6)
+for i in x: 
+    vp.add(point([i, 0, 0], c='red', r=6))
 pts_actors_rk = vp.actors # save a copy of the actors list
 pts_actors_rk[0].legend = 'Runge-Kutta4'
 

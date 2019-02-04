@@ -55,6 +55,8 @@ python example.py
 |    |    |
 | [![mesh_bands](https://user-images.githubusercontent.com/32848391/51211548-26a78b00-1916-11e9-9306-67b677d1be3a.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_bands.py)<br/> `mesh_coloring.py` | Use a scalar to paint colored bands on a mesh. This can be combined with opacities values for each vertex.<br/>Keyword `depthpeeling` improves the rendering of translucent objects.|
 |    |    |
+| [![mesh_threshold](https://user-images.githubusercontent.com/32848391/51807663-4762cf80-228a-11e9-9d0c-184bb11a97bf.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_threshold.py)<br/> `mesh_threshold.py` | Extracts the cells where scalar value satisfies a threshold criterion.|
+|    |    |
 | [![mirror](https://user-images.githubusercontent.com/32848391/50738855-bf346180-11d8-11e9-97a0-c9aaae6ce052.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mirror.py)<br/> `mirror.py` |  Mirror-reflect a mesh with respect to one of the cartesian axes. |
 |    |    |
 | [![mouseclick](https://user-images.githubusercontent.com/32848391/50738854-bf346180-11d8-11e9-8cd0-0201d2f6d572.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mouseclick.py)<br/> `mouseclick.py` |  A click of the mouse triggers a call to a custom function.|

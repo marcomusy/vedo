@@ -5,7 +5,7 @@ color points based on the size of the sphere radius
 from __future__ import division, print_function
 from vtkplotter import *
 
-vp = Plotter(verbose=0, axes=0)
+vp = Plotter(verbose=0, axes=0, bg='w')
 
 s = vp.load('data/shapes/cow.vtk', alpha=0.3)#.subdivide()
 
@@ -26,7 +26,7 @@ for i, p in enumerate(s.coordinates()):
     if not i%500: 
         print(i,'/',s.N())
     
-vp.points(pts1, c=cols)
+vp.add(points(pts1, c=cols))
 vp.addScalarBar()
 vp.add(lines(pts1, pts2, c='black 0.2'))
 vp.add(histogram(vals, title='values', bins=20, vrange=[0,1]))

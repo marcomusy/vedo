@@ -89,14 +89,14 @@ colors = {  # from matplotlib
     'seashell':             '#FFF5EE', 'sienna':               '#A0522D',
     'silver':               '#C0C0C0', 'skyblue':              '#87CEEB',
     'slateblue':            '#6A5ACD', 'slategray':            '#708090',
-    'snow':                 '#FFFAFA', 'blackboard':           '#3c3c3c',
+    'snow':                 '#FFFAFA', 'blackboard':           '#393939', #'#3e3c3c',
     'springgreen':          '#00FF7F', 'steelblue':            '#4682B4',
     'tan':                  '#D2B48C', 'teal':                 '#008080',
     'thistle':              '#D8BFD8', 'tomato':               '#FF6347',
     'turquoise':            '#40E0D0', 'violet':               '#EE82EE',
     'wheat':                '#F5DEB3', 'white':                '#FFFFFF',
     'whitesmoke':           '#F5F5F5', 'yellow':               '#FFFF00',
-    'yellowgreen':          '#9ACD32',
+    'yellowgreen':          '#9ACD32', 
     }
 
 color_nicks = {       # color nicknames
@@ -460,26 +460,31 @@ def kelvin2rgb(temperature):
 
 
 # default sets of colors
-colors1 = [
+colors1 = [  
+     [1.   , 0.832, 0.000], #gold
+     [0.960, 0.509, 0.188],
+     [0.901, 0.098, 0.194],
+     [0.235, 0.85 , 0.294],
+     [0.46 , 0.48 , 0.000],
+     [0.274, 0.941, 0.941],
+     [0.   , 0.509, 0.784],
+     [0.1  , 0.1  , 0.900],
+     [0.902, 0.7  , 1.000],
+     [0.941, 0.196, 0.901],
+]
+# negative integer color number get this:
+colors2 = [
     (0.99, 0.83, 0),       # gold
     (0.59, 0.0, 0.09),     # dark red
     (0.5, 1.0, 0.0),       # green
     (0.5, 0.5, 0),         # yellow-green
-    (0.0, 0.66, 0.42),    # green blue
+    (0.0, 0.66, 0.42),     # green blue
     (0.0, 0.18, 0.65),     # blue
     (0.4, 0.0, 0.4),       # plum
     (0.4, 0.0, 0.6),
     (0.2, 0.4, 0.6),
     (0.1, 0.3, 0.2)
 ]
-
-colors2 = []  # negative integer color number get this:
-for _i in range(10):
-    _pc = (_i+0.5)/10
-    _r = np.exp(-((_pc)/0.2)**2/2)
-    _g = np.exp(-((_pc-0.5)/0.2)**2/2)
-    _b = np.exp(-((_pc-1.0)/0.2)**2/2)
-    colors2.append((_r, _g, _b))
 
 
 # terminal color print

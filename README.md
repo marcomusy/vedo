@@ -16,55 +16,32 @@ pip install vtkplotter
 ```
 
 ## Documentation
-Automatically generated documentation can be found [**here**](https://vtkplotter.embl.es).<br />
-<br />
-<br />
+Automatically generated documentation can be found [**here**](https://vtkplotter.embl.es).
 
 
-## Get-started example
-- In your python script, load a simple `3DS` file and display it:
+## Hello World example
+In your python script, load a simple `3DS` file and display it:
 ```python
-from vtkplotter import *
+from vtkplotter import show
 
-vp = Plotter()                      # declare an instance of class Plotter
-vp.show('data/shapes/flamingo.3ds') # press *Esc* to close and exit or *q* to continue
+show('data/shapes/flamingo.3ds') 
 ```
 ![flam](https://user-images.githubusercontent.com/32848391/50738813-58af4380-11d8-11e9-84ce-53579c1dba65.png)
-<br />
-<br />
 
-
-- Load meshes of various formats with different options on separate parts of the rendering window:
-```python
-vp = Plotter(shape=(2,3), sharecam=False) # subdivide window in 6 independent parts
-vp.show('data/beethoven.ply',      at=0, c=0) # c = color name or number
-vp.show('data/cow.g',              at=1, c=1, wire=1)
-vp.show('data/limb.pcd',           at=2, c=2) # point cloud format (.pcl)
-vp.show('data/shapes/spider.ply',  at=3, c=3)
-vp.show('data/shuttle.obj',        at=4, c=4)
-vp.show('data/shapes/magnolia.vtk',at=5, c=5)
-vp.show(interactive=1)
-```
-![shapes](https://user-images.githubusercontent.com/32848391/50738812-58af4380-11d8-11e9-96d6-cc3780c2bac2.jpg)
-<br />
-<br />
 
 ## Command-line usage
 ```bash
 vtkplotter meshfile.vtk 
-# other valid formats: [vtu,vts,vtp,ply,obj,stl,3ds,xml,neutral,gmsh,pcd,xyz,txt,byu,tif,slc,vti,png,jpg]
+# valid formats: [vtu,vts,vtp,ply,obj,stl,3ds,xml,neutral,gmsh,pcd,xyz,txt,byu,tif,slc,vti,mhd,png,jpg]
 ```
-to visualize multiple files or files time-sequences try `-n` or `-s` options. Try `-h` for help.<br> 
-Voxel-data (vti, slc, tiff) files can also be visualized with options `-g` and `--slicer`,
+to visualize multiple files or files time-sequences try `-n` or `-s` options. Use `-h` for help.<br> 
+Voxel-data (_vti, slc, tiff_) files can also be visualized with options `-g` and `--slicer`,
 e.g.:
 ```bash
 vtkplotter -g -c blue examples/data/embryo.slc  # (3D scan of a mouse embryo)
 vtkplotter --slicer   examples/data/embryo.slc    
 ```
 ![e2](https://user-images.githubusercontent.com/32848391/50738810-58af4380-11d8-11e9-8fc7-6c6959207224.jpg)
-<br />
-<br />
-<br />
 
 
 ## Examples Gallery
@@ -74,11 +51,12 @@ git clone https://github.com/marcomusy/vtkplotter.git
 cd vtkplotter/examples
 python tutorial.py  
 ```
-**Many more examples can be found in directories:** <br>
-[**examples/basic**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic), <br>
-[**examples/advanced**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced),<br>
-[**examples/volumetric**](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric) and<br>
-[**examples/others**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other).
+**Many more examples can be found in directories** _(scroll down to see the screenshots):_ <br>
+[**examples/basic**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic)<br>
+[**examples/advanced**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced)<br>
+[**examples/volumetric**](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric)<br>
+[**examples/others**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other).<br>
+_(Scroll down to see the screenshots)._
 
 |    |    |
 |:-------------:|:-----|

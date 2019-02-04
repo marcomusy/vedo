@@ -8,7 +8,8 @@ import vtkplotter.settings as settings
 from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
 
 __doc__="""
-Submodule extending the ``vtkActor``, ``vtkVolume`` and ``vtkImageData`` objects functionality.
+Submodule extending the ``vtkActor``, ``vtkVolume`` 
+and ``vtkImageActor`` objects functionality.
 """+docs._defs
 
 __all__ = [
@@ -37,7 +38,6 @@ def mergeActors(actors, c=None, alpha=1,
     polylns.Update()
     pd = polylns.GetOutput()
     return Actor(pd, c, alpha, wire, bc, legend, texture)
-
 
 def isosurface(image, smoothing=0, threshold=None, connectivity=False):
     '''Return a ``vtkActor`` isosurface extracted from a ``vtkImageData`` object.
@@ -91,7 +91,7 @@ def isosurface(image, smoothing=0, threshold=None, connectivity=False):
         conn.Update()
         poly = conn.GetOutput()
     
-    a = Actor(poly, c='gold', alpha=1)
+    a = Actor(poly, c=None)
     a.mapper.SetScalarRange(scrange[0], scrange[1])
     return a
 
@@ -289,7 +289,7 @@ class Prop(object):
         elif isinstance(trans, vtk.vtkTransform):
             tr = trans
         
-        self.SetTransform(tr)
+        self.SetUserTransform(tr)
         return self
 
 
@@ -403,12 +403,11 @@ class Actor(vtk.vtkActor, Prop):
         self.point_locator = None
         self.cell_locator = None
         self.line_locator = None
-        self.poly = None  # cache vtkPolyData for speed
-        # cache vtkPolyDataMapper for speed
+        self.poly = None  # cache vtkPolyData and mapper for speed
+        self._bfprop = None # backface property holder
+        
         self.mapper = vtk.vtkPolyDataMapper()
         self.SetMapper(self.mapper)
-        if legend:
-            self._legend=legend
 
         if settings.computeNormals is not None:
             computeNormals = settings.computeNormals
@@ -428,40 +427,44 @@ class Actor(vtk.vtkActor, Prop):
 
             self.mapper.SetInputData(self.poly)
 
-            # check if color string contains a float, in this case ignore alpha
-            if alpha is None:
-                alpha = 0.5
-            al = colors._getAlpha(c)
-            if al:
-                alpha = al
+        prp = self.GetProperty()
+        # On some vtk versions/platforms points are redered as ugly squares
+        prp.RenderPointsAsSpheresOn()
 
-            prp = self.GetProperty()
+        # check if color string contains a float, in this case ignore alpha
+        if alpha is None:
+            alpha = 1
+        al = colors._getAlpha(c)
+        if al:
+            alpha = al
+        prp.SetOpacity(alpha)
 
-            # On some vtk versions/platforms points are redered as ugly squares
-            prp.RenderPointsAsSpheresOn()
+        if c is None:
+            self.mapper.ScalarVisibilityOn()
+            prp.SetColor(colors.getColor('gold'))
+        else:
+            self.mapper.ScalarVisibilityOff()
+            c = colors.getColor(c)
+            prp.SetColor(c)
+            prp.SetAmbient(0.1)
+            prp.SetAmbientColor(c)
+            prp.SetDiffuse(1)
 
-            if c is None:
-                self.mapper.ScalarVisibilityOn()
-            else:
-                self.mapper.ScalarVisibilityOff()
-                c = colors.getColor(c)
-                prp.SetColor(c)
-                prp.SetAmbient(0.1)
-                prp.SetAmbientColor(c)
-                prp.SetDiffuse(1)
-            prp.SetOpacity(alpha)
-
-            if wire:
-                prp.SetRepresentationToWireframe()
+        if wire:
+            prp.SetRepresentationToWireframe()
 
         if texture:
+            prp.SetColor(1.,1.,1.)
             self.mapper.ScalarVisibilityOff()
             self.texture(texture)
-        if bc:  # defines a specific color for the backface
+        if bc and alpha==1:  # defines a specific color for the backface
             backProp = vtk.vtkProperty()
             backProp.SetDiffuseColor(colors.getColor(bc))
             backProp.SetOpacity(alpha)
             self.SetBackfaceProperty(backProp)
+
+        if legend:
+            self._legend = legend
 
 
     def polydata(self, rebuild=True):
@@ -567,6 +570,8 @@ class Actor(vtk.vtkActor, Prop):
         self.GetProperty().SetColor(1, 1, 1)
         self.SetMapper(mapper)
         self.SetTexture(atext)
+        self.Modified()
+        return self
 
 
     def clone(self, rebuild=True):
@@ -826,6 +831,7 @@ class Actor(vtk.vtkActor, Prop):
         clipper.Update()
 
         self.mapper.SetInputData(clipper.GetOutput())
+        self.mapper.ScalarVisibilityOff()
         self.mapper.Update()
         self.poly = clipper.GetOutput()
         self.Modified()
@@ -1316,6 +1322,25 @@ class Actor(vtk.vtkActor, Prop):
         return self
 
 
+    def addPointField(self, vectors, name):
+        """
+        Add point vector field to the actor's polydata assigning it a name.
+        """
+        poly = self.polydata(False)
+        if len(vectors) != poly.GetNumberOfPoints():
+            colors.printc('pointvectors Error: Number of vectors != nr. of points',
+                          len(vectors), poly.GetNumberOfPoints(), c=1)
+            exit()       
+        arr = vtk.vtkDoubleArray()
+        arr.SetNumberOfComponents(3)
+        arr.SetName(name)
+        for v in vectors:
+              arr.InsertNextTuple(v)
+        poly.GetFieldData().AddArray(arr)
+        poly.GetPointData().SetActiveVectors(name)
+        return self
+    
+
     def scalars(self, name=None):
         """
         Retrieve point or cell scalars using array name or index number.
@@ -1442,9 +1467,9 @@ class Actor(vtk.vtkActor, Prop):
         return self
 
 
-    def decimate(self, fraction=0.5, N=None, boundaries=True, verbose=True):
+    def decimate(self, fraction=0.5, N=None, boundaries=False, verbose=True):
         '''
-        Downsample the number of vertices in a mesh,
+        Downsample the number of vertices in a mesh.
         
         :param float fraction: the desired target of reduction.
         :param int N: the desired number of final points (**fraction** is recalculated based on it).
@@ -1463,16 +1488,16 @@ class Actor(vtk.vtkActor, Prop):
 
         decimate = vtk.vtkDecimatePro()
         decimate.SetInputData(poly)
-        decimate.SetTargetReduction(1.-fraction)
+        decimate.SetTargetReduction(1-fraction)
         decimate.PreserveTopologyOff()
         if boundaries:
-            decimate.BoundaryVertexDeletionOn()
-        else:
             decimate.BoundaryVertexDeletionOff()
+        else:
+            decimate.BoundaryVertexDeletionOn()
         decimate.Update()
         if verbose:
-            print('Input nr. of pts:', poly.GetNumberOfPoints(), end='')
-            print('          output:', decimate.GetOutput().GetNumberOfPoints())
+            print('Nr. of pts, input:', poly.GetNumberOfPoints(), end='')
+            print(' output:', decimate.GetOutput().GetNumberOfPoints())
         self.mapper.SetInputData(decimate.GetOutput())
         self.mapper.Update()
         self.poly = decimate.GetOutput()
@@ -1582,11 +1607,19 @@ class Actor(vtk.vtkActor, Prop):
 
     def alpha(self, a=None):
         '''Set/get actor's transparency.'''
-        if a is not None:
-            self.GetProperty().SetOpacity(a)
-            return self
-        else:
+        if a is None:
             return self.GetProperty().GetOpacity()
+        else:
+            self.GetProperty().SetOpacity(a)
+            bfp = self.GetBackfaceProperty()
+            if bfp :
+                if a<1:
+                    self._bfprop = bfp
+                    self.SetBackfaceProperty(None)
+                else:
+                    self.SetBackfaceProperty(self._bfprop)
+            return self
+
 
     def wire(self, w=True):
         '''Set actor's representation as wireframe or solid surface.'''
@@ -1596,51 +1629,75 @@ class Actor(vtk.vtkActor, Prop):
             self.GetProperty().SetRepresentationToSurface()
         return self
 
-    def pointSize(self, s):
-        '''Set actor's point size of vertices.'''
-        if isinstance(self, vtk.vtkAssembly):
-            cl = vtk.vtkPropCollection()
-            self.GetActors(cl)
-            cl.InitTraversal()
-            a = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
-            a.GetProperty().SetRepresentationToPoints()
-            a.GetProperty().SetPointSize(s)
+
+    def pointSize(self, s=None):
+        '''Set/get actor's point size of vertices.'''
+        if s is not None:
+            if isinstance(self, vtk.vtkAssembly):
+                cl = vtk.vtkPropCollection()
+                self.GetActors(cl)
+                cl.InitTraversal()
+                a = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
+                a.GetProperty().SetRepresentationToPoints()
+                a.GetProperty().SetPointSize(s)
+            else:
+                self.GetProperty().SetRepresentationToPoints()
+                self.GetProperty().SetPointSize(s)
         else:
-            self.GetProperty().SetRepresentationToPoints()
-            self.GetProperty().SetPointSize(s)
+            return self.GetProperty().GetPointSize()
         return self
 
 
-    def color(self, c=None):
-        '''Set/get actor's color.'''
-        if c is not None:
-            self.GetProperty().SetColor(colors.getColor(c))
+    def color(self, c=False):
+        '''
+        Set/get actor's color.
+        If None is passed as input, will use colors from active scalars.
+        '''
+        if c is False:
+            return np.array(self.GetProperty().GetColor())
+        elif c is None:
+            self.GetMapper().ScalarVisibilityOn()
             return self
         else:
-            return np.array(self.GetProperty().GetColor())
+            self.GetMapper().ScalarVisibilityOff()
+            self.GetProperty().SetColor(colors.getColor(c))
+            return self
+
 
     def backColor(self, bc=None):
-        '''Set actor's backface color.'''
+        '''
+        Set/get actor's backface color.
+        '''
         backProp = self.GetBackfaceProperty()
+        
+        if bc is None:
+            if backProp:
+                return backProp.GetDiffuseColor()
+            return None
+        
+        if self.GetProperty().GetOpacity() < 1:
+            colors.printc('backColor(): only active for alpha=1', c='y')
+            return self
+
         if not backProp:
             backProp = vtk.vtkProperty()
-
+            
         backProp.SetDiffuseColor(colors.getColor(bc))
         backProp.SetOpacity(self.GetProperty().GetOpacity())
         self.SetBackfaceProperty(backProp)
-        if bc is not None:
-            self.GetProperty().SetColor(colors.getColor(bc))
-            return self
-        else:
-            return np.array(self.GetProperty().GetColor())
+        return self
 
-    def lineWidth(self, lw):
-        '''Set actor's line width of edges.'''
-        if lw:
+
+    def lineWidth(self, lw=None):
+        '''Set/get width of mesh edges.'''
+        if lw is not None:
+            if lw==0:
+                self.GetProperty().EdgeVisibilityOff()
+                return
             self.GetProperty().EdgeVisibilityOn()
             self.GetProperty().SetLineWidth(lw)
         else:
-            self.GetProperty().EdgeVisibilityOff()
+            return self.GetProperty().GetLineWidth()
         return self
 
 
@@ -1696,11 +1753,11 @@ class Assembly(vtk.vtkAssembly, Prop):
 
 #################################################
 class ImageActor(vtk.vtkImageActor, Prop):
+    '''
+    Derived class of ``vtkImageActor``.
+    '''
 
     def __init__(self):
-        '''
-        Derived class of ``vtkImageActor``.
-        '''
         vtk.vtkImageActor.__init__(self)
         Prop.__init__(self)
 
@@ -1715,20 +1772,45 @@ class ImageActor(vtk.vtkImageActor, Prop):
 
 ##########################################################################
 class Volume(vtk.vtkVolume, Prop):
+    '''Derived class of ``vtkVolume``.
+
+    :param c: sets colors along the scalar range
+    :type c: list, str
+    :param alphas: sets transparencies along the scalar range
+    :type c: float, list
+    
+    .. hint:: if a `list` of values is used for `alphas` this is interpreted
+        as a transfer function along the range.
+        
+        |read_vti| |read_vti.py|_
+    '''
 
     def __init__(self, img, c='blue', alphas=[0.0, 0.4, 0.9, 1]):
         '''Derived class of ``vtkVolume``.
-
+    
         :param c: sets colors along the scalar range
         :type c: list, str
         :param alphas: sets transparencies along the scalar range
         :type c: float, list
         
-        .. note:: if a `list` of values is used for `alphas` this is interpreted
-                  as a transfer function along the range.
+        if a `list` of values is used for `alphas` this is interpreted
+        as a transfer function along the range.
         '''
         vtk.vtkVolume.__init__(self)
         Prop.__init__(self)
+
+        if utils.isSequence(img):
+            nx,ny,nz = img.shape
+            vtkimg = vtk.vtkImageData()
+            vtkimg.SetDimensions(nx,ny,nz) # range is [0, bins-1]
+            vtkimg.AllocateScalars(vtk.VTK_FLOAT, 1)
+            for ix in range(nx):
+               for iy in range(ny):
+                   for iz in range(nz):
+                       vtkimg.SetScalarComponentFromFloat(ix, iy, iz, 0, img[ix, iy, iz]) 
+            img = vtkimg
+            
+        self.image = img
 
         volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
         volumeMapper.SetBlendModeToMaximumIntensity()

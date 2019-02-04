@@ -55,6 +55,9 @@ __all__ = [
     'geodesic',
     'convexHull',
     'actor2ImageData',
+    'transformFilter',
+    'splitByConnectivity',
+    'projectSphereFilter',
 ]
 
 
@@ -722,7 +725,7 @@ def fitSphere(coords):
         residue = np.sqrt(residue[0])/n
     else:
         residue = 0
-    s = vs.sphere(center, radius, c='r', alpha=1, wire=1)
+    s = vs.sphere(center, radius, c='r', alpha=1).wire(1)
     s.info['radius'] = radius
     s.info['center'] = center
     s.info['residue'] = residue
@@ -901,7 +904,7 @@ def smoothMLS3D(actors, neighbours=10):
 
         nc = len(closest)
         if nc >= neighbours and nc > 5:
-            m = np.linalg.lstsq(closest, [1.]*nc, rcond=None)[0]
+            m = np.linalg.lstsq(closest, [1.]*nc)[0] # needs python3
             vers = m/np.linalg.norm(m)
             hpcenter = np.mean(closest, axis=0)  # hyperplane center
             dist = np.dot(mypt-hpcenter, vers)
@@ -1439,6 +1442,8 @@ def thinPlateSpline(actor, sourcePts, targetPts, sigma=1):
     .. hint:: |thinplate| |thinplate.py|_
 
         |thinplate_grid| |thinplate_grid.py|_
+
+        |thinplate_morphing| |thinplate_morphing.py|_
     '''
     ns = len(sourcePts)
     ptsou = vtk.vtkPoints()
@@ -1458,23 +1463,14 @@ def thinPlateSpline(actor, sourcePts, targetPts, sigma=1):
             
     transform = vtk.vtkThinPlateSplineTransform()
     transform.SetBasisToR()
-    #transform.SetBasisToR2LogR() # for 2d
     transform.SetSigma(sigma)
     transform.SetSourceLandmarks(ptsou)
     transform.SetTargetLandmarks(pttar)
     
-    tf = vtk.vtkTransformPolyDataFilter()
-    tf.SetTransform(transform)
-    tf.SetInputData(actor.GetMapper().GetInput())
-    tf.Update()
-    
-    prop = vtk.vtkProperty()
-    prop.DeepCopy(actor.GetProperty())
-    tfa = Actor(tf.GetOutput())
-    tfa.SetProperty(prop)
+    tfa = transformFilter(actor.polydata(), transform)
     tfa.info['transform'] = transform
     return tfa
-       
+      
 
 def fillHoles(actor, size=None):  
     '''Identifies and fills holes in input mesh. 
@@ -1605,6 +1601,28 @@ def triangleFilter(actor, verts=True, lines=True):
     tfa.SetProperty(prop)
     return tfa
 
+
+def transformFilter(actor, transformation):
+    '''
+    Transform a ``vtkActor`` and return a new object.
+    '''
+    tf = vtk.vtkTransformPolyDataFilter()
+    tf.SetTransform(transformation)
+    prop = None
+    if isinstance(actor, vtk.vtkPolyData):
+        tf.SetInputData(actor)
+    else:
+        tf.SetInputData(actor.polydata())
+        prop = vtk.vtkProperty()
+        prop.DeepCopy(actor.GetProperty())
+    tf.Update()
+    
+    tfa = Actor(tf.GetOutput())
+    if prop: 
+        tfa.SetProperty(prop)
+    return tfa
+
+
 def threshold(actor, scalars, vmin=None, vmax=None, useCells=False):
     """
     Extracts cells where scalar value satisfies threshold criterion.
@@ -1658,6 +1676,41 @@ def threshold(actor, scalars, vmin=None, vmax=None, useCells=False):
     prop.DeepCopy(actor.GetProperty())
     tactor.SetProperty(prop)
     return tactor
+
+
+def splitByConnectivity(actor, depth=100):
+    '''
+    Split a mesh by connectivity and order the pieces by increasing area.
+
+    :param int depth: only consider this number of mesh parts.
+        
+    .. hint:: |splitmesh| |splitmesh.py|_   
+    '''
+    pd = actor.polydata()
+    cf = vtk.vtkConnectivityFilter()
+    cf.SetInputData(pd)
+    cf.SetExtractionModeToAllRegions()
+    cf.ColorRegionsOn()
+    cf.Update()
+    cpd = cf.GetOutput()
+    a = Actor(cpd)
+    alist = []
+    for t in range(max(a.scalars('RegionId'))-1):
+        if t == depth:
+            break
+        suba = threshold(a, 'RegionId', t-0.1, t+0.1)
+        area = suba.area()
+        alist.append([suba, area])
+    
+    alist.sort(key=lambda x: x[1])
+    alist.reverse()
+    blist=[]
+    for i,l in enumerate(alist):
+        l[0].color(i+1)
+        l[0].mapper.ScalarVisibilityOff()
+        blist.append(l[0])
+    return blist
+
 
 
 def pointSampler(actor, distance=None):
@@ -1772,7 +1825,7 @@ def actor2ImageData(actor, spacing=(1,1,1)):
     where the foreground voxels are 1 and the background voxels are 0.
     Internally the ``vtkPolyDataToImageStencil`` class is used.
         
-    .. hint:: |mesh2volume.py|_    
+    .. hint:: |mesh2volume| |mesh2volume.py|_    
     '''
     #https://vtk.org/Wiki/VTK/Examples/Cxx/PolyData/PolyDataToImageData
     pd = actor.polydata()
@@ -1821,8 +1874,21 @@ def actor2ImageData(actor, spacing=(1,1,1)):
        
     return imgstenc.GetOutput()
 
+
+def projectSphereFilter(actor):
+    '''
+    Project a spherical-like object onto a plane.
+
+    .. hint:: |projectsphere| |projectsphere.py|_    
+    '''
+    tact = triangleFilter(actor)
+    poly = tact.polydata()
+    psf = vtk.vtkProjectSphereFilter()
+    psf.SetInputData(poly)
+    psf.Update()
     
-    
-    
+    a = Actor(psf.GetOutput())
+    return a
+
     
     

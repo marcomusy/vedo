@@ -6,7 +6,8 @@ the 4 corners within the same renderer.
 from vtkplotter import Plotter, text
 
 
-vp = Plotter(axes=5) # type 5 builds an annotated orientation cube
+vp = Plotter(axes=5, bg='white') 
+# type 5 builds an annotated orientation cube
 
 vp.load('data/270.vtk', c='blue', bc='v', legend=False)
 

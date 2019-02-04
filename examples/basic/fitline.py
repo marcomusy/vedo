@@ -6,7 +6,7 @@ Show the first set of 20 points and fit a plane to them.
 '''
 from __future__ import division, print_function
 import numpy as np
-from vtkplotter import Plotter, fitLine, fitPlane, text
+from vtkplotter import Plotter, fitLine, fitPlane, points, text
 
 # declare the class instance
 vp = Plotter(verbose=0, title='linear fitting')
@@ -23,7 +23,7 @@ for i in range(500):
     vp.add( fitLine(data, lw=4).alpha(0.03) ) # fit a line
 
 # 'data' still contains the last iteration points
-vp.points(data, r=10, c='red', legend='random points')
+vp.add(points(data, r=10, c='red'))
 
 # the first fitted slope direction is stored 
 # in actor.info['slope] and actor.info['normal]

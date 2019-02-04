@@ -104,13 +104,12 @@ def _loadFile(filename, c, alpha, wire, bc, legend, texture,
         actor = loadGmesh(filename, c, alpha, wire, bc, legend)
     elif fl.endswith('.pcd'):                             # PCL point-cloud format
         actor = loadPCD(filename, c, alpha, legend)
-    elif fl.endswith('.3ds'):                             # PCL point-cloud format
+    elif fl.endswith('.3ds'):                             # 3ds point-cloud format
         actor = load3DS(filename, legend)
-    elif fl.endswith('.tif') or fl.endswith('.slc') or fl.endswith('.vti'):
-        # tiff stack or slc or vti
+    elif fl.endswith('.tif') or fl.endswith('.slc') or fl.endswith('.vti') or fl.endswith('.mhd'):
+        # tiff stack or slc mhd, or vti
         img = loadImageData(filename)
-        actor = isosurface(img, c, alpha, wire, bc, legend, texture,
-                           smoothing, threshold, connectivity)
+        actor = isosurface(img, smoothing, threshold, connectivity)
     elif fl.endswith('.png') or fl.endswith('.jpg') or fl.endswith('.jpeg'):
         actor = load2Dimage(filename, alpha)
     else:
@@ -458,6 +457,8 @@ def loadImageData(filename, spacing=[]):
             exit(1)
     elif '.vti' in filename.lower():
         reader = vtk.vtkXMLImageDataReader()
+    elif '.mhd' in filename.lower():
+        reader = vtk.vtkMetaImageReader()
     reader.SetFileName(filename)
     reader.Update()
     image = reader.GetOutput()
@@ -913,6 +914,7 @@ def _mouseleft(vp, iren, event):
     picker = vtk.vtkPropPicker()
     picker.PickProp(x, y, vp.renderer)
     clickedActor = picker.GetActor()
+    
 
     # check if any button objects were created
     clickedActor2D = picker.GetActor2D()
@@ -928,6 +930,9 @@ def _mouseleft(vp, iren, event):
         clickedActorIsAssembly = True
     vp.picked3d = picker.GetPickPosition()
     vp.justremoved = None
+
+    if not hasattr(clickedActor, 'GetPickable') or not clickedActor.GetPickable():
+        return
 
     if vp.verbose:
         if len(vp.renderers) > 1 or clickedr > 0 and vp.clickedr != clickedr:
@@ -962,8 +967,7 @@ def _mouseleft(vp, iren, event):
             if not clickedActorIsAssembly:
                 n = clickedActor.GetMapper().GetInput().GetNumberOfPoints()
             else:
-                n = vp.getActors(clickedActor)[
-                    0].GetMapper().GetInput().GetNumberOfPoints()
+                n = vp.getActors(clickedActor)[0].GetMapper().GetInput().GetNumberOfPoints()
             colors.printc('N='+str(n), dim=1, end='')
             px, py, pz = vp.picked3d
             px, py, pz = str(round(px, 1)), str(
@@ -1000,8 +1004,11 @@ def _mouseright(vp, iren, event):
         clickedActor = picker.GetAssembly()
     vp.picked3d = picker.GetPickPosition()
 
-    vp.clickedActor = clickedActor
     vp.clickedRenderer = clickedr
+
+    if not hasattr(clickedActor, 'GetPickable') or not clickedActor.GetPickable():
+        return
+    vp.clickedActor = clickedActor
 
     if vp.mouseRightClickFunction:
         vp.mouseRightClickFunction(clickedActor)
@@ -1030,8 +1037,11 @@ def _mousemiddle(vp, iren, event):
         clickedActor = picker.GetAssembly()
     vp.picked3d = picker.GetPickPosition()
 
-    vp.clickedActor = clickedActor
     vp.clickedRenderer = clickedr
+
+    if not hasattr(clickedActor, 'GetPickable') or not clickedActor.GetPickable():
+        return
+    vp.clickedActor = clickedActor
 
     if vp.mouseMiddleClickFunction:
         vp.mouseMiddleClickFunction(vp.clickedActor)
@@ -1067,61 +1077,66 @@ def _keypress(vp, iren, event):
         if vp.clickedActor in vp.getActors():
             vp.clickedActor.GetProperty().SetOpacity(0.02)
             bfp = vp.clickedActor.GetBackfaceProperty()
-            if bfp:
-                bfp.SetOpacity(0.02)
+            if bfp and hasattr(vp.clickedActor, '_bfprop'):
+                vp.clickedActor._bfprop = bfp #save it
+                vp.clickedActor.SetBackfaceProperty(None)
         else:
             for a in vp.getActors():
                 if a.GetPickable():
                     a.GetProperty().SetOpacity(0.02)
                     bfp = a.GetBackfaceProperty()
-                    if bfp:
-                        bfp.SetOpacity(0.02)
-
-    elif key == "slash":
-        if vp.clickedActor in vp.getActors():
-            vp.clickedActor.GetProperty().SetOpacity(1)
-            bfp = vp.clickedActor.GetBackfaceProperty()
-            if bfp:
-                bfp.SetOpacity(1)
-        else:
-            for a in vp.getActors():
-                if a.GetPickable():
-                    a.GetProperty().SetOpacity(1)
-                    bfp = a.GetBackfaceProperty()
-                    if bfp:
-                        bfp.SetOpacity(1)
+                    if bfp and hasattr(a, '_bfprop'):
+                        a._bfprop = bfp
+                        a.SetBackfaceProperty(None)
 
     elif key == "comma":
         if vp.clickedActor in vp.getActors():
             ap = vp.clickedActor.GetProperty()
-            ap.SetOpacity(max([ap.GetOpacity()*0.75, 0.01]))
+            aal = max([ap.GetOpacity()*0.75, 0.01])
+            ap.SetOpacity(aal)
             bfp = vp.clickedActor.GetBackfaceProperty()
-            if bfp:
-                bfp.SetOpacity(ap.GetOpacity())
+            if bfp and hasattr(vp.clickedActor, '_bfprop'):
+                vp.clickedActor._bfprop = bfp
+                vp.clickedActor.SetBackfaceProperty(None)
         else:
             for a in vp.getActors():
                 if a.GetPickable():
                     ap = a.GetProperty()
-                    ap.SetOpacity(max([ap.GetOpacity()*0.75, 0.01]))
+                    aal = max([ap.GetOpacity()*0.75, 0.01])
+                    ap.SetOpacity(aal)
                     bfp = a.GetBackfaceProperty()
-                    if bfp:
-                        bfp.SetOpacity(ap.GetOpacity())
+                    if bfp and hasattr(a, '_bfprop'):
+                        a._bfprop = bfp
+                        a.SetBackfaceProperty(None)
 
     elif key == "period":
         if vp.clickedActor in vp.getActors():
             ap = vp.clickedActor.GetProperty()
-            ap.SetOpacity(min([ap.GetOpacity()*1.25, 1.0]))
-            bfp = vp.clickedActor.GetBackfaceProperty()
-            if bfp:
-                bfp.SetOpacity(ap.GetOpacity())
+            aal = min([ap.GetOpacity()*1.25, 1.0])
+            ap.SetOpacity(aal)
+            if aal==1 and hasattr(vp.clickedActor,'_bfprop') and vp.clickedActor._bfprop: 
+                #put back
+                vp.clickedActor.SetBackfaceProperty(vp.clickedActor._bfprop)
         else:
             for a in vp.getActors():
                 if a.GetPickable():
                     ap = a.GetProperty()
-                    ap.SetOpacity(min([ap.GetOpacity()*1.25, 1.0]))
-                    bfp = a.GetBackfaceProperty()
-                    if bfp:
-                        bfp.SetOpacity(ap.GetOpacity())
+                    aal = min([ap.GetOpacity()*1.25, 1.0])
+                    ap.SetOpacity(aal)
+                    if aal==1 and hasattr(a, '_bfprop') and a._bfprop:
+                        a.SetBackfaceProperty(a._bfprop)
+
+    elif key == "slash":
+        if vp.clickedActor in vp.getActors():
+            vp.clickedActor.GetProperty().SetOpacity(1)
+            if hasattr(vp.clickedActor,'_bfprop') and vp.clickedActor._bfprop:
+                vp.clickedActor.SetBackfaceProperty(vp.clickedActor._bfprop)
+        else:
+            for a in vp.getActors():
+                if a.GetPickable():
+                    a.GetProperty().SetOpacity(1)
+                    if hasattr(a, '_bfprop') and a._bfprop:
+                        a.clickedActor.SetBackfaceProperty(a._bfprop)
 
     elif key == "P":
         if vp.clickedActor in vp.getActors():
@@ -1349,7 +1364,7 @@ def _keypress(vp, iren, event):
         vp._draw_legend()
 
     elif key == "X":
-        if len(vp.actors):
+        if not vp.clickedActor and len(vp.actors):
             vp.clickedActor = vp.actors[-1]
         if vp.clickedActor:
             if not vp.cutterWidget:

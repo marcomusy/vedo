@@ -9,7 +9,7 @@ Red histogram is the distribution of the curvatures (1/r**2).
 Fitted radius can be accessed from actor.info['radius'].
 '''
 from __future__ import division, print_function
-from vtkplotter import Plotter, fitSphere, histogram, line, text
+from vtkplotter import Plotter, fitSphere, histogram, points, line, text
 
 vp = Plotter(verbose=0, axes=0)
 
@@ -24,7 +24,7 @@ for i, p in enumerate(s.coordinates()):
     if sph is None: 
     	continue # may fail if all points sit on a plane
     vp.add(sph)
-    vp.points(pts)
+    vp.add(points(pts))
     vp.add(line(sph.info['center'], p, lw=2))
     reds.append(sph.info['residue'])
     invr.append(1/sph.info['radius']**2)

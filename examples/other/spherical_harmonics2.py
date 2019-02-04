@@ -12,7 +12,7 @@ except:
     print('Follow instructions at https://shtools.oca.eu/shtools')
     exit(0)
     
-from vtkplotter import Plotter, mag, arange, sphere, sin, cos
+from vtkplotter import Plotter, mag, arange, points, sphere, sin, cos
 import numpy as np
 
 ##########################################################
@@ -39,7 +39,7 @@ def makegrid(shape, N):
                 pts.append(p)
         agrid.append(lats)
     agrid = np.array(agrid)
-    actor = vp.points(pts, c='k', alpha=0.4, r=1)
+    actor = points(pts, c='k', alpha=0.4, r=1)
     return agrid, actor
 
 def morph(clm1, clm2, t, lmax):
@@ -79,8 +79,8 @@ clm2  = pyshtools.SHGrid.from_array(agrid2).expand()
 # clm2.plot_spectrum2d() 
 
 for t in arange(0,1, 0.005):
-    act21 = vp.points(morph(clm2, clm1, t, lmax), c='r', r=4)
-    act12 = vp.points(morph(clm1, clm2, t, lmax), c='g', r=4)
+    act21 = points(morph(clm2, clm1, t, lmax), c='r', r=4)
+    act12 = points(morph(clm1, clm2, t, lmax), c='g', r=4)
     vp.show(at=2, actors=act21, resetcam=0, legend='time: '+str(int(t*100)))
     vp.show(at=3, actors=act12)
     vp.camera.Azimuth(2)

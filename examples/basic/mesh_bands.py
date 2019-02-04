@@ -22,7 +22,7 @@ tor.pointColors(scalars, alpha=transp, bands=3, cmap='winter')
 # vp.addScalarBar(tor, title='torus', horizontal=True)
 
 doc=None
-doc = text(__doc__, bg='lg')
+doc = text(__doc__, c='w', bg='lg')
 
 vp.show([hyp, tor, doc], viewup='z')
 

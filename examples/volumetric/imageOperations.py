@@ -9,7 +9,7 @@ print(__doc__)
 from vtkplotter import Plotter, loadImageData
 from vtkplotter import imageOperation, Volume
 
-vp = Plotter(N=8, axes=4)
+vp = Plotter(N=8, axes=4, bg='w')
 
 img0 = loadImageData('data/embryo.slc') # vtkImageData object
 v0 = Volume(img0, c=0) # build a vtk.vtkVolume derived object

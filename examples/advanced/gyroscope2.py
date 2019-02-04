@@ -27,18 +27,18 @@ x = vector(theta, phi, psi) # Lagrangian coordinates
 v = vector(thetadot, phidot, psidot)
 
 # ############################################################ the scene
-vp = Plotter(axes=0, interactive=0)
+vp = Plotter(axes=0, interactive=0, bg='w')
 vp.add(text(__doc__))
 
 shaft = cylinder([[0,0,0],         [Lshaft,0,0]], r=.03, c='dg')
-rotor = cylinder([[Lshaft/2.2,0,0],[Lshaft/1.8,0,0]], r=R, texture='marble')
+rotor = cylinder([[Lshaft/2.2,0,0],[Lshaft/1.8,0,0]], r=R,).texture('marble')
 base  = sphere([     0, 0, 0], c='dg', r=.03)
 tip   = sphere([Lshaft, 0, 0], c='dg', r=.03)
 gyro  = vp.Assembly([shaft, rotor, base, tip]) # group relevant actors
 
-pedestal = box([0,-0.63,0], height=.1, length=.1, width=1, texture='wood5')
-pedbase  = box([0,-1.13,0], height=.5, length=.5, width=.05, texture='wood5')
-pedpin   = pyramid([0,-.08,0], axis=[0,1,0], s=.05, height=.12, texture='wood5')
+pedestal = box([0,-0.63,0], height=.1, length=.1, width=1).texture('wood5')
+pedbase  = box([0,-1.13,0], height=.5, length=.5, width=.05).texture('wood5')
+pedpin   = pyramid([0,-.08,0], axis=[0,1,0], s=.05, height=.12).texture('wood5')
 vp.add([pedestal, pedbase, pedpin])
 formulas = vp.load('data/images/gyro_formulas.png', alpha=.9)
 formulas.scale(.0035).pos(-1.4, -1.1, -1.1)
@@ -61,7 +61,7 @@ for i, t in enumerate(pb.range()):
     # set orientation along gaxis and rotate it around its axis by psidot*t degrees
     gyro.orientation(gaxis, rotation=psidot*t*57.3)
     if not i%200: # add trace and render all, every 200 iterations
-        vp.point(gaxis, r=3, c='r')
+        vp.add(point(gaxis, r=3, c='r'))
         vp.show() 
     pb.print()
 

@@ -13,7 +13,9 @@ python example.py  # on mac OSX try 'pythonw' instead
 |    |    |
 | [![interpolateVolume](https://user-images.githubusercontent.com/32848391/50739033-6b2a7c80-11da-11e9-86fd-6026b22737df.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/interpolateVolume.py)<br/> `interpolateVolume.py` | Generate a voxel dataset (`vtkImageData`) by interpolating a scalar which is only known on a small set of points. Interpolation is based on RBF (Radial Basis Function).|
 |    |    |
-| [![isosurfaces](https://user-images.githubusercontent.com/32848391/51558920-ec436e00-1e80-11e9-9d96-aa9b7c72d58b.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/isosurfaces.py)<br/> `signedDistance.py` | Generate the isosurfaces corresponding to an input set of thresholds on volumetric data.|
+| [![isosurfaces1](https://user-images.githubusercontent.com/32848391/52141625-975ce000-2656-11e9-91fc-291e072fc4c1.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/isosurfaces1.py)<br/> `isosurfaces1.py` | Generate the isosurfaces corresponding to an input set of thresholds on volumetric data.|
+|    |    |
+| [![isosurfaces2](https://user-images.githubusercontent.com/32848391/51558920-ec436e00-1e80-11e9-9d96-aa9b7c72d58b.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/isosurfaces2.py)<br/> `isosurfaces2.py` | Generate the isosurfaces corresponding to an input set of thresholds on volumetric data.|
 |    |    |
 | [![probeLine](https://user-images.githubusercontent.com/32848391/48198460-3aa0a080-e359-11e8-982d-23fadf4de66f.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/probeLine.py)<br/> `probeLine.py` | Find and visualize the scalar value along a line intersecting a volume. |
 |    |    |

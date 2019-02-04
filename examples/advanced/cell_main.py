@@ -5,10 +5,10 @@ As they divide they occupy more and more space
 from __future__ import division, print_function
 print(__doc__)
 
-from vtkplotter import Plotter, ProgressBar, pcaEllipsoid, line
+from vtkplotter import Plotter, ProgressBar, pcaEllipsoid, points, line
 from cell import Cell, Colony
 
-vp = Plotter(verbose=0, interactive=0, axes=3)
+vp = Plotter(verbose=0, interactive=0, axes=3, bg='w')
 
 # place vtkCamera at a specific position 
 # (get these numbers by pressing Shift-C)
@@ -45,8 +45,8 @@ for t in pb.range():
         colony.cells = newcells
 
         pts = [c.pos for c in newcells] # draw all points at once
-        vp.points(pts, c=colony.color, r= 5, alpha=.80) # nucleus
-        vp.points(pts, c=colony.color, r=15, alpha=.05) # halo
+        vp.add(points(pts, c=colony.color, r= 5, alpha=.80)) # nucleus
+        vp.add(points(pts, c=colony.color, r=15, alpha=.05)) # halo
         msg += str(len(colony.cells)) + ','
 
     pb.print(msg+str(int(t)))
@@ -55,7 +55,8 @@ for t in pb.range():
 # draw the oriented ellipsoid that contains 50% of the cells
 for colony in colonies: 
     pts = [c.pos for c in colony.cells]
-    a = pcaEllipsoid(pts, pvalue=0.5, c=colony.color, pcaAxes=0, alpha=.3,
-            		 legend='1/rate='+str(colony.cells[0].tdiv)+'h')
+    a = pcaEllipsoid(pts, pvalue=0.5, pcaAxes=0)
+    a.color(colony.color).alpha(0.3)
+    a.legend('1/rate='+str(colony.cells[0].tdiv)+'h')
     vp.add(a)
 vp.show(resetcam=0, interactive=1)

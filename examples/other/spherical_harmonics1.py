@@ -12,7 +12,7 @@ Second part of the example:
 from __future__ import division, print_function
 print(__doc__)
 
-from vtkplotter import Plotter, mag, sin, cos
+from vtkplotter import Plotter, points, mag, sin, cos
 import numpy as np
 
 ##########################################################
@@ -42,7 +42,7 @@ for th in np.linspace(0, np.pi,   N, endpoint=True):
     agrid.append(lats)
 agrid = np.array(agrid)
 
-vp.points(pts, c='b', r=2)
+vp.add(points(pts, c='b', r=2))
 vp.show(at=0)
 
 ############################################################
@@ -73,6 +73,6 @@ for i, longs in enumerate(agrid_reco):
         p  = np.array([sin(th)*cos(ph), sin(th)*sin(ph), cos(th)])*r
         pts.append(p)
 
-act = vp.points(pts, c='r', r=8, alpha=0.5)
+act = points(pts, c='r', r=8, alpha=0.5)
 vp.show(at=1, actors=act, interactive=1)
 

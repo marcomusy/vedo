@@ -2,10 +2,10 @@
 2D histogram with hexagonal binning.
 '''
 print(__doc__)
-from vtkplotter import Plotter, histogram2D
+from vtkplotter import Plotter, histogram2D, points
 import numpy as np
 
-vp = Plotter(axes=1, verbose=0)
+vp = Plotter(axes=1, verbose=0, bg='w')
 vp.xtitle = 'x gaussian, s=1.0'
 vp.ytitle = 'y gaussian, s=1.5'
 vp.ztitle = 'dN/dx/dy'
@@ -16,6 +16,6 @@ y = np.random.randn(N)*1.5
 
 vp.add(histogram2D(x, y, c='dr', bins=15, fill=False))
 
-vp.points([x, y, np.zeros(N)], c='black', alpha=0.1)
+vp.add(points([x, y, np.zeros(N)], c='black', alpha=0.1))
 
 vp.show(viewup='z')

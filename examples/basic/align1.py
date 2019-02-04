@@ -11,7 +11,7 @@ vp = Plotter(verbose=0, axes=4)
 
 vp.add(text(__doc__)) # add comment above
 
-limb = vp.load('data/270.vtk', alpha=0.3)
+limb = vp.load('data/270.vtk')
 rim  = vp.load('data/270_rim.vtk')
 rim.color('r').lineWidth(4)
 

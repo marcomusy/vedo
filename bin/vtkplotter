@@ -3,7 +3,6 @@
 from __future__ import division, print_function
 from vtkplotter import Plotter, ProgressBar, printc, __version__
 from vtkplotter.utils import humansort
-import vtkplotter.colors as vc
 import vtk
 import sys, argparse, os
 
@@ -19,10 +18,10 @@ pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-5]", 
 pr.add_argument("-i", "--no-camera-share",      help="do not share camera in renderers", action="store_true")
 pr.add_argument("-l", "--legend-off",           help="do not show legends", action="store_true")
 pr.add_argument("-f", "--full-screen",          help="full screen mode", action="store_true")
-pr.add_argument("-b", "--background", type=str, help="background color [integer or color name]", default=(1,1,1), metavar='')
+pr.add_argument("-bg","--background", type=str, help="background color [integer or color name]", default='blackboard', metavar='')
 pr.add_argument("-z", "--zoom", type=float,     help="zooming factor", default=1.1, metavar='')
 pr.add_argument("-q", "--quiet",                help="quiet mode, less verbose", action="store_true")
-pr.add_argument("-n", "--sequence-mode",        help="show each file in a separate renderer", action="store_true")
+pr.add_argument("-n", "--multi-mode",           help="Multi-renderer Mode: files go to separate renderers", action="store_true")
 pr.add_argument("-s", "--scrolling-mode",       help="Scrolling Mode: use arrows to scroll files", action="store_true") 
 pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode for 3D image files", action="store_true") 
 pr.add_argument("-gz", "--z-spacing", type=float, help="Volume z-spacing factor [1]", default=None, metavar='') 
@@ -38,8 +37,12 @@ wsize = 'auto'
 if args.full_screen: 
     wsize='full'
 
+if args.ray_cast_mode or args.z_spacing or args.y_spacing:
+    if args.background == 'blackboard':
+        args.background = 'white'
+    
 N = None
-if args.sequence_mode: 
+if args.multi_mode: 
     if nfiles<201: 
         N = nfiles
     if nfiles>200: 
@@ -62,7 +65,7 @@ leg = True
 wire= False
 if args.legend_off or nfiles == 1: leg = False
 if args.wireframe: wire = True 
-if args.scrolling_mode and args.sequence_mode:
+if args.scrolling_mode and args.multi_mode:
     args.scrolling_mode = False
     
 _alphaslider1, _alphaslider2 = 0.4, 0.9 #defaults
@@ -70,28 +73,29 @@ _alphaslider1, _alphaslider2 = 0.4, 0.9 #defaults
 ########################################################################
 def _showVoxelImage(): 
 #    global _alphaslider1, _alphaslider2
-        
-    vc.printc('GPU Ray-casting Mode:', c='b', invert=1)
+    import vtkplotter.colors as vc
+     
+    printc('GPU Ray-casting Mode:', c='b', invert=1)
     vp.show(interactive=0)
     
     for filename in args.files:
         if not os.path.isfile(filename):
-            vc.printc('File not found:', filename, c=1)
+            printc('File not found:', filename, c=1)
             exit()
-        vc.printc('...loading', filename, c='b', bold=0)
+        printc('...loading', filename, c='b', bold=0)
                 
         if   '.tif' in filename.lower(): 
             reader = vtk.vtkTIFFReader() 
         elif '.slc' in filename.lower(): 
             reader = vtk.vtkSLCReader() 
             if not reader.CanReadFile(filename):
-                vc.printc('Bad SLC file:', filename, c=1)
+                printc('Bad SLC file:', filename, c=1)
                 continue
         elif '.vti' in filename.lower(): 
             reader = vtk.vtkXMLImageDataReader() 
 #            reader = vtk.vtkImageReader()
         else:
-            vc.printc('Use -g option only with VTI, SLC or TIFF files.', c=1)
+            printc('Use -g option only with VTI, SLC or TIFF files.', c=1)
             continue
         reader.SetFileName(filename) 
         reader.Update() 
@@ -109,13 +113,13 @@ def _showVoxelImage():
         volumeMapper.SetBlendModeToMaximumIntensity ()
         volumeMapper.UseJitteringOn()
         volumeMapper.SetInputConnection(reader.GetOutputPort())
-        vc.printc('scalar range is ', img.GetScalarRange(), c='b', bold=0)
+        printc('scalar range is ', img.GetScalarRange(), c='b', bold=0)
         smin,smax = img.GetScalarRange()
         if smax>1e10: 
             print("Warning, high scalar range detected:", smax)
             smax = abs(10*smin)+.1
             print("         reset to:", smax)
-        vc.printc('voxel spacing is', img.GetSpacing(), c='b', bold=0)
+        printc('voxel spacing is', img.GetSpacing(), c='b', bold=0)
         
         # Create transfer mapping scalar value to color
         if args.color is None: 
@@ -175,7 +179,7 @@ def _showVoxelImage():
         opacityTransferFunction.AddPoint(x1alpha, _alphaslider1)
         opacityTransferFunction.AddPoint(x2alpha, _alphaslider2)
         opacityTransferFunction.AddPoint(smax, 1.0)
-#    _alphaslider1 /= smax
+    #_alphaslider1 /= smax
     w2 = vp.addSlider(sliderA1, 0,1, value=_alphaslider1,
                       pos=[(.93 ,.1),(.93, .44)] , title='', showValue=0)
     
@@ -188,7 +192,7 @@ def _showVoxelImage():
         opacityTransferFunction.AddPoint(x1alpha, _alphaslider1)
         opacityTransferFunction.AddPoint(x2alpha, _alphaslider2)
         opacityTransferFunction.AddPoint(smax, 1.0)
-#    _alphaslider2 /= smax
+    #_alphaslider2 /= smax
     w3 = vp.addSlider(sliderA2, 0,1, value=_alphaslider2, 
                       pos=[(.96 ,.1),(.96, .44)], title='alpha thresholds', showValue=0)
         
@@ -197,8 +201,8 @@ def _showVoxelImage():
             obj.SetAbortRender(1)
     vp.renderWin.AddObserver("AbortCheckEvent", CheckAbort)
     
-    vc.printc('Press r to reset camera', c='b')
-    vc.printc('      q to exit.', c='b')
+    printc('Press r to reset camera', c='b')
+    printc('      q to exit.', c='b')
     vp.show(zoom=1.2, interactive=1)
     w1.SetEnabled(0)
     w2.SetEnabled(0)
@@ -212,7 +216,7 @@ if args.ray_cast_mode or args.z_spacing or args.y_spacing:
         vp.axes = 4
     wsize = 'auto'
     if args.full_screen: 
-        wsize='full'    
+        wsize='full' 
     _showVoxelImage()
     exit()
 
@@ -222,9 +226,9 @@ elif args.slicer:
 
     filename = args.files[0]
     if not os.path.isfile(filename):
-        vc.printc('File not found:', filename, c=1)
+        printc('File not found:', filename, c=1)
         exit()
-    vc.printc('...loading', filename, c='m', bold=0)
+    printc('...loading', filename, c='m', bold=0)
             
     if   '.tif' in filename.lower(): 
         reader = vtk.vtkTIFFReader() 
@@ -232,13 +236,13 @@ elif args.slicer:
     elif '.slc' in filename.lower(): 
         reader = vtk.vtkSLCReader() 
         if not reader.CanReadFile(filename):
-            vc.printc('Bad SLC file:', filename, c=1)
+            printc('Bad SLC file:', filename, c=1)
     
     elif '.vti' in filename.lower(): 
         reader = vtk.vtkXMLImageDataReader() 
         
     else:
-        vc.printc('Use --slicer option only with voxel data files [slc,tif,vti].', c=1)
+        printc('Use --slicer option only with voxel data files [slc,tif,vti].', c=1)
     reader.SetFileName(filename) 
     reader.Update() 
     img = reader.GetOutput()
@@ -279,8 +283,8 @@ elif args.slicer:
     cam1.Zoom(1.3)
     renWin.Render()
     
-    vc.printc('Slicer Mode:', invert=1, c='m')
-    vc.printc('''Press  SHIFT+Left mouse    to rotate the camera for oblique slicing
+    printc('Slicer Mode:', invert=1, c='m')
+    printc('''Press  SHIFT+Left mouse    to rotate the camera for oblique slicing
        SHIFT+Middle mouse  to slice perpendicularly through the image
        Left mouse and Drag to modify luminosity and contrast
        X                   to Reset to sagittal view
@@ -332,7 +336,7 @@ elif nfiles == 1 and ('.slc' in args.files[0]
         vp.renderer.AddActor(a)
         vp.renderer.Render()
     dr = scrange[1] - scrange[0]
-    vp.addSlider(sliderThres, scrange[0]+0.025*dr,scrange[1]-0.025*dr,
+    vp.addSlider(sliderThres, scrange[0]+0.025*dr, scrange[1]-0.025*dr,
                  value=threshold, title='isosurface threshold')
         
     def CheckAbort(obj, event):
@@ -344,7 +348,7 @@ elif nfiles == 1 and ('.slc' in args.files[0]
     
     
 ########################################################################
-# normal mode for single file or sequence
+# normal mode for single file or multi mode
 elif (not args.scrolling_mode) or nfiles == 1:
 
     for i in range(N):
@@ -354,8 +358,8 @@ elif (not args.scrolling_mode) or nfiles == 1:
             alpha = 0.1
             wire = True
         else:
-            if not args.sequence_mode:
-                alpha = 1/N
+            if not args.multi_mode:
+                alpha = 1 #sqrt(1/N)
             wire = False
             
         if 0 < args.alpha <= 1: 
@@ -364,8 +368,8 @@ elif (not args.scrolling_mode) or nfiles == 1:
         if args.wireframe: 
             wire = True 
     
-        ic = 'gold'
-        if args.color is not None : 
+        ic = i # default here
+        if args.color is not None: 
             if args.color.isdigit(): 
                 ic = int(args.color)
             else:
@@ -383,35 +387,46 @@ elif (not args.scrolling_mode) or nfiles == 1:
             except AttributeError:
                 print('cannot set point size for', f)
         
-        if args.sequence_mode: 
+        if args.multi_mode: 
+            actor._legend = None
             vp.show(actor, at=i, interactive=False, zoom=args.zoom)
     
-    if args.sequence_mode: 
+    if args.multi_mode: 
         vp.interactor.Start()
     else:
         vp.show(interactive=True, zoom=args.zoom)
         
 ######################################################################## 
-# scroll mode       
+# scrolling mode       
 else:
     import numpy 
 
-    def _scroll(key): #observer
+    def _scroll(iren, event): #observer
         global _kact
+        
+        key = iren.GetKeySym()
+        
+        if key == 'q' or key=='space':
+            iren.GetRenderWindow().Finalize()
+            iren.TerminateApp()
+            print()
+            exit()
+        
         n = len(vp.actors)
         if key == 'Right' and _kact < n-1: 
             _kact += 1
-        if key == 'Left'  and _kact > 0: 
+        elif key == 'Left'  and _kact > 0: 
             _kact -= 1
         
         step = int(n/5)
         if key == 'Up':
             _kact += step
             if _kact>n-1:_kact= n-1 
-        if key == 'Down':
+        elif key == 'Down':
             _kact -= step
             if _kact<0: _kact= 0
         sliderRep.SetValue(_kact)
+        vp.clickedActor = vp.actors[_kact]
         vp.interactor.ExitCallback()
         
     if 0 < args.alpha <= 1: 
@@ -441,12 +456,11 @@ else:
             except AttributeError: 
                 print('cannot set point size for', f)
     printc('Scrolling Mode', c='y', invert=1, end='')
-    printc(', press:', c='y')
+    printc(', Press:', c='y')
     printc('- Right and Left keys to move through files,', c='y')
     printc('- Up and Down keys to fast forward and backward.', c='y') 
-    printc('- Esc to exit.', c='y') 
 
-    vp.keyPressFunction = _scroll # key press observer
+    vp.interactor.AddObserver("KeyPressEvent", _scroll)
 
     vp.show(vp.actors[0], interactive=False, zoom=args.zoom)
 

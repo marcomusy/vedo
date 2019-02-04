@@ -157,6 +157,9 @@ python basic/boolean.py       # fails for vtk version<7
 echo Running basic/annotations.py
 python basic/annotations.py    
 
+echo Running basic/markpoint.py
+python basic/markpoint.py    
+
 
 #################################### advanced
 echo Running advanced/brownian2D.py
@@ -231,6 +234,9 @@ python advanced/thinplate.py
 echo Running advanced/thinplate_grid.py
 python advanced/thinplate_grid.py
 
+echo Running advanced/thinplate_morphing.py
+python advanced/thinplate_morphing.py
+
 echo Running advanced/meshquality.py
 python advanced/meshquality.py
 
@@ -242,6 +248,15 @@ python advanced/cutAndCap.py
 
 echo Running advanced/geodesic.py
 python advanced/geodesic.py
+
+echo Running advanced/splitmesh.py
+python advanced/splitmesh.py
+
+echo Running advanced/projectsphere.py
+python advanced/projectsphere.py
+
+echo Running advanced/convexHull.py
+python advanced/convexHull.py
 
 
 ################################### volumetric
@@ -272,8 +287,11 @@ python volumetric/read_vti.py
 echo Running volumetric/interpolateVolume.py
 python volumetric/interpolateVolume.py
 
-echo Running volumetric/isosurfaces.py
-python volumetric/isosurfaces.py
+echo Running volumetric/isosurfaces1.py
+python volumetric/isosurfaces1.py
+
+echo Running volumetric/isosurfaces2.py
+python volumetric/isosurfaces2.py
 
 echo Running volumetric/mesh2volume.py
 python volumetric/mesh2volume.py
@@ -295,9 +313,6 @@ python other/qt_embed.py
 echo Running other/spherical_harmonics1.py
 python other/spherical_harmonics1.py # fails if sphtool not installed
 
-#echo Running other/spherical_harmonics2.py
-#python other/spherical_harmonics2.py # fails if sphtool not installed
-
 
 ##################################### not ran/ignored:
 #basic/text_just.py
@@ -305,41 +320,39 @@ python other/spherical_harmonics1.py # fails if sphtool not installed
 #basic/pointsampler.py
 #basic/ids.py
 #basic/surfIntersect.py
-#advanced/mapper_cubes.py
 #other/makeVideo.py
 #other/meshfix.py
-
+#other/spherical_harmonics2.py 
 
 #################################### 
 echo
 echo
 echo '---------------------------- command lines'
-echo vtkplotter            data/2*.vtk
-vtkplotter data/2*.vtk
+echo vtkplotter  data/2*.vtk
+vtkplotter       data/2*.vtk
 
 echo '----------------------------'
-echo vtkplotter            data/embryo.tif
-vtkplotter data/embryo.tif
+echo vtkplotter  data/embryo.tif
+vtkplotter       data/embryo.tif
 
 echo '----------------------------'
 echo vtkplotter -g -c blue data/embryo.slc
-vtkplotter -g -c blue data/embryo.slc
+vtkplotter      -g -c blue data/embryo.slc
 
 echo '----------------------------'
-echo vtkplotter --slicer   data/embryo.slc
-vtkplotter --slicer data/embryo.slc
+echo vtkplotter --slicer data/embryo.slc
+vtkplotter      --slicer data/embryo.slc
 
 echo '----------------------------'
-echo vtkplotter -s -c k    data/timecourse/*vtk
-vtkplotter -s -c k data/timecourse/*vtk
+echo vtkplotter -s  "data/timecourse1d/*vtk"
+vtkplotter      -s   data/timecourse1d/*vtk
 
 echo '----------------------------'
-echo vtkplotter -n -c k    data/timecourse/reference_3*
-vtkplotter -n -c k data/timecourse/reference_3*
+echo vtkplotter -s  "data/timecourse2d/*vtk"
+vtkplotter      -s   data/timecourse2d/*vtk
 
 echo '----------------------------'
-echo vtkplotter -n         ../vtkplotter/icons/*png
-vtkplotter -n ../vtkplotter/icons/*png
-
+echo vtkplotter -n  "data/timecourse2d/*vtk"
+vtkplotter      -n   data/timecourse2d/*vtk
 
 

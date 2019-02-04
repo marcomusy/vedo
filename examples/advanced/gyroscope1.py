@@ -26,7 +26,7 @@ Lrot = I*omega*gaxis      # angular momentum
 cm = gpos + 0.5*Ls*gaxis  # center of mass of shaft
 
 # ############################################################ the scene
-vp = Plotter(axes=0, interactive=0)
+vp = Plotter(axes=0, interactive=0, bg='w')
 vp.add(text(__doc__))
 
 shaft = cylinder([[0,0,0], Ls*gaxis], r=0.03, c='dg')
@@ -38,7 +38,7 @@ spring= vp.add(helix(top, gpos, r=0.06, thickness=0.01, c='gray'))
 # NB: vp.add() acts like vp.actors.append(spring)
 
 vp.add(box(top, length=0.2, width=0.02, height=0.2, c='gray'))
-vp.add(box(pos=(0,.5,0), length=2.6, width=3, height=2.6, c='gray', wire=1, alpha=.2))
+vp.add(box(pos=(0,.5,0), length=2.6, width=3, height=2.6, c='gray', alpha=.2).wire(1))
 
 # ############################################################ the physics
 pb = ProgressBar(0, 5, dt, c='b')

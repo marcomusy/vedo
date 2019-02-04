@@ -28,15 +28,24 @@ _plotter_instance = None
 def show(actors=None, 
          at=None, shape=(1, 1), N=None,
          pos=(0, 0), size='auto', screensize='auto', title='',
-         bg=(1, 1, 1), bg2=None, axes=1, infinity=False,
+         bg='blackboard', bg2=None, axes=1, infinity=False,
          verbose=True, interactive=None, offscreen=False,
          zoom=None, viewup='', azimuth=0, elevation=0, roll=0, 
-         interactorStyle=0, uniquePlotter=True):
+         interactorStyle=0, newPlotter=False, q=False):
     '''
     Create on the fly an instance of class ``Plotter`` and show the object(s) provided.
     
-    :param bool uniquePlotter: if set to `False`, each call to ``show`` will instantiate
-        a new ``Plotter`` object instead of reusing the first created.
+    Allowed input objects are: ``filename``, ``vtkPolyData``, ``vtkActor``, 
+    ``vtkActor2D``, ``vtkImageActor``, ``vtkAssembly`` or ``vtkVolume``.
+    
+    If filename is given, its type is guessed based on its extension.
+    Supported formats are: 
+    `vtu, vts, vtp, ply, obj, stl, 3ds, xml, neutral, gmsh, pcd, xyz, txt, byu,
+    tif, slc, vti, mhd, png, jpg`.
+    
+    :param bool newPlotter: if set to `True`, a call to ``show`` will instantiate
+        a new ``Plotter`` object (a new window) instead of reusing the first created.
+        See e.g.: |readVolumeAsIsoSurface.py|_
     :return: the current ``Plotter`` class instance.
     
     .. note:: With multiple renderers, keyword ``at`` can become a `list`, e.g.:
@@ -60,7 +69,9 @@ def show(actors=None,
 
     global _plotter_instance
     
-    if _plotter_instance is None:
+    if _plotter_instance and newPlotter==False:
+        vp = _plotter_instance
+    else:
         if utils.isSequence(at):
             if not utils.isSequence(actors):
                 colors.printc("show() Error: input must be a list.", c=1)
@@ -80,11 +91,7 @@ def show(actors=None,
                      pos=pos, size=size, screensize=screensize, title=title,
                      bg=bg, bg2=bg2, axes=axes, infinity=infinity,
                      verbose=verbose, interactive=interactive, offscreen=offscreen)
-        if uniquePlotter:
-            _plotter_instance = vp
-    else:
-        vp = _plotter_instance
-
+        _plotter_instance = vp
         
     if utils.isSequence(at):
         no = len(actors)-1
@@ -93,11 +100,12 @@ def show(actors=None,
                 interactive = True
             vp.show(a, at=i, zoom=zoom,
                     viewup=viewup, azimuth=azimuth, elevation=elevation, roll=roll,
-                    interactive=interactive, interactorStyle=interactorStyle)            
+                    interactive=interactive, interactorStyle=interactorStyle, q=q)            
     else:
         vp.show(actors, at=at, zoom=zoom,
                 viewup=viewup, azimuth=azimuth, elevation=elevation, roll=roll,
-                interactive=interactive, interactorStyle=interactorStyle)
+                interactive=interactive, interactorStyle=interactorStyle, q=q)
+
     return vp
 
 
@@ -139,10 +147,13 @@ class Plotter:
 
     def __init__(self, shape=(1, 1), N=None, pos=(0, 0),
                  size='auto', screensize='auto', title='',
-                 bg=(1, 1, 1), bg2=None, axes=1, infinity=False,
+                 bg='blackboard', bg2=None, axes=1, infinity=False,
                  sharecam=True, verbose=True, interactive=None, offscreen=False, 
                  depthpeeling=False):
 
+
+        global _plotter_instance
+        _plotter_instance = self
 
         if interactive is None:
             if N or shape != (1, 1):
@@ -168,7 +179,6 @@ class Plotter:
         self.xtitle = 'x'       # x axis label and units
         self.ytitle = 'y'       # y axis label and units
         self.ztitle = 'z'       # z axis label and units
-        self.camera = None        # current vtkCamera
         self.sharecam = sharecam  # share the same camera if multiple renderers
         self.infinity = infinity  # ParallelProjection On or Off
         self.flat = True       # sets interpolation style to 'flat'
@@ -341,9 +351,6 @@ class Plotter:
             vtkio._keypress(self, obj, e)
         self.interactor.AddObserver("KeyPressEvent", keypress)
         
-        global _plotter_instance
-        _plotter_instance = self
-
         if settings.allowInteraction:
             self._update_observer = None
             self._update_win_clock = time.time()
@@ -622,27 +629,21 @@ class Plotter:
 
 
     ################################################################## 
-    def point(self, pos=[0, 0, 0], r=10, c='k', alpha=1, legend=None):
-        '''Create a simple point actor.'''
-        a = shapes.point(pos, r, c, alpha, legend)
-        self.add(a)
-        return a
-
-    def points(self, plist=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], r=4,
-               c='k', alpha=1, legend=None):
-        '''
-        Build a ``vtkActor`` for a list of points.
-
-        :param float r: point radius.
-        :param c: color name, number, or list of [R,G,B] colors of same length as plist.
-        :type c: int, str, list
-        :param float alpha: transparency in range [0,1].
-
-        .. hint:: |lorenz| |lorenz.py|_
-        '''
-        a = shapes.points(plist, r, c, alpha, legend)
-        self.add(a)
-        return a
+#    def points(self, plist=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], r=4,
+#               c='k', alpha=1):
+#        '''
+#        Build a ``vtkActor`` for a list of points.
+#
+#        :param float r: point radius.
+#        :param c: color name, number, or list of [R,G,B] colors of same length as plist.
+#        :type c: int, str, list
+#        :param float alpha: transparency in range [0,1].
+#
+#        .. hint:: |lorenz| |lorenz.py|_
+#        '''
+#        a = shapes.points(plist, r, c, alpha)
+#        self.add(a)
+#        return a
 
 
     def cutPlane(self, actor, origin=(0, 0, 0), normal=(1, 0, 0), showcut=False):
@@ -698,7 +699,7 @@ class Plotter:
             titprop.BoldOn()
             titprop.ItalicOff()
             titprop.ShadowOff ()
-            titprop.SetColor(.4,.4,.4)
+            titprop.SetColor(c)
             titprop.SetVerticalJustificationToTop()
             sb.SetTitle(title)
             sb.SetVerticalTitleSeparation(15)
@@ -929,7 +930,7 @@ class Plotter:
 
         if title:
             sliderRep.SetTitleText(title)
-            sliderRep.SetTitleHeight(.015)
+            sliderRep.SetTitleHeight(.012)
             sliderRep.GetTitleProperty().SetShadow(0)
             sliderRep.GetTitleProperty().SetColor(c)
             sliderRep.GetTitleProperty().SetOpacity(.6)
@@ -1208,7 +1209,7 @@ class Plotter:
             self.renderer.AddActor(aa)
 
         elif self.axes == 2 or self.axes == 3:
-            xcol, ycol, zcol = 'db', 'dg', 'dr'  # dark blue, green red
+            xcol, ycol, zcol = 'db', 'dg', 'dr'  
             s = 1
             alpha = 1
             centered = False
@@ -1490,8 +1491,14 @@ class Plotter:
         '''
         Render a list of actors.
 
-        :param actors: a mixed list of ``vtkActor``, ``vtkAssembly``, ``vtkPolydata``, 
-            ``vtkVolume`` or filename strings
+        Allowed input objects are: ``filename``, ``vtkPolyData``, ``vtkActor``, 
+        ``vtkActor2D``, ``vtkImageActor``, ``vtkAssembly`` or ``vtkVolume``.
+        
+        If filename is given, its type is guessed based on its extension.
+        Supported formats are: 
+        `vtu, vts, vtp, ply, obj, stl, 3ds, xml, neutral, gmsh, pcd, xyz, txt, byu,
+        tif, slc, vti, mhd, png, jpg`.
+
         :param int at: number of the renderer to plot to, if more than one exists
         :param legend: a string or list of string for each actor, if False will not show it.
         :param int axes: set the type of axes to be shown

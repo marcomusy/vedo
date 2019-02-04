@@ -2,10 +2,10 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='8.8.1', # change also in vtkplotter/__init__.py and docs/source/conf.py
+    version='8.8.2', # change also in vtkplotter/__init__.py and docs/source/conf.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
-    install_requires=['vtk', 'numpy'],
+    install_requires=['vtk'],
     description='''A python module for scientific visualization,  
     analysis and animation of 3D objects and point clouds based on VTK.''',
     long_description="""A python module for scientific visualization,  
@@ -36,7 +36,8 @@ setup(
 ##############################################################
 # # check examples
 # cd ~/Projects/vtkplotter/
-# pip install .
+# pip install . 
+# ( sudo -H pip install . )
 # cd examples
 # ./run_all.sh
 

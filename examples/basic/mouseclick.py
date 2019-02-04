@@ -1,6 +1,6 @@
 '''
 Mouse click event example
-click of the mouse causes a call to a custom function
+click of the mouse causes a call to a custom function.
 '''
 from vtkplotter import Plotter, printc, text
 

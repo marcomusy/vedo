@@ -44,60 +44,30 @@ Simply type:
 
 Check out the **Git repository** here: https://github.com/marcomusy/vtkplotter
 
-Get Started example
--------------------
 
+
+Hello World example
+-------------------
 
 In your python script, load a simple ``3DS`` file and display it:
 
 .. code-block:: python
 
-    from vtkplotter import Plotter
-
-    vp = Plotter()                      # declare an instance of the class
-    vp.show('data/shapes/flamingo.3ds') # press *Esc* to close and exit or *q* to continue
-
+    from vtkplotter import show
+    
+    show('data/shapes/flamingo.3ds') 
 
 .. image:: https://user-images.githubusercontent.com/32848391/50738813-58af4380-11d8-11e9-84ce-53579c1dba65.png
    :alt: flam
 
+Allowed input objects to the ``show()`` command are: \ :raw-html-m2r:`<br>`
+``filename``, ``vtkPolyData``, ``vtkActor``, 
+``vtkActor2D``, ``vtkImageActor``, ``vtkAssembly`` or ``vtkVolume``.
 
-Load meshes of various formats with different options on separate parts of the rendering window:
+Supported ``filename`` extensions are: \ :raw-html-m2r:`<br>`
+`vtu, vts, vtp, ply, obj, stl, 3ds, xml, neutral, gmsh, pcd, xyz, txt, byu,
+tif, slc, vti, mhd, png, jpg`.
 
-.. code-block:: python
-
-    vp = Plotter(shape=(2,3), sharecam=False) # subdivide window in 6 independent parts
-    vp.show('data/beethoven.ply',      at=0, c=0) # c = color name or number
-    vp.show('data/cow.g',              at=1, c=1, wire=1)
-    vp.show('data/limb.pcd',           at=2, c=2) # point cloud format (.pcl)
-    vp.show('data/shapes/spider.ply',  at=3, c=3)
-    vp.show('data/shuttle.obj',        at=4, c=4)
-    vp.show('data/shapes/magnolia.vtk',at=5, c=5)
-    vp.show(interactive=1)
-
-
-.. image:: https://user-images.githubusercontent.com/32848391/50738812-58af4380-11d8-11e9-96d6-cc3780c2bac2.jpg
-   :target: https://user-images.githubusercontent.com/32848391/50738812-58af4380-11d8-11e9-96d6-cc3780c2bac2.jpg
-   :alt: shapes
-
-
-Draw a bunch of basic geometric objects:
-
-.. code-block:: python
-
-   from vtkplotter.shapes import arrow, line, point, text, sphere, cube
-   vp = Plotter(N=6, sharecam=False)  # automatically subdivide window in 6 independent parts
-   vp.show(arrow([0,0,0], [1,1,1]),   at=0)
-   vp.show(line( [0,0,0], [1,1,1]),   at=1)
-   vp.show(point([1,2,3], r=20),      at=2)
-   vp.show(text('Hello', bc=(1,0,0)), at=3)
-   vp.show(sphere(),                  at=4)
-   vp.show(cube(),                    at=5, interactive=True)
-
-
-.. image:: https://user-images.githubusercontent.com/32848391/50738811-58af4380-11d8-11e9-9bfb-378c27c9d26f.png
-   :target: https://user-images.githubusercontent.com/32848391/50738811-58af4380-11d8-11e9-9bfb-378c27c9d26f.png
-   :alt: ex8
 
 
 Command-line usage
@@ -105,19 +75,26 @@ Command-line usage
 
 .. code-block:: bash
 
-    vtkplotter meshfile.vtk
-    # other valid formats: 
-    # [vtu,vts,vtp,ply,obj,stl,xml,neutral,gmsh,pcd,xyz,txt,byu,tif,slc,vti,png,jpg]
+    vtkplotter data/shapes/flamingo.3ds
 
-to visualize multiple files or files time-sequences try ``-n`` or ``-s`` options. Try ``-h`` for help.\ :raw-html-m2r:`<br>`
-Voxel-data (vti, slc, tiff) files can also be visualized with options ``-g`` and ``--slicer``,
-e.g.:
+to visualize multiple files or files time-sequences try ``-n`` or ``-s`` options:
 
 .. code-block:: bash
 
-    vtkplotter -g -c blue examples/data/embryo.slc  # (3D scan of a mouse embryo)
-    vtkplotter --slicer   examples/data/embryo.slc
+    vtkplotter -s data/timecourse2d/*vtk
+    # or
+    vtkplotter -n data/timecourse2d/*vtk
 
+Try ``-h`` for help.\ :raw-html-m2r:`<br>`
+
+Voxel-data (`vti, slc, mhd, tif`) files can also be visualized 
+with options ``-g`` or ``--slicer``, e.g.:
+
+.. code-block:: bash
+
+    vtkplotter            examples/data/embryo.tif  # shows a 3D scan of a mouse embryo
+    vtkplotter -g -c blue examples/data/embryo.slc  #  with sliders to control isosurfacing
+    vtkplotter --slicer   examples/data/embryo.slc 
 
 .. image:: https://user-images.githubusercontent.com/32848391/50738810-58af4380-11d8-11e9-8fc7-6c6959207224.jpg
    :target: https://user-images.githubusercontent.com/32848391/50738810-58af4380-11d8-11e9-8fc7-6c6959207224.jpg

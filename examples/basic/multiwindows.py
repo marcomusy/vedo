@@ -11,7 +11,7 @@ from vtkplotter import Plotter, text
 
 
 # this is one instance of the class Plotter with 5 raws and 5 columns
-vp1 = Plotter(shape=(5,5), title='many windows', axes=0)
+vp1 = Plotter(shape=(5,5), axes=0, bg='white')
 # having set shape=(n,m), script execution after the show() is not held
 
 # set a different background color for a specific subwindow (the last one)

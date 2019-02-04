@@ -532,8 +532,81 @@ _defs="""
 .. |annotations.py| replace:: annotations.py
 .. _annotations.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/annotations.py
 
+.. |Cone| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestCone.png
+    :width: 250 px
+
+.. |Cylinder| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestCylinder.png
+    :width: 250 px
+
+.. |Disk| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestDisk.png
+    :width: 250 px
+
+.. |OrientedArrow| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestOrientedArrow.png
+    :width: 250 px
+
+.. |Plane| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestPlane.png
+    :width: 250 px
+
+.. |Polygon| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestRegularPolygonSource.png
+    :width: 250 px
+
+.. |Sphere| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestSphere.png
+    :width: 250 px
+
+
+.. |embryoslider| image:: https://user-images.githubusercontent.com/32848391/52141624-975ce000-2656-11e9-8d31-2a3c92ab79d6.png
+    :width: 250 px
+
+.. |isosurfaces1| image:: https://user-images.githubusercontent.com/32848391/52141625-975ce000-2656-11e9-91fc-291e072fc4c1.png
+    :width: 250 px
+
+.. |splitmesh.py| replace:: splitmesh.py
+.. _splitmesh.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/splitmesh.py
+.. |splitmesh| image:: https://user-images.githubusercontent.com/32848391/52141626-97f57680-2656-11e9-80ea-fcd3571a6422.png
+    :width: 250 px
+    :target: splitmesh.py_
+    :alt: splitmesh.py
+
+.. |thinplate_morphing.py| replace:: thinplate_morphing.py
+.. _thinplate_morphing.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/thinplate_morphing.py
+.. |thinplate_morphing| image:: https://user-images.githubusercontent.com/32848391/52142303-9927a300-2658-11e9-98db-ebad4883f99f.png
+    :width: 250 px
+    :target: thinplate_morphing.py_
+    :alt: thinplate_morphing.py
+
+.. |projectsphere.py| replace:: projectsphere.py
+.. _projectsphere.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/projectsphere.py
+.. |projectsphere| image:: https://user-images.githubusercontent.com/32848391/52144163-c9be0b80-265d-11e9-9ce6-d6f2b919c214.png
+    :width: 250 px
+    :target: projectsphere.py_
+    :alt: projectsphere.py
+
+
 .. |mesh2volume.py| replace:: mesh2volume.py
 .. _mesh2volume.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/mesh2volume.py
+.. |mesh2volume| image:: https://user-images.githubusercontent.com/32848391/52168902-5638fe80-2730-11e9-8033-8e470a3d4f0f.jpg
+    :width: 250 px
+    :target: mesh2volume.py_
+    :alt: mesh2volume.py
+
+.. |markpoint.py| replace:: markpoint.py
+.. _markpoint.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/markpoint.py
+.. |markpoint| image:: https://user-images.githubusercontent.com/32848391/52169969-1fb7af80-2741-11e9-937f-5c331d9a1d11.jpg
+    :width: 250 px
+    :target: markpoint.py_
+    :alt: markpoint.py
+
+.. |readVolumeAsIsoSurface.py| replace:: readVolumeAsIsoSurface.py
+.. _readVolumeAsIsoSurface.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/readVolumeAsIsoSurface.py
+
+
+.. |read_vti.py| replace:: read_vti.py
+.. _read_vti.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/read_vti.py
+.. |read_vti| image:: https://user-images.githubusercontent.com/32848391/50739036-6bc31300-11da-11e9-89b3-04a75187f812.jpg
+    :width: 250 px
+    :target: read_vti.py_
+    :alt: read_vti.py
+
 
 
 """

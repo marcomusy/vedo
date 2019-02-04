@@ -32,5 +32,5 @@ apts = points(ptsource, r=5, c='r')
 arrs = arrows(ptsource, pttarget)
 
 show([warped, apts, arrs, text(__doc__)],
-     axes=9, viewup='z', verbose=0)
+     axes=9, viewup='z', verbose=0, bg='w')
 

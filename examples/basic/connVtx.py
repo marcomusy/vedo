@@ -12,6 +12,4 @@ vtxs = s.connectedVertices(index, returnIds=False)
 apt = point(s.point(index), c='r', r=15)
 cpts = points(vtxs, c='blue', r=15)
 
-doc = text(__doc__, c='white')
-
-show([s, apt, cpts, doc], bg='blackboard', verbose=False)
+show([s, apt, cpts, text(__doc__)], verbose=False)

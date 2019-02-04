@@ -10,13 +10,13 @@ from __future__ import division, print_function
 print(__doc__)
 
 from vtkplotter import Plotter, ProgressBar, arange, dot
-from vtkplotter import torus, grid, sphere
+from vtkplotter import torus, grid, sphere, point
 import random, numpy as np
 
 screen_w = 800
 screen_h = 800  
  
-vp = Plotter(size=(screen_w,screen_h), axes=0, interactive=0)
+vp = Plotter(size=(screen_w,screen_h), axes=0, interactive=0, bg='w')
 
 # Constants and time step
 Nsp = 200               # Number of small spheres
@@ -130,7 +130,7 @@ for i in pb.range():
     if not int(i)%10:                   # every ten steps:
         rsp = [Pos[0][0],Pos[0][1],0]
         rsv = [Vel[0][0],Vel[0][1],0]
-        vp.point(rsp, c='r', r=5, alpha=0.1)  # leave a point trace
+        vp.add(point(rsp, c='r', r=5, alpha=0.1))  # leave a point trace
         vp.show()                    # render scene   
     pb.print('#actors='+str(len(vp.actors)))
     

@@ -25,7 +25,7 @@ vp.add(box(pos=(-.82,.15,0), length=.04, width=0.50, height=0.3)) #wall
 
 block = cube(pos=x, length=0.2, c='tomato')
 block.addTrail(offset=[0,0.2,0], alpha=0.6, lw=2, n=500) 
-spring = helix(sx0, x, r=.06, thickness=.01, texture='metal1')
+spring = helix(sx0, x, r=.06, thickness=.01)
 vp.add( [block, spring, text(__doc__)] )
 
 pb = ProgressBar(0,300, c='r')

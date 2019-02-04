@@ -14,7 +14,7 @@ from vtkplotter import *
 show([sphere(), cube()], at=[0, 1], shape=(3,1), bg='blackboard')
 
 t = text('''TrackballCamera is the default
-...lets change it to JoystickCamera:''', c='w', bg='y')
+...lets change it to JoystickCamera:''', c='k', bg='w')
 
 print('..change it to JoystickCamera')
 show([paraboloid(), t], at=2, interactorStyle=2)

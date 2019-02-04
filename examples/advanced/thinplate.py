@@ -5,7 +5,7 @@ Any point on the mesh close to a source landmark will
 be moved to a place close to the corresponding target landmark. 
 The points in between are interpolated using Bookstein's algorithm.   
 '''
-from vtkplotter import Plotter, thinPlateSpline, text
+from vtkplotter import Plotter, thinPlateSpline, points, text
 import numpy as np
 np.random.seed(1)
 
@@ -30,7 +30,7 @@ warped = thinPlateSpline(act, ptsource, pttarget)
 warped.alpha(0.4).color('b')
 #print(warped.info['transform']) # saved here.
 
-apts = vp.points(ptsource, r=15, c='r')
+apts = points(ptsource, r=15, c='r')
 
 vp.show([act, warped, apts, text(__doc__)], viewup='z')
 

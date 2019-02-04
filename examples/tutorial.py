@@ -23,7 +23,7 @@ vp = Plotter(title='first example')
 # (The actual mesh corresponds to the outer shape of 
 # an embryonic mouse limb at about 11 days of gestation).
 # Choose a tomato color for the internal surface of the mesh.
-vp.load('data/270.vtk', c='b', bc='tomato', alpha=1) # c=(R,G,B), letter or color name
+vp.load('data/270.vtk', c='aqua', bc='tomato', alpha=1) # c=(R,G,B), letter or color name
 vp.show()  # picks what is automatically stored in python list vp.actors 
 # Press Esc to close the window and exit python session, or q to continue
 
@@ -51,38 +51,26 @@ vp.show()
 
 #########################################################################################
 # Draw a spline through a set of points:
-vp = Plotter(title='Example of splines through 8 random points', verbose=0)
+vp = Plotter(title='Example of splines through random points', verbose=0)
 
 pts = [ (u(0,2), u(0,2), u(0,2)+i) for i in range(8) ] # build python list of points
-vp.points(pts, legend='random points')                 # create the vtkActor
+vp.add(points(pts, r=10)) # add the actor points to the internal list of actors to be shown                                 # create the vtkActor 
 
 for i in range(10):
-    sp = spline(pts, smooth=i/10, degree=2, c=i, legend='smoothing '+str(i/10))
-    vp.add(sp) # add the actor to the internal list of actors to be shown
-vp.show(viewup='z', interactive=1)
+    sp = spline(pts, smooth=i/10, degree=2, c=i)
+    sp.legend('smoothing '+str(i/10.))
+    vp.add(sp) 
+vp.show(viewup='z', interactive=1) # show internal list of actors
 
 
 #########################################################################################
 # Draw a cloud of points each one with a different color
-# which depends on the point position itself
-vp = Plotter(title='color points', verbose=0)
-
+# which depends on the point position itself.
+# No need to instatiate the Plotter class:
 rgb = [(u(0,255), u(0,255), u(0,255)) for i in range(5000)]
 
-vp.points(rgb, c=rgb, alpha=0.7, legend='RGB points')
-vp.show()
-
-
-#########################################################################################
-# Show a dummy sine plot on top left,  
-# and a 3D function f(x,y) = sin(3*x)*log(x-y)/3 (more examples in basic/fxy.py)
-# red points indicate where the function is not real
-vp = Plotter(title='Example of a 3D function plotting', axes=2, verbose=0)
-xycoords = [(exp(i/10), sin(i/5)) for i in range(40)]
-xplt = xyplot( xycoords )
-#
-f = fxy( 'sin(3*x)*log(x-y)/3' )
-vp.show([xplt, f], viewup='z')
+pts = points(rgb, c=rgb, alpha=0.8)
+show(pts, bg='w', verbose=0)
 
 
 #########################################################################################
@@ -91,24 +79,24 @@ vp.show([xplt, f], viewup='z')
 vp = Plotter(shape=(1,2), axes=False)
 a1 = vp.load('data/beethoven.ply', alpha=1)
 coords1 = a1.coordinates()
-pts1 = vp.points(coords1, r=4, c='g', legend='#points = '+str(len(coords1)))
+pts1 = points(coords1, r=4, c='g').legend('#points = '+str(len(coords1)))
 vp.show([a1, pts1], at=0)
 
 a2 = a1.subdivide(method=0) # Increasing the number of points of the mesh
 coords2 = a2.coordinates()
-pts2 = vp.points(coords2, r=1, legend='#points = '+str(len(coords2)))
+pts2 = points(coords2, r=1).legend('#points = '+str(len(coords2)))
 vp.show([a2, pts2], at=1, interactive=True)
 
 
 ########################################################################################
 # Draw a bunch of simple objects on separate parts of the rendering window:
 # split window to best accomodate 9 renderers
-vp = Plotter(N=9, title='basic shapes', axes=0) # split window in 9 frames
+vp = Plotter(N=9, title='basic shapes', axes=0, bg='white') # split window in 9 frames
 vp.sharecam = False                             # each object can be moved independently
 vp.show(at=0, actors=arrow([0,0,0],[1,1,1]),    legend='arrow' )
 vp.show(at=1, actors=line([0,0,0],[1,1,1]),     legend='line' )
 vp.show(at=2, actors=points([[0,0,0],[1,1,1]]), legend='points' )
-vp.show(at=3, actors=text('Hello!') )
+vp.show(at=3, actors=text('Hello!', pos=(0,0,0)) )
 vp.show(at=4, actors=sphere() )
 vp.show(at=5, actors=cube(),     legend='cube')
 vp.show(at=6, actors=torus(),    legend='torus')
@@ -118,8 +106,8 @@ vp.show(at=8, actors=cylinder(), legend='cylinder', interactive=1)
 
 ########################################################################################
 # Draw a bunch of objects from various mesh formats. Loading is automatic.
-vp = Plotter(shape=(3,3), title='mesh formats') # split window in 3 rows and 3 columns
-vp.sharecam = False                             # each object can be moved independently
+vp = Plotter(shape=(3,3), bg='white')  # split window in 3 rows and 3 columns
+vp.sharecam = False                    # each object can be moved independently
 vp.show('data/beethoven.ply', at=0, c=0, axes=0)    # dont show axes, add a ruler
 vp.show('data/cow.g',         at=1, c=1, zoom=1.15) # make it 15% bigger
 vp.show('data/limb.pcd',      at=2, c=2)
