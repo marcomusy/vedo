@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='8.8.2', # change also in vtkplotter/__init__.py and docs/source/conf.py
+    version='8.8.3', # change also in vtkplotter/__init__.py and docs/source/conf.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=['vtk'],
@@ -40,6 +40,8 @@ setup(
 # ( sudo -H pip install . )
 # cd examples
 # ./run_all.sh
+# check vtkconvert:
+# vtkconvert data/290.vtk -to ply
 
 # # check version number here and in vtkplotter/__init__.py
 

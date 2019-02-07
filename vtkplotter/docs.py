@@ -607,8 +607,28 @@ _defs="""
     :target: read_vti.py_
     :alt: read_vti.py
 
+.. |glyphs.py| replace:: glyphs.py
+.. _glyphs.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/glyphs.py
+.. |glyphs| image:: https://user-images.githubusercontent.com/32848391/52233403-47cd1d00-28bf-11e9-86b0-cbceebbde0de.jpg
+    :width: 250 px
+    :target: glyphs.py_
+    :alt: glyphs.py
 
+.. |interpolateField.py| replace:: interpolateField.py
+.. _interpolateField.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/interpolateField.py
+.. || image:: https://user-images.githubusercontent.com/32848391/52416117-25b6e300-2ae9-11e9-8d86-575b97e543c0.png
+    :width: 250 px
+    :target: interpolateField.py_
+    :alt: interpolateField.py
 
+.. |rotateImage.py| replace:: rotateImage.py
+.. _rotateImage.py: https://github.com/marcomusy/vtkplotter/blob/master/examples//.py
+.. |rotateImage| image:: https://user-images.githubusercontent.com/32848391/52416910-fb662500-2aea-11e9-88ba-9c73128e8666.jpg
+    :width: 250 px
+    :target: rotateImage.py_
+    :alt: rotateImage.py
+
+ 
 """
 
 

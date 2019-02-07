@@ -160,6 +160,9 @@ python basic/annotations.py
 echo Running basic/markpoint.py
 python basic/markpoint.py    
 
+echo Running basic/glyphs.py
+python basic/glyphs.py   
+
 
 #################################### advanced
 echo Running advanced/brownian2D.py
@@ -225,8 +228,11 @@ python advanced/blackbody.py
 echo Running advanced/mesh_smoothers.py
 python advanced/mesh_smoothers.py
 
-echo Running advanced/interpolate.py
-python advanced/interpolate.py
+echo Running advanced/interpolateScalar.py
+python advanced/interpolateScalar.py
+
+echo Running advanced/interpolateField.py
+python advanced/interpolateField.py
 
 echo Running advanced/thinplate.py
 python advanced/thinplate.py
@@ -348,11 +354,7 @@ echo vtkplotter -s  "data/timecourse1d/*vtk"
 vtkplotter      -s   data/timecourse1d/*vtk
 
 echo '----------------------------'
-echo vtkplotter -s  "data/timecourse2d/*vtk"
-vtkplotter      -s   data/timecourse2d/*vtk
-
-echo '----------------------------'
-echo vtkplotter -n  "data/timecourse2d/*vtk"
-vtkplotter      -n   data/timecourse2d/*vtk
+echo vtkplotter -s  "data/2??.vtk"
+vtkplotter      -s   data/2??.vtk
 
 

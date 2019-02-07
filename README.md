@@ -56,7 +56,6 @@ python tutorial.py
 [**examples/advanced**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced)<br>
 [**examples/volumetric**](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric)<br>
 [**examples/others**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other).<br>
-_(Scroll down to see the screenshots)._
 
 |    |    |
 |:-------------:|:-----|
@@ -64,7 +63,7 @@ _(Scroll down to see the screenshots)._
 |    |    |
 | ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif) | Simulation of a gyroscope hanging from a spring ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py)) <br /> `python advanced/gyroscope1.py`|
 |    |    |
-|  ![ruth](https://user-images.githubusercontent.com/32848391/43984362-5c545a0e-9d00-11e8-8ce5-572b96bb91d1.gif)  | Simulation of [Rutherford scattering](https://en.wikipedia.org/wiki/Rutherford_scattering) of charged particles on a fixed target ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/particle_simulator.py))<br /> `python advanced/particle_simulator.py`   |
+| ![ruth](https://user-images.githubusercontent.com/32848391/43984362-5c545a0e-9d00-11e8-8ce5-572b96bb91d1.gif)  | Simulation of [Rutherford scattering](https://en.wikipedia.org/wiki/Rutherford_scattering) of charged particles on a fixed target ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/particle_simulator.py))<br /> `python advanced/particle_simulator.py`   |
 |    |    |
 | ![qsine2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)   | Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/tunnelling2.py)) <br /> `python advanced/tunnelling2.py`   |
 |    |    |

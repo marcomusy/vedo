@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # 
-from __future__ import division, print_function
-from vtkplotter.vtkio import write
-from vtkplotter.vtkio import loadFile, convertNeutral2Xml
+from __future__ import print_function
+from vtkplotter.vtkio import _loadFile, convertNeutral2Xml, write
 from vtkplotter.utils import humansort
 from vtkplotter import printc
 import sys, argparse
@@ -22,16 +21,17 @@ if nfiles == 0:
 target_ext = args.to.lower()
 
 if target_ext not in allowedexts:
-    printc('Sorry target cannot be',target_ext,
-           '\nMust be', allowedexts, c=1)
+    printc('Sorry target cannot be', target_ext, '\nMust be', allowedexts, c=1)
     sys.exit()
 
 for f in args.files:
     source_ext = f.split('.')[-1]
     
+    if target_ext == source_ext:
+        continue
+
     if source_ext=='wrl':
         import vtk
-        from vtkplotter.utils import polydata
         
         importer = vtk.vtkVRMLImporter()
         importer.SetFileName(f)
@@ -44,18 +44,17 @@ for f in args.files:
         polyapp = vtk.vtkAppendPolyData()
         for i in range(actors.GetNumberOfItems()):
         	act = actors.GetNextActor()
-        	poly = polydata(act) 
+        	poly = act.clean().computeNormals().polydata(False) 
         	polyapp.AddInputData(poly)
         	print('merging polydata',i ,'with', poly.GetNumberOfPoints(),'points')
         polyapp.Update()
         poly = polyapp.GetOutput()
     else:
-        poly = loadFile(f, 1,1,0,0,0,None,None,0,0,0,0)
-        
-    if target_ext == source_ext:
-        continue
+        a = _loadFile(f, 0, 1,0,0, None,None, 0,0,0) #dummy actor
+        poly = a.clean().computeNormals().polydata(False)
+            
     newf = f.replace("."+source_ext,"")+"."+target_ext
-    printc('converting',f, '->', newf)
+    printc('converting',f, '->', newf, c='g')
 
     if ".neu" in f and target_ext=='xml':
         convertNeutral2Xml(f, newf)

@@ -136,10 +136,10 @@ class Plotter:
       - 8,  show the ``vtkCubeAxesActor`` object,
       - 9,  show the bounding box outline,
                
-    :param bool projection:  if True fugue point is set at infinity (no perspective effects)
-    :param bool sharecam:    if False each renderer will have an independent vtkCamera
+    :param bool infinity: if True fugue point is set at infinity (no perspective effects)
+    :param bool sharecam: if False each renderer will have an independent vtkCamera
     :param bool interactive: if True will stop after show() to allow interaction w/ window
-    :param bool offscreen:   if True will not show the rendering window    
+    :param bool offscreen: if True will not show the rendering window    
     :param bool depthpeeling: depth-peel volumes along with the translucent geometry
     
     |multiwindows|

@@ -1428,7 +1428,7 @@ def removeOutliers(points, radius):
     return actor  # return same obj for concatenation
 
 
-def thinPlateSpline(actor, sourcePts, targetPts, sigma=1):
+def thinPlateSpline(actor, sourcePts, targetPts, userFunctions=(None, None)):
     '''
     `Thin Plate Spline` transformations describe a nonlinear warp transform defined by a set 
     of source and target landmarks. Any point on the mesh close to a source landmark will 
@@ -1437,13 +1437,16 @@ def thinPlateSpline(actor, sourcePts, targetPts, sigma=1):
     
     Transformation object is saved in ``actor.info['transform']``.
     
-    :param float sigma: specify the `'stiffness'` of the spline.
+    :param userFunctions: You must supply both the function 
+        and its derivative with respect to r.
 
     .. hint:: |thinplate| |thinplate.py|_
 
         |thinplate_grid| |thinplate_grid.py|_
 
         |thinplate_morphing| |thinplate_morphing.py|_
+
+        |interpolateField| |interpolateField.py|_
     '''
     ns = len(sourcePts)
     ptsou = vtk.vtkPoints()
@@ -1463,7 +1466,10 @@ def thinPlateSpline(actor, sourcePts, targetPts, sigma=1):
             
     transform = vtk.vtkThinPlateSplineTransform()
     transform.SetBasisToR()
-    transform.SetSigma(sigma)
+    if userFunctions[0]:
+        transform.SetBasisFunction(userFunctions[0])
+        transform.SetBasisDerivative(userFunctions[1])
+    transform.SetSigma(1)
     transform.SetSourceLandmarks(ptsou)
     transform.SetTargetLandmarks(pttar)
     

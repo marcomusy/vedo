@@ -19,7 +19,7 @@ __maintainer__ = "M. Musy, G. Dalmasso"
 __email__      = "marco.musy@embl.es"
 __status__     = "dev"
 __website__    = "https://github.com/marcomusy/vtkplotter"
-__version__    = "8.8.2" ### defined also in setup.py and docs/source/conf.py
+__version__    = "8.8.3" ### defined also in setup.py and docs/source/conf.py
 
 from vtkplotter.plotter import *
 from vtkplotter.analysis import *

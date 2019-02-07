@@ -29,7 +29,9 @@ python example.py  # on mac OSX try 'pythonw' instead
 |    |    |
 | [![gyro2](https://user-images.githubusercontent.com/32848391/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyro2.py)<br/> `gyroscope2.py` | Gyroscope sitting on a pedestal at one end. <br/>The analysis is made in terms of Lagrangian mechanics. |
 |    |    |
-| [![interpolate](https://user-images.githubusercontent.com/32848391/50738940-687b5780-11d9-11e9-9739-b084c5cfffaa.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/interpolate.py)<br/> `interpolate.py` | Interpolate the value of a scalar only known on a set of points to a new set of points where the scalar is not defined. <br>Two interpolation methods are possible: *Radial Basis Function* and *Nearest point*.|
+| [![interpolateScalar](https://user-images.githubusercontent.com/32848391/50738940-687b5780-11d9-11e9-9739-b084c5cfffaa.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/interpolateScalar.py)<br/> `interpolateScalar.py` | Interpolate the value of a scalar only known on a set of points to a new set of points where the scalar is not defined. <br>Two interpolation methods are possible: *Radial Basis Function* and *Nearest point*.|
+|    |    |
+| [![interpolateField](https://user-images.githubusercontent.com/32848391/52416117-25b6e300-2ae9-11e9-8d86-575b97e543c0.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/interpolateField.py)<br/> `interpolateField.py` | Interpolate the value of a vectorial field only known on a small set of points to a whole region space where the field is not defined. <br>Two interpolation methods are shown: *Radial Basis Function* and *Thin Plate Splines*.|
 |    |    |
 | [![mesh_smoothers](https://user-images.githubusercontent.com/32848391/50738939-67e2c100-11d9-11e9-90cb-716ff3f03f67.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/mesh_smoothers.py)<br/> `mesh_smoothers.py` | Mesh smoothing with `smoothLaplacian()` and `smoothWSinc()` methods. |
 |    |    |

@@ -470,7 +470,10 @@ def loadImageData(filename, spacing=[]):
 
 ###########################################################
 def load2Dimage(filename, alpha=1):
-    '''Read a JPEG/PNG image from file. Return an ``ImageActor(vtkImageActor)`` object.'''
+    '''Read a JPEG/PNG image from file. Return an ``ImageActor(vtkImageActor)`` object.
+    
+    .. hint:: |rotateImage| |rotateImage.py|_
+    '''
     fl = filename.lower()
     if '.png' in fl:
         picr = vtk.vtkPNGReader()

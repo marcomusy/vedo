@@ -631,3 +631,7 @@ def printc(*strings, **keys):
 
     if flush:
         sys.stdout.flush()
+
+    
+    
+    

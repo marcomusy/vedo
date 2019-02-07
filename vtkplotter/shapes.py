@@ -39,15 +39,16 @@ __all__ = [
     'paraboloid',
     'hyperboloid',
     'text',
+    'glyph',
 ]
 
 
 ########################################################################
-def point(pos=[0,0,0], r=5, c='k', alpha=1):
+def point(pos=[0,0,0], r=10, c='gray', alpha=1):
     '''Create a simple point actor.'''
     return points([pos], r, c, alpha)
 
-def points(plist, r=4, c='k', alpha=1):
+def points(plist, r=5, c='gray', alpha=1):
     '''
     Build a point ``Actor`` for a list of points.
 
@@ -89,34 +90,95 @@ def points(plist, r=4, c='k', alpha=1):
 def _colorPoints(plist, cols, r, alpha):
     n = len(plist)
     if n > len(cols):
-        colors.printc("Mismatch in colorPoints()", n, len(cols), c=1)
+        colors.printc("Error: mismatch in colorPoints()", n, len(cols), c=1)
         exit()
     if n != len(cols):
         colors.printc("Warning: mismatch in colorPoints()", n, len(cols))
     src = vtk.vtkPointSource()
     src.SetNumberOfPoints(n)
     src.Update()
-    vertexFilter = vtk.vtkVertexGlyphFilter()
-    vertexFilter.SetInputData(src.GetOutput())
-    vertexFilter.Update()
-    pd = vertexFilter.GetOutput()
+    vgf = vtk.vtkVertexGlyphFilter()
+    vgf.SetInputData(src.GetOutput())
+    vgf.Update()
+    pd = vgf.GetOutput()
     ucols = vtk.vtkUnsignedCharArray()
     ucols.SetNumberOfComponents(3)
-    ucols.SetName("RGB")
+    ucols.SetName("pointsRGB")
     for i, p in enumerate(plist):
         c = np.array(colors.getColor(cols[i]))*255
         ucols.InsertNextTuple3(c[0], c[1], c[2])
     pd.GetPoints().SetData(numpy_to_vtk(plist, deep=True))
     pd.GetPointData().SetScalars(ucols)
-    mapper = vtk.vtkPolyDataMapper()
-    mapper.SetInputData(pd)
-    mapper.ScalarVisibilityOn()
-    actor = Actor() 
-    actor.SetMapper(mapper)
+    actor = Actor(pd, c, alpha) 
+    actor.mapper.ScalarVisibilityOn()
     actor.GetProperty().SetInterpolationToFlat()
-    actor.GetProperty().SetOpacity(alpha)
     actor.GetProperty().SetPointSize(r)
     return actor
+
+
+def glyph(actor, glyphObj, orientationArray='', scaleByVectorSize=False, 
+          c='gold', alpha=1):
+    """
+    At each vertex of a mesh, another mesh - a `'glyph'` - is shown with
+    various orientation options and coloring.
+    
+    :param orientationArray: list of vectors, ``vtkAbstractArray`` 
+        or the name of an already existing points array. 
+    :type orientationArray: list, str, vtkAbstractArray
+    :param bool scaleByVectorSize: glyph mesh is scaled by the size of
+        the vectors.
+    
+    .. hint:: |glyphs| |glyphs.py|_
+    """    
+    if isinstance(glyphObj, Actor):
+        glyphObj = glyphObj.polydata()
+    
+    gly = vtk.vtkGlyph3D()
+    gly.SetInputData(actor.polydata())
+    gly.SetSourceData(glyphObj)
+    gly.SetColorModeToColorByScalar()
+
+    if orientationArray!='':
+        gly.OrientOn()
+        gly.SetScaleFactor(1)
+
+        if scaleByVectorSize:
+            gly.SetScaleModeToScaleByVector()
+        else:
+            gly.SetScaleModeToDataScalingOff()
+
+        if orientationArray == 'normals' or orientationArray == 'Normals':
+            gly.SetVectorModeToUseNormal()
+        elif isinstance(orientationArray, vtk.vtkAbstractArray):
+            actor.GetMapper().GetInput().GetPointData().AddArray(orientationArray)
+            actor.GetMapper().GetInput().GetPointData().SetActiveVectors('glyph_vectors')
+            gly.SetInputArrayToProcess(0,0,0, 0, 'glyph_vectors')
+            gly.SetVectorModeToUseVector()
+        elif utils.isSequence(orientationArray): # passing a list
+            actor.addPointField(orientationArray, 'glyph_vectors')
+            gly.SetInputArrayToProcess(0,0,0, 0, 'glyph_vectors') 
+            gly.SetVectorModeToUseVector()
+        else: # passing a name
+            gly.SetInputArrayToProcess(0,0,0, 0, orientationArray) 
+            gly.SetVectorModeToUseVector()
+
+    gly.Update()
+    pd = gly.GetOutput()
+
+    #    if utils.isSequence(c) and len(c) != 3:
+    #        ucols = vtk.vtkUnsignedCharArray()
+    #        ucols.SetNumberOfComponents(3)
+    #        ucols.SetName("glyphRGB")
+    #        for col in c:
+    #            cl = np.array(colors.getColor(col))*255
+    #            ucols.InsertNextTuple3(cl[0], cl[1], cl[2])
+    #        pd.GetPointData().SetScalars(ucols)
+    #        c = None
+        
+    actor = Actor(pd, c, alpha) 
+    actor.GetProperty().SetInterpolationToFlat()
+    return actor
+
 
 
 def line(p0, p1=None, lw=1, c='r', alpha=1, dotted=False):
@@ -329,9 +391,8 @@ def arrow(startPoint, endPoint, s=None, c='r', alpha=1,
     '''
     axis = np.array(endPoint) - np.array(startPoint)
     length = np.linalg.norm(axis)
-    if not length:
-        return None
-    axis = axis/length
+    if length:        
+        axis = axis/length
     theta = np.arccos(axis[2])
     phi = np.arctan2(axis[1], axis[0])
     arr = vtk.vtkArrowSource()
@@ -382,9 +443,8 @@ def arrows(startPoints, endPoints=None,
         startPoint, endPoint = twopts
         axis = np.array(endPoint) - np.array(startPoint)
         length = np.linalg.norm(axis)
-        if not length:
-            return None
-        axis = axis/length
+        if length:
+            axis = axis/length
         theta = np.arccos(axis[2])
         phi = np.arctan2(axis[1], axis[0])
         arr = vtk.vtkArrowSource()
@@ -586,14 +646,15 @@ def spheres(centers, r=1, c='r', alpha=1, res=8):
     src.SetPhiResolution(res)
     src.SetThetaResolution(2*res)
     src.Update()
-    glyph = vtk.vtkGlyph3D()
-    glyph.SetSourceConnection(src.GetOutputPort())
-
+    
     psrc = vtk.vtkPointSource()
     psrc.SetNumberOfPoints(len(centers))
     psrc.Update()
     pd = psrc.GetOutput()
     vpts = pd.GetPoints()
+
+    glyph = vtk.vtkGlyph3D()
+    glyph.SetSourceConnection(src.GetOutputPort())
 
     if cisseq:
         glyph.SetColorModeToColorByScalar()
@@ -717,6 +778,8 @@ def ellipsoid(pos=[0, 0, 0], axis1=[1, 0, 0], axis2=[0, 2, 0], axis3=[0, 0, 3],
     actor.GetProperty().BackfaceCullingOn()
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
+    actor.base = -np.array(axis1)/2 + pos
+    actor.top  =  np.array(axis1)/2 + pos
     return actor
 
 
@@ -788,7 +851,6 @@ def plane(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=None, c='g', bc='darkgreen',
     pd = tf.GetOutput()
     actor = Actor(pd, c=c, bc=bc, alpha=alpha, texture=texture)
     actor.SetPosition(pos)
-    actor.PickableOff()
     return actor
 
 
@@ -934,8 +996,8 @@ def cylinder(pos=[0,0,0], r=1, height=1, axis=[0, 0, 1], c='teal', alpha=1, res=
     actor = Actor(pd, c, alpha)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
-    actor.base = base
-    actor.top = top
+    actor.base = base + pos
+    actor.top = top + pos
     return actor
 
 
@@ -1004,7 +1066,7 @@ def torus(pos=[0,0,0], r=1, thickness=0.1, axis=[0,0,1], c='khaki', alpha=1, res
     return actor
 
 
-def paraboloid(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1], c='cyan', alpha=1, res=100):
+def paraboloid(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1], c='cyan', alpha=1, res=50):
     '''
     Build a paraboloid of specified height and radius `r`, centered at `pos`.
     
@@ -1043,6 +1105,7 @@ def paraboloid(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1], c='cyan', alpha=1, 
     pd = tf.GetOutput()
 
     actor = Actor(pd, c, alpha)
+    actor.mirror('n')
     actor.GetProperty().SetInterpolationToPhong()
     actor.mapper.ScalarVisibilityOff()
     actor.SetPosition(pos)

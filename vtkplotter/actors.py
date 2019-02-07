@@ -1336,7 +1336,7 @@ class Actor(vtk.vtkActor, Prop):
         arr.SetName(name)
         for v in vectors:
               arr.InsertNextTuple(v)
-        poly.GetFieldData().AddArray(arr)
+        poly.GetPointData().AddArray(arr)
         poly.GetPointData().SetActiveVectors(name)
         return self
     
@@ -1353,13 +1353,18 @@ class Actor(vtk.vtkActor, Prop):
         if name is None:
             ncd = poly.GetCellData().GetNumberOfArrays()
             npd = poly.GetPointData().GetNumberOfArrays()
+            nfd = poly.GetFieldData().GetNumberOfArrays()
             arrs=[]
             for i in range(npd):
+                print(i,'GetPointData',poly.GetPointData().GetArrayName(i))
                 arrs.append(poly.GetPointData().GetArrayName(i))
             for i in range(ncd):
+                print('GetcellData')
                 arrs.append(poly.GetCellData().GetArrayName(i))
+            for i in range(nfd):
+                print('GetfieldData')
+                arrs.append(poly.GetFieldData().GetArrayName(i))
             return arrs
-
         arr = poly.GetPointData().GetArray(name)
         if arr:
             if isinstance(name, int):
