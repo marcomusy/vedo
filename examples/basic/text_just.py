@@ -3,7 +3,7 @@ Text jutification and positioning.
  (center, top-left, top-right, bottom-left, bottom-right)
 '''
 print(__doc__)
-from vtkplotter import show, Text, point
+from vtkplotter import show, Text, Point
 
 txt = 'I like\nto play\nguitar'
 

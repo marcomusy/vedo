@@ -54,12 +54,6 @@ python example.py  # on mac OSX try 'pythonw' instead
 | [![thinplate](https://user-images.githubusercontent.com/32848391/51403917-34495480-1b52-11e9-956c-918c7805a9b5.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/thinplate.py)<br/> `thinplate.py` | Perform a nonlinear warp transformation defined by a set of source and target landmarks. |
 |    |    |
 | [![thinplate_grid](https://user-images.githubusercontent.com/32848391/51433540-d188b380-1c4c-11e9-81e7-a1cf4642c54b.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/thinplate_grid.py)<br/> `thinplate_grid.py` | Move a set of control points to warp space in their vicinity. Warping is visualised through a set of horizontal grids. |
-|    |    |
-| [![tunneling1](https://vtkplotter.embl.es/gifs/tunnelling2.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/tunnelling1.py)<br/> `tunnelling1.py` | Quantum Tunnelling effect using 4th order Runge-Kutta method with arbitrary potential shape. <br>The animation shows the evolution of a particle of relatively well defined momentum (hence undefined position) in a box hitting a potential barrier. The wave function is forced to be zero at the box walls. |
-|    |    |
-| [![turing](https://user-images.githubusercontent.com/32848391/50738887-da9f6c80-11d8-11e9-83a6-fb002c0613bd.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/turing.py)<br/> `turing.py` | Visualizing a Turing system of reaction-diffusion between two molecules.|
-|    |    |
-| [![wave](https://user-images.githubusercontent.com/32848391/50738956-7e891800-11d9-11e9-92d7-fa109b1b8551.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/turing.py)<br/> `wave.py` | Simulate a collection of discrete coupled oscillators. We use this as a model of a vibrating string and compare two methods of integration: Euler and Runge-Kutta4.<br>|
 
 
 

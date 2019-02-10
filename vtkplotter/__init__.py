@@ -29,6 +29,11 @@ Development 2018, `doi: 10.1242/dev.154856 <http://dev.biologists.org/content/14
 5 April 2018.
 
 3. G. Dalmasso *et al.*, "Evolution in space and time of 3D volumetric images", in preparation.
+
+Have you found this useful? Cite it if you wish as:
+    
+M. Musy, G. Dalmasso, & B. Sullivan. (2019, February 10). 
+`vtkplotter (Version v8.9.0). Zenodo. <http://doi.org/10.5281/zenodo.2561402>`_
 """
 
 __author__     = "Marco Musy"

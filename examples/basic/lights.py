@@ -1,4 +1,4 @@
-from vtkplotter import Plotter, load, plane
+from vtkplotter import Plotter, load, Plane
 
 vp = Plotter()
 

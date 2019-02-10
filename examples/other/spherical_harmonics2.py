@@ -24,7 +24,7 @@ x0 = [0,0,0] # set object at this position
 
 def makeGrid(shape, N):
     rmax = 2.0   # line length 
-    aGrid, pts = [], []
+    agrid, pts = [], []
     for th in np.linspace(0, np.pi, N, endpoint=True):
         lats = []
         for ph in np.linspace(0, 2*np.pi, N, endpoint=True):
@@ -40,7 +40,7 @@ def makeGrid(shape, N):
         agrid.append(lats)
     agrid = np.array(agrid)
     actor = Points(pts, c='k', alpha=0.4, r=1)
-    return aGrid, actor
+    return agrid, actor
 
 def morph(clm1, clm2, t, lmax):
     # interpolate linearly the two sets of sph harm. coeeficients

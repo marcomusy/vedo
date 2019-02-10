@@ -5,6 +5,7 @@
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![pythvers](https://img.shields.io/badge/python-2.7%7C3.6-brightgreen.svg)](https://pypi.org/project/vtkplotter)
 [![gdocs](https://img.shields.io/badge/docs%20by-gendocs-blue.svg)](https://gendocs.readthedocs.io/en/latest)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2561402.svg)](https://doi.org/10.5281/zenodo.2561402)
 
 A python module for scientific visualization, analysis and animation of 3D objects 
 and *point clouds* based on [VTK](https://www.vtk.org/) 
@@ -131,3 +132,6 @@ Scientific publications using `vtkplotter` so far:
 Development 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/content/145/7/dev154856), 5 April 2018.
 3. G. Dalmasso *et al.*, "Evolution in space and time of 3D volumetric images", in preparation.
 
+Have you found this useful? Cite it if you wish as:<br>
+M. Musy, G. Dalmasso, & B. Sullivan. (2019, February 10). 
+[vtkplotter (Version v8.9.0). Zenodo.](http://doi.org/10.5281/zenodo.2561402)

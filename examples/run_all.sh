@@ -312,11 +312,9 @@ python other/spherical_harmonics1.py # fails if sphtool not installed
 ##################################### not ran/ignored:
 #basic/text_just.py
 #basic/lights.py
-#basic/pointsampler.py
 #basic/ids.py
 #basic/surfIntersect.py
 #other/makeVideo.py
-#other/meshfix.py
 #other/spherical_harmonics2.py 
 
 #################################### 

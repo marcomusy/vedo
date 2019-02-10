@@ -1,4 +1,4 @@
-from vtkplotter import Plotter, sphere
+from vtkplotter import Plotter, Sphere
 from vtkplotter.analysis import surfaceIntersection
 
 vp = Plotter()
