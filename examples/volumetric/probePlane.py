@@ -1,7 +1,7 @@
 '''
 Intersect a vtkImageData (voxel dataset) with planes
 '''
-from vtkplotter import show, loadImageData, probePlane, vector, text
+from vtkplotter import show, loadImageData, probePlane, vector, Text
 
 img = loadImageData('data/embryo.slc')
 
@@ -13,4 +13,4 @@ for i in range(6):
     planes.append(a)
     #print(max(a.scalars(0))) # access scalars this way, 0 means first
 
-show(planes + [text(__doc__)], axes=4, verbose=0)
+show(planes + [Text(__doc__)], axes=4, verbose=0, bg='w')

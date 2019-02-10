@@ -21,7 +21,7 @@ pr.add_argument("-f", "--full-screen",          help="full screen mode", action=
 pr.add_argument("-bg","--background", type=str, help="background color [integer or color name]", default='blackboard', metavar='')
 pr.add_argument("-z", "--zoom", type=float,     help="zooming factor", default=1.1, metavar='')
 pr.add_argument("-q", "--quiet",                help="quiet mode, less verbose", action="store_true")
-pr.add_argument("-n", "--multi-mode",           help="Multi-renderer Mode: files go to separate renderers", action="store_true")
+pr.add_argument("-n", "--multiren-mode",        help="Multi-renderer Mode: files go to separate renderers", action="store_true")
 pr.add_argument("-s", "--scrolling-mode",       help="Scrolling Mode: use arrows to scroll files", action="store_true") 
 pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode for 3D image files", action="store_true") 
 pr.add_argument("-gz", "--z-spacing", type=float, help="Volume z-spacing factor [1]", default=None, metavar='') 
@@ -42,7 +42,7 @@ if args.ray_cast_mode or args.z_spacing or args.y_spacing:
         args.background = 'white'
     
 N = None
-if args.multi_mode: 
+if args.multiren_mode: 
     if nfiles<201: 
         N = nfiles
     if nfiles>200: 
@@ -65,7 +65,7 @@ leg = True
 wire= False
 if args.legend_off or nfiles == 1: leg = False
 if args.wireframe: wire = True 
-if args.scrolling_mode and args.multi_mode:
+if args.scrolling_mode and args.multiren_mode:
     args.scrolling_mode = False
     
 _alphaslider1, _alphaslider2 = 0.4, 0.9 #defaults
@@ -348,7 +348,7 @@ elif nfiles == 1 and ('.slc' in args.files[0]
     
     
 ########################################################################
-# normal mode for single file or multi mode
+# normal mode for single file or multiren mode
 elif (not args.scrolling_mode) or nfiles == 1:
 
     for i in range(N):
@@ -358,7 +358,7 @@ elif (not args.scrolling_mode) or nfiles == 1:
             alpha = 0.1
             wire = True
         else:
-            if not args.multi_mode:
+            if not args.multiren_mode:
                 alpha = 1 #sqrt(1/N)
             wire = False
             
@@ -387,17 +387,17 @@ elif (not args.scrolling_mode) or nfiles == 1:
             except AttributeError:
                 print('cannot set point size for', f)
         
-        if args.multi_mode: 
+        if args.multiren_mode: 
             actor._legend = None
             vp.show(actor, at=i, interactive=False, zoom=args.zoom)
     
-    if args.multi_mode: 
+    if args.multiren_mode: 
         vp.interactor.Start()
     else:
         vp.show(interactive=True, zoom=args.zoom)
         
 ######################################################################## 
-# scrolling mode       
+# scrolling mode  -s
 else:
     import numpy 
 
@@ -428,7 +428,8 @@ else:
         sliderRep.SetValue(_kact)
         vp.clickedActor = vp.actors[_kact]
         vp.interactor.ExitCallback()
-        
+    
+    #####
     if 0 < args.alpha <= 1: 
         alpha = args.alpha
     
@@ -456,9 +457,10 @@ else:
             except AttributeError: 
                 print('cannot set point size for', f)
     printc('Scrolling Mode', c='y', invert=1, end='')
-    printc(', Press:', c='y')
-    printc('- Right and Left keys to move through files,', c='y')
-    printc('- Up and Down keys to fast forward and backward.', c='y') 
+    printc(', press:', c='y')
+    printc('- Right and Left keys to move through files', c='y')
+    printc('- Up and Down keys to fast forward and backward', c='y') 
+    printc('- Q to quit.', c='y') 
 
     vp.interactor.AddObserver("KeyPressEvent", _scroll)
 

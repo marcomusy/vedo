@@ -6,7 +6,7 @@ At each step we redefine the actor so that the normals are
 recalculated for the underlying polydata.
 '''
 from __future__ import division, print_function
-from vtkplotter import Plotter, norm, mag, settings, point, text
+from vtkplotter import Plotter, norm, mag, settings, Point, Text
 
 settings.computeNormals = True # on object creation by default
 
@@ -14,7 +14,7 @@ vp = Plotter(axes=0, verbose=0, bg='w')
 
 s = vp.load('data/290.vtk', c='red', bc='plum')
 c = s.centerOfMass()
-vp.add(point(c))
+vp.add(Point(c))
 
 Niter = 4
 for t in range(Niter):
@@ -31,12 +31,12 @@ for t in range(Niter):
         alongn = n*dp
         alongr = q - p # bias normal
         newp = p + (alongn + alongr) /2 /Niter 
-        s.point(i, newp)
+        s.setPoint(i, newp)
         
     #refresh actor, so polydata normals are recalculated
     s = s.clone()
     s.alpha(0.1).color('gold').wire(True)
     vp.add(s)
 
-vp.add(text(__doc__, c='k'))
+vp.add(Text(__doc__, c='k'))
 vp.show()

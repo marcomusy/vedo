@@ -10,7 +10,8 @@
     - `examples/basic <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic>`_ ,
     - `examples/advanced <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced>`_ ,
     - `examples/volumetric <https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric>`_,
-    - `examples/others <https://github.com/marcomusy/vtkplotter/blob/master/examples/other>`_.
+    - `examples/simulations <https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations>`_.
+    - `examples/other <https://github.com/marcomusy/vtkplotter/blob/master/examples/other>`_.
        
 :raw-html-m2r:`<br />`
 
@@ -21,34 +22,44 @@
 
 """
 
-def _tips():
+
+def onelinetip():
+    import vtk, sys
+    from vtkplotter import colors, __version__
+    vvers = '\nvtkplotter '+__version__+' | vtk '+vtk.vtkVersion().GetVTKVersion()
+    vvers += ' | python ' + str(sys.version_info[0])+'.'+str(sys.version_info[1])
+    vvers += " | press h for help."
+    colors.printc(vvers, dim=1)
+
+def tips():
     import vtk, sys
     from vtkplotter import colors, __version__
     vvers = ' vtkplotter '+__version__+', vtk '+vtk.vtkVersion().GetVTKVersion()
-    vvers += ', python ' + \
-        str(sys.version_info[0])+'.'+str(sys.version_info[1])+' '
+    vvers += ', python ' + str(sys.version_info[0])+'.'+str(sys.version_info[1])+' '
     n = len(vvers)
     if not colors._terminal_has_colors: n = 0
-    colors.printc(' '*n+'_'*(59-n), c='blue')
+    colors.printc(' '*n+'_'*(58-n), c='blue')
     colors.printc(vvers, invert=1, dim=1, c='blue', end='')
-    msg = ' '*(59-n)+'|\n' + '|'+' '*58+'|\n|Press:'
-    msg += "\ti     to print info about selected object          |\n"
-    msg += "|\tm     to minimise opacity of selected mesh         |\n"
-    msg += "|\t.,    to reduce/increase opacity                   |\n"
-    msg += "|\t/     to maximize opacity                          |\n"
-    msg += "|\tw/s   to toggle wireframe/solid style              |\n"
-    msg += "|\tp/P   to change point size of vertices             |\n"
-    msg += "|\tl/L   to change edge line width                    |\n"
-    msg += "|\tx     to toggle mesh visibility                    |\n"
-    msg += "|\tX     to pop up a cutter widget tool               |\n"
-    msg += "|\t1-3   to change mesh color                         |\n"
-    msg += "|\tk/K   to show point/cell scalars as color          |\n"
-    msg += "|\tn     to show surface mesh normals                 |\n"
-    msg += "|\tC     to print current camera info                 |\n"
-    msg += "|\tS     to save a screenshot                         |\n"
-    msg += "|\tq/e   to continue/close the rendering window       |\n"
-    msg += "|\tEsc   to exit program                              |\n"
-    msg += '|'+'_'*58+'|\n'
+    msg = ' '*(58-n)+'|\n' + '|'+' '*57+'|\n|Press:'
+    msg += "\ti     to print info about selected object         |\n"
+    msg += "|\tm     to minimise opacity of selected mesh        |\n"
+    msg += "|\t.,    to reduce/increase opacity                  |\n"
+    msg += "|\t/     to maximize opacity                         |\n"
+    msg += "|\tw/s   to toggle wireframe/solid style             |\n"
+    msg += "|\tp/P   to change point size of vertices            |\n"
+    msg += "|\tl/L   to change edge line width                   |\n"
+    msg += "|\tx     to toggle mesh visibility                   |\n"
+    msg += "|\tX     to pop up a cutter widget tool              |\n"
+    msg += "|\t1-4   to change mesh color or (4) background      |\n"
+    msg += "|\tk/K   to show point/cell scalars as color         |\n"
+    msg += "|\tn     to show surface mesh normals                |\n"
+    msg += "|\ta     to toggle interaction to Actor Mode         |\n"
+    msg += "|\tj     to toggle interaction to Joystick Mode      |\n"
+    msg += "|\tC     to print current camera info                |\n"
+    msg += "|\tS     to save a screenshot                        |\n"
+    msg += "|\tq/e   to continue/close the rendering window      |\n"
+    msg += "|\tEsc   to exit program                             |\n"
+    msg += '|'+'_'*57+'|\n'
     colors.printc(msg, c='blue')
 
 
@@ -69,7 +80,7 @@ _defs="""
     :alt: thinplate_grid.py
         
 .. |gyroscope2.py| replace:: gyroscope2.py
-.. _gyroscope2.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope2.py
+.. _gyroscope2.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/gyroscope2.py
 .. |gyroscope2| image:: https://user-images.githubusercontent.com/32848391/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif
     :width: 250 px
     :target: gyroscope2.py_
@@ -128,7 +139,7 @@ _defs="""
     :alt: shrink.py
 
 .. |aspring.py| replace:: aspring.py
-.. _aspring.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/aspring.py
+.. _aspring.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/aspring.py
 .. |aspring| image:: https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif
     :width: 250 px
     :target: aspring.py_
@@ -206,10 +217,10 @@ _defs="""
     :alt: connVtx.py
 
 .. |spherical_harmonics1.py| replace:: spherical_harmonics1.py
-.. _spherical_harmonics1.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/spherical_harmonics1.py
+.. _spherical_harmonics1.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/spherical_harmonics1.py
 
 .. |spherical_harmonics2.py| replace:: spherical_harmonics2.py
-.. _spherical_harmonics2.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/spherical_harmonics2.py
+.. _spherical_harmonics2.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/spherical_harmonics2.py
 
 .. |skeletonize.py| replace:: skeletonize.py
 .. _skeletonize.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/skeletonize.py
@@ -218,7 +229,7 @@ _defs="""
     :alt: skeletonize.py
 
 .. |gyroscope1.py| replace:: gyroscope1.py
-.. _gyroscope1.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gyroscope1.py
+.. _gyroscope1.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/gyroscope1.py
 .. |gyroscope1| image:: https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif
     :width: 250 px
     :target: gyroscope1.py_
@@ -301,12 +312,6 @@ _defs="""
     :target: align3.py_
     :alt: align3.py
 
-.. |fitline.py| replace:: fitline.py
-.. _fitline.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitline.py
-    :width: 250 px
-    :target: fitline.py_
-    :alt: fitline.py
-
 .. |pca.py| replace:: pca.py
 .. _pca.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/pca.py
 .. |pca| image:: https://user-images.githubusercontent.com/32848391/50738852-be9bcb00-11d8-11e9-8ac8-ad9278d9cee0.jpg
@@ -315,7 +320,7 @@ _defs="""
     :alt: pca.py
 
 .. |cell_main.py| replace:: cell_main.py
-.. _cell_main.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/cell_main.py
+.. _cell_main.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/cell_main.py
 .. |cell_main| image:: https://user-images.githubusercontent.com/32848391/50738947-7335ec80-11d9-11e9-9a45-6053b4eaf9f9.jpg
     :width: 250 px
     :target: cell_main.py_
@@ -446,24 +451,24 @@ _defs="""
     :alt: earth.py
 
 .. |brownian2D.py| replace:: brownian2D.py
-.. _brownian2D.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/brownian2D.py
+.. _brownian2D.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/brownian2D.py
 .. |brownian2D| image:: https://user-images.githubusercontent.com/32848391/50738948-73ce8300-11d9-11e9-8ef6-fc4f64c4a9ce.gif
     :width: 250 px
     :target: brownian2D.py_
 
 .. |gas.py| replace:: gas.py
-.. _gas.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/gas.py
+.. _gas.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/gas.py
 .. |gas| image:: https://user-images.githubusercontent.com/32848391/50738954-7e891800-11d9-11e9-95aa-67c92ca6476b.gif
     :width: 250 px
     :target: gas.py_
     :alt: gas.py
 
-.. |tube.py| replace:: tube.py
-.. _tube.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/tube.py
-.. |tube| image:: https://user-images.githubusercontent.com/32848391/51801626-adc30000-2240-11e9-8866-9d9d5d8790ab.png
+.. |tube(.py| replace:: tube(.py
+.. _tube(.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/tube(.py
+.. |tube(| image:: https://user-images.githubusercontent.com/32848391/51801626-adc30000-2240-11e9-8866-9d9d5d8790ab.png
     :width: 250 px
-    :target: tube.py_
-    :alt: tube.py
+    :target: tube(.py_
+    :alt: tube(.py
 
 .. |mesh_threshold.py| replace:: mesh_threshold.py
 .. _mesh_threshold.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_threshold.py
@@ -599,7 +604,6 @@ _defs="""
 .. |readVolumeAsIsoSurface.py| replace:: readVolumeAsIsoSurface.py
 .. _readVolumeAsIsoSurface.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/readVolumeAsIsoSurface.py
 
-
 .. |read_vti.py| replace:: read_vti.py
 .. _read_vti.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/read_vti.py
 .. |read_vti| image:: https://user-images.githubusercontent.com/32848391/50739036-6bc31300-11da-11e9-89b3-04a75187f812.jpg
@@ -616,19 +620,49 @@ _defs="""
 
 .. |interpolateField.py| replace:: interpolateField.py
 .. _interpolateField.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/interpolateField.py
-.. || image:: https://user-images.githubusercontent.com/32848391/52416117-25b6e300-2ae9-11e9-8d86-575b97e543c0.png
+.. |interpolateField| image:: https://user-images.githubusercontent.com/32848391/52416117-25b6e300-2ae9-11e9-8d86-575b97e543c0.png
     :width: 250 px
     :target: interpolateField.py_
     :alt: interpolateField.py
 
 .. |rotateImage.py| replace:: rotateImage.py
-.. _rotateImage.py: https://github.com/marcomusy/vtkplotter/blob/master/examples//.py
+.. _rotateImage.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/rotateImage.py
 .. |rotateImage| image:: https://user-images.githubusercontent.com/32848391/52416910-fb662500-2aea-11e9-88ba-9c73128e8666.jpg
     :width: 250 px
     :target: rotateImage.py_
     :alt: rotateImage.py
 
- 
+.. |basicshapes| image:: https://user-images.githubusercontent.com/32848391/50738811-58af4380-11d8-11e9-9bfb-378c27c9d26f.png
+    :alt: basicshapes
+
+.. |lines| image:: https://user-images.githubusercontent.com/32848391/52503049-ac9cb600-2be4-11e9-86af-72a538af14ef.png
+    :alt: lines
+
+.. |vlogo_large| image:: https://user-images.githubusercontent.com/32848391/52522716-4fa70b80-2c89-11e9-92a7-0d22cbe34758.png
+    :alt: vlogo_large
+
+.. |vlogo_medium| image:: https://user-images.githubusercontent.com/32848391/52522717-503fa200-2c89-11e9-87ab-67eb44652e24.png
+    :alt: vlogo_medium
+
+.. |vlogo_small| image:: https://user-images.githubusercontent.com/32848391/52522718-50d83880-2c89-11e9-80ff-df1b5618a84a.png
+    :alt: vlogo_small
+
+.. |vlogo_small_dark| image:: https://user-images.githubusercontent.com/32848391/52522719-50d83880-2c89-11e9-8b90-a1c21c27b007.png
+    :alt: vlogo_small_dark
+
+.. |vlogo_tube(| image:: https://user-images.githubusercontent.com/32848391/52522720-5170cf00-2c89-11e9-8b1d-a7a5cf75e71b.png
+    :alt: vlogo_tube(
+
+.. |vlogo_tube(_dark| image:: https://user-images.githubusercontent.com/32848391/52522721-5170cf00-2c89-11e9-8fbb-6efa13940aa1.png
+    :alt: vlogo_tube(_dark
+
+.. |fitline.py| replace:: fitline.py
+.. _fitline.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fitline.py
+.. |fitline| image:: https://user-images.githubusercontent.com/32848391/50738864-c0658e80-11d8-11e9-8754-c670f1f331d6.jpg
+    :width: 250 px
+    :target: fitline.py_
+    :alt: fitline.py
+
 """
 
 

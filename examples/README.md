@@ -127,7 +127,7 @@ vp.show([a2, pts2], at=1, interactive=True)
 vp = Plotter(title='Cut a surface with a plane')
 vp.load('data/2*0.vtk', c='orange', bc='aqua')
 for a in vp.actors:
-    vp.cutPlane(a, origin=(500,0,0), normal=(0,0.3,-1), showcut=True)
+    a.cutWithPlane(origin=(500,0,0), normal=(0,0.3,-1), showcut=True)
 vp.show()
 ```
 ![tut8](https://user-images.githubusercontent.com/32848391/50738973-d889dd80-11d9-11e9-9885-1c2d0a7df30d.jpg)

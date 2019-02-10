@@ -4,12 +4,13 @@ Holes are identified by locating boundary edges, linking them
 together into loops, and then triangulating the resulting loops.
 size: approximate limit to the size of the hole that can be filled.
 '''
-from vtkplotter import fillHoles, load, show, text
+from vtkplotter import load, show, Text
 
 a = load('data/shapes/bunny.obj')
 
-b = fillHoles(a, size=0.1).color('b').wire(True).legend('filled mesh')
+b = a.clone().fillHoles(size=0.1)
+b.color('b').wire(True).legend('filled mesh')
 
-doc = text(__doc__)
+doc = Text(__doc__)
 
-show([a,b, doc], elevation=-70)
+show([a, b, doc], elevation=-70)

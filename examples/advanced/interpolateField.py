@@ -1,10 +1,14 @@
 '''
-Interpolate a vectorial field using Thin Plate Spline or Radial Basis Function.
-Example shows how to share the same vtkCamera between different Plotter windows.
+Interpolate a vectorial field using:
+
+Thin Plate Spline or Radial Basis Function.
+
+Example shows how to share the same vtkCamera 
+between different Plotter windows.
 '''
-print(__doc__)
-from vtkplotter import Plotter, thinPlateSpline, points, arrows, show, text
+from vtkplotter import Plotter, thinPlateSpline, Points, Arrows, show, Text
 import numpy as np
+
 
 n=8j # make a grid n.n.n
 X, Y, Z = np.mgrid[0:10:n, 0:10:n, 0:10:n]
@@ -22,7 +26,7 @@ deltas = [
         (1,-1,.2),
         ]
 
-apos = points(positions, r=2)
+apos = Points(positions, r=2)
 
 #for p in apos.coordinates(): ####### Uncomment to fix some points.
 #    if abs(p[2]-5) > 4.999:  # differences btw RBF and thinplate
@@ -31,16 +35,16 @@ apos = points(positions, r=2)
 sources = np.array(sources)
 deltas  = np.array(deltas)
 
-src = points(sources, c='r', r=12)
-trs = points(sources+deltas, c='v', r=12)
-arr = arrows(sources, sources+deltas)
+src = Points(sources, c='r', r=12)
+trs = Points(sources+deltas, c='v', r=12)
+arr = Arrows(sources, sources+deltas)
 
 ################################################# Thin Plate Splines
 warped = thinPlateSpline(apos, sources, sources+deltas)
 warped.alpha(0.4).color('lg').pointSize(10)
-allarr = arrows(apos.coordinates(), warped.coordinates())
+allarr = Arrows(apos.coordinates(), warped.coordinates())
 
-set1 = [apos, warped, src, trs, arr, text("Thin Plate Splines")]
+set1 = [apos, warped, src, trs, arr, Text(__doc__, s=1.2)]
 vp = show([set1, allarr], N=2, verbose=0) # returns the Plotter class
 
 
@@ -59,14 +63,14 @@ positions_y = itry(xr, yr, zr) + yr
 positions_z = itrz(xr, yr, zr) + zr
 positions_rbf = np.vstack([positions_x, positions_y, positions_z])
 
-warped_rbf = points(positions_rbf, r=2).alpha(0.4).color('lg').pointSize(10)
-allarr_rbf = arrows(apos.coordinates(), warped_rbf.coordinates())
+warped_rbf = Points(positions_rbf, r=2).alpha(0.4).color('lg').pointSize(10)
+allarr_rbf = Arrows(apos.coordinates(), warped_rbf.coordinates())
 
-arr = arrows(sources, sources+deltas)
+arr = Arrows(sources, sources+deltas)
 
 vp2 = Plotter(N=2, pos=(200,300), verbose=0)
 vp2.camera = vp.camera # share the same camera with previous Plotter
-vp2.show([apos, warped_rbf, src, trs, arr, text("Radial Basis Function")], at=0)
+vp2.show([apos, warped_rbf, src, trs, arr, Text("Radial Basis Function")], at=0)
 vp2.show(allarr_rbf, at=1, interactive=1)
 
 

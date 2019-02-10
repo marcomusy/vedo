@@ -25,11 +25,11 @@ a0 = load(f, threshold=80, connectivity=1)
 a1 = load(f, threshold=80, connectivity=0)
 a2 = load(f, smoothing=2)
 
-show([a0,a1,a2], shape=(1,3), axes=0, interactive=0)
+vp1 = show([a0,a1,a2], shape=(1,3), axes=0, interactive=1)
 
 #### Can also read SLC files 
 a3 = load('data/embryo.slc', c='g', smoothing=1, connectivity=1)
 
 # newPlotter triggers the instantiation of a new Plotter object
-show(a3, verbose=0, pos=(300,300), newPlotter=True)
+vp2 = show(a3, verbose=0, pos=(300,300), newPlotter=True)
 

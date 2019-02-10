@@ -40,7 +40,7 @@ __all__ = [
 
 
 
-def load(inputobj, c='gold', alpha=1,
+def load(inputobj, c='gold', alpha=None,
          wire=False, bc=None, legend=True, texture=None,
          smoothing=None, threshold=None, connectivity=False):
         ''' 
@@ -59,6 +59,9 @@ def load(inputobj, c='gold', alpha=1,
         :param threshold:    value to draw the isosurface
         :param connectivity: if True only keeps the largest portion of the polydata
         '''
+        if alpha is None:
+            alpha = 1
+            
         if isinstance(inputobj, vtk.vtkPolyData):
             a = Actor(inputobj, c, alpha, wire, bc, legend, texture)
             if inputobj and inputobj.GetNumberOfPoints() == 0:
@@ -321,7 +324,7 @@ def loadDolfin(filename, c='gold', alpha=1, wire=False, bc=None, legend=None):
     # points = vtk.vtkPoints()
     # for p in coords: points.InsertNextPoint(p)
     # import vtkplotter.shapes
-    # pts_act = vtkplotter.shapes.points(coords, c=c, r=4, legend=legend)
+    # pts_act = vtkplotter.shapes.Points(coords, c=c, r=4, legend=legend)
     # if edges:
     #     # 3D cells are mapped only if they are used by only one cell,
     #     #  i.e., on the boundary of the data set
@@ -492,17 +495,18 @@ def load2Dimage(filename, alpha=1):
     return vactor
 
 
-def write(obj, fileoutput, binary=True):
+def write(objct, fileoutput, binary=True):
     '''
     Write 3D object to file.
 
     Possile extensions are:
         - vtk, vti, ply, obj, stl, byu, vtp, xyz, tif, png, bmp.
     '''
+    obj = objct
     if isinstance(obj, Actor):
-        obj = obj.polydata(True)
+        obj = objct.polydata(True)
     elif isinstance(obj, vtk.vtkActor):
-        obj = obj.GetMapper().GetInput()
+        obj = objct.GetMapper().GetInput()
 
     fr = fileoutput.lower()
     if '.vtk' in fr:
@@ -518,14 +522,13 @@ def write(obj, fileoutput, binary=True):
     elif '.byu' in fr or fr.endswith('.g'):
         w = vtk.vtkBYUWriter()
     elif '.obj' in fr:
-        obj = obj.polydata(True)
         w = vtk.vtkOBJExporter()
         w.SetFilePrefix(fileoutput.replace('.obj', ''))
         colors.printc('Please use write(vp.renderWin)', c=3)
         w.SetInputData(obj)
         w.Update()
         colors.printc("Saved file: "+fileoutput, c='g')
-        return
+        return objct
     elif '.tif' in fr:
         w = vtk.vtkTIFFWriter()
         w.SetFileDimensionality(len(obj.GetDimensions()))
@@ -539,7 +542,7 @@ def write(obj, fileoutput, binary=True):
         w = vtk.vtkBMPWriter()
     else:
         colors.printc('Unknown format', fileoutput, 'file not saved.', c='r')
-        return
+        return objct
 
     try:
         if not '.tif' in fr and not '.vti' in fr:
@@ -553,7 +556,7 @@ def write(obj, fileoutput, binary=True):
         colors.printc("Saved file: "+fileoutput, c='g')
     except Exception as e:
         colors.printc("Error saving: "+fileoutput, '\n', e, c='r')
-    return
+    return objct
 
 
 ########################################################## Video
@@ -1055,7 +1058,7 @@ def _keypress(vp, iren, event):
     # qt creates and passes a vtkGenericRenderWindowInteractor
 
     key = iren.GetKeySym()
-    #print ('Pressed key:', key, event)
+    #print('Pressed key:', key, event)
 
     if key in ["q", "Q", "space", "Return"]:
         iren.ExitCallback()
@@ -1176,18 +1179,54 @@ def _keypress(vp, iren, event):
         else:
             for a in vp.getActors():
                 if a and a.GetPickable():
-                    a.GetProperty().SetRepresentationToWireframe()
+                    if a.GetProperty().GetRepresentation() == 1: #toggle
+                        a.GetProperty().SetRepresentationToSurface()
+                    else:
+                        a.GetProperty().SetRepresentationToWireframe()
 
     elif key == "r":
         vp.renderer.ResetCamera()
-
+        
+    #############################################################
     ### now intercept custom observer ###########################
+    #############################################################
     if vp.keyPressFunction:
         if key not in ['Shift_L', 'Control_L', 'Super_L', 'Alt_L']:
             if key not in ['Shift_R', 'Control_R', 'Super_R', 'Alt_R']:
                 vp.verbose = False
                 vp.keyPressFunction(key)
                 return
+
+    if key == "h":
+        from vtkplotter.docs import tips
+        tips()
+        return
+    
+    if key == "a":
+        iren.ExitCallback()
+        cur = iren.GetInteractorStyle()
+        if isinstance(cur, vtk.vtkInteractorStyleTrackballCamera):
+            print('\nInteractor style changed to TrackballActor')
+            print('  you can now move and rotate individual meshes:')
+            print('  press X twice to save the repositioned mesh,')
+            print("  press 'a' to go back to normal style.")
+            iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
+        else:
+            iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+        iren.Start()
+        return
+
+    if key == "j":
+        iren.ExitCallback()
+        cur = iren.GetInteractorStyle()
+        if isinstance(cur, vtk.vtkInteractorStyleJoystickCamera):
+            iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+        else:
+            print('\nInteractor style changed to Joystick,', end='')
+            print(' press j to go back to normal.')
+            iren.SetInteractorStyle(vtk.vtkInteractorStyleJoystickCamera())
+        iren.Start()
+        return
 
     if key == "S":
         vp.screenshot('screenshot.png')
@@ -1241,7 +1280,7 @@ def _keypress(vp, iren, event):
         vp.icol += 1
         vp._draw_legend()
 
-    elif key in ["3", "KP_Left", "KP_4"]:
+    elif key in ["3", "KP_Next", "KP_3"]:
         c = colors.getColor('gold')
         acs = vp.getActors()
         alpha = 1./len(acs)
@@ -1251,6 +1290,11 @@ def _keypress(vp, iren, event):
             ia.GetProperty().SetOpacity(alpha)
             ia.GetMapper().ScalarVisibilityOff()
         vp._draw_legend()
+
+    elif key in ["4", "KP_Left", "KP_4"]:
+        bgc = numpy.array(vp.renderer.GetBackground()).sum()/3
+        if bgc>1: bgc=-0.22       
+        vp.renderer.SetBackground(bgc+0.22,bgc+0.22,bgc+0.22)
 
 
     elif key in ["k", "K"]:
@@ -1371,7 +1415,7 @@ def _keypress(vp, iren, event):
             vp.clickedActor = vp.actors[-1]
         if vp.clickedActor:
             if not vp.cutterWidget:
-                vp.cutterWidget = vp.addCutterTool(vp.clickedActor)
+                vp.addCutterTool(vp.clickedActor)
             else:
                 fname = 'clipped.vtk'
                 confilter = vtk.vtkPolyDataConnectivityFilter()
@@ -1394,7 +1438,6 @@ def _keypress(vp, iren, event):
                 colors.printc("  -> Saved file:", fname, c='m')
                 vp.cutterWidget.Off()
                 vp.cutterWidget = None
-
         else:
             colors.printc('Click an actor and press X to open the cutter box widget.', c=4)
 

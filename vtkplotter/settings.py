@@ -9,6 +9,12 @@ __all__ = [
        'usingQt',
        ]
 
+
+
+def init():
+    global plotter_instance
+    plotter_instance = None
+
 # recompute vertex and cell normals
 computeNormals = None 
 
@@ -20,3 +26,4 @@ allowInteraction = True
 
 # Qt embedding
 usingQt = False
+

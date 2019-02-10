@@ -4,5 +4,8 @@ include examples/*
 include examples/basic/*
 include examples/advanced/*
 include examples/volumetric/*
+include examples/simulations/*
 include examples/other/*
 include bin/*
+include docs/*
+include docs/source/*

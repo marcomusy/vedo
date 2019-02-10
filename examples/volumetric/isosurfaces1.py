@@ -15,9 +15,9 @@ v = Volume(data_matrix)
 
 s = isosurface(v.image, 
                threshold=[t for t in arange(0, 200, 10)])
-s.alpha(0.2)
+s.alpha(0.5)
 
-show([v,s], N=2, axes=8, bg='w')       
+show([v,s], N=2, axes=8, bg='w', depthpeeling=1)       
   
 
 exit()

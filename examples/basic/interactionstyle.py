@@ -11,10 +11,10 @@ Scene interaction styles. Available styles are:
 print(__doc__)
 from vtkplotter import *
 
-show([sphere(), cube()], at=[0, 1], shape=(3,1), bg='blackboard')
+show([Sphere(), Cube()], at=[0, 1], shape=(3,1), bg='blackboard')
 
-t = text('''TrackballCamera is the default
+t = Text('''TrackballCamera is the default
 ...lets change it to JoystickCamera:''', c='k', bg='w')
 
 print('..change it to JoystickCamera')
-show([paraboloid(), t], at=2, interactorStyle=2)
+show([Paraboloid(), t], at=2, interactorStyle=2)

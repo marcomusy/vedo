@@ -5,7 +5,7 @@ print(__doc__)
 
 from vtkplotter import *
 
-a1 = meshQuality(sphere())
+a1 = meshQuality(Sphere())
 a2 = meshQuality(load('data/shapes/bunny.obj').normalize())
 a3 = meshQuality(load('data/shapes/motor.g').normalize())
 

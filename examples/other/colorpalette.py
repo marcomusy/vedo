@@ -2,7 +2,7 @@
 Generate a list of N colors starting from color1 to color2 in RGB or HSV space
 '''
 from __future__ import print_function
-print(__file__, __doc__)
+print(__doc__)
 
 from vtkplotter.colors import makePalette, getColorName
 

@@ -7,7 +7,7 @@ Then open an independent window and draw a shape on it.
 '''
 print(__doc__)
 
-from vtkplotter import Plotter, text
+from vtkplotter import Plotter, Text
 
 
 # this is one instance of the class Plotter with 5 raws and 5 columns
@@ -24,7 +24,7 @@ c = vp1.load('data/shapes/atc.ply')
 
 # show a text in each renderer
 for i in range(22):
-    txt = text('renderer\nnr.'+str(i), c=i, s=0.5, justify='centered')
+    txt = Text('renderer\nnr.'+str(i), c=i, s=0.5, justify='centered')
     vp1.show(txt, at=i)
 
 vp1.show(a, at=22)

@@ -11,19 +11,20 @@ In the second window we show the error estimated for
 each point in color scale (left) or in size scale (right).
 '''
 from __future__ import division, print_function
-from vtkplotter import Plotter, colorMap, smoothMLS2D, points, spheres, text
+from vtkplotter import Plotter, colorMap, smoothMLS2D, Points, Spheres, Text
 import numpy as np
 
 vp1 = Plotter(shape=(1,4), axes=4, bg='w')
 
-act = vp1.load('data/shapes/bunny.obj', c='k 0.05', wire=1).normalize().subdivide()
+act = vp1.load('data/shapes/bunny.obj').normalize().subdivide()
+act.color('k').alpha(0.05).wire(True)
 pts = act.coordinates(copy=True)      # pts is a copy of the points not a reference
 pts += np.random.randn(len(pts),3)/40 # add noise, will not mess up the original points
 
 
 #################################### smooth cloud with MLS
 # build the points actor
-s0 = points(pts, c='blue', r=3).legend('point cloud') 
+s0 = Points(pts, c='blue', r=3).legend('point cloud') 
 vp1.show(s0, at=0) 
 
 s1 = s0.clone().color('dg')                   # a dark green copy of s0
@@ -48,8 +49,8 @@ vmin,vmax = np.min(variances), np.max(variances)
 print('min and max of variances:', vmin,vmax)
 vcols = [ colorMap(v, 'jet', vmin, vmax) for v in variances ] # scalars->colors
 
-a0 = spheres(s1.coordinates(), c=vcols, r=0.03).legend('variance')
-a1 = spheres(s1.coordinates(), c='red', r=variances).legend('variance')
+a0 = Spheres(s1.coordinates(), c=vcols, r=0.03).legend('variance')
+a1 = Spheres(s1.coordinates(), c='red', r=variances).legend('variance')
 
-vp2.show(a0, at=0)
-vp2.show([a1, act, text(__doc__, c='k')], at=1, zoom=1.3, interactive=1)
+vp2.show([a0, Text(__doc__, c='k')], at=0)
+vp2.show([a1, act], at=1, zoom=1.3, interactive=1)

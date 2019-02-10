@@ -14,7 +14,7 @@ import vtkplotter.docs as docs
 import vtkplotter.settings as settings
 
 __doc__="""
-Defines main class ``Plotter`` to manage actors and 3D rendering.dd
+Defines main class ``Plotter`` to manage actors and 3D rendering.
 """+docs._defs
 
 __all__ = [
@@ -22,7 +22,6 @@ __all__ = [
     'Plotter',
 ]
 
-_plotter_instance = None
 
 ########################################################################
 def show(actors=None, 
@@ -31,7 +30,7 @@ def show(actors=None,
          bg='blackboard', bg2=None, axes=1, infinity=False,
          verbose=True, interactive=None, offscreen=False,
          zoom=None, viewup='', azimuth=0, elevation=0, roll=0, 
-         interactorStyle=0, newPlotter=False, q=False):
+         interactorStyle=0, newPlotter=False, depthpeeling=False, q=False):
     '''
     Create on the fly an instance of class ``Plotter`` and show the object(s) provided.
     
@@ -51,26 +50,23 @@ def show(actors=None,
     .. note:: With multiple renderers, keyword ``at`` can become a `list`, e.g.:
     
         >>> from vtkplotter import *
-        >>> s = sphere()
-        >>> c = cube()
-        >>> p = paraboloid()
+        >>> s = Sphere()
+        >>> c = Cube()
+        >>> p = Paraboloid()
         >>> show([s, c], at=[0, 1], shape=(3,1))
         >>> show(p, at=2)
         >>> #
         >>> # is equivalent to:
         >>> vp = Plotter(shape=(3,1))
-        >>> s = sphere()
-        >>> c = cube()
-        >>> p = paraboloid()
+        >>> s = Sphere()
+        >>> c = Cube()
+        >>> p = Paraboloid()
         >>> vp.show(s, at=0)
         >>> vp.show(p, at=1)
         >>> vp.show(c, at=2, interactive=True)
-    '''
-
-    global _plotter_instance
-    
-    if _plotter_instance and newPlotter==False:
-        vp = _plotter_instance
+    '''   
+    if settings.plotter_instance and newPlotter==False:
+        vp = settings.plotter_instance
     else:
         if utils.isSequence(at):
             if not utils.isSequence(actors):
@@ -89,9 +85,9 @@ def show(actors=None,
     
         vp = Plotter(shape=shape, N=N,
                      pos=pos, size=size, screensize=screensize, title=title,
-                     bg=bg, bg2=bg2, axes=axes, infinity=infinity,
+                     bg=bg, bg2=bg2, axes=axes, infinity=infinity, depthpeeling=depthpeeling,
                      verbose=verbose, interactive=interactive, offscreen=offscreen)
-        _plotter_instance = vp
+        settings.plotter_instance = vp
         
     if utils.isSequence(at):
         no = len(actors)-1
@@ -134,7 +130,7 @@ class Plotter:
       - 6,  mark the corners of the bounding box
       - 7,  draw a simple ruler at the bottom of the window
       - 8,  show the ``vtkCubeAxesActor`` object,
-      - 9,  show the bounding box outline,
+      - 9,  show the bounding box outLine,
                
     :param bool infinity: if True fugue point is set at infinity (no perspective effects)
     :param bool sharecam: if False each renderer will have an independent vtkCamera
@@ -152,8 +148,8 @@ class Plotter:
                  depthpeeling=False):
 
 
-        global _plotter_instance
-        _plotter_instance = self
+        global plotter_instance
+        plotter_instance = self
 
         if interactive is None:
             if N or shape != (1, 1):
@@ -598,7 +594,7 @@ class Plotter:
         """
         Generate a source of light placed at pos, directed to focal point fp.
 
-        :param fp: focal point, if this is a ``vtkActor`` use its position.
+        :param fp: focal Point, if this is a ``vtkActor`` use its position.
         :type fp: vtkActor, list
         :param deg: aperture angle of the light source
         :param showsource: if `True`, will show a vtk representation
@@ -629,41 +625,6 @@ class Plotter:
 
 
     ################################################################## 
-#    def points(self, plist=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], r=4,
-#               c='k', alpha=1):
-#        '''
-#        Build a ``vtkActor`` for a list of points.
-#
-#        :param float r: point radius.
-#        :param c: color name, number, or list of [R,G,B] colors of same length as plist.
-#        :type c: int, str, list
-#        :param float alpha: transparency in range [0,1].
-#
-#        .. hint:: |lorenz| |lorenz.py|_
-#        '''
-#        a = shapes.points(plist, r, c, alpha)
-#        self.add(a)
-#        return a
-
-
-    def cutPlane(self, actor, origin=(0, 0, 0), normal=(1, 0, 0), showcut=False):
-        '''
-        Takes actor and cuts it with the plane defined by a point and a normal.
-        Original actor is modified.
-
-        :param showcut: shows the cut away part as thin wireframe.
-
-        .. hint:: |trail| |trail.py|_
-        '''
-        cactor = actor.cutPlane(origin, normal, showcut)
-        try:
-            i = self.actors.index(actor)
-            self.actors[i] = cactor  # substitute original actor with cut one
-        except ValueError:
-            self.actors.append(cactor)
-        return cactor  # NB: original actor is modified
-
-
     def addScalarBar(self, actor=None, c=None, title='', horizontal=False):
         """
         Add a 2D scalar bar for the specified actor.
@@ -672,16 +633,21 @@ class Plotter:
        
         .. hint:: |mesh_bands| |mesh_bands.py|_
         """
-
         if actor is None:
             actor = self.lastActor()
-        if not isinstance(actor, vtk.vtkActor) or not hasattr(actor, 'GetMapper'):
-            colors.printc(
-                'Error in addScalarBar: input is not a vtkActor.', c=1)
+        if not hasattr(actor, 'mapper'):
+            colors.printc('Error in addScalarBar: input is not a Actor.', c=1)
             return None
-        lut = actor.GetMapper().GetLookupTable()
+        
+        lut = actor.mapper.GetLookupTable()
         if not lut:
             return None
+        vtkscalars = actor.poly.GetPointData().GetScalars()
+        if vtkscalars is None:
+            vtkscalars = actor.poly.GetCellData().GetScalars()
+        if not vtkscalars:
+            return None
+        actor.mapper.SetScalarRange(vtkscalars.GetRange())
 
         if c is None:
             if self.renderer:  # automatic black or white
@@ -784,7 +750,7 @@ class Plotter:
             cmap = vtkscalars_name
             
         # build the color scale part
-        scale = shapes.grid([-sx*gap, 0, 0], c='w',
+        scale = shapes.Grid([-sx*gap, 0, 0], c='w',
                             alpha=alpha, sx=sx, sy=sy, resx=1, resy=ncols)
         scale.GetProperty().SetRepresentationToSurface()
         cscals = scale.cellCenters()[:, 1]
@@ -816,7 +782,7 @@ class Plotter:
         for i, t in enumerate(tlabs):
             tx = utils.precision(t, prec)
             y = -sy/1.98+sy*i/(nlabels-1)
-            a = shapes.text(tx, pos=[sx*gap, y, 0],
+            a = shapes.Text(tx, pos=[sx*gap, y, 0],
                             s=sy/50, c=c, alpha=alpha, depth=0)
             a.PickableOff()
             tacts.append(a)
@@ -835,6 +801,7 @@ class Plotter:
             self.interactive = save_int
         self.renderers[at].AddActor(sact)
         self.renderers[at].Render()
+        sact.PickableOff()
         return sact
     
 
@@ -1009,7 +976,7 @@ class Plotter:
 
         act0Mapper = vtk.vtkPolyDataMapper()  # the part which stays
         act0Mapper.SetInputConnection(clipper.GetOutputPort())
-        act0 = vtk.vtkActor()
+        act0 = Actor()
         act0.SetMapper(act0Mapper)
         act0.GetProperty().SetColor(actor.GetProperty().GetColor())
         act0.GetProperty().SetOpacity(1)
@@ -1053,8 +1020,10 @@ class Plotter:
 
         self.interactor.Start()
         boxWidget.Off()
-
         self.widgets.append(boxWidget)
+
+        self.interactor.Start() # allow extra interaction
+
         return act0
     
 
@@ -1100,7 +1069,7 @@ class Plotter:
         '''
         Draw axes on scene. Available axes types:
 
-        :param int axtype: 0 = no axes,   
+        :param int axtype: 
          
               - 0,  no axes,
               - 1,  draw three gray grid walls
@@ -1111,7 +1080,7 @@ class Plotter:
               - 6,  mark the corners of the bounding box
               - 7,  draw a simple ruler at the bottom of the window
               - 8,  show the ``vtkCubeAxesActor`` object,
-              - 9,  show the bounding box outline,
+              - 9,  show the bounding box outLine,
         '''
         if axtype is not None:
             self.axes = axtype # overrride
@@ -1130,57 +1099,66 @@ class Plotter:
         r = self.renderers.index(self.renderer)
         if self.axes_exist[r]:
             return
-        self.axes_exist[r] = True
 
-        vbb = self.renderer.ComputeVisiblePropBounds()
+        # calculate max actors bounds
+        bns = []
+        for a in self.actors:
+            if a and a.GetPickable():
+                b = a.GetBounds()
+                if b:
+                    bns.append(b)
+        if len(bns): 
+            max_bns = numpy.max(bns, axis=0)
+            min_bns = numpy.min(bns, axis=0)
+            vbb = (min_bns[0], max_bns[1], min_bns[2], max_bns[3], min_bns[4], max_bns[5])
+        else:
+            vbb = self.renderer.ComputeVisiblePropBounds()
+            max_bns = vbb
+            min_bns = vbb
+        sizes = (max_bns[1]-min_bns[0],
+                 max_bns[3]-min_bns[2],
+                 max_bns[5]-min_bns[4])
 
-
+        ############################################################
         if self.axes == 1 or self.axes == True: # gray grid walls
             nd  = 4     # number of divisions in the smallest axis
             off = -0.04 # label offset
-            bns = []
-            for a in self.actors:
-                b = a.GetBounds()
-                if b is not None:
-                    bns.append(b)
-            if len(bns) == 0: return
-            max_bns = numpy.max(bns, axis=0)
-            min_bns = numpy.min(bns, axis=0)
-            sizes = (max_bns[1]-min_bns[0],
-                     max_bns[3]-min_bns[2],
-                     max_bns[5]-min_bns[4])
-            step  = numpy.min(sizes)/nd
-            if not step: return
+            step = numpy.min(sizes)/nd
+            if not step: 
+                self.drawAxes(axtype=8, c=c) # bad proportions, use vtkCubeAxesActor
+                self.axes = 1
+                return
+            
             rx, ry, rz = numpy.rint(sizes/step).astype(int)
             if max([rx/ry,ry/rx,rx/rz,rz/rx,ry/rz,rz/ry]) > 15:
                 self.drawAxes(axtype=8, c=c) # bad proportions, use vtkCubeAxesActor
                 self.axes = 1
                 return
 
-            gxy = shapes.grid(pos=(.5,.5,0), normal=[0,0,1], bc=None, resx=rx, resy=ry)
-            gxz = shapes.grid(pos=(.5,0,.5), normal=[0,1,0], bc=None, resx=rz, resy=rx)
-            gyz = shapes.grid(pos=(0,.5,.5), normal=[1,0,0], bc=None, resx=rz, resy=ry)
+            gxy = shapes.Grid(pos=(.5,.5,0), normal=[0,0,1], bc=None, resx=rx, resy=ry)
+            gxz = shapes.Grid(pos=(.5,0,.5), normal=[0,1,0], bc=None, resx=rz, resy=rx)
+            gyz = shapes.Grid(pos=(0,.5,.5), normal=[1,0,0], bc=None, resx=rz, resy=ry)
             gxy.alpha(0.06).wire(False).color(c).lineWidth(1)
             gxz.alpha(0.04).wire(False).color(c).lineWidth(1)
             gyz.alpha(0.04).wire(False).color(c).lineWidth(1)
 
-            xa = shapes.line([0,0,0], [1,0,0], c=c, lw=1)
-            ya = shapes.line([0,0,0], [0,1,0], c=c, lw=1)
-            za = shapes.line([0,0,0], [0,0,1], c=c, lw=1)
+            xa = shapes.Line([0,0,0], [1,0,0], c=c, lw=1)
+            ya = shapes.Line([0,0,0], [0,1,0], c=c, lw=1)
+            za = shapes.Line([0,0,0], [0,0,1], c=c, lw=1)
 
             xt, yt, zt, ox, oy, oz = [None]*6
             if self.xtitle:
                 if min_bns[0]<=0 and max_bns[1]>0: # mark x origin
-                    ox = shapes.cube([-min_bns[0]/sizes[0],0,0], length=.008, c=c)
+                    ox = shapes.Cube([-min_bns[0]/sizes[0],0,0], side=.008, c=c)
                 if len(self.xtitle) == 1: # add axis length info
                     self.xtitle += ' /' + utils.precision(sizes[0], 4)
                 wpos = [1-(len(self.xtitle)+1)/40, off, 0]
-                xt = shapes.text(self.xtitle, pos=wpos, normal=(0,0,1), s=.025, c=c)
+                xt = shapes.Text(self.xtitle, pos=wpos, normal=(0,0,1), s=.025, c=c)
 
             if self.ytitle:
                 if min_bns[2]<=0 and max_bns[3]>0: # mark y origin
-                    oy = shapes.cube([0,-min_bns[2]/sizes[1],0], length=.008, c=c)
-                yt = shapes.text(self.ytitle, pos=(0,0,0), normal=(0,0,1), s=.025, c=c)
+                    oy = shapes.Cube([0,-min_bns[2]/sizes[1],0], side=.008, c=c)
+                yt = shapes.Text(self.ytitle, pos=(0,0,0), normal=(0,0,1), s=.025, c=c)
                 if len(self.ytitle) == 1:
                     wpos = [off, 1-(len(self.ytitle)+1)/40,  0]
                     yt.pos(wpos)
@@ -1190,8 +1168,8 @@ class Plotter:
 
             if self.ztitle:
                 if min_bns[4]<=0 and max_bns[5]>0: # mark z origin
-                    oz = shapes.cube([0,0,-min_bns[4]/sizes[2]], length=.008, c=c)
-                zt = shapes.text(self.ztitle, pos=(0,0,0), normal=(1,-1,0), s=.025, c=c)
+                    oz = shapes.Cube([0,0,-min_bns[4]/sizes[2]], side=.008, c=c)
+                zt = shapes.Text(self.ztitle, pos=(0,0,0), normal=(1,-1,0), s=.025, c=c)
                 if len(self.ztitle) == 1:
                     wpos = [off*.6, off*.6, 1-(len(self.ztitle)+1)/40]
                     zt.rotate(90, (1,-1,0)).pos(wpos)
@@ -1209,6 +1187,7 @@ class Plotter:
             self.renderer.AddActor(aa)
 
         elif self.axes == 2 or self.axes == 3:
+            vbb = self.renderer.ComputeVisiblePropBounds() # to be double checked
             xcol, ycol, zcol = 'db', 'dg', 'dr'  
             s = 1
             alpha = 1
@@ -1231,38 +1210,38 @@ class Plotter:
             dx, dy, dz = x1-x0, y1-y0, z1-z0
             acts = []
             if (x0*x1 <= 0 or y0*z1 <= 0 or z0*z1 <= 0):  # some ranges contain origin
-                zero = shapes.sphere(r=aves/120*s, c='k', alpha=alpha, res=10)
+                zero = shapes.Sphere(r=aves/120*s, c='k', alpha=alpha, res=10)
                 acts += [zero]
 
             if len(self.xtitle) and dx > aves/100:
-                xl = shapes.cylinder([[x0, 0, 0], [x1, 0, 0]], r=aves/250*s, c=xcol, alpha=alpha)
-                xc = shapes.cone(pos=[x1, 0, 0], c=xcol, alpha=alpha,
+                xl = shapes.Cylinder([[x0, 0, 0], [x1, 0, 0]], r=aves/250*s, c=xcol, alpha=alpha)
+                xc = shapes.Cone(pos=[x1, 0, 0], c=xcol, alpha=alpha,
                                  r=aves/100*s, height=aves/25*s, axis=[1, 0, 0], res=10)
                 wpos = [x1-(len(self.xtitle)+1)*aves/40*s, -aves/25*s, 0]  # aligned to arrow tip
                 if centered:
                     wpos = [(x0+x1)/2-len(self.xtitle) / 2*aves/40*s, -aves/25*s, 0]
-                xt = shapes.text(self.xtitle, pos=wpos, normal=(0, 0, 1), s=aves/40*s, c=xcol)
+                xt = shapes.Text(self.xtitle, pos=wpos, normal=(0, 0, 1), s=aves/40*s, c=xcol)
                 acts += [xl, xc, xt]
 
             if len(self.ytitle) and dy > aves/100:
-                yl = shapes.cylinder([[0, y0, 0], [0, y1, 0]], r=aves/250*s, c=ycol, alpha=alpha)
-                yc = shapes.cone(pos=[0, y1, 0], c=ycol, alpha=alpha,
+                yl = shapes.Cylinder([[0, y0, 0], [0, y1, 0]], r=aves/250*s, c=ycol, alpha=alpha)
+                yc = shapes.Cone(pos=[0, y1, 0], c=ycol, alpha=alpha,
                                  r=aves/100*s, height=aves/25*s, axis=[0, 1, 0], res=10)
                 wpos = [-aves/40*s, y1-(len(self.ytitle)+1)*aves/40*s, 0]
                 if centered:
                     wpos = [-aves/40*s, (y0+y1)/2 - len(self.ytitle)/2*aves/40*s, 0]
-                yt = shapes.text(self.ytitle, pos=(0,0,0), normal=(0, 0, 1), s=aves/40*s, c=ycol)
+                yt = shapes.Text(self.ytitle, pos=(0,0,0), normal=(0, 0, 1), s=aves/40*s, c=ycol)
                 yt.rotate(90, [0, 0, 1]).pos(wpos)
                 acts += [yl, yc, yt]
 
             if len(self.ztitle) and dz > aves/100:
-                zl = shapes.cylinder([[0, 0, z0], [0, 0, z1]], r=aves/250*s, c=zcol, alpha=alpha)
-                zc = shapes.cone(pos=[0, 0, z1], c=zcol, alpha=alpha,
+                zl = shapes.Cylinder([[0, 0, z0], [0, 0, z1]], r=aves/250*s, c=zcol, alpha=alpha)
+                zc = shapes.Cone(pos=[0, 0, z1], c=zcol, alpha=alpha,
                                  r=aves/100*s, height=aves/25*s, axis=[0, 0, 1], res=10)
                 wpos = [-aves/50*s, -aves/50*s, z1 - (len(self.ztitle)+1)*aves/40*s]
                 if centered:
                     wpos = [-aves/50*s, -aves/50*s, (z0+z1)/2-len(self.ztitle)/2*aves/40*s]
-                zt = shapes.text(self.ztitle, pos=(0,0,0), normal=(1, -1, 0), s=aves/40*s, c=zcol)
+                zt = shapes.Text(self.ztitle, pos=(0,0,0), normal=(1, -1, 0), s=aves/40*s, c=zcol)
                 zt.rotate(180, (1, -1, 0)).pos(wpos)
                 acts += [zl, zc, zt]
             for a in acts: a.PickableOff()
@@ -1390,23 +1369,15 @@ class Plotter:
             self.renderer.AddActor(ca)
 
         elif self.axes == 9:
-            bns = []
-            for a in self.actors:
-                b = a.GetBounds()
-                if b is not None:
-                    bns.append(b)
-            if len(bns) == 0: return
-            max_bns = numpy.max(bns, axis=0)
-            min_bns = numpy.min(bns, axis=0)
             src = vtk.vtkCubeSource()
-            src.SetXLength(max_bns[1]-min_bns[0])
-            src.SetYLength(max_bns[3]-min_bns[2])
-            src.SetZLength(max_bns[5]-min_bns[4])
+            src.SetXLength(vbb[1]-vbb[0])
+            src.SetYLength(vbb[3]-vbb[2])
+            src.SetZLength(vbb[5]-vbb[4])
             src.Update()
-            ca = Actor(src.GetOutput(), c='k', alpha=0.5, wire=1)
-            ca.pos((min_bns[0]+max_bns[1])/2,
-                   (max_bns[3]+min_bns[2])/2,
-                   (max_bns[5]+min_bns[4])/2)
+            ca = Actor(src.GetOutput(), c=c, alpha=0.5, wire=1)
+            ca.pos((vbb[0]+vbb[1])/2,
+                   (vbb[3]+vbb[2])/2,
+                   (vbb[5]+vbb[4])/2)
             ca.PickableOff()
             self.renderer.AddActor(ca)
 
@@ -1423,11 +1394,15 @@ class Plotter:
       7 = draw a simple ruler at the bottom of the window
       8 = show the vtkCubeAxesActor object
       9 = show the bounding box outline''', c=1, bold=0)
+
+        self.axes_exist[r] = True
         return
 
 
     def _draw_legend(self):
         if not utils.isSequence(self._legend):
+            return
+        if len(self.renderers) > 4:
             return
 
         # remove old legend if present on current renderer:
@@ -1481,6 +1456,7 @@ class Plotter:
         vtklegend.SetBackgroundOpacity(0.6)
         vtklegend.LockBorderOn()
         self.renderer.AddActor(vtklegend)
+        
 
     #################################################################################
     def show(self, actors=None, at=None, legend=None, axes=None,
@@ -1512,7 +1488,7 @@ class Plotter:
               - 6,  mark the corners of the bounding box
               - 7,  draw a simple ruler at the bottom of the window
               - 8,  show the ``vtkCubeAxesActor`` object,
-              - 9,  show the bounding box outline,
+              - 9,  show the bounding box outLine,
               
         :param c:     surface color, in rgb, hex or name formats
         :param bc:    set a color for the internal surface face
@@ -1555,7 +1531,7 @@ class Plotter:
                     if bc:  # defines a specific color for the backface
                         backProp = vtk.vtkProperty()
                         backProp.SetDiffuseColor(colors.getColor(bc))
-                        if alpha:
+                        if alpha is not None:
                             backProp.SetOpacity(alpha)
                         a.SetBackfaceProperty(backProp)
                     scannedacts.append(a)
@@ -1676,7 +1652,7 @@ class Plotter:
             self.interactor.RemoveObservers('CharEvent')
 
             if self.verbose and self.interactive:
-                docs._tips()
+                docs.onelinetip()
 
         self.initializedPlotter = True
 
@@ -1704,6 +1680,21 @@ class Plotter:
         self.renderer.ResetCameraClippingRange()
         
         self.renderWin.Render()
+        
+        scbflag=False
+        for a in self.actors:
+            if hasattr(a, 'scalarbar') and a.scalarbar is not None  and utils.isSequence(a.scalarbar):
+                if len(a.scalarbar) == 3: #addScalarBar
+                    s1, s2, s3 = a.scalarbar
+                    sb = self.addScalarBar(a, s1, s2, s3 )
+                    scbflag = True
+                    a.scalarbar = sb # save scalarbar actor
+                elif len(a.scalarbar) == 10:#addScalarBar3D
+                    s0, s1, s2, s3, s4, s5, s6, s7, s8 = a.scalarbar
+                    sb = self.addScalarBar3D(a, at, s0, s1, s2, s3, s4, s5, s6, s7, s8 )
+                    scbflag = True
+                    a.scalarbar = sb # save scalarbar actor
+        if scbflag: self.renderWin.Render()
         
         if settings.allowInteraction and not self.offscreen:
             self.allowInteraction()

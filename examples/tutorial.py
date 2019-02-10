@@ -1,29 +1,32 @@
 #!/usr/bin/env python
 #
-#########################################################################################
+'''
+####################################################
 #
 # Quick tutorial.
 # Check out more examples in directories:
 #	examples/basic 
 #	examples/advanced
 #	examples/volumetric
+#	examples/simulations
 #	examples/other
 #
-#########################################################################################
-#
+#####################################################
+'''
 from __future__ import division, print_function
 from random import gauss, uniform as u
 from vtkplotter import *
+print(__doc__)
 
 
 # Declare an instance of the class
-vp = Plotter(title='first example')
+vp = Plotter()
 
-# Load a vtk file as a vtkActor and visualize it.
+# Load a vtk file as a Actor(vtkActor) and visualize it.
 # (The actual mesh corresponds to the outer shape of 
 # an embryonic mouse limb at about 11 days of gestation).
 # Choose a tomato color for the internal surface of the mesh.
-vp.load('data/270.vtk', c='aqua', bc='tomato', alpha=1) # c=(R,G,B), letter or color name
+vp.load('data/270.vtk', c='aqua', bc='tomato') # c=(R,G,B), letter or color name
 vp.show()  # picks what is automatically stored in python list vp.actors 
 # Press Esc to close the window and exit python session, or q to continue
 
@@ -33,7 +36,6 @@ vp.show()  # picks what is automatically stored in python list vp.actors
 act = vp.load('data/290.vtk', wire=1) 
 vp.show()               # picks what is automatically stored in vp.actors
 #vp.show(act)           # same: store act in vp.actors and draws act only
-#vp.show(actors=[act])  # same as above
 # wire=1 is equivalent to VTK command: act.GetProperty().SetRepresentationToWireframe()
 
 
@@ -54,7 +56,7 @@ vp.show()
 vp = Plotter(title='Example of splines through random points', verbose=0)
 
 pts = [ (u(0,2), u(0,2), u(0,2)+i) for i in range(8) ] # build python list of points
-vp.add(points(pts, r=10)) # add the actor points to the internal list of actors to be shown                                 # create the vtkActor 
+vp.add(Points(pts, r=10)) # add the actor points to the internal list of actors to be shown                                 # create the vtkActor 
 
 for i in range(10):
     sp = spline(pts, smooth=i/10, degree=2, c=i)
@@ -69,7 +71,7 @@ vp.show(viewup='z', interactive=1) # show internal list of actors
 # No need to instatiate the Plotter class:
 rgb = [(u(0,255), u(0,255), u(0,255)) for i in range(5000)]
 
-pts = points(rgb, c=rgb, alpha=0.8)
+pts = Points(rgb, c=rgb, alpha=0.8)
 show(pts, bg='w', verbose=0)
 
 
@@ -79,12 +81,12 @@ show(pts, bg='w', verbose=0)
 vp = Plotter(shape=(1,2), axes=False)
 a1 = vp.load('data/beethoven.ply', alpha=1)
 coords1 = a1.coordinates()
-pts1 = points(coords1, r=4, c='g').legend('#points = '+str(len(coords1)))
+pts1 = Points(coords1, r=4, c='g').legend('#points = '+str(len(coords1)))
 vp.show([a1, pts1], at=0)
 
 a2 = a1.subdivide(method=0) # Increasing the number of points of the mesh
 coords2 = a2.coordinates()
-pts2 = points(coords2, r=1).legend('#points = '+str(len(coords2)))
+pts2 = Points(coords2, r=1).legend('#points = '+str(len(coords2)))
 vp.show([a2, pts2], at=1, interactive=True)
 
 
@@ -93,15 +95,15 @@ vp.show([a2, pts2], at=1, interactive=True)
 # split window to best accomodate 9 renderers
 vp = Plotter(N=9, title='basic shapes', axes=0, bg='white') # split window in 9 frames
 vp.sharecam = False                             # each object can be moved independently
-vp.show(at=0, actors=arrow([0,0,0],[1,1,1]),    legend='arrow' )
-vp.show(at=1, actors=line([0,0,0],[1,1,1]),     legend='line' )
-vp.show(at=2, actors=points([[0,0,0],[1,1,1]]), legend='points' )
-vp.show(at=3, actors=text('Hello!', pos=(0,0,0)) )
-vp.show(at=4, actors=sphere() )
-vp.show(at=5, actors=cube(),     legend='cube')
-vp.show(at=6, actors=torus(),    legend='torus')
-vp.show(at=7, actors=helix(),    legend='helix')
-vp.show(at=8, actors=cylinder(), legend='cylinder', interactive=1)
+vp.show(at=0, actors=Arrow([0,0,0],[1,1,1]),    legend='arrow')
+vp.show(at=1, actors=Line([0,0,0],[1,1,1]),     legend='line')
+vp.show(at=2, actors=Points([[0,0,0],[1,1,1]]), legend='points')
+vp.show(at=3, actors=Text('Hello!', pos=(0,0,0)) )
+vp.show(at=4, actors=Sphere() )
+vp.show(at=5, actors=Cube(),     legend='cube')
+vp.show(at=6, actors=Torus(),    legend='torus')
+vp.show(at=7, actors=Spring(),    legend='helix')
+vp.show(at=8, actors=Cylinder(), legend='cylinder', interactive=1)
 
 
 ########################################################################################
@@ -137,6 +139,6 @@ vp.show(interactive=1)
 vp = Plotter(title='Cut a surface with a plane', verbose=0)
 vp.load('data/2*0.vtk', c='orange', bc='aqua')
 for a in vp.actors:
-    vp.cutPlane(a, origin=(500,0,0), normal=(0,0.3,-1), showcut=True)
+    a.cutWithPlane(origin=(500,0,0), normal=(0,0.3,-1))
 vp.show()
 

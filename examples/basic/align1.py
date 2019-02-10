@@ -5,11 +5,11 @@ The default method is the Iterative Closest Point algorithm.
 The source transformation is saved in actor.info['transform']
 rigid=True doesn't allow scaling
 '''
-from vtkplotter import Plotter, printc, mag2, align, arrow, text
+from vtkplotter import Plotter, printc, mag2, align, Arrow, Text
 
 vp = Plotter(verbose=0, axes=4)
 
-vp.add(text(__doc__)) # add comment above
+vp.add(Text(__doc__)) # add comment above
 
 limb = vp.load('data/270.vtk')
 rim  = vp.load('data/270_rim.vtk')
@@ -22,7 +22,7 @@ d = 0
 prim = arim.coordinates()
 for p in prim: 
     cpt = limb.closestPoint(p)
-    vp.add(arrow(p, cpt, c='g'))
+    vp.add(Arrow(p, cpt, c='g'))
     d += mag2(p-cpt) # square of residual distance
 
 printc("ave. squared distance =", d/len(prim), c='g')

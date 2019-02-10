@@ -27,18 +27,18 @@ cm = gpos + 0.5*Ls*gaxis  # center of mass of shaft
 
 # ############################################################ the scene
 vp = Plotter(axes=0, interactive=0, bg='w')
-vp.add(text(__doc__))
+vp.add(Text(__doc__))
 
-shaft = cylinder([[0,0,0], Ls*gaxis], r=0.03, c='dg')
-rotor = cylinder([(Ls-0.55)*gaxis, (Ls-0.45)*gaxis], r=R, c='t')
-bar   = cylinder([Ls*gaxis/2-R*vector(0,1,0), Ls*gaxis/2+R*vector(0,1,0)], r=R/6, c='r')
-gyro  = vp.Assembly([shaft, rotor, bar]) # group actors into a single one
+shaft = Cylinder([[0,0,0], Ls*gaxis], r=0.03, c='dg')
+rotor = Cylinder([(Ls-0.55)*gaxis, (Ls-0.45)*gaxis], r=R, c='t')
+bar   = Cylinder([Ls*gaxis/2-R*vector(0,1,0), Ls*gaxis/2+R*vector(0,1,0)], r=R/6, c='r')
+gyro  = vp.add(shaft + rotor + bar) # group actors into a single one, add it to Plotter.
 
-spring= vp.add(helix(top, gpos, r=0.06, thickness=0.01, c='gray'))
+spring= vp.add(Spring(top, gpos, r=0.06, thickness=0.01, c='gray'))
 # NB: vp.add() acts like vp.actors.append(spring)
 
-vp.add(box(top, length=0.2, width=0.02, height=0.2, c='gray'))
-vp.add(box(pos=(0,.5,0), length=2.6, width=3, height=2.6, c='gray', alpha=.2).wire(1))
+vp.add(Box(top, length=0.2, width=0.02, height=0.2, c='gray'))
+vp.add(Box(pos=(0,.5,0), length=2.6, width=3, height=2.6, c='gray', alpha=.2).wire(1))
 
 # ############################################################ the physics
 pb = ProgressBar(0, 5, dt, c='b')

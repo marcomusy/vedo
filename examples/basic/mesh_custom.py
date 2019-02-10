@@ -3,12 +3,11 @@ Example on how to specify a color for each
 individual cell or point of an actor's mesh. 
 Keyword depthpeeling may improve the rendering of transparent objects.
 '''
-from vtkplotter import Plotter, text
+from vtkplotter import load, Text, show
+doc= Text(__doc__, pos=1, c='w')
 
 
-vp = Plotter(axes=8, depthpeeling=1)
-
-man = vp.load('data/shapes/man.vtk')
+man = load('data/shapes/man.vtk')
 
 # let the scalar be the z coordinate of the mesh vertices
 scals = man.coordinates()[:,2]   
@@ -23,10 +22,6 @@ mymap = ['darkblue', 'cyan 0.2', (1,0,0, 0.8)]
 #from vtkplotter.colors import makePalette
 #mymap = makePalette('pink', 'green', N=500, hsv=True)
 
-man.pointColors(scals, cmap=mymap)
+man.pointColors(scals, cmap=mymap).addScalarBar()
 
-vp.addScalarBar()
-
-vp.add(text(__doc__, pos=1))
-
-vp.show(viewup='z')
+show([man, doc], viewup='z', axes=8, depthpeeling=1)

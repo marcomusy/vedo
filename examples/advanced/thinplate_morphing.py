@@ -19,12 +19,12 @@ for pt in meshd.coordinates():
 # calculate the warping T on the reduced mesh
 T = thinPlateSpline(meshd, sources, targets).info['transform']
 
-warped = transformFilter(mesh, T).color('blue').alpha(0.4)
+warped = mesh.clone().transformPolydata(T).color('blue').alpha(0.4)
 
-apts = points(sources).color('red')
+apts = Points(sources).color('red')
 
-arro = arrow(sources[0], targets[0])
+arro = Arrow(sources[0], targets[0])
 
 show([mesh, arro, warped, apts, 
-     text(__doc__, c='white')], viewup='z', verbose=0)
+     Text(__doc__, c='white')], viewup='z', verbose=0)
 

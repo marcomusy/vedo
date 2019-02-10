@@ -3,8 +3,8 @@ Project a spherical-like object onto a plane.
 """
 from vtkplotter import *
 
-e = ellipsoid()
+e = Ellipsoid()
 
 ef = projectSphereFilter(e).normalize().wire(True)
 
-show([e,ef, text(__doc__)])
+show([e,ef, Text(__doc__)])

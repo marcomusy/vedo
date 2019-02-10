@@ -4,13 +4,13 @@ We will use this as a model of a vibrating string and
 compare two methods of integration: Euler and Runge-Kutta4.
 For too large values of dt the simple Euler can diverge.
 '''
-# To model 'N' oscillators, we will use N+2 points, numbered
+# To model 'N' oscillators, we will use N+2 Points, numbered
 # 0, 1, 2, 3, ... N+1.  Points 0 and N+1 are actually the boundaries.
 # We will keep them fixed, but adding them in as if they were
 # masses makes the programming easier. 
 # Adapted from B.Martin (2009) http://www.kcvs.ca/martin by M.Musy
 from __future__ import division, print_function
-from vtkplotter import Plotter, ProgressBar, point, text
+from vtkplotter import Plotter, ProgressBar, Point, Text
 import numpy as np
 
 ####################################################
@@ -97,14 +97,14 @@ vp.ytitle = 'u(x,t)'
 vp.ztitle = '' # will not draw z axis
 
 for i in x: 
-    vp.add(point([i, 0, 0], c='green', r=6))
+    vp.add(Point([i, 0, 0], c='green', r=6))
 pts_actors_eu = vp.actors # save a copy of the actors list
 pts_actors_eu[0].legend = 'Euler method'
 
 vp.actors=[] # clean up the list
 
 for i in x: 
-    vp.add(point([i, 0, 0], c='red', r=6))
+    vp.add(Point([i, 0, 0], c='red', r=6))
 pts_actors_rk = vp.actors # save a copy of the actors list
 pts_actors_rk[0].legend = 'Runge-Kutta4'
 
@@ -113,7 +113,7 @@ vp.actors = pts_actors_eu + pts_actors_rk
 
 # let's also add a fancy background image from wikipedia
 vp.load('data/images/wave_wiki.png', alpha=.8).scale(0.4).pos([0,-100,-20])
-vp.add(text(__doc__))
+vp.add(Text(__doc__))
 
 pb = ProgressBar(0, Nsteps, c='red', ETA=1)
 for i in pb.range():

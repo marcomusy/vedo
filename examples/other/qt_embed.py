@@ -8,7 +8,7 @@ import sys
 from PyQt5 import Qt
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
-from vtkplotter import Plotter, settings, cube, torus, cone
+from vtkplotter import Plotter, Cube, Torus, Cone, settings
 
 settings.usingQt = True
 
@@ -24,9 +24,9 @@ class MainWindow(Qt.QMainWindow):
 
         vp = Plotter(offscreen=1, interactive=0, axes=2, N=2)
 
-        cn = cone()
-        cc = cube().pos(1,1,1). color('pink')
-        ss = torus()
+        cn = Cone()
+        cc = Cube().pos(1,1,1). color('pink')
+        ss = Torus()
         vp.show([cn,cc], at=0)
         vp.show(ss, at=1, viewup='z') 
 

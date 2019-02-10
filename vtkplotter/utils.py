@@ -52,6 +52,15 @@ def isSequence(arg):
     return False
 
 
+def flatten(lst):
+    '''Flatten out a list'''
+    flat_list = []
+    for sublist in lst:
+        for item in sublist:
+            flat_list.append(item)
+    return flat_list
+
+
 def humansort(l):
     """Sort in place a given list the way humans expect.
 

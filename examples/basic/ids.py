@@ -5,10 +5,8 @@ print(__doc__)
 
 from vtkplotter import *
 
-act = helix()
+act = Spring().addIDs()
 
-iact = addIDs(act)
+print(act.scalars(),'press k to apply point scalars.')
 
-print(iact.scalars(),'press k to apply point scalars.')
-
-show(iact, viewup='z', verbose=0)
+show(act, viewup='z', verbose=0)

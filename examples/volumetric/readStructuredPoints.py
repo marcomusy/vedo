@@ -6,7 +6,7 @@ which is transformed into a color map.
 The list of existing arrays can be found by selecting an actor and
 pressing i in the rendering window.
 '''
-from vtkplotter import Plotter, loadStructuredPoints, text
+from vtkplotter import Plotter, loadStructuredPoints, Text
 
 vp = Plotter(axes=4, verbose=0)
 
@@ -21,4 +21,4 @@ print('scalars min, max =', min(scals), max(scals))
 # minus sign inverts color map
 actor.pointColors(-scals, cmap='hot', alpha=0.05)
 
-vp.show([actor, text(__doc__)])
+vp.show([actor, Text(__doc__)])

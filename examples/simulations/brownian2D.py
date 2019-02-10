@@ -10,7 +10,7 @@ from __future__ import division, print_function
 print(__doc__)
 
 from vtkplotter import Plotter, ProgressBar, arange, dot
-from vtkplotter import torus, grid, sphere, point
+from vtkplotter import Grid, Sphere, Point
 import random, numpy as np
 
 screen_w = 800
@@ -58,11 +58,11 @@ for s in range(1,Nsp):
 Vel = np.array(ListVel)
 
 # Create the spheres 
-Spheres = [vp.add(sphere(pos=(Pos[0][0],Pos[0][1],0), r=Radius[0], c='red'))]
+Spheres = [vp.add(Sphere(pos=(Pos[0][0],Pos[0][1],0), r=Radius[0], c='red'))]
 for s in range(1,Nsp):
-    a = vp.add(sphere(pos=(Pos[s][0],Pos[s][1],0), r=Radius[s], c='blue'))
+    a = vp.add(Sphere(pos=(Pos[s][0],Pos[s][1],0), r=Radius[s], c='blue'))
     Spheres.append(a)
-vp.add(grid(sx=screen_w, sy=screen_w))
+vp.add(Grid(sx=screen_w, sy=screen_w))
 
 # Auxiliary variables
 Id = np.identity(Nsp)
@@ -130,7 +130,7 @@ for i in pb.range():
     if not int(i)%10:                   # every ten steps:
         rsp = [Pos[0][0],Pos[0][1],0]
         rsv = [Vel[0][0],Vel[0][1],0]
-        vp.add(point(rsp, c='r', r=5, alpha=0.1))  # leave a point trace
+        vp.add(Point(rsp, c='r', r=5, alpha=0.1))  # leave a point trace
         vp.show()                    # render scene   
     pb.print('#actors='+str(len(vp.actors)))
     

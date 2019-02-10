@@ -15,7 +15,7 @@ img = reader.GetOutput()
 
 
 #################################
-from vtkplotter import Volume, load, show, text
+from vtkplotter import Volume, load, show, Text
 
 # can set colors and transparencies along the scalar range
 vol = Volume(img, 
@@ -26,5 +26,5 @@ vol = Volume(img,
 iso = load('data/vase.vti', threshold=140).wire(True).alpha(0.1)
 
 # show command creates and returns an instance of class Plotter
-show([vol, iso, text(__doc__)], verbose=0, bg='w') 
+show([vol, iso, Text(__doc__)], verbose=0, bg='w') 
 

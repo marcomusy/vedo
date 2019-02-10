@@ -5,7 +5,7 @@ As they divide they occupy more and more space
 from __future__ import division, print_function
 print(__doc__)
 
-from vtkplotter import Plotter, ProgressBar, pcaEllipsoid, points, line
+from vtkplotter import Plotter, ProgressBar, pcaEllipsoid, Points, line
 from cell import Cell, Colony
 
 vp = Plotter(verbose=0, interactive=0, axes=3, bg='w')
@@ -39,14 +39,14 @@ for t in pb.range():
             if cell.dieAt(t): continue
             if cell.divideAt(t): 
                 newc = cell.split() # make daughter cell
-                vp.add(line(cell.pos, newc.pos, c='k', lw=3, alpha=.5))
+                vp.add(Line(cell.pos, newc.pos, c='k', lw=3, alpha=.5))
                 newcells.append(newc)
             newcells.append(cell)
         colony.cells = newcells
 
         pts = [c.pos for c in newcells] # draw all points at once
-        vp.add(points(pts, c=colony.color, r= 5, alpha=.80)) # nucleus
-        vp.add(points(pts, c=colony.color, r=15, alpha=.05)) # halo
+        vp.add(Points(pts, c=colony.color, r= 5, alpha=.80)) # nucleus
+        vp.add(Points(pts, c=colony.color, r=15, alpha=.05)) # halo
         msg += str(len(colony.cells)) + ','
 
     pb.print(msg+str(int(t)))

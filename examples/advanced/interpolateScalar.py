@@ -25,10 +25,10 @@ xi, yi, zi = [np.sin(t)/10+.5, np.cos(t)/5+.5, (t-1)/5] # an helix
 scalsi = itr(xi, yi, zi)                    
 
 
-from vtkplotter import Plotter, points, text
+from vtkplotter import Plotter, Points, Text
 vp = Plotter(verbose=0, bg='w')
-vp.add(points([x,y,z], r=10, alpha=0.5)).pointColors(scals) 
-vp.add(points([xi,yi,zi])).pointColors(scalsi)
+vp.add(Points([x,y,z], r=10, alpha=0.5)).pointColors(scals) 
+vp.add(Points([xi,yi,zi])).pointColors(scalsi)
 
-vp.add(text(__doc__, pos=1, c='dr'))
+vp.add(Text(__doc__, pos=1, c='dr'))
 vp.show(viewup='z')

@@ -3,15 +3,15 @@ Example of boolean operations with actors or polydata
 '''
 print(__doc__)
 
-from vtkplotter import Plotter, booleanOperation, sphere
+from vtkplotter import Plotter, booleanOperation, Sphere
 
 
 # declare the instance of the class
 vp = Plotter(shape=(2,2), interactive=0, axes=3)
 
 # build to sphere actors 
-s1 = sphere(pos=[-.7,0,0], c='r', alpha=0.5)
-s2 = sphere(pos=[0.7,0,0], c='g', alpha=0.5)
+s1 = Sphere(pos=[-.7,0,0], c='r', alpha=0.5)
+s2 = Sphere(pos=[0.7,0,0], c='g', alpha=0.5)
 
 # make 3 different possible operations:
 b1 = booleanOperation(s1, 'intersect', s2, c='m')

@@ -9,12 +9,12 @@ from vtkplotter import *
 embryo = load('data/embryo.tif', threshold=30).normalize()
 
 # mesh used to cut:
-msh = ellipsoid().pos(.8,.1,-.3).scale(0.5).wire()
+msh = Ellipsoid().pos(.8,.1,-.3).scale(0.5).wire()
 
 # make a working copy and cut it with the ellipsoid
 cutembryo = embryo.clone().cutWithMesh(msh).backColor('t')
 
-show([embryo, msh, text(__doc__)], at=0, N=2, viewup='z')
+show([embryo, msh, Text(__doc__)], at=0, N=2, viewup='z')
 show(cutembryo, at=1, interactive=1)
 
 

@@ -2,7 +2,7 @@
 #  0-black, 1-red, 2-green, 3-yellow, 4-blue, 5-magenta, 6-cyan, 7-white
 # Available modifiers:
 #  c (foreground color), bc (background color)
-#  hidden, bold, blink, underline, dim, invert, box
+#  hidden, bold, blink, underLine, dim, invert, box
 
 from vtkplotter import printc
 
@@ -20,7 +20,7 @@ printc('11- When words fail, music speaks - Shakespeare')
 printc('12- If you tell the truth you dont have to remember anything',
        'Mark Twain', separator=' - ', underline=1, invert=1, c=6, dim=1)
 
-printc(299792.48, c=4, box='*') 
+printc(299792.48, 'km/s', c=4, box='*') 
 
 import vtk
 printc( 'Any string', True, 455.5, vtk.vtkActor,  c='green', box='=', invert=1)

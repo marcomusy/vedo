@@ -12,43 +12,43 @@ Submodule to generate basic geometric shapes.
 """+docs._defs
 
 __all__ = [
-    'point',
-    'points',
-    'line',
-    'tube',
-    'lines',
-    'ribbon',
-    'arrow',
-    'arrows',
-    'polygon',
-    'rectangle',
-    'disc',
-    'sphere',
-    'spheres',
-    'earth',
-    'ellipsoid',
-    'grid',
-    'plane',
-    'box',
-    'cube',
-    'helix',
-    'cylinder',
-    'cone',
-    'pyramid',
-    'torus',
-    'paraboloid',
-    'hyperboloid',
-    'text',
-    'glyph',
+    'Point',
+    'Points',
+    'Line',
+    'Tube',
+    'Lines',
+    'Ribbon',
+    'Arrow',
+    'Arrows',
+    'Polygon',
+    'Rectangle',
+    'Disc',
+    'Sphere',
+    'Spheres',
+    'Earth',
+    'Ellipsoid',
+    'Grid',
+    'Plane',
+    'Box',
+    'Cube',
+    'Spring',
+    'Cylinder',
+    'Cone',
+    'Pyramid',
+    'Torus',
+    'Paraboloid',
+    'Hyperboloid',
+    'Text',
+    'Glyph',
 ]
 
 
 ########################################################################
-def point(pos=[0,0,0], r=10, c='gray', alpha=1):
+def Point(pos=[0,0,0], r=10, c='gray', alpha=1):
     '''Create a simple point actor.'''
-    return points([pos], r, c, alpha)
-
-def points(plist, r=5, c='gray', alpha=1):
+    return Points([pos], r, c, alpha)
+    
+def Points(plist, r=5, c='gray', alpha=1):
     '''
     Build a point ``Actor`` for a list of points.
 
@@ -72,11 +72,25 @@ def points(plist, r=5, c='gray', alpha=1):
     if utils.isSequence(c) and utils.isSequence(c[0]) and len(c[0])==3:
         return _colorPoints(plist, c, r, alpha)
 
-    n = len(plist) # refresh
-    src = vtk.vtkPointSource()
-    src.SetNumberOfPoints(n)
-    src.Update()
-    pd = src.GetOutput()
+    n = len(plist) # refresh    
+
+    sourcePoints = vtk.vtkPoints()
+    sourceVertices = vtk.vtkCellArray()
+    is3d = len(plist[0]) > 2
+    if is3d:
+        for pt in plist:
+            aid = sourcePoints.InsertNextPoint(pt)
+            sourceVertices.InsertNextCell(1)
+            sourceVertices.InsertCellPoint(aid)
+    else:
+        for pt in plist:
+            aid = sourcePoints.InsertNextPoint(pt[0], pt[1], 0)
+            sourceVertices.InsertNextCell(1)
+            sourceVertices.InsertCellPoint(aid)
+
+    pd = vtk.vtkPolyData()
+    pd.SetPoints(sourcePoints)
+    pd.SetVerts(sourceVertices)
     if n == 1:  # passing just one point
         pd.GetPoints().SetPoint(0, [0, 0, 0])
     else:
@@ -86,6 +100,7 @@ def points(plist, r=5, c='gray', alpha=1):
     if n == 1:
         actor.SetPosition(plist[0])
     return actor
+    
 
 def _colorPoints(plist, cols, r, alpha):
     n = len(plist)
@@ -116,7 +131,7 @@ def _colorPoints(plist, cols, r, alpha):
     return actor
 
 
-def glyph(actor, glyphObj, orientationArray='', scaleByVectorSize=False, 
+def Glyph(actor, glyphObj, orientationArray='', scaleByVectorSize=False, 
           c='gold', alpha=1):
     """
     At each vertex of a mesh, another mesh - a `'glyph'` - is shown with
@@ -155,7 +170,7 @@ def glyph(actor, glyphObj, orientationArray='', scaleByVectorSize=False,
             gly.SetInputArrayToProcess(0,0,0, 0, 'glyph_vectors')
             gly.SetVectorModeToUseVector()
         elif utils.isSequence(orientationArray): # passing a list
-            actor.addPointField(orientationArray, 'glyph_vectors')
+            actor.addPointVectors(orientationArray, 'glyph_vectors')
             gly.SetInputArrayToProcess(0,0,0, 0, 'glyph_vectors') 
             gly.SetVectorModeToUseVector()
         else: # passing a name
@@ -181,7 +196,7 @@ def glyph(actor, glyphObj, orientationArray='', scaleByVectorSize=False,
 
 
 
-def line(p0, p1=None, lw=1, c='r', alpha=1, dotted=False):
+def Line(p0, p1=None, lw=1, c='r', alpha=1, dotted=False):
     '''
     Build the line segment between points `p0` and `p1`.
     If `p0` is a list of points returns the line connecting them.
@@ -226,8 +241,8 @@ def line(p0, p1=None, lw=1, c='r', alpha=1, dotted=False):
     return actor
 
 
-def tube(points, r=1, c='r', alpha=1, res=12):
-    '''Build a tube along the line defined by a set of points.
+def Tube(points, r=1, c='r', alpha=1, res=12):
+    '''Build a tube( along the line defined by a set of points.
 
     :param r: constant radius or list of radii.
     :type r: float, list
@@ -236,7 +251,7 @@ def tube(points, r=1, c='r', alpha=1, res=12):
     
     .. hint:: |ribbon| |ribbon.py|_
     
-        |tube| |tube.py|_
+        |tube(| |tube(.py|_
     '''
     ppoints = vtk.vtkPoints()  # Generate the polyline
     ppoints.SetData(numpy_to_vtk(points, deep=True))
@@ -289,10 +304,12 @@ def tube(points, r=1, c='r', alpha=1, res=12):
     return actor
 
 
-def lines(plist0, plist1=None, lw=1, c='r', alpha=1, dotted=False):
+def Lines(plist0, plist1=None, lw=1, c='r', alpha=1, dotted=False):
     '''
     Build the line segments between two lists of points `plist0` and `plist1`.
     `plist0` can be also passed in the form ``[[point1, point2], ...]``.
+
+    |lines|
 
     .. hint:: |fitspheres2.py|_    
     '''
@@ -315,7 +332,7 @@ def lines(plist0, plist1=None, lw=1, c='r', alpha=1, dotted=False):
     return actor
 
 
-def ribbon(line1, line2, c='m', alpha=1, res=(200,5)):
+def Ribbon(line1, line2, c='m', alpha=1, res=(200,5)):
     '''Connect two lines to generate the surface inbetween.
 
     .. hint:: |ribbon| |ribbon.py|_    
@@ -378,8 +395,7 @@ def ribbon(line1, line2, c='m', alpha=1, res=(200,5)):
     return Actor(rsf.GetOutput(), c=c, alpha=alpha)
 
 
-def arrow(startPoint, endPoint, s=None, c='r', alpha=1,
-          res=12, rwSize=(800,800)):
+def Arrow(startPoint, endPoint, s=None, c='r', alpha=1, res=12):
     '''
     Build a 3D arrow from `startPoint` to `endPoint` of section size `s`,
     expressed as the fraction of the window size.
@@ -409,8 +425,7 @@ def arrow(startPoint, endPoint, s=None, c='r', alpha=1,
     t.RotateY(theta*57.3)
     t.RotateY(-90)  # put it along Z
     if s:
-        w, h = rwSize
-        sz = (w+h)/2*s
+        sz = 800.*s
         t.Scale(length, sz, sz)
     else:
         t.Scale(length, length, length)
@@ -429,8 +444,7 @@ def arrow(startPoint, endPoint, s=None, c='r', alpha=1,
     return actor
 
 
-def arrows(startPoints, endPoints=None,
-           s=None, c='r', alpha=1, res=8, rwSize=(800,800)):
+def Arrows(startPoints, endPoints=None, s=None, c='r', alpha=1, res=8):
     '''
     Build arrows between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
@@ -460,9 +474,8 @@ def arrows(startPoints, endPoints=None,
         t.RotateZ(phi*57.3)
         t.RotateY(theta*57.3)
         t.RotateY(-90)  # put it along Z
-        if s and rwSize:
-            w, h = rwSize
-            sz = (w+h)/2*s
+        if s:
+            sz = 800.*s
             t.Scale(length, sz, sz)
         else:
             t.Scale(length, length, length)
@@ -476,7 +489,7 @@ def arrows(startPoints, endPoints=None,
     return actor
 
 
-def polygon(pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
+def Polygon(pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
             c='coral', bc='darkgreen', lw=1, alpha=1, followcam=False):
     '''
     Build a 2D polygon of `nsides` of radius `r` oriented as `normal`.
@@ -511,10 +524,6 @@ def polygon(pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
 
     actor.SetMapper(mapper)
     actor.GetProperty().SetColor(colors.getColor(c))
-    # check if color string contains a float, in this case ignore alpha
-    al = colors._getAlpha(c)
-    if al:
-        alpha = al
     actor.GetProperty().SetOpacity(alpha)
     actor.GetProperty().SetLineWidth(lw)
     actor.GetProperty().SetInterpolationToFlat()
@@ -527,7 +536,7 @@ def polygon(pos=[0, 0, 0], normal=[0, 0, 1], nsides=6, r=1,
     return actor
 
 
-def rectangle(p1=[0,0,0], p2=[2,1,0],
+def Rectangle(p1=[0,0,0], p2=[2,1,0],
               c='k', bc='dg', lw=1, alpha=1, texture=None):
     '''Build a rectangle in the xy plane identified by two corner points.'''
     p1 = np.array(p1)
@@ -535,11 +544,11 @@ def rectangle(p1=[0,0,0], p2=[2,1,0],
     pos = (p1+p2)/2
     length = abs(p2[0]-p1[0])
     height = abs(p2[1]-p1[1])
-    rec = plane(pos, [0,0,-1], length, height, c, bc, alpha, None, texture)
+    rec = Plane(pos, [0,0,-1], length, height, c, bc, alpha, None, texture)
     return rec
     
     
-def disc(pos=[0, 0, 0], normal=[0, 0, 1], r1=0.5, r2=1,
+def Disc(pos=[0, 0, 0], normal=[0, 0, 1], r1=0.5, r2=1,
          c='coral', bc='darkgreen', lw=1, alpha=1,res=12):
     '''
     Build a 2D disc of internal radius `r1` and outer radius `r2`,
@@ -573,10 +582,6 @@ def disc(pos=[0, 0, 0], normal=[0, 0, 1], r1=0.5, r2=1,
     actor = Actor()# vtk.vtkActor()
     actor.SetMapper(mapper)
     actor.GetProperty().SetColor(colors.getColor(c))
-    # check if color string contains a float, in this case ignore alpha
-    al = colors._getAlpha(c)
-    if al:
-        alpha = al
     actor.GetProperty().SetOpacity(alpha)
     actor.GetProperty().SetLineWidth(lw)
     actor.GetProperty().SetInterpolationToFlat()
@@ -589,7 +594,7 @@ def disc(pos=[0, 0, 0], normal=[0, 0, 1], r1=0.5, r2=1,
     return actor
 
 
-def sphere(pos=[0, 0, 0], r=1, c='r', alpha=1, res=24):
+def Sphere(pos=[0, 0, 0], r=1, c='r', alpha=1, res=24):
     '''Build a sphere at position `pos` of radius `r`.
     
     |Sphere|
@@ -606,7 +611,7 @@ def sphere(pos=[0, 0, 0], r=1, c='r', alpha=1, res=24):
     return actor
 
 
-def spheres(centers, r=1, c='r', alpha=1, res=8):
+def Spheres(centers, r=1, c='r', alpha=1, res=8):
     '''
     Build a (possibly large) set of spheres at `centers` of radius `r`.
 
@@ -621,10 +626,10 @@ def spheres(centers, r=1, c='r', alpha=1, res=8):
 
     if cisseq:
         if len(centers) > len(c):
-            colors.printc("Mismatch in spheres() colors", len(centers), len(c), c=1)
+            colors.printc("Mismatch in Spheres() colors", len(centers), len(c), c=1)
             exit()
         if len(centers) != len(c):
-            colors.printc("Warning: mismatch in spheres() colors", len(centers), len(c))
+            colors.printc("Warning: mismatch in Spheres() colors", len(centers), len(c))
 
     risseq = False
     if utils.isSequence(r):
@@ -632,10 +637,10 @@ def spheres(centers, r=1, c='r', alpha=1, res=8):
 
     if risseq:
         if len(centers) > len(r):
-            colors.printc("Mismatch in spheres() radius", len(centers), len(r), c=1)
+            colors.printc("Mismatch in Spheres() radius", len(centers), len(r), c=1)
             exit()
         if len(centers) != len(r):
-            colors.printc("Warning: mismatch in spheres() radius", len(centers), len(r))
+            colors.printc("Warning: mismatch in Spheres() radius", len(centers), len(r))
     if cisseq and risseq:
         colors.printc("Limitation: c and r cannot be both sequences.", c=1)
         exit()
@@ -688,20 +693,16 @@ def spheres(centers, r=1, c='r', alpha=1, res=8):
     actor = Actor()
     actor.SetMapper(mapper)
     actor.GetProperty().SetInterpolationToPhong()
+    actor.GetProperty().SetOpacity(alpha)
     if cisseq:
         mapper.ScalarVisibilityOn()
     else:
         mapper.ScalarVisibilityOff()
         actor.GetProperty().SetColor(colors.getColor(c))
-    # check if color string contains a float, in this case ignore alpha
-    al = colors._getAlpha(c)
-    if al:
-        alpha = al
-    actor.GetProperty().SetOpacity(alpha)
     return actor
 
 
-def earth(pos=[0, 0, 0], r=1, lw=1):
+def Earth(pos=[0, 0, 0], r=1, lw=1):
     '''Build a textured actor representing the Earth.
 
     .. hint:: |geodesic| |geodesic.py|_    
@@ -741,12 +742,14 @@ def earth(pos=[0, 0, 0], r=1, lw=1):
     return ass
 
 
-def ellipsoid(pos=[0, 0, 0], axis1=[1, 0, 0], axis2=[0, 2, 0], axis3=[0, 0, 3],
+def Ellipsoid(pos=[0, 0, 0], axis1=[1, 0, 0], axis2=[0, 2, 0], axis3=[0, 0, 3],
               c='c', alpha=1, res=24):
     """
     Build a 3D ellipsoid centered at position `pos`.
     
     .. note:: `axis1` and `axis2` are only used to define sizes and one azimuth angle.
+    
+    |projectsphere|
     """
     elliSource = vtk.vtkSphereSource()
     elliSource.SetThetaResolution(res)
@@ -783,7 +786,7 @@ def ellipsoid(pos=[0, 0, 0], axis1=[1, 0, 0], axis2=[0, 2, 0], axis3=[0, 0, 3],
     return actor
 
 
-def grid(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=1, c='g', bc='darkgreen',
+def Grid(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=1, c='g', bc='darkgreen',
          lw=1, alpha=1, resx=10, resy=10):
     '''Return a grid plane.
 
@@ -820,7 +823,7 @@ def grid(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=1, c='g', bc='darkgreen',
     return actor
 
 
-def plane(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=None, c='g', bc='darkgreen',
+def Plane(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=None, c='g', bc='darkgreen',
           alpha=1, texture=None):
     '''
     Draw a plane of size `sx` and `sy` oriented perpendicular to vector `normal`
@@ -854,7 +857,7 @@ def plane(pos=[0, 0, 0], normal=[0, 0, 1], sx=1, sy=None, c='g', bc='darkgreen',
     return actor
 
 
-def box(pos=[0, 0, 0], length=1, width=2, height=3, normal=(0, 0, 1),
+def Box(pos=[0, 0, 0], length=1, width=2, height=3, normal=(0, 0, 1),
         c='g', alpha=1, texture=None):
     '''Build a box of dimensions `x=length, y=width and z=height` oriented along vector `normal`.
 
@@ -886,16 +889,15 @@ def box(pos=[0, 0, 0], length=1, width=2, height=3, normal=(0, 0, 1),
     return actor
 
 
-def cube(pos=[0, 0, 0], length=1, normal=(0, 0, 1),
-         c='g', alpha=1., texture=None):
-    '''Build a cube of size `length` oriented along vector `normal`.
+def Cube(pos=[0, 0, 0], side=1, normal=(0, 0, 1), c='g', alpha=1, texture=None):
+    '''Build a cube of size `side` oriented along vector `normal`.
 
     .. hint:: |colorcubes| |colorcubes.py|_    
     '''
-    return box(pos, length, length, length, normal, c, alpha, texture)
+    return Box(pos, side, side, side, normal, c, alpha, texture)
 
 
-def helix(startPoint=[0, 0, 0], endPoint=[1, 0, 0], coils=20, r=0.1, r2=None,
+def Spring(startPoint=[0, 0, 0], endPoint=[1, 0, 0], coils=20, r=0.1, r2=None,
           thickness=None, c='grey', alpha=1):
     '''
     Build a spring of specified nr of `coils` between `startPoint` and `endPoint`.
@@ -927,7 +929,7 @@ def helix(startPoint=[0, 0, 0], endPoint=[1, 0, 0], coils=20, r=0.1, r2=None,
     diff = diff/length
     theta = np.arccos(diff[2])
     phi = np.arctan2(diff[1], diff[0])
-    sp = line(pts).polydata(False)
+    sp = Line(pts).polydata(False)
     t = vtk.vtkTransform()
     t.RotateZ(phi*57.3)
     t.RotateY(theta*57.3)
@@ -952,11 +954,11 @@ def helix(startPoint=[0, 0, 0], endPoint=[1, 0, 0], coils=20, r=0.1, r2=None,
     return actor
 
 
-def cylinder(pos=[0,0,0], r=1, height=1, axis=[0, 0, 1], c='teal', alpha=1, res=24):
+def Cylinder(pos=[0,0,0], r=1, height=1, axis=[0, 0, 1], c='teal', alpha=1, res=24):
     '''
     Build a cylinder of specified height and radius `r`, centered at `pos`.
 
-    If `pos` is a list of 2 points, e.g. `pos=[v1,v2]`, build a cylinder with base
+    If `pos` is a list of 2 Points, e.g. `pos=[v1,v2]`, build a cylinder with base
     centered at `v1` and top at `v2`.
     
     |Cylinder|
@@ -1001,7 +1003,7 @@ def cylinder(pos=[0,0,0], r=1, height=1, axis=[0, 0, 1], c='teal', alpha=1, res=
     return actor
 
 
-def cone(pos=[0, 0, 0], r=1, height=3, axis=[0, 0, 1],
+def Cone(pos=[0, 0, 0], r=1, height=3, axis=[0, 0, 1],
          c='dg', alpha=1, res=48):
     '''
     Build a cone of specified radius `r` and `height`, centered at `pos`.
@@ -1022,15 +1024,15 @@ def cone(pos=[0, 0, 0], r=1, height=3, axis=[0, 0, 1],
     actor.top = pos + v
     return actor
 
-def pyramid(pos=[0, 0, 0], s=1, height=1, axis=[0, 0, 1],
+def Pyramid(pos=[0, 0, 0], s=1, height=1, axis=[0, 0, 1],
             c='dg', alpha=1):
     '''
     Build a pyramid of specified base size `s` and `height`, centered at `pos`.
     '''
-    return cone(pos, s, height, axis, c, alpha, 4)
+    return Cone(pos, s, height, axis, c, alpha, 4)
 
 
-def torus(pos=[0,0,0], r=1, thickness=0.1, axis=[0,0,1], c='khaki', alpha=1, res=30):
+def Torus(pos=[0,0,0], r=1, thickness=0.1, axis=[0,0,1], c='khaki', alpha=1, res=30):
     '''
     Build a torus of specified outer radius `r` internal radius `thickness`, centered at `pos`.
 
@@ -1066,7 +1068,7 @@ def torus(pos=[0,0,0], r=1, thickness=0.1, axis=[0,0,1], c='khaki', alpha=1, res
     return actor
 
 
-def paraboloid(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1], c='cyan', alpha=1, res=50):
+def Paraboloid(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1], c='cyan', alpha=1, res=50):
     '''
     Build a paraboloid of specified height and radius `r`, centered at `pos`.
     
@@ -1104,15 +1106,14 @@ def paraboloid(pos=[0, 0, 0], r=1, height=1, axis=[0, 0, 1], c='cyan', alpha=1, 
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = Actor(pd, c, alpha)
-    actor.mirror('n')
+    actor = Actor(pd, c, alpha).flipNormals()
     actor.GetProperty().SetInterpolationToPhong()
     actor.mapper.ScalarVisibilityOff()
     actor.SetPosition(pos)
     return actor
 
 
-def hyperboloid(pos=[0, 0, 0], a2=1, value=0.5, height=1, axis=[0, 0, 1],
+def Hyperboloid(pos=[0, 0, 0], a2=1, value=0.5, height=1, axis=[0, 0, 1],
                 c='magenta', alpha=1, res=100):
     '''
     Build a hyperboloid of specified aperture `a2` and `height`, centered at `pos`.
@@ -1150,14 +1151,14 @@ def hyperboloid(pos=[0, 0, 0], a2=1, value=0.5, height=1, axis=[0, 0, 1],
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = Actor(pd, c, alpha)
+    actor = Actor(pd, c, alpha).flipNormals()
     actor.GetProperty().SetInterpolationToPhong()
     actor.mapper.ScalarVisibilityOff()
     actor.SetPosition(pos)
     return actor
 
 
-def text(txt, pos=3, normal=(0, 0, 1), s=1, depth=0.1, justify='bottom-left',
+def Text(txt, pos=3, normal=(0, 0, 1), s=1, depth=0.1, justify='bottom-left',
          c=(0.7,0.7,0.7), alpha=1, bc=None, bg=None, font='arial', followcam=False):
     '''
     Returns a ``vtkActor`` that shows a 3D text.
@@ -1179,7 +1180,7 @@ def text(txt, pos=3, normal=(0, 0, 1), s=1, depth=0.1, justify='bottom-left',
     
         |markpoint| |markpoint.py|_
     
-        |annotations.py|_ Allows to read a text file and show it in the rendering window.
+        |annotations.py|_  Read a text file and shows it in the rendering window.
     '''
     if isinstance(pos, int):
         if pos>8: pos=8
@@ -1248,12 +1249,8 @@ def text(txt, pos=3, normal=(0, 0, 1), s=1, depth=0.1, justify='bottom-left',
     elif 'top-right' in justify:
         shift += np.array([-dx,-dy,0])
     else:
-        colors.printc("text(): Unknown justify type", justify, c=1)
+        colors.printc("Text(): Unknown justify type", justify, c=1)
          
-    # check if color string contains a float, in this case ignore alpha
-    al = colors._getAlpha(c)
-    if al:
-        alpha = al
     ttactor.GetProperty().SetOpacity(alpha)
 
     nax = np.linalg.norm(normal)

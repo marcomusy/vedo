@@ -36,7 +36,7 @@ copyright = '2019, M. Musy & G. Dalmasso'
 author = 'Marco Musy'
 
 # The short X.Y version
-version = '8.8.3'
+version = '8.9.0'
 
 
 # -- General configuration ---------------------------------------------------

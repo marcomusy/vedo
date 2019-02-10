@@ -19,13 +19,13 @@ for i, p in enumerate(s.coordinates()):
     pts = s.closestPoint(p, N=12)      # find the N closest points to p
     plane = fitPlane(pts, bc='r')      # find the fitting plane
     vp.add(plane)
-    vp.add(points(pts))                # blue points
-    vp.add(point(p, c='red 0.2'))      # mark in red the current point
+    vp.add(Points(pts))                # blue points
+    vp.add(Point(p, c='red 0.2'))      # mark in red the current point
     cn, v = plane.info['center'], plane.info['normal']
-    vp.add(arrow(cn, cn+v/15., c='g'))
+    vp.add(Arrow(cn, cn+v/15., c='g'))
     variances.append(plane.info['variance'])
 
 vp.add(histogram(variances, title='variance', c='g'))
 
-vp.add(text(__doc__, pos=1))
+vp.add(Text(__doc__, pos=1))
 vp.show(viewup='z')

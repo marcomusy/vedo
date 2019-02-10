@@ -5,7 +5,7 @@ Last example also shows the usage of addScalarBar3D().
 '''
 print(__doc__)
 
-from vtkplotter import Plotter, arange, text
+from vtkplotter import Plotter, Text
 import numpy as np
 
 vp = Plotter(N=3)
@@ -37,7 +37,7 @@ man3.cellColors(scals, cmap='afmhot')
 #print(man3.scalars('cellColors_afmhot')) # info can be retrieved this way
 
 # add some oriented 3D text
-txt = text('Floor temperature is 35C', pos=[1,-.9,-1.7], s=.1).rotateZ(90)
+txt = Text('Floor temperature is 35C', pos=[1,-.9,-1.7], s=.1).rotateZ(90)
 vp.show([man3, txt], at=2, legend='cellColors')
 
 # add a fancier 3D scalar bar embedded in the scene

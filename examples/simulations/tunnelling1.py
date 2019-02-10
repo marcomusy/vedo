@@ -8,7 +8,7 @@ The wave function is forced to be zero at the box walls (line 23).
 print(__doc__)
 
 import numpy as np
-from vtkplotter import Plotter, tube, line
+from vtkplotter import Plotter, tube(, line
 
 dt = 0.004   # time step
 x0 = 5       # peak initial position
@@ -38,13 +38,13 @@ def d_dt(psi): # find Psi(t+dt)-Psi(t) /dt with 4th order Runge-Kutta method
     k4 = f(psi +dt  *k3)    
     return (k1 + 2*k2 + 2*k3 + k4)/6
 
-vp = Plotter(interactive=0, axes=2, verbose=0)
+vp = Plotter(bg='white', interactive=0, axes=2, verbose=0)
 vp.xtitle = ''
 vp.ytitle = 'Psi^2(x,t)'
 vp.ztitle = ''
 
 bck = vp.load('data/images/schrod.png').scale(0.012).pos([0,0,-.5])
-barrier = line(list(zip(x, V*15)), c='dr', lw=3)
+barrier = Line(list(zip(x, V*15)), c='dr', lw=3)
 
 lines = []
 for j in range(150):	
@@ -53,8 +53,8 @@ for j in range(150):
     
     A = np.real( Psi*np.conj(Psi) )*1.5 # psi squared, probability(x)
     coords = list(zip(x, A, [0]*len(x)))
-    Aline = tube(coords, c='db', r=.08)
-    vp.show([Aline, barrier, bck])
+    Aline = Tube(coords, c='db', r=.08)
+    vp.show([ALine, barrier, bck])
     lines.append(Aline)
 
 vp.show(interactive=1)

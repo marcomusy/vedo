@@ -24,7 +24,7 @@ pts += np.random.randn(len(pts), 3)/15# add noise
 np.random.shuffle(pts) # make sure points are not ordered
 
 vp = Plotter(N=N, axes=5)
-a = points(pts)
+a = Points(pts)
 vp.show(a, at=0, legend='cloud')
         
 for i in range(1, N):

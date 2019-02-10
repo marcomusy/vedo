@@ -96,22 +96,22 @@ class Morpher:
         
         pos, sz = self.s_size[0], self.s_size[1]
         
-        sphere0 = sphere(pos, c='gray', r=sz, alpha=.8, res=16).wire(1)
-        sphere1 = sphere(pos, c='gray', r=sz, alpha=.2, res=16)
+        sphere0 = Sphere(pos, c='gray', r=sz, alpha=.8, res=16).wire(1)
+        sphere1 = Sphere(pos, c='gray', r=sz, alpha=.2, res=16)
 
         hairsacts=[]
         for i in range(sphere0.N()):
-            p = sphere0.point(i)
+            p = sphere0.getPoint(i)
             newp = self.transform(p)
-            sphere1.point(i, newp)
-            hairsacts.append( arrow(p, newp, s=0.3, alpha=.5) )
+            sphere1.setPoint(i, newp)
+            hairsacts.append( Arrow(p, newp, s=0.3, alpha=.5) )
 
-        zero = point(pos, c='black')
+        zero = Point(pos, c='black')
         x1,x2, y1,y2, z1,z2 = self.target.polydata().GetBounds()
         tpos = [x1, y2, z1]
-        text1 = text('source vs target',  tpos, s=sz/10, c='dg')
-        text2 = text('morphed vs target', tpos, s=sz/10, c='dg')
-        text3 = text('deformation',       tpos, s=sz/10, c='dr')
+        text1 = Text('source vs target',  tpos, s=sz/10, c='dg')
+        text2 = Text('morphed vs target', tpos, s=sz/10, c='dg')
+        text3 = Text('deformation',       tpos, s=sz/10, c='dr')
 
         vp.show([sphere0, sphere1, zero, text3] + hairsacts, at=2)
         vp.show([self.msource, self.target, text2], at=1) 

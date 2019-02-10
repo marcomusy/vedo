@@ -2,7 +2,7 @@
 Work with vtkVolume objects and surface meshes 
 in the same rendering window.
 '''
-from vtkplotter import loadImageData, Plotter, Volume, sphere, text
+from vtkplotter import loadImageData, Plotter, Volume, Sphere, Text
 
 vp = Plotter(axes=0, verbose=0, bg='w')
 
@@ -19,9 +19,9 @@ vol = Volume(img, c='green', alphas=[0, 0.4, 0.9, 1]) # vtkVolume
 # can relocate volume in space:
 #vol.scale(0.3).pos([10,100,0]).rotate(90, axis=[0,1,1])
 
-sph = sphere(pos=[100,100,100], r=20) # add a dummy surface
+sph = Sphere(pos=[100,100,100], r=20) # add a dummy surface
 
-doc = text(__doc__, c='k')
+doc = Text(__doc__, c='k')
 
 # show both vtkVolume and vtkActor
 vp.show([vol, sph, doc], zoom=1.4) 

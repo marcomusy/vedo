@@ -3,11 +3,11 @@ from vtkplotter.analysis import surfaceIntersection
 
 vp = Plotter()
 
-# alpha value (opacity) can be put in color string separated by space,/
-car = vp.load('data/shapes/porsche.ply', c='gold, 0.1') 
-s = sphere(r=4, c='v/0.1').wire(1)# color is violet with alpha=0.1
+car = vp.load('data/shapes/porsche.ply', c='gold').alpha(0.1)
 
-# Intersect car with sphere, c=black, lw=line width
+s = Sphere(r=4, c='v', alpha=0.1).wire(True)# color is violet
+
+# Intersect car with Sphere, c=black, lw=line width
 contour = surfaceIntersection(car, s, lw=4) 
 
 vp.show([car, contour, s], zoom=1.3)

@@ -5,7 +5,7 @@ Example usage of align() method:
 '''
 from __future__ import division
 from random import uniform as u
-from vtkplotter import Plotter, align, arrow, text, points
+from vtkplotter import Plotter, align, Arrow, Text, Points
 
 vp = Plotter(shape=[1,2], verbose=0, axes=2, bg='w')
 
@@ -16,20 +16,20 @@ x = 1.   # add some randomness
 pts1 = [ (u(0,x), u(0,x), u(0,x)+i) for i in range(N1) ]
 pts2 = [ (u(0,x)+3, u(0,x)+i/2+2, u(0,x)+i+1) for i in range(N2) ]
 
-act1 = points(pts1, r=8, c='b').legend('source')
-act2 = points(pts2, r=8, c='r').legend('target')
+act1 = Points(pts1, r=8, c='b').legend('source')
+act2 = Points(pts2, r=8, c='r').legend('target')
 
 vp.show([act1, act2], at=0)
 
-# find best alignment between the 2 sets of points, e.i. find
+# find best alignment between the 2 sets of Points, e.i. find
 # how to move act1 to best match act2
 alpts1 = align(act1, act2).coordinates()
-vp.add(points(alpts1, r=8, c='b'))
+vp.add(Points(alpts1, r=8, c='b'))
 
 for i in range(N1): #draw arrows to see where points end up
-    vp.add(arrow(pts1[i], alpts1[i], c='k', s=0.007, alpha=.1))
+    vp.add(Arrow(pts1[i], alpts1[i], c='k', s=0.007, alpha=.1))
 
-vp.add(text(__doc__, c='k'))
+vp.add(Text(__doc__, c='k'))
 vp.show(at=1, interactive=1)
 
 

@@ -23,7 +23,7 @@ fact   = 1./(bins-1)             # conversion factor btw the 2 ranges
 
 vp = Plotter(verbose=0, bg='white')
 vp.ztitle = 'z == scalar value'
-cloud = points(coords)
+cloud = Points(coords)
 
 # fill the vtkImageData object
 pb = ProgressBar(0, bins, c=4)
@@ -46,9 +46,9 @@ for iz in pb.range():
 
 # set colors and transparencies along the scalar range
 vol = Volume(img, c=['r','g','b'], alphas=[0.4, 0.8]) #vtkVolume
-act = points(coords/fact)
+act = Points(coords/fact)
 
-vp.show([vol, act, text(__doc__)], viewup='z')
+vp.show([vol, act, Text(__doc__)], viewup='z')
 
 
 

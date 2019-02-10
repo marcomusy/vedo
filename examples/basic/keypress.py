@@ -4,7 +4,7 @@ This example shows how to implement a custom function that is triggered by
  Every time a key is pressed the picked point of the mesh is used 
  to add a sphere and some info is printed.
 '''
-from vtkplotter import Plotter, printc, sphere, text
+from vtkplotter import Plotter, printc, Sphere, Text
 
 ##############################################################################
 def myfnc(key):
@@ -15,7 +15,7 @@ def myfnc(key):
     printc('clicked 3D point:', vp.picked3d, c=4)
     printc('clicked renderer:', vp.clickedRenderer, c=2) 
     
-    vp.add(sphere(pos=vp.picked3d, r=.005, c='v'))
+    vp.add(Sphere(pos=vp.picked3d, r=.005, c='v'))
     vp.show()
     
 ##############################################################################
@@ -26,7 +26,7 @@ vp.keyPressFunction = myfnc # make it known to Plotter class
 
 vp.load('data/shapes/bunny.obj')
 
-vp.add(text(__doc__))
+vp.add(Text(__doc__))
 
 printc('\nPress c to execute myfnc()', c=1)
 vp.show()

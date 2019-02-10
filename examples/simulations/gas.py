@@ -7,8 +7,8 @@ A model of an ideal gas with hard-sphere collisions.
 ## relevant points in the code are marked with '### <--'
 from __future__ import division, print_function
 from random import random
-from vtkplotter import Plotter, ProgressBar, vector, arange, mag, norm, text
-from vtkplotter import torus, sphere
+from vtkplotter import Plotter, ProgressBar, mag, norm, Text
+from vtkplotter import Torus, Sphere
 import numpy as np
 
 #############################################################
@@ -29,9 +29,9 @@ def reflection(p, pos):
 
 vp = Plotter(title='gas in toroid', interactive=0, axes=0, bg='w')
 
-vp.add(text(__doc__))
+vp.add(Text(__doc__))
 
-vp.add(torus(c='g', r=RingRadius, thickness=RingThickness, alpha=.1).wire(1)) ### <--
+vp.add(Torus(c='g', r=RingRadius, thickness=RingThickness, alpha=.1).wire(1)) ### <--
 
 Atoms = []
 poslist = []
@@ -44,7 +44,7 @@ for i in range(Natoms):
     x = RingRadius*np.cos(alpha)*.9
     y = RingRadius*np.sin(alpha)*.9
     z = 0
-    Atoms = Atoms + [vp.add(sphere(pos=(x,y,z), r=Ratom, c=i))]              ### <--
+    Atoms = Atoms + [vp.add(Sphere(pos=(x,y,z), r=Ratom, c=i))]              ### <--
     theta = np.pi*random()
     phi   = 2*np.pi*random()
     px = pavg*np.sin(theta)*np.cos(phi)

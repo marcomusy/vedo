@@ -1,12 +1,12 @@
 '''
 Usage example of fitLine() and fitPlane()
 
-Draw a line in 3D that fits a cloud of 20 points,
+Draw a line in 3D that fits a cloud of 20 Points,
 Show the first set of 20 points and fit a plane to them.
 '''
 from __future__ import division, print_function
 import numpy as np
-from vtkplotter import Plotter, fitLine, fitPlane, points, text
+from vtkplotter import Plotter, fitLine, fitPlane, Points, Text
 
 # declare the class instance
 vp = Plotter(verbose=0, title='linear fitting')
@@ -23,7 +23,7 @@ for i in range(500):
     vp.add( fitLine(data, lw=4).alpha(0.03) ) # fit a line
 
 # 'data' still contains the last iteration points
-vp.add(points(data, r=10, c='red'))
+vp.add(Points(data, r=10, c='red'))
 
 # the first fitted slope direction is stored 
 # in actor.info['slope] and actor.info['normal]
@@ -32,6 +32,6 @@ print('Line Fit slope = ', vp.actors[0].info['slope'])
 plane = vp.add( fitPlane(data) ) # fit a plane
 print('Plan Fit normal=', plane.info['normal']) 
 
-vp.add(text(__doc__))
+vp.add(Text(__doc__))
 
 vp.show()

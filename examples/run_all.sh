@@ -1,21 +1,8 @@
 #!/bin/bash
 # source run_all.sh
 #
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
+printf "\033c"
+
 echo #############################################
 echo    Press Esc at anytime to skip example
 echo #############################################
@@ -24,6 +11,9 @@ echo
 echo
 
 ####################################
+echo Running basic/a_first_example.py
+python  basic/a_first_example.py
+
 echo Running tutorial.py
 python tutorial.py
 
@@ -75,9 +65,6 @@ python basic/rotateImage.py
 
 echo Running basic/shrink.py
 python basic/shrink.py
-
-echo Running advanced/aspring.py
-python advanced/aspring.py
 
 echo Running basic/manyspheres.py
 python basic/manyspheres.py
@@ -165,9 +152,6 @@ python basic/glyphs.py
 
 
 #################################### advanced
-echo Running advanced/brownian2D.py
-python advanced/brownian2D.py
-
 echo Running advanced/fatlimb.py
 python advanced/fatlimb.py
 
@@ -177,26 +161,8 @@ python advanced/fitplanes.py
 echo Running advanced/fitspheres1.py
 python advanced/fitspheres1.py
 
-echo Running advanced/gas.py
-python advanced/gas.py
-
-echo Running advanced/gyroscope1.py
-python advanced/gyroscope1.py
-
-echo Running advanced/gyroscope2.py
-python advanced/gyroscope2.py
-
-echo Running advanced/multiple_pendulum.py
-python advanced/multiple_pendulum.py
-
 echo Running advanced/quadratic_morphing.py
 python advanced/quadratic_morphing.py
-
-echo Running advanced/wave_equation.py
-python advanced/wave_equation.py
-
-echo Running advanced/turing.py
-python advanced/turing.py
 
 echo Running advanced/moving_least_squares1D.py
 python advanced/moving_least_squares1D.py
@@ -212,18 +178,6 @@ python advanced/recosurface.py
 
 echo Running advanced/skeletonize.py
 python advanced/skeletonize.py
-
-echo Running advanced/particle_simulator.py
-python advanced/particle_simulator.py
-
-echo Running advanced/doubleslit.py
-python advanced/doubleslit.py
-
-echo Running advanced/tunnelling2.py
-python advanced/tunnelling2.py
-
-echo Running advanced/blackbody.py
-python advanced/blackbody.py
 
 echo Running advanced/mesh_smoothers.py
 python advanced/mesh_smoothers.py
@@ -263,6 +217,41 @@ python advanced/projectsphere.py
 
 echo Running advanced/convexHull.py
 python advanced/convexHull.py
+
+
+################################### simulations
+echo Running simulations/aspring.py
+python simulations/aspring.py
+
+echo Running simulations/brownian2D.py
+python simulations/brownian2D.py
+
+echo Running simulations/gas.py
+python simulations/gas.py
+
+echo Running simulations/gyroscope1.py
+python simulations/gyroscope1.py
+
+echo Running simulations/gyroscope2.py
+python simulations/gyroscope2.py
+
+echo Running simulations/multiple_pendulum.py
+python simulations/multiple_pendulum.py
+
+echo Running simulations/wave_equation.py
+python simulations/wave_equation.py
+
+echo Running simulations/turing.py
+python simulations/turing.py
+
+echo Running simulations/particle_simulator.py
+python simulations/particle_simulator.py
+
+echo Running simulations/doubleslit.py
+python simulations/doubleslit.py
+
+echo Running simulations/tunnelling2.py
+python simulations/tunnelling2.py
 
 
 ################################### volumetric

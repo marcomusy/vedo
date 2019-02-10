@@ -5,12 +5,11 @@ or as a reference to an external already existing function.
 Red points indicate where the function does not exist.
 '''
 print(__doc__)
-import math
-from vtkplotter import Plotter, fxy
+from vtkplotter import Plotter, fxy, sin, cos
 
 
 def my_z(x,y): 
-    return math.sin(2*x*y) * math.cos(3*y)/2
+    return sin(2*x*y) * cos(3*y)/2
 
 
 vp = Plotter(shape=(2,2), sharecam=False, bg='snow')
@@ -21,7 +20,7 @@ f1 = fxy(my_z)
 vp.show(f1, at=0)
 
 # c=None shows the original z-scalar color scale. No z-level lines.
-f2 = fxy(lambda x,y: math.sin(x*y), c=None, zlevels=None, texture=None, wire=1)
+f2 = fxy(lambda x,y: sin(x*y), c=None, zlevels=None, texture=None, wire=1)
 vp.show(f2, at=1)
 
 # red dots are shown where the function does not exist (y>x):

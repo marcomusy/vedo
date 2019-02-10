@@ -89,7 +89,7 @@ colors = {  # from matplotlib
     'seashell':             '#FFF5EE', 'sienna':               '#A0522D',
     'silver':               '#C0C0C0', 'skyblue':              '#87CEEB',
     'slateblue':            '#6A5ACD', 'slategray':            '#708090',
-    'snow':                 '#FFFAFA', 'blackboard':           '#393939', #'#3e3c3c',
+    'snow':                 '#FFFAFA', 'blackboard':           '#393939', 
     'springgreen':          '#00FF7F', 'steelblue':            '#4682B4',
     'tan':                  '#D2B48C', 'teal':                 '#008080',
     'thistle':              '#D8BFD8', 'tomato':               '#FF6347',
@@ -124,7 +124,8 @@ color_nicks = {       # color nicknames
     'dm': 'darkmagenta',
     'dc': 'darkcyan',
     'ds': 'darksalmon',
-    'dv': 'darkviolet'
+    'dv': 'darkviolet',
+    'bb': 'blackboard',
     }
 
 
@@ -137,15 +138,6 @@ def _isSequence(arg):
     if hasattr(arg, "__iter__"):
         return True
     return False
-
-def _getAlpha(c):
-    #Check if color string contains a float representing opacity
-    if isinstance(c, str):
-        sc = c.replace(',', ' ').replace('/', ' ').replace('alpha=', '').split()
-        if len(sc) == 1:
-            return None
-        return float(sc[-1])
-    return None
 
 
 def getColor(rgb=None, hsv=None):
@@ -161,7 +153,7 @@ def getColor(rgb=None, hsv=None):
          - string = 'white'
          - string = 'w' is white nickname
          - string = 'dr' is darkred
-         - int    = 7 picks color nr. 7 in a predefined color list
+         - int    =  7 picks color nr. 7 in a predefined color list
          - int    = -7 picks color nr. 7 in a different predefined list
 
     .. hint:: |colorcubes| |colorcubes.py|_
@@ -276,6 +268,11 @@ try:
         'gist_earth': cm_mpl.gist_earth
     }
 except:
+    print("\n-------------------------------------------------------------------")
+    print("WARNING : cannot import matplotlib.cm (colormaps will show up gray).")
+    print("Try e.g.: sudo apt-get install python3-matplotlib")
+    print("     or : pip install matplotlib")
+    print("-------------------------------------------------------------------\n")
     _mapscales = None
 
 
@@ -315,7 +312,8 @@ def colorMap(value, name='jet', vmin=None, vmax=None):
         if name in _mapscales.keys():
             mp = _mapscales[name]
         else:
-            print('Error in colorMap(): avaliable maps =', sorted(_mapscales.keys()))
+            print('Error in colorMap():', name,
+                  '\navaliable maps =', sorted(_mapscales.keys()))
             exit(0)
     
     if _isSequence(value):
