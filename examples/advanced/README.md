@@ -9,7 +9,7 @@ python example.py  # on mac OSX try 'pythonw' instead
 
 |    |    |
 |:-------------:|:-----|
-| [![aspring](https://user-images.githubusercontent.com/32848391/50738955-7e891800-11d9-11e9-85cd-02bd4f3f13ea.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/aspring.py)<br/> `aspring.py` |  Simulation of a spring in a viscuos medium. |
+| [![aspring](https://user-images.githubusercontent.com/32848391/50738955-7e891800-11d9-11e9-85cd-02bd4f3f13ea.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/aspring.py)<br/> `aspring.py` |  Simulation of a spring in a viscous medium. |
 |    |    |
 | [![blackbody](https://user-images.githubusercontent.com/32848391/50738949-73ce8300-11d9-11e9-87bd-056ba8a6232e.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/blackbody.py)<br/> `blackbody.py` | Black body intensity radiation for different temperatures in the range (3000K, 9000K) for the visible range of wavelenghts (400nm, 700nm).|
 |    |    |
@@ -39,21 +39,18 @@ python example.py  # on mac OSX try 'pythonw' instead
 |    |    |
 | [![mls2](https://user-images.githubusercontent.com/32848391/50738936-61544980-11d9-11e9-9efb-e2a923762b72.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py)<br/> `moving_least_squares2D.py` | Use a variant of the *Moving Least Squares* algorithm for a cloud of points to become a smooth surface. The input actor's polydata is modified by the method so more than one pass is possible.|
 |    |    |
-| [![mls3](https://user-images.githubusercontent.com/32848391/50738935-61544980-11d9-11e9-9c20-f2ce944d2238.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares3D.py)<br/> `moving_least_squares3D.py` | Generate a time sequence of 3D shapes (from a blue sphere to a red tetrahedron) as noisy cloud points, and smooth it with *Moving Least Squares*. This make a simultaneus fit in 4D (space+time). <br>`smoothMLS3D()` method returns an actor where points are color coded in bins of fitted time. |
+| [![mls3](https://user-images.githubusercontent.com/32848391/50738935-61544980-11d9-11e9-9c20-f2ce944d2238.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares3D.py)<br/> `moving_least_squares3D.py` | Generate a time sequence of 3D shapes (from a blue sphere to a red tetrahedron) as noisy cloud points, and smooth it with *Moving Least Squares*. This makes a simultaneous fit in 4D (space+time). <br>`smoothMLS3D()` method returns an actor where points are color coded in bins of fitted time. |
 |    |    |
-| [![mpend](https://user-images.githubusercontent.com/32848391/50738892-db380300-11d8-11e9-807c-fb320c7b7917.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/multiple_pendulum.py)<br/> `multiple_pendulum.py` | Simulation of an elastic multiple pendulum with viscuos friction. |
+| [![mpend](https://user-images.githubusercontent.com/32848391/50738892-db380300-11d8-11e9-807c-fb320c7b7917.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/multiple_pendulum.py)<br/> `multiple_pendulum.py` | Simulation of an elastic multiple pendulums with viscous friction. |
 |    |    |
 | [![ruth](https://user-images.githubusercontent.com/32848391/50738891-db380300-11d8-11e9-84c2-0f55be7228f1.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/particle_simulator.py)<br/> `particle_simulator.py` | Simulates interacting charged particles in 3D space. |
 |    |    |
-| [![qmorph](https://user-images.githubusercontent.com/32848391/50738890-db380300-11d8-11e9-9cef-4c1276cca334.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/quadratic_morphing.py)<br/> `quadratic_morphing.py` | Takes 2 meshes, source and target, and morphs source to target. This is obtained by fitting 18 parameters of a non linear, quadratic, transformation defined in `transform()`. The fitting minimizes the distance to the target surface.|
+| [![qmorph](https://user-images.githubusercontent.com/32848391/50738890-db380300-11d8-11e9-9cef-4c1276cca334.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/quadratic_morphing.py)<br/> `quadratic_morphing.py` | Takes two meshes, source and target, and morphs source to target. This is obtained by fitting 18 parameters of a non linear, quadratic, transformation defined in `transform()`. The fitting minimizes the distance to the target surface.|
 |    |    |
-| [![recosurface](https://user-images.githubusercontent.com/32848391/50738889-db380300-11d8-11e9-8854-2e3c70aefeb9.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/recosurface.py)<br/> `recosurface.py` | Reconstruct a surface from a point cloud.<br>1. An mesh is loaded and noise is added to its vertices. <br>2. the point cloud is smoothened with MLS (see `moving_least_squares2D.py`) <br>3. `mesh.clean()` imposes a minimum distance among mesh points. <br>4. a triangular mesh is extracted from this smoother point cloud.|
+| [![recosurface](https://user-images.githubusercontent.com/32848391/50738889-db380300-11d8-11e9-8854-2e3c70aefeb9.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/recosurface.py)<br/> `recosurface.py` | Reconstructs a surface from a point cloud.<br>1. A mesh is loaded and noise is added to its vertices. <br>2. the point cloud is smoothened with MLS (see `moving_least_squares2D.py`) <br>3. `mesh.clean()` imposes a minimum distance among mesh points. <br>4. a triangular mesh is extracted from this smoother point cloud.|
 |    |    |
 | [![skeletonize](https://user-images.githubusercontent.com/32848391/50738888-db380300-11d8-11e9-86dd-742c1b887337.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/skeletonize.py)<br/> `skeletonize.py` | Using 1D *Moving Least Squares* to skeletonize a surface. |
 |    |    |
 | [![thinplate](https://user-images.githubusercontent.com/32848391/51403917-34495480-1b52-11e9-956c-918c7805a9b5.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/thinplate.py)<br/> `thinplate.py` | Perform a nonlinear warp transformation defined by a set of source and target landmarks. |
 |    |    |
-| [![thinplate_grid](https://user-images.githubusercontent.com/32848391/51433540-d188b380-1c4c-11e9-81e7-a1cf4642c54b.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/thinplate_grid.py)<br/> `thinplate_grid.py` | Move a set of control points to warp space in their vicinity. Warping is visualised through a set of horizontal grids. |
-
-
-
+| [![thinplate_grid](https://user-images.githubusercontent.com/32848391/51433540-d188b380-1c4c-11e9-81e7-a1cf4642c54b.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/thinplate_grid.py)<br/> `thinplate_grid.py` | Moves a set of control points to warp space in their vicinity. Warping is visualised through a set of horizontal grids. |
