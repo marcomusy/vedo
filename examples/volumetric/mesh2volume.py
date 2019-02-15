@@ -6,15 +6,15 @@
 """
 from vtkplotter import *
 
-s = load('data/shapes/bunny.obj').normalize().wire()#.cutPlane()
+s = load('data/shapes/bunny.obj').normalize().wire()  # .cutPlane()
 
-img = actor2ImageData(s, spacing=(.02,.02,.02))
+img = actor2ImageData(s, spacing=(.02, .02, .02))
 
-v = Volume(img, alphas=[0,.5]) # alphas=[0,1,0]
+v = Volume(img, alphas=[0, .5])  # alphas=[0,1,0]
 
 iso = isosurface(img, smoothing=0.9).color('b')
 
-show([v, s.scale(1.05), Text(__doc__, c='k')], 
+show([v, s.scale(1.05), Text(__doc__, c='k')],
      at=0, N=2, bg='w', verbose=0)
 
 show([iso], at=1, interactive=1)

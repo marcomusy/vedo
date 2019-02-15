@@ -166,8 +166,8 @@ def _showVoxelImage():
         colorTransferFunction.AddRGBPoint(smin, 1.0, 1.0, 1.0) #white
         colorTransferFunction.AddRGBPoint(value, r/2, g/2, b/2)
         colorTransferFunction.AddRGBPoint(smax, 0.0, 0.0, 0.0) #black
-    w1 = vp.addSlider(slider1, smin, smax, value=(smin+smax)/3.0, 
-                      pos=4, title='color brightness')
+    w1 = vp.addSlider2D(slider1, smin, smax, value=(smin+smax)/3.0, 
+                        pos=4, title='color brightness')
     
     ############################## alpha sliders    
     def sliderA1(widget, event):
@@ -180,8 +180,8 @@ def _showVoxelImage():
         opacityTransferFunction.AddPoint(x2alpha, _alphaslider2)
         opacityTransferFunction.AddPoint(smax, 1.0)
     #_alphaslider1 /= smax
-    w2 = vp.addSlider(sliderA1, 0,1, value=_alphaslider1,
-                      pos=[(.93 ,.1),(.93, .44)] , title='', showValue=0)
+    w2 = vp.addSlider2D(sliderA1, 0,1, value=_alphaslider1,
+                        pos=[(.93 ,.1),(.93, .44)] , title='', showValue=0)
     
     def sliderA2(widget, event):
         global _alphaslider2
@@ -193,8 +193,8 @@ def _showVoxelImage():
         opacityTransferFunction.AddPoint(x2alpha, _alphaslider2)
         opacityTransferFunction.AddPoint(smax, 1.0)
     #_alphaslider2 /= smax
-    w3 = vp.addSlider(sliderA2, 0,1, value=_alphaslider2, 
-                      pos=[(.96 ,.1),(.96, .44)], title='alpha thresholds', showValue=0)
+    w3 = vp.addSlider2D(sliderA2, 0,1, value=_alphaslider2, 
+                        pos=[(.96 ,.1),(.96, .44)], title='alpha thresholds', showValue=0)
         
     def CheckAbort(obj, event):
         if obj.GetEventPending() != 0:
@@ -336,8 +336,8 @@ elif nfiles == 1 and ('.slc' in args.files[0]
         vp.renderer.AddActor(a)
         vp.renderer.Render()
     dr = scrange[1] - scrange[0]
-    vp.addSlider(sliderThres, scrange[0]+0.025*dr, scrange[1]-0.025*dr,
-                 value=threshold, title='isosurface threshold')
+    vp.addSlider2D(sliderThres, scrange[0]+0.025*dr, scrange[1]-0.025*dr,
+                   value=threshold, title='isosurface threshold')
         
     def CheckAbort(obj, event):
         if obj.GetEventPending() != 0:
@@ -351,6 +351,7 @@ elif nfiles == 1 and ('.slc' in args.files[0]
 # normal mode for single file or multiren mode
 elif (not args.scrolling_mode) or nfiles == 1:
 
+    actors = []
     for i in range(N):
         f = args.files[i]
     
@@ -378,7 +379,8 @@ elif (not args.scrolling_mode) or nfiles == 1:
             ic = None
         
         actor = vp.load(f, c=ic, alpha=alpha, wire=wire, legend=leg)
-        
+        actors.append(actor)
+
         if args.point_size > 0:
             try:
                 ps = actor.GetProperty().GetPointSize()
@@ -390,7 +392,8 @@ elif (not args.scrolling_mode) or nfiles == 1:
         if args.multiren_mode: 
             actor._legend = None
             vp.show(actor, at=i, interactive=False, zoom=args.zoom)
-    
+            vp.actors = actors
+            
     if args.multiren_mode: 
         vp.interactor.Start()
     else:
@@ -436,6 +439,7 @@ else:
     n = len(args.files)
     pb = ProgressBar(0, n)    
     
+    actors = []
     for i,f in enumerate(args.files):            
         pb.print('..loading')
         ic = 'gold'
@@ -448,7 +452,7 @@ else:
             ic = None
     
         actor = vp.load(f, c=ic, alpha=alpha, wire=wire, legend=leg)
-        
+        actors.append(actor)
         if args.point_size > 0:
             try:
                 ps = actor.GetProperty().GetPointSize()
@@ -464,7 +468,24 @@ else:
 
     vp.interactor.AddObserver("KeyPressEvent", _scroll)
 
+    # calculate max actors bounds
+    bns = []
+    for a in actors:
+        if a and a.GetPickable():
+            b = a.GetBounds()
+            if b:
+                bns.append(b)
+    if len(bns):
+        max_bns = numpy.max(bns, axis=0)
+        min_bns = numpy.min(bns, axis=0)
+        vbb = (min_bns[0], max_bns[1], min_bns[2],
+               max_bns[3], min_bns[4], max_bns[5])
+
     vp.show(vp.actors[0], interactive=False, zoom=args.zoom)
+    vp.actors = actors
+    
+    if isinstance(vp.axes_exist[0], vtk.vtkCubeAxesActor):
+        vp.axes_exist[0].SetBounds(vbb)
 
     cb=(1,1,1)
     if numpy.sum(vp.renderer.GetBackground()) > 1.5:
@@ -475,7 +496,7 @@ else:
         _kact = int(widget.GetRepresentation().GetValue())
         widget.GetInteractor().ExitCallback()
         
-    wid = vp.addSlider(sliderf, 0, n-1, pos=4, c=cb, showValue=False)
+    wid = vp.addSlider2D(sliderf, 0, n-1, pos=4, c=cb, showValue=False)
     sliderRep = wid.GetRepresentation()
 
     _kact=0
@@ -483,5 +504,6 @@ else:
         fn = args.files[_kact].split("/")[-1]
         printc('showing file #', _kact, '\t',fn,'\r', c='y', bold=0, end='')   
         vp.show(vp.actors[_kact], interactive=True, zoom=args.zoom)
-    
+        vp.actors = actors
+
 

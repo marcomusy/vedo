@@ -13,13 +13,8 @@ for ix in range(75):
 
 v = Volume(data_matrix)
 
-s = isosurface(v.image, 
+s = isosurface(v.image,
                threshold=[t for t in arange(0, 200, 10)])
 s.alpha(0.5)
 
-show([v,s], N=2, axes=8, bg='w', depthpeeling=1)       
-  
-
-exit()
-
-
+show([v,s], N=2, axes=8, bg='w', depthpeeling=1)

@@ -4,7 +4,7 @@ import numpy as np
 import sys
 import vtkplotter.docs as docs
 
-__doc__="""
+__doc__ = """
 Colors definitions and printing methods.
 """+docs._defs
 
@@ -89,15 +89,15 @@ colors = {  # from matplotlib
     'seashell':             '#FFF5EE', 'sienna':               '#A0522D',
     'silver':               '#C0C0C0', 'skyblue':              '#87CEEB',
     'slateblue':            '#6A5ACD', 'slategray':            '#708090',
-    'snow':                 '#FFFAFA', 'blackboard':           '#393939', 
+    'snow':                 '#FFFAFA', 'blackboard':           '#393939',
     'springgreen':          '#00FF7F', 'steelblue':            '#4682B4',
     'tan':                  '#D2B48C', 'teal':                 '#008080',
     'thistle':              '#D8BFD8', 'tomato':               '#FF6347',
     'turquoise':            '#40E0D0', 'violet':               '#EE82EE',
     'wheat':                '#F5DEB3', 'white':                '#FFFFFF',
     'whitesmoke':           '#F5F5F5', 'yellow':               '#FFFF00',
-    'yellowgreen':          '#9ACD32', 
-    }
+    'yellowgreen':          '#9ACD32',
+}
 
 color_nicks = {       # color nicknames
     'b': 'blue',
@@ -112,12 +112,12 @@ color_nicks = {       # color nicknames
     'o': 'olive',
     'p': 'purple',
     's': 'salmon',
-    'v': 'violet',       
+    'v': 'violet',
     'lb': 'lightblue',  # light
     'lg': 'lightgreen',
     'lc': 'lightcyan',
     'ls': 'lightsalmon',
-    'ly': 'lightyellow', 
+    'ly': 'lightyellow',
     'dr': 'darkred',    # dark
     'db': 'darkblue',
     'dg': 'darkgreen',
@@ -126,11 +126,11 @@ color_nicks = {       # color nicknames
     'ds': 'darksalmon',
     'dv': 'darkviolet',
     'bb': 'blackboard',
-    }
+}
 
 
 def _isSequence(arg):
-    #Check if input is iterable.
+    # Check if input is iterable.
     if hasattr(arg, "strip"):
         return False
     if hasattr(arg, "__getslice__"):
@@ -175,7 +175,7 @@ def getColor(rgb=None, hsv=None):
             else:
                 return [c[0]/255., c[1]/255., c[2]/255., c[3]]  # RGBA
 
-    elif isinstance(c, str): # is string
+    elif isinstance(c, str):  # is string
         c = c.replace(',', ' ').replace('/', ' ').replace('alpha=', '')
         c = c.replace('grey', 'gray')
         c = c.split()[0]   # ignore possible opacity float inside string
@@ -204,7 +204,7 @@ def getColor(rgb=None, hsv=None):
                 return [0.5, 0.5, 0.5]
             return list(rgbh)
 
-    elif isinstance(c, int): # color number
+    elif isinstance(c, int):  # color number
         if c >= 0:
             return colors1[c % 10]
         else:
@@ -245,7 +245,6 @@ def hsv2rgb(hsv):
 
 def rgb2hsv(rgb):
     '''Convert RGB to HSV color.'''
-    import vtk
     ma = vtk.vtkMath()
     return ma.RGBToHSV(getColor(rgb))
 
@@ -283,15 +282,15 @@ def colorMap(value, name='jet', vmin=None, vmax=None):
     :type value: float, list
     :param name: color map name
     :type name: str, matplotlib.colors.LinearSegmentedColormap
-    
+
     :return: (r,g,b) color, or a list of (r,g,b) colors.
-    
+
     .. note:: Available color maps:
-                
+
         |colormaps|
 
     .. tip:: Can also use directly a matplotlib color map:
-        
+
         :Example:
             >>> from vtkplotter import colorMap
             >>> import matplotlib.cm as cm
@@ -315,7 +314,7 @@ def colorMap(value, name='jet', vmin=None, vmax=None):
             print('Error in colorMap():', name,
                   '\navaliable maps =', sorted(_mapscales.keys()))
             exit(0)
-    
+
     if _isSequence(value):
         values = np.array(value)
         if vmin is None:
@@ -344,7 +343,7 @@ def makePalette(color1, color2, N, hsv=True):
     '''
     Generate N colors starting from `color1` to `color2` 
     by linear interpolation HSV in or RGB spaces.
-    
+
     :param int N: number of output colors.
     :param color1: first rgb color.
     :param color2: second rgb color.
@@ -370,7 +369,7 @@ def makeLUTfromCTF(sclist, N=None):
     '''
     Use a Color Transfer Function to generate colors in a vtk lookup table.
     See `here <http://www.vtk.org/doc/nightly/html/classvtkColorTransferFunction.html>`_.
-    
+
     :param list sclist: a list in the form ``[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]``.     
     :return: the lookup table object ``vtkLookupTable``. This can be fed into ``colorMap``.
     '''
@@ -379,12 +378,12 @@ def makeLUTfromCTF(sclist, N=None):
 
     for sc in sclist:
         scalar, col = sc
-        r,g,b = getColor(col)
-        ctf.AddRGBPoint(scalar, r,g,b)
-    
+        r, g, b = getColor(col)
+        ctf.AddRGBPoint(scalar, r, g, b)
+
     if N is None:
         N = len(sclist)
-        
+
     lut = vtk.vtkLookupTable()
     lut.SetNumberOfTableValues(N)
     lut.Build()
@@ -527,7 +526,7 @@ def printc(*strings, **keys):
     :param end: end character to be printed [return]
 
     :Example:
-        
+
     >>>  from vtkplotter.colors import printc
     >>>  printc('anything', c='red', bold=False, end='' )
     >>>  printc('anything', 455.5, vtkObject, c='green')
@@ -630,6 +629,4 @@ def printc(*strings, **keys):
     if flush:
         sys.stdout.flush()
 
-    
-    
-    
+

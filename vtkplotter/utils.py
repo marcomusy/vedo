@@ -5,7 +5,7 @@ import numpy as np
 import vtkplotter.colors as colors
 import vtkplotter.docs as docs
 
-__doc__="""
+__doc__ = """
 Utilities submodule.
 """+docs._defs
 
@@ -24,7 +24,7 @@ __all__ = [
     'spher2cart',
     'cart2spher',
     'cart2pol',
-    'pol2cart',   
+    'pol2cart',
 ]
 
 
@@ -67,6 +67,7 @@ def humansort(l):
     E.g. ['file11', 'file1'] -> ['file1', 'file11']
     """
     import re
+
     def alphanum_key(s):
         # Turn a string into a list of string and number chunks.
         # e.g. "z23a" -> ["z", 23, "a"]
@@ -81,7 +82,7 @@ def humansort(l):
 
 def vector(x, y=None, z=0.):
     '''Return a 3D numpy array representing a vector (of type `numpy.float64`).
-    
+
     If `y` is ``None``, assume input is already in the form `[x,y,z]`.
     '''
     if y is None:  # assume x is already [x,y,z]
@@ -207,6 +208,7 @@ def spher2cart(rho, theta, phi):
     z = rho * ct
     return np.array([x, y, z])
 
+
 def cart2spher(x, y, z):
     '''Cartesian to Spherical coordinate conversion.'''
     hxy = np.hypot(x, y)
@@ -215,11 +217,13 @@ def cart2spher(x, y, z):
     phi = np.arctan2(y, x)
     return r, theta, phi
 
+
 def cart2pol(x, y):
     '''Cartesian to Polar coordinates conversion.'''
     theta = np.arctan2(y, x)
     rho = np.hypot(x, y)
     return theta, rho
+
 
 def pol2cart(theta, rho):
     '''Polar to Cartesian coordinates conversion.'''
@@ -268,10 +272,10 @@ def printInfo(obj):
     '''Print information about a vtk object.'''
 
     def printvtkactor(actor, tab=''):
-        
+
         if not actor.GetPickable():
             return
-        
+
         if hasattr(actor, 'polydata'):
             poly = actor.polydata()
         else:
@@ -324,20 +328,20 @@ def printInfo(obj):
 
         colors.printc(tab+'       position: ', c='g', bold=1, end='')
         colors.printc(pos, c='g', bold=0)
-        
+
         if hasattr(actor, 'polydata'):
             colors.printc(tab+'     c. of mass: ', c='g', bold=1, end='')
             colors.printc(actor.centerOfMass(), c='g', bold=0)
-    
+
             colors.printc(tab+'      ave. size: ', c='g', bold=1, end='')
             colors.printc(precision(actor.averageSize(), 4), c='g', bold=0)
-    
+
             colors.printc(tab+'     diag. size: ', c='g', bold=1, end='')
             colors.printc(actor.diagonalSize(), c='g', bold=0)
 
             colors.printc(tab+'           area: ', c='g', bold=1, end='')
             colors.printc(precision(actor.area(), 8), c='g', bold=0)
-    
+
             colors.printc(tab+'         volume: ', c='g', bold=1, end='')
             colors.printc(precision(actor.volume(), 8), c='g', bold=0)
 
@@ -420,17 +424,17 @@ def printInfo(obj):
             if isinstance(act, vtk.vtkActor):
                 printvtkactor(act, tab='     ')
 
-    elif hasattr(obj, 'interactor'): # dumps Plotter info
-        axtype = {0 : '(no axes)',
-                  1 : '(three gray grid walls)',
-                  2 : '(cartesian axes from origin',
-                  3 : '(positive range of cartesian axes from origin',
-                  4 : '(axes triad at bottom left)',
-                  5 : '(oriented cube at bottom left)',
-                  6 : '(mark the corners of the bounding box)',
-                  7 : '(ruler at the bottom of the window)',
-                  8 : '(the vtkCubeAxesActor object)',
-                  9 : '(the bounding box outline)'}
+    elif hasattr(obj, 'interactor'):  # dumps Plotter info
+        axtype = {0: '(no axes)',
+                  1: '(three gray grid walls)',
+                  2: '(cartesian axes from origin',
+                  3: '(positive range of cartesian axes from origin',
+                  4: '(axes triad at bottom left)',
+                  5: '(oriented cube at bottom left)',
+                  6: '(mark the corners of the bounding box)',
+                  7: '(ruler at the bottom of the window)',
+                  8: '(the vtkCubeAxesActor object)',
+                  9: '(the bounding box outline)'}
         bns, totpt = [], 0
         for a in obj.actors:
             b = a.GetBounds()
@@ -463,14 +467,15 @@ def printInfo(obj):
 
         for a in obj.actors:
             if a.GetBounds() is not None:
-                if isinstance(a, vtk.vtkVolume): # dumps Volume info
-                    img = a.GetMapper ().GetDataSetInput ()
+                if isinstance(a, vtk.vtkVolume):  # dumps Volume info
+                    img = a.GetMapper().GetDataSetInput()
                     colors.printc('_'*60, c='b', bold=0)
                     colors.printc('Volume', invert=1, dim=1, c='b')
                     colors.printc('      scalar range:',
-                                  np.round(img.GetScalarRange(),4), c='b', bold=0)
+                                  np.round(img.GetScalarRange(), 4), c='b', bold=0)
                     bnds = a.GetBounds()
-                    colors.printc('            bounds: ', c='b', bold=0, end='')
+                    colors.printc('            bounds: ',
+                                  c='b', bold=0, end='')
                     bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
                     colors.printc('x=('+bx1+', '+bx2+')', c='b', bold=0, end='')
                     by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
@@ -489,11 +494,11 @@ def printInfo(obj):
 def makeBands(inputlist, numberOfBands):
     '''
     Group values of a list into bands of equal value.
-    
+
     :param int numberOfBands: number of bands, a positive integer > 2.
     :return: a binned list of the same length as the input.
     '''
-    if numberOfBands<2: 
+    if numberOfBands < 2:
         return inputlist
     vmin = np.min(inputlist)
     vmax = np.max(inputlist)
@@ -502,7 +507,7 @@ def makeBands(inputlist, numberOfBands):
     bb += dr/2
     tol = dr/2*1.001
 
-    newlist=[]
+    newlist = []
     for s in inputlist:
         for b in bb:
             if abs(s-b) < tol:

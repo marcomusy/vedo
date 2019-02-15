@@ -15,9 +15,9 @@ from vtkplotter import Plotter, Sphere, smoothMLS3D, Points, Text
 vp = Plotter(N=2, axes=0, bg='w')
 
 # generate uniform points on sphere (tol separates points by 2% of actor size)
-cc = Sphere(res=200).clean(tol=0.02).coordinates() 
+cc = Sphere(res=200).clean(tol=0.02).coordinates()
 
-a, b, noise = .2, .4, .1 # some random warping paramenters, and noise factor
+a, b, noise = .2, .4, .1  # some random warping paramenters, and noise factor
 sets = []
 for i in range(5):       # generate a time sequence of 5 shapes
     cs = cc + a * i * cc**2 + b * i * cc**3  # warp sphere in weird ways
@@ -27,9 +27,9 @@ for i in range(5):       # generate a time sequence of 5 shapes
 
 vp.show(Text(__doc__, c='k'), at=0)
 vp.show(sets, at=0, zoom=1.4)                # show input clouds as func(time)
-    
+
 asse = smoothMLS3D(sets, neighbours=50)
 
-vp.addScalarBar3D(asse, at=1, pos=(-2,0,-1)) # color indicates fitted time
+vp.addScalarBar3D(asse, at=1, pos=(-2, 0, -1))  # color indicates fitted time
 
 vp.show(asse, at=1, zoom=1.4, axes=4, interactive=1)

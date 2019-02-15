@@ -26,41 +26,40 @@
 def onelinetip():
     import vtk, sys
     from vtkplotter import colors, __version__
-    vvers = '\nvtkplotter '+__version__+' | vtk '+vtk.vtkVersion().GetVTKVersion()
+    vvers  = ' vtkplotter '+__version__+' '
+    colors.printc(vvers, invert=1, dim=1, end='')
+    vvers  = '| vtk '+vtk.vtkVersion().GetVTKVersion()
     vvers += ' | python ' + str(sys.version_info[0])+'.'+str(sys.version_info[1])
     vvers += " | press h for help."
-    colors.printc(vvers, dim=1)
+    colors.printc(vvers, invert=0, dim=1)
+
 
 def tips():
-    import vtk, sys
-    from vtkplotter import colors, __version__
-    vvers = ' vtkplotter '+__version__+', vtk '+vtk.vtkVersion().GetVTKVersion()
-    vvers += ', python ' + str(sys.version_info[0])+'.'+str(sys.version_info[1])+' '
-    n = len(vvers)
-    if not colors._terminal_has_colors: n = 0
-    colors.printc(' '*n+'_'*(58-n), c='blue')
-    colors.printc(vvers, invert=1, dim=1, c='blue', end='')
-    msg = ' '*(58-n)+'|\n' + '|'+' '*57+'|\n|Press:'
-    msg += "\ti     to print info about selected object         |\n"
-    msg += "|\tm     to minimise opacity of selected mesh        |\n"
-    msg += "|\t.,    to reduce/increase opacity                  |\n"
-    msg += "|\t/     to maximize opacity                         |\n"
-    msg += "|\tw/s   to toggle wireframe/solid style             |\n"
-    msg += "|\tp/P   to change point size of vertices            |\n"
-    msg += "|\tl/L   to change edge line width                   |\n"
-    msg += "|\tx     to toggle mesh visibility                   |\n"
-    msg += "|\tX     to pop up a cutter widget tool              |\n"
-    msg += "|\t1-4   to change mesh color or (4) background      |\n"
-    msg += "|\tk/K   to show point/cell scalars as color         |\n"
-    msg += "|\tn     to show surface mesh normals                |\n"
-    msg += "|\ta     to toggle interaction to Actor Mode         |\n"
-    msg += "|\tj     to toggle interaction to Joystick Mode      |\n"
-    msg += "|\tC     to print current camera info                |\n"
-    msg += "|\tS     to save a screenshot                        |\n"
-    msg += "|\tq/e   to continue/close the rendering window      |\n"
-    msg += "|\tEsc   to exit program                             |\n"
-    msg += '|'+'_'*57+'|\n'
-    colors.printc(msg, c='blue')
+    from vtkplotter import colors
+    msg =  "|Press: i     to print info about selected object            |\n"
+    msg += "|       m     to minimise opacity of selected mesh           |\n"
+    msg += "|       .,    to reduce/increase opacity                     |\n"
+    msg += "|       /     to maximize opacity                            |\n"
+    msg += "|       w/s   to toggle wireframe/solid style                |\n"
+    msg += "|       p/P   to change point size of vertices               |\n"
+    msg += "|       l/L   to change edge line width                      |\n"
+    msg += "|       x     to toggle mesh visibility                      |\n"
+    msg += "|       X     to pop up a cutter widget tool                 |\n"
+    msg += "|       1-3   to change mesh color                           |\n"
+    msg += "|       4     to change background color                     |\n"
+    msg += "|       k/K   to show point/cell scalars as color            |\n"
+    msg += "|       n     to show surface mesh normals                   |\n"
+    msg += "|       a     to toggle interaction to Actor Mode            |\n"
+    msg += "|       j     to toggle interaction to Joystick Mode         |\n"
+    msg += "|       C     to print current camera info                   |\n"
+    msg += "|       S     to save a screenshot                           |\n"
+    msg += "|       q/e   to continue/close the rendering window         |\n"
+    msg += "|       Esc   to exit program                                |\n"
+    msg += '|                                                            |\n'
+    msg += "|Mouse: Left-click    to rotate scene / pick actors          |\n"
+    msg += "|       Middle-click  to pan scene                           |\n"
+    msg += "|       Right-click   to zoom scene in or out                |"
+    colors.printc(msg, dim=1)
 
 
 _defs="""
@@ -662,6 +661,13 @@ _defs="""
     :width: 250 px
     :target: fitline.py_
     :alt: fitline.py
+
+.. |sliders3d.py| replace:: sliders3d.py
+.. _sliders3d.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/sliders3d.py
+.. |sliders3d| image:: https://user-images.githubusercontent.com/32848391/52859555-4efcf200-312d-11e9-9290-6988c8295163.png
+    :width: 250 px
+    :target: sliders3d.py_
+    :alt: sliders3d.py
 
 """
 

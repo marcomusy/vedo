@@ -7,14 +7,14 @@ from __future__ import division
 from random import uniform as u
 from vtkplotter import Plotter, align, Arrow, Text, Points
 
-vp = Plotter(shape=[1,2], verbose=0, axes=2, bg='w')
+vp = Plotter(shape=[1, 2], verbose=0, axes=2, bg='w')
 
 N1 = 15  # number of points of first set
 N2 = 15  # number of points of second set
 x = 1.   # add some randomness
 
-pts1 = [ (u(0,x), u(0,x), u(0,x)+i) for i in range(N1) ]
-pts2 = [ (u(0,x)+3, u(0,x)+i/2+2, u(0,x)+i+1) for i in range(N2) ]
+pts1 = [(u(0, x), u(0, x), u(0, x)+i) for i in range(N1)]
+pts2 = [(u(0, x)+3, u(0, x)+i/2+2, u(0, x)+i+1) for i in range(N2)]
 
 act1 = Points(pts1, r=8, c='b').legend('source')
 act2 = Points(pts2, r=8, c='r').legend('target')
@@ -26,7 +26,7 @@ vp.show([act1, act2], at=0)
 alpts1 = align(act1, act2).coordinates()
 vp.add(Points(alpts1, r=8, c='b'))
 
-for i in range(N1): #draw arrows to see where points end up
+for i in range(N1):  # draw arrows to see where points end up
     vp.add(Arrow(pts1[i], alpts1[i], c='k', s=0.007, alpha=.1))
 
 vp.add(Text(__doc__, c='k'))

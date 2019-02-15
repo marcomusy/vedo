@@ -13,16 +13,16 @@ def myfnc(key):
         return
     printc('clicked actor   :', vp.clickedActor.legend(), c=4)
     printc('clicked 3D point:', vp.picked3d, c=4)
-    printc('clicked renderer:', vp.clickedRenderer, c=2) 
-    
+    printc('clicked renderer:', vp.clickedRenderer, c=2)
+
     vp.add(Sphere(pos=vp.picked3d, r=.005, c='v'))
     vp.show()
-    
+
 ##############################################################################
 
 vp = Plotter(verbose=0)
 
-vp.keyPressFunction = myfnc # make it known to Plotter class
+vp.keyPressFunction = myfnc  # make it known to Plotter class
 
 vp.load('data/shapes/bunny.obj')
 

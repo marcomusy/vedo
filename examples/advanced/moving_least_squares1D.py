@@ -18,68 +18,26 @@ N = 9  # nr. of iterations
 # build some initial cloud of noisy points along a line
 #pts = [ (sin(6*x), sin(2*x)/(x+1), cos(9*x)) for x in arange(0,1, .001)]
 #pts = [ (0, sin(x), cos(x)) for x in arange(0,6, .002) ]
-pts = [ (sqrt(x), sin(x), x/10) for x in arange(0,16, .01) ]
+pts = [(sqrt(x), sin(x), x/10) for x in arange(0, 16, .01)]
 
-pts += np.random.randn(len(pts), 3)/15# add noise
-np.random.shuffle(pts) # make sure points are not ordered
+pts += np.random.randn(len(pts), 3)/15  # add noise
+np.random.shuffle(pts)  # make sure points are not ordered
 
 vp = Plotter(N=N, axes=5)
 a = Points(pts)
 vp.show(a, at=0, legend='cloud')
-        
+
 for i in range(1, N):
     a = a.clone().color(i)
     smoothMLS1D(a, f=0.2)
-    
-    # at last iteration make sure points are separated by tol
-    if i==N-1: 
-    	a.clean(tol=.01)
 
-    print('iteration',i,'#points:',len(a.coordinates()))
+    # at last iteration make sure points are separated by tol
+    if i == N-1:
+        a.clean(tol=.01)
+
+    print('iteration', i, '#points:', len(a.coordinates()))
     vp.show(a, at=i, legend='iter #'+str(i))
 
 vp.show(interactive=1)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

@@ -1,6 +1,6 @@
 '''
-Cut a mesh with another mesh. 
-Try command line 
+Cut a mesh with another mesh.
+Try command line
 > vtkplotter data/embryo.tif
 to see the threshold range.
 '''
@@ -16,5 +16,3 @@ cutembryo = embryo.clone().cutWithMesh(msh).backColor('t')
 
 show([embryo, msh, Text(__doc__)], at=0, N=2, viewup='z')
 show(cutembryo, at=1, interactive=1)
-
-

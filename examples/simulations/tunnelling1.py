@@ -8,7 +8,7 @@ The wave function is forced to be zero at the box walls (line 23).
 print(__doc__)
 
 import numpy as np
-from vtkplotter import Plotter, tube(, line
+from vtkplotter import Plotter, Tube, Line
 
 dt = 0.004   # time step
 x0 = 5       # peak initial position
@@ -54,7 +54,7 @@ for j in range(150):
     A = np.real( Psi*np.conj(Psi) )*1.5 # psi squared, probability(x)
     coords = list(zip(x, A, [0]*len(x)))
     Aline = Tube(coords, c='db', r=.08)
-    vp.show([ALine, barrier, bck])
+    vp.show([Aline, barrier, bck])
     lines.append(Aline)
 
 vp.show(interactive=1)

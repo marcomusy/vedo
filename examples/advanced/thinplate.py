@@ -13,7 +13,7 @@ vp = Plotter(verbose=0)
 
 act = vp.load('data/shuttle.obj')
 
-# pick 4 random points 
+# pick 4 random points
 indxs = np.random.randint(0, act.N(), 4)
 
 # and move them randomly by a little
@@ -24,11 +24,11 @@ for i in indxs:
     act.setPoint(i, ptnew)
     ptsource.append(ptold)
     pttarget.append(ptnew)
-    #print(ptold,'->',ptnew)
+    # print(ptold,'->',ptnew)
 
 warped = thinPlateSpline(act, ptsource, pttarget)
 warped.alpha(0.4).color('b')
-#print(warped.info['transform']) # saved here.
+# print(warped.info['transform']) # saved here.
 
 apts = Points(ptsource, r=15, c='r')
 

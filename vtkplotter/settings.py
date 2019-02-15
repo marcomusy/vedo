@@ -3,27 +3,32 @@ Global settings.
 '''
 
 __all__ = [
-      'computeNormals',
-      'interactorStyle',
-       'allowInteraction',
-       'usingQt',
-       ]
-
-
-
-def init():
-    global plotter_instance
-    plotter_instance = None
+    'computeNormals',
+    'interactorStyle',
+    'allowInteraction',
+    'usingQt',
+]
 
 # recompute vertex and cell normals
-computeNormals = None 
+computeNormals = None
 
 # default style is TrackBallCamera
-interactorStyle = None 
+interactorStyle = None
 
 # allow to interact with scene during interactor.Start() execution
-allowInteraction = True 
+allowInteraction = True
 
 # Qt embedding
 usingQt = False
+
+
+
+#####################
+def _init():
+    global plotter_instance, plotter_instances
+    plotter_instance = None
+    plotter_instances = []
+
+    import warnings
+    warnings.simplefilter(action='ignore', category=FutureWarning)
 

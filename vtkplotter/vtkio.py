@@ -10,7 +10,7 @@ import vtkplotter.colors as colors
 from vtkplotter.actors import Actor, Assembly, ImageActor, isosurface
 import vtkplotter.docs as docs
 
-__doc__="""
+__doc__ = """
 Submodule to load meshes of different formats, and other I/O functionalities.
 """+docs._defs
 
@@ -23,7 +23,7 @@ __all__ = [
     'loadUnStructuredGrid',
     'loadRectilinearGrid',
     'load3DS',
-    'loadDolfin', 
+    'loadDolfin',
     'loadNeutral',
     'loadGmesh',
     'loadPCD',
@@ -43,59 +43,59 @@ __all__ = [
 def load(inputobj, c='gold', alpha=None,
          wire=False, bc=None, legend=True, texture=None,
          smoothing=None, threshold=None, connectivity=False):
-        ''' 
-        Returns a ``vtkActor`` from reading a file, directory or ``vtkPolyData``.
+    ''' 
+    Returns a ``vtkActor`` from reading a file, directory or ``vtkPolyData``.
 
-        :param c: color in RGB format, hex, symbol or name
-        :param alpha:   transparency (0=invisible)
-        :param wire:    show surface as wireframe
-        :param bc:      backface color of internal surface
-        :param legend:  text to show on legend, True picks filename
-        :param texture: any png/jpg file can be used as texture
+    :param c: color in RGB format, hex, symbol or name
+    :param alpha:   transparency (0=invisible)
+    :param wire:    show surface as wireframe
+    :param bc:      backface color of internal surface
+    :param legend:  text to show on legend, True picks filename
+    :param texture: any png/jpg file can be used as texture
 
-        For volumetric data (tiff, slc, vti files):
+    For volumetric data (tiff, slc, vti files):
 
-        :param smoothing:    gaussian filter to smooth vtkImageData
-        :param threshold:    value to draw the isosurface
-        :param connectivity: if True only keeps the largest portion of the polydata
-        '''
-        if alpha is None:
-            alpha = 1
-            
-        if isinstance(inputobj, vtk.vtkPolyData):
-            a = Actor(inputobj, c, alpha, wire, bc, legend, texture)
-            if inputobj and inputobj.GetNumberOfPoints() == 0:
-                colors.printc('Warning: actor has zero points.', c=5)
-            return a
+    :param smoothing:    gaussian filter to smooth vtkImageData
+    :param threshold:    value to draw the isosurface
+    :param connectivity: if True only keeps the largest portion of the polydata
+    '''
+    if alpha is None:
+        alpha = 1
 
-        acts = []
-        if isinstance(legend, int):
-            legend = bool(legend)
-        if isinstance(inputobj, list):
-            flist = inputobj
-        else:
-            import glob
-            flist = sorted(glob.glob(inputobj))
-        for fod in flist:
-            if os.path.isfile(fod):
-                a = _loadFile(fod, c, alpha, wire, bc, legend, texture,
-                              smoothing, threshold, connectivity)
-                acts.append(a)
-            elif os.path.isdir(fod):
-                acts = _loadDir(fod, c, alpha, wire, bc, legend, texture,
-                                smoothing, threshold, connectivity)
-        if not len(acts):
-            colors.printc('Error in load(): cannot find', inputobj, c=1)
-            return None
+    if isinstance(inputobj, vtk.vtkPolyData):
+        a = Actor(inputobj, c, alpha, wire, bc, legend, texture)
+        if inputobj and inputobj.GetNumberOfPoints() == 0:
+            colors.printc('Warning: actor has zero points.', c=5)
+        return a
 
-        if len(acts) == 1:
-            return acts[0]
-        else:
-            return acts
+    acts = []
+    if isinstance(legend, int):
+        legend = bool(legend)
+    if isinstance(inputobj, list):
+        flist = inputobj
+    else:
+        import glob
+        flist = sorted(glob.glob(inputobj))
+    for fod in flist:
+        if os.path.isfile(fod):
+            a = _loadFile(fod, c, alpha, wire, bc, legend, texture,
+                          smoothing, threshold, connectivity)
+            acts.append(a)
+        elif os.path.isdir(fod):
+            acts = _loadDir(fod, c, alpha, wire, bc, legend, texture,
+                            smoothing, threshold, connectivity)
+    if not len(acts):
+        colors.printc('Error in load(): cannot find', inputobj, c=1)
+        return None
+
+    if len(acts) == 1:
+        return acts[0]
+    else:
+        return acts
 
 
 def _loadFile(filename, c, alpha, wire, bc, legend, texture,
-             smoothing, threshold, connectivity):
+              smoothing, threshold, connectivity):
     fl = filename.lower()
     if legend is True:
         legend = os.path.basename(filename)
@@ -445,7 +445,7 @@ def loadPCD(filename, c='gold', alpha=1, legend=None):
     return actor
 
 
-def loadImageData(filename, spacing=[]):
+def loadImageData(filename, spacing=()):
     '''Read and return a ``vtkImageData`` object from file.'''
     if not os.path.isfile(filename):
         colors.printc('File not found:', filename, c=1)
@@ -465,7 +465,7 @@ def loadImageData(filename, spacing=[]):
     reader.SetFileName(filename)
     reader.Update()
     image = reader.GetOutput()
-    print(filename,"scalar range:", image.GetScalarRange())
+    print(filename, "scalar range:", image.GetScalarRange())
     if len(spacing) == 3:
         image.SetSpacing(spacing[0], spacing[1], spacing[2])
     return image
@@ -474,7 +474,7 @@ def loadImageData(filename, spacing=[]):
 ###########################################################
 def load2Dimage(filename, alpha=1):
     '''Read a JPEG/PNG image from file. Return an ``ImageActor(vtkImageActor)`` object.
-    
+
     .. hint:: |rotateImage| |rotateImage.py|_
     '''
     fl = filename.lower()
@@ -487,7 +487,7 @@ def load2Dimage(filename, alpha=1):
         exit(1)
     picr.SetFileName(filename)
     picr.Update()
-    vactor = ImageActor() #vtk.vtkImageActor()
+    vactor = ImageActor()  # vtk.vtkImageActor()
     vactor.SetInputData(picr.GetOutput())
     if alpha is None:
         alpha = 1
@@ -580,10 +580,10 @@ class Video:
     :param str name: name of the output file.
     :param int fps: set the number of frames per second.
     :param float duration: set the total `duration` of the video and recalculates `fps` accordingly.
-        
+
     .. hint:: |makeVideo| |makeVideo.py|_
     '''
-   
+
     def __init__(self, renderWindow, name='movie.avi', fps=12, duration=None):
 
         import glob
@@ -641,7 +641,7 @@ class ProgressBar:
     >>> for i in pb.range():
     >>>     time.sleep(.1)
     >>>     pb.print('some message') # or pb.print(counts=i)
-    
+
     |progbar|
     '''
 
@@ -734,7 +734,7 @@ class ProgressBar:
             self.bar = "[%s]" % (self.char*af)
         else:
             self.bar = "[%s>%s]" % (self.char*(nh-1), ' '*(af-nh))
-        if self.percent < 100:# and self._remt > 1:
+        if self.percent < 100:  # and self._remt > 1:
             ps = ' '+str(self.percent) + "%"
         else:
             ps = ''
@@ -743,7 +743,7 @@ class ProgressBar:
 
 def convertNeutral2Xml(infile, outfile=None):
     '''Convert Neutral file format to Dolfin XML.'''
-    
+
     f = open(infile, 'r')
     lines = f.readlines()
     f.close()
@@ -797,7 +797,7 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
         - ``faces=[[0,1,2], [1,2,3], ...]``
 
     Use ``indexOffset=1`` if face numbering starts from 1 instead of 0.
-    
+
     .. hint:: |buildpolydata| |buildpolydata.py|_
     '''
     sourcePoints = vtk.vtkPoints()
@@ -1084,7 +1084,7 @@ def _keypress(vp, iren, event):
             vp.clickedActor.GetProperty().SetOpacity(0.02)
             bfp = vp.clickedActor.GetBackfaceProperty()
             if bfp and hasattr(vp.clickedActor, '_bfprop'):
-                vp.clickedActor._bfprop = bfp #save it
+                vp.clickedActor._bfprop = bfp  # save it
                 vp.clickedActor.SetBackfaceProperty(None)
         else:
             for a in vp.getActors():
@@ -1120,8 +1120,8 @@ def _keypress(vp, iren, event):
             ap = vp.clickedActor.GetProperty()
             aal = min([ap.GetOpacity()*1.25, 1.0])
             ap.SetOpacity(aal)
-            if aal==1 and hasattr(vp.clickedActor,'_bfprop') and vp.clickedActor._bfprop: 
-                #put back
+            if aal == 1 and hasattr(vp.clickedActor, '_bfprop') and vp.clickedActor._bfprop:
+                # put back
                 vp.clickedActor.SetBackfaceProperty(vp.clickedActor._bfprop)
         else:
             for a in vp.getActors():
@@ -1129,13 +1129,13 @@ def _keypress(vp, iren, event):
                     ap = a.GetProperty()
                     aal = min([ap.GetOpacity()*1.25, 1.0])
                     ap.SetOpacity(aal)
-                    if aal==1 and hasattr(a, '_bfprop') and a._bfprop:
+                    if aal == 1 and hasattr(a, '_bfprop') and a._bfprop:
                         a.SetBackfaceProperty(a._bfprop)
 
     elif key == "slash":
         if vp.clickedActor in vp.getActors():
             vp.clickedActor.GetProperty().SetOpacity(1)
-            if hasattr(vp.clickedActor,'_bfprop') and vp.clickedActor._bfprop:
+            if hasattr(vp.clickedActor, '_bfprop') and vp.clickedActor._bfprop:
                 vp.clickedActor.SetBackfaceProperty(vp.clickedActor._bfprop)
         else:
             for a in vp.getActors():
@@ -1179,14 +1179,14 @@ def _keypress(vp, iren, event):
         else:
             for a in vp.getActors():
                 if a and a.GetPickable():
-                    if a.GetProperty().GetRepresentation() == 1: #toggle
+                    if a.GetProperty().GetRepresentation() == 1:  # toggle
                         a.GetProperty().SetRepresentationToSurface()
                     else:
                         a.GetProperty().SetRepresentationToWireframe()
 
     elif key == "r":
         vp.renderer.ResetCamera()
-        
+
     #############################################################
     ### now intercept custom observer ###########################
     #############################################################
@@ -1201,7 +1201,7 @@ def _keypress(vp, iren, event):
         from vtkplotter.docs import tips
         tips()
         return
-    
+
     if key == "a":
         iren.ExitCallback()
         cur = iren.GetInteractorStyle()
@@ -1274,7 +1274,8 @@ def _keypress(vp, iren, event):
             vp.clickedActor.GetProperty().SetColor(colors.colors2[(vp.icol) % 10])
         else:
             for i, ia in enumerate(vp.getActors()):
-                if not ia.GetPickable(): continue
+                if not ia.GetPickable():
+                    continue
                 ia.GetProperty().SetColor(colors.colors2[(i+vp.icol) % 10])
                 ia.GetMapper().ScalarVisibilityOff()
         vp.icol += 1
@@ -1285,7 +1286,8 @@ def _keypress(vp, iren, event):
         acs = vp.getActors()
         alpha = 1./len(acs)
         for ia in acs:
-            if not ia.GetPickable(): continue
+            if not ia.GetPickable():
+                continue
             ia.GetProperty().SetColor(c)
             ia.GetProperty().SetOpacity(alpha)
             ia.GetMapper().ScalarVisibilityOff()
@@ -1293,9 +1295,9 @@ def _keypress(vp, iren, event):
 
     elif key in ["4", "KP_Left", "KP_4"]:
         bgc = numpy.array(vp.renderer.GetBackground()).sum()/3
-        if bgc>1: bgc=-0.22       
-        vp.renderer.SetBackground(bgc+0.22,bgc+0.22,bgc+0.22)
-
+        if bgc > 1:
+            bgc = -0.22
+        vp.renderer.SetBackground(bgc+0.22, bgc+0.22, bgc+0.22)
 
     elif key in ["k", "K"]:
         for a in vp.getActors():
@@ -1345,7 +1347,8 @@ def _keypress(vp, iren, event):
         else:
             acts = vp.getActors()
         for ia in acts:
-            if not ia.GetPickable(): continue
+            if not ia.GetPickable():
+                continue
             try:
                 ia.GetProperty().SetRepresentationToSurface()
                 ls = ia.GetProperty().GetLineWidth()
@@ -1364,7 +1367,8 @@ def _keypress(vp, iren, event):
         else:
             acts = vp.getActors()
         for ia in acts:
-            if not ia.GetPickable(): continue
+            if not ia.GetPickable():
+                continue
             try:
                 ia.GetProperty().EdgeVisibilityOn()
                 c = ia.GetProperty().GetColor()
@@ -1381,7 +1385,7 @@ def _keypress(vp, iren, event):
         else:
             acts = vp.getActors()
         for ia in acts:
-            if not ia.GetPickable(): 
+            if not ia.GetPickable():
                 continue
             alpha = ia.GetProperty().GetOpacity()
             c = ia.GetProperty().GetColor()
@@ -1392,7 +1396,7 @@ def _keypress(vp, iren, event):
             if ia in vp.actors:
                 i = vp.actors.index(ia)
                 vp.actors[i] = a
-            
+
     elif key == "x":
         if vp.justremoved is None:
             if vp.clickedActor in vp.getActors() or isinstance(vp.clickedActor, vtk.vtkAssembly):
