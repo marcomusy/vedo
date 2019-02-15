@@ -25,17 +25,17 @@ V = Vmax*(np.abs(x-11) < 0.5)-0.01 # simple square barrier potential
 Psi = np.sqrt(1/s0) * np.exp(-1/2*((x-x0)/s0)**2 + 1j*x*k0) # wave packet
 
 dx2 = ((x[-1]-x[0])/(N+2))**2 *400 # dx**2 step, scaled
-nabla2psi = np.zeros(N+2, dtype=np.complex) 
+nabla2psi = np.zeros(N+2, dtype=np.complex)
 def f(psi):
     # a smart numpy way to calculate the second derivative in x:
-    nabla2psi[1:N+1] = (psi[0:N]+psi[2:N+2] -2*psi[1:N+1])/dx2 
+    nabla2psi[1:N+1] = (psi[0:N]+psi[2:N+2] -2*psi[1:N+1])/dx2
     return 1j*(nabla2psi - V*psi) # this is the RH of Schroedinger equation!
 
 def d_dt(psi): # find Psi(t+dt)-Psi(t) /dt with 4th order Runge-Kutta method
     k1 = f(psi)
-    k2 = f(psi +dt/2*k1)    
+    k2 = f(psi +dt/2*k1)
     k3 = f(psi +dt/2*k2)    
-    k4 = f(psi +dt  *k3)    
+    k4 = f(psi +dt  *k3)
     return (k1 + 2*k2 + 2*k3 + k4)/6
 
 vp = Plotter(bg='white', interactive=0, axes=2, verbose=0)
@@ -47,10 +47,10 @@ bck = vp.load('data/images/schrod.png').scale(0.012).pos([0,0,-.5])
 barrier = Line(list(zip(x, V*15)), c='dr', lw=3)
 
 lines = []
-for j in range(150):	
-    for i in range(500): 
+for j in range(150):
+    for i in range(500):
         Psi += d_dt(Psi) * dt  # integrate for a while
-    
+
     A = np.real( Psi*np.conj(Psi) )*1.5 # psi squared, probability(x)
     coords = list(zip(x, A, [0]*len(x)))
     Aline = Tube(coords, c='db', r=.08)

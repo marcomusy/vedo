@@ -4,9 +4,9 @@ Example on how to use the intersectWithLine() method:
  and draw the intersection points in blue
 
 Second part of the example:
- Expand an arbitrary closed shape in spherical harmonics 
+ Expand an arbitrary closed shape in spherical harmonics
  using SHTOOLS (https://shtools.oca.eu/shtools/)
- and then truncate the expansion to a specific lmax and 
+ and then truncate the expansion to a specific lmax and
  reconstruct the projected points in red
 '''
 from __future__ import division, print_function
@@ -18,7 +18,7 @@ import numpy as np
 ##########################################################
 N = 100      # number of sample points on the unit sphere
 lmax = 15    # maximum degree of the expansion
-rmax = 2.0   # line length 
+rmax = 2.0   # line length
 rbias = 0.5  # subtract a constant average value
 x0 = [0,0,0] # set object at this position
 ##########################################################
@@ -48,7 +48,7 @@ vp.show(at=0)
 ############################################################
 try:
     import pyshtools
-except:
+except ModuleNotFoundError:
     print('Please install pyshtools to run this example')
     print('Follow instructions at https://shtools.oca.eu/shtools')
     exit(0)

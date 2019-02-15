@@ -29,7 +29,7 @@ def mergeActors(actors, c=None, alpha=1,
     Build a new actor formed by the fusion of the polydatas of input objects.
     Similar to Assembly, but in this case the input objects become a single mesh.
 
-    .. hint:: |thinplate_grid| |thinplate_grid.py|_ 
+    .. hint:: |thinplate_grid| |thinplate_grid.py|_
     '''
     polylns = vtk.vtkAppendPolyData()
     for a in actors:
@@ -97,8 +97,9 @@ def isosurface(image, smoothing=0, threshold=None, connectivity=False):
 
 
 ################################################# classes
-class Prop(object): 
-    '''Adds functionality to ``Actor``, ``Assembly``, ``vtkImageData`` and ``vtkVolume`` objects.'''
+class Prop(object):
+    '''Adds functionality to ``Actor``, ``Assembly``,
+    ``vtkImageData`` and ``vtkVolume`` objects.'''
 
     def __init__(self):
 
@@ -156,10 +157,10 @@ class Prop(object):
 
         :param str txt: legend text.
 
-        Size and positions can be modified by setting attributes 
+        Size and positions can be modified by setting attributes
         ``Plotter.legendSize``, ``Plotter.legendBC`` and ``Plotter.legendPos``.
 
-        .. hint:: |fillholes.py|_ 
+        .. hint:: |fillholes.py|_
         '''
         if txt:
             self._legend = txt
@@ -280,7 +281,7 @@ class Prop(object):
         :param rotation: If != 0 rotate actor around newaxis.
         :param rad: set to True if angle is in radians.
 
-        .. hint:: |gyroscope2| |gyroscope2.py|_ 
+        .. hint:: |gyroscope2| |gyroscope2.py|_
         '''
         if rad:
             rotation *= 57.29578
@@ -332,7 +333,7 @@ class Prop(object):
         :param n: number of segments to control precision
         :param lw: line width of the trail
 
-        .. hint:: |trail| |trail.py|_ 
+        .. hint:: |trail| |trail.py|_
         '''
         if maxlength is None:
             maxlength = self.diagonalSize()*20
@@ -418,7 +419,7 @@ class Actor(vtk.vtkActor, Prop):
     :param str texture: jpg file name or surface texture name
     :param bool computeNormals: compute point and cell normals at creation
 
-    |basicshapes|    
+    |basicshapes|
     '''
     def __init__(self, poly=None, c='gold', alpha=1,
                  wire=False, bc=None, legend=None, texture=None,
@@ -529,10 +530,10 @@ class Actor(vtk.vtkActor, Prop):
         '''
         Returns the ``vtkPolyData`` of an ``Actor``.
 
-        .. note:: If ``transformed=True`` returns a copy of polydata that corresponds 
+        .. note:: If ``transformed=True`` returns a copy of polydata that corresponds
             to the current actor's position in space.
 
-        .. hint:: |quadratic_morphing| |quadratic_morphing.py|_ 
+        .. hint:: |quadratic_morphing| |quadratic_morphing.py|_
         '''
         if overWriteWith:
             self.poly = overWriteWith
@@ -569,7 +570,7 @@ class Actor(vtk.vtkActor, Prop):
         :param bool copy: if `False` return the reference to the points 
             so that they can be modified in place.
 
-        .. hint:: |align1.py|_ 
+        .. hint:: |align1.py|_
         """
         poly = self.polydata(transformed)
         if copy:
@@ -645,7 +646,7 @@ class Actor(vtk.vtkActor, Prop):
 
     def getPoint(self, i):
         '''
-        Retrieve specific `i-th` point coordinates in mesh. 
+        Retrieve specific `i-th` point coordinates in mesh.
         Actor transformation is reset to its mesh position/orientation.
 
         :param int i: index of vertex point.
@@ -661,7 +662,7 @@ class Actor(vtk.vtkActor, Prop):
 
     def setPoint(self, i, p):
         '''
-        Set specific `i-th` point coordinates in mesh. 
+        Set specific `i-th` point coordinates in mesh.
         Actor transformation is reset to its mesh position/orientation.
 
         :param int i: index of vertex point.
@@ -683,8 +684,9 @@ class Actor(vtk.vtkActor, Prop):
         Return the list of vertex coordinates of the input mesh.
         Same as `actor.coordinates()`.
 
-        :param bool transformed: if `False` ignore any previous trasformation applied to the mesh.
-        :param bool copy: if `False` return the reference to the points 
+        :param bool transformed: if `False` ignore any previous trasformation
+            applied to the mesh.
+        :param bool copy: if `False` return the reference to the points
             so that they can be modified in place.
         """
         return self.coordinates(transformed, copy)
@@ -846,15 +848,15 @@ class Actor(vtk.vtkActor, Prop):
 
     def clean(self, tol=None):
         '''
-        Clean actor's polydata. Can also be used to decimate a mesh if ``tol`` is large. 
+        Clean actor's polydata. Can also be used to decimate a mesh if ``tol`` is large.
         If ``tol=None`` only removes coincident points.
 
-        :param tol: defines how far should be the points from each other in terms of fraction 
+        :param tol: defines how far should be the points from each other in terms of fraction
             of the bounding box length.
 
-        .. hint:: |moving_least_squares1D| |moving_least_squares1D.py|_ 
+        .. hint:: |moving_least_squares1D| |moving_least_squares1D.py|_
 
-            |recosurface| |recosurface.py|_ 
+            |recosurface| |recosurface.py|_
         '''
         poly = self.polydata(False)
         cleanPolyData = vtk.vtkCleanPolyData()
@@ -919,7 +921,7 @@ class Actor(vtk.vtkActor, Prop):
     def centerOfMass(self):
         '''Get the center of mass of actor.
 
-        .. hint:: |fatlimb| |fatlimb.py|_ 
+        .. hint:: |fatlimb| |fatlimb.py|_
         '''
         cmf = vtk.vtkCenterOfMass()
         cmf.SetInputData(self.polydata(True))
@@ -940,7 +942,7 @@ class Actor(vtk.vtkActor, Prop):
     def area(self):
         '''Get the surface area of actor.
 
-        .. hint:: |largestregion.py|_ 
+        .. hint:: |largestregion.py|_
         '''
         mass = vtk.vtkMassProperties()
         mass.SetGlobalWarningDisplay(0)
@@ -957,11 +959,11 @@ class Actor(vtk.vtkActor, Prop):
         :param float radius: if given, get all points within that radius.
         :param bool returnIds: return points IDs instead of point coordinates.
 
-        .. hint:: |fitplanes.py|_ 
+        .. hint:: |fitplanes.py|_
 
-            |align1| |align1.py|_ 
+            |align1| |align1.py|_
 
-            |quadratic_morphing| |quadratic_morphing.py|_ 
+            |quadratic_morphing| |quadratic_morphing.py|_
 
         .. note:: The appropriate kd-tree search locator is built on the fly and cached for speed.
         """
@@ -1015,7 +1017,7 @@ class Actor(vtk.vtkActor, Prop):
 
         :param transformed: if `False` ignore any previous trasformation applied to the mesh.
 
-        .. hint:: |carcrash| |carcrash.py|_ 
+        .. hint:: |carcrash| |carcrash.py|_
         '''
         poly = self.polydata(transformed=transformed)
         polyCopy = vtk.vtkPolyData()
@@ -1088,7 +1090,7 @@ class Actor(vtk.vtkActor, Prop):
 
         .. note::  ``axis='n'``, will flip only mesh normals.
 
-        .. hint:: |mirror| |mirror.py|_ 
+        .. hint:: |mirror| |mirror.py|_
         '''
         poly = self.polydata(transformed=True)
         polyCopy = vtk.vtkPolyData()
@@ -1153,7 +1155,7 @@ class Actor(vtk.vtkActor, Prop):
             >>> s = Sphere(r=0.2).pos(0,0,-0.5)
             >>> show([pot, s])
 
-            |shrink| |shrink.py|_ 
+            |shrink| |shrink.py|_
         '''
         poly = self.polydata(True)
         shrink = vtk.vtkShrinkPolyData()
@@ -1170,7 +1172,7 @@ class Actor(vtk.vtkActor, Prop):
     def stretch(self, q1, q2):
         '''Stretch actor between points `q1` and `q2`.
 
-        .. hint:: |aspring| |aspring.py|_ 
+        .. hint:: |aspring| |aspring.py|_
 
         .. note:: for ``Actors`` like helices, Line, cylinders, cones etc., 
             two attributes ``actor.base``, and ``actor.top`` are already defined.
@@ -1217,7 +1219,7 @@ class Actor(vtk.vtkActor, Prop):
         :param normal: normal of the cutting plane
         :param showcut: if `True` show the cut off part of the mesh as thin wireframe.
 
-        .. hint:: |trail| |trail.py|_ 
+        .. hint:: |trail| |trail.py|_
         '''
         plane = vtk.vtkPlane()
         plane.SetOrigin(origin)
@@ -1260,9 +1262,9 @@ class Actor(vtk.vtkActor, Prop):
 
         :param bool invert: if True return cut off part of actor.
 
-        .. hint:: |cutWithMesh| |cutWithMesh.py|_ 
+        .. hint:: |cutWithMesh| |cutWithMesh.py|_
 
-            |cutAndCap| |cutAndCap.py|_ 
+            |cutAndCap| |cutAndCap.py|_
         '''
         if isinstance(mesh, vtk.vtkPolyData):
             polymesh = mesh
@@ -1312,7 +1314,7 @@ class Actor(vtk.vtkActor, Prop):
         '''
         Generate a "cap" on a clipped actor, or caps sharp edges.
 
-        .. hint:: |cutAndCap| |cutAndCap.py|_ 
+        .. hint:: |cutAndCap| |cutAndCap.py|_
         '''
         poly = self.polydata(True)
 
@@ -1471,7 +1473,7 @@ class Actor(vtk.vtkActor, Prop):
     def cellCenters(self):
         '''Get the list of cell centers of the mesh surface.
 
-        .. hint:: |delaunay2d| |delaunay2d.py|_ 
+        .. hint:: |delaunay2d| |delaunay2d.py|_
         '''
         vcen = vtk.vtkCellCenters()
         vcen.SetInputData(self.polydata(True))
@@ -1492,13 +1494,13 @@ class Actor(vtk.vtkActor, Prop):
         :param float vmin: clip scalars to this minimum value
         :param float vmax: clip scalars to this maximum value
 
-        .. hint:: |mesh_coloring| |mesh_coloring.py|_ 
+        .. hint:: |mesh_coloring| |mesh_coloring.py|_
 
-            |mesh_alphas| |mesh_alphas.py|_ 
+            |mesh_alphas| |mesh_alphas.py|_
 
-            |mesh_bands| |mesh_bands.py|_ 
+            |mesh_bands| |mesh_bands.py|_
 
-            |mesh_custom| |mesh_custom.py|_ 
+            |mesh_custom| |mesh_custom.py|_
         """
         poly = self.polydata(False)
 
@@ -1580,7 +1582,7 @@ class Actor(vtk.vtkActor, Prop):
         :param float vmin: clip scalars to this minimum value
         :param float vmax: clip scalars to this maximum value
 
-        .. hint:: |mesh_coloring| |mesh_coloring.py|_ 
+        .. hint:: |mesh_coloring| |mesh_coloring.py|_
         """
         poly = self.polydata(False)
 
@@ -1654,7 +1656,7 @@ class Actor(vtk.vtkActor, Prop):
         """
         Add point scalars to the actor's polydata assigning it a name.
 
-        .. hint:: |mesh_coloring| |mesh_coloring.py|_ 
+        .. hint:: |mesh_coloring| |mesh_coloring.py|_
         """
         poly = self.polydata(False)
         if len(scalars) != poly.GetNumberOfPoints():
@@ -1707,7 +1709,7 @@ class Actor(vtk.vtkActor, Prop):
 
 
     def addIDs(self, asfield=False):
-        '''    
+        '''
         Generate point and cell ids.
 
         :param bool asfield: flag to control whether to generate scalar or field data.
@@ -1768,7 +1770,7 @@ class Actor(vtk.vtkActor, Prop):
         Retrieve point or cell scalars using array name or index number.
         If no ``name`` is given return the list of names of existing arrays.
 
-        .. hint:: |mesh_coloring.py|_ 
+        .. hint:: |mesh_coloring.py|_
         """
         poly = self.polydata(False)
 
@@ -1819,7 +1821,7 @@ class Actor(vtk.vtkActor, Prop):
 
         :param bool returnIds: return vertex IDs instead of vertex coordinates.
 
-        .. hint:: |connVtx| |connVtx.py|_ 
+        .. hint:: |connVtx| |connVtx.py|_
         '''
         mesh = self.polydata()
 
@@ -1851,7 +1853,7 @@ class Actor(vtk.vtkActor, Prop):
     def intersectWithLine(self, p0, p1):
         '''Return the list of points intersecting the actor along segment p0 and p1.
 
-        .. hint:: |spherical_harmonics1.py|_  |spherical_harmonics2.py|_
+        .. hint:: |spherical_harmonics1.py|_ |spherical_harmonics2.py|_
         '''
         if not self.line_locator:
             line_locator = vtk.vtkOBBTree()
@@ -1875,7 +1877,7 @@ class Actor(vtk.vtkActor, Prop):
         :param int N: number of subdivisions.
         :param int method: Loop(0), Linear(1), Adaptive(2), Butterfly(3)
 
-        .. hint:: |tutorial_subdivide| |tutorial.py|_ 
+        .. hint:: |tutorial_subdivide| |tutorial.py|_
         '''
         triangles = vtk.vtkTriangleFilter()
         triangles.SetInputData(self.polydata())
@@ -1913,7 +1915,7 @@ class Actor(vtk.vtkActor, Prop):
 
         .. note:: Setting ``fraction=0.1`` leaves 10% of the original nr of vertices.
 
-        .. hint:: |skeletonize| |skeletonize.py|_ 
+        .. hint:: |skeletonize| |skeletonize.py|_
         '''
         poly = self.polydata(True)
         if N:  # N = desired number of points
@@ -2060,9 +2062,9 @@ class Actor(vtk.vtkActor, Prop):
 class Assembly(vtk.vtkAssembly, Prop):
     '''Group many actors as a single new actor as a ``vtkAssembly``.
 
-    .. hint:: |gyroscope1| |gyroscope1.py|_ 
+    .. hint:: |gyroscope1| |gyroscope1.py|_
 
-         |icon| |icon.py|_ 
+         |icon| |icon.py|_
     '''
 
     def __init__(self, actors, legend=None):

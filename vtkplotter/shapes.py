@@ -313,7 +313,7 @@ def Lines(plist0, plist1=None, lw=1, c="r", alpha=1, dotted=False):
 
     |lines|
 
-    .. hint:: |fitspheres2.py|_    
+    .. hint:: |fitspheres2.py|_
     """
     if plist1 is not None:
         plist0 = list(zip(plist0, plist1))
@@ -337,7 +337,7 @@ def Lines(plist0, plist1=None, lw=1, c="r", alpha=1, dotted=False):
 def Ribbon(line1, line2, c="m", alpha=1, res=(200, 5)):
     """Connect two lines to generate the surface inbetween.
 
-    .. hint:: |ribbon| |ribbon.py|_    
+    .. hint:: |ribbon| |ribbon.py|_
     """
     if isinstance(line1, Actor):
         line1 = line1.coordinates()
@@ -619,7 +619,7 @@ def Spheres(centers, r=1, c="r", alpha=1, res=8):
 
     Either `c` or `r` can be a list of RGB colors or radii.
 
-    .. hint:: |manyspheres| |manyspheres.py|_    
+    .. hint:: |manyspheres| |manyspheres.py|_
     """
 
     cisseq = False
@@ -707,7 +707,7 @@ def Spheres(centers, r=1, c="r", alpha=1, res=8):
 def Earth(pos=(0, 0, 0), r=1, lw=1):
     """Build a textured actor representing the Earth.
 
-    .. hint:: |geodesic| |geodesic.py|_    
+    .. hint:: |geodesic| |geodesic.py|_
     """
     import os
 
@@ -792,7 +792,7 @@ def Grid(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=1,
          c="g", bc="darkgreen", lw=1, alpha=1, resx=10, resy=10):
     """Return a grid plane.
 
-    .. hint:: |brownian2D| |brownian2D.py|_    
+    .. hint:: |brownian2D| |brownian2D.py|_
     """
     ps = vtk.vtkPlaneSource()
     ps.SetResolution(resx, resy)
@@ -864,7 +864,7 @@ def Box(pos=(0, 0, 0), length=1, width=2, height=3, normal=(0, 0, 1),
     """
     Build a box of dimensions `x=length, y=width and z=height` oriented along vector `normal`.
 
-    .. hint:: |aspring| |aspring.py|_    
+    .. hint:: |aspring| |aspring.py|_
     """
     src = vtk.vtkCubeSource()
     src.SetXLength(length)
@@ -895,7 +895,7 @@ def Box(pos=(0, 0, 0), length=1, width=2, height=3, normal=(0, 0, 1),
 def Cube(pos=(0, 0, 0), side=1, normal=(0, 0, 1), c="g", alpha=1, texture=None):
     """Build a cube of size `side` oriented along vector `normal`.
 
-    .. hint:: |colorcubes| |colorcubes.py|_    
+    .. hint:: |colorcubes| |colorcubes.py|_
     """
     return Box(pos, side, side, side, normal, c, alpha, texture)
 
@@ -910,7 +910,7 @@ def Spring(startPoint=(0, 0, 0), endPoint=(1, 0, 0), coils=20, r=0.1, r2=None,
     :param float r2: radius at end point
     :param float thickness: thickness of the coil section
 
-    .. hint:: |aspring| |aspring.py|_    
+    .. hint:: |aspring| |aspring.py|_
     """
     diff = endPoint - np.array(startPoint)
     length = np.linalg.norm(diff)
@@ -1038,7 +1038,7 @@ def Torus(pos=(0, 0, 0), r=1, thickness=0.1, axis=(0, 0, 1), c="khaki", alpha=1,
     """
     Build a torus of specified outer radius `r` internal radius `thickness`, centered at `pos`.
 
-    .. hint:: |gas| |gas.py|_    
+    .. hint:: |gas| |gas.py|_
     """
     rs = vtk.vtkParametricTorus()
     rs.SetRingRadius(r)
@@ -1123,7 +1123,7 @@ def Hyperboloid(pos=(0, 0, 0), a2=1, value=0.5, height=1, axis=(0, 0, 1),
     Full volumetric expression is:
         :math:`F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
 
-    .. hint:: |mesh_bands| |mesh_bands.py|_    
+    .. hint:: |mesh_bands| |mesh_bands.py|_
     """
     q = vtk.vtkQuadric()
     q.SetCoefficients(2, 2, -1 / a2, 0, 0, 0, 0, 0, 0, 0)
@@ -1178,11 +1178,11 @@ def Text(txt, pos=3, normal=(0, 0, 1), s=1, depth=0.1, justify="bottom-left",
         A ``vtkCamera`` object can also be passed.
     :type followcam: bool, vtkCamera  
     
-    .. hint:: |colorcubes| |colorcubes.py|_ 
+    .. hint:: |colorcubes| |colorcubes.py|_
     
         |markpoint| |markpoint.py|_
     
-        |annotations.py|_  Read a text file and shows it in the rendering window.
+        |annotations.py|_ Read a text file and shows it in the rendering window.
     """
     if isinstance(pos, int):
         if pos > 8:

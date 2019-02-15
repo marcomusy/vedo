@@ -1,19 +1,19 @@
 '''
-Example to read volumetric data in the form of a tiff stack 
+Example to read volumetric data in the form of a tiff stack
 or SLC (StereoLithography Contour) from files with automatic isosurfacing:
 
-A tiff stack is a set of image slices in z. The scalar value 
+A tiff stack is a set of image slices in z. The scalar value
 (intensity of white) is used to create an isosurface by fixing a threshold.
 In this example the level of white is in the range 0=black -> 150=white
 If threshold=None this is set to 1/3 of the scalar range.
 
-- Setting connectivity to True discards the small isolated pieces of 
+- Setting connectivity to True discards the small isolated pieces of
 surface and only keeps the largest connected surface.
 
-- Smoothing applies a gaussian smoothing with a standard deviation 
+- Smoothing applies a gaussian smoothing with a standard deviation
 which is expressed in units of pixels.
 
-- If the spacing of the tiff stack is uneven in xyz, this can be 
+- If the spacing of the tiff stack is uneven in xyz, this can be
 fixed by setting scaling factors with scaling=[xfac,yfac,zfac]
 '''
 print(__doc__)

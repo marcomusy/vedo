@@ -1483,7 +1483,7 @@ def splitByConnectivity(actor, maxdepth=100):
 
     :param int maxdepth: only consider this number of mesh parts.
 
-    .. hint:: |splitmesh| |splitmesh.py|_   
+    .. hint:: |splitmesh| |splitmesh.py|_
     '''
     actor.addIDs()
     pd = actor.polydata()
@@ -1548,7 +1548,7 @@ def geodesic(actor, start, end):
     :param end: end vertex index or close point `[x,y,z]`
     :type start: int, list
 
-    .. hint:: |geodesic| |geodesic.py|_    
+    .. hint:: |geodesic| |geodesic.py|_
     '''
 
     dijkstra = vtk.vtkDijkstraGraphGeodesicPath()
@@ -1593,7 +1593,7 @@ def convexHull(actor_or_list, alphaConstant=0):
         or tetra contained within the circumsphere (of radius alpha) will be output. 
         Otherwise, only tetrahedra will be output. 
 
-    .. hint:: |convexHull| |convexHull.py|_    
+    .. hint:: |convexHull| |convexHull.py|_
     '''
     if vu.isSequence(actor_or_list):
         actor = vs.Points(actor_or_list)
@@ -1626,7 +1626,7 @@ def actor2ImageData(actor, spacing=(1, 1, 1)):
     where the foreground voxels are 1 and the background voxels are 0.
     Internally the ``vtkPolyDataToImageStencil`` class is used.
 
-    .. hint:: |mesh2volume| |mesh2volume.py|_    
+    .. hint:: |mesh2volume| |mesh2volume.py|_
     '''
     # https://vtk.org/Wiki/VTK/Examples/Cxx/PolyData/PolyDataToImageData
     pd = actor.polydata()
@@ -1680,7 +1680,7 @@ def projectSphereFilter(actor):
     '''
     Project a spherical-like object onto a plane.
 
-    .. hint:: |projectsphere| |projectsphere.py|_    
+    .. hint:: |projectsphere| |projectsphere.py|_
     '''
     poly = actor.polydata()
     psf = vtk.vtkProjectSphereFilter()

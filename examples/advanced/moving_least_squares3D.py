@@ -1,11 +1,11 @@
 '''
-Generate a time sequence of 3D shapes 
-(from a sphere to a tetrahedron) as noisy cloud Points, 
+Generate a time sequence of 3D shapes
+(from a sphere to a tetrahedron) as noisy cloud Points,
 and smooth it with Moving Least Squares (smoothMLS3D).
 This make a simultaneus fit in 4D (space+time).
-smoothMLS3D method returns a vtkActor where points 
-are color coded in bins of fitted time. 
-Data itself can suggest a meaningful time separation 
+smoothMLS3D method returns a vtkActor where points
+are color coded in bins of fitted time.
+Data itself can suggest a meaningful time separation
 based on the spatial distribution of points.
 The nr neighbours in the local 4D fitting must be specified.
 '''
