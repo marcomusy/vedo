@@ -1,6 +1,7 @@
 from __future__ import division, print_function
 import vtk
 import numpy as np
+from vtkplotter import settings
 from vtk.util.numpy_support import numpy_to_vtk
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
@@ -49,10 +50,11 @@ __all__ = [
 ########################################################################
 def Point(pos=(0, 0, 0), r=10, c="gray", alpha=1):
     """Create a simple point actor."""
-    return Points([pos], r, c, alpha)
+    actor = Points([pos], r, c, alpha, None)
+    return actor
 
 
-def Points(plist, r=5, c="gray", alpha=1):
+def Points(plist, r=5, c="gray", alpha=1, u=None):
     """
     Build a point ``Actor`` for a list of points.
 
@@ -63,6 +65,46 @@ def Points(plist, r=5, c="gray", alpha=1):
 
     .. hint:: |lorenz| |lorenz.py|_
     """
+
+    def _colorPoints(plist, cols, r, alpha):
+        n = len(plist)
+        if n > len(cols):
+            colors.printc("~times Error: mismatch in colorPoints()", n, len(cols), c=1)
+            exit()
+        if n != len(cols):
+            colors.printc("~lightning Warning: mismatch in colorPoints()", n, len(cols))
+        src = vtk.vtkPointSource()
+        src.SetNumberOfPoints(n)
+        src.Update()
+        vgf = vtk.vtkVertexGlyphFilter()
+        vgf.SetInputData(src.GetOutput())
+        vgf.Update()
+        pd = vgf.GetOutput()
+        ucols = vtk.vtkUnsignedCharArray()
+        ucols.SetNumberOfComponents(3)
+        ucols.SetName("pointsRGB")
+        for i in range(len(plist)):
+            c = np.array(colors.getColor(cols[i])) * 255
+            ucols.InsertNextTuple3(c[0], c[1], c[2])
+        pd.GetPoints().SetData(numpy_to_vtk(plist, deep=True))
+        pd.GetPointData().SetScalars(ucols)
+        actor = Actor(pd, c, alpha)
+        actor.mapper.ScalarVisibilityOn()
+        actor.GetProperty().SetInterpolationToFlat()
+        actor.GetProperty().SetPointSize(r)
+        settings.collectable_actors.append(actor)
+        return actor
+
+#    # dolfin support
+#    inputtype = str(type(plist))
+#    if "dolfin" in inputtype and "Mesh" in inputtype:
+#        mesh = plist
+#        plist = mesh.coordinates()
+#        if u:
+#            u_values = np.array([u(p) for p in plist])
+#        if len(plist[0]) == 2:  # coords are 2d.. not good..
+#            plist = np.insert(plist, 2, 0, axis=1)  # make it 3d
+
     n = len(plist)
     if n == 0:
         return None
@@ -73,15 +115,17 @@ def Points(plist, r=5, c="gray", alpha=1):
         if utils.isSequence(plist[0]) and len(plist[0]) > 3:
             plist = list(zip(plist[0], plist[1], [0] * len(plist[0])))
 
-    if utils.isSequence(c) and utils.isSequence(c[0]) and len(c[0]) == 3:
-        return _colorPoints(plist, c, r, alpha)
+    if utils.isSequence(c) and len(c) > 3:
+        actor = _colorPoints(plist, c, r, alpha)
+        settings.collectable_actors.append(actor)
+        return actor
+    ################
 
     n = len(plist)  # refresh
-
     sourcePoints = vtk.vtkPoints()
     sourceVertices = vtk.vtkCellArray()
     is3d = len(plist[0]) > 2
-    if is3d:
+    if is3d:  # its faster
         for pt in plist:
             aid = sourcePoints.InsertNextPoint(pt)
             sourceVertices.InsertNextCell(1)
@@ -103,35 +147,19 @@ def Points(plist, r=5, c="gray", alpha=1):
     actor.GetProperty().SetPointSize(r)
     if n == 1:
         actor.SetPosition(plist[0])
-    return actor
 
-
-def _colorPoints(plist, cols, r, alpha):
-    n = len(plist)
-    if n > len(cols):
-        colors.printc("Error: mismatch in colorPoints()", n, len(cols), c=1)
-        exit()
-    if n != len(cols):
-        colors.printc("Warning: mismatch in colorPoints()", n, len(cols))
-    src = vtk.vtkPointSource()
-    src.SetNumberOfPoints(n)
-    src.Update()
-    vgf = vtk.vtkVertexGlyphFilter()
-    vgf.SetInputData(src.GetOutput())
-    vgf.Update()
-    pd = vgf.GetOutput()
-    ucols = vtk.vtkUnsignedCharArray()
-    ucols.SetNumberOfComponents(3)
-    ucols.SetName("pointsRGB")
-    for i in range(len(plist)):
-        c = np.array(colors.getColor(cols[i])) * 255
-        ucols.InsertNextTuple3(c[0], c[1], c[2])
-    pd.GetPoints().SetData(numpy_to_vtk(plist, deep=True))
-    pd.GetPointData().SetScalars(ucols)
-    actor = Actor(pd, c, alpha)
-    actor.mapper.ScalarVisibilityOn()
-    actor.GetProperty().SetInterpolationToFlat()
-    actor.GetProperty().SetPointSize(r)
+#    if "dolfin" in inputtype and "Mesh" in inputtype:
+#        actor.mesh = mesh
+#        if u:
+#            actor.u = u
+#            if len(u_values.shape) == 2:
+#                if u_values.shape[1] in [2, 3]:  # u_values is 2D or 3D
+#                    actor.u_values = u_values
+#                    dispsizes = utils.mag(u_values)
+#            else:  # u_values is 1D
+#                dispsizes = u_values
+#            actor.addPointScalars(dispsizes, "u_values")
+    settings.collectable_actors.append(actor)
     return actor
 
 
@@ -149,7 +177,7 @@ def Glyph(actor, glyphObj, orientationArray="", scaleByVectorSize=False, c="gold
     .. hint:: |glyphs| |glyphs.py|_
     """
     if isinstance(glyphObj, Actor):
-        glyphObj = glyphObj.polydata()
+        glyphObj = glyphObj.clean().polydata()
 
     gly = vtk.vtkGlyph3D()
     gly.SetInputData(actor.polydata())
@@ -180,21 +208,23 @@ def Glyph(actor, glyphObj, orientationArray="", scaleByVectorSize=False, c="gold
             gly.SetInputArrayToProcess(0, 0, 0, 0, orientationArray)
             gly.SetVectorModeToUseVector()
 
+
+    if utils.isSequence(c) and len(c) != 3:
+        ucols = vtk.vtkUnsignedCharArray()
+        ucols.SetNumberOfComponents(3)
+        ucols.SetName("glyphRGB")
+        for col in c:
+            cl = colors.getColor(col)
+            ucols.InsertNextTuple3(cl[0]*255, cl[1]*255, cl[2]*255)
+        actor.polydata().GetPointData().SetScalars(ucols)
+        gly.SetScaleModeToDataScalingOff()
+
     gly.Update()
     pd = gly.GetOutput()
 
-    #    if utils.isSequence(c) and len(c) != 3:
-    #        ucols = vtk.vtkUnsignedCharArray()
-    #        ucols.SetNumberOfComponents(3)
-    #        ucols.SetName("glyphRGB")
-    #        for col in c:
-    #            cl = np.array(colors.getColor(col))*255
-    #            ucols.InsertNextTuple3(cl[0], cl[1], cl[2])
-    #        pd.GetPointData().SetScalars(ucols)
-    #        c = None
-
     actor = Actor(pd, c, alpha)
     actor.GetProperty().SetInterpolationToFlat()
+    settings.collectable_actors.append(actor)
     return actor
 
 
@@ -240,6 +270,73 @@ def Line(p0, p1=None, lw=1, c="r", alpha=1, dotted=False):
         actor.GetProperty().SetLineStippleRepeatFactor(1)
     actor.base = np.array(p0)
     actor.top = np.array(p1)
+    settings.collectable_actors.append(actor)
+    return actor
+
+
+def Lines(startPoints, endPoints=None, rescale=1, lw=1, c=None, alpha=1, dotted=False, u=None):
+    """
+    Build the line segments between two lists of points `startPoints` and `endPoints`.
+    `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
+
+    A dolfin ``Mesh`` that was deformed/modified by a function can be 
+    passed together as inputs.
+
+    :param float rescale: apply a rescaling factor to the length 
+
+    |lines|
+
+    .. hint:: |fitspheres2.py|_
+    """
+    if endPoints is not None:
+        startPoints = list(zip(startPoints, endPoints))
+#        inputtype = "list"
+#    else:
+#        # check dolfin support
+#        inputtype = str(type(startPoints))
+#        if "dolfin" in inputtype and "Mesh" in inputtype:
+#            if u is None:
+#                colors.printc("~times Error in Arrows(): u=function must be specified.", c=1)
+#                exit()
+#            mesh = startPoints
+#            startPoints = mesh.coordinates()
+#            u_values = np.array([u(p) for p in mesh.coordinates()])
+#            if not utils.isSequence(u_values[0]):
+#                colors.printc("~times Error: cannot show Arrows for 1D scalar values!", c=1)
+#                exit()
+#            endPoints = mesh.coordinates() + u_values
+#            if u_values.shape[1] == 2:  # u_values is 2D
+#                u_values = np.insert(u_values, 2, 0, axis=1)  # make it 3d
+#                startPoints = np.insert(startPoints, 2, 0, axis=1)  # make it 3d
+#                endPoints = np.insert(endPoints, 2, 0, axis=1)  # make it 3d
+#            startPoints = list(zip(startPoints, endPoints))
+
+    polylns = vtk.vtkAppendPolyData()
+    for twopts in startPoints:
+        lineSource = vtk.vtkLineSource()
+        lineSource.SetPoint1(twopts[0])
+
+        if rescale != 1:
+            vers = (np.array(twopts[1]) - twopts[0]) * rescale
+            pt2 = np.array(twopts[0]) + vers
+        else:
+            pt2 = twopts[1]
+
+        lineSource.SetPoint2(pt2)
+        polylns.AddInputConnection(lineSource.GetOutputPort())
+    polylns.Update()
+
+    actor = Actor(polylns.GetOutput(), c, alpha)
+    actor.GetProperty().SetLineWidth(lw)
+    if dotted:
+        actor.GetProperty().SetLineStipplePattern(0xF0F0)
+        actor.GetProperty().SetLineStippleRepeatFactor(1)
+
+#    if "dolfin" in inputtype and "Mesh" in inputtype:
+#        actor.mesh = mesh
+#        actor.u = u
+#        actor.u_values = u_values
+    settings.collectable_actors.append(actor)
     return actor
 
 
@@ -253,7 +350,7 @@ def Tube(points, r=1, c="r", alpha=1, res=12):
     
     .. hint:: |ribbon| |ribbon.py|_
     
-        |tube(| |tube(.py|_
+        |tube| |tube.py|_
     """
     ppoints = vtk.vtkPoints()  # Generate the polyline
     ppoints.SetData(numpy_to_vtk(points, deep=True))
@@ -295,6 +392,7 @@ def Tube(points, r=1, c="r", alpha=1, res=12):
     polytu = tuf.GetOutput()
 
     actor = Actor(polytu, c=c, alpha=alpha, computeNormals=0)
+    actor.phong()
     if usingColScals:
         actor.mapper.SetScalarModeToUsePointFieldData()
         actor.mapper.ScalarVisibilityOn()
@@ -303,34 +401,7 @@ def Tube(points, r=1, c="r", alpha=1, res=12):
 
     actor.base = np.array(points[0])
     actor.top = np.array(points[-1])
-    return actor
-
-
-def Lines(plist0, plist1=None, lw=1, c="r", alpha=1, dotted=False):
-    """
-    Build the line segments between two lists of points `plist0` and `plist1`.
-    `plist0` can be also passed in the form ``[[point1, point2], ...]``.
-
-    |lines|
-
-    .. hint:: |fitspheres2.py|_
-    """
-    if plist1 is not None:
-        plist0 = list(zip(plist0, plist1))
-
-    polylns = vtk.vtkAppendPolyData()
-    for twopts in plist0:
-        lineSource = vtk.vtkLineSource()
-        lineSource.SetPoint1(twopts[0])
-        lineSource.SetPoint2(twopts[1])
-        polylns.AddInputConnection(lineSource.GetOutputPort())
-    polylns.Update()
-
-    actor = Actor(polylns.GetOutput(), c, alpha)
-    actor.GetProperty().SetLineWidth(lw)
-    if dotted:
-        actor.GetProperty().SetLineStipplePattern(0xF0F0)
-        actor.GetProperty().SetLineStippleRepeatFactor(1)
+    settings.collectable_actors.append(actor)
     return actor
 
 
@@ -394,7 +465,9 @@ def Ribbon(line1, line2, c="m", alpha=1, res=(200, 5)):
     rsf.SetResolution(res[0], res[1])
     rsf.SetInputData(mergedPolyData.GetOutput())
     rsf.Update()
-    return Actor(rsf.GetOutput(), c=c, alpha=alpha)
+    actor = Actor(rsf.GetOutput(), c=c, alpha=alpha)
+    settings.collectable_actors.append(actor)
+    return actor
 
 
 def Arrow(startPoint, endPoint, s=None, c="r", alpha=1, res=12):
@@ -443,24 +516,51 @@ def Arrow(startPoint, endPoint, s=None, c="r", alpha=1, res=12):
     actor.PickableOff()
     actor.base = np.array(startPoint)
     actor.top = np.array(endPoint)
+    settings.collectable_actors.append(actor)
     return actor
 
 
-def Arrows(startPoints, endPoints=None, s=None, c="r", alpha=1, res=8):
+def Arrows(startPoints, endPoints=None, s=None, rescale=1, c="r", alpha=1, res=12, u=None):
     """
     Build arrows between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
+    
+    A dolfin ``Mesh`` that was deformed/modified by a function can be 
+    passed together as inputs.
+
+    :param float s: cross-section size of the arrow
+    :param float rescale: apply a rescaling factor to the length 
     """
+
     if endPoints is not None:
         startPoints = list(zip(startPoints, endPoints))
+#    else:
+#        # check dolfin support
+#        inputtype = str(type(startPoints))
+#        if "dolfin" in inputtype and "Mesh" in inputtype:
+#            if u is None:
+#                colors.printc("~times Error in Arrows(): u=function must be specified.", c=1)
+#                exit()
+#            mesh = startPoints
+#            startPoints = mesh.coordinates()
+#            u_values = np.array([u(p) for p in mesh.coordinates()])
+#            if not utils.isSequence(u_values[0]):
+#                colors.printc("~times Error: cannot show Arrows for 1D scalar values!", c=1)
+#                exit()
+#            endPoints = mesh.coordinates() + u_values
+#            if u_values.shape[1] == 2:  # u_values is 2D
+#                u_values = np.insert(u_values, 2, 0, axis=1)  # make it 3d
+#                startPoints = np.insert(startPoints, 2, 0, axis=1)  # make it 3d
+#                endPoints = np.insert(endPoints, 2, 0, axis=1)  # make it 3d
+#            startPoints = list(zip(startPoints, endPoints))
 
     polyapp = vtk.vtkAppendPolyData()
     for twopts in startPoints:
         startPoint, endPoint = twopts
         axis = np.array(endPoint) - np.array(startPoint)
-        length = np.linalg.norm(axis)
+        length = np.linalg.norm(axis) * rescale
         if length:
-            axis = axis / length
+            axis /= length
         theta = np.arccos(axis[2])
         phi = np.arctan2(axis[1], axis[0])
         arr = vtk.vtkArrowSource()
@@ -485,14 +585,19 @@ def Arrows(startPoints, endPoints=None, s=None, c="r", alpha=1, res=8):
         tf.SetInputConnection(arr.GetOutputPort())
         tf.SetTransform(t)
         polyapp.AddInputConnection(tf.GetOutputPort())
-
     polyapp.Update()
+
     actor = Actor(polyapp.GetOutput(), c, alpha)
+#    if "dolfin" in inputtype and "Mesh" in inputtype:
+#        actor.mesh = mesh
+#        actor.u = u
+#        actor.u_values = u_values
+#    settings.collectable_actors.append(actor)
     return actor
 
 
-def Polygon(pos=(0, 0, 0), normal=(0, 0, 1), nsides=6, r=1, c="coral", bc="darkgreen",
-            lw=1, alpha=1, followcam=False):
+def Polygon(pos=(0, 0, 0), normal=(0, 0, 1), nsides=6, r=1, c="coral",
+            bc="darkgreen", lw=1, alpha=1, followcam=False):
     """
     Build a 2D polygon of `nsides` of radius `r` oriented as `normal`.
 
@@ -515,13 +620,11 @@ def Polygon(pos=(0, 0, 0), normal=(0, 0, 1), nsides=6, r=1, c="coral", bc="darkg
     mapper = vtk.vtkPolyDataMapper()
     mapper.SetInputConnection(tf.GetOutputPort())
     if followcam:
-        import vtkplotter.plotter as plt
-
         actor = vtk.vtkFollower()
         if isinstance(followcam, vtk.vtkCamera):
             actor.SetCamera(followcam)
         else:
-            actor.SetCamera(plt._plotter_instance.camera)
+            actor.SetCamera(settings.plotter_instance.camera)
     else:
         actor = Actor()
 
@@ -536,6 +639,7 @@ def Polygon(pos=(0, 0, 0), normal=(0, 0, 1), nsides=6, r=1, c="coral", bc="darkg
         backProp.SetOpacity(alpha)
         actor.SetBackfaceProperty(backProp)
     actor.SetPosition(pos)
+    settings.collectable_actors.append(actor)
     return actor
 
 
@@ -546,12 +650,20 @@ def Rectangle(p1=(0, 0, 0), p2=(2, 1, 0), c="k", bc="dg", lw=1, alpha=1, texture
     pos = (p1 + p2) / 2
     length = abs(p2[0] - p1[0])
     height = abs(p2[1] - p1[1])
-    rec = Plane(pos, [0, 0, -1], length, height, c, bc, alpha, texture)
-    return rec
+    return Plane(pos, [0, 0, -1], length, height, c, bc, alpha, texture)
 
 
-def Disc(pos=(0, 0, 0), normal=(0, 0, 1), r1=0.5, r2=1, c="coral", bc="darkgreen",
-         lw=1, alpha=1, res=12):
+def Disc(
+    pos=(0, 0, 0),
+    normal=(0, 0, 1),
+    r1=0.5,
+    r2=1,
+    c="coral",
+    bc="darkgreen",
+    lw=1,
+    alpha=1,
+    res=12,
+):
     """
     Build a 2D disc of internal radius `r1` and outer radius `r2`,
     oriented perpendicular to `normal`.
@@ -593,6 +705,7 @@ def Disc(pos=(0, 0, 0), normal=(0, 0, 1), r1=0.5, r2=1, c="coral", bc="darkgreen
         backProp.SetOpacity(alpha)
         actor.SetBackfaceProperty(backProp)
     actor.SetPosition(pos)
+    settings.collectable_actors.append(actor)
     return actor
 
 
@@ -610,6 +723,7 @@ def Sphere(pos=(0, 0, 0), r=1, c="r", alpha=1, res=24):
     actor = Actor(pd, c, alpha)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
+    settings.collectable_actors.append(actor)
     return actor
 
 
@@ -628,10 +742,10 @@ def Spheres(centers, r=1, c="r", alpha=1, res=8):
 
     if cisseq:
         if len(centers) > len(c):
-            colors.printc("Mismatch in Spheres() colors", len(centers), len(c), c=1)
+            colors.printc("~times Mismatch in Spheres() colors", len(centers), len(c), c=1)
             exit()
         if len(centers) != len(c):
-            colors.printc("Warning: mismatch in Spheres() colors", len(centers), len(c))
+            colors.printc("~lightningWarning: mismatch in Spheres() colors", len(centers), len(c))
 
     risseq = False
     if utils.isSequence(r):
@@ -639,12 +753,12 @@ def Spheres(centers, r=1, c="r", alpha=1, res=8):
 
     if risseq:
         if len(centers) > len(r):
-            colors.printc("Mismatch in Spheres() radius", len(centers), len(r), c=1)
+            colors.printc("times Mismatch in Spheres() radius", len(centers), len(r), c=1)
             exit()
         if len(centers) != len(r):
-            colors.printc("Warning: mismatch in Spheres() radius", len(centers), len(r))
+            colors.printc("~lightning Warning: mismatch in Spheres() radius", len(centers), len(r))
     if cisseq and risseq:
-        colors.printc("Limitation: c and r cannot be both sequences.", c=1)
+        colors.printc("~noentry Limitation: c and r cannot be both sequences.", c=1)
         exit()
 
     src = vtk.vtkSphereSource()
@@ -701,6 +815,7 @@ def Spheres(centers, r=1, c="r", alpha=1, res=8):
     else:
         mapper.ScalarVisibilityOff()
         actor.GetProperty().SetColor(colors.getColor(c))
+    settings.collectable_actors.append(actor)
     return actor
 
 
@@ -742,6 +857,7 @@ def Earth(pos=(0, 0, 0), r=1, lw=1):
     earth2Actor.GetProperty().SetLineWidth(lw)
     ass = Assembly([earthActor, earth2Actor])
     ass.SetPosition(pos)
+    settings.collectable_actors.append(ass)
     return ass
 
 
@@ -785,11 +901,22 @@ def Ellipsoid(pos=(0, 0, 0), axis1=(1, 0, 0), axis2=(0, 2, 0), axis3=(0, 0, 3), 
     actor.SetPosition(pos)
     actor.base = -np.array(axis1) / 2 + pos
     actor.top = np.array(axis1) / 2 + pos
+    settings.collectable_actors.append(actor)
     return actor
 
 
-def Grid(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=1,
-         c="g", bc="darkgreen", lw=1, alpha=1, resx=10, resy=10):
+def Grid(
+    pos=(0, 0, 0),
+    normal=(0, 0, 1),
+    sx=1,
+    sy=1,
+    c="g",
+    bc="darkgreen",
+    lw=1,
+    alpha=1,
+    resx=10,
+    resy=10,
+):
     """Return a grid plane.
 
     .. hint:: |brownian2D| |brownian2D.py|_
@@ -822,6 +949,7 @@ def Grid(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=1,
     actor.GetProperty().SetLineWidth(lw)
     actor.SetPosition(pos)
     actor.PickableOff()
+    settings.collectable_actors.append(actor)
     return actor
 
 
@@ -856,6 +984,7 @@ def Plane(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g", bc="darkgreen",
     pd = tf.GetOutput()
     actor = Actor(pd, c=c, bc=bc, alpha=alpha, texture=texture)
     actor.SetPosition(pos)
+    settings.collectable_actors.append(actor)
     return actor
 
 
@@ -889,6 +1018,7 @@ def Box(pos=(0, 0, 0), length=1, width=2, height=3, normal=(0, 0, 1),
 
     actor = Actor(pd, c, alpha, texture=texture)
     actor.SetPosition(pos)
+    settings.collectable_actors.append(actor)
     return actor
 
 
@@ -900,8 +1030,16 @@ def Cube(pos=(0, 0, 0), side=1, normal=(0, 0, 1), c="g", alpha=1, texture=None):
     return Box(pos, side, side, side, normal, c, alpha, texture)
 
 
-def Spring(startPoint=(0, 0, 0), endPoint=(1, 0, 0), coils=20, r=0.1, r2=None,
-          thickness=None, c="grey", alpha=1):
+def Spring(
+    startPoint=(0, 0, 0),
+    endPoint=(1, 0, 0),
+    coils=20,
+    r=0.1,
+    r2=None,
+    thickness=None,
+    c="grey",
+    alpha=1,
+):
     """
     Build a spring of specified nr of `coils` between `startPoint` and `endPoint`.
 
@@ -954,6 +1092,7 @@ def Spring(startPoint=(0, 0, 0), endPoint=(1, 0, 0), coils=20, r=0.1, r2=None,
     actor.SetPosition(startPoint)
     actor.base = np.array(startPoint)
     actor.top = np.array(endPoint)
+    settings.collectable_actors.append(actor)
     return actor
 
 
@@ -973,9 +1112,9 @@ def Cylinder(pos=(0, 0, 0), r=1, height=1, axis=(0, 0, 1), c="teal", alpha=1, re
         pos = (base + top) / 2
         height = np.linalg.norm(top - base)
         axis = top - base
-        axis = utils.norm(axis)
+        axis = utils.versor(axis)
     else:
-        axis = utils.norm(axis)
+        axis = utils.versor(axis)
         base = pos - axis * height / 2
         top = pos + axis * height / 2
 
@@ -1003,6 +1142,7 @@ def Cylinder(pos=(0, 0, 0), r=1, height=1, axis=(0, 0, 1), c="teal", alpha=1, re
     actor.SetPosition(pos)
     actor.base = base + pos
     actor.top = top + pos
+    settings.collectable_actors.append(actor)
     return actor
 
 
@@ -1021,13 +1161,14 @@ def Cone(pos=(0, 0, 0), r=1, height=3, axis=(0, 0, 1), c="dg", alpha=1, res=48):
     actor = Actor(con.GetOutput(), c, alpha)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
-    v = utils.norm(axis) * height / 2
+    v = utils.versor(axis) * height / 2
     actor.base = pos - v
     actor.top = pos + v
+    settings.collectable_actors.append(actor)
     return actor
 
 
-def Pyramid(pos=(0, 0, 0), s=1, height=1, axis=[0, 0, 1], c="dg", alpha=1):
+def Pyramid(pos=(0, 0, 0), s=1, height=1, axis=(0, 0, 1), c="dg", alpha=1):
     """
     Build a pyramid of specified base size `s` and `height`, centered at `pos`.
     """
@@ -1067,6 +1208,7 @@ def Torus(pos=(0, 0, 0), r=1, thickness=0.1, axis=(0, 0, 1), c="khaki", alpha=1,
     actor = Actor(pd, c, alpha)
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
+    settings.collectable_actors.append(actor)
     return actor
 
 
@@ -1112,6 +1254,7 @@ def Paraboloid(pos=(0, 0, 0), r=1, height=1, axis=(0, 0, 1), c="cyan", alpha=1, 
     actor.GetProperty().SetInterpolationToPhong()
     actor.mapper.ScalarVisibilityOff()
     actor.SetPosition(pos)
+    settings.collectable_actors.append(actor)
     return actor
 
 
@@ -1157,33 +1300,46 @@ def Hyperboloid(pos=(0, 0, 0), a2=1, value=0.5, height=1, axis=(0, 0, 1),
     actor.GetProperty().SetInterpolationToPhong()
     actor.mapper.ScalarVisibilityOff()
     actor.SetPosition(pos)
+    settings.collectable_actors.append(actor)
     return actor
 
 
-def Text(txt, pos=3, normal=(0, 0, 1), s=1, depth=0.1, justify="bottom-left",
-         c=(0.7,0.7,0.7), alpha=1, bc=None, bg=None, font="arial", followcam=False):
+def Text(
+    txt,
+    pos=3,
+    normal=(0, 0, 1),
+    s=1,
+    depth=0.1,
+    justify="bottom-left",
+    c=(0.6, 0.6, 0.6),
+    alpha=1,
+    bc=None,
+    bg=None,
+    font="courier",
+    followcam=False,
+):
     """
     Returns a ``vtkActor`` that shows a 3D text.
 
-    :param pos: position in 3D space, 
+    :param pos: position in 3D space,
                 if an integer is passed [1,8], place a 2D text in one of the 4 corners.
     :type pos: list, int
     :param float s: size of text.
     :param float depth: text thickness.
-    :param str justify: text justification 
+    :param str justify: text justification
         (bottom-left, bottom-right, top-left, top-right, centered).
     :param bg: background color of corner annotations. Only applies of `pos` is ``int``.
     :param str font: either `arial`, `courier` or `times`. Only applies of `pos` is ``int``.
     :param followcam: if `True` the text will auto-orient itself to the active camera.
         A ``vtkCamera`` object can also be passed.
-    :type followcam: bool, vtkCamera  
+    :type followcam: bool, vtkCamera
     
     .. hint:: |colorcubes| |colorcubes.py|_
     
         |markpoint| |markpoint.py|_
-    
+
         |annotations.py|_ Read a text file and shows it in the rendering window.
-    """
+    """    
     if isinstance(pos, int):
         if pos > 8:
             pos = 8
@@ -1207,6 +1363,7 @@ def Text(txt, pos=3, normal=(0, 0, 1), s=1, depth=0.1, justify="bottom-left",
             cap.SetBackgroundOpacity(alpha * 0.5)
             cap.SetFrameColor(bgcol)
             cap.FrameOn()
+        settings.collectable_actors.append(ca)
         return ca
 
     tt = vtk.vtkVectorText()
@@ -1226,13 +1383,11 @@ def Text(txt, pos=3, normal=(0, 0, 1), s=1, depth=0.1, justify="bottom-left",
     else:
         ttmapper.SetInputConnection(tt.GetOutputPort())
     if followcam:
-        import vtkplotter.plotter as plt
-
         ttactor = vtk.vtkFollower()
         if isinstance(followcam, vtk.vtkCamera):
             ttactor.SetCamera(followcam)
         else:
-            ttactor.SetCamera(plt._plotter_instance.camera)
+            ttactor.SetCamera(settings.plotter_instance.camera)
     else:
         ttactor = Actor()
     ttactor.SetMapper(ttmapper)
@@ -1254,7 +1409,7 @@ def Text(txt, pos=3, normal=(0, 0, 1), s=1, depth=0.1, justify="bottom-left",
     elif "top-right" in justify:
         shift += np.array([-dx, -dy, 0])
     else:
-        colors.printc("Text(): Unknown justify type", justify, c=1)
+        colors.printc("~lightning Text(): Unknown justify type", justify, c=1)
 
     ttactor.GetProperty().SetOpacity(alpha)
 
@@ -1273,4 +1428,5 @@ def Text(txt, pos=3, normal=(0, 0, 1), s=1, depth=0.1, justify="bottom-left",
         backProp.SetOpacity(alpha)
         ttactor.SetBackfaceProperty(backProp)
     ttactor.PickableOff()
+    settings.collectable_actors.append(ttactor)
     return ttactor

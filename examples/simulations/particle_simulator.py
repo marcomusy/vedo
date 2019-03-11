@@ -6,7 +6,7 @@ Can also be imported as an independent module.
 """
 # By Tommy Vandermolen, 3 August 2018
 print(__doc__)
-from vtkplotter import Plotter, Cube, Sphere, mag2, norm, vector
+from vtkplotter import Plotter, Cube, Sphere, mag2, versor, vector
 import numpy as np
 
 K_COULOMB = 8987551787.3681764  # N*m^2/C^2
@@ -22,11 +22,20 @@ class ParticleSim:
         self.particles = []
         self.iterations = iterations
 
-    def add_particle(self, pos=(0, 0, 0), charge=1e-6, mass=1e-3, radius=0.005,
-                     color=None, vel=(0, 0, 0), fixed=False, negligible=False):
+    def add_particle(
+        self,
+        pos=(0, 0, 0),
+        charge=1e-6,
+        mass=1e-3,
+        radius=0.005,
+        color=None,
+        vel=(0, 0, 0),
+        fixed=False,
+        negligible=False,
+    ):
         """ Adds a new particle with specified properties (in SI units) """
-        color = color or len(self.particles) # assigned or default color number
-        
+        color = color or len(self.particles)  # assigned or default color number
+
         p = Particle(pos, charge, mass, radius, color, vel, fixed, negligible)
         self.particles.append(p)
 
@@ -44,8 +53,8 @@ class ParticleSim:
                     if a.negligible and b.negligible or a == b:
                         continue
                     ab = a.pos - b.pos
-                    ftot += ((K_COULOMB * a.charge * b.charge) / mag2(ab)) * norm(ab)
-                a.vel += ftot / a.mass * self.dt # update velocity and position of a
+                    ftot += ((K_COULOMB * a.charge * b.charge) / mag2(ab)) * versor(ab)
+                a.vel += ftot / a.mass * self.dt  # update velocity and position of a
                 a.pos += a.vel * self.dt
                 a.vtk_actor.pos(a.pos)
             if vp:
@@ -74,33 +83,33 @@ class Particle:
         self.negligible = negligible
         self.color = color
         if vp:
-            self.vtk_actor = vp.add(Sphere(pos, r=radius, c=color)) # Sphere representing the particle
+            self.vtk_actor = vp.add(
+                Sphere(pos, r=radius, c=color)
+            )  # Sphere representing the particle
             # vp.addTrail(alpha=0.4, maxlength=1, n=50)
             # Add a trail behind the particle
             self.vtk_actor.addTrail(alpha=0.4, maxlength=1, n=50)
 
 
-
 #####################################################################################################
-if __name__ == '__main__':
-    
+if __name__ == "__main__":
+
     # An example simulation of N particles scattering on a charged target.
     # See e.g. https://en.wikipedia.org/wiki/Rutherford_scattering
 
-    vp = Plotter(title='Particle Simulator', bg='black', axes=0, interactive=False)
-    vp.camera.Elevation(20) # Initial camera position
+    vp = Plotter(title="Particle Simulator", bg="black", axes=0, interactive=False)
+    vp.camera.Elevation(20)  # Initial camera position
     vp.camera.Azimuth(40)
 
-    vp.add(Cube(c='white').wire(1)) # a wireframe cube
+    vp.add(Cube(c="white").wire(1))  # a wireframe cube
 
     sim = ParticleSim(dt=5e-6, iterations=200)
-    sim.add_particle((-0.4, 0, 0), color='w', charge=3e-6, radius=0.01, fixed=True) # the target
+    sim.add_particle((-0.4, 0, 0), color="w", charge=3e-6, radius=0.01, fixed=True)  # the target
 
-    positions = np.random.randn(500, 3)/60 # generate a beam of 500 particles
+    positions = np.random.randn(500, 3) / 60  # generate a beam of 500 particles
     for p in positions:
-        p[0] = -0.5 # Fix x position. Their charge are small/negligible compared to target:
-        sim.add_particle(p, charge=.01e-6, mass=0.1e-6, vel=(1000, 0, 0), negligible=True)
+        p[0] = -0.5  # Fix x position. Their charge are small/negligible compared to target:
+        sim.add_particle(p, charge=0.01e-6, mass=0.1e-6, vel=(1000, 0, 0), negligible=True)
 
     sim.simulate()
     vp.show(interactive=True, resetcam=False)
-

@@ -32,11 +32,11 @@ Generator().DocumentPackages([vtkplotter],
 
 # -- Project information -----------------------------------------------------
 project = 'vtkplotter'
-copyright = '2019, M. Musy & G. Dalmasso'
+copyright = '2019, M. Musy'
 author = 'Marco Musy'
 
 # The short X.Y version
-version = '8.9.1'
+version = '2019.1.0'
 
 
 # -- General configuration ---------------------------------------------------

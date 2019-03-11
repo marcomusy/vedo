@@ -26,9 +26,7 @@ x = np.linspace(0, size, N + 2)
 # V = -0.1*(x-10)                    # particle on a slope bouncing back
 V = 0.15 * np.sin(1.5 * (x - 7))  # particle hitting a sinusoidal barrier
 
-Psi = np.sqrt(1 / s0) * np.exp(
-    -1 / 2 * ((x - x0) / s0) ** 2 + 1j * x * k0
-)  # wave packet
+Psi = np.sqrt(1 / s0) * np.exp(-1 / 2 * ((x - x0) / s0) ** 2 + 1j * x * k0)  # wave packet
 
 dx2 = ((x[-1] - x[0]) / (N + 2)) ** 2 * 400  # dx**2 step, scaled
 nabla2psi = np.zeros(N + 2, dtype=np.complex)

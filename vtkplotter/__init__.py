@@ -38,14 +38,15 @@ M. Musy, G. Dalmasso, & B. Sullivan.
 analysis and animation of 3D objects and point clouds based on VTK." (version v8.9.0). Zenodo, 
 `doi: 10.5281/zenodo.2561402 <http://doi.org/10.5281/zenodo.2561402>`_, 10 February 2019.
 """
+from __future__ import print_function
 
-__author__     = "Marco Musy"
-__license__    = "MIT"
+__author__ = "Marco Musy"
+__license__ = "MIT"
 __maintainer__ = "M. Musy, G. Dalmasso"
-__email__      = "marco.musy@embl.es"
-__status__     = "dev"
-__website__    = "https://github.com/marcomusy/vtkplotter"
-__version__    = "8.9.1" ### defined also above, in setup.py and docs/source/conf.py
+__email__ = "marco.musy@embl.es"
+__status__ = "dev"
+__website__ = "https://github.com/marcomusy/vtkplotter"
+__version__ = "2019.1.0"  ### defined also above, in setup.py and docs/source/conf.py
 
 from vtkplotter.plotter import *
 from vtkplotter.analysis import *
@@ -72,121 +73,174 @@ settings._init()
 ###############
 
 
-
 #####################
 def _deprecated_msg(cls):
 	print('\nDeprecated in version > 8.9:',
-       cls+'(). Use '+ cls.capitalize()+ '() with capital letter instead.\n')
+              cls+'(). Use '+ cls.capitalize()+ '() with capital letter instead.\n')
 
 def point(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('point')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("point")
     return Point(*args, **kwargs)
+
+
 def points(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('points')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("points")
     return Points(*args, **kwargs)
+
+
 def glyph(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('glyph')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("glyph")
     return Glyph(*args, **kwargs)
+
+
 def line(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('line')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("line")
     return Line(*args, **kwargs)
+
+
 def tube(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('tube')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("tube")
     return Tube(*args, **kwargs)
+
+
 def lines(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('lines')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("lines")
     return Lines(*args, **kwargs)
+
+
 def ribbon(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('ribbon')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("ribbon")
     return Ribbon(*args, **kwargs)
+
+
 def arrow(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('arrow')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("arrow")
     return Arrow(*args, **kwargs)
+
+
 def arrows(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('arrows')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("arrows")
     return Arrows(*args, **kwargs)
+
+
 def polygon(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('polygon')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("polygon")
     return Polygon(*args, **kwargs)
+
+
 def rectangle(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('rectangle')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("rectangle")
     return Rectangle(*args, **kwargs)
+
+
 def disc(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('disc')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("disc")
     return Disc(*args, **kwargs)
+
+
 def sphere(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('sphere')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("sphere")
     return Sphere(*args, **kwargs)
+
+
 def spheres(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('spheres')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("spheres")
     return Spheres(*args, **kwargs)
+
+
 def earth(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('earth')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("earth")
     return Earth(*args, **kwargs)
+
+
 def ellipsoid(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('ellipsoid')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("ellipsoid")
     return Ellipsoid(*args, **kwargs)
+
+
 def grid(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('grid')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("grid")
     return Grid(*args, **kwargs)
+
+
 def plane(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('plane')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("plane")
     return Plane(*args, **kwargs)
+
+
 def box(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('box')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("box")
     return Box(*args, **kwargs)
+
+
 def cube(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('cube')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("cube")
     return Cube(*args, **kwargs)
+
+
 def helix(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('helix')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("helix")
     return Helix(*args, **kwargs)
+
+
 def cylinder(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('cylinder')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("cylinder")
     return Cylinder(*args, **kwargs)
+
+
 def cone(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('cone')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("cone")
     return Cone(*args, **kwargs)
+
+
 def pyramid(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('pyramid')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("pyramid")
     return Pyramid(*args, **kwargs)
+
+
 def torus(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('torus')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("torus")
     return Pyramid(*args, **kwargs)
+
+
 def paraboloid(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('paraboloid')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("paraboloid")
     return Paraboloid(*args, **kwargs)
+
+
 def hyperboloid(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('hyperboloid')
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("hyperboloid")
     return Hyperboloid(*args, **kwargs)
+
+
 def text(*args, **kwargs):
-    '''Deprecated. Use capital letter.'''
-    _deprecated_msg('text')    
+    """Deprecated. Use capital letter."""
+    _deprecated_msg("text")
     return Text(*args, **kwargs)

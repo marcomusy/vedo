@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='8.9.1', # change also in vtkplotter/__init__.py and docs/source/conf.py
+    version='2019.1.0', # change also in vtkplotter/__init__.py and docs/source/conf.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=['vtk'],
