@@ -62,7 +62,6 @@ for the all following functionalities:
     - Probe a volume with lines and planes.
   - Add sliders and buttons to interact with the scene and the individual objects.
   - Examples using [SHTools](https://shtools.oca.eu/shtools) package for *spherical harmonics* expansion of a mesh shape.
-  [//]: <> (- Support for [FEniCS](https://fenicsproject.org) environment for FEM calculations, with complete [examples](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin).)
   - Integration with the *Qt5* framework.
 
 ## Hello World example
