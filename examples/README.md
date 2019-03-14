@@ -72,15 +72,15 @@ vp.show()
 # split window automatically to best accomodate 9 renderers
 vp = Plotter(N=9, title='basic shapes', axes=0) # split window in 9 frames
 vp.sharecam = False                             # each object can be moved independently
-vp.show(at=0, actors=Arrow([0,0,0],[1,1,1]),    legend='arrow' )
-vp.show(at=1, actors=Line([0,0,0],[1,1,1]),     legend='line' )
-vp.show(at=2, actors=Points([[0,0,0],[1,1,1]]), legend='points' )
-vp.show(at=3, actors=Text('Hello!') )
-vp.show(at=4, actors=Sphere() )
-vp.show(at=5, actors=Cube(),     legend='cube')
-vp.show(at=6, actors=Torus(),    legend='torus')
-vp.show(at=7, actors=Spring(),   legend='spring')
-vp.show(at=8, actors=Cylinder(), legend='cylinder', interactive=1)
+vp.show(Arrow([0, 0, 0], [1, 1, 1]), at=0,    legend='arrow')
+vp.show(Line([0, 0, 0], [1, 1, 1]), at=1,     legend='line')
+vp.show(Points([[0, 0, 0], [1, 1, 1]]), at=2, legend='points')
+vp.show(Text('Hello!', pos=(0, 0, 0)), at=3)
+vp.show(Sphere(), at=4)
+vp.show(Cube(), at=5,     legend='cube')
+vp.show(Torus(), at=6,    legend='torus')
+vp.show(Spring(), at=7,   legend='helix')
+vp.show(Cylinder(), at=8, legend='cylinder', interactive=1)
 ```
 ![tut6](https://user-images.githubusercontent.com/32848391/50738976-d889dd80-11d9-11e9-8b13-9bc3436956ac.jpg)
 

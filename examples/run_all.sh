@@ -10,14 +10,17 @@ echo
 echo
 echo
 
-####################################
-echo Running basic/a_first_example.py
-python  basic/a_first_example.py
-
+#################################### basic
 echo Running tutorial.py
 python tutorial.py
 
-#################################### basic
+echo Running basic/a_first_example.py
+python  basic/a_first_example.py
+
+echo Running basic/acollection.py
+python  basic/acollection.py
+
+#################################### 
 echo Running basic/align1.py
 python basic/align1.py
 
@@ -44,6 +47,9 @@ python basic/clustering.py
 
 echo Running basic/connVtx.py
 python basic/connVtx.py
+
+echo Running basic/connCells.py
+python basic/connCells.py
 
 echo Running basic/fitline.py
 python basic/fitline.py
@@ -299,8 +305,8 @@ python volumetric/mesh2volume.py
 echo Running other/colorpalette.py
 python other/colorpalette.py
 
-echo Running other/colorprint.py
-python other/colorprint.py
+echo Running other/printc.py
+python other/printc.py
 
 echo Running other/icon.py
 python other/icon.py
@@ -309,7 +315,34 @@ echo Running other/qt_embed.py # needs qt5
 python other/qt_embed.py
 
 echo Running other/spherical_harmonics1.py
-python other/spherical_harmonics1.py # fails if sphtool not installed
+python other/spherical_harmonics1.py 
+
+
+#################################### Other / DOLFIN
+#echo Running other/dolfin/ex01_show-mesh.py
+#python other/dolfin/ex01_show-mesh.py
+
+#echo Running other/dolfin/ex02_tetralize-mesh.py
+#python other/dolfin/ex02_tetralize-mesh.py
+
+#echo Running other/dolfin/ex03_poisson.py
+#python other/dolfin/ex03_poisson.py
+
+#echo Running other/dolfin/ex04_mixed-poisson.py
+#python other/dolfin/ex04_mixed-poisson.py
+
+#echo Running other/dolfin/ex05_non-matching-meshes.py
+#python other/dolfin/ex05_non-matching-meshes.py
+
+#echo Running other/dolfin/ex06_elasticity1.py
+#python other/dolfin/ex06_elasticity1.py
+
+#echo Running other/dolfin/ex06_elasticity2.py
+#python other/dolfin/ex06_elasticity2.py
+
+#echo Running other/dolfin/ex07_stokes-iterative.py
+#python other/dolfin/ex07_stokes-iterative.py
+
 
 
 ##################################### not ran/ignored:

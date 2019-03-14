@@ -28,8 +28,8 @@ in a program, whilst mantaining access to the full range of VTK native classes.
 It includes a [large set of working examples](https://github.com/marcomusy/vtkplotter/tree/master/examples)
 for the all following functionalities:
 
-  - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, XML, Neutral, GMSH, PCD (PointCloud), volumetric TIFF stacks, SLC, MHD, 2D images PNG, JPEG.
-  - Export meshes as ASCII or binary to VTK, STL, PLY formats with command `vtkconvert`.
+  - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, XML, Neutral, GMSH, OFF, PCD (PointCloud), volumetric TIFF stacks, SLC, MHD, 2D images PNG, JPEG.
+  - Export meshes as ASCII or binary to VTK, STL, OBJ, PLY formats.
   - Mesh analysis through the built-in methods of VTK package. Additional analysis tools like *Moving Least Squares*, mesh morphing.
   - Tools to visualize and edit meshes (cutting a mesh with another mesh, slicing, normalizing, moving vertex positions, etc..). Interactive cutter widget.
   - Split mesh based on surface connectivity. Extract the largest connected area.
@@ -62,7 +62,7 @@ for the all following functionalities:
     - Generate volumetric signed-distance data from an input surface mesh
     - Probe a volume with lines and planes.
   - Add sliders and buttons to interact with the scene and the individual objects.
-  - Examples with [SHTools](https://shtools.oca.eu/shtools) package for *spherical harmonics* expansion of a mesh shape.
+  - Examples using [SHTools](https://shtools.oca.eu/shtools) package for *spherical harmonics* expansion of a mesh shape.
   - Integration with the *Qt5* framework.
 
 ## Hello World example
@@ -78,7 +78,7 @@ show('data/shapes/flamingo.3ds')
 ## Command-line usage
 ```bash
 vtkplotter meshfile.vtk 
-# valid formats: [vtk,vtu,vts,vtp,ply,obj,stl,3ds,xml,neutral,gmsh,pcd,xyz,txt,byu,tif,slc,vti,mhd,png,jpg]
+# valid formats: [vtk,vtu,vts,vtp,ply,obj,stl,3ds,xml,neutral,gmsh,pcd,xyz,txt,byu,tif,off,slc,vti,mhd,png,jpg]
 ```
 to visualize multiple files or files time-sequences try `-n` or `-s` options. Use `-h` for help.<br> 
 Voxel-data (_vti, slc, tiff_) files can also be visualized with options `-g` and `--slicer`,
@@ -117,20 +117,20 @@ python tutorial.py
 | ![turing](https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif)   | Visualizing a Turing system of reaction-diffusion between two molecules<sup>1</sup> ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/turing.py)) <br /> `python simulations/turing.py`  |
 <br />
 
-## References
 
+## References
 Scientific publications using `vtkplotter` so far:
 
-1. Diego, X. *et al*: 
+1. X. Diego _et al._: 
 *"Key features of Turing systems are determined purely by network topology"*, 
 [Physical Review X, 20 June 2018](https://journals.aps.org/prx/abstract/10.1103/PhysRevX.8.021071). 
-2. M. Musy, K. Flaherty, J. Raspopovic, A. Robert-Moreno, J. T. Richtsmeier, J. Sharpe:
+2. M. Musy, K. Flaherty _et al._:
 *"A Quantitative Method for Staging Mouse Limb Embryos based on Limb Morphometry"*,
-Development 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/content/145/7/dev154856), 5 April 2018.
+Development, 5 April 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/content/145/7/dev154856).
 3. G. Dalmasso *et al.*, *"Evolution in space and time of 3D volumetric images"*, in preparation.
 
 **Have you found this software useful for your research? Please cite it as:**<br>
-M. Musy, G. Dalmasso, \& B. Sullivan, 
-"`vtkplotter`*, a python module for scientific visualization, analysis and animation of 3D objects 
-and *point clouds* based on VTK*",
-(version v8.9.0), Zenodo 2019, [doi: 10.5281/zenodo.2561402](http://doi.org/10.5281/zenodo.2561402), 10 February 2019.
+M. Musy  _et al._
+"`vtkplotter`*, a python module for scientific visualization and analysis of 3D objects 
+and point clouds based on VTK*", 
+Zenodo, 10 February 2019, [doi: 10.5281/zenodo.2561402](http://doi.org/10.5281/zenodo.2561402).

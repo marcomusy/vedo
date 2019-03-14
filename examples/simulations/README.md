@@ -26,13 +26,13 @@ python example.py  # on mac OSX try 'pythonw' instead
 | [![mpend](https://user-images.githubusercontent.com/32848391/50738892-db380300-11d8-11e9-807c-fb320c7b7917.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/multiple_pendulum.py)<br/> `multiple_pendulum.py` | Simulation of an elastic multiple pendulums with viscous friction. |
 |    |    |
 | [![ruth](https://user-images.githubusercontent.com/32848391/50738891-db380300-11d8-11e9-84c2-0f55be7228f1.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/particle_simulator.py)<br/> `particle_simulator.py` | Simulates interacting charged particles in 3D space. |
-| [![tunneling1](https://vtkplotter.embl.es/gifs/tunnelling2.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/tunnelling1.py)<br/> `tunnelling1.py` | Quantum Tunnelling effect using 4th order Runge-Kutta method with arbitrary potential shape. <br>The animation shows the evolution of a particle of relatively well defined momentum (hence undefined position) in a box hitting a potential barrier. The wave function is forced to be zero at the box walls. |
 |    |    |
-| ![qsine2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)   | Quantum-tunnelling effect showing the evolution of a particle in a box hitting a sinusoidal potential barrier. |
+| [![tunneling1](https://vtkplotter.embl.es/gifs/tunnelling2.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/tunnelling1.py)<br/> `tunnelling1.py`                                                    | Quantum Tunnelling effect using 4th order Runge-Kutta method with arbitrary potential shape. <br>The animation shows the evolution of a particle of relatively well defined momentum (hence undefined position) in a box hitting a potential barrier. The wave function is forced to be zero at the box walls. |
+|    |    |
+| [![tunneling2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/tunnelling2.py)<br/> `tunnelling2.py` |Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. |
 |    |    |
 | [![turing](https://user-images.githubusercontent.com/32848391/50738887-da9f6c80-11d8-11e9-83a6-fb002c0613bd.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/turing.py)<br/> `turing.py`             | Visualizing a Turing system of reaction-diffusion between two molecules.|
 |    |    |
-| [![wave](https://user-images.githubusercontent.com/32848391/50738956-7e891800-11d9-11e9-92d7-fa109b1b8551.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/wave_equation.py)<br/> `wave_equation.py` | Simulate a collection of discrete coupled oscillators. We use this as a model of a vibrating string and compare two methods of integration: Euler and Runge-Kutta4.<br>|
-
-
-
+| [![wave](https://user-images.githubusercontent.com/32848391/50738956-7e891800-11d9-11e9-92d7-fa109b1b8551.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/wave_equation.py)<br/> `wave_equation.py` | Simulate a collection of discrete coupled oscillators. We use this as a model of a vibrating string and compare two methods of integration: Euler and Runge-Kutta4.|
+|    |    |
+| [![](https://user-images.githubusercontent.com/32848391/44957809-b2c09500-aed6-11e8-9dc5-c2e52b632f94.gif)](https://github.com/marcomusy/pianoplayer)                                                                              | Finding and animating the optimal fingering to play a piano score with<br />[`pianoplayer 2.0`](https://github.com/marcomusy/pianoplayer)|

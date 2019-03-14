@@ -4,19 +4,47 @@ import numpy as np
 import sys
 import vtkplotter.docs as docs
 
-__doc__ = """
+__doc__ = (
+    """
 Colors definitions and printing methods.
-"""+docs._defs
+"""
+    + docs._defs
+)
 
 __all__ = [
-    'printc',
-    'getColor',
-    'getColorName',
-    'colorMap',
-    'makePalette',
-    'makeLUTfromCTF',
-    'kelvin2rgb',
+    "printc",
+    "getColor",
+    "getColorName",
+    "colorMap",
+    "makePalette",
+    "makeLUTfromCTF",
+    "kelvin2rgb",
+    "printHistogram",
 ]
+
+
+try:
+    import matplotlib
+    import matplotlib.cm as cm_mpl
+
+    _mapscales = {
+        "jet": cm_mpl.jet,
+        "hot": cm_mpl.hot,
+        "afmhot": cm_mpl.afmhot,
+        "rainbow": cm_mpl.rainbow,
+        "binary": cm_mpl.binary,
+        "gray": cm_mpl.gray,
+        "bone": cm_mpl.bone,
+        "winter": cm_mpl.winter,
+        "cool": cm_mpl.cool,
+        "copper": cm_mpl.copper,
+        "coolwarm": cm_mpl.coolwarm,
+        "gist_earth": cm_mpl.gist_earth,
+        "viridis": cm_mpl.viridis,
+    }
+except:
+    _mapscales = None
+    pass # see below, this is dealt with in colorMap()
 
 
 #########################################################
@@ -99,33 +127,38 @@ colors = {  # from matplotlib
     'yellowgreen':          '#9ACD32',
 }
 
-color_nicks = {       # color nicknames
-    'b': 'blue',
-    'g': 'green',
-    'r': 'red',
-    'c': 'cyan',
-    'm': 'magenta',
-    'y': 'yellow',
-    'k': 'black',
-    'w': 'white',
-    't': 'tomato',
-    'o': 'olive',
-    'p': 'purple',
-    's': 'salmon',
-    'v': 'violet',
-    'lb': 'lightblue',  # light
-    'lg': 'lightgreen',
-    'lc': 'lightcyan',
-    'ls': 'lightsalmon',
-    'ly': 'lightyellow',
-    'dr': 'darkred',    # dark
-    'db': 'darkblue',
-    'dg': 'darkgreen',
-    'dm': 'darkmagenta',
-    'dc': 'darkcyan',
-    'ds': 'darksalmon',
-    'dv': 'darkviolet',
-    'bb': 'blackboard',
+color_nicks = {  # color nicknames
+    "a": "aqua",
+    "b": "blue",
+    "bb": "blackboard",
+    "c": "cyan",
+    "f": "fuchsia",
+    "g": "green",
+    "i": "indigo",
+    "k": "black",
+    "m": "magenta",
+    "n": "navy",
+    "l": "lavender",
+    "o": "orange",
+    "p": "purple",
+    "r": "red",
+    "s": "salmon",
+    "t": "tomato",
+    "v": "violet",
+    "y": "yellow",
+    "w": "white",
+    "lb": "lightblue",  # light
+    "lg": "lightgreen",
+    "lc": "lightcyan",
+    "ls": "lightsalmon",
+    "ly": "lightyellow",
+    "dr": "darkred",  # dark
+    "db": "darkblue",
+    "dg": "darkgreen",
+    "dm": "darkmagenta",
+    "dc": "darkcyan",
+    "ds": "darksalmon",
+    "dv": "darkviolet",
 }
 
 
@@ -171,14 +204,14 @@ def getColor(rgb=None, hsv=None):
             return c  # already rgb
         else:
             if len(c) == 3:
-                return list(np.array(c)/255.)  # RGB
+                return list(np.array(c) / 255.0)  # RGB
             else:
-                return [c[0]/255., c[1]/255., c[2]/255., c[3]]  # RGBA
+                return [c[0] / 255.0, c[1] / 255.0, c[2] / 255.0, c[3]]  # RGBA
 
     elif isinstance(c, str):  # is string
-        c = c.replace(',', ' ').replace('/', ' ').replace('alpha=', '')
-        c = c.replace('grey', 'gray')
-        c = c.split()[0]   # ignore possible opacity float inside string
+        c = c.replace(",", " ").replace("/", " ").replace("alpha=", "")
+        c = c.replace("grey", "gray")
+        c = c.split()[0]  # ignore possible opacity float inside string
         if 0 < len(c) < 3:  # single/double letter color
             if c.lower() in color_nicks.keys():
                 c = color_nicks[c.lower()]
@@ -189,16 +222,16 @@ def getColor(rgb=None, hsv=None):
 
         if c.lower() in colors.keys():  # matplotlib name color
             c = colors[c.lower()]
-        else:                           # vtk name color
+        else:  # vtk name color
             namedColors = vtk.vtkNamedColors()
             rgba = [0, 0, 0, 0]
             namedColors.GetColor(c, rgba)
-            return list(np.array(rgba[0:3])/255.)
+            return list(np.array(rgba[0:3]) / 255.0)
 
-        if '#' in c:  # hex to rgb
-            h = c.lstrip('#')
-            rgb255 = list(int(h[i:i+2], 16) for i in (0, 2, 4))
-            rgbh = np.array(rgb255)/255.
+        if "#" in c:  # hex to rgb
+            h = c.lstrip("#")
+            rgb255 = list(int(h[i : i + 2], 16) for i in (0, 2, 4))
+            rgbh = np.array(rgb255) / 255.0
             if np.sum(rgbh) > 3:
                 print("Error in getColor(): Wrong hex color", c)
                 return [0.5, 0.5, 0.5]
@@ -216,7 +249,7 @@ def getColor(rgb=None, hsv=None):
         else:
             return colors2[int(-c) % 10]
 
-    print('Unknown color:', c)
+    print("Unknown color:", c)
     return [0.5, 0.5, 0.5]
 
 
@@ -226,11 +259,11 @@ def getColorName(c):
     .. hint:: |colorpalette| |colorpalette.py|_
     """
     c = np.array(getColor(c))  # reformat to rgb
-    mdist = 99.
-    kclosest = ''
+    mdist = 99.0
+    kclosest = ""
     for key in colors.keys():
         ci = np.array(getColor(key))
-        d = np.linalg.norm(c-ci)
+        d = np.linalg.norm(c - ci)
         if d < mdist:
             mdist = d
             kclosest = str(key)
@@ -238,45 +271,19 @@ def getColorName(c):
 
 
 def hsv2rgb(hsv):
-    '''Convert HSV to RGB color.'''
+    """Convert HSV to RGB color."""
     ma = vtk.vtkMath()
     return ma.HSVToRGB(hsv)
 
 
 def rgb2hsv(rgb):
-    '''Convert RGB to HSV color.'''
+    """Convert RGB to HSV color."""
     ma = vtk.vtkMath()
     return ma.RGBToHSV(getColor(rgb))
+    
 
-
-try:
-    import matplotlib
-    import matplotlib.cm as cm_mpl
-    _mapscales = {
-        'jet': cm_mpl.jet,
-        'hot': cm_mpl.hot,
-        'afmhot': cm_mpl.afmhot,
-        'rainbow': cm_mpl.rainbow,
-        'binary': cm_mpl.binary,
-        'gray': cm_mpl.gray,
-        'bone': cm_mpl.bone,
-        'winter': cm_mpl.winter,
-        'cool': cm_mpl.cool,
-        'copper': cm_mpl.copper,
-        'coolwarm': cm_mpl.coolwarm,
-        'gist_earth': cm_mpl.gist_earth
-    }
-except:
-    print("\n-------------------------------------------------------------------")
-    print("WARNING : cannot import matplotlib.cm (colormaps will show up gray).")
-    print("Try e.g.: sudo apt-get install python3-matplotlib")
-    print("     or : pip install matplotlib")
-    print("-------------------------------------------------------------------\n")
-    _mapscales = None
-
-
-def colorMap(value, name='jet', vmin=None, vmax=None):
-    '''Map a real value in range [vmin, vmax] to a (r,g,b) color scale.
+def colorMap(value, name="jet", vmin=None, vmax=None):
+    """Map a real value in range [vmin, vmax] to a (r,g,b) color scale.
 
     :param value: scalar value to transform into a color
     :type value: float, list
@@ -296,7 +303,7 @@ def colorMap(value, name='jet', vmin=None, vmax=None):
             >>> import matplotlib.cm as cm
             >>> print( colorMap(0.2, cm.flag, 0, 1) )
             (1.0, 0.809016994374948, 0.6173258487801733)
-    '''
+    """
     if not _mapscales:
         print("-------------------------------------------------------------------")
         print("WARNING : cannot import matplotlib.cm (colormaps will show up gray).")
@@ -311,8 +318,7 @@ def colorMap(value, name='jet', vmin=None, vmax=None):
         if name in _mapscales.keys():
             mp = _mapscales[name]
         else:
-            print('Error in colorMap():', name,
-                  '\navaliable maps =', sorted(_mapscales.keys()))
+            print("Error in colorMap():", name, "\navaliable maps =", sorted(_mapscales.keys()))
             exit(0)
 
     if _isSequence(value):
@@ -323,7 +329,7 @@ def colorMap(value, name='jet', vmin=None, vmax=None):
             vmax = np.max(values)
         values = np.clip(values, vmin, vmax)
         values -= vmin
-        values /= vmax-vmin
+        values /= vmax - vmin
         cols = []
         mp = _mapscales[name]
         for v in values:
@@ -331,16 +337,16 @@ def colorMap(value, name='jet', vmin=None, vmax=None):
         return np.array(cols)
     else:
         value -= vmin
-        value /= vmax-vmin
-        if value > .999:
-            value = .999
+        value /= vmax - vmin
+        if value > 0.999:
+            value = 0.999
         elif value < 0:
             value = 0
         return mp(value)[0:3]
 
 
 def makePalette(color1, color2, N, hsv=True):
-    '''
+    """
     Generate N colors starting from `color1` to `color2` 
     by linear interpolation HSV in or RGB spaces.
 
@@ -350,15 +356,15 @@ def makePalette(color1, color2, N, hsv=True):
     :param bool hsv: if `False`, interpolation is calculated in RGB space.
 
     .. hint:: Example: |colorpalette.py|_
-    '''
+    """
     if hsv:
         color1 = rgb2hsv(color1)
         color2 = rgb2hsv(color2)
     c1 = np.array(getColor(color1))
     c2 = np.array(getColor(color2))
     cols = []
-    for f in np.linspace(0, 1, N-1, endpoint=True):
-        c = c1 * (1-f) + c2 * f
+    for f in np.linspace(0, 1, N - 1, endpoint=True):
+        c = c1 * (1 - f) + c2 * f
         if hsv:
             c = np.array(hsv2rgb(c))
         cols.append(c)
@@ -366,13 +372,13 @@ def makePalette(color1, color2, N, hsv=True):
 
 
 def makeLUTfromCTF(sclist, N=None):
-    '''
+    """
     Use a Color Transfer Function to generate colors in a vtk lookup table.
     See `here <http://www.vtk.org/doc/nightly/html/classvtkColorTransferFunction.html>`_.
 
     :param list sclist: a list in the form ``[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]``.     
     :return: the lookup table object ``vtkLookupTable``. This can be fed into ``colorMap``.
-    '''
+    """
     ctf = vtk.vtkColorTransferFunction()
     ctf.SetColorSpaceToDiverging()
 
@@ -389,7 +395,7 @@ def makeLUTfromCTF(sclist, N=None):
     lut.Build()
 
     for i in range(N):
-        rgb = list(ctf.GetColor(float(i)/N))+[1]
+        rgb = list(ctf.GetColor(float(i) / N)) + [1]
         lut.SetTableValue(i, rgb)
 
     return lut
@@ -453,34 +459,34 @@ def kelvin2rgb(temperature):
         else:
             blue = tmp_blue
 
-    return [red/255, green/255, blue/255]
+    return [red / 255, green / 255, blue / 255]
 
 
 # default sets of colors
-colors1 = [  
-     [1.   , 0.832, 0.000], #gold
-     [0.960, 0.509, 0.188],
-     [0.901, 0.098, 0.194],
-     [0.235, 0.85 , 0.294],
-     [0.46 , 0.48 , 0.000],
-     [0.274, 0.941, 0.941],
-     [0.   , 0.509, 0.784],
-     [0.1  , 0.1  , 0.900],
-     [0.902, 0.7  , 1.000],
-     [0.941, 0.196, 0.901],
+colors1 = [
+    [1.0, 0.832, 0.000],  # gold
+    [0.960, 0.509, 0.188],
+    [0.901, 0.098, 0.194],
+    [0.235, 0.85, 0.294],
+    [0.46, 0.48, 0.000],
+    [0.274, 0.941, 0.941],
+    [0.0, 0.509, 0.784],
+    [0.1, 0.1, 0.900],
+    [0.902, 0.7, 1.000],
+    [0.941, 0.196, 0.901],
 ]
 # negative integer color number get this:
 colors2 = [
-    (0.99, 0.83, 0),       # gold
-    (0.59, 0.0, 0.09),     # dark red
-    (0.5, 1.0, 0.0),       # green
-    (0.5, 0.5, 0),         # yellow-green
-    (0.0, 0.66, 0.42),     # green blue
-    (0.0, 0.18, 0.65),     # blue
-    (0.4, 0.0, 0.4),       # plum
+    (0.99, 0.83, 0),  # gold
+    (0.59, 0.0, 0.09),  # dark red
+    (0.5, 1.0, 0.0),  # green
+    (0.5, 0.5, 0),  # yellow-green
+    (0.0, 0.66, 0.42),  # green blue
+    (0.0, 0.18, 0.65),  # blue
+    (0.4, 0.0, 0.4),  # plum
     (0.4, 0.0, 0.6),
     (0.2, 0.4, 0.6),
-    (0.1, 0.3, 0.2)
+    (0.1, 0.3, 0.2),
 ]
 
 
@@ -492,22 +498,80 @@ def _has_colors(stream):
         return False
     try:
         import curses
+
         curses.setupterm()
         return curses.tigetnum("colors") > 2
     except:
         return False
-
-
 _terminal_has_colors = _has_colors(sys.stdout)
-_terminal_cols = {'black': 0, 'red': 1, 'green': 2, 'yellow': 3,
-                  'blue': 4, 'magenta': 5, 'cyan': 6, 'white': 7,
-                  'k': 0, 'r': 1, 'g': 2, 'y': 3,
-                  'b': 4, 'm': 5, 'c': 6, 'w': 7}
+
+_terminal_cols = {
+    "black": 0,
+    "red": 1,
+    "green": 2,
+    "yellow": 3,
+    "blue": 4,
+    "magenta": 5,
+    "cyan": 6,
+    "white": 7,
+    "k": 0,
+    "r": 1,
+    "g": 2,
+    "y": 3,
+    "b": 4,
+    "m": 5,
+    "c": 6,
+    "w": 7,
+}
+
+emoji = {
+    "~bomb": u"\U0001F4A5",
+    "~sparks": u"\U00002728",
+    "~thumbup": u"\U0001F44d",
+    "~target": u"\U0001F3af",
+    "~save": u"\U0001F4be",
+    "~noentry": u"\U000026d4",
+    "~video": u"\U0001F4fd ",
+    "~lightning": u"\U000026a1",
+    "~camera": u"\U0001F4f8",
+    "~!?": u"\U00002049",
+    "~times": u"\U0000274c",
+    "~world": u"\U0001F30d",
+    "~rainbow": u"\U0001F308",
+    "~idea": u"\U0001F4a1",
+    "~pin": u"\U0001F4CC",
+    "~construction": u"\U0001F6A7",
+    "~uparrow": u"\U00002b06",
+    "~rightarrow": u"\U000027a1",
+    "~leftarrow": u"\U00002b05",
+    "~downarrow": u"\U00002b07",
+    "~plus": u"\U00002795",
+    "~minus": u"\U00002796",
+    "~division": u"\U00002797",
+    "~rocket": u"\U0001F680",
+    "~hourglass": u"\U000023f3",
+    "~diamomd": u"\U0001F48e",
+    "~dna": u"\U0001F9ec",
+    "~prohibited": u"\U0001F6ab",
+    "~checked": u"\U00002705",
+    "~copyright": u"\U000000a9",
+    "~registered": u"\U000000ae",
+    "~trademark": u"\U00002122",
+    "~flag": u"\U0001F3c1",
+    "~smile": u"\U0001F642",
+    "~sad": u"\U0001F612",
+    "~bigstar": u"\U00002B50",
+    "~smallstar": u"\U00002733",
+    "~redtriangle": u"\U0001F53a",
+    "~orangesquare": u"\U0001F538",
+    "~bluesquare": u"\U0001F537",
+    "~zzz": u"\U0001F4a4",
+}
 
 
 def printc(*strings, **keys):
-    '''
-    Print to terminal in colors.
+    """
+    Print to terminal in colors. (python3 only).
 
     Available colors are:
         black, red, green, yellow, blue, magenta, cyan, white.
@@ -520,7 +584,6 @@ def printc(*strings, **keys):
     :param underline: underline text [False]
     :param dim: make text look dimmer [False]
     :param invert: invert background anf forward colors [False]
-    :param separator: separate inputs with specified text [' ']
     :param box: print a box with specified text character ['']
     :param flush: flush buffer after printing [True]
     :param end: end character to be printed [return]
@@ -533,42 +596,57 @@ def printc(*strings, **keys):
     >>>  printc(299792.48, c=4) # 4 is blue
 
     .. hint:: |colorprint| |colorprint.py|_
-    '''
+    """
 
-    end = keys.pop('end', '\n')
-    flush = keys.pop('flush', True)
+    end = keys.pop("end", "\n")
+    flush = keys.pop("flush", True)
 
-    if not _terminal_has_colors:
-        print(*strings, end=end)
+    if not _terminal_has_colors or sys.version_info[0]<3:
+        for s in strings:
+            if "~" in str(s):  # "in" for some reasons changes s
+                for k in emoji.keys():
+                    if k in s:
+                        s = s.replace(k, '')
+            print(s, end=' ')
+        print(end=end)
         if flush:
             sys.stdout.flush()
         return
 
-    c = keys.pop('c', None)  # hack to work with python2
-    bc = keys.pop('bc', None)
-    hidden = keys.pop('hidden', False)
-    bold = keys.pop('bold', True)
-    blink = keys.pop('blink', False)
-    underline = keys.pop('underline', False)
-    dim = keys.pop('dim', False)
-    invert = keys.pop('invert', False)
-    separator = keys.pop('separator', ' ')
-    box = keys.pop('box', '')
+    c = keys.pop("c", None)  # hack to be compatible with python2
+    bc = keys.pop("bc", None)
+    hidden = keys.pop("hidden", False)
+    bold = keys.pop("bold", True)
+    blink = keys.pop("blink", False)
+    underline = keys.pop("underline", False)
+    dim = keys.pop("dim", False)
+    invert = keys.pop("invert", False)
+    box = keys.pop("box", "")
 
     try:
         txt = str()
-        ns = len(strings)-1
+        ns = len(strings) - 1
+        separator = " "
+        offset = 0
         for i, s in enumerate(strings):
             if i == ns:
-                separator = ''
+                separator = ""
+                
+            #txt += str(s) + separator
+            if "~" in str(s):  # "in" for some reasons changes s
+                for k in emoji.keys():
+                    if k in str(s):
+                        s = s.replace(k, emoji[k])
+                        offset += 1
             txt += str(s) + separator
+
         if c:
             if isinstance(c, int):
                 cf = abs(c) % 8
             elif isinstance(c, str):
                 cf = _terminal_cols[c.lower()]
             else:
-                print('Error in printc(): unknown color c=', c)
+                print("Error in printc(): unknown color c=", c)
                 exit()
         if bc:
             if isinstance(bc, int):
@@ -576,57 +654,137 @@ def printc(*strings, **keys):
             elif isinstance(bc, str):
                 cb = _terminal_cols[bc.lower()]
             else:
-                print('Error in printc(): unknown color c=', c)
+                print("Error in printc(): unknown color c=", c)
                 exit()
 
-        special, cseq = '', ''
+        special, cseq = "", ""
         if hidden:
-            special += '\x1b[8m'
-            box = ''
+            special += "\x1b[8m"
+            box = ""
         else:
             if c:
-                cseq += "\x1b["+str(30+cf)+'m'
+                cseq += "\x1b[" + str(30 + cf) + "m"
             if bc:
-                cseq += "\x1b["+str(40+cb)+'m'
+                cseq += "\x1b[" + str(40 + cb) + "m"
             if underline and not box:
-                special += '\x1b[4m'
+                special += "\x1b[4m"
             if dim:
-                special += '\x1b[2m'
+                special += "\x1b[2m"
             if invert:
-                special += '\x1b[7m'
+                special += "\x1b[7m"
             if bold:
-                special += '\x1b[1m'
+                special += "\x1b[1m"
             if blink:
-                special += '\x1b[5m'
+                special += "\x1b[5m"
 
-        if box and not('\n' in txt):
+        if box and not ("\n" in txt):
             if len(box) > 1:
                 box = box[0]
-            if box in ['_', '=', '-', '+', '~']:
-                boxv = '|'
+            if box in ["_", "=", "-", "+", "~"]:
+                boxv = "|"
             else:
                 boxv = box
 
-            if box == '_' or box == '.':
-                outtxt = special + cseq + ' '+box*(len(txt)+2)+' \n'
-                outtxt += boxv+' '*(len(txt)+2)+boxv+'\n'
+            if box == "_" or box == ".":
+                outtxt = special + cseq + " " + box * (len(txt) + offset + 2) + " \n"
+                outtxt += boxv + " " * (len(txt) + 2) + boxv + "\n"
             else:
-                outtxt = special + cseq + box*(len(txt)+4)+'\n'
+                outtxt = special + cseq + box * (len(txt) + offset + 4) + "\n"
 
-            outtxt += boxv+' '+txt+' '+boxv+'\n'
+            outtxt += boxv + " " + txt + " " + boxv + "\n"
 
-            if box == '_':
-                outtxt += '|'+box*(len(txt)+2)+'|' + "\x1b[0m" + end
+            if box == "_":
+                outtxt += "|" + box * (len(txt) + offset + 2) + "|" + "\x1b[0m" + end
             else:
-                outtxt += box*(len(txt)+4) + "\x1b[0m" + end
+                outtxt += box * (len(txt) + offset + 4) + "\x1b[0m" + end
 
             sys.stdout.write(outtxt)
         else:
             sys.stdout.write(special + cseq + txt + "\x1b[0m" + end)
+    
     except:
         print(*strings, end=end)
 
     if flush:
         sys.stdout.flush()
 
+
+def printHistogram(data, bins=10, height=10, logscale=False,
+                   horizontal=False, char="*", 
+                   c=None, bold=False, title='Histogram '):
+    """
+    Ascii histogram printing.
+
+    :param int bins: number of histogram bins
+    :param int height: height of the histogram in character units
+    :param bool logscale: use logscale for frequencies
+    :param bool horizontal: show histogram horizontally
+    :param str char: character to be used
+    :param str,int c: ascii color
+    :param bool char: use boldface
+    :param str title: histogram title
+    
+    :Example:
+        
+        >>> from vtkplotter import printHistogram
+        >>> import numpy as np
+        >>> d = np.random.normal(size=1000)
+        >>> printHistogram(d, c='blue', logscale=True, title='my scalars')
+        >>> printHistogram(d, c=1, horizontal=1)
+
+    """
+    # Adapted from
+    # http://pyinsci.blogspot.com/2009/10/ascii-histograms.html
+    if not horizontal: # better aspect ratio
+        bins *= 2
+    
+    h = np.histogram(data, bins=bins)
+    
+    if logscale:
+        h0 = np.log10(h[0]+1)
+        maxh0 = int(max(h0)*100)/100
+        title = '(logscale) ' + title
+    else:
+        h0 = h[0]
+        maxh0 = max(h0)
+
+    def _v():
+        his = ""
+        if title:
+            his += title +"\n"
+        bars = h0 / maxh0 * height
+        for l in reversed(range(1, height + 1)):
+            line = ""
+            if l == height:
+                line = "%s " % maxh0  
+            else:
+                line = " " * (len(str(maxh0)) + 1) 
+            for c in bars:
+                if c >= np.ceil(l):
+                    line += char
+                else:
+                    line += " "
+            line += "\n"
+            his += line
+        his += "%.2f" % h[1][0] + "." * (bins) + "%.2f" % h[1][-1] + "\n"
+        return his
+
+    def _h():
+        his = ""
+        if title:
+            his += title +"\n"
+        xl = ["%.2f" % n for n in h[1]]
+        lxl = [len(l) for l in xl]
+        bars = h0 / maxh0 * height
+        his += " " * int(max(bars) + 2 + max(lxl)) + "%s\n" % maxh0
+        for i, c in enumerate(bars):
+            line = (xl[i] + " " * int(max(lxl) - lxl[i]) + "| " + char * int(c) + "\n")
+            his += line
+        return his
+
+    if horizontal:
+        height *= 2
+        printc(_h(), c=c, bold=bold)
+    else:
+        printc(_v(), c=c, bold=bold)
 

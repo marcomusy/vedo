@@ -19,9 +19,7 @@ vp1 = Plotter(shape=(1, 4), axes=4, bg="w")
 act = vp1.load("data/shapes/bunny.obj").normalize().subdivide()
 act.color("k").alpha(0.05).wire(True)
 pts = act.coordinates(copy=True)  # pts is a copy of the points not a reference
-pts += (
-    np.random.randn(len(pts), 3) / 40
-)  # add noise, will not mess up the original points
+pts += np.random.randn(len(pts), 3) / 40  # add noise, will not mess up the original points
 
 
 #################################### smooth cloud with MLS
@@ -33,14 +31,14 @@ s1 = s0.clone().color("dg")  # a dark green copy of s0
 
 # project s1 points into a smooth surface of points
 # return a demo actor showing 30 regressions at random points
-mls1 = smoothMLS2D(s1, f=0.5, showNPlanes=30)  # first pass
-vp1.show(mls1, at=1, legend="first pass")
+mls1 = smoothMLS2D(s1, f=0.5, showNPlanes=30) #first pass
+vp1.show(mls1, at=1)
 
-mls2 = smoothMLS2D(s1, f=0.3, showNPlanes=30)  # second pass
-vp1.show(mls2, at=2, legend="second pass")
+mls2 = smoothMLS2D(s1, f=0.3, showNPlanes=30) # second pass
+vp1.show(mls2, at=2)
 
-mls3 = smoothMLS2D(s1, f=0.1)  # third pass
-vp1.show(s1, at=3, legend="third pass", zoom=1.3)
+mls3 = smoothMLS2D(s1, f=0.1).legend("third pass")
+vp1.show(s1, at=3)
 
 
 #################################### draw errors

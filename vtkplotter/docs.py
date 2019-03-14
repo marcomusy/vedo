@@ -21,22 +21,39 @@
 :raw-html-m2r:`<br />`
 
 """
+from __future__ import division, print_function
+from vtkplotter.settings import enableDolfin
+
+if enableDolfin:
+    try:
+        import dolfin
+    except ModuleNotFoundError:
+        print("\nDolfin/Fenics package not found. Install it or set:")
+        print("vtkplotter.enableDolfin = False\nAbort.\n")
+        exit()
 
 
 def onelinetip():
     import vtk, sys
     from vtkplotter import colors, __version__
-    vvers  = ' vtkplotter '+__version__+' '
-    colors.printc(vvers, invert=1, dim=1, end='')
-    vvers  = '| vtk '+vtk.vtkVersion().GetVTKVersion()
-    vvers += ' | python ' + str(sys.version_info[0])+'.'+str(sys.version_info[1])
-    vvers += " | press h for help."
-    colors.printc(vvers, invert=0, dim=1)
+
+    if enableDolfin:
+        dlf = " | dolfin " + dolfin.__version__
+    else:
+        dlf = " | python " + str(sys.version_info[0]) + "." + str(sys.version_info[1])
+
+    msg = " vtkplotter " + __version__ + " "
+    colors.printc(msg, invert=1, dim=1, end="")
+    msg = "| vtk " + vtk.vtkVersion().GetVTKVersion()
+    msg += dlf
+    msg += " | press h for help."
+    colors.printc(msg, invert=0, dim=1)
 
 
 def tips():
     from vtkplotter import colors
-    msg =  "|Press: i     to print info about selected object            |\n"
+    msg =  "--------------------------------------------------------------\n"
+    msg += "|Press: i     to print info about selected object            |\n"
     msg += "|       m     to minimise opacity of selected mesh           |\n"
     msg += "|       .,    to reduce/increase opacity                     |\n"
     msg += "|       /     to maximize opacity                            |\n"
@@ -47,6 +64,7 @@ def tips():
     msg += "|       X     to pop up a cutter widget tool                 |\n"
     msg += "|       1-3   to change mesh color                           |\n"
     msg += "|       4     to change background color                     |\n"
+    msg += "|       0-9   to change axes style (use keypad)              |\n"
     msg += "|       k/K   to show point/cell scalars as color            |\n"
     msg += "|       n     to show surface mesh normals                   |\n"
     msg += "|       a     to toggle interaction to Actor Mode            |\n"
@@ -55,14 +73,16 @@ def tips():
     msg += "|       S     to save a screenshot                           |\n"
     msg += "|       q/e   to continue/close the rendering window         |\n"
     msg += "|       Esc   to exit program                                |\n"
-    msg += '|                                                            |\n'
+    msg += "|------                                                      |\n"
     msg += "|Mouse: Left-click    to rotate scene / pick actors          |\n"
     msg += "|       Middle-click  to pan scene                           |\n"
-    msg += "|       Right-click   to zoom scene in or out                |"
+    msg += "|       Right-click   to zoom scene in or out                |\n"
+    msg += "|       Cntrl-click   to rotate scene perpendicularly        |\n"
+    msg += "--------------------------------------------------------------\n"
     colors.printc(msg, dim=1)
 
 
-_defs="""
+_defs = """
 .. |tutorial.py| replace:: tutorial.py
 .. _tutorial.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/tutorial.py
 .. |tutorial_subdivide| image:: https://user-images.githubusercontent.com/32848391/46819341-ca1b5980-cd83-11e8-97b7-12b053d76aac.png
@@ -462,12 +482,12 @@ _defs="""
     :target: gas.py_
     :alt: gas.py
 
-.. |tube(.py| replace:: tube(.py
-.. _tube(.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/tube(.py
-.. |tube(| image:: https://user-images.githubusercontent.com/32848391/51801626-adc30000-2240-11e9-8866-9d9d5d8790ab.png
+.. |tube.py| replace:: tube.py
+.. _tube.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/tube.py
+.. |tube| image:: https://user-images.githubusercontent.com/32848391/51801626-adc30000-2240-11e9-8866-9d9d5d8790ab.png
     :width: 250 px
-    :target: tube(.py_
-    :alt: tube(.py
+    :target: tube.py_
+    :alt: tube.py
 
 .. |mesh_threshold.py| replace:: mesh_threshold.py
 .. _mesh_threshold.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_threshold.py
@@ -635,6 +655,7 @@ _defs="""
     :alt: basicshapes
 
 .. |lines| image:: https://user-images.githubusercontent.com/32848391/52503049-ac9cb600-2be4-11e9-86af-72a538af14ef.png
+    :width: 250 px
     :alt: lines
 
 .. |vlogo_large| image:: https://user-images.githubusercontent.com/32848391/52522716-4fa70b80-2c89-11e9-92a7-0d22cbe34758.png
@@ -649,11 +670,11 @@ _defs="""
 .. |vlogo_small_dark| image:: https://user-images.githubusercontent.com/32848391/52522719-50d83880-2c89-11e9-8b90-a1c21c27b007.png
     :alt: vlogo_small_dark
 
-.. |vlogo_tube(| image:: https://user-images.githubusercontent.com/32848391/52522720-5170cf00-2c89-11e9-8b1d-a7a5cf75e71b.png
-    :alt: vlogo_tube(
+.. |vlogo_tube| image:: https://user-images.githubusercontent.com/32848391/52522720-5170cf00-2c89-11e9-8b1d-a7a5cf75e71b.png
+    :alt: vlogo_tube
 
-.. |vlogo_tube(_dark| image:: https://user-images.githubusercontent.com/32848391/52522721-5170cf00-2c89-11e9-8fbb-6efa13940aa1.png
-    :alt: vlogo_tube(_dark
+.. |vlogo_tube_dark| image:: https://user-images.githubusercontent.com/32848391/52522721-5170cf00-2c89-11e9-8fbb-6efa13940aa1.png
+    :alt: vlogo_tube_dark
 
 .. |fitline.py| replace:: fitline.py
 .. _fitline.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fitline.py
@@ -669,14 +690,35 @@ _defs="""
     :target: sliders3d.py_
     :alt: sliders3d.py
 
+.. |ex01_showmesh.py| replace:: ex01_showmesh.py
+.. _ex01_showmesh.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ex01_showmesh.py
+.. |ex01_showmesh| image:: https://user-images.githubusercontent.com/32848391/53026243-d2d31900-3462-11e9-9dde-518218c241b6.jpg
+    :width: 250 px
+    :target: ex01_showmesh.py_
+    :alt: ex01_showmesh.py
+
+
+.. |ex02_tetralize_mesh.py| replace:: ex02_tetralize_mesh.py
+.. _ex02_tetralize_mesh.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ex02_tetralize_mesh.py
+.. |ex02_tetralize_mesh| image:: https://user-images.githubusercontent.com/32848391/53026244-d2d31900-3462-11e9-835a-1fa9d66d3dae.png
+    :width: 250 px
+    :target: ex02_tetralize_mesh.py_
+    :alt: ex02_tetralize_mesh.py
+
+.. |ft06_elasticity1.py| replace:: ft06_elasticity1.py
+.. _ft06_elasticity1.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ft06_elasticity1.py
+.. |ft06_elasticity1| image:: https://user-images.githubusercontent.com/32848391/53026245-d2d31900-3462-11e9-9db4-96211569d114.jpg
+    :width: 250 px
+    :target: ft06_elasticity1.py_
+    :alt: ft06_elasticity1.py
+
+.. |ft06_elasticity2.py| replace:: ft06_elasticity2.py
+.. _ft06_elasticity2.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ft06_elasticity2.py
+.. |ft06_elasticity2| image:: https://user-images.githubusercontent.com/32848391/53026246-d36baf80-3462-11e9-96a5-8eaf0bb0f9a4.jpg
+    :width: 250 px
+    :target: ft06_elasticity2.py_
+    :alt: ft06_elasticity2.py
+
+
+
 """
-
-
-
-
-
-
-
-
-
-

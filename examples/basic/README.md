@@ -47,13 +47,13 @@ python example.py
 |    |    |
 | [![manyspheres](https://user-images.githubusercontent.com/32848391/50738858-bfccf800-11d8-11e9-9daf-3b11eedf72ac.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/manyspheres.py)<br/> `manyspheres.py`          | Draw a very large number of spheres (200.000) with different colors or different radii (for vtk versions before 8.0 this might be slow). |
 |    |    |
+| [![mesh_alphas](https://user-images.githubusercontent.com/32848391/50738857-bf346180-11d8-11e9-80a1-d283aed0b305.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_alphas.py)<br/> `mesh_alphas.py`          |  Create a set of transparencies which can be passed to method `pointColors()`.|
+|    |    |
+| [![mesh_bands](https://user-images.githubusercontent.com/32848391/51211548-26a78b00-1916-11e9-9306-67b677d1be3a.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_bands.py)<br/> `mesh_bands.py`             | Use a scalar to paint colored bands on a mesh. This can be combined with opacities values for each vertex.<br/>Keyword `depthpeeling` improves the rendering of translucent objects. |
+|    |    |
 | [![mesh_coloring](https://user-images.githubusercontent.com/32848391/50738856-bf346180-11d8-11e9-909c-a3f9d32c4e8c.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_coloring.py)<br/> `mesh_coloring.py`    | How to specify a color for each individual cell or point of an actors mesh. <br/>The example also shows the usage of `addScalarBar3D()`. |
 |    |    |
 | [![mesh_custom](https://user-images.githubusercontent.com/32848391/51390972-20d9c180-1b31-11e9-955d-025f1ef24cb7.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_custom.py)<br/> `mesh_custom.py`          | Build a custom color map to specify the color for each vertex of a mesh. |
-|    |    |
-| [![mesh_alphas](https://user-images.githubusercontent.com/32848391/50738857-bf346180-11d8-11e9-80a1-d283aed0b305.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_alphas.py)<br/> `mesh_alphas.py`          |  Create a set of transparencies which can be passed to method `pointColors()`.|
-|    |    |
-| [![mesh_bands](https://user-images.githubusercontent.com/32848391/51211548-26a78b00-1916-11e9-9306-67b677d1be3a.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_bands.py)<br/> `mesh_coloring.py`          | Use a scalar to paint colored bands on a mesh. This can be combined with opacities values for each vertex.<br/>Keyword `depthpeeling` improves the rendering of translucent objects. |
 |    |    |
 | [![mesh_threshold](https://user-images.githubusercontent.com/32848391/51807663-4762cf80-228a-11e9-9d0c-184bb11a97bf.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_threshold.py)<br/> `mesh_threshold.py` | Extracts the cells where scalar value satisfies a threshold criterion. |
 |    |    |
@@ -77,7 +77,9 @@ python example.py
 |    |    |
 | [![texturecubes](https://user-images.githubusercontent.com/32848391/50738847-be033480-11d8-11e9-8087-8ba949dbf228.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/texturecubes.py)<br/> `texturecubes.py`       | Show a cube for each available texture name. Any jpg file can be used as texture. <br/>Built in textures: `['aqua', 'blue', 'bricks', 'gold1', 'gold2', 'grass', 'greenfloor', 'greentiles', 'ivy', 'leather1', 'leather2', 'marble', 'masonry', 'metal1', 'metal2', 'metalfloor1', 'metalfloor2', 'paper', 'water', 'white1', 'white2', 'white3', 'white4', 'wood1', 'wood2', 'wood3', 'wood4', 'wood5', 'wood6', 'wood7', 'wood8', 'wood9']` |
 |    |    |
-| [![trail](https://user-images.githubusercontent.com/32848391/50738846-be033480-11d8-11e9-99b7-c4ceb90ae482.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/trail.py)<br/> `trail.py`                            |  Add a trailing line to a moving actor. |
+| [![trail](https://user-images.githubusercontent.com/32848391/50738846-be033480-11d8-11e9-99b7-c4ceb90ae482.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/trail.py)<br/> `trail.py`                            | Add a trailing line to a moving actor. |
+|    |    |
+| [![tube](https://user-images.githubusercontent.com/32848391/52522720-5170cf00-2c89-11e9-8b1d-a7a5cf75e71b.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/tube.py)<br/> `tube.py`                               | Scalar arrays can be specified to vary radius and color of a line represented as a tube. |
 
 
 
