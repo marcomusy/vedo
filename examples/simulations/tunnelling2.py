@@ -6,7 +6,7 @@ momentum (hence undefined position) in a box hitting a potential barrier.
 """
 print(__doc__)
 import numpy as np
-from vtkplotter import Plotter, Line
+from vtkplotter import Plotter, Line, datadir
 
 Nsteps = 250  # number of steps in time
 dt = 0.004  # time step
@@ -51,7 +51,7 @@ vp.xtitle = ""
 vp.ytitle = "Psi^2(x,t)"
 vp.ztitle = ""
 
-bck = vp.load("data/images/schrod.png", alpha=0.3).scale(0.0255).pos([0, -5, -0.1])
+bck = vp.load(datadir+"images/schrod.png", alpha=0.3).scale(0.0255).pos([0, -5, -0.1])
 barrier = Line(list(zip(x, V * 15, [0] * len(x))), c="black", lw=2)
 
 lines = []

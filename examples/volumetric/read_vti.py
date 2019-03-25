@@ -3,10 +3,11 @@ Using normal vtk commands to load a xml vti file
 then use vtkplotter to show the resulting 3d image.
 """
 import vtk
+from vtkplotter import datadir
 
 # Create the reader for the data.
 reader = vtk.vtkXMLImageDataReader()
-reader.SetFileName("data/vase.vti")
+reader.SetFileName(datadir+"vase.vti")
 reader.Update()
 img = reader.GetOutput()
 

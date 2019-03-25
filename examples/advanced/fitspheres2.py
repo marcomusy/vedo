@@ -7,7 +7,7 @@ from vtkplotter import *
 
 vp = Plotter(verbose=0, axes=0, bg="w")
 
-s = vp.load("data/shapes/cow.vtk", alpha=0.3)  # .subdivide()
+s = vp.load(datadir+"shapes/cow.vtk", alpha=0.3)  # .subdivide()
 
 pts1, pts2, vals, cols = [], [], [], []
 

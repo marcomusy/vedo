@@ -2,14 +2,16 @@
 Global settings.
 """
 from __future__ import division, print_function
+import os
 
 __all__ = [
     'computeNormals',
     'interactorStyle',
     'allowInteraction',
     'usingQt',
-    'enableDolfin',
     'renderPointsAsSpheres',
+    'textures',
+    'datadir',
 ]
 
 # recompute vertex and cell normals
@@ -24,22 +26,39 @@ allowInteraction = True
 # Qt embedding
 usingQt = False
 
-# if disabled, the whole package imports a bit faster
-enableDolfin = False
-
 # on some vtk versions/platforms points are redered as ugly squares
 renderPointsAsSpheres = True
 
 # sync different Plotter instances
-syncPlotters = True
+#syncPlotters = True
+
+
+#####################
+_cdir = os.path.dirname(__file__)
+if _cdir == "":
+    _cdir = "."
+textures_path = _cdir + "/textures/"
+textures = []
+
+datadir = _cdir + "/data/"
+
 
 #####################
 def _init():
     global plotter_instance, plotter_instances, collectable_actors
+    global textures
+
     plotter_instance = None
     plotter_instances = []
     collectable_actors = []
-    
-    import warnings
 
+    for f in os.listdir(textures_path):
+        textures.append(f.split(".")[0])
+    textures.remove("earth")
+    textures = list(sorted(textures))
+
+    import warnings
     warnings.simplefilter(action="ignore", category=FutureWarning)
+
+
+

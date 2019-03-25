@@ -14,7 +14,7 @@ import vtk
 __all__ = []
 
 
-def addScalarBar(actor=None, c=None, title="", horizontal=False):
+def addScalarBar(actor=None, c=None, title="", horizontal=False, vmin=None, vmax=None):
 
     vp = settings.plotter_instance
     if actor is None:
@@ -31,7 +31,13 @@ def addScalarBar(actor=None, c=None, title="", horizontal=False):
         vtkscalars = actor.poly.GetCellData().GetScalars()
     if not vtkscalars:
         return None
-    actor.mapper.SetScalarRange(vtkscalars.GetRange())
+    
+    rng = list(vtkscalars.GetRange())
+    if vmin:
+        rng[0] = vmin
+    if vmin:
+        rng[1] = vmax
+    actor.mapper.SetScalarRange(rng)
 
     if c is None:
         if vp.renderer:  # automatic black or white
@@ -66,7 +72,7 @@ def addScalarBar(actor=None, c=None, title="", horizontal=False):
         sb.SetOrientationToHorizontal()
         sb.SetNumberOfLabels(4)
         sb.SetTextPositionToSucceedScalarBar()
-        sb.SetPosition(0.1, 0.05)
+        sb.SetPosition(0.8, 0.05)
         sb.SetMaximumWidthInPixels(1000)
         sb.SetMaximumHeightInPixels(50)
     else:
@@ -765,12 +771,13 @@ def addAxes(axtype=None, c=None):
         largestact, sz = None, -1
         for a in vp.actors:
             if a.GetPickable():
-                d = a.diagonalSize()
+                b = a.GetBounds()
+                d = max(b[1]-b[0], b[3]-b[2], b[5]-b[4])
                 if sz < d:
                     largestact = a
                     sz = d
         if isinstance(largestact, Assembly):
-            ocf.SetInputData(largestact.getActor(0).polydata())
+            ocf.SetInputData(largestact.getActor(0).GetMapper().GetInput())
         else:
             ocf.SetInputData(largestact.polydata())
         ocf.Update()
@@ -849,9 +856,25 @@ def addAxes(axtype=None, c=None):
         vp.renderer.AddActor(ca)
         vp.axes_exist[r] = ca
 
+    elif vp.axes == 10:
+        x0 = (vbb[0] + vbb[1]) / 2, (vbb[3] + vbb[2]) / 2, (vbb[5] + vbb[4]) / 2
+        rx, ry, rz = (vbb[1]-vbb[0])/2, (vbb[3]-vbb[2])/2, (vbb[5]-vbb[4])/2
+        rm = max(rx, ry, rz)
+        xc = shapes.Disc(x0, (0,0,1), r1=rm, r2=rm, c='lr', bc=None, res=1, resphi=72)
+        yc = shapes.Disc(x0, (0,1,0), r1=rm, r2=rm, c='lg', bc=None, res=1, resphi=72)
+        zc = shapes.Disc(x0, (1,0,0), r1=rm, r2=rm, c='lb', bc=None, res=1, resphi=72)
+        xc.clean().alpha(0.2).wire().lineWidth(2.5).PickableOff()
+        yc.clean().alpha(0.2).wire().lineWidth(2.5).PickableOff()
+        zc.clean().alpha(0.2).wire().lineWidth(2.5).PickableOff()
+        ca = xc + yc + zc        
+        ca.PickableOff()
+        vp.renderer.AddActor(ca)
+        vp.axes_exist[r] = ca
+
     else:
-        colors.printc('~bomb Keyword axes must be in range [0-9].', c=1)
-        colors.printc('''~target Available axes types:
+        colors.printc('~bomb Keyword axes must be in range [0-10].', c=1)
+        colors.printc('''
+  ~target Available axes types:
   0 = no axes,
   1 = draw three gray grid walls
   2 = show cartesian axes from (0,0,0)
@@ -861,7 +884,9 @@ def addAxes(axtype=None, c=None):
   6 = mark the corners of the bounding box
   7 = draw a simple ruler at the bottom of the window
   8 = show the vtkCubeAxesActor object
-  9 = show the bounding box outline''', c=1, bold=0)
+  9 = show the bounding box outline
+  10 = show three circles representing the maximum bounding box
+  ''', c=1, bold=0)
     
     if not vp.axes_exist[r]:
         vp.axes_exist[r] = True

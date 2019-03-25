@@ -4,7 +4,8 @@
 #  c (foreground color), bc (background color)
 #  hidden, bold, blink, underLine, dim, invert, box
 
-from vtkplotter import printc
+from vtkplotter import printc, printHistogram
+import numpy as np
 
 printc(" 1- Change the world~world by being yourself - Amy Poehler", c=1)
 printc(" 2- Never regret anything that made you smile ~smile - Mark Twain", c="r", bold=0)
@@ -36,3 +37,10 @@ printc("Any string", True, 455.5, vtk.vtkActor, c="green", box="=", invert=1)
 from vtkplotter.colors import emoji
 for k in sorted(emoji.keys()):
     print(emoji[k] + " \t" + k)
+print()
+
+
+## Print histograms
+d = np.random.normal(size=1000)
+printHistogram(d, c='blue', logscale=True, title='my scalars')
+printHistogram(d, c=1, horizontal=1)

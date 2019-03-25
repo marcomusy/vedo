@@ -7,7 +7,7 @@ cube  = Cube(side=30)
 scals = cube.coordinates()[:,1]
 poly  = cube.addPointScalars(scals, 'scalsname').polydata()
 
-img = loadImageData('data/vase.vti')
+img = loadImageData(datadir+'vase.vti')
 
 filename = "multiblock.vtm"
 

@@ -4,7 +4,7 @@ This example shows how to implement a custom function that is triggered by
  Every time a key is pressed the picked point of the mesh is used 
  to add a sphere and some info is printed.
 """
-from vtkplotter import Plotter, printc, Sphere, Text
+from vtkplotter import Plotter, printc, Sphere, Text, datadir
 
 ##############################################################################
 def myfnc(key):
@@ -25,7 +25,7 @@ vp = Plotter(verbose=0)
 
 vp.keyPressFunction = myfnc  # make it known to Plotter class
 
-vp.load("data/shapes/bunny.obj")
+vp.load(datadir+"shapes/bunny.obj")
 
 vp.add(Text(__doc__))
 

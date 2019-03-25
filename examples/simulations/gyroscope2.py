@@ -40,7 +40,7 @@ vp.add(gyro)  # add it to Plotter list
 pedestal = Box([0, -0.63, 0], height=0.1, length=0.1, width=1).texture("wood5")
 pedbase = Box([0, -1.13, 0], height=0.5, length=0.5, width=0.05).texture("wood5")
 pedpin = Pyramid([0, -0.08, 0], axis=[0, 1, 0], s=0.05, height=0.12).texture("wood5")
-formulas = load("data/images/gyro_formulas.png", alpha=0.9)
+formulas = load(datadir+"images/gyro_formulas.png", alpha=0.9)
 formulas.scale(0.0035).pos(-1.4, -1.1, -1.1)
 vp.add(pedestal + pedbase + pedpin + formulas)
 

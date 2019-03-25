@@ -11,9 +11,9 @@ vp = Plotter(interactive=0, axes=0)
 vp.add(Plane(pos=(4, 0, -0.45), sx=12, texture="metalfloor1"))
 
 # load and set its position (methods can be concatenated)
-vp.load("data/shapes/lamp.vtk").pos([1.7, -0.4, 2])
+vp.load(datadir+"shapes/lamp.vtk").pos([1.7, -0.4, 2])
 
-a = vp.load("data/shapes/porsche.ply", c="r").rotateX(90)
+a = vp.load(datadir+"shapes/porsche.ply", c="r").rotateX(90)
 a.normalize()  # set actor at origin and scale size to 1
 
 for i in range(1, 10):

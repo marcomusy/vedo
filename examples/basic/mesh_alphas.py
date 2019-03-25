@@ -1,9 +1,9 @@
 """
 Create a set of transparencies which can be passed to method pointColors()
 """
-from vtkplotter import load, show, Text
+from vtkplotter import load, show, Text, datadir
 
-mesh = load("data/beethoven.ply")
+mesh = load(datadir+"beethoven.ply")
 
 # pick y coordinates of vertices and use them as scalars
 scals = mesh.coordinates()[:, 1]

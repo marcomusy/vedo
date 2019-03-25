@@ -126,8 +126,8 @@ class Morpher:
 if __name__ == "__main__":
 
     mr = Morpher()
-    mr.source = vp.load("data/270.vtk", c="g", alpha=0.4)
-    mr.target = vp.load("data/290.vtk", c="b", alpha=0.3, wire=1)
+    mr.source = vp.load(datadir+"270.vtk", c="g", alpha=0.4)
+    mr.target = vp.load(datadir+"290.vtk", c="b", alpha=0.3, wire=1)
     mr.allowScaling = True
     mr.bound = 0.4  # limits the parameter value
 

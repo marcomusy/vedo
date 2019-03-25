@@ -477,7 +477,7 @@ class Prop(object):
 class Actor(vtk.vtkActor, Prop):
     """Build an instance of object ``Actor`` derived from ``vtkActor``.
 
-    Either ``vtkPolyData``, ``vtkActor`` or ``dolfin.Mesh`` is expected as input.
+    Either ``vtkPolyData`` or ``vtkActor`` is expected as input.
 
     :param c: color in RGB format, hex, symbol or name
     :param float alpha: opacity value
@@ -517,20 +517,6 @@ class Actor(vtk.vtkActor, Prop):
         self.line_locator = None
         self._bfprop = None  # backface property holder
 
-#        # fenics/dolfin support
-#        self.mesh = None  # holds a dolfin Mesh obj
-#        self.u = None  # holds a dolfin function_data
-#        self.u_values = None  # holds the actual values of u on the mesh
-#        u_values = None
-#        if "dolfin" in inputtype:  # assume a dolfin object
-#            if "Mesh" in inputtype:
-#                from vtkplotter.vtkio import buildPolyData
-#
-#                self.mesh = poly  # poly is dolfin mesh
-#                poly = buildPolyData(poly)
-#                if u:
-#                    u_values = np.array([u(p) for p in self.mesh.coordinates()])
-
         self.GetProperty().SetInterpolationToFlat()
 
         if settings.computeNormals is not None:
@@ -569,15 +555,6 @@ class Actor(vtk.vtkActor, Prop):
             prp.SetAmbient(0.1)
             prp.SetAmbientColor(c)
             prp.SetDiffuse(1)
-
-#        if u_values is not None:  # colorize if a dolfin function is passed
-#            if len(u_values.shape) == 2:
-#                if u_values.shape[1] in [2, 3]:  # u_values is 2D or 3D
-#                    self.u_values = u_values
-#                    dispsizes = utils.mag(u_values)
-#            else:  # u_values is 1D
-#                dispsizes = u_values
-#            self.addPointScalars(dispsizes, "u_values")
 
         if wire:
             prp.SetRepresentationToWireframe()
@@ -624,14 +601,14 @@ class Actor(vtk.vtkActor, Prop):
         self.mapper.Modified()
         return self
 
-    def addScalarBar(self, c=None, title="", horizontal=False):
+    def addScalarBar(self, c=None, title="", horizontal=False, vmin=None, vmax=None):
         """
         Add a 2D scalar bar to actor.
 
         .. hint:: |mesh_bands| |mesh_bands.py|_
         """
         # book it, it will be created by Plotter.show() later
-        self.scalarbar = [c, title, horizontal]
+        self.scalarbar = [c, title, horizontal, vmin, vmax]
         return self
 
     def addScalarBar3D(
@@ -682,13 +659,13 @@ class Actor(vtk.vtkActor, Prop):
         mapper.SetInputConnection(xform.GetOutputPort())
         mapper.ScalarVisibilityOff()
 
-        fn = utils.textures_path + name + ".jpg"
+        fn = settings.textures_path + name + ".jpg"
         if os.path.exists(name):
             fn = name
         elif not os.path.exists(fn):
-            colors.printc("~sad Texture", name, "not found in", utils.textures_path, c="r")
+            colors.printc("~sad Texture", name, "not found in", settings.textures_path, c="r")
             colors.printc("~target Available textures:", c="m", end=" ")
-            for ff in os.listdir(utils.textures_path):
+            for ff in os.listdir(settings.textures_path):
                 colors.printc(ff.split(".")[0], end=" ", c="m")
             print()
             return
@@ -913,6 +890,11 @@ class Actor(vtk.vtkActor, Prop):
         self.GetMapper().ScalarVisibilityOff()
         return self
 
+    def bc(self, backColor=False):
+        """Shortcut for `actor.backColor()`. """
+        return self.backColor(backColor)
+    
+
     def lineWidth(self, lw=None):
         """Set/get width of mesh edges. Same as lw()."""
         if lw is not None:
@@ -1118,15 +1100,6 @@ class Actor(vtk.vtkActor, Prop):
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.GetProperty())
         cloned.SetProperty(pr)
-
-        # dolfin
-#        if self.mesh:
-#            from dolfin import Mesh
-#
-#            cloned.mesh = Mesh(self.mesh)
-#        if self.u:
-#            cloned.u = self.u
-
         return cloned
 
 
@@ -1154,6 +1127,7 @@ class Actor(vtk.vtkActor, Prop):
         tf.Update()
         self.PokeMatrix(vtk.vtkMatrix4x4())  # identity
         return self.updateMesh(tf.GetOutput())
+    
 
     def normalize(self):
         """
@@ -1301,6 +1275,12 @@ class Actor(vtk.vtkActor, Prop):
 
         .. hint:: |trail| |trail.py|_
         """
+        if normal is "x":
+            normal = (1,0,0)
+        elif normal is "y":
+            normal = (0,1,0)
+        elif normal is "z":
+            normal = (0,0,1)
         plane = vtk.vtkPlane()
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
@@ -1496,7 +1476,7 @@ class Actor(vtk.vtkActor, Prop):
         n = len(scalars)
         useAlpha = False
         if n != poly.GetNumberOfPoints():
-            colors.printc('~time spointColors Error: nr. of scalars != nr. of points',
+            colors.printc('~times pointColors Error: nr. of scalars != nr. of points',
                           n, poly.GetNumberOfPoints(), c=1)
         if utils.isSequence(alpha):
             useAlpha = True
@@ -2026,7 +2006,7 @@ class Actor(vtk.vtkActor, Prop):
         """Retrieve number of mesh vertices."""
         return self.polydata(False).GetNumberOfPoints()
 
-    def Ncells(self):
+    def NCells(self):
         """Retrieve number of mesh cells."""
         return self.polydata(False).GetNumberOfCells()
 
@@ -2036,8 +2016,6 @@ class Actor(vtk.vtkActor, Prop):
         Move a mesh by using an external function which prescribes the displacement
         at any point in space.
         Useful for manipulating ``dolfin`` meshes.
-        
-        .. note:: || ||_
         """
         if self.mesh:
             self.u = u_function
@@ -2049,6 +2027,7 @@ class Actor(vtk.vtkActor, Prop):
         else:
             colors.printc("Warning: calling move() but actor.mesh is", self.mesh, c=3)
         return self
+    
 
     def getTransform(self):
         """

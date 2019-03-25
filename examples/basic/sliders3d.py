@@ -2,11 +2,11 @@
 3D sliders.
 Can be combined with 2D sliders.
 """
-from vtkplotter import Plotter
+from vtkplotter import Plotter, datadir
 
 vp = Plotter()
 
-mesh = vp.load("data/shapes/spider.ply")
+mesh = vp.load(datadir+"shapes/spider.ply")
 mesh.normalize().rotateZ(190).scale(0.8)
 
 

@@ -1,9 +1,9 @@
 """
 Intersect a vtkImageData (voxel dataset) with planes.
 """
-from vtkplotter import show, loadImageData, probeLine, vector, Text
+from vtkplotter import show, loadImageData, probeLine, vector, Text, datadir
 
-img = loadImageData("data/embryo.slc")
+img = loadImageData(datadir+"embryo.slc")
 
 pos = img.GetCenter()
 

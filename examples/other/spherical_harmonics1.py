@@ -13,7 +13,7 @@ from __future__ import division, print_function
 
 print(__doc__)
 
-from vtkplotter import Plotter, Points, mag, sin, cos
+from vtkplotter import Plotter, Points, datadir, mag, sin, cos
 import numpy as np
 
 ##########################################################
@@ -25,7 +25,7 @@ x0 = [0, 0, 0]  # set object at this position
 ##########################################################
 
 vp = Plotter(shape=[1, 2], verbose=0, axes=0)
-shape = vp.load("data/shapes/icosahedron.vtk").normalize().pos(x0).lineWidth(2)
+shape = vp.load(datadir+"shapes/icosahedron.vtk").normalize().pos(x0).lineWidth(2)
 
 agrid, pts = [], []
 for th in np.linspace(0, np.pi, N, endpoint=True):

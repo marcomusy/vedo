@@ -11,12 +11,12 @@ In the second window we show the error estimated for
 each point in color scale (left) or in size scale (right).
 """
 from __future__ import division, print_function
-from vtkplotter import Plotter, colorMap, smoothMLS2D, Points, Spheres, Text
+from vtkplotter import *
 import numpy as np
 
 vp1 = Plotter(shape=(1, 4), axes=4, bg="w")
 
-act = vp1.load("data/shapes/bunny.obj").normalize().subdivide()
+act = vp1.load(datadir+"shapes/bunny.obj").normalize().subdivide()
 act.color("k").alpha(0.05).wire(True)
 pts = act.coordinates(copy=True)  # pts is a copy of the points not a reference
 pts += np.random.randn(len(pts), 3) / 40  # add noise, will not mess up the original points

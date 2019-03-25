@@ -1,5 +1,4 @@
 from __future__ import division, print_function
-import os
 import vtk
 import numpy as np
 import vtkplotter.colors as colors
@@ -30,18 +29,6 @@ __all__ = [
     "pol2cart",
     "humansort",
 ]
-
-
-_cdir = os.path.dirname(__file__)
-if _cdir == "":
-    _cdir = "."
-textures_path = _cdir + "/textures/"
-
-textures = []
-for _f in os.listdir(textures_path):
-    textures.append(_f.split(".")[0])
-textures.remove("earth")
-textures = list(sorted(textures))
 
 
 ##############################################################################

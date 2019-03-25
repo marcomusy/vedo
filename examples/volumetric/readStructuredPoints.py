@@ -6,11 +6,11 @@ which is transformed into a color map.
 The list of existing arrays can be found by selecting an actor and
 pressing i in the rendering window.
 """
-from vtkplotter import Plotter, loadStructuredPoints, Text
+from vtkplotter import Plotter, loadStructuredPoints, Text, datadir
 
 vp = Plotter(axes=4, verbose=0)
 
-actor = loadStructuredPoints("data/hydrogen.vtk")
+actor = loadStructuredPoints(datadir+"hydrogen.vtk")
 
 actor.alpha(0.2).pointSize(15)
 

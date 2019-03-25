@@ -5,12 +5,12 @@ See also analogous Plotter method smoothMLS2D()
 in exammples/advanced/moving_least_squares2D.py 
 """
 print(__doc__)
-from vtkplotter import Plotter
+from vtkplotter import Plotter, datadir
 
 vp = Plotter(shape=(1, 3), axes=4)
 
 # Load a mesh and show it
-a0 = vp.load("data/embryo.tif", c="v")
+a0 = vp.load(datadir+"embryo.tif", c="v")
 vp.show(a0, at=0)
 
 # Adjust mesh using Laplacian smoothing

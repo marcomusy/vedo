@@ -5,7 +5,7 @@ import sys
 import vtkplotter.docs as docs
 
 __doc__ = (
-    """
+"""
 Colors definitions and printing methods.
 """
     + docs._defs
@@ -41,6 +41,7 @@ try:
         "coolwarm": cm_mpl.coolwarm,
         "gist_earth": cm_mpl.gist_earth,
         "viridis": cm_mpl.viridis,
+        "plasma": cm_mpl.plasma,
     }
 except:
     _mapscales = None
@@ -149,6 +150,7 @@ color_nicks = {  # color nicknames
     "w": "white",
     "lb": "lightblue",  # light
     "lg": "lightgreen",
+    "lr": "orangered",
     "lc": "lightcyan",
     "ls": "lightsalmon",
     "ly": "lightyellow",
@@ -622,6 +624,11 @@ def printc(*strings, **keys):
     dim = keys.pop("dim", False)
     invert = keys.pop("invert", False)
     box = keys.pop("box", "")
+    
+    if c is True:
+        c = 'green'
+    elif c is False:
+        c = 'red'
 
     try:
         txt = str()
@@ -710,8 +717,8 @@ def printc(*strings, **keys):
 
 
 def printHistogram(data, bins=10, height=10, logscale=False,
-                   horizontal=False, char="*", 
-                   c=None, bold=False, title='Histogram '):
+                   horizontal=False, char=u"\U00002589",
+                   c=None, bold=True, title='Histogram'):
     """
     Ascii histogram printing.
 
@@ -735,10 +742,14 @@ def printHistogram(data, bins=10, height=10, logscale=False,
     """
     # Adapted from
     # http://pyinsci.blogspot.com/2009/10/ascii-histograms.html
+    
     if not horizontal: # better aspect ratio
         bins *= 2
     
     h = np.histogram(data, bins=bins)
+    
+    if char == u"\U00002589" and horizontal:
+        char = u"\U00002586"
     
     if logscale:
         h0 = np.log10(h[0]+1)

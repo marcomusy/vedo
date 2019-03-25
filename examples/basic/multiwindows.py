@@ -7,7 +7,7 @@ Then open an independent window and draw a shape on it.
 """
 print(__doc__)
 
-from vtkplotter import Plotter, Text
+from vtkplotter import Plotter, Text, datadir
 
 
 # this is one instance of the class Plotter with 5 raws and 5 columns
@@ -18,9 +18,9 @@ vp1 = Plotter(shape=(5, 5), axes=0, bg="white")
 vp1.renderers[24].SetBackground(0.8, 0.9, 0.9)  # use vtk method SetBackground()
 
 # load the actors and give them a name
-a = vp1.load("data/shapes/airboat.vtk").legend("some legend")
-b = vp1.load("data/shapes/cessna.vtk", c="red")
-c = vp1.load("data/shapes/atc.ply")
+a = vp1.load(datadir+"shapes/airboat.vtk").legend("some legend")
+b = vp1.load(datadir+"shapes/cessna.vtk", c="red")
+c = vp1.load(datadir+"shapes/atc.ply")
 
 # show a text in each renderer
 for i in range(22):

@@ -135,6 +135,9 @@ python basic/mouseclick.py
 echo Running basic/ribbon.py
 python basic/ribbon.py
 
+echo Running basic/flatarrow.py
+python basic/flatarrow.py
+
 echo Running basic/histo2D.py
 python basic/histo2D.py
 
@@ -316,33 +319,6 @@ python other/qt_embed.py
 
 echo Running other/spherical_harmonics1.py
 python other/spherical_harmonics1.py 
-
-
-#################################### Other / DOLFIN
-#echo Running other/dolfin/ex01_show-mesh.py
-#python other/dolfin/ex01_show-mesh.py
-
-#echo Running other/dolfin/ex02_tetralize-mesh.py
-#python other/dolfin/ex02_tetralize-mesh.py
-
-#echo Running other/dolfin/ex03_poisson.py
-#python other/dolfin/ex03_poisson.py
-
-#echo Running other/dolfin/ex04_mixed-poisson.py
-#python other/dolfin/ex04_mixed-poisson.py
-
-#echo Running other/dolfin/ex05_non-matching-meshes.py
-#python other/dolfin/ex05_non-matching-meshes.py
-
-#echo Running other/dolfin/ex06_elasticity1.py
-#python other/dolfin/ex06_elasticity1.py
-
-#echo Running other/dolfin/ex06_elasticity2.py
-#python other/dolfin/ex06_elasticity2.py
-
-#echo Running other/dolfin/ex07_stokes-iterative.py
-#python other/dolfin/ex07_stokes-iterative.py
-
 
 
 ##################################### not ran/ignored:

@@ -2,12 +2,12 @@
 Work with vtkVolume objects and surface meshes
 in the same rendering window.
 """
-from vtkplotter import loadImageData, Plotter, Volume, Sphere, Text
+from vtkplotter import *
 
 vp = Plotter(axes=0, verbose=0, bg="w")
 
 # Load a 3D voxel dataset (returns a vtkImageData object):
-img = loadImageData("data/embryo.slc", spacing=[1, 1, 1])
+img = loadImageData(datadir+"embryo.slc", spacing=[1, 1, 1])
 
 # Build a vtkVolume object.
 # A set of transparency values - of any length - can be passed

@@ -1,8 +1,8 @@
-from vtkplotter import Plotter, load, Plane
+from vtkplotter import Plotter, load, Plane, datadir
 
 vp = Plotter()
 
-cow = vp.load("data/cow.g", c="grey", alpha=0.7)
+cow = vp.load(datadir+"cow.g", c="grey", alpha=0.7)
 
 vp.add(Plane(pos=[0, -3.6, 0], normal=[0, 1, 0], sx=20, texture="grass"))
 

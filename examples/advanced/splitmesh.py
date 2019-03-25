@@ -3,9 +3,9 @@ Split a mesh by connectivity and order the pieces
 by increasing area.
 """
 print(__doc__)
-from vtkplotter import splitByConnectivity, load, show
+from vtkplotter import splitByConnectivity, load, show, datadir
 
-blobs = load("data/embryo.tif", threshold=80)
+blobs = load(datadir+"embryo.tif", threshold=80)
 
 # search up to the 40th subunit of mesh, return a list
 # of length 40, but only keep the largest 10:

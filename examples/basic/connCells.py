@@ -7,7 +7,7 @@ N = 12
 sub = 0
 tol = 0.02
 
-actor = load('data/250.vtk')
+actor = load(datadir+'250.vtk')
 show(
      actor.wire().c('blue'),
      actor.boundaries(),

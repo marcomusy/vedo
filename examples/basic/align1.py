@@ -10,8 +10,8 @@ vp = Plotter()
 
 vp.add(Text(__doc__))  # add comment above
 
-limb = vp.load("data/270.vtk")
-rim = vp.load("data/270_rim.vtk").c("r").lw(4)
+limb = vp.load(datadir + "270.vtk")
+rim  = vp.load(datadir + "270_rim.vtk").c("r").lw(4)
 
 arim = alignICP(rim, limb, rigid=True).c("g").lw(5)
 vp.add(arim)

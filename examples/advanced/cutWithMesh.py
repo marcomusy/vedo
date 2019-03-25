@@ -6,7 +6,7 @@ to see the threshold range.
 """
 from vtkplotter import *
 
-embryo = load("data/embryo.tif", threshold=30).normalize()
+embryo = load(datadir+"embryo.tif", threshold=30).normalize()
 
 # mesh used to cut:
 msh = Ellipsoid().pos(0.8, 0.1, -0.3).scale(0.5).wire()

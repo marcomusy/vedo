@@ -1,13 +1,13 @@
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense
-from vtkplotter import loadImageData, Volume, isosurface, show
+from vtkplotter import loadImageData, Volume, isosurface, show, datadir
 
 maxradius = 0.2
 neurons = 30
 epochs = 20
 
-image = loadImageData("data/embryo.tif")
+image = loadImageData(datadir+"embryo.tif")
 
 vmin, vmax = image.GetScalarRange()
 nx, ny, nz = image.GetDimensions()

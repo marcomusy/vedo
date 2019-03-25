@@ -13,7 +13,7 @@ except:
     print("Follow instructions at https://shtools.oca.eu/shtools")
     exit(0)
 
-from vtkplotter import Plotter, mag, arange, Points, Sphere, sin, cos
+from vtkplotter import Plotter, datadir, mag, arange, Points, Sphere, sin, cos
 import numpy as np
 
 ##########################################################
@@ -66,7 +66,7 @@ def morph(clm1, clm2, t, lmax):
 vp = Plotter(shape=[2, 2], verbose=0, axes=3, interactive=0)
 
 shape1 = Sphere(alpha=0.2)
-shape2 = vp.load("data/shapes/icosahedron.vtk").normalize().lineWidth(1)
+shape2 = vp.load(datadir+"shapes/icosahedron.vtk").normalize().lineWidth(1)
 
 agrid1, actorpts1 = makeGrid(shape1, N)
 vp.show(at=0, actors=[shape1, actorpts1])

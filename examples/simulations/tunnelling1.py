@@ -8,7 +8,7 @@ The wave function is forced to be zero at the box walls (line 23).
 print(__doc__)
 
 import numpy as np
-from vtkplotter import Plotter, Tube, Line
+from vtkplotter import Plotter, Tube, Line, datadir
 
 dt = 0.004  # time step
 x0 = 5  # peak initial position
@@ -47,7 +47,7 @@ vp.xtitle = ""
 vp.ytitle = "Psi^2(x,t)"
 vp.ztitle = ""
 
-bck = vp.load("data/images/schrod.png").scale(0.012).pos([0, 0, -0.5])
+bck = vp.load(datadir+"images/schrod.png").scale(0.012).pos([0, 0, -0.5])
 barrier = Line(list(zip(x, V * 15)), c="dr", lw=3)
 
 lines = []

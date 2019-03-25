@@ -46,7 +46,7 @@ __maintainer__ = "M. Musy, G. Dalmasso"
 __email__ = "marco.musy@embl.es"
 __status__ = "dev"
 __website__ = "https://github.com/marcomusy/vtkplotter"
-__version__ = "2019.1.0"  ### defined also above, in setup.py and docs/source/conf.py
+__version__ = "2019.1.1"  ### defined also above, in setup.py and docs/source/conf.py
 
 from vtkplotter.plotter import *
 from vtkplotter.analysis import *
@@ -56,6 +56,8 @@ from vtkplotter.actors import *
 from vtkplotter.utils import *
 from vtkplotter.colors import *
 import vtkplotter.settings as settings
+from vtkplotter.settings import datadir
+import vtkplotter.dolfin as dolfin
 from numpy import sin, cos, sqrt, exp, log, dot, cross, array, arange
 
 # imports hierarchy

@@ -24,6 +24,7 @@ __all__ = [
     "Ribbon",
     "Arrow",
     "Arrows",
+    "FlatArrow",
     "Polygon",
     "Rectangle",
     "Disc",
@@ -48,13 +49,15 @@ __all__ = [
 
 
 ########################################################################
-def Point(pos=(0, 0, 0), r=10, c="gray", alpha=1):
+def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
     """Create a simple point actor."""
-    actor = Points([pos], r, c, alpha, None)
+    if len(pos) == 2:
+        pos = (pos[0], pos[1], 0)
+    actor = Points([pos], r, c, alpha)
     return actor
 
 
-def Points(plist, r=5, c="gray", alpha=1, u=None):
+def Points(plist, r=5, c="gray", alpha=1):
     """
     Build a point ``Actor`` for a list of points.
 
@@ -94,16 +97,6 @@ def Points(plist, r=5, c="gray", alpha=1, u=None):
         actor.GetProperty().SetPointSize(r)
         settings.collectable_actors.append(actor)
         return actor
-
-#    # dolfin support
-#    inputtype = str(type(plist))
-#    if "dolfin" in inputtype and "Mesh" in inputtype:
-#        mesh = plist
-#        plist = mesh.coordinates()
-#        if u:
-#            u_values = np.array([u(p) for p in plist])
-#        if len(plist[0]) == 2:  # coords are 2d.. not good..
-#            plist = np.insert(plist, 2, 0, axis=1)  # make it 3d
 
     n = len(plist)
     if n == 0:
@@ -148,17 +141,6 @@ def Points(plist, r=5, c="gray", alpha=1, u=None):
     if n == 1:
         actor.SetPosition(plist[0])
 
-#    if "dolfin" in inputtype and "Mesh" in inputtype:
-#        actor.mesh = mesh
-#        if u:
-#            actor.u = u
-#            if len(u_values.shape) == 2:
-#                if u_values.shape[1] in [2, 3]:  # u_values is 2D or 3D
-#                    actor.u_values = u_values
-#                    dispsizes = utils.mag(u_values)
-#            else:  # u_values is 1D
-#                dispsizes = u_values
-#            actor.addPointScalars(dispsizes, "u_values")
     settings.collectable_actors.append(actor)
     return actor
 
@@ -274,15 +256,12 @@ def Line(p0, p1=None, lw=1, c="r", alpha=1, dotted=False):
     return actor
 
 
-def Lines(startPoints, endPoints=None, rescale=1, lw=1, c=None, alpha=1, dotted=False, u=None):
+def Lines(startPoints, endPoints=None, scale=1, lw=1, c=None, alpha=1, dotted=False):
     """
     Build the line segments between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
 
-    A dolfin ``Mesh`` that was deformed/modified by a function can be 
-    passed together as inputs.
-
-    :param float rescale: apply a rescaling factor to the length 
+    :param float scale: apply a rescaling factor to the length 
 
     |lines|
 
@@ -290,34 +269,14 @@ def Lines(startPoints, endPoints=None, rescale=1, lw=1, c=None, alpha=1, dotted=
     """
     if endPoints is not None:
         startPoints = list(zip(startPoints, endPoints))
-#        inputtype = "list"
-#    else:
-#        # check dolfin support
-#        inputtype = str(type(startPoints))
-#        if "dolfin" in inputtype and "Mesh" in inputtype:
-#            if u is None:
-#                colors.printc("~times Error in Arrows(): u=function must be specified.", c=1)
-#                exit()
-#            mesh = startPoints
-#            startPoints = mesh.coordinates()
-#            u_values = np.array([u(p) for p in mesh.coordinates()])
-#            if not utils.isSequence(u_values[0]):
-#                colors.printc("~times Error: cannot show Arrows for 1D scalar values!", c=1)
-#                exit()
-#            endPoints = mesh.coordinates() + u_values
-#            if u_values.shape[1] == 2:  # u_values is 2D
-#                u_values = np.insert(u_values, 2, 0, axis=1)  # make it 3d
-#                startPoints = np.insert(startPoints, 2, 0, axis=1)  # make it 3d
-#                endPoints = np.insert(endPoints, 2, 0, axis=1)  # make it 3d
-#            startPoints = list(zip(startPoints, endPoints))
 
     polylns = vtk.vtkAppendPolyData()
     for twopts in startPoints:
         lineSource = vtk.vtkLineSource()
         lineSource.SetPoint1(twopts[0])
 
-        if rescale != 1:
-            vers = (np.array(twopts[1]) - twopts[0]) * rescale
+        if scale != 1:
+            vers = (np.array(twopts[1]) - twopts[0]) * scale
             pt2 = np.array(twopts[0]) + vers
         else:
             pt2 = twopts[1]
@@ -332,10 +291,6 @@ def Lines(startPoints, endPoints=None, rescale=1, lw=1, c=None, alpha=1, dotted=
         actor.GetProperty().SetLineStipplePattern(0xF0F0)
         actor.GetProperty().SetLineStippleRepeatFactor(1)
 
-#    if "dolfin" in inputtype and "Mesh" in inputtype:
-#        actor.mesh = mesh
-#        actor.u = u
-#        actor.u_values = u_values
     settings.collectable_actors.append(actor)
     return actor
 
@@ -470,6 +425,38 @@ def Ribbon(line1, line2, c="m", alpha=1, res=(200, 5)):
     return actor
 
 
+def FlatArrow(line1, line2, c="m", alpha=1, tipSize=1, tipWidth=1):
+    """Build a 2D arrow in 3D space by joining two close lines.
+
+    .. hint:: |flatarrow| |flatarrow.py|_
+    """
+    if isinstance(line1, Actor):
+        line1 = line1.coordinates()
+    if isinstance(line2, Actor):
+        line2 = line2.coordinates()
+        
+    sm1, sm2 = np.array(line1[-1]), np.array(line2[-1])
+
+    v = (sm1-sm2)/3*tipWidth
+    p1 = sm1+v
+    p2 = sm2-v    
+    pm1 = (sm1+sm2)/2
+    pm2 = (np.array(line1[-2])+np.array(line2[-2]))/2
+    pm12 = pm1-pm2
+    tip = pm12/np.linalg.norm(pm12)*np.linalg.norm(v)*3*tipSize/tipWidth + pm1
+    
+    line1.append(p1)
+    line1.append(tip)
+    line2.append(p2)
+    line2.append(tip)
+    resm = max(100, len(line1))
+    
+    actor = Ribbon(line1, line2, alpha=alpha, c=c, res=(resm, 1)).phong()
+    settings.collectable_actors.pop()
+    settings.collectable_actors.append(actor)
+    return actor
+
+
 def Arrow(startPoint, endPoint, s=None, c="r", alpha=1, res=12):
     """
     Build a 3D arrow from `startPoint` to `endPoint` of section size `s`,
@@ -520,7 +507,7 @@ def Arrow(startPoint, endPoint, s=None, c="r", alpha=1, res=12):
     return actor
 
 
-def Arrows(startPoints, endPoints=None, s=None, rescale=1, c="r", alpha=1, res=12, u=None):
+def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12):
     """
     Build arrows between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
@@ -529,36 +516,17 @@ def Arrows(startPoints, endPoints=None, s=None, rescale=1, c="r", alpha=1, res=1
     passed together as inputs.
 
     :param float s: cross-section size of the arrow
-    :param float rescale: apply a rescaling factor to the length 
+    :param float scale: apply a rescaling factor to the length 
     """
 
     if endPoints is not None:
         startPoints = list(zip(startPoints, endPoints))
-#    else:
-#        # check dolfin support
-#        inputtype = str(type(startPoints))
-#        if "dolfin" in inputtype and "Mesh" in inputtype:
-#            if u is None:
-#                colors.printc("~times Error in Arrows(): u=function must be specified.", c=1)
-#                exit()
-#            mesh = startPoints
-#            startPoints = mesh.coordinates()
-#            u_values = np.array([u(p) for p in mesh.coordinates()])
-#            if not utils.isSequence(u_values[0]):
-#                colors.printc("~times Error: cannot show Arrows for 1D scalar values!", c=1)
-#                exit()
-#            endPoints = mesh.coordinates() + u_values
-#            if u_values.shape[1] == 2:  # u_values is 2D
-#                u_values = np.insert(u_values, 2, 0, axis=1)  # make it 3d
-#                startPoints = np.insert(startPoints, 2, 0, axis=1)  # make it 3d
-#                endPoints = np.insert(endPoints, 2, 0, axis=1)  # make it 3d
-#            startPoints = list(zip(startPoints, endPoints))
 
     polyapp = vtk.vtkAppendPolyData()
     for twopts in startPoints:
         startPoint, endPoint = twopts
         axis = np.array(endPoint) - np.array(startPoint)
-        length = np.linalg.norm(axis) * rescale
+        length = np.linalg.norm(axis) 
         if length:
             axis /= length
         theta = np.arccos(axis[2])
@@ -578,9 +546,9 @@ def Arrows(startPoints, endPoints=None, s=None, rescale=1, c="r", alpha=1, res=1
         t.RotateY(-90)  # put it along Z
         if s:
             sz = 800.0 * s
-            t.Scale(length, sz, sz)
+            t.Scale(length*scale, sz*scale, sz*scale)
         else:
-            t.Scale(length, length, length)
+            t.Scale(length*scale, length*scale, length*scale)
         tf = vtk.vtkTransformPolyDataFilter()
         tf.SetInputConnection(arr.GetOutputPort())
         tf.SetTransform(t)
@@ -588,11 +556,7 @@ def Arrows(startPoints, endPoints=None, s=None, rescale=1, c="r", alpha=1, res=1
     polyapp.Update()
 
     actor = Actor(polyapp.GetOutput(), c, alpha)
-#    if "dolfin" in inputtype and "Mesh" in inputtype:
-#        actor.mesh = mesh
-#        actor.u = u
-#        actor.u_values = u_values
-#    settings.collectable_actors.append(actor)
+    settings.collectable_actors.append(actor)
     return actor
 
 
@@ -663,6 +627,7 @@ def Disc(
     lw=1,
     alpha=1,
     res=12,
+    resphi=None,
 ):
     """
     Build a 2D disc of internal radius `r1` and outer radius `r2`,
@@ -674,7 +639,9 @@ def Disc(
     ps.SetInnerRadius(r1)
     ps.SetOuterRadius(r2)
     ps.SetRadialResolution(res)
-    ps.SetCircumferentialResolution(res * 6)  # ~2pi
+    if not resphi:
+        resphi = 6 * res
+    ps.SetCircumferentialResolution(resphi)
     ps.Update()
 
     axis = np.array(normal) / np.linalg.norm(normal)
@@ -839,7 +806,7 @@ def Earth(pos=(0, 0, 0), r=1, lw=1):
     cdir = os.path.dirname(__file__)
     if cdir == "":
         cdir = "."
-    fn = cdir + "/textures/earth.ppm"
+    fn = settings.textures_path + "earth.ppm"
     pnmReader.SetFileName(fn)
     atext.SetInputConnection(pnmReader.GetOutputPort())
     atext.InterpolateOn()
@@ -948,7 +915,6 @@ def Grid(
     actor.GetProperty().SetRepresentationToWireframe()
     actor.GetProperty().SetLineWidth(lw)
     actor.SetPosition(pos)
-    actor.PickableOff()
     settings.collectable_actors.append(actor)
     return actor
 

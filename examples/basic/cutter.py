@@ -5,11 +5,11 @@ Press X to save the mesh or to add new cut planes
 """
 print(__doc__)
 
-from vtkplotter import Plotter
+from vtkplotter import Plotter, datadir
 
 
 vp = Plotter(axes=4, bg="w")
 
-act = vp.load("data/embryo.tif", c="blue")
+act = vp.load(datadir+"embryo.tif", c="blue")
 
 vp.addCutterTool(act)

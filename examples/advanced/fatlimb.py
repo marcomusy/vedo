@@ -6,13 +6,13 @@ At each step we redefine the actor so that the normals are
 recalculated for the underlying polydata.
 """
 from __future__ import division, print_function
-from vtkplotter import Plotter, versor, mag, settings, Point, Text
+from vtkplotter import *
 
 settings.computeNormals = True  # on object creation by default
 
 vp = Plotter(axes=0, verbose=0, bg="w")
 
-s = vp.load("data/290.vtk", c="red", bc="plum")
+s = vp.load(datadir+"290.vtk", c="red", bc="plum")
 c = s.centerOfMass()
 vp.add(Point(c))
 

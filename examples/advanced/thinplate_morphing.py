@@ -6,7 +6,7 @@ moves as the arrow shows.
 from vtkplotter import *
 
 
-mesh = load("data/shapes/man.vtk").normalize()
+mesh = load(datadir+"shapes/man.vtk").normalize()
 
 meshd = mesh.clone().decimate(N=100)  # a heavily decimated copy
 

@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='2019.1.0', # change also in vtkplotter/__init__.py and docs/source/conf.py
+    version='2019.1.1', # change also in vtkplotter/__init__.py and docs/source/conf.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=['vtk'],
@@ -42,6 +42,8 @@ setup(
 # pip install . 
 # ( sudo -H pip install . )
 # cd examples
+# ./run_all.sh
+# cd other/dolfin
 # ./run_all.sh
 # check vtkconvert:
 # vtkconvert data/290.vtk -to ply

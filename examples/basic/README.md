@@ -31,15 +31,15 @@ python example.py
 |    |    |
 | [![connvtx](https://user-images.githubusercontent.com/32848391/51496028-ae7e1100-1dbe-11e9-873f-40ca52dbb2c4.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/connVtx.py)<br/> `connVtx.py`           | Find the vertices that are connected to a specific vertex in a mesh. |
 |    |    |
-| [![cutter](https://user-images.githubusercontent.com/32848391/50738866-c0658e80-11d8-11e9-955b-551d4d8b0db5.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/cutter.py)<br/> `cutter.py`              |  Invoke an interactive tool to cut off parts of a mesh. <br/>Pressing `X` saves the mesh to file or adds new cut planes.|
+| [![cutter](https://user-images.githubusercontent.com/32848391/50738866-c0658e80-11d8-11e9-955b-551d4d8b0db5.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/cutter.py)<br/> `cutter.py`              | Invoke an interactive tool to cut off parts of a mesh. <br/>Pressing `X` saves the mesh to file or adds new cut planes.|
 |    |    |
-| [![delaunay2d](https://user-images.githubusercontent.com/32848391/50738865-c0658e80-11d8-11e9-8616-b77363aa4695.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/delaunay2d.py)<br/> `delaunay2d.py`  |  Build a mesh starting from points in space using _Delaunay_ triangulation (points must be projectable on the _xy_ plane). |
+| [![delaunay2d](https://user-images.githubusercontent.com/32848391/50738865-c0658e80-11d8-11e9-8616-b77363aa4695.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/delaunay2d.py)<br/> `delaunay2d.py`  | Build a mesh starting from points in space using _Delaunay_ triangulation (points must be projectable on the _xy_ plane). |
 |    |    |
 | [![fitline](https://user-images.githubusercontent.com/32848391/50738864-c0658e80-11d8-11e9-8754-c670f1f331d6.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fitline.py)<br/> `fitline.py`           | Draw a line in 3D that fits a cloud of points. <br/>The example also fits a plane to the same points.|
 |    |    |
-| [![fxy](https://user-images.githubusercontent.com/32848391/50738863-bfccf800-11d8-11e9-882d-7b217aceb55a.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fxy.py)<br/> `fxy.py`                       |  Draw a surface representing a function _f(x, y)_ defined as a string/formula or as a reference to an external already existing function. <br/>Red points indicate where the function does not exist. |
+| [![fxy](https://user-images.githubusercontent.com/32848391/50738863-bfccf800-11d8-11e9-882d-7b217aceb55a.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fxy.py)<br/> `fxy.py`                       | Draw a surface representing a function _f(x, y)_ defined as a string/formula or as a reference to an external already existing function. <br/>Red points indicate where the function does not exist. |
 |    |    |
-| [![histo2d](https://user-images.githubusercontent.com/32848391/50738861-bfccf800-11d8-11e9-9698-c0b9dccdba4d.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/histo2D.py)<br/> `histo2D.py`           |  Make a histogram of two variables with hexagonal binning. |
+| [![histo2d](https://user-images.githubusercontent.com/32848391/50738861-bfccf800-11d8-11e9-9698-c0b9dccdba4d.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/histo2D.py)<br/> `histo2D.py`           | Make a histogram of two variables with hexagonal binning. |
 |    |    |
 | [![keypress](https://user-images.githubusercontent.com/32848391/50738860-bfccf800-11d8-11e9-96ca-dab2bb7adae3.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/keypress.py)<br/> `keypress.py`        | How to implement a custom function that is triggered by pressing a keyboard button when the rendering window is in interactive mode. <br/>In the example, every time a key is pressed the picked point of the mesh is used to add a sphere and some info is printed. |
 |    |    |
@@ -57,15 +57,17 @@ python example.py
 |    |    |
 | [![mesh_threshold](https://user-images.githubusercontent.com/32848391/51807663-4762cf80-228a-11e9-9d0c-184bb11a97bf.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_threshold.py)<br/> `mesh_threshold.py` | Extracts the cells where scalar value satisfies a threshold criterion. |
 |    |    |
-| [![mirror](https://user-images.githubusercontent.com/32848391/50738855-bf346180-11d8-11e9-97a0-c9aaae6ce052.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mirror.py)<br/> `mirror.py`                         |  Mirror-reflect a mesh with respect to one of the cartesian axes. |
+| [![mirror](https://user-images.githubusercontent.com/32848391/50738855-bf346180-11d8-11e9-97a0-c9aaae6ce052.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mirror.py)<br/> `mirror.py`                         | Mirror-reflect a mesh with respect to one of the cartesian axes. |
 |    |    |
-| [![mouseclick](https://user-images.githubusercontent.com/32848391/50738854-bf346180-11d8-11e9-8cd0-0201d2f6d572.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mouseclick.py)<br/> `mouseclick.py`             |  A click of the mouse triggers a call to a custom function. |
+| [![mouseclick](https://user-images.githubusercontent.com/32848391/50738854-bf346180-11d8-11e9-8cd0-0201d2f6d572.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mouseclick.py)<br/> `mouseclick.py`             | A click of the mouse triggers a call to a custom function. |
 |    |    |
 | [![multiwindows](https://user-images.githubusercontent.com/32848391/50738853-be9bcb00-11d8-11e9-9c8e-69864ad7c045.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/multiwindows.py)<br/> `multiwindows.py`       | Drawing objects on different windows and/or subwindows within the same window. <br/>Here we split the main window in a 25 subwindows and draw something on specific windows numbers. Then open a new independent window and draw a mesh on it. |
 |    |    |
-| [![pca](https://user-images.githubusercontent.com/32848391/50738852-be9bcb00-11d8-11e9-8ac8-ad9278d9cee0.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/pca.py)<br/> `pca.py`                                  |  Draw the PCA (Principal Component Analysis) ellipsoid that contains 50% of a cloud of points, then check how many points are indeed inside the surface. <br/>Extra info is stored in `actor.info['sphericity', 'va', 'vb', 'vc']`. |
+| [![pca](https://user-images.githubusercontent.com/32848391/50738852-be9bcb00-11d8-11e9-8ac8-ad9278d9cee0.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/pca.py)<br/> `pca.py`                                  | Draw the PCA (Principal Component Analysis) ellipsoid that contains 50% of a cloud of points, then check how many points are indeed inside the surface. <br/>Extra info is stored in `actor.info['sphericity', 'va', 'vb', 'vc']`. |
 |    |    |
-| [![ribbon](https://user-images.githubusercontent.com/32848391/50738851-be9bcb00-11d8-11e9-80ee-bd73c1c29c06.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/ribbon.py)<br/> `ribbon.py`                         |  Form a surface by joining two nearby lines in space. |
+| [![ribbon](https://user-images.githubusercontent.com/32848391/50738851-be9bcb00-11d8-11e9-80ee-bd73c1c29c06.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/ribbon.py)<br/> `ribbon.py`                         | Form a surface by joining two nearby lines in space. |
+|    |    |
+| [![flatarrow](https://user-images.githubusercontent.com/32848391/54612632-97c00780-4a59-11e9-8532-940c25a5dfd8.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/flatarrow.py)<br/> `flatarrow.py`                | Build a 2D arrow in 3D space defined by two nearby lines. |
 |    |    |
 | [![rotateimage](https://user-images.githubusercontent.com/32848391/50738850-be9bcb00-11d8-11e9-99e0-1f981dda53d5.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/rotateImage.py)<br/> `rotateImage.py`          | Normal jpg/png images can be loaded and rendered like any other actor.|
 |    |    |

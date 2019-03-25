@@ -18,4 +18,4 @@ scalars = tor.coordinates()[:, 2]  # let z-coord be the scalar
 transp = linspace(1, 0.5, len(scalars))  # set transparencies from 1 -> .5
 tor.pointColors(scalars, alpha=transp, bands=3, cmap="winter")
 
-show([hyp, tor, doc], viewup="z", depthpeeling=1, axes=2, verbose=0)
+show(hyp, tor, doc, viewup="z", depthpeeling=1, axes=2, verbose=0)

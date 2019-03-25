@@ -670,14 +670,14 @@ class Plotter:
         return light
 
     ################################################################## AddOns
-    def addScalarBar(self, actor=None, c=None, title="", horizontal=False):
+    def addScalarBar(self, actor=None, c=None, title="", horizontal=False, vmin=None, vmax=None):
         """Add a 2D scalar bar for the specified actor.
 
         If `actor` is ``None`` will add it to the last actor in ``self.actors``.
 
         .. hint:: |mesh_bands| |mesh_bands.py|_
         """
-        return addons.addScalarBar(actor, c, title, horizontal)
+        return addons.addScalarBar(actor, c, title, horizontal, vmin, vmax)
 
     def addScalarBar3D(
         self,
@@ -821,6 +821,7 @@ class Plotter:
               - 7,  draw a simple ruler at the bottom of the window
               - 8,  show the ``vtkCubeAxesActor`` object
               - 9,  show the bounding box outLine
+              - 10, show three circles representing the maximum bounding box
         """
         return addons.addAxes(axtype, c)
 
@@ -872,6 +873,7 @@ class Plotter:
               - 7,  draw a simple ruler at the bottom of the window
               - 8,  show the ``vtkCubeAxesActor`` object,
               - 9,  show the bounding box outLine,
+              - 10, show three circles representing the maximum bounding box
 
         :param c:     surface color, in rgb, hex or name formats
         :param bc:    set a color for the internal surface face
@@ -945,9 +947,10 @@ class Plotter:
                         scannedacts.append(None)
                     else:
                         scannedacts.append(out)
-#                elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
-#                    out = Actor(vtkio.buildPolyData(a), c, alpha, True, bc)
-#                    scannedacts.append(out)
+                elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
+                    from vtkplotter.dolfin import MeshActor
+                    out = MeshActor(a, c=c, alpha=alpha, wire=True, bc=bc)
+                    scannedacts.append(out)
                 elif a is None:
                     pass
                 elif isinstance(a, vtk.vtkUnstructuredGrid):
@@ -1102,9 +1105,9 @@ class Plotter:
                 and a.scalarbar is not None
                 and utils.isSequence(a.scalarbar)
             ):
-                if len(a.scalarbar) == 3:  # addScalarBar
-                    s1, s2, s3 = a.scalarbar
-                    sb = self.addScalarBar(a, s1, s2, s3)
+                if len(a.scalarbar) == 5:  # addScalarBar
+                    s1, s2, s3, s4, s5 = a.scalarbar
+                    sb = self.addScalarBar(a, s1, s2, s3, s4, s5)
                     scbflag = True
                     a.scalarbar = sb  # save scalarbar actor
                 elif len(a.scalarbar) == 10:  # addScalarBar3D
@@ -1181,6 +1184,7 @@ class Plotter:
             for a in actors:
                 self.removeActor(a)
         else:
+            settings.collectable_actors = [] 
             self.actors = []
             for a in self.getActors():
                 self.renderer.RemoveActor(a)

@@ -27,7 +27,7 @@ show([s, gsphere1, t], at=0, N=2, verbose=0)
 
 
 #######################################
-gly2 = load("data/shuttle.obj").rotateY(180).scale(0.02)
+gly2 = load(datadir+"shuttle.obj").rotateY(180).scale(0.02)
 
 gsphere2 = Glyph(s, gly2, orientationArray="normals")
 

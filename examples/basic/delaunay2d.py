@@ -3,11 +3,11 @@ Example for delaunay2D() and cellCenters() functions.
 """
 print(__doc__)
 
-from vtkplotter import Plotter, delaunay2D, Points
+from vtkplotter import Plotter, delaunay2D, Points, datadir
 
 vp = Plotter(shape=(1, 2), interactive=0)
 
-d0 = vp.load("data/250.vtk").rotateY(-90).legend("original mesh")
+d0 = vp.load(datadir+"250.vtk").rotateY(-90).legend("original mesh")
 
 coords = d0.coordinates()  # get the coordinates of the mesh vertices
 # Build a mesh starting from points in space

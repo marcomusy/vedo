@@ -311,7 +311,7 @@ def load3DS(filename):
 def loadOFF(filename, c="gold", alpha=1, wire=False, bc=None):
     """Read OFF file format."""
     if not os.path.exists(filename):
-        colors.printc("~noentry Error in loadDolfin: Cannot find", filename, c=1)
+        colors.printc("~noentry Error in loadOFF: Cannot find", filename, c=1)
         return None
 
     f = open(filename, "r")
@@ -512,6 +512,7 @@ def loadImageData(filename, spacing=()):
     reader.Update()
     image = reader.GetOutput()
     print(filename, "scalar range:", image.GetScalarRange())
+    #colors.printHistogram()
     if len(spacing) == 3:
         image.SetSpacing(spacing[0], spacing[1], spacing[2])
     return image
@@ -687,9 +688,12 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
     sourcePolygons = vtk.vtkCellArray()
     sourceVertices = vtk.vtkCellArray()
     isgt2 = len(vertices[0]) > 2
+    is1 = len(vertices[0]) == 1
     for pt in vertices:
         if isgt2:
             aid = sourcePoints.InsertNextPoint(pt[0], pt[1], pt[2])
+        elif is1:
+            aid = sourcePoints.InsertNextPoint(pt[0], 0, 0)
         else:
             aid = sourcePoints.InsertNextPoint(pt[0], pt[1], 0)
         sourceVertices.InsertNextCell(1)

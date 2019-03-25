@@ -9,12 +9,12 @@ Red histogram is the distribution of the curvatures (1/r**2).
 Fitted radius can be accessed from actor.info['radius'].
 """
 from __future__ import division, print_function
-from vtkplotter import Plotter, fitSphere, histogram, Points, Line, Text
+from vtkplotter import *
 
 vp = Plotter(verbose=0, axes=0)
 
 # load mesh and increase by a lot (N=2) the nr of surface vertices
-s = vp.load("data/shapes/cow.vtk").alpha(0.3).subdivide(N=2)
+s = vp.load(datadir+"shapes/cow.vtk").alpha(0.3).subdivide(N=2)
 
 reds, invr = [], []
 for i, p in enumerate(s.coordinates()):

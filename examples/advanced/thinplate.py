@@ -5,14 +5,14 @@ Any point on the mesh close to a source landmark will
 be moved to a place close to the corresponding target landmark.
 The points in between are interpolated using Bookstein's algorithm.
 """
-from vtkplotter import Plotter, thinPlateSpline, Points, Text
+from vtkplotter import *
 import numpy as np
 
 np.random.seed(1)
 
 vp = Plotter(axes=1)
 
-act = vp.load("data/shuttle.obj")
+act = vp.load(datadir+"shuttle.obj")
 
 # pick 4 random points
 indxs = np.random.randint(0, act.N(), 4)

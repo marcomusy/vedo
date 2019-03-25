@@ -5,11 +5,11 @@ generate a scalar field by the signed distance from a polydata,
 save it to stack.tif file,
 then extract an isosurface from the 3d image.
 """
-from vtkplotter import Plotter, Points, Text
+from vtkplotter import Plotter, Points, Text, datadir
 
 vp = Plotter(verbose=0)
 
-act = vp.load("data/290.vtk").normalize().subdivide().computeNormals()
+act = vp.load(datadir+"290.vtk").normalize().subdivide().computeNormals()
 
 # Generate signed distance function and contour it
 import vtk

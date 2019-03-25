@@ -22,25 +22,22 @@
 
 """
 from __future__ import division, print_function
-from vtkplotter.settings import enableDolfin
 
-if enableDolfin:
-    try:
-        import dolfin
-    except ModuleNotFoundError:
-        print("\nDolfin/Fenics package not found. Install it or set:")
-        print("vtkplotter.enableDolfin = False\nAbort.\n")
-        exit()
+#from vtkplotter.settings import enableDolfin
+#if enableDolfin:
+#    try:
+#        import dolfin
+#    except ModuleNotFoundError:
+#        print("\nDolfin/Fenics package not found. Install it or set:")
+#        print("vtkplotter.enableDolfin = False\nAbort.\n")
+#        exit()
 
 
 def onelinetip():
     import vtk, sys
     from vtkplotter import colors, __version__
 
-    if enableDolfin:
-        dlf = " | dolfin " + dolfin.__version__
-    else:
-        dlf = " | python " + str(sys.version_info[0]) + "." + str(sys.version_info[1])
+    dlf = " | python " + str(sys.version_info[0]) + "." + str(sys.version_info[1])
 
     msg = " vtkplotter " + __version__ + " "
     colors.printc(msg, invert=1, dim=1, end="")
@@ -697,7 +694,6 @@ _defs = """
     :target: ex01_showmesh.py_
     :alt: ex01_showmesh.py
 
-
 .. |ex02_tetralize_mesh.py| replace:: ex02_tetralize_mesh.py
 .. _ex02_tetralize_mesh.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ex02_tetralize_mesh.py
 .. |ex02_tetralize_mesh| image:: https://user-images.githubusercontent.com/32848391/53026244-d2d31900-3462-11e9-835a-1fa9d66d3dae.png
@@ -705,20 +701,27 @@ _defs = """
     :target: ex02_tetralize_mesh.py_
     :alt: ex02_tetralize_mesh.py
 
-.. |ft06_elasticity1.py| replace:: ft06_elasticity1.py
-.. _ft06_elasticity1.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ft06_elasticity1.py
-.. |ft06_elasticity1| image:: https://user-images.githubusercontent.com/32848391/53026245-d2d31900-3462-11e9-9db4-96211569d114.jpg
+.. |ex06_elasticity1.py| replace:: ex06_elasticity1.py
+.. _ex06_elasticity1.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ex06_elasticity1.py
+.. |ex06_elasticity1| image:: https://user-images.githubusercontent.com/32848391/53026245-d2d31900-3462-11e9-9db4-96211569d114.jpg
     :width: 250 px
-    :target: ft06_elasticity1.py_
-    :alt: ft06_elasticity1.py
+    :target: ex06_elasticity1.py_
+    :alt: ex06_elasticity1.py
 
-.. |ft06_elasticity2.py| replace:: ft06_elasticity2.py
-.. _ft06_elasticity2.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ft06_elasticity2.py
-.. |ft06_elasticity2| image:: https://user-images.githubusercontent.com/32848391/53026246-d36baf80-3462-11e9-96a5-8eaf0bb0f9a4.jpg
+.. |ex06_elasticity2.py| replace:: ex06_elasticity2.py
+.. _ex06_elasticity2.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ex06_elasticity2.py
+.. |ex06_elasticity2| image:: https://user-images.githubusercontent.com/32848391/53026246-d36baf80-3462-11e9-96a5-8eaf0bb0f9a4.jpg
     :width: 250 px
-    :target: ft06_elasticity2.py_
-    :alt: ft06_elasticity2.py
+    :target: ex06_elasticity2.py_
+    :alt: ex06_elasticity2.py
 
+
+.. |flatarrow.py| replace:: flatarrow.py
+.. _flatarrow.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/basic/flatarrow.py
+.. |flatarrow| image:: https://user-images.githubusercontent.com/32848391/54612632-97c00780-4a59-11e9-8532-940c25a5dfd8.png
+    :width: 250 px
+    :target: flatarrow.py_
+    :alt: flatarrow.py
 
 
 """

@@ -16,6 +16,7 @@
 from __future__ import division, print_function
 from random import gauss, uniform as u
 from vtkplotter import *
+from vtkplotter import datadir
 
 print(__doc__)
 
@@ -27,14 +28,14 @@ vp = Plotter()
 # (The actual mesh corresponds to the outer shape of
 # an embryonic mouse limb at about 11 days of gestation).
 # Choose a tomato color for the internal surface of the mesh.
-vp.load("data/270.vtk", c="aqua", bc="tomato")  # c=(R,G,B), letter or color name
+vp.load(datadir+"270.vtk", c="aqua", bc="tomato")  # c=(R,G,B), letter or color name
 vp.show()  # picks what is automatically stored in python list vp.actors
 # Press Esc to close the window and exit python session, or q to continue
 
 
 #########################################################################################
 # Load a vtk file as a vtkActor and visualize it in wireframe style
-act = vp.load("data/290.vtk", wire=1)
+act = vp.load(datadir+"290.vtk", wire=1)
 vp.show()  # picks what is automatically stored in vp.actors
 # vp.show(act)          # same: store act in vp.actors and draws act only
 # wire=1 is equivalent to VTK command: act.GetProperty().SetRepresentationToWireframe()
@@ -45,9 +46,9 @@ vp.show()  # picks what is automatically stored in vp.actors
 # by default use their file names as legend entries.
 # No need to use any variables, as actors are stored internally in vp.actors:
 vp = Plotter(title="3 shapes")
-vp.load("data/250.vtk", c=(1, 0.4, 0), alpha=0.3)
-vp.load("data/270.vtk", c=(1, 0.6, 0), alpha=0.3)
-vp.load("data/290.vtk", c=(1, 0.8, 0), alpha=0.3)
+vp.load(datadir+"250.vtk", c=(1, 0.4, 0), alpha=0.3)
+vp.load(datadir+"270.vtk", c=(1, 0.6, 0), alpha=0.3)
+vp.load(datadir+"290.vtk", c=(1, 0.8, 0), alpha=0.3)
 print("Loaded vtkActors: ", len(vp.actors))
 vp.show()
 
@@ -80,7 +81,7 @@ show(pts, bg="w", axes=0)
 # Increase the number of points in a vtk mesh using subdivide()
 # and show both before and after the cure in two separate renderers defined by shape=(1,2)
 vp = Plotter(shape=(1, 2), axes=False)
-a1 = vp.load("data/beethoven.ply", alpha=1)
+a1 = vp.load(datadir+"beethoven.ply", alpha=1)
 coords1 = a1.coordinates()
 pts1 = Points(coords1, r=4, c="g").legend("#points = " + str(len(coords1)))
 vp.show([a1, pts1], at=0)
@@ -112,15 +113,15 @@ vp.show(Cylinder(), at=8, interactive=1)
 # Draw a bunch of objects from various mesh formats. Loading is automatic.
 vp = Plotter(shape=(3, 3), bg="white")  # split window in 3 rows and 3 columns
 vp.sharecam = False  # each object can be moved independently
-vp.show("data/beethoven.ply", at=0, c=0, axes=0)  # dont show axes, add a ruler
-vp.show("data/cow.g", at=1, c=1, zoom=1.15)  # make it 15% bigger
-vp.show("data/limb.pcd", at=2, c=2)
-vp.show("data/ring.gmsh", at=3, c=3, wire=1)
-vp.show("data/images/dog.jpg", at=4)  # 2d images can be loaded the same way
-vp.show("data/shuttle.obj", at=5, c=5)
-vp.show("data/shapes/man.vtk", at=6, c=6, axes=2)  # show negative axes from (0, 0, 0)
-vp.show("data/teapot.xyz", at=7, c=7, axes=3)  # hide negative axes
-vp.show("data/pulley.vtu", at=8, c=8, interactive=1)
+vp.show(datadir+"beethoven.ply", at=0, c=0, axes=0)  # dont show axes, add a ruler
+vp.show(datadir+"cow.g", at=1, c=1, zoom=1.15)  # make it 15% bigger
+vp.show(datadir+"limb.pcd", at=2, c=2)
+vp.show(datadir+"ring.gmsh", at=3, c=3, wire=1)
+vp.show(datadir+"images/dog.jpg", at=4)  # 2d images can be loaded the same way
+vp.show(datadir+"shuttle.obj", at=5, c=5)
+vp.show(datadir+"shapes/man.vtk", at=6, c=6, axes=2)  # show negative axes from (0, 0, 0)
+vp.show(datadir+"teapot.xyz", at=7, c=7, axes=3)  # hide negative axes
+vp.show(datadir+"pulley.vtu", at=8, c=8, interactive=1)
 
 
 ########################################################################################
@@ -129,7 +130,7 @@ vp.show("data/pulley.vtu", at=8, c=8, interactive=1)
 vp = Plotter(shape=(3, 3), verbose=0, axes=0)
 mat = ["aqua", "gold2", "metal1", "ivy", "paper", "blue", "white2", "wood3", "wood7"]
 for i, mname in enumerate(mat):  # mname can be any jpeg file
-    sp = vp.load("data/beethoven.ply", texture=mname).legend(mname)
+    sp = vp.load(datadir+"beethoven.ply", texture=mname).legend(mname)
     vp.show(sp, at=i)
 vp.show(interactive=1)
 
@@ -139,7 +140,7 @@ vp.show(interactive=1)
 # point at x=500 and has normal (0, 0.3, -1).
 # Wildcards can be used to load multiple files or entire directories:
 vp = Plotter(title="Cut a surface with a plane", verbose=0)
-vp.load("data/2*0.vtk", c="orange", bc="aqua")
+vp.load(datadir+"2*0.vtk", c="orange", bc="aqua")
 for a in vp.actors:
     a.cutWithPlane(origin=(500, 0, 0), normal=(0, 0.3, -1))
 vp.show(axes=1)

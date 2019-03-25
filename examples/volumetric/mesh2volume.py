@@ -6,11 +6,11 @@ Right: the vtkImageData is isosurfaced.
 """
 from vtkplotter import *
 
-s = load("data/shapes/bunny.obj").normalize().wire()  # .cutPlane()
+s = load(datadir+"shapes/bunny.obj").normalize().wire()
 
 img = actor2ImageData(s, spacing=(0.02, 0.02, 0.02))
 
-v = Volume(img, alphas=[0, 0.5])  # alphas=[0,1,0]
+v = Volume(img, alphas=[0, 0.5]) 
 
 iso = isosurface(img, smoothing=0.9).color("b")
 

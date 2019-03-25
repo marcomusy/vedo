@@ -2,11 +2,11 @@
  pos = position corner number: horizontal [1-4] or vertical [11-14]
 """
 print(__doc__)
-from vtkplotter import Plotter
+from vtkplotter import Plotter, datadir
 
 vp = Plotter(axes=0, bg="w")
 
-mesh = vp.load("data/shapes/magnolia.vtk", c=0)
+mesh = vp.load(datadir+"shapes/magnolia.vtk", c=0)
 
 
 def slider1(widget, event):

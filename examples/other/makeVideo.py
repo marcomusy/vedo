@@ -4,12 +4,12 @@ Make a video (needs ffmpeg)
  without any graphical window showing
 """
 print(__doc__)
-from vtkplotter import Plotter, Video
+from vtkplotter import Plotter, Video, datadir
 
 # declare the class instance
 vp = Plotter(axes=0, interactive=0, offscreen=False)
 
-vp.load("data/shapes/spider.ply", texture="leather2", alpha=1)
+vp.load(datadir+"shapes/spider.ply", texture="leather2", alpha=1)
 
 # open a video file and force it to last 3 seconds in total
 video = Video(name="spider.mp4", duration=3)

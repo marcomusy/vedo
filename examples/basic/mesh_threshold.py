@@ -2,11 +2,11 @@
 Extracts the cells where scalar value 
 satisfies a threshold criterion.
 """
-from vtkplotter import load, Text, show
+from vtkplotter import load, Text, show, datadir
 
 doc = Text(__doc__)
 
-man = load("data/shapes/man.vtk")
+man = load(datadir+"shapes/man.vtk")
 
 scals = man.coordinates()[:, 1] + 37  # pick y coords of vertices
 

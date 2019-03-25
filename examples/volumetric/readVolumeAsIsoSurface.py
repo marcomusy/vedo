@@ -17,10 +17,10 @@ which is expressed in units of pixels.
 fixed by setting scaling factors with scaling=[xfac,yfac,zfac]
 """
 print(__doc__)
-from vtkplotter import show, load
+from vtkplotter import show, load, datadir
 
 # Read volume data from a tif file:
-f = "data/embryo.tif"
+f = datadir+"embryo.tif"
 a0 = load(f, threshold=80, connectivity=1)
 a1 = load(f, threshold=80, connectivity=0)
 a2 = load(f, smoothing=2)
@@ -28,7 +28,7 @@ a2 = load(f, smoothing=2)
 vp1 = show(a0, a1, a2, shape=(1, 3), axes=1)
 
 # Can also read SLC files
-a3 = load("data/embryo.slc", c="g", smoothing=1, connectivity=1)
+a3 = load(datadir+"embryo.slc", c="g", smoothing=1, connectivity=1)
 
 # newPlotter triggers the instantiation of a new Plotter object
 vp2 = show(a3, verbose=0, pos=(300, 300), newPlotter=True)
