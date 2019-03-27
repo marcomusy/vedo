@@ -2,6 +2,7 @@
 Solving Poisson equation using 
 a mixed (two-field) formulation.
 """
+# needs python3
 # https://fenicsproject.org/docs/dolfin/2018.1.0/python/demos/mixed-poisson
 from dolfin import *
 

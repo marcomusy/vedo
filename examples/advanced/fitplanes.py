@@ -9,7 +9,7 @@ attribute plane.info['center'] and plane.info['normal'].
 """
 from vtkplotter import *
 
-vp = Plotter(verbose=0, axes=0)
+vp = Plotter(verbose=0, axes=0, bg='w')
 
 s = vp.load(datadir+"shapes/cow.vtk").alpha(0.3).subdivide()  # remesh
 

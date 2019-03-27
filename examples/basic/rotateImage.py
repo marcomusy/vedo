@@ -2,7 +2,7 @@
 Normal jpg/png images can be 
 loaded and rendered as any vtkImageActor
 """
-from vtkplotter import Plotter, Text
+from vtkplotter import Plotter, Text, datadir
 
 vp = Plotter(axes=3, verbose=0)
 

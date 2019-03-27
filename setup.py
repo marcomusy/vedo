@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='2019.1.1', # change also in vtkplotter/__init__.py and docs/source/conf.py
+    version='2019.1.2', # change also in vtkplotter/__init__.py and docs/source/conf.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=['vtk'],
@@ -78,8 +78,7 @@ setup(
 #  open build/html/index.html
 #
 # mount_staging
-# cp to ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es
-#
+# cp -r build/html/* ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/
 
 
 

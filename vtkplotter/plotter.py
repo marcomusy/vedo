@@ -66,23 +66,25 @@ def show(*actors, **options
         See e.g.: |readVolumeAsIsoSurface.py|_
     :return: the current ``Plotter`` class instance.
 
-    .. note:: With multiple renderers, keyword ``at`` can become a `list`, e.g.:
+    .. note:: With multiple renderers, keyword ``at`` can become a `list`, e.g.
 
-        >>> from vtkplotter import *
-        >>> s = Sphere()
-        >>> c = Cube()
-        >>> p = Paraboloid()
-        >>> show(s, c, at=[0, 1], shape=(3,1))
-        >>> show(p, at=2, interactive=True)
-        >>> #
-        >>> # is equivalent to:
-        >>> vp = Plotter(shape=(3,1))
-        >>> s = Sphere()
-        >>> c = Cube()
-        >>> p = Paraboloid()
-        >>> vp.show(s, at=0)
-        >>> vp.show(p, at=1)
-        >>> vp.show(c, at=2, interactive=True)
+        .. code-block:: python
+        
+            from vtkplotter import *
+            s = Sphere()
+            c = Cube()
+            p = Paraboloid()
+            show(s, c, at=[0, 1], shape=(3,1))
+            show(p, at=2, interactive=True)
+            #
+            # is equivalent to:
+            vp = Plotter(shape=(3,1))
+            s = Sphere()
+            c = Cube()
+            p = Paraboloid()
+            vp.show(s, at=0)
+            vp.show(p, at=1)
+            vp.show(c, at=2, interactive=True)
     """
     at = options.pop("at", None)
     shape = options.pop("shape", (1, 1))
@@ -205,6 +207,48 @@ def clear(actor=()):
     return settings.plotter_instance
 
 
+def plotMatrix(M, title='matrix', continuous=True, cmap='Greys'):
+    """
+	 Plot a matrix using `matplotlib`.
+    
+    :Example:
+        .. code-block:: python
+
+            from vtkplotter.dolfin import plotMatrix
+            import numpy as np
+            
+            M = np.eye(9) + np.random.randn(9,9)/4
+            
+            plotMatrix(M)
+        
+        |pmatrix|
+    """
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    
+    M    = numpy.array(M)
+    m,n  = numpy.shape(M)
+    M    = M.round(decimals=2)
+
+    fig  = plt.figure()
+    ax   = fig.add_subplot(111)
+    cmap = mpl.cm.get_cmap(cmap)
+    if not continuous:
+        unq  = numpy.unique(M)
+    im      = ax.imshow(M, cmap=cmap, interpolation='None')
+    divider = make_axes_locatable(ax)
+    cax     = divider.append_axes("right", size="5%", pad=0.05)
+    dim     = r'$%i \times %i$ ' % (m,n)
+    ax.set_title(dim + title)
+    ax.axis('off')
+    cb = plt.colorbar(im, cax=cax)
+    if not continuous:
+       cb.set_ticks(unq)
+       cb.set_ticklabels(unq)
+    plt.show()
+    
+    
 ########################################################################
 class Plotter:
     """

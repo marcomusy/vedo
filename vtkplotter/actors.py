@@ -1209,11 +1209,12 @@ class Actor(vtk.vtkActor, Prop):
         """Shrink the triangle polydata in the representation of the input mesh.
 
         Example:
+            .. code-block:: python
 
-            >>> from vtkplotter import load, Sphere, show
-            >>> pot = load('data/shapes/teapot.vtk').shrink(0.75)
-            >>> s = Sphere(r=0.2).pos(0,0,-0.5)
-            >>> show([pot, s])
+                from vtkplotter import load, Sphere, show
+                pot = load('data/shapes/teapot.vtk').shrink(0.75)
+                s = Sphere(r=0.2).pos(0,0,-0.5)
+                show(pot, s)
 
             |shrink| |shrink.py|_
         """
@@ -1698,10 +1699,11 @@ class Actor(vtk.vtkActor, Prop):
         :param float lut: optional look up table.
 
         :Example:
-
-            >>> from vtkplotter import *
-            >>> t = Torus().addCurvatureScalars()
-            >>> show(t)
+            .. code-block:: python
+            
+                from vtkplotter import *
+                t = Torus().addCurvatureScalars()
+                show(t)
 
             |curvature|
         """

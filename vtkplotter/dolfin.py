@@ -1,23 +1,35 @@
+#
+#
 from __future__ import division, print_function
+
+from vtk.util.numpy_support import numpy_to_vtk
+
 import numpy as np
 
 import vtkplotter.utils as utils
-from vtkplotter import docs
+import vtkplotter.docs as docs
 
-from vtkplotter import shapes, show, clear, Plotter, Text, datadir
-from vtkplotter import Actor, buildPolyData, load, ProgressBar
-from vtkplotter.utils import mag
-from vtkplotter import colors, settings
+import vtkplotter.colors as colors
 from vtkplotter.colors import printc, printHistogram
-from vtkplotter.vtkio import screenshot
-from vtk.util.numpy_support import numpy_to_vtk
+
+import vtkplotter.settings as settings
+from vtkplotter.settings import datadir
+
+from vtkplotter.actors import Actor
+
+import vtkplotter.vtkio as vtkio
+from vtkplotter.vtkio import load, ProgressBar, screenshot
+
+import vtkplotter.shapes as shapes
+from vtkplotter.shapes import Text
+
+from vtkplotter.plotter import show, clear, Plotter, plotMatrix
 
 # NB: dolfin does NOT need to be imported at module level
 
 __doc__ = (
     """
 FEniCS/Dolfin support submodule.
-`(only tested on python 3.6, dolfin 2018.1.0)`
 
 Install with commands (e.g. in Anaconda):
 
@@ -36,7 +48,6 @@ Basic example:
         mesh = dolfin.Mesh(datadir+"dolfin_fine.xml")
         
         plot(mesh)
-
 
 .. image:: https://user-images.githubusercontent.com/32848391/53026243-d2d31900-3462-11e9-9dde-518218c241b6.jpg
 
@@ -61,8 +72,8 @@ __all__ = [
     "ProgressBar",
     "Text",
     "datadir",
-    "shapes",
     "screenshot",
+    "plotMatrix",
 ]
 
 
@@ -342,7 +353,8 @@ def plot(*inputobj, **options):
             delta = [u(p) for p in mesh.coordinates()]
             #delta = u.compute_vertex_values(mesh) # needs reshape
             if u.value_rank() > 0: # wiil show the size of the vector
-                actor.pointColors(mag(delta), cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
+                actor.pointColors(utils.mag(delta), 
+                                  cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
             else:
                 actor.pointColors(delta, cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
         if scbar and c is None:
@@ -400,7 +412,13 @@ def plot(*inputobj, **options):
             else:
                 bgc = (0.1, 0.1, 0.1)
         actors.append(Text(text, c=bgc, font=font))
-            
+    
+    if 'at' in options.keys() and not 'interactive' in options.keys():
+        if settings.plotter_instance:
+            N = settings.plotter_instance.shape[0]*settings.plotter_instance.shape[1]
+            if options['at'] == N-1:
+                options['interactive'] = True
+    
     vp = show(actors, **options)
     return vp
         
@@ -410,12 +428,18 @@ class MeshActor(Actor):
     """MeshActor, a vtkActor derived object for dolfin support."""
 
     def __init__(
-        self, *inputobj, c="gold", alpha=1, wire=True, bc=None, computeNormals=False
+        self, *inputobj, **options # c="gold", alpha=1, wire=True, bc=None, computeNormals=False
     ):
+
+        c = options.pop("c", "gold")
+        alpha = options.pop("alpha", 1)
+        wire = options.pop("wire", True)
+        bc = options.pop("bc", None)
+        computeNormals = options.pop("computeNormals", False)
 
         mesh, u = _inputsort(inputobj)
 
-        poly = buildPolyData(mesh)
+        poly = vtkio.buildPolyData(mesh)
 
         Actor.__init__(
             self,
@@ -446,7 +470,7 @@ class MeshActor(Actor):
             self.addPointScalars(dispsizes, "u_values")
             
 
-def MeshPoints(*inputobj, r=5, c="gray", alpha=1):
+def MeshPoints(*inputobj, **options):
     """
     Build a point ``Actor`` for a list of points.
 
@@ -455,6 +479,10 @@ def MeshPoints(*inputobj, r=5, c="gray", alpha=1):
     :type c: int, str, list
     :param float alpha: transparency in range [0,1].
     """
+    r = options.pop("r", 5)
+    c = options.pop("c", "gray")
+    alpha = options.pop("alpha", 1)
+
     mesh, u = _inputsort(inputobj)
     plist = mesh.coordinates()
     if u:
@@ -480,7 +508,7 @@ def MeshPoints(*inputobj, r=5, c="gray", alpha=1):
     return actor
 
 
-def MeshLines(*inputobj, scale=1, lw=1, c=None, alpha=1):
+def MeshLines(*inputobj, **options):
     """
     Build the line segments between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
@@ -490,6 +518,11 @@ def MeshLines(*inputobj, scale=1, lw=1, c=None, alpha=1):
 
     :param float scale: apply a rescaling factor to the length 
     """
+    scale = options.pop("scale", 1)
+    lw = options.pop("lw", 1)
+    c = options.pop("c", None)
+    alpha = options.pop("alpha", 1)
+
     mesh, u = _inputsort(inputobj)
     startPoints = mesh.coordinates()
     u_values = np.array([u(p) for p in mesh.coordinates()])
@@ -512,12 +545,18 @@ def MeshLines(*inputobj, scale=1, lw=1, c=None, alpha=1):
     return actor
 
 
-def MeshArrows(*inputobj, s=None, scale=1, c="gray", alpha=1, res=12):
+def MeshArrows(*inputobj, **options):
     """
     Build arrows representing displacements
     :param float s: cross-section size of the arrow
     :param float rescale: apply a rescaling factor to the length 
     """
+    s = options.pop("s", None)
+    scale = options.pop("scale", 1)
+    c = options.pop("c", "gray")
+    alpha = options.pop("alpha", 1)
+    res = options.pop("res", 12)
+
     mesh, u = _inputsort(inputobj)
     startPoints = mesh.coordinates()
     u_values = np.array([u(p) for p in mesh.coordinates()])
@@ -539,15 +578,12 @@ def MeshArrows(*inputobj, s=None, scale=1, c="gray", alpha=1, res=12):
     return actor
     
 
-def MeshTensors(*inputobj, c="m", alpha=1, tipSize=1, tipWidth=1):
+def MeshTensors(*inputobj, **options):
     """Not yet implemented."""
-    mesh, u = _inputsort(inputobj)
+#    c = options.pop("c", "gray")
+#    alpha = options.pop("alpha", 1)
+#    mesh, u = _inputsort(inputobj)
     return
-
-
-
-
-
 
 
 # -*- coding: utf-8 -*-

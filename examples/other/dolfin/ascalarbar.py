@@ -19,11 +19,5 @@ u = interpolate(f, V)
 ################################## vtkplotter
 from vtkplotter.dolfin import plot
 
-plot(u, mode='color', vmin=-6, vmax=6, style=1, text=__doc__)
+plot(u, mode='color', vmin=-3, vmax=3, style=1, text=__doc__)
 
-
-################################# pylab
-#import pylab as plt
-#c = plot(u, mode='color', vmin=-3, vmax=3)
-#plt.colorbar(c)
-#plt.show()

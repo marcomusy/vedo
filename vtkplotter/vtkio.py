@@ -850,14 +850,15 @@ class ProgressBar:
     Class to print a progress bar with optional text message.
 
     :Example:
+        .. code-block:: python
+        
+            import time
+            pb = ProgressBar(0,400, c='red')
+            for i in pb.range():
+                time.sleep(.1)
+                pb.print('some message') # or pb.print(counts=i)
 
-    >>> import time
-    >>> pb = ProgressBar(0,400, c='red')
-    >>> for i in pb.range():
-    >>>     time.sleep(.1)
-    >>>     pb.print('some message') # or pb.print(counts=i)
-
-    |progbar|
+        |progbar|
     """
 
     def __init__(self, start, stop, step=1, c=None, ETA=True, width=24, char="="):

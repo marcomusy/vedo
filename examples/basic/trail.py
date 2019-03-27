@@ -1,5 +1,6 @@
 """
-Example usage of addTrail(). Add a triling line to a moving object.
+Example usage of addTrail(). 
+Add a trailing line to a moving object.
 """
 print(__doc__)
 from vtkplotter import Plotter, sin, Sphere, Point

@@ -11,6 +11,7 @@ __all__ = [
     'usingQt',
     'renderPointsAsSpheres',
     'textures',
+    'textures_path',
     'datadir',
 ]
 

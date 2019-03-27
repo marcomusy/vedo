@@ -4,7 +4,7 @@ make copies of the car, rotate and move them in a loop.
 rate=10 limits the speed of the loop to maximum 10 fps
 """
 from __future__ import division, print_function
-from vtkplotter import Plotter, Plane, Text
+from vtkplotter import Plotter, Plane, Text, datadir
 
 vp = Plotter(interactive=0, axes=0)
 

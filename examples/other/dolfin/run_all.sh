@@ -37,12 +37,20 @@ python ascalarbar.py
 echo Running collisions.py
 python collisions.py
 
+echo Running calc_surface_area.py
+python calc_surface_area.py
+
 echo Running markmesh.py
 python markmesh.py
 
 echo Running elastodynamics.py
 python elastodynamics.py
 
+echo Running pi_estimate.py
+python pi_estimate.py
+
+echo Running stokes.py
+python stokes.py
 
 
 

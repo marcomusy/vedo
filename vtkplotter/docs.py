@@ -723,5 +723,17 @@ _defs = """
     :target: flatarrow.py_
     :alt: flatarrow.py
 
+.. |printhisto| image:: https://user-images.githubusercontent.com/32848391/55073046-03732780-508d-11e9-9bf9-c5de8631dd73.png
+    :width: 250 px
+
+.. |pmatrix| image:: https://user-images.githubusercontent.com/32848391/55098070-6da3c080-50bd-11e9-8f2b-be94a3f01831.png
+    :width: 250 px
+
+.. |stokes.py| replace:: stokes.py
+.. _stokes.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/stokes.py
+.. |stokes| image:: https://user-images.githubusercontent.com/32848391/55098209-aba0e480-50bd-11e9-8842-42d3f0b2d9c8.png
+    :width: 250 px
+    :target: stokes.py_
+    :alt: stokes.py
 
 """

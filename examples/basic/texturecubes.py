@@ -3,7 +3,7 @@ Show a cube for each available texture name
 any jpg file can be used as texture.
 """
 from vtkplotter import Plotter, Cube, Text
-from vtkplotter.utils import textures, textures_path
+from vtkplotter.settings import textures, textures_path
 
 print(__doc__)
 print(textures_path)

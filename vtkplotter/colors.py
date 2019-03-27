@@ -301,10 +301,12 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
     .. tip:: Can also use directly a matplotlib color map:
 
         :Example:
-            >>> from vtkplotter import colorMap
-            >>> import matplotlib.cm as cm
-            >>> print( colorMap(0.2, cm.flag, 0, 1) )
-            (1.0, 0.809016994374948, 0.6173258487801733)
+            .. code-block:: python
+            
+                from vtkplotter import colorMap
+                import matplotlib.cm as cm
+                print( colorMap(0.2, cm.flag, 0, 1) )
+                (1.0, 0.809016994374948, 0.6173258487801733)
     """
     if not _mapscales:
         print("-------------------------------------------------------------------")
@@ -568,6 +570,32 @@ emoji = {
     "~orangesquare": u"\U0001F538",
     "~bluesquare": u"\U0001F537",
     "~zzz": u"\U0001F4a4",
+    "~alpha": u"\U000003B1",
+    "~beta": u"\U000003B2",
+    "~gamma": u"\U000003B3",
+    "~delta": u"\U000003B4",
+    "~epsilon": u"\U000003B5",
+    "~eta": u"\U000003B7",
+    "~theta": u"\U000003B8",
+    "~kappa": u"\U000003BA",
+    "~lambda": u"\U000003BB",
+    "~mu": u"\U000003BC",
+    "~nu": u"\U000003BD",
+    "~xi": u"\U000003BE",
+    "~pi": u"\U000003C0",
+    "~rho": u"\U000003C1",
+    "~sigma": u"\U000003C3",
+    "~tau": u"\U000003C4",
+    "~phi": u"\U000003C6",
+    "~chi": u"\U000003C7",
+    "~psi": u"\U000003C8",
+    "~omega": u"\U000003C9",
+    "~Gamma": u"\U00000393",
+    "~Delta": u"\U00000394",
+    "~Lambda": u"\U0000039B",
+    "~Pi": u"\U000003A0",
+    "~Sigma": u"\U000003A3",
+    "~Omega": u"\U000003A9",
 }
 
 
@@ -591,11 +619,12 @@ def printc(*strings, **keys):
     :param end: end character to be printed [return]
 
     :Example:
+        .. code-block:: python
 
-    >>>  from vtkplotter.colors import printc
-    >>>  printc('anything', c='red', bold=False, end='' )
-    >>>  printc('anything', 455.5, vtkObject, c='green')
-    >>>  printc(299792.48, c=4) # 4 is blue
+            from vtkplotter.colors import printc
+            printc('anything', c='red', bold=False, end='' )
+            printc('anything', 455.5, vtkObject, c='green')
+            printc(299792.48, c=4) # 4 is blue
 
     .. hint:: |colorprint| |colorprint.py|_
     """
@@ -731,23 +760,26 @@ def printHistogram(data, bins=10, height=10, logscale=False,
     :param bool char: use boldface
     :param str title: histogram title
     
-    :Example:
+    :Example: 
+        .. code-block:: python
         
-        >>> from vtkplotter import printHistogram
-        >>> import numpy as np
-        >>> d = np.random.normal(size=1000)
-        >>> printHistogram(d, c='blue', logscale=True, title='my scalars')
-        >>> printHistogram(d, c=1, horizontal=1)
+            from vtkplotter import printHistogram
+            import numpy as np
+            d = np.random.normal(size=1000)
+            printHistogram(d, c='blue', logscale=True, title='my scalars')
+            printHistogram(d, c=1, horizontal=1)
 
+        |printhisto|
     """
-    # Adapted from
-    # http://pyinsci.blogspot.com/2009/10/ascii-histograms.html
+    # Adapted from http://pyinsci.blogspot.com/2009/10/ascii-histograms.html  
     
     if not horizontal: # better aspect ratio
         bins *= 2
     
     h = np.histogram(data, bins=bins)
     
+    if sys.version_info[0] < 3 and char == u"\U00002589":
+        char = "*" # python2 hack
     if char == u"\U00002589" and horizontal:
         char = u"\U00002586"
     

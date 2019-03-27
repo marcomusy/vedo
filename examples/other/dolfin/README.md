@@ -32,3 +32,7 @@ python example.py  # on mac OSX try 'pythonw' instead
 | [![stokes](https://user-images.githubusercontent.com/32848391/53044917-95838100-348c-11e9-9a94-aa10b8f1658c.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ex07_stokes-iterative.py)<br/> `ex07_stokes-iterative.py`  | Stokes equations with an iterative solver. |
 |    |    |
 | [![elastodyn](https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/elastodynamics.py)<br/> `elastodynamics.py`             | Perform time integration of transient elastodynamics using the generalized-alpha method. |
+|    |    |
+| [![stokes](https://user-images.githubusercontent.com/32848391/55098209-aba0e480-50bd-11e9-8842-42d3f0b2d9c8.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/stokes.py)<br/> `stokes.py`                                | Solve 2D navier-stokes equations with boundary conditions. |
+
+
