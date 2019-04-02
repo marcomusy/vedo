@@ -1,19 +1,21 @@
 """
 Morph one shape into another using spherical harmonics package shtools.
+
 In this example we morph a sphere into a octahedron and viceversa.
 """
 from __future__ import division, print_function
 
+import numpy as np
+from vtkplotter import Plotter, Points, Sphere, arange, cos, datadir, mag, sin
+
 try:
     import pyshtools
     print(__doc__)
-except:
+except ModuleNotFoundError:
     print("Please install pyshtools to run this example")
     print("Follow instructions at https://shtools.oca.eu/shtools")
     exit(0)
 
-from vtkplotter import Plotter, datadir, mag, arange, Points, Sphere, sin, cos
-import numpy as np
 
 ##########################################################
 N = 100  # number of sample points on the unit sphere
@@ -30,7 +32,7 @@ def makeGrid(shape, N):
         lats = []
         for ph in np.linspace(0, 2 * np.pi, N, endpoint=True):
             p = np.array([sin(th) * cos(ph), sin(th) * sin(ph), cos(th)]) * rmax
-            intersections = shape.intersectWithLine([0, 0, 0], p)  ### <--
+            intersections = shape.intersectWithLine([0, 0, 0], p)
             if len(intersections):
                 value = mag(intersections[0])
                 lats.append(value - rbias)
@@ -45,7 +47,7 @@ def makeGrid(shape, N):
 
 
 def morph(clm1, clm2, t, lmax):
-    # interpolate linearly the two sets of sph harm. coeeficients
+    """Interpolate linearly the two sets of sph harm. coeeficients."""
     clm = (1 - t) * clm1 + t * clm2
     grid_reco = clm.expand(lmax=lmax)  # cut "high frequency" components
     agrid_reco = grid_reco.to_array()
@@ -65,24 +67,27 @@ def morph(clm1, clm2, t, lmax):
 vp = Plotter(shape=[2, 2], verbose=0, axes=3, interactive=0)
 
 shape1 = Sphere(alpha=0.2)
-shape2 = vp.load(datadir+"shapes/icosahedron.vtk").normalize().lineWidth(1)
+shape2 = vp.load(datadir + "shapes/icosahedron.vtk").normalize().lineWidth(1)
 
 agrid1, actorpts1 = makeGrid(shape1, N)
+
 vp.show(shape1, actorpts1, at=0)
 
 agrid2, actorpts2 = makeGrid(shape2, N)
 vp.show(shape2, actorpts2, at=1)
+
 vp.camera.Zoom(1.2)
 vp.interactive = False
 
 clm1 = pyshtools.SHGrid.from_array(agrid1).expand()
 clm2 = pyshtools.SHGrid.from_array(agrid2).expand()
-# clm1.plot_spectrum2d() # plot the value of the sph harm. coefficients
+# clm1.plot_spectrum2d()  # plot the value of the sph harm. coefficients
 # clm2.plot_spectrum2d()
 
 for t in arange(0, 1, 0.005):
     act21 = Points(morph(clm2, clm1, t, lmax), c="r", r=4)
     act12 = Points(morph(clm1, clm2, t, lmax), c="g", r=4)
+
     vp.show(act21, at=2, resetcam=0)
     vp.show(act12, at=3)
     vp.camera.Azimuth(2)

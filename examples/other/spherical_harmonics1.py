@@ -1,3 +1,8 @@
+from __future__ import division, print_function
+
+import numpy as np
+from vtkplotter import Plotter, Points, cos, datadir, mag, sin
+
 """
 Example on how to use the intersectWithLine() method:
  intersect an actor with lines from the origin
@@ -9,12 +14,9 @@ Second part of the example:
  and then truncate the expansion to a specific lmax and
  reconstruct the projected points in red
 """
-from __future__ import division, print_function
 
 print(__doc__)
 
-from vtkplotter import Plotter, Points, datadir, mag, sin, cos
-import numpy as np
 
 ##########################################################
 N = 100  # number of sample points on the unit sphere
@@ -25,14 +27,14 @@ x0 = [0, 0, 0]  # set object at this position
 ##########################################################
 
 vp = Plotter(shape=[1, 2], verbose=0, axes=0)
-shape = vp.load(datadir+"shapes/icosahedron.vtk").normalize().pos(x0).lineWidth(2)
+shape = vp.load(datadir + "shapes/icosahedron.vtk").normalize().pos(x0).lineWidth(2)
 
 agrid, pts = [], []
 for th in np.linspace(0, np.pi, N, endpoint=True):
     lats = []
     for ph in np.linspace(0, 2 * np.pi, N, endpoint=True):
         p = np.array([sin(th) * cos(ph), sin(th) * sin(ph), cos(th)]) * rmax
-        intersections = shape.intersectWithLine([0, 0, 0], p)  ### <--
+        intersections = shape.intersectWithLine([0, 0, 0], p)  # <--
         if len(intersections):
             value = mag(intersections[0])
             lats.append(value - rbias)
