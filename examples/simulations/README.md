@@ -25,6 +25,8 @@ python example.py  # on mac OSX try 'pythonw' instead
 |    |    |
 | [![mpend](https://user-images.githubusercontent.com/32848391/50738892-db380300-11d8-11e9-807c-fb320c7b7917.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/multiple_pendulum.py)<br/> `multiple_pendulum.py` | Simulation of an elastic multiple pendulums with viscous friction. |
 |    |    |
+| [![pendulum](https://user-images.githubusercontent.com/32848391/55420020-51e56200-5576-11e9-8513-4a5d93913b17.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/pendulum.py)<br/> `pendulum.py`       | Visualize the phase space of a simple pendulum (from [3Blue1Brown](https://www.youtube.com/watch?v=p_di4Zn4wz4)). |
+|    |    |
 | [![ruth](https://user-images.githubusercontent.com/32848391/50738891-db380300-11d8-11e9-84c2-0f55be7228f1.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/particle_simulator.py)<br/> `particle_simulator.py` | Simulates interacting charged particles in 3D space. |
 |    |    |
 | [![tunneling1](https://vtkplotter.embl.es/gifs/tunnelling2.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/tunnelling1.py)<br/> `tunnelling1.py`                                                    | Quantum Tunnelling effect using 4th order Runge-Kutta method with arbitrary potential shape. <br>The animation shows the evolution of a particle of relatively well defined momentum (hence undefined position) in a box hitting a potential barrier. The wave function is forced to be zero at the box walls. |

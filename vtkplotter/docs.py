@@ -735,5 +735,15 @@ _defs = """
     :width: 250 px
     :target: stokes.py_
     :alt: stokes.py
+    
+.. |distance2mesh.py| replace:: distance2mesh.py
+.. _distance2mesh.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/distance2mesh.py
+
+.. |pendulum.py| replace:: pendulum.py
+.. _pendulum.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/pendulum.py
+.. |pendulum| image:: https://user-images.githubusercontent.com/32848391/55420020-51e56200-5576-11e9-8513-4a5d93913b17.png
+    :width: 250 px
+    :target: pendulum.py_
+    :alt: pendulum.py
 
 """

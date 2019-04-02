@@ -20,7 +20,7 @@ Defines main class ``Plotter`` to manage actors and 3D rendering.
     + docs._defs
 )
 
-__all__ = ["show", "clear", "Plotter"]
+__all__ = ["show", "clear", "Plotter", "plotMatrix"]
 
 
 ########################################################################
@@ -275,6 +275,7 @@ class Plotter:
       - 7,  draw a simple ruler at the bottom of the window
       - 8,  show the ``vtkCubeAxesActor`` object,
       - 9,  show the bounding box outLine,
+      - 10, show three circles representing the maximum bounding box.
 
     :param bool infinity: if True fugue point is set at infinity (no perspective effects)
     :param bool sharecam: if False each renderer will have an independent vtkCamera
@@ -399,6 +400,7 @@ class Plotter:
                     ind = i
                     minl = l
             shape = lm[ind]
+            
         if size == "auto":  # figure out a reasonable window size
             f = 1.5
             xs = y / f * shape[1]  # because y<x

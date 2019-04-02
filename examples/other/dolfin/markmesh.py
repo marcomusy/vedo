@@ -11,9 +11,9 @@ class left(SubDomain):
         return on_boundary and abs(x[0]) < DOLFIN_EPS
 left = left()
 
-tcond = MeshFunction("double", mesh, 0)
-tcond.set_all(0.0)
-left.mark(tcond, 3.14)
+tcond = MeshFunction("size_t", mesh, 0)
+tcond.set_all(0)
+left.mark(tcond, 1)
 
 ##################################
 from vtkplotter.dolfin import plot

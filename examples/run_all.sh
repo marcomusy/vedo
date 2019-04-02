@@ -42,6 +42,9 @@ python basic/buildpolydata.py
 echo Running basic/delaunay2d.py
 python basic/delaunay2d.py
 
+echo Running basic/distance2mesh.py
+python basic/distance2mesh.py
+
 echo Running basic/clustering.py
 python basic/clustering.py
 
@@ -249,6 +252,9 @@ python simulations/gyroscope2.py
 
 echo Running simulations/multiple_pendulum.py
 python simulations/multiple_pendulum.py
+
+echo Running simulations/pendulum.py
+python simulations/pendulum.py
 
 echo Running simulations/wave_equation.py
 python simulations/wave_equation.py

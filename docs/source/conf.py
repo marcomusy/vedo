@@ -36,7 +36,7 @@ copyright = '2019, M. Musy'
 author = 'Marco Musy'
 
 # The short X.Y version
-version = '2019.1.2'
+version = '2019.1.3'
 
 
 # -- General configuration ---------------------------------------------------

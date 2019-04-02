@@ -111,6 +111,17 @@ def _inputsort(obj):
                     printc('~times Sorry could not deal with your MeshFunction', c=1)
                     pass
 
+#                tdim = mesh.topology().dim()
+#                d = ob.dim()               
+#                if tdim == 2 and d == 2:
+#                    import matplotlib.tri as tri
+#                    xy = mesh.coordinates()
+#                    mh = buildPolyData(xy, mesh.cells())
+#                    show(mh)
+#                    print(mesh.cells())
+#                    print( tri.Triangulation(xy[:, 0], xy[:, 1], mesh.cells()) )
+#                    exit()
+
             elif "Function" in inputtype or "Expression" in inputtype:
                 u = ob
             elif "Mesh" in inputtype:
@@ -198,7 +209,7 @@ def plot(*inputobj, **options):
       - 7,  draw a simple ruler at the bottom of the window
       - 8,  show the `vtkCubeAxesActor` object,
       - 9,  show the bounding box outLine,
-      - 10,  show three circles representing the maximum bounding box.
+      - 10, show three circles representing the maximum bounding box.
 
     :param bool infinity: if True fugue point is set at infinity (no perspective effects)
     :param bool sharecam: if False each renderer will have an independent vtkCamera

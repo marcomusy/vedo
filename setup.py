@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='2019.1.2', # change also in vtkplotter/__init__.py and docs/source/conf.py
+    version='2019.1.3', # change also in vtkplotter/__init__.py and docs/source/conf.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=['vtk'],
@@ -51,14 +51,14 @@ setup(
 # # check version number here and in vtkplotter/__init__.py
 
 # git status
+# git commit -a -m 'comment'
+# git push
+
+# git status
 # (sudo apt install twine)
 # (python -m pip install --user --upgrade twine)
 # python setup.py sdist bdist_wheel
 # twine upload dist/vtkplotter-?.?.?.tar.gz -r pypi
-
-# git status
-# git commit -a -m 'comment'
-# git push
 # make release
 
 # pip:

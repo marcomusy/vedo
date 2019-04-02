@@ -75,4 +75,4 @@ for i, longs in enumerate(agrid_reco):
         pts.append(p)
 
 act = Points(pts, c="r", r=8, alpha=0.5)
-vp.show(at=1, actors=act, interactive=1)
+vp.show(act, at=1, interactive=1)

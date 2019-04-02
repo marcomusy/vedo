@@ -1081,6 +1081,34 @@ class Actor(vtk.vtkActor, Prop):
         else:
             return np.array(trgp)
 
+
+    def distanceToMesh(self, actor, signed=False, negate=False):
+        '''
+        Computes the (signed) distance from one mesh to another.
+        
+        Example: |distance2mesh.py|_
+        '''
+        poly1 = self.polydata()
+        poly2 = actor.polydata()
+        df = vtk.vtkDistancePolyDataFilter()
+        df.SetInputData(0, poly1)
+        df.SetInputData(1, poly2)
+        if signed:
+            df.SignedDistanceOn()
+        if negate:
+            df.NegateDistanceOn()
+        df.Update()
+        
+        scals = df.GetOutput().GetPointData().GetScalars()
+        poly1.GetPointData().AddArray(scals)
+
+        poly1.GetPointData().SetActiveScalars(scals.GetName())
+        rng = scals.GetRange()
+        self.mapper.SetScalarRange(rng[0], rng[1])
+        self.mapper.ScalarVisibilityOn()
+        return self
+
+
     def clone(self, transformed=True):
         """
         Clone a ``Actor(vtkActor)`` and make an exact copy of it.
@@ -1173,7 +1201,8 @@ class Actor(vtk.vtkActor, Prop):
             pass
         else:
             colors.printc("~times Error in mirror(): mirror must be set to x, y, z or n.", c=1)
-            exit()
+            raise RuntimeError()
+
         if axis != "n":
             for j in range(polyCopy.GetNumberOfPoints()):
                 p = [0, 0, 0]
@@ -1797,7 +1826,7 @@ class Actor(vtk.vtkActor, Prop):
             sdf = vtk.vtkButterflySubdivisionFilter()
         else:
             colors.printc("~times Error in subdivide: unknown method.", c="r")
-            exit(1)
+            exit()
         if method != 2:
             sdf.SetNumberOfSubdivisions(N)
         sdf.SetInputData(originalMesh)
@@ -2080,15 +2109,16 @@ class Actor(vtk.vtkActor, Prop):
         """Return the sublist of points that are inside a polydata closed surface."""
         poly = self.polydata(True)
         # check if the stl file is closed
-        featureEdge = vtk.vtkFeatureEdges()
-        featureEdge.FeatureEdgesOff()
-        featureEdge.BoundaryEdgesOn()
-        featureEdge.NonManifoldEdgesOn()
-        featureEdge.SetInputData(poly)
-        featureEdge.Update()
-        openEdges = featureEdge.GetOutput().GetNumberOfCells()
-        if openEdges != 0:
-            colors.printc("~lightning Warning: polydata is not a closed surface", c=5)
+        
+        #featureEdge = vtk.vtkFeatureEdges()
+        #featureEdge.FeatureEdgesOff()
+        #featureEdge.BoundaryEdgesOn()
+        #featureEdge.NonManifoldEdgesOn()
+        #featureEdge.SetInputData(poly)
+        #featureEdge.Update()
+        #openEdges = featureEdge.GetOutput().GetNumberOfCells()
+        #if openEdges != 0:
+        #    colors.printc("~lightning Warning: polydata is not a closed surface", c=5)
 
         vpoints = vtk.vtkPoints()
         vpoints.SetData(numpy_to_vtk(points, deep=True))

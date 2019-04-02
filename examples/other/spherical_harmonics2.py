@@ -6,7 +6,6 @@ from __future__ import division, print_function
 
 try:
     import pyshtools
-
     print(__doc__)
 except:
     print("Please install pyshtools to run this example")
@@ -69,10 +68,10 @@ shape1 = Sphere(alpha=0.2)
 shape2 = vp.load(datadir+"shapes/icosahedron.vtk").normalize().lineWidth(1)
 
 agrid1, actorpts1 = makeGrid(shape1, N)
-vp.show(at=0, actors=[shape1, actorpts1])
+vp.show(shape1, actorpts1, at=0)
 
 agrid2, actorpts2 = makeGrid(shape2, N)
-vp.show(at=1, actors=[shape2, actorpts2])
+vp.show(shape2, actorpts2, at=1)
 vp.camera.Zoom(1.2)
 vp.interactive = False
 
@@ -84,8 +83,8 @@ clm2 = pyshtools.SHGrid.from_array(agrid2).expand()
 for t in arange(0, 1, 0.005):
     act21 = Points(morph(clm2, clm1, t, lmax), c="r", r=4)
     act12 = Points(morph(clm1, clm2, t, lmax), c="g", r=4)
-    vp.show(at=2, actors=act21, resetcam=0, legend="time: " + str(int(t * 100)))
-    vp.show(at=3, actors=act12)
+    vp.show(act21, at=2, resetcam=0)
+    vp.show(act12, at=3)
     vp.camera.Azimuth(2)
 
 vp.show(interactive=1)

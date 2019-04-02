@@ -253,29 +253,39 @@ if args.ray_cast_mode or args.z_spacing or args.y_spacing:
     exit()
 
 ##########################################################
-# special case of SLC/TIFF volumes with --slicer option
+# special case of SLC/TIFF/DICOM volumes with --slicer option
 elif args.slicer:
 
     filename = args.files[0]
     if not os.path.isfile(filename):
-        printc("~times File not found:", filename, c=1)
-        exit()
+        if os.path.isdir(filename):
+            reader = vtk.vtkDICOMImageReader()
+            reader.SetDirectoryName(filename)
+        else:
+            printc("~times File not found:", filename, c=1)
+            exit()
+        
     printc("...loading", filename, c="m", bold=0)
 
     if ".tif" in filename.lower():
         reader = vtk.vtkTIFFReader()
+        reader.SetFileName(filename)
 
     elif ".slc" in filename.lower():
         reader = vtk.vtkSLCReader()
+        reader.SetFileName(filename)
         if not reader.CanReadFile(filename):
             printc("~bomb Bad SLC file:", filename, c=1)
 
     elif ".vti" in filename.lower():
         reader = vtk.vtkXMLImageDataReader()
+        reader.SetFileName(filename)
 
-    else:
-        printc("~sad Use --slicer option only with voxel data files [slc,tif,vti].", c=1)
-    reader.SetFileName(filename)
+    elif ".dcm" in filename.lower() or ".dicom" in filename.lower():
+        reader = vtk.vtkDICOMImageReader()
+        dirname = os.path.dirname(filename)
+        reader.SetDirectoryName(dirname)
+
     reader.Update()
     img = reader.GetOutput()
 

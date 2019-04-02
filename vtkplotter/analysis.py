@@ -59,6 +59,7 @@ __all__ = [
     "signedDistance",
     "extractSurface",
     "geometry",
+    "voronoi3D",
 ]
 
 
@@ -1724,6 +1725,88 @@ def projectSphereFilter(actor):
     psf = vtk.vtkProjectSphereFilter()
     psf.SetInputData(poly)
     psf.Update()
-
     a = Actor(psf.GetOutput())
     return a
+
+
+def voronoi3D(nuclei, bbfactor=1, tol=None):
+    from vtkplotter import settings
+    import os
+
+    # run voro++
+    if os.path.isfile(settings.voro_path+'/voro++') or settings.voro_path=='':
+        outF = open('voronoi3d.txt', "w")
+        for i,p in enumerate(nuclei):
+            outF.write(str(i)+' '+str(p[0])+' '+str(p[1])+' '+str(p[2])+'\n')
+        outF.close()
+        ncl = vs.Points(nuclei)
+        b = np.array(ncl.GetBounds())*bbfactor
+        bbstr = str(b[0])+' '+str(b[1])+' '+str(b[2])+' '+str(b[3])+' '+str(b[4])+' '+str(b[5])
+        print('Using Voro++ in           :', settings.voro_path)
+        os.system(settings.voro_path+'/voro++ -c "%F %v %w %P %t" -v '+bbstr+' voronoi3d.txt')
+        f = open('voronoi3d.txt.vol', "r")
+        lines = f.readlines()
+        f.close()
+    else:
+        print('Cannot find Voro++ installation in:', settings.voro_path)
+        print('Download and install Voro++ from http://math.lbl.gov/voro++/download')
+        print('Then add:')
+        print('from vtkplotter import settings"')
+        print('settings.voro_path="path_to_voro++_executable"')
+        exit()
+    
+    # build polydata
+    sourcePoints = vtk.vtkPoints()
+    sourcePolygons = vtk.vtkCellArray()
+    cells, areas, volumes = [], [], []
+    for l in lines: # each line corresponds to an input point
+        ls = l.split()
+        area = float(ls[0])
+        volu = float(ls[1])
+        n = int(ls[2])
+        ids = []
+        for i in range(3, n+3):
+            p = tuple(map(float, ls[i][1:-1].split(',')))
+            aid = sourcePoints.InsertNextPoint(p[0], p[1], p[2])
+            if tol:
+                bp = np.array([p[0]-b[0], p[0]-b[1], 
+                               p[1]-b[2], p[1]-b[3], 
+                               p[2]-b[4], p[2]-b[5]])
+                bp = np.abs(bp) < tol
+                if np.any(bp): 
+                    ids.append(None)
+                else:
+                    ids.append(aid)
+            else:
+                ids.append(aid)
+            
+        # fill polygon elements
+        if None in ids:
+            continue
+        
+        faces = []
+        for j in range(n+3, len(ls)):
+            face = tuple(map(int, ls[j][1:-1].split(',')))
+            ele = vtk.vtkPolygon()
+            ele.GetPointIds().SetNumberOfIds(len(face))
+            elems = []
+            for k,f in enumerate(face):
+                ele.GetPointIds().SetId(k, ids[f])
+                elems.append(ids[f])
+            sourcePolygons.InsertNextCell(ele)
+            faces.append(elems)
+        cells.append(faces)
+        areas.append(area)
+        volumes.append(volu)
+
+    poly = vtk.vtkPolyData()
+    poly.SetPoints(sourcePoints)
+    poly.SetPolys(sourcePolygons)
+    voro = Actor(poly).alpha(0.5)
+    voro.info['cells'] = cells
+    voro.info['areas'] = areas
+    voro.info['volumes'] = volumes
+    return voro
+
+
+

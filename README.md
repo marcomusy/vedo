@@ -28,7 +28,7 @@ in a program, whilst mantaining access to the full range of VTK native classes.
 It includes a [large set of working examples](https://github.com/marcomusy/vtkplotter/tree/master/examples)
 for the all following functionalities:
 
-  - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, XML, Neutral, GMSH, OFF, PCD (PointCloud), volumetric TIFF stacks, SLC, MHD, 2D images PNG, JPEG.
+  - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, XML, Neutral, GMSH, OFF, PCD (PointCloud), volumetric TIFF stacks, DICOM, SLC, MHD, 2D images PNG, JPEG.
   - Export meshes as ASCII or binary to VTK, STL, OBJ, PLY formats.
   - Mesh analysis through the built-in methods of VTK package. Additional analysis tools like *Moving Least Squares*, mesh morphing.
   - Tools to visualize and edit meshes (cutting a mesh with another mesh, slicing, normalizing, moving vertex positions, etc..). Interactive cutter widget.
@@ -79,7 +79,7 @@ Voxel-data (_vti, slc, tiff_) files can also be visualized with options `-g` and
 e.g.:
 ```bash
 vtkplotter -g -c blue examples/data/embryo.slc  # (3D scan of a mouse embryo)
-vtkplotter --slicer   examples/data/embryo.slc    
+vtkplotter --slicer   examples/data/embryo.slc  # can read a DICOM directory  
 ```
 ![e2](https://user-images.githubusercontent.com/32848391/50738810-58af4380-11d8-11e9-8fc7-6c6959207224.jpg)
 

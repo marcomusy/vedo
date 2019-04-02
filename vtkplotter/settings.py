@@ -30,8 +30,9 @@ usingQt = False
 # on some vtk versions/platforms points are redered as ugly squares
 renderPointsAsSpheres = True
 
-# sync different Plotter instances
-#syncPlotters = True
+# path to Voro++ library
+# http://math.lbl.gov/voro++
+voro_path = '/usr/local/bin'
 
 
 #####################

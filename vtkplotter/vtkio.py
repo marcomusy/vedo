@@ -33,6 +33,7 @@ __all__ = [
     "loadGmesh",
     "loadPCD",
     "loadOFF",
+    "loadDICOM",
     "loadImageData",
     "load2Dimage",
     "write",
@@ -491,6 +492,18 @@ def loadPCD(filename, c="gold", alpha=1):
     return actor
 
 
+def loadDICOM(dirname, spacing=()):
+    reader = vtk.vtkDICOMImageReader()
+    reader.SetDirectoryName(dirname)
+    reader.Update()
+    image = reader.GetOutput()
+    print("scalar range:", image.GetScalarRange())
+    #colors.printHistogram()
+    if len(spacing) == 3:
+        image.SetSpacing(spacing[0], spacing[1], spacing[2])
+    return image
+
+
 def loadImageData(filename, spacing=()):
     """Read and return a ``vtkImageData`` object from file."""
     if not os.path.isfile(filename):
@@ -696,8 +709,10 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
             aid = sourcePoints.InsertNextPoint(pt[0], 0, 0)
         else:
             aid = sourcePoints.InsertNextPoint(pt[0], pt[1], 0)
-        sourceVertices.InsertNextCell(1)
-        sourceVertices.InsertCellPoint(aid)
+            
+        if faces is None:
+            sourceVertices.InsertNextCell(1)
+            sourceVertices.InsertCellPoint(aid)
         
     if faces is not None:
         showbar = False
@@ -767,9 +782,11 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
 
     poly = vtk.vtkPolyData()
     poly.SetPoints(sourcePoints)
-    poly.SetVerts(sourceVertices)
-    if faces is not None:
+    if faces is None:
+        poly.SetVerts(sourceVertices)
+    else:
         poly.SetPolys(sourcePolygons)
+        
     return poly
 
 
