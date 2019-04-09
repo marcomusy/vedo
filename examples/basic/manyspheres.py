@@ -7,7 +7,7 @@ or different radius. Resolution (res) can be specified.
 from vtkplotter import show, Spheres, Text
 from random import gauss
 
-N = 20000
+N = 40000
 
 print("calculating..")
 cols = range(N)  # color numbers
@@ -22,4 +22,4 @@ s1 = Spheres(pts, r=rads, c="lb", res=8)  # .texture('gold1')
 
 print("..rendering spheres:", N * 2)
 show(s0, at=0, N=2, axes=2, viewup=(-0.7, 0.7, 0))
-show([s1, Text(__doc__)], at=1, zoom=1.5, interactive=1)
+show(s1, Text(__doc__), at=1, zoom=1.5, interactive=1)

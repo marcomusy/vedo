@@ -581,6 +581,7 @@ def addAxes(axtype=None, c=None):
         min_bns = vbb
     sizes = (max_bns[1] - min_bns[0], max_bns[3] - min_bns[2], max_bns[5] - min_bns[4])
 
+
     ############################################################
     if vp.axes == 1 or vp.axes == True:  # gray grid walls
         nd = 4  # number of divisions in the smallest axis
@@ -618,12 +619,14 @@ def addAxes(axtype=None, c=None):
             if len(vp.xtitle) == 1:  # add axis length info
                 xtitle = vp.xtitle + " /" + utils.precision(sizes[0], 4)
             wpos = [1 - (len(vp.xtitle) + 1) / 40, off, 0]
-            xt = shapes.Text(xtitle, pos=wpos, normal=(0, 0, 1), s=0.025, c=c)
+            xt = shapes.Text(xtitle, pos=wpos, normal=(0, 0, 1), 
+                             s=0.025, c=c, justify="bottom-right")
 
         if vp.ytitle:
             if min_bns[2] <= 0 and max_bns[3] > 0:  # mark y origin
                 oy = shapes.Cube([0, -min_bns[2] / sizes[1], 0], side=0.008, c=c)
-            yt = shapes.Text(vp.ytitle, pos=(0, 0, 0), normal=(0, 0, 1), s=0.025, c=c)
+            yt = shapes.Text(vp.ytitle, pos=(0, 0, 0), normal=(0, 0, 1), 
+                             s=0.025, c=c, justify="bottom-right")
             if len(vp.ytitle) == 1:
                 wpos = [off, 1 - (len(vp.ytitle) + 1) / 40, 0]
                 yt.pos(wpos)
@@ -634,7 +637,8 @@ def addAxes(axtype=None, c=None):
         if vp.ztitle:
             if min_bns[4] <= 0 and max_bns[5] > 0:  # mark z origin
                 oz = shapes.Cube([0, 0, -min_bns[4] / sizes[2]], side=0.008, c=c)
-            zt = shapes.Text(vp.ztitle, pos=(0, 0, 0), normal=(1, -1, 0), s=0.025, c=c)
+            zt = shapes.Text(vp.ztitle, pos=(0, 0, 0), normal=(1, -1, 0), 
+                             s=0.025, c=c, justify="bottom-right")
             if len(vp.ztitle) == 1:
                 wpos = [off * 0.6, off * 0.6, 1 - (len(vp.ztitle) + 1) / 40]
                 zt.rotate(90, (1, -1, 0)).pos(wpos)

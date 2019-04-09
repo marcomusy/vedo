@@ -33,4 +33,4 @@ warped.alpha(0.4).color("b")
 
 apts = Points(ptsource, r=15, c="r")
 
-vp.show([act, warped, apts, Text(__doc__)], viewup="z")
+vp.show(act, warped, apts, Text(__doc__), viewup="z")

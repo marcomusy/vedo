@@ -27,11 +27,14 @@ f = Constant(-6.0)
 # Compute solution
 solve( dot(grad(w), grad(v))*dx == f*v*dx,  u, bc)
 
+f = r'-\nabla^{2} u=f'
 
 ########################################################### vtkplotter
-from vtkplotter.dolfin import plot, Text, clear
+from vtkplotter.dolfin import plot, Text, Latex, clear
 
-plot(u, cmap='jet', scalarbar='h', text=__doc__)
+l = Latex(f, s=.2, c='w').addPos(.6,.6,.1)
+
+plot(u, l, cmap='jet', scalarbar='h', text=__doc__)
 
 # Now show uD values on the boundary of a much finer mesh
 clear()

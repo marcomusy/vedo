@@ -2346,7 +2346,33 @@ class ImageActor(vtk.vtkImageActor, Prop):
             return self
         else:
             return self.GetProperty().GetOpacity()
+        
+    def crop(self, top=None, bottom=None, left=None, right=None):
+        """Crop image.
+        
+        :param float top: fraction to crop from the top margin
+        :param float bottom: fraction to crop from the bottom margin
+        :param float left: fraction to crop from the left margin
+        :param float right: fraction to crop from the right margin
+        """
+        extractVOI = vtk.vtkExtractVOI()
+        extractVOI.SetInputData(self.GetInput())
+        extractVOI.IncludeBoundaryOn ()
 
+        d = self.GetInput().GetDimensions()
+        bx0, bx1, by0, by1 = 0, d[0]-1, 0, d[1]-1
+        if left is not None:   bx0 = int((d[0]-1)*left)
+        if right is not None:  bx1 = int((d[0]-1)*(1-right))
+        if bottom is not None: by0 = int((d[1]-1)*bottom)
+        if top is not None:    by1 = int((d[1]-1)*(1-top))
+        extractVOI.SetVOI(bx0, bx1, by0, by1, 0, 0)
+        extractVOI.Update()
+        img = extractVOI.GetOutput()
+        img.SetOrigin(-bx0, -by0, 0)
+        self.GetMapper().SetInputData(img)
+        self.GetMapper().Modified()
+        return self
+        
 
 ##########################################################################
 class Volume(vtk.vtkVolume, Prop):
@@ -2421,7 +2447,7 @@ class Volume(vtk.vtkVolume, Prop):
             xalpha = smin + (smax - smin) * i / (len(alphas) - 1)
             # Create transfer mapping scalar value to opacity
             opacityTransferFunction.AddPoint(xalpha, al)
-            colors.printc("\talpha at", round(xalpha, 1), "\tset to", al, c="b", bold=0)
+            colors.printc("    alpha at", round(xalpha, 1), "\tset to", al, c="b", bold=0)
 
         # The property describes how the data will look
         volumeProperty = vtk.vtkVolumeProperty()

@@ -45,6 +45,8 @@ python example.py
 |    |    |
 | [![largestregion](https://user-images.githubusercontent.com/32848391/50738859-bfccf800-11d8-11e9-8c59-17c0ca4d8e06.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/largestregion.py)<br/> `largestregion.py`    | Extract the mesh region that has the largest connected surface with method `analysis.extractLargestRegion()`. |
 |    |    |
+| [![latex](https://user-images.githubusercontent.com/32848391/55568648-6190b200-5700-11e9-9547-0798c588a7a5.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/latex.py)<br/> `latex.py`                            | Draw latex formatted text on the rendering window. |
+|    |    |
 | [![manyspheres](https://user-images.githubusercontent.com/32848391/50738858-bfccf800-11d8-11e9-9daf-3b11eedf72ac.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/manyspheres.py)<br/> `manyspheres.py`          | Draw a very large number of spheres (200.000) with different colors or different radii (for vtk versions before 8.0 this might be slow). |
 |    |    |
 | [![mesh_alphas](https://user-images.githubusercontent.com/32848391/50738857-bf346180-11d8-11e9-80a1-d283aed0b305.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_alphas.py)<br/> `mesh_alphas.py`          |  Create a set of transparencies which can be passed to method `pointColors()`.|

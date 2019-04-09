@@ -745,7 +745,7 @@ def printc(*strings, **keys):
         sys.stdout.flush()
 
 
-def printHistogram(data, bins=10, height=10, logscale=False,
+def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
                    horizontal=False, char=u"\U00002589",
                    c=None, bold=True, title='Histogram'):
     """
@@ -754,6 +754,7 @@ def printHistogram(data, bins=10, height=10, logscale=False,
     :param int bins: number of histogram bins
     :param int height: height of the histogram in character units
     :param bool logscale: use logscale for frequencies
+    :param int minbin: ignore bins before minbin
     :param bool horizontal: show histogram horizontally
     :param str char: character to be used
     :param str,int c: ascii color
@@ -776,20 +777,51 @@ def printHistogram(data, bins=10, height=10, logscale=False,
     if not horizontal: # better aspect ratio
         bins *= 2
     
-    h = np.histogram(data, bins=bins)
+    isimg = isinstance(data, vtk.vtkImageData)
+    isvol = isinstance(data, vtk.vtkVolume)
+    if isimg or isvol:
+        if isvol:
+            img = data.image
+        else:
+            img = data
+        dims = img.GetDimensions()
+        nvx = min(100000, dims[0]*dims[1]*dims[2])
+        idxs = np.random.randint(0, min(dims), size=(nvx, 3))
+        data = []
+        for ix, iy, iz in idxs:
+            d = img.GetScalarComponentAsFloat(ix, iy, iz, 0)
+            data.append(d)
+    elif isinstance(data, vtk.vtkActor):
+        arr = data.polydata().GetPointData().GetScalars()
+        if not arr:
+            arr = data.polydata().GetCellData().GetScalars()
+            if not arr:
+                return
+            
+        from vtk.util.numpy_support import vtk_to_numpy
+        data = vtk_to_numpy(arr)
+        
+    h = np.histogram(data, bins=bins)  
+    
+    if minbin:
+        hi = h[0][minbin:-1]
+    else:
+        hi = h[0]
     
     if sys.version_info[0] < 3 and char == u"\U00002589":
         char = "*" # python2 hack
     if char == u"\U00002589" and horizontal:
         char = u"\U00002586"
     
+    entrs = "\t(entries=" + str(len(data)) + ")"
     if logscale:
-        h0 = np.log10(h[0]+1)
+        h0 = np.log10(hi+1)
         maxh0 = int(max(h0)*100)/100
-        title = '(logscale) ' + title
+        title = '(logscale) ' + title + entrs
     else:
-        h0 = h[0]
+        h0 = hi
         maxh0 = max(h0)
+        title = title + entrs
 
     def _v():
         his = ""
@@ -801,7 +833,7 @@ def printHistogram(data, bins=10, height=10, logscale=False,
             if l == height:
                 line = "%s " % maxh0  
             else:
-                line = " " * (len(str(maxh0)) + 1) 
+                line = "   |" + " " * (len(str(maxh0))-3)
             for c in bars:
                 if c >= np.ceil(l):
                     line += char

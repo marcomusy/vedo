@@ -21,4 +21,4 @@ print("scalars min, max =", min(scals), max(scals))
 # minus sign inverts color map
 actor.pointColors(-scals, cmap="hot", alpha=0.05)
 
-vp.show([actor, Text(__doc__)])
+vp.show(actor, Text(__doc__))

@@ -27,7 +27,7 @@ class MainWindow(Qt.QMainWindow):
         cn = Cone()
         cc = Cube().pos(1, 1, 1).color("pink")
         ss = Torus()
-        vp.show([cn, cc], at=0)
+        vp.show(cn, cc, at=0)
         vp.show(ss, at=1, viewup="z")
 
         self.start(vp)

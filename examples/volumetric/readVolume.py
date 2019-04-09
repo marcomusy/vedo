@@ -4,7 +4,7 @@ in the same rendering window.
 """
 from vtkplotter import *
 
-vp = Plotter(axes=0, verbose=0, bg="w")
+vp = Plotter(axes=8, verbose=0, bg="w")
 
 # Load a 3D voxel dataset (returns a vtkImageData object):
 img = loadImageData(datadir+"embryo.slc", spacing=[1, 1, 1])
@@ -17,11 +17,11 @@ img = loadImageData(datadir+"embryo.slc", spacing=[1, 1, 1])
 vol = Volume(img, c="green", alphas=[0, 0.4, 0.9, 1])  # vtkVolume
 
 # can relocate volume in space:
-# vol.scale(0.3).pos([10,100,0]).rotate(90, axis=[0,1,1])
+# vol.scale(0.3).pos([-1,1,0]).rotate(90, axis=[0,1,1])
 
-sph = Sphere(pos=[100, 100, 100], r=20)  # add a dummy surface
+sph = Sphere(pos=(100, 100, 100), r=20)  # add a dummy surface
 
 doc = Text(__doc__, c="k")
 
 # show both vtkVolume and vtkActor
-vp.show([vol, sph, doc], zoom=1.4)
+vp.show(vol, sph, doc, zoom=1.4)

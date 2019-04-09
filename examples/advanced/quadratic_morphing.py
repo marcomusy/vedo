@@ -117,9 +117,9 @@ class Morpher:
         text2 = Text("morphed vs target", tpos, s=sz / 10, c="dg")
         text3 = Text("deformation", tpos, s=sz / 10, c="dr")
 
-        vp.show([sphere0, sphere1, zero, text3] + hairsacts, at=2)
-        vp.show([self.msource, self.target, text2], at=1)
-        vp.show([self.source, self.target, text1], at=0, zoom=1.2, interactive=1)
+        vp.show(sphere0, sphere1, zero, text3, hairsacts, at=2)
+        vp.show(self.msource, self.target, text2, at=1)
+        vp.show(self.source, self.target, text1, at=0, zoom=1.2, interactive=1)
 
 
 #################################

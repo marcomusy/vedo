@@ -1,12 +1,12 @@
 """
-Example usage of align() method:
+Example usage of alignProcrustes() method:
  generate 3 random sets of points
  and align them using vtkProcrustesAlignmentFilter.
 """
 from __future__ import division, print_function
 from random import uniform as u
 
-from vtkplotter import Plotter, procrustes, Text, Points
+from vtkplotter import Plotter, alignProcrustes, Text, Points
 
 vp = Plotter(shape=[1, 2], verbose=0, axes=2, sharecam=0, bg="w")
 
@@ -21,12 +21,12 @@ act1 = Points(pts1, c="r").legend("set1")
 act2 = Points(pts2, c="g").legend("set2")
 act3 = Points(pts3, c="b").legend("set3")
 
-vp.show([act1, act2, act3], at=0)
+vp.show(act1, act2, act3, at=0)
 
 # find best alignment among the n sets of Points,
 # return an Assembly formed by the aligned sets
-aligned = procrustes([act1, act2, act3])
+aligned = alignProcrustes([act1, act2, act3])
 
 # print(aligned.info['transform'])
 
-vp.show([aligned, Text(__doc__)], at=1, interactive=1)
+vp.show(aligned, Text(__doc__), at=1, interactive=1)

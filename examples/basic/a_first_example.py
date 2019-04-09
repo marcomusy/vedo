@@ -9,7 +9,7 @@ s = Sphere()
 
 c.show()        # draw the cube only
 (c+s).show()    # Actor+Actor = Assembly, then show it.
-show([c,s])     # can show list of [Actor, Volume, filename ...]
+show(c,s)       # can show list of [Actor, Volume, filename ...]
 
 vp = Plotter()  # Make a new Plotter() instance and pop up a new window
 vp.add(Torus()) # generate another mesh and add it to the Plotter list
@@ -29,8 +29,8 @@ c.show(verbose=0)  # draw the cube only
 print("-> (c+s).show()  # Actor+Actor = Assembly, then show it.")
 (c + s).show()
 
-print("-> show([c,s])   # can show list of [Actor, Volume, filename ...]")
-show([c, s])
+print("-> show(c,s)   # can show list of [Actor, Volume, filename ...]")
+show(c, s)
 
 print("\n-> # Make a new Plotter() instance and pop up a new window\n-> vp = Plotter()")
 vp = Plotter(verbose=0)

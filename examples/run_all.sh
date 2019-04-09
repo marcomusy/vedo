@@ -63,6 +63,9 @@ python basic/fxy.py
 echo Running basic/keypress.py
 python basic/keypress.py
 
+echo Running basic/latex.py
+python basic/latex.py
+
 echo Running basic/lorenz.py
 python basic/lorenz.py
 
@@ -281,6 +284,9 @@ python volumetric/readVolume.py
 
 echo Running volumetric/readStructuredPoints.py
 python volumetric/readStructuredPoints.py
+
+echo Running volumetric/probePoints.py
+python volumetric/probePoints.py
 
 echo Running volumetric/probeLine.py
 python volumetric/probeLine.py

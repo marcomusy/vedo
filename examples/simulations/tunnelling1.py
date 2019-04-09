@@ -58,7 +58,7 @@ for j in range(150):
     A = np.real(Psi * np.conj(Psi)) * 1.5  # psi squared, probability(x)
     coords = list(zip(x, A, [0] * len(x)))
     Aline = Tube(coords, c="db", r=0.08)
-    vp.show([Aline, barrier, bck])
+    vp.show(Aline, barrier, bck)
     lines.append(Aline)
 
 vp.show(interactive=1)

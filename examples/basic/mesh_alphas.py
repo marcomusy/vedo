@@ -16,4 +16,4 @@ alphas = [0.1, 0.1, 0.3, 0.4, 0.9]
 mesh.pointColors(scals, alpha=alphas, cmap="copper")
 # print(mesh.scalars('pointColors_copper')) # retrieve scalars
 
-show([mesh, Text(__doc__)], axes=9)
+show(mesh, Text(__doc__), axes=9)

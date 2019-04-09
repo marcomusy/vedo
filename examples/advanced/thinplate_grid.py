@@ -32,4 +32,4 @@ warped.alpha(0.2).color("b")
 apts = Points(ptsource, r=5, c="r")
 arrs = Arrows(ptsource, pttarget)
 
-show([warped, apts, arrs, Text(__doc__)], axes=9, viewup="z", verbose=0, bg="w")
+show(warped, apts, arrs, Text(__doc__), axes=9, viewup="z", verbose=0, bg="w")

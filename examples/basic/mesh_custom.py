@@ -25,4 +25,4 @@ mymap = ["darkblue", "cyan 0.2", (1, 0, 0, 0.8)]
 
 man.pointColors(scals, cmap=mymap).addScalarBar()
 
-show([man, doc], viewup="z", axes=8, depthpeeling=1)
+show(man, doc, viewup="z", axes=8, depthpeeling=1)

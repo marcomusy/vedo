@@ -91,6 +91,8 @@ for the all following functionalities:
 - Add sliders and buttons to interact with the scene and the individual objects.
 - Examples with `SHTools <https://shtools.oca.eu/shtools>`_ package for *spherical harmonics* expansion of a mesh shape.
 - Integration with the *Qt5* framework.
+- Draw `latex`-formatted formulas on the rending window.
+- Support for `FEniCS/dolfin <https://fenicsproject.org/>`_ package
 
 
 Hello World example
@@ -113,7 +115,7 @@ Allowed input objects to the ``show()`` command are: \ :raw-html-m2r:`<br>`
 
 Supported ``filename`` extensions are: \ :raw-html-m2r:`<br>`
 `vtk, vtu, vts, vtp, ply, obj, stl, 3ds, xml, neutral, gmsh, pcd, xyz, txt, byu,
-tif, slc, vti, mhd, png, jpg`.
+tif, slc, vti, mhd, dcm, png, jpg`.
 
 
 
@@ -141,7 +143,7 @@ with options ``-g`` or ``--slicer``, e.g.:
 
     vtkplotter            examples/data/embryo.tif  # shows a 3D scan of a mouse embryo
     vtkplotter -g -c blue examples/data/embryo.slc  #  with sliders to control isosurfacing
-    vtkplotter --slicer   examples/data/embryo.slc 
+    vtkplotter --slicer   examples/data/embryo.slc  # can be used to show DICOM files
 
 .. image:: https://user-images.githubusercontent.com/32848391/50738810-58af4380-11d8-11e9-8fc7-6c6959207224.jpg
    :target: https://user-images.githubusercontent.com/32848391/50738810-58af4380-11d8-11e9-8fc7-6c6959207224.jpg

@@ -7,6 +7,8 @@ from vtkplotter import *
 
 a1 = meshQuality(Sphere())
 a2 = meshQuality(load(datadir+"shapes/bunny.obj").normalize())
-a3 = meshQuality(load(datadir+"shapes/motor.g").normalize())
+a3 = meshQuality(load(datadir+"shapes/motor.byu").normalize())
 
-show([a1, a2, a3], N=3)
+printHistogram(a2, title='bunny quality', c='g') # histo active scalars
+
+show(a1, a2, a3, N=3)

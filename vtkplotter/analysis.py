@@ -31,7 +31,6 @@ __all__ = [
     "align",
     "alignLandmarks",
     "alignICP",
-    "procrustes",
     "alignProcrustes",
     "fitLine",
     "fitPlane",
@@ -42,6 +41,7 @@ __all__ = [
     "smoothMLS1D",
     "booleanOperation",
     "surfaceIntersection",
+    "probePoints",
     "probeLine",
     "probePlane",
     "imageOperation",
@@ -594,12 +594,6 @@ def alignICP(source, target, iters=100, rigid=False):
     return actor
 
 
-def procrustes(sources, rigid=False):
-    """Obsolete: use alignProcrustes()"""
-    print("Obsolete: use alignProcrustes()")
-    return alignProcrustes(sources, rigid)
-
-
 def alignProcrustes(sources, rigid=False):
     """
     Return an ``Assembly`` of aligned source actors with
@@ -1054,6 +1048,37 @@ def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3):
     return actor
 
 
+def probePoints(img, pts):
+    """
+    Takes a ``vtkImageData`` and probes its scalars at the specified points in space.
+    """
+    src = vtk.vtkProgrammableSource()    
+    def readPoints():
+        output = src.GetPolyDataOutput()
+        points = vtk.vtkPoints()
+        for p in pts:
+            x, y, z = p
+            points.InsertNextPoint(x, y, z)
+        output.SetPoints(points)
+
+        cells = vtk.vtkCellArray()
+        cells.InsertNextCell(len(pts))
+        for i in range(len(pts)):
+            cells.InsertCellPoint(i)
+        output.SetVerts(cells)
+
+    src.SetExecuteMethod(readPoints)
+    src.Update()
+    probeFilter = vtk.vtkProbeFilter()
+    probeFilter.SetSourceData(img)
+    probeFilter.SetInputConnection(src.GetOutputPort())
+    probeFilter.Update()
+
+    pact = Actor(probeFilter.GetOutput(), c=None)  # ScalarVisibilityOn
+    pact.mapper.SetScalarRange(img.GetScalarRange())
+    return pact
+
+
 def probeLine(img, p1, p2, res=100):
     """
     Takes a ``vtkImageData`` and probes its scalars along a line defined by 2 points `p1` and `p2`.
@@ -1172,7 +1197,6 @@ def imageOperation(image1, operation="+", image2=None):
             mat.SetOperationToMultiply()
 
     elif op in ["/", "divide"]:
-        print("ddddd")
         if K:
             mat.SetConstantK(1.0 / K)
             mat.SetOperationToMultiplyByK()
@@ -1490,6 +1514,62 @@ def meshQuality(actor, measure=6):
     return qactor
 
 
+#def connectedPoints(point, actor, mode, radius, seeds, regions, vrange, normal):
+##    https://vtk.org/doc/nightly/html/classvtkConnectedPointsFilter.html
+#    # Extract all regions
+#    cpf0 = vtk.vtkConnectedPointsFilter()
+#    cpf0.SetInputData(actor.polydata())
+#    cpf0.SetRadius(radius)
+#    cpf0.Update()
+#    
+#    # Extract point seeded regions
+#    cpf1 = vtk.vtkConnectedPointsFilter()
+#    cpf1.SetInputData(actor.polydata())
+#    cpf1.SetRadius(radius)
+#    cpf1.SetExtractionModeToPointSeededRegions()
+#    cpf1.AddSeed(0)
+#    cpf1.AddSeed(2*100)
+#    cpf1.Update()
+#    
+#    # Test largest region
+#    cpf2 = vtk.vtkConnectedPointsFilter()
+#    cpf2.SetInputData(actor.polydata())
+#    cpf2.SetRadius(radius)
+#    cpf2.SetExtractionModeToLargestRegion()
+#    cpf2.Update()
+# 
+#    # Test specified regions
+#    cpf3 = vtk.vtkConnectedPointsFilter()
+#    cpf3.SetInputData(actor.polydata())
+#    cpf3.SetRadius(radius)
+#    cpf3.SetExtractionModeToSpecifiedRegions()
+#    cpf3.AddSpecifiedRegion(1)
+#    cpf3.AddSpecifiedRegion(3)
+#    cpf3.Update()
+#    
+#    # Extract all regions with scalar connectivity
+#    cpf4 = vtk.vtkConnectedPointsFilter()
+#    cpf4.SetInputData(actor.polydata())
+#    cpf4.SetRadius(radius);
+#    cpf4.SetExtractionModeToLargestRegion()
+#    cpf4.ScalarConnectivityOn()
+#    cpf4.SetScalarRange(0, 0.99)
+#    cpf4.Update()
+#
+#    # Extract point seeded regions
+#    cpf5 = vtk.vtkConnectedPointsFilter()
+#    cpf5.SetInputData(actor.polydata())
+#    cpf5.SetRadius(radius)
+#    cpf5.SetExtractionModeToLargestRegion()
+#    cpf5.ScalarConnectivityOn()
+#    cpf5.SetScalarRange(0, 0.99)
+#    cpf5.AlignedNormalsOn()
+#    cpf5.SetNormalAngle(12.5)
+#    cpf5.Update()
+#
+#    return None
+
+    
 def splitByConnectivity(actor, maxdepth=100):
     """
     Split a mesh by connectivity and order the pieces by increasing area.

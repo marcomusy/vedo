@@ -161,7 +161,7 @@ def loadPolyData(filename):
         colors.printc("~noentry Error in loadPolyData: Cannot find", filename, c=1)
         return None
     fl = filename.lower()
-    if fl.endswith(".vtk"):
+    if   fl.endswith(".vtk"):
         reader = vtk.vtkPolyDataReader()
     elif fl.endswith(".ply"):
         reader = vtk.vtkPLYReader()

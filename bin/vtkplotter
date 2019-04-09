@@ -107,6 +107,9 @@ def _showVoxelImage():
         reader.SetFileName(filename)
         reader.Update()
         img = reader.GetOutput()
+        
+        if not args.quiet:
+            vc.printHistogram(img, bins=15, minbin=1, logscale=0, height=8, bold=0, c='b')
 
         if args.z_spacing:
             ispa = img.GetSpacing()
@@ -119,13 +122,12 @@ def _showVoxelImage():
         volumeMapper.SetBlendModeToMaximumIntensity()
         volumeMapper.UseJitteringOn()
         volumeMapper.SetInputConnection(reader.GetOutputPort())
-        printc("scalar range is ", img.GetScalarRange(), c="b", bold=0)
         smin, smax = img.GetScalarRange()
         if smax > 1e10:
             print("Warning, high scalar range detected:", smax)
             smax = abs(10 * smin) + 0.1
             print("         reset to:", smax)
-        printc("voxel spacing is", img.GetSpacing(), c="b", bold=0)
+        printc("voxel spacing:", img.GetSpacing(), c="b", bold=0)
 
         # Create transfer mapping scalar value to color
         if args.color is None:

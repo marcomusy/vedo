@@ -1,5 +1,5 @@
 """
-Generate a voxel dataset (vtkImageData) by interpolating a scalar 
+Generate a voxel dataset (vtkImageData) by interpolating a scalar
 which is only known on a scattered set of points.
 This is obtained by using RBF (radial basis function).
 """
@@ -47,5 +47,7 @@ for iz in pb.range():
 # set colors and transparencies along the scalar range
 vol = Volume(img, c=["r", "g", "b"], alphas=[0.4, 0.8])  # vtkVolume
 act = Points(coords / fact)
+
+printHistogram(vol, bins=25, c='b')
 
 vp.show(vol, act, Text(__doc__), viewup="z")

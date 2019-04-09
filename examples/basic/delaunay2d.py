@@ -18,5 +18,5 @@ d1.color("r").wire(True).legend("delaunay mesh")
 cents = d1.cellCenters()
 ap = Points(cents).legend("cell centers")
 
-vp.show([d0, d1], at=0)  # NB: d0 and d1 are slightly different
-vp.show([d1, ap], at=1, interactive=1)
+vp.show(d0, d1, at=0)  # NB: d0 and d1 are slightly different
+vp.show(d1, ap, at=1, interactive=1)

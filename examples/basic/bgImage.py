@@ -12,7 +12,7 @@ vp = Plotter(N=2, size=(400, 800), axes=4, sharecam=0,
 a1 = load(datadir+"shapes/flamingo.3ds").rotateX(-90)
 a2 = Polygon()
 
-vp.show([a1, doc], at=0)
+vp.show(a1, doc, at=0)
 
 vp.backgroundRenderer.GetActiveCamera().Zoom(2.5)
 

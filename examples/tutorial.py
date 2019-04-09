@@ -84,12 +84,12 @@ vp = Plotter(shape=(1, 2), axes=False)
 a1 = vp.load(datadir+"beethoven.ply", alpha=1)
 coords1 = a1.coordinates()
 pts1 = Points(coords1, r=4, c="g").legend("#points = " + str(len(coords1)))
-vp.show([a1, pts1], at=0)
+vp.show(a1, pts1, at=0)
 
 a2 = a1.subdivide(method=0)  # Increasing the number of points of the mesh
 coords2 = a2.coordinates()
 pts2 = Points(coords2, r=1).legend("#points = " + str(len(coords2)))
-vp.show([a2, pts2], at=1, interactive=True)
+vp.show(a2, pts2, at=1, interactive=True)
 
 
 ########################################################################################
@@ -114,7 +114,7 @@ vp.show(Cylinder(), at=8, interactive=1)
 vp = Plotter(shape=(3, 3), bg="white")  # split window in 3 rows and 3 columns
 vp.sharecam = False  # each object can be moved independently
 vp.show(datadir+"beethoven.ply", at=0, c=0, axes=0)  # dont show axes, add a ruler
-vp.show(datadir+"cow.g", at=1, c=1, zoom=1.15)  # make it 15% bigger
+vp.show(datadir+"cow.byu", at=1, c=1, zoom=1.15)  # make it 15% bigger
 vp.show(datadir+"limb.pcd", at=2, c=2)
 vp.show(datadir+"ring.gmsh", at=3, c=3, wire=1)
 vp.show(datadir+"images/dog.jpg", at=4)  # 2d images can be loaded the same way

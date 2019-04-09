@@ -38,7 +38,7 @@ man3.cellColors(scals, cmap="afmhot")
 
 # add some oriented 3D text
 txt = Text("Floor temperature is 35C", pos=[1, -0.9, -1.7], s=0.1).rotateZ(90)
-vp.show([man3, txt], at=2)
+vp.show(man3, txt, at=2)
 
 # add a fancier 3D scalar bar embedded in the scene
 vp.addScalarBar3D(man3, at=2, pos=(-1, 0, -1.7))

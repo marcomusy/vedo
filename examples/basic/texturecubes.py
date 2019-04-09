@@ -14,7 +14,7 @@ vp = Plotter(N=len(textures), axes=0)
 for i, txt in enumerate(textures):
     cb = Cube(texture=txt)
     tname = Text(txt, pos=3)
-    vp.show([cb, tname], at=i)
+    vp.show(cb, tname, at=i)
 
 vp.camera.Elevation(70)
 vp.camera.Azimuth(10)

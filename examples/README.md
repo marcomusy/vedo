@@ -89,7 +89,7 @@ vp.show(Cylinder(), at=8, legend='cylinder', interactive=1)
 vp = Plotter(shape=(3,3), title='mesh formats') # split window in 3 rows and 3 columns
 vp.sharecam = False                             # each object can be moved independently
 vp.show('data/beethoven.ply', at=0, c=0, axes=0)    # dont show axes
-vp.show('data/cow.g',         at=1, c=1, zoom=1.15) # make it 15% bigger
+vp.show('data/cow.byu',       at=1, c=1, zoom=1.15) # make it 15% bigger
 vp.show('data/limb.pcd',      at=2, c=2)
 vp.show('data/ring.gmsh',     at=3, c=3, wire=1)    # show mesh as wireframe
 vp.show('data/images/dog.jpg',at=4)                 # 2d images can be loaded the same way

@@ -19,7 +19,7 @@ pts2 = [(u(0, x) + 3, u(0, x) + i / 2 + 2, u(0, x) + i + 1) for i in range(N2)]
 act1 = Points(pts1, r=8, c="b").legend("source")
 act2 = Points(pts2, r=8, c="r").legend("target")
 
-vp.show([act1, act2], at=0)
+vp.show(act1, act2, at=0)
 
 # find best alignment between the 2 sets of Points, e.i. find
 # how to move act1 to best match act2

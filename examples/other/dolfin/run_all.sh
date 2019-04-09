@@ -53,6 +53,21 @@ echo Running stokes.py
 python stokes.py
 
 
+echo Running ft02_poisson_membrane.py
+python ft02_poisson_membrane.py
+
+echo Running ft04_heat_gaussian.py
+python ft04_heat_gaussian.py
+
+echo Running ft07_navier_stokes_channel.py
+python ft07_navier_stokes_channel.py
+
+echo Running ft08_navier_stokes_cylinder.py
+python ft08_navier_stokes_cylinder.py
+
+echo Running ft09_reaction_system.py
+python ft09_reaction_system.py
+
 
 ######################################
 echo 

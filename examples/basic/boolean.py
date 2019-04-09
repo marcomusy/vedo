@@ -19,7 +19,7 @@ b2 = booleanOperation(s1, "plus", s2, c="b", wire=True).legend("plus")
 b3 = booleanOperation(s1, "minus", s2, c=None).legend("minus")
 
 # show the result in 4 different subwindows 0->3
-vp.show([s1, s2], at=0)
+vp.show(s1, s2, at=0)
 vp.show(b1, at=1)
 vp.show(b2, at=2)
 vp.show(b3, at=3)

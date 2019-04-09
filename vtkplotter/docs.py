@@ -745,5 +745,18 @@ _defs = """
     :width: 250 px
     :target: pendulum.py_
     :alt: pendulum.py
-
+    
+.. |latex.py| replace:: latex.py
+.. _latex.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/latex.py
+.. |latex| image:: https://user-images.githubusercontent.com/32848391/55568648-6190b200-5700-11e9-9547-0798c588a7a5.png
+    :width: 250 px
+    :target: latex.py_
+    :alt: latex.py
+   
+.. |ft04_heat_gaussian.py| replace:: ft04_heat_gaussian.py
+.. _.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ft04_heat_gaussian.py
+.. |ft04_heat_gaussian| image:: https://user-images.githubusercontent.com/32848391/55578167-88a5ae80-5715-11e9-84ea-bdab54099887.gif
+    :width: 250 px
+    :target: ft04_heat_gaussian.py_
+    :alt: ft04_heat_gaussian.py
 """

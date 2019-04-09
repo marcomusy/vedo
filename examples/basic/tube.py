@@ -14,7 +14,7 @@ N = len(ln)
 
 ############################### a simple tube( along ln
 t1 = Tube(ln, c="blue", r=0.08)
-show([t1, doc], at=0, N=3, axes=1, viewup="z")
+show(t1, doc, at=0, N=3, axes=1, viewup="z")
 
 ############################### vary radius
 rads = [0.3 * (cos(6.0 * ir / N)) ** 2 + 0.1 for ir in range(N)]

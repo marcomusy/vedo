@@ -1,4 +1,4 @@
-#
+# FEniCS/Dolfin support API
 #
 from __future__ import division, print_function
 
@@ -21,7 +21,7 @@ import vtkplotter.vtkio as vtkio
 from vtkplotter.vtkio import load, ProgressBar, screenshot
 
 import vtkplotter.shapes as shapes
-from vtkplotter.shapes import Text
+from vtkplotter.shapes import Text, Latex
 
 from vtkplotter.plotter import show, clear, Plotter, plotMatrix
 
@@ -71,6 +71,7 @@ __all__ = [
     "Plotter",
     "ProgressBar",
     "Text",
+    "Latex",
     "datadir",
     "screenshot",
     "plotMatrix",
@@ -101,7 +102,7 @@ def _inputsort(obj):
                         V = dolfin.FunctionSpace(mesh, "CG", 1)
                     elif r == 1: # maybe wrong:
                         V = dolfin.VectorFunctionSpace(mesh, "CG", 1, dim=r)
-                    else: # very probably wrong:
+                    else: # very wrong:
                         V = dolfin.TensorFunctionSpace(mesh, "CG", 1, shape=(r,r))
                     u = dolfin.Function(V)
                     v2d = dolfin.vertex_to_dof_map(V)
@@ -109,7 +110,7 @@ def _inputsort(obj):
                     
                 except:
                     printc('~times Sorry could not deal with your MeshFunction', c=1)
-                    pass
+                    return None
 
 #                tdim = mesh.topology().dim()
 #                d = ob.dim()               
@@ -237,9 +238,7 @@ def plot(*inputobj, **options):
     if len(inputobj) == 0:
         if settings.plotter_instance:
             settings.plotter_instance.interactor.Start()
-            return
-        else:
-            return
+        return
     
     mesh, u = _inputsort(inputobj)
 
@@ -298,7 +297,7 @@ def plot(*inputobj, **options):
         font = 'arial'
         bg = options.pop('bg', None) 
         if bg is None:
-            options['bg'] = (82,87,110)
+            options['bg'] = (82, 87, 110)
         else:
             options['bg'] = bg
         if cmap is None:
@@ -322,7 +321,7 @@ def plot(*inputobj, **options):
         font = 'courier'
         bg = options.pop('bg', None)
         if bg is None:
-            options['bg'] = (.72,.7,.7)
+            options['bg'] = (217, 255, 238)
         else:
             options['bg'] = bg
         axes = options.pop('axes', None) 
@@ -368,11 +367,12 @@ def plot(*inputobj, **options):
                                   cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
             else:
                 actor.pointColors(delta, cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
-        if scbar and c is None:
-            if 'h' in scbar:
-                actor.addScalarBar(horizontal=True, vmin=vmin, vmax=vmax)
-            else:
-                actor.addScalarBar(horizontal=False, vmin=vmin, vmax=vmax)
+        if scbar:
+            if c is None:
+                if 'h' in scbar:
+                    actor.addScalarBar(horizontal=True, vmin=vmin, vmax=vmax)
+                else:
+                    actor.addScalarBar(horizontal=False, vmin=vmin, vmax=vmax)
         
         if 'warp' in mode or 'displace' in mode:
             if delta is None:
@@ -414,7 +414,7 @@ def plot(*inputobj, **options):
         if 'vtk' in inputtype:
            actors.append(ob)
             
-    if text:
+    if text:            
         bgc = (0.6, 0.6, 0.6)
         if 'bg' in options.keys():
             bgc = colors.getColor(options['bg'])
@@ -558,7 +558,8 @@ def MeshLines(*inputobj, **options):
 
 def MeshArrows(*inputobj, **options):
     """
-    Build arrows representing displacements
+    Build arrows representing displacements.
+    
     :param float s: cross-section size of the arrow
     :param float rescale: apply a rescaling factor to the length 
     """

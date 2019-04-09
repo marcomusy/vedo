@@ -62,5 +62,5 @@ arr = Arrows(sources, sources + deltas)
 
 vp2 = Plotter(N=2, pos=(200, 300), verbose=0)
 vp2.camera = vp.camera  # share the same camera with previous Plotter
-vp2.show([apos, warped_rbf, src, trs, arr, Text("Radial Basis Function")], at=0)
+vp2.show(apos, warped_rbf, src, trs, arr, Text("Radial Basis Function"), at=0)
 vp2.show(allarr_rbf, at=1, interactive=1)

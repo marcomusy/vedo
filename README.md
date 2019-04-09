@@ -7,9 +7,8 @@
 [![gdocs](https://img.shields.io/badge/docs%20by-gendocs-blue.svg)](https://gendocs.readthedocs.io/en/latest)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2561402.svg)](https://doi.org/10.5281/zenodo.2561402)
 
-A python module for scientific visualization, analysis and animation of 3D objects 
-and *point clouds* based on [VTK](https://www.vtk.org/) 
-and [numpy](http://www.numpy.org/).<br>
+A pure python module for scientific visualization, analysis and animation of 3D objects 
+and *point clouds* based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/).<br>
 
 ## Download and Install:
 Use [pip](https://projects.raspberrypi.org/en/projects/using-pip-on-windows) to install:
@@ -62,9 +61,10 @@ for the all following functionalities:
     - Generate volumetric signed-distance data from an input surface mesh
     - Probe a volume with lines and planes.
   - Add sliders and buttons to interact with the scene and the individual objects.
+  - Draw `latex`-formatted formulas on the rending window.
   - Examples using [SHTools](https://shtools.oca.eu/shtools) package for *spherical harmonics* expansion of a mesh shape.
   - Integration with the *Qt5* framework.
-  - Support for [FEniCS/dolfin](https://fenicsproject.org/) package.
+  - Support for [FEniCS/Dolfin](https://fenicsproject.org/) package.
 
 
 
@@ -72,14 +72,14 @@ for the all following functionalities:
 ```bash
 vtkplotter mesh.obj 
 # valid formats: [vtk,vtu,vts,vtp,vtm,ply,obj,stl,3ds,xml,neutral,
-#                 gmsh,pcd,xyz,txt,byu,tif,off,slc,vti,mhd,png,jpg]
+#                 gmsh,pcd,xyz,txt,byu,tif,off,slc,vti,mhd,dcm,png,jpg]
 ```
 to visualize multiple files or files time-sequences try `-n` or `-s` options. Use `-h` for help.<br> 
 Voxel-data (_vti, slc, tiff_) files can also be visualized with options `-g` and `--slicer`,
 e.g.:
 ```bash
 vtkplotter -g -c blue examples/data/embryo.slc  # (3D scan of a mouse embryo)
-vtkplotter --slicer   examples/data/embryo.slc  # can read a DICOM directory  
+vtkplotter --slicer   examples/data/embryo.slc  # can be used to read DICOM datasets  
 ```
 ![e2](https://user-images.githubusercontent.com/32848391/50738810-58af4380-11d8-11e9-8fc7-6c6959207224.jpg)
 

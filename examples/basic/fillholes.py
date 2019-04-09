@@ -13,4 +13,4 @@ b.color("b").wire(True).legend("filled mesh")
 
 doc = Text(__doc__)
 
-show([a, b, doc], elevation=-70)
+show(a, b, doc, elevation=-70)

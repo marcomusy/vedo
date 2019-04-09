@@ -44,6 +44,7 @@ __all__ = [
     "Paraboloid",
     "Hyperboloid",
     "Text",
+    "Latex",
     "Glyph",
 ]
 
@@ -214,6 +215,7 @@ def Line(p0, p1=None, lw=1, c="r", alpha=1, dotted=False):
     """
     Build the line segment between points `p0` and `p1`.
     If `p0` is a list of points returns the line connecting them.
+    A 2D set of coords can also be passed as p0=[x..], p1=[y..].
 
     :param lw: line width.
     :param c: color name, number, or list of [R,G,B] colors.
@@ -221,6 +223,13 @@ def Line(p0, p1=None, lw=1, c="r", alpha=1, dotted=False):
     :param float alpha: transparency in range [0,1].
     :param bool dotted: draw a dotted line
     """
+    # detect if user is passing a 2D ist of points as p0=xlist, p1=ylist:
+    if len(p0) > 3:
+        if not utils.isSequence(p0[0]) and not utils.isSequence(p1[0]) and len(p0)==len(p1):
+            # assume input is 2D xlist, ylist
+            p0 = list(zip(p0, p1))
+            p1 = None
+    
     # detect if user is passing a list of points:
     if utils.isSequence(p0[0]):
         ppoints = vtk.vtkPoints()  # Generate the polyline
@@ -1396,3 +1405,107 @@ def Text(
     ttactor.PickableOff()
     settings.collectable_actors.append(ttactor)
     return ttactor
+
+
+def Latex(
+    formula,
+    pos=(0, 0, 0),
+    normal=(0, 0, 1),
+    c='k',
+    s=1,
+    bg=None,
+    alpha=1,
+    res=30,
+    fromweb=False,
+):
+    """
+    Latex formulas renderer.
+    
+    :param str formula: latex text string
+    :param list pos: position coordinates in space
+    :param list normal: normal to the plane of the image
+    :param c: face color
+    :param bg: background color box
+    :param int res: dpi resolution
+    :param fromweb: retrieve the latex image from online server
+    
+    .. hint:: |latex| |latex.py|_
+    """
+    try:
+        import matplotlib.pyplot as plt
+        from PIL import Image #, ImageChops
+        from vtkplotter.actors import ImageActor
+        import io, os
+    except:
+        colors.printc('~times Latex Error: matplotlib and/or pillow not installed?', c=1)
+        return None
+     
+    def build_img_web(formula, tfile):
+        import requests
+        if c == 'k':
+            ct = 'Black'
+        else:
+            ct = 'White'
+        wsite = 'http://latex.codecogs.com/png.latex'
+        r = requests.get(wsite+'?\dpi{200} \huge \color{'+ct+'} ' + formula)
+        f = open(tfile, 'wb')
+        f.write(r.content)
+        f.close()
+
+    def build_img_plt(formula):
+        buf = io.BytesIO()
+        plt.rc('text', usetex=True)
+        plt.axis('off')
+        col = colors.getColor(c)
+        if bg:
+            bx = dict(boxstyle="square", ec=col, fc=colors.getColor(bg))
+        else:
+            bx = None
+        plt.text(0.5, 0.5, f'${formula}$', 
+                 size=res, 
+                 color=col, 
+                 alpha=alpha,
+                 ha="center", 
+                 va="center",
+                 bbox=bx)
+        plt.savefig(buf, format='png', transparent=True, bbox_inches='tight', pad_inches=0)
+        plt.close()
+        im = Image.open(buf)
+        return im
+
+    if fromweb:
+        build_img_web(formula, 'lateximg.png')
+    else:
+        try:
+            build_img_plt(formula).save('lateximg.png')
+        except RuntimeError as err:
+            colors.printc(err, c=1)            
+            colors.printc('dvipng not installed? Try > sudo apt install dvipng' , c=1)            
+            return None
+        
+    picr = vtk.vtkPNGReader()
+    picr.SetFileName('lateximg.png')
+    picr.Update()
+    vactor = ImageActor()
+    vactor.SetInputData(picr.GetOutput())
+    vactor.alpha(alpha)
+    b = vactor.GetBounds()
+    xm, ym = (b[1]+b[0])/200*s, (b[3]+b[2])/200*s
+    vactor.SetOrigin(-xm, -ym, 0)
+    nax = np.linalg.norm(normal)
+    if nax:
+        normal = np.array(normal) / nax
+    theta = np.arccos(normal[2])
+    phi = np.arctan2(normal[1], normal[0])
+    vactor.SetScale(0.25/res*s, 0.25/res*s, 0.25/res*s)
+    vactor.RotateZ(phi * 57.3)
+    vactor.RotateY(theta * 57.3)
+    vactor.SetPosition(pos)
+    os.unlink('lateximg.png')
+    return vactor
+    
+    
+    
+    
+    
+    

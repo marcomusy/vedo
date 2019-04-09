@@ -1,6 +1,6 @@
-# _FEniCS/dolfin_ examples
+# _FEniCS/Dolfin_ examples
 In this directory you will find a bunch of examples of to visualize meshes in conjunction with 
-[FEniCS/dolfin](https://fenicsproject.org/) package.
+[FEniCS/Dolfin](https://fenicsproject.org/) package.
 It emulates the functionality of the `plot()` command of *matplotlib*.
 To gain more control on the property of the shown objects see the analogous examples in 
 [noplot](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/noplot).
@@ -34,5 +34,8 @@ python example.py  # on mac OSX try 'pythonw' instead
 | [![elastodyn](https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/elastodynamics.py)<br/> `elastodynamics.py`             | Perform time integration of transient elastodynamics using the generalized-alpha method. |
 |    |    |
 | [![stokes](https://user-images.githubusercontent.com/32848391/55098209-aba0e480-50bd-11e9-8842-42d3f0b2d9c8.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/stokes.py)<br/> `stokes.py`                                | Solve 2D navier-stokes equations with boundary conditions. |
-
+|    |    |
+| [![ft02](https://user-images.githubusercontent.com/32848391/55499287-ed91d380-5645-11e9-8e9a-e31e2e3b1649.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ft02_poisson_membrane.py)<br/> `ft02_poisson_membrane.py`    | Deflection of a membrane by a gaussian load. |
+|    |    |
+| [![ft04](https://user-images.githubusercontent.com/32848391/55578167-88a5ae80-5715-11e9-84ea-bdab54099887.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ft04_heat_gaussian.py)<br/> `ft04_heat_gaussian.py`          | Diffusion of a Gaussian hill on a square domain. |
 

@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='vtkplotter',
-    version='2019.1.3', # change also in vtkplotter/__init__.py and docs/source/conf.py
+    version='2019.1.4', # change also in vtkplotter/__init__.py and docs/source/conf.py
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=['vtk'],
@@ -34,9 +34,9 @@ setup(
 )
 
 
-
-
 ##############################################################
+# # check version number here and in vtkplotter/__init__.py docs/source/conf.py
+
 # # check examples
 # cd ~/Projects/vtkplotter/
 # pip install . 
@@ -44,11 +44,10 @@ setup(
 # cd examples
 # ./run_all.sh
 # cd other/dolfin
-# ./run_all.sh
+# ./run_all.sh 
 # check vtkconvert:
 # vtkconvert data/290.vtk -to ply
 
-# # check version number here and in vtkplotter/__init__.py
 
 # git status
 # git commit -a -m 'comment'
@@ -71,6 +70,7 @@ setup(
 ## to generate documentation:
 # Install the dependencies in docs/requirements.txt
 #  pip install -r docs/requirements.txt
+#
 # Run the documentaion generation:
 #  cd docs
 #  make html
