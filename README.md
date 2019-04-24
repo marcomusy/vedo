@@ -91,12 +91,13 @@ git clone https://github.com/marcomusy/vtkplotter.git
 cd vtkplotter/examples
 python tutorial.py  
 ```
-**More than 100 examples can be found in directories** _(scroll down to see the screenshots):_ <br>
+**More than 150 examples can be found in directories** _(scroll down to see the screenshots):_ <br>
 [**examples/basic**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic)<br>
 [**examples/advanced**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced)<br>
 [**examples/volumetric**](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric)<br>
 [**examples/simulations**](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations)<br>
-[**examples/other**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other).<br>
+[**examples/other**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other)<br>
+[**examples/other/dolfin**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin).<br>
 
 |                                                                                                                   |      |
 |:-----------------------------------------------------------------------------------------------------------------:|:-----|

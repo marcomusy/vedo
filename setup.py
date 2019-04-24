@@ -1,21 +1,29 @@
 from setuptools import setup
 
+try:
+    VERSIONFILE = "vtkplotter/version.py"
+    verstrline = open(VERSIONFILE, "rt").read()
+    verstr = verstrline.split('=')[1].replace('\n','').replace("'","")
+except:
+    verstr='unknown_version'
+
+##############################################################
 setup(
     name='vtkplotter',
-    version='2019.1.4', # change also in vtkplotter/__init__.py and docs/source/conf.py
+    version=verstr, 
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=['vtk'],
-    description='''A python module for scientific visualization,  
+    description='''A python module for scientific visualization,
     analysis and animation of 3D objects and point clouds based on VTK.''',
-    long_description="""A python module for scientific visualization,  
+    long_description="""A python module for scientific visualization,
     analysis and animation of 3D objects and point clouds based on VTK.
     Check out https://vtkplotter.embl.es for documentation.""",
     author='Marco Musy',
     author_email='marco.musy@gmail.com',
     license='MIT',
     url='https://github.com/marcomusy/vtkplotter',
-    keywords='vtk 3D visualization mesh',
+    keywords='vtk 3D visualization mesh numpy',
     classifiers=['Intended Audience :: Science/Research',
                 'Intended Audience :: Education',
                 'Intended Audience :: Information Technology',
@@ -35,18 +43,18 @@ setup(
 
 
 ##############################################################
-# # check version number here and in vtkplotter/__init__.py docs/source/conf.py
-
 # # check examples
+# change version in vtkplotter/version.py
 # cd ~/Projects/vtkplotter/
-# pip install . 
+# pip install .
 # ( sudo -H pip install . )
 # cd examples
 # ./run_all.sh
 # cd other/dolfin
-# ./run_all.sh 
+# ./run_all.sh
 # check vtkconvert:
 # vtkconvert data/290.vtk -to ply
+# check on python2 the same
 
 
 # git status

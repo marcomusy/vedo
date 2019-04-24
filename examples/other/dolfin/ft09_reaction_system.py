@@ -1,6 +1,6 @@
 """Convection-diffusion-reaction for a system
 describing the concentration of three species A, B, C undergoing a simple
-first-order reaction A + B --> C with first-order decay of C. 
+first-order reaction A + B --> C with first-order decay of C.
 The velocity
 is given by the flow field w from the demo navier_stokes_cylinder.py.
 
@@ -9,6 +9,7 @@ is given by the flow field w from the demo navier_stokes_cylinder.py.
   u_3' + w . nabla(u_3) - div(eps*grad(u_3)) = f_3 + K*u_1*u_2 - K*u_3
 
 """
+print(__doc__)
 from fenics import *
 set_log_level(30)
 
@@ -79,7 +80,7 @@ for n in pb.range():
     solve(F == 0, u)
 
     _u_1, _u_2, _u_3 = u.split()
- 
+
     # Update previous solution
     u_n.assign(u)
 
@@ -91,7 +92,6 @@ for n in pb.range():
          scalarbar=False,
          bg='w',
          axes=0,
-         text=__doc__,
          zoom=2,
          interactive=False)
 

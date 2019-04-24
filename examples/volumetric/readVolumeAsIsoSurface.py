@@ -31,4 +31,4 @@ vp1 = show(a0, a1, a2, shape=(1, 3), axes=1)
 a3 = load(datadir+"embryo.slc", c="g", smoothing=1, connectivity=1)
 
 # newPlotter triggers the instantiation of a new Plotter object
-vp2 = show(a3, verbose=0, pos=(300, 300), newPlotter=True)
+vp2 = show(a3, pos=(300, 300), newPlotter=True)

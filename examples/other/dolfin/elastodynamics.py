@@ -181,12 +181,13 @@ def local_project(v, V, u=None):
         return
 
 ################################################################### time loop
-from vtkplotter.dolfin import plot, ProgressBar, screenshot, shapes
+from vtkplotter.dolfin import *
+from vtkplotter import Box
 
 # add a frame box
-box = shapes.Box(length=1, width=1, height=1).pos(0.5,0,0).wireframe()
+box = Box(length=1, width=1, height=1).pos(0.5,0,0).wireframe()
 
-tex = shapes.Latex(r'\nabla \cdot \sigma+\rho b=\rho \ddot{u}', s=.2).pos(.4,.4,-.5)
+tex = Latex(r'\nabla \cdot \sigma+\rho b=\rho \ddot{u}', s=.2).pos(.4,.4,-.5)
 
 pb = ProgressBar(0, len(np.diff(time)), c='blue')
 
@@ -222,20 +223,19 @@ for (i, dt) in enumerate(np.diff(time)):
     E_tot = E_elas+E_kin+E_damp #-E_ext
     energies[i+1, :] = np.array([E_elas, E_kin, E_damp, E_tot])
     
-    plot(u, box, tex, 
-    	 mode='warped mesh', 
-         style='matplotlib', 
+    plot(u, box, tex,
+    	  mode='warped mesh',
+         style='matplotlib',
          axes=0,  # no axes
-         scalarbar=False, 
+         scalarbar=False,
          azimuth=1, # at each iteration add an angle to rotate scene
-         text=__doc__,
+         text=__doc__, # add this file header
          interactive=False)
     #screenshot('bar'+str(i)+'.png') # uncomment to save screenshots
     pb.print("Time: "+str(t)+" seconds")
 
-plot(interactive=True)
+plot()
 
-# \nabla \cdot \sigma+\rho b=\rho \ddot{u}
 
 
 

@@ -1,5 +1,6 @@
 """
-Mark a specific point on a mesh with some text.
+Mark a specific point 
+on a mesh with some text.
 """
 from vtkplotter import Sphere, Point, show, Text
 

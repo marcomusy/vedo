@@ -1,5 +1,5 @@
 """
-Tetrahedral meshes generation with 
+Tetrahedral meshes generation with
 package mshr and dolfin.
 
 You can then visualize the file with:

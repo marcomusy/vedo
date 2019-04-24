@@ -2,6 +2,7 @@
 #
 from __future__ import division, print_function
 
+import vtk
 from vtk.util.numpy_support import numpy_to_vtk
 
 import numpy as np
@@ -9,7 +10,6 @@ import numpy as np
 import vtkplotter.utils as utils
 import vtkplotter.docs as docs
 
-import vtkplotter.colors as colors
 from vtkplotter.colors import printc, printHistogram
 
 import vtkplotter.settings as settings
@@ -29,7 +29,7 @@ from vtkplotter.plotter import show, clear, Plotter, plotMatrix
 
 __doc__ = (
     """
-FEniCS/Dolfin support submodule.
+`FEniCS/Dolfin https://fenicsproject.org`_ support submodule.
 
 Install with commands (e.g. in Anaconda):
 
@@ -51,8 +51,29 @@ Basic example:
 
 .. image:: https://user-images.githubusercontent.com/32848391/53026243-d2d31900-3462-11e9-9dde-518218c241b6.jpg
 
-Find many more examples in 
+Find many more examples in
 `vtkplotter/examples/dolfin <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin>`_
+
+
+Image Gallery
+=============
+
+*(click on the thumbnail to get to the script)*
+
++--------------------------------+--------------------------------+
+| |ex03_poisson|                 |   |ex02_tetralize-mesh|        |
++--------------------------------+--------------------------------+
+| |demo_submesh|                 |   |pi_estimate|                |
++--------------------------------+--------------------------------+
+| |ex06_elasticity1|             |   |ex06_elasticity2|           |
++--------------------------------+--------------------------------+
+| |ft04_heat_gaussian|           |   |demo_cahn-hilliard|         |
++--------------------------------+--------------------------------+
+| |navier-stokes_lshape|         |   |turing_pattern|             |
++--------------------------------+--------------------------------+
+| |elastodynamics|               |   |ft02_poisson_membrane|      |
++--------------------------------+--------------------------------+
+
 """
     + docs._defs
 )
@@ -102,8 +123,8 @@ def _inputsort(obj):
                         V = dolfin.FunctionSpace(mesh, "CG", 1)
                     elif r == 1: # maybe wrong:
                         V = dolfin.VectorFunctionSpace(mesh, "CG", 1, dim=r)
-                    else: # very wrong:
-                        V = dolfin.TensorFunctionSpace(mesh, "CG", 1, shape=(r,r))
+#                    else: # very wrong:
+#                        V = dolfin.TensorFunctionSpace(mesh, "CG", 1, shape=(r,r))
                     u = dolfin.Function(V)
                     v2d = dolfin.vertex_to_dof_map(V)
                     u.vector()[v2d] = ob.array()
@@ -113,7 +134,7 @@ def _inputsort(obj):
                     return None
 
 #                tdim = mesh.topology().dim()
-#                d = ob.dim()               
+#                d = ob.dim()   
 #                if tdim == 2 and d == 2:
 #                    import matplotlib.tri as tri
 #                    xy = mesh.coordinates()
@@ -148,7 +169,7 @@ def _inputsort(obj):
 
 def plot(*inputobj, **options):
     """
-    Plot the object(s) provided. 
+    Plot the object(s) provided.
     
     Input can be: ``vtkActor``, ``vtkVolume``, ``dolfin.Mesh``, ``dolfin.MeshFunction*``,
     ``dolfin.Expression`` or ``dolfin.Function``.
@@ -164,20 +185,23 @@ def plot(*inputobj, **options):
         - `arrows`, mesh displacements are plotted as scaled arrows.
         - `lines`, mesh displacements are plotted as scaled lines.
         - `tensors`, to be implemented
-        
+    
+    :param bool add: add the input objects without clearing the previous ones 
+    :param float density: show only a subset of lines or arrows [0-1] 
     :param bool wire[frame]: visualize mesh as wireframe [False]
     :param c[olor]: set mesh color [None]
     :param float alpha: set object's transparency [1]
     :param float lw: line width of the mesh (set to zero to hide mesh) [0.5]
     :param float ps: set point size of mesh vertices [None]
+    :param float z: add a constant to z-coordinate (useful to show 2D slices as function of time)
     :param str legend: add a legend to the top-right of window [None]
     :param bool scalarbar: add a scalarbar to the window ['vertical']
     :param float vmin: set the minimum for the range of the scalar [None]
     :param float vmax: set the maximum for the range of the scalar [None]
     :param float scale: add a scaling factor to arrows and lines sizes [1]
     :param str cmap: choose a color map for scalars
-    :param int bands: group colors in `n` bands 
-    :param shading: mesh shading ['flat', 'phong', 'gouraud']
+    :param int bands: group colors in `n` bands
+    :param str shading: mesh shading ['flat', 'phong', 'gouraud']
     :param str text: add a gray text comment to the top-left of the window [None]
 
     :param bool newPlotter: spawn a new instance of Plotter class, pops up a new window
@@ -216,7 +240,7 @@ def plot(*inputobj, **options):
     :param bool sharecam: if False each renderer will have an independent vtkCamera
     :param bool interactive: if True will stop after show() to allow interaction w/ window
     :param bool depthpeeling: depth-peel volumes along with the translucent geometry
-    :param bool offscreen: if True will not show the rendering window    
+    :param bool offscreen: if True will not show the rendering window
 
     :param float zoom: camera zooming factor
     :param viewup: camera view-up direction ['x','y','z', or a vector direction]
@@ -228,7 +252,7 @@ def plot(*inputobj, **options):
     
     .. hint:: |ex01_showmesh| |ex01_showmesh.py|_
     
-        |ex02_tetralize_mesh| |ex02_tetralize_mesh.py|_
+        |ex02_tetralize-mesh| |ex02_tetralize-mesh.py|_
     
         |ex06_elasticity1| |ex06_elasticity1.py|_
     
@@ -238,12 +262,16 @@ def plot(*inputobj, **options):
     if len(inputobj) == 0:
         if settings.plotter_instance:
             settings.plotter_instance.interactor.Start()
-        return
+        return settings.plotter_instance
     
     mesh, u = _inputsort(inputobj)
 
     mode = options.pop("mode", 'mesh')
+    ttime = options.pop("z", None)
+    #density = options.pop("density", None) #todo
     
+    add = options.pop("add", False)
+
     wire = options.pop("wire", False)
     wireframe = options.pop("wireframe", None)
     if wireframe is not None:
@@ -257,19 +285,23 @@ def plot(*inputobj, **options):
     alpha = options.pop("alpha", 1)
     lw = options.pop("lw", 0.5)
     ps = options.pop("ps", None)
-    legend = options.pop("legend", None)     
+    legend = options.pop("legend", None)
     scbar = options.pop("scalarbar", 'v')
     vmin = options.pop("vmin", None)
     vmax = options.pop("vmax", None)
-    cmap = options.pop("cmap", None)     
-    bands = options.pop("bands", None)     
+    cmap = options.pop("cmap", None)
+    bands = options.pop("bands", None)
     scale = options.pop("scale", 1)
     shading = options.pop("shading", None)
     text = options.pop("text", None)
     style = options.pop("style", 'vtk')
+    
+    settings.xtitle = options.pop("xtitle", 'x')
+    settings.ytitle = options.pop("ytitle", 'y')
+    settings.ztitle = options.pop("ztitle", 'z')
 
     # change some default to emulate matplotlib behaviour
-    options['verbose'] = False # dont disturb       
+    options['verbose'] = False # dont disturb
     if   style == 0 or style == 'vtk':
         font = 'courier'
         axes = options.pop('axes', None) 
@@ -304,7 +336,7 @@ def plot(*inputobj, **options):
             cmap = 'coolwarm'
     elif style == 3 or style == 'meshlab':
         font = 'courier'
-        bg = options.pop('bg', None) 
+        bg = options.pop('bg', None)
         if bg is None:
             options['bg'] = (8, 8, 16)
             options['bg2'] = (117, 117, 234)
@@ -324,19 +356,24 @@ def plot(*inputobj, **options):
             options['bg'] = (217, 255, 238)
         else:
             options['bg'] = bg
-        axes = options.pop('axes', None) 
+        axes = options.pop('axes', None)
         if axes is None:
             options['axes'] = 8
         else:
             options['axes'] = axes # put back
         if cmap is None:
-            cmap = 'gray'
+            cmap = 'binary'
             
 
     #################################################################
     actors = []
+    if add and settings.plotter_instance:
+        actors = settings.plotter_instance.actors    
+
     if 'mesh' in mode or 'color' in mode:
         actor = MeshActor(u, mesh, wire=wire)
+        if ttime:
+            actor.z(ttime)
         if legend:
             actor.legend(legend)
         if c:
@@ -363,16 +400,15 @@ def plot(*inputobj, **options):
             delta = [u(p) for p in mesh.coordinates()]
             #delta = u.compute_vertex_values(mesh) # needs reshape
             if u.value_rank() > 0: # wiil show the size of the vector
-                actor.pointColors(utils.mag(delta), 
+                actor.pointColors(utils.mag(delta),
                                   cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
             else:
                 actor.pointColors(delta, cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
-        if scbar:
-            if c is None:
-                if 'h' in scbar:
-                    actor.addScalarBar(horizontal=True, vmin=vmin, vmax=vmax)
-                else:
-                    actor.addScalarBar(horizontal=False, vmin=vmin, vmax=vmax)
+        if scbar and c is None:
+            if 'h' in scbar:
+                actor.addScalarBar(horizontal=True, vmin=vmin, vmax=vmax)
+            else:
+                actor.addScalarBar(horizontal=False, vmin=vmin, vmax=vmax)
         
         if 'warp' in mode or 'displace' in mode:
             if delta is None:
@@ -405,7 +441,7 @@ def plot(*inputobj, **options):
 
     #################################################################
     if 'tensor' in mode:
-        pass
+        pass #todo
 
 
     #################################################################
@@ -413,25 +449,25 @@ def plot(*inputobj, **options):
         inputtype = str(type(ob))
         if 'vtk' in inputtype:
            actors.append(ob)
-            
-    if text:            
-        bgc = (0.6, 0.6, 0.6)
-        if 'bg' in options.keys():
-            bgc = colors.getColor(options['bg'])
-            if sum(bgc) < 1.5:
-                bgc = 'w'#(0.9, 0.9, 0.9)
-            else:
-                bgc = (0.1, 0.1, 0.1)
-        actors.append(Text(text, c=bgc, font=font))
+
+    if text:
+        textact = Text(text, font=font)
+        actors.append(textact)
     
-    if 'at' in options.keys() and not 'interactive' in options.keys():
+    if 'at' in options.keys() and 'interactive' not in options.keys():
         if settings.plotter_instance:
             N = settings.plotter_instance.shape[0]*settings.plotter_instance.shape[1]
             if options['at'] == N-1:
                 options['interactive'] = True
-    
-    vp = show(actors, **options)
-    return vp
+
+    if settings.plotter_instance:
+        for a2 in settings.collectable_actors:
+            if isinstance(a2, vtk.vtkCornerAnnotation):
+                if 0 in a2.renderedAt: # remove old message
+                    settings.plotter_instance.removeActor(a2)
+                    break
+                       
+    return show(actors, **options)
         
 
 ###################################################################################
@@ -502,7 +538,7 @@ def MeshPoints(*inputobj, **options):
         plist = np.insert(plist, 2, 0, axis=1)  # make it 3d
     if len(plist[0]) == 1:  # coords are 1d.. not good..
         plist = np.insert(plist, 1, 0, axis=1)  # make it 3d
-        plist = np.insert(plist, 2, 0, axis=1)  
+        plist = np.insert(plist, 2, 0, axis=1)
 
     actor = shapes.Points(plist, r=r, c=c, alpha=alpha)
 
@@ -524,10 +560,10 @@ def MeshLines(*inputobj, **options):
     Build the line segments between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
 
-    A dolfin ``Mesh`` that was deformed/modified by a function can be 
+    A dolfin ``Mesh`` that was deformed/modified by a function can be
     passed together as inputs.
 
-    :param float scale: apply a rescaling factor to the length 
+    :param float scale: apply a rescaling factor to the length
     """
     scale = options.pop("scale", 1)
     lw = options.pop("lw", 1)
@@ -561,7 +597,7 @@ def MeshArrows(*inputobj, **options):
     Build arrows representing displacements.
     
     :param float s: cross-section size of the arrow
-    :param float rescale: apply a rescaling factor to the length 
+    :param float rescale: apply a rescaling factor to the length
     """
     s = options.pop("s", None)
     scale = options.pop("scale", 1)
@@ -588,17 +624,22 @@ def MeshArrows(*inputobj, **options):
     actor.u = u
     actor.u_values = u_values
     return actor
-    
 
-def MeshTensors(*inputobj, **options):
-    """Not yet implemented."""
+
+#def MeshTensors(*inputobj, **options):
+#    """Not yet implemented."""
 #    c = options.pop("c", "gray")
 #    alpha = options.pop("alpha", 1)
 #    mesh, u = _inputsort(inputobj)
-    return
+#    return
 
 
-# -*- coding: utf-8 -*-
+
+
+
+
+
+
 # Copyright (C) 2008-2012 Joachim B. Haga and Fredrik Valdmanis
 #
 # This file is part of DOLFIN.

@@ -1,11 +1,11 @@
 """
 This example shows how to use a variant of a 1 dimensional 
-Moving Least Squares (MLS) algorithm to project a cloud 
+Moving Least Squares (MLS) algorithm to project a cloud
 of unordered points to become a smooth line.
 The parameter f controls the size of the local regression.
 The input actor's polydata is modified by the method
 so more than one pass is possible.
-If showNLines>0 an actor is built demonstrating the 
+If showNLines>0 an actor is built demonstrating the
 details of the regression for some random points
 """
 from __future__ import division, print_function

@@ -32,6 +32,6 @@ for p in coords:
     show(pactor, d, piece, Point(p, c='r'), interactive=0)
 
     tomerge.append(piece)
-    
+
 show(mergeActors(tomerge).clean(), interactive=1)
 

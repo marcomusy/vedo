@@ -35,8 +35,15 @@ project = 'vtkplotter'
 copyright = '2019, M. Musy'
 author = 'Marco Musy'
 
-# The short X.Y version
-version = '2019.1.4'
+# package version
+try:
+    VERSIONFILE = "../../vtkplotter/version.py"
+    verstrline = open(VERSIONFILE, "rt").read()
+    verstr = verstrline.split('=')[1].replace('\n','').replace("'","")
+except:
+    verstr='unknown_version' 
+
+version = verstr
 
 
 # -- General configuration ---------------------------------------------------

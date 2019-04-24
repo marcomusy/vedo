@@ -39,7 +39,7 @@ solve(inner(grad(w), grad(v)) * dx == inner(c, v) * dx, u, [bcl, bcr])
 from vtkplotter.dolfin import plot, printc
 
 # print out some funny text
-printc("""~idea Try out plot options: 
+printc("""~idea Try out plot options:
            ~pin color='gold'
            ~pin alpha=0.2, depthpeeling=True
            ~pin mode='mesh warp lines', lw=.05""", c='blue')

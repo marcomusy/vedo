@@ -9,7 +9,7 @@ from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
 
 __doc__ = (
     """
-Submodule extending the ``vtkActor``, ``vtkVolume`` 
+Submodule extending the ``vtkActor``, ``vtkVolume``
 and ``vtkImageActor`` objects functionality.
 """
     + docs._defs
@@ -45,13 +45,16 @@ def mergeActors(actors, tol=0):
 def collection():
     """
     Return the list of actor which have been created so far,
-    even without having assigned them a name.
-    Useful in loops. E.g.:
+    without having to assign them a name.
+    Useful in loops.
         
-        >>> from vtkplotter import Cone, collect, show
-        >>> for i in range(10):
-        >>>     Cone(pos=[3*i, 0, 0], axis=[i, i-5, 0])        
-        >>> show(collection())
+    :Example:
+        .. code-block:: python
+        
+            from vtkplotter import Cone, collection, show
+            for i in range(10):
+                Cone(pos=[3*i, 0, 0], axis=[i, i-5, 0])   
+            show(collection())
     """
     return settings.collectable_actors
 
@@ -111,6 +114,7 @@ def isosurface(image, smoothing=0, threshold=None, connectivity=False):
     return a
 
 
+
 ################################################# classes
 class Prop(object):
     """Adds functionality to ``Actor``, ``Assembly``,
@@ -129,6 +133,7 @@ class Prop(object):
         self._time = 0
         self._legend = None
         self.scalarbar = None
+        self.renderedAt = set()
 
     def show(
         self,
@@ -470,6 +475,20 @@ class Prop(object):
         """Switch off actor visibility. Object is not removed."""
         self.VisibilityOff()
         return self
+    
+    def box(self):
+        """Return the bounding box as a new ``Actor``.
+        
+        .. hint:: |latex.py|_
+        """
+        b = self.GetBounds()
+        from vtkplotter.shapes import Box
+        pos = (b[0]+b[1])/2, (b[3]+b[2])/2, (b[5]+b[4])/2
+        length, width, height = b[1]-b[0], b[3]-b[2], b[5]-b[4]
+        oa = Box(pos, length, width, height, c='gray').wire()
+        if isinstance(self.GetProperty(), vtk.vtkProperty):
+            oa.SetProperty(self.GetProperty())
+        return oa
 
 
 ####################################################
@@ -515,6 +534,7 @@ class Actor(vtk.vtkActor, Prop):
         self.point_locator = None
         self.cell_locator = None
         self.line_locator = None
+        self.scalarbar_actor = None
         self._bfprop = None  # backface property holder
 
         self.GetProperty().SetInterpolationToFlat()
@@ -540,7 +560,8 @@ class Actor(vtk.vtkActor, Prop):
         prp = self.GetProperty()
         
         if settings.renderPointsAsSpheres:
-            prp.RenderPointsAsSpheresOn()
+            if hasattr(prp, 'RenderPointsAsSpheresOn'):
+                prp.RenderPointsAsSpheresOn()
 
         if alpha is not None:
             prp.SetOpacity(alpha)
@@ -584,6 +605,10 @@ class Actor(vtk.vtkActor, Prop):
             return actors
         return Assembly([self, actors])
 
+    #def __str__(self):
+    #    utils.printInfo(self)
+    #    return ""
+
     def pickable(self, value=None):
         """Set/get pickable property of actor."""
         if value is None:
@@ -594,7 +619,7 @@ class Actor(vtk.vtkActor, Prop):
 
     def updateMesh(self, polydata):
         """
-        Change or modify the polygonal mesh for the actor with a new one.
+        Overwrite the polygonal mesh of the actor with a new one.
         """
         self.poly = polydata
         self.mapper.SetInputData(polydata)
@@ -896,7 +921,7 @@ class Actor(vtk.vtkActor, Prop):
     
 
     def lineWidth(self, lw=None):
-        """Set/get width of mesh edges. Same as lw()."""
+        """Set/get width of mesh edges. Same as `lw()`."""
         if lw is not None:
             if lw == 0:
                 self.GetProperty().EdgeVisibilityOff()
@@ -908,7 +933,7 @@ class Actor(vtk.vtkActor, Prop):
         return self
 
     def lw(self, lineWidth=None):
-        """Set/get width of mesh edges. Same as lineWidth()"""
+        """Set/get width of mesh edges. Same as `lineWidth()`."""
         return self.lineWidth(lineWidth)
 
     def clean(self, tol=None):
@@ -1086,7 +1111,7 @@ class Actor(vtk.vtkActor, Prop):
         '''
         Computes the (signed) distance from one mesh to another.
         
-        Example: |distance2mesh.py|_
+        .. hint:: |distance2mesh| |distance2mesh.py|_
         '''
         poly1 = self.polydata()
         poly2 = actor.polydata()
@@ -1131,14 +1156,9 @@ class Actor(vtk.vtkActor, Prop):
         return cloned
 
 
-    def transformPolydata(self, transformation):
-        """Obsolete: use  transformMesh()."""
-        print("~noentry Obsolete transformPolydata(): use transformMesh().\n")
-        return self.transformMesh(transformation)
-
     def transformMesh(self, transformation):
         """
-        Apply this transformation to the polygonal `mesh`, 
+        Apply this transformation to the polygonal `mesh`,
         not to the actor's transformation, which is reset.
 
         :param transformation: ``vtkTransform`` or ``vtkMatrix4x4`` object.
@@ -1240,8 +1260,8 @@ class Actor(vtk.vtkActor, Prop):
         Example:
             .. code-block:: python
 
-                from vtkplotter import load, Sphere, show
-                pot = load('data/shapes/teapot.vtk').shrink(0.75)
+                from vtkplotter import *
+                pot = load(datadir + 'shapes/teapot.vtk').shrink(0.75)
                 s = Sphere(r=0.2).pos(0,0,-0.5)
                 show(pot, s)
 
@@ -1259,7 +1279,7 @@ class Actor(vtk.vtkActor, Prop):
 
         .. hint:: |aspring| |aspring.py|_
 
-        .. note:: for ``Actors`` like helices, Line, cylinders, cones etc., 
+        .. note:: for ``Actors`` like helices, Line, cylinders, cones etc.,
             two attributes ``actor.base``, and ``actor.top`` are already defined.
         """
         if self.base is None:
@@ -1290,11 +1310,6 @@ class Actor(vtk.vtkActor, Prop):
             self.updateTrail()
         return self
 
-    def cutPlane(self, origin=(0, 0, 0), normal=(1, 0, 0), showcut=False):
-        """Deprecated: use cutWithPlane"""
-        colors.printc("~targetcut Plane deprecated: use cutWithPlane()", c=1, box="-")
-        return self.cutWithPlane(origin, normal, showcut)
-
     def cutWithPlane(self, origin=(0, 0, 0), normal=(1, 0, 0), showcut=False):
         """
         Takes a ``vtkActor`` and cuts it with the plane defined by a point and a normal.
@@ -1302,6 +1317,16 @@ class Actor(vtk.vtkActor, Prop):
         :param origin: the cutting plane goes through this point
         :param normal: normal of the cutting plane
         :param showcut: if `True` show the cut off part of the mesh as thin wireframe.
+        
+        :Example:
+            .. code-block:: python
+                
+                from vtkplotter import Cube
+                
+                cube = Cube().cutWithPlane(normal=(1,1,1))
+                cube.bc('pink').show()
+                
+            |cutcube|
 
         .. hint:: |trail| |trail.py|_
         """
@@ -1477,6 +1502,33 @@ class Actor(vtk.vtkActor, Prop):
         tf.Update()
         return self.updateMesh(tf.GetOutput())
 
+    def mapCellsToPoints(self):
+        """
+        Transform cell data (i.e., data specified per cell)
+        into point data (i.e., data specified at cell points).
+        The method of transformation is based on averaging the data values
+        of all cells using a particular point.
+        """
+        c2p = vtk.vtkCellDataToPointData()
+        c2p.SetInputData(self.polydata(False))
+        c2p.Update()
+        return self.updateMesh(c2p.GetOutput())
+        
+    def mapPointsToCells(self):
+        """
+        Transform point data (i.e., data specified per point)
+        into cell data (i.e., data specified per cell).
+        The method of transformation is based on averaging the data values
+        of all points defining a particular cell.
+        
+        .. hint:: |mesh_map2cell| |mesh_map2cell.py|_
+
+        """
+        p2c = vtk.vtkPointDataToCellData()
+        p2c.SetInputData(self.polydata(False))
+        p2c.Update()
+        return self.updateMesh(p2c.GetOutput())
+        
     def pointColors(self, scalars, cmap="jet", alpha=1, bands=None, vmin=None, vmax=None):
         """
         Set individual point colors by providing a list of scalar values and a color map.
@@ -1530,12 +1582,11 @@ class Actor(vtk.vtkActor, Prop):
             lut.Build()
             for i, c in enumerate(cmap):
                 col = colors.getColor(c)
-                if len(col) == 4:
-                    r, g, b, a = col
+                r, g, b = col
+                if useAlpha:
+                    lut.SetTableValue(i, r, g, b, alpha[i])
                 else:
-                    r, g, b = col
-                    a = 1
-                lut.SetTableValue(i, r, g, b, a)
+                    lut.SetTableValue(i, r, g, b, alpha)
 
         elif isinstance(cmap, vtk.vtkLookupTable):
             sname = "pointColors_lut"
@@ -1605,18 +1656,18 @@ class Actor(vtk.vtkActor, Prop):
 
         lut = vtk.vtkLookupTable()  # build the look-up table
 
+
         if utils.isSequence(cmap):
             sname = "cellColors_custom"
             lut.SetNumberOfTableValues(len(cmap))
             lut.Build()
             for i, c in enumerate(cmap):
                 col = colors.getColor(c)
-                if len(col) == 4:
-                    r, g, b, a = col
+                r, g, b = col
+                if useAlpha:
+                    lut.SetTableValue(i, r, g, b, alpha[i])
                 else:
-                    r, g, b = col
-                    a = 1
-                lut.SetTableValue(i, r, g, b, a)
+                    lut.SetTableValue(i, r, g, b, alpha)
 
         elif isinstance(cmap, vtk.vtkLookupTable):
             sname = "cellColors_lut"
@@ -1871,6 +1922,13 @@ class Actor(vtk.vtkActor, Prop):
         Add gaussian noise.
 
         :param float sigma: sigma is expressed in percent of the diagonal size of actor.
+        
+        :Example:
+            .. code-block:: python
+            
+                from vtkplotter import Sphere
+                
+                Sphere().addGaussNoise(1.0).show()
         """
         sz = self.diagonalSize()
         pts = self.coordinates()
@@ -1940,11 +1998,13 @@ class Actor(vtk.vtkActor, Prop):
 
 
     def fillHoles(self, size=None):
-        """Identifies and fills holes in input mesh. 
-        Holes are identified by locating boundary edges, linking them together into loops, 
-        and then triangulating the resulting loops. 
+        """Identifies and fills holes in input mesh.
+        Holes are identified by locating boundary edges, linking them together into loops,
+        and then triangulating the resulting loops.
 
         :param float size: approximate limit to the size of the hole that can be filled.
+        
+        Example: |fillholes.py|_
         """
         fh = vtk.vtkFillHolesFilter()
         if not size:
@@ -1959,6 +2019,8 @@ class Actor(vtk.vtkActor, Prop):
     def write(self, filename="mesh.vtk", binary=True):
         """
         Write actor's polydata in its current transformation to file.
+        
+        
         """
         import vtkplotter.vtkio as vtkio
 
@@ -1969,7 +2031,7 @@ class Actor(vtk.vtkActor, Prop):
     ### stuff that is not returning the input (sometimes modified) actor ###
 
     def normalAt(self, i):
-        """Calculate normal at vertex point `i`."""
+        """Return the normal vector at vertex point `i`."""
         normals = self.polydata(True).GetPointData().GetNormals()
         return np.array(normals.GetTuple(i))
 
@@ -2015,10 +2077,10 @@ class Actor(vtk.vtkActor, Prop):
 
     def coordinates(self, transformed=True, copy=True):
         """
-        Return the list of vertex coordinates of the input mesh.
+        Return the list of vertex coordinates of the input mesh. Same as `actor.getPoints()`.
 
         :param bool transformed: if `False` ignore any previous trasformation applied to the mesh.
-        :param bool copy: if `False` return the reference to the points 
+        :param bool copy: if `False` return the reference to the points
             so that they can be modified in place.
 
         .. hint:: |align1.py|_
@@ -2063,7 +2125,7 @@ class Actor(vtk.vtkActor, Prop):
     def getTransform(self):
         """
         Check if ``info['transform']`` exists and returns it.
-        Otherwise return current user transformation 
+        Otherwise return current user transformation
         (where the actor is currently placed).
         """
         if "transform" in self.info.keys():
@@ -2091,7 +2153,9 @@ class Actor(vtk.vtkActor, Prop):
 
 
     def isInside(self, point, tol=0.0001):
-        """Return True if point is inside a polydata closed surface."""
+        """
+        Return True if point is inside a polydata closed surface.
+        """
         poly = self.polydata(True)
         points = vtk.vtkPoints()
         points.InsertNextPoint(point)
@@ -2106,7 +2170,11 @@ class Actor(vtk.vtkActor, Prop):
         return sep.IsInside(0)
 
     def insidePoints(self, points, invert=False, tol=1e-05):
-        """Return the sublist of points that are inside a polydata closed surface."""
+        """
+        Return the sublist of points that are inside a polydata closed surface.
+        
+        .. hint:: |pca| |pca.py|_
+        """
         poly = self.polydata(True)
         # check if the stl file is closed
         
@@ -2245,9 +2313,20 @@ class Actor(vtk.vtkActor, Prop):
                 
 
     def intersectWithLine(self, p0, p1):
-        """Return the list of points intersecting the actor along segment p0 and p1.
+        """Return the list of points intersecting the actor 
+        along the segment defined by two points `p0` and `p1`.
 
-        .. hint:: |spherical_harmonics1.py|_ |spherical_harmonics2.py|_
+        :Example:
+            .. code-block:: python
+
+                from vtkplotter import *
+                s = Spring(alpha=0.2)
+                pts = s.intersectWithLine([0,0,0], [1,0.1,0])
+                ln = Line([0,0,0], [1,0.1,0], c='blue')
+                ps = Points(pts, r=10, c='r')
+                show(s, ln, ps, bg='white')
+            
+            |intline|
         """
         if not self.line_locator:
             line_locator = vtk.vtkOBBTree()
@@ -2347,7 +2426,7 @@ class ImageActor(vtk.vtkImageActor, Prop):
         else:
             return self.GetProperty().GetOpacity()
         
-    def crop(self, top=None, bottom=None, left=None, right=None):
+    def crop(self, top=None, bottom=None, right=None, left=None):
         """Crop image.
         
         :param float top: fraction to crop from the top margin
@@ -2357,7 +2436,7 @@ class ImageActor(vtk.vtkImageActor, Prop):
         """
         extractVOI = vtk.vtkExtractVOI()
         extractVOI.SetInputData(self.GetInput())
-        extractVOI.IncludeBoundaryOn ()
+        extractVOI.IncludeBoundaryOn()
 
         d = self.GetInput().GetDimensions()
         bx0, bx1, by0, by1 = 0, d[0]-1, 0, d[1]-1
@@ -2368,7 +2447,7 @@ class ImageActor(vtk.vtkImageActor, Prop):
         extractVOI.SetVOI(bx0, bx1, by0, by1, 0, 0)
         extractVOI.Update()
         img = extractVOI.GetOutput()
-        img.SetOrigin(-bx0, -by0, 0)
+        #img.SetOrigin(-bx0, -by0, 0)
         self.GetMapper().SetInputData(img)
         self.GetMapper().Modified()
         return self
@@ -2420,10 +2499,10 @@ class Volume(vtk.vtkVolume, Prop):
         self.mapper.SetBlendModeToMaximumIntensity()
         self.mapper.UseJitteringOn()
         self.mapper.SetInputData(img)
-        colors.printc("scalar range is", np.round(img.GetScalarRange(), 4), c="b", bold=0)
+        #colors.printc("scalar range is", np.round(img.GetScalarRange(), 4), c="b", bold=0)
         smin, smax = img.GetScalarRange()
         if smax > 1e10:
-            print("~lightning Warning, high scalar range detected:", smax)
+            print("Warning, high scalar range detected:", smax)
             smax = abs(10 * smin) + 0.1
             print("         reset to:", smax)
 
@@ -2433,8 +2512,8 @@ class Volume(vtk.vtkVolume, Prop):
                 r, g, b = colors.getColor(ci)
                 xalpha = smin + (smax - smin) * i / (len(c) - 1)
                 colorTransferFunction.AddRGBPoint(xalpha, r, g, b)
-                colors.printc('\tcolor at', round(xalpha, 1),
-                              '\tset to', colors.getColorName((r, g, b)), c='b', bold=0)
+                #colors.printc('\tcolor at', round(xalpha, 1),
+                #              '\tset to', colors.getColorName((r, g, b)), c='b', bold=0)
         else:
             # Create transfer mapping scalar value to color
             r, g, b = colors.getColor(c)
@@ -2447,7 +2526,7 @@ class Volume(vtk.vtkVolume, Prop):
             xalpha = smin + (smax - smin) * i / (len(alphas) - 1)
             # Create transfer mapping scalar value to opacity
             opacityTransferFunction.AddPoint(xalpha, al)
-            colors.printc("    alpha at", round(xalpha, 1), "\tset to", al, c="b", bold=0)
+            #colors.printc("    alpha at", round(xalpha, 1), "\tset to", al, c="b", bold=0)
 
         # The property describes how the data will look
         volumeProperty = vtk.vtkVolumeProperty()
@@ -2467,6 +2546,92 @@ class Volume(vtk.vtkVolume, Prop):
         self.SetMapper(self.mapper)
         self.SetProperty(volumeProperty)
     
-    def imagedata(self):
-        return self.image
     
+    def imagedata(self):
+        """Return the ``vtkImagaData`` object."""
+        return self.image
+
+
+    def threshold(self, vmin=None, vmax=None, replaceWith=None):
+        """
+        Binary or continuous volume thresholding.
+        """
+        th = vtk.vtkImageThreshold()
+        th.SetInputData(self.image)
+        
+        if vmin is not None and vmax is not None:
+            th.ThresholdBetween(vmin, vmax)
+        elif vmin is not None:
+            th.ThresholdByUpper(vmin)
+        elif vmax is not None:
+            th.ThresholdByLower(vmax)       
+
+        if replaceWith:
+            th.ReplaceOutOn()
+            th.SetOutValue(replaceWith)
+        th.Update()
+        
+        self.image = th.GetOutput()
+        self.mapper.SetInputData(self.image)
+        self.mapper.Modified()
+        return self
+        
+    
+    def crop(self, top=None, bottom=None, right=None, left=None, front=None, back=None):
+        """Crop a ``Volume``.
+        
+        :param float top: fraction to crop from the top plane (positive z)
+        :param float bottom: fraction to crop from the bottom plane (negative z)
+        :param float front: fraction to crop from the front plane (positive y)
+        :param float back: fraction to crop from the back plane (negative y)
+        :param float right: fraction to crop from the right plane (positive x)
+        :param float left: fraction to crop from the left plane (negative x)
+        """
+        extractVOI = vtk.vtkExtractVOI()
+        extractVOI.SetInputData(self.image)
+        extractVOI.IncludeBoundaryOn()
+
+        d = self.image.GetDimensions()
+        bx0, bx1, by0, by1, bz0, bz1 = 0, d[0]-1, 0, d[1]-1, 0, d[2]-1
+        if left is not None:   bx0 = int((d[0]-1)*left)
+        if right is not None:  bx1 = int((d[0]-1)*(1-right))
+        if back is not None:   by0 = int((d[1]-1)*back)
+        if front is not None:  by1 = int((d[1]-1)*(1-front))
+        if bottom is not None: bz0 = int((d[2]-1)*bottom)
+        if top is not None:    bz1 = int((d[2]-1)*(1-top))
+        extractVOI.SetVOI(bx0, bx1, by0, by1, bz0, bz1)
+        extractVOI.Update()
+        img = extractVOI.GetOutput()
+        #img.SetOrigin(-bx0, -by0, -bz0)
+        self.GetMapper().SetInputData(img)
+        self.GetMapper().Modified()
+        return self
+    
+
+    def getVoxelsScalar(self, vmin=None, vmax=None):
+        """
+        Return voxel content as a ``numpy.array``.
+        
+        :param float vmin: rescale scalar content to match `vmin` and `vmax` range. 
+        :param float vmax: rescale scalar content to match `vmin` and `vmax` range. 
+        """        
+        nx, ny, nz = self.image.GetDimensions()
+        
+        voxdata = np.zeros([nx, ny, nz])
+        lsx = range(nx)
+        lsy = range(ny)
+        lsz = range(nz)
+        renorm = vmin is not None and vmax is not None
+        for i in lsx:
+            for j in lsy:
+                for k in lsz:
+                    s = self.image.GetScalarComponentAsFloat(i, j, k, 0)
+                    if renorm:
+                        s = (s - vmin) / (vmax - vmin)
+                    voxdata[i, j, k] = s
+        return voxdata
+        
+        
+        
+
+

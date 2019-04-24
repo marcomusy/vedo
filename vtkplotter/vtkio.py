@@ -10,6 +10,7 @@ import vtkplotter.colors as colors
 from vtkplotter.actors import Actor, Assembly, ImageActor, isosurface
 import vtkplotter.docs as docs
 import vtkplotter.settings as settings
+import vtkplotter.addons as addons
 
 __doc__ = (
     """
@@ -57,7 +58,7 @@ def load(
     threshold=None,
     connectivity=False,
 ):
-    """ 
+    """
     Returns a ``vtkActor`` from reading a file, directory or ``vtkPolyData``.
 
     :param c: color in RGB format, hex, symbol or name
@@ -119,7 +120,7 @@ def _loadFile(filename, c, alpha, wire, bc, texture, smoothing, threshold, conne
         actor = loadGmesh(filename, c, alpha, wire, bc)
     elif fl.endswith(".pcd"):  # PCL point-cloud format
         actor = loadPCD(filename, c, alpha)
-    elif fl.endswith(".off"):  
+    elif fl.endswith(".off"):
         actor = loadOFF(filename, c, alpha, wire, bc)
     elif fl.endswith(".3ds"):  # 3ds point-cloud format
         actor = load3DS(filename)
@@ -221,7 +222,7 @@ def loadMultiBlockData(filename, unpack=True):
         acts = []
         for i in range(mb.GetNumberOfBlocks()):
             b =  mb.GetBlock(i)
-            if isinstance(b, (vtk.vtkPolyData, 
+            if isinstance(b, (vtk.vtkPolyData,
                               vtk.vtkImageData,
                               vtk.vtkUnstructuredGrid,
                               vtk.vtkStructuredGrid,
@@ -524,8 +525,6 @@ def loadImageData(filename, spacing=()):
     reader.SetFileName(filename)
     reader.Update()
     image = reader.GetOutput()
-    print(filename, "scalar range:", image.GetScalarRange())
-    #colors.printHistogram()
     if len(spacing) == 3:
         image.SetSpacing(spacing[0], spacing[1], spacing[2])
     return image
@@ -584,7 +583,7 @@ def write(objct, fileoutput, binary=True):
         g = vtk.vtkMultiBlockDataGroupFilter()
         for ob in objct:
             g.AddInputData(ob)
-        g.Update()        
+        g.Update()
         mb = g.GetOutputDataObject(0)
         wri = vtk.vtkXMLMultiBlockDataWriter()
         wri.SetInputData(mb)
@@ -792,7 +791,12 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
 
 ##########################################################
 def screenshot(filename="screenshot.png"):
-    """Save a screenshot of the current rendering window."""
+    """
+    Save a screenshot of the current rendering window.
+    """
+    if not settings.plotter_instance.window:
+        colors.printc('~bomb screenshot(): Rendering window is not present, skip.', c=1)
+        return
     w2if = vtk.vtkWindowToImageFilter()
     w2if.ShouldRerenderOff()
     w2if.SetInput(settings.plotter_instance.window)
@@ -1051,7 +1055,7 @@ class Button:
 # ############################################################### Mouse Events
 def _mouse_enter(iren, event):
 
-    x, y = iren.GetEventPosition()
+    #x, y = iren.GetEventPosition()
     #print('_mouse_enter mouse at', x, y)
 
     for ivp in settings.plotter_instances:
@@ -1396,7 +1400,7 @@ def _keypress(iren, event):
                 ia.GetProperty().SetColor(colors.colors1[(i + vp.icol) % 10])
                 ia.GetMapper().ScalarVisibilityOff()
         vp.icol += 1
-        vp.addLegend()
+        addons.addLegend()
 
     elif key == "2":
         if vp.clickedActor and hasattr(vp.clickedActor, "GetProperty"):
@@ -1408,7 +1412,7 @@ def _keypress(iren, event):
                 ia.GetProperty().SetColor(colors.colors2[(i + vp.icol) % 10])
                 ia.GetMapper().ScalarVisibilityOff()
         vp.icol += 1
-        vp.addLegend()
+        addons.addLegend()
 
     elif key == "3":
         c = colors.getColor("gold")
@@ -1420,7 +1424,7 @@ def _keypress(iren, event):
             ia.GetProperty().SetColor(c)
             ia.GetProperty().SetOpacity(alpha)
             ia.GetMapper().ScalarVisibilityOff()
-        vp.addLegend()
+        addons.addLegend()
 
     elif key == "4":
         bgc = numpy.array(vp.renderer.GetBackground()).sum() / 3
@@ -1449,7 +1453,7 @@ def _keypress(iren, event):
                 else:
                     vp.renderer.RemoveActor(vp.axes_exist[clickedr])
                 vp.axes_exist[clickedr] = None
-            vp.addAxes(axtype=asso[key], c=None)
+            addons.addAxes(axtype=asso[key], c=None)
             vp.interactor.Render()
 
     elif key in ["k", "K"]:
@@ -1556,12 +1560,12 @@ def _keypress(iren, event):
             vp.renderer.AddActor(vp.justremoved)
             vp.renderer.Render()
             vp.justremoved = None
-        vp.addLegend()
+        addons.addLegend()
 
     elif key == "X":
         if vp.clickedActor:
             if not vp.cutterWidget:
-                vp.addCutterTool(vp.clickedActor)
+                addons.addCutterTool(vp.clickedActor)
             else:
                 fname = "clipped.vtk"
                 confilter = vtk.vtkPolyDataConnectivityFilter()
@@ -1587,9 +1591,9 @@ def _keypress(iren, event):
         else:
             for a in vp.actors:
                 if isinstance(a, vtk.vtkVolume):
-                    vp.addCutterTool(a)
+                    addons.addCutterTool(a)
                     return
-                
+
             colors.printc("Click an actor and press X to open the cutter box widget.", c=4)
 
     elif key == "i":  # print info

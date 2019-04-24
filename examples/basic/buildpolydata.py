@@ -1,6 +1,6 @@
 """
-Load a mesh, extract the vertex coordinates, 
-and build a new vtkPolyData object. 
+Load a mesh, extract the vertex coordinates,
+and build a new vtkPolyData object.
 Faces (vertex connectivity) can be specified too.
 
 (press p to increase point size)

@@ -43,15 +43,6 @@ def isSequence(arg):
     return False
 
 
-# def flatten(lst):
-#    '''Flatten out a list'''
-#    flat_list = []
-#    for sublist in lst:
-#        for item in sublist:
-#            flat_list.append(item)
-#    return flat_list
-
-
 def flatten(list_to_flatten):
     """Flatten out a list."""
 
@@ -452,6 +443,7 @@ def printInfo(obj):
             7: "(ruler at the bottom of the window)",
             8: "(the vtkCubeAxesActor object)",
             9: "(the bounding box outline)",
+            10: "(circles of maximum bounding box range)",
         }
         bns, totpt = [], 0
         for a in obj.actors:
@@ -532,3 +524,10 @@ def makeBands(inputlist, numberOfBands):
                 break
 
     return np.array(newlist)
+
+    
+    
+    
+    
+    
+    

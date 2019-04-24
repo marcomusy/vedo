@@ -13,4 +13,4 @@ for i in range(6):
     planes.append(a)
     # print(max(a.scalars(0))) # access scalars this way, 0 means first
 
-show(planes + [Text(__doc__)], axes=4, verbose=0, bg="w")
+show(planes, Text(__doc__), axes=4, bg="w")

@@ -1,5 +1,5 @@
 """
-Shrink the triangulation of a mesh 
+Shrink the triangulation of a mesh
 to make the inside visible.
 """
 from vtkplotter import load, Sphere, show, Text, datadir

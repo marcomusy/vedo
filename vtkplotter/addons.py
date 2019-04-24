@@ -6,22 +6,51 @@ import vtkplotter.colors as colors
 import vtkplotter.shapes as shapes
 from vtkplotter.actors import Assembly, Actor
 import vtkplotter.utils as utils
-import vtkplotter.vtkio as vtkio
 import vtkplotter.settings as settings
+import vtkplotter.docs as docs
 import numpy
 import vtk
 
-__all__ = []
+__doc__ = (
+    """
+Additional objects like axes, legends etc..
+"""
+    + docs._defs
+)
+
+__all__ = [
+        "addScalarBar",
+        "addScalarBar3D",
+        "addSlider2D",
+        "addSlider3D",
+        "addButton",
+        "addCutterTool",
+        "addIcon",
+        "addAxes",
+        "addFrame",
+        "addLegend",
+        ]
 
 
 def addScalarBar(actor=None, c=None, title="", horizontal=False, vmin=None, vmax=None):
+    """Add a 2D scalar bar for the specified actor.
 
+    If `actor` is ``None`` will add it to the last actor in ``self.actors``.
+
+    .. hint:: |mesh_bands| |mesh_bands.py|_
+    """
     vp = settings.plotter_instance
+    
     if actor is None:
         actor = vp.lastActor()
+        
     if not hasattr(actor, "mapper"):
-        colors.printc("~timesError in addScalarBar: input is not a Actor.", c=1)
+        colors.printc("~times Error in addScalarBar: input is not a Actor.", c=1)
         return None
+
+    if vp and vp.renderer and actor.scalarbar_actor:
+        vp.renderer.RemoveActor(actor.scalarbar)
+            
 
     lut = actor.mapper.GetLookupTable()
     if not lut:
@@ -96,6 +125,7 @@ def addScalarBar(actor=None, c=None, title="", horizontal=False, vmin=None, vmax
     sb.PickableOff()
     vp.renderer.AddActor(sb)
     vp.scalarbars.append(sb)
+    actor.scalarbar_actor = sb
     vp.renderer.Render()
     return sb
 
@@ -110,13 +140,28 @@ def addScalarBar3D(
     nlabels=9,
     ncols=256,
     cmap=None,
-    c="k",
+    c=None,
     alpha=1,
 ):
+    """Draw a 3D scalar bar.
 
+    ``obj`` input can be:
+        - a list of numbers,
+        - a list of two numbers in the form `(min, max)`,
+        - a ``vtkActor`` already containing a set of scalars associated to vertices or cells,
+        - if ``None`` the last actor in the list of actors will be used.
+
+    .. hint:: |scalbar| |mesh_coloring.py|_
+    """
     from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
 
     vp = settings.plotter_instance
+    if c is None:  # automatic black or white
+        c = (0.8, 0.8, 0.8)
+        if numpy.sum(colors.getColor(vp.backgrcol)) > 1.5:
+            c = (0.2, 0.2, 0.2)
+    c = colors.getColor(c)
+    
     gap = 0.4  # space btw nrs and scale
     vtkscalars_name = ""
     if obj is None:
@@ -143,7 +188,7 @@ def addScalarBar3D(
         cmap = vtkscalars_name
 
     # build the color scale part
-    scale = shapes.Grid([-sx * gap, 0, 0], c="w", alpha=alpha, sx=sx, sy=sy, resx=1, resy=ncols)
+    scale = shapes.Grid([-sx * gap, 0, 0], c=c, alpha=alpha, sx=sx, sy=sy, resx=1, resy=ncols)
     scale.GetProperty().SetRepresentationToSurface()
     cscals = scale.cellCenters()[:, 1]
 
@@ -195,12 +240,26 @@ def addScalarBar3D(
     vp.renderers[at].Render()
     sact.PickableOff()
     vp.scalarbars.append(sact)
+    if isinstance(obj, Actor):
+        obj.scalarbar_actor = sact
     return sact
 
 
 def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4, s=.04,
                 title='', c=None, showValue=True):
+    """Add a slider widget which can call an external custom function.
 
+    :param sliderfunc: external function to be called by the widget
+    :param float xmin:  lower value
+    :param float xmax:  upper value
+    :param float value: current value
+    :param list pos:  position corner number: horizontal [1-4] or vertical [11-14]
+                        it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
+    :param str title: title text
+    :param bool showValue:  if true current value is shown
+
+    .. hint:: |sliders| |sliders.py|_
+    """
     vp = settings.plotter_instance
     if c is None:  # automatic black or white
         c = (0.8, 0.8, 0.8)
@@ -313,6 +372,22 @@ def addSlider3D(
     c=None,
     showValue=True,
 ):
+    """Add a 3D slider widget which can call an external custom function.
+
+    :param sliderfunc: external function to be called by the widget
+    :param list pos1: first position coordinates
+    :param list pos2: second position coordinates
+    :param float xmin:  lower value
+    :param float xmax:  upper value
+    :param float value: initial value
+    :param float s: label scaling factor
+    :param str title: title text
+    :param c: slider color
+    :param float rotation: title rotation around slider axis
+    :param bool showValue: if True current value is shown
+
+    .. hint:: |sliders3d| |sliders3d.py|_
+    """
     vp = settings.plotter_instance
     if c is None:  # automatic black or white
         c = (0.8, 0.8, 0.8)
@@ -371,7 +446,7 @@ def addButton(
     states=("On", "Off"),
     c=("w", "w"),
     bc=("dg", "dr"),
-    pos=[20, 40],
+    pos=(20, 40),
     size=24,
     font="arial",
     bold=False,
@@ -379,11 +454,26 @@ def addButton(
     alpha=1,
     angle=0,
 ):
+    """Add a button to the renderer window.
+    
+    :param list states: a list of possible states ['On', 'Off']
+    :param c:      a list of colors for each state
+    :param bc:     a list of background colors for each state
+    :param pos:    2D position in pixels from left-bottom corner
+    :param size:   size of button font
+    :param str font:   font type (arial, courier, times)
+    :param bool bold:   bold face (False)
+    :param bool italic: italic face (False)
+    :param float alpha:  opacity level
+    :param float angle:  anticlockwise rotation in degrees
 
+    .. hint:: |buttons| |buttons.py|_
+    """
     vp = settings.plotter_instance
     if not vp.renderer:
         colors.printc("~timesError: Use addButton() after rendering the scene.", c=1)
         return
+    import vtkplotter.vtkio as vtkio
     bu = vtkio.Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
     vp.renderer.AddActor2D(bu.actor)
     vp.window.Render()
@@ -392,7 +482,10 @@ def addButton(
 
 
 def addCutterTool(actor):
+    """Create handles to cut away parts of a mesh.
 
+    .. hint:: |cutter| |cutter.py|_
+    """
     if isinstance(actor, vtk.vtkVolume):
         return _addVolumeCutterTool(actor)
     elif isinstance(actor, vtk.vtkImageData):
@@ -513,7 +606,14 @@ def _addVolumeCutterTool(vol):
 
 
 def addIcon(iconActor, pos=3, size=0.08):
+    """Add an inset icon mesh into the same renderer.
 
+    :param pos: icon position in the range [1-4] indicating one of the 4 corners,
+                or it can be a tuple (x,y) as a fraction of the renderer size.
+    :param float size: size of the square inset.
+
+    .. hint:: |icon| |icon.py|_
+    """
     vp = settings.plotter_instance
     if not vp.renderer:
         colors.printc("~lightningWarning: Use addIcon() after first rendering the scene.", c=3)
@@ -543,7 +643,22 @@ def addIcon(iconActor, pos=3, size=0.08):
 
 
 def addAxes(axtype=None, c=None):
+    """Draw axes on scene. Available axes types:
 
+    :param int axtype:
+
+          - 0,  no axes,
+          - 1,  draw three gray grid walls
+          - 2,  show cartesian axes from (0,0,0)
+          - 3,  show positive range of cartesian axes from (0,0,0)
+          - 4,  show a triad at bottom left
+          - 5,  show a cube at bottom left
+          - 6,  mark the corners of the bounding box
+          - 7,  draw a simple ruler at the bottom of the window
+          - 8,  show the ``vtkCubeAxesActor`` object
+          - 9,  show the bounding box outLine
+          - 10, show three circles representing the maximum bounding box
+    """
     vp = settings.plotter_instance
     if axtype is not None:
         vp.axes = axtype  # overrride
@@ -619,13 +734,13 @@ def addAxes(axtype=None, c=None):
             if len(vp.xtitle) == 1:  # add axis length info
                 xtitle = vp.xtitle + " /" + utils.precision(sizes[0], 4)
             wpos = [1 - (len(vp.xtitle) + 1) / 40, off, 0]
-            xt = shapes.Text(xtitle, pos=wpos, normal=(0, 0, 1), 
+            xt = shapes.Text(xtitle, pos=wpos, normal=(0, 0, 1),
                              s=0.025, c=c, justify="bottom-right")
 
         if vp.ytitle:
             if min_bns[2] <= 0 and max_bns[3] > 0:  # mark y origin
                 oy = shapes.Cube([0, -min_bns[2] / sizes[1], 0], side=0.008, c=c)
-            yt = shapes.Text(vp.ytitle, pos=(0, 0, 0), normal=(0, 0, 1), 
+            yt = shapes.Text(vp.ytitle, pos=(0, 0, 0), normal=(0, 0, 1),
                              s=0.025, c=c, justify="bottom-right")
             if len(vp.ytitle) == 1:
                 wpos = [off, 1 - (len(vp.ytitle) + 1) / 40, 0]
@@ -637,7 +752,7 @@ def addAxes(axtype=None, c=None):
         if vp.ztitle:
             if min_bns[4] <= 0 and max_bns[5] > 0:  # mark z origin
                 oz = shapes.Cube([0, 0, -min_bns[4] / sizes[2]], side=0.008, c=c)
-            zt = shapes.Text(vp.ztitle, pos=(0, 0, 0), normal=(1, -1, 0), 
+            zt = shapes.Text(vp.ztitle, pos=(0, 0, 0), normal=(1, -1, 0),
                              s=0.025, c=c, justify="bottom-right")
             if len(vp.ztitle) == 1:
                 wpos = [off * 0.6, off * 0.6, 1 - (len(vp.ztitle) + 1) / 40]
@@ -924,8 +1039,6 @@ def addFrame(c=None, alpha=0.5, bg=None, lw=0.5):
     mapper.SetTransformCoordinate(cs)
 
     fractor = vtk.vtkActor2D()
-    fractor.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-    fractor.GetPosition2Coordinate().SetCoordinateSystemToNormalizedViewport()
     fractor.GetPositionCoordinate().SetValue(0, 0)
     fractor.GetPosition2Coordinate().SetValue(1, 1)
     fractor.SetMapper(mapper)

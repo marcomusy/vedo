@@ -102,6 +102,9 @@ python basic/mesh_threshold.py
 echo Running basic/mesh_modify.py
 python basic/mesh_modify.py
 
+echo Running basic/mesh_map2cell.py
+python basic/mesh_map2cell.py
+
 echo Running basic/pca.py
 python basic/pca.py
 
@@ -157,7 +160,7 @@ echo Running basic/tube.py
 python basic/tube.py
 
 echo Running basic/boolean.py
-python basic/boolean.py       # fails for vtk version<7
+python basic/boolean.py      
 
 echo Running basic/annotations.py
 python basic/annotations.py    
@@ -167,6 +170,9 @@ python basic/markpoint.py
 
 echo Running basic/glyphs.py
 python basic/glyphs.py   
+
+echo Running basic/glyphs_arrows.py
+python basic/glyphs_arrows.py   
 
 
 #################################### advanced

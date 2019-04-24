@@ -1,7 +1,7 @@
 """
 A mixed example with class vtkSignedDistance:
 
-generate a scalar field by the signed distance from a polydata, 
+generate a scalar field by the signed distance from a polydata,
 save it to stack.tif file,
 then extract an isosurface from the 3d image.
 """

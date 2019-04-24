@@ -50,6 +50,6 @@ print("time to solve:", tf-t0)
 f = r'-\nabla \cdot(\nabla u+p I)=f ~\mathrm{in}~\Omega'
 formula = Latex(f, pos=(0.55,0.45,-.05), s=0.1)
 
-plot(u, formula, at=0, N=2, text="velocity", mode='mesh and arrows', 
+plot(u, formula, at=0, N=2, text="velocity", mode='mesh and arrows',
 	 scale=.03, wire=1, scalarbar=False, style=1)
 plot(p, at=1, text="pressure", cmap='jet')

@@ -1,5 +1,5 @@
 """
-How to solve Poisson equation using 
+How to solve Poisson equation using
 a mixed (two-field) formulation.
 """
 # https://fenicsproject.org/docs/dolfin/2018.1.0/python/demos/mixed-poisson

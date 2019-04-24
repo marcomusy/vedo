@@ -23,15 +23,6 @@
 """
 from __future__ import division, print_function
 
-#from vtkplotter.settings import enableDolfin
-#if enableDolfin:
-#    try:
-#        import dolfin
-#    except ModuleNotFoundError:
-#        print("\nDolfin/Fenics package not found. Install it or set:")
-#        print("vtkplotter.enableDolfin = False\nAbort.\n")
-#        exit()
-
 
 def onelinetip():
     import vtk, sys
@@ -75,6 +66,8 @@ def tips():
     msg += "|       Middle-click  to pan scene                           |\n"
     msg += "|       Right-click   to zoom scene in or out                |\n"
     msg += "|       Cntrl-click   to rotate scene perpendicularly        |\n"
+    msg += "|------                                                      |\n"
+    msg += "|Check out documentation at:  https://vtkplotter.embl.es     |\n"
     msg += "--------------------------------------------------------------\n"
     colors.printc(msg, dim=1)
 
@@ -111,7 +104,6 @@ _defs = """
 
 .. |fillholes.py| replace:: fillholes.py
 .. _fillholes.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fillholes.py
-    :width: 250 px
 
 .. |quadratic_morphing.py| replace:: quadratic_morphing.py
 .. _quadratic_morphing.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/quadratic_morphing.py
@@ -441,8 +433,8 @@ _defs = """
 .. |tannerhelland| replace:: tannerhelland
 .. _tannerhelland: http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code
 
-.. |colorprint.py| replace:: colorprint.py
-.. _colorprint.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/colorprint.py
+.. |colorprint.py| replace:: printc.py
+.. _colorprint.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/printc.py
 .. |colorprint| image:: https://user-images.githubusercontent.com/32848391/50739010-2bfc2b80-11da-11e9-94de-011e50a86e61.jpg
     :target: colorprint.py_
     :alt: colorprint.py
@@ -634,6 +626,13 @@ _defs = """
     :target: glyphs.py_
     :alt: glyphs.py
 
+.. |glyphs_arrow.py| replace:: glyphs_arrow.py
+.. _glyphs_arrow.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/glyphs_arrow.py
+.. |glyphs_arrow| image:: https://user-images.githubusercontent.com/32848391/55897850-a1a0da80-5bc1-11e9-81e0-004c8f396b43.jpg
+    :width: 250 px
+    :target: glyphs_arrow.py_
+    :alt: glyphs_arrow.py
+
 .. |interpolateField.py| replace:: interpolateField.py
 .. _interpolateField.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/interpolateField.py
 .. |interpolateField| image:: https://user-images.githubusercontent.com/32848391/52416117-25b6e300-2ae9-11e9-8d86-575b97e543c0.png
@@ -688,18 +687,18 @@ _defs = """
     :alt: sliders3d.py
 
 .. |ex01_showmesh.py| replace:: ex01_showmesh.py
-.. _ex01_showmesh.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ex01_showmesh.py
+.. _ex01_showmesh.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ex01_show-mesh.py
 .. |ex01_showmesh| image:: https://user-images.githubusercontent.com/32848391/53026243-d2d31900-3462-11e9-9dde-518218c241b6.jpg
     :width: 250 px
     :target: ex01_showmesh.py_
     :alt: ex01_showmesh.py
 
-.. |ex02_tetralize_mesh.py| replace:: ex02_tetralize_mesh.py
-.. _ex02_tetralize_mesh.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ex02_tetralize_mesh.py
-.. |ex02_tetralize_mesh| image:: https://user-images.githubusercontent.com/32848391/53026244-d2d31900-3462-11e9-835a-1fa9d66d3dae.png
+.. |ex02_tetralize-mesh.py| replace:: ex02_tetralize-mesh.py
+.. _ex02_tetralize-mesh.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ex02_tetralize-mesh.py
+.. |ex02_tetralize-mesh| image:: https://user-images.githubusercontent.com/32848391/53026244-d2d31900-3462-11e9-835a-1fa9d66d3dae.png
     :width: 250 px
-    :target: ex02_tetralize_mesh.py_
-    :alt: ex02_tetralize_mesh.py
+    :target: ex02_tetralize-mesh.py_
+    :alt: ex02_tetralize-mesh.py
 
 .. |ex06_elasticity1.py| replace:: ex06_elasticity1.py
 .. _ex06_elasticity1.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ex06_elasticity1.py
@@ -728,16 +727,13 @@ _defs = """
 
 .. |pmatrix| image:: https://user-images.githubusercontent.com/32848391/55098070-6da3c080-50bd-11e9-8f2b-be94a3f01831.png
     :width: 250 px
-
-.. |stokes.py| replace:: stokes.py
-.. _stokes.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/stokes.py
-.. |stokes| image:: https://user-images.githubusercontent.com/32848391/55098209-aba0e480-50bd-11e9-8842-42d3f0b2d9c8.png
-    :width: 250 px
-    :target: stokes.py_
-    :alt: stokes.py
     
 .. |distance2mesh.py| replace:: distance2mesh.py
 .. _distance2mesh.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/distance2mesh.py
+.. |distance2mesh| image:: https://user-images.githubusercontent.com/32848391/55965881-b5a71380-5c77-11e9-8680-5bddceab813a.png
+    :width: 250 px
+    :target: distance2mesh.py_
+    :alt: distance2mesh.py
 
 .. |pendulum.py| replace:: pendulum.py
 .. _pendulum.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/pendulum.py
@@ -754,9 +750,94 @@ _defs = """
     :alt: latex.py
    
 .. |ft04_heat_gaussian.py| replace:: ft04_heat_gaussian.py
-.. _.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ft04_heat_gaussian.py
+.. _ft04_heat_gaussian.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ft04_heat_gaussian.py
 .. |ft04_heat_gaussian| image:: https://user-images.githubusercontent.com/32848391/55578167-88a5ae80-5715-11e9-84ea-bdab54099887.gif
     :width: 250 px
     :target: ft04_heat_gaussian.py_
     :alt: ft04_heat_gaussian.py
+        
+.. |scalbar| image:: https://user-images.githubusercontent.com/32848391/55964528-2ac51980-5c75-11e9-9357-8c13d753a612.png
+    :width: 250 px
+
+.. |cutcube| image:: https://user-images.githubusercontent.com/32848391/55965516-08cc9680-5c77-11e9-8d23-720f6c088ea2.png
+    :width: 200 px
+
+.. |intline| image:: https://user-images.githubusercontent.com/32848391/55967065-eee08300-5c79-11e9-8933-265e1bab9f7e.png
+    :width: 350 px
+
+   
+.. |turing_pattern.py| replace:: turing_pattern.py
+.. _turing_pattern.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/turing_pattern.py
+.. |turing_pattern| image:: https://user-images.githubusercontent.com/32848391/56056437-77cfeb00-5d5c-11e9-9887-828e5745d547.gif
+    :width: 250 px
+    :target: turing_pattern.py_
+    :alt: turing_pattern.py
+   
+.. |demo_cahn-hilliard.py| replace:: demo_cahn-hilliard.py
+.. _demo_cahn-hilliard.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/demo_cahn-hilliard.py
+.. |demo_cahn-hilliard| image:: https://user-images.githubusercontent.com/32848391/56664730-edb34b00-66a8-11e9-9bf3-73431f2a98ac.gif
+    :width: 250 px
+    :target: demo_cahn-hilliard.py_
+    :alt: demo_cahn-hilliard.py
+   
+   
+.. |navier-stokes_lshape.py| replace:: navier-stokes_lshape.py
+.. _navier-stokes_lshape.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/navier-stokes_lshape.py
+.. |navier-stokes_lshape| image:: https://user-images.githubusercontent.com/32848391/56671156-6bc91f00-66b4-11e9-8c58-e6b71e2ad1d0.gif
+    :width: 250 px
+    :target: navier-stokes_lshape.py_
+    :alt: navier-stokes_lshape.py
+    
+    
+.. |mesh_map2cell.py| replace:: mesh_map2cell.py
+.. _mesh_map2cell.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_map2cell.py
+.. |mesh_map2cell| image:: https://user-images.githubusercontent.com/32848391/56600859-0153a880-65fa-11e9-88be-34fd96b18e9a.png
+    :width: 250 px
+    :target: mesh_map2cell.py_
+    :alt: mesh_map2cell.py
+
+
+.. |ex03_poisson.py| replace:: ex03_poisson.py
+.. _ex03_poisson.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ex03_poisson.py
+.. |ex03_poisson| image:: https://user-images.githubusercontent.com/32848391/54925524-bec18200-4f0e-11e9-9eab-29fd61ef3b8e.png
+    :width: 250 px
+    :target: ex03_poisson.py_
+    :alt: ex03_poisson.py
+    
+.. |elastodynamics.py| replace:: elastodynamics.py
+.. _elastodynamics.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/elastodynamics.py
+.. |elastodynamics| image:: https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif
+    :width: 250 px
+    :target: elastodynamics.py_
+    :alt: elastodynamics.py
+
+.. |ft02_poisson_membrane.py| replace:: ft02_poisson_membrane.py
+.. _ft02_poisson_membrane.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ft02_poisson_membrane.py
+.. |ft02_poisson_membrane| image:: https://user-images.githubusercontent.com/32848391/55499287-ed91d380-5645-11e9-8e9a-e31e2e3b1649.jpg
+    :width: 250 px
+    :target: ft02_poisson_membrane.py_
+    :alt: ft02_poisson_membrane.py
+
+
+.. |stokes.py| replace:: stokes.py
+.. _stokes.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/stokes.py
+.. |stokes| image:: https://user-images.githubusercontent.com/32848391/55098209-aba0e480-50bd-11e9-8842-42d3f0b2d9c8.png
+    :width: 250 px
+    :target: stokes.py_
+    :alt: stokes.py
+
+.. |demo_submesh.py| replace:: demo_submesh.py
+.. _demo_submesh.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/demo_submesh.py
+.. |demo_submesh| image:: https://user-images.githubusercontent.com/32848391/56675428-4e984e80-66bc-11e9-90b0-43dde7e4cc29.png
+    :width: 250 px
+    :target: demo_submesh.py_
+    :alt: demo_submesh.py
+
+.. |pi_estimate.py| replace:: pi_estimate.py
+.. _pi_estimate.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/pi_estimate.py
+.. |pi_estimate| image:: https://user-images.githubusercontent.com/32848391/56675429-4e984e80-66bc-11e9-9217-a0652a8e74fe.png
+    :width: 250 px
+    :target: pi_estimate.py_
+    :alt: pi_estimate.py
+
 """

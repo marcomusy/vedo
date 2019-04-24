@@ -28,7 +28,6 @@ __all__ = [
     "delaunay3D",
     "normalLines",
     "extractLargestRegion",
-    "align",
     "alignLandmarks",
     "alignICP",
     "alignProcrustes",
@@ -60,6 +59,8 @@ __all__ = [
     "extractSurface",
     "geometry",
     "voronoi3D",
+    "connectedPoints",
+    "interpolateToImageData",
 ]
 
 
@@ -422,7 +423,7 @@ def histogram2D(xvalues, yvalues, bins=12, norm=1, c="g", alpha=1, fill=False):
 def delaunay2D(plist, mode='xy', tol=None):
     """
     Create a mesh from points in the XY plane.
-    If `mode='fit'` then the filter computes a best fitting 
+    If `mode='fit'` then the filter computes a best fitting
     plane and projects the points onto it.
 
     .. hint:: |delaunay2d| |delaunay2d.py|_
@@ -505,16 +506,16 @@ def extractLargestRegion(actor):
 
 def alignLandmarks(source, target, rigid=False):
     """
-    Find best matching of source points towards target  
+    Find best matching of source points towards target
     in the mean least square sense, in one single step.
     """
     lmt = vtk.vtkLandmarkTransform()
     ss = source.polydata().GetPoints()
     st = target.polydata().GetPoints()
     if source.N() != target.N():
-        vc.printc('~times Error in alignLandmarks(): Source and Target with != nr of points!', 
+        vc.printc('~times Error in alignLandmarks(): Source and Target with != nr of points!',
                   source.N(), target.N(), c=1)
-        exit()        
+        exit()
     lmt.SetSourceLandmarks(ss)
     lmt.SetTargetLandmarks(st)
     if rigid:
@@ -530,12 +531,6 @@ def alignLandmarks(source, target, rigid=False):
     pr.DeepCopy(source.GetProperty())
     actor.SetProperty(pr)
     return actor
-
-
-def align(source, target, iters=100, rigid=False):
-    """Obsolete: use alignICP()."""
-    vc.printc("~noentry Obsolete align(): use alignICP().", c=1)
-    return alignICP(source, target, iters, rigid)
 
 
 def alignICP(source, target, iters=100, rigid=False):
@@ -739,7 +734,7 @@ def pcaEllipsoid(points, pvalue=0.95, pcaAxes=False):
     """
     try:
         from scipy.stats import f
-    except:
+    except ImportError:
         vc.printc("~times Error in Ellipsoid(): scipy not installed. Skip.", c=1)
         return None
     if isinstance(points, vtk.vtkActor):
@@ -868,8 +863,7 @@ def smoothMLS2D(actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
     :param recursive: move points while algorithm proceedes.
     :param showNPlanes: build an actor showing the fitting plane for N random points.
 
-    .. hint:: |mesh_smoothers| 
-        |mesh_smoothers.py|_
+    .. hint:: |mesh_smoothers| |mesh_smoothers.py|_
 
         |moving_least_squares2D| |moving_least_squares2D.py|_
 
@@ -1052,7 +1046,7 @@ def probePoints(img, pts):
     """
     Takes a ``vtkImageData`` and probes its scalars at the specified points in space.
     """
-    src = vtk.vtkProgrammableSource()    
+    src = vtk.vtkProgrammableSource()
     def readPoints():
         output = src.GetPolyDataOutput()
         points = vtk.vtkPoints()
@@ -1118,13 +1112,13 @@ def probePlane(img, origin=(0, 0, 0), normal=(1, 0, 0)):
     return cutActor
 
 
-def imageOperation(image1, operation="+", image2=None):
+def imageOperation(image1, operation, image2=None):
     """
-    Perform operations with ``vtkImageData`` objects. 
+    Perform operations with ``vtkImageData`` objects.
 
     `image2` can be a constant value.
 
-    Possible operations are: ``+``, ``-``, ``/``, ``1/x``, ``sin``, ``cos``, ``exp``, ``log``, 
+    Possible operations are: ``+``, ``-``, ``/``, ``1/x``, ``sin``, ``cos``, ``exp``, ``log``,
     ``abs``, ``**2``, ``sqrt``, ``min``, ``max``, ``atan``, ``atan2``, ``median``,
     ``mag``, ``dot``, ``gradient``, ``divergence``, ``laplacian``.
 
@@ -1389,7 +1383,7 @@ def thinPlateSpline(actor, sourcePts, targetPts, userFunctions=(None, None)):
     """
     `Thin Plate Spline` transformations describe a nonlinear warp transform defined by a set
     of source and target landmarks. Any point on the mesh close to a source landmark will
-    be moved to a place close to the corresponding target landmark. 
+    be moved to a place close to the corresponding target landmark.
     The points in between are interpolated smoothly using Bookstein's Thin Plate Spline algorithm.
 
     Transformation object is saved in ``actor.info['transform']``.
@@ -1514,60 +1508,83 @@ def meshQuality(actor, measure=6):
     return qactor
 
 
-#def connectedPoints(point, actor, mode, radius, seeds, regions, vrange, normal):
-##    https://vtk.org/doc/nightly/html/classvtkConnectedPointsFilter.html
-#    # Extract all regions
-#    cpf0 = vtk.vtkConnectedPointsFilter()
-#    cpf0.SetInputData(actor.polydata())
-#    cpf0.SetRadius(radius)
-#    cpf0.Update()
-#    
-#    # Extract point seeded regions
-#    cpf1 = vtk.vtkConnectedPointsFilter()
-#    cpf1.SetInputData(actor.polydata())
-#    cpf1.SetRadius(radius)
-#    cpf1.SetExtractionModeToPointSeededRegions()
-#    cpf1.AddSeed(0)
-#    cpf1.AddSeed(2*100)
-#    cpf1.Update()
-#    
-#    # Test largest region
-#    cpf2 = vtk.vtkConnectedPointsFilter()
-#    cpf2.SetInputData(actor.polydata())
-#    cpf2.SetRadius(radius)
-#    cpf2.SetExtractionModeToLargestRegion()
-#    cpf2.Update()
-# 
-#    # Test specified regions
-#    cpf3 = vtk.vtkConnectedPointsFilter()
-#    cpf3.SetInputData(actor.polydata())
-#    cpf3.SetRadius(radius)
-#    cpf3.SetExtractionModeToSpecifiedRegions()
-#    cpf3.AddSpecifiedRegion(1)
-#    cpf3.AddSpecifiedRegion(3)
-#    cpf3.Update()
-#    
-#    # Extract all regions with scalar connectivity
-#    cpf4 = vtk.vtkConnectedPointsFilter()
-#    cpf4.SetInputData(actor.polydata())
-#    cpf4.SetRadius(radius);
-#    cpf4.SetExtractionModeToLargestRegion()
-#    cpf4.ScalarConnectivityOn()
-#    cpf4.SetScalarRange(0, 0.99)
-#    cpf4.Update()
-#
-#    # Extract point seeded regions
-#    cpf5 = vtk.vtkConnectedPointsFilter()
-#    cpf5.SetInputData(actor.polydata())
-#    cpf5.SetRadius(radius)
-#    cpf5.SetExtractionModeToLargestRegion()
-#    cpf5.ScalarConnectivityOn()
-#    cpf5.SetScalarRange(0, 0.99)
-#    cpf5.AlignedNormalsOn()
-#    cpf5.SetNormalAngle(12.5)
-#    cpf5.Update()
-#
-#    return None
+def connectedPoints(actor, radius, mode=0, regions=(), vrange=(0,1), seeds=(), angle=0):
+    """
+    Extracts and/or segments points from a point cloud based on geometric distance measures 
+    (e.g., proximity, normal alignments, etc.) and optional measures such as scalar range. 
+    The default operation is to segment the points into "connected" regions where the connection
+    is determined by an appropriate distance measure. Each region is given a region id. 
+    
+    Optionally, the filter can output the largest connected region of points; a particular region
+    (via id specification); those regions that are seeded using a list of input point ids;
+    or the region of points closest to a specified position.
+
+    The key parameter of this filter is the radius defining a sphere around each point which defines
+    a local neighborhood: any other points in the local neighborhood are assumed connected to the point.
+    Note that the radius is defined in absolute terms.
+
+    Other parameters are used to further qualify what it means to be a neighboring point.
+    For example, scalar range and/or point normals can be used to further constrain the neighborhood.
+    Also the extraction mode defines how the filter operates.
+    By default, all regions are extracted but it is possible to extract particular regions;
+    the region closest to a seed point; seeded regions; or the largest region found while processing.
+    By default, all regions are extracted.
+
+    On output, all points are labeled with a region number.
+    However note that the number of input and output points may not be the same:
+    if not extracting all regions then the output size may be less than the input size.
+    
+    :param float radius: radius variable specifying a local sphere used to define local point neighborhood
+    :param int mode: 
+    
+        - 0,  Extract all regions
+        - 1,  Extract point seeded regions
+        - 2,  Extract largest region
+        - 3,  Test specified regions
+        - 4,  Extract all regions with scalar connectivity
+        - 5,  Extract point seeded regions
+    
+    :param list regions: a list of non-negative regions id to extract
+    :param list vrange: scalar range to use to extract points based on scalar connectivity
+    :param list seeds: a list of non-negative point seed ids
+    :param list angle: points are connected if the angle between their normals is 
+        within this angle threshold (expressed in degrees).
+    """
+    # https://vtk.org/doc/nightly/html/classvtkConnectedPointsFilter.html
+    cpf = vtk.vtkConnectedPointsFilter()
+    cpf.SetInputData(actor.polydata())
+    cpf.SetRadius(radius)
+    if   mode == 0: # Extract all regions
+        pass
+        
+    elif mode == 1: # Extract point seeded regions
+        cpf.SetExtractionModeToPointSeededRegions()
+        for s in seeds:
+            cpf.AddSeed(s)
+        
+    elif mode == 2: # Test largest region
+        cpf.SetExtractionModeToLargestRegion()
+     
+    elif mode == 3: # Test specified regions
+        cpf.SetExtractionModeToSpecifiedRegions()
+        for r in regions:
+            cpf.AddSpecifiedRegion(r)
+    
+    elif mode == 4: # Extract all regions with scalar connectivity
+        cpf.SetExtractionModeToLargestRegion()
+        cpf.ScalarConnectivityOn()
+        cpf.SetScalarRange(vrange[0], vrange[1])
+    
+    elif mode == 5: # Extract point seeded regions
+        cpf.SetExtractionModeToLargestRegion()
+        cpf.ScalarConnectivityOn()
+        cpf.SetScalarRange(vrange[0], vrange[1])
+        cpf.AlignedNormalsOn()
+        cpf.SetNormalAngle(angle)
+    
+    cpf.Update()   
+
+    return Actor(cpf.GetOutput())
 
     
 def splitByConnectivity(actor, maxdepth=100):
@@ -1715,7 +1732,7 @@ def convexHull(actor_or_list, alphaConstant=0):
 def actor2ImageData(actor, spacing=(1, 1, 1)):
     """
     Convert a mesh it into volume representation as ``vtkImageData``
-    where the foreground (exterior) voxels are 1 and the background 
+    where the foreground (exterior) voxels are 1 and the background
     (interior) voxels are 0.
     Internally the ``vtkPolyDataToImageStencil`` class is used.
 
@@ -1849,11 +1866,11 @@ def voronoi3D(nuclei, bbfactor=1, tol=None):
             p = tuple(map(float, ls[i][1:-1].split(',')))
             aid = sourcePoints.InsertNextPoint(p[0], p[1], p[2])
             if tol:
-                bp = np.array([p[0]-b[0], p[0]-b[1], 
+                bp = np.array([p[0]-b[0], p[0]-b[1],
                                p[1]-b[2], p[1]-b[3], 
                                p[2]-b[4], p[2]-b[5]])
                 bp = np.abs(bp) < tol
-                if np.any(bp): 
+                if np.any(bp):
                     ids.append(None)
                 else:
                     ids.append(aid)
@@ -1863,7 +1880,7 @@ def voronoi3D(nuclei, bbfactor=1, tol=None):
         # fill polygon elements
         if None in ids:
             continue
-        
+
         faces = []
         for j in range(n+3, len(ls)):
             face = tuple(map(int, ls[j][1:-1].split(',')))
@@ -1889,4 +1906,66 @@ def voronoi3D(nuclei, bbfactor=1, tol=None):
     return voro
 
 
+def interpolateToImageData(actor, kernel='shepard', radius=None, 
+                           bounds=None, nullValue=None,
+                           dims=(20,20,20)):
+    """
+    Generate a voxel dataset (vtkImageData) by interpolating a scalar
+    which is only known on a scattered set of points or mesh.
+    Available interpolation kernels are: shepard, gaussian, voronoi, linear.
+    
+    :param str kernel: interpolation kernel type [shepard]
+    :param float radius: radius of the local search
+    :param list bounds: bounding box of the output vtkImageData object
+    :param list dims: dimensions of the output vtkImageData object
+    :param float nullValue: value to be assigned to invalid points
+    """
+        
+    output = actor.polydata()
+    
+    # Create a probe volume
+    probe = vtk.vtkImageData()
+    probe.SetDimensions(dims)
+    if bounds is None:
+        bounds = output.GetBounds()    
+    probe.SetOrigin(bounds[0],bounds[2],bounds[4])
+    probe.SetSpacing((bounds[1]-bounds[0])/(dims[0]-1),
+                     (bounds[3]-bounds[2])/(dims[1]-1),
+                     (bounds[5]-bounds[4])/(dims[2]-1))
+    
+    if radius is None:
+        radius = min(bounds[1]-bounds[0], bounds[3]-bounds[2], bounds[5]-bounds[4])/3
+
+    locator = vtk.vtkPointLocator()
+    locator.SetDataSet(output)
+    locator.BuildLocator()
+
+    if kernel == 'shepard':
+        kern = vtk.vtkShepardKernel()
+        kern.SetPowerParameter(2)
+        kern.SetRadius(radius)
+    elif kernel == 'gaussian':
+        kern = vtk.vtkGaussianKernel()
+        kern.SetRadius(radius)
+    elif kernel == 'voronoi':
+        kern = vtk.vtkVoronoiKernel()
+    elif kernel == 'linear':        
+        kern = vtk.vtkLinearKernel()
+        kern.SetRadius(radius)
+    else:
+        print('Error in interpolateToImageData, available kernels are:')
+        print(' [shepard, gaussian, voronoi, linear]')
+        exit()
+
+    interpolator = vtk.vtkPointInterpolator()
+    interpolator.SetInputData(probe)
+    interpolator.SetSourceData(output)
+    interpolator.SetKernel(kern)
+    interpolator.SetLocator(locator)
+    if nullValue is not None:
+        interpolator.SetNullValue(nullValue)
+    else:
+        interpolator.SetNullPointsStrategyToClosestPoint()
+    interpolator.Update()
+    return interpolator.GetOutput()
 

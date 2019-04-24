@@ -116,8 +116,8 @@ def show(*actors, **options
     elif len(actors) == 1:
         actors = actors[0]
     else:
-        actors = utils.flatten(actors)            
-    
+        actors = utils.flatten(actors)
+
     if settings.plotter_instance and newPlotter == False:
         vp = settings.plotter_instance
     else:
@@ -136,12 +136,6 @@ def show(*actors, **options
                 colors.printc('              you may need to specify e.g. at=0', c=1)
                 exit()
             at = range(len(actors))
-        
-#        if settings.plotter_instance:
-#            prevcam = settings.plotter_instance.camera
-#            prevsharecam = settings.plotter_instance.sharecam
-#        else:
-#            prevcam = False
 
         vp = Plotter(
             shape=shape,
@@ -159,10 +153,6 @@ def show(*actors, **options
             interactive=interactive,
             offscreen=offscreen,
         )
-        
-#        if prevcam:
-#            vp.camera = prevcam
-            
 
     if utils.isSequence(at):
         for i, a in enumerate(actors):
@@ -185,6 +175,7 @@ def show(*actors, **options
             actors,
             at=at,
             zoom=zoom,
+            resetcam=resetcam,
             viewup=viewup,
             azimuth=azimuth,
             elevation=elevation,
@@ -257,15 +248,15 @@ class Plotter:
     :param list shape: shape of the grid of renderers in format (rows, columns). 
         Ignored if N is specified.
     :param int N: number of desired renderers arranged in a grid automatically.
-    :param list pos: (x,y) position in pixels of top-left corneer of the rendering window 
+    :param list pos: (x,y) position in pixels of top-left corneer of the rendering window
         on the screen
     :param size: size of the rendering window. If 'auto', guess it based on screensize.
-    :param screensize: physical size of the monitor screen 
+    :param screensize: physical size of the monitor screen
     :param bg: background color or specify jpg image file name with path
     :param bg2: background color of a gradient towards the top
-    :param int axes:  
+    :param int axes:
 
-      - 0,  no axes,
+      - 0,  no axes
       - 1,  draw three gray grid walls
       - 2,  show cartesian axes from (0,0,0)
       - 3,  show positive range of cartesian axes from (0,0,0)
@@ -273,19 +264,19 @@ class Plotter:
       - 5,  show a cube at bottom left
       - 6,  mark the corners of the bounding box
       - 7,  draw a simple ruler at the bottom of the window
-      - 8,  show the ``vtkCubeAxesActor`` object,
+      - 8,  show the ``vtkCubeAxesActor`` object
       - 9,  show the bounding box outLine,
       - 10, show three circles representing the maximum bounding box.
 
     :param bool infinity: if True fugue point is set at infinity (no perspective effects)
     :param bool sharecam: if False each renderer will have an independent vtkCamera
     :param bool interactive: if True will stop after show() to allow interaction w/ window
-    :param bool offscreen: if True will not show the rendering window    
+    :param bool offscreen: if True will not show the rendering window
     :param bool depthpeeling: depth-peel volumes along with the translucent geometry
 
     |multiwindows|
     """
-
+    
     def __init__(
         self,
         shape=(1, 1),
@@ -328,9 +319,6 @@ class Plotter:
         self.interactive = interactive  # allows to interact with renderer
         self.axes = axes  # show axes type nr.
         self.title = title  # window title
-        self.xtitle = "x"  # x axis label and units
-        self.ytitle = "y"  # y axis label and units
-        self.ztitle = "z"  # z axis label and units
         self.sharecam = sharecam  # share the same camera if multiple renderers
         self.infinity = infinity  # ParallelProjection On or Off
         self._legend = []  # list of legend entries for actors
@@ -362,6 +350,10 @@ class Plotter:
         self.mouseLeftClickFunction = None
         self.mouseMiddleClickFunction = None
         self.mouseRightClickFunction = None
+        
+        self.xtitle = settings.xtitle  # x axis label and units
+        self.ytitle = settings.ytitle  # y axis label and units
+        self.ztitle = settings.ztitle  # z axis label and units
 
         # sort out screen size
         self.window = vtk.vtkRenderWindow()
@@ -532,7 +524,7 @@ class Plotter:
         threshold=None,
         connectivity=False,
     ):
-        """ 
+        """
         Returns a ``vtkActor`` from reading a file, directory or ``vtkPolyData``.
 
         :param c: color in RGB format, hex, symbol or name
@@ -555,6 +547,37 @@ class Plotter:
         return acts
 
 
+    def getVolumes(self, obj=None, renderer=None):
+        """
+        Return the list of the rendered Volumes.
+        """
+        if renderer is None:
+            renderer = self.renderer
+        elif isinstance(renderer, int):
+                renderer = self.renderers.index(renderer)
+        else:
+            return []
+        
+        if obj is None or isinstance(obj, int):
+            if obj is None:
+                acs = renderer.GetVolumes()
+            elif obj >= len(self.renderers):
+                colors.printc("~timesError in getVolumes: non existing renderer", obj, c=1)
+                return []
+            else:
+                acs = self.renderers[obj].GetVolumes()
+            vols = []
+            acs.InitTraversal()
+            for i in range(acs.GetNumberOfItems()):
+                a = acs.GetNextItem()
+                if a.GetPickable():
+                    r = self.renderers.index(renderer)
+                    if a == self.axes_exist[r]:
+                        continue
+                    vols.append(a)
+            return vols
+
+
     def getActors(self, obj=None, renderer=None):
         """
         Return an actors list.
@@ -562,7 +585,7 @@ class Plotter:
         If ``obj`` is:
             ``None``, return actors of current renderer
 
-            ``int``, return actors in given renderer number 
+            ``int``, return actors in given renderer number
 
             ``vtkAssembly`` return the contained actors
 
@@ -574,8 +597,7 @@ class Plotter:
             renderer = self.renderer
         elif isinstance(renderer, int):
                 renderer = self.renderers.index(renderer)
-
-        if not renderer:
+        else:
             return []
 
         if obj is None or isinstance(obj, int):
@@ -611,7 +633,7 @@ class Plotter:
         elif isinstance(obj, str):  # search the actor by the legend name
             actors = []
             for a in self.actors:
-                if hasattr(a, "_legend") and obj in a._legend and a.GetPickable():
+                if hasattr(a, "_legend") and obj in a._legend:
                     actors.append(a)
             return actors
 
@@ -736,7 +758,7 @@ class Plotter:
         nlabels=9,
         ncols=256,
         cmap=None,
-        c="k",
+        c=None,
         alpha=1,
     ):
         """Draw a 3D scalar bar.
@@ -747,7 +769,7 @@ class Plotter:
             - a ``vtkActor`` already containing a set of scalars associated to vertices or cells,
             - if ``None`` the last actor in the list of actors will be used.
 
-        .. hint:: |mesh_coloring| |mesh_coloring.py|_
+        .. hint:: |scalbar| |mesh_coloring.py|_
         """
         return addons.addScalarBar3D(obj, at, pos, normal, sx, sy, nlabels, ncols, cmap, c, alpha)
 
@@ -809,7 +831,7 @@ class Plotter:
         states=("On", "Off"),
         c=("w", "w"),
         bc=("dg", "dr"),
-        pos=[20, 40],
+        pos=(20, 40),
         size=24,
         font="arial",
         bold=False,
@@ -898,11 +920,11 @@ class Plotter:
         """
         Render a list of actors.
 
-        Allowed input objects are: ``filename``, ``vtkPolyData``, ``vtkActor``, 
+        Allowed input objects are: ``filename``, ``vtkPolyData``, ``vtkActor``,
         ``vtkActor2D``, ``vtkImageActor``, ``vtkAssembly`` or ``vtkVolume``.
 
         If filename is given, its type is guessed based on its extension.
-        Supported formats are: 
+        Supported formats are:
         `vtu, vts, vtp, ply, obj, stl, 3ds, xml, neutral, gmsh, pcd, xyz, txt, byu,
         tif, slc, vti, mhd, png, jpg`.
 
@@ -927,7 +949,7 @@ class Plotter:
         :param float azimuth/elevation/roll:  move camera accordingly
         :param str viewup:  either ['x', 'y', 'z'] or a vector to set vertical direction
         :param bool resetcam:  re-adjust camera position to fit objects
-        :param bool interactive:  pause and interact with window (True) 
+        :param bool interactive:  pause and interact with window (True)
             or continue execution (False)
         :param float rate:  maximum rate of `show()` in Hertz
         :param int interactorStyle: set the type of interaction
@@ -977,7 +999,12 @@ class Plotter:
                     if a.trail and not a.trail in self.actors:
                         scannedacts.append(a.trail)
                 elif isinstance(a, vtk.vtkActor2D):
-                    scannedacts.append(a)
+                    if isinstance(a, vtk.vtkCornerAnnotation):
+                        for a2 in settings.collectable_actors:
+                            if isinstance(a2, vtk.vtkCornerAnnotation):
+                                if at in a2.renderedAt: # remove old message
+                                    self.removeActor(a2)
+                        scannedacts.append(a)
                 elif isinstance(a, vtk.vtkImageActor):
                     scannedacts.append(a)
                 elif isinstance(a, vtk.vtkVolume):
@@ -1091,18 +1118,28 @@ class Plotter:
                     self.renderer.AddVolume(ia)
                 else:
                     self.renderer.AddActor(ia)
+                if hasattr(ia, 'renderedAt'):
+                    ia.renderedAt.add(at)
             else:
                 colors.printc("~lightning Warning: Invalid actor in actors list, skip.", c=5)
+
         # remove the ones that are not in actors2show
         for ia in self.getActors(at):
             if ia not in actors2show:
                 self.renderer.RemoveActor(ia)
-
+                if hasattr(ia, 'renderedAt'):
+                    ia.renderedAt.discard(at)
+            
+        for c in self.scalarbars:
+            self.renderer.RemoveActor(c)
+            if hasattr(c, 'renderedAt'):
+                c.renderedAt.discard(at)
+      
         if self.axes is not None:
             addons.addAxes()
-            
+
         addons.addLegend()
-        
+
         if self.showFrame and len(self.renderers) > 1:
             addons.addFrame()
 
@@ -1153,12 +1190,12 @@ class Plotter:
             ):
                 if len(a.scalarbar) == 5:  # addScalarBar
                     s1, s2, s3, s4, s5 = a.scalarbar
-                    sb = self.addScalarBar(a, s1, s2, s3, s4, s5)
+                    sb = addons.addScalarBar(a, s1, s2, s3, s4, s5)
                     scbflag = True
                     a.scalarbar = sb  # save scalarbar actor
                 elif len(a.scalarbar) == 10:  # addScalarBar3D
                     s0, s1, s2, s3, s4, s5, s6, s7, s8 = a.scalarbar
-                    sb = self.addScalarBar3D(a, at, s0, s1, s2, s3, s4, s5, s6, s7, s8)
+                    sb = addons.addScalarBar3D(a, at, s0, s1, s2, s3, s4, s5, s6, s7, s8)
                     scbflag = True
                     a.scalarbar = sb  # save scalarbar actor
         if scbflag:
@@ -1218,6 +1255,9 @@ class Plotter:
             return
         if self.renderer:
             self.renderer.RemoveActor(a)
+            if hasattr(a, 'renderedAt'):
+                ir = self.renderers.index(self.renderer)
+                a.renderedAt.discard(ir)
         if a in self.actors:
             i = self.actors.index(a)
             del self.actors[i]
@@ -1230,10 +1270,14 @@ class Plotter:
             for a in actors:
                 self.removeActor(a)
         else:
-            settings.collectable_actors = [] 
+            for a in settings.collectable_actors:
+                self.removeActor(a)
+            settings.collectable_actors = []
             self.actors = []
             for a in self.getActors():
                 self.renderer.RemoveActor(a)
+            for a in self.getVolumes():
+                self.renderer.RemoveVolume(a)
             for s in self.sliders:
                 s.EnabledOff()
             for b in self.buttons:
@@ -1242,3 +1286,7 @@ class Plotter:
                 w.EnabledOff()
             for c in self.scalarbars:
                 self.renderer.RemoveActor(c)
+
+
+
+

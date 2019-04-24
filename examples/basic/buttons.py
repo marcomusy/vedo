@@ -1,5 +1,5 @@
 """
-Add a square button with N possible internal states 
+Add a square button with N possible internal states
  to a rendering window that calls an external function.
  Available fonts: arial, courier, times
 """

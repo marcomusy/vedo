@@ -17,4 +17,4 @@ for i in range(60):  # probe scalars on 60 parallel lines
     # print(a.scalars(0)) # numpy scalars can be access here
     # print(a.scalars('vtkValidPointMask')) # the mask of valid points
 
-show(lines + [Text(__doc__)], axes=4, verbose=0, bg="w")
+show(lines, Text(__doc__), axes=4, bg="w")

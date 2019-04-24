@@ -2,7 +2,7 @@
 Mesh smoothing with two different VTK methods.
 
 See also analogous Plotter method smoothMLS2D()
-in exammples/advanced/moving_least_squares2D.py 
+in exammples/advanced/moving_least_squares2D.py
 """
 print(__doc__)
 from vtkplotter import Plotter, datadir

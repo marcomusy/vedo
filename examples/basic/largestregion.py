@@ -1,5 +1,5 @@
 """
-Extract the mesh region that 
+Extract the mesh region that
 has the largest connected surface
 """
 from vtkplotter import *

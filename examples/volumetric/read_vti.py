@@ -25,4 +25,4 @@ vol = Volume(img, c=["gray", "fuchsia", "dg", (0, 0, 1)], alphas=[0.1, 0.2, 0.3,
 iso = load("data/vase.vti", threshold=140).wire(True).alpha(0.1)
 
 # show command creates and returns an instance of class Plotter
-show(vol, iso, Text(__doc__), verbose=0, bg="w")
+show(vol, iso, Text(__doc__), bg="w")

@@ -30,9 +30,9 @@ solve( dot(grad(w), grad(v))*dx == f*v*dx,  u, bc)
 f = r'-\nabla^{2} u=f'
 
 ########################################################### vtkplotter
-from vtkplotter.dolfin import plot, Text, Latex, clear
+from vtkplotter.dolfin import plot, Latex, clear
 
-l = Latex(f, s=.2, c='w').addPos(.6,.6,.1)
+l = Latex(f, s=0.2, c='w').addPos(.6,.6,.1)
 
 plot(u, l, cmap='jet', scalarbar='h', text=__doc__)
 

@@ -89,7 +89,7 @@ while True:
             dist2 = (bob_x[i] - bob_x[j]) ** 2 + (bob_y[i] - bob_y[j]) ** 2
             if dist2 < DiaSq:  # are colliding
                 Ddist = np.sqrt(dist2) - 2 * R
-                tau = versor(bob_x[j] - bob_x[i], bob_y[j] - bob_y[i])
+                tau = versor([bob_x[j] - bob_x[i], bob_y[j] - bob_y[i],0])
                 DR = Ddist / 2 * tau
                 bob_x[i] += DR[0]  # DR.x
                 bob_y[i] += DR[1]  # DR.y

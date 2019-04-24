@@ -15,4 +15,4 @@ for i in range(20):
 
 doc = Text(__doc__, c="w")
 
-show(s, Earth(lw=1), doc, paths, viewup="z", verbose=0)
+show(s, Earth(lw=1), doc, paths, viewup="z")

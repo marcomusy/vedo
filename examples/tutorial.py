@@ -16,7 +16,6 @@
 from __future__ import division, print_function
 from random import gauss, uniform as u
 from vtkplotter import *
-from vtkplotter import datadir
 
 print(__doc__)
 

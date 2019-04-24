@@ -24,6 +24,9 @@ interactorStyle = None
 # allow to interact with scene during interactor.Start() execution
 allowInteraction = True
 
+# usetex, matplotlib latex compiler
+usetex = False
+
 # Qt embedding
 usingQt = False
 
@@ -34,6 +37,12 @@ renderPointsAsSpheres = True
 # http://math.lbl.gov/voro++
 voro_path = '/usr/local/bin'
 
+# axes titles
+xtitle = 'x'
+ytitle = 'y'
+ztitle = 'z'
+
+
 
 #####################
 _cdir = os.path.dirname(__file__)
@@ -43,6 +52,9 @@ textures_path = _cdir + "/textures/"
 textures = []
 
 datadir = _cdir + "/data/"
+
+#####################
+collectable_actors = []
 
 
 #####################

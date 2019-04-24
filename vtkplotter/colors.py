@@ -45,7 +45,7 @@ try:
     }
 except:
     _mapscales = None
-    pass # see below, this is dealt with in colorMap()
+    # see below, this is dealt with in colorMap()
 
 
 #########################################################
@@ -177,7 +177,7 @@ def _isSequence(arg):
 
 def getColor(rgb=None, hsv=None):
     """
-    Convert a color to (r,g,b) format from many input formats.
+    Convert a color or list of colors to (r,g,b) format from many input formats.
 
     :param bool hsv: if set to `True`, rgb is assumed as (hue, saturation, value).
 
@@ -193,6 +193,13 @@ def getColor(rgb=None, hsv=None):
 
     .. hint:: |colorcubes| |colorcubes.py|_
     """
+    #recursion, return a list if input is list of colors:
+    if _isSequence(rgb) and len(rgb) > 3:
+        seqcol = []
+        for sc in rgb:
+            seqcol.append(getColor(sc))
+        return seqcol
+    
     if str(rgb).isdigit():
         rgb = int(rgb)
 
@@ -208,7 +215,7 @@ def getColor(rgb=None, hsv=None):
             if len(c) == 3:
                 return list(np.array(c) / 255.0)  # RGB
             else:
-                return [c[0] / 255.0, c[1] / 255.0, c[2] / 255.0, c[3]]  # RGBA
+                return (c[0] / 255.0, c[1] / 255.0, c[2] / 255.0, c[3])  # RGBA
 
     elif isinstance(c, str):  # is string
         c = c.replace(",", " ").replace("/", " ").replace("alpha=", "")
@@ -220,7 +227,7 @@ def getColor(rgb=None, hsv=None):
             else:
                 print("Unknow color nickname:", c)
                 print("Available abbreviations:", color_nicks)
-                return [0.5, 0.5, 0.5]
+                return (0.5, 0.5, 0.5)
 
         if c.lower() in colors.keys():  # matplotlib name color
             c = colors[c.lower()]
@@ -236,8 +243,8 @@ def getColor(rgb=None, hsv=None):
             rgbh = np.array(rgb255) / 255.0
             if np.sum(rgbh) > 3:
                 print("Error in getColor(): Wrong hex color", c)
-                return [0.5, 0.5, 0.5]
-            return list(rgbh)
+                return (0.5, 0.5, 0.5)
+            return tuple(rgbh)
 
     elif isinstance(c, int):  # color number
         if c >= 0:
@@ -251,8 +258,8 @@ def getColor(rgb=None, hsv=None):
         else:
             return colors2[int(-c) % 10]
 
-    print("Unknown color:", c)
-    return [0.5, 0.5, 0.5]
+    #print("Unknown color:", c)
+    return (0.5, 0.5, 0.5)
 
 
 def getColorName(c):
@@ -306,6 +313,7 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
                 from vtkplotter import colorMap
                 import matplotlib.cm as cm
                 print( colorMap(0.2, cm.flag, 0, 1) )
+                
                 (1.0, 0.809016994374948, 0.6173258487801733)
     """
     if not _mapscales:
@@ -351,7 +359,7 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
 
 def makePalette(color1, color2, N, hsv=True):
     """
-    Generate N colors starting from `color1` to `color2` 
+    Generate N colors starting from `color1` to `color2`
     by linear interpolation HSV in or RGB spaces.
 
     :param int N: number of output colors.
@@ -380,7 +388,7 @@ def makeLUTfromCTF(sclist, N=None):
     Use a Color Transfer Function to generate colors in a vtk lookup table.
     See `here <http://www.vtk.org/doc/nightly/html/classvtkColorTransferFunction.html>`_.
 
-    :param list sclist: a list in the form ``[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]``.     
+    :param list sclist: a list in the form ``[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]``.
     :return: the lookup table object ``vtkLookupTable``. This can be fed into ``colorMap``.
     """
     ctf = vtk.vtkColorTransferFunction()
@@ -625,8 +633,10 @@ def printc(*strings, **keys):
             printc('anything', c='red', bold=False, end='' )
             printc('anything', 455.5, vtkObject, c='green')
             printc(299792.48, c=4) # 4 is blue
+            
+    .. hint::  |colorprint.py|_ 
 
-    .. hint:: |colorprint| |colorprint.py|_
+        |colorprint|
     """
 
     end = keys.pop("end", "\n")
@@ -761,7 +771,7 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
     :param bool char: use boldface
     :param str title: histogram title
     
-    :Example: 
+    :Example:
         .. code-block:: python
         
             from vtkplotter import printHistogram
@@ -772,7 +782,7 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
 
         |printhisto|
     """
-    # Adapted from http://pyinsci.blogspot.com/2009/10/ascii-histograms.html  
+    # Adapted from http://pyinsci.blogspot.com/2009/10/ascii-histograms.html
     
     if not horizontal: # better aspect ratio
         bins *= 2
@@ -800,9 +810,9 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
             
         from vtk.util.numpy_support import vtk_to_numpy
         data = vtk_to_numpy(arr)
-        
-    h = np.histogram(data, bins=bins)  
-    
+
+    h = np.histogram(data, bins=bins)
+
     if minbin:
         hi = h[0][minbin:-1]
     else:
@@ -812,7 +822,7 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
         char = "*" # python2 hack
     if char == u"\U00002589" and horizontal:
         char = u"\U00002586"
-    
+
     entrs = "\t(entries=" + str(len(data)) + ")"
     if logscale:
         h0 = np.log10(hi+1)
@@ -831,7 +841,7 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
         for l in reversed(range(1, height + 1)):
             line = ""
             if l == height:
-                line = "%s " % maxh0  
+                line = "%s " % maxh0
             else:
                 line = "   |" + " " * (len(str(maxh0))-3)
             for c in bars:

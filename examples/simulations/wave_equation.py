@@ -1,6 +1,6 @@
 """
 Simulate a discrete collection of oscillators
-We will use this as a model of a vibrating string and 
+We will use this as a model of a vibrating string and
 compare two methods of integration: Euler and Runge-Kutta4.
 For too large values of dt the simple Euler can diverge.
 """

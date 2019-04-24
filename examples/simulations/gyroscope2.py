@@ -2,8 +2,8 @@
 A gyroscope sitting on a pedestal.
 
 The analysis is in terms of Lagrangian mechanics.
-The Lagrangian variables are polar angle theta, 
-azimuthal angle phi, and spin angle psi. 
+The Lagrangian variables are polar angle theta,
+azimuthal angle phi, and spin angle psi.
 """
 # (adapted from http://www.glowscript.org)
 from __future__ import division, print_function

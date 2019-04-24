@@ -1,5 +1,5 @@
 """
-Solving Poisson equation using 
+Solving Poisson equation using
 a mixed (two-field) formulation.
 """
 # needs python3

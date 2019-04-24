@@ -4,6 +4,33 @@
 printf "\033c"
 echo Running examples in directory dolfin/
 
+##########################
+echo Running ascalarbar.py
+python ascalarbar.py
+
+echo Running collisions.py
+python collisions.py
+
+echo Running calc_surface_area.py
+python calc_surface_area.py
+
+echo Running markmesh.py
+python markmesh.py
+
+echo Running pi_estimate.py
+python pi_estimate.py
+
+echo Running submesh_boundary.py
+python submesh_boundary.py
+
+echo Running demo_submesh.py
+python demo_submesh.py
+
+echo Running elastodynamics.py
+python elastodynamics.py
+
+
+######################################
 echo Running ex01_show-mesh.py
 python ex01_show-mesh.py
 
@@ -29,30 +56,7 @@ echo Running ex07_stokes-iterative.py
 python ex07_stokes-iterative.py
 
 
-
-##########################
-echo Running ascalarbar.py
-python ascalarbar.py
-
-echo Running collisions.py
-python collisions.py
-
-echo Running calc_surface_area.py
-python calc_surface_area.py
-
-echo Running markmesh.py
-python markmesh.py
-
-echo Running elastodynamics.py
-python elastodynamics.py
-
-echo Running pi_estimate.py
-python pi_estimate.py
-
-echo Running stokes.py
-python stokes.py
-
-
+######################################
 echo Running ft02_poisson_membrane.py
 python ft02_poisson_membrane.py
 
@@ -67,6 +71,15 @@ python ft08_navier_stokes_cylinder.py
 
 echo Running ft09_reaction_system.py
 python ft09_reaction_system.py
+
+echo Running stokes.py
+python stokes.py
+
+echo Running demo_cahn-hilliard.py
+python demo_cahn-hilliard.py
+
+echo Running turing.py
+python turing.py
 
 
 ######################################

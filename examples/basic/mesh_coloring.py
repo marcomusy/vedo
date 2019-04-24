@@ -5,7 +5,7 @@ Last example also shows the usage of addScalarBar3D().
 """
 print(__doc__)
 
-from vtkplotter import Plotter, Text, datadir
+from vtkplotter import *
 import numpy as np
 
 vp = Plotter(N=3)

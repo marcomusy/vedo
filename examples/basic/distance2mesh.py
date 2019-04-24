@@ -1,5 +1,5 @@
 """
-Computes the (signed) distance 
+Computes the (signed) distance
 from one mesh to another.
 """
 from vtkplotter import Sphere, Cube, show, Text

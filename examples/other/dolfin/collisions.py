@@ -1,12 +1,12 @@
 '''
 compute_collision() will compute the collision of all the entities with
 a Point while compute_first_collision() will always return its first entry. 
-Especially if a point is on an element edge this can be tricky. 
+Especially if a point is on an element edge this can be tricky.
 You may also want to compare with the Cell.contains(Point) tool.
 '''
 # Script by Rudy at https://fenicsproject.discourse.group/t/
 #           any-function-to-determine-if-the-point-is-in-the-mesh/275/3
-import dolfin 
+import dolfin
 from vtkplotter.dolfin import shapes, plot, printc
 
 n  = 4

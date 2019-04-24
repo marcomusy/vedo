@@ -146,19 +146,42 @@ def Points(plist, r=5, c="gray", alpha=1):
     return actor
 
 
-def Glyph(actor, glyphObj, orientationArray="", scaleByVectorSize=False, c="gold", alpha=1):
+def Glyph(actor, glyphObj, orientationArray="", 
+          scaleByVectorSize=False, c=None, alpha=1):
     """
     At each vertex of a mesh, another mesh - a `'glyph'` - is shown with
     various orientation options and coloring.
     
-    :param orientationArray: list of vectors, ``vtkAbstractArray`` 
-        or the name of an already existing points array. 
+    Color can be specfied as a colormap which maps the size of the orientation
+    vectors in `orientationArray`.
+    
+    :param orientationArray: list of vectors, ``vtkAbstractArray``
+        or the name of an already existing points array.
     :type orientationArray: list, str, vtkAbstractArray
     :param bool scaleByVectorSize: glyph mesh is scaled by the size of
         the vectors.
     
     .. hint:: |glyphs| |glyphs.py|_
+    
+        |glyphs_arrow| |glyphs_arrow.py|_
     """
+    cmap = None
+    # user passing a color map to map orientationArray sizes
+    if c in list(colors._mapscales.keys()):
+        cmap = c
+        c = None
+    
+    # user is passing an array of point colors
+    if utils.isSequence(c) and len(c) > 3:
+        ucols = vtk.vtkUnsignedCharArray()
+        ucols.SetNumberOfComponents(3)
+        ucols.SetName("glyphRGB")
+        for col in c:
+            cl = colors.getColor(col)
+            ucols.InsertNextTuple3(cl[0]*255, cl[1]*255, cl[2]*255)
+        actor.polydata().GetPointData().SetScalars(ucols)
+        c = None
+
     if isinstance(glyphObj, Actor):
         glyphObj = glyphObj.clean().polydata()
 
@@ -186,26 +209,33 @@ def Glyph(actor, glyphObj, orientationArray="", scaleByVectorSize=False, c="gold
         elif utils.isSequence(orientationArray):  # passing a list
             actor.addPointVectors(orientationArray, "glyph_vectors")
             gly.SetInputArrayToProcess(0, 0, 0, 0, "glyph_vectors")
-            gly.SetVectorModeToUseVector()
         else:  # passing a name
             gly.SetInputArrayToProcess(0, 0, 0, 0, orientationArray)
             gly.SetVectorModeToUseVector()
+        if cmap:
+            gly.SetColorModeToColorByVector ()
+        else:
+            gly.SetColorModeToColorByScalar ()
 
-
-    if utils.isSequence(c) and len(c) != 3:
-        ucols = vtk.vtkUnsignedCharArray()
-        ucols.SetNumberOfComponents(3)
-        ucols.SetName("glyphRGB")
-        for col in c:
-            cl = colors.getColor(col)
-            ucols.InsertNextTuple3(cl[0]*255, cl[1]*255, cl[2]*255)
-        actor.polydata().GetPointData().SetScalars(ucols)
-        gly.SetScaleModeToDataScalingOff()
 
     gly.Update()
     pd = gly.GetOutput()
 
     actor = Actor(pd, c, alpha)
+    
+    if cmap:
+        lut = vtk.vtkLookupTable()
+        lut.SetNumberOfTableValues(512)
+        lut.Build()
+        for i in range(512):
+            r, g, b = colors.colorMap(i, cmap, 0, 512)
+            lut.SetTableValue(i, r, g, b, 1)
+        actor.mapper.SetLookupTable(lut)
+        actor.mapper.ScalarVisibilityOn()
+        actor.mapper.SetScalarModeToUsePointData()    
+        rng = pd.GetPointData().GetScalars().GetRange()
+        actor.mapper.SetScalarRange(rng[0], rng[1])
+
     actor.GetProperty().SetInterpolationToFlat()
     settings.collectable_actors.append(actor)
     return actor
@@ -235,8 +265,7 @@ def Line(p0, p1=None, lw=1, c="r", alpha=1, dotted=False):
         ppoints = vtk.vtkPoints()  # Generate the polyline
         dim = len((p0[0]))
         if dim == 2:
-            for i in range(len(p0)):
-                p = p0[i]
+            for i, p in enumerate(p0):
                 ppoints.InsertPoint(i, p[0], p[1], 0)
         else:
             ppoints.SetData(numpy_to_vtk(p0, deep=True))
@@ -448,7 +477,7 @@ def FlatArrow(line1, line2, c="m", alpha=1, tipSize=1, tipWidth=1):
 
     v = (sm1-sm2)/3*tipWidth
     p1 = sm1+v
-    p2 = sm2-v    
+    p2 = sm2-v
     pm1 = (sm1+sm2)/2
     pm2 = (np.array(line1[-2])+np.array(line2[-2]))/2
     pm12 = pm1-pm2
@@ -521,52 +550,39 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12)
     Build arrows between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
     
-    A dolfin ``Mesh`` that was deformed/modified by a function can be 
-    passed together as inputs.
+    Color can be specfied as a colormap which maps the size of the arrows.
 
-    :param float s: cross-section size of the arrow
-    :param float scale: apply a rescaling factor to the length 
+    :param float s: fix aspect-ratio of the arrow and scale its cross section
+    :param float scale: apply a rescaling factor to the length
+    :param c: color or array of colors
+    :param str cmap: color arrows by size using this color map
+    :param float alpha: set transparency
+    :param int res: set arrow resolution
+
+    .. hint:: |glyphs_arrow| |glyphs_arrow.py|_
     """
-
-    if endPoints is not None:
-        startPoints = list(zip(startPoints, endPoints))
-
-    polyapp = vtk.vtkAppendPolyData()
-    for twopts in startPoints:
-        startPoint, endPoint = twopts
-        axis = np.array(endPoint) - np.array(startPoint)
-        length = np.linalg.norm(axis) 
-        if length:
-            axis /= length
-        theta = np.arccos(axis[2])
-        phi = np.arctan2(axis[1], axis[0])
-        arr = vtk.vtkArrowSource()
-        arr.SetShaftResolution(res)
-        arr.SetTipResolution(res)
-        if s:
-            sz = 0.02
-            arr.SetTipRadius(sz)
-            arr.SetShaftRadius(sz / 1.75)
-            arr.SetTipLength(sz * 15)
-        t = vtk.vtkTransform()
-        t.Translate(startPoint)
-        t.RotateZ(phi * 57.3)
-        t.RotateY(theta * 57.3)
-        t.RotateY(-90)  # put it along Z
-        if s:
-            sz = 800.0 * s
-            t.Scale(length*scale, sz*scale, sz*scale)
-        else:
-            t.Scale(length*scale, length*scale, length*scale)
-        tf = vtk.vtkTransformPolyDataFilter()
-        tf.SetInputConnection(arr.GetOutputPort())
-        tf.SetTransform(t)
-        polyapp.AddInputConnection(tf.GetOutputPort())
-    polyapp.Update()
-
-    actor = Actor(polyapp.GetOutput(), c, alpha)
-    settings.collectable_actors.append(actor)
-    return actor
+    startPoints = np.array(startPoints)
+    if endPoints is None:
+        strt = startPoints[:,0]
+        endPoints = startPoints[:,1]
+        startPoints = strt
+    
+    arr = vtk.vtkArrowSource()
+    arr.SetShaftResolution(res)
+    arr.SetTipResolution(res)
+    if s:
+        sz = 0.02 * s
+        arr.SetTipRadius(sz*2)
+        arr.SetShaftRadius(sz)
+        arr.SetTipLength(sz * 10)
+    arr.Update()
+    pts = Points(startPoints)
+    orients = (endPoints - startPoints) * scale
+    arrg = Glyph(pts, arr.GetOutput(), 
+                 orientationArray=orients, scaleByVectorSize=True, 
+                 c=c, alpha=alpha)
+    settings.collectable_actors.append(arrg)
+    return arrg
 
 
 def Polygon(pos=(0, 0, 0), normal=(0, 0, 1), nsides=6, r=1, c="coral",
@@ -576,7 +592,7 @@ def Polygon(pos=(0, 0, 0), normal=(0, 0, 1), nsides=6, r=1, c="coral",
 
     :param followcam: if `True` the text will auto-orient itself to the active camera.
         A ``vtkCamera`` object can also be passed.
-    :type followcam: bool, vtkCamera  
+    :type followcam: bool, vtkCamera
     
     |Polygon|
     """
@@ -760,8 +776,8 @@ def Spheres(centers, r=1, c="r", alpha=1, res=8):
         ucols.SetName("colors")
         for i, p in enumerate(centers):
             vpts.SetPoint(i, p)
-            cc = np.array(colors.getColor(c[i])) * 255
-            ucols.InsertNextTuple3(cc[0], cc[1], cc[2])
+            cx, cy, cz = colors.getColor(c[i])
+            ucols.InsertNextTuple3(cx * 255, cy * 255, cz * 255)
         pd.GetPointData().SetScalars(ucols)
         glyph.ScalingOff()
     elif risseq:
@@ -837,7 +853,8 @@ def Earth(pos=(0, 0, 0), r=1, lw=1):
     return ass
 
 
-def Ellipsoid(pos=(0, 0, 0), axis1=(1, 0, 0), axis2=(0, 2, 0), axis3=(0, 0, 3), c="c", alpha=1, res=24):
+def Ellipsoid(pos=(0, 0, 0), axis1=(1, 0, 0), axis2=(0, 2, 0), axis3=(0, 0, 3),
+              c="c", alpha=1, res=24):
     """
     Build a 3D ellipsoid centered at position `pos`.
     
@@ -933,7 +950,7 @@ def Plane(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g", bc="darkgreen",
     """
     Draw a plane of size `sx` and `sy` oriented perpendicular to vector `normal`
     and so that it passes through point `pos`.
-    
+
     |Plane| 
     """
     if sy is None:
@@ -1195,7 +1212,7 @@ def Paraboloid(pos=(0, 0, 0), r=1, height=1, axis=(0, 0, 1), c="cyan", alpha=1, 
         Full volumetric expression is:
             :math:`F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
 
-            |paraboloid|  
+            |paraboloid|
     """
     quadric = vtk.vtkQuadric()
     quadric.SetCoefficients(1, 1, 0, 0, 0, 0, 0, 0, height / 4, 0)
@@ -1286,7 +1303,7 @@ def Text(
     s=1,
     depth=0.1,
     justify="bottom-left",
-    c=(0.6, 0.6, 0.6),
+    c=None,
     alpha=1,
     bc=None,
     bg=None,
@@ -1297,7 +1314,18 @@ def Text(
     Returns a ``vtkActor`` that shows a 3D text.
 
     :param pos: position in 3D space,
-                if an integer is passed [1,8], place a 2D text in one of the 4 corners.
+                if an integer is passed [1,8], 
+                a 2D text is placed in one of the 4 corners:
+                    
+                    1, bottom-left
+                    2, bottom-right
+                    3, top-left
+                    4, top-right
+                    5, bottom-middle
+                    6, middle-right
+                    7, middle-left
+                    8, top-middle
+                    
     :type pos: list, int
     :param float s: size of text.
     :param float depth: text thickness.
@@ -1314,15 +1342,25 @@ def Text(
         |markpoint| |markpoint.py|_
 
         |annotations.py|_ Read a text file and shows it in the rendering window.
-    """    
+    """
+    if c is None: # automatic black or white
+        if settings.plotter_instance and settings.plotter_instance.renderer:
+            c = (0.9, 0.9, 0.9)
+            if np.sum(settings.plotter_instance.renderer.GetBackground()) > 1.5:
+                c = (0.1, 0.1, 0.1)
+        else:
+            c = (0.6, 0.6, 0.6)
+
     if isinstance(pos, int):
         if pos > 8:
             pos = 8
         if pos < 1:
             pos = 1
+      
         ca = vtk.vtkCornerAnnotation()
         ca.SetNonlinearFontScaleFactor(s / 3)
         ca.SetText(pos - 1, str(txt))
+
         ca.PickableOff()
         cap = ca.GetTextProperty()
         cap.SetColor(colors.getColor(c))
@@ -1338,6 +1376,8 @@ def Text(
             cap.SetBackgroundOpacity(alpha * 0.5)
             cap.SetFrameColor(bgcol)
             cap.FrameOn()
+
+        setattr(ca, 'renderedAt', set())
         settings.collectable_actors.append(ca)
         return ca
 
@@ -1416,10 +1456,11 @@ def Latex(
     bg=None,
     alpha=1,
     res=30,
+    usetex=False,
     fromweb=False,
 ):
     """
-    Latex formulas renderer.
+    Render Latex formulas.
     
     :param str formula: latex text string
     :param list pos: position coordinates in space
@@ -1427,85 +1468,91 @@ def Latex(
     :param c: face color
     :param bg: background color box
     :param int res: dpi resolution
-    :param fromweb: retrieve the latex image from online server
+    :param bool usetex: use latex compiler of matplotlib
+    :param fromweb: retrieve the latex image from online server (codecogs)
     
     .. hint:: |latex| |latex.py|_
     """
     try:
-        import matplotlib.pyplot as plt
-        from PIL import Image #, ImageChops
-        from vtkplotter.actors import ImageActor
-        import io, os
-    except:
-        colors.printc('~times Latex Error: matplotlib and/or pillow not installed?', c=1)
-        return None
-     
-    def build_img_web(formula, tfile):
-        import requests
-        if c == 'k':
-            ct = 'Black'
-        else:
-            ct = 'White'
-        wsite = 'http://latex.codecogs.com/png.latex'
-        r = requests.get(wsite+'?\dpi{200} \huge \color{'+ct+'} ' + formula)
-        f = open(tfile, 'wb')
-        f.write(r.content)
-        f.close()
 
-    def build_img_plt(formula):
-        buf = io.BytesIO()
-        plt.rc('text', usetex=True)
-        plt.axis('off')
-        col = colors.getColor(c)
-        if bg:
-            bx = dict(boxstyle="square", ec=col, fc=colors.getColor(bg))
+    #def _Latex(formula, pos, normal, c, s, bg, alpha, res, usetex, fromweb):
+    
+        def build_img_web(formula, tfile):
+            import requests
+            if c == 'k':
+                ct = 'Black'
+            else:
+                ct = 'White'
+            wsite = 'http://latex.codecogs.com/png.latex'
+            try:
+                r = requests.get(wsite+'?\dpi{100} \huge \color{'+ct+'} ' + formula)
+                f = open(tfile, 'wb')
+                f.write(r.content)
+                f.close()
+            except requests.exceptions.ConnectionError:
+                colors.printc('Latex error. Web site unavailable?', wsite, c=1)
+                return None            
+    
+        def build_img_plt(formula, tfile):
+            import matplotlib.pyplot as plt
+    
+            plt.rc('text', usetex=usetex)
+    
+            formula1 = '$'+formula+'$'        
+            plt.axis('off')
+            col = colors.getColor(c)
+            if bg:
+                bx = dict(boxstyle="square", ec=col, fc=colors.getColor(bg))
+            else:
+                bx = None
+            plt.text(0.5, 0.5, formula1,
+                     size=res,
+                     color=col,
+                     alpha=alpha,
+                     ha="center",
+                     va="center",
+                     bbox=bx)
+            plt.savefig('_lateximg.png', format='png',
+                        transparent=True, bbox_inches='tight', pad_inches=0)
+            plt.close()
+    
+        if fromweb:
+            build_img_web(formula, '_lateximg.png')
         else:
-            bx = None
-        plt.text(0.5, 0.5, f'${formula}$', 
-                 size=res, 
-                 color=col, 
-                 alpha=alpha,
-                 ha="center", 
-                 va="center",
-                 bbox=bx)
-        plt.savefig(buf, format='png', transparent=True, bbox_inches='tight', pad_inches=0)
-        plt.close()
-        im = Image.open(buf)
-        return im
-
-    if fromweb:
-        build_img_web(formula, 'lateximg.png')
-    else:
-        try:
-            build_img_plt(formula).save('lateximg.png')
-        except RuntimeError as err:
-            colors.printc(err, c=1)            
-            colors.printc('dvipng not installed? Try > sudo apt install dvipng' , c=1)            
-            return None
+            build_img_plt(formula, '_lateximg.png')
         
-    picr = vtk.vtkPNGReader()
-    picr.SetFileName('lateximg.png')
-    picr.Update()
-    vactor = ImageActor()
-    vactor.SetInputData(picr.GetOutput())
-    vactor.alpha(alpha)
-    b = vactor.GetBounds()
-    xm, ym = (b[1]+b[0])/200*s, (b[3]+b[2])/200*s
-    vactor.SetOrigin(-xm, -ym, 0)
-    nax = np.linalg.norm(normal)
-    if nax:
-        normal = np.array(normal) / nax
-    theta = np.arccos(normal[2])
-    phi = np.arctan2(normal[1], normal[0])
-    vactor.SetScale(0.25/res*s, 0.25/res*s, 0.25/res*s)
-    vactor.RotateZ(phi * 57.3)
-    vactor.RotateY(theta * 57.3)
-    vactor.SetPosition(pos)
-    os.unlink('lateximg.png')
-    return vactor
-    
-    
-    
-    
-    
-    
+        from vtkplotter.actors import ImageActor
+
+        picr = vtk.vtkPNGReader()
+        picr.SetFileName('_lateximg.png')
+        picr.Update()
+        vactor = ImageActor()
+        vactor.SetInputData(picr.GetOutput())
+        vactor.alpha(alpha)
+        b = vactor.GetBounds()
+        xm, ym = (b[1]+b[0])/200*s, (b[3]+b[2])/200*s
+        vactor.SetOrigin(-xm, -ym, 0)
+        nax = np.linalg.norm(normal)
+        if nax:
+            normal = np.array(normal) / nax
+        theta = np.arccos(normal[2])
+        phi = np.arctan2(normal[1], normal[0])
+        vactor.SetScale(0.25/res*s, 0.25/res*s, 0.25/res*s)
+        vactor.RotateZ(phi * 57.3)
+        vactor.RotateY(theta * 57.3)
+        vactor.SetPosition(pos)
+        try:
+            import os
+            os.unlink('_lateximg.png')
+        except FileNotFoundError:
+            pass
+        return vactor
+
+    except:
+        colors.printc('Error in Latex()\n', formula, c=1)
+        colors.printc(' latex or dvipng not installed?', c=1)
+        colors.printc(' Try: usetex=False' , c=1)
+        colors.printc(' Try: sudo apt install dvipng' , c=1)
+        return None
+
+

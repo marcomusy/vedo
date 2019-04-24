@@ -44,8 +44,9 @@ a, L = lhs(F), rhs(F)
 ############################################################# vtkplotter
 from vtkplotter.dolfin import plot, Latex
 
-f = r'\frac{\partial u}{\partial t}=\nabla^{2} u+f~\mathrm{in}~\Omega\times(0,T]'
-formula = Latex(f, pos=(-.2,-1, .1), s=.5, bg='w', alpha=.7)
+f = r'\frac{\partial u}{\partial t}=\nabla^2 u+f~\mathrm{in}~\Omega\times(0,T]'
+formula = Latex(f, pos=(-.4,-.8, .1), s=0.6, c='w')
+formula.crop(0.2, 0.4) # crop top and bottom 20% and 40%
 
 # Time-stepping
 u = Function(V)
@@ -55,9 +56,9 @@ for n in range(num_steps):
     solve(a == L, u, bc)
 
     # Plot solution
-    plot(u, formula, interactive=False, scalarbar=False)
+    plot(u, formula, scalarbar=False, interactive=False)
 
     # Update previous solution
     u_n.assign(u)
 
-plot(u, interactive=True)
+plot()

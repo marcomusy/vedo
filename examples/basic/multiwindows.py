@@ -1,7 +1,7 @@
 """
 Example of drawing objects on different windows 
 and/or subwindows within the same window.
-We split the main window in a 25 subwindows and draw something 
+We split the main window in a 25 subwindows and draw something
 in specific windows numbers.
 Then open an independent window and draw a shape on it.
 """
@@ -23,13 +23,13 @@ b = vp1.load(datadir+"shapes/cessna.vtk", c="red")
 c = vp1.load(datadir+"shapes/atc.ply")
 
 # show a text in each renderer
-for i in range(22):
-    txt = Text("renderer\nnr."+str(i), c=i, s=0.5, font='arial')
-    vp1.show(txt, at=i)
+for i in range(25):
+    txt = Text("renderer\nnr."+str(i), c='k', s=0.5, font='arial')
+    vp1.show(txt, at=i, interactive=0)
 
 vp1.show(a, at=22)
 vp1.show(b, at=23)
-vp1.show(c, at=24)
+vp1.show(c, at=24, interactive=0)
 
 
 ############################################################

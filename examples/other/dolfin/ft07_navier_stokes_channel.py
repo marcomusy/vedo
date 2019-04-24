@@ -7,7 +7,6 @@ the Incremental Pressure Correction Scheme (IPCS).
                                  div(u) = 0
 """
 from fenics import *
-import numpy as np
 
 T = 10.0           # final time
 num_steps = 90     # number of time steps
@@ -110,13 +109,13 @@ for n in range(num_steps):
     p_n.assign(p_)
 
     # Plot solution
-    plot(u_, 
+    plot(u_,
          cmap='plasma',
          scalarbar=False,
          bg='w',
+         text=__doc__,
          axes=7, # bottom ruler
-         interactive=False,
-         )
+         interactive=False)
 
-plot(u_, cmap='plasma', text=__doc__, interactive=True)
+plot()
 

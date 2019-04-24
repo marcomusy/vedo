@@ -1,6 +1,6 @@
 """
 Make a video (needs ffmpeg)
- Set offscreen=True to only produce the video 
+ Set offscreen=True to only produce the video
  without any graphical window showing
 """
 print(__doc__)

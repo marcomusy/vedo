@@ -1,5 +1,5 @@
 """
-Split a mesh by connectivity and order the pieces 
+Split a mesh by connectivity and order the pieces
 by increasing area.
 """
 print(__doc__)

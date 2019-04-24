@@ -41,5 +41,5 @@ print("             after  cleaning polydata:", act_pts1.N())
 vp.show(act_pts1, at=2)
 
 # reconstructed surface from point cloud
-act_reco = recoSurface(act_pts1, bins=128).legend("surf reco")  
+act_reco = recoSurface(act_pts1, bins=128).legend("surf reco")
 vp.show(act_reco, at=3, axes=7, interactive=1)

@@ -10,6 +10,7 @@ pts = np.random.rand(1000, 3)*256
 
 apts = probePoints(img, pts).pointSize(3)
 
+#print(apts.scalars()) # check the list of point/cell scalars
 scals = apts.scalars(0)
 
 printHistogram(scals, minbin=1, horizontal=1, c='g')

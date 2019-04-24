@@ -71,7 +71,7 @@ class Particle:
                 radius: radius of the particle, in meters. No effect on simulation
                 color: color of the particle. If None, a default color will be chosen
                 vel: initial velocity vector, in m/s
-                fixed: if True, particle will remain fixed in place 
+                fixed: if True, particle will remain fixed in place
                 negligible: assume charge is small wrt other charges to speed up calculation
         """
         self.pos = vector(pos)

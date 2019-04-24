@@ -71,7 +71,7 @@ pressures = p.compute_vertex_values(mesh)
 from vtkplotter.dolfin import plot, printHistogram
 
 # Plot u and p solutions on N=2 synced renderers
-plot(u, mode='mesh arrows', at=0, N=2, legend='velocity', bg='white', 
+plot(u, mode='mesh arrows', at=0, N=2, legend='velocity', bg='white',
      scale=0.1, wireframe=1, lw=0.03, alpha=0.5, scalarbar=False)
 
 printHistogram(pressures, title='pressure histo', logscale=True, c=1)

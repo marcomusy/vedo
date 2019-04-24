@@ -23,7 +23,7 @@ gsphere1 = Glyph(
     scaleByVectorSize=True,
 )
 
-show(s, gsphere1, t, at=0, N=2, verbose=0)
+show(s, gsphere1, t, at=0, N=2)
 
 
 #######################################

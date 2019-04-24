@@ -1,5 +1,5 @@
 """
-Interpolate functions between 
+Interpolate functions between
 finite element spaces on non-matching meshes.
 """
 # https://fenicsproject.org/docs/dolfin/2018.1.0/python/demos

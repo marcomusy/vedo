@@ -9,7 +9,6 @@ Scheme (IPCS).
 from __future__ import print_function, division
 from fenics import *
 from mshr import *
-import numpy as np
 
 T = 10.0            # final time
 num_steps = 50    # number of time steps
@@ -147,12 +146,12 @@ for n in range(num_steps):
     print('n:',n)
 
     # Plot solution
-    plot(u_, 
+    plot(u_,
          cmap='bone',
-         scalarbar=False,
          bg='w',
+         text=__doc__,
          axes=0, # no axes
-         interactive=False,
-         )
+         scalarbar='h',
+         interactive=False)
 
-plot(u_, cmap='bone', scalarbar='h', title='Velocity', text=__doc__, interactive=True)
+plot()

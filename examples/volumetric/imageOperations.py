@@ -1,6 +1,6 @@
 """
 Perform other simple mathematical operation between 3d images.
-Possible operations are: +, -, /, 1/x, sin, cos, exp, log, abs, **2, sqrt, 
+Possible operations are: +, -, /, 1/x, sin, cos, exp, log, abs, **2, sqrt,
   min, max, atan, atan2, median, mag, dot, gradient, divergence, laplacian.
 Alphas defines the opacity transfer function in the scalar range.
 """
