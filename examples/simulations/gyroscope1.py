@@ -53,7 +53,7 @@ for t in pb.range():
     gpos = cm - 1 / 2 * Ls * versor(Lrot)
 
     # set orientation along gaxis and rotate it around its axis by omega*t degrees
-    gyro.orientation(Lrot, rotation=omega * t * 57.3).pos(gpos)
+    gyro.orientation(Lrot, rotation=omega * t, rad=True).pos(gpos)
     spring.stretch(top, gpos)
     vp.show()
     pb.print()
