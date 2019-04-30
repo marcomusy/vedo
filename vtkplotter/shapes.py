@@ -146,23 +146,23 @@ def Points(plist, r=5, c="gray", alpha=1):
     return actor
 
 
-def Glyph(actor, glyphObj, orientationArray="", 
+def Glyph(actor, glyphObj, orientationArray="",
           scaleByVectorSize=False, c=None, alpha=1):
     """
     At each vertex of a mesh, another mesh - a `'glyph'` - is shown with
     various orientation options and coloring.
-    
+
     Color can be specfied as a colormap which maps the size of the orientation
     vectors in `orientationArray`.
-    
+
     :param orientationArray: list of vectors, ``vtkAbstractArray``
         or the name of an already existing points array.
     :type orientationArray: list, str, vtkAbstractArray
     :param bool scaleByVectorSize: glyph mesh is scaled by the size of
         the vectors.
-    
+
     .. hint:: |glyphs| |glyphs.py|_
-    
+
         |glyphs_arrow| |glyphs_arrow.py|_
     """
     cmap = None
@@ -170,7 +170,7 @@ def Glyph(actor, glyphObj, orientationArray="",
     if c in list(colors._mapscales.cmap_d.keys()):
         cmap = c
         c = None
-    
+
     # user is passing an array of point colors
     if utils.isSequence(c) and len(c) > 3:
         ucols = vtk.vtkUnsignedCharArray()
@@ -222,7 +222,7 @@ def Glyph(actor, glyphObj, orientationArray="",
     pd = gly.GetOutput()
 
     actor = Actor(pd, c, alpha)
-    
+
     if cmap:
         lut = vtk.vtkLookupTable()
         lut.SetNumberOfTableValues(512)
@@ -232,7 +232,7 @@ def Glyph(actor, glyphObj, orientationArray="",
             lut.SetTableValue(i, r, g, b, 1)
         actor.mapper.SetLookupTable(lut)
         actor.mapper.ScalarVisibilityOn()
-        actor.mapper.SetScalarModeToUsePointData()    
+        actor.mapper.SetScalarModeToUsePointData()
         rng = pd.GetPointData().GetScalars().GetRange()
         actor.mapper.SetScalarRange(rng[0], rng[1])
 
@@ -259,7 +259,7 @@ def Line(p0, p1=None, lw=1, c="r", alpha=1, dotted=False, res=None):
             # assume input is 2D xlist, ylist
             p0 = list(zip(p0, p1))
             p1 = None
-    
+
     # detect if user is passing a list of points:
     if utils.isSequence(p0[0]):
         ppoints = vtk.vtkPoints()  # Generate the polyline
@@ -301,7 +301,7 @@ def Lines(startPoints, endPoints=None, scale=1, lw=1, c=None, alpha=1, dotted=Fa
     Build the line segments between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
 
-    :param float scale: apply a rescaling factor to the length 
+    :param float scale: apply a rescaling factor to the length
 
     |lines|
 
@@ -342,9 +342,9 @@ def Tube(points, r=1, c="r", alpha=1, res=12):
     :type r: float, list
     :param c: constant color or list of colors for each point.
     :type c: float, list
-    
+
     .. hint:: |ribbon| |ribbon.py|_
-    
+
         |tube| |tube.py|_
     """
     ppoints = vtk.vtkPoints()  # Generate the polyline
@@ -474,7 +474,7 @@ def FlatArrow(line1, line2, c="m", alpha=1, tipSize=1, tipWidth=1):
         line1 = line1.coordinates()
     if isinstance(line2, Actor):
         line2 = line2.coordinates()
-        
+
     sm1, sm2 = np.array(line1[-1]), np.array(line2[-1])
 
     v = (sm1-sm2)/3*tipWidth
@@ -484,13 +484,13 @@ def FlatArrow(line1, line2, c="m", alpha=1, tipSize=1, tipWidth=1):
     pm2 = (np.array(line1[-2])+np.array(line2[-2]))/2
     pm12 = pm1-pm2
     tip = pm12/np.linalg.norm(pm12)*np.linalg.norm(v)*3*tipSize/tipWidth + pm1
-    
+
     line1.append(p1)
     line1.append(tip)
     line2.append(p2)
     line2.append(tip)
     resm = max(100, len(line1))
-    
+
     actor = Ribbon(line1, line2, alpha=alpha, c=c, res=(resm, 1)).phong()
     settings.collectable_actors.pop()
     settings.collectable_actors.append(actor)
@@ -501,10 +501,10 @@ def Arrow(startPoint, endPoint, s=None, c="r", alpha=1, res=12):
     """
     Build a 3D arrow from `startPoint` to `endPoint` of section size `s`,
     expressed as the fraction of the window size.
-    
+
     .. note:: If ``s=None`` the arrow is scaled proportionally to its length,
               otherwise it represents the fraction of the window size.
-              
+
     |OrientedArrow|
     """
     axis = np.array(endPoint) - np.array(startPoint)
@@ -523,8 +523,8 @@ def Arrow(startPoint, endPoint, s=None, c="r", alpha=1, res=12):
         arr.SetTipLength(sz * 15)
     arr.Update()
     t = vtk.vtkTransform()
-    t.RotateZ(phi * 57.3)
-    t.RotateY(theta * 57.3)
+    t.RotateZ(np.rad2deg(phi))
+    t.RotateY(np.rad2deg(theta))
     t.RotateY(-90)  # put it along Z
     if s:
         sz = 800.0 * s
@@ -551,7 +551,7 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12)
     """
     Build arrows between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
-    
+
     Color can be specfied as a colormap which maps the size of the arrows.
 
     :param float s: fix aspect-ratio of the arrow and scale its cross section
@@ -568,7 +568,7 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12)
         strt = startPoints[:,0]
         endPoints = startPoints[:,1]
         startPoints = strt
-    
+
     arr = vtk.vtkArrowSource()
     arr.SetShaftResolution(res)
     arr.SetTipResolution(res)
@@ -580,8 +580,8 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12)
     arr.Update()
     pts = Points(startPoints)
     orients = (endPoints - startPoints) * scale
-    arrg = Glyph(pts, arr.GetOutput(), 
-                 orientationArray=orients, scaleByVectorSize=True, 
+    arrg = Glyph(pts, arr.GetOutput(),
+                 orientationArray=orients, scaleByVectorSize=True,
                  c=c, alpha=alpha)
     settings.collectable_actors.append(arrg)
     return arrg
@@ -595,7 +595,7 @@ def Polygon(pos=(0, 0, 0), normal=(0, 0, 1), nsides=6, r=1, c="coral",
     :param followcam: if `True` the text will auto-orient itself to the active camera.
         A ``vtkCamera`` object can also be passed.
     :type followcam: bool, vtkCamera
-    
+
     |Polygon|
     """
     ps = vtk.vtkRegularPolygonSource()
@@ -659,7 +659,7 @@ def Disc(
     """
     Build a 2D disc of internal radius `r1` and outer radius `r2`,
     oriented perpendicular to `normal`.
-    
+
     |Disk|
     """
     ps = vtk.vtkDiskSource()
@@ -676,8 +676,8 @@ def Disc(
     phi = np.arctan2(axis[1], axis[0])
     t = vtk.vtkTransform()
     t.PostMultiply()
-    t.RotateY(theta * 57.3)
-    t.RotateZ(phi * 57.3)
+    t.RotateY(np.rad2deg(theta))
+    t.RotateZ(np.rad2deg(phi))
     tf = vtk.vtkTransformPolyDataFilter()
     tf.SetInputData(ps.GetOutput())
     tf.SetTransform(t)
@@ -705,7 +705,7 @@ def Disc(
 
 def Sphere(pos=(0, 0, 0), r=1, c="r", alpha=1, res=24):
     """Build a sphere at position `pos` of radius `r`.
-    
+
     |Sphere|
     """
     ss = vtk.vtkSphereSource()
@@ -859,9 +859,9 @@ def Ellipsoid(pos=(0, 0, 0), axis1=(1, 0, 0), axis2=(0, 2, 0), axis3=(0, 0, 3),
               c="c", alpha=1, res=24):
     """
     Build a 3D ellipsoid centered at position `pos`.
-    
+
     .. note:: `axis1` and `axis2` are only used to define sizes and one azimuth angle.
-    
+
     |projectsphere|
     """
     elliSource = vtk.vtkSphereSource()
@@ -881,9 +881,9 @@ def Ellipsoid(pos=(0, 0, 0), axis1=(1, 0, 0), axis2=(0, 2, 0), axis3=(0, 0, 3),
     t = vtk.vtkTransform()
     t.PostMultiply()
     t.Scale(l1, l2, l3)
-    t.RotateX(angle * 57.3)
-    t.RotateY(theta * 57.3)
-    t.RotateZ(phi * 57.3)
+    t.RotateX(np.rad2deg(angle))
+    t.RotateY(np.rad2deg(theta))
+    t.RotateZ(np.rad2deg(phi))
     tf = vtk.vtkTransformPolyDataFilter()
     tf.SetInputData(elliSource.GetOutput())
     tf.SetTransform(t)
@@ -932,8 +932,8 @@ def Grid(
     phi = np.arctan2(axis[1], axis[0])
     t = vtk.vtkTransform()
     t.PostMultiply()
-    t.RotateY(theta * 57.3)
-    t.RotateZ(phi * 57.3)
+    t.RotateY(np.rad2deg(theta))
+    t.RotateZ(np.rad2deg(phi))
     tf = vtk.vtkTransformPolyDataFilter()
     tf.SetInputData(poly)
     tf.SetTransform(t)
@@ -953,7 +953,7 @@ def Plane(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g", bc="darkgreen",
     Draw a plane of size `sx` and `sy` oriented perpendicular to vector `normal`
     and so that it passes through point `pos`.
 
-    |Plane| 
+    |Plane|
     """
     if sy is None:
         sy = sx
@@ -969,8 +969,8 @@ def Plane(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g", bc="darkgreen",
     t = vtk.vtkTransform()
     t.PostMultiply()
     t.Scale(sx, sy, 1)
-    t.RotateY(theta * 57.3)
-    t.RotateZ(phi * 57.3)
+    t.RotateY(np.rad2deg(theta))
+    t.RotateZ(np.rad2deg(phi))
     tf = vtk.vtkTransformPolyDataFilter()
     tf.SetInputData(poly)
     tf.SetTransform(t)
@@ -1001,8 +1001,8 @@ def Box(pos=(0, 0, 0), length=1, width=2, height=3, normal=(0, 0, 1),
     phi = np.arctan2(axis[1], axis[0])
     t = vtk.vtkTransform()
     t.PostMultiply()
-    t.RotateY(theta * 57.3)
-    t.RotateZ(phi * 57.3)
+    t.RotateY(np.rad2deg(theta))
+    t.RotateZ(np.rad2deg(phi))
 
     tf = vtk.vtkTransformPolyDataFilter()
     tf.SetInputData(poly)
@@ -1066,8 +1066,8 @@ def Spring(
     phi = np.arctan2(diff[1], diff[0])
     sp = Line(pts).polydata(False)
     t = vtk.vtkTransform()
-    t.RotateZ(phi * 57.3)
-    t.RotateY(theta * 57.3)
+    t.RotateZ(np.rad2deg(phi))
+    t.RotateY(np.rad2deg(theta))
     tf = vtk.vtkTransformPolyDataFilter()
     tf.SetInputData(sp)
     tf.SetTransform(t)
@@ -1096,7 +1096,7 @@ def Cylinder(pos=(0, 0, 0), r=1, height=1, axis=(0, 0, 1), c="teal", alpha=1, re
 
     If `pos` is a list of 2 Points, e.g. `pos=[v1,v2]`, build a cylinder with base
     centered at `v1` and top at `v2`.
-    
+
     |Cylinder|
     """
 
@@ -1123,8 +1123,8 @@ def Cylinder(pos=(0, 0, 0), r=1, height=1, axis=(0, 0, 1), c="teal", alpha=1, re
     t = vtk.vtkTransform()
     t.PostMultiply()
     t.RotateX(90)  # put it along Z
-    t.RotateY(theta * 57.3)
-    t.RotateZ(phi * 57.3)
+    t.RotateY(np.rad2deg(theta))
+    t.RotateZ(np.rad2deg(phi))
     tf = vtk.vtkTransformPolyDataFilter()
     tf.SetInputData(cyl.GetOutput())
     tf.SetTransform(t)
@@ -1143,7 +1143,7 @@ def Cylinder(pos=(0, 0, 0), r=1, height=1, axis=(0, 0, 1), c="teal", alpha=1, re
 def Cone(pos=(0, 0, 0), r=1, height=3, axis=(0, 0, 1), c="dg", alpha=1, res=48):
     """
     Build a cone of specified radius `r` and `height`, centered at `pos`.
-    
+
     |Cone|
     """
     con = vtk.vtkConeSource()
@@ -1191,8 +1191,8 @@ def Torus(pos=(0, 0, 0), r=1, thickness=0.1, axis=(0, 0, 1), c="khaki", alpha=1,
     phi = np.arctan2(axis[1], axis[0])
     t = vtk.vtkTransform()
     t.PostMultiply()
-    t.RotateY(theta * 57.3)
-    t.RotateZ(phi * 57.3)
+    t.RotateY(np.rad2deg(theta))
+    t.RotateZ(np.rad2deg(phi))
     tf = vtk.vtkTransformPolyDataFilter()
     tf.SetInputData(pfs.GetOutput())
     tf.SetTransform(t)
@@ -1209,7 +1209,7 @@ def Torus(pos=(0, 0, 0), r=1, thickness=0.1, axis=(0, 0, 1), c="khaki", alpha=1,
 def Paraboloid(pos=(0, 0, 0), r=1, height=1, axis=(0, 0, 1), c="cyan", alpha=1, res=50):
     """
     Build a paraboloid of specified height and radius `r`, centered at `pos`.
-    
+
     .. note::
         Full volumetric expression is:
             :math:`F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
@@ -1235,8 +1235,8 @@ def Paraboloid(pos=(0, 0, 0), r=1, height=1, axis=(0, 0, 1), c="cyan", alpha=1, 
     phi = np.arctan2(axis[1], axis[0])
     t = vtk.vtkTransform()
     t.PostMultiply()
-    t.RotateY(theta * 57.3)
-    t.RotateZ(phi * 57.3)
+    t.RotateY(np.rad2deg(theta))
+    t.RotateZ(np.rad2deg(phi))
     t.Scale(r, r, r)
     tf = vtk.vtkTransformPolyDataFilter()
     tf.SetInputData(contours.GetOutput())
@@ -1256,7 +1256,7 @@ def Hyperboloid(pos=(0, 0, 0), a2=1, value=0.5, height=1, axis=(0, 0, 1),
                 c="magenta", alpha=1, res=100):
     """
     Build a hyperboloid of specified aperture `a2` and `height`, centered at `pos`.
-    
+
     Full volumetric expression is:
         :math:`F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
 
@@ -1281,8 +1281,8 @@ def Hyperboloid(pos=(0, 0, 0), a2=1, value=0.5, height=1, axis=(0, 0, 1),
     phi = np.arctan2(axis[1], axis[0])
     t = vtk.vtkTransform()
     t.PostMultiply()
-    t.RotateY(theta * 57.3)
-    t.RotateZ(phi * 57.3)
+    t.RotateY(np.rad2deg(theta))
+    t.RotateZ(np.rad2deg(phi))
     t.Scale(1, 1, height)
     tf = vtk.vtkTransformPolyDataFilter()
     tf.SetInputData(contours.GetOutput())
@@ -1316,9 +1316,9 @@ def Text(
     Returns a ``vtkActor`` that shows a 3D text.
 
     :param pos: position in 3D space,
-                if an integer is passed [1,8], 
+                if an integer is passed [1,8],
                 a 2D text is placed in one of the 4 corners:
-                    
+
                     1, bottom-left
                     2, bottom-right
                     3, top-left
@@ -1327,7 +1327,7 @@ def Text(
                     6, middle-right
                     7, middle-left
                     8, top-middle
-                    
+
     :type pos: list, int
     :param float s: size of text.
     :param float depth: text thickness.
@@ -1338,9 +1338,9 @@ def Text(
     :param followcam: if `True` the text will auto-orient itself to the active camera.
         A ``vtkCamera`` object can also be passed.
     :type followcam: bool, vtkCamera
-    
+
     .. hint:: |colorcubes| |colorcubes.py|_
-    
+
         |markpoint| |markpoint.py|_
 
         |annotations.py|_ Read a text file and shows it in the rendering window.
@@ -1358,7 +1358,7 @@ def Text(
             pos = 8
         if pos < 1:
             pos = 1
-      
+
         ca = vtk.vtkCornerAnnotation()
         ca.SetNonlinearFontScaleFactor(s/2.7)
         ca.SetText(pos - 1, str(txt))
@@ -1436,8 +1436,8 @@ def Text(
     theta = np.arccos(normal[2])
     phi = np.arctan2(normal[1], normal[0])
     ttactor.SetScale(s, s, s)
-    ttactor.RotateZ(phi * 57.3)
-    ttactor.RotateY(theta * 57.3)
+    ttactor.RotateZ(np.rad2deg(phi))
+    ttactor.RotateY(np.rad2deg(theta))
     ttactor.SetPosition(pos + shift)
     if bc:  # defines a specific color for the backface
         backProp = vtk.vtkProperty()
@@ -1463,7 +1463,7 @@ def Latex(
 ):
     """
     Render Latex formulas.
-    
+
     :param str formula: latex text string
     :param list pos: position coordinates in space
     :param list normal: normal to the plane of the image
@@ -1472,13 +1472,13 @@ def Latex(
     :param int res: dpi resolution
     :param bool usetex: use latex compiler of matplotlib
     :param fromweb: retrieve the latex image from online server (codecogs)
-    
+
     .. hint:: |latex| |latex.py|_
     """
     try:
 
     #def _Latex(formula, pos, normal, c, s, bg, alpha, res, usetex, fromweb):
-    
+
         def build_img_web(formula, tfile):
             import requests
             if c == 'k':
@@ -1493,14 +1493,14 @@ def Latex(
                 f.close()
             except requests.exceptions.ConnectionError:
                 colors.printc('Latex error. Web site unavailable?', wsite, c=1)
-                return None            
-    
+                return None
+
         def build_img_plt(formula, tfile):
             import matplotlib.pyplot as plt
-    
+
             plt.rc('text', usetex=usetex)
-    
-            formula1 = '$'+formula+'$'        
+
+            formula1 = '$'+formula+'$'
             plt.axis('off')
             col = colors.getColor(c)
             if bg:
@@ -1517,12 +1517,12 @@ def Latex(
             plt.savefig('_lateximg.png', format='png',
                         transparent=True, bbox_inches='tight', pad_inches=0)
             plt.close()
-    
+
         if fromweb:
             build_img_web(formula, '_lateximg.png')
         else:
             build_img_plt(formula, '_lateximg.png')
-        
+
         from vtkplotter.actors import ImageActor
 
         picr = vtk.vtkPNGReader()
@@ -1540,8 +1540,8 @@ def Latex(
         theta = np.arccos(normal[2])
         phi = np.arctan2(normal[1], normal[0])
         vactor.SetScale(0.25/res*s, 0.25/res*s, 0.25/res*s)
-        vactor.RotateZ(phi * 57.3)
-        vactor.RotateY(theta * 57.3)
+        vactor.RotateZ(np.rad2deg(phi))
+        vactor.RotateY(np.rad2deg(theta))
         vactor.SetPosition(pos)
         try:
             import os

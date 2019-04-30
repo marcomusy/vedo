@@ -42,17 +42,17 @@ def addScalarBar(actor=None, c=None, title="",
     .. hint:: |mesh_bands| |mesh_bands.py|_
     """
     vp = settings.plotter_instance
-    
+
     if actor is None:
         actor = vp.lastActor()
-        
+
     if not hasattr(actor, "mapper"):
         colors.printc("~times Error in addScalarBar: input is not a Actor.", c=1)
         return None
 
     if vp and vp.renderer and actor.scalarbar_actor:
         vp.renderer.RemoveActor(actor.scalarbar)
-            
+
 
     lut = actor.mapper.GetLookupTable()
     if not lut:
@@ -62,7 +62,7 @@ def addScalarBar(actor=None, c=None, title="",
         vtkscalars = actor.poly.GetCellData().GetScalars()
     if not vtkscalars:
         return None
-    
+
     rng = list(vtkscalars.GetRange())
     if vmin is not None: rng[0] = vmin
     if vmax is not None: rng[1] = vmax
@@ -161,7 +161,7 @@ def addScalarBar3D(
         if numpy.sum(colors.getColor(vp.backgrcol)) > 1.5:
             c = (0.2, 0.2, 0.2)
     c = colors.getColor(c)
-    
+
     gap = 0.4  # space btw nrs and scale
     vtkscalars_name = ""
     if obj is None:
@@ -229,8 +229,8 @@ def addScalarBar3D(
         normal = numpy.array(normal) / nax
     theta = numpy.arccos(normal[2])
     phi = numpy.arctan2(normal[1], normal[0])
-    sact.RotateZ(phi * 57.3)
-    sact.RotateY(theta * 57.3)
+    sact.RotateZ(numpy.rad2deg(phi))
+    sact.RotateY(numpy.rad2deg(theta))
     sact.SetPosition(pos)
     if not vp.renderers[at]:
         save_int = vp.interactive
@@ -455,7 +455,7 @@ def addButton(
     angle=0,
 ):
     """Add a button to the renderer window.
-    
+
     :param list states: a list of possible states ['On', 'Off']
     :param c:      a list of colors for each state
     :param bc:     a list of background colors for each state
@@ -577,7 +577,7 @@ def _addVolumeCutterTool(vol):
     boxWidget.SetPlaceFactor(1.0)
 
     vp.cutterWidget = boxWidget
-   
+
     planes = vtk.vtkPlanes()
     def ClipVolumeRender(obj, event):
         obj.GetPlanes(planes)
@@ -596,7 +596,7 @@ def _addVolumeCutterTool(vol):
     colors.printc("Mesh Cutter Tool:", c="m", invert=1)
     colors.printc("  Move gray handles to cut away parts of the mesh", c="m")
     colors.printc("  Press X to save file to: clipped.vtk", c="m")
-    
+
     vp.renderer.ResetCamera()
     boxWidget.On()
 
@@ -985,7 +985,7 @@ def addAxes(axtype=None, c=None):
         xc.clean().alpha(0.2).wire().lineWidth(2.5).PickableOff()
         yc.clean().alpha(0.2).wire().lineWidth(2.5).PickableOff()
         zc.clean().alpha(0.2).wire().lineWidth(2.5).PickableOff()
-        ca = xc + yc + zc        
+        ca = xc + yc + zc
         ca.PickableOff()
         vp.renderer.AddActor(ca)
         vp.axes_exist[r] = ca
@@ -1006,7 +1006,7 @@ def addAxes(axtype=None, c=None):
   9 = show the bounding box outline
   10 = show three circles representing the maximum bounding box
   ''', c=1, bold=0)
-    
+
     if not vp.axes_exist[r]:
         vp.axes_exist[r] = True
     return
@@ -1024,7 +1024,7 @@ def addFrame(c=None, alpha=0.5, bg=None, lw=0.5):
     psqr = [[0,0],[0,1],[1,1],[1,0],[0,0]]
     for i, pt in enumerate(psqr):
             ppoints.InsertPoint(i, pt[0], pt[1], 0)
-    lines = vtk.vtkCellArray() 
+    lines = vtk.vtkCellArray()
     lines.InsertNextCell(len(psqr))
     for i in range(len(psqr)):
         lines.InsertCellPoint(i)
@@ -1084,7 +1084,7 @@ def addLegend():
     vtklegend.ScalarVisibilityOff()
     for i in range(NT):
         ti = texts[i]
-        if not ti: 
+        if not ti:
             continue
         a = acts[i]
         c = a.GetProperty().GetColor()

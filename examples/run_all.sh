@@ -268,6 +268,9 @@ python simulations/gyroscope2.py
 echo Running simulations/multiple_pendulum.py
 python simulations/multiple_pendulum.py
 
+echo Running simulations/hanoi3d.py
+python simulations/hanoi3d.py
+
 echo Running simulations/pendulum.py
 python simulations/pendulum.py
 
@@ -286,9 +289,6 @@ python simulations/doubleslit.py
 echo Running simulations/tunnelling2.py
 python simulations/tunnelling2.py
 
-echo Running simulations/hanoi3d.py
-python simulations/hanoi3d.py
-
 
 ################################### volumetric
 echo Running volumetric/readVolumeAsIsoSurface.py
@@ -296,9 +296,6 @@ python volumetric/readVolumeAsIsoSurface.py
 
 echo Running volumetric/readVolume.py
 python volumetric/readVolume.py 
-
-echo Running volumetric/readStructuredPoints.py
-python volumetric/readStructuredPoints.py
 
 echo Running volumetric/probePoints.py
 python volumetric/probePoints.py
