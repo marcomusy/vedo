@@ -70,8 +70,8 @@ for i, longs in enumerate(agrid_reco):
     ilat = grid_reco.lats()[i]
     for j, value in enumerate(longs):
         ilong = grid_reco.lons()[j]
-        th = (90 - ilat) / 57.3
-        ph = ilong / 57.3
+        th = np.deg2rad(90 - ilat)
+        ph = np.deg2rad(ilong)
         r = value + rbias
         p = np.array([sin(th) * cos(ph), sin(th) * sin(ph), cos(th)]) * r
         pts.append(p)

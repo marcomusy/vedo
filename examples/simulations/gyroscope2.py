@@ -62,7 +62,7 @@ for i, t in enumerate(pb.range()):
 
     gaxis = (Lshaft + 0.03) * vector(st * sp, ct, st * cp)
     # set orientation along gaxis and rotate it around its axis by psidot*t degrees
-    gyro.orientation(gaxis, rotation=psidot * t * 57.3)
+    gyro.orientation(gaxis, rotation=psidot * t, rad=True)
     if not i % 200:  # add trace and render all, every 200 iterations
         vp.add(Point(gaxis, r=3, c="r"))
         vp.show()
