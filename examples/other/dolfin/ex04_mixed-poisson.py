@@ -54,10 +54,14 @@ solve(a == L, w, bc)
 ########################################################### vtkplotter
 from vtkplotter.dolfin import plot, Text
 
-# Plot mesh displacements
-plot(u, bg='white', legend='u', text=__doc__)
+# Plot solution on mesh, and warp z-axis by the scalar value
+plot(u, warpZfactor=0.8, bg='white', legend='u', text=__doc__)
 
 # Plot the sigma vector on the mesh. Try also mode='arrows'
-msg = Text("> plot(sigma, mode='mesh lines')")
-plot(sigma, msg, mode='mesh lines', scale=0.1, axes=8, newPlotter=True)
+msg = Text("> plot(sigma, mode='mesh lines', warpZfactor= -0.2)", c='w')
+plot(sigma, msg,
+     mode='mesh lines',
+     warpZfactor=-0.2,
+     scale=0.03,          # scale the lines or arrows
+     axes=8, newPlotter=True)
 

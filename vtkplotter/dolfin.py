@@ -15,10 +15,10 @@ from vtkplotter.colors import printc, printHistogram
 import vtkplotter.settings as settings
 from vtkplotter.settings import datadir
 
-from vtkplotter.actors import Actor
+from vtkplotter.actors import Actor, isolines
 
 import vtkplotter.vtkio as vtkio
-from vtkplotter.vtkio import load, ProgressBar, screenshot
+from vtkplotter.vtkio import load, ProgressBar, screenshot, Video
 
 import vtkplotter.shapes as shapes
 from vtkplotter.shapes import Text, Latex
@@ -29,9 +29,9 @@ from vtkplotter.plotter import show, clear, Plotter, plotMatrix
 
 __doc__ = (
     """
-`FEniCS/Dolfin https://fenicsproject.org`_ support submodule.
+`FEniCS/Dolfin <https://fenicsproject.org>`_ support submodule.
 
-Install with commands (e.g. in Anaconda):
+Install with commands (e.g. in Anaconda3):
 
     .. code-block:: bash
     
@@ -69,11 +69,12 @@ Image Gallery
 +--------------------------------+--------------------------------+
 | |ft04_heat_gaussian|           |   |demo_cahn-hilliard|         |
 +--------------------------------+--------------------------------+
-| |navier-stokes_lshape|         |   |turing_pattern|             |
+| |navier-stokes_lshape|         |   |stokes1|                    |
 +--------------------------------+--------------------------------+
 | |elastodynamics|               |   |ft02_poisson_membrane|      |
 +--------------------------------+--------------------------------+
-
+| |magnetostatics|               |   |turing_pattern|             |
++--------------------------------+--------------------------------+
 """
     + docs._defs
 )
@@ -95,7 +96,9 @@ __all__ = [
     "Latex",
     "datadir",
     "screenshot",
+    "Video",
     "plotMatrix",
+    "isolines",
 ]
 
 
@@ -203,6 +206,15 @@ def plot(*inputobj, **options):
     :param int bands: group colors in `n` bands
     :param str shading: mesh shading ['flat', 'phong', 'gouraud']
     :param str text: add a gray text comment to the top-left of the window [None]
+    
+    :param dict isolines: dictionary of isolines properties
+        
+        - n, (int) - add this number of isolines to the mesh
+        - c, - isoline color
+        - lw, (float) - isoline width
+        - z, (float) - add to the isoline z coordinate
+      
+    :param float warpZfactor: elevate z-axis by scalar value (useful for 2D geometries)
 
     :param bool newPlotter: spawn a new instance of Plotter class, pops up a new window
     :param int at: renderer number to plot to
@@ -295,7 +307,9 @@ def plot(*inputobj, **options):
     shading = options.pop("shading", None)
     text = options.pop("text", None)
     style = options.pop("style", 'vtk')
-    
+    isolns = options.pop("isolines", dict())
+    warpZfactor = options.pop("warpZfactor", None)
+
     settings.xtitle = options.pop("xtitle", 'x')
     settings.ytitle = options.pop("ytitle", 'y')
     settings.ztitle = options.pop("ztitle", 'z')
@@ -417,10 +431,28 @@ def plot(*inputobj, **options):
             actor.polydata(False).GetPoints().SetData(numpy_to_vtk(movedpts))
             actor.poly.GetPoints().Modified()
             actor.u_values = delta
+        
+        if warpZfactor:
+            scals = actor.scalars(0)
+            if len(scals):
+                pts_act = actor.getPoints(copy=False)
+                pts_act[:, 2] = scals*warpZfactor
             
-        if 'cont' in mode:
-            #todo: draw contours
-            pass
+        if len(isolns) > 0:
+            ison = isolns.pop("n", 10)
+            isocol = isolns.pop("c", 'black')
+            isoalpha = isolns.pop("alpha", 1)
+            isolw = isolns.pop("lw", 1)
+            
+            isos = isolines(actor, n=ison).color(isocol).lw(isolw).alpha(isoalpha)
+
+            isoz = isolns.pop("z", None) 
+            if isoz is not None: # kind of hack to make isolines visible on flat mesh
+                d = isoz
+            else:
+                d = actor.diagonalSize()/400
+            isos.z(actor.z()+d)
+            actors.append(isos)
 
         actors.append(actor)
             
@@ -626,36 +658,6 @@ def MeshArrows(*inputobj, **options):
     return actor
 
 
-#def MeshTensors(*inputobj, **options):
-#    """Not yet implemented."""
-#    c = options.pop("c", "gray")
-#    alpha = options.pop("alpha", 1)
-#    mesh, u = _inputsort(inputobj)
-#    return
-
-
-
-
-
-
-
-
-# Copyright (C) 2008-2012 Joachim B. Haga and Fredrik Valdmanis
-#
-# This file is part of DOLFIN.
-#
-# DOLFIN is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# DOLFIN is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with DOLFIN. If not, see <http://www.gnu.org/licenses/>.
 
 #import os
 #

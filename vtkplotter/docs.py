@@ -826,6 +826,13 @@ _defs = """
     :target: stokes.py_
     :alt: stokes.py
 
+.. |stokes1.py| replace:: stokes1.py
+.. _stokes1.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/stokes.py
+.. |stokes1| image:: https://user-images.githubusercontent.com/32848391/56986911-6116fa00-6b8c-11e9-83f5-5b4efe430c0c.jpg
+    :width: 250 px
+    :target: stokes1.py_
+    :alt: stokes1.py
+
 .. |demo_submesh.py| replace:: demo_submesh.py
 .. _demo_submesh.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/demo_submesh.py
 .. |demo_submesh| image:: https://user-images.githubusercontent.com/32848391/56675428-4e984e80-66bc-11e9-90b0-43dde7e4cc29.png
@@ -839,5 +846,71 @@ _defs = """
     :width: 250 px
     :target: pi_estimate.py_
     :alt: pi_estimate.py
+    
+.. |isolines.py| replace:: isolines.py
+.. _isolines.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/isolines.py
+.. |isolines| image:: https://user-images.githubusercontent.com/32848391/56752570-de0b3380-6788-11e9-8679-6697c6fa7e5a.png
+    :width: 250 px
+    :target: isolines.py_
+    :alt: isolines.py
+
+.. |inset.py| replace:: inset.py
+.. _inset.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/inset.py
+.. |inset| image:: https://user-images.githubusercontent.com/32848391/56758560-3c3f1300-6797-11e9-9b33-49f5a4876039.jpg
+    :width: 250 px
+    :target: inset.py_
+    :alt: inset.py
+
+.. |legosurface.py| replace:: legosurface.py
+.. _legosurface.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/legosurface.py
+.. |legosurface| image:: https://user-images.githubusercontent.com/32848391/56820682-da40e500-684c-11e9-8ea3-91cbcba24b3a.png
+    :width: 250 px
+    :target: legosurface.py_
+    :alt: legosurface.py
+
+
+.. |streamribbons.py| replace:: streamribbons.py
+.. _.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/streamribbons.py
+.. |streamribbons| image:: https://user-images.githubusercontent.com/32848391/56963999-9145a500-6b5a-11e9-9461-0037c471faab.png
+    :width: 250 px
+    :target: streamribbons.py_
+    :alt: streamribbons.py
+
+
+.. |streamlines1.py| replace:: streamlines1.py
+.. _streamlines1.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/streamlines1.py
+.. |streamlines1| image:: https://user-images.githubusercontent.com/32848391/56964002-9145a500-6b5a-11e9-9e3f-da712609d896.png
+    :width: 250 px
+    :target: streamlines1.py_
+    :alt: streamlines1.py
+
+.. |streamlines2.py| replace:: streamlines2.py
+.. _streamlines2.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/streamlines2.py
+.. |streamlines2| image:: https://user-images.githubusercontent.com/32848391/56964001-9145a500-6b5a-11e9-935b-1b2425bd7dd2.png
+    :width: 250 px
+    :target: streamlines2.py_
+    :alt: streamlines2.py
+
+.. |office.py| replace:: office.py
+.. _office.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/office.py
+.. |office| image:: https://user-images.githubusercontent.com/32848391/56964003-9145a500-6b5a-11e9-9d9e-9736d90e1900.png
+    :width: 250 px
+    :target: office.py_
+    :alt: office.py
+
+.. |value-iteration.py| replace:: value-iteration.py
+.. _value-iteration.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/value-iteration.py
+.. |value-iteration| image:: https://user-images.githubusercontent.com/32848391/56964055-afaba080-6b5a-11e9-99cf-3fac99df9878.jpg
+    :width: 250 px
+    :target: value-iteration.py_
+    :alt: value-iteration.py
+
+.. |magnetostatics.py| replace:: magnetostatics.py
+.. _magnetostatics.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/magnetostatics.py
+.. |magnetostatics| image:: https://user-images.githubusercontent.com/32848391/56985162-fb287380-6b87-11e9-9cf9-045bd08c3b9b.jpg
+    :width: 250 px
+    :target: magnetostatics.py_
+    :alt: magnetostatics.py
+
 
 """

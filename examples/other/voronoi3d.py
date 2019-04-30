@@ -1,8 +1,10 @@
 '''
 Voronoi in 3D with Voro++ library.
 '''
-from vtkplotter import voronoi3D, Points, show
+from vtkplotter import voronoi3D, Points, show, settings
 import numpy as np
+
+#settings.voro_path = '/g/sharpeba/software/bin'
 
 N = 2000
 nuclei = np.random.rand(N, 3) - (0.5,0.5,0.5)

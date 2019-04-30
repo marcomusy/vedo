@@ -167,7 +167,7 @@ def Glyph(actor, glyphObj, orientationArray="",
     """
     cmap = None
     # user passing a color map to map orientationArray sizes
-    if c in list(colors._mapscales.keys()):
+    if c in list(colors._mapscales.cmap_d.keys()):
         cmap = c
         c = None
     
@@ -241,7 +241,7 @@ def Glyph(actor, glyphObj, orientationArray="",
     return actor
 
 
-def Line(p0, p1=None, lw=1, c="r", alpha=1, dotted=False):
+def Line(p0, p1=None, lw=1, c="r", alpha=1, dotted=False, res=None):
     """
     Build the line segment between points `p0` and `p1`.
     If `p0` is a list of points returns the line connecting them.
@@ -280,6 +280,8 @@ def Line(p0, p1=None, lw=1, c="r", alpha=1, dotted=False):
         lineSource = vtk.vtkLineSource()
         lineSource.SetPoint1(p0)
         lineSource.SetPoint2(p1)
+        if res:
+            lineSource.SetResolution(res)
         lineSource.Update()
         poly = lineSource.GetOutput()
 
@@ -981,7 +983,7 @@ def Plane(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g", bc="darkgreen",
 
 
 def Box(pos=(0, 0, 0), length=1, width=2, height=3, normal=(0, 0, 1),
-        c="g", alpha=1, texture=None):
+        c="g", alpha=1):
     """
     Build a box of dimensions `x=length, y=width and z=height` oriented along vector `normal`.
 
@@ -1008,18 +1010,18 @@ def Box(pos=(0, 0, 0), length=1, width=2, height=3, normal=(0, 0, 1),
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = Actor(pd, c, alpha, texture=texture)
+    actor = Actor(pd, c, alpha)
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
     return actor
 
 
-def Cube(pos=(0, 0, 0), side=1, normal=(0, 0, 1), c="g", alpha=1, texture=None):
+def Cube(pos=(0, 0, 0), side=1, normal=(0, 0, 1), c="g", alpha=1):
     """Build a cube of size `side` oriented along vector `normal`.
 
     .. hint:: |colorcubes| |colorcubes.py|_
     """
-    return Box(pos, side, side, side, normal, c, alpha, texture)
+    return Box(pos, side, side, side, normal, c, alpha)
 
 
 def Spring(
@@ -1358,7 +1360,7 @@ def Text(
             pos = 1
       
         ca = vtk.vtkCornerAnnotation()
-        ca.SetNonlinearFontScaleFactor(s / 3)
+        ca.SetNonlinearFontScaleFactor(s/2.7)
         ca.SetText(pos - 1, str(txt))
 
         ca.PickableOff()

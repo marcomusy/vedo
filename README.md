@@ -3,7 +3,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/e8c5f1f9afb6433a9cdf4edb5499bd46)](https://app.codacy.com/app/marcomusy/vtkplotter?utm_source=github.com&utm_medium=referral&utm_content=marcomusy/vtkplotter&utm_campaign=Badge_Grade_Dashboard)
 [![Downloads](https://pepy.tech/badge/vtkplotter)](https://pepy.tech/project/vtkplotter)
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
-[![pythvers](https://img.shields.io/badge/python-2.7%7C3.6-brightgreen.svg)](https://pypi.org/project/vtkplotter)
+[![pythvers](https://img.shields.io/badge/python-2.7%7C3-brightgreen.svg)](https://pypi.org/project/vtkplotter)
 [![gdocs](https://img.shields.io/badge/docs%20by-gendocs-blue.svg)](https://gendocs.readthedocs.io/en/latest)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2561402.svg)](https://doi.org/10.5281/zenodo.2561402)
 
@@ -24,7 +24,7 @@ Automatically generated documentation can be found [**here**](https://vtkplotter
 Intuitive and straightforward API which can be combined with VTK seamlessly 
 in a program, whilst mantaining access to the full range of VTK native classes.
 
-It includes a [large set of working examples](https://github.com/marcomusy/vtkplotter/tree/master/examples)
+It includes a [**large set of working examples**](https://github.com/marcomusy/vtkplotter/tree/master/examples)
 for the all following functionalities:
 
   - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, XML, Neutral, GMSH, OFF, PCD (PointCloud), volumetric TIFF stacks, DICOM, SLC, MHD, 2D images PNG, JPEG.
@@ -59,12 +59,13 @@ for the all following functionalities:
     - Isosurfacing of volumes
     - Direct maximum projection rendering
     - Generate volumetric signed-distance data from an input surface mesh
-    - Probe a volume with lines and planes.
+    - Probe a volume with lines and planes
+    - Generate stream-lines and stream-tubes from vectorial fields
   - Add sliders and buttons to interact with the scene and the individual objects.
   - Draw `latex`-formatted formulas on the rending window.
   - Examples using [SHTools](https://shtools.oca.eu/shtools) package for *spherical harmonics* expansion of a mesh shape.
   - Integration with the *Qt5* framework.
-  - Support for [FEniCS/Dolfin](https://fenicsproject.org/) package.
+  - Support for [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of finite-element calculations.
 
 
 
@@ -75,13 +76,17 @@ vtkplotter mesh.obj
 #                 gmsh,pcd,xyz,txt,byu,tif,off,slc,vti,mhd,dcm,png,jpg]
 ```
 to visualize multiple files or files time-sequences try `-n` or `-s` options. Use `-h` for help.<br> 
-Voxel-data (_vti, slc, tiff_) files can also be visualized with options `-g` and `--slicer`,
-e.g.:
+Voxel-data (_mhd, vti, slc, tiff_) files can also be visualized with options `-g`, `--slicer`,
+or `--lego` e.g.:
+
+|![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif) |   ![viz_raycast](https://user-images.githubusercontent.com/32848391/56972086-a7f3f800-6b6a-11e9-841e-ae499a0fb83f.png)  | ![viz_slicer](https://user-images.githubusercontent.com/32848391/56972084-a7f3f800-6b6a-11e9-98c4-dc4ffec70a5e.png)      |![lego](https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg) |
+|:-----------------------------------------------------------------------------------------------------------------:|:---:|:---:|:-----|
 ```bash
-vtkplotter -g -c blue examples/data/embryo.slc  # (3D scan of a mouse embryo)
-vtkplotter --slicer   examples/data/embryo.slc  # can be used to read DICOM datasets  
+vtkplotter            examples/data/head.vti    #1 use a slider to control isosurfacing
+vtkplotter -g -c blue examples/data/embryo.slc  #2 (3D scan of a mouse embryo)
+vtkplotter --slicer   examples/data/embryo.slc  #3 can be used to read DICOM datasets  
+vtkplotter --lego     examples/data/embryo.tif  #4 visualize colorized voxels  
 ```
-![e2](https://user-images.githubusercontent.com/32848391/50738810-58af4380-11d8-11e9-8fc7-6c6959207224.jpg)
 
 
 ## Examples Gallery
@@ -91,7 +96,7 @@ git clone https://github.com/marcomusy/vtkplotter.git
 cd vtkplotter/examples
 python tutorial.py  
 ```
-**More than 150 examples can be found in directories** _(scroll down to see the screenshots):_ <br>
+**More than 160 working examples can be found in directories** _(scroll down to see the screenshots):_ <br>
 [**examples/basic**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic)<br>
 [**examples/advanced**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced)<br>
 [**examples/volumetric**](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric)<br>
@@ -99,17 +104,17 @@ python tutorial.py
 [**examples/other**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other)<br>
 [**examples/other/dolfin**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin).<br>
 
-|                                                                                                                   |      |
-|:-----------------------------------------------------------------------------------------------------------------:|:-----|
+|          |      |
+|:--------:|:-----|
 | ![rabbit](https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg)   | Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a large cloud of scattered points in space ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py)) <br />  `python advanced/moving_least_squares2D.py` |
-|                                                                                                                   |      |
-| ![elastodyn](https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif)   | Support for the [FEniCS/dolfin](https://fenicsproject.org/) platform for visualization of finite element solutions ([see here](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin)). |
 |                                                                                                                   |      |
 | ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)     | Simulation of a gyroscope hanging from a spring ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/gyroscope1.py)) <br /> `python simulations/gyroscope1.py`|
 |                                                                                                                   |      |
 | ![qsine2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)   | Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/tunnelling2.py)) <br /> `python simulations/tunnelling2.py`   |
 |                                                                                                                   |      |
 | ![turing](https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif)   | Visualizing a Turing system of reaction-diffusion between two molecules<sup>1</sup> ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/turing.py)) <br /> `python simulations/turing.py`  |
+|                                                                                                                   |      |
+| ![elastodyn](https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif)   |  Support for the [FEniCS/dolfin](https://fenicsproject.org/) platform for visualization of finite element solutions ([see here](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin)). ![dolf](https://user-images.githubusercontent.com/32848391/56671156-6bc91f00-66b4-11e9-8c58-e6b71e2ad1d0.gif) |
 <br />
 
 

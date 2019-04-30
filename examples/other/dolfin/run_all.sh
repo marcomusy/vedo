@@ -29,6 +29,9 @@ python demo_submesh.py
 echo Running elastodynamics.py
 python elastodynamics.py
 
+echo Running magnetostatics.py
+python magnetostatics.py
+
 
 ######################################
 echo Running ex01_show-mesh.py

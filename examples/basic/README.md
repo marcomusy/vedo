@@ -21,7 +21,7 @@ python example.py
 |    |    |
 | [![buttons](https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buttons.py)<br/> `buttons.py`           |  Add a square button with N possible internal states to a rendering window that calls a custom function. |
 |    |    |
-| [![carcrash](https://user-images.githubusercontent.com/32848391/50738869-c0fe2500-11d8-11e9-9b0f-c22c30050c34.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/carcrash.py)<br/> `carcrash.py`        |  Make a textured floor, a lamp post, load the mesh of a car, make copies of it, rotate and move them in a loop. <br/>`vp.render()` is used inside the loop appending each new actor to list in `vp.actors`. |
+| [![carcrash](https://user-images.githubusercontent.com/32848391/50738869-c0fe2500-11d8-11e9-9b0f-c22c30050c34.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/carcrash.py)<br/> `carcrash.py`        |  Make a textured floor, a lamp post, load the mesh of a car, make copies of it, rotate and move them in a loop. |
 |    |    |
 | [![clustering](https://user-images.githubusercontent.com/32848391/50738868-c0fe2500-11d8-11e9-8cf8-93ddca43e406.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/clustering.py)<br/> `clustering.py`  |  Example of how to use `removeOutliers()` and `cluster()` methods. |
 |    |    |
@@ -58,6 +58,8 @@ python example.py
 | [![mesh_custom](https://user-images.githubusercontent.com/32848391/51390972-20d9c180-1b31-11e9-955d-025f1ef24cb7.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_custom.py)<br/> `mesh_custom.py`          | Build a custom color map to specify the color for each vertex of a mesh. |
 |    |    |
 | [![mesh_map2cell](https://user-images.githubusercontent.com/32848391/56600859-0153a880-65fa-11e9-88be-34fd96b18e9a.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_map2cell.py)<br/> `mesh_map2cell.py`    | Map a scalar which is defined on the vertices to the mesh cells. |
+|    |    |
+| [![isolines](https://user-images.githubusercontent.com/32848391/56752570-de0b3380-6788-11e9-8679-6697c6fa7e5a.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/isolines.py)<br/> `isolines.py`    | Generate isolines for the current active scalars of a surface. |
 |    |    |
 | [![mesh_threshold](https://user-images.githubusercontent.com/32848391/51807663-4762cf80-228a-11e9-9d0c-184bb11a97bf.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_threshold.py)<br/> `mesh_threshold.py` | Extracts the cells where scalar value satisfies a threshold criterion. |
 |    |    |

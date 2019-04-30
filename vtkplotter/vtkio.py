@@ -234,59 +234,59 @@ def loadMultiBlockData(filename, unpack=True):
         
 
 
-def loadXMLGenericData(filename):  # not tested
-    """Read any type of vtk data object encoded in XML format. Return an ``Actor(vtkActor)`` object."""
+def loadXMLGenericData(filename):
+    """Read any type of vtk data object encoded in XML format."""
     reader = vtk.vtkXMLGenericDataObjectReader()
     reader.SetFileName(filename)
     reader.Update()
-    return Actor(reader.GetOutput())
+    return reader.GetOutput()
 
 
 def loadStructuredPoints(filename):
-    """Load a ``vtkStructuredPoints`` object from file and return an ``Actor(vtkActor)`` object.
+    """Load a ``vtkStructuredPoints`` object from file.
 
     .. hint:: |readStructuredPoints| |readStructuredPoints.py|_
     """
     reader = vtk.vtkStructuredPointsReader()
     reader.SetFileName(filename)
     reader.Update()
-    gf = vtk.vtkImageDataGeometryFilter()
-    gf.SetInputConnection(reader.GetOutputPort())
-    gf.Update()
-    return Actor(gf.GetOutput())
+#    gf = vtk.vtkImageDataGeometryFilter()
+#    gf.SetInputConnection(reader.GetOutputPort())
+#    gf.Update()
+    return reader.GetOutput()
 
 
-def loadStructuredGrid(filename):  # not tested
-    """Load a ``vtkStructuredGrid`` object from file and return a ``Actor(vtkActor)`` object."""
+def loadStructuredGrid(filename):
+    """Load a ``vtkStructuredGrid`` object from file."""
     reader = vtk.vtkStructuredGridReader()
     reader.SetFileName(filename)
     reader.Update()
-    gf = vtk.vtkStructuredGridGeometryFilter()
-    gf.SetInputConnection(reader.GetOutputPort())
-    gf.Update()
-    return Actor(gf.GetOutput())
+#    gf = vtk.vtkStructuredGridGeometryFilter()
+#    gf.SetInputConnection(reader.GetOutputPort())
+#    gf.Update()
+    return reader.GetOutput()
 
 
-def loadUnStructuredGrid(filename):  # not tested
-    """Load a ``vtkunStructuredGrid`` object from file and return a ``Actor(vtkActor)`` object."""
+def loadUnStructuredGrid(filename):
+    """Load a ``vtkunStructuredGrid`` object from file."""
     reader = vtk.vtkUnstructuredGridReader()
     reader.SetFileName(filename)
     reader.Update()
-    gf = vtk.vtkUnstructuredGridGeometryFilter()
-    gf.SetInputConnection(reader.GetOutputPort())
-    gf.Update()
-    return Actor(gf.GetOutput())
+#    gf = vtk.vtkUnstructuredGridGeometryFilter()
+#    gf.SetInputConnection(reader.GetOutputPort())
+#    gf.Update()
+    return reader.GetOutput()
 
 
-def loadRectilinearGrid(filename):  # not tested
-    """Load a ``vtkRectilinearGrid`` object from file and return a ``Actor(vtkActor)`` object."""
+def loadRectilinearGrid(filename):
+    """Load a ``vtkRectilinearGrid`` object from file."""
     reader = vtk.vtkRectilinearGridReader()
     reader.SetFileName(filename)
     reader.Update()
-    gf = vtk.vtkRectilinearGridGeometryFilter()
-    gf.SetInputConnection(reader.GetOutputPort())
-    gf.Update()
-    return Actor(gf.GetOutput())
+#    gf = vtk.vtkRectilinearGridGeometryFilter()
+#    gf.SetInputConnection(reader.GetOutputPort())
+#    gf.Update()
+    return reader.GetOutput()
 
 
 def load3DS(filename):
@@ -596,9 +596,7 @@ def write(objct, fileoutput, binary=True):
         w = vtk.vtkBYUWriter()
     elif ".obj" in fr:
         w = vtk.vtkOBJExporter()
-        w.SetFilePrefix(fileoutput.replace(".obj", ""))
-        colors.printc("~target Please use write(vp.window)", c=3)
-        w.SetInputData(obj)
+        w.SetInputData(settings.plotter_instance.window)
         w.Update()
         colors.printc("~save Saved file: " + fileoutput, c="g")
         return objct
@@ -904,6 +902,7 @@ class ProgressBar:
         self._len = len(self._range)
 
     def print(self, txt="", counts=None):
+        """Print the progress bar and optional message."""
         if counts:
             self._update(counts)
         else:
@@ -951,9 +950,11 @@ class ProgressBar:
             self._lentxt = len(txt)
 
     def range(self):
+        """Return the range iterator."""
         return self._range
 
     def len(self):
+        """Return the number of steps."""
         return self._len
 
     def _update(self, counts):
@@ -1391,27 +1392,35 @@ def _keypress(iren, event):
         print("Verbose: ", vp.verbose)
 
     elif key == "1":
+        vp.icol += 1
         if vp.clickedActor and hasattr(vp.clickedActor, "GetProperty"):
-            vp.clickedActor.GetProperty().SetColor(colors.colors1[(vp.icol) % 10])
+            if (vp.icol) % 10 == 0:
+                vp.clickedActor.GetMapper().ScalarVisibilityOn()
+            else:
+                vp.clickedActor.GetMapper().ScalarVisibilityOff()
+                vp.clickedActor.GetProperty().SetColor(colors.colors1[(vp.icol) % 10])
         else:
             for i, ia in enumerate(vp.getActors()):
                 if not ia.GetPickable():
                     continue
                 ia.GetProperty().SetColor(colors.colors1[(i + vp.icol) % 10])
                 ia.GetMapper().ScalarVisibilityOff()
-        vp.icol += 1
         addons.addLegend()
 
     elif key == "2":
+        vp.icol += 1
         if vp.clickedActor and hasattr(vp.clickedActor, "GetProperty"):
-            vp.clickedActor.GetProperty().SetColor(colors.colors2[(vp.icol) % 10])
+            if (vp.icol) % 10 == 0:
+                vp.clickedActor.GetMapper().ScalarVisibilityOn()
+            else:
+                vp.clickedActor.GetMapper().ScalarVisibilityOff()
+                vp.clickedActor.GetProperty().SetColor(colors.colors2[(vp.icol) % 10])
         else:
             for i, ia in enumerate(vp.getActors()):
                 if not ia.GetPickable():
                     continue
                 ia.GetProperty().SetColor(colors.colors2[(i + vp.icol) % 10])
                 ia.GetMapper().ScalarVisibilityOff()
-        vp.icol += 1
         addons.addLegend()
 
     elif key == "3":

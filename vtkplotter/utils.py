@@ -28,6 +28,7 @@ __all__ = [
     "cart2pol",
     "pol2cart",
     "humansort",
+    "resampleArrays",
 ]
 
 
@@ -527,6 +528,23 @@ def makeBands(inputlist, numberOfBands):
 
     
     
+def resampleArrays(source, target, tol=None):
+        """Resample point and cell data of a dataset on points from another dataset.
+        
+        :param float tol: set the tolerance used to compute whether
+            a point in the target is in a cell of the source.
+            Points without resampled values, and their cells, are be marked as blank.
+        """
+        rs = vtk.vtkResampleWithDataSet()
+        rs.SetSourceData(target.polydata())
+        rs.SetInputData(source.polydata())
+        rs.SetPassPointArrays(True)
+        rs.SetPassCellArrays(True)
+        if tol:
+            rs.SetComputeTolerance(False)
+            rs.SetTolerance(tol)
+        rs.Update()
+        return rs.GetOutput()
     
     
     

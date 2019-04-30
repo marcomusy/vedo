@@ -8,7 +8,7 @@ from vtkplotter import __version__
 import vtkplotter.vtkio as vtkio
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
-from vtkplotter.actors import Actor, Volume
+from vtkplotter.actors import Actor, Assembly, Volume
 import vtkplotter.docs as docs
 import vtkplotter.settings as settings
 import vtkplotter.addons as addons
@@ -418,13 +418,13 @@ class Plotter:
             for j in range(shape[1]):
                 arenderer = vtk.vtkRenderer()
                 arenderer.SetUseDepthPeeling(depthpeeling)
-                if "jpg" in str(bg).lower() or "jpeg" in str(bg).lower():
+                if "jpg" in str(self.backgrcol).lower() or "jpeg" in str(self.backgrcol).lower():
                     if i == 0:
                         jpeg_reader = vtk.vtkJPEGReader()
-                        if not jpeg_reader.CanReadFile(bg):
-                            colors.printc("~times Error reading background image file", bg, c=1)
+                        if not jpeg_reader.CanReadFile(self.backgrcol):
+                            colors.printc("~times Error reading background image file", self.backgrcol, c=1)
                             sys.exit()
-                        jpeg_reader.SetFileName(bg)
+                        jpeg_reader.SetFileName(self.backgrcol)
                         jpeg_reader.Update()
                         image_data = jpeg_reader.GetOutput()
                         image_actor = vtk.vtkImageActor()
@@ -442,7 +442,7 @@ class Plotter:
                         self.window.AddRenderer(self.backgroundRenderer)
                         self.backgroundRenderer.AddActor(image_actor)
                 else:
-                    arenderer.SetBackground(colors.getColor(bg))
+                    arenderer.SetBackground(colors.getColor(self.backgrcol))
                     if bg2:
                         arenderer.GradientBackgroundOn()
                         arenderer.SetBackground2(colors.getColor(bg2))
@@ -774,7 +774,7 @@ class Plotter:
         return addons.addScalarBar3D(obj, at, pos, normal, sx, sy, nlabels, ncols, cmap, c, alpha)
 
     def addSlider2D(
-        self, sliderfunc, xmin, xmax, value=None, pos=4, s=0.04, title="", c=None, showValue=True
+        self, sliderfunc, xmin, xmax, value=None, pos=4, title="", c=None, showValue=True
     ):
         """Add a slider widget which can call an external custom function.
 
@@ -789,7 +789,7 @@ class Plotter:
 
         .. hint:: |sliders| |sliders.py|_
         """
-        return addons.addSlider2D(sliderfunc, xmin, xmax, value, pos, s, title, c, showValue)
+        return addons.addSlider2D(sliderfunc, xmin, xmax, value, pos, title, c, showValue)
 
     def addSlider3D(
         self,
@@ -895,6 +895,7 @@ class Plotter:
 
     def addLegend(self):
         return addons.addLegend()
+
 
     ##############################################################################
     def show(
@@ -1241,6 +1242,55 @@ class Plotter:
             if self.verbose:
                 print("q flag set to True. Exit.")
             sys.exit(0)
+
+
+    def showInset(self, *actors, **options): #pos=3, size=0.1, c='r', draggable=True):
+        """Add a draggable inset space into a renderer.
+    
+        :param pos: icon position in the range [1-4] indicating one of the 4 corners,
+                    or it can be a tuple (x,y) as a fraction of the renderer size.
+        :param float size: size of the square inset.
+        :param bool draggable: if True the subrenderer space can be dragged around.
+
+        .. hint:: |inset| |inset.py|_
+        """
+        pos = options.pop("pos", None)
+        size = options.pop("size", 0.1)
+        c = options.pop("c", 'r')
+        draggable = options.pop("draggable", True)
+
+        if not self.renderer:
+            colors.printc("~lightningWarning: Use showInset() after first rendering the scene.", c=3)
+            save_int = self.interactive
+            self.show(interactive=0)
+            self.interactive = save_int
+        widget = vtk.vtkOrientationMarkerWidget()
+        r,g,b = colors.getColor(c)
+        widget.SetOutlineColor(r,g,b)
+        if len(actors)==1:
+            widget.SetOrientationMarker(actors[0])
+        else:
+            widget.SetOrientationMarker(Assembly(utils.flatten(actors)))
+        widget.SetInteractor(self.interactor)
+        if utils.isSequence(pos):
+            widget.SetViewport(pos[0] - size, pos[1] - size, pos[0] + size, pos[1] + size)
+        else:
+            if pos < 2:
+                widget.SetViewport(0, 1 - 2 * size, size * 2, 1)
+            elif pos == 2:
+                widget.SetViewport(1 - 2 * size, 1 - 2 * size, 1, 1)
+            elif pos == 3:
+                widget.SetViewport(0, 0, size * 2, size * 2)
+            elif pos == 4:
+                widget.SetViewport(1 - 2 * size, 0, 1, size * 2)
+        widget.EnabledOn()
+        widget.SetInteractive(draggable)
+        self.widgets.append(widget)
+        for a in actors:
+            if a in self.actors:
+                self.actors.remove(a)
+        return widget
+
 
     def lastActor(self):
         """Return last added ``Actor``."""

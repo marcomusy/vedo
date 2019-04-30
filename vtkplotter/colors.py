@@ -26,23 +26,7 @@ __all__ = [
 try:
     import matplotlib
     import matplotlib.cm as cm_mpl
-
-    _mapscales = {
-        "jet": cm_mpl.jet,
-        "hot": cm_mpl.hot,
-        "afmhot": cm_mpl.afmhot,
-        "rainbow": cm_mpl.rainbow,
-        "binary": cm_mpl.binary,
-        "gray": cm_mpl.gray,
-        "bone": cm_mpl.bone,
-        "winter": cm_mpl.winter,
-        "cool": cm_mpl.cool,
-        "copper": cm_mpl.copper,
-        "coolwarm": cm_mpl.coolwarm,
-        "gist_earth": cm_mpl.gist_earth,
-        "viridis": cm_mpl.viridis,
-        "plasma": cm_mpl.plasma,
-    }
+    _mapscales = cm_mpl
 except:
     _mapscales = None
     # see below, this is dealt with in colorMap()
@@ -301,9 +285,13 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
 
     :return: (r,g,b) color, or a list of (r,g,b) colors.
 
-    .. note:: Available color maps:
+    .. note:: Most frequently used color maps:
 
         |colormaps|
+        
+        Matplotlib full list:
+        
+        .. image:: https://matplotlib.org/1.2.1/_images/show_colormaps.png
 
     .. tip:: Can also use directly a matplotlib color map:
 
@@ -327,11 +315,7 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
     if isinstance(name, matplotlib.colors.LinearSegmentedColormap):
         mp = name
     else:
-        if name in _mapscales.keys():
-            mp = _mapscales[name]
-        else:
-            print("Error in colorMap():", name, "\navaliable maps =", sorted(_mapscales.keys()))
-            exit(0)
+        mp = cm_mpl.get_cmap(name=name)
 
     if _isSequence(value):
         values = np.array(value)
@@ -343,7 +327,7 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
         values -= vmin
         values /= vmax - vmin
         cols = []
-        mp = _mapscales[name]
+        mp = cm_mpl.get_cmap(name=name)
         for v in values:
             cols.append(mp(v)[0:3])
         return np.array(cols)

@@ -30,14 +30,23 @@ python basic/align2.py
 echo Running basic/align3.py
 python basic/align3.py
 
+echo Running basic/annotations.py
+python basic/annotations.py    
+
+echo Running basic/bgImage.py
+python basic/bgImage.py
+
+echo Running basic/boolean.py
+python basic/boolean.py      
+
+echo Running basic/buildpolydata.py
+python basic/buildpolydata.py
+
 echo Running basic/carcrash.py
 python basic/carcrash.py
 
 echo Running basic/colormaps.py
 python basic/colormaps.py
-
-echo Running basic/buildpolydata.py
-python basic/buildpolydata.py
 
 echo Running basic/delaunay2d.py
 python basic/delaunay2d.py
@@ -105,6 +114,9 @@ python basic/mesh_modify.py
 echo Running basic/mesh_map2cell.py
 python basic/mesh_map2cell.py
 
+echo Running basic/isolines.py
+python basic/isolines.py
+
 echo Running basic/pca.py
 python basic/pca.py
 
@@ -135,9 +147,6 @@ python basic/cutter.py
 echo Running basic/texturecubes.py
 python basic/texturecubes.py
 
-echo Running basic/bgImage.py
-python basic/bgImage.py
-
 echo Running basic/mouseclick.py
 python basic/mouseclick.py
 
@@ -158,12 +167,6 @@ python basic/interactionstyle.py
 
 echo Running basic/tube.py
 python basic/tube.py
-
-echo Running basic/boolean.py
-python basic/boolean.py      
-
-echo Running basic/annotations.py
-python basic/annotations.py    
 
 echo Running basic/markpoint.py
 python basic/markpoint.py    
@@ -247,6 +250,9 @@ python advanced/convexHull.py
 echo Running simulations/aspring.py
 python simulations/aspring.py
 
+echo Running simulations/cell_main.py
+python simulations/cell_main.py
+
 echo Running simulations/brownian2D.py
 python simulations/brownian2D.py
 
@@ -279,6 +285,9 @@ python simulations/doubleslit.py
 
 echo Running simulations/tunnelling2.py
 python simulations/tunnelling2.py
+
+echo Running simulations/hanoi3d.py
+python simulations/hanoi3d.py
 
 
 ################################### volumetric
@@ -318,8 +327,25 @@ python volumetric/isosurfaces1.py
 echo Running volumetric/isosurfaces2.py
 python volumetric/isosurfaces2.py
 
+echo Running volumetric/legosurface.py
+python volumetric/legosurface.py
+
 echo Running volumetric/mesh2volume.py
 python volumetric/mesh2volume.py
+
+echo Running volumetric/streamlines1.py
+python volumetric/streamlines1.py
+
+echo Running volumetric/streamlines2.py
+python volumetric/streamlines2.py
+
+echo Running volumetric/streamribbons.py
+python volumetric/streamribbons.py
+
+cd volumetric
+echo Running office.py
+python office.py
+cd ..
 
 
 #################################### Other
@@ -332,20 +358,40 @@ python other/printc.py
 echo Running other/icon.py
 python other/icon.py
 
+echo Running other/inset.py
+python other/inset.py
+
 echo Running other/qt_embed.py # needs qt5
 python other/qt_embed.py
+
+echo Running other/self_org_maps2d.py
+python other/self_org_maps2d.py
+
+echo Running other/value-iteration.py
+python other/value-iteration.py
 
 echo Running other/spherical_harmonics1.py
 python other/spherical_harmonics1.py 
 
+echo Running other/tf_learn_volume.py
+python other/tf_learn_volume.py
+
+echo Running other/voronoi3d.py
+python other/voronoi3d.py
+
+
 
 ##################################### not ran/ignored:
+#basic/annotations.py
 #basic/text_just.py
 #basic/lights.py
 #basic/ids.py
 #basic/surfIntersect.py
 #other/makeVideo.py
 #other/spherical_harmonics2.py 
+#other/remesh_ACVD.py 
+#other/tf_learn_embryo.py
+#other/self_org_maps2d.py
 
 #################################### 
 echo
@@ -357,6 +403,10 @@ vtkplotter       data/2*.vtk
 echo '----------------------------'
 echo vtkplotter  data/embryo.tif
 vtkplotter       data/embryo.tif
+
+echo '----------------------------'
+echo vtkplotter --lego --cmap afmhot_r  data/embryo.tif
+vtkplotter      --lego --cmap afmhot_r  data/embryo.tif
 
 echo '----------------------------'
 echo vtkplotter -g -c blue data/embryo.slc

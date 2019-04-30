@@ -33,6 +33,8 @@ python example.py  # on mac OSX try 'pythonw' instead
 |    |    |
 | [![elasticity2](https://user-images.githubusercontent.com/32848391/53026246-d36baf80-3462-11e9-96a5-8eaf0bb0f9a4.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ex06_elasticity2.py)<br/> `ex06_elasticity2.py`       | Solving an elasticity problem. Use scalars and vectors to colorize mesh displacements with different color maps. |
 |    |    |
+| [![magnetostatics](https://user-images.githubusercontent.com/32848391/56985162-fb287380-6b87-11e9-9cf9-045bd08c3b9b.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/magnetostatics.py)<br/> `magnetostatics.py`        | Compute the magnetic field B in an iron cylinder, the copper wires, and the surrounding vacuum. Isolines of Az are also shown. |
+|    |    |
 | [![stokes](https://user-images.githubusercontent.com/32848391/53044917-95838100-348c-11e9-9a94-aa10b8f1658c.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ex07_stokes-iterative.py)<br/> `ex07_stokes-iterative.py`  | Stokes equations with an iterative solver. |
 |    |    |
 | [![elastodyn](https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/elastodynamics.py)<br/> `elastodynamics.py`             | Perform time integration of transient elastodynamics using the generalized-alpha method. |

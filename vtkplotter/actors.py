@@ -22,6 +22,8 @@ __all__ = [
     'Volume',
     'mergeActors',
     'isosurface',
+    'isolines',
+    'legosurface',
     'collection',
 ]
 
@@ -33,6 +35,8 @@ def mergeActors(actors, tol=0):
     Similar to Assembly, but in this case the input objects become a single mesh.
 
     .. hint:: |thinplate_grid| |thinplate_grid.py|_
+    
+    |value-iteration| |value-iteration.py|_
     """
     polylns = vtk.vtkAppendPolyData()
     for a in actors:
@@ -58,7 +62,55 @@ def collection():
     """
     return settings.collectable_actors
 
+#
+#def isolines(actor, n=10, vmin=None, vmax=None):
+#    """
+#    Return the actor representing the isolines of the active scalars.
+#    
+#    :param int n: number of isolines in the range
+#    :param float vmin: minimum of the range
+#    :param float vmax: maximum of the range
+#    """    
+#    contour = vtk.vtkContourFilter()
+#    contour.SetInputData(actor.polydata())
+#    r0, r1 = actor.polydata().GetPointData().GetScalars().GetRange()
+#    if vmin is None:
+#        vmin = r0
+#    if vmax is None:
+#        vmax = r1
+#    contour.GenerateValues(n, vmin, vmax)
+#    contour.Update()
+#    
+#    return Actor(contour.GetOutput(), c='w')
 
+
+def isolines(actor, n=10, vmin=None, vmax=None):
+    """
+    Return the actor representing the isolines of the active scalars.
+    
+    :param int n: number of isolines in the range
+    :param float vmin: minimum of the range
+    :param float vmax: maximum of the range
+    
+    .. hint:: |isolines| |isolines.py|_
+    """
+    bcf = vtk.vtkBandedPolyDataContourFilter()
+    bcf.SetInputData(actor.polydata())
+    bcf.SetScalarModeToValue()
+    bcf.GenerateContourEdgesOn()
+    r0, r1 = actor.polydata().GetScalarRange()
+    if vmin is None:
+        vmin = r0
+    if vmax is None:
+        vmax = r1
+    bcf.GenerateValues(n, vmin, vmax)
+    bcf.Update()
+    zpoly = bcf.GetContourEdgesOutput()
+    zbandsact = Actor(zpoly, c="k")
+    zbandsact.GetProperty().SetLineWidth(1.5)
+    return zbandsact
+
+    
 def isosurface(image, smoothing=0, threshold=None, connectivity=False):
     """Return a ``vtkActor`` isosurface extracted from a ``vtkImageData`` object.
 
@@ -113,6 +165,51 @@ def isosurface(image, smoothing=0, threshold=None, connectivity=False):
     a.mapper.SetScalarRange(scrange[0], scrange[1])
     return a
 
+
+def legosurface(image, vmin=None, vmax=None, cmap='afmhot_r'):
+    """
+    Represent a ``vtkVolume`` or ``vtkImageData`` as lego blocks (voxels).
+    By default colors correspond to the volume's scalar.
+    Returns an ``Actor``.
+    
+    :param float vmin: the lower threshold, voxels below this value are not shown.
+    :param float vmax: the upper threshold, voxels above this value are not shown.
+    :param str cmap: color mapping of the scalar associated to the voxels.
+    
+    .. hint:: |legosurface| |legosurface.py|_  
+    """
+    if isinstance(image, vtk.vtkVolume):
+        image = image.GetMapper().GetInput()
+    dataset = vtk.vtkImplicitDataSet()
+    dataset.SetDataSet(image)
+    window = vtk.vtkImplicitWindowFunction()
+    window.SetImplicitFunction(dataset)
+    
+    srng = list(image.GetScalarRange())    
+    if vmin is not None: srng[0] = vmin
+    if vmax is not None: srng[1] = vmax
+    window.SetWindowRange(srng)
+    
+    extract = vtk.vtkExtractGeometry()
+    extract.SetInputData(image)
+    extract.SetImplicitFunction(window)
+    extract.ExtractInsideOff()
+    extract.ExtractBoundaryCellsOff()
+    extract.Update()
+    
+    gf = vtk.vtkGeometryFilter()
+    gf.SetInputData(extract.GetOutput())
+    gf.Update()
+    
+    a = Actor(gf.GetOutput()).lw(0.1)
+    a.GetProperty().SetInterpolationToFlat()
+
+    scalars = np.array(a.scalars(0), dtype=np.float)
+
+    if cmap:
+        a.pointColors(scalars, vmin=image.GetScalarRange()[0], cmap=cmap)
+        a.mapPointsToCells()
+    return a
 
 
 ################################################# classes
@@ -485,9 +582,12 @@ class Prop(object):
         from vtkplotter.shapes import Box
         pos = (b[0]+b[1])/2, (b[3]+b[2])/2, (b[5]+b[4])/2
         length, width, height = b[1]-b[0], b[3]-b[2], b[5]-b[4]
-        oa = Box(pos, length, width, height, c='gray').wire()
+        oa = Box(pos, length, width, height, c='gray')
         if isinstance(self.GetProperty(), vtk.vtkProperty):
-            oa.SetProperty(self.GetProperty())
+            pr = vtk.vtkProperty()
+            pr.DeepCopy(self.GetProperty())
+            oa.SetProperty(pr)
+            oa.wire()
         return oa
 
 
@@ -526,10 +626,47 @@ class Actor(vtk.vtkActor, Prop):
         if "vtkActor" in inputtype:
             self.mapper = poly.GetMapper()
             self.poly = self.mapper.GetInput()
-        else:
-            self.poly = None  # cache vtkPolyData and mapper for speed
+        elif "vtkUnstructuredGrid" in inputtype:
+            gf = vtk.vtkGeometryFilter()
+            gf.SetInputData(poly)
+            gf.Update()
+            self.poly = gf.GetOutput()
             self.mapper = vtk.vtkPolyDataMapper()
+        elif "vtkStructuredGrid" in inputtype:
+            gf = vtk.vtkGeometryFilter()
+            gf.SetInputData(poly)
+            gf.Update()
+            self.poly = gf.GetOutput()
+            self.mapper = vtk.vtkPolyDataMapper()
+        elif "vtkRectilinearGrid" in inputtype:
+            gf = vtk.vtkGeometryFilter()
+            gf.SetInputData(poly)
+            gf.Update()
+            self.poly = gf.GetOutput()
+            self.mapper = vtk.vtkPolyDataMapper()
+        else:
+            self.poly = poly  # cache vtkPolyData and mapper for speed
+            self.mapper = vtk.vtkPolyDataMapper()
+        
+        if self.mapper:
             self.SetMapper(self.mapper)
+
+        if settings.computeNormals is not None:
+            computeNormals = settings.computeNormals
+
+        if self.poly:
+            if computeNormals:
+                pdnorm = vtk.vtkPolyDataNormals()
+                pdnorm.SetInputData(self.poly)
+                pdnorm.ComputePointNormalsOn()
+                pdnorm.ComputeCellNormalsOn()
+                pdnorm.FlipNormalsOff()
+                pdnorm.ConsistencyOn()
+                pdnorm.Update()
+                self.poly = pdnorm.GetOutput()
+
+            if self.mapper:
+                self.mapper.SetInputData(self.poly)
 
         self.point_locator = None
         self.cell_locator = None
@@ -537,27 +674,8 @@ class Actor(vtk.vtkActor, Prop):
         self.scalarbar_actor = None
         self._bfprop = None  # backface property holder
 
-        self.GetProperty().SetInterpolationToFlat()
-
-        if settings.computeNormals is not None:
-            computeNormals = settings.computeNormals
-
-        if poly:
-            if computeNormals:
-                pdnorm = vtk.vtkPolyDataNormals()
-                pdnorm.SetInputData(poly)
-                pdnorm.ComputePointNormalsOn()
-                pdnorm.ComputeCellNormalsOn()
-                pdnorm.FlipNormalsOff()
-                pdnorm.ConsistencyOn()
-                pdnorm.Update()
-                self.poly = pdnorm.GetOutput()
-            else:
-                self.poly = poly
-
-            self.mapper.SetInputData(self.poly)
-
         prp = self.GetProperty()
+        prp.SetInterpolationToFlat()
         
         if settings.renderPointsAsSpheres:
             if hasattr(prp, 'RenderPointsAsSpheresOn'):
@@ -590,7 +708,7 @@ class Actor(vtk.vtkActor, Prop):
             backProp.SetOpacity(alpha)
             self.SetBackfaceProperty(backProp)
 
-
+    ###############################################
     def __add__(self, actors):
         if isinstance(actors, list):
             alist = [self]
@@ -657,55 +775,45 @@ class Actor(vtk.vtkActor, Prop):
         self.scalarbar = [pos, normal, sx, sy, nlabels, ncols, cmap, c, alpha]
         return self
 
-
-    def texture(self, name, scale=1, falsecolors=False, mapTo=1):
-        """Assign a texture to actor from image file or predefined texture name."""
+    def texture(self, tname):
+        """Assign a texture to actor from image file or predefined texture tname."""
         import os
 
-        if mapTo == 1:
-            tmapper = vtk.vtkTextureMapToCylinder()
-        elif mapTo == 2:
-            tmapper = vtk.vtkTextureMapToSphere()
-        elif mapTo == 3:
-            tmapper = vtk.vtkTextureMapToPlane()
+        tmapper = vtk.vtkTextureMapToPlane()
+        tmapper.AutomaticPlaneGenerationOn()
+        tmapper.SetInputData(self.polydata())
+        tmapper.Update()
+        
+        tc = tmapper.GetOutput().GetPointData().GetTCoords()
+        self.polydata().GetPointData().SetTCoords(tc)
+        self.polydata().GetPointData().AddArray(tc)
 
-        tmapper.SetInputData(self.polydata(False))
-        if mapTo == 1:
-            tmapper.PreventSeamOn()
-
-        xform = vtk.vtkTransformTextureCoords()
-        xform.SetInputConnection(tmapper.GetOutputPort())
-        xform.SetScale(scale, scale, scale)
-        if mapTo == 1:
-            xform.FlipSOn()
-        xform.Update()
-
-        mapper = vtk.vtkDataSetMapper()
-        mapper.SetInputConnection(xform.GetOutputPort())
-        mapper.ScalarVisibilityOff()
-
-        fn = settings.textures_path + name + ".jpg"
-        if os.path.exists(name):
-            fn = name
+        fn = settings.textures_path + tname + ".jpg"
+        if os.path.exists(tname):
+            fn = tname
         elif not os.path.exists(fn):
-            colors.printc("~sad Texture", name, "not found in", settings.textures_path, c="r")
-            colors.printc("~target Available textures:", c="m", end=" ")
+            colors.printc("~sad Texture", tname, "not found in", settings.textures_path, c="r")
+            colors.printc("~pin Available textures:", c="m", end=" ")
             for ff in os.listdir(settings.textures_path):
                 colors.printc(ff.split(".")[0], end=" ", c="m")
             print()
-            return
+            return self
 
-        jpgReader = vtk.vtkJPEGReader()
-        jpgReader.SetFileName(fn)
+        if ".png" in fn.lower():
+            reader = vtk.vtkPNGReader()
+        elif ".jp" in fn.lower():
+            reader = vtk.vtkJPEGReader()
+        else:
+            colors.printc("~times Supported texture files: PNG or JPG", c="r")
+            return self
+        reader.SetFileName(fn)
+        reader.Update()
+        img = reader.GetOutput()
+        #nx,ny,nz = img.GetDimensions()
+        #img.SetSpacing(1/nx, 1/ny, 1/nz)
         atext = vtk.vtkTexture()
-        atext.RepeatOn()
-        atext.EdgeClampOff()
-        atext.InterpolateOn()
-        if falsecolors:
-            atext.MapColorScalarsThroughLookupTableOn()
-        atext.SetInputConnection(jpgReader.GetOutputPort())
+        atext.SetInputData(img)
         self.GetProperty().SetColor(1, 1, 1)
-        self.SetMapper(mapper)
         self.SetTexture(atext)
         self.Modified()
         return self
@@ -1555,7 +1663,12 @@ class Actor(vtk.vtkActor, Prop):
         if isinstance(scalars, str):  # if a name is passed
             scalars = vtk_to_numpy(poly.GetPointData().GetArray(scalars))
 
-        n = len(scalars)
+#        print(type(scalars), scalars, utils.isSequence(scalars))
+        try:
+            n = len(scalars)
+        except TypeError: #invalid type
+            return self
+        
         useAlpha = False
         if n != poly.GetNumberOfPoints():
             colors.printc('~times pointColors Error: nr. of scalars != nr. of points',
@@ -2433,6 +2546,8 @@ class ImageActor(vtk.vtkImageActor, Prop):
         :param float bottom: fraction to crop from the bottom margin
         :param float left: fraction to crop from the left margin
         :param float right: fraction to crop from the right margin
+        
+        .. hint:: |legosurface| |legosurface.py|_
         """
         extractVOI = vtk.vtkExtractVOI()
         extractVOI.SetInputData(self.GetInput())
@@ -2601,9 +2716,9 @@ class Volume(vtk.vtkVolume, Prop):
         if top is not None:    bz1 = int((d[2]-1)*(1-top))
         extractVOI.SetVOI(bx0, bx1, by0, by1, bz0, bz1)
         extractVOI.Update()
-        img = extractVOI.GetOutput()
-        #img.SetOrigin(-bx0, -by0, -bz0)
-        self.GetMapper().SetInputData(img)
+        self.image = extractVOI.GetOutput()
+        #self.image.SetOrigin(-bx0, -by0, -bz0)
+        self.GetMapper().SetInputData(self.image)
         self.GetMapper().Modified()
         return self
     

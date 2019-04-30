@@ -1,7 +1,7 @@
-"""
-Set a jpeg background image on a vtkRenderingWindow layer,
-after the first rendering it can be zoomed to fill the window.
-"""
+"""Set a jpeg background image on a 
+vtkRenderingWindow layer, after 
+the first rendering it can be 
+zoomed to fill the window."""
 from vtkplotter import Plotter, load, Polygon, Text, datadir
 
 doc = Text(__doc__, c="k", bg="w")

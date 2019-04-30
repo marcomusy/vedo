@@ -61,6 +61,8 @@ __all__ = [
     "voronoi3D",
     "connectedPoints",
     "interpolateToImageData",
+    "interpolateToStructuredGrid",
+    "streamLines",
 ]
 
 
@@ -1911,7 +1913,7 @@ def interpolateToImageData(actor, kernel='shepard', radius=None,
                            dims=(20,20,20)):
     """
     Generate a voxel dataset (vtkImageData) by interpolating a scalar
-    which is only known on a scattered set of points or mesh.
+    or vector field which is only known on a scattered set of points or mesh.
     Available interpolation kernels are: shepard, gaussian, voronoi, linear.
     
     :param str kernel: interpolation kernel type [shepard]
@@ -1920,7 +1922,6 @@ def interpolateToImageData(actor, kernel='shepard', radius=None,
     :param list dims: dimensions of the output vtkImageData object
     :param float nullValue: value to be assigned to invalid points
     """
-        
     output = actor.polydata()
     
     # Create a probe volume
@@ -1968,4 +1969,247 @@ def interpolateToImageData(actor, kernel='shepard', radius=None,
         interpolator.SetNullPointsStrategyToClosestPoint()
     interpolator.Update()
     return interpolator.GetOutput()
+
+
+def interpolateToStructuredGrid(actor, kernel=None, radius=None, 
+                               bounds=None, nullValue=None,
+                               dims=None):
+    """
+    Generate a volumetric dataset (vtkStructuredData) by interpolating a scalar
+    or vector field which is only known on a scattered set of points or mesh.
+    Available interpolation kernels are: shepard, gaussian, voronoi, linear.
+    
+    :param str kernel: interpolation kernel type [shepard]
+    :param float radius: radius of the local search
+    :param list bounds: bounding box of the output vtkImageData object
+    :param list dims: dimensions of the output vtkImageData object
+    :param float nullValue: value to be assigned to invalid points
+    """
+    output = actor.polydata()
+
+    if dims is None:
+        dims = (20,20,20)
+
+    if bounds is None:
+        bounds = output.GetBounds()
+    
+    # Create a probe volume
+    probe = vtk.vtkStructuredGrid()
+    probe.SetDimensions(dims)
+
+    points = vtk.vtkPoints()
+    points.Allocate(dims[0] * dims[1] * dims[2])
+    deltaZ = (bounds[5]-bounds[4]) / (dims[2] - 1)
+    deltaY = (bounds[3]-bounds[2]) / (dims[1] - 1)
+    deltaX = (bounds[1]-bounds[0]) / (dims[0] - 1)
+    for k in range(dims[2]):
+        z = bounds[4] + k * deltaZ
+        kOffset = k * dims[0] * dims[1]
+        for j in range(dims[1]):
+            y = bounds[2] + j * deltaY
+            jOffset = j * dims[0]
+            for i  in range(dims[0]):
+                x = bounds[0] + i * deltaX
+                offset = i + jOffset + kOffset
+                points.InsertPoint(offset, [x,y,z])
+    probe.SetPoints(points)
+
+    if radius is None:
+        radius = min(bounds[1]-bounds[0], bounds[3]-bounds[2], bounds[5]-bounds[4])/3
+
+    locator = vtk.vtkPointLocator()
+    locator.SetDataSet(output)
+    locator.BuildLocator()
+
+    if kernel == 'gaussian':
+        kern = vtk.vtkGaussianKernel()
+        kern.SetRadius(radius)
+    elif kernel == 'voronoi':
+        kern = vtk.vtkVoronoiKernel()
+    elif kernel == 'linear':        
+        kern = vtk.vtkLinearKernel()
+        kern.SetRadius(radius)
+    else:
+        kern = vtk.vtkShepardKernel()
+        kern.SetPowerParameter(2)
+        kern.SetRadius(radius)
+
+    interpolator = vtk.vtkPointInterpolator()
+    interpolator.SetInputData(probe)
+    interpolator.SetSourceData(output)
+    interpolator.SetKernel(kern)
+    interpolator.SetLocator(locator)
+    if nullValue is not None:
+        interpolator.SetNullValue(nullValue)
+    else:
+        interpolator.SetNullPointsStrategyToClosestPoint()
+    interpolator.Update()
+    return interpolator.GetOutput()
+      
+
+def streamLines(domain, probe, 
+                integrator='rk4',
+                direction='forward',
+                initialStepSize=None,
+                maxPropagation=None,
+                maxSteps=10000,
+                stepLength=None,
+                extrapolateToBoundingBox={},
+                surfaceConstrain=False,
+                computeVorticity=True,
+                ribbons=None,
+                tubes={},
+                scalarRange=None,
+    ):
+    """
+    Integrate a vector field to generate streamlines.
+    
+    The integration is performed using a specified integrator (Runge-Kutta).
+    The length of a streamline is governed by specifying a maximum value either
+    in physical arc length or in (local) cell length.
+    Otherwise, the integration terminates upon exiting the field domain.
+    
+    :param domain: the vtk object that contains the vector field
+    :param Actor probe: the Actor that probes the domain. Its coordinates will
+        be the seeds for the streamlines
+    :param str integrator: Runge-Kutta integrator, either 'rk2', 'rk4' of 'rk45'
+    :param float initialStepSize: initial step size of integration
+    :param float maxPropagation: maximum physical length of the streamline
+    :param int maxSteps: maximum nr of steps allowed
+    :param float stepLength: length of step integration.
+        Vectors defined on a surface are extrapolated to the entire volume defined by its bounding box
+    :param bool surfaceConstrain: force streamlines to be computed on a surface
+    :param bool computeVorticity: Turn on/off vorticity computation at streamline points
+        (necessary for generating proper stream-ribbons)
+    :param int ribbons: render lines as ribbons by joining them.
+        An integer value represent the ratio of joining (e.g.: ribbons=2 groups lines 2 by 2)
+    :param dict tubes: dictionary containing the parameters for the tube representation:
+            
+            - ratio, (int) - draws tube as longitudinal stripes
+            - res, (int) - tube resolution (nr. of sides, 24 by default)
+            - maxRadiusFactor (float) - max tube radius as a multiple of the min radius
+            - varyRadius, (int) - radius varies based on the scalar or vector magnitude:
+                
+                - 0 - do not vary radius
+                - 1 - vary radius by scalar
+                - 2 - vary radius by vector
+                - 3 - vary radius by absolute value of scalar
+  
+    :param list scalarRange: specify the scalar range for coloring
+    
+    .. hint:: |streamlines1| |streamlines1.py|_
+    
+        |streamlines2| |streamlines2.py|_
+        
+        |office| |office.py|_
+    """
+
+    if isinstance(domain, vtk.vtkActor):
+        if len(extrapolateToBoundingBox):
+            grid = interpolateToStructuredGrid(domain, **extrapolateToBoundingBox)
+        else:
+            grid = domain.polydata()
+    else:
+        grid = domain
+
+    b = grid.GetBounds()
+    size = (b[5]-b[4] + b[3]-b[2] + b[1]-b[0])/3
+    if initialStepSize is None:
+        initialStepSize = size/100.
+    if maxPropagation is None:
+        maxPropagation = size
+
+    pts = probe.coordinates()
+    src = vtk.vtkProgrammableSource()
+    def readPoints():
+        output = src.GetPolyDataOutput()
+        points = vtk.vtkPoints()
+        for x, y, z in pts:
+            points.InsertNextPoint(x, y, z)
+        output.SetPoints(points)
+    src.SetExecuteMethod(readPoints)
+    src.Update()
+
+    st = vtk.vtkStreamTracer()
+    st.SetInputDataObject(grid)
+    st.SetSourceConnection(src.GetOutputPort())
+
+    st.SetInitialIntegrationStep(initialStepSize)
+    st.SetComputeVorticity(computeVorticity)
+    st.SetMaximumNumberOfSteps(maxSteps)
+    st.SetMaximumPropagation(maxPropagation)
+    st.SetSurfaceStreamlines(surfaceConstrain)
+    if stepLength:
+        st.SetStepLength(stepLength)
+    
+    if 'f' in direction:
+        st.SetIntegrationDirectionToForward()
+    elif 'back' in direction:
+        st.SetIntegrationDirectionToBackward()
+    elif 'both' in direction:
+        st.SetIntegrationDirectionToBoth()
+
+    if integrator == 'rk2':
+        st.SetIntegratorTypeToRungeKutta2()
+    elif integrator == 'rk4':
+        st.SetIntegratorTypeToRungeKutta4()
+    elif integrator == 'rk45':
+        st.SetIntegratorTypeToRungeKutta45()
+    else:
+        vc.printc("Error in streamlines, unknown integrator", integrator, c=1)
+        
+    st.Update()
+    output = st.GetOutput()
+    
+    if ribbons:
+        scalarSurface = vtk.vtkRuledSurfaceFilter()
+        scalarSurface.SetInputConnection(st.GetOutputPort())
+        scalarSurface.SetOnRatio(int(ribbons))
+        scalarSurface.SetRuledModeToPointWalk()
+        scalarSurface.Update()
+        output = scalarSurface.GetOutput()
+        
+    if len(tubes):
+        streamTube = vtk.vtkTubeFilter()
+        streamTube.SetNumberOfSides(24)
+        streamTube.SetRadius(tubes['radius'])
+
+        if 'res' in tubes:
+            streamTube.SetNumberOfSides(tubes['res'])
+
+        # max tube radius as a multiple of the min radius
+        streamTube.SetRadiusFactor(50) 
+        if 'maxRadiusFactor' in tubes:
+            streamTube.SetRadius(tubes['maxRadiusFactor'])
+            
+        if 'ratio' in tubes:
+            streamTube.SetOnRatio(int(tubes['ratio']))
+            
+        if 'varyRadius' in tubes:
+            streamTube.SetVaryRadius(int(tubes['varyRadius']))
+
+        streamTube.SetInputData(output)
+        vname = grid.GetPointData().GetVectors().GetName()
+        streamTube.SetInputArrayToProcess(1, 0, 0,
+                                          vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS,
+                                          vname)
+        streamTube.Update()
+        sta = Actor(streamTube.GetOutput(), c=None)
+
+        sta.mapper.SetScalarRange(grid.GetPointData().GetScalars().GetRange())
+        if scalarRange is not None:
+            sta.mapper.SetScalarRange(scalarRange)
+
+        sta.GetProperty().BackfaceCullingOn()
+        sta.phong()
+        return sta
+    
+    sta = Actor(output, c=None)
+    sta.mapper.SetScalarRange(grid.GetPointData().GetScalars().GetRange())
+    if scalarRange is not None:
+        sta.mapper.SetScalarRange(scalarRange)
+    return sta
+
+
+
 

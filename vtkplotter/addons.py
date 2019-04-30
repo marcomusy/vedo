@@ -32,7 +32,9 @@ __all__ = [
         ]
 
 
-def addScalarBar(actor=None, c=None, title="", horizontal=False, vmin=None, vmax=None):
+def addScalarBar(actor=None, c=None, title="", 
+                 horizontal=False,
+                 vmin=None, vmax=None):
     """Add a 2D scalar bar for the specified actor.
 
     If `actor` is ``None`` will add it to the last actor in ``self.actors``.
@@ -62,10 +64,8 @@ def addScalarBar(actor=None, c=None, title="", horizontal=False, vmin=None, vmax
         return None
     
     rng = list(vtkscalars.GetRange())
-    if vmin:
-        rng[0] = vmin
-    if vmin:
-        rng[1] = vmax
+    if vmin is not None: rng[0] = vmin
+    if vmax is not None: rng[1] = vmax
     actor.mapper.SetScalarRange(rng)
 
     if c is None:
@@ -110,7 +110,7 @@ def addScalarBar(actor=None, c=None, title="", horizontal=False, vmin=None, vmax
         sb.SetPosition(0.87, 0.05)
         sb.SetMaximumWidthInPixels(80)
         sb.SetMaximumHeightInPixels(500)
-
+            
     sctxt = sb.GetLabelTextProperty()
     sctxt.SetColor(c)
     sctxt.SetShadow(0)
@@ -245,7 +245,7 @@ def addScalarBar3D(
     return sact
 
 
-def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4, s=.04,
+def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
                 title='', c=None, showValue=True):
     """Add a slider widget which can call an external custom function.
 
@@ -606,11 +606,11 @@ def _addVolumeCutterTool(vol):
 
 
 def addIcon(iconActor, pos=3, size=0.08):
-    """Add an inset icon mesh into the same renderer.
+    """Add an inset icon mesh into the renderer.
 
     :param pos: icon position in the range [1-4] indicating one of the 4 corners,
                 or it can be a tuple (x,y) as a fraction of the renderer size.
-    :param float size: size of the square inset.
+    :param float size: size of the icon space.
 
     .. hint:: |icon| |icon.py|_
     """
