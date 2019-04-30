@@ -11,7 +11,7 @@ g = 9.81  # gravity acceleration
 gamma = 0.1  # some friction
 Dt = 0.03  # time step
 
-# Create the initial positions and velocitites (0,0) of the bobs
+# Create the initial positions and velocities (0,0) of the bobs
 bob_x = [0]
 bob_y = [0]
 x_dot = [0] * (N + 1)  # velocities
@@ -102,7 +102,7 @@ while True:
                 x_dot[j] -= DV[0]  # DV.x
                 y_dot[j] -= DV[1]  # DV.y
 
-    # Update the loations of the bobs and the stretching of the springs
+    # Update the locations of the bobs and the stretching of the springs
     for k in range(1, N + 1):
         bob[k].pos([bob_x[k], bob_y[k], 0])
         link[k - 1].stretch(bob[k - 1].pos(), bob[k].pos())
