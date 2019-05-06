@@ -386,6 +386,8 @@ class Prop(object):
             anglerad = angle
         else:
             anglerad = np.deg2rad(angle)
+        if not anglerad:
+            return self
         axis = utils.versor(axis)
         a = np.cos(anglerad / 2)
         b, c, d = -axis * np.sin(anglerad / 2)
