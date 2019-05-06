@@ -4,7 +4,7 @@ to its cells with mapPointsToCells()
 """
 from vtkplotter import *
 
-mesh1 = load(datadir+'shapes/icosahedron.vtk')
+mesh1 = load(datadir+'icosahedron.vtk')
 
 # let the scalar be the z coordinate of the mesh vertices
 scals = mesh1.coordinates()[:, 2]

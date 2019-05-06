@@ -18,9 +18,9 @@ vp1 = Plotter(shape=(5, 5), axes=0, bg="white")
 vp1.renderers[24].SetBackground(0.8, 0.9, 0.9)  # use vtk method SetBackground()
 
 # load the actors and give them a name
-a = vp1.load(datadir+"shapes/airboat.vtk").legend("some legend")
-b = vp1.load(datadir+"shapes/cessna.vtk", c="red")
-c = vp1.load(datadir+"shapes/atc.ply")
+a = vp1.load(datadir+"airboat.vtk").legend("some legend")
+b = vp1.load(datadir+"cessna.vtk", c="red")
+c = vp1.load(datadir+"atc.ply")
 
 # show a text in each renderer
 for i in range(25):
@@ -36,6 +36,6 @@ vp1.show(c, at=24, interactive=0)
 # declare a second independent instance of the class Plotter
 vp2 = Plotter(pos=(500, 250), bg=(0.9, 0.9, 1))  # blue-ish background
 
-vp2.load("data/shapes/porsche.ply").legend("an other window")
+vp2.load(datadir+"porsche.ply").legend("an other window")
 
 vp2.show()  # show and interact with mouse and keyboard

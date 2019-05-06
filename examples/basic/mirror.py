@@ -5,7 +5,7 @@ from vtkplotter import Plotter, Text, datadir
 
 vp = Plotter(axes=2)
 
-myted1 = vp.load(datadir+"shapes/teddy.vtk")
+myted1 = vp.load(datadir+"teddy.vtk")
 
 myted2 = myted1.clone().mirror("y").pos([0, 3, 0]).color("green")
 

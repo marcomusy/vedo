@@ -6,8 +6,8 @@ print(__doc__)
 from vtkplotter import *
 
 a1 = meshQuality(Sphere())
-a2 = meshQuality(load(datadir+"shapes/bunny.obj").normalize())
-a3 = meshQuality(load(datadir+"shapes/motor.byu").normalize())
+a2 = meshQuality(load(datadir+"bunny.obj").normalize())
+a3 = meshQuality(load(datadir+"motor.byu").normalize())
 
 printHistogram(a2, title='bunny quality', c='g') # histo active scalars
 

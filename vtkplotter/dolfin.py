@@ -8,9 +8,11 @@ from vtk.util.numpy_support import numpy_to_vtk
 import numpy as np
 
 import vtkplotter.utils as utils
+from vtkplotter.utils import printHistogram
+
 import vtkplotter.docs as docs
 
-from vtkplotter.colors import printc, printHistogram
+from vtkplotter.colors import printc
 
 import vtkplotter.settings as settings
 from vtkplotter.settings import datadir
@@ -18,7 +20,7 @@ from vtkplotter.settings import datadir
 from vtkplotter.actors import Actor, isolines
 
 import vtkplotter.vtkio as vtkio
-from vtkplotter.vtkio import load, ProgressBar, screenshot, Video
+from vtkplotter.vtkio import load, ProgressBar, screenshot, Video, exportWindow
 
 import vtkplotter.shapes as shapes
 from vtkplotter.shapes import Text, Latex
@@ -99,6 +101,8 @@ __all__ = [
     "Video",
     "plotMatrix",
     "isolines",
+    "exportWindow",
+    "interactive",
 ]
 
 
@@ -169,6 +173,13 @@ def _inputsort(obj):
     #if u: printc('u.value_rank()', u.value_rank())
     return (mesh, u)
 
+
+def interactive():
+    """Go back to the rendering window interaction mode."""
+    if settings.plotter_instance:
+        settings.plotter_instance.interactor.Start()
+    return settings.plotter_instance
+    
 
 def plot(*inputobj, **options):
     """
@@ -262,13 +273,9 @@ def plot(*inputobj, **options):
     :param int interactorStyle: change the style of muose interaction of the scene
     :param bool q: exit python session after returning.
     
-    .. hint:: |ex01_showmesh| |ex01_showmesh.py|_
+    .. hint:: |ex01_showmesh.py|_ |ex02_tetralize-mesh.py|_ |ex06_elasticity1.py|_ |ex06_elasticity2.py|_
     
-        |ex02_tetralize-mesh| |ex02_tetralize-mesh.py|_
-    
-        |ex06_elasticity1| |ex06_elasticity1.py|_
-    
-        |ex06_elasticity2| |ex06_elasticity2.py|_
+        |ex01_showmesh| |ex02_tetralize-mesh| |ex06_elasticity1| |ex06_elasticity2|
     """
     
     if len(inputobj) == 0:
@@ -313,10 +320,10 @@ def plot(*inputobj, **options):
     settings.xtitle = options.pop("xtitle", 'x')
     settings.ytitle = options.pop("ytitle", 'y')
     settings.ztitle = options.pop("ztitle", 'z')
-
-    # change some default to emulate matplotlib behaviour
     options['verbose'] = False # dont disturb
-    if   style == 0 or style == 'vtk':
+
+    # change some default to emulate standard behaviours
+    if  style == 0 or style == 'vtk':
         font = 'courier'
         axes = options.pop('axes', None) 
         if axes is None:
@@ -656,6 +663,98 @@ def MeshArrows(*inputobj, **options):
     actor.u = u
     actor.u_values = u_values
     return actor
+
+
+
+#def make_mapping(sub_space, super_space):
+#    from scipy.spatial import cKDTree
+#    super_dof_coor = super_space.tabulate_dof_coordinates()
+#    sub_dof_coor = sub_space.tabulate_dof_coordinates()
+#
+#    tree = cKDTree(super_dof_coor)
+#    _,mapping = tree.query(sub_dof_coor, k=1)
+#    return mapping
+
+
+
+
+#from dolfin import *
+#mesh = UnitCubeMesh(10, 10, 10)        # this will be the "grandparent" mesh
+#mesh.coordinates()[:,0] -= .5          # shift x-coords
+#mesh.coordinates()[:,1] -= .5          # shift y-coords
+#
+#bmesh  = BoundaryMesh(mesh, "exterior")   # surface boundary mesh
+#
+## mark the cells on the bottom of the bmesh surface by iterating over bmesh cells.
+## Look up ccorresponding facet in mesh and mark if facet normal points in -z direction
+#cellmap = bmesh.entity_map(2)
+#vertmap = bmesh.entity_map(0)
+#pb = MeshFunction("size_t", bmesh, dim =1)
+#for c in cells(bmesh):
+#  if Facet(mesh, cellmap[c.index()]).normal().z() < 0:
+#    pb[c] = 1
+#
+## use the marked bottom of the bmesh to create a Submesh
+#submesh = SubMesh(bmesh, pb, 1)           # bottom of boundary mesh
+#
+## FunctionSpaces on main mesh, bmesh, submesh
+#V   = FunctionSpace(mesh, "CG", 1)        # mesh function space
+#Vb  = FunctionSpace(bmesh,   "CG", 1)     # surface function space
+#Vs  = FunctionSpace(submesh, "CG", 1)     # submesh function space
+#
+## mappings we may need:
+#m    = vertex_to_dof_map(V)
+#b    = vertex_to_dof_map(Vb)
+#s    = vertex_to_dof_map(Vs)
+#
+#mi   = dof_to_vertex_map(V)
+#bi   = dof_to_vertex_map(Vb)
+#si   = dof_to_vertex_map(Vs)
+#
+#t = submesh.data().array('parent_vertex_indices', 0) # mapping from submesh back to bmesh
+#
+## Functions on main mesh, bmesh, and submesh
+#u   = Function(V)
+#ub  = Function(Vb)                        # boundary function
+#us  = Function(Vs)                        # surface function
+#
+## Interpolate the following expr onto u, ub, us
+#expr  = Expression('sqrt(pow(x[0],2) + pow(x[1], 2))', degree=2)
+#u.interpolate(expr)
+#ub.interpolate(expr)
+#us.interpolate(expr)
+#
+## Some empty function to test the mappings
+#ub_test = Function(Vb)  # empty bmesh function
+#u_test  = Function(V)   # empty mesh function
+#
+## Mapping from submesh to bmesh (works)... Any way to avoid calls to get_local/set_local??
+#us_a  = us.vector().get_local()              # origin array
+#ub_test_a = ub_test.vector().get_local()     # destination array
+#ub_test_a[b[t]]  = us_a[s]                   # transfer
+#ub_test.vector().set_local(ub_test_a)        # set destination function values
+#
+## Mapping from submesh to grandparent mesh (less than satisfying solution to question in fenics forum link)
+## Bonus points for getting this kind of map composition to work:
+## u_test_a = u_test.vector().get_local()    # destination array 
+## u_test_a[m[b[t]]] = us_a[s]               # transfer ( not working )
+## u_test.vector().set_local(u_test_a)
+#for Vs_dof, val in enumerate(us.vector().get_local()):
+#    submesh_vertex = si[Vs_dof]
+#    boundary_vertex = t[submesh_vertex]
+#    mesh_vertex = vertmap[int(boundary_vertex)] # np.uint not accepted
+#    V_dof = m[mesh_vertex]
+#    u_test.vector()[V_dof] = val
+#
+#u.rename('u','u')
+#ub_test.rename('ub_test','ub_test')
+#u_test.rename('u_test','u_test')
+#us.rename('us','us')
+#File("output/u.pvd")            << u
+#File("output/ub_test.pvd")      << ub_test
+#File("output/u_test.pvd")       << u_test
+#File("output/us.pvd")           << us​
+
 
 
 

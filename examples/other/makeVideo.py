@@ -9,7 +9,7 @@ from vtkplotter import *
 # declare the class instance
 vp = Plotter(bg='beige', axes=10, interactive=0, offscreen=False)
 
-vp.load(datadir+"shapes/spider.ply").texture("leather2").rotateX(-90)
+vp.load(datadir+"spider.ply").texture("leather2").rotateX(-90)
 
 # open a video file and force it to last 3 seconds in total
 video = Video(name="spider.mp4", duration=3)

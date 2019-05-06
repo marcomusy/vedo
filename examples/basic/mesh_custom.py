@@ -8,7 +8,7 @@ from vtkplotter import *
 doc = Text(__doc__, pos=1, c="w")
 
 
-man = load(datadir+"shapes/man.vtk")
+man = load(datadir+"man.vtk")
 
 # let the scalar be the z coordinate of the mesh vertices
 scals = man.coordinates()[:, 2]

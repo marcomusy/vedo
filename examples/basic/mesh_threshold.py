@@ -6,7 +6,7 @@ from vtkplotter import *
 
 doc = Text(__doc__)
 
-man = load(datadir+"shapes/man.vtk")
+man = load(datadir+"man.vtk")
 
 scals = man.coordinates()[:, 1] + 37  # pick y coords of vertices
 

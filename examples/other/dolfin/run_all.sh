@@ -29,6 +29,9 @@ python demo_submesh.py
 echo Running elastodynamics.py
 python elastodynamics.py
 
+echo Running elasticbeam.py
+python elasticbeam.py
+
 echo Running magnetostatics.py
 python magnetostatics.py
 
@@ -81,8 +84,8 @@ python stokes.py
 echo Running demo_cahn-hilliard.py
 python demo_cahn-hilliard.py
 
-echo Running turing.py
-python turing.py
+echo Running turing_pattern.py
+python turing_pattern.py
 
 
 ######################################

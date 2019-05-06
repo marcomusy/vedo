@@ -10,11 +10,11 @@ f = 0.1  # fraction of neighbours
 
 vp = Plotter(N=N, axes=0)
 
-pts = vp.load(datadir+"shapes/man.vtk").decimate(0.1).coordinates()
-# pts = vp.load(datadir+'shapes/spider.ply').coordinates()
-# pts = vp.load(datadir+'shapes/magnolia.vtk').subdivide().coordinates()
-# pts = vp.load(datadir+'shapes/pumpkin.vtk').coordinates()
-# pts = vp.load(datadir+'shapes/teapot.vtk').coordinates()
+pts = vp.load(datadir+"man.vtk").decimate(0.1).coordinates()
+# pts = vp.load(datadir+'spider.ply').coordinates()
+# pts = vp.load(datadir+'magnolia.vtk').subdivide().coordinates()
+# pts = vp.load(datadir+'pumpkin.vtk').coordinates()
+# pts = vp.load(datadir+'teapot.vtk').coordinates()
 
 a = Points(pts)
 for i in range(N):

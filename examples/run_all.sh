@@ -120,6 +120,9 @@ python basic/isolines.py
 echo Running basic/pca.py
 python basic/pca.py
 
+echo Running basic/silhouette.py
+python basic/silhouette.py
+
 echo Running basic/trail.py
 python basic/trail.py
 
@@ -306,8 +309,8 @@ python volumetric/probeLine.py
 echo Running volumetric/probePlane.py
 python volumetric/probePlane.py
 
-echo Running volumetric/imageOperations.py
-python volumetric/imageOperations.py
+echo Running volumetric/volumeOperations.py
+python volumetric/volumeOperations.py
 
 echo Running volumetric/signedDistance.py
 python volumetric/signedDistance.py
@@ -376,6 +379,9 @@ python other/tf_learn_volume.py
 echo Running other/voronoi3d.py
 python other/voronoi3d.py
 
+
+echo Running other/export_x3d.py
+python other/export_x3d.py
 
 
 ##################################### not ran/ignored:

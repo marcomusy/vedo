@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 from __future__ import division, print_function
-from vtkplotter import Plotter, ProgressBar, printc, humansort, __version__
+from vtkplotter import Plotter, ProgressBar, printc, humansort, __version__, printHistogram
 import vtk
 import sys, argparse, os
 
@@ -120,7 +120,7 @@ def _showVoxelImage():
         img = reader.GetOutput()
         
         if not args.quiet:
-            vc.printHistogram(img, bins=15, minbin=3, logscale=0, height=8, bold=0, c='b')
+            printHistogram(img, bins=15, minbin=3, logscale=0, height=8, bold=0, c='b')
 
         if args.z_spacing:
             ispa = img.GetSpacing()

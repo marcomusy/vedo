@@ -5,12 +5,12 @@ Add a square button with N possible internal states
 """
 print(__doc__)
 
-from vtkplotter import Plotter, printc
+from vtkplotter import Plotter, printc, datadir
 
 
 vp = Plotter(shape=(2, 1), axes=4)
 
-act = vp.load("data/shapes/magnolia.vtk", c="v")
+act = vp.load(datadir+"magnolia.vtk", c="v")
 
 vp.show(act, at=0)
 vp.show(act, at=1)

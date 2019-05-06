@@ -3,7 +3,7 @@ from vtkplotter.analysis import surfaceIntersection
 
 vp = Plotter(bg='w')
 
-car = vp.load(datadir+"shapes/porsche.ply", c="gold").alpha(0.1)
+car = vp.load(datadir+"porsche.ply", c="gold").alpha(0.1)
 
 s = Sphere(r=4, c="v", alpha=0.1).wire(True)  # color is violet
 

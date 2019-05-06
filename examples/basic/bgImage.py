@@ -9,7 +9,7 @@ doc = Text(__doc__, c="k", bg="w")
 vp = Plotter(N=2, size=(400, 800), axes=4, sharecam=0, 
 			 bg=datadir+"images/tropical.jpg")
 
-a1 = load(datadir+"shapes/flamingo.3ds").rotateX(-90)
+a1 = load(datadir+"flamingo.3ds").rotateX(-90)
 a2 = Polygon()
 
 vp.show(a1, doc, at=0)

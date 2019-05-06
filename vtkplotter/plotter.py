@@ -20,7 +20,7 @@ Defines main class ``Plotter`` to manage actors and 3D rendering.
     + docs._defs
 )
 
-__all__ = ["show", "clear", "Plotter", "plotMatrix"]
+__all__ = ["show", "clear", "Plotter", "plotMatrix", "closeWindow"]
 
 
 ########################################################################
@@ -196,6 +196,17 @@ def clear(actor=()):
         return
     settings.plotter_instance.clear(actor)
     return settings.plotter_instance
+
+
+def closeWindow(plotterInstance=None):
+    """Close the current or the input rendering window."""
+    if not plotterInstance:
+        from vtkplotter.settings import plotter_instance
+        plotterInstance  = plotter_instance
+        if not plotterInstance:
+            return
+    plotterInstance.closeWindow()
+    return plotterInstance
 
 
 def plotMatrix(M, title='matrix', continuous=True, cmap='Greys'):
@@ -965,6 +976,9 @@ class Plotter:
 
         :param bool q:  force program to quit after `show()` command returns.
         """
+        if not hasattr(self, 'window'):
+            return
+        
         at = options.pop("at", None)
         axes = options.pop("axes", None)
         c = options.pop("c", None)
@@ -1337,6 +1351,13 @@ class Plotter:
             for c in self.scalarbars:
                 self.renderer.RemoveActor(c)
 
+    def closeWindow(self):
+        """Close the current or the input rendering window."""
+        self.window.Finalize()
+        self.interactor.TerminateApp()
+        del self.window
+        del self.interactor
+        return self
 
 
 

@@ -1,5 +1,5 @@
 from __future__ import division, print_function
-import vtk
+import vtk, sys
 import numpy as np
 import vtkplotter.colors as colors
 import vtkplotter.docs as docs
@@ -29,6 +29,7 @@ __all__ = [
     "pol2cart",
     "humansort",
     "resampleArrays",
+    "printHistogram",
 ]
 
 
@@ -364,10 +365,10 @@ def printInfo(obj):
         colors.printc(" z=(" + bz1 + ", " + bz2 + ")", c="g", bold=0)
 
         arrtypes = dict()
-        arrtypes[vtk.VTK_UNSIGNED_CHAR] = "VTK_UNSIGNED_CHAR"
-        arrtypes[vtk.VTK_UNSIGNED_INT] = "VTK_UNSIGNED_INT"
-        arrtypes[vtk.VTK_FLOAT] = "VTK_FLOAT"
-        arrtypes[vtk.VTK_DOUBLE] = "VTK_DOUBLE"
+        arrtypes[vtk.VTK_UNSIGNED_CHAR] = "UNSIGNED_CHAR"
+        arrtypes[vtk.VTK_UNSIGNED_INT] = "UNSIGNED_INT"
+        arrtypes[vtk.VTK_FLOAT] = "FLOAT"
+        arrtypes[vtk.VTK_DOUBLE] = "DOUBLE"
 
         if poly.GetPointData():
             ptdata = poly.GetPointData()
@@ -377,10 +378,10 @@ def printInfo(obj):
                     colors.printc(tab + "     point data: ", c="g", bold=1, end="")
                     try:
                         tt = arrtypes[ptdata.GetArray(i).GetDataType()]
-                        colors.printc("name=" + name, "type=" + tt, c="g", bold=0)
                     except:
                         tt = ptdata.GetArray(i).GetDataType()
-                        colors.printc("name=" + name, "type=", tt, c="g", bold=0)
+                    colors.printc("name=" + name, "type=" + tt, c="g", bold=0, end="")
+                    colors.printc(" range:", ptdata.GetArray(i).GetRange(), c="g", bold=0)
 
         if poly.GetCellData():
             cldata = poly.GetCellData()
@@ -390,10 +391,10 @@ def printInfo(obj):
                     colors.printc(tab + "      cell data: ", c="g", bold=1, end="")
                     try:
                         tt = arrtypes[cldata.GetArray(i).GetDataType()]
-                        colors.printc("name=" + name, "type=" + tt, c="g", bold=0)
                     except:
                         tt = cldata.GetArray(i).GetDataType()
-                        colors.printc("name=" + name, "type=", tt, c="g", bold=0)
+                    colors.printc("name=" + name, "type=" + tt, c="g", bold=0, end="")
+                    colors.printc(" range:", cldata.GetArray(i).GetRange(), c="g", bold=0)
 
     if not obj:
         return
@@ -497,8 +498,131 @@ def printInfo(obj):
 
     else:
         colors.printc("_" * 60, c="g", bold=0)
-        colors.printc(obj, c="g")
         colors.printc(type(obj), c="g", invert=1)
+
+
+
+def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
+                   horizontal=False, char=u"\U00002589",
+                   c=None, bold=True, title='Histogram'):
+    """
+    Ascii histogram printing.
+    Input can also be ``Volume`` or ``Actor``.
+    Returns the raw data before binning (useful when passing vtk objects). 
+
+    :param int bins: number of histogram bins
+    :param int height: height of the histogram in character units
+    :param bool logscale: use logscale for frequencies
+    :param int minbin: ignore bins before minbin
+    :param bool horizontal: show histogram horizontally
+    :param str char: character to be used
+    :param str,int c: ascii color
+    :param bool char: use boldface
+    :param str title: histogram title
+    
+    :Example:
+        .. code-block:: python
+        
+            from vtkplotter import printHistogram
+            import numpy as np
+            d = np.random.normal(size=1000)
+            data = printHistogram(d, c='blue', logscale=True, title='my scalars')
+            data = printHistogram(d, c=1, horizontal=1)
+            print(np.mean(data)) # data here is same as d
+
+        |printhisto|
+    """
+    # Adapted from http://pyinsci.blogspot.com/2009/10/ascii-histograms.html
+    
+    if not horizontal: # better aspect ratio
+        bins *= 2
+    
+    isimg = isinstance(data, vtk.vtkImageData)
+    isvol = isinstance(data, vtk.vtkVolume)
+    if isimg or isvol:
+        if isvol:
+            img = data.image
+        else:
+            img = data
+        dims = img.GetDimensions()
+        nvx = min(100000, dims[0]*dims[1]*dims[2])
+        idxs = np.random.randint(0, min(dims), size=(nvx, 3))
+        data = []
+        for ix, iy, iz in idxs:
+            d = img.GetScalarComponentAsFloat(ix, iy, iz, 0)
+            data.append(d)
+    elif isinstance(data, vtk.vtkActor):
+        arr = data.polydata().GetPointData().GetScalars()
+        if not arr:
+            arr = data.polydata().GetCellData().GetScalars()
+            if not arr:
+                return
+            
+        from vtk.util.numpy_support import vtk_to_numpy
+        data = vtk_to_numpy(arr)
+
+    h = np.histogram(data, bins=bins)
+
+    if minbin:
+        hi = h[0][minbin:-1]
+    else:
+        hi = h[0]
+    
+    if sys.version_info[0] < 3 and char == u"\U00002589":
+        char = "*" # python2 hack
+    if char == u"\U00002589" and horizontal:
+        char = u"\U00002586"
+
+    entrs = "\t(entries=" + str(len(data)) + ")"
+    if logscale:
+        h0 = np.log10(hi+1)
+        maxh0 = int(max(h0)*100)/100
+        title = '(logscale) ' + title + entrs
+    else:
+        h0 = hi
+        maxh0 = max(h0)
+        title = title + entrs
+
+    def _v():
+        his = ""
+        if title:
+            his += title +"\n"
+        bars = h0 / maxh0 * height
+        for l in reversed(range(1, height + 1)):
+            line = ""
+            if l == height:
+                line = "%s " % maxh0
+            else:
+                line = "   |" + " " * (len(str(maxh0))-3)
+            for c in bars:
+                if c >= np.ceil(l):
+                    line += char
+                else:
+                    line += " "
+            line += "\n"
+            his += line
+        his += "%.2f" % h[1][0] + "." * (bins) + "%.2f" % h[1][-1] + "\n"
+        return his
+
+    def _h():
+        his = ""
+        if title:
+            his += title +"\n"
+        xl = ["%.2f" % n for n in h[1]]
+        lxl = [len(l) for l in xl]
+        bars = h0 / maxh0 * height
+        his += " " * int(max(bars) + 2 + max(lxl)) + "%s\n" % maxh0
+        for i, c in enumerate(bars):
+            line = (xl[i] + " " * int(max(lxl) - lxl[i]) + "| " + char * int(c) + "\n")
+            his += line
+        return his
+
+    if horizontal:
+        height *= 2
+        colors.printc(_h(), c=c, bold=bold)
+    else:
+        colors.printc(_v(), c=c, bold=bold)
+    return data
 
 
 def makeBands(inputlist, numberOfBands):

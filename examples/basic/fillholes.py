@@ -6,7 +6,7 @@ size: approximate limit to the size of the hole that can be filled.
 """
 from vtkplotter import load, show, Text, datadir
 
-a = load(datadir+"shapes/bunny.obj")
+a = load(datadir+"bunny.obj")
 
 b = a.clone().fillHoles(size=0.1)
 b.color("b").wire(True).legend("filled mesh")

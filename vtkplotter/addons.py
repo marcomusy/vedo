@@ -499,30 +499,31 @@ def addCutterTool(actor):
         vp.interactive = save_int
 
     vp.clickedActor = actor
-    if hasattr(actor, "polydata"):
-        apd = actor.polydata()
-    else:
-        apd = actor.GetMapper().GetInput()
+    apd = actor.polydata()
 
     planes = vtk.vtkPlanes()
     planes.SetBounds(apd.GetBounds())
 
     clipper = vtk.vtkClipPolyData()
-    clipper.GenerateClipScalarsOff()
+    clipper.GenerateClipScalarsOn()
     clipper.SetInputData(apd)
     clipper.SetClipFunction(planes)
     clipper.InsideOutOn()
     clipper.GenerateClippedOutputOn()
+    clipper.Update()
 
-    act0Mapper = vtk.vtkPolyDataMapper()  # the part which stays
-    act0Mapper.SetInputConnection(clipper.GetOutputPort())
-    act0 = Actor()
-    act0.SetMapper(act0Mapper)
-    act0.GetProperty().SetColor(actor.GetProperty().GetColor())
-    act0.GetProperty().SetOpacity(1)
+    act0 = Actor(clipper.GetOutput())
+#    act0.mapper = actor.mapper
+#    act0.mapper.Modified()
+#    print(actor.mapper.GetLookupTable())
+#    print(actor.polydata().GetPointData().GetScalars())
+#    print(act0.polydata().GetCellData().GetScalars().GetRange())
+#    print(act0.mapper.GetScalarRange())
+#    act0.mapper.SetScalarRange(act0.polydata().GetCellData().GetScalars().GetRange())
+#    act0.cellColors('pointColors_seismic', vmin=40, vmax=130)
 
     act1Mapper = vtk.vtkPolyDataMapper()  # the part which is cut away
-    act1Mapper.SetInputConnection(clipper.GetClippedOutputPort())
+    act1Mapper.SetInputConnection(clipper.GetClippedOutputPort()) # needs OutputPort??
     act1 = vtk.vtkActor()
     act1.SetMapper(act1Mapper)
     act1.GetProperty().SetOpacity(0.02)

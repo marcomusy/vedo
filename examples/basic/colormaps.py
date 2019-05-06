@@ -24,7 +24,7 @@ mapkeys = [
 vp = Plotter(N=len(mapkeys), axes=4)
 vp.legendSize = 0.4
 
-mug = vp.load(datadir+"shapes/mug.ply")
+mug = vp.load(datadir+"mug.ply")
 scalars = mug.coordinates()[:, 1]  # let y-coord be the scalar
 
 for i, key in enumerate(mapkeys):  # for each available color map name

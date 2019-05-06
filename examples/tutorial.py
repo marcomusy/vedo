@@ -118,7 +118,7 @@ vp.show(datadir+"limb.pcd", at=2, c=2)
 vp.show(datadir+"ring.gmsh", at=3, c=3, wire=1)
 vp.show(datadir+"images/dog.jpg", at=4)  # 2d images can be loaded the same way
 vp.show(datadir+"shuttle.obj", at=5, c=5)
-vp.show(datadir+"shapes/man.vtk", at=6, c=6, axes=2)  # show negative axes from (0, 0, 0)
+vp.show(datadir+"man.vtk", at=6, c=6, axes=2)  # show negative axes from (0, 0, 0)
 vp.show(datadir+"teapot.xyz", at=7, c=7, axes=3)  # hide negative axes
 vp.show(datadir+"pulley.vtu", at=8, c=8, interactive=1)
 

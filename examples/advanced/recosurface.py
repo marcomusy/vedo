@@ -21,7 +21,7 @@ import numpy as np
 vp = Plotter(shape=(1, 5), axes=0, bg='w')
 vp.show(Text(__doc__), at=4)
 
-act = vp.load(datadir+"shapes/pumpkin.vtk")
+act = vp.load(datadir+"pumpkin.vtk")
 vp.show(act, at=0)
 
 noise = np.random.randn(act.N(), 3) * 0.05

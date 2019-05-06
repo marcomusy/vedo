@@ -36,7 +36,7 @@ solve(inner(grad(w), grad(v)) * dx == inner(c, v) * dx, u, [bcl, bcr])
 
 
 ########################################################### vtkplotter
-from vtkplotter.dolfin import plot, printc
+from vtkplotter.dolfin import plot, printc, exportWindow
 
 # print out some funny text
 printc("""~idea Try out plot options:
@@ -45,5 +45,6 @@ printc("""~idea Try out plot options:
            ~pin mode='mesh warp lines', lw=.05""", c='blue')
 
 plot(u, mode='my warped mesh please!!', azimuth=45)
+exportWindow('ex06_elasticity2.x3d')
 
 printc('~smile Thanks for using vtkplotter!', c='green')

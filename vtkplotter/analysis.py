@@ -44,6 +44,7 @@ __all__ = [
     "probeLine",
     "probePlane",
     "imageOperation",
+    "volumeOperation",
     "recoSurface",
     "cluster",
     "removeOutliers",
@@ -52,7 +53,7 @@ __all__ = [
     "pointSampler",
     "geodesic",
     "convexHull",
-    "actor2ImageData",
+    "actor2Volume",
     "splitByConnectivity",
     "projectSphereFilter",
     "signedDistance",
@@ -60,7 +61,7 @@ __all__ = [
     "geometry",
     "voronoi3D",
     "connectedPoints",
-    "interpolateToImageData",
+    "interpolateToVolume",
     "interpolateToStructuredGrid",
     "streamLines",
 ]
@@ -544,9 +545,9 @@ def alignICP(source, target, iters=100, rigid=False):
     the closest surface point on the other, then apply the transformation
     that modify one surface to best match the other (in the least-square sense).
 
-    .. hint:: |align1| |align1.py|_
+    .. hint:: |align1.py|_ |align2.py|_
 
-        |align2| |align2.py|_
+         |align1| |align2|
     """
     if isinstance(source, Actor):
         source = source.polydata()
@@ -730,9 +731,9 @@ def pcaEllipsoid(points, pvalue=0.95, pcaAxes=False):
     ``actor.info['va']``, ``actor.info['vb']``, ``actor.info['vc']``
     (sphericity is equal to 0 for a perfect sphere).
 
-    .. hint:: |pca| |pca.py|_
+    .. hint:: Examples: |pca.py|_  |cell_main.py|_
 
-        |cell_main| |cell_main.py|_
+         |pca| |cell_main|
     """
     try:
         from scipy.stats import f
@@ -865,11 +866,9 @@ def smoothMLS2D(actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
     :param recursive: move points while algorithm proceedes.
     :param showNPlanes: build an actor showing the fitting plane for N random points.
 
-    .. hint:: |mesh_smoothers| |mesh_smoothers.py|_
+    .. hint::  |mesh_smoothers.py|_ |moving_least_squares2D.py|_  |recosurface.py|_
 
-        |moving_least_squares2D| |moving_least_squares2D.py|_
-
-        |recosurface| |recosurface.py|_
+        |mesh_smoothers| |moving_least_squares2D| |recosurface|
     """
     coords = actor.coordinates()
     ncoords = len(coords)
@@ -946,9 +945,9 @@ def smoothMLS1D(actor, f=0.2, showNLines=0):
     :param float f: smoothing factor - typical range is [0,2].
     :param int showNLines: build an actor showing the fitting line for N random points.
 
-    .. hint:: |moving_least_squares1D| |moving_least_squares1D.py|_
+    .. hint:: |moving_least_squares1D.py|_  |skeletonize.py|_
 
-        |skeletonize| |skeletonize.py|_
+        |moving_least_squares1D| |skeletonize|
     """
     coords = actor.coordinates()
     ncoords = len(coords)
@@ -1044,10 +1043,14 @@ def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3):
     return actor
 
 
-def probePoints(img, pts):
+def probePoints(vol, pts):
     """
-    Takes a ``vtkImageData`` and probes its scalars at the specified points in space.
+    Takes a ``Volume`` and probes its scalars at the specified points in space.
     """
+    if hasattr(vol, 'GetMapper'):
+        img = vol.GetMapper().GetInput()
+    else:
+        img = vol
     src = vtk.vtkProgrammableSource()
     def readPoints():
         output = src.GetPolyDataOutput()
@@ -1075,12 +1078,16 @@ def probePoints(img, pts):
     return pact
 
 
-def probeLine(img, p1, p2, res=100):
+def probeLine(vol, p1, p2, res=100):
     """
-    Takes a ``vtkImageData`` and probes its scalars along a line defined by 2 points `p1` and `p2`.
+    Takes a ``Volume`` and probes its scalars along a line defined by 2 points `p1` and `p2`.
 
     .. hint:: |probeLine| |probeLine.py|_
     """
+    if hasattr(vol, 'GetMapper'):
+        img = vol.GetMapper().GetInput()
+    else:
+        img = vol
     line = vtk.vtkLineSource()
     line.SetResolution(res)
     line.SetPoint1(p1)
@@ -1095,12 +1102,16 @@ def probeLine(img, p1, p2, res=100):
     return lact
 
 
-def probePlane(img, origin=(0, 0, 0), normal=(1, 0, 0)):
+def probePlane(vol, origin=(0, 0, 0), normal=(1, 0, 0)):
     """
-    Takes a ``vtkImageData`` and probes its scalars on a plane.
+    Takes a ``Volume`` and probes its scalars on a plane.
 
     .. hint:: |probePlane| |probePlane.py|_
     """
+    if hasattr(vol, 'GetMapper'):
+        img = vol.GetMapper().GetInput()
+    else:
+        img = vol
     plane = vtk.vtkPlane()
     plane.SetOrigin(origin)
     plane.SetNormal(normal)
@@ -1114,53 +1125,68 @@ def probePlane(img, origin=(0, 0, 0), normal=(1, 0, 0)):
     return cutActor
 
 
-def imageOperation(image1, operation, image2=None):
+def imageOperation(volume1, operation, volume2=None):
+    """Deprecated: use volumeOperation()."""
+    print("\n\n imageOperation() is no more valid: use volumeOperation() instead.")
+    exit()
+    
+def volumeOperation(volume1, operation, volume2=None):
     """
-    Perform operations with ``vtkImageData`` objects.
+    Perform operations with ``Volume`` objects.
 
-    `image2` can be a constant value.
+    `volume2` can be a constant value.
 
     Possible operations are: ``+``, ``-``, ``/``, ``1/x``, ``sin``, ``cos``, ``exp``, ``log``,
     ``abs``, ``**2``, ``sqrt``, ``min``, ``max``, ``atan``, ``atan2``, ``median``,
     ``mag``, ``dot``, ``gradient``, ``divergence``, ``laplacian``.
 
-    .. hint:: |imageOperations| |imageOperations.py|_
+    .. hint:: |volumeOperations| |volumeOperations.py|_
     """
     op = operation.lower()
+
+    if hasattr(volume1, 'GetMapper'):
+        image1 = volume1.GetMapper().GetInput()
+    else:
+        image1 = volume1
+    if hasattr(volume2, 'GetMapper'):
+        image2 = volume2.GetMapper().GetInput()
+    else:
+        image2 = volume2
+    
 
     if op in ["median"]:
         mf = vtk.vtkImageMedian3D()
         mf.SetInputData(image1)
         mf.Update()
-        return mf.GetOutput()
+        return Volume(mf.GetOutput())
     elif op in ["mag"]:
         mf = vtk.vtkImageMagnitude()
         mf.SetInputData(image1)
         mf.Update()
-        return mf.GetOutput()
+        return Volume(mf.GetOutput())
     elif op in ["dot", "dotproduct"]:
         mf = vtk.vtkImageDotProduct()
         mf.SetInput1Data(image1)
         mf.SetInput2Data(image2)
         mf.Update()
-        return mf.GetOutput()
+        return Volume(mf.GetOutput())
     elif op in ["grad", "gradient"]:
         mf = vtk.vtkImageGradient()
         mf.SetDimensionality(3)
         mf.SetInputData(image1)
         mf.Update()
-        return mf.GetOutput()
+        return Volume(mf.GetOutput())
     elif op in ["div", "divergence"]:
         mf = vtk.vtkImageDivergence()
         mf.SetInputData(image1)
         mf.Update()
-        return mf.GetOutput()
+        return Volume(mf.GetOutput())
     elif op in ["laplacian"]:
         mf = vtk.vtkImageLaplacian()
         mf.SetDimensionality(3)
         mf.SetInputData(image1)
         mf.Update()
-        return mf.GetOutput()
+        return Volume(mf.GetOutput())
 
     mat = vtk.vtkImageMathematics()
     mat.SetInput1Data(image1)
@@ -1224,10 +1250,10 @@ def imageOperation(image1, operation, image2=None):
     elif op in ["atan2"]:
         mat.SetOperationToATAN2()
     else:
-        vc.printc("~times Error in imageOperation: unknown operation", operation, c=1)
+        vc.printc("~times Error in volumeOperation: unknown operation", operation, c=1)
         exit()
     mat.Update()
-    return mat.GetOutput()
+    return Volume(mat.GetOutput())
 
 
 def recoSurface(points, bins=256):
@@ -1393,13 +1419,9 @@ def thinPlateSpline(actor, sourcePts, targetPts, userFunctions=(None, None)):
     :param userFunctions: You must supply both the function
         and its derivative with respect to r.
 
-    .. hint:: |thinplate| |thinplate.py|_
-
-        |thinplate_grid| |thinplate_grid.py|_
-
-        |thinplate_morphing| |thinplate_morphing.py|_
-
-        |interpolateField| |interpolateField.py|_
+    .. hint:: Examples: |thinplate.py|_ |thinplate_grid.py|_ |thinplate_morphing.py|_  |interpolateField.py|_
+         
+        |thinplate| |thinplate_grid| |thinplate_morphing| |interpolateField|
     """
     ns = len(sourcePts)
     ptsou = vtk.vtkPoints()
@@ -1731,11 +1753,11 @@ def convexHull(actor_or_list, alphaConstant=0):
     return chuact
 
 
-def actor2ImageData(actor, spacing=(1, 1, 1)):
+def actor2Volume(actor, spacing=(1, 1, 1)):
     """
-    Convert a mesh it into volume representation as ``vtkImageData``
-    where the foreground (exterior) voxels are 1 and the background
-    (interior) voxels are 0.
+    Convert a mesh it into a ``Volume``
+    where the foreground (exterior) voxels value is 1 and the background
+    (interior) voxels value is 0.
     Internally the ``vtkPolyDataToImageStencil`` class is used.
 
     .. hint:: |mesh2volume| |mesh2volume.py|_
@@ -1784,12 +1806,15 @@ def actor2ImageData(actor, spacing=(1, 1, 1)):
     imgstenc.ReverseStencilOff()
     imgstenc.SetBackgroundValue(outval)
     imgstenc.Update()
-    return imgstenc.GetOutput()
+    return Volume(imgstenc.GetOutput())
 
 
 def signedDistance(actor, maxradius=0.5, bounds=(0, 1, 0, 1, 0, 1), dims=(10, 10, 10)):
     """
-    ``vtkSignedDistance`` filter.
+    Compute signed distances over a volume from an input point cloud or mesh.
+    The output is a ``Volume`` object whose voxels contains the signed distance from 
+    the mesh.
+
     :param float maxradius: how far out to propagate distance calculation
     :param list bounds: volume bounds.
     """
@@ -1802,11 +1827,14 @@ def signedDistance(actor, maxradius=0.5, bounds=(0, 1, 0, 1, 0, 1), dims=(10, 10
     return Volume(dist.GetOutput())
 
 
-def extractSurface(image, radius=0.5):
+def extractSurface(volume, radius=0.5):
+    """Generate the zero-crossing isosurface from truncated signed distance volume in input.
+    Output is a ``Actor`` object.
     """
-    ``vtkExtractSurface`` filter. Input is a ``vtkImageData``.
-    Generate zero-crossing isosurface from truncated signed distance volume.
-    """
+    if hasattr(volume, 'GetMapper'):
+        image = volume.GetMapper().GetInput()
+    else:
+        image = volume
     fe = vtk.vtkExtractSurface()
     fe.SetInputData(image)
     fe.SetRadius(radius)
@@ -1824,11 +1852,14 @@ def projectSphereFilter(actor):
     psf = vtk.vtkProjectSphereFilter()
     psf.SetInputData(poly)
     psf.Update()
-    a = Actor(psf.GetOutput())
-    return a
+    return Actor(psf.GetOutput())
 
 
 def voronoi3D(nuclei, bbfactor=1, tol=None):
+    """Generate 3D Voronio tasselization with the `Voro++ <http://math.lbl.gov/voro++/>`_ package.
+
+    .. hint:: |voronoi3d| |voronoi3d.py|_
+    """
     from vtkplotter import settings
     import os
 
@@ -1908,18 +1939,18 @@ def voronoi3D(nuclei, bbfactor=1, tol=None):
     return voro
 
 
-def interpolateToImageData(actor, kernel='shepard', radius=None, 
-                           bounds=None, nullValue=None,
-                           dims=(20,20,20)):
+def interpolateToVolume(actor, kernel='shepard', radius=None, 
+                       bounds=None, nullValue=None,
+                       dims=(20,20,20)):
     """
-    Generate a voxel dataset (vtkImageData) by interpolating a scalar
+    Generate a ``Volume`` by interpolating a scalar
     or vector field which is only known on a scattered set of points or mesh.
     Available interpolation kernels are: shepard, gaussian, voronoi, linear.
     
     :param str kernel: interpolation kernel type [shepard]
     :param float radius: radius of the local search
-    :param list bounds: bounding box of the output vtkImageData object
-    :param list dims: dimensions of the output vtkImageData object
+    :param list bounds: bounding box of the output Volume object
+    :param list dims: dimensions of the output Volume object
     :param float nullValue: value to be assigned to invalid points
     """
     output = actor.polydata()
@@ -1954,7 +1985,7 @@ def interpolateToImageData(actor, kernel='shepard', radius=None,
         kern = vtk.vtkLinearKernel()
         kern.SetRadius(radius)
     else:
-        print('Error in interpolateToImageData, available kernels are:')
+        print('Error in interpolateToVolume, available kernels are:')
         print(' [shepard, gaussian, voronoi, linear]')
         exit()
 
@@ -1968,7 +1999,7 @@ def interpolateToImageData(actor, kernel='shepard', radius=None,
     else:
         interpolator.SetNullPointsStrategyToClosestPoint()
     interpolator.Update()
-    return interpolator.GetOutput()
+    return Volume(interpolator.GetOutput())
 
 
 def interpolateToStructuredGrid(actor, kernel=None, radius=None, 
@@ -1981,8 +2012,8 @@ def interpolateToStructuredGrid(actor, kernel=None, radius=None,
     
     :param str kernel: interpolation kernel type [shepard]
     :param float radius: radius of the local search
-    :param list bounds: bounding box of the output vtkImageData object
-    :param list dims: dimensions of the output vtkImageData object
+    :param list bounds: bounding box of the output vtkStructuredGrid object
+    :param list dims: dimensions of the output vtkStructuredGrid object
     :param float nullValue: value to be assigned to invalid points
     """
     output = actor.polydata()
@@ -2077,7 +2108,15 @@ def streamLines(domain, probe,
     :param float maxPropagation: maximum physical length of the streamline
     :param int maxSteps: maximum nr of steps allowed
     :param float stepLength: length of step integration.
+    :param dict extrapolateToBoundingBox:
         Vectors defined on a surface are extrapolated to the entire volume defined by its bounding box
+        
+        - kernel, (str) - interpolation kernel type [shepard]
+        - radius (float)- radius of the local search
+        - bounds, (list) - bounding box of the output Volume
+        - dims, (list) - dimensions of the output Volume object
+        - nullValue, (float) - value to be assigned to invalid points
+
     :param bool surfaceConstrain: force streamlines to be computed on a surface
     :param bool computeVorticity: Turn on/off vorticity computation at streamline points
         (necessary for generating proper stream-ribbons)
@@ -2097,11 +2136,9 @@ def streamLines(domain, probe,
   
     :param list scalarRange: specify the scalar range for coloring
     
-    .. hint:: |streamlines1| |streamlines1.py|_
+    .. hint:: Examples: |streamlines1.py|_ |streamribbons.py|_ |office.py|_ |streamlines2.py|_
     
-        |streamlines2| |streamlines2.py|_
-        
-        |office| |office.py|_
+        |streamlines2| |office| |streamribbons| |streamlines1|
     """
 
     if isinstance(domain, vtk.vtkActor):

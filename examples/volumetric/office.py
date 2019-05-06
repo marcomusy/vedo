@@ -1,7 +1,7 @@
 """
-Stream tubes originating from a probing grid of points
-from CFD analysis of airflow in an office with ventilation 
-and a burning cigarette.
+Stream tubes originating from a probing grid of points.
+Data is from CFD analysis of airflow in an office with 
+ventilation and a burning cigarette.
 """
 # see original script at:
 # https://github.com/Kitware/VTK/blob/master/Examples/
@@ -20,10 +20,9 @@ sgrid = loadStructuredGrid(datadir + "office.binary.vtk")
 seeds = Grid(pos=[2,2,1], normal=[1,0,0], resx=2, resy=3, c="gray")
 
 # We select the integration order to use (RungeKutta order 4) and
-# associate it with the streamer. We integrate in both directions.
+# associate it with the streamer. We integrate in the forward direction.
 slines = streamLines(
-                    sgrid,
-                    seeds,
+                    sgrid, seeds,
                     integrator="rk4",
                     direction="forward",
                     initialStepSize=0.01,

@@ -11,7 +11,7 @@ from vtkplotter import *
 
 vp = Plotter(verbose=0, axes=0, bg='w')
 
-s = vp.load(datadir+"shapes/cow.vtk").alpha(0.3).subdivide()  # remesh
+s = vp.load(datadir+"cow.vtk").alpha(0.3).subdivide()  # remesh
 
 variances = []
 for i, p in enumerate(s.coordinates()):

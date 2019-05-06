@@ -25,7 +25,7 @@ vp = Plotter(verbose=0)
 
 vp.keyPressFunction = myfnc  # make it known to Plotter class
 
-vp.load(datadir+"shapes/bunny.obj")
+vp.load(datadir+"bunny.obj")
 
 vp.add(Text(__doc__))
 

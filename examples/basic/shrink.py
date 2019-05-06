@@ -4,7 +4,7 @@ to make the inside visible.
 """
 from vtkplotter import load, Sphere, show, Text, datadir
 
-pot = load(datadir+"shapes/teapot.vtk").shrink(0.75)
+pot = load(datadir+"teapot.vtk").shrink(0.75)
 
 s = Sphere(r=0.2).pos(0, 0, -0.5)
 

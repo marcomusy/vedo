@@ -161,9 +161,9 @@ def Glyph(actor, glyphObj, orientationArray="",
     :param bool scaleByVectorSize: glyph mesh is scaled by the size of
         the vectors.
 
-    .. hint:: |glyphs| |glyphs.py|_
+    .. hint:: |glyphs.py|_ |glyphs_arrows.py|_
 
-        |glyphs_arrow| |glyphs_arrow.py|_
+        |glyphs| |glyphs_arrows|
     """
     cmap = None
     # user passing a color map to map orientationArray sizes
@@ -343,9 +343,9 @@ def Tube(points, r=1, c="r", alpha=1, res=12):
     :param c: constant color or list of colors for each point.
     :type c: float, list
 
-    .. hint:: |ribbon| |ribbon.py|_
+    .. hint:: |ribbon.py|_ |tube.py|_
 
-        |tube| |tube.py|_
+        |ribbon| |tube|
     """
     ppoints = vtk.vtkPoints()  # Generate the polyline
     ppoints.SetData(numpy_to_vtk(points, deep=True))
@@ -561,7 +561,7 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12)
     :param float alpha: set transparency
     :param int res: set arrow resolution
 
-    .. hint:: |glyphs_arrow| |glyphs_arrow.py|_
+    .. hint:: |glyphs_arrows| |glyphs_arrows.py|_
     """
     startPoints = np.array(startPoints)
     if endPoints is None:
@@ -1339,11 +1339,9 @@ def Text(
         A ``vtkCamera`` object can also be passed.
     :type followcam: bool, vtkCamera
 
-    .. hint:: |colorcubes| |colorcubes.py|_
+    .. hint:: |colorcubes.py|_ |markpoint.py|_ |annotations.py|_
 
-        |markpoint| |markpoint.py|_
-
-        |annotations.py|_ Read a text file and shows it in the rendering window.
+        |colorcubes| |markpoint|
     """
     if c is None: # automatic black or white
         if settings.plotter_instance and settings.plotter_instance.renderer:
@@ -1523,12 +1521,12 @@ def Latex(
         else:
             build_img_plt(formula, '_lateximg.png')
 
-        from vtkplotter.actors import ImageActor
+        from vtkplotter.actors import Image
 
         picr = vtk.vtkPNGReader()
         picr.SetFileName('_lateximg.png')
         picr.Update()
-        vactor = ImageActor()
+        vactor = Image()
         vactor.SetInputData(picr.GetOutput())
         vactor.alpha(alpha)
         b = vactor.GetBounds()
@@ -1546,7 +1544,7 @@ def Latex(
         try:
             import os
             os.unlink('_lateximg.png')
-        except FileNotFoundError:
+        except:
             pass
         return vactor
 

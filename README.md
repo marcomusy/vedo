@@ -65,6 +65,7 @@ for the all following functionalities:
   - Draw `latex`-formatted formulas on the rending window.
   - Examples using [SHTools](https://shtools.oca.eu/shtools) package for *spherical harmonics* expansion of a mesh shape.
   - Integration with the *Qt5* framework.
+  - Export a 3D scene and embed it into a [web page](https://vtkplotter.embl.es/fenics_elasticity.html).
   - Support for [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of finite-element calculations.
 
 
@@ -84,8 +85,8 @@ or `--lego` e.g.:
 ```bash
 vtkplotter            examples/data/head.vti    #1 use a slider to control isosurfacing
 vtkplotter -g -c blue examples/data/embryo.slc  #2 (3D scan of a mouse embryo)
-vtkplotter --slicer   examples/data/embryo.slc  #3 can be used to read DICOM datasets  
-vtkplotter --lego     examples/data/embryo.tif  #4 visualize colorized voxels  
+vtkplotter --slicer   examples/data/embryo.slc  #3 can be used to read DICOM datasets
+vtkplotter --lego     examples/data/embryo.tif  #4 visualize colorized voxels
 ```
 
 
@@ -94,7 +95,7 @@ A get-started tutorial script is available for download:
 ```bash
 git clone https://github.com/marcomusy/vtkplotter.git
 cd vtkplotter/examples
-python tutorial.py  
+python tutorial.py
 ```
 **More than 160 working examples can be found in directories** _(scroll down to see the screenshots):_ <br>
 [**examples/basic**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic)<br>

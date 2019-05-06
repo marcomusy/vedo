@@ -21,7 +21,7 @@ from vtkplotter import show, load, datadir
 
 # Read volume data from a tif file:
 f = datadir+"embryo.tif"
-a0 = load(f, threshold=80, connectivity=1)
+a0 = load(f, threshold=80, connectivity=1) # isosurfacing on the fly
 a1 = load(f, threshold=80, connectivity=0)
 a2 = load(f, smoothing=2)
 

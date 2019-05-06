@@ -8,7 +8,7 @@ Faces (vertex connectivity) can be specified too.
 from vtkplotter import *
 
 
-pts = load(datadir+"shapes/bunny.obj").subdivide(2).coordinates()
+pts = load(datadir+"bunny.obj").subdivide(2).coordinates()
 
 poly = buildPolyData(pts, faces=None)  # vtkPolyData made of just vertices
 

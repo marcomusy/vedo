@@ -7,7 +7,7 @@ import numpy
 
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
-from vtkplotter.actors import Actor, Assembly, ImageActor, isosurface
+from vtkplotter.actors import Actor, Volume, Assembly, Image, isosurface
 import vtkplotter.docs as docs
 import vtkplotter.settings as settings
 import vtkplotter.addons as addons
@@ -22,6 +22,9 @@ Submodule to load meshes of different formats, and other I/O functionalities.
 __all__ = [
     "load",
     "loadPolyData",
+    "loadImage",
+    "loadVolume",
+    "loadImageData",
     "loadXMLGenericData",
     "loadStructuredPoints",
     "loadStructuredGrid",
@@ -35,8 +38,6 @@ __all__ = [
     "loadPCD",
     "loadOFF",
     "loadDICOM",
-    "loadImageData",
-    "load2Dimage",
     "write",
     "screenshot",
     "Video",
@@ -44,6 +45,7 @@ __all__ = [
     "convertNeutral2Xml",
     "buildPolyData",
     "Button",
+    "exportWindow",
 ]
 
 
@@ -129,7 +131,7 @@ def _loadFile(filename, c, alpha, wire, bc, texture, smoothing, threshold, conne
         img = loadImageData(filename)
         actor = isosurface(img, smoothing, threshold, connectivity)
     elif fl.endswith(".png") or fl.endswith(".jpg") or fl.endswith(".bmp") or fl.endswith(".jpeg"):
-        actor = load2Dimage(filename, alpha)
+        actor = loadImage(filename, alpha)
     else:
         poly = loadPolyData(filename)
         if not poly:
@@ -348,7 +350,7 @@ def loadOFF(filename, c="gold", alpha=1, wire=False, bc=None):
 
         ids = []
         if NumberOfVertices <= i < (NumberOfVertices + NumberOfFaces + 1) and n > 2:
-            ids += [int(x) for x in ts[1:]]
+            ids += [int(xx) for xx in ts[1:]]
             faces.append(ids)
 
     return Actor(buildPolyData(vertices, faces), c, alpha, wire, bc)
@@ -499,7 +501,6 @@ def loadDICOM(dirname, spacing=()):
     reader.Update()
     image = reader.GetOutput()
     print("scalar range:", image.GetScalarRange())
-    #colors.printHistogram()
     if len(spacing) == 3:
         image.SetSpacing(spacing[0], spacing[1], spacing[2])
     return image
@@ -529,10 +530,14 @@ def loadImageData(filename, spacing=()):
         image.SetSpacing(spacing[0], spacing[1], spacing[2])
     return image
 
+def loadVolume(filename, spacing=(), c="blue", alphas=(0.0, 0.4, 0.9, 1)):
+    
+    img = loadImageData(filename, spacing)
+    return Volume(img, c, alphas)
 
 ###########################################################
-def load2Dimage(filename, alpha=1):
-    """Read a JPEG/PNG/BMP image from file. Return an ``ImageActor(vtkImageActor)`` object.
+def loadImage(filename, alpha=1):
+    """Read a JPEG/PNG/BMP image from file. Return an ``Image(vtkImageActor)`` object.
 
     .. hint:: |rotateImage| |rotateImage.py|_
     """
@@ -549,7 +554,7 @@ def load2Dimage(filename, alpha=1):
         exit(1)
     picr.SetFileName(filename)
     picr.Update()
-    vactor = ImageActor()  # vtk.vtkImageActor()
+    vactor = Image()  # vtk.vtkImageActor()
     vactor.SetInputData(picr.GetOutput())
     if alpha is None:
         alpha = 1
@@ -567,7 +572,7 @@ def write(objct, fileoutput, binary=True):
     obj = objct
     if isinstance(obj, Actor):
         obj = objct.polydata(True)
-    elif isinstance(obj, vtk.vtkActor):
+    elif isinstance(obj, (vtk.vtkActor, vtk.vtkVolume)):
         obj = objct.GetMapper().GetInput()
 
     fr = fileoutput.lower()
@@ -594,12 +599,6 @@ def write(objct, fileoutput, binary=True):
         w = vtk.vtkSimplePointsWriter()
     elif ".byu" in fr or fr.endswith(".g"):
         w = vtk.vtkBYUWriter()
-    elif ".obj" in fr:
-        w = vtk.vtkOBJExporter()
-        w.SetInputData(settings.plotter_instance.window)
-        w.Update()
-        colors.printc("~save Saved file: " + fileoutput, c="g")
-        return objct
     elif ".tif" in fr:
         w = vtk.vtkTIFFWriter()
         w.SetFileDimensionality(len(obj.GetDimensions()))
@@ -628,6 +627,58 @@ def write(objct, fileoutput, binary=True):
     except Exception as e:
         colors.printc("~noentry Error saving: " + fileoutput, "\n", e, c="r")
     return objct
+
+
+def exportWindow(fileoutput, binary=False, speed=None, html=True):
+    '''
+    Exporter which writes out the renderered scene into an OBJ or X3D file. 
+    X3D is an XML-based format for representation 3D scenes (similar to VRML).
+    Check out http://www.web3d.org/x3d for more details.
+    
+    :param float speed: set speed for x3d files.
+    :param bool html: generate a test html page for x3d files.
+    
+    .. hint:: |export_x3d| |export_x3d.py|_
+    
+        `generated webpage <https://vtkplotter.embl.es/embryo.html>`_
+        
+        See also: FEniCS test `webpage <https://vtkplotter.embl.es/fenics_elasticity.html>`_.
+    '''
+    fr = fileoutput.lower()
+    if ".obj" in fr:
+        w = vtk.vtkOBJExporter()
+        w.SetInputData(settings.plotter_instance.window)
+        w.Update()
+        colors.printc("~save Saved file:", fileoutput, c="g")
+    elif ".x3d" in fr:
+        exporter = vtk.vtkX3DExporter()
+        exporter.SetBinary(binary)
+        exporter.FastestOff()
+        if speed:
+            exporter.SetSpeed(speed)
+        exporter.SetInput(settings.plotter_instance.window)
+        exporter.SetFileName(fileoutput)
+        exporter.Update()
+        exporter.Write()
+        if not html:
+            return
+        from vtkplotter.docs import x3d_html
+        x3d_html = x3d_html.replace("~fileoutput", fileoutput)
+        wsize = settings.plotter_instance.window.GetSize()
+        x3d_html = x3d_html.replace("~width", str(wsize[0]))
+        x3d_html = x3d_html.replace("~height", str(wsize[1]))
+        #b = settings.plotter_instance.renderer.ComputeVisiblePropBounds()
+        #s = max(b[1] - b[0], b[3] - b[2], b[5] - b[4])
+        #c = (b[1] + b[0])/2, (b[3] + b[2])/2, (b[5] + b[4])/2
+        #x3d_html = x3d_html.replace("~size", str(s*2))
+        #x3d_html = x3d_html.replace("~center", str(c[0])+" "+str(c[1])+" "+str(c[2]))
+        outF = open(fileoutput.replace('.x3d', '.html'), "w")
+        outF.write(x3d_html)
+        outF.close()
+        colors.printc("~save Saved files:", fileoutput,
+                      fileoutput.replace('.x3d', '.html'), c="g")
+    return
+
 
 
 def convertNeutral2Xml(infile, outfile=None):
@@ -1467,14 +1518,14 @@ def _keypress(iren, event):
 
     elif key in ["k", "K"]:
         for a in vp.getActors():
-            ptdata = a.polydata().GetPointData()
-            cldata = a.polydata().GetCellData()
+            ptdata = a.GetMapper().GetInput().GetPointData()
+            cldata = a.GetMapper().GetInput().GetCellData()
 
             arrtypes = dict()
-            arrtypes[vtk.VTK_UNSIGNED_CHAR] = "VTK_UNSIGNED_CHAR"
-            arrtypes[vtk.VTK_UNSIGNED_INT] = "VTK_UNSIGNED_INT"
-            arrtypes[vtk.VTK_FLOAT] = "VTK_FLOAT"
-            arrtypes[vtk.VTK_DOUBLE] = "VTK_DOUBLE"
+            arrtypes[vtk.VTK_UNSIGNED_CHAR] = "UNSIGNED_CHAR"
+            arrtypes[vtk.VTK_UNSIGNED_INT] = "UNSIGNED_INT"
+            arrtypes[vtk.VTK_FLOAT] = "FLOAT"
+            arrtypes[vtk.VTK_DOUBLE] = "DOUBLE"
             foundarr = 0
 
             if key == "k":

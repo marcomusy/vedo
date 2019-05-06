@@ -6,7 +6,7 @@ from vtkplotter import Plotter, datadir
 
 vp = Plotter()
 
-mesh = vp.load(datadir+"shapes/spider.ply")
+mesh = vp.load(datadir+"spider.ply")
 mesh.normalize().rotateZ(190).scale(0.8)
 
 

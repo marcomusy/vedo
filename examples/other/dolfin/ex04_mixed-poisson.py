@@ -61,7 +61,7 @@ plot(u, warpZfactor=0.8, bg='white', legend='u', text=__doc__)
 msg = Text("> plot(sigma, mode='mesh lines', warpZfactor= -0.2)", c='w')
 plot(sigma, msg,
      mode='mesh lines',
-     warpZfactor=-0.2,
+     warpZfactor=-0.2,    # rise mesh in z based on scalar value
      scale=0.03,          # scale the lines or arrows
      axes=8, newPlotter=True)
 

@@ -92,7 +92,8 @@ for the all following functionalities:
 - Examples with `SHTools <https://shtools.oca.eu/shtools>`_ package for *spherical harmonics* expansion of a mesh shape.
 - Integration with the *Qt5* framework.
 - Draw `latex`-formatted formulas on the rending window.
-- Support for `FEniCS/dolfin <https://fenicsproject.org/>`_ package
+- Export a 3D scene and embed it into a html page.
+- Support for `FEniCS/dolfin <https://fenicsproject.org/>`_ package.
 
 
 Hello World example
