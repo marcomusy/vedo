@@ -162,6 +162,7 @@ def main(cli=None):
     args = parser.parse_args(cli)
     demo3d_hanoi(
         nr_disks=args.nr_disks,
+        interactive=args.interactive,
         display_rate=args.display_rate,
         create_png=args.png,
         create_gif=args.gif,
