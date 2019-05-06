@@ -640,9 +640,9 @@ def exportWindow(fileoutput, binary=False, speed=None, html=True):
     
     .. hint:: |export_x3d| |export_x3d.py|_
     
-        `generated webpage <https://vtkplotter.embl.es/embryo.html>`_
+        `generated webpage <https://vtkplotter.embl.es/examples/embryo.html>`_
         
-        See also: FEniCS test `webpage <https://vtkplotter.embl.es/fenics_elasticity.html>`_.
+        See also: FEniCS test `webpage <https://vtkplotter.embl.es/examples/fenics_elasticity.html>`_.
     '''
     fr = fileoutput.lower()
     if ".obj" in fr:

@@ -65,8 +65,8 @@ for the all following functionalities:
   - Draw `latex`-formatted formulas on the rending window.
   - Examples using [SHTools](https://shtools.oca.eu/shtools) package for *spherical harmonics* expansion of a mesh shape.
   - Integration with the *Qt5* framework.
-  - Export a 3D scene and embed it into a [web page](https://vtkplotter.embl.es/fenics_elasticity.html).
   - Support for [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of finite-element calculations.
+  - Export a 3D scene and embed it into a [web page](https://vtkplotter.embl.es/examples/fenics_elasticity.html).
 
 
 

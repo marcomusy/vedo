@@ -25,7 +25,7 @@ from vtkplotter.vtkio import load, ProgressBar, screenshot, Video, exportWindow
 import vtkplotter.shapes as shapes
 from vtkplotter.shapes import Text, Latex
 
-from vtkplotter.plotter import show, clear, Plotter, plotMatrix
+from vtkplotter.plotter import show, clear, Plotter, plotMatrix, closeWindow
 
 # NB: dolfin does NOT need to be imported at module level
 
@@ -102,6 +102,7 @@ __all__ = [
     "plotMatrix",
     "isolines",
     "exportWindow",
+    "closeWindow",
     "interactive",
 ]
 

@@ -51,5 +51,5 @@ python example.py  # on mac OSX try 'pythonw' instead
 |    |    |
 | [![turing_pattern](https://user-images.githubusercontent.com/32848391/56056437-77cfeb00-5d5c-11e9-9887-828e5745d547.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/turing_pattern.py)<br/> `turing_pattern.py`        | Solve a reaction-diffusion problem on a 2D domain.  |
 |    |    |
-| [![elasticbeam](https://user-images.githubusercontent.com/32848391/57185890-eecc4f80-6ed4-11e9-866e-ae353735d966.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/elasticbeam.py)<br/> `elasticbeam.py`        |  A clamped beam deformed under its own weight. The whole 3D scene is exported and visualized on a [web page](https://vtkplotter.embl.es/fenics_elasticity.html). |
+| [![elasticbeam](https://user-images.githubusercontent.com/32848391/57185890-eecc4f80-6ed4-11e9-866e-ae353735d966.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/elasticbeam.py)<br/> `elasticbeam.py`        |  A clamped beam deformed under its own weight. The whole 3D scene is exported and visualized on a [web page](https://vtkplotter.embl.es/examples/fenics_elasticity.html). |
 
