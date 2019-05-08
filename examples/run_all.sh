@@ -180,6 +180,9 @@ python basic/glyphs.py
 echo Running basic/glyphs_arrows.py
 python basic/glyphs_arrows.py   
 
+echo Running basic/shadow.py
+python basic/shadow.py   
+
 
 #################################### advanced
 echo Running advanced/fatlimb.py
@@ -248,50 +251,8 @@ python advanced/projectsphere.py
 echo Running advanced/convexHull.py
 python advanced/convexHull.py
 
-
-################################### simulations
-echo Running simulations/aspring.py
-python simulations/aspring.py
-
-echo Running simulations/cell_main.py
-python simulations/cell_main.py
-
-echo Running simulations/brownian2D.py
-python simulations/brownian2D.py
-
-echo Running simulations/gas.py
-python simulations/gas.py
-
-echo Running simulations/gyroscope1.py
-python simulations/gyroscope1.py
-
-echo Running simulations/gyroscope2.py
-python simulations/gyroscope2.py
-
-echo Running simulations/multiple_pendulum.py
-python simulations/multiple_pendulum.py
-
-echo Running simulations/hanoi3d.py
-python simulations/hanoi3d.py
-
-echo Running simulations/pendulum.py
-python simulations/pendulum.py
-
-echo Running simulations/wave_equation.py
-python simulations/wave_equation.py
-
-echo Running simulations/turing.py
-python simulations/turing.py
-
-echo Running simulations/particle_simulator.py
-python simulations/particle_simulator.py
-
-echo Running simulations/doubleslit.py
-python simulations/doubleslit.py
-
-echo Running simulations/tunnelling2.py
-python simulations/tunnelling2.py
-
+echo Running advanced/densifycloud.py
+python advanced/densifycloud.py
 
 ################################### volumetric
 echo Running volumetric/readVolumeAsIsoSurface.py
@@ -384,18 +345,6 @@ echo Running other/export_x3d.py
 python other/export_x3d.py
 
 
-##################################### not ran/ignored:
-#basic/annotations.py
-#basic/text_just.py
-#basic/lights.py
-#basic/ids.py
-#basic/surfIntersect.py
-#other/makeVideo.py
-#other/spherical_harmonics2.py 
-#other/remesh_ACVD.py 
-#other/tf_learn_embryo.py
-#other/self_org_maps2d.py
-
 #################################### 
 echo
 echo
@@ -427,4 +376,22 @@ echo '----------------------------'
 echo vtkplotter -s  "data/2??.vtk"
 vtkplotter      -s   data/2??.vtk
 
+echo '\n----------------------------'
+echo '----------------------------'
+echo 'cd simulations;  ./run_all.sh'
+echo 'cd other/dolfin; ./run_all.sh'
+echo '----------------------------'
+echo '----------------------------'
 
+
+##################################### not ran/ignored:
+#basic/annotations.py
+#basic/text_just.py
+#basic/lights.py
+#basic/ids.py
+#basic/surfIntersect.py
+#other/makeVideo.py
+#other/spherical_harmonics2.py 
+#other/remesh_ACVD.py 
+#other/tf_learn_embryo.py
+#other/self_org_maps2d.py

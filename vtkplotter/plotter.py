@@ -20,7 +20,7 @@ Defines main class ``Plotter`` to manage actors and 3D rendering.
     + docs._defs
 )
 
-__all__ = ["show", "clear", "Plotter", "plotMatrix", "closeWindow"]
+__all__ = ["show", "clear", "Plotter", "plotMatrix", "closeWindow", "interactive"]
 
 
 ########################################################################
@@ -188,6 +188,14 @@ def show(*actors, **options
     return vp
 
 
+def interactive():
+    """Go back to the rendering window interaction mode."""
+    if settings.plotter_instance:
+        if hasattr(settings.plotter_instance, 'interactor'):
+            settings.plotter_instance.interactor.Start()
+    return settings.plotter_instance
+    
+    
 def clear(actor=()):
     """
     Clear specific actor or list of actors from the current rendering window.
@@ -517,8 +525,12 @@ class Plotter:
                 if timenow - self._update_win_clock > 0.1:
                     self._update_win_clock = timenow
                     self._update_observer = self.interactor.CreateRepeatingTimer(1)
-                    self.interactor.Start()
-                    self.interactor.DestroyTimer(self._update_observer)
+                    if hasattr(self, 'interactor') and self.interactor:
+                        self.interactor.Start()
+                        
+                    if hasattr(self, 'interactor') and self.interactor: 
+                        # twice otherwise it crashes when pressing Esc (??)
+                        self.interactor.DestroyTimer(self._update_observer)
 
             self.allowInteraction = _allowInteraction
 
@@ -1237,7 +1249,7 @@ class Plotter:
         elif interactorStyle == 6 or interactorStyle == "RubberBandZoom":
             self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBandZoom())
 
-        if self.interactor and self.interactive:
+        if  hasattr(self, 'interactor') and self.interactor and self.interactive:
             self.interactor.Start()
 
         if rate:

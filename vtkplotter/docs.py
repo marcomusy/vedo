@@ -59,8 +59,9 @@ def tips():
     msg += "|       j     to toggle interaction to Joystick Mode         |\n"
     msg += "|       C     to print current camera info                   |\n"
     msg += "|       S     to save a screenshot                           |\n"
-    msg += "|       q/e   to continue/close the rendering window         |\n"
-    msg += "|       Esc   to exit program                                |\n"
+    msg += "|       q     to return control to python script             |\n"
+    msg += "|       Esc   to close the rendering window                  |\n"
+    #msg += "|       F1    to interrupt execution and exit python         |\n"
     msg += "|------                                                      |\n"
     msg += "|Mouse: Left-click    to rotate scene / pick actors          |\n"
     msg += "|       Middle-click  to pan scene                           |\n"
@@ -975,7 +976,19 @@ _defs = """
     :target: silhouette.py_
     :alt: silhouette.py
 
+.. |shadow.py| replace:: shadow.py
+.. _shadow.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/shadow.py
+.. |shadow| image:: https://user-images.githubusercontent.com/32848391/57312574-1d714280-70ee-11e9-8741-04fc5386d692.png
+    :width: 350 px
+    :target: shadow.py_
+    :alt: shadow.py
 
+.. |airplanes.py| replace:: airplanes.py
+.. _airplanes.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/.py
+.. |airplanes| image:: https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif
+    :width: 350 px
+    :target: airplanes.py_
+    :alt: airplanes.py
 
 
 """

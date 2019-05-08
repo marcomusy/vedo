@@ -45,17 +45,20 @@ setup(
 ##############################################################
 # # check examples
 # change version in vtkplotter/version.py
+
 # cd ~/Projects/vtkplotter/
 # pip install .
 # ( sudo -H pip install . )
+
 # cd examples
 # ./run_all.sh
-# cd other/dolfin
+# cd simulations
+# cd ../other/dolfin
 # ./run_all.sh
+
 # check vtkconvert:
 # vtkconvert data/290.vtk -to ply
 # check on python2 the same
-
 
 # git status
 # git commit -a -m 'comment'
@@ -67,13 +70,6 @@ setup(
 # python setup.py sdist bdist_wheel
 # twine upload dist/vtkplotter-?.?.?.tar.gz -r pypi
 # make release
-
-# pip:
-# # https://pypi.org/project/vtkplotter
-# git:
-# # check status at  https://github.com/marcomusy/vtkplotter
-
-## to generate gif: ezgif.com
 
 ## to generate documentation:
 # Install the dependencies in docs/requirements.txt
@@ -89,4 +85,5 @@ setup(
 # cp -r build/html/* ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/
 
 
+## to generate gif: ezgif.com
 

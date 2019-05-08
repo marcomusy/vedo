@@ -25,7 +25,7 @@ Intuitive and straightforward API which can be combined with VTK seamlessly
 in a program, whilst mantaining access to the full range of VTK native classes.
 
 It includes a [**large set of working examples**](https://github.com/marcomusy/vtkplotter/tree/master/examples)
-for the all following functionalities:
+for all the following functionalities:
 
   - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, XML, Neutral, GMSH, OFF, PCD (PointCloud), volumetric TIFF stacks, DICOM, SLC, MHD, 2D images PNG, JPEG.
   - Export meshes as ASCII or binary to VTK, STL, OBJ, PLY formats.
@@ -39,7 +39,7 @@ for the all following functionalities:
   - Point-surface operations: find nearest points, determine if a point lies inside or outside a mesh.
   - Create primitive objects like: spheres, arrows, cubes, torus, ellipsoids... 
   - Generate *glyphs* (associating a mesh to each vertex of a source mesh).
-  - Create animations easily by just defining the position of the displayed objects in the 3D scene. Add trailing lines to moving objects automatically.
+  - Create animations easily by just defining the position of the displayed objects in the 3D scene. Add trailing lines and shadows to moving objects is also supported.
   - Straightforward support for multiple *sync-ed* or independent renderers in  the same window.
   - Registration (alignment) of meshes with different techniques.
   - Mesh smoothing with *Laplacian* and *WindowedSinc* algorithms.
@@ -97,7 +97,7 @@ git clone https://github.com/marcomusy/vtkplotter.git
 cd vtkplotter/examples
 python tutorial.py
 ```
-**More than 160 working examples can be found in directories** _(scroll down to see the screenshots):_ <br>
+**More than 170 working examples can be found in directories** _(scroll down to see the screenshots):_ <br>
 [**examples/basic**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic)<br>
 [**examples/advanced**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced)<br>
 [**examples/volumetric**](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric)<br>
@@ -109,6 +109,8 @@ python tutorial.py
 |:--------:|:-----|
 | ![rabbit](https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg)   | Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a large cloud of scattered points in space ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py)) <br />  `python advanced/moving_least_squares2D.py` |
 |                                                                                                                   |      |
+| ![airplanes](https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)| Create 3D animations in just a few lines of code.<br>Trails and shadows can be added to moving objects easily. ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/airplanes.py)) <br /> `python simulations/airplanes.py`|
+|                                                                                                                   |      |
 | ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)     | Simulation of a gyroscope hanging from a spring ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/gyroscope1.py)) <br /> `python simulations/gyroscope1.py`|
 |                                                                                                                   |      |
 | ![qsine2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)   | Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/tunnelling2.py)) <br /> `python simulations/tunnelling2.py`   |
@@ -117,6 +119,7 @@ python tutorial.py
 |                                                                                                                   |      |
 | ![elastodyn](https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif)   |  Support for the [FEniCS/dolfin](https://fenicsproject.org/) platform for visualization of finite element solutions ([see here](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin)).  <br /> ![dolf](https://user-images.githubusercontent.com/32848391/56671156-6bc91f00-66b4-11e9-8c58-e6b71e2ad1d0.gif) |
 <br />
+
 
 
 ## References

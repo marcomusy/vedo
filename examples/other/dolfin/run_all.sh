@@ -17,6 +17,9 @@ python calc_surface_area.py
 echo Running markmesh.py
 python markmesh.py
 
+echo Running scalemesh.py
+python scalemesh.py
+
 echo Running pi_estimate.py
 python pi_estimate.py
 

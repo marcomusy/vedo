@@ -849,6 +849,10 @@ def screenshot(filename="screenshot.png"):
     w2if = vtk.vtkWindowToImageFilter()
     w2if.ShouldRerenderOff()
     w2if.SetInput(settings.plotter_instance.window)
+    s = settings.screeshotScale
+    w2if.SetScale(s, s)
+    if settings.screenshotTransparentBackground:
+        w2if.SetInputBufferTypeToRGBA()
     w2if.ReadFrontBufferOff()  # read from the back buffer
     w2if.Update()
     pngwriter = vtk.vtkPNGWriter()
@@ -1241,26 +1245,20 @@ def _keypress(iren, event):
 
     vp = settings.plotter_instance
     key = iren.GetKeySym()
-    # print('Pressed key:', key, event)
+    #print('Pressed key:', key)
 
     if key in ["q", "Q", "space", "Return"]:
         iren.ExitCallback()
         return
 
-    elif key == "e":
-        if vp.verbose:
-            print("closing window...")
-        iren.GetRenderWindow().Finalize()
-        iren.TerminateApp()
-        return
-
     elif key == "Escape":
-        print()
         sys.stdout.flush()
-        iren.TerminateApp()
-        iren.GetRenderWindow().Finalize()
-        iren.TerminateApp()
-        sys.exit(0)
+        settings.plotter_instance.closeWindow()
+
+    elif key in ["F1", "Pause"]:
+        sys.stdout.flush()
+        settings.plotter_instance.closeWindow()
+        exit()
 
     elif key == "m":
         if vp.clickedActor in vp.getActors():

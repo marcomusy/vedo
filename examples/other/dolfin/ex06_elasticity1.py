@@ -42,7 +42,7 @@ from vtkplotter.dolfin import *
 
 # ps = point size, only mesh vertices are shown 
 plot(u, mode='mesh', ps=10)
-clear()
 
 # plot displacements as white arrows, lw controls the mesh visibility
-plot(u, mode='arrows', color='w', alpha=0.5, cmap='gist_earth', lw=1)
+plot(u, mode='arrows', add=True,
+     color='w', alpha=0.5, cmap='gist_earth', lw=1)

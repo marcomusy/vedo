@@ -29,6 +29,8 @@ python example.py  # on mac OSX try 'pythonw' instead
 |    |    |
 | [![hanoi](https://user-images.githubusercontent.com/32848391/56989284-58c1bd80-6b92-11e9-8f82-1ce95813f846.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/hanoi3d.py)<br/> `hanoi3d.py`            | Solve the Tower of Hanoi puzzle (contributed by [G. Jacquenot](https://github.com/Gjacquenot)). |
 |    |    |
+| [![airplanes](https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/airplanes.py)<br/> `airplanes.py` | Two acrobatic planes casting shadows and leaving a trail. |
+|    |    |
 | [![ruth](https://user-images.githubusercontent.com/32848391/50738891-db380300-11d8-11e9-84c2-0f55be7228f1.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/particle_simulator.py)<br/> `particle_simulator.py` | Simulates interacting charged particles in 3D space. |
 |    |    |
 | [![tunneling1](https://vtkplotter.embl.es/gifs/tunnelling2.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/tunnelling1.py)<br/> `tunnelling1.py`                                                    | Quantum Tunnelling effect using 4th order Runge-Kutta method with arbitrary potential shape. <br>The animation shows the evolution of a particle of relatively well defined momentum (hence undefined position) in a box hitting a potential barrier. The wave function is forced to be zero at the box walls. |
@@ -40,3 +42,6 @@ python example.py  # on mac OSX try 'pythonw' instead
 | [![wave](https://user-images.githubusercontent.com/32848391/50738956-7e891800-11d9-11e9-92d7-fa109b1b8551.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/wave_equation.py)<br/> `wave_equation.py` | Simulate a collection of discrete coupled oscillators. We use this as a model of a vibrating string and compare two methods of integration: Euler and Runge-Kutta4.|
 |    |    |
 | [![](https://user-images.githubusercontent.com/32848391/44957809-b2c09500-aed6-11e8-9dc5-c2e52b632f94.gif)](https://github.com/marcomusy/pianoplayer)                                                                              | Finding and animating the optimal fingering to play a piano score with<br />[`pianoplayer 2.0`](https://github.com/marcomusy/pianoplayer)|
+
+
+

@@ -16,6 +16,7 @@ and ``vtkImageActor`` objects functionality.
 )
 
 __all__ = [
+    'Prop',
     'Actor',
     'Assembly',
     'Image',
@@ -29,23 +30,6 @@ __all__ = [
 
 
 ################################################# functions
-def mergeActors(actors, tol=0):
-    """
-    Build a new actor formed by the fusion of the polydatas of input objects.
-    Similar to Assembly, but in this case the input objects become a single mesh.
-
-    .. hint:: |thinplate_grid.py|_ |value-iteration.py|_
-    
-        |thinplate_grid| |value-iteration|
-    """
-    polylns = vtk.vtkAppendPolyData()
-    for a in actors:
-        polylns.AddInputData(a.polydata())
-    polylns.Update()
-    pd = polylns.GetOutput()
-    return Actor(pd)
-
-
 def collection():
     """
     Return the list of actor which have been created so far,
@@ -196,10 +180,38 @@ def legosurface(image, vmin=None, vmax=None, cmap='afmhot_r'):
     return a
 
 
+def mergeActors(*actors):
+    """
+    Build a new actor formed by the fusion of the polygonal meshes of the input objects.
+    Similar to Assembly, but in this case the input objects become a single mesh.
+
+    .. hint:: |thinplate_grid.py|_ |value-iteration.py|_
+    
+        |thinplate_grid| |value-iteration|
+    """
+    acts = []
+    for a in utils.flatten(actors):
+        if isinstance(a, vtk.vtkAssembly):
+            acts += a.getActors()
+        else:
+            acts += [a]
+    if len(acts)==1:
+        return acts[0].clone()
+    polylns = vtk.vtkAppendPolyData()
+    for a in acts:
+        polylns.AddInputData(a.polydata())
+    polylns.Update()
+    pd = polylns.GetOutput()
+    return Actor(pd)
+
+
+
 ################################################# classes
 class Prop(object):
-    """Adds functionality to ``Actor``, ``Assembly``,
-    ``vtkImageData`` and ``vtkVolume`` objects."""
+    """Adds functionality to ``Actor``, ``Assembly`` and ``Volume`` objects.
+    
+    .. warning:: Do not use this class to instance objects, use the above ones.
+    """
 
     def __init__(self):
 
@@ -479,7 +491,9 @@ class Prop(object):
         :param n: number of segments to control precision
         :param lw: line width of the trail
 
-        .. hint:: |trail| |trail.py|_
+        .. hint:: See examples: |trail.py|_  |airplanes.py|_
+        
+            |airplanes|
         """
         if maxlength is None:
             maxlength = self.diagonalSize() * 20
@@ -1031,7 +1045,7 @@ class Actor(vtk.vtkActor, Prop):
         if lw is not None:
             if lw == 0:
                 self.GetProperty().EdgeVisibilityOff()
-                return
+                return self
             self.GetProperty().EdgeVisibilityOn()
             self.GetProperty().SetLineWidth(lw)
         else:
@@ -1179,11 +1193,9 @@ class Actor(vtk.vtkActor, Prop):
         :param float radius: if given, get all points within that radius.
         :param bool returnIds: return points IDs instead of point coordinates.
 
-        .. hint:: |fitplanes.py|_
+        .. hint:: |align1.py|_ |fitplanes.py|_  |quadratic_morphing.py|_
 
-            |align1| |align1.py|_
-
-            |quadratic_morphing| |quadratic_morphing.py|_
+            |align1| |quadratic_morphing|
 
         .. note:: The appropriate kd-tree search locator is built on the fly and cached for speed.
         """
@@ -2244,13 +2256,13 @@ class Actor(vtk.vtkActor, Prop):
         tp.Update()
         return tp.GetOutput()
 
-    def coordinates(self, transformed=True, copy=True):
+    def coordinates(self, transformed=True, copy=False):
         """
         Return the list of vertex coordinates of the input mesh. Same as `actor.getPoints()`.
 
         :param bool transformed: if `False` ignore any previous trasformation applied to the mesh.
         :param bool copy: if `False` return the reference to the points
-            so that they can be modified in place.
+            so that they can be modified in place, otherwise a copy is built.
 
         .. hint:: |align1.py|_
         """
@@ -2512,18 +2524,25 @@ class Actor(vtk.vtkActor, Prop):
             pts.append(list(intersection))
         return pts
 
-    
-    def projectOnPlane(self, plane='xy'):
+
+    def projectOnPlane(self, direction='z'):
         """
+        Project the mesh on one of the Cartesian planes.
         """
-        if plane=='xy':
-            self.coordinates(copy=False)[:,2] = self.zbounds()[0]
-        elif plane=='yz':
-            self.coordinates(copy=False)[:,0] = self.xbounds()[0]
-        elif plane=='zx':
-            self.coordinates(copy=False)[:,1] = self.ybounds()[0]
-        self.alpha(0.1)
-        self.polydata(False).GetPoints().Modified()
+        coords = self.coordinates(transformed=True)
+        if   'z' == direction:
+            coords[:,2] = self.GetOrigin()[2]
+            self.z(self.zbounds()[0])
+        elif 'x' == direction:
+            coords[:,0] = self.GetOrigin()[0]
+            self.x(self.xbounds()[0])
+        elif 'y' == direction:
+            coords[:,1] = self.GetOrigin()[1]
+            self.y(self.ybounds()[0])
+        else:
+            colors.printc("~times Error in projectOnPlane(): unknown direction", direction, c=1)
+            exit()
+        self.alpha(0.1).polydata(False).GetPoints().Modified()
         return self
     
 
@@ -2782,6 +2801,8 @@ class Volume(vtk.vtkVolume, Prop):
     def threshold(self, vmin=None, vmax=None, replaceWith=None):
         """
         Binary or continuous volume thresholding.
+        Find the voxels that contain the value below/above or inbetween
+        [vmin, vmax] and replaces it with the provided value.
         """
         th = vtk.vtkImageThreshold()
         th.SetInputData(self.image)
@@ -2789,13 +2810,15 @@ class Volume(vtk.vtkVolume, Prop):
         if vmin is not None and vmax is not None:
             th.ThresholdBetween(vmin, vmax)
         elif vmin is not None:
-            th.ThresholdByUpper(vmin)
+            th.ThresholdByLower(vmin)
         elif vmax is not None:
-            th.ThresholdByLower(vmax)
+            th.ThresholdByUpper(vmax)
 
-        if replaceWith:
-            th.ReplaceOutOn()
-            th.SetOutValue(replaceWith)
+        if replaceWith is None:
+            colors.printc("Error in threshold(); you must provide replaceWith", c=1)
+            exit()
+            
+        th.SetInValue(replaceWith)
         th.Update()
 
         self.image = th.GetOutput()
@@ -2842,7 +2865,7 @@ class Volume(vtk.vtkVolume, Prop):
         return self
 
     def resize(self, *newdims):
-        """Increase or reduce the number of voxels of a Volume with interpolation"""
+        """Increase or reduce the number of voxels of a Volume with interpolation."""
         old_dims = np.array(self.imagedata().GetDimensions())
         old_spac = np.array(self.imagedata().GetSpacing())
         rsz = vtk.vtkImageResize()
@@ -2856,7 +2879,19 @@ class Volume(vtk.vtkVolume, Prop):
         self.GetMapper().SetInputData(self.image)
         self.GetMapper().Modified()
         return self
+
+
+    def normalize(self):
+        """Normalize that scalar components for each point."""
+        norm = vtk.vtkImageNormalize()
+        norm.SetInputData(self.imagedata())
+        norm.Update()
+        self.image = norm.GetOutput()
+        self.GetMapper().SetInputData(self.image)
+        self.GetMapper().Modified()
+        return self
         
+
     def scaleVoxelsScalar(self, scale=1):
         """Scale the voxel content"""
         rsl = vtk.vtkImageReslice()

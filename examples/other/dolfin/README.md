@@ -19,6 +19,8 @@ python example.py  # on mac OSX try 'pythonw' instead
 |    |    |
 | [![submesh](https://user-images.githubusercontent.com/32848391/56675428-4e984e80-66bc-11e9-90b0-43dde7e4cc29.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/demo_submesh.py)<br/> `demo_submesh.py`                   | How to extract matching sub meshes from a common mesh.  |
 |    |    |
+| [![scalemesh](https://user-images.githubusercontent.com/32848391/57393382-431c4b80-71c3-11e9-9a2c-8abb172f5468.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/scalemesh.py)<br/> `scalemesh.py`                       | Scale a 2D mesh asymmetrically in one coordinate and elevate it along the z-axis with the solution. |
+|    |    |
 | [![pi_estimate](https://user-images.githubusercontent.com/32848391/56675429-4e984e80-66bc-11e9-9217-a0652a8e74fe.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/pi_estimate.py)<br/> `pi_estimate.py`                 | Estimate _pi_ by integrating a circle surface. Latex formulas can be added to the renderer directly. |
 |    |    |
 | [![tet_mesh](https://user-images.githubusercontent.com/32848391/53026244-d2d31900-3462-11e9-835a-1fa9d66d3dae.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/ex02_tetralize-mesh.py)<br/> `ex02_tetralize-mesh.py`    | Tetrahedral meshes generation with package _mshr_.  |

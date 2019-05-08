@@ -9,7 +9,7 @@
 # -----------------------------------------------------------------------------
 import numpy as np
 import scipy.spatial
-from vtkplotter import Points, Sphere, Grid, ProgressBar, Text, show
+from vtkplotter import *
 
 
 class SOM:
@@ -52,7 +52,8 @@ class SOM:
                     for j in range(n):
                         grd.setPoint(i*n+j, (x[i,j], y[i,j], z[i,j]))
                 show(doc, pts, grd, axes=6, bg='w', azimuth=2, interactive=False)
-                
+
+        interactive()
         return [self.codebook[:,i].reshape(n,n) for i in range(3)]
 
 # -------------------------------------------------------------------------------
@@ -69,4 +70,3 @@ if __name__ == "__main__":
     som.samples = s.coordinates()
     som.learn(n_epoch=7000, sigma=(1, 0.01), lrate=(1, 0.01))
     
-    show(interactive=True)

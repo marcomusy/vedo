@@ -25,7 +25,7 @@ from vtkplotter.vtkio import load, ProgressBar, screenshot, Video, exportWindow
 import vtkplotter.shapes as shapes
 from vtkplotter.shapes import Text, Latex
 
-from vtkplotter.plotter import show, clear, Plotter, plotMatrix, closeWindow
+from vtkplotter.plotter import show, clear, Plotter, plotMatrix, closeWindow, interactive
 
 # NB: dolfin does NOT need to be imported at module level
 
@@ -175,12 +175,6 @@ def _inputsort(obj):
     return (mesh, u)
 
 
-def interactive():
-    """Go back to the rendering window interaction mode."""
-    if settings.plotter_instance:
-        settings.plotter_instance.interactor.Start()
-    return settings.plotter_instance
-    
 
 def plot(*inputobj, **options):
     """
@@ -201,7 +195,7 @@ def plot(*inputobj, **options):
         - `lines`, mesh displacements are plotted as scaled lines.
         - `tensors`, to be implemented
     
-    :param bool add: add the input objects without clearing the previous ones 
+    :param bool add: add the input objects without clearing the already plotted ones 
     :param float density: show only a subset of lines or arrows [0-1] 
     :param bool wire[frame]: visualize mesh as wireframe [False]
     :param c[olor]: set mesh color [None]
@@ -280,15 +274,12 @@ def plot(*inputobj, **options):
     """
     
     if len(inputobj) == 0:
-        if settings.plotter_instance:
-            settings.plotter_instance.interactor.Start()
-        return settings.plotter_instance
+        return interactive()
     
     mesh, u = _inputsort(inputobj)
 
     mode = options.pop("mode", 'mesh')
     ttime = options.pop("z", None)
-    #density = options.pop("density", None) #todo
     
     add = options.pop("add", False)
 
@@ -751,15 +742,13 @@ def MeshArrows(*inputobj, **options):
 #ub_test.rename('ub_test','ub_test')
 #u_test.rename('u_test','u_test')
 #us.rename('us','us')
-#File("output/u.pvd")            << u
-#File("output/ub_test.pvd")      << ub_test
-#File("output/u_test.pvd")       << u_test
-#File("output/us.pvd")           << us​
 
 
 
 
-#import os
+
+
+
 #
 #import dolfin
 #import dolfin.cpp as cpp

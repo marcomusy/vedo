@@ -5,11 +5,11 @@ from __future__ import division, print_function
 import os
 
 __all__ = [
-    'computeNormals',
-    'interactorStyle',
-    'allowInteraction',
-    'usingQt',
-    'renderPointsAsSpheres',
+#    'computeNormals',
+#    'interactorStyle',
+#    'allowInteraction',
+#    'usingQt',
+#    'renderPointsAsSpheres',
     'textures',
     'textures_path',
     'datadir',
@@ -42,6 +42,10 @@ xtitle = 'x'
 ytitle = 'y'
 ztitle = 'z'
 
+
+# scale magnification of the screenshot
+screeshotScale = 1
+screenshotTransparentBackground = False
 
 
 #####################

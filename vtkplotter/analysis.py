@@ -2,7 +2,7 @@ from __future__ import division, print_function
 import vtkplotter.docs as docs
 import vtk
 import numpy as np
-from vtk.util.numpy_support import numpy_to_vtk
+from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
 import vtkplotter.utils as vu
 import vtkplotter.colors as vc
@@ -64,6 +64,7 @@ __all__ = [
     "interpolateToVolume",
     "interpolateToStructuredGrid",
     "streamLines",
+    "densifyCloud",
 ]
 
 
@@ -2248,5 +2249,58 @@ def streamLines(domain, probe,
     return sta
 
 
+def densifyCloud(actor, targetDistance, closestN=6, radius=0, maxIter=None, maxN=None):
+    """Adds new points to an input point cloud. 
+    The new points are created in such a way that all points in any local neighborhood are 
+    within a target distance of one another. 
+    
+    The algorithm works as follows. For each input point, the distance to all points 
+    in its neighborhood is computed. If any of its neighbors is further than the target distance,
+    the edge connecting the point and its neighbor is bisected and a new point is inserted at the
+    bisection point. A single pass is completed once all the input points are visited. 
+    Then the process repeats to the limit of the maximum number of iterations.
+
+    .. note:: Points will be created in an iterative fashion until all points in their 
+        local neighborhood are the target distance apart or less.
+        Note that the process may terminate early due to the limit on the
+        maximum number of iterations. By default the target distance is set to 0.5.
+        Note that the TargetDistance should be less than the Radius or nothing will change on output.
+
+    .. warning:: This class can generate a lot of points very quickly.
+        The maximum number of iterations is by default set to =1.0 for this reason.
+        Increase the number of iterations very carefully.
+        Also, `maxN` can be set to limit the explosion of points.
+        It is also recommended that a N closest neighborhood is used.
+    """
+    src = vtk.vtkProgrammableSource()
+    def readPoints():
+        output = src.GetPolyDataOutput()
+        points = vtk.vtkPoints()
+        pts = actor.coordinates()
+        for p in pts:
+            x, y, z = p
+            points.InsertNextPoint(x, y, z)
+        output.SetPoints(points)
+    src.SetExecuteMethod(readPoints)
+
+    dens = vtk.vtkDensifyPointCloudFilter()
+    dens.SetInputConnection(src.GetOutputPort())
+    dens.InterpolateAttributeDataOn()
+    dens.SetTargetDistance(targetDistance)
+    if maxIter: dens.SetMaximumNumberOfIterations(maxIter)
+    if maxN: dens.SetMaximumNumberOfPoints(maxN)
+
+    if radius:
+        dens.SetNeighborhoodTypeToRadius()
+        dens.SetRadius(radius)
+    elif closestN:
+        dens.SetNeighborhoodTypeToNClosest()
+        dens.SetNumberOfClosestPoints(closestN)
+    else:
+        vc.printc("Error in densifyCloud: set either radius or closestN", c=1)
+        exit()    
+    dens.Update()
+    pts = vtk_to_numpy(dens.GetOutput().GetPoints().GetData())
+    return vs.Points(pts, c=None).pointSize(3)
 
 

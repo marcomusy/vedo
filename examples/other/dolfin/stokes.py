@@ -9,7 +9,7 @@ from time import time
 from vtkplotter.dolfin import plot, datadir, Latex
 
 t0 = time()
-print("calculating... please wait...")
+print("calculating... please wait... this takes time!")
 
 # Load mesh and subdomains
 mesh = Mesh(datadir+"dolfin_fine.xml")

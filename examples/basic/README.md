@@ -83,7 +83,9 @@ python example.py
 |    |    |
 | [![sliders3d](https://user-images.githubusercontent.com/32848391/52859555-4efcf200-312d-11e9-9290-6988c8295163.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/sliders3d.py)<br/> `sliders3d.py`                | Use a 3D sliders to modify interactively the position of a mesh.|
 |    |    |
-| [![silhouette](https://user-images.githubusercontent.com/32848391/57179369-8e5df380-6e7d-11e9-99b4-3b1a120dd375.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/silhouette.py)<br/> `silhouette.py`                |Show the silhouette of a mesh as seen along a specified direction. |
+| [![silhouette](https://user-images.githubusercontent.com/32848391/57179369-8e5df380-6e7d-11e9-99b4-3b1a120dd375.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/silhouette.py)<br/> `silhouette.py`             |Show the silhouette of a mesh as seen along a specified direction. |
+|    |    |
+| [![shadow](https://user-images.githubusercontent.com/32848391/57312574-1d714280-70ee-11e9-8741-04fc5386d692.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/shadow.py)<br/> `shadow.py`                         | Draw the shadow of a set of meshes on one of the Cartesian planes. |
 |    |    |
 | [![texturecubes](https://user-images.githubusercontent.com/32848391/50738847-be033480-11d8-11e9-8087-8ba949dbf228.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/texturecubes.py)<br/> `texturecubes.py`       | Show a cube for each available texture name. Any jpg file can be used as texture. <br/>Built in textures: `['aqua', 'blue', 'bricks', 'gold1', 'gold2', 'grass', 'greenfloor', 'greentiles', 'ivy', 'leather1', 'leather2', 'marble', 'masonry', 'metal1', 'metal2', 'metalfloor1', 'metalfloor2', 'paper', 'water', 'white1', 'white2', 'white3', 'white4', 'wood1', 'wood2', 'wood3', 'wood4', 'wood5', 'wood6', 'wood7', 'wood8', 'wood9']` |
 |    |    |

@@ -5,7 +5,7 @@ from vtkplotter import settings
 from vtk.util.numpy_support import numpy_to_vtk
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
-from vtkplotter.actors import Actor, Assembly
+from vtkplotter.actors import Actor, Assembly, mergeActors
 import vtkplotter.docs as docs
 
 __doc__ = (
@@ -46,6 +46,7 @@ __all__ = [
     "Text",
     "Latex",
     "Glyph",
+    "Shadow",
 ]
 
 
@@ -1554,5 +1555,31 @@ def Latex(
         colors.printc(' Try: usetex=False' , c=1)
         colors.printc(' Try: sudo apt install dvipng' , c=1)
         return None
+
+
+def Shadow(*actors, **options):
+    """
+    Generate a shadow out of a number of ``Actor`` or ``Assembly`` (group of actors),
+    on one of the three Cartesian planes. 
+    The output is a new ``Actor`` representing the shadow.
+    By default the actor is placed on the bottom/back wall of the bounding box.
+    
+    :param str direction: identifies the plane to cast the shadow to ['x', 'y' or 'z'].
+    
+    .. hint:: |shadow|  |shadow.py|_
+    
+        |airplanes| |airplanes.py|_
+    """
+    direction = options.pop("direction", 'z')
+    
+    am = mergeActors(actors)
+
+    shad = am.projectOnPlane(direction)
+    shad.c([0.5,0.5,0.5]).alpha(1).wireframe(False)
+    shad.flat().backFaceCulling()
+    shad.GetProperty().SetSpecular(0)
+    shad.GetProperty().SetDiffuse(0)
+    shad.GetProperty().SetAmbient(1)
+    return shad
 
 
