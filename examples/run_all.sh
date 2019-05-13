@@ -174,6 +174,9 @@ python basic/tube.py
 echo Running basic/markpoint.py
 python basic/markpoint.py    
 
+echo Running basic/fonts.py
+python basic/fonts.py    
+
 echo Running basic/glyphs.py
 python basic/glyphs.py   
 
@@ -182,6 +185,12 @@ python basic/glyphs_arrows.py
 
 echo Running basic/shadow.py
 python basic/shadow.py   
+
+echo Running basic/specular.py
+python basic/specular.py   
+
+echo Running basic/lightings.py
+python basic/lightings.py   
 
 
 #################################### advanced
@@ -376,7 +385,7 @@ echo '----------------------------'
 echo vtkplotter -s  "data/2??.vtk"
 vtkplotter      -s   data/2??.vtk
 
-echo '\n----------------------------'
+echo '----------------------------'
 echo '----------------------------'
 echo 'cd simulations;  ./run_all.sh'
 echo 'cd other/dolfin; ./run_all.sh'

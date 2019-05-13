@@ -1,6 +1,7 @@
+include vtkplotter/*
 include vtkplotter/textures/*
-include vtkplotter/icons/*
+include vtkplotter/fonts/*
+include vtkplotter/fonts/licenses/*
 include vtkplotter/data/*
 include vtkplotter/data/images/*
-include vtkplotter/data/shapes/*
 include vtkplotter/data/timecourse1d/*

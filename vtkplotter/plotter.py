@@ -57,9 +57,70 @@ def show(*actors, **options
     ``vtkActor2D``, ``vtkImageActor``, ``vtkAssembly`` or ``vtkVolume``.
 
     If filename is given, its type is guessed based on its extension.
-    Supported formats are: 
+    Supported formats are:
     `vtu, vts, vtp, ply, obj, stl, 3ds, xml, neutral, gmsh, pcd, xyz, txt, byu,
     tif, slc, vti, mhd, png, jpg`.
+
+    :param int at: number of the renderer to plot to, if more than one exists
+    :param int axes: set the type of axes to be shown
+
+          - 0,  no axes,
+          - 1,  draw three gray grid walls
+          - 2,  show cartesian axes from (0,0,0)
+          - 3,  show positive range of cartesian axes from (0,0,0)
+          - 4,  show a triad at bottom left
+          - 5,  show a cube at bottom left
+          - 6,  mark the corners of the bounding box
+          - 7,  draw a simple ruler at the bottom of the window
+          - 8,  show the ``vtkCubeAxesActor`` object,
+          - 9,  show the bounding box outLine,
+          - 10, show three circles representing the maximum bounding box
+
+    :param c:     surface color, in rgb, hex or name formats
+    :param bc:    set a color for the internal surface face
+    :param bool wire:  show actor in wireframe representation
+    :param float azimuth/elevation/roll:  move camera accordingly
+    :param str viewup:  either ['x', 'y', 'z'] or a vector to set vertical direction
+    :param bool resetcam:  re-adjust camera position to fit objects
+
+    :param dict camera: Camera parameters can further be specified with a dictionary assigned to the ``camera`` keyword:
+        (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
+    
+        - pos, `(list)`,  the position of the camera in world coordinates
+        - focalPoint `(list)`, the focal point of the camera in world coordinates
+        - viewup `(list)`, the view up direction for the camera
+        - distance `(float)`, set the focal point to the specified distance from the camera position.
+        - clippingRange `(float)`, distance of the near and far clipping planes along the direction of projection.
+        - parallelScale `(float)`,
+            scaling used for a parallel projection, i.e. the height of the viewport 
+            in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
+            an "inverse scale", larger numbers produce smaller images. 
+            This method has no effect in perspective projection mode.
+        - thickness `(float)`,
+            set the distance between clipping planes. This method adjusts the far clipping 
+            plane to be set a distance 'thickness' beyond the near clipping plane.
+        - viewAngle `(float)`,
+            the camera view angle, which is the angular height of the camera view
+            measured in degrees. The default angle is 30 degrees.
+            This method has no effect in parallel projection mode. 
+            The formula for setting the angle up for perfect perspective viewing is:
+            angle = 2*atan((h/2)/d) where h is the height of the RenderWindow
+            (measured by holding a ruler up to your screen) and d is the distance from your eyes to the screen.
+   
+    :param bool interactive:  pause and interact with window (True)
+        or continue execution (False)
+    :param float rate:  maximum rate of `show()` in Hertz
+    :param int interactorStyle: set the type of interaction
+
+        - 0, TrackballCamera
+        - 1, TrackballActor
+        - 2, JoystickCamera
+        - 3, Unicam
+        - 4, Flight
+        - 5, RubberBand3D
+        - 6, RubberBandZoom
+
+    :param bool q:  force program to quit after `show()` command returns.
 
     :param bool newPlotter: if set to `True`, a call to ``show`` will instantiate
         a new ``Plotter`` object (a new window) instead of reusing the first created.
@@ -106,6 +167,7 @@ def show(*actors, **options
     azimuth = options.pop("azimuth", 0)
     elevation = options.pop("elevation", 0)
     roll = options.pop("roll", 0)
+    camera = options.pop("camera", None)
     interactorStyle = options.pop("interactorStyle", 0)
     newPlotter = options.pop("newPlotter", False)
     depthpeeling = options.pop("depthpeeling", False)
@@ -165,6 +227,7 @@ def show(*actors, **options
                 azimuth=azimuth,
                 elevation=elevation,
                 roll=roll,
+                camera=camera,
                 interactive=interactive,
                 interactorStyle=interactorStyle,
                 q=q,
@@ -180,6 +243,7 @@ def show(*actors, **options
             azimuth=azimuth,
             elevation=elevation,
             roll=roll,
+            camera=camera,
             interactive=interactive,
             interactorStyle=interactorStyle,
             q=q,
@@ -350,9 +414,9 @@ class Plotter:
         self.showFrame = True
 
         # mostly internal stuff:
-        self.camThickness = None
+#        self.camThickness = None
         self.justremoved = None
-        self.axes_exist = []
+        self.axes_instances = []
         self.icol = 0
         self.clock = 0
         self._clockt0 = time.time()
@@ -369,6 +433,7 @@ class Plotter:
         self.mouseLeftClickFunction = None
         self.mouseMiddleClickFunction = None
         self.mouseRightClickFunction = None
+        self._first_viewup = True
         
         self.xtitle = settings.xtitle  # x axis label and units
         self.ytitle = settings.ytitle  # y axis label and units
@@ -471,7 +536,7 @@ class Plotter:
                 y1 = (j + 1) / shape[1]
                 arenderer.SetViewport(y0, x0, y1, x1)
                 self.renderers.append(arenderer)
-                self.axes_exist.append(None)
+                self.axes_instances.append(None)
 
         if "full" in size and not offscreen:  # full screen
             self.window.SetFullScreen(True)
@@ -595,7 +660,7 @@ class Plotter:
                 a = acs.GetNextItem()
                 if a.GetPickable():
                     r = self.renderers.index(renderer)
-                    if a == self.axes_exist[r]:
+                    if a == self.axes_instances[r]:
                         continue
                     vols.append(a)
             return vols
@@ -637,7 +702,7 @@ class Plotter:
                 a = acs.GetNextItem()
                 if a.GetPickable():
                     r = self.renderers.index(renderer)
-                    if a == self.axes_exist[r]:
+                    if a == self.axes_instances[r]:
                         continue
                     actors.append(a)
             return actors
@@ -718,14 +783,15 @@ class Plotter:
         self.show(resetcam=0, interactive=0)
         self.interactive = save_int
 
-    def light(
+    ################################################################## AddOns
+    def addLight(
         self,
         pos=(1, 1, 1),
-        fp=(0, 0, 0),
-        deg=25,
-        diffuse="y",
-        ambient="r",
-        specular="b",
+        focalPoint=(0, 0, 0),
+        deg=90,
+        ambient=None,
+        diffuse=None,
+        specular=None,
         showsource=False,
     ):
         """
@@ -739,28 +805,24 @@ class Plotter:
 
         .. hint:: |lights.py|_
         """
-        if isinstance(fp, vtk.vtkActor):
-            fp = fp.GetPosition()
+        if isinstance(focalPoint, vtk.vtkActor):
+            focalPoint = focalPoint.GetPosition()
         light = vtk.vtkLight()
         light.SetLightTypeToSceneLight()
         light.SetPosition(pos)
         light.SetPositional(1)
         light.SetConeAngle(deg)
-        light.SetFocalPoint(fp)
-        light.SetDiffuseColor(colors.getColor(diffuse))
-        light.SetAmbientColor(colors.getColor(ambient))
-        light.SetSpecularColor(colors.getColor(specular))
-        save_int = self.interactive
-        self.show(interactive=0)
-        self.interactive = save_int
+        light.SetFocalPoint(focalPoint)
+        if diffuse  is not None: light.SetDiffuseColor(colors.getColor(diffuse))
+        if ambient  is not None: light.SetAmbientColor(colors.getColor(ambient))
+        if specular is not None: light.SetSpecularColor(colors.getColor(specular))
         if showsource:
             lightActor = vtk.vtkLightActor()
             lightActor.SetLight(light)
             self.renderer.AddViewProp(lightActor)
-            self.renderer.AddLight(light)
+        self.renderer.AddLight(light)
         return light
 
-    ################################################################## AddOns
     def addScalarBar(self, actor=None, c=None, title="", horizontal=False, vmin=None, vmax=None):
         """Add a 2D scalar bar for the specified actor.
 
@@ -973,6 +1035,31 @@ class Plotter:
         :param float azimuth/elevation/roll:  move camera accordingly
         :param str viewup:  either ['x', 'y', 'z'] or a vector to set vertical direction
         :param bool resetcam:  re-adjust camera position to fit objects
+
+        :param dict camera: Camera parameters can further be specified with a dictionary assigned to the ``camera`` keyword:
+            (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
+        
+            - pos, `(list)`,  the position of the camera in world coordinates
+            - focalPoint `(list)`, the focal point of the camera in world coordinates
+            - viewup `(list)`, the view up direction for the camera
+            - distance `(float)`, set the focal point to the specified distance from the camera position.
+            - clippingRange `(float)`, distance of the near and far clipping planes along the direction of projection.
+            - parallelScale `(float)`,
+                scaling used for a parallel projection, i.e. the height of the viewport 
+                in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
+                an "inverse scale", larger numbers produce smaller images. 
+                This method has no effect in perspective projection mode.
+            - thickness `(float)`,
+                set the distance between clipping planes. This method adjusts the far clipping 
+                plane to be set a distance 'thickness' beyond the near clipping plane.
+            - viewAngle `(float)`,
+                the camera view angle, which is the angular height of the camera view
+                measured in degrees. The default angle is 30 degrees.
+                This method has no effect in parallel projection mode. 
+                The formula for setting the angle up for perfect perspective viewing is:
+                angle = 2*atan((h/2)/d) where h is the height of the RenderWindow
+                (measured by holding a ruler up to your screen) and d is the distance from your eyes to the screen.
+       
         :param bool interactive:  pause and interact with window (True)
             or continue execution (False)
         :param float rate:  maximum rate of `show()` in Hertz
@@ -997,15 +1084,18 @@ class Plotter:
         alpha = options.pop("alpha", None)
         wire = options.pop("wire", False)
         bc = options.pop("bc", None)
+        
         resetcam = options.pop("resetcam", True)
         zoom = options.pop("zoom", False)
         interactive = options.pop("interactive", None)
-        rate = options.pop("rate", None)
         viewup = options.pop("viewup", "")
         azimuth = options.pop("azimuth", 0)
         elevation = options.pop("elevation", 0)
         roll = options.pop("roll", 0)
+        camera = options.pop("camera", None)
+        
         interactorStyle = options.pop("interactorStyle", 0)
+        rate = options.pop("rate", None)
         q = options.pop("q", False)
 
         if self.offscreen:
@@ -1021,6 +1111,8 @@ class Plotter:
                     scannedacts.append(a)
                     if hasattr(a, 'trail') and a.trail and not a.trail in self.actors:
                         scannedacts.append(a.trail)
+                    if hasattr(a, 'shadow') and a.shadow and not a.shadow in self.actors:
+                        scannedacts.append(a.shadow)
                 elif isinstance(a, vtk.vtkAssembly):
                     scannedacts.append(a)
                     if a.trail and not a.trail in self.actors:
@@ -1031,7 +1123,7 @@ class Plotter:
                             if isinstance(a2, vtk.vtkCornerAnnotation):
                                 if at in a2.renderedAt: # remove old message
                                     self.removeActor(a2)
-                        scannedacts.append(a)
+                    scannedacts.append(a)
                 elif isinstance(a, vtk.vtkImageActor):
                     scannedacts.append(a)
                 elif isinstance(a, vtk.vtkVolume):
@@ -1124,12 +1216,11 @@ class Plotter:
             return
 
         if not self.camera:
-            self.camera = self.renderer.GetActiveCamera()
-
+            if isinstance(camera, vtk.vtkCamera):
+                self.camera = camera
+            else:
+                self.camera = self.renderer.GetActiveCamera()
         self.camera.SetParallelProjection(self.infinity)
-
-        if self.camThickness:
-            self.camera.SetThickness(self.camThickness)
 
         if self.sharecam:
             for r in self.renderers:
@@ -1192,17 +1283,38 @@ class Plotter:
         if roll:
             self.camera.Roll(roll)
 
-        if len(viewup):
+        if self._first_viewup and len(viewup):
+            self._first_viewup = False # gets executed only once
             if viewup == "x":
-                viewup = [1, 0, 0]
+                self.camera.SetViewUp([1, 0.001, 0])
             elif viewup == "y":
-                viewup = [0, 1, 0]
+                self.camera.SetViewUp([0.001, 1, 0])
             elif viewup == "z":
-                viewup = [0, 0, 1]
-                self.camera.Azimuth(60)
-                self.camera.Elevation(30)
-            self.camera.Azimuth(0.01)  # otherwise camera gets locked
-            self.camera.SetViewUp(viewup)
+                b =  self.renderer.ComputeVisiblePropBounds()
+                fp = (b[1]+b[0])/2, (b[3]+b[2])/2, (b[5]+b[4])/2
+                sz = numpy.array([b[1]-b[0], b[3]-b[2], b[5]-b[4]])
+                if sz[2]==0:
+                    sz[2] = min(sz[0], sz[1])
+                self.camera.SetViewUp([0, 0.001, 1])
+                self.camera.SetPosition(fp+1.95*sz)
+        
+        if camera is not None:
+            cm_pos = camera.pop("pos", None)
+            cm_focalPoint = camera.pop("focalPoint", None)
+            cm_viewup = camera.pop("viewup", None)
+            cm_distance = camera.pop("distance", None)
+            cm_clippingRange = camera.pop("clippingRange", None)
+            cm_parallelScale = camera.pop("parallelScale", None)
+            cm_thickness = camera.pop("thickness", None)
+            cm_viewAngle = camera.pop("viewAngle", None)
+            if cm_pos is not None: camera.SetPosition(cm_pos)
+            if cm_focalPoint is not None: camera.SetFocalPoint(cm_focalPoint)
+            if cm_viewup is not None: camera.SetViewUp(cm_viewup)
+            if cm_distance is not None: camera.SetDistance(cm_distance)
+            if cm_clippingRange is not None: camera.SetClippingRange(cm_clippingRange)
+            if cm_parallelScale is not None: camera.SetParallelScale(cm_parallelScale)
+            if cm_thickness is not None: camera.SetThickness(cm_thickness)
+            if cm_viewAngle is not None: camera.SetViewAngle(cm_viewAngle)
 
         self.renderer.ResetCameraClippingRange()
 

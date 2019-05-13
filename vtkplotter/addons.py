@@ -677,7 +677,7 @@ def addAxes(axtype=None, c=None):
     if not vp.renderer:
         return
 
-    if vp.axes_exist[r]:
+    if vp.axes_instances[r]:
         return
 
     # calculate max actors bounds
@@ -771,7 +771,7 @@ def addAxes(axtype=None, c=None):
         aa.SetScale(sizes)
         aa.PickableOff()
         vp.renderer.AddActor(aa)
-        vp.axes_exist[r] = aa
+        vp.axes_instances[r] = aa
 
     elif vp.axes == 2 or vp.axes == 3:
         vbb = vp.renderer.ComputeVisiblePropBounds()  # to be double checked
@@ -836,7 +836,7 @@ def addAxes(axtype=None, c=None):
         ass = Assembly(acts)
         ass.PickableOff()
         vp.renderer.AddActor(ass)
-        vp.axes_exist[r] = ass
+        vp.axes_instances[r] = ass
 
     elif vp.axes == 4:
         axact = vtk.vtkAxesActor()
@@ -868,13 +868,21 @@ def addAxes(axtype=None, c=None):
         axact.GetZAxisCaptionActor2D().GetCaptionTextProperty().SetColor(lc)
         axact.PickableOff()
         icn = addIcon(axact, size=0.1)
-        vp.axes_exist[r] = icn
+        vp.axes_instances[r] = icn
 
     elif vp.axes == 5:
         axact = vtk.vtkAnnotatedCubeActor()
         axact.GetCubeProperty().SetColor(0.75, 0.75, 0.75)
         axact.SetTextEdgesVisibility(0)
-        axact.SetFaceTextScale(0.4)
+        axact.SetFaceTextScale(0.2)
+        axact.SetXPlusFaceText ( "right" )
+        axact.SetXMinusFaceText( "left " )
+        axact.SetYPlusFaceText ( "front" )
+        axact.SetYMinusFaceText( "back " )
+        axact.SetZPlusFaceText ( " top " )
+        axact.SetZMinusFaceText( "bttom" )
+        axact.SetZFaceTextRotation(90)
+
         axact.GetXPlusFaceProperty().SetColor(colors.getColor("b"))
         axact.GetXMinusFaceProperty().SetColor(colors.getColor("db"))
         axact.GetYPlusFaceProperty().SetColor(colors.getColor("g"))
@@ -883,7 +891,7 @@ def addAxes(axtype=None, c=None):
         axact.GetZMinusFaceProperty().SetColor(colors.getColor("dr"))
         axact.PickableOff()
         icn = addIcon(axact, size=0.06)
-        vp.axes_exist[r] = icn
+        vp.axes_instances[r] = icn
 
     elif vp.axes == 6:
         ocf = vtk.vtkOutlineCornerFilter()
@@ -913,7 +921,7 @@ def addAxes(axtype=None, c=None):
         ocActor.GetProperty().SetColor(lc)
         ocActor.PickableOff()
         vp.renderer.AddActor(ocActor)
-        vp.axes_exist[r] = ocActor
+        vp.axes_instances[r] = ocActor
 
     elif vp.axes == 7:
         # draws a simple ruler at the bottom of the window
@@ -930,7 +938,7 @@ def addAxes(axtype=None, c=None):
         ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
         ls.PickableOff()
         vp.renderer.AddActor(ls)
-        vp.axes_exist[r] = ls
+        vp.axes_instances[r] = ls
 
     elif vp.axes == 8:
         ca = vtk.vtkCubeAxesActor()
@@ -961,7 +969,7 @@ def addAxes(axtype=None, c=None):
             ca.ZAxisLabelVisibilityOff()
         ca.PickableOff()
         vp.renderer.AddActor(ca)
-        vp.axes_exist[r] = ca
+        vp.axes_instances[r] = ca
         return
 
     elif vp.axes == 9:
@@ -974,7 +982,7 @@ def addAxes(axtype=None, c=None):
         ca.pos((vbb[0] + vbb[1]) / 2, (vbb[3] + vbb[2]) / 2, (vbb[5] + vbb[4]) / 2)
         ca.PickableOff()
         vp.renderer.AddActor(ca)
-        vp.axes_exist[r] = ca
+        vp.axes_instances[r] = ca
 
     elif vp.axes == 10:
         x0 = (vbb[0] + vbb[1]) / 2, (vbb[3] + vbb[2]) / 2, (vbb[5] + vbb[4]) / 2
@@ -989,7 +997,7 @@ def addAxes(axtype=None, c=None):
         ca = xc + yc + zc
         ca.PickableOff()
         vp.renderer.AddActor(ca)
-        vp.axes_exist[r] = ca
+        vp.axes_instances[r] = ca
 
     else:
         colors.printc('~bomb Keyword axes must be in range [0-10].', c=1)
@@ -1008,8 +1016,8 @@ def addAxes(axtype=None, c=None):
   10 = show three circles representing the maximum bounding box
   ''', c=1, bold=0)
 
-    if not vp.axes_exist[r]:
-        vp.axes_exist[r] = True
+    if not vp.axes_instances[r]:
+        vp.axes_instances[r] = True
     return
 
 

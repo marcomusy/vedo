@@ -90,6 +90,9 @@ python demo_cahn-hilliard.py
 echo Running turing_pattern.py
 python turing_pattern.py
 
+echo Running heatconv.py
+python heatconv.py
+
 
 ######################################
 echo 

@@ -61,7 +61,7 @@ def tips():
     msg += "|       S     to save a screenshot                           |\n"
     msg += "|       q     to return control to python script             |\n"
     msg += "|       Esc   to close the rendering window                  |\n"
-    #msg += "|       F1    to interrupt execution and exit python         |\n"
+    msg += "|       F1    to abort execution and exit python             |\n"
     msg += "|------                                                      |\n"
     msg += "|Mouse: Left-click    to rotate scene / pick actors          |\n"
     msg += "|       Middle-click  to pan scene                           |\n"
@@ -807,7 +807,9 @@ _defs = """
 .. |cropped| image:: https://user-images.githubusercontent.com/32848391/57081955-0ef1e800-6cf6-11e9-99de-b45220939bc9.png
     :width: 250 px
 
-   
+.. |dolfinmesh| image:: https://user-images.githubusercontent.com/32848391/53026243-d2d31900-3462-11e9-9dde-518218c241b6.jpg
+    :width: 350 px
+
 .. |turing_pattern.py| replace:: turing_pattern.py
 .. _turing_pattern.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/turing_pattern.py
 .. |turing_pattern| image:: https://user-images.githubusercontent.com/32848391/56056437-77cfeb00-5d5c-11e9-9887-828e5745d547.gif
@@ -989,6 +991,56 @@ _defs = """
     :width: 350 px
     :target: airplanes.py_
     :alt: airplanes.py
+
+
+.. |heatconv.py| replace:: heatconv.py
+.. _heatconv.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/heatconv.py
+.. |heatconv| image:: https://user-images.githubusercontent.com/32848391/57455107-b200af80-726a-11e9-897d-9c7bcb9854ac.gif
+    :width: 250 px
+    :target: heatconv.py_
+    :alt: heatconv.py
+
+.. |scalemesh.py| replace:: scalemesh.py
+.. _scalemesh.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/scalemesh.py
+.. |scalemesh| image:: https://user-images.githubusercontent.com/32848391/57393382-431c4b80-71c3-11e9-9a2c-8abb172f5468.png
+    :width: 250 px
+    :target: scalemesh.py_
+    :alt: scalemesh.py
+
+.. |elasticbeam.py| replace:: elasticbeam.py
+.. _elasticbeam.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/elasticbeam.py
+.. |elasticbeam| image:: https://user-images.githubusercontent.com/32848391/57476429-d7a3ae00-7296-11e9-9f50-8f456823ef3d.png
+    :width: 250 px
+    :target: elasticbeam.py_
+    :alt: elasticbeam.py
+    
+.. |specular.py| replace:: specular.py
+.. _specular.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/specular.py
+.. |specular| image:: https://user-images.githubusercontent.com/32848391/57543051-8c030a00-7353-11e9-84cd-b01f3449d255.jpg
+    :width: 250 px
+    :target: specular.py_
+    :alt: specular.py
+
+.. |wavy_1d.py| replace:: wavy_1d.py
+.. _wavy_1d.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/wavy_1d.py
+.. |wavy_1d| image:: https://user-images.githubusercontent.com/32848391/57570898-70593b80-7407-11e9-87cf-ce498f499c09.gif
+    :width: 250 px
+    :target: wavy_1d.py_
+    :alt: wavy_1d.py
+
+.. |fonts.py| replace:: fonts.py
+.. _fonts.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fonts.py
+.. |fonts| image:: https://user-images.githubusercontent.com/32848391/57587416-decff380-7504-11e9-8456-f969672c959e.png
+    :width: 500 px
+    :target: fonts.py_
+    :alt: fonts.py
+
+.. |idealpass.link| replace:: idealpass.link
+.. _idealpass.link: https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
+.. |idealpass| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/ImageProcessing/TestIdealHighPass.png
+    :width: 250 px
+    :target: idealpass.link_
+       
 
 
 """

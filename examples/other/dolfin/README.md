@@ -53,5 +53,8 @@ python example.py  # on mac OSX try 'pythonw' instead
 |    |    |
 | [![turing_pattern](https://user-images.githubusercontent.com/32848391/56056437-77cfeb00-5d5c-11e9-9887-828e5745d547.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/turing_pattern.py)<br/> `turing_pattern.py`        | Solve a reaction-diffusion problem on a 2D domain.  |
 |    |    |
-| [![elasticbeam](https://user-images.githubusercontent.com/32848391/57185890-eecc4f80-6ed4-11e9-866e-ae353735d966.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/elasticbeam.py)<br/> `elasticbeam.py`        |  A clamped beam deformed under its own weight. The whole 3D scene is exported and visualized on a [web page](https://vtkplotter.embl.es/examples/fenics_elasticity.html). |
-
+| [![elasticbeam](https://user-images.githubusercontent.com/32848391/57185890-eecc4f80-6ed4-11e9-866e-ae353735d966.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/elasticbeam.py)<br/> `elasticbeam.py`                 |  A clamped beam deformed under its own weight. The whole 3D scene is exported and visualized on a [web page](https://vtkplotter.embl.es/examples/fenics_elasticity.html). |
+|    |    |
+| [![heatconv](https://user-images.githubusercontent.com/32848391/57455107-b200af80-726a-11e9-897d-9c7bcb9854ac.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/heatconv.py)<br/> `heatconv.py`                         | Heat equation in moving media. (by [J. Blechta](https://github.com/blechta/fenics-handson/blob/master/heatconv)).|
+|    |    |
+| [![wavy](https://user-images.githubusercontent.com/32848391/57570898-70593b80-7407-11e9-87cf-ce498f499c09.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/wavy_1d.py)<br/> `wavy_1d.py`                         | 1-dimensional time integration of the wave equation with the Crank-Nicolson method. |

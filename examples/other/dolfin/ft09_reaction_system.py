@@ -9,6 +9,7 @@ is given by the flow field w from the demo navier_stokes_cylinder.py.
   u_3' + w . nabla(u_3) - div(eps*grad(u_3)) = f_3 + K*u_1*u_2 - K*u_3
 
 """
+from __future__ import print_function
 print(__doc__)
 from fenics import *
 set_log_level(30)

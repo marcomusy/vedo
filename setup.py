@@ -61,6 +61,7 @@ setup(
 # check on python2 the same
 
 # git status
+# git add [files]
 # git commit -a -m 'comment'
 # git push
 

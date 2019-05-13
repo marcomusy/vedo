@@ -5,7 +5,7 @@ from vtkplotter import settings
 from vtk.util.numpy_support import numpy_to_vtk
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
-from vtkplotter.actors import Actor, Assembly, mergeActors
+from vtkplotter.actors import Actor, Assembly
 import vtkplotter.docs as docs
 
 __doc__ = (
@@ -46,7 +46,6 @@ __all__ = [
     "Text",
     "Latex",
     "Glyph",
-    "Shadow",
 ]
 
 
@@ -1314,7 +1313,7 @@ def Text(
     followcam=False,
 ):
     """
-    Returns a ``vtkActor`` that shows a 3D text.
+    Returns a ``vtkActor`` that shows a 2D/3D text.
 
     :param pos: position in 3D space,
                 if an integer is passed [1,8],
@@ -1328,6 +1327,10 @@ def Text(
                     6, middle-right
                     7, middle-left
                     8, top-middle
+                
+                If a pair (x,y) is passed as input the 2D text is place at that
+                position in the coordinate system of the 2D screen (with the 
+                origin sitting at the bottom left).
 
     :type pos: list, int
     :param float s: size of text.
@@ -1335,14 +1338,41 @@ def Text(
     :param str justify: text justification
         (bottom-left, bottom-right, top-left, top-right, centered).
     :param bg: background color of corner annotations. Only applies of `pos` is ``int``.
-    :param str font: either `arial`, `courier` or `times`. Only applies of `pos` is ``int``.
+    :param str font: additional available fonts are:
+            
+            - Ageo
+            - Aldora
+            - CallingCode
+            - Godsway
+            - Gula
+            - ImpactLabel
+            - Komiko
+            - Lamborgini
+            - MidnightDrive
+            - Militech
+            - MonaShark
+            - Montserrat
+            - MyDisplaySt
+            - PointedLaidSt
+            - SchoolTeacher
+            - SpecialElite
+    
+        Font choice does not apply for 3D text.
+        A path to `otf` or `ttf` font-file can also be supplied as input.
+        
+        All fonts are free for personal use.
+        Check out conditions in `vtkplotter/fonts/licenses` for commercial use
+        and: https://www.1001freefonts.com
+        
     :param followcam: if `True` the text will auto-orient itself to the active camera.
         A ``vtkCamera`` object can also be passed.
     :type followcam: bool, vtkCamera
 
-    .. hint:: |colorcubes.py|_ |markpoint.py|_ |annotations.py|_
+    .. hint:: Examples, |fonts.py|_ |colorcubes.py|_ |markpoint.py|_ |annotations.py|_
 
         |colorcubes| |markpoint|
+        
+        |fonts|
     """
     if c is None: # automatic black or white
         if settings.plotter_instance and settings.plotter_instance.renderer:
@@ -1357,95 +1387,132 @@ def Text(
             pos = 8
         if pos < 1:
             pos = 1
-
         ca = vtk.vtkCornerAnnotation()
         ca.SetNonlinearFontScaleFactor(s/2.7)
         ca.SetText(pos - 1, str(txt))
-
         ca.PickableOff()
         cap = ca.GetTextProperty()
         cap.SetColor(colors.getColor(c))
-        if font.lower() == "courier":
-            cap.SetFontFamilyToCourier()
-        elif font.lower() == "times":
-            cap.SetFontFamilyToTimes()
+        if font.lower() == "courier": cap.SetFontFamilyToCourier()
+        elif font.lower() == "times": cap.SetFontFamilyToTimes()
+        elif font.lower() == "arial": cap.SetFontFamilyToArial()
         else:
-            cap.SetFontFamilyToArial()
+            cap.SetFontFamily(vtk.VTK_FONT_FILE)
+            cap.SetFontFile(settings.fonts_path+font+'.ttf')
         if bg:
             bgcol = colors.getColor(bg)
             cap.SetBackgroundColor(bgcol)
             cap.SetBackgroundOpacity(alpha * 0.5)
             cap.SetFrameColor(bgcol)
             cap.FrameOn()
-
         setattr(ca, 'renderedAt', set())
         settings.collectable_actors.append(ca)
         return ca
-
-    tt = vtk.vtkVectorText()
-    tt.SetText(str(txt))
-    tt.Update()
-    ttmapper = vtk.vtkPolyDataMapper()
-    if followcam:
-        depth = 0
-        normal = (0, 0, 1)
-    if depth:
-        extrude = vtk.vtkLinearExtrusionFilter()
-        extrude.SetInputConnection(tt.GetOutputPort())
-        extrude.SetExtrusionTypeToVectorExtrusion()
-        extrude.SetVector(0, 0, 1)
-        extrude.SetScaleFactor(depth)
-        ttmapper.SetInputConnection(extrude.GetOutputPort())
-    else:
-        ttmapper.SetInputConnection(tt.GetOutputPort())
-    if followcam:
-        ttactor = vtk.vtkFollower()
-        if isinstance(followcam, vtk.vtkCamera):
-            ttactor.SetCamera(followcam)
+    
+    elif len(pos)==2:
+        # passing (x,y) coords
+        actor2d = vtk.vtkActor2D()
+        actor2d.SetPosition(pos)
+        tmapper = vtk.vtkTextMapper()
+        actor2d.SetMapper(tmapper)
+        tp = tmapper.GetTextProperty()
+        tp.BoldOff()
+        tp.SetFontSize(s*20)
+        tp.SetColor(colors.getColor(c))
+        tp.SetJustificationToLeft()
+        tp.SetVerticalJustificationToBottom()
+        if font.lower() == "courier": tp.SetFontFamilyToCourier()
+        elif font.lower() == "times": tp.SetFontFamilyToTimes()
+        elif font.lower() == "arial": tp.SetFontFamilyToArial()
         else:
-            ttactor.SetCamera(settings.plotter_instance.camera)
+            tp.SetFontFamily(vtk.VTK_FONT_FILE)
+            import os
+            if font in settings.fonts:
+                tp.SetFontFile(settings.fonts_path + font + '.ttf')
+            elif os.path.exists(font):
+                tp.SetFontFile(font)
+            else:
+                colors.printc("~sad Font", font, "not found in", settings.fonts_path, c="r")
+                colors.printc("~pin Available fonts are:", settings.fonts, c="m")
+                return None
+        if bg:
+            bgcol = colors.getColor(bg)
+            tp.SetBackgroundColor(bgcol)
+            tp.SetBackgroundOpacity(alpha * 0.5)
+            tp.SetFrameColor(bgcol)
+            tp.FrameOn()
+        tmapper.SetInput(str(txt))
+        actor2d.PickableOff()
+        setattr(actor2d, 'renderedAt', set())
+        settings.collectable_actors.append(actor2d)
+        return actor2d
+
     else:
-        ttactor = Actor()
-    ttactor.SetMapper(ttmapper)
-    ttactor.GetProperty().SetColor(colors.getColor(c))
-    ttmapper.Update()
-
-    bb = tt.GetOutput().GetBounds()
-    dx, dy = (bb[1] - bb[0]) / 2 * s, (bb[3] - bb[2]) / 2 * s
-    cm = np.array([(bb[1] + bb[0]) / 2, (bb[3] + bb[2]) / 2, (bb[5] + bb[4]) / 2]) * s
-    shift = -cm
-    if "cent" in justify:
-        pass
-    elif "bottom-left" in justify:
-        shift += np.array([dx, dy, 0])
-    elif "top-left" in justify:
-        shift += np.array([dx, -dy, 0])
-    elif "bottom-right" in justify:
-        shift += np.array([-dx, dy, 0])
-    elif "top-right" in justify:
-        shift += np.array([-dx, -dy, 0])
-    else:
-        colors.printc("~lightning Text(): Unknown justify type", justify, c=1)
-
-    ttactor.GetProperty().SetOpacity(alpha)
-
-    nax = np.linalg.norm(normal)
-    if nax:
-        normal = np.array(normal) / nax
-    theta = np.arccos(normal[2])
-    phi = np.arctan2(normal[1], normal[0])
-    ttactor.SetScale(s, s, s)
-    ttactor.RotateZ(np.rad2deg(phi))
-    ttactor.RotateY(np.rad2deg(theta))
-    ttactor.SetPosition(pos + shift)
-    if bc:  # defines a specific color for the backface
-        backProp = vtk.vtkProperty()
-        backProp.SetDiffuseColor(colors.getColor(bc))
-        backProp.SetOpacity(alpha)
-        ttactor.SetBackfaceProperty(backProp)
-    ttactor.PickableOff()
-    settings.collectable_actors.append(ttactor)
-    return ttactor
+        # otherwise build the 3D text, fonts do not apply
+        tt = vtk.vtkVectorText()
+        tt.SetText(str(txt))
+        tt.Update()
+        ttmapper = vtk.vtkPolyDataMapper()
+        if followcam:
+            depth = 0
+            normal = (0, 0, 1)
+        if depth:
+            extrude = vtk.vtkLinearExtrusionFilter()
+            extrude.SetInputConnection(tt.GetOutputPort())
+            extrude.SetExtrusionTypeToVectorExtrusion()
+            extrude.SetVector(0, 0, 1)
+            extrude.SetScaleFactor(depth)
+            ttmapper.SetInputConnection(extrude.GetOutputPort())
+        else:
+            ttmapper.SetInputConnection(tt.GetOutputPort())
+        if followcam:
+            ttactor = vtk.vtkFollower()
+            if isinstance(followcam, vtk.vtkCamera):
+                ttactor.SetCamera(followcam)
+            else:
+                ttactor.SetCamera(settings.plotter_instance.camera)
+        else:
+            ttactor = Actor()
+        ttactor.SetMapper(ttmapper)
+        ttactor.GetProperty().SetColor(colors.getColor(c))
+        ttmapper.Update()
+    
+        bb = tt.GetOutput().GetBounds()
+        dx, dy = (bb[1] - bb[0]) / 2 * s, (bb[3] - bb[2]) / 2 * s
+        cm = np.array([(bb[1] + bb[0]) / 2, (bb[3] + bb[2]) / 2, (bb[5] + bb[4]) / 2]) * s
+        shift = -cm
+        if "cent" in justify:
+            pass
+        elif "bottom-left" in justify:
+            shift += np.array([dx, dy, 0])
+        elif "top-left" in justify:
+            shift += np.array([dx, -dy, 0])
+        elif "bottom-right" in justify:
+            shift += np.array([-dx, dy, 0])
+        elif "top-right" in justify:
+            shift += np.array([-dx, -dy, 0])
+        else:
+            colors.printc("~lightning Text(): Unknown justify type", justify, c=1)
+    
+        ttactor.GetProperty().SetOpacity(alpha)
+    
+        nax = np.linalg.norm(normal)
+        if nax:
+            normal = np.array(normal) / nax
+        theta = np.arccos(normal[2])
+        phi = np.arctan2(normal[1], normal[0])
+        ttactor.SetScale(s, s, s)
+        ttactor.RotateZ(np.rad2deg(phi))
+        ttactor.RotateY(np.rad2deg(theta))
+        ttactor.SetPosition(pos + shift)
+        if bc:  # defines a specific color for the backface
+            backProp = vtk.vtkProperty()
+            backProp.SetDiffuseColor(colors.getColor(bc))
+            backProp.SetOpacity(alpha)
+            ttactor.SetBackfaceProperty(backProp)
+        ttactor.PickableOff()
+        settings.collectable_actors.append(ttactor)
+        return ttactor
 
 
 def Latex(
@@ -1474,9 +1541,8 @@ def Latex(
 
     .. hint:: |latex| |latex.py|_
     """
+    vactor = None
     try:
-
-    #def _Latex(formula, pos, normal, c, s, bg, alpha, res, usetex, fromweb):
 
         def build_img_web(formula, tfile):
             import requests
@@ -1547,39 +1613,11 @@ def Latex(
             os.unlink('_lateximg.png')
         except:
             pass
-        return vactor
 
     except:
         colors.printc('Error in Latex()\n', formula, c=1)
         colors.printc(' latex or dvipng not installed?', c=1)
         colors.printc(' Try: usetex=False' , c=1)
         colors.printc(' Try: sudo apt install dvipng' , c=1)
-        return None
-
-
-def Shadow(*actors, **options):
-    """
-    Generate a shadow out of a number of ``Actor`` or ``Assembly`` (group of actors),
-    on one of the three Cartesian planes. 
-    The output is a new ``Actor`` representing the shadow.
-    By default the actor is placed on the bottom/back wall of the bounding box.
-    
-    :param str direction: identifies the plane to cast the shadow to ['x', 'y' or 'z'].
-    
-    .. hint:: |shadow|  |shadow.py|_
-    
-        |airplanes| |airplanes.py|_
-    """
-    direction = options.pop("direction", 'z')
-    
-    am = mergeActors(actors)
-
-    shad = am.projectOnPlane(direction)
-    shad.c([0.5,0.5,0.5]).alpha(1).wireframe(False)
-    shad.flat().backFaceCulling()
-    shad.GetProperty().SetSpecular(0)
-    shad.GetProperty().SetDiffuse(0)
-    shad.GetProperty().SetAmbient(1)
-    return shad
-
-
+       
+    return vactor

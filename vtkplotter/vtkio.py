@@ -25,6 +25,7 @@ __all__ = [
     "loadImage",
     "loadVolume",
     "loadImageData",
+    "loadParallelData",
     "loadXMLGenericData",
     "loadStructuredPoints",
     "loadStructuredGrid",
@@ -126,7 +127,8 @@ def _loadFile(filename, c, alpha, wire, bc, texture, smoothing, threshold, conne
         actor = loadOFF(filename, c, alpha, wire, bc)
     elif fl.endswith(".3ds"):  # 3ds point-cloud format
         actor = load3DS(filename)
-    elif fl.endswith(".tif") or fl.endswith(".slc") or fl.endswith(".vti") or fl.endswith(".mhd"):
+    elif fl.endswith(".tif") or fl.endswith(".slc") or fl.endswith(".vti") \
+        or fl.endswith(".mhd") or fl.endswith(".nrrd"):
         # tiff stack or slc mhd, or vti
         img = loadImageData(filename)
         actor = isosurface(img, smoothing, threshold, connectivity)
@@ -215,6 +217,21 @@ def loadPolyData(filename):
     return cleanpd.GetOutput()
 
 
+def loadParallelData(filename):
+    fl = filename.lower()
+    if   fl.endswith(".pvtk"):
+        reader = vtk.vtkPDataSetReader()
+    elif fl.endswith(".pvtr"):
+        reader = vtk.vtkXMLPRectilinearGridReader()
+    elif fl.endswith("pvtu"):
+        reader = vtk.vtkXMLPUnstructuredGridReader()
+    elif fl.endswith(".pvti"):
+        reader = vtk.vtkXMLPImageDataReader()
+    reader.SetFileName(filename)
+    reader.Update()
+    return reader.GetOutput()
+    
+
 def loadMultiBlockData(filename, unpack=True):
     read = vtk.vtkXMLMultiBlockDataReader()
     read.SetFileName(filename)
@@ -235,7 +252,6 @@ def loadMultiBlockData(filename, unpack=True):
         return mb
         
 
-
 def loadXMLGenericData(filename):
     """Read any type of vtk data object encoded in XML format."""
     reader = vtk.vtkXMLGenericDataObjectReader()
@@ -252,9 +268,6 @@ def loadStructuredPoints(filename):
     reader = vtk.vtkStructuredPointsReader()
     reader.SetFileName(filename)
     reader.Update()
-#    gf = vtk.vtkImageDataGeometryFilter()
-#    gf.SetInputConnection(reader.GetOutputPort())
-#    gf.Update()
     return reader.GetOutput()
 
 
@@ -263,9 +276,6 @@ def loadStructuredGrid(filename):
     reader = vtk.vtkStructuredGridReader()
     reader.SetFileName(filename)
     reader.Update()
-#    gf = vtk.vtkStructuredGridGeometryFilter()
-#    gf.SetInputConnection(reader.GetOutputPort())
-#    gf.Update()
     return reader.GetOutput()
 
 
@@ -274,9 +284,6 @@ def loadUnStructuredGrid(filename):
     reader = vtk.vtkUnstructuredGridReader()
     reader.SetFileName(filename)
     reader.Update()
-#    gf = vtk.vtkUnstructuredGridGeometryFilter()
-#    gf.SetInputConnection(reader.GetOutputPort())
-#    gf.Update()
     return reader.GetOutput()
 
 
@@ -285,9 +292,6 @@ def loadRectilinearGrid(filename):
     reader = vtk.vtkRectilinearGridReader()
     reader.SetFileName(filename)
     reader.Update()
-#    gf = vtk.vtkRectilinearGridGeometryFilter()
-#    gf.SetInputConnection(reader.GetOutputPort())
-#    gf.Update()
     return reader.GetOutput()
 
 
@@ -523,6 +527,10 @@ def loadImageData(filename, spacing=()):
         reader = vtk.vtkXMLImageDataReader()
     elif ".mhd" in filename.lower():
         reader = vtk.vtkMetaImageReader()
+    elif ".nrrd" in filename.lower():
+        reader = vtk.vtkNrrdReader()
+        if not reader.CanReadFile(filename):
+            return None
     reader.SetFileName(filename)
     reader.Update()
     image = reader.GetOutput()
@@ -935,7 +943,12 @@ class ProgressBar:
         |progbar|
     """
 
-    def __init__(self, start, stop, step=1, c=None, ETA=True, width=24, char="="):
+    def __init__(self, start, stop, step=1, c=None, ETA=True, width=24, char=u"\U000025AC"):
+
+        char_arrow = u"\U000025BA"
+        if sys.version_info[0]<3:
+            char="="
+            char_arrow = '>'
 
         self.start = start
         self.stop = stop
@@ -943,6 +956,7 @@ class ProgressBar:
         self.color = c
         self.width = width
         self.char = char
+        self.char_arrow = char_arrow
         self.bar = ""
         self.percent = 0
         self.clock0 = 0
@@ -1024,11 +1038,11 @@ class ProgressBar:
         af = self.width - 2
         nh = int(round(self.percent / 100 * af))
         if nh == 0:
-            self.bar = "[>%s]" % (" " * (af - 1))
+            self.bar = "["+self.char_arrow+"%s]" % (" " * (af - 1))
         elif nh == af:
             self.bar = "[%s]" % (self.char * af)
         else:
-            self.bar = "[%s>%s]" % (self.char * (nh - 1), " " * (af - nh))
+            self.bar = "[%s%s%s]" % (self.char *(nh-1), self.char_arrow, " " *(af-nh))
         if self.percent < 100:  # and self._remt > 1:
             ps = " " + str(self.percent) + "%"
         else:
@@ -1257,6 +1271,7 @@ def _keypress(iren, event):
 
     elif key in ["F1", "Pause"]:
         sys.stdout.flush()
+        print('\n[F1] Execution aborted. Exiting python now.')
         settings.plotter_instance.closeWindow()
         exit()
 
@@ -1505,12 +1520,12 @@ def _keypress(iren, event):
                 }
         clickedr = vp.renderers.index(vp.renderer)
         if key in asso.keys():
-            if vp.axes_exist[clickedr]:
-                if hasattr(vp.axes_exist[clickedr], "EnabledOff"):  # widget
-                    vp.axes_exist[clickedr].EnabledOff()
+            if vp.axes_instances[clickedr]:
+                if hasattr(vp.axes_instances[clickedr], "EnabledOff"):  # widget
+                    vp.axes_instances[clickedr].EnabledOff()
                 else:
-                    vp.renderer.RemoveActor(vp.axes_exist[clickedr])
-                vp.axes_exist[clickedr] = None
+                    vp.renderer.RemoveActor(vp.axes_instances[clickedr])
+                vp.axes_instances[clickedr] = None
             addons.addAxes(axtype=asso[key], c=None)
             vp.interactor.Render()
 

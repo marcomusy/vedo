@@ -565,8 +565,8 @@ else:
 
     vp.show(actors[0], interactive=False, zoom=args.zoom)
 
-    if isinstance(vp.axes_exist[0], vtk.vtkCubeAxesActor):
-        vp.axes_exist[0].SetBounds(vbb)
+    if isinstance(vp.axes_instances[0], vtk.vtkCubeAxesActor):
+        vp.axes_instances[0].SetBounds(vbb)
 
     cb = (1, 1, 1)
     if numpy.sum(vp.renderer.GetBackground()) > 1.5:

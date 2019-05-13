@@ -85,7 +85,7 @@ coords1 = a1.coordinates()
 pts1 = Points(coords1, r=4, c="g").legend("#points = " + str(len(coords1)))
 vp.show(a1, pts1, at=0)
 
-a2 = a1.subdivide(method=0)  # Increasing the number of points of the mesh
+a2 = a1.clone().subdivide(method=0)  # Increasing the number of points of the mesh
 coords2 = a2.coordinates()
 pts2 = Points(coords2, r=1).legend("#points = " + str(len(coords2)))
 vp.show(a2, pts2, at=1, interactive=True)

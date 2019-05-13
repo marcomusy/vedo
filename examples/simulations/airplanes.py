@@ -2,19 +2,17 @@
 # a simulation.. just a way to illustrate how to move objects around!
 from vtkplotter import *
 
-world = Box([0,0,0], 30, 15, 8).wire()
+world = Box([0,0,0], 30, 15, 8).wireframe()
 
-p1 = load(datadir+"cessna.vtk").c("green").addTrail(lw=2, n=50)
-p2 = p1.clone().c("tomato").addTrail(lw=2, n=50) # make a copy
+plane1 = load(datadir+"cessna.vtk").c("green").addTrail().addShadow(y=-7.5)
+plane2 = plane1.clone().c("tomato") # make a clone copy of the first plane
 
-# Setup the scene, creating the Plotter object is automatic
-show(world, p1, p2, axes=1, bg="white", viewup="z", resetcam=0, interactive=0)
+# Setup the scene
+show(world, plane1, plane2, axes=1, bg="white", viewup="z", interactive=0)
 
-for x in arange(0, 3.5, 0.01):
-    p1.pos(9*x-15,  2-x, sin( 3-x)).rotateX(0+x) # make up some fancy movement
-    p2.pos(8*x-15, -2+x, sin(-3+x)).rotateX(2-x)
-
-    shad = Shadow(p1, p2, direction='z').z(-4) # fix z position of the shadow
-    show(world, p1, p2, shad)
+for t in arange(0, 3.2, 0.01):
+    plane1.pos(9*t-15, 2-t, sin(3-t)).rotateX(0+t) # make up some movement
+    plane2.pos(8*t-15, t-2, sin(t-3)).rotateX(2-t) # for the 2 planes
+    show(world, plane1, plane2)
 
 interactive()

@@ -220,6 +220,10 @@ class Prop(object):
         self.trailPoints = []
         self.trailSegmentSize = 0
         self.trailOffset = None
+        self.shadow = None
+        self.shadowX = None
+        self.shadowY = None
+        self.shadowZ = None
         self.top = None
         self.base = None
         self.info = dict()
@@ -228,33 +232,7 @@ class Prop(object):
         self.scalarbar = None
         self.renderedAt = set()
 
-    def show(
-        self,
-        at=None,
-        shape=(1, 1),
-        N=None,
-        pos=(0, 0),
-        size="auto",
-        screensize="auto",
-        title="",
-        bg="blackboard",
-        bg2=None,
-        axes=4,
-        infinity=False,
-        verbose=True,
-        interactive=None,
-        offscreen=False,
-        resetcam=True,
-        zoom=None,
-        viewup="",
-        azimuth=0,
-        elevation=0,
-        roll=0,
-        interactorStyle=0,
-        newPlotter=False,
-        depthpeeling=False,
-        q=False,
-    ):
+    def show(self, **options):
         """
         Create on the fly an instance of class ``Plotter`` or use the last existing one to
         show one single object.
@@ -271,41 +249,16 @@ class Prop(object):
 
         .. note:: E.g.:
 
-            >>> from vtkplotter import *
-            >>> s = Sphere()
-            >>> s.show(at=1, N=2)
-            >>> c = Cube()
-            >>> c.show(at=0, interactive=True)
+            .. code-block:: python
+        
+                from vtkplotter import *
+                s = Sphere()
+                s.show(at=1, N=2)
+                c = Cube()
+                c.show(at=0, interactive=True)
         """
         from vtkplotter.plotter import show
-
-        return show(
-            self,
-            at=at,
-            shape=shape,
-            N=N,
-            pos=pos,
-            size=size,
-            screensize=screensize,
-            title=title,
-            bg=bg,
-            bg2=bg2,
-            axes=axes,
-            infinity=infinity,
-            verbose=verbose,
-            interactive=interactive,
-            offscreen=offscreen,
-            resetcam=resetcam,
-            zoom=zoom,
-            viewup=viewup,
-            azimuth=azimuth,
-            elevation=elevation,
-            roll=roll,
-            interactorStyle=interactorStyle,
-            newPlotter=newPlotter,
-            depthpeeling=depthpeeling,
-            q=q,
-        )
+        return show(self, **options)
 
     def legend(self, txt=None):
         """Set/get ``Actor`` legend text.
@@ -333,6 +286,8 @@ class Prop(object):
             self.SetPosition(p_x, y, z)
         if self.trail:
             self.updateTrail()
+        if self.shadow:
+            self.updateShadow()
         return self  # return itself to concatenate methods
 
     def addPos(self, dp_x=None, dy=None, dz=None):
@@ -344,6 +299,8 @@ class Prop(object):
             self.SetPosition(p + [dp_x, dy, dz])
         if self.trail:
             self.updateTrail()
+        if self.shadow:
+            self.updateShadow()
         return self
 
     def x(self, position=None):
@@ -354,6 +311,8 @@ class Prop(object):
         self.SetPosition(position, p[1], p[2])
         if self.trail:
             self.updateTrail()
+        if self.shadow:
+            self.updateShadow()
         return self
 
     def y(self, position=None):
@@ -364,6 +323,8 @@ class Prop(object):
         self.SetPosition(p[0], position, p[2])
         if self.trail:
             self.updateTrail()
+        if self.shadow:
+            self.updateShadow()
         return self
 
     def z(self, position=None):
@@ -374,6 +335,8 @@ class Prop(object):
         self.SetPosition(p[0], p[1], position)
         if self.trail:
             self.updateTrail()
+        if self.shadow:
+            self.updateShadow()
         return self
 
     def rotate(self, angle, axis=(1, 0, 0), axis_point=(0, 0, 0), rad=False):
@@ -405,6 +368,10 @@ class Prop(object):
         self.SetPosition(rv)
         if self.trail:
             self.updateTrail()
+        if self.shadow:
+            self.addShadow(self.shadowX, self.shadowY, self.shadowZ, 
+                           self.shadow.GetProperty().GetColor(),
+                           self.shadow.GetProperty().GetOpacity())        
         return self
 
     def rotateX(self, angle, axis_point=(0, 0, 0), rad=False):
@@ -414,6 +381,10 @@ class Prop(object):
         self.RotateX(angle)
         if self.trail:
             self.updateTrail()
+        if self.shadow:
+            self.addShadow(self.shadowX, self.shadowY, self.shadowZ, 
+                           self.shadow.GetProperty().GetColor(),
+                           self.shadow.GetProperty().GetOpacity())        
         return self
 
     def rotateY(self, angle, axis_point=(0, 0, 0), rad=False):
@@ -423,6 +394,10 @@ class Prop(object):
         self.RotateY(angle)
         if self.trail:
             self.updateTrail()
+        if self.shadow:
+            self.addShadow(self.shadowX, self.shadowY, self.shadowZ, 
+                           self.shadow.GetProperty().GetColor(),
+                           self.shadow.GetProperty().GetOpacity())        
         return self
 
     def rotateZ(self, angle, axis_point=(0, 0, 0), rad=False):
@@ -432,6 +407,10 @@ class Prop(object):
         self.RotateZ(angle)
         if self.trail:
             self.updateTrail()
+        if self.shadow:
+            self.addShadow(self.shadowX, self.shadowY, self.shadowZ, 
+                           self.shadow.GetProperty().GetColor(),
+                           self.shadow.GetProperty().GetOpacity())        
         return self
 
     def orientation(self, newaxis=None, rotation=0, rad=False):
@@ -462,6 +441,10 @@ class Prop(object):
         self.SetUserMatrix(T.GetMatrix())
         if self.trail:
             self.updateTrail()
+        if self.shadow:
+            self.addShadow(self.shadowX, self.shadowY, self.shadowZ, 
+                           self.shadow.GetProperty().GetColor(),
+                           self.shadow.GetProperty().GetOpacity())        
         return self
 
     def scale(self, s=None):
@@ -483,8 +466,54 @@ class Prop(object):
         self._time = t
         return self  # return itself to concatenate methods
 
-    def addTrail(self, offset=None, maxlength=None, n=25, c=None, alpha=None, lw=1):
+
+    def addShadow(self, x=None, y=None, z=None, c=(0.5,0.5,0.5), alpha=1):
+        """
+        Generate a shadow out of an ``Actor`` on one of the three Cartesian planes. 
+        The output is a new ``Actor`` representing the shadow.
+        This new actor is accessible through `actor.shadow`.
+        By default the actor is placed on the bottom/back wall of the bounding box.
+        
+        :param float x,y,z: identify the plane to cast the shadow to ['x', 'y' or 'z'].
+            The shadow will lay on the orthogonal plane to the specified axis at the
+            specified value of either x, y or z.
+        
+        .. hint:: |shadow|  |shadow.py|_
+        
+            |airplanes| |airplanes.py|_
+        """
+        if x is not None:
+            self.shadowX = x
+            shad = self.clone().projectOnPlane('x').x(x)
+        elif y is not None:
+            self.shadowY = y
+            shad = self.clone().projectOnPlane('y').y(y)
+        elif z is not None:
+            self.shadowZ = z
+            shad = self.clone().projectOnPlane('z').z(z)
+        else:
+            print('Error in addShadow(): must set x, y or z to a float!')
+            return self
+        shad.c(c).alpha(alpha).wireframe(False)
+        shad.flat().backFaceCulling()
+        shad.GetProperty().LightingOff()
+        self.shadow = shad
+        return self
+
+    def updateShadow(self):
+        p = self.GetPosition()
+        if self.shadowX is not None:
+            self.shadow.SetPosition(self.shadowX, p[1], p[2])
+        elif self.shadowY is not None:
+            self.shadow.SetPosition(p[0], self.shadowY, p[2])
+        elif self.shadowZ is not None:
+            self.shadow.SetPosition(p[0], p[1], self.shadowZ)
+        return self
+
+
+    def addTrail(self, offset=None, maxlength=None, n=50, c=None, alpha=None, lw=2):
         """Add a trailing line to actor.
+        This new actor is accessible through `actor.trail`.
 
         :param offset: set an offset vector from the object center.
         :param maxlength: length of trailing line in absolute units
@@ -532,13 +561,11 @@ class Prop(object):
                     alpha = self.GetProperty().GetOpacity()
 
             mapper.SetInputData(poly)
-            tline = Actor()
+            tline = Actor(c=col, alpha=alpha)
             tline.SetMapper(mapper)
-            tline.GetProperty().SetColor(col)
-            tline.GetProperty().SetOpacity(alpha)
             tline.GetProperty().SetLineWidth(lw)
             self.trail = tline  # holds the vtkActor
-            return self
+        return self
 
     def updateTrail(self):
         currentpos = np.array(self.GetPosition())
@@ -693,19 +720,20 @@ class Actor(vtk.vtkActor, Prop):
             if hasattr(prp, 'RenderPointsAsSpheresOn'):
                 prp.RenderPointsAsSpheresOn()
 
-        if alpha is not None:
-            prp.SetOpacity(alpha)
-
         if c is None:
             self.mapper.ScalarVisibilityOn()
             prp.SetColor(colors.getColor("gold"))
         else:
             self.mapper.ScalarVisibilityOff()
             c = colors.getColor(c)
-            prp.SetColor(c)
+            prp.SetColor(c)            
             prp.SetAmbient(0.1)
-            prp.SetAmbientColor(c)
             prp.SetDiffuse(1)
+            prp.SetSpecular(.05)
+            prp.SetSpecularPower(5)
+
+        if alpha is not None:
+            prp.SetOpacity(alpha)
 
         if wire:
             prp.SetRepresentationToWireframe()
@@ -944,9 +972,11 @@ class Actor(vtk.vtkActor, Prop):
         return self
 
     def flat(self):
-        """Set surface interpolation to flat."""
+        """Set surface interpolation to Flat.
+        
+        .. image:: https://upload.wikimedia.org/wikipedia/commons/8/84/Phong-shading-sample.jpg
+        """
         self.GetProperty().SetInterpolationToFlat()
-        self.GetProperty().SetSpecular(0)
         return self
 
     def phong(self):
@@ -957,6 +987,51 @@ class Actor(vtk.vtkActor, Prop):
     def gouraud(self):
         """Set surface interpolation to Gouraud."""
         self.GetProperty().SetInterpolationToGouraud()
+        return self
+    
+    def lighting(self, style='', ambient=None, diffuse=None,
+                 specular=None, specularPower=None, specularColor=None,
+                 enabled=True):
+        """
+        Set the ambient, diffuse, specular and specularPower lighting constants.
+        
+        :param str style: preset style, can be `[metallic, plastic, shiny, reflective]`
+        :param float ambient: ambient fraction of emission [0-1]
+        :param float diffuse: emission of diffused light in fraction [0-1]
+        :param float specular: fraction of reflected light [0-1]
+        :param float specularPower: precision of reflection [1-100]
+        :param color specularColor: color that is being reflected by the surface
+        :param bool enabled: enable/disable all surface light emission
+            
+        .. image:: https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png
+        
+        .. hint:: |specular| |specular.py|_
+        """
+        pr = self.GetProperty()
+
+        if style:
+            c = pr.GetColor()
+            if    style == 'metallic':   pars = [0.1, 0.3, 1.0, 10, c]
+            elif  style == 'plastic':    pars = [0.3, 0.4, 0.3,  5, c]
+            elif  style == 'shiny':      pars = [0.2, 0.6, 0.8, 50, c]
+            elif  style == 'reflective': pars = [0.1, 0.7, 0.9, 90, (1,1,0.99)]
+            elif  style == 'default':    pars = [0.1, 1.0, 0.05, 5, c]
+            else:
+                colors.printc("Error in lighting(): Available styles are", c=1)
+                colors.printc(" [default, metallic, plastic, shiny, reflective]", c=1)
+                exit()
+            pr.SetAmbient(pars[0])
+            pr.SetDiffuse(pars[1])
+            pr.SetSpecular(pars[2])
+            pr.SetSpecularPower(pars[3])
+            pr.SetSpecularColor(pars[4])
+        
+        if ambient is not None: pr.SetAmbient(ambient)
+        if diffuse is not None: pr.SetDiffuse(diffuse)
+        if specular is not None: pr.SetSpecular(specular)
+        if specularPower is not None: pr.SetSpecularPower(specularPower)
+        if specularColor is not None: pr.SetSpecularColor(colors.getColor(specularColor))
+        if not enabled: pr.LightingOff()
         return self
 
     def backFaceCulling(self, value=True):
@@ -1000,7 +1075,10 @@ class Actor(vtk.vtkActor, Prop):
             return self
         else:
             self.GetMapper().ScalarVisibilityOff()
-            self.GetProperty().SetColor(colors.getColor(c))
+            cc = colors.getColor(c)
+            self.GetProperty().SetColor(cc)
+            if self.trail:
+                self.trail.GetProperty().SetColor(cc)
             return self
 
     def c(self, color=False):
@@ -1055,6 +1133,21 @@ class Actor(vtk.vtkActor, Prop):
     def lw(self, lineWidth=None):
         """Set/get width of mesh edges. Same as `lineWidth()`."""
         return self.lineWidth(lineWidth)
+
+
+    def lineColor(self, lc=None):
+        """Set/get color of mesh edges. Same as `lc()`."""
+        if lc is not None:
+            self.GetProperty().EdgeVisibilityOn()
+            self.GetProperty().SetEdgeColor(colors.getColor(lc))
+        else:
+            return self.GetProperty().GetEdgeColor()
+        return self
+
+    def lc(self, lineColor=None):
+        """Set/get color of mesh edges. Same as `lineColor()`."""
+        return self.lineColor(lineColor)
+
 
     def clean(self, tol=None):
         """
@@ -1289,6 +1382,14 @@ class Actor(vtk.vtkActor, Prop):
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.GetProperty())
         cloned.SetProperty(pr)
+        if self.trail:
+            n = len(self.trailPoints)
+            cloned.addTrail(self.trailOffset, self.trailSegmentSize*n, n,
+                            None, None, self.trail.GetProperty().GetLineWidth())
+        if self.shadow:
+            cloned.addShadow(self.shadowX, self.shadowY, self.shadowZ, 
+                             self.shadow.GetProperty().GetColor(),
+                             self.shadow.GetProperty().GetOpacity())        
         return cloned
 
 
@@ -1444,6 +1545,10 @@ class Actor(vtk.vtkActor, Prop):
         self.SetUserMatrix(T.GetMatrix())
         if self.trail:
             self.updateTrail()
+        if self.shadow:
+            self.addShadow(self.shadowX, self.shadowY, self.shadowZ, 
+                           self.shadow.GetProperty().GetColor(),
+                           self.shadow.GetProperty().GetOpacity())        
         return self
 
 
@@ -1962,9 +2067,8 @@ class Actor(vtk.vtkActor, Prop):
         :Example:
             .. code-block:: python
 
-                from vtkplotter import *
-                t = Torus().addCurvatureScalars()
-                show(t)
+                from vtkplotter import Torus
+                Torus().addCurvatureScalars().show()
 
             |curvature|
         """
@@ -2624,25 +2728,23 @@ class Assembly(vtk.vtkAssembly, Prop):
 
     def getActors(self):
         """Unpack a list of ``vtkActor`` objects from a ``vtkAssembly``."""
-        cl = vtk.vtkPropCollection()
-        self.GetActors(cl)
-        self.actors = []
-        cl.InitTraversal()
-        for i in range(self.GetNumberOfPaths()):
-            act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
-            if act.GetPickable():
-                self.actors.append(act)
         return self.actors
 
     def getActor(self, i):
         """Get `i-th` ``vtkActor`` object from a ``vtkAssembly``."""
-        return self.getActors()[i]
+        return self.actors[i]
 
     def diagonalSize(self):
         """Return the maximum diagonal size of the ``Actors`` of the ``Assembly``."""
         szs = [a.diagonalSize() for a in self.actors]
         return np.max(szs)
-
+    
+    def lighting(self, *args, **lgt):
+        """Set the lighting type to all ``Actor`` in the ``Assembly``."""
+        for a in self.actors:
+            a.lighting(**lgt)
+        return self
+        
 
 #################################################
 class Image(vtk.vtkImageActor, Prop):

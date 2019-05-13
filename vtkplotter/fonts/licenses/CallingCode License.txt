@@ -1,0 +1,53 @@
+
+-----------------------------------------------------------------------------
+                            
+                            D H A R M A   T Y P E             
+                            
+-----------------------------------------------------------------------------
+
+
+About Calling Code.
+
+Copyright © 2017 by Ryoichi Tsunekawa. All rights reserved.
+
+Calling Code Regular weight is licensed under the SIL Open Font License, Version 1.1
+
+There are two formats to suit your needs. TrueType(.ttf) and OpenType(.otf).
+
+Calling Code has 4 styles.
+ 
+  Calling Code Family
+    |
+    |____ Calling Code Regular  <-- Only Regular weight is licensed under SIL Open Font License 1.1
+    |____ Calling Code Italic
+    |____ Calling Code Bold
+    |____ Calling Code Bold Italic
+  
+FAQ about Calling Code Regular.
+
+    Q_ Can I use Calling Code Regular for a commercial product?
+    A_ Yes, you can.
+    Q_ Can I use Calling Code Regular on a web page via css @font-face?
+    A_ Yes, you can.
+    Q_ Can I donate to you?
+    A_ Yes, please visit http://dharmatype.com/support
+    Q_ Tell me the license in a little more detail.
+    A_ Please read http://scripts.sil.org/OFL
+
+2017.05.31 Version 1.000 released
+
+
+----------------------------------------------------------------------------
+  
+  Ryoichi Tsunekawa
+  
+  Dharma Type
+    |
+    |    http://dharmatype.com
+    |    info@dharmatype.com
+    | 
+    |___ Flat it type foundry
+    |___ Prop-a-ganda
+    |___ Holiday Type
+    
+----------------------------------------------------------------------------

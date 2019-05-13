@@ -1,10 +1,9 @@
-"""
-Incompressible Navier-Stokes equations
+"""Incompressible Navier-Stokes equations
 for channel flow (Poisseuille) on the unit square using
 the Incremental Pressure Correction Scheme (IPCS).
 
-  u' + u . nabla(u)) - div(sigma(u, p)) = f
-                                 div(u) = 0
+u' + u . nabla(u)) - div(sigma(u, p)) = f
+                               div(u) = 0
 """
 from fenics import *
 
@@ -110,12 +109,17 @@ for n in range(num_steps):
 
     # Plot solution
     plot(u_,
-         cmap='plasma',
-         scalarbar=False,
-         bg='w',
+         cmap='tab10',
+         lw=0,
+         isolines={"n": 12, "lw":1, "c":'black', "alpha":0.1},
+         warpZfactor=0.8,
+         # scalarbar=False,
+         bg='white',
          text=__doc__,
-         axes=7, # bottom ruler
+         axes=7, #bottom ruler
+         ztitle='',
          interactive=False)
 
+print('done.')
 plot()
 

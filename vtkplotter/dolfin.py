@@ -51,8 +51,8 @@ Basic example:
         
         plot(mesh)
 
-.. image:: https://user-images.githubusercontent.com/32848391/53026243-d2d31900-3462-11e9-9dde-518218c241b6.jpg
-
+    |dolfinmesh|
+    
 Find many more examples in
 `vtkplotter/examples/dolfin <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin>`_
 
@@ -60,23 +60,45 @@ Find many more examples in
 Image Gallery
 =============
 
-*(click on the thumbnail to get to the script)*
-
-+--------------------------------+--------------------------------+
-| |ex03_poisson|                 |   |ex02_tetralize-mesh|        |
-+--------------------------------+--------------------------------+
-| |demo_submesh|                 |   |pi_estimate|                |
-+--------------------------------+--------------------------------+
-| |ex06_elasticity1|             |   |ex06_elasticity2|           |
-+--------------------------------+--------------------------------+
-| |ft04_heat_gaussian|           |   |demo_cahn-hilliard|         |
-+--------------------------------+--------------------------------+
-| |navier-stokes_lshape|         |   |stokes1|                    |
-+--------------------------------+--------------------------------+
-| |elastodynamics|               |   |ft02_poisson_membrane|      |
-+--------------------------------+--------------------------------+
-| |magnetostatics|               |   |turing_pattern|             |
-+--------------------------------+--------------------------------+
++-------------------------------------------------+-------------------------------------------------+
+|                                                 | *(click on the figure to get to the script)*    |
++-------------------------------------------------+-------------------------------------------------+
+| |ex03_poisson|                                  |   |ex02_tetralize-mesh|                         |
++-------------------------------------------------+-------------------------------------------------+
+| Poisson equation with Dirichlet conditions      | Generate a tet-mesh from a polygonal surface    |
++-------------------------------------------------+-------------------------------------------------+
+| |demo_submesh|                                  |   |pi_estimate|                                 |
++-------------------------------------------------+-------------------------------------------------+
+| Extract submesh boundaries                      | Get pi from the integral of a circle            |
++-------------------------------------------------+-------------------------------------------------+
+| |ex06_elasticity1|                              |   |ex06_elasticity2|                            |
++-------------------------------------------------+-------------------------------------------------+
+| Solve a hyperelasticity problem...              | ...with different types of visulizations.       |
++-------------------------------------------------+-------------------------------------------------+
+| |ft04_heat_gaussian|                            |   |demo_cahn-hilliard|                          |
++-------------------------------------------------+-------------------------------------------------+
+| Diffusion of a Gaussian hill                    | Solve the Cahn-Hilliard equation                |
++-------------------------------------------------+-------------------------------------------------+
+| |navier-stokes_lshape|                          |   |stokes1|                                     |
++-------------------------------------------------+-------------------------------------------------+
+| The Navier-Stokes equations on L-shaped domain  | Stokes equations with Taylor-Hood elements      |
++-------------------------------------------------+-------------------------------------------------+
+| |elastodynamics|                                |   |ft02_poisson_membrane|                       |
++-------------------------------------------------+-------------------------------------------------+
+| Time-integration of the elastodynamics equation | Deflection of a membrane under a point load     |
++-------------------------------------------------+-------------------------------------------------+
+| |magnetostatics|                                |   |turing_pattern|                              |
++-------------------------------------------------+-------------------------------------------------+
+| Magnetic field of a solenoid                    | Patterns of Turing type reaction-diffusion      |
++-------------------------------------------------+-------------------------------------------------+
+| |scalemesh|                                     |   |heatconv|                                    |
++-------------------------------------------------+-------------------------------------------------+
+| Scale and elevate a mesh along one coordinate   | Heat equation in a moving media                 |
++-------------------------------------------------+-------------------------------------------------+
+| |elasticbeam|                                   |   |wavy_1d|                                     |
++-------------------------------------------------+-------------------------------------------------+
+| A soft beam deforming under its own weight      | The 1D wave eq. with the Crank Nicolson method  |
++-------------------------------------------------+-------------------------------------------------+
 """
     + docs._defs
 )
@@ -218,9 +240,10 @@ def plot(*inputobj, **options):
         - n, (int) - add this number of isolines to the mesh
         - c, - isoline color
         - lw, (float) - isoline width
-        - z, (float) - add to the isoline z coordinate
+        - z, (float) - add to the isoline z coordinate to make them more visible
       
     :param float warpZfactor: elevate z-axis by scalar value (useful for 2D geometries)
+    :param float warpYfactor: elevate z-axis by scalar value (useful for 1D geometries)
 
     :param bool newPlotter: spawn a new instance of Plotter class, pops up a new window
     :param int at: renderer number to plot to
@@ -265,12 +288,33 @@ def plot(*inputobj, **options):
     :param float azimuth: add azimuth rotation of the scene, in degrees
     :param float elevation: add elevation rotation of the scene, in degrees
     :param float roll: add roll-type rotation of the scene, in degrees
+    
+    :param dict camera: Camera parameters can further be specified with a dictionary assigned to the ``camera`` keyword:
+        (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
+    
+        - pos, `(list)`,  the position of the camera in world coordinates
+        - focalPoint `(list)`, the focal point of the camera in world coordinates
+        - viewup `(list)`, the view up direction for the camera
+        - distance `(float)`, set the focal point to the specified distance from the camera position.
+        - clippingRange `(float)`, distance of the near and far clipping planes along the direction of projection.
+        - parallelScale `(float)`,
+            scaling used for a parallel projection, i.e. the height of the viewport 
+            in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
+            an "inverse scale", larger numbers produce smaller images. 
+            This method has no effect in perspective projection mode.
+        - thickness `(float)`,
+            set the distance between clipping planes. This method adjusts the far clipping 
+            plane to be set a distance 'thickness' beyond the near clipping plane.
+        - viewAngle `(float)`,
+            the camera view angle, which is the angular height of the camera view
+            measured in degrees. The default angle is 30 degrees.
+            This method has no effect in parallel projection mode. 
+            The formula for setting the angle up for perfect perspective viewing is:
+            angle = 2*atan((h/2)/d) where h is the height of the RenderWindow
+            (measured by holding a ruler up to your screen) and d is the distance from your eyes to the screen.
+            
     :param int interactorStyle: change the style of muose interaction of the scene
     :param bool q: exit python session after returning.
-    
-    .. hint:: |ex01_showmesh.py|_ |ex02_tetralize-mesh.py|_ |ex06_elasticity1.py|_ |ex06_elasticity2.py|_
-    
-        |ex01_showmesh| |ex02_tetralize-mesh| |ex06_elasticity1| |ex06_elasticity2|
     """
     
     if len(inputobj) == 0:
@@ -293,6 +337,8 @@ def plot(*inputobj, **options):
     if color is not None:
         c = color
     
+    lc = options.pop("lc", None)
+
     alpha = options.pop("alpha", 1)
     lw = options.pop("lw", 0.5)
     ps = options.pop("ps", None)
@@ -308,13 +354,42 @@ def plot(*inputobj, **options):
     style = options.pop("style", 'vtk')
     isolns = options.pop("isolines", dict())
     warpZfactor = options.pop("warpZfactor", None)
+    warpYfactor = options.pop("warpYfactor", None)
+    lighting = options.pop("lighting", None)
 
+    # refresh axes titles for axes type = 8 (vtkCubeAxesActor)
     settings.xtitle = options.pop("xtitle", 'x')
     settings.ytitle = options.pop("ytitle", 'y')
     settings.ztitle = options.pop("ztitle", 'z')
-    options['verbose'] = False # dont disturb
+    if settings.plotter_instance:
+        if settings.ytitle!='x':
+            if 'at' in options.keys():
+                at = options['at']
+            else:
+                at = 0
+            aet = settings.plotter_instance.axes_instances
+            if len(aet)>at and isinstance(aet[at], vtk.vtkCubeAxesActor):
+                aet[at].SetXTitle(settings.xtitle)
+        if settings.ytitle!='y':
+            if 'at' in options.keys():
+                at = options['at']
+            else:
+                at = 0
+            aet = settings.plotter_instance.axes_instances
+            if len(aet)>at and isinstance(aet[at], vtk.vtkCubeAxesActor):
+                aet[at].SetYTitle(settings.ytitle)
+        if settings.ytitle!='z':
+            if 'at' in options.keys():
+                at = options['at']
+            else:
+                at = 0
+            aet = settings.plotter_instance.axes_instances
+            if len(aet)>at and isinstance(aet[at], vtk.vtkCubeAxesActor):
+                aet[at].SetZTitle(settings.ztitle)
+        
 
     # change some default to emulate standard behaviours
+    options['verbose'] = False # dont disturb
     if  style == 0 or style == 'vtk':
         font = 'courier'
         axes = options.pop('axes', None) 
@@ -385,12 +460,16 @@ def plot(*inputobj, **options):
 
     if 'mesh' in mode or 'color' in mode:
         actor = MeshActor(u, mesh, wire=wire)
+        if lighting:
+            actor.lighting(lighting)
         if ttime:
             actor.z(ttime)
         if legend:
             actor.legend(legend)
         if c:
             actor.color(c)
+        if lc:
+            actor.lineColor(lc)
         if alpha:
             alpha = min(alpha, 1)
             actor.alpha(alpha*alpha)
@@ -436,7 +515,12 @@ def plot(*inputobj, **options):
             if len(scals):
                 pts_act = actor.getPoints(copy=False)
                 pts_act[:, 2] = scals*warpZfactor
-            
+        if warpYfactor:
+            scals = actor.scalars(0)
+            if len(scals):
+                pts_act = actor.getPoints(copy=False)
+                pts_act[:, 1] = scals*warpYfactor
+             
         if len(isolns) > 0:
             ison = isolns.pop("n", 10)
             isocol = isolns.pop("c", 'black')
@@ -446,7 +530,7 @@ def plot(*inputobj, **options):
             isos = isolines(actor, n=ison).color(isocol).lw(isolw).alpha(isoalpha)
 
             isoz = isolns.pop("z", None) 
-            if isoz is not None: # kind of hack to make isolines visible on flat mesh
+            if isoz is not None: # kind of hack to make isolines visible on flat meshes
                 d = isoz
             else:
                 d = actor.diagonalSize()/400
@@ -455,6 +539,7 @@ def plot(*inputobj, **options):
 
         actors.append(actor)
             
+        
     #################################################################
     if 'arrow' in mode or 'line' in mode:
         if 'arrow' in mode:
@@ -469,6 +554,7 @@ def plot(*inputobj, **options):
         if alpha:
             arrs.alpha(alpha)
         actors.append(arrs)
+
 
     #################################################################
     if 'tensor' in mode:

@@ -65,6 +65,7 @@ __all__ = [
     "interpolateToStructuredGrid",
     "streamLines",
     "densifyCloud",
+    "frequencyPassFilter",
 ]
 
 
@@ -346,7 +347,7 @@ def fxy(
         return actor
 
 
-def histogram2D(xvalues, yvalues, bins=12, norm=1, c="g", alpha=1, fill=False):
+def histogram2D(xvalues, yvalues, bins=12, norm=1, c=None, alpha=1, fill=True):
     """
     Build a 2D hexagonal histogram from a list of x and y values.
 
@@ -379,8 +380,10 @@ def histogram2D(xvalues, yvalues, bins=12, norm=1, c="g", alpha=1, fill=False):
     pointsPolydata.GetPoints().SetData(numpy_to_vtk(values, deep=True))
     cloud = Actor(pointsPolydata)
 
-    c1 = vc.getColor(c)
-    c2 = np.array(c1) * 0.7
+    col = None
+    if c is not None:
+        col = vc.getColor(c)
+
     r = 0.47 / n * 1.2 * dx
 
     hexs, binmax = [], 0
@@ -395,16 +398,14 @@ def histogram2D(xvalues, yvalues, bins=12, norm=1, c="g", alpha=1, fill=False):
             t = vtk.vtkTransform()
             if not i % 2:
                 p = (i / 1.33, j / 1.12, 0)
-                c = c1
             else:
                 p = (i / 1.33, j / 1.12 + 0.443, 0)
-                c = c2
             q = (p[0] / n * 1.2 * dx + xmin, p[1] / m * dy + ymin, 0)
             ids = cloud.closestPoint(q, radius=r, returnIds=True)
             ne = len(ids)
             if fill:
                 t.Translate(p[0], p[1], ne / 2)
-                t.Scale(1, 1, ne * 5)
+                t.Scale(1, 1, ne * 10)
             else:
                 t.Translate(p[0], p[1], ne)
             t.RotateX(90)  # put it along Z
@@ -412,7 +413,11 @@ def histogram2D(xvalues, yvalues, bins=12, norm=1, c="g", alpha=1, fill=False):
             tf.SetInputData(cyl.GetOutput())
             tf.SetTransform(t)
             tf.Update()
-            h = Actor(tf.GetOutput(), c=c, alpha=alpha)
+            if c is None:
+                col=i
+            h = Actor(tf.GetOutput(), c=col, alpha=alpha)
+            h.GetProperty().SetSpecular(0)
+            h.GetProperty().SetDiffuse(1)
             h.PickableOff()
             hexs.append(h)
             if ne > binmax:
@@ -2303,4 +2308,62 @@ def densifyCloud(actor, targetDistance, closestN=6, radius=0, maxIter=None, maxN
     pts = vtk_to_numpy(dens.GetOutput().GetPoints().GetData())
     return vs.Points(pts, c=None).pointSize(3)
 
+
+def frequencyPassFilter(volume, lowcutoff=None, highcutoff=None, order=1):
+    """
+    Low-pass and high-pass filtering become trivial in the frequency domain.
+    A portion of the pixels/voxels are simply masked or attenuated.
+    This function applies a high pass Butterworth filter that attenuates the frequency domain
+    image with the function 
+    
+    .. image:: https://wikimedia.org/api/rest_v1/media/math/render/svg/9c4d02a66b6ff279aae0c4bf07c25e5727d192e4
+    
+    The gradual attenuation of the filter is important. 
+    A simple high-pass filter would simply mask a set of pixels in the frequency domain,
+    but the abrupt transition would cause a ringing effect in the spatial domain.    
+    
+    :param list lowcutoff:  the cutoff frequencies for x, y and z
+    :param list highcutoff: the cutoff frequencies for x, y and z
+    :param int order: order determines sharpness of the cutoff curve
+
+    Check out also this example: 
+    
+    |idealpass|
+    """ 
+    #https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
+    if isinstance(volume, Volume):
+        img = volume.imagedata()
+    elif isinstance(volume, vtk.vtkImageData):
+        img = volume
+        
+    fft = vtk.vtkImageFFT()
+    fft.SetInputData(img)
+    fft.Update()
+    out = fft.GetOutput()
+    
+    if highcutoff:
+        butterworthLowPass = vtk.vtkImageButterworthLowPass()
+        butterworthLowPass.SetInputData(out)
+        butterworthLowPass.SetCutOff(highcutoff) # actually inverted..(?)
+        butterworthLowPass.SetOrder(order)
+        butterworthLowPass.Update()
+        out = butterworthLowPass.GetOutput()
+
+    if lowcutoff:
+        butterworthHighPass = vtk.vtkImageButterworthHighPass()
+        butterworthHighPass.SetInputData(out)
+        butterworthHighPass.SetCutOff(lowcutoff)
+        butterworthHighPass.SetOrder(order)
+        butterworthHighPass.Update()
+        out = butterworthHighPass.GetOutput()
+
+    butterworthRfft = vtk.vtkImageRFFT()
+    butterworthRfft.SetInputData(out)
+    butterworthRfft.Update()
+
+    butterworthReal = vtk.vtkImageExtractComponents()
+    butterworthReal.SetInputData(butterworthRfft.GetOutput())
+    butterworthReal.SetComponents(0)
+    butterworthReal.Update()
+    return Volume(butterworthReal.GetOutput())
 
