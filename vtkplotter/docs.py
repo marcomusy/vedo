@@ -11,8 +11,9 @@
     - `examples/advanced <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced>`_ ,
     - `examples/volumetric <https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric>`_,
     - `examples/simulations <https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations>`_.
-    - `examples/other <https://github.com/marcomusy/vtkplotter/blob/master/examples/other>`_.
-       
+    - `examples/other <https://github.com/marcomusy/vtkplotter/blob/master/examples/other>`_
+    - `examples/other/dolfin <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin>`_.
+
 :raw-html-m2r:`<br />`
 
 .. image:: https://user-images.githubusercontent.com/32848391/51558920-ec436e00-1e80-11e9-9d96-aa9b7c72d58b.png
@@ -22,6 +23,8 @@
 
 """
 from __future__ import division, print_function
+
+__all__ = []
 
 
 def onelinetip():
@@ -437,19 +440,6 @@ _defs = """
     :width: 250 px
     :target: thinplate.py_
     :alt: thinplate.py
-
-.. |readStructuredPoints.py| replace:: readStructuredPoints.py
-.. _readStructuredPoints.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/readStructuredPoints.py
-.. |readStructuredPoints| image:: https://user-images.githubusercontent.com/32848391/48198462-3b393700-e359-11e8-8272-670bd5f2db42.jpg
-    :width: 250 px
-    :target: readStructuredPoints.py_
-    :alt: readStructuredPoints.py
-
-.. |buildpolydata.py| replace:: buildpolydata.py
-.. _buildpolydata.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/buildpolydata.py
-.. |buildpolydata| image:: https://user-images.githubusercontent.com/32848391/51032546-bf4dac00-15a0-11e9-9e1e-035fff9c05eb.png
-    :width: 250 px
-    :alt: buildpolydata.py
 
 .. |colorcubes.py| replace:: colorcubes.py
 .. _colorcubes.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py
@@ -1010,7 +1000,7 @@ _defs = """
 .. |elasticbeam.py| replace:: elasticbeam.py
 .. _elasticbeam.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin/elasticbeam.py
 .. |elasticbeam| image:: https://user-images.githubusercontent.com/32848391/57476429-d7a3ae00-7296-11e9-9f50-8f456823ef3d.png
-    :width: 250 px
+    :width: 300 px
     :target: elasticbeam.py_
     :alt: elasticbeam.py
     
@@ -1040,7 +1030,13 @@ _defs = """
 .. |idealpass| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/ImageProcessing/TestIdealHighPass.png
     :width: 250 px
     :target: idealpass.link_
-       
-
+   
+.. |buildmesh.py| replace:: buildmesh.py
+.. _buildmesh.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buildmesh.py
+.. |buildmesh| image:: https://user-images.githubusercontent.com/32848391/57858625-b0e2fb80-77f1-11e9-94f0-1973ed86ae70.png
+    :width: 250 px
+    :target: buildmesh.py_
+    :alt: buildmesh.py
+     
 
 """

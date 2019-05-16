@@ -224,7 +224,7 @@ for (i, dt) in enumerate(np.diff(time)):
     energies[i+1, :] = np.array([E_elas, E_kin, E_damp, E_tot])
     
     plot(u, box, tex,
-    	  mode='warped mesh',
+    	 mode='displace',
          style='matplotlib',
          axes=0,  # no axes
          scalarbar=False,

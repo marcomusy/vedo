@@ -5,7 +5,7 @@ has the largest connected surface
 from vtkplotter import *
 
 
-act1 = load(datadir+"embryo.slc", c="y")
+act1 = load(datadir+"embryo.slc", threshold=True, c="y")
 printc("area1 =", act1.area(), c="y")
 
 act2 = extractLargestRegion(act1).color("b")

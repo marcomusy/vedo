@@ -1,9 +1,9 @@
 """
 Intersect a Volume (voxel dataset) with planes.
 """
-from vtkplotter import show, loadVolume, probeLine, vector, Text, datadir
+from vtkplotter import show, load, probeLine, vector, Text, datadir
 
-vol = loadVolume(datadir+"embryo.slc")
+vol = load(datadir+"embryo.slc")
 
 pos = vol.imagedata().GetCenter()
 

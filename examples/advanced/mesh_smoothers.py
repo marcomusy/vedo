@@ -10,7 +10,7 @@ from vtkplotter import Plotter, datadir
 vp = Plotter(shape=(1, 3), axes=4)
 
 # Load a mesh and show it
-a0 = vp.load(datadir+"embryo.tif", c="v")
+a0 = vp.load(datadir+"embryo.tif", threshold=True, c="v")
 vp.show(a0, at=0)
 
 # Adjust mesh using Laplacian smoothing

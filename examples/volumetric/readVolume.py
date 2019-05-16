@@ -9,7 +9,7 @@ from vtkplotter import *
 # to define the opacity transfer function in the range of the scalar.
 #  E.g.: setting alpha=[0, 0, 0, 1, 0, 0, 0] would make visible
 #  only voxels with value close to 98.5 (see print output).
-vol = loadVolume(datadir+"embryo.slc", spacing=[1, 1, 1])
+vol = load(datadir+"embryo.slc", spacing=[1, 1, 1])
 vol.c("green").alpha([0, 0.4, 0.9, 1])  # vtkVolume
 
 # can relocate volume in space:
@@ -20,5 +20,4 @@ sph = Sphere(pos=(100, 100, 100), r=20)  # add a dummy surface
 doc = Text(__doc__, c="k")
 
 # show both vtkVolume and vtkActor
-show(vol, sph, doc,
-     axes=8, verbose=0, bg="w", zoom=1.4)
+show(vol, sph, doc, axes=8, verbose=0, bg="w", zoom=1.4)

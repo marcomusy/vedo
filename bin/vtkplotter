@@ -358,7 +358,8 @@ elif args.slicer:
 ########################################################################
 # normal mode for single VOXEL file with Isosurface Slider
 elif nfiles == 1 and (".slc" in args.files[0] or ".vti" in args.files[0] or ".tif" in args.files[0]):
-    from vtkplotter import loadImageData, Actor, legosurface, printHistogram
+    from vtkplotter import Actor, legosurface
+    from vtkplotter.vtkio import loadImageData
 
     image = loadImageData(args.files[0])
     scrange = image.GetScalarRange()
@@ -392,7 +393,7 @@ elif nfiles == 1 and (".slc" in args.files[0] or ".vti" in args.files[0] or ".ti
     
         cf.SetValue(0, threshold)
         cf.Update()
-        act = Actor(cf.GetOutput(), ic, alpha=abs(args.alpha), wire=args.wireframe)
+        act = Actor(cf.GetOutput(), ic, alpha=abs(args.alpha)).wire(args.wireframe)
         act.phong()
 
     ############################## threshold slider
@@ -403,7 +404,7 @@ elif nfiles == 1 and (".slc" in args.files[0] or ".vti" in args.files[0] or ".ti
             cf.SetValue(0, widget.GetRepresentation().GetValue())
             cf.Update()
             poly = cf.GetOutput()
-            a = Actor(poly, ic, alpha=act.alpha(), wire=args.wireframe)
+            a = Actor(poly, ic, alpha=act.alpha()).wire(args.wireframe)
             a.phong()
         vp.actors = []
         vp.renderer.RemoveActor(vp.getActors()[0])
@@ -461,7 +462,9 @@ elif (not args.scrolling_mode) or nfiles == 1:
         if args.show_scalars:
             ic = None
 
-        actor = vp.load(f, c=ic, alpha=alpha, wire=wire)
+        actor = vp.load(f, c=ic, alpha=alpha)
+        if hasattr(actor, 'wire'):
+            actor.wire(wire)
 
         if leg:
             actor.legend(os.path.basename(f))
@@ -509,7 +512,9 @@ else:
         if args.show_scalars:
             ic = None
 
-        actor = vp.load(f, c=ic, alpha=alpha, wire=wire)
+        actor = vp.load(f, c=ic, alpha=alpha)
+        if hasattr(actor, 'wire'):
+            actor.wire(wire)
         actor.legend(leg)
         actors.append(actor)
         if args.point_size > 0:

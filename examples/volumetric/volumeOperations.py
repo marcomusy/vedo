@@ -6,11 +6,11 @@ Alphas defines the opacity transfer function in the scalar range.
 """
 print(__doc__)
 
-from vtkplotter import Plotter, loadVolume, volumeOperation, datadir
+from vtkplotter import Plotter, load, volumeOperation, datadir
 
 vp = Plotter(N=8, axes=0, bg="w")
 
-v0 = loadVolume(datadir+"embryo.slc").c(0)  # vtkVolume
+v0 = load(datadir+"embryo.slc").c(0)  # vtkVolume
 vp.show(v0, at=0)
 
 v1 = volumeOperation(v0, "gradient")

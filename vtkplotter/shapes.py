@@ -146,7 +146,7 @@ def Points(plist, r=5, c="gray", alpha=1):
     return actor
 
 
-def Glyph(actor, glyphObj, orientationArray="",
+def Glyph(actor, glyphObj, orientationArray=None,
           scaleByVectorSize=False, c=None, alpha=1):
     """
     At each vertex of a mesh, another mesh - a `'glyph'` - is shown with
@@ -190,7 +190,7 @@ def Glyph(actor, glyphObj, orientationArray="",
     gly.SetSourceData(glyphObj)
     gly.SetColorModeToColorByScalar()
 
-    if orientationArray != "":
+    if orientationArray is not None:
         gly.OrientOn()
         gly.SetScaleFactor(1)
 
@@ -199,8 +199,12 @@ def Glyph(actor, glyphObj, orientationArray="",
         else:
             gly.SetScaleModeToDataScalingOff()
 
-        if orientationArray == "normals" or orientationArray == "Normals":
-            gly.SetVectorModeToUseNormal()
+        if isinstance(orientationArray, str):
+            if orientationArray.lower() == "normals":
+                gly.SetVectorModeToUseNormal()
+            else:  # passing a name
+                gly.SetInputArrayToProcess(0, 0, 0, 0, orientationArray)
+                gly.SetVectorModeToUseVector()
         elif isinstance(orientationArray, vtk.vtkAbstractArray):
             actor.GetMapper().GetInput().GetPointData().AddArray(orientationArray)
             actor.GetMapper().GetInput().GetPointData().SetActiveVectors("glyph_vectors")
@@ -209,13 +213,11 @@ def Glyph(actor, glyphObj, orientationArray="",
         elif utils.isSequence(orientationArray):  # passing a list
             actor.addPointVectors(orientationArray, "glyph_vectors")
             gly.SetInputArrayToProcess(0, 0, 0, 0, "glyph_vectors")
-        else:  # passing a name
-            gly.SetInputArrayToProcess(0, 0, 0, 0, orientationArray)
-            gly.SetVectorModeToUseVector()
+
         if cmap:
-            gly.SetColorModeToColorByVector ()
+            gly.SetColorModeToColorByVector()
         else:
-            gly.SetColorModeToColorByScalar ()
+            gly.SetColorModeToColorByScalar()
 
 
     gly.Update()

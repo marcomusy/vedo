@@ -71,6 +71,7 @@ setup(
 # python setup.py sdist bdist_wheel
 # twine upload dist/vtkplotter-?.?.?.tar.gz -r pypi
 # make release
+# add vtkplotter/version.py
 
 ## to generate documentation:
 # Install the dependencies in docs/requirements.txt

@@ -3,13 +3,13 @@ Make a icon actor to indicate orientation
 and place it in one of the 4 corners 
 within the same renderer.
 """
-from vtkplotter import Plotter, load, Text, datadir
+from vtkplotter import *
 
 
 vp = Plotter(axes=5, bg="white")
 # axes type 5 builds an annotated orientation cube
 
-vp.load(datadir+"270.vtk", c="blue", bc="v")
+vp.load(datadir+'porsche.ply').lighting('metallic')
 
 vp.show(interactive=0)
 

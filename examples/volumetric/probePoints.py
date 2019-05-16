@@ -4,7 +4,7 @@ Probe a voxel dataset at specified points
 from vtkplotter import *
 import numpy as np
 
-vol = loadVolume(datadir+"embryo.slc")
+vol = load(datadir+"embryo.slc")
 
 pts = np.random.rand(1000, 3)*256
 

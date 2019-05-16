@@ -75,3 +75,18 @@ from numpy import sin, cos, sqrt, exp, log, dot, cross, array, arange
 settings._init()
 ###############
 
+
+## deprecations
+def loadImageData(*args, **kargs):
+    "Do not use."
+    printc("~bomb loadImageData has been retired in version>=3.0. Use instead:", c=1)
+    printc("img = load('file.tif').imagedata() # or better:")
+    printc("vol = load('file.tif') # returns a Volume")
+    printc("Abort.", c=1)
+    exit(0)
+
+
+
+
+
+

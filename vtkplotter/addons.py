@@ -473,8 +473,7 @@ def addButton(
     if not vp.renderer:
         colors.printc("~timesError: Use addButton() after rendering the scene.", c=1)
         return
-    import vtkplotter.vtkio as vtkio
-    bu = vtkio.Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
+    bu = Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
     vp.renderer.AddActor2D(bu.actor)
     vp.window.Render()
     vp.buttons.append(bu)
@@ -524,6 +523,7 @@ def addCutterTool(actor):
 
     act1Mapper = vtk.vtkPolyDataMapper()  # the part which is cut away
     act1Mapper.SetInputConnection(clipper.GetClippedOutputPort()) # needs OutputPort??
+    act1Mapper.ScalarVisibilityOff()
     act1 = vtk.vtkActor()
     act1.SetMapper(act1Mapper)
     act1.GetProperty().SetOpacity(0.02)
@@ -540,7 +540,7 @@ def addCutterTool(actor):
     boxWidget = vtk.vtkBoxWidget()
     boxWidget.OutlineCursorWiresOn()
     boxWidget.GetSelectedOutlineProperty().SetColor(1, 0, 1)
-    boxWidget.GetOutlineProperty().SetColor(0.1, 0.1, 0.1)
+    boxWidget.GetOutlineProperty().SetColor(0.2, 0.2, 0.2)
     boxWidget.GetOutlineProperty().SetOpacity(0.8)
     boxWidget.SetPlaceFactor(1.05)
     boxWidget.SetInteractor(vp.interactor)
@@ -587,16 +587,15 @@ def _addVolumeCutterTool(vol):
     boxWidget.SetInputData(vol.image)
     boxWidget.OutlineCursorWiresOn()
     boxWidget.GetSelectedOutlineProperty().SetColor(1, 0, 1)
-    boxWidget.GetOutlineProperty().SetColor(0.1, 0.1, 0.1)
+    boxWidget.GetOutlineProperty().SetColor(0.2, 0.2, 0.2)
     boxWidget.GetOutlineProperty().SetOpacity(0.7)
-    boxWidget.SetPlaceFactor(1.05)
+    boxWidget.SetPlaceFactor(1.0)
     boxWidget.PlaceWidget()
     boxWidget.InsideOutOn()
     boxWidget.AddObserver("InteractionEvent", ClipVolumeRender)
 
     colors.printc("Mesh Cutter Tool:", c="m", invert=1)
-    colors.printc("  Move gray handles to cut away parts of the mesh", c="m")
-    colors.printc("  Press X to save file to: clipped.vtk", c="m")
+    colors.printc("  Move gray handles to cut parts of the volume", c="m")
 
     vp.renderer.ResetCamera()
     boxWidget.On()
@@ -1118,3 +1117,75 @@ def addLegend():
     vtklegend.SetBackgroundOpacity(0.6)
     vtklegend.LockBorderOn()
     vp.renderer.AddActor(vtklegend)
+
+
+###########################################################################################
+class Button:
+    """
+    Build a Button object to be shown in the rendering window.
+
+    .. hint:: |buttons| |buttons.py|_
+    """
+
+    def __init__(self, fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle):
+        """
+        Build a Button object to be shown in the rendering window.
+        """
+        self._status = 0
+        self.states = states
+        self.colors = c
+        self.bcolors = bc
+        self.function = fnc
+        self.actor = vtk.vtkTextActor()
+        self.actor.SetDisplayPosition(pos[0], pos[1])
+        self.framewidth = 3
+        self.offset = 5
+        self.spacer = " "
+
+        self.textproperty = self.actor.GetTextProperty()
+        self.textproperty.SetJustificationToCentered()
+        if font.lower() == "courier":
+            self.textproperty.SetFontFamilyToCourier()
+        elif font.lower() == "times":
+            self.textproperty.SetFontFamilyToTimes()
+        else:
+            self.textproperty.SetFontFamilyToArial()
+        self.textproperty.SetFontSize(size)
+        self.textproperty.SetBackgroundOpacity(alpha)
+        self.textproperty.BoldOff()
+        if bold:
+            self.textproperty.BoldOn()
+        self.textproperty.ItalicOff()
+        if italic:
+            self.textproperty.ItalicOn()
+        self.textproperty.ShadowOff()
+        self.textproperty.SetOrientation(angle)
+        self.showframe = hasattr(self.textproperty, "FrameOn")
+        self.status(0)
+
+    def status(self, s=None):
+        """
+        Set/Get the status of the button.
+        """
+        if s is None:
+            return self.states[self._status]
+        if isinstance(s, str):
+            s = self.states.index(s)
+        self._status = s
+        self.textproperty.SetLineOffset(self.offset)
+        self.actor.SetInput(self.spacer + self.states[s] + self.spacer)
+        s = s % len(self.colors)  # to avoid mismatch
+        self.textproperty.SetColor(colors.getColor(self.colors[s]))
+        bcc = numpy.array(colors.getColor(self.bcolors[s]))
+        self.textproperty.SetBackgroundColor(bcc)
+        if self.showframe:
+            self.textproperty.FrameOn()
+            self.textproperty.SetFrameWidth(self.framewidth)
+            self.textproperty.SetFrameColor(numpy.sqrt(bcc))
+
+    def switch(self):
+        """
+        Change/cycle button status to the next defined status in states list.
+        """
+        self._status = (self._status + 1) % len(self.states)
+        self.status(self._status)

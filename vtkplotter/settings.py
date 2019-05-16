@@ -1,12 +1,30 @@
 """
 Global settings.
-"""
-from __future__ import division, print_function
-import os
 
-__all__ = [
-    'datadir',
-]
+.. role:: raw-html-m2r(raw)
+   :format: html
+
+
+.. note:: **Please check out the** `git repository <https://github.com/marcomusy/vtkplotter>`_.
+
+    A full list of examples can be found in directories:
+        
+    - `examples/basic <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic>`_ ,
+    - `examples/advanced <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced>`_ ,
+    - `examples/volumetric <https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric>`_,
+    - `examples/simulations <https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations>`_.
+    - `examples/other <https://github.com/marcomusy/vtkplotter/blob/master/examples/other>`_
+    - `examples/other/dolfin <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin>`_.
+
+:raw-html-m2r:`<br />`
+
+.. image:: https://user-images.githubusercontent.com/32848391/51558920-ec436e00-1e80-11e9-9d96-aa9b7c72d58b.png
+
+:raw-html-m2r:`<br />`
+:raw-html-m2r:`<br />`
+
+"""
+__all__ = ['datadir']
 
 ####################################################################################
 # recompute vertex and cell normals
@@ -27,6 +45,9 @@ usingQt = False
 # on some vtk versions/platforms points are redered as ugly squares
 renderPointsAsSpheres = True
 
+# remove hidden lines when in wireframe mode
+hiddenLineRemoval = False
+
 # path to Voro++ library
 # http://math.lbl.gov/voro++
 voro_path = '/usr/local/bin'
@@ -42,6 +63,7 @@ screenshotTransparentBackground = False
 
 
 ####################################################################################
+import os
 _cdir = os.path.dirname(__file__)
 if _cdir == "":
     _cdir = "."
@@ -51,10 +73,6 @@ textures = []
 datadir = _cdir + "/data/"
 fonts_path = _cdir + "/fonts/"
 fonts = []
-
-#####################
-collectable_actors = []
-
 
 #####################
 def _init():

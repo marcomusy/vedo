@@ -3,6 +3,7 @@ import vtk, sys
 import numpy as np
 import vtkplotter.colors as colors
 import vtkplotter.docs as docs
+import time
 
 __doc__ = (
     """
@@ -12,6 +13,7 @@ Utilities submodule.
 )
 
 __all__ = [
+    "ProgressBar",
     "isSequence",
     "vector",
     "mag",
@@ -31,6 +33,129 @@ __all__ = [
     "resampleArrays",
     "printHistogram",
 ]
+
+###########################################################################
+class ProgressBar:
+    """
+    Class to print a progress bar with optional text message.
+
+    :Example:
+        .. code-block:: python
+        
+            import time
+            pb = ProgressBar(0,400, c='red')
+            for i in pb.range():
+                time.sleep(.1)
+                pb.print('some message') # or pb.print(counts=i)
+
+        |progbar|
+    """
+
+    def __init__(self, start, stop, step=1, c=None, ETA=True, width=24, char=u"\U000025AC"):
+
+        char_arrow = u"\U000025BA"
+        if sys.version_info[0]<3:
+            char="="
+            char_arrow = '>'
+
+        self.start = start
+        self.stop = stop
+        self.step = step
+        self.color = c
+        self.width = width
+        self.char = char
+        self.char_arrow = char_arrow
+        self.bar = ""
+        self.percent = 0
+        self.clock0 = 0
+        self.ETA = ETA
+        self.clock0 = time.time()
+        self._remt = 1e10
+        self._update(0)
+        self._counts = 0
+        self._oldbar = ""
+        self._lentxt = 0
+        self._range = np.arange(start, stop, step)
+        self._len = len(self._range)
+
+    def print(self, txt="", counts=None):
+        """Print the progress bar and optional message."""
+        if counts:
+            self._update(counts)
+        else:
+            self._update(self._counts + self.step)
+        if self.bar != self._oldbar:
+            self._oldbar = self.bar
+            eraser = [" "] * self._lentxt + ["\b"] * self._lentxt
+            eraser = "".join(eraser)
+            if self.ETA:
+                vel = self._counts / (time.time() - self.clock0)
+                self._remt = (self.stop - self._counts) / vel
+                if self._remt > 60:
+                    mins = int(self._remt / 60)
+                    secs = self._remt - 60 * mins
+                    mins = str(mins) + "m"
+                    secs = str(int(secs + 0.5)) + "s "
+                else:
+                    mins = ""
+                    secs = str(int(self._remt + 0.5)) + "s "
+                vel = str(round(vel, 1))
+                eta = "ETA: " + mins + secs + "(" + vel + " it/s) "
+                if self._remt < 1:
+                    dt = time.time() - self.clock0
+                    if dt > 60:
+                        mins = int(dt / 60)
+                        secs = dt - 60 * mins
+                        mins = str(mins) + "m"
+                        secs = str(int(secs + 0.5)) + "s "
+                    else:
+                        mins = ""
+                        secs = str(int(dt + 0.5)) + "s "
+                    eta = "Elapsed time: " + mins + secs + "(" + vel + " it/s)        "
+                    txt = ""
+            else:
+                eta = ""
+            txt = eta + str(txt)
+            s = self.bar + " " + eraser + txt + "\r"
+            if self.color:
+                colors.printc(s, c=self.color, end="")
+            else:
+                sys.stdout.write(s)
+                sys.stdout.flush()
+            if self.percent == 100:
+                print("")
+            self._lentxt = len(txt)
+
+    def range(self):
+        """Return the range iterator."""
+        return self._range
+
+    def len(self):
+        """Return the number of steps."""
+        return self._len
+
+    def _update(self, counts):
+        if counts < self.start:
+            counts = self.start
+        elif counts > self.stop:
+            counts = self.stop
+        self._counts = counts
+        self.percent = (self._counts - self.start) * 100
+        self.percent /= self.stop - self.start
+        self.percent = int(round(self.percent))
+        af = self.width - 2
+        nh = int(round(self.percent / 100 * af))
+        if nh == 0:
+            self.bar = "["+self.char_arrow+"%s]" % (" " * (af - 1))
+        elif nh == af:
+            self.bar = "[%s]" % (self.char * af)
+        else:
+            self.bar = "[%s%s%s]" % (self.char *(nh-1), self.char_arrow, " " *(af-nh))
+        if self.percent < 100:  # and self._remt > 1:
+            ps = " " + str(self.percent) + "%"
+        else:
+            ps = ""
+        self.bar += ps
 
 
 ##############################################################################
@@ -345,16 +470,20 @@ def printInfo(obj):
             colors.printc(actor.centerOfMass(), c="g", bold=0)
 
             colors.printc(tab + "      ave. size: ", c="g", bold=1, end="")
-            colors.printc(precision(actor.averageSize(), 4), c="g", bold=0)
+            colors.printc(precision(actor.averageSize(), 6), c="g", bold=0)
 
             colors.printc(tab + "     diag. size: ", c="g", bold=1, end="")
-            colors.printc(actor.diagonalSize(), c="g", bold=0)
+            colors.printc(precision(actor.diagonalSize(), 6), c="g", bold=0)
+            
+            _area = actor.area()
+            if _area:
+                colors.printc(tab + "           area: ", c="g", bold=1, end="")
+                colors.printc(precision(_area, 6), c="g", bold=0)
 
-            colors.printc(tab + "           area: ", c="g", bold=1, end="")
-            colors.printc(precision(actor.area(), 8), c="g", bold=0)
-
-            colors.printc(tab + "         volume: ", c="g", bold=1, end="")
-            colors.printc(precision(actor.volume(), 8), c="g", bold=0)
+            _vol = actor.volume()
+            if _vol:
+                colors.printc(tab + "         volume: ", c="g", bold=1, end="")
+                colors.printc(precision(_vol, 6), c="g", bold=0)
 
         colors.printc(tab + "         bounds: ", c="g", bold=1, end="")
         bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
@@ -381,7 +510,9 @@ def printInfo(obj):
                     except:
                         tt = ptdata.GetArray(i).GetDataType()
                     colors.printc("name=" + name, "type=" + tt, c="g", bold=0, end="")
-                    colors.printc(" range:", ptdata.GetArray(i).GetRange(), c="g", bold=0)
+                    rng = ptdata.GetArray(i).GetRange()
+                    colors.printc(" range: (" + precision(rng[0],4) + ',' +
+                                            precision(rng[1],4) + ')', c="g", bold=0)
 
         if poly.GetCellData():
             cldata = poly.GetCellData()
@@ -394,7 +525,9 @@ def printInfo(obj):
                     except:
                         tt = cldata.GetArray(i).GetDataType()
                     colors.printc("name=" + name, "type=" + tt, c="g", bold=0, end="")
-                    colors.printc(" range:", cldata.GetArray(i).GetRange(), c="g", bold=0)
+                    rng = cldata.GetArray(i).GetRange()
+                    colors.printc(" range: (" + precision(rng[0],4) + ',' +
+                                            precision(rng[1],4) + ')', c="g", bold=0)
 
     if not obj:
         return

@@ -49,8 +49,7 @@ for all the following functionalities:
   - Find the intersection of a mesh with a line (or with another mesh).
   - Analysis of *Point Clouds*:
 	 - *Moving Least Squares* smoothing of 2D, 3D and 4D clouds
-    - Fit lines, planes and spheres in space
-    - Perform PCA (Principal Component Analysis) on point coordinates
+    - Fit lines, planes and spheres and ellipses in space
     - Identify outliers in a distribution of points
     - Decimate a cloud to a uniform distribution.
   - Basic histogramming and function plotting in 1D and 2D.

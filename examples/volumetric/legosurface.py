@@ -7,10 +7,10 @@ Try also:
 # https://matplotlib.org/users/colormaps.html
 from vtkplotter import *
 
-img = loadImageData(datadir+'embryo.tif')
-printHistogram(img, logscale=True)
+vol = load(datadir+'embryo.tif') # load Volume
+printHistogram(vol, logscale=True)
 
-vol = Volume(img).crop(back=0.5) # crop 50% from neg. y
+vol.crop(back=0.5) # crop 50% from neg. y
 
 # show lego blocks whose value is between vmin and vmax
 lego = legosurface(vol, vmin=60, cmap='seismic')

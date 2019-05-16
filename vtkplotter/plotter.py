@@ -501,6 +501,7 @@ class Plotter:
         for i in reversed(range(shape[0])):
             for j in range(shape[1]):
                 arenderer = vtk.vtkRenderer()
+                arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
                 arenderer.SetUseDepthPeeling(depthpeeling)
                 if "jpg" in str(self.backgrcol).lower() or "jpeg" in str(self.backgrcol).lower():
                     if i == 0:
@@ -600,34 +601,47 @@ class Plotter:
             self.allowInteraction = _allowInteraction
 
     ####################################################
-    def load(
-        self,
-        inputobj,
-        c="gold",
-        alpha=1,
-        wire=False,
-        bc=None,
-        texture=None,
-        smoothing=None,
-        threshold=None,
-        connectivity=False,
-    ):
+    def load(self, inputobj, c="gold", alpha=1, threshold=False, spacing=(), unpack=True):
         """
-        Returns a ``vtkActor`` from reading a file, directory or ``vtkPolyData``.
-
+        Load Actors and Volumes from file.
+        The output will depend on the file extension. See examples below.
+        
         :param c: color in RGB format, hex, symbol or name
-        :param alpha:   transparency (0=invisible)
-        :param wire:    show surface as wireframe
-        :param bc:      backface color of internal surface
-        :param texture: any png/jpg file can be used as texture
-
-        For volumetric data (tiff, slc, vti files):
-
-        :param smoothing:    gaussian filter to smooth vtkImageData
-        :param threshold:    value to draw the isosurface
-        :param bool connectivity: if True only keeps the largest portion of the polydata
+        :param alpha: transparency (0=invisible)
+    
+        For volumetric data (tiff, slc, vti etc):
+        :param float threshold: value to draw the isosurface, False by default to return a ``Volume``
+        :param list spacing: specify the voxel spacing in the three dimensions
+        :param bool unpack: only for multiblock data, if True returns a flat list of objects.
+        
+        :Example:
+            .. code-block:: python
+            
+                from vtkplotter import datadir, load, show
+                
+                # Return an Actor
+                g = load(datadir+'ring.gmsh')
+                show(g)
+                
+                # Return a list of 2 Actors
+                g = load([datadir+'250.vtk', datadir+'290.vtk'])
+                show(g)
+                
+                # Return a list of actors by reaading all files in a directory
+                # (if directory contains DICOM files then a Volume is returned)
+                g = load(datadir+'timecourse1d/')
+                show(g)
+                
+                # Return a Volume. Color/Opacity transfer function can be specified too.
+                g = load(datadir+'embryo.slc')
+                g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1))
+                show(g)
+                
+                # Return an Actor from a SLC volume with automatic thresholding
+                g = load(datadir+'embryo.slc', threshold=True)
+                show(g)    
         """
-        acts = vtkio.load(inputobj, c, alpha, wire, bc, texture, smoothing, threshold, connectivity)
+        acts = vtkio.load(inputobj, c, alpha, threshold, spacing, unpack)
         if utils.isSequence(acts):
             self.actors += acts
         else:
@@ -1292,11 +1306,11 @@ class Plotter:
             elif viewup == "z":
                 b =  self.renderer.ComputeVisiblePropBounds()
                 fp = (b[1]+b[0])/2, (b[3]+b[2])/2, (b[5]+b[4])/2
-                sz = numpy.array([b[1]-b[0], b[3]-b[2], b[5]-b[4]])
+                sz = numpy.array([b[3]-b[2], b[1]-b[0], (b[5]-b[4])/2]) #swap xy
                 if sz[2]==0:
                     sz[2] = min(sz[0], sz[1])
                 self.camera.SetViewUp([0, 0.001, 1])
-                self.camera.SetPosition(fp+1.95*sz)
+                self.camera.SetPosition(fp+2.1*sz)
         
         if camera is not None:
             cm_pos = camera.pop("pos", None)

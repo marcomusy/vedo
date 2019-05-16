@@ -1,13 +1,13 @@
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense
-from vtkplotter import loadImageData, Volume, isosurface, show, datadir
+from vtkplotter import load, Volume, isosurface, show, datadir
 
 maxradius = 0.2
 neurons = 30
 epochs = 20
 
-image = loadImageData(datadir+"embryo.tif")
+image = load(datadir+"embryo.tif").imagedata()
 
 vmin, vmax = image.GetScalarRange()
 nx, ny, nz = image.GetDimensions()
@@ -39,7 +39,7 @@ model = Sequential()
 model.add(Dense(neurons, activation="relu", input_dim=3))
 model.add(Dense(neurons, activation="relu"))
 model.add(Dense(neurons, activation="relu"))
-model.add(Dense(1, activation="sigmoid"))
+model.add(Dense(1,       activation="sigmoid"))
 
 model.compile(optimizer="rmsprop", loss="mse", metrics=["mae"])
 
@@ -59,7 +59,7 @@ for i, x in enumerate(lsx):
 
 v1 = Volume(visdata)
 v2 = Volume(vispred)
-s1 = isosurface(v1.image, threshold=0).alpha(0.8)
-s2 = isosurface(v2.image, threshold=0).alpha(0.8)
+s1 = isosurface(v1, threshold=0).alpha(0.8)
+s2 = isosurface(v2, threshold=0).alpha(0.8)
 
-show([v1, v2, s1, s2], N=4, axes=8, bg="w", depthpeeling=1)
+show([v1, v2, s1, s2], N=4, axes=8, bg="w")

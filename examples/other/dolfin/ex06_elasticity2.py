@@ -44,7 +44,7 @@ printc("""~idea Try out plot options:
            ~pin alpha=0.2, depthpeeling=True
            ~pin mode='mesh warp lines', lw=.05""", c='blue')
 
-plot(u, mode='my warped mesh please!!', azimuth=45)
-exportWindow('ex06_elasticity2.x3d')
+plot(u, mode='my displaced mesh please!!', azimuth=45)
+#exportWindow('ex06_elasticity2.x3d')
 
 printc('~smile Thanks for using vtkplotter!', c='green')

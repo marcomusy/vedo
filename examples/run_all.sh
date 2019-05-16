@@ -20,6 +20,9 @@ python  basic/a_first_example.py
 echo Running basic/acollection.py
 python  basic/acollection.py
 
+echo Running basic/buildmesh.py
+python  basic/buildmesh.py
+
 #################################### 
 echo Running basic/align1.py
 python basic/align1.py
@@ -38,9 +41,6 @@ python basic/bgImage.py
 
 echo Running basic/boolean.py
 python basic/boolean.py      
-
-echo Running basic/buildpolydata.py
-python basic/buildpolydata.py
 
 echo Running basic/carcrash.py
 python basic/carcrash.py
@@ -312,6 +312,9 @@ python volumetric/streamlines2.py
 echo Running volumetric/streamribbons.py
 python volumetric/streamribbons.py
 
+echo Running volumetric/lowpassfilter.py
+python volumetric/lowpassfilter.py
+
 cd volumetric
 echo Running office.py
 python office.py
@@ -348,7 +351,6 @@ python other/tf_learn_volume.py
 
 echo Running other/voronoi3d.py
 python other/voronoi3d.py
-
 
 echo Running other/export_x3d.py
 python other/export_x3d.py

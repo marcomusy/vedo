@@ -1,9 +1,9 @@
 """
 Intersect a Volume (voxel dataset) with planes
 """
-from vtkplotter import show, loadVolume, probePlane, vector, Text, datadir
+from vtkplotter import show, load, probePlane, vector, Text, datadir
 
-vol = loadVolume(datadir+"embryo.slc")
+vol = load(datadir+"embryo.slc")
 
 planes = []
 for i in range(6):

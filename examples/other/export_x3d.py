@@ -3,7 +3,7 @@ in a webpage with
 x3dom and vtkplotter"""
 from vtkplotter import *
 
-e = load(datadir+'embryo.tif').decimate(0.5)
+e = load(datadir+'embryo.tif', threshold=True).decimate(0.5)
 ec = e.coordinates()
 e.pointColors(ec[:,1]) # add dummy colors along y
 

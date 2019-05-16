@@ -8,7 +8,7 @@ from vtk.util.numpy_support import numpy_to_vtk
 import numpy as np
 
 import vtkplotter.utils as utils
-from vtkplotter.utils import printHistogram
+from vtkplotter.utils import printHistogram, ProgressBar
 
 import vtkplotter.docs as docs
 
@@ -20,7 +20,7 @@ from vtkplotter.settings import datadir
 from vtkplotter.actors import Actor, isolines
 
 import vtkplotter.vtkio as vtkio
-from vtkplotter.vtkio import load, ProgressBar, screenshot, Video, exportWindow
+from vtkplotter.vtkio import load, screenshot, Video, exportWindow
 
 import vtkplotter.shapes as shapes
 from vtkplotter.shapes import Text, Latex
@@ -137,12 +137,12 @@ def _inputsort(obj):
         
     for ob in obj:
         inputtype = str(type(ob))
+        #printc('inputtype is', inputtype, c=2)
         
         if "vtk" in inputtype: # skip vtk objects, will be added later
             continue
         
         if "dolfin" in inputtype:
-            #printc('inputtype is', inputtype, c=2)
             if "MeshFunction" in inputtype:
                 mesh = ob.mesh()
                 
@@ -178,6 +178,10 @@ def _inputsort(obj):
                 u = ob
             elif "Mesh" in inputtype:
                 mesh = ob
+            
+        if "str" in inputtype:
+            import dolfin
+            mesh = dolfin.Mesh(ob)
 
     if u and not mesh and hasattr(u, "function_space"):
         V = u.function_space()
@@ -458,7 +462,10 @@ def plot(*inputobj, **options):
     if add and settings.plotter_instance:
         actors = settings.plotter_instance.actors    
 
-    if 'mesh' in mode or 'color' in mode:
+    if 'mesh' in mode or 'color' in mode or 'warp' in mode or 'displac' in mode:
+        if 'warp' in mode: #deprecation
+            printc("~bomb Please use 'displacement' instead of 'warp' in mode!", c=1)
+            
         actor = MeshActor(u, mesh, wire=wire)
         if lighting:
             actor.lighting(lighting)
@@ -502,7 +509,7 @@ def plot(*inputobj, **options):
             else:
                 actor.addScalarBar(horizontal=False, vmin=vmin, vmax=vmax)
         
-        if 'warp' in mode or 'displace' in mode:
+        if 'warp' in mode or 'displac' in mode:
             if delta is None:
                 delta = [u(p) for p in mesh.coordinates()]
             movedpts = mesh.coordinates() + delta

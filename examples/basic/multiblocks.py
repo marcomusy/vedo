@@ -7,7 +7,7 @@ cube  = Cube(side=30)
 scals = cube.coordinates()[:,1]
 poly  = cube.addPointScalars(scals, 'scalsname').polydata()
 
-img = loadImageData(datadir+'vase.vti')
+img = load(datadir+'vase.vti').imagedata()
 
 filename = "multiblock.vtm"
 
@@ -16,8 +16,8 @@ printc("~save wrote file", filename,
 	   "and corresponding directory", c='g')
 
 # load back from file into a list of actors/volumes
-acts = loadMultiBlockData(filename)
+mbacts = load(filename) # loads and unpacks a MultiBlockData obj
 
-show(acts,   Text('loadMultiBlockData("file.vtm")', c='k'), bg='w')
+show(mbacts, Text('load("file.vtm") #MultiBlockData', c='k'), bg='w')
 
-show(mblock, Text('show(multiblock)'), newPlotter=True, pos=(800,0))
+show(mblock, Text('show(multiblock)', c='w'), newPlotter=True, pos=(800,0))

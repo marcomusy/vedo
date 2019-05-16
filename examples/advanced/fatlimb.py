@@ -12,7 +12,7 @@ settings.computeNormals = True  # on object creation by default
 
 vp = Plotter(axes=0, verbose=0, bg="w")
 
-s = vp.load(datadir+"290.vtk", c="red", bc="plum")
+s = vp.load(datadir+"290.vtk", c="red")
 c = s.centerOfMass()
 vp.add(Point(c))
 

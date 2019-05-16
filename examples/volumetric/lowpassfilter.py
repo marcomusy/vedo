@@ -2,7 +2,7 @@ from vtkplotter import *
 
 print('..this can take ~30 sec / n_cores to run!')
 
-v1 = loadVolume(datadir+'embryo.tif').c('blue')
+v1 = load(datadir+'embryo.tif').c('blue')
 
 # cutoff range is roughly in the range of 1 / size of object
 v2 = frequencyPassFilter(v1, highcutoff=.001, order=1).c('green')

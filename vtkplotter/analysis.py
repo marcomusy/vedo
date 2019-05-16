@@ -827,7 +827,7 @@ def smoothMLS3D(actors, neighbours=10):
     kd = KDTree(coords4d, leafsize=neighbours)
     suggest = ""
 
-    pb = vio.ProgressBar(0, len(coords4d))
+    pb = vu.ProgressBar(0, len(coords4d))
     for i in pb.range():
         mypt = coords4d[i]
 
@@ -895,7 +895,7 @@ def smoothMLS2D(actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
     locator.BuildLocator()
     vtklist = vtk.vtkIdList()
     variances, newsurf, acts = [], [], []
-    pb = vio.ProgressBar(0, ncoords)
+    pb = vu.ProgressBar(0, ncoords)
     for i, p in enumerate(coords):
         pb.print("smoothing...")
         if i % decimate:

@@ -6,7 +6,8 @@ from vtkplotter import *
 
 vp = Plotter(axes=1, bg="white")
 
-e = load(datadir+"embryo.tif").normalize().c("gold")
+e = load(datadir+"embryo.tif", threshold=True) # automatic isosurfacing
+e.normalize().c("gold")
 msg = Text(__doc__)
 
 vp.show(e, msg, viewup='z', interactive=0)
