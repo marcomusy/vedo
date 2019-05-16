@@ -17,19 +17,13 @@ from vtkplotter import *
 # Declare an instance of the class
 vp = Plotter(title='first example')
 
-# Load a vtk file as a vtkActor derived object and visualize it.
-# (The actual mesh corresponds to the outer shape of 
+# Load a vtk file as a Actor(vtkActor) and visualize it.
+# (The actual mesh corresponds to the outer shape of
 # an embryonic mouse limb at about 11 days of gestation).
-# Choose a tomato color for the internal surface of the mesh, and no transparency.
-vp.load(datadir+'270.vtk', c='b', bc='tomato') # c=(R,G,B), letter or color name, b=blue
-vp.show()  # picks what was stored in python list vp.actors 
+# Choose a tomato color for the internal surface of the mesh.
+vp.load(datadir+"270.vtk").c("aqua").bc("tomato") 
+vp.show()  # picks what is automatically stored in python list vp.actors
 # Press Esc to close the window and exit python session, or q to continue
-
-# The same result can be achieved in an even simpler way:
-from vtkplotter import *
-mesh = load(datadir+'270.vtk', c='b', bc='tomato')
-# a Plotter instance is automatically generated
-mesh.show()
 ```
 ![tut1](https://user-images.githubusercontent.com/32848391/50738980-d9227400-11d9-11e9-8a7c-14b2abc4d41f.jpg)
 
@@ -97,7 +91,7 @@ vp.sharecam = False                             # each object can be moved indep
 vp.show(datadir+'beethoven.ply', at=0, c=0, axes=0)    # dont show axes
 vp.show(datadir+'cow.byu',       at=1, c=1, zoom=1.15) # make it 15% bigger
 vp.show(datadir+'limb.pcd',      at=2, c=2)
-vp.show(datadir+'ring.gmsh',     at=3, c=3, wire=1)    # show mesh as wireframe
+vp.show(datadir+'ring.gmsh',     at=3, c=3)            # show mesh as wireframe
 vp.show(datadir+'images/dog.jpg',at=4)                 # 2d images can be loaded the same way
 vp.show(datadir+'shuttle.obj',   at=5, c=5)
 vp.show(datadir+'shapes/man.vtk',at=6, c=6, axes=2)    # show negative axes segments
@@ -131,8 +125,9 @@ vp.show([a2, pts2], at=1, interactive=True)
 # point at x=500 and has normal (0, 0.3, -1).
 # Wildcards can be used to load multiple files or entire directories:
 vp = Plotter(title='Cut a surface with a plane')
-vp.load(datadir+'2*0.vtk', c='orange', bc='aqua')
+vp.load(datadir+'2*0.vtk')
 for a in vp.actors:
+    a.c("orange").bc("aqua")
     a.cutWithPlane(origin=(500,0,0), normal=(0,0.3,-1), showcut=True)
 vp.show()
 ```

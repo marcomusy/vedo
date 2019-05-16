@@ -27,14 +27,14 @@ vp = Plotter()
 # (The actual mesh corresponds to the outer shape of
 # an embryonic mouse limb at about 11 days of gestation).
 # Choose a tomato color for the internal surface of the mesh.
-vp.load(datadir+"270.vtk", c="aqua", bc="tomato")  # c=(R,G,B), letter or color name
+vp.load(datadir+"270.vtk").c("aqua").bc("tomato") 
 vp.show()  # picks what is automatically stored in python list vp.actors
 # Press Esc to close the window and exit python session, or q to continue
 
 
 #########################################################################################
 # Load a vtk file as a vtkActor and visualize it in wireframe style
-act = vp.load(datadir+"290.vtk", wire=1)
+act = vp.load(datadir+"290.vtk").wireframe()
 vp.show()  # picks what is automatically stored in vp.actors
 # vp.show(act)          # same: store act in vp.actors and draws act only
 # wire=1 is equivalent to VTK command: act.GetProperty().SetRepresentationToWireframe()
@@ -129,7 +129,7 @@ vp.show(datadir+"pulley.vtu", at=8, c=8, interactive=1)
 vp = Plotter(shape=(3, 3), verbose=0, axes=0)
 mat = ["aqua", "gold2", "metal1", "ivy", "paper", "blue", "white2", "wood3", "wood7"]
 for i, mname in enumerate(mat):  # mname can be any jpeg file
-    sp = vp.load(datadir+"beethoven.ply", texture=mname).legend(mname)
+    sp = vp.load(datadir+"beethoven.ply").texture(mname).legend(mname)
     vp.show(sp, at=i)
 vp.show(interactive=1)
 
@@ -139,7 +139,8 @@ vp.show(interactive=1)
 # point at x=500 and has normal (0, 0.3, -1).
 # Wildcards can be used to load multiple files or entire directories:
 vp = Plotter(title="Cut a surface with a plane", verbose=0)
-vp.load(datadir+"2*0.vtk", c="orange", bc="aqua")
+vp.load(datadir+"2*0.vtk")
 for a in vp.actors:
+    a.c("orange").bc("aqua")
     a.cutWithPlane(origin=(500, 0, 0), normal=(0, 0.3, -1))
 vp.show(axes=1)
