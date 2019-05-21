@@ -893,32 +893,33 @@ def screenshot(filename="screenshot.png"):
 class Video:
     """
     Class to generate a video from the specified rendering window.
-    Only tested on linux systems with ``ffmpeg`` installed.
+    Program ``ffmpeg`` is used to create video from each generated frame.
 
     :param str name: name of the output file.
     :param int fps: set the number of frames per second.
     :param float duration: set the total `duration` of the video and recalculates `fps` accordingly.
+    :param str ffmpeg: set path to ffmpeg program. Default value considers ffmpeg is in the path.
 
     .. hint:: |makeVideo| |makeVideo.py|_
     """
 
-    def __init__(self, name="movie.avi", fps=12, duration=None):
+    def __init__(self, name="movie.avi", **kwargs):
 
         import glob
+        from tempfile import TemporaryDirectory
 
         self.name = name
-        self.duration = duration
-        self.fps = float(fps)
+        self.duration = kwargs.pop('duration', None)
+        self.fps = float(kwargs.pop('fps', 12))
+        self.ffmpeg = kwargs.pop('ffmpeg', 'ffmpeg')
         self.frames = []
-        if not os.path.exists("/tmp/vpvid"):
-            os.mkdir("/tmp/vpvid")
-        for fl in glob.glob("/tmp/vpvid/*.png"):
-            os.remove(fl)
+        self.tmp_dir = TemporaryDirectory()
+        self.get_filename = lambda x: os.path.join(self.tmp_dir.name, x)
         colors.printc("~video Video", name, "is open...", c="m")
 
     def addFrame(self):
         """Add frame to current video."""
-        fr = "/tmp/vpvid/" + str(len(self.frames)) + ".png"
+        fr = self.get_filename(str(len(self.frames)) + ".png")
         screenshot(fr)
         self.frames.append(fr)
 
@@ -926,8 +927,8 @@ class Video:
         """Insert a `pause`, in seconds."""
         fr = self.frames[-1]
         n = int(self.fps * pause)
-        for i in range(n):
-            fr2 = "/tmp/vpvid/" + str(len(self.frames)) + ".png"
+        for _ in range(n):
+            fr2 = self.get_filename(str(len(self.frames)) + ".png")
             self.frames.append(fr2)
             os.system("cp -f %s %s" % (fr, fr2))
 
@@ -939,11 +940,12 @@ class Video:
         else:
             _fps = int(_fps)
         self.name = self.name.split('.')[0]+'.mp4'
-        out = os.system("ffmpeg -loglevel panic -y -r " + str(_fps)
-                        + " -i /tmp/vpvid/%01d.png "+self.name)
+        out = os.system(self.ffmpeg + " -loglevel panic -y -r " + str(_fps)
+                        + " -i " + self.tmp_dir.name + os.sep + "%01d.png " + self.name)
         if out:
             colors.printc("ffmpeg returning error", c=1)
         colors.printc("~save Video saved as", self.name, c="green")
+        self.tmp_dir.cleanup()
         return
 
 # ############################################################### Mouse Events
