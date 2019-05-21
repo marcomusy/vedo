@@ -461,8 +461,8 @@ def delaunay3D(dataset, alpha=0, tol=None, boundary=True):
         deln.SetBoundingTriangulation(boundary)
         deln.Update()
         return deln.GetOutput()
-    
-    
+
+
 def normalLines(actor, ratio=1, c=(0.6, 0.6, 0.6), alpha=0.8):
     """
     Build an ``vtkActor`` made of the normals at vertices shown as lines.
@@ -1135,7 +1135,7 @@ def imageOperation(volume1, operation, volume2=None):
     """Deprecated: use volumeOperation()."""
     print("\n\n imageOperation() is no more valid: use volumeOperation() instead.")
     exit()
-    
+
 def volumeOperation(volume1, operation, volume2=None):
     """
     Perform operations with ``Volume`` objects.
@@ -1158,7 +1158,7 @@ def volumeOperation(volume1, operation, volume2=None):
         image2 = volume2.GetMapper().GetInput()
     else:
         image2 = volume2
-    
+
 
     if op in ["median"]:
         mf = vtk.vtkImageMedian3D()
@@ -1426,7 +1426,7 @@ def thinPlateSpline(actor, sourcePts, targetPts, userFunctions=(None, None)):
         and its derivative with respect to r.
 
     .. hint:: Examples: |thinplate.py|_ |thinplate_grid.py|_ |thinplate_morphing.py|_  |interpolateField.py|_
-         
+
         |thinplate| |thinplate_grid| |thinplate_morphing| |interpolateField|
     """
     ns = len(sourcePts)
@@ -1540,11 +1540,11 @@ def meshQuality(actor, measure=6):
 
 def connectedPoints(actor, radius, mode=0, regions=(), vrange=(0,1), seeds=(), angle=0):
     """
-    Extracts and/or segments points from a point cloud based on geometric distance measures 
-    (e.g., proximity, normal alignments, etc.) and optional measures such as scalar range. 
+    Extracts and/or segments points from a point cloud based on geometric distance measures
+    (e.g., proximity, normal alignments, etc.) and optional measures such as scalar range.
     The default operation is to segment the points into "connected" regions where the connection
-    is determined by an appropriate distance measure. Each region is given a region id. 
-    
+    is determined by an appropriate distance measure. Each region is given a region id.
+
     Optionally, the filter can output the largest connected region of points; a particular region
     (via id specification); those regions that are seeded using a list of input point ids;
     or the region of points closest to a specified position.
@@ -1563,21 +1563,21 @@ def connectedPoints(actor, radius, mode=0, regions=(), vrange=(0,1), seeds=(), a
     On output, all points are labeled with a region number.
     However note that the number of input and output points may not be the same:
     if not extracting all regions then the output size may be less than the input size.
-    
+
     :param float radius: radius variable specifying a local sphere used to define local point neighborhood
-    :param int mode: 
-    
+    :param int mode:
+
         - 0,  Extract all regions
         - 1,  Extract point seeded regions
         - 2,  Extract largest region
         - 3,  Test specified regions
         - 4,  Extract all regions with scalar connectivity
         - 5,  Extract point seeded regions
-    
+
     :param list regions: a list of non-negative regions id to extract
     :param list vrange: scalar range to use to extract points based on scalar connectivity
     :param list seeds: a list of non-negative point seed ids
-    :param list angle: points are connected if the angle between their normals is 
+    :param list angle: points are connected if the angle between their normals is
         within this angle threshold (expressed in degrees).
     """
     # https://vtk.org/doc/nightly/html/classvtkConnectedPointsFilter.html
@@ -1586,37 +1586,37 @@ def connectedPoints(actor, radius, mode=0, regions=(), vrange=(0,1), seeds=(), a
     cpf.SetRadius(radius)
     if   mode == 0: # Extract all regions
         pass
-        
+
     elif mode == 1: # Extract point seeded regions
         cpf.SetExtractionModeToPointSeededRegions()
         for s in seeds:
             cpf.AddSeed(s)
-        
+
     elif mode == 2: # Test largest region
         cpf.SetExtractionModeToLargestRegion()
-     
+
     elif mode == 3: # Test specified regions
         cpf.SetExtractionModeToSpecifiedRegions()
         for r in regions:
             cpf.AddSpecifiedRegion(r)
-    
+
     elif mode == 4: # Extract all regions with scalar connectivity
         cpf.SetExtractionModeToLargestRegion()
         cpf.ScalarConnectivityOn()
         cpf.SetScalarRange(vrange[0], vrange[1])
-    
+
     elif mode == 5: # Extract point seeded regions
         cpf.SetExtractionModeToLargestRegion()
         cpf.ScalarConnectivityOn()
         cpf.SetScalarRange(vrange[0], vrange[1])
         cpf.AlignedNormalsOn()
         cpf.SetNormalAngle(angle)
-    
-    cpf.Update()   
+
+    cpf.Update()
 
     return Actor(cpf.GetOutput())
 
-    
+
 def splitByConnectivity(actor, maxdepth=100):
     """
     Split a mesh by connectivity and order the pieces by increasing area.
@@ -1818,7 +1818,7 @@ def actor2Volume(actor, spacing=(1, 1, 1)):
 def signedDistance(actor, maxradius=0.5, bounds=(0, 1, 0, 1, 0, 1), dims=(10, 10, 10)):
     """
     Compute signed distances over a volume from an input point cloud or mesh.
-    The output is a ``Volume`` object whose voxels contains the signed distance from 
+    The output is a ``Volume`` object whose voxels contains the signed distance from
     the mesh.
 
     :param float maxradius: how far out to propagate distance calculation
@@ -1890,7 +1890,7 @@ def voronoi3D(nuclei, bbfactor=1, tol=None):
         print('from vtkplotter import settings"')
         print('settings.voro_path="path_to_voro++_executable"')
         exit()
-    
+
     # build polydata
     sourcePoints = vtk.vtkPoints()
     sourcePolygons = vtk.vtkCellArray()
@@ -1906,7 +1906,7 @@ def voronoi3D(nuclei, bbfactor=1, tol=None):
             aid = sourcePoints.InsertNextPoint(p[0], p[1], p[2])
             if tol:
                 bp = np.array([p[0]-b[0], p[0]-b[1],
-                               p[1]-b[2], p[1]-b[3], 
+                               p[1]-b[2], p[1]-b[3],
                                p[2]-b[4], p[2]-b[5]])
                 bp = np.abs(bp) < tol
                 if np.any(bp):
@@ -1915,7 +1915,7 @@ def voronoi3D(nuclei, bbfactor=1, tol=None):
                     ids.append(aid)
             else:
                 ids.append(aid)
-            
+
         # fill polygon elements
         if None in ids:
             continue
@@ -1945,14 +1945,14 @@ def voronoi3D(nuclei, bbfactor=1, tol=None):
     return voro
 
 
-def interpolateToVolume(actor, kernel='shepard', radius=None, 
+def interpolateToVolume(actor, kernel='shepard', radius=None,
                        bounds=None, nullValue=None,
                        dims=(20,20,20)):
     """
     Generate a ``Volume`` by interpolating a scalar
     or vector field which is only known on a scattered set of points or mesh.
     Available interpolation kernels are: shepard, gaussian, voronoi, linear.
-    
+
     :param str kernel: interpolation kernel type [shepard]
     :param float radius: radius of the local search
     :param list bounds: bounding box of the output Volume object
@@ -1960,17 +1960,17 @@ def interpolateToVolume(actor, kernel='shepard', radius=None,
     :param float nullValue: value to be assigned to invalid points
     """
     output = actor.polydata()
-    
+
     # Create a probe volume
     probe = vtk.vtkImageData()
     probe.SetDimensions(dims)
     if bounds is None:
-        bounds = output.GetBounds()    
+        bounds = output.GetBounds()
     probe.SetOrigin(bounds[0],bounds[2],bounds[4])
     probe.SetSpacing((bounds[1]-bounds[0])/(dims[0]-1),
                      (bounds[3]-bounds[2])/(dims[1]-1),
                      (bounds[5]-bounds[4])/(dims[2]-1))
-    
+
     if radius is None:
         radius = min(bounds[1]-bounds[0], bounds[3]-bounds[2], bounds[5]-bounds[4])/3
 
@@ -1987,7 +1987,7 @@ def interpolateToVolume(actor, kernel='shepard', radius=None,
         kern.SetRadius(radius)
     elif kernel == 'voronoi':
         kern = vtk.vtkVoronoiKernel()
-    elif kernel == 'linear':        
+    elif kernel == 'linear':
         kern = vtk.vtkLinearKernel()
         kern.SetRadius(radius)
     else:
@@ -2008,14 +2008,14 @@ def interpolateToVolume(actor, kernel='shepard', radius=None,
     return Volume(interpolator.GetOutput())
 
 
-def interpolateToStructuredGrid(actor, kernel=None, radius=None, 
+def interpolateToStructuredGrid(actor, kernel=None, radius=None,
                                bounds=None, nullValue=None,
                                dims=None):
     """
     Generate a volumetric dataset (vtkStructuredData) by interpolating a scalar
     or vector field which is only known on a scattered set of points or mesh.
     Available interpolation kernels are: shepard, gaussian, voronoi, linear.
-    
+
     :param str kernel: interpolation kernel type [shepard]
     :param float radius: radius of the local search
     :param list bounds: bounding box of the output vtkStructuredGrid object
@@ -2029,7 +2029,7 @@ def interpolateToStructuredGrid(actor, kernel=None, radius=None,
 
     if bounds is None:
         bounds = output.GetBounds()
-    
+
     # Create a probe volume
     probe = vtk.vtkStructuredGrid()
     probe.SetDimensions(dims)
@@ -2063,7 +2063,7 @@ def interpolateToStructuredGrid(actor, kernel=None, radius=None,
         kern.SetRadius(radius)
     elif kernel == 'voronoi':
         kern = vtk.vtkVoronoiKernel()
-    elif kernel == 'linear':        
+    elif kernel == 'linear':
         kern = vtk.vtkLinearKernel()
         kern.SetRadius(radius)
     else:
@@ -2082,9 +2082,9 @@ def interpolateToStructuredGrid(actor, kernel=None, radius=None,
         interpolator.SetNullPointsStrategyToClosestPoint()
     interpolator.Update()
     return interpolator.GetOutput()
-      
 
-def streamLines(domain, probe, 
+
+def streamLines(domain, probe,
                 integrator='rk4',
                 direction='forward',
                 initialStepSize=None,
@@ -2100,12 +2100,12 @@ def streamLines(domain, probe,
     ):
     """
     Integrate a vector field to generate streamlines.
-    
+
     The integration is performed using a specified integrator (Runge-Kutta).
     The length of a streamline is governed by specifying a maximum value either
     in physical arc length or in (local) cell length.
     Otherwise, the integration terminates upon exiting the field domain.
-    
+
     :param domain: the vtk object that contains the vector field
     :param Actor probe: the Actor that probes the domain. Its coordinates will
         be the seeds for the streamlines
@@ -2116,7 +2116,7 @@ def streamLines(domain, probe,
     :param float stepLength: length of step integration.
     :param dict extrapolateToBoundingBox:
         Vectors defined on a surface are extrapolated to the entire volume defined by its bounding box
-        
+
         - kernel, (str) - interpolation kernel type [shepard]
         - radius (float)- radius of the local search
         - bounds, (list) - bounding box of the output Volume
@@ -2129,21 +2129,21 @@ def streamLines(domain, probe,
     :param int ribbons: render lines as ribbons by joining them.
         An integer value represent the ratio of joining (e.g.: ribbons=2 groups lines 2 by 2)
     :param dict tubes: dictionary containing the parameters for the tube representation:
-            
+
             - ratio, (int) - draws tube as longitudinal stripes
             - res, (int) - tube resolution (nr. of sides, 24 by default)
             - maxRadiusFactor (float) - max tube radius as a multiple of the min radius
             - varyRadius, (int) - radius varies based on the scalar or vector magnitude:
-                
+
                 - 0 - do not vary radius
                 - 1 - vary radius by scalar
                 - 2 - vary radius by vector
                 - 3 - vary radius by absolute value of scalar
-  
+
     :param list scalarRange: specify the scalar range for coloring
-    
+
     .. hint:: Examples: |streamlines1.py|_ |streamribbons.py|_ |office.py|_ |streamlines2.py|_
-    
+
         |streamlines2| |office| |streamribbons| |streamlines1|
     """
 
@@ -2184,7 +2184,7 @@ def streamLines(domain, probe,
     st.SetSurfaceStreamlines(surfaceConstrain)
     if stepLength:
         st.SetStepLength(stepLength)
-    
+
     if 'f' in direction:
         st.SetIntegrationDirectionToForward()
     elif 'back' in direction:
@@ -2200,10 +2200,10 @@ def streamLines(domain, probe,
         st.SetIntegratorTypeToRungeKutta45()
     else:
         vc.printc("Error in streamlines, unknown integrator", integrator, c=1)
-        
+
     st.Update()
     output = st.GetOutput()
-    
+
     if ribbons:
         scalarSurface = vtk.vtkRuledSurfaceFilter()
         scalarSurface.SetInputConnection(st.GetOutputPort())
@@ -2211,7 +2211,7 @@ def streamLines(domain, probe,
         scalarSurface.SetRuledModeToPointWalk()
         scalarSurface.Update()
         output = scalarSurface.GetOutput()
-        
+
     if len(tubes):
         streamTube = vtk.vtkTubeFilter()
         streamTube.SetNumberOfSides(24)
@@ -2221,13 +2221,13 @@ def streamLines(domain, probe,
             streamTube.SetNumberOfSides(tubes['res'])
 
         # max tube radius as a multiple of the min radius
-        streamTube.SetRadiusFactor(50) 
+        streamTube.SetRadiusFactor(50)
         if 'maxRadiusFactor' in tubes:
             streamTube.SetRadius(tubes['maxRadiusFactor'])
-            
+
         if 'ratio' in tubes:
             streamTube.SetOnRatio(int(tubes['ratio']))
-            
+
         if 'varyRadius' in tubes:
             streamTube.SetVaryRadius(int(tubes['varyRadius']))
 
@@ -2246,7 +2246,7 @@ def streamLines(domain, probe,
         sta.GetProperty().BackfaceCullingOn()
         sta.phong()
         return sta
-    
+
     sta = Actor(output, c=None)
     sta.mapper.SetScalarRange(grid.GetPointData().GetScalars().GetRange())
     if scalarRange is not None:
@@ -2255,17 +2255,17 @@ def streamLines(domain, probe,
 
 
 def densifyCloud(actor, targetDistance, closestN=6, radius=0, maxIter=None, maxN=None):
-    """Adds new points to an input point cloud. 
-    The new points are created in such a way that all points in any local neighborhood are 
-    within a target distance of one another. 
-    
-    The algorithm works as follows. For each input point, the distance to all points 
+    """Adds new points to an input point cloud.
+    The new points are created in such a way that all points in any local neighborhood are
+    within a target distance of one another.
+
+    The algorithm works as follows. For each input point, the distance to all points
     in its neighborhood is computed. If any of its neighbors is further than the target distance,
     the edge connecting the point and its neighbor is bisected and a new point is inserted at the
-    bisection point. A single pass is completed once all the input points are visited. 
+    bisection point. A single pass is completed once all the input points are visited.
     Then the process repeats to the limit of the maximum number of iterations.
 
-    .. note:: Points will be created in an iterative fashion until all points in their 
+    .. note:: Points will be created in an iterative fashion until all points in their
         local neighborhood are the target distance apart or less.
         Note that the process may terminate early due to the limit on the
         maximum number of iterations. By default the target distance is set to 0.5.
@@ -2303,7 +2303,7 @@ def densifyCloud(actor, targetDistance, closestN=6, radius=0, maxIter=None, maxN
         dens.SetNumberOfClosestPoints(closestN)
     else:
         vc.printc("Error in densifyCloud: set either radius or closestN", c=1)
-        exit()    
+        exit()
     dens.Update()
     pts = vtk_to_numpy(dens.GetOutput().GetPoints().GetData())
     return vs.Points(pts, c=None).pointSize(3)
@@ -2314,33 +2314,33 @@ def frequencyPassFilter(volume, lowcutoff=None, highcutoff=None, order=1):
     Low-pass and high-pass filtering become trivial in the frequency domain.
     A portion of the pixels/voxels are simply masked or attenuated.
     This function applies a high pass Butterworth filter that attenuates the frequency domain
-    image with the function 
-    
+    image with the function
+
     .. image:: https://wikimedia.org/api/rest_v1/media/math/render/svg/9c4d02a66b6ff279aae0c4bf07c25e5727d192e4
-    
-    The gradual attenuation of the filter is important. 
+
+    The gradual attenuation of the filter is important.
     A simple high-pass filter would simply mask a set of pixels in the frequency domain,
-    but the abrupt transition would cause a ringing effect in the spatial domain.    
-    
+    but the abrupt transition would cause a ringing effect in the spatial domain.
+
     :param list lowcutoff:  the cutoff frequencies for x, y and z
     :param list highcutoff: the cutoff frequencies for x, y and z
     :param int order: order determines sharpness of the cutoff curve
 
-    Check out also this example: 
-    
+    Check out also this example:
+
     |idealpass|
-    """ 
+    """
     #https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
     if isinstance(volume, Volume):
         img = volume.imagedata()
     elif isinstance(volume, vtk.vtkImageData):
         img = volume
-        
+
     fft = vtk.vtkImageFFT()
     fft.SetInputData(img)
     fft.Update()
     out = fft.GetOutput()
-    
+
     if highcutoff:
         butterworthLowPass = vtk.vtkImageButterworthLowPass()
         butterworthLowPass.SetInputData(out)
