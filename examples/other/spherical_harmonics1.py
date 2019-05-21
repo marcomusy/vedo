@@ -50,7 +50,7 @@ agrid = np.array(agrid)
 ############################################################
 # Please install pyshtools to continue this example
 # Follow instructions at https://shtools.oca.eu/shtools
-import pyshtools   
+import pyshtools
 
 grid = pyshtools.SHGrid.from_array(agrid)
 clm = grid.expand()
