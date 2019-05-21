@@ -1,5 +1,5 @@
 """
-Draw the isolines of the 
+Draw the isolines of the
 active scalars on a surface
 """
 from vtkplotter import *
