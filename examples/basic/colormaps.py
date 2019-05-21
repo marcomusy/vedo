@@ -1,5 +1,5 @@
 """
-Example usage of pointColors to assign a color to each mesh vertex 
+Example usage of pointColors to assign a color to each mesh vertex
 by looking it up in matplotlib database of colormaps
 """
 print(__doc__)
