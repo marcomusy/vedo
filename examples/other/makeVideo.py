@@ -16,7 +16,7 @@ video = Video(name="spider.mp4", duration=3)
 
 for i in range(80):
     vp.show()  # render the scene first
-    vp.camera.Elevation(1) 
+    vp.camera.Elevation(1)
     vp.camera.Azimuth(2)  # rotate by 5 deg at each iteration
     video.addFrame()
 
