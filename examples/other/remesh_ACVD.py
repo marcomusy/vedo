@@ -10,7 +10,7 @@ amesh = Sphere(res=50)
 
 # Create clustering object
 poly = amesh.clone().triangle().clean().polydata()
-cobj = Clustering.Cluster(poly) 
+cobj = Clustering.Cluster(poly)
 
 # Generate clusters
 cobj.GenClusters(1000, max_iter=10000, subratio=10)
