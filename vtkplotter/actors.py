@@ -50,11 +50,11 @@ def collection():
 def isolines(actor, n=10, vmin=None, vmax=None):
     """
     Return the actor representing the isolines of the active scalars.
-    
+
     :param int n: number of isolines in the range
     :param float vmin: minimum of the range
     :param float vmax: maximum of the range
-    
+
     .. hint:: |isolines| |isolines.py|_
     """
     bcf = vtk.vtkBandedPolyDataContourFilter()
@@ -73,7 +73,7 @@ def isolines(actor, n=10, vmin=None, vmax=None):
     zbandsact.GetProperty().SetLineWidth(1.5)
     return zbandsact
 
-    
+
 def isosurface(volume, threshold=True, connectivity=False, smoothing=0):
     """Return a ``vtkActor`` isosurface extracted from a ``vtkImageData`` object.
 
@@ -88,7 +88,7 @@ def isosurface(volume, threshold=True, connectivity=False, smoothing=0):
         image = volume # assume is passing a vtkImageData
     else:
         image = volume.GetMapper().GetInput()
-    
+
     if smoothing:
         smImg = vtk.vtkImageGaussianSmooth()
         smImg.SetDimensionality(3)
@@ -138,12 +138,12 @@ def legosurface(image, vmin=None, vmax=None, cmap='afmhot_r'):
     Represent a ``vtkVolume`` or ``vtkImageData`` as lego blocks (voxels).
     By default colors correspond to the volume's scalar.
     Returns an ``Actor``.
-    
+
     :param float vmin: the lower threshold, voxels below this value are not shown.
     :param float vmax: the upper threshold, voxels above this value are not shown.
     :param str cmap: color mapping of the scalar associated to the voxels.
-    
-    .. hint:: |legosurface| |legosurface.py|_  
+
+    .. hint:: |legosurface| |legosurface.py|_
     """
     if isinstance(image, vtk.vtkVolume):
         image = image.GetMapper().GetInput()
@@ -151,23 +151,23 @@ def legosurface(image, vmin=None, vmax=None, cmap='afmhot_r'):
     dataset.SetDataSet(image)
     window = vtk.vtkImplicitWindowFunction()
     window.SetImplicitFunction(dataset)
-    
-    srng = list(image.GetScalarRange())    
+
+    srng = list(image.GetScalarRange())
     if vmin is not None: srng[0] = vmin
     if vmax is not None: srng[1] = vmax
     window.SetWindowRange(srng)
-    
+
     extract = vtk.vtkExtractGeometry()
     extract.SetInputData(image)
     extract.SetImplicitFunction(window)
     extract.ExtractInsideOff()
     extract.ExtractBoundaryCellsOff()
     extract.Update()
-    
+
     gf = vtk.vtkGeometryFilter()
     gf.SetInputData(extract.GetOutput())
     gf.Update()
-    
+
     a = Actor(gf.GetOutput()).lw(0.1)
     a.GetProperty().SetInterpolationToFlat()
 
@@ -185,7 +185,7 @@ def mergeActors(*actors):
     Similar to Assembly, but in this case the input objects become a single mesh.
 
     .. hint:: |thinplate_grid.py|_ |value-iteration.py|_
-    
+
         |thinplate_grid| |value-iteration|
     """
     acts = []
@@ -208,7 +208,7 @@ def mergeActors(*actors):
 ################################################# classes
 class Prop(object):
     """Adds functionality to ``Actor``, ``Assembly`` and ``Volume`` objects.
-    
+
     .. warning:: Do not use this class to instance objects, use the above ones.
     """
 
@@ -249,7 +249,7 @@ class Prop(object):
         .. note:: E.g.:
 
             .. code-block:: python
-        
+
                 from vtkplotter import *
                 s = Sphere()
                 s.show(at=1, N=2)
@@ -368,9 +368,9 @@ class Prop(object):
         if self.trail:
             self.updateTrail()
         if self.shadow:
-            self.addShadow(self.shadowX, self.shadowY, self.shadowZ, 
+            self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
                            self.shadow.GetProperty().GetColor(),
-                           self.shadow.GetProperty().GetOpacity())        
+                           self.shadow.GetProperty().GetOpacity())
         return self
 
     def rotateX(self, angle, axis_point=(0, 0, 0), rad=False):
@@ -381,9 +381,9 @@ class Prop(object):
         if self.trail:
             self.updateTrail()
         if self.shadow:
-            self.addShadow(self.shadowX, self.shadowY, self.shadowZ, 
+            self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
                            self.shadow.GetProperty().GetColor(),
-                           self.shadow.GetProperty().GetOpacity())        
+                           self.shadow.GetProperty().GetOpacity())
         return self
 
     def rotateY(self, angle, axis_point=(0, 0, 0), rad=False):
@@ -394,9 +394,9 @@ class Prop(object):
         if self.trail:
             self.updateTrail()
         if self.shadow:
-            self.addShadow(self.shadowX, self.shadowY, self.shadowZ, 
+            self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
                            self.shadow.GetProperty().GetColor(),
-                           self.shadow.GetProperty().GetOpacity())        
+                           self.shadow.GetProperty().GetOpacity())
         return self
 
     def rotateZ(self, angle, axis_point=(0, 0, 0), rad=False):
@@ -407,9 +407,9 @@ class Prop(object):
         if self.trail:
             self.updateTrail()
         if self.shadow:
-            self.addShadow(self.shadowX, self.shadowY, self.shadowZ, 
+            self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
                            self.shadow.GetProperty().GetColor(),
-                           self.shadow.GetProperty().GetOpacity())        
+                           self.shadow.GetProperty().GetOpacity())
         return self
 
     def orientation(self, newaxis=None, rotation=0, rad=False):
@@ -441,9 +441,9 @@ class Prop(object):
         if self.trail:
             self.updateTrail()
         if self.shadow:
-            self.addShadow(self.shadowX, self.shadowY, self.shadowZ, 
+            self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
                            self.shadow.GetProperty().GetColor(),
-                           self.shadow.GetProperty().GetOpacity())        
+                           self.shadow.GetProperty().GetOpacity())
         return self
 
     def scale(self, s=None):
@@ -468,17 +468,17 @@ class Prop(object):
 
     def addShadow(self, x=None, y=None, z=None, c=(0.5,0.5,0.5), alpha=1):
         """
-        Generate a shadow out of an ``Actor`` on one of the three Cartesian planes. 
+        Generate a shadow out of an ``Actor`` on one of the three Cartesian planes.
         The output is a new ``Actor`` representing the shadow.
         This new actor is accessible through `actor.shadow`.
         By default the actor is placed on the bottom/back wall of the bounding box.
-        
+
         :param float x,y,z: identify the plane to cast the shadow to ['x', 'y' or 'z'].
             The shadow will lay on the orthogonal plane to the specified axis at the
             specified value of either x, y or z.
-        
+
         .. hint:: |shadow|  |shadow.py|_
-        
+
             |airplanes| |airplanes.py|_
         """
         if x is not None:
@@ -520,7 +520,7 @@ class Prop(object):
         :param lw: line width of the trail
 
         .. hint:: See examples: |trail.py|_  |airplanes.py|_
-        
+
             |airplanes|
         """
         if maxlength is None:
@@ -601,9 +601,9 @@ class Prop(object):
 
     def box(self, scale=1):
         """Return the bounding box as a new ``Actor``.
-        
+
         :param float scale: box size can be scaled by a factor
-        
+
         .. hint:: |latex.py|_
         """
         b = self.GetBounds()
@@ -624,8 +624,8 @@ class Prop(object):
         """
         Ascii histogram printing.
         Input can also be ``Volume`` or ``Actor``.
-        Returns the raw data before binning (useful when passing vtk objects). 
-    
+        Returns the raw data before binning (useful when passing vtk objects).
+
         :param int bins: number of histogram bins
         :param int height: height of the histogram in character units
         :param bool logscale: use logscale for frequencies
@@ -635,17 +635,17 @@ class Prop(object):
         :param str,int c: ascii color
         :param bool char: use boldface
         :param str title: histogram title
-        
+
         :Example:
             .. code-block:: python
-            
+
                 from vtkplotter import printHistogram
                 import numpy as np
                 d = np.random.normal(size=1000)
                 data = printHistogram(d, c='blue', logscale=True, title='my scalars')
                 data = printHistogram(d, c=1, horizontal=1)
                 print(np.mean(data)) # data here is same as d
-    
+
             |printhisto|
         """
         utils.printHistogram(self, bins, height, logscale, minbin,
@@ -671,14 +671,14 @@ class Actor(vtk.vtkActor, Prop):
     """Build an instance of object ``Actor`` derived from ``vtkActor``.
 
     Input can be ``vtkPolyData``, ``vtkActor``, or a python list of [vertices, faces].
-    
+
     If input is any of ``vtkUnstructuredGrid``, ``vtkStructuredGrid`` or ``vtkRectilinearGrid``
     the goemetry is extracted. In this case the original VTK data structures can be accessed as:
     `actor.UnstructuredGrid`, `actor.RectilinearGrid` and `actor.StructuredGrid`,
 
     Finally input can be a list of vertices and their connectivity (faces of the polygonal mesh).
     For point clouds - e.i. no faces - just substitute the `faces` list with ``None``.
-    
+
     E.g.: `Actor( [ [[x1,y1,z1],[x2,y2,z2], ...],  [[0,1,2], [1,2,3], ...] ] )`
 
     :param c: color in RGB format, hex, symbol or name
@@ -687,9 +687,9 @@ class Actor(vtk.vtkActor, Prop):
     :param bc: backface color of internal surface
     :param str texture: jpg file name or surface texture name
     :param bool computeNormals: compute point and cell normals at creation
-   
+
     .. hint:: A mesh can be built from vertices and their connectivity. See e.g.:
-        
+
         |buildmesh| |buildmesh.py|_
     """
 
@@ -706,7 +706,7 @@ class Actor(vtk.vtkActor, Prop):
     ):
         vtk.vtkActor.__init__(self)
         Prop.__init__(self)
-        
+
         self.UnstructuredGrid = None
         self.StructuredGrid = None
         self.RectilinearGrid = None
@@ -724,8 +724,8 @@ class Actor(vtk.vtkActor, Prop):
                 for i in range(poly.GetNumberOfPoints()):
                     carr.InsertNextCell(1)
                     carr.InsertCellPoint(i)
-                poly.SetVerts(carr)           
-            self.poly = poly  # cache vtkPolyData and mapper for speed            
+                poly.SetVerts(carr)
+            self.poly = poly  # cache vtkPolyData and mapper for speed
             self.mapper = vtk.vtkPolyDataMapper()
         elif "vtkUnstructuredGrid" in inputtype:
             gf = vtk.vtkGeometryFilter()
@@ -752,7 +752,7 @@ class Actor(vtk.vtkActor, Prop):
             from vtkplotter.vtkio import buildPolyData
             self.poly = buildPolyData(poly[0], poly[1])
             self.mapper = vtk.vtkPolyDataMapper()
-        
+
         if self.mapper:
             self.SetMapper(self.mapper)
 
@@ -781,7 +781,7 @@ class Actor(vtk.vtkActor, Prop):
 
         prp = self.GetProperty()
         prp.SetInterpolationToFlat()
-    
+
         if settings.renderPointsAsSpheres:
             if hasattr(prp, 'RenderPointsAsSpheresOn'):
                 prp.RenderPointsAsSpheresOn()
@@ -792,7 +792,7 @@ class Actor(vtk.vtkActor, Prop):
         else:
             self.mapper.ScalarVisibilityOff()
             c = colors.getColor(c)
-            prp.SetColor(c)            
+            prp.SetColor(c)
             prp.SetAmbient(0.1)
             prp.SetDiffuse(1)
             prp.SetSpecular(.05)
@@ -889,7 +889,7 @@ class Actor(vtk.vtkActor, Prop):
         tmapper.AutomaticPlaneGenerationOn()
         tmapper.SetInputData(self.polydata())
         tmapper.Update()
-        
+
         tc = tmapper.GetOutput().GetPointData().GetTCoords()
         self.polydata().GetPointData().SetTCoords(tc)
         self.polydata().GetPointData().AddArray(tc)
@@ -1065,7 +1065,7 @@ class Actor(vtk.vtkActor, Prop):
 
     def flat(self):
         """Set surface interpolation to Flat.
-        
+
         .. image:: https://upload.wikimedia.org/wikipedia/commons/8/84/Phong-shading-sample.jpg
         """
         self.GetProperty().SetInterpolationToFlat()
@@ -1080,13 +1080,13 @@ class Actor(vtk.vtkActor, Prop):
         """Set surface interpolation to Gouraud."""
         self.GetProperty().SetInterpolationToGouraud()
         return self
-    
+
     def lighting(self, style='', ambient=None, diffuse=None,
                  specular=None, specularPower=None, specularColor=None,
                  enabled=True):
         """
         Set the ambient, diffuse, specular and specularPower lighting constants.
-        
+
         :param str style: preset style, can be `[metallic, plastic, shiny, reflective]`
         :param float ambient: ambient fraction of emission [0-1]
         :param float diffuse: emission of diffused light in fraction [0-1]
@@ -1094,9 +1094,9 @@ class Actor(vtk.vtkActor, Prop):
         :param float specularPower: precision of reflection [1-100]
         :param color specularColor: color that is being reflected by the surface
         :param bool enabled: enable/disable all surface light emission
-            
+
         .. image:: https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png
-        
+
         .. hint:: |specular| |specular.py|_
         """
         pr = self.GetProperty()
@@ -1117,7 +1117,7 @@ class Actor(vtk.vtkActor, Prop):
             pr.SetSpecular(pars[2])
             pr.SetSpecularPower(pars[3])
             pr.SetSpecularColor(pars[4])
-        
+
         if ambient is not None: pr.SetAmbient(ambient)
         if diffuse is not None: pr.SetDiffuse(diffuse)
         if specular is not None: pr.SetSpecular(specular)
@@ -1258,12 +1258,12 @@ class Actor(vtk.vtkActor, Prop):
 
     def quantize(self, binSize):
         """
-        The user should input binSize and all {x,y,z} coordinates 
+        The user should input binSize and all {x,y,z} coordinates
         will be quantized to that absolute grain size.
-        
+
         Example:
             .. code-block:: python
-            
+
                 from vtkplotter import Paraboloid
                 Paraboloid().lw(0.1).quantize(0.1).show()
         """
@@ -1471,9 +1471,9 @@ class Actor(vtk.vtkActor, Prop):
             cloned.addTrail(self.trailOffset, self.trailSegmentSize*n, n,
                             None, None, self.trail.GetProperty().GetLineWidth())
         if self.shadow:
-            cloned.addShadow(self.shadowX, self.shadowY, self.shadowZ, 
+            cloned.addShadow(self.shadowX, self.shadowY, self.shadowZ,
                              self.shadow.GetProperty().GetColor(),
-                             self.shadow.GetProperty().GetOpacity())        
+                             self.shadow.GetProperty().GetOpacity())
         return cloned
 
 
@@ -1630,9 +1630,9 @@ class Actor(vtk.vtkActor, Prop):
         if self.trail:
             self.updateTrail()
         if self.shadow:
-            self.addShadow(self.shadowX, self.shadowY, self.shadowZ, 
+            self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
                            self.shadow.GetProperty().GetColor(),
-                           self.shadow.GetProperty().GetOpacity())        
+                           self.shadow.GetProperty().GetOpacity())
         return self
 
 
@@ -1645,13 +1645,13 @@ class Actor(vtk.vtkActor, Prop):
         :param float back:   fraction to crop from the back plane (negative y)
         :param float right:  fraction to crop from the right plane (positive x)
         :param float left:   fraction to crop from the left plane (negative x)
-        
+
         Example:
             .. code-block:: python
-            
+
                 from vtkplotter import Sphere
                 Sphere().crop(right=0.3, left=0.1).show()
-            
+
             |cropped|
         """
         x0,x1, y0,y1, z0,z1 = self.GetBounds()
@@ -1665,7 +1665,7 @@ class Actor(vtk.vtkActor, Prop):
         if right:  x1 = x1 - right*dx
         if left:   x0 = x0 + left*dx
         cu.SetBounds(x0,x1, y0,y1, z0,z1)
-        
+
         poly = self.polydata()
         clipper = vtk.vtkClipPolyData()
         clipper.SetInputData(poly)
@@ -1928,7 +1928,7 @@ class Actor(vtk.vtkActor, Prop):
 
         if hasattr(scalars, 'astype'):
             scalars = scalars.astype(np.float)
-        
+
         useAlpha = False
         if n != poly.GetNumberOfPoints():
             colors.printc('~times pointColors Error: nr. of scalars != nr. of points',
@@ -2749,21 +2749,21 @@ class Actor(vtk.vtkActor, Prop):
             exit()
         self.alpha(0.1).polydata(False).GetPoints().Modified()
         return self
-    
+
 
     def silhouette(self, direction=None, borderEdges=True, featureAngle=None):
         """
         Return a new line ``Actor`` which corresponds to the outer `silhouette`
-        of the input as seen along a specified `direction`, this can also be 
+        of the input as seen along a specified `direction`, this can also be
         a ``vtkCamera`` object.
-        
+
         :param list direction: viewpoint direction vector.
             If *None* this is guessed by looking at the minimum
             of the sides of the bounding box.
         :param bool borderEdges: enable or disable generation of border edges
         :param float borderEdges: minimal angle for sharp edges detection.
             If set to `False` the functionality is disabled.
-        
+
         .. hint:: |silhouette| |silhouette.py|_
         """
         sil = vtk.vtkPolyDataSilhouette()
@@ -2839,13 +2839,13 @@ class Assembly(vtk.vtkAssembly, Prop):
         """Return the maximum diagonal size of the ``Actors`` of the ``Assembly``."""
         szs = [a.diagonalSize() for a in self.actors]
         return np.max(szs)
-    
+
     def lighting(self, *args, **lgt):
         """Set the lighting type to all ``Actor`` in the ``Assembly``."""
         for a in self.actors:
             a.lighting(**lgt)
         return self
-        
+
 
 #################################################
 class Image(vtk.vtkImageActor, Prop):
@@ -2874,7 +2874,7 @@ class Image(vtk.vtkImageActor, Prop):
         :param float bottom: fraction to crop from the bottom margin
         :param float left: fraction to crop from the left margin
         :param float right: fraction to crop from the right margin
-        
+
         .. hint:: |legosurface| |legosurface.py|_
         """
         extractVOI = vtk.vtkExtractVOI()
@@ -2920,7 +2920,7 @@ class Volume(vtk.vtkVolume, Prop):
         :type c: list, str
         :param alpha: sets transparencies along the scalar range
         :type c: float, list
-    
+
         if a `list` of values is used for `alpha` this is interpreted
         as a transfer function along the range.
         """
@@ -2984,7 +2984,7 @@ class Volume(vtk.vtkVolume, Prop):
 
     def alpha(self, alpha=(0.0, 0.4, 0.9, 1)):
         """Assign a set of tranparencies to a volume along the range of the scalar value.
-        
+
         E.g.: say alpha=(0.0, 0.3, 0.9, 1) and the scalar range goes from -10 to 150.
         Then all voxels with a value close to -10 will be completely transparent, voxels at 1/4
         of the range will get an alpha equal to 0.3 and voxels with value close to 150
@@ -3026,7 +3026,7 @@ class Volume(vtk.vtkVolume, Prop):
         if replaceWith is None:
             colors.printc("Error in threshold(); you must provide replaceWith", c=1)
             exit()
-            
+
         th.SetInValue(replaceWith)
         th.Update()
 
@@ -3049,7 +3049,7 @@ class Volume(vtk.vtkVolume, Prop):
         :param float right:  fraction to crop from the right plane (positive x)
         :param float left:   fraction to crop from the left plane (negative x)
         :param list VOI: extract Volume Of Interest expressed in voxel numbers
-            
+
             Eg.: vol.crop(VOI=(xmin, xmax, ymin, ymax, zmin, zmax)) # all integers nrs
         """
         extractVOI = vtk.vtkExtractVOI()
@@ -3099,7 +3099,7 @@ class Volume(vtk.vtkVolume, Prop):
         self.GetMapper().SetInputData(self.image)
         self.GetMapper().Modified()
         return self
-        
+
 
     def scaleVoxelsScalar(self, scale=1):
         """Scale the voxel content"""
@@ -3111,7 +3111,7 @@ class Volume(vtk.vtkVolume, Prop):
         self.GetMapper().SetInputData(self.image)
         self.GetMapper().Modified()
         return self
-        
+
 
     def mirror(self, axis="x"):
         """
@@ -3139,7 +3139,7 @@ class Volume(vtk.vtkVolume, Prop):
         self.GetMapper().SetInputData(self.image)
         self.GetMapper().Modified()
         return self
-        
+
 
     def getVoxelScalar(self, vmin=None, vmax=None):
         """
