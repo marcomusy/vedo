@@ -1,5 +1,5 @@
 """
-Example usage of addTrail(). 
+Example usage of addTrail().
 Add a trailing line to a moving object.
 """
 print(__doc__)
