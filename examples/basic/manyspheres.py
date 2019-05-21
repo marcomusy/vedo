@@ -1,5 +1,5 @@
 """
-Example that shows how to draw very large number of 
+Example that shows how to draw very large number of
 spheres (same for Points, lines) with different colors
 or different radius. Resolution (res) can be specified.
 """
