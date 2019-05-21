@@ -13,7 +13,7 @@ pl3d.SetScalarFunctionNumber(100)
 pl3d.SetVectorFunctionNumber(202)
 pl3d.Update()
 # this vtkStructuredData already contains a vector field:
-domain = pl3d.GetOutput().GetBlock(0) 
+domain = pl3d.GetOutput().GetBlock(0)
 
 ######################## vtkplotter
 msg = Text(__doc__, c='w')
