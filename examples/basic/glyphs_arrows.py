@@ -17,7 +17,7 @@ a1.addScalarBar()
 
 # get a list of random rgb colors
 nrs = np.random.randint(0, 10, len(coords1))
-cols = getColor(nrs) 
+cols = getColor(nrs)
 
 a2 = Arrows(coords1, coords2, c=cols, scale=0.5)
 
