@@ -1329,9 +1329,9 @@ def Text(
                     6, middle-right
                     7, middle-left
                     8, top-middle
-                
+
                 If a pair (x,y) is passed as input the 2D text is place at that
-                position in the coordinate system of the 2D screen (with the 
+                position in the coordinate system of the 2D screen (with the
                 origin sitting at the bottom left).
 
     :type pos: list, int
@@ -1341,7 +1341,7 @@ def Text(
         (bottom-left, bottom-right, top-left, top-right, centered).
     :param bg: background color of corner annotations. Only applies of `pos` is ``int``.
     :param str font: additional available fonts are:
-            
+
             - Ageo
             - Aldora
             - CallingCode
@@ -1358,14 +1358,14 @@ def Text(
             - PointedLaidSt
             - SchoolTeacher
             - SpecialElite
-    
+
         Font choice does not apply for 3D text.
         A path to `otf` or `ttf` font-file can also be supplied as input.
-        
+
         All fonts are free for personal use.
         Check out conditions in `vtkplotter/fonts/licenses` for commercial use
         and: https://www.1001freefonts.com
-        
+
     :param followcam: if `True` the text will auto-orient itself to the active camera.
         A ``vtkCamera`` object can also be passed.
     :type followcam: bool, vtkCamera
@@ -1373,7 +1373,7 @@ def Text(
     .. hint:: Examples, |fonts.py|_ |colorcubes.py|_ |markpoint.py|_ |annotations.py|_
 
         |colorcubes| |markpoint|
-        
+
         |fonts|
     """
     if c is None: # automatic black or white
@@ -1410,7 +1410,7 @@ def Text(
         setattr(ca, 'renderedAt', set())
         settings.collectable_actors.append(ca)
         return ca
-    
+
     elif len(pos)==2:
         # passing (x,y) coords
         actor2d = vtk.vtkActor2D()
@@ -1478,7 +1478,7 @@ def Text(
         ttactor.SetMapper(ttmapper)
         ttactor.GetProperty().SetColor(colors.getColor(c))
         ttmapper.Update()
-    
+
         bb = tt.GetOutput().GetBounds()
         dx, dy = (bb[1] - bb[0]) / 2 * s, (bb[3] - bb[2]) / 2 * s
         cm = np.array([(bb[1] + bb[0]) / 2, (bb[3] + bb[2]) / 2, (bb[5] + bb[4]) / 2]) * s
@@ -1495,9 +1495,9 @@ def Text(
             shift += np.array([-dx, -dy, 0])
         else:
             colors.printc("~lightning Text(): Unknown justify type", justify, c=1)
-    
+
         ttactor.GetProperty().SetOpacity(alpha)
-    
+
         nax = np.linalg.norm(normal)
         if nax:
             normal = np.array(normal) / nax
@@ -1621,5 +1621,5 @@ def Latex(
         colors.printc(' latex or dvipng not installed?', c=1)
         colors.printc(' Try: usetex=False' , c=1)
         colors.printc(' Try: sudo apt install dvipng' , c=1)
-       
+
     return vactor
