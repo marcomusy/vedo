@@ -1,7 +1,7 @@
 '''
 Visualize the phase space of a simple pendulum.
 x = starting angle theta
-y = starting angular velocity 
+y = starting angular velocity
 '''
 # From https://www.youtube.com/watch?v=p_di4Zn4wz4
 # Overview of differential equations | Chapter 1
