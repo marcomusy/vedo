@@ -1,5 +1,5 @@
 """
-How to share the same color map 
+How to share the same color map
 across different meshes.
 """
 print(__doc__)
