@@ -1,5 +1,5 @@
 """
-Simulation of a block connected 
+Simulation of a block connected
 to a spring in a vicous medium.
 """
 from __future__ import division, print_function
