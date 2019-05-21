@@ -32,7 +32,7 @@ __all__ = [
         ]
 
 
-def addScalarBar(actor=None, c=None, title="", 
+def addScalarBar(actor=None, c=None, title="",
                  horizontal=False,
                  vmin=None, vmax=None):
     """Add a 2D scalar bar for the specified actor.
@@ -110,7 +110,7 @@ def addScalarBar(actor=None, c=None, title="",
         sb.SetPosition(0.87, 0.05)
         sb.SetMaximumWidthInPixels(80)
         sb.SetMaximumHeightInPixels(500)
-            
+
     sctxt = sb.GetLabelTextProperty()
     sctxt.SetColor(c)
     sctxt.SetShadow(0)
