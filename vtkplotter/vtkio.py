@@ -35,14 +35,14 @@ __all__ = [
 def load(inputobj, c="gold", alpha=1, threshold=False, spacing=(), unpack=True):
     """
     Load ``Actor`` and ``Volume`` from file.
-    
+
     The output will depend on the file extension. See examples below.
-    
+
     :param c: color in RGB format, hex, symbol or name
     :param alpha: transparency/opacity of the polygonal data.
 
     For volumetric data `(tiff, slc, vti etc..)`:
-        
+
     :param list c: can be a list of any length of colors. This list represents the color
         transfer function values equally spaced along the range of the volumetric scalar.
     :param list alpha: can be a list of any length of tranparencies. This list represents the
@@ -51,33 +51,33 @@ def load(inputobj, c="gold", alpha=1, threshold=False, spacing=(), unpack=True):
         If set to True will return an ``Actor`` with automatic choice of the isosurfacing threshold.
     :param list spacing: specify the voxel spacing in the three dimensions
     :param bool unpack: only for multiblock data, if True returns a flat list of objects.
-    
+
     :Examples:
         .. code-block:: python
-        
+
             from vtkplotter import datadir, load, show
-            
+
             # Return an Actor
             g = load(datadir+'250.vtk')
             show(g)
-            
+
             # Return a list of 2 Actors
             g = load([datadir+'250.vtk', datadir+'270.vtk'])
             show(g)
-            
+
             # Return a list of actors by reading all files in a directory
             # (if directory contains DICOM files then a Volume is returned)
             g = load(datadir+'timecourse1d/')
             show(g)
-            
+
             # Return a Volume. Color/Opacity transfer functions can be specified too.
             g = load(datadir+'embryo.slc')
             g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1))
             show(g)
-            
+
             # Return an Actor from a SLC volume with automatic thresholding
             g = load(datadir+'embryo.slc', threshold=True)
-            show(g)    
+            show(g)
     """
     acts = []
     if utils.isSequence(inputobj):
@@ -135,7 +135,7 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
         reader.SetFileName(filename)
         reader.Update()
         actor = Actor(reader.GetOutput(), c, alpha)
-        
+
         ################################################################# volumetric:
     elif fl.endswith(".tif") or fl.endswith(".slc") or fl.endswith(".vti") \
         or fl.endswith(".mhd") or fl.endswith(".nrrd"):
@@ -223,13 +223,13 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
         reader.SetFileName(filename)
         reader.Update()
         poly = reader.GetOutput()
-        
+
         if fl.endswith(".vts") or fl.endswith(".vtu"): # un/structured grid
             gf = vtk.vtkGeometryFilter()
             gf.SetInputData(poly)
             gf.Update()
             poly = gf.GetOutput()
-    
+
         if not poly:
             colors.printc("~noentry Unable to load", filename, c=1)
             return None
@@ -237,7 +237,7 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
         actor = Actor(poly, c, alpha)
         if fl.endswith(".txt") or fl.endswith(".xyz"):
             actor.GetProperty().SetPointSize(4)
-            
+
     actor.filename = filename
     return actor
 
@@ -658,17 +658,17 @@ def save(objct, fileoutput, binary=True):
 ###########################################################
 def exportWindow(fileoutput, binary=False, speed=None, html=True):
     '''
-    Exporter which writes out the renderered scene into an OBJ or X3D file. 
+    Exporter which writes out the renderered scene into an OBJ or X3D file.
     X3D is an XML-based format for representation 3D scenes (similar to VRML).
     Check out http://www.web3d.org/x3d for more details.
-    
+
     :param float speed: set speed for x3d files.
     :param bool html: generate a test html page for x3d files.
-    
+
     .. hint:: |export_x3d| |export_x3d.py|_
-    
+
         `generated webpage <https://vtkplotter.embl.es/examples/embryo.html>`_
-        
+
         See also: FEniCS test `webpage <https://vtkplotter.embl.es/examples/fenics_elasticity.html>`_.
     '''
     fr = fileoutput.lower()
@@ -720,9 +720,9 @@ def buildPolyDataFast(vertices, faces=None, indexOffset=None):
     from vtk.util.numpy_support import numpy_to_vtk, numpy_to_vtkIdTypeArray
 
     dts = vtk.vtkIdTypeArray().GetDataTypeSize()
-    ast = numpy.int32 
+    ast = numpy.int32
     if dts != 4:
-        ast = numpy.int64        
+        ast = numpy.int64
 
     if not utils.isSequence(vertices):  # assume a dolfin.Mesh
         from dolfin import Mesh, BoundaryMesh
@@ -731,8 +731,8 @@ def buildPolyDataFast(vertices, faces=None, indexOffset=None):
         vertices = mesh.coordinates()
         faces = mesh.cells()
 
-    # must fix dim=3 of vertices.. todo  
-    
+    # must fix dim=3 of vertices.. todo
+
     poly = vtk.vtkPolyData()
     vpts = vtk.vtkPoints()
     vpts.SetData(numpy_to_vtk(vertices, deep=True))
@@ -742,9 +742,9 @@ def buildPolyDataFast(vertices, faces=None, indexOffset=None):
     if faces is not None:
         nf, nc = faces.shape
         dts = vtk.vtkIdTypeArray().GetDataTypeSize()
-        ast = numpy.int32 
+        ast = numpy.int32
         if dts != 4:
-            ast = numpy.int64        
+            ast = numpy.int64
         hs = numpy.hstack((numpy.zeros(nf)[:,None] + nc, faces)).astype(ast).ravel()
         arr = numpy_to_vtkIdTypeArray(hs, deep=True)
         cells.SetCells(nf, arr)
@@ -786,11 +786,11 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
             aid = sourcePoints.InsertNextPoint(pt[0], 0, 0)
         else:
             aid = sourcePoints.InsertNextPoint(pt[0], pt[1], 0)
-            
+
         if faces is None:
             sourceVertices.InsertNextCell(1)
             sourceVertices.InsertCellPoint(aid)
-        
+
     if faces is not None:
         showbar = False
         if len(faces) > 25000:
@@ -811,7 +811,7 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
                 pid1 = ele1.GetPointIds()
                 pid2 = ele2.GetPointIds()
                 pid3 = ele3.GetPointIds()
-                
+
                 pid0.SetId(0, f0)
                 pid0.SetId(1, f1)
                 pid0.SetId(2, f2)
@@ -832,7 +832,7 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
                 sourcePolygons.InsertNextCell(ele1)
                 sourcePolygons.InsertNextCell(ele2)
                 sourcePolygons.InsertNextCell(ele3)
-                
+
 #            if n == 4: #problematic because of faces orientation
 #                ele = vtk.vtkTetra()
 #                pids = ele.GetPointIds()
@@ -863,7 +863,7 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
         poly.SetVerts(sourceVertices)
     else:
         poly.SetPolys(sourcePolygons)
-        
+
     return poly
 
 
@@ -958,7 +958,7 @@ def _mouse_enter(iren, event):
         if ivp.interactor != iren:
             if ivp.camera == iren.GetActiveCamera():
                 ivp.interactor.Render()
-        
+
 
 def _mouseleft(iren, event):
 
@@ -976,7 +976,7 @@ def _mouseleft(iren, event):
         return
 
     vp.renderer = renderer
-    
+
     picker = vtk.vtkPropPicker()
     picker.PickProp(x, y, renderer)
     clickedActor = picker.GetActor()
@@ -1000,7 +1000,7 @@ def _mouseleft(iren, event):
 
     if vp.mouseLeftClickFunction:
         vp.mouseLeftClickFunction(clickedActor)
-    
+
 
 def _mouseright(iren, event):
 
@@ -1055,7 +1055,7 @@ def _mousemiddle(iren, event):
         return
 
     vp.renderer = renderer
-    
+
     picker = vtk.vtkPropPicker()
     picker.PickProp(x, y, renderer)
     clickedActor = picker.GetActor()
