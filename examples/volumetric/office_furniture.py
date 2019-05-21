@@ -11,7 +11,7 @@ def furniture():
     reader.SetFileName(datadir + "office.binary.vtk")
     reader.Update()
     sgrid = reader.GetOutput()
-    
+
     table1 = vtk.vtkStructuredGridGeometryFilter()
     table1.SetInputData(sgrid)
     table1.SetExtent(11, 15, 7, 9, 8, 8)
@@ -21,7 +21,7 @@ def furniture():
     table1Actor = vtk.vtkActor()
     table1Actor.SetMapper(mapTable1)
     table1Actor.GetProperty().SetColor(.59, .427, .392)
-    
+
     table2 = vtk.vtkStructuredGridGeometryFilter()
     table2.SetInputData(sgrid)
     table2.SetExtent(11, 15, 10, 12, 8, 8)
@@ -31,7 +31,7 @@ def furniture():
     table2Actor = vtk.vtkActor()
     table2Actor.SetMapper(mapTable2)
     table2Actor.GetProperty().SetColor(.59, .427, .392)
-    
+
     FilingCabinet1 = vtk.vtkStructuredGridGeometryFilter()
     FilingCabinet1.SetInputData(sgrid)
     FilingCabinet1.SetExtent(15, 15, 7, 9, 0, 8)
@@ -41,7 +41,7 @@ def furniture():
     FilingCabinet1Actor = vtk.vtkActor()
     FilingCabinet1Actor.SetMapper(mapFilingCabinet1)
     FilingCabinet1Actor.GetProperty().SetColor(.8, .8, .6)
-    
+
     FilingCabinet2 = vtk.vtkStructuredGridGeometryFilter()
     FilingCabinet2.SetInputData(sgrid)
     FilingCabinet2.SetExtent(15, 15, 10, 12, 0, 8)
@@ -51,7 +51,7 @@ def furniture():
     FilingCabinet2Actor = vtk.vtkActor()
     FilingCabinet2Actor.SetMapper(mapFilingCabinet2)
     FilingCabinet2Actor.GetProperty().SetColor(.8, .8, .6)
-    
+
     bookshelf1Top = vtk.vtkStructuredGridGeometryFilter()
     bookshelf1Top.SetInputData(sgrid)
     bookshelf1Top.SetExtent(13, 13, 0, 4, 0, 11)
@@ -61,7 +61,7 @@ def furniture():
     bookshelf1TopActor = vtk.vtkActor()
     bookshelf1TopActor.SetMapper(mapBookshelf1Top)
     bookshelf1TopActor.GetProperty().SetColor(.8, .8, .6)
-    
+
     bookshelf1Bottom = vtk.vtkStructuredGridGeometryFilter()
     bookshelf1Bottom.SetInputData(sgrid)
     bookshelf1Bottom.SetExtent(20, 20, 0, 4, 0, 11)
@@ -71,7 +71,7 @@ def furniture():
     bookshelf1BottomActor = vtk.vtkActor()
     bookshelf1BottomActor.SetMapper(mapBookshelf1Bottom)
     bookshelf1BottomActor.GetProperty().SetColor(.8, .8, .6)
-    
+
     bookshelf1Front = vtk.vtkStructuredGridGeometryFilter()
     bookshelf1Front.SetInputData(sgrid)
     bookshelf1Front.SetExtent(13, 20, 0, 0, 0, 11)
@@ -81,7 +81,7 @@ def furniture():
     bookshelf1FrontActor = vtk.vtkActor()
     bookshelf1FrontActor.SetMapper(mapBookshelf1Front)
     bookshelf1FrontActor.GetProperty().SetColor(.8, .8, .6)
-    
+
     bookshelf1Back = vtk.vtkStructuredGridGeometryFilter()
     bookshelf1Back.SetInputData(sgrid)
     bookshelf1Back.SetExtent(13, 20, 4, 4, 0, 11)
@@ -91,7 +91,7 @@ def furniture():
     bookshelf1BackActor = vtk.vtkActor()
     bookshelf1BackActor.SetMapper(mapBookshelf1Back)
     bookshelf1BackActor.GetProperty().SetColor(.8, .8, .6)
-    
+
     bookshelf1LHS = vtk.vtkStructuredGridGeometryFilter()
     bookshelf1LHS.SetInputData(sgrid)
     bookshelf1LHS.SetExtent(13, 20, 0, 4, 0, 0)
@@ -101,7 +101,7 @@ def furniture():
     bookshelf1LHSActor = vtk.vtkActor()
     bookshelf1LHSActor.SetMapper(mapBookshelf1LHS)
     bookshelf1LHSActor.GetProperty().SetColor(.8, .8, .6)
-    
+
     bookshelf1RHS = vtk.vtkStructuredGridGeometryFilter()
     bookshelf1RHS.SetInputData(sgrid)
     bookshelf1RHS.SetExtent(13, 20, 0, 4, 11, 11)
@@ -111,7 +111,7 @@ def furniture():
     bookshelf1RHSActor = vtk.vtkActor()
     bookshelf1RHSActor.SetMapper(mapBookshelf1RHS)
     bookshelf1RHSActor.GetProperty().SetColor(.8, .8, .6)
-    
+
     bookshelf2Top = vtk.vtkStructuredGridGeometryFilter()
     bookshelf2Top.SetInputData(sgrid)
     bookshelf2Top.SetExtent(13, 13, 15, 19, 0, 11)
@@ -121,7 +121,7 @@ def furniture():
     bookshelf2TopActor = vtk.vtkActor()
     bookshelf2TopActor.SetMapper(mapBookshelf2Top)
     bookshelf2TopActor.GetProperty().SetColor(.8, .8, .6)
-    
+
     bookshelf2Bottom = vtk.vtkStructuredGridGeometryFilter()
     bookshelf2Bottom.SetInputData(sgrid)
     bookshelf2Bottom.SetExtent(20, 20, 15, 19, 0, 11)
@@ -131,7 +131,7 @@ def furniture():
     bookshelf2BottomActor = vtk.vtkActor()
     bookshelf2BottomActor.SetMapper(mapBookshelf2Bottom)
     bookshelf2BottomActor.GetProperty().SetColor(.8, .8, .6)
-    
+
     bookshelf2Front = vtk.vtkStructuredGridGeometryFilter()
     bookshelf2Front.SetInputData(sgrid)
     bookshelf2Front.SetExtent(13, 20, 15, 15, 0, 11)
@@ -141,7 +141,7 @@ def furniture():
     bookshelf2FrontActor = vtk.vtkActor()
     bookshelf2FrontActor.SetMapper(mapBookshelf2Front)
     bookshelf2FrontActor.GetProperty().SetColor(.8, .8, .6)
-    
+
     bookshelf2Back = vtk.vtkStructuredGridGeometryFilter()
     bookshelf2Back.SetInputData(sgrid)
     bookshelf2Back.SetExtent(13, 20, 19, 19, 0, 11)
@@ -151,7 +151,7 @@ def furniture():
     bookshelf2BackActor = vtk.vtkActor()
     bookshelf2BackActor.SetMapper(mapBookshelf2Back)
     bookshelf2BackActor.GetProperty().SetColor(.8, .8, .6)
-    
+
     bookshelf2LHS = vtk.vtkStructuredGridGeometryFilter()
     bookshelf2LHS.SetInputData(sgrid)
     bookshelf2LHS.SetExtent(13, 20, 15, 19, 0, 0)
@@ -161,7 +161,7 @@ def furniture():
     bookshelf2LHSActor = vtk.vtkActor()
     bookshelf2LHSActor.SetMapper(mapBookshelf2LHS)
     bookshelf2LHSActor.GetProperty().SetColor(.8, .8, .6)
-    
+
     bookshelf2RHS = vtk.vtkStructuredGridGeometryFilter()
     bookshelf2RHS.SetInputData(sgrid)
     bookshelf2RHS.SetExtent(13, 20, 15, 19, 11, 11)
@@ -171,7 +171,7 @@ def furniture():
     bookshelf2RHSActor = vtk.vtkActor()
     bookshelf2RHSActor.SetMapper(mapBookshelf2RHS)
     bookshelf2RHSActor.GetProperty().SetColor(.8, .8, .6)
-    
+
     window = vtk.vtkStructuredGridGeometryFilter()
     window.SetInputData(sgrid)
     window.SetExtent(20, 20, 6, 13, 10, 13)
@@ -181,7 +181,7 @@ def furniture():
     windowActor = vtk.vtkActor()
     windowActor.SetMapper(mapWindow)
     windowActor.GetProperty().SetColor(.3, .3, .5)
-    
+
     outlet = vtk.vtkStructuredGridGeometryFilter()
     outlet.SetInputData(sgrid)
     outlet.SetExtent(0, 0, 9, 10, 14, 16)
@@ -191,7 +191,7 @@ def furniture():
     outletActor = vtk.vtkActor()
     outletActor.SetMapper(mapOutlet)
     outletActor.GetProperty().SetColor(1, 1, 1)
-    
+
     inlet = vtk.vtkStructuredGridGeometryFilter()
     inlet.SetInputData(sgrid)
     inlet.SetExtent(0, 0, 9, 10, 0, 6)
@@ -201,7 +201,7 @@ def furniture():
     inletActor = vtk.vtkActor()
     inletActor.SetMapper(mapInlet)
     inletActor.GetProperty().SetColor(1, 1, 1)
-    
+
     outline = vtk.vtkStructuredGridOutlineFilter()
     outline.SetInputData(sgrid)
     mapOutline = vtk.vtkPolyDataMapper()
@@ -235,7 +235,7 @@ def furniture():
     return acts
 
 if __name__ == "__main__":
-    
+
     from vtkplotter import show
-    
+
     show(furniture())
