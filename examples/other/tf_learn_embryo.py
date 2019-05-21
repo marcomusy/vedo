@@ -43,7 +43,7 @@ model.add(Dense(1,       activation="sigmoid"))
 
 model.compile(optimizer="rmsprop", loss="mse", metrics=["mae"])
 
-model.fit(shuffled_datalist, shuffled_scalars, 
+model.fit(shuffled_datalist, shuffled_scalars,
           epochs=epochs, batch_size=max(nx,ny,nz))
 
 predicted_scalars = model.predict(datalist)
