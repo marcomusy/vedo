@@ -1,5 +1,5 @@
 """
-A scalar array can be specified to vary 
+A scalar array can be specified to vary
 radius and color of a line represented as a tube.
 """
 print(__doc__)
