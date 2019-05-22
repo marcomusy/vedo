@@ -964,7 +964,7 @@ class Actor(vtk.vtkActor, Prop):
         Return the list of vertex coordinates of the input mesh.
         Same as `actor.coordinates()`.
 
-        :param bool transformed: if `False` ignore any previous trasformation
+        :param bool transformed: if `False` ignore any previous transformation
             applied to the mesh.
         :param bool copy: if `False` return the reference to the points
             so that they can be modified in place.
@@ -1451,7 +1451,7 @@ class Actor(vtk.vtkActor, Prop):
         """
         Clone a ``Actor(vtkActor)`` and make an exact copy of it.
 
-        :param transformed: if `False` ignore any previous trasformation applied to the mesh.
+        :param transformed: if `False` ignore any previous transformation applied to the mesh.
 
         .. hint:: |carcrash| |carcrash.py|_
         """
@@ -2465,7 +2465,7 @@ class Actor(vtk.vtkActor, Prop):
         """
         Return the list of vertex coordinates of the input mesh. Same as `actor.getPoints()`.
 
-        :param bool transformed: if `False` ignore any previous trasformation applied to the mesh.
+        :param bool transformed: if `False` ignore any previous transformation applied to the mesh.
         :param bool copy: if `False` return the reference to the points
             so that they can be modified in place, otherwise a copy is built.
 
@@ -3163,8 +3163,3 @@ class Volume(vtk.vtkVolume, Prop):
                         s = (s - vmin) / (vmax - vmin)
                     voxdata[i, j, k] = s
         return voxdata
-
-
-
-
-
