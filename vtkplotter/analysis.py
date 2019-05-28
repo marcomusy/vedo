@@ -6,7 +6,6 @@ from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
 import vtkplotter.utils as vu
 import vtkplotter.colors as vc
-import vtkplotter.vtkio as vio
 import vtkplotter.shapes as vs
 from vtkplotter.actors import Actor, Assembly, Volume
 
@@ -43,7 +42,6 @@ __all__ = [
     "probePoints",
     "probeLine",
     "probePlane",
-    "imageOperation",
     "volumeOperation",
     "recoSurface",
     "cluster",
@@ -69,17 +67,27 @@ __all__ = [
 ]
 
 
-def geometry(obj):
+def geometry(obj, extent=None):
     """
-    Apply ``vtkGeometryFilter``.
+    Apply the ``vtkGeometryFilter``.
+    This is a general-purpose filter to extract geometry (and associated data) from any type of dataset.
+    This filter also may be used to convert any type of data to polygonal type.
+    The conversion process may be less than satisfactory for some 3D datasets.
+    For example, this filter will extract the outer surface of a volume or structured grid dataset.
+
+    Returns an ``Actor`` object.
+
+    :param list extent: set a `[xmin,xmax, ymin,ymax, zmin,zmax]` bounding box to clip data.
     """
     gf = vtk.vtkGeometryFilter()
     gf.SetInputData(obj)
+    if extent is not None:
+        gf.SetExtent(extent)
     gf.Update()
-    return gf.GetOutput()
+    return Actor(gf.GetOutput())
 
 
-def spline(points, smooth=0.5, degree=2, s=2, c="b", alpha=1.0, nodes=False, res=20):
+def spline(points, smooth=0.5, degree=2, s=2, nodes=False, res=20):
     """
     Return an ``Actor`` for a spline so that it does not necessarly pass exactly throught all points.
 
@@ -113,21 +121,21 @@ def spline(points, smooth=0.5, degree=2, s=2, c="b", alpha=1.0, nodes=False, res
         lines.InsertCellPoint(i)
     profileData.SetPoints(ppoints)
     profileData.SetLines(lines)
-    actline = Actor(profileData, c=c, alpha=alpha)
+    actline = Actor(profileData)
     actline.GetProperty().SetLineWidth(s)
     if nodes:
-        actnodes = vs.Points(points, r=5, c=c, alpha=alpha)
+        actnodes = vs.Points(points, r=5)
         ass = Assembly([actline, actnodes])
         return ass
     else:
         return actline
 
-def xyplot(points, title="", c="b", corner=1, lines=False):
+def xyplot(points, title="", c="b", bg="k", pos=1, s=0.2, lines=True):
     """
     Return a ``vtkXYPlotActor`` that is a plot of `x` versus `y`,
     where `points` is a list of `(x,y)` points.
 
-    :param int corner: assign position:
+    :param int pos: assign position:
 
         - 1, topleft,
 
@@ -152,65 +160,78 @@ def xyplot(points, title="", c="b", corner=1, lines=False):
     field.AddArray(array_y)
     data = vtk.vtkDataObject()
     data.SetFieldData(field)
+
     plot = vtk.vtkXYPlotActor()
     plot.AddDataObjectInput(data)
     plot.SetDataObjectXComponent(0, 0)
     plot.SetDataObjectYComponent(0, 1)
     plot.SetXValuesToValue()
+    plot.SetAdjustXLabels(0)
+    plot.SetAdjustYLabels(0)
+    plot.SetNumberOfXLabels(3)
+
+    plot.GetProperty().SetPointSize(5)
+    plot.GetProperty().SetLineWidth(2)
+    plot.GetProperty().SetColor(vc.getColor(bg))
+    plot.SetPlotColor(0, c[0], c[1], c[2])
+
     plot.SetXTitle(title)
     plot.SetYTitle("")
     plot.ExchangeAxesOff()
     plot.PlotPointsOn()
     if not lines:
         plot.PlotLinesOff()
-    plot.GetProperty().SetPointSize(5)
-    plot.GetProperty().SetLineWidth(2)
-    plot.SetNumberOfXLabels(3)  # not working
-    plot.GetProperty().SetColor(0, 0, 0)
-    plot.GetProperty().SetOpacity(0.7)
-    plot.SetPlotColor(0, c[0], c[1], c[2])
-    tprop = plot.GetAxisLabelTextProperty()
-    tprop.SetColor(0, 0, 0)
-    tprop.SetOpacity(0.7)
-    tprop.SetFontFamily(0)
-    tprop.BoldOff()
-    tprop.ItalicOff()
-    tprop.ShadowOff()
-    tprop.SetFontSize(3)  # not working
-    plot.SetAxisTitleTextProperty(tprop)
-    plot.SetAxisLabelTextProperty(tprop)
-    plot.SetTitleTextProperty(tprop)
-    if corner == 1:
+    if pos == 1:
         plot.GetPositionCoordinate().SetValue(0.0, 0.8, 0)
-    if corner == 2:
-        plot.GetPositionCoordinate().SetValue(0.7, 0.8, 0)
-    if corner == 3:
+    elif pos == 2:
+        plot.GetPositionCoordinate().SetValue(0.76, 0.8, 0)
+    elif pos == 3:
         plot.GetPositionCoordinate().SetValue(0.0, 0.0, 0)
-    if corner == 4:
-        plot.GetPositionCoordinate().SetValue(0.7, 0.0, 0)
-    plot.GetPosition2Coordinate().SetValue(0.3, 0.2, 0)
+    elif pos == 4:
+        plot.GetPositionCoordinate().SetValue(0.76, 0.0, 0)
+    else:
+        plot.GetPositionCoordinate().SetValue(pos[0], pos[1], 0)
+    plot.GetPosition2Coordinate().SetValue(s, s, 0)
     return plot
 
 
-def histogram(values, bins=10, vrange=None, title="", c="g", corner=1, lines=True):
+def histogram(values, bins=20, vrange=None, minbin=0, logscale=False,
+              title="", c="g", bg="k", pos=1, s=0.2, lines=True):
     """
     Build a 2D histogram from a list of values in n bins.
 
     Use *vrange* to restrict the range of the histogram.
 
-    Use *corner* to assign its position:
+    Use `pos` to assign its position:
         - 1, topleft,
         - 2, topright,
         - 3, bottomleft,
-        - 4, bottomright.
+        - 4, bottomright,
+        - (x, y), as fraction of the rendering window
 
     .. hint:: Example: |fitplanes.py|_
     """
     fs, edges = np.histogram(values, bins=bins, range=vrange)
+    if minbin:
+        fs = fs[minbin:-1]
+    if logscale:
+        fs = np.log10(fs+1)
     pts = []
     for i in range(len(fs)):
         pts.append([(edges[i] + edges[i + 1]) / 2, fs[i]])
-    return xyplot(pts, title, c, corner, lines)
+
+    plot = xyplot(pts, title, c, bg, pos, s, lines)
+    plot.SetNumberOfYLabels(2)
+    plot.SetNumberOfXLabels(3)
+    tprop = vtk.vtkTextProperty()
+    tprop.SetColor(vc.getColor(bg))
+    plot.SetAxisTitleTextProperty(tprop)
+    plot.GetXAxisActor2D().SetLabelTextProperty(tprop)
+    plot.GetXAxisActor2D().SetTitleTextProperty(tprop)
+    plot.GetXAxisActor2D().SetFontFactor(0.5)
+    plot.GetYAxisActor2D().SetLabelFactor(.0)
+    plot.GetYAxisActor2D().LabelVisibilityOff()
+    return plot
 
 
 def fxy(
@@ -461,11 +482,11 @@ def delaunay3D(dataset, alpha=0, tol=None, boundary=True):
         deln.SetBoundingTriangulation(boundary)
         deln.Update()
         return deln.GetOutput()
-    
-    
-def normalLines(actor, ratio=1, c=(0.6, 0.6, 0.6), alpha=0.8):
+
+
+def normalLines(actor, ratio=1):
     """
-    Build an ``vtkActor`` made of the normals at vertices shown as lines.
+    Build an ``Actor`` made of the normals at vertices shown as lines.
     """
     maskPts = vtk.vtkMaskPoints()
     maskPts.SetOnRatio(ratio)
@@ -485,7 +506,7 @@ def normalLines(actor, ratio=1, c=(0.6, 0.6, 0.6), alpha=0.8):
     glyph.SetScaleFactor(sc)
     glyph.OrientOn()
     glyph.Update()
-    glyphActor = Actor(glyph.GetOutput(), c=vc.getColor(c), alpha=alpha)
+    glyphActor = Actor(glyph.GetOutput())
     glyphActor.mapper.SetScalarModeToUsePointFieldData()
     glyphActor.PickableOff()
     prop = vtk.vtkProperty()
@@ -495,7 +516,8 @@ def normalLines(actor, ratio=1, c=(0.6, 0.6, 0.6), alpha=0.8):
 
 
 def extractLargestRegion(actor):
-    """Keep only the largest connected part of a mesh and discard all the smaller pieces.
+    """
+    Keep only the largest connected part of a mesh and discard all the smaller pieces.
 
     .. hint:: |largestregion.py|_
     """
@@ -524,7 +546,7 @@ def alignLandmarks(source, target, rigid=False):
     if source.N() != target.N():
         vc.printc('~times Error in alignLandmarks(): Source and Target with != nr of points!',
                   source.N(), target.N(), c=1)
-        exit()
+        raise RuntimeError()
     lmt.SetSourceLandmarks(ss)
     lmt.SetTargetLandmarks(st)
     if rigid:
@@ -616,7 +638,7 @@ def alignProcrustes(sources, rigid=False):
         if sources[0].N() != source.N():
             vc.printc("~times Procrustes error in align():", c=1)
             vc.printc(" sources have different nr of points", c=1)
-            exit(0)
+            raise RuntimeError()
         group.AddInputData(source.polydata())
     procrustes = vtk.vtkProcrustesAlignmentFilter()
     procrustes.StartFromCentroidOn()
@@ -636,10 +658,8 @@ def alignProcrustes(sources, rigid=False):
     return assem
 
 
-################# working with point clouds
-
-
-def fitLine(points, c="orange", lw=1):
+################################################### working with point clouds
+def fitLine(points):
     """
     Fits a line through points.
 
@@ -659,14 +679,14 @@ def fitLine(points, c="orange", lw=1):
     b = np.linalg.norm(xyz_max - datamean)
     p1 = datamean - a * vv
     p2 = datamean + b * vv
-    l = vs.Line(p1, p2, c=c, lw=lw, alpha=1)
+    l = vs.Line(p1, p2, lw=1)
     l.info["slope"] = vv
     l.info["center"] = datamean
     l.info["variances"] = dd
     return l
 
 
-def fitPlane(points, c="g", bc="darkgreen"):
+def fitPlane(points):
     """
     Fits a plane to a set of points.
 
@@ -682,7 +702,7 @@ def fitPlane(points, c="g", bc="darkgreen"):
     xyz_max = points.max(axis=0)
     s = np.linalg.norm(xyz_max - xyz_min)
     n = np.cross(vv[0], vv[1])
-    pla = vs.Plane(datamean, n, s, s, c, bc)
+    pla = vs.Plane(datamean, n, s, s)
     pla.info["normal"] = n
     pla.info["center"] = datamean
     pla.info["variance"] = dd[2]
@@ -1033,7 +1053,7 @@ def booleanOperation(actor1, operation, actor2, c=None, alpha=1,
     return actor
 
 
-def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3):
+def surfaceIntersection(actor1, actor2, tol=1e-06):
     """Intersect 2 surfaces and return a line actor.
 
     .. hint:: |surfIntersect.py|_
@@ -1045,7 +1065,7 @@ def surfaceIntersection(actor1, actor2, tol=1e-06, lw=3):
     bf.SetInputData(1, poly2)
     bf.Update()
     actor = Actor(bf.GetOutput(), "k", 1)
-    actor.GetProperty().SetLineWidth(lw)
+    actor.GetProperty().SetLineWidth(3)
     return actor
 
 
@@ -1131,11 +1151,6 @@ def probePlane(vol, origin=(0, 0, 0), normal=(1, 0, 0)):
     return cutActor
 
 
-def imageOperation(volume1, operation, volume2=None):
-    """Deprecated: use volumeOperation()."""
-    print("\n\n imageOperation() is no more valid: use volumeOperation() instead.")
-    exit()
-    
 def volumeOperation(volume1, operation, volume2=None):
     """
     Perform operations with ``Volume`` objects.
@@ -1158,7 +1173,7 @@ def volumeOperation(volume1, operation, volume2=None):
         image2 = volume2.GetMapper().GetInput()
     else:
         image2 = volume2
-    
+
 
     if op in ["median"]:
         mf = vtk.vtkImageMedian3D()
@@ -1257,7 +1272,7 @@ def volumeOperation(volume1, operation, volume2=None):
         mat.SetOperationToATAN2()
     else:
         vc.printc("~times Error in volumeOperation: unknown operation", operation, c=1)
-        exit()
+        raise RuntimeError()
     mat.Update()
     return Volume(mat.GetOutput())
 
@@ -1426,7 +1441,7 @@ def thinPlateSpline(actor, sourcePts, targetPts, userFunctions=(None, None)):
         and its derivative with respect to r.
 
     .. hint:: Examples: |thinplate.py|_ |thinplate_grid.py|_ |thinplate_morphing.py|_  |interpolateField.py|_
-         
+
         |thinplate| |thinplate_grid| |thinplate_morphing| |interpolateField|
     """
     ns = len(sourcePts)
@@ -1438,7 +1453,7 @@ def thinPlateSpline(actor, sourcePts, targetPts, userFunctions=(None, None)):
     nt = len(sourcePts)
     if ns != nt:
         vc.printc("~times thinPlateSpline Error: #source != #target points", ns, nt, c=1)
-        exit()
+        raise RuntimeError()
 
     pttar = vtk.vtkPoints()
     pttar.SetNumberOfPoints(nt)
@@ -1540,11 +1555,11 @@ def meshQuality(actor, measure=6):
 
 def connectedPoints(actor, radius, mode=0, regions=(), vrange=(0,1), seeds=(), angle=0):
     """
-    Extracts and/or segments points from a point cloud based on geometric distance measures 
-    (e.g., proximity, normal alignments, etc.) and optional measures such as scalar range. 
+    Extracts and/or segments points from a point cloud based on geometric distance measures
+    (e.g., proximity, normal alignments, etc.) and optional measures such as scalar range.
     The default operation is to segment the points into "connected" regions where the connection
-    is determined by an appropriate distance measure. Each region is given a region id. 
-    
+    is determined by an appropriate distance measure. Each region is given a region id.
+
     Optionally, the filter can output the largest connected region of points; a particular region
     (via id specification); those regions that are seeded using a list of input point ids;
     or the region of points closest to a specified position.
@@ -1563,21 +1578,21 @@ def connectedPoints(actor, radius, mode=0, regions=(), vrange=(0,1), seeds=(), a
     On output, all points are labeled with a region number.
     However note that the number of input and output points may not be the same:
     if not extracting all regions then the output size may be less than the input size.
-    
+
     :param float radius: radius variable specifying a local sphere used to define local point neighborhood
-    :param int mode: 
-    
+    :param int mode:
+
         - 0,  Extract all regions
         - 1,  Extract point seeded regions
         - 2,  Extract largest region
         - 3,  Test specified regions
         - 4,  Extract all regions with scalar connectivity
         - 5,  Extract point seeded regions
-    
+
     :param list regions: a list of non-negative regions id to extract
     :param list vrange: scalar range to use to extract points based on scalar connectivity
     :param list seeds: a list of non-negative point seed ids
-    :param list angle: points are connected if the angle between their normals is 
+    :param list angle: points are connected if the angle between their normals is
         within this angle threshold (expressed in degrees).
     """
     # https://vtk.org/doc/nightly/html/classvtkConnectedPointsFilter.html
@@ -1586,38 +1601,38 @@ def connectedPoints(actor, radius, mode=0, regions=(), vrange=(0,1), seeds=(), a
     cpf.SetRadius(radius)
     if   mode == 0: # Extract all regions
         pass
-        
+
     elif mode == 1: # Extract point seeded regions
         cpf.SetExtractionModeToPointSeededRegions()
         for s in seeds:
             cpf.AddSeed(s)
-        
+
     elif mode == 2: # Test largest region
         cpf.SetExtractionModeToLargestRegion()
-     
+
     elif mode == 3: # Test specified regions
         cpf.SetExtractionModeToSpecifiedRegions()
         for r in regions:
             cpf.AddSpecifiedRegion(r)
-    
+
     elif mode == 4: # Extract all regions with scalar connectivity
         cpf.SetExtractionModeToLargestRegion()
         cpf.ScalarConnectivityOn()
         cpf.SetScalarRange(vrange[0], vrange[1])
-    
+
     elif mode == 5: # Extract point seeded regions
         cpf.SetExtractionModeToLargestRegion()
         cpf.ScalarConnectivityOn()
         cpf.SetScalarRange(vrange[0], vrange[1])
         cpf.AlignedNormalsOn()
         cpf.SetNormalAngle(angle)
-    
-    cpf.Update()   
+
+    cpf.Update()
 
     return Actor(cpf.GetOutput())
 
-    
-def splitByConnectivity(actor, maxdepth=100):
+
+def splitByConnectivity(actor, maxdepth=1000):
     """
     Split a mesh by connectivity and order the pieces by increasing area.
 
@@ -1818,7 +1833,7 @@ def actor2Volume(actor, spacing=(1, 1, 1)):
 def signedDistance(actor, maxradius=0.5, bounds=(0, 1, 0, 1, 0, 1), dims=(10, 10, 10)):
     """
     Compute signed distances over a volume from an input point cloud or mesh.
-    The output is a ``Volume`` object whose voxels contains the signed distance from 
+    The output is a ``Volume`` object whose voxels contains the signed distance from
     the mesh.
 
     :param float maxradius: how far out to propagate distance calculation
@@ -1889,8 +1904,8 @@ def voronoi3D(nuclei, bbfactor=1, tol=None):
         print('Then add:')
         print('from vtkplotter import settings"')
         print('settings.voro_path="path_to_voro++_executable"')
-        exit()
-    
+        raise RuntimeError()
+
     # build polydata
     sourcePoints = vtk.vtkPoints()
     sourcePolygons = vtk.vtkCellArray()
@@ -1906,7 +1921,7 @@ def voronoi3D(nuclei, bbfactor=1, tol=None):
             aid = sourcePoints.InsertNextPoint(p[0], p[1], p[2])
             if tol:
                 bp = np.array([p[0]-b[0], p[0]-b[1],
-                               p[1]-b[2], p[1]-b[3], 
+                               p[1]-b[2], p[1]-b[3],
                                p[2]-b[4], p[2]-b[5]])
                 bp = np.abs(bp) < tol
                 if np.any(bp):
@@ -1915,7 +1930,7 @@ def voronoi3D(nuclei, bbfactor=1, tol=None):
                     ids.append(aid)
             else:
                 ids.append(aid)
-            
+
         # fill polygon elements
         if None in ids:
             continue
@@ -1945,14 +1960,14 @@ def voronoi3D(nuclei, bbfactor=1, tol=None):
     return voro
 
 
-def interpolateToVolume(actor, kernel='shepard', radius=None, 
+def interpolateToVolume(actor, kernel='shepard', radius=None,
                        bounds=None, nullValue=None,
                        dims=(20,20,20)):
     """
     Generate a ``Volume`` by interpolating a scalar
     or vector field which is only known on a scattered set of points or mesh.
     Available interpolation kernels are: shepard, gaussian, voronoi, linear.
-    
+
     :param str kernel: interpolation kernel type [shepard]
     :param float radius: radius of the local search
     :param list bounds: bounding box of the output Volume object
@@ -1960,17 +1975,17 @@ def interpolateToVolume(actor, kernel='shepard', radius=None,
     :param float nullValue: value to be assigned to invalid points
     """
     output = actor.polydata()
-    
+
     # Create a probe volume
     probe = vtk.vtkImageData()
     probe.SetDimensions(dims)
     if bounds is None:
-        bounds = output.GetBounds()    
+        bounds = output.GetBounds()
     probe.SetOrigin(bounds[0],bounds[2],bounds[4])
     probe.SetSpacing((bounds[1]-bounds[0])/(dims[0]-1),
                      (bounds[3]-bounds[2])/(dims[1]-1),
                      (bounds[5]-bounds[4])/(dims[2]-1))
-    
+
     if radius is None:
         radius = min(bounds[1]-bounds[0], bounds[3]-bounds[2], bounds[5]-bounds[4])/3
 
@@ -1987,13 +2002,13 @@ def interpolateToVolume(actor, kernel='shepard', radius=None,
         kern.SetRadius(radius)
     elif kernel == 'voronoi':
         kern = vtk.vtkVoronoiKernel()
-    elif kernel == 'linear':        
+    elif kernel == 'linear':
         kern = vtk.vtkLinearKernel()
         kern.SetRadius(radius)
     else:
         print('Error in interpolateToVolume, available kernels are:')
         print(' [shepard, gaussian, voronoi, linear]')
-        exit()
+        raise RuntimeError()
 
     interpolator = vtk.vtkPointInterpolator()
     interpolator.SetInputData(probe)
@@ -2008,14 +2023,13 @@ def interpolateToVolume(actor, kernel='shepard', radius=None,
     return Volume(interpolator.GetOutput())
 
 
-def interpolateToStructuredGrid(actor, kernel=None, radius=None, 
-                               bounds=None, nullValue=None,
-                               dims=None):
+def interpolateToStructuredGrid(actor, kernel=None, radius=None,
+                               bounds=None, nullValue=None, dims=None):
     """
     Generate a volumetric dataset (vtkStructuredData) by interpolating a scalar
     or vector field which is only known on a scattered set of points or mesh.
     Available interpolation kernels are: shepard, gaussian, voronoi, linear.
-    
+
     :param str kernel: interpolation kernel type [shepard]
     :param float radius: radius of the local search
     :param list bounds: bounding box of the output vtkStructuredGrid object
@@ -2029,7 +2043,7 @@ def interpolateToStructuredGrid(actor, kernel=None, radius=None,
 
     if bounds is None:
         bounds = output.GetBounds()
-    
+
     # Create a probe volume
     probe = vtk.vtkStructuredGrid()
     probe.SetDimensions(dims)
@@ -2063,7 +2077,7 @@ def interpolateToStructuredGrid(actor, kernel=None, radius=None,
         kern.SetRadius(radius)
     elif kernel == 'voronoi':
         kern = vtk.vtkVoronoiKernel()
-    elif kernel == 'linear':        
+    elif kernel == 'linear':
         kern = vtk.vtkLinearKernel()
         kern.SetRadius(radius)
     else:
@@ -2082,9 +2096,9 @@ def interpolateToStructuredGrid(actor, kernel=None, radius=None,
         interpolator.SetNullPointsStrategyToClosestPoint()
     interpolator.Update()
     return interpolator.GetOutput()
-      
 
-def streamLines(domain, probe, 
+
+def streamLines(domain, probe,
                 integrator='rk4',
                 direction='forward',
                 initialStepSize=None,
@@ -2100,12 +2114,12 @@ def streamLines(domain, probe,
     ):
     """
     Integrate a vector field to generate streamlines.
-    
+
     The integration is performed using a specified integrator (Runge-Kutta).
     The length of a streamline is governed by specifying a maximum value either
     in physical arc length or in (local) cell length.
     Otherwise, the integration terminates upon exiting the field domain.
-    
+
     :param domain: the vtk object that contains the vector field
     :param Actor probe: the Actor that probes the domain. Its coordinates will
         be the seeds for the streamlines
@@ -2116,7 +2130,7 @@ def streamLines(domain, probe,
     :param float stepLength: length of step integration.
     :param dict extrapolateToBoundingBox:
         Vectors defined on a surface are extrapolated to the entire volume defined by its bounding box
-        
+
         - kernel, (str) - interpolation kernel type [shepard]
         - radius (float)- radius of the local search
         - bounds, (list) - bounding box of the output Volume
@@ -2129,21 +2143,21 @@ def streamLines(domain, probe,
     :param int ribbons: render lines as ribbons by joining them.
         An integer value represent the ratio of joining (e.g.: ribbons=2 groups lines 2 by 2)
     :param dict tubes: dictionary containing the parameters for the tube representation:
-            
+
             - ratio, (int) - draws tube as longitudinal stripes
             - res, (int) - tube resolution (nr. of sides, 24 by default)
             - maxRadiusFactor (float) - max tube radius as a multiple of the min radius
             - varyRadius, (int) - radius varies based on the scalar or vector magnitude:
-                
+
                 - 0 - do not vary radius
                 - 1 - vary radius by scalar
                 - 2 - vary radius by vector
                 - 3 - vary radius by absolute value of scalar
-  
+
     :param list scalarRange: specify the scalar range for coloring
-    
+
     .. hint:: Examples: |streamlines1.py|_ |streamribbons.py|_ |office.py|_ |streamlines2.py|_
-    
+
         |streamlines2| |office| |streamribbons| |streamlines1|
     """
 
@@ -2184,7 +2198,7 @@ def streamLines(domain, probe,
     st.SetSurfaceStreamlines(surfaceConstrain)
     if stepLength:
         st.SetStepLength(stepLength)
-    
+
     if 'f' in direction:
         st.SetIntegrationDirectionToForward()
     elif 'back' in direction:
@@ -2200,10 +2214,10 @@ def streamLines(domain, probe,
         st.SetIntegratorTypeToRungeKutta45()
     else:
         vc.printc("Error in streamlines, unknown integrator", integrator, c=1)
-        
+
     st.Update()
     output = st.GetOutput()
-    
+
     if ribbons:
         scalarSurface = vtk.vtkRuledSurfaceFilter()
         scalarSurface.SetInputConnection(st.GetOutputPort())
@@ -2211,7 +2225,7 @@ def streamLines(domain, probe,
         scalarSurface.SetRuledModeToPointWalk()
         scalarSurface.Update()
         output = scalarSurface.GetOutput()
-        
+
     if len(tubes):
         streamTube = vtk.vtkTubeFilter()
         streamTube.SetNumberOfSides(24)
@@ -2221,13 +2235,13 @@ def streamLines(domain, probe,
             streamTube.SetNumberOfSides(tubes['res'])
 
         # max tube radius as a multiple of the min radius
-        streamTube.SetRadiusFactor(50) 
+        streamTube.SetRadiusFactor(50)
         if 'maxRadiusFactor' in tubes:
             streamTube.SetRadius(tubes['maxRadiusFactor'])
-            
+
         if 'ratio' in tubes:
             streamTube.SetOnRatio(int(tubes['ratio']))
-            
+
         if 'varyRadius' in tubes:
             streamTube.SetVaryRadius(int(tubes['varyRadius']))
 
@@ -2246,7 +2260,7 @@ def streamLines(domain, probe,
         sta.GetProperty().BackfaceCullingOn()
         sta.phong()
         return sta
-    
+
     sta = Actor(output, c=None)
     sta.mapper.SetScalarRange(grid.GetPointData().GetScalars().GetRange())
     if scalarRange is not None:
@@ -2255,17 +2269,17 @@ def streamLines(domain, probe,
 
 
 def densifyCloud(actor, targetDistance, closestN=6, radius=0, maxIter=None, maxN=None):
-    """Adds new points to an input point cloud. 
-    The new points are created in such a way that all points in any local neighborhood are 
-    within a target distance of one another. 
-    
-    The algorithm works as follows. For each input point, the distance to all points 
+    """Adds new points to an input point cloud.
+    The new points are created in such a way that all points in any local neighborhood are
+    within a target distance of one another.
+
+    The algorithm works as follows. For each input point, the distance to all points
     in its neighborhood is computed. If any of its neighbors is further than the target distance,
     the edge connecting the point and its neighbor is bisected and a new point is inserted at the
-    bisection point. A single pass is completed once all the input points are visited. 
+    bisection point. A single pass is completed once all the input points are visited.
     Then the process repeats to the limit of the maximum number of iterations.
 
-    .. note:: Points will be created in an iterative fashion until all points in their 
+    .. note:: Points will be created in an iterative fashion until all points in their
         local neighborhood are the target distance apart or less.
         Note that the process may terminate early due to the limit on the
         maximum number of iterations. By default the target distance is set to 0.5.
@@ -2303,7 +2317,7 @@ def densifyCloud(actor, targetDistance, closestN=6, radius=0, maxIter=None, maxN
         dens.SetNumberOfClosestPoints(closestN)
     else:
         vc.printc("Error in densifyCloud: set either radius or closestN", c=1)
-        exit()    
+        raise RuntimeError()
     dens.Update()
     pts = vtk_to_numpy(dens.GetOutput().GetPoints().GetData())
     return vs.Points(pts, c=None).pointSize(3)
@@ -2314,33 +2328,33 @@ def frequencyPassFilter(volume, lowcutoff=None, highcutoff=None, order=1):
     Low-pass and high-pass filtering become trivial in the frequency domain.
     A portion of the pixels/voxels are simply masked or attenuated.
     This function applies a high pass Butterworth filter that attenuates the frequency domain
-    image with the function 
-    
+    image with the function
+
     .. image:: https://wikimedia.org/api/rest_v1/media/math/render/svg/9c4d02a66b6ff279aae0c4bf07c25e5727d192e4
-    
-    The gradual attenuation of the filter is important. 
+
+    The gradual attenuation of the filter is important.
     A simple high-pass filter would simply mask a set of pixels in the frequency domain,
-    but the abrupt transition would cause a ringing effect in the spatial domain.    
-    
+    but the abrupt transition would cause a ringing effect in the spatial domain.
+
     :param list lowcutoff:  the cutoff frequencies for x, y and z
     :param list highcutoff: the cutoff frequencies for x, y and z
     :param int order: order determines sharpness of the cutoff curve
 
-    Check out also this example: 
-    
+    Check out also this example:
+
     |idealpass|
-    """ 
+    """
     #https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
     if isinstance(volume, Volume):
         img = volume.imagedata()
     elif isinstance(volume, vtk.vtkImageData):
         img = volume
-        
+
     fft = vtk.vtkImageFFT()
     fft.SetInputData(img)
     fft.Update()
     out = fft.GetOutput()
-    
+
     if highcutoff:
         butterworthLowPass = vtk.vtkImageButterworthLowPass()
         butterworthLowPass.SetInputData(out)

@@ -41,14 +41,14 @@ for t in pb.range():
                 continue
             if cell.divideAt(t):
                 newc = cell.split()  # make daughter cell
-                vp.add(Line(cell.pos, newc.pos, c="k", lw=3, alpha=0.5))
+                vp += Line(cell.pos, newc.pos, c="k", lw=3, alpha=0.5)
                 newcells.append(newc)
             newcells.append(cell)
         colony.cells = newcells
 
         pts = [c.pos for c in newcells]  # draw all points at once
-        vp.add(Points(pts, c=colony.color, r=5, alpha=0.80))  # nucleus
-        vp.add(Points(pts, c=colony.color, r=15, alpha=0.05))  # halo
+        vp += Points(pts, c=colony.color, r=5, alpha=0.80)   # nucleus
+        vp += Points(pts, c=colony.color, r=15, alpha=0.05)  # halo
         msg += str(len(colony.cells)) + ","
 
     pb.print(msg + str(int(t)))
@@ -60,5 +60,5 @@ for colony in colonies:
     a = pcaEllipsoid(pts, pvalue=0.5, pcaAxes=0)
     a.color(colony.color).alpha(0.3)
     a.legend("1/rate=" + str(colony.cells[0].tdiv) + "h")
-    vp.add(a)
+    vp += a
 vp.show(resetcam=0, interactive=1)

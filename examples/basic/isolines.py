@@ -11,5 +11,5 @@ mesh.pointColors(scals).addScalarBar()
 
 isols = isolines(mesh, n=12, vmin=0).color('w')
 
-show(mesh, isols, Text(__doc__), axes=8)
+show(mesh, isols, Text(__doc__), axes=1)
 

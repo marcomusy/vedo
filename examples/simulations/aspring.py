@@ -21,13 +21,13 @@ xr = vector(L, 0, 0)
 sx0 = vector(-0.8, 0, 0)
 offx = vector(0, 0.3, 0)
 
-vp.add(Box(pos=(0, -0.1, 0), length=2.0, width=0.02, height=0.5))  # surface
-vp.add(Box(pos=(-0.82, 0.15, 0), length=0.04, width=0.50, height=0.3))  # wall
+vp += Box(pos=(0, -0.1, 0), length=2.0, width=0.02, height=0.5)  # surface
+vp += Box(pos=(-0.82, 0.15, 0), length=0.04, width=0.50, height=0.3)  # wall
 
 block = Cube(pos=x, side=0.2, c="tomato")
 block.addTrail(offset=[0, 0.2, 0], alpha=0.6, lw=2, n=500)
 spring = Spring(sx0, x, r=0.06, thickness=0.01)
-vp.add([block, spring, Text(__doc__)])
+vp += [block, spring, Text(__doc__)]
 
 pb = ProgressBar(0, 300, c="r")
 for i in pb.range():

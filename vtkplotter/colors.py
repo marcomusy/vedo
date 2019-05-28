@@ -182,7 +182,7 @@ def getColor(rgb=None, hsv=None):
         for sc in rgb:
             seqcol.append(getColor(sc))
         return seqcol
-    
+
     if str(rgb).isdigit():
         rgb = int(rgb)
 
@@ -272,7 +272,7 @@ def rgb2hsv(rgb):
     """Convert RGB to HSV color."""
     ma = vtk.vtkMath()
     return ma.RGBToHSV(getColor(rgb))
-    
+
 
 def colorMap(value, name="jet", vmin=None, vmax=None):
     """Map a real value in range [vmin, vmax] to a (r,g,b) color scale.
@@ -287,20 +287,20 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
     .. note:: Most frequently used color maps:
 
         |colormaps|
-        
+
         Matplotlib full list:
-        
+
         .. image:: https://matplotlib.org/1.2.1/_images/show_colormaps.png
 
     .. tip:: Can also use directly a matplotlib color map:
 
         :Example:
             .. code-block:: python
-            
+
                 from vtkplotter import colorMap
                 import matplotlib.cm as cm
                 print( colorMap(0.2, cm.flag, 0, 1) )
-                
+
                 (1.0, 0.809016994374948, 0.6173258487801733)
     """
     if not _mapscales:
@@ -324,7 +324,7 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
             vmax = np.max(values)
         values = np.clip(values, vmin, vmax)
         values -= vmin
-        values /= vmax - vmin
+        values = values/(vmax - vmin)
         cols = []
         mp = cm_mpl.get_cmap(name=name)
         for v in values:
@@ -586,7 +586,10 @@ emoji = {
     "~Lambda": u"\U0000039B",
     "~Pi": u"\U000003A0",
     "~Sigma": u"\U000003A3",
-    "~Omega": u"\U000003A9",
+    "~Omega":   u"\U000003A9",
+    "~integral":u"\U0000222B",
+    "~cinteg":  u"\U0000222E",
+    "~block":u"\U000023F9",
 }
 
 
@@ -616,8 +619,8 @@ def printc(*strings, **keys):
             printc('anything', c='red', bold=False, end='' )
             printc('anything', 455.5, vtkObject, c='green')
             printc(299792.48, c=4) # 4 is blue
-            
-    .. hint::  |colorprint.py|_ 
+
+    .. hint::  |colorprint.py|_
 
         |colorprint|
     """
@@ -646,7 +649,7 @@ def printc(*strings, **keys):
     dim = keys.pop("dim", False)
     invert = keys.pop("invert", False)
     box = keys.pop("box", "")
-    
+
     if c is True:
         c = 'green'
     elif c is False:
@@ -660,7 +663,7 @@ def printc(*strings, **keys):
         for i, s in enumerate(strings):
             if i == ns:
                 separator = ""
-                
+
             #txt += str(s) + separator
             if "~" in str(s):  # "in" for some reasons changes s
                 for k in emoji.keys():
@@ -676,7 +679,7 @@ def printc(*strings, **keys):
                 cf = _terminal_cols[c.lower()]
             else:
                 print("Error in printc(): unknown color c=", c)
-                exit()
+                raise RuntimeError()
         if bc:
             if isinstance(bc, int):
                 cb = abs(bc) % 8
@@ -684,7 +687,7 @@ def printc(*strings, **keys):
                 cb = _terminal_cols[bc.lower()]
             else:
                 print("Error in printc(): unknown color c=", c)
-                exit()
+                raise RuntimeError()
 
         special, cseq = "", ""
         if hidden:
@@ -730,7 +733,7 @@ def printc(*strings, **keys):
             sys.stdout.write(outtxt)
         else:
             sys.stdout.write(special + cseq + txt + "\x1b[0m" + end)
-    
+
     except:
         print(*strings, end=end)
 

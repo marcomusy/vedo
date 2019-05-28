@@ -61,32 +61,35 @@ for all the following functionalities:
     - Probe a volume with lines and planes
     - Generate stream-lines and stream-tubes from vectorial fields
   - Add sliders and buttons to interact with the scene and the individual objects.
+  - Fully customizable axis style.
   - Draw `latex`-formatted formulas on the rending window.
   - Examples using [SHTools](https://shtools.oca.eu/shtools) package for *spherical harmonics* expansion of a mesh shape.
   - Integration with the *Qt5* framework.
   - Support for [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of finite-element calculations.
   - Export a 3D scene and embed it into a [web page](https://vtkplotter.embl.es/examples/fenics_elasticity.html).
+  - Embed the 3D rendering in a jupyter notebook with [K3D](https://github.com/K3D-tools/K3D-jupyter) (see an interactive 3D-snapshot page [here](https://vtkplotter.embl.es/examples/K3D_snapshot.html)).
 
 
 
-## Command-line usage
+## Command-line interface
+Visualize a mesh with:
 ```bash
 vtkplotter mesh.obj 
-# valid formats: [vtk,vtu,vts,vtp,vtm,ply,obj,stl,3ds,xml,neutral,
-#                 gmsh,pcd,xyz,txt,byu,tif,off,slc,vti,mhd,dcm,png,jpg]
+# valid formats: [vtk,vtu,vts,vtp,vtm,ply,obj,stl,3ds,dolfin-xml,neutral,gmsh,
+#                 pcd,xyz,txt,byu,tif,off,slc,vti,mhd,dcm,dem,nrrd,nii,bmp,png,jpg]
 ```
-to visualize multiple files or files time-sequences try `-n` or `-s` options. Use `-h` for help.<br> 
-Voxel-data (_mhd, vti, slc, tiff_) files can also be visualized with options `-g`, `--slicer`,
-or `--lego` e.g.:
+Voxel-data (_mhd, vti, slc, tiff, dicom etc.._) files can be visualized with options `-g`. E.g.:<br>
+`vtkplotter -g examples/data/embryo.slc`<br>
 
-|![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif) |   ![viz_raycast](https://user-images.githubusercontent.com/32848391/56972086-a7f3f800-6b6a-11e9-841e-ae499a0fb83f.png)  | ![viz_slicer](https://user-images.githubusercontent.com/32848391/56972084-a7f3f800-6b6a-11e9-98c4-dc4ffec70a5e.png)      |![lego](https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg) |
-|:-----------------------------------------------------------------------------------------------------------------:|:---:|:---:|:-----|
-```bash
-vtkplotter            examples/data/head.vti    #1 use a slider to control isosurfacing
-vtkplotter -g -c blue examples/data/embryo.slc  #2 (3D scan of a mouse embryo)
-vtkplotter --slicer   examples/data/embryo.slc  #3 can be used to read DICOM datasets
-vtkplotter --lego     examples/data/embryo.tif  #4 visualize colorized voxels
-```
+![isohead](https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif)
+
+To visualize multiple files or files time-sequences try `-n` or `-s` options. Use `-h` for the complete list of options.
+
+| Use a slider to control isosurfacing of a volume:|  Load and browse a sequence of meshes:| Slice a 3D volume with a plane:| Visualize colorized voxels:|
+|:--------|:-----|:----|:----|
+|`vtkplotter head.vti` |`vtkplotter -s *.vtk` |`vtkplotter `<br>`--slicer embr.slc` |   `vtkplotter --lego embryo.slc`|
+|![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif)|   ![viz_raycast](https://user-images.githubusercontent.com/32848391/58336919-f7b1a080-7e44-11e9-9106-f574371093a8.gif)  | ![viz_slicer](https://user-images.githubusercontent.com/32848391/56972084-a7f3f800-6b6a-11e9-98c4-dc4ffec70a5e.png)  |![lego](https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg) |
+
 
 
 ## Examples Gallery
@@ -104,21 +107,15 @@ python tutorial.py
 [**examples/other**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other)<br>
 [**examples/other/dolfin**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin).<br>
 
-|          |      |
-|:--------:|:-----|
-| ![rabbit](https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg)   | Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a large cloud of scattered points in space ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py)) <br />  `python advanced/moving_least_squares2D.py` |
-|                                                                                                                   |      |
-| ![airplanes](https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)| Create a 3D animation in exactly 10 lines of code. ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/airplanes.py))<br>Trails and shadows can be added to moving objects easily. <br /> `python simulations/airplanes.py`|
-|                                                                                                                   |      |
-| ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)     | Simulation of a gyroscope hanging from a spring ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/gyroscope1.py)) <br /> `python simulations/gyroscope1.py`|
-|                                                                                                                   |      |
-| ![qsine2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)   | Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/tunnelling2.py)) <br /> `python simulations/tunnelling2.py`   |
-|                                                                                                                   |      |
-| ![turing](https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif)   | Visualizing a Turing system of reaction-diffusion between two molecules<sup>1</sup> ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/turing.py)) <br /> `python simulations/turing.py`  |
-|                                                                                                                   |      |
-| ![elastodyn](https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif)   |  Support for the [FEniCS/dolfin](https://fenicsproject.org/) platform for visualization of PDE and finite element solutions ([see here](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin)).  <br /> ![dolf](https://user-images.githubusercontent.com/32848391/56671156-6bc91f00-66b4-11e9-8c58-e6b71e2ad1d0.gif) |
-<br />
+|         |      |
+|:--------|:-----|
+|Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a large cloud of scattered points in space ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/moving_least_squares2D.py))<br>![rabbit](https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg)  | Create a simple 3D animation in exactly 10 lines of code ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/airplanes.py)).<br>Trails and shadows can be added to moving objects easily.![airplanes](https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)|
+|         |      |
+| Simulation of a gyroscope hanging from a spring ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/gyroscope1.py)).<br> ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)     |  Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/tunnelling2.py)) <br> ![qsine2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif) |
+|         |      |
+|Visualizing a Turing system of reaction-diffusion between two molecules<sup>1</sup> ([script](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/turing.py)) <br> ![turing](https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif)  | Support for the [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of PDE and finite element solutions ([see here](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin)) <br> ![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif) |
 
+<br>
 
 
 ## References
@@ -137,3 +134,5 @@ M. Musy  _et al._
 "`vtkplotter`*, a python module for scientific visualization and analysis of 3D objects 
 and point clouds based on VTK (Visualization Toolkit)*", 
 Zenodo, 10 February 2019, [doi: 10.5281/zenodo.2561402](http://doi.org/10.5281/zenodo.2561402).
+
+[![embl_logo](https://user-images.githubusercontent.com/32848391/58046204-e9157180-7b44-11e9-81c9-e916cdf9ba84.gif)](https://www.embl.es)

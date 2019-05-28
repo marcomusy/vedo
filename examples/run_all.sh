@@ -63,6 +63,9 @@ python basic/connVtx.py
 echo Running basic/connCells.py
 python basic/connCells.py
 
+echo Running basic/customAxes.py
+python basic/customAxes.py
+
 echo Running basic/fitline.py
 python basic/fitline.py
 
@@ -355,6 +358,9 @@ python other/voronoi3d.py
 echo Running other/export_x3d.py
 python other/export_x3d.py
 
+echo Running other/create_logo.py
+python other/create_logo.py
+
 
 #################################### 
 echo
@@ -388,14 +394,21 @@ echo vtkplotter -s  "data/2??.vtk"
 vtkplotter      -s   data/2??.vtk
 
 echo '----------------------------'
+echo vtkplotter -s  "data/images/airplanes_frames/*jpg"
+vtkplotter      -s   data/images/airplanes_frames/*jpg
+
+echo '----------------------------'
+echo vtkplotter --lego  "data/SainteHelens.dem"
+vtkplotter      --lego   data/SainteHelens.dem
+
+echo '----------------------------'
 echo '----------------------------'
 echo 'cd simulations;  ./run_all.sh'
-echo 'cd other/dolfin; ./run_all.sh'
 echo '----------------------------'
 echo '----------------------------'
 
 
-##################################### not ran/ignored:
+##################################### not run/ignored:
 #basic/annotations.py
 #basic/text_just.py
 #basic/lights.py

@@ -83,9 +83,7 @@ class Particle:
         self.negligible = negligible
         self.color = color
         if vp:
-            self.vtk_actor = vp.add(
-                Sphere(pos, r=radius, c=color)
-            )  # Sphere representing the particle
+            self.vtk_actor = vp.add(Sphere(pos, r=radius, c=color))  # Sphere representing the particle
             # vp.addTrail(alpha=0.4, maxlength=1, n=50)
             # Add a trail behind the particle
             self.vtk_actor.addTrail(alpha=0.4, maxlength=1, n=50)
@@ -101,7 +99,7 @@ if __name__ == "__main__":
     vp.camera.Elevation(20)  # Initial camera position
     vp.camera.Azimuth(40)
 
-    vp.add(Cube(c="white").wire(1))  # a wireframe cube
+    vp += Cube(c="white").wire(1) # a wireframe cube
 
     sim = ParticleSim(dt=5e-6, iterations=200)
     sim.add_particle((-0.4, 0, 0), color="w", charge=3e-6, radius=0.01, fixed=True)  # the target

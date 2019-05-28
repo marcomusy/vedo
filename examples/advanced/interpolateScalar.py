@@ -29,8 +29,8 @@ scalsi = itr(xi, yi, zi)
 from vtkplotter import Plotter, Points, Text
 
 vp = Plotter(axes=1, bg="w")
-vp.add(Points([x, y, z], r=10, alpha=0.5)).pointColors(scals)
-vp.add(Points([xi, yi, zi])).pointColors(scalsi)
+vp += Points([x, y, z], r=10, alpha=0.5).pointColors(scals)
+vp += Points([xi, yi, zi]).pointColors(scalsi)
+vp += Text(__doc__, pos=1, c="dr")
 
-vp.add(Text(__doc__, pos=1, c="dr"))
 vp.show(viewup="z")

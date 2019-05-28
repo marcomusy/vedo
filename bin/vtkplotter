@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 #
 from __future__ import division, print_function
-from vtkplotter import Plotter, ProgressBar, printc, humansort, __version__, printHistogram
+from vtkplotter import Plotter, ProgressBar, printc, humansort, __version__
+from vtkplotter import vtkio
 import vtk
 import sys, argparse, os
 
@@ -27,7 +28,8 @@ pr.add_argument("-gz", "--z-spacing", type=float, help="Volume z-spacing factor 
 pr.add_argument("-gy", "--y-spacing", type=float, help="Volume y-spacing factor [1]", default=None, metavar='') 
 pr.add_argument("--slicer",                     help="Slicer Mode for 3D image files", action="store_true")
 pr.add_argument("--lego",                       help="Voxel rendering for 3D image files", action="store_true")
-pr.add_argument("--cmap",                       help="Voxel rendering color map name", default='afmhot_r', metavar='')
+pr.add_argument("--cmap",                       help="Voxel rendering color map name", default='jet', metavar='')
+pr.add_argument("--mode",                       help="Voxel rendering composite mode", default=0, metavar='')
 args = pr.parse_args()
 
 humansort(args.files)
@@ -39,10 +41,6 @@ wsize = "auto"
 if args.full_screen:
     wsize = "full"
 
-if args.ray_cast_mode or args.z_spacing or args.y_spacing:
-    if args.background == "":
-        args.background = "white"
-
 if args.lego:
     if args.background == "":
         args.background = "white"
@@ -52,7 +50,7 @@ if args.lego:
 if args.background == "":
     args.background = "blackboard"
 
-if args.scrolling_mode and 3<args.axes_type<5: #types 4 and 5 are not good for scrolling
+if args.scrolling_mode and 3 < args.axes_type < 5:  # types 4 and 5 are not good for scrolling
     args.axes_type = 8
 
 N = None
@@ -84,7 +82,7 @@ if args.wireframe:
 if args.scrolling_mode and args.multirenderer_mode:
     args.scrolling_mode = False
 
-_alphaslider1, _alphaslider2 = 0.4, 0.9  # defaults
+_alphaslider0, _alphaslider1, _alphaslider2 = 0.33, 0.66, 1  # defaults
 
 ########################################################################
 def _showVoxelImage():
@@ -93,165 +91,169 @@ def _showVoxelImage():
     from vtkplotter import Volume
     import numpy as np
 
-    printc("GPU Ray-casting Mode:", c="b", invert=1)
+    printc("GPU Ray-casting Mode", c="b", invert=1)
+    printc("Press j to toggle jittering", c="b", invert=0, bold=0)
+    printc("      q to quit.", c="b", invert=0, bold=0)
+
     vp.show(interactive=0)
 
-    for filename in args.files:
-        if not os.path.isfile(filename):
-            printc("~times File not found:", filename, c=1)
-            exit()
-        printc("...loading", filename, c="b", bold=0)
-
-        if ".tif" in filename.lower():
-            reader = vtk.vtkTIFFReader()
-        elif ".slc" in filename.lower():
-            reader = vtk.vtkSLCReader()
-            if not reader.CanReadFile(filename):
-                printc("Bad SLC file:", filename, c=1)
-                continue
-        elif ".vti" in filename.lower():
-            reader = vtk.vtkXMLImageDataReader()
-        #            reader = vtk.vtkImageReader()
-        else:
-            printc("~noentry Use -g option only with VTI, SLC or TIFF files.", c=1)
-            continue
-        reader.SetFileName(filename)
-        reader.Update()
-        img = reader.GetOutput()
-        
-        if not args.quiet:
-            printHistogram(img, bins=15, minbin=3, logscale=0, height=8, bold=0, c='b')
-
-        if args.z_spacing:
-            ispa = img.GetSpacing()
-            img.SetSpacing(ispa[0], ispa[1], ispa[2] * args.z_spacing)
-        if args.y_spacing:
-            ispa = img.GetSpacing()
-            img.SetSpacing(ispa[0], ispa[1] * args.y_spacing, ispa[2])
-
-        volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
-        volumeMapper.SetBlendModeToMaximumIntensity()
-        volumeMapper.UseJitteringOn()
-        volumeMapper.SetInputConnection(reader.GetOutputPort())
-        smin, smax = img.GetScalarRange()
-        if smax > 1e10:
-            print("Warning, high scalar range detected:", smax)
-            smax = abs(10 * smin) + 0.1
-            print("         reset to:", smax)
-        printc("voxel spacing:", img.GetSpacing(), c="b", bold=0)
-
-        # Create transfer mapping scalar value to color
-        if args.color is None:
-            r, g, b = (0, 0, 0.6)
-        else:
-            r, g, b = vc.getColor(args.color)
-        colorTransferFunction = vtk.vtkColorTransferFunction()
-        colorTransferFunction.AddRGBPoint(smin, 1, 0, 0)
-        colorTransferFunction.AddRGBPoint((smin+smax)/3.0, 0.01, .33, 0)
-        colorTransferFunction.AddRGBPoint(smax, 0, 0, 1)
-
-        x1alpha = smin + (smax - smin) * 0.33
-        x2alpha = smin + (smax - smin) * 0.66
-        # Create transfer mapping scalar value to opacity
-        opacityTransferFunction = vtk.vtkPiecewiseFunction()
-        opacityTransferFunction.AddPoint(smin, 0.0)
-        opacityTransferFunction.AddPoint(smin + (smax - smin) * 0.1, 0.0)
-        opacityTransferFunction.AddPoint(x1alpha, _alphaslider1)
-        opacityTransferFunction.AddPoint(x2alpha, _alphaslider2)
-        opacityTransferFunction.AddPoint(smax, 1.0)
-
-        # The property describes how the data will look
-        volumeProperty = vtk.vtkVolumeProperty()
-        volumeProperty.SetColor(colorTransferFunction)
-        volumeProperty.SetScalarOpacity(opacityTransferFunction)
-        volumeProperty.SetInterpolationTypeToLinear()
-        
-#        volumeMapper.SetBlendModeToComposite()
-#        volumeProperty.ShadeOn()
-#        volumeProperty.SetAmbient(0.1)
-#        volumeProperty.SetDiffuse(1)
-#        volumeProperty.SetSpecular(1)
-#        volumeProperty.SetSpecularPower(2.0)
-
-        # volume holds the mapper and the property and can be used to position/orient it
-        volume = Volume(img)
-        volume.SetMapper(volumeMapper)
-        volume.SetProperty(volumeProperty)
-
-        vp.add(volume)
-
-    ############################## color intensity slider
-    def sliderColor(widget, event):
-        value = widget.GetRepresentation().GetValue() 
-        colorTransferFunction.RemoveAllPoints()
-        x = (value-smin)/(smax+smin)-0.
-        s = 40 # sharpness
-        r = np.exp(-x*x*s)
-        g = np.exp(-(x-.5)*(x-.5)*s)
-        b = np.exp(-(x-1)*(x-1)*s)
-        
-        colorTransferFunction.AddRGBPoint(smin,  1, 0, 0) 
-        colorTransferFunction.AddRGBPoint(value, r, g, b)
-        colorTransferFunction.AddRGBPoint(smax,  0, 0, 1) 
-        #print(x, r, g, b)
-    w1 = vp.addSlider2D(sliderColor, smin, smax, value=(smin+smax)/3.0, 
-                        pos=4, title='color brightness')
+    filename = args.files[0]
     
-    ############################## alpha sliders    
-    def sliderA1(widget, event):
-        global _alphaslider1
-        _alphaslider1 = widget.GetRepresentation().GetValue()
+    img = vtkio.load(filename).imagedata()
+    if args.z_spacing:
+        ispa = img.GetSpacing()
+        img.SetSpacing(ispa[0], ispa[1], ispa[2] * args.z_spacing)
+    if args.y_spacing:
+        ispa = img.GetSpacing()
+        img.SetSpacing(ispa[0], ispa[1] * args.y_spacing, ispa[2])
+
+    volume = Volume(img, mode=int(args.mode))
+    volumeProperty = volume.GetProperty()
+
+    smin, smax = img.GetScalarRange()
+    if smax > 1e10:
+        print("Warning, high scalar range detected:", smax)
+        smax = abs(10 * smin) + 0.1
+        print("         reset to:", smax)
+
+    x0alpha = smin + (smax - smin) * 0.33
+    x1alpha = smin + (smax - smin) * 0.66
+    x2alpha = smin + (smax - smin) * 1.00
+
+    ############################## color map slider
+    # Create transfer mapping scalar value to color
+    colorTransferFunction = volumeProperty.GetRGBTransferFunction()
+    cmaps = [args.cmap, 'rainbow', 'viridis', 'bone', 'hot', 'plasma',
+             'winter', 'cool', 'gist_earth', 'coolwarm', 'tab10']
+    cols_cmaps = []
+    for cm in cmaps:
+        cols = vc.colorMap(range(0,21), cm, 0,20) # sample 20 colors
+        cols_cmaps.append(cols)
+    Ncols = len(cmaps)
+    csl = (0.9, 0.9, 0.9)
+    if sum(vc.getColor(args.background)) > 1.5:
+        csl = (0.1, 0.1, 0.1)
+    
+    def setCMAP(k):
+        cols = cols_cmaps[k]
+        colorTransferFunction.RemoveAllPoints()
+        for i,s in enumerate(np.linspace(smin, smax, num=20, endpoint=True)):
+            r, g, b = cols[i]
+            colorTransferFunction.AddRGBPoint(s,  r, g, b)
+    setCMAP(0)
+    
+    def sliderColorMap(widget, event):
+        sliderRep = widget.GetRepresentation()
+        k = int(sliderRep.GetValue())        
+        sliderRep.SetTitleText(cmaps[k])
+        setCMAP(k)
+
+    w1 = vp.addSlider2D(
+        sliderColorMap,
+        0, Ncols-1,
+        value=0, showValue=0,
+        title=cmaps[0],
+        c=csl,
+        pos=[(0.8, 0.05), (0.965, 0.05)],
+    )
+    w1.GetRepresentation().SetTitleHeight(0.018)
+
+    ############################## alpha sliders
+    # Create transfer mapping scalar value to opacity
+    opacityTransferFunction =  volumeProperty.GetScalarOpacity()
+
+    def setOTF():
         opacityTransferFunction.RemoveAllPoints()
         opacityTransferFunction.AddPoint(smin, 0.0)
         opacityTransferFunction.AddPoint(smin + (smax - smin) * 0.1, 0.0)
+        opacityTransferFunction.AddPoint(x0alpha, _alphaslider0)
         opacityTransferFunction.AddPoint(x1alpha, _alphaslider1)
         opacityTransferFunction.AddPoint(x2alpha, _alphaslider2)
-        opacityTransferFunction.AddPoint(smax, 1.0)
+    setOTF()
 
-    # _alphaslider1 /= smax
-    w2 = vp.addSlider2D(
-        sliderA1,
-        0,
-        1,
-        value=_alphaslider1,
-        pos=[(0.93, 0.1), (0.93, 0.44)],
-        title="",
-        showValue=0,
+    def sliderA0(widget, event):
+        global _alphaslider0
+        _alphaslider0 = widget.GetRepresentation().GetValue()
+        setOTF()
+    w0 = vp.addSlider2D(
+        sliderA0, 0, 1, value=_alphaslider0, pos=[(0.855, 0.1), (0.855, 0.26)], c=csl, showValue=0
+    )
+
+    def sliderA1(widget, event):
+        global _alphaslider1
+        _alphaslider1 = widget.GetRepresentation().GetValue()
+        setOTF()
+    w1 = vp.addSlider2D(
+        sliderA1, 0, 1, value=_alphaslider1, pos=[(0.9075, 0.1), (0.9075, 0.26)], c=csl, showValue=0
     )
 
     def sliderA2(widget, event):
         global _alphaslider2
         _alphaslider2 = widget.GetRepresentation().GetValue()
-        opacityTransferFunction.RemoveAllPoints()
-        opacityTransferFunction.AddPoint(smin, 0.0)
-        opacityTransferFunction.AddPoint(smin + (smax - smin) * 0.1, 0.0)
-        opacityTransferFunction.AddPoint(x1alpha, _alphaslider1)
-        opacityTransferFunction.AddPoint(x2alpha, _alphaslider2)
-        opacityTransferFunction.AddPoint(smax, 1.0)
-
-    # _alphaslider2 /= smax
-    w3 = vp.addSlider2D(
-        sliderA2,
-        0,
-        1,
-        value=_alphaslider2,
-        pos=[(0.96, 0.1), (0.96, 0.44)],
-        title="alpha thresholds",
-        showValue=0,
+        setOTF()
+    w2 = vp.addSlider2D(
+        sliderA2, 0, 1, value=_alphaslider2, pos=[(0.96, 0.1), (0.96, 0.26)], c=csl, showValue=0,
+        title="Opacity levels",
     )
+    w2.GetRepresentation().SetTitleHeight(0.016)
+    
+    # add a button
+    def buttonfuncMode():
+        s = volume.mode()
+        snew = (s+1)%2
+        volume.mode(snew)
+        bum.switch()
+    
+    bum = vp.addButton(
+        buttonfuncMode,
+        pos=(.7, .035),
+        states=["composite", "max proj."],
+        c=["bb", "gray"],
+        bc=["gray", "bb"],  # colors of states
+        font="arial",
+        size=16,
+        bold=0,
+        italic=False,
+    ).status(int(args.mode))
+
+    def keyfuncJitter(key): #toggle jittering
+        if key != 'j': return
+        s = volume.jittering()
+        snew = (s+1)%2
+        volume.jittering(snew)
+        vp.interactor.Render()  
+    volume.jittering(True)
+    vp.keyPressFunction = keyfuncJitter  # make it known to Plotter class
 
     def CheckAbort(obj, event):
         if obj.GetEventPending() != 0:
             obj.SetAbortRender(1)
-
     vp.window.AddObserver("AbortCheckEvent", CheckAbort)
 
-    printc("Press r to reset camera", c="b")
-    printc("      q to exit.", c="b")
-    vp.show(zoom=1.2, interactive=1)
+    # add histogram of scalar
+    from vtkplotter import histogram
+    dims = img.GetDimensions()
+    nvx = min(100000, dims[0]*dims[1]*dims[2])
+    np.random.seed(0)
+    idxs = np.random.randint(0, min(dims), size=(nvx, 3))
+    data = []
+    for ix, iy, iz in idxs:
+        d = img.GetScalarComponentAsFloat(ix, iy, iz, 0)
+        data.append(d)
+    
+    plot = histogram(data, bins=40, logscale=1, c="gray", bg='gray', pos=(0.78, 0.065))
+    plot.GetPosition2Coordinate().SetValue(0.197, 0.20, 0)
+    plot.SetNumberOfXLabels(2)
+    plot.GetXAxisActor2D().SetFontFactor(0.8)    
+    plot.GetProperty().SetOpacity(0.5)
+
+    vp.add(plot)
+    vp.add(volume)
+    
+    vp.show(viewup='z', zoom=1.2, interactive=1)
+    w0.SetEnabled(0)
     w1.SetEnabled(0)
     w2.SetEnabled(0)
-    w3.SetEnabled(0)
 
 
 ##########################################################
@@ -270,37 +272,7 @@ if args.ray_cast_mode or args.z_spacing or args.y_spacing:
 elif args.slicer:
 
     filename = args.files[0]
-    if not os.path.isfile(filename):
-        if os.path.isdir(filename):
-            reader = vtk.vtkDICOMImageReader()
-            reader.SetDirectoryName(filename)
-        else:
-            printc("~times File not found:", filename, c=1)
-            exit()
-        
-    printc("...loading", filename, c="m", bold=0)
-
-    if ".tif" in filename.lower():
-        reader = vtk.vtkTIFFReader()
-        reader.SetFileName(filename)
-
-    elif ".slc" in filename.lower():
-        reader = vtk.vtkSLCReader()
-        reader.SetFileName(filename)
-        if not reader.CanReadFile(filename):
-            printc("~bomb Bad SLC file:", filename, c=1)
-
-    elif ".vti" in filename.lower():
-        reader = vtk.vtkXMLImageDataReader()
-        reader.SetFileName(filename)
-
-    elif ".dcm" in filename.lower() or ".dicom" in filename.lower():
-        reader = vtk.vtkDICOMImageReader()
-        dirname = os.path.dirname(filename)
-        reader.SetDirectoryName(dirname)
-
-    reader.Update()
-    img = reader.GetOutput()
+    img = vtkio.load(filename).imagedata()
 
     ren1 = vtk.vtkRenderer()
     renWin = vtk.vtkRenderWindow()
@@ -356,28 +328,34 @@ elif args.slicer:
 
 
 ########################################################################
-# normal mode for single VOXEL file with Isosurface Slider
-elif nfiles == 1 and (".slc" in args.files[0] or ".vti" in args.files[0] or ".tif" in args.files[0]):
+# normal mode for single VOXEL file with Isosurface Slider or LEGO mode
+elif nfiles == 1 and (
+       ".slc" in args.files[0]
+    or ".vti" in args.files[0]
+    or ".tif" in args.files[0]
+    or ".mhd" in args.files[0]
+    or ".nrrd" in args.files[0]
+    or ".dem" in args.files[0]
+):
     from vtkplotter import Actor, legosurface
-    from vtkplotter.vtkio import loadImageData
 
-    image = loadImageData(args.files[0])
+    image = vtkio.loadImageData(args.files[0])
     scrange = image.GetScalarRange()
     threshold = (scrange[1] - scrange[0]) / 3.0 + scrange[0]
-    printHistogram(image, minbin=3, height=8, bins=20)
-    
+    #printHistogram(image, minbin=3, height=8, bins=40, logscale=1)
+
     if args.lego:
         sliderpos = ((0.79, 0.035), (0.975, 0.035))
-        slidertitle = ''
+        slidertitle = ""
         showval = False
-        mbg = 'white'
+        mbg = "white"
         act = legosurface(image, vmin=threshold, cmap=args.cmap)
         act.addScalarBar(act, horizontal=1, vmin=scrange[0], vmax=scrange[1])
     else:
         sliderpos = 4
         slidertitle = "isosurface threshold"
-        showval= True
-        mbg = 'bb'
+        showval = True
+        mbg = "bb"
         cf = vtk.vtkContourFilter()
         cf.SetInputData(image)
         cf.UseScalarTreeOn()
@@ -390,7 +368,7 @@ elif nfiles == 1 and (".slc" in args.files[0] or ".vti" in args.files[0] or ".ti
                 ic = args.color
         if args.show_scalars:
             ic = None
-    
+
         cf.SetValue(0, threshold)
         cf.Update()
         act = Actor(cf.GetOutput(), ic, alpha=abs(args.alpha)).wire(args.wireframe)
@@ -399,7 +377,7 @@ elif nfiles == 1 and (".slc" in args.files[0] or ".vti" in args.files[0] or ".ti
     ############################## threshold slider
     def sliderThres(widget, event):
         if args.lego:
-            a = legosurface(image, vmin= widget.GetRepresentation().GetValue(), cmap=args.cmap)
+            a = legosurface(image, vmin=widget.GetRepresentation().GetValue(), cmap=args.cmap)
         else:
             cf.SetValue(0, widget.GetRepresentation().GetValue())
             cf.Update()
@@ -429,11 +407,11 @@ elif nfiles == 1 and (".slc" in args.files[0] or ".vti" in args.files[0] or ".ti
     vp.window.AddObserver("AbortCheckEvent", CheckAbort)
 
     act.legend(leg)
-    vp.show(act, zoom=args.zoom, viewup='z')
+    vp.show(act, zoom=args.zoom, viewup="z")
 
 
 ########################################################################
-# NORMAL mode for single or multiple files, or multiren mode 
+# NORMAL mode for single or multiple files, or multiren mode
 elif (not args.scrolling_mode) or nfiles == 1:
 
     actors = []
@@ -463,7 +441,7 @@ elif (not args.scrolling_mode) or nfiles == 1:
             ic = None
 
         actor = vp.load(f, c=ic, alpha=alpha)
-        if hasattr(actor, 'wire'):
+        if hasattr(actor, "wire"):
             actor.wire(wire)
 
         if leg:
@@ -513,7 +491,7 @@ else:
             ic = None
 
         actor = vp.load(f, c=ic, alpha=alpha)
-        if hasattr(actor, 'wire'):
+        if hasattr(actor, "wire"):
             actor.wire(wire)
         actor.legend(leg)
         actors.append(actor)

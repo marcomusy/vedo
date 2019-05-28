@@ -15,13 +15,11 @@ act = pcaEllipsoid(pts, pvalue=0.5, pcaAxes=1)
 
 ipts = act.getActor(0).insidePoints(pts)  # act is a vtkAssembly
 opts = act.getActor(0).insidePoints(pts, invert=True)
-vp.add(Points(ipts, c="g"))
-vp.add(Points(opts, c="r"))
+vp += Points(ipts, c="g")
+vp += Points(opts, c="r")
+vp += [act, Text(__doc__)]
 
 print("inside  points #", len(ipts))
 print("outside points #", len(opts))
 print("sphericity :", act.info["sphericity"])
-
-vp.add([act, Text(__doc__)])
-
 vp.show()

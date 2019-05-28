@@ -7,7 +7,7 @@ analysis and animation of 3D objects and point clouds based on VTK.
 .. note:: **Please check out the** `git repository <https://github.com/marcomusy/vtkplotter>`_.
 
     A full list of examples can be found in directories:
-        
+
     - `examples/basic <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic>`_ ,
     - `examples/advanced <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced>`_ ,
     - `examples/volumetric <https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric>`_,
@@ -33,7 +33,7 @@ Development 2018, `doi: 10.1242/dev.154856 <http://dev.biologists.org/content/14
 
 **Have you found this software useful for your research? Please cite it as:**
 
-M. Musy, et al.,  
+M. Musy, et al.,
 "`vtkplotter`, a python module for scientific visualization,
 analysis and animation of 3D objects and point clouds based on VTK." (version v8.9.0). Zenodo,
 `doi: 10.5281/zenodo.2561402 <http://doi.org/10.5281/zenodo.2561402>`_, 10 February 2019.
@@ -57,9 +57,10 @@ from vtkplotter.actors import *
 from vtkplotter.utils import *
 from vtkplotter.colors import *
 import vtkplotter.settings as settings
-from vtkplotter.settings import datadir
+from vtkplotter.settings import datadir, embedWindow
 import vtkplotter.dolfin as dolfin
 from numpy import sin, cos, sqrt, exp, log, dot, cross, array, arange
+
 
 # imports hierarchy
 # plotter : utils, colors, actors, vtkio, shapes
@@ -83,7 +84,7 @@ def loadImageData(*args, **kargs):
     printc("img = load('file.tif').imagedata() # or better:")
     printc("vol = load('file.tif') # returns a Volume")
     printc("Abort.", c=1)
-    exit(0)
+    raise RuntimeError()
 
 
 

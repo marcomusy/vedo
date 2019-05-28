@@ -63,5 +63,5 @@ plot(sigma, msg,
      mode='mesh lines',
      warpZfactor=-0.2,    # rise mesh in z based on scalar value
      scale=0.03,          # scale the lines or arrows
-     axes=8, newPlotter=True)
+     newPlotter=True)
 

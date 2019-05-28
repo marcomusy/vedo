@@ -75,7 +75,7 @@ for i in range(Nsteps):
     l, a = lines[i]
     # l.pointColors(a, cmap='rainbow')
     l.pointColors(-a, cmap="gist_earth")  # inverted gist_earth
-    vp.add([l.pos(p), barrier.clone().alpha(0.3).pos(p)])
+    vp += [l.pos(p), barrier.clone().alpha(0.3).pos(p)]
     vp.show()
 
 vp.show(interactive=1)

@@ -89,6 +89,7 @@ for the all following functionalities:
     - Generate volumetric signed-distance data from an input surface mesh
     - Probe a volume with lines and planes.
 - Add sliders and buttons to interact with the scene and the individual objects.
+- Fully customizable axis style.
 - Examples with `SHTools <https://shtools.oca.eu/shtools>`_ package for *spherical harmonics* expansion of a mesh shape.
 - Integration with the *Qt5* framework.
 - Draw `latex`-formatted formulas on the rending window.
@@ -114,41 +115,52 @@ Allowed input objects to the ``show()`` command are: \ :raw-html-m2r:`<br>`
 ``filename``, ``vtkPolyData``, ``vtkActor``, 
 ``vtkActor2D``, ``vtkImageActor``, ``vtkAssembly`` or ``vtkVolume``.
 
-Supported ``filename`` extensions are: \ :raw-html-m2r:`<br>`
-`vtk, vtu, vts, vtp, ply, obj, stl, 3ds, xml, neutral, gmsh, pcd, xyz, txt, byu,
-tif, slc, vti, mhd, dcm, png, jpg`.
 
+Command-line interface
+----------------------
 
-
-Command-line usage
-------------------
+Visualize a mesh with:
 
 .. code-block:: bash
 
-    vtkplotter data/shapes/flamingo.3ds
+    vtkplotter mesh.obj
+    # valid formats: [vtk,vtu,vts,vtp,vtm,ply,obj,stl,3ds,dolfin-xml,neutral,gmsh,
+    #                 pcd,xyz,txt,byu,tif,off,slc,vti,mhd,dicom,dem,nrrd,bmp,png,jpg]
 
-to visualize multiple files or files time-sequences try ``-n`` or ``-s`` options:
-
-.. code-block:: bash
-
-    vtkplotter -s data/timecourse1d/*vtk
-    # or
-    vtkplotter -n data/timecourse1d/*vtk
-
-Try ``-h`` for help.\ :raw-html-m2r:`<br>`
-
-Voxel-data (`vti, slc, mhd, tif`) files can also be visualized 
-with options ``-g`` or ``--slicer``, e.g.:
+Voxel-data (*mhd, vti, slc, tiff, dicom*) files can also be visualized with options `-g`, e.g.:
 
 .. code-block:: bash
 
-    vtkplotter            examples/data/embryo.tif  # shows a 3D scan of a mouse embryo
-    vtkplotter -g -c blue examples/data/embryo.slc  #  with sliders to control isosurfacing
-    vtkplotter --slicer   examples/data/embryo.slc  # can be used to show DICOM files
+    vtkplotter -g examples/data/embryo.slc
 
-.. image:: https://user-images.githubusercontent.com/32848391/50738810-58af4380-11d8-11e9-8fc7-6c6959207224.jpg
-   :target: https://user-images.githubusercontent.com/32848391/50738810-58af4380-11d8-11e9-8fc7-6c6959207224.jpg
-   :alt: e2
+.. image:: https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif
+
+To visualize multiple files or files time-sequences try `-n` or `-s` options. Use `-h` for the complete list of options.
+
+
+Use a slider to control isosurfacing of a volume:
+
+.. code-block:: bash
+
+    vtkplotter examples/data/head.vti
+
+.. image:: https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif
+
+Load and browse a sequence of meshes:
+
+.. code-block:: bash
+
+    vtkplotter -s examples/data/timecourse1d/*.vtk   
+
+.. image:: https://user-images.githubusercontent.com/32848391/58336919-f7b1a080-7e44-11e9-9106-f574371093a8.gif
+
+Visualize colorized voxels:
+
+.. code-block:: bash
+
+    vtkplotter --lego examples/data/embryo.slc
+
+.. image:: https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg
 
 
 
@@ -190,15 +202,6 @@ Simulation of a gyroscope hanging from a spring
    :alt: gyro
 
 
-Simulation of `Rutherford scattering <https://en.wikipedia.org/wiki/Rutherford_scattering>`_ 
-of charged particles on a fixed target 
-(`particle_simulator.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/particle_simulator.py>`_):
-
-.. image:: https://user-images.githubusercontent.com/32848391/43984362-5c545a0e-9d00-11e8-8ce5-572b96bb91d1.gif
-   :target: https://user-images.githubusercontent.com/32848391/43984362-5c545a0e-9d00-11e8-8ce5-572b96bb91d1.gif
-   :alt: ruth
-
-
 Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. 
 The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier
 (`tunnelling2.py <https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/tunnelling2.py>`_):
@@ -218,46 +221,12 @@ Visualizing a Turing system of reaction-diffusion between two molecules
 
 
 
-Some useful ``Plotter`` attributes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Support for the `FEniCS/dolfin <https://fenicsproject.org/>`_ platform for visualization of PDE and 
+finite element solutions
+(`see here <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin>`_.
 
-Remember that you always have full access to all standard VTK native objects
-(e.g. `vtkRenderWindowInteractor`, `vtkRenderer` and `vtkActor` through `vp.interactor`,
-`vp.renderer`, `vp.actors`... etc).
+.. image:: https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif
 
-.. code-block:: python
-
-   vp = vtkplotter.Plotter() #e.g.
-   vp.actors       # holds the current list of vtkActors to be shown
-   vp.renderer     # holds the current vtkRenderer
-   vp.renderers    # holds the list of renderers
-   vp.interactor   # holds the vtkWindowInteractor object
-   vp.interactive  # (True) allows to interact with renderer after show()
-   vp.camera       # holds the current vtkCamera
-   vp.sharecam     # (True) share the same camera in multiple renderers
-
-
-Frequently used methods to manage 3D objects
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-These methods return the ``Actor(vtkActor)`` object so that they can be concatenated,
-check out ``Actor`` `methods here <https://vtkplotter.embl.es/actors.m.html>`_. :raw-html-m2r:`<br />`
-(E.g.: ``actor.scale(3).pos([1,2,3]).color('blue').alpha(0.5)`` etc..).
-
-.. code-block:: python
-
-   actor.pos()               # set/get position vector (setters, and getters if no argument is given)
-   actor.scale()             # set/get scaling factor of actor
-   actor.normalize()         # sets actor at origin and scales its average size to 1
-   actor.rotate(angle, axis) # rotate actor around axis
-   actor.color(name)         # sets/gets color
-   actor.alpha(value)        # sets/gets opacity
-   actor.N()                 # get number of vertex points defining the actor's mesh
-   actor.polydata()          # get the actor's mesh polydata in its current transformation
-   actor.coordinates()       # get a copy of vertex points coordinates (copy=False to get references)
-   actor.normals()           # get the list of normals at the vertices of the surface
-   actor.clone()             # get a copy of actor
-   ...
 
 
 Mesh format conversion
@@ -271,23 +240,5 @@ The command ``vtkconvert`` can be used to convert multiple files from a format t
    allowed targets formats: [vtk, vtp, vtu, vts, ply, stl, byu, xml]
 
    Example: > vtkconvert myfile.vtk -to ply
-
-Available color maps from ``matplotlib`` and ``vtkNamedColors``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: python
-
-   # Example: transform a scalar value between -10.2 and 123 into a (R,G,B) color using the 'jet' map:
-   from vtkplotter import colorMap
-   r, g, b = colorMap(value, name='jet', vmin=-10.2, vmax=123)
-
-
-.. image:: https://user-images.githubusercontent.com/32848391/50738804-577e1680-11d8-11e9-929e-fca17a8ac6f3.jpg
-   :target: https://user-images.githubusercontent.com/32848391/50738804-577e1680-11d8-11e9-929e-fca17a8ac6f3.jpg
-   :alt: colormaps
-
-
-A list of available `vtk color names is given here <https://vtkplotter.embl.es/vtkcolors.html>`_.
-:raw-html-m2r:`<br />`
 
 

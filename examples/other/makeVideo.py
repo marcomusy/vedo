@@ -7,7 +7,7 @@ print(__doc__)
 from vtkplotter import *
 
 # declare the class instance
-vp = Plotter(bg='beige', axes=10, interactive=0, offscreen=False)
+vp = Plotter(bg='beige', axes=10, interactive=0, offscreen=True)
 
 vp.load(datadir+"spider.ply").texture("leather2").rotateX(-90)
 

@@ -4,11 +4,10 @@ Global settings.
 .. role:: raw-html-m2r(raw)
    :format: html
 
-
 .. note:: **Please check out the** `git repository <https://github.com/marcomusy/vtkplotter>`_.
 
     A full list of examples can be found in directories:
-        
+
     - `examples/basic <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic>`_ ,
     - `examples/advanced <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced>`_ ,
     - `examples/volumetric <https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric>`_,
@@ -24,7 +23,7 @@ Global settings.
 :raw-html-m2r:`<br />`
 
 """
-__all__ = ['datadir']
+__all__ = ['datadir', 'embedWindow']
 
 ####################################################################################
 # recompute vertex and cell normals
@@ -41,6 +40,9 @@ usetex = False
 
 # Qt embedding
 usingQt = False
+
+# OpenVR
+useOpenVR = False
 
 # on some vtk versions/platforms points are redered as ugly squares
 renderPointsAsSpheres = True
@@ -73,6 +75,42 @@ textures = []
 datadir = _cdir + "/data/"
 fonts_path = _cdir + "/fonts/"
 fonts = []
+
+#####################
+notebookBackend = None
+notebook_plotter = None
+def embedWindow(backend='k3d', verbose=True):
+    global notebook_plotter, notebookBackend
+    if not backend:
+        return
+    notebookBackend = backend
+    if backend=='k3d':
+        try:
+            get_ipython()
+            import k3d
+            #if verbose:
+            #    print('INFO: embedWindow(verbose=True), importing k3d module')
+        except:
+            if verbose:
+                print('embedWindow(): could not load k3d module, try:')
+                print('> pip install k3d      # and/or')
+                print('> conda install nodejs')
+    elif backend=='panel':
+        try:
+            get_ipython()
+            if verbose:
+                print('INFO: embedWindow(verbose=True), first import of panel module, this takes time...')
+            import panel
+            panel.extension('vtk')
+        except:
+            if verbose:
+                print('embedWindow(): could not load panel try:')
+                print('> pip install panel    # and/or')
+                print('> conda install nodejs')
+    else:
+        print("Unknown backend", backend)
+        raise RuntimeError()
+    
 
 #####################
 def _init():

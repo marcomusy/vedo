@@ -35,14 +35,14 @@ __all__ = [
 def load(inputobj, c="gold", alpha=1, threshold=False, spacing=(), unpack=True):
     """
     Load ``Actor`` and ``Volume`` from file.
-    
+
     The output will depend on the file extension. See examples below.
-    
+
     :param c: color in RGB format, hex, symbol or name
     :param alpha: transparency/opacity of the polygonal data.
 
     For volumetric data `(tiff, slc, vti etc..)`:
-        
+
     :param list c: can be a list of any length of colors. This list represents the color
         transfer function values equally spaced along the range of the volumetric scalar.
     :param list alpha: can be a list of any length of tranparencies. This list represents the
@@ -51,33 +51,33 @@ def load(inputobj, c="gold", alpha=1, threshold=False, spacing=(), unpack=True):
         If set to True will return an ``Actor`` with automatic choice of the isosurfacing threshold.
     :param list spacing: specify the voxel spacing in the three dimensions
     :param bool unpack: only for multiblock data, if True returns a flat list of objects.
-    
+
     :Examples:
         .. code-block:: python
-        
+
             from vtkplotter import datadir, load, show
-            
+
             # Return an Actor
             g = load(datadir+'250.vtk')
             show(g)
-            
+
             # Return a list of 2 Actors
             g = load([datadir+'250.vtk', datadir+'270.vtk'])
             show(g)
-            
+
             # Return a list of actors by reading all files in a directory
             # (if directory contains DICOM files then a Volume is returned)
             g = load(datadir+'timecourse1d/')
             show(g)
-            
+
             # Return a Volume. Color/Opacity transfer functions can be specified too.
             g = load(datadir+'embryo.slc')
             g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1))
             show(g)
-            
+
             # Return an Actor from a SLC volume with automatic thresholding
             g = load(datadir+'embryo.slc', threshold=True)
-            show(g)    
+            show(g)
     """
     acts = []
     if utils.isSequence(inputobj):
@@ -93,7 +93,23 @@ def load(inputobj, c="gold", alpha=1, threshold=False, spacing=(), unpack=True):
         elif os.path.isdir(fod):### it's a directory or DICOM
             flist = os.listdir(fod)
             if '.dcm' in flist[0]: ### it's DICOM
-                acts.append(loadDICOM(fod, spacing))
+                reader = vtk.vtkDICOMImageReader()
+                reader.SetDirectoryName(fod)
+                reader.Update()
+                image = reader.GetOutput()
+                if len(spacing) == 3:
+                    image.SetSpacing(spacing[0], spacing[1], spacing[2])
+                if threshold is False:
+                    if c is "gold" and alpha is 1:
+                        c = ['b','lb','lg','y','r'] # good for blackboard background
+                        alpha = (0.0, 0.0, 0.2, 0.4, 0.8, 1)
+                        #c = ['lb','db','dg','dr']  # good for white backgr
+                        #alpha = (0.0, 0.0, 0.2, 0.6, 0.8, 1)
+                    actor = Volume(image, c, alpha)
+                else:
+                    actor = isosurface(image, threshold=threshold)
+                    actor.color(c).alpha(alpha)
+                acts.append(actor)
             else: ### it's a normal directory
                 utils.humansort(flist)
                 for ifile in flist:
@@ -130,26 +146,21 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
         actor = loadOFF(filename)
     elif fl.endswith(".3ds"):  # 3ds format
         actor = load3DS(filename)
-    elif fl.endswith(".foam"):  # OpenFoam
-        reader = vtk.vtkOpenFOAMReader()
-        reader.SetFileName(filename)
-        reader.Update()
-        actor = Actor(reader.GetOutput(), c, alpha)
-        
+
         ################################################################# volumetric:
     elif fl.endswith(".tif") or fl.endswith(".slc") or fl.endswith(".vti") \
-        or fl.endswith(".mhd") or fl.endswith(".nrrd"):
+        or fl.endswith(".mhd") or fl.endswith(".nrrd") or fl.endswith(".nii"):
         img = loadImageData(filename, spacing)
-        if threshold is not False:
-            actor = isosurface(img, threshold=threshold)
-            actor.color(c).alpha(alpha)
-        else:
+        if threshold is False:
             if c is "gold" and alpha is 1:
                 c = ['b','lb','lg','y','r'] # good for blackboard background
                 alpha = (0.0, 0.0, 0.2, 0.4, 0.8, 1)
                 #c = ['lb','db','dg','dr']  # good for white backgr
                 #alpha = (0.0, 0.0, 0.2, 0.6, 0.8, 1)
             actor = Volume(img, c, alpha)
+        else:
+            actor = isosurface(img, threshold=threshold)
+            actor.color(c).alpha(alpha)
 
         ################################################################# 2D images:
     elif fl.endswith(".png") or fl.endswith(".jpg") or fl.endswith(".bmp") or fl.endswith(".jpeg"):
@@ -159,7 +170,6 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
             picr = vtk.vtkJPEGReader()
         elif ".bmp" in fl:
             picr = vtk.vtkBMPReader()
-            picr.Allow8BitBMPOff()
         picr.SetFileName(filename)
         picr.Update()
         actor = Image()  # object derived from vtk.vtkImageActor()
@@ -200,6 +210,8 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
             reader = vtk.vtkSTLReader()
         elif fl.endswith(".byu") or fl.endswith(".g"):
             reader = vtk.vtkBYUReader()
+        elif fl.endswith(".foam"):  # OpenFoam
+            reader = vtk.vtkOpenFOAMReader()
         elif fl.endswith(".vtp"):
             reader = vtk.vtkXMLPolyDataReader()
         elif fl.endswith(".vts"):
@@ -223,13 +235,13 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
         reader.SetFileName(filename)
         reader.Update()
         poly = reader.GetOutput()
-        
+
         if fl.endswith(".vts") or fl.endswith(".vtu"): # un/structured grid
             gf = vtk.vtkGeometryFilter()
             gf.SetInputData(poly)
             gf.Update()
             poly = gf.GetOutput()
-    
+
         if not poly:
             colors.printc("~noentry Unable to load", filename, c=1)
             return None
@@ -237,7 +249,7 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
         actor = Actor(poly, c, alpha)
         if fl.endswith(".txt") or fl.endswith(".xyz"):
             actor.GetProperty().SetPointSize(4)
-            
+
     actor.filename = filename
     return actor
 
@@ -351,9 +363,6 @@ def loadOFF(filename):
 
 def loadDolfin(filename):
     """Reads a `Fenics/Dolfin` file format. Return an ``Actor(vtkActor)`` object."""
-    if not os.path.exists(filename):
-        colors.printc("~noentry Error in loadDolfin: Cannot find", filename, c=1)
-        return None
     import xml.etree.ElementTree as et
 
     if filename.endswith(".gz"):
@@ -367,6 +376,7 @@ def loadDolfin(filename):
         tree = et.parse("/tmp/filename.xml")
     else:
         tree = et.parse(filename)
+
     coords, connectivity = [], []
     for mesh in tree.getroot():
         for elem in mesh:
@@ -503,20 +513,8 @@ def loadPCD(filename):
     return actor
 
 
-def loadDICOM(dirname, spacing=()):
-    '''Load A DICOM directory and return a ``Volume``.'''
-    reader = vtk.vtkDICOMImageReader()
-    reader.SetDirectoryName(dirname)
-    reader.Update()
-    image = reader.GetOutput()
-    if len(spacing) == 3:
-        image.SetSpacing(spacing[0], spacing[1], spacing[2])
-    return Volume(image)
-
-
 def loadImageData(filename, spacing=()):
     """Read and return a ``vtkImageData`` object from file.
-    DEPRECATED.
     Use ``loadVolume`` instead.
     E.g. `img = loadVolume('myfile.tif').imagedata()`
     """
@@ -535,6 +533,10 @@ def loadImageData(filename, spacing=()):
         reader = vtk.vtkXMLImageDataReader()
     elif ".mhd" in filename.lower():
         reader = vtk.vtkMetaImageReader()
+    elif ".dem" in filename.lower():
+        reader = vtk.vtkDEMReader()
+    elif ".nii" in filename.lower():
+        reader = vtk.vtkNIFTIImageReader()
     elif ".nrrd" in filename.lower():
         reader = vtk.vtkNrrdReader()
         if not reader.CanReadFile(filename):
@@ -596,6 +598,7 @@ def write(objct, fileoutput, binary=True):
         w = vtk.vtkXMLImageDataWriter()
     elif ".mhd" in fr:
         w = vtk.vtkMetaImageWriter()
+        binary = None
     elif ".png" in fr:
         w = vtk.vtkPNGWriter()
     elif ".jpg" in fr:
@@ -633,10 +636,11 @@ def write(objct, fileoutput, binary=True):
 
     try:
         if not ".tif" in fr and not ".vti" in fr:
-            if binary and not ".tif" in fr and not ".vti" in fr:
-                w.SetFileTypeToBinary()
-            else:
-                w.SetFileTypeToASCII()
+            if binary is not None:
+                if binary and not ".tif" in fr and not ".vti" in fr:
+                    w.SetFileTypeToBinary()
+                else:
+                    w.SetFileTypeToASCII()
         w.SetInputData(obj)
         w.SetFileName(fileoutput)
         w.Write()
@@ -658,17 +662,17 @@ def save(objct, fileoutput, binary=True):
 ###########################################################
 def exportWindow(fileoutput, binary=False, speed=None, html=True):
     '''
-    Exporter which writes out the renderered scene into an OBJ or X3D file. 
+    Exporter which writes out the renderered scene into an OBJ or X3D file.
     X3D is an XML-based format for representation 3D scenes (similar to VRML).
     Check out http://www.web3d.org/x3d for more details.
-    
+
     :param float speed: set speed for x3d files.
     :param bool html: generate a test html page for x3d files.
-    
+
     .. hint:: |export_x3d| |export_x3d.py|_
-    
+
         `generated webpage <https://vtkplotter.embl.es/examples/embryo.html>`_
-        
+
         See also: FEniCS test `webpage <https://vtkplotter.embl.es/examples/fenics_elasticity.html>`_.
     '''
     fr = fileoutput.lower()
@@ -720,9 +724,9 @@ def buildPolyDataFast(vertices, faces=None, indexOffset=None):
     from vtk.util.numpy_support import numpy_to_vtk, numpy_to_vtkIdTypeArray
 
     dts = vtk.vtkIdTypeArray().GetDataTypeSize()
-    ast = numpy.int32 
+    ast = numpy.int32
     if dts != 4:
-        ast = numpy.int64        
+        ast = numpy.int64
 
     if not utils.isSequence(vertices):  # assume a dolfin.Mesh
         from dolfin import Mesh, BoundaryMesh
@@ -731,8 +735,8 @@ def buildPolyDataFast(vertices, faces=None, indexOffset=None):
         vertices = mesh.coordinates()
         faces = mesh.cells()
 
-    # must fix dim=3 of vertices.. todo  
-    
+    # must fix dim=3 of vertices.. todo
+
     poly = vtk.vtkPolyData()
     vpts = vtk.vtkPoints()
     vpts.SetData(numpy_to_vtk(vertices, deep=True))
@@ -742,9 +746,9 @@ def buildPolyDataFast(vertices, faces=None, indexOffset=None):
     if faces is not None:
         nf, nc = faces.shape
         dts = vtk.vtkIdTypeArray().GetDataTypeSize()
-        ast = numpy.int32 
+        ast = numpy.int32
         if dts != 4:
-            ast = numpy.int64        
+            ast = numpy.int64
         hs = numpy.hstack((numpy.zeros(nf)[:,None] + nc, faces)).astype(ast).ravel()
         arr = numpy_to_vtkIdTypeArray(hs, deep=True)
         cells.SetCells(nf, arr)
@@ -786,11 +790,11 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
             aid = sourcePoints.InsertNextPoint(pt[0], 0, 0)
         else:
             aid = sourcePoints.InsertNextPoint(pt[0], pt[1], 0)
-            
+
         if faces is None:
             sourceVertices.InsertNextCell(1)
             sourceVertices.InsertCellPoint(aid)
-        
+
     if faces is not None:
         showbar = False
         if len(faces) > 25000:
@@ -811,7 +815,7 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
                 pid1 = ele1.GetPointIds()
                 pid2 = ele2.GetPointIds()
                 pid3 = ele3.GetPointIds()
-                
+
                 pid0.SetId(0, f0)
                 pid0.SetId(1, f1)
                 pid0.SetId(2, f2)
@@ -832,7 +836,7 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
                 sourcePolygons.InsertNextCell(ele1)
                 sourcePolygons.InsertNextCell(ele2)
                 sourcePolygons.InsertNextCell(ele3)
-                
+
 #            if n == 4: #problematic because of faces orientation
 #                ele = vtk.vtkTetra()
 #                pids = ele.GetPointIds()
@@ -863,7 +867,7 @@ def buildPolyData(vertices, faces=None, indexOffset=0):
         poly.SetVerts(sourceVertices)
     else:
         poly.SetPolys(sourcePolygons)
-        
+
     return poly
 
 
@@ -893,32 +897,30 @@ def screenshot(filename="screenshot.png"):
 class Video:
     """
     Class to generate a video from the specified rendering window.
-    Only tested on linux systems with ``ffmpeg`` installed.
-
+    Program ``ffmpeg`` is used to create video from each generated frame.
     :param str name: name of the output file.
     :param int fps: set the number of frames per second.
     :param float duration: set the total `duration` of the video and recalculates `fps` accordingly.
-
+    :param str ffmpeg: set path to ffmpeg program. Default value considers ffmpeg is in the path.
     .. hint:: |makeVideo| |makeVideo.py|_
     """
 
-    def __init__(self, name="movie.avi", fps=12, duration=None):
+    def __init__(self, name="movie.avi", **kwargs):
 
-        import glob
+        from tempfile import TemporaryDirectory
 
         self.name = name
-        self.duration = duration
-        self.fps = float(fps)
+        self.duration = kwargs.pop('duration', None)
+        self.fps = float(kwargs.pop('fps', 12))
+        self.ffmpeg = kwargs.pop('ffmpeg', 'ffmpeg')
         self.frames = []
-        if not os.path.exists("/tmp/vpvid"):
-            os.mkdir("/tmp/vpvid")
-        for fl in glob.glob("/tmp/vpvid/*.png"):
-            os.remove(fl)
+        self.tmp_dir = TemporaryDirectory()
+        self.get_filename = lambda x: os.path.join(self.tmp_dir.name, x)
         colors.printc("~video Video", name, "is open...", c="m")
 
     def addFrame(self):
         """Add frame to current video."""
-        fr = "/tmp/vpvid/" + str(len(self.frames)) + ".png"
+        fr = self.get_filename(str(len(self.frames)) + ".png")
         screenshot(fr)
         self.frames.append(fr)
 
@@ -926,8 +928,8 @@ class Video:
         """Insert a `pause`, in seconds."""
         fr = self.frames[-1]
         n = int(self.fps * pause)
-        for i in range(n):
-            fr2 = "/tmp/vpvid/" + str(len(self.frames)) + ".png"
+        for _ in range(n):
+            fr2 = self.get_filename(str(len(self.frames)) + ".png")
             self.frames.append(fr2)
             os.system("cp -f %s %s" % (fr, fr2))
 
@@ -939,11 +941,12 @@ class Video:
         else:
             _fps = int(_fps)
         self.name = self.name.split('.')[0]+'.mp4'
-        out = os.system("ffmpeg -loglevel panic -y -r " + str(_fps)
-                        + " -i /tmp/vpvid/%01d.png "+self.name)
+        out = os.system(self.ffmpeg + " -loglevel panic -y -r " + str(_fps)
+                        + " -i " + self.tmp_dir.name + os.sep + "%01d.png " + self.name)
         if out:
             colors.printc("ffmpeg returning error", c=1)
         colors.printc("~save Video saved as", self.name, c="green")
+        self.tmp_dir.cleanup()
         return
 
 # ############################################################### Mouse Events
@@ -956,7 +959,7 @@ def _mouse_enter(iren, event):
         if ivp.interactor != iren:
             if ivp.camera == iren.GetActiveCamera():
                 ivp.interactor.Render()
-        
+
 
 def _mouseleft(iren, event):
 
@@ -974,7 +977,7 @@ def _mouseleft(iren, event):
         return
 
     vp.renderer = renderer
-    
+
     picker = vtk.vtkPropPicker()
     picker.PickProp(x, y, renderer)
     clickedActor = picker.GetActor()
@@ -998,7 +1001,7 @@ def _mouseleft(iren, event):
 
     if vp.mouseLeftClickFunction:
         vp.mouseLeftClickFunction(clickedActor)
-    
+
 
 def _mouseright(iren, event):
 
@@ -1053,7 +1056,7 @@ def _mousemiddle(iren, event):
         return
 
     vp.renderer = renderer
-    
+
     picker = vtk.vtkPropPicker()
     picker.PickProp(x, y, renderer)
     clickedActor = picker.GetActor()
@@ -1083,7 +1086,7 @@ def _keypress(iren, event):
 
     vp = settings.plotter_instance
     key = iren.GetKeySym()
-    #print('Pressed key:', key)
+    #print('Pressed key:', key, [vp])
 
     if key in ["q", "Q", "space", "Return"]:
         iren.ExitCallback()
@@ -1095,7 +1098,7 @@ def _keypress(iren, event):
 
     elif key in ["F1", "Pause"]:
         sys.stdout.flush()
-        print('\n[F1] Execution aborted. Exiting python now.')
+        colors.printc('\n[F1] Execution aborted. Exiting python now.')
         settings.plotter_instance.closeWindow()
         exit()
 
@@ -1254,7 +1257,7 @@ def _keypress(iren, event):
         colors.printc("~camera Saved rendering window as screenshot.png", c="blue")
         return
 
-    elif key == "C":
+    if key == "C":
         cam = vp.renderer.GetActiveCamera()
         print('\n### Example code to position this vtkCamera:')
         print('vp = vtkplotter.Plotter()\n...')
@@ -1265,7 +1268,7 @@ def _keypress(iren, event):
         print('vp.camera.SetClippingRange(', [round(e, 3) for e in cam.GetClippingRange()], ')')
         return
 
-    elif key == "s":
+    if key == "s":
         if vp.clickedActor and vp.clickedActor in vp.getActors():
             vp.clickedActor.GetProperty().SetRepresentationToSurface()
         else:
@@ -1314,6 +1317,7 @@ def _keypress(iren, event):
     elif key == "3":
         c = colors.getColor("gold")
         acs = vp.getActors()
+        if len(acs) == 0: return
         alpha = 1.0 / len(acs)
         for ia in acs:
             if not ia.GetPickable():

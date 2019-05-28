@@ -31,8 +31,8 @@ for t1 in pb.range():  # for each time point
         t2 = t1  # avoid index overflow with last time point
 
     vp.actors = [doc]  # clean up the list of actors at each iteration
-    vp.add(Cylinder([0, 0, -15], r=260, height=10, res=60).texture("marble"))
-    vp.add(Cylinder([0, 0, 10], r=260, height=50, c="gray", res=60).wire(1))
+    vp += Cylinder([0, 0, -15], r=260, height=10, res=60).texture("marble")
+    vp += Cylinder([0, 0, 10], r=260, height=50, c="gray", res=60).wire(1)
 
     pts, cols = [], []
     for i, p in enumerate(mesh):  # for each vertex in the mesh
@@ -42,8 +42,8 @@ for t1 in pb.range():  # for each time point
         pts.append(p + vector(gx / 4, gy / 4, gz + c1 * 20))
         cols.append([0.0, c1, cgrad])  # RGB color
 
-    vp.add(Points(pts, c=cols, alpha=1.0, r=6))  # points actor
-    vp.add(Points(pts, c=cols, alpha=0.1, r=30))  # halos actor
+    vp += Points(pts, c=cols, alpha=1.0, r=6)   # points actor
+    vp += Points(pts, c=cols, alpha=0.1, r=30)  # halos actor
     vp.camera.Azimuth(60 / nc)  # rotate camera by a fraction
     vp.show()  # show the four new actors at each iteration
     pb.print()

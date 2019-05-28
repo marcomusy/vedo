@@ -27,5 +27,5 @@ vp.mouseRightClickFunction = onRightClick
 
 printc("Click object to trigger function call", invert=1, box="-")
 
-vp.add(Text(__doc__))
+vp += Text(__doc__)
 vp.show()

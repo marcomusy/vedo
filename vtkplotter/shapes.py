@@ -74,7 +74,7 @@ def Points(plist, r=5, c="gray", alpha=1):
         n = len(plist)
         if n > len(cols):
             colors.printc("~times Error: mismatch in colorPoints()", n, len(cols), c=1)
-            exit()
+            raise RuntimeError()
         if n != len(cols):
             colors.printc("~lightning Warning: mismatch in colorPoints()", n, len(cols))
         src = vtk.vtkPointSource()
@@ -243,17 +243,18 @@ def Glyph(actor, glyphObj, orientationArray=None,
     return actor
 
 
-def Line(p0, p1=None, lw=1, c="r", alpha=1, dotted=False, res=None):
+def Line(p0, p1=None, c="r", alpha=1, lw=1, dotted=False, res=None):
     """
     Build the line segment between points `p0` and `p1`.
     If `p0` is a list of points returns the line connecting them.
     A 2D set of coords can also be passed as p0=[x..], p1=[y..].
 
-    :param lw: line width.
     :param c: color name, number, or list of [R,G,B] colors.
     :type c: int, str, list
     :param float alpha: transparency in range [0,1].
+    :param lw: line width.
     :param bool dotted: draw a dotted line
+    :param int res: number of intermediate points in the segment
     """
     # detect if user is passing a 2D ist of points as p0=xlist, p1=ylist:
     if len(p0) > 3:
@@ -298,7 +299,7 @@ def Line(p0, p1=None, lw=1, c="r", alpha=1, dotted=False, res=None):
     return actor
 
 
-def Lines(startPoints, endPoints=None, scale=1, lw=1, c=None, alpha=1, dotted=False):
+def Lines(startPoints, endPoints=None, c=None, alpha=1, lw=1, dotted=False, scale=1):
     """
     Build the line segments between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
@@ -589,71 +590,37 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12)
     return arrg
 
 
-def Polygon(pos=(0, 0, 0), normal=(0, 0, 1), nsides=6, r=1, c="coral",
-            bc="darkgreen", lw=1, alpha=1, followcam=False):
+def Polygon(pos=(0, 0, 0), nsides=6, r=1, c="coral", alpha=1):
     """
     Build a 2D polygon of `nsides` of radius `r` oriented as `normal`.
-
-    :param followcam: if `True` the text will auto-orient itself to the active camera.
-        A ``vtkCamera`` object can also be passed.
-    :type followcam: bool, vtkCamera
 
     |Polygon|
     """
     ps = vtk.vtkRegularPolygonSource()
     ps.SetNumberOfSides(nsides)
     ps.SetRadius(r)
-    ps.SetNormal(-np.array(normal))
     ps.Update()
-
-    tf = vtk.vtkTriangleFilter()
-    tf.SetInputConnection(ps.GetOutputPort())
-    tf.Update()
-
-    mapper = vtk.vtkPolyDataMapper()
-    mapper.SetInputConnection(tf.GetOutputPort())
-    if followcam:
-        actor = vtk.vtkFollower()
-        if isinstance(followcam, vtk.vtkCamera):
-            actor.SetCamera(followcam)
-        else:
-            actor.SetCamera(settings.plotter_instance.camera)
-    else:
-        actor = Actor()
-
-    actor.SetMapper(mapper)
-    actor.GetProperty().SetColor(colors.getColor(c))
-    actor.GetProperty().SetOpacity(alpha)
-    actor.GetProperty().SetLineWidth(lw)
-    actor.GetProperty().SetInterpolationToFlat()
-    if bc:  # defines a specific color for the backface
-        backProp = vtk.vtkProperty()
-        backProp.SetDiffuseColor(colors.getColor(bc))
-        backProp.SetOpacity(alpha)
-        actor.SetBackfaceProperty(backProp)
+    actor = Actor(ps.GetOutput(), c, alpha)
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
     return actor
 
 
-def Rectangle(p1=(0, 0, 0), p2=(2, 1, 0), c="k", bc="dg", lw=1, alpha=1, texture=None):
+def Rectangle(p1=(0, 0, 0), p2=(2, 1, 0), c="k", lw=1, alpha=1):
     """Build a rectangle in the xy plane identified by two corner points."""
     p1 = np.array(p1)
     p2 = np.array(p2)
     pos = (p1 + p2) / 2
     length = abs(p2[0] - p1[0])
     height = abs(p2[1] - p1[1])
-    return Plane(pos, [0, 0, -1], length, height, c, bc, alpha, texture)
+    return Plane(pos, [0, 0, -1], length, height, c, alpha)
 
 
 def Disc(
     pos=(0, 0, 0),
-    normal=(0, 0, 1),
     r1=0.5,
     r2=1,
     c="coral",
-    bc="darkgreen",
-    lw=1,
     alpha=1,
     res=12,
     resphi=None,
@@ -672,34 +639,7 @@ def Disc(
         resphi = 6 * res
     ps.SetCircumferentialResolution(resphi)
     ps.Update()
-
-    axis = np.array(normal) / np.linalg.norm(normal)
-    theta = np.arccos(axis[2])
-    phi = np.arctan2(axis[1], axis[0])
-    t = vtk.vtkTransform()
-    t.PostMultiply()
-    t.RotateY(np.rad2deg(theta))
-    t.RotateZ(np.rad2deg(phi))
-    tf = vtk.vtkTransformPolyDataFilter()
-    tf.SetInputData(ps.GetOutput())
-    tf.SetTransform(t)
-    tf.Update()
-
-    pd = tf.GetOutput()
-    mapper = vtk.vtkPolyDataMapper()
-    mapper.SetInputData(pd)
-
-    actor = Actor()  # vtk.vtkActor()
-    actor.SetMapper(mapper)
-    actor.GetProperty().SetColor(colors.getColor(c))
-    actor.GetProperty().SetOpacity(alpha)
-    actor.GetProperty().SetLineWidth(lw)
-    actor.GetProperty().SetInterpolationToFlat()
-    if bc:  # defines a specific color for the backface
-        backProp = vtk.vtkProperty()
-        backProp.SetDiffuseColor(colors.getColor(bc))
-        backProp.SetOpacity(alpha)
-        actor.SetBackfaceProperty(backProp)
+    actor = Actor(ps.GetOutput(), c, alpha).flat()
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
     return actor
@@ -739,7 +679,7 @@ def Spheres(centers, r=1, c="r", alpha=1, res=8):
     if cisseq:
         if len(centers) > len(c):
             colors.printc("~times Mismatch in Spheres() colors", len(centers), len(c), c=1)
-            exit()
+            raise RuntimeError()
         if len(centers) != len(c):
             colors.printc("~lightningWarning: mismatch in Spheres() colors", len(centers), len(c))
 
@@ -750,12 +690,12 @@ def Spheres(centers, r=1, c="r", alpha=1, res=8):
     if risseq:
         if len(centers) > len(r):
             colors.printc("times Mismatch in Spheres() radius", len(centers), len(r), c=1)
-            exit()
+            raise RuntimeError()
         if len(centers) != len(r):
             colors.printc("~lightning Warning: mismatch in Spheres() radius", len(centers), len(r))
     if cisseq and risseq:
         colors.printc("~noentry Limitation: c and r cannot be both sequences.", c=1)
-        exit()
+        raise RuntimeError()
 
     src = vtk.vtkSphereSource()
     if not risseq:
@@ -847,7 +787,7 @@ def Earth(pos=(0, 0, 0), r=1, lw=1):
     es.SetRadius(r / 0.995)
     earth2Mapper = vtk.vtkPolyDataMapper()
     earth2Mapper.SetInputConnection(es.GetOutputPort())
-    earth2Actor = Actor()  # vtk.vtkActor()
+    earth2Actor = Actor()
     earth2Actor.SetMapper(earth2Mapper)
     earth2Mapper.ScalarVisibilityOff()
     earth2Actor.GetProperty().SetLineWidth(lw)
@@ -908,9 +848,8 @@ def Grid(
     sx=1,
     sy=1,
     c="g",
-    bc="darkgreen",
-    lw=1,
     alpha=1,
+    lw=1,
     resx=10,
     resy=10,
 ):
@@ -941,7 +880,7 @@ def Grid(
     tf.SetTransform(t)
     tf.Update()
     pd = tf.GetOutput()
-    actor = Actor(pd, c=c, bc=bc, alpha=alpha)
+    actor = Actor(pd, c, alpha)
     actor.GetProperty().SetRepresentationToWireframe()
     actor.GetProperty().SetLineWidth(lw)
     actor.SetPosition(pos)
@@ -949,7 +888,7 @@ def Grid(
     return actor
 
 
-def Plane(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g", bc="darkgreen",
+def Plane(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g",
           alpha=1, texture=None):
     """
     Draw a plane of size `sx` and `sy` oriented perpendicular to vector `normal`
@@ -978,14 +917,13 @@ def Plane(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g", bc="darkgreen",
     tf.SetTransform(t)
     tf.Update()
     pd = tf.GetOutput()
-    actor = Actor(pd, c=c, bc=bc, alpha=alpha, texture=texture)
+    actor = Actor(pd, c, alpha, texture=texture)
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
     return actor
 
 
-def Box(pos=(0, 0, 0), length=1, width=2, height=3, normal=(0, 0, 1),
-        c="g", alpha=1):
+def Box(pos=(0, 0, 0), length=1, width=2, height=3, c="g", alpha=1):
     """
     Build a box of dimensions `x=length, y=width and z=height` oriented along vector `normal`.
 
@@ -996,34 +934,19 @@ def Box(pos=(0, 0, 0), length=1, width=2, height=3, normal=(0, 0, 1),
     src.SetYLength(width)
     src.SetZLength(height)
     src.Update()
-    poly = src.GetOutput()
-
-    axis = np.array(normal) / np.linalg.norm(normal)
-    theta = np.arccos(axis[2])
-    phi = np.arctan2(axis[1], axis[0])
-    t = vtk.vtkTransform()
-    t.PostMultiply()
-    t.RotateY(np.rad2deg(theta))
-    t.RotateZ(np.rad2deg(phi))
-
-    tf = vtk.vtkTransformPolyDataFilter()
-    tf.SetInputData(poly)
-    tf.SetTransform(t)
-    tf.Update()
-    pd = tf.GetOutput()
-
+    pd = src.GetOutput()
     actor = Actor(pd, c, alpha)
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
     return actor
 
 
-def Cube(pos=(0, 0, 0), side=1, normal=(0, 0, 1), c="g", alpha=1):
+def Cube(pos=(0, 0, 0), side=1, c="g", alpha=1):
     """Build a cube of size `side` oriented along vector `normal`.
 
     .. hint:: |colorcubes| |colorcubes.py|_
     """
-    return Box(pos, side, side, side, normal, c, alpha)
+    return Box(pos, side, side, side, c, alpha)
 
 
 def Spring(
@@ -1303,7 +1226,6 @@ def Hyperboloid(pos=(0, 0, 0), a2=1, value=0.5, height=1, axis=(0, 0, 1),
 def Text(
     txt,
     pos=3,
-    normal=(0, 0, 1),
     s=1,
     depth=0.1,
     justify="bottom-left",
@@ -1315,7 +1237,7 @@ def Text(
     followcam=False,
 ):
     """
-    Returns a ``vtkActor`` that shows a 2D/3D text.
+    Returns an ``Actor`` that shows a 2D/3D text.
 
     :param pos: position in 3D space,
                 if an integer is passed [1,8],
@@ -1329,9 +1251,9 @@ def Text(
                     6, middle-right
                     7, middle-left
                     8, top-middle
-                
+
                 If a pair (x,y) is passed as input the 2D text is place at that
-                position in the coordinate system of the 2D screen (with the 
+                position in the coordinate system of the 2D screen (with the
                 origin sitting at the bottom left).
 
     :type pos: list, int
@@ -1341,7 +1263,7 @@ def Text(
         (bottom-left, bottom-right, top-left, top-right, centered).
     :param bg: background color of corner annotations. Only applies of `pos` is ``int``.
     :param str font: additional available fonts are:
-            
+
             - Ageo
             - Aldora
             - CallingCode
@@ -1358,14 +1280,14 @@ def Text(
             - PointedLaidSt
             - SchoolTeacher
             - SpecialElite
-    
+
         Font choice does not apply for 3D text.
         A path to `otf` or `ttf` font-file can also be supplied as input.
-        
+
         All fonts are free for personal use.
         Check out conditions in `vtkplotter/fonts/licenses` for commercial use
         and: https://www.1001freefonts.com
-        
+
     :param followcam: if `True` the text will auto-orient itself to the active camera.
         A ``vtkCamera`` object can also be passed.
     :type followcam: bool, vtkCamera
@@ -1373,7 +1295,7 @@ def Text(
     .. hint:: Examples, |fonts.py|_ |colorcubes.py|_ |markpoint.py|_ |annotations.py|_
 
         |colorcubes| |markpoint|
-        
+
         |fonts|
     """
     if c is None: # automatic black or white
@@ -1384,7 +1306,7 @@ def Text(
         else:
             c = (0.6, 0.6, 0.6)
 
-    if isinstance(pos, int):
+    if isinstance(pos, int): # corners
         if pos > 8:
             pos = 8
         if pos < 1:
@@ -1410,9 +1332,8 @@ def Text(
         setattr(ca, 'renderedAt', set())
         settings.collectable_actors.append(ca)
         return ca
-    
-    elif len(pos)==2:
-        # passing (x,y) coords
+
+    elif len(pos)==2: # passing (x,y) coords
         actor2d = vtk.vtkActor2D()
         actor2d.SetPosition(pos)
         tmapper = vtk.vtkTextMapper()
@@ -1454,65 +1375,46 @@ def Text(
         tt = vtk.vtkVectorText()
         tt.SetText(str(txt))
         tt.Update()
-        ttmapper = vtk.vtkPolyDataMapper()
-        if followcam:
-            depth = 0
-            normal = (0, 0, 1)
-        if depth:
-            extrude = vtk.vtkLinearExtrusionFilter()
-            extrude.SetInputConnection(tt.GetOutputPort())
-            extrude.SetExtrusionTypeToVectorExtrusion()
-            extrude.SetVector(0, 0, 1)
-            extrude.SetScaleFactor(depth)
-            ttmapper.SetInputConnection(extrude.GetOutputPort())
-        else:
-            ttmapper.SetInputConnection(tt.GetOutputPort())
+        tpoly = tt.GetOutput()
+
+        bb = tpoly.GetBounds()
+        dx, dy = (bb[1] - bb[0]) / 2 * s, (bb[3] - bb[2]) / 2 * s
+        cm = np.array([(bb[1] + bb[0]) / 2, (bb[3] + bb[2]) / 2, (bb[5] + bb[4]) / 2]) * s
+        shift = -cm
+        if "bottom" in justify: shift += np.array([  0, dy, 0])
+        if "top"    in justify: shift += np.array([  0,-dy, 0])
+        if "left"   in justify: shift += np.array([ dx,  0, 0])
+        if "right"  in justify: shift += np.array([-dx,  0, 0])
+
+        t = vtk.vtkTransform()
+        t.Translate(shift)
+        t.Scale(s, s, s)
+        tf = vtk.vtkTransformPolyDataFilter()
+        tf.SetInputData(tpoly)
+        tf.SetTransform(t)
+        tf.Update()
+        tpoly = tf.GetOutput()
+
         if followcam:
             ttactor = vtk.vtkFollower()
+            ttactor.GetProperty().SetOpacity(alpha)
+            ttactor.GetProperty().SetColor(colors.getColor(c))
             if isinstance(followcam, vtk.vtkCamera):
                 ttactor.SetCamera(followcam)
             else:
                 ttactor.SetCamera(settings.plotter_instance.camera)
         else:
-            ttactor = Actor()
-        ttactor.SetMapper(ttmapper)
-        ttactor.GetProperty().SetColor(colors.getColor(c))
-        ttmapper.Update()
-    
-        bb = tt.GetOutput().GetBounds()
-        dx, dy = (bb[1] - bb[0]) / 2 * s, (bb[3] - bb[2]) / 2 * s
-        cm = np.array([(bb[1] + bb[0]) / 2, (bb[3] + bb[2]) / 2, (bb[5] + bb[4]) / 2]) * s
-        shift = -cm
-        if "cent" in justify:
-            pass
-        elif "bottom-left" in justify:
-            shift += np.array([dx, dy, 0])
-        elif "top-left" in justify:
-            shift += np.array([dx, -dy, 0])
-        elif "bottom-right" in justify:
-            shift += np.array([-dx, dy, 0])
-        elif "top-right" in justify:
-            shift += np.array([-dx, -dy, 0])
-        else:
-            colors.printc("~lightning Text(): Unknown justify type", justify, c=1)
-    
-        ttactor.GetProperty().SetOpacity(alpha)
-    
-        nax = np.linalg.norm(normal)
-        if nax:
-            normal = np.array(normal) / nax
-        theta = np.arccos(normal[2])
-        phi = np.arctan2(normal[1], normal[0])
-        ttactor.SetScale(s, s, s)
-        ttactor.RotateZ(np.rad2deg(phi))
-        ttactor.RotateY(np.rad2deg(theta))
-        ttactor.SetPosition(pos + shift)
-        if bc:  # defines a specific color for the backface
-            backProp = vtk.vtkProperty()
-            backProp.SetDiffuseColor(colors.getColor(bc))
-            backProp.SetOpacity(alpha)
-            ttactor.SetBackfaceProperty(backProp)
-        ttactor.PickableOff()
+            if depth:
+                extrude = vtk.vtkLinearExtrusionFilter()
+                extrude.SetInputData(tpoly)
+                extrude.SetExtrusionTypeToVectorExtrusion()
+                extrude.SetVector(0, 0, 1)
+                extrude.SetScaleFactor(depth*dy)
+                extrude.Update()
+                tpoly = extrude.GetOutput()
+            ttactor = Actor(tpoly, c, alpha, bc=bc)
+
+        ttactor.SetPosition(pos)
         settings.collectable_actors.append(ttactor)
         return ttactor
 
@@ -1621,5 +1523,5 @@ def Latex(
         colors.printc(' latex or dvipng not installed?', c=1)
         colors.printc(' Try: usetex=False' , c=1)
         colors.printc(' Try: sudo apt install dvipng' , c=1)
-       
+
     return vactor

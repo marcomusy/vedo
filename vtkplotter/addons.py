@@ -32,7 +32,7 @@ __all__ = [
         ]
 
 
-def addScalarBar(actor=None, c=None, title="", 
+def addScalarBar(actor=None, c=None, title="",
                  horizontal=False,
                  vmin=None, vmax=None):
     """Add a 2D scalar bar for the specified actor.
@@ -44,7 +44,7 @@ def addScalarBar(actor=None, c=None, title="",
     vp = settings.plotter_instance
 
     if actor is None:
-        actor = vp.lastActor()
+        actor = vp.actors[-1]
 
     if not hasattr(actor, "mapper"):
         colors.printc("~times Error in addScalarBar: input is not a Actor.", c=1)
@@ -110,7 +110,7 @@ def addScalarBar(actor=None, c=None, title="",
         sb.SetPosition(0.87, 0.05)
         sb.SetMaximumWidthInPixels(80)
         sb.SetMaximumHeightInPixels(500)
-            
+
     sctxt = sb.GetLabelTextProperty()
     sctxt.SetColor(c)
     sctxt.SetShadow(0)
@@ -173,7 +173,7 @@ def addScalarBar3D(
             vtkscalars = poly.GetCellData().GetScalars()
         if vtkscalars is None:
             print("Error in addScalarBar3D: actor has no scalar array.", [obj])
-            exit()
+            raise RuntimeError()
         npscalars = vtk_to_numpy(vtkscalars)
         vmin, vmax = numpy.min(npscalars), numpy.max(npscalars)
         vtkscalars_name = vtkscalars.GetName().split("_")[-1]
@@ -182,7 +182,7 @@ def addScalarBar3D(
         vtkscalars_name = "jet"
     else:
         print("Error in addScalarBar3D(): input must be vtkActor or list.", type(obj))
-        exit()
+        raise RuntimeError()
 
     if cmap is None:
         cmap = vtkscalars_name
@@ -323,7 +323,7 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
         sliderRep.SetLabelFormat(frm)  # default is '%0.3g'
         sliderRep.GetLabelProperty().SetShadow(0)
         sliderRep.GetLabelProperty().SetBold(0)
-        sliderRep.GetLabelProperty().SetOpacity(0.6)
+        sliderRep.GetLabelProperty().SetOpacity(1)
         sliderRep.GetLabelProperty().SetColor(c)
         if isinstance(pos, int) and pos > 10:
             sliderRep.GetLabelProperty().SetOrientation(90)
@@ -340,7 +340,7 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
         sliderRep.SetTitleHeight(0.012)
         sliderRep.GetTitleProperty().SetShadow(0)
         sliderRep.GetTitleProperty().SetColor(c)
-        sliderRep.GetTitleProperty().SetOpacity(0.6)
+        sliderRep.GetTitleProperty().SetOpacity(1)
         sliderRep.GetTitleProperty().SetBold(0)
         if not utils.isSequence(pos):
             if isinstance(pos, int) and pos > 10:
@@ -658,6 +658,62 @@ def addAxes(axtype=None, c=None):
           - 8,  show the ``vtkCubeAxesActor`` object
           - 9,  show the bounding box outLine
           - 10, show three circles representing the maximum bounding box
+
+    Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
+
+        - `xtitle`,            ['x'], x-axis title text.
+        - `ytitle`,            ['y'], y-axis title text.
+        - `ztitle`,            ['z'], z-axis title text.
+        - `numberOfDivisions`, [automatic], number of divisions on the shortest axis
+        - `axesLineWidth`,       [1], width of the axes lines
+        - `gridLineWidth`,       [1], width of the grid lines
+        - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally
+        - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
+        - `enableLastLabel`, [False], show last numeric label on axes
+        - `titleDepth`,          [0], extrusion fractional depth of title text
+        - `xyGrid`,           [True], show a gridded wall on plane xy
+        - `yzGrid`,           [True], show a gridded wall on plane yz
+        - `zxGrid`,           [True], show a gridded wall on plane zx
+        - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
+        - `xyGridTransparent`  [False], make grid plane completely transparent
+        - `xyGrid2Transparent` [False], make grid plane completely transparent on opposite side box
+        - `xyPlaneColor`,   ['gray'], color of the plane
+        - `xyGridColor`,    ['gray'], grid line color
+        - `xyAlpha`,          [0.15], grid plane opacity
+        - `showTicks`,        [True], show major ticks
+        - `xTitlePosition`,   [0.32], title fractional positions along axis
+        - `xTitleOffset`,     [0.05], title fractional offset distance from axis line
+        - `xTitleJustify`, ["top-right"], title justification
+        - `xTitleRotation`,      [0], add a rotation of the axis title
+        - `xLineColor`,  [automatic], color of the x-axis
+        - `xTitleColor`, [automatic], color of the axis title
+        - `xTitleBackfaceColor`, [None],  color of axis title on its backface
+        - `xTitleSize`,      [0.025], size of the axis title
+        - `xHighlightZero`,   [True], draw a line highlighting zero position if in range
+        - `xHighlightZeroColor`, [automatic], color of the line highlighting the zero position
+        - `xTickRadius`,     [0.005], radius of the major ticks
+        - `xTickThickness`, [0.0025], thickness of the major ticks along their axis
+        - `xTickColor`,  [automatic], color of major ticks
+        - `xMinorTicks`,         [1], number of minor ticks between two major ticks
+        - `tipSize`,          [0.01], size of the arrow tip
+        - `xTicksPrecision`,     [2], nr. of significative digits to be shown
+        - `xLabelSize`,      [0.015], size of the numeric labels along axis
+        - `xLabelOffset`,    [0.025], offset of numeric labels
+
+        :Example:
+
+            .. code-block:: python
+
+                from vtkplotter import Box, show
+                b = Box(pos=(0,0,0), length=80, width=90, height=70).alpha(0)
+
+                show(b, axes={ 'xtitle':'Some long variable [a.u.]',
+                               'numberOfDivisions':4,
+                               # ...
+                             }
+                )
+
+    .. hint:: |customAxes| |customAxes.py|_
     """
     vp = settings.plotter_instance
     if axtype is not None:
@@ -672,6 +728,8 @@ def addAxes(axtype=None, c=None):
         c = (0.9, 0.9, 0.9)
         if numpy.sum(vp.renderer.GetBackground()) > 1.5:
             c = (0.1, 0.1, 0.1)
+    else:
+        c = colors.getColor(c) # for speed
 
     if not vp.renderer:
         return
@@ -694,83 +752,434 @@ def addAxes(axtype=None, c=None):
         vbb = vp.renderer.ComputeVisiblePropBounds()
         max_bns = vbb
         min_bns = vbb
-    sizes = (max_bns[1] - min_bns[0], max_bns[3] - min_bns[2], max_bns[5] - min_bns[4])
+    sizes = numpy.array([max_bns[1] - min_bns[0], max_bns[3] - min_bns[2], max_bns[5] - min_bns[4]])
 
 
     ############################################################
-    if vp.axes == 1 or vp.axes == True:  # gray grid walls
-        nd = 4  # number of divisions in the smallest axis
-        off = -0.04  # label offset
-        step = numpy.min(sizes) / nd
-        if not step:
-            # bad proportions, use vtkCubeAxesActor
-            vp.addAxes(axtype=8, c=c)
-            vp.axes = 1
+    if vp.axes == 1 or vp.axes == True or isinstance(vp.axes, dict):  # custom grid walls
+
+        if isinstance(vp.axes, dict):
+            axes = vp.axes
+            axes_copy = dict(vp.axes)
+        else:
+            axes = dict() # will cause popping the defaults
+            axes_copy = 1
+
+        xtitle = axes.pop('xtitle', vp.xtitle)
+        ytitle = axes.pop('ytitle', vp.ytitle)
+        ztitle = axes.pop('ztitle', vp.ztitle)
+
+        limitRatio = axes.pop('limitRatio', 20)
+
+        if sizes[0] and (sizes[1]/sizes[0] > limitRatio or sizes[2]/sizes[0] > limitRatio):
+            sizes[0] = 0
+            xtitle = ''
+        if sizes[1] and (sizes[0]/sizes[1] > limitRatio or sizes[2]/sizes[1] > limitRatio):
+            sizes[1] = 0
+            ytitle = ''
+        if sizes[2] and (sizes[0]/sizes[2] > limitRatio or sizes[1]/sizes[2] > limitRatio):
+            sizes[2] = 0
+            ztitle = ''
+        rats = []
+        if sizes[0]: rats += [sizes[1]/sizes[0], sizes[2]/sizes[0]]
+        if sizes[1]: rats += [sizes[0]/sizes[1], sizes[2]/sizes[1]]
+        if sizes[2]: rats += [sizes[0]/sizes[2], sizes[1]/sizes[2]]
+        if not len(rats):
+            return
+        rats = max(rats)
+        if rats == 0:
             return
 
+        nrDiv = max(1, int(6.5/rats))
+
+        numberOfDivisions = axes.pop('numberOfDivisions', nrDiv) # number of divisions on the shortest axis
+
+        axesLineWidth = axes.pop('axesLineWidth', 1)
+        gridLineWidth = axes.pop('gridLineWidth', 1)
+        reorientShortTitle = axes.pop('reorientShortTitle', True)
+        originMarkerSize = axes.pop('originMarkerSize', 0)
+        enableLastLabel = axes.pop('enableLastLabel', False)
+        titleDepth = axes.pop('titleDepth', 0)
+
+        xTitlePosition = axes.pop('xTitlePosition', 0.95) # title fractional positions along axis [0->1]
+        yTitlePosition = axes.pop('yTitlePosition', 0.95)
+        zTitlePosition = axes.pop('zTitlePosition', 0.95)
+
+        xTitleOffset = axes.pop('xTitleOffset', 0.05)  # title fractional offsets
+        yTitleOffset = axes.pop('yTitleOffset', 0.05)  #
+        zTitleOffset = axes.pop('zTitleOffset', 0.05)  #
+
+        xTitleJustify = axes.pop('xTitleJustify', "top-right")
+        yTitleJustify = axes.pop('yTitleJustify', "bottom-right")
+        zTitleJustify = axes.pop('zTitleJustify', "bottom-right")
+
+        xTitleRotation = axes.pop('xTitleRotation', 0)
+        yTitleRotation = axes.pop('yTitleRotation', 90)
+        zTitleRotation = axes.pop('zTitleRotation', 135)
+
+        xTitleSize = axes.pop('xTitleSize', 0.025)
+        yTitleSize = axes.pop('yTitleSize', 0.025)
+        zTitleSize = axes.pop('zTitleSize', 0.025)
+
+        xTitleColor = axes.pop('xTitleColor', c)
+        yTitleColor = axes.pop('yTitleColor', c)
+        zTitleColor = axes.pop('zTitleColor', c)
+
+        xTitleBackfaceColor = axes.pop('xTitleBackfaceColor', None)
+        yTitleBackfaceColor = axes.pop('yTitleBackfaceColor', None)
+        zTitleBackfaceColor = axes.pop('zTitleBackfaceColor', None)
+
+        xKeepAspectRatio = axes.pop('xKeepAspectRatio', True)
+        yKeepAspectRatio = axes.pop('yKeepAspectRatio', True)
+        zKeepAspectRatio = axes.pop('zKeepAspectRatio', True)
+
+        xyGrid = axes.pop('xyGrid', True)
+        yzGrid = axes.pop('yzGrid', True)
+        zxGrid = axes.pop('zxGrid', True)
+        xyGrid2 = axes.pop('xyGrid2', False) # opposite side grid
+        yzGrid2 = axes.pop('yzGrid2', False)
+        zxGrid2 = axes.pop('zxGrid2', False)
+        if settings.plotter_instance and settings.plotter_instance.renderer.GetUseDepthPeeling():
+            xyGrid = False
+            yzGrid = False
+            zxGrid = False
+            xyGrid2 = False
+            yzGrid2 = False
+            zxGrid2 = False
+
+        xyGridTransparent = axes.pop('xyGridTransparent', False)
+        yzGridTransparent = axes.pop('yzGridTransparent', False)
+        zxGridTransparent = axes.pop('zxGridTransparent', False)
+        xyGrid2Transparent = axes.pop('xyGrid2Transparent', False)
+        yzGrid2Transparent = axes.pop('yzGrid2Transparent', False)
+        zxGrid2Transparent = axes.pop('zxGrid2Transparent', False)
+
+        xyPlaneColor = axes.pop('xyPlaneColor', c)
+        yzPlaneColor = axes.pop('yzPlaneColor', c)
+        zxPlaneColor = axes.pop('zxPlaneColor', c)
+        xyGridColor = axes.pop('xyGridColor', c)
+        yzGridColor = axes.pop('yzGridColor', c)
+        zxGridColor = axes.pop('zxGridColor', c)
+        xyAlpha = axes.pop('xyAlpha', 0.05)
+        yzAlpha = axes.pop('yzAlpha', 0.05)
+        zxAlpha = axes.pop('zxAlpha', 0.05)
+
+        xLineColor = axes.pop('xLineColor', c)
+        yLineColor = axes.pop('yLineColor', c)
+        zLineColor = axes.pop('zLineColor', c)
+
+        xHighlightZero = axes.pop('xHighlightZero', False)
+        yHighlightZero = axes.pop('yHighlightZero', False)
+        zHighlightZero = axes.pop('zHighlightZero', False)
+        xHighlightZeroColor = axes.pop('xHighlightZeroColor', 'red')
+        yHighlightZeroColor = axes.pop('yHighlightZeroColor', 'green')
+        zHighlightZeroColor = axes.pop('zHighlightZeroColor', 'blue')
+
+        showTicks = axes.pop('showTicks', True)
+        xTickRadius = axes.pop('xTickRadius', 0.005)
+        yTickRadius = axes.pop('yTickRadius', 0.005)
+        zTickRadius = axes.pop('zTickRadius', 0.005)
+
+        xTickThickness = axes.pop('xTickThickness', 0.0025)
+        yTickThickness = axes.pop('yTickThickness', 0.0025)
+        zTickThickness = axes.pop('zTickThickness', 0.0025)
+
+        xTickColor = axes.pop('xTickColor', xLineColor)
+        yTickColor = axes.pop('yTickColor', yLineColor)
+        zTickColor = axes.pop('zTickColor', zLineColor)
+
+        xMinorTicks = axes.pop('xMinorTicks', 1)
+        yMinorTicks = axes.pop('yMinorTicks', 1)
+        zMinorTicks = axes.pop('zMinorTicks', 1)
+
+        tipSize = axes.pop('tipSize', 0.01)
+
+        xTicksPrecision = axes.pop('xTicksPrecision', 2) # nr. of significative digits
+        yTicksPrecision = axes.pop('yTicksPrecision', 2)
+        zTicksPrecision = axes.pop('zTicksPrecision', 2)
+
+        xLabelSize = axes.pop('xLabelSize', 0.0175)
+        yLabelSize = axes.pop('yLabelSize', 0.0175)
+        zLabelSize = axes.pop('zLabelSize', 0.0175)
+
+        xLabelOffset = axes.pop('xLabelOffset', 0.015)
+        yLabelOffset = axes.pop('yLabelOffset', 0.015)
+        zLabelOffset = axes.pop('zLabelOffset', 0.01)
+
+        ########################
+        step = numpy.min(sizes[numpy.nonzero(sizes)]) / numberOfDivisions
         rx, ry, rz = numpy.rint(sizes / step).astype(int)
-        if max([rx / ry, ry / rx, rx / rz, rz / rx, ry / rz, rz / ry]) > 15:
-            # bad proportions, use vtkCubeAxesActor
-            vp.addAxes(axtype=8, c=c)
-            vp.axes = 1
-            return
+        if rx==0: xtitle=''
+        if ry==0: ytitle=''
+        if rz==0: ztitle=''
 
-        gxy = shapes.Grid(pos=(0.5, 0.5, 0), normal=[0, 0, 1], bc=None, resx=rx, resy=ry)
-        gxz = shapes.Grid(pos=(0.5, 0, 0.5), normal=[0, 1, 0], bc=None, resx=rz, resy=rx)
-        gyz = shapes.Grid(pos=(0, 0.5, 0.5), normal=[1, 0, 0], bc=None, resx=rz, resy=ry)
-        gxy.alpha(0.06).wire(False).color(c).lineWidth(1)
-        gxz.alpha(0.04).wire(False).color(c).lineWidth(1)
-        gyz.alpha(0.04).wire(False).color(c).lineWidth(1)
+        if enableLastLabel:
+            enableLastLabel = 1
+        else:
+            enableLastLabel = 0
 
-        xa = shapes.Line([0, 0, 0], [1, 0, 0], c=c, lw=1)
-        ya = shapes.Line([0, 0, 0], [0, 1, 0], c=c, lw=1)
-        za = shapes.Line([0, 0, 0], [0, 0, 1], c=c, lw=1)
+        ################################################ axes lines
+        lines = []
+        if xtitle: lines.append(shapes.Line([0, 0, 0], [1, 0, 0], c=xLineColor, lw=axesLineWidth))
+        if ytitle: lines.append(shapes.Line([0, 0, 0], [0, 1, 0], c=yLineColor, lw=axesLineWidth))
+        if ztitle: lines.append(shapes.Line([0, 0, 0], [0, 0, 1], c=zLineColor, lw=axesLineWidth))
 
-        xt, yt, zt, ox, oy, oz = [None] * 6
-        if vp.xtitle:
-            xtitle = vp.xtitle
-            if min_bns[0] <= 0 and max_bns[1] > 0:  # mark x origin
-                ox = shapes.Cube([-min_bns[0] / sizes[0], 0, 0], side=0.008, c=c)
-            if len(vp.xtitle) == 1:  # add axis length info
-                xtitle = vp.xtitle + " /" + utils.precision(sizes[0], 4)
-            wpos = [1 - (len(vp.xtitle) + 1) / 40, off, 0]
-            xt = shapes.Text(xtitle, pos=wpos, normal=(0, 0, 1),
-                             s=0.025, c=c, justify="bottom-right")
+        ################################################ grid planes
+        grids = []
+        if xyGrid and xtitle and ytitle:
+            gxy = shapes.Grid(pos=(0.5, 0.5, 0), normal=[0, 0, 1], resx=rx, resy=ry)
+            gxy.alpha(xyAlpha).wire(xyGridTransparent).c(xyPlaneColor).lw(gridLineWidth).lc(xyGridColor)
+            grids.append(gxy)
+        if yzGrid and ytitle and ztitle:
+            gyz = shapes.Grid(pos=(0, 0.5, 0.5), normal=[1, 0, 0], resx=rz, resy=ry)
+            gyz.alpha(yzAlpha).wire(yzGridTransparent).c(yzPlaneColor).lw(gridLineWidth).lc(yzGridColor)
+            grids.append(gyz)
+        if zxGrid and ztitle and xtitle:
+            gzx = shapes.Grid(pos=(0.5, 0, 0.5), normal=[0, 1, 0], resx=rz, resy=rx)
+            gzx.alpha(zxAlpha).wire(zxGridTransparent).c(zxPlaneColor).lw(gridLineWidth).lc(zxGridColor)
+            grids.append(gzx)
 
-        if vp.ytitle:
-            if min_bns[2] <= 0 and max_bns[3] > 0:  # mark y origin
-                oy = shapes.Cube([0, -min_bns[2] / sizes[1], 0], side=0.008, c=c)
-            yt = shapes.Text(vp.ytitle, pos=(0, 0, 0), normal=(0, 0, 1),
-                             s=0.025, c=c, justify="bottom-right")
-            if len(vp.ytitle) == 1:
-                wpos = [off, 1 - (len(vp.ytitle) + 1) / 40, 0]
-                yt.pos(wpos)
+        grids2 = []
+        if xyGrid2 and xtitle and ytitle:
+            gxy2 = shapes.Grid(pos=(0.5, 0.5, 1), normal=[0, 0, 1], resx=rx, resy=ry)
+            gxy2.alpha(xyAlpha).wire(xyGrid2Transparent).c(xyPlaneColor).lw(gridLineWidth).lc(xyGridColor)
+            grids2.append(gxy2)
+        if yzGrid2 and ytitle and ztitle:
+            gyz2 = shapes.Grid(pos=(1, 0.5, 0.5), normal=[1, 0, 0], resx=rz, resy=ry)
+            gyz2.alpha(yzAlpha).wire(yzGrid2Transparent).c(yzPlaneColor).lw(gridLineWidth).lc(yzGridColor)
+            grids2.append(gyz2)
+        if zxGrid2 and ztitle and xtitle:
+            gzx2 = shapes.Grid(pos=(0.5, 1, 0.5), normal=[0, 1, 0], resx=rz, resy=rx)
+            gzx2.alpha(zxAlpha).wire(zxGrid2Transparent).c(zxPlaneColor).lw(gridLineWidth).lc(zxGridColor)
+            grids2.append(gzx2)
+
+
+        ################################################ zero lines highlights
+        highlights = []
+        if xyGrid and xtitle and ytitle:
+            if xHighlightZero and min_bns[0] <= 0 and max_bns[1] > 0:
+                xhl = -min_bns[0] / sizes[0]
+                hxy = shapes.Line([xhl,0,0], [xhl,1,0], c=xHighlightZeroColor)
+                hxy.alpha(numpy.sqrt(xyAlpha)).lw(gridLineWidth*2)
+                highlights.append(hxy)
+            if yHighlightZero and min_bns[2] <= 0 and max_bns[3] > 0:
+                yhl = -min_bns[2] / sizes[1]
+                hyx = shapes.Line([0,yhl,0], [1,yhl,0], c=yHighlightZeroColor)
+                hyx.alpha(numpy.sqrt(yzAlpha)).lw(gridLineWidth*2)
+                highlights.append(hyx)
+
+        if yzGrid and ytitle and ztitle:
+            if yHighlightZero and min_bns[2] <= 0 and max_bns[3] > 0:
+                yhl = -min_bns[2] / sizes[1]
+                hyz = shapes.Line([0,yhl,0], [0,yhl,1], c=yHighlightZeroColor)
+                hyz.alpha(numpy.sqrt(yzAlpha)).lw(gridLineWidth*2)
+                highlights.append(hyz)
+            if zHighlightZero and min_bns[4] <= 0 and max_bns[5] > 0:
+                zhl = -min_bns[4] / sizes[2]
+                hzy = shapes.Line([0,0,zhl], [0,1,zhl], c=zHighlightZeroColor)
+                hzy.alpha(numpy.sqrt(yzAlpha)).lw(gridLineWidth*2)
+                highlights.append(hzy)
+
+        if zxGrid and ztitle and xtitle:
+            if zHighlightZero and min_bns[4] <= 0 and max_bns[5] > 0:
+                zhl = -min_bns[4] / sizes[2]
+                hzx = shapes.Line([0,0,zhl], [1,0,zhl], c=zHighlightZeroColor)
+                hzx.alpha(numpy.sqrt(zxAlpha)).lw(gridLineWidth*2)
+                highlights.append(hzx)
+            if xHighlightZero and min_bns[0] <= 0 and max_bns[1] > 0:
+                xhl = -min_bns[0] / sizes[0]
+                hxz = shapes.Line([xhl,0,0], [xhl,0,1], c=xHighlightZeroColor)
+                hxz.alpha(numpy.sqrt(zxAlpha)).lw(gridLineWidth*2)
+                highlights.append(hxz)
+
+        ################################################ aspect ratio scales
+        x_aspect_ratio_scale=1
+        y_aspect_ratio_scale=1
+        z_aspect_ratio_scale=1
+        if xtitle:
+            if sizes[0] > sizes[1]:
+                x_aspect_ratio_scale = (1, sizes[0]/sizes[1], 1)
             else:
-                wpos = [off * 0.7, 1 - (len(vp.ytitle) + 1) / 40, 0]
-                yt.rotateZ(90).pos(wpos)
+                x_aspect_ratio_scale = (sizes[1]/sizes[0], 1, 1)
 
-        if vp.ztitle:
-            if min_bns[4] <= 0 and max_bns[5] > 0:  # mark z origin
-                oz = shapes.Cube([0, 0, -min_bns[4] / sizes[2]], side=0.008, c=c)
-            zt = shapes.Text(vp.ztitle, pos=(0, 0, 0), normal=(1, -1, 0),
-                             s=0.025, c=c, justify="bottom-right")
-            if len(vp.ztitle) == 1:
-                wpos = [off * 0.6, off * 0.6, 1 - (len(vp.ztitle) + 1) / 40]
-                zt.rotate(90, (1, -1, 0)).pos(wpos)
+        if ytitle:
+            if sizes[0] > sizes[1]:
+                y_aspect_ratio_scale = (sizes[0]/sizes[1], 1, 1)
             else:
-                wpos = [off * 0.3, off * 0.3, 1 - (len(vp.ztitle) + 1) / 40]
-                zt.rotate(180, (1, -1, 0)).pos(wpos)
+                y_aspect_ratio_scale = (1, sizes[1]/sizes[0], 1)
 
-        acts = [gxy, gxz, gyz, xa, ya, za, xt, yt, zt, ox, oy, oz]
+        if ztitle:
+            smean = (sizes[0]+sizes[1])/2
+            if smean:
+                if sizes[2] > smean:
+                    zarfact = smean/sizes[2]
+                    z_aspect_ratio_scale = (zarfact, zarfact*sizes[2]/smean, zarfact)
+                else:
+                    z_aspect_ratio_scale = (smean/sizes[2], 1, 1)
+
+        ################################################ axes titles
+        titles = []
+        if xtitle:
+            xt = shapes.Text(xtitle, pos=(0,0,0), s=xTitleSize, bc=xTitleBackfaceColor,
+                             c=xTitleColor, justify=xTitleJustify, depth=titleDepth)
+            if reorientShortTitle and len(ytitle) < 3:  # title is short
+                wpos = [xTitlePosition, -xTitleOffset +0.02, 0]
+            else:
+                wpos = [xTitlePosition, -xTitleOffset, 0]
+            if xKeepAspectRatio: xt.SetScale(x_aspect_ratio_scale)
+            xt.rotateX(xTitleRotation).pos(wpos)
+            titles.append(xt.lighting(specular=0, diffuse=0, ambient=1))
+
+        if ytitle:
+            yt = shapes.Text(ytitle, pos=(0, 0, 0), s=yTitleSize, bc=yTitleBackfaceColor,
+                             c=yTitleColor, justify=yTitleJustify, depth=titleDepth)
+            if reorientShortTitle and len(ytitle) < 3:  # title is short
+                wpos = [-yTitleOffset +0.03-0.01*len(ytitle), yTitlePosition, 0]
+                if yKeepAspectRatio: yt.SetScale(x_aspect_ratio_scale) #x!
+            else:
+                wpos = [-yTitleOffset, yTitlePosition, 0]
+                if yKeepAspectRatio: yt.SetScale(y_aspect_ratio_scale)
+                yt.rotateZ(yTitleRotation)
+            yt.pos(wpos)
+            titles.append(yt.lighting(specular=0, diffuse=0, ambient=1))
+
+        if ztitle:
+            zt = shapes.Text(ztitle, pos=(0, 0, 0), s=zTitleSize, bc=zTitleBackfaceColor,
+                             c=zTitleColor, justify=zTitleJustify, depth=titleDepth)
+            if reorientShortTitle and len(ztitle) < 3:  # title is short
+                wpos = [(-zTitleOffset+0.02-0.003*len(ztitle))/1.42,
+                        (-zTitleOffset+0.02-0.003*len(ztitle))/1.42, zTitlePosition]
+                if zKeepAspectRatio:
+                    zr2 = (z_aspect_ratio_scale[1], z_aspect_ratio_scale[0], z_aspect_ratio_scale[2])
+                    zt.SetScale(zr2)
+                zt.rotateX(90).rotateY(45).pos(wpos)
+            else:
+                if zKeepAspectRatio: zt.SetScale(z_aspect_ratio_scale)
+                wpos = [-zTitleOffset/1.42, -zTitleOffset/1.42, zTitlePosition]
+                zt.rotateY(-90).rotateX(zTitleRotation).pos(wpos)
+            titles.append(zt.lighting(specular=0, diffuse=0, ambient=1))
+
+        ################################################ cube origin ticks
+        originmarks = []
+        if originMarkerSize:
+            if xtitle:
+                if min_bns[0] <= 0 and max_bns[1] > 0:  # mark x origin
+                    ox = shapes.Cube([-min_bns[0] / sizes[0], 0, 0], side=originMarkerSize, c=xLineColor)
+                    originmarks.append(ox.lighting(specular=0, diffuse=0, ambient=1))
+
+            if ytitle:
+                if min_bns[2] <= 0 and max_bns[3] > 0:  # mark y origin
+                    oy = shapes.Cube([0, -min_bns[2] / sizes[1], 0], side=originMarkerSize, c=yLineColor)
+                    originmarks.append(oy.lighting(specular=0, diffuse=0, ambient=1))
+
+            if ztitle:
+                if min_bns[4] <= 0 and max_bns[5] > 0:  # mark z origin
+                    oz = shapes.Cube([0, 0, -min_bns[4] / sizes[2]], side=originMarkerSize, c=zLineColor)
+                    originmarks.append(oz.lighting(specular=0, diffuse=0, ambient=1))
+
+        ################################################ arrow cone
+        cones = []
+        if tipSize:
+            if xtitle:
+                cx = shapes.Cone((1,0,0), r=tipSize, height=tipSize*2, axis=(1,0,0), c=xLineColor, res=10)
+                cones.append(cx.lighting(specular=0, diffuse=0, ambient=1))
+            if ytitle:
+                cy = shapes.Cone((0,1,0), r=tipSize, height=tipSize*2, axis=(0,1,0), c=yLineColor, res=10)
+                cones.append(cy.lighting(specular=0, diffuse=0, ambient=1))
+            if ztitle:
+                cz = shapes.Cone((0,0,1), r=tipSize, height=tipSize*2, axis=(0,0,1), c=zLineColor, res=10)
+                cones.append(cz.lighting(specular=0, diffuse=0, ambient=1))
+
+        ################################################ cylindrical ticks
+        ticks = []
+        if showTicks:
+            if xtitle:
+                for coo in range(1 ,rx):
+                    v = [coo/rx,0,0]
+                    xds = shapes.Cylinder(v, r=xTickRadius, height=xTickThickness, axis=(1,0,0), res=10)
+                    ticks.append(xds.c(xTickColor).lighting(specular=0, ambient=1))
+            if ytitle:
+                for coo in range(1 ,ry):
+                    v = [0,coo/ry,0]
+                    yds = shapes.Cylinder(v, r=yTickRadius, height=yTickThickness, axis=(0,1,0), res=10)
+                    ticks.append(yds.c(yTickColor).lighting(specular=0, ambient=1))
+            if ztitle:
+                for coo in range(1 ,rz):
+                    v = [0,0,coo/rz]
+                    zds = shapes.Cylinder(v, r=zTickRadius, height=zTickThickness, axis=(0,0,1), res=10)
+                    ticks.append(zds.c(zTickColor).lighting(specular=0, ambient=1))
+
+        ################################################ MINOR cylindrical ticks
+        minorticks = []
+        if xMinorTicks and xtitle:
+            xMinorTicks += 1
+            for coo in range(1, rx*xMinorTicks):
+                v = [coo/rx/xMinorTicks,0,0]
+                mxds = shapes.Cylinder(v, r=xTickRadius/1.5, height=xTickThickness, axis=(1,0,0), res=6)
+                minorticks.append(mxds.c(xTickColor).lighting(specular=0, ambient=1))
+        if yMinorTicks and ytitle:
+            yMinorTicks += 1
+            for coo in range(1, ry*yMinorTicks):
+                v = [0, coo/ry/yMinorTicks,0]
+                myds = shapes.Cylinder(v, r=yTickRadius/1.5, height=yTickThickness, axis=(0,1,0), res=6)
+                minorticks.append(myds.c(yTickColor).lighting(specular=0, ambient=1))
+        if zMinorTicks and ztitle:
+            zMinorTicks += 1
+            for coo in range(1, rz*zMinorTicks):
+                v = [0, 0, coo/rz/zMinorTicks]
+                mzds = shapes.Cylinder(v, r=zTickRadius/1.5, height=zTickThickness, axis=(0,0,1), res=6)
+                minorticks.append(mzds.c(zTickColor).lighting(specular=0, ambient=1))
+
+        ################################################ axes tick NUMERIC labels
+        labels = []
+        if xLabelSize:
+            if xtitle:
+                if rx > 12: rx = int(rx/2)
+                for ic in range(1, rx+enableLastLabel):
+                    v = (ic/rx, -xLabelOffset, 0)
+                    val = v[0]*sizes[0]+min_bns[0]
+                    if abs(val)>1 and sizes[0]<1: xTicksPrecision = int(xTicksPrecision-numpy.log10(sizes[0]))
+                    tval = utils.precision(val, xTicksPrecision)
+                    xlab = shapes.Text(tval, pos=v, s=xLabelSize, justify="center-top", depth=0)
+                    if xKeepAspectRatio: xlab.SetScale(x_aspect_ratio_scale)
+                    labels.append(xlab.c(xTickColor).lighting(specular=0, ambient=1))
+        if yLabelSize:
+            if ytitle:
+                if ry > 12: ry = int(ry/2)
+                for ic in range(1, ry+enableLastLabel):
+                    v = (-yLabelOffset, ic/ry, 0)
+                    val = v[1]*sizes[1]+min_bns[2]
+                    if abs(val)>1 and sizes[1]<1: yTicksPrecision = int(yTicksPrecision-numpy.log10(sizes[1]))
+                    tval = utils.precision(val, yTicksPrecision)
+                    ylab = shapes.Text(tval, pos=(0,0,0), s=yLabelSize, justify="center-bottom", depth=0)
+                    if yKeepAspectRatio: ylab.SetScale(y_aspect_ratio_scale)
+                    ylab.rotateZ(yTitleRotation).pos(v)
+                    labels.append(ylab.c(yTickColor).lighting(specular=0, ambient=1))
+        if zLabelSize:
+            if ztitle:
+                if rz > 12: rz = int(rz/2)
+                for ic in range(1, rz+enableLastLabel):
+                    v = (-zLabelOffset, -zLabelOffset, ic/rz)
+                    val = v[2]*sizes[2]+min_bns[4]
+                    tval = utils.precision(val, zTicksPrecision)
+                    if abs(val)>1 and sizes[2]<1: zTicksPrecision = int(zTicksPrecision-numpy.log10(sizes[2]))
+                    zlab = shapes.Text(tval, pos=(0,0,0), s=zLabelSize, justify="center-bottom", depth=0)
+                    if zKeepAspectRatio: zlab.SetScale(z_aspect_ratio_scale)
+                    zlab.rotateY(-90).rotateX(zTitleRotation).pos(v)
+                    labels.append(zlab.c(zTickColor).lighting(specular=0, ambient=1))
+
+        acts = grids + grids2 + lines + highlights + titles
+        acts += minorticks + originmarks + ticks + cones + labels
         for a in acts:
-            if a:
-                a.PickableOff()
-        aa = Assembly(acts)
-        aa.pos(min_bns[0], min_bns[2], min_bns[4])
-        aa.SetScale(sizes)
-        aa.PickableOff()
-        vp.renderer.AddActor(aa)
-        vp.axes_instances[r] = aa
+            a.PickableOff()
+        asse = Assembly(acts)
+        asse.pos(min_bns[0], min_bns[2], min_bns[4])
+        asse.SetScale(sizes)
+        asse.PickableOff()
+        vp.renderer.AddActor(asse)
+        vp.axes_instances[r] = asse
+        vp.axes = axes_copy #un-pop
+
 
     elif vp.axes == 2 or vp.axes == 3:
         vbb = vp.renderer.ComputeVisiblePropBounds()  # to be double checked
@@ -806,7 +1215,7 @@ def addAxes(axtype=None, c=None):
             wpos = [x1-(len(vp.xtitle)+1)*aves/40*s, -aves/25*s, 0]  # aligned to arrow tip
             if centered:
                 wpos = [(x0 + x1) / 2 - len(vp.xtitle) / 2 * aves / 40 * s, -aves / 25 * s, 0]
-            xt = shapes.Text(vp.xtitle, pos=wpos, normal=(0, 0, 1), s=aves / 40 * s, c=xcol)
+            xt = shapes.Text(vp.xtitle, pos=wpos, s=aves / 40 * s, c=xcol)
             acts += [xl, xc, xt]
 
         if len(vp.ytitle) and dy > aves/100:
@@ -816,7 +1225,7 @@ def addAxes(axtype=None, c=None):
             wpos = [-aves/40*s, y1-(len(vp.ytitle)+1)*aves/40*s, 0]
             if centered:
                 wpos = [-aves / 40 * s, (y0 + y1) / 2 - len(vp.ytitle) / 2 * aves / 40 * s, 0]
-            yt = shapes.Text(vp.ytitle, pos=(0, 0, 0), normal=(0, 0, 1), s=aves / 40 * s, c=ycol)
+            yt = shapes.Text(vp.ytitle, pos=(0, 0, 0), s=aves / 40 * s, c=ycol)
             yt.rotate(90, [0, 0, 1]).pos(wpos)
             acts += [yl, yc, yt]
 
@@ -827,7 +1236,7 @@ def addAxes(axtype=None, c=None):
             wpos = [-aves/50*s, -aves/50*s, z1 - (len(vp.ztitle)+1)*aves/40*s]
             if centered:
                 wpos = [-aves/50*s, -aves/50*s, (z0+z1)/2-len(vp.ztitle)/2*aves/40*s]
-            zt = shapes.Text(vp.ztitle, pos=(0,0,0), normal=(1, -1, 0), s=aves/40*s, c=zcol)
+            zt = shapes.Text(vp.ztitle, pos=(0,0,0), s=aves/40*s, c=zcol)
             zt.rotate(180, (1, -1, 0)).pos(wpos)
             acts += [zl, zc, zt]
         for a in acts:
@@ -899,6 +1308,8 @@ def addAxes(axtype=None, c=None):
         for a in vp.actors:
             if a.GetPickable():
                 b = a.GetBounds()
+                if b is None:
+                    return
                 d = max(b[1]-b[0], b[3]-b[2], b[5]-b[4])
                 if sz < d:
                     largestact = a
@@ -987,9 +1398,9 @@ def addAxes(axtype=None, c=None):
         x0 = (vbb[0] + vbb[1]) / 2, (vbb[3] + vbb[2]) / 2, (vbb[5] + vbb[4]) / 2
         rx, ry, rz = (vbb[1]-vbb[0])/2, (vbb[3]-vbb[2])/2, (vbb[5]-vbb[4])/2
         rm = max(rx, ry, rz)
-        xc = shapes.Disc(x0, (0,0,1), r1=rm, r2=rm, c='lr', bc=None, res=1, resphi=72)
-        yc = shapes.Disc(x0, (0,1,0), r1=rm, r2=rm, c='lg', bc=None, res=1, resphi=72)
-        zc = shapes.Disc(x0, (1,0,0), r1=rm, r2=rm, c='lb', bc=None, res=1, resphi=72)
+        xc = shapes.Disc(x0, r1=rm, r2=rm, c='lr', res=1, resphi=72)
+        yc = shapes.Disc(x0, r1=rm, r2=rm, c='lg', res=1, resphi=72).rotateX(90)
+        zc = shapes.Disc(x0, r1=rm, r2=rm, c='lb', res=1, resphi=72).rotateY(90)
         xc.clean().alpha(0.2).wire().lineWidth(2.5).PickableOff()
         yc.clean().alpha(0.2).wire().lineWidth(2.5).PickableOff()
         zc.clean().alpha(0.2).wire().lineWidth(2.5).PickableOff()
@@ -1003,7 +1414,7 @@ def addAxes(axtype=None, c=None):
         colors.printc('''
   ~target Available axes types:
   0 = no axes,
-  1 = draw three gray grid walls
+  1 = draw three customizable gray grid walls
   2 = show cartesian axes from (0,0,0)
   3 = show positive range of cartesian axes from (0,0,0)
   4 = show a triad at bottom left
@@ -1137,8 +1548,12 @@ class Button:
         self.bcolors = bc
         self.function = fnc
         self.actor = vtk.vtkTextActor()
-        self.actor.SetDisplayPosition(pos[0], pos[1])
-        self.framewidth = 3
+
+        self.actor.GetActualPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+
+        self.actor.SetPosition(pos[0], pos[1])
+        #self.actor.SetDisplayPosition(pos[0], pos[1]) # pixel coords
+        self.framewidth = 2
         self.offset = 5
         self.spacer = " "
 
@@ -1169,6 +1584,7 @@ class Button:
         """
         if s is None:
             return self.states[self._status]
+
         if isinstance(s, str):
             s = self.states.index(s)
         self._status = s
@@ -1182,6 +1598,7 @@ class Button:
             self.textproperty.FrameOn()
             self.textproperty.SetFrameWidth(self.framewidth)
             self.textproperty.SetFrameColor(numpy.sqrt(bcc))
+        return self
 
     def switch(self):
         """
@@ -1189,3 +1606,4 @@ class Button:
         """
         self._status = (self._status + 1) % len(self.states)
         self.status(self._status)
+        return self

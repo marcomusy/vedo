@@ -28,4 +28,4 @@ alphas = [i/10. for i in range(10)]
 
 man.pointColors(scals, cmap=mymap, alpha=alphas).addScalarBar()
 
-show(man, doc, viewup="z", axes=8, depthpeeling=1)
+show(man, doc, viewup="z", axes=1, depthpeeling=1)

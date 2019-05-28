@@ -31,9 +31,8 @@ def reflection(p, pos):
 
 vp = Plotter(title="gas in toroid", interactive=0, axes=0, bg="w")
 
-vp.add(Text(__doc__))
-
-vp.add(Torus(c="g", r=RingRadius, thickness=RingThickness, alpha=0.1).wire(1))  ### <--
+vp += Text(__doc__)
+vp += Torus(c="g", r=RingRadius, thickness=RingThickness, alpha=0.1).wire(1)  ### <--
 
 Atoms = []
 poslist = []
@@ -46,7 +45,9 @@ for i in range(Natoms):
     x = RingRadius * np.cos(alpha) * 0.9
     y = RingRadius * np.sin(alpha) * 0.9
     z = 0
-    Atoms = Atoms + [vp.add(Sphere(pos=(x, y, z), r=Ratom, c=i))]  ### <--
+    atm = Sphere(pos=(x, y, z), r=Ratom, c=i)
+    vp += atm
+    Atoms = Atoms + [atm]  ### <--
     theta = np.pi * random()
     phi = 2 * np.pi * random()
     px = pavg * np.sin(theta) * np.cos(phi)

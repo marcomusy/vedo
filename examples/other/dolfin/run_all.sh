@@ -93,6 +93,8 @@ python turing_pattern.py
 echo Running heatconv.py
 python heatconv.py
 
+echo Running awefem.py
+python awefem.py
 
 ######################################
 echo 

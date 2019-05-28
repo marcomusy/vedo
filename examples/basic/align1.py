@@ -8,18 +8,16 @@ from vtkplotter import *
 
 vp = Plotter()
 
-vp.add(Text(__doc__))  # add comment above
-
 limb = vp.load(datadir + "270.vtk")
 rim  = vp.load(datadir + "270_rim.vtk").c("r").lw(4)
 
 arim = alignICP(rim, limb, rigid=True).c("g").lw(5)
-vp.add(arim)
+vp += [arim, Text(__doc__)]
 
 d = 0
 for p in arim.coordinates():
     cpt = limb.closestPoint(p)
-    vp.add(Arrow(p, cpt, c="g"))
+    vp += Arrow(p, cpt, c="g")
     d += mag2(p - cpt)  # square of residual distance
 
 printc("ave. squared distance =", d / arim.N(), c="g")

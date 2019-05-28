@@ -41,7 +41,7 @@ class ProgressBar:
 
     :Example:
         .. code-block:: python
-        
+
             import time
             pb = ProgressBar(0,400, c='red')
             for i in pb.range():
@@ -249,7 +249,7 @@ def precision(x, p):
     """
     Returns a string representation of `x` formatted with precision `p`.
 
-    Based on the webkit javascript implementation taken 
+    Based on the webkit javascript implementation taken
     `from here <https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/kjs/number_object.cpp>`_,
     and implemented by `randlet <https://github.com/randlet/to-precision>`_.
     """
@@ -388,7 +388,7 @@ def grep(filename, tag, firstOccurrence=False):
         afile = open(filename, "r")
     except:
         print("Error in utils.grep(): cannot open file", filename)
-        exit()
+        raise RuntimeError()
     content = None
     for line in afile:
         if re.search(tag, line):
@@ -474,7 +474,7 @@ def printInfo(obj):
 
             colors.printc(tab + "     diag. size: ", c="g", bold=1, end="")
             colors.printc(precision(actor.diagonalSize(), 6), c="g", bold=0)
-            
+
             _area = actor.area()
             if _area:
                 colors.printc(tab + "           area: ", c="g", bold=1, end="")
@@ -608,6 +608,7 @@ def printInfo(obj):
         colors.printc(" y=(" + by1 + ", " + by2 + ")", c="c", bold=0, end="")
         bz1, bz2 = precision(min_bns[4], 3), precision(max_bns[5], 3)
         colors.printc(" z=(" + bz1 + ", " + bz2 + ")", c="c", bold=0)
+        if isinstance(obj.axes, dict): obj.axes=1
         colors.printc("       axes type:", obj.axes, axtype[obj.axes], bold=0, c="c")
 
         for a in obj.actors:
@@ -641,7 +642,7 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
     """
     Ascii histogram printing.
     Input can also be ``Volume`` or ``Actor``.
-    Returns the raw data before binning (useful when passing vtk objects). 
+    Returns the raw data before binning (useful when passing vtk objects).
 
     :param int bins: number of histogram bins
     :param int height: height of the histogram in character units
@@ -652,10 +653,10 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
     :param str,int c: ascii color
     :param bool char: use boldface
     :param str title: histogram title
-    
+
     :Example:
         .. code-block:: python
-        
+
             from vtkplotter import printHistogram
             import numpy as np
             d = np.random.normal(size=1000)
@@ -666,10 +667,10 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
         |printhisto|
     """
     # Adapted from http://pyinsci.blogspot.com/2009/10/ascii-histograms.html
-    
+
     if not horizontal: # better aspect ratio
         bins *= 2
-    
+
     isimg = isinstance(data, vtk.vtkImageData)
     isvol = isinstance(data, vtk.vtkVolume)
     if isimg or isvol:
@@ -690,7 +691,7 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
             arr = data.polydata().GetCellData().GetScalars()
             if not arr:
                 return
-            
+
         from vtk.util.numpy_support import vtk_to_numpy
         data = vtk_to_numpy(arr)
 
@@ -700,7 +701,7 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
         hi = h[0][minbin:-1]
     else:
         hi = h[0]
-    
+
     if sys.version_info[0] < 3 and char == u"\U00002589":
         char = "*" # python2 hack
     if char == u"\U00002589" and horizontal:
@@ -783,11 +784,11 @@ def makeBands(inputlist, numberOfBands):
 
     return np.array(newlist)
 
-    
-    
+
+
 def resampleArrays(source, target, tol=None):
         """Resample point and cell data of a dataset on points from another dataset.
-        
+
         :param float tol: set the tolerance used to compute whether
             a point in the target is in a cell of the source.
             Points without resampled values, and their cells, are be marked as blank.
@@ -802,7 +803,6 @@ def resampleArrays(source, target, tol=None):
             rs.SetTolerance(tol)
         rs.Update()
         return rs.GetOutput()
-    
-    
-    
-    
+
+
+

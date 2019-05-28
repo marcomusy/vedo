@@ -20,8 +20,8 @@ Defines main class ``Plotter`` to manage actors and 3D rendering.
     + docs._defs
 )
 
-__all__ = ["show", "clear", "Plotter", "plotMatrix", "closeWindow", "interactive"]
-
+__all__ = ["show", "clear", "Plotter", "plotMatrix",
+           "closeWindow", "closePlotter", "interactive"]
 
 ########################################################################
 def show(*actors, **options
@@ -53,7 +53,7 @@ def show(*actors, **options
     """
     Create on the fly an instance of class ``Plotter`` and show the object(s) provided.
 
-    Allowed input objects are: ``filename``, ``vtkPolyData``, ``vtkActor``, 
+    Allowed input objects are: ``filename``, ``vtkPolyData``, ``vtkActor``,
     ``vtkActor2D``, ``vtkImageActor``, ``vtkAssembly`` or ``vtkVolume``.
 
     If filename is given, its type is guessed based on its extension.
@@ -85,28 +85,28 @@ def show(*actors, **options
 
     :param dict camera: Camera parameters can further be specified with a dictionary assigned to the ``camera`` keyword:
         (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
-    
+
         - pos, `(list)`,  the position of the camera in world coordinates
         - focalPoint `(list)`, the focal point of the camera in world coordinates
         - viewup `(list)`, the view up direction for the camera
         - distance `(float)`, set the focal point to the specified distance from the camera position.
         - clippingRange `(float)`, distance of the near and far clipping planes along the direction of projection.
         - parallelScale `(float)`,
-            scaling used for a parallel projection, i.e. the height of the viewport 
+            scaling used for a parallel projection, i.e. the height of the viewport
             in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
-            an "inverse scale", larger numbers produce smaller images. 
+            an "inverse scale", larger numbers produce smaller images.
             This method has no effect in perspective projection mode.
         - thickness `(float)`,
-            set the distance between clipping planes. This method adjusts the far clipping 
+            set the distance between clipping planes. This method adjusts the far clipping
             plane to be set a distance 'thickness' beyond the near clipping plane.
         - viewAngle `(float)`,
             the camera view angle, which is the angular height of the camera view
             measured in degrees. The default angle is 30 degrees.
-            This method has no effect in parallel projection mode. 
+            This method has no effect in parallel projection mode.
             The formula for setting the angle up for perfect perspective viewing is:
             angle = 2*atan((h/2)/d) where h is the height of the RenderWindow
             (measured by holding a ruler up to your screen) and d is the distance from your eyes to the screen.
-   
+
     :param bool interactive:  pause and interact with window (True)
         or continue execution (False)
     :param float rate:  maximum rate of `show()` in Hertz
@@ -130,7 +130,7 @@ def show(*actors, **options
     .. note:: With multiple renderers, keyword ``at`` can become a `list`, e.g.
 
         .. code-block:: python
-        
+
             from vtkplotter import *
             s = Sphere()
             c = Cube()
@@ -146,7 +146,7 @@ def show(*actors, **options
             vp.show(s, at=0)
             vp.show(p, at=1)
             vp.show(c, at=2, interactive=True)
-    """
+    """    
     at = options.pop("at", None)
     shape = options.pop("shape", (1, 1))
     N = options.pop("N", None)
@@ -186,17 +186,17 @@ def show(*actors, **options
         if utils.isSequence(at):
             if not utils.isSequence(actors):
                 colors.printc("~times show() Error: input must be a list.", c=1)
-                exit()
+                raise RuntimeError()
             if len(at) != len(actors):
                 colors.printc("~times show() Error: lists 'input' and 'at', must have equal lengths.", c=1)
-                exit()
+                raise RuntimeError()
             if len(at) > 1 and (shape == (1, 1) and N == None):
                 N = max(at) + 1
         elif at is None and (N or shape != (1, 1)):
             if not utils.isSequence(actors):
                 colors.printc('~times show() Error: N or shape is set, but input is not a sequence.', c=1)
                 colors.printc('              you may need to specify e.g. at=0', c=1)
-                exit()
+                raise RuntimeError()
             at = range(len(actors))
 
         vp = Plotter(
@@ -216,9 +216,10 @@ def show(*actors, **options
             offscreen=offscreen,
         )
 
+    # use _vp_to_return because vp.show() can return a k3d/panel plot
     if utils.isSequence(at):
         for i, a in enumerate(actors):
-            vp.show(
+            _vp_to_return = vp.show(
                 a,
                 at=i,
                 zoom=zoom,
@@ -234,7 +235,7 @@ def show(*actors, **options
             )
         vp.interactor.Start()
     else:
-        vp.show(
+        _vp_to_return = vp.show(
             actors,
             at=at,
             zoom=zoom,
@@ -248,8 +249,8 @@ def show(*actors, **options
             interactorStyle=interactorStyle,
             q=q,
         )
-
-    return vp
+    
+    return _vp_to_return
 
 
 def interactive():
@@ -258,8 +259,8 @@ def interactive():
         if hasattr(settings.plotter_instance, 'interactor'):
             settings.plotter_instance.interactor.Start()
     return settings.plotter_instance
-    
-    
+
+
 def clear(actor=()):
     """
     Clear specific actor or list of actors from the current rendering window.
@@ -281,54 +282,21 @@ def closeWindow(plotterInstance=None):
     return plotterInstance
 
 
-def plotMatrix(M, title='matrix', continuous=True, cmap='Greys'):
-    """
-	 Plot a matrix using `matplotlib`.
-    
-    :Example:
-        .. code-block:: python
+def closePlotter():
+    """Close the current or the input rendering window."""
+    settings.plotter_instance.closeWindow()
+    settings.plotter_instance = None
+    settings.plotter_instances = []
+    settings.collectable_actors = []
+    return None
 
-            from vtkplotter.dolfin import plotMatrix
-            import numpy as np
-            
-            M = np.eye(9) + np.random.randn(9,9)/4
-            
-            plotMatrix(M)
-        
-        |pmatrix|
-    """
-    import matplotlib.pyplot as plt
-    import matplotlib as mpl
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
-    
-    M    = numpy.array(M)
-    m,n  = numpy.shape(M)
-    M    = M.round(decimals=2)
 
-    fig  = plt.figure()
-    ax   = fig.add_subplot(111)
-    cmap = mpl.cm.get_cmap(cmap)
-    if not continuous:
-        unq  = numpy.unique(M)
-    im      = ax.imshow(M, cmap=cmap, interpolation='None')
-    divider = make_axes_locatable(ax)
-    cax     = divider.append_axes("right", size="5%", pad=0.05)
-    dim     = r'$%i \times %i$ ' % (m,n)
-    ax.set_title(dim + title)
-    ax.axis('off')
-    cb = plt.colorbar(im, cax=cax)
-    if not continuous:
-       cb.set_ticks(unq)
-       cb.set_ticklabels(unq)
-    plt.show()
-    
-    
 ########################################################################
 class Plotter:
     """
     Main class to manage actors.
 
-    :param list shape: shape of the grid of renderers in format (rows, columns). 
+    :param list shape: shape of the grid of renderers in format (rows, columns).
         Ignored if N is specified.
     :param int N: number of desired renderers arranged in a grid automatically.
     :param list pos: (x,y) position in pixels of top-left corneer of the rendering window
@@ -351,6 +319,47 @@ class Plotter:
       - 9,  show the bounding box outLine,
       - 10, show three circles representing the maximum bounding box.
 
+    Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
+
+        - `xtitle`,            ['x'], x-axis title text.
+        - `ytitle`,            ['y'], y-axis title text.
+        - `ztitle`,            ['z'], z-axis title text.
+        - `numberOfDivisions`, [automatic], number of divisions on the shortest axis
+        - `axesLineWidth`,       [1], width of the axes lines
+        - `gridLineWidth`,       [1], width of the grid lines
+        - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally
+        - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
+        - `enableLastLabel`, [False], show last numeric label on axes
+        - `titleDepth`,          [0], extrusion fractional depth of title text
+        - `xyGrid`,           [True], show a gridded wall on plane xy
+        - `yzGrid`,           [True], show a gridded wall on plane yz
+        - `zxGrid`,           [True], show a gridded wall on plane zx
+        - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
+        - `xyGridTransparent`  [False], make grid plane completely transparent
+        - `xyGrid2Transparent` [False], make grid plane completely transparent on opposite side box
+        - `xyPlaneColor`,   ['gray'], color of the plane
+        - `xyGridColor`,    ['gray'], grid line color
+        - `xyAlpha`,          [0.15], grid plane opacity
+        - `showTicks`,        [True], show major ticks
+        - `xTitlePosition`,   [0.32], title fractional positions along axis
+        - `xTitleOffset`,     [0.05], title fractional offset distance from axis line
+        - `xTitleJustify`, ["top-right"], title justification
+        - `xTitleRotation`,      [0], add a rotation of the axis title
+        - `xLineColor`,  [automatic], color of the x-axis
+        - `xTitleColor`, [automatic], color of the axis title
+        - `xTitleBackfaceColor`, [None],  color of axis title on its backface
+        - `xTitleSize`,      [0.025], size of the axis title
+        - `xHighlightZero`,   [True], draw a line highlighting zero position if in range
+        - `xHighlightZeroColor`, [automatic], color of the line highlighting the zero position
+        - `xTickRadius`,     [0.005], radius of the major ticks
+        - `xTickThickness`, [0.0025], thickness of the major ticks along their axis
+        - `xTickColor`,  [automatic], color of major ticks
+        - `xMinorTicks`,         [1], number of minor ticks between two major ticks
+        - `tipSize`,          [0.01], size of the arrow tip
+        - `xTicksPrecision`,     [2], nr. of significative digits to be shown
+        - `xLabelSize`,      [0.015], size of the numeric labels along axis
+        - `xLabelOffset`,    [0.025], offset of numeric labels
+
     :param bool infinity: if True fugue point is set at infinity (no perspective effects)
     :param bool sharecam: if False each renderer will have an independent vtkCamera
     :param bool interactive: if True will stop after show() to allow interaction w/ window
@@ -359,7 +368,7 @@ class Plotter:
 
     |multiwindows|
     """
-    
+
     def __init__(
         self,
         shape=(1, 1),
@@ -414,7 +423,6 @@ class Plotter:
         self.showFrame = True
 
         # mostly internal stuff:
-#        self.camThickness = None
         self.justremoved = None
         self.axes_instances = []
         self.icol = 0
@@ -422,7 +430,6 @@ class Plotter:
         self._clockt0 = time.time()
         self.initializedPlotter = False
         self.initializedIren = False
-        self.camera = vtk.vtkCamera()
         self.keyPressFunction = None
         self.sliders = []
         self.buttons = []
@@ -434,14 +441,21 @@ class Plotter:
         self.mouseMiddleClickFunction = None
         self.mouseRightClickFunction = None
         self._first_viewup = True
-        
+
         self.xtitle = settings.xtitle  # x axis label and units
         self.ytitle = settings.ytitle  # y axis label and units
         self.ztitle = settings.ztitle  # z axis label and units
 
-        # sort out screen size
-        self.window = vtk.vtkRenderWindow()
+        if settings.useOpenVR:
+            self.camera = vtk.vtkOpenVRCamera()
+            self.window =vtk.vtkOpenVRRenderWindow()
+        else:
+            self.camera = vtk.vtkCamera()
+            self.window = vtk.vtkRenderWindow()
+
         self.window.PointSmoothingOn()
+
+        # sort out screen size
         if screensize == "auto":
             aus = self.window.GetScreenSize()
             if aus and len(aus) == 2 and aus[0] > 100 and aus[1] > 100:  # seems ok
@@ -476,7 +490,7 @@ class Plotter:
                     ind = i
                     minl = l
             shape = lm[ind]
-            
+
         if size == "auto":  # figure out a reasonable window size
             f = 1.5
             xs = y / f * shape[1]  # because y<x
@@ -500,7 +514,10 @@ class Plotter:
 
         for i in reversed(range(shape[0])):
             for j in range(shape[1]):
-                arenderer = vtk.vtkRenderer()
+                if settings.useOpenVR:
+                    arenderer = vtk.vtkOpenVRRenderer()
+                else:
+                    arenderer = vtk.vtkRenderer()
                 arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
                 arenderer.SetUseDepthPeeling(depthpeeling)
                 if "jpg" in str(self.backgrcol).lower() or "jpeg" in str(self.backgrcol).lower():
@@ -508,7 +525,7 @@ class Plotter:
                         jpeg_reader = vtk.vtkJPEGReader()
                         if not jpeg_reader.CanReadFile(self.backgrcol):
                             colors.printc("~times Error reading background image file", self.backgrcol, c=1)
-                            sys.exit()
+                            raise RuntimeError()
                         jpeg_reader.SetFileName(self.backgrcol)
                         jpeg_reader.Update()
                         image_data = jpeg_reader.GetOutput()
@@ -561,11 +578,19 @@ class Plotter:
             self.window.SetOffScreenRendering(True)
             self.interactive = False
             self.interactor = None
-            ######
+            ########################
             return
-            ######
+            ########################
 
-        self.interactor = vtk.vtkRenderWindowInteractor()
+        if settings.notebookBackend:
+            self.interactive = False
+            self.interactor = None
+            return
+
+        if settings.useOpenVR:
+            self.interactor = vtk.vtkOpenVRRenderWindowInteractor()
+        else:
+            self.interactor = vtk.vtkRenderWindowInteractor()
         self.interactor.SetRenderWindow(self.window)
         vsty = vtk.vtkInteractorStyleTrackballCamera()
         self.interactor.SetInteractorStyle(vsty)
@@ -593,53 +618,93 @@ class Plotter:
                     self._update_observer = self.interactor.CreateRepeatingTimer(1)
                     if hasattr(self, 'interactor') and self.interactor:
                         self.interactor.Start()
-                        
-                    if hasattr(self, 'interactor') and self.interactor: 
+
+                    if hasattr(self, 'interactor') and self.interactor:
                         # twice otherwise it crashes when pressing Esc (??)
                         self.interactor.DestroyTimer(self._update_observer)
 
             self.allowInteraction = _allowInteraction
+
+    def __str__(self):
+        utils.printInfo(self)
+        return ""
+
+    def __iadd__(self, actors):
+        self.add(actors)
+        return self
+
+    def __isub__(self, actors):
+        self.remove(actors)
+        return self
+
+    def add(self, actors):
+        """Append input object to the internal list of actors to be shown.
+
+        :return: returns input actor for possible concatenation.
+        """
+        if utils.isSequence(actors):
+            for a in actors:
+                if a not in self.actors:
+                    self.actors.append(a)
+            return None
+        else:
+            self.actors.append(actors)
+            return actors
+
+    def remove(self, actors):
+        """Remove ``vtkActor`` or actor index from current renderer."""
+        if not utils.isSequence(actors):
+            actors = [actors]
+        for a in actors:
+            if self.renderer:
+                self.renderer.RemoveActor(a)
+                if hasattr(a, 'renderedAt'):
+                    ir = self.renderers.index(self.renderer)
+                    a.renderedAt.discard(ir)
+            if a in self.actors:
+                i = self.actors.index(a)
+                del self.actors[i]
 
     ####################################################
     def load(self, inputobj, c="gold", alpha=1, threshold=False, spacing=(), unpack=True):
         """
         Load Actors and Volumes from file.
         The output will depend on the file extension. See examples below.
-        
+
         :param c: color in RGB format, hex, symbol or name
         :param alpha: transparency (0=invisible)
-    
+
         For volumetric data (tiff, slc, vti etc):
         :param float threshold: value to draw the isosurface, False by default to return a ``Volume``
         :param list spacing: specify the voxel spacing in the three dimensions
         :param bool unpack: only for multiblock data, if True returns a flat list of objects.
-        
+
         :Example:
             .. code-block:: python
-            
+
                 from vtkplotter import datadir, load, show
-                
+
                 # Return an Actor
                 g = load(datadir+'ring.gmsh')
                 show(g)
-                
+
                 # Return a list of 2 Actors
                 g = load([datadir+'250.vtk', datadir+'290.vtk'])
                 show(g)
-                
+
                 # Return a list of actors by reaading all files in a directory
                 # (if directory contains DICOM files then a Volume is returned)
                 g = load(datadir+'timecourse1d/')
                 show(g)
-                
+
                 # Return a Volume. Color/Opacity transfer function can be specified too.
                 g = load(datadir+'embryo.slc')
                 g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1))
                 show(g)
-                
+
                 # Return an Actor from a SLC volume with automatic thresholding
                 g = load(datadir+'embryo.slc', threshold=True)
-                show(g)    
+                show(g)
         """
         acts = vtkio.load(inputobj, c, alpha, threshold, spacing, unpack)
         if utils.isSequence(acts):
@@ -659,7 +724,7 @@ class Plotter:
                 renderer = self.renderers.index(renderer)
         else:
             return []
-        
+
         if obj is None or isinstance(obj, int):
             if obj is None:
                 acs = renderer.GetVolumes()
@@ -746,19 +811,6 @@ class Plotter:
             colors.printc("~lightning Warning in getActors: unexpected input type", obj, c=1)
         return []
 
-    def add(self, actors):
-        """Append input object to the internal list of actors to be shown.
-
-        :return: returns input actor for possible concatenation.
-        """
-        if utils.isSequence(actors):
-            for a in actors:
-                if a not in self.actors:
-                    self.actors.append(a)
-            return None
-        else:
-            self.actors.append(actors)
-            return actors
 
     def moveCamera(self, camstart, camstop, fraction):
         """
@@ -939,8 +991,8 @@ class Plotter:
         angle=0,
     ):
         """Add a button to the renderer window.
-        
-        :param list states: a list of possible states ['On', 'Off']
+
+        :param list states: a list of possible states, e.g. ['On', 'Off']
         :param c:      a list of colors for each state
         :param bc:     a list of background colors for each state
         :param pos:    2D position in pixels from left-bottom corner
@@ -976,7 +1028,7 @@ class Plotter:
     def addAxes(self, axtype=None, c=None):
         """Draw axes on scene. Available axes types:
 
-        :param int axtype: 
+        :param int axtype:
 
               - 0,  no axes,
               - 1,  draw three gray grid walls
@@ -989,6 +1041,60 @@ class Plotter:
               - 8,  show the ``vtkCubeAxesActor`` object
               - 9,  show the bounding box outLine
               - 10, show three circles representing the maximum bounding box
+
+        Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
+
+            - `xtitle`,            ['x'], x-axis title text.
+            - `ytitle`,            ['y'], y-axis title text.
+            - `ztitle`,            ['z'], z-axis title text.
+            - `numberOfDivisions`,   [4], number of divisions on the shortest axis
+            - `axesLineWidth`,       [1], width of the axes lines
+            - `gridLineWidth`,       [1], width of the grid lines
+            - `reorientShortTitle`, [True], titles shorter than 3 letters are placed horizontally
+            - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
+            - `enableLastLabel`, [False], show last numeric label on axes
+            - `titleDepth`,          [0], extrusion fractional depth of title text
+            - `xyGrid`,           [True], show a gridded wall on plane xy
+            - `yzGrid`,           [True], show a gridded wall on plane yz
+            - `zxGrid`,           [True], show a gridded wall on plane zx
+            - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
+            - `xyPlaneColor`,   ['gray'], color of gridded plane
+            - `xyGridColor`,    ['gray'], grid line color
+            - `xyAlpha`,          [0.15], grid plane opacity
+            - `showTicks`,        [True], show major ticks
+            - `xTitlePosition`,   [0.32], title fractional positions along axis
+            - `xTitleOffset`,     [0.05], title fractional offset distance from axis line
+            - `xTitleJustify`, ["top-right"], title justification
+            - `xTitleRotation`,      [0], add a rotation of the axis title
+            - `xLineColor`,  [automatic], color of the x-axis
+            - `xTitleColor`, [automatic], color of the axis title
+            - `xTitleBackfaceColor`, [None],  color of axis title on its backface
+            - `xTitleSize`,      [0.025], size of the axis title
+            - `xHighlightZero`,   [True], draw a line highlighting zero position if in range
+            - `xHighlightZeroColor`, [automatic], color of the line highlighting the zero position
+            - `xTickRadius`,     [0.005], radius of the major ticks
+            - `xTickThickness`, [0.0025], thickness of the major ticks along their axis
+            - `xTickColor`,  [automatic], color of major ticks
+            - `xMinorTicks`,         [1], number of minor ticks between two major ticks
+            - `tipSize`,          [0.01], size of the arrow tip
+            - `xTicksPrecision`,     [2], nr. of significative digits to be shown
+            - `xLabelSize`,      [0.015], size of the numeric labels along axis
+            - `xLabelOffset`,    [0.025], offset of numeric labels
+
+            :Example:
+
+                .. code-block:: python
+
+                    from vtkplotter import Box, show
+                    b = Box(pos=(0,0,0), length=80, width=90, height=70).alpha(0)
+
+                    show(b, axes={ 'xtitle':'Some long variable [a.u.]',
+                                   'numberOfDivisions':4,
+                                   # ...
+                                 }
+                    )
+
+        .. hint:: |customAxes| |customAxes.py|_
         """
         return addons.addAxes(axtype, c)
 
@@ -1032,7 +1138,7 @@ class Plotter:
         :param int axes: set the type of axes to be shown
 
               - 0,  no axes,
-              - 1,  draw three gray grid walls
+              - 1,  draw three customizable gray grid walls
               - 2,  show cartesian axes from (0,0,0)
               - 3,  show positive range of cartesian axes from (0,0,0)
               - 4,  show a triad at bottom left
@@ -1052,28 +1158,28 @@ class Plotter:
 
         :param dict camera: Camera parameters can further be specified with a dictionary assigned to the ``camera`` keyword:
             (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
-        
+
             - pos, `(list)`,  the position of the camera in world coordinates
             - focalPoint `(list)`, the focal point of the camera in world coordinates
             - viewup `(list)`, the view up direction for the camera
             - distance `(float)`, set the focal point to the specified distance from the camera position.
             - clippingRange `(float)`, distance of the near and far clipping planes along the direction of projection.
             - parallelScale `(float)`,
-                scaling used for a parallel projection, i.e. the height of the viewport 
+                scaling used for a parallel projection, i.e. the height of the viewport
                 in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
-                an "inverse scale", larger numbers produce smaller images. 
+                an "inverse scale", larger numbers produce smaller images.
                 This method has no effect in perspective projection mode.
             - thickness `(float)`,
-                set the distance between clipping planes. This method adjusts the far clipping 
+                set the distance between clipping planes. This method adjusts the far clipping
                 plane to be set a distance 'thickness' beyond the near clipping plane.
             - viewAngle `(float)`,
                 the camera view angle, which is the angular height of the camera view
                 measured in degrees. The default angle is 30 degrees.
-                This method has no effect in parallel projection mode. 
+                This method has no effect in parallel projection mode.
                 The formula for setting the angle up for perfect perspective viewing is:
                 angle = 2*atan((h/2)/d) where h is the height of the RenderWindow
                 (measured by holding a ruler up to your screen) and d is the distance from your eyes to the screen.
-       
+
         :param bool interactive:  pause and interact with window (True)
             or continue execution (False)
         :param float rate:  maximum rate of `show()` in Hertz
@@ -1091,14 +1197,14 @@ class Plotter:
         """
         if not hasattr(self, 'window'):
             return
-        
+
         at = options.pop("at", None)
         axes = options.pop("axes", None)
         c = options.pop("c", None)
         alpha = options.pop("alpha", None)
         wire = options.pop("wire", False)
         bc = options.pop("bc", None)
-        
+
         resetcam = options.pop("resetcam", True)
         zoom = options.pop("zoom", False)
         interactive = options.pop("interactive", None)
@@ -1107,7 +1213,7 @@ class Plotter:
         elevation = options.pop("elevation", 0)
         roll = options.pop("roll", 0)
         camera = options.pop("camera", None)
-        
+
         interactorStyle = options.pop("interactorStyle", 0)
         rate = options.pop("rate", None)
         q = options.pop("q", False)
@@ -1136,7 +1242,7 @@ class Plotter:
                         for a2 in settings.collectable_actors:
                             if isinstance(a2, vtk.vtkCornerAnnotation):
                                 if at in a2.renderedAt: # remove old message
-                                    self.removeActor(a2)
+                                    self.remove(a2)
                     scannedacts.append(a)
                 elif isinstance(a, vtk.vtkImageActor):
                     scannedacts.append(a)
@@ -1261,13 +1367,13 @@ class Plotter:
                 self.renderer.RemoveActor(ia)
                 if hasattr(ia, 'renderedAt'):
                     ia.renderedAt.discard(at)
-            
+
         for c in self.scalarbars:
             self.renderer.RemoveActor(c)
             if hasattr(c, 'renderedAt'):
                 c.renderedAt.discard(at)
-      
-        if self.axes is not None:
+
+        if self.axes is not None and not settings.notebookBackend:
             addons.addAxes()
 
         addons.addLegend()
@@ -1283,7 +1389,7 @@ class Plotter:
             self.interactor.Initialize()
             self.interactor.RemoveObservers("CharEvent")
 
-            if self.verbose and self.interactive:
+            if self.verbose and self.interactive and not settings.notebookBackend:
                 docs.onelinetip()
 
         self.initializedPlotter = True
@@ -1311,7 +1417,7 @@ class Plotter:
                     sz[2] = min(sz[0], sz[1])
                 self.camera.SetViewUp([0, 0.001, 1])
                 self.camera.SetPosition(fp+2.1*sz)
-        
+
         if camera is not None:
             cm_pos = camera.pop("pos", None)
             cm_focalPoint = camera.pop("focalPoint", None)
@@ -1321,16 +1427,49 @@ class Plotter:
             cm_parallelScale = camera.pop("parallelScale", None)
             cm_thickness = camera.pop("thickness", None)
             cm_viewAngle = camera.pop("viewAngle", None)
-            if cm_pos is not None: camera.SetPosition(cm_pos)
-            if cm_focalPoint is not None: camera.SetFocalPoint(cm_focalPoint)
-            if cm_viewup is not None: camera.SetViewUp(cm_viewup)
-            if cm_distance is not None: camera.SetDistance(cm_distance)
-            if cm_clippingRange is not None: camera.SetClippingRange(cm_clippingRange)
-            if cm_parallelScale is not None: camera.SetParallelScale(cm_parallelScale)
-            if cm_thickness is not None: camera.SetThickness(cm_thickness)
-            if cm_viewAngle is not None: camera.SetViewAngle(cm_viewAngle)
+            if cm_pos is not None: self.camera.SetPosition(cm_pos)
+            if cm_focalPoint is not None: self.camera.SetFocalPoint(cm_focalPoint)
+            if cm_viewup is not None: self.camera.SetViewUp(cm_viewup)
+            if cm_distance is not None: self.camera.SetDistance(cm_distance)
+            if cm_clippingRange is not None: self.camera.SetClippingRange(cm_clippingRange)
+            if cm_parallelScale is not None: self.camera.SetParallelScale(cm_parallelScale)
+            if cm_thickness is not None: self.camera.SetThickness(cm_thickness)
+            if cm_viewAngle is not None: self.camera.SetViewAngle(cm_viewAngle)
 
-        self.renderer.ResetCameraClippingRange()
+        if resetcam: self.renderer.ResetCameraClippingRange()
+
+        if settings.notebookBackend == 'k3d':
+            import k3d
+            settings.notebook_plotter = k3d.plot()
+
+            def rgb2int(rgb_tuple):
+                rgb = (int(rgb_tuple[0]*255), int(rgb_tuple[1]*255), int(rgb_tuple[2]*255))
+                return 65536*rgb[0]+256*rgb[1]+rgb[2]
+
+            for ia in self.getActors(at):
+                iap = ia.GetProperty()
+                krep = iap.GetRepresentation()
+                settings.notebook_plotter += k3d.vtk_poly_data(ia.polydata(),
+                                                               color=rgb2int(iap.GetColor()),
+                                                               opacity=iap.GetOpacity(),
+                                                               wireframe=(krep==1),
+                                                               antialias=True,
+                                                               camera_auto_fit=True,
+                                                               grid_auto_fit=True )
+            ###################################
+            #settings.notebook_plotter.display()
+            return settings.notebook_plotter
+            ###################################
+
+        elif settings.notebookBackend == 'panel':
+            # https://panel.pyviz.org/reference/panes/VTK.html
+            import panel
+            settings.notebook_plotter = panel.pane.VTK(self.window,
+                                                       width=int(self.size[0]/2),
+                                                       height=int(self.size[1]/2))
+            ###################################
+            return settings.notebook_plotter
+            ###################################
 
         self.window.Render()
 
@@ -1390,15 +1529,17 @@ class Plotter:
                     time.sleep(mint - elapsed)
                 self.clock = time.time() - self._clockt0
 
-        if q:  # gracefully exit
+        if q:  # exit python
             if self.verbose:
-                print("q flag set to True. Exit.")
+                print("q flag set to True.  Exit python session.")
             sys.exit(0)
+        
+        return self
 
 
     def showInset(self, *actors, **options): #pos=3, size=0.1, c='r', draggable=True):
         """Add a draggable inset space into a renderer.
-    
+
         :param pos: icon position in the range [1-4] indicating one of the 4 corners,
                     or it can be a tuple (x,y) as a fraction of the renderer size.
         :param float size: size of the square inset.
@@ -1443,37 +1584,16 @@ class Plotter:
                 self.actors.remove(a)
         return widget
 
-
-    def lastActor(self):
-        """Return last added ``Actor``."""
-        return self.actors[-1]
-
-    def removeActor(self, a):
-        """Remove ``vtkActor`` or actor index from current renderer."""
-        if not self.initializedPlotter:
-            save_int = self.interactive
-            self.show(interactive=0)
-            self.interactive = save_int
-            return
-        if self.renderer:
-            self.renderer.RemoveActor(a)
-            if hasattr(a, 'renderedAt'):
-                ir = self.renderers.index(self.renderer)
-                a.renderedAt.discard(ir)
-        if a in self.actors:
-            i = self.actors.index(a)
-            del self.actors[i]
-
     def clear(self, actors=()):
         """Delete specified list of actors, by default delete all."""
         if not utils.isSequence(actors):
             actors = [actors]
         if len(actors):
             for a in actors:
-                self.removeActor(a)
+                self.remove(a)
         else:
             for a in settings.collectable_actors:
-                self.removeActor(a)
+                self.remove(a)
             settings.collectable_actors = []
             self.actors = []
             for a in self.getActors():
@@ -1491,11 +1611,52 @@ class Plotter:
 
     def closeWindow(self):
         """Close the current or the input rendering window."""
-        self.window.Finalize()
-        self.interactor.TerminateApp()
-        del self.window
-        del self.interactor
+        if hasattr(self, 'window') and self.window:
+            self.window.Finalize()
+            if hasattr(self, 'interactor') and self.interactor:
+                self.interactor.TerminateApp()
+                del self.window
+                del self.interactor
         return self
 
 
+def plotMatrix(M, title='matrix', continuous=True, cmap='Greys'):
+    """
+	 Plot a matrix using `matplotlib`.
 
+    :Example:
+        .. code-block:: python
+
+            from vtkplotter.dolfin import plotMatrix
+            import numpy as np
+
+            M = np.eye(9) + np.random.randn(9,9)/4
+
+            plotMatrix(M)
+
+        |pmatrix|
+    """
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+    M    = numpy.array(M)
+    m,n  = numpy.shape(M)
+    M    = M.round(decimals=2)
+
+    fig  = plt.figure()
+    ax   = fig.add_subplot(111)
+    cmap = mpl.cm.get_cmap(cmap)
+    if not continuous:
+        unq  = numpy.unique(M)
+    im      = ax.imshow(M, cmap=cmap, interpolation='None')
+    divider = make_axes_locatable(ax)
+    cax     = divider.append_axes("right", size="5%", pad=0.05)
+    dim     = r'$%i \times %i$ ' % (m,n)
+    ax.set_title(dim + title)
+    ax.axis('off')
+    cb = plt.colorbar(im, cax=cax)
+    if not continuous:
+       cb.set_ticks(unq)
+       cb.set_ticklabels(unq)
+    plt.show()

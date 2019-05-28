@@ -8,9 +8,11 @@ from vtkplotter import *
 # A set of transparency values - of any length - can be passed
 # to define the opacity transfer function in the range of the scalar.
 #  E.g.: setting alpha=[0, 0, 0, 1, 0, 0, 0] would make visible
-#  only voxels with value close to 98.5 (see print output).
-vol = load(datadir+"embryo.slc", spacing=[1, 1, 1])
-vol.c("green").alpha([0, 0.4, 0.9, 1])  # vtkVolume
+#  only voxels with value close to center of the range (see printed histogram).
+vol = load(datadir+"embryo.slc", spacing=[1, 1, 1]) # vtkVolume
+vol.c("green").alpha([0, 0, 0.4, 0.9, 0.9])
+
+printHistogram(vol, logscale=True)
 
 # can relocate volume in space:
 # vol.scale(0.3).pos([-1,1,0]).rotate(90, axis=[0,1,1])

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # 
 from __future__ import print_function
-from vtkplotter.vtkio import _loadFile, convertNeutral2Xml, write
+from vtkplotter.vtkio import load, write
 from vtkplotter.utils import humansort
 from vtkplotter import printc
 import sys, argparse
@@ -50,14 +50,10 @@ for f in args.files:
         polyapp.Update()
         poly = polyapp.GetOutput()
     else:
-        a = _loadFile(f, 0, 1,0,0, None,None, 0,0) #dummy actor
-        poly = a.clean().computeNormals().polydata(False)
+        a = load(f)
+        poly = a.polydata(False)
             
     newf = f.replace("."+source_ext,"")+"."+target_ext
     printc('converting',f, '->', newf, c='g')
-
-    if ".neu" in f and target_ext=='xml':
-        convertNeutral2Xml(f, newf)
-    else:
-        write(poly, newf)
+    write(poly, newf)
  

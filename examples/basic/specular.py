@@ -7,7 +7,7 @@ specular, specularPower, specularColor.
 from vtkplotter import Plotter, Text, Arrow, datadir
 
 
-vp = Plotter(axes=8, bg="w")
+vp = Plotter(axes=1, bg="w")
 
 ambient, diffuse, specular = 0.1, 0., 0.
 specularPower, specularColor= 20, 'white'
@@ -26,12 +26,12 @@ for i in range(8):
     diffuse += 0.125
     specular += 0.125
     
-vp.add(Text(__doc__))
+vp += Text(__doc__)
 vp.show()
 
 print('Adding a light source..')
 p = (3, 1.5, 3)
 f = (3, 1.5, 0)
 vp.addLight(pos=p, focalPoint=f)
-vp.add(Arrow(p,f, s=0.01, c='gray', alpha=0.2))
+vp += Arrow(p,f, s=0.01, c='gray', alpha=0.2)
 vp.show()

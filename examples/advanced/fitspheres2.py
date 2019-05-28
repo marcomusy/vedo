@@ -27,9 +27,9 @@ for i, p in enumerate(s.coordinates()):
     if not i % 500:
         print(i, "/", s.N())
 
-vp.add(Points(pts1, c=cols))
-vp.addScalarBar()
-vp.add(Lines(pts1, pts2, c="black 0.2"))
-vp.add(histogram(vals, title="values", bins=20, vrange=[0, 1]))
-vp.add(Text(__doc__, pos=1))
+vp += Points(pts1, c=cols)
+vp += Lines(pts1, pts2, c="black 0.2")
+vp += histogram(vals, title="values", bins=20, vrange=[0, 1])
+vp += Text(__doc__, pos=1)
+
 vp.show()

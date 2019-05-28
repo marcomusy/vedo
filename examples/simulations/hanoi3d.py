@@ -88,8 +88,8 @@ def demo3d_hanoi(**kwargs):
         for i in range(hanoi.nr_disks)
     }
     for k in disks:
-        vp.add(disks[k])
-    vp.add(Box(pos=(3.0, 0, -0.05), length=12.0, width=4.0, height=0.1))
+        vp += disks[k]
+    vp += Box(pos=(3.0, 0, -0.05), length=12.0, width=4.0, height=0.1)
     vp.camera.SetPosition([18.5, -20.7, 7.93])
     vp.camera.SetFocalPoint([3.0, 0.0, 2.5])
     vp.camera.SetViewUp([-0.1, +0.17, 0.977])

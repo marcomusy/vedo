@@ -26,7 +26,7 @@ slits = slit1 + slit2
 
 vp = Plotter(title="The Double Slit Experiment", axes=0, verbose=0, bg="black")
 
-screen = vp.add(Grid(pos=[0, 0, -D], sx=0.1, sy=0.1, resx=200, resy=50))
+screen = Grid(pos=[0, 0, -D], sx=0.1, sy=0.1, resx=200, resy=50)
 screen.wire(False).phong()  # show it as a solid plane (not as wireframe)
 
 k = 0.0 + 1j * 2 * pi / lambda1  # complex wave number
@@ -44,12 +44,12 @@ for i, x in enumerate(screen.coordinates()):
 
 screen.pointColors(amplitudes, cmap="hot")
 
-vp.add(Points(array(slits) * 200, c="w"))  # slits scale magnified by factor 200
-
-vp.add(Grid(sx=0.1, sy=0.1, resx=6, resy=6, c="w", alpha=0.1))  # add some annotation
-vp.add(Line([0, 0, 0], [0, 0, -D], c="w", alpha=0.1))
-vp.add(Text("source plane", pos=[-0.05, -0.053, 0], s=0.002, c="gray"))
-vp.add(Text("detector plane D = " + str(D) + " m", pos=[-0.05, -0.053, -D], s=0.002, c="gray"))
-vp.add(Text(__doc__, c="gray"))
+vp += screen
+vp += Points(array(slits) * 200, c="w")  # slits scale magnified by factor 200
+vp += Grid(sx=0.1, sy=0.1, resx=6, resy=6, c="w", alpha=0.1)  # add some annotation
+vp += Line([0, 0, 0], [0, 0, -D], c="w", alpha=0.1)
+vp += Text("source plane", pos=[-0.05, -0.053, 0], s=0.002, c="gray")
+vp += Text("detector plane D = " + str(D) + " m", pos=[-0.05, -0.053, -D], s=0.002, c="gray")
+vp += Text(__doc__, c="gray")
 
 vp.show(zoom=1.1)

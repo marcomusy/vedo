@@ -7,8 +7,8 @@ e = load(datadir+'embryo.tif', threshold=True).decimate(0.5)
 ec = e.coordinates()
 e.pointColors(ec[:,1]) # add dummy colors along y
 
-t = Text(__doc__, pos=(3e03,5.5e03,1e04), s=350)
-show(e, t)
+t = Text(__doc__, pos=[3000., 2000., 4723], s=150, c='w', depth=0.1)
+show(t, e)
 
 # This exports the scene and generates 2 files: 
 # embryo.x3d and an example embryo.html to inspect in the browser

@@ -24,7 +24,7 @@ def buttonfunc():
 
 bu = vp.addButton(
     buttonfunc,
-    pos=(350, 20),    # x,y pixels from bottom left corner
+    pos=(0.7, 0.05),  # x,y fraction from bottom left corner
     states=["press to hide", "press to show"],
     c=["w", "w"],
     bc=["dg", "dv"],  # colors of states

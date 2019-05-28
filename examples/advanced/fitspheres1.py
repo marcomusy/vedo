@@ -11,7 +11,7 @@ Fitted radius can be accessed from actor.info['radius'].
 from __future__ import division, print_function
 from vtkplotter import *
 
-vp = Plotter(verbose=0, axes=0)
+vp = Plotter(verbose=0, axes=0, bg='white')
 
 # load mesh and increase by a lot (N=2) the nr of surface vertices
 s = vp.load(datadir+"cow.vtk").alpha(0.3).subdivide(N=2)
@@ -24,14 +24,14 @@ for i, p in enumerate(s.coordinates()):
     sph = fitSphere(pts).alpha(0.05)  # find the fitting sphere
     if sph is None:
         continue  # may fail if all points sit on a plane
-    vp.add(sph)
-    vp.add(Points(pts))
-    vp.add(Line(sph.info["center"], p, lw=2))
+    vp += sph
+    vp += Points(pts)
+    vp += Line(sph.info["center"], p, lw=2)
     reds.append(sph.info["residue"])
     invr.append(1 / sph.info["radius"] ** 2)
 
-vp.add(histogram(reds, title="residue", bins=12, c="g", corner=3))
-vp.add(histogram(invr, title="1/r**2", bins=12, c="r", corner=4))
+vp += histogram(reds, title="residue", bins=12, c="g", pos=3)
+vp += histogram(invr, title="1/r**2", bins=12, c="r", pos=4)
 
-vp.add(Text(__doc__))
+vp += Text(__doc__)
 vp.show(viewup="z")

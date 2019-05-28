@@ -5,12 +5,11 @@ by increasing area.
 print(__doc__)
 from vtkplotter import splitByConnectivity, load, show, datadir
 
-blobs = load(datadir+"embryo.tif", threshold=80)
+em = load(datadir+"embryo.tif", threshold=80)
 
-# search up to the 40th subunit of mesh, return a list
-# of length 40, but only keep the largest 10:
-sblobs = splitByConnectivity(blobs, maxdepth=40)[0:9]
+# return the list of the largest 10 connected meshes:
+splitem = splitByConnectivity(em, maxdepth=40)[0:9]
 
-sblobs[0].alpha(0.5)  # make the largest part transparent
+splitem[0].alpha(0.5).phong()  # make the largest part transparent
 
-show([blobs, sblobs], N=2, axes=1)
+show([em, splitem], N=2, axes=1)

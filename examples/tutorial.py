@@ -57,12 +57,12 @@ vp.show()
 vp = Plotter(title="Example of splines through random points", verbose=0)
 
 pts = [(u(0, 2), u(0, 2), u(0, 2) + i) for i in range(8)]  # build python list of points
-vp.add(Points(pts, r=10)) # add the actor points to the internal list of actors to be shown                                 # create the vtkActor
+vp += Points(pts, r=10) # add the actor points to the internal list of actors to be shown                                 # create the vtkActor
 
 for i in range(10):
-    sp = spline(pts, smooth=i / 10, degree=2, c=i)
-    sp.legend("smoothing " + str(i / 10.0))
-    vp.add(sp)
+    sp = spline(pts, smooth=i/10, degree=2).color(i)
+    sp.legend("smoothing " + str(i/10.0))
+    vp += sp
 vp.show(viewup="z", axes=1, interactive=1)  # show internal list of actors
 
 

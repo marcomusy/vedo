@@ -31,6 +31,8 @@ python example.py
 |    |    |
 | [![connvtx](https://user-images.githubusercontent.com/32848391/51496028-ae7e1100-1dbe-11e9-873f-40ca52dbb2c4.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/connVtx.py)<br/> `connVtx.py`           | Find the vertices that are connected to a specific vertex in a mesh. |
 |    |    |
+| [![customAxes](https://user-images.githubusercontent.com/32848391/58181826-c605d180-7cac-11e9-9786-11b5eb278f20.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/customAxes.py)<br/> `customAxes.py`  | Customize axes style with more than 30 controlling parameters. |
+|    |    |
 | [![cutter](https://user-images.githubusercontent.com/32848391/50738866-c0658e80-11d8-11e9-955b-551d4d8b0db5.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/cutter.py)<br/> `cutter.py`              | Invoke an interactive tool to cut off parts of a mesh. <br/>Pressing `X` saves the mesh to file or adds new cut planes.|
 |    |    |
 | [![delaunay2d](https://user-images.githubusercontent.com/32848391/50738865-c0658e80-11d8-11e9-8616-b77363aa4695.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/delaunay2d.py)<br/> `delaunay2d.py`  | Build a mesh starting from points in space using _Delaunay_ triangulation (points must be projectable on the _xy_ plane). |

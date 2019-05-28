@@ -12,7 +12,7 @@ c.show()        # draw the cube only
 show(c,s)       # can show list of [Actor, Volume, filename ...]
 
 vp = Plotter()  # Make a new Plotter() instance and pop up a new window
-vp.add(Torus()) # generate another mesh and add it to the Plotter list
+vp += Torus()   # generate another mesh and add it to the Plotter list
 vp.show()       # no argument needed
 -----------------------------------------------------------------------
 """
@@ -35,8 +35,8 @@ show(c, s)
 print("\n-> # Make a new Plotter() instance and pop up a new window\n-> vp = Plotter()")
 vp = Plotter(verbose=0)
 
-print("-> vp.add(Torus()) # generate another mesh and add to the Plotter list")
-vp.add(Torus())  # generate another mesh and add to Plotter
+print("-> vp += Torus() # generate another mesh and add to the Plotter list")
+vp += Torus()  # generate another mesh and add to Plotter
 
 print("-> vp.show()       # no argument needed")
 vp.show()

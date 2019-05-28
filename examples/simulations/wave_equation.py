@@ -100,14 +100,14 @@ vp.ytitle = "u(x,t)"
 vp.ztitle = ""  # will not draw z axis
 
 for i in x:
-    vp.add(Point([i, 0, 0], c="green", r=6))
+    vp += Point([i, 0, 0], c="green", r=6)
 pts_actors_eu = vp.actors  # save a copy of the actors list
 pts_actors_eu[0].legend = "Euler method"
 
 vp.actors = []  # clean up the list
 
 for i in x:
-    vp.add(Point([i, 0, 0], c="red", r=6))
+    vp += Point([i, 0, 0], c="red", r=6)
 pts_actors_rk = vp.actors  # save a copy of the actors list
 pts_actors_rk[0].legend = "Runge-Kutta4"
 
@@ -116,7 +116,7 @@ vp.actors = pts_actors_eu + pts_actors_rk
 
 # let's also add a fancy background image from wikipedia
 vp.load(datadir+"images/wave_wiki.png", alpha=0.8).scale(0.4).pos([0,-100,-20])
-vp.add(Text(__doc__))
+vp += Text(__doc__)
 
 pb = ProgressBar(0, Nsteps, c="red", ETA=1)
 for i in pb.range():

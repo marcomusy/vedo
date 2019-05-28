@@ -14,7 +14,7 @@ vp = Plotter(axes=0, verbose=0, bg="w")
 
 s = vp.load(datadir+"290.vtk", c="red")
 c = s.centerOfMass()
-vp.add(Point(c))
+vp += [Point(c), Text(__doc__, c="k")]
 
 Niter = 4
 for t in range(Niter):
@@ -35,8 +35,6 @@ for t in range(Niter):
 
     # refresh actor, so polydata normals are recalculated
     s = s.clone()
-    s.alpha(0.1).color("gold").wire(True)
-    vp.add(s)
+    vp += s.alpha(0.1).color("gold").wire(True) #add into Plotter
 
-vp.add(Text(__doc__, c="k"))
 vp.show()

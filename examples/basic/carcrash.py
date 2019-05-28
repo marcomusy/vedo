@@ -8,7 +8,7 @@ from vtkplotter import Plotter, Plane, Text, datadir
 
 vp = Plotter(interactive=0, axes=0)
 
-vp.add(Plane(pos=(4, 0, -0.45), sx=12, texture="metalfloor1"))
+vp += Plane(pos=(4, 0, -0.45), sx=12, texture="metalfloor1")
 
 # load and set its position (methods can be concatenated)
 vp.load(datadir+"lamp.vtk").pos([1.7, -0.4, 2])
@@ -19,10 +19,10 @@ a.normalize()  # set actor at origin and scale size to 1
 for i in range(1, 10):
     b = a.clone().color("aqua").alpha(0.04 * i)
     b.rotateX(-20 * i).rotateY(-10 * i).pos([i, i / 2, i / 2])
-    vp.add(b)  # add actor b
+    vp += b  # add actor b to Plotter
     vp.show(rate=10)  # maximum frame rate in hertz
     print(i, "time:", vp.clock, "s")
 
-vp.add(Text(__doc__))
+vp += Text(__doc__)
 
 vp.show(interactive=1)

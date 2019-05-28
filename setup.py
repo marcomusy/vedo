@@ -10,7 +10,7 @@ except:
 ##############################################################
 setup(
     name='vtkplotter',
-    version=verstr, 
+    version=verstr,
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
     install_requires=['vtk'],
@@ -51,7 +51,6 @@ setup(
 # ( sudo -H pip install . )
 
 # cd examples
-# python tutorial.py
 # ./run_all.sh
 # cd simulations
 # cd ../other/dolfin
@@ -59,7 +58,12 @@ setup(
 
 # check vtkconvert:
 # vtkconvert data/290.vtk -to ply
-# check on python2 the same
+
+# check on python2 the same stuff is ok
+
+# check notebooks:
+# jupyter notebook examples/notebooks/embryo.ipynb
+# jupyter notebook examples/notebooks/sphere.ipynb
 
 # git status
 # git add [files]

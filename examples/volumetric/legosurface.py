@@ -1,9 +1,7 @@
-"""
-Represent a volume as lego blocks (voxels).
+"""Represent a volume as lego blocks (voxels).
 Colors correspond to the volume's scalar.
 Try also:
-> vtkplotter --lego data/embryo.tif
-"""
+> vtkplotter --lego data/embryo.tif"""
 # https://matplotlib.org/users/colormaps.html
 from vtkplotter import *
 
