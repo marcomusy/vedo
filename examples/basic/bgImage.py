@@ -1,12 +1,12 @@
-"""Set a jpeg background image on a 
-vtkRenderingWindow layer, after 
-the first rendering it can be 
+"""Set a jpeg background image on a
+vtkRenderingWindow layer, after
+the first rendering it can be
 zoomed to fill the window."""
 from vtkplotter import Plotter, load, Polygon, Text, datadir
 
 doc = Text(__doc__, c="k", bg="w")
 
-vp = Plotter(N=2, size=(400, 800), axes=4, sharecam=0, 
+vp = Plotter(N=2, size=(400, 800), axes=4, sharecam=0,
 			 bg=datadir+"images/tropical.jpg")
 
 a1 = load(datadir+"flamingo.3ds").rotateX(-90)

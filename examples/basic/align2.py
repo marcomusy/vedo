@@ -1,6 +1,6 @@
 """
 Example usage of align() method:
- generate two random sets of points as 2 actors 
+ generate two random sets of points as 2 actors
  and align them using the Iterative Closest Point algorithm.
 """
 from __future__ import division

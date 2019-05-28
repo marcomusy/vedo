@@ -17,16 +17,16 @@ show(
 
 s = actor.subdivide(sub).clean(tol)
 
-coords = s.coordinates() 
+coords = s.coordinates()
 pactor = Points(coords)
 
 tomerge = []
 for p in coords:
     ipts = s.closestPoint(p, N=N, returnIds=True)
     pts = coords[ipts]
-    
+
     d = delaunay2D(pts, mode='fit').c('blue').wire()
-    
+
     piece = d.connectedCells(0, returnIds=False)
 
     show(pactor, d, piece, Point(p, c='r'), interactive=0)

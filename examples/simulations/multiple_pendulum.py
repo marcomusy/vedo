@@ -1,112 +1,138 @@
+"""
+A model of an ideal gas with hard-sphere collisions.
+"""
+## Based on gas.py by Bruce Sherwood for a cube as a container
+## Sligthly modified by Andrey Antonov for a torus.
+## Adapted by M. Musy for vtkplotter
+## relevant points in the code are marked with '### <--'
 from __future__ import division, print_function
-from vtkplotter import Plotter, printc, mag, versor, vector
-from vtkplotter import Cylinder, Spring, Box, Sphere
+from random import random
+from vtkplotter import Plotter, ProgressBar, mag, versor, Text
+from vtkplotter import Torus, Sphere
 import numpy as np
 
-############## Constants
-N = 5  # number of bobs
-R = 0.3  # radius of bob (separation between bobs=1)
-Ks = 50  # k of springs (masses=1)
-g = 9.81  # gravity acceleration
-gamma = 0.1  # some friction
-Dt = 0.03  # time step
+#############################################################
+Natoms = 400  # change this to have more or fewer atoms
+Nsteps = 350  # nr of steps in the simulation
+Matom = 4e-3 / 6e23  # helium mass
+Ratom = 0.025  # wildly exaggerated size of helium atom
+RingThickness = 0.3  # thickness of the toroid
+RingRadius = 1
+k = 1.4e-23  # Boltzmann constant
+T = 300  # room temperature
+dt = 1.5e-5
+#############################################################
 
-# Create the initial positions and velocities (0,0) of the bobs
-bob_x = [0]
-bob_y = [0]
-x_dot = [0] * (N + 1)  # velocities
-y_dot = [0] * (N + 1)
 
-for k in range(1, N + 1):
-    alpha = np.pi / 5 * k / 10
-    bob_x.append(bob_x[k - 1] + np.cos(alpha) + np.random.normal(0, 0.1))
-    bob_y.append(bob_y[k - 1] + np.sin(alpha) + np.random.normal(0, 0.1))
+def reflection(p, pos):
+    n = versor(pos)
+    return np.dot(np.identity(3) - 2 * n * n[:, np.newaxis], p)
 
-# Create the bobs
-vp = Plotter(title="Multiple Pendulum", axes=0, interactive=0)
-vp += Box(pos=(0, -5, 0), length=12, width=12, height=0.7, c="k").wire(1)
-bob = [Sphere(pos=(bob_x[0], bob_y[0], 0), r=R / 2, c="gray")]
-for k in range(1, N + 1):
-    bob.append(Cylinder(pos=(bob_x[k], bob_y[k], 0), r=R, height=0.3, c=k))
-vp += bob
 
-# Create the springs out of N links
-link = [0] * N
-for k in range(N):
-    p0 = bob[k].pos()
-    p1 = bob[k + 1].pos()
-    link[k] = Spring(p0, p1, thickness=0.015, r=R / 3, c="gray")
-vp += link
+vp = Plotter(title="gas in toroid", interactive=0, axes=0, bg="w")
 
-# Create some auxiliary variables
-x_dot_m = [0] * (N + 1)
-y_dot_m = [0] * (N + 1)
-dij = [0] * (N + 1)  # array with distances to previous bob
-dij_m = [0] * (N + 1)
-for k in range(1, N + 1):
-    dij[k] = mag([bob_x[k] - bob_x[k - 1], bob_y[k] - bob_y[k - 1]])
+vp += Text(__doc__)
+vp += Torus(c="g", r=RingRadius, thickness=RingThickness, alpha=0.1).wire(1)  ### <--
 
-fctr = lambda x: (x - 1) / x
-Dt *= np.sqrt(1 / g)
-Dt2 = Dt / 2  # Midpoint time step
-DiaSq = (2 * R) ** 2  # Diameter of bob squared
+Atoms = []
+poslist = []
+plist, mlist, rlist = [], [], []
+mass = Matom * Ratom ** 3 / Ratom ** 3
+pavg = np.sqrt(2.0 * mass * 1.5 * k * T)  # average kinetic energy p**2/(2mass) = (3/2)kT
 
-printc("Press F1 to abort execution.", c="red")
+for i in range(Natoms):
+    alpha = 2 * np.pi * random()
+    x = RingRadius * np.cos(alpha) * 0.9
+    y = RingRadius * np.sin(alpha) * 0.9
+    z = 0
+    atm = Sphere(pos=(x, y, z), r=Ratom, c=i)
+    vp += atm
+    Atoms = Atoms + [atm]  ### <--
+    theta = np.pi * random()
+    phi = 2 * np.pi * random()
+    px = pavg * np.sin(theta) * np.cos(phi)
+    py = pavg * np.sin(theta) * np.sin(phi)
+    pz = pavg * np.cos(theta)
+    poslist.append((x, y, z))
+    plist.append((px, py, pz))
+    mlist.append(mass)
+    rlist.append(Ratom)
 
-while True:
-    bob_x_m = list(map((lambda x, dx: x + Dt2 * dx), bob_x, x_dot))  # midpoint variables
-    bob_y_m = list(map((lambda y, dy: y + Dt2 * dy), bob_y, y_dot))
+pos = np.array(poslist)
+poscircle = pos
+p = np.array(plist)
+m = np.array(mlist)
+m.shape = (Natoms, 1)
+radius = np.array(rlist)
+r = pos - pos[:, np.newaxis]  # all pairs of atom-to-atom vectors
 
-    for k in range(1, N + 1):
-        factor = fctr(dij[k])
-        x_dot_m[k] = x_dot[k] - Dt2 * (Ks * (bob_x[k] - bob_x[k - 1]) * factor + gamma * x_dot[k])
-        y_dot_m[k] = y_dot[k] - Dt2 * (
-            Ks * (bob_y[k] - bob_y[k - 1]) * factor + gamma * y_dot[k] + g
-        )
+ds = (p / m) * (dt / 2.0)
+if "False" not in np.less_equal(mag(ds), radius).tolist():
+    pos = pos + (p / mass) * (dt / 2.0)  # initial half-step
 
-    for k in range(1, N):
-        factor = fctr(dij[k + 1])
-        x_dot_m[k] -= Dt2 * Ks * (bob_x[k] - bob_x[k + 1]) * factor
-        y_dot_m[k] -= Dt2 * Ks * (bob_y[k] - bob_y[k + 1]) * factor
+pb = ProgressBar(0, Nsteps, c=1)
+for i in pb.range():
 
-    # Compute the full step variables
-    bob_x = list(map((lambda x, dx: x + Dt * dx), bob_x, x_dot_m))
-    bob_y = list(map((lambda y, dy: y + Dt * dy), bob_y, y_dot_m))
+    # Update all positions
+    ds = mag((p / m) * (dt / 2.0))
+    if "False" not in np.less_equal(ds, radius).tolist():
+        pos = pos + (p / m) * dt
 
-    for k in range(1, N + 1):
-        dij[k] = mag([bob_x[k] - bob_x[k - 1], bob_y[k] - bob_y[k - 1]])
-        dij_m[k] = mag([bob_x_m[k] - bob_x_m[k - 1], bob_y_m[k] - bob_y_m[k - 1]])
-        factor = fctr(dij_m[k])
-        x_dot[k] -= Dt * (Ks * (bob_x_m[k] - bob_x_m[k - 1]) * factor + gamma * x_dot_m[k])
-        y_dot[k] -= Dt * (Ks * (bob_y_m[k] - bob_y_m[k - 1]) * factor + gamma * y_dot_m[k] + g)
+    r = pos - pos[:, np.newaxis]  # all pairs of atom-to-atom vectors
+    rmag = np.sqrt(np.sum(np.square(r), -1))  # atom-to-atom scalar distances
+    hit = np.less_equal(rmag, radius + radius[:, None]) - np.identity(Natoms)
+    hitlist = np.sort(np.nonzero(hit.flat)[0]).tolist()  # i,j encoded as i*Natoms+j
 
-    for k in range(1, N):
-        factor = fctr(dij_m[k + 1])
-        x_dot[k] -= Dt * Ks * (bob_x_m[k] - bob_x_m[k + 1]) * factor
-        y_dot[k] -= Dt * Ks * (bob_y_m[k] - bob_y_m[k + 1]) * factor
+    # If any collisions took place:
+    for ij in hitlist:
+        i, j = divmod(ij, Natoms)  # decode atom pair
+        hitlist.remove(j * Natoms + i)  # remove symmetric j,i pair from list
+        ptot = p[i] + p[j]
+        mi = m[i, 0]
+        mj = m[j, 0]
+        vi = p[i] / mi
+        vj = p[j] / mj
+        ri = Ratom
+        rj = Ratom
+        a = mag(vj - vi) ** 2
+        if a == 0:
+            continue  # exactly same velocities
+        b = 2 * np.dot(pos[i] - pos[j], vj - vi)
+        c = mag(pos[i] - pos[j]) ** 2 - (ri + rj) ** 2
+        d = b ** 2 - 4.0 * a * c
+        if d < 0:
+            continue  # something wrong; ignore this rare case
+        deltat = (-b + np.sqrt(d)) / (2.0 * a)  # t-deltat is when they made contact
+        pos[i] = pos[i] - (p[i] / mi) * deltat  # back up to contact configuration
+        pos[j] = pos[j] - (p[j] / mj) * deltat
+        mtot = mi + mj
+        pcmi = p[i] - ptot * mi / mtot  # transform momenta to cm frame
+        pcmj = p[j] - ptot * mj / mtot
+        rrel = versor(pos[j] - pos[i])
+        pcmi = pcmi - 2 * np.dot(pcmi, rrel) * rrel  # bounce in cm frame
+        pcmj = pcmj - 2 * np.dot(pcmj, rrel) * rrel
+        p[i] = pcmi + ptot * mi / mtot  # transform momenta back to lab frame
+        p[j] = pcmj + ptot * mj / mtot
+        pos[i] = pos[i] + (p[i] / mi) * deltat  # move forward deltat in time
+        pos[j] = pos[j] + (p[j] / mj) * deltat
 
-    # Check to see if they are colliding
-    for i in range(1, N):
-        for j in range(i + 1, N + 1):
-            dist2 = (bob_x[i] - bob_x[j]) ** 2 + (bob_y[i] - bob_y[j]) ** 2
-            if dist2 < DiaSq:  # are colliding
-                Ddist = np.sqrt(dist2) - 2 * R
-                tau = versor([bob_x[j] - bob_x[i], bob_y[j] - bob_y[i],0])
-                DR = Ddist / 2 * tau
-                bob_x[i] += DR[0]  # DR.x
-                bob_y[i] += DR[1]  # DR.y
-                bob_x[j] -= DR[0]  # DR.x
-                bob_y[j] -= DR[1]  # DR.y
-                Vji = vector(x_dot[j] - x_dot[i], y_dot[j] - y_dot[i])
-                DV = np.dot(Vji, tau) * tau
-                x_dot[i] += DV[0]  # DV.x
-                y_dot[i] += DV[1]  # DV.y
-                x_dot[j] -= DV[0]  # DV.x
-                y_dot[j] -= DV[1]  # DV.y
+    # Bounce off the boundary of the torus
+    for j in range(Natoms):
+        poscircle[j] = versor(pos[j]) * RingRadius * [1, 1, 0]
+    outside = np.greater_equal(mag(poscircle - pos), RingThickness - 2 * Ratom)
 
-    # Update the locations of the bobs and the stretching of the springs
-    for k in range(1, N + 1):
-        bob[k].pos([bob_x[k], bob_y[k], 0])
-        link[k - 1].stretch(bob[k - 1].pos(), bob[k].pos())
+    for k in range(len(outside)):
+        if outside[k] == 1 and np.dot(p[k], pos[k] - poscircle[k]) > 0:
+            p[k] = reflection(p[k], pos[k] - poscircle[k])
 
-    vp.show()
+    # then update positions of display objects
+    for i in range(Natoms):
+        Atoms[i].pos(pos[i])  ### <--
+    outside = np.greater_equal(mag(pos), RingRadius + RingThickness)
+
+    vp.show()  ### <--
+    vp.camera.Azimuth(0.5)
+    vp.camera.Elevation(0.1)
+    pb.print()
+
+vp.show(interactive=1)

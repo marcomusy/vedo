@@ -1,5 +1,5 @@
 """
-This example shows how to use a variant of a 1 dimensional 
+This example shows how to use a variant of a 1 dimensional
 Moving Least Squares (MLS) algorithm to project a cloud
 of unordered points to become a smooth line.
 The parameter f controls the size of the local regression.

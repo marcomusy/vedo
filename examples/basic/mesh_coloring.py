@@ -1,6 +1,6 @@
 """
-Example on how to specify a color for each individual cell 
-or point of an actor's mesh. 
+Example on how to specify a color for each individual cell
+or point of an actor's mesh.
 Last example also shows the usage of addScalarBar3D().
 """
 print(__doc__)

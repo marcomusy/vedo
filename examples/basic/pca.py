@@ -1,5 +1,5 @@
 """
-Draw the PCA (Principal Component Analysis) ellipsoid that contains  
+Draw the PCA (Principal Component Analysis) ellipsoid that contains
 50% of a cloud of Points, then check if points are inside the surface.
 Extra info is stored in actor.info['sphericity'], 'va', 'vb', 'vc'.
 """

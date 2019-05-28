@@ -51,7 +51,7 @@ def solve(Z, start, goal):
         G = Z * generic_filter(G, diffuse, footprint=[[0, 1, 0],
                                                       [1, 1, 1],
                                                       [0, 1, 0]])
-    
+
     # Descent gradient to find shortest path from entrance to exit
     y, x = goal
     dirs = (0,-1), (0,+1), (-1,0), (+1,0)
@@ -66,9 +66,9 @@ def solve(Z, start, goal):
         a = np.argmax(neighbours)
         x, y  = x + dirs[a][1], y + dirs[a][0]
     P.append((y,x))
-    
+
     return P, G
-    
+
 def printSolution(S, start, goal):
     for y,line in enumerate(Z):
         for x,c in enumerate(line):
@@ -99,18 +99,18 @@ def showSolution3D(S, start, goal):
 
     txts.append(Text(__doc__, c='k'))
     txts.append(Text('Start', pos=[start[1]-1,-start[0]+1.5,1], c='k'))
-    txts.append(Text('Goal!', pos=[goal[1] -2,-goal[0] -2.7,1], c='k'))                
+    txts.append(Text('Goal!', pos=[goal[1] -2,-goal[0] -2.7,1], c='k'))
     show(path, walls, grd, txts, bg='white', axes=0, zoom=1.2)
-    
-    
+
+
 ##########################################################################
 if __name__ == '__main__':
     np.random.seed(4)
-    
+
     Z = maze(shape=(50, 70))
 
     start, goal = (1,1), (Z.shape[0]-2, Z.shape[1]-2)
     S = solve(Z, start, goal)
-    
+
     #printSolution(S, start, goal)
     showSolution3D(S, start, goal)

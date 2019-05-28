@@ -1,5 +1,5 @@
 """
-Find the vertices that are connected 
+Find the vertices that are connected
 to a specific vertex in a mesh.
 """
 from vtkplotter import *

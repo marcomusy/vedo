@@ -655,8 +655,8 @@ class MeshActor(Actor):
                     dispsizes = utils.mag(u_values)
             else:  # u_values is 1D
                 dispsizes = u_values
-            self.addPointScalars(dispsizes, "u_values")#.mapPointsToCells()
 
+            self.addPointScalars(dispsizes, "u_values")#.mapPointsToCells()
 
 def MeshPoints(*inputobj, **options):
     """

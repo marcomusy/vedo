@@ -28,7 +28,7 @@ class SOM:
         self.samples = self.samples[I]
         pts = Points(self.samples, r=2)
         doc = Text(__doc__)
-        
+
         pb = ProgressBar(0,n_epoch)
         for i in pb.range():
             pb.print("epochs")
@@ -43,7 +43,7 @@ class SOM:
 
             # Move nodes towards sample according to Gaussian
             self.codebook -= lrate[i] * G[..., np.newaxis] * (self.codebook-data)
-            
+
             # Draw network
             if i>500 and not i%20 or i==n_epoch-1:
                 x, y, z = [self.codebook[:,i].reshape(n,n) for i in range(3)]
@@ -58,15 +58,15 @@ class SOM:
 
 # -------------------------------------------------------------------------------
 if __name__ == "__main__":
-      
+
     n = 25
     X, Y = np.meshgrid(np.linspace(0, 1, n), np.linspace(0, 1, n))
     P = np.c_[X.ravel(), Y.ravel()]
     D = scipy.spatial.distance.cdist(P, P)
-    
+
     s = Sphere(res=90).cutWithPlane(origin=(0,-.3,0), normal='y').clean(0.01)
 
     som = SOM((len(P), 3), D)
     som.samples = s.coordinates()
     som.learn(n_epoch=7000, sigma=(1, 0.01), lrate=(1, 0.01))
-    
+

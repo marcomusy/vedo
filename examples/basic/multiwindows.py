@@ -1,5 +1,5 @@
 """
-Example of drawing objects on different windows 
+Example of drawing objects on different windows
 and/or subwindows within the same window.
 We split the main window in a 25 subwindows and draw something
 in specific windows numbers.

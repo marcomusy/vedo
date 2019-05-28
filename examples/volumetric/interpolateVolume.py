@@ -2,7 +2,7 @@
 Generate a voxel dataset (vtkImageData) by interpolating a scalar
 which is only known on a scattered set of points or mesh.
 Available interpolation kernels are: shepard, gaussian, voronoi, linear.
-The blue layer is the result of thresholding the volume 
+The blue layer is the result of thresholding the volume
 between 0.3 and 0.4 and assigning it the new value 0.9
 """
 # Author: Giovanni Dalmasso

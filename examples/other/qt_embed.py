@@ -1,5 +1,5 @@
 """
-A sort of minimal example of how to embed a rendering window 
+A sort of minimal example of how to embed a rendering window
 into a qt application.
 """
 print(__doc__)

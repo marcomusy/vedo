@@ -1,4 +1,4 @@
-"""How to transform/map an array 
+"""How to transform/map an array
 which is defined on the vertices of a mesh
 to its cells with mapPointsToCells()
 """

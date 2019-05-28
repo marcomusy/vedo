@@ -1,5 +1,5 @@
 """
-Example usage of removeOutliers() 
+Example usage of removeOutliers()
 and cluster() methods.
 """
 from vtkplotter import show, cluster, removeOutliers, Text

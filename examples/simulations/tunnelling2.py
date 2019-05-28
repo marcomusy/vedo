@@ -1,7 +1,7 @@
 """
 Quantum Tunnelling effect using 4th order Runge-Kutta method
 with arbitrary potential shape.
-The animation shows the evolution of a particle of relatively well defined 
+The animation shows the evolution of a particle of relatively well defined
 momentum (hence undefined position) in a box hitting a potential barrier.
 """
 print(__doc__)
