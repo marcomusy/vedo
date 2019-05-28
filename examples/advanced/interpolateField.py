@@ -3,7 +3,7 @@ Interpolate a vectorial field using:
 
 Thin Plate Spline or Radial Basis Function.
 
-Example shows how to share the same vtkCamera 
+Example shows how to share the same vtkCamera
 between different Plotter windows.
 """
 from vtkplotter import Plotter, thinPlateSpline, Points, Arrows, show, Text

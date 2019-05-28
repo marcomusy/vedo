@@ -1,5 +1,5 @@
 """
-This example shows how to implement a custom function that is triggered by 
+This example shows how to implement a custom function that is triggered by
  pressing a keyboard button when the rendering window is in interactive mode.
  Every time a key is pressed the picked point of the mesh is used
  to add a sphere and some info is printed.

@@ -1,6 +1,6 @@
 """
 Takes 2 shapes, source and target, and morphs source on target
-this is obtained by fitting 18 parameters of a non linear, 
+this is obtained by fitting 18 parameters of a non linear,
 quadratic, transformation defined in transform()
 The fitting minimizes the distance to the target surface
 using algorithms available in the scipy.optimize package.

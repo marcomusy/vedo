@@ -12,7 +12,7 @@ img = load(datadir+'vase.vti').imagedata()
 filename = "multiblock.vtm"
 
 mblock = write([poly, img], filename) #returns a vtkMultiBlockData
-printc("~save wrote file", filename, 
+printc("~save wrote file", filename,
 	   "and corresponding directory", c='g')
 
 # load back from file into a list of actors/volumes

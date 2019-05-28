@@ -53,7 +53,7 @@ def show(*actors, **options
     """
     Create on the fly an instance of class ``Plotter`` and show the object(s) provided.
 
-    Allowed input objects are: ``filename``, ``vtkPolyData``, ``vtkActor``, 
+    Allowed input objects are: ``filename``, ``vtkPolyData``, ``vtkActor``,
     ``vtkActor2D``, ``vtkImageActor``, ``vtkAssembly`` or ``vtkVolume``.
 
     If filename is given, its type is guessed based on its extension.
@@ -85,28 +85,28 @@ def show(*actors, **options
 
     :param dict camera: Camera parameters can further be specified with a dictionary assigned to the ``camera`` keyword:
         (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
-    
+
         - pos, `(list)`,  the position of the camera in world coordinates
         - focalPoint `(list)`, the focal point of the camera in world coordinates
         - viewup `(list)`, the view up direction for the camera
         - distance `(float)`, set the focal point to the specified distance from the camera position.
         - clippingRange `(float)`, distance of the near and far clipping planes along the direction of projection.
         - parallelScale `(float)`,
-            scaling used for a parallel projection, i.e. the height of the viewport 
+            scaling used for a parallel projection, i.e. the height of the viewport
             in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
-            an "inverse scale", larger numbers produce smaller images. 
+            an "inverse scale", larger numbers produce smaller images.
             This method has no effect in perspective projection mode.
         - thickness `(float)`,
-            set the distance between clipping planes. This method adjusts the far clipping 
+            set the distance between clipping planes. This method adjusts the far clipping
             plane to be set a distance 'thickness' beyond the near clipping plane.
         - viewAngle `(float)`,
             the camera view angle, which is the angular height of the camera view
             measured in degrees. The default angle is 30 degrees.
-            This method has no effect in parallel projection mode. 
+            This method has no effect in parallel projection mode.
             The formula for setting the angle up for perfect perspective viewing is:
             angle = 2*atan((h/2)/d) where h is the height of the RenderWindow
             (measured by holding a ruler up to your screen) and d is the distance from your eyes to the screen.
-   
+
     :param bool interactive:  pause and interact with window (True)
         or continue execution (False)
     :param float rate:  maximum rate of `show()` in Hertz
@@ -130,7 +130,7 @@ def show(*actors, **options
     .. note:: With multiple renderers, keyword ``at`` can become a `list`, e.g.
 
         .. code-block:: python
-        
+
             from vtkplotter import *
             s = Sphere()
             c = Cube()
@@ -258,8 +258,8 @@ def interactive():
         if hasattr(settings.plotter_instance, 'interactor'):
             settings.plotter_instance.interactor.Start()
     return settings.plotter_instance
-    
-    
+
+
 def clear(actor=()):
     """
     Clear specific actor or list of actors from the current rendering window.
@@ -284,23 +284,23 @@ def closeWindow(plotterInstance=None):
 def plotMatrix(M, title='matrix', continuous=True, cmap='Greys'):
     """
 	 Plot a matrix using `matplotlib`.
-    
+
     :Example:
         .. code-block:: python
 
             from vtkplotter.dolfin import plotMatrix
             import numpy as np
-            
+
             M = np.eye(9) + np.random.randn(9,9)/4
-            
+
             plotMatrix(M)
-        
+
         |pmatrix|
     """
     import matplotlib.pyplot as plt
     import matplotlib as mpl
     from mpl_toolkits.axes_grid1 import make_axes_locatable
-    
+
     M    = numpy.array(M)
     m,n  = numpy.shape(M)
     M    = M.round(decimals=2)
@@ -321,14 +321,14 @@ def plotMatrix(M, title='matrix', continuous=True, cmap='Greys'):
        cb.set_ticks(unq)
        cb.set_ticklabels(unq)
     plt.show()
-    
-    
+
+
 ########################################################################
 class Plotter:
     """
     Main class to manage actors.
 
-    :param list shape: shape of the grid of renderers in format (rows, columns). 
+    :param list shape: shape of the grid of renderers in format (rows, columns).
         Ignored if N is specified.
     :param int N: number of desired renderers arranged in a grid automatically.
     :param list pos: (x,y) position in pixels of top-left corneer of the rendering window
@@ -359,7 +359,7 @@ class Plotter:
 
     |multiwindows|
     """
-    
+
     def __init__(
         self,
         shape=(1, 1),
@@ -434,7 +434,7 @@ class Plotter:
         self.mouseMiddleClickFunction = None
         self.mouseRightClickFunction = None
         self._first_viewup = True
-        
+
         self.xtitle = settings.xtitle  # x axis label and units
         self.ytitle = settings.ytitle  # y axis label and units
         self.ztitle = settings.ztitle  # z axis label and units
@@ -476,7 +476,7 @@ class Plotter:
                     ind = i
                     minl = l
             shape = lm[ind]
-            
+
         if size == "auto":  # figure out a reasonable window size
             f = 1.5
             xs = y / f * shape[1]  # because y<x
@@ -593,8 +593,8 @@ class Plotter:
                     self._update_observer = self.interactor.CreateRepeatingTimer(1)
                     if hasattr(self, 'interactor') and self.interactor:
                         self.interactor.Start()
-                        
-                    if hasattr(self, 'interactor') and self.interactor: 
+
+                    if hasattr(self, 'interactor') and self.interactor:
                         # twice otherwise it crashes when pressing Esc (??)
                         self.interactor.DestroyTimer(self._update_observer)
 
@@ -605,41 +605,41 @@ class Plotter:
         """
         Load Actors and Volumes from file.
         The output will depend on the file extension. See examples below.
-        
+
         :param c: color in RGB format, hex, symbol or name
         :param alpha: transparency (0=invisible)
-    
+
         For volumetric data (tiff, slc, vti etc):
         :param float threshold: value to draw the isosurface, False by default to return a ``Volume``
         :param list spacing: specify the voxel spacing in the three dimensions
         :param bool unpack: only for multiblock data, if True returns a flat list of objects.
-        
+
         :Example:
             .. code-block:: python
-            
+
                 from vtkplotter import datadir, load, show
-                
+
                 # Return an Actor
                 g = load(datadir+'ring.gmsh')
                 show(g)
-                
+
                 # Return a list of 2 Actors
                 g = load([datadir+'250.vtk', datadir+'290.vtk'])
                 show(g)
-                
+
                 # Return a list of actors by reaading all files in a directory
                 # (if directory contains DICOM files then a Volume is returned)
                 g = load(datadir+'timecourse1d/')
                 show(g)
-                
+
                 # Return a Volume. Color/Opacity transfer function can be specified too.
                 g = load(datadir+'embryo.slc')
                 g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1))
                 show(g)
-                
+
                 # Return an Actor from a SLC volume with automatic thresholding
                 g = load(datadir+'embryo.slc', threshold=True)
-                show(g)    
+                show(g)
         """
         acts = vtkio.load(inputobj, c, alpha, threshold, spacing, unpack)
         if utils.isSequence(acts):
@@ -659,7 +659,7 @@ class Plotter:
                 renderer = self.renderers.index(renderer)
         else:
             return []
-        
+
         if obj is None or isinstance(obj, int):
             if obj is None:
                 acs = renderer.GetVolumes()
@@ -939,7 +939,7 @@ class Plotter:
         angle=0,
     ):
         """Add a button to the renderer window.
-        
+
         :param list states: a list of possible states ['On', 'Off']
         :param c:      a list of colors for each state
         :param bc:     a list of background colors for each state
@@ -976,7 +976,7 @@ class Plotter:
     def addAxes(self, axtype=None, c=None):
         """Draw axes on scene. Available axes types:
 
-        :param int axtype: 
+        :param int axtype:
 
               - 0,  no axes,
               - 1,  draw three gray grid walls
@@ -1052,28 +1052,28 @@ class Plotter:
 
         :param dict camera: Camera parameters can further be specified with a dictionary assigned to the ``camera`` keyword:
             (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
-        
+
             - pos, `(list)`,  the position of the camera in world coordinates
             - focalPoint `(list)`, the focal point of the camera in world coordinates
             - viewup `(list)`, the view up direction for the camera
             - distance `(float)`, set the focal point to the specified distance from the camera position.
             - clippingRange `(float)`, distance of the near and far clipping planes along the direction of projection.
             - parallelScale `(float)`,
-                scaling used for a parallel projection, i.e. the height of the viewport 
+                scaling used for a parallel projection, i.e. the height of the viewport
                 in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
-                an "inverse scale", larger numbers produce smaller images. 
+                an "inverse scale", larger numbers produce smaller images.
                 This method has no effect in perspective projection mode.
             - thickness `(float)`,
-                set the distance between clipping planes. This method adjusts the far clipping 
+                set the distance between clipping planes. This method adjusts the far clipping
                 plane to be set a distance 'thickness' beyond the near clipping plane.
             - viewAngle `(float)`,
                 the camera view angle, which is the angular height of the camera view
                 measured in degrees. The default angle is 30 degrees.
-                This method has no effect in parallel projection mode. 
+                This method has no effect in parallel projection mode.
                 The formula for setting the angle up for perfect perspective viewing is:
                 angle = 2*atan((h/2)/d) where h is the height of the RenderWindow
                 (measured by holding a ruler up to your screen) and d is the distance from your eyes to the screen.
-       
+
         :param bool interactive:  pause and interact with window (True)
             or continue execution (False)
         :param float rate:  maximum rate of `show()` in Hertz
@@ -1091,14 +1091,14 @@ class Plotter:
         """
         if not hasattr(self, 'window'):
             return
-        
+
         at = options.pop("at", None)
         axes = options.pop("axes", None)
         c = options.pop("c", None)
         alpha = options.pop("alpha", None)
         wire = options.pop("wire", False)
         bc = options.pop("bc", None)
-        
+
         resetcam = options.pop("resetcam", True)
         zoom = options.pop("zoom", False)
         interactive = options.pop("interactive", None)
@@ -1107,7 +1107,7 @@ class Plotter:
         elevation = options.pop("elevation", 0)
         roll = options.pop("roll", 0)
         camera = options.pop("camera", None)
-        
+
         interactorStyle = options.pop("interactorStyle", 0)
         rate = options.pop("rate", None)
         q = options.pop("q", False)
@@ -1261,12 +1261,12 @@ class Plotter:
                 self.renderer.RemoveActor(ia)
                 if hasattr(ia, 'renderedAt'):
                     ia.renderedAt.discard(at)
-            
+
         for c in self.scalarbars:
             self.renderer.RemoveActor(c)
             if hasattr(c, 'renderedAt'):
                 c.renderedAt.discard(at)
-      
+
         if self.axes is not None:
             addons.addAxes()
 
@@ -1311,7 +1311,7 @@ class Plotter:
                     sz[2] = min(sz[0], sz[1])
                 self.camera.SetViewUp([0, 0.001, 1])
                 self.camera.SetPosition(fp+2.1*sz)
-        
+
         if camera is not None:
             cm_pos = camera.pop("pos", None)
             cm_focalPoint = camera.pop("focalPoint", None)
@@ -1398,7 +1398,7 @@ class Plotter:
 
     def showInset(self, *actors, **options): #pos=3, size=0.1, c='r', draggable=True):
         """Add a draggable inset space into a renderer.
-    
+
         :param pos: icon position in the range [1-4] indicating one of the 4 corners,
                     or it can be a tuple (x,y) as a fraction of the renderer size.
         :param float size: size of the square inset.

@@ -1,5 +1,5 @@
 """
-Scalar values are read from a file and represented 
+Scalar values are read from a file and represented
 on a green scale on a mesh as a function of time.
 The difference between one time point and the next
 is shown as a blue component.

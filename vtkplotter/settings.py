@@ -8,7 +8,7 @@ Global settings.
 .. note:: **Please check out the** `git repository <https://github.com/marcomusy/vtkplotter>`_.
 
     A full list of examples can be found in directories:
-        
+
     - `examples/basic <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic>`_ ,
     - `examples/advanced <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced>`_ ,
     - `examples/volumetric <https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric>`_,

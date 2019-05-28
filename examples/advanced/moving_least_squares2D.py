@@ -1,11 +1,11 @@
 """
-This example shows how to use a variant of the 
-Moving Least Squares (MLS) algorithm to project a cloud 
+This example shows how to use a variant of the
+Moving Least Squares (MLS) algorithm to project a cloud
 of points to become a smooth surface.
 The parameter f controls the size of the local regression.
 The input actor's polydata is modified by the method
 so more than one pass is possible.
-If showNPlanes>0 an actor is built demonstrating the 
+If showNPlanes>0 an actor is built demonstrating the
 details of the regression for some random points
 In the second window we show the error estimated for
 each point in color scale (left) or in size scale (right).

@@ -1,7 +1,7 @@
-"""Adds new points to an input point cloud. 
+"""Adds new points to an input point cloud.
 The new points are created in such a way that
-all points in any local neighborhood are 
-within a target distance of one another. 
+all points in any local neighborhood are
+within a target distance of one another.
 """
 from vtkplotter import *
 import numpy as np
