@@ -666,6 +666,10 @@ class Prop(object):
             oa.wire()
         return oa
 
+    def bounds(self):
+        """Get the bounds of the data object."""
+        return self.GetMapper().GetInput().GetBounds()
+
     def printHistogram(self, bins=10, height=10, logscale=False, minbin=0,
                        horizontal=False, char=u"\U00002589",
                        c=None, bold=True, title='Histogram'):
@@ -711,6 +715,30 @@ class Prop(object):
         If None is passed as input, will use colors from active scalars.
         """
         return self.color(color)
+
+    def getArrayNames(self):
+        from vtk.numpy_interface import dataset_adapter
+        wrapped = dataset_adapter.WrapDataObject(self.GetMapper().GetInput())
+        return {"PointData":wrapped.PointData.keys(), "CellData":wrapped.CellData.keys()}
+        
+    def getPointArray(self, name=0):
+        """Return point array content as a ``numpy.array``.
+        This can be identified either as a string or by an integer number."""
+        data = None
+        if hasattr(self, 'polydata') and self.polydata:
+            data = self.polydata
+        elif hasattr(self, 'image') and self.image:
+            data = self.image
+        return vtk_to_numpy(data.GetPointData().GetArray(name))#.astype(np.float32)
+
+    def getCellArray(self, name=0):
+        """Return cell array content as a ``numpy.array``."""
+        data = None
+        if hasattr(self, 'polydata') and self.polydata:
+            data = self.polydata
+        elif hasattr(self, 'image') and self.image:
+            data = self.image
+        return vtk_to_numpy(data.GetPointData().GetArray(name))#.astype(np.float32)
 
 
 ####################################################
@@ -806,8 +834,10 @@ class Actor(vtk.vtkActor, Prop):
         else:
             colors.printc("Error: cannot build Actor from type:\n", inputtype, c=1)
             raise RuntimeError()
+            
 
         if self.mapper:
+            self.mapper.InterpolateScalarsBeforeMappingOn()
             self.SetMapper(self.mapper)
 
         if settings.computeNormals is not None:
@@ -834,11 +864,15 @@ class Actor(vtk.vtkActor, Prop):
         self._bfprop = None  # backface property holder
 
         prp = self.GetProperty()
-        prp.SetInterpolationToFlat()
+        #prp.SetInterpolationToFlat()
 
         if settings.renderPointsAsSpheres:
             if hasattr(prp, 'RenderPointsAsSpheresOn'):
                 prp.RenderPointsAsSpheresOn()
+
+        if settings.renderLinesAsTubes:
+            if hasattr(prp, 'RenderLinesAsTubesOn'):
+                prp.RenderLinesAsTubesOn()
 
         if c is None:
             self.mapper.ScalarVisibilityOn()
@@ -883,9 +917,9 @@ class Actor(vtk.vtkActor, Prop):
             return actors
         return Assembly([self, actors])
 
-    #def __str__(self):
-    #    utils.printInfo(self)
-    #    return ""
+    def __str__(self):
+        utils.printInfo(self)
+        return ""
 
     def pickable(self, value=None):
         """Set/get pickable property of actor."""
@@ -1172,10 +1206,10 @@ class Actor(vtk.vtkActor, Prop):
         if c is False:
             return np.array(self.GetProperty().GetColor())
         elif c is None:
-            self.GetMapper().ScalarVisibilityOn()
+            self.mapper.ScalarVisibilityOn()
             return self
         else:
-            self.GetMapper().ScalarVisibilityOff()
+            self.mapper.ScalarVisibilityOff()
             cc = colors.getColor(c)
             self.GetProperty().SetColor(cc)
             if self.trail:
@@ -1203,7 +1237,7 @@ class Actor(vtk.vtkActor, Prop):
         backProp.SetDiffuseColor(colors.getColor(bc))
         backProp.SetOpacity(self.GetProperty().GetOpacity())
         self.SetBackfaceProperty(backProp)
-        self.GetMapper().ScalarVisibilityOff()
+        self.mapper.ScalarVisibilityOff()
         return self
 
     def bc(self, backColor=False):
@@ -1442,6 +1476,8 @@ class Actor(vtk.vtkActor, Prop):
         df.SetInputData(1, poly2)
         if signed:
             df.SignedDistanceOn()
+        else:
+            df.SignedDistanceOff()
         if negate:
             df.NegateDistanceOn()
         df.Update()
@@ -1980,12 +2016,12 @@ class Actor(vtk.vtkActor, Prop):
                 sname = "pointColors_" + cmap
             else:
                 sname = "pointColors"
-            lut.SetNumberOfTableValues(512)
+            lut.SetNumberOfTableValues(256)
             lut.Build()
-            for i in range(512):
-                r, g, b = colors.colorMap(i, cmap, 0, 512)
+            for i in range(256):
+                r, g, b = colors.colorMap(i, cmap, 0, 256)
                 if useAlpha:
-                    idx = int(i / 512 * len(alpha))
+                    idx = int(i / 256 * len(alpha))
                     lut.SetTableValue(i, r, g, b, alpha[idx])
                 else:
                     lut.SetTableValue(i, r, g, b, alpha)
@@ -2064,12 +2100,12 @@ class Actor(vtk.vtkActor, Prop):
                 sname = "cellColors_" + cmap
             else:
                 sname = "cellColors"
-            lut.SetNumberOfTableValues(512)
+            lut.SetNumberOfTableValues(256)
             lut.Build()
-            for i in range(512):
-                r, g, b = colors.colorMap(i, cmap, 0, 512)
+            for i in range(256):
+                r, g, b = colors.colorMap(i, cmap, 0, 256)
                 if useAlpha:
-                    idx = int(i / 512 * len(alpha))
+                    idx = int(i / 256 * len(alpha))
                     lut.SetTableValue(i, r, g, b, alpha[idx])
                 else:
                     lut.SetTableValue(i, r, g, b, alpha)
@@ -2089,6 +2125,7 @@ class Actor(vtk.vtkActor, Prop):
 
         .. hint:: |mesh_coloring| |mesh_coloring.py|_
         """
+        #print('addPointScalars is DEPRECATED')
         poly = self.polydata(False)
         if len(scalars) != poly.GetNumberOfPoints():
             colors.printc('~times pointScalars Error: Number of scalars != nr. of points',
@@ -2109,6 +2146,7 @@ class Actor(vtk.vtkActor, Prop):
         """
         Add cell scalars to the actor's polydata assigning it a name.
         """
+        #print('addCellScalars is DEPRECATED')
         poly = self.polydata(False)
         if isinstance(scalars, str):
             scalars = vtk_to_numpy(poly.GetPointData().GetArray(scalars))
@@ -2130,6 +2168,7 @@ class Actor(vtk.vtkActor, Prop):
         """
         Add a point vector field to the actor's polydata assigning it a name.
         """
+        #print('addPointVectors is DEPRECATED')
         poly = self.polydata(False)
         if len(vectors) != poly.GetNumberOfPoints():
             colors.printc('~times addPointVectors Error: Number of vectors != nr. of points',
@@ -2202,6 +2241,7 @@ class Actor(vtk.vtkActor, Prop):
 
         .. hint:: |mesh_coloring.py|_
         """
+        #print('scalars is DEPRECATED')
         poly = self.polydata(False)
 
         if name_or_idx is None:  # get mode behaviour
@@ -2453,12 +2493,12 @@ class Actor(vtk.vtkActor, Prop):
         """
         if not transformed:
             if not self.poly:
-                self.poly = self.GetMapper().GetInput()  # cache it for speed
+                self.poly = self.mapper.GetInput()  # cache it for speed
             return self.poly
         M = self.GetMatrix()
         if utils.isIdentity(M):
             if not self.poly:
-                self.poly = self.GetMapper().GetInput()  # cache it for speed
+                self.poly = self.mapper.GetInput()  # cache it for speed
             return self.poly
         # if identity return the original polydata
         # otherwise make a copy that corresponds to
@@ -2991,6 +3031,9 @@ class Volume(vtk.vtkVolume, Prop):
         """Return the underlying ``vtkImagaData`` object."""
         return self.image
 
+    def dimensions(self):
+        """Return the underlying ``vtkImagaData`` object."""
+        return self.image.GetDimensions()
 
     def color(self, color="blue"):
         """Assign a color or a set of colors to a volume along the range of the scalar value."""
@@ -3121,7 +3164,6 @@ class Volume(vtk.vtkVolume, Prop):
         self.GetMapper().Modified()
         return self
 
-
     def normalize(self):
         """Normalize that scalar components for each point."""
         norm = vtk.vtkImageNormalize()
@@ -3132,9 +3174,8 @@ class Volume(vtk.vtkVolume, Prop):
         self.GetMapper().Modified()
         return self
 
-
-    def scaleVoxelsScalar(self, scale=1):
-        """Scale the voxel content"""
+    def scaleVoxels(self, scale=1):
+        """Scale the voxel content by factor `scale`."""
         rsl = vtk.vtkImageReslice()
         rsl.SetInputData(self.imagedata())
         rsl.SetScalarScale(scale)
@@ -3143,7 +3184,6 @@ class Volume(vtk.vtkVolume, Prop):
         self.GetMapper().SetInputData(self.image)
         self.GetMapper().Modified()
         return self
-
 
     def mirror(self, axis="x"):
         """
@@ -3172,26 +3212,3 @@ class Volume(vtk.vtkVolume, Prop):
         self.GetMapper().Modified()
         return self
 
-
-    def getVoxelScalar(self, vmin=None, vmax=None):
-        """
-        Return voxel content as a ``numpy.array``.
-
-        :param float vmin: rescale scalar content to match `vmin` and `vmax` range.
-        :param float vmax: rescale scalar content to match `vmin` and `vmax` range.
-        """
-        nx, ny, nz = self.image.GetDimensions()
-
-        voxdata = np.zeros([nx, ny, nz])
-        lsx = range(nx)
-        lsy = range(ny)
-        lsz = range(nz)
-        renorm = vmin is not None and vmax is not None
-        for i in lsx:
-            for j in lsy:
-                for k in lsz:
-                    s = self.image.GetScalarComponentAsFloat(i, j, k, 0)
-                    if renorm:
-                        s = (s - vmin) / (vmax - vmin)
-                    voxdata[i, j, k] = s
-        return voxdata

@@ -15,7 +15,7 @@ for h in his:
         cmh.append(cm)
 
 v1 = vector(9.4, 5.2, 0)
-v2 = vector(9.4, 4.2, 0)
+v2 = vector(9.4, 2.7, 0)
 t1 = Text("EMBL",  v1, c="k",  s=1.5, depth=0)
 t2 = Text("European Molecular\nBiology Laboratory", v2, c="dg", s=0.6, depth=0)
 

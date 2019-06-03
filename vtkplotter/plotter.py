@@ -12,6 +12,7 @@ from vtkplotter.actors import Actor, Assembly, Volume
 import vtkplotter.docs as docs
 import vtkplotter.settings as settings
 import vtkplotter.addons as addons
+from vtk.util.numpy_support import vtk_to_numpy
 
 __doc__ = (
     """
@@ -146,7 +147,7 @@ def show(*actors, **options
             vp.show(s, at=0)
             vp.show(p, at=1)
             vp.show(c, at=2, interactive=True)
-    """    
+    """
     at = options.pop("at", None)
     shape = options.pop("shape", (1, 1))
     N = options.pop("N", None)
@@ -249,7 +250,7 @@ def show(*actors, **options
             interactorStyle=interactorStyle,
             q=q,
         )
-    
+
     return _vp_to_return
 
 
@@ -278,16 +279,20 @@ def closeWindow(plotterInstance=None):
         plotterInstance  = plotter_instance
         if not plotterInstance:
             return
+    plotterInstance.interactor.ExitCallback()
     plotterInstance.closeWindow()
     return plotterInstance
 
 
 def closePlotter():
     """Close the current or the input rendering window."""
-    settings.plotter_instance.closeWindow()
-    settings.plotter_instance = None
-    settings.plotter_instances = []
-    settings.collectable_actors = []
+#    if settings.notebook_plotter:
+#        settings.notebook_plotter.close()
+    if settings.plotter_instance:
+        settings.plotter_instance.closeWindow()
+        settings.plotter_instance = None
+        settings.plotter_instances = []
+        settings.collectable_actors = []
     return None
 
 
@@ -1228,6 +1233,8 @@ class Plotter:
                 wannabeacts = [wannabeacts]
             for a in wannabeacts:  # scan content of list
                 if isinstance(a, vtk.vtkActor):
+#                    if not isinstance(a, Actor):
+#                        a = Actor(a.GetMapper().GetInput())
                     scannedacts.append(a)
                     if hasattr(a, 'trail') and a.trail and not a.trail in self.actors:
                         scannedacts.append(a.trail)
@@ -1247,7 +1254,10 @@ class Plotter:
                 elif isinstance(a, vtk.vtkImageActor):
                     scannedacts.append(a)
                 elif isinstance(a, vtk.vtkVolume):
-                    scannedacts.append(a)
+                    if isinstance(a, Volume):
+                        scannedacts.append(a)
+                    else:
+                        scannedacts.append(Volume(a))
                 elif isinstance(a, vtk.vtkImageData):
                     scannedacts.append(Volume(a))
                 elif isinstance(a, vtk.vtkPolyData):
@@ -1389,8 +1399,9 @@ class Plotter:
             self.interactor.Initialize()
             self.interactor.RemoveObservers("CharEvent")
 
-            if self.verbose and self.interactive and not settings.notebookBackend:
-                docs.onelinetip()
+            if self.verbose and self.interactive:
+                if not settings.notebookBackend:
+                    docs.onelinetip()
 
         self.initializedPlotter = True
 
@@ -1439,31 +1450,141 @@ class Plotter:
         if resetcam: self.renderer.ResetCameraClippingRange()
 
         if settings.notebookBackend == 'k3d':
-            import k3d
-            settings.notebook_plotter = k3d.plot()
+            import k3d # https://github.com/K3D-tools/K3D-jupyter
 
-            def rgb2int(rgb_tuple):
-                rgb = (int(rgb_tuple[0]*255), int(rgb_tuple[1]*255), int(rgb_tuple[2]*255))
-                return 65536*rgb[0]+256*rgb[1]+rgb[2]
+            vbb, sizes, min_bns, max_bns = addons.computeVisibleBounds()
+            kgrid = vbb[0], vbb[2], vbb[4], vbb[1], vbb[3], vbb[5]
 
-            for ia in self.getActors(at):
-                iap = ia.GetProperty()
-                krep = iap.GetRepresentation()
-                settings.notebook_plotter += k3d.vtk_poly_data(ia.polydata(),
-                                                               color=rgb2int(iap.GetColor()),
-                                                               opacity=iap.GetOpacity(),
-                                                               wireframe=(krep==1),
-                                                               antialias=True,
-                                                               camera_auto_fit=True,
-                                                               grid_auto_fit=True )
+            settings.notebook_plotter = k3d.plot(axes=[self.xtitle, self.ytitle, self.ztitle],
+                                                 menu_visibility=True,
+                                                 height=int(self.size[1]/2))
+            settings.notebook_plotter.grid = kgrid
+            
+            if not self.axes:
+                settings.notebook_plotter.gridVisible = False
+                
+            actorset = set(utils.flatten([self.getActors(at), self.actors]))
+
+            for ia in actorset:
+                kobj = None
+                kcmap= None
+
+                if isinstance(ia, Actor) and ia.N():
+
+                    iap = ia.GetProperty()
+                    krep = iap.GetRepresentation()
+
+                    ia.computeNormals()
+                    cpl = vtk.vtkCleanPolyData()
+                    cpl.SetInputData(ia.polydata())
+                    cpl.Update()
+                    tf = vtk.vtkTriangleFilter()
+                    tf.SetInputData(cpl.GetOutput())
+                    tf.Update()
+                    iapoly = tf.GetOutput()
+#                    iapoly = ia.polydata()
+
+                    mass = vtk.vtkMassProperties()
+                    mass.SetGlobalWarningDisplay(0)
+                    mass.SetInputData(iapoly)
+                    mass.Update()
+                    area = mass.GetSurfaceArea()
+
+                    color_attribute = None
+                    if ia.mapper.GetScalarVisibility():
+                        vtkdata = iapoly.GetPointData()
+                        vtkscals = vtkdata.GetScalars()
+
+                        if vtkscals is None:
+                            vtkdata = iapoly.GetCellData()
+                            vtkscals = vtkdata.GetScalars()
+                            if vtkscals is not None:
+                                c2p = vtk.vtkCellDataToPointData()
+                                c2p.SetInputData(iapoly)
+                                c2p.Update()
+                                iapoly = c2p.GetOutput()
+                                vtkdata = iapoly.GetPointData()
+                                vtkscals = vtkdata.GetScalars()
+
+                        if vtkscals is not None:
+                            scals_min, scals_max = ia.mapper.GetScalarRange()
+                            color_attribute=(vtkscals.GetName(), scals_min, scals_max)
+                            lut = ia.mapper.GetLookupTable()
+                            lut.Build() ## arrgghh!!!
+                            kcmap=[]
+                            nlut = lut.GetNumberOfTableValues()
+                            for i in range(nlut):
+                                r,g,b,a = lut.GetTableValue(i)
+                                kcmap += [i/nlut, r,g,b]
+
+                    if area > 0:
+                        name = None
+                        if ia.filename:
+                            name=ia.filename
+                        kobj = k3d.vtk_poly_data(iapoly,
+                                                 name=name,
+                                                 color=colors.rgb2int(iap.GetColor()),
+                                                 color_attribute=color_attribute,
+                                                 color_map=kcmap,
+                                                 opacity=iap.GetOpacity(),
+                                                 wireframe=(krep==1))
+
+                        if iap.GetInterpolation() == 0:
+                            kobj.flat_shading = True
+
+                    else:
+                        kcols=[]
+                        if color_attribute is not None:
+                            scals = vtk_to_numpy(vtkscals)
+                            kcols = k3d.helpers.map_colors(scals, kcmap, [scals_min,scals_max]).astype(numpy.uint32)
+                        sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
+                        if ia.NPoints() == ia.NCells():
+                            kobj = k3d.points(ia.coordinates().astype(numpy.float32),
+                                              color=colors.rgb2int(iap.GetColor()),
+                                              colors=kcols,
+                                              opacity=iap.GetOpacity(),
+                                              shader="3d",
+                                              point_size=iap.GetPointSize()*sqsize/200,
+                                             )
+                        else:
+                            kobj = k3d.line(ia.coordinates().astype(numpy.float32),
+                                            color=colors.rgb2int(iap.GetColor()),
+                                            colors=kcols,
+                                            opacity=iap.GetOpacity(),
+                                            shader="thick",
+                                            width=iap.GetLineWidth()*sqsize/1000,
+                                            )
+
+                    settings.notebook_plotter += kobj
+
+                elif isinstance(ia, Volume):
+                    kx, ky, kz = ia.dimensions()
+                    arr = ia.getPointArray()
+                    kimage = arr.reshape(-1, ky, kx)
+                    
+                    colorTransferFunction = ia.GetProperty().GetRGBTransferFunction()                    
+                    kcmap=[]
+                    for i in range(256):
+                        r,g,b = colorTransferFunction.GetColor(i/255)
+                        kcmap += [i/255, r,g,b]
+                    
+                    kobj = k3d.volume(kimage.astype(numpy.float32),
+                                      color_map=kcmap,
+                                      alpha_coef=5,
+                                      bounds=ia.bounds() )
+                    settings.notebook_plotter += kobj
+
+                elif hasattr(ia, 'info') and 'formula' in ia.info.keys():
+                    pos = (ia.GetPosition()[0],ia.GetPosition()[1])
+                    kobjt = k3d.text2d(ia.info['formula'], position=pos)
+                    settings.notebook_plotter += kobjt
+
             ###################################
-            #settings.notebook_plotter.display()
             return settings.notebook_plotter
             ###################################
 
         elif settings.notebookBackend == 'panel':
-            # https://panel.pyviz.org/reference/panes/VTK.html
-            import panel
+            import panel # https://panel.pyviz.org/reference/panes/VTK.html
             settings.notebook_plotter = panel.pane.VTK(self.window,
                                                        width=int(self.size[0]/2),
                                                        height=int(self.size[1]/2))
@@ -1533,7 +1654,7 @@ class Plotter:
             if self.verbose:
                 print("q flag set to True.  Exit python session.")
             sys.exit(0)
-        
+
         return self
 
 
@@ -1617,6 +1738,8 @@ class Plotter:
                 self.interactor.TerminateApp()
                 del self.window
                 del self.interactor
+#        if settings.notebook_plotter:
+#            settings.notebook_plotter.close()
         return self
 
 

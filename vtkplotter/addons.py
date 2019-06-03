@@ -641,6 +641,25 @@ def addIcon(iconActor, pos=3, size=0.08):
         vp.actors.remove(iconActor)
     return widget
 
+def computeVisibleBounds():
+    """Calculate max actors bounds and sizes."""
+    bns = []
+    for a in settings.plotter_instance.actors:
+        if a and a.GetPickable():
+            b = a.GetBounds()
+            if b:
+                bns.append(b)
+    if len(bns):
+        max_bns = numpy.max(bns, axis=0)
+        min_bns = numpy.min(bns, axis=0)
+        vbb = (min_bns[0], max_bns[1], min_bns[2], max_bns[3], min_bns[4], max_bns[5])
+    else:
+        vbb = settings.plotter_instance.renderer.ComputeVisiblePropBounds()
+        max_bns = vbb
+        min_bns = vbb
+    sizes = numpy.array([max_bns[1]-min_bns[0], max_bns[3]-min_bns[2], max_bns[5]-min_bns[4]])
+    return vbb, sizes, min_bns, max_bns
+
 
 def addAxes(axtype=None, c=None):
     """Draw axes on scene. Available axes types:
@@ -737,24 +756,6 @@ def addAxes(axtype=None, c=None):
     if vp.axes_instances[r]:
         return
 
-    # calculate max actors bounds
-    bns = []
-    for a in vp.actors:
-        if a and a.GetPickable():
-            b = a.GetBounds()
-            if b:
-                bns.append(b)
-    if len(bns):
-        max_bns = numpy.max(bns, axis=0)
-        min_bns = numpy.min(bns, axis=0)
-        vbb = (min_bns[0], max_bns[1], min_bns[2], max_bns[3], min_bns[4], max_bns[5])
-    else:
-        vbb = vp.renderer.ComputeVisiblePropBounds()
-        max_bns = vbb
-        min_bns = vbb
-    sizes = numpy.array([max_bns[1] - min_bns[0], max_bns[3] - min_bns[2], max_bns[5] - min_bns[4]])
-
-
     ############################################################
     if vp.axes == 1 or vp.axes == True or isinstance(vp.axes, dict):  # custom grid walls
 
@@ -770,6 +771,8 @@ def addAxes(axtype=None, c=None):
         ztitle = axes.pop('ztitle', vp.ztitle)
 
         limitRatio = axes.pop('limitRatio', 20)
+        
+        vbb, sizes, min_bns, max_bns = computeVisibleBounds()
 
         if sizes[0] and (sizes[1]/sizes[0] > limitRatio or sizes[2]/sizes[0] > limitRatio):
             sizes[0] = 0
@@ -1182,12 +1185,11 @@ def addAxes(axtype=None, c=None):
 
 
     elif vp.axes == 2 or vp.axes == 3:
-        vbb = vp.renderer.ComputeVisiblePropBounds()  # to be double checked
+        x0, x1, y0, y1, z0, z1 = vp.renderer.ComputeVisiblePropBounds()
         xcol, ycol, zcol = "db", "dg", "dr"
         s = 1
         alpha = 1
         centered = False
-        x0, x1, y0, y1, z0, z1 = vbb
         dx, dy, dz = x1 - x0, y1 - y0, z1 - z0
         aves = numpy.sqrt(dx * dx + dy * dy + dz * dz) / 2
         x0, x1 = min(x0, 0), max(x1, 0)
@@ -1351,6 +1353,7 @@ def addAxes(axtype=None, c=None):
         vp.axes_instances[r] = ls
 
     elif vp.axes == 8:
+        vbb = computeVisibleBounds()[0]
         ca = vtk.vtkCubeAxesActor()
         ca.SetBounds(vbb)
         if vp.camera:
@@ -1383,6 +1386,7 @@ def addAxes(axtype=None, c=None):
         return
 
     elif vp.axes == 9:
+        vbb = computeVisibleBounds()[0]
         src = vtk.vtkCubeSource()
         src.SetXLength(vbb[1] - vbb[0])
         src.SetYLength(vbb[3] - vbb[2])
@@ -1395,6 +1399,7 @@ def addAxes(axtype=None, c=None):
         vp.axes_instances[r] = ca
 
     elif vp.axes == 10:
+        vbb = computeVisibleBounds()[0]
         x0 = (vbb[0] + vbb[1]) / 2, (vbb[3] + vbb[2]) / 2, (vbb[5] + vbb[4]) / 2
         rx, ry, rz = (vbb[1]-vbb[0])/2, (vbb[3]-vbb[2])/2, (vbb[5]-vbb[4])/2
         rm = max(rx, ry, rz)

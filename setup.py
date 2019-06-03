@@ -13,7 +13,7 @@ setup(
     version=verstr,
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
-    install_requires=['vtk'],
+    install_requires=['vtk','k3d'],
     description='''A python module for scientific visualization,
     analysis and animation of 3D objects and point clouds based on VTK.''',
     long_description="""A python module for scientific visualization,
@@ -52,18 +52,15 @@ setup(
 
 # cd examples
 # ./run_all.sh
-# cd simulations
-# cd ../other/dolfin
-# ./run_all.sh
 
 # check vtkconvert:
-# vtkconvert data/290.vtk -to ply
+# vtkconvert vtkplotter/data/290.vtk -to ply
 
 # check on python2 the same stuff is ok
 
 # check notebooks:
-# jupyter notebook examples/notebooks/embryo.ipynb
-# jupyter notebook examples/notebooks/sphere.ipynb
+# cd ~/Projects/vtkplotter/
+# jupyter notebook
 
 # git status
 # git add [files]

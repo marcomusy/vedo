@@ -937,12 +937,12 @@ class Video:
     def close(self):
         """Render the video and write to file."""
         if self.duration:
-            _fps = len(self.frames) / float(self.duration)
-            colors.printc("Recalculated video FPS to", round(_fps, 3), c="yellow")
+            self.fps = len(self.frames) / float(self.duration)
+            colors.printc("Recalculated video FPS to", round(self.fps, 3), c="yellow")
         else:
-            _fps = int(_fps)
+            self.fps = int(self.fps)
         self.name = self.name.split('.')[0]+'.mp4'
-        out = os.system(self.ffmpeg + " -loglevel panic -y -r " + str(_fps)
+        out = os.system(self.ffmpeg + " -loglevel panic -y -r " + str(self.fps)
                         + " -i " + self.tmp_dir.name + os.sep + "%01d.png " + self.name)
         if out:
             colors.printc("ffmpeg returning error", c=1)
@@ -1101,7 +1101,7 @@ def _keypress(iren, event):
         sys.stdout.flush()
         colors.printc('\n[F1] Execution aborted. Exiting python now.')
         settings.plotter_instance.closeWindow()
-        exit()
+        sys.exit(0)
 
     elif key == "m":
         if vp.clickedActor in vp.getActors():

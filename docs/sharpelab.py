@@ -16,9 +16,9 @@ for h in his:
         cmh.append(cm)
 exah[13].c('red')
 
-v1 = vector(9.1, 5.3, -0.1)
+v1 = vector(9.1, 5.0, -0.1)
 v2 = vector(9.2, 3.4, -0.1)
-t1 = Text("Sharpe Lab",  v1, c="k").scale([.9,1,1])
+t1 = Text("Sharpe Lab",  v1, c="k").scale([.999,1,1])
 t2 = Text("EMBL Barcelona", v2, c="dg")
 
 Plotter(bg="w", axes=0, interactive=0)
@@ -30,7 +30,7 @@ def run(rng):
 	        h.pos(cos(cy*t) *t*2, sin(cx*t)*t*2, t*cx/2).alpha((1-t)**3)
 	        #h.shadow.alpha(t**4)
 	        t1.alpha((1-t)**4)
-	        t2.scale([(1-t)*0.52, (1-t)*0.6, (1-t)*0.6]).alpha((1-t)**2)
+	        t2.scale([(1-t)*0.67, (1-t)*0.75, (1-t)*0.75]).alpha((1-t)**2)
 	    show(box, exa, exah, t1, t2, resetcam=0, elevation=0)
 import time
 run(reversed(range(100)))

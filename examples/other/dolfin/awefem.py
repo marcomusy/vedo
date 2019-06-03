@@ -7,7 +7,7 @@ It injects a point source with a time-dependent source time function.
 #
 from __future__ import print_function, division
 from dolfin import *
-from vtkplotter.dolfin import plot, interactive, ProgressBar, printc
+from vtkplotter.dolfin import plot, interactive, ProgressBar, printc, datadir
 import numpy as np
 set_log_level(30)
 
@@ -50,7 +50,8 @@ def awefem(mesh, t, source_loc=None):
 
     # Solver
     A, b = assemble_system(a, L)
-    solver = LUSolver(A)
+    solver = LUSolver(A, "mumps")
+    solver.parameters["symmetric"] = True
     bc.apply(A, b)
 
     # Solution
@@ -97,7 +98,7 @@ if __name__ == "__main__":
     t = ot + np.arange(nt) * dt
 
     print("Computing wavefields over dolfin mesh")
-    mesh = Mesh("data/dolfin_fine.xml")
+    mesh = Mesh(datadir+"dolfin_fine.xml")
     awefem(mesh, t, source_loc=(0.8, 0.8))
 
 #    print('Computing wavefields over unit square')

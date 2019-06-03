@@ -1053,4 +1053,5 @@ _defs = """
     :target: awefem.py_
     :alt: awefem.py
 
+.. |fenics_logo| image:: https://user-images.githubusercontent.com/32848391/58764910-3940fa80-856d-11e9-8160-af89a5ab5d02.gif
 """

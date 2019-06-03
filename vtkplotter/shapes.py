@@ -543,7 +543,6 @@ def Arrow(startPoint, endPoint, s=None, c="r", alpha=1, res=12):
     actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(startPoint)
     actor.DragableOff()
-    actor.PickableOff()
     actor.base = np.array(startPoint)
     actor.top = np.array(endPoint)
     settings.collectable_actors.append(actor)
@@ -1443,6 +1442,8 @@ def Latex(
     :param bool usetex: use latex compiler of matplotlib
     :param fromweb: retrieve the latex image from online server (codecogs)
 
+    You can access the latex formula from the `Actor` object with `actor.info['formula']`.
+
     .. hint:: |latex| |latex.py|_
     """
     vactor = None
@@ -1499,6 +1500,7 @@ def Latex(
         picr.Update()
         vactor = Image()
         vactor.SetInputData(picr.GetOutput())
+        vactor.info['formula'] = formula
         vactor.alpha(alpha)
         b = vactor.GetBounds()
         xm, ym = (b[1]+b[0])/200*s, (b[3]+b[2])/200*s

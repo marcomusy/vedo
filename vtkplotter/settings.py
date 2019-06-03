@@ -47,8 +47,14 @@ useOpenVR = False
 # on some vtk versions/platforms points are redered as ugly squares
 renderPointsAsSpheres = True
 
+renderLinesAsTubes = False
+
 # remove hidden lines when in wireframe mode
 hiddenLineRemoval = False
+
+# notebook support with K3D
+notebookBackend = None
+notebook_plotter = None
 
 # path to Voro++ library
 # http://math.lbl.gov/voro++
@@ -76,25 +82,34 @@ datadir = _cdir + "/data/"
 fonts_path = _cdir + "/fonts/"
 fonts = []
 
-#####################
-notebookBackend = None
-notebook_plotter = None
 def embedWindow(backend='k3d', verbose=True):
     global notebook_plotter, notebookBackend
+
     if not backend:
+        notebookBackend = None
+        notebook_plotter = None
         return
+
     notebookBackend = backend
     if backend=='k3d':
+
         try:
             get_ipython()
+        except:
+            notebookBackend = None
+            return
+
+        try:
             import k3d
             #if verbose:
             #    print('INFO: embedWindow(verbose=True), importing k3d module')
         except:
+            notebookBackend = None
             if verbose:
-                print('embedWindow(): could not load k3d module, try:')
+                print('embedWindow(verbose=True): could not load k3d module, try:')
                 print('> pip install k3d      # and/or')
                 print('> conda install nodejs')
+
     elif backend=='panel':
         try:
             get_ipython()
@@ -104,18 +119,19 @@ def embedWindow(backend='k3d', verbose=True):
             panel.extension('vtk')
         except:
             if verbose:
-                print('embedWindow(): could not load panel try:')
+                print('embedWindow(verbose=True): could not load panel try:')
                 print('> pip install panel    # and/or')
                 print('> conda install nodejs')
     else:
         print("Unknown backend", backend)
         raise RuntimeError()
-    
+
 
 #####################
 def _init():
     global plotter_instance, plotter_instances, collectable_actors
     global textures, fonts
+    global notebookBackend, notebook_plotter
 
     plotter_instance = None
     plotter_instances = []
@@ -133,6 +149,8 @@ def _init():
 
     import warnings
     warnings.simplefilter(action="ignore", category=FutureWarning)
+
+    embedWindow()
 
 
 

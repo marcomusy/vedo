@@ -3,6 +3,7 @@ import vtk
 import numpy as np
 import sys
 import vtkplotter.docs as docs
+import vtkplotter.settings as settings
 
 __doc__ = (
 """
@@ -272,6 +273,12 @@ def rgb2hsv(rgb):
     """Convert RGB to HSV color."""
     ma = vtk.vtkMath()
     return ma.RGBToHSV(getColor(rgb))
+
+
+def rgb2int(rgb_tuple):
+    """Return the int number of a color from (r,g,b), with 0<r<1 etc."""
+    rgb = (int(rgb_tuple[0]*255), int(rgb_tuple[1]*255), int(rgb_tuple[2]*255))
+    return 65536*rgb[0]+256*rgb[1]+rgb[2]
 
 
 def colorMap(value, name="jet", vmin=None, vmax=None):
@@ -624,23 +631,23 @@ def printc(*strings, **keys):
 
         |colorprint|
     """
-
     end = keys.pop("end", "\n")
     flush = keys.pop("flush", True)
+    
+    if not settings.notebookBackend: 
+        if not _terminal_has_colors or sys.version_info[0]<3:
+            for s in strings:
+                if "~" in str(s):
+                    for k in emoji.keys():
+                        if k in s:
+                            s = s.replace(k, '')
+                print(s, end=' ')
+            print(end=end)
+            if flush:
+                sys.stdout.flush()
+            return
 
-    if not _terminal_has_colors or sys.version_info[0]<3:
-        for s in strings:
-            if "~" in str(s):  # "in" for some reasons changes s
-                for k in emoji.keys():
-                    if k in s:
-                        s = s.replace(k, '')
-            print(s, end=' ')
-        print(end=end)
-        if flush:
-            sys.stdout.flush()
-        return
-
-    c = keys.pop("c", None)  # hack to be compatible with python2
+    c = keys.pop("c", None)
     bc = keys.pop("bc", None)
     hidden = keys.pop("hidden", False)
     bold = keys.pop("bold", True)

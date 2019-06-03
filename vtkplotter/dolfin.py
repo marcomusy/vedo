@@ -15,7 +15,7 @@ import vtkplotter.docs as docs
 from vtkplotter.colors import printc
 
 import vtkplotter.settings as settings
-from vtkplotter.settings import datadir
+from vtkplotter.settings import datadir, embedWindow
 
 from vtkplotter.actors import Actor, isolines
 
@@ -25,7 +25,8 @@ from vtkplotter.vtkio import load, screenshot, Video, exportWindow
 import vtkplotter.shapes as shapes
 from vtkplotter.shapes import Text, Latex
 
-from vtkplotter.plotter import show, clear, Plotter, plotMatrix, closeWindow, interactive
+from vtkplotter.plotter import show, clear, Plotter, plotMatrix
+from vtkplotter.plotter import closeWindow, closePlotter, interactive
 
 __doc__ = (
     """
@@ -101,6 +102,8 @@ Image Gallery
 +-------------------------------------------------+-------------------------------------------------+
 | Customizing axes style and appearence           |The wave equation in arbitrary nr. of dimensions |
 +-------------------------------------------------+-------------------------------------------------+
+
+|fenics_logo|
 """
     + docs._defs
 )
@@ -127,7 +130,9 @@ __all__ = [
     "isolines",
     "exportWindow",
     "closeWindow",
+    "closePlotter",
     "interactive",
+    "embedWindow",
 ]
 
 
@@ -657,6 +662,15 @@ class MeshActor(Actor):
                 dispsizes = u_values
 
             self.addPointScalars(dispsizes, "u_values")#.mapPointsToCells()
+
+    def move(self, u=None):
+        if u is None:
+            u = self.u
+        delta = [u(p) for p in self.mesh.coordinates()]
+        movedpts = self.mesh.coordinates() + delta
+        self.polydata(False).GetPoints().SetData(numpy_to_vtk(movedpts))
+        self.poly.GetPoints().Modified()
+        self.u_values = delta
 
 def MeshPoints(*inputobj, **options):
     """

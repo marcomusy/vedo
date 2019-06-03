@@ -64,6 +64,7 @@ __all__ = [
     "streamLines",
     "densifyCloud",
     "frequencyPassFilter",
+    "implicitModeller",
 ]
 
 
@@ -437,6 +438,7 @@ def histogram2D(xvalues, yvalues, bins=12, norm=1, c=None, alpha=1, fill=True):
             if c is None:
                 col=i
             h = Actor(tf.GetOutput(), c=col, alpha=alpha)
+            h.flat()
             h.GetProperty().SetSpecular(0)
             h.GetProperty().SetDiffuse(1)
             h.PickableOff()
@@ -524,14 +526,20 @@ def extractLargestRegion(actor):
     conn = vtk.vtkConnectivityFilter()
     conn.SetExtractionModeToLargestRegion()
     conn.ScalarConnectivityOff()
-    poly = actor.GetMapper().GetInput()
+    if isinstance(actor, vtk.vtkActor):
+        poly = actor.GetMapper().GetInput()
+        prop = actor.GetProperty()
+    elif isinstance(actor, vtk.vtkPolyData):
+        poly = actor
+        prop = None
     conn.SetInputData(poly)
     conn.Update()
     epoly = conn.GetOutput()
     eact = Actor(epoly)
-    pr = vtk.vtkProperty()
-    pr.DeepCopy(actor.GetProperty())
-    eact.SetProperty(pr)
+    if prop:
+        pr = vtk.vtkProperty()
+        pr.DeepCopy(actor.GetProperty())
+        eact.SetProperty(pr)
     return eact
 
 
@@ -1028,8 +1036,7 @@ def smoothMLS1D(actor, f=0.2, showNLines=0):
     return actor  # NB: original actor is modified
 
 
-def booleanOperation(actor1, operation, actor2, c=None, alpha=1,
-                     wire=False, bc=None, texture=None):
+def booleanOperation(actor1, operation, actor2):
     """Volumetric union, intersection and subtraction of surfaces.
 
     :param str operation: allowed operations: ``'plus'``, ``'intersect'``, ``'minus'``.
@@ -1045,11 +1052,11 @@ def booleanOperation(actor1, operation, actor2, c=None, alpha=1,
         bf.SetOperationToIntersection()
     elif operation.lower() == "minus" or operation.lower() == "-":
         bf.SetOperationToDifference()
-        bf.ReorientDifferenceCellsOn()
+#        bf.ReorientDifferenceCellsOn()
     bf.SetInputData(0, poly1)
     bf.SetInputData(1, poly2)
     bf.Update()
-    actor = Actor(bf.GetOutput(), c, alpha, wire, bc, texture)
+    actor = Actor(bf.GetOutput(), c=None)
     return actor
 
 
@@ -2381,3 +2388,34 @@ def frequencyPassFilter(volume, lowcutoff=None, highcutoff=None, order=1):
     butterworthReal.Update()
     return Volume(butterworthReal.GetOutput())
 
+
+def implicitModeller(actor, distance=0.05, res=[110,40,20], bounds=[], maxdist=None,
+                     outer=True):
+    """Finds the surface at the specified distance from the input one"""
+    
+    if not len(bounds):
+        bounds = actor.bounds()
+    
+    if not maxdist:
+        maxdist = actor.diagonalSize()/2
+        
+    imp = vtk.vtkImplicitModeller()
+    imp.SetInputData(actor.polydata())
+    imp.SetSampleDimensions(res)
+    imp.SetMaximumDistance(maxdist)
+    imp.SetModelBounds(bounds)
+    contour = vtk.vtkContourFilter()
+    contour.SetInputConnection(imp.GetOutputPort())
+    contour.SetValue(0, distance)
+    contour.Update()
+    poly = contour.GetOutput()
+    if outer:
+        poly = extractLargestRegion(poly)    
+    
+    return Actor(poly, c='lb')
+
+    
+    
+    
+
+    

@@ -89,7 +89,7 @@ def showSolution3D(S, start, goal):
             if c: cubes.append(Cube([x,-y,0]))
 
     path = Line(pts).lw(6).c('tomato')
-    walls = mergeActors(cubes).clean().texture('metal2')
+    walls = mergeActors(cubes).clean().flat().texture('metal2')
 
     sy, sx = S[1].shape
     gradient = np.flip(S[1], axis=0).ravel()

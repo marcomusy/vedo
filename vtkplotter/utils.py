@@ -204,7 +204,7 @@ def humansort(l):
     l.sort(key=alphanum_key)
     return None  # NB: input list is modified
 
-
+ 
 def lin_interp(x, rangeX, rangeY):
     """
     Interpolate linearly variable x in rangeX onto rangeY.
@@ -566,10 +566,52 @@ def printInfo(obj):
             if isinstance(act, vtk.vtkActor):
                 printvtkactor(act, tab="     ")
 
+    elif isinstance(obj, vtk.vtkVolume):
+        colors.printc("_" * 60, c="b", bold=0)
+        colors.printc("vtkVolume", c="b", bold=1, invert=1, end=" ")
+        if hasattr(obj, "_legend") and obj._legend:
+            colors.printc("legend: ", c="b", bold=1, end="")
+            colors.printc(obj._legend, c="b", bold=0)
+        else:
+            print()
+
+        pos = obj.GetPosition()
+        bnds = obj.GetBounds()
+        img = obj.GetMapper().GetInput()
+        colors.printc("         position: ", c="b", bold=1, end="")
+        colors.printc(pos, c="b", bold=0)
+        
+        colors.printc("       dimensions: ", c="b", bold=1, end="")
+        colors.printc(img.GetDimensions(), c="b", bold=0)
+        colors.printc("          spacing: ", c="b", bold=1, end="")
+        colors.printc(img.GetSpacing(), c="b", bold=0)
+        colors.printc("   data dimension: ", c="b", bold=1, end="")
+        colors.printc(img.GetDataDimension(), c="b", bold=0)
+        
+        colors.printc("      memory size: ", c="b", bold=1, end="")
+        colors.printc(int(img.GetActualMemorySize()/1024), 'Mb', c="b", bold=0)
+
+        colors.printc("    scalar #bytes: ", c="b", bold=1, end="")
+        colors.printc(img.GetScalarSize(), c="b", bold=0)
+
+        colors.printc("           bounds: ", c="b", bold=1, end="")
+        bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
+        colors.printc("x=(" + bx1 + ", " + bx2 + ")", c="b", bold=0, end="")
+        by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
+        colors.printc(" y=(" + by1 + ", " + by2 + ")", c="b", bold=0, end="")
+        bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
+        colors.printc(" z=(" + bz1 + ", " + bz2 + ")", c="b", bold=0)
+
+        colors.printc("     scalar range: ", c="b", bold=1, end="")
+        colors.printc(img.GetScalarRange(), c="b", bold=0)
+
+        printHistogram(obj, horizontal=True, 
+                       logscale=True, bins=8, height=15, c='b', bold=0) 
+    
     elif hasattr(obj, "interactor"):  # dumps Plotter info
         axtype = {
             0: "(no axes)",
-            1: "(three gray grid walls)",
+            1: "(three customizable gray grid walls)",
             2: "(cartesian axes from origin",
             3: "(positive range of cartesian axes from origin",
             4: "(axes triad at bottom left)",
