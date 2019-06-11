@@ -15,4 +15,9 @@ tx = Text(txt, pos, s=1, depth=0.1, justify="bottom-left")
 t0 = Point(pos, c="r")  # mark text position
 ax = Point(c="blue")    # mark axes origin
 
-show(tx, tx.box().c("y"), t0, ax, axes=8, bg="lb", size=(500,500))
+show(tx,
+     tx.box().c("y"),
+     t0,
+     ax,
+     axes=8, bg="lb", size=(500,500)
+     )

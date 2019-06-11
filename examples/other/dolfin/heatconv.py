@@ -79,22 +79,18 @@ while t < 3:
 
     plot(u,
         text=__doc__+"\nTemperature at t = %g" % t,
-        style=0,
+        style=2,
         axes=3,
         lw=0, # no mesh edge lines
         warpZfactor=0.1,
         isolines={"n": 12, "lw":1, "c":'black', "alpha":0.1},
         bg='white',
         scalarbar=False,
-        interactive=0,
+        interactive=False,
     )
 
     # Move to next time step
     u0.assign(u)
     t += dt
-    # Report flux
-    #n = FacetNormal(mesh)
-    #flux = assemble(K*dot(grad(u), n)*dsN)
-    #print('t = %g, flux = %g' % (t, flux))
-
+    
 interactive()

@@ -175,7 +175,7 @@ def getColor(rgb=None, hsv=None):
          - int    =  7 picks color nr. 7 in a predefined color list
          - int    = -7 picks color nr. 7 in a different predefined list
 
-    .. hint:: |colorcubes| |colorcubes.py|_
+    |colorcubes| |colorcubes.py|_
     """
     #recursion, return a list if input is list of colors:
     if _isSequence(rgb) and len(rgb) > 3:
@@ -249,7 +249,7 @@ def getColor(rgb=None, hsv=None):
 def getColorName(c):
     """Find the name of a color.
 
-    .. hint:: |colorpalette| |colorpalette.py|_
+    |colorpalette| |colorpalette.py|_
     """
     c = np.array(getColor(c))  # reformat to rgb
     mdist = 99.0

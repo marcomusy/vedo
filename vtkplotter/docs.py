@@ -1054,4 +1054,20 @@ _defs = """
     :alt: awefem.py
 
 .. |fenics_logo| image:: https://user-images.githubusercontent.com/32848391/58764910-3940fa80-856d-11e9-8160-af89a5ab5d02.gif
+
+
+.. |thinplate_morphing_2d.py| replace:: thinplate_morphing_2d.py
+.. _thinplate_morphing_2d.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/thinplate_morphing_2d.py
+.. |thinplate_morphing_2d| image:: https://user-images.githubusercontent.com/32848391/59032715-385ae200-8867-11e9-9b07-7f4f8fbfa5bd.png
+    :width: 250 px
+    :target: thinplate_morphing_2d.py_
+    :alt: thinplate_morphing_2d.py
+
+.. |interpolateVolume.py| replace:: interpolateVolume.py
+.. _interpolateVolume.py: https://github.com/marcomusy/vtkplotter/blob/master/examples//interpolateVolume.py
+.. |interpolateVolume| image:: https://user-images.githubusercontent.com/32848391/59095175-1ec5a300-8918-11e9-8bc0-fd35c8981e2b.jpg
+    :width: 250 px
+    :target: interpolateVolume.py_
+    :alt: interpolateVolume.py
+
 """

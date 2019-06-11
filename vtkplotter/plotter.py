@@ -361,7 +361,7 @@ class Plotter:
         - `xTickColor`,  [automatic], color of major ticks
         - `xMinorTicks`,         [1], number of minor ticks between two major ticks
         - `tipSize`,          [0.01], size of the arrow tip
-        - `xTicksPrecision`,     [2], nr. of significative digits to be shown
+        - `xLabelPrecision`,     [2], nr. of significative digits to be shown
         - `xLabelSize`,      [0.015], size of the numeric labels along axis
         - `xLabelOffset`,    [0.025], offset of numeric labels
 
@@ -899,7 +899,7 @@ class Plotter:
 
         If `actor` is ``None`` will add it to the last actor in ``self.actors``.
 
-        .. hint:: |mesh_bands| |mesh_bands.py|_
+        |mesh_bands| |mesh_bands.py|_
         """
         return addons.addScalarBar(actor, c, title, horizontal, vmin, vmax)
 
@@ -925,7 +925,7 @@ class Plotter:
             - a ``vtkActor`` already containing a set of scalars associated to vertices or cells,
             - if ``None`` the last actor in the list of actors will be used.
 
-        .. hint:: |scalbar| |mesh_coloring.py|_
+        |scalbar| |mesh_coloring.py|_
         """
         return addons.addScalarBar3D(obj, at, pos, normal, sx, sy, nlabels, ncols, cmap, c, alpha)
 
@@ -943,7 +943,7 @@ class Plotter:
         :param str title: title text
         :param bool showValue:  if true current value is shown
 
-        .. hint:: |sliders| |sliders.py|_
+        |sliders| |sliders.py|_
         """
         return addons.addSlider2D(sliderfunc, xmin, xmax, value, pos, title, c, showValue)
 
@@ -975,7 +975,7 @@ class Plotter:
         :param float rotation: title rotation around slider axis
         :param bool showValue: if True current value is shown
 
-        .. hint:: |sliders3d| |sliders3d.py|_
+        |sliders3d| |sliders3d.py|_
         """
         return addons.addSlider3D(
             sliderfunc, pos1, pos2, xmin, xmax, value, s, title, rotation, c, showValue
@@ -1008,14 +1008,14 @@ class Plotter:
         :param float alpha:  opacity level
         :param float angle:  anticlockwise rotation in degrees
 
-        .. hint:: |buttons| |buttons.py|_
+        |buttons| |buttons.py|_
         """
         return addons.addButton(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
 
     def addCutterTool(self, actor):
         """Create handles to cut away parts of a mesh.
 
-        .. hint:: |cutter| |cutter.py|_
+        |cutter| |cutter.py|_
         """
         return addons.addCutterTool(actor)
 
@@ -1026,7 +1026,7 @@ class Plotter:
                     or it can be a tuple (x,y) as a fraction of the renderer size.
         :param float size: size of the square inset.
 
-        .. hint:: |icon| |icon.py|_
+        |icon| |icon.py|_
         """
         return addons.addIcon(iconActor, pos, size)
 
@@ -1082,7 +1082,7 @@ class Plotter:
             - `xTickColor`,  [automatic], color of major ticks
             - `xMinorTicks`,         [1], number of minor ticks between two major ticks
             - `tipSize`,          [0.01], size of the arrow tip
-            - `xTicksPrecision`,     [2], nr. of significative digits to be shown
+            - `xLabelPrecision`,     [2], nr. of significative digits to be shown
             - `xLabelSize`,      [0.015], size of the numeric labels along axis
             - `xLabelOffset`,    [0.025], offset of numeric labels
 
@@ -1099,7 +1099,7 @@ class Plotter:
                                  }
                     )
 
-        .. hint:: |customAxes| |customAxes.py|_
+        |customAxes| |customAxes.py|_
         """
         return addons.addAxes(axtype, c)
 
@@ -1233,8 +1233,10 @@ class Plotter:
                 wannabeacts = [wannabeacts]
             for a in wannabeacts:  # scan content of list
                 if isinstance(a, vtk.vtkActor):
-#                    if not isinstance(a, Actor):
-#                        a = Actor(a.GetMapper().GetInput())
+#                    if isinstance(a, Actor):
+#                        scannedacts.append(a)
+#                    else:
+#                        scannedacts.append(Actor(a, c, alpha, wire, bc))
                     scannedacts.append(a)
                     if hasattr(a, 'trail') and a.trail and not a.trail in self.actors:
                         scannedacts.append(a.trail)
@@ -1276,20 +1278,11 @@ class Plotter:
                 elif a is None:
                     pass
                 elif isinstance(a, vtk.vtkUnstructuredGrid):
-                    gf = vtk.vtkGeometryFilter()
-                    gf.SetInputData(a)
-                    gf.Update()
-                    scannedacts.append(Actor(gf.GetOutput(), c, alpha, wire, bc))
+                    scannedacts.append(Actor(a, c, alpha, wire, bc))
                 elif isinstance(a, vtk.vtkStructuredGrid):
-                    gf = vtk.vtkGeometryFilter()
-                    gf.SetInputData(a)
-                    gf.Update()
-                    scannedacts.append(Actor(gf.GetOutput(), c, alpha, wire, bc))
+                    scannedacts.append(Actor(a, c, alpha, wire, bc))
                 elif isinstance(a, vtk.vtkRectilinearGrid):
-                    gf = vtk.vtkRectilinearGridGeometryFilter()
-                    gf.SetInputData(a)
-                    gf.Update()
-                    scannedacts.append(Actor(gf.GetOutput(), c, alpha, wire, bc))
+                    scannedacts.append(Actor(a, c, alpha, wire, bc))
                 elif isinstance(a, vtk.vtkMultiBlockDataSet):
                     for i in range(a.GetNumberOfBlocks()):
                         b =  a.GetBlock(i)
@@ -1544,16 +1537,14 @@ class Plotter:
                                               colors=kcols,
                                               opacity=iap.GetOpacity(),
                                               shader="3d",
-                                              point_size=iap.GetPointSize()*sqsize/200,
-                                             )
+                                              point_size=iap.GetPointSize()*sqsize/200)
                         else:
                             kobj = k3d.line(ia.coordinates().astype(numpy.float32),
                                             color=colors.rgb2int(iap.GetColor()),
                                             colors=kcols,
                                             opacity=iap.GetOpacity(),
                                             shader="thick",
-                                            width=iap.GetLineWidth()*sqsize/1000,
-                                            )
+                                            width=iap.GetLineWidth()*sqsize/1000)
 
                     settings.notebook_plotter += kobj
 
@@ -1576,8 +1567,8 @@ class Plotter:
 
                 elif hasattr(ia, 'info') and 'formula' in ia.info.keys():
                     pos = (ia.GetPosition()[0],ia.GetPosition()[1])
-                    kobjt = k3d.text2d(ia.info['formula'], position=pos)
-                    settings.notebook_plotter += kobjt
+                    kobj = k3d.text2d(ia.info['formula'], position=pos)
+                    settings.notebook_plotter += kobj
 
             ###################################
             return settings.notebook_plotter
@@ -1666,7 +1657,7 @@ class Plotter:
         :param float size: size of the square inset.
         :param bool draggable: if True the subrenderer space can be dragged around.
 
-        .. hint:: |inset| |inset.py|_
+        |inset| |inset.py|_
         """
         pos = options.pop("pos", None)
         size = options.pop("size", 0.1)

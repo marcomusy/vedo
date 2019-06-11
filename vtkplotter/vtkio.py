@@ -88,8 +88,21 @@ def load(inputobj, c="gold", alpha=1, threshold=False, spacing=(), unpack=True):
 
     for fod in flist:
         if os.path.isfile(fod): ### it's a file
-            a = _load_file(fod, c, alpha, threshold, spacing, unpack)
-            acts.append(a)
+        
+            if fod.endswith("wrl"):   
+                importer = vtk.vtkVRMLImporter()
+                importer.SetFileName(fod)
+                importer.Read()
+                importer.Update()    
+                actors = importer.GetRenderer().GetActors() #vtkActorCollection
+                actors.InitTraversal() 
+                for i in range(actors.GetNumberOfItems()):
+                    act = actors.GetNextActor()
+                    acts.append(act)
+            else:
+                a = _load_file(fod, c, alpha, threshold, spacing, unpack)
+                acts.append(a)
+                
         elif os.path.isdir(fod):### it's a directory or DICOM
             flist = os.listdir(fod)
             if '.dcm' in flist[0]: ### it's DICOM
@@ -146,7 +159,7 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
         actor = loadOFF(filename)
     elif fl.endswith(".3ds"):  # 3ds format
         actor = load3DS(filename)
-
+        
         ################################################################# volumetric:
     elif fl.endswith(".tif") or fl.endswith(".slc") or fl.endswith(".vti") \
         or fl.endswith(".mhd") or fl.endswith(".nrrd") or fl.endswith(".nii"):
@@ -598,7 +611,6 @@ def write(objct, fileoutput, binary=True):
         w = vtk.vtkXMLImageDataWriter()
     elif ".mhd" in fr:
         w = vtk.vtkMetaImageWriter()
-        binary = None
     elif ".png" in fr:
         w = vtk.vtkPNGWriter()
     elif ".jpg" in fr:
@@ -635,12 +647,11 @@ def write(objct, fileoutput, binary=True):
         return objct
 
     try:
-        if not ".tif" in fr and not ".vti" in fr:
-            if binary is not None:
-                if binary and not ".tif" in fr and not ".vti" in fr:
-                    w.SetFileTypeToBinary()
-                else:
-                    w.SetFileTypeToASCII()
+        if hasattr(w, 'SetFileTypeToBinary'):
+            if binary:
+                w.SetFileTypeToBinary()
+            else:
+                w.SetFileTypeToASCII()
         w.SetInputData(obj)
         w.SetFileName(fileoutput)
         w.Write()
@@ -669,7 +680,7 @@ def exportWindow(fileoutput, binary=False, speed=None, html=True):
     :param float speed: set speed for x3d files.
     :param bool html: generate a test html page for x3d files.
 
-    .. hint:: |export_x3d| |export_x3d.py|_
+    |export_x3d| |export_x3d.py|_
 
         `generated webpage <https://vtkplotter.embl.es/examples/embryo.html>`_
 
@@ -903,7 +914,7 @@ class Video:
     :param float duration: set the total `duration` of the video and recalculates `fps` accordingly.
     :param str ffmpeg: set path to ffmpeg program. Default value considers ffmpeg is in the path.
 
-    .. hint:: |makeVideo| |makeVideo.py|_
+    |makeVideo| |makeVideo.py|_
     """
 
     def __init__(self, name="movie.avi", **kwargs):

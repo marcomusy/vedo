@@ -1,6 +1,5 @@
-"""
-A beam deforming under its own weight.
-"""
+"""A beam deforming under its own weight."""
+
 from dolfin import *
 
 # Scaled variables

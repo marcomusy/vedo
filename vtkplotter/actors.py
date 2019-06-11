@@ -56,7 +56,7 @@ def isolines(actor, n=10, vmin=None, vmax=None):
     :param float vmin: minimum of the range
     :param float vmax: maximum of the range
 
-    .. hint:: |isolines| |isolines.py|_
+    |isolines| |isolines.py|_
     """
     bcf = vtk.vtkBandedPolyDataContourFilter()
     bcf.SetInputData(actor.polydata())
@@ -83,7 +83,7 @@ def isosurface(volume, threshold=True, connectivity=False, smoothing=0):
     :param bool connectivity: if True only keeps the largest portion of the polydata
     :param float smoothing: gaussian filter to smooth vtkImageData, in units of sigmas
 
-    .. hint:: |isosurfaces| |isosurfaces.py|_
+    |isosurfaces| |isosurfaces.py|_
     """
     if not isinstance(volume, vtk.vtkVolume):
         image = volume  # assume is passing a vtkImageData
@@ -103,6 +103,7 @@ def isosurface(volume, threshold=True, connectivity=False, smoothing=0):
     cf.SetInputData(image)
     cf.UseScalarTreeOn()
     cf.ComputeScalarsOn()
+    cf.ComputeNormalsOn()
 
     if utils.isSequence(threshold):
         cf.SetNumberOfContours(len(threshold))
@@ -129,7 +130,7 @@ def isosurface(volume, threshold=True, connectivity=False, smoothing=0):
         conn.Update()
         poly = conn.GetOutput()
 
-    a = Actor(poly, c=None).phong()
+    a = Actor(poly, c=None)
     a.mapper.SetScalarRange(scrange[0], scrange[1])
     return a
 
@@ -144,7 +145,7 @@ def legosurface(image, vmin=None, vmax=None, cmap='afmhot_r'):
     :param float vmax: the upper threshold, voxels above this value are not shown.
     :param str cmap: color mapping of the scalar associated to the voxels.
 
-    .. hint:: |legosurface| |legosurface.py|_
+    |legosurface| |legosurface.py|_
     """
     if isinstance(image, vtk.vtkVolume):
         image = image.GetMapper().GetInput()
@@ -421,7 +422,7 @@ class Prop(object):
         :param rotation: If != 0 rotate actor around newaxis.
         :param rad: set to True if angle is in radians.
 
-        .. hint:: |gyroscope2| |gyroscope2.py|_
+        |gyroscope2| |gyroscope2.py|_
         """
         if rad:
             rotation *= 180.0 / np.pi
@@ -478,7 +479,7 @@ class Prop(object):
             The shadow will lay on the orthogonal plane to the specified axis at the
             specified value of either x, y or z.
 
-        .. hint:: |shadow|  |shadow.py|_
+        |shadow|  |shadow.py|_
 
             |airplanes| |airplanes.py|_
         """
@@ -615,7 +616,7 @@ class Prop(object):
 
         .. image:: https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png
 
-        .. hint:: |specular| |specular.py|_
+        |specular| |specular.py|_
         """
         pr = self.GetProperty()
 
@@ -796,8 +797,15 @@ class Actor(vtk.vtkActor, Prop):
             self.poly = vtk.vtkPolyData()
             self.mapper = vtk.vtkPolyDataMapper()
         elif "Actor" in inputtype:
-            self.mapper = poly.GetMapper()
-            self.poly = self.mapper.GetInput()
+            polyCopy = vtk.vtkPolyData()
+            polyCopy.DeepCopy(poly.GetMapper().GetInput())
+            self.poly = polyCopy
+            self.mapper = vtk.vtkPolyDataMapper()
+            self.mapper.SetInputData(polyCopy)
+            self.mapper.SetScalarVisibility(poly.GetMapper().GetScalarVisibility())
+            pr = vtk.vtkProperty()
+            pr.DeepCopy(poly.GetProperty())
+            self.SetProperty(pr)
         elif "vtkPolyData" in inputtype:
             if poly.GetNumberOfCells() == 0:
                 carr = vtk.vtkCellArray()
@@ -943,7 +951,7 @@ class Actor(vtk.vtkActor, Prop):
         """
         Add a 2D scalar bar to actor.
 
-        .. hint:: |mesh_bands| |mesh_bands.py|_
+        |mesh_bands| |mesh_bands.py|_
         """
         # book it, it will be created by Plotter.show() later
         self.scalarbar = [c, title, horizontal, vmin, vmax]
@@ -964,7 +972,7 @@ class Actor(vtk.vtkActor, Prop):
         """
         Draw a 3D scalar bar to actor.
 
-        .. hint:: |mesh_coloring| |mesh_coloring.py|_
+        |mesh_coloring| |mesh_coloring.py|_
         """
         # book it, it will be created by Plotter.show() later
         self.scalarbar = [pos, normal, sx, sy, nlabels, ncols, cmap, c, alpha]
@@ -1048,7 +1056,7 @@ class Actor(vtk.vtkActor, Prop):
         self.PokeMatrix(vtk.vtkMatrix4x4())
         return self
 
-    def getPoints(self, transformed=True, copy=True):
+    def getPoints(self, transformed=True, copy=False):
         """
         Return the list of vertex coordinates of the input mesh.
         Same as `actor.coordinates()`.
@@ -1281,7 +1289,7 @@ class Actor(vtk.vtkActor, Prop):
         :param tol: defines how far should be the points from each other in terms of fraction
             of the bounding box length.
 
-        .. hint:: |moving_least_squares1D| |moving_least_squares1D.py|_
+        |moving_least_squares1D| |moving_least_squares1D.py|_
 
             |recosurface| |recosurface.py|_
         """
@@ -1357,7 +1365,7 @@ class Actor(vtk.vtkActor, Prop):
     def centerOfMass(self):
         """Get the center of mass of actor.
 
-        .. hint:: |fatlimb| |fatlimb.py|_
+        |fatlimb| |fatlimb.py|_
         """
         cmf = vtk.vtkCenterOfMass()
         cmf.SetInputData(self.polydata(True))
@@ -1463,11 +1471,12 @@ class Actor(vtk.vtkActor, Prop):
         '''
         Computes the (signed) distance from one mesh to another.
 
-        .. hint:: |distance2mesh| |distance2mesh.py|_
+        |distance2mesh| |distance2mesh.py|_
         '''
         poly1 = self.polydata()
         poly2 = actor.polydata()
         df = vtk.vtkDistancePolyDataFilter()
+        df.ComputeSecondDistanceOff()
         df.SetInputData(0, poly1)
         df.SetInputData(1, poly2)
         if signed:
@@ -1493,7 +1502,7 @@ class Actor(vtk.vtkActor, Prop):
 
         :param transformed: if `False` ignore any previous transformation applied to the mesh.
 
-        .. hint:: |carcrash| |carcrash.py|_
+        |carcrash| |carcrash.py|_
         """
         poly = self.polydata(transformed=transformed)
         polyCopy = vtk.vtkPolyData()
@@ -1562,7 +1571,7 @@ class Actor(vtk.vtkActor, Prop):
 
         .. note::  ``axis='n'``, will flip only mesh normals.
 
-        .. hint:: |mirror| |mirror.py|_
+        |mirror| |mirror.py|_
         """
         poly = self.polydata(transformed=True)
         polyCopy = vtk.vtkPolyData()
@@ -1636,7 +1645,7 @@ class Actor(vtk.vtkActor, Prop):
     def stretch(self, q1, q2):
         """Stretch actor between points `q1` and `q2`. Mesh is not affected.
 
-        .. hint:: |aspring| |aspring.py|_
+        |aspring| |aspring.py|_
 
         .. note:: for ``Actors`` like helices, Line, cylinders, cones etc.,
             two attributes ``actor.base``, and ``actor.top`` are already defined.
@@ -1734,7 +1743,7 @@ class Actor(vtk.vtkActor, Prop):
 
             |cutcube|
 
-        .. hint:: |trail| |trail.py|_
+        |trail| |trail.py|_
         """
         if normal is "x":
             normal = (1, 0, 0)
@@ -1823,7 +1832,7 @@ class Actor(vtk.vtkActor, Prop):
         """
         Generate a "cap" on a clipped actor, or caps sharp edges.
 
-        .. hint:: |cutAndCap| |cutAndCap.py|_
+        |cutAndCap| |cutAndCap.py|_
         """
         poly = self.polydata(True)
 
@@ -1866,7 +1875,7 @@ class Actor(vtk.vtkActor, Prop):
         :param float vmax: maximum value of the scalar
         :param bool useCells: if `True`, assume array scalars refers to cells.
 
-        .. hint:: |mesh_threshold| |mesh_threshold.py|_
+        |mesh_threshold| |mesh_threshold.py|_
         """
         if utils.isSequence(scalars):
             self.addPointScalars(scalars, "threshold")
@@ -1927,7 +1936,7 @@ class Actor(vtk.vtkActor, Prop):
         The method of transformation is based on averaging the data values
         of all points defining a particular cell.
 
-        .. hint:: |mesh_map2cell| |mesh_map2cell.py|_
+        |mesh_map2cell| |mesh_map2cell.py|_
 
         """
         p2c = vtk.vtkPointDataToCellData()
@@ -2037,7 +2046,7 @@ class Actor(vtk.vtkActor, Prop):
         :param float vmin: clip scalars to this minimum value
         :param float vmax: clip scalars to this maximum value
 
-        .. hint:: |mesh_coloring| |mesh_coloring.py|_
+        |mesh_coloring| |mesh_coloring.py|_
         """
         poly = self.polydata(False)
 
@@ -2112,7 +2121,7 @@ class Actor(vtk.vtkActor, Prop):
         """
         Add point scalars to the actor's polydata assigning it a name.
 
-        .. hint:: |mesh_coloring| |mesh_coloring.py|_
+        |mesh_coloring| |mesh_coloring.py|_
         """
         #print('addPointScalars is DEPRECATED')
         poly = self.polydata(False)
@@ -2318,7 +2327,7 @@ class Actor(vtk.vtkActor, Prop):
 
         .. note:: Setting ``fraction=0.1`` leaves 10% of the original nr of vertices.
 
-        .. hint:: |skeletonize| |skeletonize.py|_
+        |skeletonize| |skeletonize.py|_
         """
         poly = self.polydata(True)
         if N:  # N = desired number of points
@@ -2402,7 +2411,7 @@ class Actor(vtk.vtkActor, Prop):
         :param float edgeAngle: edge angle to control smoothing along edges (either interior or boundary).
         :param float featureAngle: specifies the feature angle for sharp edge identification.
 
-        .. hint:: |mesh_smoothers| |mesh_smoothers.py|_
+        |mesh_smoothers| |mesh_smoothers.py|_
         """
         poly = self.poly
         cl = vtk.vtkCleanPolyData()
@@ -2475,7 +2484,7 @@ class Actor(vtk.vtkActor, Prop):
         .. note:: If ``transformed=True`` returns a copy of polydata that corresponds
             to the current actor's position in space.
 
-        .. hint:: |quadratic_morphing| |quadratic_morphing.py|_
+        |quadratic_morphing| |quadratic_morphing.py|_
         """
         if not transformed:
             if not self.poly:
@@ -2592,7 +2601,7 @@ class Actor(vtk.vtkActor, Prop):
         """
         Return the sublist of points that are inside a polydata closed surface.
 
-        .. hint:: |pca| |pca.py|_
+        |pca| |pca.py|_
         """
         poly = self.polydata(True)
         # check if the stl file is closed
@@ -2631,7 +2640,7 @@ class Actor(vtk.vtkActor, Prop):
     def cellCenters(self):
         """Get the list of cell centers of the mesh surface.
 
-        .. hint:: |delaunay2d| |delaunay2d.py|_
+        |delaunay2d| |delaunay2d.py|_
         """
         vcen = vtk.vtkCellCenters()
         vcen.SetInputData(self.polydata(True))
@@ -2666,7 +2675,7 @@ class Actor(vtk.vtkActor, Prop):
 
         :param bool returnIds: return vertex IDs instead of vertex coordinates.
 
-        .. hint:: |connVtx| |connVtx.py|_
+        |connVtx| |connVtx.py|_
         """
         mesh = self.polydata()
 
@@ -2792,7 +2801,7 @@ class Actor(vtk.vtkActor, Prop):
         :param float borderEdges: minimal angle for sharp edges detection.
             If set to `False` the functionality is disabled.
 
-        .. hint:: |silhouette| |silhouette.py|_
+        |silhouette| |silhouette.py|_
         """
         sil = vtk.vtkPolyDataSilhouette()
         sil.SetInputData(self.polydata())
@@ -2822,7 +2831,7 @@ class Actor(vtk.vtkActor, Prop):
 class Assembly(vtk.vtkAssembly, Prop):
     """Group many actors as a single new actor as a ``vtkAssembly``.
 
-    .. hint:: |gyroscope1| |gyroscope1.py|_
+    |gyroscope1| |gyroscope1.py|_
     """
 
     def __init__(self, actors):
@@ -2880,7 +2889,7 @@ class Image(vtk.vtkImageActor, Prop):
     """
     Derived class of ``vtkImageActor``. Used to represent 2D pictures.
 
-    .. hint:: |rotateImage| |rotateImage.py|_
+    |rotateImage| |rotateImage.py|_
     """
 
     def __init__(self):
@@ -2903,7 +2912,7 @@ class Image(vtk.vtkImageActor, Prop):
         :param float left: fraction to crop from the left margin
         :param float right: fraction to crop from the right margin
 
-        .. hint:: |legosurface| |legosurface.py|_
+        |legosurface| |legosurface.py|_
         """
         extractVOI = vtk.vtkExtractVOI()
         extractVOI.SetInputData(self.GetInput())
@@ -3165,7 +3174,7 @@ class Volume(vtk.vtkVolume, Prop):
 
         .. note::  ``axis='n'``, will flip only mesh normals.
 
-        .. hint:: |mirror| |mirror.py|_
+        |mirror| |mirror.py|_
         """
         img = self.imagedata()
 

@@ -245,7 +245,7 @@ def mag2(z):
     return np.dot(z, z)
 
 
-def precision(x, p):
+def precision(x, p, vrange=None):
     """
     Returns a string representation of `x` formatted with precision `p`.
 
@@ -426,6 +426,7 @@ def printInfo(obj):
         alpha = pro.GetOpacity()
         npt = poly.GetNumberOfPoints()
         ncl = poly.GetNumberOfCells()
+        npl = poly.GetNumberOfPolys()
 
         print(tab, end="")
         colors.printc("vtkActor", c="g", bold=1, invert=1, dim=1, end=" ")
@@ -461,6 +462,9 @@ def printInfo(obj):
 
         colors.printc(tab + "          cells: ", c="g", bold=1, end="")
         colors.printc(ncl, c="g", bold=0)
+
+        colors.printc(tab + "       polygons: ", c="g", bold=1, end="")
+        colors.printc(npl, c="g", bold=0)
 
         colors.printc(tab + "       position: ", c="g", bold=1, end="")
         colors.printc(pos, c="g", bold=0)
@@ -533,11 +537,11 @@ def printInfo(obj):
         return
 
     elif isinstance(obj, vtk.vtkActor):
-        colors.printc("_" * 60, c="g", bold=0)
+        colors.printc("_" * 65, c="g", bold=0)
         printvtkactor(obj)
 
     elif isinstance(obj, vtk.vtkAssembly):
-        colors.printc("_" * 60, c="g", bold=0)
+        colors.printc("_" * 65, c="g", bold=0)
         colors.printc("vtkAssembly", c="g", bold=1, invert=1, end=" ")
         if hasattr(obj, "_legend"):
             colors.printc("legend: ", c="g", bold=1, end="")
@@ -567,7 +571,7 @@ def printInfo(obj):
                 printvtkactor(act, tab="     ")
 
     elif isinstance(obj, vtk.vtkVolume):
-        colors.printc("_" * 60, c="b", bold=0)
+        colors.printc("_" * 65, c="b", bold=0)
         colors.printc("vtkVolume", c="b", bold=1, invert=1, end=" ")
         if hasattr(obj, "_legend") and obj._legend:
             colors.printc("legend: ", c="b", bold=1, end="")
@@ -632,7 +636,7 @@ def printInfo(obj):
         if len(bns) == 0:
             return
         acts = obj.getActors()
-        colors.printc("_" * 60, c="c", bold=0)
+        colors.printc("_" * 65, c="c", bold=0)
         colors.printc("Plotter", invert=1, dim=1, c="c", end=" ")
         otit = obj.title
         if not otit:
@@ -657,7 +661,7 @@ def printInfo(obj):
             if a.GetBounds() is not None:
                 if isinstance(a, vtk.vtkVolume):  # dumps Volume info
                     img = a.GetMapper().GetDataSetInput()
-                    colors.printc('_'*60, c='b', bold=0)
+                    colors.printc('_'*65, c='b', bold=0)
                     colors.printc('Volume', invert=1, dim=1, c='b')
                     colors.printc('      scalar range:',
                                   np.round(img.GetScalarRange(), 4), c='b', bold=0)
@@ -673,7 +677,7 @@ def printInfo(obj):
         colors.printc(" Click actor and press i for Actor info.", c="c")
 
     else:
-        colors.printc("_" * 60, c="g", bold=0)
+        colors.printc("_" * 65, c="g", bold=0)
         colors.printc(type(obj), c="g", invert=1)
 
 

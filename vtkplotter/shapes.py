@@ -67,7 +67,7 @@ def Points(plist, r=5, c="gray", alpha=1):
     :type c: int, str, list
     :param float alpha: transparency in range [0,1].
 
-    .. hint:: |lorenz| |lorenz.py|_
+    |lorenz| |lorenz.py|_
     """
 
     def _colorPoints(plist, cols, r, alpha):
@@ -133,6 +133,7 @@ def Points(plist, r=5, c="gray", alpha=1):
     pd = vtk.vtkPolyData()
     pd.SetPoints(sourcePoints)
     pd.SetVerts(sourceVertices)
+    
     if n == 1:  # passing just one point
         pd.GetPoints().SetPoint(0, [0, 0, 0])
     else:
@@ -161,9 +162,9 @@ def Glyph(actor, glyphObj, orientationArray=None,
     :param bool scaleByVectorSize: glyph mesh is scaled by the size of
         the vectors.
 
-    .. hint:: |glyphs.py|_ |glyphs_arrows.py|_
+    |glyphs.py|_ |glyphs_arrows.py|_
 
-        |glyphs| |glyphs_arrows|
+    |glyphs| |glyphs_arrows|
     """
     cmap = None
     # user passing a color map to map orientationArray sizes
@@ -346,7 +347,7 @@ def Tube(points, r=1, c="r", alpha=1, res=12):
     :param c: constant color or list of colors for each point.
     :type c: float, list
 
-    .. hint:: |ribbon.py|_ |tube.py|_
+    |ribbon.py|_ |tube.py|_
 
         |ribbon| |tube|
     """
@@ -406,7 +407,7 @@ def Tube(points, r=1, c="r", alpha=1, res=12):
 def Ribbon(line1, line2, c="m", alpha=1, res=(200, 5)):
     """Connect two lines to generate the surface inbetween.
 
-    .. hint:: |ribbon| |ribbon.py|_
+    |ribbon| |ribbon.py|_
     """
     if isinstance(line1, Actor):
         line1 = line1.coordinates()
@@ -471,7 +472,7 @@ def Ribbon(line1, line2, c="m", alpha=1, res=(200, 5)):
 def FlatArrow(line1, line2, c="m", alpha=1, tipSize=1, tipWidth=1):
     """Build a 2D arrow in 3D space by joining two close lines.
 
-    .. hint:: |flatarrow| |flatarrow.py|_
+    |flatarrow| |flatarrow.py|_
     """
     if isinstance(line1, Actor):
         line1 = line1.coordinates()
@@ -563,7 +564,7 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12)
     :param float alpha: set transparency
     :param int res: set arrow resolution
 
-    .. hint:: |glyphs_arrows| |glyphs_arrows.py|_
+    |glyphs_arrows| |glyphs_arrows.py|_
     """
     startPoints = np.array(startPoints)
     if endPoints is None:
@@ -668,7 +669,7 @@ def Spheres(centers, r=1, c="r", alpha=1, res=8):
 
     Either `c` or `r` can be a list of RGB colors or radii.
 
-    .. hint:: |manyspheres| |manyspheres.py|_
+    |manyspheres| |manyspheres.py|_
     """
 
     cisseq = False
@@ -757,7 +758,7 @@ def Spheres(centers, r=1, c="r", alpha=1, res=8):
 def Earth(pos=(0, 0, 0), r=1, lw=1):
     """Build a textured actor representing the Earth.
 
-    .. hint:: |geodesic| |geodesic.py|_
+    |geodesic| |geodesic.py|_
     """
     import os
 
@@ -854,7 +855,7 @@ def Grid(
 ):
     """Return a grid plane.
 
-    .. hint:: |brownian2D| |brownian2D.py|_
+    |brownian2D| |brownian2D.py|_
     """
     ps = vtk.vtkPlaneSource()
     ps.SetResolution(resx, resy)
@@ -926,7 +927,7 @@ def Box(pos=(0, 0, 0), length=1, width=2, height=3, c="g", alpha=1):
     """
     Build a box of dimensions `x=length, y=width and z=height` oriented along vector `normal`.
 
-    .. hint:: |aspring| |aspring.py|_
+    |aspring| |aspring.py|_
     """
     src = vtk.vtkCubeSource()
     src.SetXLength(length)
@@ -943,7 +944,7 @@ def Box(pos=(0, 0, 0), length=1, width=2, height=3, c="g", alpha=1):
 def Cube(pos=(0, 0, 0), side=1, c="g", alpha=1):
     """Build a cube of size `side` oriented along vector `normal`.
 
-    .. hint:: |colorcubes| |colorcubes.py|_
+    |colorcubes| |colorcubes.py|_
     """
     return Box(pos, side, side, side, c, alpha)
 
@@ -966,7 +967,7 @@ def Spring(
     :param float r2: radius at end point
     :param float thickness: thickness of the coil section
 
-    .. hint:: |aspring| |aspring.py|_
+    |aspring| |aspring.py|_
     """
     diff = endPoint - np.array(startPoint)
     length = np.linalg.norm(diff)
@@ -1097,7 +1098,7 @@ def Torus(pos=(0, 0, 0), r=1, thickness=0.1, axis=(0, 0, 1), c="khaki", alpha=1,
     """
     Build a torus of specified outer radius `r` internal radius `thickness`, centered at `pos`.
 
-    .. hint:: |gas| |gas.py|_
+    |gas| |gas.py|_
     """
     rs = vtk.vtkParametricTorus()
     rs.SetRingRadius(r)
@@ -1184,7 +1185,7 @@ def Hyperboloid(pos=(0, 0, 0), a2=1, value=0.5, height=1, axis=(0, 0, 1),
     Full volumetric expression is:
         :math:`F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
 
-    .. hint:: |mesh_bands| |mesh_bands.py|_
+    |mesh_bands| |mesh_bands.py|_
     """
     q = vtk.vtkQuadric()
     q.SetCoefficients(2, 2, -1 / a2, 0, 0, 0, 0, 0, 0, 0)
@@ -1444,7 +1445,7 @@ def Latex(
 
     You can access the latex formula from the `Actor` object with `actor.info['formula']`.
 
-    .. hint:: |latex| |latex.py|_
+    |latex| |latex.py|_
     """
     vactor = None
     try:

@@ -39,7 +39,7 @@ def addScalarBar(actor=None, c=None, title="",
 
     If `actor` is ``None`` will add it to the last actor in ``self.actors``.
 
-    .. hint:: |mesh_bands| |mesh_bands.py|_
+    |mesh_bands| |mesh_bands.py|_
     """
     vp = settings.plotter_instance
 
@@ -258,7 +258,7 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     :param str title: title text
     :param bool showValue:  if true current value is shown
 
-    .. hint:: |sliders| |sliders.py|_
+    |sliders| |sliders.py|_
     """
     vp = settings.plotter_instance
     if c is None:  # automatic black or white
@@ -386,7 +386,7 @@ def addSlider3D(
     :param float rotation: title rotation around slider axis
     :param bool showValue: if True current value is shown
 
-    .. hint:: |sliders3d| |sliders3d.py|_
+    |sliders3d| |sliders3d.py|_
     """
     vp = settings.plotter_instance
     if c is None:  # automatic black or white
@@ -467,7 +467,7 @@ def addButton(
     :param float alpha:  opacity level
     :param float angle:  anticlockwise rotation in degrees
 
-    .. hint:: |buttons| |buttons.py|_
+    |buttons| |buttons.py|_
     """
     vp = settings.plotter_instance
     if not vp.renderer:
@@ -483,7 +483,7 @@ def addButton(
 def addCutterTool(actor):
     """Create handles to cut away parts of a mesh.
 
-    .. hint:: |cutter| |cutter.py|_
+    |cutter| |cutter.py|_
     """
     if isinstance(actor, vtk.vtkVolume):
         return _addVolumeCutterTool(actor)
@@ -612,7 +612,7 @@ def addIcon(iconActor, pos=3, size=0.08):
                 or it can be a tuple (x,y) as a fraction of the renderer size.
     :param float size: size of the icon space.
 
-    .. hint:: |icon| |icon.py|_
+    |icon| |icon.py|_
     """
     vp = settings.plotter_instance
     if not vp.renderer:
@@ -715,7 +715,7 @@ def addAxes(axtype=None, c=None):
         - `xTickColor`,  [automatic], color of major ticks
         - `xMinorTicks`,         [1], number of minor ticks between two major ticks
         - `tipSize`,          [0.01], size of the arrow tip
-        - `xTicksPrecision`,     [2], nr. of significative digits to be shown
+        - `xLabelPrecision`,     [2], nr. of significative digits to be shown
         - `xLabelSize`,      [0.015], size of the numeric labels along axis
         - `xLabelOffset`,    [0.025], offset of numeric labels
 
@@ -732,7 +732,7 @@ def addAxes(axtype=None, c=None):
                              }
                 )
 
-    .. hint:: |customAxes| |customAxes.py|_
+    |customAxes| |customAxes.py|_
     """
     vp = settings.plotter_instance
     if axtype is not None:
@@ -838,7 +838,7 @@ def addAxes(axtype=None, c=None):
 
         xyGrid = axes.pop('xyGrid', True)
         yzGrid = axes.pop('yzGrid', True)
-        zxGrid = axes.pop('zxGrid', True)
+        zxGrid = axes.pop('zxGrid', False)
         xyGrid2 = axes.pop('xyGrid2', False) # opposite side grid
         yzGrid2 = axes.pop('yzGrid2', False)
         zxGrid2 = axes.pop('zxGrid2', False)
@@ -897,9 +897,9 @@ def addAxes(axtype=None, c=None):
 
         tipSize = axes.pop('tipSize', 0.01)
 
-        xTicksPrecision = axes.pop('xTicksPrecision', 2) # nr. of significative digits
-        yTicksPrecision = axes.pop('yTicksPrecision', 2)
-        zTicksPrecision = axes.pop('zTicksPrecision', 2)
+        xLabelPrecision = axes.pop('xLabelPrecision', 1) # nr. of significant digits
+        yLabelPrecision = axes.pop('yLabelPrecision', 1)
+        zLabelPrecision = axes.pop('zLabelPrecision', 1)
 
         xLabelSize = axes.pop('xLabelSize', 0.0175)
         yLabelSize = axes.pop('yLabelSize', 0.0175)
@@ -1141,8 +1141,8 @@ def addAxes(axtype=None, c=None):
                 for ic in range(1, rx+enableLastLabel):
                     v = (ic/rx, -xLabelOffset, 0)
                     val = v[0]*sizes[0]+min_bns[0]
-                    if abs(val)>1 and sizes[0]<1: xTicksPrecision = int(xTicksPrecision-numpy.log10(sizes[0]))
-                    tval = utils.precision(val, xTicksPrecision)
+                    if abs(val)>1 and sizes[0]<1: xLabelPrecision = int(xLabelPrecision-numpy.log10(sizes[0]))
+                    tval = utils.precision(val, xLabelPrecision)
                     xlab = shapes.Text(tval, pos=v, s=xLabelSize, justify="center-top", depth=0)
                     if xKeepAspectRatio: xlab.SetScale(x_aspect_ratio_scale)
                     labels.append(xlab.c(xTickColor).lighting(specular=0, ambient=1))
@@ -1152,8 +1152,8 @@ def addAxes(axtype=None, c=None):
                 for ic in range(1, ry+enableLastLabel):
                     v = (-yLabelOffset, ic/ry, 0)
                     val = v[1]*sizes[1]+min_bns[2]
-                    if abs(val)>1 and sizes[1]<1: yTicksPrecision = int(yTicksPrecision-numpy.log10(sizes[1]))
-                    tval = utils.precision(val, yTicksPrecision)
+                    if abs(val)>1 and sizes[1]<1: yLabelPrecision = int(yLabelPrecision-numpy.log10(sizes[1]))
+                    tval = utils.precision(val, yLabelPrecision)
                     ylab = shapes.Text(tval, pos=(0,0,0), s=yLabelSize, justify="center-bottom", depth=0)
                     if yKeepAspectRatio: ylab.SetScale(y_aspect_ratio_scale)
                     ylab.rotateZ(yTitleRotation).pos(v)
@@ -1164,8 +1164,8 @@ def addAxes(axtype=None, c=None):
                 for ic in range(1, rz+enableLastLabel):
                     v = (-zLabelOffset, -zLabelOffset, ic/rz)
                     val = v[2]*sizes[2]+min_bns[4]
-                    tval = utils.precision(val, zTicksPrecision)
-                    if abs(val)>1 and sizes[2]<1: zTicksPrecision = int(zTicksPrecision-numpy.log10(sizes[2]))
+                    tval = utils.precision(val, zLabelPrecision)
+                    if abs(val)>1 and sizes[2]<1: zLabelPrecision = int(zLabelPrecision-numpy.log10(sizes[2]))
                     zlab = shapes.Text(tval, pos=(0,0,0), s=zLabelSize, justify="center-bottom", depth=0)
                     if zKeepAspectRatio: zlab.SetScale(z_aspect_ratio_scale)
                     zlab.rotateY(-90).rotateX(zTitleRotation).pos(v)
@@ -1540,7 +1540,7 @@ class Button:
     """
     Build a Button object to be shown in the rendering window.
 
-    .. hint:: |buttons| |buttons.py|_
+    |buttons| |buttons.py|_
     """
 
     def __init__(self, fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle):

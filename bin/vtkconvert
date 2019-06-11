@@ -6,10 +6,15 @@ from vtkplotter.utils import humansort
 from vtkplotter import printc
 import sys, argparse
 
-allowedexts = ['vtk', 'vtp', 'vtu', 'vts', 'ply', 'stl', 'byu', 'xml']
+allowedexts = ['vtk', 'vtp', 'vtu', 'vts', 'ply', 'stl', 'byu', 'xml', 'vti','tif','mhd','xml']
 
 pr = argparse.ArgumentParser(description="Allowed targets: "+str(allowedexts))
 pr.add_argument('files', nargs='*', help="Input filename(s)")
+pr.add_argument("-n", "--normalize", help="normalize target size", action="store_true") 
+pr.add_argument("-c", "--clean", help="remove coincident points", action="store_true") 
+pr.add_argument("-m", "--mirror", help="mirror along the x-axis", action="store_true") 
+pr.add_argument("-b", "--binary", help="whether output is binary or not", action="store_true") 
+pr.add_argument("-t", "--triangle", help="Convert polygons to triangles", action="store_true") 
 pr.add_argument("-to", type=str, help="target format [vtk]", default='vtk', metavar='')
 args = pr.parse_args()
 
@@ -30,30 +35,16 @@ for f in args.files:
     if target_ext == source_ext:
         continue
 
-    if source_ext=='wrl':
-        import vtk
-        
-        importer = vtk.vtkVRMLImporter()
-        importer.SetFileName(f)
-        importer.Read()
-        importer.Update()
-        
-        actors = importer.GetRenderer().GetActors() #vtkActorCollection
-        actors.InitTraversal()
-        
-        polyapp = vtk.vtkAppendPolyData()
-        for i in range(actors.GetNumberOfItems()):
-        	act = actors.GetNextActor()
-        	poly = act.clean().computeNormals().polydata(False) 
-        	polyapp.AddInputData(poly)
-        	print('merging polydata',i ,'with', poly.GetNumberOfPoints(),'points')
-        polyapp.Update()
-        poly = polyapp.GetOutput()
-    else:
-        a = load(f)
-        poly = a.polydata(False)
+    a = load(f)
+    if args.normalize:
+        a.normalize()
+    if args.triangle:
+        a.triangle()
+    if args.clean:
+        a.clean()
+    if args.mirror:
+        a.mirror()
             
     newf = f.replace("."+source_ext,"")+"."+target_ext
-    printc('converting',f, '->', newf, c='g')
-    write(poly, newf)
+    write(a, newf, binary=args.binary)
  

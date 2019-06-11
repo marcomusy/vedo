@@ -242,6 +242,9 @@ python advanced/thinplate_grid.py
 echo Running advanced/thinplate_morphing.py
 python advanced/thinplate_morphing.py
 
+echo Running advanced/thinplate_morphing_2d.py
+python advanced/thinplate_morphing_2d.py
+
 echo Running advanced/meshquality.py
 python advanced/meshquality.py
 
@@ -317,6 +320,9 @@ python volumetric/streamribbons.py
 
 echo Running volumetric/lowpassfilter.py
 python volumetric/lowpassfilter.py
+
+echo Running volumetric/numpy2volume.py
+python volumetric/numpy2volume.py
 
 cd volumetric
 echo Running office.py

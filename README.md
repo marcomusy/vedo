@@ -120,6 +120,15 @@ python tutorial.py
 
 
 ## References
+
+- M. Musy, G. Dalmasso, J. Sharpe and N. Sime, "`vtkplotter`*: plotting in FEniCS with python*", ([link](https://github.com/marcomusy/vtkplotter/blob/master/docs/fenics_poster.pdf)).
+Poster at the [FEniCS'2019](https://fenicsproject.org/fenics19/) Conference,
+Carnegie Institution for Science Department of Terrestrial Magnetism, Washington DC, June 2019.
+
+- G. Dalmasso, *"Evolution in space and time of 3D volumetric images"*. Talk at the Conference for [Image-based Modeling and Simulation of Morphogenesis](https://www.pks.mpg.de/imsm19/). 
+Max Planck Institute for the Physics of Complex Systems, Dresden, Germany, March 2019.
+
+
 Scientific publications using `vtkplotter` so far:
 
 1. X. Diego _et al._: 
