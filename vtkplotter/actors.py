@@ -721,7 +721,7 @@ class Prop(object):
         from vtk.numpy_interface import dataset_adapter
         wrapped = dataset_adapter.WrapDataObject(self.GetMapper().GetInput())
         return {"PointData":wrapped.PointData.keys(), "CellData":wrapped.CellData.keys()}
-        
+
     def getPointArray(self, name=0):
         """Return point array content as a ``numpy.array``.
         This can be identified either as a string or by an integer number."""
@@ -843,7 +843,7 @@ class Actor(vtk.vtkActor, Prop):
         else:
             colors.printc("Error: cannot build Actor from type:\n", inputtype, c=1)
             raise RuntimeError()
-            
+
 
         if self.mapper:
             self.mapper.InterpolateScalarsBeforeMappingOn()
@@ -1128,6 +1128,29 @@ class Actor(vtk.vtkActor, Prop):
         pdnorm.ConsistencyOn()
         pdnorm.Update()
         return self.updateMesh(pdnorm.GetOutput())
+
+    def reverse(self, cells=True, normals=False):
+        """
+        Reverse the order of polygonal cells
+        and/or reverse the direction of point and cell normals.
+        Two flags are used to control these operations.
+        Cell reversal means reversing the order of indices in the cell connectivity list.
+        Normal reversal means multiplying the normal vector by -1
+        (both point and cell normals, if present).
+        """
+        poly = self.polydata(False)
+        rev = vtk.vtkReverseSense()
+        if cells:
+            rev.ReverseCellsOn()
+        else:
+            rev.ReverseCellsOff()
+        if normals:
+            rev.ReverseNormalsOn()
+        else:
+            rev.ReverseNormalsOff()
+        rev.SetInputData(poly)
+        rev.Update()
+        return self.updateMesh(rev.GetOutput())
 
     def alpha(self, opacity=None):
         """Set/get actor's transparency. Same as `actor.opacity()`."""
@@ -2533,23 +2556,6 @@ class Actor(vtk.vtkActor, Prop):
     def NCells(self):
         """Retrieve number of mesh cells."""
         return self.polydata(False).GetNumberOfCells()
-
-    def move(self, u_function):
-        """
-        Move a mesh by using an external function which prescribes the displacement
-        at any point in space.
-        Useful for manipulating ``dolfin`` meshes.
-        """
-        if self.mesh:
-            self.u = u_function
-            delta = [u_function(p) for p in self.mesh.coordinates()]
-            movedpts = self.mesh.coordinates() + delta
-            self.polydata(False).GetPoints().SetData(numpy_to_vtk(movedpts))
-            self.poly.GetPoints().Modified()
-            self.u_values = delta
-        else:
-            colors.printc("Warning: calling move() but actor.mesh is", self.mesh, c=3)
-        return self
 
     def getTransform(self):
         """

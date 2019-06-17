@@ -771,7 +771,7 @@ def addAxes(axtype=None, c=None):
         ztitle = axes.pop('ztitle', vp.ztitle)
 
         limitRatio = axes.pop('limitRatio', 20)
-        
+
         vbb, sizes, min_bns, max_bns = computeVisibleBounds()
 
         if sizes[0] and (sizes[1]/sizes[0] > limitRatio or sizes[2]/sizes[0] > limitRatio):

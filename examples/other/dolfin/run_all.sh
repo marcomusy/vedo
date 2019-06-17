@@ -84,6 +84,9 @@ python ft09_reaction_system.py
 echo Running stokes.py
 python stokes.py
 
+echo Running stokes2.py
+python stokes2.py
+
 echo Running demo_cahn-hilliard.py
 python demo_cahn-hilliard.py
 

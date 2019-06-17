@@ -6,14 +6,13 @@ from vtkplotter import vtkio
 import vtk
 import sys, argparse, os
 
-pr = argparse.ArgumentParser(description="version "+str(__version__)+""" -                              
+pr = argparse.ArgumentParser(description="version "+str(__version__)+""" -
                              check out home page https://github.com/marcomusy/vtkplotter""")
 pr.add_argument('files', nargs='*',             help="Input filename(s)")
 pr.add_argument("-c", "--color", type=str,      help="mesh color [integer or color name]", default=None, metavar='')
 pr.add_argument("-a", "--alpha",    type=float, help="alpha value [0-1]", default=-1, metavar='')
 pr.add_argument("-w", "--wireframe",            help="use wireframe representation", action="store_true")
-pr.add_argument("-p", "--point-size", type=float, help="specify point size", default=-1, metavar='') 
-pr.add_argument("-k", "--show-scalars",         help="use scalars as colors", action="store_true") 
+pr.add_argument("-p", "--point-size", type=float, help="specify point size", default=-1, metavar='')
 pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-5]", default=4, metavar='')
 pr.add_argument("-i", "--no-camera-share",      help="do not share camera in renderers", action="store_true")
 pr.add_argument("-l", "--legend-off",           help="do not show legends", action="store_true")
@@ -22,10 +21,10 @@ pr.add_argument("-bg","--background", type=str, help="background color [integer 
 pr.add_argument("-z", "--zoom", type=float,     help="zooming factor", default=1, metavar='')
 pr.add_argument("-q", "--quiet",                help="quiet mode, less verbose", default=False, action="store_false")
 pr.add_argument("-n", "--multirenderer-mode",   help="Multi renderer Mode: files go to separate renderers", action="store_true")
-pr.add_argument("-s", "--scrolling-mode",       help="Scrolling Mode: use arrows to scroll files", action="store_true") 
-pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode for 3D image files", action="store_true") 
-pr.add_argument("-gz", "--z-spacing", type=float, help="Volume z-spacing factor [1]", default=None, metavar='') 
-pr.add_argument("-gy", "--y-spacing", type=float, help="Volume y-spacing factor [1]", default=None, metavar='') 
+pr.add_argument("-s", "--scrolling-mode",       help="Scrolling Mode: use arrows to scroll files", action="store_true")
+pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode for 3D image files", action="store_true")
+pr.add_argument("-gz", "--z-spacing", type=float, help="Volume z-spacing factor [1]", default=None, metavar='')
+pr.add_argument("-gy", "--y-spacing", type=float, help="Volume y-spacing factor [1]", default=None, metavar='')
 pr.add_argument("--slicer",                     help="Slicer Mode for 3D image files", action="store_true")
 pr.add_argument("--lego",                       help="Voxel rendering for 3D image files", action="store_true")
 pr.add_argument("--cmap",                       help="Voxel rendering color map name", default='jet', metavar='')
@@ -98,7 +97,7 @@ def _showVoxelImage():
     vp.show(interactive=0)
 
     filename = args.files[0]
-    
+
     img = vtkio.load(filename).imagedata()
     if args.z_spacing:
         ispa = img.GetSpacing()
@@ -133,7 +132,7 @@ def _showVoxelImage():
     csl = (0.9, 0.9, 0.9)
     if sum(vc.getColor(args.background)) > 1.5:
         csl = (0.1, 0.1, 0.1)
-    
+
     def setCMAP(k):
         cols = cols_cmaps[k]
         colorTransferFunction.RemoveAllPoints()
@@ -141,10 +140,10 @@ def _showVoxelImage():
             r, g, b = cols[i]
             colorTransferFunction.AddRGBPoint(s,  r, g, b)
     setCMAP(0)
-    
+
     def sliderColorMap(widget, event):
         sliderRep = widget.GetRepresentation()
-        k = int(sliderRep.GetValue())        
+        k = int(sliderRep.GetValue())
         sliderRep.SetTitleText(cmaps[k])
         setCMAP(k)
 
@@ -196,14 +195,14 @@ def _showVoxelImage():
         title="Opacity levels",
     )
     w2.GetRepresentation().SetTitleHeight(0.016)
-    
+
     # add a button
     def buttonfuncMode():
         s = volume.mode()
         snew = (s+1)%2
         volume.mode(snew)
         bum.switch()
-    
+
     bum = vp.addButton(
         buttonfuncMode,
         pos=(.7, .035),
@@ -221,7 +220,7 @@ def _showVoxelImage():
         s = volume.jittering()
         snew = (s+1)%2
         volume.jittering(snew)
-        vp.interactor.Render()  
+        vp.interactor.Render()
     volume.jittering(True)
     vp.keyPressFunction = keyfuncJitter  # make it known to Plotter class
 
@@ -240,16 +239,16 @@ def _showVoxelImage():
     for ix, iy, iz in idxs:
         d = img.GetScalarComponentAsFloat(ix, iy, iz, 0)
         data.append(d)
-    
+
     plot = histogram(data, bins=40, logscale=1, c="gray", bg='gray', pos=(0.78, 0.065))
     plot.GetPosition2Coordinate().SetValue(0.197, 0.20, 0)
     plot.SetNumberOfXLabels(2)
-    plot.GetXAxisActor2D().SetFontFactor(0.8)    
+    plot.GetXAxisActor2D().SetFontFactor(0.8)
     plot.GetProperty().SetOpacity(0.5)
 
     vp.add(plot)
     vp.add(volume)
-    
+
     vp.show(viewup='z', zoom=1.2, interactive=1)
     w0.SetEnabled(0)
     w1.SetEnabled(0)
@@ -366,12 +365,10 @@ elif nfiles == 1 and (
                 ic = int(args.color)
             else:
                 ic = args.color
-        if args.show_scalars:
-            ic = None
 
         cf.SetValue(0, threshold)
         cf.Update()
-        act = Actor(cf.GetOutput(), ic, alpha=abs(args.alpha)).wire(args.wireframe)
+        act = Actor(cf.GetOutput(), c=ic, alpha=abs(args.alpha)).wire(args.wireframe)
         act.phong()
 
     ############################## threshold slider
@@ -437,10 +434,16 @@ elif (not args.scrolling_mode) or nfiles == 1:
             else:
                 ic = args.color
 
-        if args.show_scalars:
-            ic = None
-
         actor = vp.load(f, c=ic, alpha=alpha)
+        poly = actor.polydata(False)
+        ptdata = poly.GetPointData()
+
+        if args.color is None and ptdata.GetNumberOfArrays() > 0:
+            arrname = ptdata.GetArrayName(0)
+            if "Normals" not in arrname:
+                ptdata.SetActiveScalars(arrname)
+                actor.GetMapper().ScalarVisibilityOn()
+
         if hasattr(actor, "wire"):
             actor.wire(wire)
 
@@ -487,8 +490,6 @@ else:
                 ic = int(args.color)
             else:
                 ic = args.color
-        if args.show_scalars:
-            ic = None
 
         actor = vp.load(f, c=ic, alpha=alpha)
         if hasattr(actor, "wire"):

@@ -20,6 +20,8 @@ Submodule to load meshes of different formats, and other I/O functionalities.
 
 __all__ = [
     "load",
+    "download",
+    "gunzip",
     "loadStructuredPoints",
     "loadStructuredGrid",
     "loadUnStructuredGrid",
@@ -87,22 +89,23 @@ def load(inputobj, c="gold", alpha=1, threshold=False, spacing=(), unpack=True):
         flist = sorted(glob.glob(inputobj))
 
     for fod in flist:
+
         if os.path.isfile(fod): ### it's a file
-        
-            if fod.endswith("wrl"):   
+
+            if fod.endswith("wrl"):
                 importer = vtk.vtkVRMLImporter()
                 importer.SetFileName(fod)
                 importer.Read()
-                importer.Update()    
+                importer.Update()
                 actors = importer.GetRenderer().GetActors() #vtkActorCollection
-                actors.InitTraversal() 
+                actors.InitTraversal()
                 for i in range(actors.GetNumberOfItems()):
                     act = actors.GetNextActor()
                     acts.append(act)
             else:
                 a = _load_file(fod, c, alpha, threshold, spacing, unpack)
                 acts.append(a)
-                
+
         elif os.path.isdir(fod):### it's a directory or DICOM
             flist = os.listdir(fod)
             if '.dcm' in flist[0]: ### it's DICOM
@@ -159,7 +162,7 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
         actor = loadOFF(filename)
     elif fl.endswith(".3ds"):  # 3ds format
         actor = load3DS(filename)
-        
+
         ################################################################# volumetric:
     elif fl.endswith(".tif") or fl.endswith(".slc") or fl.endswith(".vti") \
         or fl.endswith(".mhd") or fl.endswith(".nrrd") or fl.endswith(".nii"):
@@ -211,6 +214,9 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
         else:
             return mb
 
+    elif fl.endswith(".geojson") or fl.endswith(".geojson.gz"):
+        return loadGeoJSON(fl)
+    
         ################################################################# polygonal mesh:
     else:
         if   fl.endswith(".vtk"):
@@ -265,6 +271,48 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
 
     actor.filename = filename
     return actor
+
+def download(url, prefix=''):
+    """Retrieve a file from a url, save it locally and return its path."""
+
+    if "https://" not in url and "http://" not in url:
+        colors.printc('Invalid URL:\n', url, c=1)
+        return
+
+    basename = os.path.basename(url)
+    if os.path.exists(basename):
+        return basename
+
+    colors.printc('..downloading:\n', basename)
+    try:
+        from urllib.request import urlopen
+    except ImportError:
+        import urllib2
+        import contextlib
+        urlopen = lambda url_: contextlib.closing(urllib2.urlopen(url_))
+
+    basename += prefix
+    with urlopen(url) as response, open(basename, 'wb') as output:
+        output.write(response.read())
+    return basename
+
+def gunzip(filename):
+    """Unzip a ``.gz`` file to a temporary file and returns its path."""
+    if not filename.endswith('.gz'):
+        #colors.printc("gunzip() error: file must end with .gz", c=1)
+        return filename
+    from tempfile import NamedTemporaryFile
+    import gzip
+
+    tmp_file = NamedTemporaryFile(delete=False)
+    tmp_file.name = os.path.join(os.path.dirname(tmp_file.name),
+                                 os.path.basename(filename).replace('.gz',''))
+    inF = gzip.open(filename, "rb")
+    outF = open(tmp_file.name, "wb")
+    outF.write(inF.read())
+    outF.close()
+    inF.close()
+    return tmp_file.name
 
 
 ###################################################################
@@ -373,6 +421,16 @@ def loadOFF(filename):
 
     return Actor(buildPolyData(vertices, faces))
 
+
+def loadGeoJSON(filename):
+    """Load GeoJSON files."""
+    if filename.endswith('.gz'):
+        filename = gunzip(filename)
+    jr = vtk.vtkGeoJSONReader()
+    jr.SetFileName(filename)
+    jr.Update()
+    return Actor(jr.GetOutput())
+    
 
 def loadDolfin(filename):
     """Reads a `Fenics/Dolfin` file format. Return an ``Actor(vtkActor)`` object."""
@@ -602,8 +660,6 @@ def write(objct, fileoutput, binary=True):
         return mb
     elif ".xyz" in fr:
         w = vtk.vtkSimplePointsWriter()
-    elif ".byu" in fr or fr.endswith(".g"):
-        w = vtk.vtkBYUWriter()
     elif ".tif" in fr:
         w = vtk.vtkTIFFWriter()
         w.SetFileDimensionality(len(obj.GetDimensions()))
@@ -665,7 +721,7 @@ def save(objct, fileoutput, binary=True):
     Save 3D object to file. (same as `write()`).
 
     Possile extensions are:
-        - vtk, vti, ply, obj, stl, byu, vtp, xyz, tif, vti, mhd, png, bmp.
+        - vtk, vti, ply, obj, stl, vtp, xyz, tif, vti, mhd, png, bmp.
     """
     return write(objct, fileoutput, binary)
 
@@ -891,7 +947,6 @@ def screenshot(filename="screenshot.png"):
         colors.printc('~bomb screenshot(): Rendering window is not present, skip.', c=1)
         return
     w2if = vtk.vtkWindowToImageFilter()
-    w2if.ShouldRerenderOff()
     w2if.SetInput(settings.plotter_instance.window)
     s = settings.screeshotScale
     w2if.SetScale(s, s)
@@ -1411,26 +1466,6 @@ def _keypress(iren, event):
 
             a.GetMapper().ScalarVisibilityOn()
 
-    elif key == "L":
-        if vp.clickedActor in vp.getActors():
-            acts = [vp.clickedActor]
-        else:
-            acts = vp.getActors()
-        for ia in acts:
-            if not ia.GetPickable():
-                continue
-            try:
-                ia.GetProperty().SetRepresentationToSurface()
-                ls = ia.GetProperty().GetLineWidth()
-                if ls <= 1:
-                    ls = 1
-                    ia.GetProperty().EdgeVisibilityOff()
-                else:
-                    ia.GetProperty().EdgeVisibilityOn()
-                    ia.GetProperty().SetLineWidth(ls - 1)
-            except AttributeError:
-                pass
-
     elif key == "l":
         if vp.clickedActor in vp.getActors():
             acts = [vp.clickedActor]
@@ -1440,11 +1475,10 @@ def _keypress(iren, event):
             if not ia.GetPickable():
                 continue
             try:
-                ia.GetProperty().EdgeVisibilityOn()
-                c = ia.GetProperty().GetColor()
-                ia.GetProperty().SetEdgeColor(c)
-                ls = ia.GetProperty().GetLineWidth()
-                ia.GetProperty().SetLineWidth(ls + 1)
+                ev = ia.GetProperty().GetEdgeVisibility()
+                ia.GetProperty().SetEdgeVisibility(not ev)
+                ia.GetProperty().SetRepresentationToSurface()
+                ia.GetProperty().SetLineWidth(0.1)
             except AttributeError:
                 pass
 

@@ -3,6 +3,7 @@ import time
 import sys
 import vtk
 import numpy
+import os
 
 from vtkplotter import __version__
 import vtkplotter.vtkio as vtkio
@@ -258,7 +259,8 @@ def interactive():
     """Go back to the rendering window interaction mode."""
     if settings.plotter_instance:
         if hasattr(settings.plotter_instance, 'interactor'):
-            settings.plotter_instance.interactor.Start()
+            if settings.plotter_instance.interactor:
+                settings.plotter_instance.interactor.Start()
     return settings.plotter_instance
 
 
@@ -285,7 +287,7 @@ def closeWindow(plotterInstance=None):
 
 
 def closePlotter():
-    """Close the current or the input rendering window."""
+    """Close the current instance of ``Plotter`` and its rendering window."""
 #    if settings.notebook_plotter:
 #        settings.notebook_plotter.close()
     if settings.plotter_instance:
@@ -1448,14 +1450,17 @@ class Plotter:
             vbb, sizes, min_bns, max_bns = addons.computeVisibleBounds()
             kgrid = vbb[0], vbb[2], vbb[4], vbb[1], vbb[3], vbb[5]
 
-            settings.notebook_plotter = k3d.plot(axes=[self.xtitle, self.ytitle, self.ztitle],
+            settings.notebook_plotter = k3d.plot(
+                                                 axes=[self.xtitle, self.ytitle, self.ztitle],
                                                  menu_visibility=True,
-                                                 height=int(self.size[1]/2))
+                                                 height=int(self.size[1]/2),
+                                                 #grid_visible=False,
+                                                 )
             settings.notebook_plotter.grid = kgrid
-            
+
             if not self.axes:
-                settings.notebook_plotter.gridVisible = False
-                
+                settings.notebook_plotter.grid_visible = False # has no effect?
+
             actorset = set(utils.flatten([self.getActors(at), self.actors]))
 
             for ia in actorset:
@@ -1475,7 +1480,7 @@ class Plotter:
                     tf.SetInputData(cpl.GetOutput())
                     tf.Update()
                     iapoly = tf.GetOutput()
-#                    iapoly = ia.polydata()
+                    #iapoly = ia.polydata()
 
                     mass = vtk.vtkMassProperties()
                     mass.SetGlobalWarningDisplay(0)
@@ -1503,7 +1508,7 @@ class Plotter:
                             scals_min, scals_max = ia.mapper.GetScalarRange()
                             color_attribute=(vtkscals.GetName(), scals_min, scals_max)
                             lut = ia.mapper.GetLookupTable()
-                            lut.Build() ## arrgghh!!!
+                            lut.Build()
                             kcmap=[]
                             nlut = lut.GetNumberOfTableValues()
                             for i in range(nlut):
@@ -1513,7 +1518,7 @@ class Plotter:
                     if area > 0:
                         name = None
                         if ia.filename:
-                            name=ia.filename
+                            name = os.path.basename(ia.filename)
                         kobj = k3d.vtk_poly_data(iapoly,
                                                  name=name,
                                                  color=colors.rgb2int(iap.GetColor()),
@@ -1537,14 +1542,17 @@ class Plotter:
                                               colors=kcols,
                                               opacity=iap.GetOpacity(),
                                               shader="3d",
-                                              point_size=iap.GetPointSize()*sqsize/200)
+                                              point_size=iap.GetPointSize()*sqsize/200,
+                                              #compression_level=9,
+                                              )
                         else:
                             kobj = k3d.line(ia.coordinates().astype(numpy.float32),
                                             color=colors.rgb2int(iap.GetColor()),
                                             colors=kcols,
                                             opacity=iap.GetOpacity(),
                                             shader="thick",
-                                            width=iap.GetLineWidth()*sqsize/1000)
+                                            width=iap.GetLineWidth()*sqsize/1000,
+                                            )
 
                     settings.notebook_plotter += kobj
 
@@ -1552,13 +1560,13 @@ class Plotter:
                     kx, ky, kz = ia.dimensions()
                     arr = ia.getPointArray()
                     kimage = arr.reshape(-1, ky, kx)
-                    
-                    colorTransferFunction = ia.GetProperty().GetRGBTransferFunction()                    
+
+                    colorTransferFunction = ia.GetProperty().GetRGBTransferFunction()
                     kcmap=[]
                     for i in range(256):
                         r,g,b = colorTransferFunction.GetColor(i/255)
                         kcmap += [i/255, r,g,b]
-                    
+
                     kobj = k3d.volume(kimage.astype(numpy.float32),
                                       color_map=kcmap,
                                       alpha_coef=5,
@@ -1732,6 +1740,12 @@ class Plotter:
 #        if settings.notebook_plotter:
 #            settings.notebook_plotter.close()
         return self
+
+    def close(self):
+        self.closeWindow()
+        self.actors = []
+        settings.collectable_actors = []
+        return None
 
 
 def plotMatrix(M, title='matrix', continuous=True, cmap='Greys'):

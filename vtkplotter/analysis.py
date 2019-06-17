@@ -66,6 +66,7 @@ __all__ = [
     "implicitModeller",
     "signedDistanceFromPointCloud",
     "volumeFromMesh",
+    "computeNormalsWithPCA",
 ]
 
 
@@ -2442,7 +2443,7 @@ def volumeFromMesh(actor, bounds=None, dims=(20,20,20), signed=True, negate=Fals
     img.SetDimensions(dims)
     img.SetSpacing(sx, sy, sz)
     img.SetOrigin(bounds[0], bounds[2], bounds[4])
-    img.AllocateScalars(vtk.VTK_FLOAT, 3)
+    img.AllocateScalars(vtk.VTK_FLOAT, 1)
     
     imp = vtk.vtkImplicitPolyDataDistance()
     imp.SetInput(actor.polydata())
@@ -2465,6 +2466,49 @@ def volumeFromMesh(actor, bounds=None, dims=(20,20,20), signed=True, negate=Fals
     return Volume(img)
 
 
+def computeNormalsWithPCA(actor, n=20, orientationPoint=None, negate=False):
+    """Generate point normals using PCA (principal component analysis).
+    Basically this estimates a local tangent plane around each sample point p
+    by considering a small neighborhood of points around p, and fitting a plane
+    to the neighborhood (via PCA).
+    
+    :param int n: neighborhood size to calculate the normal
+    :param list orientationPoint: adjust the +/- sign of the normals so that
+    the normals all point towards a specified point. If None, perform a traversal
+    of the point cloud and flip neighboring normals so that they are mutually consistent.
 
+    :param bool negate: flip all normals
+    """
+    poly = actor.polydata()
+    pcan = vtk.vtkPCANormalEstimation()
+    pcan.SetInputData(poly)
+    pcan.SetSampleSize(n)
+    
+    if orientationPoint is not None:
+        pcan.SetNormalOrientationToPoint()
+        pcan.SetOrientationPoint(orientationPoint)
+    else:
+        pcan.SetNormalOrientationToGraphTraversal()
+    
+    if negate:
+        pcan.FlipNormalsOn()
+        
+    pcan.Update()
+    out = pcan.GetOutput()
+    vnorm = out.GetPointData().GetNormals()
+    
+    newact = actor.clone()
+    newact.polydata().GetPointData().SetNormals(vnorm)
+    newact.polydata().GetPointData().Modified()
+    return newact
+
+
+
+    
+    
+    
+    
+    
+    
 
 

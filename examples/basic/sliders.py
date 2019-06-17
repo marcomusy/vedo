@@ -6,7 +6,7 @@ from vtkplotter import Plotter, datadir
 
 vp = Plotter(axes=0, bg="w")
 
-mesh = vp.load(datadir+"magnolia.vtk", c=0)
+mesh = vp.load(datadir+"magnolia.vtk").flat().lw(0.1)
 
 
 def slider1(widget, event):

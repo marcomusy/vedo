@@ -13,4 +13,7 @@ show(s, sx, sy, sz,
      sx.silhouette(),
      sy.silhouette(),
      sz.silhouette(),
-     Text(__doc__), axes=1, viewup='z', bg='w')
+     Text(__doc__),
+     axes={'zxGrid':True},
+     viewup='z',
+     bg='w')

@@ -18,7 +18,6 @@ __all__ = [
     "getColorName",
     "colorMap",
     "makePalette",
-    "makeLUTfromCTF",
     "kelvin2rgb",
 ]
 
@@ -279,6 +278,8 @@ def rgb2int(rgb_tuple):
     """Return the int number of a color from (r,g,b), with 0<r<1 etc."""
     rgb = (int(rgb_tuple[0]*255), int(rgb_tuple[1]*255), int(rgb_tuple[2]*255))
     return 65536*rgb[0]+256*rgb[1]+rgb[2]
+#    r,g,b = np.array(rgb_tuple, dtype=np.int)*255
+#    return (r << 16) + (g << 8) + b
 
 
 def colorMap(value, name="jet", vmin=None, vmax=None):
@@ -373,32 +374,32 @@ def makePalette(color1, color2, N, hsv=True):
     return cols
 
 
-def makeLUTfromCTF(sclist, N=None):
+def makeLUT(colorlist, N=None):
     """
-    Use a Color Transfer Function to generate colors in a vtk lookup table.
+    Generate colors in a vtk lookup table.
     See `here <http://www.vtk.org/doc/nightly/html/classvtkColorTransferFunction.html>`_.
 
-    :param list sclist: a list in the form ``[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]``.
+    :param list colorlist: a list in the form ``[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]``.
     :return: the lookup table object ``vtkLookupTable``. This can be fed into ``colorMap``.
     """
     ctf = vtk.vtkColorTransferFunction()
     ctf.SetColorSpaceToDiverging()
 
-    for sc in sclist:
+    for sc in colorlist:
         scalar, col = sc
         r, g, b = getColor(col)
         ctf.AddRGBPoint(scalar, r, g, b)
 
     if N is None:
-        N = len(sclist)
+        N = len(colorlist)
 
     lut = vtk.vtkLookupTable()
     lut.SetNumberOfTableValues(N)
     lut.Build()
 
     for i in range(N):
-        rgb = list(ctf.GetColor(float(i) / N)) + [1]
-        lut.SetTableValue(i, rgb)
+        rgba = list(ctf.GetColor(float(i) / N)) + [1]
+        lut.SetTableValue(i, rgba)
 
     return lut
 
@@ -633,8 +634,8 @@ def printc(*strings, **keys):
     """
     end = keys.pop("end", "\n")
     flush = keys.pop("flush", True)
-    
-    if not settings.notebookBackend: 
+
+    if not settings.notebookBackend:
         if not _terminal_has_colors or sys.version_info[0]<3:
             for s in strings:
                 if "~" in str(s):

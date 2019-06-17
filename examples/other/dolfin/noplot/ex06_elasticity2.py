@@ -59,11 +59,10 @@ show(pts0, pts1, at=0, N=2, depthpeeling=True)
 # Reuse same solution u but on a different, finer mesh:
 mesh_big = UnitCubeMesh(15, 15, 15)
 
-pts2 = MeshArrows(mesh_big, u)
-#pts2.move(u).color("violet")  # move according to same solution u
+arrs = MeshArrows(mesh_big, u)
 
 # Draw the result on the second, and allow user interaction:
-show(pts2, at=1)  # can use interactive=1 to hold the plot
+show(arrs, at=1)  # can use interactive=1 to hold the plot
 
 #########################
 # Let's open a new window and draw the same stuff with colors
