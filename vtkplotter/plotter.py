@@ -311,7 +311,7 @@ class Plotter:
     :param list shape: shape of the grid of renderers in format (rows, columns).
         Ignored if N is specified.
     :param int N: number of desired renderers arranged in a grid automatically.
-    :param list pos: (x,y) position in pixels of top-left corneer of the rendering window
+    :param list pos: (x,y) position in pixels of top-left corner of the rendering window
         on the screen
     :param size: size of the rendering window. If 'auto', guess it based on screensize.
     :param screensize: physical size of the monitor screen
@@ -377,6 +377,13 @@ class Plotter:
     :param bool interactive: if True will stop after show() to allow interaction w/ window
     :param bool offscreen: if True will not show the rendering window
     :param bool depthpeeling: depth-peel volumes along with the translucent geometry
+    :param QVTKRenderWindowInteractor qtWidget:
+
+      render in a Qt-Widget using an QVTKRenderWindowInteractor.
+      Overrides offscreen to True
+      Overides interactive to False
+      Sets setting.usingQt to True
+      See Also: example qt_windows.py
 
     |multiwindows|
     """
@@ -398,10 +405,17 @@ class Plotter:
         interactive=None,
         offscreen=False,
         depthpeeling=False,
+        qtWidget = None
     ):
 
         settings.plotter_instance = self
         settings.plotter_instances.append(self)
+
+        if qtWidget is not None:
+              # overrides the interactive and offscreen properties
+            interactive = False
+            offscreen = True
+            settings.usingQt = True
 
         if interactive is None:
             if N or shape != (1, 1):
@@ -433,6 +447,7 @@ class Plotter:
         self.backgrcol = bg
         self.offscreen = offscreen
         self.showFrame = True
+        self.qtWidget = qtWidget # (QVTKRenderWindowInteractor)
 
         # mostly internal stuff:
         self.justremoved = None
@@ -585,6 +600,11 @@ class Plotter:
         if not settings.usingQt:
             for r in self.renderers:
                 self.window.AddRenderer(r)
+
+        if self.qtWidget is not None:
+            self.interactor = self.qtWidget.GetRenderWindow().GetInteractor()
+            self.window.SetOffScreenRendering(True)
+            return
 
         if offscreen:
             self.window.SetOffScreenRendering(True)
@@ -1356,6 +1376,9 @@ class Plotter:
             colors.printc("~times Error in show(): wrong renderer index", at, c=1)
             return
 
+        if self.qtWidget is not None:
+            self.qtWidget.GetRenderWindow().AddRenderer(self.renderer)
+
         if not self.camera:
             if isinstance(camera, vtk.vtkCamera):
                 self.camera = camera
@@ -1393,6 +1416,7 @@ class Plotter:
             self.renderer.RemoveActor(c)
             if hasattr(c, 'renderedAt'):
                 c.renderedAt.discard(at)
+
 
         if self.axes is not None and not settings.notebookBackend:
             addons.addAxes()
