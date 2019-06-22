@@ -56,7 +56,8 @@ def tips():
     msg += "|       x     to toggle mesh visibility                      |\n"
     msg += "|       X     to pop up a cutter widget tool                 |\n"
     msg += "|       1-3   to change mesh color                           |\n"
-    msg += "|       4     to change background color                     |\n"
+    msg += "|       4     to use scalars as colors (if present)          |\n"
+    msg += "|       5     to change background color                     |\n"
     msg += "|       0-9   to change axes style (use keypad)              |\n"
     msg += "|       k/K   to show point/cell scalars as color map        |\n"
     msg += "|       n     to show surface mesh normals                   |\n"
@@ -1055,7 +1056,6 @@ _defs = """
 
 .. |fenics_logo| image:: https://user-images.githubusercontent.com/32848391/58764910-3940fa80-856d-11e9-8160-af89a5ab5d02.gif
 
-
 .. |thinplate_morphing_2d.py| replace:: thinplate_morphing_2d.py
 .. _thinplate_morphing_2d.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/thinplate_morphing_2d.py
 .. |thinplate_morphing_2d| image:: https://user-images.githubusercontent.com/32848391/59032715-385ae200-8867-11e9-9b07-7f4f8fbfa5bd.png
@@ -1064,10 +1064,39 @@ _defs = """
     :alt: thinplate_morphing_2d.py
 
 .. |interpolateVolume.py| replace:: interpolateVolume.py
-.. _interpolateVolume.py: https://github.com/marcomusy/vtkplotter/blob/master/examples//interpolateVolume.py
+.. _interpolateVolume.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/interpolateVolume.py
 .. |interpolateVolume| image:: https://user-images.githubusercontent.com/32848391/59095175-1ec5a300-8918-11e9-8bc0-fd35c8981e2b.jpg
     :width: 250 px
     :target: interpolateVolume.py_
     :alt: interpolateVolume.py
+
+.. |deleteMeshPoints.py| replace:: deleteMeshPoints.py
+.. _deleteMeshPoints.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/deleteMeshPoints.py
+.. |deleteMeshPoints| image:: https://user-images.githubusercontent.com/32848391/59768041-e9b83980-92a3-11e9-94f4-ca1f92540e9f.png
+    :width: 250 px
+    :target: deleteMeshPoints.py_
+    :alt: deleteMeshPoints.py
+
+.. |gray_scott.ipynb| replace:: gray_scott.ipynb
+.. _gray_scott.ipynb: https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/gray_scott.ipynb
+.. |gray_scott| image:: https://user-images.githubusercontent.com/32848391/59788744-aaeaa980-92cc-11e9-825d-58da26ca21ff.gif
+    :width: 350 px
+    :target: gray_scott.ipynb_
+    :alt: gray_scott.ipynb
+
+.. |volterra.py| replace:: volterra.py
+.. _volterra.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/volterra.py
+.. |volterra| image:: https://user-images.githubusercontent.com/32848391/59788745-aaeaa980-92cc-11e9-93d5-f6a577ba5e4d.png
+    :width: 250 px
+    :target: volterra.py_
+    :alt: volterra.py
+
+.. |tensors.py| replace:: tensors.py
+.. _tensors.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/tensors.py
+.. |tensors| image:: https://user-images.githubusercontent.com/32848391/59944747-e2d92480-9465-11e9-8012-1fc34a2e30c6.png
+    :width: 350 px
+    :target: tensors.py_
+    :alt: tensors.py
+
 
 """

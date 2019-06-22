@@ -46,6 +46,7 @@ __all__ = [
     "Text",
     "Latex",
     "Glyph",
+    "Tensors",
 ]
 
 
@@ -148,7 +149,7 @@ def Points(plist, r=5, c="gray", alpha=1):
 
 
 def Glyph(actor, glyphObj, orientationArray=None,
-          scaleByVectorSize=False, c=None, alpha=1):
+          scaleByVectorSize=False, tol=0, c=None, alpha=1):
     """
     At each vertex of a mesh, another mesh - a `'glyph'` - is shown with
     various orientation options and coloring.
@@ -159,8 +160,9 @@ def Glyph(actor, glyphObj, orientationArray=None,
     :param orientationArray: list of vectors, ``vtkAbstractArray``
         or the name of an already existing points array.
     :type orientationArray: list, str, vtkAbstractArray
-    :param bool scaleByVectorSize: glyph mesh is scaled by the size of
-        the vectors.
+    :param bool scaleByVectorSize: glyph mesh is scaled by the size of the vectors.
+    :param float tol: set a minimum separation between two close glyphs
+        (not compatible with `orientationArray` being a list).
 
     |glyphs.py|_ |glyphs_arrows.py|_
 
@@ -171,6 +173,10 @@ def Glyph(actor, glyphObj, orientationArray=None,
     if c in list(colors._mapscales.cmap_d.keys()):
         cmap = c
         c = None
+        
+    if tol:
+        actor = actor.clone().clean(tol)
+    poly = actor.polydata()
 
     # user is passing an array of point colors
     if utils.isSequence(c) and len(c) > 3:
@@ -180,14 +186,14 @@ def Glyph(actor, glyphObj, orientationArray=None,
         for col in c:
             cl = colors.getColor(col)
             ucols.InsertNextTuple3(cl[0]*255, cl[1]*255, cl[2]*255)
-        actor.polydata().GetPointData().SetScalars(ucols)
+        poly.GetPointData().SetScalars(ucols)
         c = None
 
     if isinstance(glyphObj, Actor):
         glyphObj = glyphObj.clean().polydata()
 
     gly = vtk.vtkGlyph3D()
-    gly.SetInputData(actor.polydata())
+    gly.SetInputData(poly)
     gly.SetSourceData(glyphObj)
     gly.SetColorModeToColorByScalar()
 
@@ -207,11 +213,11 @@ def Glyph(actor, glyphObj, orientationArray=None,
                 gly.SetInputArrayToProcess(0, 0, 0, 0, orientationArray)
                 gly.SetVectorModeToUseVector()
         elif isinstance(orientationArray, vtk.vtkAbstractArray):
-            actor.GetMapper().GetInput().GetPointData().AddArray(orientationArray)
-            actor.GetMapper().GetInput().GetPointData().SetActiveVectors("glyph_vectors")
+            poly.GetPointData().AddArray(orientationArray)
+            poly.GetPointData().SetActiveVectors("glyph_vectors")
             gly.SetInputArrayToProcess(0, 0, 0, 0, "glyph_vectors")
             gly.SetVectorModeToUseVector()
-        elif utils.isSequence(orientationArray):  # passing a list
+        elif utils.isSequence(orientationArray) and not tol:  # passing a list
             actor.addPointVectors(orientationArray, "glyph_vectors")
             gly.SetInputArrayToProcess(0, 0, 0, 0, "glyph_vectors")
 
@@ -220,11 +226,10 @@ def Glyph(actor, glyphObj, orientationArray=None,
         else:
             gly.SetColorModeToColorByScalar()
 
-
     gly.Update()
     pd = gly.GetOutput()
 
-    actor = Actor(pd, c, alpha)
+    gactor = Actor(pd, c, alpha)
 
     if cmap:
         lut = vtk.vtkLookupTable()
@@ -233,15 +238,94 @@ def Glyph(actor, glyphObj, orientationArray=None,
         for i in range(512):
             r, g, b = colors.colorMap(i, cmap, 0, 512)
             lut.SetTableValue(i, r, g, b, 1)
-        actor.mapper.SetLookupTable(lut)
-        actor.mapper.ScalarVisibilityOn()
-        actor.mapper.SetScalarModeToUsePointData()
+        gactor.mapper.SetLookupTable(lut)
+        gactor.mapper.ScalarVisibilityOn()
+        gactor.mapper.SetScalarModeToUsePointData()
         rng = pd.GetPointData().GetScalars().GetRange()
-        actor.mapper.SetScalarRange(rng[0], rng[1])
+        gactor.mapper.SetScalarRange(rng[0], rng[1])
 
-    actor.GetProperty().SetInterpolationToFlat()
-    settings.collectable_actors.append(actor)
-    return actor
+    gactor.GetProperty().SetInterpolationToFlat()
+    settings.collectable_actors.append(gactor)
+    return gactor
+
+
+def Tensors(domain, source='ellipsoid', useEigenValues=True, isSymmetric=True,
+            threeAxes=False, scale=1, maxScale=None, length=None,
+            c=None, alpha=1):
+    """Geometric representation of tensors defined on a domain or set of points.
+    Tensors can be scaled and/or rotated according to the source at eache input point.
+    Scaling and rotation is controlled by the eigenvalues/eigenvectors of the symmetrical part
+    of the tensor as follows: 
+    
+        For each tensor, the eigenvalues (and associated eigenvectors) are sorted 
+        to determine the major, medium, and minor eigenvalues/eigenvectors. 
+        The eigenvalue decomposition only makes sense for symmetric tensors,
+        hence the need to only consider the symmetric part of the tensor, which is 1/2*(T+T.transposed()).
+
+    :param str source: preset type of source shape ['ellipsoid', 'cylinder', 'cube' or any specified ``Actor``]
+    
+    :param bool useEigenValues: color source glyph using the eigenvalues or by scalars.
+    
+    :param bool threeAxes: if `False` scale the source in the x-direction, the medium in the y-direction,
+        and the minor in the z-direction. Then, the source is rotated so that the glyph's local x-axis lies 
+        along the major eigenvector, y-axis along the medium eigenvector, and z-axis along the minor.
+    
+        If `True` three sources are produced, each of them oriented along an eigenvector
+        and scaled according to the corresponding eigenvector.
+    
+    :param bool isSymmetric: If `True` each source glyph is mirrored (2 or 6 glyphs will be produced).
+        The x-axis of the source glyph will correspond to the eigenvector on output.
+    
+    :param float length: distance from the origin to the tip of the source glyph along the x-axis
+        
+    :param float scale: scaling factor of the source glyph.
+    :param float maxScale: clamp scaling at this factor.
+    
+    |tensors| |tensors.py|_
+    """
+    if 'ellip' in source:
+        src = vtk.vtkSphereSource()
+        src.SetPhiResolution(24)
+        src.SetThetaResolution(12)
+    elif 'cyl' in source:
+        src = vtk.vtkCylinderSource()
+        src.SetResolution(48)
+        src.CappingOn()
+    elif source == 'cube':
+        src = vtk.vtkCubeSource()
+    else:
+        src = source.normalize().polydata(False)
+    src.Update()
+    
+    tg = vtk.vtkTensorGlyph()
+    tg.SetInputData(domain.GetMapper().GetInput())
+    tg.SetSourceData(src.GetOutput())
+    
+    if c is None:
+        tg.ColorGlyphsOn()
+    else:
+        tg.ColorGlyphsOff()
+
+    tg.SetSymmetric(int(isSymmetric))
+    if length is not None:
+        tg.SetLength(length)
+    if useEigenValues:
+        tg.ExtractEigenvaluesOn()
+        tg.SetColorModeToEigenvalues()
+    else:
+        tg.SetColorModeToScalars()
+    tg.SetThreeGlyphs(threeAxes)
+    tg.ScalingOn()
+    tg.SetScaleFactor(scale)
+    if maxScale is None:
+        tg.ClampScalingOn()
+        maxScale = scale*10
+    tg.SetMaxScaleFactor(maxScale)
+    tg.Update()
+    tgn = vtk.vtkPolyDataNormals()
+    tgn.SetInputData(tg.GetOutput())
+    tgn.Update()
+    return Actor(tgn.GetOutput(), c, alpha)
 
 
 def Line(p0, p1=None, c="r", alpha=1, lw=1, dotted=False, res=None):
@@ -581,11 +665,11 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12)
         arr.SetShaftRadius(sz)
         arr.SetTipLength(sz * 10)
     arr.Update()
-    pts = Points(startPoints)
+    pts = Points(startPoints, r=0.001, c=c, alpha=alpha).off()
     orients = (endPoints - startPoints) * scale
     arrg = Glyph(pts, arr.GetOutput(),
                  orientationArray=orients, scaleByVectorSize=True,
-                 c=c, alpha=alpha)
+                 c=c, alpha=alpha).flat()
     settings.collectable_actors.append(arrg)
     return arrg
 
@@ -1527,4 +1611,5 @@ def Latex(
         colors.printc(' Try: usetex=False' , c=1)
         colors.printc(' Try: sudo apt install dvipng' , c=1)
 
+    settings.collectable_actors.append(vactor)
     return vactor

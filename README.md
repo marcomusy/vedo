@@ -66,6 +66,7 @@ for all the following functionalities:
   - Examples using [SHTools](https://shtools.oca.eu/shtools) package for *spherical harmonics* expansion of a mesh shape.
   - Integration with the *Qt5* framework.
   - Support for [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of finite-element calculations.
+  - Visualization of tensors.
   - Export a 3D scene and embed it into a [web page](https://vtkplotter.embl.es/examples/fenics_elasticity.html).
   - Embed the 3D rendering in a *jupyter* notebook with [K3D](https://github.com/K3D-tools/K3D-jupyter) (can export an interactive 3D-snapshot page [here](https://vtkplotter.embl.es/examples/K3D_snapshot.html)).
 
@@ -99,14 +100,14 @@ git clone https://github.com/marcomusy/vtkplotter.git
 cd vtkplotter/examples
 python tutorial.py
 ```
-**More than 200 working examples can be found in directories** _(scroll down to see the screenshots):_ <br>
+**More than 250 working examples can be found in directories** _(scroll down to see the screenshots):_ <br>
 [**examples/basic**](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic)<br>
 [**examples/advanced**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced)<br>
 [**examples/volumetric**](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric)<br>
 [**examples/simulations**](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations)<br>
 [**examples/other**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other)<br>
-[**examples/other/dolfin**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin).<br>
-[**examples/notebooks**](https://github.com/marcomusy/vtkplotter/blob/master/examples/notebooks)<br>
+[**examples/other/dolfin**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin)<br>
+[**examples/notebooks**](https://github.com/marcomusy/vtkplotter/blob/master/examples/notebooks).<br>
 
 |         |      |
 |:--------|:-----|

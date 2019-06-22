@@ -534,7 +534,7 @@ def addCutterTool(actor):
     vp.renderer.AddActor(act1)
     vp.renderer.RemoveActor(actor)
 
-    def SelectPolygons(vobj, event):
+    def selectPolygons(vobj, event):
         vobj.GetPlanes(planes)
 
     boxWidget = vtk.vtkBoxWidget()
@@ -546,13 +546,14 @@ def addCutterTool(actor):
     boxWidget.SetInteractor(vp.interactor)
     boxWidget.SetInputData(apd)
     boxWidget.PlaceWidget()
-    boxWidget.AddObserver("InteractionEvent", SelectPolygons)
+    boxWidget.AddObserver("InteractionEvent", selectPolygons)
     boxWidget.On()
 
     vp.cutterWidget = boxWidget
     vp.clickedActor = act0
-    ia = vp.actors.index(actor)
-    vp.actors[ia] = act0
+    if actor in vp.actors:
+        ia = vp.actors.index(actor)
+        vp.actors[ia] = act0
 
     colors.printc("Mesh Cutter Tool:", c="m", invert=1)
     colors.printc("  Move gray handles to cut away parts of the mesh", c="m")
@@ -563,7 +564,6 @@ def addCutterTool(actor):
     vp.widgets.append(boxWidget)
 
     vp.interactor.Start()  # allow extra interaction
-
     return act0
 
 def _addVolumeCutterTool(vol):
@@ -584,7 +584,7 @@ def _addVolumeCutterTool(vol):
         obj.GetPlanes(planes)
         vol.mapper.SetClippingPlanes(planes)
 
-    boxWidget.SetInputData(vol.image)
+    boxWidget.SetInputData(vol.imagedata())
     boxWidget.OutlineCursorWiresOn()
     boxWidget.GetSelectedOutlineProperty().SetColor(1, 0, 1)
     boxWidget.GetOutlineProperty().SetColor(0.2, 0.2, 0.2)
@@ -897,9 +897,9 @@ def addAxes(axtype=None, c=None):
 
         tipSize = axes.pop('tipSize', 0.01)
 
-        xLabelPrecision = axes.pop('xLabelPrecision', 1) # nr. of significant digits
-        yLabelPrecision = axes.pop('yLabelPrecision', 1)
-        zLabelPrecision = axes.pop('zLabelPrecision', 1)
+        xLabelPrecision = axes.pop('xLabelPrecision', 2) # nr. of significant digits
+        yLabelPrecision = axes.pop('yLabelPrecision', 2)
+        zLabelPrecision = axes.pop('zLabelPrecision', 2)
 
         xLabelSize = axes.pop('xLabelSize', 0.0175)
         yLabelSize = axes.pop('yLabelSize', 0.0175)

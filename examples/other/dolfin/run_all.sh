@@ -96,6 +96,9 @@ python turing_pattern.py
 echo Running heatconv.py
 python heatconv.py
 
+echo Running wavy_1d.py
+python wavy_1d.py
+
 echo Running awefem.py
 python awefem.py
 

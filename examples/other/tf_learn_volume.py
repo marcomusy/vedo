@@ -44,10 +44,10 @@ for i, x in enumerate(ls):
 v1 = Volume(visdata)
 v2 = Volume(vispred)
 
-s1 = isosurface(v1.image, threshold=[t for t in arange(0, 1, 0.1)])
+s1 = isosurface(v1, threshold=[t for t in arange(0, 1, 0.1)])
 s1.alpha(0.5)
 
-s2 = isosurface(v2.image, threshold=[t for t in arange(0, 1, 0.1)])
+s2 = isosurface(v2, threshold=[t for t in arange(0, 1, 0.1)])
 s2.alpha(0.5)
 
 show([[v1, s1], s2], N=2, axes=8, bg="w", depthpeeling=1)

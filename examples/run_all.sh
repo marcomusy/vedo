@@ -66,6 +66,9 @@ python basic/connCells.py
 echo Running basic/customAxes.py
 python basic/customAxes.py
 
+echo Running basic/deleteMeshPoints.py
+python basic/deleteMeshPoints.py
+
 echo Running basic/fitline.py
 python basic/fitline.py
 
@@ -323,6 +326,12 @@ python volumetric/lowpassfilter.py
 
 echo Running volumetric/numpy2volume.py
 python volumetric/numpy2volume.py
+
+echo Running volumetric/tensors.py
+python volumetric/tensors.py
+
+echo Running volumetric/pointDensity.py
+python volumetric/pointDensity.py
 
 cd volumetric
 echo Running office.py

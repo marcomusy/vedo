@@ -85,29 +85,34 @@ def show(*actors, **options
     :param str viewup:  either ['x', 'y', 'z'] or a vector to set vertical direction
     :param bool resetcam:  re-adjust camera position to fit objects
 
-    :param dict camera: Camera parameters can further be specified with a dictionary assigned to the ``camera`` keyword:
-        (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
+    :param dict camera: Camera parameters can further be specified with a dictionary
+        assigned to the ``camera`` keyword (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`):
 
         - pos, `(list)`,  the position of the camera in world coordinates
         - focalPoint `(list)`, the focal point of the camera in world coordinates
         - viewup `(list)`, the view up direction for the camera
         - distance `(float)`, set the focal point to the specified distance from the camera position.
-        - clippingRange `(float)`, distance of the near and far clipping planes along the direction of projection.
+        - clippingRange `(float)`, distance of the near and far clipping planes along the direction
+            of projection.
+            
         - parallelScale `(float)`,
             scaling used for a parallel projection, i.e. the height of the viewport
             in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
             an "inverse scale", larger numbers produce smaller images.
             This method has no effect in perspective projection mode.
+            
         - thickness `(float)`,
             set the distance between clipping planes. This method adjusts the far clipping
             plane to be set a distance 'thickness' beyond the near clipping plane.
+            
         - viewAngle `(float)`,
             the camera view angle, which is the angular height of the camera view
             measured in degrees. The default angle is 30 degrees.
             This method has no effect in parallel projection mode.
             The formula for setting the angle up for perfect perspective viewing is:
             angle = 2*atan((h/2)/d) where h is the height of the RenderWindow
-            (measured by holding a ruler up to your screen) and d is the distance from your eyes to the screen.
+            (measured by holding a ruler up to your screen) and d is the distance
+            from your eyes to the screen.
 
     :param bool interactive:  pause and interact with window (True)
         or continue execution (False)
@@ -637,14 +642,14 @@ class Plotter:
         return ""
 
     def __iadd__(self, actors):
-        self.add(actors)
+        self.add(actors, render=False)
         return self
 
     def __isub__(self, actors):
         self.remove(actors)
         return self
 
-    def add(self, actors):
+    def add(self, actors, render=True):
         """Append input object to the internal list of actors to be shown.
 
         :return: returns input actor for possible concatenation.
@@ -653,9 +658,17 @@ class Plotter:
             for a in actors:
                 if a not in self.actors:
                     self.actors.append(a)
+                    if render and self.renderer:
+                        self.renderer.AddActor(a)
+            if render and self.interactor: 
+                self.interactor.Render()
             return None
         else:
             self.actors.append(actors)
+            if render and self.renderer:
+                self.renderer.AddActor(actors)
+                if self.interactor:
+                    self.interactor.Render()
             return actors
 
     def remove(self, actors):
@@ -1063,7 +1076,7 @@ class Plotter:
             - `titleDepth`,          [0], extrusion fractional depth of title text
             - `xyGrid`,           [True], show a gridded wall on plane xy
             - `yzGrid`,           [True], show a gridded wall on plane yz
-            - `zxGrid`,           [True], show a gridded wall on plane zx
+            - `zxGrid`,          [False], show a gridded wall on plane zx
             - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
             - `xyPlaneColor`,   ['gray'], color of gridded plane
             - `xyGridColor`,    ['gray'], grid line color
@@ -1130,8 +1143,7 @@ class Plotter:
 #        interactorStyle=0,
 #        q=False,
     ):
-        """
-        Render a list of actors.
+        """Render a list of actors.
 
         Allowed input objects are: ``filename``, ``vtkPolyData``, ``vtkActor``,
         ``vtkActor2D``, ``vtkImageActor``, ``vtkAssembly`` or ``vtkVolume``.
@@ -1162,30 +1174,34 @@ class Plotter:
         :param float azimuth/elevation/roll:  move camera accordingly
         :param str viewup:  either ['x', 'y', 'z'] or a vector to set vertical direction
         :param bool resetcam:  re-adjust camera position to fit objects
-
-        :param dict camera: Camera parameters can further be specified with a dictionary assigned to the ``camera`` keyword:
-            (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
+        :param dict camera: Camera parameters can further be specified with a dictionary assigned 
+           to the ``camera`` keyword (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
 
             - pos, `(list)`,  the position of the camera in world coordinates
             - focalPoint `(list)`, the focal point of the camera in world coordinates
             - viewup `(list)`, the view up direction for the camera
             - distance `(float)`, set the focal point to the specified distance from the camera position.
-            - clippingRange `(float)`, distance of the near and far clipping planes along the direction of projection.
+            - clippingRange `(float)`, distance of the near and far clipping planes along
+                the direction of projection.
+                
             - parallelScale `(float)`,
                 scaling used for a parallel projection, i.e. the height of the viewport
                 in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
                 an "inverse scale", larger numbers produce smaller images.
                 This method has no effect in perspective projection mode.
+                
             - thickness `(float)`,
                 set the distance between clipping planes. This method adjusts the far clipping
                 plane to be set a distance 'thickness' beyond the near clipping plane.
+                
             - viewAngle `(float)`,
                 the camera view angle, which is the angular height of the camera view
                 measured in degrees. The default angle is 30 degrees.
                 This method has no effect in parallel projection mode.
                 The formula for setting the angle up for perfect perspective viewing is:
                 angle = 2*atan((h/2)/d) where h is the height of the RenderWindow
-                (measured by holding a ruler up to your screen) and d is the distance from your eyes to the screen.
+                (measured by holding a ruler up to your screen) and d is the distance from your
+                eyes to the screen.
 
         :param bool interactive:  pause and interact with window (True)
             or continue execution (False)
@@ -1454,12 +1470,11 @@ class Plotter:
                                                  axes=[self.xtitle, self.ytitle, self.ztitle],
                                                  menu_visibility=True,
                                                  height=int(self.size[1]/2),
-                                                 #grid_visible=False,
                                                  )
             settings.notebook_plotter.grid = kgrid
 
             if not self.axes:
-                settings.notebook_plotter.grid_visible = False # has no effect?
+                settings.notebook_plotter.grid_visible = False
 
             actorset = set(utils.flatten([self.getActors(at), self.actors]))
 

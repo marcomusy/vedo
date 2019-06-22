@@ -303,22 +303,27 @@ def plot(*inputobj, **options):
     :param float elevation: add elevation rotation of the scene, in degrees
     :param float roll: add roll-type rotation of the scene, in degrees
 
-    :param dict camera: Camera parameters can further be specified with a dictionary assigned to the ``camera`` keyword:
+    :param dict camera: Camera parameters can further be specified with a dictionary
+        assigned to the ``camera`` keyword:
         (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
 
         - pos, `(list)`,  the position of the camera in world coordinates
         - focalPoint `(list)`, the focal point of the camera in world coordinates
         - viewup `(list)`, the view up direction for the camera
         - distance `(float)`, set the focal point to the specified distance from the camera position.
-        - clippingRange `(float)`, distance of the near and far clipping planes along the direction of projection.
+        - clippingRange `(float)`, distance of the near and far clipping planes along
+            the direction of projection.
+            
         - parallelScale `(float)`,
             scaling used for a parallel projection, i.e. the height of the viewport
             in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
             an "inverse scale", larger numbers produce smaller images.
             This method has no effect in perspective projection mode.
+            
         - thickness `(float)`,
             set the distance between clipping planes. This method adjusts the far clipping
             plane to be set a distance 'thickness' beyond the near clipping plane.
+            
         - viewAngle `(float)`,
             the camera view angle, which is the angular height of the camera view
             measured in degrees. The default angle is 30 degrees.

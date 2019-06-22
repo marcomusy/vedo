@@ -512,7 +512,7 @@ def printInfo(obj):
                     try:
                         tt = arrtypes[ptdata.GetArray(i).GetDataType()]
                     except:
-                        tt = ptdata.GetArray(i).GetDataType()
+                        tt = str(ptdata.GetArray(i).GetDataType())
                     colors.printc("name=" + name, "type=" + tt, c="g", bold=0, end="")
                     rng = ptdata.GetArray(i).GetRange()
                     colors.printc(" range: (" + precision(rng[0],4) + ',' +
@@ -527,7 +527,7 @@ def printInfo(obj):
                     try:
                         tt = arrtypes[cldata.GetArray(i).GetDataType()]
                     except:
-                        tt = cldata.GetArray(i).GetDataType()
+                        tt = str(cldata.GetArray(i).GetDataType())
                     colors.printc("name=" + name, "type=" + tt, c="g", bold=0, end="")
                     rng = cldata.GetArray(i).GetRange()
                     colors.printc(" range: (" + precision(rng[0],4) + ',' +
@@ -721,7 +721,7 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
     isvol = isinstance(data, vtk.vtkVolume)
     if isimg or isvol:
         if isvol:
-            img = data.image
+            img = data.imagedata()
         else:
             img = data
         dims = img.GetDimensions()

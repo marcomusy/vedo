@@ -57,6 +57,9 @@ python doubleslit.py
 echo Running tunnelling2.py
 python tunnelling2.py
 
+echo Running volterra.py
+python volterra.py
+
 echo '-----------------------------'
 echo '-----------------------------'
 echo 'cd ../other/dolfin; ./run_all.sh'

@@ -726,20 +726,20 @@ class Prop(object):
         """Return point array content as a ``numpy.array``.
         This can be identified either as a string or by an integer number."""
         data = None
-        if hasattr(self, 'polydata') and self.polydata:
-            data = self.polydata
-        elif hasattr(self, 'image') and self.image:
-            data = self.image
-        return vtk_to_numpy(data.GetPointData().GetArray(name))#.astype(np.float32)
+        if hasattr(self, 'poly') and self.poly:
+            data = self.poly
+        elif hasattr(self, '_image') and self._image:
+            data = self._image
+        return vtk_to_numpy(data.GetPointData().GetArray(name))
 
     def getCellArray(self, name=0):
         """Return cell array content as a ``numpy.array``."""
         data = None
-        if hasattr(self, 'polydata') and self.polydata:
-            data = self.polydata
-        elif hasattr(self, 'image') and self.image:
-            data = self.image
-        return vtk_to_numpy(data.GetPointData().GetArray(name))#.astype(np.float32)
+        if hasattr(self, 'poly') and self.poly:
+            data = self.poly
+        elif hasattr(self, '_image') and self._image:
+            data = self._image
+        return vtk_to_numpy(data.GetCellData().GetArray(name))
 
 
 ####################################################
@@ -774,7 +774,7 @@ class Actor(vtk.vtkActor, Prop):
     def __init__(
         self,
         poly=None,
-        c="gold",
+        c=None,
         alpha=1,
         wire=False,
         bc=None,
@@ -1109,10 +1109,26 @@ class Actor(vtk.vtkActor, Prop):
                 break
         return conn
 
+    def deletePoints(self, indices):
+        """Delete a list of vertices identified by their index.
+        
+        |deleteMeshPoints| |deleteMeshPoints.py|_
+        """
+        cellIds = vtk.vtkIdList()
+        self.poly.BuildLinks()
+        for i in indices:
+            self.poly.GetPointCells(i, cellIds)
+            for j in range(cellIds.GetNumberOfIds()):
+                self.poly.DeleteCell(cellIds.GetId(j))  # flag cell
+
+        self.poly.RemoveDeletedCells()
+        self.mapper.Modified()
+        return self
+
     def computeNormals(self):
         """Compute cell and vertex normals for the actor's mesh.
 
-        .. warning:: Mesh gets modified, can have a different nr. of vertices.
+        .. warning:: Mesh gets modified, output can have a different nr. of vertices.
         """
         poly = self.polydata(False)
         pnormals = poly.GetPointData().GetNormals()
@@ -1435,7 +1451,7 @@ class Actor(vtk.vtkActor, Prop):
 
     def closestPoint(self, pt, N=1, radius=None, returnIds=False):
         """
-        Find the closest point on a mesh given from the input point `pt`.
+        Find the closest point(s) on a mesh given from the input point `pt`.
 
         :param int N: if greater than 1, return a list of N ordered closest points.
         :param float radius: if given, get all points within that radius.
@@ -2962,7 +2978,12 @@ class Volume(vtk.vtkVolume, Prop):
         |read_vti| |read_vti.py|_
     """
 
-    def __init__(self, img, c='blue', alpha=(0.0, 0.4, 0.9, 1), mode=0):
+    def __init__(self, img,
+                 c='blue', alpha=(0.0, 0.1, 0.4, 0.8, 0.9),
+                 mode=0,
+                 origin=None,
+                 spacing=None,
+                 ):
 
         vtk.vtkVolume.__init__(self)
         Prop.__init__(self)
@@ -2977,14 +2998,31 @@ class Volume(vtk.vtkVolume, Prop):
                     for iz in range(nz):
                         vtkimg.SetScalarComponentFromFloat(ix, iy, iz, 0, img[ix, iy, iz])
             img = vtkimg
+        
+        if origin is not None:
+            img.SetOrigin(origin)
+        if spacing is not None:
+            img.SetSpacing(spacing)
 
-        self.image = img
+        self._image = img
         self.mapper = vtk.vtkGPUVolumeRayCastMapper()
         self.mapper.SetInputData(img)
         self.SetMapper(self.mapper)
 
         self.mode(mode)
         self.color(c).alpha(alpha)
+        
+    def N(self):
+        """Retrieve number of volume points. Shortcut for `volume.NPoints()`."""
+        return self.imagedata().GetNumberOfPoints()
+
+    def NPoints(self):
+        """Retrieve number of volume points."""
+        return self.imagedata().GetNumberOfPoints()
+
+    def NCells(self):
+        """Retrieve number of volume cells."""
+        return self.imagedata().GetNumberOfCells()
 
     def mode(self, mode=None):
         """Define the volumetric rendering style.
@@ -3020,15 +3058,15 @@ class Volume(vtk.vtkVolume, Prop):
 
     def imagedata(self):
         """Return the underlying ``vtkImagaData`` object."""
-        return self.image
+        return self._image
 
     def dimensions(self):
         """Return the underlying ``vtkImagaData`` object."""
-        return self.image.GetDimensions()
+        return self._image.GetDimensions()
 
     def color(self, color="blue"):
         """Assign a color or a set of colors to a volume along the range of the scalar value."""
-        smin, smax = self.image.GetScalarRange()
+        smin, smax = self._image.GetScalarRange()
         volumeProperty = self.GetProperty()
         colorTransferFunction = vtk.vtkColorTransferFunction()
         if utils.isSequence(color):
@@ -3057,7 +3095,7 @@ class Volume(vtk.vtkVolume, Prop):
         will be completely opaque.
         """
         volumeProperty = self.GetProperty()
-        smin, smax = self.image.GetScalarRange()
+        smin, smax = self._image.GetScalarRange()
         opacityTransferFunction = vtk.vtkPiecewiseFunction()
         if utils.isSequence(alpha):
             for i, al in enumerate(alpha):
@@ -3079,7 +3117,7 @@ class Volume(vtk.vtkVolume, Prop):
         [vmin, vmax] and replaces it with the provided value.
         """
         th = vtk.vtkImageThreshold()
-        th.SetInputData(self.image)
+        th.SetInputData(self.imagedata())
 
         if vmin is not None and vmax is not None:
             th.ThresholdBetween(vmin, vmax)
@@ -3095,8 +3133,8 @@ class Volume(vtk.vtkVolume, Prop):
         th.SetInValue(replaceWith)
         th.Update()
 
-        self.image = th.GetOutput()
-        self.mapper.SetInputData(self.image)
+        self._image = th.GetOutput()
+        self.mapper.SetInputData(self._image)
         self.mapper.Modified()
         return self
 
@@ -3117,12 +3155,12 @@ class Volume(vtk.vtkVolume, Prop):
             Eg.: vol.crop(VOI=(xmin, xmax, ymin, ymax, zmin, zmax)) # all integers nrs
         """
         extractVOI = vtk.vtkExtractVOI()
-        extractVOI.SetInputData(self.image)
+        extractVOI.SetInputData(self.imagedata())
 
         if len(VOI):
             extractVOI.SetVOI(VOI)
         else:
-            d = self.image.GetDimensions()
+            d = self.imagedata().GetDimensions()
             bx0, bx1, by0, by1, bz0, bz1 = 0, d[0]-1, 0, d[1]-1, 0, d[2]-1
             if left is not None:   bx0 = int((d[0]-1)*left)
             if right is not None:  bx1 = int((d[0]-1)*(1-right))
@@ -3132,8 +3170,8 @@ class Volume(vtk.vtkVolume, Prop):
             if top is not None:    bz1 = int((d[2]-1)*(1-top))
             extractVOI.SetVOI(bx0, bx1, by0, by1, bz0, bz1)
         extractVOI.Update()
-        self.image = extractVOI.GetOutput()
-        self.GetMapper().SetInputData(self.image)
+        self._image = extractVOI.GetOutput()
+        self.GetMapper().SetInputData(self._image)
         self.GetMapper().Modified()
         return self
 
@@ -3146,10 +3184,10 @@ class Volume(vtk.vtkVolume, Prop):
         rsz.SetInputData(self.imagedata())
         rsz.SetOutputDimensions(newdims)
         rsz.Update()
-        self.image = rsz.GetOutput()
+        self._image = rsz.GetOutput()
         new_spac = old_spac * old_dims/newdims  # keep aspect ratio
-        self.image.SetSpacing(new_spac)
-        self.GetMapper().SetInputData(self.image)
+        self._image.SetSpacing(new_spac)
+        self.GetMapper().SetInputData(self._image)
         self.GetMapper().Modified()
         return self
 
@@ -3158,8 +3196,8 @@ class Volume(vtk.vtkVolume, Prop):
         norm = vtk.vtkImageNormalize()
         norm.SetInputData(self.imagedata())
         norm.Update()
-        self.image = norm.GetOutput()
-        self.GetMapper().SetInputData(self.image)
+        self._image = norm.GetOutput()
+        self.GetMapper().SetInputData(self._image)
         self.GetMapper().Modified()
         return self
 
@@ -3169,8 +3207,8 @@ class Volume(vtk.vtkVolume, Prop):
         rsl.SetInputData(self.imagedata())
         rsl.SetScalarScale(scale)
         rsl.Update()
-        self.image = rsl.GetOutput()
-        self.GetMapper().SetInputData(self.image)
+        self._image = rsl.GetOutput()
+        self.GetMapper().SetInputData(self._image)
         self.GetMapper().Modified()
         return self
 
@@ -3196,8 +3234,59 @@ class Volume(vtk.vtkVolume, Prop):
             colors.printc("~times Error in mirror(): mirror must be set to x, y, z or n.", c=1)
             raise RuntimeError()
         ff.Update()
-        self.image = ff.GetOutput()
-        self.GetMapper().SetInputData(self.image)
+        self._image = ff.GetOutput()
+        self.GetMapper().SetInputData(self._image)
         self.GetMapper().Modified()
         return self
 
+    def xSlice(self, i):
+        """Extract the slice at index `i` of volume along x-axis."""
+        vslice = vtk.vtkImageDataGeometryFilter()
+        vslice.SetInputData(self.imagedata())
+        nx, ny, nz = self.imagedata().GetDimensions()
+        if i>nx-1:
+            i=nx-1
+        vslice.SetExtent(i,i, 0,ny, 0,nz)
+        vslice.Update()
+        return Actor(vslice.GetOutput())
+      
+    def ySlice(self, j):
+        """Extract the slice at index `j` of volume along y-axis."""
+        vslice = vtk.vtkImageDataGeometryFilter()
+        vslice.SetInputData(self.imagedata())
+        nx, ny, nz = self.imagedata().GetDimensions()
+        if j>ny-1:
+            j=ny-1
+        vslice.SetExtent(0,nx, j,j, 0,nz)
+        vslice.Update()
+        return Actor(vslice.GetOutput())
+
+    def zSlice(self, k):
+        """Extract the slice at index `i` of volume along z-axis."""
+        vslice = vtk.vtkImageDataGeometryFilter()
+        vslice.SetInputData(self.imagedata())
+        nx, ny, nz = self.imagedata().GetDimensions()
+        if k>nz-1:
+            k=nz-1
+        vslice.SetExtent(0,nx, 0,ny, k,k)
+        vslice.Update()
+        return Actor(vslice.GetOutput())
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+  

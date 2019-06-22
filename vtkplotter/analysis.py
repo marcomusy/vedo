@@ -67,6 +67,7 @@ __all__ = [
     "signedDistanceFromPointCloud",
     "volumeFromMesh",
     "computeNormalsWithPCA",
+    "pointDensity",
 ]
 
 
@@ -306,12 +307,10 @@ def fxy(
     if len(todel):
         cellIds = vtk.vtkIdList()
         poly.BuildLinks()
-
         for i in todel:
             poly.GetPointCells(i, cellIds)
             for j in range(cellIds.GetNumberOfIds()):
                 poly.DeleteCell(cellIds.GetId(j))  # flag cell
-
         poly.RemoveDeletedCells()
         cl = vtk.vtkCleanPolyData()
         cl.SetInputData(poly)
@@ -1081,6 +1080,9 @@ def surfaceIntersection(actor1, actor2, tol=1e-06):
 def probePoints(vol, pts):
     """
     Takes a ``Volume`` and probes its scalars at the specified points in space.
+    
+    Note that a mask is also output with valid/invalid points which can be accessed
+    with `actor.scalars()`.
     """
     if hasattr(vol, 'GetMapper'):
         img = vol.GetMapper().GetInput()
@@ -2474,8 +2476,8 @@ def computeNormalsWithPCA(actor, n=20, orientationPoint=None, negate=False):
     
     :param int n: neighborhood size to calculate the normal
     :param list orientationPoint: adjust the +/- sign of the normals so that
-    the normals all point towards a specified point. If None, perform a traversal
-    of the point cloud and flip neighboring normals so that they are mutually consistent.
+        the normals all point towards a specified point. If None, perform a traversal
+        of the point cloud and flip neighboring normals so that they are mutually consistent.
 
     :param bool negate: flip all normals
     """
@@ -2503,7 +2505,30 @@ def computeNormalsWithPCA(actor, n=20, orientationPoint=None, negate=False):
     return newact
 
 
-
+def pointDensity(actor, dims=(30,30,30), bounds=None, radius=None, computeGradient=False):
+    """Generate a density field on a volume from a point cloud.
+    The local neighborhood is specified as a `radius` around each sample position (each voxel).
+    The density is normalized to the upper value of the scalar range.
+    """
+    pdf = vtk.vtkPointDensityFilter()
+    pdf.SetInputData(actor.polydata())
+    pdf.SetSampleDimensions(dims)
+    pdf.SetDensityEstimateToFixedRadius()
+    #pdf.SetDensityFormToVolumeNormalized()
+    pdf.SetDensityFormToNumberOfPoints ()
+    if radius is None:
+        radius = actor.diagonalSize()/20
+    pdf.SetRadius(radius)
+    pdf.SetComputeGradient(computeGradient)
+    if bounds is None:
+        bounds = actor.GetBounds()
+    pdf.SetModelBounds(bounds)
+    pdf.Update()
+    img = pdf.GetOutput()
+    vol = Volume(img)
+    return volumeOperation(vol, '/', img.GetScalarRange()[1])
+    
+    
     
     
     

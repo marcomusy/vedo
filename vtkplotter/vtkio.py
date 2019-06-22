@@ -251,7 +251,13 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
             reader = vtk.vtkXMLPImageDataReader()
         else:
             reader = vtk.vtkDataReader()
+            
         reader.SetFileName(filename)
+        if hasattr(reader, 'ReadAllScalarsOn'):
+            reader.ReadAllScalarsOn()
+            reader.ReadAllVectorsOn()
+            reader.ReadAllTensorsOn()
+            reader.ReadAllFieldsOn()
         reader.Update()
         poly = reader.GetOutput()
 
@@ -276,14 +282,14 @@ def download(url, prefix=''):
     """Retrieve a file from a url, save it locally and return its path."""
 
     if "https://" not in url and "http://" not in url:
-        colors.printc('Invalid URL:\n', url, c=1)
-        return
+    #    colors.printc('Invalid URL:\n', url, c=1)
+        return url
 
     basename = os.path.basename(url)
     if os.path.exists(basename):
         return basename
 
-    colors.printc('..downloading:\n', basename)
+    colors.printc('..downloading:\n', url)
     try:
         from urllib.request import urlopen
     except ImportError:
@@ -1352,11 +1358,8 @@ def _keypress(iren, event):
     elif key == "1":
         vp.icol += 1
         if vp.clickedActor and hasattr(vp.clickedActor, "GetProperty"):
-            if (vp.icol) % 10 == 0:
-                vp.clickedActor.GetMapper().ScalarVisibilityOn()
-            else:
-                vp.clickedActor.GetMapper().ScalarVisibilityOff()
-                vp.clickedActor.GetProperty().SetColor(colors.colors1[(vp.icol) % 10])
+            vp.clickedActor.GetMapper().ScalarVisibilityOff()
+            vp.clickedActor.GetProperty().SetColor(colors.colors1[(vp.icol) % 10])
         else:
             for i, ia in enumerate(vp.getActors()):
                 if not ia.GetPickable():
@@ -1368,11 +1371,8 @@ def _keypress(iren, event):
     elif key == "2":
         vp.icol += 1
         if vp.clickedActor and hasattr(vp.clickedActor, "GetProperty"):
-            if (vp.icol) % 10 == 0:
-                vp.clickedActor.GetMapper().ScalarVisibilityOn()
-            else:
-                vp.clickedActor.GetMapper().ScalarVisibilityOff()
-                vp.clickedActor.GetProperty().SetColor(colors.colors2[(vp.icol) % 10])
+            vp.clickedActor.GetMapper().ScalarVisibilityOff()
+            vp.clickedActor.GetProperty().SetColor(colors.colors2[(vp.icol) % 10])
         else:
             for i, ia in enumerate(vp.getActors()):
                 if not ia.GetPickable():
@@ -1395,10 +1395,25 @@ def _keypress(iren, event):
         addons.addLegend()
 
     elif key == "4":
+        acs = vp.getActors()
+        if len(acs) == 0: return
+        alpha = 1.0 / len(acs)
+        for ia in acs:
+            if not ia.GetPickable():
+                continue
+            ia.GetProperty().SetOpacity(alpha)
+            ia.GetMapper().ScalarVisibilityOn()
+        addons.addLegend()
+
+    elif key == "5":
         bgc = numpy.array(vp.renderer.GetBackground()).sum() / 3
-        if bgc > 1:
-            bgc = -0.223
-        vp.renderer.SetBackground(bgc + 0.223, bgc + 0.223, bgc + 0.223)
+        if bgc <= 0:
+            bgc = 0.223
+        elif 0 < bgc < 1:
+            bgc = 1
+        else:
+            bgc = 0
+        vp.renderer.SetBackground(bgc, bgc, bgc)
 
     elif "KP_" in key:  # change axes style
         asso = {
