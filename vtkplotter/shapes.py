@@ -85,19 +85,24 @@ def Points(plist, r=5, c="gray", alpha=1):
         vgf.SetInputData(src.GetOutput())
         vgf.Update()
         pd = vgf.GetOutput()
+        
         ucols = vtk.vtkUnsignedCharArray()
         ucols.SetNumberOfComponents(3)
         ucols.SetName("pointsRGB")
+        
         for i in range(len(plist)):
             c = np.array(colors.getColor(cols[i])) * 255
             ucols.InsertNextTuple3(c[0], c[1], c[2])
+            
+        if len(plist[0]) == 2: #make it 3d
+            plist = np.c_[np.array(plist), np.zeros(len(plist))]
+
         pd.GetPoints().SetData(numpy_to_vtk(plist, deep=True))
         pd.GetPointData().SetScalars(ucols)
         actor = Actor(pd, c, alpha)
         actor.mapper.ScalarVisibilityOn()
         actor.GetProperty().SetInterpolationToFlat()
         actor.GetProperty().SetPointSize(r)
-        settings.collectable_actors.append(actor)
         return actor
 
     n = len(plist)
@@ -134,7 +139,7 @@ def Points(plist, r=5, c="gray", alpha=1):
     pd = vtk.vtkPolyData()
     pd.SetPoints(sourcePoints)
     pd.SetVerts(sourceVertices)
-    
+
     if n == 1:  # passing just one point
         pd.GetPoints().SetPoint(0, [0, 0, 0])
     else:
@@ -173,7 +178,7 @@ def Glyph(actor, glyphObj, orientationArray=None,
     if c in list(colors._mapscales.cmap_d.keys()):
         cmap = c
         c = None
-        
+
     if tol:
         actor = actor.clone().clean(tol)
     poly = actor.polydata()
@@ -255,32 +260,32 @@ def Tensors(domain, source='ellipsoid', useEigenValues=True, isSymmetric=True,
     """Geometric representation of tensors defined on a domain or set of points.
     Tensors can be scaled and/or rotated according to the source at eache input point.
     Scaling and rotation is controlled by the eigenvalues/eigenvectors of the symmetrical part
-    of the tensor as follows: 
-    
-        For each tensor, the eigenvalues (and associated eigenvectors) are sorted 
-        to determine the major, medium, and minor eigenvalues/eigenvectors. 
+    of the tensor as follows:
+
+        For each tensor, the eigenvalues (and associated eigenvectors) are sorted
+        to determine the major, medium, and minor eigenvalues/eigenvectors.
         The eigenvalue decomposition only makes sense for symmetric tensors,
         hence the need to only consider the symmetric part of the tensor, which is 1/2*(T+T.transposed()).
 
     :param str source: preset type of source shape ['ellipsoid', 'cylinder', 'cube' or any specified ``Actor``]
-    
+
     :param bool useEigenValues: color source glyph using the eigenvalues or by scalars.
-    
+
     :param bool threeAxes: if `False` scale the source in the x-direction, the medium in the y-direction,
-        and the minor in the z-direction. Then, the source is rotated so that the glyph's local x-axis lies 
+        and the minor in the z-direction. Then, the source is rotated so that the glyph's local x-axis lies
         along the major eigenvector, y-axis along the medium eigenvector, and z-axis along the minor.
-    
+
         If `True` three sources are produced, each of them oriented along an eigenvector
         and scaled according to the corresponding eigenvector.
-    
+
     :param bool isSymmetric: If `True` each source glyph is mirrored (2 or 6 glyphs will be produced).
         The x-axis of the source glyph will correspond to the eigenvector on output.
-    
+
     :param float length: distance from the origin to the tip of the source glyph along the x-axis
-        
+
     :param float scale: scaling factor of the source glyph.
     :param float maxScale: clamp scaling at this factor.
-    
+
     |tensors| |tensors.py|_
     """
     if 'ellip' in source:
@@ -296,11 +301,11 @@ def Tensors(domain, source='ellipsoid', useEigenValues=True, isSymmetric=True,
     else:
         src = source.normalize().polydata(False)
     src.Update()
-    
+
     tg = vtk.vtkTensorGlyph()
     tg.SetInputData(domain.GetMapper().GetInput())
     tg.SetSourceData(src.GetOutput())
-    
+
     if c is None:
         tg.ColorGlyphsOn()
     else:

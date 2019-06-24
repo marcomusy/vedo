@@ -25,8 +25,6 @@ python example.py  # on mac OSX try 'pythonw' instead
 |    |    |
 | [![mpend](https://user-images.githubusercontent.com/32848391/50738892-db380300-11d8-11e9-807c-fb320c7b7917.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/multiple_pendulum.py)<br/> `multiple_pendulum.py` | Simulation of an elastic multiple pendulums with viscous friction. |
 |    |    |
-| [![pendulum](https://user-images.githubusercontent.com/32848391/55420020-51e56200-5576-11e9-8513-4a5d93913b17.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/pendulum.py)<br/> `pendulum.py`       | Visualize the phase space of a simple pendulum (from [3Blue1Brown](https://www.youtube.com/watch?v=p_di4Zn4wz4)). |
-|    |    |
 | [![hanoi](https://user-images.githubusercontent.com/32848391/56989284-58c1bd80-6b92-11e9-8f82-1ce95813f846.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/hanoi3d.py)<br/> `hanoi3d.py`            | Solve the Tower of Hanoi puzzle (contributed by [G. Jacquenot](https://github.com/Gjacquenot)). |
 |    |    |
 | [![airplanes](https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations/airplanes.py)<br/> `airplanes.py`    | Two acrobatic planes casting shadows and leaving a trail. |

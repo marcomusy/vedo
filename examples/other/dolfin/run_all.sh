@@ -38,6 +38,8 @@ python elasticbeam.py
 echo Running magnetostatics.py
 python magnetostatics.py
 
+echo Running curl2d.py
+python curl2d.py
 
 ######################################
 echo Running ex01_show-mesh.py

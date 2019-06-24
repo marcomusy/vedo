@@ -352,8 +352,11 @@ python other/icon.py
 echo Running other/inset.py
 python other/inset.py
 
-echo Running other/qt_embed.py # needs qt5
-python other/qt_embed.py
+echo Running other/qt_window.py # needs qt5
+python other/qt_window.py
+
+echo Running other/qt_window_split.py # needs qt5
+python other/qt_window_split.py
 
 echo Running other/self_org_maps2d.py
 python other/self_org_maps2d.py

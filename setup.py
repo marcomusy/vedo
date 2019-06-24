@@ -50,11 +50,11 @@ setup(
 # pip install .
 # ( sudo -H pip install . )
 
-# cd examples
-# ./run_all.sh
+# cd examples && ./run_all.sh
 
 # check vtkconvert:
 # vtkconvert vtkplotter/data/290.vtk -to ply
+# rm vtkplotter/data/290.ply
 
 # check on python2 the same stuff is ok
 

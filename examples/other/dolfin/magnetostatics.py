@@ -88,5 +88,7 @@ from vtkplotter.dolfin import plot
 plot(A_z, at=0, N=2, # draw on the first of 2 renderers
      lw=0,           # linewidth of mesh
      bg='white',
-     isolines={'n':20, 'lw':1.5, 'c':'black'})
-plot(B, at=1, text=__doc__) # draw on the second renderer
+     isolines={'n':20, 'lw':1.5, 'c':'black'},
+     scalarbar=False,
+     )
+plot(B, at=1, scalarbar=False, text=__doc__) # draw on the second renderer

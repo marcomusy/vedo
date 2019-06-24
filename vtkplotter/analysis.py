@@ -1080,7 +1080,7 @@ def surfaceIntersection(actor1, actor2, tol=1e-06):
 def probePoints(vol, pts):
     """
     Takes a ``Volume`` and probes its scalars at the specified points in space.
-    
+
     Note that a mask is also output with valid/invalid points which can be accessed
     with `actor.scalars()`.
     """
@@ -1966,7 +1966,7 @@ def interpolateToVolume(actor, kernel='shepard', radius=None,
     :param list bounds: bounding box of the output Volume object
     :param list dims: dimensions of the output Volume object
     :param float nullValue: value to be assigned to invalid points
-    
+
     |interpolateVolume| |interpolateVolume.py|_
     """
     output = actor.polydata()
@@ -2446,12 +2446,12 @@ def volumeFromMesh(actor, bounds=None, dims=(20,20,20), signed=True, negate=Fals
     img.SetSpacing(sx, sy, sz)
     img.SetOrigin(bounds[0], bounds[2], bounds[4])
     img.AllocateScalars(vtk.VTK_FLOAT, 1)
-    
+
     imp = vtk.vtkImplicitPolyDataDistance()
     imp.SetInput(actor.polydata())
     b4 = bounds[4]
     r2 = range(dims[2])
-    
+
     for i in range(dims[0]):
         x = i*sx+bounds[0]
         for j in range(dims[1]):
@@ -2462,7 +2462,7 @@ def volumeFromMesh(actor, bounds=None, dims=(20,20,20), signed=True, negate=Fals
                     if negate:
                         v = -v
                 else:
-                    v = abs(v)                    
+                    v = abs(v)
                 img.SetScalarComponentFromFloat(i,j,k, 0, v)
 
     return Volume(img)
@@ -2473,7 +2473,7 @@ def computeNormalsWithPCA(actor, n=20, orientationPoint=None, negate=False):
     Basically this estimates a local tangent plane around each sample point p
     by considering a small neighborhood of points around p, and fitting a plane
     to the neighborhood (via PCA).
-    
+
     :param int n: neighborhood size to calculate the normal
     :param list orientationPoint: adjust the +/- sign of the normals so that
         the normals all point towards a specified point. If None, perform a traversal
@@ -2485,20 +2485,20 @@ def computeNormalsWithPCA(actor, n=20, orientationPoint=None, negate=False):
     pcan = vtk.vtkPCANormalEstimation()
     pcan.SetInputData(poly)
     pcan.SetSampleSize(n)
-    
+
     if orientationPoint is not None:
         pcan.SetNormalOrientationToPoint()
         pcan.SetOrientationPoint(orientationPoint)
     else:
         pcan.SetNormalOrientationToGraphTraversal()
-    
+
     if negate:
         pcan.FlipNormalsOn()
-        
+
     pcan.Update()
     out = pcan.GetOutput()
     vnorm = out.GetPointData().GetNormals()
-    
+
     newact = actor.clone()
     newact.polydata().GetPointData().SetNormals(vnorm)
     newact.polydata().GetPointData().Modified()
@@ -2527,13 +2527,13 @@ def pointDensity(actor, dims=(30,30,30), bounds=None, radius=None, computeGradie
     img = pdf.GetOutput()
     vol = Volume(img)
     return volumeOperation(vol, '/', img.GetScalarRange()[1])
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
 
 

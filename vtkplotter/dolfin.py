@@ -137,6 +137,8 @@ __all__ = [
 
 
 def _inputsort(obj):
+    import dolfin
+
     u = None
     mesh = None
     if not utils.isSequence(obj):
@@ -153,44 +155,22 @@ def _inputsort(obj):
             if "MeshFunction" in inputtype:
                 mesh = ob.mesh()
 
-                import dolfin
-                V = dolfin.FunctionSpace(mesh, "CG", 1)
-                u = dolfin.Function(V)
-                #print(mesh.cells())
-                #print(len(mesh.cells()), len(mesh.coordinates()), len(ob.array()))
-                #print(mesh.num_cells())
-                #print(u.vector()[:])
-
-                v2d = dolfin.vertex_to_dof_map(V)
-                u.vector()[v2d] = ob.array()
-
-#                r = ob.dim()
-#                    if r == 0:
-#                        V = dolfin.FunctionSpace(mesh, "CG", 1)
-#                    elif r == 1:
-#                        V = dolfin.VectorFunctionSpace(mesh, "CG", 1, dim=r)
-#                    else:
-#                        V = dolfin.TensorFunctionSpace(mesh, "CG", 1, shape=(r,r))
-#                except:
-#                    printc('~times Sorry could not deal with your MeshFunction', c=1)
-#                    return None
-#                tdim = mesh.topology().dim()
-#                d = ob.dim()
-#                if tdim == 2 and d == 2:
-#                    import matplotlib.tri as tri
-#                    xy = mesh.coordinates()
-#                    mh = buildPolyData(xy, mesh.cells())
-#                    show(mh)
-#                    print( tri.Triangulation(xy[:, 0], xy[:, 1], mesh.cells()) )
-#                    exit()
-
+                if ob.dim()>0:
+                    printc('MeshFunction of dim>0 not supported.', c=1)
+                    printc('Try e.g.:  MeshFunction("size_t", mesh, 0)', c=1, italic=1)
+                    printc('instead of MeshFunction("size_t", mesh, 1)', c=1, strike=1)
+                else:
+                    #printc(ob.dim(), mesh.num_cells(), len(mesh.coordinates()), len(ob.array()))
+                    V = dolfin.FunctionSpace(mesh, "CG", 1)
+                    u = dolfin.Function(V)
+                    v2d = dolfin.vertex_to_dof_map(V)
+                    u.vector()[v2d] = ob.array()
             elif "Function" in inputtype or "Expression" in inputtype:
                 u = ob
             elif "Mesh" in inputtype:
                 mesh = ob
 
         if "str" in inputtype:
-            import dolfin
             mesh = dolfin.Mesh(ob)
 
     if u and not mesh and hasattr(u, "function_space"):
@@ -199,10 +179,6 @@ def _inputsort(obj):
             mesh = V.mesh()
     if u and not mesh and hasattr(u, "mesh"):
         mesh = u.mesh()
-
-    if not mesh:
-        printc("~times Error: dolfin mesh is not defined.", c=1)
-        raise RuntimeError()
 
     #printc('------------------------------------')
     #printc('mesh.topology dim=', mesh.topology().dim())
@@ -313,17 +289,17 @@ def plot(*inputobj, **options):
         - distance `(float)`, set the focal point to the specified distance from the camera position.
         - clippingRange `(float)`, distance of the near and far clipping planes along
             the direction of projection.
-            
+
         - parallelScale `(float)`,
             scaling used for a parallel projection, i.e. the height of the viewport
             in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
             an "inverse scale", larger numbers produce smaller images.
             This method has no effect in perspective projection mode.
-            
+
         - thickness `(float)`,
             set the distance between clipping planes. This method adjusts the far clipping
             plane to be set a distance 'thickness' beyond the near clipping plane.
-            
+
         - viewAngle `(float)`,
             the camera view angle, which is the angular height of the camera view
             measured in degrees. The default angle is 30 degrees.
@@ -489,7 +465,7 @@ def plot(*inputobj, **options):
     if add and settings.plotter_instance:
         actors = settings.plotter_instance.actors
 
-    if 'mesh' in mode or 'color' in mode or 'warp' in mode or 'displac' in mode:
+    if mesh and ('mesh' in mode or 'color' in mode or 'warp' in mode or 'displac' in mode):
         if 'warp' in mode: #deprecation
             printc("~bomb Please use 'displacement' instead of 'warp' in mode!", c=1)
 
@@ -625,9 +601,7 @@ def plot(*inputobj, **options):
 class MeshActor(Actor):
     """MeshActor, a vtkActor derived object for dolfin support."""
 
-    def __init__(
-        self, *inputobj, **options # c="gold", alpha=1, wire=True, bc=None, computeNormals=False
-    ):
+    def __init__(self, *inputobj, **options):
 
         c = options.pop("c", "gold")
         alpha = options.pop("alpha", 1)
@@ -635,7 +609,9 @@ class MeshActor(Actor):
         bc = options.pop("bc", None)
         computeNormals = options.pop("computeNormals", False)
 
-        mesh, u = _inputsort(inputobj)
+        mesh, u = _inputsort(inputobj)       
+        if not mesh:
+            return
 
         poly = vtkio.buildPolyData(mesh)
 
@@ -691,6 +667,8 @@ def MeshPoints(*inputobj, **options):
     alpha = options.pop("alpha", 1)
 
     mesh, u = _inputsort(inputobj)
+    if not mesh:
+        return None
     plist = mesh.coordinates()
     if u:
         u_values = np.array([u(p) for p in plist])
@@ -731,6 +709,9 @@ def MeshLines(*inputobj, **options):
     alpha = options.pop("alpha", 1)
 
     mesh, u = _inputsort(inputobj)
+    if not mesh:
+        return None
+                
     startPoints = mesh.coordinates()
     u_values = np.array([u(p) for p in mesh.coordinates()])
     if not utils.isSequence(u_values[0]):
@@ -766,6 +747,9 @@ def MeshArrows(*inputobj, **options):
     res = options.pop("res", 12)
 
     mesh, u = _inputsort(inputobj)
+    if not mesh:
+        return None
+
     startPoints = mesh.coordinates()
     u_values = np.array([u(p) for p in mesh.coordinates()])
     if not utils.isSequence(u_values[0]):
@@ -787,98 +771,6 @@ def MeshArrows(*inputobj, **options):
 
 
 
-#def make_mapping(sub_space, super_space):
-#    from scipy.spatial import cKDTree
-#    super_dof_coor = super_space.tabulate_dof_coordinates()
-#    sub_dof_coor = sub_space.tabulate_dof_coordinates()
-#
-#    tree = cKDTree(super_dof_coor)
-#    _,mapping = tree.query(sub_dof_coor, k=1)
-#    return mapping
-
-
-
-
-#from dolfin import *
-#mesh = UnitCubeMesh(10, 10, 10)        # this will be the "grandparent" mesh
-#mesh.coordinates()[:,0] -= .5          # shift x-coords
-#mesh.coordinates()[:,1] -= .5          # shift y-coords
-#
-#bmesh  = BoundaryMesh(mesh, "exterior")   # surface boundary mesh
-#
-## mark the cells on the bottom of the bmesh surface by iterating over bmesh cells.
-## Look up ccorresponding facet in mesh and mark if facet normal points in -z direction
-#cellmap = bmesh.entity_map(2)
-#vertmap = bmesh.entity_map(0)
-#pb = MeshFunction("size_t", bmesh, dim =1)
-#for c in cells(bmesh):
-#  if Facet(mesh, cellmap[c.index()]).normal().z() < 0:
-#    pb[c] = 1
-#
-## use the marked bottom of the bmesh to create a Submesh
-#submesh = SubMesh(bmesh, pb, 1)           # bottom of boundary mesh
-#
-## FunctionSpaces on main mesh, bmesh, submesh
-#V   = FunctionSpace(mesh, "CG", 1)        # mesh function space
-#Vb  = FunctionSpace(bmesh,   "CG", 1)     # surface function space
-#Vs  = FunctionSpace(submesh, "CG", 1)     # submesh function space
-#
-## mappings we may need:
-#m    = vertex_to_dof_map(V)
-#b    = vertex_to_dof_map(Vb)
-#s    = vertex_to_dof_map(Vs)
-#
-#mi   = dof_to_vertex_map(V)
-#bi   = dof_to_vertex_map(Vb)
-#si   = dof_to_vertex_map(Vs)
-#
-#t = submesh.data().array('parent_vertex_indices', 0) # mapping from submesh back to bmesh
-#
-## Functions on main mesh, bmesh, and submesh
-#u   = Function(V)
-#ub  = Function(Vb)                        # boundary function
-#us  = Function(Vs)                        # surface function
-#
-## Interpolate the following expr onto u, ub, us
-#expr  = Expression('sqrt(pow(x[0],2) + pow(x[1], 2))', degree=2)
-#u.interpolate(expr)
-#ub.interpolate(expr)
-#us.interpolate(expr)
-#
-## Some empty function to test the mappings
-#ub_test = Function(Vb)  # empty bmesh function
-#u_test  = Function(V)   # empty mesh function
-#
-## Mapping from submesh to bmesh (works)... Any way to avoid calls to get_local/set_local??
-#us_a  = us.vector().get_local()              # origin array
-#ub_test_a = ub_test.vector().get_local()     # destination array
-#ub_test_a[b[t]]  = us_a[s]                   # transfer
-#ub_test.vector().set_local(ub_test_a)        # set destination function values
-#
-## Mapping from submesh to grandparent mesh (less than satisfying solution to question in fenics forum link)
-## Bonus points for getting this kind of map composition to work:
-## u_test_a = u_test.vector().get_local()    # destination array
-## u_test_a[m[b[t]]] = us_a[s]               # transfer ( not working )
-## u_test.vector().set_local(u_test_a)
-#for Vs_dof, val in enumerate(us.vector().get_local()):
-#    submesh_vertex = si[Vs_dof]
-#    boundary_vertex = t[submesh_vertex]
-#    mesh_vertex = vertmap[int(boundary_vertex)] # np.uint not accepted
-#    V_dof = m[mesh_vertex]
-#    u_test.vector()[V_dof] = val
-#
-#u.rename('u','u')
-#ub_test.rename('ub_test','ub_test')
-#u_test.rename('u_test','u_test')
-#us.rename('us','us')
-
-
-
-
-
-
-
-#
 #import dolfin
 #import dolfin.cpp as cpp
 #import ufl

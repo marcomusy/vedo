@@ -34,7 +34,7 @@ __all__ = [
 ]
 
 
-def load(inputobj, c="gold", alpha=1, threshold=False, spacing=(), unpack=True):
+def load(inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
     """
     Load ``Actor`` and ``Volume`` from file.
 
@@ -116,7 +116,7 @@ def load(inputobj, c="gold", alpha=1, threshold=False, spacing=(), unpack=True):
                 if len(spacing) == 3:
                     image.SetSpacing(spacing[0], spacing[1], spacing[2])
                 if threshold is False:
-                    if c is "gold" and alpha is 1:
+                    if c is None and alpha is 1:
                         c = ['b','lb','lg','y','r'] # good for blackboard background
                         alpha = (0.0, 0.0, 0.2, 0.4, 0.8, 1)
                         #c = ['lb','db','dg','dr']  # good for white backgr
@@ -168,7 +168,7 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
         or fl.endswith(".mhd") or fl.endswith(".nrrd") or fl.endswith(".nii"):
         img = loadImageData(filename, spacing)
         if threshold is False:
-            if c is "gold" and alpha is 1:
+            if c is None and alpha is 1:
                 c = ['b','lb','lg','y','r'] # good for blackboard background
                 alpha = (0.0, 0.0, 0.2, 0.4, 0.8, 1)
                 #c = ['lb','db','dg','dr']  # good for white backgr
@@ -216,11 +216,27 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
 
     elif fl.endswith(".geojson") or fl.endswith(".geojson.gz"):
         return loadGeoJSON(fl)
-    
+
         ################################################################# polygonal mesh:
     else:
-        if   fl.endswith(".vtk"):
+#        applygeomf = False
+        if fl.endswith(".vtk"): # legacy readers
+#            try:
+#                with open(filename) as myfile:
+#                    head = [next(myfile) for x in range(3)]
+#                head = ''.join(head).lower()
+#                if ' unstructured_grid' in head:
+#                    reader = vtk.vtkUnstructuredGridReader()
+#                    applygeomf = True
+#                elif ' structured_grid' in head:
+#                    reader = vtk.vtkStructuredGridReader()
+#                    applygeomf = True
+#                else:
+#                    reader = vtk.vtkPolyDataReader()
+#            except:
+            
             reader = vtk.vtkPolyDataReader()
+
         elif fl.endswith(".ply"):
             reader = vtk.vtkPLYReader()
         elif fl.endswith(".obj"):
@@ -237,6 +253,8 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
             reader = vtk.vtkXMLStructuredGridReader()
         elif fl.endswith(".vtu"):
             reader = vtk.vtkXMLUnstructuredGridReader()
+        elif fl.endswith(".vtr"):
+            reader = vtk.vtkXMLRectilinearGridReader()
         elif fl.endswith(".txt"):
             reader = vtk.vtkParticleReader()  # (format is x, y, z, scalar)
         elif fl.endswith(".xyz"):
@@ -251,7 +269,7 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
             reader = vtk.vtkXMLPImageDataReader()
         else:
             reader = vtk.vtkDataReader()
-            
+
         reader.SetFileName(filename)
         if hasattr(reader, 'ReadAllScalarsOn'):
             reader.ReadAllScalarsOn()
@@ -260,12 +278,6 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
             reader.ReadAllFieldsOn()
         reader.Update()
         poly = reader.GetOutput()
-
-        if fl.endswith(".vts") or fl.endswith(".vtu"): # un/structured grid
-            gf = vtk.vtkGeometryFilter()
-            gf.SetInputData(poly)
-            gf.Update()
-            poly = gf.GetOutput()
 
         if not poly:
             colors.printc("~noentry Unable to load", filename, c=1)
@@ -436,7 +448,7 @@ def loadGeoJSON(filename):
     jr.SetFileName(filename)
     jr.Update()
     return Actor(jr.GetOutput())
-    
+
 
 def loadDolfin(filename):
     """Reads a `Fenics/Dolfin` file format. Return an ``Actor(vtkActor)`` object."""

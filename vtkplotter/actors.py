@@ -873,7 +873,6 @@ class Actor(vtk.vtkActor, Prop):
         self._bfprop = None  # backface property holder
 
         prp = self.GetProperty()
-        #prp.SetInterpolationToFlat()
 
         if settings.renderPointsAsSpheres:
             if hasattr(prp, 'RenderPointsAsSpheresOn'):
@@ -884,8 +883,10 @@ class Actor(vtk.vtkActor, Prop):
                 prp.RenderLinesAsTubesOn()
 
         if c is None:
-            self.mapper.ScalarVisibilityOn()
-            prp.SetColor(colors.getColor("gold"))
+            if self.poly and self.poly.GetPointData().GetScalars():
+                self.mapper.ScalarVisibilityOn()
+            else:
+                prp.SetColor(colors.getColor("gold"))
         else:
             self.mapper.ScalarVisibilityOff()
             c = colors.getColor(c)
@@ -1111,7 +1112,7 @@ class Actor(vtk.vtkActor, Prop):
 
     def deletePoints(self, indices):
         """Delete a list of vertices identified by their index.
-        
+
         |deleteMeshPoints| |deleteMeshPoints.py|_
         """
         cellIds = vtk.vtkIdList()
@@ -2998,7 +2999,7 @@ class Volume(vtk.vtkVolume, Prop):
                     for iz in range(nz):
                         vtkimg.SetScalarComponentFromFloat(ix, iy, iz, 0, img[ix, iy, iz])
             img = vtkimg
-        
+
         if origin is not None:
             img.SetOrigin(origin)
         if spacing is not None:
@@ -3011,7 +3012,7 @@ class Volume(vtk.vtkVolume, Prop):
 
         self.mode(mode)
         self.color(c).alpha(alpha)
-        
+
     def N(self):
         """Retrieve number of volume points. Shortcut for `volume.NPoints()`."""
         return self.imagedata().GetNumberOfPoints()
@@ -3249,7 +3250,7 @@ class Volume(vtk.vtkVolume, Prop):
         vslice.SetExtent(i,i, 0,ny, 0,nz)
         vslice.Update()
         return Actor(vslice.GetOutput())
-      
+
     def ySlice(self, j):
         """Extract the slice at index `j` of volume along y-axis."""
         vslice = vtk.vtkImageDataGeometryFilter()
@@ -3271,22 +3272,21 @@ class Volume(vtk.vtkVolume, Prop):
         vslice.SetExtent(0,nx, 0,ny, k,k)
         vslice.Update()
         return Actor(vslice.GetOutput())
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

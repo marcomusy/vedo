@@ -10,8 +10,6 @@ from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 from vtkplotter import Plotter, Cube, Torus, Cone, settings
 
-settings.usingQt = True
-
 
 class MainWindow(Qt.QMainWindow):
     def __init__(self, parent=None):
@@ -22,7 +20,7 @@ class MainWindow(Qt.QMainWindow):
         self.vtkWidget = QVTKRenderWindowInteractor(self.frame)
         self.vl.addWidget(self.vtkWidget)
 
-        vp = Plotter(offscreen=1, interactive=0, axes=2, N=2)
+        vp = Plotter(qtWidget=self.vtkWidget, axes=2, N=2)
 
         cn = Cone()
         cc = Cube().pos(1, 1, 1).color("pink")

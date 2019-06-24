@@ -204,7 +204,7 @@ def humansort(l):
     l.sort(key=alphanum_key)
     return None  # NB: input list is modified
 
- 
+
 def lin_interp(x, rangeX, rangeY):
     """
     Interpolate linearly variable x in rangeX onto rangeY.
@@ -249,6 +249,8 @@ def precision(x, p, vrange=None):
     """
     Returns a string representation of `x` formatted with precision `p`.
 
+    :param float vrange: range in which x exists (to snap it to '0' if below precision).
+
     Based on the webkit javascript implementation taken
     `from here <https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/kjs/number_object.cpp>`_,
     and implemented by `randlet <https://github.com/randlet/to-precision>`_.
@@ -257,8 +259,8 @@ def precision(x, p, vrange=None):
 
     x = float(x)
 
-    if x == 0.0:
-        return "0." + "0" * (p - 1)
+    if x == 0.0 or (vrange is not None and abs(x) < vrange/pow(10,p)):
+        return "0"
 
     out = []
     if x < 0:
@@ -584,14 +586,14 @@ def printInfo(obj):
         img = obj.GetMapper().GetInput()
         colors.printc("         position: ", c="b", bold=1, end="")
         colors.printc(pos, c="b", bold=0)
-        
+
         colors.printc("       dimensions: ", c="b", bold=1, end="")
         colors.printc(img.GetDimensions(), c="b", bold=0)
         colors.printc("          spacing: ", c="b", bold=1, end="")
         colors.printc(img.GetSpacing(), c="b", bold=0)
         colors.printc("   data dimension: ", c="b", bold=1, end="")
         colors.printc(img.GetDataDimension(), c="b", bold=0)
-        
+
         colors.printc("      memory size: ", c="b", bold=1, end="")
         colors.printc(int(img.GetActualMemorySize()/1024), 'Mb', c="b", bold=0)
 
@@ -609,9 +611,9 @@ def printInfo(obj):
         colors.printc("     scalar range: ", c="b", bold=1, end="")
         colors.printc(img.GetScalarRange(), c="b", bold=0)
 
-        printHistogram(obj, horizontal=True, 
-                       logscale=True, bins=8, height=15, c='b', bold=0) 
-    
+        printHistogram(obj, horizontal=True,
+                       logscale=True, bins=8, height=15, c='b', bold=0)
+
     elif hasattr(obj, "interactor"):  # dumps Plotter info
         axtype = {
             0: "(no axes)",

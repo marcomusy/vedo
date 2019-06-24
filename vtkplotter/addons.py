@@ -216,9 +216,9 @@ def addScalarBar3D(
     tlabs = numpy.linspace(vmin, vmax, num=nlabels, endpoint=True)
     tacts = []
     prec = (vmax - vmin) / abs(vmax + vmin) * 2
-    prec = int(3 + abs(numpy.log10(prec + 1)))
+    prec = int(2 + abs(numpy.log10(prec + 1)))
     for i, t in enumerate(tlabs):
-        tx = utils.precision(t, prec)
+        tx = utils.precision(t, prec, vrange=vmax-vmin)
         y = -sy / 1.98 + sy * i / (nlabels - 1)
         a = shapes.Text(tx, pos=[sx * gap, y, 0], s=sy / 50, c=c, alpha=alpha, depth=0)
         a.PickableOff()
@@ -1142,7 +1142,7 @@ def addAxes(axtype=None, c=None):
                     v = (ic/rx, -xLabelOffset, 0)
                     val = v[0]*sizes[0]+min_bns[0]
                     if abs(val)>1 and sizes[0]<1: xLabelPrecision = int(xLabelPrecision-numpy.log10(sizes[0]))
-                    tval = utils.precision(val, xLabelPrecision)
+                    tval = utils.precision(val, xLabelPrecision, vrange=sizes[0])
                     xlab = shapes.Text(tval, pos=v, s=xLabelSize, justify="center-top", depth=0)
                     if xKeepAspectRatio: xlab.SetScale(x_aspect_ratio_scale)
                     labels.append(xlab.c(xTickColor).lighting(specular=0, ambient=1))
@@ -1153,7 +1153,7 @@ def addAxes(axtype=None, c=None):
                     v = (-yLabelOffset, ic/ry, 0)
                     val = v[1]*sizes[1]+min_bns[2]
                     if abs(val)>1 and sizes[1]<1: yLabelPrecision = int(yLabelPrecision-numpy.log10(sizes[1]))
-                    tval = utils.precision(val, yLabelPrecision)
+                    tval = utils.precision(val, yLabelPrecision, vrange=sizes[1])
                     ylab = shapes.Text(tval, pos=(0,0,0), s=yLabelSize, justify="center-bottom", depth=0)
                     if yKeepAspectRatio: ylab.SetScale(y_aspect_ratio_scale)
                     ylab.rotateZ(yTitleRotation).pos(v)
@@ -1164,7 +1164,7 @@ def addAxes(axtype=None, c=None):
                 for ic in range(1, rz+enableLastLabel):
                     v = (-zLabelOffset, -zLabelOffset, ic/rz)
                     val = v[2]*sizes[2]+min_bns[4]
-                    tval = utils.precision(val, zLabelPrecision)
+                    tval = utils.precision(val, zLabelPrecision, vrange=sizes[2])
                     if abs(val)>1 and sizes[2]<1: zLabelPrecision = int(zLabelPrecision-numpy.log10(sizes[2]))
                     zlab = shapes.Text(tval, pos=(0,0,0), s=zLabelSize, justify="center-bottom", depth=0)
                     if zKeepAspectRatio: zlab.SetScale(z_aspect_ratio_scale)

@@ -26,32 +26,7 @@ __all__ = ["show", "clear", "Plotter", "plotMatrix",
            "closeWindow", "closePlotter", "interactive"]
 
 ########################################################################
-def show(*actors, **options
-#    at=None,
-#    shape=(1, 1),
-#    N=None,
-#    pos=(0, 0),
-#    size="auto",
-#    screensize="auto",
-#    title="",
-#    bg="blackboard",
-#    bg2=None,
-#    axes=4,
-#    infinity=False,
-#    verbose=True,
-#    interactive=None,
-#    offscreen=False,
-#    resetcam=True,
-#    zoom=None,
-#    viewup="",
-#    azimuth=0,
-#    elevation=0,
-#    roll=0,
-#    interactorStyle=0,
-#    newPlotter=False,
-#    depthpeeling=False,
-#    q=False,
-):
+def show(*actors, **options):
     """
     Create on the fly an instance of class ``Plotter`` and show the object(s) provided.
 
@@ -94,17 +69,17 @@ def show(*actors, **options
         - distance `(float)`, set the focal point to the specified distance from the camera position.
         - clippingRange `(float)`, distance of the near and far clipping planes along the direction
             of projection.
-            
+
         - parallelScale `(float)`,
             scaling used for a parallel projection, i.e. the height of the viewport
             in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
             an "inverse scale", larger numbers produce smaller images.
             This method has no effect in perspective projection mode.
-            
+
         - thickness `(float)`,
             set the distance between clipping planes. This method adjusts the far clipping
             plane to be set a distance 'thickness' beyond the near clipping plane.
-            
+
         - viewAngle `(float)`,
             the camera view angle, which is the angular height of the camera view
             measured in degrees. The default angle is 30 degrees.
@@ -680,7 +655,7 @@ class Plotter:
                     self.actors.append(a)
                     if render and self.renderer:
                         self.renderer.AddActor(a)
-            if render and self.interactor: 
+            if render and self.interactor:
                 self.interactor.Render()
             return None
         else:
@@ -706,7 +681,7 @@ class Plotter:
                 del self.actors[i]
 
     ####################################################
-    def load(self, inputobj, c="gold", alpha=1, threshold=False, spacing=(), unpack=True):
+    def load(self, inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
         """
         Load Actors and Volumes from file.
         The output will depend on the file extension. See examples below.
@@ -1194,7 +1169,7 @@ class Plotter:
         :param float azimuth/elevation/roll:  move camera accordingly
         :param str viewup:  either ['x', 'y', 'z'] or a vector to set vertical direction
         :param bool resetcam:  re-adjust camera position to fit objects
-        :param dict camera: Camera parameters can further be specified with a dictionary assigned 
+        :param dict camera: Camera parameters can further be specified with a dictionary assigned
            to the ``camera`` keyword (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
 
             - pos, `(list)`,  the position of the camera in world coordinates
@@ -1203,17 +1178,17 @@ class Plotter:
             - distance `(float)`, set the focal point to the specified distance from the camera position.
             - clippingRange `(float)`, distance of the near and far clipping planes along
                 the direction of projection.
-                
+
             - parallelScale `(float)`,
                 scaling used for a parallel projection, i.e. the height of the viewport
                 in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
                 an "inverse scale", larger numbers produce smaller images.
                 This method has no effect in perspective projection mode.
-                
+
             - thickness `(float)`,
                 set the distance between clipping planes. This method adjusts the far clipping
                 plane to be set a distance 'thickness' beyond the near clipping plane.
-                
+
             - viewAngle `(float)`,
                 the camera view angle, which is the angular height of the camera view
                 measured in degrees. The default angle is 30 degrees.
@@ -1544,8 +1519,10 @@ class Plotter:
                                 vtkscals = vtkdata.GetScalars()
 
                         if vtkscals is not None:
+                            if not vtkscals.GetName():
+                                vtkscals.SetName('scalars')
                             scals_min, scals_max = ia.mapper.GetScalarRange()
-                            color_attribute=(vtkscals.GetName(), scals_min, scals_max)
+                            color_attribute = (vtkscals.GetName(), scals_min, scals_max)
                             lut = ia.mapper.GetLookupTable()
                             lut.Build()
                             kcmap=[]
