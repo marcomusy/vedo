@@ -97,14 +97,14 @@ vp.show(a2, pts2, at=1, interactive=True)
 vp = Plotter(N=9, title="basic shapes", axes=0, bg="white")  # split window in 9 frames
 # each object can be moved independently
 vp.sharecam = False
-vp.show(Arrow([0, 0, 0], [1, 1, 1]), at=0)
-vp.show(Line([0, 0, 0], [1, 1, 1]), at=1)
+vp.show(Arrow([0, 0, 0], [1, 1, 1]),    at=0)
+vp.show(Line([0, 0, 0], [1, 1, 1]),     at=1)
 vp.show(Points([[0, 0, 0], [1, 1, 1]]), at=2)
-vp.show(Text("Hello!", pos=(0, 0, 0)), at=3)
-vp.show(Sphere(), at=4)
-vp.show(Cube(), at=5)
-vp.show(Torus(), at=6)
-vp.show(Spring(), at=7)
+vp.show(Text("Hello!", pos=(0, 0, 0)),  at=3)
+vp.show(Sphere(),   at=4)
+vp.show(Cube(),     at=5)
+vp.show(Torus(),    at=6)
+vp.show(Spring(),   at=7)
 vp.show(Cylinder(), at=8, interactive=1)
 
 
@@ -112,15 +112,15 @@ vp.show(Cylinder(), at=8, interactive=1)
 # Draw a bunch of objects from various mesh formats. Loading is automatic.
 vp = Plotter(shape=(3, 3), bg="white")  # split window in 3 rows and 3 columns
 vp.sharecam = False  # each object can be moved independently
-vp.show(datadir+"beethoven.ply", at=0, c=0, axes=0)  # dont show axes, add a ruler
-vp.show(datadir+"cow.byu", at=1, c=1, zoom=1.15)  # make it 15% bigger
-vp.show(datadir+"limb.pcd", at=2, c=2)
-vp.show(datadir+"ring.gmsh", at=3, c=3, wire=1)
-vp.show(datadir+"images/dog.jpg", at=4)  # 2d images can be loaded the same way
-vp.show(datadir+"shuttle.obj", at=5, c=5)
-vp.show(datadir+"man.vtk", at=6, c=6, axes=2)  # show negative axes from (0, 0, 0)
-vp.show(datadir+"teapot.xyz", at=7, c=7, axes=3)  # hide negative axes
-vp.show(datadir+"pulley.vtu", at=8, c=8, interactive=1)
+vp.show(datadir+"beethoven.ply", at=0, axes=0)  # dont show axes, add a ruler
+vp.show(datadir+"cow.byu",       at=1, zoom=1.15)  # make it 15% bigger
+vp.show(datadir+"limb.pcd",      at=2)
+vp.show(datadir+"ring.gmsh",     at=3)
+vp.show(datadir+"images/dog.jpg",at=4)  # 2d images can be loaded the same way
+vp.show(datadir+"shuttle.obj",   at=5)
+vp.show(datadir+"man.vtk",       at=6, axes=2)  # show negative axes from (0, 0, 0)
+vp.show(datadir+"teapot.xyz",    at=7, axes=3)  # hide negative axes
+vp.show(datadir+"pulley.vtu",    at=8, interactive=True)
 
 
 ########################################################################################

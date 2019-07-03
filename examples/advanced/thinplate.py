@@ -12,7 +12,7 @@ np.random.seed(1)
 
 vp = Plotter(axes=1)
 
-act = vp.load(datadir+"shuttle.obj")
+act = vp.load(datadir+"shuttle.obj", c='silver')
 
 # pick 4 random points
 indxs = np.random.randint(0, act.N(), 4)

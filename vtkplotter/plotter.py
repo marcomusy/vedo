@@ -143,6 +143,7 @@ def show(*actors, **options):
     verbose = options.pop("verbose", True)
     interactive = options.pop("interactive", None)
     offscreen = options.pop("offscreen", False)
+    sharecam = options.pop("sharecam", True)
     resetcam = options.pop("resetcam", True)
     zoom = options.pop("zoom", None)
     viewup = options.pop("viewup", "")
@@ -191,6 +192,7 @@ def show(*actors, **options):
             bg=bg,
             bg2=bg2,
             axes=axes,
+            sharecam=sharecam,
             infinity=infinity,
             depthpeeling=depthpeeling,
             verbose=verbose,
@@ -408,7 +410,6 @@ class Plotter:
         self.renderers = []  # list of renderers
         self.shape = shape
         self.pos = pos
-        self.size = [size[1], size[0]]  # size of the rendering window
         self.interactive = interactive  # allows to interact with renderer
         self.axes = axes  # show axes type nr.
         self.title = title  # window title
@@ -448,6 +449,19 @@ class Plotter:
         self.ytitle = settings.ytitle  # y axis label and units
         self.ztitle = settings.ztitle  # z axis label and units
 
+
+        if settings.notebookBackend:
+            self.interactive = False
+            self.interactor = None
+            self.window = None
+            if size == "auto":
+                self.size = (1000, 1000)
+            ############################
+            return #####################
+            ############################
+
+
+        # build the renderering window:
         if settings.useOpenVR:
             self.camera = vtk.vtkOpenVRCamera()
             self.window =vtk.vtkOpenVRRenderWindow()
@@ -506,9 +520,11 @@ class Plotter:
             self.size = (int(xs), int(ys))
             if shape == (1, 1):
                 self.size = (int(y / f), int(y / f))  # because y<x
+        else:
+            self.size = (size[1], size[0])
+
 
         ############################
-        # build the renderers scene:
         self.shape = shape
 
         if sum(shape) > 3:
@@ -589,11 +605,6 @@ class Plotter:
             return
             ########################
 
-        if settings.notebookBackend:
-            self.interactive = False
-            self.interactor = None
-            return
-
         if settings.useOpenVR:
             self.interactor = vtk.vtkOpenVRRenderWindowInteractor()
         else:
@@ -606,7 +617,6 @@ class Plotter:
         self.interactor.AddObserver("RightButtonPressEvent", vtkio._mouseright)
         self.interactor.AddObserver("MiddleButtonPressEvent", vtkio._mousemiddle)
         self.interactor.AddObserver("KeyPressEvent", vtkio._keypress)
-        #self.interactor.AddObserver("EnterEvent", vtkio._mouse_enter)
 
         if settings.allowInteraction:
             self._update_observer = None
@@ -631,6 +641,7 @@ class Plotter:
                         self.interactor.DestroyTimer(self._update_observer)
 
             self.allowInteraction = _allowInteraction
+
 
     def __str__(self):
         utils.printInfo(self)
@@ -732,6 +743,13 @@ class Plotter:
     def getVolumes(self, obj=None, renderer=None):
         """
         Return the list of the rendered Volumes.
+
+        If ``obj`` is:
+            ``None``, return volumes of current renderer
+
+            ``int``, return volumes in given renderer number
+
+        :param int,vtkRenderer renderer: specify which renederer to look into.
         """
         if renderer is None:
             renderer = self.renderer
@@ -762,7 +780,7 @@ class Plotter:
 
     def getActors(self, obj=None, renderer=None):
         """
-        Return an actors list.
+        Return an actors list (which may include Volume objects too).
 
         If ``obj`` is:
             ``None``, return actors of current renderer
@@ -790,6 +808,7 @@ class Plotter:
                 return []
             else:
                 acs = self.renderers[obj].GetActors()
+
             actors = []
             acs.InitTraversal()
             for i in range(acs.GetNumberOfItems()):
@@ -1213,16 +1232,8 @@ class Plotter:
 
         :param bool q:  force program to quit after `show()` command returns.
         """
-        if not hasattr(self, 'window'):
-            return
-
         at = options.pop("at", None)
         axes = options.pop("axes", None)
-        c = options.pop("c", None)
-        alpha = options.pop("alpha", None)
-        wire = options.pop("wire", False)
-        bc = options.pop("bc", None)
-
         resetcam = options.pop("resetcam", True)
         zoom = options.pop("zoom", False)
         interactive = options.pop("interactive", None)
@@ -1244,21 +1255,24 @@ class Plotter:
             scannedacts = []
             if not utils.isSequence(wannabeacts):
                 wannabeacts = [wannabeacts]
+
             for a in wannabeacts:  # scan content of list
-                if isinstance(a, vtk.vtkActor):
-#                    if isinstance(a, Actor):
-#                        scannedacts.append(a)
-#                    else:
-#                        scannedacts.append(Actor(a, c, alpha, wire, bc))
+
+                if a is None:
+                    pass
+
+                elif isinstance(a, vtk.vtkActor):
                     scannedacts.append(a)
                     if hasattr(a, 'trail') and a.trail and not a.trail in self.actors:
                         scannedacts.append(a.trail)
                     if hasattr(a, 'shadow') and a.shadow and not a.shadow in self.actors:
                         scannedacts.append(a.shadow)
+
                 elif isinstance(a, vtk.vtkAssembly):
                     scannedacts.append(a)
                     if a.trail and not a.trail in self.actors:
                         scannedacts.append(a.trail)
+
                 elif isinstance(a, vtk.vtkActor2D):
                     if isinstance(a, vtk.vtkCornerAnnotation):
                         for a2 in settings.collectable_actors:
@@ -1266,43 +1280,49 @@ class Plotter:
                                 if at in a2.renderedAt: # remove old message
                                     self.remove(a2)
                     scannedacts.append(a)
+
                 elif isinstance(a, vtk.vtkImageActor):
                     scannedacts.append(a)
+
                 elif isinstance(a, vtk.vtkVolume):
                     if isinstance(a, Volume):
                         scannedacts.append(a)
                     else:
                         scannedacts.append(Volume(a))
+
                 elif isinstance(a, vtk.vtkImageData):
                     scannedacts.append(Volume(a))
+
                 elif isinstance(a, vtk.vtkPolyData):
-                    scannedacts.append(Actor(a, c, alpha, wire, bc))
+                    scannedacts.append(Actor(a))
+
                 elif isinstance(a, str):  # assume a filepath was given
-                    out = vtkio.load(a, c, alpha, wire, bc)
-                    if isinstance(out, str):
-                        colors.printc("~times File not found:", out, c=1)
-                        scannedacts.append(None)
-                    else:
-                        scannedacts.append(out)
-                elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
-                    from vtkplotter.dolfin import MeshActor
-                    out = MeshActor(a, c=c, alpha=alpha, wire=True, bc=bc)
+                    out = vtkio.load(a)
                     scannedacts.append(out)
-                elif a is None:
-                    pass
+
                 elif isinstance(a, vtk.vtkUnstructuredGrid):
-                    scannedacts.append(Actor(a, c, alpha, wire, bc))
+                    scannedacts.append(Actor(a))
                 elif isinstance(a, vtk.vtkStructuredGrid):
-                    scannedacts.append(Actor(a, c, alpha, wire, bc))
+                    scannedacts.append(Actor(a))
                 elif isinstance(a, vtk.vtkRectilinearGrid):
-                    scannedacts.append(Actor(a, c, alpha, wire, bc))
+                    scannedacts.append(Actor(a))
+
                 elif isinstance(a, vtk.vtkMultiBlockDataSet):
                     for i in range(a.GetNumberOfBlocks()):
                         b =  a.GetBlock(i)
                         if isinstance(b, vtk.vtkPolyData):
-                            scannedacts.append(Actor(b, c, alpha, wire, bc))
+                            scannedacts.append(Actor(b))
                         elif isinstance(b, vtk.vtkImageData):
                             scannedacts.append(Volume(b))
+
+                elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
+                    from vtkplotter.dolfin import MeshActor
+                    out = MeshActor(a)
+                    scannedacts.append(out)
+
+                elif "trimesh" in str(type(a)):
+                    scannedacts.append(utils.trimesh2vtk(a))
+
                 else:
                     colors.printc("~!? Cannot understand input in show():", type(a), c=1)
                     scannedacts.append(None)
@@ -1328,156 +1348,29 @@ class Plotter:
         if axes is not None:
             self.axes = axes
 
-        if interactive is not None:
-            self.interactive = interactive
-
-        if at is None and len(self.renderers) > 1:
-            # in case of multiple renderers a call to show w/o specifing
-            # at which renderer will just render the whole thing and return
-            if self.interactor:
-                if zoom:
-                    self.camera.Zoom(zoom)
-                self.interactor.Render()
-                if self.interactive:
-                    self.interactor.Start()
-                return
-
-        if at is None:
-            at = 0
-
-        if at < len(self.renderers):
-            self.renderer = self.renderers[at]
-        else:
-            colors.printc("~times Error in show(): wrong renderer index", at, c=1)
-            return
-
-        if self.qtWidget is not None:
-            self.qtWidget.GetRenderWindow().AddRenderer(self.renderer)
-
-        if not self.camera:
-            if isinstance(camera, vtk.vtkCamera):
-                self.camera = camera
-            else:
-                self.camera = self.renderer.GetActiveCamera()
-        self.camera.SetParallelProjection(self.infinity)
-
-        if self.sharecam:
-            for r in self.renderers:
-                r.SetActiveCamera(self.camera)
-
-        if len(self.renderers) == 1:
-            self.renderer.SetActiveCamera(self.camera)
-
-        # rendering
-        for ia in actors2show:  # add the actors that are not already in scene
-            if ia:
-                if isinstance(ia, vtk.vtkVolume):
-                    self.renderer.AddVolume(ia)
-                else:
-                    self.renderer.AddActor(ia)
-                if hasattr(ia, 'renderedAt'):
-                    ia.renderedAt.add(at)
-            else:
-                colors.printc("~lightning Warning: Invalid actor in actors list, skip.", c=5)
-
-        # remove the ones that are not in actors2show
-        for ia in self.getActors(at):
-            if ia not in actors2show:
-                self.renderer.RemoveActor(ia)
-                if hasattr(ia, 'renderedAt'):
-                    ia.renderedAt.discard(at)
-
-        for c in self.scalarbars:
-            self.renderer.RemoveActor(c)
-            if hasattr(c, 'renderedAt'):
-                c.renderedAt.discard(at)
-
-
-        if self.axes is not None and not settings.notebookBackend:
-            addons.addAxes()
-
-        addons.addLegend()
-
-        if self.showFrame and len(self.renderers) > 1:
-            addons.addFrame()
-
-        if resetcam or self.initializedIren == False:
-            self.renderer.ResetCamera()
-
-        if not self.initializedIren and self.interactor:
-            self.initializedIren = True
-            self.interactor.Initialize()
-            self.interactor.RemoveObservers("CharEvent")
-
-            if self.verbose and self.interactive:
-                if not settings.notebookBackend:
-                    docs.onelinetip()
-
-        self.initializedPlotter = True
-
-        if zoom:
-            self.camera.Zoom(zoom)
-        if azimuth:
-            self.camera.Azimuth(azimuth)
-        if elevation:
-            self.camera.Elevation(elevation)
-        if roll:
-            self.camera.Roll(roll)
-
-        if self._first_viewup and len(viewup):
-            self._first_viewup = False # gets executed only once
-            if viewup == "x":
-                self.camera.SetViewUp([1, 0.001, 0])
-            elif viewup == "y":
-                self.camera.SetViewUp([0.001, 1, 0])
-            elif viewup == "z":
-                b =  self.renderer.ComputeVisiblePropBounds()
-                fp = (b[1]+b[0])/2, (b[3]+b[2])/2, (b[5]+b[4])/2
-                sz = numpy.array([b[3]-b[2], b[1]-b[0], (b[5]-b[4])/2]) #swap xy
-                if sz[2]==0:
-                    sz[2] = min(sz[0], sz[1])
-                self.camera.SetViewUp([0, 0.001, 1])
-                self.camera.SetPosition(fp+2.1*sz)
-
-        if camera is not None:
-            cm_pos = camera.pop("pos", None)
-            cm_focalPoint = camera.pop("focalPoint", None)
-            cm_viewup = camera.pop("viewup", None)
-            cm_distance = camera.pop("distance", None)
-            cm_clippingRange = camera.pop("clippingRange", None)
-            cm_parallelScale = camera.pop("parallelScale", None)
-            cm_thickness = camera.pop("thickness", None)
-            cm_viewAngle = camera.pop("viewAngle", None)
-            if cm_pos is not None: self.camera.SetPosition(cm_pos)
-            if cm_focalPoint is not None: self.camera.SetFocalPoint(cm_focalPoint)
-            if cm_viewup is not None: self.camera.SetViewUp(cm_viewup)
-            if cm_distance is not None: self.camera.SetDistance(cm_distance)
-            if cm_clippingRange is not None: self.camera.SetClippingRange(cm_clippingRange)
-            if cm_parallelScale is not None: self.camera.SetParallelScale(cm_parallelScale)
-            if cm_thickness is not None: self.camera.SetThickness(cm_thickness)
-            if cm_viewAngle is not None: self.camera.SetViewAngle(cm_viewAngle)
-
-        if resetcam: self.renderer.ResetCameraClippingRange()
-
         if settings.notebookBackend == 'k3d':
             import k3d # https://github.com/K3D-tools/K3D-jupyter
+
+            actors2show2 = []
+            for ia in actors2show:
+                if isinstance(ia, vtk.vtkAssembly): #unpack assemblies
+                    acass = ia.getActors()
+                    actors2show2 += acass
+                else:
+                    actors2show2.append(ia)
 
             vbb, sizes, min_bns, max_bns = addons.computeVisibleBounds()
             kgrid = vbb[0], vbb[2], vbb[4], vbb[1], vbb[3], vbb[5]
 
-            settings.notebook_plotter = k3d.plot(
-                                                 axes=[self.xtitle, self.ytitle, self.ztitle],
+            settings.notebook_plotter = k3d.plot(axes=[self.xtitle, self.ytitle, self.ztitle],
                                                  menu_visibility=True,
-                                                 height=int(self.size[1]/2),
-                                                 )
+                                                 height=int(self.size[1]/2) )
             settings.notebook_plotter.grid = kgrid
 
             if not self.axes:
                 settings.notebook_plotter.grid_visible = False
 
-            actorset = set(utils.flatten([self.getActors(at), self.actors]))
-
-            for ia in actorset:
+            for ia in actors2show2:
                 kobj = None
                 kcmap= None
 
@@ -1550,7 +1443,8 @@ class Plotter:
                         kcols=[]
                         if color_attribute is not None:
                             scals = vtk_to_numpy(vtkscals)
-                            kcols = k3d.helpers.map_colors(scals, kcmap, [scals_min,scals_max]).astype(numpy.uint32)
+                            kcols = k3d.helpers.map_colors(scals, kcmap,
+                                                           [scals_min,scals_max]).astype(numpy.uint32)
                         sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
                         if ia.NPoints() == ia.NCells():
                             kobj = k3d.points(ia.coordinates().astype(numpy.float32),
@@ -1598,7 +1492,7 @@ class Plotter:
             return settings.notebook_plotter
             ###################################
 
-        elif settings.notebookBackend == 'panel':
+        elif settings.notebookBackend == 'panel' and hasattr(self, 'window') and self.window:
             import panel # https://panel.pyviz.org/reference/panes/VTK.html
             settings.notebook_plotter = panel.pane.VTK(self.window,
                                                        width=int(self.size[0]/2),
@@ -1606,6 +1500,152 @@ class Plotter:
             ###################################
             return settings.notebook_plotter
             ###################################
+
+        if not hasattr(self, 'window'):
+            return
+
+        if interactive is not None:
+            self.interactive = interactive
+
+        if at is None and len(self.renderers) > 1:
+            # in case of multiple renderers a call to show w/o specifing
+            # at which renderer will just render the whole thing and return
+            if self.interactor:
+                if zoom:
+                    self.camera.Zoom(zoom)
+                self.interactor.Render()
+                if self.interactive:
+                    self.interactor.Start()
+                return
+
+        if at is None:
+            at = 0
+
+        if at < len(self.renderers):
+            self.renderer = self.renderers[at]
+        else:
+            colors.printc("~times Error in show(): wrong renderer index", at, c=1)
+            return
+
+        if self.qtWidget is not None:
+            self.qtWidget.GetRenderWindow().AddRenderer(self.renderer)
+
+        if not self.camera:
+            if isinstance(camera, vtk.vtkCamera):
+                self.camera = camera
+            else:
+                self.camera = self.renderer.GetActiveCamera()
+        self.camera.SetParallelProjection(self.infinity)
+
+        if self.sharecam:
+            for r in self.renderers:
+                r.SetActiveCamera(self.camera)
+
+        if len(self.renderers) == 1:
+            self.renderer.SetActiveCamera(self.camera)
+
+        # rendering
+        for ia in actors2show:  # add the actors that are not already in scene
+            if ia:
+                if isinstance(ia, vtk.vtkVolume):
+                    self.renderer.AddVolume(ia)
+                else:
+                    self.renderer.AddActor(ia)
+                if hasattr(ia, 'renderedAt'):
+                    ia.renderedAt.add(at)
+            else:
+                colors.printc("~lightning Warning: Invalid actor in actors list, skip.", c=5)
+
+        # remove the ones that are not in actors2show
+        for ia in self.getActors(at):
+            if ia not in actors2show:
+                self.renderer.RemoveActor(ia)
+                if hasattr(ia, 'renderedAt'):
+                    ia.renderedAt.discard(at)
+
+        for ia in self.getVolumes(at):
+            if ia not in actors2show:
+                self.renderer.RemoveActor(ia)
+                if hasattr(ia, 'renderedAt'):
+                    ia.renderedAt.discard(at)
+
+        for c in self.scalarbars:
+            self.renderer.RemoveActor(c)
+            if hasattr(c, 'renderedAt'):
+                c.renderedAt.discard(at)
+
+
+        if self.axes is not None and not settings.notebookBackend:
+            addons.addAxes()
+
+        addons.addLegend()
+
+        if self.showFrame and len(self.renderers) > 1:
+            addons.addFrame()
+
+        if resetcam or self.initializedIren == False:
+            self.renderer.ResetCamera()
+
+        if not self.initializedIren and self.interactor:
+            self.initializedIren = True
+            self.interactor.Initialize()
+            self.interactor.RemoveObservers("CharEvent")
+
+            if self.verbose and self.interactive:
+                if not settings.notebookBackend:
+                    docs.onelinetip()
+
+        self.initializedPlotter = True
+
+        if zoom:
+            self.camera.Zoom(zoom)
+        if azimuth:
+            self.camera.Azimuth(azimuth)
+        if elevation:
+            self.camera.Elevation(elevation)
+        if roll:
+            self.camera.Roll(roll)
+
+        if self._first_viewup and len(viewup):
+            self._first_viewup = False # gets executed only once
+            if viewup == "x":
+                self.camera.SetViewUp([1, 0.001, 0])
+            elif viewup == "y":
+                self.camera.SetViewUp([0.001, 1, 0])
+#            elif viewup == "z":
+#                b =  self.renderer.ComputeVisiblePropBounds()
+#                fp = (b[1]+b[0])/2, (b[3]+b[2])/2, (b[5]+b[4])/2
+#                sz = numpy.array([b[3]-b[2], b[1]-b[0], (b[5]-b[4])/2]) #swap xy
+#                if sz[2]==0:
+#                    sz[2] = min(sz[0], sz[1])
+#                self.camera.SetViewUp([0, 0.001, 1])
+#                self.camera.SetPosition(fp+2.1*sz)
+            elif viewup == "z":
+                b =  self.renderer.ComputeVisiblePropBounds()
+                self.camera.SetViewUp([0, 0.001, 1])
+                cm = [(b[1]+b[0])/2, (b[3]+b[2])/2, (b[5]+b[4])/2]
+                sz = numpy.array([(b[1]-b[0])*0.7, -(b[3]-b[2])*1.0, (b[5]-b[4])*1.2])
+                self.camera.SetPosition(cm+2*sz)
+
+        if camera is not None:
+            cm_pos = camera.pop("pos", None)
+            cm_focalPoint = camera.pop("focalPoint", None)
+            cm_viewup = camera.pop("viewup", None)
+            cm_distance = camera.pop("distance", None)
+            cm_clippingRange = camera.pop("clippingRange", None)
+            cm_parallelScale = camera.pop("parallelScale", None)
+            cm_thickness = camera.pop("thickness", None)
+            cm_viewAngle = camera.pop("viewAngle", None)
+            if cm_pos is not None: self.camera.SetPosition(cm_pos)
+            if cm_focalPoint is not None: self.camera.SetFocalPoint(cm_focalPoint)
+            if cm_viewup is not None: self.camera.SetViewUp(cm_viewup)
+            if cm_distance is not None: self.camera.SetDistance(cm_distance)
+            if cm_clippingRange is not None: self.camera.SetClippingRange(cm_clippingRange)
+            if cm_parallelScale is not None: self.camera.SetParallelScale(cm_parallelScale)
+            if cm_thickness is not None: self.camera.SetThickness(cm_thickness)
+            if cm_viewAngle is not None: self.camera.SetViewAngle(cm_viewAngle)
+
+        if resetcam: self.renderer.ResetCameraClippingRange()
 
         self.window.Render()
 

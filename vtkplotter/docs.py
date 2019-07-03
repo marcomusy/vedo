@@ -1098,5 +1098,26 @@ _defs = """
     :target: tensors.py_
     :alt: tensors.py
 
+.. |erode_dilate.py| replace:: erode_dilate.py
+.. _erode_dilate.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/erode_dilate.py
+
+.. |vol2points.py| replace:: vol2points.py
+.. _vol2points.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/vol2points.py
+
+.. |euclDist.py| replace:: euclDist.py
+.. _euclDist.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/euclDist.py
+
+.. |pointDensity.py| replace:: pointDensity.py
+.. _pointDensity.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/pointDensity.py
+
+.. |volumeFromMesh.py| replace:: volumeFromMesh.py
+.. _volumeFromMesh.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/volumeFromMesh.py
+
+.. |numpy2volume.py| replace:: numpy2volume.py
+.. _numpy2volume.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/numpy2volume.py
+
+.. |G_Of_Omega| image:: https://wikimedia.org/api/rest_v1/media/math/render/svg/9c4d02a66b6ff279aae0c4bf07c25e5727d192e4
+
+
 
 """

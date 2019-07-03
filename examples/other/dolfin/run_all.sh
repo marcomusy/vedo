@@ -134,3 +134,14 @@ python noplot/ex06_elasticity2.py
 
 echo Running noplot/ex07_stokes-iterative.py
 python noplot/ex07_stokes-iterative.py
+
+echo '----------------------------'
+echo '----------------------------'
+echo 'cd ../trimesh;  ./run_all.sh'
+echo '----------------------------'
+echo '----------------------------'
+
+
+
+
+

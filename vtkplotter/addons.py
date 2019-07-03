@@ -47,26 +47,30 @@ def addScalarBar(actor=None, c=None, title="",
         actor = vp.actors[-1]
 
     if not hasattr(actor, "mapper"):
-        colors.printc("~times Error in addScalarBar: input is not a Actor.", c=1)
+        colors.printc("~times addScalarBar(): input is invalid,", type(actor), c=1)
         return None
 
     if vp and vp.renderer and actor.scalarbar_actor:
         vp.renderer.RemoveActor(actor.scalarbar)
 
+    if isinstance(actor, Actor):
+        lut = actor.mapper.GetLookupTable()
+        if not lut:
+            return None
+        vtkscalars = actor.poly.GetPointData().GetScalars()
+        if vtkscalars is None:
+            vtkscalars = actor.poly.GetCellData().GetScalars()
+        if not vtkscalars:
+            return None
 
-    lut = actor.mapper.GetLookupTable()
-    if not lut:
-        return None
-    vtkscalars = actor.poly.GetPointData().GetScalars()
-    if vtkscalars is None:
-        vtkscalars = actor.poly.GetCellData().GetScalars()
-    if not vtkscalars:
-        return None
+        rng = list(vtkscalars.GetRange())
+        if vmin is not None: rng[0] = vmin
+        if vmax is not None: rng[1] = vmax
+        actor.mapper.SetScalarRange(rng)
 
-    rng = list(vtkscalars.GetRange())
-    if vmin is not None: rng[0] = vmin
-    if vmax is not None: rng[1] = vmax
-    actor.mapper.SetScalarRange(rng)
+    elif isinstance(actor, 'Volume'):
+        # to be implemented
+        pass
 
     if c is None:
         if vp.renderer:  # automatic black or white
@@ -511,7 +515,7 @@ def addCutterTool(actor):
     clipper.GenerateClippedOutputOn()
     clipper.Update()
 
-    act0 = Actor(clipper.GetOutput())
+    act0 = Actor(clipper.GetOutput(), c=actor.color())
 #    act0.mapper = actor.mapper
 #    act0.mapper.Modified()
 #    print(actor.mapper.GetLookupTable())
@@ -1319,7 +1323,7 @@ def addAxes(axtype=None, c=None):
         if isinstance(largestact, Assembly):
             ocf.SetInputData(largestact.getActor(0).GetMapper().GetInput())
         else:
-            ocf.SetInputData(largestact.polydata())
+            ocf.SetInputData(largestact.GetMapper().GetInput())
         ocf.Update()
         ocMapper = vtk.vtkHierarchicalPolyDataMapper()
         ocMapper.SetInputConnection(0, ocf.GetOutputPort(0))

@@ -68,6 +68,11 @@ __all__ = [
     "volumeFromMesh",
     "computeNormalsWithPCA",
     "pointDensity",
+    "erodeVolume",
+    "dilateVolume",
+    "euclideanDistanceVolume",
+    "volumeToPoints",
+    "volumeCorrelation",
 ]
 
 
@@ -478,7 +483,7 @@ def delaunay2D(plist, mode='xy', tol=None):
 def delaunay3D(dataset, alpha=0, tol=None, boundary=True):
         """Create 3D Delaunay triangulation of input points."""
         deln = vtk.vtkDelaunay3D()
-        deln.SetInputData(dataset)
+        deln.SetInputData(dataset.data())
         deln.SetAlpha(alpha)
         if tol:
             deln.SetTolerance(tol)
@@ -487,25 +492,37 @@ def delaunay3D(dataset, alpha=0, tol=None, boundary=True):
         return deln.GetOutput()
 
 
-def normalLines(actor, ratio=1):
+def normalLines(actor, ratio=1, atCells=True):
     """
-    Build an ``Actor`` made of the normals at vertices shown as lines.
+    Build an ``Actor`` made of the normals at cells shown as lines.
+
+    if `atCells` is `False` normals are shown at vertices.
     """
+    poly = actor.computeNormals().polydata()
+
+    if atCells:
+        centers = vtk.vtkCellCenters()
+        centers.SetInputData(poly)
+        centers.Update()
+        poly = centers.GetOutput()
+
     maskPts = vtk.vtkMaskPoints()
+    maskPts.SetInputData(poly)
     maskPts.SetOnRatio(ratio)
     maskPts.RandomModeOff()
-    actor = actor.computeNormals()
-    src = actor.polydata()
-    maskPts.SetInputData(src)
-    arrow = vtk.vtkLineSource()
-    arrow.SetPoint1(0, 0, 0)
-    arrow.SetPoint2(0.75, 0, 0)
+    maskPts.Update()
+
+    ln = vtk.vtkLineSource()
+    ln.SetPoint1(0, 0, 0)
+    ln.SetPoint2(1, 0, 0)
+    ln.Update()
     glyph = vtk.vtkGlyph3D()
-    glyph.SetSourceConnection(arrow.GetOutputPort())
-    glyph.SetInputConnection(maskPts.GetOutputPort())
+    glyph.SetSourceData(ln.GetOutput())
+    glyph.SetInputData(maskPts.GetOutput())
     glyph.SetVectorModeToUseNormal()
-    b = src.GetBounds()
-    sc = max([b[1] - b[0], b[3] - b[2], b[5] - b[4]]) / 20.0
+
+    b = poly.GetBounds()
+    sc = max([b[1] - b[0], b[3] - b[2], b[5] - b[4]]) / 50
     glyph.SetScaleFactor(sc)
     glyph.OrientOn()
     glyph.Update()
@@ -775,23 +792,29 @@ def pcaEllipsoid(points, pvalue=0.95, pcaAxes=False):
     except ImportError:
         colors.printc("~times Error in Ellipsoid(): scipy not installed. Skip.", c=1)
         return None
-    if isinstance(points, vtk.vtkActor):
-        points = points.coordinates()
-    if len(points) == 0:
+
+    if isinstance(points, Actor):
+        coords = points.coordinates()
+    else:
+        coords = points
+    if len(coords) == 0:
         return None
-    P = np.array(points, ndmin=2, dtype=float)
-    cov = np.cov(P, rowvar=0)  # covariance matrix
+
+    P = np.array(coords, ndmin=2, dtype=float)
+    cov = np.cov(P, rowvar=0)     # covariance matrix
     U, s, R = np.linalg.svd(cov)  # singular value decomposition
     p, n = s.size, P.shape[0]
     fppf = f.ppf(pvalue, p, n-p)*(n-1)*p*(n+1)/n/(n-p)  # f % point function
     ua, ub, uc = np.sqrt(s*fppf)*2  # semi-axes (largest first)
-    center = np.mean(P, axis=0)    # centroid of the hyperellipsoid
+    center = np.mean(P, axis=0)     # centroid of the hyperellipsoid
     sphericity = (  ((ua-ub)/(ua+ub))**2
                   + ((ua-uc)/(ua+uc))**2
                   + ((ub-uc)/(ub+uc))**2)/3. * 4.
+
     elliSource = vtk.vtkSphereSource()
     elliSource.SetThetaResolution(48)
     elliSource.SetPhiResolution(48)
+
     matri = vtk.vtkMatrix4x4()
     matri.DeepCopy((R[0][0] * ua, R[1][0] * ub, R[2][0] * uc, center[0],
                     R[0][1] * ua, R[1][1] * ub, R[2][1] * uc, center[1],
@@ -802,9 +825,8 @@ def pcaEllipsoid(points, pvalue=0.95, pcaAxes=False):
     ftra.SetTransform(vtra)
     ftra.SetInputConnection(elliSource.GetOutputPort())
     ftra.Update()
-    actor_elli = Actor(ftra.GetOutput(), "c", 0.5)
+    actor_elli = Actor(ftra.GetOutput(), "c", 0.5).phong()
     actor_elli.GetProperty().BackfaceCullingOn()
-    actor_elli.GetProperty().SetInterpolationToPhong()
     if pcaAxes:
         axs = []
         for ax in ([1, 0, 0], [0, 1, 0], [0, 0, 1]):
@@ -1037,257 +1059,6 @@ def smoothMLS1D(actor, f=0.2, showNLines=0):
     return actor  # NB: original actor is modified
 
 
-def booleanOperation(actor1, operation, actor2):
-    """Volumetric union, intersection and subtraction of surfaces.
-
-    :param str operation: allowed operations: ``'plus'``, ``'intersect'``, ``'minus'``.
-
-    |boolean| |boolean.py|_
-    """
-    bf = vtk.vtkBooleanOperationPolyDataFilter()
-    poly1 = actor1.computeNormals().polydata()
-    poly2 = actor2.computeNormals().polydata()
-    if operation.lower() == "plus" or operation.lower() == "+":
-        bf.SetOperationToUnion()
-    elif operation.lower() == "intersect":
-        bf.SetOperationToIntersection()
-    elif operation.lower() == "minus" or operation.lower() == "-":
-        bf.SetOperationToDifference()
-#        bf.ReorientDifferenceCellsOn()
-    bf.SetInputData(0, poly1)
-    bf.SetInputData(1, poly2)
-    bf.Update()
-    actor = Actor(bf.GetOutput(), c=None)
-    return actor
-
-
-def surfaceIntersection(actor1, actor2, tol=1e-06):
-    """Intersect 2 surfaces and return a line actor.
-
-    .. hint:: |surfIntersect.py|_
-    """
-    bf = vtk.vtkIntersectionPolyDataFilter()
-    poly1 = actor1.GetMapper().GetInput()
-    poly2 = actor2.GetMapper().GetInput()
-    bf.SetInputData(0, poly1)
-    bf.SetInputData(1, poly2)
-    bf.Update()
-    actor = Actor(bf.GetOutput(), "k", 1)
-    actor.GetProperty().SetLineWidth(3)
-    return actor
-
-
-def probePoints(vol, pts):
-    """
-    Takes a ``Volume`` and probes its scalars at the specified points in space.
-
-    Note that a mask is also output with valid/invalid points which can be accessed
-    with `actor.scalars()`.
-    """
-    if hasattr(vol, 'GetMapper'):
-        img = vol.GetMapper().GetInput()
-    else:
-        img = vol
-    src = vtk.vtkProgrammableSource()
-    def readPoints():
-        output = src.GetPolyDataOutput()
-        points = vtk.vtkPoints()
-        for p in pts:
-            x, y, z = p
-            points.InsertNextPoint(x, y, z)
-        output.SetPoints(points)
-
-        cells = vtk.vtkCellArray()
-        cells.InsertNextCell(len(pts))
-        for i in range(len(pts)):
-            cells.InsertCellPoint(i)
-        output.SetVerts(cells)
-
-    src.SetExecuteMethod(readPoints)
-    src.Update()
-    probeFilter = vtk.vtkProbeFilter()
-    probeFilter.SetSourceData(img)
-    probeFilter.SetInputConnection(src.GetOutputPort())
-    probeFilter.Update()
-
-    pact = Actor(probeFilter.GetOutput(), c=None)  # ScalarVisibilityOn
-    pact.mapper.SetScalarRange(img.GetScalarRange())
-    return pact
-
-
-def probeLine(vol, p1, p2, res=100):
-    """
-    Takes a ``Volume`` and probes its scalars along a line defined by 2 points `p1` and `p2`.
-
-    |probeLine| |probeLine.py|_
-    """
-    if hasattr(vol, 'GetMapper'):
-        img = vol.GetMapper().GetInput()
-    else:
-        img = vol
-    line = vtk.vtkLineSource()
-    line.SetResolution(res)
-    line.SetPoint1(p1)
-    line.SetPoint2(p2)
-    probeFilter = vtk.vtkProbeFilter()
-    probeFilter.SetSourceData(img)
-    probeFilter.SetInputConnection(line.GetOutputPort())
-    probeFilter.Update()
-
-    lact = Actor(probeFilter.GetOutput(), c=None)  # ScalarVisibilityOn
-    lact.mapper.SetScalarRange(img.GetScalarRange())
-    return lact
-
-
-def probePlane(vol, origin=(0, 0, 0), normal=(1, 0, 0)):
-    """
-    Takes a ``Volume`` and probes its scalars on a plane.
-
-    |probePlane| |probePlane.py|_
-    """
-    if hasattr(vol, 'GetMapper'):
-        img = vol.GetMapper().GetInput()
-    else:
-        img = vol
-    plane = vtk.vtkPlane()
-    plane.SetOrigin(origin)
-    plane.SetNormal(normal)
-
-    planeCut = vtk.vtkCutter()
-    planeCut.SetInputData(img)
-    planeCut.SetCutFunction(plane)
-    planeCut.Update()
-    cutActor = Actor(planeCut.GetOutput(), c=None)  # ScalarVisibilityOn
-    cutActor.mapper.SetScalarRange(img.GetPointData().GetScalars().GetRange())
-    return cutActor
-
-
-def volumeOperation(volume1, operation, volume2=None):
-    """
-    Perform operations with ``Volume`` objects.
-
-    `volume2` can be a constant value.
-
-    Possible operations are: ``+``, ``-``, ``/``, ``1/x``, ``sin``, ``cos``, ``exp``, ``log``,
-    ``abs``, ``**2``, ``sqrt``, ``min``, ``max``, ``atan``, ``atan2``, ``median``,
-    ``mag``, ``dot``, ``gradient``, ``divergence``, ``laplacian``.
-
-    |volumeOperations| |volumeOperations.py|_
-    """
-    op = operation.lower()
-
-    if hasattr(volume1, 'GetMapper'):
-        image1 = volume1.GetMapper().GetInput()
-    else:
-        image1 = volume1
-    if hasattr(volume2, 'GetMapper'):
-        image2 = volume2.GetMapper().GetInput()
-    else:
-        image2 = volume2
-
-
-    if op in ["median"]:
-        mf = vtk.vtkImageMedian3D()
-        mf.SetInputData(image1)
-        mf.Update()
-        return Volume(mf.GetOutput())
-    elif op in ["mag"]:
-        mf = vtk.vtkImageMagnitude()
-        mf.SetInputData(image1)
-        mf.Update()
-        return Volume(mf.GetOutput())
-    elif op in ["dot", "dotproduct"]:
-        mf = vtk.vtkImageDotProduct()
-        mf.SetInput1Data(image1)
-        mf.SetInput2Data(image2)
-        mf.Update()
-        return Volume(mf.GetOutput())
-    elif op in ["grad", "gradient"]:
-        mf = vtk.vtkImageGradient()
-        mf.SetDimensionality(3)
-        mf.SetInputData(image1)
-        mf.Update()
-        return Volume(mf.GetOutput())
-    elif op in ["div", "divergence"]:
-        mf = vtk.vtkImageDivergence()
-        mf.SetInputData(image1)
-        mf.Update()
-        return Volume(mf.GetOutput())
-    elif op in ["laplacian"]:
-        mf = vtk.vtkImageLaplacian()
-        mf.SetDimensionality(3)
-        mf.SetInputData(image1)
-        mf.Update()
-        return Volume(mf.GetOutput())
-
-    mat = vtk.vtkImageMathematics()
-    mat.SetInput1Data(image1)
-    K = None
-    if image2:
-        if isinstance(image2, vtk.vtkImageData):
-            mat.SetInput2Data(image2)
-        else:  # assume image2 is a constant value
-            K = image2
-            mat.SetConstantK(K)
-            mat.SetConstantC(K)
-
-    if op in ["+", "add", "plus"]:
-        if K:
-            mat.SetOperationToAddConstant()
-        else:
-            mat.SetOperationToAdd()
-
-    elif op in ["-", "subtract", "minus"]:
-        if K:
-            mat.SetConstantC(-K)
-            mat.SetOperationToAddConstant()
-        else:
-            mat.SetOperationToSubtract()
-
-    elif op in ["*", "multiply", "times"]:
-        if K:
-            mat.SetOperationToMultiplyByK()
-        else:
-            mat.SetOperationToMultiply()
-
-    elif op in ["/", "divide"]:
-        if K:
-            mat.SetConstantK(1.0 / K)
-            mat.SetOperationToMultiplyByK()
-        else:
-            mat.SetOperationToDivide()
-
-    elif op in ["1/x", "invert"]:
-        mat.SetOperationToInvert()
-    elif op in ["sin"]:
-        mat.SetOperationToSin()
-    elif op in ["cos"]:
-        mat.SetOperationToCos()
-    elif op in ["exp"]:
-        mat.SetOperationToExp()
-    elif op in ["log"]:
-        mat.SetOperationToLog()
-    elif op in ["abs"]:
-        mat.SetOperationToAbsoluteValue()
-    elif op in ["**2", "square"]:
-        mat.SetOperationToSquare()
-    elif op in ["sqrt", "sqr"]:
-        mat.SetOperationToSquareRoot()
-    elif op in ["min"]:
-        mat.SetOperationToMin()
-    elif op in ["max"]:
-        mat.SetOperationToMax()
-    elif op in ["atan"]:
-        mat.SetOperationToATAN()
-    elif op in ["atan2"]:
-        mat.SetOperationToATAN2()
-    else:
-        colors.printc("~times Error in volumeOperation: unknown operation", operation, c=1)
-        raise RuntimeError()
-    mat.Update()
-    return Volume(mat.GetOutput())
-
-
 def recoSurface(points, bins=256):
     """
     Surface reconstruction from a scattered cloud of points.
@@ -1439,6 +1210,254 @@ def removeOutliers(points, radius):
     return actor  # return same obj for concatenation
 
 
+def booleanOperation(actor1, operation, actor2):
+    """Volumetric union, intersection and subtraction of surfaces.
+
+    :param str operation: allowed operations: ``'plus'``, ``'intersect'``, ``'minus'``.
+
+    |boolean| |boolean.py|_
+    """
+    bf = vtk.vtkBooleanOperationPolyDataFilter()
+    poly1 = actor1.computeNormals().polydata()
+    poly2 = actor2.computeNormals().polydata()
+    if operation.lower() == "plus" or operation.lower() == "+":
+        bf.SetOperationToUnion()
+    elif operation.lower() == "intersect":
+        bf.SetOperationToIntersection()
+    elif operation.lower() == "minus" or operation.lower() == "-":
+        bf.SetOperationToDifference()
+    #bf.ReorientDifferenceCellsOn()
+    bf.SetInputData(0, poly1)
+    bf.SetInputData(1, poly2)
+    bf.Update()
+    actor = Actor(bf.GetOutput(), c=None)
+    return actor
+
+
+def surfaceIntersection(actor1, actor2, tol=1e-06):
+    """Intersect 2 surfaces and return a line actor.
+
+    .. hint:: |surfIntersect.py|_
+    """
+    bf = vtk.vtkIntersectionPolyDataFilter()
+    poly1 = actor1.GetMapper().GetInput()
+    poly2 = actor2.GetMapper().GetInput()
+    bf.SetInputData(0, poly1)
+    bf.SetInputData(1, poly2)
+    bf.Update()
+    actor = Actor(bf.GetOutput(), "k", 1)
+    actor.GetProperty().SetLineWidth(3)
+    return actor
+
+################################################## working with volumes
+def _getimg(obj):
+    if isinstance(obj, vtk.vtkVolume):
+        return obj.GetMapper().GetInput()
+    elif isinstance(obj, vtk.vtkImageData):
+        return obj
+    else:
+        return obj
+
+
+def probePoints(vol, pts):
+    """
+    Takes a ``Volume`` and probes its scalars at the specified points in space.
+
+    Note that a mask is also output with valid/invalid points which can be accessed
+    with `actor.scalars()`.
+    """
+    if isinstance(pts, Actor):
+        pts = pts.coordinates()
+
+    def readPoints():
+        output = src.GetPolyDataOutput()
+        points = vtk.vtkPoints()
+        for p in pts:
+            x, y, z = p
+            points.InsertNextPoint(x, y, z)
+        output.SetPoints(points)
+
+        cells = vtk.vtkCellArray()
+        cells.InsertNextCell(len(pts))
+        for i in range(len(pts)):
+            cells.InsertCellPoint(i)
+        output.SetVerts(cells)
+
+    src = vtk.vtkProgrammableSource()
+    src.SetExecuteMethod(readPoints)
+    src.Update()
+    img = _getimg(vol)
+    probeFilter = vtk.vtkProbeFilter()
+    probeFilter.SetSourceData(img)
+    probeFilter.SetInputConnection(src.GetOutputPort())
+    probeFilter.Update()
+
+    pact = Actor(probeFilter.GetOutput())
+    pact.mapper.SetScalarRange(img.GetScalarRange())
+    #del src # to avoid memory leaks, incompatible with python2
+    return pact
+
+
+def probeLine(vol, p1, p2, res=100):
+    """
+    Takes a ``Volume`` and probes its scalars along a line defined by 2 points `p1` and `p2`.
+
+    |probeLine| |probeLine.py|_
+    """
+    line = vtk.vtkLineSource()
+    line.SetResolution(res)
+    line.SetPoint1(p1)
+    line.SetPoint2(p2)
+    img = _getimg(vol)
+    probeFilter = vtk.vtkProbeFilter()
+    probeFilter.SetSourceData(img)
+    probeFilter.SetInputConnection(line.GetOutputPort())
+    probeFilter.Update()
+
+    lact = Actor(probeFilter.GetOutput())
+    lact.mapper.SetScalarRange(img.GetScalarRange())
+    #del line # to avoid memory leaks, incompatible with python2
+    return lact
+
+
+def probePlane(vol, origin=(0, 0, 0), normal=(1, 0, 0)):
+    """
+    Takes a ``Volume`` and probes its scalars on a plane.
+
+    |probePlane| |probePlane.py|_
+    """
+    img = _getimg(vol)
+    plane = vtk.vtkPlane()
+    plane.SetOrigin(origin)
+    plane.SetNormal(normal)
+
+    planeCut = vtk.vtkCutter()
+    planeCut.SetInputData(img)
+    planeCut.SetCutFunction(plane)
+    planeCut.Update()
+    cutActor = Actor(planeCut.GetOutput(), c=None)  # ScalarVisibilityOn
+    cutActor.mapper.SetScalarRange(img.GetPointData().GetScalars().GetRange())
+    return cutActor
+
+
+def volumeOperation(volume1, operation, volume2=None):
+    """
+    Perform operations with ``Volume`` objects.
+
+    `volume2` can be a constant value.
+
+    Possible operations are: ``+``, ``-``, ``/``, ``1/x``, ``sin``, ``cos``, ``exp``, ``log``,
+    ``abs``, ``**2``, ``sqrt``, ``min``, ``max``, ``atan``, ``atan2``, ``median``,
+    ``mag``, ``dot``, ``gradient``, ``divergence``, ``laplacian``.
+
+    |volumeOperations| |volumeOperations.py|_
+    """
+    op = operation.lower()
+    image1 = _getimg(volume1)
+    image2 = _getimg(volume2)
+
+    if op in ["median"]:
+        mf = vtk.vtkImageMedian3D()
+        mf.SetInputData(image1)
+        mf.Update()
+        return Volume(mf.GetOutput())
+    elif op in ["mag"]:
+        mf = vtk.vtkImageMagnitude()
+        mf.SetInputData(image1)
+        mf.Update()
+        return Volume(mf.GetOutput())
+    elif op in ["dot", "dotproduct"]:
+        mf = vtk.vtkImageDotProduct()
+        mf.SetInput1Data(image1)
+        mf.SetInput2Data(image2)
+        mf.Update()
+        return Volume(mf.GetOutput())
+    elif op in ["grad", "gradient"]:
+        mf = vtk.vtkImageGradient()
+        mf.SetDimensionality(3)
+        mf.SetInputData(image1)
+        mf.Update()
+        return Volume(mf.GetOutput())
+    elif op in ["div", "divergence"]:
+        mf = vtk.vtkImageDivergence()
+        mf.SetInputData(image1)
+        mf.Update()
+        return Volume(mf.GetOutput())
+    elif op in ["laplacian"]:
+        mf = vtk.vtkImageLaplacian()
+        mf.SetDimensionality(3)
+        mf.SetInputData(image1)
+        mf.Update()
+        return Volume(mf.GetOutput())
+
+    mat = vtk.vtkImageMathematics()
+    mat.SetInput1Data(image1)
+    K = None
+    if image2:
+        if isinstance(image2, vtk.vtkImageData):
+            mat.SetInput2Data(image2)
+        else:  # assume image2 is a constant value
+            K = image2
+            mat.SetConstantK(K)
+            mat.SetConstantC(K)
+
+    if op in ["+", "add", "plus"]:
+        if K:
+            mat.SetOperationToAddConstant()
+        else:
+            mat.SetOperationToAdd()
+
+    elif op in ["-", "subtract", "minus"]:
+        if K:
+            mat.SetConstantC(-K)
+            mat.SetOperationToAddConstant()
+        else:
+            mat.SetOperationToSubtract()
+
+    elif op in ["*", "multiply", "times"]:
+        if K:
+            mat.SetOperationToMultiplyByK()
+        else:
+            mat.SetOperationToMultiply()
+
+    elif op in ["/", "divide"]:
+        if K:
+            mat.SetConstantK(1.0 / K)
+            mat.SetOperationToMultiplyByK()
+        else:
+            mat.SetOperationToDivide()
+
+    elif op in ["1/x", "invert"]:
+        mat.SetOperationToInvert()
+    elif op in ["sin"]:
+        mat.SetOperationToSin()
+    elif op in ["cos"]:
+        mat.SetOperationToCos()
+    elif op in ["exp"]:
+        mat.SetOperationToExp()
+    elif op in ["log"]:
+        mat.SetOperationToLog()
+    elif op in ["abs"]:
+        mat.SetOperationToAbsoluteValue()
+    elif op in ["**2", "square"]:
+        mat.SetOperationToSquare()
+    elif op in ["sqrt", "sqr"]:
+        mat.SetOperationToSquareRoot()
+    elif op in ["min"]:
+        mat.SetOperationToMin()
+    elif op in ["max"]:
+        mat.SetOperationToMax()
+    elif op in ["atan"]:
+        mat.SetOperationToATAN()
+    elif op in ["atan2"]:
+        mat.SetOperationToATAN2()
+    else:
+        colors.printc("~times Error in volumeOperation: unknown operation", operation, c=1)
+        raise RuntimeError()
+    mat.Update()
+    return Volume(mat.GetOutput())
+
+
 def thinPlateSpline(actor, sourcePts, targetPts, userFunctions=(None, None)):
     """
     `Thin Plate Spline` transformations describe a nonlinear warp transform defined by a set
@@ -1559,7 +1578,7 @@ def meshQuality(actor, measure=6):
     pd = vtk.vtkPolyData()
     pd.ShallowCopy(qf.GetOutput())
 
-    qactor = Actor(pd, c=None)
+    qactor = Actor(pd)
     qactor.mapper.SetScalarRange(pd.GetScalarRange())
     return qactor
 
@@ -1843,14 +1862,11 @@ def actor2Volume(actor, spacing=(1, 1, 1)):
 
 def extractSurface(volume, radius=0.5):
     """Generate the zero-crossing isosurface from truncated signed distance volume in input.
-    Output is a ``Actor`` object.
+    Output is an ``Actor`` object.
     """
-    if hasattr(volume, 'GetMapper'):
-        image = volume.GetMapper().GetInput()
-    else:
-        image = volume
+    img = _getimg(volume)
     fe = vtk.vtkExtractSurface()
-    fe.SetInputData(image)
+    fe.SetInputData(img)
     fe.SetRadius(radius)
     fe.Update()
     return Actor(fe.GetOutput())
@@ -2325,7 +2341,7 @@ def frequencyPassFilter(volume, lowcutoff=None, highcutoff=None, order=1):
     This function applies a high pass Butterworth filter that attenuates the frequency domain
     image with the function
 
-    .. image:: https://wikimedia.org/api/rest_v1/media/math/render/svg/9c4d02a66b6ff279aae0c4bf07c25e5727d192e4
+    |G_Of_Omega|
 
     The gradual attenuation of the filter is important.
     A simple high-pass filter would simply mask a set of pixels in the frequency domain,
@@ -2340,11 +2356,7 @@ def frequencyPassFilter(volume, lowcutoff=None, highcutoff=None, order=1):
     |idealpass|
     """
     #https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
-    if isinstance(volume, Volume):
-        img = volume.imagedata()
-    elif isinstance(volume, vtk.vtkImageData):
-        img = volume
-
+    img = _getimg(volume)
     fft = vtk.vtkImageFFT()
     fft.SetInputData(img)
     fft.Update()
@@ -2434,6 +2446,8 @@ def volumeFromMesh(actor, bounds=None, dims=(20,20,20), signed=True, negate=Fals
 
     :param list bounds: bounds of the output volume.
     :param list dims: dimensions (nr. of voxels) of the output volume.
+
+    See example script: |volumeFromMesh.py|_
     """
     if bounds is None:
         bounds = actor.GetBounds()
@@ -2509,6 +2523,8 @@ def pointDensity(actor, dims=(30,30,30), bounds=None, radius=None, computeGradie
     """Generate a density field on a volume from a point cloud.
     The local neighborhood is specified as a `radius` around each sample position (each voxel).
     The density is normalized to the upper value of the scalar range.
+
+    See example script: |pointDensity.py|_
     """
     pdf = vtk.vtkPointDensityFilter()
     pdf.SetInputData(actor.polydata())
@@ -2529,7 +2545,89 @@ def pointDensity(actor, dims=(30,30,30), bounds=None, radius=None, computeGradie
     return volumeOperation(vol, '/', img.GetScalarRange()[1])
 
 
+def erodeVolume(vol, neighbours=(2,2,2)):
+    """Replace a voxel with the minimum over an ellipsoidal neighborhood of voxels.
+    If `neighbours` of an axis is 1, no processing is done on that axis.
 
+    See example script: |erode_dilate.py|_
+    """
+    img = _getimg(vol)
+    ver = vtk.vtkImageContinuousErode3D()
+    ver.SetInputData(img)
+    ver.SetKernelSize(neighbours[0], neighbours[1], neighbours[2])
+    ver.Update()
+    return Volume(ver.GetOutput())
+
+
+def dilateVolume(vol, neighbours=(2,2,2)):
+    """Replace a voxel with the maximum over an ellipsoidal neighborhood of voxels.
+    If `neighbours` of an axis is 1, no processing is done on that axis.
+
+    See example script: |erode_dilate.py|_
+    """
+    img = _getimg(vol)
+    ver = vtk.vtkImageContinuousDilate3D()
+    ver.SetInputData(img)
+    ver.SetKernelSize(neighbours[0], neighbours[1], neighbours[2])
+    ver.Update()
+    return Volume(ver.GetOutput())
+
+
+def euclideanDistanceVolume(vol, anisotropy=False, maxDistance=None):
+    """Implementation of the Euclidean DT (Distance Transform) using Saito's algorithm.
+    The distance map produced contains the square of the Euclidean distance values.
+    The algorithm has a O(n^(D+1)) complexity over nxnx...xn images in D dimensions.
+
+    Check out also: https://en.wikipedia.org/wiki/Distance_transform
+
+    :param bool anisotropy: used to define whether Spacing should be used
+        in the computation of the distances.
+    :param float maxDistance: any distance bigger than maxDistance will not be
+        computed but set to this specified value instead.
+
+    See example script: |euclDist.py|_
+    """
+    img = _getimg(vol)
+    euv = vtk.vtkImageEuclideanDistance()
+    euv.SetInputData(img)
+    euv.SetConsiderAnisotropy(anisotropy)
+    if maxDistance is not None:
+        euv.InitializeOn()
+        euv.SetMaximumDistance(maxDistance)
+    euv.SetAlgorithmToSaito()
+    euv.Update()
+    return Volume(euv.GetOutput())
+
+
+def volumeToPoints(vol):
+    """Extract all image voxels as points.
+    This function takes an input ``Volume`` and creates an ``Actor``
+    that contains the points and the point attributes.
+
+    See example script: |vol2points.py|_
+    """
+    img = _getimg(vol)
+    v2p = vtk.vtkImageToPoints()
+    v2p.SetInputData(img)
+    v2p.Update()
+    return Actor(v2p.GetOutput())
+
+
+def volumeCorrelation(vol1, vol2, dim=2):
+    """Find the correlation between two volumetric data sets.
+    Keyword `dim` determines whether the correlation will be 3D, 2D or 1D.
+    The default is a 2D Correlation.
+    The output size will match the size of the first input.
+    The second input is considered the correlation kernel.
+    """
+    img1 = _getimg(vol1)
+    img2 = _getimg(vol2)
+    imc = vtk.vtkImageCorrelation()
+    imc.SetInput1Data(img1)
+    imc.SetInput2Data(img2)
+    imc.SetDimensionality(dim)
+    imc.Update()
+    return Volume(imc.GetOutput())
 
 
 

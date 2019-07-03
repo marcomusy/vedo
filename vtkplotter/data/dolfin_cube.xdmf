@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<Xdmf Version="3.0">
+  <Domain>
+    <Grid Name="mesh" GridType="Uniform">
+      <Topology NumberOfElements="384" TopologyType="Tetrahedron" NodesPerElement="4">
+        <DataItem Dimensions="384 4" NumberType="UInt" Format="HDF">dolfin_cube.h5:/Mesh/mesh/topology</DataItem>
+      </Topology>
+      <Geometry GeometryType="XYZ">
+        <DataItem Dimensions="125 3" Format="HDF">dolfin_cube.h5:/Mesh/mesh/geometry</DataItem>
+      </Geometry>
+      <Attribute Name="f_5" AttributeType="Scalar" Center="Node">
+        <DataItem Dimensions="125 1" Format="HDF">dolfin_cube.h5:/VisualisationVector/0</DataItem>
+      </Attribute>
+    </Grid>
+  </Domain>
+</Xdmf>

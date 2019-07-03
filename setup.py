@@ -51,6 +51,7 @@ setup(
 # ( sudo -H pip install . )
 
 # cd examples && ./run_all.sh
+# python test_filetypes.py
 
 # check vtkconvert:
 # vtkconvert vtkplotter/data/290.vtk -to ply
@@ -61,6 +62,7 @@ setup(
 # check notebooks:
 # cd ~/Projects/vtkplotter/
 # jupyter notebook
+# remove trailing spaces
 
 # git status
 # git add [files]

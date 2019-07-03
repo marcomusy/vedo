@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 from __future__ import division, print_function
-from vtkplotter import Plotter, ProgressBar, printc, humansort, __version__
+from vtkplotter import Actor, Plotter, ProgressBar, printc, humansort, __version__
 from vtkplotter import vtkio
 import vtk
 import sys, argparse, os
@@ -10,7 +10,7 @@ pr = argparse.ArgumentParser(description="version "+str(__version__)+""" -
                              check out home page https://github.com/marcomusy/vtkplotter""")
 pr.add_argument('files', nargs='*',             help="Input filename(s)")
 pr.add_argument("-c", "--color", type=str,      help="mesh color [integer or color name]", default=None, metavar='')
-pr.add_argument("-a", "--alpha",    type=float, help="alpha value [0-1]", default=-1, metavar='')
+pr.add_argument("-a", "--alpha",    type=float, help="alpha value [0-1]", default=1, metavar='')
 pr.add_argument("-w", "--wireframe",            help="use wireframe representation", action="store_true")
 pr.add_argument("-p", "--point-size", type=float, help="specify point size", default=-1, metavar='')
 pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-5]", default=4, metavar='')
@@ -71,15 +71,12 @@ else:
 vp.verbose = not args.quiet
 vp.sharecam = not args.no_camera_share
 
-alpha = 1
 leg = True
 wire = False
 if args.legend_off or nfiles == 1:
     leg = False
 if args.wireframe:
     wire = True
-if args.scrolling_mode and args.multirenderer_mode:
-    args.scrolling_mode = False
 
 _alphaslider0, _alphaslider1, _alphaslider2 = 0.33, 0.66, 1  # defaults
 
@@ -115,9 +112,9 @@ def _showVoxelImage():
         smax = abs(10 * smin) + 0.1
         print("         reset to:", smax)
 
-    x0alpha = smin + (smax - smin) * 0.33
-    x1alpha = smin + (smax - smin) * 0.66
-    x2alpha = smin + (smax - smin) * 1.00
+    x0alpha = smin + (smax - smin) * 0.25
+    x1alpha = smin + (smax - smin) * 0.5
+    x2alpha = smin + (smax - smin) * 1.0
 
     ############################## color map slider
     # Create transfer mapping scalar value to color
@@ -175,7 +172,7 @@ def _showVoxelImage():
         _alphaslider0 = widget.GetRepresentation().GetValue()
         setOTF()
     w0 = vp.addSlider2D(
-        sliderA0, 0, 1, value=_alphaslider0, pos=[(0.855, 0.1), (0.855, 0.26)], c=csl, showValue=0
+        sliderA0, 0, 1, value=_alphaslider0, pos=[(0.84, 0.1), (0.84, 0.26)], c=csl, showValue=0
     )
 
     def sliderA1(widget, event):
@@ -183,7 +180,7 @@ def _showVoxelImage():
         _alphaslider1 = widget.GetRepresentation().GetValue()
         setOTF()
     w1 = vp.addSlider2D(
-        sliderA1, 0, 1, value=_alphaslider1, pos=[(0.9075, 0.1), (0.9075, 0.26)], c=csl, showValue=0
+        sliderA1, 0, 1, value=_alphaslider1, pos=[(0.89, 0.1), (0.89, 0.26)], c=csl, showValue=0
     )
 
     def sliderA2(widget, event):
@@ -258,6 +255,7 @@ def _showVoxelImage():
 ##########################################################
 # special case of SLC/TIFF volumes with -g option
 if args.ray_cast_mode or args.z_spacing or args.y_spacing:
+    #print('DEBUG special case of SLC/TIFF volumes with -g option')
     if args.axes_type in [1, 2, 3]:
         vp.axes = 4
     wsize = "auto"
@@ -269,6 +267,7 @@ if args.ray_cast_mode or args.z_spacing or args.y_spacing:
 ##########################################################
 # special case of SLC/TIFF/DICOM volumes with --slicer option
 elif args.slicer:
+    #print('DEBUG special case of SLC/TIFF/DICOM volumes with --slicer option')
 
     filename = args.files[0]
     img = vtkio.load(filename).imagedata()
@@ -336,7 +335,8 @@ elif nfiles == 1 and (
     or ".nrrd" in args.files[0]
     or ".dem" in args.files[0]
 ):
-    from vtkplotter import Actor, legosurface
+    #print('DEBUG normal mode for single VOXEL file with Isosurface Slider or LEGO mode')
+    from vtkplotter import legosurface
 
     image = vtkio.loadImageData(args.files[0])
     scrange = image.GetScalarRange()
@@ -368,7 +368,7 @@ elif nfiles == 1 and (
 
         cf.SetValue(0, threshold)
         cf.Update()
-        act = Actor(cf.GetOutput(), c=ic, alpha=abs(args.alpha)).wire(args.wireframe)
+        act = Actor(cf.GetOutput(), c=ic, alpha=args.alpha).wire(args.wireframe)
         act.phong()
 
     ############################## threshold slider
@@ -409,61 +409,41 @@ elif nfiles == 1 and (
 
 ########################################################################
 # NORMAL mode for single or multiple files, or multiren mode
-elif (not args.scrolling_mode) or nfiles == 1:
+elif nfiles == 1 or (not args.scrolling_mode):
+    #print('DEBUG NORMAL mode for single or multiple files, or multiren mode')
 
     actors = []
     for i in range(N):
         f = args.files[i]
 
-        if ".neutral" in f.lower() or ".xml" in f.lower() or ".gmsh" in f.lower():
-            alpha = 0.05
-            wire = True
-        else:
-            wire = False
+        colb = args.color
+        if args.color is None and N > 1:
+            colb = i
 
-        if 0 < args.alpha <= 1:
-            alpha = args.alpha
+        actor = vp.load(f, c=colb, alpha=args.alpha)
 
-        if args.wireframe:
-            wire = True
+        if isinstance(actor, vtk.vtkActor):
 
-        ic = i  # default here
-        if args.color is not None:
-            if args.color.isdigit():
-                ic = int(args.color)
-            else:
-                ic = args.color
+            if isinstance(actor, Actor):
+                actor.wireframe(wire)
 
-        actor = vp.load(f, c=ic, alpha=alpha)
-        poly = actor.polydata(False)
-        ptdata = poly.GetPointData()
+                if leg:
+                    actor.legend(os.path.basename(f))
 
-        if args.color is None and ptdata.GetNumberOfArrays() > 0:
-            arrname = ptdata.GetArrayName(0)
-            if "Normals" not in arrname:
-                ptdata.SetActiveScalars(arrname)
-                actor.GetMapper().ScalarVisibilityOn()
+                actors.append(actor)
 
-        if hasattr(actor, "wire"):
-            actor.wire(wire)
+                if args.point_size > 0:
+                    try:
+                        ps = actor.GetProperty().GetPointSize()
+                        actor.GetProperty().SetPointSize(args.point_size)
+                        actor.GetProperty().SetRepresentationToPoints()
+                    except AttributeError:
+                        pass
 
-        if leg:
-            actor.legend(os.path.basename(f))
-
-        actors.append(actor)
-
-        if args.point_size > 0:
-            try:
-                ps = actor.GetProperty().GetPointSize()
-                actor.GetProperty().SetPointSize(args.point_size)
-                actor.GetProperty().SetRepresentationToPoints()
-            except AttributeError:
-                print("cannot set point size for", f)
-
-        if args.multirenderer_mode:
-            actor._legend = None
-            vp.show(actor, at=i, interactive=False, zoom=args.zoom)
-            vp.actors = actors
+                if args.multirenderer_mode:
+                    actor._legend = None
+                    vp.show(actor, at=i, interactive=False, zoom=args.zoom)
+                    vp.actors = actors
 
     if args.multirenderer_mode:
         vp.interactor.Start()
@@ -473,10 +453,8 @@ elif (not args.scrolling_mode) or nfiles == 1:
 ########################################################################
 # scrolling mode  -s
 else:
+    #print('DEBUG scrolling mode  -s')
     import numpy
-
-    if 0 < args.alpha <= 1:
-        alpha = args.alpha
 
     n = len(args.files)
     pb = ProgressBar(0, n)
@@ -491,8 +469,8 @@ else:
             else:
                 ic = args.color
 
-        actor = vp.load(f, c=ic, alpha=alpha)
-        if hasattr(actor, "wire"):
+        actor = vp.load(f, c=ic, alpha=args.alpha) # can be Image
+        if hasattr(actor, 'wireframe'):
             actor.wire(wire)
         actor.legend(leg)
         actors.append(actor)
@@ -502,7 +480,7 @@ else:
                 actor.GetProperty().SetPointSize(args.point_size)
                 actor.GetProperty().SetRepresentationToPoints()
             except AttributeError:
-                print("cannot set point size for", f)
+                pass
 
     # calculate max actors bounds
     bns = []

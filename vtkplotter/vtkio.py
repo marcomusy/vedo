@@ -116,7 +116,7 @@ def load(inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
                 if len(spacing) == 3:
                     image.SetSpacing(spacing[0], spacing[1], spacing[2])
                 if threshold is False:
-                    if c is None and alpha is 1:
+                    if c is None and alpha == 1:
                         c = ['b','lb','lg','y','r'] # good for blackboard background
                         alpha = (0.0, 0.0, 0.2, 0.4, 0.8, 1)
                         #c = ['lb','db','dg','dr']  # good for white backgr
@@ -136,10 +136,10 @@ def load(inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
 
     if len(acts) == 1:
         if not acts[0]:
-            colors.printc("~times Error in load(): cannot find", inputobj, c=1)
+            colors.printc("~times Error in load(): cannot load", inputobj, c=1)
         return acts[0]
     elif len(acts) == 0:
-        colors.printc("~times Error in load(): cannot find", inputobj, c=1)
+        colors.printc("~times Error in load(): cannot load", inputobj, c=1)
         return None
     else:
         return acts
@@ -149,7 +149,8 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
     fl = filename.lower()
 
     ################################################################# other formats:
-    if fl.endswith(".xml") or fl.endswith(".xml.gz"):  # Fenics tetrahedral file
+    if fl.endswith(".xml") or fl.endswith(".xml.gz") or fl.endswith(".xdmf"):
+        # Fenics tetrahedral file
         actor = loadDolfin(filename)
     elif fl.endswith(".neutral") or fl.endswith(".neu"):  # neutral tetrahedral file
         actor = loadNeutral(filename)
@@ -168,11 +169,9 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
         or fl.endswith(".mhd") or fl.endswith(".nrrd") or fl.endswith(".nii"):
         img = loadImageData(filename, spacing)
         if threshold is False:
-            if c is None and alpha is 1:
+            if c is None and alpha == 1:
                 c = ['b','lb','lg','y','r'] # good for blackboard background
                 alpha = (0.0, 0.0, 0.2, 0.4, 0.8, 1)
-                #c = ['lb','db','dg','dr']  # good for white backgr
-                #alpha = (0.0, 0.0, 0.2, 0.6, 0.8, 1)
             actor = Volume(img, c, alpha)
         else:
             actor = isosurface(img, threshold=threshold)
@@ -195,7 +194,7 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
         actor.SetOpacity(alpha)
 
         ################################################################# multiblock:
-    elif fl.endswith(".vtm"):
+    elif fl.endswith(".vtm") or fl.endswith(".vtmb"):
         read = vtk.vtkXMLMultiBlockDataReader()
         read.SetFileName(filename)
         read.Update()
@@ -219,23 +218,17 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
 
         ################################################################# polygonal mesh:
     else:
-#        applygeomf = False
-        if fl.endswith(".vtk"): # legacy readers
-#            try:
-#                with open(filename) as myfile:
-#                    head = [next(myfile) for x in range(3)]
-#                head = ''.join(head).lower()
-#                if ' unstructured_grid' in head:
-#                    reader = vtk.vtkUnstructuredGridReader()
-#                    applygeomf = True
-#                elif ' structured_grid' in head:
-#                    reader = vtk.vtkStructuredGridReader()
-#                    applygeomf = True
-#                else:
-#                    reader = vtk.vtkPolyDataReader()
-#            except:
-            
-            reader = vtk.vtkPolyDataReader()
+        if fl.endswith(".vtk"): # read all legacy vtk types
+
+            #output can be:
+            # PolyData, StructuredGrid, StructuredPoints, UnstructuredGrid, RectilinearGrid
+            reader = vtk.vtkDataSetReader()
+            reader.ReadAllScalarsOn()
+            reader.ReadAllVectorsOn()
+            reader.ReadAllTensorsOn()
+            reader.ReadAllFieldsOn()
+            reader.ReadAllNormalsOn()
+            reader.ReadAllColorScalarsOn()
 
         elif fl.endswith(".ply"):
             reader = vtk.vtkPLYReader()
@@ -247,6 +240,8 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
             reader = vtk.vtkBYUReader()
         elif fl.endswith(".foam"):  # OpenFoam
             reader = vtk.vtkOpenFOAMReader()
+        elif fl.endswith(".pvd"):
+            reader = vtk.vtkXMLGenericDataObjectReader()
         elif fl.endswith(".vtp"):
             reader = vtk.vtkXMLPolyDataReader()
         elif fl.endswith(".vts"):
@@ -255,35 +250,28 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
             reader = vtk.vtkXMLUnstructuredGridReader()
         elif fl.endswith(".vtr"):
             reader = vtk.vtkXMLRectilinearGridReader()
-        elif fl.endswith(".txt"):
-            reader = vtk.vtkParticleReader()  # (format is x, y, z, scalar)
-        elif fl.endswith(".xyz"):
-            reader = vtk.vtkParticleReader()
         elif fl.endswith(".pvtk"):
             reader = vtk.vtkPDataSetReader()
         elif fl.endswith(".pvtr"):
             reader = vtk.vtkXMLPRectilinearGridReader()
         elif fl.endswith("pvtu"):
             reader = vtk.vtkXMLPUnstructuredGridReader()
-        elif fl.endswith(".pvti"):
-            reader = vtk.vtkXMLPImageDataReader()
+        elif fl.endswith(".txt") or fl.endswith(".xyz"):
+            reader = vtk.vtkParticleReader()  # (format is x, y, z, scalar)
+        elif fl.endswith(".facet"):
+            reader = vtk.vtkFacetReader()
         else:
-            reader = vtk.vtkDataReader()
+            return None
 
         reader.SetFileName(filename)
-        if hasattr(reader, 'ReadAllScalarsOn'):
-            reader.ReadAllScalarsOn()
-            reader.ReadAllVectorsOn()
-            reader.ReadAllTensorsOn()
-            reader.ReadAllFieldsOn()
         reader.Update()
-        poly = reader.GetOutput()
+        routput = reader.GetOutput()
 
-        if not poly:
+        if not routput:
             colors.printc("~noentry Unable to load", filename, c=1)
             return None
 
-        actor = Actor(poly, c, alpha)
+        actor = Actor(routput, c, alpha)
         if fl.endswith(".txt") or fl.endswith(".xyz"):
             actor.GetProperty().SetPointSize(4)
 
@@ -398,10 +386,6 @@ def load3DS(filename):
 
 def loadOFF(filename):
     """Read OFF file format."""
-    if not os.path.exists(filename):
-        colors.printc("~noentry Error in loadOFF: Cannot find", filename, c=1)
-        return None
-
     f = open(filename, "r")
     lines = f.readlines()
     f.close()
@@ -437,7 +421,7 @@ def loadOFF(filename):
             ids += [int(xx) for xx in ts[1:]]
             faces.append(ids)
 
-    return Actor(buildPolyData(vertices, faces))
+    return Actor(utils.buildPolyData(vertices, faces))
 
 
 def loadGeoJSON(filename):
@@ -450,60 +434,82 @@ def loadGeoJSON(filename):
     return Actor(jr.GetOutput())
 
 
-def loadDolfin(filename):
+def loadDolfin(filename, exterior=False):
     """Reads a `Fenics/Dolfin` file format. Return an ``Actor(vtkActor)`` object."""
-    import xml.etree.ElementTree as et
+    import dolfin
 
-    if filename.endswith(".gz"):
-        import gzip
-
-        inF = gzip.open(filename, "rb")
-        outF = open("/tmp/filename.xml", "wb")
-        outF.write(inF.read())
-        outF.close()
-        inF.close()
-        tree = et.parse("/tmp/filename.xml")
+    if filename.lower().endswith('.xdmf'):
+        f = dolfin.XDMFFile(filename)
+        m = dolfin.Mesh()
+        f.read(m)
     else:
-        tree = et.parse(filename)
+        m = dolfin.Mesh(filename)
 
-    coords, connectivity = [], []
-    for mesh in tree.getroot():
-        for elem in mesh:
-            for e in elem.findall("vertex"):
-                x = float(e.get("x"))
-                y = float(e.get("y"))
-                ez = e.get("z")
-                if ez is None:
-                    coords.append([x, y])
-                else:
-                    z = float(ez)
-                    coords.append([x, y, z])
+    bm = dolfin.BoundaryMesh(m, "exterior")
 
-            tets = elem.findall("tetrahedron")
-            if not len(tets):
-                tris = elem.findall("triangle")
-                for e in tris:
-                    v0 = int(e.get("v0"))
-                    v1 = int(e.get("v1"))
-                    v2 = int(e.get("v2"))
-                    connectivity.append([v0, v1, v2])
-            else:
-                for e in tets:
-                    v0 = int(e.get("v0"))
-                    v1 = int(e.get("v1"))
-                    v2 = int(e.get("v2"))
-                    v3 = int(e.get("v3"))
-                    connectivity.append([v0, v1, v2, v3])
+    if exterior:
+        poly = utils.buildPolyData(bm.coordinates(), bm.cells(), fast=True)
+    else:
+        polyb = utils.buildPolyData(bm.coordinates(), bm.cells(), fast=True)
+        polym = utils.buildPolyData(m.coordinates(), m.cells(), fast=True)
+        app = vtk.vtkAppendPolyData()
+        app.AddInputData(polym)
+        app.AddInputData(polyb)
+        app.Update()
+        poly = app.GetOutput()
+    return Actor(poly)
 
-    poly = buildPolyData(coords, connectivity)
-    return Actor(poly, alpha=0.5)
+
+#def loadDolfin_old(filename, exterior='dummy'):
+#    import xml.etree.ElementTree as et
+#
+#    if filename.endswith(".gz"):
+#        import gzip
+#
+#        inF = gzip.open(filename, "rb")
+#        outF = open("/tmp/filename.xml", "wb")
+#        outF.write(inF.read())
+#        outF.close()
+#        inF.close()
+#        tree = et.parse("/tmp/filename.xml")
+#    else:
+#        tree = et.parse(filename)
+#
+#    coords, connectivity = [], []
+#    for mesh in tree.getroot():
+#        for elem in mesh:
+#            for e in elem.findall("vertex"):
+#                x = float(e.get("x"))
+#                y = float(e.get("y"))
+#                ez = e.get("z")
+#                if ez is None:
+#                    coords.append([x, y])
+#                else:
+#                    z = float(ez)
+#                    coords.append([x, y, z])
+#
+#            tets = elem.findall("tetrahedron")
+#            if not len(tets):
+#                tris = elem.findall("triangle")
+#                for e in tris:
+#                    v0 = int(e.get("v0"))
+#                    v1 = int(e.get("v1"))
+#                    v2 = int(e.get("v2"))
+#                    connectivity.append([v0, v1, v2])
+#            else:
+#                for e in tets:
+#                    v0 = int(e.get("v0"))
+#                    v1 = int(e.get("v1"))
+#                    v2 = int(e.get("v2"))
+#                    v3 = int(e.get("v3"))
+#                    connectivity.append([v0, v1, v2, v3])
+#
+#    poly = utils.buildPolyData(coords, connectivity)
+#    return Actor(poly)
 
 
 def loadNeutral(filename):
     """Reads a `Neutral` tetrahedral file format. Return an ``Actor(vtkActor)`` object."""
-    if not os.path.exists(filename):
-        colors.printc("~noentry Error in loadNeutral: Cannot find", filename, c=1)
-        return None
     f = open(filename, "r")
     lines = f.readlines()
     f.close()
@@ -521,16 +527,12 @@ def loadNeutral(filename):
         v0, v1, v2, v3 = text[1], text[2], text[3], text[4]
         idolf_tets.append([int(v0) - 1, int(v1) - 1, int(v2) - 1, int(v3) - 1])
 
-    poly = buildPolyData(fdolf_coords, idolf_tets, indexOffset=0)
+    poly = utils.buildPolyData(fdolf_coords, idolf_tets)
     return Actor(poly)
 
 
 def loadGmesh(filename):
     """Reads a `gmesh` file format. Return an ``Actor(vtkActor)`` object."""
-    if not os.path.exists(filename):
-        colors.printc("~noentry Error in loadGmesh: Cannot find", filename, c=1)
-        return None
-
     f = open(filename, "r")
     lines = f.readlines()
     f.close()
@@ -559,16 +561,12 @@ def loadGmesh(filename):
         ele = lines[i].split()
         elements.append([int(ele[-3]), int(ele[-2]), int(ele[-1])])
 
-    poly = buildPolyData(node_coords, elements, indexOffset=1)
-
+    poly = utils.buildPolyData(node_coords, elements, indexOffset=1)
     return Actor(poly)
 
 
 def loadPCD(filename):
     """Return ``vtkActor`` from `Point Cloud` file format. Return an ``Actor(vtkActor)`` object."""
-    if not os.path.exists(filename):
-        colors.printc("~noentry Error in loadPCD: Cannot find file", filename, c=1)
-        return None
     f = open(filename, "r")
     lines = f.readlines()
     f.close()
@@ -588,18 +586,8 @@ def loadPCD(filename):
             start = True
     if expN != N:
         colors.printc("~!? Mismatch in pcd file", expN, len(pts), c="red")
-    src = vtk.vtkPointSource()
-    src.SetNumberOfPoints(len(pts))
-    src.Update()
-    poly = src.GetOutput()
-    for i, p in enumerate(pts):
-        poly.GetPoints().SetPoint(i, p)
-    if not poly:
-        colors.printc("~noentry Unable to load", filename, c="red")
-        return False
-    actor = Actor(poly)
-    actor.GetProperty().SetPointSize(4)
-    return actor
+    poly = utils.buildPolyData(pts)
+    return Actor(poly).pointSize(4)
 
 
 def loadImageData(filename, spacing=()):
@@ -607,10 +595,6 @@ def loadImageData(filename, spacing=()):
     Use ``loadVolume`` instead.
     E.g. `img = loadVolume('myfile.tif').imagedata()`
     """
-    if not os.path.isfile(filename):
-        colors.printc("~noentry File not found:", filename, c=1)
-        return None
-
     if ".tif" in filename.lower():
         reader = vtk.vtkTIFFReader()
     elif ".slc" in filename.lower():
@@ -678,6 +662,8 @@ def write(objct, fileoutput, binary=True):
         return mb
     elif ".xyz" in fr:
         w = vtk.vtkSimplePointsWriter()
+    elif ".facet" in fr:
+        w = vtk.vtkFacetWriter()
     elif ".tif" in fr:
         w = vtk.vtkTIFFWriter()
         w.SetFileDimensionality(len(obj.GetDimensions()))
@@ -794,166 +780,6 @@ def exportWindow(fileoutput, binary=False, speed=None, html=True):
         colors.printc("~save Saved files:", fileoutput,
                       fileoutput.replace('.x3d', '.html'), c="g")
     return
-
-
-###########################################################
-def buildPolyDataFast(vertices, faces=None, indexOffset=None):
-    """
-    Build a ``vtkPolyData`` object from a list of vertices
-    where faces represents the connectivity of the polygonal mesh.
-
-    E.g. :
-        - ``vertices=[[x1,y1,z1],[x2,y2,z2], ...]``
-        - ``faces=[[0,1,2], [1,2,3], ...]``
-    """
-    from vtk.util.numpy_support import numpy_to_vtk, numpy_to_vtkIdTypeArray
-
-    dts = vtk.vtkIdTypeArray().GetDataTypeSize()
-    ast = numpy.int32
-    if dts != 4:
-        ast = numpy.int64
-
-    if not utils.isSequence(vertices):  # assume a dolfin.Mesh
-        from dolfin import Mesh, BoundaryMesh
-        mesh = Mesh(vertices)
-        mesh = BoundaryMesh(mesh, "exterior")
-        vertices = mesh.coordinates()
-        faces = mesh.cells()
-
-    # must fix dim=3 of vertices.. todo
-
-    poly = vtk.vtkPolyData()
-    vpts = vtk.vtkPoints()
-    vpts.SetData(numpy_to_vtk(vertices, deep=True))
-    poly.SetPoints(vpts)
-
-    cells = vtk.vtkCellArray()
-    if faces is not None:
-        nf, nc = faces.shape
-        dts = vtk.vtkIdTypeArray().GetDataTypeSize()
-        ast = numpy.int32
-        if dts != 4:
-            ast = numpy.int64
-        hs = numpy.hstack((numpy.zeros(nf)[:,None] + nc, faces)).astype(ast).ravel()
-        arr = numpy_to_vtkIdTypeArray(hs, deep=True)
-        cells.SetCells(nf, arr)
-        poly.SetPolys(cells)
-    else:
-        sourceVertices = vtk.vtkCellArray()
-        for i in range(len(vertices)):
-            sourceVertices.InsertNextCell(1)
-            sourceVertices.InsertCellPoint(i)
-        poly.SetVerts(sourceVertices)
-
-    return poly
-
-
-def buildPolyData(vertices, faces=None, indexOffset=0):
-    """
-    Build a ``vtkPolyData`` object from a list of vertices
-    where faces represents the connectivity of the polygonal mesh.
-
-    E.g. :
-        - ``vertices=[[x1,y1,z1],[x2,y2,z2], ...]``
-        - ``faces=[[0,1,2], [1,2,3], ...]``
-
-    Use ``indexOffset=1`` if face numbering starts from 1 instead of 0.
-    """
-    if 'dolfin' in str(vertices):  # assume a dolfin.Mesh
-        faces = vertices.cells()
-        vertices = vertices.coordinates()
-
-    sourcePoints = vtk.vtkPoints()
-    sourcePolygons = vtk.vtkCellArray()
-    sourceVertices = vtk.vtkCellArray()
-    isgt2 = len(vertices[0]) > 2
-    is1 = len(vertices[0]) == 1
-    for pt in vertices:
-        if isgt2:
-            aid = sourcePoints.InsertNextPoint(pt[0], pt[1], pt[2])
-        elif is1:
-            aid = sourcePoints.InsertNextPoint(pt[0], 0, 0)
-        else:
-            aid = sourcePoints.InsertNextPoint(pt[0], pt[1], 0)
-
-        if faces is None:
-            sourceVertices.InsertNextCell(1)
-            sourceVertices.InsertCellPoint(aid)
-
-    if faces is not None:
-        showbar = False
-        if len(faces) > 25000:
-            showbar = True
-            pb = utils.ProgressBar(0, len(faces), ETA=False)
-        for f in faces:
-            n = len(f)
-            if n == 4: #ugly but a bit faster:
-                ele0 = vtk.vtkTriangle()
-                ele1 = vtk.vtkTriangle()
-                ele2 = vtk.vtkTriangle()
-                ele3 = vtk.vtkTriangle()
-                if indexOffset:
-                    for i in [0,1,2,3]:
-                        f[i] -= indexOffset
-                f0, f1, f2, f3 = f
-                pid0 = ele0.GetPointIds()
-                pid1 = ele1.GetPointIds()
-                pid2 = ele2.GetPointIds()
-                pid3 = ele3.GetPointIds()
-
-                pid0.SetId(0, f0)
-                pid0.SetId(1, f1)
-                pid0.SetId(2, f2)
-
-                pid1.SetId(0, f0)
-                pid1.SetId(1, f1)
-                pid1.SetId(2, f3)
-
-                pid2.SetId(0, f1)
-                pid2.SetId(1, f2)
-                pid2.SetId(2, f3)
-
-                pid3.SetId(0, f2)
-                pid3.SetId(1, f3)
-                pid3.SetId(2, f0)
-
-                sourcePolygons.InsertNextCell(ele0)
-                sourcePolygons.InsertNextCell(ele1)
-                sourcePolygons.InsertNextCell(ele2)
-                sourcePolygons.InsertNextCell(ele3)
-
-#            if n == 4: #problematic because of faces orientation
-#                ele = vtk.vtkTetra()
-#                pids = ele.GetPointIds()
-#                for i in reversed(range(4)):
-#                    pids.SetId(i, f[i] - indexOffset)
-#                sourcePolygons.InsertNextCell(ele)
-
-            elif n == 3:
-                ele = vtk.vtkTriangle()
-                pids = ele.GetPointIds()
-                for i in range(3):
-                    pids.SetId(i, f[i] - indexOffset)
-                sourcePolygons.InsertNextCell(ele)
-
-            else:
-                ele = vtk.vtkPolygon()
-                pids = ele.GetPointIds()
-                pids.SetNumberOfIds(n)
-                for i in range(n):
-                    pids.SetId(i, f[i] - indexOffset)
-                sourcePolygons.InsertNextCell(ele)
-            if showbar:
-                pb.print("converting mesh...    ")
-
-    poly = vtk.vtkPolyData()
-    poly.SetPoints(sourcePoints)
-    if faces is None:
-        poly.SetVerts(sourceVertices)
-    else:
-        poly.SetPolys(sourcePolygons)
-
-    return poly
 
 
 ##########################################################
@@ -1407,14 +1233,21 @@ def _keypress(iren, event):
         addons.addLegend()
 
     elif key == "4":
-        acs = vp.getActors()
-        if len(acs) == 0: return
-        alpha = 1.0 / len(acs)
-        for ia in acs:
+        for ia in vp.getActors():
             if not ia.GetPickable():
                 continue
-            ia.GetProperty().SetOpacity(alpha)
-            ia.GetMapper().ScalarVisibilityOn()
+            if isinstance(ia, Actor):
+                iascals = ia.scalars()
+                if len(iascals):
+                    stype, sname = iascals[ia._scals_idx]
+                    if "ormal" not in sname: # exclude normals
+                        ia.scalars( ia._scals_idx )
+                        ia.GetMapper().ScalarVisibilityOn()
+                        colors.printc("..active scalars set to:", sname,
+                                      "\ttype:", stype, c='g', bold=0)
+                    ia._scals_idx += 1
+                    if ia._scals_idx >= len(iascals):
+                        ia._scals_idx = 0
         addons.addLegend()
 
     elif key == "5":

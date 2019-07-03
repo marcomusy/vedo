@@ -1,24 +1,22 @@
 # Credits:
-# https://github.com/akaszynski/PyACVD
+# https://github.com/akaszynski/pyacvd
 # Needs PyACVD:
-# pip install PyACVD
+# pip install pyacvd
 #
 from vtkplotter import *
-from PyACVD import Clustering
+from pyvista import wrap
+from pyacvd import Clustering
 
-amesh = Sphere(res=50)
+mesh = Sphere(res=50).subdivide().lw(0.2).normalize().cutWithPlane()
 
-# Create clustering object
-poly = amesh.clone().triangle().clean().polydata()
-cobj = Clustering.Cluster(poly)
+clus = Clustering(wrap(mesh.polydata()))
+clus.cluster(1000, maxiter=100, iso_try=10, debug=False)
 
-# Generate clusters
-cobj.GenClusters(1000, max_iter=10000, subratio=10)
-cobj.GenMesh()
+pvremesh = clus.create_mesh()
 
-remesh = Actor(cobj.ReturnMesh(), c='o', bc='v', computeNormals=True)
-remesh.flipNormals()
+remesh = Actor(pvremesh).computeNormals()
+remesh.color('o').backColor('v').lw(0.2)
 
-show(amesh.lw(0.2), remesh.lw(0.2), N=2)
+show(mesh, remesh, N=2)
 
 #remesh.write('sphere.vtk')

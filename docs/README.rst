@@ -95,6 +95,8 @@ for the all following functionalities:
 - Draw `latex`-formatted formulas on the rending window.
 - Export a 3D scene and embed it into a html page.
 - Support for `FEniCS/dolfin <https://fenicsproject.org/>`_ package.
+- Visualization of tensors.
+- Embed the 3D rendering in a jupyter notebook with K3D.
 
 
 Hello World example
@@ -106,7 +108,7 @@ In your python script, load a simple ``3DS`` file and display it:
 
     from vtkplotter import show
     
-    show('data/shapes/flamingo.3ds') 
+    show('data/flamingo.3ds') 
 
 .. image:: https://user-images.githubusercontent.com/32848391/50738813-58af4380-11d8-11e9-84ce-53579c1dba65.png
    :alt: flam
@@ -225,7 +227,7 @@ Support for the `FEniCS/dolfin <https://fenicsproject.org/>`_ platform for visua
 finite element solutions
 (`see here <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin>`_.
 
-.. image:: https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif
+.. image:: https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif
 
 
 

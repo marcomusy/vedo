@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 import vtk, sys
+from vtk.util.numpy_support import numpy_to_vtk, numpy_to_vtkIdTypeArray
 import numpy as np
 import vtkplotter.colors as colors
 import vtkplotter.docs as docs
@@ -32,6 +33,8 @@ __all__ = [
     "humansort",
     "resampleArrays",
     "printHistogram",
+    "trimesh2vtk",
+    "vtk2trimesh",
 ]
 
 ###########################################################################
@@ -158,6 +161,184 @@ class ProgressBar:
         self.bar += ps
 
 
+###########################################################################
+def trimesh2vtk(inputobj, alphaPerCell=False):
+    """Convert trimesh object to ``Actor(vtkActor)`` object."""
+    from vtkplotter import Actor
+    
+    #colors.printc('trimesh2vtk inputobj', type(inputobj), c=3)
+
+    inputobj_type = str(type(inputobj))
+    
+    if "Trimesh" in inputobj_type or "primitives" in inputobj_type:
+        faces = inputobj.faces
+        poly = buildPolyData(inputobj.vertices, faces)
+        tact = Actor(poly)
+        if inputobj.visual.kind == 'face':
+            trim_c = inputobj.visual.face_colors
+        else:
+            trim_c = inputobj.visual.vertex_colors
+            
+        if isSequence(trim_c):
+            if isSequence(trim_c[0]):
+                trim_cc = trim_c[:,[0,1,2]]/255
+                trim_al = trim_c[:,3]/255
+                if inputobj.visual.kind == 'face':
+                    tact.colorCellsByArray(trim_cc, trim_al, alphaPerCell)
+                else:
+                    tact.colorVerticesByArray(trim_cc, trim_al)
+        else:
+            print('trim_c not sequence?', trim_c)
+        return tact
+    
+    elif "PointCloud" in inputobj_type:
+        from vtkplotter.shapes import Points
+        trim_cc, trim_al = 'black', 1
+        if hasattr(inputobj, 'vertices_color'):
+            trim_c = inputobj.vertices_color
+            if len(trim_c):
+                trim_cc = trim_c[:,[0,1,2]]/255
+                trim_al = trim_c[:,3]/255
+                trim_al = np.sum(trim_al)/len(trim_al) # just the average
+        return Points(inputobj.vertices, r=8, c=trim_cc, alpha=trim_al)
+
+    elif "path" in inputobj_type:
+        from vtkplotter.shapes import Line
+        from vtkplotter.actors import Assembly
+        lines = []
+        for e in inputobj.entities:
+            #print('trimesh entity', e.to_dict())
+            l = Line(inputobj.vertices[e.points], c='k', lw=2)
+            lines.append(l)
+        return Assembly(lines)
+
+    return None
+
+def vtk2trimesh(inputobj):
+    """not yet implemented"""
+    print("""vtk2trimesh not yet implemented""")
+    return None
+    
+
+###########################################################
+def buildPolyData(vertices, faces=None, indexOffset=0, fast=True):
+    """
+    Build a ``vtkPolyData`` object from a list of vertices
+    where faces represents the connectivity of the polygonal mesh.
+
+    E.g. :
+        - ``vertices=[[x1,y1,z1],[x2,y2,z2], ...]``
+        - ``faces=[[0,1,2], [1,2,3], ...]``
+
+    Use ``indexOffset=1`` if face numbering starts from 1 instead of 0.
+    
+    if fast=False the mesh is built "manually" by setting polygons and triangles
+    one by one. This is the fallback case when a mesh contains faces of
+    different number of vertices.
+    """
+
+    if len(vertices[0]) < 3: # make sure it is 3d
+        vertices = np.c_[np.array(vertices), np.zeros(len(vertices))]
+        if len(vertices[0]) == 2:
+            vertices = np.c_[np.array(vertices), np.zeros(len(vertices))]
+
+    poly = vtk.vtkPolyData()
+    
+    sourcePoints = vtk.vtkPoints()
+    sourcePoints.SetData(numpy_to_vtk(vertices, deep=True))
+    poly.SetPoints(sourcePoints)
+    
+    if faces is None:
+        sourceVertices = vtk.vtkCellArray()
+        for i in range(len(vertices)):
+            sourceVertices.InsertNextCell(1)
+            sourceVertices.InsertCellPoint(i)
+        poly.SetVerts(sourceVertices)
+        
+        return poly ###################
+    
+    # faces exist
+    sourcePolygons = vtk.vtkCellArray()
+    faces = np.array(faces)
+    if len(faces.shape) == 2 and indexOffset==0 and fast: 
+        #################### all faces are composed of equal nr of vtxs, FAST
+        
+        ast = np.int32
+        if vtk.vtkIdTypeArray().GetDataTypeSize() != 4:
+            ast = np.int64
+
+        nf, nc = faces.shape
+        hs = np.hstack((np.zeros(nf)[:,None] + nc, faces)).astype(ast).ravel()
+        arr = numpy_to_vtkIdTypeArray(hs, deep=True)
+        sourcePolygons.SetCells(nf, arr)
+    
+    else: ########################################## manually add faces, SLOW
+        
+        showbar = False
+        if len(faces) > 25000:
+            showbar = True
+            pb = ProgressBar(0, len(faces), ETA=False)
+            
+        for f in faces:
+            n = len(f)
+
+            if n == 3:
+                ele = vtk.vtkTriangle()
+                pids = ele.GetPointIds()
+                for i in range(3):
+                    pids.SetId(i, f[i] - indexOffset)
+                sourcePolygons.InsertNextCell(ele)               
+
+            elif n == 4:
+                # do not use vtkTetra() because it fails
+                # with dolfin faces orientation
+                ele0 = vtk.vtkTriangle()
+                ele1 = vtk.vtkTriangle()
+                ele2 = vtk.vtkTriangle()
+                ele3 = vtk.vtkTriangle()
+                if indexOffset:
+                    for i in [0,1,2,3]:
+                        f[i] -= indexOffset
+                f0, f1, f2, f3 = f
+                pid0 = ele0.GetPointIds()
+                pid1 = ele1.GetPointIds()
+                pid2 = ele2.GetPointIds()
+                pid3 = ele3.GetPointIds()
+
+                pid0.SetId(0, f0)
+                pid0.SetId(1, f1)
+                pid0.SetId(2, f2)
+
+                pid1.SetId(0, f0)
+                pid1.SetId(1, f1)
+                pid1.SetId(2, f3)
+
+                pid2.SetId(0, f1)
+                pid2.SetId(1, f2)
+                pid2.SetId(2, f3)
+
+                pid3.SetId(0, f2)
+                pid3.SetId(1, f3)
+                pid3.SetId(2, f0)
+
+                sourcePolygons.InsertNextCell(ele0)
+                sourcePolygons.InsertNextCell(ele1)
+                sourcePolygons.InsertNextCell(ele2)
+                sourcePolygons.InsertNextCell(ele3)
+
+            else:
+                ele = vtk.vtkPolygon()
+                pids = ele.GetPointIds()
+                pids.SetNumberOfIds(n)
+                for i in range(n):
+                    pids.SetId(i, f[i] - indexOffset)
+                sourcePolygons.InsertNextCell(ele)
+            if showbar:
+                pb.print("converting mesh...    ")
+
+    poly.SetPolys(sourcePolygons)
+    return poly
+
 ##############################################################################
 def isSequence(arg):
     """Check if input is iterable."""
@@ -215,7 +396,7 @@ def lin_interp(x, rangeX, rangeY):
 
 
 def vector(x, y=None, z=0.0):
-    """Return a 3D numpy array representing a vector (of type `numpy.float64`).
+    """Return a 3D np array representing a vector (of type `np.float64`).
 
     If `y` is ``None``, assume input is already in the form `[x,y,z]`.
     """
@@ -414,10 +595,12 @@ def printInfo(obj):
         if not actor.GetPickable():
             return
 
+        mapper = actor.GetMapper()
         if hasattr(actor, "polydata"):
             poly = actor.polydata()
         else:
-            poly = actor.GetMapper().GetInput()
+            poly = mapper.GetInput()
+            
         pro = actor.GetProperty()
         pos = actor.GetPosition()
         bnds = actor.GetBounds()
@@ -501,40 +684,51 @@ def printInfo(obj):
 
         arrtypes = dict()
         arrtypes[vtk.VTK_UNSIGNED_CHAR] = "UNSIGNED_CHAR"
-        arrtypes[vtk.VTK_UNSIGNED_INT] = "UNSIGNED_INT"
-        arrtypes[vtk.VTK_FLOAT] = "FLOAT"
+        arrtypes[vtk.VTK_UNSIGNED_INT]  = "UNSIGNED_INT "
+        arrtypes[vtk.VTK_FLOAT]  = "FLOAT "
         arrtypes[vtk.VTK_DOUBLE] = "DOUBLE"
 
-        if poly.GetPointData():
-            ptdata = poly.GetPointData()
-            for i in range(ptdata.GetNumberOfArrays()):
-                name = ptdata.GetArrayName(i)
-                if name:
-                    colors.printc(tab + "     point data: ", c="g", bold=1, end="")
-                    try:
-                        tt = arrtypes[ptdata.GetArray(i).GetDataType()]
-                    except:
-                        tt = str(ptdata.GetArray(i).GetDataType())
-                    colors.printc("name=" + name, "type=" + tt, c="g", bold=0, end="")
-                    rng = ptdata.GetArray(i).GetRange()
-                    colors.printc(" range: (" + precision(rng[0],4) + ',' +
-                                            precision(rng[1],4) + ')', c="g", bold=0)
+        ptdata = poly.GetPointData()
+        cldata = poly.GetCellData()
+        
+        colors.printc(tab + "    scalar mode:", c="g", bold=1, end=" ") 
+        colors.printc(mapper.GetScalarModeAsString(),
+                      '  coloring =', mapper.GetColorModeAsString(), c="g", bold=0)
+        
+        if ptdata.GetNumberOfArrays()+cldata.GetNumberOfArrays():
+            colors.printc(tab + " active scalars: ", c="g", bold=1, end="")
+            if ptdata.GetScalars():
+                colors.printc(ptdata.GetScalars().GetName(), "(points)  ", c="g", bold=0, end="")
+            if cldata.GetScalars():
+                colors.printc(cldata.GetScalars().GetName(), "(cells)", c="g", bold=0, end="")
+            print()
 
-        if poly.GetCellData():
-            cldata = poly.GetCellData()
-            for i in range(cldata.GetNumberOfArrays()):
-                name = cldata.GetArrayName(i)
-                if name:
-                    colors.printc(tab + "      cell data: ", c="g", bold=1, end="")
-                    try:
-                        tt = arrtypes[cldata.GetArray(i).GetDataType()]
-                    except:
-                        tt = str(cldata.GetArray(i).GetDataType())
-                    colors.printc("name=" + name, "type=" + tt, c="g", bold=0, end="")
-                    rng = cldata.GetArray(i).GetRange()
-                    colors.printc(" range: (" + precision(rng[0],4) + ',' +
-                                            precision(rng[1],4) + ')', c="g", bold=0)
+        for i in range(ptdata.GetNumberOfArrays()):
+            name = ptdata.GetArrayName(i)
+            if name and ptdata.GetArray(i):
+                colors.printc(tab + "     point data: ", c="g", bold=1, end="")
+                try:
+                    tt = arrtypes[ptdata.GetArray(i).GetDataType()]
+                except:
+                    tt = str(ptdata.GetArray(i).GetDataType())
+                colors.printc("name=" + name, "\ttype=" + tt, c="g", bold=0, end="")
+                rng = ptdata.GetArray(i).GetRange()
+                colors.printc(" range=(" + precision(rng[0],4) + ',' +
+                                        precision(rng[1],4) + ')', c="g", bold=0)
 
+        for i in range(cldata.GetNumberOfArrays()):
+            name = cldata.GetArrayName(i)
+            if name and cldata.GetArray(i):
+                colors.printc(tab + "      cell data: ", c="g", bold=1, end="")
+                try:
+                    tt = arrtypes[cldata.GetArray(i).GetDataType()]
+                except:
+                    tt = str(cldata.GetArray(i).GetDataType())
+                colors.printc("name=" + name, "type=" + tt, c="g", bold=0, end="")
+                rng = cldata.GetArray(i).GetRange()
+                colors.printc(" range=(" + precision(rng[0],4) + ',' +
+                                        precision(rng[1],4) + ')', c="g", bold=0)
+        
     if not obj:
         return
 
@@ -706,7 +900,7 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
         .. code-block:: python
 
             from vtkplotter import printHistogram
-            import numpy as np
+            import np as np
             d = np.random.normal(size=1000)
             data = printHistogram(d, c='blue', logscale=True, title='my scalars')
             data = printHistogram(d, c=1, horizontal=1)

@@ -19,7 +19,7 @@ def onRightClick(actor):
 
 vp = Plotter(verbose=0)
 
-vp.load(datadir+"skyscraper.obj")
+vp.load(datadir+"skyscraper.obj", c='gold')
 
 vp.mouseLeftClickFunction = onLeftClick
 vp.mouseMiddleClickFunction = onMiddleClick

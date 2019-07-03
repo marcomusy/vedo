@@ -24,4 +24,4 @@ printHistogram(vol, bins=25, c='b')
 
 #write(vol, 'cube.vti')
 
-show(apts, vol, Text(__doc__), bg="white", axes=1)
+show(apts, vol, Text(__doc__), bg="white", axes=1, viewup='z')

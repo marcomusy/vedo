@@ -49,8 +49,8 @@ vmin, vmax = np.min(variances), np.max(variances)
 print("min and max of variances:", vmin, vmax)
 vcols = [colorMap(v, "jet", vmin, vmax) for v in variances]  # scalars->colors
 
-a0 = Spheres(s1.coordinates(), c=vcols, r=0.03).legend("variance")
-a1 = Spheres(s1.coordinates(), c="red", r=variances).legend("variance")
+a0 = Spheres(s1.coordinates(), c=vcols, r=0.03)
+a1 = Spheres(s1.coordinates(), c="red", r=variances)
 
 vp2.show(a0, Text(__doc__, c="k"), at=0)
 vp2.show(a1, act, at=1, zoom=1.3, interactive=1)

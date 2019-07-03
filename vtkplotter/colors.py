@@ -182,7 +182,7 @@ def _isSequence(arg):
 
 def getColor(rgb=None, hsv=None):
     """
-    Convert a color or list of colors to (r,g,b) format from many input formats.
+    Convert a color or list of colors to (r,g,b) format from many different input formats.
 
     :param bool hsv: if set to `True`, rgb is assumed as (hue, saturation, value).
 
@@ -199,7 +199,7 @@ def getColor(rgb=None, hsv=None):
     |colorcubes| |colorcubes.py|_
     """
     #recursion, return a list if input is list of colors:
-    if _isSequence(rgb) and len(rgb) > 3:
+    if _isSequence(rgb) and (len(rgb) > 3 or _isSequence(rgb[0])):
         seqcol = []
         for sc in rgb:
             seqcol.append(getColor(sc))

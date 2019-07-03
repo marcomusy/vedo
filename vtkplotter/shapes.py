@@ -85,15 +85,15 @@ def Points(plist, r=5, c="gray", alpha=1):
         vgf.SetInputData(src.GetOutput())
         vgf.Update()
         pd = vgf.GetOutput()
-        
+
         ucols = vtk.vtkUnsignedCharArray()
         ucols.SetNumberOfComponents(3)
         ucols.SetName("pointsRGB")
-        
+
         for i in range(len(plist)):
             c = np.array(colors.getColor(cols[i])) * 255
             ucols.InsertNextTuple3(c[0], c[1], c[2])
-            
+
         if len(plist[0]) == 2: #make it 3d
             plist = np.c_[np.array(plist), np.zeros(len(plist))]
 
@@ -262,17 +262,20 @@ def Tensors(domain, source='ellipsoid', useEigenValues=True, isSymmetric=True,
     Scaling and rotation is controlled by the eigenvalues/eigenvectors of the symmetrical part
     of the tensor as follows:
 
-        For each tensor, the eigenvalues (and associated eigenvectors) are sorted
-        to determine the major, medium, and minor eigenvalues/eigenvectors.
-        The eigenvalue decomposition only makes sense for symmetric tensors,
-        hence the need to only consider the symmetric part of the tensor, which is 1/2*(T+T.transposed()).
+    For each tensor, the eigenvalues (and associated eigenvectors) are sorted
+    to determine the major, medium, and minor eigenvalues/eigenvectors.
+    The eigenvalue decomposition only makes sense for symmetric tensors,
+    hence the need to only consider the symmetric part of the tensor,
+    which is 1/2*(T+T.transposed()).
 
-    :param str source: preset type of source shape ['ellipsoid', 'cylinder', 'cube' or any specified ``Actor``]
+    :param str source: preset type of source shape
+        ['ellipsoid', 'cylinder', 'cube' or any specified ``Actor``]
 
     :param bool useEigenValues: color source glyph using the eigenvalues or by scalars.
 
-    :param bool threeAxes: if `False` scale the source in the x-direction, the medium in the y-direction,
-        and the minor in the z-direction. Then, the source is rotated so that the glyph's local x-axis lies
+    :param bool threeAxes: if `False` scale the source in the x-direction,
+        the medium in the y-direction, and the minor in the z-direction.
+        Then, the source is rotated so that the glyph's local x-axis lies
         along the major eigenvector, y-axis along the medium eigenvector, and z-axis along the minor.
 
         If `True` three sources are produced, each of them oriented along an eigenvector
@@ -394,7 +397,7 @@ def Lines(startPoints, endPoints=None, c=None, alpha=1, lw=1, dotted=False, scal
     Build the line segments between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
 
-    :param float scale: apply a rescaling factor to the length
+    :param float scale: apply a rescaling factor to the lengths.
 
     |lines|
 
@@ -695,14 +698,14 @@ def Polygon(pos=(0, 0, 0), nsides=6, r=1, c="coral", alpha=1):
     return actor
 
 
-def Rectangle(p1=(0, 0, 0), p2=(2, 1, 0), c="k", lw=1, alpha=1):
+def Rectangle(p1=(0, 0, 0), p2=(2, 1, 0), lw=1, c="g", alpha=1):
     """Build a rectangle in the xy plane identified by two corner points."""
     p1 = np.array(p1)
     p2 = np.array(p2)
     pos = (p1 + p2) / 2
     length = abs(p2[0] - p1[0])
     height = abs(p2[1] - p1[1])
-    return Plane(pos, [0, 0, -1], length, height, c, alpha)
+    return Plane(pos, [0, 0, 1], length, height, c, alpha)
 
 
 def Disc(
@@ -715,8 +718,7 @@ def Disc(
     resphi=None,
 ):
     """
-    Build a 2D disc of internal radius `r1` and outer radius `r2`,
-    oriented perpendicular to `normal`.
+    Build a 2D disc of internal radius `r1` and outer radius `r2`.
 
     |Disk|
     """
@@ -1014,7 +1016,7 @@ def Plane(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g",
 
 def Box(pos=(0, 0, 0), length=1, width=2, height=3, c="g", alpha=1):
     """
-    Build a box of dimensions `x=length, y=width and z=height` oriented along vector `normal`.
+    Build a box of dimensions `x=length, y=width and z=height`.
 
     |aspring| |aspring.py|_
     """
@@ -1031,7 +1033,7 @@ def Box(pos=(0, 0, 0), length=1, width=2, height=3, c="g", alpha=1):
 
 
 def Cube(pos=(0, 0, 0), side=1, c="g", alpha=1):
-    """Build a cube of size `side` oriented along vector `normal`.
+    """Build a cube of size `side`.
 
     |colorcubes| |colorcubes.py|_
     """
@@ -1183,7 +1185,7 @@ def Pyramid(pos=(0, 0, 0), s=1, height=1, axis=(0, 0, 1), c="dg", alpha=1):
     return Cone(pos, s, height, axis, c, alpha, 4)
 
 
-def Torus(pos=(0, 0, 0), r=1, thickness=0.1, axis=(0, 0, 1), c="khaki", alpha=1, res=30):
+def Torus(pos=(0, 0, 0), r=1, thickness=0.2, axis=(0, 0, 1), c="khaki", alpha=1, res=30):
     """
     Build a torus of specified outer radius `r` internal radius `thickness`, centered at `pos`.
 
@@ -1511,7 +1513,6 @@ def Text(
 def Latex(
     formula,
     pos=(0, 0, 0),
-    normal=(0, 0, 1),
     c='k',
     s=1,
     bg=None,
@@ -1525,7 +1526,6 @@ def Latex(
 
     :param str formula: latex text string
     :param list pos: position coordinates in space
-    :param list normal: normal to the plane of the image
     :param c: face color
     :param bg: background color box
     :param int res: dpi resolution
@@ -1595,14 +1595,14 @@ def Latex(
         b = vactor.GetBounds()
         xm, ym = (b[1]+b[0])/200*s, (b[3]+b[2])/200*s
         vactor.SetOrigin(-xm, -ym, 0)
-        nax = np.linalg.norm(normal)
-        if nax:
-            normal = np.array(normal) / nax
-        theta = np.arccos(normal[2])
-        phi = np.arctan2(normal[1], normal[0])
+#        nax = np.linalg.norm(normal)
+#        if nax:
+#            normal = np.array(normal) / nax
+#        theta = np.arccos(normal[2])
+#        phi = np.arctan2(normal[1], normal[0])
         vactor.SetScale(0.25/res*s, 0.25/res*s, 0.25/res*s)
-        vactor.RotateZ(np.rad2deg(phi))
-        vactor.RotateY(np.rad2deg(theta))
+#        vactor.RotateZ(np.rad2deg(phi))
+#        vactor.RotateY(np.rad2deg(theta))
         vactor.SetPosition(pos)
         try:
             import os

@@ -48,6 +48,9 @@ python basic/carcrash.py
 echo Running basic/colormaps.py
 python basic/colormaps.py
 
+echo Running basic/colorMeshCells.py
+python basic/colorMeshCells.py
+
 echo Running basic/delaunay2d.py
 python basic/delaunay2d.py
 
@@ -291,8 +294,8 @@ python volumetric/probePlane.py
 echo Running volumetric/volumeOperations.py
 python volumetric/volumeOperations.py
 
-echo Running volumetric/signedDistance.py
-python volumetric/signedDistance.py
+echo Running volumetric/volumeFromMesh.py
+python volumetric/volumeFromMesh.py
 
 echo Running volumetric/read_vti.py
 python volumetric/read_vti.py
@@ -332,6 +335,15 @@ python volumetric/tensors.py
 
 echo Running volumetric/pointDensity.py
 python volumetric/pointDensity.py
+
+echo Running volumetric/erode_dilate.py
+python volumetric/erode_dilate.py
+
+echo Running volumetric/euclDist.py
+python volumetric/euclDist.py
+
+echo Running volumetric/vol2points.py
+python volumetric/vol2points.py
 
 cd volumetric
 echo Running office.py
