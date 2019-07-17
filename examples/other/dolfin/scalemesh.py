@@ -15,11 +15,11 @@ f = interpolate(e, V)
 from vtkplotter.dolfin import plot
 
 plt = plot(f,
-           warpZfactor=0.05, # add z elevation proportional to expression
+           scaleMeshFactors=(0.01, 1, 1),
+           warpZfactor = 0.05,
            style=1,
            lw=0,
+           scalarbar='horizontal',
            xtitle = 'y-coord is scaled by factor 100',
            text=__doc__,
-           interactive=False)
-plt.actors[0].scale([1,100,1]) # retrieve actor object and scale y
-plt.show(interactive=True) # refresh scene
+           )

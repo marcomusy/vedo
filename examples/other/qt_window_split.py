@@ -31,15 +31,14 @@ class MainWindow(Qt.QMainWindow):
         self.start(vp)
 
     def start(self, vp):
-        from vtkplotter import vtkio
 
         for r in vp.renderers:
             self.vtkWidget.GetRenderWindow().AddRenderer(r)
         self.iren = self.vtkWidget.GetRenderWindow().GetInteractor()
 
-        self.iren.AddObserver("LeftButtonPressEvent", vtkio._mouseleft)
-        self.iren.AddObserver("RightButtonPressEvent", vtkio._mouseright)
-        self.iren.AddObserver("MiddleButtonPressEvent", vtkio._mousemiddle)
+        self.iren.AddObserver("LeftButtonPressEvent", vp._mouseleft)
+        self.iren.AddObserver("RightButtonPressEvent", vp._mouseright)
+        self.iren.AddObserver("MiddleButtonPressEvent", vp._mousemiddle)
 
         def keypress(obj, e):
             vtkio._keypress(obj, e)

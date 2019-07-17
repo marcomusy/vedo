@@ -1,7 +1,5 @@
 from vtkplotter import *
 
-print('..this can take ~30 sec / n_cores to run!')
-
 # mode = 1 is maximum projection (default is 0=composite)
 v1 = load(datadir+'embryo.tif').mode(1)
 t1 = Text('Original volume', c='lg')

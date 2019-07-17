@@ -4,7 +4,7 @@ to a specific vertex in a mesh.
 """
 from vtkplotter import *
 
-s = Sphere(c="y", res=12).wire()
+s = Sphere(c="y", res=12).wireframe()
 
 index = 12
 

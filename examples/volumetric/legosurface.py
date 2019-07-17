@@ -11,7 +11,7 @@ printHistogram(vol, logscale=True)
 vol.crop(back=0.5) # crop 50% from neg. y
 
 # show lego blocks whose value is between vmin and vmax
-lego = legosurface(vol, vmin=60, cmap='seismic')
+lego = vol.legosurface(vmin=60, cmap='seismic')
 
 lego.addScalarBar(vmin=40, horizontal=1) # make colormap start at 40
 

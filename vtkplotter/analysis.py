@@ -341,7 +341,13 @@ def fxy(
         elev.Update()
         poly = elev.GetOutput()
 
-    actor = Actor(poly, c=c, bc=bc, alpha=alpha, wire=wire, texture=texture)
+    actor = Actor(poly, c, alpha)
+    if c is None:
+        actor.scalars("Elevation")
+
+    if bc:
+        actor.bc(bc)
+    actor.texture(texture).wireframe(wire)
     acts = [actor]
     if zlevels:
         elevation = vtk.vtkElevationFilter()
@@ -357,8 +363,8 @@ def fxy(
         bcf.GenerateValues(zlevels, elevation.GetScalarRange())
         bcf.Update()
         zpoly = bcf.GetContourEdgesOutput()
-        zbandsact = Actor(zpoly, c="k", alpha=alpha)
-        zbandsact.GetProperty().SetLineWidth(1.5)
+        zbandsact = Actor(zpoly, 'k', alpha)
+        zbandsact.GetProperty().SetLineWidth(.5)
         acts.append(zbandsact)
 
     if showNan and len(todel):
@@ -765,7 +771,7 @@ def fitSphere(coords):
         residue = np.sqrt(residue[0]) / n
     else:
         residue = 0
-    s = shapes.Sphere(center, radius, c=(1,0,0)).wire(1)
+    s = shapes.Sphere(center, radius, c=(1,0,0)).wireframe(1)
     s.info["radius"] = radius
     s.info["center"] = center
     s.info["residue"] = residue
@@ -849,10 +855,136 @@ def pcaEllipsoid(points, pvalue=0.95, pcaAxes=False):
     return finact
 
 
+def smoothMLS1D(actor, f=0.2, radius=None, showNLines=0):
+    """
+    Smooth actor or points with a `Moving Least Squares` variant.
+    The list ``actor.info['variances']`` contain the residue calculated for each point.
+    Input actor's polydata is modified.
+
+    :param float f: smoothing factor - typical range is [0,2].
+    :param int showNLines: build an actor showing the fitting line for N random points.
+
+    .. hint:: |moving_least_squares1D.py|_  |skeletonize.py|_
+
+        |moving_least_squares1D| |skeletonize|
+    """
+    if isinstance(actor, Assembly):
+        actor = actor.getActors()[0]
+    coords = actor.coordinates()
+    ncoords = len(coords)
+    Ncp = int(ncoords * f / 10)
+    nshow = int(ncoords)
+    if showNLines:
+        ndiv = int(nshow / showNLines)
+
+    if not radius and Ncp < 4:
+        colors.printc("smoothMLS1D: Please choose a fraction higher than " + str(f), c=1)
+        Ncp = 4
+
+    variances, newline, acts = [], [], []
+    for i, p in enumerate(coords):
+
+        points = actor.closestPoint(p, N=Ncp, radius=radius)
+        if len(points) < 4:
+            continue
+
+        points = np.array(points)
+        pointsmean = points.mean(axis=0)  # plane center
+        uu, dd, vv = np.linalg.svd(points - pointsmean)
+        newp = np.dot(p - pointsmean, vv[0]) * vv[0] + pointsmean
+        variances.append(dd[1] + dd[2])
+        newline.append(newp)
+
+        if showNLines and not i % ndiv:
+            fline = fitLine(points, lw=4)  # fitting plane
+            iapts = shapes.Points(points)  # blue points
+            acts += [fline, iapts]
+
+    pcloud = shapes.Points(newline, c="r", alpha=0.5)
+    pcloud.GetProperty().SetPointSize(actor.GetProperty().GetPointSize())
+
+    if showNLines:
+        asse = Assembly([pcloud] + acts)
+        asse.info["variances"] = np.array(variances)
+        return asse  # NB: a demo actor is returned
+    else:
+        pcloud.info["variances"] = np.array(variances)
+        return pcloud
+
+def smoothMLS2D(actor, f=0.2, radius=None, decimate=1, showNPlanes=0):
+    """
+    Smooth actor or points with a `Moving Least Squares` algorithm variant.
+    The list ``actor.info['variances']`` contains the residue calculated for each point.
+
+    :param float f: smoothing factor - typical range is [0,2]. Ignored if ``radius`` is set.
+    :param float radius: radius search in absolute units. If set then ``f`` is ignored.
+    :param int decimate: decimation integer factor.
+    :param showNPlanes: build a demo actor showing the fitting plane for N random points.
+
+    .. hint:: |moving_least_squares2D.py|_  |recosurface.py|_
+
+        |moving_least_squares2D| |recosurface|
+    """
+    if isinstance(actor, Assembly):
+        actor = actor.getActors()[0]
+    coords = actor.coordinates()
+    ncoords = len(coords)
+    Ncp = int(ncoords * f / 100)
+    nshow = int(ncoords / decimate)
+    decimate = int(decimate)
+    if showNPlanes:
+        ndiv = int(nshow / showNPlanes * decimate)
+
+    if radius:
+        print("smoothMLS2D: Searching radius, #pt:", radius, ncoords)
+    else:
+        if Ncp < 5:
+            colors.printc("~target Please choose a fraction higher than " + str(f), c=1)
+            Ncp = 5
+        print("smoothMLS2D: Searching #neighbours, #pt:", Ncp, ncoords)
+
+    variances, newpts, acts = [], [], []
+    pb = utils.ProgressBar(0, ncoords)
+    for i, p in enumerate(coords):
+        pb.print("smoothing...")
+        if i % decimate:
+            continue
+
+        points = actor.closestPoint(p, N=Ncp, radius=radius)
+        if radius and len(points) < 5:
+            continue
+
+        pointsmean = points.mean(axis=0)  # plane center
+        uu, dd, vv = np.linalg.svd(points - pointsmean)
+        a, b, c = np.cross(vv[0], vv[1])  # normal
+        d, e, f = pointsmean  # plane center
+        x, y, z = p
+        t = a * d - a * x + b * e - b * y + c * f - c * z  # /(a*a+b*b+c*c)
+        variances.append(dd[2])
+        newpts.append((x + t*a, y + t*b, z + t*c))
+
+        if showNPlanes and not i % ndiv:
+            plane = fitPlane(points).alpha(0.3)  # fitting plane
+            iapts = shapes.Points(points)  # blue points
+            acts += [plane, iapts]
+
+    pcloud = shapes.Points(newpts, c="r", alpha=0.5, r=2)
+    pcloud.GetProperty().SetPointSize(actor.GetProperty().GetPointSize())
+
+    if showNPlanes:
+        asse = Assembly([pcloud] + acts)
+        asse.info["variances"] = np.array(variances)
+        return asse  # NB: a demo Assembly is returned
+    else:
+        pcloud.info["variances"] = np.array(variances)
+
+    return pcloud
+
+
 def smoothMLS3D(actors, neighbours=10):
     """
-    A time sequence of actors is being smoothed in 4D
-    using a `MLS (Moving Least Squares)` variant.
+    A time sequence of actors is being smoothed in 4D (3D + time)
+    using a `MLS (Moving Least Squares)` algorithm variant.
     The time associated to an actor must be specified in advance with ``actor.time()`` method.
     Data itself can suggest a meaningful time separation based on the spatial
     distribution of points.
@@ -912,153 +1044,6 @@ def smoothMLS3D(actors, neighbours=10):
     return act
 
 
-def smoothMLS2D(actor, f=0.2, decimate=1, recursive=0, showNPlanes=0):
-    """
-    Smooth actor or points with a `Moving Least Squares` variant.
-    The list ``actor.info['variances']`` contains the residue calculated for each point.
-    Input actor's polydata is modified.
-
-    :param f: smoothing factor - typical range is [0,2].
-    :param decimate: decimation factor (an integer number).
-    :param recursive: move points while algorithm proceedes.
-    :param showNPlanes: build an actor showing the fitting plane for N random points.
-
-    .. hint::  |mesh_smoothers.py|_ |moving_least_squares2D.py|_  |recosurface.py|_
-
-        |mesh_smoothers| |moving_least_squares2D| |recosurface|
-    """
-    coords = actor.coordinates()
-    ncoords = len(coords)
-    Ncp = int(ncoords * f / 100)
-    nshow = int(ncoords / decimate)
-    if showNPlanes:
-        ndiv = int(nshow / showNPlanes * decimate)
-
-    if Ncp < 5:
-        colors.printc("~target Please choose a fraction higher than " + str(f), c=1)
-        Ncp = 5
-    print("smoothMLS: Searching #neighbours, #pt:", Ncp, ncoords)
-
-    poly = actor.GetMapper().GetInput()
-    vpts = poly.GetPoints()
-    locator = vtk.vtkPointLocator()
-    locator.SetDataSet(poly)
-    locator.BuildLocator()
-    vtklist = vtk.vtkIdList()
-    variances, newsurf, acts = [], [], []
-    pb = utils.ProgressBar(0, ncoords)
-    for i, p in enumerate(coords):
-        pb.print("smoothing...")
-        if i % decimate:
-            continue
-
-        locator.FindClosestNPoints(Ncp, p, vtklist)
-        points = []
-        for j in range(vtklist.GetNumberOfIds()):
-            trgp = [0, 0, 0]
-            vpts.GetPoint(vtklist.GetId(j), trgp)
-            points.append(trgp)
-        if len(points) < 5:
-            continue
-
-        points = np.array(points)
-        pointsmean = points.mean(axis=0)  # plane center
-        uu, dd, vv = np.linalg.svd(points - pointsmean)
-        a, b, c = np.cross(vv[0], vv[1])  # normal
-        d, e, f = pointsmean  # plane center
-        x, y, z = p
-        t = a * d - a * x + b * e - b * y + c * f - c * z  # /(a*a+b*b+c*c)
-        newp = [x + t * a, y + t * b, z + t * c]
-        variances.append(dd[2])
-        newsurf.append(newp)
-        if recursive:
-            vpts.SetPoint(i, newp)
-
-        if showNPlanes and not i % ndiv:
-            plane = fitPlane(points).alpha(0.3)  # fitting plane
-            iapts = shapes.Points(points)  # blue points
-            acts += [plane, iapts]
-
-    if decimate == 1 and not recursive:
-        for i in range(ncoords):
-            vpts.SetPoint(i, newsurf[i])
-
-    actor.info["variances"] = np.array(variances)
-
-    if showNPlanes:
-        apts = shapes.Points(newsurf, c="r 0.6", r=2)
-        ass = Assembly([apts] + acts)
-        return ass  # NB: a demo actor is returned
-
-    return actor  # NB: original actor is modified
-
-
-def smoothMLS1D(actor, f=0.2, showNLines=0):
-    """
-    Smooth actor or points with a `Moving Least Squares` variant.
-    The list ``actor.info['variances']`` contain the residue calculated for each point.
-    Input actor's polydata is modified.
-
-    :param float f: smoothing factor - typical range is [0,2].
-    :param int showNLines: build an actor showing the fitting line for N random points.
-
-    .. hint:: |moving_least_squares1D.py|_  |skeletonize.py|_
-
-        |moving_least_squares1D| |skeletonize|
-    """
-    coords = actor.coordinates()
-    ncoords = len(coords)
-    Ncp = int(ncoords * f / 10)
-    nshow = int(ncoords)
-    if showNLines:
-        ndiv = int(nshow / showNLines)
-
-    if Ncp < 3:
-        colors.printc("~target Please choose a fraction higher than " + str(f), c=1)
-        Ncp = 3
-
-    poly = actor.GetMapper().GetInput()
-    vpts = poly.GetPoints()
-    locator = vtk.vtkPointLocator()
-    locator.SetDataSet(poly)
-    locator.BuildLocator()
-    vtklist = vtk.vtkIdList()
-    variances, newline, acts = [], [], []
-    for i, p in enumerate(coords):
-
-        locator.FindClosestNPoints(Ncp, p, vtklist)
-        points = []
-        for j in range(vtklist.GetNumberOfIds()):
-            trgp = [0, 0, 0]
-            vpts.GetPoint(vtklist.GetId(j), trgp)
-            points.append(trgp)
-        if len(points) < 2:
-            continue
-
-        points = np.array(points)
-        pointsmean = points.mean(axis=0)  # plane center
-        uu, dd, vv = np.linalg.svd(points - pointsmean)
-        newp = np.dot(p - pointsmean, vv[0]) * vv[0] + pointsmean
-        variances.append(dd[1] + dd[2])
-        newline.append(newp)
-
-        if showNLines and not i % ndiv:
-            fline = fitLine(points, lw=4)  # fitting plane
-            iapts = shapes.Points(points)  # blue points
-            acts += [fline, iapts]
-
-    for i in range(ncoords):
-        vpts.SetPoint(i, newline[i])
-
-    if showNLines:
-        apts = shapes.Points(newline, c="r 0.6", r=2)
-        ass = Assembly([apts] + acts)
-        return ass  # NB: a demo actor is returned
-
-    actor.info["variances"] = np.array(variances)
-    return actor  # NB: original actor is modified
-
-
 def recoSurface(points, bins=256):
     """
     Surface reconstruction from a scattered cloud of points.
@@ -1115,7 +1100,7 @@ def recoSurface(points, bins=256):
     surface.ComputeGradientsOff()
     surface.SetInputConnection(distance.GetOutputPort())
     surface.Update()
-    return Actor(surface.GetOutput(), "gold", 1, 0, "tomato")
+    return Actor(surface.GetOutput(), "gold").bc("tomato")
 
 
 def cluster(points, radius):
@@ -2520,7 +2505,7 @@ def computeNormalsWithPCA(actor, n=20, orientationPoint=None, negate=False):
 
 
 def pointDensity(actor, dims=(30,30,30), bounds=None, radius=None, computeGradient=False):
-    """Generate a density field on a volume from a point cloud.
+    """Generate a density field from a point cloud. Output is a ``Volume``.
     The local neighborhood is specified as a `radius` around each sample position (each voxel).
     The density is normalized to the upper value of the scalar range.
 

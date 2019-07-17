@@ -8,9 +8,6 @@ from dolfin import *
 from time import time
 from vtkplotter.dolfin import plot, datadir, Latex
 
-t0 = time()
-print("calculating... please wait... this takes time!")
-
 # Load mesh and subdomains
 mesh = Mesh(datadir+"dolfin_fine.xml")
 sub_domains = MeshFunction("size_t", mesh,
@@ -40,8 +37,6 @@ L = inner(f, v)*dx
 w = Function(W)
 
 solve(a == L, w, bcs, solver_parameters={'linear_solver' : 'mumps'})
-tf = time()
-print("time to solve:", tf-t0)
 
 # Split the mixed solution using a shallow copy
 (u, p) = w.split()

@@ -1,7 +1,7 @@
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense
-from vtkplotter import load, Volume, isosurface, show, datadir
+from vtkplotter import load, Volume, show, datadir
 
 maxradius = 0.2
 neurons = 30
@@ -59,7 +59,7 @@ for i, x in enumerate(lsx):
 
 v1 = Volume(visdata)
 v2 = Volume(vispred)
-s1 = isosurface(v1, threshold=0).alpha(0.8)
-s2 = isosurface(v2, threshold=0).alpha(0.8)
+s1 = v1.isosurface(threshold=0).alpha(0.8)
+s2 = v2.isosurface(threshold=0).alpha(0.8)
 
-show([v1, v2, s1, s2], N=4, axes=8, bg="w")
+show(v1, v2, s1, s2, N=4, axes=8, bg="w")

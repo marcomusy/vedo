@@ -1,13 +1,14 @@
-from vtkplotter import Plotter, Sphere, datadir
-from vtkplotter.analysis import surfaceIntersection
+"""
+1D intersection of two polygonal meshes
+"""
+from vtkplotter import *
 
-vp = Plotter(bg='w')
+car = load(datadir+"porsche.ply").alpha(0.2)
 
-car = vp.load(datadir+"porsche.ply", c="gold").alpha(0.1)
+s = Tube([(-9.,0.,0.), (0.,1.,0.), (9.,0.,0.)])
+s.triangle().clean().color("violet").alpha(0.2)
 
-s = Sphere(r=4, c="v", alpha=0.1).wire(True)  # color is violet
+contour = surfaceIntersection(car, s)
+contour.lw(4).printInfo()
 
-# Intersect car with Sphere, c=black, lw=line width
-contour = surfaceIntersection(car, s, lw=4)
-
-vp.show(car, contour, s)
+show(s, car, contour, Text(__doc__), bg='w')

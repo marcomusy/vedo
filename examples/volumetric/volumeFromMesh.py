@@ -15,7 +15,7 @@ vol = volumeFromMesh(mesh,
 )
 #write(vol, 'stack.vti')
 
-iso = isosurface(vol, threshold=-0.01)
+iso = vol.isosurface(threshold=-0.01)
 
 pts = Points(mesh.coordinates())
 

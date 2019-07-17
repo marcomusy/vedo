@@ -52,6 +52,9 @@ renderLinesAsTubes = False
 # remove hidden lines when in wireframe mode
 hiddenLineRemoval = False
 
+#
+visibleGridEdges = False
+
 # notebook support with K3D
 notebookBackend = None
 notebook_plotter = None

@@ -8,7 +8,7 @@ from vtk.util.numpy_support import numpy_to_vtk
 import numpy as np
 
 import vtkplotter.utils as utils
-from vtkplotter.utils import printHistogram, ProgressBar
+from vtkplotter.utils import printHistogram, ProgressBar, plotMatrix
 
 import vtkplotter.docs as docs
 
@@ -17,14 +17,14 @@ from vtkplotter.colors import printc
 import vtkplotter.settings as settings
 from vtkplotter.settings import datadir, embedWindow
 
-from vtkplotter.actors import Actor, isolines
+from vtkplotter.actors import Actor
 
 from vtkplotter.vtkio import load, screenshot, Video, exportWindow
 
 import vtkplotter.shapes as shapes
 from vtkplotter.shapes import Text, Latex
 
-from vtkplotter.plotter import show, clear, Plotter, plotMatrix
+from vtkplotter.plotter import show, clear, Plotter
 from vtkplotter.plotter import closeWindow, closePlotter, interactive
 
 __doc__ = (
@@ -126,7 +126,6 @@ __all__ = [
     "screenshot",
     "Video",
     "plotMatrix",
-    "isolines",
     "exportWindow",
     "closeWindow",
     "closePlotter",
@@ -234,6 +233,8 @@ def plot(*inputobj, **options):
 
     :param float warpZfactor: elevate z-axis by scalar value (useful for 2D geometries)
     :param float warpYfactor: elevate z-axis by scalar value (useful for 1D geometries)
+
+    :param list scaleMeshFactors: rescale mesh by these factors [1,1,1]
 
     :param bool newPlotter: spawn a new instance of Plotter class, pops up a new window
     :param int at: renderer number to plot to
@@ -345,6 +346,7 @@ def plot(*inputobj, **options):
     cmap = options.pop("cmap", None)
     bands = options.pop("bands", None)
     scale = options.pop("scale", 1)
+    scaleMeshFactors = options.pop("scaleMeshFactors", [1,1,1])
     shading = options.pop("shading", None)
     text = options.pop("text", None)
     style = options.pop("style", 'vtk')
@@ -472,7 +474,9 @@ def plot(*inputobj, **options):
         if 'warp' in mode: #deprecation
             printc("~bomb Please use 'displacement' instead of 'warp' in mode!", c=1)
 
-        actor = MeshActor(u, mesh, wire=wire, exterior=exterior, fast=fast)
+        actor = MeshActor(u, mesh, exterior=exterior, fast=fast)
+        actor.wireframe(wire)
+        actor.scale(scaleMeshFactors)
         if lighting:
             actor.lighting(lighting)
         if ttime:
@@ -509,9 +513,10 @@ def plot(*inputobj, **options):
                                   cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
             else:
                 actor.pointColors(delta, cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
+
         if scbar and c is None:
             if 'h' in scbar:
-                actor.addScalarBar(horizontal=True, vmin=vmin, vmax=vmax)
+                actor.addScalarBar(horizontal=True,  vmin=vmin, vmax=vmax)
             else:
                 actor.addScalarBar(horizontal=False, vmin=vmin, vmax=vmax)
 
@@ -527,12 +532,12 @@ def plot(*inputobj, **options):
             scals = actor.scalars(0)
             if len(scals):
                 pts_act = actor.getPoints(copy=False)
-                pts_act[:, 2] = scals*warpZfactor
+                pts_act[:, 2] = scals*warpZfactor*scaleMeshFactors[2]
         if warpYfactor:
             scals = actor.scalars(0)
             if len(scals):
                 pts_act = actor.getPoints(copy=False)
-                pts_act[:, 1] = scals*warpYfactor
+                pts_act[:, 1] = scals*warpYfactor*scaleMeshFactors[1]
 
         if len(isolns) > 0:
             ison = isolns.pop("n", 10)
@@ -540,7 +545,7 @@ def plot(*inputobj, **options):
             isoalpha = isolns.pop("alpha", 1)
             isolw = isolns.pop("lw", 1)
 
-            isos = isolines(actor, n=ison).color(isocol).lw(isolw).alpha(isoalpha)
+            isos = actor.isolines(n=ison).color(isocol).lw(isolw).alpha(isoalpha)
 
             isoz = isolns.pop("z", None)
             if isoz is not None: # kind of hack to make isolines visible on flat meshes
@@ -608,8 +613,6 @@ class MeshActor(Actor):
 
         c = options.pop("c", "gold")
         alpha = options.pop("alpha", 1)
-        wire = options.pop("wire", True)
-        bc = options.pop("bc", None)
         exterior = options.pop("exterior", False)
         fast = options.pop("fast", False)
         computeNormals = options.pop("computeNormals", False)
@@ -630,8 +633,6 @@ class MeshActor(Actor):
             poly,
             c=c,
             alpha=alpha,
-            wire=wire,
-            bc=bc,
             computeNormals=computeNormals,
         )
 

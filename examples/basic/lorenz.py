@@ -19,6 +19,6 @@ for t in np.linspace(0, 20, int(20 / dt)):
     cols.append([c, 0, 1 - c])
 
 scene = Plotter(title="Lorenz attractor", axes=2, verbose=0, bg="w")
-scene += Point(y, r=20, c="g", alpha=0.3)
-scene += Points(pts, r=5, c=cols, alpha=0.3)
+scene += Point(y, r=20, c="g")
+scene += Points(pts, r=5, c=cols)
 scene.show()

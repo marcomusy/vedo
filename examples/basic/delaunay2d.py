@@ -13,7 +13,7 @@ coords = d0.coordinates()  # get the coordinates of the mesh vertices
 # Build a mesh starting from points in space
 #  (points must be projectable on the XY plane)
 d1 = delaunay2D(coords, mode='fit')
-d1.color("r").wire(True).legend("delaunay mesh")
+d1.color("r").wireframe(True).legend("delaunay mesh")
 
 cents = d1.cellCenters()
 ap = Points(cents).legend("cell centers")

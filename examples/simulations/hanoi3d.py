@@ -105,7 +105,7 @@ def demo3d_hanoi(**kwargs):
         for tower_nr in range(3):
             for i, disk in enumerate(state[tower_nr]):
                 disks[disk].pos([3 * tower_nr, 0, i + 0.5])
-        vp.show(resetcam=0, interactive=interactive)
+        vp.show(resetcam=0, interactive=interactive, rate=15)
         if create_png:
             vp.interactive = 0
             output = "Hanoi_{0:02d}.png".format(t)
@@ -115,6 +115,7 @@ def demo3d_hanoi(**kwargs):
         create_animated_gif(
             filename="Hanoi_{0:02d}.gif".format(nr_disks), pngs=list_of_images
         )
+    vp.show(interactive=1)
 
 
 def create_animated_gif(filename="Hanoi.gif", **kwargs):

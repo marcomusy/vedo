@@ -22,7 +22,7 @@ Defines main class ``Plotter`` to manage actors and 3D rendering.
     + docs._defs
 )
 
-__all__ = ["show", "clear", "Plotter", "plotMatrix",
+__all__ = ["show", "clear", "Plotter",
            "closeWindow", "closePlotter", "interactive"]
 
 ########################################################################
@@ -613,10 +613,10 @@ class Plotter:
         vsty = vtk.vtkInteractorStyleTrackballCamera()
         self.interactor.SetInteractorStyle(vsty)
 
-        self.interactor.AddObserver("LeftButtonPressEvent", vtkio._mouseleft)
-        self.interactor.AddObserver("RightButtonPressEvent", vtkio._mouseright)
-        self.interactor.AddObserver("MiddleButtonPressEvent", vtkio._mousemiddle)
-        self.interactor.AddObserver("KeyPressEvent", vtkio._keypress)
+        self.interactor.AddObserver("LeftButtonPressEvent", self._mouseleft)
+        self.interactor.AddObserver("RightButtonPressEvent", self._mouseright)
+        self.interactor.AddObserver("MiddleButtonPressEvent", self._mousemiddle)
+        self.interactor.AddObserver("KeyPressEvent", self._keypress)
 
         if settings.allowInteraction:
             self._update_observer = None
@@ -1288,7 +1288,7 @@ class Plotter:
                     if isinstance(a, Volume):
                         scannedacts.append(a)
                     else:
-                        scannedacts.append(Volume(a))
+                        scannedacts.append(Volume(a.GetMapper().GetInput()))
 
                 elif isinstance(a, vtk.vtkImageData):
                     scannedacts.append(Volume(a))
@@ -1452,7 +1452,7 @@ class Plotter:
                                               colors=kcols,
                                               opacity=iap.GetOpacity(),
                                               shader="3d",
-                                              point_size=iap.GetPointSize()*sqsize/200,
+                                              point_size=iap.GetPointSize()*sqsize/400,
                                               #compression_level=9,
                                               )
                         else:
@@ -1612,14 +1612,6 @@ class Plotter:
                 self.camera.SetViewUp([1, 0.001, 0])
             elif viewup == "y":
                 self.camera.SetViewUp([0.001, 1, 0])
-#            elif viewup == "z":
-#                b =  self.renderer.ComputeVisiblePropBounds()
-#                fp = (b[1]+b[0])/2, (b[3]+b[2])/2, (b[5]+b[4])/2
-#                sz = numpy.array([b[3]-b[2], b[1]-b[0], (b[5]-b[4])/2]) #swap xy
-#                if sz[2]==0:
-#                    sz[2] = min(sz[0], sz[1])
-#                self.camera.SetViewUp([0, 0.001, 1])
-#                self.camera.SetPosition(fp+2.1*sz)
             elif viewup == "z":
                 b =  self.renderer.ComputeVisiblePropBounds()
                 self.camera.SetViewUp([0, 0.001, 1])
@@ -1804,43 +1796,519 @@ class Plotter:
         return None
 
 
-def plotMatrix(M, title='matrix', continuous=True, cmap='Greys'):
-    """
-	 Plot a matrix using `matplotlib`.
+    #######################################################################
+    def _mouseleft(self, iren, event):
 
-    :Example:
-        .. code-block:: python
+        x, y = iren.GetEventPosition()
+        #print('_mouseleft mouse at', x, y)
 
-            from vtkplotter.dolfin import plotMatrix
-            import numpy as np
+        renderer = iren.FindPokedRenderer(x, y)
+        self.renderer = renderer
 
-            M = np.eye(9) + np.random.randn(9,9)/4
+        picker = vtk.vtkPropPicker()
+        picker.PickProp(x, y, renderer)
+        clickedActor = picker.GetActor()
 
-            plotMatrix(M)
+        # check if any button objects are clicked
+        clickedActor2D = picker.GetActor2D()
+        if clickedActor2D:
+            for bt in self.buttons:
+                if clickedActor2D == bt.actor:
+                    bt.function()
+                    break
 
-        |pmatrix|
-    """
-    import matplotlib.pyplot as plt
-    import matplotlib as mpl
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
+        if not clickedActor:
+            clickedActor = picker.GetAssembly()
+        self.picked3d = picker.GetPickPosition()
+        self.justremoved = None
 
-    M    = numpy.array(M)
-    m,n  = numpy.shape(M)
-    M    = M.round(decimals=2)
+        if not hasattr(clickedActor, "GetPickable") or not clickedActor.GetPickable():
+            return
+        self.clickedActor = clickedActor
 
-    fig  = plt.figure()
-    ax   = fig.add_subplot(111)
-    cmap = mpl.cm.get_cmap(cmap)
-    if not continuous:
-        unq  = numpy.unique(M)
-    im      = ax.imshow(M, cmap=cmap, interpolation='None')
-    divider = make_axes_locatable(ax)
-    cax     = divider.append_axes("right", size="5%", pad=0.05)
-    dim     = r'$%i \times %i$ ' % (m,n)
-    ax.set_title(dim + title)
-    ax.axis('off')
-    cb = plt.colorbar(im, cax=cax)
-    if not continuous:
-       cb.set_ticks(unq)
-       cb.set_ticklabels(unq)
-    plt.show()
+        if self.mouseLeftClickFunction:
+            self.mouseLeftClickFunction(clickedActor)
+
+
+    def _mouseright(self, iren, event):
+
+        x, y = iren.GetEventPosition()
+
+        renderer = iren.FindPokedRenderer(x, y)
+        self.renderer = renderer
+
+        picker = vtk.vtkPropPicker()
+        picker.PickProp(x, y, renderer)
+        clickedActor = picker.GetActor()
+
+        # check if any button objects were created
+        clickedActor2D = picker.GetActor2D()
+        if clickedActor2D:
+            for bt in self.buttons:
+                if clickedActor2D == bt.actor:
+                    bt.function()
+                    break
+
+        if not clickedActor:
+            clickedActor = picker.GetAssembly()
+        self.picked3d = picker.GetPickPosition()
+
+        if not hasattr(clickedActor, "GetPickable") or not clickedActor.GetPickable():
+            return
+        self.clickedActor = clickedActor
+
+        if self.mouseRightClickFunction:
+            self.mouseRightClickFunction(clickedActor)
+
+
+    def _mousemiddle(self, iren, event):
+
+        x, y = iren.GetEventPosition()
+
+        renderer = iren.FindPokedRenderer(x, y)
+        self.renderer = renderer
+
+        picker = vtk.vtkPropPicker()
+        picker.PickProp(x, y, renderer)
+        clickedActor = picker.GetActor()
+
+        # check if any button objects were created
+        clickedActor2D = picker.GetActor2D()
+        if clickedActor2D:
+            for bt in self.buttons:
+                if clickedActor2D == bt.actor:
+                    bt.function()
+                    break
+
+        if not clickedActor:
+            clickedActor = picker.GetAssembly()
+        self.picked3d = picker.GetPickPosition()
+
+        if not hasattr(clickedActor, "GetPickable") or not clickedActor.GetPickable():
+            return
+        self.clickedActor = clickedActor
+
+        if self.mouseMiddleClickFunction:
+            self.mouseMiddleClickFunction(self.clickedActor)
+
+
+    def _keypress(self, iren, event):
+        # qt creates and passes a vtkGenericRenderWindowInteractor
+
+        key = iren.GetKeySym()
+        #print('Pressed key:', key, [vp])
+
+        if key in ["q", "Q", "space", "Return"]:
+            iren.ExitCallback()
+            return
+
+        elif key == "Escape":
+            sys.stdout.flush()
+            settings.plotter_instance.closeWindow()
+
+        elif key in ["F1", "Pause"]:
+            sys.stdout.flush()
+            colors.printc('\n[F1] Execution aborted. Exiting python now.')
+            settings.plotter_instance.closeWindow()
+            sys.exit(0)
+
+        elif key == "m":
+            if self.clickedActor in self.getActors():
+                self.clickedActor.GetProperty().SetOpacity(0.02)
+                bfp = self.clickedActor.GetBackfaceProperty()
+                if bfp and hasattr(self.clickedActor, "_bfprop"):
+                    self.clickedActor._bfprop = bfp  # save it
+                    self.clickedActor.SetBackfaceProperty(None)
+            else:
+                for a in self.getActors():
+                    if a.GetPickable():
+                        a.GetProperty().SetOpacity(0.02)
+                        bfp = a.GetBackfaceProperty()
+                        if bfp and hasattr(a, "_bfprop"):
+                            a._bfprop = bfp
+                            a.SetBackfaceProperty(None)
+
+        elif key == "comma":
+            if self.clickedActor in self.getActors():
+                ap = self.clickedActor.GetProperty()
+                aal = max([ap.GetOpacity() * 0.75, 0.01])
+                ap.SetOpacity(aal)
+                bfp = self.clickedActor.GetBackfaceProperty()
+                if bfp and hasattr(self.clickedActor, "_bfprop"):
+                    self.clickedActor._bfprop = bfp
+                    self.clickedActor.SetBackfaceProperty(None)
+            else:
+                for a in self.getActors():
+                    if a.GetPickable():
+                        ap = a.GetProperty()
+                        aal = max([ap.GetOpacity() * 0.75, 0.01])
+                        ap.SetOpacity(aal)
+                        bfp = a.GetBackfaceProperty()
+                        if bfp and hasattr(a, "_bfprop"):
+                            a._bfprop = bfp
+                            a.SetBackfaceProperty(None)
+
+        elif key == "period":
+            if self.clickedActor in self.getActors():
+                ap = self.clickedActor.GetProperty()
+                aal = min([ap.GetOpacity() * 1.25, 1.0])
+                ap.SetOpacity(aal)
+                if aal == 1 and hasattr(self.clickedActor, "_bfprop") and self.clickedActor._bfprop:
+                    # put back
+                    self.clickedActor.SetBackfaceProperty(self.clickedActor._bfprop)
+            else:
+                for a in self.getActors():
+                    if a.GetPickable():
+                        ap = a.GetProperty()
+                        aal = min([ap.GetOpacity() * 1.25, 1.0])
+                        ap.SetOpacity(aal)
+                        if aal == 1 and hasattr(a, "_bfprop") and a._bfprop:
+                            a.SetBackfaceProperty(a._bfprop)
+
+        elif key == "slash":
+            if self.clickedActor in self.getActors():
+                self.clickedActor.GetProperty().SetOpacity(1)
+                if hasattr(self.clickedActor, "_bfprop") and self.clickedActor._bfprop:
+                    self.clickedActor.SetBackfaceProperty(self.clickedActor._bfprop)
+            else:
+                for a in self.getActors():
+                    if a.GetPickable():
+                        a.GetProperty().SetOpacity(1)
+                        if hasattr(a, "_bfprop") and a._bfprop:
+                            a.clickedActor.SetBackfaceProperty(a._bfprop)
+
+        elif key == "P":
+            if self.clickedActor in self.getActors():
+                acts = [self.clickedActor]
+            else:
+                acts = self.getActors()
+            for ia in acts:
+                if ia.GetPickable():
+                    try:
+                        ps = ia.GetProperty().GetPointSize()
+                        if ps > 1:
+                            ia.GetProperty().SetPointSize(ps - 1)
+                        ia.GetProperty().SetRepresentationToPoints()
+                    except AttributeError:
+                        pass
+
+        elif key == "p":
+            if self.clickedActor in self.getActors():
+                acts = [self.clickedActor]
+            else:
+                acts = self.getActors()
+            for ia in acts:
+                if ia.GetPickable():
+                    try:
+                        ps = ia.GetProperty().GetPointSize()
+                        ia.GetProperty().SetPointSize(ps + 2)
+                        ia.GetProperty().SetRepresentationToPoints()
+                    except AttributeError:
+                        pass
+
+        elif key == "w":
+            if self.clickedActor and self.clickedActor in self.getActors():
+                self.clickedActor.GetProperty().SetRepresentationToWireframe()
+            else:
+                for a in self.getActors():
+                    if a and a.GetPickable():
+                        if a.GetProperty().GetRepresentation() == 1:  # toggle
+                            a.GetProperty().SetRepresentationToSurface()
+                        else:
+                            a.GetProperty().SetRepresentationToWireframe()
+
+        elif key == "r":
+            self.renderer.ResetCamera()
+
+        #############################################################
+        ### now intercept custom observer ###########################
+        #############################################################
+        if self.keyPressFunction:
+            if key not in ["Shift_L", "Control_L", "Super_L", "Alt_L"]:
+                if key not in ["Shift_R", "Control_R", "Super_R", "Alt_R"]:
+                    self.verbose = False
+                    self.keyPressFunction(key)
+                    return
+
+        if key == "h":
+            from vtkplotter.docs import tips
+
+            tips()
+            return
+
+        if key == "a":
+            iren.ExitCallback()
+            cur = iren.GetInteractorStyle()
+            if isinstance(cur, vtk.vtkInteractorStyleTrackballCamera):
+                print("\nInteractor style changed to TrackballActor")
+                print("  you can now move and rotate individual meshes:")
+                print("  press X twice to save the repositioned mesh,")
+                print("  press 'a' to go back to normal style.")
+                iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
+            else:
+                iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+            iren.Start()
+            return
+
+        if key == "j":
+            iren.ExitCallback()
+            cur = iren.GetInteractorStyle()
+            if isinstance(cur, vtk.vtkInteractorStyleJoystickCamera):
+                iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+            else:
+                print("\nInteractor style changed to Joystick,", end="")
+                print(" press j to go back to normal.")
+                iren.SetInteractorStyle(vtk.vtkInteractorStyleJoystickCamera())
+            iren.Start()
+            return
+
+        if key == "S":
+            vtkio.screenshot("screenshot.png")
+            colors.printc("~camera Saved rendering window as screenshot.png", c="blue")
+            return
+
+        if key == "C":
+            cam = self.renderer.GetActiveCamera()
+            print('\n### Example code to position this vtkCamera:')
+            print('vp = vtkplotter.Plotter()\n...')
+            print('vp.camera.SetPosition(',   [round(e, 3) for e in cam.GetPosition()],  ')')
+            print('vp.camera.SetFocalPoint(', [round(e, 3) for e in cam.GetFocalPoint()], ')')
+            print('vp.camera.SetViewUp(',     [round(e, 3) for e in cam.GetViewUp()], ')')
+            print('vp.camera.SetDistance(',   round(cam.GetDistance(), 3), ')')
+            print('vp.camera.SetClippingRange(', [round(e, 3) for e in cam.GetClippingRange()], ')')
+            return
+
+        if key == "s":
+            if self.clickedActor and self.clickedActor in self.getActors():
+                self.clickedActor.GetProperty().SetRepresentationToSurface()
+            else:
+                for a in self.getActors():
+                    if a and a.GetPickable():
+                        a.GetProperty().SetRepresentationToSurface()
+
+        elif key == "V":
+            if not (self.verbose):
+                self._tips()
+            self.verbose = not (self.verbose)
+            print("Verbose: ", self.verbose)
+
+        elif key == "1":
+            self.icol += 1
+            if self.clickedActor and hasattr(self.clickedActor, "GetProperty"):
+                self.clickedActor.GetMapper().ScalarVisibilityOff()
+                self.clickedActor.GetProperty().SetColor(colors.colors1[(self.icol) % 10])
+            else:
+                for i, ia in enumerate(self.getActors()):
+                    if not ia.GetPickable():
+                        continue
+                    ia.GetProperty().SetColor(colors.colors1[(i + self.icol) % 10])
+                    ia.GetMapper().ScalarVisibilityOff()
+            addons.addLegend()
+
+        elif key == "2":
+            self.icol += 1
+            if self.clickedActor and hasattr(self.clickedActor, "GetProperty"):
+                self.clickedActor.GetMapper().ScalarVisibilityOff()
+                self.clickedActor.GetProperty().SetColor(colors.colors2[(self.icol) % 10])
+            else:
+                for i, ia in enumerate(self.getActors()):
+                    if not ia.GetPickable():
+                        continue
+                    ia.GetProperty().SetColor(colors.colors2[(i + self.icol) % 10])
+                    ia.GetMapper().ScalarVisibilityOff()
+            addons.addLegend()
+
+        elif key == "3":
+            c = colors.getColor("gold")
+            acs = self.getActors()
+            if len(acs) == 0: return
+            alpha = 1.0 / len(acs)
+            for ia in acs:
+                if not ia.GetPickable():
+                    continue
+                ia.GetProperty().SetColor(c)
+                ia.GetProperty().SetOpacity(alpha)
+                ia.GetMapper().ScalarVisibilityOff()
+            addons.addLegend()
+
+        elif key == "4":
+            for ia in self.getActors():
+                if not ia.GetPickable():
+                    continue
+                if isinstance(ia, Actor):
+                    iascals = ia.scalars()
+                    if len(iascals):
+                        stype, sname = iascals[ia._scals_idx]
+                        if sname and "Normals" not in sname.lower(): # exclude normals
+                            ia.scalars( ia._scals_idx )
+                            ia.GetMapper().ScalarVisibilityOn()
+                            #ia.GetMapper().SetScalarRange(ia.polydata().GetCellData().GetArray(sname).GetRange())
+                            colors.printc("..active scalars set to:", sname,
+                                          "\ttype:", stype, c='g', bold=0)
+                        ia._scals_idx += 1
+                        if ia._scals_idx >= len(iascals):
+                            ia._scals_idx = 0
+            addons.addLegend()
+
+        elif key == "5":
+            bgc = numpy.array(self.renderer.GetBackground()).sum() / 3
+            if bgc <= 0:
+                bgc = 0.223
+            elif 0 < bgc < 1:
+                bgc = 1
+            else:
+                bgc = 0
+            self.renderer.SetBackground(bgc, bgc, bgc)
+
+        elif "KP_" in key:  # change axes style
+            asso = {
+                    "KP_Insert":0, "KP_0":0,
+                    "KP_End":1,    "KP_1":1,
+                    "KP_Down":2,   "KP_2":2,
+                    "KP_Next":3,   "KP_3":3,
+                    "KP_Left":4,   "KP_4":4,
+                    "KP_Begin":5,  "KP_5":5,
+                    "KP_Right":6,  "KP_6":6,
+                    "KP_Home":7,   "KP_7":7,
+                    "KP_Up":8,     "KP_8":8,
+                    "KP_Prior":9,  "KP_9":9,
+                    }
+            clickedr = self.renderers.index(self.renderer)
+            if key in asso.keys():
+                if self.axes_instances[clickedr]:
+                    if hasattr(self.axes_instances[clickedr], "EnabledOff"):  # widget
+                        self.axes_instances[clickedr].EnabledOff()
+                    else:
+                        self.renderer.RemoveActor(self.axes_instances[clickedr])
+                    self.axes_instances[clickedr] = None
+                addons.addAxes(axtype=asso[key], c=None)
+                self.interactor.Render()
+
+        elif key in ["k", "K"]:
+            for a in self.getActors():
+                ptdata = a.GetMapper().GetInput().GetPointData()
+                cldata = a.GetMapper().GetInput().GetCellData()
+
+                arrtypes = dict()
+                arrtypes[vtk.VTK_UNSIGNED_CHAR] = "UNSIGNED_CHAR"
+                arrtypes[vtk.VTK_UNSIGNED_INT] = "UNSIGNED_INT"
+                arrtypes[vtk.VTK_FLOAT] = "FLOAT"
+                arrtypes[vtk.VTK_DOUBLE] = "DOUBLE"
+                foundarr = 0
+
+                if key == "k":
+                    for i in range(ptdata.GetNumberOfArrays()):
+                        name = ptdata.GetArrayName(i)
+                        if name == "Normals":
+                            continue
+                        ptdata.SetActiveScalars(name)
+                        foundarr = 1
+                    if not foundarr:
+                        print("No vtkArray is associated to points", end="")
+                        if hasattr(a, "_legend"):
+                            print(" for actor:", a._legend)
+                        else:
+                            print()
+
+                if key == "K":
+                    for i in range(cldata.GetNumberOfArrays()):
+                        name = cldata.GetArrayName(i)
+                        if name == "Normals":
+                            continue
+                        cldata.SetActiveScalars(name)
+                        foundarr = 1
+                    if not foundarr:
+                        print("No vtkArray is associated to cells", end="")
+                        if hasattr(a, "_legend"):
+                            print(" for actor:", a._legend)
+                        else:
+                            print()
+
+                a.GetMapper().ScalarVisibilityOn()
+
+        elif key == "l":
+            if self.clickedActor in self.getActors():
+                acts = [self.clickedActor]
+            else:
+                acts = self.getActors()
+            for ia in acts:
+                if not ia.GetPickable():
+                    continue
+                try:
+                    ev = ia.GetProperty().GetEdgeVisibility()
+                    ia.GetProperty().SetEdgeVisibility(not ev)
+                    ia.GetProperty().SetRepresentationToSurface()
+                    ia.GetProperty().SetLineWidth(0.1)
+                except AttributeError:
+                    pass
+
+        elif key == "n":  # show normals to an actor
+            from vtkplotter.analysis import normalLines
+
+            if self.clickedActor in self.getActors():
+                if self.clickedActor.GetPickable():
+                    self.renderer.AddActor(normalLines(self.clickedActor))
+                    iren.Render()
+            else:
+                print("Click an actor and press n to add normals.")
+
+
+        elif key == "x":
+            if self.justremoved is None:
+                if self.clickedActor in self.getActors() or isinstance(self.clickedActor, vtk.vtkAssembly):
+                    self.justremoved = self.clickedActor
+                    self.renderer.RemoveActor(self.clickedActor)
+                if hasattr(self.clickedActor, '_legend') and self.clickedActor._legend:
+                    print('...removing actor: ' +
+                          str(self.clickedActor._legend)+', press x to put it back')
+                else:
+                    print("Click an actor and press x to toggle it.")
+            else:
+                self.renderer.AddActor(self.justremoved)
+                self.renderer.Render()
+                self.justremoved = None
+            addons.addLegend()
+
+        elif key == "X":
+            if self.clickedActor:
+                if not self.cutterWidget:
+                    addons.addCutterTool(self.clickedActor)
+                else:
+                    fname = "clipped.vtk"
+                    confilter = vtk.vtkPolyDataConnectivityFilter()
+                    if isinstance(self.clickedActor, vtk.vtkActor):
+                        confilter.SetInputData(self.clickedActor.GetMapper().GetInput())
+                    elif isinstance(self.clickedActor, vtk.vtkAssembly):
+                        act = self.clickedActor.getActors()[0]
+                        confilter.SetInputData(act.GetMapper().GetInput())
+                    else:
+                        confilter.SetInputData(self.clickedActor.polydata(True))
+                    confilter.SetExtractionModeToLargestRegion()
+                    confilter.Update()
+                    cpd = vtk.vtkCleanPolyData()
+                    cpd.SetInputData(confilter.GetOutput())
+                    cpd.Update()
+                    w = vtk.vtkPolyDataWriter()
+                    w.SetInputData(cpd.GetOutput())
+                    w.SetFileName(fname)
+                    w.Write()
+                    colors.printc("~save Saved file:", fname, c="m")
+                    self.cutterWidget.Off()
+                    self.cutterWidget = None
+            else:
+                for a in self.actors:
+                    if isinstance(a, vtk.vtkVolume):
+                        addons.addCutterTool(a)
+                        return
+
+                colors.printc("Click an actor and press X to open the cutter box widget.", c=4)
+
+        elif key == "i":  # print info
+            if self.clickedActor:
+                utils.printInfo(self.clickedActor)
+            else:
+                utils.printInfo(self)
+
+        if iren:
+            iren.Render()
+

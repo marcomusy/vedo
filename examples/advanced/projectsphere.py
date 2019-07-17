@@ -5,6 +5,6 @@ from vtkplotter import *
 
 e = Ellipsoid()
 
-ef = projectSphereFilter(e).normalize().wire(True)
+ef = projectSphereFilter(e).normalize().wireframe(True)
 
 show(e, ef, Text(__doc__))

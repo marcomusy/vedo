@@ -32,7 +32,7 @@ for t1 in pb.range():  # for each time point
 
     vp.actors = [doc]  # clean up the list of actors at each iteration
     vp += Cylinder([0, 0, -15], r=260, height=10, res=60).texture("marble")
-    vp += Cylinder([0, 0, 10], r=260, height=50, c="gray", res=60).wire(1)
+    vp += Cylinder([0, 0, 10], r=260, height=50, c="gray", res=60).wireframe(1)
 
     pts, cols = [], []
     for i, p in enumerate(mesh):  # for each vertex in the mesh

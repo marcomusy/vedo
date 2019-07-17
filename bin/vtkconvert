@@ -6,16 +6,17 @@ from vtkplotter.utils import humansort
 from vtkplotter import printc
 import sys, argparse
 
-allowedexts = ['vtk', 'vtp', 'vtu', 'vts', 'ply', 'stl', 'byu', 'xml', 'vti','tif','mhd','xml']
+allowedexts = ['vtk', 'vtp', 'vtu', 'vts', 'npy', 'ply', 'stl',
+               'byu', 'xml', 'vti','tif','mhd','xml']
 
 pr = argparse.ArgumentParser(description="Allowed targets: "+str(allowedexts))
 pr.add_argument('files', nargs='*', help="Input filename(s)")
-pr.add_argument("-n", "--normalize", help="normalize target size", action="store_true") 
-pr.add_argument("-c", "--clean", help="remove coincident points", action="store_true") 
-pr.add_argument("-m", "--mirror", help="mirror along the x-axis", action="store_true") 
-pr.add_argument("-b", "--binary", help="whether output is binary or not", action="store_true") 
+pr.add_argument("-n", "--normalize",help="normalize target size", action="store_true") 
+pr.add_argument("-c", "--clean",    help="remove coincident points", action="store_true") 
+pr.add_argument("-m", "--mirror",   help="mirror along the x-axis", action="store_true") 
+pr.add_argument("-b", "--binary",   help="whether output is binary or not", action="store_true") 
 pr.add_argument("-t", "--triangle", help="Convert polygons to triangles", action="store_true") 
-pr.add_argument("-to", type=str, help="target format [vtk]", default='vtk', metavar='')
+pr.add_argument("-to", type=str,    help="target format [vtk]", default='vtk', metavar='')
 args = pr.parse_args()
 
 humansort(args.files)

@@ -37,7 +37,7 @@ gyro = shaft + rotor + bar  # group actors into a single one
 spring = Spring(top, gpos, r=0.06, thickness=0.01, c="gray")
 vp += [gyro, spring] # add it to Plotter.
 vp += Box(top, length=0.2, width=0.02, height=0.2, c="gray")
-vp += Box(pos=(0, 0.5, 0), length=2.6, width=3, height=2.6, c="gray", alpha=0.2).wire(1)
+vp += Box(pos=(0, 0.5, 0), length=2.6, width=3, height=2.6, c="gray", alpha=0.2).wireframe(1)
 
 # ############################################################ the physics
 pb = ProgressBar(0, 5, dt, c="b")

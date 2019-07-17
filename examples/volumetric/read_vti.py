@@ -13,10 +13,7 @@ reader.SetFileName(datadir+"vase.vti")
 reader.Update()
 img = reader.GetOutput() # vtkImageData object
 
-# specify the data array in the file to process
-# img.GetPointData().SetActiveAttribute('SLCImage', 0)
-
-# NB: all the above lines could be reduced to:
+# NB: the above lines could be reduced to:
 #img = load(datadir+"vase.vti").imagedata()
 
 #################################
@@ -27,10 +24,15 @@ from vtkplotter import Volume, show, Text
 # the smallest value will be completely transparent (and white)
 # while voxels with highest value of the scalar will get alpha=0.8
 # and color will be=(0,0,1)
-vol1 = Volume(img,
-              mode=0, # composite rendering
-              c=["white", "fuchsia", "dg", (0,0,1)],
-              alpha=[0.0, 0.2, 0.3, 0.8])
+vol1 = Volume(img, mode=0) # composite rendering
+vol1.color(["white", "fuchsia", "dg", (0,0,1)])
+#vol1.color('jet') # a matplotlib colormap name is also accepted
+vol1.alpha([0.0, 0.2, 0.3, 0.8])
+
+# a transparency for the GRADIENT of the scalar can also be set:
+# in this case when the scalar is ~constant the gradient is ~zero
+# and the voxel are made transparent:
+vol1.alphaGradient([0.0, 0.5, 0.9])
 
 # mode = 1 is maximum-projection volume rendering
 vol2 = load(datadir+"vase.vti").mode(1).addPos(60,0,0)

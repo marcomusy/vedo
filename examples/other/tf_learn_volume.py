@@ -1,7 +1,7 @@
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense
-from vtkplotter import Volume, show, isosurface, arange
+from vtkplotter import Volume, show, arange
 
 n = 10
 neurons = 60
@@ -44,10 +44,10 @@ for i, x in enumerate(ls):
 v1 = Volume(visdata)
 v2 = Volume(vispred)
 
-s1 = isosurface(v1, threshold=[t for t in arange(0, 1, 0.1)])
+s1 = v1.isosurface(threshold=[t for t in arange(0, 1, 0.1)])
 s1.alpha(0.5)
 
-s2 = isosurface(v2, threshold=[t for t in arange(0, 1, 0.1)])
+s2 = v2.isosurface(threshold=[t for t in arange(0, 1, 0.1)])
 s2.alpha(0.5)
 
 show([[v1, s1], s2], N=2, axes=8, bg="w", depthpeeling=1)

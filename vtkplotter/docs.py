@@ -483,6 +483,9 @@ _defs = """
 .. |manyspheres| image:: https://user-images.githubusercontent.com/32848391/46818673-1f566b80-cd82-11e8-9a61-be6a56160f1c.png
     :target: manyspheres.py_
 
+.. |manypoints.py| replace:: manypoints.py
+.. _manypoints.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/manypoints.py
+
 .. |earth.py| replace:: earth.py
 .. _earth.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/earth.py
 .. |earth| image:: https://user-images.githubusercontent.com/32848391/51031592-5a448700-159d-11e9-9b66-bee6abb18679.png

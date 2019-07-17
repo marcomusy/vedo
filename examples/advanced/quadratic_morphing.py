@@ -100,7 +100,7 @@ class Morpher:
 
         pos, sz = self.s_size[0], self.s_size[1]
 
-        sphere0 = Sphere(pos, c="gray", r=sz, alpha=0.8, res=16).wire(1)
+        sphere0 = Sphere(pos, c="gray", r=sz, alpha=0.8, res=16).wireframe(1)
         sphere1 = Sphere(pos, c="gray", r=sz, alpha=0.2, res=16)
 
         hairsacts = []

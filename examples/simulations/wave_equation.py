@@ -16,7 +16,7 @@ import numpy as np
 ####################################################
 N = 400  # Number of coupled oscillators
 dt = 0.5  # Time step
-Nsteps = 500  # Number of steps in the simulation
+Nsteps = 1200  # Number of steps in the simulation
 
 
 ####################################################
@@ -25,14 +25,9 @@ Nsteps = 500  # Number of steps in the simulation
 x = np.array(list(range(N + 2)))
 z = np.zeros(N + 2, float)
 y = np.zeros(N + 2, float)  # y[p] is the position of particle p
+
 for p in x:  # p is particle number along x axis
-    # There are several different ways to set y[p].  Here are a few:
-    # Set all y's to zero and change initial velocities below
-    # y[p] = 0
-    # Or:
-    y[p] = 50 * np.sin(p / 15)
-    # Or, explicitly set particle positions:
-    # y[p] = 200*np.exp( -((p-150)/10)**2 )
+    y[p] = 100 * np.sin(p/15) * np.exp(-p/50)
 
 
 ####################################################
@@ -111,22 +106,23 @@ for i in x:
 pts_actors_rk = vp.actors  # save a copy of the actors list
 pts_actors_rk[0].legend = "Runge-Kutta4"
 
-# merge the two lists and set it as the current vtkPlotter actors
+# merge the two lists and set it as the current actors
 vp.actors = pts_actors_eu + pts_actors_rk
 
 # let's also add a fancy background image from wikipedia
-vp.load(datadir+"images/wave_wiki.png", alpha=0.8).scale(0.4).pos([0,-100,-20])
-vp += Text(__doc__)
+vp.load(datadir+"images/wave_wiki.png", alpha=0.8).scale(0.4).pos(0,-100,-20)
+vp += Text(__doc__, c='b')
 
 pb = ProgressBar(0, Nsteps, c="red", ETA=1)
 for i in pb.range():
     y_eu = positions_eu[i]  # retrieve the list of y positions at step i
     y_rk = positions_rk[i]
     for j, act in enumerate(pts_actors_eu):
-        act.pos([j, y_eu[j], 0])
+        act.pos(j, y_eu[j], 0)
     for j, act in enumerate(pts_actors_rk):
-        act.pos([j, y_rk[j], 0])
-    vp.show()
+        act.pos(j, y_rk[j], 0)
+    if i%10 ==0:
+        vp.show()
     pb.print("Moving actors loop")
 
-vp.show(interactive=1, resetcam=0)
+vp.show(interactive=1)

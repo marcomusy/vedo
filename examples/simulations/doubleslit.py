@@ -1,11 +1,9 @@
+"""Simulation of the double slit experiment.
+(Any number of slits of any geometry can be added)
+Slit sources are placed on the plane shown as a thin grid.
 """
-Simulation of the double slit experiment.
-Units are meters. Any number of slits of any geometry can be added.
-Slit sources are placed on the plane shown as a thin grid
- (as source are in scale, too small to be seen, they are magnified x200).
-Can simulate the 'Arago spot', the bright point at the center of
- a circular object shadow (https://en.wikipedia.org/wiki/Arago_spot).
-"""
+#Can simulate the 'Arago spot', the bright point at the center of
+#a circular object shadow (https://en.wikipedia.org/wiki/Arago_spot).
 from numpy import conj, real, pi, array
 from vtkplotter import *
 
@@ -27,7 +25,7 @@ slits = slit1 + slit2
 vp = Plotter(title="The Double Slit Experiment", axes=0, verbose=0, bg="black")
 
 screen = Grid(pos=[0, 0, -D], sx=0.1, sy=0.1, resx=200, resy=50)
-screen.wire(False).phong()  # show it as a solid plane (not as wireframe)
+screen.wireframe(False).phong()  # show it as a solid plane (not as wireframe)
 
 k = 0.0 + 1j * 2 * pi / lambda1  # complex wave number
 norm = len(slits) * 5e5
@@ -50,6 +48,6 @@ vp += Grid(sx=0.1, sy=0.1, resx=6, resy=6, c="w", alpha=0.1)  # add some annotat
 vp += Line([0, 0, 0], [0, 0, -D], c="w", alpha=0.1)
 vp += Text("source plane", pos=[-0.05, -0.053, 0], s=0.002, c="gray")
 vp += Text("detector plane D = " + str(D) + " m", pos=[-0.05, -0.053, -D], s=0.002, c="gray")
-vp += Text(__doc__, c="gray")
+vp += Text(__doc__, c="lb")
 
 vp.show(zoom=1.1)

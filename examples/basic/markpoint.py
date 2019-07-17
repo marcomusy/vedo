@@ -4,7 +4,7 @@ on a mesh with some text.
 """
 from vtkplotter import Sphere, Point, show, Text
 
-sp = Sphere().wire(True)
+sp = Sphere().wireframe(True)
 
 pcoords = sp.getPoint(144)
 

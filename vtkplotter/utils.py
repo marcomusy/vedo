@@ -34,7 +34,7 @@ __all__ = [
     "resampleArrays",
     "printHistogram",
     "trimesh2vtk",
-    "vtk2trimesh",
+    "plotMatrix",
 ]
 
 ###########################################################################
@@ -165,11 +165,11 @@ class ProgressBar:
 def trimesh2vtk(inputobj, alphaPerCell=False):
     """Convert trimesh object to ``Actor(vtkActor)`` object."""
     from vtkplotter import Actor
-    
+
     #colors.printc('trimesh2vtk inputobj', type(inputobj), c=3)
 
     inputobj_type = str(type(inputobj))
-    
+
     if "Trimesh" in inputobj_type or "primitives" in inputobj_type:
         faces = inputobj.faces
         poly = buildPolyData(inputobj.vertices, faces)
@@ -178,7 +178,7 @@ def trimesh2vtk(inputobj, alphaPerCell=False):
             trim_c = inputobj.visual.face_colors
         else:
             trim_c = inputobj.visual.vertex_colors
-            
+
         if isSequence(trim_c):
             if isSequence(trim_c[0]):
                 trim_cc = trim_c[:,[0,1,2]]/255
@@ -190,7 +190,7 @@ def trimesh2vtk(inputobj, alphaPerCell=False):
         else:
             print('trim_c not sequence?', trim_c)
         return tact
-    
+
     elif "PointCloud" in inputobj_type:
         from vtkplotter.shapes import Points
         trim_cc, trim_al = 'black', 1
@@ -214,14 +214,9 @@ def trimesh2vtk(inputobj, alphaPerCell=False):
 
     return None
 
-def vtk2trimesh(inputobj):
-    """not yet implemented"""
-    print("""vtk2trimesh not yet implemented""")
-    return None
-    
 
 ###########################################################
-def buildPolyData(vertices, faces=None, indexOffset=0, fast=True):
+def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True):
     """
     Build a ``vtkPolyData`` object from a list of vertices
     where faces represents the connectivity of the polygonal mesh.
@@ -231,7 +226,7 @@ def buildPolyData(vertices, faces=None, indexOffset=0, fast=True):
         - ``faces=[[0,1,2], [1,2,3], ...]``
 
     Use ``indexOffset=1`` if face numbering starts from 1 instead of 0.
-    
+
     if fast=False the mesh is built "manually" by setting polygons and triangles
     one by one. This is the fallback case when a mesh contains faces of
     different number of vertices.
@@ -243,26 +238,38 @@ def buildPolyData(vertices, faces=None, indexOffset=0, fast=True):
             vertices = np.c_[np.array(vertices), np.zeros(len(vertices))]
 
     poly = vtk.vtkPolyData()
-    
+
     sourcePoints = vtk.vtkPoints()
-    sourcePoints.SetData(numpy_to_vtk(vertices, deep=True))
+    sourcePoints.SetData(numpy_to_vtk(np.ascontiguousarray(vertices), deep=True))
     poly.SetPoints(sourcePoints)
-    
+
+    if lines is not None:
+        # Create a cell array to store the lines in and add the lines to it
+        linesarr = vtk.vtkCellArray()
+
+        for i in range(1, len(lines)-1):
+            vline = vtk.vtkLine()
+            vline.GetPointIds().SetId(0,lines[i])
+            vline.GetPointIds().SetId(1,lines[i+1])
+            linesarr.InsertNextCell(vline)
+        poly.SetLines(linesarr)
+
+
     if faces is None:
         sourceVertices = vtk.vtkCellArray()
         for i in range(len(vertices)):
             sourceVertices.InsertNextCell(1)
             sourceVertices.InsertCellPoint(i)
         poly.SetVerts(sourceVertices)
-        
+
         return poly ###################
-    
+
     # faces exist
     sourcePolygons = vtk.vtkCellArray()
     faces = np.array(faces)
-    if len(faces.shape) == 2 and indexOffset==0 and fast: 
+    if len(faces.shape) == 2 and indexOffset==0 and fast:
         #################### all faces are composed of equal nr of vtxs, FAST
-        
+
         ast = np.int32
         if vtk.vtkIdTypeArray().GetDataTypeSize() != 4:
             ast = np.int64
@@ -271,14 +278,14 @@ def buildPolyData(vertices, faces=None, indexOffset=0, fast=True):
         hs = np.hstack((np.zeros(nf)[:,None] + nc, faces)).astype(ast).ravel()
         arr = numpy_to_vtkIdTypeArray(hs, deep=True)
         sourcePolygons.SetCells(nf, arr)
-    
+
     else: ########################################## manually add faces, SLOW
-        
+
         showbar = False
         if len(faces) > 25000:
             showbar = True
             pb = ProgressBar(0, len(faces), ETA=False)
-            
+
         for f in faces:
             n = len(f)
 
@@ -287,7 +294,7 @@ def buildPolyData(vertices, faces=None, indexOffset=0, fast=True):
                 pids = ele.GetPointIds()
                 for i in range(3):
                     pids.SetId(i, f[i] - indexOffset)
-                sourcePolygons.InsertNextCell(ele)               
+                sourcePolygons.InsertNextCell(ele)
 
             elif n == 4:
                 # do not use vtkTetra() because it fails
@@ -436,6 +443,16 @@ def precision(x, p, vrange=None):
     `from here <https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/kjs/number_object.cpp>`_,
     and implemented by `randlet <https://github.com/randlet/to-precision>`_.
     """
+    if isSequence(x):
+        out = '('
+        for ix in x:
+            out += precision(ix, p)
+            if ix == x[-1]:
+                pass
+            else:
+                out += ', '
+        return out+')'
+
     import math
 
     x = float(x)
@@ -600,7 +617,7 @@ def printInfo(obj):
             poly = actor.polydata()
         else:
             poly = mapper.GetInput()
-            
+
         pro = actor.GetProperty()
         pos = actor.GetPosition()
         bnds = actor.GetBounds()
@@ -626,10 +643,10 @@ def printInfo(obj):
             colors.printc(tab + "           file: ", c="g", bold=1, end="")
             colors.printc(actor.filename, c="g", bold=0)
 
-        colors.printc(tab + "          color: ", c="g", bold=1, end="")
-        if actor.GetMapper().GetScalarVisibility():
-            colors.printc("defined by point or cell data", c="g", bold=0)
-        else:
+        if not actor.GetMapper().GetScalarVisibility():
+            colors.printc(tab + "          color: ", c="g", bold=1, end="")
+            #colors.printc("defined by point or cell data", c="g", bold=0)
+        #else:
             colors.printc(colors.getColorName(col) + ', rgb=('+colr+', '
                           + colg+', '+colb+'), alpha='+str(alpha), c='g', bold=0)
 
@@ -654,9 +671,10 @@ def printInfo(obj):
         colors.printc(tab + "       position: ", c="g", bold=1, end="")
         colors.printc(pos, c="g", bold=0)
 
-        if hasattr(actor, "polydata"):
+        if hasattr(actor, "polydata") and actor.N():
             colors.printc(tab + "     c. of mass: ", c="g", bold=1, end="")
-            colors.printc(actor.centerOfMass(), c="g", bold=0)
+            cm = tuple(actor.centerOfMass())
+            colors.printc(precision(cm, 3), c="g", bold=0)
 
             colors.printc(tab + "      ave. size: ", c="g", bold=1, end="")
             colors.printc(precision(actor.averageSize(), 6), c="g", bold=0)
@@ -684,23 +702,29 @@ def printInfo(obj):
 
         arrtypes = dict()
         arrtypes[vtk.VTK_UNSIGNED_CHAR] = "UNSIGNED_CHAR"
-        arrtypes[vtk.VTK_UNSIGNED_INT]  = "UNSIGNED_INT "
-        arrtypes[vtk.VTK_FLOAT]  = "FLOAT "
-        arrtypes[vtk.VTK_DOUBLE] = "DOUBLE"
+        arrtypes[vtk.VTK_SIGNED_CHAR]   = "SIGNED_CHAR"
+        arrtypes[vtk.VTK_UNSIGNED_INT]  = "UNSIGNED_INT"
+        arrtypes[vtk.VTK_INT]           = "INT"
+        arrtypes[vtk.VTK_CHAR]          = "CHAR"
+        arrtypes[vtk.VTK_SHORT]         = "SHORT"
+        arrtypes[vtk.VTK_LONG]          = "LONG"
+        arrtypes[vtk.VTK_ID_TYPE]       = "ID"
+        arrtypes[vtk.VTK_FLOAT]         = "FLOAT"
+        arrtypes[vtk.VTK_DOUBLE]        = "DOUBLE"
 
         ptdata = poly.GetPointData()
         cldata = poly.GetCellData()
-        
-        colors.printc(tab + "    scalar mode:", c="g", bold=1, end=" ") 
+
+        colors.printc(tab + "    scalar mode:", c="g", bold=1, end=" ")
         colors.printc(mapper.GetScalarModeAsString(),
                       '  coloring =', mapper.GetColorModeAsString(), c="g", bold=0)
-        
+
         if ptdata.GetNumberOfArrays()+cldata.GetNumberOfArrays():
             colors.printc(tab + " active scalars: ", c="g", bold=1, end="")
             if ptdata.GetScalars():
-                colors.printc(ptdata.GetScalars().GetName(), "(points)  ", c="g", bold=0, end="")
+                colors.printc(ptdata.GetScalars().GetName(), "(point data)  ", c="g", bold=0, end="")
             if cldata.GetScalars():
-                colors.printc(cldata.GetScalars().GetName(), "(cells)", c="g", bold=0, end="")
+                colors.printc(cldata.GetScalars().GetName(), "(cell data)", c="g", bold=0, end="")
             print()
 
         for i in range(ptdata.GetNumberOfArrays()):
@@ -711,7 +735,8 @@ def printInfo(obj):
                     tt = arrtypes[ptdata.GetArray(i).GetDataType()]
                 except:
                     tt = str(ptdata.GetArray(i).GetDataType())
-                colors.printc("name=" + name, "\ttype=" + tt, c="g", bold=0, end="")
+                ncomp = str(ptdata.GetArray(i).GetNumberOfComponents())
+                colors.printc("name=" + name, "("+ncomp+" "+tt+"),", c="g", bold=0, end="")
                 rng = ptdata.GetArray(i).GetRange()
                 colors.printc(" range=(" + precision(rng[0],4) + ',' +
                                         precision(rng[1],4) + ')', c="g", bold=0)
@@ -724,11 +749,12 @@ def printInfo(obj):
                     tt = arrtypes[cldata.GetArray(i).GetDataType()]
                 except:
                     tt = str(cldata.GetArray(i).GetDataType())
-                colors.printc("name=" + name, "type=" + tt, c="g", bold=0, end="")
+                ncomp = str(cldata.GetArray(i).GetNumberOfComponents())
+                colors.printc("name=" + name, "("+ncomp+" "+tt+"),", c="g", bold=0, end="")
                 rng = cldata.GetArray(i).GetRange()
                 colors.printc(" range=(" + precision(rng[0],4) + ',' +
                                         precision(rng[1],4) + ')', c="g", bold=0)
-        
+
     if not obj:
         return
 
@@ -853,22 +879,21 @@ def printInfo(obj):
         if isinstance(obj.axes, dict): obj.axes=1
         colors.printc("       axes type:", obj.axes, axtype[obj.axes], bold=0, c="c")
 
-        for a in obj.actors:
+        for a in obj.getVolumes():
             if a.GetBounds() is not None:
-                if isinstance(a, vtk.vtkVolume):  # dumps Volume info
-                    img = a.GetMapper().GetDataSetInput()
-                    colors.printc('_'*65, c='b', bold=0)
-                    colors.printc('Volume', invert=1, dim=1, c='b')
-                    colors.printc('      scalar range:',
-                                  np.round(img.GetScalarRange(), 4), c='b', bold=0)
-                    bnds = a.GetBounds()
-                    colors.printc("            bounds: ", c="b", bold=0, end="")
-                    bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
-                    colors.printc("x=(" + bx1 + ", " + bx2 + ")", c="b", bold=0, end="")
-                    by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
-                    colors.printc(" y=(" + by1 + ", " + by2 + ")", c="b", bold=0, end="")
-                    bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
-                    colors.printc(" z=(" + bz1 + ", " + bz2 + ")", c="b", bold=0)
+                img = a.GetMapper().GetDataSetInput()
+                colors.printc('_'*65, c='b', bold=0)
+                colors.printc('Volume', invert=1, dim=1, c='b')
+                colors.printc('      scalar range:',
+                              np.round(img.GetScalarRange(), 4), c='b', bold=0)
+                bnds = a.GetBounds()
+                colors.printc("            bounds: ", c="b", bold=0, end="")
+                bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
+                colors.printc("x=(" + bx1 + ", " + bx2 + ")", c="b", bold=0, end="")
+                by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
+                colors.printc(" y=(" + by1 + ", " + by2 + ")", c="b", bold=0, end="")
+                bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
+                colors.printc(" z=(" + bz1 + ", " + bz2 + ")", c="b", bold=0)
 
         colors.printc(" Click actor and press i for Actor info.", c="c")
 
@@ -1047,4 +1072,44 @@ def resampleArrays(source, target, tol=None):
         return rs.GetOutput()
 
 
+def plotMatrix(M, title='matrix', continuous=True, cmap='Greys'):
+    """
+	 Plot a matrix using `matplotlib`.
+
+    :Example:
+        .. code-block:: python
+
+            from vtkplotter.dolfin import plotMatrix
+            import numpy as np
+
+            M = np.eye(9) + np.random.randn(9,9)/4
+
+            plotMatrix(M)
+
+        |pmatrix|
+    """
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+    M    = np.array(M)
+    m,n  = np.shape(M)
+    M    = M.round(decimals=2)
+
+    fig  = plt.figure()
+    ax   = fig.add_subplot(111)
+    cmap = mpl.cm.get_cmap(cmap)
+    if not continuous:
+        unq  = np.unique(M)
+    im      = ax.imshow(M, cmap=cmap, interpolation='None')
+    divider = make_axes_locatable(ax)
+    cax     = divider.append_axes("right", size="5%", pad=0.05)
+    dim     = r'$%i \times %i$ ' % (m,n)
+    ax.set_title(dim + title)
+    ax.axis('off')
+    cb = plt.colorbar(im, cax=cax)
+    if not continuous:
+       cb.set_ticks(unq)
+       cb.set_ticklabels(unq)
+    plt.show()
 

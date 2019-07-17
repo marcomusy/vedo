@@ -96,6 +96,9 @@ python basic/rotateImage.py
 echo Running basic/shrink.py
 python basic/shrink.py
 
+echo Running basic/manypoints.py
+python basic/manypoints.py   
+
 echo Running basic/manyspheres.py
 python basic/manyspheres.py
 
@@ -200,6 +203,10 @@ python basic/specular.py
 
 echo Running basic/lightings.py
 python basic/lightings.py   
+
+echo Running basic/surfIntersect.py
+python basic/surfIntersect.py   
+
 
 
 #################################### advanced
@@ -345,6 +352,9 @@ python volumetric/euclDist.py
 echo Running volumetric/vol2points.py
 python volumetric/vol2points.py
 
+echo Running volumetric/tet_mesh_ugrid.py
+python volumetric/tet_mesh_ugrid.py
+
 cd volumetric
 echo Running office.py
 python office.py
@@ -390,6 +400,12 @@ python other/export_x3d.py
 
 echo Running other/create_logo.py
 python other/create_logo.py
+
+echo Running other/export_numpy.py
+python other/export_numpy.py
+
+echo Running other/save_as_numpy.py
+python other/save_as_numpy.py
 
 
 #################################### 

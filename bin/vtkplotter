@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 from __future__ import division, print_function
-from vtkplotter import Actor, Plotter, ProgressBar, printc, humansort, __version__
+from vtkplotter import Actor, Volume, Plotter, ProgressBar, printc, humansort, __version__
 from vtkplotter import vtkio
 import vtk
 import sys, argparse, os
@@ -214,10 +214,12 @@ def _showVoxelImage():
 
     def keyfuncJitter(key): #toggle jittering
         if key != 'j': return
-        s = volume.jittering()
-        snew = (s+1)%2
-        volume.jittering(snew)
-        vp.interactor.Render()
+        if volume.jittering() is not None:
+            s = int(volume.jittering())
+            snew = (s+1)%2
+            volume.jittering(snew)
+            vp.interactor.Render()
+
     volume.jittering(True)
     vp.keyPressFunction = keyfuncJitter  # make it known to Plotter class
 
@@ -250,6 +252,7 @@ def _showVoxelImage():
     w0.SetEnabled(0)
     w1.SetEnabled(0)
     w2.SetEnabled(0)
+
 
 
 ##########################################################
@@ -336,19 +339,18 @@ elif nfiles == 1 and (
     or ".dem" in args.files[0]
 ):
     #print('DEBUG normal mode for single VOXEL file with Isosurface Slider or LEGO mode')
-    from vtkplotter import legosurface
-
     image = vtkio.loadImageData(args.files[0])
     scrange = image.GetScalarRange()
     threshold = (scrange[1] - scrange[0]) / 3.0 + scrange[0]
     #printHistogram(image, minbin=3, height=8, bins=40, logscale=1)
+    vol = Volume(image)
 
     if args.lego:
         sliderpos = ((0.79, 0.035), (0.975, 0.035))
         slidertitle = ""
         showval = False
         mbg = "white"
-        act = legosurface(image, vmin=threshold, cmap=args.cmap)
+        act = vol.legosurface(vmin=threshold, cmap=args.cmap)
         act.addScalarBar(act, horizontal=1, vmin=scrange[0], vmax=scrange[1])
     else:
         sliderpos = 4
@@ -368,18 +370,18 @@ elif nfiles == 1 and (
 
         cf.SetValue(0, threshold)
         cf.Update()
-        act = Actor(cf.GetOutput(), c=ic, alpha=args.alpha).wire(args.wireframe)
+        act = Actor(cf.GetOutput(), c=ic, alpha=args.alpha).wireframe(args.wireframe)
         act.phong()
 
     ############################## threshold slider
     def sliderThres(widget, event):
         if args.lego:
-            a = legosurface(image, vmin=widget.GetRepresentation().GetValue(), cmap=args.cmap)
+            a = vol.legosurface(vmin=widget.GetRepresentation().GetValue(), cmap=args.cmap)
         else:
             cf.SetValue(0, widget.GetRepresentation().GetValue())
             cf.Update()
             poly = cf.GetOutput()
-            a = Actor(poly, ic, alpha=act.alpha()).wire(args.wireframe)
+            a = Actor(poly, ic, alpha=act.alpha()).wireframe(args.wireframe)
             a.phong()
         vp.actors = []
         vp.renderer.RemoveActor(vp.getActors()[0])
@@ -408,9 +410,20 @@ elif nfiles == 1 and (
 
 
 ########################################################################
-# NORMAL mode for single or multiple files, or multiren mode
+# NORMAL mode for single or multiple files, or multiren mode, or numpy scene
 elif nfiles == 1 or (not args.scrolling_mode):
     #print('DEBUG NORMAL mode for single or multiple files, or multiren mode')
+
+    ##########################################################
+    # loading a full scene
+    if ".npy" in args.files[0] and nfiles == 1:
+        import numpy
+        data = numpy.load(args.files[0], allow_pickle=True)[0]
+        if 'objects' in data.keys():
+            vp = vtkio.importWindow(args.files[0])
+            vp.show()
+            exit()
+    ##########################################################
 
     actors = []
     for i in range(N):
@@ -459,32 +472,26 @@ else:
     n = len(args.files)
     pb = ProgressBar(0, n)
 
-    actors = []
+    # load files first
     for i, f in enumerate(args.files):
         pb.print("..loading")
-        ic = "gold"
+
+        ic = None
         if args.color is not None:
             if args.color.isdigit():
                 ic = int(args.color)
             else:
                 ic = args.color
 
-        actor = vp.load(f, c=ic, alpha=args.alpha) # can be Image
-        if hasattr(actor, 'wireframe'):
-            actor.wire(wire)
-        actor.legend(leg)
-        actors.append(actor)
-        if args.point_size > 0:
-            try:
-                ps = actor.GetProperty().GetPointSize()
-                actor.GetProperty().SetPointSize(args.point_size)
-                actor.GetProperty().SetRepresentationToPoints()
-            except AttributeError:
-                pass
+        actor = vp.load(f, c=ic, alpha=args.alpha).legend(leg)
+        if hasattr(actor, 'wireframe'): # can be Image or volume
+            actor.wireframe(wire)
+            if args.point_size > 0:
+                actor.pointSize(args.point_size)
 
     # calculate max actors bounds
     bns = []
-    for a in actors:
+    for a in vp.actors:
         if a and a.GetPickable():
             b = a.GetBounds()
             if b:
@@ -494,66 +501,34 @@ else:
         min_bns = numpy.min(bns, axis=0)
         vbb = (min_bns[0], max_bns[1], min_bns[2], max_bns[3], min_bns[4], max_bns[5])
 
-    def _scroll(iren, event):  # observer
-        global _kact
-        actors[_kact].off()
-
-        key = iren.GetKeySym()
-
-        n = len(actors)
-        if key == "Right" and _kact < n - 1:
-            _kact += 1
-        elif key == "Left" and _kact > 0:
-            _kact -= 1
-
-        step = int(n / 5)
-        if key == "Up":
-            _kact += step
-            if _kact > n - 1:
-                _kact = n - 1
-        elif key == "Down":
-            _kact -= step
-            if _kact < 0:
-                _kact = 0
-        sliderRep.SetValue(_kact)
-        if 0 <= _kact < n:
-            vp.clickedActor = actors[_kact]
-
-        actors[_kact].on()
-        fn = args.files[_kact].split("/")[-1]
-        printc("showing file #", _kact, "\t", fn, "\r", c="y", bold=0, end="")
-
-    vp.interactor.AddObserver("KeyPressEvent", _scroll)
-
-    vp.show(actors[0], interactive=False, zoom=args.zoom)
+    # show the first
+    saveacts = vp.actors
+    vp.show(vp.actors[0], interactive=False, zoom=args.zoom)
+    vp.actors = saveacts
 
     if isinstance(vp.axes_instances[0], vtk.vtkCubeAxesActor):
         vp.axes_instances[0].SetBounds(vbb)
-
     cb = (1, 1, 1)
     if numpy.sum(vp.renderer.GetBackground()) > 1.5:
         cb = (0.1, 0.1, 0.1)
 
-    def sliderf(widget, event):
-        global _kact
-        actors[_kact].off()
-        _kact = int(widget.GetRepresentation().GetValue())
-        actors[_kact].on()
-        fn = args.files[_kact].split("/")[-1]
-        printc("showing file #", _kact, "\t", fn, "\r", c="y", bold=0, end="")
-
-    wid = vp.addSlider2D(sliderf, 0, n - 1, pos=4, c=cb, showValue=False)
-    wid.SetAnimationModeToJump()
-    sliderRep = wid.GetRepresentation()
-
-    _kact = 0
-    for a in actors:
+    # define the slider
+    kact = 0
+    for a in vp.actors:
         a.off()
-    actors[0].on()
+    vp.actors[0].on()
+    def sliderf(widget, event):
+        global kact
+        kactnew = int(widget.GetRepresentation().GetValue())
+        if kactnew == kact: return
+        vp.actors[kact].off()
+        vp.actors[kactnew].on()
+        kact = kactnew
+        printc("Scrolling Mode:", c="y", invert=1, end="")
+        printc(" showing file nr.", kact, args.files[kact].split("/")[-1],
+               "\r", c="y", bold=0, end="")
 
-    printc("Scrolling Mode", c="y", invert=1, end="")
-    printc(", press:", c="y")
-    printc("- Right and Left keys to move through files", c="y")
-    printc("- Up and Down keys to fast forward and backward", c="y")
-    vp.show(actors, interactive=True, zoom=args.zoom)
+    vp.addSlider2D(sliderf, 0, n-1, pos=4, c=cb, showValue=False)
+
+    vp.show(interactive=True, zoom=args.zoom)
     print()

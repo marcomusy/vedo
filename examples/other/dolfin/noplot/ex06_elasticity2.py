@@ -69,7 +69,7 @@ show(arrs, at=1)  # can use interactive=1 to hold the plot
 scl = mag(pts1.coordinates() - pts0.coordinates())  # size of displacements
 
 # make a working copy with clone() and colorize vertices with scalars
-pts3 = pts1.clone().wire(False).pointColors(scl, cmap="rainbow")
+pts3 = pts1.clone().wireframe(False).pointColors(scl, cmap="rainbow")
 
 show(pts3, pos=(200, 200), depthpeeling=True, newPlotter=True, axes=8)
 # (Try click the mesh and press shift-X to slice it)

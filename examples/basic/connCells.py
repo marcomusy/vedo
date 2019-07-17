@@ -9,7 +9,7 @@ tol = 0.02
 
 actor = load(datadir+'250.vtk')
 show(
-     actor.wire().c('blue'),
+     actor.wireframe().c('blue'),
      actor.boundaries(),
      Point(actor.getPoint(30)),
      actor.connectedCells(30), # cells polygons at vertex nr.30
@@ -25,7 +25,7 @@ for p in coords:
     ipts = s.closestPoint(p, N=N, returnIds=True)
     pts = coords[ipts]
 
-    d = delaunay2D(pts, mode='fit').c('blue').wire()
+    d = delaunay2D(pts, mode='fit').c('blue').wireframe()
 
     piece = d.connectedCells(0, returnIds=False)
 

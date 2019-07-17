@@ -78,14 +78,17 @@ settings._init()
 
 
 ## deprecations
-def loadImageData(*args, **kargs):
-    "Do not use."
-    printc("~bomb loadImageData has been retired in version>=3.0. Use instead:", c=1)
-    printc("img = load('file.tif').imagedata() # or better:")
-    printc("vol = load('file.tif') # returns a Volume")
-    printc("Abort.", c=1)
+def isolines(*args, **kargs):
+    printc("Obsolete. Use mesh.isolines() instead of isolines(mesh).", c=1)
+    raise RuntimeError()
+    
+def isosurface(*args, **kargs):
+    printc("Obsolete. Use volume.isosurface() instead of isosurface(volume).", c=1)
     raise RuntimeError()
 
+def legosurface(volume, vmin=None, vmax=None, cmap='afmhot_r'):
+    printc("Obsolete. Use volume.legosurface() instead of legosurface(volume).", c=1)
+    raise RuntimeError()
 
 
 

@@ -514,29 +514,20 @@ def addCutterTool(actor):
     clipper.InsideOutOn()
     clipper.GenerateClippedOutputOn()
     clipper.Update()
+    cpoly = clipper.GetOutput()
 
-    act0 = Actor(clipper.GetOutput(), c=actor.color())
-#    act0.mapper = actor.mapper
-#    act0.mapper.Modified()
-#    print(actor.mapper.GetLookupTable())
-#    print(actor.polydata().GetPointData().GetScalars())
-#    print(act0.polydata().GetCellData().GetScalars().GetRange())
-#    print(act0.mapper.GetScalarRange())
-#    act0.mapper.SetScalarRange(act0.polydata().GetCellData().GetScalars().GetRange())
-#    act0.cellColors('pointColors_seismic', vmin=40, vmax=130)
+    act0 = Actor(cpoly, alpha=actor.alpha()) # the main cut part
+    act0.mapper.SetLookupTable(actor.mapper.GetLookupTable())
+    act0.mapper.SetScalarRange(actor.mapper.GetScalarRange())
 
-    act1Mapper = vtk.vtkPolyDataMapper()  # the part which is cut away
-    act1Mapper.SetInputConnection(clipper.GetClippedOutputPort()) # needs OutputPort??
-    act1Mapper.ScalarVisibilityOff()
-    act1 = vtk.vtkActor()
-    act1.SetMapper(act1Mapper)
-    act1.GetProperty().SetOpacity(0.02)
-    act1.GetProperty().SetRepresentationToWireframe()
-    act1.VisibilityOn()
+    act1 = Actor()
+    act1.mapper.SetInputConnection(clipper.GetClippedOutputPort()) # needs OutputPort??
+    act1.alpha(0.04).color((0.5,0.5,0.5)).wireframe()
 
+    vp.renderer.RemoveActor(actor)
     vp.renderer.AddActor(act0)
     vp.renderer.AddActor(act1)
-    vp.renderer.RemoveActor(actor)
+    vp.renderer.ResetCamera()
 
     def selectPolygons(vobj, event):
         vobj.GetPlanes(planes)
@@ -562,8 +553,8 @@ def addCutterTool(actor):
     colors.printc("Mesh Cutter Tool:", c="m", invert=1)
     colors.printc("  Move gray handles to cut away parts of the mesh", c="m")
     colors.printc("  Press X to save file to: clipped.vtk", c="m")
-
     vp.interactor.Start()
+
     boxWidget.Off()
     vp.widgets.append(boxWidget)
 
@@ -584,11 +575,13 @@ def _addVolumeCutterTool(vol):
     vp.cutterWidget = boxWidget
 
     planes = vtk.vtkPlanes()
-    def ClipVolumeRender(obj, event):
+    def clipVolumeRender(obj, event):
         obj.GetPlanes(planes)
         vol.mapper.SetClippingPlanes(planes)
+        #vol.mapper.Modified()
+        #vol.mapper.Update()
 
-    boxWidget.SetInputData(vol.imagedata())
+    boxWidget.SetInputData(vol.inputdata())
     boxWidget.OutlineCursorWiresOn()
     boxWidget.GetSelectedOutlineProperty().SetColor(1, 0, 1)
     boxWidget.GetOutlineProperty().SetColor(0.2, 0.2, 0.2)
@@ -596,9 +589,9 @@ def _addVolumeCutterTool(vol):
     boxWidget.SetPlaceFactor(1.0)
     boxWidget.PlaceWidget()
     boxWidget.InsideOutOn()
-    boxWidget.AddObserver("InteractionEvent", ClipVolumeRender)
+    boxWidget.AddObserver("InteractionEvent", clipVolumeRender)
 
-    colors.printc("Mesh Cutter Tool:", c="m", invert=1)
+    colors.printc("Volume Cutter Tool:", c="m", invert=1)
     colors.printc("  Move gray handles to cut parts of the volume", c="m")
 
     vp.renderer.ResetCamera()
@@ -935,29 +928,29 @@ def addAxes(axtype=None, c=None):
         grids = []
         if xyGrid and xtitle and ytitle:
             gxy = shapes.Grid(pos=(0.5, 0.5, 0), normal=[0, 0, 1], resx=rx, resy=ry)
-            gxy.alpha(xyAlpha).wire(xyGridTransparent).c(xyPlaneColor).lw(gridLineWidth).lc(xyGridColor)
+            gxy.alpha(xyAlpha).wireframe(xyGridTransparent).c(xyPlaneColor).lw(gridLineWidth).lc(xyGridColor)
             grids.append(gxy)
         if yzGrid and ytitle and ztitle:
             gyz = shapes.Grid(pos=(0, 0.5, 0.5), normal=[1, 0, 0], resx=rz, resy=ry)
-            gyz.alpha(yzAlpha).wire(yzGridTransparent).c(yzPlaneColor).lw(gridLineWidth).lc(yzGridColor)
+            gyz.alpha(yzAlpha).wireframe(yzGridTransparent).c(yzPlaneColor).lw(gridLineWidth).lc(yzGridColor)
             grids.append(gyz)
         if zxGrid and ztitle and xtitle:
             gzx = shapes.Grid(pos=(0.5, 0, 0.5), normal=[0, 1, 0], resx=rz, resy=rx)
-            gzx.alpha(zxAlpha).wire(zxGridTransparent).c(zxPlaneColor).lw(gridLineWidth).lc(zxGridColor)
+            gzx.alpha(zxAlpha).wireframe(zxGridTransparent).c(zxPlaneColor).lw(gridLineWidth).lc(zxGridColor)
             grids.append(gzx)
 
         grids2 = []
         if xyGrid2 and xtitle and ytitle:
             gxy2 = shapes.Grid(pos=(0.5, 0.5, 1), normal=[0, 0, 1], resx=rx, resy=ry)
-            gxy2.alpha(xyAlpha).wire(xyGrid2Transparent).c(xyPlaneColor).lw(gridLineWidth).lc(xyGridColor)
+            gxy2.alpha(xyAlpha).wireframe(xyGrid2Transparent).c(xyPlaneColor).lw(gridLineWidth).lc(xyGridColor)
             grids2.append(gxy2)
         if yzGrid2 and ytitle and ztitle:
             gyz2 = shapes.Grid(pos=(1, 0.5, 0.5), normal=[1, 0, 0], resx=rz, resy=ry)
-            gyz2.alpha(yzAlpha).wire(yzGrid2Transparent).c(yzPlaneColor).lw(gridLineWidth).lc(yzGridColor)
+            gyz2.alpha(yzAlpha).wireframe(yzGrid2Transparent).c(yzPlaneColor).lw(gridLineWidth).lc(yzGridColor)
             grids2.append(gyz2)
         if zxGrid2 and ztitle and xtitle:
             gzx2 = shapes.Grid(pos=(0.5, 1, 0.5), normal=[0, 1, 0], resx=rz, resy=rx)
-            gzx2.alpha(zxAlpha).wire(zxGrid2Transparent).c(zxPlaneColor).lw(gridLineWidth).lc(zxGridColor)
+            gzx2.alpha(zxAlpha).wireframe(zxGrid2Transparent).c(zxPlaneColor).lw(gridLineWidth).lc(zxGridColor)
             grids2.append(gzx2)
 
 
@@ -1396,7 +1389,7 @@ def addAxes(axtype=None, c=None):
         src.SetYLength(vbb[3] - vbb[2])
         src.SetZLength(vbb[5] - vbb[4])
         src.Update()
-        ca = Actor(src.GetOutput(), c=c, alpha=0.5, wire=1)
+        ca = Actor(src.GetOutput(), c, 0.5).wireframe(True)
         ca.pos((vbb[0] + vbb[1]) / 2, (vbb[3] + vbb[2]) / 2, (vbb[5] + vbb[4]) / 2)
         ca.PickableOff()
         vp.renderer.AddActor(ca)
@@ -1410,9 +1403,9 @@ def addAxes(axtype=None, c=None):
         xc = shapes.Disc(x0, r1=rm, r2=rm, c='lr', res=1, resphi=72)
         yc = shapes.Disc(x0, r1=rm, r2=rm, c='lg', res=1, resphi=72).rotateX(90)
         zc = shapes.Disc(x0, r1=rm, r2=rm, c='lb', res=1, resphi=72).rotateY(90)
-        xc.clean().alpha(0.2).wire().lineWidth(2.5).PickableOff()
-        yc.clean().alpha(0.2).wire().lineWidth(2.5).PickableOff()
-        zc.clean().alpha(0.2).wire().lineWidth(2.5).PickableOff()
+        xc.clean().alpha(0.2).wireframe().lineWidth(2.5).PickableOff()
+        yc.clean().alpha(0.2).wireframe().lineWidth(2.5).PickableOff()
+        zc.clean().alpha(0.2).wireframe().lineWidth(2.5).PickableOff()
         ca = xc + yc + zc
         ca.PickableOff()
         vp.renderer.AddActor(ca)

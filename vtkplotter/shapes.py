@@ -61,95 +61,118 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
 
 def Points(plist, r=5, c="gray", alpha=1):
     """
-    Build a point ``Actor`` for a list of points.
+    Build a point ``Actor`` for a list of 2D/3D points.
+    Both shapes (N, 3) or (3, N) are accepted as input - if N>3.
+
+    For very large point clouds a list of colors and alpha can be assigned to each
+    point in the form `c=[(R,G,B,A), ... ]` where `0 <= R < 256, ... 0 <= A < 256`.
 
     :param float r: point radius.
     :param c: color name, number, or list of [R,G,B] colors of same length as plist.
     :type c: int, str, list
     :param float alpha: transparency in range [0,1].
 
-    |lorenz| |lorenz.py|_
+    |manypoints.py|_ |lorenz.py|_
+
+    |lorenz|
     """
-
-    def _colorPoints(plist, cols, r, alpha):
-        n = len(plist)
-        if n > len(cols):
-            colors.printc("~times Error: mismatch in colorPoints()", n, len(cols), c=1)
-            raise RuntimeError()
-        if n != len(cols):
-            colors.printc("~lightning Warning: mismatch in colorPoints()", n, len(cols))
-        src = vtk.vtkPointSource()
-        src.SetNumberOfPoints(n)
-        src.Update()
-        vgf = vtk.vtkVertexGlyphFilter()
-        vgf.SetInputData(src.GetOutput())
-        vgf.Update()
-        pd = vgf.GetOutput()
-
-        ucols = vtk.vtkUnsignedCharArray()
-        ucols.SetNumberOfComponents(3)
-        ucols.SetName("pointsRGB")
-
-        for i in range(len(plist)):
-            c = np.array(colors.getColor(cols[i])) * 255
-            ucols.InsertNextTuple3(c[0], c[1], c[2])
-
-        if len(plist[0]) == 2: #make it 3d
-            plist = np.c_[np.array(plist), np.zeros(len(plist))]
-
-        pd.GetPoints().SetData(numpy_to_vtk(plist, deep=True))
-        pd.GetPointData().SetScalars(ucols)
-        actor = Actor(pd, c, alpha)
-        actor.mapper.ScalarVisibilityOn()
-        actor.GetProperty().SetInterpolationToFlat()
-        actor.GetProperty().SetPointSize(r)
-        return actor
-
+    ################ interpret the input format:
     n = len(plist)
     if n == 0:
         return None
     elif n == 3:  # assume plist is in the format [all_x, all_y, all_z]
         if utils.isSequence(plist[0]) and len(plist[0]) > 3:
-            plist = list(zip(plist[0], plist[1], plist[2]))
+            plist = tuple(zip(plist[0], plist[1], plist[2]))
     elif n == 2:  # assume plist is in the format [all_x, all_y, 0]
         if utils.isSequence(plist[0]) and len(plist[0]) > 3:
-            plist = list(zip(plist[0], plist[1], [0] * len(plist[0])))
+            plist = tuple(zip(plist[0], plist[1], [0] * len(plist[0])))
 
-    if utils.isSequence(c) and len(c) > 3:
-        actor = _colorPoints(plist, c, r, alpha)
-        settings.collectable_actors.append(actor)
-        return actor
+    if len(plist[0]) == 2: #make it 3d
+        plist = np.c_[np.array(plist), np.zeros(len(plist))]
     ################
 
-    n = len(plist)  # refresh
-    sourcePoints = vtk.vtkPoints()
-    sourceVertices = vtk.vtkCellArray()
-    is3d = len(plist[0]) > 2
-    if is3d:  # its faster
-        for pt in plist:
-            aid = sourcePoints.InsertNextPoint(pt)
-            sourceVertices.InsertNextCell(1)
-            sourceVertices.InsertCellPoint(aid)
-    else:
-        for pt in plist:
-            aid = sourcePoints.InsertNextPoint(pt[0], pt[1], 0)
-            sourceVertices.InsertNextCell(1)
-            sourceVertices.InsertCellPoint(aid)
+    if ( (utils.isSequence(c) and (len(c) > 3 or len(c[0]) == 4))
+        or utils.isSequence(alpha)
+        ):
+        actor = _PointsColors(plist, r, c, alpha)
 
-    pd = vtk.vtkPolyData()
-    pd.SetPoints(sourcePoints)
-    pd.SetVerts(sourceVertices)
-
-    if n == 1:  # passing just one point
-        pd.GetPoints().SetPoint(0, [0, 0, 0])
     else:
-        pd.GetPoints().SetData(numpy_to_vtk(plist, deep=True))
-    actor = Actor(pd, c, alpha)
-    actor.GetProperty().SetPointSize(r)
-    if n == 1:
-        actor.SetPosition(plist[0])
+
+        n = len(plist)  # refresh
+        sourcePoints = vtk.vtkPoints()
+        sourceVertices = vtk.vtkCellArray()
+        is3d = len(plist[0]) > 2
+        if is3d:  # its faster
+            for pt in plist:
+                aid = sourcePoints.InsertNextPoint(pt)
+                sourceVertices.InsertNextCell(1)
+                sourceVertices.InsertCellPoint(aid)
+        else:
+            for pt in plist:
+                aid = sourcePoints.InsertNextPoint(pt[0], pt[1], 0)
+                sourceVertices.InsertNextCell(1)
+                sourceVertices.InsertCellPoint(aid)
+
+        pd = vtk.vtkPolyData()
+        pd.SetPoints(sourcePoints)
+        pd.SetVerts(sourceVertices)
+
+        if n == 1:  # passing just one point
+            pd.GetPoints().SetPoint(0, [0, 0, 0])
+        else:
+            pd.GetPoints().SetData(numpy_to_vtk(plist, deep=True))
+        actor = Actor(pd, c, alpha)
+        actor.GetProperty().SetPointSize(r)
+        if n == 1:
+            actor.SetPosition(plist[0])
 
     settings.collectable_actors.append(actor)
+    return actor
+
+def _PointsColors(plist, r, cols, alpha):
+    n = len(plist)
+    if n != len(cols):
+        colors.printc("~times mismatch in Points() colors", n, len(cols), c=1)
+        raise RuntimeError()
+    src = vtk.vtkPointSource()
+    src.SetNumberOfPoints(n)
+    src.Update()
+    vgf = vtk.vtkVertexGlyphFilter()
+    vgf.SetInputData(src.GetOutput())
+    vgf.Update()
+    pd = vgf.GetOutput()
+    pd.GetPoints().SetData(numpy_to_vtk(plist, deep=True))
+
+    ucols = vtk.vtkUnsignedCharArray()
+    ucols.SetNumberOfComponents(4)
+    ucols.SetName("pointsRGBA")
+    if utils.isSequence(alpha):
+        if len(alpha) != n:
+            colors.printc("~times mismatch in Points() alphas", n, len(alpha), c=1)
+            raise RuntimeError()
+        alphas = alpha
+        alpha = 1
+    else:
+       alphas = (alpha,) * n
+
+    if utils.isSequence(cols):
+        c = None
+        if len(cols[0]) == 4:
+            for i in range(n): # FAST
+                rc,gc,bc,ac = cols[i]
+                ucols.InsertNextTuple4(rc, gc, bc, ac)
+        else:
+            for i in range(n): # SLOW
+                rc,gc,bc = colors.getColor(cols[i])
+                ucols.InsertNextTuple4(rc*255, gc*255, bc*255, alphas[i]*255)
+    else:
+        c = cols
+
+    pd.GetPointData().SetScalars(ucols)
+    actor = Actor(pd, c, alpha)
+    actor.mapper.ScalarVisibilityOn()
+    actor.GetProperty().SetInterpolationToFlat()
+    actor.GetProperty().SetPointSize(r)
     return actor
 
 
@@ -482,7 +505,7 @@ def Tube(points, r=1, c="r", alpha=1, res=12):
     tuf.Update()
     polytu = tuf.GetOutput()
 
-    actor = Actor(polytu, c=c, alpha=alpha, computeNormals=0)
+    actor = Actor(polytu, c, alpha, computeNormals=0)
     actor.phong()
     if usingColScals:
         actor.mapper.SetScalarModeToUsePointFieldData()
@@ -979,8 +1002,7 @@ def Grid(
     return actor
 
 
-def Plane(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g",
-          alpha=1, texture=None):
+def Plane(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g", alpha=1):
     """
     Draw a plane of size `sx` and `sy` oriented perpendicular to vector `normal`
     and so that it passes through point `pos`.
@@ -1008,7 +1030,7 @@ def Plane(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g",
     tf.SetTransform(t)
     tf.Update()
     pd = tf.GetOutput()
-    actor = Actor(pd, c, alpha, texture=texture)
+    actor = Actor(pd, c, alpha)
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
     return actor
@@ -1316,7 +1338,7 @@ def Hyperboloid(pos=(0, 0, 0), a2=1, value=0.5, height=1, axis=(0, 0, 1),
 
 def Text(
     txt,
-    pos=3,
+    pos="top-left",
     s=1,
     depth=0.1,
     justify="bottom-left",
@@ -1331,8 +1353,7 @@ def Text(
     Returns an ``Actor`` that shows a 2D/3D text.
 
     :param pos: position in 3D space,
-                if an integer is passed [1,8],
-                a 2D text is placed in one of the 4 corners:
+                a 2D text is placed in one of the 8 positions:
 
                     1, bottom-left
                     2, bottom-right
@@ -1396,6 +1417,20 @@ def Text(
                 c = (0.1, 0.1, 0.1)
         else:
             c = (0.6, 0.6, 0.6)
+
+    if isinstance(pos, str): # corners
+        if "top" in pos:
+            if "left" in pos: pos = 3
+            elif "mid" in pos: pos = 8
+            elif "right" in pos: pos = 4
+        elif "bottom" in pos:
+            if "left" in pos: pos = 1
+            elif "mid" in pos: pos = 5
+            elif "right" in pos: pos = 2
+        else:
+            if "left" in pos: pos = 7
+            elif "right" in pos: pos = 6
+            else: pos = 3
 
     if isinstance(pos, int): # corners
         if pos > 8:
@@ -1503,7 +1538,9 @@ def Text(
                 extrude.SetScaleFactor(depth*dy)
                 extrude.Update()
                 tpoly = extrude.GetOutput()
-            ttactor = Actor(tpoly, c, alpha, bc=bc)
+            ttactor = Actor(tpoly, c, alpha)
+            if bc is not None:
+                ttactor.backColor(bc)
 
         ttactor.SetPosition(pos)
         settings.collectable_actors.append(ttactor)

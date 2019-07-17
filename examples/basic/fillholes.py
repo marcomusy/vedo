@@ -9,7 +9,7 @@ from vtkplotter import load, show, Text, datadir
 a = load(datadir+"bunny.obj")
 
 b = a.clone().fillHoles(size=0.1)
-b.color("b").wire(True).legend("filled mesh")
+b.color("b").wireframe(True).legend("filled mesh")
 
 doc = Text(__doc__)
 

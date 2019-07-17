@@ -35,6 +35,6 @@ for t in range(Niter):
 
     # refresh actor, so polydata normals are recalculated
     s = s.clone()
-    vp += s.alpha(0.1).color("gold").wire(True) #add into Plotter
+    vp += s.alpha(0.1).color("gold").wireframe(True) #add into Plotter
 
 vp.show()

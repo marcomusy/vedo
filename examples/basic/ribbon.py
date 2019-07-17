@@ -11,7 +11,7 @@ t1 = Tube(l1, c="g", r=0.02)
 t2 = Tube(l2, c="b", r=0.02)
 
 r = Ribbon(l1, l2, alpha=0.2, res=(200, 5))
-r.wire(True).legend("ruled surf")
+r.wireframe(True).legend("ruled surf")
 
 doc = Text(__doc__)
 show(r, t1, t2, doc, viewup="z", axes=1, bg="w")

@@ -5,7 +5,7 @@ from vtkplotter import *
 
 p1 = Paraboloid().rotateX(90)
 
-cutmesh = Hyperboloid().scale(0.4).wire(True).alpha(0.1)
+cutmesh = Hyperboloid().scale(0.4).wireframe(True).alpha(0.1)
 
 show(p1, cutmesh, at=0, N=2, axes=1, viewup="z")
 

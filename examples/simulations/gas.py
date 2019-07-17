@@ -32,7 +32,7 @@ def reflection(p, pos):
 vp = Plotter(title="gas in toroid", interactive=0, axes=0, bg="w")
 
 vp += Text(__doc__)
-vp += Torus(c="g", r=RingRadius, thickness=RingThickness, alpha=0.1).wire(1)  ### <--
+vp += Torus(c="g", r=RingRadius, thickness=RingThickness, alpha=0.1).wireframe(1)  ### <--
 
 Atoms = []
 poslist = []

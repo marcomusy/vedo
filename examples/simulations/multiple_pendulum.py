@@ -24,7 +24,7 @@ for k in range(1, N + 1):
 
 # Create the bobs
 vp = Plotter(title="Multiple Pendulum", axes=0, interactive=0)
-vp += Box(pos=(0, -5, 0), length=12, width=12, height=0.7, c="k").wire(1)
+vp += Box(pos=(0, -5, 0), length=12, width=12, height=0.7, c="k").wireframe(1)
 bob = [vp.add(Sphere(pos=(bob_x[0], bob_y[0], 0), r=R / 2, c="gray"))]
 for k in range(1, N + 1):
     bob.append(vp.add(Cylinder(pos=(bob_x[k], bob_y[k], 0), r=R, height=0.3, c=k)))

@@ -12,7 +12,7 @@ vects = mesh.clone().coordinates() # let's assume this
 mesh.addPointVectors(vects, 'hyp_coords')
 
 probe = Sphere(pos=[0,0.6,0.3], r=0.3, res=8).clean()
-probe.wire().alpha(0.2).color('g')
+probe.wireframe().alpha(0.2).color('g')
 
 stream = streamLines(mesh, probe,
                      maxPropagation=0.3,
