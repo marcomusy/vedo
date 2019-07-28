@@ -3,7 +3,7 @@
 In this directory you will find a bunch of examples of interoperability with the 
 [trimesh](https://trimsh.org) package. 
 
-(Still a bit experimental, expecially when running from a jupyter notebook. Use in this case _embedWindow(False)_).
+(Still a bit experimental, especially when running from a jupyter notebook. Use in this case _embedWindow(False)_).
 
 To run the examples:
 ```bash
