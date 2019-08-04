@@ -55,11 +55,10 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
     """Create a simple point actor."""
     if len(pos) == 2:
         pos = (pos[0], pos[1], 0)
-    actor = Points([pos], r, c, alpha)
-    return actor
+    return Points([pos], r, c, alpha)
 
 
-def Points(plist, r=5, c="gray", alpha=1):
+def Points(plist, r=5, c="gold", alpha=1):
     """
     Build a point ``Actor`` for a list of 2D/3D points.
     Both shapes (N, 3) or (3, N) are accepted as input - if N>3.
@@ -91,13 +90,15 @@ def Points(plist, r=5, c="gray", alpha=1):
         plist = np.c_[np.array(plist), np.zeros(len(plist))]
     ################
 
-    if ( (utils.isSequence(c) and (len(c) > 3 or len(c[0]) == 4))
+    if ( (
+            utils.isSequence(c) 
+            and (len(c)>3 or (utils.isSequence(c[0]) and len(c[0])==4))
+          )
         or utils.isSequence(alpha)
         ):
         actor = _PointsColors(plist, r, c, alpha)
 
     else:
-
         n = len(plist)  # refresh
         sourcePoints = vtk.vtkPoints()
         sourceVertices = vtk.vtkCellArray()
@@ -169,10 +170,8 @@ def _PointsColors(plist, r, cols, alpha):
         c = cols
 
     pd.GetPointData().SetScalars(ucols)
-    actor = Actor(pd, c, alpha)
+    actor = Actor(pd, c, alpha).flat().pointSize(r)
     actor.mapper.ScalarVisibilityOn()
-    actor.GetProperty().SetInterpolationToFlat()
-    actor.GetProperty().SetPointSize(r)
     return actor
 
 
@@ -255,9 +254,8 @@ def Glyph(actor, glyphObj, orientationArray=None,
             gly.SetColorModeToColorByScalar()
 
     gly.Update()
-    pd = gly.GetOutput()
 
-    gactor = Actor(pd, c, alpha)
+    gactor = Actor(gly.GetOutput(), c, alpha).flat()
 
     if cmap:
         lut = vtk.vtkLookupTable()
@@ -269,10 +267,9 @@ def Glyph(actor, glyphObj, orientationArray=None,
         gactor.mapper.SetLookupTable(lut)
         gactor.mapper.ScalarVisibilityOn()
         gactor.mapper.SetScalarModeToUsePointData()
-        rng = pd.GetPointData().GetScalars().GetRange()
+        rng = gly.GetOutput().GetPointData().GetScalars().GetRange()
         gactor.mapper.SetScalarRange(rng[0], rng[1])
 
-    gactor.GetProperty().SetInterpolationToFlat()
     settings.collectable_actors.append(gactor)
     return gactor
 
@@ -404,8 +401,7 @@ def Line(p0, p1=None, c="r", alpha=1, lw=1, dotted=False, res=None):
         lineSource.Update()
         poly = lineSource.GetOutput()
 
-    actor = Actor(poly, c, alpha)
-    actor.GetProperty().SetLineWidth(lw)
+    actor = Actor(poly, c, alpha).lw(lw)
     if dotted:
         actor.GetProperty().SetLineStipplePattern(0xF0F0)
         actor.GetProperty().SetLineStippleRepeatFactor(1)
@@ -444,8 +440,7 @@ def Lines(startPoints, endPoints=None, c=None, alpha=1, lw=1, dotted=False, scal
         polylns.AddInputConnection(lineSource.GetOutputPort())
     polylns.Update()
 
-    actor = Actor(polylns.GetOutput(), c, alpha)
-    actor.GetProperty().SetLineWidth(lw)
+    actor = Actor(polylns.GetOutput(), c, alpha).lw(lw)
     if dotted:
         actor.GetProperty().SetLineStipplePattern(0xF0F0)
         actor.GetProperty().SetLineStippleRepeatFactor(1)
@@ -501,12 +496,9 @@ def Tube(points, r=1, c="r", alpha=1, res=12):
             cc.InsertTuple3(i, int(255 * r), int(255 * g), int(255 * b))
         polyln.GetPointData().AddArray(cc)
         c = None
-
     tuf.Update()
-    polytu = tuf.GetOutput()
 
-    actor = Actor(polytu, c, alpha, computeNormals=0)
-    actor.phong()
+    actor = Actor(tuf.GetOutput(), c, alpha, computeNormals=0).phong()
     if usingColScals:
         actor.mapper.SetScalarModeToUsePointFieldData()
         actor.mapper.ScalarVisibilityOn()
@@ -579,7 +571,7 @@ def Ribbon(line1, line2, c="m", alpha=1, res=(200, 5)):
     rsf.SetResolution(res[0], res[1])
     rsf.SetInputData(mergedPolyData.GetOutput())
     rsf.Update()
-    actor = Actor(rsf.GetOutput(), c=c, alpha=alpha)
+    actor = Actor(rsf.GetOutput(), c, alpha)
     settings.collectable_actors.append(actor)
     return actor
 
@@ -655,8 +647,7 @@ def Arrow(startPoint, endPoint, s=None, c="r", alpha=1, res=12):
     tf.SetTransform(t)
     tf.Update()
 
-    actor = Actor(tf.GetOutput(), c, alpha)
-    actor.GetProperty().SetInterpolationToPhong()
+    actor = Actor(tf.GetOutput(), c, alpha).phong()
     actor.SetPosition(startPoint)
     actor.DragableOff()
     actor.base = np.array(startPoint)
@@ -769,9 +760,7 @@ def Sphere(pos=(0, 0, 0), r=1, c="r", alpha=1, res=24):
     ss.SetThetaResolution(2 * res)
     ss.SetPhiResolution(res)
     ss.Update()
-    pd = ss.GetOutput()
-    actor = Actor(pd, c, alpha)
-    actor.GetProperty().SetInterpolationToPhong()
+    actor = Actor(ss.GetOutput(), c, alpha).phong()
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
     return actor
@@ -853,17 +842,11 @@ def Spheres(centers, r=1, c="r", alpha=1, res=8):
     glyph.SetInputData(pd)
     glyph.Update()
 
-    mapper = vtk.vtkPolyDataMapper()
-    mapper.SetInputData(glyph.GetOutput())
-
-    actor = Actor()
-    actor.SetMapper(mapper)
-    actor.GetProperty().SetInterpolationToPhong()
-    actor.GetProperty().SetOpacity(alpha)
+    actor = Actor(glyph.GetOutput(), alpha=alpha).phong()
     if cisseq:
-        mapper.ScalarVisibilityOn()
+        actor.mapper.ScalarVisibilityOn()
     else:
-        mapper.ScalarVisibilityOff()
+        actor.mapper.ScalarVisibilityOff()
         actor.GetProperty().SetColor(colors.getColor(c))
     settings.collectable_actors.append(actor)
     return actor
@@ -946,9 +929,8 @@ def Ellipsoid(pos=(0, 0, 0), axis1=(1, 0, 0), axis2=(0, 2, 0), axis3=(0, 0, 3),
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = Actor(pd, c=c, alpha=alpha)
+    actor = Actor(pd, c, alpha).phong()
     actor.GetProperty().BackfaceCullingOn()
-    actor.GetProperty().SetInterpolationToPhong()
     actor.SetPosition(pos)
     actor.base = -np.array(axis1) / 2 + pos
     actor.top = np.array(axis1) / 2 + pos
@@ -993,10 +975,7 @@ def Grid(
     tf.SetInputData(poly)
     tf.SetTransform(t)
     tf.Update()
-    pd = tf.GetOutput()
-    actor = Actor(pd, c, alpha)
-    actor.GetProperty().SetRepresentationToWireframe()
-    actor.GetProperty().SetLineWidth(lw)
+    actor = Actor(tf.GetOutput(), c, alpha).wireframe().lw(lw)
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
     return actor
@@ -1029,8 +1008,7 @@ def Plane(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g", alpha=1):
     tf.SetInputData(poly)
     tf.SetTransform(t)
     tf.Update()
-    pd = tf.GetOutput()
-    actor = Actor(pd, c, alpha)
+    actor = Actor(tf.GetOutput(), c, alpha)
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
     return actor
@@ -1118,9 +1096,7 @@ def Spring(
         thickness = r / 10
     tuf.SetRadius(thickness)
     tuf.Update()
-    poly = tuf.GetOutput()
-    actor = Actor(poly, c, alpha)
-    actor.GetProperty().SetInterpolationToPhong()
+    actor = Actor(tuf.GetOutput(), c, alpha).phong()
     actor.SetPosition(startPoint)
     actor.base = np.array(startPoint)
     actor.top = np.array(endPoint)
@@ -1128,7 +1104,7 @@ def Spring(
     return actor
 
 
-def Cylinder(pos=(0, 0, 0), r=1, height=1, axis=(0, 0, 1), c="teal", alpha=1, res=24):
+def Cylinder(pos=(0,0,0), r=1, height=1, axis=(0,0,1), c="teal", alpha=1, res=24):
     """
     Build a cylinder of specified height and radius `r`, centered at `pos`.
 
@@ -1169,8 +1145,7 @@ def Cylinder(pos=(0, 0, 0), r=1, height=1, axis=(0, 0, 1), c="teal", alpha=1, re
     tf.Update()
     pd = tf.GetOutput()
 
-    actor = Actor(pd, c, alpha)
-    actor.GetProperty().SetInterpolationToPhong()
+    actor = Actor(pd, c, alpha).phong()
     actor.SetPosition(pos)
     actor.base = base + pos
     actor.top = top + pos
@@ -1178,7 +1153,7 @@ def Cylinder(pos=(0, 0, 0), r=1, height=1, axis=(0, 0, 1), c="teal", alpha=1, re
     return actor
 
 
-def Cone(pos=(0, 0, 0), r=1, height=3, axis=(0, 0, 1), c="dg", alpha=1, res=48):
+def Cone(pos=(0,0,0), r=1, height=3, axis=(0,0,1), c="dg", alpha=1, res=48):
     """
     Build a cone of specified radius `r` and `height`, centered at `pos`.
 
@@ -1190,8 +1165,7 @@ def Cone(pos=(0, 0, 0), r=1, height=3, axis=(0, 0, 1), c="dg", alpha=1, res=48):
     con.SetHeight(height)
     con.SetDirection(axis)
     con.Update()
-    actor = Actor(con.GetOutput(), c, alpha)
-    actor.GetProperty().SetInterpolationToPhong()
+    actor = Actor(con.GetOutput(), c, alpha).phong()
     actor.SetPosition(pos)
     v = utils.versor(axis) * height / 2
     actor.base = pos - v
@@ -1200,14 +1174,14 @@ def Cone(pos=(0, 0, 0), r=1, height=3, axis=(0, 0, 1), c="dg", alpha=1, res=48):
     return actor
 
 
-def Pyramid(pos=(0, 0, 0), s=1, height=1, axis=(0, 0, 1), c="dg", alpha=1):
+def Pyramid(pos=(0,0,0), s=1, height=1, axis=(0,0,1), c="dg", alpha=1):
     """
     Build a pyramid of specified base size `s` and `height`, centered at `pos`.
     """
     return Cone(pos, s, height, axis, c, alpha, 4)
 
 
-def Torus(pos=(0, 0, 0), r=1, thickness=0.2, axis=(0, 0, 1), c="khaki", alpha=1, res=30):
+def Torus(pos=(0, 0, 0), r=1, thickness=0.2, c="khaki", alpha=1, res=30):
     """
     Build a torus of specified outer radius `r` internal radius `thickness`, centered at `pos`.
 
@@ -1222,29 +1196,13 @@ def Torus(pos=(0, 0, 0), r=1, thickness=0.2, axis=(0, 0, 1), c="khaki", alpha=1,
     pfs.SetVResolution(res)
     pfs.Update()
 
-    nax = np.linalg.norm(axis)
-    if nax:
-        axis = np.array(axis) / nax
-    theta = np.arccos(axis[2])
-    phi = np.arctan2(axis[1], axis[0])
-    t = vtk.vtkTransform()
-    t.PostMultiply()
-    t.RotateY(np.rad2deg(theta))
-    t.RotateZ(np.rad2deg(phi))
-    tf = vtk.vtkTransformPolyDataFilter()
-    tf.SetInputData(pfs.GetOutput())
-    tf.SetTransform(t)
-    tf.Update()
-    pd = tf.GetOutput()
-
-    actor = Actor(pd, c, alpha)
-    actor.GetProperty().SetInterpolationToPhong()
+    actor = Actor(pfs.GetOutput(), c, alpha).phong()
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
     return actor
 
 
-def Paraboloid(pos=(0, 0, 0), r=1, height=1, axis=(0, 0, 1), c="cyan", alpha=1, res=50):
+def Paraboloid(pos=(0,0,0), r=1, height=1, c="cyan", alpha=1, res=50):
     """
     Build a paraboloid of specified height and radius `r`, centered at `pos`.
 
@@ -1268,30 +1226,14 @@ def Paraboloid(pos=(0, 0, 0), r=1, height=1, axis=(0, 0, 1), c="cyan", alpha=1, 
     contours.GenerateValues(1, 0.01, 0.01)
     contours.Update()
 
-    axis = np.array(axis) / np.linalg.norm(axis)
-    theta = np.arccos(axis[2])
-    phi = np.arctan2(axis[1], axis[0])
-    t = vtk.vtkTransform()
-    t.PostMultiply()
-    t.RotateY(np.rad2deg(theta))
-    t.RotateZ(np.rad2deg(phi))
-    t.Scale(r, r, r)
-    tf = vtk.vtkTransformPolyDataFilter()
-    tf.SetInputData(contours.GetOutput())
-    tf.SetTransform(t)
-    tf.Update()
-    pd = tf.GetOutput()
-
-    actor = Actor(pd, c, alpha).flipNormals()
-    actor.GetProperty().SetInterpolationToPhong()
+    actor = Actor(contours.GetOutput(), c, alpha).flipNormals().phong()
     actor.mapper.ScalarVisibilityOff()
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
     return actor
 
 
-def Hyperboloid(pos=(0, 0, 0), a2=1, value=0.5, height=1, axis=(0, 0, 1),
-                c="magenta", alpha=1, res=100):
+def Hyperboloid(pos=(0,0,0), a2=1, value=0.5, height=1, c="m", alpha=1, res=100):
     """
     Build a hyperboloid of specified aperture `a2` and `height`, centered at `pos`.
 
@@ -1314,22 +1256,7 @@ def Hyperboloid(pos=(0, 0, 0), a2=1, value=0.5, height=1, axis=(0, 0, 1),
     contours.GenerateValues(1, value, value)
     contours.Update()
 
-    axis = np.array(axis) / np.linalg.norm(axis)
-    theta = np.arccos(axis[2])
-    phi = np.arctan2(axis[1], axis[0])
-    t = vtk.vtkTransform()
-    t.PostMultiply()
-    t.RotateY(np.rad2deg(theta))
-    t.RotateZ(np.rad2deg(phi))
-    t.Scale(1, 1, height)
-    tf = vtk.vtkTransformPolyDataFilter()
-    tf.SetInputData(contours.GetOutput())
-    tf.SetTransform(t)
-    tf.Update()
-    pd = tf.GetOutput()
-
-    actor = Actor(pd, c, alpha).flipNormals()
-    actor.GetProperty().SetInterpolationToPhong()
+    actor = Actor(contours.GetOutput(), c, alpha).flipNormals().phong()
     actor.mapper.ScalarVisibilityOff()
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
@@ -1620,26 +1547,15 @@ def Latex(
         else:
             build_img_plt(formula, '_lateximg.png')
 
-        from vtkplotter.actors import Image
+        from vtkplotter.actors import Picture
 
-        picr = vtk.vtkPNGReader()
-        picr.SetFileName('_lateximg.png')
-        picr.Update()
-        vactor = Image()
-        vactor.SetInputData(picr.GetOutput())
+        vactor = Picture('_lateximg.png')
         vactor.info['formula'] = formula
         vactor.alpha(alpha)
         b = vactor.GetBounds()
         xm, ym = (b[1]+b[0])/200*s, (b[3]+b[2])/200*s
         vactor.SetOrigin(-xm, -ym, 0)
-#        nax = np.linalg.norm(normal)
-#        if nax:
-#            normal = np.array(normal) / nax
-#        theta = np.arccos(normal[2])
-#        phi = np.arctan2(normal[1], normal[0])
         vactor.SetScale(0.25/res*s, 0.25/res*s, 0.25/res*s)
-#        vactor.RotateZ(np.rad2deg(phi))
-#        vactor.RotateY(np.rad2deg(theta))
         vactor.SetPosition(pos)
         try:
             import os

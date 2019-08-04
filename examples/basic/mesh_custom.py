@@ -1,9 +1,11 @@
 """
 Example on how to specify a color for each
 individual cell or point of an actor's mesh.
-Keyword depthpeeling may improve the rendering of transparent objects.
+useDepthPeeling may improve the rendering of transparent objects.
 """
 from vtkplotter import *
+
+settings.useDepthPeeling = True
 
 doc = Text(__doc__, pos=1, c="w")
 
@@ -28,4 +30,4 @@ alphas = [i/10. for i in range(10)]
 
 man.pointColors(scals, cmap=mymap, alpha=alphas).addScalarBar()
 
-show(man, doc, viewup="z", axes=1, depthpeeling=1)
+show(man, doc, viewup="z", axes=1)

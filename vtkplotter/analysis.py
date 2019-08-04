@@ -55,7 +55,6 @@ __all__ = [
     "splitByConnectivity",
     "projectSphereFilter",
     "extractSurface",
-    "geometry",
     "voronoi3D",
     "connectedPoints",
     "interpolateToVolume",
@@ -74,26 +73,6 @@ __all__ = [
     "volumeToPoints",
     "volumeCorrelation",
 ]
-
-
-def geometry(obj, extent=None):
-    """
-    Apply the ``vtkGeometryFilter``.
-    This is a general-purpose filter to extract geometry (and associated data) from any type of dataset.
-    This filter also may be used to convert any type of data to polygonal type.
-    The conversion process may be less than satisfactory for some 3D datasets.
-    For example, this filter will extract the outer surface of a volume or structured grid dataset.
-
-    Returns an ``Actor`` object.
-
-    :param list extent: set a `[xmin,xmax, ymin,ymax, zmin,zmax]` bounding box to clip data.
-    """
-    gf = vtk.vtkGeometryFilter()
-    gf.SetInputData(obj)
-    if extent is not None:
-        gf.SetExtent(extent)
-    gf.Update()
-    return Actor(gf.GetOutput())
 
 
 def spline(points, smooth=0.5, degree=2, s=2, nodes=False, res=20):
@@ -1443,7 +1422,7 @@ def volumeOperation(volume1, operation, volume2=None):
     return Volume(mat.GetOutput())
 
 
-def thinPlateSpline(actor, sourcePts, targetPts, userFunctions=(None, None)):
+def thinPlateSpline(actor, sourcePts, targetPts, userFunctions=(None, None), sigma=1):
     """
     `Thin Plate Spline` transformations describe a nonlinear warp transform defined by a set
     of source and target landmarks. Any point on the mesh close to a source landmark will
@@ -1452,10 +1431,10 @@ def thinPlateSpline(actor, sourcePts, targetPts, userFunctions=(None, None)):
 
     Transformation object can be retrieved with ``actor.getTransform()``.
 
-    :param userFunctions: You must supply both the function
-        and its derivative with respect to r.
+    :param userFunctions: You may supply both the function and its derivative with respect to r.
 
-    .. hint:: Examples: |thinplate.py|_ |thinplate_grid.py|_ |thinplate_morphing.py|_ |interpolateField.py|_ |thinplate_morphing_2d.py|_
+    .. hint:: Examples: |thinplate.py|_ |thinplate_grid.py|_ |thinplate_morphing.py|_
+        |interpolateField.py|_ |thinplate_morphing_2d.py|_
 
         |thinplate| |thinplate_grid| |thinplate_morphing| |interpolateField| |thinplate_morphing_2d|
     """
@@ -1465,7 +1444,7 @@ def thinPlateSpline(actor, sourcePts, targetPts, userFunctions=(None, None)):
     for i in range(ns):
         ptsou.SetPoint(i, sourcePts[i])
 
-    nt = len(sourcePts)
+    nt = len(targetPts)
     if ns != nt:
         colors.printc("~times thinPlateSpline Error: #source != #target points", ns, nt, c=1)
         raise RuntimeError()
@@ -1480,7 +1459,7 @@ def thinPlateSpline(actor, sourcePts, targetPts, userFunctions=(None, None)):
     if userFunctions[0]:
         transform.SetBasisFunction(userFunctions[0])
         transform.SetBasisDerivative(userFunctions[1])
-    transform.SetSigma(1)
+    transform.SetSigma(sigma)
     transform.SetSourceLandmarks(ptsou)
     transform.SetTargetLandmarks(pttar)
 
@@ -1755,7 +1734,7 @@ def geodesic(actor, start, end):
 
 def convexHull(actor_or_list, alphaConstant=0):
     """
-    Create a 3D Delaunay triangulation of input points.
+    Create a 2D/3D Delaunay triangulation of input points.
 
     :param actor_or_list: can be either an ``Actor`` or a list of 3D points.
     :param float alphaConstant: For a non-zero alpha value, only verts, edges, faces,
@@ -1775,7 +1754,11 @@ def convexHull(actor_or_list, alphaConstant=0):
     triangleFilter.Update()
     poly = triangleFilter.GetOutput()
 
-    delaunay = vtk.vtkDelaunay3D()  # Create the convex hull of the pointcloud
+    if np.count_nonzero(actor.coordinates()[:,2]):
+        delaunay = vtk.vtkDelaunay3D()  # Create the convex hull of the pointcloud
+    else:
+        delaunay = vtk.vtkDelaunay2D()
+
     if alphaConstant:
         delaunay.SetAlpha(alphaConstant)
     delaunay.SetInputData(poly)
@@ -1784,9 +1767,7 @@ def convexHull(actor_or_list, alphaConstant=0):
     surfaceFilter = vtk.vtkDataSetSurfaceFilter()
     surfaceFilter.SetInputConnection(delaunay.GetOutputPort())
     surfaceFilter.Update()
-
-    chuact = Actor(surfaceFilter.GetOutput())
-    return chuact
+    return Actor(surfaceFilter.GetOutput())
 
 
 def actor2Volume(actor, spacing=(1, 1, 1)):

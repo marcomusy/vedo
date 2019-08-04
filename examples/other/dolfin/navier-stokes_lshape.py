@@ -2,6 +2,7 @@
 Solve the incompressible Navier-Stokes equations 
 on an L-shaped domain using Chorin's splitting method.
 """
+from __future__ import print_function
 from dolfin import *
 from vtkplotter.dolfin import ProgressBar, plot, datadir
 

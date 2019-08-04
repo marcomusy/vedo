@@ -1,7 +1,9 @@
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense
-from vtkplotter import Volume, show, arange
+from vtkplotter import Volume, show, arange, settings
+
+settings.useDepthPeeling = True
 
 n = 10
 neurons = 60
@@ -50,4 +52,4 @@ s1.alpha(0.5)
 s2 = v2.isosurface(threshold=[t for t in arange(0, 1, 0.1)])
 s2.alpha(0.5)
 
-show([[v1, s1], s2], N=2, axes=8, bg="w", depthpeeling=1)
+show([[v1, s1], s2], N=2, axes=8, bg="w")

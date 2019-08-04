@@ -102,6 +102,7 @@ while t < T:
          elevation=-3, # move camera a bit
          azimuth=1,
          text='time: '+str(t*2e4),
+         lighting='plastic',
          interactive=0 )
 
 plot()

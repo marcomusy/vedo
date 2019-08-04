@@ -1,6 +1,8 @@
 from vtkplotter import *
 import numpy as np
 
+settings.useDepthPeeling = True
+
 data_matrix = np.zeros([75, 75, 75])
 # data_matrix[0:35, 0:35, 0:35] = 50
 # data_matrix[25:55, 25:55, 25:55] = 100
@@ -16,4 +18,4 @@ v = Volume(data_matrix)
 s = v.isosurface(threshold=[t for t in arange(0, 200, 10)])
 s.alpha(0.5).lw(0.1)
 
-show(v, s, N=2, axes=8, bg="w", depthpeeling=1)
+show(v, s, N=2, axes=8, bg="w")

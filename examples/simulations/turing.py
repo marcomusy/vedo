@@ -8,6 +8,8 @@ from __future__ import division, print_function
 from vtkplotter import *
 import numpy as np
 
+settings.renderPointsAsSpheres = False
+
 doc = Text(__doc__, c="k")
 
 # Load (with numpy) an existing set of mesh points and a list

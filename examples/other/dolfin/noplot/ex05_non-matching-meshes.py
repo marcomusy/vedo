@@ -26,7 +26,7 @@ v1.interpolate(v3)
 ######################################### vtkplotter
 from vtkplotter.dolfin import *
 
-s1 = MeshActor(v1).lineWidth(0.5).wire(False)
-s3 = MeshActor(v3).lineWidth(0.5).wire(False)
+s1 = MeshActor(v1).lineWidth(0.5).wireframe(False)
+s3 = MeshActor(v3).lineWidth(0.5).wireframe(False)
 
 show(s1, s3, N=2) # distribute s1 and s3 on 2 synced renderers

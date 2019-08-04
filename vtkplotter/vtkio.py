@@ -6,7 +6,7 @@ import numpy as np
 
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
-from vtkplotter.actors import Actor, Volume, Assembly, Image
+from vtkplotter.actors import Actor, Volume, Assembly, Picture
 import vtkplotter.docs as docs
 import vtkplotter.settings as settings
 
@@ -188,7 +188,7 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
             picr = vtk.vtkBMPReader()
         picr.SetFileName(filename)
         picr.Update()
-        actor = Image()  # object derived from vtk.vtkImageActor()
+        actor = Picture()  # object derived from vtk.vtkImageActor()
         actor.SetInputData(picr.GetOutput())
         if alpha is None:
             alpha = 1
@@ -445,6 +445,10 @@ def loadGeoJSON(filename):
 def loadDolfin(filename, exterior=False):
     """Reads a `Fenics/Dolfin` file format (.xml or .xdmf).
     Return an ``Actor(vtkActor)`` object."""
+    import sys
+    if sys.version_info[0] < 3:
+        return _loadDolfin_old(filename)
+
     import dolfin
 
     if filename.lower().endswith('.xdmf'):
@@ -469,52 +473,52 @@ def loadDolfin(filename, exterior=False):
     return Actor(poly).lw(0.1)
 
 
-#def loadDolfin_old(filename, exterior='dummy'):
-#    import xml.etree.ElementTree as et
-#
-#    if filename.endswith(".gz"):
-#        import gzip
-#
-#        inF = gzip.open(filename, "rb")
-#        outF = open("/tmp/filename.xml", "wb")
-#        outF.write(inF.read())
-#        outF.close()
-#        inF.close()
-#        tree = et.parse("/tmp/filename.xml")
-#    else:
-#        tree = et.parse(filename)
-#
-#    coords, connectivity = [], []
-#    for mesh in tree.getroot():
-#        for elem in mesh:
-#            for e in elem.findall("vertex"):
-#                x = float(e.get("x"))
-#                y = float(e.get("y"))
-#                ez = e.get("z")
-#                if ez is None:
-#                    coords.append([x, y])
-#                else:
-#                    z = float(ez)
-#                    coords.append([x, y, z])
-#
-#            tets = elem.findall("tetrahedron")
-#            if not len(tets):
-#                tris = elem.findall("triangle")
-#                for e in tris:
-#                    v0 = int(e.get("v0"))
-#                    v1 = int(e.get("v1"))
-#                    v2 = int(e.get("v2"))
-#                    connectivity.append([v0, v1, v2])
-#            else:
-#                for e in tets:
-#                    v0 = int(e.get("v0"))
-#                    v1 = int(e.get("v1"))
-#                    v2 = int(e.get("v2"))
-#                    v3 = int(e.get("v3"))
-#                    connectivity.append([v0, v1, v2, v3])
-#
-#    poly = utils.buildPolyData(coords, connectivity)
-#    return Actor(poly)
+def _loadDolfin_old(filename, exterior='dummy'):
+    import xml.etree.ElementTree as et
+
+    if filename.endswith(".gz"):
+        import gzip
+
+        inF = gzip.open(filename, "rb")
+        outF = open("/tmp/filename.xml", "wb")
+        outF.write(inF.read())
+        outF.close()
+        inF.close()
+        tree = et.parse("/tmp/filename.xml")
+    else:
+        tree = et.parse(filename)
+
+    coords, connectivity = [], []
+    for mesh in tree.getroot():
+        for elem in mesh:
+            for e in elem.findall("vertex"):
+                x = float(e.get("x"))
+                y = float(e.get("y"))
+                ez = e.get("z")
+                if ez is None:
+                    coords.append([x, y])
+                else:
+                    z = float(ez)
+                    coords.append([x, y, z])
+
+            tets = elem.findall("tetrahedron")
+            if not len(tets):
+                tris = elem.findall("triangle")
+                for e in tris:
+                    v0 = int(e.get("v0"))
+                    v1 = int(e.get("v1"))
+                    v2 = int(e.get("v2"))
+                    connectivity.append([v0, v1, v2])
+            else:
+                for e in tets:
+                    v0 = int(e.get("v0"))
+                    v1 = int(e.get("v1"))
+                    v2 = int(e.get("v2"))
+                    v3 = int(e.get("v3"))
+                    connectivity.append([v0, v1, v2, v3])
+
+    poly = utils.buildPolyData(coords, connectivity)
+    return Actor(poly)
 
 
 def loadNeutral(filename):
@@ -702,7 +706,7 @@ def loadNumpy(inobj):
             bcv =   arr0[:,2].reshape(shp)
             arr = np.array([rcv, gcv, bcv])
             arr = np.swapaxes(arr, 0, 2)
-            vimg = Image(arr)
+            vimg = Picture(arr)
             loadcommon(vimg, d)
             objs.append(vimg)
 
@@ -823,7 +827,7 @@ def _np_dump(obj):
             adict['actors'].append(assdict)
         fillcommon(obj, adict)
 
-    elif isinstance(obj, Image):
+    elif isinstance(obj, Picture):
         adict['type'] = 'image'
         arr = vtk_to_numpy(obj.inputdata().GetPointData().GetScalars())
         adict['array'] = arr
@@ -958,31 +962,48 @@ def write(objct, fileoutput, binary=True):
             dicts2save.append( _np_dump(obj) )
         np.save(fileoutput, dicts2save)
         return dicts2save
+
     elif ".xml" in fr:  # write tetrahedral dolfin xml
-        vertices = obj.coordinates()
-        faces = obj.cells()
+        vertices = objct.coordinates().astype(str)
+        faces = np.array(objct.faces()).astype(str)
         ncoords = vertices.shape[0]
-        ntets = faces.shape[0]
         outF = open(fileoutput, "w")
         outF.write('<?xml version="1.0" encoding="UTF-8"?>\n')
         outF.write('<dolfin xmlns:dolfin="http://www.fenicsproject.org">\n')
-        outF.write('  <mesh celltype="tetrahedron" dim="3">\n')
-        outF.write('    <vertices size="' + str(ncoords) + '">\n')
-        for i in range(ncoords):
-            x, y, z = vertices[i]
-            outF.write('      <vertex index="'+str(i)
-                       + '" x="'+str(x)+'" y="'+str(y)+'" z="'+str(z)+'"/>\n')
-        outF.write('    </vertices>\n')
-        outF.write('    <cells size="' + str(ntets) + '">\n')
-        for i in range(ntets):
-            v0, v1, v2, v3 = faces[i]
-            outF.write('      <tetrahedron index="'+str(i)
-                       + '" v0="'+str(v0)+'" v1="'+str(v1)+'" v2="'+str(v2)+'" v3="'+str(v3)+'"/>\n')
+
+        if len(faces[0]) == 4:# write tetrahedral mesh
+            ntets = faces.shape[0]
+            outF.write('  <mesh celltype="tetrahedron" dim="3">\n')
+            outF.write('    <vertices size="' + str(ncoords) + '">\n')
+            for i in range(ncoords):
+                x, y, z = vertices[i]
+                outF.write('      <vertex index="'+str(i)+'" x="'+x+'" y="'+y+'" z="'+z+'"/>\n')
+            outF.write('    </vertices>\n')
+            outF.write('    <cells size="' + str(ntets) + '">\n')
+            for i in range(ntets):
+                v0, v1, v2, v3 = faces[i]
+                outF.write('     <tetrahedron index="'+str(i)
+                           + '" v0="'+v0+'" v1="'+v1+'" v2="'+v2+'" v3="'+v3+'"/>\n')
+
+        elif len(faces[0]) == 3:# write triangle mesh
+            ntri = faces.shape[0]
+            outF.write('  <mesh celltype="triangle" dim="2">\n')
+            outF.write('    <vertices size="' + str(ncoords) + '">\n')
+            for i in range(ncoords):
+                x, y, dummy_z = vertices[i]
+                outF.write('      <vertex index="'+str(i)+'" x="'+x+'" y="'+y+'"/>\n')
+            outF.write('    </vertices>\n')
+            outF.write('    <cells size="' + str(ntri) + '">\n')
+            for i in range(ntri):
+                v0, v1, v2 = faces[i]
+                outF.write('     <triangle index="'+str(i)+'" v0="'+v0+'" v1="'+v1+'" v2="'+v2+'"/>\n')
+
         outF.write('    </cells>\n')
         outF.write("  </mesh>\n")
         outF.write("</dolfin>\n")
         outF.close()
         return objct
+
     else:
         colors.printc("~noentry Unknown format", fileoutput, "file not saved.", c="r")
         return objct
@@ -1026,6 +1047,9 @@ def exportWindow(fileoutput, binary=False, speed=None, html=True):
         `generated webpage <https://vtkplotter.embl.es/examples/embryo.html>`_
 
         See also: FEniCS test `webpage <https://vtkplotter.embl.es/examples/fenics_elasticity.html>`_.
+
+    .. note:: the rendering window can also be exported to `numpy` file `scene.npy`
+        by pressing ``E`` keyboard at any moment during visualization.
     '''
     fr = fileoutput.lower()
 
@@ -1066,6 +1090,8 @@ def exportWindow(fileoutput, binary=False, speed=None, html=True):
         sdict = dict()
         vp = settings.plotter_instance
         sdict['shape'] = vp.shape #todo
+        sdict['sharecam'] = vp.sharecam #todo
+        sdict['camera'] = None #todo
         sdict['position'] = vp.pos
         sdict['size'] = vp.size
         sdict['axes'] = vp.axes
@@ -1074,15 +1100,13 @@ def exportWindow(fileoutput, binary=False, speed=None, html=True):
         sdict['ytitle'] = vp.ytitle
         sdict['ztitle'] = vp.ztitle
         sdict['backgrcol'] = colors.getColor(vp.backgrcol)
-        sdict['sharecam'] = vp.sharecam #todo
         sdict['infinity'] = vp.infinity
-        sdict['depthpeeling'] = vp.renderer.GetUseDepthPeeling()
+        sdict['useDepthPeeling'] = settings.useDepthPeeling
         sdict['renderPointsAsSpheres'] = settings.renderPointsAsSpheres
         sdict['renderLinesAsTubes'] = settings.renderLinesAsTubes
         sdict['hiddenLineRemoval'] = settings.hiddenLineRemoval
         sdict['visibleGridEdges'] = settings.visibleGridEdges
         sdict['interactorStyle'] = settings.interactorStyle
-        sdict['camera'] = None #todo
         sdict['objects'] = []
         for a in vp.getActors() + vp.getVolumes():
             sdict['objects'].append(_np_dump(a))
@@ -1091,30 +1115,55 @@ def exportWindow(fileoutput, binary=False, speed=None, html=True):
     return
 
 def importWindow(fileinput):
-    """Import a whole scene from a Numpy file."""
+    """Import a whole scene from a Numpy file.
+    Return ``Plotter`` instance."""
     import numpy as np
     from vtkplotter import Plotter
 
     data = np.load(fileinput, allow_pickle=True)[0]
 
-    settings.renderPointsAsSpheres = data['renderPointsAsSpheres']
-    settings.renderLinesAsTubes = data['renderLinesAsTubes']
-    settings.hiddenLineRemoval = data['hiddenLineRemoval']
-    settings.visibleGridEdges = data['visibleGridEdges']
-    settings.interactorStyle = data['interactorStyle']
+    if 'renderPointsAsSpheres' in data.keys():
+        settings.renderPointsAsSpheres = data['renderPointsAsSpheres']
+    if 'renderLinesAsTubes' in data.keys():
+        settings.renderLinesAsTubes = data['renderLinesAsTubes']
+    if 'hiddenLineRemoval' in data.keys():
+        settings.hiddenLineRemoval = data['hiddenLineRemoval']
+    if 'visibleGridEdges' in data.keys():
+        settings.visibleGridEdges = data['visibleGridEdges']
+    if 'interactorStyle' in data.keys():
+        settings.interactorStyle = data['interactorStyle']
 
-    vp = Plotter(pos=data['position'],
-                 size=data['size'],
-                 axes=data['axes'],
-                 title=data['title'],
-                 bg=data['backgrcol'],
-                 infinity=data['infinity'],
-                 depthpeeling=data['depthpeeling'],
+    pos = data.pop('position', (0, 0))
+    axes = data.pop('axes', 4)
+    title = data.pop('title', '')
+    backgrcol = data.pop('backgrcol', "blackboard")
+    infinity = data.pop('infinity', False)
+
+    vp = Plotter(pos=pos,
+                 #size=data['size'], # not necessarily a good idea to set it
+                 #shape=data['shape'],
+                 axes=axes,
+                 title=title,
+                 bg=backgrcol,
+                 infinity=infinity,
     )
-    vp.xtitle = data['xtitle']
-    vp.ytitle = data['ytitle']
-    vp.ztitle = data['ztitle']
-    vp.actors = loadNumpy(data['objects'])
+    vp.xtitle = data.pop('xtitle', 'x')
+    vp.ytitle = data.pop('ytitle', 'y')
+    vp.ztitle = data.pop('ztitle', 'z')
+
+    objs = loadNumpy(data['objects'])
+    if not utils.isSequence(objs):
+       objs = [objs]
+    vp.actors = objs
+
+#    if vp.shape==(1,1):
+#        vp.actors = loadNumpy(data['objects'])
+#    else:
+#        print(objs, )
+#        for a in objs:
+#            for ar in a.renderedAt:
+#                print(vp.shape, [a], ar )
+#                vp.show(a, at=ar)
     return vp
 
 
@@ -1134,10 +1183,25 @@ def screenshot(filename="screenshot.png"):
         w2if.SetInputBufferTypeToRGBA()
     w2if.ReadFrontBufferOff()  # read from the back buffer
     w2if.Update()
-    pngwriter = vtk.vtkPNGWriter()
-    pngwriter.SetFileName(filename)
-    pngwriter.SetInputConnection(w2if.GetOutputPort())
-    pngwriter.Write()
+    if filename.endswith('.png'):
+        writer = vtk.vtkPNGWriter()
+        writer.SetFileName(filename)
+        writer.SetInputConnection(w2if.GetOutputPort())
+        writer.Write()
+    elif filename.endswith('.jpg'):
+        writer = vtk.vtkJPEGWriter()
+        writer.SetFileName(filename)
+        writer.SetInputConnection(w2if.GetOutputPort())
+        writer.Write()
+    elif filename.endswith('.svg'):
+        writer = vtk.vtkGL2PSExporter()
+        #writer.SetFileFormatToPDF()
+        #writer.SetFileFormatToTeX()
+        writer.SetFileFormatToSVG()
+        writer.CompressOff()
+        writer.SetInput(settings.plotter_instance.window)
+        writer.SetFilePrefix(filename.split('.')[0])
+        writer.Write()
 
 
 class Video:

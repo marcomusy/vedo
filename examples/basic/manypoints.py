@@ -15,13 +15,13 @@ Alpha = pts[:, 2] * 255
 RGBA = np.c_[RGB, Alpha]  # concatenate
 
 print("clock starts")
-t0 = time.clock()
+t0 = time.time()
 
 # passing c in format (R,G,B,A) is ~50x faster
 pts = Points(pts, r=2, c=RGBA) #fast
 #pts = Points(pts, r=2, c=pts, alpha=pts[:, 2]) #slow
 
-t1 = time.clock()
+t1 = time.time()
 print("----> elapsed time:", t1-t0, "seconds for N:", N)
 
 pts.show(bg="white", axes=True)

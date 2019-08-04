@@ -190,8 +190,8 @@ def plot(*inputobj, **options):
     """
     Plot the object(s) provided.
 
-    Input can be: ``vtkActor``, ``vtkVolume``, ``dolfin.Mesh``, ``dolfin.MeshFunction*``,
-    ``dolfin.Expression`` or ``dolfin.Function``.
+    Input can be any combination of: ``Actor``, ``Volume``, ``dolfin.Mesh``,
+    ``dolfin.MeshFunction``, ``dolfin.Expression`` or ``dolfin.Function``.
 
     :return: the current ``Plotter`` class instance.
 
@@ -268,10 +268,50 @@ def plot(*inputobj, **options):
       - 9,  show the bounding box outLine,
       - 10, show three circles representing the maximum bounding box.
 
+        Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
+
+            - `xtitle`,            ['x'], x-axis title text.
+            - `ytitle`,            ['y'], y-axis title text.
+            - `ztitle`,            ['z'], z-axis title text.
+            - `numberOfDivisions`, [automatic], number of divisions on the shortest axis
+            - `axesLineWidth`,       [1], width of the axes lines
+            - `gridLineWidth`,       [1], width of the grid lines
+            - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally
+            - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
+            - `enableLastLabel`, [False], show last numeric label on axes
+            - `titleDepth`,          [0], extrusion fractional depth of title text
+            - `xyGrid`,           [True], show a gridded wall on plane xy
+            - `yzGrid`,           [True], show a gridded wall on plane yz
+            - `zxGrid`,           [True], show a gridded wall on plane zx
+            - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
+            - `xyGridTransparent`  [False], make grid plane completely transparent
+            - `xyGrid2Transparent` [False], make grid plane completely transparent on opposite side box
+            - `xyPlaneColor`,   ['gray'], color of the plane
+            - `xyGridColor`,    ['gray'], grid line color
+            - `xyAlpha`,          [0.15], grid plane opacity
+            - `showTicks`,        [True], show major ticks
+            - `xTitlePosition`,   [0.32], title fractional positions along axis
+            - `xTitleOffset`,     [0.05], title fractional offset distance from axis line
+            - `xTitleJustify`, ["top-right"], title justification
+            - `xTitleRotation`,      [0], add a rotation of the axis title
+            - `xLineColor`,  [automatic], color of the x-axis
+            - `xTitleColor`, [automatic], color of the axis title
+            - `xTitleBackfaceColor`, [None],  color of axis title on its backface
+            - `xTitleSize`,      [0.025], size of the axis title
+            - `xHighlightZero`,   [True], draw a line highlighting zero position if in range
+            - `xHighlightZeroColor`, [automatic], color of the line highlighting the zero position
+            - `xTickRadius`,     [0.005], radius of the major ticks
+            - `xTickThickness`, [0.0025], thickness of the major ticks along their axis
+            - `xTickColor`,  [automatic], color of major ticks
+            - `xMinorTicks`,         [1], number of minor ticks between two major ticks
+            - `tipSize`,          [0.01], size of the arrow tip
+            - `xLabelPrecision`,     [2], nr. of significative digits to be shown
+            - `xLabelSize`,      [0.015], size of the numeric labels along axis
+            - `xLabelOffset`,    [0.025], offset of numeric labels
+
     :param bool infinity: if True fugue point is set at infinity (no perspective effects)
     :param bool sharecam: if False each renderer will have an independent vtkCamera
     :param bool interactive: if True will stop after show() to allow interaction w/ window
-    :param bool depthpeeling: depth-peel volumes along with the translucent geometry
     :param bool offscreen: if True will not show the rendering window
 
     :param float zoom: camera zooming factor
@@ -284,24 +324,32 @@ def plot(*inputobj, **options):
         assigned to the ``camera`` keyword:
         (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
 
-        - pos, `(list)`,  the position of the camera in world coordinates
-        - focalPoint `(list)`, the focal point of the camera in world coordinates
-        - viewup `(list)`, the view up direction for the camera
-        - distance `(float)`, set the focal point to the specified distance from the camera position.
-        - clippingRange `(float)`, distance of the near and far clipping planes along
-            the direction of projection.
+        - `pos`, `(list)`,
+            the position of the camera in world coordinates
 
-        - parallelScale `(float)`,
+        - `focalPoint`, `(list)`,
+            the focal point of the camera in world coordinates
+
+        - `viewup`, `(list)`,
+            the view up direction for the camera
+
+        - `distance`, `(float)`,
+            set the focal point to the specified distance from the camera position.
+
+        - `clippingRange`, `(float)`,
+            distance of the near and far clipping planes along the direction of projection.
+
+        - `parallelScale`, `(float)`,
             scaling used for a parallel projection, i.e. the height of the viewport
             in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
             an "inverse scale", larger numbers produce smaller images.
             This method has no effect in perspective projection mode.
 
-        - thickness `(float)`,
+        - `thickness`, `(float)`,
             set the distance between clipping planes. This method adjusts the far clipping
             plane to be set a distance 'thickness' beyond the near clipping plane.
 
-        - viewAngle `(float)`,
+        - `viewAngle`, `(float)`,
             the camera view angle, which is the angular height of the camera view
             measured in degrees. The default angle is 30 degrees.
             This method has no effect in parallel projection mode.
@@ -504,29 +552,25 @@ def plot(*inputobj, **options):
                 actor.flat()
             elif shading[0] == 'g':
                 actor.gouraud()
+
         delta = None
         if cmap and u and c is None:
             delta = [u(p) for p in mesh.coordinates()]
-            #delta = u.compute_vertex_values(mesh) # needs reshape
+            #delta = u.compute_vertex_values(mesh) # needs reshape, not faster..
             if u.value_rank() > 0: # wiil show the size of the vector
                 actor.pointColors(utils.mag(delta),
                                   cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
             else:
                 actor.pointColors(delta, cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
 
+        if 'warp' in mode or 'displac' in mode:
+            actor.move(u, delta)
+
         if scbar and c is None:
             if 'h' in scbar:
                 actor.addScalarBar(horizontal=True,  vmin=vmin, vmax=vmax)
             else:
                 actor.addScalarBar(horizontal=False, vmin=vmin, vmax=vmax)
-
-        if 'warp' in mode or 'displac' in mode:
-            if delta is None:
-                delta = [u(p) for p in mesh.coordinates()]
-            movedpts = mesh.coordinates() + delta
-            actor.polydata(False).GetPoints().SetData(numpy_to_vtk(movedpts))
-            actor.poly.GetPoints().Modified()
-            actor.u_values = delta
 
         if warpZfactor:
             scals = actor.scalars(0)
@@ -643,7 +687,7 @@ class MeshActor(Actor):
 
         if u:
             u_values = np.array([u(p) for p in self.mesh.coordinates()])
-            #print(u_values)
+            #print('u_values are', u_values)
 
         if u_values is not None:  # colorize if a dolfin function is passed
             if len(u_values.shape) == 2:
@@ -653,16 +697,23 @@ class MeshActor(Actor):
             else:  # u_values is 1D
                 dispsizes = u_values
 
-            self.addPointScalars(dispsizes, "u_values")#.mapPointsToCells()
+            self.addPointScalars(dispsizes, "u_values")
 
-    def move(self, u=None):
+    def move(self, u=None, deltas=None):
+        """Move mesh according to solution `u`
+        or from calculated vertex displacements `deltas`.
+        """
         if u is None:
             u = self.u
-        delta = [u(p) for p in self.mesh.coordinates()]
-        movedpts = self.mesh.coordinates() + delta
+        if deltas is None:
+            deltas = [u(p) for p in self.mesh.coordinates()]
+
+        movedpts = self.mesh.coordinates() + deltas
+        if movedpts.shape[1] == 2: #2d
+            movedpts = np.c_[movedpts, np.zeros(movedpts.shape[0])]
         self.polydata(False).GetPoints().SetData(numpy_to_vtk(movedpts))
         self.poly.GetPoints().Modified()
-        self.u_values = delta
+        self.u_values = deltas
 
 def MeshPoints(*inputobj, **options):
     """

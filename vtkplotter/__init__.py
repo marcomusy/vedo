@@ -15,10 +15,6 @@ analysis and animation of 3D objects and point clouds based on VTK.
     - `examples/others <https://github.com/marcomusy/vtkplotter/blob/master/examples/other>`_.
 
 
-
-References
-^^^^^^^^^^^
-
 Publications where ``vtkplotter`` has been used so far:
 
 1. Diego, X. *et al,*: *"Key features of Turing systems are determined purely by network topology"*,
@@ -31,15 +27,20 @@ Development 2018, `doi: 10.1242/dev.154856 <http://dev.biologists.org/content/14
 
 3. G. Dalmasso *et al.*, "Evolution in space and time of 3D volumetric images", in preparation.
 
+4. M. Musy, G. Dalmasso, J. Sharpe and N. Sime, "`vtkplotter`: plotting in FEniCS with python",
+`link <https://github.com/marcomusy/vtkplotter/blob/master/docs/fenics_poster.pdf>`_.
+Poster at the FEniCS'2019 Conference,
+Carnegie Institution for Science Department of Terrestrial Magnetism, Washington DC, June 2019.
+
 **Have you found this software useful for your research? Please cite it as:**
 
 M. Musy, et al.,
 "`vtkplotter`, a python module for scientific visualization,
-analysis and animation of 3D objects and point clouds based on VTK." (version v8.9.0). Zenodo,
-`doi: 10.5281/zenodo.2561402 <http://doi.org/10.5281/zenodo.2561402>`_, 10 February 2019.
+analysis and animation of 3D objects and point clouds based on VTK.". Zenodo,
+`doi: 10.5281/zenodo.2561402 <http://doi.org/10.5281/zenodo.2561402>`_,
+10 February 2019.
 """
 from __future__ import print_function
-from vtkplotter.version import _version
 
 __author__ = "Marco Musy"
 __license__ = "MIT"
@@ -47,8 +48,8 @@ __maintainer__ = "M. Musy, G. Dalmasso"
 __email__ = "marco.musy@embl.es"
 __status__ = "dev"
 __website__ = "https://github.com/marcomusy/vtkplotter"
-__version__ = _version
 
+from vtkplotter.version import _version as __version__
 from vtkplotter.plotter import *
 from vtkplotter.analysis import *
 from vtkplotter.shapes import *
@@ -58,9 +59,13 @@ from vtkplotter.utils import *
 from vtkplotter.colors import *
 import vtkplotter.settings as settings
 from vtkplotter.settings import datadir, embedWindow
-import vtkplotter.dolfin as dolfin
-from numpy import sin, cos, sqrt, exp, log, dot, cross, array, arange
 
+# hack to make docs work
+# need to uncomment this to generate documentation html
+#from vtkplotter.trimesh import *
+#from vtkplotter.dolfin import _inputsort
+
+from numpy import sin, cos, sqrt, exp, log, dot, cross, array, arange
 
 # imports hierarchy
 # plotter : utils, colors, actors, vtkio, shapes
@@ -77,11 +82,11 @@ settings._init()
 ###############
 
 
-## deprecations
+## deprecations ############################################################
 def isolines(*args, **kargs):
     printc("Obsolete. Use mesh.isolines() instead of isolines(mesh).", c=1)
     raise RuntimeError()
-    
+
 def isosurface(*args, **kargs):
     printc("Obsolete. Use volume.isosurface() instead of isosurface(volume).", c=1)
     raise RuntimeError()

@@ -11,7 +11,7 @@ print('scalar min, max =', np.min(scalar_field), np.max(scalar_field))
 vol = Volume(scalar_field)
 lego = vol.legosurface(vmin=1, vmax=2)
 text1 = Text('Make a Volume from a numpy object', c='blue')
-text2 = Text('legosurface representation', c='darkred')
+text2 = Text('lego isosurface representation\nvmin=1, vmax=2', c='darkred')
 
 print('numpy array from Volume:', vol.getPointArray().shape)
 

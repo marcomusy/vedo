@@ -49,7 +49,7 @@ Dt *= np.sqrt(1 / g)
 Dt2 = Dt / 2  # Midpoint time step
 DiaSq = (2 * R) ** 2  # Diameter of bob squared
 
-printc("Press Esc to exit.", c="red")
+printc("Press F1 to exit.", c="red", invert=1)
 
 while True:
     bob_x_m = list(map((lambda x, dx: x + Dt2 * dx), bob_x, x_dot))  # midpoint variables

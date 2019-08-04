@@ -26,52 +26,65 @@ Global settings.
 __all__ = ['datadir', 'embedWindow']
 
 ####################################################################################
-# recompute vertex and cell normals
+# Axes titles
+xtitle = 'x'
+ytitle = 'y'
+ztitle = 'z'
+
+# Scale magnification of the screenshot (must be an integer)
+screeshotScale = 1
+
+screenshotTransparentBackground = False
+
+# Recompute vertex and cell normals
 computeNormals = None
 
-# default style is TrackBallCamera
+# Default style is TrackBallCamera
 interactorStyle = None
 
-# allow to interact with scene during interactor.Start() execution
+# Allow to interact with scene during interactor.Start() execution
 allowInteraction = True
 
-# usetex, matplotlib latex compiler
+# Use tex, matplotlib latex compiler
 usetex = False
 
 # Qt embedding
 usingQt = False
 
-# OpenVR
+# OpenVR rendering
 useOpenVR = False
 
-# on some vtk versions/platforms points are redered as ugly squares
+# On some vtk versions/platforms points are redered as ugly squares
 renderPointsAsSpheres = True
 
+# Wrap lines in tubes
 renderLinesAsTubes = False
 
-# remove hidden lines when in wireframe mode
+# Remove hidden lines when in wireframe mode
 hiddenLineRemoval = False
 
-#
+# For (Un)Structured and RectilinearGrid: show internal edges not only outline
 visibleGridEdges = False
 
+# Turn on/off the automatic repositioning of lights as the camera moves.
+lightFollowsCamera = False
+
+# Turn on/off nvidia FXAA anti-aliasing, if supported
+useFXAA = False
+
+# Turn on/off rendering of translucent material with depth peeling technique.
+useDepthPeeling = False
+
+# Path to Voro++ library, http://math.lbl.gov/voro++
+voro_path = '/usr/local/bin'
+
+
+
+
+####################################################################################
 # notebook support with K3D
 notebookBackend = None
 notebook_plotter = None
-
-# path to Voro++ library
-# http://math.lbl.gov/voro++
-voro_path = '/usr/local/bin'
-
-# axes titles
-xtitle = 'x'
-ytitle = 'y'
-ztitle = 'z'
-
-# scale magnification of the screenshot
-screeshotScale = 1
-screenshotTransparentBackground = False
-
 
 ####################################################################################
 import os

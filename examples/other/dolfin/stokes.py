@@ -36,7 +36,7 @@ a = (inner(grad(u), grad(v)) - div(v)*p + q*div(u))*dx
 L = inner(f, v)*dx
 w = Function(W)
 
-solve(a == L, w, bcs, solver_parameters={'linear_solver' : 'mumps'})
+solve(a == L, w, bcs)
 
 # Split the mixed solution using a shallow copy
 (u, p) = w.split()
@@ -45,6 +45,7 @@ solve(a == L, w, bcs, solver_parameters={'linear_solver' : 'mumps'})
 f = r'-\nabla \cdot(\nabla u+p I)=f ~\mathrm{in}~\Omega'
 formula = Latex(f, pos=(0.55,0.45,-.05), s=0.1)
 
-plot(u, formula, at=0, N=2, text="velocity", mode='mesh and arrows',
-	 scale=.03, wire=1, scalarbar=False, style=1)
-plot(p, at=1, text="pressure", cmap='jet')
+plot(u, formula, at=0, N=2,
+     mode='mesh and arrows', scale=.03, 
+     wireframe=True, scalarbar=False, style=1)
+plot(p, at=1, text="pressure", cmap='rainbow')

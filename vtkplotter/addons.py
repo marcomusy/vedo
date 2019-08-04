@@ -19,6 +19,7 @@ Additional objects like axes, legends etc..
 )
 
 __all__ = [
+        "addLight",
         "addScalarBar",
         "addScalarBar3D",
         "addSlider2D",
@@ -30,6 +31,44 @@ __all__ = [
         "addFrame",
         "addLegend",
         ]
+
+def addLight(
+    pos=(1, 1, 1),
+    focalPoint=(0, 0, 0),
+    deg=90,
+    ambient=None,
+    diffuse=None,
+    specular=None,
+    showsource=False,
+):
+    """
+    Generate a source of light placed at pos, directed to focal point.
+
+    :param focalPoint: focal point, if this is a ``vtkActor`` use its position.
+    :type fp: vtkActor, list
+    :param deg: aperture angle of the light source
+    :param showsource: if `True`, will show a vtk representation
+                        of the source of light as an extra actor
+
+    .. hint:: |lights.py|_
+    """
+    if isinstance(focalPoint, vtk.vtkActor):
+        focalPoint = focalPoint.GetPosition()
+    light = vtk.vtkLight()
+    light.SetLightTypeToSceneLight()
+    light.SetPosition(pos)
+    light.SetPositional(1)
+    light.SetConeAngle(deg)
+    light.SetFocalPoint(focalPoint)
+    if diffuse  is not None: light.SetDiffuseColor(colors.getColor(diffuse))
+    if ambient  is not None: light.SetAmbientColor(colors.getColor(ambient))
+    if specular is not None: light.SetSpecularColor(colors.getColor(specular))
+    if showsource:
+        lightActor = vtk.vtkLightActor()
+        lightActor.SetLight(light)
+        settings.plotter_instance.renderer.AddViewProp(lightActor)
+    settings.plotter_instance.renderer.AddLight(light)
+    return light
 
 
 def addScalarBar(actor=None, c=None, title="",
@@ -193,7 +232,7 @@ def addScalarBar3D(
 
     # build the color scale part
     scale = shapes.Grid([-sx * gap, 0, 0], c=c, alpha=alpha, sx=sx, sy=sy, resx=1, resy=ncols)
-    scale.GetProperty().SetRepresentationToSurface()
+    scale.lw(0).GetProperty().SetRepresentationToSurface()
     cscals = scale.cellCenters()[:, 1]
 
     def _cellColors(scale, scalars, cmap, alpha):

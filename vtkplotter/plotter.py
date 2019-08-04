@@ -9,7 +9,7 @@ from vtkplotter import __version__
 import vtkplotter.vtkio as vtkio
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
-from vtkplotter.actors import Actor, Assembly, Volume
+from vtkplotter.actors import Actor, Assembly, Volume, Picture
 import vtkplotter.docs as docs
 import vtkplotter.settings as settings
 import vtkplotter.addons as addons
@@ -52,6 +52,47 @@ def show(*actors, **options):
           - 8,  show the ``vtkCubeAxesActor`` object,
           - 9,  show the bounding box outLine,
           - 10, show three circles representing the maximum bounding box
+
+    Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
+
+        - `xtitle`,            ['x'], x-axis title text.
+        - `ytitle`,            ['y'], y-axis title text.
+        - `ztitle`,            ['z'], z-axis title text.
+        - `numberOfDivisions`, [automatic], number of divisions on the shortest axis
+        - `axesLineWidth`,       [1], width of the axes lines
+        - `gridLineWidth`,       [1], width of the grid lines
+        - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally
+        - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
+        - `enableLastLabel`, [False], show last numeric label on axes
+        - `titleDepth`,          [0], extrusion fractional depth of title text
+        - `xyGrid`,           [True], show a gridded wall on plane xy
+        - `yzGrid`,           [True], show a gridded wall on plane yz
+        - `zxGrid`,           [True], show a gridded wall on plane zx
+        - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
+        - `xyGridTransparent`  [False], make grid plane completely transparent
+        - `xyGrid2Transparent` [False], make grid plane completely transparent on opposite side box
+        - `xyPlaneColor`,   ['gray'], color of the plane
+        - `xyGridColor`,    ['gray'], grid line color
+        - `xyAlpha`,          [0.15], grid plane opacity
+        - `showTicks`,        [True], show major ticks
+        - `xTitlePosition`,   [0.32], title fractional positions along axis
+        - `xTitleOffset`,     [0.05], title fractional offset distance from axis line
+        - `xTitleJustify`, ["top-right"], title justification
+        - `xTitleRotation`,      [0], add a rotation of the axis title
+        - `xLineColor`,  [automatic], color of the x-axis
+        - `xTitleColor`, [automatic], color of the axis title
+        - `xTitleBackfaceColor`, [None],  color of axis title on its backface
+        - `xTitleSize`,      [0.025], size of the axis title
+        - `xHighlightZero`,   [True], draw a line highlighting zero position if in range
+        - `xHighlightZeroColor`, [automatic], color of the line highlighting the zero position
+        - `xTickRadius`,     [0.005], radius of the major ticks
+        - `xTickThickness`, [0.0025], thickness of the major ticks along their axis
+        - `xTickColor`,  [automatic], color of major ticks
+        - `xMinorTicks`,         [1], number of minor ticks between two major ticks
+        - `tipSize`,          [0.01], size of the arrow tip
+        - `xLabelPrecision`,     [2], nr. of significative digits to be shown
+        - `xLabelSize`,      [0.015], size of the numeric labels along axis
+        - `xLabelOffset`,    [0.025], offset of numeric labels
 
     :param c:     surface color, in rgb, hex or name formats
     :param bc:    set a color for the internal surface face
@@ -153,7 +194,6 @@ def show(*actors, **options):
     camera = options.pop("camera", None)
     interactorStyle = options.pop("interactorStyle", 0)
     newPlotter = options.pop("newPlotter", False)
-    depthpeeling = options.pop("depthpeeling", False)
     q = options.pop("q", False)
 
     if len(actors) == 0:
@@ -194,7 +234,6 @@ def show(*actors, **options):
             axes=axes,
             sharecam=sharecam,
             infinity=infinity,
-            depthpeeling=depthpeeling,
             verbose=verbose,
             interactive=interactive,
             offscreen=offscreen,
@@ -353,7 +392,6 @@ class Plotter:
     :param bool sharecam: if False each renderer will have an independent vtkCamera
     :param bool interactive: if True will stop after show() to allow interaction w/ window
     :param bool offscreen: if True will not show the rendering window
-    :param bool depthpeeling: depth-peel volumes along with the translucent geometry
     :param QVTKRenderWindowInteractor qtWidget:
 
       render in a Qt-Widget using an QVTKRenderWindowInteractor.
@@ -381,7 +419,6 @@ class Plotter:
         verbose=True,
         interactive=None,
         offscreen=False,
-        depthpeeling=False,
         qtWidget = None
     ):
 
@@ -450,17 +487,6 @@ class Plotter:
         self.ztitle = settings.ztitle  # z axis label and units
 
 
-        if settings.notebookBackend:
-            self.interactive = False
-            self.interactor = None
-            self.window = None
-            if size == "auto":
-                self.size = (1000, 1000)
-            ############################
-            return #####################
-            ############################
-
-
         # build the renderering window:
         if settings.useOpenVR:
             self.camera = vtk.vtkOpenVRCamera()
@@ -470,6 +496,16 @@ class Plotter:
             self.window = vtk.vtkRenderWindow()
 
         self.window.PointSmoothingOn()
+
+        if settings.notebookBackend:
+            self.interactive = False
+            self.interactor = None
+            self.window = None
+            if size == "auto":
+                self.size = (1000, 1000)
+            ############################
+            return #####################
+            ############################
 
         # sort out screen size
         if screensize == "auto":
@@ -536,20 +572,14 @@ class Plotter:
                     arenderer = vtk.vtkOpenVRRenderer()
                 else:
                     arenderer = vtk.vtkRenderer()
-                arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
-                arenderer.SetUseDepthPeeling(depthpeeling)
-                if "jpg" in str(self.backgrcol).lower() or "jpeg" in str(self.backgrcol).lower():
+                    arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
+                    arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
+                    arenderer.SetUseFXAA(settings.useFXAA)
+                    arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
+
+                if ".jpg" in str(self.backgrcol).lower() or ".jpeg" in str(self.backgrcol).lower():
                     if i == 0:
-                        jpeg_reader = vtk.vtkJPEGReader()
-                        if not jpeg_reader.CanReadFile(self.backgrcol):
-                            colors.printc("~times Error reading background image file", self.backgrcol, c=1)
-                            raise RuntimeError()
-                        jpeg_reader.SetFileName(self.backgrcol)
-                        jpeg_reader.Update()
-                        image_data = jpeg_reader.GetOutput()
-                        image_actor = vtk.vtkImageActor()
-                        image_actor.InterpolateOn()
-                        image_actor.SetInputData(image_data)
+                        image_actor = Picture(self.backgrcol)
                         self.backgroundRenderer = vtk.vtkRenderer()
                         self.backgroundRenderer.SetLayer(0)
                         self.backgroundRenderer.InteractiveOff()
@@ -595,7 +625,9 @@ class Plotter:
         if self.qtWidget is not None:
             self.interactor = self.qtWidget.GetRenderWindow().GetInteractor()
             self.window.SetOffScreenRendering(True)
+            ########################
             return
+            ########################
 
         if offscreen:
             self.window.SetOffScreenRendering(True)
@@ -884,8 +916,7 @@ class Plotter:
         self.interactive = save_int
 
     ################################################################## AddOns
-    def addLight(
-        self,
+    def addLight(self,
         pos=(1, 1, 1),
         focalPoint=(0, 0, 0),
         deg=90,
@@ -895,9 +926,9 @@ class Plotter:
         showsource=False,
     ):
         """
-        Generate a source of light placed at pos, directed to focal point fp.
+        Generate a source of light placed at pos, directed to focal point.
 
-        :param fp: focal Point, if this is a ``vtkActor`` use its position.
+        :param focalPoint: focal point, if this is a ``vtkActor`` use its position.
         :type fp: vtkActor, list
         :param deg: aperture angle of the light source
         :param showsource: if `True`, will show a vtk representation
@@ -905,23 +936,8 @@ class Plotter:
 
         .. hint:: |lights.py|_
         """
-        if isinstance(focalPoint, vtk.vtkActor):
-            focalPoint = focalPoint.GetPosition()
-        light = vtk.vtkLight()
-        light.SetLightTypeToSceneLight()
-        light.SetPosition(pos)
-        light.SetPositional(1)
-        light.SetConeAngle(deg)
-        light.SetFocalPoint(focalPoint)
-        if diffuse  is not None: light.SetDiffuseColor(colors.getColor(diffuse))
-        if ambient  is not None: light.SetAmbientColor(colors.getColor(ambient))
-        if specular is not None: light.SetSpecularColor(colors.getColor(specular))
-        if showsource:
-            lightActor = vtk.vtkLightActor()
-            lightActor.SetLight(light)
-            self.renderer.AddViewProp(lightActor)
-        self.renderer.AddLight(light)
-        return light
+        return addons.addLight(pos, focalPoint, deg,
+                               ambient, diffuse, specular, showsource)
 
     def addScalarBar(self, actor=None, c=None, title="", horizontal=False, vmin=None, vmax=None):
         """Add a 2D scalar bar for the specified actor.
@@ -1321,7 +1337,8 @@ class Plotter:
                     scannedacts.append(out)
 
                 elif "trimesh" in str(type(a)):
-                    scannedacts.append(utils.trimesh2vtk(a))
+                    from vtkplotter.trimesh import trimesh2vtk
+                    scannedacts.append(trimesh2vtk(a))
 
                 else:
                     colors.printc("~!? Cannot understand input in show():", type(a), c=1)
@@ -2302,6 +2319,11 @@ class Plotter:
                         return
 
                 colors.printc("Click an actor and press X to open the cutter box widget.", c=4)
+
+        elif key == "E":
+            colors.printc("~camera Exporting rendering window to scene.npy..", c="blue", end="")
+            vtkio.exportWindow('scene.npy')
+            colors.printc(" ..done. Try:\n> vtkplotter scene.npy  #(still experimental)", c="blue")
 
         elif key == "i":  # print info
             if self.clickedActor:

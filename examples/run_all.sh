@@ -150,6 +150,9 @@ python basic/mirror.py
 echo Running basic/sliders.py
 python basic/sliders.py
 
+echo Running basic/slider_browser.py
+python advanced/slider_browse.py
+
 echo Running basic/sliders3d.py
 python basic/sliders3d.py   
 

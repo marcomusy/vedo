@@ -15,6 +15,7 @@ Utilities submodule.
 
 __all__ = [
     "ProgressBar",
+    "geometry",
     "isSequence",
     "vector",
     "mag",
@@ -33,8 +34,11 @@ __all__ = [
     "humansort",
     "resampleArrays",
     "printHistogram",
-    "trimesh2vtk",
     "plotMatrix",
+    "cameraFromQuaternion",
+    "cameraFromNeuroglancer",
+    "orientedCamera",
+    "vtkCameraToK3D",
 ]
 
 ###########################################################################
@@ -161,61 +165,30 @@ class ProgressBar:
         self.bar += ps
 
 
-###########################################################################
-def trimesh2vtk(inputobj, alphaPerCell=False):
-    """Convert trimesh object to ``Actor(vtkActor)`` object."""
-    from vtkplotter import Actor
-
-    #colors.printc('trimesh2vtk inputobj', type(inputobj), c=3)
-
-    inputobj_type = str(type(inputobj))
-
-    if "Trimesh" in inputobj_type or "primitives" in inputobj_type:
-        faces = inputobj.faces
-        poly = buildPolyData(inputobj.vertices, faces)
-        tact = Actor(poly)
-        if inputobj.visual.kind == 'face':
-            trim_c = inputobj.visual.face_colors
-        else:
-            trim_c = inputobj.visual.vertex_colors
-
-        if isSequence(trim_c):
-            if isSequence(trim_c[0]):
-                trim_cc = trim_c[:,[0,1,2]]/255
-                trim_al = trim_c[:,3]/255
-                if inputobj.visual.kind == 'face':
-                    tact.colorCellsByArray(trim_cc, trim_al, alphaPerCell)
-                else:
-                    tact.colorVerticesByArray(trim_cc, trim_al)
-        else:
-            print('trim_c not sequence?', trim_c)
-        return tact
-
-    elif "PointCloud" in inputobj_type:
-        from vtkplotter.shapes import Points
-        trim_cc, trim_al = 'black', 1
-        if hasattr(inputobj, 'vertices_color'):
-            trim_c = inputobj.vertices_color
-            if len(trim_c):
-                trim_cc = trim_c[:,[0,1,2]]/255
-                trim_al = trim_c[:,3]/255
-                trim_al = np.sum(trim_al)/len(trim_al) # just the average
-        return Points(inputobj.vertices, r=8, c=trim_cc, alpha=trim_al)
-
-    elif "path" in inputobj_type:
-        from vtkplotter.shapes import Line
-        from vtkplotter.actors import Assembly
-        lines = []
-        for e in inputobj.entities:
-            #print('trimesh entity', e.to_dict())
-            l = Line(inputobj.vertices[e.points], c='k', lw=2)
-            lines.append(l)
-        return Assembly(lines)
-
-    return None
-
-
 ###########################################################
+def geometry(obj, extent=None):
+    """
+    Apply the ``vtkGeometryFilter``.
+    This is a general-purpose filter to extract geometry (and associated data)
+    from any type of dataset.
+    This filter also may be used to convert any type of data to polygonal type.
+    The conversion process may be less than satisfactory for some 3D datasets.
+    For example, this filter will extract the outer surface of a volume
+    or structured grid dataset.
+
+    Returns an ``Actor`` object.
+
+    :param list extent: set a `[xmin,xmax, ymin,ymax, zmin,zmax]` bounding box to clip data.
+    """
+    from vtkplotter.actors import Actor
+    gf = vtk.vtkGeometryFilter()
+    gf.SetInputData(obj)
+    if extent is not None:
+        gf.SetExtent(extent)
+    gf.Update()
+    return Actor(gf.GetOutput())
+
+
 def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True):
     """
     Build a ``vtkPolyData`` object from a list of vertices
@@ -375,6 +348,8 @@ def flatten(list_to_flatten):
 def humansort(l):
     """Sort in place a given list the way humans expect.
 
+    NB: input list is modified
+
     E.g. ['file11', 'file1'] -> ['file1', 'file11']
     """
     import re
@@ -390,7 +365,7 @@ def humansort(l):
         return [tryint(c) for c in re.split("([0-9]+)", s)]
 
     l.sort(key=alphanum_key)
-    return None  # NB: input list is modified
+    return l  # NB: input list is modified
 
 
 def lin_interp(x, rangeX, rangeY):
@@ -1112,4 +1087,114 @@ def plotMatrix(M, title='matrix', continuous=True, cmap='Greys'):
        cb.set_ticks(unq)
        cb.set_ticklabels(unq)
     plt.show()
+
+
+#################################################################
+# Functions adapted from:
+# https://github.com/sdorkenw/MeshParty/blob/master/meshparty/trimesh_vtk.py
+def cameraFromQuaternion(pos, quaternion, distance=10000, ngl_correct=True):
+    """Define a ``vtkCamera`` with a particular orientation.
+
+        Parameters
+        ----------
+        pos: np.array, list, tuple
+            an iterator of length 3 containing the focus point of the camera
+        quaternion: np.array, list, tuple
+            a len(4) quaternion (x,y,z,w) describing the rotation of the camera
+            such as returned by neuroglancer x,y,z,w all in [0,1] range
+        distance: float
+            the desired distance from pos to the camera (default = 10000 nm)
+
+        Returns
+        -------
+        vtk.vtkCamera
+            a vtk camera setup according to these rules.
+    """
+    camera = vtk.vtkCamera()
+    # define the quaternion in vtk, note the swapped order
+    # w,x,y,z instead of x,y,z,w
+    quat_vtk = vtk.vtkQuaterniond(
+        quaternion[3], quaternion[0], quaternion[1], quaternion[2]
+    )
+    # use this to define a rotation matrix in x,y,z
+    # right handed units
+    M = np.zeros((3, 3), dtype=np.float32)
+    quat_vtk.ToMatrix3x3(M)
+    # the default camera orientation is y up
+    up = [0, 1, 0]
+    # calculate default camera position is backed off in positive z
+    pos = [0, 0, distance]
+
+    # set the camera rototation by applying the rotation matrix
+    camera.SetViewUp(*np.dot(M, up))
+    # set the camera position by applying the rotation matrix
+    camera.SetPosition(*np.dot(M, pos))
+    if ngl_correct:
+        # neuroglancer has positive y going down
+        # so apply these azimuth and roll corrections
+        # to fix orientatins
+        camera.Azimuth(-180)
+        camera.Roll(180)
+
+    # shift the camera posiiton and focal position
+    # to be centered on the desired location
+    p = camera.GetPosition()
+    p_new = np.array(p) + pos
+    camera.SetPosition(*p_new)
+    camera.SetFocalPoint(*pos)
+    return camera
+
+
+def cameraFromNeuroglancer(state, zoom=300):
+    """Define a ``vtkCamera`` from a neuroglancer state dictionary.
+
+        Parameters
+        ----------
+        state: dict
+            an neuroglancer state dictionary.
+        zoom: float
+            how much to multiply zoom by to get camera backoff distance
+            default = 300 > ngl_zoom = 1 > 300 nm backoff distance.
+
+        Returns
+        -------
+        vtk.vtkCamera
+            a vtk camera setup that matches this state.
+    """
+    orient = state.get("perspectiveOrientation", [0.0, 0.0, 0.0, 1.0])
+    pzoom = state.get("perspectiveZoom", 10.0)
+    position = state["navigation"]["pose"]["position"]
+    pos_nm = np.array(position["voxelCoordinates"]) * position["voxelSize"]
+    return cameraFromQuaternion(pos_nm, orient, pzoom * zoom, ngl_correct=True)
+
+
+def orientedCamera(center, upVector=(0,-1,0), backoffVector=(0,0,1), backoff=500):
+    """
+    Generate a ``vtkCamera`` pointed at a specific location,
+    oriented with a given up direction, set to a backoff.
+    """
+    vup = np.array(upVector)
+    vup = vup / np.linalg.norm(vup)
+
+    pt_backoff = center - backoff * 1000 * np.array(backoffVector)
+
+    camera = vtk.vtkCamera()
+    camera.SetFocalPoint(*center)
+    camera.SetViewUp(*vup)
+    camera.SetPosition(*pt_backoff)
+    return camera
+
+
+def vtkCameraToK3D(vtkcam):
+    """
+    Convert a ``vtkCamera`` object into a 9-element list to be used by K3D backend.
+
+    Output format is: [posx,posy,posz, targetx,targety,targetz, upx,upy,upz]
+    """
+    cdis = vtkcam.GetDistance()
+    cpos = np.array(vtkcam.GetPosition())*cdis
+    kam = [cpos.tolist()]
+    kam.append(vtkcam.GetFocalPoint())
+    kam.append(vtkcam.GetViewUp())
+    return np.array(kam).ravel()
 

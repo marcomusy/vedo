@@ -1,29 +1,23 @@
 """
 trimesh to vtkplotter interoperability
 """
-
 # Install trimesh with:
 # sudo apt install python3-rtree
 # pip install rtree shapely
 # conda install trimesh
 
 import trimesh
-from vtkplotter import download, trimesh2vtk, show
+import vtkplotter
+from vtkplotter.trimesh import trimesh2vtk, vtk2trimesh
 
 url = 'https://raw.githubusercontent.com/mikedh/trimesh/master/models/'
-filename = download(url + 'machinist.XAML')
+filename = vtkplotter.download(url + 'machinist.XAML')
+
 mesh = trimesh.load(filename)
 
 actor = trimesh2vtk(mesh) # returns a Actor(vtkActor) object from Trimesh
+vtkplotter.show(mesh) # vtkplotter visualizer (conversion is on the fly)
 
-# Any of these will work:
-show(mesh) # conversion is on the fly (don't need 'actor')
+trimsh_reconverted = vtk2trimesh(actor)
+trimsh_reconverted.show() # this is the trimesh built-in visualizer
 
-# or
-#actor.show()
-
-# or
-#show(actor)
-
-# or
-mesh.show() # this is the trimesh built-in visualizer

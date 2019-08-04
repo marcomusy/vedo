@@ -4,7 +4,7 @@ on the mesh to each random point
 """
 import trimesh 
 import numpy as np
-from vtkplotter import Text, show
+from vtkplotter import Text, show, Arrows
 
 mesh = trimesh.load_remote('https://github.com/mikedh/trimesh/raw/master/models/cycloidal.ply')
 points = mesh.bounding_box_oriented.sample_volume(count=30)
@@ -24,5 +24,7 @@ cloud_colors = np.array([trimesh.visual.random_color() for i in points])
 cloud_original.vertices_color = cloud_colors
 cloud_close.vertices_color    = cloud_colors
 
+arrs = Arrows(cloud_original.vertices, cloud_close.vertices, c='w')
+
 ## create a scene containing the mesh and two sets of points
-show(mesh, cloud_original, cloud_close, Text(__doc__), bg='w')
+show(mesh, cloud_original, cloud_close, arrs, Text(__doc__))

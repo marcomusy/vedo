@@ -41,12 +41,12 @@ class MainWindow(Qt.QMainWindow):
         self.iren.AddObserver("MiddleButtonPressEvent", vp._mousemiddle)
 
         def keypress(obj, e):
-            vtkio._keypress(obj, e)
+            vp._keypress(obj, e)
             if self.iren.GetKeySym() in ["q", "space"]:
                 self.iren.ExitCallback()
                 exit()
-
         self.iren.AddObserver("KeyPressEvent", keypress)
+
         self.frame.setLayout(self.vl)
         self.setCentralWidget(self.frame)
         self.show()  # qt not Plotter method

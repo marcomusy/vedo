@@ -1,6 +1,5 @@
 import trimesh
 import networkx as nx
-from vtkplotter import Text, show
 
 # test on a sphere mesh
 mesh = trimesh.primitives.Sphere()
@@ -17,8 +16,6 @@ for edge, L in zip(edges, length):
     g.add_edge(*edge, length=L)
 
 # alternative method for weighted graph creation
-# you can also create the graph with from_edgelist and
-# a list comprehension, which is like 1.5x faster
 ga = nx.from_edgelist([(e[0], e[1], {"length": L}) for e, L in zip(edges, length)])
 
 # arbitrary indices of mesh.vertices to test with
@@ -28,7 +25,9 @@ end = int(len(mesh.vertices) / 2.0)
 # run the shortest path query using length for edge weight
 path = nx.shortest_path(g, source=start, target=end, weight="length")
 
-# VISUALIZE RESULT
+################################### VISUALIZE RESULT
+from vtkplotter import Text, show
+
 # make the sphere transparent-ish
 mesh.visual.face_colors = [100, 100, 100, 100]
 
