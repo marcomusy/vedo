@@ -39,6 +39,8 @@ __all__ = [
     "cameraFromNeuroglancer",
     "orientedCamera",
     "vtkCameraToK3D",
+    "vtk2trimesh",
+    "trimesh2vtk",
 ]
 
 ###########################################################################
@@ -96,8 +98,13 @@ class ProgressBar:
             eraser = [" "] * self._lentxt + ["\b"] * self._lentxt
             eraser = "".join(eraser)
             if self.ETA:
-                vel = self._counts / (time.time() - self.clock0)
-                self._remt = (self.stop - self._counts) / vel
+                tdenom = (time.time() - self.clock0)
+                if tdenom:
+                    vel = self._counts / tdenom
+                    self._remt = (self.stop - self._counts) / vel
+                else:
+                    vel = 1
+                    self._remt = 0.
                 if self._remt > 60:
                     mins = int(self._remt / 60)
                     secs = self._remt - 60 * mins
@@ -148,7 +155,11 @@ class ProgressBar:
             counts = self.stop
         self._counts = counts
         self.percent = (self._counts - self.start) * 100
-        self.percent /= self.stop - self.start
+        dd = self.stop - self.start
+        if dd:
+            self.percent /= self.stop - self.start
+        else:
+            self.percent = 0
         self.percent = int(round(self.percent))
         af = self.width - 2
         nh = int(round(self.percent / 100 * af))
@@ -368,13 +379,36 @@ def humansort(l):
     return l  # NB: input list is modified
 
 
+def sortByColumn(array, n):
+    '''Sort a numpy array by the `n-th` column'''
+    #Author: Steve Tjoa, at https://github.com/rougier/numpy-100
+    return array[array[:,n].argsort()]
+
+
+def findDistanceToLines2D(P0,P1, pts):
+    """Consider 2 sets of points P0,P1 describing lines (2D) and a set of points pts,
+    compute distance from each point j (P[j]) to each line i (P0[i],P1[i]).
+    """
+    #Author: Italmassov Kuanysh, at https://github.com/rougier/numpy-100
+    def distance(P0, P1, p):
+        T = P1 - P0
+        L = (T**2).sum(axis=1)
+        U = -((P0[:,0]-p[...,0])*T[:,0] + (P0[:,1]-p[...,1])*T[:,1]) / L
+        U = U.reshape(len(U),1)
+        D = P0 + U*T - p
+        return np.sqrt((D**2).sum(axis=1))
+    return [distance(P0,P1,p_i) for p_i in pts]
+
+
 def lin_interp(x, rangeX, rangeY):
     """
     Interpolate linearly variable x in rangeX onto rangeY.
+    E.g. if x runs in rangeX=[x0,x1] and the target range is
+    rangeY=[y0,y1] then
+    y = lin_interp(x, rangeX, rangeY) will interpolate x onto rangeY.
     """
-    s = (x - rangeX[0]) / mag(rangeX[1] - rangeX[0])
-    y = rangeY[0] * (1 - s) + rangeY[1] * s
-    return y
+    s = (x - rangeX[0]) / (rangeX[1] - rangeX[0])
+    return rangeY[0] * (1 - s) + rangeY[1] * s
 
 
 def vector(x, y=None, z=0.0):
@@ -1198,3 +1232,118 @@ def vtkCameraToK3D(vtkcam):
     kam.append(vtkcam.GetViewUp())
     return np.array(kam).ravel()
 
+
+
+############################################################################
+#Trimesh support
+#
+#Install trimesh with:
+#
+#    sudo apt install python3-rtree
+#    pip install rtree shapely
+#    conda install trimesh
+#
+#Check the example gallery in: examples/other/trimesh>
+###########################################################################
+
+def vtk2trimesh(actor):
+    """
+    Convert vtk ``Actor`` to ``Trimesh`` object.
+    """
+    if isSequence(actor):
+        tms = []
+        for a in actor:
+            tms.append(vtk2trimesh(a))
+        return tms
+
+    from trimesh import Trimesh
+
+    lut = actor.mapper.GetLookupTable()
+
+    tris = actor.faces()
+    carr = actor.scalars('CellColors', datatype='cell')
+    ccols = None
+    if carr is not None and len(carr)==len(tris):
+        ccols = []
+        for i in range(len(tris)):
+            r,g,b,a = lut.GetTableValue(carr[i])
+            ccols.append((r*255, g*255, b*255, a*255))
+        ccols = np.array(ccols, dtype=np.int16)
+
+    points = actor.coordinates()
+    varr = actor.scalars('VertexColors', datatype='point')
+    vcols = None
+    if varr is not None and len(varr)==len(points):
+        vcols = []
+        for i in range(len(points)):
+            r,g,b,a = lut.GetTableValue(varr[i])
+            vcols.append((r*255, g*255, b*255, a*255))
+        vcols = np.array(vcols, dtype=np.int16)
+
+    if len(tris)==0:
+        tris = None
+
+    return Trimesh(vertices=points, faces=tris,
+                   face_colors=ccols, vertex_colors=vcols)
+
+
+def trimesh2vtk(inputobj, alphaPerCell=False):
+    """
+    Convert ``Trimesh`` object to ``Actor(vtkActor)`` or ``Assembly`` object.
+    """
+    if isSequence(inputobj):
+        vms = []
+        for ob in inputobj:
+            vms.append(trimesh2vtk(ob))
+        return vms
+
+    # print('trimesh2vtk inputobj', type(inputobj))
+
+    inputobj_type = str(type(inputobj))
+
+    if "Trimesh" in inputobj_type or "primitives" in inputobj_type:
+        from vtkplotter import Actor
+
+        faces = inputobj.faces
+        poly = buildPolyData(inputobj.vertices, faces)
+        tact = Actor(poly)
+        if inputobj.visual.kind == "face":
+            trim_c = inputobj.visual.face_colors
+        else:
+            trim_c = inputobj.visual.vertex_colors
+
+        if isSequence(trim_c):
+            if isSequence(trim_c[0]):
+                trim_cc = trim_c[:, [0, 1, 2]] / 255
+                trim_al = trim_c[:, 3] / 255
+                if inputobj.visual.kind == "face":
+                    tact.cellColors(trim_cc, mode='colors',
+                                    alpha=trim_al, alphaPerCell=alphaPerCell)
+                else:
+                    tact.pointColors(trim_cc, mode='colors', alpha=trim_al)
+        return tact
+
+    elif "PointCloud" in inputobj_type:
+        from vtkplotter.shapes import Points
+
+        trim_cc, trim_al = "black", 1
+        if hasattr(inputobj, "vertices_color"):
+            trim_c = inputobj.vertices_color
+            if len(trim_c):
+                trim_cc = trim_c[:, [0, 1, 2]] / 255
+                trim_al = trim_c[:, 3] / 255
+                trim_al = np.sum(trim_al) / len(trim_al)  # just the average
+        return Points(inputobj.vertices, r=8, c=trim_cc, alpha=trim_al)
+
+    elif "path" in inputobj_type:
+        from vtkplotter.shapes import Line
+        from vtkplotter.actors import Assembly
+
+        lines = []
+        for e in inputobj.entities:
+            # print('trimesh entity', e.to_dict())
+            l = Line(inputobj.vertices[e.points], c="k", lw=2)
+            lines.append(l)
+        return Assembly(lines)
+
+    return None

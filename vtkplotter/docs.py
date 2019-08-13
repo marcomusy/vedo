@@ -792,9 +792,6 @@ _defs = """
     :target: ft04_heat_gaussian.py_
     :alt: ft04_heat_gaussian.py
 
-.. |scalbar| image:: https://user-images.githubusercontent.com/32848391/55964528-2ac51980-5c75-11e9-9357-8c13d753a612.png
-    :width: 250 px
-
 .. |cutcube| image:: https://user-images.githubusercontent.com/32848391/55965516-08cc9680-5c77-11e9-8d23-720f6c088ea2.png
     :width: 200 px
 
@@ -1102,6 +1099,13 @@ _defs = """
     :target: tensors.py_
     :alt: tensors.py
 
+.. |scalarbars.py| replace:: scalarbars.py
+.. _scalarbars.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/scalarbars.py
+.. |scalarbars| image:: https://user-images.githubusercontent.com/32848391/62940174-4bdc7900-bdd3-11e9-9713-e4f3e2fdab63.png
+    :width: 250 px
+    :target: scalarbars.py_
+    :alt: scalarbars.py
+
 .. |erode_dilate.py| replace:: erode_dilate.py
 .. _erode_dilate.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/erode_dilate.py
 
@@ -1122,6 +1126,7 @@ _defs = """
 
 .. |G_Of_Omega| image:: https://wikimedia.org/api/rest_v1/media/math/render/svg/9c4d02a66b6ff279aae0c4bf07c25e5727d192e4
 
+.. |wikiphong| image:: https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png
 
 
 """

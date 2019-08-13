@@ -1,29 +1,80 @@
 """
 Global settings.
 
-.. role:: raw-html-m2r(raw)
-   :format: html
+.. code-block:: python
 
-.. note:: **Please check out the** `git repository <https://github.com/marcomusy/vtkplotter>`_.
+    # Axes titles
+    xtitle = 'x'
+    ytitle = 'y'
+    ztitle = 'z'
 
-    A full list of examples can be found in directories:
+    # Scale magnification of the screenshot (must be an integer)
+    screeshotScale = 1
+    screenshotTransparentBackground = False
 
-    - `examples/basic <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic>`_ ,
-    - `examples/advanced <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced>`_ ,
-    - `examples/volumetric <https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric>`_,
-    - `examples/simulations <https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations>`_.
-    - `examples/other <https://github.com/marcomusy/vtkplotter/blob/master/examples/other>`_
-    - `examples/other/dolfin <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin>`_.
+    # Recompute vertex and cell normals
+    computeNormals = None
 
-:raw-html-m2r:`<br />`
+    # Default style is TrackBallCamera
+    interactorStyle = None
 
-.. image:: https://user-images.githubusercontent.com/32848391/51558920-ec436e00-1e80-11e9-9d96-aa9b7c72d58b.png
+    # Allow to interact with scene during interactor.Start() execution
+    allowInteraction = True
 
-:raw-html-m2r:`<br />`
-:raw-html-m2r:`<br />`
+    # Show a gray frame margin in multirendering windows
+    showRendererFrame = True
+    rendererFrameColor = None
+
+    # Use tex, matplotlib latex compiler
+    usetex = False
+
+    # Qt embedding
+    usingQt = False
+
+    # OpenVR rendering
+    useOpenVR = False
+
+    # On some vtk versions/platforms points are redered as ugly squares
+    renderPointsAsSpheres = True
+
+    # Wrap lines in tubes
+    renderLinesAsTubes = False
+
+    # Remove hidden lines when in wireframe mode
+    hiddenLineRemoval = False
+
+    # For (Un)Structured and RectilinearGrid: show internal edges not only outline
+    visibleGridEdges = False
+
+    # Turn on/off the automatic repositioning of lights as the camera moves.
+    lightFollowsCamera = False
+
+    # Turn on/off nvidia FXAA anti-aliasing, if supported.
+    useFXAA = False
+
+    # Turn on/off rendering of translucent material with depth peeling technique.
+    useDepthPeeling = False
+
+    # Set parallel projection On or Off (place camera to infinity, no perspective effects)
+    useParallelProjection = False
+
+    # Path to Voro++ library, http://math.lbl.gov/voro++
+    voro_path = '/usr/local/bin'
+
+
+Usage example:
+
+.. code-block:: python
+
+    from vtkplotter import *
+
+    settings.useParallelProjection = True
+
+    Cube().color('green').show()
 
 """
 __all__ = ['datadir', 'embedWindow']
+
 
 ####################################################################################
 # Axes titles
@@ -33,7 +84,6 @@ ztitle = 'z'
 
 # Scale magnification of the screenshot (must be an integer)
 screeshotScale = 1
-
 screenshotTransparentBackground = False
 
 # Recompute vertex and cell normals
@@ -44,6 +94,10 @@ interactorStyle = None
 
 # Allow to interact with scene during interactor.Start() execution
 allowInteraction = True
+
+# Show a gray frame margin in multirendering windows
+showRendererFrame = True
+rendererFrameColor = None
 
 # Use tex, matplotlib latex compiler
 usetex = False
@@ -69,11 +123,14 @@ visibleGridEdges = False
 # Turn on/off the automatic repositioning of lights as the camera moves.
 lightFollowsCamera = False
 
-# Turn on/off nvidia FXAA anti-aliasing, if supported
+# Turn on/off nvidia FXAA anti-aliasing, if supported.
 useFXAA = False
 
 # Turn on/off rendering of translucent material with depth peeling technique.
 useDepthPeeling = False
+
+# Set parallel projection On or Off (place camera to infinity, no perspective effects)
+useParallelProjection = False
 
 # Path to Voro++ library, http://math.lbl.gov/voro++
 voro_path = '/usr/local/bin'
@@ -99,6 +156,8 @@ fonts_path = _cdir + "/fonts/"
 fonts = []
 
 def embedWindow(backend='k3d', verbose=True):
+    """Use this function to control whether the rendering window is inside
+    the jupyter notebook or as an independent external window"""
     global notebook_plotter, notebookBackend
 
     if not backend:

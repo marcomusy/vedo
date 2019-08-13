@@ -80,6 +80,9 @@ python ft07_navier_stokes_channel.py
 echo Running ft08_navier_stokes_cylinder.py
 python ft08_navier_stokes_cylinder.py
 
+echo Running navier-stokes_lshape.py
+python navier-stokes_lshape.py
+
 echo Running ft09_reaction_system.py
 python ft09_reaction_system.py
 

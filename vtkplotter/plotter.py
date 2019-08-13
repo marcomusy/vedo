@@ -180,7 +180,6 @@ def show(*actors, **options):
     bg = options.pop("bg", "blackboard")
     bg2 = options.pop("bg2", None)
     axes = options.pop("axes", 4)
-    infinity = options.pop("infinity", False)
     verbose = options.pop("verbose", True)
     interactive = options.pop("interactive", None)
     offscreen = options.pop("offscreen", False)
@@ -233,7 +232,6 @@ def show(*actors, **options):
             bg2=bg2,
             axes=axes,
             sharecam=sharecam,
-            infinity=infinity,
             verbose=verbose,
             interactive=interactive,
             offscreen=offscreen,
@@ -309,8 +307,6 @@ def closeWindow(plotterInstance=None):
 
 def closePlotter():
     """Close the current instance of ``Plotter`` and its rendering window."""
-#    if settings.notebook_plotter:
-#        settings.notebook_plotter.close()
     if settings.plotter_instance:
         settings.plotter_instance.closeWindow()
         settings.plotter_instance = None
@@ -388,7 +384,6 @@ class Plotter:
         - `xLabelSize`,      [0.015], size of the numeric labels along axis
         - `xLabelOffset`,    [0.025], offset of numeric labels
 
-    :param bool infinity: if True fugue point is set at infinity (no perspective effects)
     :param bool sharecam: if False each renderer will have an independent vtkCamera
     :param bool interactive: if True will stop after show() to allow interaction w/ window
     :param bool offscreen: if True will not show the rendering window
@@ -414,7 +409,6 @@ class Plotter:
         bg="blackboard",
         bg2=None,
         axes=4,
-        infinity=False,
         sharecam=True,
         verbose=True,
         interactive=None,
@@ -451,7 +445,6 @@ class Plotter:
         self.axes = axes  # show axes type nr.
         self.title = title  # window title
         self.sharecam = sharecam  # share the same camera if multiple renderers
-        self.infinity = infinity  # ParallelProjection On or Off
         self._legend = []  # list of legend entries for actors
         self.legendSize = 0.15  # size of legend
         self.legendBC = (0.96, 0.96, 0.9)  # legend background color
@@ -459,7 +452,6 @@ class Plotter:
         self.picked3d = None  # 3d coords of a clicked point on an actor
         self.backgrcol = bg
         self.offscreen = offscreen
-        self.showFrame = True
         self.qtWidget = qtWidget # (QVTKRenderWindowInteractor)
 
         # mostly internal stuff:
@@ -939,41 +931,6 @@ class Plotter:
         return addons.addLight(pos, focalPoint, deg,
                                ambient, diffuse, specular, showsource)
 
-    def addScalarBar(self, actor=None, c=None, title="", horizontal=False, vmin=None, vmax=None):
-        """Add a 2D scalar bar for the specified actor.
-
-        If `actor` is ``None`` will add it to the last actor in ``self.actors``.
-
-        |mesh_bands| |mesh_bands.py|_
-        """
-        return addons.addScalarBar(actor, c, title, horizontal, vmin, vmax)
-
-    def addScalarBar3D(
-        self,
-        obj=None,
-        at=0,
-        pos=(0, 0, 0),
-        normal=(0, 0, 1),
-        sx=0.1,
-        sy=2,
-        nlabels=9,
-        ncols=256,
-        cmap=None,
-        c=None,
-        alpha=1,
-    ):
-        """Draw a 3D scalar bar.
-
-        ``obj`` input can be:
-            - a list of numbers,
-            - a list of two numbers in the form `(min, max)`,
-            - a ``vtkActor`` already containing a set of scalars associated to vertices or cells,
-            - if ``None`` the last actor in the list of actors will be used.
-
-        |scalbar| |mesh_coloring.py|_
-        """
-        return addons.addScalarBar3D(obj, at, pos, normal, sx, sy, nlabels, ncols, cmap, c, alpha)
-
     def addSlider2D(
         self, sliderfunc, xmin, xmax, value=None, pos=4, title="", c=None, showValue=True
     ):
@@ -1153,26 +1110,7 @@ class Plotter:
 
 
     ##############################################################################
-    def show(
-        self,
-        *actors, **options
-#        at=None,
-#        axes=None,
-#        c=None,
-#        alpha=None,
-#        wire=False,
-#        bc=None,
-#        resetcam=True,
-#        zoom=False,
-#        interactive=None,
-#        rate=None,
-#        viewup="",
-#        azimuth=0,
-#        elevation=0,
-#        roll=0,
-#        interactorStyle=0,
-#        q=False,
-    ):
+    def show(self, *actors, **options):
         """Render a list of actors.
 
         Allowed input objects are: ``filename``, ``vtkPolyData``, ``vtkActor``,
@@ -1337,7 +1275,7 @@ class Plotter:
                     scannedacts.append(out)
 
                 elif "trimesh" in str(type(a)):
-                    from vtkplotter.trimesh import trimesh2vtk
+                    from vtkplotter.utils import trimesh2vtk
                     scannedacts.append(trimesh2vtk(a))
 
                 else:
@@ -1365,6 +1303,7 @@ class Plotter:
         if axes is not None:
             self.axes = axes
 
+        #########################################################
         if settings.notebookBackend == 'k3d':
             import k3d # https://github.com/K3D-tools/K3D-jupyter
 
@@ -1383,6 +1322,27 @@ class Plotter:
                                                  menu_visibility=True,
                                                  height=int(self.size[1]/2) )
             settings.notebook_plotter.grid = kgrid
+            settings.notebook_plotter.lighting = 1.2
+
+            # set k3d camera
+            settings.notebook_plotter.camera_auto_fit = False
+            vsx, vsy, vsz = vbb[0]-vbb[1], vbb[2]-vbb[3], vbb[4]-vbb[5]
+            vss = numpy.linalg.norm([vsx, vsy, vsz])
+            if zoom:
+                vss /= zoom
+            vfp = (vbb[0]+vbb[1])/2, (vbb[2]+vbb[3])/2, (vbb[4]+vbb[5])/2 # camera target
+            if viewup == 'z':
+                vup = (0,0,1) # camera up vector
+                vpos= vfp[0] + vss/1.9, vfp[1] + vss/1.9, vfp[2]+vss*0.01  # camera position
+            elif viewup == 'x':
+                vup = (1,0,0)
+                vpos= vfp[0]+vss*0.01, vfp[1] + vss/1.5, vfp[2]  # camera position
+            else:
+                vup = (0,1,0)
+                vpos= vfp[0]+vss*0.01, vfp[1]+vss*0.01, vfp[2] + vss/1.5  # camera position
+            settings.notebook_plotter.camera = [vpos[0], vpos[1], vpos[2],
+                                                 vfp[0],  vfp[1],  vfp[2],
+                                                 vup[0],  vup[1],  vup[2] ]
 
             if not self.axes:
                 settings.notebook_plotter.grid_visible = False
@@ -1552,7 +1512,8 @@ class Plotter:
                 self.camera = camera
             else:
                 self.camera = self.renderer.GetActiveCamera()
-        self.camera.SetParallelProjection(self.infinity)
+
+        self.camera.SetParallelProjection(settings.useParallelProjection)
 
         if self.sharecam:
             for r in self.renderers:
@@ -1568,37 +1529,54 @@ class Plotter:
                     self.renderer.AddVolume(ia)
                 else:
                     self.renderer.AddActor(ia)
+
                 if hasattr(ia, 'renderedAt'):
                     ia.renderedAt.add(at)
-            else:
-                colors.printc("~lightning Warning: Invalid actor in actors list, skip.", c=5)
 
-        # remove the ones that are not in actors2show
-        for ia in self.getActors(at):
+                if hasattr(ia, 'scalarbar') and ia.scalarbar:
+                    self.renderer.AddActor(ia.scalarbar)
+                    # fix gray color labels and title to white or black
+                    if isinstance(ia.scalarbar, vtk.vtkScalarBarActor):
+                        ltc = numpy.array(ia.scalarbar.GetLabelTextProperty().GetColor())
+                        if numpy.linalg.norm(ltc-(.5,.5,.5))/3 < 0.05:
+                            c = (0.9, 0.9, 0.9)
+                            if numpy.sum(self.renderer.GetBackground()) > 1.5:
+                                c = (0.1, 0.1, 0.1)
+                            ia.scalarbar.GetLabelTextProperty().SetColor(c)
+                            ia.scalarbar.GetTitleTextProperty().SetColor(c)
+                    if ia.scalarbar not in self.scalarbars:
+                        self.scalarbars.append(ia.scalarbar)
+
+                if hasattr(ia, 'GetTextProperty'):
+                    #fix gray color of corner annotations
+                    cacol = numpy.array(ia.GetTextProperty().GetColor())
+                    if numpy.linalg.norm(cacol-(.5,.5,.5))/3 < 0.05:
+                        c = (0.9, 0.9, 0.9)
+                        if numpy.sum(self.renderer.GetBackground()) > 1.5:
+                            c = (0.1, 0.1, 0.1)
+                        ia.GetTextProperty().SetColor(c)
+
+
+        # remove the ones that are not in actors2show (and their scalarbar if any)
+        for ia in self.getActors(at) + self.getVolumes(at):
             if ia not in actors2show:
                 self.renderer.RemoveActor(ia)
+                if hasattr(ia, 'scalarbar') and ia.scalarbar:
+                    if isinstance(ia.scalarbar, vtk.vtkActor):
+                        self.renderer.RemoveActor(ia.scalarbar)
+                    elif isinstance(ia.scalarbar, Assembly):
+                        for a in ia.scalarbar.getActors():
+                            self.renderer.RemoveActor(a)
                 if hasattr(ia, 'renderedAt'):
                     ia.renderedAt.discard(at)
-
-        for ia in self.getVolumes(at):
-            if ia not in actors2show:
-                self.renderer.RemoveActor(ia)
-                if hasattr(ia, 'renderedAt'):
-                    ia.renderedAt.discard(at)
-
-        for c in self.scalarbars:
-            self.renderer.RemoveActor(c)
-            if hasattr(c, 'renderedAt'):
-                c.renderedAt.discard(at)
-
 
         if self.axes is not None and not settings.notebookBackend:
             addons.addAxes()
 
         addons.addLegend()
 
-        if self.showFrame and len(self.renderers) > 1:
-            addons.addFrame()
+        if settings.showRendererFrame and len(self.renderers) > 1:
+            addons.addRendererFrame(c=settings.rendererFrameColor)
 
         if resetcam or self.initializedIren == False:
             self.renderer.ResetCamera()
@@ -1656,27 +1634,7 @@ class Plotter:
 
         if resetcam: self.renderer.ResetCameraClippingRange()
 
-        self.window.Render()
-
-        scbflag = False
-        for a in self.actors:
-            if (
-                hasattr(a, "scalarbar")
-                and a.scalarbar is not None
-                and utils.isSequence(a.scalarbar)
-            ):
-                if len(a.scalarbar) == 5:  # addScalarBar
-                    s1, s2, s3, s4, s5 = a.scalarbar
-                    sb = addons.addScalarBar(a, s1, s2, s3, s4, s5)
-                    scbflag = True
-                    a.scalarbar = sb  # save scalarbar actor
-                elif len(a.scalarbar) == 10:  # addScalarBar3D
-                    s0, s1, s2, s3, s4, s5, s6, s7, s8 = a.scalarbar
-                    sb = addons.addScalarBar3D(a, at, s0, s1, s2, s3, s4, s5, s6, s7, s8)
-                    scbflag = True
-                    a.scalarbar = sb  # save scalarbar actor
-        if scbflag:
-            self.window.Render()
+        self.window.Render() ############################# <----
 
         if settings.allowInteraction and not self.offscreen:
             self.allowInteraction()
@@ -1791,8 +1749,8 @@ class Plotter:
                 self.renderer.RemoveActor(b)
             for w in self.widgets:
                 w.EnabledOff()
-            for c in self.scalarbars:
-                self.renderer.RemoveActor(c)
+            for a in self.scalarbars:
+                self.renderer.RemoveActor(a)
 
     def closeWindow(self):
         """Close the current or the input rendering window."""
@@ -1802,8 +1760,6 @@ class Plotter:
                 self.interactor.TerminateApp()
                 del self.window
                 del self.interactor
-#        if settings.notebook_plotter:
-#            settings.notebook_plotter.close()
         return self
 
     def close(self):

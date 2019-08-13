@@ -1,5 +1,4 @@
-"""
-Computes the (signed) distance
+"""Computes the (signed) distance
 from one mesh to another.
 """
 from vtkplotter import Sphere, Cube, show, Text
@@ -9,7 +8,7 @@ s2 = Cube(pos=[1,0,0], c='white', alpha=0.4)
 
 s1.distanceToMesh(s2, signed=True, negate=False)
 
-s1.addScalarBar(title='Signed\nDistance')
+s1.addScalarBar(title='Signed\nDistance', c='w')
 
 #print(s1.scalars("Distance"))
 

@@ -18,7 +18,6 @@ Defines methods useful to analyse 3D meshes.
 
 
 __all__ = [
-    "spline",
     "xyplot",
     "fxy",
     "histogram",
@@ -74,49 +73,6 @@ __all__ = [
     "volumeCorrelation",
 ]
 
-
-def spline(points, smooth=0.5, degree=2, s=2, nodes=False, res=20):
-    """
-    Return an ``Actor`` for a spline so that it does not necessarly pass exactly throught all points.
-
-    :param float smooth: smoothing factor. 0 = interpolate points exactly. 1 = average point positions.
-    :param int degree: degree of the spline (1<degree<5)
-    :param bool nodes: if `True`, show also the input points.
-
-    |tutorial_spline| |tutorial.py|_
-    """
-    from scipy.interpolate import splprep, splev
-
-    Nout = len(points) * res  # Number of points on the spline
-    points = np.array(points)
-
-    minx, miny, minz = np.min(points, axis=0)
-    maxx, maxy, maxz = np.max(points, axis=0)
-    maxb = max(maxx - minx, maxy - miny, maxz - minz)
-    smooth *= maxb / 2  # must be in absolute units
-
-    x, y, z = points[:, 0], points[:, 1], points[:, 2]
-    tckp, _ = splprep([x, y, z], task=0, s=smooth, k=degree)  # find the knots
-    # evaluate spLine, including interpolated points:
-    xnew, ynew, znew = splev(np.linspace(0, 1, Nout), tckp)
-
-    ppoints = vtk.vtkPoints()  # Generate the polyline for the spline
-    profileData = vtk.vtkPolyData()
-    ppoints.SetData(numpy_to_vtk(list(zip(xnew, ynew, znew)), deep=True))
-    lines = vtk.vtkCellArray()  # Create the polyline
-    lines.InsertNextCell(Nout)
-    for i in range(Nout):
-        lines.InsertCellPoint(i)
-    profileData.SetPoints(ppoints)
-    profileData.SetLines(lines)
-    actline = Actor(profileData)
-    actline.GetProperty().SetLineWidth(s)
-    if nodes:
-        actnodes = shapes.Points(points, r=5)
-        ass = Assembly([actline, actnodes])
-        return ass
-    else:
-        return actline
 
 def xyplot(points, title="", c="b", bg="k", pos=1, s=0.2, lines=True):
     """

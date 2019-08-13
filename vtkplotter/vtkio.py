@@ -152,7 +152,7 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
         actor = loadOFF(filename)
     elif fl.endswith(".3ds"):  # 3ds format
         actor = load3DS(filename)
-    elif fl.endswith("wrl"):
+    elif fl.endswith(".wrl"):
         importer = vtk.vtkVRMLImporter()
         importer.SetFileName(filename)
         importer.Read()
@@ -167,7 +167,8 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
 
         ################################################################# volumetric:
     elif fl.endswith(".tif") or fl.endswith(".slc") or fl.endswith(".vti") \
-        or fl.endswith(".mhd") or fl.endswith(".nrrd") or fl.endswith(".nii"):
+        or fl.endswith(".mhd") or fl.endswith(".nrrd") or fl.endswith(".nii") \
+        or fl.endswith(".dem"):
         img = loadImageData(filename, spacing)
         if threshold is False:
             if c is None and alpha == 1:
@@ -672,6 +673,7 @@ def loadNumpy(inobj):
         if 'linecolor' in keys and d['linecolor']: act.lineColor(d['linecolor'])
         if 'representation' in keys: prp.SetRepresentation(d['representation'])
         if 'color' in keys and d['color']: act.color(d['color'])
+        if 'backColor' in keys and d['backColor']: act.backColor(d['backColor'])
 
         if 'activedata' in keys and d['activedata'] is not None:
             act.mapper.ScalarVisibilityOn()
@@ -730,7 +732,6 @@ def loadNumpy(inobj):
 
 def _np_dump(obj):
     '''dump a vtkplotter obj to a numpy dictionary'''
-
     adict = dict()
 
     def fillcommon(obj, adict):
@@ -739,13 +740,13 @@ def _np_dump(obj):
         adict['time'] = obj.time()
         adict['rendered_at'] = obj.renderedAt
         adict['position'] = obj.pos()
-        m = np.zeros((4,4))
+        m = np.eye(4)
         vm = obj.getTransform().GetMatrix()
         for i in [0, 1, 2, 3]:
             for j in [0, 1, 2, 3]:
                 m[i,j] = vm.GetElement(i, j)
         adict['transform'] = m
-        minv = np.zeros((4,4))
+        minv = np.eye(4)
         vm.Invert()
         for i in [0, 1, 2, 3]:
             for j in [0, 1, 2, 3]:
@@ -773,7 +774,6 @@ def _np_dump(obj):
             adict['lines'] = vtk_to_numpy(poly.GetLines().GetData()).astype(np.uint32)
 
         fillcommon(obj, adict)
-
         adict['pointdata'] = []
         adict['celldata'] = []
         adict['activedata'] = None
@@ -806,8 +806,13 @@ def _np_dump(obj):
         adict['shading'] = prp.GetInterpolation()
         adict['color'] = prp.GetColor()
 
+        adict['backColor'] = None
+        if obj.GetBackfaceProperty():
+            adict['backColor'] = obj.GetBackfaceProperty().GetColor()
+
 
     ############################
+    adict['type'] = 'unknown'
     if isinstance(obj, Actor):
         adict['type'] = 'mesh'
         _doactor(obj, adict)
@@ -914,14 +919,23 @@ def write(objct, fileoutput, binary=True):
         obj = objct
 
     fr = fileoutput.lower()
-    if ".vtk" in fr:
-        w = vtk.vtkPolyDataWriter()
+    if   ".vtk" in fr:
+        writer = vtk.vtkPolyDataWriter()
     elif ".ply" in fr:
-        w = vtk.vtkPLYWriter()
+        writer = vtk.vtkPLYWriter()
+        pscal = obj.GetPointData().GetScalars()
+        if not pscal:
+            pscal = obj.GetCellData().GetScalars()
+        if pscal and pscal.GetName():
+            writer.SetArrayName(pscal.GetName())
+            #writer.SetColorMode(0)
+        lut = objct.GetMapper().GetLookupTable()
+        if lut:
+            writer.SetLookupTable(lut)
     elif ".stl" in fr:
-        w = vtk.vtkSTLWriter()
+        writer = vtk.vtkSTLWriter()
     elif ".vtp" in fr:
-        w = vtk.vtkXMLPolyDataWriter()
+        writer = vtk.vtkXMLPolyDataWriter()
     elif ".vtm" in fr:
         g = vtk.vtkMultiBlockDataGroupFilter()
         for ob in objct:
@@ -934,24 +948,24 @@ def write(objct, fileoutput, binary=True):
         wri.Write()
         return mb
     elif ".xyz" in fr:
-        w = vtk.vtkSimplePointsWriter()
+        writer = vtk.vtkSimplePointsWriter()
     elif ".facet" in fr:
-        w = vtk.vtkFacetWriter()
+        writer = vtk.vtkFacetWriter()
     elif ".tif" in fr:
-        w = vtk.vtkTIFFWriter()
-        w.SetFileDimensionality(len(obj.GetDimensions()))
+        writer = vtk.vtkTIFFWriter()
+        writer.SetFileDimensionality(len(obj.GetDimensions()))
     elif ".vti" in fr:
-        w = vtk.vtkXMLImageDataWriter()
+        writer = vtk.vtkXMLImageDataWriter()
     elif ".mhd" in fr:
-        w = vtk.vtkMetaImageWriter()
+        writer = vtk.vtkMetaImageWriter()
     elif ".nii" in fr:
-        w = vtk.vtkNIFTIImageWriter()
+        writer = vtk.vtkNIFTIImageWriter()
     elif ".png" in fr:
-        w = vtk.vtkPNGWriter()
+        writer = vtk.vtkPNGWriter()
     elif ".jpg" in fr:
-        w = vtk.vtkJPEGWriter()
+        writer = vtk.vtkJPEGWriter()
     elif ".bmp" in fr:
-        w = vtk.vtkBMPWriter()
+        writer = vtk.vtkBMPWriter()
     elif ".npy" in fr:
         if utils.isSequence(objct):
             objslist = objct
@@ -1009,14 +1023,14 @@ def write(objct, fileoutput, binary=True):
         return objct
 
     try:
-        if hasattr(w, 'SetFileTypeToBinary'):
+        if hasattr(writer, 'SetFileTypeToBinary'):
             if binary:
-                w.SetFileTypeToBinary()
+                writer.SetFileTypeToBinary()
             else:
-                w.SetFileTypeToASCII()
-        w.SetInputData(obj)
-        w.SetFileName(fileoutput)
-        w.Write()
+                writer.SetFileTypeToASCII()
+        writer.SetInputData(obj)
+        writer.SetFileName(fileoutput)
+        writer.Write()
         colors.printc("~save Saved file: " + fileoutput, c="g")
     except Exception as e:
         colors.printc("~noentry Error saving: " + fileoutput, "\n", e, c="r")
@@ -1027,7 +1041,7 @@ def save(objct, fileoutput, binary=True):
     Save 3D object to file. (same as `write()`).
 
     Possile extensions are:
-        - vtk, vti, npy, ply, obj, stl, vtp, xyz, tif, vti, mhd, png, bmp.
+        - vtk, vti, npy, ply, obj, stl, vtp, xyz, tif, vti, mhd, png, jpg, bmp.
     """
     return write(objct, fileoutput, binary)
 
@@ -1100,13 +1114,13 @@ def exportWindow(fileoutput, binary=False, speed=None, html=True):
         sdict['ytitle'] = vp.ytitle
         sdict['ztitle'] = vp.ztitle
         sdict['backgrcol'] = colors.getColor(vp.backgrcol)
-        sdict['infinity'] = vp.infinity
         sdict['useDepthPeeling'] = settings.useDepthPeeling
         sdict['renderPointsAsSpheres'] = settings.renderPointsAsSpheres
         sdict['renderLinesAsTubes'] = settings.renderLinesAsTubes
         sdict['hiddenLineRemoval'] = settings.hiddenLineRemoval
         sdict['visibleGridEdges'] = settings.visibleGridEdges
         sdict['interactorStyle'] = settings.interactorStyle
+        sdict['useParallelProjection'] = settings.useParallelProjection
         sdict['objects'] = []
         for a in vp.getActors() + vp.getVolumes():
             sdict['objects'].append(_np_dump(a))
@@ -1132,12 +1146,13 @@ def importWindow(fileinput):
         settings.visibleGridEdges = data['visibleGridEdges']
     if 'interactorStyle' in data.keys():
         settings.interactorStyle = data['interactorStyle']
+    if 'useParallelProjection' in data.keys():
+        settings.useParallelProjection = data['useParallelProjection']
 
     pos = data.pop('position', (0, 0))
     axes = data.pop('axes', 4)
     title = data.pop('title', '')
     backgrcol = data.pop('backgrcol', "blackboard")
-    infinity = data.pop('infinity', False)
 
     vp = Plotter(pos=pos,
                  #size=data['size'], # not necessarily a good idea to set it
@@ -1145,7 +1160,6 @@ def importWindow(fileinput):
                  axes=axes,
                  title=title,
                  bg=backgrcol,
-                 infinity=infinity,
     )
     vp.xtitle = data.pop('xtitle', 'x')
     vp.ytitle = data.pop('ytitle', 'y')
@@ -1259,3 +1273,5 @@ class Video:
         colors.printc("~save Video saved as", self.name, c="green")
         self.tmp_dir.cleanup()
         return
+
+

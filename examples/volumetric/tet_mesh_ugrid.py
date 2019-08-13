@@ -14,7 +14,7 @@ vol = Volume(ug).color(cmap)
 # if False will only show the outer surface:
 settings.visibleGridEdges = True
 
-mesh = Actor(ug).color(cmap).alpha(0.2).addScalarBar()
+mesh = Actor(ug).color(cmap).alpha(0.2).addScalarBar(c='w')
 
 txt = Text(__doc__, c='w')
 

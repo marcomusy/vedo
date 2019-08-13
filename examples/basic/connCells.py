@@ -33,5 +33,5 @@ for p in coords:
 
     tomerge.append(piece)
 
-show(mergeActors(tomerge).clean(), interactive=1)
+show(merge(tomerge).clean(), interactive=1)
 

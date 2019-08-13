@@ -8,7 +8,7 @@ trimesh to vtkplotter interoperability
 
 import trimesh
 import vtkplotter
-from vtkplotter.trimesh import trimesh2vtk, vtk2trimesh
+from vtkplotter import trimesh2vtk, vtk2trimesh
 
 url = 'https://raw.githubusercontent.com/mikedh/trimesh/master/models/'
 filename = vtkplotter.download(url + 'machinist.XAML')

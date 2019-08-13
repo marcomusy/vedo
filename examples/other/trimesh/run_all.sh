@@ -17,7 +17,6 @@ python ray.py
 echo Running section.py
 python section.py
 
-
 echo Running shortest.py
 python shortest.py
 

@@ -71,7 +71,7 @@ setup(
 
 # check notebooks:
 # cd ~/Projects/vtkplotter/
-# jupyter notebook
+# jupyter notebook &
 # remove trailing spaces
 
 # git status

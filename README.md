@@ -15,6 +15,10 @@ Use [pip](https://projects.raspberrypi.org/en/projects/using-pip-on-windows) to 
 ```bash
 pip install vtkplotter
 ```
+*Windows-10 users* can place this file
+[vtkplotter.bat](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter.bat)
+on the desktop to *drag&drop* files to visualize. 
+(Need to edit the path of their local Anaconda installation).
 
 ## Documentation
 Automatically generated documentation can be found [**here**](https://vtkplotter.embl.es).

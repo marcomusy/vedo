@@ -14,7 +14,7 @@ np.random.seed(2)
 grids = []
 for i in range(10):
     grids.append(Grid([0, 0, i / 10.0], resx=100, resy=100))
-act = mergeActors(grids)  # merge grids into a single object
+act = merge(grids)  # merge grids into a single object
 
 idxs = np.random.randint(0, act.N(), 10)  # pick 10 indexes
 

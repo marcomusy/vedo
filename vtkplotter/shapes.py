@@ -21,6 +21,7 @@ __all__ = [
     "Line",
     "Tube",
     "Lines",
+    "Spline",
     "Ribbon",
     "Arrow",
     "Arrows",
@@ -91,7 +92,7 @@ def Points(plist, r=5, c="gold", alpha=1):
     ################
 
     if ( (
-            utils.isSequence(c) 
+            utils.isSequence(c)
             and (len(c)>3 or (utils.isSequence(c[0]) and len(c[0])==4))
           )
         or utils.isSequence(alpha)
@@ -447,6 +448,47 @@ def Lines(startPoints, endPoints=None, c=None, alpha=1, lw=1, dotted=False, scal
 
     settings.collectable_actors.append(actor)
     return actor
+
+
+def Spline(points, smooth=0.5, degree=2, s=2, res=20):
+    """
+    Return an ``Actor`` for a spline so that it does not necessarly
+    pass exactly throught all points. Needs `scypi`.
+
+    :param float smooth: smoothing factor.
+    0 = interpolate points exactly.
+    1 = average point positions.
+    :param int degree: degree of the spline (1<degree<5)
+
+    |tutorial_spline| |tutorial.py|_
+    """
+    from scipy.interpolate import splprep, splev
+
+    Nout = len(points) * res  # Number of points on the spline
+    points = np.array(points)
+
+    minx, miny, minz = np.min(points, axis=0)
+    maxx, maxy, maxz = np.max(points, axis=0)
+    maxb = max(maxx - minx, maxy - miny, maxz - minz)
+    smooth *= maxb / 2  # must be in absolute units
+
+    x, y, z = points[:, 0], points[:, 1], points[:, 2]
+    tckp, _ = splprep([x, y, z], task=0, s=smooth, k=degree)  # find the knots
+    # evaluate spLine, including interpolated points:
+    xnew, ynew, znew = splev(np.linspace(0, 1, Nout), tckp)
+
+    ppoints = vtk.vtkPoints()  # Generate the polyline for the spline
+    profileData = vtk.vtkPolyData()
+    ppoints.SetData(numpy_to_vtk(np.c_[xnew, ynew, znew], deep=True))
+    lines = vtk.vtkCellArray()  # Create the polyline
+    lines.InsertNextCell(Nout)
+    for i in range(Nout):
+        lines.InsertCellPoint(i)
+    profileData.SetPoints(ppoints)
+    profileData.SetLines(lines)
+    actline = Actor(profileData)
+    actline.GetProperty().SetLineWidth(s)
+    return actline
 
 
 def Tube(points, r=1, c="r", alpha=1, res=12):
@@ -1343,7 +1385,7 @@ def Text(
             if np.sum(settings.plotter_instance.renderer.GetBackground()) > 1.5:
                 c = (0.1, 0.1, 0.1)
         else:
-            c = (0.6, 0.6, 0.6)
+            c = (0.5, 0.5, 0.5)
 
     if isinstance(pos, str): # corners
         if "top" in pos:

@@ -28,6 +28,7 @@ alphas = [i/10. for i in range(10)]
 #mymap = makePalette('pink', 'green', N=500, hsv=True)
 #alphas = 1
 
-man.pointColors(scals, cmap=mymap, alpha=alphas).addScalarBar()
+man.pointColors(scals, cmap=mymap, alpha=alphas)
+man.addScalarBar(c='white')
 
-show(man, doc, viewup="z", axes=1)
+show(man, doc, viewup="z", axes=8)

@@ -39,6 +39,9 @@ python basic/annotations.py
 echo Running basic/bgImage.py
 python basic/bgImage.py
 
+echo Running basic/numpy2picture.py
+python basic/numpy2picture.py
+
 echo Running basic/boolean.py
 python basic/boolean.py      
 
@@ -146,6 +149,9 @@ python basic/largestregion.py
 
 echo Running basic/mirror.py
 python basic/mirror.py
+
+echo Running basic/scalarbars.py
+python basic/scalarbars.py
 
 echo Running basic/sliders.py
 python basic/sliders.py
@@ -269,6 +275,9 @@ python advanced/cutWithMesh.py
 
 echo Running advanced/cutAndCap.py
 python advanced/cutAndCap.py
+
+echo Running advanced/pointsCutMesh1.py
+python advanced/pointsCutMesh1.py
 
 echo Running advanced/geodesic.py
 python advanced/geodesic.py
@@ -449,6 +458,9 @@ vtkplotter      -s   data/images/airplanes_frames/*jpg
 echo '----------------------------'
 echo vtkplotter --lego  "data/SainteHelens.dem"
 vtkplotter      --lego   data/SainteHelens.dem
+
+echo '---------------------------- should open a GUI'
+echo vtkplotter
 
 echo '----------------------------'
 echo '----------------------------'

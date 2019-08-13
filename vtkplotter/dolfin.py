@@ -515,8 +515,12 @@ def plot(*inputobj, **options):
 
     #################################################################
     actors = []
-    if add and settings.plotter_instance:
-        actors = settings.plotter_instance.actors
+    if settings.plotter_instance:
+        if add:
+            actors = settings.plotter_instance.actors
+        elif at==0: # just remove scalarbars
+            for sb in settings.plotter_instance.scalarbars:
+                settings.plotter_instance.renderer.RemoveActor(sb)
 
     if mesh and ('mesh' in mode or 'color' in mode or 'warp' in mode or 'displac' in mode):
         if 'warp' in mode: #deprecation

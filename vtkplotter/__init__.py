@@ -62,7 +62,6 @@ from vtkplotter.settings import datadir, embedWindow
 
 # hack to make docs work
 # need to uncomment this to generate documentation html
-#from vtkplotter.trimesh import *
 #from vtkplotter.dolfin import _inputsort
 
 from numpy import sin, cos, sqrt, exp, log, dot, cross, array, arange
@@ -91,11 +90,17 @@ def isosurface(*args, **kargs):
     printc("Obsolete. Use volume.isosurface() instead of isosurface(volume).", c=1)
     raise RuntimeError()
 
-def legosurface(volume, vmin=None, vmax=None, cmap='afmhot_r'):
+def legosurface(*args, **kargs):
     printc("Obsolete. Use volume.legosurface() instead of legosurface(volume).", c=1)
     raise RuntimeError()
 
+def spline(*args, **kargs):
+    printc("Obsolete. Use shapes.Spline() instead of spline().", c=1)
+    raise RuntimeError()
 
+def mergeActors(*args, **kargs):
+    printc("Obsolete. Use merge() instead of mergeActors().", c=1)
+    raise RuntimeError()
 
 
 

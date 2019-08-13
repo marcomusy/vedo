@@ -28,7 +28,6 @@ __all__ = [
         "addCutterTool",
         "addIcon",
         "addAxes",
-        "addFrame",
         "addLegend",
         ]
 
@@ -39,6 +38,7 @@ def addLight(
     ambient=None,
     diffuse=None,
     specular=None,
+    removeOthers=False,
     showsource=False,
 ):
     """
@@ -67,30 +67,43 @@ def addLight(
         lightActor = vtk.vtkLightActor()
         lightActor.SetLight(light)
         settings.plotter_instance.renderer.AddViewProp(lightActor)
+    if removeOthers:
+        settings.plotter_instance.renderer.RemoveAllLights()
     settings.plotter_instance.renderer.AddLight(light)
     return light
 
 
-def addScalarBar(actor=None, c=None, title="",
+def addScalarBar(actor,
+                 pos=(0.8,0.05),
+                 title="",
+                 titleXOffset=0,
+                 titleYOffset=15,
+                 titleFontSize=12,
+                 nlabels=10,
+                 c=None,
                  horizontal=False,
-                 vmin=None, vmax=None):
+                 vmin=None, vmax=None,
+                 ):
     """Add a 2D scalar bar for the specified actor.
 
-    If `actor` is ``None`` will add it to the last actor in ``self.actors``.
-
-    |mesh_bands| |mesh_bands.py|_
+    .. hint:: |mesh_coloring| |mesh_coloring.py|_ |scalarbars.py|_
     """
     vp = settings.plotter_instance
-
-    if actor is None:
-        actor = vp.actors[-1]
 
     if not hasattr(actor, "mapper"):
         colors.printc("~times addScalarBar(): input is invalid,", type(actor), c=1)
         return None
 
-    if vp and vp.renderer and actor.scalarbar_actor:
-        vp.renderer.RemoveActor(actor.scalarbar)
+    if vp and vp.renderer:
+        c = (0.9, 0.9, 0.9)
+        if numpy.sum(vp.renderer.GetBackground()) > 1.5:
+            c = (0.1, 0.1, 0.1)
+        if isinstance(actor.scalarbar, vtk.vtkActor):
+            vp.renderer.RemoveActor(actor.scalarbar)
+        elif isinstance(actor.scalarbar, Assembly):
+            for a in actor.scalarbar.getActors():
+                vp.renderer.RemoveActor(a)
+    if c is None: c = 'gray'
 
     if isinstance(actor, Actor):
         lut = actor.mapper.GetLookupTable()
@@ -111,14 +124,6 @@ def addScalarBar(actor=None, c=None, title="",
         # to be implemented
         pass
 
-    if c is None:
-        if vp.renderer:  # automatic black or white
-            c = (0.9, 0.9, 0.9)
-            if numpy.sum(vp.renderer.GetBackground()) > 1.5:
-                c = (0.1, 0.1, 0.1)
-        else:
-            c = "k"
-
     c = colors.getColor(c)
     sb = vtk.vtkScalarBarActor()
     sb.SetLookupTable(lut)
@@ -130,7 +135,8 @@ def addScalarBar(actor=None, c=None, title="",
         titprop.SetColor(c)
         titprop.SetVerticalJustificationToTop()
         sb.SetTitle(title)
-        sb.SetVerticalTitleSeparation(15)
+        sb.SetVerticalTitleSeparation(titleYOffset)
+#        sb.SetHorizontalTitleSeparation(titleXOffset)
         sb.SetTitleTextProperty(titprop)
 
     if vtk.vtkVersion().GetVTKMajorVersion() > 7:
@@ -138,19 +144,19 @@ def addScalarBar(actor=None, c=None, title="",
         sb.FixedAnnotationLeaderLineColorOff()
         sb.DrawAnnotationsOn()
         sb.DrawTickLabelsOn()
-    sb.SetMaximumNumberOfColors(512)
+    sb.SetMaximumNumberOfColors(256)
 
     if horizontal:
         sb.SetOrientationToHorizontal()
-        sb.SetNumberOfLabels(4)
+        sb.SetNumberOfLabels(int((nlabels-1)/2.))
         sb.SetTextPositionToSucceedScalarBar()
-        sb.SetPosition(0.8, 0.05)
+        sb.SetPosition(pos)
         sb.SetMaximumWidthInPixels(1000)
         sb.SetMaximumHeightInPixels(50)
     else:
-        sb.SetNumberOfLabels(10)
+        sb.SetNumberOfLabels(nlabels)
         sb.SetTextPositionToPrecedeScalarBar()
-        sb.SetPosition(0.87, 0.05)
+        sb.SetPosition(pos[0]+0.07, pos[1])
         sb.SetMaximumWidthInPixels(80)
         sb.SetMaximumHeightInPixels(500)
 
@@ -160,31 +166,29 @@ def addScalarBar(actor=None, c=None, title="",
     sctxt.SetFontFamily(0)
     sctxt.SetItalic(0)
     sctxt.SetBold(0)
-    sctxt.SetFontSize(12)
-    if not vp.renderer:
-        save_int = vp.interactive
-        vp.show(interactive=0)
-        vp.interactive = save_int
+    sctxt.SetFontSize(titleFontSize)
     sb.PickableOff()
-    vp.renderer.AddActor(sb)
-    vp.scalarbars.append(sb)
-    actor.scalarbar_actor = sb
-    vp.renderer.Render()
+    actor.scalarbar = sb
     return sb
 
 
 def addScalarBar3D(
-    obj=None,
-    at=0,
+    obj,
     pos=(0, 0, 0),
     normal=(0, 0, 1),
     sx=0.1,
     sy=2,
+    title='',
+    titleXOffset = -1.5,
+    titleYOffset = 0.0,
+    titleSize =  1.5,
+    titleRotation = 0.0,
     nlabels=9,
-    ncols=256,
-    cmap=None,
+    precision=3,
+    labelOffset = 0.4,
     c=None,
     alpha=1,
+    cmap=None,
 ):
     """Draw a 3D scalar bar.
 
@@ -194,97 +198,82 @@ def addScalarBar3D(
         - a ``vtkActor`` already containing a set of scalars associated to vertices or cells,
         - if ``None`` the last actor in the list of actors will be used.
 
-    .. hint:: |scalbar| |mesh_coloring.py|_
-    """
-    from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
+    :param float sx: thickness of scalarbar
+    :param float sy: length of scalarbar
+    :param str title: scalar bar title
+    :param float titleXOffset: horizontal space btw title and color scalarbar
+    :param float titleYOffset: vertical space offset
+    :param float titleSize: size of title wrt numeric labels
+    :param float titleRotation: title rotation in degrees
+    :param int nlabels: number of numeric labels
+    :param int precision: number of significant digits
+    :param float labelOffset: space btw numeric labels and scale
+    :param str cmap: specify cmap to be used
 
+    .. hint:: |scalarbars| |scalarbars.py|_
+    """
     vp = settings.plotter_instance
-    if c is None:  # automatic black or white
+    if vp and c is None:  # automatic black or white
         c = (0.8, 0.8, 0.8)
         if numpy.sum(colors.getColor(vp.backgrcol)) > 1.5:
             c = (0.2, 0.2, 0.2)
+    if c is None: c = 'gray'
     c = colors.getColor(c)
 
-    gap = 0.4  # space btw nrs and scale
-    vtkscalars_name = ""
-    if obj is None:
-        obj = vp.lastActor()
-    if isinstance(obj, vtk.vtkActor):
-        poly = obj.GetMapper().GetInput()
-        vtkscalars = poly.GetPointData().GetScalars()
-        if vtkscalars is None:
-            vtkscalars = poly.GetCellData().GetScalars()
-        if vtkscalars is None:
-            print("Error in addScalarBar3D: actor has no scalar array.", [obj])
-            raise RuntimeError()
-        npscalars = vtk_to_numpy(vtkscalars)
-        vmin, vmax = numpy.min(npscalars), numpy.max(npscalars)
-        vtkscalars_name = vtkscalars.GetName().split("_")[-1]
+    if isinstance(obj, Actor):
+        if cmap is None:
+            lut = obj.mapper.GetLookupTable()
+            if not lut:
+                print("Error in ScalarBar3D: actor has no active scalar array.", [obj])
+                return None
+        else:
+            lut = cmap
+        vmin,vmax = obj.mapper.GetScalarRange()
+
     elif utils.isSequence(obj):
         vmin, vmax = numpy.min(obj), numpy.max(obj)
-        vtkscalars_name = "jet"
     else:
-        print("Error in addScalarBar3D(): input must be vtkActor or list.", type(obj))
+        print("Error in ScalarBar3D(): input must be Actor or list.", type(obj))
         raise RuntimeError()
 
-    if cmap is None:
-        cmap = vtkscalars_name
-
     # build the color scale part
-    scale = shapes.Grid([-sx * gap, 0, 0], c=c, alpha=alpha, sx=sx, sy=sy, resx=1, resy=ncols)
-    scale.lw(0).GetProperty().SetRepresentationToSurface()
+    scale = shapes.Grid([-sx *labelOffset, 0, 0], c=c, alpha=alpha,
+                        sx=sx, sy=sy, resx=1, resy=256)
+    scale.lw(0).wireframe(False)
     cscals = scale.cellCenters()[:, 1]
-
-    def _cellColors(scale, scalars, cmap, alpha):
-        mapper = scale.GetMapper()
-        cpoly = mapper.GetInput()
-        n = len(scalars)
-        lut = vtk.vtkLookupTable()
-        lut.SetNumberOfTableValues(n)
-        lut.Build()
-        for i in range(n):
-            r, g, b = colors.colorMap(i, cmap, 0, n)
-            lut.SetTableValue(i, r, g, b, alpha)
-        arr = numpy_to_vtk(numpy.ascontiguousarray(scalars), deep=True)
-        vmin, vmax = numpy.min(scalars), numpy.max(scalars)
-        mapper.SetScalarRange(vmin, vmax)
-        mapper.SetLookupTable(lut)
-        mapper.ScalarVisibilityOn()
-        cpoly.GetCellData().SetScalars(arr)
-
-    _cellColors(scale, cscals, cmap, alpha)
+    scale.cellColors(cscals, lut, alpha)
+    scale.lighting(ambient=1, diffuse=0, specular=0, specularPower=0)
 
     # build text
-    nlabels = numpy.min([nlabels, ncols])
     tlabs = numpy.linspace(vmin, vmax, num=nlabels, endpoint=True)
     tacts = []
-    prec = (vmax - vmin) / abs(vmax + vmin) * 2
-    prec = int(2 + abs(numpy.log10(prec + 1)))
     for i, t in enumerate(tlabs):
-        tx = utils.precision(t, prec, vrange=vmax-vmin)
+        tx = utils.precision(t, precision, vrange=vmax-vmin)
         y = -sy / 1.98 + sy * i / (nlabels - 1)
-        a = shapes.Text(tx, pos=[sx * gap, y, 0], s=sy / 50, c=c, alpha=alpha, depth=0)
+        a = shapes.Text(tx, pos=[sx*labelOffset, y, 0], s=sy/50, c=c, alpha=alpha, depth=0)
+        a.lighting(ambient=1, diffuse=0, specular=0, specularPower=0)
         a.PickableOff()
         tacts.append(a)
+
+    # build title
+    if title:
+        t = shapes.Text(title, (0,0,0), s=sy/50*titleSize, c=c, alpha=alpha, depth=0,
+                        justify='centered')
+        t.rotateZ(90+titleRotation).pos(sx*titleXOffset,titleYOffset,0)
+        t.lighting(ambient=1, diffuse=0, specular=0, specularPower=0)
+        t.PickableOff()
+        tacts.append(t)
+
     sact = Assembly([scale] + tacts)
-    nax = numpy.linalg.norm(normal)
-    if nax:
-        normal = numpy.array(normal) / nax
+    normal = numpy.array(normal) / numpy.linalg.norm(normal)
     theta = numpy.arccos(normal[2])
     phi = numpy.arctan2(normal[1], normal[0])
     sact.RotateZ(numpy.rad2deg(phi))
     sact.RotateY(numpy.rad2deg(theta))
     sact.SetPosition(pos)
-    if not vp.renderers[at]:
-        save_int = vp.interactive
-        vp.show(interactive=0)
-        vp.interactive = save_int
-    vp.renderers[at].AddActor(sact)
-    vp.renderers[at].Render()
     sact.PickableOff()
-    vp.scalarbars.append(sact)
     if isinstance(obj, Actor):
-        obj.scalarbar_actor = sact
+        obj.scalarbar = sact
     return sact
 
 
@@ -1472,7 +1461,7 @@ def addAxes(axtype=None, c=None):
     return
 
 
-def addFrame(c=None, alpha=0.5, bg=None, lw=0.5):
+def addRendererFrame(c=None, alpha=0.5, bg=None, lw=0.5):
 
     if c is None:  # automatic black or white
         c = (0.9, 0.9, 0.9)

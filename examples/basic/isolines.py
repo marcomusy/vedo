@@ -7,7 +7,7 @@ from vtkplotter import *
 mesh = Hyperboloid().rotateX(20) # a whatever mesh
 
 scals = mesh.coordinates()[:,1] # pick x coords of vertices
-mesh.pointColors(scals).addScalarBar()
+mesh.pointColors(scals).addScalarBar(c='w')
 
 isols = mesh.isolines(n=12, vmin=0).color('w')
 

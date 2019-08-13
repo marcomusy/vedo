@@ -1,534 +1,807 @@
 #!/usr/bin/env python
 #
 from __future__ import division, print_function
-from vtkplotter import Actor, Volume, Plotter, ProgressBar, printc, humansort, __version__
+from vtkplotter import Actor, Volume, Plotter, ProgressBar
+from vtkplotter import settings, printc, humansort, __version__
 from vtkplotter import vtkio
 import vtk
 import sys, argparse, os
 
-pr = argparse.ArgumentParser(description="version "+str(__version__)+""" -
-                             check out home page https://github.com/marcomusy/vtkplotter""")
-pr.add_argument('files', nargs='*',             help="Input filename(s)")
-pr.add_argument("-c", "--color", type=str,      help="mesh color [integer or color name]", default=None, metavar='')
-pr.add_argument("-a", "--alpha",    type=float, help="alpha value [0-1]", default=1, metavar='')
-pr.add_argument("-w", "--wireframe",            help="use wireframe representation", action="store_true")
-pr.add_argument("-p", "--point-size", type=float, help="specify point size", default=-1, metavar='')
-pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-5]", default=4, metavar='')
-pr.add_argument("-i", "--no-camera-share",      help="do not share camera in renderers", action="store_true")
-pr.add_argument("-l", "--legend-off",           help="do not show legends", action="store_true")
-pr.add_argument("-f", "--full-screen",          help="full screen mode", action="store_true")
-pr.add_argument("-bg","--background", type=str, help="background color [integer or color name]", default='', metavar='')
-pr.add_argument("-z", "--zoom", type=float,     help="zooming factor", default=1, metavar='')
-pr.add_argument("-q", "--quiet",                help="quiet mode, less verbose", default=False, action="store_false")
-pr.add_argument("-n", "--multirenderer-mode",   help="Multi renderer Mode: files go to separate renderers", action="store_true")
-pr.add_argument("-s", "--scrolling-mode",       help="Scrolling Mode: use arrows to scroll files", action="store_true")
-pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode for 3D image files", action="store_true")
-pr.add_argument("-gz", "--z-spacing", type=float, help="Volume z-spacing factor [1]", default=None, metavar='')
-pr.add_argument("-gy", "--y-spacing", type=float, help="Volume y-spacing factor [1]", default=None, metavar='')
-pr.add_argument("--slicer",                     help="Slicer Mode for 3D image files", action="store_true")
-pr.add_argument("--lego",                       help="Voxel rendering for 3D image files", action="store_true")
-pr.add_argument("--cmap",                       help="Voxel rendering color map name", default='jet', metavar='')
-pr.add_argument("--mode",                       help="Voxel rendering composite mode", default=0, metavar='')
-args = pr.parse_args()
 
-humansort(args.files)
-nfiles = len(args.files)
-if nfiles == 0:
-    sys.exit()
+class MyArgs:
+    def __init__(self):
+        self.files = []
+        self.color = None
+        self.alpha = 1
+        self.wireframe = False
+        self.point_size = -1
+        self.axes_type = 4
+        self.no_camera_share = False
+        self.legend_off = True
+        self.full_screen = False
+        self.background = ""
+        self.zoom = 1
+        self.quiet = False
+        self.multirenderer_mode = False
+        self.scrolling_mode = False
+        self.ray_cast_mode = False
+        self.z_spacing = None
+        self.y_spacing = None
+        self.slicer = False
+        self.lego = False
+        self.cmap = "jet"
+        self.mode = 0
 
-wsize = "auto"
-if args.full_screen:
-    wsize = "full"
 
-if args.lego:
-    if args.background == "":
-        args.background = "white"
-    if args.axes_type == 4:
-        args.axes_type = 1
-
-if args.background == "":
-    args.background = "blackboard"
-
-if args.scrolling_mode and 3 < args.axes_type < 5:  # types 4 and 5 are not good for scrolling
-    args.axes_type = 8
-
-N = None
-if args.multirenderer_mode:
-    if nfiles < 201:
-        N = nfiles
-    if nfiles > 200:
-        printc("~lightning Warning: option '-n' allows a maximum of 200 files", c=1)
-        printc("         you are trying to load ", nfiles, " files.\n", c=1)
-        N = 200
-    vp = Plotter(size=wsize, N=N, bg=args.background)
-    if args.axes_type == 1:
-        vp.axes = 0
-else:
-    N = nfiles
-    vp = Plotter(size=wsize, bg=args.background)
-    vp.axes = args.axes_type
-
-vp.verbose = not args.quiet
-vp.sharecam = not args.no_camera_share
-
-leg = True
-wire = False
-if args.legend_off or nfiles == 1:
-    leg = False
-if args.wireframe:
-    wire = True
+vp = None
+args = MyArgs()
 
 _alphaslider0, _alphaslider1, _alphaslider2 = 0.33, 0.66, 1  # defaults
+kact = 0
 
-########################################################################
-def _showVoxelImage():
+#################################################################################################
+def draw_scene():
+    global kact
 
-    import vtkplotter.colors as vc
-    from vtkplotter import Volume
-    import numpy as np
+    nfiles = len(args.files)
+    if nfiles == 0:
+        print("No input files provided.")
+        return
+    humansort(args.files)
 
-    printc("GPU Ray-casting Mode", c="b", invert=1)
-    printc("Press j to toggle jittering", c="b", invert=0, bold=0)
-    printc("      q to quit.", c="b", invert=0, bold=0)
-
-    vp.show(interactive=0)
-
-    filename = args.files[0]
-
-    img = vtkio.load(filename).imagedata()
-    if args.z_spacing:
-        ispa = img.GetSpacing()
-        img.SetSpacing(ispa[0], ispa[1], ispa[2] * args.z_spacing)
-    if args.y_spacing:
-        ispa = img.GetSpacing()
-        img.SetSpacing(ispa[0], ispa[1] * args.y_spacing, ispa[2])
-
-    volume = Volume(img, mode=int(args.mode))
-    volumeProperty = volume.GetProperty()
-
-    smin, smax = img.GetScalarRange()
-    if smax > 1e10:
-        print("Warning, high scalar range detected:", smax)
-        smax = abs(10 * smin) + 0.1
-        print("         reset to:", smax)
-
-    x0alpha = smin + (smax - smin) * 0.25
-    x1alpha = smin + (smax - smin) * 0.5
-    x2alpha = smin + (smax - smin) * 1.0
-
-    ############################## color map slider
-    # Create transfer mapping scalar value to color
-    colorTransferFunction = volumeProperty.GetRGBTransferFunction()
-    cmaps = [args.cmap, 'rainbow', 'viridis', 'bone', 'hot', 'plasma',
-             'winter', 'cool', 'gist_earth', 'coolwarm', 'tab10']
-    cols_cmaps = []
-    for cm in cmaps:
-        cols = vc.colorMap(range(0,21), cm, 0,20) # sample 20 colors
-        cols_cmaps.append(cols)
-    Ncols = len(cmaps)
-    csl = (0.9, 0.9, 0.9)
-    if sum(vc.getColor(args.background)) > 1.5:
-        csl = (0.1, 0.1, 0.1)
-
-    def setCMAP(k):
-        cols = cols_cmaps[k]
-        colorTransferFunction.RemoveAllPoints()
-        for i,s in enumerate(np.linspace(smin, smax, num=20, endpoint=True)):
-            r, g, b = cols[i]
-            colorTransferFunction.AddRGBPoint(s,  r, g, b)
-    setCMAP(0)
-
-    def sliderColorMap(widget, event):
-        sliderRep = widget.GetRepresentation()
-        k = int(sliderRep.GetValue())
-        sliderRep.SetTitleText(cmaps[k])
-        setCMAP(k)
-
-    w1 = vp.addSlider2D(
-        sliderColorMap,
-        0, Ncols-1,
-        value=0, showValue=0,
-        title=cmaps[0],
-        c=csl,
-        pos=[(0.8, 0.05), (0.965, 0.05)],
-    )
-    w1.GetRepresentation().SetTitleHeight(0.018)
-
-    ############################## alpha sliders
-    # Create transfer mapping scalar value to opacity
-    opacityTransferFunction =  volumeProperty.GetScalarOpacity()
-
-    def setOTF():
-        opacityTransferFunction.RemoveAllPoints()
-        opacityTransferFunction.AddPoint(smin, 0.0)
-        opacityTransferFunction.AddPoint(smin + (smax - smin) * 0.1, 0.0)
-        opacityTransferFunction.AddPoint(x0alpha, _alphaslider0)
-        opacityTransferFunction.AddPoint(x1alpha, _alphaslider1)
-        opacityTransferFunction.AddPoint(x2alpha, _alphaslider2)
-    setOTF()
-
-    def sliderA0(widget, event):
-        global _alphaslider0
-        _alphaslider0 = widget.GetRepresentation().GetValue()
-        setOTF()
-    w0 = vp.addSlider2D(
-        sliderA0, 0, 1, value=_alphaslider0, pos=[(0.84, 0.1), (0.84, 0.26)], c=csl, showValue=0
-    )
-
-    def sliderA1(widget, event):
-        global _alphaslider1
-        _alphaslider1 = widget.GetRepresentation().GetValue()
-        setOTF()
-    w1 = vp.addSlider2D(
-        sliderA1, 0, 1, value=_alphaslider1, pos=[(0.89, 0.1), (0.89, 0.26)], c=csl, showValue=0
-    )
-
-    def sliderA2(widget, event):
-        global _alphaslider2
-        _alphaslider2 = widget.GetRepresentation().GetValue()
-        setOTF()
-    w2 = vp.addSlider2D(
-        sliderA2, 0, 1, value=_alphaslider2, pos=[(0.96, 0.1), (0.96, 0.26)], c=csl, showValue=0,
-        title="Opacity levels",
-    )
-    w2.GetRepresentation().SetTitleHeight(0.016)
-
-    # add a button
-    def buttonfuncMode():
-        s = volume.mode()
-        snew = (s+1)%2
-        volume.mode(snew)
-        bum.switch()
-
-    bum = vp.addButton(
-        buttonfuncMode,
-        pos=(.7, .035),
-        states=["composite", "max proj."],
-        c=["bb", "gray"],
-        bc=["gray", "bb"],  # colors of states
-        font="arial",
-        size=16,
-        bold=0,
-        italic=False,
-    ).status(int(args.mode))
-
-    def keyfuncJitter(key): #toggle jittering
-        if key != 'j': return
-        if volume.jittering() is not None:
-            s = int(volume.jittering())
-            snew = (s+1)%2
-            volume.jittering(snew)
-            vp.interactor.Render()
-
-    volume.jittering(True)
-    vp.keyPressFunction = keyfuncJitter  # make it known to Plotter class
-
-    def CheckAbort(obj, event):
-        if obj.GetEventPending() != 0:
-            obj.SetAbortRender(1)
-    vp.window.AddObserver("AbortCheckEvent", CheckAbort)
-
-    # add histogram of scalar
-    from vtkplotter import histogram
-    dims = img.GetDimensions()
-    nvx = min(100000, dims[0]*dims[1]*dims[2])
-    np.random.seed(0)
-    idxs = np.random.randint(0, min(dims), size=(nvx, 3))
-    data = []
-    for ix, iy, iz in idxs:
-        d = img.GetScalarComponentAsFloat(ix, iy, iz, 0)
-        data.append(d)
-
-    plot = histogram(data, bins=40, logscale=1, c="gray", bg='gray', pos=(0.78, 0.065))
-    plot.GetPosition2Coordinate().SetValue(0.197, 0.20, 0)
-    plot.SetNumberOfXLabels(2)
-    plot.GetXAxisActor2D().SetFontFactor(0.8)
-    plot.GetProperty().SetOpacity(0.5)
-
-    vp.add(plot)
-    vp.add(volume)
-
-    vp.show(viewup='z', zoom=1.2, interactive=1)
-    w0.SetEnabled(0)
-    w1.SetEnabled(0)
-    w2.SetEnabled(0)
-
-
-
-##########################################################
-# special case of SLC/TIFF volumes with -g option
-if args.ray_cast_mode or args.z_spacing or args.y_spacing:
-    #print('DEBUG special case of SLC/TIFF volumes with -g option')
-    if args.axes_type in [1, 2, 3]:
-        vp.axes = 4
     wsize = "auto"
     if args.full_screen:
         wsize = "full"
-    _showVoxelImage()
-    exit()
-
-##########################################################
-# special case of SLC/TIFF/DICOM volumes with --slicer option
-elif args.slicer:
-    #print('DEBUG special case of SLC/TIFF/DICOM volumes with --slicer option')
-
-    filename = args.files[0]
-    img = vtkio.load(filename).imagedata()
-
-    ren1 = vtk.vtkRenderer()
-    renWin = vtk.vtkRenderWindow()
-    renWin.AddRenderer(ren1)
-    iren = vtk.vtkRenderWindowInteractor()
-    iren.SetRenderWindow(renWin)
-
-    im = vtk.vtkImageResliceMapper()
-    im.SetInputData(img)
-    im.SliceFacesCameraOn()
-    im.SliceAtFocalPointOn()
-    im.BorderOn()
-
-    ip = vtk.vtkImageProperty()
-    ip.SetInterpolationTypeToLinear()
-
-    ia = vtk.vtkImageSlice()
-    ia.SetMapper(im)
-    ia.SetProperty(ip)
-
-    ren1.AddViewProp(ia)
-    ren1.SetBackground(0.6, 0.6, 0.7)
-    renWin.SetSize(900, 900)
-
-    iren = vtk.vtkRenderWindowInteractor()
-    style = vtk.vtkInteractorStyleImage()
-    style.SetInteractionModeToImage3D()
-    iren.SetInteractorStyle(style)
-    renWin.SetInteractor(iren)
-
-    renWin.Render()
-    cam1 = ren1.GetActiveCamera()
-    cam1.ParallelProjectionOn()
-    ren1.ResetCameraClippingRange()
-    cam1.Zoom(1.3)
-    renWin.Render()
-
-    printc("Slicer Mode:", invert=1, c="m")
-    printc(
-        """Press  SHIFT+Left mouse    to rotate the camera for oblique slicing
-       SHIFT+Middle mouse  to slice perpendicularly through the image
-       Left mouse and Drag to modify luminosity and contrast
-       X                   to Reset to sagittal view
-       Y                   to Reset to coronal view
-       Z                   to Reset to axial view
-       R                   to Reset the Window/Levels
-       Q                   to Quit.""",
-        c="m",
-    )
-
-    iren.Start()
-    exit()
-
-
-########################################################################
-# normal mode for single VOXEL file with Isosurface Slider or LEGO mode
-elif nfiles == 1 and (
-       ".slc" in args.files[0]
-    or ".vti" in args.files[0]
-    or ".tif" in args.files[0]
-    or ".mhd" in args.files[0]
-    or ".nrrd" in args.files[0]
-    or ".dem" in args.files[0]
-):
-    #print('DEBUG normal mode for single VOXEL file with Isosurface Slider or LEGO mode')
-    image = vtkio.loadImageData(args.files[0])
-    scrange = image.GetScalarRange()
-    threshold = (scrange[1] - scrange[0]) / 3.0 + scrange[0]
-    #printHistogram(image, minbin=3, height=8, bins=40, logscale=1)
-    vol = Volume(image)
 
     if args.lego:
-        sliderpos = ((0.79, 0.035), (0.975, 0.035))
-        slidertitle = ""
-        showval = False
-        mbg = "white"
-        act = vol.legosurface(vmin=threshold, cmap=args.cmap)
-        act.addScalarBar(act, horizontal=1, vmin=scrange[0], vmax=scrange[1])
-    else:
-        sliderpos = 4
-        slidertitle = "isosurface threshold"
-        showval = True
-        mbg = "bb"
-        cf = vtk.vtkContourFilter()
-        cf.SetInputData(image)
-        cf.UseScalarTreeOn()
-        cf.ComputeScalarsOff()
-        ic = "gold"
-        if args.color is not None:
-            if args.color.isdigit():
-                ic = int(args.color)
-            else:
-                ic = args.color
+        if args.background == "":
+            args.background = "white"
+        if args.axes_type == 4:
+            args.axes_type = 1
 
-        cf.SetValue(0, threshold)
-        cf.Update()
-        act = Actor(cf.GetOutput(), c=ic, alpha=args.alpha).wireframe(args.wireframe)
-        act.phong()
+    if args.background == "":
+        args.background = "blackboard"
 
-    ############################## threshold slider
-    def sliderThres(widget, event):
-        if args.lego:
-            a = vol.legosurface(vmin=widget.GetRepresentation().GetValue(), cmap=args.cmap)
-        else:
-            cf.SetValue(0, widget.GetRepresentation().GetValue())
-            cf.Update()
-            poly = cf.GetOutput()
-            a = Actor(poly, ic, alpha=act.alpha()).wireframe(args.wireframe)
-            a.phong()
-        vp.actors = []
-        vp.renderer.RemoveActor(vp.getActors()[0])
-        vp.renderer.AddActor(a)
-        vp.renderer.Render()
+    if args.scrolling_mode and 3 < args.axes_type < 5:  # types 4 and 5 are not good for scrolling
+        args.axes_type = 8
 
-    dr = scrange[1] - scrange[0]
-    vp.addSlider2D(
-        sliderThres,
-        scrange[0] + 0.025 * dr,
-        scrange[1] - 0.025 * dr,
-        value=threshold,
-        pos=sliderpos,
-        title=slidertitle,
-        showValue=showval,
-    )
-
-    def CheckAbort(obj, event):
-        if obj.GetEventPending() != 0:
-            obj.SetAbortRender(1)
-
-    vp.window.AddObserver("AbortCheckEvent", CheckAbort)
-
-    act.legend(leg)
-    vp.show(act, zoom=args.zoom, viewup="z")
-
-
-########################################################################
-# NORMAL mode for single or multiple files, or multiren mode, or numpy scene
-elif nfiles == 1 or (not args.scrolling_mode):
-    #print('DEBUG NORMAL mode for single or multiple files, or multiren mode')
-
-    ##########################################################
-    # loading a full scene
-    if ".npy" in args.files[0] and nfiles == 1:
-        import numpy
-        data = numpy.load(args.files[0], allow_pickle=True)[0]
-        if 'objects' in data.keys():
-            vp = vtkio.importWindow(args.files[0])
-            vp.show()
-            exit()
-    ##########################################################
-
-    actors = []
-    for i in range(N):
-        f = args.files[i]
-
-        colb = args.color
-        if args.color is None and N > 1:
-            colb = i
-
-        actor = vp.load(f, c=colb, alpha=args.alpha)
-
-        if isinstance(actor, vtk.vtkActor):
-
-            if isinstance(actor, Actor):
-                actor.wireframe(wire)
-
-                if leg:
-                    actor.legend(os.path.basename(f))
-
-                actors.append(actor)
-
-                if args.point_size > 0:
-                    try:
-                        ps = actor.GetProperty().GetPointSize()
-                        actor.GetProperty().SetPointSize(args.point_size)
-                        actor.GetProperty().SetRepresentationToPoints()
-                    except AttributeError:
-                        pass
-
-                if args.multirenderer_mode:
-                    actor._legend = None
-                    vp.show(actor, at=i, interactive=False, zoom=args.zoom)
-                    vp.actors = actors
-
+    N = None
     if args.multirenderer_mode:
-        vp.interactor.Start()
+        if nfiles < 201:
+            N = nfiles
+        if nfiles > 200:
+            printc("~lightning Warning: option '-n' allows a maximum of 200 files", c=1)
+            printc("         you are trying to load ", nfiles, " files.\n", c=1)
+            N = 200
+        vp = Plotter(size=wsize, N=N, bg=args.background)
+        if args.axes_type == 1:
+            vp.axes = 0
     else:
-        vp.show(interactive=True, zoom=args.zoom)
+        N = nfiles
+        vp = Plotter(size=wsize, bg=args.background)
+        vp.axes = args.axes_type
 
-########################################################################
-# scrolling mode  -s
-else:
-    #print('DEBUG scrolling mode  -s')
-    import numpy
+    vp.verbose = not args.quiet
+    vp.sharecam = not args.no_camera_share
 
-    n = len(args.files)
-    pb = ProgressBar(0, n)
+    leg = True
+    wire = False
+    if args.legend_off or nfiles == 1:
+        leg = False
+    if args.wireframe:
+        wire = True
 
-    # load files first
-    for i, f in enumerate(args.files):
-        pb.print("..loading")
+    ########################################################################
+    def _showVoxelImage():
 
-        ic = None
-        if args.color is not None:
-            if args.color.isdigit():
-                ic = int(args.color)
+        import vtkplotter.colors as vc
+        from vtkplotter import Volume
+        import numpy as np
+
+        printc("GPU Ray-casting Mode", c="b", invert=1)
+        printc("Press j to toggle jittering", c="b", invert=0, bold=0)
+        printc("      q to quit.", c="b", invert=0, bold=0)
+
+        vp.show(interactive=0)
+
+        filename = args.files[0]
+
+        img = vtkio.load(filename).imagedata()
+        if args.z_spacing:
+            ispa = img.GetSpacing()
+            img.SetSpacing(ispa[0], ispa[1], ispa[2] * args.z_spacing)
+        if args.y_spacing:
+            ispa = img.GetSpacing()
+            img.SetSpacing(ispa[0], ispa[1] * args.y_spacing, ispa[2])
+
+        volume = Volume(img, mode=int(args.mode))
+        volumeProperty = volume.GetProperty()
+
+        smin, smax = img.GetScalarRange()
+        if smax > 1e10:
+            print("Warning, high scalar range detected:", smax)
+            smax = abs(10 * smin) + 0.1
+            print("         reset to:", smax)
+
+        x0alpha = smin + (smax - smin) * 0.25
+        x1alpha = smin + (smax - smin) * 0.5
+        x2alpha = smin + (smax - smin) * 1.0
+
+        ############################## color map slider
+        # Create transfer mapping scalar value to color
+        colorTransferFunction = volumeProperty.GetRGBTransferFunction()
+        cmaps = [
+            args.cmap,
+            "rainbow",
+            "viridis",
+            "bone",
+            "hot",
+            "plasma",
+            "winter",
+            "cool",
+            "gist_earth",
+            "coolwarm",
+            "tab10",
+        ]
+        cols_cmaps = []
+        for cm in cmaps:
+            cols = vc.colorMap(range(0, 21), cm, 0, 20)  # sample 20 colors
+            cols_cmaps.append(cols)
+        Ncols = len(cmaps)
+        csl = (0.9, 0.9, 0.9)
+        if sum(vc.getColor(args.background)) > 1.5:
+            csl = (0.1, 0.1, 0.1)
+
+        def setCMAP(k):
+            cols = cols_cmaps[k]
+            colorTransferFunction.RemoveAllPoints()
+            for i, s in enumerate(np.linspace(smin, smax, num=20, endpoint=True)):
+                r, g, b = cols[i]
+                colorTransferFunction.AddRGBPoint(s, r, g, b)
+
+        setCMAP(0)
+
+        def sliderColorMap(widget, event):
+            sliderRep = widget.GetRepresentation()
+            k = int(sliderRep.GetValue())
+            sliderRep.SetTitleText(cmaps[k])
+            setCMAP(k)
+
+        w1 = vp.addSlider2D(
+            sliderColorMap,
+            0,
+            Ncols - 1,
+            value=0,
+            showValue=0,
+            title=cmaps[0],
+            c=csl,
+            pos=[(0.8, 0.05), (0.965, 0.05)],
+        )
+        w1.GetRepresentation().SetTitleHeight(0.018)
+
+        ############################## alpha sliders
+        # Create transfer mapping scalar value to opacity
+        opacityTransferFunction = volumeProperty.GetScalarOpacity()
+
+        def setOTF():
+            opacityTransferFunction.RemoveAllPoints()
+            opacityTransferFunction.AddPoint(smin, 0.0)
+            opacityTransferFunction.AddPoint(smin + (smax - smin) * 0.1, 0.0)
+            opacityTransferFunction.AddPoint(x0alpha, _alphaslider0)
+            opacityTransferFunction.AddPoint(x1alpha, _alphaslider1)
+            opacityTransferFunction.AddPoint(x2alpha, _alphaslider2)
+
+        setOTF()
+
+        def sliderA0(widget, event):
+            global _alphaslider0
+            _alphaslider0 = widget.GetRepresentation().GetValue()
+            setOTF()
+
+        w0 = vp.addSlider2D(
+            sliderA0, 0, 1, value=_alphaslider0, pos=[(0.84, 0.1), (0.84, 0.26)], c=csl, showValue=0
+        )
+
+        def sliderA1(widget, event):
+            global _alphaslider1
+            _alphaslider1 = widget.GetRepresentation().GetValue()
+            setOTF()
+
+        w1 = vp.addSlider2D(
+            sliderA1, 0, 1, value=_alphaslider1, pos=[(0.89, 0.1), (0.89, 0.26)], c=csl, showValue=0
+        )
+
+        def sliderA2(widget, event):
+            global _alphaslider2
+            _alphaslider2 = widget.GetRepresentation().GetValue()
+            setOTF()
+
+        w2 = vp.addSlider2D(
+            sliderA2, 0, 1, value=_alphaslider2, pos=[(0.96, 0.1), (0.96, 0.26)], c=csl, showValue=0,
+            title="Opacity levels",
+        )
+        w2.GetRepresentation().SetTitleHeight(0.016)
+
+        # add a button
+        def buttonfuncMode():
+            s = volume.mode()
+            snew = (s + 1) % 2
+            volume.mode(snew)
+            bum.switch()
+
+        bum = vp.addButton(
+            buttonfuncMode,
+            pos=(0.7, 0.035),
+            states=["composite", "max proj."],
+            c=["bb", "gray"],
+            bc=["gray", "bb"],  # colors of states
+            font="arial",
+            size=16,
+            bold=0,
+            italic=False,
+        ).status(int(args.mode))
+
+        def keyfuncJitter(key):  # toggle jittering
+            if key != "j":
+                return
+            if volume.jittering() is not None:
+                s = int(volume.jittering())
+                snew = (s + 1) % 2
+                volume.jittering(snew)
+                vp.interactor.Render()
+
+        volume.jittering(True)
+        vp.keyPressFunction = keyfuncJitter  # make it known to Plotter class
+
+        def CheckAbort(obj, event):
+            if obj.GetEventPending() != 0:
+                obj.SetAbortRender(1)
+
+        vp.window.AddObserver("AbortCheckEvent", CheckAbort)
+
+        # add histogram of scalar
+        from vtkplotter import histogram
+
+        dims = img.GetDimensions()
+        nvx = min(100000, dims[0] * dims[1] * dims[2])
+        np.random.seed(0)
+        idxs = np.random.randint(0, min(dims), size=(nvx, 3))
+        data = []
+        for ix, iy, iz in idxs:
+            d = img.GetScalarComponentAsFloat(ix, iy, iz, 0)
+            data.append(d)
+
+        plot = histogram(
+            data, bins=40, logscale=1, c="gray", bg="gray", pos=(0.78, 0.065)
+        )
+        plot.GetPosition2Coordinate().SetValue(0.197, 0.20, 0)
+        plot.SetNumberOfXLabels(2)
+        plot.GetXAxisActor2D().SetFontFactor(0.8)
+        plot.GetProperty().SetOpacity(0.5)
+
+        vp.add(plot)
+        vp.add(volume)
+
+        vp.show(viewup="z", zoom=1.2, interactive=1)
+        w0.SetEnabled(0)
+        w1.SetEnabled(0)
+        w2.SetEnabled(0)
+
+    ##########################################################
+    # special case of SLC/TIFF volumes with -g option
+    if args.ray_cast_mode or args.z_spacing or args.y_spacing:
+        # print('DEBUG special case of SLC/TIFF volumes with -g option')
+        if args.axes_type in [1, 2, 3]:
+            vp.axes = 4
+        wsize = "auto"
+        if args.full_screen:
+            wsize = "full"
+        _showVoxelImage()
+        return
+
+    ##########################################################
+    # special case of SLC/TIFF/DICOM volumes with --slicer option
+    elif args.slicer:
+        # print('DEBUG special case of SLC/TIFF/DICOM volumes with --slicer option')
+
+        filename = args.files[0]
+        img = vtkio.load(filename).imagedata()
+
+        ren1 = vtk.vtkRenderer()
+        renWin = vtk.vtkRenderWindow()
+        renWin.AddRenderer(ren1)
+        iren = vtk.vtkRenderWindowInteractor()
+        iren.SetRenderWindow(renWin)
+
+        im = vtk.vtkImageResliceMapper()
+        im.SetInputData(img)
+        im.SliceFacesCameraOn()
+        im.SliceAtFocalPointOn()
+        im.BorderOn()
+
+        ip = vtk.vtkImageProperty()
+        ip.SetInterpolationTypeToLinear()
+
+        ia = vtk.vtkImageSlice()
+        ia.SetMapper(im)
+        ia.SetProperty(ip)
+
+        ren1.AddViewProp(ia)
+        ren1.SetBackground(0.6, 0.6, 0.7)
+        renWin.SetSize(900, 900)
+
+        iren = vtk.vtkRenderWindowInteractor()
+        style = vtk.vtkInteractorStyleImage()
+        style.SetInteractionModeToImage3D()
+        iren.SetInteractorStyle(style)
+        renWin.SetInteractor(iren)
+
+        renWin.Render()
+        cam1 = ren1.GetActiveCamera()
+        cam1.ParallelProjectionOn()
+        ren1.ResetCameraClippingRange()
+        cam1.Zoom(1.3)
+        renWin.Render()
+
+        printc("Slicer Mode:", invert=1, c="m")
+        printc(
+            """Press  SHIFT+Left mouse    to rotate the camera for oblique slicing
+           SHIFT+Middle mouse  to slice perpendicularly through the image
+           Left mouse and Drag to modify luminosity and contrast
+           X                   to Reset to sagittal view
+           Y                   to Reset to coronal view
+           Z                   to Reset to axial view
+           R                   to Reset the Window/Levels
+           Q                   to Quit.""",
+            c="m",
+        )
+
+        iren.Start()
+        return
+
+    ########################################################################
+    # normal mode for single VOXEL file with Isosurface Slider or LEGO mode
+    elif nfiles == 1 and (
+        ".slc" in args.files[0]
+        or ".vti" in args.files[0]
+        or ".tif" in args.files[0]
+        or ".mhd" in args.files[0]
+        or ".nrrd" in args.files[0]
+        or ".dem" in args.files[0]
+    ):
+        # print('DEBUG normal mode for single VOXEL file with Isosurface Slider or LEGO mode')
+        image = vtkio.loadImageData(args.files[0])
+        scrange = image.GetScalarRange()
+        threshold = (scrange[1] - scrange[0]) / 3.0 + scrange[0]
+        # printHistogram(image, minbin=3, height=8, bins=40, logscale=1)
+        vol = Volume(image)
+
+        if args.lego:
+            sliderpos = ((0.79, 0.035), (0.975, 0.035))
+            slidertitle = ""
+            showval = False
+            act = vol.legosurface(vmin=threshold, cmap=args.cmap)
+            act.addScalarBar(horizontal=1, vmin=scrange[0], vmax=scrange[1])
+        else:
+            sliderpos = 4
+            slidertitle = "isosurface threshold"
+            showval = True
+            cf = vtk.vtkContourFilter()
+            cf.SetInputData(image)
+            cf.UseScalarTreeOn()
+            cf.ComputeScalarsOff()
+            ic = "gold"
+            if args.color is not None:
+                if args.color.isdigit():
+                    ic = int(args.color)
+                else:
+                    ic = args.color
+
+            cf.SetValue(0, threshold)
+            cf.Update()
+            act = Actor(cf.GetOutput(), c=ic, alpha=args.alpha).wireframe(args.wireframe)
+            act.phong()
+
+        ############################## threshold slider
+        def sliderThres(widget, event):
+            if args.lego:
+                a = vol.legosurface(vmin=widget.GetRepresentation().GetValue(), cmap=args.cmap)
             else:
-                ic = args.color
+                cf.SetValue(0, widget.GetRepresentation().GetValue())
+                cf.Update()
+                poly = cf.GetOutput()
+                a = Actor(poly, ic, alpha=act.alpha()).wireframe(args.wireframe)
+                a.phong()
+            vp.actors = []
+            vp.renderer.RemoveActor(vp.getActors()[0])
+            vp.renderer.AddActor(a)
+            vp.renderer.Render()
 
-        actor = vp.load(f, c=ic, alpha=args.alpha).legend(leg)
-        if hasattr(actor, 'wireframe'): # can be Image or volume
-            actor.wireframe(wire)
-            if args.point_size > 0:
-                actor.pointSize(args.point_size)
+        dr = scrange[1] - scrange[0]
+        vp.addSlider2D(
+            sliderThres,
+            scrange[0] + 0.025 * dr,
+            scrange[1] - 0.025 * dr,
+            value=threshold,
+            pos=sliderpos,
+            title=slidertitle,
+            showValue=showval,
+        )
 
-    # calculate max actors bounds
-    bns = []
-    for a in vp.actors:
-        if a and a.GetPickable():
-            b = a.GetBounds()
-            if b:
-                bns.append(b)
-    if len(bns):
-        max_bns = numpy.max(bns, axis=0)
-        min_bns = numpy.min(bns, axis=0)
-        vbb = (min_bns[0], max_bns[1], min_bns[2], max_bns[3], min_bns[4], max_bns[5])
+        def CheckAbort(obj, event):
+            if obj.GetEventPending() != 0:
+                obj.SetAbortRender(1)
 
-    # show the first
-    saveacts = vp.actors
-    vp.show(vp.actors[0], interactive=False, zoom=args.zoom)
-    vp.actors = saveacts
+        vp.window.AddObserver("AbortCheckEvent", CheckAbort)
 
-    if isinstance(vp.axes_instances[0], vtk.vtkCubeAxesActor):
-        vp.axes_instances[0].SetBounds(vbb)
-    cb = (1, 1, 1)
-    if numpy.sum(vp.renderer.GetBackground()) > 1.5:
-        cb = (0.1, 0.1, 0.1)
+        act.legend(leg)
+        vp.show(act, zoom=args.zoom, viewup="z")
+        return
 
-    # define the slider
-    kact = 0
-    for a in vp.actors:
-        a.off()
-    vp.actors[0].on()
-    def sliderf(widget, event):
-        global kact
-        kactnew = int(widget.GetRepresentation().GetValue())
-        if kactnew == kact: return
-        vp.actors[kact].off()
-        vp.actors[kactnew].on()
-        kact = kactnew
-        printc("Scrolling Mode:", c="y", invert=1, end="")
-        printc(" showing file nr.", kact, args.files[kact].split("/")[-1],
-               "\r", c="y", bold=0, end="")
+    ########################################################################
+    # NORMAL mode for single or multiple files, or multiren mode, or numpy scene
+    elif nfiles == 1 or (not args.scrolling_mode):
+        # print('DEBUG NORMAL mode for single or multiple files, or multiren mode')
 
-    vp.addSlider2D(sliderf, 0, n-1, pos=4, c=cb, showValue=False)
+        ##########################################################
+        # loading a full scene
+        if ".npy" in args.files[0] and nfiles == 1:
+            import numpy
 
-    vp.show(interactive=True, zoom=args.zoom)
-    print()
+            data = numpy.load(args.files[0], allow_pickle=True)[0]
+            if "objects" in data.keys():
+                vp = vtkio.importWindow(args.files[0])
+                vp.show()
+                return
+        ##########################################################
+
+        actors = []
+        for i in range(N):
+            f = args.files[i]
+
+            colb = args.color
+            if args.color is None and N > 1:
+                colb = i
+
+            actor = vp.load(f, c=colb, alpha=args.alpha)
+
+            if isinstance(actor, vtk.vtkActor):
+
+                if isinstance(actor, Actor):
+                    actor.wireframe(wire)
+
+                    if leg:
+                        actor.legend(os.path.basename(f))
+
+                    actors.append(actor)
+
+                    if args.point_size > 0:
+                        try:
+                            actor.GetProperty().SetPointSize(args.point_size)
+                            actor.GetProperty().SetRepresentationToPoints()
+                        except AttributeError:
+                            pass
+
+                    if args.multirenderer_mode:
+                        actor._legend = None
+                        vp.show(actor, at=i, interactive=False, zoom=args.zoom)
+                        vp.actors = actors
+
+        if args.multirenderer_mode:
+            vp.interactor.Start()
+        else:
+            vp.show(interactive=True, zoom=args.zoom)
+        return
+
+    ########################################################################
+    # scrolling mode  -s
+    else:
+        #print("DEBUG scrolling mode  -s")
+        import numpy
+
+        n = len(args.files)
+        pb = ProgressBar(0, n)
+
+        # load files first
+        for i, f in enumerate(args.files):
+            pb.print("..loading")
+
+            ic = None
+            if args.color is not None:
+                if args.color.isdigit():
+                    ic = int(args.color)
+                else:
+                    ic = args.color
+
+            actor = vp.load(f, c=ic, alpha=args.alpha).legend(leg)
+            if hasattr(actor, "wireframe"):  # can be Image or volume
+                actor.wireframe(wire)
+                if args.point_size > 0:
+                    actor.pointSize(args.point_size)
+
+        # calculate max actors bounds
+        bns = []
+        for a in vp.actors:
+            if a and a.GetPickable():
+                b = a.GetBounds()
+                if b:
+                    bns.append(b)
+        if len(bns):
+            max_bns = numpy.max(bns, axis=0)
+            min_bns = numpy.min(bns, axis=0)
+            vbb = (min_bns[0], max_bns[1], min_bns[2], max_bns[3], min_bns[4], max_bns[5])
+
+        # show the first
+        saveacts = vp.actors
+        vp.show(vp.actors[0], interactive=False, zoom=args.zoom)
+        vp.actors = saveacts
+
+        if isinstance(vp.axes_instances[0], vtk.vtkCubeAxesActor):
+            vp.axes_instances[0].SetBounds(vbb)
+        cb = (1, 1, 1)
+        if numpy.sum(vp.renderer.GetBackground()) > 1.5:
+            cb = (0.1, 0.1, 0.1)
+
+        # define the slider
+        for a in vp.actors:
+            a.off()
+        vp.actors[0].on()
+
+        def sliderf(widget, event):
+            global kact
+            kactnew = int(widget.GetRepresentation().GetValue())
+            if kactnew == kact:
+                return
+            vp.actors[kact].off()
+            vp.actors[kactnew].on()
+            kact = kactnew
+            printc("Scrolling Mode:", c="y", invert=1, end="")
+            printc(" showing file nr.", kact, args.files[kact].split("/")[-1],
+                   "\r", c="y", bold=0, end="")
+
+        vp.addSlider2D(sliderf, 0, n - 1, pos=4, c=cb, showValue=False)
+
+        vp.show(interactive=True, zoom=args.zoom)
+        print()
+        return
+
+
+#################################################################################
+# GUI or argparse
+#################################################################################
+if len(sys.argv) == 1 or os.name == "nt":  # no args are passed, pop up GUI
+
+    # print('DEBUG gui started')
+    if sys.version_info[0] > 2:
+        from tkinter import Frame, Tk, BOTH, Label, Scale, Checkbutton, BooleanVar
+        from tkinter.ttk import Button, Style, Combobox
+        from tkinter import filedialog as tkFileDialog
+    else:
+        from Tkinter import Frame, Tk, BOTH, Label, Scale, Checkbutton, BooleanVar
+        from ttk import Button, Style, Combobox
+        import tkFileDialog
+
+    ######################
+    class vtkplotterGUI(Frame):
+        def __init__(self, parent):
+            Frame.__init__(self, parent, bg="white")
+            self.parent = parent
+            self.filenames = []
+            self.jitter = BooleanVar()
+            self.wire = BooleanVar()
+            self.noshare = BooleanVar()
+            self.initUI()
+
+        def initUI(self):
+            self.parent.title("vtkplotter")
+            self.style = Style()
+            self.style.theme_use("clam")
+            self.pack(fill=BOTH, expand=True)
+
+            ############import
+            Button(self, text="Import Files", command=self._importCMD).place(x=20, y=15)
+
+            ############meshes
+            Frame(root, height=1, width=398, bg="grey").place(x=1, y=60)
+            Label(self, text="Meshes", fg="white", bg="green").place(x=20, y=65)
+
+            # color
+            Label(self, text="Color:", bg="white").place(x=40, y=98)
+            colvalues = ('by scalar', 'gold','red','green','blue', 'white','blackboard','black')
+            self.colorCB = Combobox(self, state="readonly", values=colvalues, width=10)
+            self.colorCB.current(0)
+            self.colorCB.place(x=130, y=98)
+            # wireframe
+            self.wireCB = Checkbutton(
+                self, text="wireframe", variable=self.wire, bg="white"
+            )
+            self.wireCB.place(x=250, y=98)
+
+            # alpha
+            Label(self, text="Alpha:", bg="white").place(x=40, y=140)
+            self.alphaCB = Scale(
+                self,
+                from_=0,
+                to=1,
+                resolution=0.02,
+                bg="white",
+                length=200,
+                orient="horizontal",
+            )
+            self.alphaCB.set(1.0)
+            self.alphaCB.place(x=130, y=120)
+
+            # point size
+            Label(self, text='Point Size:', bg="white").place(x=40, y=180)
+            self.ptSizeCB = Scale(self, from_=0, to=8, bg='white', length=200, orient='horizontal')
+            self.ptSizeCB.set(0)
+            self.ptSizeCB.place(x=130, y=160)
+
+            ############volumes
+            Frame(root, height=1, width=398, bg="grey").place(x=1, y=220)
+            Label(self, text="Volumes", fg="white", bg="blue").place(x=20, y=225)
+
+            # mode
+            Label(self, text="Rendering Mode:", bg="white").place(x=40, y=250)
+            modevalues = (
+                "isosurface",
+                "composite",
+                "maximum proj",
+                "minimum proj",
+                "lego",
+                "slicer",
+            )
+            self.modeCB = Combobox(self, state="readonly", values=modevalues, width=10)
+            self.modeCB.current(0)
+            self.modeCB.place(x=160, y=250)
+
+            # wireframe
+            self.jitterCB = Checkbutton(self, text="jitter", variable=self.jitter, bg="white")
+            self.jitterCB.place(x=270, y=250)
+
+            ############## rendering options
+            Frame(root,height=1,width=398,bg="grey").place(x=1, y=295)
+            Label(self, text="Rendering Options", fg='white', bg="brown").place(x=20, y=300)
+
+            # rendering arrangement
+            Label(self, text="Arrange as:", bg="white").place(x=40, y=330)
+            schemevalues = ('default (superpose)','file browser', 'n-panels')
+            self.schememodeCB = Combobox(self, state="readonly", values=schemevalues, width=20)
+            self.schememodeCB.current(0)
+            self.schememodeCB.place(x=160, y=330)
+
+            # backgr color
+            Label(self, text="Backgrnd Color:", bg="white").place(x=40, y=365)
+            bgcolvalues = ("white", "blackboard", "black")
+            self.bgcolorCB = Combobox(
+                self, state="readonly", values=bgcolvalues, width=10
+            )
+            self.bgcolorCB.current(1)
+            self.bgcolorCB.place(x=160, y=365)
+
+            # share cam
+            self.noshareCB = Checkbutton(self, text="independent cameras",
+                                         variable=self.noshare, bg="white")
+            self.noshareCB.place(x=160, y=400)
+
+            ################ show
+            Frame(root, height=1, width=398, bg="grey").place(x=1, y=435)
+            Button(self, text="Render", command=self._run).place(x=240, y=450)
+
+        def _importCMD(self):
+            ftypes = [
+                ("All files", "*"),
+                ("VTK files", "*.vtk"),
+                ("VTK files", "*.vtp"),
+                ("VTK files", "*.vts"),
+                ("VTK files", "*.vtu"),
+                ("Surface Mesh files", "*.ply"),
+                ("Surface Mesh files", "*.obj"),
+                ("Surface Mesh files", "*.stl"),
+                ("Surface Mesh files", "*.off"),
+                ("Surface Mesh files", "*.facet"),
+                ("Volume files", "*.tif"),
+                ("Volume files", "*.slc"),
+                ("Volume files", "*.vti"),
+                ("Volume files", "*.mhd"),
+                ("Volume files", "*.nrrd"),
+                ("Volume files", "*.nii"),
+                ("Volume files", "*.dem"),
+                ("Picture files", "*.png"),
+                ("Picture files", "*.jpg"),
+                ("Picture files", "*.bmp"),
+                ("Picture files", "*.jpeg"),
+                ("Geojson files", "*.geojson"),
+                ("DOLFIN files", "*.xml.gz"),
+                ("DOLFIN files", "*.xml"),
+                ("DOLFIN files", "*.xdmf"),
+                ("Neutral mesh", "*.neu*"),
+                ("GMESH", "*.gmsh"),
+                ("Point Cloud", "*.pcd"),
+                ("3DS", "*.3ds"),
+                ("Numpy scene files", "*.npy"),
+            ]
+            self.filenames = tkFileDialog.askopenfilenames(parent=root, filetypes=ftypes)
+            args.files = list(self.filenames)
+
+        def _run(self):
+            args.files = list(self.filenames)
+            if self.colorCB.get() == "by scalar":
+                args.color = None
+            else:
+                args.color = self.colorCB.get()
+            args.alpha = self.alphaCB.get()
+            args.wireframe = self.wire.get()
+            args.point_size = self.ptSizeCB.get()
+            args.no_camera_share = self.noshare.get()
+            args.background = self.bgcolorCB.get()
+
+            args.multirenderer_mode = False
+            args.scrolling_mode = False
+            if self.schememodeCB.get() == "n-panels":
+                args.multirenderer_mode = True
+            elif self.schememodeCB.get() == "file browser":
+                args.scrolling_mode = True
+
+            args.ray_cast_mode = False
+            args.lego = False
+            args.slicer = False
+            args.lego = False
+            args.mode = 0
+            if self.modeCB.get() == "composite":
+                args.ray_cast_mode = True
+                args.mode = 0
+            elif self.modeCB.get() == "maximum proj":
+                args.ray_cast_mode = True
+                args.mode = 1
+            #            elif self.modeCB.get() == 'minimum proj':
+            #                args.ray_cast_mode = True
+            #                args.mode = 2
+            elif self.modeCB.get() == "slicer":
+                args.slicer = True
+            elif self.modeCB.get() == "lego":
+                args.lego = True
+
+            draw_scene()
+            if os.name == "nt":
+                exit()
+            settings.plotter_instance.close()
+
+    root = Tk()
+    root.geometry("360x490")
+    app = vtkplotterGUI(root)
+
+    if os.name == "nt" and len(sys.argv) > 1:
+        app.filenames = sys.argv[1:]
+        print("Already", len(app.filenames), "files loaded.")
+
+    root.mainloop()
+
+
+else:  ################################################################################################# command line mode
+
+    pr = argparse.ArgumentParser(description="version "+str(__version__)+""" -
+                                 check out home page https://github.com/marcomusy/vtkplotter""")
+    pr.add_argument('files', nargs='*',             help="Input filename(s)")
+    pr.add_argument("-c", "--color", type=str,      help="mesh color [integer or color name]", default=None, metavar='')
+    pr.add_argument("-a", "--alpha",    type=float, help="alpha value [0-1]", default=1, metavar='')
+    pr.add_argument("-w", "--wireframe",            help="use wireframe representation", action="store_true")
+    pr.add_argument("-p", "--point-size", type=float, help="specify point size", default=-1, metavar='')
+    pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-5]", default=4, metavar='')
+    pr.add_argument("-i", "--no-camera-share",      help="do not share camera in renderers", action="store_true")
+    pr.add_argument("-l", "--legend-off",           help="do not show legends", action="store_true")
+    pr.add_argument("-f", "--full-screen",          help="full screen mode", action="store_true")
+    pr.add_argument("-bg","--background", type=str, help="background color [integer or color name]", default='', metavar='')
+    pr.add_argument("-z", "--zoom", type=float,     help="zooming factor", default=1, metavar='')
+    pr.add_argument("-q", "--quiet",                help="quiet mode, less verbose", default=False, action="store_false")
+    pr.add_argument("-n", "--multirenderer-mode",   help="Multi renderer Mode: files go to separate renderers", action="store_true")
+    pr.add_argument("-s", "--scrolling-mode",       help="Scrolling Mode: use arrows to scroll files", action="store_true")
+    pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode for 3D image files", action="store_true")
+    pr.add_argument("-gz", "--z-spacing", type=float, help="Volume z-spacing factor [1]", default=None, metavar='')
+    pr.add_argument("-gy", "--y-spacing", type=float, help="Volume y-spacing factor [1]", default=None, metavar='')
+    pr.add_argument("--slicer",                     help="Slicer Mode for 3D image files", action="store_true")
+    pr.add_argument("--lego",                       help="Voxel rendering for 3D image files", action="store_true")
+    pr.add_argument("--cmap",                       help="Voxel rendering color map name", default='jet', metavar='')
+    pr.add_argument("--mode",                       help="Voxel rendering composite mode", default=0, metavar='')
+    args = pr.parse_args()
+    draw_scene()

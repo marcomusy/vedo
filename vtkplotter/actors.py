@@ -23,7 +23,7 @@ __all__ = [
     'Assembly',
     'Picture',
     'Volume',
-    'mergeActors',
+    'merge',
     'collection',
 ]
 
@@ -31,7 +31,7 @@ __all__ = [
 # functions
 def collection():
     """
-    Return the list of actor which have been created so far,
+    Return the list of objects which have been created so far,
     without having to assign them a name.
     Useful in loops.
 
@@ -46,7 +46,7 @@ def collection():
     return settings.collectable_actors
 
 
-def mergeActors(*actors):
+def merge(*actors):
     """
     Build a new actor formed by the fusion of the polygonal meshes of the input objects.
     Similar to Assembly, but in this case the input objects become a single mesh.
@@ -73,7 +73,8 @@ def mergeActors(*actors):
 
 # classes
 class Prop(object):
-    """Adds functionality to ``Actor``, ``Assembly`` and ``Volume`` objects.
+    """Adds functionality to ``Actor``, ``Assembly``,
+    ``Volume`` and ``Picture`` objects.
 
     .. warning:: Do not use this class to instance objects, use the above ones.
     """
@@ -97,7 +98,6 @@ class Prop(object):
         self._legend = None
         self.scalarbar = None
         self.renderedAt = set()
-        #self.k3dobj = None
 
 
     def inputdata(self):
@@ -500,7 +500,7 @@ class Prop(object):
         """
         Set the ambient, diffuse, specular and specularPower lighting constants.
 
-        :param str style: preset style, can be `[metallic, plastic, shiny, reflective]`
+        :param str,int style: preset style, can be `[metallic, plastic, shiny, reflective]`
         :param float ambient: ambient fraction of emission [0-1]
         :param float diffuse: emission of diffused light in fraction [0-1]
         :param float specular: fraction of reflected light [0-1]
@@ -508,7 +508,7 @@ class Prop(object):
         :param color specularColor: color that is being reflected by the surface
         :param bool enabled: enable/disable all surface light emission
 
-        .. image:: https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png
+        |wikiphong|
 
         |specular| |specular.py|_
         """
@@ -519,11 +519,14 @@ class Prop(object):
                 c = pr.GetColor()
             else:
                 c = (1,1,0.99)
-            if    style == 'metallic':   pars = [0.1, 0.3, 1.0, 10, c]
-            elif  style == 'plastic':    pars = [0.3, 0.4, 0.3,  5, c]
-            elif  style == 'shiny':      pars = [0.2, 0.6, 0.8, 50, c]
-            elif  style == 'reflective': pars = [0.1, 0.7, 0.9, 90, (1,1,0.99)]
-            elif  style == 'default':    pars = [0.1, 1.0, 0.05, 5, c]
+            mpr = self.mapper
+            if hasattr(mpr, 'GetScalarVisibility') and mpr.GetScalarVisibility():
+                c = (1,1,0.99)
+            if   style=='metallic'  : pars = [0.1, 0.3, 1.0, 10, c]
+            elif style=='plastic'   : pars = [0.3, 0.4, 0.3,  5, c]
+            elif style=='shiny'     : pars = [0.2, 0.6, 0.8, 50, c]
+            elif style=='reflective': pars = [0.1, 0.7, 0.9, 90, (1,1,0.99)]
+            elif style=='default'   : pars = [0.1, 1.0, 0.05, 5, c]
             else:
                 colors.printc("Error in lighting(): Available styles are", c=1)
                 colors.printc(" [default, metallic, plastic, shiny, reflective]", c=1)
@@ -834,7 +837,6 @@ class Actor(vtk.vtkActor, Prop):
             colors.printc("Error: cannot build Actor from type:\n", inputtype, c=1)
             raise RuntimeError()
 
-
         if self.mapper:
             self.mapper.InterpolateScalarsBeforeMappingOn()
             self.SetMapper(self.mapper)
@@ -859,7 +861,6 @@ class Actor(vtk.vtkActor, Prop):
         self.point_locator = None
         self.cell_locator = None
         self.line_locator = None
-        self.scalarbar_actor = None
         self._bfprop = None  # backface property holder
         self._scals_idx = 0 # index of the active scalar changed from CLI
 
@@ -888,9 +889,6 @@ class Actor(vtk.vtkActor, Prop):
                         iarr = cldata.GetArray(i)
                         if iarr:
                             icname = iarr.GetName()
-    #                        if icname is None:
-    #                            icname = 'cellarray'
-    #                            iarr.SetName(icname)
                             if icname and all(s not in icname.lower() for s in exclude):
                                 cldata.SetActiveScalars(icname)
                                 self.mapper.ScalarVisibilityOn()
@@ -905,9 +903,6 @@ class Actor(vtk.vtkActor, Prop):
                         iarr = ptdata.GetArray(i)
                         if iarr:
                             ipname = iarr.GetName()
-    #                        if ipname is None:
-    #                            ipname = 'pointarray'
-    #                            iarr.SetName(ipname)
                             if ipname and all(s not in ipname.lower() for s in exclude):
                                 ptdata.SetActiveScalars(ipname)
                                 self.mapper.ScalarVisibilityOn()
@@ -1062,14 +1057,34 @@ class Actor(vtk.vtkActor, Prop):
                 break
         return conn # cannot always make a numpy array of it!
 
-    def addScalarBar(self, c=None, title="", horizontal=False, vmin=None, vmax=None):
+    def addScalarBar(self,
+                     pos=(0.8,0.05),
+                     title="",
+                     titleXOffset=0,
+                     titleYOffset=15,
+                     titleFontSize=12,
+                     nlabels=10,
+                     c=None,
+                     horizontal=False,
+                     vmin=None, vmax=None,
+    ):
         """
         Add a 2D scalar bar to actor.
 
         |mesh_bands| |mesh_bands.py|_
         """
-        # book it, it will be created by Plotter.show() later
-        self.scalarbar = [c, title, horizontal, vmin, vmax]
+        import vtkplotter.addons as addons
+        self.scalarbar = addons.addScalarBar(self,
+                 pos,
+                 title,
+                 titleXOffset,
+                 titleYOffset,
+                 titleFontSize,
+                 nlabels,
+                 c,
+                 horizontal,
+                 vmin, vmax,
+                 )
         return self
 
     def addScalarBar3D(
@@ -1078,20 +1093,38 @@ class Actor(vtk.vtkActor, Prop):
         normal=(0, 0, 1),
         sx=0.1,
         sy=2,
+        title='',
+        titleXOffset = -1.4, # space btw title and scale
+        titleYOffset = 0.0,
+        titleSize =  1.5,
+        titleRotation = 0.0,
         nlabels=9,
-        ncols=256,
-        cmap=None,
-        c="k",
+        precision=3,
+        labelOffset = 0.4,  # space btw numeric labels and scale
+        c=None,
         alpha=1,
+        cmap=None,
     ):
         """
         Draw a 3D scalar bar to actor.
 
         |mesh_coloring| |mesh_coloring.py|_
         """
-        # book it, it will be created by Plotter.show() later
-        self.scalarbar = [pos, normal, sx, sy, nlabels, ncols, cmap, c, alpha]
-        return self
+        import vtkplotter.addons as addons
+        self.scalarbar = addons.addScalarBar3D(self,
+                                                pos,
+                                                normal,
+                                                sx, sy,
+                                                title,
+                                                titleXOffset,
+                                                titleYOffset,
+                                                titleSize,
+                                                titleRotation,
+                                                nlabels,
+                                                precision,
+                                                labelOffset,
+                                                c, alpha, cmap)
+        return self.scalarbar
 
     def texture(self, tname):
         """Assign a texture to actor from image file or predefined texture tname."""
@@ -1117,7 +1150,8 @@ class Actor(vtk.vtkActor, Prop):
         if os.path.exists(tname):
             fn = tname
         elif not os.path.exists(fn):
-            colors.printc("~sad Texture", tname, "not found in", settings.textures_path, c="r")
+            colors.printc("~sad Texture", tname,
+                          "not found in", settings.textures_path, c="r")
             colors.printc("~pin Available textures:", c="m", end=" ")
             for ff in os.listdir(settings.textures_path):
                 colors.printc(ff.split(".")[0], end=" ", c="m")
@@ -1224,7 +1258,8 @@ class Actor(vtk.vtkActor, Prop):
         raise RuntimeError()
 
     def wireframe(self, value=True):
-        """Set actor's representation as wireframe or solid surface. Same as `wireframe()`."""
+        """Set actor's representation as wireframe or solid surface.
+        Same as `wireframe()`."""
         if value:
             self.GetProperty().SetRepresentationToWireframe()
         else:
@@ -1234,7 +1269,7 @@ class Actor(vtk.vtkActor, Prop):
     def flat(self):
         """Set surface interpolation to Flat.
 
-        .. image:: https://upload.wikimedia.org/wikipedia/commons/8/84/Phong-shading-sample.jpg
+        |wikiphong|
         """
         self.GetProperty().SetInterpolationToFlat()
         return self
@@ -1250,7 +1285,8 @@ class Actor(vtk.vtkActor, Prop):
         return self
 
     def backFaceCulling(self, value=True):
-        """Set culling of polygons based on orientation of normal with respect to camera."""
+        """Set culling of polygons based on orientation
+        of normal with respect to camera."""
         self.GetProperty().SetBackfaceCulling(value)
         return self
 
@@ -1367,8 +1403,8 @@ class Actor(vtk.vtkActor, Prop):
         Clean actor's polydata. Can also be used to decimate a mesh if ``tol`` is large.
         If ``tol=None`` only removes coincident points.
 
-        :param tol: defines how far should be the points from each other in terms of fraction
-            of the bounding box length.
+        :param tol: defines how far should be the points from each other
+            in terms of fraction of the bounding box length.
 
         |moving_least_squares1D| |moving_least_squares1D.py|_
 
@@ -1503,7 +1539,8 @@ class Actor(vtk.vtkActor, Prop):
 
             |align1| |quadratic_morphing|
 
-        .. note:: The appropriate kd-tree search locator is built on the fly and cached for speed.
+        .. note:: The appropriate kd-tree search locator is built on the
+            fly and cached for speed.
         """
         poly = self.polydata(True)
 
@@ -1669,7 +1706,8 @@ class Actor(vtk.vtkActor, Prop):
         elif axis.lower() == "n":
             pass
         else:
-            colors.printc("~times Error in mirror(): mirror must be set to x, y, z or n.", c=1)
+            colors.printc("~times Error in mirror(): mirror must be set to x, y, z or n.",
+                          c=1)
             raise RuntimeError()
 
         if axis != "n":
@@ -1809,7 +1847,6 @@ class Actor(vtk.vtkActor, Prop):
     def cutWithPlane(self, origin=(0, 0, 0), normal=(1, 0, 0), showcut=False):
         """
         Takes a ``vtkActor`` and cuts it with the plane defined by a point and a normal.
-        Input object is modified.
 
         :param origin: the cutting plane goes through this point
         :param normal: normal of the cutting plane
@@ -1866,7 +1903,6 @@ class Actor(vtk.vtkActor, Prop):
     def cutWithMesh(self, mesh, invert=False):
         """
         Cut an ``Actor`` mesh with another ``vtkPolyData`` or ``Actor``.
-         Input object is modified.
 
         :param bool invert: if True return cut off part of actor.
 
@@ -1903,18 +1939,42 @@ class Actor(vtk.vtkActor, Prop):
         # use vtkClipDataSet to slice the grid with the polydata
         clipper = vtk.vtkClipPolyData()
         clipper.SetInputData(poly)
-        if invert:
-            clipper.InsideOutOff()
-        else:
-            clipper.InsideOutOn()
+        clipper.SetInsideOut(not invert)
         clipper.SetValue(0.0)
         clipper.Update()
         return self.updateMesh(clipper.GetOutput())
 
+    def cutWithPointLoop(self, points, invert=False):
+        """
+        Cut an ``Actor`` mesh with a set of points forming a closed loop.
+        """
+        if isinstance(points, Actor):
+            vpts = points.polydata().GetPoints()
+            points = points.coordinates()
+        else:
+            vpts = vtk.vtkPoints()
+            for p in points:
+                vpts.InsertNextPoint(p)
+
+        spol = vtk.vtkSelectPolyData()
+        spol.SetLoop(vpts)
+        spol.GenerateSelectionScalarsOn()
+        spol.GenerateUnselectedOutputOff()
+        spol.SetInputData(self.polydata())
+        spol.Update()
+
+        # use vtkClipDataSet to slice the grid with the polydata
+        clipper = vtk.vtkClipPolyData()
+        clipper.SetInputData(spol.GetOutput())
+        clipper.SetInsideOut(not invert)
+        clipper.SetValue(0.0)
+        clipper.Update()
+        return self.updateMesh(clipper.GetOutput())
+
+
     def cap(self, returnCap=False):
         """
         Generate a "cap" on a clipped actor, or caps sharp edges.
-        Input object is modified.
 
         |cutAndCap| |cutAndCap.py|_
         """
@@ -2001,16 +2061,24 @@ class Actor(vtk.vtkActor, Prop):
         tf.Update()
         return self.updateMesh(tf.GetOutput())
 
-    def pointColors(self, scalars, cmap="jet", alpha=1, bands=None, vmin=None, vmax=None):
+    def pointColors(self, scalars_or_colors, cmap="jet", alpha=1,
+                    mode='scalars',
+                    bands=None, vmin=None, vmax=None):
         """
         Set individual point colors by providing a list of scalar values and a color map.
         `scalars` can be a string name of the ``vtkArray``.
+
+        if ``mode='colors'``, colorize vertices of a mesh one by one,
+        passing a 1-to-1 list of colors.
+
+        :param list alphas: single value or list of transparencies for each vertex
 
         :param cmap: color map scheme to transform a real number into a color.
         :type cmap: str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap
         :param alpha: mesh transparency. Can be a ``list`` of values one for each vertex.
         :type alpha: float, list
-        :param int bands: group scalars in this number of bins, typically to form bands or stripes.
+        :param int bands: group scalars in this number of bins,
+        typically to form bands or stripes.
         :param float vmin: clip scalars to this minimum value
         :param float vmax: clip scalars to this maximum value
 
@@ -2018,13 +2086,18 @@ class Actor(vtk.vtkActor, Prop):
 
              |mesh_coloring| |mesh_alphas| |mesh_bands| |mesh_custom|
         """
+        ####################################################################
+        if 'color' in mode:
+            return self._pointColors1By1(scalars_or_colors, alpha)
+        ####################################################################
+
         poly = self.polydata(False)
 
-        if isinstance(scalars, str):  # if a name is passed
-            scalars = vtk_to_numpy(poly.GetPointData().GetArray(scalars))
+        if isinstance(scalars_or_colors, str):  # if a name is passed
+            scalars_or_colors = vtk_to_numpy(poly.GetPointData().GetArray(scalars_or_colors))
 
         try:
-            n = len(scalars)
+            n = len(scalars_or_colors)
         except TypeError:  # invalid type
             return self
 
@@ -2039,12 +2112,12 @@ class Actor(vtk.vtkActor, Prop):
                               n, len(alpha), c=1)
                 raise RuntimeError()
         if bands:
-            scalars = utils.makeBands(scalars, bands)
+            scalars_or_colors = utils.makeBands(scalars_or_colors, bands)
 
         if vmin is None:
-            vmin = np.min(scalars)
+            vmin = np.min(scalars_or_colors)
         if vmax is None:
-            vmax = np.max(scalars)
+            vmax = np.max(scalars_or_colors)
 
         lut = vtk.vtkLookupTable()  # build the look-up table
 
@@ -2062,7 +2135,7 @@ class Actor(vtk.vtkActor, Prop):
 
         elif isinstance(cmap, vtk.vtkLookupTable):
             sname = "pointColors_lut"
-            lut = cmap
+            lut.DeepCopy(cmap)
 
         else:
             if isinstance(cmap, str):
@@ -2079,7 +2152,7 @@ class Actor(vtk.vtkActor, Prop):
                 else:
                     lut.SetTableValue(i, r, g, b, alpha)
 
-        arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
+        arr = numpy_to_vtk(np.ascontiguousarray(scalars_or_colors), deep=True)
         arr.SetName(sname)
         self.mapper.SetArrayName(sname)
         self.mapper.SetScalarRange(vmin, vmax)
@@ -2090,26 +2163,81 @@ class Actor(vtk.vtkActor, Prop):
         poly.GetPointData().SetActiveScalars(sname)
         return self
 
-    def cellColors(self, scalars, cmap="jet", alpha=1, bands=None, vmin=None, vmax=None):
+    def _pointColors1By1(self, acolors, alphas=1):
+        ptData = vtk.vtkUnsignedIntArray()
+        ptData.SetName("VertexColors")
+        lut = vtk.vtkLookupTable()
+        n = self.poly.GetNumberOfPoints()
+        if len(acolors) != n or (utils.isSequence(alphas) and len(alphas) != n):
+            colors.printc("~times _pointColors1By1(): mismatch in input list sizes.", c=1)
+            return self
+        lut.SetNumberOfTableValues(n)
+        lut.Build()
+        cols = colors.getColor(acolors)
+        if not utils.isSequence(alphas):
+            alphas = [alphas] * n
+        for i in range(n):
+            ptData.InsertNextValue(i)
+            c = cols[i]
+            lut.SetTableValue(i, c[0], c[1], c[2], alphas[i])
+        self.poly.GetPointData().SetScalars(ptData)
+        self.poly.GetPointData().Modified()
+        self.mapper.SetScalarRange(0, n-1)
+        self.mapper.SetLookupTable(lut)
+        self.mapper.SetArrayName("VertexColors")
+        self.mapper.SetScalarModeToUsePointData()
+        self.mapper.ScalarVisibilityOn()
+        return self
+
+
+    def cellColors(self, scalars_or_colors, cmap="jet", alpha=1, alphaPerCell=False,
+                   mode='scalars',
+                   bands=None, vmin=None, vmax=None):
         """
-        Set individual cell colors by setting a scalar.
+        Set individual cell colors by setting a list of scalars.
+
+        If ``mode='scalars'`` (default), set individual cell colors by the
+        provided list of scalars.
+
+        If ``mode='colors'``, colorize the faces of a mesh one by one,
+        passing a 1-to-1 list of colors and optionally a list of transparencies.
+
+        :param alpha: mesh transparency. Can be a ``list`` of values one for each cell.
+        :type alpha: float, list
+
+        Only relevant with ``mode='scalars'`` (default):
 
         :param cmap: color map scheme to transform a real number into a color.
         :type cmap: str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap
-        :param alpha: mesh transparency. Can be a ``list`` of values one for each vertex.
-        :type alpha: float, list
-        :param int bands: group scalars in this number of bins, typically to form bands of stripes.
+        :param int bands: group scalars in this number of bins,
+        typically to form bands of stripes.
         :param float vmin: clip scalars to this minimum value
         :param float vmax: clip scalars to this maximum value
 
+        Only relevant with ``mode='colors'``:
+
+        :param bool alphaPerCell: Only matters if `alpha` is a sequence. If so:
+            if `True` assume that the list of opacities is independent
+            on the colors (same color cells can have different alphas),
+            this can be very slow for large meshes,
+
+            if `False` [default] assume that the alpha matches the color list
+            (same color has the same opacity).
+            This is very fast even for large meshes.
+
         |mesh_coloring| |mesh_coloring.py|_
         """
+        ####################################################################
+        if 'color' in mode:
+            return self._cellColors1By1(scalars_or_colors, alpha, alphaPerCell)
+        ####################################################################
+
         poly = self.polydata(False)
 
-        if isinstance(scalars, str):  # if a name is passed
-            scalars = vtk_to_numpy(poly.GetCellData().GetArray(scalars))
+        if isinstance(scalars_or_colors, str):  # if a name is passed
+            scalars_or_colors = vtk_to_numpy(poly.GetCellData().GetArray(scalars_or_colors))
 
-        n = len(scalars)
+        n = len(scalars_or_colors)
         useAlpha = False
         if n != poly.GetNumberOfCells():
             colors.printc('~times cellColors(): nr. of scalars != nr. of cells',
@@ -2121,12 +2249,12 @@ class Actor(vtk.vtkActor, Prop):
                               n, len(alpha), c=1)
                 raise RuntimeError()
         if bands:
-            scalars = utils.makeBands(scalars, bands)
+            scalars_or_colors = utils.makeBands(scalars_or_colors, bands)
 
         if vmin is None:
-            vmin = np.min(scalars)
+            vmin = np.min(scalars_or_colors)
         if vmax is None:
-            vmax = np.max(scalars)
+            vmax = np.max(scalars_or_colors)
 
         lut = vtk.vtkLookupTable()  # build the look-up table
 
@@ -2144,7 +2272,7 @@ class Actor(vtk.vtkActor, Prop):
 
         elif isinstance(cmap, vtk.vtkLookupTable):
             sname = "cellColors_lut"
-            lut = cmap
+            lut.DeepCopy(cmap)
 
         else:
             if isinstance(cmap, str):
@@ -2161,7 +2289,7 @@ class Actor(vtk.vtkActor, Prop):
                 else:
                     lut.SetTableValue(i, r, g, b, alpha)
 
-        arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
+        arr = numpy_to_vtk(np.ascontiguousarray(scalars_or_colors), deep=True)
         arr.SetName(sname)
         self.mapper.SetArrayName(sname)
         self.mapper.SetScalarRange(vmin, vmax)
@@ -2172,28 +2300,13 @@ class Actor(vtk.vtkActor, Prop):
         poly.GetCellData().SetActiveScalars(sname)
         return self
 
-    def colorCellsByArray(self, acolors, alphas=1, alphaPerCell=False):
-        """
-        Colorize faces of a mesh one by one, passing a 1-to-1 list of colors and
-        optionally a list of transparencies.
-
-        :param list acolors: list of color for each cell
-        :param list alphas: single value or list of transparencies for each cell
-        :param bool alphaPerCell: Only matters if `alpha` is a sequence. If so:
-            if `True` assume that the list of opacities is independent
-            on the colors (same color cells can have different alphas),
-            this can be very slow for large meshes,
-
-            if `False` [default] assume that the alpha matches the color list
-            (same color has the same opacity).
-            This is very fast even for large meshes.
-        """
+    def _cellColors1By1(self, acolors, alphas, alphaPerCell):
         cellData = vtk.vtkUnsignedIntArray()
         cellData.SetName("CellColors")
 
         n = self.poly.GetNumberOfCells()
         if len(acolors) != n or (utils.isSequence(alphas) and len(alphas) != n):
-            colors.printc("~times colorCellsByArray(): mismatch in input list sizes.", c=1)
+            colors.printc("~times _cellColors1By1(): mismatch in input list sizes.", c=1)
             return self
 
         lut = vtk.vtkLookupTable()
@@ -2242,39 +2355,6 @@ class Actor(vtk.vtkActor, Prop):
         self.mapper.SetLookupTable(lut)
         self.mapper.SetArrayName("CellColors")
         self.mapper.SetScalarModeToUseCellData()
-        self.mapper.ScalarVisibilityOn()
-        return self
-
-    def colorVerticesByArray(self, acolors, alphas=1):
-        """
-        Colorize vertices of a mesh one by one, passing a 1-to-1 list of colors and
-        optionally a list of transparencies.
-
-        :param list acolors: list of color for each vertex
-        :param list alphas: single value or list of transparencies for each vertex
-        """
-        ptData = vtk.vtkUnsignedIntArray()
-        ptData.SetName("VertexColors")
-        lut = vtk.vtkLookupTable()
-        n = self.poly.GetNumberOfPoints()
-        if len(acolors) != n or (utils.isSequence(alphas) and len(alphas) != n):
-            colors.printc("~times colorVerticesByArray(): mismatch in input list sizes.", c=1)
-            return self
-        lut.SetNumberOfTableValues(n)
-        lut.Build()
-        cols = colors.getColor(acolors)
-        if not utils.isSequence(alphas):
-            alphas = [alphas] * n
-        for i in range(n):
-            ptData.InsertNextValue(i)
-            c = cols[i]
-            lut.SetTableValue(i, c[0], c[1], c[2], alphas[i])
-        self.poly.GetPointData().SetScalars(ptData)
-        self.poly.GetPointData().Modified()
-        self.mapper.SetScalarRange(0, n-1)
-        self.mapper.SetLookupTable(lut)
-        self.mapper.SetArrayName("VertexColors")
-        self.mapper.SetScalarModeToUsePointData()
         self.mapper.ScalarVisibilityOn()
         return self
 
@@ -2440,7 +2520,8 @@ class Actor(vtk.vtkActor, Prop):
         Downsample the number of vertices in a mesh.
 
         :param float fraction: the desired target of reduction.
-        :param int N: the desired number of final points (**fraction** is recalculated based on it).
+        :param int N: the desired number of final points
+        (**fraction** is recalculated based on it).
         :param str method: can be either 'quadric' or 'pro'. In the first case triagulation
             will look like more regular, irrespective of the mesh origianl curvature.
             In the second case triangles are more irregular but mesh is more precise on more
@@ -2504,8 +2585,10 @@ class Actor(vtk.vtkActor, Prop):
         Adjust mesh point positions using `Laplacian` smoothing.
 
         :param int niter: number of iterations.
-        :param float relaxfact: relaxation factor. Small `relaxfact` and large `niter` are more stable.
-        :param float edgeAngle: edge angle to control smoothing along edges (either interior or boundary).
+        :param float relaxfact: relaxation factor.
+        Small `relaxfact` and large `niter` are more stable.
+        :param float edgeAngle: edge angle to control smoothing along edges
+        (either interior or boundary).
         :param float featureAngle: specifies the feature angle for sharp edge identification.
 
         .. hint:: |mesh_smoothers.py|_
@@ -2532,7 +2615,8 @@ class Actor(vtk.vtkActor, Prop):
 
         :param int niter: number of iterations.
         :param float passBand: set the passband value for the windowed sinc filter.
-        :param float edgeAngle: edge angle to control smoothing along edges (either interior or boundary).
+        :param float edgeAngle: edge angle to control smoothing along edges
+        (either interior or boundary).
         :param float featureAngle: specifies the feature angle for sharp edge identification.
 
         |mesh_smoothers| |mesh_smoothers.py|_
@@ -2634,7 +2718,8 @@ class Actor(vtk.vtkActor, Prop):
         """
         Return the list of vertex coordinates of the input mesh. Same as `actor.getPoints()`.
 
-        :param bool transformed: if `False` ignore any previous transformation applied to the mesh.
+        :param bool transformed: if `False` ignore any previous transformation
+        applied to the mesh.
         :param bool copy: if `False` return the reference to the points
             so that they can be modified in place, otherwise a copy is built.
 
@@ -3155,9 +3240,6 @@ class Volume(vtk.vtkVolume, Prop):
             img.SetSpacing(spacing)
 
         self._image = img
-        self.scalarbar_actor = None
-        self.scalarbar = None
-
         self.mapper.SetInputData(img)
         self.SetMapper(self.mapper)
         self.mode(mode).color(c).alpha(alpha).alphaGradient(alphaGradient)

@@ -2,7 +2,9 @@
 vtkRenderingWindow layer, after
 the first rendering it can be
 zoomed to fill the window."""
-from vtkplotter import Plotter, load, Polygon, Text, datadir
+from vtkplotter import *
+
+settings.showRendererFrame = False
 
 doc = Text(__doc__, c="k", bg="w")
 

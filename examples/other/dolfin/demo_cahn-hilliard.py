@@ -88,17 +88,20 @@ from vtkplotter.dolfin import plot
 
 t = 0
 T = 10*dt
+scalarbar = False
 while t < T:
     t += dt
     u0.vector()[:] = u.vector()
     solver.solve(problem, u.vector())
+    if t==T: 
+        scalarbar = 'horizontal'
     
     plot(u.split()[0],
          z=t*2e4,
          add=True, # do not clear the canvas
          style=0,
          lw=0,
-         scalarbar='h',
+         scalarbar=scalarbar,
          elevation=-3, # move camera a bit
          azimuth=1,
          text='time: '+str(t*2e4),

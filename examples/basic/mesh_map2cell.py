@@ -10,7 +10,7 @@ mesh1 = load(datadir+'icosahedron.vtk')
 scals = mesh1.coordinates()[:, 2]
 
 mesh1.lineWidth(0.1).addPointScalars(scals, name='scals')
-mesh2 = mesh1.clone().addScalarBar().mapPointsToCells()
+mesh2 = mesh1.clone().addScalarBar(c='w').mapPointsToCells()
 
 doc = Text(__doc__, pos=8, c="w")
 msg1 = Text("Scalar originally defined on points..", pos=5, c="w")

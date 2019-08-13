@@ -11,7 +11,7 @@ coords1 = s1.coordinates() # get the vertices coords
 coords2 = s2.coordinates()
 
 # color can be a colormap which maps arrrow sizes
-a1 = Arrows(coords1, coords2, c='coolwarm', alpha=0.4).addScalarBar()
+a1 = Arrows(coords1, coords2, c='coolwarm', alpha=0.4).addScalarBar(c='w')
 
 
 # get a list of random rgb colors

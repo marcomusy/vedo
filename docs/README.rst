@@ -40,6 +40,10 @@ Download and Install:
 
 Check out the **Git repository** here: https://github.com/marcomusy/vtkplotter
 
+*Windows-10 users* can manually place this file
+`vtkplotter.bat <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter.bat>`_
+on the desktop to *drag&drop* files to visualize. 
+(Need to edit the path of their local Anaconda installation).
 
 
 Features:
@@ -96,7 +100,9 @@ for the all following functionalities:
 - Export a 3D scene and embed it into a html page.
 - Support for `FEniCS/dolfin <https://fenicsproject.org/>`_ package.
 - Visualization of tensors.
-- Embed the 3D rendering in a jupyter notebook with K3D.
+- Embed the 3D rendering in a jupyter notebook with the *K3D* backend.
+- Export a 3D scene and embed it into a `web page <https://vtkplotter.embl.es/examples/fenics_elasticity.html>`_.
+- Interoperability with the `trimesh <https://trimsh.org/>`_ library.
 
 
 Hello World example
@@ -108,7 +114,7 @@ In your python script, load a simple ``3DS`` file and display it:
 
     from vtkplotter import show
     
-    show('data/flamingo.3ds') 
+    show('flamingo.3ds') 
 
 .. image:: https://user-images.githubusercontent.com/32848391/50738813-58af4380-11d8-11e9-84ce-53579c1dba65.png
    :alt: flam
@@ -160,7 +166,7 @@ Visualize colorized voxels:
 
 .. code-block:: bash
 
-    vtkplotter --lego examples/data/embryo.slc
+    vtkplotter --lego examples/data/embryo.tif
 
 .. image:: https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg
 
