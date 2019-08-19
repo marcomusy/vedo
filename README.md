@@ -97,9 +97,7 @@ To visualize multiple files or files time-sequences try `-n` or `-s` options. Us
 
 ## GUI
 A Graphic User Interface is available (mainly useful to *Windows 10* users):
-|         | |
-|:--------|
-| ![gui](https://user-images.githubusercontent.com/32848391/63259840-c861d280-c27f-11e9-9c2a-99d0fae85313.png) | |
+![gui](https://user-images.githubusercontent.com/32848391/63259840-c861d280-c27f-11e9-9c2a-99d0fae85313.png)
 
 ## Examples Gallery
 A get-started tutorial script is available for download:
