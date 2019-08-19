@@ -21,7 +21,7 @@ show(man1, at=0, N=3, axes=0, elevation=-60)
 
 ##################################### pointColors
 man2 = load(datadir+"man.vtk")
-scals = man2.coordinates()[:, 1] + 37  # pick y coordinates of vertices
+scals = man2.getPoints()[:, 1] + 37  # pick y coordinates of vertices
 
 man2.pointColors(scals, cmap="bone", vmin=36.2, vmax=36.7)  # right dark arm
 man2.addScalarBar(horizontal=True)

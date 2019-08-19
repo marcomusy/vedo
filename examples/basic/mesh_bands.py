@@ -12,11 +12,11 @@ doc = Text(__doc__, c="k", bg="lg")
 
 
 hyp = Hyperboloid()
-scalars = hyp.coordinates()[:, 2]  # let z-coord be the scalar
+scalars = hyp.getPoints()[:, 2]  # let z-coord be the scalar
 hyp.pointColors(scalars, bands=5, cmap="rainbow")  # make color bands
 
 tor = Torus(thickness=0.3)
-scalars = tor.coordinates()[:, 2]  # let z-coord be the scalar
+scalars = tor.getPoints()[:, 2]  # let z-coord be the scalar
 transp = linspace(1, 0.5, len(scalars))  # set transparencies from 1 -> .5
 tor.pointColors(scalars, alpha=transp, bands=3, cmap="winter")
 

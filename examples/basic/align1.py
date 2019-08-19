@@ -15,7 +15,7 @@ arim = alignICP(rim, limb, rigid=True).c("g").lw(5)
 vp += [arim, Text(__doc__)]
 
 d = 0
-for p in arim.coordinates():
+for p in arim.getPoints():
     cpt = limb.closestPoint(p)
     vp += Arrow(p, cpt, c="g")
     d += mag2(p - cpt)  # square of residual distance

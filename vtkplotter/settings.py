@@ -164,30 +164,38 @@ def embedWindow(backend='k3d', verbose=True):
         notebookBackend = None
         notebook_plotter = None
         return
-
-    notebookBackend = backend
-    if backend=='k3d':
-
+    else:
         try:
             get_ipython()
         except:
             notebookBackend = None
+            notebook_plotter = None
             return
 
+    notebookBackend = backend
+    
+    if backend=='k3d':
         try:
             import k3d
-            #if verbose:
-            #    print('INFO: embedWindow(verbose=True), importing k3d module')
         except:
             notebookBackend = None
             if verbose:
                 print('embedWindow(verbose=True): could not load k3d module, try:')
-                print('> pip install k3d      # and/or')
+                print('> pip install k3d      # and if necessary:')
+                print('> conda install nodejs')
+
+    elif 'itk' in backend: # itkwidgets
+        try:
+            import itkwidgets
+        except:
+            notebookBackend = None
+            if verbose:
+                print('embedWindow(verbose=True): could not load itkwidgets module, try:')
+                print('> pip install itkwidgets    # and if necessary:')
                 print('> conda install nodejs')
 
     elif backend=='panel':
         try:
-            get_ipython()
             if verbose:
                 print('INFO: embedWindow(verbose=True), first import of panel module, this takes time...')
             import panel

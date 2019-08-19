@@ -98,7 +98,8 @@ class Prop(object):
         self._legend = None
         self.scalarbar = None
         self.renderedAt = set()
-
+        self.picked3d = None
+        self.cmap = None
 
     def inputdata(self):
         """Return the VTK input data object."""
@@ -500,7 +501,7 @@ class Prop(object):
         """
         Set the ambient, diffuse, specular and specularPower lighting constants.
 
-        :param str,int style: preset style, can be `[metallic, plastic, shiny, reflective]`
+        :param str,int style: preset style, can be `[metallic, plastic, shiny, glossy]`
         :param float ambient: ambient fraction of emission [0-1]
         :param float diffuse: emission of diffused light in fraction [0-1]
         :param float specular: fraction of reflected light [0-1]
@@ -522,14 +523,14 @@ class Prop(object):
             mpr = self.mapper
             if hasattr(mpr, 'GetScalarVisibility') and mpr.GetScalarVisibility():
                 c = (1,1,0.99)
-            if   style=='metallic'  : pars = [0.1, 0.3, 1.0, 10, c]
-            elif style=='plastic'   : pars = [0.3, 0.4, 0.3,  5, c]
-            elif style=='shiny'     : pars = [0.2, 0.6, 0.8, 50, c]
-            elif style=='reflective': pars = [0.1, 0.7, 0.9, 90, (1,1,0.99)]
-            elif style=='default'   : pars = [0.1, 1.0, 0.05, 5, c]
+            if   style=='metallic': pars = [0.1, 0.3, 1.0, 10, c]
+            elif style=='plastic' : pars = [0.3, 0.4, 0.3,  5, c]
+            elif style=='shiny'   : pars = [0.2, 0.6, 0.8, 50, c]
+            elif style=='glossy'  : pars = [0.1, 0.7, 0.9, 90, (1,1,0.99)]
+            elif style=='default' : pars = [0.1, 1.0, 0.05, 5, c]
             else:
                 colors.printc("Error in lighting(): Available styles are", c=1)
-                colors.printc(" [default, metallic, plastic, shiny, reflective]", c=1)
+                colors.printc(" [default, metallic, plastic, shiny, glossy]", c=1)
                 raise RuntimeError()
             pr.SetAmbient(pars[0])
             pr.SetDiffuse(pars[1])
@@ -863,8 +864,10 @@ class Actor(vtk.vtkActor, Prop):
         self.line_locator = None
         self._bfprop = None  # backface property holder
         self._scals_idx = 0 # index of the active scalar changed from CLI
+        self._ligthingnr = 0
 
         prp = self.GetProperty()
+        prp.SetInterpolationToPhong()
 
         if settings.renderPointsAsSpheres:
             if hasattr(prp, 'RenderPointsAsSpheresOn'):
@@ -1000,7 +1003,11 @@ class Actor(vtk.vtkActor, Prop):
         :param bool copy: if `False` return the reference to the points
             so that they can be modified in place.
         """
-        return self.coordinates(transformed, copy)
+        poly = self.polydata(transformed)
+        if copy:
+            return np.array(vtk_to_numpy(poly.GetPoints().GetData()))
+        else:
+            return vtk_to_numpy(poly.GetPoints().GetData())
 
     def setPoints(self, pts):
         """
@@ -1015,6 +1022,18 @@ class Actor(vtk.vtkActor, Prop):
         # reset actor to identity matrix position/rotation:
         self.PokeMatrix(vtk.vtkMatrix4x4())
         return self
+
+    def coordinates(self, transformed=True, copy=False):
+        """
+        Return the list of vertex coordinates of the input mesh.
+        Same as `actor.getPoints()`.
+
+        :param bool transformed: if `False` ignore any previous transformation
+            applied to the mesh.
+        :param bool copy: if `False` return the reference to the points
+            so that they can be modified in place, otherwise a copy is built.
+        """
+        return self.getPoints(transformed, copy)
 
     def faces(self):
         """Get cell connettivity ids as a python ``list``.
@@ -1325,6 +1344,7 @@ class Actor(vtk.vtkActor, Prop):
             return self
         elif isinstance(c, str):
             if c in colors._mapscales_cmaps:
+                self.cmap = c
                 if self.poly.GetPointData().GetScalars():
                     aname = self.poly.GetPointData().GetScalars().GetName()
                     if aname: self.pointColors(aname, cmap=c)
@@ -2077,8 +2097,7 @@ class Actor(vtk.vtkActor, Prop):
         :type cmap: str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap
         :param alpha: mesh transparency. Can be a ``list`` of values one for each vertex.
         :type alpha: float, list
-        :param int bands: group scalars in this number of bins,
-        typically to form bands or stripes.
+        :param int bands: group scalars in this number of bins, typically to form bands or stripes.
         :param float vmin: clip scalars to this minimum value
         :param float vmax: clip scalars to this maximum value
 
@@ -2139,6 +2158,7 @@ class Actor(vtk.vtkActor, Prop):
 
         else:
             if isinstance(cmap, str):
+                self.cmap = cmap
                 sname = "pointColors_" + cmap
             else:
                 sname = "pointColors"
@@ -2209,8 +2229,7 @@ class Actor(vtk.vtkActor, Prop):
 
         :param cmap: color map scheme to transform a real number into a color.
         :type cmap: str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap
-        :param int bands: group scalars in this number of bins,
-        typically to form bands of stripes.
+        :param int bands: group scalars in this number of bins, typically to form bands of stripes.
         :param float vmin: clip scalars to this minimum value
         :param float vmax: clip scalars to this maximum value
 
@@ -2276,6 +2295,7 @@ class Actor(vtk.vtkActor, Prop):
 
         else:
             if isinstance(cmap, str):
+                self.cmap = cmap
                 sname = "cellColors_" + cmap
             else:
                 sname = "cellColors"
@@ -2521,7 +2541,7 @@ class Actor(vtk.vtkActor, Prop):
 
         :param float fraction: the desired target of reduction.
         :param int N: the desired number of final points
-        (**fraction** is recalculated based on it).
+            (**fraction** is recalculated based on it).
         :param str method: can be either 'quadric' or 'pro'. In the first case triagulation
             will look like more regular, irrespective of the mesh origianl curvature.
             In the second case triangles are more irregular but mesh is more precise on more
@@ -2586,9 +2606,9 @@ class Actor(vtk.vtkActor, Prop):
 
         :param int niter: number of iterations.
         :param float relaxfact: relaxation factor.
-        Small `relaxfact` and large `niter` are more stable.
+            Small `relaxfact` and large `niter` are more stable.
         :param float edgeAngle: edge angle to control smoothing along edges
-        (either interior or boundary).
+            (either interior or boundary).
         :param float featureAngle: specifies the feature angle for sharp edge identification.
 
         .. hint:: |mesh_smoothers.py|_
@@ -2616,7 +2636,7 @@ class Actor(vtk.vtkActor, Prop):
         :param int niter: number of iterations.
         :param float passBand: set the passband value for the windowed sinc filter.
         :param float edgeAngle: edge angle to control smoothing along edges
-        (either interior or boundary).
+             (either interior or boundary).
         :param float featureAngle: specifies the feature angle for sharp edge identification.
 
         |mesh_smoothers| |mesh_smoothers.py|_
@@ -2713,23 +2733,6 @@ class Actor(vtk.vtkActor, Prop):
                 tp.SetInputData(self.poly)
                 tp.Update()
                 return tp.GetOutput()
-
-    def coordinates(self, transformed=True, copy=False):
-        """
-        Return the list of vertex coordinates of the input mesh. Same as `actor.getPoints()`.
-
-        :param bool transformed: if `False` ignore any previous transformation
-        applied to the mesh.
-        :param bool copy: if `False` return the reference to the points
-            so that they can be modified in place, otherwise a copy is built.
-
-        .. hint:: |align1.py|_
-        """
-        poly = self.polydata(transformed)
-        if copy:
-            return np.array(vtk_to_numpy(poly.GetPoints().GetData()))
-        else:
-            return vtk_to_numpy(poly.GetPoints().GetData())
 
     def isInside(self, point, tol=0.0001):
         """
@@ -3057,7 +3060,7 @@ class Assembly(vtk.vtkAssembly, Prop):
                  specular=None, specularPower=None, specularColor=None, enabled=True):
         """Set the lighting type to all ``Actor`` in the ``Assembly`` object.
 
-        :param str style: preset style, can be `[metallic, plastic, shiny, reflective]`
+        :param str style: preset style, can be `[metallic, plastic, shiny, glossy]`
         :param float ambient: ambient fraction of emission [0-1]
         :param float diffuse: emission of diffused light in fraction [0-1]
         :param float specular: fraction of reflected light [0-1]
@@ -3409,11 +3412,11 @@ class Volume(vtk.vtkVolume, Prop):
         volumeProperty.SetInterpolationTypeToLinear()
         return self
 
-    def threshold(self, vmin=None, vmax=None, replaceWith=None):
+    def threshold(self, vmin=None, vmax=None, replaceWith=0):
         """
         Binary or continuous volume thresholding.
         Find the voxels that contain the value below/above or inbetween
-        [vmin, vmax] and replaces it with the provided value.
+        [vmin, vmax] and replaces it with the provided value (default is 0).
         """
         th = vtk.vtkImageThreshold()
         th.SetInputData(self.imagedata())
@@ -3425,18 +3428,14 @@ class Volume(vtk.vtkVolume, Prop):
         elif vmax is not None:
             th.ThresholdByUpper(vmax)
 
-        if replaceWith is None:
-            colors.printc("Error in threshold(); you must provide replaceWith", c=1)
-            raise RuntimeError()
-
         th.SetInValue(replaceWith)
         th.Update()
         return self._updateVolume(th.GetOutput())
 
-    def crop(self, top=None, bottom=None,
+    def crop(self,
+             top=None, bottom=None,
              right=None, left=None,
-             front=None, back=None,
-             VOI=()):
+             front=None, back=None, VOI=()):
         """Crop a ``Volume`` object.
 
         :param float top:    fraction to crop from the top plane (positive z)
@@ -3445,7 +3444,7 @@ class Volume(vtk.vtkVolume, Prop):
         :param float back:   fraction to crop from the back plane (negative y)
         :param float right:  fraction to crop from the right plane (positive x)
         :param float left:   fraction to crop from the left plane (negative x)
-        :param list VOI: extract Volume Of Interest expressed in voxel numbers
+        :param list VOI:     extract Volume Of Interest expressed in voxel numbers
 
             Eg.: vol.crop(VOI=(xmin, xmax, ymin, ymax, zmin, zmax)) # all integers nrs
         """
@@ -3472,7 +3471,7 @@ class Volume(vtk.vtkVolume, Prop):
         Cuts ``Volume`` with the plane defined by a point and a normal
         creating a tetrahedral mesh object.
         Makes sense only if the plane is not along any of the cartesian planes,
-        if so use ``crop()`` which is way faster.
+        otherwise use ``crop()`` which is way faster.
 
         :param origin: the cutting plane goes through this point
         :param normal: normal of the cutting plane
@@ -3622,7 +3621,7 @@ class Volume(vtk.vtkVolume, Prop):
             conn.Update()
             poly = conn.GetOutput()
 
-        a = Actor(poly, c=None)
+        a = Actor(poly, c=None).phong()
         a.mapper.SetScalarRange(scrange[0], scrange[1])
         return a
 
@@ -3670,15 +3669,6 @@ class Volume(vtk.vtkVolume, Prop):
             a.pointColors(scalars, vmin=self._image.GetScalarRange()[0], cmap=cmap)
             a.mapPointsToCells()
         return a
-
-
-
-
-
-
-
-
-
 
 
 

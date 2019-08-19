@@ -4,7 +4,7 @@ Modify mesh vertex positions.
 from vtkplotter import *
 
 dsc = Disc().lineWidth(0.1)
-coords = dsc.coordinates()
+coords = dsc.getPoints()
 t = Text(__doc__)
 
 for i in range(50):

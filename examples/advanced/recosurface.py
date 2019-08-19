@@ -25,7 +25,7 @@ vp.show(act, at=0)
 
 noise = np.random.randn(act.N(), 3) * 0.04
 
-pts0 = Points(act.coordinates() + noise, r=3).legend("noisy cloud")
+pts0 = Points(act.getPoints() + noise, r=3).legend("noisy cloud")
 vp.show(pts0, at=1)
 
 pts1 = smoothMLS2D(pts0, f=0.4)  # smooth cloud, input actor is modified

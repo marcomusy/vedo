@@ -81,12 +81,12 @@ show(pts, bg="w", axes=0)
 # and show both before and after the cure in two separate renderers defined by shape=(1,2)
 vp = Plotter(shape=(1, 2), axes=False)
 a1 = vp.load(datadir+"beethoven.ply", alpha=1)
-coords1 = a1.coordinates()
+coords1 = a1.getPoints()
 pts1 = Points(coords1, r=4, c="g").legend("#points = " + str(len(coords1)))
 vp.show(a1, pts1, at=0)
 
 a2 = a1.clone().subdivide(method=0)  # Increasing the number of points of the mesh
-coords2 = a2.coordinates()
+coords2 = a2.getPoints()
 pts2 = Points(coords2, r=1).legend("#points = " + str(len(coords2)))
 vp.show(a2, pts2, at=1, interactive=True)
 

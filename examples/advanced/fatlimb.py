@@ -19,7 +19,7 @@ vp += [Point(c), Text(__doc__, c="k")]
 Niter = 4
 for t in range(Niter):
     print("iteration", t)
-    coords = s.coordinates()
+    coords = s.getPoints()
     normals = s.normals()
     aves = s.averageSize() * 1.5
 

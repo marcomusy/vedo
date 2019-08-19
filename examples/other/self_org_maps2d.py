@@ -68,6 +68,6 @@ if __name__ == "__main__":
     s = Sphere(res=90).cutWithPlane(origin=(0,-.3,0), normal='y').clean(0.01)
 
     som = SOM((len(P), 3), D)
-    som.samples = s.coordinates()
+    som.samples = s.getPoints()
     som.learn(n_epoch=7000, sigma=(1, 0.01), lrate=(1, 0.01))
 

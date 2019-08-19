@@ -9,7 +9,7 @@ import numpy as np
 N = 2000
 nuclei = np.random.rand(N, 3) - (0.5,0.5,0.5)
 ncl = Points(nuclei).clean(0.1) # clean makes points evenly spaced
-nuclei = ncl.coordinates()
+nuclei = ncl.getPoints()
 
 actor = voronoi3D(nuclei, tol=.001)
 #print(len(actor.info['cells']), actor.info['volumes'])

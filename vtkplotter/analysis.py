@@ -1612,7 +1612,7 @@ def splitByConnectivity(actor, maxdepth=1000):
     alist.reverse()
     blist = []
     for i, l in enumerate(alist):
-        l[0].color(i + 1)
+        l[0].color(i + 1).phong()
         l[0].mapper.ScalarVisibilityOff()
         blist.append(l[0])
     return blist
@@ -1791,7 +1791,7 @@ def extractSurface(volume, radius=0.5):
     fe.SetInputData(img)
     fe.SetRadius(radius)
     fe.Update()
-    return Actor(fe.GetOutput())
+    return Actor(fe.GetOutput()).phong()
 
 
 def projectSphereFilter(actor):

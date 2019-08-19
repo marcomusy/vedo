@@ -17,6 +17,6 @@ vol = volumeFromMesh(mesh,
 
 iso = vol.isosurface(threshold=-0.01)
 
-pts = Points(mesh.coordinates())
+pts = Points(mesh.getPoints())
 
 show(iso, pts, Text(__doc__), axes=1)

@@ -540,26 +540,27 @@ def pointToLineDistance(p, p1, p2):
     return d
 
 
+def cart2spher(x, y, z):
+    """Cartesian to Spherical coordinate conversion."""
+    hxy = np.hypot(x, y)
+    rho = np.hypot(hxy, z)
+    if not rho:
+        return (0,0,0)
+    theta = np.arctan2(hxy, z)
+    phi = np.arctan2(y, x)
+    return rho, theta, phi
+
 def spher2cart(rho, theta, phi):
     """Spherical to Cartesian coordinate conversion."""
     st = np.sin(theta)
     sp = np.sin(phi)
     ct = np.cos(theta)
     cp = np.cos(phi)
-    rhost = rho * st
-    x = rhost * cp
-    y = rhost * sp
+    rst = rho * st
+    x = rst * cp
+    y = rst * sp
     z = rho * ct
     return np.array([x, y, z])
-
-
-def cart2spher(x, y, z):
-    """Cartesian to Spherical coordinate conversion."""
-    hxy = np.hypot(x, y)
-    r = np.hypot(hxy, z)
-    theta = np.arctan2(z, hxy)
-    phi = np.arctan2(y, x)
-    return r, theta, phi
 
 
 def cart2pol(x, y):
@@ -567,7 +568,6 @@ def cart2pol(x, y):
     theta = np.arctan2(y, x)
     rho = np.hypot(x, y)
     return theta, rho
-
 
 def pol2cart(theta, rho):
     """Polar to Cartesian coordinates conversion."""
@@ -640,7 +640,7 @@ def printInfo(obj):
         npl = poly.GetNumberOfPolys()
 
         print(tab, end="")
-        colors.printc("vtkActor", c="g", bold=1, invert=1, dim=1, end=" ")
+        colors.printc("Mesh", c="g", bold=1, invert=1, dim=1, end=" ")
 
         if hasattr(actor, "_legend") and actor._legend:
             colors.printc("legend: ", c="g", bold=1, end="")
@@ -681,14 +681,14 @@ def printInfo(obj):
         colors.printc(pos, c="g", bold=0)
 
         if hasattr(actor, "polydata") and actor.N():
-            colors.printc(tab + "     c. of mass: ", c="g", bold=1, end="")
+            colors.printc(tab + " center of mass: ", c="g", bold=1, end="")
             cm = tuple(actor.centerOfMass())
             colors.printc(precision(cm, 3), c="g", bold=0)
 
-            colors.printc(tab + "      ave. size: ", c="g", bold=1, end="")
+            colors.printc(tab + "   average size: ", c="g", bold=1, end="")
             colors.printc(precision(actor.averageSize(), 6), c="g", bold=0)
 
-            colors.printc(tab + "     diag. size: ", c="g", bold=1, end="")
+            colors.printc(tab + "  diagonal size: ", c="g", bold=1, end="")
             colors.printc(precision(actor.diagonalSize(), 6), c="g", bold=0)
 
             _area = actor.area()
@@ -709,26 +709,29 @@ def printInfo(obj):
         bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
         colors.printc(" z=(" + bz1 + ", " + bz2 + ")", c="g", bold=0)
 
-        arrtypes = dict()
-        arrtypes[vtk.VTK_UNSIGNED_CHAR] = "UNSIGNED_CHAR"
-        arrtypes[vtk.VTK_SIGNED_CHAR]   = "SIGNED_CHAR"
-        arrtypes[vtk.VTK_UNSIGNED_INT]  = "UNSIGNED_INT"
-        arrtypes[vtk.VTK_INT]           = "INT"
-        arrtypes[vtk.VTK_CHAR]          = "CHAR"
-        arrtypes[vtk.VTK_SHORT]         = "SHORT"
-        arrtypes[vtk.VTK_LONG]          = "LONG"
-        arrtypes[vtk.VTK_ID_TYPE]       = "ID"
-        arrtypes[vtk.VTK_FLOAT]         = "FLOAT"
-        arrtypes[vtk.VTK_DOUBLE]        = "DOUBLE"
+        if actor.picked3d is not None:
+            colors.printc(tab + "  clicked point: ", c="g", bold=1, end="")
+            colors.printc(vector(actor.picked3d), c="g", bold=0)
 
         ptdata = poly.GetPointData()
         cldata = poly.GetCellData()
+        if ptdata.GetNumberOfArrays() + cldata.GetNumberOfArrays():
 
-        colors.printc(tab + "    scalar mode:", c="g", bold=1, end=" ")
-        colors.printc(mapper.GetScalarModeAsString(),
-                      '  coloring =', mapper.GetColorModeAsString(), c="g", bold=0)
+            arrtypes = dict()
+            arrtypes[vtk.VTK_UNSIGNED_CHAR] = "UNSIGNED_CHAR"
+            arrtypes[vtk.VTK_SIGNED_CHAR]   = "SIGNED_CHAR"
+            arrtypes[vtk.VTK_UNSIGNED_INT]  = "UNSIGNED_INT"
+            arrtypes[vtk.VTK_INT]           = "INT"
+            arrtypes[vtk.VTK_CHAR]          = "CHAR"
+            arrtypes[vtk.VTK_SHORT]         = "SHORT"
+            arrtypes[vtk.VTK_LONG]          = "LONG"
+            arrtypes[vtk.VTK_ID_TYPE]       = "ID"
+            arrtypes[vtk.VTK_FLOAT]         = "FLOAT"
+            arrtypes[vtk.VTK_DOUBLE]        = "DOUBLE"
+            colors.printc(tab + "    scalar mode:", c="g", bold=1, end=" ")
+            colors.printc(mapper.GetScalarModeAsString(),
+                          '  coloring =', mapper.GetColorModeAsString(), c="g", bold=0)
 
-        if ptdata.GetNumberOfArrays()+cldata.GetNumberOfArrays():
             colors.printc(tab + " active scalars: ", c="g", bold=1, end="")
             if ptdata.GetScalars():
                 colors.printc(ptdata.GetScalars().GetName(), "(point data)  ", c="g", bold=0, end="")
@@ -736,33 +739,37 @@ def printInfo(obj):
                 colors.printc(cldata.GetScalars().GetName(), "(cell data)", c="g", bold=0, end="")
             print()
 
-        for i in range(ptdata.GetNumberOfArrays()):
-            name = ptdata.GetArrayName(i)
-            if name and ptdata.GetArray(i):
-                colors.printc(tab + "     point data: ", c="g", bold=1, end="")
-                try:
-                    tt = arrtypes[ptdata.GetArray(i).GetDataType()]
-                except:
-                    tt = str(ptdata.GetArray(i).GetDataType())
-                ncomp = str(ptdata.GetArray(i).GetNumberOfComponents())
-                colors.printc("name=" + name, "("+ncomp+" "+tt+"),", c="g", bold=0, end="")
-                rng = ptdata.GetArray(i).GetRange()
-                colors.printc(" range=(" + precision(rng[0],4) + ',' +
-                                        precision(rng[1],4) + ')', c="g", bold=0)
+            for i in range(ptdata.GetNumberOfArrays()):
+                name = ptdata.GetArrayName(i)
+                if name and ptdata.GetArray(i):
+                    colors.printc(tab + "     point data: ", c="g", bold=1, end="")
+                    try:
+                        tt = arrtypes[ptdata.GetArray(i).GetDataType()]
+                    except:
+                        tt = str(ptdata.GetArray(i).GetDataType())
+                    ncomp = str(ptdata.GetArray(i).GetNumberOfComponents())
+                    colors.printc("name=" + name, "("+ncomp+" "+tt+"),", c="g", bold=0, end="")
+                    rng = ptdata.GetArray(i).GetRange()
+                    colors.printc(" range=(" + precision(rng[0],4) + ',' +
+                                            precision(rng[1],4) + ')', c="g", bold=0)
 
-        for i in range(cldata.GetNumberOfArrays()):
-            name = cldata.GetArrayName(i)
-            if name and cldata.GetArray(i):
-                colors.printc(tab + "      cell data: ", c="g", bold=1, end="")
-                try:
-                    tt = arrtypes[cldata.GetArray(i).GetDataType()]
-                except:
-                    tt = str(cldata.GetArray(i).GetDataType())
-                ncomp = str(cldata.GetArray(i).GetNumberOfComponents())
-                colors.printc("name=" + name, "("+ncomp+" "+tt+"),", c="g", bold=0, end="")
-                rng = cldata.GetArray(i).GetRange()
-                colors.printc(" range=(" + precision(rng[0],4) + ',' +
-                                        precision(rng[1],4) + ')', c="g", bold=0)
+            for i in range(cldata.GetNumberOfArrays()):
+                name = cldata.GetArrayName(i)
+                if name and cldata.GetArray(i):
+                    colors.printc(tab + "      cell data: ", c="g", bold=1, end="")
+                    try:
+                        tt = arrtypes[cldata.GetArray(i).GetDataType()]
+                    except:
+                        tt = str(cldata.GetArray(i).GetDataType())
+                    ncomp = str(cldata.GetArray(i).GetNumberOfComponents())
+                    colors.printc("name=" + name, "("+ncomp+" "+tt+"),", c="g", bold=0, end="")
+                    rng = cldata.GetArray(i).GetRange()
+                    colors.printc(" range=(" + precision(rng[0],4) + ',' +
+                                            precision(rng[1],4) + ')', c="g", bold=0)
+        else:
+            colors.printc(tab + "        scalars:", c="g", bold=1, end=" ")
+            colors.printc('no point or cell scalars are present.', c="g", bold=0)
+
 
     if not obj:
         return
@@ -1314,7 +1321,7 @@ def trimesh2vtk(inputobj, alphaPerCell=False):
 
         if isSequence(trim_c):
             if isSequence(trim_c[0]):
-                trim_cc = trim_c[:, [0, 1, 2]] / 255
+                trim_cc = (trim_c[:, [0, 1, 2]] / 255)
                 trim_al = trim_c[:, 3] / 255
                 if inputobj.visual.kind == "face":
                     tact.cellColors(trim_cc, mode='colors',

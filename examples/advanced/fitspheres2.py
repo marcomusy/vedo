@@ -11,7 +11,7 @@ s = vp.load(datadir+"cow.vtk", alpha=0.3)  # .subdivide()
 
 pts1, pts2, vals, cols = [], [], [], []
 
-for i, p in enumerate(s.coordinates()):
+for i, p in enumerate(s.getPoints()):
     pts = s.closestPoint(p, N=12)  # find the N closest points to p
     sph = fitSphere(pts)  # find the fitting sphere
     if sph is None:

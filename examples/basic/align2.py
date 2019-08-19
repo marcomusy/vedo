@@ -23,7 +23,7 @@ vp.show(act1, act2, at=0)
 
 # find best alignment between the 2 sets of Points, e.i. find
 # how to move act1 to best match act2
-alpts1 = alignICP(act1, act2).coordinates()
+alpts1 = alignICP(act1, act2).getPoints()
 vp += [Points(alpts1, r=8, c="b"), Text(__doc__, c="k")]
 
 for i in range(N1):  # draw arrows to see where points end up

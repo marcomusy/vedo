@@ -18,7 +18,7 @@ pip install vtkplotter
 *Windows-10 users* can place this file
 [vtkplotter.bat](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter.bat)
 on the desktop to *drag&drop* files to visualize. 
-(Need to edit the path of their local Anaconda installation).
+(Need to edit the path of the local Anaconda installation).
 
 ## Documentation
 Automatically generated documentation can be found [**here**](https://vtkplotter.embl.es).
@@ -76,8 +76,8 @@ for all the following functionalities:
   - Interoperability with the [trimesh](https://trimsh.org/) library.
 
 
-## Command-line interface
-Visualize a mesh with:
+## Command Line Interface
+Visualize a mesh from a terminal window with:
 ```bash
 vtkplotter mesh.obj 
 # valid formats: [vtk,vtu,vts,vtp,vtm,ply,obj,stl,3ds,dolfin-xml,neutral,gmsh,
@@ -95,7 +95,11 @@ To visualize multiple files or files time-sequences try `-n` or `-s` options. Us
 |`vtkplotter head.vti` |`vtkplotter -s *.vtk` |`vtkplotter `<br>`--slicer embr.slc` |   `vtkplotter --lego embryo.slc`|
 |![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif)|   ![viz_raycast](https://user-images.githubusercontent.com/32848391/58336919-f7b1a080-7e44-11e9-9106-f574371093a8.gif)  | ![viz_slicer](https://user-images.githubusercontent.com/32848391/56972084-a7f3f800-6b6a-11e9-98c4-dc4ffec70a5e.png)  |![lego](https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg) |
 
-
+## GUI
+A Graphic User Interface is available (mainly useful to *Windows 10* users):
+|         |
+| ---- |
+| ![gui](https://user-images.githubusercontent.com/32848391/63259840-c861d280-c27f-11e9-9c2a-99d0fae85313.png) |
 
 ## Examples Gallery
 A get-started tutorial script is available for download:

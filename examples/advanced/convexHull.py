@@ -5,6 +5,6 @@ from vtkplotter import *
 
 spid = load(datadir+"spider.ply", c="brown")
 
-ch = convexHull(spid.coordinates()).alpha(0.2)
+ch = convexHull(spid.getPoints()).alpha(0.2)
 
 show(spid, ch, Text(__doc__), axes=1)

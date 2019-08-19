@@ -257,7 +257,7 @@ def plot(*inputobj, **options):
     :param int axes: axes type number
 
       - 0,  no axes,
-      - 1,  draw three customizable gray grid walls. See ``show()`` documentation.
+      - 1,  draw customizable grid axes (see below).
       - 2,  show cartesian axes from (0,0,0)
       - 3,  show positive range of cartesian axes from (0,0,0)
       - 4,  show a triad at bottom left
@@ -268,7 +268,7 @@ def plot(*inputobj, **options):
       - 9,  show the bounding box outLine,
       - 10, show three circles representing the maximum bounding box.
 
-        Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
+        Axes type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
             - `xtitle`,            ['x'], x-axis title text.
             - `ytitle`,            ['y'], y-axis title text.
@@ -395,7 +395,7 @@ def plot(*inputobj, **options):
     bands = options.pop("bands", None)
     scale = options.pop("scale", 1)
     scaleMeshFactors = options.pop("scaleMeshFactors", [1,1,1])
-    shading = options.pop("shading", None)
+    shading = options.pop("shading", 'phong')
     text = options.pop("text", None)
     style = options.pop("style", 'vtk')
     isolns = options.pop("isolines", dict())

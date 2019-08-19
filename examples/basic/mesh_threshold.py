@@ -7,7 +7,7 @@ doc = Text(__doc__)
 
 man = load(datadir+"man.vtk")
 
-scals = man.coordinates()[:, 1] + 37  # pick y coords of vertices
+scals = man.getPoints()[:, 1] + 37  # pick y coords of vertices
 
 man.pointColors(scals, cmap="cool")
 man.addScalarBar(title="threshold", horizontal=True, c='w')

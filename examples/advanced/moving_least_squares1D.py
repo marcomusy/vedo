@@ -33,7 +33,7 @@ for i in range(1, N):
     if i == N-1:
         a.clean(tol=0.01)
 
-    print("iteration", i, "#points:", len(a.coordinates()))
+    print("iteration", i, "#points:", len(a.getPoints()))
     show(a, at=i)
 
 interactive()

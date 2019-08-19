@@ -13,7 +13,7 @@ setup(
     version=verstr,
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
-    install_requires=['vtk','k3d'],
+    install_requires=['vtk'],
     description='''A python module for scientific visualization,
     analysis and animation of 3D objects and point clouds based on VTK.''',
     long_description="""A python module for scientific visualization,
@@ -42,23 +42,13 @@ setup(
 )
 
 
-
-
-
-
-
-
-
-
-
-
 ##############################################################
 # # check examples
 # change version in vtkplotter/version.py
 
 # cd ~/Projects/vtkplotter/
 # pip install .
-# ( sudo -H pip install . )
+# ( sudo -H pip install . -U)
 
 # cd examples && ./run_all.sh
 # python tests/test_filetypes.py

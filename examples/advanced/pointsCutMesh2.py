@@ -6,7 +6,7 @@ from vtkplotter import *
 
 s = Sphere().computeNormals().alpha(0.2).lw(0.1)
 
-sc = s.coordinates()
+sc = s.getPoints()
 sn = s.normals(cells=True) # cell normals
 
 # pick a few points
@@ -14,7 +14,7 @@ pts = (sc[10], sc[15], sc[129], sc[165], sc[10])
 
 #build the spline
 ptsm = Spline(pts, smooth=0).c('k').lw(4)
-ptsmc = ptsm.coordinates()
+ptsmc = ptsm.getPoints()
 
 # and a ribbon-like surface using cell normals
 splinen = []

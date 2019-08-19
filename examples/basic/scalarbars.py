@@ -15,7 +15,7 @@ for i in range(3):
     
     # Or
     # colorize vertices:
-    #scals = s.coordinates()[:,i]  # define some dummy point scalar
+    #scals = s.getPoints()[:,i]  # define some dummy point scalar
     #s.pointColors(scals, cmap=cmaps[i])
     
     ms.append(s)

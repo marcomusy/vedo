@@ -3,7 +3,6 @@ import time
 import sys
 import vtk
 import numpy
-import os
 
 from vtkplotter import __version__
 import vtkplotter.vtkio as vtkio
@@ -13,7 +12,7 @@ from vtkplotter.actors import Actor, Assembly, Volume, Picture
 import vtkplotter.docs as docs
 import vtkplotter.settings as settings
 import vtkplotter.addons as addons
-from vtk.util.numpy_support import vtk_to_numpy
+import vtkplotter.backends as backends
 
 __doc__ = (
     """
@@ -473,6 +472,7 @@ class Plotter:
         self.mouseMiddleClickFunction = None
         self.mouseRightClickFunction = None
         self._first_viewup = True
+        self.extralight = None
 
         self.xtitle = settings.xtitle  # x axis label and units
         self.ytitle = settings.ytitle  # y axis label and units
@@ -907,33 +907,29 @@ class Plotter:
         self.show(resetcam=0, interactive=0)
         self.interactive = save_int
 
-    ################################################################## AddOns
-    def addLight(self,
-        pos=(1, 1, 1),
-        focalPoint=(0, 0, 0),
-        deg=90,
-        ambient=None,
-        diffuse=None,
-        specular=None,
-        showsource=False,
-    ):
+    ##################################################################
+    def addLight(self, pos, focalPoint=(0, 0, 0), deg=180, c='white',
+                 intensity=0.4, removeOthers=False, showsource=False):
         """
         Generate a source of light placed at pos, directed to focal point.
+        Returns a ``vtkLight`` object.
 
         :param focalPoint: focal point, if this is a ``vtkActor`` use its position.
         :type fp: vtkActor, list
         :param deg: aperture angle of the light source
-        :param showsource: if `True`, will show a vtk representation
-                            of the source of light as an extra actor
+        :param c: set light color
+        :param float intensity: intensity between 0 and 1.
+        :param bool removeOthers: remove all other lights in the scene
+        :param bool showsource: if `True`, will show a representation
+                                of the source of light as an extra Actor
 
         .. hint:: |lights.py|_
         """
-        return addons.addLight(pos, focalPoint, deg,
-                               ambient, diffuse, specular, showsource)
+        return addons.addLight(pos, focalPoint, deg, c,
+                               intensity, removeOthers, showsource)
 
-    def addSlider2D(
-        self, sliderfunc, xmin, xmax, value=None, pos=4, title="", c=None, showValue=True
-    ):
+    def addSlider2D(self, sliderfunc, xmin, xmax,
+                    value=None, pos=4, title="", c=None, showValue=True):
         """Add a slider widget which can call an external custom function.
 
         :param sliderfunc: external function to be called by the widget
@@ -1154,8 +1150,8 @@ class Plotter:
 
             - parallelScale `(float)`,
                 scaling used for a parallel projection, i.e. the height of the viewport
-                in world-coordinate distances. The default is 1. Note that the "scale" parameter works as
-                an "inverse scale", larger numbers produce smaller images.
+                in world-coordinate distances. The default is 1. Note that the "scale"
+                parameter works as an "inverse scale", larger numbers produce smaller images.
                 This method has no effect in perspective projection mode.
 
             - thickness `(float)`,
@@ -1196,7 +1192,6 @@ class Plotter:
         elevation = options.pop("elevation", 0)
         roll = options.pop("roll", 0)
         camera = options.pop("camera", None)
-
         interactorStyle = options.pop("interactorStyle", 0)
         rate = options.pop("rate", None)
         q = options.pop("q", False)
@@ -1303,183 +1298,13 @@ class Plotter:
         if axes is not None:
             self.axes = axes
 
-        #########################################################
-        if settings.notebookBackend == 'k3d':
-            import k3d # https://github.com/K3D-tools/K3D-jupyter
-
-            actors2show2 = []
-            for ia in actors2show:
-                if isinstance(ia, vtk.vtkAssembly): #unpack assemblies
-                    acass = ia.getActors()
-                    actors2show2 += acass
-                else:
-                    actors2show2.append(ia)
-
-            vbb, sizes, min_bns, max_bns = addons.computeVisibleBounds()
-            kgrid = vbb[0], vbb[2], vbb[4], vbb[1], vbb[3], vbb[5]
-
-            settings.notebook_plotter = k3d.plot(axes=[self.xtitle, self.ytitle, self.ztitle],
-                                                 menu_visibility=True,
-                                                 height=int(self.size[1]/2) )
-            settings.notebook_plotter.grid = kgrid
-            settings.notebook_plotter.lighting = 1.2
-
-            # set k3d camera
-            settings.notebook_plotter.camera_auto_fit = False
-            vsx, vsy, vsz = vbb[0]-vbb[1], vbb[2]-vbb[3], vbb[4]-vbb[5]
-            vss = numpy.linalg.norm([vsx, vsy, vsz])
-            if zoom:
-                vss /= zoom
-            vfp = (vbb[0]+vbb[1])/2, (vbb[2]+vbb[3])/2, (vbb[4]+vbb[5])/2 # camera target
-            if viewup == 'z':
-                vup = (0,0,1) # camera up vector
-                vpos= vfp[0] + vss/1.9, vfp[1] + vss/1.9, vfp[2]+vss*0.01  # camera position
-            elif viewup == 'x':
-                vup = (1,0,0)
-                vpos= vfp[0]+vss*0.01, vfp[1] + vss/1.5, vfp[2]  # camera position
-            else:
-                vup = (0,1,0)
-                vpos= vfp[0]+vss*0.01, vfp[1]+vss*0.01, vfp[2] + vss/1.5  # camera position
-            settings.notebook_plotter.camera = [vpos[0], vpos[1], vpos[2],
-                                                 vfp[0],  vfp[1],  vfp[2],
-                                                 vup[0],  vup[1],  vup[2] ]
-
-            if not self.axes:
-                settings.notebook_plotter.grid_visible = False
-
-            for ia in actors2show2:
-                kobj = None
-                kcmap= None
-
-                if isinstance(ia, Actor) and ia.N():
-
-                    iap = ia.GetProperty()
-                    krep = iap.GetRepresentation()
-
-                    ia.computeNormals()
-                    cpl = vtk.vtkCleanPolyData()
-                    cpl.SetInputData(ia.polydata())
-                    cpl.Update()
-                    tf = vtk.vtkTriangleFilter()
-                    tf.SetInputData(cpl.GetOutput())
-                    tf.Update()
-                    iapoly = tf.GetOutput()
-                    #iapoly = ia.polydata()
-
-                    mass = vtk.vtkMassProperties()
-                    mass.SetGlobalWarningDisplay(0)
-                    mass.SetInputData(iapoly)
-                    mass.Update()
-                    area = mass.GetSurfaceArea()
-
-                    color_attribute = None
-                    if ia.mapper.GetScalarVisibility():
-                        vtkdata = iapoly.GetPointData()
-                        vtkscals = vtkdata.GetScalars()
-
-                        if vtkscals is None:
-                            vtkdata = iapoly.GetCellData()
-                            vtkscals = vtkdata.GetScalars()
-                            if vtkscals is not None:
-                                c2p = vtk.vtkCellDataToPointData()
-                                c2p.SetInputData(iapoly)
-                                c2p.Update()
-                                iapoly = c2p.GetOutput()
-                                vtkdata = iapoly.GetPointData()
-                                vtkscals = vtkdata.GetScalars()
-
-                        if vtkscals is not None:
-                            if not vtkscals.GetName():
-                                vtkscals.SetName('scalars')
-                            scals_min, scals_max = ia.mapper.GetScalarRange()
-                            color_attribute = (vtkscals.GetName(), scals_min, scals_max)
-                            lut = ia.mapper.GetLookupTable()
-                            lut.Build()
-                            kcmap=[]
-                            nlut = lut.GetNumberOfTableValues()
-                            for i in range(nlut):
-                                r,g,b,a = lut.GetTableValue(i)
-                                kcmap += [i/nlut, r,g,b]
-
-                    if area > 0:
-                        name = None
-                        if ia.filename:
-                            name = os.path.basename(ia.filename)
-                        kobj = k3d.vtk_poly_data(iapoly,
-                                                 name=name,
-                                                 color=colors.rgb2int(iap.GetColor()),
-                                                 color_attribute=color_attribute,
-                                                 color_map=kcmap,
-                                                 opacity=iap.GetOpacity(),
-                                                 wireframe=(krep==1))
-
-                        if iap.GetInterpolation() == 0:
-                            kobj.flat_shading = True
-
-                    else:
-                        kcols=[]
-                        if color_attribute is not None:
-                            scals = vtk_to_numpy(vtkscals)
-                            kcols = k3d.helpers.map_colors(scals, kcmap,
-                                                           [scals_min,scals_max]).astype(numpy.uint32)
-                        sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
-                        if ia.NPoints() == ia.NCells():
-                            kobj = k3d.points(ia.coordinates().astype(numpy.float32),
-                                              color=colors.rgb2int(iap.GetColor()),
-                                              colors=kcols,
-                                              opacity=iap.GetOpacity(),
-                                              shader="3d",
-                                              point_size=iap.GetPointSize()*sqsize/400,
-                                              #compression_level=9,
-                                              )
-                        else:
-                            kobj = k3d.line(ia.coordinates().astype(numpy.float32),
-                                            color=colors.rgb2int(iap.GetColor()),
-                                            colors=kcols,
-                                            opacity=iap.GetOpacity(),
-                                            shader="thick",
-                                            width=iap.GetLineWidth()*sqsize/1000,
-                                            )
-
-                    settings.notebook_plotter += kobj
-
-                elif isinstance(ia, Volume):
-                    kx, ky, kz = ia.dimensions()
-                    arr = ia.getPointArray()
-                    kimage = arr.reshape(-1, ky, kx)
-
-                    colorTransferFunction = ia.GetProperty().GetRGBTransferFunction()
-                    kcmap=[]
-                    for i in range(256):
-                        r,g,b = colorTransferFunction.GetColor(i/255)
-                        kcmap += [i/255, r,g,b]
-
-                    kobj = k3d.volume(kimage.astype(numpy.float32),
-                                      color_map=kcmap,
-                                      alpha_coef=5,
-                                      bounds=ia.bounds() )
-                    settings.notebook_plotter += kobj
-
-                elif hasattr(ia, 'info') and 'formula' in ia.info.keys():
-                    pos = (ia.GetPosition()[0],ia.GetPosition()[1])
-                    kobj = k3d.text2d(ia.info['formula'], position=pos)
-                    settings.notebook_plotter += kobj
-
-            ###################################
-            return settings.notebook_plotter
-            ###################################
-
-        elif settings.notebookBackend == 'panel' and hasattr(self, 'window') and self.window:
-            import panel # https://panel.pyviz.org/reference/panes/VTK.html
-            settings.notebook_plotter = panel.pane.VTK(self.window,
-                                                       width=int(self.size[0]/2),
-                                                       height=int(self.size[1]/2))
-            ###################################
-            return settings.notebook_plotter
-            ###################################
+        #########################################################################
+        if settings.notebookBackend:
+            return backends.getNotebookBackend(actors2show, zoom, viewup)
+        #########################################################################
 
         if not hasattr(self, 'window'):
-            return
+            return None
 
         if interactive is not None:
             self.interactive = interactive
@@ -1696,7 +1521,8 @@ class Plotter:
         draggable = options.pop("draggable", True)
 
         if not self.renderer:
-            colors.printc("~lightningWarning: Use showInset() after first rendering the scene.", c=3)
+            colors.printc("~lightningWarning: Use showInset() after first rendering the scene.",
+                          c=3)
             save_int = self.interactive
             self.show(interactive=0)
             self.interactive = save_int
@@ -1792,12 +1618,17 @@ class Plotter:
 
         if not clickedActor:
             clickedActor = picker.GetAssembly()
+
         self.picked3d = picker.GetPickPosition()
+
         self.justremoved = None
 
         if not hasattr(clickedActor, "GetPickable") or not clickedActor.GetPickable():
             return
+
         self.clickedActor = clickedActor
+        if hasattr(clickedActor, 'picked3d'):
+            clickedActor.picked3d = picker.GetPickPosition()
 
         if self.mouseLeftClickFunction:
             self.mouseLeftClickFunction(clickedActor)
@@ -1926,7 +1757,8 @@ class Plotter:
                 ap = self.clickedActor.GetProperty()
                 aal = min([ap.GetOpacity() * 1.25, 1.0])
                 ap.SetOpacity(aal)
-                if aal == 1 and hasattr(self.clickedActor, "_bfprop") and self.clickedActor._bfprop:
+                if aal == 1 and hasattr(self.clickedActor, "_bfprop") \
+                  and self.clickedActor._bfprop:
                     # put back
                     self.clickedActor.SetBackfaceProperty(self.clickedActor._bfprop)
             else:
@@ -2048,7 +1880,8 @@ class Plotter:
             print('vp.camera.SetFocalPoint(', [round(e, 3) for e in cam.GetFocalPoint()], ')')
             print('vp.camera.SetViewUp(',     [round(e, 3) for e in cam.GetViewUp()], ')')
             print('vp.camera.SetDistance(',   round(cam.GetDistance(), 3), ')')
-            print('vp.camera.SetClippingRange(', [round(e, 3) for e in cam.GetClippingRange()], ')')
+            print('vp.camera.SetClippingRange(',
+                                    [round(e, 3) for e in cam.GetClippingRange()], ')')
             return
 
         if key == "s":
@@ -2115,7 +1948,6 @@ class Plotter:
                         if sname and "Normals" not in sname.lower(): # exclude normals
                             ia.scalars( ia._scals_idx )
                             ia.GetMapper().ScalarVisibilityOn()
-                            #ia.GetMapper().SetScalarRange(ia.polydata().GetCellData().GetArray(sname).GetRange())
                             colors.printc("..active scalars set to:", sname,
                                           "\ttype:", stype, c='g', bold=0)
                         ia._scals_idx += 1
@@ -2157,47 +1989,29 @@ class Plotter:
                 addons.addAxes(axtype=asso[key], c=None)
                 self.interactor.Render()
 
-        elif key in ["k", "K"]:
-            for a in self.getActors():
-                ptdata = a.GetMapper().GetInput().GetPointData()
-                cldata = a.GetMapper().GetInput().GetCellData()
+        if key == "O":
+            settings.plotter_instance.renderer.RemoveLight(self.extralight)
+            self.extralight = None
 
-                arrtypes = dict()
-                arrtypes[vtk.VTK_UNSIGNED_CHAR] = "UNSIGNED_CHAR"
-                arrtypes[vtk.VTK_UNSIGNED_INT] = "UNSIGNED_INT"
-                arrtypes[vtk.VTK_FLOAT] = "FLOAT"
-                arrtypes[vtk.VTK_DOUBLE] = "DOUBLE"
-                foundarr = 0
+        elif key == "o":
+            vbb, sizes, _, _ = addons.computeVisibleBounds()
+            cm = utils.vector((vbb[0]+vbb[1])/2, (vbb[2]+vbb[3])/2, (vbb[4]+vbb[5])/2)
+            if not self.extralight:
+                vup = self.renderer.GetActiveCamera().GetViewUp()
+                pos = cm + utils.vector(vup)*utils.mag(sizes)
+                self.extralight = addons.addLight(pos, focalPoint=cm)
+                print("Press again o to rotate light source, or O to remove it.")
+            else:
+                cpos = utils.vector(self.extralight.GetPosition())
+                x, y, z = self.extralight.GetPosition() - cm
+                r,th,ph = utils.cart2spher(x,y,z)
+                th += 0.2
+                if th>numpy.pi: th=numpy.random.random()*numpy.pi/2
+                ph += 0.3
+                cpos = utils.spher2cart(r, th,ph) + cm
+                self.extralight.SetPosition(cpos)
 
-                if key == "k":
-                    for i in range(ptdata.GetNumberOfArrays()):
-                        name = ptdata.GetArrayName(i)
-                        if name == "Normals":
-                            continue
-                        ptdata.SetActiveScalars(name)
-                        foundarr = 1
-                    if not foundarr:
-                        print("No vtkArray is associated to points", end="")
-                        if hasattr(a, "_legend"):
-                            print(" for actor:", a._legend)
-                        else:
-                            print()
-
-                if key == "K":
-                    for i in range(cldata.GetNumberOfArrays()):
-                        name = cldata.GetArrayName(i)
-                        if name == "Normals":
-                            continue
-                        cldata.SetActiveScalars(name)
-                        foundarr = 1
-                    if not foundarr:
-                        print("No vtkArray is associated to cells", end="")
-                        if hasattr(a, "_legend"):
-                            print(" for actor:", a._legend)
-                        else:
-                            print()
-
-                a.GetMapper().ScalarVisibilityOn()
+            self.window.Render()
 
         elif key == "l":
             if self.clickedActor in self.getActors():
@@ -2215,6 +2029,40 @@ class Plotter:
                 except AttributeError:
                     pass
 
+        elif key == "k": # lightings
+            if self.clickedActor in self.getActors():
+                acts = [self.clickedActor]
+            else:
+                acts = self.getActors()
+            shds = ('default',
+                    'metallic',
+                    'plastic',
+                    'shiny',
+                    'glossy')
+            for ia in acts:
+                if ia.GetPickable():
+                    try:
+                        lnr = (ia._ligthingnr+1)%5
+                        ia.lighting(shds[lnr])
+                        ia._ligthingnr = lnr
+                        colors.printc('-> lighting set to:', shds[lnr], c='g', bold=0)
+                    except AttributeError:
+                        pass
+
+        elif key == "K": # shading
+            if self.clickedActor in self.getActors():
+                acts = [self.clickedActor]
+            else:
+                acts = self.getActors()
+            for ia in acts:
+                if ia.GetPickable():
+                    ia.computeNormals()
+                    intrp = (ia.GetProperty().GetInterpolation()+1)%3
+                    ia.GetProperty().SetInterpolation(intrp)
+                    colors.printc('->  shading set to:',
+                                  ia.GetProperty().GetInterpolationAsString(),
+                                  c='g', bold=0)
+
         elif key == "n":  # show normals to an actor
             from vtkplotter.analysis import normalLines
 
@@ -2228,7 +2076,8 @@ class Plotter:
 
         elif key == "x":
             if self.justremoved is None:
-                if self.clickedActor in self.getActors() or isinstance(self.clickedActor, vtk.vtkAssembly):
+                if self.clickedActor in self.getActors() \
+                  or isinstance(self.clickedActor, vtk.vtkAssembly):
                     self.justremoved = self.clickedActor
                     self.renderer.RemoveActor(self.clickedActor)
                 if hasattr(self.clickedActor, '_legend') and self.clickedActor._legend:
@@ -2274,12 +2123,15 @@ class Plotter:
                         addons.addCutterTool(a)
                         return
 
-                colors.printc("Click an actor and press X to open the cutter box widget.", c=4)
+                colors.printc("Click object and press X to open the cutter box widget.",
+                              c=4)
 
         elif key == "E":
-            colors.printc("~camera Exporting rendering window to scene.npy..", c="blue", end="")
+            colors.printc("~camera Exporting rendering window to scene.npy..",
+                          c="blue", end="")
             vtkio.exportWindow('scene.npy')
-            colors.printc(" ..done. Try:\n> vtkplotter scene.npy  #(still experimental)", c="blue")
+            colors.printc(" ..done. Try:\n> vtkplotter scene.npy  #(still experimental)",
+                          c="blue")
 
         elif key == "i":  # print info
             if self.clickedActor:

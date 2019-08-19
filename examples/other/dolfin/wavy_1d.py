@@ -53,7 +53,7 @@ uh = Function(V)
 from vtkplotter.dolfin import plot
 from vtkplotter import Grid
 
-#build a thin gray frame
+#build a thin gray frame to avoid camera jumping around
 frame = Grid(pos=[0.5, 0, 0]).c('gray').alpha(0.1)
 
 for i in range(nt):

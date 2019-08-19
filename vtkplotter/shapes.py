@@ -456,8 +456,8 @@ def Spline(points, smooth=0.5, degree=2, s=2, res=20):
     pass exactly throught all points. Needs `scypi`.
 
     :param float smooth: smoothing factor.
-    0 = interpolate points exactly.
-    1 = average point positions.
+        0 = interpolate points exactly.
+        1 = average point positions.
     :param int degree: degree of the spline (1<degree<5)
 
     |tutorial_spline| |tutorial.py|_

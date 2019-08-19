@@ -20,7 +20,7 @@ slit2 = list(slit1 + array([1e-5, 0, 0]))  # a shifted copy of slit 1
 slits = slit1 + slit2
 # slits += list(slit1 + array([-2e-5, 1e-5, 0]))      # add an other copy of slit 1
 # slits = [(cos(x)*4e-5, sin(x)*4e-5, 0) for x in arange(0,2*pi, .1)] # Arago spot
-# slits = Grid(sx=1e-4, sy=1e-4, resx=9, resy=9).coordinates() # a square lattice
+# slits = Grid(sx=1e-4, sy=1e-4, resx=9, resy=9).getPoints() # a square lattice
 
 vp = Plotter(title="The Double Slit Experiment", axes=0, verbose=0, bg="black")
 
@@ -31,7 +31,7 @@ k = 0.0 + 1j * 2 * pi / lambda1  # complex wave number
 norm = len(slits) * 5e5
 amplitudes = []
 
-for i, x in enumerate(screen.coordinates()):
+for i, x in enumerate(screen.getPoints()):
     psi = 0
     for s in slits:
         r = mag(x - s)

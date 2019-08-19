@@ -13,7 +13,7 @@ doc = Text(__doc__, pos=1, c="w")
 man = load(datadir+"man.vtk")
 
 # let the scalar be the z coordinate of the mesh vertices
-scals = man.coordinates()[:, 2]
+scals = man.getPoints()[:, 2]
 
 # custom color map with specified opacities
 #mymap = ["darkblue", "cyan", (1, 0, 0)]

@@ -11,7 +11,7 @@ vp1 = Plotter(N=3, bg="w")
 
 act = vp1.load(datadir+"bunny.obj").normalize().subdivide()
 
-pts = act.coordinates(copy=True)  # pts is a copy of the points not a reference
+pts = act.getPoints(copy=True)  # pts is a copy of the points not a reference
 pts += np.random.randn(len(pts), 3)/20  # add noise, will not mess up the original points
 
 
@@ -38,8 +38,8 @@ vmin, vmax = np.min(variances), np.max(variances)
 print("min and max of variances:", vmin, vmax)
 vcols = [colorMap(v, "jet", vmin, vmax) for v in variances]  # scalars->colors
 
-a0 = Spheres(mls2.coordinates(), c=vcols, r=0.02) # error as color
-a1 = Spheres(mls2.coordinates(), c="red", r=variances/4) # error as point size
+a0 = Spheres(mls2.getPoints(), c=vcols, r=0.02) # error as color
+a1 = Spheres(mls2.getPoints(), c="red", r=variances/4) # error as point size
 
 txt = Text(__doc__, c="k")
 act.color("k").alpha(0.05).wireframe()

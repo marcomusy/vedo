@@ -7,8 +7,8 @@ import numpy as np
 s1 = Sphere(r=10, res=8).c('white').wireframe()
 s2 = Sphere(r=20, res=8).c('white').wireframe().alpha(0.1).pos(0,4,0)
 
-coords1 = s1.coordinates() # get the vertices coords
-coords2 = s2.coordinates()
+coords1 = s1.getPoints() # get the vertices coords
+coords2 = s2.getPoints()
 
 # color can be a colormap which maps arrrow sizes
 a1 = Arrows(coords1, coords2, c='coolwarm', alpha=0.4).addScalarBar(c='w')

@@ -14,7 +14,7 @@ vp = Plotter(verbose=0, axes=0, bg='w')
 s = vp.load(datadir+"cow.vtk").alpha(0.3).subdivide()  # remesh
 
 variances = []
-for i, p in enumerate(s.coordinates()):
+for i, p in enumerate(s.getPoints()):
     if i % 100:
         continue  # skip most points
     pts = s.closestPoint(p, N=12)  # find the N closest points to p

@@ -80,7 +80,7 @@ class Morpher:
         print("\n..minimizing with " + self.method)
         self.msource = self.source.clone()
 
-        self.s_size = avesize(self.source.coordinates())
+        self.s_size = avesize(self.source.getPoints())
         bnds = [(-self.bound, self.bound)] * 18
         x0 = [0.0] * 18  # initial guess
         x0 += [1.0]  # the optional scale

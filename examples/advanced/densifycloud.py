@@ -16,5 +16,5 @@ apts = Points(coords, r=9).addPointScalars(scals, name='scals')
 densecloud = densifyCloud(apts, .05, closestN=10, maxIter=1)
 print(apts.N(), '->', densecloud.N())
 
-ppp = Points(densecloud.coordinates())
+ppp = Points(densecloud.getPoints())
 show(apts, densecloud, Text(__doc__), axes=8)

@@ -17,7 +17,7 @@ show(
 
 s = actor.subdivide(sub).clean(tol)
 
-coords = s.coordinates()
+coords = s.getPoints()
 pactor = Points(coords)
 
 tomerge = []

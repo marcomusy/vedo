@@ -8,7 +8,7 @@ from vtkplotter import *
 
 mesh = Hyperboloid(pos=(0,0,0)).alpha(0.2)
 
-vects = mesh.clone().coordinates() # let's assume this
+vects = mesh.clone().getPoints() # let's assume this
 mesh.addPointVectors(vects, 'hyp_coords')
 
 probe = Sphere(pos=[0,0.6,0.3], r=0.3, res=8).clean()

@@ -12,7 +12,7 @@ sorted_colors = sorted(colors.items(), key=itemgetter(1))
 # sorted_colors = sorted(colors.items(), key=itemgetter(0))
 
 
-vp = Plotter(N=len(sorted_colors), axes=0, size="fullscreen")
+vp = Plotter(N=len(sorted_colors), axes=0, size="fullscreen", bg='w')
 
 for i, sc in enumerate(sorted_colors):
     cname = sc[0]
@@ -20,6 +20,9 @@ for i, sc in enumerate(sorted_colors):
     cb = Cube(c=rgb)
     tname = Text(cname, pos=3)
     vp.show(cb, tname, at=i)
+
+vp.camera.Azimuth(20)
+vp.camera.Elevation(20)
 
 print("click on any cube and press i")
 vp.show(interactive=1)

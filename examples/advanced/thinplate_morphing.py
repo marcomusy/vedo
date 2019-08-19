@@ -12,7 +12,7 @@ meshd = mesh.clone().decimate(N=100)  # a heavily decimated copy
 
 sources = [[0.0, 1.0, 0.2]]  # this point moves
 targets = [[0.3, 1.3, 0.4]]  # to this.
-for pt in meshd.coordinates():
+for pt in meshd.getPoints():
     if pt[1] < 0.3:  # these pts don't move
         sources.append(pt)  # source = target
         targets.append(pt)

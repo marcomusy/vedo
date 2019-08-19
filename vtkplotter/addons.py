@@ -31,24 +31,29 @@ __all__ = [
         "addLegend",
         ]
 
+
+#####################################################################
 def addLight(
-    pos=(1, 1, 1),
+    pos,
     focalPoint=(0, 0, 0),
-    deg=90,
-    ambient=None,
-    diffuse=None,
-    specular=None,
+    deg=180,
+    c='white',
+    intensity=0.4,
     removeOthers=False,
     showsource=False,
 ):
     """
     Generate a source of light placed at pos, directed to focal point.
+    Returns a ``vtkLight`` object.
 
     :param focalPoint: focal point, if this is a ``vtkActor`` use its position.
     :type fp: vtkActor, list
     :param deg: aperture angle of the light source
-    :param showsource: if `True`, will show a vtk representation
-                        of the source of light as an extra actor
+    :param c: set light color
+    :param float intensity: intensity between 0 and 1.
+    :param bool removeOthers: remove all other lights in the scene
+    :param bool showsource: if `True`, will show a representation
+                            of the source of light as an extra Actor
 
     .. hint:: |lights.py|_
     """
@@ -57,12 +62,12 @@ def addLight(
     light = vtk.vtkLight()
     light.SetLightTypeToSceneLight()
     light.SetPosition(pos)
-    light.SetPositional(1)
+    light.SetPositional(True)
     light.SetConeAngle(deg)
     light.SetFocalPoint(focalPoint)
-    if diffuse  is not None: light.SetDiffuseColor(colors.getColor(diffuse))
-    if ambient  is not None: light.SetAmbientColor(colors.getColor(ambient))
-    if specular is not None: light.SetSpecularColor(colors.getColor(specular))
+    light.SetIntensity(intensity)
+    light.SetColor(colors.getColor(c))
+    #light.SetShadowAttenuation(0.1) # doesnt work
     if showsource:
         lightActor = vtk.vtkLightActor()
         lightActor.SetLight(light)
@@ -73,6 +78,7 @@ def addLight(
     return light
 
 
+#####################################################################
 def addScalarBar(actor,
                  pos=(0.8,0.05),
                  title="",
@@ -172,6 +178,7 @@ def addScalarBar(actor,
     return sb
 
 
+#####################################################################
 def addScalarBar3D(
     obj,
     pos=(0, 0, 0),
@@ -276,7 +283,7 @@ def addScalarBar3D(
         obj.scalarbar = sact
     return sact
 
-
+#####################################################################
 def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
                 title='', c=None, showValue=True):
     """Add a slider widget which can call an external custom function.
@@ -390,7 +397,7 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     vp.sliders.append([sliderWidget, sliderfunc])
     return sliderWidget
 
-
+#####################################################################
 def addSlider3D(
     sliderfunc,
     pos1,
@@ -472,7 +479,7 @@ def addSlider3D(
     vp.sliders.append([sliderWidget, sliderfunc])
     return sliderWidget
 
-
+#####################################################################
 def addButton(
     fnc,
     states=("On", "Off"),
@@ -629,7 +636,7 @@ def _addVolumeCutterTool(vol):
     boxWidget.Off()
     vp.widgets.append(boxWidget)
 
-
+#####################################################################
 def addIcon(iconActor, pos=3, size=0.08):
     """Add an inset icon mesh into the renderer.
 
@@ -666,6 +673,7 @@ def addIcon(iconActor, pos=3, size=0.08):
         vp.actors.remove(iconActor)
     return widget
 
+#####################################################################
 def computeVisibleBounds():
     """Calculate max actors bounds and sizes."""
     bns = []
@@ -685,7 +693,7 @@ def computeVisibleBounds():
     sizes = numpy.array([max_bns[1]-min_bns[0], max_bns[3]-min_bns[2], max_bns[5]-min_bns[4]])
     return vbb, sizes, min_bns, max_bns
 
-
+#####################################################################
 def addAxes(axtype=None, c=None):
     """Draw axes on scene. Available axes types:
 
@@ -1461,6 +1469,7 @@ def addAxes(axtype=None, c=None):
     return
 
 
+#####################################################################
 def addRendererFrame(c=None, alpha=0.5, bg=None, lw=0.5):
 
     if c is None:  # automatic black or white

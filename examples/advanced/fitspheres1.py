@@ -17,7 +17,7 @@ vp = Plotter(verbose=0, axes=0, bg='white')
 s = vp.load(datadir+"cow.vtk").alpha(0.3).subdivide(N=2)
 
 reds, invr = [], []
-for i, p in enumerate(s.coordinates()):
+for i, p in enumerate(s.getPoints()):
     if i % 1000:
         continue  # skip most points
     pts = s.closestPoint(p, N=16)  # find the N closest points to p

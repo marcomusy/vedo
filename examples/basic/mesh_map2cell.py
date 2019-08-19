@@ -7,7 +7,7 @@ from vtkplotter import *
 mesh1 = load(datadir+'icosahedron.vtk')
 
 # let the scalar be the z coordinate of the mesh vertices
-scals = mesh1.coordinates()[:, 2]
+scals = mesh1.getPoints()[:, 2]
 
 mesh1.lineWidth(0.1).addPointScalars(scals, name='scals')
 mesh2 = mesh1.clone().addScalarBar(c='w').mapPointsToCells()

@@ -6,7 +6,7 @@ from vtkplotter import *
 s = Sphere().alpha(0.2).lw(0.1)
 
 # pick a few points on the sphere
-sc = s.coordinates()
+sc = s.getPoints()
 pts = Points([sc[10], sc[15], sc[129], sc[165]])
 
 #cut loop region identified by the points

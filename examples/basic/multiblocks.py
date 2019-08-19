@@ -4,7 +4,7 @@
 from vtkplotter import *
 
 cube  = Cube(side=30)
-scals = cube.coordinates()[:,1]
+scals = cube.getPoints()[:,1]
 poly  = cube.addPointScalars(scals, 'scalsname').polydata()
 
 img = load(datadir+'vase.vti').imagedata()

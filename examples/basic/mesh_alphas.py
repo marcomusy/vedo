@@ -6,7 +6,7 @@ from vtkplotter import load, show, Text, datadir
 mesh = load(datadir+"beethoven.ply")
 
 # pick y coordinates of vertices and use them as scalars
-scals = mesh.coordinates()[:, 1]
+scals = mesh.getPoints()[:, 1]
 
 # define opacities in the range of the scalar,
 # at min(scals) alpha is 0.1,
