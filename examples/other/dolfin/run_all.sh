@@ -41,6 +41,9 @@ python magnetostatics.py
 echo Running curl2d.py
 python curl2d.py
 
+echo Running pointLoad.py
+python pointLoad.py
+
 ######################################
 echo Running ex01_show-mesh.py
 python ex01_show-mesh.py
@@ -107,6 +110,13 @@ python wavy_1d.py
 echo Running awefem.py
 python awefem.py
 
+echo Running demo_eigenvalue.py
+python demo_eigenvalue.py
+
+echo Running demo_auto-adaptive-poisson.py
+python demo_auto-adaptive-poisson.py
+
+
 ######################################
 echo 
 echo
@@ -126,17 +136,6 @@ python noplot/ex03_poisson.py
 echo Running noplot/ex04_mixed-poisson.py
 python noplot/ex04_mixed-poisson.py
 
-echo Running noplot/ex05_non-matching-meshes.py
-python noplot/ex05_non-matching-meshes.py
-
-echo Running noplot/ex06_elasticity1.py
-python noplot/ex06_elasticity1.py
-
-echo Running noplot/ex06_elasticity2.py
-python noplot/ex06_elasticity2.py
-
-echo Running noplot/ex07_stokes-iterative.py
-python noplot/ex07_stokes-iterative.py
 
 echo '----------------------------'
 echo '----------------------------'

@@ -50,6 +50,7 @@ __status__ = "dev"
 __website__ = "https://github.com/marcomusy/vtkplotter"
 
 from vtkplotter.version import _version as __version__
+from vtkplotter.animation import Animation
 from vtkplotter.plotter import *
 from vtkplotter.analysis import *
 from vtkplotter.shapes import *

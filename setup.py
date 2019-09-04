@@ -48,7 +48,6 @@ setup(
 
 # cd ~/Projects/vtkplotter/
 # pip install .
-# ( sudo -H pip install . -U)
 
 # cd examples && ./run_all.sh
 # python tests/test_filetypes.py
@@ -58,6 +57,7 @@ setup(
 # rm vtkplotter/data/290.ply
 
 # check on python2 the same stuff is ok
+# ( sudo -H pip install . -U)
 
 # check notebooks:
 # cd ~/Projects/vtkplotter/
@@ -85,6 +85,7 @@ setup(
 #  make html
 # Open the HTML webpage
 #  open build/html/index.html
+# check if dolfin shows up
 #
 # mount_staging
 # cp -r build/html/* ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/

@@ -484,7 +484,7 @@ class Plotter:
             self.camera = vtk.vtkOpenVRCamera()
             self.window =vtk.vtkOpenVRRenderWindow()
         else:
-            self.camera = vtk.vtkCamera()
+            self.camera = None
             self.window = vtk.vtkRenderWindow()
 
         self.window.PointSmoothingOn()
@@ -906,6 +906,7 @@ class Plotter:
         save_int = self.interactive
         self.show(resetcam=0, interactive=0)
         self.interactive = save_int
+        return cam
 
     ##################################################################
     def addLight(self, pos, focalPoint=(0, 0, 0), deg=180, c='white',

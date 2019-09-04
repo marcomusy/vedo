@@ -96,8 +96,6 @@ if __name__ == "__main__":
     # See e.g. https://en.wikipedia.org/wiki/Rutherford_scattering
 
     vp = Plotter(title="Particle Simulator", bg="black", axes=0, interactive=False)
-    vp.camera.Elevation(20)  # Initial camera position
-    vp.camera.Azimuth(40)
 
     vp += Cube(c="white").wireframe(1) # a wireframe cube
 

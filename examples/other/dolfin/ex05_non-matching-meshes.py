@@ -28,4 +28,4 @@ from vtkplotter.dolfin import plot
 
 # Plot v1 and v3 on 2 synced renderers
 plot(v1, at=0, N=2, text='coarse mesh')
-plot(v3, at=1, N=2, text='finer  mesh', interactive=True)
+plot(v3, at=1, text='finer  mesh', interactive=True)

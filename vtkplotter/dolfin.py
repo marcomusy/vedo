@@ -1,5 +1,3 @@
-# FEniCS/Dolfin support API
-#
 from __future__ import division, print_function
 
 import vtk
@@ -182,8 +180,27 @@ def _inputsort(obj):
     #printc('mesh.topology dim=', mesh.topology().dim())
     #printc('mesh.geometry dim=', mesh.geometry().dim())
     #if u: printc('u.value_rank()', u.value_rank())
+    #if u and u.value_rank(): printc('u.value_dimension()', u.value_dimension(0)) # axis=0
+    ##if u: printc('u.value_shape()', u.value_shape())
     return (mesh, u)
 
+
+def _compute_uvalues(u, mesh):
+
+    if not u: return
+
+    u_values = u.compute_vertex_values(mesh)
+    #print('u_values are', u_values)
+
+    l = u_values.shape[0]
+
+    if u.value_rank() and u.value_dimension(0)>1:
+        u_values = u_values.reshape(u.value_dimension(0), int(l/u.value_dimension(0))).T
+
+    if u_values.shape[0] != mesh.coordinates().shape[0]:
+        printc('Warning: mismatch in vtkplotter.dolfin._compute_uvalues()', c=1)
+        u_values = np.array([u(p) for p in mesh.coordinates()])
+    return u_values
 
 
 def plot(*inputobj, **options):
@@ -198,9 +215,7 @@ def plot(*inputobj, **options):
     :param str mode: one or more of the following can be combined in any order
 
         - `mesh`/`color`, will plot the mesh, by default colored with a scalar if available
-
-            - `warp`, mesh will be modified by a displacement function
-            - `contour`, to be implemented
+        - `displacement` show displaced mesh by solution
         - `arrows`, mesh displacements are plotted as scaled arrows.
         - `lines`, mesh displacements are plotted as scaled lines.
         - `tensors`, to be implemented
@@ -522,9 +537,7 @@ def plot(*inputobj, **options):
             for sb in settings.plotter_instance.scalarbars:
                 settings.plotter_instance.renderer.RemoveActor(sb)
 
-    if mesh and ('mesh' in mode or 'color' in mode or 'warp' in mode or 'displac' in mode):
-        if 'warp' in mode: #deprecation
-            printc("~bomb Please use 'displacement' instead of 'warp' in mode!", c=1)
+    if mesh and ('mesh' in mode or 'color' in mode or 'displace' in mode):
 
         actor = MeshActor(u, mesh, exterior=exterior, fast=fast)
         actor.wireframe(wire)
@@ -557,18 +570,15 @@ def plot(*inputobj, **options):
             elif shading[0] == 'g':
                 actor.gouraud()
 
-        delta = None
-        if cmap and u and c is None:
-            delta = [u(p) for p in mesh.coordinates()]
-            #delta = u.compute_vertex_values(mesh) # needs reshape, not faster..
+        if cmap and (actor.u_values is not None) and c is None:
             if u.value_rank() > 0: # wiil show the size of the vector
-                actor.pointColors(utils.mag(delta),
+                actor.pointColors(utils.mag(actor.u_values),
                                   cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
             else:
-                actor.pointColors(delta, cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
+                actor.pointColors(actor.u_values,
+                                  cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
 
-        if 'warp' in mode or 'displac' in mode:
-            actor.move(u, delta)
+        if 'displace' in mode: actor.move(u)
 
         if scbar and c is None:
             if 'h' in scbar:
@@ -650,6 +660,9 @@ def plot(*inputobj, **options):
                     settings.plotter_instance.remove(a2)
                     break
 
+    if len(actors)==0:
+         print('Warning: no objects to show, check mode in plot(mode="...")')
+
     return show(actors, **options)
 
 
@@ -686,22 +699,10 @@ class MeshActor(Actor):
 
         self.mesh = mesh  # holds a dolfin Mesh obj
         self.u = u  # holds a dolfin function_data
-        self.u_values = None  # holds the actual values of u on the mesh
-        u_values = None
+        # holds the actual values of u on the mesh
+        self.u_values = _compute_uvalues(u, mesh)
+        #self.addPointScalars(self.u_values, "u_values")
 
-        if u:
-            u_values = np.array([u(p) for p in self.mesh.coordinates()])
-            #print('u_values are', u_values)
-
-        if u_values is not None:  # colorize if a dolfin function is passed
-            if len(u_values.shape) == 2:
-                if u_values.shape[1] in [2, 3]:  # u_values is 2D or 3D
-                    self.u_values = u_values
-                    dispsizes = utils.mag(u_values)
-            else:  # u_values is 1D
-                dispsizes = u_values
-
-            self.addPointScalars(dispsizes, "u_values")
 
     def move(self, u=None, deltas=None):
         """Move mesh according to solution `u`
@@ -710,14 +711,24 @@ class MeshActor(Actor):
         if u is None:
             u = self.u
         if deltas is None:
-            deltas = [u(p) for p in self.mesh.coordinates()]
+            if self.u_values is not None:
+                deltas = self.u_values
+            else:
+                deltas = _compute_uvalues(u, self.mesh)
+                self.u_values = deltas
+
+        if self.mesh.coordinates().shape != deltas.shape:
+            printc("ERROR: Try to move mesh with wrong solution type shape:",
+                  self.mesh.coordinates().shape, 'vs', deltas.shape, c=1)
+            printc("Mesh is not moved. Try mode='color' in plot().", c=1)
+            return
 
         movedpts = self.mesh.coordinates() + deltas
         if movedpts.shape[1] == 2: #2d
             movedpts = np.c_[movedpts, np.zeros(movedpts.shape[0])]
         self.polydata(False).GetPoints().SetData(numpy_to_vtk(movedpts))
         self.poly.GetPoints().Modified()
-        self.u_values = deltas
+
 
 def MeshPoints(*inputobj, **options):
     """
@@ -735,9 +746,11 @@ def MeshPoints(*inputobj, **options):
     mesh, u = _inputsort(inputobj)
     if not mesh:
         return None
+
     plist = mesh.coordinates()
-    if u:
-        u_values = np.array([u(p) for p in plist])
+
+    u_values = _compute_uvalues(u,mesh)
+
     if len(plist[0]) == 2:  # coords are 2d.. not good..
         plist = np.insert(plist, 2, 0, axis=1)  # make it 3d
     if len(plist[0]) == 1:  # coords are 1d.. not good..
@@ -779,7 +792,7 @@ def MeshLines(*inputobj, **options):
         return None
 
     startPoints = mesh.coordinates()
-    u_values = np.array([u(p) for p in mesh.coordinates()])
+    u_values = _compute_uvalues(u,mesh)
     if not utils.isSequence(u_values[0]):
         printc("~times Error: cannot show Lines for 1D scalar values!", c=1)
         raise RuntimeError()
@@ -789,9 +802,7 @@ def MeshLines(*inputobj, **options):
         startPoints = np.insert(startPoints, 2, 0, axis=1)  # make it 3d
         endPoints = np.insert(endPoints, 2, 0, axis=1)  # make it 3d
 
-    actor = shapes.Lines(
-        startPoints, endPoints, scale=scale, lw=lw, c=c, alpha=alpha
-    )
+    actor = shapes.Lines(startPoints, endPoints, scale=scale, lw=lw, c=c, alpha=alpha)
 
     actor.mesh = mesh
     actor.u = u
@@ -817,7 +828,7 @@ def MeshArrows(*inputobj, **options):
         return None
 
     startPoints = mesh.coordinates()
-    u_values = np.array([u(p) for p in mesh.coordinates()])
+    u_values = _compute_uvalues(u,mesh)
     if not utils.isSequence(u_values[0]):
         printc("~times Error: cannot show Arrows for 1D scalar values!", c=1)
         raise RuntimeError()
@@ -827,9 +838,8 @@ def MeshArrows(*inputobj, **options):
         startPoints = np.insert(startPoints, 2, 0, axis=1)  # make it 3d
         endPoints = np.insert(endPoints, 2, 0, axis=1)  # make it 3d
 
-    actor = shapes.Arrows(
-        startPoints, endPoints, s=s, scale=scale, c=c, alpha=alpha, res=res
-    )
+    actor = shapes.Arrows(startPoints, endPoints,
+                          s=s, scale=scale, c=c, alpha=alpha, res=res)
     actor.mesh = mesh
     actor.u = u
     actor.u_values = u_values

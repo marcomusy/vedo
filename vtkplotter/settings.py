@@ -173,7 +173,7 @@ def embedWindow(backend='k3d', verbose=True):
             return
 
     notebookBackend = backend
-    
+
     if backend=='k3d':
         try:
             import k3d

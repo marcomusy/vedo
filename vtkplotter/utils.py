@@ -400,14 +400,19 @@ def findDistanceToLines2D(P0,P1, pts):
     return [distance(P0,P1,p_i) for p_i in pts]
 
 
-def lin_interp(x, rangeX, rangeY):
+def linInterpolate(x, rangeX, rangeY):
     """
     Interpolate linearly variable x in rangeX onto rangeY.
-    E.g. if x runs in rangeX=[x0,x1] and the target range is
-    rangeY=[y0,y1] then
-    y = lin_interp(x, rangeX, rangeY) will interpolate x onto rangeY.
+    E.g.:
+        if x runs in rangeX=[x0,x1] and the target range is rangeY=[y0,y1] then
+        y = linInterpolate(x, rangeX, rangeY) will interpolate x onto rangeY.
     """
-    s = (x - rangeX[0]) / (rangeX[1] - rangeX[0])
+    x0 = rangeX[0]
+    dx = rangeX[1] - x0
+    if dx:
+        s = (x - x0) / dx
+    else:
+        s = 1
     return rangeY[0] * (1 - s) + rangeY[1] * s
 
 
@@ -518,19 +523,21 @@ def pointIsInTriangle(p, p1, p2, p3):
     """
     Return True if a point is inside (or above/below) a triangle defined by 3 points in space.
     """
-    p = np.array(p)
-    u = np.array(p2) - p1
-    v = np.array(p3) - p1
+    p1 = np.array(p1)
+    u = p2 - p1
+    v = p3 - p1
     n = np.cross(u, v)
     w = p - p1
     ln = np.dot(n, n)
     if not ln:
-        return True  # degenerate triangle
+        return None  # degenerate triangle
     gamma = (np.dot(np.cross(u, w), n)) / ln
-    beta = (np.dot(np.cross(w, v), n)) / ln
-    alpha = 1 - gamma - beta
-    if 0 < alpha < 1 and 0 < beta < 1 and 0 < gamma < 1:
-        return True
+    if 0 < gamma < 1:
+        beta = (np.dot(np.cross(w, v), n)) / ln
+        if 0 < beta < 1 :
+            alpha = 1 - gamma - beta
+            if 0 < alpha < 1:
+                return True
     return False
 
 
@@ -545,7 +552,7 @@ def cart2spher(x, y, z):
     hxy = np.hypot(x, y)
     rho = np.hypot(hxy, z)
     if not rho:
-        return (0,0,0)
+        return np.array([0,0,0])
     theta = np.arctan2(hxy, z)
     phi = np.arctan2(y, x)
     return rho, theta, phi
@@ -1209,20 +1216,18 @@ def cameraFromNeuroglancer(state, zoom=300):
     return cameraFromQuaternion(pos_nm, orient, pzoom * zoom, ngl_correct=True)
 
 
-def orientedCamera(center, upVector=(0,-1,0), backoffVector=(0,0,1), backoff=500):
+def orientedCamera(center=(0,0,0), upVector=(0,1,0), backoffVector=(0,0,1), backoff=1):
     """
     Generate a ``vtkCamera`` pointed at a specific location,
     oriented with a given up direction, set to a backoff.
     """
     vup = np.array(upVector)
     vup = vup / np.linalg.norm(vup)
-
-    pt_backoff = center - backoff * 1000 * np.array(backoffVector)
-
+    pt_backoff = center - backoff * np.array(backoffVector)
     camera = vtk.vtkCamera()
-    camera.SetFocalPoint(*center)
-    camera.SetViewUp(*vup)
-    camera.SetPosition(*pt_backoff)
+    camera.SetFocalPoint(center[0],center[1],center[2])
+    camera.SetViewUp(vup[0], vup[1], vup[2])
+    camera.SetPosition(pt_backoff[0], pt_backoff[1], pt_backoff[2])
     return camera
 
 

@@ -1186,7 +1186,7 @@ def screenshot(filename="screenshot.png"):
     """
     Save a screenshot of the current rendering window.
     """
-    if not settings.plotter_instance.window:
+    if not settings.plotter_instance or not settings.plotter_instance.window:
         colors.printc('~bomb screenshot(): Rendering window is not present, skip.', c=1)
         return
     w2if = vtk.vtkWindowToImageFilter()
@@ -1262,7 +1262,7 @@ class Video:
         """Render the video and write to file."""
         if self.duration:
             self.fps = len(self.frames) / float(self.duration)
-            colors.printc("Recalculated video FPS to", round(self.fps, 3), c="yellow")
+            colors.printc("Recalculated video FPS to", round(self.fps, 3), c="m")
         else:
             self.fps = int(self.fps)
         self.name = self.name.split('.')[0]+'.mp4'
@@ -1270,7 +1270,7 @@ class Video:
                         + " -i " + self.tmp_dir.name + os.sep + "%01d.png " + self.name)
         if out:
             colors.printc("ffmpeg returning error", c=1)
-        colors.printc("~save Video saved as", self.name, c="green")
+        colors.printc("~save Video saved as", self.name, c="m")
         self.tmp_dir.cleanup()
         return
 

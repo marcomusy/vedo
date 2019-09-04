@@ -7,6 +7,7 @@ import vtkplotter.colors as colors
 from vtkplotter.actors import Actor, Volume, Assembly
 import vtkplotter.settings as settings
 import vtkplotter.addons as addons
+import vtkplotter.utils as utils
 from vtk.util.numpy_support import vtk_to_numpy
 
 __all__ = []
@@ -99,23 +100,33 @@ def getNotebookBackend(actors2show, zoom, viewup):
 
         # set k3d camera
         settings.notebook_plotter.camera_auto_fit = False
-        vsx, vsy, vsz = vbb[0]-vbb[1], vbb[2]-vbb[3], vbb[4]-vbb[5]
-        vss = numpy.linalg.norm([vsx, vsy, vsz])
-        if zoom:
-            vss /= zoom
-        vfp = (vbb[0]+vbb[1])/2, (vbb[2]+vbb[3])/2, (vbb[4]+vbb[5])/2 # camera target
-        if viewup == 'z':
-            vup = (0,0,1) # camera up vector
-            vpos= vfp[0] + vss/1.9, vfp[1] + vss/1.9, vfp[2]+vss*0.01  # camera position
-        elif viewup == 'x':
-            vup = (1,0,0)
-            vpos= vfp[0]+vss*0.01, vfp[1] + vss/1.5, vfp[2]  # camera position
+
+        eps = 1 + numpy.random.random()*1.0e-04 # workaround to bug in k3d
+        # https://github.com/K3D-tools/K3D-jupyter/issues/180
+
+        if settings.plotter_instance and settings.plotter_instance.camera:
+            k3dc =  utils.vtkCameraToK3D(settings.plotter_instance.camera)
+            k3dc[2] = k3dc[2]*eps
+            settings.notebook_plotter.camera = k3dc
+            #print('k3dcr', k3dc*eps)
         else:
-            vup = (0,1,0)
-            vpos= vfp[0]+vss*0.01, vfp[1]+vss*0.01, vfp[2] + vss/1.5  # camera position
-        settings.notebook_plotter.camera = [vpos[0], vpos[1], vpos[2],
-                                             vfp[0],  vfp[1],  vfp[2],
-                                             vup[0],  vup[1],  vup[2] ]
+            vsx, vsy, vsz = vbb[0]-vbb[1], vbb[2]-vbb[3], vbb[4]-vbb[5]
+            vss = numpy.linalg.norm([vsx, vsy, vsz])
+            if zoom:
+                vss /= zoom
+            vfp = (vbb[0]+vbb[1])/2, (vbb[2]+vbb[3])/2, (vbb[4]+vbb[5])/2 # camera target
+            if viewup == 'z':
+                vup = (0,0,1) # camera up vector
+                vpos= vfp[0] + vss/1.9, vfp[1] + vss/1.9, vfp[2]+vss*0.01  # camera position
+            elif viewup == 'x':
+                vup = (1,0,0)
+                vpos= vfp[0]+vss*0.01, vfp[1] + vss/1.5, vfp[2]  # camera position
+            else:
+                vup = (0,1,0)
+                vpos= vfp[0]+vss*0.01, vfp[1]+vss*0.01, vfp[2] + vss/1.5  # camera position
+            settings.notebook_plotter.camera = [vpos[0], vpos[1], vpos[2]*eps,
+                                                 vfp[0],  vfp[1],  vfp[2],
+                                                 vup[0],  vup[1],  vup[2] ]
         if not vp.axes:
             settings.notebook_plotter.grid_visible = False
 

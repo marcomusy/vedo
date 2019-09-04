@@ -138,6 +138,9 @@ python basic/pca.py
 echo Running basic/silhouette.py
 python basic/silhouette.py
 
+echo Running basic/silhouette2.py
+python basic/silhouette2.py
+
 echo Running basic/trail.py
 python basic/trail.py
 
@@ -461,6 +464,7 @@ vtkplotter      --lego   data/SainteHelens.dem
 
 echo '---------------------------- should open a GUI'
 echo vtkplotter
+vtkplotter
 
 echo '----------------------------'
 echo '----------------------------'
@@ -470,13 +474,10 @@ echo '----------------------------'
 
 
 ##################################### not run/ignored:
-#basic/annotations.py
 #basic/text_just.py
 #basic/lights.py
-#basic/ids.py
-#basic/surfIntersect.py
 #other/makeVideo.py
 #other/spherical_harmonics2.py 
 #other/remesh_ACVD.py 
 #other/tf_learn_embryo.py
-#other/self_org_maps2d.py
+#other/self_org_maps3d.py

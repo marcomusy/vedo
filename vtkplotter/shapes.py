@@ -472,8 +472,7 @@ def Spline(points, smooth=0.5, degree=2, s=2, res=20):
     maxb = max(maxx - minx, maxy - miny, maxz - minz)
     smooth *= maxb / 2  # must be in absolute units
 
-    x, y, z = points[:, 0], points[:, 1], points[:, 2]
-    tckp, _ = splprep([x, y, z], task=0, s=smooth, k=degree)  # find the knots
+    tckp, _ = splprep(points.T, task=0, s=smooth, k=degree)  # find the knots
     # evaluate spLine, including interpolated points:
     xnew, ynew, znew = splev(np.linspace(0, 1, Nout), tckp)
 
