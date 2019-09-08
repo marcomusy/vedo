@@ -314,9 +314,7 @@ def getColor(rgb=None, hsv=None):
                 return (c[0] / 255.0, c[1] / 255.0, c[2] / 255.0, c[3])  # RGBA
 
     elif isinstance(c, str):  # is string
-        c = c.replace(",", " ").replace("/", " ").replace("alpha=", "")
-        c = c.replace("grey", "gray")
-        c = c.split()[0]  # ignore possible opacity float inside string
+        c = c.replace("grey", "gray").replace(" ", "")
         if 0 < len(c) < 3:  # single/double letter color
             if c.lower() in color_nicks.keys():
                 c = color_nicks[c.lower()]
@@ -359,7 +357,8 @@ def getColor(rgb=None, hsv=None):
 
 
 def getColorName(c):
-    """Find the name of a color.
+    """
+    Find the name of a color.
 
     |colorpalette| |colorpalette.py|_
     """

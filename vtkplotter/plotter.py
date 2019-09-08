@@ -558,6 +558,18 @@ class Plotter:
         if sum(shape) > 3:
             self.legendSize *= 2
 
+        image_actor=None
+        bgname = str(self.backgrcol).lower() 
+        if ".jpg" in bgname or ".jpeg" in bgname or ".png" in bgname:
+            self.window.SetNumberOfLayers(2)
+            self.backgroundRenderer = vtk.vtkRenderer()
+            self.backgroundRenderer.SetLayer(0)
+            self.backgroundRenderer.InteractiveOff()
+            self.backgroundRenderer.SetBackground(colors.getColor(bg2))
+            image_actor = Picture(self.backgrcol)
+            self.window.AddRenderer(self.backgroundRenderer)
+            self.backgroundRenderer.AddActor(image_actor)
+
         for i in reversed(range(shape[0])):
             for j in range(shape[1]):
                 if settings.useOpenVR:
@@ -569,25 +581,14 @@ class Plotter:
                     arenderer.SetUseFXAA(settings.useFXAA)
                     arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
 
-                if ".jpg" in str(self.backgrcol).lower() or ".jpeg" in str(self.backgrcol).lower():
-                    if i == 0:
-                        image_actor = Picture(self.backgrcol)
-                        self.backgroundRenderer = vtk.vtkRenderer()
-                        self.backgroundRenderer.SetLayer(0)
-                        self.backgroundRenderer.InteractiveOff()
-                        if bg2:
-                            self.backgroundRenderer.SetBackground(colors.getColor(bg2))
-                        else:
-                            self.backgroundRenderer.SetBackground(1, 1, 1)
-                        arenderer.SetLayer(1)
-                        self.window.SetNumberOfLayers(2)
-                        self.window.AddRenderer(self.backgroundRenderer)
-                        self.backgroundRenderer.AddActor(image_actor)
-                else:
-                    arenderer.SetBackground(colors.getColor(self.backgrcol))
-                    if bg2:
-                        arenderer.GradientBackgroundOn()
-                        arenderer.SetBackground2(colors.getColor(bg2))
+                if image_actor:                    
+                    arenderer.SetLayer(1)
+                
+                arenderer.SetBackground(colors.getColor(self.backgrcol))
+                if bg2:
+                    arenderer.GradientBackgroundOn()
+                    arenderer.SetBackground2(colors.getColor(bg2))
+
                 x0 = i / shape[0]
                 y0 = j / shape[1]
                 x1 = (i + 1) / shape[0]
