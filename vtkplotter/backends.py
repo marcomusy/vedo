@@ -23,8 +23,12 @@ def getNotebookBackend(actors2show, zoom, viewup):
     if 'itk' in settings.notebookBackend:
         from itkwidgets import view
 
-        if vp.shape[0] != 1 or vp.shape[1] != 1:
+        if sum(vp.shape) != 2:
             colors.printc("Warning: multirendering is not supported in jupyter.", c=1)
+        
+#        settings.notebook_plotter = view(actors=actors2show,
+#                                         cmap='jet', ui_collapsed=True,
+#                                         gradient_opacity=False)
 
         polys2show = []
         points2show = []

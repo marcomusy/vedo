@@ -183,8 +183,20 @@ python basic/ribbon.py
 echo Running basic/flatarrow.py
 python basic/flatarrow.py
 
-echo Running basic/histo2D.py
-python basic/histo2D.py
+echo Running basic/histogram.py
+python basic/histogram.py
+
+echo Running basic/histoHexagonal.py
+python basic/histoHexagonal.py
+
+echo Running basic/histoPolar.py
+python basic/histoPolar.py
+
+echo Running basic/polarPlot.py
+python basic/polarPlot.py
+
+echo Running basic/donutPlot.py
+python basic/donutPlot.py
 
 echo Running basic/fillholes.py
 python basic/fillholes.py

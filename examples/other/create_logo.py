@@ -4,7 +4,7 @@ Create an animated logo.
 from vtkplotter import *
 
 exa = Polygon().scale(4.1).pos(5.25, 4.8, 0).off()
-his = histogram2D([-1, 1], [-1, 1]).getActors()
+his = hexHistogram([-1, 1], [-1, 1]).getActors()
 
 exah, cmh = [], []
 for h in his:

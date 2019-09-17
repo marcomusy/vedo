@@ -18,7 +18,7 @@ and ``vtkImageActor`` objects functionality.
 )
 
 __all__ = [
-    'Prop',
+#    'Prop',
     'Actor',
     'Assembly',
     'Picture',
@@ -59,10 +59,14 @@ def merge(*actors):
     for a in utils.flatten(actors):
         if isinstance(a, vtk.vtkAssembly):
             acts += a.getActors()
-        else:
+        elif a:
             acts += [a]
+            
     if len(acts) == 1:
         return acts[0].clone()
+    elif len(acts) == 0:
+        return None
+
     polylns = vtk.vtkAppendPolyData()
     for a in acts:
         polylns.AddInputData(a.polydata())
@@ -184,7 +188,10 @@ class Prop(object):
         if x is None:
             return np.array(self.GetPosition())
         if z is None:  # assume p_x is of the form (x,y,z)
-            x, y, z = x
+            if y is not None: # assume x and y are given so z=0
+                z=0
+            else: # assume p_x is of the form (x,y,z)
+                x, y, z = x
         self.SetPosition(x, y, z)
 
         if self.trail:
@@ -2449,20 +2456,21 @@ class Actor(vtk.vtkActor, Prop):
 
     def scalars(self, name_or_idx=None, datatype="point"):
         """
-        Retrieve point or cell scalars using array name or index number.
-        If no ``name`` is given return the list of names of existing arrays.
+        Retrieve point or cell scalars using array name or index number,
+        and set it as the active one.
+        
+        If no input is given return the list of names of existing arrays.
 
         :param str datatype: search given name in point-data or cell-data
 
         .. hint:: |mesh_coloring.py|_
         """
-        #print('scalars is DEPRECATED')
         poly = self.polydata(False)
 
-        if name_or_idx is None:  # get mode behaviour
+        # no argument: return list of available arrays
+        if name_or_idx is None:
             ncd = poly.GetCellData().GetNumberOfArrays()
             npd = poly.GetPointData().GetNumberOfArrays()
-            nfd = poly.GetFieldData().GetNumberOfArrays()
             arrs = []
             for i in range(npd):
                 #print(i, "PointData", poly.GetPointData().GetArrayName(i))
@@ -2470,41 +2478,40 @@ class Actor(vtk.vtkActor, Prop):
             for i in range(ncd):
                 #print(i, "CellData", poly.GetCellData().GetArrayName(i))
                 arrs.append(["CellData", poly.GetCellData().GetArrayName(i)])
-            for i in range(nfd):
-                #print(i, "FieldData", poly.GetFieldData().GetArrayName(i))
-                arrs.append(["FieldData", poly.GetFieldData().GetArrayName(i)])
             return arrs
 
-        else:  # set mode
+        else:  # return a specific array (and set it as active one)
 
-            if "point" in datatype.lower():
-                data = poly.GetPointData()
-            elif "cell" in datatype.lower():
-                data = poly.GetCellData()
-            elif "field" in datatype.lower():
-                data = poly.GetFieldData()
-            else:
-                colors.printc("~times Error in scalars(): unknown datatype", datatype, c=1)
-                raise RuntimeError()
+            pdata = poly.GetPointData()
+            arr = None
+            
+            if 'point' in datatype.lower():
+                if isinstance(name_or_idx, int):
+                    name = pdata.GetArrayName(name_or_idx)
+                else:
+                    name = name_or_idx
+                if name:
+                    arr = pdata.GetArray(name)
+                    data = pdata
+            
+            if not arr or 'cell' in datatype.lower():
+                cdata = poly.GetCellData()
+                if isinstance(name_or_idx, int):
+                    name = cdata.GetArrayName(name_or_idx)
+                else:
+                    name = name_or_idx
+                if name:
+                    arr = cdata.GetArray(name)
+                    data = cdata
 
-            if isinstance(name_or_idx, int):
-                name = data.GetArrayName(name_or_idx)
-                if name is None:
-                    return None
+            if arr:
                 data.SetActiveScalars(name)
                 self.mapper.ScalarVisibilityOn()
-                #self.mapper.SetScalarRange(data.GetArray(name).GetRange())
-                return vtk_to_numpy(data.GetArray(name))
-            elif isinstance(name_or_idx, str):
-                arr = data.GetArray(name_or_idx)
-                if arr is None:
-                    return None
-                data.SetActiveScalars(name_or_idx)
-                #self.mapper.SetScalarRange(arr.GetRange())
-                self.mapper.ScalarVisibilityOn()
+                self.mapper.SetScalarRange(arr.GetRange())
                 return vtk_to_numpy(arr)
-
+            
             return None
+
 
     def subdivide(self, N=1, method=0):
         """Increase the number of vertices of a surface mesh.

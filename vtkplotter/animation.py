@@ -3,19 +3,23 @@ import numpy as np
 import vtkplotter.utils as utils
 from vtkplotter.utils import ProgressBar, linInterpolate
 from vtkplotter.colors import printc, getColor
+import vtkplotter.docs as docs
 from vtkplotter.vtkio import Video
 from vtkplotter.plotter import Plotter
 
 __doc__ = (
     """
-Animation module which allows to animate simultaneously various objects
+Submodule which allows to animate simultaneously various objects
 by specifying event times and durations of different visual effects.
 
 See examples
 `here <https://github.com/marcomusy/vtkplotter/blob/master/examples/other>`_.
 
+|animation1| |animation2|
+
 N.B.: this is still an experimental feature at the moment.
 """
+    + docs._defs
 )
 
 __all__ = ['Animation']
@@ -350,7 +354,7 @@ class Animation(Plotter):
 
 
     def meshErode(self, act=None, corner=6, t=None, duration=None):
-        """Erode a mesh by removing cells that are close to one of the 6 corners
+        """Erode a mesh by removing cells that are close to one of the 8 corners
         of the bounding box.
         """
         if self.bookingMode:

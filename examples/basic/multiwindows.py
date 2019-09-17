@@ -1,41 +1,50 @@
 """
 Example of drawing objects on different windows
 and/or subwindows within the same window.
-We split the main window in a 25 subwindows and draw something
-in specific windows numbers.
+We split the main window in many subwindows and draw
+somethingon specific windows numbers.
 Then open an independent window and draw a shape on it.
 """
 print(__doc__)
+from vtkplotter import *
 
-from vtkplotter import Plotter, Text, datadir
-
-
+##########################################################################
 # this is one instance of the class Plotter with 5 raws and 5 columns
-vp1 = Plotter(shape=(5, 5), axes=0, bg="white")
-# having set shape=(n,m), script execution after the show() is not held
+vp1 = Plotter(shape=(5,5), axes=0, bg="white")
 
 # set a different background color for a specific subwindow (the last one)
 vp1.renderers[24].SetBackground(0.8, 0.9, 0.9)  # use vtk method SetBackground()
 
 # load the actors and give them a name
-a = vp1.load(datadir+"airboat.vtk").legend("some legend")
+a = vp1.load(datadir+"airboat.vtk")
 b = vp1.load(datadir+"cessna.vtk", c="red")
 c = vp1.load(datadir+"atc.ply")
 
 # show a text in each renderer
 for i in range(25):
-    txt = Text("renderer\nnr."+str(i), c='k', s=0.5, font='arial')
-    vp1.show(txt, at=i, interactive=0)
+    txt = Text("renderer\nnr."+str(i), c='k', font='arial', s=1)
+    vp1.show(txt, at=i)
 
-vp1.show(a, at=22)
+vp1.show(a, at= 6)
 vp1.show(b, at=23)
-vp1.show(c, at=24, interactive=0)
+vp1.show(c, at=24)
 
 
-############################################################
+##########################################################################
 # declare a second independent instance of the class Plotter
-vp2 = Plotter(pos=(500, 250), bg=(0.9, 0.9, 1))  # blue-ish background
+# shape can also be given as a string, e.g.:
+# shape="2/6" means 2 renderers above and 6 below
+# shape="3|1" means 3 renderers on the left and one on the right
 
-vp2.load(datadir+"porsche.ply").legend("an other window")
+s = load(datadir+'pumpkin.vtk')
 
-vp2.show()  # show and interact with mouse and keyboard
+#settings.multiRenderingSplittingPosition = 0.5
+
+vp2 = Plotter(pos=(500, 250), shape='2/6')
+
+for i in range(len(vp2.renderers)):
+    s2 = s.clone().color(i)
+    txt = Text('renderer #'+str(i))
+    vp2.show(s2, txt, at=i)
+
+interactive()

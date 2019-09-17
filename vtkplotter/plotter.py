@@ -438,7 +438,6 @@ class Plotter:
         self.clickedActor = None  # holds the actor that has been clicked
         self.renderer = None  # current renderer
         self.renderers = []  # list of renderers
-        self.shape = shape
         self.pos = pos
         self.interactive = interactive  # allows to interact with renderer
         self.axes = axes  # show axes type nr.
@@ -535,67 +534,115 @@ class Plotter:
                     minl = l
             shape = lm[ind]
 
-        if size == "auto":  # figure out a reasonable window size
-            f = 1.5
-            xs = y / f * shape[1]  # because y<x
-            ys = y / f * shape[0]
-            if xs > x / f:  # shrink
-                xs = x / f
-                ys = xs / shape[1] * shape[0]
-            if ys > y / f:
-                ys = y / f
-                xs = ys / shape[0] * shape[1]
-            self.size = (int(xs), int(ys))
-            if shape == (1, 1):
-                self.size = (int(y / f), int(y / f))  # because y<x
-        else:
-            self.size = (size[1], size[0])
+        if isinstance(shape, str):
 
-
-        ############################
-        self.shape = shape
-
-        if sum(shape) > 3:
-            self.legendSize *= 2
-
-        image_actor=None
-        bgname = str(self.backgrcol).lower() 
-        if ".jpg" in bgname or ".jpeg" in bgname or ".png" in bgname:
-            self.window.SetNumberOfLayers(2)
-            self.backgroundRenderer = vtk.vtkRenderer()
-            self.backgroundRenderer.SetLayer(0)
-            self.backgroundRenderer.InteractiveOff()
-            self.backgroundRenderer.SetBackground(colors.getColor(bg2))
-            image_actor = Picture(self.backgrcol)
-            self.window.AddRenderer(self.backgroundRenderer)
-            self.backgroundRenderer.AddActor(image_actor)
-
-        for i in reversed(range(shape[0])):
-            for j in range(shape[1]):
-                if settings.useOpenVR:
-                    arenderer = vtk.vtkOpenVRRenderer()
+            if size == "auto":
+                if '|' in shape:
+                    self.size = (800, 1200)
+                    n = int(shape.split('|')[0])
+                    m = int(shape.split('|')[1])
+                    rangen = reversed(range(n))
+                    rangem = reversed(range(m))
                 else:
-                    arenderer = vtk.vtkRenderer()
-                    arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
-                    arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
-                    arenderer.SetUseFXAA(settings.useFXAA)
-                    arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
+                    self.size = (1200, 800)
+                    m = int(shape.split('/')[0])
+                    n = int(shape.split('/')[1])
+                    rangen = range(n)
+                    rangem = range(m)
 
-                if image_actor:                    
-                    arenderer.SetLayer(1)
-                
+            if n>=m:
+                xsplit = m/(n+m)
+            else:
+                xsplit = 1-n/(n+m)
+            if settings.multiRenderingSplittingPosition:
+                xsplit = settings.multiRenderingSplittingPosition
+
+            for i in rangen:
+                arenderer = vtk.vtkRenderer()
+                arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
+                arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
+                arenderer.SetUseFXAA(settings.useFXAA)
+                arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
                 arenderer.SetBackground(colors.getColor(self.backgrcol))
-                if bg2:
-                    arenderer.GradientBackgroundOn()
-                    arenderer.SetBackground2(colors.getColor(bg2))
-
-                x0 = i / shape[0]
-                y0 = j / shape[1]
-                x1 = (i + 1) / shape[0]
-                y1 = (j + 1) / shape[1]
-                arenderer.SetViewport(y0, x0, y1, x1)
+                if '|' in shape: arenderer.SetViewport(0,  i/n, xsplit, (i+1)/n)
+                if '/' in shape: arenderer.SetViewport(i/n, 0,  (i+1)/n, xsplit )
                 self.renderers.append(arenderer)
                 self.axes_instances.append(None)
+            for i in rangem:
+                arenderer = vtk.vtkRenderer()
+                arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
+                arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
+                arenderer.SetUseFXAA(settings.useFXAA)
+                arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
+                arenderer.SetBackground(colors.getColor(self.backgrcol))
+                if '|' in shape: arenderer.SetViewport(xsplit, i/m, 1, (i+1)/m)
+                if '/' in shape: arenderer.SetViewport(i/m, xsplit, (i+1)/m, 1)
+                self.renderers.append(arenderer)
+                self.axes_instances.append(None)
+
+        else:
+
+            if size == "auto":  # figure out a reasonable window size
+                f = 1.5
+                xs = y / f * shape[1]  # because y<x
+                ys = y / f * shape[0]
+                if xs > x / f:  # shrink
+                    xs = x / f
+                    ys = xs / shape[1] * shape[0]
+                if ys > y / f:
+                    ys = y / f
+                    xs = ys / shape[0] * shape[1]
+                self.size = (int(xs), int(ys))
+                if shape == (1, 1):
+                    self.size = (int(y / f), int(y / f))  # because y<x
+            else:
+                self.size = (size[1], size[0])
+
+
+            ############################
+            self.shape = shape
+
+            if sum(shape) > 3:
+                self.legendSize *= 2
+
+            image_actor=None
+            bgname = str(self.backgrcol).lower()
+            if ".jpg" in bgname or ".jpeg" in bgname or ".png" in bgname:
+                self.window.SetNumberOfLayers(2)
+                self.backgroundRenderer = vtk.vtkRenderer()
+                self.backgroundRenderer.SetLayer(0)
+                self.backgroundRenderer.InteractiveOff()
+                self.backgroundRenderer.SetBackground(colors.getColor(bg2))
+                image_actor = Picture(self.backgrcol)
+                self.window.AddRenderer(self.backgroundRenderer)
+                self.backgroundRenderer.AddActor(image_actor)
+
+            for i in reversed(range(shape[0])):
+                for j in range(shape[1]):
+                    if settings.useOpenVR:
+                        arenderer = vtk.vtkOpenVRRenderer()
+                    else:
+                        arenderer = vtk.vtkRenderer()
+                        arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
+                        arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
+                        arenderer.SetUseFXAA(settings.useFXAA)
+                        arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
+
+                    if image_actor:
+                        arenderer.SetLayer(1)
+
+                    arenderer.SetBackground(colors.getColor(self.backgrcol))
+                    if bg2:
+                        arenderer.GradientBackgroundOn()
+                        arenderer.SetBackground2(colors.getColor(bg2))
+
+                    x0 = i / shape[0]
+                    y0 = j / shape[1]
+                    x1 = (i + 1) / shape[0]
+                    y1 = (j + 1) / shape[1]
+                    arenderer.SetViewport(y0, x0, y1, x1)
+                    self.renderers.append(arenderer)
+                    self.axes_instances.append(None)
 
         if "full" in size and not offscreen:  # full screen
             self.window.SetFullScreen(True)

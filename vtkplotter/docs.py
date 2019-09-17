@@ -355,11 +355,11 @@ _defs = """
     :target: fxy.py_
     :alt: fxy.py
 
-.. |histo2D.py| replace:: histo2D.py
-.. _histo2D.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/histo2D.py
-.. |histo2D| image:: https://user-images.githubusercontent.com/32848391/50738861-bfccf800-11d8-11e9-9698-c0b9dccdba4d.jpg
+.. |histoHexagonal.py| replace:: histoHexagonal.py
+.. _histoHexagonal.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/histoHexagonal.py
+.. |histoHexagonal| image:: https://user-images.githubusercontent.com/32848391/50738861-bfccf800-11d8-11e9-9698-c0b9dccdba4d.jpg
     :width: 250 px
-    :alt: histo2D.py
+    :alt: histoHexagonal.py
 
 .. |align3.py| replace:: align3.py
 .. _align3.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/align3.py
@@ -1130,5 +1130,39 @@ _defs = """
 
 .. |wikiphong| image:: https://upload.wikimedia.org/wikipedia/commons/6/6b/Phong_components_version_4.png
 
+.. |animation1.py| replace:: animation1.py
+.. _animation1.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/animation1.py
+.. |animation1| image:: https://user-images.githubusercontent.com/32848391/64273764-4b528080-cf42-11e9-90aa-2d88df239871.gif
+    :width: 300 px
+    :target: animation1.py_
+    :alt: animation1.py
+
+.. |animation2.py| replace:: animation2.py
+.. _animation2.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/other/animation2.py
+.. |animation2| image:: https://user-images.githubusercontent.com/32848391/64273191-1a258080-cf41-11e9-8a18-f192f05f11a9.gif
+    :width: 300 px
+    :target: animation2.py_
+    :alt: animation2.py
+
+.. |histoPolar.py| replace:: histoPolar.py
+.. _histoPolar.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/histoPolar.py
+.. |histoPolar| image:: https://user-images.githubusercontent.com/32848391/64912717-5754f400-d733-11e9-8a1f-612165955f23.png
+    :width: 250 px
+    :target: histoPolar.py_
+    :alt: histoPolar.py
+    
+.. |polarPlot.py| replace:: polarPlot.py
+.. _polarPlot.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/polarPlot.py
+.. |polarPlot| image:: https://user-images.githubusercontent.com/32848391/64992590-7fc82400-d8d4-11e9-9c10-795f4756a73f.png
+    :width: 250 px
+    :target: polarPlot.py_
+    :alt: polarPlot.py
+    
+.. |donutPlot.py| replace:: donutPlot.py
+.. _donutPlot.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/donutPlot.py
+.. |donutPlot| image:: https://user-images.githubusercontent.com/32848391/64998178-6f6b7580-d8e3-11e9-9bd8-8dfb9ccd90e4.png
+    :width: 250 px
+    :target: donutPlot.py_
+    :alt: donutPlot.py
 
 """

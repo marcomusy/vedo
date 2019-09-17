@@ -26,7 +26,7 @@ for i, p in enumerate(s.getPoints()):
     vp += Arrow(cn, cn + v / 15.0, c="g")
     variances.append(plane.info["variance"])
 
-vp += histogram(variances, title="variance", c="g")
+vp += histogram(variances, c="g").scale([30,.03,30]).pos(-0.5, -1.2, -.6)
 
 vp += Text(__doc__, pos=1)
 vp.show(viewup="z")

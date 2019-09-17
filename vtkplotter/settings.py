@@ -25,6 +25,9 @@ Global settings.
     showRendererFrame = True
     rendererFrameColor = None
 
+    # In multirendering mode set the position of the horizontal of vertical splitting [0,1]
+    multiRenderingSplittingPosition = None
+
     # Use tex, matplotlib latex compiler
     usetex = False
 
@@ -60,6 +63,7 @@ Global settings.
 
     # Path to Voro++ library, http://math.lbl.gov/voro++
     voro_path = '/usr/local/bin'
+
 
 
 Usage example:
@@ -131,6 +135,9 @@ useDepthPeeling = False
 
 # Set parallel projection On or Off (place camera to infinity, no perspective effects)
 useParallelProjection = False
+
+# In multirendering mode set the position of the horizontal of vertical splitting [0,1]
+multiRenderingSplittingPosition = None
 
 # Path to Voro++ library, http://math.lbl.gov/voro++
 voro_path = '/usr/local/bin'

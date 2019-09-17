@@ -19,6 +19,7 @@ __all__ = [
     "Point",
     "Points",
     "Line",
+    "DashedLine",
     "Tube",
     "Lines",
     "Spline",
@@ -406,6 +407,76 @@ def Line(p0, p1=None, c="r", alpha=1, lw=1, dotted=False, res=None):
     if dotted:
         actor.GetProperty().SetLineStipplePattern(0xF0F0)
         actor.GetProperty().SetLineStippleRepeatFactor(1)
+    actor.base = np.array(p0)
+    actor.top = np.array(p1)
+    settings.collectable_actors.append(actor)
+    return actor
+
+
+def DashedLine(p0, p1=None, spacing=None, c="red", alpha=1, lw=1):
+    """
+    Build a dashed line segment between points `p0` and `p1`.
+    If `p0` is a list of points returns the line connecting them.
+    A 2D set of coords can also be passed as p0=[x..], p1=[y..].
+
+    :param float spacing: physical size of the dash.
+    :param c: color name, number, or list of [R,G,B] colors.
+    :type c: int, str, list
+    :param float alpha: transparency in range [0,1].
+    :param lw: line width.
+    """
+    # detect if user is passing a 2D ist of points as p0=xlist, p1=ylist:
+    if len(p0) > 3:
+        if not utils.isSequence(p0[0]) and not utils.isSequence(p1[0]) and len(p0)==len(p1):
+            # assume input is 2D xlist, ylist
+            p0 = list(zip(p0, p1))
+            p1 = None
+
+    # detect if user is passing a list of points:
+    if utils.isSequence(p0[0]):
+       listp = p0
+    else:  # or just 2 points to link
+        listp = [p0, p1]
+    
+    if not spacing:
+        spacing = np.linalg.norm(np.array(listp[1]) - listp[0])/50
+    
+    polylns = vtk.vtkAppendPolyData()
+    for ipt in range(1, len(listp)):
+        p0 = np.array(listp[ipt-1])
+        p1 = np.array(listp[ipt])
+        v = p1-p0
+        n1 = int(np.linalg.norm(v)/spacing)
+        
+        for i in range(1, n1+2):
+            if (i-1)/n1>1:
+                continue
+
+            if i%2:
+                q0 = p0 + (i-1)/n1*v
+                if i/n1>1:
+                    q1 = p1
+                else:
+                    q1 = p0 + i/n1*v
+                lineSource = vtk.vtkLineSource()
+                lineSource.SetPoint1(q0)
+                lineSource.SetPoint2(q1)
+                lineSource.Update()
+                polylns.AddInputData(lineSource.GetOutput())
+#            elif subspacing: 
+#                q2 = p0 + (i+1)/n1*p1
+#                w1 = (q2-q1)*(1-spacing2/spacing1)/2
+#                w2 = (q2-q1)*(1+spacing2/spacing1)/2
+#                lineSource = vtk.vtkLineSource()
+#                lineSource.SetPoint1(w1)
+#                lineSource.SetPoint2(w2)
+#                lineSource.Update()
+#                polylns.AddInputData(lineSource.GetOutput())
+
+        polylns.Update()
+        poly = polylns.GetOutput()
+
+    actor = Actor(poly, c, alpha).lw(lw)
     actor.base = np.array(p0)
     actor.top = np.array(p1)
     settings.collectable_actors.append(actor)

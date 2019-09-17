@@ -41,7 +41,7 @@ python example.py
 |    |    |
 | [![fxy](https://user-images.githubusercontent.com/32848391/50738863-bfccf800-11d8-11e9-882d-7b217aceb55a.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fxy.py)<br/> `fxy.py`                       | Draw a surface representing a function _f(x, y)_ defined as a string/formula or as a reference to an external already existing function. <br/>Red points indicate where the function does not exist. |
 |    |    |
-| [![histo2d](https://user-images.githubusercontent.com/32848391/50738861-bfccf800-11d8-11e9-9698-c0b9dccdba4d.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/histo2D.py)<br/> `histo2D.py`           | Make a histogram of two variables with hexagonal binning. |
+| [![histo2d](https://user-images.githubusercontent.com/32848391/50738861-bfccf800-11d8-11e9-9698-c0b9dccdba4d.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/histo2D.py)<br/> `histoHexagonal.py`    | Make a histogram of two variables with hexagonal binning. |
 |    |    |
 | [![keypress](https://user-images.githubusercontent.com/32848391/50738860-bfccf800-11d8-11e9-96ca-dab2bb7adae3.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/keypress.py)<br/> `keypress.py`        | How to implement a custom function that is triggered by pressing a keyboard button when the rendering window is in interactive mode. <br/>In the example, every time a key is pressed the picked point of the mesh is used to add a sphere and some info is printed. |
 |    |    |
