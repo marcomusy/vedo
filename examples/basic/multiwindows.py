@@ -38,7 +38,8 @@ vp1.show(c, at=24)
 
 s = load(datadir+'pumpkin.vtk')
 
-#settings.multiRenderingSplittingPosition = 0.5
+# Set the position of the horizontal of vertical splitting [0,1]:
+#settings.windowSplittingPosition = 0.5
 
 vp2 = Plotter(pos=(500, 250), shape='2/6')
 

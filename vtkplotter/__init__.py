@@ -62,7 +62,7 @@ import vtkplotter.settings as settings
 from vtkplotter.settings import datadir, embedWindow
 
 # hack to make docs work
-# need to uncomment this to generate documentation html
+# need to uncomment this and Prop in actors.py to generate documentation html
 #from vtkplotter.dolfin import _inputsort
 
 from numpy import sin, cos, sqrt, exp, log, dot, cross, array, arange

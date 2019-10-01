@@ -9,4 +9,5 @@ for i, f in enumerate(fonts):
     Text(f+':  The quick fox jumps over the lazy dog.',
          pos=(5,i*40+20), font=f, c=i%3)
 
-show(collection(), axes=False)
+# three points, aka ellipsis, retrieves the list of all created actors
+show(..., axes=False)

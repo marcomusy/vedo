@@ -54,7 +54,7 @@ if __name__ == "__main__":
     # Draw network
     x, y, z = [som.codebook[:, i].reshape(n, n, n) for i in range(3)]
 
-    from vtkplotter import Points, Line, show, collection
+    from vtkplotter import Points, Line, show
     Points(samples, c="lb", alpha=0.2)
     for k in [0, 8, 15]:
 
@@ -70,4 +70,4 @@ if __name__ == "__main__":
                 ptjs.append((x[i, j, k], y[i, j, k], z[i, j, k]))
             Line(ptjs)
 
-    show(collection(), axes=8)
+    show(..., axes=8)

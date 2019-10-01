@@ -126,11 +126,13 @@ def load(inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
     if len(acts) == 1:
         if not acts[0]:
             colors.printc("~times Error in load(): cannot load", inputobj, c=1)
+        settings.collectable_actors.append(acts[0])
         return acts[0]
     elif len(acts) == 0:
         colors.printc("~times Error in load(): cannot load", inputobj, c=1)
         return None
     else:
+        settings.collectable_actors += acts
         return acts
 
 
@@ -934,6 +936,8 @@ def write(objct, fileoutput, binary=True):
             writer.SetLookupTable(lut)
     elif ".stl" in fr:
         writer = vtk.vtkSTLWriter()
+    elif ".obj" in fr:
+        writer = vtk.vtkOBJWriter()
     elif ".vtp" in fr:
         writer = vtk.vtkXMLPolyDataWriter()
     elif ".vtm" in fr:

@@ -147,7 +147,7 @@ def _inputsort(obj):
         if "vtk" in inputtype: # skip vtk objects, will be added later
             continue
 
-        if "dolfin" in inputtype:
+        if "dolfin" in inputtype or "ufl" in inputtype:
             if "MeshFunction" in inputtype:
                 mesh = ob.mesh()
 
@@ -165,6 +165,9 @@ def _inputsort(obj):
                 u = ob
             elif "Mesh" in inputtype:
                 mesh = ob
+            elif "algebra" in inputtype:
+                mesh = ob.ufl_domain()
+                #print('algebra', ob.ufl_domain())
 
         if "str" in inputtype:
             mesh = dolfin.Mesh(ob)
@@ -387,10 +390,7 @@ def plot(*inputobj, **options):
 
     add = options.pop("add", False)
 
-    wire = options.pop("wire", False)
-    wireframe = options.pop("wireframe", None)
-    if wireframe is not None:
-        wire = wireframe
+    wire = options.pop("wireframe", None)
 
     c = options.pop("c", None)
     color = options.pop("color", None)

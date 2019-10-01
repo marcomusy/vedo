@@ -22,4 +22,5 @@ settings.xtitle = "x gaussian, s=1.0"
 settings.ytitle = "y gaussian, s=1.5"
 settings.ztitle = "dN/dx/dy"
 
-show(histo, pts, formula, Text(__doc__), axes=1, verbose=0, bg="white")
+show(histo, pts, formula, Text(__doc__),
+     axes=1, verbose=0, bg="white", viewup='z')

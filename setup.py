@@ -57,7 +57,9 @@ setup(
 # rm vtkplotter/data/290.ply
 
 # check on python2 the same stuff is ok
-# ( sudo -H pip install . -U)
+# cd ~/Projects/vtkplotter/
+# sudo -H pip install . -U
+# python examples/tutorial.py
 
 # check notebooks:
 # cd ~/Projects/vtkplotter/

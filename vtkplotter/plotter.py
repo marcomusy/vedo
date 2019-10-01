@@ -37,7 +37,16 @@ def show(*actors, **options):
     `vtu, vts, vtp, ply, obj, stl, 3ds, xml, neutral, gmsh, pcd, xyz, txt, byu,
     tif, slc, vti, mhd, png, jpg`.
 
+
     :param int at: number of the renderer to plot to, if more than one exists
+    :param list shape: Number of sub-render windows inside of the main window.
+        Specify two across with ``shape=(2, 1)`` and a two by two grid
+        with ``shape=(2, 2)``.  By default there is only one renderer.
+        Can also accept a shape as string descriptor. E.g.:
+
+          - shape="3|1" means 3 plots on the left and 1 on the right,
+          - shape="4/2" means 4 plots on top of 2 at bottom.
+
     :param int axes: set the type of axes to be shown
 
           - 0,  no axes,
@@ -52,50 +61,47 @@ def show(*actors, **options):
           - 9,  show the bounding box outLine,
           - 10, show three circles representing the maximum bounding box
 
-    Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
+        Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
-        - `xtitle`,            ['x'], x-axis title text.
-        - `ytitle`,            ['y'], y-axis title text.
-        - `ztitle`,            ['z'], z-axis title text.
-        - `numberOfDivisions`, [automatic], number of divisions on the shortest axis
-        - `axesLineWidth`,       [1], width of the axes lines
-        - `gridLineWidth`,       [1], width of the grid lines
-        - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally
-        - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
-        - `enableLastLabel`, [False], show last numeric label on axes
-        - `titleDepth`,          [0], extrusion fractional depth of title text
-        - `xyGrid`,           [True], show a gridded wall on plane xy
-        - `yzGrid`,           [True], show a gridded wall on plane yz
-        - `zxGrid`,           [True], show a gridded wall on plane zx
-        - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
-        - `xyGridTransparent`  [False], make grid plane completely transparent
-        - `xyGrid2Transparent` [False], make grid plane completely transparent on opposite side box
-        - `xyPlaneColor`,   ['gray'], color of the plane
-        - `xyGridColor`,    ['gray'], grid line color
-        - `xyAlpha`,          [0.15], grid plane opacity
-        - `showTicks`,        [True], show major ticks
-        - `xTitlePosition`,   [0.32], title fractional positions along axis
-        - `xTitleOffset`,     [0.05], title fractional offset distance from axis line
-        - `xTitleJustify`, ["top-right"], title justification
-        - `xTitleRotation`,      [0], add a rotation of the axis title
-        - `xLineColor`,  [automatic], color of the x-axis
-        - `xTitleColor`, [automatic], color of the axis title
-        - `xTitleBackfaceColor`, [None],  color of axis title on its backface
-        - `xTitleSize`,      [0.025], size of the axis title
-        - `xHighlightZero`,   [True], draw a line highlighting zero position if in range
-        - `xHighlightZeroColor`, [automatic], color of the line highlighting the zero position
-        - `xTickRadius`,     [0.005], radius of the major ticks
-        - `xTickThickness`, [0.0025], thickness of the major ticks along their axis
-        - `xTickColor`,  [automatic], color of major ticks
-        - `xMinorTicks`,         [1], number of minor ticks between two major ticks
-        - `tipSize`,          [0.01], size of the arrow tip
-        - `xLabelPrecision`,     [2], nr. of significative digits to be shown
-        - `xLabelSize`,      [0.015], size of the numeric labels along axis
-        - `xLabelOffset`,    [0.025], offset of numeric labels
+            - `xtitle`,            ['x'], x-axis title text.
+            - `ytitle`,            ['y'], y-axis title text.
+            - `ztitle`,            ['z'], z-axis title text.
+            - `numberOfDivisions`, [automatic], number of divisions on the shortest axis
+            - `axesLineWidth`,       [1], width of the axes lines
+            - `gridLineWidth`,       [1], width of the grid lines
+            - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally
+            - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
+            - `enableLastLabel`, [False], show last numeric label on axes
+            - `titleDepth`,          [0], extrusion fractional depth of title text
+            - `xyGrid`,           [True], show a gridded wall on plane xy
+            - `yzGrid`,           [True], show a gridded wall on plane yz
+            - `zxGrid`,           [True], show a gridded wall on plane zx
+            - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
+            - `xyGridTransparent`  [False], make grid plane completely transparent
+            - `xyGrid2Transparent` [False], make grid plane completely transparent on opposite side box
+            - `xyPlaneColor`,   ['gray'], color of the plane
+            - `xyGridColor`,    ['gray'], grid line color
+            - `xyAlpha`,          [0.15], grid plane opacity
+            - `showTicks`,        [True], show major ticks
+            - `xTitlePosition`,   [0.32], title fractional positions along axis
+            - `xTitleOffset`,     [0.05], title fractional offset distance from axis line
+            - `xTitleJustify`, ["top-right"], title justification
+            - `xTitleRotation`,      [0], add a rotation of the axis title
+            - `xLineColor`,  [automatic], color of the x-axis
+            - `xTitleColor`, [automatic], color of the axis title
+            - `xTitleBackfaceColor`, [None],  color of axis title on its backface
+            - `xTitleSize`,      [0.025], size of the axis title
+            - `xHighlightZero`,   [True], draw a line highlighting zero position if in range
+            - `xHighlightZeroColor`, [automatic], color of the line highlighting the zero position
+            - `xTickRadius`,     [0.005], radius of the major ticks
+            - `xTickThickness`, [0.0025], thickness of the major ticks along their axis
+            - `xTickColor`,  [automatic], color of major ticks
+            - `xMinorTicks`,         [1], number of minor ticks between two major ticks
+            - `tipSize`,          [0.01], size of the arrow tip
+            - `xLabelPrecision`,     [2], nr. of significative digits to be shown
+            - `xLabelSize`,      [0.015], size of the numeric labels along axis
+            - `xLabelOffset`,    [0.025], offset of numeric labels
 
-    :param c:     surface color, in rgb, hex or name formats
-    :param bc:    set a color for the internal surface face
-    :param bool wire:  show actor in wireframe representation
     :param float azimuth/elevation/roll:  move camera accordingly
     :param str viewup:  either ['x', 'y', 'z'] or a vector to set vertical direction
     :param bool resetcam:  re-adjust camera position to fit objects
@@ -146,7 +152,9 @@ def show(*actors, **options):
 
     :param bool newPlotter: if set to `True`, a call to ``show`` will instantiate
         a new ``Plotter`` object (a new window) instead of reusing the first created.
+
         See e.g.: |readVolumeAsIsoSurface.py|_
+
     :return: the current ``Plotter`` class instance.
 
     .. note:: With multiple renderers, keyword ``at`` can become a `list`, e.g.
@@ -477,13 +485,12 @@ class Plotter:
         self.ytitle = settings.ytitle  # y axis label and units
         self.ztitle = settings.ztitle  # z axis label and units
 
-
         # build the renderering window:
         if settings.useOpenVR:
             self.camera = vtk.vtkOpenVRCamera()
             self.window =vtk.vtkOpenVRRenderWindow()
         else:
-            self.camera = None
+            self.camera = vtk.vtkCamera()
             self.window = vtk.vtkRenderWindow()
 
         self.window.PointSmoothingOn()
@@ -534,51 +541,55 @@ class Plotter:
                     minl = l
             shape = lm[ind]
 
+        self.size = size
+
         if isinstance(shape, str):
 
-            if size == "auto":
-                if '|' in shape:
-                    self.size = (800, 1200)
-                    n = int(shape.split('|')[0])
-                    m = int(shape.split('|')[1])
-                    rangen = reversed(range(n))
-                    rangem = reversed(range(m))
-                else:
-                    self.size = (1200, 800)
-                    m = int(shape.split('/')[0])
-                    n = int(shape.split('/')[1])
-                    rangen = range(n)
-                    rangem = range(m)
+            if '|' in shape:
+                if size == "auto": self.size = (800, 1200)
+                n = int(shape.split('|')[0])
+                m = int(shape.split('|')[1])
+                rangen = reversed(range(n))
+                rangem = reversed(range(m))
+            else:
+                if size == "auto": self.size = (1200, 800)
+                m = int(shape.split('/')[0])
+                n = int(shape.split('/')[1])
+                rangen = range(n)
+                rangem = range(m)
 
             if n>=m:
                 xsplit = m/(n+m)
             else:
                 xsplit = 1-n/(n+m)
-            if settings.multiRenderingSplittingPosition:
-                xsplit = settings.multiRenderingSplittingPosition
+            if settings.windowSplittingPosition:
+                xsplit = settings.windowSplittingPosition
 
             for i in rangen:
                 arenderer = vtk.vtkRenderer()
-                arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
-                arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
-                arenderer.SetUseFXAA(settings.useFXAA)
-                arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
-                arenderer.SetBackground(colors.getColor(self.backgrcol))
-                if '|' in shape: arenderer.SetViewport(0,  i/n, xsplit, (i+1)/n)
-                if '/' in shape: arenderer.SetViewport(i/n, 0,  (i+1)/n, xsplit )
+                if '|' in shape:
+                    arenderer.SetViewport(0,  i/n, xsplit, (i+1)/n)
+                else:
+                    arenderer.SetViewport(i/n, 0,  (i+1)/n, xsplit )
                 self.renderers.append(arenderer)
-                self.axes_instances.append(None)
+
             for i in rangem:
                 arenderer = vtk.vtkRenderer()
-                arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
-                arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
-                arenderer.SetUseFXAA(settings.useFXAA)
-                arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
-                arenderer.SetBackground(colors.getColor(self.backgrcol))
-                if '|' in shape: arenderer.SetViewport(xsplit, i/m, 1, (i+1)/m)
-                if '/' in shape: arenderer.SetViewport(i/m, xsplit, (i+1)/m, 1)
+                if '|' in shape:
+                    arenderer.SetViewport(xsplit, i/m, 1, (i+1)/m)
+                else:
+                    arenderer.SetViewport(i/m, xsplit, (i+1)/m, 1)
                 self.renderers.append(arenderer)
+
+            for r in self.renderers:
+                r.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
+                r.SetLightFollowCamera(settings.lightFollowsCamera)
+                r.SetUseFXAA(settings.useFXAA)
+                r.SetUseDepthPeeling(settings.useDepthPeeling)
+                r.SetBackground(colors.getColor(self.backgrcol))
                 self.axes_instances.append(None)
+
+            self.shape = (n+m,)
 
         else:
 
@@ -597,7 +608,6 @@ class Plotter:
                     self.size = (int(y / f), int(y / f))  # because y<x
             else:
                 self.size = (size[1], size[0])
-
 
             ############################
             self.shape = shape
@@ -1167,6 +1177,14 @@ class Plotter:
         tif, slc, vti, mhd, png, jpg`.
 
         :param int at: number of the renderer to plot to, if more than one exists
+        :param list shape: Number of sub-render windows inside of the main window.
+            Specify two across with ``shape=(2, 1)`` and a two by two grid with ``shape=(2, 2)``.
+            By default there is only one renderer.
+            Can also accept a shape as string descriptor. E.g.
+
+            - shape="3|1" means 3 plots on the left and 1 on the right,
+            - shape="4/2" means 4 plots on top of 2 at bottom.
+
         :param int axes: set the type of axes to be shown
 
               - 0,  no axes,
@@ -1181,9 +1199,6 @@ class Plotter:
               - 9,  show the bounding box outLine,
               - 10, show three circles representing the maximum bounding box
 
-        :param c:     surface color, in rgb, hex or name formats
-        :param bc:    set a color for the internal surface face
-        :param bool wire:  show actor in wireframe representation
         :param float azimuth/elevation/roll:  move camera accordingly
         :param str viewup:  either ['x', 'y', 'z'] or a vector to set vertical direction
         :param bool resetcam:  re-adjust camera position to fit objects
@@ -1278,6 +1293,9 @@ class Plotter:
                                 if at in a2.renderedAt: # remove old message
                                     self.remove(a2)
                     scannedacts.append(a)
+
+                elif a is Ellipsis:
+                    scannedacts += settings.collectable_actors
 
                 elif isinstance(a, vtk.vtkImageActor):
                     scannedacts.append(a)

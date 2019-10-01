@@ -1,27 +1,17 @@
 """
 Demo to show how to solve the Tower of Hanoi
 """
-from vtkplotter import *
+from __future__ import division, print_function
+from vtkplotter import Plotter, makePalette, Cylinder, Box, ProgressBar, printc
 
 
 class Hanoi:
     """
-    Class to solve the Hanoi problem. It is taken from
-    Geert Jan Bex's website
+    Class to solve the Hanoi problem. It is taken from Geert Jan Bex's website:
 
     https://github.com/gjbex/training-material/blob/master/Misc/Notebooks/hanoi.ipynb
 
-    with licence
-
-    Creative Commons Zero v1.0 Universal
-
-    The Creative Commons CC0 Public Domain Dedication
-    waives copyright interest in a work you've created
-    and dedicates it to the world-wide public domain.
-    Use CC0 to opt out of copyright entirely and ensure
-    your work has the widest reach. As with the Unlicense
-    and typical software licenses, CC0 disclaims
-    warranties. CC0 is very similar to the Unlicense.
+    with Creative Commons Zero v1.0 Universal licence
     """
 
     def __init__(self, nr_disks):
@@ -69,34 +59,29 @@ class Hanoi:
 
 def demo3d_hanoi(**kwargs):
     nr_disks = kwargs.get("nr_disks", 5)
-    create_png = kwargs.get("create_png", False)
-    create_gif = kwargs.get("create_gif", False)
     interactive = kwargs.get("interactive", 1)
-    if create_gif:
-        create_png = True
 
     hanoi = Hanoi(nr_disks)
     tower_states = list([hanoi.towers])
     for _ in hanoi.moves():
         tower_states.append(hanoi.towers)
 
-    vp = Plotter(axes=0, interactive=0, bg="w")
-    cols = makePalette("red", "blue", hanoi.nr_disks + 1, hsv=True)
+    vp = Plotter(axes=0, interactive=0, bg="w", size=(600, 800))
+    vp.camera.SetPosition([18.5, -20.7, 7.93])
+    vp.camera.SetFocalPoint([3.0, 0.0, 2.5])
+    vp.camera.SetViewUp([-0.1, +0.17, 0.977])
+
+    cols = makePalette("red", "blue", hanoi.nr_disks+1, hsv=True)
     disks = {
         hanoi.nr_disks
-        - i: Cylinder(pos=[0, 0, 0.0], r=0.2 * (hanoi.nr_disks - i + 1), c=cols[i])
+        -i: Cylinder(pos=[0,0,0], r=0.2 * (hanoi.nr_disks-i+1), c=cols[i])
         for i in range(hanoi.nr_disks)
     }
     for k in disks:
         vp += disks[k]
     vp += Box(pos=(3.0, 0, -0.05), length=12.0, width=4.0, height=0.1)
-    vp.camera.SetPosition([18.5, -20.7, 7.93])
-    vp.camera.SetFocalPoint([3.0, 0.0, 2.5])
-    vp.camera.SetViewUp([-0.1, +0.17, 0.977])
-    vp.camera.SetDistance(26.0)
-    vp.show()
+    vp.show(zoom=1.2)
 
-    list_of_images = []
     printc("\n Press q to continue, Esc to exit. ", c="y", invert=1)
     pb = ProgressBar(0, len(tower_states), 1, c="b", ETA=False)
     for t in pb.range():
@@ -105,70 +90,22 @@ def demo3d_hanoi(**kwargs):
         for tower_nr in range(3):
             for i, disk in enumerate(state[tower_nr]):
                 disks[disk].pos([3 * tower_nr, 0, i + 0.5])
-        vp.show(resetcam=0, interactive=interactive, rate=15)
-        if create_png:
-            vp.interactive = 0
-            output = "Hanoi_{0:02d}.png".format(t)
-            screenshot(output)
-            list_of_images.append(output)
-    if create_gif:
-        create_animated_gif(
-            filename="Hanoi_{0:02d}.gif".format(nr_disks), pngs=list_of_images
-        )
-    vp.show(interactive=1)
-
-
-def create_animated_gif(filename="Hanoi.gif", **kwargs):
-    import os
-
-    pngs = kwargs.get("pngs", None)
-    if pngs is None:
-        from glob import glob
-
-        pngs = glob("*.png")
-    cmd = "convert -antialias -density 100 -delay 40 "
-    cmd += " ".join(pngs)
-    cmd += " " + filename
-    os.system(cmd.split(" "))
-
-
-def main(cli=None):
-    import argparse
-
-    parser = argparse.ArgumentParser(
-        description="Create a 3D images showing how to solve the Tower of Hanoi."
-    )
-    pa = parser.add_argument
-    pa("-n", "--nr_disks", type=int, default=5, help="Number of disks")
-    pa(
-        "-i",
-        "--interactive",
-        action="store_true",
-        help="Request user to press keyboard to display next step",
-    )
-    pa(
-        "-r",
-        "--display_rate",
-        type=int,
-        default=2,
-        help="Change display rate to speed up or slow down animation",
-    )
-    pa("-p", "--png", action="store_true", help="Create pngs")
-    pa(
-        "-g",
-        "--gif",
-        action="store_true",
-        help="Create an animated gif. Require convert program from imagemagick",
-    )
-    args = parser.parse_args(cli)
-    demo3d_hanoi(
-        nr_disks=args.nr_disks,
-        interactive=args.interactive,
-        display_rate=args.display_rate,
-        create_png=args.png,
-        create_gif=args.gif,
-    )
+        vp.show(resetcam=0, interactive=interactive, rate=10)
+    vp.show(resetcam=0, interactive=1)
 
 
 if __name__ == "__main__":
-    main()
+    
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Solve the Tower of Hanoi.")
+    pa = parser.add_argument
+    pa("-n", "--nr_disks", type=int, default=5, help="Number of disks")
+    pa("-i", "--interactive", action="store_true",
+        help="Request user to press keyboard to display next step",
+    )
+    args = parser.parse_args()
+    demo3d_hanoi(
+        nr_disks=args.nr_disks,
+        interactive=args.interactive,
+    )

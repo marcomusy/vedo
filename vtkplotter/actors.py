@@ -996,6 +996,7 @@ class Actor(vtk.vtkActor, Prop):
         poly = self.polydata(False)
         poly.GetPoints().SetPoint(i, p)
         poly.GetPoints().Modified()
+        poly.GetPoints().GetData().Modified()
         # reset actor to identity matrix position/rotation:
         self.PokeMatrix(vtk.vtkMatrix4x4())
         return self
@@ -1321,22 +1322,26 @@ class Actor(vtk.vtkActor, Prop):
         self.GetProperty().SetFrontfaceCulling(value)
         return self
 
-    def pointSize(self, s=None):
-        """Set/get actor's point size of vertices."""
-        if s is not None:
+    def pointSize(self, ps=None):
+        """Set/get actor's point size of vertices. Same as `ps()`"""
+        if ps is not None:
             if isinstance(self, vtk.vtkAssembly):
                 cl = vtk.vtkPropCollection()
                 self.GetActors(cl)
                 cl.InitTraversal()
                 a = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
                 a.GetProperty().SetRepresentationToPoints()
-                a.GetProperty().SetPointSize(s)
+                a.GetProperty().SetPointSize(ps)
             else:
                 self.GetProperty().SetRepresentationToPoints()
-                self.GetProperty().SetPointSize(s)
+                self.GetProperty().SetPointSize(ps)
         else:
             return self.GetProperty().GetPointSize()
         return self
+
+    def ps(self, pointSize=None):
+        """Set/get actor's point size of vertices. Same as `pointSize()`"""
+        return self.pointSize(pointSize)
 
     def color(self, c=False):
         """
@@ -1611,6 +1616,55 @@ class Actor(vtk.vtkActor, Prop):
             return int(cid)
         else:
             return np.array(trgp)
+    
+    
+    def findCellsWithin(self, xbounds=(), ybounds=(), zbounds=(), c=None):
+        """
+        Find cells that are within specified bounds.
+        Setting a color will add a vtk array to colorize these cells.
+        """   
+        if len(xbounds) == 6:
+            bnds = xbounds
+        else:
+            bnds = list(self.bounds())
+            if len(xbounds) == 2:
+                bnds[0] = xbounds[0]
+                bnds[1] = xbounds[1]
+            if len(ybounds) == 2:
+                bnds[2] = ybounds[0]
+                bnds[3] = ybounds[1]
+            if len(zbounds) == 2:
+                bnds[4] = zbounds[0]
+                bnds[5] = zbounds[1]
+                
+        cellIds = vtk.vtkIdList()
+        self.cell_locator = vtk.vtkCellTreeLocator()
+        self.cell_locator.SetDataSet(self.polydata())
+        #self.cell_locator.SetNumberOfCellsPerNode(2)
+        self.cell_locator.BuildLocator()
+        self.cell_locator.FindCellsWithinBounds(bnds, cellIds)
+       
+        if c is not None:
+            cellData = vtk.vtkUnsignedCharArray()
+            cellData.SetNumberOfComponents(3)
+            cellData.SetName('CellsWithinBoundsColor')
+            cellData.SetNumberOfTuples(self.polydata(False).GetNumberOfCells())
+            defcol = np.array(self.color())*255
+            for i in range(cellData.GetNumberOfTuples()):
+                cellData.InsertTuple(i, defcol)
+            self.polydata(False).GetCellData().SetScalars(cellData)
+            self.mapper.ScalarVisibilityOn()
+            flagcol = np.array(colors.getColor(c))*255
+
+        cids = []
+        for i in range(cellIds.GetNumberOfIds()):
+            cid = cellIds.GetId(i)
+            if c is not None:
+                cellData.InsertTuple(cid, flagcol)
+            cids.append(cid)
+        
+        return np.array(cids)
+
 
     def distanceToMesh(self, actor, signed=False, negate=False):
         '''
@@ -2080,6 +2134,11 @@ class Actor(vtk.vtkActor, Prop):
     def triangle(self, verts=True, lines=True):
         """
         Converts actor polygons and strips to triangles.
+        
+        :param bool verts: if True, break input vertex cells into individual vertex cells
+            (one point per cell). If False, the input vertex cells will be ignored.
+        :param bool lines: if True, break input polylines into line segments.
+            If False, input lines will be ignored and the output will have no lines.
         """
         tf = vtk.vtkTriangleFilter()
         tf.SetPassLines(lines)
@@ -2244,7 +2303,7 @@ class Actor(vtk.vtkActor, Prop):
 
         :param bool alphaPerCell: Only matters if `alpha` is a sequence. If so:
             if `True` assume that the list of opacities is independent
-            on the colors (same color cells can have different alphas),
+            on the colors (same color cells can have different opacity),
             this can be very slow for large meshes,
 
             if `False` [default] assume that the alpha matches the color list
@@ -2333,7 +2392,8 @@ class Actor(vtk.vtkActor, Prop):
 
         n = self.poly.GetNumberOfCells()
         if len(acolors) != n or (utils.isSequence(alphas) and len(alphas) != n):
-            colors.printc("~times _cellColors1By1(): mismatch in input list sizes.", c=1)
+            colors.printc("~times cellColors(): mismatch in input list sizes.",
+                          len(acolors), n, c=1)
             return self
 
         lut = vtk.vtkLookupTable()

@@ -1,14 +1,15 @@
 '''
 for i in range(10):
-    Cone(...) # no variable assigned!
-show(collection())
+    Cone().x(i) # no variable assigned!
+show(...) # show all sofar created objs
 '''
 from vtkplotter import Cone, collection, Text, show
 
 for i in range(10):
-    Cone(pos=[3*i, 0, 0], axis=[i, i-5, 0]) # no variable assigned
+    Cone(pos=[2*i, 0, 0]).color(i) # no variable assigned
 
-Text(__doc__,  font='courier')
+Text(__doc__)
 
-# collection() retrieves the list of all created actors
-show(collection())
+# three points, aka ellipsis, retrieves the list of all created objects
+# in python 2 use collection() instead
+show(..., axes=1, viewup='z')

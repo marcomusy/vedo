@@ -44,6 +44,9 @@ python curl2d.py
 echo Running pointLoad.py
 python pointLoad.py
 
+echo Running meshEditor.py
+python meshEditor.py
+
 ######################################
 echo Running ex01_show-mesh.py
 python ex01_show-mesh.py

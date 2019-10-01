@@ -6,7 +6,7 @@ from vtkplotter.utils import humansort
 from vtkplotter import printc
 import sys, argparse
 
-allowedexts = ['vtk', 'vtp', 'vtu', 'vts', 'npy', 'ply', 'stl',
+allowedexts = ['vtk', 'vtp', 'vtu', 'vts', 'npy', 'ply', 'stl', 'obj',
                'byu', 'xml', 'vti','tif','mhd','xml']
 
 pr = argparse.ArgumentParser(description="Allowed targets: "+str(allowedexts))

@@ -75,6 +75,12 @@ python basic/customAxes.py
 echo Running basic/deleteMeshPoints.py
 python basic/deleteMeshPoints.py
 
+echo Running basic/extrude.py
+python basic/extrude.py
+
+echo Running basic/cellsWithinBounds.py
+python basic/cellsWithinBounds.py
+
 echo Running basic/fitline.py
 python basic/fitline.py
 
@@ -83,6 +89,9 @@ python basic/fxy.py
 
 echo Running basic/keypress.py
 python basic/keypress.py
+
+echo Running basic/kspline.py
+python basic/kspline.py
 
 echo Running basic/latex.py
 python basic/latex.py
@@ -406,6 +415,9 @@ python other/qt_window.py
 
 echo Running other/qt_window_split.py # needs qt5
 python other/qt_window_split.py
+
+echo Running other/qt_tabs.py # needs qt5
+python other/qt_tabs.py
 
 echo Running other/self_org_maps2d.py
 python other/self_org_maps2d.py

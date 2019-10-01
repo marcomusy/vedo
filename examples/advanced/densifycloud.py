@@ -3,6 +3,7 @@ The new points are created in such a way that
 all points in any local neighborhood are
 within a target distance of one another.
 """
+from __future__ import print_function
 from vtkplotter import *
 import numpy as np
 np.random.seed(3)

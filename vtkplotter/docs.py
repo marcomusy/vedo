@@ -1164,5 +1164,19 @@ _defs = """
     :width: 250 px
     :target: donutPlot.py_
     :alt: donutPlot.py
-
+    
+.. |extrude.py| replace:: extrude.py
+.. _extrude.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/extrude.py
+.. |extrude| image:: https://user-images.githubusercontent.com/32848391/65963682-971e1a00-e45b-11e9-9f29-05522ae4a800.png
+    :width: 250 px
+    :target: extrude.py_
+    :alt: extrude.py
+    
+.. |kspline.py| replace:: kspline.py
+.. _kspline.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/kspline.py
+.. |kspline| image:: https://user-images.githubusercontent.com/32848391/65975805-73fd6580-e46f-11e9-8957-75eddb28fa72.png
+    :width: 350 px
+    :target: kspline.py_
+    :alt: kspline.py
+    
 """

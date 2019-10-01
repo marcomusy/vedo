@@ -2,7 +2,7 @@ from __future__ import division, print_function
 import vtk
 import numpy as np
 from vtkplotter import settings
-from vtk.util.numpy_support import numpy_to_vtk
+from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
 from vtkplotter.actors import Actor, Assembly
@@ -23,6 +23,7 @@ __all__ = [
     "Tube",
     "Lines",
     "Spline",
+    "KSpline",
     "Ribbon",
     "Arrow",
     "Arrows",
@@ -30,6 +31,7 @@ __all__ = [
     "Polygon",
     "Rectangle",
     "Disc",
+    "Star",
     "Sphere",
     "Spheres",
     "Earth",
@@ -92,12 +94,10 @@ def Points(plist, r=5, c="gold", alpha=1):
         plist = np.c_[np.array(plist), np.zeros(len(plist))]
     ################
 
-    if ( (
-            utils.isSequence(c)
-            and (len(c)>3 or (utils.isSequence(c[0]) and len(c[0])==4))
-          )
-        or utils.isSequence(alpha)
-        ):
+    if (( utils.isSequence(c)
+          and (len(c)>3 or (utils.isSequence(c[0]) and len(c[0])==4))
+        )
+        or utils.isSequence(alpha) ):
         actor = _PointsColors(plist, r, c, alpha)
 
     else:
@@ -371,6 +371,9 @@ def Line(p0, p1=None, c="r", alpha=1, lw=1, dotted=False, res=None):
     :param bool dotted: draw a dotted line
     :param int res: number of intermediate points in the segment
     """
+    if isinstance(p0, vtk.vtkActor): p0 = p0.GetPosition()
+    if isinstance(p1, vtk.vtkActor): p1 = p1.GetPosition()
+
     # detect if user is passing a 2D ist of points as p0=xlist, p1=ylist:
     if len(p0) > 3:
         if not utils.isSequence(p0[0]) and not utils.isSequence(p1[0]) and len(p0)==len(p1):
@@ -425,6 +428,9 @@ def DashedLine(p0, p1=None, spacing=None, c="red", alpha=1, lw=1):
     :param float alpha: transparency in range [0,1].
     :param lw: line width.
     """
+    if isinstance(p0, vtk.vtkActor): p0 = p0.GetPosition()
+    if isinstance(p1, vtk.vtkActor): p1 = p1.GetPosition()
+
     # detect if user is passing a 2D ist of points as p0=xlist, p1=ylist:
     if len(p0) > 3:
         if not utils.isSequence(p0[0]) and not utils.isSequence(p1[0]) and len(p0)==len(p1):
@@ -437,17 +443,17 @@ def DashedLine(p0, p1=None, spacing=None, c="red", alpha=1, lw=1):
        listp = p0
     else:  # or just 2 points to link
         listp = [p0, p1]
-    
+
     if not spacing:
         spacing = np.linalg.norm(np.array(listp[1]) - listp[0])/50
-    
+
     polylns = vtk.vtkAppendPolyData()
     for ipt in range(1, len(listp)):
         p0 = np.array(listp[ipt-1])
         p1 = np.array(listp[ipt])
         v = p1-p0
         n1 = int(np.linalg.norm(v)/spacing)
-        
+
         for i in range(1, n1+2):
             if (i-1)/n1>1:
                 continue
@@ -463,7 +469,7 @@ def DashedLine(p0, p1=None, spacing=None, c="red", alpha=1, lw=1):
                 lineSource.SetPoint2(q1)
                 lineSource.Update()
                 polylns.AddInputData(lineSource.GetOutput())
-#            elif subspacing: 
+#            elif subspacing:
 #                q2 = p0 + (i+1)/n1*p1
 #                w1 = (q2-q1)*(1-spacing2/spacing1)/2
 #                w2 = (q2-q1)*(1+spacing2/spacing1)/2
@@ -483,7 +489,7 @@ def DashedLine(p0, p1=None, spacing=None, c="red", alpha=1, lw=1):
     return actor
 
 
-def Lines(startPoints, endPoints=None, c=None, alpha=1, lw=1, dotted=False, scale=1):
+def Lines(startPoints, endPoints=None, c='gray', alpha=1, lw=1, dotted=False, scale=1):
     """
     Build the line segments between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
@@ -523,12 +529,15 @@ def Lines(startPoints, endPoints=None, c=None, alpha=1, lw=1, dotted=False, scal
 
 def Spline(points, smooth=0.5, degree=2, s=2, res=20):
     """
-    Return an ``Actor`` for a spline so that it does not necessarly
-    pass exactly throught all points. Needs `scypi`.
+    Return an ``Actor`` for a spline which does not necessarly
+    passing exactly throught all the input points.
+    Needs to import `scypi`.
 
     :param float smooth: smoothing factor.
-        0 = interpolate points exactly.
-        1 = average point positions.
+
+        - 0 = interpolate points exactly.
+        - 1 = average point positions.
+
     :param int degree: degree of the spline (1<degree<5)
 
     |tutorial_spline| |tutorial.py|_
@@ -558,7 +567,57 @@ def Spline(points, smooth=0.5, degree=2, s=2, res=20):
     profileData.SetLines(lines)
     actline = Actor(profileData)
     actline.GetProperty().SetLineWidth(s)
+    actline.base = np.array(points[0])
+    actline.top = np.array(points[-1])
+    settings.collectable_actors.append(actline)
     return actline
+
+
+def KSpline(points,
+            continuity=0, tension=0, bias=0,
+            closed=False, res=None):
+    """
+    Return a Kochanek-Bartel spline which runs exactly throught all the input points.
+
+    See: https://en.wikipedia.org/wiki/Kochanek%E2%80%93Bartels_spline
+
+    :param float continuity: changes the sharpness in change between tangents
+    :param float tension: changes the length of the tangent vector
+    :param float bias: changes the direction of the tangent vector
+    :param bool closed: join last to first point to produce a closed curve
+    :param int res: resolution of the output line. Default is 20 times the number
+        of input points.
+
+    |kspline| |kspline.py|_
+    """
+    if not res: res = len(points)*20
+
+    xspline = vtk.vtkKochanekSpline()
+    yspline = vtk.vtkKochanekSpline()
+    zspline = vtk.vtkKochanekSpline()
+    for s in [xspline, yspline, yspline]:
+        if bias: s.SetDefaultBias(bias)
+        if tension: s.SetDefaultTension(tension)
+        if continuity: s.SetDefaultContinuity(continuity)
+        s.SetClosed(closed)
+
+    for i,p in enumerate(points):
+        xspline.AddPoint(i, p[0])
+        yspline.AddPoint(i, p[1])
+        zspline.AddPoint(i, p[2])
+
+    ln = []
+    for pos in np.linspace(0, len(points), res):
+        x = xspline.Evaluate(pos)
+        y = yspline.Evaluate(pos)
+        z = zspline.Evaluate(pos)
+        ln.append((x,y,z))
+
+    actor = Line(ln, c='gray')
+    actor.base = np.array(points[0])
+    actor.top = np.array(points[-1])
+    settings.collectable_actors.append(actor)
+    return actor
 
 
 def Tube(points, r=1, c="r", alpha=1, res=12):
@@ -693,10 +752,8 @@ def FlatArrow(line1, line2, c="m", alpha=1, tipSize=1, tipWidth=1):
 
     |flatarrow| |flatarrow.py|_
     """
-    if isinstance(line1, Actor):
-        line1 = line1.coordinates()
-    if isinstance(line2, Actor):
-        line2 = line2.coordinates()
+    if isinstance(line1, Actor): line1 = line1.coordinates()
+    if isinstance(line2, Actor): line2 = line2.coordinates()
 
     sm1, sm2 = np.array(line1[-1]), np.array(line2[-1])
 
@@ -730,6 +787,10 @@ def Arrow(startPoint, endPoint, s=None, c="r", alpha=1, res=12):
 
     |OrientedArrow|
     """
+    # in case user is passing actors
+    if isinstance(startPoint, vtk.vtkActor): startPoint = startPoint.GetPosition()
+    if isinstance(endPoint,   vtk.vtkActor): endPoint   = endPoint.GetPosition()
+
     axis = np.array(endPoint) - np.array(startPoint)
     length = np.linalg.norm(axis)
     if length:
@@ -810,7 +871,7 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12)
 
 def Polygon(pos=(0, 0, 0), nsides=6, r=1, c="coral", alpha=1):
     """
-    Build a 2D polygon of `nsides` of radius `r` oriented as `normal`.
+    Build a 2D polygon of `nsides` of radius `r`.
 
     |Polygon|
     """
@@ -819,6 +880,44 @@ def Polygon(pos=(0, 0, 0), nsides=6, r=1, c="coral", alpha=1):
     ps.SetRadius(r)
     ps.Update()
     actor = Actor(ps.GetOutput(), c, alpha)
+    actor.SetPosition(pos)
+    settings.collectable_actors.append(actor)
+    return actor
+
+
+def Star(pos=(0, 0, 0), n=5, r1=0.7, r2=1.0, line=False, c="lb", alpha=1):
+    """
+    Build a 2D star shape of `n` cusps of inner radius `r1` and outer radius `r2`.
+
+    :param bool line: only build the outer line (no internal surface meshing).
+
+    |extrude| |extrude.py|_
+    """
+    ps = vtk.vtkRegularPolygonSource()
+    ps.SetNumberOfSides(n)
+    ps.SetRadius(r2)
+    ps.Update()
+    pts = vtk_to_numpy(ps.GetOutput().GetPoints().GetData())
+
+    apts=[]
+    for i,p in enumerate(pts):
+        apts.append(p)
+        if i+1<n:
+            apts.append((p+pts[i+1])/2*r1/r2)
+    apts.append((pts[-1]+pts[0])/2*r1/r2)
+
+    if line:
+        apts.append(pts[0])
+        actor = Line(apts).c(c).alpha(alpha)
+    else:
+        apts.append((0,0,0))
+        cells=[]
+        for i in range(2*n-1):
+            cell = [2*n, i, i+1]
+            cells.append(cell)
+        cells.append([2*n, i+1, 0])
+        actor = Actor([apts, cells], c, alpha)
+
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
     return actor
@@ -844,7 +943,7 @@ def Disc(
     resphi=None,
 ):
     """
-    Build a 2D disc of internal radius `r1` and outer radius `r2`.
+    Build a 2D disc of inner radius `r1` and outer radius `r2`.
 
     |Disk|
     """

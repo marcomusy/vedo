@@ -37,7 +37,7 @@ curve_points1 = np.vstack([np.zeros(sol1[:,0].shape), sol1[:,0], sol1[:,1]]).T
 curve_points2 = np.vstack([np.zeros(sol2[:,0].shape), sol2[:,0], sol2[:,1]]).T
 curve_points3 = np.vstack([np.zeros(sol3[:,0].shape), sol3[:,0], sol3[:,1]]).T
 
-########################
+########################################################################
 from vtkplotter import *
 
 Arrows(origins, origins+vectors)
@@ -58,8 +58,7 @@ Latex(r'\dot{x}=x-x y',        c='white').rotateZ(-90).pos(4,6.5,0)
 Latex(r'\dot{y}=\alpha(xy-y)', c='white').rotateZ(-90).pos(3,6.5,0)
 Text(__doc__) # the text comment in the header
 
-show(
-    collection(),  # all sofar created objects
+show(...,  # all sofar created objects
     axes={'xtitle':'time', 'ytitle':'x', 'ztitle':'y', 'zxGrid':True, 'yzGrid':False},
     viewup='x',
 )
