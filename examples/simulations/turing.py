@@ -1,5 +1,4 @@
-"""
-Scalar values are read from a file and represented
+"""Scalar values are read from a file and represented
 on a green scale on a mesh as a function of time.
 The difference between one time point and the next
 is shown as a blue component.
@@ -34,7 +33,7 @@ for t1 in pb.range():  # for each time point
         t2 = t1  # avoid index overflow with last time point
 
     vp.actors = [doc]  # clean up the list of actors at each iteration
-    vp += Cylinder([0, 0, -15], r=260, height=10, res=60).texture("marble")
+    vp += Cylinder([0, 0, -15], r=260, height=10, c="gray", res=60)
     vp += Cylinder([0, 0, 10], r=260, height=50, c="gray", res=60).wireframe(1)
 
     pts, cols = [], []

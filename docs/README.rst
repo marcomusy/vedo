@@ -184,7 +184,7 @@ script is available for download:
     cd vtkplotter/examples
     python tutorial.py
 
-More than 100 examples can be found in directories:
+More than 280 examples can be found in directories:
 
 - `examples/basic <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic>`_ ,
 - `examples/advanced <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced>`_ ,

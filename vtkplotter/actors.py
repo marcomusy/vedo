@@ -61,7 +61,7 @@ def merge(*actors):
             acts += a.getActors()
         elif a:
             acts += [a]
-            
+
     if len(acts) == 1:
         return acts[0].clone()
     elif len(acts) == 0:
@@ -508,7 +508,7 @@ class Prop(object):
         """
         Set the ambient, diffuse, specular and specularPower lighting constants.
 
-        :param str,int style: preset style, can be `[metallic, plastic, shiny, glossy]`
+        :param str,int style: preset style, can be `[metallic, plastic, shiny, glossy, ambient]`
         :param float ambient: ambient fraction of emission [0-1]
         :param float diffuse: emission of diffused light in fraction [0-1]
         :param float specular: fraction of reflected light [0-1]
@@ -534,10 +534,11 @@ class Prop(object):
             elif style=='plastic' : pars = [0.3, 0.4, 0.3,  5, c]
             elif style=='shiny'   : pars = [0.2, 0.6, 0.8, 50, c]
             elif style=='glossy'  : pars = [0.1, 0.7, 0.9, 90, (1,1,0.99)]
+            elif style=='ambient' : pars = [1.0, 0.0, 0.0,  0, (1,1,1)]
             elif style=='default' : pars = [0.1, 1.0, 0.05, 5, c]
             else:
                 colors.printc("Error in lighting(): Available styles are", c=1)
-                colors.printc(" [default, metallic, plastic, shiny, glossy]", c=1)
+                colors.printc(" [default, metallic, plastic, shiny, glossy, ambient]", c=1)
                 raise RuntimeError()
             pr.SetAmbient(pars[0])
             pr.SetDiffuse(pars[1])
@@ -1159,19 +1160,13 @@ class Actor(vtk.vtkActor, Prop):
         if tname is None:
             return self
 
-        tmapper = vtk.vtkTextureMapToPlane()
-        tmapper.AutomaticPlaneGenerationOn()
-        tmapper.SetInputData(self.polydata())
-        tmapper.Update()
-
-        # scale the texture coordinate to get repeat patterns
-        #xform = vtk.vtkTransformTextureCoords()
-        #xform.SetInputData(tmapper.GetOutput())
-        #xform.SetScale(scale, scale, 1)
-        #xform.Update()
-
-        tc = tmapper.GetOutput().GetPointData().GetTCoords()
-        self.polydata().GetPointData().SetTCoords(tc)
+        if not self.polydata(False).GetPointData().GetTCoords():
+            tmapper = vtk.vtkTextureMapToPlane()
+            tmapper.AutomaticPlaneGenerationOn()
+            tmapper.SetInputData(self.polydata())
+            tmapper.Update()
+            tc = tmapper.GetOutput().GetPointData().GetTCoords()
+            self.polydata().GetPointData().SetTCoords(tc)
 
         fn = settings.textures_path + tname + ".jpg"
         if os.path.exists(tname):
@@ -1179,7 +1174,7 @@ class Actor(vtk.vtkActor, Prop):
         elif not os.path.exists(fn):
             colors.printc("~sad Texture", tname,
                           "not found in", settings.textures_path, c="r")
-            colors.printc("~pin Available textures:", c="m", end=" ")
+            colors.printc("~pin Available built-in textures:", c="m", end=" ")
             for ff in os.listdir(settings.textures_path):
                 colors.printc(ff.split(".")[0], end=" ", c="m")
             print()
@@ -1192,7 +1187,7 @@ class Actor(vtk.vtkActor, Prop):
         elif ".bmp" in fn.lower():
             reader = vtk.vtkBMPReader()
         else:
-            colors.printc("~times Supported texture files: PNG or JPG", c="r")
+            colors.printc("~times Supported texture files: PNG, BMP or JPG", c="r")
             return self
         reader.SetFileName(fn)
         reader.Update()
@@ -1200,6 +1195,7 @@ class Actor(vtk.vtkActor, Prop):
         atext = vtk.vtkTexture()
         atext.SetInputData(img)
         self.GetProperty().SetColor(1, 1, 1)
+        self.mapper.ScalarVisibilityOff()
         self.SetTexture(atext)
         self.Modified()
         return self
@@ -1616,13 +1612,13 @@ class Actor(vtk.vtkActor, Prop):
             return int(cid)
         else:
             return np.array(trgp)
-    
-    
+
+
     def findCellsWithin(self, xbounds=(), ybounds=(), zbounds=(), c=None):
         """
         Find cells that are within specified bounds.
         Setting a color will add a vtk array to colorize these cells.
-        """   
+        """
         if len(xbounds) == 6:
             bnds = xbounds
         else:
@@ -1636,14 +1632,14 @@ class Actor(vtk.vtkActor, Prop):
             if len(zbounds) == 2:
                 bnds[4] = zbounds[0]
                 bnds[5] = zbounds[1]
-                
+
         cellIds = vtk.vtkIdList()
         self.cell_locator = vtk.vtkCellTreeLocator()
         self.cell_locator.SetDataSet(self.polydata())
         #self.cell_locator.SetNumberOfCellsPerNode(2)
         self.cell_locator.BuildLocator()
         self.cell_locator.FindCellsWithinBounds(bnds, cellIds)
-       
+
         if c is not None:
             cellData = vtk.vtkUnsignedCharArray()
             cellData.SetNumberOfComponents(3)
@@ -1662,7 +1658,7 @@ class Actor(vtk.vtkActor, Prop):
             if c is not None:
                 cellData.InsertTuple(cid, flagcol)
             cids.append(cid)
-        
+
         return np.array(cids)
 
 
@@ -2134,7 +2130,7 @@ class Actor(vtk.vtkActor, Prop):
     def triangle(self, verts=True, lines=True):
         """
         Converts actor polygons and strips to triangles.
-        
+
         :param bool verts: if True, break input vertex cells into individual vertex cells
             (one point per cell). If False, the input vertex cells will be ignored.
         :param bool lines: if True, break input polylines into line segments.
@@ -2518,7 +2514,7 @@ class Actor(vtk.vtkActor, Prop):
         """
         Retrieve point or cell scalars using array name or index number,
         and set it as the active one.
-        
+
         If no input is given return the list of names of existing arrays.
 
         :param str datatype: search given name in point-data or cell-data
@@ -2544,7 +2540,7 @@ class Actor(vtk.vtkActor, Prop):
 
             pdata = poly.GetPointData()
             arr = None
-            
+
             if 'point' in datatype.lower():
                 if isinstance(name_or_idx, int):
                     name = pdata.GetArrayName(name_or_idx)
@@ -2553,7 +2549,7 @@ class Actor(vtk.vtkActor, Prop):
                 if name:
                     arr = pdata.GetArray(name)
                     data = pdata
-            
+
             if not arr or 'cell' in datatype.lower():
                 cdata = poly.GetCellData()
                 if isinstance(name_or_idx, int):
@@ -2569,7 +2565,7 @@ class Actor(vtk.vtkActor, Prop):
                 self.mapper.ScalarVisibilityOn()
                 self.mapper.SetScalarRange(arr.GetRange())
                 return vtk_to_numpy(arr)
-            
+
             return None
 
 

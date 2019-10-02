@@ -188,7 +188,8 @@ def histogram2D(values, bins=20, vrange=None, minbin=0, logscale=False,
 
 
 def histogram(values,
-              bins=25, vrange=None, logscale=False,
+              xtitle='', ytitle='',
+              bins=25, vrange=None, logscale=False, yscale=None,
               fill=True, gap=0.02, c="olivedrab", alpha=1,
               outline=True, lw=2, lc='black',
               errors=False):
@@ -204,6 +205,12 @@ def histogram(values,
     :param bool outline: show outline of the bins.
     :param bool errors: show error bars.
     """
+    if xtitle:
+        from vtkplotter import settings
+        settings.xtitle = xtitle
+    if ytitle:
+        from vtkplotter import settings
+        settings.ytitle = ytitle
 
     fs, edges = np.histogram(values, bins=bins, range=vrange)
     if logscale:
@@ -214,13 +221,12 @@ def histogram(values,
     rs = []
     if fill:
         if outline: gap=0
-        rcs = []
         for i in range(bins):
             p0 = (edges[i]+gap*binsize, 0, 0)
             p1 = (edges[i+1]-gap*binsize, fs[i], 0)
             r = shapes.Rectangle(p0,p1)
-            rcs.append(r)
-        rs.append(merge(rcs).color(c).alpha(alpha))
+            r.color(c).alpha(alpha).lighting('ambient')
+            rs.append(r)
 
     if outline:
         lns = [[mine, 0, 0]]
@@ -242,12 +248,15 @@ def histogram(values,
             rs.append(pt)
 
     asse = Assembly(rs)
-    yscaling = 10/np.sum(fs)*(maxe-mine)
-    asse.scale([1, yscaling, 1])
+    if yscale is None:
+        yscale = 10/np.sum(fs)*(maxe-mine)
+    asse.scale([1, yscale, 1])
     return asse
 
 
-def hexHistogram(xvalues, yvalues, bins=12, norm=1, fill=True,
+def hexHistogram(xvalues, yvalues,
+                 xtitle='', ytitle='', ztitle='',
+                 bins=12, norm=1, fill=True,
                  c=None, cmap="terrain_r", alpha=1):
     """
     Build a hexagonal histogram from a list of x and y values.
@@ -259,6 +268,16 @@ def hexHistogram(xvalues, yvalues, bins=12, norm=1, fill=True,
 
     |histoHexagonal| |histoHexagonal.py|_
     """
+    if xtitle:
+        from vtkplotter import settings
+        settings.xtitle = xtitle
+    if ytitle:
+        from vtkplotter import settings
+        settings.ytitle = ytitle
+    if ztitle:
+        from vtkplotter import settings
+        settings.ztitle = ztitle
+
     xmin, xmax = np.min(xvalues), np.max(xvalues)
     ymin, ymax = np.min(yvalues), np.max(yvalues)
     dx, dy = xmax - xmin, ymax - ymin
@@ -881,7 +900,7 @@ def delaunay3D(dataset, alpha=0, tol=None, boundary=True):
 def extrude(actor, zshift=1, rotation=0, dR=0, cap=True, res=1):
     """
     Sweep a polygonal data creating a "skirt" from free edges and lines, and lines from vertices.
-    The input dataset is swept around the z-axis to create new polygonal primitives. 
+    The input dataset is swept around the z-axis to create new polygonal primitives.
     For example, sweeping a line results in a cylindrical shell, and sweeping a circle creates a torus.
 
     You can control whether the sweep of a 2D object (i.e., polygon or triangle strip)
@@ -898,10 +917,10 @@ def extrude(actor, zshift=1, rotation=0, dR=0, cap=True, res=1):
     or translational/rotational symmetric objects like springs or corkscrews.
 
     Warning:
-    
+
         Some polygonal objects have no free edges (e.g., sphere). When swept, this will result
         in two separate surfaces if capping is on, or no surface if capping is off.
-        
+
     |extrude| |extrude.py|_
     """
     rf = vtk.vtkRotationalExtrusionFilter()
