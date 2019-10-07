@@ -19,6 +19,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         
         self.plt.show()
 
+    def onClose(self):
+        print("Disable the interactor before closing to prevent it from trying to act on a already deleted items")
+        self.vtkWidget.close()
+
 
 if __name__ == "__main__":
     import sys
@@ -26,5 +30,6 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
 
     window = MainWindow()
+    app.aboutToQuit.connect(window.onClose)  # <-- connect the onClose event
     window.show()
     sys.exit(app.exec_())
