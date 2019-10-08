@@ -1160,13 +1160,14 @@ class Actor(vtk.vtkActor, Prop):
         if tname is None:
             return self
 
-        if not self.polydata(False).GetPointData().GetTCoords():
+        pd = self.polydata(False)
+        if not pd.GetPointData().GetTCoords():
             tmapper = vtk.vtkTextureMapToPlane()
             tmapper.AutomaticPlaneGenerationOn()
-            tmapper.SetInputData(self.polydata())
+            tmapper.SetInputData(pd)
             tmapper.Update()
             tc = tmapper.GetOutput().GetPointData().GetTCoords()
-            self.polydata().GetPointData().SetTCoords(tc)
+            pd.GetPointData().SetTCoords(tc)
 
         fn = settings.textures_path + tname + ".jpg"
         if os.path.exists(tname):
@@ -1196,6 +1197,7 @@ class Actor(vtk.vtkActor, Prop):
         atext.SetInputData(img)
         self.GetProperty().SetColor(1, 1, 1)
         self.mapper.ScalarVisibilityOff()
+        self.mapper.SetScalarModeToUsePointFieldData()
         self.SetTexture(atext)
         self.Modified()
         return self
@@ -2600,7 +2602,7 @@ class Actor(vtk.vtkActor, Prop):
 
     def decimate(self, fraction=0.5, N=None, method='quadric', boundaries=False):
         """
-        Downsample the number of vertices in a mesh.
+        Downsample the number of vertices in a mesh to `fraction`.
 
         :param float fraction: the desired target of reduction.
         :param int N: the desired number of final points
@@ -2625,7 +2627,8 @@ class Actor(vtk.vtkActor, Prop):
 
         if 'quad' in method:
             decimate = vtk.vtkQuadricDecimation()
-            decimate.VolumePreservationOn()
+            decimate.SetAttributeErrorMetric(True)
+            decimate.SetVolumePreservation(True)
         else:
             decimate = vtk.vtkDecimatePro()
             decimate.PreserveTopologyOn()

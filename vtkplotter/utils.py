@@ -17,6 +17,7 @@ __all__ = [
     "ProgressBar",
     "geometry",
     "isSequence",
+    "linInterpolate",
     "vector",
     "mag",
     "mag2",
@@ -403,27 +404,44 @@ def findDistanceToLines2D(P0,P1, pts):
 def linInterpolate(x, rangeX, rangeY):
     """
     Interpolate linearly variable x in rangeX onto rangeY.
+    If x is a vector the linear weight is the distance to two the rangeX vectors.
     E.g.:
-        if x runs in rangeX=[x0,x1] and the target range is rangeY=[y0,y1] then
+        if x runs in rangeX=[x0,x1] and I want it to run in rangeY=[y0,y1] then
         y = linInterpolate(x, rangeX, rangeY) will interpolate x onto rangeY.
     """
-    x0 = rangeX[0]
-    dx = rangeX[1] - x0
-    if dx:
+    if isSequence(x):
+        x = np.array(x)
+        x0, x1 = np.array(rangeX)
+        y0, y1 = np.array(rangeY)
+        if len(np.unique([x.shape, x0.shape, x1.shape, y1.shape]))>1:
+            colors.printc("Error in linInterpolate(): mismatch in input shapes.", c=1)
+            raise RuntimeError()
+        dx = x1 - x0
+        dxn = np.linalg.norm(dx)
+        if not dxn:
+            return y0
+        s = np.linalg.norm(x - x0) / dxn
+        t = np.linalg.norm(x - x1) / dxn
+        st = s + t
+        out = y0 * (t/st) + y1 * (s/st)
+    else: #faster
+        x0 = rangeX[0]
+        dx = rangeX[1] - x0
+        if not dx:
+            return rangeY[0]
         s = (x - x0) / dx
-    else:
-        s = 1
-    return rangeY[0] * (1 - s) + rangeY[1] * s
+        out = rangeY[0] * (1 - s) + rangeY[1] * s
+    return out
 
 
-def vector(x, y=None, z=0.0):
-    """Return a 3D np array representing a vector (of type `np.float64`).
+def vector(x, y=None, z=0.0, dtype=np.float64):
+    """Return a 3D numpy array representing a vector.
 
-    If `y` is ``None``, assume input is already in the form `[x,y,z]`.
+    If `y` is ``None``, assume input is in the form `[x,y,z]`.
     """
     if y is None:  # assume x is already [x,y,z]
-        return np.array(x, dtype=np.float64)
-    return np.array([x, y, z], dtype=np.float64)
+        return np.array(x, dtype=dtype)
+    return np.array([x, y, z], dtype=dtype)
 
 
 def versor(v):

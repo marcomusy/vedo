@@ -1186,21 +1186,29 @@ def importWindow(fileinput):
 
 
 ##########################################################
-def screenshot(filename="screenshot.png"):
+def screenshot(filename="screenshot.png", scale=None):
     """
     Save a screenshot of the current rendering window.
     """
     if not settings.plotter_instance or not settings.plotter_instance.window:
         colors.printc('~bomb screenshot(): Rendering window is not present, skip.', c=1)
         return
-    w2if = vtk.vtkWindowToImageFilter()
-    w2if.SetInput(settings.plotter_instance.window)
-    s = settings.screeshotScale
-    w2if.SetScale(s, s)
-    if settings.screenshotTransparentBackground:
-        w2if.SetInputBufferTypeToRGBA()
-    w2if.ReadFrontBufferOff()  # read from the back buffer
+    if scale is None:
+        scale = settings.screeshotScale
+
+    if settings.screeshotLargeImage:
+       w2if = vtk.vtkRenderLargeImage()
+       w2if.SetInput(settings.plotter_instance.renderer)
+       w2if.SetMagnification(scale)
+    else:
+        w2if = vtk.vtkWindowToImageFilter()
+        w2if.SetInput(settings.plotter_instance.window)
+        w2if.SetScale(scale, scale)
+        if settings.screenshotTransparentBackground:
+            w2if.SetInputBufferTypeToRGBA()         
+        w2if.ReadFrontBufferOff()  # read from the back buffer
     w2if.Update()
+
     if filename.endswith('.png'):
         writer = vtk.vtkPNGWriter()
         writer.SetFileName(filename)

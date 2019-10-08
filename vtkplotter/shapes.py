@@ -527,7 +527,7 @@ def Lines(startPoints, endPoints=None, c='gray', alpha=1, lw=1, dotted=False, sc
     return actor
 
 
-def Spline(points, smooth=0.5, degree=2, s=2, res=20):
+def Spline(points, smooth=0.5, degree=2, s=2, res=None):
     """
     Return an ``Actor`` for a spline which does not necessarly
     passing exactly throught all the input points.
@@ -539,12 +539,14 @@ def Spline(points, smooth=0.5, degree=2, s=2, res=20):
         - 1 = average point positions.
 
     :param int degree: degree of the spline (1<degree<5)
+    :param int res: number of points on the spline
 
     |tutorial_spline| |tutorial.py|_
     """
     from scipy.interpolate import splprep, splev
+    if res is None:
+        res = len(points)*20
 
-    Nout = len(points) * res  # Number of points on the spline
     points = np.array(points)
 
     minx, miny, minz = np.min(points, axis=0)
@@ -554,14 +556,14 @@ def Spline(points, smooth=0.5, degree=2, s=2, res=20):
 
     tckp, _ = splprep(points.T, task=0, s=smooth, k=degree)  # find the knots
     # evaluate spLine, including interpolated points:
-    xnew, ynew, znew = splev(np.linspace(0, 1, Nout), tckp)
+    xnew, ynew, znew = splev(np.linspace(0, 1, res), tckp)
 
     ppoints = vtk.vtkPoints()  # Generate the polyline for the spline
     profileData = vtk.vtkPolyData()
     ppoints.SetData(numpy_to_vtk(np.c_[xnew, ynew, znew], deep=True))
     lines = vtk.vtkCellArray()  # Create the polyline
-    lines.InsertNextCell(Nout)
-    for i in range(Nout):
+    lines.InsertNextCell(res)
+    for i in range(res):
         lines.InsertCellPoint(i)
     profileData.SetPoints(ppoints)
     profileData.SetLines(lines)

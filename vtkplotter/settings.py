@@ -12,6 +12,9 @@ Global settings.
     screeshotScale = 1
     screenshotTransparentBackground = False
 
+    # sometimes setting this to True gives better results
+    screeshotLargeImage = False
+
     # Recompute vertex and cell normals
     computeNormals = None
 
@@ -89,6 +92,7 @@ ztitle = 'z'
 # Scale magnification of the screenshot (must be an integer)
 screeshotScale = 1
 screenshotTransparentBackground = False
+screeshotLargeImage = False
 
 # Recompute vertex and cell normals
 computeNormals = None

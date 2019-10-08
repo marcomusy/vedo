@@ -96,6 +96,9 @@ python basic/kspline.py
 echo Running basic/latex.py
 python basic/latex.py
 
+echo Running basic/linInterpolate.py
+python basic/linInterpolate.py
+
 echo Running basic/lorenz.py
 python basic/lorenz.py
 
@@ -169,7 +172,7 @@ echo Running basic/sliders.py
 python basic/sliders.py
 
 echo Running basic/slider_browser.py
-python advanced/slider_browse.py
+python advanced/slider_browser.py
 
 echo Running basic/sliders3d.py
 python basic/sliders3d.py   

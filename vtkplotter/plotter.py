@@ -447,6 +447,7 @@ class Plotter:
         self.renderer = None  # current renderer
         self.renderers = []  # list of renderers
         self.pos = pos
+        self.shape = shape  # dont remove this line
         self.interactive = interactive  # allows to interact with renderer
         self.axes = axes  # show axes type nr.
         self.title = title  # window title
@@ -499,6 +500,7 @@ class Plotter:
             self.interactive = False
             self.interactor = None
             self.window = None
+            self.camera = None # let the backend choose
             if size == "auto":
                 self.size = (1000, 1000)
             ############################
@@ -542,6 +544,7 @@ class Plotter:
             shape = lm[ind]
 
         self.size = size
+        self.shape = shape
 
         if isinstance(shape, str):
 
@@ -759,7 +762,7 @@ class Plotter:
                     self.interactor.Render()
             return actors
 
-    def remove(self, actors):
+    def remove(self, actors, render=True):
         """Remove ``vtkActor`` or actor index from current renderer."""
         if not utils.isSequence(actors):
             actors = [actors]
@@ -772,6 +775,8 @@ class Plotter:
             if a in self.actors:
                 i = self.actors.index(a)
                 del self.actors[i]
+        if render and self.interactor:
+            self.interactor.Render()
 
     ####################################################
     def load(self, inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):

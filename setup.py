@@ -50,6 +50,7 @@ setup(
 # pip install .
 
 # cd examples && ./run_all.sh
+# cd ~/Projects/vtkplotter/
 # python tests/test_filetypes.py
 
 # check vtkconvert:
@@ -65,6 +66,13 @@ setup(
 # cd ~/Projects/vtkplotter/
 # jupyter notebook &
 # remove trailing spaces
+
+# rm -rf examples/*/.ipynb_checkpoints examples/*/*/.ipynb_checkpoints
+# rm -rf examples/other/dolfin/navier_stokes_cylinder/
+# rm examples/other/dolfin/shuttle.xml
+# rm examples/other/trimesh/featuretype.STL examples/other/trimesh/machinist.XAML
+# rm examples/scene.npy examples/timecourse1d.npy examples/voronoi3d.txt*
+# rm examples/embryo.html examples/embryo.x3d
 
 # git status
 # git add [files]

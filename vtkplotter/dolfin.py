@@ -622,7 +622,7 @@ def plot(*inputobj, **options):
             arrs = MeshArrows(u, scale=scale)
         else:
             arrs = MeshLines(u, scale=scale)
-        
+
         if arrs:
             if legend and not 'mesh' in mode:
                 arrs.legend(legend)
