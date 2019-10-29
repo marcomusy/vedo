@@ -66,7 +66,7 @@ def demo3d_hanoi(**kwargs):
     for _ in hanoi.moves():
         tower_states.append(hanoi.towers)
 
-    vp = Plotter(axes=0, interactive=0, bg="w", size=(600, 800))
+    vp = Plotter(axes=0, interactive=0, bg="w", size=(800, 600))
     vp.camera.SetPosition([18.5, -20.7, 7.93])
     vp.camera.SetFocalPoint([3.0, 0.0, 2.5])
     vp.camera.SetViewUp([-0.1, +0.17, 0.977])

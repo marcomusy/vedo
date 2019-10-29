@@ -210,6 +210,9 @@ python basic/polarPlot.py
 echo Running basic/donutPlot.py
 python basic/donutPlot.py
 
+echo Running basic/markers.py
+python basic/markers.py
+
 echo Running basic/fillholes.py
 python basic/fillholes.py
 

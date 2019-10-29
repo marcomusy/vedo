@@ -5,7 +5,6 @@ the velocity and first degree elements for the pressure (Taylor-Hood elements).
 # Credits:
 # https://github.com/pf4d/fenics_scripts/blob/master/cbc_block/stokes.py
 from dolfin import *
-from time import time
 from vtkplotter.dolfin import plot, datadir, Latex
 
 # Load mesh and subdomains
@@ -46,6 +45,6 @@ f = r'-\nabla \cdot(\nabla u+p I)=f ~\mathrm{in}~\Omega'
 formula = Latex(f, pos=(0.55,0.45,-.05), s=0.1)
 
 plot(u, formula, at=0, N=2,
-     mode='mesh and arrows', scale=.03, 
+     mode='mesh and arrows', scale=.03,
      wireframe=True, scalarbar=False, style=1)
 plot(p, at=1, text="pressure", cmap='rainbow')

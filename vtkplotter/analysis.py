@@ -2813,8 +2813,7 @@ def frequencyPassFilter(volume, lowcutoff=None, highcutoff=None, order=1):
     return Volume(butterworthReal.GetOutput())
 
 
-def implicitModeller(actor, distance=0.05, res=[110,40,20], bounds=[], maxdist=None,
-                     outer=True):
+def implicitModeller(actor, distance=0.05, res=(110,40,20), bounds=(), maxdist=None, outer=True):
     """Finds the surface at the specified distance from the input one"""
 
     if not len(bounds):

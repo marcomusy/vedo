@@ -25,7 +25,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
 
         if sum(vp.shape) != 2:
             colors.printc("Warning: multirendering is not supported in jupyter.", c=1)
-        
+
 #        settings.notebook_plotter = view(actors=actors2show,
 #                                         cmap='jet', ui_collapsed=True,
 #                                         gradient_opacity=False)
@@ -141,8 +141,9 @@ def getNotebookBackend(actors2show, zoom, viewup):
             if isinstance(ia, Actor) and ia.N():
 
                 iap = ia.GetProperty()
-                ia.computeNormals().clean().triangle()
-                iapoly = ia.polydata()
+                #ia.clean().triangle().computeNormals()
+                #ia.triangle()
+                iapoly = ia.clone().clean().triangle().computeNormals().polydata()
 
                 vtkscals = None
                 color_attribute = None
@@ -196,6 +197,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                         kcols = k3d.helpers.map_colors(scals, kcmap,
                                                        [scals_min,scals_max]).astype(numpy.uint32)
                     sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
+
                     if ia.NPoints() == ia.NCells():
                         kobj = k3d.points(ia.coordinates().astype(numpy.float32),
                                           color=colors.rgb2int(iap.GetColor()),
@@ -246,6 +248,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                 pos = (ia.GetPosition()[0],ia.GetPosition()[1])
                 kobj = k3d.text2d(ia.info['formula'], position=pos)
                 settings.notebook_plotter += kobj
+
 
     ####################################################################################
     elif settings.notebookBackend == 'panel' and hasattr(vp, 'window') and vp.window:

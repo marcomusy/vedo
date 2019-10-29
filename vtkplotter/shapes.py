@@ -18,6 +18,7 @@ Submodule to generate basic geometric shapes.
 __all__ = [
     "Point",
     "Points",
+    "Marker",
     "Line",
     "DashedLine",
     "Tube",
@@ -55,6 +56,49 @@ __all__ = [
 
 
 ########################################################################
+def Marker(symbol, c='lb', alpha=1, s=0.1, filled=True):
+    """
+    Generate a marker shape. Can be used in association with ``Glyph``.
+    """
+    if isinstance(symbol, int):
+        symbs = ['.', 'p','*','h','D','d','o','v','^','>','<','s', 'x', 'a']
+        symbol = symbs[s]
+    
+    if symbol == '.':
+        actor = Polygon(nsides=24, r=s)
+    elif symbol == 'p':
+        actor = Polygon(nsides=5, r=s)
+    elif symbol == '*':
+        actor = Star(r1=0.7*s, r2=s, line=not filled)
+    elif symbol == 'h':
+        actor = Polygon(nsides=6, r=s)
+    elif symbol == 'D':
+        actor = Polygon(nsides=4, r=s)
+    elif symbol == 'd':
+        actor = Polygon(nsides=4, r=s).scale([0.5,1,1])
+    elif symbol == 'o':
+        actor = Polygon(nsides=24, r=s)
+    elif symbol == 'v':
+        actor = Polygon(nsides=3, r=s).rotateZ(180)
+    elif symbol == '^':
+        actor = Polygon(nsides=3, r=s)
+    elif symbol == '>':
+        actor = Polygon(nsides=3, r=s).rotateZ(-90)
+    elif symbol == '<':
+        actor = Polygon(nsides=3, r=s).rotateZ(90)
+    elif symbol == 's':
+        actor = Polygon(nsides=4, r=s).rotateZ(45)
+    elif symbol == 'x':
+        actor = Text('+', pos=(0,0,0), s=s*2.6, justify='center', depth=0)
+        actor.rotateZ(45)
+    elif symbol == 'a':
+        actor = Text('*', pos=(0,0,0), s=s*2.6, justify='center', depth=0)
+    else:
+        actor = Text(symbol, pos=(0,0,0), s=s*2.5, justify='center', depth=0)
+    actor.flat().lighting('ambient').wireframe(not filled).c(c).alpha(alpha)
+    return actor
+
+
 def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
     """Create a simple point actor."""
     if len(pos) == 2:
@@ -445,7 +489,7 @@ def DashedLine(p0, p1=None, spacing=None, c="red", alpha=1, lw=1):
         listp = [p0, p1]
 
     if not spacing:
-        spacing = np.linalg.norm(np.array(listp[1]) - listp[0])/50
+        spacing = np.linalg.norm(np.array(listp[-1]) - listp[0])/50
 
     polylns = vtk.vtkAppendPolyData()
     for ipt in range(1, len(listp)):
@@ -453,6 +497,7 @@ def DashedLine(p0, p1=None, spacing=None, c="red", alpha=1, lw=1):
         p1 = np.array(listp[ipt])
         v = p1-p0
         n1 = int(np.linalg.norm(v)/spacing)
+        if not n1: continue
 
         for i in range(1, n1+2):
             if (i-1)/n1>1:
@@ -469,15 +514,6 @@ def DashedLine(p0, p1=None, spacing=None, c="red", alpha=1, lw=1):
                 lineSource.SetPoint2(q1)
                 lineSource.Update()
                 polylns.AddInputData(lineSource.GetOutput())
-#            elif subspacing:
-#                q2 = p0 + (i+1)/n1*p1
-#                w1 = (q2-q1)*(1-spacing2/spacing1)/2
-#                w2 = (q2-q1)*(1+spacing2/spacing1)/2
-#                lineSource = vtk.vtkLineSource()
-#                lineSource.SetPoint1(w1)
-#                lineSource.SetPoint2(w2)
-#                lineSource.Update()
-#                polylns.AddInputData(lineSource.GetOutput())
 
         polylns.Update()
         poly = polylns.GetOutput()
@@ -597,7 +633,7 @@ def KSpline(points,
     xspline = vtk.vtkKochanekSpline()
     yspline = vtk.vtkKochanekSpline()
     zspline = vtk.vtkKochanekSpline()
-    for s in [xspline, yspline, yspline]:
+    for s in [xspline, yspline, zspline]:
         if bias: s.SetDefaultBias(bias)
         if tension: s.SetDefaultTension(tension)
         if continuity: s.SetDefaultContinuity(continuity)
@@ -606,13 +642,16 @@ def KSpline(points,
     for i,p in enumerate(points):
         xspline.AddPoint(i, p[0])
         yspline.AddPoint(i, p[1])
-        zspline.AddPoint(i, p[2])
+        if len(p)>2:
+            zspline.AddPoint(i, p[2])
 
     ln = []
     for pos in np.linspace(0, len(points), res):
         x = xspline.Evaluate(pos)
         y = yspline.Evaluate(pos)
-        z = zspline.Evaluate(pos)
+        z=0
+        if len(p)>2:
+            z = zspline.Evaluate(pos)
         ln.append((x,y,z))
 
     actor = Line(ln, c='gray')
@@ -1227,12 +1266,15 @@ def Plane(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g", alpha=1):
     return actor
 
 
-def Box(pos=(0, 0, 0), length=1, width=2, height=3, c="g", alpha=1):
+def Box(pos=(0,0,0), length=1, width=2, height=3, size=(), c="g", alpha=1):
     """
     Build a box of dimensions `x=length, y=width and z=height`.
+    Alternatively dimensions can be defined by setting `size` keyword with a tuple.
 
     |aspring| |aspring.py|_
     """
+    if len(size):
+        length, width, height = size
     src = vtk.vtkCubeSource()
     src.SetXLength(length)
     src.SetYLength(width)
@@ -1250,7 +1292,7 @@ def Cube(pos=(0, 0, 0), side=1, c="g", alpha=1):
 
     |colorcubes| |colorcubes.py|_
     """
-    return Box(pos, side, side, side, c, alpha)
+    return Box(pos, side, side, side, (), c, alpha)
 
 
 def Spring(

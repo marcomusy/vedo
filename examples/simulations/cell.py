@@ -6,7 +6,7 @@ import numpy as np
 
 ##############################################################
 class Colony:
-    def __init__(self, cells=[], c="b", cellSize=5):
+    def __init__(self, cells=(), c="b", cellSize=5):
         self.cells = cells
         self.cellSize = cellSize
         self.color = c
@@ -14,7 +14,7 @@ class Colony:
 
 ##############################################################
 class Cell:
-    def __init__(self, pos=[0, 0, 0], tdiv=10):
+    def __init__(self, pos=(0, 0, 0), tdiv=10):
 
         self.pos = pos  # position in space
 

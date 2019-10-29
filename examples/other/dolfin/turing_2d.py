@@ -48,7 +48,7 @@ p1 = Point(2.5, 2.5)
 mesh = RectangleMesh(p0, p1, 64, 64)
 V = VectorFunctionSpace(mesh, 'CG', 2)
 
-# Define functions 
+# Define functions
 W_init = InitialConditions(degree = 1)
 phi    = TestFunction(V)
 dp     = TrialFunction(V)
@@ -89,4 +89,4 @@ while (t < t_max):
          vmin=0, vmax=1, scalarbar=False, interactive=False)
 
 interactive()
-    
+

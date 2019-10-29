@@ -25,8 +25,8 @@ for i in range(5):  # generate a time sequence of 5 shapes
 show(sets, txt, at=0, N=2, bg="w", zoom=1.4)
 
 sm3d = smoothMLS3D(sets, neighbours=10)
- 
-#color indicates fitted time 
+
+#color indicates fitted time
 sm3d.addScalarBar3D(pos=(-2, 0, -1), title='time [a.u.]')
 
 show(sm3d, at=1, zoom=1.4, axes=4, interactive=1)

@@ -47,6 +47,9 @@ python pointLoad.py
 echo Running meshEditor.py
 python meshEditor.py
 
+echo Running nodal_u.py
+python nodal_u.py
+
 ######################################
 echo Running ex01_show-mesh.py
 python ex01_show-mesh.py

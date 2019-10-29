@@ -1,5 +1,5 @@
-"""Read a tetrahedral mesh from a 
-vtkUnstructuredGrid object and visualize 
+"""Read a tetrahedral mesh from a
+vtkUnstructuredGrid object and visualize
 it as either a Volume or a mesh Actor
 """
 from vtkplotter import *

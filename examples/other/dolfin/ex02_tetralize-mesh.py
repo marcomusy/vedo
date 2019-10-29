@@ -1,5 +1,5 @@
 """
-Tetrahedral meshes generation with 
+Tetrahedral meshes generation with
 package mshr and dolfin.
 
 You can then visualize the file with:
@@ -14,7 +14,7 @@ fname = "shuttle.stl"
 surface = mshr.Surface3D(datadir + fname)
 
 # add a cylinder
-cyl = mshr.Cylinder(dolfin.Point(-1.4, 0, 0), 
+cyl = mshr.Cylinder(dolfin.Point(-1.4, 0, 0),
 	                dolfin.Point(-1.0, 0, 0), 0.5, 0.7)
 totdomain = surface + cyl
 

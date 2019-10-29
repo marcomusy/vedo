@@ -42,6 +42,9 @@ def collection():
             for i in range(10):
                 Cone(pos=[3*i, 0, 0], axis=[i, i-5, 0])
             show(collection())
+
+            # in python3 you can simply use ellipses:
+            show(...)
     """
     return settings.collectable_actors
 
@@ -1276,11 +1279,6 @@ class Actor(vtk.vtkActor, Prop):
     def opacity(self, alpha=None):
         """Set/get actor's transparency. Same as `actor.alpha()`."""
         return self.alpha(alpha)
-
-    def wire(self, value=True):
-        """Obsolete: use `wireframe()` instead."""
-        colors.printc('Obsolete method wire(): use wireframe() instead.', c=1)
-        raise RuntimeError()
 
     def wireframe(self, value=True):
         """Set actor's representation as wireframe or solid surface.
@@ -2551,6 +2549,8 @@ class Actor(vtk.vtkActor, Prop):
                 if name:
                     arr = pdata.GetArray(name)
                     data = pdata
+                    self.mapper.SetScalarModeToUsePointData()
+
 
             if not arr or 'cell' in datatype.lower():
                 cdata = poly.GetCellData()
@@ -2561,6 +2561,7 @@ class Actor(vtk.vtkActor, Prop):
                 if name:
                     arr = cdata.GetArray(name)
                     data = cdata
+                    self.mapper.SetScalarModeToUseCellData()
 
             if arr:
                 data.SetActiveScalars(name)

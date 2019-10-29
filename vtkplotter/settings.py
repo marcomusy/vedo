@@ -12,7 +12,7 @@ Global settings.
     screeshotScale = 1
     screenshotTransparentBackground = False
 
-    # sometimes setting this to True gives better results
+    # Sometimes setting this to True gives better results
     screeshotLargeImage = False
 
     # Recompute vertex and cell normals

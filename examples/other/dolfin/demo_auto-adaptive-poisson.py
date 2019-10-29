@@ -1,10 +1,10 @@
 # Auto adaptive Poisson equation
 # ==============================
-# 
+#
 # In this demo we will use goal oriented adaptivity and error control
 # which applies a duality technique to derive error estimates taken
 # directly from the computed solution which then are used to weight
-# local residuals. 
+# local residuals.
 
 from dolfin import *
 set_log_level(30)

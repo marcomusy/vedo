@@ -6,7 +6,7 @@ data2 = np.random.randn(500)*2+ 7
 
 h1 = histogram(data1, xtitle='random variable x', ytitle='dN/dx',
                yscale=0.2, fill=True, outline=False, errors=True)
-h2 = histogram(data2, 
+h2 = histogram(data2,
                yscale=0.2, fill=False, lc='firebrick', lw=4)
 h2.z(0.1) # put h2 in front of h1
 

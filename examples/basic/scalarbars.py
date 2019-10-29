@@ -1,6 +1,6 @@
 """Insert 2D and 3D scalarbars
 in the rendering scene"""
-from vtkplotter import *
+from vtkplotter import load, datadir, show, Text
 
 shape = load(datadir + "lamp.vtk").normalize()
 
@@ -8,16 +8,16 @@ ms = []
 cmaps = ("jet", "PuOr", "viridis")
 for i in range(3):
     s = shape.clone().pos(0, i*2.2, 0)
-    
+
     # colorize cells
     scals = range(s.NCells())
     s.cellColors(scals, cmap=cmaps[i])
-    
+
     # Or
     # colorize vertices:
     #scals = s.getPoints()[:,i]  # define some dummy point scalar
     #s.pointColors(scals, cmap=cmaps[i])
-    
+
     ms.append(s)
 
 # use flat shading and add a 2D scalar bar to first mesh

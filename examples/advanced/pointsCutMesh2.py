@@ -18,8 +18,8 @@ ptsmc = ptsm.getPoints()
 
 # and a ribbon-like surface using cell normals
 splinen = []
-for i in range(len(ptsmc)):
-    iclos = s.closestPoint(ptsmc[i], returnIds=True)
+for p in ptsmc:
+    iclos = s.closestPoint(p, returnIds=True)
     splinen.append(sn[iclos])
 pts0 = ptsmc - 0.1*vector(splinen)
 pts1 = ptsmc + 0.2*vector(splinen)

@@ -21,8 +21,7 @@ Defines main class ``Plotter`` to manage actors and 3D rendering.
     + docs._defs
 )
 
-__all__ = ["show", "clear", "Plotter",
-           "closeWindow", "closePlotter", "interactive"]
+__all__ = ["show", "clear", "Plotter", "closeWindow", "closePlotter", "interactive"]
 
 ########################################################################
 def show(*actors, **options):
@@ -202,6 +201,10 @@ def show(*actors, **options):
     newPlotter = options.pop("newPlotter", False)
     q = options.pop("q", False)
 
+    if len(options):
+        for op in options:
+            print("Warning: unknown keyword in show():", op)
+
     if len(actors) == 0:
         actors = None
     elif len(actors) == 1:
@@ -211,6 +214,7 @@ def show(*actors, **options):
 
     if settings.plotter_instance and newPlotter == False:
         vp = settings.plotter_instance
+        #vp.renderer.SetBackground(colors.getColor(bg))
     else:
         if utils.isSequence(at):
             if not utils.isSequence(actors):
@@ -610,7 +614,7 @@ class Plotter:
                 if shape == (1, 1):
                     self.size = (int(y / f), int(y / f))  # because y<x
             else:
-                self.size = (size[1], size[0])
+                self.size = (size[0], size[1])
 
             ############################
             self.shape = shape
@@ -766,12 +770,18 @@ class Plotter:
         """Remove ``vtkActor`` or actor index from current renderer."""
         if not utils.isSequence(actors):
             actors = [actors]
+
         for a in actors:
             if self.renderer:
                 self.renderer.RemoveActor(a)
                 if hasattr(a, 'renderedAt'):
                     ir = self.renderers.index(self.renderer)
                     a.renderedAt.discard(ir)
+                if hasattr(a, 'scalarbar') and a.scalarbar:
+                    self.renderer.RemoveActor(a.scalarbar)
+                if hasattr(a, 'trail') and a.trail:
+                    self.renderer.RemoveActor(a.trail)
+                    a.trailPoints = []
             if a in self.actors:
                 i = self.actors.index(a)
                 del self.actors[i]
@@ -1632,7 +1642,7 @@ class Plotter:
         if len(actors):
             for a in actors:
                 self.remove(a)
-        else:
+        elif self.renderer:
             for a in settings.collectable_actors:
                 self.remove(a)
             settings.collectable_actors = []
@@ -1649,6 +1659,7 @@ class Plotter:
                 w.EnabledOff()
             for a in self.scalarbars:
                 self.renderer.RemoveActor(a)
+            self.scalarbars = []
 
     def closeWindow(self):
         """Close the current or the input rendering window."""

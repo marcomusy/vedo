@@ -18,10 +18,10 @@ class MyExpression(UserExpression):
         values[0] = self.u1(x)/self.u2(x)
     def value_shape(self):
         return ()
-        
+
 f0 = MyExpression(u1, u2, degree=1)
 
-plot( interpolate(f0,V), 
+plot( interpolate(f0,V),
       warpYfactor=0.5, # y-scaling of the solution
       lc='navy',       # line color and width
       lw=3,
@@ -29,12 +29,12 @@ plot( interpolate(f0,V),
       ytitle="velocity [a.u.]",
       bg='white',      # background color
       axes={'xyGrid':True,
-            'xyPlaneColor':'blue', 
+            'xyPlaneColor':'blue',
             'xyGridColor':'peru',
             'xyAlpha':0.1,
             'yHighlightZero':True,
            },
-      scalarbar=False, 
+      scalarbar=False,
       zoom=1.2,
     )
 

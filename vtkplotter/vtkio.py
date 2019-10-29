@@ -615,7 +615,7 @@ def loadNumpy(inobj):
     import numpy as np
 
     if isinstance(inobj, str):
-        data = np.load(inobj, allow_pickle=True)
+        data = np.load(inobj, allow_pickle=True, encoding='latin1').flatten()[0]
     else:
         data = inobj
 
@@ -1135,10 +1135,9 @@ def exportWindow(fileoutput, binary=False, speed=None, html=True):
 def importWindow(fileinput):
     """Import a whole scene from a Numpy file.
     Return ``Plotter`` instance."""
-    import numpy as np
     from vtkplotter import Plotter
 
-    data = np.load(fileinput, allow_pickle=True)[0]
+    data = np.load(fileinput, allow_pickle=True, encoding="latin1").flatten()[0]
 
     if 'renderPointsAsSpheres' in data.keys():
         settings.renderPointsAsSpheres = data['renderPointsAsSpheres']
@@ -1205,7 +1204,7 @@ def screenshot(filename="screenshot.png", scale=None):
         w2if.SetInput(settings.plotter_instance.window)
         w2if.SetScale(scale, scale)
         if settings.screenshotTransparentBackground:
-            w2if.SetInputBufferTypeToRGBA()         
+            w2if.SetInputBufferTypeToRGBA()
         w2if.ReadFrontBufferOff()  # read from the back buffer
     w2if.Update()
 

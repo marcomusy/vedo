@@ -10,7 +10,7 @@ vp = show(objs[-1], axes=True, interactive=False)
 vp.actors = objs # set Plotter internal list of objs to be shown
 
 # switch off all the others
-[objs[i].c('gold').lw(2.0).off() for i in range(1, len(objs))]
+for i in range(1, len(objs)): objs[i].c('gold').lw(2.0).off() 
 
 k = 0 # visible actor index
 def sliderfunc(widget, event):

@@ -2,7 +2,6 @@ from vtkplotter import polarHistogram, Hyperboloid, show
 import numpy as np
 np.random.seed(3)
 
-
 ##################################################################
 radhisto = polarHistogram(np.random.rand(200)*6.28,
                            title="random orientations",
@@ -22,7 +21,7 @@ hyp.color('grey').alpha(0.3)
 idx = np.random.randint(0, hyp.NPoints(), size=10)
 
 radhistos = []
-for i in idx: 
+for i in idx:
     #generate a random histogram
     rh = polarHistogram(np.random.randn(100),
                         bins=12,
@@ -37,5 +36,5 @@ for i in idx:
     rh.pos(hyp.getPoint(i)) # set its position on the surface
     rh.orientation(hyp.normalAt(i)) # orient it along normal
     radhistos.append(rh)
-    
+
 show(hyp, radhistos, at=1, interactive=True)

@@ -498,7 +498,7 @@ def draw_scene():
         if ".npy" in args.files[0] and nfiles == 1:
             import numpy
 
-            data = numpy.load(args.files[0], allow_pickle=True)[0]
+            data = numpy.load(args.files[0], allow_pickle=True, encoding='latin1').flatten()[0]
             if "objects" in data.keys():
                 vp = vtkio.importWindow(args.files[0])
                 vp.show()
