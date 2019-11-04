@@ -33,14 +33,8 @@ python basic/align2.py
 echo Running basic/align3.py
 python basic/align3.py
 
-echo Running basic/annotations.py
-python basic/annotations.py    
-
 echo Running basic/bgImage.py
 python basic/bgImage.py
-
-echo Running basic/numpy2picture.py
-python basic/numpy2picture.py
 
 echo Running basic/boolean.py
 python basic/boolean.py      
@@ -69,9 +63,6 @@ python basic/connVtx.py
 echo Running basic/connCells.py
 python basic/connCells.py
 
-echo Running basic/customAxes.py
-python basic/customAxes.py
-
 echo Running basic/deleteMeshPoints.py
 python basic/deleteMeshPoints.py
 
@@ -92,9 +83,6 @@ python basic/keypress.py
 
 echo Running basic/kspline.py
 python basic/kspline.py
-
-echo Running basic/latex.py
-python basic/latex.py
 
 echo Running basic/linInterpolate.py
 python basic/linInterpolate.py
@@ -195,24 +183,6 @@ python basic/ribbon.py
 echo Running basic/flatarrow.py
 python basic/flatarrow.py
 
-echo Running basic/histogram.py
-python basic/histogram.py
-
-echo Running basic/histoHexagonal.py
-python basic/histoHexagonal.py
-
-echo Running basic/histoPolar.py
-python basic/histoPolar.py
-
-echo Running basic/polarPlot.py
-python basic/polarPlot.py
-
-echo Running basic/donutPlot.py
-python basic/donutPlot.py
-
-echo Running basic/markers.py
-python basic/markers.py
-
 echo Running basic/fillholes.py
 python basic/fillholes.py
 
@@ -221,9 +191,6 @@ python basic/interactionstyle.py
 
 echo Running basic/tube.py
 python basic/tube.py
-
-echo Running basic/markpoint.py
-python basic/markpoint.py    
 
 echo Running basic/fonts.py
 python basic/fonts.py    
@@ -403,6 +370,44 @@ python office.py
 cd ..
 
 
+#################################### plotting2d
+echo Running plotting2d/annotations.py
+python plotting2d/annotations.py    
+
+echo Running plotting2d/customAxes.py
+python plotting2d/customAxes.py
+
+echo Running plotting2d/histogram.py
+python plotting2d/histogram.py
+
+echo Running plotting2d/histoHexagonal.py
+python plotting2d/histoHexagonal.py
+
+echo Running plotting2d/donutPlot.py
+python plotting2d/donutPlot.py
+
+echo Running plotting2d/latex.py
+python plotting2d/latex.py
+
+echo Running plotting2d/markers.py
+python plotting2d/markers.py
+
+echo Running plotting2d/markpoint.py
+python plotting2d/markpoint.py    
+
+echo Running plotting2d/numpy2picture.py
+python plotting2d/numpy2picture.py
+
+echo Running plotting2d/plotxy.py
+python plotting2d/plotxy.py
+
+echo Running plotting2d/polarPlot.py
+python plotting2d/polarPlot.py
+
+echo Running plotting2d/polarHisto.py
+python plotting2d/polarHisto.py
+
+
 #################################### Other
 echo Running other/colorpalette.py
 python other/colorpalette.py
@@ -504,7 +509,7 @@ echo '----------------------------'
 
 
 ##################################### not run/ignored:
-#basic/text_just.py
+#plotting2d/text_just.py
 #basic/lights.py
 #other/makeVideo.py
 #other/spherical_harmonics2.py 

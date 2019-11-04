@@ -89,6 +89,8 @@ def getNotebookBackend(actors2show, zoom, viewup):
         for ia in actors2show:
             if isinstance(ia, vtk.vtkAssembly): #unpack assemblies
                 acass = ia.getActors()
+                #for a in acass:
+                #    a.SetScale(ia.GetScale())
                 actors2show2 += acass
             else:
                 actors2show2.append(ia)
@@ -112,7 +114,6 @@ def getNotebookBackend(actors2show, zoom, viewup):
             k3dc =  utils.vtkCameraToK3D(settings.plotter_instance.camera)
             k3dc[2] = k3dc[2]*eps
             settings.notebook_plotter.camera = k3dc
-            #print('k3dcr', k3dc*eps)
         else:
             vsx, vsy, vsz = vbb[0]-vbb[1], vbb[2]-vbb[3], vbb[4]-vbb[5]
             vss = numpy.linalg.norm([vsx, vsy, vsz])

@@ -485,6 +485,7 @@ class Plotter:
         self.mouseRightClickFunction = None
         self._first_viewup = True
         self.extralight = None
+        self.size = size
 
         self.xtitle = settings.xtitle  # x axis label and units
         self.ytitle = settings.ytitle  # y axis label and units
@@ -547,7 +548,6 @@ class Plotter:
                     minl = l
             shape = lm[ind]
 
-        self.size = size
         self.shape = shape
 
         if isinstance(shape, str):

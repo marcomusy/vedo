@@ -349,14 +349,14 @@ _defs = """
     :alt: fitspheres2.py
 
 .. |fxy.py| replace:: fxy.py
-.. _fxy.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fxy.py
+.. _fxy.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/fxy.py
 .. |fxy| image:: https://user-images.githubusercontent.com/32848391/36611824-fd524fac-18d4-11e8-8c76-d3d1b1bb3954.png
     :width: 250 px
     :target: fxy.py_
     :alt: fxy.py
 
 .. |histoHexagonal.py| replace:: histoHexagonal.py
-.. _histoHexagonal.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/histoHexagonal.py
+.. _histoHexagonal.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/histoHexagonal.py
 .. |histoHexagonal| image:: https://user-images.githubusercontent.com/32848391/50738861-bfccf800-11d8-11e9-9698-c0b9dccdba4d.jpg
     :width: 250 px
     :alt: histoHexagonal.py
@@ -581,7 +581,7 @@ _defs = """
     :alt: multiwindows
 
 .. |annotations.py| replace:: annotations.py
-.. _annotations.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/annotations.py
+.. _annotations.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/annotations.py
 
 .. |Cone| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestCone.png
     :width: 250 px
@@ -641,7 +641,7 @@ _defs = """
     :alt: mesh2volume.py
 
 .. |markpoint.py| replace:: markpoint.py
-.. _markpoint.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/markpoint.py
+.. _markpoint.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/markpoint.py
 .. |markpoint| image:: https://user-images.githubusercontent.com/32848391/52169969-1fb7af80-2741-11e9-937f-5c331d9a1d11.jpg
     :width: 250 px
     :target: markpoint.py_
@@ -781,7 +781,7 @@ _defs = """
     :alt: pendulum.py
 
 .. |latex.py| replace:: latex.py
-.. _latex.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/latex.py
+.. _latex.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/latex.py
 .. |latex| image:: https://user-images.githubusercontent.com/32848391/55568648-6190b200-5700-11e9-9547-0798c588a7a5.png
     :width: 250 px
     :target: latex.py_
@@ -1025,7 +1025,7 @@ _defs = """
     :alt: wavy_1d.py
 
 .. |fonts.py| replace:: fonts.py
-.. _fonts.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/fonts.py
+.. _fonts.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/fonts.py
 .. |fonts| image:: https://user-images.githubusercontent.com/32848391/57587416-decff380-7504-11e9-8456-f969672c959e.png
     :width: 500 px
     :target: fonts.py_
@@ -1045,7 +1045,7 @@ _defs = """
     :alt: buildmesh.py
 
 .. |customAxes.py| replace:: customAxes.py
-.. _customAxes.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/customAxes.py
+.. _customAxes.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/customAxes.py
 .. |customAxes| image:: https://user-images.githubusercontent.com/32848391/58181826-c605d180-7cac-11e9-9786-11b5eb278f20.png
     :target: customAxes.py_
     :alt: customAxes.py
@@ -1144,22 +1144,22 @@ _defs = """
     :target: animation2.py_
     :alt: animation2.py
 
-.. |histoPolar.py| replace:: histoPolar.py
-.. _histoPolar.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/histoPolar.py
-.. |histoPolar| image:: https://user-images.githubusercontent.com/32848391/64912717-5754f400-d733-11e9-8a1f-612165955f23.png
+.. |polarHisto.py| replace:: polarHisto.py
+.. _polarHisto.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/polarHisto.py
+.. |polarHisto| image:: https://user-images.githubusercontent.com/32848391/64912717-5754f400-d733-11e9-8a1f-612165955f23.png
     :width: 250 px
-    :target: histoPolar.py_
-    :alt: histoPolar.py
+    :target: polarHisto.py_
+    :alt: polarHisto.py
     
 .. |polarPlot.py| replace:: polarPlot.py
-.. _polarPlot.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/polarPlot.py
+.. _polarPlot.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/polarPlot.py
 .. |polarPlot| image:: https://user-images.githubusercontent.com/32848391/64992590-7fc82400-d8d4-11e9-9c10-795f4756a73f.png
     :width: 250 px
     :target: polarPlot.py_
     :alt: polarPlot.py
     
 .. |donutPlot.py| replace:: donutPlot.py
-.. _donutPlot.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/donutPlot.py
+.. _donutPlot.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/donutPlot.py
 .. |donutPlot| image:: https://user-images.githubusercontent.com/32848391/64998178-6f6b7580-d8e3-11e9-9bd8-8dfb9ccd90e4.png
     :width: 250 px
     :target: donutPlot.py_

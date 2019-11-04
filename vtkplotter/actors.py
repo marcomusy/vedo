@@ -759,7 +759,7 @@ class Prop(object):
 
 ####################################################
 # Actor inherits from vtkActor and Prop
-class Actor(vtk.vtkActor, Prop):
+class Actor(vtk.vtkFollower, Prop):
     """
     Build an instance of object ``Actor`` derived from ``vtkActor``.
 
@@ -2418,7 +2418,7 @@ class Actor(vtk.vtkActor, Prop):
                 return self
 
             for i in range(n):
-                cellData.InsertNextValue(inds[i])
+                cellData.InsertNextValue(int(inds[i]))
 
             lut.SetNumberOfTableValues(nc)
             lut.Build()
@@ -3046,6 +3046,28 @@ class Actor(vtk.vtkActor, Prop):
         sil.Update()
         return Actor(sil.GetOutput()).lw(2).c('k')
 
+
+    def followCamera(self, cam=None):
+        """
+        Actor object will follow camera movements and stay locked to it.
+
+        :param vtkCamera cam: if `None` the text will auto-orient itself to the active camera.
+        A ``vtkCamera`` object can also be passed.
+        """
+        if cam is False:
+            self.SetCamera(None)
+            return self
+        if isinstance(cam, vtk.vtkCamera):
+            self.SetCamera(cam)
+        else:
+            if not settings.plotter_instance or not settings.plotter_instance.camera:
+                colors.printc("Error in followCamera(): needs an already rendered scene,", c=1)
+                colors.printc("                         or passing a vtkCamera object.", c=1)
+                return self
+            self.SetCamera(settings.plotter_instance.camera)
+        return self
+
+
     def isolines(self, n=10, vmin=None, vmax=None):
         """
         Return a new ``Actor`` representing the isolines of the active scalars.
@@ -3139,6 +3161,13 @@ class Assembly(vtk.vtkAssembly, Prop):
             a.lighting(style, ambient, diffuse,
                        specular, specularPower, specularColor, enabled)
         return self
+
+# this would need a callback to work..
+# https://vtk.org/Wiki/VTK/Examples/Cxx/Visualization/MovableAxes
+#    def followCamera(self, cam=None):
+#        for a in self.actors:
+#            a.followCamera(cam)
+#        return self
 
 #################################################
 class Picture(vtk.vtkImageActor, Prop):

@@ -475,6 +475,10 @@ def precision(x, p, vrange=None):
     `from here <https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/kjs/number_object.cpp>`_,
     and implemented by `randlet <https://github.com/randlet/to-precision>`_.
     """
+    #round_to_n = lambda x, n: np.around(x, -np.int(np.floor(np.log10(np.abs(x)))) + (n - 1))
+    #x= 13556.783434
+    #print(round_to_n(x, 3))
+    #print(precision(x, 3))
     if isSequence(x):
         out = '('
         for ix in x:

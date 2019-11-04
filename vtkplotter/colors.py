@@ -18,6 +18,7 @@ __all__ = [
     "getColorName",
     "colorMap",
     "makePalette",
+    "makeLUT",
     "kelvin2rgb",
 ]
 
@@ -488,16 +489,27 @@ def makePalette(color1, color2, N, hsv=True):
     return cols
 
 
-def makeLUT(colorlist, N=None):
+def makeLUT(colorlist, N=None,
+            vmin=None, vmax=None,
+            belowColor=None, aboveColor=None, nanColor=None):
     """
     Generate colors in a vtk lookup table.
-    See `here <http://www.vtk.org/doc/nightly/html/classvtkColorTransferFunction.html>`_.
 
     :param list colorlist: a list in the form ``[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]``.
     :return: the lookup table object ``vtkLookupTable``. This can be fed into ``colorMap``.
     """
     ctf = vtk.vtkColorTransferFunction()
-    ctf.SetColorSpaceToDiverging()
+    ctf.SetColorSpaceToHSV()
+    ctf.SetScaleToLinear()
+    #ctf.ClampingOn()
+    if nanColor is not None:
+        ctf.SetNanColor(getColor(nanColor))
+    if belowColor is not None:
+        ctf.SetBelowRangeColor(getColor(belowColor))
+        ctf.SetUseBelowRangeColor(True)
+    if aboveColor is not None:
+        ctf.SetAboveRangeColor(getColor(aboveColor))
+        ctf.SetUseAboveRangeColor(True)
 
     for sc in colorlist:
         scalar, col = sc
@@ -507,12 +519,24 @@ def makeLUT(colorlist, N=None):
     if N is None:
         N = len(colorlist)
 
+    x0, x1 = ctf.GetRange()
+    if vmin is not None:
+        x0 = vmin
+    if vmax is not None:
+        x1 = vmax
+    ctf.SetRange(x0, x1)
+
     lut = vtk.vtkLookupTable()
     lut.SetNumberOfTableValues(N)
+    if nanColor is not None:
+        lut.SetNanColor(getColor(nanColor))
+    lut.SetRange(x0, x1)
     lut.Build()
 
     for i in range(N):
-        rgba = list(ctf.GetColor(float(i) / N)) + [1]
+        p = i/(N-1)
+        x = p *x1 + (1-p) *x0
+        rgba = list(ctf.GetColor(x)) + [1]
         lut.SetTableValue(i, rgba)
 
     return lut

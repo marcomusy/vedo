@@ -63,7 +63,7 @@ def Marker(symbol, c='lb', alpha=1, s=0.1, filled=True):
     if isinstance(symbol, int):
         symbs = ['.', 'p','*','h','D','d','o','v','^','>','<','s', 'x', 'a']
         symbol = symbs[s]
-    
+
     if symbol == '.':
         actor = Polygon(nsides=24, r=s)
     elif symbol == 'p':
@@ -1529,7 +1529,6 @@ def Text(
     bc=None,
     bg=None,
     font="courier",
-    followcam=False,
 ):
     """
     Returns an ``Actor`` that shows a 2D/3D text.
@@ -1581,10 +1580,6 @@ def Text(
         All fonts are free for personal use.
         Check out conditions in `vtkplotter/fonts/licenses` for commercial use
         and: https://www.1001freefonts.com
-
-    :param followcam: if `True` the text will auto-orient itself to the active camera.
-        A ``vtkCamera`` object can also be passed.
-    :type followcam: bool, vtkCamera
 
     .. hint:: Examples, |fonts.py|_ |colorcubes.py|_ |markpoint.py|_ |annotations.py|_
 
@@ -1703,26 +1698,17 @@ def Text(
         tf.Update()
         tpoly = tf.GetOutput()
 
-        if followcam:
-            ttactor = vtk.vtkFollower()
-            ttactor.GetProperty().SetOpacity(alpha)
-            ttactor.GetProperty().SetColor(colors.getColor(c))
-            if isinstance(followcam, vtk.vtkCamera):
-                ttactor.SetCamera(followcam)
-            else:
-                ttactor.SetCamera(settings.plotter_instance.camera)
-        else:
-            if depth:
-                extrude = vtk.vtkLinearExtrusionFilter()
-                extrude.SetInputData(tpoly)
-                extrude.SetExtrusionTypeToVectorExtrusion()
-                extrude.SetVector(0, 0, 1)
-                extrude.SetScaleFactor(depth*dy)
-                extrude.Update()
-                tpoly = extrude.GetOutput()
-            ttactor = Actor(tpoly, c, alpha)
-            if bc is not None:
-                ttactor.backColor(bc)
+        if depth:
+            extrude = vtk.vtkLinearExtrusionFilter()
+            extrude.SetInputData(tpoly)
+            extrude.SetExtrusionTypeToVectorExtrusion()
+            extrude.SetVector(0, 0, 1)
+            extrude.SetScaleFactor(depth*dy)
+            extrude.Update()
+            tpoly = extrude.GetOutput()
+        ttactor = Actor(tpoly, c, alpha)
+        if bc is not None:
+            ttactor.backColor(bc)
 
         ttactor.SetPosition(pos)
         settings.collectable_actors.append(ttactor)

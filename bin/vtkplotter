@@ -281,7 +281,7 @@ def draw_scene():
         vp.window.AddObserver("AbortCheckEvent", CheckAbort)
 
         # add histogram of scalar
-        from vtkplotter.analysis import histogram2D
+        from vtkplotter.plot2d import cornerHistogram
 
         dims = img.GetDimensions()
         nvx = min(100000, dims[0] * dims[1] * dims[2])
@@ -292,7 +292,7 @@ def draw_scene():
             d = img.GetScalarComponentAsFloat(ix, iy, iz, 0)
             data.append(d)
 
-        plot = histogram2D(
+        plot = cornerHistogram(
             data, bins=40, logscale=1, c="gray", bg="gray", pos=(0.78, 0.065)
         )
         plot.GetPosition2Coordinate().SetValue(0.197, 0.20, 0)

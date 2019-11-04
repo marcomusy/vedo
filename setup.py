@@ -67,6 +67,7 @@ setup(
 # jupyter notebook &
 # remove trailing spaces
 
+# cd ~/Projects/vtkplotter/
 # rm -rf examples/*/.ipynb_checkpoints examples/*/*/.ipynb_checkpoints
 # rm -rf examples/other/dolfin/navier_stokes_cylinder/
 # rm examples/other/dolfin/shuttle.xml

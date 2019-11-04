@@ -53,6 +53,7 @@ from vtkplotter.version import _version as __version__
 from vtkplotter.animation import Animation
 from vtkplotter.plotter import *
 from vtkplotter.analysis import *
+from vtkplotter.plot2d import *
 from vtkplotter.shapes import *
 from vtkplotter.vtkio import *
 from vtkplotter.actors import *
@@ -83,25 +84,8 @@ settings._init()
 
 
 ## deprecations ############################################################
-def isolines(*args, **kargs):
-    printc("Obsolete. Use mesh.isolines() instead of isolines(mesh).", c=1)
-    raise RuntimeError()
-
-def isosurface(*args, **kargs):
-    printc("Obsolete. Use volume.isosurface() instead of isosurface(volume).", c=1)
-    raise RuntimeError()
-
-def legosurface(*args, **kargs):
-    printc("Obsolete. Use volume.legosurface() instead of legosurface(volume).", c=1)
-    raise RuntimeError()
-
-def spline(*args, **kargs):
-    printc("Obsolete. Use shapes.Spline() instead of spline().", c=1)
-    raise RuntimeError()
-
-def mergeActors(*args, **kargs):
-    printc("Obsolete. Use merge() instead of mergeActors().", c=1)
-    raise RuntimeError()
-
+#def isolines(*args, **kargs):
+#    printc("Obsolete. Use mesh.isolines() instead of isolines(mesh).", c=1)
+#    raise RuntimeError()
 
 
