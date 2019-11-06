@@ -72,8 +72,8 @@ setup(
 # rm -rf examples/other/dolfin/navier_stokes_cylinder/
 # rm examples/other/dolfin/shuttle.xml
 # rm examples/other/trimesh/featuretype.STL examples/other/trimesh/machinist.XAML
-# rm examples/scene.npy examples/timecourse1d.npy examples/voronoi3d.txt*
-# rm examples/embryo.html examples/embryo.x3d
+# rm examples/scene.npy examples/timecourse1d.npy examples/voronoi3d.txt examples/voronoi3d.txt.vol
+# rm examples/embryo.html examples/embryo.x3d timecourse1d.npy
 
 # git status
 # git add [files]

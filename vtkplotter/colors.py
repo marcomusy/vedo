@@ -489,35 +489,48 @@ def makePalette(color1, color2, N, hsv=True):
     return cols
 
 
-def makeLUT(colorlist, N=None,
+def makeLUT(colorlist,
+            interpolate=False,
             vmin=None, vmax=None,
             belowColor=None, aboveColor=None, nanColor=None):
     """
     Generate colors in a vtk lookup table.
 
     :param list colorlist: a list in the form ``[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]``.
+    :param bool interpolate: interpolate or not intermediate scalars
+    :param float vmin: specify minimum value of scalar range
+    :param float vmax: specify maximum value of scalar range
+    :param belowColor: color for scalars below the minimum in range
+    :param aboveColor: color for scalars aboce the maximum in range
+    
     :return: the lookup table object ``vtkLookupTable``. This can be fed into ``colorMap``.
+
+    .. hint:: Example: |mesh_lut.py|_
     """
-    ctf = vtk.vtkColorTransferFunction()
-    ctf.SetColorSpaceToHSV()
-    ctf.SetScaleToLinear()
-    #ctf.ClampingOn()
+    lut = vtk.vtkLookupTable()
+    lut.SetNumberOfTableValues(256)
     if nanColor is not None:
-        ctf.SetNanColor(getColor(nanColor))
+        lut.SetNanColor(list(getColor(nanColor))+[1])
+
+    ctf = vtk.vtkColorTransferFunction()
+    ctf.SetColorSpaceToRGB()
+    ctf.SetScaleToLinear()
     if belowColor is not None:
         ctf.SetBelowRangeColor(getColor(belowColor))
         ctf.SetUseBelowRangeColor(True)
+        rgba = list(getColor(belowColor)) + [1]
     if aboveColor is not None:
         ctf.SetAboveRangeColor(getColor(aboveColor))
         ctf.SetUseAboveRangeColor(True)
+        rgba = list(getColor(aboveColor)) + [1]
 
     for sc in colorlist:
-        scalar, col = sc
+        if len(sc)==3:
+            scalar, col, _ = sc
+        else:
+            scalar, col = sc
         r, g, b = getColor(col)
         ctf.AddRGBPoint(scalar, r, g, b)
-
-    if N is None:
-        N = len(colorlist)
 
     x0, x1 = ctf.GetRange()
     if vmin is not None:
@@ -525,20 +538,26 @@ def makeLUT(colorlist, N=None,
     if vmax is not None:
         x1 = vmax
     ctf.SetRange(x0, x1)
-
-    lut = vtk.vtkLookupTable()
-    lut.SetNumberOfTableValues(N)
-    if nanColor is not None:
-        lut.SetNanColor(getColor(nanColor))
     lut.SetRange(x0, x1)
-    lut.Build()
 
-    for i in range(N):
-        p = i/(N-1)
-        x = p *x1 + (1-p) *x0
-        rgba = list(ctf.GetColor(x)) + [1]
+    for i in range(256):
+        p = i/255
+        x = (1-p) *x0 + p *x1
+        if interpolate:
+            rgba = list(ctf.GetColor(x)) + [1]
+        else:
+            rgba = [0.5,0.5,0.5,1]
+            for c in colorlist:
+                if x <= c[0]:
+                    if len(c)==3:
+                        al = c[2]
+                    else:
+                        al = 1
+                    rgba = list(getColor(c[1])) + [al]
+                    break
         lut.SetTableValue(i, rgba)
 
+    lut.Build()
     return lut
 
 

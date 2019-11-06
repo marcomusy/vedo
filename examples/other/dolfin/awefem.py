@@ -89,7 +89,6 @@ def awefem(mesh, t, source_loc=None):
                  scalarbar=None,
                  #lighting='plastic',
                  #elevation=-.3,
-                 resetcam=False, # keep camera fixed
                  interactive=0)  # continue execution
 
     interactive()

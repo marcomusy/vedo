@@ -108,7 +108,6 @@ for t in pb.range():
          cmap='jet',
          scale=0.3, # unit conversion factor
          scalarbar=False,
-         resetcam=False,
          interactive=False)
     pb.print()
 

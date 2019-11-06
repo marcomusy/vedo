@@ -124,6 +124,8 @@ def Points(plist, r=5, c="gold", alpha=1):
     |lorenz|
     """
     ################ interpret the input format:
+    if isinstance(plist, Actor):
+        plist = plist.coordinates()
     n = len(plist)
     if n == 0:
         return None

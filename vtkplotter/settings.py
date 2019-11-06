@@ -55,11 +55,14 @@ Global settings.
     # Turn on/off the automatic repositioning of lights as the camera moves.
     lightFollowsCamera = False
 
-    # Turn on/off nvidia FXAA anti-aliasing, if supported.
-    useFXAA = False
-
     # Turn on/off rendering of translucent material with depth peeling technique.
     useDepthPeeling = False
+    alphaBitPlanes = None    # either True or False. None sets the system default
+    multiSamples = None      # integer value
+    maxNumberOfPeels = None  # integer value
+    
+    # Turn on/off nvidia FXAA anti-aliasing, if supported.
+    useFXAA = None           # either True or False. None sets the system default
 
     # Set parallel projection On or Off (place camera to infinity, no perspective effects)
     useParallelProjection = False
@@ -131,11 +134,14 @@ visibleGridEdges = False
 # Turn on/off the automatic repositioning of lights as the camera moves.
 lightFollowsCamera = False
 
-# Turn on/off nvidia FXAA anti-aliasing, if supported.
-useFXAA = False
-
 # Turn on/off rendering of translucent material with depth peeling technique.
 useDepthPeeling = False
+alphaBitPlanes = None    # either True or False. None sets the system default
+multiSamples = None      # integer value
+maxNumberOfPeels = None  # integer value
+
+# Turn on/off nvidia FXAA anti-aliasing, if supported.
+useFXAA = None           # either True or False. None sets the system default
 
 # Set parallel projection On or Off (place camera to infinity, no perspective effects)
 useParallelProjection = False

@@ -405,9 +405,9 @@ def linInterpolate(x, rangeX, rangeY):
     """
     Interpolate linearly variable x in rangeX onto rangeY.
     If x is a vector the linear weight is the distance to two the rangeX vectors.
-    E.g.:
-        if x runs in rangeX=[x0,x1] and I want it to run in rangeY=[y0,y1] then
-        y = linInterpolate(x, rangeX, rangeY) will interpolate x onto rangeY.
+    
+    E.g. if x runs in rangeX=[x0,x1] and I want it to run in rangeY=[y0,y1] then
+    y = linInterpolate(x, rangeX, rangeY) will interpolate x onto rangeY.
     """
     if isSequence(x):
         x = np.array(x)

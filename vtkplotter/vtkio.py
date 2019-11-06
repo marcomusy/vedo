@@ -615,7 +615,7 @@ def loadNumpy(inobj):
     import numpy as np
 
     if isinstance(inobj, str):
-        data = np.load(inobj, allow_pickle=True, encoding='latin1').flatten()[0]
+        data = np.load(inobj, allow_pickle=True, encoding='latin1')
     else:
         data = inobj
 
@@ -689,7 +689,7 @@ def loadNumpy(inobj):
 
     objs = []
     for d in data:
-        #print('loadNumpy type is:', d['type'])
+        #print('loadNumpy:', d)
 
         if 'mesh' == d['type']:
             objs.append(_buildactor(d))
@@ -1152,13 +1152,11 @@ def importWindow(fileinput):
     if 'useParallelProjection' in data.keys():
         settings.useParallelProjection = data['useParallelProjection']
 
-    pos = data.pop('position', (0, 0))
     axes = data.pop('axes', 4)
     title = data.pop('title', '')
     backgrcol = data.pop('backgrcol', "blackboard")
 
-    vp = Plotter(pos=pos,
-                 #size=data['size'], # not necessarily a good idea to set it
+    vp = Plotter(#size=data['size'], # not necessarily a good idea to set it
                  #shape=data['shape'],
                  axes=axes,
                  title=title,
@@ -1168,9 +1166,14 @@ def importWindow(fileinput):
     vp.ytitle = data.pop('ytitle', 'y')
     vp.ztitle = data.pop('ztitle', 'z')
 
-    objs = loadNumpy(data['objects'])
-    if not utils.isSequence(objs):
-       objs = [objs]
+    if 'objects' in data.keys():
+        objs = loadNumpy(data['objects'])
+        if not utils.isSequence(objs):
+           objs = [objs]
+    else:
+        colors.printc("Trying to import a that was not exported.", c=1)
+        colors.printc(" -> try to load a single object with load().", c=1)
+        return loadNumpy(fileinput)
     vp.actors = objs
 
 #    if vp.shape==(1,1):

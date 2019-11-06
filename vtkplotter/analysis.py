@@ -94,15 +94,15 @@ def delaunay2D(plist, mode='xy', tol=None):
 
 
 def delaunay3D(dataset, alpha=0, tol=None, boundary=True):
-        """Create 3D Delaunay triangulation of input points."""
-        deln = vtk.vtkDelaunay3D()
-        deln.SetInputData(dataset.data())
-        deln.SetAlpha(alpha)
-        if tol:
-            deln.SetTolerance(tol)
-        deln.SetBoundingTriangulation(boundary)
-        deln.Update()
-        return deln.GetOutput()
+    """Create 3D Delaunay triangulation of input points."""
+    deln = vtk.vtkDelaunay3D()
+    deln.SetInputData(dataset.data())
+    deln.SetAlpha(alpha)
+    if tol:
+        deln.SetTolerance(tol)
+    deln.SetBoundingTriangulation(boundary)
+    deln.Update()
+    return deln.GetOutput()
 
 
 def extrude(actor, zshift=1, rotation=0, dR=0, cap=True, res=1):

@@ -1179,4 +1179,8 @@ _defs = """
     :target: kspline.py_
     :alt: kspline.py
     
+.. |mesh_lut.py| replace:: mesh_lut.py
+.. _mesh_lut.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_lut.py
+
+    
 """

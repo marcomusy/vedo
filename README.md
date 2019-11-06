@@ -56,7 +56,7 @@ for all the following functionalities:
     - Fit lines, planes and spheres and ellipses in space
     - Identify outliers in a distribution of points
     - Decimate a cloud to a uniform distribution.
-  - Basic histogramming and function plotting in 1D and 2D.
+  - Histogramming and function plotting in 1D and 2D.
   - Interpolate scalar and vectorial fields with *Radial Basis Functions* and *Thin Plate Splines*.
   - Analysis of volumetric datasets:
     - Isosurfacing of volumes
@@ -111,6 +111,7 @@ python tutorial.py
 [**examples/advanced**](https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced)<br>
 [**examples/volumetric**](https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric)<br>
 [**examples/simulations**](https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations)<br>
+[**examples/plotting2d**](https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d)<br>
 [**examples/other**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other)<br>
 [**examples/other/dolfin**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin)<br>
 [**examples/other/trimesh**](https://github.com/marcomusy/vtkplotter/blob/master/examples/other/trimesh)<br>

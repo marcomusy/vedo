@@ -3052,7 +3052,7 @@ class Actor(vtk.vtkFollower, Prop):
         Actor object will follow camera movements and stay locked to it.
 
         :param vtkCamera cam: if `None` the text will auto-orient itself to the active camera.
-        A ``vtkCamera`` object can also be passed.
+            A ``vtkCamera`` object can also be passed.
         """
         if cam is False:
             self.SetCamera(None)

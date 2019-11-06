@@ -75,9 +75,6 @@ python basic/cellsWithinBounds.py
 echo Running basic/fitline.py
 python basic/fitline.py
 
-echo Running basic/fxy.py
-python basic/fxy.py
-
 echo Running basic/keypress.py
 python basic/keypress.py
 
@@ -113,6 +110,9 @@ python basic/mesh_custom.py
 
 echo Running basic/mesh_bands.py
 python basic/mesh_bands.py
+
+echo Running basic/mesh_lut.py
+python basic/mesh_lut.py
 
 echo Running basic/mesh_alphas.py
 python basic/mesh_alphas.py
@@ -160,7 +160,7 @@ echo Running basic/sliders.py
 python basic/sliders.py
 
 echo Running basic/slider_browser.py
-python advanced/slider_browser.py
+python basic/slider_browser.py
 
 echo Running basic/sliders3d.py
 python basic/sliders3d.py   
@@ -191,9 +191,6 @@ python basic/interactionstyle.py
 
 echo Running basic/tube.py
 python basic/tube.py
-
-echo Running basic/fonts.py
-python basic/fonts.py    
 
 echo Running basic/glyphs.py
 python basic/glyphs.py   
@@ -376,6 +373,12 @@ python plotting2d/annotations.py
 
 echo Running plotting2d/customAxes.py
 python plotting2d/customAxes.py
+
+echo Running plotting2d/fonts.py
+python plotting2d/fonts.py    
+
+echo Running plotting2d/fxy.py
+python plotting2d/fxy.py
 
 echo Running plotting2d/histogram.py
 python plotting2d/histogram.py

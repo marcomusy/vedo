@@ -65,7 +65,7 @@ for i in range(0, Nsteps):
     lines.append([Aline, A])  # store objects
 
 # now show the same lines along z representing time
-vp.clear()
+vp.actors= []
 vp.camera.Elevation(20)
 vp.camera.Azimuth(20)
 bck.alpha(1)

@@ -499,8 +499,6 @@ class Plotter:
             self.camera = vtk.vtkCamera()
             self.window = vtk.vtkRenderWindow()
 
-        self.window.PointSmoothingOn()
-
         if settings.notebookBackend:
             self.interactive = False
             self.interactor = None
@@ -511,6 +509,12 @@ class Plotter:
             ############################
             return #####################
             ############################
+
+        # more settings
+        if settings.alphaBitPlanes is not None:
+            self.window.SetAlphaBitPlanes(settings.alphaBitPlanes)
+        if settings.multiSamples is not None:
+            self.window.SetMultiSamples(settings.multiSamples)
 
         # sort out screen size
         if screensize == "auto":
@@ -591,7 +595,10 @@ class Plotter:
             for r in self.renderers:
                 r.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
                 r.SetLightFollowCamera(settings.lightFollowsCamera)
-                r.SetUseFXAA(settings.useFXAA)
+                if settings.useFXAA is not None:
+                    r.SetUseFXAA(settings.useFXAA)
+                if settings.maxNumberOfPeels is not None:
+                    r.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
                 r.SetUseDepthPeeling(settings.useDepthPeeling)
                 r.SetBackground(colors.getColor(self.backgrcol))
                 self.axes_instances.append(None)
@@ -1485,7 +1492,7 @@ class Plotter:
         if settings.showRendererFrame and len(self.renderers) > 1:
             addons.addRendererFrame(c=settings.rendererFrameColor)
 
-        if resetcam or self.initializedIren == False:
+        if resetcam: #or self.initializedIren == False:
             self.renderer.ResetCamera()
 
         if not self.initializedIren and self.interactor:
@@ -1539,7 +1546,8 @@ class Plotter:
             if cm_thickness is not None: self.camera.SetThickness(cm_thickness)
             if cm_viewAngle is not None: self.camera.SetViewAngle(cm_viewAngle)
 
-        if resetcam: self.renderer.ResetCameraClippingRange()
+        if resetcam: 
+            self.renderer.ResetCameraClippingRange()
 
         self.window.Render() ############################# <----
 
