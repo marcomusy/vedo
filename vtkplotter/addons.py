@@ -1219,7 +1219,7 @@ def addAxes(axtype=None, c=None):
 
     elif vp.axes == 2 or vp.axes == 3:
         x0, x1, y0, y1, z0, z1 = vp.renderer.ComputeVisiblePropBounds()
-        xcol, ycol, zcol = "db", "dg", "dr"
+        xcol, ycol, zcol = "dr", "dg", "db"
         s = 1
         alpha = 1
         centered = False
@@ -1288,10 +1288,12 @@ def addAxes(axtype=None, c=None):
         axact.SetXAxisLabelText(vp.xtitle)
         axact.SetYAxisLabelText(vp.ytitle)
         axact.SetZAxisLabelText(vp.ztitle)
-        axact.GetXAxisShaftProperty().SetColor(0, 0, 1)
-        axact.GetZAxisShaftProperty().SetColor(1, 0, 0)
-        axact.GetXAxisTipProperty().SetColor(0, 0, 1)
-        axact.GetZAxisTipProperty().SetColor(1, 0, 0)
+        axact.GetXAxisShaftProperty().SetColor(1, 0, 0)
+        axact.GetYAxisShaftProperty().SetColor(0, 1, 0)
+        axact.GetZAxisShaftProperty().SetColor(0, 0, 1)
+        axact.GetXAxisTipProperty().SetColor(1, 0, 0)
+        axact.GetYAxisTipProperty().SetColor(0, 1, 0)
+        axact.GetZAxisTipProperty().SetColor(0, 0, 1)
         bc = numpy.array(vp.renderer.GetBackground())
         if numpy.sum(bc) < 1.5:
             lc = (1, 1, 1)
@@ -1326,12 +1328,12 @@ def addAxes(axtype=None, c=None):
         axact.SetZMinusFaceText( "bttom" )
         axact.SetZFaceTextRotation(90)
 
-        axact.GetXPlusFaceProperty().SetColor(colors.getColor("b"))
-        axact.GetXMinusFaceProperty().SetColor(colors.getColor("db"))
+        axact.GetXPlusFaceProperty().SetColor(colors.getColor("r"))
+        axact.GetXMinusFaceProperty().SetColor(colors.getColor("dr"))
         axact.GetYPlusFaceProperty().SetColor(colors.getColor("g"))
         axact.GetYMinusFaceProperty().SetColor(colors.getColor("dg"))
-        axact.GetZPlusFaceProperty().SetColor(colors.getColor("r"))
-        axact.GetZMinusFaceProperty().SetColor(colors.getColor("dr"))
+        axact.GetZPlusFaceProperty().SetColor(colors.getColor("b"))
+        axact.GetZMinusFaceProperty().SetColor(colors.getColor("db"))
         axact.PickableOff()
         icn = addIcon(axact, size=0.06)
         vp.axes_instances[r] = icn
