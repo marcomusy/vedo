@@ -1,4 +1,5 @@
-# Basic examples
+# Histogramming and plotting examples
+
 In this directory you will find a set of examples to perform basic 2D/3D plotting and histogramming.
 ```bash
 git clone https://github.com/marcomusy/vtkplotter.git
