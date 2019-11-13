@@ -2,13 +2,13 @@
 Additional objects like axes, legends etc..
 """
 from __future__ import division, print_function
-import vtkplotter.colors as colors
-import vtkplotter.shapes as shapes
+from vtkplotter.colors import printc, getColor
 from vtkplotter.actors import Assembly, Actor
-import vtkplotter.utils as utils
+from vtkplotter.utils import precision, mag, isSequence
+import vtkplotter.shapes as shapes
 import vtkplotter.settings as settings
 import vtkplotter.docs as docs
-import numpy
+import numpy as np
 import vtk
 
 __doc__ = (
@@ -66,7 +66,7 @@ def addLight(
     light.SetConeAngle(deg)
     light.SetFocalPoint(focalPoint)
     light.SetIntensity(intensity)
-    light.SetColor(colors.getColor(c))
+    light.SetColor(getColor(c))
     #light.SetShadowAttenuation(0.1) # doesnt work
     if showsource:
         lightActor = vtk.vtkLightActor()
@@ -97,12 +97,12 @@ def addScalarBar(actor,
     vp = settings.plotter_instance
 
     if not hasattr(actor, "mapper"):
-        colors.printc("~times addScalarBar(): input is invalid,", type(actor), c=1)
+        printc("~times addScalarBar(): input is invalid,", type(actor), c=1)
         return None
 
     if vp and vp.renderer:
         c = (0.9, 0.9, 0.9)
-        if numpy.sum(vp.renderer.GetBackground()) > 1.5:
+        if np.sum(vp.renderer.GetBackground()) > 1.5:
             c = (0.1, 0.1, 0.1)
         if isinstance(actor.scalarbar, vtk.vtkActor):
             vp.renderer.RemoveActor(actor.scalarbar)
@@ -130,7 +130,7 @@ def addScalarBar(actor,
         # to be implemented
         pass
 
-    c = colors.getColor(c)
+    c = getColor(c)
     sb = vtk.vtkScalarBarActor()
     sb.SetLookupTable(lut)
     if title:
@@ -191,7 +191,7 @@ def addScalarBar3D(
     titleSize =  1.5,
     titleRotation = 0.0,
     nlabels=9,
-    precision=3,
+    prec=3,
     labelOffset = 0.4,
     c=None,
     alpha=1,
@@ -213,7 +213,7 @@ def addScalarBar3D(
     :param float titleSize: size of title wrt numeric labels
     :param float titleRotation: title rotation in degrees
     :param int nlabels: number of numeric labels
-    :param int precision: number of significant digits
+    :param int prec: number of significant digits
     :param float labelOffset: space btw numeric labels and scale
     :param str cmap: specify cmap to be used
 
@@ -222,10 +222,10 @@ def addScalarBar3D(
     vp = settings.plotter_instance
     if vp and c is None:  # automatic black or white
         c = (0.8, 0.8, 0.8)
-        if numpy.sum(colors.getColor(vp.backgrcol)) > 1.5:
+        if np.sum(getColor(vp.backgrcol)) > 1.5:
             c = (0.2, 0.2, 0.2)
     if c is None: c = 'gray'
-    c = colors.getColor(c)
+    c = getColor(c)
 
     if isinstance(obj, Actor):
         if cmap is None:
@@ -237,8 +237,8 @@ def addScalarBar3D(
             lut = cmap
         vmin,vmax = obj.mapper.GetScalarRange()
 
-    elif utils.isSequence(obj):
-        vmin, vmax = numpy.min(obj), numpy.max(obj)
+    elif isSequence(obj):
+        vmin, vmax = np.min(obj), np.max(obj)
     else:
         print("Error in ScalarBar3D(): input must be Actor or list.", type(obj))
         raise RuntimeError()
@@ -252,10 +252,10 @@ def addScalarBar3D(
     scale.lighting(ambient=1, diffuse=0, specular=0, specularPower=0)
 
     # build text
-    tlabs = numpy.linspace(vmin, vmax, num=nlabels, endpoint=True)
+    tlabs = np.linspace(vmin, vmax, num=nlabels, endpoint=True)
     tacts = []
     for i, t in enumerate(tlabs):
-        tx = utils.precision(t, precision, vrange=vmax-vmin)
+        tx = precision(t, prec, vrange=vmax-vmin)
         y = -sy / 1.98 + sy * i / (nlabels - 1)
         a = shapes.Text(tx, pos=[sx*labelOffset, y, 0], s=sy/50, c=c, alpha=alpha, depth=0)
         a.lighting(ambient=1, diffuse=0, specular=0, specularPower=0)
@@ -266,17 +266,18 @@ def addScalarBar3D(
     if title:
         t = shapes.Text(title, (0,0,0), s=sy/50*titleSize, c=c, alpha=alpha, depth=0,
                         justify='centered')
-        t.rotateZ(90+titleRotation).pos(sx*titleXOffset,titleYOffset,0)
+        t.RotateZ(90+titleRotation)
+        t.pos(sx*titleXOffset,titleYOffset,0)
         t.lighting(ambient=1, diffuse=0, specular=0, specularPower=0)
         t.PickableOff()
         tacts.append(t)
 
     sact = Assembly([scale] + tacts)
-    normal = numpy.array(normal) / numpy.linalg.norm(normal)
-    theta = numpy.arccos(normal[2])
-    phi = numpy.arctan2(normal[1], normal[0])
-    sact.RotateZ(numpy.rad2deg(phi))
-    sact.RotateY(numpy.rad2deg(theta))
+    normal = np.array(normal) / np.linalg.norm(normal)
+    theta = np.arccos(normal[2])
+    phi = np.arctan2(normal[1], normal[0])
+    sact.RotateZ(np.rad2deg(phi))
+    sact.RotateY(np.rad2deg(theta))
     sact.SetPosition(pos)
     sact.PickableOff()
     if isinstance(obj, Actor):
@@ -302,9 +303,9 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     vp = settings.plotter_instance
     if c is None:  # automatic black or white
         c = (0.8, 0.8, 0.8)
-        if numpy.sum(colors.getColor(vp.backgrcol)) > 1.5:
+        if np.sum(getColor(vp.backgrcol)) > 1.5:
             c = (0.2, 0.2, 0.2)
-    c = colors.getColor(c)
+    c = getColor(c)
 
     if value is None or value < xmin:
         value = xmin
@@ -320,7 +321,7 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     sliderRep.SetTubeWidth(0.0075)
     sliderRep.GetPoint1Coordinate().SetCoordinateSystemToNormalizedDisplay()
     sliderRep.GetPoint2Coordinate().SetCoordinateSystemToNormalizedDisplay()
-    if utils.isSequence(pos):
+    if isSequence(pos):
         sliderRep.GetPoint1Coordinate().SetValue(pos[0][0], pos[0][1])
         sliderRep.GetPoint2Coordinate().SetValue(pos[1][0], pos[1][1])
     elif pos == 1:  # top-left horizontal
@@ -381,7 +382,7 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
         sliderRep.GetTitleProperty().SetColor(c)
         sliderRep.GetTitleProperty().SetOpacity(1)
         sliderRep.GetTitleProperty().SetBold(0)
-        if not utils.isSequence(pos):
+        if not isSequence(pos):
             if isinstance(pos, int) and pos > 10:
                 sliderRep.GetTitleProperty().SetOrientation(90)
         else:
@@ -430,15 +431,15 @@ def addSlider3D(
     vp = settings.plotter_instance
     if c is None:  # automatic black or white
         c = (0.8, 0.8, 0.8)
-        if numpy.sum(colors.getColor(vp.backgrcol)) > 1.5:
+        if np.sum(getColor(vp.backgrcol)) > 1.5:
             c = (0.2, 0.2, 0.2)
     else:
-        c = colors.getColor(c)
+        c = getColor(c)
 
     if value is None or value < xmin:
         value = xmin
 
-    t = 1.5 / numpy.sqrt(utils.mag(numpy.array(pos2) - pos1))  # better norm
+    t = 1.5 / np.sqrt(mag(np.array(pos2) - pos1))  # better norm
 
     sliderRep = vtk.vtkSliderRepresentation3D()
     sliderRep.SetMinimumValue(xmin)
@@ -455,7 +456,7 @@ def addSlider3D(
     sliderRep.SetSliderLength(0.04 * t)
     sliderRep.SetSliderShapeToCylinder()
     sliderRep.GetSelectedProperty().SetColor(1, 0, 0)
-    sliderRep.GetSliderProperty().SetColor(numpy.array(c) / 2)
+    sliderRep.GetSliderProperty().SetColor(np.array(c) / 2)
     sliderRep.GetCapProperty().SetOpacity(0)
 
     sliderRep.SetRotation(rotation)
@@ -510,7 +511,7 @@ def addButton(
     """
     vp = settings.plotter_instance
     if not vp.renderer:
-        colors.printc("~timesError: Use addButton() after rendering the scene.", c=1)
+        printc("~timesError: Use addButton() after rendering the scene.", c=1)
         return
     bu = Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
     vp.renderer.AddActor2D(bu.actor)
@@ -585,9 +586,9 @@ def addCutterTool(actor):
         ia = vp.actors.index(actor)
         vp.actors[ia] = act0
 
-    colors.printc("Mesh Cutter Tool:", c="m", invert=1)
-    colors.printc("  Move gray handles to cut away parts of the mesh", c="m")
-    colors.printc("  Press X to save file to: clipped.vtk", c="m")
+    printc("Mesh Cutter Tool:", c="m", invert=1)
+    printc("  Move gray handles to cut away parts of the mesh", c="m")
+    printc("  Press X to save file to: clipped.vtk", c="m")
     vp.interactor.Start()
 
     boxWidget.Off()
@@ -626,8 +627,8 @@ def _addVolumeCutterTool(vol):
     boxWidget.InsideOutOn()
     boxWidget.AddObserver("InteractionEvent", clipVolumeRender)
 
-    colors.printc("Volume Cutter Tool:", c="m", invert=1)
-    colors.printc("  Move gray handles to cut parts of the volume", c="m")
+    printc("Volume Cutter Tool:", c="m", invert=1)
+    printc("  Move gray handles to cut parts of the volume", c="m")
 
     vp.renderer.ResetCamera()
     boxWidget.On()
@@ -648,14 +649,14 @@ def addIcon(iconActor, pos=3, size=0.08):
     """
     vp = settings.plotter_instance
     if not vp.renderer:
-        colors.printc("~lightningWarning: Use addIcon() after first rendering the scene.", c=3)
+        printc("~lightningWarning: Use addIcon() after first rendering the scene.", c=3)
         save_int = vp.interactive
         vp.show(interactive=0)
         vp.interactive = save_int
     widget = vtk.vtkOrientationMarkerWidget()
     widget.SetOrientationMarker(iconActor)
     widget.SetInteractor(vp.interactor)
-    if utils.isSequence(pos):
+    if isSequence(pos):
         widget.SetViewport(pos[0] - size, pos[1] - size, pos[0] + size, pos[1] + size)
     else:
         if pos < 2:
@@ -683,14 +684,14 @@ def computeVisibleBounds():
             if b:
                 bns.append(b)
     if len(bns):
-        max_bns = numpy.max(bns, axis=0)
-        min_bns = numpy.min(bns, axis=0)
+        max_bns = np.max(bns, axis=0)
+        min_bns = np.min(bns, axis=0)
         vbb = (min_bns[0], max_bns[1], min_bns[2], max_bns[3], min_bns[4], max_bns[5])
     else:
         vbb = settings.plotter_instance.renderer.ComputeVisiblePropBounds()
         max_bns = vbb
         min_bns = vbb
-    sizes = numpy.array([max_bns[1]-min_bns[0], max_bns[3]-min_bns[2], max_bns[5]-min_bns[4]])
+    sizes = np.array([max_bns[1]-min_bns[0], max_bns[3]-min_bns[2], max_bns[5]-min_bns[4]])
     return vbb, sizes, min_bns, max_bns
 
 #####################################################################
@@ -710,6 +711,7 @@ def addAxes(axtype=None, c=None):
           - 8,  show the ``vtkCubeAxesActor`` object
           - 9,  show the bounding box outLine
           - 10, show three circles representing the maximum bounding box
+          - 11, show polar axes
 
     Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
@@ -778,10 +780,10 @@ def addAxes(axtype=None, c=None):
 
     if c is None:  # automatic black or white
         c = (0.9, 0.9, 0.9)
-        if numpy.sum(vp.renderer.GetBackground()) > 1.5:
+        if np.sum(vp.renderer.GetBackground()) > 1.5:
             c = (0.1, 0.1, 0.1)
     else:
-        c = colors.getColor(c) # for speed
+        c = getColor(c) # for speed
 
     if not vp.renderer:
         return
@@ -943,8 +945,8 @@ def addAxes(axtype=None, c=None):
         zLabelOffset = axes.pop('zLabelOffset', 0.01)
 
         ########################
-        step = numpy.min(sizes[numpy.nonzero(sizes)]) / numberOfDivisions
-        rx, ry, rz = numpy.rint(sizes / step).astype(int)
+        step = np.min(sizes[np.nonzero(sizes)]) / numberOfDivisions
+        rx, ry, rz = np.rint(sizes / step).astype(int)
         if rx==0: xtitle=''
         if ry==0: ytitle=''
         if rz==0: ztitle=''
@@ -996,36 +998,36 @@ def addAxes(axtype=None, c=None):
             if xHighlightZero and min_bns[0] <= 0 and max_bns[1] > 0:
                 xhl = -min_bns[0] / sizes[0]
                 hxy = shapes.Line([xhl,0,0], [xhl,1,0], c=xHighlightZeroColor)
-                hxy.alpha(numpy.sqrt(xyAlpha)).lw(gridLineWidth*2)
+                hxy.alpha(np.sqrt(xyAlpha)).lw(gridLineWidth*2)
                 highlights.append(hxy)
             if yHighlightZero and min_bns[2] <= 0 and max_bns[3] > 0:
                 yhl = -min_bns[2] / sizes[1]
                 hyx = shapes.Line([0,yhl,0], [1,yhl,0], c=yHighlightZeroColor)
-                hyx.alpha(numpy.sqrt(yzAlpha)).lw(gridLineWidth*2)
+                hyx.alpha(np.sqrt(yzAlpha)).lw(gridLineWidth*2)
                 highlights.append(hyx)
 
         if yzGrid and ytitle and ztitle:
             if yHighlightZero and min_bns[2] <= 0 and max_bns[3] > 0:
                 yhl = -min_bns[2] / sizes[1]
                 hyz = shapes.Line([0,yhl,0], [0,yhl,1], c=yHighlightZeroColor)
-                hyz.alpha(numpy.sqrt(yzAlpha)).lw(gridLineWidth*2)
+                hyz.alpha(np.sqrt(yzAlpha)).lw(gridLineWidth*2)
                 highlights.append(hyz)
             if zHighlightZero and min_bns[4] <= 0 and max_bns[5] > 0:
                 zhl = -min_bns[4] / sizes[2]
                 hzy = shapes.Line([0,0,zhl], [0,1,zhl], c=zHighlightZeroColor)
-                hzy.alpha(numpy.sqrt(yzAlpha)).lw(gridLineWidth*2)
+                hzy.alpha(np.sqrt(yzAlpha)).lw(gridLineWidth*2)
                 highlights.append(hzy)
 
         if zxGrid and ztitle and xtitle:
             if zHighlightZero and min_bns[4] <= 0 and max_bns[5] > 0:
                 zhl = -min_bns[4] / sizes[2]
                 hzx = shapes.Line([0,0,zhl], [1,0,zhl], c=zHighlightZeroColor)
-                hzx.alpha(numpy.sqrt(zxAlpha)).lw(gridLineWidth*2)
+                hzx.alpha(np.sqrt(zxAlpha)).lw(gridLineWidth*2)
                 highlights.append(hzx)
             if xHighlightZero and min_bns[0] <= 0 and max_bns[1] > 0:
                 xhl = -min_bns[0] / sizes[0]
                 hxz = shapes.Line([xhl,0,0], [xhl,0,1], c=xHighlightZeroColor)
-                hxz.alpha(numpy.sqrt(zxAlpha)).lw(gridLineWidth*2)
+                hxz.alpha(np.sqrt(zxAlpha)).lw(gridLineWidth*2)
                 highlights.append(hxz)
 
         ################################################ aspect ratio scales
@@ -1063,7 +1065,8 @@ def addAxes(axtype=None, c=None):
             else:
                 wpos = [xTitlePosition, -xTitleOffset, 0]
             if xKeepAspectRatio: xt.SetScale(x_aspect_ratio_scale)
-            xt.rotateX(xTitleRotation).pos(wpos)
+            xt.RotateX(xTitleRotation)
+            xt.pos(wpos)
             titles.append(xt.lighting(specular=0, diffuse=0, ambient=1))
 
         if ytitle:
@@ -1075,7 +1078,7 @@ def addAxes(axtype=None, c=None):
             else:
                 wpos = [-yTitleOffset, yTitlePosition, 0]
                 if yKeepAspectRatio: yt.SetScale(y_aspect_ratio_scale)
-                yt.rotateZ(yTitleRotation)
+                yt.RotateZ(yTitleRotation)
             yt.pos(wpos)
             titles.append(yt.lighting(specular=0, diffuse=0, ambient=1))
 
@@ -1088,11 +1091,15 @@ def addAxes(axtype=None, c=None):
                 if zKeepAspectRatio:
                     zr2 = (z_aspect_ratio_scale[1], z_aspect_ratio_scale[0], z_aspect_ratio_scale[2])
                     zt.SetScale(zr2)
-                zt.rotateX(90).rotateY(45).pos(wpos)
+                zt.RotateX(90)
+                zt.RotateY(45)
+                zt.pos(wpos)
             else:
                 if zKeepAspectRatio: zt.SetScale(z_aspect_ratio_scale)
                 wpos = [-zTitleOffset/1.42, -zTitleOffset/1.42, zTitlePosition]
-                zt.rotateY(-90).rotateX(zTitleRotation).pos(wpos)
+                zt.RotateY(-90)
+                zt.RotateX(zTitleRotation)
+                zt.pos(wpos)
             titles.append(zt.lighting(specular=0, diffuse=0, ambient=1))
 
         ################################################ cube origin ticks
@@ -1174,8 +1181,8 @@ def addAxes(axtype=None, c=None):
                 for ic in range(1, rx+enableLastLabel):
                     v = (ic/rx, -xLabelOffset, 0)
                     val = v[0]*sizes[0]+min_bns[0]
-                    if abs(val)>1 and sizes[0]<1: xLabelPrecision = int(xLabelPrecision-numpy.log10(sizes[0]))
-                    tval = utils.precision(val, xLabelPrecision, vrange=sizes[0])
+                    if abs(val)>1 and sizes[0]<1: xLabelPrecision = int(xLabelPrecision-np.log10(sizes[0]))
+                    tval = precision(val, xLabelPrecision, vrange=sizes[0])
                     xlab = shapes.Text(tval, pos=v, s=xLabelSize, justify="center-top", depth=0)
                     if xKeepAspectRatio: xlab.SetScale(x_aspect_ratio_scale)
                     labels.append(xlab.c(xTickColor).lighting(specular=0, ambient=1))
@@ -1185,11 +1192,12 @@ def addAxes(axtype=None, c=None):
                 for ic in range(1, ry+enableLastLabel):
                     v = (-yLabelOffset, ic/ry, 0)
                     val = v[1]*sizes[1]+min_bns[2]
-                    if abs(val)>1 and sizes[1]<1: yLabelPrecision = int(yLabelPrecision-numpy.log10(sizes[1]))
-                    tval = utils.precision(val, yLabelPrecision, vrange=sizes[1])
+                    if abs(val)>1 and sizes[1]<1: yLabelPrecision = int(yLabelPrecision-np.log10(sizes[1]))
+                    tval = precision(val, yLabelPrecision, vrange=sizes[1])
                     ylab = shapes.Text(tval, pos=(0,0,0), s=yLabelSize, justify="center-bottom", depth=0)
                     if yKeepAspectRatio: ylab.SetScale(y_aspect_ratio_scale)
-                    ylab.rotateZ(yTitleRotation).pos(v)
+                    ylab.RotateZ(yTitleRotation)
+                    ylab.pos(v)
                     labels.append(ylab.c(yTickColor).lighting(specular=0, ambient=1))
         if zLabelSize:
             if ztitle:
@@ -1197,11 +1205,13 @@ def addAxes(axtype=None, c=None):
                 for ic in range(1, rz+enableLastLabel):
                     v = (-zLabelOffset, -zLabelOffset, ic/rz)
                     val = v[2]*sizes[2]+min_bns[4]
-                    tval = utils.precision(val, zLabelPrecision, vrange=sizes[2])
-                    if abs(val)>1 and sizes[2]<1: zLabelPrecision = int(zLabelPrecision-numpy.log10(sizes[2]))
+                    tval = precision(val, zLabelPrecision, vrange=sizes[2])
+                    if abs(val)>1 and sizes[2]<1: zLabelPrecision = int(zLabelPrecision-np.log10(sizes[2]))
                     zlab = shapes.Text(tval, pos=(0,0,0), s=zLabelSize, justify="center-bottom", depth=0)
                     if zKeepAspectRatio: zlab.SetScale(z_aspect_ratio_scale)
-                    zlab.rotateY(-90).rotateX(zTitleRotation).pos(v)
+                    zlab.RotateY(-90)
+                    zlab.RotateX(zTitleRotation)
+                    zlab.pos(v)
                     labels.append(zlab.c(zTickColor).lighting(specular=0, ambient=1))
 
         acts = grids + grids2 + lines + highlights + titles
@@ -1224,7 +1234,7 @@ def addAxes(axtype=None, c=None):
         alpha = 1
         centered = False
         dx, dy, dz = x1 - x0, y1 - y0, z1 - z0
-        aves = numpy.sqrt(dx * dx + dy * dy + dz * dz) / 2
+        aves = np.sqrt(dx * dx + dy * dy + dz * dz) / 2
         x0, x1 = min(x0, 0), max(x1, 0)
         y0, y1 = min(y0, 0), max(y1, 0)
         z0, z1 = min(z0, 0), max(z1, 0)
@@ -1294,8 +1304,8 @@ def addAxes(axtype=None, c=None):
         axact.GetXAxisTipProperty().SetColor(1, 0, 0)
         axact.GetYAxisTipProperty().SetColor(0, 1, 0)
         axact.GetZAxisTipProperty().SetColor(0, 0, 1)
-        bc = numpy.array(vp.renderer.GetBackground())
-        if numpy.sum(bc) < 1.5:
+        bc = np.array(vp.renderer.GetBackground())
+        if np.sum(bc) < 1.5:
             lc = (1, 1, 1)
         else:
             lc = (0, 0, 0)
@@ -1328,12 +1338,12 @@ def addAxes(axtype=None, c=None):
         axact.SetZMinusFaceText( "bttom" )
         axact.SetZFaceTextRotation(90)
 
-        axact.GetXPlusFaceProperty().SetColor(colors.getColor("r"))
-        axact.GetXMinusFaceProperty().SetColor(colors.getColor("dr"))
-        axact.GetYPlusFaceProperty().SetColor(colors.getColor("g"))
-        axact.GetYMinusFaceProperty().SetColor(colors.getColor("dg"))
-        axact.GetZPlusFaceProperty().SetColor(colors.getColor("b"))
-        axact.GetZMinusFaceProperty().SetColor(colors.getColor("db"))
+        axact.GetXPlusFaceProperty().SetColor(getColor("r"))
+        axact.GetXMinusFaceProperty().SetColor(getColor("dr"))
+        axact.GetYPlusFaceProperty().SetColor(getColor("g"))
+        axact.GetYMinusFaceProperty().SetColor(getColor("dg"))
+        axact.GetZPlusFaceProperty().SetColor(getColor("b"))
+        axact.GetZMinusFaceProperty().SetColor(getColor("db"))
         axact.PickableOff()
         icn = addIcon(axact, size=0.06)
         vp.axes_instances[r] = icn
@@ -1360,8 +1370,8 @@ def addAxes(axtype=None, c=None):
         ocMapper.SetInputConnection(0, ocf.GetOutputPort(0))
         ocActor = vtk.vtkActor()
         ocActor.SetMapper(ocMapper)
-        bc = numpy.array(vp.renderer.GetBackground())
-        if numpy.sum(bc) < 1.5:
+        bc = np.array(vp.renderer.GetBackground())
+        if np.sum(bc) < 1.5:
             lc = (1, 1, 1)
         else:
             lc = (0, 0, 0)
@@ -1391,10 +1401,7 @@ def addAxes(axtype=None, c=None):
         vbb = computeVisibleBounds()[0]
         ca = vtk.vtkCubeAxesActor()
         ca.SetBounds(vbb)
-        if vp.camera:
-            ca.SetCamera(vp.camera)
-        else:
-            ca.SetCamera(vp.renderer.GetActiveCamera())
+        ca.SetCamera(vp.renderer.GetActiveCamera())
         ca.GetXAxesLinesProperty().SetColor(c)
         ca.GetYAxesLinesProperty().SetColor(c)
         ca.GetZAxesLinesProperty().SetColor(c)
@@ -1418,7 +1425,6 @@ def addAxes(axtype=None, c=None):
         ca.PickableOff()
         vp.renderer.AddActor(ca)
         vp.axes_instances[r] = ca
-        return
 
     elif vp.axes == 9:
         vbb = computeVisibleBounds()[0]
@@ -1439,8 +1445,8 @@ def addAxes(axtype=None, c=None):
         rx, ry, rz = (vbb[1]-vbb[0])/2, (vbb[3]-vbb[2])/2, (vbb[5]-vbb[4])/2
         rm = max(rx, ry, rz)
         xc = shapes.Disc(x0, r1=rm, r2=rm, c='lr', res=1, resphi=72)
-        yc = shapes.Disc(x0, r1=rm, r2=rm, c='lg', res=1, resphi=72).rotateX(90)
-        zc = shapes.Disc(x0, r1=rm, r2=rm, c='lb', res=1, resphi=72).rotateY(90)
+        yc = shapes.Disc(x0, r1=rm, r2=rm, c='lg', res=1, resphi=72).RotateX(90)
+        zc = shapes.Disc(x0, r1=rm, r2=rm, c='lb', res=1, resphi=72).RotateY(90)
         xc.clean().alpha(0.2).wireframe().lineWidth(2.5).PickableOff()
         yc.clean().alpha(0.2).wireframe().lineWidth(2.5).PickableOff()
         zc.clean().alpha(0.2).wireframe().lineWidth(2.5).PickableOff()
@@ -1449,9 +1455,42 @@ def addAxes(axtype=None, c=None):
         vp.renderer.AddActor(ca)
         vp.axes_instances[r] = ca
 
+    elif vp.axes == 11:
+        polaxes = vtk.vtkPolarAxesActor()
+        vbb = computeVisibleBounds()[0]
+
+        if vp.xtitle == 'x':
+            polaxes.SetPolarAxisTitle('radial distance')
+        else:
+            polaxes.SetPolarAxisTitle(vp.xtitle)
+        polaxes.SetPole(0,0, vbb[4])
+        rd = max(abs(vbb[0]), abs(vbb[2]), abs(vbb[1]), abs(vbb[3]))
+        polaxes.SetMaximumRadius(rd)
+        polaxes.AutoSubdividePolarAxisOff()
+        polaxes.SetNumberOfPolarAxisTicks(10)
+        polaxes.SetCamera(vp.renderer.GetActiveCamera())
+        polaxes.SetPolarLabelFormat("%6.1f")
+        polaxes.PolarLabelVisibilityOff() # due to bad overlap of labels
+
+        polaxes.GetPolarArcsProperty().SetColor(c)
+        polaxes.GetPolarAxisProperty().SetColor(c)
+        polaxes.GetPolarAxisTitleTextProperty().SetColor(c)
+        polaxes.GetPolarAxisLabelTextProperty().SetColor(c)
+        polaxes.GetLastRadialAxisTextProperty().SetColor(c)
+        polaxes.GetSecondaryRadialAxesTextProperty().SetColor(c)
+        polaxes.GetSecondaryRadialAxesProperty().SetColor(c)
+        polaxes.GetSecondaryPolarArcsProperty().SetColor(c)
+
+        polaxes.SetMinimumAngle(0.)
+        polaxes.SetMaximumAngle(315.)
+        polaxes.SetNumberOfPolarAxisTicks(5)
+        polaxes.PickableOff()
+        vp.renderer.AddActor(polaxes)
+        vp.axes_instances[r] = polaxes
+
     else:
-        colors.printc('~bomb Keyword axes must be in range [0-10].', c=1)
-        colors.printc('''
+        printc('~bomb Keyword axes must be in range [0-10].', c=1)
+        printc('''
   ~target Available axes types:
   0 = no axes,
   1 = draw three customizable gray grid walls
@@ -1464,6 +1503,7 @@ def addAxes(axtype=None, c=None):
   8 = show the vtkCubeAxesActor object
   9 = show the bounding box outline
   10 = show three circles representing the maximum bounding box
+  11 = show polar axes
   ''', c=1, bold=0)
 
     if not vp.axes_instances[r]:
@@ -1476,9 +1516,9 @@ def addRendererFrame(c=None, alpha=0.5, bg=None, lw=0.5):
 
     if c is None:  # automatic black or white
         c = (0.9, 0.9, 0.9)
-        if numpy.sum(settings.plotter_instance.renderer.GetBackground())>1.5:
+        if np.sum(settings.plotter_instance.renderer.GetBackground())>1.5:
             c = (0.1, 0.1, 0.1)
-    c = colors.getColor(c)
+    c = getColor(c)
 
     ppoints = vtk.vtkPoints()  # Generate the polyline
     psqr = [[0,0],[0,1],[1,1],[1,0],[0,0]]
@@ -1512,7 +1552,7 @@ def addRendererFrame(c=None, alpha=0.5, bg=None, lw=0.5):
 def addLegend():
 
     vp = settings.plotter_instance
-    if not utils.isSequence(vp._legend):
+    if not isSequence(vp._legend):
         return
 
     # remove old legend if present on current renderer:
@@ -1632,13 +1672,13 @@ class Button:
         self.textproperty.SetLineOffset(self.offset)
         self.actor.SetInput(self.spacer + self.states[s] + self.spacer)
         s = s % len(self.colors)  # to avoid mismatch
-        self.textproperty.SetColor(colors.getColor(self.colors[s]))
-        bcc = numpy.array(colors.getColor(self.bcolors[s]))
+        self.textproperty.SetColor(getColor(self.colors[s]))
+        bcc = np.array(getColor(self.bcolors[s]))
         self.textproperty.SetBackgroundColor(bcc)
         if self.showframe:
             self.textproperty.FrameOn()
             self.textproperty.SetFrameWidth(self.framewidth)
-            self.textproperty.SetFrameColor(numpy.sqrt(bcc))
+            self.textproperty.SetFrameColor(np.sqrt(bcc))
         return self
 
     def switch(self):

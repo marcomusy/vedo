@@ -681,6 +681,10 @@ def printInfo(obj):
             colors.printc(tab + "           file: ", c="g", bold=1, end="")
             colors.printc(actor.filename, c="g", bold=0)
 
+        if hasattr(actor, "_time") and actor._time:
+            colors.printc(tab + "           time: ", c="g", bold=1, end="")
+            colors.printc(actor._time, c="g", bold=0)
+
         if not actor.GetMapper().GetScalarVisibility():
             colors.printc(tab + "          color: ", c="g", bold=1, end="")
             #colors.printc("defined by point or cell data", c="g", bold=0)

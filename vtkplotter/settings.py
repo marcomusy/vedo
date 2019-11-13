@@ -18,6 +18,9 @@ Global settings.
     # Recompute vertex and cell normals
     computeNormals = None
 
+    # Automatically reset the range of the active scalars
+    autoResetScalarRange = True
+
     # Default style is TrackBallCamera
     interactorStyle = None
 
@@ -46,6 +49,11 @@ Global settings.
     # Wrap lines in tubes
     renderLinesAsTubes = False
 
+    # Smoothing options
+    pointSmoothing = False
+    lineSmoothing = False
+    polygonSmoothing = False
+
     # Remove hidden lines when in wireframe mode
     hiddenLineRemoval = False
 
@@ -60,7 +68,7 @@ Global settings.
     alphaBitPlanes = None    # either True or False. None sets the system default
     multiSamples = None      # integer value
     maxNumberOfPeels = None  # integer value
-    
+
     # Turn on/off nvidia FXAA anti-aliasing, if supported.
     useFXAA = None           # either True or False. None sets the system default
 
@@ -100,6 +108,9 @@ screeshotLargeImage = False
 # Recompute vertex and cell normals
 computeNormals = None
 
+# Automatic resetting the range of the active scalars
+autoResetScalarRange = True
+
 # Default style is TrackBallCamera
 interactorStyle = None
 
@@ -128,6 +139,11 @@ renderLinesAsTubes = False
 # Remove hidden lines when in wireframe mode
 hiddenLineRemoval = False
 
+# Smoothing options
+pointSmoothing = False
+lineSmoothing = False
+polygonSmoothing = False
+
 # For (Un)Structured and RectilinearGrid: show internal edges not only outline
 visibleGridEdges = False
 
@@ -153,12 +169,12 @@ windowSplittingPosition = None
 voro_path = '/usr/local/bin'
 
 
-
-
 ####################################################################################
 # notebook support with K3D
 notebookBackend = None
 notebook_plotter = None
+
+plotter_instance = None
 
 ####################################################################################
 import os

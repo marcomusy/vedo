@@ -9,8 +9,8 @@ pl.SetSampleDimensions(6,6,6)
 pl.ComputeEffectiveStressOn()
 pl.SetPoissonsRatio(0.2)
 pl.SetModelBounds(-10,10,-10,10,-10,10)
-pl.Update()
-vol = Volume(pl.GetOutput(), mode=1)
+
+vol = Volume(pl, mode=1)
 
 # Extract a slice of the volume data at index 3
 zsl = vol.zSlice(3)

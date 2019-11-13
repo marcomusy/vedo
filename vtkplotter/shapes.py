@@ -103,6 +103,8 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
     """Create a simple point actor."""
     if len(pos) == 2:
         pos = (pos[0], pos[1], 0)
+    if isinstance(pos, vtk.vtkActor):
+        pos = pos.GetPosition()
     return Points([pos], r, c, alpha)
 
 
@@ -357,24 +359,28 @@ def Tensors(domain, source='ellipsoid', useEigenValues=True, isSymmetric=True,
     :param float scale: scaling factor of the source glyph.
     :param float maxScale: clamp scaling at this factor.
 
-    |tensors| |tensors.py|_
+    |tensors| |tensors.py|_ |tensor_grid.py|_
     """
-    if 'ellip' in source:
-        src = vtk.vtkSphereSource()
-        src.SetPhiResolution(24)
-        src.SetThetaResolution(12)
-    elif 'cyl' in source:
-        src = vtk.vtkCylinderSource()
-        src.SetResolution(48)
-        src.CappingOn()
-    elif source == 'cube':
-        src = vtk.vtkCubeSource()
-    else:
+    if isinstance(source, Actor):
         src = source.normalize().polydata(False)
-    src.Update()
+    else:
+        if 'ellip' in source:
+            src = vtk.vtkSphereSource()
+            src.SetPhiResolution(24)
+            src.SetThetaResolution(12)
+        elif 'cyl' in source:
+            src = vtk.vtkCylinderSource()
+            src.SetResolution(48)
+            src.CappingOn()
+        elif source == 'cube':
+            src = vtk.vtkCubeSource()
+        src.Update()
 
     tg = vtk.vtkTensorGlyph()
-    tg.SetInputData(domain.GetMapper().GetInput())
+    if isinstance(domain, vtk.vtkPolyData):
+        tg.SetInputData(domain)
+    else:
+        tg.SetInputData(domain.GetMapper().GetInput())
     tg.SetSourceData(src.GetOutput())
 
     if c is None:
@@ -383,6 +389,7 @@ def Tensors(domain, source='ellipsoid', useEigenValues=True, isSymmetric=True,
         tg.ColorGlyphsOff()
 
     tg.SetSymmetric(int(isSymmetric))
+
     if length is not None:
         tg.SetLength(length)
     if useEigenValues:
@@ -888,6 +895,8 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12)
 
     |glyphs_arrows| |glyphs_arrows.py|_
     """
+    if isinstance(startPoints, Actor): startPoints = startPoints.coordinates()
+    if isinstance(endPoints,   Actor): endPoints   = endPoints.coordinates()
     startPoints = np.array(startPoints)
     if endPoints is None:
         strt = startPoints[:,0]

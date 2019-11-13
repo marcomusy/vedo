@@ -18,7 +18,7 @@ and ``vtkImageActor`` objects functionality.
 )
 
 __all__ = [
-#    'Prop',
+#    'Prop', # only for docs
     'Actor',
     'Assembly',
     'Picture',
@@ -200,7 +200,7 @@ class Prop(object):
         if self.trail:
             self.updateTrail()
         if self.shadow:
-            self.updateShadow()
+            self._updateShadow()
         return self  # return itself to concatenate methods
 
     def addPos(self, dp_x=None, dy=None, dz=None):
@@ -213,7 +213,7 @@ class Prop(object):
         if self.trail:
             self.updateTrail()
         if self.shadow:
-            self.updateShadow()
+            self._updateShadow()
         return self
 
     def x(self, position=None):
@@ -225,7 +225,7 @@ class Prop(object):
         if self.trail:
             self.updateTrail()
         if self.shadow:
-            self.updateShadow()
+            self._updateShadow()
         return self
 
     def y(self, position=None):
@@ -237,7 +237,7 @@ class Prop(object):
         if self.trail:
             self.updateTrail()
         if self.shadow:
-            self.updateShadow()
+            self._updateShadow()
         return self
 
     def z(self, position=None):
@@ -249,7 +249,7 @@ class Prop(object):
         if self.trail:
             self.updateTrail()
         if self.shadow:
-            self.updateShadow()
+            self._updateShadow()
         return self
 
     def rotate(self, angle, axis=(1, 0, 0), axis_point=(0, 0, 0), rad=False):
@@ -285,8 +285,11 @@ class Prop(object):
                            self.shadow.GetProperty().GetOpacity())
         return self
 
-    def rotateX(self, angle, axis_point=(0, 0, 0), rad=False):
-        """Rotate around x-axis. If angle is in radians set ``rad=True``."""
+    def rotateX(self, angle, rad=False):
+        """Rotate around x-axis. If angle is in radians set ``rad=True``.
+
+        NB: actor.rotateX(12).rotateY(14) will rotate FIRST around Y THEN around X.
+        """
         if rad:
             angle *= 180 / np.pi
         self.RotateX(angle)
@@ -298,8 +301,11 @@ class Prop(object):
                            self.shadow.GetProperty().GetOpacity())
         return self
 
-    def rotateY(self, angle, axis_point=(0, 0, 0), rad=False):
-        """Rotate around y-axis. If angle is in radians set ``rad=True``."""
+    def rotateY(self, angle, rad=False):
+        """Rotate around y-axis. If angle is in radians set ``rad=True``.
+
+        NB: actor.rotateX(12).rotateY(14) will rotate FIRST around Y THEN around X.
+        """
         if rad:
             angle *= 180.0 / np.pi
         self.RotateY(angle)
@@ -311,8 +317,11 @@ class Prop(object):
                            self.shadow.GetProperty().GetOpacity())
         return self
 
-    def rotateZ(self, angle, axis_point=(0, 0, 0), rad=False):
-        """Rotate around z-axis. If angle is in radians set ``rad=True``."""
+    def rotateZ(self, angle, rad=False):
+        """Rotate around z-axis. If angle is in radians set ``rad=True``.
+
+        NB: actor.rotateX(12).rotateZ(14) will rotate FIRST around Z THEN around X.
+        """
         if rad:
             angle *= 180.0 / np.pi
         self.RotateZ(angle)
@@ -323,6 +332,34 @@ class Prop(object):
                            self.shadow.GetProperty().GetColor(),
                            self.shadow.GetProperty().GetOpacity())
         return self
+
+#    def rotateX(self, angle, rad=False):
+#        """Rotate around x-axis. If angle is in radians set ``rad=True``."""
+#        if rad:
+#            angle *= 180 / np.pi
+#        ipos = np.array(self.GetPosition())
+#        self.SetPosition(0,0,0)
+#        T = vtk.vtkTransform()
+#        T.SetMatrix(self.GetMatrix())
+#        T.PostMultiply()
+#        T.RotateX(angle)
+#        T.Translate(ipos)
+#        self.SetUserTransform(T)
+#        if self.trail:
+#            self.updateTrail()
+#        if self.shadow:
+#            self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
+#                           self.shadow.GetProperty().GetColor(),
+#                           self.shadow.GetProperty().GetOpacity())
+#        return self
+#    def origin(self, o=None):
+#        """Set/get actor's origin coordinates. Default is (0,0,0).
+#        Can be used to define an offset."""
+#        if o is None:
+#            return np.array(self.GetOrigin())
+#        self.SetOrigin(o)
+#        return self  # return itself to concatenate methods
+
 
     def orientation(self, newaxis=None, rotation=0, rad=False):
         """
@@ -352,7 +389,7 @@ class Prop(object):
             T.RotateWXYZ(rotation, initaxis)
         T.RotateWXYZ(np.rad2deg(angle), crossvec)
         T.Translate(pos)
-        self.SetUserMatrix(T.GetMatrix())
+        self.SetUserTransform(T)
         if self.trail:
             self.updateTrail()
         if self.shadow:
@@ -360,6 +397,7 @@ class Prop(object):
                            self.shadow.GetProperty().GetColor(),
                            self.shadow.GetProperty().GetOpacity())
         return self
+
 
     def scale(self, s=None):
         """Set/get actor's scaling factor.
@@ -371,7 +409,7 @@ class Prop(object):
         if s is None:
             return np.array(self.GetScale())
         self.SetScale(s)
-        return self  # return itself to concatenate methods
+        return self
 
     def addShadow(self, x=None, y=None, z=None, c=(0.5, 0.5, 0.5), alpha=1):
         """
@@ -406,7 +444,7 @@ class Prop(object):
         self.shadow = shad
         return self
 
-    def updateShadow(self):
+    def _updateShadow(self):
         p = self.GetPosition()
         if self.shadowX is not None:
             self.shadow.SetPosition(self.shadowX, p[1], p[2])
@@ -699,7 +737,8 @@ class Prop(object):
         data.GetPointData().AddArray(arr)
         data.GetPointData().SetActiveScalars(name)
         self.mapper.SetArrayName(name)
-        self.mapper.SetScalarRange(np.min(scalars), np.max(scalars))
+        if settings.autoResetScalarRange:
+            self.mapper.SetScalarRange(np.min(scalars), np.max(scalars))
         self.mapper.SetScalarModeToUsePointData()
         self.mapper.ScalarVisibilityOn()
         return self
@@ -722,7 +761,8 @@ class Prop(object):
         data.GetCellData().AddArray(arr)
         data.GetCellData().SetActiveScalars(name)
         self.mapper.SetArrayName(name)
-        self.mapper.SetScalarRange(np.min(scalars), np.max(scalars))
+        if settings.autoResetScalarRange:
+            self.mapper.SetScalarRange(np.min(scalars), np.max(scalars))
         self.mapper.SetScalarModeToUseCellData()
         self.mapper.ScalarVisibilityOn()
         return self
@@ -797,19 +837,17 @@ class Actor(vtk.vtkFollower, Prop):
         Prop.__init__(self)
 
         self.poly = None
-        self.mapper = None
+        self.mapper = vtk.vtkPolyDataMapper()
 
         inputtype = str(type(inputobj))
         # print('inputtype',inputtype)
 
         if inputobj is None:
             self.poly = vtk.vtkPolyData()
-            self.mapper = vtk.vtkPolyDataMapper()
         elif "Actor" in inputtype:
             polyCopy = vtk.vtkPolyData()
             polyCopy.DeepCopy(inputobj.GetMapper().GetInput())
             self.poly = polyCopy
-            self.mapper = vtk.vtkPolyDataMapper()
             self.mapper.SetInputData(polyCopy)
             self.mapper.SetScalarVisibility(inputobj.GetMapper().GetScalarVisibility())
             pr = vtk.vtkProperty()
@@ -823,7 +861,6 @@ class Actor(vtk.vtkFollower, Prop):
                     carr.InsertCellPoint(i)
                 inputobj.SetVerts(carr)
             self.poly = inputobj  # cache vtkPolyData and mapper for speed
-            self.mapper = vtk.vtkPolyDataMapper()
         elif "structured" in inputtype.lower() or "RectilinearGrid" in inputtype:
             if settings.visibleGridEdges:
                 gf = vtk.vtkExtractEdges()
@@ -833,25 +870,23 @@ class Actor(vtk.vtkFollower, Prop):
                 gf.SetInputData(inputobj)
             gf.Update()
             self.poly = gf.GetOutput()
-            self.mapper = vtk.vtkPolyDataMapper()
         elif "trimesh" in inputtype:
             tact = utils.trimesh2vtk(inputobj, alphaPerCell=False)
             self.poly = tact.polydata()
-            self.mapper = vtk.vtkPolyDataMapper()
         elif utils.isSequence(inputobj):
             if len(inputobj) == 2: # assume [vertices, faces]
                 self.poly = utils.buildPolyData(inputobj[0], inputobj[1])
             else:
                 self.poly = utils.buildPolyData(inputobj, None)
-            self.mapper = vtk.vtkPolyDataMapper()
-
+        elif hasattr(inputobj, "GetOutput"): # passing vtk object
+            if hasattr(inputobj, "Update"): inputobj.Update()
+            self.poly = inputobj.GetOutput()
         else:
             colors.printc("Error: cannot build Actor from type:\n", inputtype, c=1)
             raise RuntimeError()
 
-        if self.mapper:
-            self.mapper.InterpolateScalarsBeforeMappingOn()
-            self.SetMapper(self.mapper)
+        self.mapper.InterpolateScalarsBeforeMappingOn()
+        self.SetMapper(self.mapper)
 
         if settings.computeNormals is not None:
             computeNormals = settings.computeNormals
@@ -2237,7 +2272,8 @@ class Actor(vtk.vtkFollower, Prop):
         arr = numpy_to_vtk(np.ascontiguousarray(scalars_or_colors), deep=True)
         arr.SetName(sname)
         self.mapper.SetArrayName(sname)
-        self.mapper.SetScalarRange(vmin, vmax)
+        if settings.autoResetScalarRange:
+            self.mapper.SetScalarRange(vmin, vmax)
         self.mapper.SetLookupTable(lut)
         self.mapper.SetScalarModeToUsePointData()
         self.mapper.ScalarVisibilityOn()
@@ -2374,7 +2410,8 @@ class Actor(vtk.vtkFollower, Prop):
         arr = numpy_to_vtk(np.ascontiguousarray(scalars_or_colors), deep=True)
         arr.SetName(sname)
         self.mapper.SetArrayName(sname)
-        self.mapper.SetScalarRange(vmin, vmax)
+        if settings.autoResetScalarRange:
+            self.mapper.SetScalarRange(vmin, vmax)
         self.mapper.SetLookupTable(lut)
         self.mapper.SetScalarModeToUseCellData()
         self.mapper.ScalarVisibilityOn()
@@ -2478,11 +2515,11 @@ class Actor(vtk.vtkFollower, Prop):
 
     def addCurvatureScalars(self, method=0, lut=None):
         """
-        Build an ``Actor`` that contains the color coded surface
+        Add scalars to ``Actor`` that contains the
         curvature calculated in three different ways.
 
         :param int method: 0-gaussian, 1-mean, 2-max, 3-min curvature.
-        :param float lut: optional look up table.
+        :param lut: optional vtkLookUpTable up table.
 
         :Example:
             .. code-block:: python
@@ -2498,8 +2535,45 @@ class Actor(vtk.vtkFollower, Prop):
         curve.Update()
         self.poly = curve.GetOutput()
 
-        scls = self.poly.GetPointData().GetScalars().GetRange()
-        print("curvature(): scalar range is", scls)
+        self.mapper.SetInputData(self.poly)
+        if lut:
+            self.mapper.SetLookupTable(lut)
+            self.mapper.SetUseLookupTableScalarRange(1)
+        self.mapper.Update()
+        self.Modified()
+        self.mapper.ScalarVisibilityOn()
+        return self
+
+    def addElevationScalars(self, lowPoint=(), highPoint=(), vrange=(), lut=None):
+        """
+        Add to ``Actor`` a scalar array that contains distance along a specified direction.
+
+        :param list low: one end of the line (small scalar values). Default (0,0,0).
+        :param list high: other end of the line (large scalar values). Default (0,0,1).
+        :param list vrange: set the range of the scalar. Default is (0, 1).
+        :param lut: optional vtkLookUpTable up table (see makeLUT method).
+
+        :Example:
+            .. code-block:: python
+
+                from vtkplotter import Sphere
+
+                s = Sphere().addElevationScalars(lowPoint=(0,0,0), highPoint=(1,1,1))
+                s.addScalarBar().show(axes=1)
+
+                |elevation|
+        """
+        ef = vtk.vtkElevationFilter()
+        ef.SetInputData(self.polydata())
+        if len(lowPoint) == 3:
+            ef.SetLowPoint(lowPoint)
+        if len(highPoint) == 3:
+            ef.SetHighPoint(highPoint)
+        if len(vrange) == 2:
+            ef.SetScalarRange(vrange)
+
+        ef.Update()
+        self.poly = ef.GetOutput()
 
         self.mapper.SetInputData(self.poly)
         if lut:
@@ -2566,7 +2640,8 @@ class Actor(vtk.vtkFollower, Prop):
             if arr:
                 data.SetActiveScalars(name)
                 self.mapper.ScalarVisibilityOn()
-                self.mapper.SetScalarRange(arr.GetRange())
+                if settings.autoResetScalarRange:
+                    self.mapper.SetScalarRange(arr.GetRange())
                 return vtk_to_numpy(arr)
 
             return None
@@ -3316,6 +3391,9 @@ class Volume(vtk.vtkVolume, Prop):
         elif "UnstructuredGrid" in inputtype:
             img = inputobj
             mapperType = 'tetra'
+        elif hasattr(inputobj, "GetOutput"): # passing vtk object, try extract imagdedata
+            if hasattr(inputobj, "Update"): inputobj.Update()
+            img = inputobj.GetOutput()
         else:
             colors.printc("Volume(): cannot understand input type:\n", inputtype, c=1)
             return
@@ -3399,6 +3477,16 @@ class Volume(vtk.vtkVolume, Prop):
     def dimensions(self):
         """Return the nr. of voxels in the 3 dimensions."""
         return self._image.GetDimensions()
+
+    def permuteAxes(self, x, y ,z):
+        """Reorder the axes of the Volume by specifying
+        the input axes which are supposed to become the new X, Y, and Z."""
+        imp = vtk.vtkImagePermute()
+        imp.SetFilteredAxes(x,y,z)
+        imp. SetInputData(self.imagedata())
+        imp.Update()
+        return self._updateVolume(imp.GetOutput())
+
 
     def color(self, col):
         """Assign a color or a set of colors to a volume along the range of the scalar value.

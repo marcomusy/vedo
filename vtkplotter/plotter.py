@@ -2,7 +2,7 @@ from __future__ import division, print_function
 import time
 import sys
 import vtk
-import numpy
+import numpy as np
 
 from vtkplotter import __version__
 import vtkplotter.vtkio as vtkio
@@ -59,6 +59,7 @@ def show(*actors, **options):
           - 8,  show the ``vtkCubeAxesActor`` object,
           - 9,  show the bounding box outLine,
           - 10, show three circles representing the maximum bounding box
+          - 11, show polar axes
 
         Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
@@ -311,8 +312,9 @@ def closeWindow(plotterInstance=None):
         plotterInstance  = plotter_instance
         if not plotterInstance:
             return
-    plotterInstance.interactor.ExitCallback()
-    plotterInstance.closeWindow()
+    if plotterInstance.interactor:
+        plotterInstance.interactor.ExitCallback()
+        plotterInstance.closeWindow()
     return plotterInstance
 
 
@@ -352,7 +354,8 @@ class Plotter:
       - 7,  draw a simple ruler at the bottom of the window
       - 8,  show the ``vtkCubeAxesActor`` object
       - 9,  show the bounding box outLine,
-      - 10, show three circles representing the maximum bounding box.
+      - 10, show three circles representing the maximum bounding box,
+      - 11, show polar axes.
 
     Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
@@ -515,6 +518,9 @@ class Plotter:
             self.window.SetAlphaBitPlanes(settings.alphaBitPlanes)
         if settings.multiSamples is not None:
             self.window.SetMultiSamples(settings.multiSamples)
+        self.window.SetPolygonSmoothing(settings.polygonSmoothing)
+        self.window.SetLineSmoothing(settings.lineSmoothing)
+        self.window.SetPointSmoothing(settings.pointSmoothing)
 
         # sort out screen size
         if screensize == "auto":
@@ -531,8 +537,8 @@ class Plotter:
         if N:  # N = number of renderers. Find out the best
             if shape != (1, 1):  # arrangement based on minimum nr. of empty renderers
                 colors.printc("Warning: having set N, shape is ignored.", c=1)
-            nx = int(numpy.sqrt(int(N * y / x) + 1))
-            ny = int(numpy.sqrt(int(N * x / y) + 1))
+            nx = int(np.sqrt(int(N * y / x) + 1))
+            ny = int(np.sqrt(int(N * x / y) + 1))
             lm = [
                 (nx, ny),
                 (nx, ny + 1),
@@ -792,7 +798,7 @@ class Plotter:
             if a in self.actors:
                 i = self.actors.index(a)
                 del self.actors[i]
-        if render and self.interactor:
+        if render and hasattr(self, 'interactor') and self.interactor:
             self.interactor.Render()
 
     ####################################################
@@ -966,16 +972,16 @@ class Plotter:
             colors.printc("~lightning Warning in moveCamera(): fraction is > 1", c=1)
         cam = vtk.vtkCamera()
         cam.DeepCopy(camstart)
-        p1 = numpy.array(camstart.GetPosition())
-        f1 = numpy.array(camstart.GetFocalPoint())
-        v1 = numpy.array(camstart.GetViewUp())
-        c1 = numpy.array(camstart.GetClippingRange())
+        p1 = np.array(camstart.GetPosition())
+        f1 = np.array(camstart.GetFocalPoint())
+        v1 = np.array(camstart.GetViewUp())
+        c1 = np.array(camstart.GetClippingRange())
         s1 = camstart.GetDistance()
 
-        p2 = numpy.array(camstop.GetPosition())
-        f2 = numpy.array(camstop.GetFocalPoint())
-        v2 = numpy.array(camstop.GetViewUp())
-        c2 = numpy.array(camstop.GetClippingRange())
+        p2 = np.array(camstop.GetPosition())
+        f2 = np.array(camstop.GetFocalPoint())
+        v2 = np.array(camstop.GetViewUp())
+        c2 = np.array(camstop.GetClippingRange())
         s2 = camstop.GetDistance()
         cam.SetPosition(p2 * fraction + p1 * (1 - fraction))
         cam.SetFocalPoint(f2 * fraction + f1 * (1 - fraction))
@@ -1125,6 +1131,7 @@ class Plotter:
               - 8,  show the ``vtkCubeAxesActor`` object
               - 9,  show the bounding box outLine
               - 10, show three circles representing the maximum bounding box
+              - 11, show polar axes
 
         Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
@@ -1220,6 +1227,7 @@ class Plotter:
               - 8,  show the ``vtkCubeAxesActor`` object,
               - 9,  show the bounding box outLine,
               - 10, show three circles representing the maximum bounding box
+              - 11, show polar axes
 
         :param float azimuth/elevation/roll:  move camera accordingly
         :param str viewup:  either ['x', 'y', 'z'] or a vector to set vertical direction
@@ -1362,6 +1370,9 @@ class Plotter:
                     from vtkplotter.utils import trimesh2vtk
                     scannedacts.append(trimesh2vtk(a))
 
+                elif hasattr(a, "GetOutput"): # passing vtk object
+                    scannedacts.append(Actor(a))
+
                 else:
                     colors.printc("~!? Cannot understand input in show():", type(a), c=1)
                     scannedacts.append(None)
@@ -1451,10 +1462,10 @@ class Plotter:
                     self.renderer.AddActor(ia.scalarbar)
                     # fix gray color labels and title to white or black
                     if isinstance(ia.scalarbar, vtk.vtkScalarBarActor):
-                        ltc = numpy.array(ia.scalarbar.GetLabelTextProperty().GetColor())
-                        if numpy.linalg.norm(ltc-(.5,.5,.5))/3 < 0.05:
+                        ltc = np.array(ia.scalarbar.GetLabelTextProperty().GetColor())
+                        if np.linalg.norm(ltc-(.5,.5,.5))/3 < 0.05:
                             c = (0.9, 0.9, 0.9)
-                            if numpy.sum(self.renderer.GetBackground()) > 1.5:
+                            if np.sum(self.renderer.GetBackground()) > 1.5:
                                 c = (0.1, 0.1, 0.1)
                             ia.scalarbar.GetLabelTextProperty().SetColor(c)
                             ia.scalarbar.GetTitleTextProperty().SetColor(c)
@@ -1463,10 +1474,10 @@ class Plotter:
 
                 if hasattr(ia, 'GetTextProperty'):
                     #fix gray color of corner annotations
-                    cacol = numpy.array(ia.GetTextProperty().GetColor())
-                    if numpy.linalg.norm(cacol-(.5,.5,.5))/3 < 0.05:
+                    cacol = np.array(ia.GetTextProperty().GetColor())
+                    if np.linalg.norm(cacol-(.5,.5,.5))/3 < 0.05:
                         c = (0.9, 0.9, 0.9)
-                        if numpy.sum(self.renderer.GetBackground()) > 1.5:
+                        if np.sum(self.renderer.GetBackground()) > 1.5:
                             c = (0.1, 0.1, 0.1)
                         ia.GetTextProperty().SetColor(c)
 
@@ -1525,7 +1536,7 @@ class Plotter:
                 b =  self.renderer.ComputeVisiblePropBounds()
                 self.camera.SetViewUp([0, 0.001, 1])
                 cm = [(b[1]+b[0])/2, (b[3]+b[2])/2, (b[5]+b[4])/2]
-                sz = numpy.array([(b[1]-b[0])*0.7, -(b[3]-b[2])*1.0, (b[5]-b[4])*1.2])
+                sz = np.array([(b[1]-b[0])*0.7, -(b[3]-b[2])*1.0, (b[5]-b[4])*1.2])
                 self.camera.SetPosition(cm+2*sz)
 
         if camera is not None:
@@ -1546,7 +1557,7 @@ class Plotter:
             if cm_thickness is not None: self.camera.SetThickness(cm_thickness)
             if cm_viewAngle is not None: self.camera.SetViewAngle(cm_viewAngle)
 
-        if resetcam: 
+        if resetcam:
             self.renderer.ResetCameraClippingRange()
 
         self.window.Render() ############################# <----
@@ -2047,7 +2058,7 @@ class Plotter:
             addons.addLegend()
 
         elif key == "5":
-            bgc = numpy.array(self.renderer.GetBackground()).sum() / 3
+            bgc = np.array(self.renderer.GetBackground()).sum() / 3
             if bgc <= 0:
                 bgc = 0.223
             elif 0 < bgc < 1:
@@ -2097,7 +2108,7 @@ class Plotter:
                 x, y, z = self.extralight.GetPosition() - cm
                 r,th,ph = utils.cart2spher(x,y,z)
                 th += 0.2
-                if th>numpy.pi: th=numpy.random.random()*numpy.pi/2
+                if th>np.pi: th=np.random.random()*np.pi/2
                 ph += 0.3
                 cpos = utils.spher2cart(r, th,ph) + cm
                 self.extralight.SetPosition(cpos)

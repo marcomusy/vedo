@@ -55,7 +55,6 @@ setup(
 
 # check vtkconvert:
 # vtkconvert vtkplotter/data/290.vtk -to ply
-# rm vtkplotter/data/290.ply
 
 # check on python2 the same stuff is ok
 # cd ~/Projects/vtkplotter/
@@ -68,12 +67,12 @@ setup(
 # remove trailing spaces
 
 # cd ~/Projects/vtkplotter/
-# rm -rf examples/*/.ipynb_checkpoints examples/*/*/.ipynb_checkpoints
-# rm -rf examples/other/dolfin/navier_stokes_cylinder/
-# rm examples/other/dolfin/shuttle.xml
+# rm -rf examples/*/.ipynb_checkpoints examples/*/*/.ipynb_checkpoints .ipynb_checkpoints/
+# rm -rf examples/other/dolfin/navier_stokes_cylinder/ examples/other/dolfin/shuttle.xml
 # rm examples/other/trimesh/featuretype.STL examples/other/trimesh/machinist.XAML
-# rm examples/scene.npy examples/timecourse1d.npy examples/voronoi3d.txt examples/voronoi3d.txt.vol
-# rm examples/embryo.html examples/embryo.x3d timecourse1d.npy
+# rm examples/other/scene.npy examples/other/timecourse1d.npy vtkplotter/data/290.ply
+# rm examples/other/voronoi3d.txt examples/other/voronoi3d.txt.vol
+# rm examples/other/embryo.html examples/other/embryo.x3d timecourse1d.npy
 
 # git status
 # git add [files]

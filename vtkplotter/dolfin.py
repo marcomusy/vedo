@@ -284,7 +284,8 @@ def plot(*inputobj, **options):
       - 7,  draw a simple ruler at the bottom of the window
       - 8,  show the `vtkCubeAxesActor` object,
       - 9,  show the bounding box outLine,
-      - 10, show three circles representing the maximum bounding box.
+      - 10, show three circles representing the maximum bounding box,
+      - 11, show polar axes.
 
         Axes type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 

@@ -227,6 +227,9 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
     elif fl.endswith(".geojson") or fl.endswith(".geojson.gz"):
         return loadGeoJSON(fl)
 
+    elif fl.endswith(".pvd"):
+        return loadPVD(fl)
+
         ################################################################# polygonal mesh:
     else:
         if fl.endswith(".vtk"): # read all legacy vtk types
@@ -522,6 +525,33 @@ def _loadDolfin_old(filename, exterior='dummy'):
 
     poly = utils.buildPolyData(coords, connectivity)
     return Actor(poly)
+
+
+def loadPVD(filename):
+    """Reads a paraview set of files."""
+    import xml.etree.ElementTree as et
+
+    tree = et.parse(filename)
+    
+    dname = os.path.dirname(filename)
+    if not dname:
+        dname = '.'
+
+    listofobjs = []
+    for coll in tree.getroot():
+        for dataset in coll:
+            fname = dataset.get("file")
+            ob = load(dname+'/'+fname)
+            tm = dataset.get("timestep")
+            if tm:
+                ob.time(tm)
+            listofobjs.append(ob)
+    if len(listofobjs) == 1:
+        return listofobjs[0]
+    elif len(listofobjs) == 0:
+        return None
+    else:
+        return listofobjs
 
 
 def loadNeutral(filename):

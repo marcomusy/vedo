@@ -2,7 +2,6 @@
 # source run_all.sh
 #
 printf "\033c"
-echo Running examples in directory dolfin/
 
 ##########################
 echo Running ascalarbar.py
@@ -141,13 +140,6 @@ python noplot/ex03_poisson.py
 
 echo Running noplot/ex04_mixed-poisson.py
 python noplot/ex04_mixed-poisson.py
-
-
-echo '----------------------------'
-echo '----------------------------'
-echo 'cd ../trimesh;  ./run_all.sh'
-echo '----------------------------'
-echo '----------------------------'
 
 
 

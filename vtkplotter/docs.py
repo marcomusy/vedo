@@ -230,9 +230,6 @@ _defs = """
 
 .. |largestregion.py| replace:: largestregion.py
 .. _largestregion.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/largestregion.py
-    :width: 250 px
-    :target: largestregion.py_
-    :alt: largestregion.py
 
 .. |fitplanes.py| replace:: fitplanes.py
 .. _fitplanes.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced/fitplanes.py
@@ -1101,6 +1098,9 @@ _defs = """
     :target: tensors.py_
     :alt: tensors.py
 
+.. |tensor_grid.py| replace:: tensor_grid.py
+.. _tensor_grid.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric/tensor_grid.py
+
 .. |scalarbars.py| replace:: scalarbars.py
 .. _scalarbars.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/scalarbars.py
 .. |scalarbars| image:: https://user-images.githubusercontent.com/32848391/62940174-4bdc7900-bdd3-11e9-9713-e4f3e2fdab63.png
@@ -1182,5 +1182,7 @@ _defs = """
 .. |mesh_lut.py| replace:: mesh_lut.py
 .. _mesh_lut.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_lut.py
 
-    
+.. |elevation| image:: https://user-images.githubusercontent.com/32848391/68478872-3986a580-0231-11ea-8245-b68a683aa295.png
+    :width: 250 px
+
 """
