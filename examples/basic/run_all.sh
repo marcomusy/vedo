@@ -71,6 +71,9 @@ python fitline.py
 echo Running keypress.py
 python keypress.py
 
+echo Running mouseclick.py
+python mouseclick.py
+
 echo Running kspline.py
 python kspline.py
 
@@ -166,9 +169,6 @@ python cutter.py
 
 echo Running texturecubes.py
 python texturecubes.py
-
-echo Running mouseclick.py
-python mouseclick.py
 
 echo Running ribbon.py
 python ribbon.py

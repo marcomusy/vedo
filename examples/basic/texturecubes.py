@@ -12,6 +12,7 @@ print(textures)
 vp = Plotter(N=len(textures), axes=0)
 
 for i, txt in enumerate(textures):
+    if i>30: continue
     cb = Cube().texture(txt)
     tname = Text(txt, pos=3)
     vp.show(cb, tname, at=i)
