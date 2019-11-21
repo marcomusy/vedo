@@ -1,0 +1,16 @@
+2019/11/19
+- added PDV paraview file reading.
+- PDB protein data bank file reader
+- added error bars in plotxy()
+- fast fitting of 2d circles with utils.fitCircle2D()
+- added flag-style pop-up labels for meshes and volumes
+- added settings for resolving polygonal clashes with mesh edges
+- built in set of parametric surfaces in shapes.py module
+- improved plotting2d with error bars
+- added warpMeshToPoint() method
+- improved texture control, can pass texture coords explicitly
+- fix trimesh problem with coloring vertices
+- can use "panel" backend in notebooks
+
+
+

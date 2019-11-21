@@ -79,7 +79,7 @@ def demo3d_hanoi(**kwargs):
     }
     for k in disks:
         vp += disks[k]
-    vp += Box(pos=(3.0, 0, -0.05), length=12.0, width=4.0, height=0.1)
+    vp += Box(pos=(3.0, 0, -.5), length=12.0, width=4.0, height=0.1)
     vp.show(zoom=1.2)
 
     printc("\n Press q to continue, Esc to exit. ", c="y", invert=1)

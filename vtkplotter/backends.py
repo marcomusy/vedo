@@ -253,9 +253,12 @@ def getNotebookBackend(actors2show, zoom, viewup):
 
     ####################################################################################
     elif settings.notebookBackend == 'panel' and hasattr(vp, 'window') and vp.window:
-        import panel # https://panel.pyviz.org/reference/panes/VTK.html
-        settings.notebook_plotter = panel.pane.VTK(vp.window,
-                                                   width=int(vp.size[0]/2),
-                                                   height=int(vp.size[1]/2))
 
+        import panel # https://panel.pyviz.org/reference/panes/VTK.html
+
+        vp.renderer.ResetCamera()
+
+        settings.notebook_plotter = panel.pane.VTK(vp.window,
+                                                   width=int(vp.size[0]/1.5),
+                                                   height=int(vp.size[1]/2))
     return settings.notebook_plotter

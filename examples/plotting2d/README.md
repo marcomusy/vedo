@@ -17,7 +17,9 @@ python example.py
 |    |    |
 | [![fxy](https://user-images.githubusercontent.com/32848391/50738863-bfccf800-11d8-11e9-882d-7b217aceb55a.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/fxy.py)<br/> `fxy.py`                       | Draw a surface representing a function _f(x, y)_ defined as a string/formula or as a reference to an external already existing function. <br/>Red points indicate where the function does not exist. |
 |    |    |
-| [![histo](https://user-images.githubusercontent.com/32848391/68141260-77cc4e00-ff2d-11e9-9280-0efc5b87314d.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/histogram.py)<br/> `histogram.py`         | Draw a 2D histogram with error bars. |
+| [![plotxy](https://user-images.githubusercontent.com/32848391/69158509-d6c1c380-0ae6-11ea-9dbf-ff5cd396a9a6.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/plotxy.py)<br/> `plotxy.py`              | Draw a _x_ vs _y_ plot with optional error bars. |
+|    |    |
+| [![histo](https://user-images.githubusercontent.com/32848391/68141260-77cc4e00-ff2d-11e9-9280-0efc5b87314d.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/histogram.py)<br/> `histogram.py`         | Draw a 2D histogram with optional error bars. |
 |    |    |
 | [![histo2d](https://user-images.githubusercontent.com/32848391/50738861-bfccf800-11d8-11e9-9698-c0b9dccdba4d.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/histoHexagonal.py)<br/> `histoHexagonal.py`    | Make a histogram of two variables with hexagonal binning. |
 |    |    |

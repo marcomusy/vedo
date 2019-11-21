@@ -356,7 +356,15 @@ _defs = """
 .. _histoHexagonal.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/histoHexagonal.py
 .. |histoHexagonal| image:: https://user-images.githubusercontent.com/32848391/50738861-bfccf800-11d8-11e9-9698-c0b9dccdba4d.jpg
     :width: 250 px
+    :target: histoHexagonal.py_
     :alt: histoHexagonal.py
+
+.. |histogram.py| replace:: histogram.py
+.. _histogram.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/histogram.py
+.. |histogram| image:: https://user-images.githubusercontent.com/32848391/68141260-77cc4e00-ff2d-11e9-9280-0efc5b87314d.png
+    :width: 350 px
+    :target: histogram.py_
+    :alt: histogram.py
 
 .. |align3.py| replace:: align3.py
 .. _align3.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/align3.py
@@ -1150,39 +1158,53 @@ _defs = """
     :width: 250 px
     :target: polarHisto.py_
     :alt: polarHisto.py
-    
+
 .. |polarPlot.py| replace:: polarPlot.py
 .. _polarPlot.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/polarPlot.py
 .. |polarPlot| image:: https://user-images.githubusercontent.com/32848391/64992590-7fc82400-d8d4-11e9-9c10-795f4756a73f.png
     :width: 250 px
     :target: polarPlot.py_
     :alt: polarPlot.py
-    
+
 .. |donutPlot.py| replace:: donutPlot.py
 .. _donutPlot.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/donutPlot.py
 .. |donutPlot| image:: https://user-images.githubusercontent.com/32848391/64998178-6f6b7580-d8e3-11e9-9bd8-8dfb9ccd90e4.png
     :width: 250 px
     :target: donutPlot.py_
     :alt: donutPlot.py
-    
+
 .. |extrude.py| replace:: extrude.py
 .. _extrude.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/extrude.py
 .. |extrude| image:: https://user-images.githubusercontent.com/32848391/65963682-971e1a00-e45b-11e9-9f29-05522ae4a800.png
     :width: 250 px
     :target: extrude.py_
     :alt: extrude.py
-    
+
 .. |kspline.py| replace:: kspline.py
 .. _kspline.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/kspline.py
 .. |kspline| image:: https://user-images.githubusercontent.com/32848391/65975805-73fd6580-e46f-11e9-8957-75eddb28fa72.png
     :width: 350 px
     :target: kspline.py_
     :alt: kspline.py
-    
+
 .. |mesh_lut.py| replace:: mesh_lut.py
 .. _mesh_lut.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mesh_lut.py
 
 .. |elevation| image:: https://user-images.githubusercontent.com/32848391/68478872-3986a580-0231-11ea-8245-b68a683aa295.png
     :width: 250 px
+
+.. |paramshapes| image:: https://user-images.githubusercontent.com/32848391/69181075-bb6aae80-0b0e-11ea-92f7-d0cd3b9087bf.png
+    :width: 350 px
+
+.. |warpto| image:: https://user-images.githubusercontent.com/32848391/69259878-3c817e80-0bbf-11ea-9025-03b9f6affccc.png
+    :width: 350 px
+
+.. |plotxy.py| replace:: plotxy.py
+.. _plotxy.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/plotxy.py
+.. |plotxy| image:: https://user-images.githubusercontent.com/32848391/69158509-d6c1c380-0ae6-11ea-9dbf-ff5cd396a9a6.png
+    :width: 350 px
+    :target: plotxy.py_
+    :alt: plotxy.py
+
 
 """

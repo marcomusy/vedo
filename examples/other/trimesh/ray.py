@@ -1,6 +1,8 @@
 import trimesh
 import numpy as np
-from vtkplotter import show
+from vtkplotter import show, settings
+
+settings.useDepthPeeling = True
 
 # test on a sphere mesh
 mesh = trimesh.creation.icosphere()

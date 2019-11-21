@@ -5,7 +5,7 @@ try:
     verstrline = open(VERSIONFILE, "rt").read()
     verstr = verstrline.split('=')[1].replace('\n','').replace("'","")
 except:
-    verstr='unknown_version'
+    verstr='unknown'
 
 ##############################################################
 setup(
@@ -50,11 +50,12 @@ setup(
 # pip install .
 
 # cd examples && ./run_all.sh
+# python tutorial.py
 # cd ~/Projects/vtkplotter/
 # python tests/test_filetypes.py
 
 # check vtkconvert:
-# vtkconvert vtkplotter/data/290.vtk -to ply
+# vtkconvert vtkplotter/data/290.vtk -to ply; vtkplotter vtkplotter/data/290.ply
 
 # check on python2 the same stuff is ok
 # cd ~/Projects/vtkplotter/
@@ -63,7 +64,7 @@ setup(
 
 # check notebooks:
 # cd ~/Projects/vtkplotter/
-# jupyter notebook &
+# jupyter notebook > /dev/null 2>&1
 # remove trailing spaces
 
 # cd ~/Projects/vtkplotter/
@@ -72,7 +73,7 @@ setup(
 # rm examples/other/trimesh/featuretype.STL examples/other/trimesh/machinist.XAML
 # rm examples/other/scene.npy examples/other/timecourse1d.npy vtkplotter/data/290.ply
 # rm examples/other/voronoi3d.txt examples/other/voronoi3d.txt.vol
-# rm examples/other/embryo.html examples/other/embryo.x3d timecourse1d.npy
+# rm examples/other/embryo.html examples/other/embryo.x3d 
 
 # git status
 # git add [files]

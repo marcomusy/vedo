@@ -68,6 +68,7 @@ __all__ = [
     "euclideanDistanceVolume",
     "volumeToPoints",
     "volumeCorrelation",
+    "warpMeshToPoint",
 ]
 
 
@@ -879,7 +880,7 @@ def surfaceIntersection(actor1, actor2, tol=1e-06):
     actor.GetProperty().SetLineWidth(3)
     return actor
 
-################################################## working with volumes
+
 def _getimg(obj):
     if isinstance(obj, vtk.vtkVolume):
         return obj.GetMapper().GetInput()
@@ -1132,6 +1133,39 @@ def thinPlateSpline(actor, sourcePts, targetPts, userFunctions=(None, None), sig
     tfa = transformFilter(actor.polydata(), transform)
     tfa.info["transform"] = transform
     return tfa
+
+
+def warpMeshToPoint(actor, point, factor=0.1, absolute=True):
+    """
+    Modify the mesh coordinates by moving the vertices towards a specified point.
+
+    :param float factor: value to scale displacement.
+    :param list point: the position to warp towards.
+    :param bool absolute: turning on causes scale factor of the new position
+        to be one unit away from point.
+
+    :Example:
+        .. code-block:: python
+
+            from vtkplotter import *
+            s = Cylinder(height=3).wireframe(1)
+            pt = [4,0,0]
+            w = warpMeshToPoint(s, pt, factor=0.5).wireframe(0)
+            show(w,s, Point(pt), axes=1, bg='w')
+
+        |warpto|
+    """
+    warpTo = vtk.vtkWarpTo()
+    warpTo.SetInputData(actor.polydata())
+    warpTo.SetPosition(point)
+    warpTo.SetScaleFactor(factor)
+    warpTo.SetAbsolute(absolute)
+    warpTo.Update()
+    prop = vtk.vtkProperty()
+    prop.DeepCopy(actor.GetProperty())
+    a = Actor(warpTo.GetOutput())
+    a.SetProperty(prop)
+    return a
 
 
 def transformFilter(actor, transformation):

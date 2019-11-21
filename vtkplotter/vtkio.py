@@ -230,6 +230,9 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
     elif fl.endswith(".pvd"):
         return loadPVD(fl)
 
+    elif fl.endswith(".pdb"):
+        return loadPDB(fl)
+
         ################################################################# polygonal mesh:
     else:
         if fl.endswith(".vtk"): # read all legacy vtk types
@@ -532,7 +535,7 @@ def loadPVD(filename):
     import xml.etree.ElementTree as et
 
     tree = et.parse(filename)
-    
+
     dname = os.path.dirname(filename)
     if not dname:
         dname = '.'
@@ -552,6 +555,21 @@ def loadPVD(filename):
         return None
     else:
         return listofobjs
+
+
+def loadPDB(filename, bondScale=1, hydrogenBondScale=1, coilWidth=0.3, helixWidth=1.3):
+    """Reads a molecule Protein Data Bank file."""
+    rr = vtk.vtkPDBReader()
+    rr.SetFileName('1btn.pdb')
+    rr.SetBScale(bondScale)
+    rr.SetHBScale(hydrogenBondScale)
+    rr.Update()
+    prf = vtk.vtkProteinRibbonFilter()
+    prf.SetCoilWidth(coilWidth)
+    prf.SetHelixWidth(helixWidth)
+    prf.SetInputData(rr.GetOutput())
+    prf.Update()
+    return Actor(prf.GetOutput())
 
 
 def loadNeutral(filename):

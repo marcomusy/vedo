@@ -15,6 +15,9 @@ python colorpalette.py
 echo Running printc.py
 python printc.py
 
+echo Running flag_labels.py
+python flag_labels.py
+
 echo Running icon.py
 python icon.py
 

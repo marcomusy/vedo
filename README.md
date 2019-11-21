@@ -23,6 +23,11 @@ on the desktop to *drag&drop* files to visualize.
 ## Documentation
 Automatically generated documentation can be found [**here**](https://vtkplotter.embl.es).
 
+#### Need help?
+Have any question, or wish to suggest or ask for a missing feature?
+Do not hesitate to open a [**issue**](https://github.com/marcomusy/vtkplotter/issues)
+or send an [email](mailto:marco.musy@embl.es).
+
 ## Features
 
 Intuitive and straightforward API which can be combined with VTK seamlessly 

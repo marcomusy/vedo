@@ -12,6 +12,9 @@ echo
 echo Running annotations.py
 python annotations.py    
 
+echo Running axesStyle.py
+python axesStyle.py
+
 echo Running customAxes.py
 python customAxes.py
 

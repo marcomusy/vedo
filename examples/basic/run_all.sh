@@ -170,6 +170,9 @@ python cutter.py
 echo Running texturecubes.py
 python texturecubes.py
 
+echo Running texture_coords.py
+python texture_coords.py
+
 echo Running ribbon.py
 python ribbon.py
 

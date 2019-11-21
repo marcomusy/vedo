@@ -88,10 +88,10 @@ vtkplotter
 
 
 ##################################### not run/ignored:
-#basic/lights.py
-#plotting2d/text_just.py
-#other/makeVideo.py
-#other/spherical_harmonics2.py
-#other/remesh_ACVD.py
-#other/tf_learn_embryo.py
-#other/self_org_maps3d.py
+# examples/basic/lights.py
+# examples/plotting2d/text_just.py
+# examples/other/makeVideo.py
+# examples/other/spherical_harmonics2.py
+# examples/other/remesh_ACVD.py
+# examples/other/tf_learn_embryo.py
+# examples/other/self_org_maps3d.py

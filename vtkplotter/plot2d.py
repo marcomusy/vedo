@@ -33,6 +33,8 @@ __all__ = [
 
 def plotxy(
     data,
+    xerrors=None,
+    yerrors=None,
     xlimits=None,
     ylimits=None,
     xscale=1,
@@ -45,8 +47,10 @@ def plotxy(
     ytitle="y",
     title="",
     titleSize=None,
+    ec=None,
     lc="k",
     lw=2,
+    line=True,
     dashed=False,
     splined=False,
     marker=None,
@@ -56,9 +60,39 @@ def plotxy(
 ):
     """Draw a 2D plot of variable x vs y.
 
-    """
+    :param list data: input format can be [allx, ally] or [(x1,y1), (x2,y2), ...]
 
+    :param list xerrors: set uncertainties for the x variable, shown as error bars.
+    :param list yerrors: set uncertainties for the y variable, shown as error bars.
+    :param list xlimits: set limits to the range for the x variable
+    :param list ylimits: set limits to the range for the y variable
+    :param float xscale: set scaling factor in x. Default is 1.
+    :param float yscale: set scaling factor in y. Automatically calculated to get
+        a reasonable aspect ratio. Scaling factor is saved in `info['yscale']`.
+
+    :param bool xlogscale: set x logarithmic scale.
+    :param bool ylogscale: set y logarithmic scale.
+    :param str c: color of frame and text.
+    :param float alpha: opacity of frame and text.
+    :param str xtitle: title label along x-axis.
+    :param str ytitle: title label along y-axis.
+    :param str title: histogram title on top.
+    :param float titleSize: size of title
+    :param str ec: color of error bar, by default the same as marker color
+    :param str lc: color of line
+    :param float lw: width of line
+    :param bool line: join points with line
+    :param bool dashed: use a dashed line style
+    :param bool splined: spline the line joining the point as a countinous curve
+    :param str,int marker: use a marker shape for the data points
+    :param float ms: marker size.
+    :param str mc: color of marker
+    :param float ma: opacity of marker
+
+    |plotxy| |plotxy.py|_
+    """
     if len(data) == 2 and len(data[0])>1 and len(data[0]) == len(data[1]):
+        #format is [allx, ally], convert it:
         data = np.c_[data[0], data[1]]
 
     if xlimits is not None:
@@ -112,11 +146,13 @@ def plotxy(
     acts = []
     if dashed:
         l = shapes.DashedLine(data, lw=lw, spacing=20)
+        acts.append(l)
     elif splined:
         l = shapes.KSpline(data).lw(lw).c(lc)
-    else:
+        acts.append(l)
+    elif line:
         l = shapes.Line(data, lw=lw, c=lc)
-    acts.append(l)
+        acts.append(l)
 
     if marker:
         if ms is None:
@@ -127,6 +163,37 @@ def plotxy(
         pts = shapes.Points(data)
         marked = shapes.Glyph(pts, glyphObj=mk, c=mc)
         acts.append(marked)
+
+    if ec is None:
+        if mc is not None:
+            ec = mc
+        else:
+            ec = lc
+        offs = (x1-x0)/1000
+
+    if yerrors is not None:
+        if len(yerrors) != len(data):
+            colors.printc("Error in plotxy(yerrors=...): mismatched array length.", c=1)
+            return None
+        errs = []
+        for i in range(len(data)):
+            xval, yval = data[i]
+            yerr = yerrors[i]/2*yscale
+            errs.append(shapes.Line((xval, yval-yerr, offs), (xval, yval+yerr, offs)))
+        myerrs = merge(errs).c(ec).lw(lw).alpha(alpha)
+        acts.append(myerrs)
+
+    if xerrors is not None:
+        if len(xerrors) != len(data):
+            colors.printc("Error in plotxy(xerrors=...): mismatched array length.", c=1)
+            return None
+        errs = []
+        for i in range(len(data)):
+            xval, yval = data[i]
+            xerr = xerrors[i]/2
+            errs.append(shapes.Line((xval-xerr, yval, offs), (xval+xerr, yval, offs)))
+        mxerrs = merge(errs).c(ec).lw(lw).alpha(alpha)
+        acts.append(mxerrs)
 
     x0lim = x0
     x1lim = x1
@@ -173,14 +240,9 @@ def cornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True):
     :param int pos: assign position:
 
         - 1, topleft,
-
         - 2, topright,
-
         - 3, bottomleft,
-
         - 4, bottomright.
-
-    .. hint:: Example: |fitspheres1.py|_
     """
     if len(points) == 2:  # passing [allx, ally]
         points = list(zip(points[0], points[1]))
@@ -258,8 +320,6 @@ def cornerHistogram(
         - 3, bottomleft,
         - 4, bottomright,
         - (x, y), as fraction of the rendering window
-
-    .. hint:: Example: |fitplanes.py|_
     """
     fs, edges = np.histogram(values, bins=bins, range=vrange)
     if minbin:
@@ -312,6 +372,8 @@ def histogram(
     :param float gap: leave a small space btw bars.
     :param bool outline: show outline of the bins.
     :param bool errors: show error bars.
+
+    |histogram| |histogram.py|_
     """
     if xtitle:
         from vtkplotter import settings

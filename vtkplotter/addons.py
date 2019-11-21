@@ -1445,8 +1445,10 @@ def addAxes(axtype=None, c=None):
         rx, ry, rz = (vbb[1]-vbb[0])/2, (vbb[3]-vbb[2])/2, (vbb[5]-vbb[4])/2
         rm = max(rx, ry, rz)
         xc = shapes.Disc(x0, r1=rm, r2=rm, c='lr', res=1, resphi=72)
-        yc = shapes.Disc(x0, r1=rm, r2=rm, c='lg', res=1, resphi=72).RotateX(90)
-        zc = shapes.Disc(x0, r1=rm, r2=rm, c='lb', res=1, resphi=72).RotateY(90)
+        yc = shapes.Disc(x0, r1=rm, r2=rm, c='lg', res=1, resphi=72)
+        yc.RotateX(90)
+        zc = shapes.Disc(x0, r1=rm, r2=rm, c='lb', res=1, resphi=72)
+        yc.RotateY(90)
         xc.clean().alpha(0.2).wireframe().lineWidth(2.5).PickableOff()
         yc.clean().alpha(0.2).wireframe().lineWidth(2.5).PickableOff()
         zc.clean().alpha(0.2).wireframe().lineWidth(2.5).PickableOff()

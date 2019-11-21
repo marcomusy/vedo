@@ -4,7 +4,7 @@ import numpy as np
 from vtkplotter import settings
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 import vtkplotter.utils as utils
-import vtkplotter.colors as colors
+from vtkplotter.colors import printc, getColor, colorMap, _mapscales
 from vtkplotter.actors import Actor, Assembly
 import vtkplotter.docs as docs
 
@@ -32,6 +32,8 @@ __all__ = [
     "Polygon",
     "Rectangle",
     "Disc",
+    "Circle",
+    "Arc",
     "Star",
     "Sphere",
     "Spheres",
@@ -52,20 +54,22 @@ __all__ = [
     "Latex",
     "Glyph",
     "Tensors",
+    "ParametricShape",
 ]
 
 
 ########################################################################
 def Marker(symbol, c='lb', alpha=1, s=0.1, filled=True):
     """
-    Generate a marker shape. Can be used in association with ``Glyph``.
+    Generate a marker shape.
+    Can be used in association with ``Glyph``.
     """
     if isinstance(symbol, int):
         symbs = ['.', 'p','*','h','D','d','o','v','^','>','<','s', 'x', 'a']
         symbol = symbs[s]
 
     if symbol == '.':
-        actor = Polygon(nsides=24, r=s)
+        actor = Polygon(nsides=24, r=s*0.75)
     elif symbol == 'p':
         actor = Polygon(nsides=5, r=s)
     elif symbol == '*':
@@ -75,9 +79,9 @@ def Marker(symbol, c='lb', alpha=1, s=0.1, filled=True):
     elif symbol == 'D':
         actor = Polygon(nsides=4, r=s)
     elif symbol == 'd':
-        actor = Polygon(nsides=4, r=s).scale([0.5,1,1])
+        actor = Polygon(nsides=4, r=s*1.1).scale([0.5,1,1])
     elif symbol == 'o':
-        actor = Polygon(nsides=24, r=s)
+        actor = Polygon(nsides=24, r=s*0.75)
     elif symbol == 'v':
         actor = Polygon(nsides=3, r=s).rotateZ(180)
     elif symbol == '^':
@@ -92,10 +96,11 @@ def Marker(symbol, c='lb', alpha=1, s=0.1, filled=True):
         actor = Text('+', pos=(0,0,0), s=s*2.6, justify='center', depth=0)
         actor.rotateZ(45)
     elif symbol == 'a':
-        actor = Text('*', pos=(0,0,0), s=s*2.6, justify='center', depth=0)
+        actor = Text('*', pos=(0,0,0), s=s*3, justify='center', depth=0)
     else:
-        actor = Text(symbol, pos=(0,0,0), s=s*2.5, justify='center', depth=0)
+        actor = Text(symbol, pos=(0,0,0), s=s*2, justify='center', depth=0)
     actor.flat().lighting('ambient').wireframe(not filled).c(c).alpha(alpha)
+    actor.name = "Marker"
     return actor
 
 
@@ -105,7 +110,9 @@ def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
         pos = (pos[0], pos[1], 0)
     if isinstance(pos, vtk.vtkActor):
         pos = pos.GetPosition()
-    return Points([pos], r, c, alpha)
+    actor = Points([pos], r, c, alpha)
+    actor.name = "Point"
+    return actor
 
 
 def Points(plist, r=5, c="gold", alpha=1):
@@ -178,12 +185,13 @@ def Points(plist, r=5, c="gold", alpha=1):
             actor.SetPosition(plist[0])
 
     settings.collectable_actors.append(actor)
+    actor.name = "Points"
     return actor
 
 def _PointsColors(plist, r, cols, alpha):
     n = len(plist)
     if n != len(cols):
-        colors.printc("~times mismatch in Points() colors", n, len(cols), c=1)
+        printc("~times mismatch in Points() colors", n, len(cols), c=1)
         raise RuntimeError()
     src = vtk.vtkPointSource()
     src.SetNumberOfPoints(n)
@@ -199,7 +207,7 @@ def _PointsColors(plist, r, cols, alpha):
     ucols.SetName("pointsRGBA")
     if utils.isSequence(alpha):
         if len(alpha) != n:
-            colors.printc("~times mismatch in Points() alphas", n, len(alpha), c=1)
+            printc("~times mismatch in Points() alphas", n, len(alpha), c=1)
             raise RuntimeError()
         alphas = alpha
         alpha = 1
@@ -214,7 +222,7 @@ def _PointsColors(plist, r, cols, alpha):
                 ucols.InsertNextTuple4(rc, gc, bc, ac)
         else:
             for i in range(n): # SLOW
-                rc,gc,bc = colors.getColor(cols[i])
+                rc,gc,bc = getColor(cols[i])
                 ucols.InsertNextTuple4(rc*255, gc*255, bc*255, alphas[i]*255)
     else:
         c = cols
@@ -247,7 +255,7 @@ def Glyph(actor, glyphObj, orientationArray=None,
     """
     cmap = None
     # user passing a color map to map orientationArray sizes
-    if c in list(colors._mapscales.cmap_d.keys()):
+    if c in list(_mapscales.cmap_d.keys()):
         cmap = c
         c = None
 
@@ -261,7 +269,7 @@ def Glyph(actor, glyphObj, orientationArray=None,
         ucols.SetNumberOfComponents(3)
         ucols.SetName("glyphRGB")
         for col in c:
-            cl = colors.getColor(col)
+            cl = getColor(col)
             ucols.InsertNextTuple3(cl[0]*255, cl[1]*255, cl[2]*255)
         poly.GetPointData().SetScalars(ucols)
         c = None
@@ -312,7 +320,7 @@ def Glyph(actor, glyphObj, orientationArray=None,
         lut.SetNumberOfTableValues(512)
         lut.Build()
         for i in range(512):
-            r, g, b = colors.colorMap(i, cmap, 0, 512)
+            r, g, b = colorMap(i, cmap, 0, 512)
             lut.SetTableValue(i, r, g, b, 1)
         gactor.mapper.SetLookupTable(lut)
         gactor.mapper.ScalarVisibilityOn()
@@ -321,6 +329,7 @@ def Glyph(actor, glyphObj, orientationArray=None,
         gactor.mapper.SetScalarRange(rng[0], rng[1])
 
     settings.collectable_actors.append(gactor)
+    gactor.name = "Glyph"
     return gactor
 
 
@@ -408,7 +417,9 @@ def Tensors(domain, source='ellipsoid', useEigenValues=True, isSymmetric=True,
     tgn = vtk.vtkPolyDataNormals()
     tgn.SetInputData(tg.GetOutput())
     tgn.Update()
-    return Actor(tgn.GetOutput(), c, alpha)
+    actor = Actor(tgn.GetOutput(), c, alpha)
+    actor.name = "Tensors"
+    return actor
 
 
 def Line(p0, p1=None, c="r", alpha=1, lw=1, dotted=False, res=None):
@@ -466,6 +477,7 @@ def Line(p0, p1=None, c="r", alpha=1, lw=1, dotted=False, res=None):
     actor.base = np.array(p0)
     actor.top = np.array(p1)
     settings.collectable_actors.append(actor)
+    actor.name = "Line"
     return actor
 
 
@@ -531,6 +543,7 @@ def DashedLine(p0, p1=None, spacing=None, c="red", alpha=1, lw=1):
     actor.base = np.array(p0)
     actor.top = np.array(p1)
     settings.collectable_actors.append(actor)
+    actor.name = "DashedLine"
     return actor
 
 
@@ -569,6 +582,7 @@ def Lines(startPoints, endPoints=None, c='gray', alpha=1, lw=1, dotted=False, sc
         actor.GetProperty().SetLineStippleRepeatFactor(1)
 
     settings.collectable_actors.append(actor)
+    actor.name = "Lines"
     return actor
 
 
@@ -617,6 +631,7 @@ def Spline(points, smooth=0.5, degree=2, s=2, res=None):
     actline.base = np.array(points[0])
     actline.top = np.array(points[-1])
     settings.collectable_actors.append(actline)
+    actline.name = "Spline"
     return actline
 
 
@@ -667,6 +682,7 @@ def KSpline(points,
     actor.base = np.array(points[0])
     actor.top = np.array(points[-1])
     settings.collectable_actors.append(actor)
+    actor.name = "KSpline"
     return actor
 
 
@@ -713,7 +729,7 @@ def Tube(points, r=1, c="r", alpha=1, res=12):
         cc.SetNumberOfComponents(3)
         cc.SetNumberOfTuples(len(c))
         for i, ic in enumerate(c):
-            r, g, b = colors.getColor(ic)
+            r, g, b = getColor(ic)
             cc.InsertTuple3(i, int(255 * r), int(255 * g), int(255 * b))
         polyln.GetPointData().AddArray(cc)
         c = None
@@ -729,6 +745,7 @@ def Tube(points, r=1, c="r", alpha=1, res=12):
     actor.base = np.array(points[0])
     actor.top = np.array(points[-1])
     settings.collectable_actors.append(actor)
+    actor.name = "Tube"
     return actor
 
 
@@ -794,6 +811,7 @@ def Ribbon(line1, line2, c="m", alpha=1, res=(200, 5)):
     rsf.Update()
     actor = Actor(rsf.GetOutput(), c, alpha)
     settings.collectable_actors.append(actor)
+    actor.name = "Ribbon"
     return actor
 
 
@@ -824,6 +842,7 @@ def FlatArrow(line1, line2, c="m", alpha=1, tipSize=1, tipWidth=1):
     actor = Ribbon(line1, line2, alpha=alpha, c=c, res=(resm, 1)).phong()
     settings.collectable_actors.pop()
     settings.collectable_actors.append(actor)
+    actor.name = "FlatArrow"
     return actor
 
 
@@ -876,6 +895,7 @@ def Arrow(startPoint, endPoint, s=None, c="r", alpha=1, res=12):
     actor.base = np.array(startPoint)
     actor.top = np.array(endPoint)
     settings.collectable_actors.append(actor)
+    actor.name = "Arrow"
     return actor
 
 
@@ -918,6 +938,7 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12)
                  orientationArray=orients, scaleByVectorSize=True,
                  c=c, alpha=alpha).flat()
     settings.collectable_actors.append(arrg)
+    arrg.name = "Arrows"
     return arrg
 
 
@@ -934,7 +955,20 @@ def Polygon(pos=(0, 0, 0), nsides=6, r=1, c="coral", alpha=1):
     actor = Actor(ps.GetOutput(), c, alpha)
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
+    actor.name = "Polygon"
     return actor
+
+
+def Circle(pos=(0, 0, 0), r=1, fill=False, c="grey", alpha=1, res=120):
+    """
+    Build a circle of radius `r`.
+    """
+    if len(pos) == 2:
+        pos = (pos[0], pos[1], 0)
+    pl = Polygon(pos, nsides=res, r=r)
+    pl.wireframe(not fill).alpha(alpha).c(c)
+    pl.name = "Circle"
+    return pl
 
 
 def Star(pos=(0, 0, 0), n=5, r1=0.7, r2=1.0, line=False, c="lb", alpha=1):
@@ -972,6 +1006,7 @@ def Star(pos=(0, 0, 0), n=5, r1=0.7, r2=1.0, line=False, c="lb", alpha=1):
 
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
+    actor.name = "Star"
     return actor
 
 
@@ -982,8 +1017,9 @@ def Rectangle(p1=(0, 0, 0), p2=(2, 1, 0), lw=1, c="g", alpha=1):
     pos = (p1 + p2) / 2
     length = abs(p2[0] - p1[0])
     height = abs(p2[1] - p1[1])
-    return Plane(pos, [0, 0, 1], length, height, c, alpha)
-
+    actor = Plane(pos, [0, 0, 1], length, height, c, alpha)
+    actor.name = "Rectangle"
+    return actor
 
 def Disc(
     pos=(0, 0, 0),
@@ -1010,6 +1046,50 @@ def Disc(
     actor = Actor(ps.GetOutput(), c, alpha).flat()
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
+    actor.name = "Disc"
+    return actor
+
+
+def Arc(
+    center,
+    point1,
+    point2=None,
+    normal=None,
+    angle=None,
+    invert=False,
+    c="grey",
+    alpha=1,
+    res=48,
+):
+    """
+    Build a 2D circular arc between points `point1` and `point2`.
+    If `normal` is specified then `center` is ignored, and
+    normal vector, a starting `point1` (polar vector)
+    and an angle defining the arc length need to be assigned.
+
+    Arc spans the shortest angular sector point1 and point2,
+    if invert=True, then the opposite happens.
+    """
+    ar = vtk.vtkArcSource()
+    if point2 is not None:
+        ar.UseNormalAndAngleOff()
+        ar.SetPoint1(point1)
+        ar.SetPoint2(point2)
+        ar.SetCenter(center)
+    elif normal is not None and angle is not None:
+        ar.UseNormalAndAngleOn()
+        ar.SetAngle(angle)
+        ar.SetPolarVector(point1)
+        ar.SetNormal(normal)
+    else:
+        printc("Error in Arc(): incorrect input.")
+        return None
+    ar.SetNegative(invert)
+    ar.SetResolution(res)
+    ar.Update()
+    actor = Actor(ar.GetOutput(), c, alpha).flat().lw(2)
+    settings.collectable_actors.append(actor)
+    actor.name = "Arc"
     return actor
 
 
@@ -1026,6 +1106,7 @@ def Sphere(pos=(0, 0, 0), r=1, c="r", alpha=1, res=24):
     actor = Actor(ss.GetOutput(), c, alpha).phong()
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
+    actor.name = "Sphere"
     return actor
 
 
@@ -1044,10 +1125,10 @@ def Spheres(centers, r=1, c="r", alpha=1, res=8):
 
     if cisseq:
         if len(centers) > len(c):
-            colors.printc("~times Mismatch in Spheres() colors", len(centers), len(c), c=1)
+            printc("~times Mismatch in Spheres() colors", len(centers), len(c), c=1)
             raise RuntimeError()
         if len(centers) != len(c):
-            colors.printc("~lightningWarning: mismatch in Spheres() colors", len(centers), len(c))
+            printc("~lightningWarning: mismatch in Spheres() colors", len(centers), len(c))
 
     risseq = False
     if utils.isSequence(r):
@@ -1055,12 +1136,12 @@ def Spheres(centers, r=1, c="r", alpha=1, res=8):
 
     if risseq:
         if len(centers) > len(r):
-            colors.printc("times Mismatch in Spheres() radius", len(centers), len(r), c=1)
+            printc("times Mismatch in Spheres() radius", len(centers), len(r), c=1)
             raise RuntimeError()
         if len(centers) != len(r):
-            colors.printc("~lightning Warning: mismatch in Spheres() radius", len(centers), len(r))
+            printc("~lightning Warning: mismatch in Spheres() radius", len(centers), len(r))
     if cisseq and risseq:
-        colors.printc("~noentry Limitation: c and r cannot be both sequences.", c=1)
+        printc("~noentry Limitation: c and r cannot be both sequences.", c=1)
         raise RuntimeError()
 
     src = vtk.vtkSphereSource()
@@ -1086,7 +1167,7 @@ def Spheres(centers, r=1, c="r", alpha=1, res=8):
         ucols.SetName("colors")
         for i, p in enumerate(centers):
             vpts.SetPoint(i, p)
-            cx, cy, cz = colors.getColor(c[i])
+            cx, cy, cz = getColor(c[i])
             ucols.InsertNextTuple3(cx * 255, cy * 255, cz * 255)
         pd.GetPointData().SetScalars(ucols)
         glyph.ScalingOff()
@@ -1110,12 +1191,13 @@ def Spheres(centers, r=1, c="r", alpha=1, res=8):
         actor.mapper.ScalarVisibilityOn()
     else:
         actor.mapper.ScalarVisibilityOff()
-        actor.GetProperty().SetColor(colors.getColor(c))
+        actor.GetProperty().SetColor(getColor(c))
     settings.collectable_actors.append(actor)
+    actor.name = "Spheres"
     return actor
 
 
-def Earth(pos=(0, 0, 0), r=1, lw=1):
+def Earth(pos=(0, 0, 0), r=1, lw=0):
     """Build a textured actor representing the Earth.
 
     |geodesic| |geodesic.py|_
@@ -1126,10 +1208,7 @@ def Earth(pos=(0, 0, 0), r=1, lw=1):
     tss.SetRadius(r)
     tss.SetThetaResolution(72)
     tss.SetPhiResolution(36)
-    earthMapper = vtk.vtkPolyDataMapper()
-    earthMapper.SetInputConnection(tss.GetOutputPort())
-    earthActor = Actor(c="w")
-    earthActor.SetMapper(earthMapper)
+    earthActor = Actor(tss, c="w")
     atext = vtk.vtkTexture()
     pnmReader = vtk.vtkPNMReader()
     cdir = os.path.dirname(__file__)
@@ -1142,19 +1221,20 @@ def Earth(pos=(0, 0, 0), r=1, lw=1):
     earthActor.SetTexture(atext)
     if not lw:
         earthActor.SetPosition(pos)
+        settings.collectable_actors.append(earthActor)
+        earthActor.name = "Earth"
         return earthActor
-    es = vtk.vtkEarthSource()
-    es.SetRadius(r / 0.995)
-    earth2Mapper = vtk.vtkPolyDataMapper()
-    earth2Mapper.SetInputConnection(es.GetOutputPort())
-    earth2Actor = Actor()
-    earth2Actor.SetMapper(earth2Mapper)
-    earth2Mapper.ScalarVisibilityOff()
-    earth2Actor.GetProperty().SetLineWidth(lw)
-    ass = Assembly([earthActor, earth2Actor])
-    ass.SetPosition(pos)
-    settings.collectable_actors.append(ass)
-    return ass
+    else:
+        es = vtk.vtkEarthSource()
+        es.SetOnRatio(2)
+        es.SetRadius(r / 0.995)
+        earth2Actor = Actor(es)
+        earth2Actor.GetProperty().SetLineWidth(lw)
+        asse = Assembly([earthActor, earth2Actor])
+        asse.SetPosition(pos)
+        settings.collectable_actors.append(asse)
+        asse.name = "Earth"
+        return asse
 
 
 def Ellipsoid(pos=(0, 0, 0), axis1=(1, 0, 0), axis2=(0, 2, 0), axis3=(0, 0, 3),
@@ -1198,6 +1278,7 @@ def Ellipsoid(pos=(0, 0, 0), axis1=(1, 0, 0), axis2=(0, 2, 0), axis3=(0, 0, 3),
     actor.base = -np.array(axis1) / 2 + pos
     actor.top = np.array(axis1) / 2 + pos
     settings.collectable_actors.append(actor)
+    actor.name = "Ellipsoid"
     return actor
 
 
@@ -1241,6 +1322,7 @@ def Grid(
     actor = Actor(tf.GetOutput(), c, alpha).wireframe().lw(lw)
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
+    actor.name = "Grid"
     return actor
 
 
@@ -1274,6 +1356,7 @@ def Plane(pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g", alpha=1):
     actor = Actor(tf.GetOutput(), c, alpha)
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
+    actor.name = "Plane"
     return actor
 
 
@@ -1295,6 +1378,7 @@ def Box(pos=(0,0,0), length=1, width=2, height=3, size=(), c="g", alpha=1):
     actor = Actor(pd, c, alpha)
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
+    actor.name = "Box"
     return actor
 
 
@@ -1303,7 +1387,9 @@ def Cube(pos=(0, 0, 0), side=1, c="g", alpha=1):
 
     |colorcubes| |colorcubes.py|_
     """
-    return Box(pos, side, side, side, (), c, alpha)
+    actor = Box(pos, side, side, side, (), c, alpha)
+    actor.name = "Cube"
+    return actor
 
 
 def Spring(
@@ -1367,10 +1453,11 @@ def Spring(
     actor.base = np.array(startPoint)
     actor.top = np.array(endPoint)
     settings.collectable_actors.append(actor)
+    actor.name = "Spring"
     return actor
 
 
-def Cylinder(pos=(0,0,0), r=1, height=1, axis=(0,0,1), c="teal", alpha=1, res=24):
+def Cylinder(pos=(0,0,0), r=1, height=2, axis=(0,0,1), c="teal", alpha=1, res=24):
     """
     Build a cylinder of specified height and radius `r`, centered at `pos`.
 
@@ -1416,6 +1503,7 @@ def Cylinder(pos=(0,0,0), r=1, height=1, axis=(0,0,1), c="teal", alpha=1, res=24
     actor.base = base + pos
     actor.top = top + pos
     settings.collectable_actors.append(actor)
+    actor.name = "Cylinder"
     return actor
 
 
@@ -1437,6 +1525,7 @@ def Cone(pos=(0,0,0), r=1, height=3, axis=(0,0,1), c="dg", alpha=1, res=48):
     actor.base = pos - v
     actor.top = pos + v
     settings.collectable_actors.append(actor)
+    actor.name = "Cone"
     return actor
 
 
@@ -1444,7 +1533,9 @@ def Pyramid(pos=(0,0,0), s=1, height=1, axis=(0,0,1), c="dg", alpha=1):
     """
     Build a pyramid of specified base size `s` and `height`, centered at `pos`.
     """
-    return Cone(pos, s, height, axis, c, alpha, 4)
+    actor = Cone(pos, s, height, axis, c, alpha, 4)
+    actor.name = "Pyramid"
+    return actor
 
 
 def Torus(pos=(0, 0, 0), r=1, thickness=0.2, c="khaki", alpha=1, res=30):
@@ -1461,10 +1552,10 @@ def Torus(pos=(0, 0, 0), r=1, thickness=0.2, c="khaki", alpha=1, res=30):
     pfs.SetUResolution(res * 3)
     pfs.SetVResolution(res)
     pfs.Update()
-
     actor = Actor(pfs.GetOutput(), c, alpha).phong()
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
+    actor.name = "Torus"
     return actor
 
 
@@ -1496,6 +1587,7 @@ def Paraboloid(pos=(0,0,0), r=1, height=1, c="cyan", alpha=1, res=50):
     actor.mapper.ScalarVisibilityOff()
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
+    actor.name = "Paraboloid"
     return actor
 
 
@@ -1526,6 +1618,7 @@ def Hyperboloid(pos=(0,0,0), a2=1, value=0.5, height=1, c="m", alpha=1, res=100)
     actor.mapper.ScalarVisibilityOff()
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
+    actor.name = "Hyperboloid"
     return actor
 
 
@@ -1630,7 +1723,7 @@ def Text(
         ca.SetText(pos - 1, str(txt))
         ca.PickableOff()
         cap = ca.GetTextProperty()
-        cap.SetColor(colors.getColor(c))
+        cap.SetColor(getColor(c))
         if font.lower() == "courier": cap.SetFontFamilyToCourier()
         elif font.lower() == "times": cap.SetFontFamilyToTimes()
         elif font.lower() == "arial": cap.SetFontFamilyToArial()
@@ -1638,7 +1731,7 @@ def Text(
             cap.SetFontFamily(vtk.VTK_FONT_FILE)
             cap.SetFontFile(settings.fonts_path+font+'.ttf')
         if bg:
-            bgcol = colors.getColor(bg)
+            bgcol = getColor(bg)
             cap.SetBackgroundColor(bgcol)
             cap.SetBackgroundOpacity(alpha * 0.5)
             cap.SetFrameColor(bgcol)
@@ -1655,7 +1748,7 @@ def Text(
         tp = tmapper.GetTextProperty()
         tp.BoldOff()
         tp.SetFontSize(s*20)
-        tp.SetColor(colors.getColor(c))
+        tp.SetColor(getColor(c))
         tp.SetJustificationToLeft()
         tp.SetVerticalJustificationToBottom()
         if font.lower() == "courier": tp.SetFontFamilyToCourier()
@@ -1669,11 +1762,11 @@ def Text(
             elif os.path.exists(font):
                 tp.SetFontFile(font)
             else:
-                colors.printc("~sad Font", font, "not found in", settings.fonts_path, c="r")
-                colors.printc("~pin Available fonts are:", settings.fonts, c="m")
+                printc("~sad Font", font, "not found in", settings.fonts_path, c="r")
+                printc("~pin Available fonts are:", settings.fonts, c="m")
                 return None
         if bg:
-            bgcol = colors.getColor(bg)
+            bgcol = getColor(bg)
             tp.SetBackgroundColor(bgcol)
             tp.SetBackgroundOpacity(alpha * 0.5)
             tp.SetFrameColor(bgcol)
@@ -1723,6 +1816,7 @@ def Text(
 
         ttactor.SetPosition(pos)
         settings.collectable_actors.append(ttactor)
+        ttactor.name = "Text"
         return ttactor
 
 
@@ -1768,7 +1862,7 @@ def Latex(
                 f.write(r.content)
                 f.close()
             except requests.exceptions.ConnectionError:
-                colors.printc('Latex error. Web site unavailable?', wsite, c=1)
+                printc('Latex error. Web site unavailable?', wsite, c=1)
                 return None
 
         def build_img_plt(formula, tfile):
@@ -1778,9 +1872,9 @@ def Latex(
 
             formula1 = '$'+formula+'$'
             plt.axis('off')
-            col = colors.getColor(c)
+            col = getColor(c)
             if bg:
-                bx = dict(boxstyle="square", ec=col, fc=colors.getColor(bg))
+                bx = dict(boxstyle="square", ec=col, fc=getColor(bg))
             else:
                 bx = None
             plt.text(0.5, 0.5, formula1,
@@ -1816,10 +1910,97 @@ def Latex(
             pass
 
     except:
-        colors.printc('Error in Latex()\n', formula, c=1)
-        colors.printc(' latex or dvipng not installed?', c=1)
-        colors.printc(' Try: usetex=False' , c=1)
-        colors.printc(' Try: sudo apt install dvipng' , c=1)
+        printc('Error in Latex()\n', formula, c=1)
+        printc(' latex or dvipng not installed?', c=1)
+        printc(' Try: usetex=False' , c=1)
+        printc(' Try: sudo apt install dvipng' , c=1)
 
     settings.collectable_actors.append(vactor)
+    vactor.name = "Latex"
     return vactor
+
+
+def ParametricShape(name, c='powderblue', alpha=1, res=51):
+    """
+    A set of built-in shapes for illustration purposes.
+
+    Name can be an integer or a string in this list:
+
+        `['Boy', 'ConicSpiral', 'CrossCap', 'Dini', 'Enneper',
+        'Figure8Klein', 'Klein', 'Mobius', 'RandomHills', 'Roman',
+        'SuperEllipsoid', 'BohemianDome', 'Bour', 'CatalanMinimal',
+        'Henneberg', 'Kuen', 'PluckerConoid', 'Pseudosphere'].`
+
+    :Example:
+        .. code-block:: python
+
+            from vtkplotter import *
+            for i in range(18):
+                ps = ParametricShape(i, c=i)
+                show([ps, Text(ps.name)], at=i, N=18)
+            interactive()
+
+        |paramshapes|
+    """
+    shapes = ['Boy', 'ConicSpiral', 'CrossCap', 'Dini', 'Enneper',
+              'Figure8Klein', 'Klein', 'Mobius', 'RandomHills', 'Roman',
+              'SuperEllipsoid', 'BohemianDome', 'Bour', 'CatalanMinimal',
+              'Henneberg', 'Kuen', 'PluckerConoid', 'Pseudosphere']
+
+    if isinstance(name, int):
+        name = name%len(shapes)
+        name = shapes[name]
+
+    if   name == 'Boy': ps = vtk.vtkParametricBoy()
+    elif name == 'ConicSpiral': ps = vtk.vtkParametricConicSpiral()
+    elif name == 'CrossCap': ps = vtk.vtkParametricCrossCap()
+    elif name == 'Dini': ps = vtk.vtkParametricDini()
+    elif name == 'Enneper': ps = vtk.vtkParametricEnneper()
+    elif name == 'Figure8Klein': ps = vtk.vtkParametricFigure8Klein()
+    elif name == 'Klein': ps = vtk.vtkParametricKlein()
+    elif name == 'Mobius':
+        ps = vtk.vtkParametricMobius()
+        ps.SetRadius(2.0)
+        ps.SetMinimumV(-0.5)
+        ps.SetMaximumV(0.5)
+    elif name == 'RandomHills':
+        ps = vtk.vtkParametricRandomHills()
+        ps.AllowRandomGenerationOn()
+        ps.SetRandomSeed(1)
+        ps.SetNumberOfHills(25)
+    elif name == 'Roman': ps = vtk.vtkParametricRoman()
+    elif name == 'SuperEllipsoid':
+        ps = vtk.vtkParametricSuperEllipsoid()
+        ps.SetN1(0.5)
+        ps.SetN2(0.4)
+    elif name == 'BohemianDome':
+        ps = vtk.vtkParametricBohemianDome()
+        ps.SetA(5.0)
+        ps.SetB(1.0)
+        ps.SetC(2.0)
+    elif name == 'Bour': ps = vtk.vtkParametricBour()
+    elif name == 'CatalanMinimal': ps = vtk.vtkParametricCatalanMinimal()
+    elif name == 'Henneberg': ps = vtk.vtkParametricHenneberg()
+    elif name == 'Kuen':
+        ps = vtk.vtkParametricKuen()
+        ps.SetDeltaV0(0.001)
+    elif name == 'PluckerConoid': ps = vtk.vtkParametricPluckerConoid()
+    elif name == 'Pseudosphere': ps = vtk.vtkParametricPseudosphere()
+    else:
+        printc("Error in ParametricShape: unknown name", name, c=1)
+        printc("Available shape names:\n", shapes)
+        return None
+
+    pfs = vtk.vtkParametricFunctionSource()
+    pfs.SetParametricFunction(ps)
+    pfs.SetUResolution(res)
+    pfs.SetVResolution(res)
+    pfs.SetWResolution(res)
+    pfs.Update()
+
+    actor = Actor(pfs.GetOutput(), c, alpha)
+    if name != 'Kuen': actor.normalize()
+    settings.collectable_actors.append(actor)
+    actor.name = name
+    return actor
+

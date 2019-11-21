@@ -12,7 +12,10 @@ analysis and animation of 3D objects and point clouds based on VTK.
     - `examples/advanced <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced>`_ ,
     - `examples/volumetric <https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric>`_,
     - `examples/simulations <https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations>`_
+    - `examples/plotting2d <https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d>`_
     - `examples/others <https://github.com/marcomusy/vtkplotter/blob/master/examples/other>`_.
+    - `examples/others/dolfin <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin>`_.
+    - `examples/others/trimesh <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/trimesh>`_.
 
 
 Publications where ``vtkplotter`` has been used so far:

@@ -18,7 +18,7 @@ and ``vtkImageActor`` objects functionality.
 )
 
 __all__ = [
-#    'Prop', # only for docs
+    #'Prop', # only for docs
     'Actor',
     'Assembly',
     'Picture',
@@ -43,7 +43,7 @@ def collection():
                 Cone(pos=[3*i, 0, 0], axis=[i, i-5, 0])
             show(collection())
 
-            # in python3 you can simply use ellipses:
+            # in python3 you can simply use ellipses (three points symbol):
             show(...)
     """
     return settings.collectable_actors
@@ -89,6 +89,7 @@ class Prop(object):
     def __init__(self):
 
         self.filename = ""
+        self.name = ""
         self.trail = None
         self.trailPoints = []
         self.trailSegmentSize = 0
@@ -107,6 +108,7 @@ class Prop(object):
         self.renderedAt = set()
         self.picked3d = None
         self.cmap = None
+        self.flagText = None
 
     def inputdata(self):
         """Return the VTK input data object."""
@@ -163,6 +165,7 @@ class Prop(object):
             self.SetPickable(value)
             return self
 
+
     def legend(self, txt=None):
         """Set/get ``Actor`` legend text.
 
@@ -178,6 +181,21 @@ class Prop(object):
         else:
             return self._legend
         return self
+
+    def flag(self, text=None):
+        """Add a flag label which becomes visible when hovering the object with mouse.
+        Can be later disabled by setting `flag(False)`.
+        """
+        if text is None:
+            if self.filename:
+                text = self.filename.split('/')[-1]
+            elif self.name:
+                text = self.name
+            else:
+                text = ""
+        self.flagText = text
+        return self
+
 
     def time(self, t=None):
         """Set/get actor's absolute time."""
@@ -839,6 +857,13 @@ class Actor(vtk.vtkFollower, Prop):
         self.poly = None
         self.mapper = vtk.vtkPolyDataMapper()
 
+        self.mapper.SetInterpolateScalarsBeforeMapping(settings.interpolateScalarsBeforeMapping)
+
+        if settings.usePolygonOffset:
+            self.mapper.SetResolveCoincidentTopologyToPolygonOffset()
+            pof, pou = settings.polygonOffsetFactor, settings.polygonOffsetUnits
+            self.mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
+
         inputtype = str(type(inputobj))
         # print('inputtype',inputtype)
 
@@ -885,7 +910,6 @@ class Actor(vtk.vtkFollower, Prop):
             colors.printc("Error: cannot build Actor from type:\n", inputtype, c=1)
             raise RuntimeError()
 
-        self.mapper.InterpolateScalarsBeforeMappingOn()
         self.SetMapper(self.mapper)
 
         if settings.computeNormals is not None:
@@ -909,7 +933,7 @@ class Actor(vtk.vtkFollower, Prop):
         self.cell_locator = None
         self.line_locator = None
         self._bfprop = None  # backface property holder
-        self._scals_idx = 0 # index of the active scalar changed from CLI
+        self._scals_idx = 0  # index of the active scalar changed from CLI
         self._ligthingnr = 0
 
         prp = self.GetProperty()
@@ -1192,26 +1216,58 @@ class Actor(vtk.vtkFollower, Prop):
                                                 c, alpha, cmap)
         return self.scalarbar
 
-    def texture(self, tname):
-        """Assign a texture to actor from image file or predefined texture tname."""
 
+    def texture(self, tname,
+                tcoords=None,
+                interpolate=True,
+                repeat=True,
+                edgeClamp=False,
+                ):
+        """Assign a texture to actor from image file or predefined texture `tname`.
+        If tname is ``None`` texture is disabled.
+
+        :param bool interpolate: turn on/off linear interpolation of the texture map when rendering.
+        :param bool repeat: repeat of the texture when tcoords extend beyond the [0,1] range.
+        :param bool edgeClamp: turn on/off the clamping of the texture map when
+            the texture coords extend beyond the [0,1] range.
+            Only used when repeat is False, and edge clamping is supported by the graphics card.
+        """
+        pd = self.polydata(False)
         if tname is None:
+            pd.GetPointData().SetTCoords(None)
+            pd.GetPointData().Modified()
             return self
 
-        pd = self.polydata(False)
-        if not pd.GetPointData().GetTCoords():
-            tmapper = vtk.vtkTextureMapToPlane()
-            tmapper.AutomaticPlaneGenerationOn()
-            tmapper.SetInputData(pd)
-            tmapper.Update()
-            tc = tmapper.GetOutput().GetPointData().GetTCoords()
-            pd.GetPointData().SetTCoords(tc)
+        if tcoords is not None:
+            if not isinstance(tcoords, np.ndarray):
+                tcoords = np.array(tcoords)
+            if tcoords.ndim != 2:
+                colors.printc('tcoords must be a 2-dimensional array', c=1)
+                return self
+            if tcoords.shape[0] != pd.GetNumberOfPoints():
+                colors.printc('Error in texture(): nr of texture coords must match nr of points', c=1)
+                return self
+            if tcoords.shape[1] != 2:
+                colors.printc('Error in texture(): vector must have 2 components', c=1)
+            tarr = numpy_to_vtk(tcoords)
+            tarr.SetName('TCoordinates')
+            pd.GetPointData().SetTCoords(tarr)
+            pd.GetPointData().Modified()
+        else:
+            if not pd.GetPointData().GetTCoords():
+                tmapper = vtk.vtkTextureMapToPlane()
+                tmapper.AutomaticPlaneGenerationOn()
+                tmapper.SetInputData(pd)
+                tmapper.Update()
+                tc = tmapper.GetOutput().GetPointData().GetTCoords()
+                pd.GetPointData().SetTCoords(tc)
+                pd.GetPointData().Modified()
 
         fn = settings.textures_path + tname + ".jpg"
         if os.path.exists(tname):
             fn = tname
         elif not os.path.exists(fn):
-            colors.printc("~sad Texture", tname,
+            colors.printc("~sad File does not exist or texture", tname,
                           "not found in", settings.textures_path, c="r")
             colors.printc("~pin Available built-in textures:", c="m", end=" ")
             for ff in os.listdir(settings.textures_path):
@@ -1219,26 +1275,31 @@ class Actor(vtk.vtkFollower, Prop):
             print()
             return self
 
-        if ".png" in fn.lower():
-            reader = vtk.vtkPNGReader()
-        elif ".jp" in fn.lower():
+        fnl = fn.lower()
+        if ".jpg" in fnl or ".jpeg" in fnl:
             reader = vtk.vtkJPEGReader()
-        elif ".bmp" in fn.lower():
+        elif ".png" in fnl:
+            reader = vtk.vtkPNGReader()
+        elif ".bmp" in fnl:
             reader = vtk.vtkBMPReader()
         else:
-            colors.printc("~times Supported texture files: PNG, BMP or JPG", c="r")
+            colors.printc("Error in texture(): supported files, PNG, BMP or JPG", c="r")
             return self
         reader.SetFileName(fn)
         reader.Update()
-        img = reader.GetOutput()
-        atext = vtk.vtkTexture()
-        atext.SetInputData(img)
+
+        tu = vtk.vtkTexture()
+        tu.SetInputData(reader.GetOutput())
+        tu.SetInterpolate(interpolate)
+        tu.SetRepeat(repeat)
+        tu.SetEdgeClamp(edgeClamp)
+
         self.GetProperty().SetColor(1, 1, 1)
         self.mapper.ScalarVisibilityOff()
-        self.mapper.SetScalarModeToUsePointFieldData()
-        self.SetTexture(atext)
+        self.SetTexture(tu)
         self.Modified()
         return self
+
 
     def deletePoints(self, indices):
         """Delete a list of vertices identified by their index.

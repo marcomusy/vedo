@@ -18,6 +18,7 @@ __all__ = [
     "geometry",
     "isSequence",
     "linInterpolate",
+    "fitCircle2D",
     "vector",
     "mag",
     "mag2",
@@ -405,7 +406,7 @@ def linInterpolate(x, rangeX, rangeY):
     """
     Interpolate linearly variable x in rangeX onto rangeY.
     If x is a vector the linear weight is the distance to two the rangeX vectors.
-    
+
     E.g. if x runs in rangeX=[x0,x1] and I want it to run in rangeY=[y0,y1] then
     y = linInterpolate(x, rangeX, rangeY) will interpolate x onto rangeY.
     """
@@ -432,6 +433,66 @@ def linInterpolate(x, rangeX, rangeY):
         s = (x - x0) / dx
         out = rangeY[0] * (1 - s) + rangeY[1] * s
     return out
+
+
+def fitCircle2D(points):
+    """
+    Fits a circle through points in the plane, with a very fast non-iterative method.
+
+    Returns the tuple (center_x, center_y, radius).
+
+    Reference: J.F. Crawford, Nucl. Instr. Meth. 211, 1983, 223-225.
+
+    .. note:: E.g.:
+
+        .. code-block:: python
+
+            from vtkplotter import *
+
+            x = arange(0, 3, 0.1)
+            y = sin(x)
+
+            cx, cy, R = fitCircle2D([x,y])
+            Points([x, y])
+            Point([cx, cy])
+            Circle([cx, cy], r=R)
+            show(..., axes=8)
+    """
+    if len(points) == 2:
+        data = np.c_[points[0],points[1]]
+    else:
+        data = np.array(points)
+    xi = data[:,0]
+    yi = data[:,1]
+
+    x   = sum(xi)
+    xx  = sum(xi*xi)
+    xxx = sum(xi*xi*xi)
+
+    y   = sum(yi)
+    yy  = sum(yi*yi)
+    yyy = sum(yi*yi*yi)
+
+    xy  = sum(xi*yi)
+    xyy = sum(xi*yi*yi)
+    xxy = sum(xi*xi*yi)
+
+    N = len(xi)
+    k = (xx+yy)/N
+
+    a1 = xx-x*x/N
+    b1 = xy-x*y/N
+    c1 = 0.5*(xxx + xyy - x*k)
+
+    a2 = xy-x*y/N
+    b2 = yy-y*y/N
+    c2 = 0.5*(xxy + yyy - y*k)
+
+    x0 = (b1*c2 - b2*c1)/(a2*b1 - a1*b2)
+    y0 = (c1 - a1*x0)/b1
+
+    R = np.sqrt(x0*x0 + y0*y0 -1/N*(2*x0*x +2*y0*y -xx -yy))
+    return x0, y0, R
 
 
 def vector(x, y=None, z=0.0, dtype=np.float64):
@@ -1352,13 +1413,21 @@ def trimesh2vtk(inputobj, alphaPerCell=False):
 
         if isSequence(trim_c):
             if isSequence(trim_c[0]):
-                trim_cc = (trim_c[:, [0, 1, 2]] / 255)
-                trim_al = trim_c[:, 3] / 255
-                if inputobj.visual.kind == "face":
-                    tact.cellColors(trim_cc, mode='colors',
-                                    alpha=trim_al, alphaPerCell=alphaPerCell)
+                sameColor = len(np.unique(trim_c, axis=0)) < 2 # all vtxs have same color
+                trim_c = trim_c/255
+
+                if sameColor:
+                    tact.c(trim_c[0, [0,1,2]]).alpha(trim_c[0, 3])
                 else:
-                    tact.pointColors(trim_cc, mode='colors', alpha=trim_al)
+                    if inputobj.visual.kind == "face":
+                        tact.cellColors(trim_c[:, [0,1,2]],
+                                        mode='colors',
+                                        alpha=trim_c[:,3],
+                                        alphaPerCell=alphaPerCell)
+                    else:
+                        tact.pointColors(trim_c[:, [0,1,2]],
+                                         mode='colors',
+                                         alpha=trim_c[3])
         return tact
 
     elif "PointCloud" in inputobj_type:

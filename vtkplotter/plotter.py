@@ -468,6 +468,9 @@ class Plotter:
         self.offscreen = offscreen
         self.qtWidget = qtWidget # (QVTKRenderWindowInteractor)
 
+        self.flagWidget = None
+        self._flagRep = None
+
         # mostly internal stuff:
         self.justremoved = None
         self.axes_instances = []
@@ -489,6 +492,7 @@ class Plotter:
         self._first_viewup = True
         self.extralight = None
         self.size = size
+        self.interactor = None
 
         self.xtitle = settings.xtitle  # x axis label and units
         self.ytitle = settings.ytitle  # y axis label and units
@@ -502,22 +506,23 @@ class Plotter:
             self.camera = vtk.vtkCamera()
             self.window = vtk.vtkRenderWindow()
 
-        if settings.notebookBackend:
+        ############################################################
+        if settings.notebookBackend and settings.notebookBackend != "panel":
             self.interactive = False
             self.interactor = None
             self.window = None
             self.camera = None # let the backend choose
             if size == "auto":
                 self.size = (1000, 1000)
-            ############################
-            return #####################
-            ############################
+            ########################################################
+            return #################################################
+            ########################################################
 
         # more settings
-        if settings.alphaBitPlanes is not None:
+        if settings.useDepthPeeling:
             self.window.SetAlphaBitPlanes(settings.alphaBitPlanes)
-        if settings.multiSamples is not None:
             self.window.SetMultiSamples(settings.multiSamples)
+
         self.window.SetPolygonSmoothing(settings.polygonSmoothing)
         self.window.SetLineSmoothing(settings.lineSmoothing)
         self.window.SetPointSmoothing(settings.pointSmoothing)
@@ -603,9 +608,10 @@ class Plotter:
                 r.SetLightFollowCamera(settings.lightFollowsCamera)
                 if settings.useFXAA is not None:
                     r.SetUseFXAA(settings.useFXAA)
-                if settings.maxNumberOfPeels is not None:
+                if settings.useDepthPeeling:
+                    r.SetUseDepthPeeling(True)
                     r.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
-                r.SetUseDepthPeeling(settings.useDepthPeeling)
+                    r.SetOcclusionRatio(settings.occlusionRatio)
                 r.SetBackground(colors.getColor(self.backgrcol))
                 self.axes_instances.append(None)
 
@@ -706,6 +712,9 @@ class Plotter:
             ########################
             return
             ########################
+
+        if settings.notebookBackend == "panel":
+            return
 
         if settings.useOpenVR:
             self.interactor = vtk.vtkOpenVRRenderWindowInteractor()
@@ -1342,6 +1351,9 @@ class Plotter:
                 elif isinstance(a, vtk.vtkPolyData):
                     scannedacts.append(Actor(a))
 
+                elif isinstance(a, vtk.vtkBillboardTextActor3D):
+                    scannedacts.append(a)
+
                 elif isinstance(a, str):  # assume a filepath was given
                     out = vtkio.load(a)
                     scannedacts.append(out)
@@ -1370,7 +1382,7 @@ class Plotter:
                     from vtkplotter.utils import trimesh2vtk
                     scannedacts.append(trimesh2vtk(a))
 
-                elif hasattr(a, "GetOutput"): # passing vtk object
+                elif hasattr(a, "GetOutput"): # passing vtk algorithm
                     scannedacts.append(Actor(a))
 
                 else:
@@ -1399,7 +1411,7 @@ class Plotter:
             self.axes = axes
 
         #########################################################################
-        if settings.notebookBackend:
+        if settings.notebookBackend and settings.notebookBackend != "panel":
             return backends.getNotebookBackend(actors2show, zoom, viewup)
         #########################################################################
 
@@ -1481,6 +1493,40 @@ class Plotter:
                             c = (0.1, 0.1, 0.1)
                         ia.GetTextProperty().SetColor(c)
 
+                if hasattr(ia, 'flagText') and self.interactor:
+                    #check balloons
+                    if ia.flagText:
+                        if not self.flagWidget: # Create widget on the fly
+                            self._flagRep = vtk.vtkBalloonRepresentation()
+                            self._flagRep.SetBalloonLayoutToImageRight()
+                            breppr = self._flagRep.GetTextProperty()
+                            breppr.SetFontFamilyAsString(settings.flagFont)
+                            breppr.SetFontSize(settings.flagFontSize)
+                            breppr.SetBold(settings.flagBold)
+                            breppr.SetItalic(settings.flagItalic)
+                            breppr.SetColor(colors.getColor(settings.flagColor))
+                            breppr.SetBackgroundColor(colors.getColor(settings.flagBackgroundColor))
+                            breppr.SetShadow(settings.flagShadow)
+                            breppr.SetJustification(settings.flagJustification)
+                            breppr.UseTightBoundingBoxOn()
+                            if settings.flagAngle:
+                                breppr.SetOrientation(settings.flagAngle)
+                                breppr.SetBackgroundOpacity(0)
+                            self.flagWidget = vtk.vtkBalloonWidget()
+                            self.flagWidget.SetTimerDuration(settings.flagDelay)
+                            self.flagWidget.ManagesCursorOff()
+                            self.flagWidget.SetRepresentation(self._flagRep)
+                            self.flagWidget.SetInteractor(self.interactor)
+                            self.widgets.append(self.flagWidget)
+                        bst = self.flagWidget.GetBalloonString(ia)
+                        if bst:
+                            if bst != ia.flagText:
+                                self.flagWidget.UpdateBalloonString(ia, ia.flagText)
+                        else:
+                            self.flagWidget.AddBalloon(ia, ia.flagText)
+                    if ia.flagText is False and self.flagWidget:
+                        self.flagWidget.RemoveBalloon(ia)
+
 
         # remove the ones that are not in actors2show (and their scalarbar if any)
         for ia in self.getActors(at) + self.getVolumes(at):
@@ -1495,16 +1541,22 @@ class Plotter:
                 if hasattr(ia, 'renderedAt'):
                     ia.renderedAt.discard(at)
 
-        if self.axes is not None and not settings.notebookBackend:
+
+        if self.axes is not None:
             addons.addAxes()
+
+        #########################################################################
+        if settings.notebookBackend == "panel":
+            return backends.getNotebookBackend(0, 0, 0)
+        #########################################################################
 
         addons.addLegend()
 
-        if settings.showRendererFrame and len(self.renderers) > 1:
-            addons.addRendererFrame(c=settings.rendererFrameColor)
-
         if resetcam: #or self.initializedIren == False:
             self.renderer.ResetCamera()
+
+        if settings.showRendererFrame and len(self.renderers) > 1:
+            addons.addRendererFrame(c=settings.rendererFrameColor)
 
         if not self.initializedIren and self.interactor:
             self.initializedIren = True
@@ -1514,6 +1566,9 @@ class Plotter:
             if self.verbose and self.interactive:
                 if not settings.notebookBackend:
                     docs.onelinetip()
+
+        if self.flagWidget:
+            self.flagWidget.EnabledOn()
 
         self.initializedPlotter = True
 

@@ -3,7 +3,7 @@ Global settings.
 
 .. code-block:: python
 
-    # Axes titles
+    # Axes title defaults
     xtitle = 'x'
     ytitle = 'y'
     ztitle = 'z'
@@ -26,6 +26,18 @@ Global settings.
 
     # Allow to interact with scene during interactor.Start() execution
     allowInteraction = True
+
+    # Flag-style label options
+    flagDelay    = 0.0       # popup delay in milliseconds
+    flagFont     = "Courier" # font type ("Arial", "Courier", "Times")
+    flagFontSize = 18
+    flagAngle    = 0
+    flagBold     = False
+    flagItalic   = True
+    flagShadow   = False
+    flagColor    = 'k'
+    flagJustification = 0
+    flagBackgroundColor = 'w'
 
     # Show a gray frame margin in multirendering windows
     showRendererFrame = True
@@ -65,19 +77,27 @@ Global settings.
 
     # Turn on/off rendering of translucent material with depth peeling technique.
     useDepthPeeling = False
-    alphaBitPlanes = None    # either True or False. None sets the system default
-    multiSamples = None      # integer value
-    maxNumberOfPeels = None  # integer value
+    alphaBitPlanes  = True  # options only active if useDepthPeeling=True
+    multiSamples    = 0     # force to not pick a framebuffer with a multisample buffer
+    maxNumberOfPeels= 8     # maximum number of rendering passes
+    occlusionRatio  = 0.0   # occlusion ratio, 0 = exact image.
+
+    # Use a polygon/edges offset to possibly resolve conflicts in rendering
+    usePolygonOffset    = False
+    polygonOffsetFactor = 0.1
+    polygonOffsetUnits  = 0.1
+
+    # Interpolate scalars to render them smoothly
+    interpolateScalarsBeforeMapping = True
 
     # Turn on/off nvidia FXAA anti-aliasing, if supported.
-    useFXAA = None           # either True or False. None sets the system default
+    useFXAA = None          # either True or False. None sets the system default
 
     # Set parallel projection On or Off (place camera to infinity, no perspective effects)
     useParallelProjection = False
 
     # Path to Voro++ library, http://math.lbl.gov/voro++
     voro_path = '/usr/local/bin'
-
 
 
 Usage example:
@@ -117,6 +137,18 @@ interactorStyle = None
 # Allow to interact with scene during interactor.Start() execution
 allowInteraction = True
 
+# Flag-style label options
+flagDelay = 0          # popup delay in milliseconds
+flagFont = "Courier"   # font type ("Arial", "Courier", "Times")
+flagFontSize = 18
+flagJustification = 0
+flagAngle = 0
+flagBold = False
+flagItalic = True
+flagShadow = False
+flagColor = 'k'
+flagBackgroundColor = 'w'
+
 # Show a gray frame margin in multirendering windows
 showRendererFrame = True
 rendererFrameColor = None
@@ -151,10 +183,20 @@ visibleGridEdges = False
 lightFollowsCamera = False
 
 # Turn on/off rendering of translucent material with depth peeling technique.
+#https://lorensen.github.io/VTKExamples/site/Cxx/Visualization/CorrectlyRenderTranslucentGeometry
 useDepthPeeling = False
-alphaBitPlanes = None    # either True or False. None sets the system default
-multiSamples = None      # integer value
-maxNumberOfPeels = None  # integer value
+alphaBitPlanes  = True  # only active if useDepthPeeling
+multiSamples    = 0
+maxNumberOfPeels= 8
+occlusionRatio  = 0.0
+
+# Use a polygon/edges offset to possibly resolve conflicts in rendering
+usePolygonOffset = False
+polygonOffsetFactor = 0.1
+polygonOffsetUnits  = 0.1
+
+# Interpolate scalars to render them smoothly
+interpolateScalarsBeforeMapping = True
 
 # Turn on/off nvidia FXAA anti-aliasing, if supported.
 useFXAA = None           # either True or False. None sets the system default
@@ -229,14 +271,12 @@ def embedWindow(backend='k3d', verbose=True):
 
     elif backend=='panel':
         try:
-            if verbose:
-                print('INFO: embedWindow(verbose=True), first import of panel module, this takes time...')
             import panel
             panel.extension('vtk')
         except:
             if verbose:
                 print('embedWindow(verbose=True): could not load panel try:')
-                print('> pip install panel    # and/or')
+                print('> pip install panel -U   # and/or')
                 print('> conda install nodejs')
     else:
         print("Unknown backend", backend)

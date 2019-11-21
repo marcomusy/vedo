@@ -8,7 +8,8 @@ from vtkplotter import *
 
 vp = Plotter()
 
-limb = vp.load(datadir + "270.vtk")
+# flag() shows the filename when hovering with mouse
+limb = vp.load(datadir + "270.vtk").flag()
 rim  = vp.load(datadir + "270_rim.vtk").c("r").lw(4)
 
 arim = alignICP(rim, limb, rigid=True).c("g").lw(5)
