@@ -1,5 +1,5 @@
 """
-Create a set of transparencies 
+Create a set of transparencies
 which can be passed to method pointColors()
 """
 from vtkplotter import load, show, Text, datadir

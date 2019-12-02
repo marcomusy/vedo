@@ -1357,7 +1357,7 @@ def vtk2trimesh(actor):
 
     from trimesh import Trimesh
 
-    lut = actor.mapper.GetLookupTable()
+    lut = actor.mapper().GetLookupTable()
 
     tris = actor.faces()
     carr = actor.scalars('CellColors', datatype='cell')

@@ -320,7 +320,7 @@ def getColor(rgb=None, hsv=None):
             if c.lower() in color_nicks.keys():
                 c = color_nicks[c.lower()]
             else:
-                print("Unknow color nickname:", c)
+                print("Unknown color nickname:", c)
                 print("Available abbreviations:", color_nicks)
                 return (0.5, 0.5, 0.5)
 
@@ -501,8 +501,8 @@ def makeLUT(colorlist,
     :param float vmin: specify minimum value of scalar range
     :param float vmax: specify maximum value of scalar range
     :param belowColor: color for scalars below the minimum in range
-    :param aboveColor: color for scalars aboce the maximum in range
-    
+    :param aboveColor: color for scalars above the maximum in range
+
     :return: the lookup table object ``vtkLookupTable``. This can be fed into ``colorMap``.
 
     .. hint:: Example: |mesh_lut.py|_

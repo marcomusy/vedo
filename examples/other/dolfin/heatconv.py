@@ -92,5 +92,5 @@ while t < 3:
     # Move to next time step
     u0.assign(u)
     t += dt
-    
+
 interactive()

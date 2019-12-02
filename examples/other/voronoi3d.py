@@ -1,9 +1,10 @@
 '''
 Voronoi in 3D with Voro++ library.
 '''
-from vtkplotter import voronoi3D, Points, show, settings
+from vtkplotter import voronoi3D, Points, show
 import numpy as np
 
+#from vtkplotter import settings
 #settings.voro_path = '/g/sharpeba/software/bin'
 
 N = 2000

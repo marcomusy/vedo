@@ -40,7 +40,7 @@ bmesh = BoundaryMesh(mesh, "exterior")
 ########################################################### vtkplotter
 from vtkplotter.dolfin import *
 
-# ps = point size, only mesh vertices are shown 
+# ps = point size, only mesh vertices are shown
 plot(u, mode='mesh', ps=10)
 
 # plot displacements as white arrows, lw controls the mesh visibility

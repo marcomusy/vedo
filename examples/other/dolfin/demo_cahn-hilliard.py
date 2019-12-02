@@ -1,5 +1,5 @@
 """
-Solution of a particular nonlinear time-dependent 
+Solution of a particular nonlinear time-dependent
 fourth-order equation, known as the Cahn-Hilliard equation.
 """
 #https://fenicsproject.org/olddocs/dolfin/1.4.0/python/demo/documented
@@ -30,7 +30,7 @@ class CahnHilliardEquation(NonlinearProblem):
 # Model parameters
 lmbda = 1.0e-02  # surface parameter
 dt    = 5.0e-06  # time step
-# time stepping family, 
+# time stepping family,
 # e.g. theta=1 -> backward Euler, theta=0.5 -> Crank-Nicolson
 theta = 0.5
 
@@ -93,9 +93,9 @@ while t < T:
     t += dt
     u0.vector()[:] = u.vector()
     solver.solve(problem, u.vector())
-    if t==T: 
+    if t==T:
         scalarbar = 'horizontal'
-    
+
     plot(u.split()[0],
          z=t*2e4,
          add=True, # do not clear the canvas

@@ -23,6 +23,19 @@ Global settings.
 
     # Default style is TrackBallCamera
     interactorStyle = None
+    # possible values are (see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html):
+        - 0 = TrackballCamera [default]
+        - 1 = TrackballActor
+        - 2 = JoystickCamera
+        - 3 = JoystickActor
+        - 4 = Flight
+        - 5 = RubberBand2D
+        - 6 = RubberBand3D
+        - 7 = RubberBandZoom
+        - 8 = Context
+        - 9 = 3D
+        -10 = Terrain
+        -11 = Unicam
 
     # Allow to interact with scene during interactor.Start() execution
     allowInteraction = True
@@ -55,7 +68,7 @@ Global settings.
     # OpenVR rendering
     useOpenVR = False
 
-    # On some vtk versions/platforms points are redered as ugly squares
+    # On some vtk versions/platforms points are rendered as ugly squares
     renderPointsAsSpheres = True
 
     # Wrap lines in tubes
@@ -140,7 +153,7 @@ allowInteraction = True
 # Flag-style label options
 flagDelay = 0          # popup delay in milliseconds
 flagFont = "Courier"   # font type ("Arial", "Courier", "Times")
-flagFontSize = 18
+flagFontSize = 20
 flagJustification = 0
 flagAngle = 0
 flagBold = False
@@ -162,7 +175,7 @@ usingQt = False
 # OpenVR rendering
 useOpenVR = False
 
-# On some vtk versions/platforms points are redered as ugly squares
+# On some vtk versions/platforms points are rendered as ugly squares
 renderPointsAsSpheres = True
 
 # Wrap lines in tubes
@@ -217,6 +230,7 @@ notebookBackend = None
 notebook_plotter = None
 
 plotter_instance = None
+collectable_actors = []
 
 ####################################################################################
 import os

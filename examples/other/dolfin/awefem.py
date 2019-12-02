@@ -76,7 +76,7 @@ def awefem(mesh, t, source_loc=None):
 
         u0.assign(u1)
         u1.assign(u)
-        
+
         if t_>0.03:
             plot(u,
                  warpZfactor=20, # set elevation along z
@@ -94,7 +94,7 @@ def awefem(mesh, t, source_loc=None):
     interactive()
 
 if __name__ == "__main__":
-    
+
     ot, dt, nt = 0, 1e-3, 150
     t = ot + np.arange(nt) * dt
 

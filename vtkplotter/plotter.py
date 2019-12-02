@@ -59,7 +59,8 @@ def show(*actors, **options):
           - 8,  show the ``vtkCubeAxesActor`` object,
           - 9,  show the bounding box outLine,
           - 10, show three circles representing the maximum bounding box
-          - 11, show polar axes
+          - 11, show a large grid on the x-y plane (use with zoom=8)
+          - 12, show polar axes
 
         Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
@@ -140,13 +141,18 @@ def show(*actors, **options):
     :param float rate:  maximum rate of `show()` in Hertz
     :param int interactorStyle: set the type of interaction
 
-        - 0, TrackballCamera
-        - 1, TrackballActor
-        - 2, JoystickCamera
-        - 3, Unicam
-        - 4, Flight
-        - 5, RubberBand3D
-        - 6, RubberBandZoom
+        - 0 = TrackballCamera [default]
+        - 1 = TrackballActor
+        - 2 = JoystickCamera
+        - 3 = JoystickActor
+        - 4 = Flight
+        - 5 = RubberBand2D
+        - 6 = RubberBand3D
+        - 7 = RubberBandZoom
+        - 8 = Context
+        - 9 = 3D
+        -10 = Terrain
+        -11 = Unicam
 
     :param bool q:  force program to quit after `show()` command returns.
 
@@ -213,7 +219,7 @@ def show(*actors, **options):
     else:
         actors = utils.flatten(actors)
 
-    if settings.plotter_instance and newPlotter == False:
+    if settings.plotter_instance and newPlotter is False:
         vp = settings.plotter_instance
         #vp.renderer.SetBackground(colors.getColor(bg))
     else:
@@ -224,7 +230,7 @@ def show(*actors, **options):
             if len(at) != len(actors):
                 colors.printc("~times show() Error: lists 'input' and 'at', must have equal lengths.", c=1)
                 raise RuntimeError()
-            if len(at) > 1 and (shape == (1, 1) and N == None):
+            if len(at) > 1 and (shape == (1, 1) and N is None):
                 N = max(at) + 1
         elif at is None and (N or shape != (1, 1)):
             if not utils.isSequence(actors):
@@ -355,7 +361,8 @@ class Plotter:
       - 8,  show the ``vtkCubeAxesActor`` object
       - 9,  show the bounding box outLine,
       - 10, show three circles representing the maximum bounding box,
-      - 11, show polar axes.
+      - 11, show a large grid on the x-y plane (use with zoom=8)
+      - 12, show polar axes.
 
     Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
@@ -405,7 +412,7 @@ class Plotter:
 
       render in a Qt-Widget using an QVTKRenderWindowInteractor.
       Overrides offscreen to True
-      Overides interactive to False
+      Overrides interactive to False
       Sets setting.usingQt to True
       See Also: example qt_windows.py
 
@@ -434,7 +441,7 @@ class Plotter:
         settings.plotter_instances.append(self)
 
         if qtWidget is not None:
-              # overrides the interactive and offscreen properties
+            # overrides the interactive and offscreen properties
             interactive = False
             offscreen = True
             settings.usingQt = True
@@ -454,7 +461,7 @@ class Plotter:
         self.renderer = None  # current renderer
         self.renderers = []  # list of renderers
         self.pos = pos
-        self.shape = shape  # dont remove this line
+        self.shape = shape  # don't remove this line
         self.interactive = interactive  # allows to interact with renderer
         self.axes = axes  # show axes type nr.
         self.title = title  # window title
@@ -498,7 +505,7 @@ class Plotter:
         self.ytitle = settings.ytitle  # y axis label and units
         self.ztitle = settings.ztitle  # z axis label and units
 
-        # build the renderering window:
+        # build the rendering window:
         if settings.useOpenVR:
             self.camera = vtk.vtkOpenVRCamera()
             self.window =vtk.vtkOpenVRRenderWindow()
@@ -679,6 +686,9 @@ class Plotter:
                     arenderer.SetViewport(y0, x0, y1, x1)
                     self.renderers.append(arenderer)
                     self.axes_instances.append(None)
+
+        if len(self.renderers):
+            self.renderer = self.renderers[0]
 
         if "full" in size and not offscreen:  # full screen
             self.window.SetFullScreen(True)
@@ -1140,7 +1150,8 @@ class Plotter:
               - 8,  show the ``vtkCubeAxesActor`` object
               - 9,  show the bounding box outLine
               - 10, show three circles representing the maximum bounding box
-              - 11, show polar axes
+              - 11, show a large grid on the x-y plane (use with zoom=8)
+              - 12, show polar axes.
 
         Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
@@ -1236,7 +1247,8 @@ class Plotter:
               - 8,  show the ``vtkCubeAxesActor`` object,
               - 9,  show the bounding box outLine,
               - 10, show three circles representing the maximum bounding box
-              - 11, show polar axes
+              - 11, show a large grid on the x-y plane (use with zoom=8)
+              - 12, show polar axes.
 
         :param float azimuth/elevation/roll:  move camera accordingly
         :param str viewup:  either ['x', 'y', 'z'] or a vector to set vertical direction
@@ -1275,13 +1287,18 @@ class Plotter:
         :param float rate:  maximum rate of `show()` in Hertz
         :param int interactorStyle: set the type of interaction
 
-            - 0, TrackballCamera
-            - 1, TrackballActor
-            - 2, JoystickCamera
-            - 3, Unicam
-            - 4, Flight
-            - 5, RubberBand3D
-            - 6, RubberBandZoom
+            - 0 = TrackballCamera [default]
+            - 1 = TrackballActor
+            - 2 = JoystickCamera
+            - 3 = JoystickActor
+            - 4 = Flight
+            - 5 = RubberBand2D
+            - 6 = RubberBand3D
+            - 7 = RubberBandZoom
+            - 8 = Context
+            - 9 = 3D
+            -10 = Terrain
+            -11 = Unicam
 
         :param bool q:  force program to quit after `show()` command returns.
         """
@@ -1315,14 +1332,14 @@ class Plotter:
 
                 elif isinstance(a, vtk.vtkActor):
                     scannedacts.append(a)
-                    if hasattr(a, 'trail') and a.trail and not a.trail in self.actors:
+                    if hasattr(a, 'trail') and a.trail and a.trail not in self.actors:
                         scannedacts.append(a.trail)
-                    if hasattr(a, 'shadow') and a.shadow and not a.shadow in self.actors:
+                    if hasattr(a, 'shadow') and a.shadow and a.shadow not in self.actors:
                         scannedacts.append(a.shadow)
 
                 elif isinstance(a, vtk.vtkAssembly):
                     scannedacts.append(a)
-                    if a.trail and not a.trail in self.actors:
+                    if a.trail and a.trail not in self.actors:
                         scannedacts.append(a.trail)
 
                 elif isinstance(a, vtk.vtkActor2D):
@@ -1422,7 +1439,7 @@ class Plotter:
             self.interactive = interactive
 
         if at is None and len(self.renderers) > 1:
-            # in case of multiple renderers a call to show w/o specifing
+            # in case of multiple renderers a call to show w/o specifying
             # at which renderer will just render the whole thing and return
             if self.interactor:
                 if zoom:
@@ -1620,25 +1637,36 @@ class Plotter:
         if settings.allowInteraction and not self.offscreen:
             self.allowInteraction()
 
+        # Set the style of interaction
+        # see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html
         if settings.interactorStyle is not None:
             interactorStyle = settings.interactorStyle
-
         if interactorStyle == 0 or interactorStyle == "TrackballCamera":
             pass  # do nothing
         elif interactorStyle == 1 or interactorStyle == "TrackballActor":
             self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
         elif interactorStyle == 2 or interactorStyle == "JoystickCamera":
             self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleJoystickCamera())
-        elif interactorStyle == 3 or interactorStyle == "Unicam":
-            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleUnicam())
+        elif interactorStyle == 3 or interactorStyle == "JoystickActor":
+            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleJoystickActor())
         elif interactorStyle == 4 or interactorStyle == "Flight":
             self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleFlight())
-        elif interactorStyle == 5 or interactorStyle == "RubberBand3D":
+        elif interactorStyle == 5 or interactorStyle == "RubberBand2D":
+            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand2D())
+        elif interactorStyle == 6 or interactorStyle == "RubberBand3D":
             self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBand3D())
-        elif interactorStyle == 6 or interactorStyle == "RubberBandZoom":
+        elif interactorStyle == 7 or interactorStyle == "RubberBandZoom":
             self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleRubberBandZoom())
+        elif interactorStyle == 8 or interactorStyle == "Context":
+            self.interactor.SetInteractorStyle(vtk.vtkContextInteractorStyle())
+        elif interactorStyle == 9 or interactorStyle == "3D":
+            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyle3D())
+        elif interactorStyle ==10 or interactorStyle == "Terrain":
+            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTerrain())
+        elif interactorStyle ==11 or interactorStyle == "Unicam":
+            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleUnicam())
 
-        if  hasattr(self, 'interactor') and self.interactor and self.interactive:
+        if hasattr(self, 'interactor') and self.interactor and self.interactive:
             self.interactor.Start()
 
         if rate:

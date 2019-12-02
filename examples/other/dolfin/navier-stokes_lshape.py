@@ -1,5 +1,5 @@
 """
-Solve the incompressible Navier-Stokes equations 
+Solve the incompressible Navier-Stokes equations
 on an L-shaped domain using Chorin's splitting method.
 """
 from __future__ import print_function

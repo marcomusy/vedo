@@ -18,7 +18,7 @@ and ``vtkImageActor`` objects functionality.
 )
 
 __all__ = [
-    #'Prop', # only for docs
+    'Prop', # only for docs
     'Actor',
     'Assembly',
     'Picture',
@@ -109,11 +109,25 @@ class Prop(object):
         self.picked3d = None
         self.cmap = None
         self.flagText = None
+        self._mapper = None
 
     def inputdata(self):
         """Return the VTK input data object."""
+        if self._mapper:
+            return self._mapper.GetInput()
         return self.GetMapper().GetInput()
 
+    def mapper(self, newMapper=None):
+        """Return the ``vtkMapper`` data object, or update it with a new one."""
+        if newMapper:
+            self.SetMapper(newMapper)
+            if self._mapper:
+                iptdata = self._mapper.GetInput()
+                if iptdata:
+                    newMapper.SetInputData(self._mapper.GetInput())
+            self._mapper = newMapper
+            self._mapper.Modified()
+        return self._mapper
 
     def N(self):
         """Retrieve number of points. Shortcut for `NPoints()`."""
@@ -586,7 +600,7 @@ class Prop(object):
                 c = pr.GetColor()
             else:
                 c = (1,1,0.99)
-            mpr = self.mapper
+            mpr = self._mapper
             if hasattr(mpr, 'GetScalarVisibility') and mpr.GetScalarVisibility():
                 c = (1,1,0.99)
             if   style=='metallic': pars = [0.1, 0.3, 1.0, 10, c]
@@ -754,11 +768,11 @@ class Prop(object):
         arr.SetName(name)
         data.GetPointData().AddArray(arr)
         data.GetPointData().SetActiveScalars(name)
-        self.mapper.SetArrayName(name)
+        self._mapper.SetArrayName(name)
         if settings.autoResetScalarRange:
-            self.mapper.SetScalarRange(np.min(scalars), np.max(scalars))
-        self.mapper.SetScalarModeToUsePointData()
-        self.mapper.ScalarVisibilityOn()
+            self._mapper.SetScalarRange(np.min(scalars), np.max(scalars))
+        self._mapper.SetScalarModeToUsePointData()
+        self._mapper.ScalarVisibilityOn()
         return self
 
     def addCellScalars(self, scalars, name):
@@ -778,25 +792,28 @@ class Prop(object):
         arr.SetName(name)
         data.GetCellData().AddArray(arr)
         data.GetCellData().SetActiveScalars(name)
-        self.mapper.SetArrayName(name)
+        self._mapper.SetArrayName(name)
         if settings.autoResetScalarRange:
-            self.mapper.SetScalarRange(np.min(scalars), np.max(scalars))
-        self.mapper.SetScalarModeToUseCellData()
-        self.mapper.ScalarVisibilityOn()
+            self._mapper.SetScalarRange(np.min(scalars), np.max(scalars))
+        self._mapper.SetScalarModeToUseCellData()
+        self._mapper.ScalarVisibilityOn()
         return self
 
     def mapCellsToPoints(self):
         """
         Transform cell data (i.e., data specified per cell)
-        into point data (i.e., data specified at cell points).
+        into point data (i.e., data specified at each vertex).
         The method of transformation is based on averaging the data values
         of all cells using a particular point.
         """
         c2p = vtk.vtkCellDataToPointData()
         c2p.SetInputData(self.inputdata())
         c2p.Update()
-        self.mapper.SetScalarModeToUsePointData()
-        return self.updateMesh(c2p.GetOutput())
+        self._mapper.SetScalarModeToUsePointData()
+        if isinstance(self, Volume):
+            return self.updateVolume(c2p.GetOutput())
+        else:
+            return self.updateMesh(c2p.GetOutput())
 
     def mapPointsToCells(self):
         """
@@ -806,13 +823,15 @@ class Prop(object):
         of all points defining a particular cell.
 
         |mesh_map2cell| |mesh_map2cell.py|_
-
         """
         p2c = vtk.vtkPointDataToCellData()
         p2c.SetInputData(self.polydata(False))
         p2c.Update()
-        self.mapper.SetScalarModeToUseCellData()
-        return self.updateMesh(p2c.GetOutput())
+        self._mapper.SetScalarModeToUseCellData()
+        if isinstance(self, Volume):
+            return self.updateVolume(p2c.GetOutput())
+        else:
+            return self.updateMesh(p2c.GetOutput())
 
 
 ####################################################
@@ -854,27 +873,27 @@ class Actor(vtk.vtkFollower, Prop):
         vtk.vtkActor.__init__(self)
         Prop.__init__(self)
 
-        self.poly = None
-        self.mapper = vtk.vtkPolyDataMapper()
+        self._polydata = None
+        self._mapper = vtk.vtkPolyDataMapper()
 
-        self.mapper.SetInterpolateScalarsBeforeMapping(settings.interpolateScalarsBeforeMapping)
+        self._mapper.SetInterpolateScalarsBeforeMapping(settings.interpolateScalarsBeforeMapping)
 
         if settings.usePolygonOffset:
-            self.mapper.SetResolveCoincidentTopologyToPolygonOffset()
+            self._mapper.SetResolveCoincidentTopologyToPolygonOffset()
             pof, pou = settings.polygonOffsetFactor, settings.polygonOffsetUnits
-            self.mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
+            self._mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
 
         inputtype = str(type(inputobj))
         # print('inputtype',inputtype)
 
         if inputobj is None:
-            self.poly = vtk.vtkPolyData()
+            self._polydata = vtk.vtkPolyData()
         elif "Actor" in inputtype:
             polyCopy = vtk.vtkPolyData()
             polyCopy.DeepCopy(inputobj.GetMapper().GetInput())
-            self.poly = polyCopy
-            self.mapper.SetInputData(polyCopy)
-            self.mapper.SetScalarVisibility(inputobj.GetMapper().GetScalarVisibility())
+            self._polydata = polyCopy
+            self._mapper.SetInputData(polyCopy)
+            self._mapper.SetScalarVisibility(inputobj.GetMapper().GetScalarVisibility())
             pr = vtk.vtkProperty()
             pr.DeepCopy(inputobj.GetProperty())
             self.SetProperty(pr)
@@ -885,7 +904,7 @@ class Actor(vtk.vtkFollower, Prop):
                     carr.InsertNextCell(1)
                     carr.InsertCellPoint(i)
                 inputobj.SetVerts(carr)
-            self.poly = inputobj  # cache vtkPolyData and mapper for speed
+            self._polydata = inputobj  # cache vtkPolyData and mapper for speed
         elif "structured" in inputtype.lower() or "RectilinearGrid" in inputtype:
             if settings.visibleGridEdges:
                 gf = vtk.vtkExtractEdges()
@@ -894,40 +913,40 @@ class Actor(vtk.vtkFollower, Prop):
                 gf = vtk.vtkGeometryFilter()
                 gf.SetInputData(inputobj)
             gf.Update()
-            self.poly = gf.GetOutput()
+            self._polydata = gf.GetOutput()
         elif "trimesh" in inputtype:
             tact = utils.trimesh2vtk(inputobj, alphaPerCell=False)
-            self.poly = tact.polydata()
+            self._polydata = tact.polydata()
         elif utils.isSequence(inputobj):
             if len(inputobj) == 2: # assume [vertices, faces]
-                self.poly = utils.buildPolyData(inputobj[0], inputobj[1])
+                self._polydata = utils.buildPolyData(inputobj[0], inputobj[1])
             else:
-                self.poly = utils.buildPolyData(inputobj, None)
+                self._polydata = utils.buildPolyData(inputobj, None)
         elif hasattr(inputobj, "GetOutput"): # passing vtk object
             if hasattr(inputobj, "Update"): inputobj.Update()
-            self.poly = inputobj.GetOutput()
+            self._polydata = inputobj.GetOutput()
         else:
             colors.printc("Error: cannot build Actor from type:\n", inputtype, c=1)
             raise RuntimeError()
 
-        self.SetMapper(self.mapper)
+        self.SetMapper(self._mapper)
 
         if settings.computeNormals is not None:
             computeNormals = settings.computeNormals
 
-        if self.poly:
+        if self._polydata:
             if computeNormals:
                 pdnorm = vtk.vtkPolyDataNormals()
-                pdnorm.SetInputData(self.poly)
+                pdnorm.SetInputData(self._polydata)
                 pdnorm.ComputePointNormalsOn()
                 pdnorm.ComputeCellNormalsOn()
                 pdnorm.FlipNormalsOff()
                 pdnorm.ConsistencyOn()
                 pdnorm.Update()
-                self.poly = pdnorm.GetOutput()
+                self._polydata = pdnorm.GetOutput()
 
-            if self.mapper:
-                self.mapper.SetInputData(self.poly)
+            if self._mapper:
+                self._mapper.SetInputData(self._polydata)
 
         self.point_locator = None
         self.cell_locator = None
@@ -948,13 +967,13 @@ class Actor(vtk.vtkFollower, Prop):
                 prp.RenderLinesAsTubesOn()
 
         # set the color by c or by scalar
-        if self.poly:
+        if self._polydata:
 
             arrexists = False
 
             if c is None:
-                ptdata = self.poly.GetPointData()
-                cldata = self.poly.GetCellData()
+                ptdata = self._polydata.GetPointData()
+                cldata = self._polydata.GetCellData()
                 exclude = ['normals', 'tcoord']
 
                 if cldata.GetNumberOfArrays():
@@ -964,9 +983,9 @@ class Actor(vtk.vtkFollower, Prop):
                             icname = iarr.GetName()
                             if icname and all(s not in icname.lower() for s in exclude):
                                 cldata.SetActiveScalars(icname)
-                                self.mapper.ScalarVisibilityOn()
-                                self.mapper.SetScalarModeToUseCellData()
-                                self.mapper.SetScalarRange(iarr.GetRange())
+                                self._mapper.ScalarVisibilityOn()
+                                self._mapper.SetScalarModeToUseCellData()
+                                self._mapper.SetScalarRange(iarr.GetRange())
                                 arrexists = True
                                 break # stop at first good one
 
@@ -978,9 +997,9 @@ class Actor(vtk.vtkFollower, Prop):
                             ipname = iarr.GetName()
                             if ipname and all(s not in ipname.lower() for s in exclude):
                                 ptdata.SetActiveScalars(ipname)
-                                self.mapper.ScalarVisibilityOn()
-                                self.mapper.SetScalarModeToUsePointData()
-                                self.mapper.SetScalarRange(iarr.GetRange())
+                                self._mapper.ScalarVisibilityOn()
+                                self._mapper.SetScalarModeToUsePointData()
+                                self._mapper.SetScalarRange(iarr.GetRange())
                                 arrexists = True
                                 break
 
@@ -993,7 +1012,7 @@ class Actor(vtk.vtkFollower, Prop):
                 prp.SetDiffuse(1)
                 prp.SetSpecular(.05)
                 prp.SetSpecularPower(5)
-                self.mapper.ScalarVisibilityOff()
+                self._mapper.ScalarVisibilityOff()
 
         if alpha is not None:
             prp.SetOpacity(alpha)
@@ -1022,9 +1041,9 @@ class Actor(vtk.vtkFollower, Prop):
         """
         Overwrite the polygonal mesh of the actor with a new one.
         """
-        self.poly = polydata
-        self.mapper.SetInputData(polydata)
-        self.mapper.Modified()
+        self._polydata = polydata
+        self._mapper.SetInputData(polydata)
+        self._mapper.Modified()
         return self
 
 
@@ -1087,9 +1106,9 @@ class Actor(vtk.vtkFollower, Prop):
 
         :param list pts: new coordinates of mesh vertices.
         """
-        vpts = self.poly.GetPoints()
+        vpts = self._polydata.GetPoints()
         vpts.SetData(numpy_to_vtk(np.ascontiguousarray(pts), deep=True))
-        self.poly.GetPoints().Modified()
+        self._polydata.GetPoints().Modified()
         # reset actor to identity matrix position/rotation:
         self.PokeMatrix(vtk.vtkMatrix4x4())
         return self
@@ -1238,64 +1257,67 @@ class Actor(vtk.vtkFollower, Prop):
             pd.GetPointData().Modified()
             return self
 
-        if tcoords is not None:
-            if not isinstance(tcoords, np.ndarray):
-                tcoords = np.array(tcoords)
-            if tcoords.ndim != 2:
-                colors.printc('tcoords must be a 2-dimensional array', c=1)
-                return self
-            if tcoords.shape[0] != pd.GetNumberOfPoints():
-                colors.printc('Error in texture(): nr of texture coords must match nr of points', c=1)
-                return self
-            if tcoords.shape[1] != 2:
-                colors.printc('Error in texture(): vector must have 2 components', c=1)
-            tarr = numpy_to_vtk(tcoords)
-            tarr.SetName('TCoordinates')
-            pd.GetPointData().SetTCoords(tarr)
-            pd.GetPointData().Modified()
+        if isinstance(tname, vtk.vtkTexture):
+            tu = tname
         else:
-            if not pd.GetPointData().GetTCoords():
-                tmapper = vtk.vtkTextureMapToPlane()
-                tmapper.AutomaticPlaneGenerationOn()
-                tmapper.SetInputData(pd)
-                tmapper.Update()
-                tc = tmapper.GetOutput().GetPointData().GetTCoords()
-                pd.GetPointData().SetTCoords(tc)
+            if tcoords is not None:
+                if not isinstance(tcoords, np.ndarray):
+                    tcoords = np.array(tcoords)
+                if tcoords.ndim != 2:
+                    colors.printc('tcoords must be a 2-dimensional array', c=1)
+                    return self
+                if tcoords.shape[0] != pd.GetNumberOfPoints():
+                    colors.printc('Error in texture(): nr of texture coords must match nr of points', c=1)
+                    return self
+                if tcoords.shape[1] != 2:
+                    colors.printc('Error in texture(): vector must have 2 components', c=1)
+                tarr = numpy_to_vtk(tcoords)
+                tarr.SetName('TCoordinates')
+                pd.GetPointData().SetTCoords(tarr)
                 pd.GetPointData().Modified()
+            else:
+                if not pd.GetPointData().GetTCoords():
+                    tmapper = vtk.vtkTextureMapToPlane()
+                    tmapper.AutomaticPlaneGenerationOn()
+                    tmapper.SetInputData(pd)
+                    tmapper.Update()
+                    tc = tmapper.GetOutput().GetPointData().GetTCoords()
+                    pd.GetPointData().SetTCoords(tc)
+                    pd.GetPointData().Modified()
 
-        fn = settings.textures_path + tname + ".jpg"
-        if os.path.exists(tname):
-            fn = tname
-        elif not os.path.exists(fn):
-            colors.printc("~sad File does not exist or texture", tname,
-                          "not found in", settings.textures_path, c="r")
-            colors.printc("~pin Available built-in textures:", c="m", end=" ")
-            for ff in os.listdir(settings.textures_path):
-                colors.printc(ff.split(".")[0], end=" ", c="m")
-            print()
-            return self
+            fn = settings.textures_path + tname + ".jpg"
+            if os.path.exists(tname):
+                fn = tname
+            elif not os.path.exists(fn):
+                colors.printc("~sad File does not exist or texture", tname,
+                              "not found in", settings.textures_path, c="r")
+                colors.printc("~pin Available built-in textures:", c="m", end=" ")
+                for ff in os.listdir(settings.textures_path):
+                    colors.printc(ff.split(".")[0], end=" ", c="m")
+                print()
+                return self
 
-        fnl = fn.lower()
-        if ".jpg" in fnl or ".jpeg" in fnl:
-            reader = vtk.vtkJPEGReader()
-        elif ".png" in fnl:
-            reader = vtk.vtkPNGReader()
-        elif ".bmp" in fnl:
-            reader = vtk.vtkBMPReader()
-        else:
-            colors.printc("Error in texture(): supported files, PNG, BMP or JPG", c="r")
-            return self
-        reader.SetFileName(fn)
-        reader.Update()
+            fnl = fn.lower()
+            if ".jpg" in fnl or ".jpeg" in fnl:
+                reader = vtk.vtkJPEGReader()
+            elif ".png" in fnl:
+                reader = vtk.vtkPNGReader()
+            elif ".bmp" in fnl:
+                reader = vtk.vtkBMPReader()
+            else:
+                colors.printc("Error in texture(): supported files, PNG, BMP or JPG", c="r")
+                return self
+            reader.SetFileName(fn)
+            reader.Update()
 
-        tu = vtk.vtkTexture()
-        tu.SetInputData(reader.GetOutput())
-        tu.SetInterpolate(interpolate)
-        tu.SetRepeat(repeat)
-        tu.SetEdgeClamp(edgeClamp)
+            tu = vtk.vtkTexture()
+            tu.SetInputData(reader.GetOutput())
+            tu.SetInterpolate(interpolate)
+            tu.SetRepeat(repeat)
+            tu.SetEdgeClamp(edgeClamp)
 
         self.GetProperty().SetColor(1, 1, 1)
-        self.mapper.ScalarVisibilityOff()
+        self._mapper.ScalarVisibilityOff()
         self.SetTexture(tu)
         self.Modified()
         return self
@@ -1307,14 +1329,14 @@ class Actor(vtk.vtkFollower, Prop):
         |deleteMeshPoints| |deleteMeshPoints.py|_
         """
         cellIds = vtk.vtkIdList()
-        self.poly.BuildLinks()
+        self._polydata.BuildLinks()
         for i in indices:
-            self.poly.GetPointCells(i, cellIds)
+            self._polydata.GetPointCells(i, cellIds)
             for j in range(cellIds.GetNumberOfIds()):
-                self.poly.DeleteCell(cellIds.GetId(j))  # flag cell
+                self._polydata.DeleteCell(cellIds.GetId(j))  # flag cell
 
-        self.poly.RemoveDeletedCells()
-        self.mapper.Modified()
+        self._polydata.RemoveDeletedCells()
+        self._mapper.Modified()
         return self
 
     def computeNormals(self, points=True, cells=True):
@@ -1444,20 +1466,20 @@ class Actor(vtk.vtkFollower, Prop):
         if c is False:
             return np.array(self.GetProperty().GetColor())
         elif c is None:
-            self.mapper.ScalarVisibilityOn()
+            self._mapper.ScalarVisibilityOn()
             return self
         elif isinstance(c, str):
             if c in colors._mapscales_cmaps:
                 self.cmap = c
-                if self.poly.GetPointData().GetScalars():
-                    aname = self.poly.GetPointData().GetScalars().GetName()
+                if self._polydata.GetPointData().GetScalars():
+                    aname = self._polydata.GetPointData().GetScalars().GetName()
                     if aname: self.pointColors(aname, cmap=c)
-                if self.poly.GetCellData().GetScalars():
-                    aname = self.poly.GetCellData().GetScalars().GetName()
+                if self._polydata.GetCellData().GetScalars():
+                    aname = self._polydata.GetCellData().GetScalars().GetName()
                     if aname: self.cellColors(aname, cmap=c)
-                self.mapper.ScalarVisibilityOn()
+                self._mapper.ScalarVisibilityOn()
                 return self
-        self.mapper.ScalarVisibilityOff()
+        self._mapper.ScalarVisibilityOff()
         cc = colors.getColor(c)
         self.GetProperty().SetColor(cc)
         if self.trail:
@@ -1486,7 +1508,7 @@ class Actor(vtk.vtkFollower, Prop):
         backProp.SetDiffuseColor(colors.getColor(bc))
         backProp.SetOpacity(self.GetProperty().GetOpacity())
         self.SetBackfaceProperty(backProp)
-        self.mapper.ScalarVisibilityOff()
+        self._mapper.ScalarVisibilityOff()
         return self
 
     def bc(self, backColor=False):
@@ -1745,7 +1767,7 @@ class Actor(vtk.vtkFollower, Prop):
             for i in range(cellData.GetNumberOfTuples()):
                 cellData.InsertTuple(i, defcol)
             self.polydata(False).GetCellData().SetScalars(cellData)
-            self.mapper.ScalarVisibilityOn()
+            self._mapper.ScalarVisibilityOn()
             flagcol = np.array(colors.getColor(c))*255
 
         cids = []
@@ -1783,8 +1805,8 @@ class Actor(vtk.vtkFollower, Prop):
 
         poly1.GetPointData().SetActiveScalars(scals.GetName())
         rng = scals.GetRange()
-        self.mapper.SetScalarRange(rng[0], rng[1])
-        self.mapper.ScalarVisibilityOn()
+        self._mapper.SetScalarRange(rng[0], rng[1])
+        self._mapper.ScalarVisibilityOn()
         return self
 
     def clone(self, transformed=True):
@@ -1793,16 +1815,17 @@ class Actor(vtk.vtkFollower, Prop):
 
         :param transformed: if `False` ignore any previous transformation applied to the mesh.
 
-        |carcrash| |carcrash.py|_
+        |mirror| |mirror.py|_
         """
         poly = self.polydata(transformed=transformed)
         polyCopy = vtk.vtkPolyData()
         polyCopy.DeepCopy(poly)
 
         cloned = Actor()
-        cloned.poly = polyCopy
-        cloned.mapper.SetInputData(polyCopy)
-        cloned.mapper.SetScalarVisibility(self.mapper.GetScalarVisibility())
+        cloned._polydata = polyCopy
+        cloned._mapper.SetInputData(polyCopy)
+        cloned._mapper.SetScalarVisibility(self._mapper.GetScalarVisibility())
+        cloned._mapper.SetScalarRange(self._mapper.GetScalarRange())
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.GetProperty())
         cloned.SetProperty(pr)
@@ -1851,7 +1874,7 @@ class Actor(vtk.vtkFollower, Prop):
         t.Scale(scale, scale, scale)
         t.Translate(-cm)
         tf = vtk.vtkTransformPolyDataFilter()
-        tf.SetInputData(self.poly)
+        tf.SetInputData(self._polydata)
         tf.SetTransform(t)
         tf.Update()
         return self.updateMesh(tf.GetOutput())
@@ -2202,7 +2225,7 @@ class Actor(vtk.vtkFollower, Prop):
             raise RuntimeError()
 
         thres = vtk.vtkThreshold()
-        thres.SetInputData(self.poly)
+        thres.SetInputData(self._polydata)
 
         if useCells:
             asso = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
@@ -2235,7 +2258,7 @@ class Actor(vtk.vtkFollower, Prop):
         tf = vtk.vtkTriangleFilter()
         tf.SetPassLines(lines)
         tf.SetPassVerts(verts)
-        tf.SetInputData(self.poly)
+        tf.SetInputData(self._polydata)
         tf.Update()
         return self.updateMesh(tf.GetOutput())
 
@@ -2332,12 +2355,12 @@ class Actor(vtk.vtkFollower, Prop):
 
         arr = numpy_to_vtk(np.ascontiguousarray(scalars_or_colors), deep=True)
         arr.SetName(sname)
-        self.mapper.SetArrayName(sname)
+        self._mapper.SetArrayName(sname)
         if settings.autoResetScalarRange:
-            self.mapper.SetScalarRange(vmin, vmax)
-        self.mapper.SetLookupTable(lut)
-        self.mapper.SetScalarModeToUsePointData()
-        self.mapper.ScalarVisibilityOn()
+            self._mapper.SetScalarRange(vmin, vmax)
+        self._mapper.SetLookupTable(lut)
+        self._mapper.SetScalarModeToUsePointData()
+        self._mapper.ScalarVisibilityOn()
         poly.GetPointData().SetScalars(arr)
         poly.GetPointData().SetActiveScalars(sname)
         return self
@@ -2346,7 +2369,7 @@ class Actor(vtk.vtkFollower, Prop):
         ptData = vtk.vtkUnsignedIntArray()
         ptData.SetName("VertexColors")
         lut = vtk.vtkLookupTable()
-        n = self.poly.GetNumberOfPoints()
+        n = self._polydata.GetNumberOfPoints()
         if len(acolors) != n or (utils.isSequence(alphas) and len(alphas) != n):
             colors.printc("~times _pointColors1By1(): mismatch in input list sizes.", c=1)
             return self
@@ -2359,13 +2382,13 @@ class Actor(vtk.vtkFollower, Prop):
             ptData.InsertNextValue(i)
             c = cols[i]
             lut.SetTableValue(i, c[0], c[1], c[2], alphas[i])
-        self.poly.GetPointData().SetScalars(ptData)
-        self.poly.GetPointData().Modified()
-        self.mapper.SetScalarRange(0, n-1)
-        self.mapper.SetLookupTable(lut)
-        self.mapper.SetArrayName("VertexColors")
-        self.mapper.SetScalarModeToUsePointData()
-        self.mapper.ScalarVisibilityOn()
+        self._polydata.GetPointData().SetScalars(ptData)
+        self._polydata.GetPointData().Modified()
+        self._mapper.SetScalarRange(0, n-1)
+        self._mapper.SetLookupTable(lut)
+        self._mapper.SetArrayName("VertexColors")
+        self._mapper.SetScalarModeToUsePointData()
+        self._mapper.ScalarVisibilityOn()
         return self
 
 
@@ -2470,12 +2493,12 @@ class Actor(vtk.vtkFollower, Prop):
 
         arr = numpy_to_vtk(np.ascontiguousarray(scalars_or_colors), deep=True)
         arr.SetName(sname)
-        self.mapper.SetArrayName(sname)
+        self._mapper.SetArrayName(sname)
         if settings.autoResetScalarRange:
-            self.mapper.SetScalarRange(vmin, vmax)
-        self.mapper.SetLookupTable(lut)
-        self.mapper.SetScalarModeToUseCellData()
-        self.mapper.ScalarVisibilityOn()
+            self._mapper.SetScalarRange(vmin, vmax)
+        self._mapper.SetLookupTable(lut)
+        self._mapper.SetScalarModeToUseCellData()
+        self._mapper.ScalarVisibilityOn()
         poly.GetCellData().SetScalars(arr)
         poly.GetCellData().SetActiveScalars(sname)
         return self
@@ -2484,7 +2507,7 @@ class Actor(vtk.vtkFollower, Prop):
         cellData = vtk.vtkUnsignedIntArray()
         cellData.SetName("CellColors")
 
-        n = self.poly.GetNumberOfCells()
+        n = self._polydata.GetNumberOfCells()
         if len(acolors) != n or (utils.isSequence(alphas) and len(alphas) != n):
             colors.printc("~times cellColors(): mismatch in input list sizes.",
                           len(acolors), n, c=1)
@@ -2530,13 +2553,13 @@ class Actor(vtk.vtkFollower, Prop):
                 c = cols[i]
                 lut.SetTableValue(i, c[0], c[1], c[2], alphas[uids[i]])
 
-        self.poly.GetCellData().SetScalars(cellData)
-        self.poly.GetCellData().Modified()
-        self.mapper.SetScalarRange(0, lut.GetNumberOfTableValues()-1)
-        self.mapper.SetLookupTable(lut)
-        self.mapper.SetArrayName("CellColors")
-        self.mapper.SetScalarModeToUseCellData()
-        self.mapper.ScalarVisibilityOn()
+        self._polydata.GetCellData().SetScalars(cellData)
+        self._polydata.GetCellData().Modified()
+        self._mapper.SetScalarRange(0, lut.GetNumberOfTableValues()-1)
+        self._mapper.SetLookupTable(lut)
+        self._mapper.SetArrayName("CellColors")
+        self._mapper.SetScalarModeToUseCellData()
+        self._mapper.ScalarVisibilityOn()
         return self
 
     def addPointVectors(self, vectors, name):
@@ -2564,7 +2587,7 @@ class Actor(vtk.vtkFollower, Prop):
         :param bool asfield: flag to control whether to generate scalar or field data.
         """
         ids = vtk.vtkIdFilter()
-        ids.SetInputData(self.poly)
+        ids.SetInputData(self._polydata)
         ids.PointIdsOn()
         ids.CellIdsOn()
         if asfield:
@@ -2591,18 +2614,18 @@ class Actor(vtk.vtkFollower, Prop):
             |curvature|
         """
         curve = vtk.vtkCurvatures()
-        curve.SetInputData(self.poly)
+        curve.SetInputData(self._polydata)
         curve.SetCurvatureType(method)
         curve.Update()
-        self.poly = curve.GetOutput()
+        self._polydata = curve.GetOutput()
 
-        self.mapper.SetInputData(self.poly)
+        self._mapper.SetInputData(self._polydata)
         if lut:
-            self.mapper.SetLookupTable(lut)
-            self.mapper.SetUseLookupTableScalarRange(1)
-        self.mapper.Update()
+            self._mapper.SetLookupTable(lut)
+            self._mapper.SetUseLookupTableScalarRange(1)
+        self._mapper.Update()
         self.Modified()
-        self.mapper.ScalarVisibilityOn()
+        self._mapper.ScalarVisibilityOn()
         return self
 
     def addElevationScalars(self, lowPoint=(), highPoint=(), vrange=(), lut=None):
@@ -2634,15 +2657,15 @@ class Actor(vtk.vtkFollower, Prop):
             ef.SetScalarRange(vrange)
 
         ef.Update()
-        self.poly = ef.GetOutput()
+        self._polydata = ef.GetOutput()
 
-        self.mapper.SetInputData(self.poly)
+        self._mapper.SetInputData(self._polydata)
         if lut:
-            self.mapper.SetLookupTable(lut)
-            self.mapper.SetUseLookupTableScalarRange(1)
-        self.mapper.Update()
+            self._mapper.SetLookupTable(lut)
+            self._mapper.SetUseLookupTableScalarRange(1)
+        self._mapper.Update()
         self.Modified()
-        self.mapper.ScalarVisibilityOn()
+        self._mapper.ScalarVisibilityOn()
         return self
 
     def scalars(self, name_or_idx=None, datatype="point"):
@@ -2684,7 +2707,7 @@ class Actor(vtk.vtkFollower, Prop):
                 if name:
                     arr = pdata.GetArray(name)
                     data = pdata
-                    self.mapper.SetScalarModeToUsePointData()
+                    self._mapper.SetScalarModeToUsePointData()
 
 
             if not arr or 'cell' in datatype.lower():
@@ -2696,13 +2719,13 @@ class Actor(vtk.vtkFollower, Prop):
                 if name:
                     arr = cdata.GetArray(name)
                     data = cdata
-                    self.mapper.SetScalarModeToUseCellData()
+                    self._mapper.SetScalarModeToUseCellData()
 
             if arr:
                 data.SetActiveScalars(name)
-                self.mapper.ScalarVisibilityOn()
+                self._mapper.ScalarVisibilityOn()
                 if settings.autoResetScalarRange:
-                    self.mapper.SetScalarRange(arr.GetRange())
+                    self._mapper.SetScalarRange(arr.GetRange())
                 return vtk_to_numpy(arr)
 
             return None
@@ -2765,7 +2788,10 @@ class Actor(vtk.vtkFollower, Prop):
         if 'quad' in method:
             decimate = vtk.vtkQuadricDecimation()
             decimate.SetAttributeErrorMetric(True)
-            decimate.SetVolumePreservation(True)
+            if self.GetTexture():
+                decimate.TCoordsAttributeOn()
+            else:
+                decimate.SetVolumePreservation(True)
         else:
             decimate = vtk.vtkDecimatePro()
             decimate.PreserveTopologyOn()
@@ -2798,8 +2824,8 @@ class Actor(vtk.vtkFollower, Prop):
         vpts = vtk.vtkPoints()
         vpts.SetNumberOfPoints(n)
         vpts.SetData(numpy_to_vtk(pts + ns, deep=True))
-        self.poly.SetPoints(vpts)
-        self.poly.GetPoints().Modified()
+        self._polydata.SetPoints(vpts)
+        self._polydata.GetPoints().Modified()
         self.addPointVectors(-ns, 'GaussNoise')
         return self
 
@@ -2816,7 +2842,7 @@ class Actor(vtk.vtkFollower, Prop):
 
         .. hint:: |mesh_smoothers.py|_
         """
-        poly = self.poly
+        poly = self._polydata
         cl = vtk.vtkCleanPolyData()
         cl.SetInputData(poly)
         cl.Update()
@@ -2844,7 +2870,7 @@ class Actor(vtk.vtkFollower, Prop):
 
         |mesh_smoothers| |mesh_smoothers.py|_
         """
-        poly = self.poly
+        poly = self._polydata
         cl = vtk.vtkCleanPolyData()
         cl.SetInputData(poly)
         cl.Update()
@@ -2875,7 +2901,7 @@ class Actor(vtk.vtkFollower, Prop):
             mb = self.maxBoundSize()
             size = mb / 10
         fh.SetHoleSize(size)
-        fh.SetInputData(self.poly)
+        fh.SetInputData(self._polydata)
         fh.Update()
         return self.updateMesh(fh.GetOutput())
 
@@ -2916,16 +2942,16 @@ class Actor(vtk.vtkFollower, Prop):
             to the current actor's position in space.
         """
         if not transformed:
-            if not self.poly:
-                self.poly = self.mapper.GetInput()
-            return self.poly
+            if not self._polydata:
+                self._polydata = self._mapper.GetInput()
+            return self._polydata
         else:
             M = self.GetMatrix()
             if utils.isIdentity(M):
                 # if identity return the original polydata
-                if not self.poly:
-                    self.poly = self.mapper.GetInput()
-                return self.poly
+                if not self._polydata:
+                    self._polydata = self._mapper.GetInput()
+                return self._polydata
             else:
                 # otherwise make a copy that corresponds to
                 # the actual position in space of the actor
@@ -2933,7 +2959,7 @@ class Actor(vtk.vtkFollower, Prop):
                 transform.SetMatrix(M)
                 tp = vtk.vtkTransformPolyDataFilter()
                 tp.SetTransform(transform)
-                tp.SetInputData(self.poly)
+                tp.SetInputData(self._polydata)
                 tp.Update()
                 return tp.GetOutput()
 
@@ -3218,7 +3244,7 @@ class Actor(vtk.vtkFollower, Prop):
         bcf.SetInputData(self.polydata())
         bcf.SetScalarModeToValue()
         bcf.GenerateContourEdgesOn()
-        r0, r1 = self.poly.GetScalarRange()
+        r0, r1 = self._polydata.GetScalarRange()
         if vmin is None:
             vmin = r0
         if vmax is None:
@@ -3405,6 +3431,7 @@ class Volume(vtk.vtkVolume, Prop):
     :type c: float, list
     :param list origin: set volume origin coordinates
     :param list spacing: voxel dimensions in x, y and z.
+    :param list shape: specify the shape.
     :param str mapperType: either 'gpu', 'opengl_gpu', 'fixed' or 'smart'
 
     :param int mode: define the volumetric rendering style:
@@ -3428,6 +3455,7 @@ class Volume(vtk.vtkVolume, Prop):
                  mode=0,
                  origin=None,
                  spacing=None,
+                 shape=None,
                  mapperType='gpu',
                  ):
 
@@ -3440,11 +3468,19 @@ class Volume(vtk.vtkVolume, Prop):
         if inputobj is None:
             img = vtk.vtkImageData()
         elif utils.isSequence(inputobj):
+            if "ndarray" not in inputtype:
+                inputobj = np.array(inputobj)
+
             varr = numpy_to_vtk(inputobj.ravel(), deep=True, array_type=vtk.VTK_FLOAT)
             varr.SetName('input_scalars')
+
             img = vtk.vtkImageData()
-            img.SetDimensions(inputobj.shape)
+            if shape is not None:
+                img.SetDimensions(shape)
+            else:
+                img.SetDimensions(inputobj.shape)
             img.GetPointData().SetScalars(varr)
+
         elif "ImageData" in inputtype:
             img = inputobj
         elif "UniformGrid" in inputtype:
@@ -3453,33 +3489,36 @@ class Volume(vtk.vtkVolume, Prop):
             img = inputobj
             mapperType = 'tetra'
         elif hasattr(inputobj, "GetOutput"): # passing vtk object, try extract imagdedata
-            if hasattr(inputobj, "Update"): inputobj.Update()
+            if hasattr(inputobj, "Update"):
+                inputobj.Update()
             img = inputobj.GetOutput()
         else:
             colors.printc("Volume(): cannot understand input type:\n", inputtype, c=1)
             return
 
         if 'gpu' in mapperType:
-            self.mapper = vtk.vtkGPUVolumeRayCastMapper()
+            self._mapper = vtk.vtkGPUVolumeRayCastMapper()
         elif 'opengl_gpu' in mapperType:
-            self.mapper = vtk.vtkOpenGLGPUVolumeRayCastMapper()
+            self._mapper = vtk.vtkOpenGLGPUVolumeRayCastMapper()
         elif 'smart' in mapperType:
-            self.mapper = vtk.vtkSmartVolumeMapper()
+            self._mapper = vtk.vtkSmartVolumeMapper()
         elif 'fixed' in mapperType:
-            self.mapper = vtk.vtkFixedPointVolumeRayCastMapper()
+            self._mapper = vtk.vtkFixedPointVolumeRayCastMapper()
         elif 'tetra' in mapperType:
-            self.mapper = vtk.vtkProjectedTetrahedraMapper()
+            self._mapper = vtk.vtkProjectedTetrahedraMapper()
         elif 'unstr' in mapperType:
-            self.mapper = vtk.vtkUnstructuredGridVolumeRayCastMapper()
+            self._mapper = vtk.vtkUnstructuredGridVolumeRayCastMapper()
 
         if origin is not None:
             img.SetOrigin(origin)
         if spacing is not None:
             img.SetSpacing(spacing)
+        if shape is not None:
+            img.SetDimensions(shape)
 
         self._image = img
-        self.mapper.SetInputData(img)
-        self.SetMapper(self.mapper)
+        self._mapper.SetInputData(img)
+        self.SetMapper(self._mapper)
         self.mode(mode).color(c).alpha(alpha).alphaGradient(alphaGradient)
         # remember stuff:
         self._mode = mode
@@ -3487,13 +3526,13 @@ class Volume(vtk.vtkVolume, Prop):
         self._alpha = alpha
         self._alphaGrad = alphaGradient
 
-    def _updateVolume(self, img):
+    def updateVolume(self, img):
         """
         Overwrite the polygonal mesh of the actor with a new one.
         """
         self._image = img
-        self.mapper.SetInputData(img)
-        self.mapper.Modified()
+        self._mapper.SetInputData(img)
+        self._mapper.Modified()
         return self
 
     def mode(self, mode=None):
@@ -3506,10 +3545,10 @@ class Volume(vtk.vtkVolume, Prop):
             - 4, additive mode
         """
         if mode is None:
-            return self.mapper.GetBlendMode()
+            return self._mapper.GetBlendMode()
 
         volumeProperty = self.GetProperty()
-        self.mapper.SetBlendMode(mode)
+        self._mapper.SetBlendMode(mode)
         self._mode = mode
         if mode == 0:
             volumeProperty.ShadeOn()
@@ -3524,10 +3563,10 @@ class Volume(vtk.vtkVolume, Prop):
         """If `jittering` is `True`, each ray traversal direction will be perturbed slightly
         using a noise-texture to get rid of wood-grain effects.
         """
-        if hasattr(self, 'SetUseJittering'):
+        if hasattr(self._mapper, 'SetUseJittering'):
             if status is None:
-                return self.mapper.GetUseJittering()
-            self.mapper.SetUseJittering(status)
+                return self._mapper.GetUseJittering()
+            self._mapper.SetUseJittering(status)
             return self
         return None
 
@@ -3539,6 +3578,15 @@ class Volume(vtk.vtkVolume, Prop):
         """Return the nr. of voxels in the 3 dimensions."""
         return self._image.GetDimensions()
 
+    def spacing(self, s=None):
+        """Set/get the voxels size in the 3 dimensions."""
+        if s is not None:
+            self._image.SetSpacing(s)
+            self._mapper.Modified()
+            return self
+        else:
+            return np.array(self._image.GetSpacing())
+
     def permuteAxes(self, x, y ,z):
         """Reorder the axes of the Volume by specifying
         the input axes which are supposed to become the new X, Y, and Z."""
@@ -3546,7 +3594,28 @@ class Volume(vtk.vtkVolume, Prop):
         imp.SetFilteredAxes(x,y,z)
         imp. SetInputData(self.imagedata())
         imp.Update()
-        return self._updateVolume(imp.GetOutput())
+        return self.updateVolume(imp.GetOutput())
+
+    def resample(self, newSpacing, interpolation=1):
+        """
+        Resamples a ``Volume`` to be larger or smaller.
+
+        This method modifies the spacing of the input.
+        Linear interpolation is used to resample the data.
+
+        :param list newSpacing: a list of 3 new spacings for the 3 axes.
+        :param int interpolation: 0=nearest_neighbor, 1=linear, 2=cubic
+        """
+        rsp = vtk.vtkImageResample()
+        oldsp = self.GetSpacing()
+        for i in range(3):
+            if oldsp[i] != newSpacing[i]:
+                rsp.SetAxisOutputSpacing(i, newSpacing[i])
+        rsp.InterpolateOn()
+        rsp.SetInterpolationMode(interpolation)
+        rsp.OptimizationOn()
+        rsp.Update()
+        return self.updateVolume(rsp.GetOutput())
 
 
     def color(self, col):
@@ -3675,7 +3744,7 @@ class Volume(vtk.vtkVolume, Prop):
 
         th.SetInValue(replaceWith)
         th.Update()
-        return self._updateVolume(th.GetOutput())
+        return self.updateVolume(th.GetOutput())
 
     def crop(self,
              top=None, bottom=None,
@@ -3709,7 +3778,7 @@ class Volume(vtk.vtkVolume, Prop):
             if top is not None:    bz1 = int((d[2]-1)*(1-top))
             extractVOI.SetVOI(bx0, bx1, by0, by1, bz0, bz1)
         extractVOI.Update()
-        return self._updateVolume(extractVOI.GetOutput())
+        return self.updateVolume(extractVOI.GetOutput())
 
     def cutWithPlane(self, origin=(0,0,0), normal=(1,0,0)):
         """
@@ -3735,7 +3804,7 @@ class Volume(vtk.vtkVolume, Prop):
         clipper.Update()
 
         vol = Volume(clipper.GetOutput()).color(self._color)
-        return vol #self._updateVolume(clipper.GetOutput())
+        return vol #self.updateVolume(clipper.GetOutput())
 
 
     def resize(self, *newdims):
@@ -3750,14 +3819,14 @@ class Volume(vtk.vtkVolume, Prop):
         self._image = rsz.GetOutput()
         new_spac = old_spac * old_dims/newdims  # keep aspect ratio
         self._image.SetSpacing(new_spac)
-        return self._updateVolume(self._image)
+        return self.updateVolume(self._image)
 
     def normalize(self):
         """Normalize that scalar components for each point."""
         norm = vtk.vtkImageNormalize()
         norm.SetInputData(self.imagedata())
         norm.Update()
-        return self._updateVolume(norm.GetOutput())
+        return self.updateVolume(norm.GetOutput())
 
     def scaleVoxels(self, scale=1):
         """Scale the voxel content by factor `scale`."""
@@ -3765,7 +3834,7 @@ class Volume(vtk.vtkVolume, Prop):
         rsl.SetInputData(self.imagedata())
         rsl.SetScalarScale(scale)
         rsl.Update()
-        return self._updateVolume(rsl.GetOutput())
+        return self.updateVolume(rsl.GetOutput())
 
     def mirror(self, axis="x"):
         """
@@ -3789,7 +3858,7 @@ class Volume(vtk.vtkVolume, Prop):
             colors.printc("~times Error in mirror(): mirror must be set to x, y, z or n.", c=1)
             raise RuntimeError()
         ff.Update()
-        return self._updateVolume(ff.GetOutput())
+        return self.updateVolume(ff.GetOutput())
 
     def xSlice(self, i):
         """Extract the slice at index `i` of volume along x-axis."""
@@ -3867,7 +3936,7 @@ class Volume(vtk.vtkVolume, Prop):
             poly = conn.GetOutput()
 
         a = Actor(poly, c=None).phong()
-        a.mapper.SetScalarRange(scrange[0], scrange[1])
+        a._mapper.SetScalarRange(scrange[0], scrange[1])
         return a
 
 

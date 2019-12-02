@@ -1,7 +1,7 @@
 """#Control scalar bar range.
 > plot(u, mode='color', vmin=-3, vmax=3, style=1)
 
-Avaliable styles:
+Available styles:
 0. vtk
 1. matplotlib
 2. meshlab

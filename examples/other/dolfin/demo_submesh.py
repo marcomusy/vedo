@@ -1,5 +1,5 @@
 """
-how to extract matching 
+how to extract matching
 sub meshes from a common mesh.
 """
 from dolfin import *

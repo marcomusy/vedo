@@ -67,7 +67,7 @@ def addLight(
     light.SetFocalPoint(focalPoint)
     light.SetIntensity(intensity)
     light.SetColor(getColor(c))
-    #light.SetShadowAttenuation(0.1) # doesnt work
+    #light.SetShadowAttenuation(0.1) # doesn't work
     if showsource:
         lightActor = vtk.vtkLightActor()
         lightActor.SetLight(light)
@@ -112,19 +112,19 @@ def addScalarBar(actor,
     if c is None: c = 'gray'
 
     if isinstance(actor, Actor):
-        lut = actor.mapper.GetLookupTable()
+        lut = actor.mapper().GetLookupTable()
         if not lut:
             return None
-        vtkscalars = actor.poly.GetPointData().GetScalars()
+        vtkscalars = actor._polydata.GetPointData().GetScalars()
         if vtkscalars is None:
-            vtkscalars = actor.poly.GetCellData().GetScalars()
+            vtkscalars = actor._polydata.GetCellData().GetScalars()
         if not vtkscalars:
             return None
 
         rng = list(vtkscalars.GetRange())
         if vmin is not None: rng[0] = vmin
         if vmax is not None: rng[1] = vmax
-        actor.mapper.SetScalarRange(rng)
+        actor.mapper().SetScalarRange(rng)
 
     elif isinstance(actor, 'Volume'):
         # to be implemented
@@ -229,13 +229,13 @@ def addScalarBar3D(
 
     if isinstance(obj, Actor):
         if cmap is None:
-            lut = obj.mapper.GetLookupTable()
+            lut = obj.mapper().GetLookupTable()
             if not lut:
                 print("Error in ScalarBar3D: actor has no active scalar array.", [obj])
                 return None
         else:
             lut = cmap
-        vmin,vmax = obj.mapper.GetScalarRange()
+        vmin,vmax = obj.mapper().GetScalarRange()
 
     elif isSequence(obj):
         vmin, vmax = np.min(obj), np.max(obj)
@@ -553,11 +553,11 @@ def addCutterTool(actor):
     cpoly = clipper.GetOutput()
 
     act0 = Actor(cpoly, alpha=actor.alpha()) # the main cut part
-    act0.mapper.SetLookupTable(actor.mapper.GetLookupTable())
-    act0.mapper.SetScalarRange(actor.mapper.GetScalarRange())
+    act0.mapper().SetLookupTable(actor.mapper().GetLookupTable())
+    act0.mapper().SetScalarRange(actor.mapper().GetScalarRange())
 
     act1 = Actor()
-    act1.mapper.SetInputConnection(clipper.GetClippedOutputPort()) # needs OutputPort??
+    act1.mapper().SetInputConnection(clipper.GetClippedOutputPort()) # needs OutputPort??
     act1.alpha(0.04).color((0.5,0.5,0.5)).wireframe()
 
     vp.renderer.RemoveActor(actor)
@@ -613,9 +613,9 @@ def _addVolumeCutterTool(vol):
     planes = vtk.vtkPlanes()
     def clipVolumeRender(obj, event):
         obj.GetPlanes(planes)
-        vol.mapper.SetClippingPlanes(planes)
-        #vol.mapper.Modified()
-        #vol.mapper.Update()
+        vol.mapper().SetClippingPlanes(planes)
+        #vol.mapper().Modified()
+        #vol.mapper().Update()
 
     boxWidget.SetInputData(vol.inputdata())
     boxWidget.OutlineCursorWiresOn()
@@ -711,7 +711,8 @@ def addAxes(axtype=None, c=None):
           - 8,  show the ``vtkCubeAxesActor`` object
           - 9,  show the bounding box outLine
           - 10, show three circles representing the maximum bounding box
-          - 11, show polar axes
+          - 11, show a large grid on the x-y plane (use with zoom=8)
+          - 12, show polar axes
 
     Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
@@ -771,7 +772,7 @@ def addAxes(axtype=None, c=None):
     """
     vp = settings.plotter_instance
     if axtype is not None:
-        vp.axes = axtype  # overrride
+        vp.axes = axtype  # override
 
     r = vp.renderers.index(vp.renderer)
 
@@ -792,7 +793,7 @@ def addAxes(axtype=None, c=None):
         return
 
     ############################################################
-    if vp.axes == 1 or vp.axes == True or isinstance(vp.axes, dict):  # custom grid walls
+    if vp.axes == 1 or vp.axes is True or isinstance(vp.axes, dict):  # custom grid walls
 
         if isinstance(vp.axes, dict):
             axes = vp.axes
@@ -1458,6 +1459,17 @@ def addAxes(axtype=None, c=None):
         vp.axes_instances[r] = ca
 
     elif vp.axes == 11:
+        vbb, sizes = computeVisibleBounds()[0:2]
+        xpos, ypos = (vbb[1] + vbb[0]) /2, (vbb[3] + vbb[2]) /2
+        gr = shapes.Grid((xpos, ypos, vbb[4]),
+                         sx=sizes[0]*8, sy=sizes[1]*8,
+                         resx=7, resy=7,
+                         c=c, alpha=0.2)
+        gr.lighting('ambient').PickableOff()
+        vp.renderer.AddActor(gr)
+        vp.axes_instances[r] = gr
+
+    elif vp.axes == 12:
         polaxes = vtk.vtkPolarAxesActor()
         vbb = computeVisibleBounds()[0]
 
@@ -1505,7 +1517,8 @@ def addAxes(axtype=None, c=None):
   8 = show the vtkCubeAxesActor object
   9 = show the bounding box outline
   10 = show three circles representing the maximum bounding box
-  11 = show polar axes
+  11 = show a large grid on the x-y plane (use with zoom=8)
+  12 = show polar axes.
   ''', c=1, bold=0)
 
     if not vp.axes_instances[r]:
@@ -1567,8 +1580,7 @@ def addLegend():
 
     actors = vp.getActors()
     acts, texts = [], []
-    for i in range(len(actors)):
-        a = actors[i]
+    for i, a in enumerate(actors):
         if i < len(vp._legend) and vp._legend[i] != "":
             if isinstance(vp._legend[i], str):
                 texts.append(vp._legend[i])

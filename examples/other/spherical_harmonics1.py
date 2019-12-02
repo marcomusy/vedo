@@ -60,7 +60,7 @@ grid_reco = clm.expand(lmax=lmax)  # cut "high frequency" components
 # interpolate to a finer grid
 agrid_reco = grid_reco.to_array()
 
-# adding 1 coloumn
+# adding 1 column
 dim = (lmax * 2 + 2) + 1
 gridTmp = np.zeros((dim - 1, dim))
 gridTmp[:, 0:dim - 1] = agrid_reco

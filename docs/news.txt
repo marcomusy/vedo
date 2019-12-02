@@ -1,4 +1,10 @@
-2019/11/19
+20xx/xx/xx
+- added type axes=11 (horizontal grid)
+- fix bug by @m-albert on Volume from numpy object
+- fix typos in docs
+
+
+2019/21/19
 - added PDV paraview file reading.
 - PDB protein data bank file reader
 - added error bars in plotxy()
@@ -11,6 +17,3 @@
 - improved texture control, can pass texture coords explicitly
 - fix trimesh problem with coloring vertices
 - can use "panel" backend in notebooks
-
-
-

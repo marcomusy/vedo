@@ -36,6 +36,8 @@ Install with commands (e.g. in Anaconda3):
         conda install -c conda-forge fenics
         pip install vtkplotter
 
+    Or follow instructions `here. <https://fenicsproject.org/download/>`_
+
 Basic example:
 
     .. code-block:: python
@@ -97,7 +99,7 @@ Image Gallery
 +-------------------------------------------------+-------------------------------------------------+
 | |customAxes|                                    | |awefem|                                        |
 +-------------------------------------------------+-------------------------------------------------+
-| Customizing axes style and appearence           |The wave equation in arbitrary nr. of dimensions |
+| Customizing axes style and appearance           |The wave equation in arbitrary nr. of dimensions |
 +-------------------------------------------------+-------------------------------------------------+
 
 |fenics_logo|
@@ -285,7 +287,8 @@ def plot(*inputobj, **options):
       - 8,  show the `vtkCubeAxesActor` object,
       - 9,  show the bounding box outLine,
       - 10, show three circles representing the maximum bounding box,
-      - 11, show polar axes.
+      - 11, show a large grid on the x-y plane (use with zoom=8)
+      - 12, show polar axes.
 
         Axes type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
@@ -453,7 +456,7 @@ def plot(*inputobj, **options):
 
 
     # change some default to emulate standard behaviours
-    options['verbose'] = False # dont disturb
+    options['verbose'] = False # don't disturb
     if  style == 0 or style == 'vtk':
         font = 'courier'
         axes = options.pop('axes', None)
@@ -572,7 +575,7 @@ def plot(*inputobj, **options):
                 actor.gouraud()
 
         if cmap and (actor.u_values is not None) and c is None:
-            if u.value_rank() > 0: # wiil show the size of the vector
+            if u.value_rank() > 0: # will show the size of the vector
                 actor.pointColors(utils.mag(actor.u_values),
                                   cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
             else:
@@ -625,7 +628,7 @@ def plot(*inputobj, **options):
             arrs = MeshLines(u, scale=scale)
 
         if arrs:
-            if legend and not 'mesh' in mode:
+            if legend and 'mesh' not in mode:
                 arrs.legend(legend)
             if c:
                 arrs.color(c)
@@ -730,7 +733,7 @@ class MeshActor(Actor):
         if movedpts.shape[1] == 2: #2d
             movedpts = np.c_[movedpts, np.zeros(movedpts.shape[0])]
         self.polydata(False).GetPoints().SetData(numpy_to_vtk(movedpts))
-        self.poly.GetPoints().Modified()
+        self._polydata.GetPoints().Modified()
 
 
 def MeshPoints(*inputobj, **options):

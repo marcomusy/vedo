@@ -15,17 +15,17 @@ specularPower, specularColor= 20, 'white'
 for i in range(8):
     s = vp.load(datadir+'pumpkin.vtk')#.color(i)
     s.normalize().pos((i%4)*2.2, int(i<4)*3, 0)
-    
+
     #s.phong()
     #s.gouraud()
     s.flat()
-    
+
     # modify the default with specific values
     s.lighting('default', ambient, diffuse, specular, specularPower, specularColor)
     #ambient += 0.125
     diffuse += 0.125
     specular += 0.125
-    
+
 vp += Text(__doc__)
 vp.show()
 

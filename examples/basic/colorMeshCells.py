@@ -1,5 +1,5 @@
 """cellColors(mode='colors')
-Colorize faces of a mesh one by one, 
+Colorize faces of a mesh one by one,
 passing a 1-to-1 list of colors and
 optionally a list of transparencies.
 """

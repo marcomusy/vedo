@@ -10,7 +10,6 @@ python example.py
 
 |    |    |
 |:--------:|:-----|
-|    |    |
 | [![customaxes](https://user-images.githubusercontent.com/32848391/58181826-c605d180-7cac-11e9-9786-11b5eb278f20.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/customAxes.py)<br/> `customAxes.py`  | Customize axes style and appearance. |
 |    |    |
 | [![donutplot](https://user-images.githubusercontent.com/32848391/64998178-6f6b7580-d8e3-11e9-9bd8-8dfb9ccd90e4.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d/donutPlot.py)<br/> `donutPlot.py`     | A donut style plot or pie chart. |

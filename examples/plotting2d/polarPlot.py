@@ -17,7 +17,7 @@ show(radhisto, at=0, N=2, axes=0, sharecam=False, bg="white")
 hyp = Hyperboloid(res=20).cutWithPlane().rotateY(-90)
 hyp.color('grey').alpha(0.3)
 
-# select 10 random indeces of points on the surface
+# select 10 random indices of points on the surface
 idx = np.random.randint(0, hyp.NPoints(), size=10)
 
 radhistos = []

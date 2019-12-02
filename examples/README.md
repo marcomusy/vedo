@@ -69,7 +69,7 @@ vp.show()
 
 ```python
 # Draw a bunch of simple objects on separate parts of the rendering window:
-# split window automatically to best accomodate 9 renderers
+# split window automatically to best accommodate 9 renderers
 vp = Plotter(N=9, title='basic shapes', axes=0) # split window in 9 frames
 vp.sharecam = False                             # each object can be moved independently
 vp.show(Arrow([0, 0, 0], [1, 1, 1]), at=0,    legend='arrow')

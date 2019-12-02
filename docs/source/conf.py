@@ -41,7 +41,7 @@ try:
     verstrline = open(VERSIONFILE, "rt").read()
     verstr = verstrline.split('=')[1].replace('\n','').replace("'","")
 except:
-    verstr='unknown_version' 
+    verstr='unknown_version'
 
 version = verstr
 

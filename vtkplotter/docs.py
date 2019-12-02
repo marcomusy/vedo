@@ -174,13 +174,6 @@ _defs = """
     :target: align2.py_
     :alt: align2.py
 
-.. |carcrash.py| replace:: carcrash.py
-.. _carcrash.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/carcrash.py
-.. |carcrash| image:: https://user-images.githubusercontent.com/32848391/50738869-c0fe2500-11d8-11e9-9b0f-c22c30050c34.jpg
-    :width: 250 px
-    :target: carcrash.py_
-    :alt: carcrash.py
-
 .. |mirror.py| replace:: mirror.py
 .. _mirror.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/mirror.py
 .. |mirror| image:: https://user-images.githubusercontent.com/32848391/50738855-bf346180-11d8-11e9-97a0-c9aaae6ce052.jpg

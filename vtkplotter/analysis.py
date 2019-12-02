@@ -69,6 +69,7 @@ __all__ = [
     "volumeToPoints",
     "volumeCorrelation",
     "warpMeshToPoint",
+    "rectilinearGridToTetrahedra",
 ]
 
 
@@ -179,7 +180,7 @@ def normalLines(actor, ratio=1, atCells=True):
     glyph.OrientOn()
     glyph.Update()
     glyphActor = Actor(glyph.GetOutput())
-    glyphActor.mapper.SetScalarModeToUsePointFieldData()
+    glyphActor.mapper().SetScalarModeToUsePointFieldData()
     glyphActor.PickableOff()
     prop = vtk.vtkProperty()
     prop.DeepCopy(actor.GetProperty())
@@ -924,7 +925,7 @@ def probePoints(vol, pts):
     probeFilter.Update()
 
     pact = Actor(probeFilter.GetOutput())
-    pact.mapper.SetScalarRange(img.GetScalarRange())
+    pact.mapper().SetScalarRange(img.GetScalarRange())
     #del src # to avoid memory leaks, incompatible with python2
     return pact
 
@@ -946,7 +947,7 @@ def probeLine(vol, p1, p2, res=100):
     probeFilter.Update()
 
     lact = Actor(probeFilter.GetOutput())
-    lact.mapper.SetScalarRange(img.GetScalarRange())
+    lact.mapper().SetScalarRange(img.GetScalarRange())
     #del line # to avoid memory leaks, incompatible with python2
     return lact
 
@@ -967,7 +968,7 @@ def probePlane(vol, origin=(0, 0, 0), normal=(1, 0, 0)):
     planeCut.SetCutFunction(plane)
     planeCut.Update()
     cutActor = Actor(planeCut.GetOutput(), c=None)  # ScalarVisibilityOn
-    cutActor.mapper.SetScalarRange(img.GetPointData().GetScalars().GetRange())
+    cutActor.mapper().SetScalarRange(img.GetPointData().GetScalars().GetRange())
     return cutActor
 
 
@@ -1193,7 +1194,7 @@ def meshQuality(actor, measure=6):
     """
     Calculate functions of quality of the elements of a triangular mesh.
     See class `vtkMeshQuality <https://vtk.org/doc/nightly/html/classvtkMeshQuality.html>`_
-    for explaination.
+    for explanation.
 
     :param int measure: type of estimator
 
@@ -1243,7 +1244,7 @@ def meshQuality(actor, measure=6):
     pd.ShallowCopy(qf.GetOutput())
 
     qactor = Actor(pd)
-    qactor.mapper.SetScalarRange(pd.GetScalarRange())
+    qactor.mapper().SetScalarRange(pd.GetScalarRange())
     return qactor
 
 
@@ -1357,7 +1358,7 @@ def splitByConnectivity(actor, maxdepth=1000):
     blist = []
     for i, l in enumerate(alist):
         l[0].color(i + 1).phong()
-        l[0].mapper.ScalarVisibilityOff()
+        l[0].mapper().ScalarVisibilityOff()
         blist.append(l[0])
     return blist
 
@@ -1775,6 +1776,25 @@ def interpolateToStructuredGrid(actor, kernel=None, radius=None,
     return interpolator.GetOutput()
 
 
+def rectilinearGridToTetrahedra(rgrid, tetraPerCell=6):
+    """Create a tetrahedral mesh from a ``vtkRectilinearGrid``.
+    The tetrahedra can be 5 per cell, 6 per cell, or a mixture of 5 or 12 per cell.
+    The resulting mesh is consistent, meaning that there are no edge crossings and
+    that each tetrahedron face is shared by two tetrahedra,
+    except those tetrahedra on the boundary. All tetrahedra are right handed.
+    """
+    r2t = vtk.vtkRectilinearGridToTetrahedra()
+    r2t.SetInputData(rgrid)
+    if tetraPerCell == 5:
+        r2t.SetTetraPerCellTo5()
+    if tetraPerCell == 6:
+        r2t.SetTetraPerCellTo6()
+    if tetraPerCell == 12:
+        r2t.SetTetraPerCellTo12()
+    r2t.Update()
+    return r2t.GetOutput()
+
+
 def streamLines(domain, probe,
                 integrator='rk4',
                 direction='forward',
@@ -1782,7 +1802,7 @@ def streamLines(domain, probe,
                 maxPropagation=None,
                 maxSteps=10000,
                 stepLength=None,
-                extrapolateToBoundingBox={},
+                extrapolateToBoundingBox=(),
                 surfaceConstrain=False,
                 computeVorticity=True,
                 ribbons=None,
@@ -1930,18 +1950,18 @@ def streamLines(domain, probe,
         streamTube.Update()
         sta = Actor(streamTube.GetOutput(), c=None)
 
-        sta.mapper.SetScalarRange(grid.GetPointData().GetScalars().GetRange())
+        sta.mapper().SetScalarRange(grid.GetPointData().GetScalars().GetRange())
         if scalarRange is not None:
-            sta.mapper.SetScalarRange(scalarRange)
+            sta.mapper().SetScalarRange(scalarRange)
 
         sta.GetProperty().BackfaceCullingOn()
         sta.phong()
         return sta
 
     sta = Actor(output, c=None)
-    sta.mapper.SetScalarRange(grid.GetPointData().GetScalars().GetRange())
+    sta.mapper().SetScalarRange(grid.GetPointData().GetScalars().GetRange())
     if scalarRange is not None:
-        sta.mapper.SetScalarRange(scalarRange)
+        sta.mapper().SetScalarRange(scalarRange)
     return sta
 
 

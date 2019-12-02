@@ -176,7 +176,7 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
             if c is None and alpha == 1:
                 c = ['b','lb','lg','y','r'] # good for blackboard background
                 alpha = (0.0, 0.0, 0.2, 0.4, 0.8, 1)
-            actor = Volume(img, c, alpha)
+            actor = Volume(img)
         else:
             actor = Volume(img).isosurface(threshold=threshold)
             actor.color(c).alpha(alpha)
@@ -220,7 +220,7 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
         ################################################################# numpy:
     elif fl.endswith(".npy"):
         acts = loadNumpy(filename)
-        if unpack == False:
+        if unpack is False:
             return Assembly(acts)
         return acts
 
@@ -299,7 +299,7 @@ def download(url, prefix=''):
     """Retrieve a file from a url, save it locally and return its path."""
 
     if "https://" not in url and "http://" not in url:
-    #    colors.printc('Invalid URL:\n', url, c=1)
+        #colors.printc('Invalid URL:\n', url, c=1)
         return url
 
     basename = os.path.basename(url)
@@ -660,8 +660,7 @@ def loadPCD(filename):
 
 
 def loadNumpy(inobj):
-    import numpy as np
-
+    """Load a vtkplotter format file."""
     if isinstance(inobj, str):
         data = np.load(inobj, allow_pickle=True, encoding='latin1')
     else:
@@ -698,16 +697,16 @@ def loadNumpy(inobj):
         act = Actor(poly)
         loadcommon(act, d)
 
-        act.mapper.ScalarVisibilityOff()
+        act.mapper().ScalarVisibilityOff()
         if 'celldata' in keys:
             for csc, cscname in d['celldata']:
                 act.addCellScalars(csc, cscname)
-                if not 'normal' in cscname.lower():
+                if 'normal' not in cscname.lower():
                     act.scalars(cscname) # activate
         if 'pointdata' in keys:
             for psc, pscname in d['pointdata']:
                 act.addPointScalars(psc, pscname)
-                if not 'normal' in pscname.lower():
+                if 'normal' not in pscname.lower():
                     act.scalars(pscname) # activate
 
         prp = act.GetProperty()
@@ -716,7 +715,7 @@ def loadNumpy(inobj):
         if 'specularcolor' in keys: prp.SetSpecularColor(d['specularcolor'])
         if 'shading' in keys:       prp.SetInterpolation(d['shading'])
         if 'alpha' in keys:         prp.SetOpacity(d['alpha'])
-        if 'opacity' in keys:       prp.SetOpacity(d['opacity']) # synomym
+        if 'opacity' in keys:       prp.SetOpacity(d['opacity']) # synonym
         if 'pointsize' in keys and d['pointsize']: prp.SetPointSize(d['pointsize'])
         if 'texture' in keys and d['texture']:     act.texture(d['texture'])
         if 'linewidth' in keys and d['linewidth']: act.lineWidth(d['linewidth'])
@@ -726,7 +725,7 @@ def loadNumpy(inobj):
         if 'backColor' in keys and d['backColor']: act.backColor(d['backColor'])
 
         if 'activedata' in keys and d['activedata'] is not None:
-            act.mapper.ScalarVisibilityOn()
+            act.mapper().ScalarVisibilityOn()
             if d['activedata'][0] == 'celldata':
                 poly.GetCellData().SetActiveScalars(d['activedata'][1])
             if d['activedata'][0] == 'pointdata':
@@ -802,7 +801,7 @@ def _np_dump(obj):
             for j in [0, 1, 2, 3]:
                 minv[i,j] = vm.GetElement(i, j)
         adict['transform_inverse'] = minv
-        if hasattr(obj, 'GetProperty'): # assembly doesnt
+        if hasattr(obj, 'GetProperty'): # assembly doesn't
             prp = obj.GetProperty()
             adict['ambient'] = prp.GetAmbient()
             adict['diffuse'] = prp.GetDiffuse()
@@ -896,7 +895,7 @@ def _np_dump(obj):
         arr = vtk_to_numpy(imgdata.GetPointData().GetScalars())
         adict['array'] = arr.reshape(imgdata.GetDimensions())
         adict['mode'] = obj.mode()
-        adict['jittering'] = obj.mapper.GetUseJittering()
+        adict['jittering'] = obj.mapper().GetUseJittering()
 
         prp = obj.GetProperty()
         ctf = prp.GetRGBTransferFunction()
@@ -1180,59 +1179,93 @@ def exportWindow(fileoutput, binary=False, speed=None, html=True):
 
     return
 
-def importWindow(fileinput):
-    """Import a whole scene from a Numpy file.
-    Return ``Plotter`` instance."""
+def importWindow(fileinput, mtlFile=None, texturePath=None):
+    """Import a whole scene from a Numpy or OBJ wavefront file.
+    Return ``Plotter`` instance.
+
+    :param str mtlFile: MTL file for OBJ wavefront files.
+    :param str texturePath: path of the texture files directory.
+    """
     from vtkplotter import Plotter
 
-    data = np.load(fileinput, allow_pickle=True, encoding="latin1").flatten()[0]
+    if '.npy' in fileinput:
+        data = np.load(fileinput, allow_pickle=True, encoding="latin1").flatten()[0]
 
-    if 'renderPointsAsSpheres' in data.keys():
-        settings.renderPointsAsSpheres = data['renderPointsAsSpheres']
-    if 'renderLinesAsTubes' in data.keys():
-        settings.renderLinesAsTubes = data['renderLinesAsTubes']
-    if 'hiddenLineRemoval' in data.keys():
-        settings.hiddenLineRemoval = data['hiddenLineRemoval']
-    if 'visibleGridEdges' in data.keys():
-        settings.visibleGridEdges = data['visibleGridEdges']
-    if 'interactorStyle' in data.keys():
-        settings.interactorStyle = data['interactorStyle']
-    if 'useParallelProjection' in data.keys():
-        settings.useParallelProjection = data['useParallelProjection']
+        if 'renderPointsAsSpheres' in data.keys():
+            settings.renderPointsAsSpheres = data['renderPointsAsSpheres']
+        if 'renderLinesAsTubes' in data.keys():
+            settings.renderLinesAsTubes = data['renderLinesAsTubes']
+        if 'hiddenLineRemoval' in data.keys():
+            settings.hiddenLineRemoval = data['hiddenLineRemoval']
+        if 'visibleGridEdges' in data.keys():
+            settings.visibleGridEdges = data['visibleGridEdges']
+        if 'interactorStyle' in data.keys():
+            settings.interactorStyle = data['interactorStyle']
+        if 'useParallelProjection' in data.keys():
+            settings.useParallelProjection = data['useParallelProjection']
 
-    axes = data.pop('axes', 4)
-    title = data.pop('title', '')
-    backgrcol = data.pop('backgrcol', "blackboard")
+        axes = data.pop('axes', 4)
+        title = data.pop('title', '')
+        backgrcol = data.pop('backgrcol', "blackboard")
 
-    vp = Plotter(#size=data['size'], # not necessarily a good idea to set it
-                 #shape=data['shape'],
-                 axes=axes,
-                 title=title,
-                 bg=backgrcol,
-    )
-    vp.xtitle = data.pop('xtitle', 'x')
-    vp.ytitle = data.pop('ytitle', 'y')
-    vp.ztitle = data.pop('ztitle', 'z')
+        vp = Plotter(#size=data['size'], # not necessarily a good idea to set it
+                     #shape=data['shape'],
+                     axes=axes,
+                     title=title,
+                     bg=backgrcol,
+        )
+        vp.xtitle = data.pop('xtitle', 'x')
+        vp.ytitle = data.pop('ytitle', 'y')
+        vp.ztitle = data.pop('ztitle', 'z')
 
-    if 'objects' in data.keys():
-        objs = loadNumpy(data['objects'])
-        if not utils.isSequence(objs):
-           objs = [objs]
-    else:
-        colors.printc("Trying to import a that was not exported.", c=1)
-        colors.printc(" -> try to load a single object with load().", c=1)
-        return loadNumpy(fileinput)
-    vp.actors = objs
+        if 'objects' in data.keys():
+            objs = loadNumpy(data['objects'])
+            if not utils.isSequence(objs):
+               objs = [objs]
+        else:
+            colors.printc("Trying to import a that was not exported.", c=1)
+            colors.printc(" -> try to load a single object with load().", c=1)
+            return loadNumpy(fileinput)
+        vp.actors = objs
 
-#    if vp.shape==(1,1):
-#        vp.actors = loadNumpy(data['objects'])
-#    else:
-#        print(objs, )
-#        for a in objs:
-#            for ar in a.renderedAt:
-#                print(vp.shape, [a], ar )
-#                vp.show(a, at=ar)
-    return vp
+        #    if vp.shape==(1,1):
+        #        vp.actors = loadNumpy(data['objects'])
+        #    else:
+        #        print(objs, )
+        #        for a in objs:
+        #            for ar in a.renderedAt:
+        #                print(vp.shape, [a], ar )
+        #                vp.show(a, at=ar)
+        return vp
+
+    elif '.obj' in fileinput.lower():
+
+        vp = Plotter()
+
+        importer = vtk.vtkOBJImporter()
+        importer.SetFileName(fileinput)
+        if mtlFile is not False:
+            if mtlFile is None:
+                mtlFile = fileinput.replace('.obj', '.mtl').replace('.OBJ', '.MTL')
+            importer.SetFileNameMTL(mtlFile)
+        if texturePath is not False:
+            if texturePath is None:
+                texturePath = fileinput.replace('.obj', '.txt').replace('.OBJ', '.TXT')
+            importer.SetTexturePath(texturePath)
+        importer.SetRenderWindow(vp.window)
+        importer.Update()
+
+        actors = vp.renderer.GetActors()
+        actors.InitTraversal()
+        for i in range(actors.GetNumberOfItems()):
+            vactor = actors.GetNextActor()
+            act = Actor(vactor)
+            act_tu = vactor.GetTexture()
+            if act_tu:
+                act_tu.InterpolateOn()
+                act.texture(act_tu)
+            vp.actors.append( act )
+        return vp
 
 
 ##########################################################

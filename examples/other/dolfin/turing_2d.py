@@ -19,7 +19,7 @@ parameters["form_compiler"]["representation"] = "uflacs"
 set_log_level(30)
 
 
-# Class representing the intial conditions
+# Class representing the initial conditions
 class InitialConditions(UserExpression):
     def eval(self, val, x):
         if between(x[0], (1.0, 1.5)) and between(x[1], (1.0, 1.5)):

@@ -45,9 +45,6 @@ python spherical_harmonics1.py
 echo Running tf_learn_volume.py
 python tf_learn_volume.py
 
-echo Running voronoi3d.py
-python voronoi3d.py
-
 echo Running export_x3d.py
 python export_x3d.py
 

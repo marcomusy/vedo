@@ -148,7 +148,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
 
                 vtkscals = None
                 color_attribute = None
-                if ia.mapper.GetScalarVisibility():
+                if ia.mapper().GetScalarVisibility():
                     vtkdata = iapoly.GetPointData()
                     vtkscals = vtkdata.GetScalars()
 
@@ -166,9 +166,9 @@ def getNotebookBackend(actors2show, zoom, viewup):
                     if vtkscals is not None:
                         if not vtkscals.GetName():
                             vtkscals.SetName('scalars')
-                        scals_min, scals_max = ia.mapper.GetScalarRange()
+                        scals_min, scals_max = ia.mapper().GetScalarRange()
                         color_attribute = (vtkscals.GetName(), scals_min, scals_max)
-                        lut = ia.mapper.GetLookupTable()
+                        lut = ia.mapper().GetLookupTable()
                         lut.Build()
                         kcmap=[]
                         nlut = lut.GetNumberOfTableValues()

@@ -21,8 +21,6 @@ python example.py
 |    |    |
 | [![buttons](https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/buttons.py)<br/> `buttons.py`           |  Add a square button with N possible internal states to a rendering window that calls a custom function. |
 |    |    |
-| [![carcrash](https://user-images.githubusercontent.com/32848391/50738869-c0fe2500-11d8-11e9-9b0f-c22c30050c34.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/carcrash.py)<br/> `carcrash.py`        |  Make a textured floor, a lamp post, load the mesh of a car, make copies of it, rotate and move them in a loop. |
-|    |    |
 | [![clustering](https://user-images.githubusercontent.com/32848391/50738868-c0fe2500-11d8-11e9-8cf8-93ddca43e406.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/clustering.py)<br/> `clustering.py`  |  Example of how to use `removeOutliers()` and `cluster()` methods. |
 |    |    |
 | [![colorcubes](https://user-images.githubusercontent.com/32848391/50738867-c0658e80-11d8-11e9-9e05-ac69b546b7ec.png)](https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/colorcubes.py)<br/> `colorcubes.py`  |  Show a cube for each available color name. |

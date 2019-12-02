@@ -1,6 +1,6 @@
 """
 Incompressible Navier-Stokes equations
-for flow around a cylinder using the 
+for flow around a cylinder using the
 Incremental Pressure Correction Scheme.
 
   u' + u . nabla(u)) - div(sigma(u, p)) = f

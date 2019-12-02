@@ -1,4 +1,4 @@
-from vtkplotter import Cube, Text, show, collection
+from vtkplotter import Cube, Text, show
 from vtkplotter.settings import fonts
 
 Text("List of available fonts:")

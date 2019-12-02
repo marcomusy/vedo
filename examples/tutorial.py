@@ -5,7 +5,7 @@
 #
 # Quick tutorial.
 # Check out more examples in directories:
-#	examples/basic 
+#	examples/basic
 #	examples/advanced
 #	examples/volumetric
 #	examples/simulations
@@ -14,7 +14,7 @@
 #####################################################
 """
 from __future__ import division, print_function
-from random import gauss, uniform as u
+from random import uniform as u
 from vtkplotter import *
 
 print(__doc__)
@@ -27,7 +27,7 @@ vp = Plotter()
 # (The actual mesh corresponds to the outer shape of
 # an embryonic mouse limb at about 11 days of gestation).
 # Choose a tomato color for the internal surface of the mesh.
-vp.load(datadir+"270.vtk").c("aqua").bc("tomato") 
+vp.load(datadir+"270.vtk").c("aqua").bc("tomato")
 vp.show()  # picks what is automatically stored in python list vp.actors
 # Press Esc to close the window and exit python session, or q to continue
 
@@ -69,7 +69,7 @@ vp.show(viewup="z", axes=1, interactive=1)  # show internal list of actors
 #########################################################################################
 # Draw a cloud of points each one with a different color
 # which depends on the point position itself.
-# No need to instatiate the Plotter class:
+# No need to instantiate the Plotter class:
 rgb = [(u(0, 255), u(0, 255), u(0, 255)) for i in range(5000)]
 
 pts = Points(rgb, c=rgb, alpha=0.8)
@@ -93,7 +93,7 @@ vp.show(a2, pts2, at=1, interactive=True)
 
 ########################################################################################
 # Draw a bunch of simple objects on separate parts of the rendering window:
-# split window to best accomodate 9 renderers
+# split window to best accommodate 9 renderers
 vp = Plotter(N=9, title="basic shapes", axes=0, bg="white")  # split window in 9 frames
 # each object can be moved independently
 vp.sharecam = False

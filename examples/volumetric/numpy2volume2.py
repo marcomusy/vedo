@@ -1,10 +1,12 @@
 import numpy as np
 
 data_matrix = np.zeros([75, 75, 75], dtype=np.uint8)
-data_matrix[0:35, 0:35, 0:35] = 50
-data_matrix[25:55, 25:55, 25:55] = 100
-data_matrix[45:74, 45:74, 45:74] = 150
+# all voxels have value zero except:
+data_matrix[0:35,   0:35,  0:35] = 1
+data_matrix[35:55, 35:55, 35:55] = 2
+data_matrix[55:74, 55:74, 55:74] = 3
 
 from vtkplotter import Volume
 
-Volume(data_matrix).show(bg="w")
+vol = Volume(data_matrix, c=['white','b','g','r'])
+vol.show(bg="white", axes=1)

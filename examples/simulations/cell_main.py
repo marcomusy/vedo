@@ -20,7 +20,7 @@ vp.camera.SetViewUp([-0.1, 1, -0.3])
 
 # Let's start with creating 3 colonies of 1 cell each
 # of types: red, green and blue, in different positions in space
-# and with 3 differents rates of division (tdiv in hours)
+# and with 3 different rates of division (tdiv in hours)
 c1 = Colony([Cell([1, 0, 0], tdiv=8)], c="b")
 c2 = Colony([Cell([0, 1, 0], tdiv=9)], c="g")
 c3 = Colony([Cell([0, 0, 1], tdiv=10)], c="r")

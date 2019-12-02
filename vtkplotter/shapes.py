@@ -149,12 +149,9 @@ def Points(plist, r=5, c="gold", alpha=1):
         plist = np.c_[np.array(plist), np.zeros(len(plist))]
     ################
 
-    if (( utils.isSequence(c)
-          and (len(c)>3 or (utils.isSequence(c[0]) and len(c[0])==4))
-        )
+    if ((utils.isSequence(c) and (len(c)>3 or (utils.isSequence(c[0]) and len(c[0])==4)))
         or utils.isSequence(alpha) ):
-        actor = _PointsColors(plist, r, c, alpha)
-
+            actor = _PointsColors(plist, r, c, alpha)
     else:
         n = len(plist)  # refresh
         sourcePoints = vtk.vtkPoints()
@@ -229,7 +226,7 @@ def _PointsColors(plist, r, cols, alpha):
 
     pd.GetPointData().SetScalars(ucols)
     actor = Actor(pd, c, alpha).flat().pointSize(r)
-    actor.mapper.ScalarVisibilityOn()
+    actor.mapper().ScalarVisibilityOn()
     return actor
 
 
@@ -239,7 +236,7 @@ def Glyph(actor, glyphObj, orientationArray=None,
     At each vertex of a mesh, another mesh - a `'glyph'` - is shown with
     various orientation options and coloring.
 
-    Color can be specfied as a colormap which maps the size of the orientation
+    Color can be specified as a colormap which maps the size of the orientation
     vectors in `orientationArray`.
 
     :param orientationArray: list of vectors, ``vtkAbstractArray``
@@ -281,6 +278,7 @@ def Glyph(actor, glyphObj, orientationArray=None,
     gly.SetInputData(poly)
     gly.SetSourceData(glyphObj)
     gly.SetColorModeToColorByScalar()
+    gly.SetRange(actor.mapper().GetScalarRange())
 
     if orientationArray is not None:
         gly.OrientOn()
@@ -322,11 +320,11 @@ def Glyph(actor, glyphObj, orientationArray=None,
         for i in range(512):
             r, g, b = colorMap(i, cmap, 0, 512)
             lut.SetTableValue(i, r, g, b, 1)
-        gactor.mapper.SetLookupTable(lut)
-        gactor.mapper.ScalarVisibilityOn()
-        gactor.mapper.SetScalarModeToUsePointData()
+        gactor.mapper().SetLookupTable(lut)
+        gactor.mapper().ScalarVisibilityOn()
+        gactor.mapper().SetScalarModeToUsePointData()
         rng = gly.GetOutput().GetPointData().GetScalars().GetRange()
-        gactor.mapper.SetScalarRange(rng[0], rng[1])
+        gactor.mapper().SetScalarRange(rng[0], rng[1])
 
     settings.collectable_actors.append(gactor)
     gactor.name = "Glyph"
@@ -438,7 +436,7 @@ def Line(p0, p1=None, c="r", alpha=1, lw=1, dotted=False, res=None):
     if isinstance(p0, vtk.vtkActor): p0 = p0.GetPosition()
     if isinstance(p1, vtk.vtkActor): p1 = p1.GetPosition()
 
-    # detect if user is passing a 2D ist of points as p0=xlist, p1=ylist:
+    # detect if user is passing a 2D list of points as p0=xlist, p1=ylist:
     if len(p0) > 3:
         if not utils.isSequence(p0[0]) and not utils.isSequence(p1[0]) and len(p0)==len(p1):
             # assume input is 2D xlist, ylist
@@ -496,7 +494,7 @@ def DashedLine(p0, p1=None, spacing=None, c="red", alpha=1, lw=1):
     if isinstance(p0, vtk.vtkActor): p0 = p0.GetPosition()
     if isinstance(p1, vtk.vtkActor): p1 = p1.GetPosition()
 
-    # detect if user is passing a 2D ist of points as p0=xlist, p1=ylist:
+    # detect if user is passing a 2D list of points as p0=xlist, p1=ylist:
     if len(p0) > 3:
         if not utils.isSequence(p0[0]) and not utils.isSequence(p1[0]) and len(p0)==len(p1):
             # assume input is 2D xlist, ylist
@@ -589,7 +587,7 @@ def Lines(startPoints, endPoints=None, c='gray', alpha=1, lw=1, dotted=False, sc
 def Spline(points, smooth=0.5, degree=2, s=2, res=None):
     """
     Return an ``Actor`` for a spline which does not necessarly
-    passing exactly throught all the input points.
+    passing exactly through all the input points.
     Needs to import `scypi`.
 
     :param float smooth: smoothing factor.
@@ -639,7 +637,7 @@ def KSpline(points,
             continuity=0, tension=0, bias=0,
             closed=False, res=None):
     """
-    Return a Kochanek-Bartel spline which runs exactly throught all the input points.
+    Return a Kochanek-Bartel spline which runs exactly through all the input points.
 
     See: https://en.wikipedia.org/wiki/Kochanek%E2%80%93Bartels_spline
 
@@ -737,10 +735,10 @@ def Tube(points, r=1, c="r", alpha=1, res=12):
 
     actor = Actor(tuf.GetOutput(), c, alpha, computeNormals=0).phong()
     if usingColScals:
-        actor.mapper.SetScalarModeToUsePointFieldData()
-        actor.mapper.ScalarVisibilityOn()
-        actor.mapper.SelectColorArray("TubeColors")
-        actor.mapper.Modified()
+        actor.mapper().SetScalarModeToUsePointFieldData()
+        actor.mapper().ScalarVisibilityOn()
+        actor.mapper().SelectColorArray("TubeColors")
+        actor.mapper().Modified()
 
     actor.base = np.array(points[0])
     actor.top = np.array(points[-1])
@@ -904,7 +902,7 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12)
     Build arrows between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
 
-    Color can be specfied as a colormap which maps the size of the arrows.
+    Color can be specified as a colormap which maps the size of the arrows.
 
     :param float s: fix aspect-ratio of the arrow and scale its cross section
     :param float scale: apply a rescaling factor to the length
@@ -1188,9 +1186,9 @@ def Spheres(centers, r=1, c="r", alpha=1, res=8):
 
     actor = Actor(glyph.GetOutput(), alpha=alpha).phong()
     if cisseq:
-        actor.mapper.ScalarVisibilityOn()
+        actor.mapper().ScalarVisibilityOn()
     else:
-        actor.mapper.ScalarVisibilityOff()
+        actor.mapper().ScalarVisibilityOff()
         actor.GetProperty().SetColor(getColor(c))
     settings.collectable_actors.append(actor)
     actor.name = "Spheres"
@@ -1584,7 +1582,7 @@ def Paraboloid(pos=(0,0,0), r=1, height=1, c="cyan", alpha=1, res=50):
     contours.Update()
 
     actor = Actor(contours.GetOutput(), c, alpha).flipNormals().phong()
-    actor.mapper.ScalarVisibilityOff()
+    actor.mapper().ScalarVisibilityOff()
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
     actor.name = "Paraboloid"
@@ -1615,7 +1613,7 @@ def Hyperboloid(pos=(0,0,0), a2=1, value=0.5, height=1, c="m", alpha=1, res=100)
     contours.Update()
 
     actor = Actor(contours.GetOutput(), c, alpha).flipNormals().phong()
-    actor.mapper.ScalarVisibilityOff()
+    actor.mapper().ScalarVisibilityOff()
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
     actor.name = "Hyperboloid"

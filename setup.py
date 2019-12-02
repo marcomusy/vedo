@@ -73,7 +73,7 @@ setup(
 # rm examples/other/trimesh/featuretype.STL examples/other/trimesh/machinist.XAML
 # rm examples/other/scene.npy examples/other/timecourse1d.npy vtkplotter/data/290.ply
 # rm examples/other/voronoi3d.txt examples/other/voronoi3d.txt.vol
-# rm examples/other/embryo.html examples/other/embryo.x3d 
+# rm examples/other/embryo.html examples/other/embryo.x3d
 
 # git status
 # git add [files]

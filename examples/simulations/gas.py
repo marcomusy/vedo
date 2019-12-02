@@ -2,7 +2,7 @@
 A model of an ideal gas with hard-sphere collisions.
 """
 ## Based on gas.py by Bruce Sherwood for a cube as a container
-## Sligthly modified by Andrey Antonov for a torus.
+## Slightly modified by Andrey Antonov for a torus.
 ## Adapted by M. Musy for vtkplotter
 ## relevant points in the code are marked with '### <--'
 from __future__ import division, print_function

@@ -31,7 +31,7 @@ class Animation(Plotter):
     by specifying event times and durations of different visual effects.
 
     :param float totalDuration: expand or shrink the total duration of video to this value
-    :param float timeResolution: in secconds, save a frame at this rate
+    :param float timeResolution: in seconds, save a frame at this rate
     :param bool showProgressBar: show the progressbar
     :param str videoFileName: output file name of the video
     :param int videoFPS: desired value of the nr of frames per second.
@@ -327,7 +327,7 @@ class Animation(Plotter):
             if len(acts) != 1:
                 printc('Error in rotate(), can move only one object.', c=1)
             for tt in rng:
-                ang  = angle/len(rng)
+                ang = angle/len(rng)
                 self.events.append((tt, self.rotate, acts, (axis, ang)))
         else:
             ax = self._inputvalues[0]

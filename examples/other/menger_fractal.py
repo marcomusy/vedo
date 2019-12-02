@@ -5,7 +5,7 @@ Menger fractal sponge
 # https://github.com/K3D-tools/K3D-jupyter/tree/master/examples
 #https://en.wikipedia.org/wiki/Menger_sponge
 import numpy as np
-from vtkplotter import Volume, legosurface, show
+from vtkplotter import Volume, show
 
 iteration = 4
 size = 3**iteration

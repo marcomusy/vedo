@@ -14,7 +14,7 @@ from vtkplotter import *
 cc = Sphere(res=200).clean(tol=0.02).getPoints()
 txt = Text(__doc__, c="k")
 
-a, b, noise = 0.2, 0.4, 0.1  # some random warping paramenters, and noise factor
+a, b, noise = 0.2, 0.4, 0.1  # some random warping parameters, and noise factor
 sets = []
 for i in range(5):  # generate a time sequence of 5 shapes
     cs = cc + a * i * cc ** 2 + b * i * cc ** 3  # warp sphere in weird ways

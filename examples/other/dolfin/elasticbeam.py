@@ -48,7 +48,7 @@ u_magnitude = project(u_magnitude, V)
 ################################ Plot solution
 from vtkplotter.dolfin import *
 
-plot(u, mode="displaced mesh", 
+plot(u, mode="displaced mesh",
      text=__doc__,
      scalarbar=False,
      axes=1,

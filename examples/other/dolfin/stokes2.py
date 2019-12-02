@@ -27,7 +27,7 @@ bc = DirichletBC(W.sub(0),
 
 def epsilon(u):
     return grad(u) + nabla_grad(u)
-a = inner(mu*epsilon(u) + p*Identity(2), epsilon(v))*dx -div(u)*q*dx -1e-10*p*q*dx 
+a = inner(mu*epsilon(u) + p*Identity(2), epsilon(v))*dx -div(u)*q*dx -1e-10*p*q*dx
 L = dot(force, v)*dx + g*q*dx
 
 # Solve system

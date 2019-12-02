@@ -1,5 +1,5 @@
 #!/bin/bash
-# source run_all.sh
+#
 printf "\033c"
 
 echo ###########################################################
@@ -8,43 +8,35 @@ echo ###########################################################
 echo
 echo
 
-#################################### tutorial script
 #python tutorial.py
 
-#################################### basic
 cd basic;       ./run_all.sh; cd ..
 
-#################################### advanced
 cd advanced;    ./run_all.sh; cd ..
 
-#################################### simulations
 cd simulations; ./run_all.sh; cd ..
 
-################################### volumetric
 cd volumetric;  ./run_all.sh; cd ..
 
-#################################### plotting2d
 cd plotting2d;  ./run_all.sh; cd ..
 
-#################################### other
 cd other;       ./run_all.sh; cd ..
 
-#################################### other/dolfin
+# other/dolfin
 if python -c 'import pkgutil; exit(not pkgutil.find_loader("dolfin"))'; then
     cd other/dolfin; ./run_all.sh; cd ../..
 else
     echo 'dolfin not found, skip.'
 fi
 
-#################################### other/trimesh
+# other/trimesh
 if python -c 'import pkgutil; exit(not pkgutil.find_loader("trimesh"))'; then
     cd other/trimesh; ./run_all.sh; cd ../..
 else
     echo 'trimesh not found, skip.'
 fi
 
-
-####################################  command line tests
+#################################  command line tests
 printf "\033c"
 echo '---------------------------- command line tests'
 echo vtkplotter  data/2*.vtk
@@ -67,10 +59,6 @@ echo vtkplotter --slicer data/embryo.slc
 vtkplotter      --slicer data/embryo.slc
 
 echo '----------------------------'
-echo vtkplotter -s  "data/timecourse1d/*vtk"
-vtkplotter      -s   data/timecourse1d/*vtk
-
-echo '----------------------------'
 echo vtkplotter -s  "data/2??.vtk"
 vtkplotter      -s   data/2??.vtk
 
@@ -78,20 +66,26 @@ echo '----------------------------'
 echo vtkplotter -s  "data/images/airplanes_frames/*jpg"
 vtkplotter      -s   data/images/airplanes_frames/*jpg
 
-echo '----------------------------'
-echo vtkplotter --lego  "data/SainteHelens.dem"
-vtkplotter      --lego   data/SainteHelens.dem
-
 echo '---------------------------- should open a GUI'
 echo vtkplotter
 vtkplotter
 
-
 ##################################### not run/ignored:
-# examples/basic/lights.py
-# examples/plotting2d/text_just.py
-# examples/other/makeVideo.py
-# examples/other/spherical_harmonics2.py
-# examples/other/remesh_ACVD.py
-# examples/other/tf_learn_embryo.py
-# examples/other/self_org_maps3d.py
+# python basic/closewindow.py
+# python basic/lights.py
+# python basic/multiblocks.py
+# python basic/kspline.py
+# python advanced/pointsCutMesh2.py
+# python simulations/tunnelling1.py
+# python plotting2d/text_just.py
+# python other/animation1.py
+# python other/animation2.py
+# python other/qt_tabs_ui.py
+# python other/remesh_meshfix.py
+# python other/pygmsh_extrude.py
+# python other/voronoi3d.py
+# python other/makeVideo.py
+# python other/spherical_harmonics2.py
+# python other/remesh_ACVD.py
+# python other/tf_learn_embryo.py
+# python other/self_org_maps3d.py
