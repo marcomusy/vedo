@@ -1,4 +1,4 @@
-# Create a Volume from a numpy object using imread 
+# Create a Volume from a numpy object using imread
 #
 # https://github.com/marcomusy/vtkplotter/issues/78
 from vtkplotter import *
@@ -11,11 +11,12 @@ printc('voxel size is', voriginal.spacing(), c='cyan')
 
 raw = imread(f)
 
-vraw = Volume(raw.transpose(2,1,0),
-              shape=raw.shape,
-              spacing=(104,104,104))
-
+vraw = Volume(raw, spacing=(104,104,104))
+# Need to change axes and mirror
+# NOTE: spacing specified above is now inverted: (z,y,x)
 vraw.permuteAxes(2,1,0).mirror("y")
 
-show(voriginal, vraw, N=2, sharecam=0, axes=1)
+# Compare loading the volume directly with the numpy volume:
+# they should be the same
+show(voriginal, vraw, N=2, axes=1)
 

@@ -3471,7 +3471,8 @@ class Volume(vtk.vtkVolume, Prop):
             if "ndarray" not in inputtype:
                 inputobj = np.array(inputobj)
 
-            varr = numpy_to_vtk(inputobj.ravel(), deep=True, array_type=vtk.VTK_FLOAT)
+            varr = numpy_to_vtk(inputobj.ravel(order='F'),
+                                deep=True, array_type=vtk.VTK_FLOAT)
             varr.SetName('input_scalars')
 
             img = vtk.vtkImageData()
