@@ -13,7 +13,7 @@ setup(
     version=verstr,
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
-    install_requires=['vtk', 'numpy'],
+    install_requires=['vtk'],
     description='''A python module for scientific visualization,
     analysis and animation of 3D objects and point clouds based on VTK.''',
     long_description="""A python module for scientific visualization,

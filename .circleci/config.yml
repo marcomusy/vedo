@@ -1,31 +1,6 @@
 # Python CircleCI 2.0 configuration file
 #
 # Check https://circleci.com/docs/2.0/language-python/ for more details
-#
-install-python-components: &install-python-components
-  name: Install FEniCS Python components
-  command: |
-            pip3 install git+https://github.com/FEniCS/fiat.git --upgrade
-            pip3 install git+https://github.com/FEniCS/ufl.git --upgrade
-            pip3 install git+https://github.com/FEniCS/ffcx.git --upgrade
-            rm -rf /usr/local/include/dolfin /usr/local/include/dolfin.h
-
-configure-cpp: &configure-cpp
-  name: Configure (C++)
-  command: mkdir -p build && cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer ../cpp/
-
-
-build-install-cpp: &build-install-cpp
-  name: Build and install (C++)
-  command: cd build && ninja -j3 install
-
-
-build-python-interface: &build-python-interface
-  name: Build Python/pybind11 interface
-  command: |
-    cd python
-    pip3 -v install . --user
-
 
 version: 2
 
@@ -44,14 +19,18 @@ jobs:
           name: install vtkplotter
           command: |
             pip3 install vtk
+            pip3 install trimesh
+            pip3 install meshio
             pip3 install .
-            pwd
 
       # FEniCS:
-      - run: *install-python-components
       - run:
-          name: Get dolfinx cmake and install
+          name: Get dolfinx cmake compile and install
           command: |
+            pip3 install git+https://github.com/FEniCS/fiat.git --upgrade
+            pip3 install git+https://github.com/FEniCS/ufl.git --upgrade
+            pip3 install git+https://github.com/FEniCS/ffcx.git --upgrade
+            rm -rf /usr/local/include/dolfin /usr/local/include/dolfin.h
             git clone https://github.com/FEniCS/dolfinx.git
             cd dolfinx
             mkdir -p build && cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer ../cpp/
@@ -59,7 +38,6 @@ jobs:
             pwd
             cd ../python
             pip3 -v install . --user
-      #- run: *build-python-interface
 
       - run:
           name: run tests
@@ -67,8 +45,8 @@ jobs:
             cd
             pwd
             ls
-            python tests/test_clone.py
-            python tests/test_dolfin.py
+            python3 tests/test_clone.py
+            python3 tests/test_dolfin.py
 
       - store_artifacts:
           path: test-reports
