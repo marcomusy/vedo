@@ -50,14 +50,18 @@ jobs:
       # FEniCS:
       - run: *install-python-components
       - run:
-          name: get dolfinx
+          name: Get dolfinx cmake and install
           command: |
-            cd
             git clone https://github.com/FEniCS/dolfinx.git
             cd dolfinx
-      - run: *configure-cpp
-      - run: *build-install-cpp
-      - run: *build-python-interface
+            pwd
+            ls
+            mkdir -p build && cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer ../cpp/
+            ninja -j3 install
+            cd ..
+            pwd
+            pip3 -v install . --user
+      #- run: *build-python-interface
 
       - run:
           name: run tests
