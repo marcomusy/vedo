@@ -54,12 +54,10 @@ jobs:
           command: |
             git clone https://github.com/FEniCS/dolfinx.git
             cd dolfinx
-            pwd
-            ls
             mkdir -p build && cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer ../cpp/
             ninja -j3 install
-            cd ..
             pwd
+            cd ../python
             pip3 -v install . --user
       #- run: *build-python-interface
 
@@ -67,7 +65,8 @@ jobs:
           name: run tests
           command: |
             cd
-            cd vtkplotter
+            pwd
+            ls
             python tests/test_clone.py
             python tests/test_dolfin.py
 
