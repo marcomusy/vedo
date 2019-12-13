@@ -43,8 +43,8 @@ jobs:
       - run:
           name: install vtkplotter
           command: |
-            pip install vtk
-            pip install .
+            pip3 install vtk
+            pip3 install .
             pwd
 
       # FEniCS:
