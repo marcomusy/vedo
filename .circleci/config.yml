@@ -28,50 +28,17 @@ build-python-interface: &build-python-interface
 
 
 version: 2
+
 jobs:
-  build:
+  build-real:
     docker:
-      # specify the version you desire here
-      # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
-      #- image: circleci/python:3.6.1
       - image: quay.io/fenicsproject/dolfinx:dev-env-real
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
-
-    working_directory: ~/repo
+    environment:
+      MPLBACKEND: "agg"
+      DEBIAN_FRONTEND: "noninteractive"
 
     steps:
       - checkout
-
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "requirements.txt" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
-
-      - run:
-          name: install dependencies
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install -r requirements.txt
-
-      - run:
-          name: install vtkplotter
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install .
-
-      - save_cache:
-          paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
-
 
       # FEniCS:
       - run: *install-python-components
@@ -79,15 +46,24 @@ jobs:
       - run: *build-install-cpp
       - run: *build-python-interface
 
+      - run:
+          name: install vtkplotter
+          command: |
+            pip install vtk
+            pip install .
 
       - run:
           name: run tests
           command: |
-            . venv/bin/activate
-            cd ~/repo/vtkplotter
             python tests/test_clone.py
             python tests/test_dolfin.py
 
       - store_artifacts:
           path: test-reports
           destination: test-reports
+
+workflows:
+  version: 2
+  build-stuff:
+    jobs:
+      - build-real
