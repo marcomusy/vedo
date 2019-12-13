@@ -52,20 +52,20 @@ vp.ytitle = "Psi^2(x,t)"
 vp.ztitle = ""
 
 bck = vp.load(datadir+"images/schrod.png", alpha=0.3).scale(0.0255).pos([0, -5, -0.1])
-barrier = Line(list(zip(x, V * 15, [0] * len(x))), c="black", lw=2)
+barrier = Line(np.stack((x, V*15, [0]*len(x)), axis=1), c="black", lw=2)
 
 lines = []
 for i in range(0, Nsteps):
     for j in range(500):
         Psi += d_dt(Psi) * dt  # integrate for a while before showing things
     A = np.real(Psi * np.conj(Psi)) * 1.5  # psi squared, probability(x)
-    coords = list(zip(x, A, [0] * len(x)))
+    coords = np.stack((x, A, [0]*len(x)), axis=1)
     Aline = Line(coords, c="db", lw=3)
     vp.show([Aline, barrier, bck])
     lines.append([Aline, A])  # store objects
 
 # now show the same lines along z representing time
-vp.actors= []
+vp.actors= [] # clean up internal list of objects to show
 vp.camera.Elevation(20)
 vp.camera.Azimuth(20)
 bck.alpha(1)

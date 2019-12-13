@@ -11,8 +11,8 @@ echo
 echo Running a_first_example.py
 python  a_first_example.py
 
-echo Running acollection.py
-python  acollection.py
+echo Running noname.py
+python  noname.py
 
 echo Running buildmesh.py
 python  buildmesh.py
@@ -30,7 +30,7 @@ echo Running bgImage.py
 python bgImage.py
 
 echo Running boolean.py
-python boolean.py      
+python boolean.py
 
 echo Running carcrash.py
 python carcrash.py
@@ -93,7 +93,7 @@ echo Running shrink.py
 python shrink.py
 
 echo Running manypoints.py
-python manypoints.py   
+python manypoints.py
 
 echo Running manyspheres.py
 python manyspheres.py
@@ -159,7 +159,7 @@ echo Running slider_browser.py
 python slider_browser.py
 
 echo Running sliders3d.py
-python sliders3d.py   
+python sliders3d.py
 
 echo Running buttons.py
 python buttons.py
@@ -189,20 +189,19 @@ echo Running tube.py
 python tube.py
 
 echo Running glyphs.py
-python glyphs.py   
+python glyphs.py
 
 echo Running glyphs_arrows.py
-python glyphs_arrows.py   
+python glyphs_arrows.py
 
 echo Running shadow.py
-python shadow.py   
+python shadow.py
 
 echo Running specular.py
-python specular.py   
+python specular.py
 
 echo Running lightings.py
-python lightings.py   
+python lightings.py
 
 echo Running surfIntersect.py
-python surfIntersect.py   
-
+python surfIntersect.py

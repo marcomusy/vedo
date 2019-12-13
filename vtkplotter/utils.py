@@ -34,7 +34,6 @@ __all__ = [
     "cart2pol",
     "pol2cart",
     "humansort",
-    "resampleArrays",
     "printHistogram",
     "plotMatrix",
     "cameraFromQuaternion",
@@ -409,6 +408,8 @@ def linInterpolate(x, rangeX, rangeY):
 
     E.g. if x runs in rangeX=[x0,x1] and I want it to run in rangeY=[y0,y1] then
     y = linInterpolate(x, rangeX, rangeY) will interpolate x onto rangeY.
+    
+    |linInterpolate| |linInterpolate.py|_
     """
     if isSequence(x):
         x = np.array(x)
@@ -1161,25 +1162,6 @@ def makeBands(inputlist, numberOfBands):
 
     return np.array(newlist)
 
-
-
-def resampleArrays(source, target, tol=None):
-        """Resample point and cell data of a dataset on points from another dataset.
-
-        :param float tol: set the tolerance used to compute whether
-            a point in the target is in a cell of the source.
-            Points without resampled values, and their cells, are be marked as blank.
-        """
-        rs = vtk.vtkResampleWithDataSet()
-        rs.SetSourceData(target.polydata())
-        rs.SetInputData(source.polydata())
-        rs.SetPassPointArrays(True)
-        rs.SetPassCellArrays(True)
-        if tol:
-            rs.SetComputeTolerance(False)
-            rs.SetTolerance(tol)
-        rs.Update()
-        return rs.GetOutput()
 
 
 def plotMatrix(M, title='matrix', continuous=True, cmap='Greys'):

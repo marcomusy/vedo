@@ -41,7 +41,7 @@ class Animation(Plotter):
                  videoFileName='animation.mp4', videoFPS=12):
         Plotter.__init__(self)
         self.verbose = False
-        self.resetcam = False
+        self.resetcam = True
 
         self.events = []
         self.timeResolution = timeResolution

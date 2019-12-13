@@ -2,6 +2,7 @@
 - added type axes=11 (horizontal grid)
 - fix bug by @m-albert on Volume from numpy object
 - fix typos in docs
+- change old fashioned list(zip()) to np.stack()
 
 
 2019/21/19

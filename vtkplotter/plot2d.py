@@ -245,7 +245,8 @@ def cornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True):
         - 4, bottomright.
     """
     if len(points) == 2:  # passing [allx, ally]
-        points = list(zip(points[0], points[1]))
+        #points = list(zip(points[0], points[1]))
+        points = np.stack((points[0], points[1]), axis=1)
 
     c = colors.getColor(c)  # allow different codings
     array_x = vtk.vtkFloatArray()
@@ -483,7 +484,8 @@ def hexHistogram(
     src.Update()
     pointsPolydata = src.GetOutput()
 
-    values = list(zip(xvalues, yvalues))
+    #values = list(zip(xvalues, yvalues))
+    values = np.stack((xvalues, yvalues), axis=1)
     zs = [[0.0]] * len(values)
     values = np.append(values, zs, axis=1)
 
@@ -831,7 +833,9 @@ def polarPlot(
     |polarPlot| |polarPlot.py|_
     """
     if len(rphi) == 2:
-        rphi = list(zip(rphi[0], rphi[1]))
+        #rphi = list(zip(rphi[0], rphi[1]))
+        rphi = np.stack((rphi[0], rphi[1]), axis=1)
+
     rphi = np.array(rphi)
     thetas = rphi[:, 0]
     radii = rphi[:, 1]

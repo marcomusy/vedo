@@ -8,7 +8,7 @@ The wave function is forced to be zero at the box walls (line 23).
 print(__doc__)
 
 import numpy as np
-from vtkplotter import Plotter, Tube, Line, datadir
+from vtkplotter import Plotter, Tube, Line, datadir, interactive
 
 dt = 0.004  # time step
 x0 = 5  # peak initial position
@@ -42,13 +42,13 @@ def d_dt(psi):  # find Psi(t+dt)-Psi(t) /dt with 4th order Runge-Kutta method
     return (k1 + 2 * k2 + 2 * k3 + k4) / 6
 
 
-vp = Plotter(bg="white", interactive=0, axes=2, verbose=0)
+vp = Plotter(bg="white", interactive=0, axes=2, verbose=0, size=(1000,500))
 vp.xtitle = ""
 vp.ytitle = "Psi^2(x,t)"
 vp.ztitle = ""
 
-bck = vp.load(datadir+"images/schrod.png").scale(0.012).pos([0, 0, -0.5])
-barrier = Line(list(zip(x, V * 15)), c="dr", lw=3)
+bck = vp.load(datadir+"images/schrod.png").scale(0.015).pos([0, 0, -0.5])
+barrier = Line(np.stack((x, V * 15), axis=1), c="dr", lw=3)
 
 lines = []
 for j in range(150):
@@ -56,9 +56,9 @@ for j in range(150):
         Psi += d_dt(Psi) * dt  # integrate for a while
 
     A = np.real(Psi * np.conj(Psi)) * 1.5  # psi squared, probability(x)
-    coords = list(zip(x, A, [0] * len(x)))
+    coords = np.stack((x, A, [0]*len(x)), axis=1)
     Aline = Tube(coords, c="db", r=0.08)
-    vp.show(Aline, barrier, bck)
+    vp.show(Aline, barrier, bck, zoom=2)
     lines.append(Aline)
 
-vp.show(interactive=1)
+interactive()

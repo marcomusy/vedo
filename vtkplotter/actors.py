@@ -24,30 +24,7 @@ __all__ = [
     'Picture',
     'Volume',
     'merge',
-    'collection',
 ]
-
-
-# functions
-def collection():
-    """
-    Return the list of objects which have been created so far,
-    without having to assign them a name.
-    Useful in loops.
-
-    :Example:
-        .. code-block:: python
-
-            from vtkplotter import Cone, collection, show
-            for i in range(10):
-                Cone(pos=[3*i, 0, 0], axis=[i, i-5, 0])
-            show(collection())
-
-            # in python3 you can simply use ellipses (three points symbol):
-            show(...)
-    """
-    return settings.collectable_actors
-
 
 def merge(*actors):
     """
@@ -737,8 +714,8 @@ class Prop(object):
         """Return point array content as a ``numpy.array``.
         This can be identified either as a string or by an integer number."""
         data = None
-        if hasattr(self, 'poly') and self.poly:
-            data = self.poly
+        if hasattr(self, '_polydata') and self._polydata:
+            data = self._polydata
         elif hasattr(self, '_image') and self._image:
             data = self._image
         return vtk_to_numpy(data.GetPointData().GetArray(name))
@@ -746,8 +723,8 @@ class Prop(object):
     def getCellArray(self, name=0):
         """Return cell array content as a ``numpy.array``."""
         data = None
-        if hasattr(self, 'poly') and self.poly:
-            data = self.poly
+        if hasattr(self, '_polydata') and self._polydata:
+            data = self._polydata
         elif hasattr(self, '_image') and self._image:
             data = self._image
         return vtk_to_numpy(data.GetCellData().GetArray(name))
@@ -917,6 +894,22 @@ class Actor(vtk.vtkFollower, Prop):
         elif "trimesh" in inputtype:
             tact = utils.trimesh2vtk(inputobj, alphaPerCell=False)
             self._polydata = tact.polydata()
+        elif "meshio" in inputtype:
+            if inputobj.cells: # assume [vertices, faces]
+                mcells =[]
+                if 'triangle' in inputobj.cells.keys():
+                    mcells += inputobj.cells['triangle'].tolist()
+                if 'quad' in inputobj.cells.keys():
+                    mcells += inputobj.cells['quad'].tolist()
+                self._polydata = utils.buildPolyData(inputobj.points, mcells)
+            else:
+                self._polydata = utils.buildPolyData(inputobj.points, None)
+            if inputobj.point_data:
+                vptdata = numpy_to_vtk(inputobj.point_data, deep=True)
+                self._polydata.SetPointData(vptdata)
+            if inputobj.cell_data:
+                vcldata = numpy_to_vtk(inputobj.cell_data, deep=True)
+                self._polydata.SetPointData(vcldata)
         elif utils.isSequence(inputobj):
             if len(inputobj) == 2: # assume [vertices, faces]
                 self._polydata = utils.buildPolyData(inputobj[0], inputobj[1])
@@ -1534,6 +1527,10 @@ class Actor(vtk.vtkFollower, Prop):
     def lineColor(self, lc=None):
         """Set/get color of mesh edges. Same as `lc()`."""
         if lc is not None:
+            if "ireframe" in self.GetProperty().GetRepresentationAsString():
+                self.GetProperty().EdgeVisibilityOff()
+                self.color(lc)
+                return self
             self.GetProperty().EdgeVisibilityOn()
             self.GetProperty().SetEdgeColor(colors.getColor(lc))
         else:
@@ -1944,7 +1941,7 @@ class Actor(vtk.vtkFollower, Prop):
             .. code-block:: python
 
                 from vtkplotter import *
-                pot = load(datadir + 'shapes/teapot.vtk').shrink(0.75)
+                pot = load(datadir + 'teapot.vtk').shrink(0.75)
                 s = Sphere(r=0.2).pos(0,0,-0.5)
                 show(pot, s)
 
@@ -2987,22 +2984,16 @@ class Actor(vtk.vtkFollower, Prop):
         |pca| |pca.py|_
         """
         poly = self.polydata(True)
-        # check if the stl file is closed
 
-        #featureEdge = vtk.vtkFeatureEdges()
-        # featureEdge.FeatureEdgesOff()
-        # featureEdge.BoundaryEdgesOn()
-        # featureEdge.NonManifoldEdgesOn()
-        # featureEdge.SetInputData(poly)
-        # featureEdge.Update()
-        #openEdges = featureEdge.GetOutput().GetNumberOfCells()
-        # if openEdges != 0:
-        #    colors.printc("~lightning Warning: polydata is not a closed surface", c=5)
+        if isinstance(points, Actor):
+            pointsPolydata = points.polydata(True)
+            points = points.coordinates()
+        else:
+            vpoints = vtk.vtkPoints()
+            vpoints.SetData(numpy_to_vtk(points, deep=True))
+            pointsPolydata = vtk.vtkPolyData()
+            pointsPolydata.SetPoints(vpoints)
 
-        vpoints = vtk.vtkPoints()
-        vpoints.SetData(numpy_to_vtk(points, deep=True))
-        pointsPolydata = vtk.vtkPolyData()
-        pointsPolydata.SetPoints(vpoints)
         sep = vtk.vtkSelectEnclosedPoints()
         sep.SetTolerance(tol)
         sep.SetInputData(pointsPolydata)
@@ -3780,6 +3771,47 @@ class Volume(vtk.vtkVolume, Prop):
             extractVOI.SetVOI(bx0, bx1, by0, by1, bz0, bz1)
         extractVOI.Update()
         return self.updateVolume(extractVOI.GetOutput())
+
+    def append(self, volumes, axis='z', preserveExtents=False):
+        """
+        Take the components from multiple inputs and merges them into one output.
+        Except for the append axis, all inputs must have the same extent.
+        All inputs must have the same number of scalar components.
+        The output has the same origin and spacing as the first input.
+        The origin and spacing of all other inputs are ignored.
+        All inputs must have the same scalar type.
+
+        :param int,str axis: axis expanded to hold the multiple images.
+        :param bool preserveExtents: if True, the extent of the inputs is used to place
+            the image in the output. The whole extent of the output is the union of the input
+            whole extents. Any portion of the output not covered by the inputs is set to zero.
+            The origin and spacing is taken from the first input.
+
+        .. code-block:: python
+
+            from vtkplotter import load, datadir
+            vol = load(datadir+'embryo.tif')
+            vol.append(vol, axis='x').show()
+        """
+        ima = vtk.vtkImageAppend()
+        ima.SetInputData(self.imagedata())
+        if not utils.isSequence(volumes):
+            volumes = [volumes]
+        for volume in volumes:
+            if isinstance(volume, vtk.vtkImageData):
+                ima.AddInputData(volume)
+            else:
+                ima.AddInputData(volume.imagedata())
+        ima.SetPreserveExtents(preserveExtents)
+        if axis   == "x":
+            axis = 0
+        elif axis == "y":
+            axis = 1
+        elif axis == "z":
+            axis = 2
+        ima.SetAppendAxis(axis)
+        ima.Update()
+        return self.updateVolume(ima.GetOutput())
 
     def cutWithPlane(self, origin=(0,0,0), normal=(1,0,0)):
         """

@@ -36,7 +36,6 @@ def show(*actors, **options):
     `vtu, vts, vtp, ply, obj, stl, 3ds, xml, neutral, gmsh, pcd, xyz, txt, byu,
     tif, slc, vti, mhd, png, jpg`.
 
-
     :param int at: number of the renderer to plot to, if more than one exists
     :param list shape: Number of sub-render windows inside of the main window.
         Specify two across with ``shape=(2, 1)`` and a two by two grid
@@ -108,12 +107,16 @@ def show(*actors, **options):
     :param bool resetcam:  re-adjust camera position to fit objects
 
     :param dict camera: Camera parameters can further be specified with a dictionary
-        assigned to the ``camera`` keyword (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`):
+        assigned to the ``camera`` keyword (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
 
         - pos, `(list)`,  the position of the camera in world coordinates
+
         - focalPoint `(list)`, the focal point of the camera in world coordinates
+
         - viewup `(list)`, the view up direction for the camera
+
         - distance `(float)`, set the focal point to the specified distance from the camera position.
+
         - clippingRange `(float)`, distance of the near and far clipping planes along the direction
             of projection.
 
@@ -140,7 +143,6 @@ def show(*actors, **options):
         or continue execution (False)
     :param float rate:  maximum rate of `show()` in Hertz
     :param int interactorStyle: set the type of interaction
-
         - 0 = TrackballCamera [default]
         - 1 = TrackballActor
         - 2 = JoystickCamera
@@ -210,7 +212,7 @@ def show(*actors, **options):
 
     if len(options):
         for op in options:
-            print("Warning: unknown keyword in show():", op)
+            colors.printc("Warning: unknown keyword in shdow():", op, c=5)
 
     if len(actors) == 0:
         actors = None
@@ -1286,7 +1288,6 @@ class Plotter:
             or continue execution (False)
         :param float rate:  maximum rate of `show()` in Hertz
         :param int interactorStyle: set the type of interaction
-
             - 0 = TrackballCamera [default]
             - 1 = TrackballActor
             - 2 = JoystickCamera
@@ -1398,6 +1399,9 @@ class Plotter:
                 elif "trimesh" in str(type(a)):
                     from vtkplotter.utils import trimesh2vtk
                     scannedacts.append(trimesh2vtk(a))
+
+                elif "meshio" in str(type(a)):
+                    scannedacts.append(Actor(a))
 
                 elif hasattr(a, "GetOutput"): # passing vtk algorithm
                     scannedacts.append(Actor(a))
@@ -1897,8 +1901,8 @@ class Plotter:
 
         elif key in ["F1", "Pause"]:
             sys.stdout.flush()
-            colors.printc('\n[F1] Execution aborted. Exiting python now.')
-            settings.plotter_instance.closeWindow()
+            colors.printc('\n[F1] pressed. Execution aborted. Exiting python now.', c=1)
+            settings.plotter_instance.close()
             sys.exit(0)
 
         elif key == "m":

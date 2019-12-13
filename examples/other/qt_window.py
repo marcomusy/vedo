@@ -5,6 +5,11 @@ into a qt application.
 print(__doc__)
 import sys
 from PyQt5 import Qt
+
+# You may need to uncomment these lines on some systems:
+#import vtk.qt
+#vtk.qt.QVTKRWIBase = "QGLWidget"
+
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 from vtkplotter import Plotter, Cone

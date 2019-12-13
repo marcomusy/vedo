@@ -17,7 +17,8 @@ for i in range(500):
     x = np.linspace(-2, 5, 20)  # generate each time 20 points
     y = np.linspace(1, 9, 20)
     z = np.linspace(-5, 3, 20)
-    data = np.array(list(zip(x, y, z)))
+    data = np.stack((x,y,z), axis=1)
+
     data += np.random.normal(size=data.shape) * 0.8  # add gauss noise
 
     vp += fitLine(data).lw(4).alpha(0.03)  # fit a line

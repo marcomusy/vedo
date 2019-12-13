@@ -13,7 +13,7 @@ setup(
     version=verstr,
     packages=['vtkplotter'],
     scripts=['bin/vtkplotter', 'bin/vtkconvert'],
-    install_requires=['vtk'],
+    install_requires=['vtk', 'numpy'],
     description='''A python module for scientific visualization,
     analysis and animation of 3D objects and point clouds based on VTK.''',
     long_description="""A python module for scientific visualization,
@@ -50,9 +50,8 @@ setup(
 # pip install .
 
 # cd examples && ./run_all.sh
-# python tutorial.py
 # cd ~/Projects/vtkplotter/
-# python tests/test_filetypes.py
+# python prove/test_filetypes.py
 
 # check vtkconvert:
 # vtkconvert vtkplotter/data/290.vtk -to ply; vtkplotter vtkplotter/data/290.ply

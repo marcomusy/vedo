@@ -38,6 +38,7 @@ __all__ = [
     "probePoints",
     "probeLine",
     "probePlane",
+    "resampleArrays",
     "volumeOperation",
     "recoSurface",
     "cluster",
@@ -70,6 +71,7 @@ __all__ = [
     "volumeCorrelation",
     "warpMeshToPoint",
     "rectilinearGridToTetrahedra",
+    "extractCellsByType",
 ]
 
 
@@ -972,6 +974,29 @@ def probePlane(vol, origin=(0, 0, 0), normal=(1, 0, 0)):
     return cutActor
 
 
+def resampleArrays(source, target, tol=None):
+        """Resample point and cell data of a dataset on points from another dataset.
+        It takes two inputs - source and target, and samples the point and cell values
+        of target onto the point locations of source.
+        The output has the same structure as the source but its point data have
+        the resampled values from target.
+
+        :param float tol: set the tolerance used to compute whether
+            a point in the target is in a cell of the source.
+            Points without resampled values, and their cells, are be marked as blank.
+        """
+        rs = vtk.vtkResampleWithDataSet()
+        rs.SetInputData(source.polydata())
+        rs.SetSourceData(target.polydata())
+        rs.SetPassPointArrays(True)
+        rs.SetPassCellArrays(True)
+        if tol:
+            rs.SetComputeTolerance(False)
+            rs.SetTolerance(tol)
+        rs.Update()
+        return rs.GetOutput()
+
+
 def volumeOperation(volume1, operation, volume2=None):
     """
     Perform operations with ``Volume`` objects.
@@ -1634,6 +1659,22 @@ def voronoi3D(nuclei, bbfactor=1, tol=None):
     voro.info['areas'] = areas
     voro.info['volumes'] = volumes
     return voro
+
+
+def extractCellsByType(obj, types=(7,)):
+    """Extract cells of a specified type.
+
+    Given an input vtkDataSet and a list of cell types, produce an output
+    containing only cells of the specified type(s).
+
+    Find `here <https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html>`_
+    the list of possible cell types.
+    """
+    ef = vtk.vtkExtractCellsByType()
+    for ct in types:
+        ef.AddCellType(ct)
+    ef.Update()
+    return Actor(ef.GetOutput())
 
 
 def interpolateToVolume(actor, kernel='shepard', radius=None,

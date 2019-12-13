@@ -140,10 +140,10 @@ def Points(plist, r=5, c="gold", alpha=1):
         return None
     elif n == 3:  # assume plist is in the format [all_x, all_y, all_z]
         if utils.isSequence(plist[0]) and len(plist[0]) > 3:
-            plist = tuple(zip(plist[0], plist[1], plist[2]))
+            plist = np.stack((plist[0], plist[1], plist[2]), axis=1)
     elif n == 2:  # assume plist is in the format [all_x, all_y, 0]
         if utils.isSequence(plist[0]) and len(plist[0]) > 3:
-            plist = tuple(zip(plist[0], plist[1], [0] * len(plist[0])))
+            plist = np.stack((plist[0], plist[1], np.zeros(len(plist[0]))), axis=1)
 
     if len(plist[0]) == 2: #make it 3d
         plist = np.c_[np.array(plist), np.zeros(len(plist))]
@@ -440,7 +440,7 @@ def Line(p0, p1=None, c="r", alpha=1, lw=1, dotted=False, res=None):
     if len(p0) > 3:
         if not utils.isSequence(p0[0]) and not utils.isSequence(p1[0]) and len(p0)==len(p1):
             # assume input is 2D xlist, ylist
-            p0 = list(zip(p0, p1))
+            p0 = np.stack((p0, p1), axis=1)
             p1 = None
 
     # detect if user is passing a list of points:
@@ -498,7 +498,7 @@ def DashedLine(p0, p1=None, spacing=None, c="red", alpha=1, lw=1):
     if len(p0) > 3:
         if not utils.isSequence(p0[0]) and not utils.isSequence(p1[0]) and len(p0)==len(p1):
             # assume input is 2D xlist, ylist
-            p0 = list(zip(p0, p1))
+            p0 = np.stack((p0, p1), axis=1)
             p1 = None
 
     # detect if user is passing a list of points:
@@ -557,7 +557,7 @@ def Lines(startPoints, endPoints=None, c='gray', alpha=1, lw=1, dotted=False, sc
     .. hint:: |fitspheres2.py|_
     """
     if endPoints is not None:
-        startPoints = list(zip(startPoints, endPoints))
+        startPoints = np.stack((startPoints, endPoints), axis=1)
 
     polylns = vtk.vtkAppendPolyData()
     for twopts in startPoints:

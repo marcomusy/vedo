@@ -1199,5 +1199,14 @@ _defs = """
     :target: plotxy.py_
     :alt: plotxy.py
 
+.. |linInterpolate.py| replace:: linInterpolate.py
+.. _linInterpolate.py: https://github.com/marcomusy/vtkplotter/blob/master/examples/basic/linInterpolate.py
+.. |linInterpolate| image:: https://user-images.githubusercontent.com/32848391/70559826-a621f680-1b87-11ea-89f3-e6b74d8953d9.png
+    :width: 350 px
+    :target: linInterpolate.py_
+    :alt: linInterpolate.py
+
 
 """
+
+

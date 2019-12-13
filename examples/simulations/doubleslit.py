@@ -1,7 +1,6 @@
 """Simulation of the double slit experiment.
 (Any number of slits of any geometry can be added)
-Slit sources are placed on the plane shown as a thin grid.
-"""
+Slit sources are placed on the plane shown as a thin grid."""
 #Can simulate the 'Arago spot', the bright point at the center of
 #a circular object shadow (https://en.wikipedia.org/wiki/Arago_spot).
 from numpy import conj, real, pi, array

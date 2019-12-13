@@ -59,6 +59,9 @@ python thinplate_morphing_2d.py
 echo Running meshquality.py
 python meshquality.py
 
+echo Running intersect2d.py
+python intersect2d.py
+
 echo Running cutWithMesh.py
 python cutWithMesh.py
 
@@ -82,5 +85,3 @@ python convexHull.py
 
 echo Running densifycloud.py
 python densifycloud.py
-
-
