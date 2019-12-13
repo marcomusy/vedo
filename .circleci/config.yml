@@ -48,9 +48,8 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            python manage.py test
+            python tests/test_clone.py
 
       - store_artifacts:
           path: test-reports
           destination: test-reports
-          
