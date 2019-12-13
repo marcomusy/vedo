@@ -40,21 +40,30 @@ jobs:
     steps:
       - checkout
 
-      # FEniCS:
-      - run: *install-python-components
-      - run: *configure-cpp
-      - run: *build-install-cpp
-      - run: *build-python-interface
-
       - run:
           name: install vtkplotter
           command: |
             pip install vtk
             pip install .
+            pwd
+
+      # FEniCS:
+      - run: *install-python-components
+      - run:
+          name: get dolfinx
+          command: |
+            cd
+            git clone https://github.com/FEniCS/dolfinx.git
+            cd dolfinx
+      - run: *configure-cpp
+      - run: *build-install-cpp
+      - run: *build-python-interface
 
       - run:
           name: run tests
           command: |
+            cd
+            cd vtkplotter
             python tests/test_clone.py
             python tests/test_dolfin.py
 
