@@ -2,13 +2,39 @@
 #
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 #
+install-python-components: &install-python-components
+  name: Install FEniCS Python components
+  command: |
+            pip3 install git+https://github.com/FEniCS/fiat.git --upgrade
+            pip3 install git+https://github.com/FEniCS/ufl.git --upgrade
+            pip3 install git+https://github.com/FEniCS/ffcx.git --upgrade
+            rm -rf /usr/local/include/dolfin /usr/local/include/dolfin.h
+
+configure-cpp: &configure-cpp
+  name: Configure (C++)
+  command: mkdir -p build && cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer ../cpp/
+
+
+build-install-cpp: &build-install-cpp
+  name: Build and install (C++)
+  command: cd build && ninja -j3 install
+
+
+build-python-interface: &build-python-interface
+  name: Build Python/pybind11 interface
+  command: |
+    cd python
+    pip3 -v install . --user
+
+
 version: 2
 jobs:
   build:
     docker:
       # specify the version you desire here
       # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
-      - image: circleci/python:3.6.1
+      #- image: circleci/python:3.6.1
+      - image: quay.io/fenicsproject/dolfinx:dev-env-real
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -46,16 +72,21 @@ jobs:
             - ./venv
           key: v1-dependencies-{{ checksum "requirements.txt" }}
 
-      # run tests!
-      # this example uses Django's built-in test-runner
-      # other common Python testing frameworks include pytest and nose
-      # https://pytest.org
-      # https://nose.readthedocs.io
+
+      # FEniCS:
+      - run: *install-python-components
+      - run: *configure-cpp
+      - run: *build-install-cpp
+      - run: *build-python-interface
+
+
       - run:
           name: run tests
           command: |
             . venv/bin/activate
+            cd ~/repo/vtkplotter
             python tests/test_clone.py
+            python tests/test_dolfin.py
 
       - store_artifacts:
           path: test-reports
