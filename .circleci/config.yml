@@ -43,6 +43,7 @@ jobs:
           name: run tests
           command: |
             cd
+            cd project
             pwd
             ls
             python3 tests/test_clone.py
