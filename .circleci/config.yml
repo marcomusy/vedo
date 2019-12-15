@@ -43,7 +43,7 @@ jobs:
           name: Run tests
           command: |
             cd
-            cd project
+            cd project/tests
             pwd
             ls
             source run_all.sh
