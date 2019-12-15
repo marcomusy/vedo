@@ -831,7 +831,6 @@ def _np_dump(obj):
         if poly.GetPointData().GetScalars():
             adict['activedata'] = ['pointdata', poly.GetPointData().GetScalars().GetName()]
 
-        print(obj.scalars())
         for itype, iname in obj.scalars():
             if itype == 'PointData':
                 adict['pointdata'].append([obj.getPointArray(iname), iname])

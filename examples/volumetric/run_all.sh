@@ -54,6 +54,9 @@ python streamlines1.py
 echo Running streamlines2.py
 python streamlines2.py
 
+echo Running office.py
+python office.py
+
 echo Running streamribbons.py
 python streamribbons.py
 

@@ -16,7 +16,7 @@ jobs:
       - checkout
 
       - run:
-          name: install vtkplotter
+          name: install vtkplotter et al
           command: |
             pip3 install vtk
             pip3 install trimesh
@@ -40,14 +40,13 @@ jobs:
             pip3 -v install . --user
 
       - run:
-          name: run tests
+          name: Run tests
           command: |
             cd
             cd project
             pwd
             ls
-            python3 tests/test_clone.py
-            python3 tests/test_dolfin.py
+            source run_all.sh
 
       - store_artifacts:
           path: test-reports

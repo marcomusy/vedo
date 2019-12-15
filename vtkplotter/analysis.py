@@ -72,6 +72,7 @@ __all__ = [
     "warpMeshToPoint",
     "rectilinearGridToTetrahedra",
     "extractCellsByType",
+    "pointCloudFrom",
 ]
 
 
@@ -1677,6 +1678,34 @@ def extractCellsByType(obj, types=(7,)):
     return Actor(ef.GetOutput())
 
 
+def pointCloudFrom(obj, useCellData=False):
+    """
+    Build a `Actor` object from any VTK dataset as a point cloud.
+
+    :param bool useCellData: if True cell data is interpolated at point positions.
+    """
+    from vtk.numpy_interface import dataset_adapter
+
+    if useCellData:
+        c2p = vtk.vtkCellDataToPointData()
+        c2p.SetInputData(obj)
+        c2p.Update()
+        obj = c2p.GetOutput()
+
+    wrapped = dataset_adapter.WrapDataObject(obj)
+    ptdatanames = wrapped.PointData.keys()
+
+    vpts = obj.GetPoints()
+    poly = vtk.vtkPolyData()
+    poly.SetPoints(vpts)
+
+    for name in ptdatanames:
+        arr = obj.GetPointData().GetArray(name)
+        poly.GetPointData().AddArray(arr)
+
+    return Actor(poly, c=None)
+
+
 def interpolateToVolume(actor, kernel='shepard', radius=None,
                        bounds=None, nullValue=None,
                        dims=(20,20,20)):
@@ -1693,7 +1722,10 @@ def interpolateToVolume(actor, kernel='shepard', radius=None,
 
     |interpolateVolume| |interpolateVolume.py|_
     """
-    output = actor.polydata()
+    if isinstance(actor, vtk.vtkPolyData):
+        output = actor
+    else:
+        output = actor.polydata()
 
     # Create a probe volume
     probe = vtk.vtkImageData()
@@ -1755,7 +1787,10 @@ def interpolateToStructuredGrid(actor, kernel=None, radius=None,
     :param list dims: dimensions of the output vtkStructuredGrid object
     :param float nullValue: value to be assigned to invalid points
     """
-    output = actor.polydata()
+    if isinstance(actor, vtk.vtkPolyData):
+        output = actor
+    else:
+        output = actor.polydata()
 
     if dims is None:
         dims = (20,20,20)
@@ -1837,6 +1872,7 @@ def rectilinearGridToTetrahedra(rgrid, tetraPerCell=6):
 
 
 def streamLines(domain, probe,
+                activeVectors='',
                 integrator='rk4',
                 direction='forward',
                 initialStepSize=None,
@@ -1849,6 +1885,7 @@ def streamLines(domain, probe,
                 ribbons=None,
                 tubes={},
                 scalarRange=None,
+                lw=None,
     ):
     """
     Integrate a vector field to generate streamlines.
@@ -1859,8 +1896,8 @@ def streamLines(domain, probe,
     Otherwise, the integration terminates upon exiting the field domain.
 
     :param domain: the vtk object that contains the vector field
-    :param Actor probe: the Actor that probes the domain. Its coordinates will
-        be the seeds for the streamlines
+    :param Actor,list probe: the Actor that probes the domain. Its coordinates will
+        be the seeds for the streamlines, can also be an array of positions.
     :param str integrator: Runge-Kutta integrator, either 'rk2', 'rk4' of 'rk45'
     :param float initialStepSize: initial step size of integration
     :param float maxPropagation: maximum physical length of the streamline
@@ -1883,7 +1920,7 @@ def streamLines(domain, probe,
     :param dict tubes: dictionary containing the parameters for the tube representation:
 
             - ratio, (int) - draws tube as longitudinal stripes
-            - res, (int) - tube resolution (nr. of sides, 24 by default)
+            - res, (int) - tube resolution (nr. of sides, 12 by default)
             - maxRadiusFactor (float) - max tube radius as a multiple of the min radius
             - varyRadius, (int) - radius varies based on the scalar or vector magnitude:
 
@@ -1907,6 +1944,9 @@ def streamLines(domain, probe,
     else:
         grid = domain
 
+    if activeVectors:
+        grid.GetPointData().SetActiveVectors(activeVectors)
+
     b = grid.GetBounds()
     size = (b[5]-b[4] + b[3]-b[2] + b[1]-b[0])/3
     if initialStepSize is None:
@@ -1914,7 +1954,10 @@ def streamLines(domain, probe,
     if maxPropagation is None:
         maxPropagation = size
 
-    pts = probe.coordinates()
+    if utils.isSequence(probe):
+        pts = probe
+    else:
+        pts = probe.clean().coordinates()
     src = vtk.vtkProgrammableSource()
     def readPoints():
         output = src.GetPolyDataOutput()
@@ -1966,7 +2009,7 @@ def streamLines(domain, probe,
 
     if len(tubes):
         streamTube = vtk.vtkTubeFilter()
-        streamTube.SetNumberOfSides(24)
+        streamTube.SetNumberOfSides(12)
         streamTube.SetRadius(tubes['radius'])
 
         if 'res' in tubes:
@@ -1991,7 +2034,9 @@ def streamLines(domain, probe,
         streamTube.Update()
         sta = Actor(streamTube.GetOutput(), c=None)
 
-        sta.mapper().SetScalarRange(grid.GetPointData().GetScalars().GetRange())
+        scals = grid.GetPointData().GetScalars()
+        if scals:
+            sta.mapper().SetScalarRange(scals.GetRange())
         if scalarRange is not None:
             sta.mapper().SetScalarRange(scalarRange)
 
@@ -2000,7 +2045,13 @@ def streamLines(domain, probe,
         return sta
 
     sta = Actor(output, c=None)
-    sta.mapper().SetScalarRange(grid.GetPointData().GetScalars().GetRange())
+
+    if lw is not None and len(tubes)==0 and not ribbons:
+        sta.lw(lw)
+
+    scals = grid.GetPointData().GetScalars()
+    if scals:
+        sta.mapper().SetScalarRange(scals.GetRange())
     if scalarRange is not None:
         sta.mapper().SetScalarRange(scalarRange)
     return sta

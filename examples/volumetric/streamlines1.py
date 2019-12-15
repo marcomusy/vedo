@@ -5,7 +5,6 @@ this field is interpolated to the whole bounding box.
 """
 from vtkplotter import *
 
-
 mesh = Hyperboloid(pos=(0,0,0)).alpha(0.2)
 
 vects = mesh.clone().getPoints() # let's assume this

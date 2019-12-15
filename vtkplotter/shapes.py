@@ -906,8 +906,7 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12)
 
     :param float s: fix aspect-ratio of the arrow and scale its cross section
     :param float scale: apply a rescaling factor to the length
-    :param c: color or array of colors
-    :param str cmap: color arrows by size using this color map
+    :param c: color or array of colors, can also be a color map name.
     :param float alpha: set transparency
     :param int res: set arrow resolution
 
