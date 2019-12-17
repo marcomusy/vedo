@@ -1826,6 +1826,8 @@ class Actor(vtk.vtkFollower, Prop):
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.GetProperty())
         cloned.SetProperty(pr)
+        cloned.base = self.base
+        cloned.top = self.top
         if self.trail:
             n = len(self.trailPoints)
             cloned.addTrail(self.trailOffset, self.trailSegmentSize*n, n,
@@ -1963,8 +1965,8 @@ class Actor(vtk.vtkFollower, Prop):
             two attributes ``actor.base``, and ``actor.top`` are already defined.
         """
         if self.base is None:
-            colors.printc('~times Error in stretch(): Please define vectors \
-                          actor.base and actor.top at creation.', c='r')
+            colors.printc('~times Error in stretch(): Please define vectors', c='r')
+            colors.printc('   actor.base and actor.top at creation.', c='r')
             raise RuntimeError()
 
         p1, p2 = self.base, self.top
@@ -3315,12 +3317,6 @@ class Assembly(vtk.vtkAssembly, Prop):
                        specular, specularPower, specularColor, enabled)
         return self
 
-# this would need a callback to work..
-# https://vtk.org/Wiki/VTK/Examples/Cxx/Visualization/MovableAxes
-#    def followCamera(self, cam=None):
-#        for a in self.actors:
-#            a.followCamera(cam)
-#        return self
 
 #################################################
 class Picture(vtk.vtkImageActor, Prop):
