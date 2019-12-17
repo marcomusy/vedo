@@ -27,8 +27,8 @@ sphere.computeNormals()
 
 
 ###################################### printHistogram printInfo
-cone.printHistogram()
-cone.printInfo()
+#cone.printHistogram()
+#cone.printInfo()
 
 
 ###################################### test clone()
