@@ -803,7 +803,7 @@ def printc(*strings, **keys):
                     for k in emoji.keys():
                         if k in s:
                             s = s.replace(k, "")
-                print(s, end=" ")
+                print(s, end=' ')
             print(end=end)
             if flush:
                 sys.stdout.flush()
