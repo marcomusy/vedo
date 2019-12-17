@@ -10,7 +10,7 @@ gamma = (w/l)**2
 wind = (0, 0.0, 0)
 
 # Create mesh and define function space
-mesh = BoxMesh(Point(0, 0, 0), Point(l, w, w), 50, 5, 5)
+mesh = BoxMesh(MPI.comm_world, Point(0, 0, 0), Point(l, w, w), 50, 5, 5)
 V = VectorFunctionSpace(mesh, "P", 1)
 
 # Define boundary condition

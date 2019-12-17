@@ -6,7 +6,7 @@ from vtkplotter import settings
 
 print('Test ascalarbar')
 
-mesh = UnitSquareMesh(16, 16)
+mesh = UnitSquareMesh(MPI.comm_world, nx=16, ny=16)
 V = FunctionSpace(mesh, 'Lagrange', 1)
 f = Expression('10*(x[0]+x[1]-1)', degree=1)
 u = interpolate(f, V)

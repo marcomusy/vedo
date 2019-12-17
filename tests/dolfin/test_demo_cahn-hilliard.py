@@ -41,7 +41,7 @@ parameters["form_compiler"]["optimize"] = True
 parameters["form_compiler"]["cpp_optimize"] = True
 
 # Create mesh and define function spaces
-mesh = UnitSquareMesh(60, 60)
+mesh = UnitSquareMesh(MPI.comm_world, 60, 60)
 # mesh = UnitSquareMesh.create(60, 60, CellType.Type.triangle)
 # V = FunctionSpace(mesh, "Lagrange", 1)
 P1 = FiniteElement("Lagrange", mesh.ufl_cell(), 1)
