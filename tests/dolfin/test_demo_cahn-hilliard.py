@@ -6,7 +6,6 @@ random.seed(0)
 
 from dolfin import *
 from vtkplotter.dolfin import plot, screenshot
-set_log_level(30)
 
 
 print('Test demo_cahn-hilliard')

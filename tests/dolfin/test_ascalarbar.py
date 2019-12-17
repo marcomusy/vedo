@@ -2,7 +2,6 @@ import numpy as np
 from dolfin import *
 from vtkplotter.dolfin import plot, screenshot
 from vtkplotter import settings
-set_log_level(30)
 
 
 print('Test ascalarbar')

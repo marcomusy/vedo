@@ -6,7 +6,6 @@
 [![pythvers](https://img.shields.io/badge/python-2.7%7C3-brightgreen.svg)](https://pypi.org/project/vtkplotter)
 [![gdocs](https://img.shields.io/badge/docs%20by-gendocs-blue.svg)](https://gendocs.readthedocs.io/en/latest)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2561402.svg)](https://doi.org/10.5281/zenodo.2561402)
-[![CircleCI](https://circleci.com/gh/marcomusy/vtkplotter.svg?style=svg)](https://circleci.com/gh/marcomusy/vtkplotter)
 
 A pure python module for scientific visualization, analysis and animation of 3D objects 
 and *point clouds* based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/).<br>

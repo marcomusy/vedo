@@ -1,5 +1,4 @@
 from dolfin import *
-set_log_level(30)
 
 print('Test elastic_beam.py')
 
