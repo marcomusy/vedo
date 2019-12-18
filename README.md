@@ -6,8 +6,9 @@
 [![pythvers](https://img.shields.io/badge/python-2.7%7C3-brightgreen.svg)](https://pypi.org/project/vtkplotter)
 [![gdocs](https://img.shields.io/badge/docs%20by-gendocs-blue.svg)](https://gendocs.readthedocs.io/en/latest)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2561402.svg)](https://doi.org/10.5281/zenodo.2561402)
+[![CircleCI](https://circleci.com/gh/marcomusy/vtkplotter.svg?style=svg)](https://circleci.com/gh/marcomusy/vtkplotter)
 
-A pure python module for scientific visualization, analysis and animation of 3D objects 
+A pure python module for scientific visualization, analysis and animation of 3D objects
 and *point clouds* based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/).<br>
 
 ## Download and Install:
@@ -17,7 +18,7 @@ pip install vtkplotter
 ```
 *Windows-10 users* can place this file
 [vtkplotter.bat](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter.bat)
-on the desktop to *drag&drop* files to visualize. 
+on the desktop to *drag&drop* files to visualize.
 (Need to edit the path of the local Anaconda installation).
 
 ## Documentation
@@ -30,7 +31,7 @@ or send an [email](mailto:marco.musy@embl.es).
 
 ## Features
 
-Intuitive and straightforward API which can be combined with VTK seamlessly 
+Intuitive and straightforward API which can be combined with VTK seamlessly
 in a program, whilst mantaining access to the full range of VTK native classes.
 
 It includes a [**large set of working examples**](https://github.com/marcomusy/vtkplotter/tree/master/examples)
@@ -46,7 +47,7 @@ for all the following functionalities:
   - Subdivide faces of a mesh, increasing the number of vertex points. Mesh simplification.
   - Coloring and thresholding of meshes based on associated scalar or vectorial data.
   - Point-surface operations: find nearest points, determine if a point lies inside or outside a mesh.
-  - Create primitive objects like: spheres, arrows, cubes, torus, ellipsoids... 
+  - Create primitive objects like: spheres, arrows, cubes, torus, ellipsoids...
   - Generate *glyphs* (associating a mesh to each vertex of a source mesh).
   - Create animations easily by just defining the position of the displayed objects in the 3D scene. Add trailing lines and shadows to moving objects is also supported.
   - Straightforward support for multiple *sync-ed* or independent renderers in  the same window.
@@ -84,7 +85,7 @@ for all the following functionalities:
 ## Command Line Interface
 Visualize a mesh from a terminal window with:
 ```bash
-vtkplotter mesh.obj 
+vtkplotter mesh.obj
 # valid formats: [vtk,vtu,vts,vtp,vtm,ply,obj,stl,3ds,dolfin-xml,neutral,gmsh,
 #                 pcd,xyz,txt,byu,tif,off,slc,vti,mhd,dcm,dem,nrrd,nii,bmp,png,jpg]
 ```
@@ -140,15 +141,15 @@ python tutorial.py
 Poster at the [FEniCS'2019](https://fenicsproject.org/fenics19/) Conference,
 Carnegie Institution for Science Department of Terrestrial Magnetism, Washington DC, June 2019.
 
-- G. Dalmasso, *"Evolution in space and time of 3D volumetric images"*. Talk at the Conference for [Image-based Modeling and Simulation of Morphogenesis](https://www.pks.mpg.de/imsm19/). 
+- G. Dalmasso, *"Evolution in space and time of 3D volumetric images"*. Talk at the Conference for [Image-based Modeling and Simulation of Morphogenesis](https://www.pks.mpg.de/imsm19/).
 Max Planck Institute for the Physics of Complex Systems, Dresden, Germany, March 2019.
 
 
 Scientific publications using `vtkplotter` so far:
 
-1. X. Diego _et al._: 
-*"Key features of Turing systems are determined purely by network topology"*, 
-[Physical Review X, 20 June 2018](https://journals.aps.org/prx/abstract/10.1103/PhysRevX.8.021071). 
+1. X. Diego _et al._:
+*"Key features of Turing systems are determined purely by network topology"*,
+[Physical Review X, 20 June 2018](https://journals.aps.org/prx/abstract/10.1103/PhysRevX.8.021071).
 2. M. Musy, K. Flaherty _et al._:
 *"A Quantitative Method for Staging Mouse Limb Embryos based on Limb Morphometry"*,
 Development, 5 April 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/content/145/7/dev154856).
@@ -156,8 +157,8 @@ Development, 5 April 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/c
 
 **Have you found this software useful for your research? Please cite it as:**<br>
 M. Musy  _et al._
-"`vtkplotter`*, a python module for scientific visualization and analysis of 3D objects 
-and point clouds based on VTK (Visualization Toolkit)*", 
+"`vtkplotter`*, a python module for scientific visualization and analysis of 3D objects
+and point clouds based on VTK (Visualization Toolkit)*",
 Zenodo, 10 February 2019, [doi: 10.5281/zenodo.2561402](http://doi.org/10.5281/zenodo.2561402).
 
 [![embl_logo](https://user-images.githubusercontent.com/32848391/58046204-e9157180-7b44-11e9-81c9-e916cdf9ba84.gif)](https://www.embl.es)

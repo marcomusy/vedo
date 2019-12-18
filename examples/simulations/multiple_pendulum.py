@@ -14,8 +14,8 @@ Dt = 0.03  # time step
 # Create the initial positions and velocitites (0,0) of the bobs
 bob_x = [0]
 bob_y = [0]
-x_dot = [0] * (N + 1)  # velocities
-y_dot = [0] * (N + 1)
+x_dot = np.zeros(N+1)  # velocities
+y_dot = np.zeros(N+1)
 
 for k in range(1, N + 1):
     alpha = np.pi / 5 * k / 10
@@ -30,17 +30,17 @@ for k in range(1, N + 1):
     bob.append(vp.add(Cylinder(pos=(bob_x[k], bob_y[k], 0), r=R, height=0.3, c=k)))
 
 # Create the springs out of N links
-link = [0] * N
+link = [None] * N
 for k in range(N):
     p0 = bob[k].pos()
     p1 = bob[k + 1].pos()
     link[k] = vp.add(Spring(p0, p1, thickness=0.015, r=R / 3, c="gray"))
 
 # Create some auxiliary variables
-x_dot_m = [0] * (N + 1)
-y_dot_m = [0] * (N + 1)
-dij = [0] * (N + 1)  # array with distances to previous bob
-dij_m = [0] * (N + 1)
+x_dot_m = np.zeros(N+1)
+y_dot_m = np.zeros(N+1)
+dij     = np.zeros(N+1) # array with distances to previous bob
+dij_m   = np.zeros(N+1)
 for k in range(1, N + 1):
     dij[k] = mag([bob_x[k] - bob_x[k - 1], bob_y[k] - bob_y[k - 1]])
 

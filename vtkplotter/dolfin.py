@@ -134,6 +134,65 @@ __all__ = [
 ]
 
 
+def _inputsort_dolfinx(obj): # dolfinx
+    import dolfin
+
+    u = None
+    mesh = None
+    if not utils.isSequence(obj):
+        obj = [obj]
+
+    for ob in obj:
+        inputtype = str(type(ob))
+        #print('inputtype is', inputtype)
+
+        if "vtk" in inputtype: # skip vtk objects, will be added later
+            continue
+
+        if "dolfin" in inputtype or "ufl" in inputtype:
+            if "MeshFunction" in inputtype:
+                mesh = ob.mesh # dolfin 2019.2
+
+                if ob.dim > 0:
+                    print('MeshFunction of dim>0 not supported.')
+                    print('Try e.g.:  MeshFunction("size_t", mesh, 0)')
+                    print('instead of MeshFunction("size_t", mesh, 1)')
+                else:
+                    #print(ob.dim, mesh.num_cells, len(mesh.coordinates, len(ob.array()))
+                    V = dolfin.FunctionSpace(mesh, "CG", 1)
+                    u = dolfin.Function(V)
+                    v2d = dolfin.vertex_to_dof_map(V)
+                    u.vector[v2d] = ob.array
+            elif "Function" in inputtype or "Expression" in inputtype:
+                u = ob
+                mesh = ob.function_space.mesh
+            elif "Mesh" in inputtype:
+                mesh = ob
+            elif "algebra" in inputtype:
+                mesh = ob.ufl_domain
+                #print('algebra', ob.ufl_domain)
+
+        if "str" in inputtype:
+            mesh = dolfin.Mesh(ob)
+
+    if u and not mesh and hasattr(u, "function_space"):
+        V = u.function_space
+        if V:
+            mesh = V.mesh
+
+    if u and not mesh and hasattr(u, "mesh"):
+        mesh = u.function_space.mesh
+
+    print('------------------------------------')
+    print('mesh.topology dim=', mesh.topology.dim)
+    print('mesh.geometry dim=', mesh.geometry.dim)
+    if u: print('u.value_rank', u.value_rank)
+    if u and u.value_rank: print('u.value_dimension', u.value_dimension(0)) # axis=0
+    if u: print('u.value_shape', u.value_shape())
+    return (mesh, u)
+
+
+##########################################################################
 def _inputsort(obj):
     import dolfin
 
@@ -191,20 +250,56 @@ def _inputsort(obj):
 
 
 def _compute_uvalues(u, mesh):
+    # the whole purpose of this function is
+    # to have a scalar (or vector) for each point of the mesh
 
     if not u: return
 
-    u_values = u.compute_vertex_values(mesh)
-    #print('u_values are', u_values)
+    if hasattr(u, 'compute_vertex_values'): # old dolfin, works fine
+        u_values = u.compute_vertex_values(mesh)
 
-    l = u_values.shape[0]
+        if u.value_rank() and u.value_dimension(0)>1:
+            l = u_values.shape[0]
+            u_values = u_values.reshape(u.value_dimension(0), int(l/u.value_dimension(0))).T
 
-    if u.value_rank() and u.value_dimension(0)>1:
-        u_values = u_values.reshape(u.value_dimension(0), int(l/u.value_dimension(0))).T
+    elif hasattr(u, 'compute_point_values'): # dolfinx
+        u_values = u.compute_point_values()
 
-    if u_values.shape[0] != mesh.coordinates().shape[0]:
+        try:
+            from dolfin import fem
+            fvec = u.vector
+        except RuntimeError:
+            fspace = u.function_space
+            try:
+                fspace = fspace.collapse()
+            except RuntimeError:
+                return []
+
+        fvec = fem.interpolate(u, fspace).vector
+
+        tdim = mesh.topology.dim
+
+        print('fvec.getSize', fvec.getSize(), mesh.num_entities(tdim))
+        if fvec.getSize() == mesh.num_entities(tdim):
+            # DG0 cellwise function
+            C = fvec.get_local()
+            if (C.dtype.type is np.complex128):
+                print("Plotting real part of complex data")
+                C = np.real(C)
+
+        u_values = C
+
+    else:
+        u_values = []
+
+    if hasattr(mesh, "coordinates"):
+        coords = mesh.coordinates()
+    else:
+        coords = mesh.geometry.points
+
+    if u_values.shape[0] != coords.shape[0]:
         printc('Warning: mismatch in vtkplotter.dolfin._compute_uvalues()', c=1)
-        u_values = np.array([u(p) for p in mesh.coordinates()])
+        u_values = np.array([u(p) for p in coords])
     return u_values
 
 
@@ -694,7 +789,12 @@ class MeshActor(Actor):
         else:
             meshc = mesh
 
-        poly = utils.buildPolyData(meshc.coordinates(), meshc.cells(), fast=fast)
+        if hasattr(mesh, "coordinates"):
+            coords = mesh.coordinates()
+        else:
+            coords = mesh.geometry.points
+
+        poly = utils.buildPolyData(coords, meshc.cells(), fast=fast)
 
         Actor.__init__(self,
             poly,
@@ -723,13 +823,18 @@ class MeshActor(Actor):
                 deltas = _compute_uvalues(u, self.mesh)
                 self.u_values = deltas
 
-        if self.mesh.coordinates().shape != deltas.shape:
+        if hasattr(self.mesh, "coordinates"):
+            coords = self.mesh.coordinates()
+        else:
+            coords = self.mesh.geometry.points
+
+        if coords.shape != deltas.shape:
             printc("ERROR: Try to move mesh with wrong solution type shape:",
-                  self.mesh.coordinates().shape, 'vs', deltas.shape, c=1)
+                  coords.shape, 'vs', deltas.shape, c=1)
             printc("Mesh is not moved. Try mode='color' in plot().", c=1)
             return
 
-        movedpts = self.mesh.coordinates() + deltas
+        movedpts = coords + deltas
         if movedpts.shape[1] == 2: #2d
             movedpts = np.c_[movedpts, np.zeros(movedpts.shape[0])]
         self.polydata(False).GetPoints().SetData(numpy_to_vtk(movedpts))
@@ -753,7 +858,10 @@ def MeshPoints(*inputobj, **options):
     if not mesh:
         return None
 
-    plist = mesh.coordinates()
+    if hasattr(mesh, "coordinates"):
+        plist = mesh.coordinates()
+    else:
+        plist = mesh.geometry.points
 
     u_values = _compute_uvalues(u,mesh)
 
@@ -790,19 +898,24 @@ def MeshLines(*inputobj, **options):
     """
     scale = options.pop("scale", 1)
     lw = options.pop("lw", 1)
-    c = options.pop("c", None)
+    c = options.pop("c", 'grey')
     alpha = options.pop("alpha", 1)
 
     mesh, u = _inputsort(inputobj)
     if not mesh:
         return None
 
-    startPoints = mesh.coordinates()
+    if hasattr(mesh, "coordinates"):
+        startPoints = mesh.coordinates()
+    else:
+        startPoints = mesh.geometry.points
+
     u_values = _compute_uvalues(u,mesh)
     if not utils.isSequence(u_values[0]):
         printc("~times Error: cannot show Lines for 1D scalar values!", c=1)
         raise RuntimeError()
-    endPoints = mesh.coordinates() + u_values
+
+    endPoints = startPoints + u_values
     if u_values.shape[1] == 2:  # u_values is 2D
         u_values = np.insert(u_values, 2, 0, axis=1)  # make it 3d
         startPoints = np.insert(startPoints, 2, 0, axis=1)  # make it 3d
@@ -833,12 +946,17 @@ def MeshArrows(*inputobj, **options):
     if not mesh:
         return None
 
-    startPoints = mesh.coordinates()
+    if hasattr(mesh, "coordinates"):
+        startPoints = mesh.coordinates()
+    else:
+        startPoints = mesh.geometry.points
+
     u_values = _compute_uvalues(u,mesh)
     if not utils.isSequence(u_values[0]):
         printc("~times Error: cannot show Arrows for 1D scalar values!", c=1)
         raise RuntimeError()
-    endPoints = mesh.coordinates() + u_values
+
+    endPoints = startPoints + u_values
     if u_values.shape[1] == 2:  # u_values is 2D
         u_values = np.insert(u_values, 2, 0, axis=1)  # make it 3d
         startPoints = np.insert(startPoints, 2, 0, axis=1)  # make it 3d

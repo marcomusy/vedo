@@ -3,6 +3,8 @@
 - fix bug by @m-albert on Volume from numpy object
 - fix typos in docs
 - change old fashioned list(zip()) to np.stack()
+- change [0]*len(z) to np.zeros_like(z)
+- add testing directory with circleCI
 
 
 2019/21/19

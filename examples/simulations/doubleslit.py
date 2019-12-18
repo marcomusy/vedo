@@ -14,14 +14,14 @@ D = 0.1  # screen distance in m
 
 # create the slits as a set of individual coherent point-like sources
 n = 10  # nr of elementary sources in slit (to control precision).
-slit1 = list(zip([0] * n, arange(0, n) * width / n, [0] * n))  # source points inside slit 1
-slit2 = list(slit1 + array([1e-5, 0, 0]))  # a shifted copy of slit 1
+slit1 = list(zip([0]*n, arange(0,n)*width/n, [0]*n))  # source points inside slit1
+slit2 = list(slit1 + array([1e-5, 0, 0]))             # a shifted copy of slit 1
 slits = slit1 + slit2
-# slits += list(slit1 + array([-2e-5, 1e-5, 0]))      # add an other copy of slit 1
+# slits += list(slit1 + array([-2e-5, 1e-5, 0]))  # add an other copy of slit1
 # slits = [(cos(x)*4e-5, sin(x)*4e-5, 0) for x in arange(0,2*pi, .1)] # Arago spot
 # slits = Grid(sx=1e-4, sy=1e-4, resx=9, resy=9).getPoints() # a square lattice
 
-vp = Plotter(title="The Double Slit Experiment", axes=0, verbose=0, bg="black")
+vp = Plotter(title="The Double Slit Experiment", axes=9, verbose=0, bg="black")
 
 screen = Grid(pos=[0, 0, -D], sx=0.1, sy=0.1, lw=0, resx=200, resy=50)
 screen.wireframe(False).phong()  # show it as a solid plane (not as wireframe)
@@ -45,8 +45,8 @@ vp += screen
 vp += Points(array(slits) * 200, c="w")  # slits scale magnified by factor 200
 vp += Grid(sx=0.1, sy=0.1, resx=6, resy=6, c="w", alpha=0.1)
 vp += Line([0, 0, 0], [0, 0, -D], c="w", alpha=0.1)
-vp += Text("source plane", pos=[-0.05, -0.053, 0], s=0.002, c="gray")
-vp += Text("detector plane D = " + str(D) + " m", pos=[-0.05, -0.053, -D], s=0.002, c="gray")
+vp += Text("source plane", pos=[-0.04, -0.05, 0], s=0.002, c="gray")
+vp += Text("detector plane D = "+str(D)+" m", pos=[-0.04, -0.05, -D], s=0.002, c="gray")
 vp += Text(__doc__, c="lb")
 
 vp.show(zoom=1.1)

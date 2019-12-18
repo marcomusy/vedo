@@ -62,19 +62,13 @@ def build_nullspace(V):
 # mesh = Mesh(MPI.comm_world)
 # XDMFFile(MPI.comm_world, "../pulley.xdmf").read(mesh)
 
-# mesh = UnitCubeMesh(2, 2, 2)
-mesh = BoxMesh(
-    MPI.comm_world, [np.array([0.0, 0.0, 0.0]),
-                     np.array([2.0, 1.0, 1.0])], [12, 12, 12],
-    CellType.tetrahedron, dolfin.cpp.mesh.GhostMode.none)
+mesh = UnitCubeMesh(MPI.comm_world, 3, 3, 3)
+#mesh = BoxMesh(
+#    MPI.comm_world, [np.array([0.0, 0.0, 0.0]),
+#                     np.array([2.0, 1.0, 1.0])], [12, 12, 12],
+#    CellType.tetrahedron, dolfin.cpp.mesh.GhostMode.none)
 cmap = dolfin.fem.create_coordinate_map(mesh.ufl_domain())
 mesh.geometry.coord_mapping = cmap
-
-# Function to mark inner surface of pulley
-# def inner_surface(x, on_boundary):
-#    r = 3.75 - x[2]*0.17
-#    return (x[0]*x[0] + x[1]*x[1]) < r*r and on_boundary
-
 
 def boundary(x):
     return np.logical_or(x[0] < 10.0 * np.finfo(float).eps,
@@ -94,9 +88,6 @@ E = 1.0e9
 nu = 0.0
 mu = E / (2.0 * (1.0 + nu))
 lmbda = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu))
-
-# Stress computation
-
 
 def sigma(v):
     return 2.0 * mu * sym(grad(v)) + lmbda * tr(sym(grad(v))) * Identity(
@@ -161,7 +152,10 @@ solver.setOperators(A)
 # Compute solution
 solver.setMonitor(lambda ksp, its, rnorm: print("Iteration: {}, rel. residual: {}".format(its, rnorm)))
 solver.solve(b, u.vector)
-solver.view()
+#solver.view()
+
+
+
 
 ############################### Plot solution
 from vtkplotter.dolfin import plot
@@ -186,27 +180,6 @@ print('min', 'mean', 'max, N:')
 print(np.min(solution), np.mean(solution), np.max(solution), len(solution))
 
 
-
-#
-## Save solution to XDMF format
-#file = XDMFFile(MPI.comm_world, "elasticity.xdmf")
-#file.write(u)
-#
-#unorm = u.vector.norm()
-#if MPI.rank(mesh.mpi_comm()) == 0:
-#    print("Solution vector norm:", unorm)
-
-
-
-# Save colored mesh partitions in VTK format if running in parallel
-# if MPI.size(mesh.mpi_comm()) > 1:
-#    File("partitions.pvd") << MeshFunction("size_t", mesh, mesh.topology.dim, \
-#                                           MPI.rank(mesh.mpi_comm()))
-
-# Project and write stress field to post-processing file
-# W = TensorFunctionSpace(mesh, "Discontinuous Lagrange", 0)
-# stress = project(sigma(u), V=W)
-# File("stress.pvd") << stress
 
 # Plot solution
 # import matplotlib.pyplot as plt

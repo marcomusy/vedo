@@ -35,7 +35,6 @@ jobs:
             cd dolfinx
             mkdir -p build && cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer ../cpp/
             ninja -j3 install
-            pwd
             cd ../python
             pip3 -v install . --user
 

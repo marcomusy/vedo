@@ -18,19 +18,19 @@ Vmax = 0.2  # height of the barrier (try 0 for particle in empty box)
 
 N = 300  # number of points
 size = 20.0  # x span [0, size]
-x = np.linspace(0, size, N + 2)  # we will need 2 extra points for the box wall
+x = np.linspace(0, size, N+2)  # we will need 2 extra points for the box wall
 
 V = Vmax * (np.abs(x - 11) < 0.5) - 0.01  # simple square barrier potential
 
 Psi = np.sqrt(1 / s0) * np.exp(-1 / 2 * ((x - x0) / s0) ** 2 + 1j * x * k0)  # wave packet
 
-dx2 = ((x[-1] - x[0]) / (N + 2)) ** 2 * 400  # dx**2 step, scaled
+dx2 = ((x[-1] - x[0]) / (N+2)) ** 2 * 400  # dx**2 step, scaled
 nabla2psi = np.zeros(N + 2, dtype=np.complex)
 
 
 def f(psi):
     # a smart numpy way to calculate the second derivative in x:
-    nabla2psi[1 : N + 1] = (psi[0:N] + psi[2 : N + 2] - 2 * psi[1 : N + 1]) / dx2
+    nabla2psi[1 : N + 1] = (psi[0:N] + psi[2 : N+2] - 2 * psi[1 : N+1]) / dx2
     return 1j * (nabla2psi - V * psi)  # this is the RH of Schroedinger equation!
 
 
@@ -56,7 +56,7 @@ for j in range(150):
         Psi += d_dt(Psi) * dt  # integrate for a while
 
     A = np.real(Psi * np.conj(Psi)) * 1.5  # psi squared, probability(x)
-    coords = np.stack((x, A, [0]*len(x)), axis=1)
+    coords = np.stack((x, A, np.zeros_like(x)), axis=1)
     Aline = Tube(coords, c="db", r=0.08)
     vp.show(Aline, barrier, bck, zoom=2)
     lines.append(Aline)

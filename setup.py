@@ -104,3 +104,49 @@ setup(
 
 ## to generate gif: ezgif.com
 
+## fenics 2019.2 docker:
+# docker pull quay.io/fenicsproject/dolfinx:dev-env-real
+# docker run -ti -v $(pwd):/home/musy/my-project/shared --name fenics-container quay.io/fenicsproject/dolfinx:dev-env-real
+#
+#    cd
+#    pip3 install vtkplotter # OR
+#    git clone https://github.com/marcomusy/vtkplotter.git
+#    cd vtkplotter
+#    pip3 -v install . --user
+#    
+#    cd
+#    pip3 install git+https://github.com/FEniCS/fiat.git --upgrade
+#    pip3 install git+https://github.com/FEniCS/ufl.git  --upgrade
+#    pip3 install git+https://github.com/FEniCS/ffcx.git --upgrade
+#    git clone https://github.com/FEniCS/dolfinx.git
+#    cd dolfinx
+#    mkdir -p build && cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Developer ../cpp/
+#    ninja -j3 install
+#    cd ../python
+#    pip3 -v install . --user
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

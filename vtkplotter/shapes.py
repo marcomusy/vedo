@@ -1284,39 +1284,72 @@ def Grid(
     normal=(0, 0, 1),
     sx=1,
     sy=1,
-    c="g",
+    sz=(0,),
+    c="gray",
     alpha=1,
     lw=1,
     resx=10,
     resy=10,
 ):
-    """Return a grid plane.
+    """Return an even or uneven 2D grid at `z=0`.
+    
+    :param float,list sx: if a float is provided it is interpreted as the total size along x,
+        if a list of coords is provided they are interpreted as the vertices of the grid along x.
+        In this case keyword `resx` is ignored (see example below).
+    :param float,list sy: see above.
+    :param float lw: line width.
+    :param int resx: resolution along x, e.i. the number of axis subdivisions.
 
     |brownian2D| |brownian2D.py|_
+
+    :Example:
+        .. code-block:: python
+
+            from vtkplotter import *            
+            xcoords = arange(0, 2, 0.2)
+            ycoords = arange(0, 1, 0.2)
+            sqrtx = sqrt(xcoords)
+            grid = Grid(sx=sqrtx, sy=ycoords)
+            grid.show(axes=8)
     """
-    ps = vtk.vtkPlaneSource()
-    ps.SetResolution(resx, resy)
-    ps.Update()
-    poly0 = ps.GetOutput()
-    t0 = vtk.vtkTransform()
-    t0.Scale(sx, sy, 1)
-    tf0 = vtk.vtkTransformPolyDataFilter()
-    tf0.SetInputData(poly0)
-    tf0.SetTransform(t0)
-    tf0.Update()
-    poly = tf0.GetOutput()
-    axis = np.array(normal) / np.linalg.norm(normal)
-    theta = np.arccos(axis[2])
-    phi = np.arctan2(axis[1], axis[0])
-    t = vtk.vtkTransform()
-    t.PostMultiply()
-    t.RotateY(np.rad2deg(theta))
-    t.RotateZ(np.rad2deg(phi))
-    tf = vtk.vtkTransformPolyDataFilter()
-    tf.SetInputData(poly)
-    tf.SetTransform(t)
-    tf.Update()
-    actor = Actor(tf.GetOutput(), c, alpha).wireframe().lw(lw)
+    if utils.isSequence(sx) and utils.isSequence(sy):
+        verts = []
+        for y in sy:
+            for x in sx:
+                verts.append([x, y, 0])
+        faces = []
+        n = len(sx)
+        m = len(sy)
+        for j in range(m-1):
+            j1n = (j+1)*n
+            for i in range(n-1):
+                faces.append([i+j*n, i+1+j*n, i+1+j1n, i+j1n])
+        actor = Actor([verts, faces], c, alpha).orientation(normal)
+    else: 
+        ps = vtk.vtkPlaneSource()
+        ps.SetResolution(resx, resy)
+        ps.Update()
+        poly0 = ps.GetOutput()
+        t0 = vtk.vtkTransform()
+        t0.Scale(sx, sy, 1)
+        tf0 = vtk.vtkTransformPolyDataFilter()
+        tf0.SetInputData(poly0)
+        tf0.SetTransform(t0)
+        tf0.Update()
+        poly = tf0.GetOutput()
+        axis = np.array(normal) / np.linalg.norm(normal)
+        theta = np.arccos(axis[2])
+        phi = np.arctan2(axis[1], axis[0])
+        t = vtk.vtkTransform()
+        t.PostMultiply()
+        t.RotateY(np.rad2deg(theta))
+        t.RotateZ(np.rad2deg(phi))
+        tf = vtk.vtkTransformPolyDataFilter()
+        tf.SetInputData(poly)
+        tf.SetTransform(t)
+        tf.Update()
+        actor = Actor(tf.GetOutput(), c, alpha)
+    actor.wireframe().lw(lw)
     actor.SetPosition(pos)
     settings.collectable_actors.append(actor)
     actor.name = "Grid"
