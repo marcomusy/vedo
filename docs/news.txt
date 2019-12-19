@@ -5,6 +5,8 @@
 - change old fashioned list(zip()) to np.stack()
 - change [0]*len(z) to np.zeros_like(z)
 - add testing directory with circleCI
+- examples and package are now split into two separate repos
+- added possibility to run any example from CLI `vtkplotter --run shrink.py`
 
 
 2019/21/19

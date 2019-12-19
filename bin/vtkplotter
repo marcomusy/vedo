@@ -3,7 +3,7 @@
 from __future__ import division, print_function
 from vtkplotter import Actor, Volume, Plotter, ProgressBar
 from vtkplotter import settings, printc, getColor, humansort, __version__
-from vtkplotter import vtkio, utils
+from vtkplotter import vtkio, utils, datadir
 import vtk
 import sys, argparse, os
 
@@ -960,5 +960,64 @@ else:  #########################################################################
     pr.add_argument("--lego",                       help="Voxel rendering for 3D image files", action="store_true")
     pr.add_argument("--cmap",                       help="Voxel rendering color map name", default='jet', metavar='')
     pr.add_argument("--mode",                       help="Voxel rendering composite mode", default=0, metavar='')
+    pr.add_argument("--run",                        help="Run example from vtkplotter-examples", default='', metavar='')
+    pr.add_argument("--list",                       help="List examples in vtkplotter-examples", action="store_true")
     args = pr.parse_args()
-    draw_scene()
+
+    if args.run:
+        import glob
+        exfiles = [f for f in glob.glob(datadir.replace('data','') + "**/*.py", recursive=True)]
+        matching = [s for s in exfiles if (args.run in s and "__" not in s and "version.py" not in s)]
+        if len(matching) > 1:
+            printc("Matching scripts are:", matching[:10], 'Running first only.', c='y', bold=0, italic=1)
+        if len(matching) == 0:
+            printc("No matching example found containing:", args.run, c=1)
+            printc("Use vtkplotter --list to show available scripts.", c=1)
+            exit(1)
+        print("Running", matching[0])
+        os.system('python ' + matching[0])
+
+    elif args.list:
+        printc("Available examples are:", box='-')
+        expath = datadir.replace('data','')
+
+        import glob
+        exfiles = [(f, os.path.basename(f)) for f in glob.glob(expath + "**/*.py", recursive=True)]
+
+        printc("basic examples:", c='g', bold=1)
+        for f,bn in exfiles:
+            if "basic" in f:
+                printc(bn, c='g', bold=0, end=' ')
+
+        printc("\nadvanced examples:", c='y', bold=1)
+        for f,bn in exfiles:
+            if "advanced" in f:
+                printc(bn, c='y', bold=0, end=' ')
+
+        printc("\nvolumetric examples:", c='b', bold=1)
+        for f,bn in exfiles:
+            if "volumetric" in f:
+                printc(bn, c='b', bold=0, end=' ')
+
+        printc("\ndolfin examples:", c='r', bold=1)
+        for f,bn in exfiles:
+            if "dolfin" in f:
+                printc(bn, c='r', bold=0, end=' ')
+
+        printc("\ntrimesh examples:", c='m', bold=1)
+        for f,bn in exfiles:
+            if "trimesh" in f:
+                printc(bn, c='m', bold=0, end=' ')
+
+        printc("\nother examples:", c='w', bold=1)
+        for f,bn in exfiles:
+            if "other" in f and "dolfin" not in f and "trimesh" not in f:
+                printc(bn, c='w', bold=0, end=' ')
+        print()
+    else:
+        draw_scene()
+
+
+
+
+

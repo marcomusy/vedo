@@ -4,18 +4,18 @@
 A python module for scientific visualization,
 analysis and animation of 3D objects and point clouds based on VTK.
 
-.. note:: **Please check out the** `git repository <https://github.com/marcomusy/vtkplotter>`_.
+.. note:: **Please check out the** `git repository <https://github.com/marcomusy/vtkplotter-examples>`_.
 
     A full list of examples can be found in directories:
 
-    - `examples/basic <https://github.com/marcomusy/vtkplotter/blob/master/examples/basic>`_ ,
-    - `examples/advanced <https://github.com/marcomusy/vtkplotter/blob/master/examples/advanced>`_ ,
-    - `examples/volumetric <https://github.com/marcomusy/vtkplotter/blob/master/examples/volumetric>`_,
-    - `examples/simulations <https://github.com/marcomusy/vtkplotter/blob/master/examples/simulations>`_
-    - `examples/plotting2d <https://github.com/marcomusy/vtkplotter/blob/master/examples/plotting2d>`_
-    - `examples/others <https://github.com/marcomusy/vtkplotter/blob/master/examples/other>`_.
-    - `examples/others/dolfin <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/dolfin>`_.
-    - `examples/others/trimesh <https://github.com/marcomusy/vtkplotter/blob/master/examples/other/trimesh>`_.
+    - `examples/basic <https://github.com/marcomusy/vtkplotter-examples/blob/vtkplotter_master/examples/basic>`_ ,
+    - `examples/advanced <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/advanced>`_ ,
+    - `examples/volumetric <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/volumetric>`_,
+    - `examples/simulations <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations>`_
+    - `examples/plotting2d <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/plotting2d>`_
+    - `examples/others <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other>`_.
+    - `examples/others/dolfin <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/dolfin>`_.
+    - `examples/others/trimesh <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/trimesh>`_.
 
 
 Publications where ``vtkplotter`` has been used so far:
@@ -31,7 +31,7 @@ Development 2018, `doi: 10.1242/dev.154856 <http://dev.biologists.org/content/14
 3. G. Dalmasso *et al.*, "Evolution in space and time of 3D volumetric images", in preparation.
 
 4. M. Musy, G. Dalmasso, J. Sharpe and N. Sime, "`vtkplotter`: plotting in FEniCS with python",
-`link <https://github.com/marcomusy/vtkplotter/blob/master/docs/fenics_poster.pdf>`_.
+`link <https://github.com/marcomusy/vtkplotter-examples/blob/master/docs/fenics_poster.pdf>`_.
 Poster at the FEniCS'2019 Conference,
 Carnegie Institution for Science Department of Terrestrial Magnetism, Washington DC, June 2019.
 
@@ -50,7 +50,7 @@ __license__ = "MIT"
 __maintainer__ = "M. Musy, G. Dalmasso"
 __email__ = "marco.musy@embl.es"
 __status__ = "dev"
-__website__ = "https://github.com/marcomusy/vtkplotter"
+__website__ = "https://github.com/marcomusy/vtkplotter-examples"
 
 from vtkplotter.version import _version as __version__
 from vtkplotter.animation import Animation

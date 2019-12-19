@@ -47,10 +47,11 @@ setup(
 # change version in vtkplotter/version.py
 
 # cd ~/Projects/vtkplotter/
+# remove trailing spaces
 # pip install .
 
-# cd examples && ./run_all.sh
-# cd ~/Projects/vtkplotter/
+# cd ~/Projects/vtkplotter-examples/
+# cd vtkplotter_examples && ./run_all.sh
 # python prove/test_filetypes.py
 
 # check vtkconvert:
@@ -59,20 +60,19 @@ setup(
 # check on python2 the same stuff is ok
 # cd ~/Projects/vtkplotter/
 # sudo -H pip install . -U
-# python examples/tutorial.py
+# python ~/Projects/vtkplotter-examples/vtkplotter_examples/tutorial.py
 
 # check notebooks:
-# cd ~/Projects/vtkplotter/
+# cd ~/Projects/vtkplotter-examples/
 # jupyter notebook > /dev/null 2>&1
-# remove trailing spaces
 
 # cd ~/Projects/vtkplotter/
-# rm -rf examples/*/.ipynb_checkpoints examples/*/*/.ipynb_checkpoints .ipynb_checkpoints/
-# rm -rf examples/other/dolfin/navier_stokes_cylinder/ examples/other/dolfin/shuttle.xml
-# rm examples/other/trimesh/featuretype.STL examples/other/trimesh/machinist.XAML
-# rm examples/other/scene.npy examples/other/timecourse1d.npy vtkplotter/data/290.ply
-# rm examples/other/voronoi3d.txt examples/other/voronoi3d.txt.vol
-# rm examples/other/embryo.html examples/other/embryo.x3d
+# rm -rf v*examples/*/.ipynb_checkpoints v*examples/*/*/.ipynb_checkpoints .ipynb_checkpoints/
+# rm -rf v*examples/other/dolfin/navier_stokes_cylinder/ v*examples/other/dolfin/shuttle.xml
+# rm v*examples/other/trimesh/featuretype.STL v*examples/other/trimesh/machinist.XAML
+# rm v*examples/other/scene.npy v*examples/other/timecourse1d.npy vtkplotter/data/290.ply
+# rm v*examples/other/voronoi3d.txt v*examples/other/voronoi3d.txt.vol
+# rm v*examples/other/embryo.html v*examples/other/embryo.x3d
 
 # git status
 # git add [files]
@@ -85,6 +85,8 @@ setup(
 # python setup.py sdist bdist_wheel
 # twine upload dist/vtkplotter-?.?.?.tar.gz -r pypi
 # make release
+
+# release examples
 
 ## to generate documentation:
 # Install the dependencies in docs/requirements.txt

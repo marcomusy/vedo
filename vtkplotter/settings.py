@@ -124,6 +124,8 @@ Usage example:
     Cube().color('green').show()
 
 """
+import os
+
 __all__ = ['datadir', 'embedWindow']
 
 
@@ -232,18 +234,25 @@ notebook_plotter = None
 plotter_instance = None
 collectable_actors = []
 
+
 ####################################################################################
-import os
 _cdir = os.path.dirname(__file__)
-if _cdir == "":
-    _cdir = "."
-textures_path = _cdir + "/textures/"
+
+textures_path = os.path.join(_cdir, "textures/")
 textures = []
 
-datadir = _cdir + "/data/"
-fonts_path = _cdir + "/fonts/"
+fonts_path = os.path.join(_cdir, "fonts/")
 fonts = []
 
+try:
+    import vtkplotter_examples
+    datadir = os.path.join(os.path.dirname(vtkplotter_examples.__file__), 'data/')
+except:
+    datadir = "/PLEASE_INSTALL_vtkplotter-examples_TO_USE_VARIABLE_DATADIR/"
+    #no error message here
+
+
+####################################################################################
 def embedWindow(backend='k3d', verbose=True):
     """Use this function to control whether the rendering window is inside
     the jupyter notebook or as an independent external window"""
