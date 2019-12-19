@@ -6,7 +6,7 @@
 [![pythvers](https://img.shields.io/badge/python-2.7%7C3-brightgreen.svg)](https://pypi.org/project/vtkplotter)
 [![gdocs](https://img.shields.io/badge/docs%20by-gendocs-blue.svg)](https://gendocs.readthedocs.io/en/latest)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2561402.svg)](https://doi.org/10.5281/zenodo.2561402)
-[![CircleCI](https://circleci.com/gh/marcomusy/vtkplotter-examples.svg?style=svg)](https://circleci.com/gh/marcomusy/vtkplotter-examples)
+[![CircleCI](https://circleci.com/gh/marcomusy/vtkplotter.svg?style=svg)](https://circleci.com/gh/marcomusy/vtkplotter)
 
 A lightweight pure python module for scientific analysis and visualization of 3D objects
 and *point clouds* based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/).<br>
@@ -20,14 +20,16 @@ in just a few lines of code, even for those with less programming experience.
 Because life is short.
 
 ## 🎯 Table of Contents
-* [Installation](#Installation)
-* [Documentation](#Documentation)
-	* [Need help?](#Need-help?)
-* [Features](#DFeatures)
-  * [Command Line Interface](#Command-Line-Interface)
-  * [Graphic User Interface](#Graphic-User-Interface)
-* [Examples](#Examples)
-* [References](References)
+* [Installation](https://github.com/marcomusy/vtkplotter#-installation)
+* [Documentation](https://github.com/marcomusy/vtkplotter#-documentation)
+	* [Need help?](https://github.com/marcomusy/vtkplotter#-need-help)
+* [Features](https://github.com/marcomusy/vtkplotter#-features)
+  * [Command Line Interface](https://github.com/marcomusy/vtkplotter#command-line-interface)
+  * [Graphic User Interface](https://github.com/marcomusy/vtkplotter#graphic-user-interface)
+* [Examples](https://github.com/marcomusy/vtkplotter#-examples)
+* [References](https://github.com/marcomusy/vtkplotter#-references)
+
+
 
 ## 💾 Installation
 Use [pip](https://projects.raspberrypi.org/en/projects/using-pip-on-windows) to install:
@@ -144,11 +146,13 @@ vtkplotter --run tube.py
 [**examples/other/trimesh**](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/trimesh)<br>
 [**examples/notebooks**](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/notebooks).<br>
 
-|         |      |      |
-|:--------|:-----|:-----|
-|Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a large cloud of scattered points in space ([script](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/advanced/moving_least_squares2D.py))<br>![rabbit](https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg)  | ![airplanes](https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)<br> Create a simple 3D animation in exactly 10 lines of code ([script](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations/airplanes.py)).<br>Trails and shadows can be added to moving objects easily.| Simulation of a gyroscope hanging from a spring ([script](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations/gyroscope1.py)).<br> ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)     |
-|         |      |      |
-![qsine2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)<br>  Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. ([script](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations/tunnelling2.py)) | Visualizing a Turing system of reaction-diffusion between two molecules<sup>1</sup> ([script](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations/turing.py)) <br> ![turing](https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif)  | ![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif) <br> Support for the [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of PDE and finite element solutions ([see here](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/dolfin)) |
+|         |      |
+|:--------|:-----|
+|Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a large cloud of scattered points in space ([script](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/advanced/moving_least_squares2D.py))<br>![rabbit](https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg)  | ![airplanes](https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)<br> Create a simple 3D animation in exactly 10 lines of code ([script](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations/airplanes.py)).<br>Trails and shadows can be added to moving objects easily.|
+|         |      |
+| Simulation of a gyroscope hanging from a spring ([script](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations/gyroscope1.py)).<br> ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)     | ![qsine2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)<br>  Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. ([script](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations/tunnelling2.py)) |
+|         |      |
+|Visualizing a Turing system of reaction-diffusion between two molecules<sup>1</sup> ([script](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations/turing.py)) <br> ![turing](https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif)  | ![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif) <br> Support for the [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of PDE and finite element solutions ([see here](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/dolfin)) |
 
 <br>
 

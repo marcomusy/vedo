@@ -52,7 +52,7 @@ setup(
 
 # cd ~/Projects/vtkplotter-examples/
 # cd vtkplotter_examples && ./run_all.sh
-# python prove/test_filetypes.py
+# python prove3D/test_filetypes.py
 
 # check vtkconvert:
 # vtkconvert vtkplotter/data/290.vtk -to ply; vtkplotter vtkplotter/data/290.ply
