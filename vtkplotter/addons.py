@@ -143,7 +143,6 @@ def addScalarBar(mesh,
         titprop.SetVerticalJustificationToTop()
         sb.SetTitle(title)
         sb.SetVerticalTitleSeparation(titleYOffset)
-#        sb.SetHorizontalTitleSeparation(titleXOffset)
         sb.SetTitleTextProperty(titprop)
 
     if vtk.vtkVersion().GetVTKMajorVersion() > 7:
@@ -796,16 +795,16 @@ def addAxes(axtype=None, c=None):
     ############################################################
     if vp.axes == 1 or vp.axes is True or isinstance(vp.axes, dict):  # custom grid walls
 
-#        def _customGrid(pos, normal, n, m):
-#            verts = []
-#            for y in range(m):
-#                for x in range(n):
-#                    verts.append([x/(n-1), y/(m-1), 0])
-#            faces = []
-#            for j in range(m-1):
-#                for i in range(n-1):
-#                    faces.append([i+j*n, i+j*n+1, i+1+(j+1)*n, i+(j+1)*n])
-#            return Mesh([verts, faces]).lw(gridLineWidth).orientation(normal).pos(pos)
+        #        def _customGrid(pos, normal, n, m):
+        #            verts = []
+        #            for y in range(m):
+        #                for x in range(n):
+        #                    verts.append([x/(n-1), y/(m-1), 0])
+        #            faces = []
+        #            for j in range(m-1):
+        #                for i in range(n-1):
+        #                    faces.append([i+j*n, i+j*n+1, i+1+(j+1)*n, i+(j+1)*n])
+        #            return Mesh([verts, faces]).lw(gridLineWidth).orientation(normal).pos(pos)
 
         if isinstance(vp.axes, dict):
             axes = vp.axes

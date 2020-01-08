@@ -242,7 +242,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
                                 arrexists = True
                                 break
 
-            if arrexists == False:
+            if not arrexists:
                 if c is None:
                     c = "gold"
                 c = colors.getColor(c)
@@ -347,9 +347,9 @@ class Mesh(vtk.vtkFollower, ActorBase):
         conn = []
         n = len(arr1d)
         for idummy in range(n):
-#            cell = []
-#            for k in range(arr1d[i]):
-#                cell.append(arr1d[i+k+1])
+            # cell = []
+            # for k in range(arr1d[i]):
+            #    cell.append(arr1d[i+k+1])
             cell = [arr1d[i+k+1] for k in range(arr1d[i])]
             conn.append(cell)
             i += arr1d[i]+1
@@ -1878,7 +1878,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         colors.printc("       : Use getArrayNames(), getPointArray(), getCellArray(),", c=1)
         colors.printc("       : addPointScalars() or addPointVectors() instead.", c=1)
         #raise RuntimeError
-        
+
         poly = self.polydata(False)
 
         # no argument: return list of available arrays
