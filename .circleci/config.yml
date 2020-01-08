@@ -7,6 +7,8 @@ version: 2
 jobs:
 
   test-vtkplotter:
+    docker:
+      - image: quay.io/fenicsproject/dolfinx:dev-env-real
     environment:
       MPLBACKEND: "agg"
       DEBIAN_FRONTEND: "noninteractive"
