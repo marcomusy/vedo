@@ -102,16 +102,16 @@ class Animation(Plotter):
 
 
     def switchOn(self, acts=None, t=None, duration=None):
-        """Switch on the input list of actors."""
+        """Switch on the input list of meshes."""
         return self.fadeIn(acts, t, 0)
 
     def switchOff(self, acts=None, t=None, duration=None):
-        """Switch off the input list of actors."""
+        """Switch off the input list of meshes."""
         return self.fadeOut(acts, t, 0)
 
 
     def fadeIn(self, acts=None, t=None, duration=None):
-        """Gradually switch on the input list of actors by increasing opacity."""
+        """Gradually switch on the input list of meshes by increasing opacity."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
             for tt in rng:
@@ -125,7 +125,7 @@ class Animation(Plotter):
         return self
 
     def fadeOut(self, acts=None, t=None, duration=None):
-        """Gradually switch off the input list of actors by increasing transparency."""
+        """Gradually switch off the input list of meshes by increasing transparency."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
             for tt in rng:
@@ -140,7 +140,7 @@ class Animation(Plotter):
 
 
     def changeAlphaBetween(self, alpha1, alpha2, acts=None, t=None, duration=None):
-        """Gradually change transparency for the input list of actors."""
+        """Gradually change transparency for the input list of meshes."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
             for tt in rng:
@@ -153,7 +153,7 @@ class Animation(Plotter):
 
 
     def changeColor(self,  c, acts=None, t=None, duration=None):
-        """Gradually change color for the input list of actors."""
+        """Gradually change color for the input list of meshes."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
 
@@ -174,7 +174,7 @@ class Animation(Plotter):
 
 
     def changeBackColor(self, c, acts=None, t=None, duration=None):
-        """Gradually change backface color for the input list of actors.
+        """Gradually change backface color for the input list of meshes.
         An initial backface color should be set in advance."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
@@ -199,7 +199,7 @@ class Animation(Plotter):
 
 
     def changeToWireframe(self, acts=None, t=None):
-        """Switch representation to wireframe for the input list of actors at time `t`."""
+        """Switch representation to wireframe for the input list of meshes at time `t`."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, None)
             self.events.append((t, self.changeToWireframe, acts, True))
@@ -209,7 +209,7 @@ class Animation(Plotter):
         return self
 
     def changeToSurface(self, acts=None, t=None):
-        """Switch representation to surface for the input list of actors at time `t`."""
+        """Switch representation to surface for the input list of meshes at time `t`."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, None)
             self.events.append((t, self.changeToSurface, acts, False))
@@ -220,7 +220,7 @@ class Animation(Plotter):
 
 
     def changeLineWidth(self, lw, acts=None, t=None, duration=None):
-        """Gradually change line width of the mesh edges for the input list of actors."""
+        """Gradually change line width of the mesh edges for the input list of meshes."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
             for tt in rng:
@@ -236,7 +236,7 @@ class Animation(Plotter):
 
 
     def changeLineColor(self, c, acts=None, t=None, duration=None):
-        """Gradually change line color of the mesh edges for the input list of actors."""
+        """Gradually change line color of the mesh edges for the input list of meshes."""
         if self.bookingMode:
             acts, t, duration, rng = self._parse(acts, t, duration)
             col2 = getColor(c)
@@ -256,7 +256,7 @@ class Animation(Plotter):
 
 
     def changeLighting(self, style, acts=None, t=None, duration=None):
-        """Gradually change the lighting style for the input list of actors.
+        """Gradually change the lighting style for the input list of meshes.
 
         Allowed styles are: [metallic, plastic, shiny, glossy, default].
         """

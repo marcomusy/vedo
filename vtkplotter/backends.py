@@ -4,7 +4,9 @@ import numpy
 import os
 
 import vtkplotter.colors as colors
-from vtkplotter.actors import Actor, Volume, Assembly
+from vtkplotter.assembly import Assembly
+from vtkplotter.mesh import Mesh
+from vtkplotter.volume import Volume
 import vtkplotter.settings as settings
 import vtkplotter.addons as addons
 import vtkplotter.utils as utils
@@ -38,7 +40,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
         for ia in actors2show:
 
             if isinstance(ia, Assembly): #unpack assemblies
-                acass = ia.getActors()
+                acass = ia.getMeshes()
                 for ac in acass:
                     if ac.polydata().GetNumberOfPolys():
                         polys2show.append(ac.polydata())
@@ -49,7 +51,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                         pointcols.append(ac.color())
                         pointalphas.append(ac.alpha())
 
-            elif isinstance(ia, Actor):
+            elif isinstance(ia, Mesh):
                 if ia.polydata().GetNumberOfPolys():
                     polys2show.append(ia.polydata())
                     polycols.append(ia.color())
@@ -88,7 +90,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
         actors2show2 = []
         for ia in actors2show:
             if isinstance(ia, vtk.vtkAssembly): #unpack assemblies
-                acass = ia.getActors()
+                acass = ia.getMeshes()
                 #for a in acass:
                 #    a.SetScale(ia.GetScale())
                 actors2show2 += acass
@@ -139,7 +141,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
             kobj = None
             kcmap= None
 
-            if isinstance(ia, Actor) and ia.N():
+            if isinstance(ia, Mesh) and ia.N():
 
                 iap = ia.GetProperty()
                 #ia.clean().triangle().computeNormals()
@@ -200,7 +202,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                     sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
 
                     if ia.NPoints() == ia.NCells():
-                        kobj = k3d.points(ia.coordinates().astype(numpy.float32),
+                        kobj = k3d.points(ia.points().astype(numpy.float32),
                                           color=colors.rgb2int(iap.GetColor()),
                                           colors=kcols,
                                           opacity=iap.GetOpacity(),
@@ -209,7 +211,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                                           #compression_level=9,
                                           )
                     else:
-                        kobj = k3d.line(ia.coordinates().astype(numpy.float32),
+                        kobj = k3d.line(ia.points().astype(numpy.float32),
                                         color=colors.rgb2int(iap.GetColor()),
                                         colors=kcols,
                                         opacity=iap.GetOpacity(),

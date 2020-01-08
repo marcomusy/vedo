@@ -6,7 +6,12 @@ import numpy as np
 
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
-from vtkplotter.actors import Actor, Volume, Assembly, Picture
+
+from vtkplotter.assembly import Assembly
+from vtkplotter.mesh import Mesh
+from vtkplotter.picture import Picture
+from vtkplotter.volume import Volume
+
 import vtkplotter.docs as docs
 import vtkplotter.settings as settings
 
@@ -23,8 +28,8 @@ __all__ = [
     "gunzip",
     "loadStructuredPoints",
     "loadStructuredGrid",
-    "loadUnStructuredGrid",
     "loadRectilinearGrid",
+    "loadUnStructuredGrid",
     "write",
     "save",
     "exportWindow",
@@ -36,7 +41,7 @@ __all__ = [
 
 def load(inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
     """
-    Load ``Actor`` and ``Volume`` from file.
+    Load ``Mesh`` and ``Volume`` objects from file.
 
     The output will depend on the file extension. See examples below.
 
@@ -50,7 +55,7 @@ def load(inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
     :param list alpha: can be a list of any length of tranparencies. This list represents the
         transparency transfer function values equally spaced along the range of the volumetric scalar.
     :param float threshold: value to draw the isosurface, False by default to return a ``Volume``.
-        If set to True will return an ``Actor`` with automatic choice of the isosurfacing threshold.
+        If set to True will return an ``Mesh`` with automatic choice of the isosurfacing threshold.
     :param list spacing: specify the voxel spacing in the three dimensions
     :param bool unpack: only for multiblock data, if True returns a flat list of objects.
 
@@ -59,15 +64,15 @@ def load(inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
 
             from vtkplotter import datadir, load, show
 
-            # Return an Actor
+            # Return a Mesh object
             g = load(datadir+'250.vtk')
             show(g)
 
-            # Return a list of 2 Actors
+            # Return a list of 2 meshes
             g = load([datadir+'250.vtk', datadir+'270.vtk'])
             show(g)
 
-            # Return a list of actors by reading all files in a directory
+            # Return a list of meshes by reading all files in a directory
             # (if directory contains DICOM files then a Volume is returned)
             g = load(datadir+'timecourse1d/')
             show(g)
@@ -77,7 +82,7 @@ def load(inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
             g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1))
             show(g)
 
-            # Return an Actor from a SLC volume with automatic thresholding
+            # Return a Mesh from a SLC volume with automatic thresholding
             g = load(datadir+'embryo.slc', threshold=True)
             show(g)
     """
@@ -288,7 +293,7 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
             colors.printc("~noentry Unable to load", filename, c=1)
             return None
 
-        actor = Actor(routput, c, alpha)
+        actor = Mesh(routput, c, alpha)
         if fl.endswith(".txt") or fl.endswith(".xyz"):
             actor.GetProperty().SetPointSize(4)
 
@@ -438,7 +443,7 @@ def loadOFF(filename):
             ids += [int(xx) for xx in ts[1:]]
             faces.append(ids)
 
-    return Actor(utils.buildPolyData(vertices, faces))
+    return Mesh(utils.buildPolyData(vertices, faces))
 
 
 def loadGeoJSON(filename):
@@ -448,12 +453,12 @@ def loadGeoJSON(filename):
     jr = vtk.vtkGeoJSONReader()
     jr.SetFileName(filename)
     jr.Update()
-    return Actor(jr.GetOutput())
+    return Mesh(jr.GetOutput())
 
 
 def loadDolfin(filename, exterior=False):
     """Reads a `Fenics/Dolfin` file format (.xml or .xdmf).
-    Return an ``Actor(vtkActor)`` object."""
+    Return an ``Mesh(vtkActor)`` object."""
     import sys
     if sys.version_info[0] < 3:
         return _loadDolfin_old(filename)
@@ -470,16 +475,16 @@ def loadDolfin(filename, exterior=False):
     bm = dolfin.BoundaryMesh(m, "exterior")
 
     if exterior:
-        poly = utils.buildPolyData(bm.coordinates(), bm.cells(), fast=True)
+        poly = utils.buildPolyData(bm.points(), bm.cells(), fast=True)
     else:
-        polyb = utils.buildPolyData(bm.coordinates(), bm.cells(), fast=True)
-        polym = utils.buildPolyData(m.coordinates(), m.cells(), fast=True)
+        polyb = utils.buildPolyData(bm.points(), bm.cells(), fast=True)
+        polym = utils.buildPolyData(m.points(), m.cells(), fast=True)
         app = vtk.vtkAppendPolyData()
         app.AddInputData(polym)
         app.AddInputData(polyb)
         app.Update()
         poly = app.GetOutput()
-    return Actor(poly).lw(0.1)
+    return Mesh(poly).lw(0.1)
 
 
 def _loadDolfin_old(filename, exterior='dummy'):
@@ -527,7 +532,7 @@ def _loadDolfin_old(filename, exterior='dummy'):
                     connectivity.append([v0, v1, v2, v3])
 
     poly = utils.buildPolyData(coords, connectivity)
-    return Actor(poly)
+    return Mesh(poly)
 
 
 def loadPVD(filename):
@@ -569,11 +574,11 @@ def loadPDB(filename, bondScale=1, hydrogenBondScale=1, coilWidth=0.3, helixWidt
     prf.SetHelixWidth(helixWidth)
     prf.SetInputData(rr.GetOutput())
     prf.Update()
-    return Actor(prf.GetOutput())
+    return Mesh(prf.GetOutput())
 
 
 def loadNeutral(filename):
-    """Reads a `Neutral` tetrahedral file format. Return an ``Actor(vtkActor)`` object."""
+    """Reads a `Neutral` tetrahedral file format. Return an ``Mesh(vtkActor)`` object."""
     f = open(filename, "r")
     lines = f.readlines()
     f.close()
@@ -597,11 +602,11 @@ def loadNeutral(filename):
         idolf_tets.append([v0, v1, v2, v3])
 
     poly = utils.buildPolyData(coords, idolf_tets)
-    return Actor(poly)
+    return Mesh(poly)
 
 
 def loadGmesh(filename):
-    """Reads a `gmesh` file format. Return an ``Actor(vtkActor)`` object."""
+    """Reads a `gmesh` file format. Return an ``Mesh(vtkActor)`` object."""
     f = open(filename, "r")
     lines = f.readlines()
     f.close()
@@ -631,11 +636,12 @@ def loadGmesh(filename):
         elements.append([int(ele[-3]), int(ele[-2]), int(ele[-1])])
 
     poly = utils.buildPolyData(node_coords, elements, indexOffset=1)
-    return Actor(poly)
+    return Mesh(poly)
 
 
 def loadPCD(filename):
-    """Return ``vtkActor`` from `Point Cloud` file format. Return an ``Actor(vtkActor)`` object."""
+    """Return a ``Mesh`` made of only vertex points
+    from `Point Cloud` file format. Return an ``Mesh(vtkActor)`` object."""
     f = open(filename, "r")
     lines = f.readlines()
     f.close()
@@ -656,7 +662,7 @@ def loadPCD(filename):
     if expN != N:
         colors.printc("~!? Mismatch in pcd file", expN, len(pts), c="red")
     poly = utils.buildPolyData(pts)
-    return Actor(poly).pointSize(4)
+    return Mesh(poly).pointSize(4)
 
 
 def loadNumpy(inobj):
@@ -694,7 +700,7 @@ def loadNumpy(inobj):
             lines = d['lines']
 
         poly = utils.buildPolyData(vertices, cells, lines)
-        act = Actor(poly)
+        act = Mesh(poly)
         loadcommon(act, d)
 
         act.mapper().ScalarVisibilityOff()
@@ -702,12 +708,12 @@ def loadNumpy(inobj):
             for csc, cscname in d['celldata']:
                 act.addCellScalars(csc, cscname)
                 if 'normal' not in cscname.lower():
-                    act.scalars(cscname) # activate
+                    act.getCellArray(cscname) # activate
         if 'pointdata' in keys:
             for psc, pscname in d['pointdata']:
                 act.addPointScalars(psc, pscname)
                 if 'normal' not in pscname.lower():
-                    act.scalars(pscname) # activate
+                    act.getPointArray(pscname) # activate
 
         prp = act.GetProperty()
         if 'specular' in keys:      prp.SetSpecular(d['specular'])
@@ -808,7 +814,7 @@ def _np_dump(obj):
 
 
     def _doactor(obj, adict):
-        adict['points'] = obj.coordinates(transformed=0).astype(np.float32)
+        adict['points'] = obj.points(transformed=0).astype(np.float32)
         poly = obj.polydata()
         adict['cells'] = None
         adict['lines'] = None
@@ -831,11 +837,10 @@ def _np_dump(obj):
         if poly.GetPointData().GetScalars():
             adict['activedata'] = ['pointdata', poly.GetPointData().GetScalars().GetName()]
 
-        for itype, iname in obj.scalars():
-            if itype == 'PointData':
-                adict['pointdata'].append([obj.getPointArray(iname), iname])
-            if itype == 'CellData':
-                adict['celldata'].append([obj.getCellArray(iname), iname])
+        for iname in obj.getArrayNames()['PointData']:
+            adict['pointdata'].append([obj.getPointArray(iname), iname])
+        for iname in obj.getArrayNames()['CellData']:
+            adict['celldata'].append([obj.getCellArray(iname), iname])
 
         prp = obj.GetProperty()
         adict['alpha'] = prp.GetOpacity()
@@ -862,17 +867,17 @@ def _np_dump(obj):
 
     ############################
     adict['type'] = 'unknown'
-    if isinstance(obj, Actor):
+    if isinstance(obj, Mesh):
         adict['type'] = 'mesh'
         _doactor(obj, adict)
 
     elif isinstance(obj, Assembly):
         adict['type'] = 'assembly'
         adict['actors'] = []
-        for a in obj.getActors():
+        for a in obj.getMeshes():
             assdict = dict()
-            if not isinstance(a, Actor): #normal vtkActor
-                b = Actor(a) # promote it to a Actor
+            if not isinstance(a, Mesh): #normal vtkActor
+                b = Mesh(a) # promote it to a Actor
                 pra = vtk.vtkProperty()
                 pra.DeepCopy(a.GetProperty())
                 b.SetProperty(pra)
@@ -960,7 +965,7 @@ def write(objct, fileoutput, binary=True):
         - vtk, vti, npy, ply, obj, stl, byu, vtp, vti, mhd, xyz, tif, png, bmp.
     """
     obj = objct
-    if isinstance(obj, Actor): # picks transformation
+    if isinstance(obj, Mesh): # picks transformation
         obj = objct.polydata(True)
     elif isinstance(obj, (vtk.vtkActor, vtk.vtkVolume)):
         obj = objct.GetMapper().GetInput()
@@ -1029,7 +1034,7 @@ def write(objct, fileoutput, binary=True):
         return dicts2save
 
     elif ".xml" in fr:  # write tetrahedral dolfin xml
-        vertices = objct.coordinates().astype(str)
+        vertices = objct.points().astype(str)
         faces = np.array(objct.faces()).astype(str)
         ncoords = vertices.shape[0]
         outF = open(fileoutput, "w")
@@ -1173,7 +1178,7 @@ def exportWindow(fileoutput, binary=False, speed=None, html=True):
         sdict['interactorStyle'] = settings.interactorStyle
         sdict['useParallelProjection'] = settings.useParallelProjection
         sdict['objects'] = []
-        for a in vp.getActors() + vp.getVolumes():
+        for a in vp.getMeshes() + vp.getVolumes():
             sdict['objects'].append(_np_dump(a))
         np.save(fileoutput, [sdict])
 
@@ -1259,7 +1264,7 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
         actors.InitTraversal()
         for i in range(actors.GetNumberOfItems()):
             vactor = actors.GetNextActor()
-            act = Actor(vactor)
+            act = Mesh(vactor)
             act_tu = vactor.GetTexture()
             if act_tu:
                 act_tu.InterpolateOn()

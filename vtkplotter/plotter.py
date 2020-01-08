@@ -8,7 +8,10 @@ from vtkplotter import __version__
 import vtkplotter.vtkio as vtkio
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
-from vtkplotter.actors import Actor, Assembly, Volume, Picture
+from vtkplotter.assembly import Assembly
+from vtkplotter.mesh import Mesh
+from vtkplotter.picture import Picture
+from vtkplotter.volume import Volume
 import vtkplotter.docs as docs
 import vtkplotter.settings as settings
 import vtkplotter.addons as addons
@@ -825,7 +828,7 @@ class Plotter:
     ####################################################
     def load(self, inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
         """
-        Load Actors and Volumes from file.
+        Load Mesh and Volume objects from file.
         The output will depend on the file extension. See examples below.
 
         :param c: color in RGB format, hex, symbol or name
@@ -841,15 +844,15 @@ class Plotter:
 
                 from vtkplotter import datadir, load, show
 
-                # Return an Actor
+                # Return an Mesh
                 g = load(datadir+'ring.gmsh')
                 show(g)
 
-                # Return a list of 2 Actors
+                # Return a list of 2 Mesh
                 g = load([datadir+'250.vtk', datadir+'290.vtk'])
                 show(g)
 
-                # Return a list of actors by reaading all files in a directory
+                # Return a list of meshes by reading all files in a directory
                 # (if directory contains DICOM files then a Volume is returned)
                 g = load(datadir+'timecourse1d/')
                 show(g)
@@ -859,7 +862,7 @@ class Plotter:
                 g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1))
                 show(g)
 
-                # Return an Actor from a SLC volume with automatic thresholding
+                # Return a Mesh from a SLC volume with automatic thresholding
                 g = load(datadir+'embryo.slc', threshold=True)
                 show(g)
         """
@@ -908,19 +911,23 @@ class Plotter:
                     vols.append(a)
             return vols
 
-
     def getActors(self, obj=None, renderer=None):
+        """Obsolete. Please use getMeshes()"""
+        colors.printc("getActors is obsolete, use getMeshes() instead.", box='=', c=1)
+        raise RuntimeError
+
+    def getMeshes(self, obj=None, renderer=None):
         """
-        Return an actors list (which may include Volume objects too).
+        Return a list of Meshes (which may include Volume objects too).
 
         If ``obj`` is:
-            ``None``, return actors of current renderer
+            ``None``, return meshes of current renderer
 
-            ``int``, return actors in given renderer number
+            ``int``, return meshes in given renderer number
 
-            ``vtkAssembly`` return the contained actors
+            ``vtkAssembly`` return the contained meshes
 
-            ``string``, return actors matching legend name
+            ``string``, return meshes matching legend name
 
         :param int,vtkRenderer renderer: specify which renederer to look into.
         """
@@ -935,7 +942,7 @@ class Plotter:
             if obj is None:
                 acs = renderer.GetActors()
             elif obj >= len(self.renderers):
-                colors.printc("~timesError in getActors: non existing renderer", obj, c=1)
+                colors.printc("~timesError in getMeshes: non existing renderer", obj, c=1)
                 return []
             else:
                 acs = self.renderers[obj].GetActors()
@@ -973,7 +980,7 @@ class Plotter:
             return [obj]
 
         if self.verbose:
-            colors.printc("~lightning Warning in getActors: unexpected input type", obj, c=1)
+            colors.printc("~lightning Warning in getMeshes: unexpected input type", obj, c=1)
         return []
 
 
@@ -1029,7 +1036,7 @@ class Plotter:
         :param float intensity: intensity between 0 and 1.
         :param bool removeOthers: remove all other lights in the scene
         :param bool showsource: if `True`, will show a representation
-                                of the source of light as an extra Actor
+                                of the source of light as an extra Mesh
 
         .. hint:: |lights.py|_
         """
@@ -1118,14 +1125,14 @@ class Plotter:
         """
         return addons.addButton(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
 
-    def addCutterTool(self, actor):
+    def addCutterTool(self, mesh):
         """Create handles to cut away parts of a mesh.
 
         |cutter| |cutter.py|_
         """
-        return addons.addCutterTool(actor)
+        return addons.addCutterTool(mesh)
 
-    def addIcon(self, iconActor, pos=3, size=0.08):
+    def addIcon(self, icon, pos=3, size=0.08):
         """Add an inset icon mesh into the same renderer.
 
         :param pos: icon position in the range [1-4] indicating one of the 4 corners,
@@ -1134,7 +1141,7 @@ class Plotter:
 
         |icon| |icon.py|_
         """
-        return addons.addIcon(iconActor, pos, size)
+        return addons.addIcon(icon, pos, size)
 
     def addAxes(self, axtype=None, c=None):
         """Draw axes on scene. Available axes types:
@@ -1367,7 +1374,7 @@ class Plotter:
                     scannedacts.append(Volume(a))
 
                 elif isinstance(a, vtk.vtkPolyData):
-                    scannedacts.append(Actor(a))
+                    scannedacts.append(Mesh(a))
 
                 elif isinstance(a, vtk.vtkBillboardTextActor3D):
                     scannedacts.append(a)
@@ -1377,17 +1384,17 @@ class Plotter:
                     scannedacts.append(out)
 
                 elif isinstance(a, vtk.vtkUnstructuredGrid):
-                    scannedacts.append(Actor(a))
+                    scannedacts.append(Mesh(a))
                 elif isinstance(a, vtk.vtkStructuredGrid):
-                    scannedacts.append(Actor(a))
+                    scannedacts.append(Mesh(a))
                 elif isinstance(a, vtk.vtkRectilinearGrid):
-                    scannedacts.append(Actor(a))
+                    scannedacts.append(Mesh(a))
 
                 elif isinstance(a, vtk.vtkMultiBlockDataSet):
                     for i in range(a.GetNumberOfBlocks()):
                         b =  a.GetBlock(i)
                         if isinstance(b, vtk.vtkPolyData):
-                            scannedacts.append(Actor(b))
+                            scannedacts.append(Mesh(b))
                         elif isinstance(b, vtk.vtkImageData):
                             scannedacts.append(Volume(b))
 
@@ -1401,10 +1408,10 @@ class Plotter:
                     scannedacts.append(trimesh2vtk(a))
 
                 elif "meshio" in str(type(a)):
-                    scannedacts.append(Actor(a))
+                    scannedacts.append(Mesh(a))
 
                 elif hasattr(a, "GetOutput"): # passing vtk algorithm
-                    scannedacts.append(Actor(a))
+                    scannedacts.append(Mesh(a))
 
                 else:
                     colors.printc("~!? Cannot understand input in show():", type(a), c=1)
@@ -1550,14 +1557,14 @@ class Plotter:
 
 
         # remove the ones that are not in actors2show (and their scalarbar if any)
-        for ia in self.getActors(at) + self.getVolumes(at):
+        for ia in self.getMeshes(at) + self.getVolumes(at):
             if ia not in actors2show:
                 self.renderer.RemoveActor(ia)
                 if hasattr(ia, 'scalarbar') and ia.scalarbar:
                     if isinstance(ia.scalarbar, vtk.vtkActor):
                         self.renderer.RemoveActor(ia.scalarbar)
                     elif isinstance(ia.scalarbar, Assembly):
-                        for a in ia.scalarbar.getActors():
+                        for a in ia.scalarbar.getMeshes():
                             self.renderer.RemoveActor(a)
                 if hasattr(ia, 'renderedAt'):
                     ia.renderedAt.discard(at)
@@ -1693,7 +1700,7 @@ class Plotter:
         return self
 
 
-    def showInset(self, *actors, **options): #pos=3, size=0.1, c='r', draggable=True):
+    def showInset(self, *actors, **options):
         """Add a draggable inset space into a renderer.
 
         :param pos: icon position in the range [1-4] indicating one of the 4 corners,
@@ -1753,7 +1760,7 @@ class Plotter:
                 self.remove(a)
             settings.collectable_actors = []
             self.actors = []
-            for a in self.getActors():
+            for a in self.getMeshes():
                 self.renderer.RemoveActor(a)
             for a in self.getVolumes():
                 self.renderer.RemoveVolume(a)
@@ -1906,14 +1913,14 @@ class Plotter:
             sys.exit(0)
 
         elif key == "m":
-            if self.clickedActor in self.getActors():
+            if self.clickedActor in self.getMeshes():
                 self.clickedActor.GetProperty().SetOpacity(0.02)
                 bfp = self.clickedActor.GetBackfaceProperty()
                 if bfp and hasattr(self.clickedActor, "_bfprop"):
                     self.clickedActor._bfprop = bfp  # save it
                     self.clickedActor.SetBackfaceProperty(None)
             else:
-                for a in self.getActors():
+                for a in self.getMeshes():
                     if a.GetPickable():
                         a.GetProperty().SetOpacity(0.02)
                         bfp = a.GetBackfaceProperty()
@@ -1922,7 +1929,7 @@ class Plotter:
                             a.SetBackfaceProperty(None)
 
         elif key == "comma":
-            if self.clickedActor in self.getActors():
+            if self.clickedActor in self.getMeshes():
                 ap = self.clickedActor.GetProperty()
                 aal = max([ap.GetOpacity() * 0.75, 0.01])
                 ap.SetOpacity(aal)
@@ -1931,7 +1938,7 @@ class Plotter:
                     self.clickedActor._bfprop = bfp
                     self.clickedActor.SetBackfaceProperty(None)
             else:
-                for a in self.getActors():
+                for a in self.getMeshes():
                     if a.GetPickable():
                         ap = a.GetProperty()
                         aal = max([ap.GetOpacity() * 0.75, 0.01])
@@ -1942,7 +1949,7 @@ class Plotter:
                             a.SetBackfaceProperty(None)
 
         elif key == "period":
-            if self.clickedActor in self.getActors():
+            if self.clickedActor in self.getMeshes():
                 ap = self.clickedActor.GetProperty()
                 aal = min([ap.GetOpacity() * 1.25, 1.0])
                 ap.SetOpacity(aal)
@@ -1951,7 +1958,7 @@ class Plotter:
                     # put back
                     self.clickedActor.SetBackfaceProperty(self.clickedActor._bfprop)
             else:
-                for a in self.getActors():
+                for a in self.getMeshes():
                     if a.GetPickable():
                         ap = a.GetProperty()
                         aal = min([ap.GetOpacity() * 1.25, 1.0])
@@ -1960,22 +1967,22 @@ class Plotter:
                             a.SetBackfaceProperty(a._bfprop)
 
         elif key == "slash":
-            if self.clickedActor in self.getActors():
+            if self.clickedActor in self.getMeshes():
                 self.clickedActor.GetProperty().SetOpacity(1)
                 if hasattr(self.clickedActor, "_bfprop") and self.clickedActor._bfprop:
                     self.clickedActor.SetBackfaceProperty(self.clickedActor._bfprop)
             else:
-                for a in self.getActors():
+                for a in self.getMeshes():
                     if a.GetPickable():
                         a.GetProperty().SetOpacity(1)
                         if hasattr(a, "_bfprop") and a._bfprop:
                             a.clickedActor.SetBackfaceProperty(a._bfprop)
 
         elif key == "P":
-            if self.clickedActor in self.getActors():
+            if self.clickedActor in self.getMeshes():
                 acts = [self.clickedActor]
             else:
-                acts = self.getActors()
+                acts = self.getMeshes()
             for ia in acts:
                 if ia.GetPickable():
                     try:
@@ -1987,10 +1994,10 @@ class Plotter:
                         pass
 
         elif key == "p":
-            if self.clickedActor in self.getActors():
+            if self.clickedActor in self.getMeshes():
                 acts = [self.clickedActor]
             else:
-                acts = self.getActors()
+                acts = self.getMeshes()
             for ia in acts:
                 if ia.GetPickable():
                     try:
@@ -2001,10 +2008,10 @@ class Plotter:
                         pass
 
         elif key == "w":
-            if self.clickedActor and self.clickedActor in self.getActors():
+            if self.clickedActor and self.clickedActor in self.getMeshes():
                 self.clickedActor.GetProperty().SetRepresentationToWireframe()
             else:
-                for a in self.getActors():
+                for a in self.getMeshes():
                     if a and a.GetPickable():
                         if a.GetProperty().GetRepresentation() == 1:  # toggle
                             a.GetProperty().SetRepresentationToSurface()
@@ -2074,10 +2081,10 @@ class Plotter:
             return
 
         if key == "s":
-            if self.clickedActor and self.clickedActor in self.getActors():
+            if self.clickedActor and self.clickedActor in self.getMeshes():
                 self.clickedActor.GetProperty().SetRepresentationToSurface()
             else:
-                for a in self.getActors():
+                for a in self.getMeshes():
                     if a and a.GetPickable():
                         a.GetProperty().SetRepresentationToSurface()
 
@@ -2093,7 +2100,7 @@ class Plotter:
                 self.clickedActor.GetMapper().ScalarVisibilityOff()
                 self.clickedActor.GetProperty().SetColor(colors.colors1[(self.icol) % 10])
             else:
-                for i, ia in enumerate(self.getActors()):
+                for i, ia in enumerate(self.getMeshes()):
                     if not ia.GetPickable():
                         continue
                     ia.GetProperty().SetColor(colors.colors1[(i + self.icol) % 10])
@@ -2106,7 +2113,7 @@ class Plotter:
                 self.clickedActor.GetMapper().ScalarVisibilityOff()
                 self.clickedActor.GetProperty().SetColor(colors.colors2[(self.icol) % 10])
             else:
-                for i, ia in enumerate(self.getActors()):
+                for i, ia in enumerate(self.getMeshes()):
                     if not ia.GetPickable():
                         continue
                     ia.GetProperty().SetColor(colors.colors2[(i + self.icol) % 10])
@@ -2115,7 +2122,7 @@ class Plotter:
 
         elif key == "3":
             c = colors.getColor("gold")
-            acs = self.getActors()
+            acs = self.getMeshes()
             if len(acs) == 0: return
             alpha = 1.0 / len(acs)
             for ia in acs:
@@ -2127,16 +2134,15 @@ class Plotter:
             addons.addLegend()
 
         elif key == "4":
-            for ia in self.getActors():
+            for ia in self.getMeshes():
                 if not ia.GetPickable():
                     continue
-                if isinstance(ia, Actor):
-                    iascals = ia.scalars()
+                if isinstance(ia, Mesh):
+                    iascals = ia.getPointArray()
                     if len(iascals):
                         stype, sname = iascals[ia._scals_idx]
                         if sname and "Normals" not in sname.lower(): # exclude normals
-                            ia.scalars( ia._scals_idx )
-                            ia.GetMapper().ScalarVisibilityOn()
+                            ia.getPointArray( ia._scals_idx )
                             colors.printc("..active scalars set to:", sname,
                                           "\ttype:", stype, c='g', bold=0)
                         ia._scals_idx += 1
@@ -2203,10 +2209,10 @@ class Plotter:
             self.window.Render()
 
         elif key == "l":
-            if self.clickedActor in self.getActors():
+            if self.clickedActor in self.getMeshes():
                 acts = [self.clickedActor]
             else:
-                acts = self.getActors()
+                acts = self.getMeshes()
             for ia in acts:
                 if not ia.GetPickable():
                     continue
@@ -2219,10 +2225,10 @@ class Plotter:
                     pass
 
         elif key == "k": # lightings
-            if self.clickedActor in self.getActors():
+            if self.clickedActor in self.getMeshes():
                 acts = [self.clickedActor]
             else:
-                acts = self.getActors()
+                acts = self.getMeshes()
             shds = ('default',
                     'metallic',
                     'plastic',
@@ -2239,10 +2245,10 @@ class Plotter:
                         pass
 
         elif key == "K": # shading
-            if self.clickedActor in self.getActors():
+            if self.clickedActor in self.getMeshes():
                 acts = [self.clickedActor]
             else:
-                acts = self.getActors()
+                acts = self.getMeshes()
             for ia in acts:
                 if ia.GetPickable():
                     ia.computeNormals()
@@ -2255,7 +2261,7 @@ class Plotter:
         elif key == "n":  # show normals to an actor
             from vtkplotter.analysis import normalLines
 
-            if self.clickedActor in self.getActors():
+            if self.clickedActor in self.getMeshes():
                 if self.clickedActor.GetPickable():
                     self.renderer.AddActor(normalLines(self.clickedActor))
                     iren.Render()
@@ -2265,7 +2271,7 @@ class Plotter:
 
         elif key == "x":
             if self.justremoved is None:
-                if self.clickedActor in self.getActors() \
+                if self.clickedActor in self.getMeshes() \
                   or isinstance(self.clickedActor, vtk.vtkAssembly):
                     self.justremoved = self.clickedActor
                     self.renderer.RemoveActor(self.clickedActor)
@@ -2290,7 +2296,7 @@ class Plotter:
                     if isinstance(self.clickedActor, vtk.vtkActor):
                         confilter.SetInputData(self.clickedActor.GetMapper().GetInput())
                     elif isinstance(self.clickedActor, vtk.vtkAssembly):
-                        act = self.clickedActor.getActors()[0]
+                        act = self.clickedActor.getMeshes()[0]
                         confilter.SetInputData(act.GetMapper().GetInput())
                     else:
                         confilter.SetInputData(self.clickedActor.polydata(True))

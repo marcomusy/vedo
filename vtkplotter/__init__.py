@@ -8,40 +8,14 @@ analysis and animation of 3D objects and point clouds based on VTK.
 
     A full list of examples can be found in directories:
 
-    - `examples/basic <https://github.com/marcomusy/vtkplotter-examples/blob/vtkplotter_master/examples/basic>`_ ,
-    - `examples/advanced <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/advanced>`_ ,
-    - `examples/volumetric <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/volumetric>`_,
+    - `examples/basic <https://github.com/marcomusy/vtkplotter-examples/blob/vtkplotter_master/examples/basic>`_ 
+    - `examples/advanced <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/advanced>`_ 
+    - `examples/volumetric <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/volumetric>`_
     - `examples/simulations <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations>`_
     - `examples/plotting2d <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/plotting2d>`_
-    - `examples/others <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other>`_.
+    - `examples/others <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other>`_
     - `examples/others/dolfin <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/dolfin>`_.
-    - `examples/others/trimesh <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/trimesh>`_.
-
-
-Publications where ``vtkplotter`` has been used so far:
-
-1. Diego, X. *et al,*: *"Key features of Turing systems are determined purely by network topology"*,
-`Physical Review X 20 June 2018 <https://journals.aps.org/prx/abstract/10.1103/PhysRevX.8.021071>`_.
-
-2. M. Musy, K. Flaherty, J. Raspopovic, A. Robert-Moreno, J. T. Richtsmeier, J. Sharpe:
-*"A Quantitative Method for Staging Mouse Limb Embryos based on Limb Morphometry"*,
-Development 2018, `doi: 10.1242/dev.154856 <http://dev.biologists.org/content/145/7/dev154856>`_,
-5 April 2018.
-
-3. G. Dalmasso *et al.*, "Evolution in space and time of 3D volumetric images", in preparation.
-
-4. M. Musy, G. Dalmasso, J. Sharpe and N. Sime, "`vtkplotter`: plotting in FEniCS with python",
-`link <https://github.com/marcomusy/vtkplotter-examples/blob/master/docs/fenics_poster.pdf>`_.
-Poster at the FEniCS'2019 Conference,
-Carnegie Institution for Science Department of Terrestrial Magnetism, Washington DC, June 2019.
-
-**Have you found this software useful for your research? Please cite it as:**
-
-M. Musy, et al.,
-"`vtkplotter`, a python module for scientific visualization,
-analysis and animation of 3D objects and point clouds based on VTK.". Zenodo,
-`doi: 10.5281/zenodo.2561402 <http://doi.org/10.5281/zenodo.2561402>`_,
-10 February 2019.
+    - `examples/others/trimesh <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/trimesh>`_
 """
 from __future__ import print_function
 
@@ -59,15 +33,20 @@ from vtkplotter.analysis import *
 from vtkplotter.plot2d import *
 from vtkplotter.shapes import *
 from vtkplotter.vtkio import *
-from vtkplotter.actors import *
+
+from vtkplotter.base import ActorBase
+from vtkplotter.assembly import Assembly
+from vtkplotter.mesh import Mesh, merge, Actor # Actor is obsolete
+from vtkplotter.picture import Picture
+from vtkplotter.volume import Volume
+
 from vtkplotter.utils import *
 from vtkplotter.colors import *
 import vtkplotter.settings as settings
 from vtkplotter.settings import datadir, embedWindow
 
-# hack to make docs work
-# need to uncomment this and Prop in actors.py to generate documentation html
-#from vtkplotter.dolfin import _inputsort
+# hack: need to uncomment this to generate documentation html
+from vtkplotter.dolfin import _inputsort
 
 from numpy import sin, cos, sqrt, exp, log, dot, cross, array, arange
 
@@ -81,10 +60,9 @@ from numpy import sin, cos, sqrt, exp, log, dot, cross, array, arange
 # colors  : -
 
 
-###############
+###########################################################################
 settings._init()
-###############
-
+###########################################################################
 
 ## deprecations ############################################################
 #def isolines(*args, **kargs):

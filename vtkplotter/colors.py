@@ -762,7 +762,7 @@ emoji = {
 
 def printc(*strings, **keys):
     """
-    Print to terminal in colors. (python3 only).
+    Print to terminal in colors (python3 only).
 
     Available colors are:
         black, red, green, yellow, blue, magenta, cyan, white.

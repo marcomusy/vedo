@@ -1,4 +1,4 @@
-20xx/xx/xx
+2020/01/08
 - added type axes=11 (horizontal grid)
 - fix bug by @m-albert on Volume from numpy object
 - fix typos in docs
@@ -7,9 +7,15 @@
 - add testing directory with circleCI
 - examples and package are now split into two separate repos
 - added possibility to run any example from CLI `vtkplotter --run shrink.py`
+  or list them all with `vtkplotter --list`
+- reshuffled methods by splitting actors.py module
+- general improvements and stability
+- some methods are now deprecated: getPoints becomes points() etc.
+- Actor() becomes Mesh()
+- added advanced/centerline.py examples
+- bump version to 2020.0.1
 
-
-2019/21/19
+2019/11/19
 - added PDV paraview file reading.
 - PDB protein data bank file reader
 - added error bars in plotxy()

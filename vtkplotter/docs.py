@@ -123,7 +123,9 @@ google-chrome --enable-webgl --use-gl=desktop
 _defs = """
 .. |tutorial.py| replace:: tutorial.py
 .. _tutorial.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/tutorial.py
+
 .. |tutorial_subdivide| image:: https://user-images.githubusercontent.com/32848391/46819341-ca1b5980-cd83-11e8-97b7-12b053d76aac.png
+
 .. |tutorial_spline| image:: https://user-images.githubusercontent.com/32848391/35976041-15781de8-0cdf-11e8-997f-aeb725bc33cc.png
     :width: 250 px
     :target: tutorial.py_

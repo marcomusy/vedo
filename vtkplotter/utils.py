@@ -188,17 +188,17 @@ def geometry(obj, extent=None):
     For example, this filter will extract the outer surface of a volume
     or structured grid dataset.
 
-    Returns an ``Actor`` object.
+    Returns a ``Mesh`` object.
 
     :param list extent: set a `[xmin,xmax, ymin,ymax, zmin,zmax]` bounding box to clip data.
     """
-    from vtkplotter.actors import Actor
+    from vtkplotter.mesh import Mesh
     gf = vtk.vtkGeometryFilter()
     gf.SetInputData(obj)
     if extent is not None:
         gf.SetExtent(extent)
     gf.Update()
-    return Actor(gf.GetOutput())
+    return Mesh(gf.GetOutput())
 
 
 def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True):
@@ -408,7 +408,7 @@ def linInterpolate(x, rangeX, rangeY):
 
     E.g. if x runs in rangeX=[x0,x1] and I want it to run in rangeY=[y0,y1] then
     y = linInterpolate(x, rangeX, rangeY) will interpolate x onto rangeY.
-    
+
     |linInterpolate| |linInterpolate.py|_
     """
     if isSequence(x):
@@ -968,7 +968,7 @@ def printInfo(obj):
                 bns.append(b)
         if len(bns) == 0:
             return
-        acts = obj.getActors()
+        acts = obj.getMeshes()
         colors.printc("_" * 65, c="c", bold=0)
         colors.printc("Plotter", invert=1, dim=1, c="c", end=" ")
         otit = obj.title
@@ -1006,7 +1006,7 @@ def printInfo(obj):
                 bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
                 colors.printc(" z=(" + bz1 + ", " + bz2 + ")", c="b", bold=0)
 
-        colors.printc(" Click actor and press i for Actor info.", c="c")
+        colors.printc(" Click mesh and press i for info.", c="c")
 
     else:
         colors.printc("_" * 65, c="g", bold=0)
@@ -1019,7 +1019,7 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
                    c=None, bold=True, title='Histogram'):
     """
     Ascii histogram printing.
-    Input can also be ``Volume`` or ``Actor``.
+    Input can also be ``Volume`` or ``Mesh``.
     Returns the raw data before binning (useful when passing vtk objects).
 
     :param int bins: number of histogram bins
@@ -1327,22 +1327,22 @@ def vtkCameraToK3D(vtkcam):
 #Check the example gallery in: examples/other/trimesh>
 ###########################################################################
 
-def vtk2trimesh(actor):
+def vtk2trimesh(mesh):
     """
-    Convert vtk ``Actor`` to ``Trimesh`` object.
+    Convert ``vtkplotter.Mesh`` to ``Trimesh.Mesh`` object.
     """
-    if isSequence(actor):
+    if isSequence(mesh):
         tms = []
-        for a in actor:
+        for a in mesh:
             tms.append(vtk2trimesh(a))
         return tms
 
     from trimesh import Trimesh
 
-    lut = actor.mapper().GetLookupTable()
+    lut = mesh.mapper().GetLookupTable()
 
-    tris = actor.faces()
-    carr = actor.scalars('CellColors', datatype='cell')
+    tris = mesh.faces()
+    carr = mesh.getCellArray('CellColors')
     ccols = None
     if carr is not None and len(carr)==len(tris):
         ccols = []
@@ -1351,8 +1351,8 @@ def vtk2trimesh(actor):
             ccols.append((r*255, g*255, b*255, a*255))
         ccols = np.array(ccols, dtype=np.int16)
 
-    points = actor.coordinates()
-    varr = actor.scalars('VertexColors', datatype='point')
+    points = mesh.points()
+    varr = mesh.getPointArray('VertexColors')
     vcols = None
     if varr is not None and len(varr)==len(points):
         vcols = []
@@ -1370,7 +1370,7 @@ def vtk2trimesh(actor):
 
 def trimesh2vtk(inputobj, alphaPerCell=False):
     """
-    Convert ``Trimesh`` object to ``Actor(vtkActor)`` or ``Assembly`` object.
+    Convert ``Trimesh`` object to ``Mesh(vtkActor)`` or ``Assembly`` object.
     """
     if isSequence(inputobj):
         vms = []
@@ -1383,11 +1383,11 @@ def trimesh2vtk(inputobj, alphaPerCell=False):
     inputobj_type = str(type(inputobj))
 
     if "Trimesh" in inputobj_type or "primitives" in inputobj_type:
-        from vtkplotter import Actor
+        from vtkplotter import Mesh
 
         faces = inputobj.faces
         poly = buildPolyData(inputobj.vertices, faces)
-        tact = Actor(poly)
+        tact = Mesh(poly)
         if inputobj.visual.kind == "face":
             trim_c = inputobj.visual.face_colors
         else:
@@ -1426,7 +1426,7 @@ def trimesh2vtk(inputobj, alphaPerCell=False):
 
     elif "path" in inputobj_type:
         from vtkplotter.shapes import Line
-        from vtkplotter.actors import Assembly
+        from vtkplotter.assembly import Assembly
 
         lines = []
         for e in inputobj.entities:

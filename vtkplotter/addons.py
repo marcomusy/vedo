@@ -3,7 +3,8 @@ Additional objects like axes, legends etc..
 """
 from __future__ import division, print_function
 from vtkplotter.colors import printc, getColor
-from vtkplotter.actors import Assembly, Actor
+from vtkplotter.assembly import Assembly
+from vtkplotter.mesh import Mesh
 from vtkplotter.utils import precision, mag, isSequence
 import vtkplotter.shapes as shapes
 import vtkplotter.settings as settings
@@ -53,7 +54,7 @@ def addLight(
     :param float intensity: intensity between 0 and 1.
     :param bool removeOthers: remove all other lights in the scene
     :param bool showsource: if `True`, will show a representation
-                            of the source of light as an extra Actor
+                            of the source of light as an extra Mesh
 
     .. hint:: |lights.py|_
     """
@@ -79,7 +80,7 @@ def addLight(
 
 
 #####################################################################
-def addScalarBar(actor,
+def addScalarBar(mesh,
                  pos=(0.8,0.05),
                  title="",
                  titleXOffset=0,
@@ -90,43 +91,43 @@ def addScalarBar(actor,
                  horizontal=False,
                  vmin=None, vmax=None,
                  ):
-    """Add a 2D scalar bar for the specified actor.
+    """Add a 2D scalar bar for the specified mesh.
 
     .. hint:: |mesh_coloring| |mesh_coloring.py|_ |scalarbars.py|_
     """
     vp = settings.plotter_instance
 
-    if not hasattr(actor, "mapper"):
-        printc("~times addScalarBar(): input is invalid,", type(actor), c=1)
+    if not hasattr(mesh, "mapper"):
+        printc("~times addScalarBar(): input is invalid,", type(mesh), c=1)
         return None
 
     if vp and vp.renderer:
         c = (0.9, 0.9, 0.9)
         if np.sum(vp.renderer.GetBackground()) > 1.5:
             c = (0.1, 0.1, 0.1)
-        if isinstance(actor.scalarbar, vtk.vtkActor):
-            vp.renderer.RemoveActor(actor.scalarbar)
-        elif isinstance(actor.scalarbar, Assembly):
-            for a in actor.scalarbar.getActors():
+        if isinstance(mesh.scalarbar, vtk.vtkActor):
+            vp.renderer.RemoveActor(mesh.scalarbar)
+        elif isinstance(mesh.scalarbar, Assembly):
+            for a in mesh.scalarbar.getMeshes():
                 vp.renderer.RemoveActor(a)
     if c is None: c = 'gray'
 
-    if isinstance(actor, Actor):
-        lut = actor.mapper().GetLookupTable()
+    if isinstance(mesh, Mesh):
+        lut = mesh.mapper().GetLookupTable()
         if not lut:
             return None
-        vtkscalars = actor._polydata.GetPointData().GetScalars()
+        vtkscalars = mesh._polydata.GetPointData().GetScalars()
         if vtkscalars is None:
-            vtkscalars = actor._polydata.GetCellData().GetScalars()
+            vtkscalars = mesh._polydata.GetCellData().GetScalars()
         if not vtkscalars:
             return None
 
         rng = list(vtkscalars.GetRange())
         if vmin is not None: rng[0] = vmin
         if vmax is not None: rng[1] = vmax
-        actor.mapper().SetScalarRange(rng)
+        mesh.mapper().SetScalarRange(rng)
 
-    elif isinstance(actor, 'Volume'):
+    elif isinstance(mesh, 'Volume'):
         # to be implemented
         pass
 
@@ -174,7 +175,7 @@ def addScalarBar(actor,
     sctxt.SetBold(0)
     sctxt.SetFontSize(titleFontSize)
     sb.PickableOff()
-    actor.scalarbar = sb
+    mesh.scalarbar = sb
     return sb
 
 
@@ -202,8 +203,8 @@ def addScalarBar3D(
     ``obj`` input can be:
         - a list of numbers,
         - a list of two numbers in the form `(min, max)`,
-        - a ``vtkActor`` already containing a set of scalars associated to vertices or cells,
-        - if ``None`` the last actor in the list of actors will be used.
+        - a ``Mesh`` already containing a set of scalars associated to vertices or cells,
+        - if ``None`` the last mesh in the list of meshs will be used.
 
     :param float sx: thickness of scalarbar
     :param float sy: length of scalarbar
@@ -227,11 +228,11 @@ def addScalarBar3D(
     if c is None: c = 'gray'
     c = getColor(c)
 
-    if isinstance(obj, Actor):
+    if isinstance(obj, Mesh):
         if cmap is None:
             lut = obj.mapper().GetLookupTable()
             if not lut:
-                print("Error in ScalarBar3D: actor has no active scalar array.", [obj])
+                print("Error in ScalarBar3D: mesh has no active scalar array.", [obj])
                 return None
         else:
             lut = cmap
@@ -240,7 +241,7 @@ def addScalarBar3D(
     elif isSequence(obj):
         vmin, vmax = np.min(obj), np.max(obj)
     else:
-        print("Error in ScalarBar3D(): input must be Actor or list.", type(obj))
+        print("Error in ScalarBar3D(): input must be Mesh or list.", type(obj))
         raise RuntimeError()
 
     # build the color scale part
@@ -280,7 +281,7 @@ def addScalarBar3D(
     sact.RotateY(np.rad2deg(theta))
     sact.SetPosition(pos)
     sact.PickableOff()
-    if isinstance(obj, Actor):
+    if isinstance(obj, Mesh):
         obj.scalarbar = sact
     return sact
 
@@ -520,16 +521,16 @@ def addButton(
     return bu
 
 
-def addCutterTool(actor):
+def addCutterTool(mesh):
     """Create handles to cut away parts of a mesh.
 
     |cutter| |cutter.py|_
     """
-    if isinstance(actor, vtk.vtkVolume):
-        return _addVolumeCutterTool(actor)
-    elif isinstance(actor, vtk.vtkImageData):
+    if isinstance(mesh, vtk.vtkVolume):
+        return _addVolumeCutterTool(mesh)
+    elif isinstance(mesh, vtk.vtkImageData):
         from vtkplotter import Volume
-        return _addVolumeCutterTool(Volume(actor))
+        return _addVolumeCutterTool(Volume(mesh))
 
     vp = settings.plotter_instance
     if not vp.renderer:
@@ -537,8 +538,8 @@ def addCutterTool(actor):
         vp.show(interactive=0)
         vp.interactive = save_int
 
-    vp.clickedActor = actor
-    apd = actor.polydata()
+    vp.clickedActor = mesh
+    apd = mesh.polydata()
 
     planes = vtk.vtkPlanes()
     planes.SetBounds(apd.GetBounds())
@@ -552,15 +553,15 @@ def addCutterTool(actor):
     clipper.Update()
     cpoly = clipper.GetOutput()
 
-    act0 = Actor(cpoly, alpha=actor.alpha()) # the main cut part
-    act0.mapper().SetLookupTable(actor.mapper().GetLookupTable())
-    act0.mapper().SetScalarRange(actor.mapper().GetScalarRange())
+    act0 = Mesh(cpoly, alpha=mesh.alpha()) # the main cut part
+    act0.mapper().SetLookupTable(mesh.mapper().GetLookupTable())
+    act0.mapper().SetScalarRange(mesh.mapper().GetScalarRange())
 
-    act1 = Actor()
+    act1 = Mesh()
     act1.mapper().SetInputConnection(clipper.GetClippedOutputPort()) # needs OutputPort??
     act1.alpha(0.04).color((0.5,0.5,0.5)).wireframe()
 
-    vp.renderer.RemoveActor(actor)
+    vp.renderer.RemoveActor(mesh)
     vp.renderer.AddActor(act0)
     vp.renderer.AddActor(act1)
     vp.renderer.ResetCamera()
@@ -582,8 +583,8 @@ def addCutterTool(actor):
 
     vp.cutterWidget = boxWidget
     vp.clickedActor = act0
-    if actor in vp.actors:
-        ia = vp.actors.index(actor)
+    if mesh in vp.actors:
+        ia = vp.actors.index(mesh)
         vp.actors[ia] = act0
 
     printc("Mesh Cutter Tool:", c="m", invert=1)
@@ -611,7 +612,6 @@ def _addVolumeCutterTool(vol):
     vp.cutterWidget = boxWidget
 
     vp.renderer.AddVolume(vol)
-    vp.interactor.Render()
 
     planes = vtk.vtkPlanes()
     def clipVolumeRender(obj, event):
@@ -631,7 +631,7 @@ def _addVolumeCutterTool(vol):
     printc("Volume Cutter Tool:", c="m", invert=1)
     printc("  Move gray handles to cut parts of the volume", c="m")
 
-    vp.renderer.ResetCamera()
+    vp.interactor.Render()
     boxWidget.On()
 
     vp.interactor.Start()
@@ -639,7 +639,7 @@ def _addVolumeCutterTool(vol):
     vp.widgets.append(boxWidget)
 
 #####################################################################
-def addIcon(iconActor, pos=3, size=0.08):
+def addIcon(mesh, pos=3, size=0.08):
     """Add an inset icon mesh into the renderer.
 
     :param pos: icon position in the range [1-4] indicating one of the 4 corners,
@@ -655,7 +655,7 @@ def addIcon(iconActor, pos=3, size=0.08):
         vp.show(interactive=0)
         vp.interactive = save_int
     widget = vtk.vtkOrientationMarkerWidget()
-    widget.SetOrientationMarker(iconActor)
+    widget.SetOrientationMarker(mesh)
     widget.SetInteractor(vp.interactor)
     if isSequence(pos):
         widget.SetViewport(pos[0] - size, pos[1] - size, pos[0] + size, pos[1] + size)
@@ -671,13 +671,13 @@ def addIcon(iconActor, pos=3, size=0.08):
     widget.EnabledOn()
     widget.InteractiveOff()
     vp.widgets.append(widget)
-    if iconActor in vp.actors:
-        vp.actors.remove(iconActor)
+    if mesh in vp.actors:
+        vp.actors.remove(mesh)
     return widget
 
 #####################################################################
 def computeVisibleBounds():
-    """Calculate max actors bounds and sizes."""
+    """Calculate max meshs bounds and sizes."""
     bns = []
     for a in settings.plotter_instance.actors:
         if a and a.GetPickable():
@@ -805,7 +805,7 @@ def addAxes(axtype=None, c=None):
 #            for j in range(m-1):
 #                for i in range(n-1):
 #                    faces.append([i+j*n, i+j*n+1, i+1+(j+1)*n, i+(j+1)*n])
-#            return Actor([verts, faces]).lw(gridLineWidth).orientation(normal).pos(pos)
+#            return Mesh([verts, faces]).lw(gridLineWidth).orientation(normal).pos(pos)
 
         if isinstance(vp.axes, dict):
             axes = vp.axes
@@ -1375,7 +1375,7 @@ def addAxes(axtype=None, c=None):
                     largestact = a
                     sz = d
         if isinstance(largestact, Assembly):
-            ocf.SetInputData(largestact.getActor(0).GetMapper().GetInput())
+            ocf.SetInputData(largestact.getMesh(0).GetMapper().GetInput())
         else:
             ocf.SetInputData(largestact.GetMapper().GetInput())
         ocf.Update()
@@ -1446,7 +1446,7 @@ def addAxes(axtype=None, c=None):
         src.SetYLength(vbb[3] - vbb[2])
         src.SetZLength(vbb[5] - vbb[4])
         src.Update()
-        ca = Actor(src.GetOutput(), c, 0.5).wireframe(True)
+        ca = Mesh(src.GetOutput(), c, 0.5).wireframe(True)
         ca.pos((vbb[0] + vbb[1]) / 2, (vbb[3] + vbb[2]) / 2, (vbb[5] + vbb[4]) / 2)
         ca.PickableOff()
         vp.renderer.AddActor(ca)
@@ -1590,9 +1590,9 @@ def addLegend():
         if isinstance(a, vtk.vtkLegendBoxActor):
             vp.renderer.RemoveActor(a)
 
-    actors = vp.getActors()
+    meshs = vp.getMeshes()
     acts, texts = [], []
-    for i, a in enumerate(actors):
+    for i, a in enumerate(meshs):
         if i < len(vp._legend) and vp._legend[i] != "":
             if isinstance(vp._legend[i], str):
                 texts.append(vp._legend[i])

@@ -12,7 +12,7 @@ setup(
     name='vtkplotter',
     version=verstr,
     packages=['vtkplotter'],
-    scripts=['bin/vtkplotter', 'bin/vtkconvert'],
+    scripts=['bin/vtkplotter', 'bin/vtkplotter-convert'],
     install_requires=['vtk'],
     description='''A python module for scientific visualization,
     analysis and animation of 3D objects and point clouds based on VTK.''',
@@ -37,9 +37,13 @@ setup(
                 'Programming Language :: Python :: 3.5',
                 'Programming Language :: Python :: 3.6',
                 'Programming Language :: Python :: 3.7'
+                'Programming Language :: Python :: 3.8'
                 ],
     include_package_data=True
 )
+
+
+
 
 
 ##############################################################
@@ -50,12 +54,12 @@ setup(
 # remove trailing spaces
 # pip install .
 
-# cd ~/Projects/vtkplotter-examples/
-# cd vtkplotter_examples && ./run_all.sh
-# python prove3D/test_filetypes.py
+# cd ~/Projects/vtkplotter-examples/vtkplotter_examples
+# ./run_all.sh
+# python prove/test_filetypes.py
 
 # check vtkconvert:
-# vtkconvert vtkplotter/data/290.vtk -to ply; vtkplotter vtkplotter/data/290.ply
+# vtkconvert data/290.vtk -to ply; vtkplotter data/290.ply
 
 # check on python2 the same stuff is ok
 # cd ~/Projects/vtkplotter/
@@ -66,7 +70,7 @@ setup(
 # cd ~/Projects/vtkplotter-examples/
 # jupyter notebook > /dev/null 2>&1
 
-# cd ~/Projects/vtkplotter/
+# cd ~/Projects/vtkplotter-examples/
 # rm -rf v*examples/*/.ipynb_checkpoints v*examples/*/*/.ipynb_checkpoints .ipynb_checkpoints/
 # rm -rf v*examples/other/dolfin/navier_stokes_cylinder/ v*examples/other/dolfin/shuttle.xml
 # rm v*examples/other/trimesh/featuretype.STL v*examples/other/trimesh/machinist.XAML

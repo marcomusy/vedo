@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 #
 from __future__ import division, print_function
-from vtkplotter import Actor, Volume, Plotter, ProgressBar
+from vtkplotter import Plotter, ProgressBar
+from vtkplotter.mesh import Mesh
+from vtkplotter.volume import Volume
 from vtkplotter import settings, printc, getColor, humansort, __version__
 from vtkplotter import vtkio, utils, datadir
 import vtk
@@ -418,7 +420,7 @@ def draw_scene():
                     ic = args.color
             cf.SetValue(0, threshold)
             cf.Update()
-            act = Actor(cf.GetOutput(), c=ic, alpha=args.alpha).wireframe(args.wireframe)
+            act = Mesh(cf.GetOutput(), c=ic, alpha=args.alpha).wireframe(args.wireframe)
             if args.flat:
                 act.flat()
             else:
@@ -448,7 +450,7 @@ def draw_scene():
                     cf.ComputeScalarsOff()
                     cf.SetValue(0, wval)
                     cf.Update()
-                    a = Actor(cf.GetOutput(), ic, alpha=act.alpha())
+                    a = Mesh(cf.GetOutput(), ic, alpha=act.alpha())
                 bacts.update({wval_2: a}) # store it
                 #print('generated', wval_2, wval, len(bacts.keys()))
 
@@ -517,7 +519,7 @@ def draw_scene():
 
             if isinstance(actor, vtk.vtkActor):
 
-                if isinstance(actor, Actor):
+                if isinstance(actor, Mesh):
                     actors.append(actor)
                     actor.wireframe(wire)
                     actor.lighting(args.lighting)
@@ -960,64 +962,120 @@ else:  #########################################################################
     pr.add_argument("--lego",                       help="Voxel rendering for 3D image files", action="store_true")
     pr.add_argument("--cmap",                       help="Voxel rendering color map name", default='jet', metavar='')
     pr.add_argument("--mode",                       help="Voxel rendering composite mode", default=0, metavar='')
-    pr.add_argument("--run",                        help="Run example from vtkplotter-examples", default='', metavar='')
+    pr.add_argument("-r", "--run",                  help="Run example from vtkplotter-examples", metavar='')
     pr.add_argument("--list",                       help="List examples in vtkplotter-examples", action="store_true")
     args = pr.parse_args()
 
     if args.run:
         import glob
         exfiles = [f for f in glob.glob(datadir.replace('data','') + "**/*.py", recursive=True)]
-        matching = [s for s in exfiles if (args.run in s and "__" not in s and "version.py" not in s)]
-        if len(matching) > 1:
-            printc("Matching scripts are:", matching[:10], 'Running first only.', c='y', bold=0, italic=1)
-        if len(matching) == 0:
-            printc("No matching example found containing:", args.run, c=1)
-            printc("Use vtkplotter --list to show available scripts.", c=1)
+        matching = [s for s in exfiles if (args.run.lower() in os.path.basename(s).lower() and "__" not in s)]
+        matching = list(sorted(matching))
+        nmat = len(matching)
+        if nmat == 0:
+            printc("No matching example found containing string:", args.run, c=1)
+            printc(" Use vtkplotter --list to show available scripts.", c=1)
+            printc(" Current datadir is:", datadir, c=1)
             exit(1)
-        print("Running", matching[0])
-        os.system('python ' + matching[0])
+
+        if nmat > 1:
+            printc("\nSelect one of", nmat, "matching scripts:", c='y', italic=1)
+
+        for mat in matching[:25]:
+            printc(os.path.basename(mat).replace('.py',''), c='y', italic=1, end=' ')
+            with open(mat) as fm:
+                lline = ''.join(fm.readlines(60))
+                lline = lline.replace('\n','').replace('\'','').replace('\"','').replace('-','')
+                line = lline[:56] #cut
+                if line.startswith('from'): line=''
+                if line.startswith('import'): line=''
+                if len(lline) > len(line):
+                    line += '..'
+                if len(line)>5:
+                    printc('-', line,  c='y', bold=0, italic=1)
+                else:
+                    print()
+
+        if nmat>25:
+            printc('...', c='y')
+
+        if nmat > 1:
+            exit(0)
+
+        if args.no_camera_share: # -i option to dump the full code
+            print()
+            with open(matching[0]) as fm:
+                codedump = fm.readlines()
+            for line in codedump:
+                printc(line.strip(), c='cyan', italic=1, bold=0)
+            print()
+
+        printc("(in", os.path.dirname(matching[0])+')', c='y', bold=0, italic=1)
+        os.system('python3 ' + matching[0])
 
     elif args.list:
+        print()
         printc("Available examples are:", box='-')
         expath = datadir.replace('data','')
 
         import glob
-        exfiles = [(f, os.path.basename(f)) for f in glob.glob(expath + "**/*.py", recursive=True)]
+        exfiles = [(f, os.path.basename(f))
+                    for f in glob.glob(expath + "**/*.py", recursive=True)]
+        nl = 4
 
-        printc("basic examples:", c='g', bold=1)
+        if not len(exfiles):
+            printc("vtkplotter-example not installed?")
+            printc("> pip install -U git+https://github.com/marcomusy/vtkplotter-examples")
+            exit()
+
+        printc("Basic examples:", c='g', bold=1, underline=1)
+        scs = []
         for f,bn in exfiles:
             if "basic" in f:
-                printc(bn, c='g', bold=0, end=' ')
+                lb = ' ' if (len(scs)+1)%nl else '\n'
+                scs.append(lb+bn.replace('.py',''))
+        printc("".join(scs), c='g', bold=0)
 
-        printc("\nadvanced examples:", c='y', bold=1)
+        printc("Advanced examples:", c='y', bold=1, underline=1)
+        scs = []
         for f,bn in exfiles:
             if "advanced" in f:
-                printc(bn, c='y', bold=0, end=' ')
+                lb = ' ' if (len(scs)+1)%nl else '\n'
+                scs.append(lb+bn.replace('.py',''))
+        printc("".join(scs), c='y', bold=0)
 
-        printc("\nvolumetric examples:", c='b', bold=1)
+        printc("Volumetric examples:", c='b', bold=1, underline=1)
+        scs = []
         for f,bn in exfiles:
             if "volumetric" in f:
-                printc(bn, c='b', bold=0, end=' ')
+                lb = ' ' if (len(scs)+1)%nl else '\n'
+                scs.append(lb+bn.replace('.py',''))
+        printc("".join(scs), c='b', bold=0)
 
-        printc("\ndolfin examples:", c='r', bold=1)
-        for f,bn in exfiles:
-            if "dolfin" in f:
-                printc(bn, c='r', bold=0, end=' ')
-
-        printc("\ntrimesh examples:", c='m', bold=1)
-        for f,bn in exfiles:
-            if "trimesh" in f:
-                printc(bn, c='m', bold=0, end=' ')
-
-        printc("\nother examples:", c='w', bold=1)
+        printc("Other examples:", c='cyan', bold=1, underline=1)
+        scs = []
         for f,bn in exfiles:
             if "other" in f and "dolfin" not in f and "trimesh" not in f:
-                printc(bn, c='w', bold=0, end=' ')
+                lb = ' ' if (len(scs)+1)%nl else '\n'
+                scs.append(lb+bn.replace('.py',''))
+        printc("".join(scs), c='cyan', bold=0)
+
+        printc("      Dolfin examples:", c='r', bold=1, underline=1)
+        scs = []
+        for f,bn in exfiles:
+            if "dolfin" in f:
+                lb = ' ' if (len(scs)+1)%nl else '\n'
+                scs.append(lb+bn.replace('.py',''))
+        printc("".join(scs), c='r', bold=0)
+
+        printc("      Trimesh examples:", c='m', bold=1, underline=1)
+        scs = []
+        for f,bn in exfiles:
+            if "trimesh" in f:
+                lb = ' ' if (len(scs)+1)%nl else '\n'
+                scs.append(lb+bn.replace('.py',''))
+        printc("".join(scs), c='m', bold=0)
         print()
+
     else:
         draw_scene()
-
-
-
-
-

@@ -7,7 +7,10 @@ from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
 import vtkplotter.shapes as shapes
-from vtkplotter.actors import Actor, Assembly, Volume
+
+from vtkplotter.assembly import Assembly
+from vtkplotter.mesh import Mesh
+from vtkplotter.volume import Volume
 
 __doc__ = (
     """
@@ -48,7 +51,7 @@ __all__ = [
     "pointSampler",
     "geodesic",
     "convexHull",
-    "actor2Volume",
+    "mesh2Volume",
     "splitByConnectivity",
     "projectSphereFilter",
     "extractSurface",
@@ -95,7 +98,7 @@ def delaunay2D(plist, mode='xy', tol=None):
     if mode=='fit':
         delny.SetProjectionPlaneMode(vtk.VTK_BEST_FITTING_PLANE)
     delny.Update()
-    return Actor(delny.GetOutput())
+    return Mesh(delny.GetOutput())
 
 
 def delaunay3D(dataset, alpha=0, tol=None, boundary=True):
@@ -110,7 +113,7 @@ def delaunay3D(dataset, alpha=0, tol=None, boundary=True):
     return deln.GetOutput()
 
 
-def extrude(actor, zshift=1, rotation=0, dR=0, cap=True, res=1):
+def extrude(mesh, zshift=1, rotation=0, dR=0, cap=True, res=1):
     """
     Sweep a polygonal data creating a "skirt" from free edges and lines, and lines from vertices.
     The input dataset is swept around the z-axis to create new polygonal primitives.
@@ -137,24 +140,24 @@ def extrude(actor, zshift=1, rotation=0, dR=0, cap=True, res=1):
     |extrude| |extrude.py|_
     """
     rf = vtk.vtkRotationalExtrusionFilter()
-    rf.SetInputData(actor.polydata())
+    rf.SetInputData(mesh.polydata())
     rf.SetResolution(res)
     rf.SetCapping(cap)
     rf.SetAngle(rotation)
     rf.SetTranslation(zshift)
     rf.SetDeltaRadius(dR)
     rf.Update()
-    act = Actor(rf.GetOutput(), c=actor.c(), alpha=actor.alpha())
+    act = Mesh(rf.GetOutput(), c=mesh.c(), alpha=mesh.alpha())
     return act.computeNormals(cells=False).phong()
 
 
-def normalLines(actor, ratio=1, atCells=True):
+def normalLines(mesh, ratio=1, atCells=True):
     """
-    Build an ``Actor`` made of the normals at cells shown as lines.
+    Build an ``Mesh`` made of the normals at cells shown as lines.
 
     if `atCells` is `False` normals are shown at vertices.
     """
-    poly = actor.computeNormals().polydata()
+    poly = mesh.computeNormals().polydata()
 
     if atCells:
         centers = vtk.vtkCellCenters()
@@ -182,16 +185,16 @@ def normalLines(actor, ratio=1, atCells=True):
     glyph.SetScaleFactor(sc)
     glyph.OrientOn()
     glyph.Update()
-    glyphActor = Actor(glyph.GetOutput())
+    glyphActor = Mesh(glyph.GetOutput())
     glyphActor.mapper().SetScalarModeToUsePointFieldData()
     glyphActor.PickableOff()
     prop = vtk.vtkProperty()
-    prop.DeepCopy(actor.GetProperty())
+    prop.DeepCopy(mesh.GetProperty())
     glyphActor.SetProperty(prop)
     return glyphActor
 
 
-def extractLargestRegion(actor):
+def extractLargestRegion(mesh):
     """
     Keep only the largest connected part of a mesh and discard all the smaller pieces.
 
@@ -200,19 +203,19 @@ def extractLargestRegion(actor):
     conn = vtk.vtkConnectivityFilter()
     conn.SetExtractionModeToLargestRegion()
     conn.ScalarConnectivityOff()
-    if isinstance(actor, vtk.vtkActor):
-        poly = actor.GetMapper().GetInput()
-        prop = actor.GetProperty()
-    elif isinstance(actor, vtk.vtkPolyData):
-        poly = actor
+    if isinstance(mesh, vtk.vtkActor):
+        poly = mesh.GetMapper().GetInput()
+        prop = mesh.GetProperty()
+    elif isinstance(mesh, vtk.vtkPolyData):
+        poly = mesh
         prop = None
     conn.SetInputData(poly)
     conn.Update()
     epoly = conn.GetOutput()
-    eact = Actor(epoly)
+    eact = Mesh(epoly)
     if prop:
         pr = vtk.vtkProperty()
-        pr.DeepCopy(actor.GetProperty())
+        pr.DeepCopy(mesh.GetProperty())
         eact.SetProperty(pr)
     return eact
 
@@ -238,18 +241,18 @@ def alignLandmarks(source, target, rigid=False):
     tf.SetInputData(source.polydata())
     tf.SetTransform(lmt)
     tf.Update()
-    actor = Actor(tf.GetOutput())
-    actor.info["transform"] = lmt
+    mesh = Mesh(tf.GetOutput())
+    mesh.info["transform"] = lmt
     pr = vtk.vtkProperty()
     pr.DeepCopy(source.GetProperty())
-    actor.SetProperty(pr)
-    return actor
+    mesh.SetProperty(pr)
+    return mesh
 
 
 def alignICP(source, target, iters=100, rigid=False):
     """
-    Return a copy of source actor which is aligned to
-    target actor through the `Iterative Closest Point` algorithm.
+    Return a copy of source mesh which is aligned to
+    target mesh through the `Iterative Closest Point` algorithm.
 
     The core of the algorithm is to match each vertex in one surface with
     the closest surface point on the other, then apply the transformation
@@ -259,9 +262,9 @@ def alignICP(source, target, iters=100, rigid=False):
 
          |align1| |align2|
     """
-    if isinstance(source, Actor):
+    if isinstance(source, Mesh):
         source = source.polydata()
-    if isinstance(target, Actor):
+    if isinstance(target, Mesh):
         target = target.polydata()
 
     icp = vtk.vtkIterativeClosestPointTransform()
@@ -277,9 +280,9 @@ def alignICP(source, target, iters=100, rigid=False):
     icpTransformFilter.SetTransform(icp)
     icpTransformFilter.Update()
     poly = icpTransformFilter.GetOutput()
-    actor = Actor(poly)
+    mesh = Mesh(poly)
 
-    # actor.info['transform'] = icp.GetLandmarkTransform() # not working!
+    # mesh.info['transform'] = icp.GetLandmarkTransform() # not working!
     # do it manually...
     sourcePoints = vtk.vtkPoints()
     targetPoints = vtk.vtkPoints()
@@ -297,14 +300,14 @@ def alignICP(source, target, iters=100, rigid=False):
     landmarkTransform.SetTargetLandmarks(targetPoints)
     if rigid:
         landmarkTransform.SetModeToRigidBody()
-    actor.info["transform"] = landmarkTransform
+    mesh.info["transform"] = landmarkTransform
 
-    return actor
+    return mesh
 
 
 def alignProcrustes(sources, rigid=False):
     """
-    Return an ``Assembly`` of aligned source actors with
+    Return an ``Assembly`` of aligned source meshes with
     the `Procrustes` algorithm. The output ``Assembly`` is normalized in size.
 
     `Procrustes` algorithm takes N set of points and aligns them in a least-squares sense
@@ -332,9 +335,9 @@ def alignProcrustes(sources, rigid=False):
     acts = []
     for i, s in enumerate(sources):
         poly = procrustes.GetOutput().GetBlock(i)
-        actor = Actor(poly)
-        actor.SetProperty(s.GetProperty())
-        acts.append(actor)
+        mesh = Mesh(poly)
+        mesh.SetProperty(s.GetProperty())
+        acts.append(mesh)
     assem = Assembly(acts)
     assem.info["transform"] = procrustes.GetLandmarkTransform()
     return assem
@@ -345,7 +348,7 @@ def fitLine(points):
     """
     Fits a line through points.
 
-    Extra info is stored in ``actor.info['slope']``, ``actor.info['center']``, ``actor.info['variances']``.
+    Extra info is stored in ``mesh.info['slope']``, ``mesh.info['center']``, ``mesh.info['variances']``.
 
     |fitline| |fitline.py|_
     """
@@ -372,7 +375,7 @@ def fitPlane(points):
     """
     Fits a plane to a set of points.
 
-    Extra info is stored in ``actor.info['normal']``, ``actor.info['center']``, ``actor.info['variance']``.
+    Extra info is stored in ``mesh.info['normal']``, ``mesh.info['center']``, ``mesh.info['variance']``.
 
     .. hint:: Example: |fitplanes.py|_
     """
@@ -395,7 +398,7 @@ def fitSphere(coords):
     """
     Fits a sphere to a set of points.
 
-    Extra info is stored in ``actor.info['radius']``, ``actor.info['center']``, ``actor.info['residue']``.
+    Extra info is stored in ``mesh.info['radius']``, ``mesh.info['center']``, ``mesh.info['residue']``.
 
     .. hint:: Example: |fitspheres1.py|_
 
@@ -435,8 +438,8 @@ def pcaEllipsoid(points, pvalue=0.95, pcaAxes=False):
     :param float pvalue: ellypsoid will contain the specified fraction of points.
     :param bool pcaAxes: if `True`, show the 3 PCA semi axes.
 
-    Extra info is stored in ``actor.info['sphericity']``,
-    ``actor.info['va']``, ``actor.info['vb']``, ``actor.info['vc']``
+    Extra info is stored in ``mesh.info['sphericity']``,
+    ``mesh.info['va']``, ``mesh.info['vb']``, ``mesh.info['vc']``
     (sphericity is equal to 0 for a perfect sphere).
 
     .. hint:: Examples: |pca.py|_  |cell_main.py|_
@@ -449,8 +452,8 @@ def pcaEllipsoid(points, pvalue=0.95, pcaAxes=False):
         colors.printc("~times Error in Ellipsoid(): scipy not installed. Skip.", c=1)
         return None
 
-    if isinstance(points, Actor):
-        coords = points.coordinates()
+    if isinstance(points, Mesh):
+        coords = points.points()
     else:
         coords = points
     if len(coords) == 0:
@@ -481,8 +484,8 @@ def pcaEllipsoid(points, pvalue=0.95, pcaAxes=False):
     ftra.SetTransform(vtra)
     ftra.SetInputConnection(elliSource.GetOutputPort())
     ftra.Update()
-    actor_elli = Actor(ftra.GetOutput(), "c", 0.5).phong()
-    actor_elli.GetProperty().BackfaceCullingOn()
+    mesh_elli = Mesh(ftra.GetOutput(), "c", 0.5).phong()
+    mesh_elli.GetProperty().BackfaceCullingOn()
     if pcaAxes:
         axs = []
         for ax in ([1, 0, 0], [0, 1, 0], [0, 0, 1]):
@@ -494,10 +497,10 @@ def pcaEllipsoid(points, pvalue=0.95, pcaAxes=False):
             t.SetTransform(vtra)
             t.SetInputData(l.GetOutput())
             t.Update()
-            axs.append(Actor(t.GetOutput(), "c", 0.5).lineWidth(3))
-        finact = Assembly([actor_elli] + axs)
+            axs.append(Mesh(t.GetOutput(), "c", 0.5).lineWidth(3))
+        finact = Assembly([mesh_elli] + axs)
     else:
-        finact = actor_elli
+        finact = mesh_elli
     finact.info["sphericity"] = sphericity
     finact.info["va"] = ua
     finact.info["vb"] = ub
@@ -505,22 +508,22 @@ def pcaEllipsoid(points, pvalue=0.95, pcaAxes=False):
     return finact
 
 
-def smoothMLS1D(actor, f=0.2, radius=None, showNLines=0):
+def smoothMLS1D(mesh, f=0.2, radius=None, showNLines=0):
     """
-    Smooth actor or points with a `Moving Least Squares` variant.
-    The list ``actor.info['variances']`` contain the residue calculated for each point.
-    Input actor's polydata is modified.
+    Smooth mesh or points with a `Moving Least Squares` variant.
+    The list ``mesh.info['variances']`` contain the residue calculated for each point.
+    Input mesh's polydata is modified.
 
     :param float f: smoothing factor - typical range is [0,2].
-    :param int showNLines: build an actor showing the fitting line for N random points.
+    :param int showNLines: build a mesh showing the fitting line for N random points.
 
     .. hint:: |moving_least_squares1D.py|_  |skeletonize.py|_
 
         |moving_least_squares1D| |skeletonize|
     """
-    if isinstance(actor, Assembly):
-        actor = actor.getActors()[0]
-    coords = actor.coordinates()
+    if isinstance(mesh, Assembly):
+        mesh = mesh.getMeshes()[0]
+    coords = mesh.points()
     ncoords = len(coords)
     Ncp = int(ncoords * f / 10)
     nshow = int(ncoords)
@@ -534,7 +537,7 @@ def smoothMLS1D(actor, f=0.2, radius=None, showNLines=0):
     variances, newline, acts = [], [], []
     for i, p in enumerate(coords):
 
-        points = actor.closestPoint(p, N=Ncp, radius=radius)
+        points = mesh.closestPoint(p, N=Ncp, radius=radius)
         if len(points) < 4:
             continue
 
@@ -551,33 +554,33 @@ def smoothMLS1D(actor, f=0.2, radius=None, showNLines=0):
             acts += [fline, iapts]
 
     pcloud = shapes.Points(newline, c="r", alpha=0.5)
-    pcloud.GetProperty().SetPointSize(actor.GetProperty().GetPointSize())
+    pcloud.GetProperty().SetPointSize(mesh.GetProperty().GetPointSize())
 
     if showNLines:
         asse = Assembly([pcloud] + acts)
         asse.info["variances"] = np.array(variances)
-        return asse  # NB: a demo actor is returned
+        return asse  # NB: a demo mesh is returned
     else:
         pcloud.info["variances"] = np.array(variances)
         return pcloud
 
-def smoothMLS2D(actor, f=0.2, radius=None, decimate=1, showNPlanes=0):
+def smoothMLS2D(mesh, f=0.2, radius=None, decimate=1, showNPlanes=0):
     """
-    Smooth actor or points with a `Moving Least Squares` algorithm variant.
-    The list ``actor.info['variances']`` contains the residue calculated for each point.
+    Smooth mesh or points with a `Moving Least Squares` algorithm variant.
+    The list ``mesh.info['variances']`` contains the residue calculated for each point.
 
     :param float f: smoothing factor - typical range is [0,2]. Ignored if ``radius`` is set.
     :param float radius: radius search in absolute units. If set then ``f`` is ignored.
     :param int decimate: decimation integer factor.
-    :param showNPlanes: build a demo actor showing the fitting plane for N random points.
+    :param showNPlanes: build a demo object showing the fitting plane for N random points.
 
     .. hint:: |moving_least_squares2D.py|_  |recosurface.py|_
 
         |moving_least_squares2D| |recosurface|
     """
-    if isinstance(actor, Assembly):
-        actor = actor.getActors()[0]
-    coords = actor.coordinates()
+    if isinstance(mesh, Assembly):
+        mesh = mesh.getMeshes()[0]
+    coords = mesh.points()
     ncoords = len(coords)
     Ncp = int(ncoords * f / 100)
     nshow = int(ncoords / decimate)
@@ -600,7 +603,7 @@ def smoothMLS2D(actor, f=0.2, radius=None, decimate=1, showNPlanes=0):
         if i % decimate:
             continue
 
-        points = actor.closestPoint(p, N=Ncp, radius=radius)
+        points = mesh.closestPoint(p, N=Ncp, radius=radius)
         if radius and len(points) < 5:
             continue
 
@@ -619,7 +622,7 @@ def smoothMLS2D(actor, f=0.2, radius=None, decimate=1, showNPlanes=0):
             acts += [plane, iapts]
 
     pcloud = shapes.Points(newpts, c="r", alpha=0.5, r=2)
-    pcloud.GetProperty().SetPointSize(actor.GetProperty().GetPointSize())
+    pcloud.GetProperty().SetPointSize(mesh.GetProperty().GetPointSize())
 
     if showNPlanes:
         asse = Assembly([pcloud] + acts)
@@ -631,11 +634,11 @@ def smoothMLS2D(actor, f=0.2, radius=None, decimate=1, showNPlanes=0):
     return pcloud
 
 
-def smoothMLS3D(actors, neighbours=10):
+def smoothMLS3D(meshs, neighbours=10):
     """
-    A time sequence of actors is being smoothed in 4D (3D + time)
+    A time sequence of point clouds (Mesh) is being smoothed in 4D (3D + time)
     using a `MLS (Moving Least Squares)` algorithm variant.
-    The time associated to an actor must be specified in advance with ``actor.time()`` method.
+    The time associated to an mesh must be specified in advance with ``mesh.time()`` method.
     Data itself can suggest a meaningful time separation based on the spatial
     distribution of points.
 
@@ -646,14 +649,14 @@ def smoothMLS3D(actors, neighbours=10):
     from scipy.spatial import KDTree
 
     coords4d = []
-    for a in actors:  # build the list of 4d coordinates
-        coords3d = a.coordinates()
+    for a in meshs:  # build the list of 4d coordinates
+        coords3d = a.points()
         n = len(coords3d)
         pttimes = [[a.time()]] * n
         coords4d += np.append(coords3d, pttimes, axis=1).tolist()
 
-    avedt = float(actors[-1].time() - actors[0].time()) / len(actors)
-    print("Average time separation between actors dt =", round(avedt, 3))
+    avedt = float(meshs[-1].time() - meshs[0].time()) / len(meshs)
+    print("Average time separation between meshes dt =", round(avedt, 3))
 
     coords4d = np.array(coords4d)
     newcoords4d = []
@@ -694,7 +697,7 @@ def smoothMLS3D(actors, neighbours=10):
     return act
 
 
-def recoSurface(points, bins=256):
+def recoSurface(pts, bins=256):
     """
     Surface reconstruction from a scattered cloud of points.
 
@@ -703,19 +706,19 @@ def recoSurface(points, bins=256):
     |recosurface| |recosurface.py|_
     """
 
-    if isinstance(points, vtk.vtkActor):
-        points = points.coordinates()
-    N = len(points)
+    if isinstance(pts, vtk.vtkActor):
+        pts = pts.points()
+    N = len(pts)
     if N < 50:
         print("recoSurface: Use at least 50 points.")
         return None
-    points = np.array(points)
+    pts = np.array(pts)
 
     ptsSource = vtk.vtkPointSource()
     ptsSource.SetNumberOfPoints(N)
     ptsSource.Update()
     vpts = ptsSource.GetOutput().GetPoints()
-    for i, p in enumerate(points):
+    for i, p in enumerate(pts):
         vpts.SetPoint(i, p)
     polyData = ptsSource.GetOutput()
 
@@ -750,7 +753,7 @@ def recoSurface(points, bins=256):
     surface.ComputeGradientsOff()
     surface.SetInputConnection(distance.GetOutputPort())
     surface.Update()
-    return Actor(surface.GetOutput(), "gold").bc("tomato")
+    return Mesh(surface.GetOutput(), "gold").bc("tomato")
 
 
 def cluster(points, radius):
@@ -758,7 +761,7 @@ def cluster(points, radius):
     Clustering of points in space.
 
     `radius` is the radius of local search.
-    Individual subsets can be accessed through ``actor.clusters``.
+    Individual subsets can be accessed through ``mesh.clusters``.
 
     |clustering| |clustering.py|_
     """
@@ -791,9 +794,9 @@ def cluster(points, radius):
     for i, aset in enumerate(sets):
         acts.append(shapes.Points(aset, c=i))
 
-    actor = Assembly(acts)
+    asse = Assembly(acts)
 
-    actor.info["clusters"] = sets
+    asse.info["clusters"] = sets
     print("Nr. of extracted clusters", Nc)
     if Nc > 10:
         print("First ten:")
@@ -802,8 +805,8 @@ def cluster(points, radius):
             print("...")
             break
         print("Cluster #" + str(i) + ",  N =", len(sets[i]))
-    print("Access individual clusters through attribute: actor.cluster")
-    return actor
+    print("Access individual clusters through attribute: obj.info['cluster']")
+    return asse
 
 
 def removeOutliers(points, radius):
@@ -841,11 +844,10 @@ def removeOutliers(points, radius):
     if not isactor:
         return outpts
 
-    actor = shapes.Points(outpts)
-    return actor  # return same obj for concatenation
+    return shapes.Points(outpts)
 
 
-def booleanOperation(actor1, operation, actor2):
+def booleanOperation(mesh1, operation, mesh2):
     """Volumetric union, intersection and subtraction of surfaces.
 
     :param str operation: allowed operations: ``'plus'``, ``'intersect'``, ``'minus'``.
@@ -853,8 +855,8 @@ def booleanOperation(actor1, operation, actor2):
     |boolean| |boolean.py|_
     """
     bf = vtk.vtkBooleanOperationPolyDataFilter()
-    poly1 = actor1.computeNormals().polydata()
-    poly2 = actor2.computeNormals().polydata()
+    poly1 = mesh1.computeNormals().polydata()
+    poly2 = mesh2.computeNormals().polydata()
     if operation.lower() == "plus" or operation.lower() == "+":
         bf.SetOperationToUnion()
     elif operation.lower() == "intersect":
@@ -865,31 +867,29 @@ def booleanOperation(actor1, operation, actor2):
     bf.SetInputData(0, poly1)
     bf.SetInputData(1, poly2)
     bf.Update()
-    actor = Actor(bf.GetOutput(), c=None)
-    return actor
+    mesh = Mesh(bf.GetOutput(), c=None)
+    return mesh
 
 
-def surfaceIntersection(actor1, actor2, tol=1e-06):
-    """Intersect 2 surfaces and return a line actor.
+def surfaceIntersection(mesh1, mesh2, tol=1e-06):
+    """Intersect 2 surfaces and return a line mesh.
 
     .. hint:: |surfIntersect.py|_
     """
     bf = vtk.vtkIntersectionPolyDataFilter()
-    poly1 = actor1.GetMapper().GetInput()
-    poly2 = actor2.GetMapper().GetInput()
+    poly1 = mesh1.GetMapper().GetInput()
+    poly2 = mesh2.GetMapper().GetInput()
     bf.SetInputData(0, poly1)
     bf.SetInputData(1, poly2)
     bf.Update()
-    actor = Actor(bf.GetOutput(), "k", 1)
-    actor.GetProperty().SetLineWidth(3)
-    return actor
+    mesh = Mesh(bf.GetOutput(), "k", 1)
+    mesh.GetProperty().SetLineWidth(3)
+    return mesh
 
 
-def _getimg(obj):
-    if isinstance(obj, vtk.vtkVolume):
+def _getinput(obj):
+    if isinstance(obj, (vtk.vtkVolume, vtk.vtkActor)):
         return obj.GetMapper().GetInput()
-    elif isinstance(obj, vtk.vtkImageData):
-        return obj
     else:
         return obj
 
@@ -899,10 +899,10 @@ def probePoints(vol, pts):
     Takes a ``Volume`` and probes its scalars at the specified points in space.
 
     Note that a mask is also output with valid/invalid points which can be accessed
-    with `actor.scalars()`.
+    with `mesh.getPointArray()`.
     """
-    if isinstance(pts, Actor):
-        pts = pts.coordinates()
+    if isinstance(pts, Mesh):
+        pts = pts.points()
 
     def readPoints():
         output = src.GetPolyDataOutput()
@@ -921,13 +921,13 @@ def probePoints(vol, pts):
     src = vtk.vtkProgrammableSource()
     src.SetExecuteMethod(readPoints)
     src.Update()
-    img = _getimg(vol)
+    img = _getinput(vol)
     probeFilter = vtk.vtkProbeFilter()
     probeFilter.SetSourceData(img)
     probeFilter.SetInputConnection(src.GetOutputPort())
     probeFilter.Update()
 
-    pact = Actor(probeFilter.GetOutput())
+    pact = Mesh(probeFilter.GetOutput())
     pact.mapper().SetScalarRange(img.GetScalarRange())
     #del src # to avoid memory leaks, incompatible with python2
     return pact
@@ -943,13 +943,13 @@ def probeLine(vol, p1, p2, res=100):
     line.SetResolution(res)
     line.SetPoint1(p1)
     line.SetPoint2(p2)
-    img = _getimg(vol)
+    img = _getinput(vol)
     probeFilter = vtk.vtkProbeFilter()
     probeFilter.SetSourceData(img)
     probeFilter.SetInputConnection(line.GetOutputPort())
     probeFilter.Update()
 
-    lact = Actor(probeFilter.GetOutput())
+    lact = Mesh(probeFilter.GetOutput())
     lact.mapper().SetScalarRange(img.GetScalarRange())
     #del line # to avoid memory leaks, incompatible with python2
     return lact
@@ -957,11 +957,11 @@ def probeLine(vol, p1, p2, res=100):
 
 def probePlane(vol, origin=(0, 0, 0), normal=(1, 0, 0)):
     """
-    Takes a ``Volume`` and probes its scalars on a plane.
+    Takes a ``Volume`` or other vtk datasets and probes its scalars on a plane.
 
     |probePlane| |probePlane.py|_
     """
-    img = _getimg(vol)
+    img = _getinput(vol)
     plane = vtk.vtkPlane()
     plane.SetOrigin(origin)
     plane.SetNormal(normal)
@@ -970,9 +970,9 @@ def probePlane(vol, origin=(0, 0, 0), normal=(1, 0, 0)):
     planeCut.SetInputData(img)
     planeCut.SetCutFunction(plane)
     planeCut.Update()
-    cutActor = Actor(planeCut.GetOutput(), c=None)  # ScalarVisibilityOn
-    cutActor.mapper().SetScalarRange(img.GetPointData().GetScalars().GetRange())
-    return cutActor
+    cutmesh = Mesh(planeCut.GetOutput(), c=None)  # ScalarVisibilityOn
+    cutmesh.mapper().SetScalarRange(img.GetScalarRange())
+    return cutmesh
 
 
 def resampleArrays(source, target, tol=None):
@@ -1011,8 +1011,8 @@ def volumeOperation(volume1, operation, volume2=None):
     |volumeOperations| |volumeOperations.py|_
     """
     op = operation.lower()
-    image1 = _getimg(volume1)
-    image2 = _getimg(volume2)
+    image1 = _getinput(volume1)
+    image2 = _getinput(volume2)
 
     if op in ["median"]:
         mf = vtk.vtkImageMedian3D()
@@ -1116,14 +1116,14 @@ def volumeOperation(volume1, operation, volume2=None):
     return Volume(mat.GetOutput())
 
 
-def thinPlateSpline(actor, sourcePts, targetPts, userFunctions=(None, None), sigma=1):
+def thinPlateSpline(mesh, sourcePts, targetPts, userFunctions=(None, None), sigma=1):
     """
     `Thin Plate Spline` transformations describe a nonlinear warp transform defined by a set
     of source and target landmarks. Any point on the mesh close to a source landmark will
     be moved to a place close to the corresponding target landmark.
     The points in between are interpolated smoothly using Bookstein's Thin Plate Spline algorithm.
 
-    Transformation object can be retrieved with ``actor.getTransform()``.
+    Transformation object can be retrieved with ``mesh.getTransform()``.
 
     :param userFunctions: You may supply both the function and its derivative with respect to r.
 
@@ -1157,12 +1157,12 @@ def thinPlateSpline(actor, sourcePts, targetPts, userFunctions=(None, None), sig
     transform.SetSourceLandmarks(ptsou)
     transform.SetTargetLandmarks(pttar)
 
-    tfa = transformFilter(actor.polydata(), transform)
+    tfa = transformFilter(mesh.polydata(), transform)
     tfa.info["transform"] = transform
     return tfa
 
 
-def warpMeshToPoint(actor, point, factor=0.1, absolute=True):
+def warpMeshToPoint(mesh, point, factor=0.1, absolute=True):
     """
     Modify the mesh coordinates by moving the vertices towards a specified point.
 
@@ -1183,40 +1183,40 @@ def warpMeshToPoint(actor, point, factor=0.1, absolute=True):
         |warpto|
     """
     warpTo = vtk.vtkWarpTo()
-    warpTo.SetInputData(actor.polydata())
+    warpTo.SetInputData(mesh.polydata())
     warpTo.SetPosition(point)
     warpTo.SetScaleFactor(factor)
     warpTo.SetAbsolute(absolute)
     warpTo.Update()
     prop = vtk.vtkProperty()
-    prop.DeepCopy(actor.GetProperty())
-    a = Actor(warpTo.GetOutput())
+    prop.DeepCopy(mesh.GetProperty())
+    a = Mesh(warpTo.GetOutput())
     a.SetProperty(prop)
     return a
 
 
-def transformFilter(actor, transformation):
+def transformFilter(mesh, transformation):
     """
-    Transform a ``vtkActor`` and return a new object.
+    Transform a ``Mesh`` and return a new object.
     """
     tf = vtk.vtkTransformPolyDataFilter()
     tf.SetTransform(transformation)
     prop = None
-    if isinstance(actor, vtk.vtkPolyData):
-        tf.SetInputData(actor)
+    if isinstance(mesh, vtk.vtkPolyData):
+        tf.SetInputData(mesh)
     else:
-        tf.SetInputData(actor.polydata())
+        tf.SetInputData(mesh.polydata())
         prop = vtk.vtkProperty()
-        prop.DeepCopy(actor.GetProperty())
+        prop.DeepCopy(mesh.GetProperty())
     tf.Update()
 
-    tfa = Actor(tf.GetOutput())
+    tfa = Mesh(tf.GetOutput())
     if prop:
         tfa.SetProperty(prop)
     return tfa
 
 
-def meshQuality(actor, measure=6):
+def meshQuality(mesh, measure=6):
     """
     Calculate functions of quality of the elements of a triangular mesh.
     See class `vtkMeshQuality <https://vtk.org/doc/nightly/html/classvtkMeshQuality.html>`_
@@ -1258,10 +1258,10 @@ def meshQuality(actor, measure=6):
     |meshquality| |meshquality.py|_
     """
 
-    mesh = actor.GetMapper().GetInput()
+    poly = mesh.GetMapper().GetInput()
 
     qf = vtk.vtkMeshQuality()
-    qf.SetInputData(mesh)
+    qf.SetInputData(poly)
     qf.SetTriangleQualityMeasure(measure)
     qf.SaveCellQualityOn()
     qf.Update()
@@ -1269,12 +1269,12 @@ def meshQuality(actor, measure=6):
     pd = vtk.vtkPolyData()
     pd.ShallowCopy(qf.GetOutput())
 
-    qactor = Actor(pd)
-    qactor.mapper().SetScalarRange(pd.GetScalarRange())
-    return qactor
+    qmesh = Mesh(pd)
+    qmesh.mapper().SetScalarRange(pd.GetScalarRange())
+    return qmesh
 
 
-def connectedPoints(actor, radius, mode=0, regions=(), vrange=(0,1), seeds=(), angle=0):
+def connectedPoints(mesh, radius, mode=0, regions=(), vrange=(0,1), seeds=(), angle=0):
     """
     Extracts and/or segments points from a point cloud based on geometric distance measures
     (e.g., proximity, normal alignments, etc.) and optional measures such as scalar range.
@@ -1318,7 +1318,7 @@ def connectedPoints(actor, radius, mode=0, regions=(), vrange=(0,1), seeds=(), a
     """
     # https://vtk.org/doc/nightly/html/classvtkConnectedPointsFilter.html
     cpf = vtk.vtkConnectedPointsFilter()
-    cpf.SetInputData(actor.polydata())
+    cpf.SetInputData(mesh.polydata())
     cpf.SetRadius(radius)
     if   mode == 0: # Extract all regions
         pass
@@ -1350,10 +1350,10 @@ def connectedPoints(actor, radius, mode=0, regions=(), vrange=(0,1), seeds=(), a
 
     cpf.Update()
 
-    return Actor(cpf.GetOutput())
+    return Mesh(cpf.GetOutput())
 
 
-def splitByConnectivity(actor, maxdepth=1000):
+def splitByConnectivity(mesh, maxdepth=1000):
     """
     Split a mesh by connectivity and order the pieces by increasing area.
 
@@ -1361,18 +1361,18 @@ def splitByConnectivity(actor, maxdepth=1000):
 
     |splitmesh| |splitmesh.py|_
     """
-    actor.addIDs()
-    pd = actor.polydata()
+    mesh.addIDs()
+    pd = mesh.polydata()
     cf = vtk.vtkConnectivityFilter()
     cf.SetInputData(pd)
     cf.SetExtractionModeToAllRegions()
     cf.ColorRegionsOn()
     cf.Update()
     cpd = cf.GetOutput()
-    a = Actor(cpd)
+    a = Mesh(cpd)
     alist = []
 
-    for t in range(max(a.scalars("RegionId")) - 1):
+    for t in range(max(a.getPointArray("RegionId")) - 1):
         if t == maxdepth:
             break
         suba = a.clone().threshold("RegionId", t - 0.1, t + 0.1)
@@ -1389,15 +1389,15 @@ def splitByConnectivity(actor, maxdepth=1000):
     return blist
 
 
-def pointSampler(actor, distance=None):
+def pointSampler(mesh, distance=None):
     """
     Algorithm to generate points the specified distance apart.
     """
-    poly = actor.polydata(True)
+    poly = mesh.polydata(True)
 
     pointSampler = vtk.vtkPolyDataPointSampler()
     if not distance:
-        distance = actor.diagonalSize() / 100.0
+        distance = mesh.diagonalSize() / 100.0
     pointSampler.SetDistance(distance)
     #    pointSampler.GenerateVertexPointsOff()
     #    pointSampler.GenerateEdgePointsOff()
@@ -1406,14 +1406,14 @@ def pointSampler(actor, distance=None):
     pointSampler.SetInputData(poly)
     pointSampler.Update()
 
-    uactor = Actor(pointSampler.GetOutput())
+    umesh = Mesh(pointSampler.GetOutput())
     prop = vtk.vtkProperty()
-    prop.DeepCopy(actor.GetProperty())
-    uactor.SetProperty(prop)
-    return uactor
+    prop.DeepCopy(mesh.GetProperty())
+    umesh.SetProperty(prop)
+    return umesh
 
 
-def geodesic(actor, start, end):
+def geodesic(mesh, start, end):
     """
     Dijkstra algorithm to compute the graph geodesic.
     Takes as input a polygonal mesh and performs a single source shortest path calculation.
@@ -1429,13 +1429,13 @@ def geodesic(actor, start, end):
     dijkstra = vtk.vtkDijkstraGraphGeodesicPath()
 
     if utils.isSequence(start):
-        cc = actor.coordinates()
+        cc = mesh.points()
         pa = shapes.Points(cc)
         start = pa.closestPoint(start, returnIds=True)
         end = pa.closestPoint(end, returnIds=True)
         dijkstra.SetInputData(pa.polydata())
     else:
-        dijkstra.SetInputData(actor.polydata())
+        dijkstra.SetInputData(mesh.polydata())
 
     dijkstra.SetStartVertex(start)
     dijkstra.SetEndVertex(end)
@@ -1449,39 +1449,39 @@ def geodesic(actor, start, end):
     for i in range(length):
         arr[i] = weights.GetTuple(i)[0]
 
-    dactor = Actor(dijkstra.GetOutput())
+    dmesh = Mesh(dijkstra.GetOutput())
     prop = vtk.vtkProperty()
-    prop.DeepCopy(actor.GetProperty())
+    prop.DeepCopy(mesh.GetProperty())
     prop.SetLineWidth(3)
     prop.SetOpacity(1)
-    dactor.SetProperty(prop)
-    dactor.info["CumulativeWeights"] = arr
-    return dactor
+    dmesh.SetProperty(prop)
+    dmesh.info["CumulativeWeights"] = arr
+    return dmesh
 
 
-def convexHull(actor_or_list, alphaConstant=0):
+def convexHull(mesh_or_list, alphaConstant=0):
     """
     Create a 2D/3D Delaunay triangulation of input points.
 
-    :param actor_or_list: can be either an ``Actor`` or a list of 3D points.
+    :param mesh_or_list: can be either an ``Mesh`` or a list of 3D points.
     :param float alphaConstant: For a non-zero alpha value, only verts, edges, faces,
         or tetra contained within the circumsphere (of radius alpha) will be output.
         Otherwise, only tetrahedra will be output.
 
     |convexHull| |convexHull.py|_
     """
-    if utils.isSequence(actor_or_list):
-        actor = shapes.Points(actor_or_list)
+    if utils.isSequence(mesh_or_list):
+        mesh = shapes.Points(mesh_or_list)
     else:
-        actor = actor_or_list
-    apoly = actor.clean().polydata()
+        mesh = mesh_or_list
+    apoly = mesh.clean().polydata()
 
     triangleFilter = vtk.vtkTriangleFilter()
     triangleFilter.SetInputData(apoly)
     triangleFilter.Update()
     poly = triangleFilter.GetOutput()
 
-    if np.count_nonzero(actor.coordinates()[:,2]):
+    if np.count_nonzero(mesh.points()[:,2]):
         delaunay = vtk.vtkDelaunay3D()  # Create the convex hull of the pointcloud
     else:
         delaunay = vtk.vtkDelaunay2D()
@@ -1494,10 +1494,10 @@ def convexHull(actor_or_list, alphaConstant=0):
     surfaceFilter = vtk.vtkDataSetSurfaceFilter()
     surfaceFilter.SetInputConnection(delaunay.GetOutputPort())
     surfaceFilter.Update()
-    return Actor(surfaceFilter.GetOutput())
+    return Mesh(surfaceFilter.GetOutput())
 
 
-def actor2Volume(actor, spacing=(1, 1, 1)):
+def mesh2Volume(mesh, spacing=(1, 1, 1)):
     """
     Convert a mesh it into a ``Volume``
     where the foreground (exterior) voxels value is 1 and the background
@@ -1507,7 +1507,7 @@ def actor2Volume(actor, spacing=(1, 1, 1)):
     |mesh2volume| |mesh2volume.py|_
     """
     # https://vtk.org/Wiki/VTK/Examples/Cxx/PolyData/PolyDataToImageData
-    pd = actor.polydata()
+    pd = mesh.polydata()
 
     whiteImage = vtk.vtkImageData()
     bounds = pd.GetBounds()
@@ -1555,27 +1555,27 @@ def actor2Volume(actor, spacing=(1, 1, 1)):
 
 def extractSurface(volume, radius=0.5):
     """Generate the zero-crossing isosurface from truncated signed distance volume in input.
-    Output is an ``Actor`` object.
+    Output is an ``Mesh`` object.
     """
-    img = _getimg(volume)
+    img = _getinput(volume)
     fe = vtk.vtkExtractSurface()
     fe.SetInputData(img)
     fe.SetRadius(radius)
     fe.Update()
-    return Actor(fe.GetOutput()).phong()
+    return Mesh(fe.GetOutput()).phong()
 
 
-def projectSphereFilter(actor):
+def projectSphereFilter(mesh):
     """
     Project a spherical-like object onto a plane.
 
     |projectsphere| |projectsphere.py|_
     """
-    poly = actor.polydata()
+    poly = mesh.polydata()
     psf = vtk.vtkProjectSphereFilter()
     psf.SetInputData(poly)
     psf.Update()
-    return Actor(psf.GetOutput())
+    return Mesh(psf.GetOutput())
 
 
 def voronoi3D(nuclei, bbfactor=1, tol=None):
@@ -1655,7 +1655,7 @@ def voronoi3D(nuclei, bbfactor=1, tol=None):
     poly = vtk.vtkPolyData()
     poly.SetPoints(sourcePoints)
     poly.SetPolys(sourcePolygons)
-    voro = Actor(poly).alpha(0.5)
+    voro = Mesh(poly).alpha(0.5)
     voro.info['cells'] = cells
     voro.info['areas'] = areas
     voro.info['volumes'] = volumes
@@ -1675,12 +1675,12 @@ def extractCellsByType(obj, types=(7,)):
     for ct in types:
         ef.AddCellType(ct)
     ef.Update()
-    return Actor(ef.GetOutput())
+    return Mesh(ef.GetOutput())
 
 
 def pointCloudFrom(obj, useCellData=False):
     """
-    Build a `Actor` object from any VTK dataset as a point cloud.
+    Build a `Mesh` object from any VTK dataset as a point cloud.
 
     :param bool useCellData: if True cell data is interpolated at point positions.
     """
@@ -1703,10 +1703,10 @@ def pointCloudFrom(obj, useCellData=False):
         arr = obj.GetPointData().GetArray(name)
         poly.GetPointData().AddArray(arr)
 
-    return Actor(poly, c=None)
+    return Mesh(poly, c=None)
 
 
-def interpolateToVolume(actor, kernel='shepard', radius=None,
+def interpolateToVolume(mesh, kernel='shepard', radius=None,
                        bounds=None, nullValue=None,
                        dims=(20,20,20)):
     """
@@ -1722,10 +1722,10 @@ def interpolateToVolume(actor, kernel='shepard', radius=None,
 
     |interpolateVolume| |interpolateVolume.py|_
     """
-    if isinstance(actor, vtk.vtkPolyData):
-        output = actor
+    if isinstance(mesh, vtk.vtkPolyData):
+        output = mesh
     else:
-        output = actor.polydata()
+        output = mesh.polydata()
 
     # Create a probe volume
     probe = vtk.vtkImageData()
@@ -1774,7 +1774,7 @@ def interpolateToVolume(actor, kernel='shepard', radius=None,
     return Volume(interpolator.GetOutput())
 
 
-def interpolateToStructuredGrid(actor, kernel=None, radius=None,
+def interpolateToStructuredGrid(mesh, kernel=None, radius=None,
                                bounds=None, nullValue=None, dims=None):
     """
     Generate a volumetric dataset (vtkStructuredData) by interpolating a scalar
@@ -1787,10 +1787,10 @@ def interpolateToStructuredGrid(actor, kernel=None, radius=None,
     :param list dims: dimensions of the output vtkStructuredGrid object
     :param float nullValue: value to be assigned to invalid points
     """
-    if isinstance(actor, vtk.vtkPolyData):
-        output = actor
+    if isinstance(mesh, vtk.vtkPolyData):
+        output = mesh
     else:
-        output = actor.polydata()
+        output = mesh.polydata()
 
     if dims is None:
         dims = (20,20,20)
@@ -1896,7 +1896,8 @@ def streamLines(domain, probe,
     Otherwise, the integration terminates upon exiting the field domain.
 
     :param domain: the vtk object that contains the vector field
-    :param Actor,list probe: the Actor that probes the domain. Its coordinates will
+    :param str activeVectors: name of the vector array
+    :param Mesh,list probe: the Mesh that probes the domain. Its coordinates will
         be the seeds for the streamlines, can also be an array of positions.
     :param str integrator: Runge-Kutta integrator, either 'rk2', 'rk4' of 'rk45'
     :param float initialStepSize: initial step size of integration
@@ -1957,7 +1958,7 @@ def streamLines(domain, probe,
     if utils.isSequence(probe):
         pts = probe
     else:
-        pts = probe.clean().coordinates()
+        pts = probe.clean().points()
     src = vtk.vtkProgrammableSource()
     def readPoints():
         output = src.GetPolyDataOutput()
@@ -2032,7 +2033,7 @@ def streamLines(domain, probe,
                                           vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS,
                                           vname)
         streamTube.Update()
-        sta = Actor(streamTube.GetOutput(), c=None)
+        sta = Mesh(streamTube.GetOutput(), c=None)
 
         scals = grid.GetPointData().GetScalars()
         if scals:
@@ -2044,7 +2045,7 @@ def streamLines(domain, probe,
         sta.phong()
         return sta
 
-    sta = Actor(output, c=None)
+    sta = Mesh(output, c=None)
 
     if lw is not None and len(tubes)==0 and not ribbons:
         sta.lw(lw)
@@ -2057,7 +2058,7 @@ def streamLines(domain, probe,
     return sta
 
 
-def densifyCloud(actor, targetDistance, closestN=6, radius=0, maxIter=None, maxN=None):
+def densifyCloud(mesh, targetDistance, closestN=6, radius=0, maxIter=None, maxN=None):
     """Adds new points to an input point cloud.
     The new points are created in such a way that all points in any local neighborhood are
     within a target distance of one another.
@@ -2084,7 +2085,7 @@ def densifyCloud(actor, targetDistance, closestN=6, radius=0, maxIter=None, maxN
     def readPoints():
         output = src.GetPolyDataOutput()
         points = vtk.vtkPoints()
-        pts = actor.coordinates()
+        pts = mesh.points()
         for p in pts:
             x, y, z = p
             points.InsertNextPoint(x, y, z)
@@ -2134,7 +2135,7 @@ def frequencyPassFilter(volume, lowcutoff=None, highcutoff=None, order=1):
     |idealpass|
     """
     #https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
-    img = _getimg(volume)
+    img = _getinput(volume)
     fft = vtk.vtkImageFFT()
     fft.SetInputData(img)
     fft.Update()
@@ -2167,17 +2168,17 @@ def frequencyPassFilter(volume, lowcutoff=None, highcutoff=None, order=1):
     return Volume(butterworthReal.GetOutput())
 
 
-def implicitModeller(actor, distance=0.05, res=(110,40,20), bounds=(), maxdist=None, outer=True):
+def implicitModeller(mesh, distance=0.05, res=(110,40,20), bounds=(), maxdist=None, outer=True):
     """Finds the surface at the specified distance from the input one"""
 
     if not len(bounds):
-        bounds = actor.bounds()
+        bounds = mesh.bounds()
 
     if not maxdist:
-        maxdist = actor.diagonalSize()/2
+        maxdist = mesh.diagonalSize()/2
 
     imp = vtk.vtkImplicitModeller()
-    imp.SetInputData(actor.polydata())
+    imp.SetInputData(mesh.polydata())
     imp.SetSampleDimensions(res)
     imp.SetMaximumDistance(maxdist)
     imp.SetModelBounds(bounds)
@@ -2189,10 +2190,10 @@ def implicitModeller(actor, distance=0.05, res=(110,40,20), bounds=(), maxdist=N
     if outer:
         poly = extractLargestRegion(poly)
 
-    return Actor(poly, c='lb')
+    return Mesh(poly, c='lb')
 
 
-def signedDistanceFromPointCloud(actor, maxradius=None, bounds=None, dims=(20,20,20)):
+def signedDistanceFromPointCloud(mesh, maxradius=None, bounds=None, dims=(20,20,20)):
     """
     Compute signed distances over a volume from an input point cloud.
     The output is a ``Volume`` object whose voxels contains the signed distance from
@@ -2203,11 +2204,11 @@ def signedDistanceFromPointCloud(actor, maxradius=None, bounds=None, dims=(20,20
     :param list dims: dimensions (nr. of voxels) of the output volume.
     """
     if bounds is None:
-        bounds = actor.GetBounds()
+        bounds = mesh.GetBounds()
     if maxradius is None:
-        maxradius = actor.diagonalSize()/10.
+        maxradius = mesh.diagonalSize()/10.
     dist = vtk.vtkSignedDistance()
-    dist.SetInputData(actor.polydata(True))
+    dist.SetInputData(mesh.polydata(True))
     dist.SetRadius(maxradius)
     dist.SetBounds(bounds)
     dist.SetDimensions(dims)
@@ -2215,7 +2216,7 @@ def signedDistanceFromPointCloud(actor, maxradius=None, bounds=None, dims=(20,20
     return Volume(dist.GetOutput())
 
 
-def volumeFromMesh(actor, bounds=None, dims=(20,20,20), signed=True, negate=False):
+def volumeFromMesh(mesh, bounds=None, dims=(20,20,20), signed=True, negate=False):
     """
     Compute signed distances over a volume from an input mesh.
     The output is a ``Volume`` object whose voxels contains the signed distance from
@@ -2227,7 +2228,7 @@ def volumeFromMesh(actor, bounds=None, dims=(20,20,20), signed=True, negate=Fals
     See example script: |volumeFromMesh.py|_
     """
     if bounds is None:
-        bounds = actor.GetBounds()
+        bounds = mesh.GetBounds()
     sx = (bounds[1]-bounds[0])/dims[0]
     sy = (bounds[3]-bounds[2])/dims[1]
     sz = (bounds[5]-bounds[4])/dims[2]
@@ -2239,7 +2240,7 @@ def volumeFromMesh(actor, bounds=None, dims=(20,20,20), signed=True, negate=Fals
     img.AllocateScalars(vtk.VTK_FLOAT, 1)
 
     imp = vtk.vtkImplicitPolyDataDistance()
-    imp.SetInput(actor.polydata())
+    imp.SetInput(mesh.polydata())
     b4 = bounds[4]
     r2 = range(dims[2])
 
@@ -2259,7 +2260,7 @@ def volumeFromMesh(actor, bounds=None, dims=(20,20,20), signed=True, negate=Fals
     return Volume(img)
 
 
-def computeNormalsWithPCA(actor, n=20, orientationPoint=None, negate=False):
+def computeNormalsWithPCA(mesh, n=20, orientationPoint=None, negate=False):
     """Generate point normals using PCA (principal component analysis).
     Basically this estimates a local tangent plane around each sample point p
     by considering a small neighborhood of points around p, and fitting a plane
@@ -2272,7 +2273,7 @@ def computeNormalsWithPCA(actor, n=20, orientationPoint=None, negate=False):
 
     :param bool negate: flip all normals
     """
-    poly = actor.polydata()
+    poly = mesh.polydata()
     pcan = vtk.vtkPCANormalEstimation()
     pcan.SetInputData(poly)
     pcan.SetSampleSize(n)
@@ -2290,13 +2291,13 @@ def computeNormalsWithPCA(actor, n=20, orientationPoint=None, negate=False):
     out = pcan.GetOutput()
     vnorm = out.GetPointData().GetNormals()
 
-    newact = actor.clone()
+    newact = mesh.clone()
     newact.polydata().GetPointData().SetNormals(vnorm)
     newact.polydata().GetPointData().Modified()
     return newact
 
 
-def pointDensity(actor, dims=(30,30,30), bounds=None, radius=None, computeGradient=False):
+def pointDensity(mesh, dims=(30,30,30), bounds=None, radius=None, computeGradient=False):
     """Generate a density field from a point cloud. Output is a ``Volume``.
     The local neighborhood is specified as a `radius` around each sample position (each voxel).
     The density is normalized to the upper value of the scalar range.
@@ -2304,17 +2305,17 @@ def pointDensity(actor, dims=(30,30,30), bounds=None, radius=None, computeGradie
     See example script: |pointDensity.py|_
     """
     pdf = vtk.vtkPointDensityFilter()
-    pdf.SetInputData(actor.polydata())
+    pdf.SetInputData(mesh.polydata())
     pdf.SetSampleDimensions(dims)
     pdf.SetDensityEstimateToFixedRadius()
     #pdf.SetDensityFormToVolumeNormalized()
     pdf.SetDensityFormToNumberOfPoints ()
     if radius is None:
-        radius = actor.diagonalSize()/20
+        radius = mesh.diagonalSize()/20
     pdf.SetRadius(radius)
     pdf.SetComputeGradient(computeGradient)
     if bounds is None:
-        bounds = actor.GetBounds()
+        bounds = mesh.GetBounds()
     pdf.SetModelBounds(bounds)
     pdf.Update()
     img = pdf.GetOutput()
@@ -2328,7 +2329,7 @@ def erodeVolume(vol, neighbours=(2,2,2)):
 
     See example script: |erode_dilate.py|_
     """
-    img = _getimg(vol)
+    img = _getinput(vol)
     ver = vtk.vtkImageContinuousErode3D()
     ver.SetInputData(img)
     ver.SetKernelSize(neighbours[0], neighbours[1], neighbours[2])
@@ -2342,7 +2343,7 @@ def dilateVolume(vol, neighbours=(2,2,2)):
 
     See example script: |erode_dilate.py|_
     """
-    img = _getimg(vol)
+    img = _getinput(vol)
     ver = vtk.vtkImageContinuousDilate3D()
     ver.SetInputData(img)
     ver.SetKernelSize(neighbours[0], neighbours[1], neighbours[2])
@@ -2364,7 +2365,7 @@ def euclideanDistanceVolume(vol, anisotropy=False, maxDistance=None):
 
     See example script: |euclDist.py|_
     """
-    img = _getimg(vol)
+    img = _getinput(vol)
     euv = vtk.vtkImageEuclideanDistance()
     euv.SetInputData(img)
     euv.SetConsiderAnisotropy(anisotropy)
@@ -2378,16 +2379,16 @@ def euclideanDistanceVolume(vol, anisotropy=False, maxDistance=None):
 
 def volumeToPoints(vol):
     """Extract all image voxels as points.
-    This function takes an input ``Volume`` and creates an ``Actor``
+    This function takes an input ``Volume`` and creates an ``Mesh``
     that contains the points and the point attributes.
 
     See example script: |vol2points.py|_
     """
-    img = _getimg(vol)
+    img = _getinput(vol)
     v2p = vtk.vtkImageToPoints()
     v2p.SetInputData(img)
     v2p.Update()
-    return Actor(v2p.GetOutput())
+    return Mesh(v2p.GetOutput())
 
 
 def volumeCorrelation(vol1, vol2, dim=2):
@@ -2397,8 +2398,8 @@ def volumeCorrelation(vol1, vol2, dim=2):
     The output size will match the size of the first input.
     The second input is considered the correlation kernel.
     """
-    img1 = _getimg(vol1)
-    img2 = _getimg(vol2)
+    img1 = _getinput(vol1)
+    img2 = _getinput(vol2)
     imc = vtk.vtkImageCorrelation()
     imc.SetInput1Data(img1)
     imc.SetInput2Data(img2)

@@ -7,16 +7,16 @@ cone = Cone(res=48)
 sphere = Sphere(res=24)
 
 carr = cone.cellCenters()[:, 2]
-parr = cone.getPoints()[:, 0]
+parr = cone.points()[:, 0]
 cone.addCellScalars(carr, 'carr')
 cone.addPointScalars(parr, 'parr')
 
 carr = sphere.cellCenters()[:, 2]
-parr = sphere.getPoints()[:, 0]
+parr = sphere.points()[:, 0]
 sphere.addCellScalars(carr, 'carr')
 sphere.addPointScalars(parr, 'parr')
 
-sphere.addPointVectors(np.sin(sphere.getPoints()), 'pvectors')
+sphere.addPointVectors(np.sin(sphere.points()), 'pvectors')
 #sphere.addIDs()
 sphere.addElevationScalars()
 
@@ -81,16 +81,16 @@ assert np.allclose([1.1,1.2,1.3], cone.pos())
 
 ###################################### rotate
 cr = cone.pos(0,0,0).clone().rotate(90, axis=(0, 1, 0))
-assert np.max(cr.coordinates()[:,2]) < 1.01
+assert np.max(cr.points()[:,2]) < 1.01
 
 
 ###################################### orientation
 cr = cone.pos(0,0,0).clone().orientation(newaxis=(1, 1, 0))
-assert np.max(cr.coordinates()[:,2]) < 1.01
+assert np.max(cr.points()[:,2]) < 1.01
 
 # scale
 cr.scale(5)
-assert np.max(cr.coordinates()[:,2]) > 4.99
+assert np.max(cr.points()[:,2]) > 4.99
 
 
 ###################################### orientation
@@ -128,23 +128,19 @@ print('Test __add__')
 assert isinstance(cone+sphere, vtk.vtkAssembly)
 
 
-###################################### getPoint, setPoint
-print('Test getPoint, setPoint')
+###################################### points()
+print('Test points')
 
-assert len(sphere.getPoint(0))
-s2 = sphere.clone().setPoint(10, [1,2,3])
-assert np.allclose(s2.getPoint(10), [1,2,3])
-
-pts = sphere.getPoints()
+s2 = sphere.clone()
+pts = sphere.points()
 pts2 = pts + [1,2,3]
-pts3 = s2.setPoints(pts2).getPoints()
+pts3 = s2.points(pts2).points()
 assert np.allclose(pts2, pts3)
 
 
 ###################################### faces
 print('Test faces', np.array(sphere.faces()).shape )
 assert np.array(sphere.faces()).shape == (2112, 3)
-assert sphere.getPolygons().shape[0] == 8448
 
 
 ###################################### texture
@@ -226,7 +222,7 @@ assert c2.maxBoundSize() > 5
 ###################################### crop
 print('Test crop')
 c2 = cone.clone().crop(left=0.5)
-assert np.min(c2.coordinates()[:,0]) > -0.001
+assert np.min(c2.points()[:,0]) > -0.001
 
 
 ###################################### subdivide
@@ -267,10 +263,10 @@ assert np.allclose(pts[1], [-0.06572723388671875, 0.41784095764160156, 0.9014091
 asse = cone+sphere
 
 ###################################### getActors
-print('Test getActors')
-assert len(asse.getActors()) ==2
-assert asse.getActor(0) == cone
-assert asse.getActor(1) == sphere
+print('Test getMeshes')
+assert len(asse.getMeshes()) ==2
+assert asse.getMesh(0) == cone
+assert asse.getMesh(1) == sphere
 
 assert 4.1 < asse.diagonalSize() < 4.2
 
@@ -278,7 +274,7 @@ assert 4.1 < asse.diagonalSize() < 4.2
 ############################################################################ Volume
 X, Y, Z = np.mgrid[:30, :30, :30]
 scalar_field = ((X-15)**2 + (Y-15)**2 + (Z-15)**2)/225
-print('\nTest Volume, scalar min, max =', np.min(scalar_field), np.max(scalar_field))
+print('Test Volume, scalar min, max =', np.min(scalar_field), np.max(scalar_field))
 
 vol = Volume(scalar_field)
 volarr = vol.getPointArray()
@@ -294,7 +290,3 @@ assert 2540 < iso.area() <  2545
 
 lego = vol.legosurface(vmin=0.3, vmax=0.5)
 assert 2610 < lego.N() < 2630
-
-
-
-

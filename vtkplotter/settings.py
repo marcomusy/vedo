@@ -1,5 +1,5 @@
 """
-Global settings.
+General settings.
 
 .. code-block:: python
 
@@ -330,6 +330,3 @@ def _init():
     warnings.simplefilter(action="ignore", category=FutureWarning)
 
     embedWindow()
-
-
-

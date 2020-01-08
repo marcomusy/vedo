@@ -8,8 +8,8 @@ import vtkplotter.settings as settings
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
 import vtkplotter.shapes as shapes
-from vtkplotter.actors import Actor, Assembly, merge
-
+from vtkplotter.assembly import Assembly
+from vtkplotter.mesh import Mesh, merge
 
 __doc__ = (
     """
@@ -364,7 +364,7 @@ def histogram(
 ):
     """
     Build a histogram from a list of values in n bins.
-    The resulting object is a 2D actor.
+    The resulting object is an ``Assembly``.
 
     :param int bins: number of bins.
     :param list vrange: restrict the range of the histogram.
@@ -490,7 +490,7 @@ def hexHistogram(
     values = np.append(values, zs, axis=1)
 
     pointsPolydata.GetPoints().SetData(numpy_to_vtk(values, deep=True))
-    cloud = Actor(pointsPolydata)
+    cloud = Mesh(pointsPolydata)
 
     col = None
     if c is not None:
@@ -527,7 +527,7 @@ def hexHistogram(
             tf.Update()
             if c is None:
                 col = i
-            h = Actor(tf.GetOutput(), c=col, alpha=alpha).flat()
+            h = Mesh(tf.GetOutput(), c=col, alpha=alpha).flat()
             h.GetProperty().SetSpecular(0)
             h.GetProperty().SetDiffuse(1)
             h.PickableOff()
@@ -882,10 +882,10 @@ def polarPlot(
     filling = None
     if fill:
         faces = []
-        coords = [[0, 0, 0]] + lines.coordinates().tolist()
+        coords = [[0, 0, 0]] + lines.points().tolist()
         for i in range(1, lines.N()):
             faces.append([0, i, i + 1])
-        filling = Actor([coords, faces]).c(c).alpha(alpha)
+        filling = Mesh([coords, faces]).c(c).alpha(alpha)
 
     back = None
     if showDisc:
@@ -1014,11 +1014,11 @@ def fxy(
         return None
 
     if zlimits[0]:
-        tmpact1 = Actor(poly)
+        tmpact1 = Mesh(poly)
         a = tmpact1.cutWithPlane((0, 0, zlimits[0]), (0, 0, 1))
         poly = a.polydata()
     if zlimits[1]:
-        tmpact2 = Actor(poly)
+        tmpact2 = Mesh(poly)
         a = tmpact2.cutWithPlane((0, 0, zlimits[1]), (0, 0, -1))
         poly = a.polydata()
 
@@ -1028,16 +1028,16 @@ def fxy(
         elev.Update()
         poly = elev.GetOutput()
 
-    actor = Actor(poly, c, alpha).computeNormals().lighting("plastic")
+    mesh = Mesh(poly, c, alpha).computeNormals().lighting("plastic")
     if c is None:
-        actor.scalars("Elevation")
+        mesh.getPointArray("Elevation")
 
     if bc:
-        actor.bc(bc)
+        mesh.bc(bc)
 
-    actor.texture(texture)
+    mesh.texture(texture)
 
-    acts = [actor]
+    acts = [mesh]
     if zlevels:
         elevation = vtk.vtkElevationFilter()
         elevation.SetInputData(poly)
@@ -1052,11 +1052,11 @@ def fxy(
         bcf.GenerateValues(zlevels, elevation.GetScalarRange())
         bcf.Update()
         zpoly = bcf.GetContourEdgesOutput()
-        zbandsact = Actor(zpoly, "k", alpha).lw(0.5)
+        zbandsact = Mesh(zpoly, "k", alpha).lw(0.5)
         acts.append(zbandsact)
 
     if showNan and len(todel):
-        bb = actor.GetBounds()
+        bb = mesh.GetBounds()
         if bb[4] <= 0 and bb[5] >= 0:
             zm = 0.0
         else:
@@ -1069,4 +1069,4 @@ def fxy(
     if len(acts) > 1:
         return Assembly(acts)
     else:
-        return actor
+        return mesh

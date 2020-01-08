@@ -15,7 +15,7 @@ from vtkplotter.colors import printc
 import vtkplotter.settings as settings
 from vtkplotter.settings import datadir, embedWindow
 
-from vtkplotter.actors import Actor
+from vtkplotter.mesh import Mesh
 
 from vtkplotter.vtkio import load, screenshot, Video, exportWindow
 
@@ -25,18 +25,14 @@ from vtkplotter.shapes import Text, Latex
 from vtkplotter.plotter import show, clear, Plotter
 from vtkplotter.plotter import closeWindow, closePlotter, interactive
 
+# Install fenics with commands (e.g. in Anaconda3):
+#         conda install -c conda-forge fenics
+#         pip install vtkplotter
+# Or follow instructions `here. <https://fenicsproject.org/download/>`_
+
 __doc__ = (
     """
 `FEniCS/Dolfin <https://fenicsproject.org>`_ support submodule.
-
-Install with commands (e.g. in Anaconda3):
-
-    .. code-block:: bash
-
-        conda install -c conda-forge fenics
-        pip install vtkplotter
-
-    Or follow instructions `here. <https://fenicsproject.org/download/>`_
 
 Basic example:
 
@@ -101,8 +97,6 @@ Image Gallery
 +-------------------------------------------------+-------------------------------------------------+
 | Customizing axes style and appearance           |The wave equation in arbitrary nr. of dimensions |
 +-------------------------------------------------+-------------------------------------------------+
-
-|fenics_logo|
 """
     + docs._defs
 )
@@ -307,7 +301,7 @@ def plot(*inputobj, **options):
     """
     Plot the object(s) provided.
 
-    Input can be any combination of: ``Actor``, ``Volume``, ``dolfin.Mesh``,
+    Input can be any combination of: ``Mesh``, ``Volume``, ``dolfin.Mesh``,
     ``dolfin.MeshFunction``, ``dolfin.Expression`` or ``dolfin.Function``.
 
     :return: the current ``Plotter`` class instance.
@@ -686,14 +680,14 @@ def plot(*inputobj, **options):
                 actor.addScalarBar(horizontal=False, vmin=vmin, vmax=vmax)
 
         if warpZfactor:
-            scals = actor.scalars(0)
+            scals = actor.getPointArray(0)
             if len(scals):
-                pts_act = actor.getPoints(copy=False)
+                pts_act = actor.points(copy=False)
                 pts_act[:, 2] = scals*warpZfactor*scaleMeshFactors[2]
         if warpYfactor:
-            scals = actor.scalars(0)
+            scals = actor.getPointArray(0)
             if len(scals):
-                pts_act = actor.getPoints(copy=False)
+                pts_act = actor.points(copy=False)
                 pts_act[:, 1] = scals*warpYfactor*scaleMeshFactors[1]
 
         if len(isolns) > 0:
@@ -768,7 +762,7 @@ def plot(*inputobj, **options):
 
 
 ###################################################################################
-class MeshActor(Actor):
+class MeshActor(Mesh):
     """MeshActor, a vtkActor derived object for dolfin support."""
 
     def __init__(self, *inputobj, **options):
@@ -796,7 +790,7 @@ class MeshActor(Actor):
 
         poly = utils.buildPolyData(coords, meshc.cells(), fast=fast)
 
-        Actor.__init__(self,
+        Mesh.__init__(self,
             poly,
             c=c,
             alpha=alpha,
@@ -843,7 +837,7 @@ class MeshActor(Actor):
 
 def MeshPoints(*inputobj, **options):
     """
-    Build a point ``Actor`` for a list of points.
+    Build a point object of type ``Mesh`` for a list of points.
 
     :param float r: point radius.
     :param c: color name, number, or list of [R,G,B] colors of same length as plist.
@@ -968,4 +962,3 @@ def MeshArrows(*inputobj, **options):
     actor.u = u
     actor.u_values = u_values
     return actor
-

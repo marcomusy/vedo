@@ -59,52 +59,52 @@ in a program, whilst mantaining access to the full range of VTK native classes.
 It includes a [**large set of working examples**](https://github.com/marcomusy/vtkplotter-examples/tree/master/vtkplotter_examples)
 for all the following functionalities:
 
-  - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, XML, Neutral, GMSH, OFF, PCD (PointCloud), volumetric TIFF stacks, DICOM, SLC, MHD, 2D images PNG, JPEG.
+  - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, Dolfin-XML, Neutral, GMSH, OFF, PCD (PointCloud), volumetric TIFF stacks, DICOM, SLC, MHD, 2D images PNG, JPEG.
   - Export meshes as ASCII or binary to VTK, STL, OBJ, PLY formats.
-  - Mesh analysis through the built-in methods of VTK package. Additional analysis tools like *Moving Least Squares*, mesh morphing.
-  - Tools to visualize and edit meshes (cutting a mesh with another mesh, slicing, normalizing, moving vertex positions, etc..). Interactive cutter widget.
+  - Mesh analysis through the built-in methods of VTK. Additional analysis tools like *Moving Least Squares*, mesh morphing and more..
+  - Tools to visualize and edit meshes (cutting a mesh with another mesh, slicing, normalizing, moving vertex positions, etc..).
   - Split mesh based on surface connectivity. Extract the largest connected area.
-  - Calculate mass properties, like area, volume, center of mass, average size etc.
+  - Calculate areas, volumes, center of mass, average sizes etc.
   - Calculate vertex and face normals, curvatures, feature edges. Fill mesh holes.
   - Subdivide faces of a mesh, increasing the number of vertex points. Mesh simplification.
   - Coloring and thresholding of meshes based on associated scalar or vectorial data.
-  - Point-surface operations: find nearest points, determine if a point lies inside or outside a mesh.
-  - Create primitive objects like: spheres, arrows, cubes, torus, ellipsoids...
-  - Generate *glyphs* (associating a mesh to each vertex of a source mesh).
-  - Create animations easily by just defining the position of the displayed objects in the 3D scene. Add trailing lines and shadows to moving objects is also supported.
+  - Point-surface operations: find nearest points, determine if a point lies inside or outside of a mesh.
+  - Create primitive shapes: spheres, arrows, cubes, torus, ellipsoids...
+  - Generate *glyphs* (associate a mesh to every vertex of a source mesh).
+  - Create animations easily by just setting the position of the displayed objects in the 3D scene. Add trailing lines and shadows to moving objects is supported.
   - Straightforward support for multiple *sync-ed* or independent renderers in  the same window.
   - Registration (alignment) of meshes with different techniques.
-  - Mesh smoothing with *Laplacian* and *WindowedSinc* algorithms.
+  - Mesh smoothing.
   - Delaunay triangulation in 2D and 3D.
   - Generate meshes by joining nearby lines in space.
   - Find the closest path from one point to another, travelling along the edges of a mesh.
-  - Find the intersection of a mesh with a line (or with another mesh).
+  - Find the intersection of a mesh with lines, planes or other meshes.
   - Analysis of *Point Clouds*:
 	 - *Moving Least Squares* smoothing of 2D, 3D and 4D clouds
-    - Fit lines, planes and spheres and ellipses in space
+    - Fit lines, planes, spheres and ellipses in space
     - Identify outliers in a distribution of points
     - Decimate a cloud to a uniform distribution.
   - Histogramming and function plotting in 1D and 2D.
   - Interpolate scalar and vectorial fields with *Radial Basis Functions* and *Thin Plate Splines*.
   - Analysis of volumetric datasets:
     - Isosurfacing of volumes
-    - Direct maximum projection rendering
+    - Composite and maximum projection volumetric rendering
     - Generate volumetric signed-distance data from an input surface mesh
     - Probe a volume with lines and planes
     - Generate stream-lines and stream-tubes from vectorial fields
   - Add sliders and buttons to interact with the scene and the individual objects.
   - Fully customizable axis style.
-  - Draw `latex`-formatted formulas on the rending window.
-  - Examples using [SHTools](https://shtools.oca.eu/shtools) package for *spherical harmonics* expansion of a mesh shape.
-  - Integration with the *Qt5* framework.
-  - Support for [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of finite-element calculations.
   - Visualization of tensors.
+  - Draw `latex`-formatted formulas in the rending window.
+  - Integration with the *Qt5* framework.
+  - Examples using [SHTools](https://shtools.oca.eu/shtools) package for *spherical harmonics* expansion of a mesh shape.
+  - Support for [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of finite-element calculations.
+  - Interoperability with the [trimesh](https://trimsh.org/) library.
   - Export a 3D scene and embed it into a [web page](https://vtkplotter.embl.es/examples/fenics_elasticity.html).
   - Embed the 3D rendering in a *jupyter* notebook with [K3D](https://github.com/K3D-tools/K3D-jupyter) (can export an interactive 3D-snapshot page [here](https://vtkplotter.embl.es/examples/K3D_snapshot.html)).
-  - Interoperability with the [trimesh](https://trimsh.org/) library.
 
 
-### Command Line Interface
+### ➜ Command Line Interface
 Visualize a mesh from a terminal window with:
 ```bash
 vtkplotter mesh.obj
@@ -123,7 +123,7 @@ To visualize multiple files or files time-sequences try `-n` or `-s` options. Us
 |`vtkplotter head.vti` |`vtkplotter -s *.vtk` |`vtkplotter `<br>`--slicer embr.slc` |   `vtkplotter --lego embryo.slc`|
 |![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif)|   ![viz_raycast](https://user-images.githubusercontent.com/32848391/58336919-f7b1a080-7e44-11e9-9106-f574371093a8.gif)  | ![viz_slicer](https://user-images.githubusercontent.com/32848391/56972084-a7f3f800-6b6a-11e9-98c4-dc4ffec70a5e.png)  |![lego](https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg) |
 
-### Graphic User Interface
+### ➜ Graphic User Interface
 A Graphic User Interface is available (mainly useful to *Windows 10* users):
 
 ![gui](https://user-images.githubusercontent.com/32848391/63259840-c861d280-c27f-11e9-9c2a-99d0fae85313.png)
