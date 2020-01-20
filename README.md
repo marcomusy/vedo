@@ -59,61 +59,107 @@ in a program, whilst mantaining access to the full range of VTK native classes.
 It includes a **[large set of working examples](https://github.com/marcomusy/vtkplotter-examples/tree/master/vtkplotter_examples)**
 for a wide range of functionalities *(click triangle to expand...)*:
 <details>
-<summary>*working with polygonal meshes and point clouds*</summary>
-  - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, Dolfin-XML, Neutral, GMSH, OFF, PCD (PointCloud),
-  - Export meshes as ASCII or binary to VTK, STL, OBJ, PLY ... formats.
-  - Analysis tools like *Moving Least Squares*, mesh morphing and more..
-  - Tools to visualize and edit meshes (cutting a mesh with another mesh, slicing, normalizing, moving vertex positions, etc..).
-  - Split mesh based on surface connectivity. Extract the largest connected area.
-  - Calculate areas, volumes, center of mass, average sizes etc.
-  - Calculate vertex and face normals, curvatures, feature edges. Fill mesh holes.
-  - Subdivide faces of a mesh, increasing the number of vertex points. Mesh simplification.
-  - Coloring and thresholding of meshes based on associated scalar or vectorial data.
-  - Point-surface operations: find nearest points, determine if a point lies inside or outside of a mesh.
-  - Create primitive shapes: spheres, arrows, cubes, torus, ellipsoids...
-  - Generate *glyphs* (associate a mesh to every vertex of a source mesh).
-  - Create animations easily by just setting the position of the displayed objects in the 3D scene. Add trailing lines and shadows to moving objects is supported.
-  - Straightforward support for multiple *sync-ed* or independent renderers in  the same window.
-  - Registration (alignment) of meshes with different techniques.
-  - Mesh smoothing.
-  - Delaunay triangulation in 2D and 3D.
-  - Generate meshes by joining nearby lines in space.
-  - Find the closest path from one point to another, travelling along the edges of a mesh.
-  - Find the intersection of a mesh with lines, planes or other meshes.
-  - Interpolate scalar and vectorial fields with *Radial Basis Functions* and *Thin Plate Splines*.
-  - Add sliders and buttons to interact with the scene and the individual objects.
-  - Visualization of tensors.
-  - Analysis of *Point Clouds*:
-	 - *Moving Least Squares* smoothing of 2D, 3D and 4D clouds
-    - Fit lines, planes, spheres and ellipses in space
-    - Identify outliers in a distribution of points
-    - Decimate a cloud to a uniform distribution.
-</details>
-<details>
-<summary>*working with volumetric data*</summary>
-  - Import data from VTK format volumetric TIFF stacks, DICOM, SLC, MHD and more
-  - Import 2D images as PNG, JPEG, BMP
-  - Isosurfacing of volumes
-  - Composite and maximum projection volumetric rendering
-  - Generate volumetric signed-distance data from an input surface mesh
-  - Probe a volume with lines and planes
-  - Generate stream-lines and stream-tubes from vectorial fields
-  - Slice and crop volumes
-  - Support for other volumetric structures (structured and grid data)
-</details>
-<details>
-<summary>*plotting and histogramming*</summary>
-  - Fully customizable axis styles
-  - 'donut' plots and pie charts
-  - Scatter plots in 2D and 3D
-  - Surface function plotting
-  - 1D customizable histograms
-  - 2D hexagonal histograms
-  - Polar plots and histogramming
-  - Draw `latex`-formatted formulas in the rendering window.
-  - Quiver plots
-  - Point markers analogous to `matplotlib`
+<summary>working with polygonal meshes and point clouds</summary>
 
+	- Import meshes from VTK format, STL, Wavefront OBJ, 3DS, Dolfin-XML, Neutral, GMSH, OFF, PCD (PointCloud),
+
+	- Export meshes as ASCII or binary to VTK, STL, OBJ, PLY ... formats.
+
+	- Analysis tools like Moving Least Squares, mesh morphing and more..
+
+	- Tools to visualize and edit meshes (cutting a mesh with another mesh, slicing, normalizing, moving vertex positions, etc..).
+
+	- Split mesh based on surface connectivity. Extract the largest connected area.
+
+	- Calculate areas, volumes, center of mass, average sizes etc.
+
+	- Calculate vertex and face normals, curvatures, feature edges. Fill mesh holes.
+
+	- Subdivide faces of a mesh, increasing the number of vertex points. Mesh simplification.
+
+	- Coloring and thresholding of meshes based on associated scalar or vectorial data.
+
+	- Point-surface operations: find nearest points, determine if a point lies inside or outside of a mesh.
+
+	- Create primitive shapes: spheres, arrows, cubes, torus, ellipsoids...
+
+	- Generate glyphs (associate a mesh to every vertex of a source mesh).
+
+	- Create animations easily by just setting the position of the displayed objects in the 3D scene. Add trailing lines and shadows to moving objects is supported.
+
+	- Straightforward support for multiple sync-ed or independent renderers in  the same window.
+
+	- Registration (alignment) of meshes with different techniques.
+
+	- Mesh smoothing.
+
+	- Delaunay triangulation in 2D and 3D.
+
+	- Generate meshes by joining nearby lines in space.
+
+	- Find the closest path from one point to another, travelling along the edges of a mesh.
+
+	- Find the intersection of a mesh with lines, planes or other meshes.
+
+	- Interpolate scalar and vectorial fields with Radial Basis Functions and Thin Plate Splines.
+
+	- Add sliders and buttons to interact with the scene and the individual objects.
+
+	- Visualization of tensors.
+
+	- Analysis of Point Clouds:
+
+	 - Moving Least Squares smoothing of 2D, 3D and 4D clouds
+
+	 - Fit lines, planes, spheres and ellipses in space
+
+	 - Identify outliers in a distribution of points
+
+	 - Decimate a cloud to a uniform distribution.
+</details>
+<details>
+<summary>working with volumetric data</summary>
+
+	- Import data from VTK format volumetric TIFF stacks, DICOM, SLC, MHD and more
+
+	- Import 2D images as PNG, JPEG, BMP
+
+	- Isosurfacing of volumes
+
+	- Composite and maximum projection volumetric rendering
+
+	- Generate volumetric signed-distance data from an input surface mesh
+
+	- Probe a volume with lines and planes
+
+	- Generate stream-lines and stream-tubes from vectorial fields
+
+	- Slice and crop volumes
+
+	- Support for other volumetric structures (structured and grid data)
+</details>
+<details>
+<summary>plotting and histogramming</summary>
+
+	- Fully customizable axis styles
+
+	- 'donut' plots and pie charts
+
+	- Scatter plots in 2D and 3D
+
+	- Surface function plotting
+
+	- 1D customizable histograms
+
+	- 2D hexagonal histograms
+
+	- Polar plots and histogramming
+
+	- Draw `latex`-formatted formulas in the rendering window.
+
+	- Quiver plots
+
+	- Point markers analogous to `matplotlib`
 </details>
 
 
