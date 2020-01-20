@@ -8,8 +8,8 @@ analysis and animation of 3D objects and point clouds based on VTK.
 
     A full list of examples can be found in directories:
 
-    - `examples/basic <https://github.com/marcomusy/vtkplotter-examples/blob/vtkplotter_master/examples/basic>`_ 
-    - `examples/advanced <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/advanced>`_ 
+    - `examples/basic <https://github.com/marcomusy/vtkplotter-examples/blob/vtkplotter_master/examples/basic>`_
+    - `examples/advanced <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/advanced>`_
     - `examples/volumetric <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/volumetric>`_
     - `examples/simulations <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations>`_
     - `examples/plotting2d <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/plotting2d>`_
@@ -43,6 +43,7 @@ from vtkplotter.volume import Volume
 from vtkplotter.utils import *
 from vtkplotter.colors import *
 import vtkplotter.settings as settings
+import vtkplotter.addons as addons
 from vtkplotter.settings import datadir, embedWindow
 
 # hack: need to uncomment this to generate documentation html

@@ -27,6 +27,8 @@ __all__ = [
     "Ribbon",
     "Arrow",
     "Arrows",
+    "Arrow2D",
+    "Arrows2D",
     "FlatArrow",
     "Polygon",
     "Rectangle",
@@ -36,9 +38,11 @@ __all__ = [
     "Star",
     "Sphere",
     "Spheres",
+    "SphericGrid",
     "Earth",
     "Ellipsoid",
     "Grid",
+    "CubicGrid",
     "Plane",
     "Box",
     "Cube",
@@ -167,7 +171,7 @@ class Points(Mesh):
                 vgf.SetInputData(src.GetOutput())
                 vgf.Update()
                 pd = vgf.GetOutput()
-                pd.GetPoints().SetData(numpy_to_vtk(plist, deep=True))
+                pd.GetPoints().SetData(numpy_to_vtk(np.ascontiguousarray(plist), deep=True))
 
                 ucols = vtk.vtkUnsignedCharArray()
                 ucols.SetNumberOfComponents(4)
@@ -223,7 +227,7 @@ class Points(Mesh):
             if n == 1:  # passing just one point
                 pd.GetPoints().SetPoint(0, [0, 0, 0])
             else:
-                pd.GetPoints().SetData(numpy_to_vtk(plist, deep=True))
+                pd.GetPoints().SetData(numpy_to_vtk(np.ascontiguousarray(plist), deep=True))
             Mesh.__init__(self, pd, c, alpha)
             self.GetProperty().SetPointSize(r)
             if n == 1:
@@ -237,6 +241,8 @@ class Glyph(Mesh):
     """
     At each vertex of a mesh, another mesh - a `'glyph'` - is shown with
     various orientation options and coloring.
+
+    The input ``mesh`` can also be a simple list of 2D or 3D coordinates.
 
     Color can be specified as a colormap which maps the size of the orientation
     vectors in `orientationArray`.
@@ -260,6 +266,10 @@ class Glyph(Mesh):
         if c in list(_mapscales.cmap_d.keys()):
             cmap = c
             c = None
+
+        if utils.isSequence(mesh):
+            # create a cloud of points
+            mesh = Points(mesh)
 
         if tol:
             mesh = mesh.clone().clean(tol)
@@ -458,7 +468,7 @@ class Line(Mesh):
                 for i, p in enumerate(p0):
                     ppoints.InsertPoint(i, p[0], p[1], 0)
             else:
-                ppoints.SetData(numpy_to_vtk(p0, deep=True))
+                ppoints.SetData(numpy_to_vtk(np.ascontiguousarray(p0), deep=True))
             lines = vtk.vtkCellArray()  # Create the polyline.
             lines.InsertNextCell(len(p0))
             for i in range(len(p0)):
@@ -613,6 +623,9 @@ class Spline(Mesh):
     |tutorial_spline| |tutorial.py|_
     """
     def __init__(self, points, smooth=0.5, degree=2, s=2, res=None):
+
+        if isinstance(points, Mesh): points = points.points()
+
         from scipy.interpolate import splprep, splev
         if res is None:
             res = len(points)*20
@@ -711,7 +724,7 @@ class Tube(Mesh):
     def __init__(self, points, r=1, cap=True, c=None, alpha=1, res=12):
 
         ppoints = vtk.vtkPoints()  # Generate the polyline
-        ppoints.SetData(numpy_to_vtk(points, deep=True))
+        ppoints.SetData(numpy_to_vtk(np.ascontiguousarray(points), deep=True))
         lines = vtk.vtkCellArray()
         lines.InsertNextCell(len(points))
         for i in range(len(points)):
@@ -773,7 +786,7 @@ class Ribbon(Mesh):
             line2 = line2.points()
 
         ppoints1 = vtk.vtkPoints()  # Generate the polyline1
-        ppoints1.SetData(numpy_to_vtk(line1, deep=True))
+        ppoints1.SetData(numpy_to_vtk(np.ascontiguousarray(line1), deep=True))
         lines1 = vtk.vtkCellArray()
         lines1.InsertNextCell(len(line1))
         for i in range(len(line1)):
@@ -783,7 +796,7 @@ class Ribbon(Mesh):
         poly1.SetLines(lines1)
 
         ppoints2 = vtk.vtkPoints()  # Generate the polyline2
-        ppoints2.SetData(numpy_to_vtk(line2, deep=True))
+        ppoints2.SetData(numpy_to_vtk(np.ascontiguousarray(line2), deep=True))
         lines2 = vtk.vtkCellArray()
         lines2.InsertNextCell(len(line2))
         for i in range(len(line2)):
@@ -826,36 +839,6 @@ class Ribbon(Mesh):
         settings.collectable_actors.append(self)
         self.name = "Ribbon"
 
-
-def FlatArrow(line1, line2, c="m", alpha=1, tipSize=1, tipWidth=1):
-    """Build a 2D arrow in 3D space by joining two close lines.
-
-    |flatarrow| |flatarrow.py|_
-    """
-    if isinstance(line1, Mesh): line1 = line1.points()
-    if isinstance(line2, Mesh): line2 = line2.points()
-
-    sm1, sm2 = np.array(line1[-1]), np.array(line2[-1])
-
-    v = (sm1-sm2)/3*tipWidth
-    p1 = sm1+v
-    p2 = sm2-v
-    pm1 = (sm1+sm2)/2
-    pm2 = (np.array(line1[-2])+np.array(line2[-2]))/2
-    pm12 = pm1-pm2
-    tip = pm12/np.linalg.norm(pm12)*np.linalg.norm(v)*3*tipSize/tipWidth + pm1
-
-    line1.append(p1)
-    line1.append(tip)
-    line2.append(p2)
-    line2.append(tip)
-    resm = max(100, len(line1))
-
-    mesh = Ribbon(line1, line2, alpha=alpha, c=c, res=(resm, 1)).phong()
-    settings.collectable_actors.pop()
-    settings.collectable_actors.append(mesh)
-    mesh.name = "FlatArrow"
-    return mesh
 
 class Arrow(Mesh):
     """
@@ -952,6 +935,175 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12)
     settings.collectable_actors.append(arrg)
     arrg.name = "Arrows"
     return arrg
+
+
+class Arrow2D(Mesh):
+    """
+    Build a 2D arrow from `startPoint` to `endPoint`.
+
+    :param float shaftLength: fractional shaft length
+    :param float shaftWidth: fractional shaft width
+    :param float headLength: fractional head length
+    :param float headWidth: fractional head width
+    :param bool fill: if False only generate the outline
+    """
+    def __init__(self, startPoint, endPoint,
+                 shaftLength=0.8,
+                 shaftWidth=0.09,
+                 headLength=None,
+                 headWidth=0.2,
+                 fill=True,
+                 c="r",
+                 alpha=1):
+
+        # in case user is passing meshs
+        if isinstance(startPoint, vtk.vtkActor): startPoint = startPoint.GetPosition()
+        if isinstance(endPoint,   vtk.vtkActor): endPoint   = endPoint.GetPosition()
+        if len(startPoint) == 2:
+            startPoint = [startPoint[0], startPoint[1], 0]
+        if len(endPoint) == 2:
+            endPoint = [endPoint[0], endPoint[1], 0]
+
+        headBase = 1 - headLength
+        if headWidth < shaftWidth:
+            headWidth = shaftWidth
+        if headLength is None or headBase > shaftLength:
+            headBase = shaftLength
+
+        verts = []
+        verts.append([0,          -shaftWidth/2, 0])
+        verts.append([shaftLength,-shaftWidth/2, 0])
+        verts.append([headBase,   -headWidth/2,  0])
+        verts.append([1,0,0])
+        verts.append([headBase,    headWidth/2,  0])
+        verts.append([shaftLength, shaftWidth/2, 0])
+        verts.append([0,           shaftWidth/2, 0])
+        if fill:
+            faces = ((0,1,3,5,6), (5,3,4), (1,2,3))
+            poly = utils.buildPolyData(verts, faces)
+        else:
+            lines = ((0,1,2,3,4,5,6,0))
+            poly = utils.buildPolyData(verts, [], lines=lines)
+
+        axis = np.array(endPoint) - np.array(startPoint)
+        length = np.linalg.norm(axis)
+        if length:
+            axis = axis / length
+        theta = np.arccos(axis[2])
+        phi = np.arctan2(axis[1], axis[0])
+        t = vtk.vtkTransform()
+        t.RotateZ(np.rad2deg(phi))
+        t.RotateY(np.rad2deg(theta))
+        t.RotateY(-90)  # put it along Z
+        t.Scale(length, length, length)
+        tf = vtk.vtkTransformPolyDataFilter()
+        tf.SetInputData(poly)
+        tf.SetTransform(t)
+        tf.Update()
+
+        Mesh.__init__(self, tf.GetOutput(), c, alpha)
+        self.flat().lighting('ambient')
+        self.DragableOff()
+        self.PickableOff()
+        self.base = np.array(startPoint)
+        self.top = np.array(endPoint)
+        settings.collectable_actors.append(self)
+        self.name = "Arrow2D"
+
+def Arrows2D(startPoints, endPoints=None,
+             shaftLength=0.8,
+             shaftWidth=0.09,
+             headLength=None,
+             headWidth=0.2,
+             fill=True,
+             scale=1,
+             c="r", alpha=1):
+    """
+    Build 2D arrows between two lists of points `startPoints` and `endPoints`.
+    `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
+
+    Color can be specified as a colormap which maps the size of the arrows.
+
+    :param float shaftLength: fractional shaft length
+    :param float shaftWidth: fractional shaft width
+    :param float headLength: fractional head length
+    :param float headWidth: fractional head width
+    :param bool fill: if False only generate the outline
+
+    :param float scale: apply a rescaling factor to the length
+    :param c: color or array of colors, can also be a color map name.
+    :param float alpha: set transparency
+
+    :Example:
+        .. code-block:: python
+
+            from vtkplotter import Grid, Arrows2D
+            g1 = Grid(sx=1, sy=1)
+            g2 = Grid(sx=1.2, sy=1.2).rotateZ(4)
+            arrs2d = Arrows2D(g1, g2, c='jet')
+            arrs2d.show(axes=1, bg='white')
+
+        |quiverPlot|
+    """
+    if isinstance(startPoints, Mesh): startPoints = startPoints.points()
+    if isinstance(endPoints,   Mesh): endPoints   = endPoints.points()
+    startPoints = np.array(startPoints)
+    if endPoints is None:
+        strt = startPoints[:,0]
+        endPoints = startPoints[:,1]
+        startPoints = strt
+    else:
+        endPoints = np.array(endPoints)
+
+    if headLength is None:
+        headLength = 1 - shaftLength
+
+    arr = Arrow2D((0,0,0), (1,0,0),
+                  shaftLength, shaftWidth,
+                  headLength, headWidth, fill)
+    pts = Points(startPoints, r=0.001, c=c, alpha=alpha).off()
+
+    orients = (endPoints - startPoints) * scale
+    if orients.shape[1] == 2: # make it 3d
+        orients = np.c_[np.array(orients), np.zeros(len(orients))]
+
+    arrg = Glyph(pts, arr.polydata(False),
+                 orientationArray=orients, scaleByVectorSize=True,
+                 c=c, alpha=alpha).flat().lighting('ambient')
+    settings.collectable_actors.append(arrg)
+    arrg.name = "Arrows2D"
+    return arrg
+
+
+def FlatArrow(line1, line2, c="m", alpha=1, tipSize=1, tipWidth=1):
+    """Build a 2D arrow in 3D space by joining two close lines.
+
+    |flatarrow| |flatarrow.py|_
+    """
+    if isinstance(line1, Mesh): line1 = line1.points()
+    if isinstance(line2, Mesh): line2 = line2.points()
+
+    sm1, sm2 = np.array(line1[-1]), np.array(line2[-1])
+
+    v = (sm1-sm2)/3*tipWidth
+    p1 = sm1+v
+    p2 = sm2-v
+    pm1 = (sm1+sm2)/2
+    pm2 = (np.array(line1[-2])+np.array(line2[-2]))/2
+    pm12 = pm1-pm2
+    tip = pm12/np.linalg.norm(pm12)*np.linalg.norm(v)*3*tipSize/tipWidth + pm1
+
+    line1.append(p1)
+    line1.append(tip)
+    line2.append(p2)
+    line2.append(tip)
+    resm = max(100, len(line1))
+
+    mesh = Ribbon(line1, line2, alpha=alpha, c=c, res=(resm, 1)).phong()
+    settings.collectable_actors.pop()
+    settings.collectable_actors.append(mesh)
+    mesh.name = "FlatArrow"
+    return mesh
 
 
 class Polygon(Mesh):
@@ -1206,12 +1358,35 @@ class Spheres(Mesh):
         self.name = "Spheres"
 
 
+def SphericGrid(pos=(0, 0, 0), r=1, c="t", alpha=1, res=12):
+    """Build a sphere made of quads.
+
+    |sphericgrid|
+    """
+    sg = CubicGrid(n=(res,res,res))
+
+    cgpts = sg.points()-(.5,.5,.5)
+
+    x, y, z = cgpts[:,0], cgpts[:,1], cgpts[:,2]
+    x = x*(1+x*x)/2
+    y = y*(1+y*y)/2
+    z = z*(1+z*z)/2
+    _, theta, phi = utils.cart2spher(x, y, z)
+
+    pts = utils.spher2cart(np.ones_like(phi)*r, theta, phi)
+
+    sg.points(pts).computeNormals().c(c).alpha(alpha)
+    sg.SetPosition(pos)
+    sg.name = "SphericGrid"
+    return sg
+
+
 class Earth(Mesh):
     """Build a textured mesh representing the Earth.
 
     |geodesic| |geodesic.py|_
     """
-    def __init__(self, pos=(0, 0, 0), r=1):
+    def __init__(self, pos=(0, 0, 0), r=1, style=1):
         tss = vtk.vtkTexturedSphereSource()
         tss.SetRadius(r)
         tss.SetThetaResolution(72)
@@ -1220,8 +1395,8 @@ class Earth(Mesh):
         Mesh.__init__(self, tss, c="w")
 
         atext = vtk.vtkTexture()
-        pnmReader = vtk.vtkPNMReader()
-        fn = settings.textures_path + "earth.ppm"
+        pnmReader = vtk.vtkJPEGReader()
+        fn = settings.textures_path + "earth" + str(style) +".jpg"
         pnmReader.SetFileName(fn)
         atext.SetInputConnection(pnmReader.GetOutputPort())
         atext.InterpolateOn()
@@ -1238,6 +1413,8 @@ class Ellipsoid(Mesh):
     .. note:: `axis1` and `axis2` are only used to define sizes and one azimuth angle.
 
     |projectsphere|
+
+    |pca| |pca.py|_
     """
     def __init__(self, pos=(0, 0, 0), axis1=(1, 0, 0), axis2=(0, 2, 0), axis3=(0, 0, 3),
                  c="c", alpha=1, res=24):
@@ -1273,7 +1450,7 @@ class Ellipsoid(Mesh):
 
         self.GetProperty().BackfaceCullingOn()
         self.SetPosition(pos)
-        self.base = -np.array(axis1) / 2 + pos
+        self.Length = -np.array(axis1) / 2 + pos
         self.top = np.array(axis1) / 2 + pos
         settings.collectable_actors.append(self)
         self.name = "Ellipsoid"
@@ -1328,7 +1505,6 @@ class Grid(Mesh):
                     faces.append([i+j*n, i+1+j*n, i+1+j1n, i+j1n])
 
             Mesh.__init__(self, [verts, faces], c, alpha)
-            self.orientation(normal)
 
         else:
             ps = vtk.vtkPlaneSource()
@@ -1336,27 +1512,30 @@ class Grid(Mesh):
             ps.Update()
             poly0 = ps.GetOutput()
             t0 = vtk.vtkTransform()
+            #            t0.Translate(pos)
             t0.Scale(sx, sy, 1)
             tf0 = vtk.vtkTransformPolyDataFilter()
             tf0.SetInputData(poly0)
             tf0.SetTransform(t0)
             tf0.Update()
             poly = tf0.GetOutput()
-            axis = np.array(normal) / np.linalg.norm(normal)
-            theta = np.arccos(axis[2])
-            phi = np.arctan2(axis[1], axis[0])
-            t = vtk.vtkTransform()
-            t.PostMultiply()
-            t.RotateY(np.rad2deg(theta))
-            t.RotateZ(np.rad2deg(phi))
-            tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetInputData(poly)
-            tf.SetTransform(t)
-            tf.Update()
-            Mesh.__init__(self, tf.GetOutput(), c, alpha)
+            #            axis = np.array(normal) / np.linalg.norm(normal)
+            #            theta = np.arccos(axis[2])
+            #            phi = np.arctan2(axis[1], axis[0])
+            #            t = vtk.vtkTransform()
+            #            t.PostMultiply()
+            #            t.RotateY(np.rad2deg(theta))
+            #            t.RotateZ(np.rad2deg(phi))
+            #            tf = vtk.vtkTransformPolyDataFilter()
+            #            tf.SetInputData(poly)
+            #            tf.SetTransform(t)
+            #            tf.Update()
+            Mesh.__init__(self, poly, c, alpha)
+            self.SetPosition(pos)
+
+        self.orientation(normal)
 
         self.wireframe().lw(lw)
-        self.SetPosition(pos)
         settings.collectable_actors.append(self)
         self.name = "Grid"
 
@@ -1438,6 +1617,30 @@ def Cube(pos=(0, 0, 0), side=1, c="g", alpha=1):
     """
     mesh = Box(pos, side, side, side, (), c, alpha)
     mesh.name = "Cube"
+    return mesh
+
+def CubicGrid(pos=(0, 0, 0), n=(10,10,10), spacing=(), c="lightgrey", alpha=0.1):
+    """Build a cubic Mesh made o `n` small cubes in the 3 axis directions.
+
+    :param list pos: position of the left bottom corner
+    :param int n: number of subdivisions
+    :parameter list spacing: size of the side of the cube in the 3 directions
+    """
+    from vtkplotter.volume import Volume
+    n = np.array(n).astype(int) + 2
+    nx, ny, nz = n
+    mx, my, mz = n - 1
+    data_matrix = np.zeros([nx, ny, nz], dtype=np.uint8)
+    data_matrix[0:mx, 0:my, 0:mz] = 1
+    data_matrix[mx:nx, my:ny, mz:nz] = 2
+    if len(spacing) == 0:
+        spacing = 1/(n-2)
+    vol = Volume(data_matrix, spacing=spacing)
+    mesh = vol.legosurface().clean().c(c).alpha(alpha)
+    mesh.SetPosition(pos)
+    mesh.base = np.array([0,0,0])
+    mesh.top = np.array([0,0,1])
+    mesh.name = "CubicGrid"
     return mesh
 
 

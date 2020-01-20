@@ -74,7 +74,6 @@ def show(*actors, **options):
             - `gridLineWidth`,       [1], width of the grid lines
             - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally
             - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
-            - `enableLastLabel`, [False], show last numeric label on axes
             - `titleDepth`,          [0], extrusion fractional depth of title text
             - `xyGrid`,           [True], show a gridded wall on plane xy
             - `yzGrid`,           [True], show a gridded wall on plane yz
@@ -101,6 +100,7 @@ def show(*actors, **options):
             - `xTickColor`,  [automatic], color of major ticks
             - `xMinorTicks`,         [1], number of minor ticks between two major ticks
             - `tipSize`,          [0.01], size of the arrow tip
+            - `xPositionsAndLabels`   [], assign custom tick positions and labels [(pos1, label1), ...]
             - `xLabelPrecision`,     [2], nr. of significative digits to be shown
             - `xLabelSize`,      [0.015], size of the numeric labels along axis
             - `xLabelOffset`,    [0.025], offset of numeric labels
@@ -195,6 +195,9 @@ def show(*actors, **options):
     size = options.pop("size", "auto")
     screensize = options.pop("screensize", "auto")
     title = options.pop("title", "")
+    #xtitle = options.pop("xtitle", "x")
+    #ytitle = options.pop("ytitle", "y")
+    #ztitle = options.pop("ztitle", "z")
     bg = options.pop("bg", "blackboard")
     bg2 = options.pop("bg2", None)
     axes = options.pop("axes", 4)
@@ -215,7 +218,7 @@ def show(*actors, **options):
 
     if len(options):
         for op in options:
-            colors.printc("Warning: unknown keyword in shdow():", op, c=5)
+            colors.printc("Warning: unknown keyword in show():", op, c=5)
 
     if len(actors) == 0:
         actors = None
@@ -259,6 +262,9 @@ def show(*actors, **options):
             interactive=interactive,
             offscreen=offscreen,
         )
+        #vp.xtitle = xtitle
+        #vp.ytitle = ytitle
+        #vp.ztitle = ztitle
 
     # use _vp_to_return because vp.show() can return a k3d/panel plot
     if utils.isSequence(at):
@@ -374,7 +380,7 @@ class Plotter:
         - `xtitle`,            ['x'], x-axis title text.
         - `ytitle`,            ['y'], y-axis title text.
         - `ztitle`,            ['z'], z-axis title text.
-        - `numberOfDivisions`, [automatic], number of divisions on the shortest axis
+        - `numberOfDivisions`, [automatic], number of divisions on the longest axis
         - `axesLineWidth`,       [1], width of the axes lines
         - `gridLineWidth`,       [1], width of the grid lines
         - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally
@@ -519,12 +525,19 @@ class Plotter:
             self.window = vtk.vtkRenderWindow()
 
         ############################################################
-        if settings.notebookBackend and settings.notebookBackend != "panel":
+        notebookBackend = settings.notebookBackend
+        if notebookBackend and notebookBackend.lower() == '2d':
+            self.offscreen = True
+            if self.size == "auto":
+                self.size = (900, 700)
+        if (notebookBackend
+            and notebookBackend != "panel"
+            and notebookBackend.lower() != "2d"):
             self.interactive = False
             self.interactor = None
             self.window = None
             self.camera = None # let the backend choose
-            if size == "auto":
+            if self.size == "auto":
                 self.size = (1000, 1000)
             ########################################################
             return #################################################
@@ -580,13 +593,15 @@ class Plotter:
         if isinstance(shape, str):
 
             if '|' in shape:
-                if size == "auto": self.size = (800, 1200)
+                if self.size == "auto":
+                    self.size = (800, 1200)
                 n = int(shape.split('|')[0])
                 m = int(shape.split('|')[1])
                 rangen = reversed(range(n))
                 rangem = reversed(range(m))
             else:
-                if size == "auto": self.size = (1200, 800)
+                if self.size == "auto":
+                    self.size = (1200, 800)
                 m = int(shape.split('/')[0])
                 n = int(shape.split('/')[1])
                 rangen = range(n)
@@ -620,6 +635,7 @@ class Plotter:
                 r.SetLightFollowCamera(settings.lightFollowsCamera)
                 if settings.useFXAA is not None:
                     r.SetUseFXAA(settings.useFXAA)
+                    self.window.SetMultiSamples(settings.multiSamples)
                 if settings.useDepthPeeling:
                     r.SetUseDepthPeeling(True)
                     r.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
@@ -631,7 +647,7 @@ class Plotter:
 
         else:
 
-            if size == "auto":  # figure out a reasonable window size
+            if self.size == "auto":  # figure out a reasonable window size
                 f = 1.5
                 xs = y / f * shape[1]  # because y<x
                 ys = y / f * shape[0]
@@ -645,7 +661,7 @@ class Plotter:
                 if shape == (1, 1):
                     self.size = (int(y / f), int(y / f))  # because y<x
             else:
-                self.size = (size[0], size[1])
+                self.size = (self.size[0], self.size[1])
 
             ############################
             self.shape = shape
@@ -674,6 +690,8 @@ class Plotter:
                         arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
                         arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
                         arenderer.SetUseFXAA(settings.useFXAA)
+                        if settings.useFXAA:
+                            self.window.SetMultiSamples(settings.multiSamples)
                         arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
 
                     if image_actor:
@@ -695,7 +713,8 @@ class Plotter:
         if len(self.renderers):
             self.renderer = self.renderers[0]
 
-        if "full" in size and not offscreen:  # full screen
+        if self.size[0] == 'f':  # full screen
+            self.size = 'fullscreen'
             self.window.SetFullScreen(True)
             self.window.BordersOn()
         else:
@@ -720,7 +739,9 @@ class Plotter:
             return
             ########################
 
-        if offscreen:
+        if self.offscreen:
+            if self.axes == 4 or self.axes == 5:
+                self.axes = 0 #doesn't work with those
             self.window.SetOffScreenRendering(True)
             self.interactive = False
             self.interactor = None
@@ -768,6 +789,8 @@ class Plotter:
 
             self.allowInteraction = _allowInteraction
 
+        return
+        ####################### ..init ends here.
 
     def __str__(self):
         utils.printInfo(self)
@@ -824,6 +847,7 @@ class Plotter:
                 del self.actors[i]
         if render and hasattr(self, 'interactor') and self.interactor:
             self.interactor.Render()
+
 
     ####################################################
     def load(self, inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
@@ -1143,7 +1167,7 @@ class Plotter:
         """
         return addons.addIcon(icon, pos, size)
 
-    def addAxes(self, axtype=None, c=None):
+    def addGlobalAxes(self, axtype=None, c=None):
         """Draw axes on scene. Available axes types:
 
         :param int axtype:
@@ -1167,7 +1191,7 @@ class Plotter:
             - `xtitle`,            ['x'], x-axis title text.
             - `ytitle`,            ['y'], y-axis title text.
             - `ztitle`,            ['z'], z-axis title text.
-            - `numberOfDivisions`,   [4], number of divisions on the shortest axis
+            - `numberOfDivisions`,   [4], number of divisions on the longest axis
             - `axesLineWidth`,       [1], width of the axes lines
             - `gridLineWidth`,       [1], width of the grid lines
             - `reorientShortTitle`, [True], titles shorter than 3 letters are placed horizontally
@@ -1216,7 +1240,7 @@ class Plotter:
 
         |customAxes| |customAxes.py|_
         """
-        return addons.addAxes(axtype, c)
+        return addons.addGlobalAxes(axtype, c)
 
     def addLegend(self):
         return addons.addLegend()
@@ -1364,17 +1388,14 @@ class Plotter:
                 elif isinstance(a, vtk.vtkImageActor):
                     scannedacts.append(a)
 
+                elif isinstance(a, Volume):
+                    scannedacts.append(a)
+
                 elif isinstance(a, vtk.vtkVolume):
-                    if isinstance(a, Volume):
-                        scannedacts.append(a)
-                    else:
-                        scannedacts.append(Volume(a.GetMapper().GetInput()))
+                    scannedacts.append(Volume(a.GetMapper().GetInput()))
 
                 elif isinstance(a, vtk.vtkImageData):
                     scannedacts.append(Volume(a))
-
-                elif isinstance(a, vtk.vtkPolyData):
-                    scannedacts.append(Mesh(a))
 
                 elif isinstance(a, vtk.vtkBillboardTextActor3D):
                     scannedacts.append(a)
@@ -1382,13 +1403,6 @@ class Plotter:
                 elif isinstance(a, str):  # assume a filepath was given
                     out = vtkio.load(a)
                     scannedacts.append(out)
-
-                elif isinstance(a, vtk.vtkUnstructuredGrid):
-                    scannedacts.append(Mesh(a))
-                elif isinstance(a, vtk.vtkStructuredGrid):
-                    scannedacts.append(Mesh(a))
-                elif isinstance(a, vtk.vtkRectilinearGrid):
-                    scannedacts.append(Mesh(a))
 
                 elif isinstance(a, vtk.vtkMultiBlockDataSet):
                     for i in range(a.GetNumberOfBlocks()):
@@ -1407,15 +1421,11 @@ class Plotter:
                     from vtkplotter.utils import trimesh2vtk
                     scannedacts.append(trimesh2vtk(a))
 
-                elif "meshio" in str(type(a)):
-                    scannedacts.append(Mesh(a))
-
-                elif hasattr(a, "GetOutput"): # passing vtk algorithm
-                    scannedacts.append(Mesh(a))
-
                 else:
-                    colors.printc("~!? Cannot understand input in show():", type(a), c=1)
-                    scannedacts.append(None)
+                    try:
+                        scannedacts.append(Mesh(a))
+                    except:
+                        colors.printc("~!? Cannot understand input in show():", type(a), c=1)
             return scannedacts
 
         if len(actors) == 0:
@@ -1439,7 +1449,9 @@ class Plotter:
             self.axes = axes
 
         #########################################################################
-        if settings.notebookBackend and settings.notebookBackend != "panel":
+        if (settings.notebookBackend
+            and settings.notebookBackend != "panel"
+            and settings.notebookBackend.lower() != "2d"):
             return backends.getNotebookBackend(actors2show, zoom, viewup)
         #########################################################################
 
@@ -1521,7 +1533,7 @@ class Plotter:
                             c = (0.1, 0.1, 0.1)
                         ia.GetTextProperty().SetColor(c)
 
-                if hasattr(ia, 'flagText') and self.interactor:
+                if hasattr(ia, 'flagText') and self.interactor and not self.offscreen:
                     #check balloons
                     if ia.flagText:
                         if not self.flagWidget: # Create widget on the fly
@@ -1555,7 +1567,6 @@ class Plotter:
                     if ia.flagText is False and self.flagWidget:
                         self.flagWidget.RemoveBalloon(ia)
 
-
         # remove the ones that are not in actors2show (and their scalarbar if any)
         for ia in self.getMeshes(at) + self.getVolumes(at):
             if ia not in actors2show:
@@ -1571,7 +1582,7 @@ class Plotter:
 
 
         if self.axes is not None:
-            addons.addAxes()
+            addons.addGlobalAxes()
 
         #########################################################################
         if settings.notebookBackend == "panel":
@@ -1621,6 +1632,8 @@ class Plotter:
                 cm = [(b[1]+b[0])/2, (b[3]+b[2])/2, (b[5]+b[4])/2]
                 sz = np.array([(b[1]-b[0])*0.7, -(b[3]-b[2])*1.0, (b[5]-b[4])*1.2])
                 self.camera.SetPosition(cm+2*sz)
+            elif isinstance(viewup, str) and viewup.lower() == "2d":
+                interactorStyle = 7
 
         if camera is not None:
             cm_pos = camera.pop("pos", None)
@@ -1644,6 +1657,12 @@ class Plotter:
             self.renderer.ResetCameraClippingRange()
 
         self.window.Render() ############################# <----
+
+
+        #########################################################################
+        if settings.notebookBackend == "2d":
+            return backends.getNotebookBackend(0, 0, 0)
+        #########################################################################
 
         if settings.allowInteraction and not self.offscreen:
             self.allowInteraction()
@@ -2181,7 +2200,7 @@ class Plotter:
                     else:
                         self.renderer.RemoveActor(self.axes_instances[clickedr])
                     self.axes_instances[clickedr] = None
-                addons.addAxes(axtype=asso[key], c=None)
+                addons.addGlobalAxes(axtype=asso[key], c=None)
                 self.interactor.Render()
 
         if key == "O":

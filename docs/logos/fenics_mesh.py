@@ -9,12 +9,12 @@ bx = Box([1.35, 0.27, -0.0], 5.8, 1.5, .2).triangle().subdivide(4, method=1).cle
 show(tf, bx)
 
 printc('implicitModeller', mytext, "this takes time")
-imp = implicitModeller(mergeActors(tf, bx), 
+imp = implicitModeller(mergeActors(tf, bx),
                        distance=0.04,
-                       outer=True, 
-#                       res=[50,20,10], 
+                       outer=True,
+#                       res=[50,20,10],
                        res=[110,40,20],
-                       bounds=[-1.0, 10.0, -1.0, 2.0, -.5, .5], 
+                       bounds=[-1.0, 10.0, -1.0, 2.0, -.5, .5],
                        maxdist=0.25,
         )
 

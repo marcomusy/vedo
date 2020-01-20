@@ -284,21 +284,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
         self._mapper.Modified()
         return self
 
-    def getPoints(self, transformed=True, copy=False):
-        """Obsolete, use points() instead."""
-        colors.printc("WARNING: getPoints() is obsolete, use points() instead.", box='=', c=1)
-        return self.points(transformed=transformed, copy=copy)
-
-    def setPoints(self, pts):
-        """Obsolete, use points(pts) instead."""
-        colors.printc("WARNING: setPoints(pts) is obsolete, use points(pts) instead.", box='=', c=1)
-        return self.points(pts)
-
-    def coordinates(self, transformed=True, copy=False):
-        """Obsolete, use points() instead."""
-        colors.printc("WARNING: coordinates() is obsolete, use points() instead.", box='=', c=1)
-        return self.points(transformed=transformed, copy=copy)
-
     def points(self, pts=None, transformed=True, copy=False):
         """
         Set/Get the vertex coordinates of the mesh.
@@ -310,24 +295,34 @@ class Mesh(vtk.vtkFollower, ActorBase):
         :param bool copy: if `False` return the reference to the points
             so that they can be modified in place, otherwise a copy is built.
         """
-        if pts is None: # getter
+        if pts is None: ### getter
+
             poly = self.polydata(transformed)
-            if copy:
-                return np.array(vtk_to_numpy(poly.GetPoints().GetData()))
+            vpts = poly.GetPoints()
+            if vpts:
+                if copy:
+                    return np.array(vtk_to_numpy(vpts.GetData()))
+                else:
+                    return vtk_to_numpy(vpts.GetData())
             else:
-                return vtk_to_numpy(poly.GetPoints().GetData())
+                return np.array([])
 
         elif (utils.isSequence(pts) and not utils.isSequence(pts[0])) or isinstance(pts, (int, np.integer)):
             #passing a list of indices or a single index
             return vtk_to_numpy(self.polydata(transformed).GetPoints().GetData())[pts]
 
-        else: # setter
+        else:           ### setter
+
+            if len(pts) == 3 and len(pts[0]) != 3:
+                # assume plist is in the format [all_x, all_y, all_z]
+                pts = np.stack((pts[0], pts[1], pts[2]), axis=1)
             vpts = self._polydata.GetPoints()
             vpts.SetData(numpy_to_vtk(np.ascontiguousarray(pts), deep=True))
             self._polydata.GetPoints().Modified()
             # reset mesh to identity matrix position/rotation:
             self.PokeMatrix(vtk.vtkMatrix4x4())
             return self
+
 
     def faces(self):
         """Get cell polygonal connectivity ids as a python ``list``.
@@ -356,6 +351,30 @@ class Mesh(vtk.vtkFollower, ActorBase):
             if i >= n:
                 break
         return conn # cannot always make a numpy array of it!
+
+
+    def lines(self):
+        """Get lines connectivity ids as a numpy array."""
+        #Get cell connettivity ids as a 1D array. The vtk format is:
+        #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
+        arr1d = vtk_to_numpy(self.polydata(False).GetLines().GetData())
+        return arr1d
+
+    # obsolete stuff:
+    def getPoints(self, transformed=True, copy=False):
+        """Obsolete, use points() instead."""
+        colors.printc("WARNING: getPoints() is obsolete, use points() instead.", box='=', c=1)
+        return self.points(transformed=transformed, copy=copy)
+
+    def setPoints(self, pts):
+        """Obsolete, use points(pts) instead."""
+        colors.printc("WARNING: setPoints(pts) is obsolete, use points(pts) instead.", box='=', c=1)
+        return self.points(pts)
+
+    def coordinates(self, transformed=True, copy=False):
+        """Obsolete, use points() instead."""
+        colors.printc("WARNING: coordinates() is obsolete, use points() instead.", box='=', c=1)
+        return self.points(transformed=transformed, copy=copy)
 
 
     def addScalarBar(self,
@@ -463,7 +482,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
                     return self
                 if tcoords.shape[1] != 2:
                     colors.printc('Error in texture(): vector must have 2 components', c=1)
-                tarr = numpy_to_vtk(tcoords)
+                tarr = numpy_to_vtk(np.ascontiguousarray(tcoords), deep=True)
                 tarr.SetName('TCoordinates')
                 pd.GetPointData().SetTCoords(tarr)
                 pd.GetPointData().Modified()
@@ -1029,7 +1048,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
     def clone(self, transformed=True):
         """
-        Clone a ``Mesh(vtkActor)`` and make an exact copy of it.
+        Clone a ``Mesh`` object to make an exact copy of it.
 
         :param transformed: if `False` ignore any previous transformation applied to the mesh.
 
@@ -1039,14 +1058,21 @@ class Mesh(vtk.vtkFollower, ActorBase):
         polyCopy = vtk.vtkPolyData()
         polyCopy.DeepCopy(poly)
 
-        cloned = Mesh()
+        cloned = Mesh(polyCopy)
         cloned._polydata = polyCopy
-        cloned._mapper.SetInputData(polyCopy)
-        cloned._mapper.SetScalarVisibility(self._mapper.GetScalarVisibility())
-        cloned._mapper.SetScalarRange(self._mapper.GetScalarRange())
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.GetProperty())
         cloned.SetProperty(pr)
+
+        cloned._mapper.SetScalarVisibility(self._mapper.GetScalarVisibility())
+        cloned._mapper.SetScalarRange(self._mapper.GetScalarRange())
+        cloned._mapper.SetColorMode(self._mapper.GetColorMode())
+        cloned._mapper.SetUseLookupTableScalarRange(self._mapper.GetUseLookupTableScalarRange())
+        cloned._mapper.SetScalarMode(self._mapper.GetScalarMode())
+        lut = self._mapper.GetLookupTable()
+        if lut:
+            cloned._mapper.SetLookupTable(lut)
+
         cloned.base = self.base
         cloned.top = self.top
         if self.trail:
@@ -1260,7 +1286,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         self._update(clipper.GetOutput())
         return self
 
-    def cutWithPlane(self, origin=(0, 0, 0), normal=(1, 0, 0), showcut=False):
+    def cutWithPlane(self, origin=(0, 0, 0), normal=(1, 0, 0), returnCut=False):
         """
         Cut the mesh with the plane defined by a point and a normal.
 
@@ -1295,7 +1321,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         clipper = vtk.vtkClipPolyData()
         clipper.SetInputData(poly)
         clipper.SetClipFunction(plane)
-        if showcut:
+        if returnCut:
             clipper.GenerateClippedOutputOn()
         else:
             clipper.GenerateClippedOutputOff()
@@ -1305,15 +1331,12 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
         self._update(clipper.GetOutput()).computeNormals()
 
-        if showcut:
-            from vtkplotter.assembly import Assembly
+        if returnCut:
             c = self.GetProperty().GetColor()
             cpoly = clipper.GetClippedOutput()
-            restmesh = Mesh(cpoly, c, 0.05).wireframe(True)
+            restmesh = Mesh(cpoly, c, 0.1).wireframe(True)
             restmesh.SetUserMatrix(self.GetMatrix())
-            asse = Assembly([self, restmesh])
-            self = asse
-            return asse
+            return restmesh
         else:
             return self
 
@@ -2131,7 +2154,8 @@ class Mesh(vtk.vtkFollower, ActorBase):
                 vtknormals = self.polydata().GetCellData().GetNormals()
             else:
                 vtknormals = self.polydata().GetPointData().GetNormals()
-
+        if not vtknormals:
+            return np.array([])
         return vtk_to_numpy(vtknormals)
 
     def polydata(self, transformed=True):

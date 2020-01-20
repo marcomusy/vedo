@@ -39,14 +39,14 @@ pip install -U vtkplotter
 *Windows-10 users* can place this file
 [vtkplotter.bat](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter.bat)
 on the desktop to *drag&drop* files to visualize.
-(Need to edit the path of the local Anaconda installation).
+(Need to edit the path of the local python installation).
 
 
 ## 📙 Documentation
 Automatically generated documentation can be found [**here**](https://vtkplotter.embl.es).
 
 
-#### 📌 Need help?
+##### 📌 Need help?
 Have any question, or wish to suggest or ask for a missing feature?
 Do not hesitate to open a [**issue**](https://github.com/marcomusy/vtkplotter-examples/issues)
 or send an [email](mailto:marco.musy@embl.es).
@@ -56,12 +56,13 @@ or send an [email](mailto:marco.musy@embl.es).
 Intuitive and straightforward API which can be combined with VTK seamlessly
 in a program, whilst mantaining access to the full range of VTK native classes.
 
-It includes a [**large set of working examples**](https://github.com/marcomusy/vtkplotter-examples/tree/master/vtkplotter_examples)
-for all the following functionalities:
-
-  - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, Dolfin-XML, Neutral, GMSH, OFF, PCD (PointCloud), volumetric TIFF stacks, DICOM, SLC, MHD, 2D images PNG, JPEG.
-  - Export meshes as ASCII or binary to VTK, STL, OBJ, PLY formats.
-  - Mesh analysis through the built-in methods of VTK. Additional analysis tools like *Moving Least Squares*, mesh morphing and more..
+It includes a **[large set of working examples](https://github.com/marcomusy/vtkplotter-examples/tree/master/vtkplotter_examples)**
+for a wide range of functionalities *(click triangle to expand...)*:
+<details>
+<summary>*working with polygonal meshes and point clouds*</summary>
+  - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, Dolfin-XML, Neutral, GMSH, OFF, PCD (PointCloud),
+  - Export meshes as ASCII or binary to VTK, STL, OBJ, PLY ... formats.
+  - Analysis tools like *Moving Least Squares*, mesh morphing and more..
   - Tools to visualize and edit meshes (cutting a mesh with another mesh, slicing, normalizing, moving vertex positions, etc..).
   - Split mesh based on surface connectivity. Extract the largest connected area.
   - Calculate areas, volumes, center of mass, average sizes etc.
@@ -79,32 +80,53 @@ for all the following functionalities:
   - Generate meshes by joining nearby lines in space.
   - Find the closest path from one point to another, travelling along the edges of a mesh.
   - Find the intersection of a mesh with lines, planes or other meshes.
+  - Interpolate scalar and vectorial fields with *Radial Basis Functions* and *Thin Plate Splines*.
+  - Add sliders and buttons to interact with the scene and the individual objects.
+  - Visualization of tensors.
   - Analysis of *Point Clouds*:
 	 - *Moving Least Squares* smoothing of 2D, 3D and 4D clouds
     - Fit lines, planes, spheres and ellipses in space
     - Identify outliers in a distribution of points
     - Decimate a cloud to a uniform distribution.
-  - Histogramming and function plotting in 1D and 2D.
-  - Interpolate scalar and vectorial fields with *Radial Basis Functions* and *Thin Plate Splines*.
-  - Analysis of volumetric datasets:
-    - Isosurfacing of volumes
-    - Composite and maximum projection volumetric rendering
-    - Generate volumetric signed-distance data from an input surface mesh
-    - Probe a volume with lines and planes
-    - Generate stream-lines and stream-tubes from vectorial fields
-  - Add sliders and buttons to interact with the scene and the individual objects.
-  - Fully customizable axis style.
-  - Visualization of tensors.
-  - Draw `latex`-formatted formulas in the rending window.
-  - Integration with the *Qt5* framework.
-  - Examples using [SHTools](https://shtools.oca.eu/shtools) package for *spherical harmonics* expansion of a mesh shape.
-  - Support for [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of finite-element calculations.
-  - Interoperability with the [trimesh](https://trimsh.org/) library.
-  - Export a 3D scene and embed it into a [web page](https://vtkplotter.embl.es/examples/fenics_elasticity.html).
-  - Embed the 3D rendering in a *jupyter* notebook with [K3D](https://github.com/K3D-tools/K3D-jupyter) (can export an interactive 3D-snapshot page [here](https://vtkplotter.embl.es/examples/K3D_snapshot.html)).
+</details>
+<details>
+<summary>*working with volumetric data*</summary>
+  - Import data from VTK format volumetric TIFF stacks, DICOM, SLC, MHD and more
+  - Import 2D images as PNG, JPEG, BMP
+  - Isosurfacing of volumes
+  - Composite and maximum projection volumetric rendering
+  - Generate volumetric signed-distance data from an input surface mesh
+  - Probe a volume with lines and planes
+  - Generate stream-lines and stream-tubes from vectorial fields
+  - Slice and crop volumes
+  - Support for other volumetric structures (structured and grid data)
+</details>
+<details>
+<summary>*plotting and histogramming*</summary>
+  - Fully customizable axis styles
+  - 'donut' plots and pie charts
+  - Scatter plots in 2D and 3D
+  - Surface function plotting
+  - 1D customizable histograms
+  - 2D hexagonal histograms
+  - Polar plots and histogramming
+  - Draw `latex`-formatted formulas in the rendering window.
+  - Quiver plots
+  - Point markers analogous to `matplotlib`
+
+</details>
 
 
-### ➜ Command Line Interface
+Moreover:
+- Integration with the *Qt5* framework.
+- Examples using [SHTools](https://shtools.oca.eu/shtools) package for *spherical harmonics* expansion of a mesh shape.
+- Support for [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of finite-element calculations.
+- Interoperability with the [trimesh](https://trimsh.org/) library.
+- Export a 3D scene and embed it into a [web page](https://vtkplotter.embl.es/examples/fenics_elasticity.html).
+- Embed the 3D rendering in a *jupyter* notebook with [K3D](https://github.com/K3D-tools/K3D-jupyter) (can export an interactive 3D-snapshot page [here](https://vtkplotter.embl.es/examples/K3D_snapshot.html)).
+
+
+## ⌨ Command Line Interface
 Visualize a mesh from a terminal window with:
 ```bash
 vtkplotter mesh.obj
@@ -112,7 +134,7 @@ vtkplotter mesh.obj
 #                 pcd,xyz,txt,byu,tif,off,slc,vti,mhd,dcm,dem,nrrd,nii,bmp,png,jpg]
 ```
 Voxel-data (_mhd, vti, slc, tiff, dicom etc.._) files can be visualized with options `-g`. E.g.:<br>
-`vtkplotter -g examples/data/embryo.slc`<br>
+`vtkplotter -g embryo.slc`<br>
 
 ![isohead](https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif)
 
@@ -123,7 +145,7 @@ To visualize multiple files or files time-sequences try `-n` or `-s` options. Us
 |`vtkplotter head.vti` |`vtkplotter -s *.vtk` |`vtkplotter `<br>`--slicer embr.slc` |   `vtkplotter --lego embryo.slc`|
 |![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif)|   ![viz_raycast](https://user-images.githubusercontent.com/32848391/58336919-f7b1a080-7e44-11e9-9106-f574371093a8.gif)  | ![viz_slicer](https://user-images.githubusercontent.com/32848391/56972084-a7f3f800-6b6a-11e9-98c4-dc4ffec70a5e.png)  |![lego](https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg) |
 
-### ➜ Graphic User Interface
+### 🖥 Graphic User Interface
 A Graphic User Interface is available (mainly useful to *Windows 10* users):
 
 ![gui](https://user-images.githubusercontent.com/32848391/63259840-c861d280-c27f-11e9-9c2a-99d0fae85313.png)
@@ -135,7 +157,7 @@ pip install -U git+https://github.com/marcomusy/vtkplotter-examples
 vtkplotter --list
 vtkplotter --run tube.py
 ```
-**More than 280 working examples can be found in directories** _(scroll down to see thumbnails):_ <br>
+**More than 300 working examples can be found in directories** _(scroll down to see thumbnails):_ <br>
 [**examples/basic**](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/basic)<br>
 [**examples/advanced**](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/advanced)<br>
 [**examples/volumetric**](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/volumetric)<br>

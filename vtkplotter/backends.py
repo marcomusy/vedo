@@ -4,7 +4,6 @@ import numpy
 import os
 
 import vtkplotter.colors as colors
-from vtkplotter.assembly import Assembly
 from vtkplotter.mesh import Mesh
 from vtkplotter.volume import Volume
 import vtkplotter.settings as settings
@@ -28,57 +27,10 @@ def getNotebookBackend(actors2show, zoom, viewup):
         if sum(vp.shape) != 2:
             colors.printc("Warning: multirendering is not supported in jupyter.", c=1)
 
-#        settings.notebook_plotter = view(actors=actors2show,
-#                                         cmap='jet', ui_collapsed=True,
-#                                         gradient_opacity=False)
+        settings.notebook_plotter = view(actors=actors2show,
+                                         cmap='jet', ui_collapsed=True,
+                                         gradient_opacity=False)
 
-        polys2show = []
-        points2show = []
-        imgs2show = []
-        polycols, polyalphas, pointcols, pointalphas = [],[],[],[]
-
-        for ia in actors2show:
-
-            if isinstance(ia, Assembly): #unpack assemblies
-                acass = ia.getMeshes()
-                for ac in acass:
-                    if ac.polydata().GetNumberOfPolys():
-                        polys2show.append(ac.polydata())
-                        polycols.append(ac.color())
-                        polyalphas.append(ac.alpha())
-                    else:
-                        points2show.append(ac.polydata())
-                        pointcols.append(ac.color())
-                        pointalphas.append(ac.alpha())
-
-            elif isinstance(ia, Mesh):
-                if ia.polydata().GetNumberOfPolys():
-                    polys2show.append(ia.polydata())
-                    polycols.append(ia.color())
-                    polyalphas.append(ia.alpha())
-                else:
-                    points2show.append(ia.polydata())
-                    pointcols.append(ia.color())
-                    pointalphas.append(ia.alpha())
-
-            elif isinstance(ia, Volume):
-                imgs2show.append(ia.imagedata())
-
-        img = None
-        if len(imgs2show):
-            img = imgs2show[0]
-
-        settings.notebook_plotter = view(image=img,
-                                         geometries=polys2show,
-                                         geometry_colors=polycols,
-                                         geometry_opacities=polyalphas,
-                                         point_sets=points2show,
-                                         point_set_colors=pointcols,
-                                         point_set_opacities=pointalphas,
-                                         cmap='jet',
-                                         ui_collapsed=True,
-                                         gradient_opacity=False,
-                                         )
 
     ####################################################################################
     elif settings.notebookBackend == 'k3d':
@@ -263,4 +215,21 @@ def getNotebookBackend(actors2show, zoom, viewup):
         settings.notebook_plotter = panel.pane.VTK(vp.window,
                                                    width=int(vp.size[0]/1.5),
                                                    height=int(vp.size[1]/2))
+
+
+    ####################################################################################
+    elif '2d' in settings.notebookBackend.lower() and hasattr(vp, 'window') and vp.window:
+        import PIL.Image
+        try:
+            import IPython
+        except ImportError:
+            raise Exception('IPython not available.')
+            return
+
+        from vtkplotter.vtkio import screenshot
+        settings.screeshotLargeImage = True
+        nn = screenshot(returnNumpy=True, scale=settings.screeshotScale+2)
+        pil_img = PIL.Image.fromarray(nn)
+        settings.notebook_plotter = IPython.display.display(pil_img)
+
     return settings.notebook_plotter

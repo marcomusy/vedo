@@ -189,10 +189,22 @@ class Volume(vtk.vtkVolume, ActorBase):
         """Set/get the voxels size in the 3 dimensions."""
         if s is not None:
             self._imagedata.SetSpacing(s)
-            self._mapper.Modified()
+            self._update(self._imagedata)
             return self
         else:
             return np.array(self._imagedata.GetSpacing())
+
+    def center(self, center=None):
+        """Set/get the volume coordinates of its center.
+        Position is reset to (0,0,0)."""
+        if center is not None:
+            cn = self._imagedata.GetCenter()
+            self._imagedata.SetOrigin(-np.array(cn)/2)
+            self._update(self._imagedata)
+            self.pos(0,0,0)
+            return self
+        else:
+            return np.array(self._imagedata.GetCenter())
 
     def permuteAxes(self, x, y ,z):
         """Reorder the axes of the Volume by specifying

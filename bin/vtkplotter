@@ -1044,6 +1044,22 @@ else:  #########################################################################
                 scs.append(lb+bn.replace('.py',''))
         printc("".join(scs), c='y', bold=0)
 
+        printc("Simulation examples:", c='m', bold=1, underline=1)
+        scs = []
+        for f,bn in exfiles:
+            if "simulation" in f:
+                lb = ' ' if (len(scs)+1)%nl else '\n'
+                scs.append(lb+bn.replace('.py',''))
+        printc("".join(scs), c='m', bold=0)
+
+        printc("Plotting 2D examples:", c='w', bold=1, underline=1)
+        scs = []
+        for f,bn in exfiles:
+            if "plotting2d" in f:
+                lb = ' ' if (len(scs)+1)%nl else '\n'
+                scs.append(lb+bn.replace('.py',''))
+        printc("".join(scs), c='w', bold=0)
+
         printc("Volumetric examples:", c='b', bold=1, underline=1)
         scs = []
         for f,bn in exfiles:

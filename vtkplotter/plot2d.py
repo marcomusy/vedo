@@ -24,9 +24,12 @@ __all__ = [
     "cornerPlot",
     "cornerHistogram",
     "histogram",
+    "histogram2D",
     "hexHistogram",
     "polarHistogram",
     "polarPlot",
+    "sphericPlot",
+    "quiverPlot",
     "donutPlot",
 ]
 
@@ -49,21 +52,26 @@ def plotxy(
     titleSize=None,
     ec=None,
     lc="k",
+    la=1,
     lw=2,
-    line=True,
+    line=False,
     dashed=False,
     splined=False,
-    marker=None,
+    errorBand=False,
+    marker='.',
     ms=None,
     mc=None,
     ma=None,
 ):
-    """Draw a 2D plot of variable x vs y.
+    """Draw a 2D line plot, or scatter plot, of variable x vs variable y.
 
     :param list data: input format can be [allx, ally] or [(x1,y1), (x2,y2), ...]
 
     :param list xerrors: set uncertainties for the x variable, shown as error bars.
     :param list yerrors: set uncertainties for the y variable, shown as error bars.
+    :param bool errorBand: represent errors on y as a filled error band.
+        Use ``ec`` keyword to modify its color.
+
     :param list xlimits: set limits to the range for the x variable
     :param list ylimits: set limits to the range for the y variable
     :param float xscale: set scaling factor in x. Default is 1.
@@ -80,6 +88,7 @@ def plotxy(
     :param float titleSize: size of title
     :param str ec: color of error bar, by default the same as marker color
     :param str lc: color of line
+    :param float la: transparency of line
     :param float lw: width of line
     :param bool line: join points with line
     :param bool dashed: use a dashed line style
@@ -90,31 +99,54 @@ def plotxy(
     :param float ma: opacity of marker
 
     |plotxy| |plotxy.py|_
+
+    |plot_errband| |plot_errband.py|_
+
+    |scatter2| |scatter2.py|_
+
+    |scatter3| |scatter3.py|_
     """
     if len(data) == 2 and len(data[0])>1 and len(data[0]) == len(data[1]):
         #format is [allx, ally], convert it:
         data = np.c_[data[0], data[1]]
 
+    # crop arrays in x and y
     if xlimits is not None:
-        cdata = []
+        cdata, cxerrors, cyerrors = [], [], []
         x0lim = xlimits[0]
         x1lim = xlimits[1]
-        for d in data:
-            if d[0] > x0lim and d[0] < x1lim:
+        for i,d in enumerate(data):
+            if d[0] >= x0lim and d[0] <= x1lim:
                 cdata.append(d)
+                if xerrors is not None:
+                    cxerrors.append(xerrors[i])
+                if yerrors is not None:
+                    cyerrors.append(yerrors[i])
         data = cdata
+        if xerrors is not None:
+            xerrors = np.array(cxerrors)
+        if yerrors is not None:
+            yerrors = np.array(cyerrors)
         if not len(data):
             colors.printc("Error in plotxy(): no points within xlimits", c=1)
             return None
 
     if ylimits is not None:
-        cdata = []
+        cdata, cxerrors, cyerrors = [], [], []
         y0lim = ylimits[0]
         y1lim = ylimits[1]
-        for d in data:
-            if d[1] > y0lim and d[1] < y1lim:
+        for i,d in enumerate(data):
+            if d[1] >= y0lim and d[1] <= y1lim:
                 cdata.append(d)
+                if xerrors is not None:
+                    cxerrors.append(xerrors[i])
+                if yerrors is not None:
+                    cyerrors.append(yerrors[i])
         data = cdata
+        if xerrors is not None:
+            xerrors = np.array(cxerrors)
+        if yerrors is not None:
+            yerrors = np.array(cyerrors)
         if not len(data):
             colors.printc("Error in plotxy(): no points within ylimits", c=1)
             return None
@@ -145,33 +177,59 @@ def plotxy(
 
     acts = []
     if dashed:
-        l = shapes.DashedLine(data, lw=lw, spacing=20)
+        l = shapes.DashedLine(data, c=lc, alpha=la, lw=lw, spacing=20)
         acts.append(l)
     elif splined:
-        l = shapes.KSpline(data).lw(lw).c(lc)
+        l = shapes.KSpline(data).lw(lw).c(lc).alpha(la)
         acts.append(l)
     elif line:
-        l = shapes.Line(data, lw=lw, c=lc)
+        l = shapes.Line(data, lw=lw, c=lc, alpha=la)
         acts.append(l)
 
+
     if marker:
-        if ms is None:
-            ms = (x1 - x0) / 75.0
+
+        pts = shapes.Points(data)
         if mc is None:
             mc = lc
-        mk = shapes.Marker(marker, s=ms, alpha=ma)
-        pts = shapes.Points(data)
-        marked = shapes.Glyph(pts, glyphObj=mk, c=mc)
+
+        if utils.isSequence(ms): ### variable point size
+            mk = shapes.Marker(marker, s=1)
+            msv = np.zeros_like(pts.points())
+            msv[:,0] = ms
+            marked = shapes.Glyph(pts, glyphObj=mk, c=mc,
+                                  orientationArray=msv, scaleByVectorSize=True)
+
+        else:                    ### fixed point size
+
+            if ms is None:
+                ms = np.sqrt((x1-x0)**2+(y1-y0)**2) / 100.0
+                #print('automatic ms =', ms)
+
+            if utils.isSequence(mc):
+                #print('mc is sequence')
+                mk = shapes.Marker(marker, s=ms)
+                msv = np.zeros_like(pts.points())
+                msv[:,0] = 1
+                marked = shapes.Glyph(pts, glyphObj=mk, c=mc,
+                                      orientationArray=msv, scaleByVectorSize=True)
+            else:
+                #print('mc is fixed color')
+                mk = shapes.Marker(marker, s=ms)
+                marked = shapes.Glyph(pts, glyphObj=mk, c=mc)
+
+        marked.lighting('ambient').alpha(ma)
         acts.append(marked)
+
 
     if ec is None:
         if mc is not None:
             ec = mc
         else:
             ec = lc
-        offs = (x1-x0)/1000
+    offs = (x1-x0)/1000
 
-    if yerrors is not None:
+    if yerrors is not None and not errorBand:
         if len(yerrors) != len(data):
             colors.printc("Error in plotxy(yerrors=...): mismatched array length.", c=1)
             return None
@@ -183,7 +241,7 @@ def plotxy(
         myerrs = merge(errs).c(ec).lw(lw).alpha(alpha)
         acts.append(myerrs)
 
-    if xerrors is not None:
+    if xerrors is not None and not errorBand:
         if len(xerrors) != len(data):
             colors.printc("Error in plotxy(xerrors=...): mismatched array length.", c=1)
             return None
@@ -194,6 +252,21 @@ def plotxy(
             errs.append(shapes.Line((xval-xerr, yval, offs), (xval+xerr, yval, offs)))
         mxerrs = merge(errs).c(ec).lw(lw).alpha(alpha)
         acts.append(mxerrs)
+
+    if errorBand:
+        epsy = np.zeros_like(data)
+        epsy[:,1] = yerrors/2*yscale
+        data3dup = data+epsy
+        data3dup = np.c_[data3dup, np.zeros_like(yerrors)]
+        data3d_down = data-epsy
+        data3d_down = np.c_[data3d_down, np.zeros_like(yerrors)]
+        band = shapes.Ribbon(data3dup, data3d_down).z(-offs)
+        if ec is None:
+            band.c(lc)
+        else:
+            band.c(ec)
+        band.alpha(la)
+        acts.append(band)
 
     x0lim = x0
     x1lim = x1
@@ -345,6 +418,144 @@ def cornerHistogram(
     return plot
 
 
+def fxy(
+    z="sin(3*x)*log(x-y)/3",
+    x=(0, 3),
+    y=(0, 3),
+    zlimits=(None, None),
+    showNan=True,
+    zlevels=10,
+    c="b",
+    bc="aqua",
+    alpha=1,
+    texture="paper",
+    res=(100, 100),
+):
+    """
+    Build a surface representing the function :math:`f(x,y)` specified as a string
+    or as a reference to an external function.
+
+    :param float x: x range of values.
+    :param float y: y range of values.
+    :param float zlimits: limit the z range of the independent variable.
+    :param int zlevels: will draw the specified number of z-levels contour lines.
+    :param bool showNan: show where the function does not exist as red points.
+    :param list res: resolution in x and y.
+
+    |fxy| |fxy.py|_
+
+        Function is: :math:`f(x,y)=\sin(3x) \cdot \log(x-y)/3` in range :math:`x=[0,3], y=[0,3]`.
+    """
+    if isinstance(z, str):
+        try:
+            z = z.replace("math.", "").replace("np.", "")
+            namespace = locals()
+            code = "from math import*\ndef zfunc(x,y): return " + z
+            exec(code, namespace)
+            z = namespace["zfunc"]
+        except:
+            colors.printc("Syntax Error in fxy()", c=1)
+            return None
+
+    ps = vtk.vtkPlaneSource()
+    ps.SetResolution(res[0], res[1])
+    ps.SetNormal([0, 0, 1])
+    ps.Update()
+    poly = ps.GetOutput()
+    dx = x[1] - x[0]
+    dy = y[1] - y[0]
+    todel, nans = [], []
+
+    for i in range(poly.GetNumberOfPoints()):
+        px, py, _ = poly.GetPoint(i)
+        xv = (px + 0.5) * dx + x[0]
+        yv = (py + 0.5) * dy + y[0]
+        try:
+            zv = z(xv, yv)
+        except:
+            zv = 0
+            todel.append(i)
+            nans.append([xv, yv, 0])
+        poly.GetPoints().SetPoint(i, [xv, yv, zv])
+
+    if len(todel):
+        cellIds = vtk.vtkIdList()
+        poly.BuildLinks()
+        for i in todel:
+            poly.GetPointCells(i, cellIds)
+            for j in range(cellIds.GetNumberOfIds()):
+                poly.DeleteCell(cellIds.GetId(j))  # flag cell
+        poly.RemoveDeletedCells()
+        cl = vtk.vtkCleanPolyData()
+        cl.SetInputData(poly)
+        cl.Update()
+        poly = cl.GetOutput()
+
+    if not poly.GetNumberOfPoints():
+        colors.printc("Function is not real in the domain", c=1)
+        return None
+
+    if zlimits[0]:
+        tmpact1 = Mesh(poly)
+        a = tmpact1.cutWithPlane((0, 0, zlimits[0]), (0, 0, 1))
+        poly = a.polydata()
+    if zlimits[1]:
+        tmpact2 = Mesh(poly)
+        a = tmpact2.cutWithPlane((0, 0, zlimits[1]), (0, 0, -1))
+        poly = a.polydata()
+
+    if c is None:
+        elev = vtk.vtkElevationFilter()
+        elev.SetInputData(poly)
+        elev.Update()
+        poly = elev.GetOutput()
+
+    mesh = Mesh(poly, c, alpha).computeNormals().lighting("plastic")
+    if c is None:
+        mesh.getPointArray("Elevation")
+
+    if bc:
+        mesh.bc(bc)
+
+    mesh.texture(texture)
+    #mesh.mapper().SetResolveCoincidentTopologyToPolygonOffset()
+    #mesh.mapper().SetResolveCoincidentTopologyPolygonOffsetParameters(0.1, 0.1)
+
+    acts = [mesh]
+    if zlevels:
+        elevation = vtk.vtkElevationFilter()
+        elevation.SetInputData(poly)
+        bounds = poly.GetBounds()
+        elevation.SetLowPoint(0, 0, bounds[4])
+        elevation.SetHighPoint(0, 0, bounds[5])
+        elevation.Update()
+        bcf = vtk.vtkBandedPolyDataContourFilter()
+        bcf.SetInputData(elevation.GetOutput())
+        bcf.SetScalarModeToValue()
+        bcf.GenerateContourEdgesOn()
+        bcf.GenerateValues(zlevels, elevation.GetScalarRange())
+        bcf.Update()
+        zpoly = bcf.GetContourEdgesOutput()
+        zbandsact = Mesh(zpoly, "k", alpha).lw(2).lighting('ambient')
+        acts.append(zbandsact)
+
+    if showNan and len(todel):
+        bb = mesh.GetBounds()
+        if bb[4] <= 0 and bb[5] >= 0:
+            zm = 0.0
+        else:
+            zm = (bb[4] + bb[5]) / 2
+        nans = np.array(nans) + [0, 0, zm]
+        nansact = shapes.Points(nans, r=2, c="red", alpha=alpha)
+        nansact.GetProperty().RenderPointsAsSpheresOff()
+        acts.append(nansact)
+
+    if len(acts) > 1:
+        return Assembly(acts)
+    else:
+        return mesh
+
+
 def histogram(
     values,
     xtitle="",
@@ -363,7 +574,7 @@ def histogram(
     errors=False,
 ):
     """
-    Build a histogram from a list of values in n bins.
+    Build a 1D histogram from a list of values in n bins.
     The resulting object is an ``Assembly``.
 
     :param int bins: number of bins.
@@ -429,7 +640,59 @@ def histogram(
     if yscale is None:
         yscale = 10 / np.sum(fs) * (maxe - mine)
     asse.scale([1, yscale, 1])
+    asse.base = np.array([0, 0, 0])
+    asse.top = np.array([0, 0, 1])
     return asse
+
+
+def histogram2D(xvalues, yvalues=None,
+    xtitle="",
+    ytitle="",
+    bins=(20, 20),
+    cmap="viridis",
+    alpha=1,
+    lw=0.1,
+    scalarbar=True,
+):
+    """Build a 2D Histogram. Returns a ``Mesh`` object.
+
+    Single input data format [(x1,y1), (x2,y2) ...] is also accepted.
+
+    |histogram2D| |histogram2D.py|_
+    """
+    if xtitle:
+        from vtkplotter import settings
+        settings.xtitle = xtitle
+    if ytitle:
+        from vtkplotter import settings
+        settings.ytitle = ytitle
+
+    if isinstance(xvalues, Mesh):
+        xvalues = xvalues.points()
+
+    if yvalues is None:
+        # assume [(x1,y1), (x2,y2) ...] format
+        yvalues = xvalues[:,1]
+        xvalues = xvalues[:,0]
+
+    xmin, xmax = np.min(xvalues), np.max(xvalues)
+    ymin, ymax = np.min(yvalues), np.max(yvalues)
+    dx, dy = xmax - xmin, ymax - ymin
+
+    xedges = np.linspace(xmin, xmax, num=bins[0]+1, endpoint=True)
+    yedges = np.linspace(ymin, ymax, num=bins[1]+1, endpoint=True)
+    H, xedges, yedges = np.histogram2d(xvalues, yvalues, bins=(xedges, yedges))
+
+    g = shapes.Grid(pos=[(xmin+xmax)/2, (ymin+ymax)/2, 0],
+                    sx=dx, sy=dy, resx=bins[0], resy=bins[1])
+    g.alpha(alpha).lw(lw).wireframe(0)
+    g.cellColors(np.ravel(H.T, order='C'), cmap=cmap)
+    if scalarbar:
+        g.addScalarBar()
+    g.base = np.array([0, 0, 0])
+    g.top = np.array([0, 0, 1])
+    return g
+
 
 
 def hexHistogram(
@@ -457,15 +720,12 @@ def hexHistogram(
     """
     if xtitle:
         from vtkplotter import settings
-
         settings.xtitle = xtitle
     if ytitle:
         from vtkplotter import settings
-
         settings.ytitle = ytitle
     if ztitle:
         from vtkplotter import settings
-
         settings.ztitle = ztitle
 
     xmin, xmax = np.min(xvalues), np.max(xvalues)
@@ -544,6 +804,8 @@ def hexHistogram(
     asse = Assembly(hexs)
     asse.SetScale(1.2 / n * dx, 1 / m * dy, norm / binmax * (dx + dy) / 4)
     asse.SetPosition(xmin, ymin, 0)
+    asse.base = np.array([0, 0, 0])
+    asse.top = np.array([0, 0, 1])
     return asse
 
 
@@ -936,137 +1198,135 @@ def polarPlot(
     return rh
 
 
-def fxy(
-    z="sin(3*x)*log(x-y)/3",
-    x=(0, 3),
-    y=(0, 3),
-    zlimits=(None, None),
-    showNan=True,
-    zlevels=10,
-    c="b",
-    bc="aqua",
-    alpha=1,
-    texture="paper",
-    res=(100, 100),
-):
+def sphericPlot(rfunc, normalize=True, res=25,
+                scalarbar=True, c='grey', alpha=0.1, cmap='jet'):
+    """Surface plotting in spherical coordinates.
+
+    Return an ``Assembly`` of 2 objects, the unit grid
+    sphere (in wireframe representation) and the surface `rho(theta, phi)`.
+
+    :param function rfunc: handle to a user defined function.
+    :param bool normalize: scale surface to fit inside the unit sphere
+    :param int res: grid resolution
+    :param bool scalarbar: add a 3D scalarbar to the plot for radius
+    :param c: color of the unit grid
+    :param alpha: transparency of the unit grid
+    :param str cmap: color map of the surface
+
+    |sphericPlot| |sphericPlot.py|_
     """
-    Build a surface representing the function :math:`f(x,y)` specified as a string
-    or as a reference to an external function.
+    sg = shapes.SphericGrid(res=res)
+    sg.alpha(alpha).c(c).wireframe()
 
-    :param float x: x range of values.
-    :param float y: y range of values.
-    :param float zlimits: limit the z range of the independent variable.
-    :param int zlevels: will draw the specified number of z-levels contour lines.
-    :param bool showNan: show where the function does not exist as red points.
-    :param list res: resolution in x and y.
+    cgpts = sg.points()
+    x, y, z = cgpts[:,0], cgpts[:,1], cgpts[:,2]
+    r, theta, phi = utils.cart2spher(x, y, z)
 
-    |fxy| |fxy.py|_
-
-        Function is: :math:`f(x,y)=\sin(3x) \cdot \log(x-y)/3` in range :math:`x=[0,3], y=[0,3]`.
-    """
-    if isinstance(z, str):
+    newr, inans = [], []
+    for i in range(len(r)):
         try:
-            z = z.replace("math.", "").replace("np.", "")
-            namespace = locals()
-            code = "from math import*\ndef zfunc(x,y): return " + z
-            exec(code, namespace)
-            z = namespace["zfunc"]
+            ri = rfunc(theta[i], phi[i])
+            if np.isnan(ri):
+                inans.append(i)
+                newr.append(1)
+            else:
+                newr.append(ri)
         except:
-            colors.printc("Syntax Error in fxy()", c=1)
-            return None
+            inans.append(i)
+            newr.append(1)
 
-    ps = vtk.vtkPlaneSource()
-    ps.SetResolution(res[0], res[1])
-    ps.SetNormal([0, 0, 1])
-    ps.Update()
-    poly = ps.GetOutput()
-    dx = x[1] - x[0]
-    dy = y[1] - y[0]
-    todel, nans = [], []
+    newr = np.array(newr)
+    if normalize:
+        newr = newr/np.max(newr)
+        newr[inans] = 1
 
-    for i in range(poly.GetNumberOfPoints()):
-        px, py, _ = poly.GetPoint(i)
-        xv = (px + 0.5) * dx + x[0]
-        yv = (py + 0.5) * dy + y[0]
-        try:
-            zv = z(xv, yv)
-        except:
-            zv = 0
-            todel.append(i)
-            nans.append([xv, yv, 0])
-        poly.GetPoints().SetPoint(i, [xv, yv, zv])
+    nanpts = []
+    if len(inans):
+        redpts = utils.spher2cart(newr[inans], theta[inans], phi[inans])
+        nanpts.append(shapes.Points(redpts, r=3, c='r'))
 
-    if len(todel):
-        cellIds = vtk.vtkIdList()
-        poly.BuildLinks()
-        for i in todel:
-            poly.GetPointCells(i, cellIds)
-            for j in range(cellIds.GetNumberOfIds()):
-                poly.DeleteCell(cellIds.GetId(j))  # flag cell
-        poly.RemoveDeletedCells()
-        cl = vtk.vtkCleanPolyData()
-        cl.SetInputData(poly)
-        cl.Update()
-        poly = cl.GetOutput()
+    pts = utils.spher2cart(newr, theta, phi)
 
-    if not poly.GetNumberOfPoints():
-        colors.printc("Function is not real in the domain", c=1)
-        return None
+    ssurf = sg.clone().points(pts)
+    if len(inans):
+        ssurf.deletePoints(inans)
 
-    if zlimits[0]:
-        tmpact1 = Mesh(poly)
-        a = tmpact1.cutWithPlane((0, 0, zlimits[0]), (0, 0, 1))
-        poly = a.polydata()
-    if zlimits[1]:
-        tmpact2 = Mesh(poly)
-        a = tmpact2.cutWithPlane((0, 0, zlimits[1]), (0, 0, -1))
-        poly = a.polydata()
+    ssurf.alpha(1).wireframe(0)
 
-    if c is None:
-        elev = vtk.vtkElevationFilter()
-        elev.SetInputData(poly)
-        elev.Update()
-        poly = elev.GetOutput()
-
-    mesh = Mesh(poly, c, alpha).computeNormals().lighting("plastic")
-    if c is None:
-        mesh.getPointArray("Elevation")
-
-    if bc:
-        mesh.bc(bc)
-
-    mesh.texture(texture)
-
-    acts = [mesh]
-    if zlevels:
-        elevation = vtk.vtkElevationFilter()
-        elevation.SetInputData(poly)
-        bounds = poly.GetBounds()
-        elevation.SetLowPoint(0, 0, bounds[4])
-        elevation.SetHighPoint(0, 0, bounds[5])
-        elevation.Update()
-        bcf = vtk.vtkBandedPolyDataContourFilter()
-        bcf.SetInputData(elevation.GetOutput())
-        bcf.SetScalarModeToValue()
-        bcf.GenerateContourEdgesOn()
-        bcf.GenerateValues(zlevels, elevation.GetScalarRange())
-        bcf.Update()
-        zpoly = bcf.GetContourEdgesOutput()
-        zbandsact = Mesh(zpoly, "k", alpha).lw(0.5)
-        acts.append(zbandsact)
-
-    if showNan and len(todel):
-        bb = mesh.GetBounds()
-        if bb[4] <= 0 and bb[5] >= 0:
-            zm = 0.0
-        else:
-            zm = (bb[4] + bb[5]) / 2
-        nans = np.array(nans) + [0, 0, zm]
-        nansact = shapes.Points(nans, r=2, c="red", alpha=alpha)
-        nansact.GetProperty().RenderPointsAsSpheresOff()
-        acts.append(nansact)
-
-    if len(acts) > 1:
-        return Assembly(acts)
+    if scalarbar:
+        xm = np.max([np.max(pts[0]), 1])
+        ym = np.max([np.abs(np.max(pts[1])), 1])
+        ssurf.mapper().SetScalarRange(np.min(newr), np.max(newr))
+        sb3d = ssurf.addScalarBar3D(cmap=cmap, sx=xm*0.07, sy=ym)
+        sb3d.rotateX(90).pos(xm*1.1, 0, -0.5)
     else:
-        return mesh
+        sb3d = None
+
+    ssurf.pointColors(newr, cmap=cmap)
+    ssurf.computeNormals()
+    sg.pickable(False)
+    return Assembly([ssurf, sg] + nanpts + [sb3d])
+
+
+def quiverPlot(points, vectors,
+               cmap='jet', alpha=1,
+               shaftLength=0.8,
+               shaftWidth=0.05,
+               headLength=0.25,
+               headWidth=0.2,
+               fill=True,
+               scale=1
+               ):
+    """Quiver Plot, display `vectors` at `points` locations.
+
+    Color can be specified as a colormap which maps the size of the arrows.
+
+    :param float shaftLength: fractional shaft length
+    :param float shaftWidth: fractional shaft width
+    :param float headLength: fractional head length
+    :param float headWidth: fractional head width
+    :param bool fill: if False only generate the outline
+
+    :param float scale: apply a rescaling factor to the length
+
+    |quiverPlot| |quiverPlot.py|_
+    """
+    if isinstance(points, Mesh):
+        points = points.points()
+    else:
+        points = np.array(points)
+    vectors = np.array(vectors)/2
+
+    spts = points - vectors
+    epts = points + vectors
+
+    arrs2d = shapes.Arrows2D(spts, epts, c=cmap,
+                             shaftLength=shaftLength,
+                             shaftWidth=shaftWidth,
+                             headLength=headLength,
+                             headWidth=headWidth,
+                             fill=fill,
+                             scale=scale,
+                             alpha=alpha,
+                            )
+    arrs2d.pickable(False)
+    return arrs2d
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

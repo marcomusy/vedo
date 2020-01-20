@@ -379,46 +379,47 @@ def plot(*inputobj, **options):
       - 11, show a large grid on the x-y plane (use with zoom=8)
       - 12, show polar axes.
 
-        Axes type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
+    Axes type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
-            - `xtitle`,            ['x'], x-axis title text.
-            - `ytitle`,            ['y'], y-axis title text.
-            - `ztitle`,            ['z'], z-axis title text.
-            - `numberOfDivisions`, [automatic], number of divisions on the shortest axis
-            - `axesLineWidth`,       [1], width of the axes lines
-            - `gridLineWidth`,       [1], width of the grid lines
-            - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally
-            - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
-            - `enableLastLabel`, [False], show last numeric label on axes
-            - `titleDepth`,          [0], extrusion fractional depth of title text
-            - `xyGrid`,           [True], show a gridded wall on plane xy
-            - `yzGrid`,           [True], show a gridded wall on plane yz
-            - `zxGrid`,           [True], show a gridded wall on plane zx
-            - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
-            - `xyGridTransparent`  [False], make grid plane completely transparent
-            - `xyGrid2Transparent` [False], make grid plane completely transparent on opposite side box
-            - `xyPlaneColor`,   ['gray'], color of the plane
-            - `xyGridColor`,    ['gray'], grid line color
-            - `xyAlpha`,          [0.15], grid plane opacity
-            - `showTicks`,        [True], show major ticks
-            - `xTitlePosition`,   [0.32], title fractional positions along axis
-            - `xTitleOffset`,     [0.05], title fractional offset distance from axis line
-            - `xTitleJustify`, ["top-right"], title justification
-            - `xTitleRotation`,      [0], add a rotation of the axis title
-            - `xLineColor`,  [automatic], color of the x-axis
-            - `xTitleColor`, [automatic], color of the axis title
-            - `xTitleBackfaceColor`, [None],  color of axis title on its backface
-            - `xTitleSize`,      [0.025], size of the axis title
-            - `xHighlightZero`,   [True], draw a line highlighting zero position if in range
-            - `xHighlightZeroColor`, [automatic], color of the line highlighting the zero position
-            - `xTickRadius`,     [0.005], radius of the major ticks
-            - `xTickThickness`, [0.0025], thickness of the major ticks along their axis
-            - `xTickColor`,  [automatic], color of major ticks
-            - `xMinorTicks`,         [1], number of minor ticks between two major ticks
-            - `tipSize`,          [0.01], size of the arrow tip
-            - `xLabelPrecision`,     [2], nr. of significative digits to be shown
-            - `xLabelSize`,      [0.015], size of the numeric labels along axis
-            - `xLabelOffset`,    [0.025], offset of numeric labels
+        - `xtitle`,            ['x'], x-axis title text.
+        - `ytitle`,            ['y'], y-axis title text.
+        - `ztitle`,            ['z'], z-axis title text.
+        - `numberOfDivisions`, [automatic], approximate number of divisions on the longest axis
+        - `axesLineWidth`,       [1], width of the axes lines
+        - `gridLineWidth`,       [1], width of the grid lines
+        - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally
+        - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
+        - `titleDepth`,          [0], extrusion fractional depth of title text
+        - `xyGrid`,           [True], show a gridded wall on plane xy
+        - `yzGrid`,           [True], show a gridded wall on plane yz
+        - `zxGrid`,           [True], show a gridded wall on plane zx
+        - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
+        - `xyGridTransparent`  [False], make grid plane completely transparent
+        - `xyGrid2Transparent` [False], make grid plane completely transparent on opposite side box
+        - `xyPlaneColor`,   ['gray'], color of the plane
+        - `xyGridColor`,    ['gray'], grid line color
+        - `xyAlpha`,          [0.15], grid plane opacity
+        - `showTicks`,        [True], show major ticks
+        - `xTitlePosition`,   [0.32], title fractional positions along axis
+        - `xTitleOffset`,     [0.05], title fractional offset distance from axis line
+        - `xTitleJustify`, ["top-right"], title justification
+        - `xTitleRotation`,      [0], add a rotation of the axis title
+        - `xLineColor`,  [automatic], color of the x-axis
+        - `xTitleColor`, [automatic], color of the axis title
+        - `xTitleBackfaceColor`, [None],  color of axis title on its backface
+        - `xTitleSize`,      [0.025], size of the axis title
+        - `xHighlightZero`,   [True], draw a line highlighting zero position if in range
+        - `xHighlightZeroColor`, [automatic], color of the line highlighting the zero position
+        - `xTickRadius`,     [0.005], radius of the major ticks
+        - `xTickThickness`, [0.0025], thickness of the major ticks along their axis
+        - `xTickColor`,  [automatic], color of major ticks
+        - `xMinorTicks`,         [1], number of minor ticks between two major ticks
+        - `tipSize`,          [0.01], size of the arrow tip
+        - `xPositionsAndLabels`   [], assign custom tick positions and labels [(pos1, label1), ...]
+        - `xLabelPrecision`,     [2], nr. of significative digits to be shown
+        - `xLabelSize`,      [0.015], size of the numeric labels along axis
+        - `xLabelOffset`,    [0.025], offset of numeric labels
+        - `limitRatio`,       [0.04], below this ratio don't plot small axis
 
     :param bool infinity: if True fugue point is set at infinity (no perspective effects)
     :param bool sharecam: if False each renderer will have an independent vtkCamera
@@ -831,7 +832,7 @@ class MeshActor(Mesh):
         movedpts = coords + deltas
         if movedpts.shape[1] == 2: #2d
             movedpts = np.c_[movedpts, np.zeros(movedpts.shape[0])]
-        self.polydata(False).GetPoints().SetData(numpy_to_vtk(movedpts))
+        self.polydata(False).GetPoints().SetData(numpy_to_vtk(np.ascontiguousarray(movedpts)))
         self._polydata.GetPoints().Modified()
 
 

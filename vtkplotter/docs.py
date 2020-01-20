@@ -349,7 +349,7 @@ _defs = """
 
 .. |histoHexagonal.py| replace:: histoHexagonal.py
 .. _histoHexagonal.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/plotting2d/histoHexagonal.py
-.. |histoHexagonal| image:: https://user-images.githubusercontent.com/32848391/50738861-bfccf800-11d8-11e9-9698-c0b9dccdba4d.jpg
+.. |histoHexagonal| image:: https://user-images.githubusercontent.com/32848391/72434748-b471bc80-379c-11ea-95d7-d70333770582.png
     :width: 250 px
     :target: histoHexagonal.py_
     :alt: histoHexagonal.py
@@ -375,12 +375,12 @@ _defs = """
     :target: pca.py_
     :alt: pca.py
 
-.. |cell_main.py| replace:: cell_main.py
-.. _cell_main.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations/cell_main.py
-.. |cell_main| image:: https://user-images.githubusercontent.com/32848391/50738947-7335ec80-11d9-11e9-9a45-6053b4eaf9f9.jpg
+.. |cell_colony.py| replace:: cell_colony.py
+.. _cell_colony.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations/cell_colony.py
+.. |cell_colony| image:: https://user-images.githubusercontent.com/32848391/50738947-7335ec80-11d9-11e9-9a45-6053b4eaf9f9.jpg
     :width: 250 px
-    :target: cell_main.py_
-    :alt: cell_main.py
+    :target: cell_colony.py_
+    :alt: cell_colony.py
 
 .. |mesh_smoothers.py| replace:: mesh_smoothers.py
 .. _mesh_smoothers.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/advanced/mesh_smoothers.py
@@ -889,8 +889,8 @@ _defs = """
 
 .. |isolines.py| replace:: isolines.py
 .. _isolines.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/basic/isolines.py
-.. |isolines| image:: https://user-images.githubusercontent.com/32848391/56752570-de0b3380-6788-11e9-8679-6697c6fa7e5a.png
-    :width: 250 px
+.. |isolines| image:: https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png
+    :width: 350 px
     :target: isolines.py_
     :alt: isolines.py
 
@@ -1194,6 +1194,13 @@ _defs = """
 .. |warpto| image:: https://user-images.githubusercontent.com/32848391/69259878-3c817e80-0bbf-11ea-9025-03b9f6affccc.png
     :width: 350 px
 
+.. |linInterpolate.py| replace:: linInterpolate.py
+.. _linInterpolate.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/basic/linInterpolate.py
+.. |linInterpolate| image:: https://user-images.githubusercontent.com/32848391/70559826-a621f680-1b87-11ea-89f3-e6b74d8953d9.png
+    :width: 350 px
+    :target: linInterpolate.py_
+    :alt: linInterpolate.py
+
 .. |plotxy.py| replace:: plotxy.py
 .. _plotxy.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/plotting2d/plotxy.py
 .. |plotxy| image:: https://user-images.githubusercontent.com/32848391/69158509-d6c1c380-0ae6-11ea-9dbf-ff5cd396a9a6.png
@@ -1201,12 +1208,57 @@ _defs = """
     :target: plotxy.py_
     :alt: plotxy.py
 
-.. |linInterpolate.py| replace:: linInterpolate.py
-.. _linInterpolate.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/basic/linInterpolate.py
-.. |linInterpolate| image:: https://user-images.githubusercontent.com/32848391/70559826-a621f680-1b87-11ea-89f3-e6b74d8953d9.png
+.. |quiverPlot.py| replace:: quiverPlot.py
+.. _quiverPlot.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/plotting2d/quiverPlot.py
+.. |quiverPlot| image::  https://user-images.githubusercontent.com/32848391/72261438-199aa600-3615-11ea-870e-e44ca4c4b8d3.png
+    :width: 250 px
+    :target: quiverPlot.py_
+    :alt: quiverPlot.py
+
+.. |sphericPlot.py| replace:: sphericPlot.py
+.. _sphericPlot.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/plotting2d/sphericPlot.py
+.. |sphericPlot| image:: https://user-images.githubusercontent.com/32848391/72433091-f0a31e00-3798-11ea-86bd-6c522e23ec61.png
     :width: 350 px
-    :target: linInterpolate.py_
-    :alt: linInterpolate.py
+    :target: sphericPlot.py_
+    :alt: sphericPlot.py
+
+.. |sphericgrid| image:: https://user-images.githubusercontent.com/32848391/72433092-f0a31e00-3798-11ea-85f7-b2f5fcc31568.png
+    :width: 250 px
+
+.. |histogram2D.py| replace:: histogram2D.py
+.. _histogram2D.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/plotting2d/histogram2D.py
+.. |histogram2D| image:: https://user-images.githubusercontent.com/32848391/72452359-b5671600-37bd-11ea-8b1d-c44d884496ed.png
+    :width: 350 px
+    :target: histogram2D.py_
+    :alt: histogram2D.py
+
+.. |plot_errband.py| replace:: plot_errband.py
+.. _plot_errband.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/plotting2d/plot_errband.py
+.. |plot_errband| image:: https://user-images.githubusercontent.com/32848391/72461569-970a1600-37cf-11ea-8060-a8a6cf657b95.png
+    :width: 350 px
+    :target: plot_errband.py_
+    :alt: plot_errband.py
+
+.. |scatter2.py| replace:: scatter2.py
+.. _scatter2.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/plotting2d/scatter2.py
+.. |scatter2| image:: https://user-images.githubusercontent.com/32848391/72615028-013bcb80-3934-11ea-8ab8-823f1916bc6c.png
+    :width: 350 px
+    :target: scatter2.py_
+    :alt: scatter2.py
+
+.. |scatter3.py| replace:: scatter3.py
+.. _scatter3.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/plotting2d/scatter3.py
+.. |scatter3| image:: https://user-images.githubusercontent.com/32848391/72446102-2d7c0e80-37b3-11ea-8fe4-b27526af574f.png
+    :width: 350 px
+    :target: scatter3.py_
+    :alt: scatter3.py
+
+.. |customIndividualAxes.py| replace:: customIndividualAxes.py
+.. _customIndividualAxes.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/plotting2d/customIndividualAxes.py
+.. |customIndividualAxes| image:: https://user-images.githubusercontent.com/32848391/72752870-ab7d5280-3bc3-11ea-8911-9ace00211e23.png
+    :width: 350 px
+    :target: customIndividualAxes.py_
+    :alt: customIndividualAxes.py
 
 
 """

@@ -52,13 +52,13 @@ class Assembly(vtk.vtkAssembly, ActorBase):
             self.AddPart(meshs)
         return self
 
-    
+
     def getActors(self):
         """Obsolete, use getMeshes() instead."""
         print("WARNING: getActors() is obsolete, use getMeshes() instead.")
         return self.getMeshes()
 
-        
+
     def getMeshes(self):
         """Unpack the list of ``Mesh`` objects from a ``Assembly``."""
         return self.actors

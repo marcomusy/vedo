@@ -36,8 +36,8 @@ setup(
                 'Programming Language :: Python :: 2.7',
                 'Programming Language :: Python :: 3.5',
                 'Programming Language :: Python :: 3.6',
-                'Programming Language :: Python :: 3.7'
-                'Programming Language :: Python :: 3.8'
+                'Programming Language :: Python :: 3.7',
+                'Programming Language :: Python :: 3.8',
                 ],
     include_package_data=True
 )
@@ -56,10 +56,14 @@ setup(
 
 # cd ~/Projects/vtkplotter-examples/vtkplotter_examples
 # ./run_all.sh
+# cd ~/Projects/vtkplotter/
 # python prove/test_filetypes.py
 
+# cd ~/Projects/vtkplotter/tests/common
+# ./run_all.sh
+
 # check vtkconvert:
-# vtkconvert data/290.vtk -to ply; vtkplotter data/290.ply
+# vtkplotter-convert data/290.vtk -to ply; vtkplotter data/290.ply
 
 # check on python2 the same stuff is ok
 # cd ~/Projects/vtkplotter/
@@ -119,7 +123,7 @@ setup(
 #    git clone https://github.com/marcomusy/vtkplotter.git
 #    cd vtkplotter
 #    pip3 -v install . --user
-#    
+#
 #    cd
 #    pip3 install git+https://github.com/FEniCS/fiat.git --upgrade
 #    pip3 install git+https://github.com/FEniCS/ufl.git  --upgrade

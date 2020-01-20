@@ -1,3 +1,22 @@
+2020/01/20
+- added shapes Arrow2D and Arrows2D, SphericGrid, CubicGrid
+- completely revised customizable axes=1 type
+  - axes can be created for each object independently
+- quiver plots, scatter plots, error bands plots
+- plotting in spherical coordinates
+- '2d' backend to plot static images in notebooks.
+Available backends:
+```python
+from vtkplotter import *
+# embedWindow('2d')
+# embedWindow('k3d')
+# embedWindow('itk')
+# embedWindow('panel')
+# embedWindow(False)
+```
+- Added wavefront format .OBJ writer
+
+
 2020/01/08
 - added type axes=11 (horizontal grid)
 - fix bug by @m-albert on Volume from numpy object
@@ -14,6 +33,7 @@
 - Actor() becomes Mesh()
 - added advanced/centerline.py examples
 - bump version to 2020.0.1
+
 
 2019/11/19
 - added PDV paraview file reading.

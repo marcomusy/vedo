@@ -41,9 +41,10 @@ __all__ = [
 
 def load(inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
     """
-    Load ``Mesh`` and ``Volume`` objects from file.
+    Load ``Mesh``, ``Volume`` and ``Picture`` objects from file.
 
     The output will depend on the file extension. See examples below.
+    Unzip on the fly, if it ends with `.gz`.
 
     :param c: color in RGB format, hex, symbol or name
     :param alpha: transparency/opacity of the polygonal data.
@@ -96,6 +97,9 @@ def load(inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
     for fod in flist:
 
         if os.path.isfile(fod): ### it's a file
+
+            if fod.endswith('.gz'):
+                fod = gunzip(fod)
 
             a = _load_file(fod, c, alpha, threshold, spacing, unpack)
             acts.append(a)
@@ -213,11 +217,12 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
             for i in range(mb.GetNumberOfBlocks()):
                 b =  mb.GetBlock(i)
                 if isinstance(b, (vtk.vtkPolyData,
-                                  vtk.vtkImageData,
                                   vtk.vtkUnstructuredGrid,
                                   vtk.vtkStructuredGrid,
                                   vtk.vtkRectilinearGrid)):
-                    acts.append(b)
+                    acts.append(Mesh(b, c=c, alpha=alpha))
+                if isinstance(b, vtk.vtkImageData):
+                    acts.append(Volume(b))
             return acts
         else:
             return mb
@@ -973,9 +978,9 @@ def write(objct, fileoutput, binary=True):
         obj = objct
 
     fr = fileoutput.lower()
-    if   ".vtk" in fr:
+    if   fr.endswith(".vtk"):
         writer = vtk.vtkPolyDataWriter()
-    elif ".ply" in fr:
+    elif fr.endswith(".ply"):
         writer = vtk.vtkPLYWriter()
         pscal = obj.GetPointData().GetScalars()
         if not pscal:
@@ -986,15 +991,17 @@ def write(objct, fileoutput, binary=True):
         lut = objct.GetMapper().GetLookupTable()
         if lut:
             writer.SetLookupTable(lut)
-    elif ".stl" in fr:
+    elif fr.endswith(".stl"):
         writer = vtk.vtkSTLWriter()
-    elif ".obj" in fr:
-        writer = vtk.vtkOBJWriter()
-    elif ".vtp" in fr:
+    elif fr.endswith(".vtp"):
         writer = vtk.vtkXMLPolyDataWriter()
-    elif ".vtm" in fr:
+    elif fr.endswith(".vtm"):
         g = vtk.vtkMultiBlockDataGroupFilter()
         for ob in objct:
+            if isinstance(ob, Mesh): # picks transformation
+                ob = ob.polydata(True)
+            elif isinstance(ob, (vtk.vtkActor, vtk.vtkVolume)):
+                ob = ob.GetMapper().GetInput()
             g.AddInputData(ob)
         g.Update()
         mb = g.GetOutputDataObject(0)
@@ -1003,26 +1010,26 @@ def write(objct, fileoutput, binary=True):
         wri.SetFileName(fileoutput)
         wri.Write()
         return mb
-    elif ".xyz" in fr:
+    elif fr.endswith(".xyz"):
         writer = vtk.vtkSimplePointsWriter()
-    elif ".facet" in fr:
+    elif fr.endswith(".facet"):
         writer = vtk.vtkFacetWriter()
-    elif ".tif" in fr:
+    elif fr.endswith(".tif"):
         writer = vtk.vtkTIFFWriter()
         writer.SetFileDimensionality(len(obj.GetDimensions()))
-    elif ".vti" in fr:
+    elif fr.endswith(".vti"):
         writer = vtk.vtkXMLImageDataWriter()
-    elif ".mhd" in fr:
+    elif fr.endswith(".mhd"):
         writer = vtk.vtkMetaImageWriter()
-    elif ".nii" in fr:
+    elif fr.endswith(".nii"):
         writer = vtk.vtkNIFTIImageWriter()
-    elif ".png" in fr:
+    elif fr.endswith(".png"):
         writer = vtk.vtkPNGWriter()
-    elif ".jpg" in fr:
+    elif fr.endswith(".jpg"):
         writer = vtk.vtkJPEGWriter()
-    elif ".bmp" in fr:
+    elif fr.endswith(".bmp"):
         writer = vtk.vtkBMPWriter()
-    elif ".npy" in fr:
+    elif fr.endswith(".npy"):
         if utils.isSequence(objct):
             objslist = objct
         else:
@@ -1033,7 +1040,52 @@ def write(objct, fileoutput, binary=True):
         np.save(fileoutput, dicts2save)
         return dicts2save
 
-    elif ".xml" in fr:  # write tetrahedral dolfin xml
+    elif fr.endswith(".obj"):
+        outF = open(fileoutput, "w")
+        outF.write('# OBJ file format with ext .obj\n')
+        outF.write('# File Created by vtkplotter\n')
+        cobjct = objct.clone().clean()
+
+        for p in cobjct.points():
+            outF.write('v '+ str(p[0]) +" "+ str(p[1])+" "+ str(p[2])+'\n')
+
+        for vn in cobjct.normals(cells=False):
+            outF.write('vn '+str(vn[0])+" "+str(vn[1])+" "+str(vn[2])+'\n')
+
+        #pdata = cobjct.polydata().GetPointData().GetScalars()
+        #if pdata:
+        #    ndata = vtk_to_numpy(pdata)
+        #    for vd in ndata:
+        #        outF.write('vp '+ str(vd) +'\n')
+
+        #ptxt = cobjct.polydata().GetPointData().GetTCoords() # not working
+        #if ptxt:
+        #    ntxt = vtk_to_numpy(ptxt)
+        #    print(len(cobjct.faces()), cobjct.points().shape, ntxt.shape)
+        #    for vt in ntxt:
+        #        outF.write('vt '+ str(vt[0]) +" "+ str(vt[1])+ ' 0\n')
+
+        for f in cobjct.faces():
+            fs = ''
+            for fi in f:
+                fs += " "+str(fi+1)
+            outF.write('f' + fs + '\n')
+
+        #ldata = cobjct.polydata().GetLines().GetData()
+        #print(cobjct.polydata().GetLines())
+        #if ldata:
+        #    ndata = vtk_to_numpy(ldata)
+        #    print(ndata)
+        #    for l in ndata:
+        #        ls = ''
+        #        for li in l:
+        #            ls += str(li+1)+" "
+        #        outF.write('l '+ ls + '\n')
+
+        outF.close()
+        return objct
+
+    elif fr.endswith(".xml"):  # write tetrahedral dolfin xml
         vertices = objct.points().astype(str)
         faces = np.array(objct.faces()).astype(str)
         ncoords = vertices.shape[0]
@@ -1087,7 +1139,6 @@ def write(objct, fileoutput, binary=True):
         writer.SetInputData(obj)
         writer.SetFileName(fileoutput)
         writer.Write()
-        colors.printc("~save Saved file: " + fileoutput, c="g")
     except Exception as e:
         colors.printc("~noentry Error saving: " + fileoutput, "\n", e, c="r")
     return objct
@@ -1123,13 +1174,19 @@ def exportWindow(fileoutput, binary=False, speed=None, html=True):
     '''
     fr = fileoutput.lower()
 
-    if ".obj" in fr:
+    if fr.endswith(".obj"):
         w = vtk.vtkOBJExporter()
         w.SetInputData(settings.plotter_instance.window)
         w.Update()
         colors.printc("~save Saved file:", fileoutput, c="g")
 
-    elif ".x3d" in fr:
+    elif fr.endswith(".obj"):
+        writer = vtk.vtkOBJWriter()
+        writer.SetInputData(obj)
+        writer.SetFileName(fileoutput)
+        writer.Write()
+
+    elif fr.endswith(".x3d"):
         exporter = vtk.vtkX3DExporter()
         exporter.SetBinary(binary)
         exporter.FastestOff()
@@ -1156,7 +1213,7 @@ def exportWindow(fileoutput, binary=False, speed=None, html=True):
         outF.close()
         colors.printc("~save Saved files:", fileoutput,
                       fileoutput.replace('.x3d', '.html'), c="g")
-    elif ".npy" in fr:
+    elif fr.endswith(".npy"):
         sdict = dict()
         vp = settings.plotter_instance
         sdict['shape'] = vp.shape #todo
@@ -1274,13 +1331,17 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
 
 
 ##########################################################
-def screenshot(filename="screenshot.png", scale=None):
+def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
     """
     Save a screenshot of the current rendering window.
+
+    :param int scale: set image magnification
+    :param bool returnNumpy: return a numpy array of the image
     """
     if not settings.plotter_instance or not settings.plotter_instance.window:
         colors.printc('~bomb screenshot(): Rendering window is not present, skip.', c=1)
         return
+
     if scale is None:
         scale = settings.screeshotScale
 
@@ -1296,6 +1357,15 @@ def screenshot(filename="screenshot.png", scale=None):
             w2if.SetInputBufferTypeToRGBA()
         w2if.ReadFrontBufferOff()  # read from the back buffer
     w2if.Update()
+
+    if returnNumpy:
+        w2ifout = w2if.GetOutput()
+        npdata = vtk_to_numpy(w2ifout.GetPointData().GetArray("ImageScalars"))
+        npdata = npdata[:,[0,1,2]]
+        ydim, xdim, _ = w2ifout.GetDimensions()
+        npdata = npdata.reshape([xdim, ydim, -1])
+        npdata = np.flip(npdata, axis=0)
+        return npdata
 
     if filename.endswith('.png'):
         writer = vtk.vtkPNGWriter()

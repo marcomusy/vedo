@@ -85,7 +85,7 @@ solver.parameters["linear_solver"] = "lu"
 solver.parameters["convergence_criterion"] = "incremental"
 solver.parameters["relative_tolerance"] = 1e-6
 
-# Step in time   
+# Step in time
 t = 0
 T = 10*dt
 scalarbar = False
@@ -108,7 +108,7 @@ while t < T:
          lighting='plastic',
          offscreen=1)
     break
-    
+
 
 #################################################################################
 actor = settings.plotter_instance.actors[0]

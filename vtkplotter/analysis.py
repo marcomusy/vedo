@@ -89,7 +89,7 @@ def delaunay2D(plist, mode='xy', tol=None):
     """
     pd = vtk.vtkPolyData()
     vpts = vtk.vtkPoints()
-    vpts.SetData(numpy_to_vtk(plist, deep=True))
+    vpts.SetData(numpy_to_vtk(np.ascontiguousarray(plist), deep=True))
     pd.SetPoints(vpts)
     delny = vtk.vtkDelaunay2D()
     delny.SetInputData(pd)
@@ -442,9 +442,9 @@ def pcaEllipsoid(points, pvalue=0.95, pcaAxes=False):
     ``mesh.info['va']``, ``mesh.info['vb']``, ``mesh.info['vc']``
     (sphericity is equal to 0 for a perfect sphere).
 
-    .. hint:: Examples: |pca.py|_  |cell_main.py|_
+    .. hint:: Examples: |pca.py|_  |cell_colony.py|_
 
-         |pca| |cell_main|
+         |pca| |cell_colony|
     """
     try:
         from scipy.stats import f
@@ -505,6 +505,7 @@ def pcaEllipsoid(points, pvalue=0.95, pcaAxes=False):
     finact.info["va"] = ua
     finact.info["vb"] = ub
     finact.info["vc"] = uc
+    finact.name = "pcaEllipsoid"
     return finact
 
 

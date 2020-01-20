@@ -216,6 +216,8 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True):
     one by one. This is the fallback case when a mesh contains faces of
     different number of vertices.
     """
+#    if not len(vertices):
+#        return None
 
     if len(vertices[0]) < 3: # make sure it is 3d
         vertices = np.c_[np.array(vertices), np.zeros(len(vertices))]
@@ -232,7 +234,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True):
         # Create a cell array to store the lines in and add the lines to it
         linesarr = vtk.vtkCellArray()
 
-        for i in range(1, len(lines)-1):
+        for i in range(0, len(lines)-1):
             vline = vtk.vtkLine()
             vline.GetPointIds().SetId(0,lines[i])
             vline.GetPointIds().SetId(1,lines[i+1])
@@ -404,7 +406,7 @@ def findDistanceToLines2D(P0,P1, pts):
 def linInterpolate(x, rangeX, rangeY):
     """
     Interpolate linearly variable x in rangeX onto rangeY.
-    If x is a vector the linear weight is the distance to two the rangeX vectors.
+    If x is a 3D vector the linear weight is the distance to the two 3D rangeX vectors.
 
     E.g. if x runs in rangeX=[x0,x1] and I want it to run in rangeY=[y0,y1] then
     y = linInterpolate(x, rangeX, rangeY) will interpolate x onto rangeY.
@@ -635,8 +637,8 @@ def cart2spher(x, y, z):
     """Cartesian to Spherical coordinate conversion."""
     hxy = np.hypot(x, y)
     rho = np.hypot(hxy, z)
-    if not rho:
-        return np.array([0,0,0])
+    #if not rho:
+    #    return np.array([0,0,0])
     theta = np.arctan2(hxy, z)
     phi = np.arctan2(y, x)
     return rho, theta, phi

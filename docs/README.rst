@@ -20,13 +20,13 @@
 .. image:: https://img.shields.io/badge/docs%20by-gendocs-blue.svg
    :target: https://gendocs.readthedocs.io/en/latest/
    :alt: Documentation Built by gendocs
-   
+
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.2561402.svg
    :target: https://doi.org/10.5281/zenodo.2561402
-   
+
 ---------------------
 
-A lightweight python module for scientific visualization, analysis and animation of 3D objects 
+A lightweight python module for scientific visualization, analysis and animation of 3D objects
 and `point clouds` based on `VTK <https://www.vtk.org/>`_
 and `numpy <http://www.numpy.org/>`_.
 
@@ -52,18 +52,18 @@ Check out the **Git repository** here: https://github.com/marcomusy/vtkplotter-e
 
 *Windows-10 users* can manually place this file
 `vtkplotter.bat <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter.bat>`_
-on the desktop to *drag&drop* files to visualize. 
+on the desktop to *drag&drop* files to visualize.
 (Need to edit the path of their local Anaconda installation).
 
 
 Features:
 ---------
 
-Intuitive and straightforward API which can be combined with VTK seamlessly 
+Intuitive and straightforward API which can be combined with VTK seamlessly
 in a program, whilst mantaining access to the full range of VTK native classes.
 
-It includes a 
-`large set of working examples <https://github.com/marcomusy/vtkplotter-examples/tree/master/vtkplotter_examples>`_ 
+It includes a
+`large set of working examples <https://github.com/marcomusy/vtkplotter-examples/tree/master/vtkplotter_examples>`_
 for the all following functionalities:
 
 - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, XML, Neutral, GMSH, PCD (PointCloud), volumetric TIFF stacks, SLC, MHD, 2D images PNG, JPEG.
@@ -76,7 +76,7 @@ for the all following functionalities:
 - Subdivide faces of a mesh, increasing the number of vertex points. Mesh simplification.
 - Coloring and thresholding of meshes based on associated scalar or vectorial data.
 - Point-surface operations: find nearest points, check if a point lies inside or outside a mesh.
-- Create primitive objects like: spheres, arrows, cubes, torus, ellipsoids... 
+- Create primitive objects like: spheres, arrows, cubes, torus, ellipsoids...
 - Generate *glyphs* (associating a mesh to each vertex of a source mesh).
 - Create animations easily by just defining the position of the displayed objects in the 3D scene. Add trailing lines to moving objects automatically.
 - Straightforward support for multiple `sync-ed` or independent renderers in  the same window.
@@ -87,7 +87,7 @@ for the all following functionalities:
 - Find the closest path from one point to another, travelling along the edges of a mesh.
 - Find the intersection of a mesh with a line (or with another mesh).
 - Analysis of `Point Clouds`:
-    
+
     - `Moving Least Squares` smoothing of 2D, 3D and 4D clouds
     - Fit lines, planes and spheres in space
     - Perform PCA (Principal Component Analysis) on point coordinates
@@ -122,14 +122,14 @@ In your python script, load a simple ``3DS`` file and display it:
 .. code-block:: python
 
     from vtkplotter import show
-    
-    show('flamingo.3ds') 
+
+    show('flamingo.3ds')
 
 .. image:: https://user-images.githubusercontent.com/32848391/50738813-58af4380-11d8-11e9-84ce-53579c1dba65.png
    :alt: flam
 
 Allowed input objects to the ``show()`` command are: \ :raw-html-m2r:`<br>`
-``filename``, ``vtkPolyData``, ``vtkActor``, 
+``filename``, ``vtkPolyData``, ``vtkActor``,
 ``vtkActor2D``, ``vtkImageActor``, ``vtkAssembly`` or ``vtkVolume``.
 
 
@@ -167,7 +167,7 @@ Load and browse a sequence of meshes:
 
 .. code-block:: bash
 
-    vtkplotter -s examples/data/timecourse1d/*.vtk   
+    vtkplotter -s examples/data/timecourse1d/*.vtk
 
 .. image:: https://user-images.githubusercontent.com/32848391/58336919-f7b1a080-7e44-11e9-9106-f574371093a8.gif
 
@@ -203,7 +203,7 @@ More than 280 examples can be found in directories:
 
 
 Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a
-large cloud of scattered points in space 
+large cloud of scattered points in space
 (`moving_least_squares2D.py <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/advanced/moving_least_squares2D.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg
@@ -211,7 +211,7 @@ large cloud of scattered points in space
    :alt: rabbit
 
 
-Simulation of a gyroscope hanging from a spring 
+Simulation of a gyroscope hanging from a spring
 (`gyroscope1.py <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations/gyroscope1.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif
@@ -219,7 +219,7 @@ Simulation of a gyroscope hanging from a spring
    :alt: gyro
 
 
-Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. 
+Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method.
 The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier
 (`tunnelling2.py <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations/tunnelling2.py>`_):
 
@@ -238,7 +238,7 @@ Visualizing a Turing system of reaction-diffusion between two molecules
 
 
 
-Support for the `FEniCS/dolfin <https://fenicsproject.org/>`_ platform for visualization of PDE and 
+Support for the `FEniCS/dolfin <https://fenicsproject.org/>`_ platform for visualization of PDE and
 finite element solutions
 (`see here <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/dolfin>`_.
 
@@ -249,13 +249,11 @@ finite element solutions
 Mesh format conversion
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The command ``vtkconvert`` can be used to convert multiple files from a format to a different one:
+The command ``vtkplotter-convert`` can be used to convert multiple files from a format to a different one:
 
 .. code-block:: bash
 
-   Usage: vtkconvert [-h] [-to] [files [files ...]]
+   Usage: vtkplotter-convert [-h] [-to] [files [files ...]]
    allowed targets formats: [vtk, vtp, vtu, vts, ply, stl, byu, xml]
 
-   Example: > vtkconvert myfile.vtk -to ply
-
-
+   Example: > vtkplotter-convert myfile.vtk -to ply

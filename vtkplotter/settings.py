@@ -272,6 +272,7 @@ def embedWindow(backend='k3d', verbose=True):
 
     notebookBackend = backend
 
+
     if backend=='k3d':
         try:
             import k3d
@@ -291,6 +292,9 @@ def embedWindow(backend='k3d', verbose=True):
                 print('embedWindow(verbose=True): could not load itkwidgets module, try:')
                 print('> pip install itkwidgets    # and if necessary:')
                 print('> conda install nodejs')
+
+    elif backend.lower() == '2d':
+        verbose=False
 
     elif backend=='panel':
         try:
@@ -317,8 +321,9 @@ def _init():
     collectable_actors = []
 
     for f in os.listdir(textures_path):
-        textures.append(f.split(".")[0])
-    textures.remove("earth")
+        tfn = f.split(".")[0]
+        if 'earth' in tfn: continue
+        textures.append(tfn)
     textures = list(sorted(textures))
 
     for f in os.listdir(fonts_path):
