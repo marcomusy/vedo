@@ -4,6 +4,7 @@ import numpy as np
 import vtk
 import vtkplotter.docs as docs
 from vtkplotter.base import ActorBase
+import vtkplotter.utils as utils
 
 __doc__ = (
     """
@@ -22,10 +23,15 @@ class Assembly(vtk.vtkAssembly, ActorBase):
     |gyroscope1| |gyroscope1.py|_
     """
 
-    def __init__(self, meshs):
+    def __init__(self, *meshs):
 
         vtk.vtkAssembly.__init__(self)
         ActorBase.__init__(self)
+
+        if len(meshs) == 1:
+            meshs = meshs[0]
+        else:
+            meshs = utils.flatten(meshs)
 
         self.actors = meshs
 
@@ -43,10 +49,6 @@ class Assembly(vtk.vtkAssembly, ActorBase):
     def __add__(self, meshs):
         if isinstance(meshs, list):
             for a in meshs:
-                self.AddPart(self)
-        elif isinstance(meshs, vtk.vtkAssembly):
-            acts = meshs.getMeshes()
-            for a in acts:
                 self.AddPart(a)
         else:  # meshs=one mesh
             self.AddPart(meshs)
@@ -55,17 +57,44 @@ class Assembly(vtk.vtkAssembly, ActorBase):
 
     def getActors(self):
         """Obsolete, use getMeshes() instead."""
-        print("WARNING: getActors() is obsolete, use getMeshes() instead.")
-        return self.getMeshes()
-
+        print("WARNING: getActors() is obsolete, use unpack() instead.")
+        return self.unpack()
 
     def getMeshes(self):
-        """Unpack the list of ``Mesh`` objects from a ``Assembly``."""
-        return self.actors
+        """Obsolete, use unpack() instead."""
+        print("WARNING: getMeshes() is obsolete, use unpack() instead.")
+        return self.unpack()
 
     def getMesh(self, i):
-        """Get `i-th` ``Mesh`` object from a ``Assembly``."""
+        """Obsolete, use unpack(i) instead."""
+        print("WARNING: getMesh(i) is obsolete, use unpack(i) instead.")
+        if isinstance(i, str):
+            for m in self.actors:
+                if i in m.name:
+                    return m
+            return None
         return self.actors[i]
+
+
+    def unpack(self, i=None):
+        """Unpack the list of objects from a ``Assembly``.
+        
+        If `i` is given, get `i-th` object from a ``Assembly``.
+        Input can be a string, in this case returns the first object
+        whose name contains the given string.
+        
+        |customIndividualAxes| |customIndividualAxes.py|_
+        """
+        if i is None:
+            return self.actors
+        elif isinstance(i, int):
+            return self.actors[i]
+        elif isinstance(i, str):
+            for m in self.actors:
+                if i in m.name:
+                    return m
+        return None
+
 
     def diagonalSize(self):
         """Return the maximum diagonal size of the ``Mesh`` objects in ``Assembly``."""

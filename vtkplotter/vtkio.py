@@ -1352,7 +1352,8 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
     else:
         w2if = vtk.vtkWindowToImageFilter()
         w2if.SetInput(settings.plotter_instance.window)
-        w2if.SetScale(scale, scale)
+        if hasattr(w2if, 'SetScale'):
+            w2if.SetScale(scale, scale)
         if settings.screenshotTransparentBackground:
             w2if.SetInputBufferTypeToRGBA()
         w2if.ReadFrontBufferOff()  # read from the back buffer

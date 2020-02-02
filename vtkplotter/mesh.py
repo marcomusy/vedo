@@ -12,10 +12,7 @@ from vtkplotter.base import ActorBase
 
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
-__doc__ = (
-    """
-Submodule extending the ``vtkActor`` object functionality.
-"""
+__doc__ = ("""Submodule extending the ``vtkActor`` object functionality."""
     + docs._defs
 )
 
@@ -50,12 +47,11 @@ def merge(*meshs):
     elif len(acts) == 0:
         return None
 
-    polylns = vtk.vtkAppendPolyData()
+    polyapp = vtk.vtkAppendPolyData()
     for a in acts:
-        polylns.AddInputData(a.polydata())
-    polylns.Update()
-    pd = polylns.GetOutput()
-    return Mesh(pd)
+        polyapp.AddInputData(a.polydata())
+    polyapp.Update()
+    return Mesh(polyapp.GetOutput())
 
 
 ####################################################
@@ -500,7 +496,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
             if os.path.exists(tname):
                 fn = tname
             elif not os.path.exists(fn):
-                colors.printc("~sad File does not exist or texture", tname,
+                colors.printc("File does not exist or texture", tname,
                               "not found in", settings.textures_path, c="r")
                 colors.printc("~pin Available built-in textures:", c="m", end=" ")
                 for ff in os.listdir(settings.textures_path):
@@ -587,6 +583,38 @@ class Mesh(vtk.vtkFollower, ActorBase):
         pdnorm.Update()
         return self._update(pdnorm.GetOutput())
 
+
+    def computeNormalsWithPCA(self, n=20, orientationPoint=None, negate=False):
+        """Generate point normals using PCA (principal component analysis).
+        Basically this estimates a local tangent plane around each sample point p
+        by considering a small neighborhood of points around p, and fitting a plane
+        to the neighborhood (via PCA).
+
+        :param int n: neighborhood size to calculate the normal
+        :param list orientationPoint: adjust the +/- sign of the normals so that
+            the normals all point towards a specified point. If None, perform a traversal
+            of the point cloud and flip neighboring normals so that they are mutually consistent.
+
+        :param bool negate: flip all normals
+        """
+        poly = self.polydata()
+        pcan = vtk.vtkPCANormalEstimation()
+        pcan.SetInputData(poly)
+        pcan.SetSampleSize(n)
+
+        if orientationPoint is not None:
+            pcan.SetNormalOrientationToPoint()
+            pcan.SetOrientationPoint(orientationPoint)
+        else:
+            pcan.SetNormalOrientationToGraphTraversal()
+
+        if negate:
+            pcan.FlipNormalsOn()
+
+        pcan.Update()
+        return self._update(pcan.GetOutput())
+
+
     def reverse(self, cells=True, normals=False):
         """
         Reverse the order of polygonal cells
@@ -633,7 +661,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
     def wireframe(self, value=True):
         """Set mesh's representation as wireframe or solid surface.
-        Same as `wireframe()`."""
+        Same as `mesh.wireframe()`."""
         if value:
             self.GetProperty().SetRepresentationToWireframe()
         else:
@@ -670,7 +698,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         return self
 
     def pointSize(self, ps=None):
-        """Set/get mesh's point size of vertices. Same as `ps()`"""
+        """Set/get mesh's point size of vertices. Same as `mesh.ps()`"""
         if ps is not None:
             if isinstance(self, vtk.vtkAssembly):
                 cl = vtk.vtkPropCollection()
@@ -687,14 +715,14 @@ class Mesh(vtk.vtkFollower, ActorBase):
         return self
 
     def ps(self, pointSize=None):
-        """Set/get mesh's point size of vertices. Same as `pointSize()`"""
+        """Set/get mesh's point size of vertices. Same as `mesh.pointSize()`"""
         return self.pointSize(pointSize)
 
     def color(self, c=False):
         """
         Set/get mesh's color.
         If None is passed as input, will use colors from active scalars.
-        Same as `c()`.
+        Same as `mesh.c()`.
         """
         if c is False:
             return np.array(self.GetProperty().GetColor())
@@ -732,7 +760,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
             return self
 
         if self.GetProperty().GetOpacity() < 1:
-            colors.printc("~noentry backColor(): only active for alpha=1", c="y")
+            colors.printc("In backColor(): only active for alpha=1", c="y")
             return self
 
         if not backProp:
@@ -822,20 +850,57 @@ class Mesh(vtk.vtkFollower, ActorBase):
         qp.Update()
         return self._update(qp.GetOutput())
 
-    def xbounds(self):
-        """Get the mesh bounds `[xmin,xmax]`."""
-        b = self.polydata(True).GetBounds()
-        return (b[0], b[1])
+    def quality(self, measure=6, cmap='RdYlBu'):
+        """
+        Calculate functions of quality of the elements of a triangular mesh.
+        See class `vtkMeshQuality <https://vtk.org/doc/nightly/html/classvtkMeshQuality.html>`_
+        for explanation.
 
-    def ybounds(self):
-        """Get the mesh bounds `[ymin,ymax]`."""
-        b = self.polydata(True).GetBounds()
-        return (b[2], b[3])
+        :param int measure: type of estimator
 
-    def zbounds(self):
-        """Get the mesh bounds `[zmin,zmax]`."""
-        b = self.polydata(True).GetBounds()
-        return (b[4], b[5])
+            - EDGE RATIO, 0
+            - ASPECT RATIO, 1
+            - RADIUS RATIO, 2
+            - ASPECT FROBENIUS, 3
+            - MED ASPECT_FROBENIUS, 4
+            - MAX ASPECT FROBENIUS, 5
+            - MIN_ANGLE, 6
+            - COLLAPSE RATIO, 7
+            - MAX ANGLE, 8
+            - CONDITION, 9
+            - SCALED JACOBIAN, 10
+            - SHEAR, 11
+            - RELATIVE SIZE SQUARED, 12
+            - SHAPE, 13
+            - SHAPE AND SIZE, 14
+            - DISTORTION, 15
+            - MAX EDGE RATIO, 16
+            - SKEW, 17
+            - TAPER, 18
+            - VOLUME, 19
+            - STRETCH, 20
+            - DIAGONAL, 21
+            - DIMENSION, 22
+            - ODDY, 23
+            - SHEAR AND SIZE, 24
+            - JACOBIAN, 25
+            - WARPAGE, 26
+            - ASPECT GAMMA, 27
+            - AREA, 28
+            - ASPECT BETA, 29
+
+        |meshquality| |meshquality.py|_
+        """
+        qf = vtk.vtkMeshQuality()
+        qf.SetInputData(self.polydata(False))
+        qf.SetTriangleQualityMeasure(measure)
+        qf.SaveCellQualityOn()
+        qf.Update()
+        pd = qf.GetOutput()
+        arr = vtk_to_numpy(pd.GetCellData().GetArray('Quality'))
+        self.addCellScalars(arr, "Quality")
+        self.cellColors("Quality", cmap)
+        return arr
 
     def averageSize(self):
         """Calculate the average size of a mesh.
@@ -851,16 +916,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
             s += utils.mag(coords[i] - cm)
             c += 1
         return s / c
-
-    def diagonalSize(self):
-        """Get the length of the diagonal of mesh bounding box."""
-        b = self.polydata().GetBounds()
-        return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
-
-    def maxBoundSize(self):
-        """Get the maximum dimension in x, y or z of the mesh bounding box."""
-        b = self.polydata(True).GetBounds()
-        return max(abs(b[1] - b[0]), abs(b[3] - b[2]), abs(b[5] - b[4]))
 
     def centerOfMass(self):
         """Get the center of mass of mesh.
@@ -882,7 +937,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         v = mass.GetVolume()
         if value is not None:
             if not v:
-                colors.printc("~bomb Volume is zero: cannot rescale.", c=1, end="")
+                colors.printc("Volume is zero: cannot rescale.", c=1, end="")
                 colors.printc(" Consider adding mesh.triangle()", c=1)
                 return self
             self.scale(value / v)
@@ -902,7 +957,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         ar = mass.GetSurfaceArea()
         if value is not None:
             if not ar:
-                colors.printc("~bomb Area is zero: cannot rescale.", c=1, end="")
+                colors.printc("Area is zero: cannot rescale.", c=1, end="")
                 colors.printc(" Consider adding mesh.triangle()", c=1)
                 return self
             self.scale(value / ar)
@@ -1085,7 +1140,8 @@ class Mesh(vtk.vtkFollower, ActorBase):
                              self.shadow.GetProperty().GetOpacity())
         return cloned
 
-    def transformMesh(self, transformation):
+
+    def applyTransform(self, transformation):
         """
         Apply this transformation to the polygonal data,
         not to the mesh transformation, which is reset.
@@ -1098,12 +1154,12 @@ class Mesh(vtk.vtkFollower, ActorBase):
             transformation = tr
 
         tf = vtk.vtkTransformPolyDataFilter()
-
         tf.SetTransform(transformation)
         tf.SetInputData(self.polydata())
         tf.Update()
         self.PokeMatrix(vtk.vtkMatrix4x4())  # identity
         return self._update(tf.GetOutput())
+
 
     def normalize(self):
         """
@@ -1148,8 +1204,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         elif axis.lower() == "n":
             pass
         else:
-            colors.printc("~times Error in mirror(): mirror must be set to x, y, z or n.",
-                          c=1)
+            colors.printc("Error in mirror(): mirror must be set to x, y, z or n.", c=1)
             raise RuntimeError()
 
         if axis != "n":
@@ -1212,7 +1267,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
             two attributes ``mesh.base``, and ``mesh.top`` are already defined.
         """
         if self.base is None:
-            colors.printc('~times Error in stretch(): Please define vectors', c='r')
+            colors.printc('Error in stretch(): Please define vectors', c='r')
             colors.printc('   mesh.base and mesh.top at creation.', c='r')
             raise RuntimeError()
 
@@ -1243,7 +1298,10 @@ class Mesh(vtk.vtkFollower, ActorBase):
                            self.shadow.GetProperty().GetOpacity())
         return self
 
-    def crop(self, top=None, bottom=None, right=None, left=None, front=None, back=None):
+    def crop(self,
+             top=None, bottom=None, right=None, left=None, front=None, back=None,
+             bounds=None,
+        ):
         """Crop an ``Mesh`` object. Input object is modified.
 
         :param float top:    fraction to crop from the top plane (positive z)
@@ -1252,6 +1310,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         :param float back:   fraction to crop from the back plane (negative y)
         :param float right:  fraction to crop from the right plane (positive x)
         :param float left:   fraction to crop from the left plane (negative x)
+        :param list bounds:  direct list of bounds passed as [x0,x1, y0,y1, z0,z1]
 
         Example:
             .. code-block:: python
@@ -1261,17 +1320,25 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
             |cropped|
         """
-        x0, x1, y0, y1, z0, z1 = self.GetBounds()
-
         cu = vtk.vtkBox()
-        dx, dy, dz = x1-x0, y1-y0, z1-z0
-        if top:    z1 = z1 - top*dz
-        if bottom: z0 = z0 + bottom*dz
-        if front:  y1 = y1 - front*dy
-        if back:   y0 = y0 + back*dy
-        if right:  x1 = x1 - right*dx
-        if left:   x0 = x0 + left*dx
-        cu.SetBounds(x0,x1, y0,y1, z0,z1)
+        x0, x1, y0, y1, z0, z1 = self.GetBounds()
+        if bounds is None:
+            dx, dy, dz = x1-x0, y1-y0, z1-z0
+            if top:    z1 = z1 - top*dz
+            if bottom: z0 = z0 + bottom*dz
+            if front:  y1 = y1 - front*dy
+            if back:   y0 = y0 + back*dy
+            if right:  x1 = x1 - right*dx
+            if left:   x0 = x0 + left*dx
+            bounds = (x0, x1, y0, y1, z0, z1)
+        else:
+            if bounds[0] is None: bounds[0]=x0
+            if bounds[1] is None: bounds[1]=x1
+            if bounds[2] is None: bounds[2]=y0
+            if bounds[3] is None: bounds[3]=y1
+            if bounds[4] is None: bounds[4]=z0
+            if bounds[5] is None: bounds[5]=z1
+        cu.SetBounds(bounds)
 
         poly = self.polydata()
         clipper = vtk.vtkClipPolyData()
@@ -1282,7 +1349,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
         clipper.GenerateClipScalarsOff()
         clipper.SetValue(0)
         clipper.Update()
-
         self._update(clipper.GetOutput())
         return self
 
@@ -1465,7 +1531,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
             self.addPointScalars(scalars, "threshold")
             scalars = "threshold"
         elif self.getPointArray(scalars) is None:
-            colors.printc("~times No scalars found with name/nr:", scalars, c=1)
+            colors.printc("No scalars found with name/nr:", scalars, c=1)
             raise RuntimeError()
 
         thres = vtk.vtkThreshold()
@@ -1547,12 +1613,12 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
         useAlpha = False
         if n != poly.GetNumberOfPoints():
-            colors.printc('~times pointColors Error: nr. of scalars != nr. of points',
+            colors.printc('Error in pointColors(): nr. of scalars != nr. of points',
                           n, poly.GetNumberOfPoints(), c=1)
         if utils.isSequence(alpha):
             useAlpha = True
             if len(alpha) > n:
-                colors.printc('~times pointColors Error: nr. of scalars < nr. of alpha values',
+                colors.printc('Error in pointColors(): nr. of scalars < nr. of alpha values',
                               n, len(alpha), c=1)
                 raise RuntimeError()
         if bands:
@@ -1566,7 +1632,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
         lut = vtk.vtkLookupTable()  # build the look-up table
 
         if utils.isSequence(cmap):
-            sname = "pointColors_custom"
             lut.SetNumberOfTableValues(len(cmap))
             lut.Build()
             for i, c in enumerate(cmap):
@@ -1578,15 +1643,11 @@ class Mesh(vtk.vtkFollower, ActorBase):
                     lut.SetTableValue(i, r, g, b, alpha)
 
         elif isinstance(cmap, vtk.vtkLookupTable):
-            sname = "pointColors_lut"
             lut.DeepCopy(cmap)
 
         else:
             if isinstance(cmap, str):
                 self.cmap = cmap
-                sname = "pointColors_" + cmap
-            else:
-                sname = "pointColors"
             lut.SetNumberOfTableValues(256)
             lut.Build()
             for i in range(256):
@@ -1597,9 +1658,11 @@ class Mesh(vtk.vtkFollower, ActorBase):
                 else:
                     lut.SetTableValue(i, r, g, b, alpha)
 
+        sname = "pointColors"
         arr = numpy_to_vtk(np.ascontiguousarray(scalars_or_colors), deep=True)
         arr.SetName(sname)
-        self._mapper.SetArrayName(sname)
+        if hasattr(self._mapper, 'SetArrayName'):
+            self._mapper.SetArrayName(sname)
         if settings.autoResetScalarRange:
             self._mapper.SetScalarRange(vmin, vmax)
         self._mapper.SetLookupTable(lut)
@@ -1615,7 +1678,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         lut = vtk.vtkLookupTable()
         n = self._polydata.GetNumberOfPoints()
         if len(acolors) != n or (utils.isSequence(alphas) and len(alphas) != n):
-            colors.printc("~times _pointColors1By1(): mismatch in input list sizes.", c=1)
+            colors.printc("Error in pointColors1By1(): mismatch in input list sizes.", c=1)
             return self
         lut.SetNumberOfTableValues(n)
         lut.Build()
@@ -1630,7 +1693,8 @@ class Mesh(vtk.vtkFollower, ActorBase):
         self._polydata.GetPointData().Modified()
         self._mapper.SetScalarRange(0, n-1)
         self._mapper.SetLookupTable(lut)
-        self._mapper.SetArrayName("VertexColors")
+        if hasattr(self._mapper, 'SetArrayName'):
+            self._mapper.SetArrayName("VertexColors")
         self._mapper.SetScalarModeToUsePointData()
         self._mapper.ScalarVisibilityOn()
         return self
@@ -1685,12 +1749,12 @@ class Mesh(vtk.vtkFollower, ActorBase):
         n = len(scalars_or_colors)
         useAlpha = False
         if n != poly.GetNumberOfCells():
-            colors.printc('~times cellColors(): nr. of scalars != nr. of cells',
+            colors.printc('Error in cellColors(): nr. of scalars != nr. of cells',
                           n, poly.GetNumberOfCells(), c=1)
         if utils.isSequence(alpha):
             useAlpha = True
             if len(alpha) > n:
-                colors.printc('~times cellColors(): nr. of scalars != nr. of alpha values',
+                colors.printc('Error in cellColors(): nr. of scalars != nr. of alpha values',
                               n, len(alpha), c=1)
                 raise RuntimeError()
         if bands:
@@ -1704,7 +1768,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
         lut = vtk.vtkLookupTable()  # build the look-up table
 
         if utils.isSequence(cmap):
-            sname = "cellColors_custom"
             lut.SetNumberOfTableValues(len(cmap))
             lut.Build()
             for i, c in enumerate(cmap):
@@ -1716,15 +1779,11 @@ class Mesh(vtk.vtkFollower, ActorBase):
                     lut.SetTableValue(i, r, g, b, alpha)
 
         elif isinstance(cmap, vtk.vtkLookupTable):
-            sname = "cellColors_lut"
             lut.DeepCopy(cmap)
 
         else:
             if isinstance(cmap, str):
                 self.cmap = cmap
-                sname = "cellColors_" + cmap
-            else:
-                sname = "cellColors"
             lut.SetNumberOfTableValues(256)
             lut.Build()
             for i in range(256):
@@ -1735,9 +1794,11 @@ class Mesh(vtk.vtkFollower, ActorBase):
                 else:
                     lut.SetTableValue(i, r, g, b, alpha)
 
+        sname = "cellColors"
         arr = numpy_to_vtk(np.ascontiguousarray(scalars_or_colors), deep=True)
         arr.SetName(sname)
-        self._mapper.SetArrayName(sname)
+        if hasattr(self._mapper, 'SetArrayName'):
+            self._mapper.SetArrayName(sname)
         if settings.autoResetScalarRange:
             self._mapper.SetScalarRange(vmin, vmax)
         self._mapper.SetLookupTable(lut)
@@ -1753,7 +1814,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
         n = self._polydata.GetNumberOfCells()
         if len(acolors) != n or (utils.isSequence(alphas) and len(alphas) != n):
-            colors.printc("~times cellColors(): mismatch in input list sizes.",
+            colors.printc("Error in cellColors(): mismatch in input list sizes.",
                           len(acolors), n, c=1)
             return self
 
@@ -1801,7 +1862,8 @@ class Mesh(vtk.vtkFollower, ActorBase):
         self._polydata.GetCellData().Modified()
         self._mapper.SetScalarRange(0, lut.GetNumberOfTableValues()-1)
         self._mapper.SetLookupTable(lut)
-        self._mapper.SetArrayName("CellColors")
+        if hasattr(self._mapper, 'SetArrayName'):
+            self._mapper.SetArrayName("CellColors")
         self._mapper.SetScalarModeToUseCellData()
         self._mapper.ScalarVisibilityOn()
         return self
@@ -1959,8 +2021,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
         :param int N: number of subdivisions.
         :param int method: Loop(0), Linear(1), Adaptive(2), Butterfly(3)
-
-        .. hint:: |tutorial_subdivide| |tutorial.py|_
         """
         triangles = vtk.vtkTriangleFilter()
         triangles.SetInputData(self.polydata())
@@ -1975,7 +2035,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         elif method == 3:
             sdf = vtk.vtkButterflySubdivisionFilter()
         else:
-            colors.printc("~times Error in subdivide: unknown method.", c="r")
+            colors.printc("Error in subdivide: unknown method.", c="r")
             raise RuntimeError()
         if method != 2:
             sdf.SetNumberOfSubdivisions(N)
@@ -2139,16 +2199,18 @@ class Mesh(vtk.vtkFollower, ActorBase):
         normals = self.polydata(True).GetPointData().GetNormals()
         return np.array(normals.GetTuple(i))
 
-    def normals(self, cells=False):
+    def normals(self, cells=False, compute=True):
         """Retrieve vertex normals as a numpy array.
 
         :params bool cells: if `True` return cell normals.
+        :params bool compute: if `True` normals are recalculated if not already present.
+            Note that this might modify the number of mesh points.
         """
         if cells:
             vtknormals = self.polydata().GetCellData().GetNormals()
         else:
             vtknormals = self.polydata().GetPointData().GetNormals()
-        if not vtknormals:
+        if not vtknormals and compute:
             self.computeNormals(cells=cells)
             if cells:
                 vtknormals = self.polydata().GetCellData().GetNormals()
@@ -2248,28 +2310,56 @@ class Mesh(vtk.vtkFollower, ActorBase):
         vcen.Update()
         return vtk_to_numpy(vcen.GetOutput().GetPoints().GetData())
 
-    def boundaries(self, boundaryEdges=True, featureAngle=65, nonManifoldEdges=True):
+
+    def boundaries(self,
+                   boundaryEdges=True,
+                   featureAngle=65,
+                   nonManifoldEdges=True,
+                   returnPointIds=False,
+                   returnCellIds=False,
+                   ):
         """
         Return a ``Mesh`` that shows the boundary lines of an input mesh.
 
         :param bool boundaryEdges: Turn on/off the extraction of boundary edges.
         :param float featureAngle: Specify the feature angle for extracting feature edges.
         :param bool nonManifoldEdges: Turn on/off the extraction of non-manifold edges.
+        :param bool returnPointIds: return a numpy array of point indices
+        :param bool returnCellIds: return a numpy array of cell indices
         """
         fe = vtk.vtkFeatureEdges()
-        fe.SetInputData(self.polydata())
         fe.SetBoundaryEdges(boundaryEdges)
-
-        if featureAngle:
-            fe.FeatureEdgesOn()
-            fe.SetFeatureAngle(featureAngle)
-        else:
-            fe.FeatureEdgesOff()
-
+        fe.SetFeatureAngle(featureAngle)
         fe.SetNonManifoldEdges(nonManifoldEdges)
         fe.ColoringOff()
-        fe.Update()
-        return Mesh(fe.GetOutput(), c="p").lw(5)
+
+        if returnPointIds or returnCellIds:
+
+            idf = vtk.vtkIdFilter()
+            idf.SetInputData(self.polydata())
+            idf.SetIdsArrayName("BoundaryIds")
+            idf.SetPointIds(returnPointIds)
+            idf.SetCellIds(returnCellIds)
+            idf.Update()
+            fe.SetInputData(idf.GetOutput())
+            fe.ManifoldEdgesOff()
+            fe.NonManifoldEdgesOff()
+            fe.BoundaryEdgesOn()
+            fe.FeatureEdgesOff()
+            fe.Update()
+            if returnPointIds:
+                vid = fe.GetOutput().GetPointData().GetArray("BoundaryIds")
+            if returnCellIds:
+                vid = fe.GetOutput().GetCellData().GetArray("BoundaryIds")
+            npid = vtk_to_numpy(vid).astype(int)
+            return npid
+
+        else:
+
+            fe.SetInputData(self.polydata())
+            fe.Update()
+            return Mesh(fe.GetOutput(), c="p").lw(5)
+
 
     def connectedVertices(self, index, returnIds=False):
         """Find all vertices connected to an input vertex specified by its index.
@@ -2305,6 +2395,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
                 trgp.append(p)
             return np.array(trgp)
 
+
     def connectedCells(self, index, returnIds=False):
         """Find all cellls connected to an input vertex specified by its index."""
 
@@ -2337,6 +2428,112 @@ class Mesh(vtk.vtkFollower, ActorBase):
         gf.SetInputData(extractSelection.GetOutput())
         gf.Update()
         return Mesh(gf.GetOutput()).lw(1)
+
+    def labels(self, content=None, cells=False, scale=None, ratio=1, precision=3):
+        """Generate value or ID labels for mesh cells or points.
+
+        :param list,int,str content: either 'id', array name or array number.
+            A array can also be passed (must match the nr. of points or cells).
+
+        :param bool cells: generate labels for cells instead of points [False]
+        :param float scale: absolute size of labels, if left as None it is automatic
+        :param int ratio: skipping ratio, to reduce nr of labels for large meshes
+        :param int precision: numeric precision of labels
+
+        :Example:
+            .. code-block:: python
+
+                from vtkplotter import *
+                s = Sphere(alpha=0.2, res=10).lineWidth(0.1)
+                s.computeNormals().clean()
+                point_ids = s.labels(cells=False).c('green')
+                cell_ids  = s.labels(cells=True ).c('black')
+                show(s, point_ids, cell_ids)
+
+            |meshquality| |meshquality.py|_
+        """
+        if cells:
+            elems = self.cellCenters()
+            norms = self.normals(cells=True, compute=False)
+            ns = np.sqrt(self.NCells())
+        else:
+            elems = self.points()
+            norms = self.normals(cells=False, compute=False)
+            ns = np.sqrt(self.NPoints())
+        hasnorms=False
+        if len(norms):
+            hasnorms=True
+
+        if scale is None:
+            if not ns: ns = 100
+            scale = self.diagonalSize()/ns/10
+
+        arr = None
+        mode = 0
+        if content is None:
+            mode=0
+            if cells:
+                name = self._polydata.GetCellData().GetScalars().GetName()
+                arr = self.getCellArray(name)
+            else:
+                name = self._polydata.GetPointData().GetScalars().GetName()
+                arr = self.getPointArray(name)
+        elif isinstance(content, (str, int)):
+            if content=='id':
+                mode = 1
+            elif cells:
+                mode=0
+                arr = self.getCellArray(content)
+            else:
+                mode=0
+                arr = self.getPointArray(content)
+        elif utils.isSequence(content):
+            mode = 0
+            arr = content
+            if len(arr) != len(content):
+                colors.printc('Error in labels(): array length mismatch',
+                              len(arr), len(content), c=1)
+                return None
+
+        if arr is None and mode == 0:
+            colors.printc('Error in labels(): array not found for points/cells', c=1)
+            return None
+
+        tapp = vtk.vtkAppendPolyData()
+        for i,e in enumerate(elems):
+            if i % ratio:
+                continue
+            tx = vtk.vtkVectorText()
+            if mode==1:
+                tx.SetText(str(i))
+            else:
+                tx.SetText(utils.precision(arr[i], precision))
+            tx.Update()
+
+            T = vtk.vtkTransform()
+            T.PostMultiply()
+            if hasnorms:
+                ni = norms[i]
+                if cells: # center-justify
+                    bb = tx.GetOutput().GetBounds()
+                    dx, dy = (bb[1]-bb[0])/2, (bb[3]-bb[2])/2
+                    T.Translate(-dx,-dy,0)
+                crossvec = np.cross([0,0,1], ni)
+                angle = np.arccos(np.dot([0,0,1], ni))*57.3
+                T.RotateWXYZ(angle, crossvec)
+                if cells: # small offset along normal only for cells
+                    T.Translate(ni*scale/2)
+            T.Scale(scale,scale,scale)
+            T.Translate(e)
+            tf = vtk.vtkTransformPolyDataFilter()
+            tf.SetInputData(tx.GetOutput())
+            tf.SetTransform(T)
+            tf.Update()
+            tapp.AddInputData(tf.GetOutput())
+        tapp.Update()
+        ids = Mesh(tapp.GetOutput(), c=[.5,.5,.5]).pickable(0)
+        ids.flat().lighting('ambient')
+        return ids
 
     def intersectWithLine(self, p0, p1):
         """Return the list of points intersecting the mesh
@@ -2383,7 +2580,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
             coords[:, 1] = self.GetOrigin()[1]
             self.y(self.ybounds()[0])
         else:
-            colors.printc("~times Error in projectOnPlane(): unknown direction", direction, c=1)
+            colors.printc("Error in projectOnPlane(): unknown direction", direction, c=1)
             raise RuntimeError()
         self.alpha(0.1).polydata(False).GetPoints().Modified()
         return self
@@ -2591,4 +2788,195 @@ class Mesh(vtk.vtkFollower, ActorBase):
         zbandsact = Mesh(zpoly, c="k")
         zbandsact.GetProperty().SetLineWidth(1.5)
         return zbandsact
+
+
+    def extrude(self, zshift=1, rotation=0, dR=0, cap=True, res=1):
+        """
+        Sweep a polygonal data creating a "skirt" from free edges and lines, and lines from vertices.
+        The input dataset is swept around the z-axis to create new polygonal primitives.
+        For example, sweeping a line results in a cylindrical shell, and sweeping a circle creates a torus.
+
+        You can control whether the sweep of a 2D object (i.e., polygon or triangle strip)
+        is capped with the generating geometry.
+        Also, you can control the angle of rotation, and whether translation along the z-axis
+        is performed along with the rotation. (Translation is useful for creating "springs").
+        You also can adjust the radius of the generating geometry using the "dR" keyword.
+
+        The skirt is generated by locating certain topological features.
+        Free edges (edges of polygons or triangle strips only used by one polygon or triangle strips)
+        generate surfaces. This is true also of lines or polylines. Vertices generate lines.
+
+        This filter can be used to model axisymmetric objects like cylinders, bottles, and wine glasses;
+        or translational/rotational symmetric objects like springs or corkscrews.
+
+        Warning:
+
+            Some polygonal objects have no free edges (e.g., sphere). When swept, this will result
+            in two separate surfaces if capping is on, or no surface if capping is off.
+
+        |extrude| |extrude.py|_
+        """
+        rf = vtk.vtkRotationalExtrusionFilter()
+        rf.SetInputData(self.polydata())
+        rf.SetResolution(res)
+        rf.SetCapping(cap)
+        rf.SetAngle(rotation)
+        rf.SetTranslation(zshift)
+        rf.SetDeltaRadius(dR)
+        rf.Update()
+        m = Mesh(rf.GetOutput(), c=self.c(), alpha=self.alpha())
+        prop = vtk.vtkProperty()
+        prop.DeepCopy(self.GetProperty())
+        m.SetProperty(prop)
+        return m.computeNormals(cells=False).phong()
+
+
+    def warpToPoint(self, point, factor=0.1, absolute=True):
+        """
+        Modify the mesh coordinates by moving the vertices towards a specified point.
+
+        :param float factor: value to scale displacement.
+        :param list point: the position to warp towards.
+        :param bool absolute: turning on causes scale factor of the new position
+            to be one unit away from point.
+
+        :Example:
+            .. code-block:: python
+
+                from vtkplotter import *
+                s = Cylinder(height=3).wireframe()
+                pt = [4,0,0]
+                w = s.clone().warpToPoint(pt, factor=0.5).wireframe(False)
+                show(w,s, Point(pt), axes=1)
+
+            |warpto|
+        """
+        warpTo = vtk.vtkWarpTo()
+        warpTo.SetInputData(self.polydata())
+        warpTo.SetPosition(point)
+        warpTo.SetScaleFactor(factor)
+        warpTo.SetAbsolute(absolute)
+        warpTo.Update()
+        return self._update(warpTo.GetOutput())
+
+
+    def thinPlateSpline(self, sourcePts, targetPts, userFunctions=(None,None), sigma=1):
+        """
+        `Thin Plate Spline` transformations describe a nonlinear warp transform defined by a set
+        of source and target landmarks. Any point on the mesh close to a source landmark will
+        be moved to a place close to the corresponding target landmark.
+        The points in between are interpolated smoothly using Bookstein's Thin Plate Spline algorithm.
+
+        Transformation object can be retrieved with ``mesh.getTransform()``.
+
+        :param userFunctions: You may supply both the function and its derivative with respect to r.
+
+        .. hint:: Examples: |thinplate_morphing1.py|_ |thinplate_morphing2.py|_ |thinplate_grid.py|_
+            |thinplate_morphing_2d.py|_ |interpolateField.py|_
+
+            |thinplate_morphing1| |thinplate_morphing2| |thinplate_grid| |interpolateField| |thinplate_morphing_2d|
+        """
+        ns = len(sourcePts)
+        ptsou = vtk.vtkPoints()
+        ptsou.SetNumberOfPoints(ns)
+        for i in range(ns):
+            ptsou.SetPoint(i, sourcePts[i])
+
+        nt = len(targetPts)
+        if ns != nt:
+            colors.printc("Error in thinPlateSpline(): #source != #target points", ns, nt, c=1)
+            raise RuntimeError()
+
+        pttar = vtk.vtkPoints()
+        pttar.SetNumberOfPoints(nt)
+        for i in range(ns):
+            pttar.SetPoint(i, targetPts[i])
+
+        transform = vtk.vtkThinPlateSplineTransform()
+        transform.SetBasisToR()
+        if userFunctions[0]:
+            transform.SetBasisFunction(userFunctions[0])
+            transform.SetBasisDerivative(userFunctions[1])
+        transform.SetSigma(sigma)
+        transform.SetSourceLandmarks(ptsou)
+        transform.SetTargetLandmarks(pttar)
+        self.info["transform"] = transform
+        self.applyTransform(transform)
+        return self
+
+    def splitByConnectivity(self, maxdepth=1000):
+        """
+        Split a mesh by connectivity and order the pieces by increasing area.
+
+        :param int maxdepth: only consider this number of mesh parts.
+
+        |splitmesh| |splitmesh.py|_
+        """
+        self.addIDs()
+        pd = self.polydata()
+        cf = vtk.vtkConnectivityFilter()
+        cf.SetInputData(pd)
+        cf.SetExtractionModeToAllRegions()
+        cf.ColorRegionsOn()
+        cf.Update()
+        cpd = cf.GetOutput()
+        a = Mesh(cpd)
+        alist = []
+
+        for t in range(max(a.getPointArray("RegionId")) - 1):
+            if t == maxdepth:
+                break
+            suba = a.clone().threshold("RegionId", t - 0.1, t + 0.1)
+            area = suba.area()
+            alist.append([suba, area])
+
+        alist.sort(key=lambda x: x[1])
+        alist.reverse()
+        blist = []
+        for i, l in enumerate(alist):
+            l[0].color(i + 1).phong()
+            l[0].mapper().ScalarVisibilityOff()
+            blist.append(l[0])
+        return blist
+
+
+    def extractLargestRegion(self):
+        """
+        Extract the largest connected part of a mesh and discard all the smaller pieces.
+
+        .. hint:: |largestregion.py|_
+        """
+        conn = vtk.vtkConnectivityFilter()
+        conn.SetExtractionModeToLargestRegion()
+        conn.ScalarConnectivityOff()
+        conn.SetInputData(self.polydata())
+        conn.Update()
+        eact = Mesh(conn.GetOutput())
+        pr = vtk.vtkProperty()
+        pr.DeepCopy(self.GetProperty())
+        eact.SetProperty(pr)
+        return eact
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

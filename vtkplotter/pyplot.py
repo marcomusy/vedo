@@ -1,0 +1,1836 @@
+from __future__ import division, print_function
+import vtk
+import numpy as np
+from vtk.util.numpy_support import numpy_to_vtk
+
+import vtkplotter.docs as docs
+import vtkplotter.settings as settings
+import vtkplotter.utils as utils
+import vtkplotter.colors as colors
+import vtkplotter.shapes as shapes
+import vtkplotter.addons as addons
+from vtkplotter.assembly import Assembly
+from vtkplotter.mesh import Mesh, merge
+
+__doc__ = ("""Plotting utility functions."""
+    + docs._defs
+)
+
+__all__ = [
+    "plot",
+    "histogram",
+    "donut",
+    "quiver",
+    "violin",
+    "streamplot",
+]
+
+
+##########################################################################
+class Plot(Assembly):
+    """
+    Derived class of ``Assembly`` to manipulate plots.
+    """
+    def __init__(self, *objs):
+
+        Assembly.__init__(self, *objs)
+
+        self.xscale = 1  # todo
+        self.yscale = 1
+        self.aspect = 4/3.
+        self.cut = False  # todo
+
+        self._x0lim=None
+        self._y0lim=None
+        self._x1lim=None
+        self._y1lim=None
+
+        #self.xlog = False # todo
+        #self.ylog = False
+
+        #self.args = []  # maybe useless
+        #self.data = None
+        #self.line = None
+        #self.marker = None
+        #self.pad = None
+
+        self.modified = False
+
+
+    def __iadd__(self, *objs):
+        """
+        Add object to plot with taking automatically into account the correct aspect ratio.
+        """
+        objs = objs[0]
+        if not utils.isSequence(objs):
+            objs = [objs]
+
+        for a in objs:
+            self.AddPart(a)
+            typs = (shapes.Polygon, shapes.Star, shapes.Latex)
+            if isinstance(a, typs) or "Text" in a.name:
+                # special scaling to preserve the aspect ratio
+                #s = np.sqrt((self.xscale**2 + self.yscale**2)/2)
+                s = np.min([self.xscale, self.yscale])
+                a.scale(s)
+            else:
+                a.scale([1, self.yscale, 1])
+            py = a.y()
+            a.y(py*self.yscale)
+
+        if self.cut: # todo
+            for a in objs:
+                if not a:
+                    continue
+                if self._y0lim is not None and hasattr(a, 'cutWithPlane'):
+                    a.cutWithPlane([0,self._y0lim,0], [ 0, 1,0])
+                if self._y1lim is not None and hasattr(a, 'cutWithPlane'):
+                    a.cutWithPlane([0,self._y1lim,0], [ 0,-1,0])
+                if self._x0lim is not None and hasattr(a, 'cutWithPlane'):
+                    a.cutWithPlane([self._x0lim,0,0], [ 1, 0,0])
+                if self._x1lim is not None and hasattr(a, 'cutWithPlane'):
+                    a.cutWithPlane([self._x1lim,0,0], [-1, 0,0])
+
+        self.modified = True
+        return self
+
+
+def plot(*args, **kwargs):
+    """
+    Draw a 2D line plot, or scatter plot, of variable x vs variable y.
+    Input format can be either [allx], [allx, ally] or [(x1,y1), (x2,y2), ...]
+
+    :param list xerrors: set uncertainties for the x variable, shown as error bars.
+    :param list yerrors: set uncertainties for the y variable, shown as error bars.
+    :param bool errorBand: represent errors on y as a filled error band.
+        Use ``ec`` keyword to modify its color.
+
+    :param list xlim: set limits to the range for the x variable
+    :param list ylim: set limits to the range for the y variable
+    :param float, aspect: desired aspect ratio.
+        If None, it is automatically calculated to get a reasonable aspect ratio.
+        Scaling factor is saved in ``Plot.yscale``.
+
+    :param str c: color of frame and text.
+    :param float alpha: opacity of frame and text.
+    :param str xtitle: title label along x-axis.
+    :param str ytitle: title label along y-axis.
+    :param str title: histogram title on top.
+    :param float titleSize: size of title
+    :param str ec: color of error bar, by default the same as marker color
+    :param str lc: color of line
+    :param float la: transparency of line
+    :param float lw: width of line
+    :param bool line: join points with line
+    :param bool dashed: use a dashed line style
+    :param bool splined: spline the line joining the point as a countinous curve
+    :param str,int marker: use a marker shape for the data points
+    :param float ms: marker size.
+    :param str mc: color of marker
+    :param float ma: opacity of marker
+
+    |plot1_errbars| |plot1_errbars.py|_
+
+    |plot2_errband| |plot2_errband.py|_
+
+    |plot3_pip| |plot3_pip.py|_
+
+    |scatter1| |scatter1.py|_
+
+    |scatter2| |scatter2.py|_
+
+
+    If input is an external function or a forumula, draw the surface
+    representing the function :math:`f(x,y)`.
+
+    :param float x: x range of values.
+    :param float y: y range of values.
+    :param float zlimits: limit the z range of the independent variable.
+    :param int zlevels: will draw the specified number of z-levels contour lines.
+    :param bool showNan: show where the function does not exist as red points.
+    :param list bins: number of bins in x and y.
+
+    |plot4_fxy| |plot4_fxy.py|_
+
+    Function is: :math:`f(x,y)=\sin(3x) \cdot \log(x-y)/3` in range :math:`x=[0,3], y=[0,3]`.
+
+
+    If ``mode='complex'`` draw the real value of the function and color map the imaginary part.
+
+    :param str cmap: diverging color map (white means imag(z)=0).
+    :param float lw: line with of the binning
+    :param list bins: binning in x and y
+
+    |fcomplex| |plot4_fxy.py|_
+
+
+    If ``mode='polar'`` input arrays are interpreted as a list of polar angles and radii.
+    Build a polar (radar) plot by joining the set of points in polar coordinates.
+
+    :param str title: plot title
+    :param int bins: number of bins in phi
+    :param float r1: inner radius
+    :param float r2: outer radius
+    :param float lsize: label size
+    :param c: color of the line
+    :param bc: color of the frame and labels
+    :param alpha: alpha of the frame
+    :param int lw: line width in pixels
+    :param bool deg: input array is in degrees
+    :param bool fill: fill convex area with solid color
+    :param bool spline: interpolate the set of input points
+    :param bool showPoints: show data points
+    :param bool showDisc: show the outer ring axis
+    :param bool showLines: show lines to the origin
+    :param bool showAngles: show angular values
+
+    |histo_polar| |histo_polar.py|_
+
+
+    If ``mode='spheric'`` input input is an external function rho(theta, phi).
+    A surface is created in spherical coordinates.
+    Return an ``Plot(Assembly)`` of 2 objects, the unit grid
+    sphere (in wireframe representation) and the surface `rho(theta, phi)`.
+
+    :param function rfunc: handle to a user defined function.
+    :param bool normalize: scale surface to fit inside the unit sphere
+    :param int res: grid resolution
+    :param bool scalarbar: add a 3D scalarbar to the plot for radius
+    :param c: color of the unit grid
+    :param alpha: transparency of the unit grid
+    :param str cmap: color map of the surface
+
+    |plot5_spheric| |plot5_spheric.py|_
+    """
+    mode = kwargs.pop('mode', '')
+    if 'spher' in mode:
+        return _plotSpheric(args[0], **kwargs)
+
+    if isinstance(args[0], str) or 'function' in str(type(args[0])):
+        if 'complex' in mode:
+            return _plotFz(args[0], **kwargs)
+        return _plotFxy(args[0], **kwargs)
+
+    # grab the matplotlib-like options
+    optidx = None
+    for i,a in enumerate(args):
+        if i>0 and isinstance(a, str):
+            optidx = i
+            break
+    if optidx:
+        opts = args[optidx].replace(' ','')
+        if '--' in opts:
+            opts = opts.replace('--','')
+            kwargs['dashed'] = True
+        elif '-' in opts:
+            opts = opts.replace('-','')
+            kwargs['line'] = True
+        else:
+            kwargs['line'] = False
+        symbs = ['.', 'p','*','h','D','d','o','v','^','>','<','s', 'x', '+', 'a']
+        for ss in symbs:
+            if ss in opts:
+                 opts = opts.replace(ss,'')
+                 kwargs['marker']=ss
+                 break
+        allcols = list(colors.color_nicks.keys()) + list(colors.colors.keys())
+        for cc in allcols:
+            if cc in opts:
+                 opts = opts.replace(cc,'')
+                 kwargs['lc']=cc
+                 kwargs['mc']=cc
+                 break
+        if opts:
+            print("Could not understand options:", opts)
+
+    if optidx == 1 or optidx is None:
+        if utils.isSequence(args[0][0]):
+            #print('caso 1', 'plot([(x,y),..])')
+            data = np.array(args[0])
+            x = np.array(data[:,0])
+            y = np.array(data[:,1])
+        elif len(args)==1 or optidx==1:
+            #print('caso 2', 'plot(x)')
+            x = np.linspace(0,len(args[0]), num=len(args[0]))
+            y = np.array(args[0])
+        elif utils.isSequence(args[1]):
+            #print('caso 3', 'plot(allx,ally)')
+            x = np.array(args[0])
+            y = np.array(args[1])
+        elif utils.isSequence(args[0]) and utils.isSequence(args[0][0]):
+            #print('caso 4', 'plot([allx,ally])')
+            x = np.array(args[0][0])
+            y = np.array(args[0][1])
+
+    elif optidx == 2:
+        #print('caso 5', 'plot(x,y)')
+        x = np.array(args[0])
+        y = np.array(args[1])
+
+    else:
+        print("plot(): Could not understand input arguments", args)
+        return None
+
+    if 'polar' in mode:
+        return _plotPolar(np.c_[x,y])
+
+    return _plotxy(np.c_[x,y], **kwargs)
+
+
+def _plotxy(
+    data,
+    mode='',
+    xerrors=None,
+    yerrors=None,
+    xlim=None,
+    ylim=None,
+    aspect=4/3,
+    c="k",
+    alpha=1,
+    xtitle="x",
+    ytitle="y",
+    title="",
+    titleSize=None,
+    ec=None,
+    lc="k",
+    la=1,
+    lw=3,
+    line=True,
+    dashed=False,
+    splined=False,
+    errorBand=False,
+    marker='',
+    ms=None,
+    mc=None,
+    ma=None,
+    pad=0.05,
+    axes={},
+):
+    settings.defaultAxesType = 0 # because of yscaling
+    ncolls = len(settings.collectable_actors)
+    x0, y0 = np.min(data, axis=0)
+    x1, y1 = np.max(data, axis=0)
+    x0lim, x1lim = x0 -pad*(x1-x0), x1 +pad*(x1-x0)
+    y0lim, y1lim = y0 -pad*(y1-y0), y1 +pad*(y1-y0)
+    if xlim is not None and xlim[0] is not None: x0lim = xlim[0]
+    if xlim is not None and xlim[1] is not None: x1lim = xlim[1]
+    if ylim is not None and ylim[0] is not None: y0lim = ylim[0]
+    if ylim is not None and ylim[1] is not None: y1lim = ylim[1]
+
+    dx = x1lim - x0lim
+    dy = y1lim - y0lim
+
+    yscale = dx / dy / aspect
+
+    y0lim, y1lim = y0lim*yscale, y1lim*yscale
+    dx = x1lim - x0lim
+    dy = y1lim - y0lim
+    offs = np.sqrt(dx*dx+dy*dy)/10000
+
+    scale = np.array([[1, yscale]])
+    data = np.multiply(data, scale)
+
+    acts = []
+
+    # the line or spline
+    if dashed:
+        l = shapes.DashedLine(data, c=lc, alpha=la, lw=lw)
+        acts.append(l)
+    elif splined:
+        l = shapes.KSpline(data).lw(lw).c(lc).alpha(la)
+        acts.append(l)
+    elif line:
+        l = shapes.Line(data, lw=lw, c=lc, alpha=la)
+        acts.append(l)
+
+    if marker:
+
+        pts = shapes.Points(data)
+        if mc is None:
+            mc = lc
+        if ma is None:
+            ma = la
+
+        if utils.isSequence(ms): ### variable point size
+            mk = shapes.Marker(marker, s=1)
+            msv = np.zeros_like(pts.points())
+            msv[:,0] = ms
+            marked = shapes.Glyph(pts, glyphObj=mk, c=mc,
+                                  orientationArray=msv, scaleByVectorSize=True)
+        else:                    ### fixed point size
+
+            if ms is None:
+                ms = dx / 100.0
+                #print('automatic ms =', ms)
+
+            if utils.isSequence(mc):
+                #print('mc is sequence')
+                mk = shapes.Marker(marker, s=ms).triangle()
+                msv = np.zeros_like(pts.points())
+                msv[:,0] = 1
+                marked = shapes.Glyph(pts, glyphObj=mk, c=mc,
+                                      orientationArray=msv, scaleByVectorSize=True)
+            else:
+                #print('mc is fixed color')
+                mk = shapes.Marker(marker, s=ms).triangle()
+                marked = shapes.Glyph(pts, glyphObj=mk, c=mc)
+
+        marked.alpha(ma).z(offs)
+        acts.append(marked)
+
+    if ec is None:
+        if mc is not None:
+            ec = mc
+        else:
+            ec = lc
+
+    if xerrors is not None and not errorBand:
+        if len(xerrors) != len(data):
+            colors.printc("Error in plotxy(xerrors=...): mismatched array length.", c=1)
+            return None
+        errs = []
+        for i in range(len(data)):
+            xval, yval = data[i]
+            xerr = xerrors[i]/2
+            el = shapes.Line((xval-xerr, yval, offs), (xval+xerr, yval, offs))
+            errs.append(el)
+        mxerrs = merge(errs).c(ec).lw(lw).alpha(alpha).z(2*offs)
+        acts.append(mxerrs)
+
+    if yerrors is not None and not errorBand:
+        if len(yerrors) != len(data):
+            colors.printc("Error in plotxy(yerrors=...): mismatched array length.", c=1)
+            return None
+        errs = []
+        for i in range(len(data)):
+            xval, yval = data[i]
+            yerr = yerrors[i]*yscale
+            el = shapes.Line((xval, yval-yerr, offs), (xval, yval+yerr, offs))
+            errs.append(el)
+        myerrs = merge(errs).c(ec).lw(lw).alpha(alpha).z(3*offs)
+        acts.append(myerrs)
+
+    if errorBand:
+        epsy = np.zeros_like(data)
+        epsy[:,1] = yerrors*yscale
+        data3dup = data + epsy
+        data3dup = np.c_[data3dup, np.zeros_like(yerrors)]
+        data3d_down = data-epsy
+        data3d_down = np.c_[data3d_down, np.zeros_like(yerrors)]
+        band = shapes.Ribbon(data3dup, data3d_down).z(-offs)
+        if ec is None:
+            band.c(lc)
+        else:
+            band.c(ec)
+        band.alpha(la).z(2*offs)
+        acts.append(band)
+
+    for a in acts:
+        a.cutWithPlane([0,y0lim,0], [ 0, 1,0])
+        a.cutWithPlane([0,y1lim,0], [ 0,-1,0])
+        a.cutWithPlane([x0lim,0,0], [ 1, 0,0])
+        a.cutWithPlane([x1lim,0,0], [-1, 0,0])
+        a.lighting('ambient').phong()
+
+    if title:
+        if titleSize is None:
+            titleSize = dx / 40.0
+        tit = shapes.Text(
+            title,
+            s=titleSize,
+            c=c,
+            depth=0,
+            alpha=alpha,
+            pos=((x0lim+x1lim)/2, y1lim + dy/80, 0),
+            justify="bottom-center",
+        )
+        tit.pickable(False).z(3*offs)
+        acts.append(tit)
+
+    settings.xtitle = xtitle
+    settings.ytitle = ytitle
+    if axes == 1 or axes == True:
+        axes = {}
+    if isinstance(axes, dict):
+        ndiv = 6
+        if 'numberOfDivisions' in axes.keys():
+            ndiv = axes['numberOfDivisions']
+        tp, ts = utils.make_ticks(y0lim/yscale, y1lim/yscale, ndiv/aspect)
+        labs = []
+        for i in range(1, len(tp)-1):
+            ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
+            #print(i, tp[i], ynew, ts[i])
+            labs.append([ynew, ts[i]])
+        axes['yPositionsAndLabels'] = labs
+        axes['xrange'] = (x0lim, x1lim)
+        axes['yrange'] = (y0lim, y1lim)
+        axes['zrange'] = (0, 0)
+        axes['c']='k'
+        axs = addons.buildAxes(**axes)
+        asse = Plot(acts, axs)
+        asse.axes = axs
+        asse.SetOrigin(x0lim, y0lim, 0)
+        #print('yscale =    ', yscale)
+        #print('y0,    y1   ', y0, y1)
+        #print('y0lim, y1lim', y0lim, y1lim)
+    else:
+        asse = Plot(acts)
+    asse.yscale = yscale
+    asse._x0lim=x0lim
+    asse._y0lim=y0lim
+    asse._x1lim=x1lim
+    asse._y1lim=y1lim
+    asse.name = "plotxy "+title
+    settings.collectable_actors = settings.collectable_actors[:ncolls]
+    settings.collectable_actors.append(asse)
+    return asse
+
+
+def _plotFxy(
+    z,
+    x=(0, 3),
+    y=(0, 3),
+    zlimits=(None, None),
+    showNan=True,
+    zlevels=10,
+    c="b",
+    bc="aqua",
+    alpha=1,
+    texture="paper",
+    bins=(100, 100),
+    axes=True,
+):
+    if isinstance(z, str):
+        try:
+            z = z.replace("math.", "").replace("np.", "")
+            namespace = locals()
+            code = "from math import*\ndef zfunc(x,y): return " + z
+            exec(code, namespace)
+            z = namespace["zfunc"]
+        except:
+            colors.printc("Syntax Error in plotFxy()", c=1)
+            return None
+
+    ps = vtk.vtkPlaneSource()
+    ps.SetResolution(bins[0], bins[1])
+    ps.SetNormal([0, 0, 1])
+    ps.Update()
+    poly = ps.GetOutput()
+    dx = x[1] - x[0]
+    dy = y[1] - y[0]
+    todel, nans = [], []
+
+    for i in range(poly.GetNumberOfPoints()):
+        px, py, _ = poly.GetPoint(i)
+        xv = (px + 0.5) * dx + x[0]
+        yv = (py + 0.5) * dy + y[0]
+        try:
+            zv = z(xv, yv)
+        except:
+            zv = 0
+            todel.append(i)
+            nans.append([xv, yv, 0])
+        poly.GetPoints().SetPoint(i, [xv, yv, zv])
+
+    if len(todel):
+        cellIds = vtk.vtkIdList()
+        poly.BuildLinks()
+        for i in todel:
+            poly.GetPointCells(i, cellIds)
+            for j in range(cellIds.GetNumberOfIds()):
+                poly.DeleteCell(cellIds.GetId(j))  # flag cell
+        poly.RemoveDeletedCells()
+        cl = vtk.vtkCleanPolyData()
+        cl.SetInputData(poly)
+        cl.Update()
+        poly = cl.GetOutput()
+
+    if not poly.GetNumberOfPoints():
+        colors.printc("Function is not real in the domain", c=1)
+        return None
+
+    if zlimits[0]:
+        tmpact1 = Mesh(poly)
+        a = tmpact1.cutWithPlane((0, 0, zlimits[0]), (0, 0, 1))
+        poly = a.polydata()
+    if zlimits[1]:
+        tmpact2 = Mesh(poly)
+        a = tmpact2.cutWithPlane((0, 0, zlimits[1]), (0, 0, -1))
+        poly = a.polydata()
+
+    if c is None:
+        elev = vtk.vtkElevationFilter()
+        elev.SetInputData(poly)
+        elev.Update()
+        poly = elev.GetOutput()
+
+    mesh = Mesh(poly, c, alpha).computeNormals().lighting("plastic")
+    if c is None:
+        mesh.getPointArray("Elevation")
+
+    if bc:
+        mesh.bc(bc)
+
+    mesh.texture(texture)
+    #mesh.mapper().SetResolveCoincidentTopologyToPolygonOffset()
+    #mesh.mapper().SetResolveCoincidentTopologyPolygonOffsetParameters(0.1, 0.1)
+
+    acts = [mesh]
+    if zlevels:
+        elevation = vtk.vtkElevationFilter()
+        elevation.SetInputData(poly)
+        bounds = poly.GetBounds()
+        elevation.SetLowPoint(0, 0, bounds[4])
+        elevation.SetHighPoint(0, 0, bounds[5])
+        elevation.Update()
+        bcf = vtk.vtkBandedPolyDataContourFilter()
+        bcf.SetInputData(elevation.GetOutput())
+        bcf.SetScalarModeToValue()
+        bcf.GenerateContourEdgesOn()
+        bcf.GenerateValues(zlevels, elevation.GetScalarRange())
+        bcf.Update()
+        zpoly = bcf.GetContourEdgesOutput()
+        zbandsact = Mesh(zpoly, "k", alpha).lw(2).lighting('ambient')
+        acts.append(zbandsact)
+
+    if showNan and len(todel):
+        bb = mesh.GetBounds()
+        if bb[4] <= 0 and bb[5] >= 0:
+            zm = 0.0
+        else:
+            zm = (bb[4] + bb[5]) / 2
+        nans = np.array(nans) + [0, 0, zm]
+        nansact = shapes.Points(nans, r=2, c="red", alpha=alpha)
+        nansact.GetProperty().RenderPointsAsSpheresOff()
+        acts.append(nansact)
+
+    if axes:
+        settings.defaultAxesType = 0
+        axs = addons.buildAxes(mesh)
+        acts.append(axs)
+    asse = Assembly(acts)
+    asse.name = "plotFxy"
+    if isinstance(z, str):
+        asse.name += " "+z
+    return asse
+
+
+def _plotFz(
+    z,
+    x=(-1, 1),
+    y=(-1, 1),
+    zlimits=(None, None),
+    cmap='PiYG',
+    alpha=1,
+    lw=0.1,
+    bins=(75, 75),
+    axes=True,
+):
+    if isinstance(z, str):
+        try:
+            z = z.replace("np.", "")
+            namespace = locals()
+            code = "from math import*\ndef zfunc(x,y): return " + z
+            exec(code, namespace)
+            z = namespace["zfunc"]
+        except:
+            colors.printc("Syntax Error in complex plotFz()", c=1)
+            return None
+
+    ps = vtk.vtkPlaneSource()
+    ps.SetResolution(bins[0], bins[1])
+    ps.SetNormal([0, 0, 1])
+    ps.Update()
+    poly = ps.GetOutput()
+    dx = x[1] - x[0]
+    dy = y[1] - y[0]
+
+    arrImg = []
+    for i in range(poly.GetNumberOfPoints()):
+        px, py, _ = poly.GetPoint(i)
+        xv = (px + 0.5) * dx + x[0]
+        yv = (py + 0.5) * dy + y[0]
+        try:
+            zv = z(np.complex(xv), np.complex(yv))
+        except:
+            zv = 0
+        poly.GetPoints().SetPoint(i, [xv, yv, np.real(zv)])
+        arrImg.append(np.imag(zv))
+
+    mesh = Mesh(poly, alpha).lighting("plastic")
+    v = max(abs(np.min(arrImg)), abs(np.max(arrImg)))
+    #print(arrImg)
+    #print(np.min(arrImg), np.max(arrImg), v)
+    mesh.pointColors(arrImg, cmap=cmap, vmin=-v, vmax=v)
+    #mesh.mapPointsToCells()
+    mesh.computeNormals().lw(lw)
+
+    if zlimits[0]:
+        mesh.cutWithPlane((0, 0, zlimits[0]), (0, 0, 1))
+    if zlimits[1]:
+        mesh.cutWithPlane((0, 0, zlimits[1]), (0, 0, -1))
+
+    acts = [mesh]
+    if axes:
+        settings.defaultAxesType = 0
+        axs = addons.buildAxes(mesh, ztitle="Real part")
+        acts.append(axs)
+    asse = Assembly(acts)
+    asse.name = "plotFz"
+    if isinstance(z, str):
+        asse.name += " "+z
+    return asse
+
+
+def _plotPolar(
+    rphi,
+    title="",
+    r1=0,
+    r2=1,
+    lpos=1,
+    lsize=0.03,
+    c="blue",
+    bc="k",
+    alpha=1,
+    lw=3,
+    deg=False,
+    vmax=None,
+    fill=False,
+    spline=False,
+    smooth=0,
+    showPoints=True,
+    showDisc=True,
+    showLines=True,
+    showAngles=True,
+):
+    if len(rphi) == 2:
+        #rphi = list(zip(rphi[0], rphi[1]))
+        rphi = np.stack((rphi[0], rphi[1]), axis=1)
+
+    rphi = np.array(rphi)
+    thetas = rphi[:, 0]
+    radii = rphi[:, 1]
+
+    k = 180 / np.pi
+    if deg:
+        thetas = np.array(thetas) / k
+
+    vals = []
+    for v in thetas:  # normalize range
+        t = np.arctan2(np.sin(v), np.cos(v))
+        if t < 0:
+            t += 2 * np.pi
+        vals.append(t)
+    thetas = np.array(vals)
+
+    if vmax is None:
+        vmax = np.max(radii)
+
+    angles = []
+    labs = []
+    points = []
+    for i in range(len(thetas)):
+        t = thetas[i]
+        r = (radii[i]) / vmax * r2 + r1
+        ct, st = np.cos(t), np.sin(t)
+        points.append([r * ct, r * st, 0])
+    p0 = points[0]
+    points.append(p0)
+
+    r2e = r1 + r2
+    if spline:
+        lines = shapes.KSpline(points, closed=True)
+    else:
+        lines = shapes.Line(points)
+    lines.c(c).lw(lw).alpha(alpha)
+
+    points.pop()
+
+    ptsact = None
+    if showPoints:
+        ptsact = shapes.Points(points).c(c).alpha(alpha)
+
+    filling = None
+    if fill:
+        faces = []
+        coords = [[0, 0, 0]] + lines.points().tolist()
+        for i in range(1, lines.N()):
+            faces.append([0, i, i + 1])
+        filling = Mesh([coords, faces]).c(c).alpha(alpha)
+
+    back = None
+    if showDisc:
+        back = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=1, resphi=360)
+        back.z(-0.01).lighting(diffuse=0, ambient=1).alpha(alpha)
+
+    ti = None
+    if title:
+        ti = shapes.Text(title, (0, 0, 0), s=lsize * 2, depth=0, justify="top-center")
+        ti.pos(0, -r2e * 1.15, 0.01)
+
+    rays = []
+    if showDisc:
+        rgap = 0.05
+        for t in np.linspace(0, 2 * np.pi, num=8, endpoint=False):
+            ct, st = np.cos(t), np.sin(t)
+            if showLines:
+                l = shapes.Line((0, 0, -0.01), (r2e * ct * 1.03, r2e * st * 1.03, -0.01))
+                rays.append(l)
+            elif showAngles:  # just the ticks
+                l = shapes.Line(
+                    (r2e * ct * 0.98, r2e * st * 0.98, -0.01),
+                    (r2e * ct * 1.03, r2e * st * 1.03, -0.01),
+                )
+            if showAngles:
+                if 0 <= t < np.pi / 2:
+                    ju = "bottom-left"
+                elif t == np.pi / 2:
+                    ju = "bottom-center"
+                elif np.pi / 2 < t <= np.pi:
+                    ju = "bottom-right"
+                elif np.pi < t < np.pi * 3 / 2:
+                    ju = "top-right"
+                elif t == np.pi * 3 / 2:
+                    ju = "top-center"
+                else:
+                    ju = "top-left"
+                a = shapes.Text(int(t * k), pos=(0, 0, 0), s=lsize, depth=0, justify=ju)
+                a.pos(r2e * ct * (1 + rgap), r2e * st * (1 + rgap), -0.01)
+                angles.append(a)
+
+    mrg = merge(back, angles, rays, labs, ti)
+    if mrg:
+        mrg.color(bc).alpha(alpha).lighting(diffuse=0, ambient=1)
+    rh = Assembly([lines, ptsact, filling] + [mrg])
+    rh.base = np.array([0, 0, 0])
+    rh.top = np.array([0, 0, 1])
+    rh.name = "plotPolar"
+    return rh
+
+
+def _plotSpheric(rfunc, normalize=True, res=25,
+                scalarbar=True, c='grey', alpha=0.05, cmap='jet'):
+    sg = shapes.Sphere(res=res, quads=True)
+    sg.alpha(alpha).c(c).wireframe()
+
+    cgpts = sg.points()
+    r, theta, phi = utils.cart2spher(*cgpts.T)
+
+    newr, inans = [], []
+    for i in range(len(r)):
+        try:
+            ri = rfunc(theta[i], phi[i])
+            if np.isnan(ri):
+                inans.append(i)
+                newr.append(1)
+            else:
+                newr.append(ri)
+        except:
+            inans.append(i)
+            newr.append(1)
+
+    newr = np.array(newr)
+    if normalize:
+        newr = newr/np.max(newr)
+        newr[inans] = 1
+
+    nanpts = []
+    if len(inans):
+        redpts = utils.spher2cart(newr[inans], theta[inans], phi[inans])
+        nanpts.append(shapes.Points(redpts, r=4, c='r'))
+
+    pts = utils.spher2cart(newr, theta, phi)
+
+    ssurf = sg.clone().points(pts)
+    if len(inans):
+        ssurf.deletePoints(inans)
+
+    ssurf.alpha(1).wireframe(0).lw(0.1)
+
+    if scalarbar:
+        xm = np.max([np.max(pts[0]), 1])
+        ym = np.max([np.abs(np.max(pts[1])), 1])
+        ssurf.mapper().SetScalarRange(np.min(newr), np.max(newr))
+        sb3d = ssurf.addScalarBar3D(cmap=cmap, sx=xm*0.07, sy=ym)
+        sb3d.rotateX(90).pos(xm*1.1, 0, -0.5)
+    else:
+        sb3d = None
+
+    ssurf.pointColors(newr, cmap=cmap)
+    ssurf.computeNormals()
+    sg.pickable(False)
+    asse = Assembly([ssurf, sg] + nanpts + [sb3d])
+    asse.name = "plotPolar"
+    return asse
+
+
+def histogram(*args, **kwargs):
+    """
+    Histogramming for 1D and 2D data arrays.
+
+    For 1D arrays:
+
+    :param int bins: number of bins.
+    :param list vrange: restrict the range of the histogram.
+    :param bool logscale: use logscale on y-axis.
+    :param bool fill: fill bars woth solid color `c`.
+    :param float gap: leave a small space btw bars.
+    :param bool outline: show outline of the bins.
+    :param bool errors: show error bars.
+
+    |histo_1D| |histo_1D.py|_
+
+
+    If ``mode='polar'`` assume input is polar coordinate system (rho, theta):
+
+    :param str title: histogram title
+    :param int bins: number of bins in phi
+    :param float r1: inner radius
+    :param float r2: outer radius
+    :param float phigap: gap angle btw 2 radial bars, in degrees
+    :param float rgap: gap factor along radius of numeric angle labels
+    :param float lpos: label gap factor along radius
+    :param float lsize: label size
+    :param c: color of the histogram bars, can be a list of length `bins`.
+    :param bc: color of the frame and labels
+    :param alpha: alpha of the frame
+    :param str cmap: color map name
+    :param bool deg: input array is in degrees
+    :param float vmin: minimum value of the radial axis
+    :param float vmax: maximum value of the radial axis
+    :param list labels: list of labels, must be of length `bins`
+    :param bool showDisc: show the outer ring axis
+    :param bool showLines: show lines to the origin
+    :param bool showAngles: show angular values
+    :param bool showErrors: show error bars
+
+    |histo_polar| |histo_polar.py|_
+
+
+    For 2D arrays:
+
+    Input data formats [(x1,x2,..), (y1,y2,..)] or [(x1,y1), (x2,y2),..] are both valid.
+
+    :param str xtitle: x axis title
+    :param str ytitle: y axis title
+    :param list bins: binning as (nx, ny)
+    :param list vrange: range in x and y in format [(xmin,xmax), (ymin,ymax)]
+    :param str cmap: color map name
+    :param float lw: line width of the binning
+    :param bool scalarbar: add a scalarbar
+
+    |histo_2D| |histo_2D.py|_
+
+
+    If ``mode='hexbin'``, build a hexagonal histogram from a list of x and y values.
+
+    :param str xtitle: x axis title
+    :param str ytitle: y axis title
+    :param bool bins: nr of bins for the smaller range in x or y.
+    :param list vrange: range in x and y in format [(xmin,xmax), (ymin,ymax)]
+    :param float norm: sets a scaling factor for the z axis (freq. axis).
+    :param bool fill: draw solid hexagons.
+    :param str cmap: color map name for elevation.
+
+    |histo_hexagonal| |histo_hexagonal.py|_
+
+
+    If ``mode='spheric'``, build a histogram from list of theta and phi values.
+
+    :param float rmax: maximum radial elevation of bin
+    :param int res: sphere resolution
+    :param cmap: color map name
+    :param float lw: line width of the bin edges
+    :param bool scalarbar: add a scalarbar to plot
+
+    |histo_spheric| |histo_spheric.py|_
+    """
+    mode = kwargs.pop('mode', '')
+    if len(args) == 2: # x, y
+        if 'spher' in mode:
+            return _histogramSpheric(args[0], args[1], **kwargs)
+        if 'hex' in mode:
+            return _histogramHexBin(args[0], args[1], **kwargs)
+        return _histogram2D(args[0], args[1], **kwargs)
+
+    elif len(args) == 1:
+        data = np.array(args[0])
+
+        if 'spher' in mode:
+            return _histogramSpheric(args[0][:,0], args[0][:,1], **kwargs)
+
+        if len(data.shape)==1:
+            if 'polar' in mode:
+                return _histogramPolar(data, **kwargs)
+            return _histogram1D(data, **kwargs)
+        else:
+            if 'hex' in mode:
+                return _histogramHexBin(args[0][:,0], args[0][:,1], **kwargs)
+            return _histogram2D(args[0], **kwargs)
+
+    print("histogram(): Could not understand input", args[0])
+    return None
+
+
+def _histogram1D(
+    values,
+    xtitle="",
+    ytitle="",
+    bins=25,
+    xlim=None,
+    ylim=None,
+    logscale=False,
+    yscale=1,
+    fill=True,
+    gap=0.02,
+    c="olivedrab",
+    alpha=1,
+    outline=True,
+    lw=2,
+    lc="black",
+    errors=False,
+    axes=True,
+):
+    settings.defaultAxesType = 0 # because of yscaling
+    ncolls = len(settings.collectable_actors)
+    fs, edges = np.histogram(values, bins=bins, range=xlim)
+    if logscale:
+        fs = np.log10(fs + 1)
+    mine, maxe = np.min(edges), np.max(edges)
+    binsize = edges[1] - edges[0]
+    fs = fs.astype(float)*yscale
+
+    rs = []
+    maxheigth=0
+    if fill:
+        if outline:
+            gap = 0
+        for i in range(bins):
+            p0 = (edges[i] + gap * binsize, 0, 0)
+            p1 = (edges[i + 1] - gap * binsize, fs[i], 0)
+            r = shapes.Rectangle(p0, p1)
+            maxheigth = max(maxheigth, p1[1])
+            r.color(c).alpha(alpha).lighting("ambient")
+            rs.append(r)
+
+    if outline:
+        lns = [[mine, 0, 0]]
+        for i in range(bins):
+            lns.append([edges[i], fs[i], 0])
+            lns.append([edges[i + 1], fs[i], 0])
+            maxheigth = max(maxheigth, fs[i])
+        lns.append([maxe, 0, 0])
+        rs.append(shapes.Line(lns, c=lc, alpha=alpha, lw=lw))
+
+    if errors:
+        errs = np.sqrt(fs/yscale)*yscale
+        for i in range(bins):
+            x = (edges[i] + edges[i + 1]) / 2
+            el = shapes.Line(
+                [x, fs[i] - errs[i] / 2, 0.1 * binsize],
+                [x, fs[i] + errs[i] / 2, 0.1 * binsize],
+                c=lc,
+                alpha=alpha,
+                lw=lw,
+            )
+            maxheigth = max(maxheigth, fs[i] + errs[i])
+            pt = shapes.Point([x, fs[i], 0.1 * binsize], r=7, c=lc, alpha=alpha)
+            rs.append(el)
+            rs.append(pt)
+
+    if axes:
+        settings.defaultAxesType = 0
+        if xlim is not None:
+            mine,maxe = xlim
+        if ylim is not None:
+            _,maxheigth = ylim
+        axs = addons.buildAxes(xrange=(mine,maxe), yrange=(0,maxheigth), zrange=(0,0),
+                               xtitle=xtitle, ytitle=ytitle+" *"+str(yscale), c='k')
+        rs.append(axs)
+
+    asse = Assembly(rs)
+    asse.base = np.array([0, 0, 0])
+    asse.top = np.array([0, 0, 1])
+    asse.name = "histogram1D"
+    settings.collectable_actors = settings.collectable_actors[:ncolls]
+    settings.collectable_actors.append(asse)
+    return asse
+
+
+def _histogram2D(xvalues, yvalues=None,
+    xtitle="",
+    ytitle="",
+    bins=(20, 20),
+    vrange=None,
+    cmap="viridis",
+    alpha=1,
+    lw=0.1,
+    scalarbar=True,
+):
+    if xtitle:
+        settings.xtitle = xtitle
+    if ytitle:
+        settings.ytitle = ytitle
+
+    if isinstance(xvalues, Mesh):
+        xvalues = xvalues.points()
+
+    if yvalues is None:
+        # assume [(x1,y1), (x2,y2) ...] format
+        yvalues = xvalues[:,1]
+        xvalues = xvalues[:,0]
+
+    xmin, xmax = np.min(xvalues), np.max(xvalues)
+    ymin, ymax = np.min(yvalues), np.max(yvalues)
+    dx, dy = xmax - xmin, ymax - ymin
+
+    if isinstance(bins, int):
+        bins = (bins, bins)
+
+    xedges = np.linspace(xmin, xmax, num=bins[0]+1, endpoint=True)
+    yedges = np.linspace(ymin, ymax, num=bins[1]+1, endpoint=True)
+    H, xedges, yedges = np.histogram2d(xvalues, yvalues,
+                                       bins=(xedges, yedges),
+                                       range=vrange,
+                                       )
+
+    g = shapes.Grid(pos=[(xmin+xmax)/2, (ymin+ymax)/2, 0],
+                    sx=dx, sy=dy, resx=bins[0], resy=bins[1])
+    g.alpha(alpha).lw(lw).wireframe(0)
+    g.cellColors(np.ravel(H.T, order='C'), cmap=cmap)
+    g.SetOrigin(xmin, ymin, 0)
+    if scalarbar:
+        g.addScalarBar()
+    g.base = np.array([0, 0, 0])
+    g.top = np.array([0, 0, 1])
+    g.name = "histogram2D"
+    return g
+
+
+def _histogramHexBin(
+    xvalues,
+    yvalues,
+    xtitle="",
+    ytitle="",
+    bins=12,
+    vrange=None,
+    norm=1,
+    fill=True,
+    c=None,
+    cmap="terrain_r",
+    alpha=1,
+):
+    if xtitle:
+        from vtkplotter import settings
+        settings.xtitle = xtitle
+    if ytitle:
+        from vtkplotter import settings
+        settings.ytitle = ytitle
+
+    xmin, xmax = np.min(xvalues), np.max(xvalues)
+    ymin, ymax = np.min(yvalues), np.max(yvalues)
+    dx, dy = xmax - xmin, ymax - ymin
+
+    if xmax - xmin < ymax - ymin:
+        n = bins
+        m = np.rint(dy / dx * n / 1.2 + 0.5).astype(int)
+    else:
+        m = bins
+        n = np.rint(dx / dy * m * 1.2 + 0.5).astype(int)
+
+    src = vtk.vtkPointSource()
+    src.SetNumberOfPoints(len(xvalues))
+    src.Update()
+    pointsPolydata = src.GetOutput()
+
+    #values = list(zip(xvalues, yvalues))
+    values = np.stack((xvalues, yvalues), axis=1)
+    zs = [[0.0]] * len(values)
+    values = np.append(values, zs, axis=1)
+
+    pointsPolydata.GetPoints().SetData(numpy_to_vtk(values, deep=True))
+    cloud = Mesh(pointsPolydata)
+
+    col = None
+    if c is not None:
+        col = colors.getColor(c)
+
+    hexs, binmax = [], 0
+    ki, kj = 1.33, 1.12
+    r = 0.47 / n * 1.2 * dx
+    for i in range(n + 3):
+        for j in range(m + 2):
+            cyl = vtk.vtkCylinderSource()
+            cyl.SetResolution(6)
+            cyl.CappingOn()
+            cyl.SetRadius(0.5)
+            cyl.SetHeight(0.1)
+            cyl.Update()
+            t = vtk.vtkTransform()
+            if not i % 2:
+                p = (i / ki, j / kj, 0)
+            else:
+                p = (i / ki, j / kj + 0.45, 0)
+            q = (p[0] / n * 1.2 * dx + xmin, p[1] / m * dy + ymin, 0)
+            ids = cloud.closestPoint(q, radius=r, returnIds=True)
+            ne = len(ids)
+            if fill:
+                t.Translate(p[0], p[1], ne / 2)
+                t.Scale(1, 1, ne * 10)
+            else:
+                t.Translate(p[0], p[1], ne)
+            t.RotateX(90)  # put it along Z
+            tf = vtk.vtkTransformPolyDataFilter()
+            tf.SetInputData(cyl.GetOutput())
+            tf.SetTransform(t)
+            tf.Update()
+            if c is None:
+                col = i
+            h = Mesh(tf.GetOutput(), c=col, alpha=alpha).flat()
+            h.GetProperty().SetSpecular(0)
+            h.GetProperty().SetDiffuse(1)
+            h.PickableOff()
+            hexs.append(h)
+            if ne > binmax:
+                binmax = ne
+
+    if cmap is not None:
+        for h in hexs:
+            z = h.GetBounds()[5]
+            col = colors.colorMap(z, cmap, 0, binmax)
+            h.color(col)
+
+    asse = Assembly(hexs)
+    asse.SetScale(1.2 / n * dx, 1 / m * dy, norm / binmax * (dx + dy) / 4)
+    asse.SetPosition(xmin, ymin, 0)
+    asse.base = np.array([0, 0, 0])
+    asse.top = np.array([0, 0, 1])
+    asse.name = "histogramHexBin"
+    return asse
+
+
+def _histogramPolar(
+    values,
+    title="",
+    bins=10,
+    r1=0.25,
+    r2=1,
+    phigap=3,
+    rgap=0.05,
+    lpos=1,
+    lsize=0.05,
+    c=None,
+    bc="k",
+    alpha=1,
+    cmap=None,
+    deg=False,
+    vmin=None,
+    vmax=None,
+    labels=(),
+    showDisc=True,
+    showLines=True,
+    showAngles=True,
+    showErrors=False,
+):
+    k = 180 / np.pi
+    if deg:
+        values = np.array(values) / k
+
+    dp = np.pi / bins
+    vals = []
+    for v in values:  # normalize range
+        t = np.arctan2(np.sin(v), np.cos(v))
+        if t < 0:
+            t += 2 * np.pi
+        vals.append(t - dp)
+
+    histodata, edges = np.histogram(vals, bins=bins, range=(-dp, 2 * np.pi - dp))
+    thetas = []
+    for i in range(bins):
+        thetas.append((edges[i] + edges[i + 1]) / 2)
+
+    if vmin is None:
+        vmin = np.min(histodata)
+    if vmax is None:
+        vmax = np.max(histodata)
+
+    errors = np.sqrt(histodata)
+    r2e = r1 + r2
+    if showErrors:
+        r2e += np.max(errors) / vmax * 1.5
+
+    back = None
+    if showDisc:
+        back = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=1, resphi=360)
+        back.z(-0.01).lighting(diffuse=0, ambient=1).alpha(alpha)
+
+    slices = []
+    lines = []
+    angles = []
+    labs = []
+    errbars = []
+
+    for i, t in enumerate(thetas):
+        r = histodata[i] / vmax * r2
+        d = shapes.Disc((0, 0, 0), r1, r1 + r, res=1, resphi=360)
+        delta = dp - np.pi / 2 - phigap / k
+        d.cutWithPlane(normal=(np.cos(t + delta), np.sin(t + delta), 0))
+        d.cutWithPlane(normal=(np.cos(t - delta), np.sin(t - delta), 0))
+        if cmap is not None:
+            cslice = colors.colorMap(histodata[i], cmap, vmin, vmax)
+            d.color(cslice)
+        else:
+            if c is None:
+                d.color(i)
+            elif utils.isSequence(c) and len(c) == bins:
+                d.color(c[i])
+            else:
+                d.color(c)
+        slices.append(d)
+
+        ct, st = np.cos(t), np.sin(t)
+
+        if showErrors:
+            showLines = False
+            err = np.sqrt(histodata[i]) / vmax * r2
+            errl = shapes.Line(
+                ((r1 + r - err) * ct, (r1 + r - err) * st, 0.01),
+                ((r1 + r + err) * ct, (r1 + r + err) * st, 0.01),
+            )
+            errl.alpha(alpha).lw(3).color(bc)
+            errbars.append(errl)
+
+        if showDisc:
+            if showLines:
+                l = shapes.Line((0, 0, -0.01), (r2e * ct * 1.03, r2e * st * 1.03, -0.01))
+                lines.append(l)
+            elif showAngles:  # just the ticks
+                l = shapes.Line(
+                    (r2e * ct * 0.98, r2e * st * 0.98, -0.01),
+                    (r2e * ct * 1.03, r2e * st * 1.03, -0.01),
+                )
+                lines.append(l)
+
+        if showAngles:
+            if 0 <= t < np.pi / 2:
+                ju = "bottom-left"
+            elif t == np.pi / 2:
+                ju = "bottom-center"
+            elif np.pi / 2 < t <= np.pi:
+                ju = "bottom-right"
+            elif np.pi < t < np.pi * 3 / 2:
+                ju = "top-right"
+            elif t == np.pi * 3 / 2:
+                ju = "top-center"
+            else:
+                ju = "top-left"
+            a = shapes.Text(int(t * k), pos=(0, 0, 0), s=lsize, depth=0, justify=ju)
+            a.pos(r2e * ct * (1 + rgap), r2e * st * (1 + rgap), -0.01)
+            angles.append(a)
+
+        if len(labels) == bins:
+            lab = shapes.Text(labels[i], (0, 0, 0), s=lsize, depth=0, justify="center")
+            lab.pos(r2e * ct * (1 + rgap) * lpos / 2, r2e * st * (1 + rgap) * lpos / 2, 0.01)
+            labs.append(lab)
+
+    ti = None
+    if title:
+        ti = shapes.Text(title, (0, 0, 0), s=lsize * 2, depth=0, justify="top-center")
+        ti.pos(0, -r2e * 1.15, 0.01)
+
+    mrg = merge(back, lines, angles, labs, ti)
+    if mrg:
+        mrg.color(bc).alpha(alpha).lighting(diffuse=0, ambient=1)
+    rh = Assembly(slices + errbars + [mrg])
+    rh.base = np.array([0, 0, 0])
+    rh.top = np.array([0, 0, 1])
+    rh.name = "histogramPolar"
+    return rh
+
+
+def _histogramSpheric(thetavalues, phivalues,
+                      rmax=1.2,
+                      res=8,
+                      cmap="rainbow",
+                      lw=0.1,
+                      scalarbar=True,
+):
+
+    x,y,z = utils.spher2cart(np.ones_like(thetavalues)*1.1, thetavalues, phivalues)
+    ptsvals = np.c_[x,y,z]
+
+    sg = shapes.Sphere(res=res, quads=True).shrink(.999).computeNormals().lw(.1)
+    sgfaces = sg.faces()
+    sgpts = sg.points()
+    #    sgpts = np.vstack((sgpts, [0,0,0]))
+    #    idx = sgpts.shape[0]-1
+    #    newfaces = []
+    #    for fc in sgfaces:
+    #        f1,f2,f3,f4 = fc
+    #        newfaces.append([idx,f1,f2, idx])
+    #        newfaces.append([idx,f2,f3, idx])
+    #        newfaces.append([idx,f3,f4, idx])
+    #        newfaces.append([idx,f4,f1, idx])
+    newsg = sg# Mesh((sgpts, sgfaces)).computeNormals().phong()
+    newsgpts = newsg.points()
+
+    cntrs = sg.cellCenters()
+    counts = np.zeros(len(cntrs))
+    for p in ptsvals:
+        cell = sg.closestPoint(p, returnIds=True)
+        counts[cell] += 1
+    acounts = np.array(counts)
+    counts *= (rmax-1)/np.max(counts)
+
+    for cell,cn in enumerate(counts):
+        if not cn: continue
+        fs = sgfaces[cell]
+        pts = sgpts[fs]
+        _,t1,p1 = utils.cart2spher(pts[:,0],pts[:,1],pts[:,2])
+        x,y,z = utils.spher2cart(1+cn,t1,p1)
+        newsgpts[fs] = np.c_[x,y,z]
+
+    newsg.points(newsgpts)
+    newsg.cellColors(acounts, cmap=cmap)
+
+    if scalarbar:
+        newsg.addScalarBar()
+    newsg.name = "histogramSpheric"
+    #from vtkplotter.analysis import normalLines
+    #nrm = normalLines(newsg, scale=0.5)
+    #asse = Assembly(newsg, nrm)
+    #sg0 = shapes.Sphere(r=0.99, res=res, quads=True).lw(.1).c([.9,.9,.9])
+    #return Assembly(newsg, sg0)
+    return newsg
+
+
+
+def donut(
+            fractions,
+            title="",
+            r1=1.7,
+            r2=1,
+            phigap=0,
+            lpos=0.8,
+            lsize=0.15,
+            c=None,
+            bc="k",
+            alpha=1,
+            labels=(),
+            showDisc=False,
+):
+    """
+    Donut plot or pie chart.
+
+    :param str title: plot title
+    :param float r1: inner radius
+    :param float r2: outer radius, starting from r1
+    :param float phigap: gap angle btw 2 radial bars, in degrees
+    :param float lpos: label gap factor along radius
+    :param float lsize: label size
+    :param c: color of the plot slices
+    :param bc: color of the disc frame
+    :param alpha: alpha of the disc frame
+    :param list labels: list of labels
+    :param bool showDisc: show the outer ring axis
+
+    |donut| |donut.py|_
+    """
+    fractions = np.array(fractions)
+    angles = np.add.accumulate(2 * np.pi * fractions)
+    angles[-1] = 2 * np.pi
+    if angles[-2] > 2 * np.pi:
+        print("Error in donutPlot(): fractions must sum to 1.")
+        raise RuntimeError
+
+    cols = []
+    for i, th in enumerate(np.linspace(0, 2 * np.pi, 360, endpoint=False)):
+        for ia, a in enumerate(angles):
+            if th < a:
+                cols.append(c[ia])
+                break
+    labs = ()
+    if len(labels):
+        angles = np.concatenate([[0], angles])
+        labs = [""] * 360
+        for i in range(len(labels)):
+            a = (angles[i + 1] + angles[i]) / 2
+            j = int(a / np.pi * 180)
+            labs[j] = labels[i]
+
+    data = np.linspace(0, 2 * np.pi, 360, endpoint=False) + 0.005
+    dn = _histogramPolar(
+        data,
+        title=title,
+        bins=360,
+        r1=r1,
+        r2=r2,
+        phigap=phigap,
+        lpos=lpos,
+        lsize=lsize,
+        c=cols,
+        bc=bc,
+        alpha=alpha,
+        vmin=0,
+        vmax=1,
+        labels=labs,
+        showDisc=showDisc,
+        showLines=0,
+        showAngles=0,
+        showErrors=0,
+    )
+    dn.name = "donut"
+    return dn
+
+
+def quiver(points, vectors,
+           cmap='jet',
+           alpha=1,
+           shaftLength=0.8,
+           shaftWidth=0.05,
+           headLength=0.25,
+           headWidth=0.2,
+           fill=True,
+           scale=1
+          ):
+    """
+    Quiver Plot, display `vectors` at `points` locations.
+
+    Color can be specified as a colormap which maps the size of the arrows.
+
+    :param float shaftLength: fractional shaft length
+    :param float shaftWidth: fractional shaft width
+    :param float headLength: fractional head length
+    :param float headWidth: fractional head width
+    :param bool fill: if False only generate the outline
+
+    :param float scale: apply a rescaling factor to the length
+
+    |quiver| |quiver.py|_
+    """
+    if isinstance(points, Mesh):
+        points = points.points()
+    else:
+        points = np.array(points)
+    vectors = np.array(vectors)/2
+
+    spts = points - vectors
+    epts = points + vectors
+
+    arrs2d = shapes.Arrows2D(spts, epts, c=cmap,
+                             shaftLength=shaftLength,
+                             shaftWidth=shaftWidth,
+                             headLength=headLength,
+                             headWidth=headWidth,
+                             fill=fill,
+                             scale=scale,
+                             alpha=alpha,
+                            )
+    arrs2d.pickable(False)
+    arrs2d.name = "quiver"
+    return arrs2d
+
+
+def violin(values,
+    bins=10,
+    vlim=None,
+    x=0,
+    width=5,
+    spline=True,
+    fill=True,
+    c="violet",
+    alpha=1,
+    outline=True,
+    centerline=True,
+    lc="darkorchid",
+    lw=3,
+):
+    """
+    Violin histogram.
+
+    :param int bins: number of bins
+    :param list vlim: input value limits. Crop values outside range.
+    :param list x: x-position of the violin axis
+    :param float width: width factor of the normalized distribution
+    :param bool spline: spline points
+    :param bool fill: fill violin with solid color
+    :param bool outline: add the distribution outline
+    :param bool centerline: add the vertical centerline at x
+    :param lc: line color
+
+    |histo_violin| |histo_violin.py|_
+    """
+    ncolls = len(settings.collectable_actors)
+
+    fs, edges = np.histogram(values, bins=bins, range=vlim)
+    mine, maxe = np.min(edges), np.max(edges)
+    fs = fs.astype(float)/len(values)*width
+
+    rs = []
+
+    if spline:
+        lnl, lnr = [(0,edges[0],0)], [(0,edges[0],0)]
+        for i in range(bins):
+            xc = (edges[i] + edges[i+1])/2
+            yc = fs[i]
+            lnl.append([-yc, xc, 0])
+            lnr.append([ yc, xc, 0])
+        lnl.append((0,edges[-1],0))
+        lnr.append((0,edges[-1],0))
+        spl = shapes.KSpline(lnl).x(x)
+        spr = shapes.KSpline(lnr).x(x)
+        spl.color(lc).alpha(alpha).lw(lw)
+        spr.color(lc).alpha(alpha).lw(lw)
+        if outline:
+            rs.append(spl)
+            rs.append(spr)
+        if fill:
+            rb = shapes.Ribbon(spl, spr, c=c, alpha=alpha).lighting("ambient")
+            rs.append(rb)
+
+    else:
+        lns1 = [[0, mine, 0]]
+        for i in range(bins):
+            lns1.append([fs[i], edges[i], 0])
+            lns1.append([fs[i], edges[i+1], 0])
+        lns1.append([0, maxe, 0])
+
+        lns2 = [[0, mine, 0]]
+        for i in range(bins):
+            lns2.append([-fs[i], edges[i], 0])
+            lns2.append([-fs[i], edges[i+1],  0])
+        lns2.append([0, maxe, 0])
+
+        if outline:
+            rs.append(shapes.Line(lns1, c=lc, alpha=alpha, lw=lw).x(x))
+            rs.append(shapes.Line(lns2, c=lc, alpha=alpha, lw=lw).x(x))
+
+        if fill:
+            for i in range(bins):
+                p0 = (-fs[i],edges[i],   0)
+                p1 = ( fs[i],edges[i+1], 0)
+                r = shapes.Rectangle(p0, p1).x(x)
+                r.color(c).alpha(alpha).lighting("ambient")
+                rs.append(r)
+
+    if centerline:
+        cl = shapes.Line([0, mine,0.01], [0, maxe,0.01], c=lc, alpha=alpha, lw=2).x(x)
+        rs.append(cl)
+
+    asse = Assembly(rs)
+    asse.base = np.array([0, 0, 0])
+    asse.top = np.array([0, 1, 0])
+    asse.name = "violin"
+    settings.collectable_actors = settings.collectable_actors[:ncolls]
+    settings.collectable_actors.append(asse)
+    return asse
+
+
+def streamplot(X,Y, U,V,
+               maxPropagation=None,
+               direction='both',
+               lw=0.001, mode=1,
+               c=None,
+               probes=[],
+               ):
+    """
+    Generate a streamline plot of a vectorial field (U,V) defined at positions (X,Y).
+    Returns a ``Mesh`` object.
+
+    :param float maxPropagation: maximum physical length of the streamline
+    :param float lw: line width in absolute units
+    :param int mode: vary line width
+
+        - 0 - do not vary radius
+        - 1 - vary radius by first vector component
+        - 2 - vary radius by vector magnitude
+        - 3 - vary radius by absolute value of first vector component
+
+    |plot7_stream| |plot7_stream.py|_
+    """
+    from vtkplotter.volume import Volume
+    from vtkplotter.analysis import streamLines
+
+    n = len(X)
+    m = len(Y[0])
+    if n!=m:
+        print('Error in streamplot(): only square grids are allowed.', n, m)
+        raise RuntimeError()
+
+    xmin, xmax = X[0][0], X[-1][-1]
+    ymin, ymax = Y[0][0], Y[-1][-1]
+    #print('xrange:', xmin, xmax)
+    #print('yrange:', ymin, ymax)
+
+    field = np.sqrt(U*U + V*V)
+
+    vol = Volume(field, shape=(n,n,1))
+
+    uf = np.ravel(U, order='F')
+    vf = np.ravel(V, order='F')
+    vects = np.c_[uf, vf, np.zeros_like(uf)]
+    vol.addPointVectors(vects, "vects")
+
+    if len(probes) == 0:
+        probe = shapes.Grid(pos=((n-1)/2,(n-1)/2,0),
+                            sx=n-1, sy=n-1, resx=n-1, resy=n-1)
+    else:
+        if isinstance(probes, Mesh):
+            probes = probes.points()
+        else:
+            probes = np.array(probes)
+            if len(probes[0]) ==2:
+                probes = np.c_[probes[:,0], probes[:,1], np.zeros(len(probes))]
+        sv = [(n-1)/(xmax-xmin), (n-1)/(ymax-ymin), 1]
+        probes = probes - [xmin, ymin, 0]
+        probes = np.multiply(probes, sv)
+        probe = shapes.Points(probes)
+
+    stream = streamLines(vol.imagedata(), probe,
+                         tubes={"radius":lw,
+                                "varyRadius":mode,
+                                },
+                         lw=lw,
+                         maxPropagation=maxPropagation,
+                         direction=direction,
+                         )
+    if c is not None:
+        stream.color(c)
+    else:
+        stream.addScalarBar()
+    stream.lighting('ambient')
+
+    stream.scale([1/(n-1)*(xmax-xmin),1/(n-1)*(ymax-ymin),1])
+    stream.addPos(np.array([xmin,ymin, 0]))
+    return stream
+
+
+def cornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True):
+    """
+    Return a ``vtkXYPlotActor`` that is a plot of `x` versus `y`,
+    where `points` is a list of `(x,y)` points.
+
+    :param int pos: assign position:
+
+        - 1, topleft,
+        - 2, topright,
+        - 3, bottomleft,
+        - 4, bottomright.
+    """
+    if len(points) == 2:  # passing [allx, ally]
+        #points = list(zip(points[0], points[1]))
+        points = np.stack((points[0], points[1]), axis=1)
+
+    c = colors.getColor(c)  # allow different codings
+    array_x = vtk.vtkFloatArray()
+    array_y = vtk.vtkFloatArray()
+    array_x.SetNumberOfTuples(len(points))
+    array_y.SetNumberOfTuples(len(points))
+    for i, p in enumerate(points):
+        array_x.InsertValue(i, p[0])
+        array_y.InsertValue(i, p[1])
+    field = vtk.vtkFieldData()
+    field.AddArray(array_x)
+    field.AddArray(array_y)
+    data = vtk.vtkDataObject()
+    data.SetFieldData(field)
+
+    plot = vtk.vtkXYPlotActor()
+    plot.AddDataObjectInput(data)
+    plot.SetDataObjectXComponent(0, 0)
+    plot.SetDataObjectYComponent(0, 1)
+    plot.SetXValuesToValue()
+    plot.SetAdjustXLabels(0)
+    plot.SetAdjustYLabels(0)
+    plot.SetNumberOfXLabels(3)
+
+    plot.GetProperty().SetPointSize(5)
+    plot.GetProperty().SetLineWidth(2)
+    plot.GetProperty().SetColor(colors.getColor(bg))
+    plot.SetPlotColor(0, c[0], c[1], c[2])
+
+    plot.SetXTitle(title)
+    plot.SetYTitle("")
+    plot.ExchangeAxesOff()
+    plot.PlotPointsOn()
+    if not lines:
+        plot.PlotLinesOff()
+    if pos == 1:
+        plot.GetPositionCoordinate().SetValue(0.0, 0.8, 0)
+    elif pos == 2:
+        plot.GetPositionCoordinate().SetValue(0.76, 0.8, 0)
+    elif pos == 3:
+        plot.GetPositionCoordinate().SetValue(0.0, 0.0, 0)
+    elif pos == 4:
+        plot.GetPositionCoordinate().SetValue(0.76, 0.0, 0)
+    else:
+        plot.GetPositionCoordinate().SetValue(pos[0], pos[1], 0)
+    plot.GetPosition2Coordinate().SetValue(s, s, 0)
+    return plot
+
+
+def cornerHistogram(
+    values,
+    bins=20,
+    vrange=None,
+    minbin=0,
+    logscale=False,
+    title="",
+    c="g",
+    bg="k",
+    pos=1,
+    s=0.2,
+    lines=True,
+):
+    """
+    Build a histogram from a list of values in n bins.
+    The resulting object is a 2D actor.
+
+    Use *vrange* to restrict the range of the histogram.
+
+    Use `pos` to assign its position:
+        - 1, topleft,
+        - 2, topright,
+        - 3, bottomleft,
+        - 4, bottomright,
+        - (x, y), as fraction of the rendering window
+    """
+    fs, edges = np.histogram(values, bins=bins, range=vrange)
+    if minbin:
+        fs = fs[minbin:-1]
+    if logscale:
+        fs = np.log10(fs + 1)
+    pts = []
+    for i in range(len(fs)):
+        pts.append([(edges[i] + edges[i + 1]) / 2, fs[i]])
+
+    plot = cornerPlot(pts, pos, s, title, c, bg, lines)
+    plot.SetNumberOfYLabels(2)
+    plot.SetNumberOfXLabels(3)
+    tprop = vtk.vtkTextProperty()
+    tprop.SetColor(colors.getColor(bg))
+    plot.SetAxisTitleTextProperty(tprop)
+    plot.GetXAxisActor2D().SetLabelTextProperty(tprop)
+    plot.GetXAxisActor2D().SetTitleTextProperty(tprop)
+    plot.GetXAxisActor2D().SetFontFactor(0.5)
+    plot.GetYAxisActor2D().SetLabelFactor(0.0)
+    plot.GetYAxisActor2D().LabelVisibilityOff()
+    return plot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

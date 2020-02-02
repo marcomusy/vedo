@@ -42,7 +42,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
         actors2show2 = []
         for ia in actors2show:
             if isinstance(ia, vtk.vtkAssembly): #unpack assemblies
-                acass = ia.getMeshes()
+                acass = ia.unpack()
                 #for a in acass:
                 #    a.SetScale(ia.GetScale())
                 actors2show2 += acass

@@ -216,9 +216,6 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True):
     one by one. This is the fallback case when a mesh contains faces of
     different number of vertices.
     """
-#    if not len(vertices):
-#        return None
-
     if len(vertices[0]) < 3: # make sure it is 3d
         vertices = np.c_[np.array(vertices), np.zeros(len(vertices))]
         if len(vertices[0]) == 2:
@@ -384,7 +381,6 @@ def humansort(l):
 
 def sortByColumn(array, n):
     '''Sort a numpy array by the `n-th` column'''
-    #Author: Steve Tjoa, at https://github.com/rougier/numpy-100
     return array[array[:,n].argsort()]
 
 
@@ -633,6 +629,20 @@ def pointToLineDistance(p, p1, p2):
     return d
 
 
+# 2d
+def cart2pol(x, y):
+    """Cartesian to Polar coordinates conversion."""
+    theta = np.arctan2(y, x)
+    rho = np.hypot(x, y)
+    return rho, theta
+
+def pol2cart(rho, theta):
+    """Polar to Cartesian coordinates conversion."""
+    x = rho * np.cos(theta)
+    y = rho * np.sin(theta)
+    return x, y
+
+# 3d
 def cart2spher(x, y, z):
     """Cartesian to Spherical coordinate conversion."""
     hxy = np.hypot(x, y)
@@ -655,18 +665,25 @@ def spher2cart(rho, theta, phi):
     z = rho * ct
     return np.array([x, y, z])
 
-
-def cart2pol(x, y):
-    """Cartesian to Polar coordinates conversion."""
+def cart2cyl(x,y,z):
+    rho = np.sqrt(x*x+y*y+z*z)
     theta = np.arctan2(y, x)
-    rho = np.hypot(x, y)
-    return theta, rho
+    return rho, theta, z
 
-def pol2cart(theta, rho):
-    """Polar to Cartesian coordinates conversion."""
+def cyl2cart(rho, theta, z):
     x = rho * np.cos(theta)
     y = rho * np.sin(theta)
-    return x, y
+    return x, y, z
+
+def cyl2spher(rho,theta,z):
+    rhos = np.sqrt(rho*rho+z*z)
+    phi = np.arctan2(rho, z)
+    return rhos, theta, phi
+
+def spher2cyl(rho, theta, phi):
+    rhoc = rho * np.sin(phi)
+    z = rho * np.cos(phi)
+    return rhoc, theta, z
 
 
 def isIdentity(M, tol=1e-06):
@@ -740,6 +757,10 @@ def printInfo(obj):
             colors.printc(actor._legend, c="g", bold=0)
         else:
             print()
+
+        if hasattr(actor, "name") and actor.name:
+            colors.printc(tab + "           name: ", c="g", bold=1, end="")
+            colors.printc(actor.name, c="g", bold=0)
 
         if hasattr(actor, "filename") and actor.filename:
             colors.printc(tab + "           file: ", c="g", bold=1, end="")
@@ -1316,6 +1337,89 @@ def vtkCameraToK3D(vtkcam):
     return np.array(kam).ravel()
 
 
+def make_ticks(x0, x1, N, labels=None):
+
+    ticks_str, ticks_float = [], []
+
+    if labels is not None:
+        # user is passing custom labels
+        ticks_float.append(0)
+        ticks_str.append('')
+        for tp, ts in labels:
+            if tp == x1:
+                continue
+            ticks_str.append(ts)
+            tickn = linInterpolate(tp, [x0,x1], [0,1])
+            ticks_float.append(tickn)
+
+    else:
+
+        # automatic
+        dstep = (x1-x0)/N  # desired step size
+
+        if x0:
+            expo = np.floor(np.log10(abs(x0)))
+            lowBound = pow(10, expo)*np.sign(x0)
+        else:
+            lowBound = 0.0
+        if np.sign(x0)<0: lowBound *= 10
+        if   lowBound>0 and lowBound-dstep < 0: lowBound = 0
+        elif lowBound<0 and lowBound+dstep > 0:
+            lowBound = - pow(10, np.floor(np.log10(dstep)))
+
+        if x1:
+            expo = np.ceil(np.log10(abs(x1)))
+            upBound =  pow(10, expo)*np.sign(x1)
+        else:
+            upBound = 0
+        if upBound<0 and lowBound+dstep > 0: upBound = 0
+        if lowBound == upBound:
+            if upBound <0 :
+                upBound /= 10
+            else:
+                upBound *= 10
+
+        basestep = pow(10, np.floor(np.log10(dstep)))
+        steps = np.asarray([basestep*i for i in (1,2,4,5,10,20,40,50)])
+        idx = (np.abs(steps-dstep)).argmin()
+        s = steps[idx]
+        if not s or (upBound-lowBound)/s > 100000:
+            return [0,1], ["",""]
+
+        sel_axis = np.arange(lowBound, upBound, s)
+        sel_axis = np.clip(sel_axis, x0, x1)
+        sel_axis = np.unique(sel_axis)
+
+        np.set_printoptions(suppress=True) # avoid zero precision
+        sas = str(sel_axis).replace('[','').replace(']','')
+        sas = sas.replace('.e','e').replace('e+0','e+').replace('e-0','e-')
+        sas2 = []
+        for s in sas.split():
+            if s.endswith('.'):
+                s = s[:-1]
+            if s == '-0':
+                s = '0'
+            sas2.append(s)
+
+        for i in range(len(sel_axis)):
+            ts = sas2[i]
+            tp = sel_axis[i]
+            if tp == x1:
+                continue
+            tickn = linInterpolate(tp, [x0,x1], [0,1])
+            ticks_float.append(tickn)
+            ticks_str.append(ts)
+        #printc('------------------------------------------------', c='y')
+        #printc('x0, x1, N       = ', x0, x1, N, c='y')
+        #printc('bounds            ', lowBound, upBound)
+        #printc('dstep, steps      ', dstep, steps)
+        #printc('Result tick array\n', sel_axis, sel_axis.shape[0], c='y')
+        np.set_printoptions(suppress=None) # set back to default
+
+    ticks_str.append('')
+    ticks_float.append(1)
+    return ticks_float, ticks_str
+
 
 ############################################################################
 #Trimesh support
@@ -1368,7 +1472,6 @@ def vtk2trimesh(mesh):
 
     return Trimesh(vertices=points, faces=tris,
                    face_colors=ccols, vertex_colors=vcols)
-
 
 def trimesh2vtk(inputobj, alphaPerCell=False):
     """
@@ -1438,3 +1541,4 @@ def trimesh2vtk(inputobj, alphaPerCell=False):
         return Assembly(lines)
 
     return None
+

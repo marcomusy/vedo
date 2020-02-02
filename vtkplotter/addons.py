@@ -4,8 +4,8 @@ Additional objects like axes, legends etc..
 from __future__ import division, print_function
 from vtkplotter.colors import printc, getColor
 from vtkplotter.assembly import Assembly
-from vtkplotter.mesh import Mesh
-from vtkplotter.utils import precision, mag, isSequence, linInterpolate
+from vtkplotter.mesh import Mesh, merge
+from vtkplotter.utils import precision, mag, isSequence, make_ticks
 import vtkplotter.shapes as shapes
 import vtkplotter.settings as settings
 import vtkplotter.docs as docs
@@ -691,12 +691,13 @@ def computeVisibleBounds():
         max_bns = vbb
         min_bns = vbb
     sizes = np.array([max_bns[1]-min_bns[0], max_bns[3]-min_bns[2], max_bns[5]-min_bns[4]])
-    return vbb, sizes, min_bns, max_bns
+    return [vbb, sizes, min_bns, max_bns]
 
 
 #####################################################################
-def buildAxes(obj,
-              xtitle="x", ytitle="y", ztitle="z",
+def buildAxes(obj=None,
+              xtitle=None, ytitle=None, ztitle=None,
+              xrange=None, yrange=None, zrange=None,
               c=None,
               numberOfDivisions=None,
               limitRatio=0.04,
@@ -719,63 +720,65 @@ def buildAxes(obj,
               xyPlaneColor=None, yzPlaneColor=None, zxPlaneColor=None,
               xyGridColor=None, yzGridColor=None, zxGridColor=None,
               xyAlpha=0.05, yzAlpha=0.05, zxAlpha=0.05,
+              xyFrameLine=None, yzFrameLine=None, zxFrameLine=None,
               xLineColor=None, yLineColor=None, zLineColor=None,
               xOriginMarkerSize=0, yOriginMarkerSize=0, zOriginMarkerSize=0,
               xHighlightZero=False, yHighlightZero=False, zHighlightZero=False,
-              xHighlightZeroColor="red", yHighlightZeroColor="green", zHighlightZeroColor="blue",
+              xHighlightZeroColor=(1,0,0), yHighlightZeroColor=(0,1,0), zHighlightZeroColor=(0,0,1),
               showTicks=True,
               xTickRadius=0.005, yTickRadius=0.005, zTickRadius=0.005,
               xTickThickness=0.0025, yTickThickness=0.0025, zTickThickness=0.0025,
               xTickColor=None, yTickColor=None, zTickColor=None,
               xMinorTicks=True, yMinorTicks=True, zMinorTicks=True,
-              tipSize=0.01,
+              tipSize=None,
               xLabelSize=0.0175, yLabelSize=0.0175, zLabelSize=0.0175,
               xLabelOffset=0.015, yLabelOffset=0.015, zLabelOffset=0.01,
               xPositionsAndLabels=None, yPositionsAndLabels=None, zPositionsAndLabels=None,
               useGlobal=False,
+              tol=0.0001,
               ):
     """Draw axes on a ``Mesh`` or ``Volume``.
     Returns a ``Assembly`` object.
 
-    - `xtitle`,            ['x'], x-axis title text.
-    - `ytitle`,            ['y'], y-axis title text.
-    - `ztitle`,            ['z'], z-axis title text.
-    - `numberOfDivisions`,[None], approximate number of divisions on the longest axis
-    - `axesLineWidth`,       [1], width of the axes lines
-    - `gridLineWidth`,       [1], width of the grid lines
-    - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally
-    - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
-    - `titleDepth`,          [0], extrusion fractional depth of title text
-    - `xyGrid`,           [True], show a gridded wall on plane xy
-    - `yzGrid`,           [True], show a gridded wall on plane yz
-    - `zxGrid`,           [True], show a gridded wall on plane zx
-    - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
-    - `xyGridTransparent`  [False], make grid plane completely transparent
-    - `xyGrid2Transparent` [False], make grid plane completely transparent on opposite side box
-    - `xyPlaneColor`,   ['gray'], color of the plane
-    - `xyGridColor`,    ['gray'], grid line color
-    - `xyAlpha`,          [0.15], grid plane opacity
-    - `showTicks`,        [True], show major ticks
-    - `xTitlePosition`,   [0.32], title fractional positions along axis
-    - `xTitleOffset`,     [0.05], title fractional offset distance from axis line
+    - `xtitle`,                ['x'], x-axis title text
+    - `xrange`,               [None], x-axis range in format (xmin, ymin), default is automatic.
+    - `numberOfDivisions`,    [None], approximate number of divisions on the longest axis
+    - `axesLineWidth`,           [1], width of the axes lines
+    - `gridLineWidth`,           [1], width of the grid lines
+    - `reorientShortTitle`,   [True], titles shorter than 2 letter are placed horizontally
+    - `originMarkerSize`,     [0.01], draw a small cube on the axis where the origin is
+    - `titleDepth`,              [0], extrusion fractional depth of title text
+    - `xyGrid`,               [True], show a gridded wall on plane xy
+    - `yzGrid`,               [True], show a gridded wall on plane yz
+    - `zxGrid`,               [True], show a gridded wall on plane zx
+    - `zxGrid2`,             [False], show zx plane on opposite side of the bounding box
+    - `xyGridTransparent`    [False], make grid plane completely transparent
+    - `xyGrid2Transparent`   [False], make grid plane completely transparent on opposite side box
+    - `xyPlaneColor`,       ['gray'], color of the plane
+    - `xyGridColor`,        ['gray'], grid line color
+    - `xyAlpha`,              [0.15], grid plane opacity
+    - `xyFrameLine`,          [None], add a frame for the plane
+    - `showTicks`,            [True], show major ticks
+    - `xTitlePosition`,       [0.32], title fractional positions along axis
+    - `xTitleOffset`,         [0.05], title fractional offset distance from axis line
     - `xTitleJustify`, ["top-right"], title justification
-    - `xTitleRotation`,      [0], add a rotation of the axis title
-    - `xLineColor`,  [automatic], color of the x-axis
-    - `xTitleColor`, [automatic], color of the axis title
-    - `xTitleBackfaceColor`, [None],  color of axis title on its backface
-    - `xTitleSize`,      [0.025], size of the axis title
-    - `xHighlightZero`,   [True], draw a line highlighting zero position if in range
-    - `xHighlightZeroColor`, [automatic], color of the line highlighting the zero position
-    - `xTickRadius`,     [0.005], radius of the major ticks
-    - `xTickThickness`, [0.0025], thickness of the major ticks along their axis
-    - `xTickColor`,  [automatic], color of major ticks
-    - `xMinorTicks`,         [1], number of minor ticks between two major ticks
-    - `tipSize`,          [0.01], size of the arrow tip
-    - `xPositionsAndLabels`   [], assign custom tick positions and labels [(pos1, label1), ...]
-    - `xLabelPrecision`,     [2], nr. of significative digits to be shown
-    - `xLabelSize`,      [0.015], size of the numeric labels along axis
-    - `xLabelOffset`,    [0.025], offset of numeric labels
-    - `limitRatio`,       [0.04], below this ratio don't plot small axis
+    - `xTitleRotation`,          [0], add a rotation of the axis title
+    - `xLineColor`,      [automatic], color of the x-axis
+    - `xTitleColor`,     [automatic], color of the axis title
+    - `xTitleBackfaceColor`,  [None],  color of axis title on its backface
+    - `xTitleSize`,          [0.025], size of the axis title
+    - `xHighlightZero`,       [True], draw a line highlighting zero position if in range
+    - `xHighlightZeroColor`, [autom], color of the line highlighting the zero position
+    - `xTickRadius`,         [0.005], radius of the major ticks
+    - `xTickThickness`,     [0.0025], thickness of the major ticks along their axis
+    - `xTickColor`,      [automatic], color of major ticks
+    - `xMinorTicks`,             [1], number of minor ticks between two major ticks
+    - `tipSize`,              [0.01], size of the arrow tip
+    - `xPositionsAndLabels`       [], assign custom tick positions and labels [(pos1, label1), ...]
+    - `xLabelPrecision`,         [2], nr. of significative digits to be shown
+    - `xLabelSize`,          [0.015], size of the numeric labels along axis
+    - `xLabelOffset`,        [0.025], offset of numeric labels
+    - `limitRatio`,           [0.04], below this ratio don't plot small axis
 
     :Example:
 
@@ -790,13 +793,16 @@ def buildAxes(obj,
 
     |customAxes| |customAxes.py|_
     """
+    ncolls = len(settings.collectable_actors)
     if c is None:  # automatic black or white
         c = (0.9, 0.9, 0.9)
+        bgcol = (0,0,0)
         vp = settings.plotter_instance
         if vp and vp.renderer:
             bgcol = vp.renderer.GetBackground()
         else:
-            bgcol = obj.color()
+            if isinstance(obj, Mesh):
+                bgcol = obj.color()
         if np.sum(bgcol) > 1.5:
             c = (0.1, 0.1, 0.1)
     else:
@@ -805,10 +811,37 @@ def buildAxes(obj,
     if useGlobal:
         vbb, ss, min_bns, max_bns = computeVisibleBounds()
     else:
-        vbb = obj.GetBounds()
-        ss = np.array([vbb[1]-vbb[0], vbb[3]-vbb[2], vbb[5]-vbb[4]])
+        if obj:
+            vbb = list(obj.GetBounds())
+            ss = np.array([vbb[1]-vbb[0], vbb[3]-vbb[2], vbb[5]-vbb[4]])
+            min_bns = vbb
+            max_bns = vbb
+        else:
+            vbb = np.zeros(6)
+            ss = np.zeros(3)
+            if xrange is None or yrange is None or zrange is None:
+                printc("ERROR in buildAxes(): no mesh given, so must specify ranges.", c='r')
+                raise RuntimeError()
+
+    if xrange is not None:
+        vbb[0], vbb[1] = xrange
+        ss[0] = xrange[1] - xrange[0]
         min_bns = vbb
         max_bns = vbb
+    if yrange is not None:
+        vbb[2], vbb[3] = yrange
+        ss[1] = yrange[1] - yrange[0]
+        min_bns = vbb
+        max_bns = vbb
+    if zrange is not None:
+        vbb[4], vbb[5] = zrange
+        ss[2] = zrange[1] - zrange[0]
+        min_bns = vbb
+        max_bns = vbb
+
+    if xtitle is None: xtitle = settings.xtitle
+    if ytitle is None: ytitle = settings.ytitle
+    if ztitle is None: ztitle = settings.ztitle
 
     ssmax = max(ss)
     if not ssmax:
@@ -846,113 +879,66 @@ def buildAxes(obj,
         yzGrid2 = False
         zxGrid2 = False
 
-    #######################################
-    def make_ticks(x0, x1, N, labels=None):
-
-        if x1<=x0:
-            return [], []
-
-        ticks_str, ticks_float = [], []
-
-        if labels is not None:
-            # user is passing custom labels
-            ticks_float.append(0)
-            ticks_str.append('')
-            for tp, ts in labels:
-                if tp == x1:
-                    continue
-                ticks_str.append(ts)
-                tickn = linInterpolate(tp, [x0,x1], [0,1])
-                ticks_float.append(tickn)
-
-        else:
-            # automatic
-            if 0<=x0<10:
-                lowBound = 0
-            elif -10<x0<0:
-                lowBound = -10
-            else:
-                expo = np.floor(np.log10(abs(x0)) )
-                lowBound = pow(10, expo)*np.sign(x0)
-                if np.sign(x0)<0:
-                    lowBound *= 10
-
-            if abs(x1)<=10:
-                upBound = 10
-            else:
-                expo = np.ceil( np.log10(abs(x1)) )
-                upBound =  pow(10, expo)*np.sign(x1)
-
-            lr = np.log10((x1-x0)/N)
-            rlb = pow(10, np.floor(lr))
-            rub = pow(10, np.ceil(lr))
-            if rlb == rub:
-                rub *= 10
-
-            steps = [rlb*i for i in (1,2,4,5,10,20,40,50)]
-
-            Nmax = 1000
-            sel_axis = np.array([])
-            for s in steps:
-                axis = np.arange(lowBound, upBound, s)
-                axis = np.clip(axis, x0, x1)
-                axis = np.unique(axis)
-                n = axis.shape[0]
-                alen = abs(n-N)
-                if alen < Nmax:
-                    Nmax = alen
-                    sel_axis = axis
-                    if not alen:
-                        break
-
-            np.set_printoptions(suppress=True) # avoid zero precision
-            sel_axis_str = str(sel_axis).replace('[','').replace(']','').split()
-            sel_axis_str2 = []
-            for s in sel_axis_str:
-                if s.endswith('.'):
-                    s = s[:-1]
-                if s == '-0':
-                    s = '0'
-                sel_axis_str2.append(s)
-
-            for i in range(len(sel_axis)):
-                ts = sel_axis_str2[i]
-                tp = sel_axis[i]
-                if tp == x1:
-                    continue
-                ticks_str.append(ts)
-                tickn = linInterpolate(tp, [x0,x1], [0,1])
-                ticks_float.append(tickn)
-            #printc('------------------------------------------------', c='y')
-            #printc('x0, x1, N       = ', x0, x1, N, c='y')
-            #printc('bounds            ', lowBound, upBound)
-            #printc('logr, step bounds ', lr, rlb, rub)
-            #printc('steps             ', steps)
-            #printc('Result tick array\n', sel_axis, sel_axis.shape[0], c='y')
-            np.set_printoptions(suppress=None) # set back to default
-
-        ticks_str.append('')
-        ticks_float.append(1)
-        return ticks_float, ticks_str
-    #################################
-
-    ndiv = 5
+    ndiv = 4
     if not ztitle or not ytitle or not xtitle: # make more default ticks if 2D
-        ndiv = 7
+        ndiv = 6
+        if not ztitle:
+            if xyFrameLine is None:
+                xyFrameLine = True
+            if tipSize is None:
+                tipSize = False
+
+    if tipSize is None:
+        tipSize = 0.01
+
     if not numberOfDivisions: numberOfDivisions = ndiv
 
-    rx, ry, rz = np.round(ss/max(ss)*numberOfDivisions+2).astype(int)
+    rx, ry, rz = np.round(ss/max(ss)*numberOfDivisions+1).astype(int)
     #printc('numberOfDivisions', numberOfDivisions, '\t r=', rx, ry, rz)
 
     if xtitle: xticks_float, xticks_str = make_ticks(vbb[0], vbb[1], rx, xPositionsAndLabels)
     if ytitle: yticks_float, yticks_str = make_ticks(vbb[2], vbb[3], ry, yPositionsAndLabels)
     if ztitle: zticks_float, zticks_str = make_ticks(vbb[4], vbb[5], rz, zPositionsAndLabels)
 
+
+    ################################## calculate aspect ratio scales
+    x_aspect_ratio_scale=1
+    y_aspect_ratio_scale=1
+    z_aspect_ratio_scale=1
+    if xtitle:
+        if ss[0] > ss[1]:
+            x_aspect_ratio_scale = (1, ss[0]/ss[1], 1)
+        else:
+            x_aspect_ratio_scale = (ss[1]/ss[0], 1, 1)
+    if ytitle:
+        if ss[0] > ss[1]:
+            y_aspect_ratio_scale = (ss[0]/ss[1], 1, 1)
+        else:
+            y_aspect_ratio_scale = (1, ss[1]/ss[0], 1)
+    if ztitle:
+        smean = (ss[0]+ss[1])/2
+        if smean:
+            if ss[2] > smean:
+                zarfact = smean/ss[2]
+                z_aspect_ratio_scale = (zarfact, zarfact*ss[2]/smean, zarfact)
+            else:
+                z_aspect_ratio_scale = (smean/ss[2], 1, 1)
+
+
     ################################################ axes lines
     lines = []
-    if xtitle: lines.append(shapes.Line([0, 0, 0], [1, 0, 0], c=xLineColor, lw=axesLineWidth))
-    if ytitle: lines.append(shapes.Line([0, 0, 0], [0, 1, 0], c=yLineColor, lw=axesLineWidth))
-    if ztitle: lines.append(shapes.Line([0, 0, 0], [0, 0, 1], c=zLineColor, lw=axesLineWidth))
+    if xtitle:
+        axlinex = shapes.Line([0, 0, 0], [1, 0, 0], c=xLineColor, lw=axesLineWidth)
+        axlinex.name = 'xAxis'
+        lines.append(axlinex)
+    if ytitle:
+        axliney = shapes.Line([0, 0, 0], [0, 1, 0], c=yLineColor, lw=axesLineWidth)
+        axliney.name = 'yAxis'
+        lines.append(axliney)
+    if ztitle:
+        axlinez = shapes.Line([0, 0, 0], [0, 0, 1], c=zLineColor, lw=axesLineWidth)
+        axlinez.name = 'zAxis'
+        lines.append(axlinez)
 
     ################################################ grid planes
     # all shapes have a name to keep track of them in the Assembly if user wants to unpack it
@@ -989,6 +975,21 @@ def buildAxes(obj,
         gzx2.alpha(zxAlpha).wireframe(zxGrid2Transparent).c(zxPlaneColor).lw(gridLineWidth).lc(zxGridColor)
         gzx2.name = "zxGrid2"
         grids2.append(gzx2)
+
+    ################################################ frame lines
+    framelines = []
+    if xyFrameLine and xtitle and ytitle:
+        frxy = shapes.Line([[0,1,0],[1,1,0],[1,0,0]], c=xLineColor, lw=axesLineWidth)
+        frxy.name = 'xyFrameLine'
+        framelines.append(frxy)
+    if yzFrameLine and ytitle and ztitle:
+        frxy = shapes.Line([[0,0,1],[0,1,1],[0,1,0]], c=yLineColor, lw=axesLineWidth)
+        frxy.name = 'yzFrameLine'
+        framelines.append(frxy)
+    if zxFrameLine and ztitle and xtitle:
+        frxy = shapes.Line([[0,0,1],[1,0,1],[1,0,0]], c=xLineColor, lw=axesLineWidth)
+        frxy.name = 'zxFrameLine'
+        framelines.append(frxy)
 
     ################################################ zero lines highlights
     highlights = []
@@ -1034,31 +1035,6 @@ def buildAxes(obj,
             hxz.name = "xzHighlightZero"
             highlights.append(hxz)
 
-    ################################################ aspect ratio scales
-    x_aspect_ratio_scale=1
-    y_aspect_ratio_scale=1
-    z_aspect_ratio_scale=1
-    if xtitle:
-        if ss[0] > ss[1]:
-            x_aspect_ratio_scale = (1, ss[0]/ss[1], 1)
-        else:
-            x_aspect_ratio_scale = (ss[1]/ss[0], 1, 1)
-
-    if ytitle:
-        if ss[0] > ss[1]:
-            y_aspect_ratio_scale = (ss[0]/ss[1], 1, 1)
-        else:
-            y_aspect_ratio_scale = (1, ss[1]/ss[0], 1)
-
-    if ztitle:
-        smean = (ss[0]+ss[1])/2
-        if smean:
-            if ss[2] > smean:
-                zarfact = smean/ss[2]
-                z_aspect_ratio_scale = (zarfact, zarfact*ss[2]/smean, zarfact)
-            else:
-                z_aspect_ratio_scale = (smean/ss[2], 1, 1)
-
     ################################################ axes titles
     titles = []
     if xtitle:
@@ -1071,8 +1047,8 @@ def buildAxes(obj,
         if xKeepAspectRatio: xt.SetScale(x_aspect_ratio_scale)
         xt.RotateX(xTitleRotation)
         xt.pos(wpos)
-        xt.name = "xtitle"
-        titles.append(xt.lighting(specular=0, diffuse=0, ambient=1))
+        xt.name = "xtitle "+str(xtitle)
+        titles.append(xt)
 
     if ytitle:
         yt = shapes.Text(ytitle, pos=(0, 0, 0), s=yTitleSize, bc=yTitleBackfaceColor,
@@ -1085,8 +1061,8 @@ def buildAxes(obj,
             if yKeepAspectRatio: yt.SetScale(y_aspect_ratio_scale)
             yt.RotateZ(yTitleRotation)
         yt.pos(wpos)
-        yt.name = "ytitle"
-        titles.append(yt.lighting(specular=0, diffuse=0, ambient=1))
+        yt.name = "ytitle "+str(ytitle)
+        titles.append(yt)
 
     if ztitle:
         zt = shapes.Text(ztitle, pos=(0, 0, 0), s=zTitleSize, bc=zTitleBackfaceColor,
@@ -1106,8 +1082,8 @@ def buildAxes(obj,
             zt.RotateY(-90)
             zt.RotateX(zTitleRotation)
             zt.pos(wpos)
-        zt.name = "ztitle"
-        titles.append(zt.lighting(specular=0, diffuse=0, ambient=1))
+        zt.name = "ztitle "+str(ztitle)
+        titles.append(zt)
 
     ################################################ cube origin ticks
     originmarks = []
@@ -1116,21 +1092,21 @@ def buildAxes(obj,
             if min_bns[0] <= 0 and max_bns[1] > 0:  # mark x origin
                 ox = shapes.Cube([-min_bns[0] / ss[0], 0, 0], side=xOriginMarkerSize, c=xLineColor)
                 ox.name = "xOriginMarker"
-                originmarks.append(ox.lighting(specular=0, diffuse=0, ambient=1))
+                originmarks.append(ox)
 
     if yOriginMarkerSize:
         if ytitle:
             if min_bns[2] <= 0 and max_bns[3] > 0:  # mark y origin
                 oy = shapes.Cube([0, -min_bns[2] / ss[1], 0], side=yOriginMarkerSize, c=yLineColor)
                 oy.name = "yOriginMarker"
-                originmarks.append(oy.lighting(specular=0, diffuse=0, ambient=1))
+                originmarks.append(oy)
 
     if zOriginMarkerSize:
         if ztitle:
             if min_bns[4] <= 0 and max_bns[5] > 0:  # mark z origin
                 oz = shapes.Cube([0, 0, -min_bns[4] / ss[2]], side=zOriginMarkerSize, c=zLineColor)
                 oz.name = "zOriginMarker"
-                originmarks.append(oz.lighting(specular=0, diffuse=0, ambient=1))
+                originmarks.append(oz)
 
     ################################################ arrow cone
     cones = []
@@ -1138,115 +1114,145 @@ def buildAxes(obj,
         if xtitle:
             cx = shapes.Cone((1,0,0), r=tipSize, height=tipSize*2, axis=(1,0,0), c=xLineColor, res=10)
             cx.name = "xTipCone"
-            cones.append(cx.lighting(specular=0, diffuse=0, ambient=1))
+            cones.append(cx)
         if ytitle:
             cy = shapes.Cone((0,1,0), r=tipSize, height=tipSize*2, axis=(0,1,0), c=yLineColor, res=10)
             cy.name = "yTipCone"
-            cones.append(cy.lighting(specular=0, diffuse=0, ambient=1))
+            cones.append(cy)
         if ztitle:
             cz = shapes.Cone((0,0,1), r=tipSize, height=tipSize*2, axis=(0,0,1), c=zLineColor, res=10)
             cz.name = "zTipCone"
-            cones.append(cz.lighting(specular=0, diffuse=0, ambient=1))
+            cones.append(cz)
 
     ################################################ MAJOR cylindrical ticks
-    ticks = []
+    maj_ticks = []
+    min_ticks = []
     if showTicks:
         if xtitle:
+            ticks = []
             for i in range(1, len(xticks_float)-1):
                 v = (xticks_float[i],0,0)
-                xds = shapes.Cylinder(v, r=xTickRadius, height=xTickThickness, axis=(1,0,0), res=10)
-                xds.name = "xMajorTick"+str(i)
-                ticks.append(xds.c(xTickColor).lighting(specular=0, ambient=1))
+                ticks.append(shapes.Cylinder(v, r=xTickRadius, height=xTickThickness, axis=(1,0,0), res=10))
+            if len(ticks):
+                xmajticks = merge(ticks).c(xTickColor)
+                xmajticks.name = "xMajorTicks"
+                maj_ticks.append(xmajticks)
         if ytitle:
+            ticks = []
             for i in range(1, len(yticks_float)-1):
-                v = [0,yticks_float[i],0]
-                yds = shapes.Cylinder(v, r=yTickRadius, height=yTickThickness, axis=(0,1,0), res=10)
-                yds.name = "yMajorTick"+str(i)
-                ticks.append(yds.c(yTickColor).lighting(specular=0, ambient=1))
+                v = (0,yticks_float[i],0)
+                ticks.append(shapes.Cylinder(v, r=yTickRadius, height=yTickThickness, axis=(0,1,0), res=10))
+            if len(ticks):
+                ymajticks = merge(ticks).c(yTickColor)
+                ymajticks.name = "yMajorTicks"
+                maj_ticks.append(ymajticks)
         if ztitle:
+            ticks = []
             for i in range(1, len(zticks_float)-1):
-                v = [0,0,zticks_float[i]]
-                zds = shapes.Cylinder(v, r=zTickRadius, height=zTickThickness, axis=(0,0,1), res=10)
-                zds.name = "zMajorTick"+str(i)
-                ticks.append(zds.c(zTickColor).lighting(specular=0, ambient=1))
+                v = (0,0,zticks_float[i])
+                ticks.append(shapes.Cylinder(v, r=zTickRadius, height=zTickThickness, axis=(0,0,1), res=10))
+            if len(ticks):
+                zmajticks = merge(ticks).c(zTickColor)
+                zmajticks.name = "zMajorTicks"
+                maj_ticks.append(zmajticks)
 
-    ################################################ MINOR cylindrical ticks
-    minorticks = []
-    if xMinorTicks and xtitle and len(xticks_float)>2:
-        xMinorTicks += 1
-        step = (xticks_float[2]-xticks_float[1])/xMinorTicks
-        for i in range(-xMinorTicks, int(1/step)+1):
-            x = xticks_float[1]+step*i
-            if x<=0 or x>=1: continue
-            v = [x,0,0]
-            mxds = shapes.Cylinder(v, r=xTickRadius/1.6, height=xTickThickness, axis=(1,0,0), res=6)
-            mxds.name = "xMinorTick"+str(i)
-            minorticks.append(mxds.c(xTickColor).lighting(specular=0, ambient=1))
+        ################################################ MINOR cylindrical ticks
+        if xMinorTicks and xtitle and len(xticks_float)>2:
+            xMinorTicks += 1
+            step = (xticks_float[2]-xticks_float[1])/xMinorTicks
+            ticks = []
+            for i in range(-xMinorTicks, int(1/step)+1):
+                x = xticks_float[1]+step*i
+                if x<=0 or x>=1: continue
+                v = [x,0,0]
+                ticks.append(shapes.Cylinder(v, r=xTickRadius/1.6, height=xTickThickness, axis=(1,0,0), res=6))
+            if len(ticks):
+                xminticks = merge(ticks).c(xTickColor)
+                xminticks.name = "xMinorTicks"
+                min_ticks.append(xminticks)
 
-    if yMinorTicks and ytitle and len(yticks_float)>2:
-        yMinorTicks += 1
-        step = (yticks_float[2]-yticks_float[1])/yMinorTicks
-        for i in range(-yMinorTicks, int(1/step)+1):
-            y = yticks_float[1]+step*i
-            if y<=0 or y>=1: continue
-            v = [0,y,0]
-            myds = shapes.Cylinder(v, r=yTickRadius/1.6, height=yTickThickness, axis=(0,1,0), res=6)
-            myds.name = "yMinorTick"+str(i)
-            minorticks.append(myds.c(yTickColor).lighting(specular=0, ambient=1))
+        if yMinorTicks and ytitle and len(yticks_float)>2:
+            yMinorTicks += 1
+            step = (yticks_float[2]-yticks_float[1])/yMinorTicks
+            ticks = []
+            for i in range(-yMinorTicks, int(1/step)+1):
+                y = yticks_float[1]+step*i
+                if y<=0 or y>=1: continue
+                v = [0,y,0]
+                ticks.append(shapes.Cylinder(v, r=yTickRadius/1.6, height=yTickThickness, axis=(0,1,0), res=6))
+            if len(ticks):
+                yminticks = merge(ticks).c(yTickColor)
+                yminticks.name = "yMinorTicks"
+                min_ticks.append(yminticks)
 
-    if zMinorTicks and ztitle and len(zticks_float)>2:
-        zMinorTicks += 1
-        step = (zticks_float[2]-zticks_float[1])/zMinorTicks
-        for i in range(-zMinorTicks, int(1/step)+1):
-            z = zticks_float[1]+step*i
-            if z<=0 or z>=1: continue
-            v = [0,0,z]
-            mzds = shapes.Cylinder(v, r=zTickRadius/1.6, height=zTickThickness, axis=(0,0,1), res=6)
-            mzds.name = "zMinorTick"+str(i)
-            minorticks.append(mzds.c(zTickColor).lighting(specular=0, ambient=1))
+        if zMinorTicks and ztitle and len(zticks_float)>2:
+            zMinorTicks += 1
+            step = (zticks_float[2]-zticks_float[1])/zMinorTicks
+            ticks = []
+            for i in range(-zMinorTicks, int(1/step)+1):
+                z = zticks_float[1]+step*i
+                if z<=0 or z>=1: continue
+                v = [0,0,z]
+                ticks.append(shapes.Cylinder(v, r=zTickRadius/1.6, height=zTickThickness, axis=(0,0,1), res=6))
+            if len(ticks):
+                zminticks = merge(ticks).c(zTickColor)
+                zminticks.name = "zMinorTicks"
+                min_ticks.append(zminticks)
 
     ################################################ axes tick NUMERIC text labels
     labels = []
     if xLabelSize and xtitle:
         for i in range(1, len(xticks_str)):
             t = xticks_str[i]
+            if not t: continue
             v = (xticks_float[i], -xLabelOffset, 0)
             xlab = shapes.Text(t, pos=v, s=xLabelSize, justify="center-top", depth=0)
             if xKeepAspectRatio: xlab.SetScale(x_aspect_ratio_scale)
-            xlab.name = "xNumericLabel"+str(i)
-            labels.append(xlab.c(xTickColor).lighting(specular=0, ambient=1))
+            xlab.name = "xNumericLabel"+str(i)+" "+t
+            labels.append(xlab.c(xTickColor))
 
     if yLabelSize and ytitle:
         for i in range(1,len(yticks_str)):
             t = yticks_str[i]
+            if not t: continue
             v = (-yLabelOffset, yticks_float[i], 0)
             ylab = shapes.Text(t, pos=(0,0,0), s=yLabelSize, justify="center-bottom", depth=0)
             if yKeepAspectRatio: ylab.SetScale(y_aspect_ratio_scale)
             ylab.RotateZ(yTitleRotation)
             ylab.pos(v)
-            ylab.name = "yNumericLabel"+str(i)
-            labels.append(ylab.c(yTickColor).lighting(specular=0, ambient=1))
+            ylab.name = "yNumericLabel"+str(i)+" "+t
+            labels.append(ylab.c(yTickColor))
 
     if zLabelSize and ztitle:
         for i in range(1, len(zticks_str)):
             t = zticks_str[i]
+            if not t: continue
             v = (-zLabelOffset, -zLabelOffset, zticks_float[i])
             zlab = shapes.Text(t, pos=(0,0,0), s=zLabelSize, justify="center-bottom", depth=0)
             if zKeepAspectRatio: zlab.SetScale(z_aspect_ratio_scale)
             zlab.RotateY(-90)
             zlab.RotateX(zTitleRotation)
             zlab.pos(v)
-            zlab.name = "zNumericLabel"+str(i)
-            labels.append(zlab.c(zTickColor).lighting(specular=0, ambient=1))
+            zlab.name = "zNumericLabel"+str(i)+" "+t
+            labels.append(zlab.c(zTickColor))
 
-    acts = grids + grids2 + lines + highlights + titles
-    acts += minorticks + originmarks + ticks + cones + labels
+    acts = titles + lines + labels + grids + grids2 + highlights + framelines
+    acts += maj_ticks + min_ticks + originmarks + cones
+
+    tol *= mag(ss)
+    orig = np.array([min_bns[0], min_bns[2], min_bns[4]]) - tol
     for a in acts:
         a.PickableOff()
+        a.SetPosition(a.GetPosition() + orig)
+        pr = a.GetProperty()
+        pr.SetAmbient(0.9)
+        pr.SetDiffuse(0.1)
+        pr.SetSpecular(0)
     asse = Assembly(acts)
-    asse.pos(min_bns[0], min_bns[2], min_bns[4])
+    asse.SetOrigin(orig)
     asse.SetScale(ss)
     asse.PickableOff()
+    settings.collectable_actors = settings.collectable_actors[:ncolls]
     return asse
 
 
@@ -1271,45 +1277,46 @@ def addGlobalAxes(axtype=None, c=None):
 
     Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
-        - `xtitle`,            ['x'], x-axis title text.
-        - `ytitle`,            ['y'], y-axis title text.
-        - `ztitle`,            ['z'], z-axis title text.
-        - `numberOfDivisions`, [automatic], approximate number of divisions on the longest axis
-        - `axesLineWidth`,       [1], width of the axes lines
-        - `gridLineWidth`,       [1], width of the grid lines
-        - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally
-        - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
-        - `titleDepth`,          [0], extrusion fractional depth of title text
-        - `xyGrid`,           [True], show a gridded wall on plane xy
-        - `yzGrid`,           [True], show a gridded wall on plane yz
-        - `zxGrid`,           [True], show a gridded wall on plane zx
-        - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
-        - `xyGridTransparent`  [False], make grid plane completely transparent
-        - `xyGrid2Transparent` [False], make grid plane completely transparent on opposite side box
-        - `xyPlaneColor`,   ['gray'], color of the plane
-        - `xyGridColor`,    ['gray'], grid line color
-        - `xyAlpha`,          [0.15], grid plane opacity
-        - `showTicks`,        [True], show major ticks
-        - `xTitlePosition`,   [0.32], title fractional positions along axis
-        - `xTitleOffset`,     [0.05], title fractional offset distance from axis line
+
+        - `xtitle`,                ['x'], x-axis title text
+        - `xrange`,               [None], x-axis range in format (xmin, ymin), default is automatic.
+        - `numberOfDivisions`,    [None], approximate number of divisions on the longest axis
+        - `axesLineWidth`,           [1], width of the axes lines
+        - `gridLineWidth`,           [1], width of the grid lines
+        - `reorientShortTitle`,   [True], titles shorter than 2 letter are placed horizontally
+        - `originMarkerSize`,     [0.01], draw a small cube on the axis where the origin is
+        - `titleDepth`,              [0], extrusion fractional depth of title text
+        - `xyGrid`,               [True], show a gridded wall on plane xy
+        - `yzGrid`,               [True], show a gridded wall on plane yz
+        - `zxGrid`,               [True], show a gridded wall on plane zx
+        - `zxGrid2`,             [False], show zx plane on opposite side of the bounding box
+        - `xyGridTransparent`    [False], make grid plane completely transparent
+        - `xyGrid2Transparent`   [False], make grid plane completely transparent on opposite side box
+        - `xyPlaneColor`,       ['gray'], color of the plane
+        - `xyGridColor`,        ['gray'], grid line color
+        - `xyAlpha`,              [0.15], grid plane opacity
+        - `xyFrameLine`,          [None], add a frame for the plane
+        - `showTicks`,            [True], show major ticks
+        - `xTitlePosition`,       [0.32], title fractional positions along axis
+        - `xTitleOffset`,         [0.05], title fractional offset distance from axis line
         - `xTitleJustify`, ["top-right"], title justification
-        - `xTitleRotation`,      [0], add a rotation of the axis title
-        - `xLineColor`,  [automatic], color of the x-axis
-        - `xTitleColor`, [automatic], color of the axis title
-        - `xTitleBackfaceColor`, [None],  color of axis title on its backface
-        - `xTitleSize`,      [0.025], size of the axis title
-        - `xHighlightZero`,   [True], draw a line highlighting zero position if in range
-        - `xHighlightZeroColor`, [automatic], color of the line highlighting the zero position
-        - `xTickRadius`,     [0.005], radius of the major ticks
-        - `xTickThickness`, [0.0025], thickness of the major ticks along their axis
-        - `xTickColor`,  [automatic], color of major ticks
-        - `xMinorTicks`,         [1], number of minor ticks between two major ticks
-        - `tipSize`,          [0.01], size of the arrow tip
-        - `xPositionsAndLabels`   [], assign custom tick positions and labels [(pos1, label1), ...]
-        - `xLabelPrecision`,     [2], nr. of significative digits to be shown
-        - `xLabelSize`,      [0.015], size of the numeric labels along axis
-        - `xLabelOffset`,    [0.025], offset of numeric labels
-        - `limitRatio`,       [0.04], below this ratio don't plot small axis
+        - `xTitleRotation`,          [0], add a rotation of the axis title
+        - `xLineColor`,      [automatic], color of the x-axis
+        - `xTitleColor`,     [automatic], color of the axis title
+        - `xTitleBackfaceColor`,  [None],  color of axis title on its backface
+        - `xTitleSize`,          [0.025], size of the axis title
+        - `xHighlightZero`,       [True], draw a line highlighting zero position if in range
+        - `xHighlightZeroColor`, [autom], color of the line highlighting the zero position
+        - `xTickRadius`,         [0.005], radius of the major ticks
+        - `xTickThickness`,     [0.0025], thickness of the major ticks along their axis
+        - `xTickColor`,      [automatic], color of major ticks
+        - `xMinorTicks`,             [1], number of minor ticks between two major ticks
+        - `tipSize`,              [0.01], size of the arrow tip
+        - `xPositionsAndLabels`       [], assign custom tick positions and labels [(pos1, label1), ...]
+        - `xLabelPrecision`,         [2], nr. of significative digits to be shown
+        - `xLabelSize`,          [0.015], size of the numeric labels along axis
+        - `xLabelOffset`,        [0.025], offset of numeric labels
+        - `limitRatio`,           [0.04], below this ratio don't plot small axis
 
         :Example:
 

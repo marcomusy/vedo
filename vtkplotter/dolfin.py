@@ -382,9 +382,8 @@ def plot(*inputobj, **options):
     Axes type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
         - `xtitle`,            ['x'], x-axis title text.
-        - `ytitle`,            ['y'], y-axis title text.
-        - `ztitle`,            ['z'], z-axis title text.
-        - `numberOfDivisions`, [automatic], approximate number of divisions on the longest axis
+        - `xrange`,           [None], x-axis range in format (xmin, ymin), default is automatic.
+        - `numberOfDivisions`,[None], approximate number of divisions on the longest axis
         - `axesLineWidth`,       [1], width of the axes lines
         - `gridLineWidth`,       [1], width of the grid lines
         - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally

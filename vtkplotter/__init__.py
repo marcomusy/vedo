@@ -12,7 +12,7 @@ analysis and animation of 3D objects and point clouds based on VTK.
     - `examples/advanced <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/advanced>`_
     - `examples/volumetric <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/volumetric>`_
     - `examples/simulations <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations>`_
-    - `examples/plotting2d <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/plotting2d>`_
+    - `examples/pyplot <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/pyplot>`_
     - `examples/others <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other>`_
     - `examples/others/dolfin <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/dolfin>`_.
     - `examples/others/trimesh <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/trimesh>`_
@@ -30,7 +30,7 @@ from vtkplotter.version import _version as __version__
 from vtkplotter.animation import Animation
 from vtkplotter.plotter import *
 from vtkplotter.analysis import *
-from vtkplotter.plot2d import *
+from vtkplotter.pyplot import *
 from vtkplotter.shapes import *
 from vtkplotter.vtkio import *
 

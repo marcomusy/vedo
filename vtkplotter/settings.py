@@ -7,6 +7,7 @@ General settings.
     xtitle = 'x'
     ytitle = 'y'
     ztitle = 'z'
+    defaultAxesType = 4
 
     # Scale magnification of the screenshot (must be an integer)
     screeshotScale = 1
@@ -134,6 +135,7 @@ __all__ = ['datadir', 'embedWindow']
 xtitle = 'x'
 ytitle = 'y'
 ztitle = 'z'
+defaultAxesType = None
 
 # Scale magnification of the screenshot (must be an integer)
 screeshotScale = 1

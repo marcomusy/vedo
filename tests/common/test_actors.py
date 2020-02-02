@@ -264,9 +264,9 @@ asse = cone+sphere
 
 ###################################### getActors
 print('Test getMeshes')
-assert len(asse.getMeshes()) ==2
-assert asse.getMesh(0) == cone
-assert asse.getMesh(1) == sphere
+assert len(asse.unpack()) ==2
+assert asse.unpack(0) == cone
+assert asse.unpack(1) == sphere
 
 assert 4.1 < asse.diagonalSize() < 4.2
 

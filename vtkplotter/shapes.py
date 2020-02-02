@@ -2,7 +2,7 @@ from __future__ import division, print_function
 import vtk
 import numpy as np
 from vtkplotter import settings
-from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
+from vtk.util.numpy_support import numpy_to_vtk
 import vtkplotter.utils as utils
 from vtkplotter.colors import printc, getColor, colorMap, _mapscales
 from vtkplotter.mesh import Mesh
@@ -38,7 +38,6 @@ __all__ = [
     "Star",
     "Sphere",
     "Spheres",
-    "SphericGrid",
     "Earth",
     "Ellipsoid",
     "Grid",
@@ -54,6 +53,7 @@ __all__ = [
     "Paraboloid",
     "Hyperboloid",
     "Text",
+    "Text2D",
     "Latex",
     "Glyph",
     "Tensors",
@@ -62,7 +62,7 @@ __all__ = [
 
 
 ########################################################################
-def Marker(symbol, c='lb', alpha=1, s=0.1, filled=True):
+def Marker(symbol, pos=(0, 0, 0), c='lb', alpha=1, s=0.1, filled=True):
     """
     Generate a marker shape.
     Can be used in association with ``Glyph``.
@@ -102,7 +102,11 @@ def Marker(symbol, c='lb', alpha=1, s=0.1, filled=True):
         mesh = Text('*', pos=(0,0,0), s=s*3, justify='center', depth=0)
     else:
         mesh = Text(symbol, pos=(0,0,0), s=s*2, justify='center', depth=0)
+    settings.collectable_actors.pop()
     mesh.flat().lighting('ambient').wireframe(not filled).c(c).alpha(alpha)
+    if len(pos) == 2:
+        pos = (pos[0], pos[1], 0)
+    mesh.SetPosition(pos)
     mesh.name = "Marker"
     return mesh
 
@@ -134,7 +138,7 @@ class Points(Mesh):
 
     |lorenz|
     """
-    def __init__(self, plist, r=5, c="gold", alpha=1):
+    def __init__(self, plist, r=5, c=(.3,.3,.3), alpha=1):
 
         ################ interpret user input format:
         if isinstance(plist, Mesh):
@@ -270,6 +274,7 @@ class Glyph(Mesh):
         if utils.isSequence(mesh):
             # create a cloud of points
             mesh = Points(mesh)
+            settings.collectable_actors.pop()
 
         if tol:
             mesh = mesh.clone().clean(tol)
@@ -502,13 +507,13 @@ class DashedLine(Mesh):
     If `p0` is a list of points returns the line connecting them.
     A 2D set of coords can also be passed as p0=[x..], p1=[y..].
 
-    :param float spacing: physical size of the dash.
+    :param float spacing: relative size of the dash.
     :param c: color name, number, or list of [R,G,B] colors.
     :type c: int, str, list
     :param float alpha: transparency in range [0,1].
     :param lw: line width.
     """
-    def __init__(self, p0, p1=None, spacing=None, c="red", alpha=1, lw=1):
+    def __init__(self, p0, p1=None, spacing=0.2, c="red", alpha=1, lw=2):
 
         if isinstance(p0, vtk.vtkActor): p0 = p0.GetPosition()
         if isinstance(p1, vtk.vtkActor): p1 = p1.GetPosition()
@@ -520,49 +525,66 @@ class DashedLine(Mesh):
                 p0 = np.stack((p0, p1), axis=1)
                 p1 = None
 
+        if p1 is not None: # assume passing p0=[x,y]
+            if len(p0) == 2 and not utils.isSequence(p0[0]):
+                p0 = (p0[0], p0[1], 0)
+            if len(p1) == 2 and not utils.isSequence(p1[0]):
+                p1 = (p1[0], p1[1], 0)
+
         # detect if user is passing a list of points:
         if utils.isSequence(p0[0]):
            listp = p0
         else:  # or just 2 points to link
             listp = [p0, p1]
 
-        if not spacing:
-            spacing = np.linalg.norm(np.array(listp[-1]) - listp[0])/50
+        listp = np.array(listp)
+        if listp.shape[1]==2:
+            listp = np.c_[listp, np.zeros(listp.shape[0])]
 
-        polylns = vtk.vtkAppendPolyData()
-        for ipt in range(1, len(listp)):
-            p0 = np.array(listp[ipt-1])
-            p1 = np.array(listp[ipt])
+        xmn = np.min(listp, axis=0)
+        xmx = np.max(listp, axis=0)
+        dlen = np.linalg.norm(xmx-xmn)*spacing/10
+
+        qs = []
+        for ipt in range(len(listp)-1):
+            p0 = listp[ipt]
+            p1 = listp[ipt+1]
             v = p1-p0
-            n1 = int(np.linalg.norm(v)/spacing)
+            vdist = np.linalg.norm(v)
+            n1 = int(vdist/dlen)
             if not n1: continue
 
-            for i in range(1, n1+2):
-                if (i-1)/n1>1:
-                    continue
+            res = 0
+            for i in range(n1+2):
+                ist = (i-0.5)/n1
+                if ist<0: ist=0
+                qi = p0 + v * (ist - res/vdist)
+                if ist>1:
+                    qi = p1
+                    res = np.linalg.norm(qi-p1)
+                    qs.append(qi)
+                    break
+                qs.append(qi)
 
-                if i%2:
-                    q0 = p0 + (i-1)/n1*v
-                    if i/n1>1:
-                        q1 = p1
-                    else:
-                        q1 = p0 + i/n1*v
-                    lineSource = vtk.vtkLineSource()
-                    lineSource.SetPoint1(q0)
-                    lineSource.SetPoint2(q1)
-                    lineSource.Update()
-                    polylns.AddInputData(lineSource.GetOutput())
-
-            polylns.Update()
-            poly = polylns.GetOutput()
+        polylns = vtk.vtkAppendPolyData()
+        for i,q1 in enumerate(qs):
+            if not i%2: continue
+            q0 = qs[i-1]
+            lineSource = vtk.vtkLineSource()
+            lineSource.SetPoint1(q0)
+            lineSource.SetPoint2(q1)
+            lineSource.Update()
+            polylns.AddInputData(lineSource.GetOutput())
+        polylns.Update()
+        poly = polylns.GetOutput()
 
         Mesh.__init__(self, poly, c, alpha)
         self.lw(lw)
-        self.base = np.array(p0)
-        self.top  = np.array(p1)
+        self.base = listp[0]
+        self.top  = listp[-1]
         settings.collectable_actors.append(self)
         self.name = "DashedLine"
-
+        
 
 class Lines(Mesh):
     """
@@ -650,7 +672,7 @@ class Spline(Mesh):
             lines.InsertCellPoint(i)
         profileData.SetPoints(ppoints)
         profileData.SetLines(lines)
-        Mesh.__init__(self, profileData)
+        Mesh.__init__(self, profileData, c='k')
         self.GetProperty().SetLineWidth(s)
         self.base = np.array(points[0])
         self.top = np.array(points[-1])
@@ -949,8 +971,8 @@ class Arrow2D(Mesh):
     """
     def __init__(self, startPoint, endPoint,
                  shaftLength=0.8,
-                 shaftWidth=0.09,
-                 headLength=None,
+                 shaftWidth=0.05,
+                 headLength=0.25,
                  headWidth=0.2,
                  fill=True,
                  c="r",
@@ -1002,6 +1024,7 @@ class Arrow2D(Mesh):
         tf.Update()
 
         Mesh.__init__(self, tf.GetOutput(), c, alpha)
+        self.SetPosition(startPoint)
         self.flat().lighting('ambient')
         self.DragableOff()
         self.PickableOff()
@@ -1043,7 +1066,7 @@ def Arrows2D(startPoints, endPoints=None,
             arrs2d = Arrows2D(g1, g2, c='jet')
             arrs2d.show(axes=1, bg='white')
 
-        |quiverPlot|
+        |quiver|
     """
     if isinstance(startPoints, Mesh): startPoints = startPoints.points()
     if isinstance(endPoints,   Mesh): endPoints   = endPoints.points()
@@ -1113,14 +1136,23 @@ class Polygon(Mesh):
     |Polygon|
     """
     def __init__(self, pos=(0, 0, 0), nsides=6, r=1, c="coral", alpha=1):
-        ps = vtk.vtkRegularPolygonSource()
-        ps.SetNumberOfSides(nsides)
-        ps.SetRadius(r)
-        ps.Update()
-        Mesh.__init__(self, ps.GetOutput(), c, alpha)
+
+        if len(pos) == 2:
+            pos = (pos[0], pos[1], 0)
+               
+        t = np.linspace(np.pi/2, 5/2*np.pi, num=nsides, endpoint=False)
+        x, y = utils.pol2cart(np.ones_like(t)*r, t)        
+        faces = [list(range(nsides))] 
+        Mesh.__init__(self, [np.c_[x,y], faces], c, alpha)        
+            
+        #ps = vtk.vtkRegularPolygonSource() # bugged!
+        #ps.SetNumberOfSides(nsides)
+        #ps.SetRadius(r)
+        #ps.Update()
+        #Mesh.__init__(self, ps.GetOutput(), c, alpha)
         self.SetPosition(pos)
         settings.collectable_actors.append(self)
-        self.name = "Polygon"
+        self.name = "Polygon " + str(nsides)
 
 
 class Circle(Polygon):
@@ -1136,7 +1168,7 @@ class Circle(Polygon):
         self.name = "Circle"
 
 
-def Star(pos=(0, 0, 0), n=5, r1=0.7, r2=1.0, line=False, c="lb", alpha=1):
+class Star(Mesh):
     """
     Build a 2D star shape of `n` cusps of inner radius `r1` and outer radius `r2`.
 
@@ -1144,35 +1176,38 @@ def Star(pos=(0, 0, 0), n=5, r1=0.7, r2=1.0, line=False, c="lb", alpha=1):
 
     |extrude| |extrude.py|_
     """
-    ps = vtk.vtkRegularPolygonSource()
-    ps.SetNumberOfSides(n)
-    ps.SetRadius(r2)
-    ps.Update()
-    pts = vtk_to_numpy(ps.GetOutput().GetPoints().GetData())
-
-    apts=[]
-    for i,p in enumerate(pts):
-        apts.append(p)
-        if i+1<n:
-            apts.append((p+pts[i+1])/2*r1/r2)
-    apts.append((pts[-1]+pts[0])/2*r1/r2)
-
-    if line:
-        apts.append(pts[0])
-        mesh = Line(apts).c(c).alpha(alpha)
-    else:
-        apts.append((0,0,0))
-        cells=[]
-        for i in range(2*n-1):
-            cell = [2*n, i, i+1]
-            cells.append(cell)
-        cells.append([2*n, i+1, 0])
-        mesh = Mesh([apts, cells], c, alpha)
-
-    mesh.SetPosition(pos)
-    settings.collectable_actors.append(mesh)
-    mesh.name = "Star"
-    return mesh
+    def __init__(self, pos=(0,0,0), n=5, r1=0.7, r2=1.0, line=False, c="lb", alpha=1):
+       
+        if len(pos) == 2:
+            pos = (pos[0], pos[1], 0)
+    
+        t = np.linspace(np.pi/2, 5/2*np.pi, num=n, endpoint=False)
+        x, y = utils.pol2cart(np.ones_like(t)*r2, t)        
+        pts = np.c_[x,y, np.zeros_like(x)]
+    
+        apts=[]
+        for i,p in enumerate(pts):
+            apts.append(p)
+            if i+1<n:
+                apts.append((p+pts[i+1])/2*r1/r2)
+        apts.append((pts[-1]+pts[0])/2*r1/r2)
+    
+        if line:
+            apts.append(pts[0])
+            #mesh = Line(apts).c(c).alpha(alpha)
+            Mesh.__init__(self, [apts, list(range(len(apts)))], c, alpha)
+        else:
+            apts.append((0,0,0))
+            cells=[]
+            for i in range(2*n-1):
+                cell = [2*n, i, i+1]
+                cells.append(cell)
+            cells.append([2*n, i+1, 0])
+            Mesh.__init__(self, [apts, cells], c, alpha)
+    
+        self.SetPosition(pos)
+        settings.collectable_actors.append(self)
+        self.name = "Star"
 
 
 class Disc(Mesh):
@@ -1190,6 +1225,8 @@ class Disc(Mesh):
         res=12,
         resphi=None,
     ):
+        if len(pos) == 2:
+            pos = (pos[0], pos[1], 0)
         ps = vtk.vtkDiskSource()
         ps.SetInnerRadius(r1)
         ps.SetOuterRadius(r2)
@@ -1226,6 +1263,10 @@ class Arc(Mesh):
         alpha=1,
         res=48,
     ):
+        if len(point1) == 2:
+            point1 = (point1[0], point1[1], 0)
+        if len(point2) == 2:
+            point2 = (point2[0], point2[1], 0)
         ar = vtk.vtkArcSource()
         if point2 is not None:
             ar.UseNormalAndAngleOff()
@@ -1252,18 +1293,47 @@ class Arc(Mesh):
 class Sphere(Mesh):
     """Build a sphere at position `pos` of radius `r`.
 
-    |Sphere|
+    :param r float: sphere radius
+    :param int res: resolution in phi, resolution in theta is 2*res
+    :param bool quads: sphere mesh will be made of quads instead of triangles
+
+    |Sphere| |sphericgrid|
     """
-    def __init__(self, pos=(0, 0, 0), r=1, c="r", alpha=1, res=24):
+    def __init__(self, pos=(0, 0, 0), r=1, c="r", alpha=1, res=24, quads=False):
 
-        ss = vtk.vtkSphereSource()
-        ss.SetRadius(r)
-        ss.SetThetaResolution(2 * res)
-        ss.SetPhiResolution(res)
-        ss.Update()
+        if quads:
+            if res<4: res=4
+            img = vtk.vtkImageData()
+            img.SetDimensions(res-1,res-1,res-1)
+            rs = 1./(res-2)
+            img.SetSpacing(rs,rs,rs)
+            gf = vtk.vtkGeometryFilter()
+            gf.SetInputData(img)
+            gf.Update()            
+            Mesh.__init__(self, gf.GetOutput(), c, alpha)
+            self.lw(0.1)
+        
+            cgpts = self.points() - (0.5,0.5,0.5)
+        
+            x, y, z = cgpts[:,0], cgpts[:,1], cgpts[:,2]
+            x = x*(1+x*x)/2
+            y = y*(1+y*y)/2
+            z = z*(1+z*z)/2
+            _, theta, phi = utils.cart2spher(x, y, z)
+        
+            pts = utils.spher2cart(np.ones_like(phi)*r, theta, phi)        
+            self.points(pts)
 
-        Mesh.__init__(self, ss.GetOutput(), c, alpha)
+        else:
 
+            ss = vtk.vtkSphereSource()
+            ss.SetRadius(r)
+            ss.SetPhiResolution(res)
+            ss.SetThetaResolution(2 * res)
+            ss.Update()
+    
+            Mesh.__init__(self, ss.GetOutput(), c, alpha)
+    
         self.phong()
         self.SetPosition(pos)
         settings.collectable_actors.append(self)
@@ -1356,29 +1426,6 @@ class Spheres(Mesh):
             self.GetProperty().SetColor(getColor(c))
         settings.collectable_actors.append(self)
         self.name = "Spheres"
-
-
-def SphericGrid(pos=(0, 0, 0), r=1, c="t", alpha=1, res=12):
-    """Build a sphere made of quads.
-
-    |sphericgrid|
-    """
-    sg = CubicGrid(n=(res,res,res))
-
-    cgpts = sg.points()-(.5,.5,.5)
-
-    x, y, z = cgpts[:,0], cgpts[:,1], cgpts[:,2]
-    x = x*(1+x*x)/2
-    y = y*(1+y*y)/2
-    z = z*(1+z*z)/2
-    _, theta, phi = utils.cart2spher(x, y, z)
-
-    pts = utils.spher2cart(np.ones_like(phi)*r, theta, phi)
-
-    sg.points(pts).computeNormals().c(c).alpha(alpha)
-    sg.SetPosition(pos)
-    sg.name = "SphericGrid"
-    return sg
 
 
 class Earth(Mesh):
@@ -1491,6 +1538,9 @@ class Grid(Mesh):
                 resy=10,
                 ):
 
+        if len(pos) == 2:
+            pos = (pos[0], pos[1], 0)
+
         if utils.isSequence(sx) and utils.isSequence(sy):
             verts = []
             for y in sy:
@@ -1549,6 +1599,9 @@ class Plane(Mesh):
     """
     def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g", alpha=1):
 
+        if len(pos) == 2:
+            pos = (pos[0], pos[1], 0)
+
         if sy is None:
             sy = sx
         ps = vtk.vtkPlaneSource()
@@ -1578,8 +1631,14 @@ class Plane(Mesh):
 
 def Rectangle(p1=(0, 0, 0), p2=(2, 1, 0), lw=1, c="g", alpha=1):
     """Build a rectangle in the xy plane identified by two corner points."""
-    p1 = np.array(p1)
-    p2 = np.array(p2)
+    if len(p1) == 2:
+        p1 = np.array([p1[0], p1[1], 0.])
+    else:
+        p1 = np.array(p1)
+    if len(p2) == 2:
+        p2 = np.array([p2[0], p2[1], 0.])
+    else:
+        p2 = np.array(p2)
     pos = (p1 + p2) / 2
     length = abs(p2[0] - p1[0])
     height = abs(p2[1] - p1[1])
@@ -1620,26 +1679,22 @@ def Cube(pos=(0, 0, 0), side=1, c="g", alpha=1):
     return mesh
 
 def CubicGrid(pos=(0, 0, 0), n=(10,10,10), spacing=(), c="lightgrey", alpha=0.1):
-    """Build a cubic Mesh made o `n` small cubes in the 3 axis directions.
+    """Build a cubic Mesh made o `n` small quads in the 3 axis directions.
 
     :param list pos: position of the left bottom corner
     :param int n: number of subdivisions
-    :parameter list spacing: size of the side of the cube in the 3 directions
+    :parameter list spacing: size of the side of the single quad in the 3 directions
     """
-    from vtkplotter.volume import Volume
-    n = np.array(n).astype(int) + 2
-    nx, ny, nz = n
-    mx, my, mz = n - 1
-    data_matrix = np.zeros([nx, ny, nz], dtype=np.uint8)
-    data_matrix[0:mx, 0:my, 0:mz] = 1
-    data_matrix[mx:nx, my:ny, mz:nz] = 2
-    if len(spacing) == 0:
-        spacing = 1/(n-2)
-    vol = Volume(data_matrix, spacing=spacing)
-    mesh = vol.legosurface().clean().c(c).alpha(alpha)
+    img = vtk.vtkImageData()
+    img.SetDimensions(n[0]+1,n[1]+1,n[2]+1)
+    if len(spacing)==3:
+        img.SetSpacing(spacing)
+    else:
+        img.SetSpacing(1./n[0], 1./n[1], 1./n[2])
+    mesh = utils.geometry(img)
     mesh.SetPosition(pos)
-    mesh.base = np.array([0,0,0])
-    mesh.top = np.array([0,0,1])
+    mesh.base = np.array([0.5,0.5,0])
+    mesh.top  = np.array([0.5,0.5,1])
     mesh.name = "CubicGrid"
     return mesh
 
@@ -1883,7 +1938,7 @@ def Text(
     txt,
     pos="top-left",
     s=1,
-    depth=0.1,
+    depth=0,
     justify="bottom-left",
     c=None,
     alpha=1,
@@ -1996,45 +2051,12 @@ def Text(
         setattr(ca, 'renderedAt', set())
         settings.collectable_actors.append(ca)
         return ca
-
-    elif len(pos)==2: # passing (x,y) coords
-        actor2d = vtk.vtkActor2D()
-        actor2d.SetPosition(pos)
-        tmapper = vtk.vtkTextMapper()
-        actor2d.SetMapper(tmapper)
-        tp = tmapper.GetTextProperty()
-        tp.BoldOff()
-        tp.SetFontSize(s*20)
-        tp.SetColor(getColor(c))
-        tp.SetJustificationToLeft()
-        tp.SetVerticalJustificationToBottom()
-        if font.lower() == "courier": tp.SetFontFamilyToCourier()
-        elif font.lower() == "times": tp.SetFontFamilyToTimes()
-        elif font.lower() == "arial": tp.SetFontFamilyToArial()
-        else:
-            tp.SetFontFamily(vtk.VTK_FONT_FILE)
-            import os
-            if font in settings.fonts:
-                tp.SetFontFile(settings.fonts_path + font + '.ttf')
-            elif os.path.exists(font):
-                tp.SetFontFile(font)
-            else:
-                printc("~sad Font", font, "not found in", settings.fonts_path, c="r")
-                printc("~pin Available fonts are:", settings.fonts, c="m")
-                return None
-        if bg:
-            bgcol = getColor(bg)
-            tp.SetBackgroundColor(bgcol)
-            tp.SetBackgroundOpacity(alpha * 0.5)
-            tp.SetFrameColor(bgcol)
-            tp.FrameOn()
-        tmapper.SetInput(str(txt))
-        actor2d.PickableOff()
-        setattr(actor2d, 'renderedAt', set())
-        settings.collectable_actors.append(actor2d)
-        return actor2d
-
+    
     else:
+        
+        if len(pos)==2:
+            pos = (pos[0], pos[1], 0)
+    
         # otherwise build the 3D text, fonts do not apply
         tt = vtk.vtkVectorText()
         tt.SetText(str(txt))
@@ -2076,6 +2098,57 @@ def Text(
         ttmesh.name = "Text"
         return ttmesh
 
+def Text2D(
+    txt,
+    pos=(0,0),
+    s=1,
+    depth=0,
+    justify="bottom-left",
+    c=None,
+    alpha=1,
+    bc=None,
+    bg=None,
+    font="courier",
+):
+    if len(pos)!=2:
+        print("Error in Text2D(): len(pos) must be 2.")
+        raise RuntimeError()
+
+    actor2d = vtk.vtkActor2D()
+    actor2d.SetPosition(pos)
+    tmapper = vtk.vtkTextMapper()
+    actor2d.SetMapper(tmapper)
+    tp = tmapper.GetTextProperty()
+    tp.BoldOff()
+    tp.SetFontSize(s*20)
+    tp.SetColor(getColor(c))
+    tp.SetJustificationToLeft()
+    tp.SetVerticalJustificationToBottom()
+    if font.lower() == "courier": tp.SetFontFamilyToCourier()
+    elif font.lower() == "times": tp.SetFontFamilyToTimes()
+    elif font.lower() == "arial": tp.SetFontFamilyToArial()
+    else:
+        tp.SetFontFamily(vtk.VTK_FONT_FILE)
+        import os
+        if font in settings.fonts:
+            tp.SetFontFile(settings.fonts_path + font + '.ttf')
+        elif os.path.exists(font):
+            tp.SetFontFile(font)
+        else:
+            printc("~sad Font", font, "not found in", settings.fonts_path, c="r")
+            printc("~pin Available fonts are:", settings.fonts, c="m")
+            return None
+    if bg:
+        bgcol = getColor(bg)
+        tp.SetBackgroundColor(bgcol)
+        tp.SetBackgroundOpacity(alpha * 0.5)
+        tp.SetFrameColor(bgcol)
+        tp.FrameOn()
+    tmapper.SetInput(str(txt))
+    actor2d.PickableOff()
+    setattr(actor2d, 'renderedAt', set())
+    settings.collectable_actors.append(actor2d)
+    return actor2d
 
 class Latex(Picture):
     """
@@ -2104,6 +2177,8 @@ class Latex(Picture):
         usetex=False,
         fromweb=False,
     ):
+        if len(pos) == 2:
+            pos = (pos[0], pos[1], 0)
         try:
 
             def build_img_web(formula, tfile):

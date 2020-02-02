@@ -153,13 +153,15 @@ for a wide range of functionalities *(click triangle to expand...)*:
 
 	- 2D hexagonal histograms
 
-	- Polar plots and histogramming
+	- Polar plots, spherical plots and histogramming
 
-	- Draw `latex`-formatted formulas in the rendering window.
+	- Draw latex-formatted formulas in the rendering window.
 
 	- Quiver plots
+	
+	- Stream line plots
 
-	- Point markers analogous to `matplotlib`
+	- Point markers analogous to matplotlib
 </details>
 
 
@@ -208,7 +210,7 @@ vtkplotter --run tube.py
 [**examples/advanced**](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/advanced)<br>
 [**examples/volumetric**](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/volumetric)<br>
 [**examples/simulations**](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations)<br>
-[**examples/plotting2d**](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/plotting2d)<br>
+[**examples/pyplot**](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/pyplot)<br>
 [**examples/other**](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other)<br>
 [**examples/other/dolfin**](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/dolfin)<br>
 [**examples/other/trimesh**](https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/trimesh)<br>

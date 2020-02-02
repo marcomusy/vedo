@@ -6,21 +6,33 @@ version: 2
 
 jobs:
 
-  test-vtkplotter:
+  test-vtkplotter-vtk7:
     docker:
-      - image: quay.io/fenicsproject/dolfinx:dev-env-real
+      - image: quay.io/fenicsproject/stable:latest
     environment:
       MPLBACKEND: "agg"
       DEBIAN_FRONTEND: "noninteractive"
 
     steps:
-      - checkout
+      - checkout          
 
       - run:
           name: install vtkplotter
           command: |
-            pip3 install vtk
+            sudo apt update -y
+            sudo apt upgrade -y
+            sudo apt install libgl1-mesa-dev xvfb -y
+            sudo apt install python3-vtk7 -y
             pip3 install .
+            pip3 uninstall -y vtk
+            
+            set -x
+            export DISPLAY=:99.0
+            which Xvfb
+            Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+            sleep 3
+            set +x
+            exec "$@"            
 
       - run:
           name: Run tests
@@ -36,7 +48,7 @@ jobs:
 
   build-dolfin-stable:
     docker:
-      - image: quay.io/fenicsproject/dolfinx:dev-env-real
+      - image: quay.io/fenicsproject/stable:latest
     environment:
       MPLBACKEND: "agg"
       DEBIAN_FRONTEND: "noninteractive"
@@ -50,9 +62,20 @@ jobs:
             pip3 install vtk
             pip3 install .
 
+            set -x
+            export DISPLAY=:99.0
+            which Xvfb
+            Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+            sleep 3
+            set +x
+            exec "$@"            
+
       - run:
           name: Run tests
           command: |
+            cd
+            cd project/tests/common
+            source run_all.sh
             cd
             cd project/tests/dolfin
             source run_all.sh
@@ -75,16 +98,22 @@ jobs:
           name: install vtkplotter et al
           command: |
             pip3 install vtk
-            pip3 install trimesh
-            pip3 install meshio
             pip3 install .
+
+            set -x
+            export DISPLAY=:99.0
+            which Xvfb
+            Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+            sleep 3
+            set +x
+            exec "$@"            
 
       # FEniCS:
       - run:
           name: Get dolfinx cmake compile and install
           command: |
             pip3 install git+https://github.com/FEniCS/fiat.git --upgrade
-            pip3 install git+https://github.com/FEniCS/ufl.git --upgrade
+            pip3 install git+https://github.com/FEniCS/ufl.git  --upgrade
             pip3 install git+https://github.com/FEniCS/ffcx.git --upgrade
             rm -rf /usr/local/include/dolfin /usr/local/include/dolfin.h
             git clone https://github.com/FEniCS/dolfinx.git
@@ -110,5 +139,10 @@ workflows:
   version: 2
   build-stuff:
     jobs:
-      - test-vtkplotter
+      - test-vtkplotter-vtk7
+      - build-dolfin-stable
       #- build-dolfinx
+      
+      
+      
+      

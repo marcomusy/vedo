@@ -166,6 +166,17 @@ class Volume(vtk.vtkVolume, ActorBase):
             self.jittering(True)
         return self
 
+    def clone(self):
+        """Return a clone copy of the Volume."""
+        newimg = vtk.vtkImageData()
+        newimg.CopyStructure(self._imagedata)
+        newimg.CopyAttributes(self._imagedata)
+        newvol = Volume(newimg)
+        prop = vtk.vtkVolumeProperty()
+        prop.DeepCopy(self.GetProperty())
+        newvol.SetProperty(prop)
+        return newvol
+
     def jittering(self, status=None):
         """If `jittering` is `True`, each ray traversal direction will be perturbed slightly
         using a noise-texture to get rid of wood-grain effects.
@@ -643,3 +654,248 @@ class Volume(vtk.vtkVolume, ActorBase):
             a.pointColors(scalars, vmin=self._imagedata.GetScalarRange()[0], cmap=cmap)
             a.mapPointsToCells()
         return a
+
+    
+    def operation(self, operation, volume2=None):
+        """
+        Perform operations with ``Volume`` objects.
+    
+        `volume2` can be a constant value.
+    
+        Possible operations are: ``+``, ``-``, ``/``, ``1/x``, ``sin``, ``cos``, ``exp``, ``log``,
+        ``abs``, ``**2``, ``sqrt``, ``min``, ``max``, ``atan``, ``atan2``, ``median``,
+        ``mag``, ``dot``, ``gradient``, ``divergence``, ``laplacian``.
+    
+        |volumeOperations| |volumeOperations.py|_
+        """
+        op = operation.lower()
+        image1 = self._imagedata
+    
+        if op in ["median"]:
+            mf = vtk.vtkImageMedian3D()
+            mf.SetInputData(image1)
+            mf.Update()
+            return Volume(mf.GetOutput())
+        elif op in ["mag"]:
+            mf = vtk.vtkImageMagnitude()
+            mf.SetInputData(image1)
+            mf.Update()
+            return Volume(mf.GetOutput())
+        elif op in ["dot", "dotproduct"]:
+            mf = vtk.vtkImageDotProduct()
+            mf.SetInput1Data(image1)
+            mf.SetInput2Data(volume2._imagedata)
+            mf.Update()
+            return Volume(mf.GetOutput())
+        elif op in ["grad", "gradient"]:
+            mf = vtk.vtkImageGradient()
+            mf.SetDimensionality(3)
+            mf.SetInputData(image1)
+            mf.Update()
+            return Volume(mf.GetOutput())
+        elif op in ["div", "divergence"]:
+            mf = vtk.vtkImageDivergence()
+            mf.SetInputData(image1)
+            mf.Update()
+            return Volume(mf.GetOutput())
+        elif op in ["laplacian"]:
+            mf = vtk.vtkImageLaplacian()
+            mf.SetDimensionality(3)
+            mf.SetInputData(image1)
+            mf.Update()
+            return Volume(mf.GetOutput())
+    
+        mat = vtk.vtkImageMathematics()
+        mat.SetInput1Data(image1)
+        
+        K = None
+
+        if isinstance(volume2, (int, float)):
+            K = volume2
+            mat.SetConstantK(K)
+            mat.SetConstantC(K)
+        elif volume2 is not None:  # assume image2 is a constant value
+            mat.SetInput2Data(volume2._imagedata)
+     
+        if op in ["+", "add", "plus"]:
+            if K:
+                mat.SetOperationToAddConstant()
+            else:
+                mat.SetOperationToAdd()
+    
+        elif op in ["-", "subtract", "minus"]:
+            if K:
+                mat.SetConstantC(-K)
+                mat.SetOperationToAddConstant()
+            else:
+                mat.SetOperationToSubtract()
+    
+        elif op in ["*", "multiply", "times"]:
+            if K:
+                mat.SetOperationToMultiplyByK()
+            else:
+                mat.SetOperationToMultiply()
+    
+        elif op in ["/", "divide"]:
+            if K:
+                mat.SetConstantK(1.0 / K)
+                mat.SetOperationToMultiplyByK()
+            else:
+                mat.SetOperationToDivide()
+    
+        elif op in ["1/x", "invert"]:
+            mat.SetOperationToInvert()
+        elif op in ["sin"]:
+            mat.SetOperationToSin()
+        elif op in ["cos"]:
+            mat.SetOperationToCos()
+        elif op in ["exp"]:
+            mat.SetOperationToExp()
+        elif op in ["log"]:
+            mat.SetOperationToLog()
+        elif op in ["abs"]:
+            mat.SetOperationToAbsoluteValue()
+        elif op in ["**2", "square"]:
+            mat.SetOperationToSquare()
+        elif op in ["sqrt", "sqr"]:
+            mat.SetOperationToSquareRoot()
+        elif op in ["min"]:
+            mat.SetOperationToMin()
+        elif op in ["max"]:
+            mat.SetOperationToMax()
+        elif op in ["atan"]:
+            mat.SetOperationToATAN()
+        elif op in ["atan2"]:
+            mat.SetOperationToATAN2()
+        else:
+            colors.printc("~times Error in volumeOperation: unknown operation", operation, c=1)
+            raise RuntimeError()
+        mat.Update()
+        return self._update(mat.GetOutput())
+    
+    
+    def frequencyPassFilter(self, lowcutoff=None, highcutoff=None, order=1):
+        """
+        Low-pass and high-pass filtering become trivial in the frequency domain.
+        A portion of the pixels/voxels are simply masked or attenuated.
+        This function applies a high pass Butterworth filter that attenuates the frequency domain
+        image with the function
+    
+        |G_Of_Omega|
+    
+        The gradual attenuation of the filter is important.
+        A simple high-pass filter would simply mask a set of pixels in the frequency domain,
+        but the abrupt transition would cause a ringing effect in the spatial domain.
+    
+        :param list lowcutoff:  the cutoff frequencies for x, y and z
+        :param list highcutoff: the cutoff frequencies for x, y and z
+        :param int order: order determines sharpness of the cutoff curve
+    
+        Check out also this example:
+    
+        |idealpass|
+        """
+        #https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
+        fft = vtk.vtkImageFFT()
+        fft.SetInputData(self._imagedata)
+        fft.Update()
+        out = fft.GetOutput()
+    
+        if highcutoff:
+            butterworthLowPass = vtk.vtkImageButterworthLowPass()
+            butterworthLowPass.SetInputData(out)
+            butterworthLowPass.SetCutOff(highcutoff) # actually inverted..(?)
+            butterworthLowPass.SetOrder(order)
+            butterworthLowPass.Update()
+            out = butterworthLowPass.GetOutput()
+    
+        if lowcutoff:
+            butterworthHighPass = vtk.vtkImageButterworthHighPass()
+            butterworthHighPass.SetInputData(out)
+            butterworthHighPass.SetCutOff(lowcutoff)
+            butterworthHighPass.SetOrder(order)
+            butterworthHighPass.Update()
+            out = butterworthHighPass.GetOutput()
+    
+        butterworthRfft = vtk.vtkImageRFFT()
+        butterworthRfft.SetInputData(out)
+        butterworthRfft.Update()
+    
+        butterworthReal = vtk.vtkImageExtractComponents()
+        butterworthReal.SetInputData(butterworthRfft.GetOutput())
+        butterworthReal.SetComponents(0)
+        butterworthReal.Update()
+        return self._update(butterworthReal.GetOutput())
+ 
+    
+    
+    def erode(self, neighbours=(2,2,2)):
+        """Replace a voxel with the minimum over an ellipsoidal neighborhood of voxels.
+        If `neighbours` of an axis is 1, no processing is done on that axis.
+    
+        See example script: |erode_dilate.py|_
+        """
+        ver = vtk.vtkImageContinuousErode3D()
+        ver.SetInputData(self._imagedata)
+        ver.SetKernelSize(neighbours[0], neighbours[1], neighbours[2])
+        ver.Update()
+        return self._update(ver.GetOutput())
+    
+    
+    def dilate(self, neighbours=(2,2,2)):
+        """Replace a voxel with the maximum over an ellipsoidal neighborhood of voxels.
+        If `neighbours` of an axis is 1, no processing is done on that axis.
+    
+        See example script: |erode_dilate.py|_
+        """
+        ver = vtk.vtkImageContinuousDilate3D()
+        ver.SetInputData(self._imagedata)
+        ver.SetKernelSize(neighbours[0], neighbours[1], neighbours[2])
+        ver.Update()
+        return self._update(ver.GetOutput())
+
+    
+      
+    def euclideanDistance(self, anisotropy=False, maxDistance=None):
+        """Implementation of the Euclidean DT (Distance Transform) using Saito's algorithm.
+        The distance map produced contains the square of the Euclidean distance values.
+        The algorithm has a O(n^(D+1)) complexity over nxnx...xn images in D dimensions.
+    
+        Check out also: https://en.wikipedia.org/wiki/Distance_transform
+    
+        :param bool anisotropy: used to define whether Spacing should be used
+            in the computation of the distances.
+        :param float maxDistance: any distance bigger than maxDistance will not be
+            computed but set to this specified value instead.
+    
+        See example script: |euclDist.py|_
+        """
+        euv = vtk.vtkImageEuclideanDistance()
+        euv.SetInputData(self._imagedata)
+        euv.SetConsiderAnisotropy(anisotropy)
+        if maxDistance is not None:
+            euv.InitializeOn()
+            euv.SetMaximumDistance(maxDistance)
+        euv.SetAlgorithmToSaito()
+        euv.Update()
+        return Volume(euv.GetOutput())
+  
+   
+    def correlationWith(self, vol2, dim=2):
+        """Find the correlation between two volumetric data sets.
+        Keyword `dim` determines whether the correlation will be 3D, 2D or 1D.
+        The default is a 2D Correlation.
+        The output size will match the size of the first input.
+        The second input is considered the correlation kernel.
+        """
+        imc = vtk.vtkImageCorrelation()
+        imc.SetInput1Data(self._imagedata)
+        imc.SetInput2Data(vol2._imagedata)
+        imc.SetDimensionality(dim)
+        imc.Update()
+        return Volume(imc.GetOutput())
+
+
+ 
+    
+    

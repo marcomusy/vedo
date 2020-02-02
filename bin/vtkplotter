@@ -283,7 +283,7 @@ def draw_scene():
         vp.window.AddObserver("AbortCheckEvent", CheckAbort)
 
         # add histogram of scalar
-        from vtkplotter.plot2d import cornerHistogram
+        from vtkplotter.pyplot import cornerHistogram
 
         dims = img.GetDimensions()
         nvx = min(100000, dims[0] * dims[1] * dims[2])
@@ -1055,7 +1055,7 @@ else:  #########################################################################
         printc("Plotting 2D examples:", c='w', bold=1, underline=1)
         scs = []
         for f,bn in exfiles:
-            if "plotting2d" in f:
+            if "pyplot" in f:
                 lb = ' ' if (len(scs)+1)%nl else '\n'
                 scs.append(lb+bn.replace('.py',''))
         printc("".join(scs), c='w', bold=0)

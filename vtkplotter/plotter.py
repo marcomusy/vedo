@@ -24,7 +24,8 @@ Defines main class ``Plotter`` to manage actors and 3D rendering.
     + docs._defs
 )
 
-__all__ = ["show", "clear", "Plotter", "closeWindow", "closePlotter", "interactive"]
+__all__ = ["show", "clear", "ion", "ioff",
+           "Plotter", "closeWindow", "closePlotter", "interactive"]
 
 ########################################################################
 def show(*actors, **options):
@@ -198,9 +199,9 @@ def show(*actors, **options):
     #xtitle = options.pop("xtitle", "x")
     #ytitle = options.pop("ytitle", "y")
     #ztitle = options.pop("ztitle", "z")
-    bg = options.pop("bg", "blackboard")
+    bg = options.pop("bg", "white")
     bg2 = options.pop("bg2", None)
-    axes = options.pop("axes", 4)
+    axes = options.pop("axes", settings.defaultAxesType)
     verbose = options.pop("verbose", True)
     interactive = options.pop("interactive", None)
     offscreen = options.pop("offscreen", False)
@@ -226,6 +227,9 @@ def show(*actors, **options):
         actors = actors[0]
     else:
         actors = utils.flatten(actors)
+    
+    if actors is Ellipsis:
+        actors = settings.collectable_actors
 
     if settings.plotter_instance and newPlotter is False:
         vp = settings.plotter_instance
@@ -233,16 +237,16 @@ def show(*actors, **options):
     else:
         if utils.isSequence(at):
             if not utils.isSequence(actors):
-                colors.printc("~times show() Error: input must be a list.", c=1)
+                colors.printc("show() Error: input must be a list.", c=1)
                 raise RuntimeError()
             if len(at) != len(actors):
-                colors.printc("~times show() Error: lists 'input' and 'at', must have equal lengths.", c=1)
+                colors.printc("show() Error: lists 'input' and 'at', must have equal lengths.", c=1)
                 raise RuntimeError()
             if len(at) > 1 and (shape == (1, 1) and N is None):
                 N = max(at) + 1
         elif at is None and (N or shape != (1, 1)):
             if not utils.isSequence(actors):
-                colors.printc('~times show() Error: N or shape is set, but input is not a sequence.', c=1)
+                colors.printc('show() Error: N or shape is set, but input is not a sequence.', c=1)
                 colors.printc('              you may need to specify e.g. at=0', c=1)
                 raise RuntimeError()
             at = range(len(actors))
@@ -304,15 +308,31 @@ def show(*actors, **options):
 
 
 def interactive():
-    """Go back to the rendering window interaction mode."""
+    """Start the rendering window interaction mode."""
     if settings.plotter_instance:
         if hasattr(settings.plotter_instance, 'interactor'):
             if settings.plotter_instance.interactor:
                 settings.plotter_instance.interactor.Start()
     return settings.plotter_instance
 
+def ion():
+    """Set interactive mode ON.
+    When calling ``show()`` python script exectution will stop and control
+    will stay on the graphic window allowing mouse/keyboard interaction."""
+    if settings.plotter_instance:
+        settings.plotter_instance.interactive = True
+    return settings.plotter_instance
 
-def clear(actor=()):
+def ioff():
+    """Set interactive mode OFF.
+    When calling ``show()`` image will be rendered but python script execution 
+    will continue, the graphic window will be not responsive to interaction."""
+    if settings.plotter_instance:
+        settings.plotter_instance.interactive = False
+    return settings.plotter_instance
+
+
+def clear(actor=None):
     """
     Clear specific actor or list of actors from the current rendering window.
     """
@@ -338,10 +358,7 @@ def closeWindow(plotterInstance=None):
 def closePlotter():
     """Close the current instance of ``Plotter`` and its rendering window."""
     if settings.plotter_instance:
-        settings.plotter_instance.closeWindow()
-        settings.plotter_instance = None
-        settings.plotter_instances = []
-        settings.collectable_actors = []
+        settings.plotter_instance.close()
     return None
 
 
@@ -378,8 +395,7 @@ class Plotter:
     Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
         - `xtitle`,            ['x'], x-axis title text.
-        - `ytitle`,            ['y'], y-axis title text.
-        - `ztitle`,            ['z'], z-axis title text.
+        - `xrange`,           [None], x-axis range in format (xmin, ymin), default is automatic.
         - `numberOfDivisions`, [automatic], number of divisions on the longest axis
         - `axesLineWidth`,       [1], width of the axes lines
         - `gridLineWidth`,       [1], width of the grid lines
@@ -438,9 +454,9 @@ class Plotter:
         size="auto",
         screensize="auto",
         title="",
-        bg="blackboard",
+        bg="white",
         bg2=None,
-        axes=4,
+        axes=settings.defaultAxesType,
         sharecam=True,
         verbose=True,
         interactive=None,
@@ -920,7 +936,7 @@ class Plotter:
             if obj is None:
                 acs = renderer.GetVolumes()
             elif obj >= len(self.renderers):
-                colors.printc("~timesError in getVolumes: non existing renderer", obj, c=1)
+                colors.printc("Error in getVolumes(): non existing renderer", obj, c=1)
                 return []
             else:
                 acs = self.renderers[obj].GetVolumes()
@@ -966,7 +982,7 @@ class Plotter:
             if obj is None:
                 acs = renderer.GetActors()
             elif obj >= len(self.renderers):
-                colors.printc("~timesError in getMeshes: non existing renderer", obj, c=1)
+                colors.printc("Error in getMeshes(): non existing renderer", obj, c=1)
                 return []
             else:
                 acs = self.renderers[obj].GetActors()
@@ -1004,7 +1020,7 @@ class Plotter:
             return [obj]
 
         if self.verbose:
-            colors.printc("~lightning Warning in getMeshes: unexpected input type", obj, c=1)
+            colors.printc("Warning in getMeshes(): unexpected input type", obj, c=1)
         return []
 
 
@@ -1019,9 +1035,9 @@ class Plotter:
         of parameters for the current camera view.
         """
         if isinstance(fraction, int):
-            colors.printc("~lightning Warning in moveCamera(): fraction should not be an integer", c=1)
+            colors.printc("Warning in moveCamera(): fraction should not be an integer", c=1)
         if fraction > 1:
-            colors.printc("~lightning Warning in moveCamera(): fraction is > 1", c=1)
+            colors.printc("Warning in moveCamera(): fraction is > 1", c=1)
         cam = vtk.vtkCamera()
         cam.DeepCopy(camstart)
         p1 = np.array(camstart.GetPosition())
@@ -1335,7 +1351,7 @@ class Plotter:
         :param bool q:  force program to quit after `show()` command returns.
         """
         at = options.pop("at", None)
-        axes = options.pop("axes", None)
+        axes = options.pop("axes", settings.defaultAxesType)
         resetcam = options.pop("resetcam", True)
         zoom = options.pop("zoom", False)
         interactive = options.pop("interactive", None)
@@ -1425,7 +1441,7 @@ class Plotter:
                     try:
                         scannedacts.append(Mesh(a))
                     except:
-                        colors.printc("~!? Cannot understand input in show():", type(a), c=1)
+                        colors.printc("Cannot understand input in show():", type(a), c=1)
             return scannedacts
 
         if len(actors) == 0:
@@ -1456,7 +1472,7 @@ class Plotter:
         #########################################################################
 
         if not hasattr(self, 'window'):
-            return None
+            return self
 
         if interactive is not None:
             self.interactive = interactive
@@ -1470,7 +1486,7 @@ class Plotter:
                 self.interactor.Render()
                 if self.interactive:
                     self.interactor.Start()
-                return
+                return self
 
         if at is None:
             at = 0
@@ -1478,8 +1494,12 @@ class Plotter:
         if at < len(self.renderers):
             self.renderer = self.renderers[at]
         else:
-            colors.printc("~times Error in show(): wrong renderer index", at, c=1)
-            return
+            if settings.notebookBackend:
+                colors.printc("Error in show(): multiple renderings not supported in notebooks.", c=1)
+                colors.printc("                 Please set N=1.", c=1)
+            else:
+                colors.printc("Error in show(): wrong renderer index", at, c=1)
+            return self
 
         if self.qtWidget is not None:
             self.qtWidget.GetRenderWindow().AddRenderer(self.renderer)
@@ -1582,7 +1602,8 @@ class Plotter:
 
 
         if self.axes is not None:
-            addons.addGlobalAxes()
+            if viewup != "2d" or self.axes in [1, 8] or isinstance(self.axes, dict):
+                addons.addGlobalAxes(self.axes)
 
         #########################################################################
         if settings.notebookBackend == "panel":
@@ -1632,7 +1653,7 @@ class Plotter:
                 cm = [(b[1]+b[0])/2, (b[3]+b[2])/2, (b[5]+b[4])/2]
                 sz = np.array([(b[1]-b[0])*0.7, -(b[3]-b[2])*1.0, (b[5]-b[4])*1.2])
                 self.camera.SetPosition(cm+2*sz)
-            elif isinstance(viewup, str) and viewup.lower() == "2d":
+            elif viewup == "2d":
                 interactorStyle = 7
 
         if camera is not None:
@@ -1735,7 +1756,7 @@ class Plotter:
         draggable = options.pop("draggable", True)
 
         if not self.renderer:
-            colors.printc("~lightningWarning: Use showInset() after first rendering the scene.",
+            colors.printc("Use showInset() after first rendering the scene.",
                           c=3)
             save_int = self.interactive
             self.show(interactive=0)
@@ -1767,13 +1788,24 @@ class Plotter:
                 self.actors.remove(a)
         return widget
 
-    def clear(self, actors=()):
+    def clear(self, actors=None):
         """Delete specified list of actors, by default delete all."""
+        if actors is None:
+            self.renderer.RemoveAllViewProps()
+            self.actors = []
+            settings.collectable_actors = []
+            self.scalarbars = []
+            self.sliders = []
+            self.buttons = []
+            self.widgets = []
+            self.scalarbars = []
+            return self
+        
         if not utils.isSequence(actors):
             actors = [actors]
         if len(actors):
             for a in actors:
-                self.remove(a)
+                self.remove(a)                
         elif self.renderer:
             for a in settings.collectable_actors:
                 self.remove(a)
@@ -1793,6 +1825,7 @@ class Plotter:
                 self.renderer.RemoveActor(a)
             self.scalarbars = []
 
+            
     def closeWindow(self):
         """Close the current or the input rendering window."""
         if hasattr(self, 'window') and self.window:
@@ -1804,6 +1837,7 @@ class Plotter:
         return self
 
     def close(self):
+        self.clear()
         self.closeWindow()
         self.actors = []
         settings.collectable_actors = []

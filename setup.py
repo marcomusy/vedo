@@ -61,6 +61,7 @@ setup(
 
 # cd ~/Projects/vtkplotter/tests/common
 # ./run_all.sh
+# check also scripts in docs
 
 # check vtkconvert:
 # vtkplotter-convert data/290.vtk -to ply; vtkplotter data/290.ply
@@ -92,8 +93,8 @@ setup(
 # (python -m pip install --user --upgrade twine)
 # python setup.py sdist bdist_wheel
 # twine upload dist/vtkplotter-?.?.?.tar.gz -r pypi
-# make release
 
+# make release
 # release examples
 
 ## to generate documentation:
@@ -111,11 +112,26 @@ setup(
 # cp -r build/html/* ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/
 # version bump vtkplotter/version.py
 
-
 ## to generate gif: ezgif.com
 
-## fenics 2019.2 docker:
+
+######################## fenics 2019.2 docker:
+
+# To copy files over:
+# sudo docker ps   # to know the container name
+# cd Projects
+# sudo docker cp  vtkplotter admiring_panini:/home/fenics/shared/
+# sudo docker cp  vtkplotter-examples admiring_panini:/home/fenics/shared/
+# sudo chmod -R 755 vtkplotter*/
+#
+# cd vtkplotter
+# sudo pip install .
+# sudo apt update -y
+# sudo apt upgrade -y
+# sudo apt install python3-vtk7 -y
+# docker pull quay.io/fenicsproject/stable:latest
 # docker pull quay.io/fenicsproject/dolfinx:dev-env-real
+#
 # docker run -ti -v $(pwd):/home/musy/my-project/shared --name fenics-container quay.io/fenicsproject/dolfinx:dev-env-real
 #
 #    cd

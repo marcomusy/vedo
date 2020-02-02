@@ -39,16 +39,17 @@ class ActorBase(object):
         self.shadowX = None
         self.shadowY = None
         self.shadowZ = None
+        self.axes = None
+        self.picked3d = None
+        self.cmap = None
         self.units = None
-        self.top = None
-        self.base = None
+        self.top = np.array([0,0,1])
+        self.base = np.array([0,0,0])
         self.info = dict()
         self._time = 0
         self._legend = None
         self.scalarbar = None
         self.renderedAt = set()
-        self.picked3d = None
-        self.cmap = None
         self.flagText = None
         self._mapper = None
 
@@ -75,8 +76,7 @@ class ActorBase(object):
         Returns a ``Assembly`` object.
 
         - `xtitle`,            ['x'], x-axis title text.
-        - `ytitle`,            ['y'], y-axis title text.
-        - `ztitle`,            ['z'], z-axis title text.
+        - `xrange`,           [None], x-axis range in format (xmin, ymin), default is automatic.
         - `numberOfDivisions`,[None], approximate number of divisions on the longest axis
         - `axesLineWidth`,       [1], width of the axes lines
         - `gridLineWidth`,       [1], width of the grid lines
@@ -121,7 +121,7 @@ class ActorBase(object):
                 from vtkplotter import Box, show
 
                 b = Box(pos=(1,2,3), length=8, width=9, height=7).alpha(0)
-                bax = buildAxes(b, c='white')  # returns Assembly object
+                bax = b.buildAxes(c='white')  # returns Assembly object
 
                 show(b, bax)
 
@@ -130,7 +130,9 @@ class ActorBase(object):
         |customIndividualAxes| |customIndividualAxes.py|_
         """
         from vtkplotter.addons import buildAxes
-        return buildAxes(self, **kargs)
+        a = buildAxes(self, **kargs)
+        self.axes = a
+        return a
 
 
     def show(self, **options):
@@ -189,14 +191,12 @@ class ActorBase(object):
 
         Size and positions can be modified by setting attributes
         ``Plotter.legendSize``, ``Plotter.legendBC`` and ``Plotter.legendPos``.
-
-        .. hint:: |fillholes.py|_
         """
-        if txt:
-            self._legend = txt
-        else:
+        if txt is None:
             return self._legend
-        return self
+        else:
+            self._legend = str(txt)
+            return self
 
     def flag(self, text=None):
         """Add a flag label which becomes visible when hovering the object with mouse.
@@ -219,6 +219,20 @@ class ActorBase(object):
             return self._time
         self._time = t
         return self  # return itself to concatenate methods
+
+    def origin(self, x=None, y=None, z=None):
+        """Set/get object's origin.
+        Relevant to control the scaling with `scale()` and rotations.
+        Has no effect on position."""
+        if x is None:
+            return np.array(self.GetOrigin())
+        if z is None:  # assume o_x is of the form (x,y,z)
+            if y is not None: # assume x and y are given so z=0
+                z=0
+            else: # assume o_x is of the form (x,y,z)
+                x, y, z = x
+        self.SetOrigin(x, y, z)
+        return self
 
     def pos(self, x=None, y=None, z=None):
         """Set/Get object position."""
@@ -433,16 +447,19 @@ class ActorBase(object):
         return self
 
 
-    def scale(self, s=None):
+    def scale(self, s=None, absolute=False):
         """Set/get object's scaling factor.
 
-        :param s: scaling factor(s).
-        :type s: float, list
+        :param float, list s: scaling factor(s).
+        :param bool absolute: if True previous scaling factors are ignored.
 
-        .. note:: if `s==(sx,sy,sz)` scale differently in the three coordinates."""
+        .. note:: if `s=(sx,sy,sz)` scale differently in the three coordinates."""
         if s is None:
             return np.array(self.GetScale())
-        self.SetScale(s)
+        if absolute:
+            self.SetScale(s)
+        else:
+            self.SetScale(s*np.array(self.GetScale()))
         return self
 
     def print(self):
@@ -532,8 +549,34 @@ class ActorBase(object):
         return oa
 
     def bounds(self):
-        """Get the bounds of the data object."""
-        return self.GetMapper().GetInput().GetBounds()
+        """Get the object bounds."""
+        return self.GetBounds()
+
+    def xbounds(self):
+        """Get the bounds `[xmin,xmax]`."""
+        b = self.GetBounds()
+        return (b[0], b[1])
+
+    def ybounds(self):
+        """Get the bounds `[ymin,ymax]`."""
+        b = self.GetBounds()
+        return (b[2], b[3])
+
+    def zbounds(self):
+        """Get the bounds `[zmin,zmax]`."""
+        b = self.GetBounds()
+        return (b[4], b[5])
+
+
+    def diagonalSize(self):
+        """Get the length of the diagonal of mesh bounding box."""
+        b = self.GetBounds()
+        return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
+
+    def maxBoundSize(self):
+        """Get the maximum dimension in x, y or z of the bounding box."""
+        b = self.GetBounds()
+        return max(abs(b[1] - b[0]), abs(b[3] - b[2]), abs(b[5] - b[4]))
 
     def printHistogram(self, bins=10, height=10, logscale=False, minbin=0,
                        horizontal=False, char=u"\U00002589",
@@ -687,7 +730,8 @@ class ActorBase(object):
         arr.SetName(name)
         data.GetPointData().AddArray(arr)
         data.GetPointData().SetActiveScalars(name)
-        self._mapper.SetArrayName(name)
+        if hasattr(self._mapper, 'SetArrayName'):
+            self._mapper.SetArrayName(name)
         if settings.autoResetScalarRange:
             self._mapper.SetScalarRange(np.min(scalars), np.max(scalars))
         self._mapper.SetScalarModeToUsePointData()
@@ -711,7 +755,8 @@ class ActorBase(object):
         arr.SetName(name)
         data.GetCellData().AddArray(arr)
         data.GetCellData().SetActiveScalars(name)
-        self._mapper.SetArrayName(name)
+        if hasattr(self._mapper, 'SetArrayName'):
+            self._mapper.SetArrayName(name)
         if settings.autoResetScalarRange:
             self._mapper.SetScalarRange(np.min(scalars), np.max(scalars))
         self._mapper.SetScalarModeToUseCellData()
