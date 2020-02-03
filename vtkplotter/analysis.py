@@ -57,7 +57,6 @@ __all__ = [
     "signedDistanceFromPointCloud",
     "volumeFromMesh",
     "pointDensity",
-    "volumeToPoints",
     "rectilinearGridToTetrahedra",
     "extractCellsByType",
     "pointCloudFrom",
@@ -1849,19 +1848,6 @@ def pointDensity(mesh, dims=(30,30,30), bounds=None, radius=None, computeGradien
     vol = Volume(img)
     return vol.operation('/', img.GetScalarRange()[1])
 
-
-def volumeToPoints(vol):
-    """Extract all image voxels as points (or any other vtk data set).
-    This function takes an input ``Volume`` and creates an ``Mesh``
-    that contains the points and the point attributes.
-
-    See example script: |vol2points.py|_
-    """
-    img = _getinput(vol)
-    v2p = vtk.vtkImageToPoints()
-    v2p.SetInputData(img)
-    v2p.Update()
-    return Mesh(v2p.GetOutput())
 
 
 

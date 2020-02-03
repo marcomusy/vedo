@@ -2,6 +2,11 @@ from vtkplotter import Cone, Sphere, merge, Volume
 import numpy as np
 import vtk
 
+print('---------------------------------')
+print('vtkVersion', vtk.vtkVersion().GetVTKVersion())
+print('---------------------------------')
+
+
 #####################################
 cone = Cone(res=48)
 sphere = Sphere(res=24)
@@ -17,18 +22,10 @@ sphere.addCellScalars(carr, 'carr')
 sphere.addPointScalars(parr, 'parr')
 
 sphere.addPointVectors(np.sin(sphere.points()), 'pvectors')
-#sphere.addIDs()
 sphere.addElevationScalars()
 
 cone.computeNormals()
 sphere.computeNormals()
-
-#show(cone, sphere)
-
-
-###################################### printHistogram printInfo
-#cone.printHistogram()
-#cone.printInfo()
 
 
 ###################################### test clone()

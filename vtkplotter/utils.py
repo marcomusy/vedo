@@ -1356,6 +1356,8 @@ def make_ticks(x0, x1, N, labels=None):
 
         # automatic
         dstep = (x1-x0)/N  # desired step size
+        if dstep <= 0:
+            return [0,1], ["",""]
 
         if x0:
             expo = np.floor(np.log10(abs(x0)))

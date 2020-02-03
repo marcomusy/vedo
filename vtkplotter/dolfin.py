@@ -103,10 +103,6 @@ Image Gallery
 
 __all__ = [
     "plot",
-    "MeshActor",
-    "MeshPoints",
-    "MeshLines",
-    "MeshArrows",
     "load",
     "show",
     "clear",
@@ -512,7 +508,8 @@ def plot(*inputobj, **options):
     lighting = options.pop("lighting", None)
     exterior = options.pop("exterior", False)
     fast = options.pop("fast", False)
-
+    returnActorsNoShow = options.pop("returnActorsNoShow", False)
+    
     # refresh axes titles for axes type = 8 (vtkCubeAxesActor)
     settings.xtitle = options.pop("xtitle", 'x')
     settings.ytitle = options.pop("ytitle", 'y')
@@ -758,6 +755,9 @@ def plot(*inputobj, **options):
     if len(actors)==0:
          print('Warning: no objects to show, check mode in plot(mode="...")')
 
+    if returnActorsNoShow:
+        return actors
+
     return show(actors, **options)
 
 
@@ -767,7 +767,7 @@ class MeshActor(Mesh):
 
     def __init__(self, *inputobj, **options):
 
-        c = options.pop("c", "gold")
+        c = options.pop("c", None)
         alpha = options.pop("alpha", 1)
         exterior = options.pop("exterior", False)
         fast = options.pop("fast", False)
@@ -801,7 +801,7 @@ class MeshActor(Mesh):
         self.u = u  # holds a dolfin function_data
         # holds the actual values of u on the mesh
         self.u_values = _compute_uvalues(u, mesh)
-        #self.addPointScalars(self.u_values, "u_values")
+        #self.addPointArray(self.u_values, "u_values")
 
 
     def move(self, u=None, deltas=None):

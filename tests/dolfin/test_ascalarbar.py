@@ -1,21 +1,27 @@
 import numpy as np
 from dolfin import *
-from vtkplotter.dolfin import plot, screenshot
+from dolfin import __version__
+from vtkplotter.dolfin import plot, screenshot, MeshActor, show
 from vtkplotter import settings
 
 
-print('Test ascalarbar')
+print('Test ascalarbar, dolfin version', __version__)
 
-mesh = UnitSquareMesh(MPI.comm_world, nx=16, ny=16)
+if hasattr(MPI, 'comm_world'):
+    mesh = UnitSquareMesh(MPI.comm_world, nx=16, ny=16)
+else:
+    mesh = UnitSquareMesh(16,16)
+
 V = FunctionSpace(mesh, 'Lagrange', 1)
 f = Expression('10*(x[0]+x[1]-1)', degree=1)
 u = interpolate(f, V)
-plot(u, mode='color', cmap='viridis', vmin=-3, vmax=3, style=1, offscreen=1)
 
-screenshot('ascalarbar.png')
+actors = plot(u, mode='color', cmap='viridis', vmin=-3, vmax=3, style=1,
+              returnActorsNoShow=True)
 
-actor = settings.plotter_instance.actors[0]
-solution = actor.scalars(0)
+actor = actors[0]
+
+solution = actor.getPointArray(0)
 
 print('ArrayNames', actor.getArrayNames())
 print('min', 'mean', 'max:')

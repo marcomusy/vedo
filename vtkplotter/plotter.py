@@ -227,7 +227,7 @@ def show(*actors, **options):
         actors = actors[0]
     else:
         actors = utils.flatten(actors)
-    
+
     if actors is Ellipsis:
         actors = settings.collectable_actors
 
@@ -325,7 +325,7 @@ def ion():
 
 def ioff():
     """Set interactive mode OFF.
-    When calling ``show()`` image will be rendered but python script execution 
+    When calling ``show()`` image will be rendered but python script execution
     will continue, the graphic window will be not responsive to interaction."""
     if settings.plotter_instance:
         settings.plotter_instance.interactive = False
@@ -546,9 +546,7 @@ class Plotter:
             self.offscreen = True
             if self.size == "auto":
                 self.size = (900, 700)
-        if (notebookBackend
-            and notebookBackend != "panel"
-            and notebookBackend.lower() != "2d"):
+        if notebookBackend and notebookBackend != "panel" and notebookBackend != "2d":
             self.interactive = False
             self.interactor = None
             self.window = None
@@ -1465,9 +1463,7 @@ class Plotter:
             self.axes = axes
 
         #########################################################################
-        if (settings.notebookBackend
-            and settings.notebookBackend != "panel"
-            and settings.notebookBackend.lower() != "2d"):
+        if settings.notebookBackend and settings.notebookBackend != "panel" and settings.notebookBackend != "2d":
             return backends.getNotebookBackend(actors2show, zoom, viewup)
         #########################################################################
 
@@ -1800,12 +1796,12 @@ class Plotter:
             self.widgets = []
             self.scalarbars = []
             return self
-        
+
         if not utils.isSequence(actors):
             actors = [actors]
         if len(actors):
             for a in actors:
-                self.remove(a)                
+                self.remove(a)
         elif self.renderer:
             for a in settings.collectable_actors:
                 self.remove(a)
@@ -1825,7 +1821,7 @@ class Plotter:
                 self.renderer.RemoveActor(a)
             self.scalarbars = []
 
-            
+
     def closeWindow(self):
         """Close the current or the input rendering window."""
         if hasattr(self, 'window') and self.window:
@@ -2192,7 +2188,7 @@ class Plotter:
                     continue
                 if isinstance(ia, Mesh):
                     iascals = ia.getPointArray()
-                    if len(iascals):
+                    if iascals is not None and len(iascals):
                         stype, sname = iascals[ia._scals_idx]
                         if sname and "Normals" not in sname.lower(): # exclude normals
                             ia.getPointArray( ia._scals_idx )

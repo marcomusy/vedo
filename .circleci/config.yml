@@ -5,7 +5,8 @@
 version: 2
 
 jobs:
-
+  
+  ##############################################################
   test-vtkplotter-vtk7:
     docker:
       - image: quay.io/fenicsproject/stable:latest
@@ -26,13 +27,13 @@ jobs:
             pip3 install .
             pip3 uninstall -y vtk
             
-            set -x
-            export DISPLAY=:99.0
-            which Xvfb
-            Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-            sleep 3
-            set +x
-            exec "$@"            
+            #set -x
+            #export DISPLAY=:99.0
+            #which Xvfb
+            #Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+            #sleep 3
+            #set +x
+            #exec "$@"            
 
       - run:
           name: Run tests
@@ -45,7 +46,7 @@ jobs:
           path: test-reports
           destination: test-reports
 
-
+  ##############################################################
   build-dolfin-stable:
     docker:
       - image: quay.io/fenicsproject/stable:latest
@@ -60,15 +61,7 @@ jobs:
           name: install vtkplotter
           command: |
             pip3 install vtk
-            pip3 install .
-
-            set -x
-            export DISPLAY=:99.0
-            which Xvfb
-            Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-            sleep 3
-            set +x
-            exec "$@"            
+            pip3 install .     
 
       - run:
           name: Run tests
@@ -84,6 +77,7 @@ jobs:
           path: test-reports
           destination: test-reports
 
+  ##############################################################
   build-dolfinx:
     docker:
       - image: quay.io/fenicsproject/dolfinx:dev-env-real
@@ -99,14 +93,6 @@ jobs:
           command: |
             pip3 install vtk
             pip3 install .
-
-            set -x
-            export DISPLAY=:99.0
-            which Xvfb
-            Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-            sleep 3
-            set +x
-            exec "$@"            
 
       # FEniCS:
       - run:

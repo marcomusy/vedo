@@ -381,32 +381,32 @@ class ActorBase(object):
                            self.shadow.GetProperty().GetOpacity())
         return self
 
-#    def rotateX(self, angle, rad=False):
-#        """Rotate around x-axis. If angle is in radians set ``rad=True``."""
-#        if rad:
-#            angle *= 180 / np.pi
-#        ipos = np.array(self.GetPosition())
-#        self.SetPosition(0,0,0)
-#        T = vtk.vtkTransform()
-#        T.SetMatrix(self.GetMatrix())
-#        T.PostMultiply()
-#        T.RotateX(angle)
-#        T.Translate(ipos)
-#        self.SetUserTransform(T)
-#        if self.trail:
-#            self.updateTrail()
-#        if self.shadow:
-#            self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
-#                           self.shadow.GetProperty().GetColor(),
-#                           self.shadow.GetProperty().GetOpacity())
-#        return self
-#    def origin(self, o=None):
-#        """Set/get mesh's origin coordinates. Default is (0,0,0).
-#        Can be used to define an offset."""
-#        if o is None:
-#            return np.array(self.GetOrigin())
-#        self.SetOrigin(o)
-#        return self  # return itself to concatenate methods
+    #    def rotateX(self, angle, rad=False):
+    #        """Rotate around x-axis. If angle is in radians set ``rad=True``."""
+    #        if rad:
+    #            angle *= 180 / np.pi
+    #        ipos = np.array(self.GetPosition())
+    #        self.SetPosition(0,0,0)
+    #        T = vtk.vtkTransform()
+    #        T.SetMatrix(self.GetMatrix())
+    #        T.PostMultiply()
+    #        T.RotateX(angle)
+    #        T.Translate(ipos)
+    #        self.SetUserTransform(T)
+    #        if self.trail:
+    #            self.updateTrail()
+    #        if self.shadow:
+    #            self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
+    #                           self.shadow.GetProperty().GetColor(),
+    #                           self.shadow.GetProperty().GetOpacity())
+    #        return self
+    #    def origin(self, o=None):
+    #        """Set/get mesh's origin coordinates. Default is (0,0,0).
+    #        Can be used to define an offset."""
+    #        if o is None:
+    #            return np.array(self.GetOrigin())
+    #        self.SetOrigin(o)
+    #        return self  # return itself to concatenate methods
 
 
     def orientation(self, newaxis=None, rotation=0, rad=False):
@@ -459,7 +459,7 @@ class ActorBase(object):
         if absolute:
             self.SetScale(s)
         else:
-            self.SetScale(s*np.array(self.GetScale()))
+            self.SetScale(np.multiply(self.GetScale(), s))
         return self
 
     def print(self):

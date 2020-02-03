@@ -240,7 +240,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
             if not arrexists:
                 if c is None:
-                    c = "gold"
+                    c = "darkcyan"
                 c = colors.getColor(c)
                 prp.SetColor(c)
                 prp.SetAmbient(0.1)

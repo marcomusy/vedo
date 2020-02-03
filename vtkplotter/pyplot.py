@@ -1627,9 +1627,10 @@ def violin(values,
 
 
 def streamplot(X,Y, U,V,
-               maxPropagation=None,
                direction='both',
-               lw=0.001, mode=1,
+               maxPropagation=None,
+               mode=1,
+               lw=0.001,
                c=None,
                probes=[],
                ):
@@ -1637,14 +1638,15 @@ def streamplot(X,Y, U,V,
     Generate a streamline plot of a vectorial field (U,V) defined at positions (X,Y).
     Returns a ``Mesh`` object.
 
+    :param str direction: either "forward", "backward" or "both"
     :param float maxPropagation: maximum physical length of the streamline
     :param float lw: line width in absolute units
     :param int mode: vary line width
 
-        - 0 - do not vary radius
-        - 1 - vary radius by first vector component
-        - 2 - vary radius by vector magnitude
-        - 3 - vary radius by absolute value of first vector component
+        - 0 - do not vary line width
+        - 1 - vary line width by first vector component
+        - 2 - vary line width vector magnitude
+        - 3 - vary line width by absolute value of first vector component
 
     |plot7_stream| |plot7_stream.py|_
     """
@@ -1654,7 +1656,7 @@ def streamplot(X,Y, U,V,
     n = len(X)
     m = len(Y[0])
     if n!=m:
-        print('Error in streamplot(): only square grids are allowed.', n, m)
+        print('Limitation in streamplot(): only square grids are allowed.', n, m)
         raise RuntimeError()
 
     xmin, xmax = X[0][0], X[-1][-1]
