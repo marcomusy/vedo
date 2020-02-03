@@ -336,7 +336,18 @@ def plot(*inputobj, **options):
         - lw, (float) - isoline width
         - z, (float) - add to the isoline z coordinate to make them more visible
 
-    :param float warpZfactor: elevate z-axis by scalar value (useful for 2D geometries)
+
+    :param dict streamlines: dictionary of streamlines properties
+    
+        - probes, (list, None) - custom list of points to use as seeds
+        - tol, (float) - tolerance to reduce the number of seed points used in mesh
+        - lw, (float) - line width of the streamline
+        - direction, (str) - direction of integration ('forward', 'backward' or 'both')
+        - maxPropagation, (float) - max propagation of the streamline
+        - scalarRange, (list) - scalar range of coloring
+
+
+   :param float warpZfactor: elevate z-axis by scalar value (useful for 2D geometries)
     :param float warpYfactor: elevate z-axis by scalar value (useful for 1D geometries)
 
     :param list scaleMeshFactors: rescale mesh by these factors [1,1,1]
@@ -503,13 +514,14 @@ def plot(*inputobj, **options):
     text = options.pop("text", None)
     style = options.pop("style", 'vtk')
     isolns = options.pop("isolines", dict())
+    streamlines = options.pop("streamlines", dict())
     warpZfactor = options.pop("warpZfactor", None)
     warpYfactor = options.pop("warpYfactor", None)
     lighting = options.pop("lighting", None)
     exterior = options.pop("exterior", False)
     fast = options.pop("fast", False)
     returnActorsNoShow = options.pop("returnActorsNoShow", False)
-    
+
     # refresh axes titles for axes type = 8 (vtkCubeAxesActor)
     settings.xtitle = options.pop("xtitle", 'x')
     settings.ytitle = options.pop("ytitle", 'y')
@@ -630,6 +642,7 @@ def plot(*inputobj, **options):
     if mesh and ('mesh' in mode or 'color' in mode or 'displace' in mode):
 
         actor = MeshActor(u, mesh, exterior=exterior, fast=fast)
+
         actor.wireframe(wire)
         actor.scale(scaleMeshFactors)
         if lighting:
@@ -707,6 +720,12 @@ def plot(*inputobj, **options):
 
 
     #################################################################
+    if 'streamline' in mode:
+        mode = mode.replace('streamline','')
+        str_act = MeshStreamLines(u, **streamlines)
+        actors.append(str_act)
+
+    #################################################################
     if 'arrow' in mode or 'line' in mode:
         if 'arrow' in mode:
             arrs = MeshArrows(u, scale=scale)
@@ -727,7 +746,6 @@ def plot(*inputobj, **options):
     #################################################################
     if 'tensor' in mode:
         pass #todo
-
 
     #################################################################
     for ob in inputobj:
@@ -962,3 +980,70 @@ def MeshArrows(*inputobj, **options):
     actor.u = u
     actor.u_values = u_values
     return actor
+
+
+def MeshStreamLines(*inputobj, **options):
+    """
+    Build streamplot.
+    """
+    from vtkplotter.analysis import streamLines
+
+    print('Building streamlines...')
+
+    tol = options.pop('tol', 0.02)
+    lw = options.pop('lw', 2)
+    direction = options.pop('direction', 'forward')
+    maxPropagation = options.pop('maxPropagation', None)
+    scalarRange = options.pop('scalarRange', None)
+    probes = options.pop('probes', None)
+
+    tubes = options.pop('tubes', dict()) # todo
+    maxRadiusFactor = options.pop('maxRadiusFactor', 1)
+    varyRadius = options.pop('varyRadius', 1)
+
+    mesh, u = _inputsort(inputobj)
+    if not mesh:
+        return None
+
+    u_values = _compute_uvalues(u, mesh)
+    if not utils.isSequence(u_values[0]):
+        printc("~times Error: cannot show Arrows for 1D scalar values!", c=1)
+        raise RuntimeError()
+    if u_values.shape[1] == 2:  # u_values is 2D
+        u_values = np.insert(u_values, 2, 0, axis=1)  # make it 3d
+
+    meshact = MeshActor(u)
+    meshact.addPointVectors(u_values, 'u_values')
+
+    if utils.isSequence(probes):
+        pass # it's already it
+    elif tol:
+        print('decimating mesh points to use them as seeds...')
+        probes = meshact.clone().clean(tol).points()
+    else:
+        probes = meshact.points()
+    if len(probes)>500:
+        printc('Probing domain with n =', len(probes), 'points')
+        printc(' ..this may take time (or choose a larger tol value)')
+
+    if lw:
+        tubes = dict()
+    else:
+        tubes['varyRadius'] = varyRadius
+        tubes['maxRadiusFactor'] = maxRadiusFactor
+
+    str_lns = streamLines(meshact, probes,
+                          direction=direction,
+                          maxPropagation=maxPropagation,
+                          tubes=tubes,
+                          scalarRange=scalarRange,
+                          activeVectors='u_values')
+
+    if lw:
+        str_lns.lw(lw)
+
+    return str_lns
+
+
+
+

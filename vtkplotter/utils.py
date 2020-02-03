@@ -1011,7 +1011,8 @@ def printInfo(obj):
         bz1, bz2 = precision(min_bns[4], 3), precision(max_bns[5], 3)
         colors.printc(" z=(" + bz1 + ", " + bz2 + ")", c="c", bold=0)
         if isinstance(obj.axes, dict): obj.axes=1
-        colors.printc("       axes type:", obj.axes, axtype[obj.axes], bold=0, c="c")
+        if obj.axes:
+            colors.printc("       axes type:", obj.axes, axtype[obj.axes], bold=0, c="c")
 
         for a in obj.getVolumes():
             if a.GetBounds() is not None:
