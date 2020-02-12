@@ -1,6 +1,5 @@
 from __future__ import division, print_function
 
-import numpy as np
 import vtk
 import vtkplotter.docs as docs
 from vtkplotter.base import ActorBase
@@ -35,7 +34,7 @@ class Assembly(vtk.vtkAssembly, ActorBase):
 
         self.actors = meshs
 
-        if len(meshs) and hasattr(meshs[0], "base"):
+        if len(meshs) and hasattr(meshs[0], "top"):
             self.base = meshs[0].base
             self.top = meshs[0].top
         else:
@@ -63,6 +62,7 @@ class Assembly(vtk.vtkAssembly, ActorBase):
     def getMeshes(self):
         """Obsolete, use unpack() instead."""
         print("WARNING: getMeshes() is obsolete, use unpack() instead.")
+        raise RuntimeError()
         return self.unpack()
 
     def getMesh(self, i):
@@ -74,6 +74,14 @@ class Assembly(vtk.vtkAssembly, ActorBase):
                     return m
             return None
         return self.actors[i]
+
+    
+    def clone(self):
+        """Make a clone copy of the object."""
+        newlist = []
+        for a in self.actors:
+            newlist.append(a.clone())
+        return Assembly(newlist)
 
 
     def unpack(self, i=None):
@@ -95,11 +103,6 @@ class Assembly(vtk.vtkAssembly, ActorBase):
                     return m
         return None
 
-
-    def diagonalSize(self):
-        """Return the maximum diagonal size of the ``Mesh`` objects in ``Assembly``."""
-        szs = [a.diagonalSize() for a in self.actors]
-        return np.max(szs)
 
     def lighting(self, style='', ambient=None, diffuse=None,
                  specular=None, specularPower=None, specularColor=None, enabled=True):

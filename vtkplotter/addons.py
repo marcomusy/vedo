@@ -5,7 +5,7 @@ from __future__ import division, print_function
 from vtkplotter.colors import printc, getColor
 from vtkplotter.assembly import Assembly
 from vtkplotter.mesh import Mesh, merge
-from vtkplotter.utils import precision, mag, isSequence, make_ticks
+from vtkplotter.utils import precision, mag, isSequence, make_ticks, linInterpolate
 import vtkplotter.shapes as shapes
 import vtkplotter.settings as settings
 import vtkplotter.docs as docs
@@ -190,7 +190,7 @@ def addScalarBar3D(
     titleSize =  1.5,
     titleRotation = 0.0,
     nlabels=9,
-    prec=3,
+    prec=2,
     labelOffset = 0.4,
     c=None,
     alpha=1,
@@ -250,13 +250,15 @@ def addScalarBar3D(
     scale.cellColors(cscals, lut, alpha)
     scale.lighting(ambient=1, diffuse=0, specular=0, specularPower=0)
 
-    # build text
-    tlabs = np.linspace(vmin, vmax, num=nlabels, endpoint=True)
+    # build text    
     tacts = []
-    for i, t in enumerate(tlabs):
-        tx = precision(t, prec, vrange=vmax-vmin)
-        y = -sy / 1.98 + sy * i / (nlabels - 1)
-        a = shapes.Text(tx, pos=[sx*labelOffset, y, 0], s=sy/50, c=c, alpha=alpha, depth=0)
+
+    ticks_pos, ticks_txt = make_ticks(vmin, vmax, nlabels)
+    nlabels = len(ticks_pos)-1
+    for i, p in enumerate(ticks_pos):
+        tx = ticks_txt[i]
+        y = -sy / 1.98 + sy * i / nlabels
+        a = shapes.Text(tx, pos=[sx*labelOffset, y, 0], s=sy/50, c=c, alpha=alpha)
         a.lighting(ambient=1, diffuse=0, specular=0, specularPower=0)
         a.PickableOff()
         tacts.append(a)
@@ -889,7 +891,7 @@ def buildAxes(obj=None,
                 tipSize = False
 
     if tipSize is None:
-        tipSize = 0.01
+        tipSize = 0.008
 
     if not numberOfDivisions: numberOfDivisions = ndiv
 
@@ -1504,7 +1506,7 @@ def addGlobalAxes(axtype=None, c=None):
                     largestact = a
                     sz = d
         if isinstance(largestact, Assembly):
-            ocf.SetInputData(largestact.getMesh(0).GetMapper().GetInput())
+            ocf.SetInputData(largestact.unpack(0).GetMapper().GetInput())
         else:
             ocf.SetInputData(largestact.GetMapper().GetInput())
         ocf.Update()

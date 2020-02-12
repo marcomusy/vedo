@@ -202,7 +202,7 @@ def show(*actors, **options):
     bg = options.pop("bg", "white")
     bg2 = options.pop("bg2", None)
     axes = options.pop("axes", settings.defaultAxesType)
-    verbose = options.pop("verbose", True)
+    verbose = options.pop("verbose", False)
     interactive = options.pop("interactive", None)
     offscreen = options.pop("offscreen", False)
     sharecam = options.pop("sharecam", True)
@@ -458,7 +458,7 @@ class Plotter:
         bg2=None,
         axes=settings.defaultAxesType,
         sharecam=True,
-        verbose=True,
+        verbose=False,
         interactive=None,
         offscreen=False,
         qtWidget = None
@@ -474,7 +474,9 @@ class Plotter:
             settings.usingQt = True
 
         if interactive is None:
-            if N or shape != (1, 1):
+            if N==1:
+                interactive = True
+            elif N or shape != (1, 1):
                 interactive = False
             else:
                 interactive = True
@@ -1385,6 +1387,10 @@ class Plotter:
 
                 elif isinstance(a, vtk.vtkAssembly):
                     scannedacts.append(a)
+                    import vtkplotter.pyplot as pyplot
+                    if isinstance(a, pyplot.Plot):
+                        a.modified = False
+                        self.sharecam = False
                     if a.trail and a.trail not in self.actors:
                         scannedacts.append(a.trail)
 
@@ -1417,7 +1423,7 @@ class Plotter:
                 elif isinstance(a, str):  # assume a filepath was given
                     out = vtkio.load(a)
                     scannedacts.append(out)
-
+                    
                 elif isinstance(a, vtk.vtkMultiBlockDataSet):
                     for i in range(a.GetNumberOfBlocks()):
                         b =  a.GetBlock(i)
@@ -1591,7 +1597,7 @@ class Plotter:
                     if isinstance(ia.scalarbar, vtk.vtkActor):
                         self.renderer.RemoveActor(ia.scalarbar)
                     elif isinstance(ia.scalarbar, Assembly):
-                        for a in ia.scalarbar.getMeshes():
+                        for a in ia.scalarbar.unpack():
                             self.renderer.RemoveActor(a)
                 if hasattr(ia, 'renderedAt'):
                     ia.renderedAt.discard(at)

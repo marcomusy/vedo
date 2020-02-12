@@ -20,10 +20,12 @@ from vtkplotter.mesh import Mesh
 from vtkplotter.vtkio import load, screenshot, Video, exportWindow
 
 import vtkplotter.shapes as shapes
-from vtkplotter.shapes import Text, Latex
+from vtkplotter.shapes import Text, Text2D, Latex
 
 from vtkplotter.plotter import show, clear, Plotter
 from vtkplotter.plotter import closeWindow, closePlotter, interactive
+
+from vtkplotter.pyplot import histogram
 
 # Install fenics with commands (e.g. in Anaconda3):
 #         conda install -c conda-forge fenics
@@ -103,6 +105,7 @@ Image Gallery
 
 __all__ = [
     "plot",
+    "histogram",
     "load",
     "show",
     "clear",
@@ -111,6 +114,7 @@ __all__ = [
     "Plotter",
     "ProgressBar",
     "Text",
+    "Text2D",
     "Latex",
     "datadir",
     "screenshot",
@@ -479,10 +483,14 @@ def plot(*inputobj, **options):
     :param int interactorStyle: change the style of muose interaction of the scene
     :param bool q: exit python session after returning.
     """
-
-    if len(inputobj) == 0:
-        return interactive()
-
+    if len(inputobj)==0:
+        interactive()
+        return
+    
+    if 'numpy' in str(type(inputobj[0])):
+        from vtkplotter.pyplot import plot as pyplot_plot
+        return pyplot_plot(*inputobj, **options)
+    
     mesh, u = _inputsort(inputobj)
 
     mode = options.pop("mode", 'mesh')
@@ -754,7 +762,7 @@ def plot(*inputobj, **options):
            actors.append(ob)
 
     if text:
-        textact = Text(text, font=font)
+        textact = Text2D(text, font=font)
         actors.append(textact)
 
     if 'at' in options.keys() and 'interactive' not in options.keys():

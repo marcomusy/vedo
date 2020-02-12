@@ -4,6 +4,10 @@
 - spherical histograms
 - background color now defaults to white
 - added `Mesh.idLabels()` to generate cells and point ID labels
+- methods like `rotateX().pos()` now operate in left-to-right order
+  (as it should be)
+- Text is split into Text2D and Text (for 3D)
+
 
 
 2020/01/20

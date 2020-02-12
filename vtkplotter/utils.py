@@ -686,17 +686,17 @@ def spher2cyl(rho, theta, phi):
     return rhoc, theta, z
 
 
-def isIdentity(M, tol=1e-06):
-    """Check if vtkMatrix4x4 is Identity."""
-    for i in [0, 1, 2, 3]:
-        for j in [0, 1, 2, 3]:
-            e = M.GetElement(i, j)
-            if i == j:
-                if np.abs(e - 1) > tol:
-                    return False
-            elif np.abs(e) > tol:
-                return False
-    return True
+#def isIdentity(M, tol=1e-06):
+#    """Check if vtkMatrix4x4 is Identity."""
+#    for i in [0, 1, 2, 3]:
+#        for j in [0, 1, 2, 3]:
+#            e = M.GetElement(i, j)
+#            if i == j:
+#                if np.abs(e - 1) > tol:
+#                    return False
+#            elif np.abs(e) > tol:
+#                return False
+#    return True
 
 
 def grep(filename, tag, firstOccurrence=False):
@@ -1386,7 +1386,7 @@ def make_ticks(x0, x1, N, labels=None):
         steps = np.asarray([basestep*i for i in (1,2,4,5,10,20,40,50)])
         idx = (np.abs(steps-dstep)).argmin()
         s = steps[idx]
-        if not s or (upBound-lowBound)/s > 100000:
+        if not s or (upBound-lowBound)/s > 100000 or upBound == lowBound:
             return [0,1], ["",""]
 
         sel_axis = np.arange(lowBound, upBound, s)

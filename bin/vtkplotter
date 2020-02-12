@@ -108,7 +108,7 @@ def draw_scene():
     leg = True
     wire = False
     if args.legend_off or nfiles == 1:
-        leg = False
+        leg = None
     if args.wireframe:
         wire = True
 

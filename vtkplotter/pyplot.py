@@ -12,9 +12,7 @@ import vtkplotter.addons as addons
 from vtkplotter.assembly import Assembly
 from vtkplotter.mesh import Mesh, merge
 
-__doc__ = ("""Plotting utility functions."""
-    + docs._defs
-)
+__doc__ = """Plotting utility functions.""" + docs._defs
 
 __all__ = [
     "plot",
@@ -31,67 +29,113 @@ class Plot(Assembly):
     """
     Derived class of ``Assembly`` to manipulate plots.
     """
+
     def __init__(self, *objs):
 
         Assembly.__init__(self, *objs)
 
-        self.xscale = 1  # todo
+        self.xscale = 1  # will always be one
         self.yscale = 1
-        self.aspect = 4/3.
-        self.cut = False  # todo
+        self.aspect = 4 / 3.0
+        self.cut = True  # todo
+        self.xlim = None
+        self.ylim = None
+        self.pad = 0.05
 
-        self._x0lim=None
-        self._y0lim=None
-        self._x1lim=None
-        self._y1lim=None
+        self._x0lim = None
+        self._y0lim = None
+        self._x1lim = None
+        self._y1lim = None
+        self.zmax = 0  # z-order
+        self.fixed_scale = 1
+        self.bins = 0
 
-        #self.xlog = False # todo
-        #self.ylog = False
+        # self.ylog = False # todo
 
-        #self.args = []  # maybe useless
-        #self.data = None
-        #self.line = None
-        #self.marker = None
-        #self.pad = None
+        # self.args = []  # maybe useless
+        # self.data = None
 
         self.modified = False
-
 
     def __iadd__(self, *objs):
         """
         Add object to plot with taking automatically into account the correct aspect ratio.
         """
-        objs = objs[0]
+        # these will scale proportionally to keep their shape aspect ratio
+        typs = (
+            shapes.Text,
+            shapes.Polygon,
+            shapes.Star,
+            shapes.Disc,
+            shapes.Ellipsoid,
+            shapes.Latex,
+            shapes.Sphere,
+            Assembly,
+        )
+        self.fixed_scale = np.min([self.xscale, self.yscale])
+
+        objs = objs[0]  # make a list anyway
         if not utils.isSequence(objs):
             objs = [objs]
 
-        for a in objs:
-            self.AddPart(a)
-            typs = (shapes.Polygon, shapes.Star, shapes.Latex)
-            if isinstance(a, typs) or "Text" in a.name:
-                # special scaling to preserve the aspect ratio
-                #s = np.sqrt((self.xscale**2 + self.yscale**2)/2)
-                s = np.min([self.xscale, self.yscale])
-                a.scale(s)
-            else:
-                a.scale([1, self.yscale, 1])
-            py = a.y()
-            a.y(py*self.yscale)
-
-        if self.cut: # todo
-            for a in objs:
-                if not a:
+        if not utils.isSequence(objs[0]) and isinstance(objs[0], Plot):
+            plot2 = objs[0]
+            elems = plot2.unpack()
+            objs2 = []
+            # print('XXX', plot2.yscale, self.yscale, self.fixed_scale)
+            for e in elems:
+                if e.name == "axes" or "Text" in e.name:
                     continue
-                if self._y0lim is not None and hasattr(a, 'cutWithPlane'):
-                    a.cutWithPlane([0,self._y0lim,0], [ 0, 1,0])
-                if self._y1lim is not None and hasattr(a, 'cutWithPlane'):
-                    a.cutWithPlane([0,self._y1lim,0], [ 0,-1,0])
-                if self._x0lim is not None and hasattr(a, 'cutWithPlane'):
-                    a.cutWithPlane([self._x0lim,0,0], [ 1, 0,0])
-                if self._x1lim is not None and hasattr(a, 'cutWithPlane'):
-                    a.cutWithPlane([self._x1lim,0,0], [-1, 0,0])
+                # print('name=',e.name, isinstance(e, typs))
+                if isinstance(e, typs):
+                    # continue                                  #todo
+                    # print('ggg', e.name, e.scale())
+                    ec = e.clone()
+                    # py = ec.y()
+                    # e.y(py/oplot2.yscale)
+                    ec.SetScale(1, 1 / plot2.yscale * self.yscale, 1)
+                else:
+                    ec = e.clone()
+                    ec.SetScale(1, 1 / plot2.yscale * self.yscale, 1)
+                self.AddPart(ec)
+                objs2.append(ec)
+            objs = objs2
+
+        else:
+            # print('adding individual objects', len(objs))
+            for a in objs:
+                self.AddPart(a)
+                if isinstance(a, typs):
+                    # special scaling to preserve the aspect ratio
+                    a.scale(self.fixed_scale)
+                else:
+                    a.scale([self.xscale, self.yscale, 1])
+                py = a.y()
+                a.y(py * self.yscale)
+
+        if self.cut:  # todo
+            for a in objs:
+                if not a or a.name == "axes" or "Text" in a.name:
+                    continue
+                if self._y0lim is not None and hasattr(a, "cutWithPlane"):
+                    a.cutWithPlane([0, self._y0lim, 0], [0, 1, 0])
+                if self._y1lim is not None and hasattr(a, "cutWithPlane"):
+                    a.cutWithPlane([0, self._y1lim, 0], [0, -1, 0])
+                if self._x0lim is not None and hasattr(a, "cutWithPlane"):
+                    a.cutWithPlane([self._x0lim, 0, 0], [1, 0, 0])
+                if self._x1lim is not None and hasattr(a, "cutWithPlane"):
+                    a.cutWithPlane([self._x1lim, 0, 0], [-1, 0, 0])
 
         self.modified = True
+        return self
+    
+    def plot(self, *args, **kwargs):
+        """Plot on top of an already existing plot."""
+        kwargs['format'] = self
+        plt = plot(*args, **kwargs)
+        plt.format = self        
+        for a in plt.unpack():
+            self.AddPart(a)
         return self
 
 
@@ -128,6 +172,20 @@ def plot(*args, **kwargs):
     :param float ms: marker size.
     :param str mc: color of marker
     :param float ma: opacity of marker
+    
+    :Example:
+        .. code-block:: python
+
+            from vtkplotter import plot
+            import numpy as np
+            
+            x = np.linspace(0, 6.28, num=50)
+            
+            plot(np.sin(x), 'r').plot(np.cos(x), 'bo-').show()
+
+        |simpleplot|
+        
+    More examples:
 
     |plot1_errbars| |plot1_errbars.py|_
 
@@ -202,68 +260,68 @@ def plot(*args, **kwargs):
 
     |plot5_spheric| |plot5_spheric.py|_
     """
-    mode = kwargs.pop('mode', '')
-    if 'spher' in mode:
+    mode = kwargs.pop("mode", "")
+    if "spher" in mode:
         return _plotSpheric(args[0], **kwargs)
 
-    if isinstance(args[0], str) or 'function' in str(type(args[0])):
-        if 'complex' in mode:
+    if isinstance(args[0], str) or "function" in str(type(args[0])):
+        if "complex" in mode:
             return _plotFz(args[0], **kwargs)
         return _plotFxy(args[0], **kwargs)
 
     # grab the matplotlib-like options
     optidx = None
-    for i,a in enumerate(args):
-        if i>0 and isinstance(a, str):
+    for i, a in enumerate(args):
+        if i > 0 and isinstance(a, str):
             optidx = i
             break
     if optidx:
-        opts = args[optidx].replace(' ','')
-        if '--' in opts:
-            opts = opts.replace('--','')
-            kwargs['dashed'] = True
-        elif '-' in opts:
-            opts = opts.replace('-','')
-            kwargs['line'] = True
+        opts = args[optidx].replace(" ", "")
+        if "--" in opts:
+            opts = opts.replace("--", "")
+            kwargs["dashed"] = True
+        elif "-" in opts:
+            opts = opts.replace("-", "")
+            kwargs["line"] = True
         else:
-            kwargs['line'] = False
-        symbs = ['.', 'p','*','h','D','d','o','v','^','>','<','s', 'x', '+', 'a']
+            kwargs["line"] = False
+        symbs = [".", "p", "*", "h", "D", "d", "o", "v", "^", ">", "<", "s", "x", "+", "a"]
         for ss in symbs:
             if ss in opts:
-                 opts = opts.replace(ss,'')
-                 kwargs['marker']=ss
-                 break
+                opts = opts.replace(ss, "", 1)
+                kwargs["marker"] = ss
+                break
         allcols = list(colors.color_nicks.keys()) + list(colors.colors.keys())
         for cc in allcols:
             if cc in opts:
-                 opts = opts.replace(cc,'')
-                 kwargs['lc']=cc
-                 kwargs['mc']=cc
-                 break
+                opts = opts.replace(cc, "")
+                kwargs["lc"] = cc
+                kwargs["mc"] = cc
+                break
         if opts:
-            print("Could not understand options:", opts)
+            colors.printc("Could not understand option(s):", opts, c="y")
 
     if optidx == 1 or optidx is None:
         if utils.isSequence(args[0][0]):
-            #print('caso 1', 'plot([(x,y),..])')
+            # print('case 1', 'plot([(x,y),..])')
             data = np.array(args[0])
-            x = np.array(data[:,0])
-            y = np.array(data[:,1])
-        elif len(args)==1 or optidx==1:
-            #print('caso 2', 'plot(x)')
-            x = np.linspace(0,len(args[0]), num=len(args[0]))
+            x = np.array(data[:, 0])
+            y = np.array(data[:, 1])
+        elif len(args) == 1 or optidx == 1:
+            # print('case 2', 'plot(x)')
+            x = np.linspace(0, len(args[0]), num=len(args[0]))
             y = np.array(args[0])
         elif utils.isSequence(args[1]):
-            #print('caso 3', 'plot(allx,ally)')
+            # print('case 3', 'plot(allx,ally)')
             x = np.array(args[0])
             y = np.array(args[1])
         elif utils.isSequence(args[0]) and utils.isSequence(args[0][0]):
-            #print('caso 4', 'plot([allx,ally])')
+            # print('case 4', 'plot([allx,ally])')
             x = np.array(args[0][0])
             y = np.array(args[0][1])
 
     elif optidx == 2:
-        #print('caso 5', 'plot(x,y)')
+        # print('case 5', 'plot(x,y)')
         x = np.array(args[0])
         y = np.array(args[1])
 
@@ -271,61 +329,105 @@ def plot(*args, **kwargs):
         print("plot(): Could not understand input arguments", args)
         return None
 
-    if 'polar' in mode:
-        return _plotPolar(np.c_[x,y])
+    if "polar" in mode:
+        return _plotPolar(np.c_[x, y])
 
-    return _plotxy(np.c_[x,y], **kwargs)
+    return _plotxy(np.c_[x, y], **kwargs)
 
 
 def _plotxy(
     data,
-    mode='',
-    xerrors=None,
-    yerrors=None,
+    format=None,
+    aspect=4 / 3,
     xlim=None,
     ylim=None,
-    aspect=4/3,
-    c="k",
-    alpha=1,
+    xerrors=None,
+    yerrors=None,
+    title="",
     xtitle="x",
     ytitle="y",
-    title="",
     titleSize=None,
+    c="k",
+    alpha=1,
     ec=None,
     lc="k",
     la=1,
     lw=3,
-    line=True,
+    line=False,
     dashed=False,
-    splined=False,
+    spline=False,
     errorBand=False,
-    marker='',
+    marker="",
     ms=None,
     mc=None,
     ma=None,
     pad=0.05,
     axes={},
 ):
-    settings.defaultAxesType = 0 # because of yscaling
+    settings.defaultAxesType = 0  # because of yscaling
     ncolls = len(settings.collectable_actors)
+
+    if marker == "" and not line and not spline:
+        line = True
+
+    # purge NaN from data
+    validIds = np.all(np.logical_not(np.isnan(data)), axis=1)
+    data = data[validIds]
+    offs = 0  # z offset
+
+    if format is not None:  # reset to allow meaningful overlap
+        xlim = format.xlim
+        ylim = format.ylim
+        aspect = format.aspect
+        pad = format.pad
+        axes = 0
+        title = ""
+        xtitle = ""
+        ytitle = ""
+        offs = format.zmax
+
     x0, y0 = np.min(data, axis=0)
     x1, y1 = np.max(data, axis=0)
-    x0lim, x1lim = x0 -pad*(x1-x0), x1 +pad*(x1-x0)
-    y0lim, y1lim = y0 -pad*(y1-y0), y1 +pad*(y1-y0)
-    if xlim is not None and xlim[0] is not None: x0lim = xlim[0]
-    if xlim is not None and xlim[1] is not None: x1lim = xlim[1]
-    if ylim is not None and ylim[0] is not None: y0lim = ylim[0]
-    if ylim is not None and ylim[1] is not None: y1lim = ylim[1]
+    x0lim, x1lim = x0 - pad * (x1 - x0), x1 + pad * (x1 - x0)
+    y0lim, y1lim = y0 - pad * (y1 - y0), y1 + pad * (y1 - y0)
+    if y0lim == y1lim:  # in case y is constant
+        y0lim = y0lim - (x1lim - x0lim) / 2
+        y1lim = y1lim + (x1lim - x0lim) / 2
+    elif x0lim == x1lim:  # in case x is constant
+        x0lim = x0lim - (y1lim - y0lim) / 2
+        x1lim = x1lim + (y1lim - y0lim) / 2
+
+    if xlim is not None and xlim[0] is not None:
+        x0lim = xlim[0]
+    if xlim is not None and xlim[1] is not None:
+        x1lim = xlim[1]
+    if ylim is not None and ylim[0] is not None:
+        y0lim = ylim[0]
+    if ylim is not None and ylim[1] is not None:
+        y1lim = ylim[1]
 
     dx = x1lim - x0lim
     dy = y1lim - y0lim
+    if dx == 0 and dy == 0:  # in case x and y are all constant
+        x0lim = x0lim - 1
+        x1lim = x1lim + 1
+        y0lim = y0lim - 1
+        y1lim = y1lim + 1
+        dx, dy = 1, 1
 
     yscale = dx / dy / aspect
+    y0lim, y1lim = y0lim * yscale, y1lim * yscale
 
-    y0lim, y1lim = y0lim*yscale, y1lim*yscale
+    if format is not None:
+        x0lim = format._x0lim
+        y0lim = format._y0lim
+        x1lim = format._x1lim
+        y1lim = format._y1lim
+        yscale = format.yscale
+
     dx = x1lim - x0lim
     dy = y1lim - y0lim
-    offs = np.sqrt(dx*dx+dy*dy)/10000
+    offs += np.sqrt(dx * dx + dy * dy) / 10000
 
     scale = np.array([[1, yscale]])
     data = np.multiply(data, scale)
@@ -336,7 +438,7 @@ def _plotxy(
     if dashed:
         l = shapes.DashedLine(data, c=lc, alpha=la, lw=lw)
         acts.append(l)
-    elif splined:
+    elif spline:
         l = shapes.KSpline(data).lw(lw).c(lc).alpha(la)
         acts.append(l)
     elif line:
@@ -351,27 +453,29 @@ def _plotxy(
         if ma is None:
             ma = la
 
-        if utils.isSequence(ms): ### variable point size
+        if utils.isSequence(ms):  ### variable point size
             mk = shapes.Marker(marker, s=1)
             msv = np.zeros_like(pts.points())
-            msv[:,0] = ms
-            marked = shapes.Glyph(pts, glyphObj=mk, c=mc,
-                                  orientationArray=msv, scaleByVectorSize=True)
-        else:                    ### fixed point size
+            msv[:, 0] = ms
+            marked = shapes.Glyph(
+                pts, glyphObj=mk, c=mc, orientationArray=msv, scaleByVectorSize=True
+            )
+        else:  ### fixed point size
 
             if ms is None:
                 ms = dx / 100.0
-                #print('automatic ms =', ms)
+                # print('automatic ms =', ms)
 
             if utils.isSequence(mc):
-                #print('mc is sequence')
+                # print('mc is sequence')
                 mk = shapes.Marker(marker, s=ms).triangle()
                 msv = np.zeros_like(pts.points())
-                msv[:,0] = 1
-                marked = shapes.Glyph(pts, glyphObj=mk, c=mc,
-                                      orientationArray=msv, scaleByVectorSize=True)
+                msv[:, 0] = 1
+                marked = shapes.Glyph(
+                    pts, glyphObj=mk, c=mc, orientationArray=msv, scaleByVectorSize=True
+                )
             else:
-                #print('mc is fixed color')
+                # print('mc is fixed color')
                 mk = shapes.Marker(marker, s=ms).triangle()
                 marked = shapes.Glyph(pts, glyphObj=mk, c=mc)
 
@@ -391,10 +495,10 @@ def _plotxy(
         errs = []
         for i in range(len(data)):
             xval, yval = data[i]
-            xerr = xerrors[i]/2
-            el = shapes.Line((xval-xerr, yval, offs), (xval+xerr, yval, offs))
+            xerr = xerrors[i] / 2
+            el = shapes.Line((xval - xerr, yval, offs), (xval + xerr, yval, offs))
             errs.append(el)
-        mxerrs = merge(errs).c(ec).lw(lw).alpha(alpha).z(2*offs)
+        mxerrs = merge(errs).c(ec).lw(lw).alpha(alpha).z(2 * offs)
         acts.append(mxerrs)
 
     if yerrors is not None and not errorBand:
@@ -404,33 +508,33 @@ def _plotxy(
         errs = []
         for i in range(len(data)):
             xval, yval = data[i]
-            yerr = yerrors[i]*yscale
-            el = shapes.Line((xval, yval-yerr, offs), (xval, yval+yerr, offs))
+            yerr = yerrors[i] * yscale
+            el = shapes.Line((xval, yval - yerr, offs), (xval, yval + yerr, offs))
             errs.append(el)
-        myerrs = merge(errs).c(ec).lw(lw).alpha(alpha).z(3*offs)
+        myerrs = merge(errs).c(ec).lw(lw).alpha(alpha).z(3 * offs)
         acts.append(myerrs)
 
     if errorBand:
         epsy = np.zeros_like(data)
-        epsy[:,1] = yerrors*yscale
+        epsy[:, 1] = yerrors * yscale
         data3dup = data + epsy
         data3dup = np.c_[data3dup, np.zeros_like(yerrors)]
-        data3d_down = data-epsy
+        data3d_down = data - epsy
         data3d_down = np.c_[data3d_down, np.zeros_like(yerrors)]
         band = shapes.Ribbon(data3dup, data3d_down).z(-offs)
         if ec is None:
             band.c(lc)
         else:
             band.c(ec)
-        band.alpha(la).z(2*offs)
+        band.alpha(la).z(2 * offs)
         acts.append(band)
 
     for a in acts:
-        a.cutWithPlane([0,y0lim,0], [ 0, 1,0])
-        a.cutWithPlane([0,y1lim,0], [ 0,-1,0])
-        a.cutWithPlane([x0lim,0,0], [ 1, 0,0])
-        a.cutWithPlane([x1lim,0,0], [-1, 0,0])
-        a.lighting('ambient').phong()
+        a.cutWithPlane([0, y0lim, 0], [0, 1, 0])
+        a.cutWithPlane([0, y1lim, 0], [0, -1, 0])
+        a.cutWithPlane([x0lim, 0, 0], [1, 0, 0])
+        a.cutWithPlane([x1lim, 0, 0], [-1, 0, 0])
+        a.lighting("ambient").phong()
 
     if title:
         if titleSize is None:
@@ -441,46 +545,59 @@ def _plotxy(
             c=c,
             depth=0,
             alpha=alpha,
-            pos=((x0lim+x1lim)/2, y1lim + dy/80, 0),
+            pos=((x0lim + x1lim) / 2, y1lim + dy / 80, 0),
             justify="bottom-center",
         )
-        tit.pickable(False).z(3*offs)
+        tit.pickable(False).z(3 * offs)
         acts.append(tit)
 
-    settings.xtitle = xtitle
-    settings.ytitle = ytitle
     if axes == 1 or axes == True:
         axes = {}
-    if isinstance(axes, dict):
+    if isinstance(axes, dict):  #####################
         ndiv = 6
-        if 'numberOfDivisions' in axes.keys():
-            ndiv = axes['numberOfDivisions']
-        tp, ts = utils.make_ticks(y0lim/yscale, y1lim/yscale, ndiv/aspect)
+        if "numberOfDivisions" in axes.keys():
+            ndiv = axes["numberOfDivisions"]
+        tp, ts = utils.make_ticks(y0lim / yscale, y1lim / yscale, ndiv / aspect)
         labs = []
-        for i in range(1, len(tp)-1):
+        for i in range(1, len(tp) - 1):
             ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
-            #print(i, tp[i], ynew, ts[i])
+            # print(i, tp[i], ynew, ts[i])
             labs.append([ynew, ts[i]])
-        axes['yPositionsAndLabels'] = labs
-        axes['xrange'] = (x0lim, x1lim)
-        axes['yrange'] = (y0lim, y1lim)
-        axes['zrange'] = (0, 0)
-        axes['c']='k'
+        axes["xtitle"] = xtitle
+        axes["ytitle"] = ytitle
+        axes["yPositionsAndLabels"] = labs
+        axes["xrange"] = (x0lim, x1lim)
+        axes["yrange"] = (y0lim, y1lim)
+        axes["zrange"] = (0, 0)
+        axes["c"] = "k"
         axs = addons.buildAxes(**axes)
+        axs.name = "axes"
         asse = Plot(acts, axs)
         asse.axes = axs
         asse.SetOrigin(x0lim, y0lim, 0)
-        #print('yscale =    ', yscale)
-        #print('y0,    y1   ', y0, y1)
-        #print('y0lim, y1lim', y0lim, y1lim)
+        # print('yscale =    ', yscale)
+        # print('y0,    y1   ', y0, y1)
+        # print('y0lim, y1lim', y0lim, y1lim)
     else:
+        settings.xtitle = xtitle
+        settings.ytitle = ytitle
         asse = Plot(acts)
+
     asse.yscale = yscale
-    asse._x0lim=x0lim
-    asse._y0lim=y0lim
-    asse._x1lim=x1lim
-    asse._y1lim=y1lim
-    asse.name = "plotxy "+title
+    asse.xlim = xlim
+    asse.ylim = ylim
+    asse.aspect = aspect
+    asse.pad = pad
+    asse.title = title
+    asse.xtitle = xtitle
+    asse.ytitle = ytitle
+    asse._x0lim = x0lim
+    asse._y0lim = y0lim
+    asse._x1lim = x1lim
+    asse._y1lim = y1lim
+    asse.zmax = offs * 3  # z-order
+    asse.name = "plotxy"
+
     settings.collectable_actors = settings.collectable_actors[:ncolls]
     settings.collectable_actors.append(asse)
     return asse
@@ -572,8 +689,6 @@ def _plotFxy(
         mesh.bc(bc)
 
     mesh.texture(texture)
-    #mesh.mapper().SetResolveCoincidentTopologyToPolygonOffset()
-    #mesh.mapper().SetResolveCoincidentTopologyPolygonOffsetParameters(0.1, 0.1)
 
     acts = [mesh]
     if zlevels:
@@ -590,7 +705,7 @@ def _plotFxy(
         bcf.GenerateValues(zlevels, elevation.GetScalarRange())
         bcf.Update()
         zpoly = bcf.GetContourEdgesOutput()
-        zbandsact = Mesh(zpoly, "k", alpha).lw(2).lighting('ambient')
+        zbandsact = Mesh(zpoly, "k", alpha).lw(2).lighting("ambient")
         acts.append(zbandsact)
 
     if showNan and len(todel):
@@ -611,7 +726,7 @@ def _plotFxy(
     asse = Assembly(acts)
     asse.name = "plotFxy"
     if isinstance(z, str):
-        asse.name += " "+z
+        asse.name += " " + z
     return asse
 
 
@@ -620,7 +735,7 @@ def _plotFz(
     x=(-1, 1),
     y=(-1, 1),
     zlimits=(None, None),
-    cmap='PiYG',
+    cmap="PiYG",
     alpha=1,
     lw=0.1,
     bins=(75, 75),
@@ -659,10 +774,10 @@ def _plotFz(
 
     mesh = Mesh(poly, alpha).lighting("plastic")
     v = max(abs(np.min(arrImg)), abs(np.max(arrImg)))
-    #print(arrImg)
-    #print(np.min(arrImg), np.max(arrImg), v)
+    # print(arrImg)
+    # print(np.min(arrImg), np.max(arrImg), v)
     mesh.pointColors(arrImg, cmap=cmap, vmin=-v, vmax=v)
-    #mesh.mapPointsToCells()
+    # mesh.mapPointsToCells()
     mesh.computeNormals().lw(lw)
 
     if zlimits[0]:
@@ -678,7 +793,7 @@ def _plotFz(
     asse = Assembly(acts)
     asse.name = "plotFz"
     if isinstance(z, str):
-        asse.name += " "+z
+        asse.name += " " + z
     return asse
 
 
@@ -704,7 +819,7 @@ def _plotPolar(
     showAngles=True,
 ):
     if len(rphi) == 2:
-        #rphi = list(zip(rphi[0], rphi[1]))
+        # rphi = list(zip(rphi[0], rphi[1]))
         rphi = np.stack((rphi[0], rphi[1]), axis=1)
 
     rphi = np.array(rphi)
@@ -808,8 +923,7 @@ def _plotPolar(
     return rh
 
 
-def _plotSpheric(rfunc, normalize=True, res=25,
-                scalarbar=True, c='grey', alpha=0.05, cmap='jet'):
+def _plotSpheric(rfunc, normalize=True, res=25, scalarbar=True, c="grey", alpha=0.05, cmap="jet"):
     sg = shapes.Sphere(res=res, quads=True)
     sg.alpha(alpha).c(c).wireframe()
 
@@ -831,13 +945,13 @@ def _plotSpheric(rfunc, normalize=True, res=25,
 
     newr = np.array(newr)
     if normalize:
-        newr = newr/np.max(newr)
+        newr = newr / np.max(newr)
         newr[inans] = 1
 
     nanpts = []
     if len(inans):
         redpts = utils.spher2cart(newr[inans], theta[inans], phi[inans])
-        nanpts.append(shapes.Points(redpts, r=4, c='r'))
+        nanpts.append(shapes.Points(redpts, r=4, c="r"))
 
     pts = utils.spher2cart(newr, theta, phi)
 
@@ -851,8 +965,8 @@ def _plotSpheric(rfunc, normalize=True, res=25,
         xm = np.max([np.max(pts[0]), 1])
         ym = np.max([np.abs(np.max(pts[1])), 1])
         ssurf.mapper().SetScalarRange(np.min(newr), np.max(newr))
-        sb3d = ssurf.addScalarBar3D(cmap=cmap, sx=xm*0.07, sy=ym)
-        sb3d.rotateX(90).pos(xm*1.1, 0, -0.5)
+        sb3d = ssurf.addScalarBar3D(cmap=cmap, sx=xm * 0.07, sy=ym)
+        sb3d.rotateX(90).pos(xm * 1.1, 0, -0.5)
     else:
         sb3d = None
 
@@ -945,27 +1059,27 @@ def histogram(*args, **kwargs):
 
     |histo_spheric| |histo_spheric.py|_
     """
-    mode = kwargs.pop('mode', '')
-    if len(args) == 2: # x, y
-        if 'spher' in mode:
+    mode = kwargs.pop("mode", "")
+    if len(args) == 2:  # x, y
+        if "spher" in mode:
             return _histogramSpheric(args[0], args[1], **kwargs)
-        if 'hex' in mode:
+        if "hex" in mode:
             return _histogramHexBin(args[0], args[1], **kwargs)
         return _histogram2D(args[0], args[1], **kwargs)
 
     elif len(args) == 1:
         data = np.array(args[0])
 
-        if 'spher' in mode:
-            return _histogramSpheric(args[0][:,0], args[0][:,1], **kwargs)
+        if "spher" in mode:
+            return _histogramSpheric(args[0][:, 0], args[0][:, 1], **kwargs)
 
-        if len(data.shape)==1:
-            if 'polar' in mode:
+        if len(data.shape) == 1:
+            if "polar" in mode:
                 return _histogramPolar(data, **kwargs)
             return _histogram1D(data, **kwargs)
         else:
-            if 'hex' in mode:
-                return _histogramHexBin(args[0][:,0], args[0][:,1], **kwargs)
+            if "hex" in mode:
+                return _histogramHexBin(args[0][:, 0], args[0][:, 1], **kwargs)
             return _histogram2D(args[0], **kwargs)
 
     print("histogram(): Could not understand input", args[0])
@@ -973,138 +1087,413 @@ def histogram(*args, **kwargs):
 
 
 def _histogram1D(
-    values,
-    xtitle="",
-    ytitle="",
+    data,
+    format=None,
     bins=25,
+    aspect=4 / 3,
     xlim=None,
     ylim=None,
-    logscale=False,
-    yscale=1,
-    fill=True,
-    gap=0.02,
-    c="olivedrab",
-    alpha=1,
-    outline=True,
-    lw=2,
-    lc="black",
     errors=False,
-    axes=True,
+    title="",
+    xtitle="x",
+    ytitle="dN/dx",
+    titleSize=None,
+    titleColor=None,
+    # logscale=False,
+    fill=True,
+    c="olivedrab",
+    gap=0.02,
+    alpha=1,
+    outline=False,
+    lw=2,
+    lc="k",
+    marker="",
+    ms=None,
+    mc=None,
+    ma=None,
+    pad=0.05,
+    axes={},
+    bc="k",
 ):
-    settings.defaultAxesType = 0 # because of yscaling
+    settings.defaultAxesType = 0  # because of yscaling
     ncolls = len(settings.collectable_actors)
-    fs, edges = np.histogram(values, bins=bins, range=xlim)
-    if logscale:
-        fs = np.log10(fs + 1)
-    mine, maxe = np.min(edges), np.max(edges)
+
+    # purge NaN from data
+    validIds = np.all(np.logical_not(np.isnan(data)))
+    data = data[validIds]
+    offs = 0  # z offset
+
+    if format is not None:  # reset to allow meaningful overlap
+        xlim = format.xlim
+        ylim = format.ylim
+        aspect = format.aspect
+        pad = format.pad
+        bins = format.bins
+        axes = 0
+        title = ""
+        xtitle = ""
+        ytitle = ""
+        offs = format.zmax
+
+    fs, edges = np.histogram(data, bins=bins, range=xlim)
+    # print('frequencies', fs)
+    # if logscale:
+    #    fs = np.log10(fs + 1)
+
+    x0, x1 = np.min(edges), np.max(edges)
+    y0, y1 = 0, np.max(fs)
     binsize = edges[1] - edges[0]
-    fs = fs.astype(float)*yscale
+
+    x0lim, x1lim = x0 - pad * (x1 - x0), x1 + pad * (x1 - x0)
+    y0lim, y1lim = y0 - pad * (y1 - y0) / 100, y1 + pad * (y1 - y0)
+    if errors:
+        y1lim += np.sqrt(y1) / 2
+
+    if y0lim == y1lim:  # in case y is constant
+        y0lim = y0lim - (x1lim - x0lim) / 2
+        y1lim = y1lim + (x1lim - x0lim) / 2
+    elif x0lim == x1lim:  # in case x is constant
+        x0lim = x0lim - (y1lim - y0lim) / 2
+        x1lim = x1lim + (y1lim - y0lim) / 2
+
+    if xlim is not None and xlim[0] is not None:
+        x0lim = xlim[0]
+    if xlim is not None and xlim[1] is not None:
+        x1lim = xlim[1]
+    if ylim is not None and ylim[0] is not None:
+        y0lim = ylim[0]
+    if ylim is not None and ylim[1] is not None:
+        y1lim = ylim[1]
+
+    dx = x1lim - x0lim
+    dy = y1lim - y0lim
+    if dx == 0 and dy == 0:  # in case x and y are all constant
+        x0lim = x0lim - 1
+        x1lim = x1lim + 1
+        y0lim = y0lim - 1
+        y1lim = y1lim + 1
+        dx, dy = 1, 1
+
+    yscale = dx / dy / aspect
+    y0lim, y1lim = y0lim * yscale, y1lim * yscale
+
+    if format is not None:
+        x0lim = format._x0lim
+        y0lim = format._y0lim
+        x1lim = format._x1lim
+        y1lim = format._y1lim
+        yscale = format.yscale
+
+    dx = x1lim - x0lim
+    dy = y1lim - y0lim
+    offs += np.sqrt(dx * dx + dy * dy) / 10000
+
+    fs = fs * yscale
+
+    if utils.isSequence(bins):
+        myedges = np.array(bins)
+        bins = len(bins) - 1
+    else:
+        myedges = edges
 
     rs = []
-    maxheigth=0
-    if fill:
+    maxheigth = 0
+    if fill:  #####################
         if outline:
             gap = 0
+
         for i in range(bins):
-            p0 = (edges[i] + gap * binsize, 0, 0)
-            p1 = (edges[i + 1] - gap * binsize, fs[i], 0)
+            p0 = (myedges[i] + gap * binsize, 0, 0)
+            p1 = (myedges[i + 1] - gap * binsize, fs[i], 0)
             r = shapes.Rectangle(p0, p1)
+            r.origin(p0)
             maxheigth = max(maxheigth, p1[1])
-            r.color(c).alpha(alpha).lighting("ambient")
+            r.color(c).alpha(alpha).lighting("ambient").z(offs)
             rs.append(r)
+        # print('rectangles', r.z())
 
-    if outline:
-        lns = [[mine, 0, 0]]
+    if outline:  #####################
+        lns = [[myedges[0], 0, 0]]
         for i in range(bins):
-            lns.append([edges[i], fs[i], 0])
-            lns.append([edges[i + 1], fs[i], 0])
+            lns.append([myedges[i], fs[i], 0])
+            lns.append([myedges[i + 1], fs[i], 0])
             maxheigth = max(maxheigth, fs[i])
-        lns.append([maxe, 0, 0])
-        rs.append(shapes.Line(lns, c=lc, alpha=alpha, lw=lw))
+        lns.append([myedges[-1], 0, 0])
+        outl = shapes.Line(lns, c=lc, alpha=alpha, lw=lw).z(offs)
+        rs.append(outl)
+        # print('histo outline', outl.z())
 
-    if errors:
-        errs = np.sqrt(fs/yscale)*yscale
-        for i in range(bins):
-            x = (edges[i] + edges[i + 1]) / 2
-            el = shapes.Line(
-                [x, fs[i] - errs[i] / 2, 0.1 * binsize],
-                [x, fs[i] + errs[i] / 2, 0.1 * binsize],
-                c=lc,
-                alpha=alpha,
-                lw=lw,
+    bin_centers_pos = []
+    for i in range(bins):
+        x = (myedges[i] + myedges[i + 1]) / 2
+        if fs[i]:
+            bin_centers_pos.append([x, fs[i], 0])
+
+    if marker:  #####################
+
+        pts = shapes.Points(bin_centers_pos)
+        if mc is None:
+            mc = lc
+        if ma is None:
+            ma = alpha
+
+        if utils.isSequence(ms):  ### variable point size
+            mk = shapes.Marker(marker, s=1)
+            msv = np.zeros_like(pts.points())
+            msv[:, 0] = ms
+            marked = shapes.Glyph(
+                pts, glyphObj=mk, c=mc, orientationArray=msv, scaleByVectorSize=True
             )
-            maxheigth = max(maxheigth, fs[i] + errs[i])
-            pt = shapes.Point([x, fs[i], 0.1 * binsize], r=7, c=lc, alpha=alpha)
+        else:  ### fixed point size
+
+            if ms is None:
+                ms = dx / 100.0
+
+            if utils.isSequence(mc):
+                mk = shapes.Marker(marker, s=ms)
+                msv = np.zeros_like(pts.points())
+                msv[:, 0] = 1
+                marked = shapes.Glyph(
+                    pts, glyphObj=mk, c=mc, orientationArray=msv, scaleByVectorSize=True
+                )
+            else:
+                mk = shapes.Marker(marker, s=ms)
+                marked = shapes.Glyph(pts, glyphObj=mk, c=mc)
+
+        marked.alpha(ma).z(offs * 2)
+        # print('marker', marked.z())
+        rs.append(marked)
+
+    if errors:  #####################
+        for bcp in bin_centers_pos:
+            x = bcp[0]
+            f = bcp[1]
+            err = np.sqrt(f / yscale) * yscale
+            el = shapes.Line([x, f-err/2, 0], [x, f+err/2, 0], c=lc, alpha=alpha, lw=lw)
+            el.z(offs * 1.9)
             rs.append(el)
-            rs.append(pt)
+        # print('errors', el.z())
 
-    if axes:
-        settings.defaultAxesType = 0
-        if xlim is not None:
-            mine,maxe = xlim
-        if ylim is not None:
-            _,maxheigth = ylim
-        axs = addons.buildAxes(xrange=(mine,maxe), yrange=(0,maxheigth), zrange=(0,0),
-                               xtitle=xtitle, ytitle=ytitle+" *"+str(yscale), c='k')
-        rs.append(axs)
+    for a in rs:  #####################
+        a.cutWithPlane([0, y0lim, 0], [0, 1, 0])
+        a.cutWithPlane([0, y1lim, 0], [0, -1, 0])
+        a.cutWithPlane([x0lim, 0, 0], [1, 0, 0])
+        a.cutWithPlane([x1lim, 0, 0], [-1, 0, 0])
+        a.lighting("ambient").phong()
 
-    asse = Assembly(rs)
-    asse.base = np.array([0, 0, 0])
-    asse.top = np.array([0, 0, 1])
+    if title:  #####################
+        if titleColor is None:
+            titleColor = bc
+
+        if titleSize is None:
+            titleSize = dx / 40.0
+        tit = shapes.Text(
+            title,
+            s=titleSize,
+            c=titleColor,
+            depth=0,
+            alpha=alpha,
+            pos=((x0lim + x1lim) / 2, y1lim + dy / 80, 0),
+            justify="bottom-center",
+        )
+        tit.pickable(False).z(2.5 * offs)
+        rs.append(tit)
+
+    if axes == 1 or axes == True:
+        axes = {}
+    if isinstance(axes, dict):  #####################
+        ndiv = 6
+        if "numberOfDivisions" in axes.keys():
+            ndiv = axes["numberOfDivisions"]
+        tp, ts = utils.make_ticks(y0lim / yscale, y1lim / yscale, ndiv / aspect)
+        labs = []
+        for i in range(1, len(tp) - 1):
+            ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
+            labs.append([ynew, ts[i]])
+        axes["xtitle"] = xtitle
+        axes["ytitle"] = ytitle
+        axes["yPositionsAndLabels"] = labs
+        axes["xrange"] = (x0lim, x1lim)
+        axes["yrange"] = (y0lim, y1lim)
+        axes["zrange"] = (0, 0)
+        axes["c"] = bc
+        axs = addons.buildAxes(**axes)
+        axs.name = "axes"
+        asse = Plot(rs, axs)
+        asse.axes = axs
+        asse.SetOrigin(x0lim, y0lim, 0)
+    else:
+        settings.xtitle = xtitle
+        settings.ytitle = ytitle
+        asse = Plot(rs)
+
+    asse.yscale = yscale
+    asse.xlim = xlim
+    asse.ylim = ylim
+    asse.aspect = aspect
+    asse.pad = pad
+    asse.title = title
+    asse.xtitle = xtitle
+    asse.ytitle = ytitle
+    asse._x0lim = x0lim
+    asse._y0lim = y0lim
+    asse._x1lim = x1lim
+    asse._y1lim = y1lim
+    asse.zmax = offs * 3  # z-order
+    asse.bins = edges
     asse.name = "histogram1D"
+
     settings.collectable_actors = settings.collectable_actors[:ncolls]
     settings.collectable_actors.append(asse)
     return asse
 
 
-def _histogram2D(xvalues, yvalues=None,
-    xtitle="",
-    ytitle="",
-    bins=(20, 20),
-    vrange=None,
-    cmap="viridis",
+def _histogram2D(
+    xvalues,
+    yvalues=None,
+    format=None,
+    bins=25,
+    aspect=1,
+    xlim=None,
+    ylim=None,
+    cmap="cividis",
     alpha=1,
-    lw=0.1,
+    title="",
+    xtitle="x",
+    ytitle="y",
+    titleSize=None,
+    titleColor=None,
+    # logscale=False,
+    lw=0,
     scalarbar=True,
+    axes=True,
+    bc="k",
 ):
-    if xtitle:
-        settings.xtitle = xtitle
-    if ytitle:
-        settings.ytitle = ytitle
+    settings.defaultAxesType = 0  # because of yscaling
+    ncolls = len(settings.collectable_actors)
+    offs = 0  # z offset
 
-    if isinstance(xvalues, Mesh):
-        xvalues = xvalues.points()
+    if format is not None:  # reset to allow meaningful overlap
+        xlim = format.xlim
+        ylim = format.ylim
+        aspect = format.aspect
+        bins = format.bins
+        axes = 0
+        title = ""
+        xtitle = ""
+        ytitle = ""
+        offs = format.zmax
 
     if yvalues is None:
         # assume [(x1,y1), (x2,y2) ...] format
-        yvalues = xvalues[:,1]
-        xvalues = xvalues[:,0]
-
-    xmin, xmax = np.min(xvalues), np.max(xvalues)
-    ymin, ymax = np.min(yvalues), np.max(yvalues)
-    dx, dy = xmax - xmin, ymax - ymin
+        yvalues = xvalues[:, 1]
+        xvalues = xvalues[:, 0]
 
     if isinstance(bins, int):
         bins = (bins, bins)
+    H, xedges, yedges = np.histogram2d(xvalues, yvalues, bins=bins, range=(xlim, ylim))
 
-    xedges = np.linspace(xmin, xmax, num=bins[0]+1, endpoint=True)
-    yedges = np.linspace(ymin, ymax, num=bins[1]+1, endpoint=True)
-    H, xedges, yedges = np.histogram2d(xvalues, yvalues,
-                                       bins=(xedges, yedges),
-                                       range=vrange,
-                                       )
+    x0lim, x1lim = np.min(xedges), np.max(xedges)
+    y0lim, y1lim = np.min(yedges), np.max(yedges)
+    dx, dy = x1lim - x0lim, y1lim - y0lim
 
-    g = shapes.Grid(pos=[(xmin+xmax)/2, (ymin+ymax)/2, 0],
-                    sx=dx, sy=dy, resx=bins[0], resy=bins[1])
-    g.alpha(alpha).lw(lw).wireframe(0)
-    g.cellColors(np.ravel(H.T, order='C'), cmap=cmap)
-    g.SetOrigin(xmin, ymin, 0)
+    if dx == 0 and dy == 0:  # in case x and y are all constant
+        x0lim = x0lim - 1
+        x1lim = x1lim + 1
+        y0lim = y0lim - 1
+        y1lim = y1lim + 1
+        dx, dy = 1, 1
+
+    yscale = dx / dy / aspect
+    y0lim, y1lim = y0lim * yscale, y1lim * yscale
+
+    acts = []
+
+    #####################
+    g = shapes.Grid(
+        pos=[(x0lim + x1lim) / 2, (y0lim + y1lim) / 2, 0],
+        sx=dx,
+        sy=dy * yscale,
+        resx=bins[0],
+        resy=bins[1],
+    )
+    g.alpha(alpha).lw(lw).wireframe(0).flat().lighting("ambient")
+    g.cellColors(np.ravel(H.T), cmap=cmap)
+    g.SetOrigin(x0lim, y0lim, 0)
     if scalarbar:
-        g.addScalarBar()
+        sc = addons.addScalarBar3D(g, c=bc)
+        scy0, scy1 = sc.ybounds()
+        sc_scale = (y1lim-y0lim)/(scy1-scy0)
+        sc.scale(sc_scale)
+        sc.pos(x1lim-sc.xbounds()[0]*1.1, (y0lim+y1lim)/2, offs)
+        acts.append(sc)
     g.base = np.array([0, 0, 0])
     g.top = np.array([0, 0, 1])
-    g.name = "histogram2D"
-    return g
+    acts.append(g)
+
+    if title:  #####################
+        if titleColor is None:
+            titleColor = bc
+
+        if titleSize is None:
+            titleSize = dx / 40.0
+        tit = shapes.Text(
+            title,
+            s=titleSize,
+            c=titleColor,
+            depth=0,
+            alpha=alpha,
+            pos=((x0lim + x1lim) / 2, y1lim + dy / 40, 0),
+            justify="bottom-center",
+        )
+        tit.pickable(False).z(2.5 * offs)
+        acts.append(tit)
+
+    if axes == 1 or axes == True:  #####################
+        axes = {"xyGridTransparent": True, "xyAlpha": 0}
+    if isinstance(axes, dict):
+        ndiv = 6
+        if "numberOfDivisions" in axes.keys():
+            ndiv = axes["numberOfDivisions"]
+        tp, ts = utils.make_ticks(y0lim / yscale, y1lim / yscale, ndiv / aspect)
+        labs = []
+        for i in range(1, len(tp) - 1):
+            ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
+            labs.append([ynew, ts[i]])
+        axes["xtitle"] = xtitle
+        axes["ytitle"] = ytitle
+        axes["yPositionsAndLabels"] = labs
+        axes["xrange"] = (x0lim, x1lim)
+        axes["yrange"] = (y0lim, y1lim)
+        axes["zrange"] = (0, 0)
+        axes["c"] = bc
+        axs = addons.buildAxes(**axes)
+        axs.name = "axes"
+        asse = Plot(acts, axs)
+        asse.axes = axs
+        asse.SetOrigin(x0lim, y0lim, 0)
+    else:
+        settings.xtitle = xtitle
+        settings.ytitle = ytitle
+        asse = Plot(acts)
+
+    asse.yscale = yscale
+    asse.xlim = xlim
+    asse.ylim = ylim
+    asse.aspect = aspect
+    asse.title = title
+    asse.xtitle = xtitle
+    asse.ytitle = ytitle
+    asse._x0lim = x0lim
+    asse._y0lim = y0lim
+    asse._x1lim = x1lim
+    asse._y1lim = y1lim
+    asse.zmax = offs * 3  # z-order
+    asse.name = "histogram2D"
+
+    settings.collectable_actors = settings.collectable_actors[:ncolls]
+    settings.collectable_actors.append(asse)
+    return asse
 
 
 def _histogramHexBin(
@@ -1122,9 +1511,11 @@ def _histogramHexBin(
 ):
     if xtitle:
         from vtkplotter import settings
+
         settings.xtitle = xtitle
     if ytitle:
         from vtkplotter import settings
+
         settings.ytitle = ytitle
 
     xmin, xmax = np.min(xvalues), np.max(xvalues)
@@ -1143,7 +1534,7 @@ def _histogramHexBin(
     src.Update()
     pointsPolydata = src.GetOutput()
 
-    #values = list(zip(xvalues, yvalues))
+    # values = list(zip(xvalues, yvalues))
     values = np.stack((xvalues, yvalues), axis=1)
     zs = [[0.0]] * len(values)
     values = np.append(values, zs, axis=1)
@@ -1348,18 +1739,14 @@ def _histogramPolar(
     return rh
 
 
-def _histogramSpheric(thetavalues, phivalues,
-                      rmax=1.2,
-                      res=8,
-                      cmap="rainbow",
-                      lw=0.1,
-                      scalarbar=True,
+def _histogramSpheric(
+    thetavalues, phivalues, rmax=1.2, res=8, cmap="rainbow", lw=0.1, scalarbar=True,
 ):
 
-    x,y,z = utils.spher2cart(np.ones_like(thetavalues)*1.1, thetavalues, phivalues)
-    ptsvals = np.c_[x,y,z]
+    x, y, z = utils.spher2cart(np.ones_like(thetavalues) * 1.1, thetavalues, phivalues)
+    ptsvals = np.c_[x, y, z]
 
-    sg = shapes.Sphere(res=res, quads=True).shrink(.999).computeNormals().lw(.1)
+    sg = shapes.Sphere(res=res, quads=True).shrink(0.999).computeNormals().lw(0.1)
     sgfaces = sg.faces()
     sgpts = sg.points()
     #    sgpts = np.vstack((sgpts, [0,0,0]))
@@ -1371,7 +1758,7 @@ def _histogramSpheric(thetavalues, phivalues,
     #        newfaces.append([idx,f2,f3, idx])
     #        newfaces.append([idx,f3,f4, idx])
     #        newfaces.append([idx,f4,f1, idx])
-    newsg = sg# Mesh((sgpts, sgfaces)).computeNormals().phong()
+    newsg = sg  # Mesh((sgpts, sgfaces)).computeNormals().phong()
     newsgpts = newsg.points()
 
     cntrs = sg.cellCenters()
@@ -1380,15 +1767,16 @@ def _histogramSpheric(thetavalues, phivalues,
         cell = sg.closestPoint(p, returnIds=True)
         counts[cell] += 1
     acounts = np.array(counts)
-    counts *= (rmax-1)/np.max(counts)
+    counts *= (rmax - 1) / np.max(counts)
 
-    for cell,cn in enumerate(counts):
-        if not cn: continue
+    for cell, cn in enumerate(counts):
+        if not cn:
+            continue
         fs = sgfaces[cell]
         pts = sgpts[fs]
-        _,t1,p1 = utils.cart2spher(pts[:,0],pts[:,1],pts[:,2])
-        x,y,z = utils.spher2cart(1+cn,t1,p1)
-        newsgpts[fs] = np.c_[x,y,z]
+        _, t1, p1 = utils.cart2spher(pts[:, 0], pts[:, 1], pts[:, 2])
+        x, y, z = utils.spher2cart(1 + cn, t1, p1)
+        newsgpts[fs] = np.c_[x, y, z]
 
     newsg.points(newsgpts)
     newsg.cellColors(acounts, cmap=cmap)
@@ -1396,28 +1784,27 @@ def _histogramSpheric(thetavalues, phivalues,
     if scalarbar:
         newsg.addScalarBar()
     newsg.name = "histogramSpheric"
-    #from vtkplotter.analysis import normalLines
-    #nrm = normalLines(newsg, scale=0.5)
-    #asse = Assembly(newsg, nrm)
-    #sg0 = shapes.Sphere(r=0.99, res=res, quads=True).lw(.1).c([.9,.9,.9])
-    #return Assembly(newsg, sg0)
+    # from vtkplotter.analysis import normalLines
+    # nrm = normalLines(newsg, scale=0.5)
+    # asse = Assembly(newsg, nrm)
+    # sg0 = shapes.Sphere(r=0.99, res=res, quads=True).lw(.1).c([.9,.9,.9])
+    # return Assembly(newsg, sg0)
     return newsg
 
 
-
 def donut(
-            fractions,
-            title="",
-            r1=1.7,
-            r2=1,
-            phigap=0,
-            lpos=0.8,
-            lsize=0.15,
-            c=None,
-            bc="k",
-            alpha=1,
-            labels=(),
-            showDisc=False,
+    fractions,
+    title="",
+    r1=1.7,
+    r2=1,
+    phigap=0,
+    lpos=0.8,
+    lsize=0.15,
+    c=None,
+    bc="k",
+    alpha=1,
+    labels=(),
+    showDisc=False,
 ):
     """
     Donut plot or pie chart.
@@ -1483,16 +1870,18 @@ def donut(
     return dn
 
 
-def quiver(points, vectors,
-           cmap='jet',
-           alpha=1,
-           shaftLength=0.8,
-           shaftWidth=0.05,
-           headLength=0.25,
-           headWidth=0.2,
-           fill=True,
-           scale=1
-          ):
+def quiver(
+    points,
+    vectors,
+    cmap="jet",
+    alpha=1,
+    shaftLength=0.8,
+    shaftWidth=0.05,
+    headLength=0.25,
+    headWidth=0.2,
+    fill=True,
+    scale=1,
+):
     """
     Quiver Plot, display `vectors` at `points` locations.
 
@@ -1512,30 +1901,34 @@ def quiver(points, vectors,
         points = points.points()
     else:
         points = np.array(points)
-    vectors = np.array(vectors)/2
+    vectors = np.array(vectors) / 2
 
     spts = points - vectors
     epts = points + vectors
 
-    arrs2d = shapes.Arrows2D(spts, epts, c=cmap,
-                             shaftLength=shaftLength,
-                             shaftWidth=shaftWidth,
-                             headLength=headLength,
-                             headWidth=headWidth,
-                             fill=fill,
-                             scale=scale,
-                             alpha=alpha,
-                            )
+    arrs2d = shapes.Arrows2D(
+        spts,
+        epts,
+        c=cmap,
+        shaftLength=shaftLength,
+        shaftWidth=shaftWidth,
+        headLength=headLength,
+        headWidth=headWidth,
+        fill=fill,
+        scale=scale,
+        alpha=alpha,
+    )
     arrs2d.pickable(False)
     arrs2d.name = "quiver"
     return arrs2d
 
 
-def violin(values,
+def violin(
+    values,
     bins=10,
     vlim=None,
     x=0,
-    width=5,
+    width=3,
     spline=True,
     fill=True,
     c="violet",
@@ -1564,19 +1957,19 @@ def violin(values,
 
     fs, edges = np.histogram(values, bins=bins, range=vlim)
     mine, maxe = np.min(edges), np.max(edges)
-    fs = fs.astype(float)/len(values)*width
+    fs = fs.astype(float) / len(values) * width
 
     rs = []
 
     if spline:
-        lnl, lnr = [(0,edges[0],0)], [(0,edges[0],0)]
+        lnl, lnr = [(0, edges[0], 0)], [(0, edges[0], 0)]
         for i in range(bins):
-            xc = (edges[i] + edges[i+1])/2
+            xc = (edges[i] + edges[i + 1]) / 2
             yc = fs[i]
             lnl.append([-yc, xc, 0])
-            lnr.append([ yc, xc, 0])
-        lnl.append((0,edges[-1],0))
-        lnr.append((0,edges[-1],0))
+            lnr.append([yc, xc, 0])
+        lnl.append((0, edges[-1], 0))
+        lnr.append((0, edges[-1], 0))
         spl = shapes.KSpline(lnl).x(x)
         spr = shapes.KSpline(lnr).x(x)
         spl.color(lc).alpha(alpha).lw(lw)
@@ -1592,13 +1985,13 @@ def violin(values,
         lns1 = [[0, mine, 0]]
         for i in range(bins):
             lns1.append([fs[i], edges[i], 0])
-            lns1.append([fs[i], edges[i+1], 0])
+            lns1.append([fs[i], edges[i + 1], 0])
         lns1.append([0, maxe, 0])
 
         lns2 = [[0, mine, 0]]
         for i in range(bins):
             lns2.append([-fs[i], edges[i], 0])
-            lns2.append([-fs[i], edges[i+1],  0])
+            lns2.append([-fs[i], edges[i + 1], 0])
         lns2.append([0, maxe, 0])
 
         if outline:
@@ -1607,14 +2000,14 @@ def violin(values,
 
         if fill:
             for i in range(bins):
-                p0 = (-fs[i],edges[i],   0)
-                p1 = ( fs[i],edges[i+1], 0)
-                r = shapes.Rectangle(p0, p1).x(x)
+                p0 = (-fs[i], edges[i], 0)
+                p1 = (fs[i], edges[i + 1], 0)
+                r = shapes.Rectangle(p0, p1).x(p0[0] + x)
                 r.color(c).alpha(alpha).lighting("ambient")
                 rs.append(r)
 
     if centerline:
-        cl = shapes.Line([0, mine,0.01], [0, maxe,0.01], c=lc, alpha=alpha, lw=2).x(x)
+        cl = shapes.Line([0, mine, 0.01], [0, maxe, 0.01], c=lc, alpha=alpha, lw=2).x(x)
         rs.append(cl)
 
     asse = Assembly(rs)
@@ -1626,14 +2019,9 @@ def violin(values,
     return asse
 
 
-def streamplot(X,Y, U,V,
-               direction='both',
-               maxPropagation=None,
-               mode=1,
-               lw=0.001,
-               c=None,
-               probes=[],
-               ):
+def streamplot(
+    X, Y, U, V, direction="both", maxPropagation=None, mode=1, lw=0.001, c=None, probes=[],
+):
     """
     Generate a streamline plot of a vectorial field (U,V) defined at positions (X,Y).
     Returns a ``Mesh`` object.
@@ -1655,55 +2043,56 @@ def streamplot(X,Y, U,V,
 
     n = len(X)
     m = len(Y[0])
-    if n!=m:
-        print('Limitation in streamplot(): only square grids are allowed.', n, m)
+    if n != m:
+        print("Limitation in streamplot(): only square grids are allowed.", n, m)
         raise RuntimeError()
 
     xmin, xmax = X[0][0], X[-1][-1]
     ymin, ymax = Y[0][0], Y[-1][-1]
-    #print('xrange:', xmin, xmax)
-    #print('yrange:', ymin, ymax)
+    # print('xrange:', xmin, xmax)
+    # print('yrange:', ymin, ymax)
 
-    field = np.sqrt(U*U + V*V)
+    field = np.sqrt(U * U + V * V)
 
-    vol = Volume(field, shape=(n,n,1))
+    vol = Volume(field, shape=(n, n, 1))
 
-    uf = np.ravel(U, order='F')
-    vf = np.ravel(V, order='F')
+    uf = np.ravel(U, order="F")
+    vf = np.ravel(V, order="F")
     vects = np.c_[uf, vf, np.zeros_like(uf)]
     vol.addPointVectors(vects, "vects")
 
     if len(probes) == 0:
-        probe = shapes.Grid(pos=((n-1)/2,(n-1)/2,0),
-                            sx=n-1, sy=n-1, resx=n-1, resy=n-1)
+        probe = shapes.Grid(
+            pos=((n - 1) / 2, (n - 1) / 2, 0), sx=n - 1, sy=n - 1, resx=n - 1, resy=n - 1
+        )
     else:
         if isinstance(probes, Mesh):
             probes = probes.points()
         else:
             probes = np.array(probes)
-            if len(probes[0]) ==2:
-                probes = np.c_[probes[:,0], probes[:,1], np.zeros(len(probes))]
-        sv = [(n-1)/(xmax-xmin), (n-1)/(ymax-ymin), 1]
+            if len(probes[0]) == 2:
+                probes = np.c_[probes[:, 0], probes[:, 1], np.zeros(len(probes))]
+        sv = [(n - 1) / (xmax - xmin), (n - 1) / (ymax - ymin), 1]
         probes = probes - [xmin, ymin, 0]
         probes = np.multiply(probes, sv)
         probe = shapes.Points(probes)
 
-    stream = streamLines(vol.imagedata(), probe,
-                         tubes={"radius":lw,
-                                "varyRadius":mode,
-                                },
-                         lw=lw,
-                         maxPropagation=maxPropagation,
-                         direction=direction,
-                         )
+    stream = streamLines(
+        vol.imagedata(),
+        probe,
+        tubes={"radius": lw, "varyRadius": mode,},
+        lw=lw,
+        maxPropagation=maxPropagation,
+        direction=direction,
+    )
     if c is not None:
         stream.color(c)
     else:
         stream.addScalarBar()
-    stream.lighting('ambient')
+    stream.lighting("ambient")
 
-    stream.scale([1/(n-1)*(xmax-xmin),1/(n-1)*(ymax-ymin),1])
-    stream.addPos(np.array([xmin,ymin, 0]))
+    stream.scale([1 / (n - 1) * (xmax - xmin), 1 / (n - 1) * (ymax - ymin), 1])
+    stream.addPos(np.array([xmin, ymin, 0]))
     return stream
 
 
@@ -1720,7 +2109,7 @@ def cornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True):
         - 4, bottomright.
     """
     if len(points) == 2:  # passing [allx, ally]
-        #points = list(zip(points[0], points[1]))
+        # points = list(zip(points[0], points[1]))
         points = np.stack((points[0], points[1]), axis=1)
 
     c = colors.getColor(c)  # allow different codings
@@ -1818,21 +2207,3 @@ def cornerHistogram(
     plot.GetYAxisActor2D().SetLabelFactor(0.0)
     plot.GetYAxisActor2D().LabelVisibilityOff()
     return plot
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -300,6 +300,7 @@ class ActorBase(object):
             self._updateShadow()
         return self
 
+
     def rotate(self, angle, axis=(1, 0, 0), axis_point=(0, 0, 0), rad=False):
         """Rotate around an arbitrary `axis` passing through `axis_point`."""
         if rad:
@@ -333,14 +334,19 @@ class ActorBase(object):
                            self.shadow.GetProperty().GetOpacity())
         return self
 
-    def rotateX(self, angle, rad=False):
-        """Rotate around x-axis. If angle is in radians set ``rad=True``.
 
-        NB: mesh.rotateX(12).rotateY(14) will rotate FIRST around Y THEN around X.
-        """
+    def rotateX(self, angle, rad=False):
+        """Rotate around x-axis. If angle is in radians set ``rad=True``."""
         if rad:
             angle *= 180 / np.pi
-        self.RotateX(angle)
+        T = vtk.vtkTransform()
+        self.ComputeMatrix()
+        T.SetMatrix(self.GetMatrix())
+        T.PostMultiply()
+        T.RotateX(angle)
+        self.SetOrientation(T.GetOrientation())
+        self.SetPosition(T.GetPosition())
+
         if self.trail:
             self.updateTrail()
         if self.shadow:
@@ -350,13 +356,17 @@ class ActorBase(object):
         return self
 
     def rotateY(self, angle, rad=False):
-        """Rotate around y-axis. If angle is in radians set ``rad=True``.
-
-        NB: mesh.rotateX(12).rotateY(14) will rotate FIRST around Y THEN around X.
-        """
+        """Rotate around y-axis. If angle is in radians set ``rad=True``."""
         if rad:
-            angle *= 180.0 / np.pi
-        self.RotateY(angle)
+            angle *= 180 / np.pi
+        T = vtk.vtkTransform()
+        self.ComputeMatrix()
+        T.SetMatrix(self.GetMatrix())
+        T.PostMultiply()
+        T.RotateY(angle)
+        self.SetOrientation(T.GetOrientation())
+        self.SetPosition(T.GetPosition())
+
         if self.trail:
             self.updateTrail()
         if self.shadow:
@@ -366,13 +376,17 @@ class ActorBase(object):
         return self
 
     def rotateZ(self, angle, rad=False):
-        """Rotate around z-axis. If angle is in radians set ``rad=True``.
-
-        NB: mesh.rotateX(12).rotateZ(14) will rotate FIRST around Z THEN around X.
-        """
+        """Rotate around z-axis. If angle is in radians set ``rad=True``."""
         if rad:
-            angle *= 180.0 / np.pi
-        self.RotateZ(angle)
+            angle *= 180 / np.pi
+        T = vtk.vtkTransform()
+        self.ComputeMatrix()
+        T.SetMatrix(self.GetMatrix())
+        T.PostMultiply()
+        T.RotateZ(angle)
+        self.SetOrientation(T.GetOrientation())
+        self.SetPosition(T.GetPosition())
+
         if self.trail:
             self.updateTrail()
         if self.shadow:
@@ -380,33 +394,6 @@ class ActorBase(object):
                            self.shadow.GetProperty().GetColor(),
                            self.shadow.GetProperty().GetOpacity())
         return self
-
-    #    def rotateX(self, angle, rad=False):
-    #        """Rotate around x-axis. If angle is in radians set ``rad=True``."""
-    #        if rad:
-    #            angle *= 180 / np.pi
-    #        ipos = np.array(self.GetPosition())
-    #        self.SetPosition(0,0,0)
-    #        T = vtk.vtkTransform()
-    #        T.SetMatrix(self.GetMatrix())
-    #        T.PostMultiply()
-    #        T.RotateX(angle)
-    #        T.Translate(ipos)
-    #        self.SetUserTransform(T)
-    #        if self.trail:
-    #            self.updateTrail()
-    #        if self.shadow:
-    #            self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
-    #                           self.shadow.GetProperty().GetColor(),
-    #                           self.shadow.GetProperty().GetOpacity())
-    #        return self
-    #    def origin(self, o=None):
-    #        """Set/get mesh's origin coordinates. Default is (0,0,0).
-    #        Can be used to define an offset."""
-    #        if o is None:
-    #            return np.array(self.GetOrigin())
-    #        self.SetOrigin(o)
-    #        return self  # return itself to concatenate methods
 
 
     def orientation(self, newaxis=None, rotation=0, rad=False):
@@ -628,9 +615,8 @@ class ActorBase(object):
 
     def getTransform(self):
         """
-        Check if ``info['transform']`` exists and returns it.
-        Otherwise return current user transformation
-        (where the object is currently placed).
+        Check if ``info['transform']`` exists and returns a ``vtkTransform``.
+        Otherwise return current user transformation (where the object is currently placed).
         """
         if "transform" in self.info.keys():
             T = self.info["transform"]

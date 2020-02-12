@@ -1246,7 +1246,7 @@ _defs = """
 
 .. |histo_2D.py| replace:: histo_2D.py
 .. _histo_2D.py: https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/pyplot/histo_2D.py
-.. |histo_2D| image:: https://user-images.githubusercontent.com/32848391/72452359-b5671600-37bd-11ea-8b1d-c44d884496ed.png
+.. |histo_2D| image:: https://user-images.githubusercontent.com/32848391/74361190-c019c880-4dc6-11ea-9c72-0f2a890e6664.png
     :width: 350 px
     :target: histo_2D.py_
     :alt: histo_2D.py
@@ -1291,6 +1291,8 @@ _defs = """
     :target: plot7_stream.py_
     :alt: plot7_stream.py
 
+.. |simpleplot| image:: https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png
+    :width: 350 px
 
 """
 

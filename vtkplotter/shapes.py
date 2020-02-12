@@ -69,14 +69,15 @@ def Marker(symbol, pos=(0, 0, 0), c='lb', alpha=1, s=0.1, filled=True):
     """
     if isinstance(symbol, int):
         symbs = ['.', 'p','*','h','D','d','o','v','^','>','<','s', 'x', 'a']
-        symbol = symbs[s]
+        symbol = symbol % 14
+        symbol = symbs[symbol]
 
     if symbol == '.':
         mesh = Polygon(nsides=24, r=s*0.75)
     elif symbol == 'p':
         mesh = Polygon(nsides=5, r=s)
     elif symbol == '*':
-        mesh = Star(r1=0.7*s, r2=s, line=not filled)
+        mesh = Star(r1=0.65*s*1.1, r2=s*1.1, line=not filled)
     elif symbol == 'h':
         mesh = Polygon(nsides=6, r=s)
     elif symbol == 'D':
@@ -166,7 +167,7 @@ class Points(Mesh):
 
                 n = len(plist)
                 if n != len(cols):
-                    printc("~times mismatch in Points() colors", n, len(cols), c=1)
+                    printc("Mismatch in Points() colors", n, len(cols), c=1)
                     raise RuntimeError()
                 src = vtk.vtkPointSource()
                 src.SetNumberOfPoints(n)
@@ -182,7 +183,7 @@ class Points(Mesh):
                 ucols.SetName("pointsRGBA")
                 if utils.isSequence(alpha):
                     if len(alpha) != n:
-                        printc("~times mismatch in Points() alphas", n, len(alpha), c=1)
+                        printc("Mismatch in Points() alphas", n, len(alpha), c=1)
                         raise RuntimeError()
                     alphas = alpha
                     alpha = 1
@@ -470,9 +471,13 @@ class Line(Mesh):
             ppoints = vtk.vtkPoints()  # Generate the polyline
             dim = len((p0[0]))
             if dim == 2:
+                firstpt = np.array([p0[0][0], p0[0][1], 0])
+                lastpt = np.array([p0[-1][0], p0[-1][0], 0])
                 for i, p in enumerate(p0):
                     ppoints.InsertPoint(i, p[0], p[1], 0)
             else:
+                firstpt = np.array(p0[0])
+                lastpt = np.array(p0[-1])
                 ppoints.SetData(numpy_to_vtk(np.ascontiguousarray(p0), deep=True))
             lines = vtk.vtkCellArray()  # Create the polyline.
             lines.InsertNextCell(len(p0))
@@ -489,14 +494,17 @@ class Line(Mesh):
                 lineSource.SetResolution(res)
             lineSource.Update()
             poly = lineSource.GetOutput()
+            firstpt = np.array(p0)
+            lastpt = np.array(p1)
 
         Mesh.__init__(self, poly, c, alpha)
         self.lw(lw)
         if dotted:
             self.GetProperty().SetLineStipplePattern(0xF0F0)
             self.GetProperty().SetLineStippleRepeatFactor(1)
-        self.base = np.array(p0)
-        self.top  = np.array(p1)
+        self.base = firstpt
+        self.top  = lastpt
+        #self.SetOrigin((firstpt+lastpt)/2)
         settings.collectable_actors.append(self)
         self.name = "Line"
 
@@ -513,7 +521,7 @@ class DashedLine(Mesh):
     :param float alpha: transparency in range [0,1].
     :param lw: line width.
     """
-    def __init__(self, p0, p1=None, spacing=0.2, c="red", alpha=1, lw=2):
+    def __init__(self, p0, p1=None, spacing=0.1, c="red", alpha=1, lw=2):
 
         if isinstance(p0, vtk.vtkActor): p0 = p0.GetPosition()
         if isinstance(p1, vtk.vtkActor): p1 = p1.GetPosition()
@@ -544,6 +552,10 @@ class DashedLine(Mesh):
         xmn = np.min(listp, axis=0)
         xmx = np.max(listp, axis=0)
         dlen = np.linalg.norm(xmx-xmn)*spacing/10
+        if not dlen:
+            printc("Error in DashedLine: zero dash length.", c=1)
+            Mesh.__init__(self, vtk.vtkPolyData(), c, alpha)
+            return
 
         qs = []
         for ipt in range(len(listp)-1):
@@ -584,7 +596,7 @@ class DashedLine(Mesh):
         self.top  = listp[-1]
         settings.collectable_actors.append(self)
         self.name = "DashedLine"
-        
+
 
 class Lines(Mesh):
     """
@@ -1139,12 +1151,12 @@ class Polygon(Mesh):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-               
+
         t = np.linspace(np.pi/2, 5/2*np.pi, num=nsides, endpoint=False)
-        x, y = utils.pol2cart(np.ones_like(t)*r, t)        
-        faces = [list(range(nsides))] 
-        Mesh.__init__(self, [np.c_[x,y], faces], c, alpha)        
-            
+        x, y = utils.pol2cart(np.ones_like(t)*r, t)
+        faces = [list(range(nsides))]
+        Mesh.__init__(self, [np.c_[x,y], faces], c, alpha)
+
         #ps = vtk.vtkRegularPolygonSource() # bugged!
         #ps.SetNumberOfSides(nsides)
         #ps.SetRadius(r)
@@ -1159,12 +1171,12 @@ class Circle(Polygon):
     """
     Build a Circle of radius `r`.
     """
-    def __init__(self, pos=(0,0,0), r=1, fill=False, c="grey", alpha=1, res=120):
+    def __init__(self, pos=(0,0,0), r=1, c="grey", alpha=1, res=120):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
         Polygon.__init__(self, pos, nsides=res, r=r)
-        self.wireframe(not fill).alpha(alpha).c(c)
+        self.alpha(alpha).c(c)
         self.name = "Circle"
 
 
@@ -1177,21 +1189,21 @@ class Star(Mesh):
     |extrude| |extrude.py|_
     """
     def __init__(self, pos=(0,0,0), n=5, r1=0.7, r2=1.0, line=False, c="lb", alpha=1):
-       
+
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
-    
+
         t = np.linspace(np.pi/2, 5/2*np.pi, num=n, endpoint=False)
-        x, y = utils.pol2cart(np.ones_like(t)*r2, t)        
+        x, y = utils.pol2cart(np.ones_like(t)*r2, t)
         pts = np.c_[x,y, np.zeros_like(x)]
-    
+
         apts=[]
         for i,p in enumerate(pts):
             apts.append(p)
             if i+1<n:
                 apts.append((p+pts[i+1])/2*r1/r2)
         apts.append((pts[-1]+pts[0])/2*r1/r2)
-    
+
         if line:
             apts.append(pts[0])
             #mesh = Line(apts).c(c).alpha(alpha)
@@ -1204,7 +1216,7 @@ class Star(Mesh):
                 cells.append(cell)
             cells.append([2*n, i+1, 0])
             Mesh.__init__(self, [apts, cells], c, alpha)
-    
+
         self.SetPosition(pos)
         settings.collectable_actors.append(self)
         self.name = "Star"
@@ -1279,7 +1291,7 @@ class Arc(Mesh):
             ar.SetPolarVector(point1)
             ar.SetNormal(normal)
         else:
-            printc("Error in Arc(): incorrect input.")
+            printc("Error in Arc(): incorrect input.", c=1)
             return None
         ar.SetNegative(invert)
         ar.SetResolution(res)
@@ -1309,19 +1321,19 @@ class Sphere(Mesh):
             img.SetSpacing(rs,rs,rs)
             gf = vtk.vtkGeometryFilter()
             gf.SetInputData(img)
-            gf.Update()            
+            gf.Update()
             Mesh.__init__(self, gf.GetOutput(), c, alpha)
             self.lw(0.1)
-        
+
             cgpts = self.points() - (0.5,0.5,0.5)
-        
-            x, y, z = cgpts[:,0], cgpts[:,1], cgpts[:,2]
+
+            x, y, z = cgpts.T
             x = x*(1+x*x)/2
             y = y*(1+y*y)/2
             z = z*(1+z*z)/2
             _, theta, phi = utils.cart2spher(x, y, z)
-        
-            pts = utils.spher2cart(np.ones_like(phi)*r, theta, phi)        
+
+            pts = utils.spher2cart(np.ones_like(phi)*r, theta, phi)
             self.points(pts)
 
         else:
@@ -1331,9 +1343,9 @@ class Sphere(Mesh):
             ss.SetPhiResolution(res)
             ss.SetThetaResolution(2 * res)
             ss.Update()
-    
+
             Mesh.__init__(self, ss.GetOutput(), c, alpha)
-    
+
         self.phong()
         self.SetPosition(pos)
         settings.collectable_actors.append(self)
@@ -1494,7 +1506,6 @@ class Ellipsoid(Mesh):
 
         Mesh.__init__(self, pd, c, alpha)
         self.phong()
-
         self.GetProperty().BackfaceCullingOn()
         self.SetPosition(pos)
         self.Length = -np.array(axis1) / 2 + pos
@@ -1562,24 +1573,12 @@ class Grid(Mesh):
             ps.Update()
             poly0 = ps.GetOutput()
             t0 = vtk.vtkTransform()
-            #            t0.Translate(pos)
             t0.Scale(sx, sy, 1)
             tf0 = vtk.vtkTransformPolyDataFilter()
             tf0.SetInputData(poly0)
             tf0.SetTransform(t0)
             tf0.Update()
             poly = tf0.GetOutput()
-            #            axis = np.array(normal) / np.linalg.norm(normal)
-            #            theta = np.arccos(axis[2])
-            #            phi = np.arctan2(axis[1], axis[0])
-            #            t = vtk.vtkTransform()
-            #            t.PostMultiply()
-            #            t.RotateY(np.rad2deg(theta))
-            #            t.RotateZ(np.rad2deg(phi))
-            #            tf = vtk.vtkTransformPolyDataFilter()
-            #            tf.SetInputData(poly)
-            #            tf.SetTransform(t)
-            #            tf.Update()
             Mesh.__init__(self, poly, c, alpha)
             self.SetPosition(pos)
 
@@ -1629,6 +1628,7 @@ class Plane(Mesh):
         self.top = np.array(normal)
         self.bottom = np.array([0,0,0])
 
+
 def Rectangle(p1=(0, 0, 0), p2=(2, 1, 0), lw=1, c="g", alpha=1):
     """Build a rectangle in the xy plane identified by two corner points."""
     if len(p1) == 2:
@@ -1639,10 +1639,13 @@ def Rectangle(p1=(0, 0, 0), p2=(2, 1, 0), lw=1, c="g", alpha=1):
         p2 = np.array([p2[0], p2[1], 0.])
     else:
         p2 = np.array(p2)
-    pos = (p1 + p2) / 2
-    length = abs(p2[0] - p1[0])
-    height = abs(p2[1] - p1[1])
-    mesh = Plane(pos, [0,0,1], length, height, c, alpha)
+    p1r = np.array([p2[0], p1[1], 0.])
+    p2l = np.array([p1[0], p2[1], 0.])
+    pts = ([0,0,0], p1r-p1 , p2-p1, p2l-p1)
+    faces = [(0,1,2,3)]
+    mesh = Mesh([pts, faces], c, alpha)
+    mesh.SetOrigin((p1r+p1)/2)
+    mesh.SetPosition(p1)
     mesh.name = "Rectangle"
     return mesh
 
@@ -1691,7 +1694,7 @@ def CubicGrid(pos=(0, 0, 0), n=(10,10,10), spacing=(), c="lightgrey", alpha=0.1)
         img.SetSpacing(spacing)
     else:
         img.SetSpacing(1./n[0], 1./n[1], 1./n[2])
-    mesh = utils.geometry(img)
+    mesh = utils.geometry(img).c(c).alpha(alpha)
     mesh.SetPosition(pos)
     mesh.base = np.array([0.5,0.5,0])
     mesh.top  = np.array([0.5,0.5,1])
@@ -1895,7 +1898,7 @@ class Paraboloid(Mesh):
         contours.Update()
 
         Mesh.__init__(self, contours.GetOutput(), c, alpha)
-        self.flipNormals().phong()
+        self.computeNormals().phong()
         self.mapper().ScalarVisibilityOff()
         self.SetPosition(pos)
         settings.collectable_actors.append(self)
@@ -1927,52 +1930,135 @@ class Hyperboloid(Mesh):
         contours.Update()
 
         Mesh.__init__(self, contours.GetOutput(), c, alpha)
-        self.flipNormals().phong()
+        self.computeNormals().phong()
         self.mapper().ScalarVisibilityOff()
         self.SetPosition(pos)
         settings.collectable_actors.append(self)
         self.name = "Hyperboloid"
 
 
-def Text(
-    txt,
-    pos="top-left",
-    s=1,
-    depth=0,
-    justify="bottom-left",
-    c=None,
-    alpha=1,
-    bc=None,
-    bg=None,
-    font="courier",
-):
+class Text(Mesh):
     """
-    Returns a polygonal ``Mesh`` that shows a 2D/3D text.
+    Returns a polygonal ``Mesh`` of 3D text.
 
-    :param pos: position in 3D space,
-                a 2D text is placed in one of the 8 positions:
-
-                    1, bottom-left
-                    2, bottom-right
-                    3, top-left
-                    4, top-right
-                    5, bottom-middle
-                    6, middle-right
-                    7, middle-left
-                    8, top-middle
-
-                If a pair (x,y) is passed as input the 2D text is place at that
-                position in the coordinate system of the 2D screen (with the
-                origin sitting at the bottom left).
-
-    :type pos: list, int
+    :param list pos: position coordinates in 3D space
     :param float s: size of text.
     :param float depth: text thickness.
     :param str justify: text justification
         (bottom-left, bottom-right, top-left, top-right, centered).
-    :param bg: background color of corner annotations. Only applies of `pos` is ``int``.
-    :param str font: additional available fonts are:
 
+    :param bc: back face color of text (not background)
+
+    |markpoint| |markpoint.py|_
+    """
+
+    def __init__(self,
+                txt,
+                pos=(0,0,0),
+                s=1,
+                depth=0,
+                justify="bottom-left",
+                c=None,
+                alpha=1,
+                bc=None,
+                ):
+
+        if isinstance(pos, str):
+            printc("Please use Text2D() instead of Text() for 2D text and corner annotations.", c=1)
+            raise RuntimeError()
+
+        if len(pos)==2:
+            pos = (pos[0], pos[1], 0)
+
+        if c is None: # automatic black or white
+            pli = settings.plotter_instance
+            if pli and pli.renderer:
+                c = (0.9, 0.9, 0.9)
+                if np.sum(pli.renderer.GetBackground()) > 1.5:
+                    c = (0.1, 0.1, 0.1)
+            else:
+                c = (0.6, 0.6, 0.6)
+
+        # otherwise build the 3D text, fonts do not apply
+        tt = vtk.vtkVectorText()
+        tt.SetText(str(txt))
+        tt.Update()
+        tpoly = tt.GetOutput()
+
+        bb = tpoly.GetBounds()
+        dx, dy = (bb[1] - bb[0]) / 2 * s, (bb[3] - bb[2]) / 2 * s
+        cm = np.array([(bb[1] + bb[0]) / 2,
+                       (bb[3] + bb[2]) / 2,
+                       (bb[5] + bb[4]) / 2]) * s
+        shift = -cm
+        if "bottom" in justify: shift += np.array([  0, dy, 0])
+        if "top"    in justify: shift += np.array([  0,-dy, 0])
+        if "left"   in justify: shift += np.array([ dx,  0, 0])
+        if "right"  in justify: shift += np.array([-dx,  0, 0])
+
+        t = vtk.vtkTransform()
+        t.Translate(shift)
+        t.Scale(s, s, s)
+        tf = vtk.vtkTransformPolyDataFilter()
+        tf.SetInputData(tpoly)
+        tf.SetTransform(t)
+        tf.Update()
+        tpoly = tf.GetOutput()
+
+        if depth:
+            extrude = vtk.vtkLinearExtrusionFilter()
+            extrude.SetInputData(tpoly)
+            extrude.SetExtrusionTypeToVectorExtrusion()
+            extrude.SetVector(0, 0, 1)
+            extrude.SetScaleFactor(depth*dy)
+            extrude.Update()
+            tpoly = extrude.GetOutput()
+        Mesh.__init__(self, tpoly, c, alpha)
+        if bc is not None:
+            self.backColor(bc)
+        self.SetPosition(pos)
+        settings.collectable_actors.append(self)
+        self.name = "Text"
+
+
+def Text2D(
+    txt,
+    pos=3,
+    s=1,
+    c=None,
+    alpha=1,
+    bg=None,
+    font="courier",
+    justify="bottom-left",
+):
+    """Returns a ``vtkActor2D`` representing 2D text.
+
+    :param pos: text is placed in one of the 8 positions:
+
+            1, bottom-left
+            2, bottom-right
+            3, top-left
+            4, top-right
+            5, bottom-middle
+            6, middle-right
+            7, middle-left
+            8, top-middle
+
+        If a pair (x,y) is passed as input the 2D text is place at that
+        position in the coordinate system of the 2D screen (with the
+        origin sitting at the bottom left).
+
+    :type pos: list, int
+
+    :param float s: size of text.
+    :param bg: background color
+    :param float alpha: background opacity
+    :param str justify: text justification
+    :param str font: available fonts are
+
+            - Courier
+            - Times
+            - Arial
             - Ageo
             - Aldora
             - CallingCode
@@ -1990,16 +2076,15 @@ def Text(
             - SchoolTeacher
             - SpecialElite
 
-        Font choice does not apply for 3D text.
         A path to `otf` or `ttf` font-file can also be supplied as input.
 
         All fonts are free for personal use.
         Check out conditions in `vtkplotter/fonts/licenses` for commercial use
         and: https://www.1001freefonts.com
 
-    .. hint:: Examples, |fonts.py|_ |colorcubes.py|_ |markpoint.py|_ |annotations.py|_
+    .. hint:: Examples, |fonts.py|_ |colorcubes.py|_ |annotations.py|_
 
-        |colorcubes| |markpoint|
+        |colorcubes|
 
         |fonts|
     """
@@ -2009,7 +2094,7 @@ def Text(
             if np.sum(settings.plotter_instance.renderer.GetBackground()) > 1.5:
                 c = (0.1, 0.1, 0.1)
         else:
-            c = (0.5, 0.5, 0.5)
+            c = (0.3, 0.3, 0.3)
 
     if isinstance(pos, str): # corners
         if "top" in pos:
@@ -2041,7 +2126,7 @@ def Text(
         elif font.lower() == "arial": cap.SetFontFamilyToArial()
         else:
             cap.SetFontFamily(vtk.VTK_FONT_FILE)
-            cap.SetFontFile(settings.fonts_path+font+'.ttf')
+            cap.SetFontFile(settings.fonts_path + font +'.ttf')
         if bg:
             bgcol = getColor(bg)
             cap.SetBackgroundColor(bgcol)
@@ -2051,79 +2136,33 @@ def Text(
         setattr(ca, 'renderedAt', set())
         settings.collectable_actors.append(ca)
         return ca
-    
-    else:
-        
-        if len(pos)==2:
-            pos = (pos[0], pos[1], 0)
-    
-        # otherwise build the 3D text, fonts do not apply
-        tt = vtk.vtkVectorText()
-        tt.SetText(str(txt))
-        tt.Update()
-        tpoly = tt.GetOutput()
 
-        bb = tpoly.GetBounds()
-        dx, dy = (bb[1] - bb[0]) / 2 * s, (bb[3] - bb[2]) / 2 * s
-        cm = np.array([(bb[1] + bb[0]) / 2, (bb[3] + bb[2]) / 2, (bb[5] + bb[4]) / 2]) * s
-        shift = -cm
-        if "bottom" in justify: shift += np.array([  0, dy, 0])
-        if "top"    in justify: shift += np.array([  0,-dy, 0])
-        if "left"   in justify: shift += np.array([ dx,  0, 0])
-        if "right"  in justify: shift += np.array([-dx,  0, 0])
-
-        t = vtk.vtkTransform()
-        t.Translate(shift)
-        t.Scale(s, s, s)
-        tf = vtk.vtkTransformPolyDataFilter()
-        tf.SetInputData(tpoly)
-        tf.SetTransform(t)
-        tf.Update()
-        tpoly = tf.GetOutput()
-
-        if depth:
-            extrude = vtk.vtkLinearExtrusionFilter()
-            extrude.SetInputData(tpoly)
-            extrude.SetExtrusionTypeToVectorExtrusion()
-            extrude.SetVector(0, 0, 1)
-            extrude.SetScaleFactor(depth*dy)
-            extrude.Update()
-            tpoly = extrude.GetOutput()
-        ttmesh = Mesh(tpoly, c, alpha)
-        if bc is not None:
-            ttmesh.backColor(bc)
-
-        ttmesh.SetPosition(pos)
-        settings.collectable_actors.append(ttmesh)
-        ttmesh.name = "Text"
-        return ttmesh
-
-def Text2D(
-    txt,
-    pos=(0,0),
-    s=1,
-    depth=0,
-    justify="bottom-left",
-    c=None,
-    alpha=1,
-    bc=None,
-    bg=None,
-    font="courier",
-):
     if len(pos)!=2:
-        print("Error in Text2D(): len(pos) must be 2.")
+        print("Error in Text2D(): len(pos) must be 2 or integer value.")
         raise RuntimeError()
 
     actor2d = vtk.vtkActor2D()
     actor2d.SetPosition(pos)
     tmapper = vtk.vtkTextMapper()
+    tmapper.SetInput(str(txt))
     actor2d.SetMapper(tmapper)
     tp = tmapper.GetTextProperty()
     tp.BoldOff()
     tp.SetFontSize(s*20)
     tp.SetColor(getColor(c))
     tp.SetJustificationToLeft()
-    tp.SetVerticalJustificationToBottom()
+    if "top" in justify:
+        tp.SetVerticalJustificationToTop()
+    if "bottom" in justify:
+        tp.SetVerticalJustificationToBottom()
+    if "cent" in justify:
+        tp.SetVerticalJustificationToCentered()
+        tp.SetJustificationToCentered()
+    if "left" in justify:
+        tp.SetJustificationToLeft()
+    if "right" in justify:
+        tp.SetJustificationToRight()
+
     if font.lower() == "courier": tp.SetFontFamilyToCourier()
     elif font.lower() == "times": tp.SetFontFamilyToTimes()
     elif font.lower() == "arial": tp.SetFontFamilyToArial()
@@ -2144,7 +2183,6 @@ def Text2D(
         tp.SetBackgroundOpacity(alpha * 0.5)
         tp.SetFrameColor(bgcol)
         tp.FrameOn()
-    tmapper.SetInput(str(txt))
     actor2d.PickableOff()
     setattr(actor2d, 'renderedAt', set())
     settings.collectable_actors.append(actor2d)

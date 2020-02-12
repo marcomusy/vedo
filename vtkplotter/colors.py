@@ -184,6 +184,7 @@ color_nicks = {  # color nicknames
     "b": "blue",
     "bb": "blackboard",
     "c": "cyan",
+    "d": "gold",
     "f": "fuchsia",
     "g": "green",
     "i": "indigo",
@@ -391,8 +392,6 @@ def rgb2int(rgb_tuple):
     """Return the int number of a color from (r,g,b), with 0<r<1 etc."""
     rgb = (int(rgb_tuple[0] * 255), int(rgb_tuple[1] * 255), int(rgb_tuple[2] * 255))
     return 65536 * rgb[0] + 256 * rgb[1] + rgb[2]
-
-
 #    r,g,b = np.array(rgb_tuple, dtype=np.int)*255
 #    return (r << 16) + (g << 8) + b
 
