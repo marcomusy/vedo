@@ -342,7 +342,7 @@ def plot(*inputobj, **options):
 
 
     :param dict streamlines: dictionary of streamlines properties
-    
+
         - probes, (list, None) - custom list of points to use as seeds
         - tol, (float) - tolerance to reduce the number of seed points used in mesh
         - lw, (float) - line width of the streamline
@@ -486,11 +486,11 @@ def plot(*inputobj, **options):
     if len(inputobj)==0:
         interactive()
         return
-    
+
     if 'numpy' in str(type(inputobj[0])):
         from vtkplotter.pyplot import plot as pyplot_plot
         return pyplot_plot(*inputobj, **options)
-    
+
     mesh, u = _inputsort(inputobj)
 
     mode = options.pop("mode", 'mesh')

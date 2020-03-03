@@ -686,19 +686,6 @@ def spher2cyl(rho, theta, phi):
     return rhoc, theta, z
 
 
-#def isIdentity(M, tol=1e-06):
-#    """Check if vtkMatrix4x4 is Identity."""
-#    for i in [0, 1, 2, 3]:
-#        for j in [0, 1, 2, 3]:
-#            e = M.GetElement(i, j)
-#            if i == j:
-#                if np.abs(e - 1) > tol:
-#                    return False
-#            elif np.abs(e) > tol:
-#                return False
-#    return True
-
-
 def grep(filename, tag, firstOccurrence=False):
     """Greps the line that starts with a specific `tag` string from inside a file."""
     import re

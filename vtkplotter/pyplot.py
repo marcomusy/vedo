@@ -48,10 +48,11 @@ class Plot(Assembly):
         self._y1lim = None
         self.zmax = 0  # z-order
         self.fixed_scale = 1
-        self.bins = 0
+
+        self.bins = []
+        self.freqs = []
 
         # self.ylog = False # todo
-
         # self.args = []  # maybe useless
         # self.data = None
 
@@ -128,12 +129,12 @@ class Plot(Assembly):
 
         self.modified = True
         return self
-    
+
     def plot(self, *args, **kwargs):
         """Plot on top of an already existing plot."""
         kwargs['format'] = self
         plt = plot(*args, **kwargs)
-        plt.format = self        
+        plt.format = self
         for a in plt.unpack():
             self.AddPart(a)
         return self
@@ -172,19 +173,19 @@ def plot(*args, **kwargs):
     :param float ms: marker size.
     :param str mc: color of marker
     :param float ma: opacity of marker
-    
+
     :Example:
         .. code-block:: python
 
             from vtkplotter import plot
             import numpy as np
-            
+
             x = np.linspace(0, 6.28, num=50)
-            
+
             plot(np.sin(x), 'r').plot(np.cos(x), 'bo-').show()
 
         |simpleplot|
-        
+
     More examples:
 
     |plot1_errbars| |plot1_errbars.py|_
@@ -226,6 +227,7 @@ def plot(*args, **kwargs):
     Build a polar (radar) plot by joining the set of points in polar coordinates.
 
     :param str title: plot title
+    :param float tsize: title size
     :param int bins: number of bins in phi
     :param float r1: inner radius
     :param float r2: outer radius
@@ -233,14 +235,16 @@ def plot(*args, **kwargs):
     :param c: color of the line
     :param bc: color of the frame and labels
     :param alpha: alpha of the frame
-    :param int lw: line width in pixels
+    :param int ps: point size in pixels, if ps=0 no point is drawn
+    :param int lw: line width in pixels, if lw=0 no line is drawn
     :param bool deg: input array is in degrees
+    :param float vmax: normalize radius to this maximum value
     :param bool fill: fill convex area with solid color
     :param bool spline: interpolate the set of input points
-    :param bool showPoints: show data points
-    :param bool showDisc: show the outer ring axis
-    :param bool showLines: show lines to the origin
-    :param bool showAngles: show angular values
+    :param bool showDisc: draw the outer ring axis
+    :param int nrays: draw this number of axis rays (continuous and dashed)
+    :param bool showLines: draw lines to the origin
+    :param bool showAngles: draw angle values
 
     |histo_polar| |histo_polar.py|_
 
@@ -330,7 +334,7 @@ def plot(*args, **kwargs):
         return None
 
     if "polar" in mode:
-        return _plotPolar(np.c_[x, y])
+        return _plotPolar(np.c_[x, y], **kwargs)
 
     return _plotxy(np.c_[x, y], **kwargs)
 
@@ -800,21 +804,22 @@ def _plotFz(
 def _plotPolar(
     rphi,
     title="",
+    tsize=0.1,
+    lsize=0.05,
     r1=0,
     r2=1,
-    lpos=1,
-    lsize=0.03,
     c="blue",
     bc="k",
     alpha=1,
+    ps=5,
     lw=3,
     deg=False,
     vmax=None,
     fill=False,
     spline=False,
     smooth=0,
-    showPoints=True,
     showDisc=True,
+    nrays=8,
     showLines=True,
     showAngles=True,
 ):
@@ -842,7 +847,6 @@ def _plotPolar(
         vmax = np.max(radii)
 
     angles = []
-    labs = []
     points = []
     for i in range(len(thetas)):
         t = thetas[i]
@@ -853,20 +857,22 @@ def _plotPolar(
     points.append(p0)
 
     r2e = r1 + r2
+    lines = None
     if spline:
         lines = shapes.KSpline(points, closed=True)
-    else:
+        lines.c(c).lw(lw).alpha(alpha)
+    elif lw:
         lines = shapes.Line(points)
-    lines.c(c).lw(lw).alpha(alpha)
+        lines.c(c).lw(lw).alpha(alpha)
 
     points.pop()
 
     ptsact = None
-    if showPoints:
-        ptsact = shapes.Points(points).c(c).alpha(alpha)
+    if ps:
+        ptsact = shapes.Points(points, r=ps, c=c, alpha=alpha)
 
     filling = None
-    if fill:
+    if fill and lw:
         faces = []
         coords = [[0, 0, 0]] + lines.points().tolist()
         for i in range(1, lines.N()):
@@ -874,23 +880,31 @@ def _plotPolar(
         filling = Mesh([coords, faces]).c(c).alpha(alpha)
 
     back = None
+    back2 = None
     if showDisc:
         back = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=1, resphi=360)
         back.z(-0.01).lighting(diffuse=0, ambient=1).alpha(alpha)
+        back2 = shapes.Disc(r1=r2e/2, r2=r2e/2 * 1.005, c=bc, res=1, resphi=360)
+        back2.z(-0.01).lighting(diffuse=0, ambient=1).alpha(alpha)
 
     ti = None
     if title:
-        ti = shapes.Text(title, (0, 0, 0), s=lsize * 2, depth=0, justify="top-center")
+        ti = shapes.Text(title, (0, 0, 0), s=tsize, depth=0, justify="top-center")
         ti.pos(0, -r2e * 1.15, 0.01)
 
     rays = []
     if showDisc:
         rgap = 0.05
-        for t in np.linspace(0, 2 * np.pi, num=8, endpoint=False):
+        for t in np.linspace(0, 2 * np.pi, num=nrays, endpoint=False):
             ct, st = np.cos(t), np.sin(t)
             if showLines:
                 l = shapes.Line((0, 0, -0.01), (r2e * ct * 1.03, r2e * st * 1.03, -0.01))
                 rays.append(l)
+                ct2, st2 = np.cos(t+np.pi/nrays), np.sin(t+np.pi/nrays)
+                lm = shapes.DashedLine((0, 0, -0.01),
+                                       (r2e * ct2, r2e * st2, -0.01),
+                                       spacing=0.25)
+                rays.append(lm)
             elif showAngles:  # just the ticks
                 l = shapes.Line(
                     (r2e * ct * 0.98, r2e * st * 0.98, -0.01),
@@ -913,7 +927,7 @@ def _plotPolar(
                 a.pos(r2e * ct * (1 + rgap), r2e * st * (1 + rgap), -0.01)
                 angles.append(a)
 
-    mrg = merge(back, angles, rays, labs, ti)
+    mrg = merge(back, back2, angles, rays, ti)
     if mrg:
         mrg.color(bc).alpha(alpha).lighting(diffuse=0, ambient=1)
     rh = Assembly([lines, ptsact, filling] + [mrg])
@@ -997,7 +1011,11 @@ def histogram(*args, **kwargs):
 
     If ``mode='polar'`` assume input is polar coordinate system (rho, theta):
 
+    :param list weights: array of weights, of the same shape as the input.
+        Each value only contributes its associated weight towards the bin count (instead of 1).
+
     :param str title: histogram title
+    :param float tsize: title size
     :param int bins: number of bins in phi
     :param float r1: inner radius
     :param float r2: outer radius
@@ -1014,6 +1032,7 @@ def histogram(*args, **kwargs):
     :param float vmax: maximum value of the radial axis
     :param list labels: list of labels, must be of length `bins`
     :param bool showDisc: show the outer ring axis
+    :param int nrays: draw this number of axis rays (continuous and dashed)
     :param bool showLines: show lines to the origin
     :param bool showAngles: show angular values
     :param bool showErrors: show error bars
@@ -1092,7 +1111,7 @@ def _histogram1D(
     bins=25,
     aspect=4 / 3,
     xlim=None,
-    ylim=None,
+    ylim=(0,None),
     errors=False,
     title="",
     xtitle="x",
@@ -1341,6 +1360,7 @@ def _histogram1D(
     asse._y1lim = y1lim
     asse.zmax = offs * 3  # z-order
     asse.bins = edges
+    asse.freqs = fs
     asse.name = "histogram1D"
 
     settings.collectable_actors = settings.collectable_actors[:ncolls]
@@ -1356,6 +1376,7 @@ def _histogram2D(
     aspect=1,
     xlim=None,
     ylim=None,
+    weights=None,
     cmap="cividis",
     alpha=1,
     title="",
@@ -1391,7 +1412,8 @@ def _histogram2D(
 
     if isinstance(bins, int):
         bins = (bins, bins)
-    H, xedges, yedges = np.histogram2d(xvalues, yvalues, bins=bins, range=(xlim, ylim))
+    H, xedges, yedges = np.histogram2d(xvalues, yvalues, weights=weights,
+                                       bins=bins, range=(xlim, ylim))
 
     x0lim, x1lim = np.min(xedges), np.max(xedges)
     y0lim, y1lim = np.min(yedges), np.max(yedges)
@@ -1488,6 +1510,8 @@ def _histogram2D(
     asse._y0lim = y0lim
     asse._x1lim = x1lim
     asse._y1lim = y1lim
+    asse.freqs = H
+    asse.bins = (xedges, yedges)
     asse.zmax = offs * 3  # z-order
     asse.name = "histogram2D"
 
@@ -1602,15 +1626,17 @@ def _histogramHexBin(
 
 def _histogramPolar(
     values,
+    weights=None,
     title="",
-    bins=10,
+    tsize=0.1,
+    bins=16,
     r1=0.25,
     r2=1,
-    phigap=3,
+    phigap=0.5,
     rgap=0.05,
     lpos=1,
-    lsize=0.05,
-    c=None,
+    lsize=0.04,
+    c='grey',
     bc="k",
     alpha=1,
     cmap=None,
@@ -1619,6 +1645,7 @@ def _histogramPolar(
     vmax=None,
     labels=(),
     showDisc=True,
+    nrays=8,
     showLines=True,
     showAngles=True,
     showErrors=False,
@@ -1626,16 +1653,19 @@ def _histogramPolar(
     k = 180 / np.pi
     if deg:
         values = np.array(values) / k
+    else:
+        values = np.array(values)
 
-    dp = np.pi / bins
     vals = []
     for v in values:  # normalize range
         t = np.arctan2(np.sin(v), np.cos(v))
         if t < 0:
             t += 2 * np.pi
-        vals.append(t - dp)
+        vals.append(t+0.00001)
 
-    histodata, edges = np.histogram(vals, bins=bins, range=(-dp, 2 * np.pi - dp))
+    histodata, edges = np.histogram(vals, weights=weights,
+                                    bins=bins, range=(0, 2*np.pi))
+
     thetas = []
     for i in range(bins):
         thetas.append((edges[i] + edges[i + 1]) / 2)
@@ -1653,18 +1683,17 @@ def _histogramPolar(
     back = None
     if showDisc:
         back = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=1, resphi=360)
-        back.z(-0.01).lighting(diffuse=0, ambient=1).alpha(alpha)
+        back.z(-0.01)
 
     slices = []
     lines = []
     angles = []
-    labs = []
     errbars = []
 
     for i, t in enumerate(thetas):
         r = histodata[i] / vmax * r2
-        d = shapes.Disc((0, 0, 0), r1, r1 + r, res=1, resphi=360)
-        delta = dp - np.pi / 2 - phigap / k
+        d = shapes.Disc((0, 0, 0), r1, r1+r, res=1, resphi=360)
+        delta = np.pi/bins - np.pi/2 - phigap/k
         d.cutWithPlane(normal=(np.cos(t + delta), np.sin(t + delta), 0))
         d.cutWithPlane(normal=(np.cos(t - delta), np.sin(t - delta), 0))
         if cmap is not None:
@@ -1677,6 +1706,7 @@ def _histogramPolar(
                 d.color(c[i])
             else:
                 d.color(c)
+        d.alpha(alpha).lighting(diffuse=0, ambient=1)
         slices.append(d)
 
         ct, st = np.cos(t), np.sin(t)
@@ -1691,48 +1721,68 @@ def _histogramPolar(
             errl.alpha(alpha).lw(3).color(bc)
             errbars.append(errl)
 
-        if showDisc:
+    labs=[]
+    rays = []
+    if showDisc:
+        outerdisc = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=1, resphi=360)
+        outerdisc.z(-0.01)
+        innerdisc = shapes.Disc(r1=r2e/2, r2=r2e/2 * 1.005, c=bc, res=1, resphi=360)
+        innerdisc.z(-0.01)
+        rays.append(outerdisc)
+        rays.append(innerdisc)
+
+        rgap = 0.05
+        for t in np.linspace(0, 2 * np.pi, num=nrays, endpoint=False):
+            ct, st = np.cos(t), np.sin(t)
             if showLines:
                 l = shapes.Line((0, 0, -0.01), (r2e * ct * 1.03, r2e * st * 1.03, -0.01))
-                lines.append(l)
+                rays.append(l)
+                ct2, st2 = np.cos(t+np.pi/nrays), np.sin(t+np.pi/nrays)
+                lm = shapes.DashedLine((0, 0, -0.01),
+                                       (r2e * ct2, r2e * st2, -0.01),
+                                       spacing=0.25)
+                rays.append(lm)
             elif showAngles:  # just the ticks
                 l = shapes.Line(
                     (r2e * ct * 0.98, r2e * st * 0.98, -0.01),
                     (r2e * ct * 1.03, r2e * st * 1.03, -0.01),
                 )
-                lines.append(l)
-
-        if showAngles:
-            if 0 <= t < np.pi / 2:
-                ju = "bottom-left"
-            elif t == np.pi / 2:
-                ju = "bottom-center"
-            elif np.pi / 2 < t <= np.pi:
-                ju = "bottom-right"
-            elif np.pi < t < np.pi * 3 / 2:
-                ju = "top-right"
-            elif t == np.pi * 3 / 2:
-                ju = "top-center"
-            else:
-                ju = "top-left"
-            a = shapes.Text(int(t * k), pos=(0, 0, 0), s=lsize, depth=0, justify=ju)
-            a.pos(r2e * ct * (1 + rgap), r2e * st * (1 + rgap), -0.01)
-            angles.append(a)
-
-        if len(labels) == bins:
-            lab = shapes.Text(labels[i], (0, 0, 0), s=lsize, depth=0, justify="center")
-            lab.pos(r2e * ct * (1 + rgap) * lpos / 2, r2e * st * (1 + rgap) * lpos / 2, 0.01)
-            labs.append(lab)
+            if showAngles:
+                if 0 <= t < np.pi / 2:
+                    ju = "bottom-left"
+                elif t == np.pi / 2:
+                    ju = "bottom-center"
+                elif np.pi / 2 < t <= np.pi:
+                    ju = "bottom-right"
+                elif np.pi < t < np.pi * 3 / 2:
+                    ju = "top-right"
+                elif t == np.pi * 3 / 2:
+                    ju = "top-center"
+                else:
+                    ju = "top-left"
+                a = shapes.Text(int(t * k), pos=(0, 0, 0), s=lsize, depth=0, justify=ju)
+                a.pos(r2e * ct * (1 + rgap), r2e * st * (1 + rgap), -0.01)
+                angles.append(a)
 
     ti = None
     if title:
-        ti = shapes.Text(title, (0, 0, 0), s=lsize * 2, depth=0, justify="top-center")
+        ti = shapes.Text(title, (0, 0, 0), s=tsize, depth=0, justify="top-center")
         ti.pos(0, -r2e * 1.15, 0.01)
 
-    mrg = merge(back, lines, angles, labs, ti)
+    for i,t in enumerate(thetas):
+        if i < len(labels):
+            lab = shapes.Text(labels[i], (0, 0, 0), s=lsize, depth=0, justify="center")
+            lab.pos(r2e *np.cos(t) * (1 + rgap) * lpos / 2,
+                    r2e *np.sin(t) * (1 + rgap) * lpos / 2, 0.01)
+            labs.append(lab)
+
+    mrg = merge(lines, angles, rays, ti, labs)
     if mrg:
-        mrg.color(bc).alpha(alpha).lighting(diffuse=0, ambient=1)
-    rh = Assembly(slices + errbars + [mrg])
+        mrg.color(bc).lighting(diffuse=0, ambient=1)
+
+    rh = Plot(slices + errbars + [mrg])
+    rh.freqs = histodata
+    rh.bins = edges
     rh.base = np.array([0, 0, 0])
     rh.top = np.array([0, 0, 1])
     rh.name = "histogramPolar"
@@ -1795,6 +1845,7 @@ def _histogramSpheric(
 def donut(
     fractions,
     title="",
+    tsize=0.3,
     r1=1.7,
     r2=1,
     phigap=0,
@@ -1810,6 +1861,7 @@ def donut(
     Donut plot or pie chart.
 
     :param str title: plot title
+    :param float tsize: title size
     :param float r1: inner radius
     :param float r2: outer radius, starting from r1
     :param float phigap: gap angle btw 2 radial bars, in degrees
@@ -1855,6 +1907,7 @@ def donut(
         phigap=phigap,
         lpos=lpos,
         lsize=lsize,
+        tsize=tsize,
         c=cols,
         bc=bc,
         alpha=alpha,
@@ -2062,9 +2115,7 @@ def streamplot(
     vol.addPointVectors(vects, "vects")
 
     if len(probes) == 0:
-        probe = shapes.Grid(
-            pos=((n - 1) / 2, (n - 1) / 2, 0), sx=n - 1, sy=n - 1, resx=n - 1, resy=n - 1
-        )
+        probe = shapes.Grid(pos=((n-1)/2,(n-1)/2,0), sx=n-1, sy=n-1, resx=n-1, resy=n-1)
     else:
         if isinstance(probes, Mesh):
             probes = probes.points()

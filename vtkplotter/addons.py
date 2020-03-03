@@ -5,7 +5,7 @@ from __future__ import division, print_function
 from vtkplotter.colors import printc, getColor
 from vtkplotter.assembly import Assembly
 from vtkplotter.mesh import Mesh, merge
-from vtkplotter.utils import precision, mag, isSequence, make_ticks, linInterpolate
+from vtkplotter.utils import mag, isSequence, make_ticks
 import vtkplotter.shapes as shapes
 import vtkplotter.settings as settings
 import vtkplotter.docs as docs
@@ -250,7 +250,7 @@ def addScalarBar3D(
     scale.cellColors(cscals, lut, alpha)
     scale.lighting(ambient=1, diffuse=0, specular=0, specularPower=0)
 
-    # build text    
+    # build text
     tacts = []
 
     ticks_pos, ticks_txt = make_ticks(vmin, vmax, nlabels)
@@ -265,8 +265,7 @@ def addScalarBar3D(
 
     # build title
     if title:
-        t = shapes.Text(title, (0,0,0), s=sy/50*titleSize, c=c, alpha=alpha, depth=0,
-                        justify='centered')
+        t = shapes.Text(title, (0,0,0), s=sy/50*titleSize, c=c, alpha=alpha, justify='centered')
         t.RotateZ(90+titleRotation)
         t.pos(sx*titleXOffset,titleYOffset,0)
         t.lighting(ambient=1, diffuse=0, specular=0, specularPower=0)
@@ -728,7 +727,7 @@ def buildAxes(obj=None,
               xHighlightZero=False, yHighlightZero=False, zHighlightZero=False,
               xHighlightZeroColor=(1,0,0), yHighlightZeroColor=(0,1,0), zHighlightZeroColor=(0,0,1),
               showTicks=True,
-              xTickRadius=0.005, yTickRadius=0.005, zTickRadius=0.005,
+              xTickLength=0.015, yTickLength=0.015, zTickLength=0.015,
               xTickThickness=0.0025, yTickThickness=0.0025, zTickThickness=0.0025,
               xTickColor=None, yTickColor=None, zTickColor=None,
               xMinorTicks=True, yMinorTicks=True, zMinorTicks=True,
@@ -771,7 +770,7 @@ def buildAxes(obj=None,
     - `xTitleSize`,          [0.025], size of the axis title
     - `xHighlightZero`,       [True], draw a line highlighting zero position if in range
     - `xHighlightZeroColor`, [autom], color of the line highlighting the zero position
-    - `xTickRadius`,         [0.005], radius of the major ticks
+    - `xTickLength`,         [0.005], radius of the major ticks
     - `xTickThickness`,     [0.0025], thickness of the major ticks along their axis
     - `xTickColor`,      [automatic], color of major ticks
     - `xMinorTicks`,             [1], number of minor ticks between two major ticks
@@ -891,7 +890,7 @@ def buildAxes(obj=None,
                 tipSize = False
 
     if tipSize is None:
-        tipSize = 0.008
+        tipSize = 0.006
 
     if not numberOfDivisions: numberOfDivisions = ndiv
 
@@ -951,12 +950,14 @@ def buildAxes(obj=None,
         gxy.name = "xyGrid"
         grids.append(gxy)
     if yzGrid and ytitle and ztitle:
-        gyz = shapes.Grid(sx=zticks_float, sy=yticks_float).rotateY(-90)
+        gyz = shapes.Grid(sx=zticks_float, sy=yticks_float)
+        gyz.RotateY(-90)
         gyz.alpha(yzAlpha).wireframe(yzGridTransparent).c(yzPlaneColor).lw(gridLineWidth).lc(yzGridColor)
         gyz.name = "yzGrid"
         grids.append(gyz)
     if zxGrid and ztitle and xtitle:
-        gzx = shapes.Grid(sx=xticks_float, sy=zticks_float).rotateX(90)
+        gzx = shapes.Grid(sx=xticks_float, sy=zticks_float)
+        gzx.RotateX(90)
         gzx.alpha(zxAlpha).wireframe(zxGridTransparent).c(zxPlaneColor).lw(gridLineWidth).lc(zxGridColor)
         gzx.name = "zxGrid"
         grids.append(gzx)
@@ -968,12 +969,14 @@ def buildAxes(obj=None,
         gxy2.name = "xyGrid2"
         grids2.append(gxy2)
     if yzGrid2 and ytitle and ztitle:
-        gyz2 = shapes.Grid(sx=zticks_float, sy=yticks_float).rotateY(-90).x(1)
+        gyz2 = shapes.Grid(sx=zticks_float, sy=yticks_float).x(1)
+        gyz2.RotateY(-90)
         gyz2.alpha(yzAlpha).wireframe(yzGrid2Transparent).c(yzPlaneColor).lw(gridLineWidth).lc(yzGridColor)
         gyz2.name = "yzGrid2"
         grids2.append(gyz2)
     if zxGrid2 and ztitle and xtitle:
-        gzx2 = shapes.Grid(sx=xticks_float, sy=zticks_float).rotateX(90).y(1)
+        gzx2 = shapes.Grid(sx=xticks_float, sy=zticks_float).y(1)
+        gzx2.RotateX(90)
         gzx2.alpha(zxAlpha).wireframe(zxGrid2Transparent).c(zxPlaneColor).lw(gridLineWidth).lc(zxGridColor)
         gzx2.name = "zxGrid2"
         grids2.append(gzx2)
@@ -1133,8 +1136,9 @@ def buildAxes(obj=None,
         if xtitle:
             ticks = []
             for i in range(1, len(xticks_float)-1):
-                v = (xticks_float[i],0,0)
-                ticks.append(shapes.Cylinder(v, r=xTickRadius, height=xTickThickness, axis=(1,0,0), res=10))
+                v1 = (xticks_float[i]-xTickThickness/2, -xTickLength/2, 0)
+                v2 = (xticks_float[i]+xTickThickness/2,  xTickLength/2, 0)
+                ticks.append(shapes.Rectangle(v1, v2))
             if len(ticks):
                 xmajticks = merge(ticks).c(xTickColor)
                 xmajticks.name = "xMajorTicks"
@@ -1142,8 +1146,9 @@ def buildAxes(obj=None,
         if ytitle:
             ticks = []
             for i in range(1, len(yticks_float)-1):
-                v = (0,yticks_float[i],0)
-                ticks.append(shapes.Cylinder(v, r=yTickRadius, height=yTickThickness, axis=(0,1,0), res=10))
+                v1 = (-yTickLength/2, yticks_float[i]-yTickThickness/2, 0)
+                v2 = ( yTickLength/2, yticks_float[i]+yTickThickness/2, 0)
+                ticks.append(shapes.Rectangle(v1, v2))
             if len(ticks):
                 ymajticks = merge(ticks).c(yTickColor)
                 ymajticks.name = "yMajorTicks"
@@ -1151,10 +1156,13 @@ def buildAxes(obj=None,
         if ztitle:
             ticks = []
             for i in range(1, len(zticks_float)-1):
-                v = (0,0,zticks_float[i])
-                ticks.append(shapes.Cylinder(v, r=zTickRadius, height=zTickThickness, axis=(0,0,1), res=10))
+                v1 = (zticks_float[i]-zTickThickness/2, -zTickLength/2.84, 0)
+                v2 = (zticks_float[i]+zTickThickness/2,  zTickLength/2.84, 0)
+                ticks.append(shapes.Rectangle(v1, v2))
             if len(ticks):
                 zmajticks = merge(ticks).c(zTickColor)
+                zmajticks.RotateZ(-45)
+                zmajticks.RotateY(-90)
                 zmajticks.name = "zMajorTicks"
                 maj_ticks.append(zmajticks)
 
@@ -1166,8 +1174,9 @@ def buildAxes(obj=None,
             for i in range(-xMinorTicks, int(1/step)+1):
                 x = xticks_float[1]+step*i
                 if x<=0 or x>=1: continue
-                v = [x,0,0]
-                ticks.append(shapes.Cylinder(v, r=xTickRadius/1.6, height=xTickThickness, axis=(1,0,0), res=6))
+                v1 = (x-xTickThickness/4, -xTickLength/4, 0)
+                v2 = (x+xTickThickness/4,  xTickLength/4, 0)
+                ticks.append(shapes.Rectangle(v1, v2))
             if len(ticks):
                 xminticks = merge(ticks).c(xTickColor)
                 xminticks.name = "xMinorTicks"
@@ -1180,8 +1189,9 @@ def buildAxes(obj=None,
             for i in range(-yMinorTicks, int(1/step)+1):
                 y = yticks_float[1]+step*i
                 if y<=0 or y>=1: continue
-                v = [0,y,0]
-                ticks.append(shapes.Cylinder(v, r=yTickRadius/1.6, height=yTickThickness, axis=(0,1,0), res=6))
+                v1 = (-yTickLength/4, y-yTickThickness/4, 0)
+                v2 = ( yTickLength/4, y+yTickThickness/4, 0)
+                ticks.append(shapes.Rectangle(v1, v2))
             if len(ticks):
                 yminticks = merge(ticks).c(yTickColor)
                 yminticks.name = "yMinorTicks"
@@ -1194,10 +1204,13 @@ def buildAxes(obj=None,
             for i in range(-zMinorTicks, int(1/step)+1):
                 z = zticks_float[1]+step*i
                 if z<=0 or z>=1: continue
-                v = [0,0,z]
-                ticks.append(shapes.Cylinder(v, r=zTickRadius/1.6, height=zTickThickness, axis=(0,0,1), res=6))
+                v1 = (z-zTickThickness/4, -zTickLength/5.7, 0)
+                v2 = (z+zTickThickness/4,  zTickLength/5.7, 0)
+                ticks.append(shapes.Rectangle(v1, v2))
             if len(ticks):
                 zminticks = merge(ticks).c(zTickColor)
+                zminticks.RotateZ(-45)
+                zminticks.RotateY(-90)
                 zminticks.name = "zMinorTicks"
                 min_ticks.append(zminticks)
 
@@ -1309,7 +1322,7 @@ def addGlobalAxes(axtype=None, c=None):
         - `xTitleSize`,          [0.025], size of the axis title
         - `xHighlightZero`,       [True], draw a line highlighting zero position if in range
         - `xHighlightZeroColor`, [autom], color of the line highlighting the zero position
-        - `xTickRadius`,         [0.005], radius of the major ticks
+        - `xTickLength`,         [0.005], radius of the major ticks
         - `xTickThickness`,     [0.0025], thickness of the major ticks along their axis
         - `xTickColor`,      [automatic], color of major ticks
         - `xMinorTicks`,             [1], number of minor ticks between two major ticks
@@ -1415,7 +1428,7 @@ def addGlobalAxes(axtype=None, c=None):
             if centered:
                 wpos = [-aves / 40 * s, (y0 + y1) / 2 - len(vp.ytitle) / 2 * aves / 40 * s, 0]
             yt = shapes.Text(vp.ytitle, pos=(0, 0, 0), s=aves / 40 * s, c=ycol)
-            yt.rotate(90, [0, 0, 1]).pos(wpos)
+            yt.pos(wpos).RotateZ(90)
             acts += [yl, yc, yt]
 
         if len(vp.ztitle) and dz > aves/100:
@@ -1426,7 +1439,8 @@ def addGlobalAxes(axtype=None, c=None):
             if centered:
                 wpos = [-aves/50*s, -aves/50*s, (z0+z1)/2-len(vp.ztitle)/2*aves/40*s]
             zt = shapes.Text(vp.ztitle, pos=(0,0,0), s=aves/40*s, c=zcol)
-            zt.rotate(180, (1, -1, 0)).pos(wpos)
+            zt.pos(wpos).RotateZ(45)
+            zt.RotateX(90)
             acts += [zl, zc, zt]
         for a in acts:
             a.PickableOff()

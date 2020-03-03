@@ -1256,7 +1256,8 @@ class Plotter:
 
         |customAxes| |customAxes.py|_
         """
-        return addons.addGlobalAxes(axtype, c)
+        addons.addGlobalAxes(axtype, c)
+        return self
 
     def addLegend(self):
         return addons.addLegend()
@@ -1423,7 +1424,7 @@ class Plotter:
                 elif isinstance(a, str):  # assume a filepath was given
                     out = vtkio.load(a)
                     scannedacts.append(out)
-                    
+
                 elif isinstance(a, vtk.vtkMultiBlockDataSet):
                     for i in range(a.GetNumberOfBlocks()):
                         b =  a.GetBlock(i)
@@ -2377,11 +2378,9 @@ class Plotter:
                               c=4)
 
         elif key == "E":
-            colors.printc("~camera Exporting rendering window to scene.npy..",
-                          c="blue", end="")
+            colors.printc("~camera Exported 3D window to scene.npy.", c="blue", end="")
             vtkio.exportWindow('scene.npy')
-            colors.printc(" ..done. Try:\n> vtkplotter scene.npy  #(still experimental)",
-                          c="blue")
+            colors.printc("Try:\n> vtkplotter scene.npy", c="blue")
 
         elif key == "i":  # print info
             if self.clickedActor:

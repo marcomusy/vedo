@@ -103,7 +103,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
             self._mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
 
         inputtype = str(type(inputobj))
-        # print('inputtype',inputtype)
 
         if inputobj is None:
             self._polydata = vtk.vtkPolyData()
@@ -240,7 +239,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
             if not arrexists:
                 if c is None:
-                    c = "darkcyan"
+                    c = "gold"
                 c = colors.getColor(c)
                 prp.SetColor(c)
                 prp.SetAmbient(0.1)
@@ -2982,6 +2981,11 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
             |thinplate_morphing1| |thinplate_morphing2| |thinplate_grid| |interpolateField| |thinplate_morphing_2d|
         """
+        if isinstance(sourcePts, Mesh):
+            sourcePts = sourcePts.points()
+        if isinstance(targetPts, Mesh):
+            targetPts = targetPts.points()
+
         ns = len(sourcePts)
         ptsou = vtk.vtkPoints()
         ptsou.SetNumberOfPoints(ns)

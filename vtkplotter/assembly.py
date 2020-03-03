@@ -75,7 +75,7 @@ class Assembly(vtk.vtkAssembly, ActorBase):
             return None
         return self.actors[i]
 
-    
+
     def clone(self):
         """Make a clone copy of the object."""
         newlist = []
@@ -86,11 +86,11 @@ class Assembly(vtk.vtkAssembly, ActorBase):
 
     def unpack(self, i=None):
         """Unpack the list of objects from a ``Assembly``.
-        
+
         If `i` is given, get `i-th` object from a ``Assembly``.
         Input can be a string, in this case returns the first object
         whose name contains the given string.
-        
+
         |customIndividualAxes| |customIndividualAxes.py|_
         """
         if i is None:

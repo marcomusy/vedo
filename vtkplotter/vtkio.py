@@ -695,7 +695,12 @@ def loadNumpy(inobj):
 
     ##################
     def _buildactor(d):
+
+        #print('_buildactor', d)
+
         vertices = d['points']
+        if not len(vertices):
+            return None
         cells = None
         lines = None
         keys = d.keys()
@@ -750,7 +755,9 @@ def loadNumpy(inobj):
         #print('loadNumpy:', d)
 
         if 'mesh' == d['type']:
-            objs.append(_buildactor(d))
+            a = _buildactor(d)
+            if a:
+                objs.append(a)
 
         elif 'assembly' == d['type']:
             assacts = []
@@ -1182,7 +1189,7 @@ def exportWindow(fileoutput, binary=False, speed=None, html=True):
 
     elif fr.endswith(".obj"):
         writer = vtk.vtkOBJWriter()
-        writer.SetInputData(obj)
+        writer.SetInputData(settings.plotter_instance.window)
         writer.SetFileName(fileoutput)
         writer.Write()
 
@@ -1270,7 +1277,7 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
         title = data.pop('title', '')
         backgrcol = data.pop('backgrcol', "blackboard")
 
-        vp = Plotter(#size=data['size'], # not necessarily a good idea to set it
+        vp = Plotter(size=data['size'], # not necessarily a good idea to set it
                      #shape=data['shape'],
                      axes=axes,
                      title=title,
@@ -1279,6 +1286,10 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
         vp.xtitle = data.pop('xtitle', 'x')
         vp.ytitle = data.pop('ytitle', 'y')
         vp.ztitle = data.pop('ztitle', 'z')
+
+        #print(data.keys())
+#        print(data['objects'])
+#        exit()
 
         if 'objects' in data.keys():
             objs = loadNumpy(data['objects'])

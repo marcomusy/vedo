@@ -1478,13 +1478,26 @@ class Ellipsoid(Mesh):
     def __init__(self, pos=(0, 0, 0), axis1=(1, 0, 0), axis2=(0, 2, 0), axis3=(0, 0, 3),
                  c="c", alpha=1, res=24):
 
+        self.name = "Ellipsoid"
+        self.center = pos
+        self.va_error = 0
+        self.vb_error = 0
+        self.vc_error = 0
+        self.axis1 = axis1
+        self.axis2 = axis2
+        self.axis3 = axis3
+        self.nr_of_points = 1 # used by pcaEllipsoid
+
         elliSource = vtk.vtkSphereSource()
-        elliSource.SetThetaResolution(res)
+        elliSource.SetThetaResolution(2*res)
         elliSource.SetPhiResolution(res)
         elliSource.Update()
         l1 = np.linalg.norm(axis1)
         l2 = np.linalg.norm(axis2)
         l3 = np.linalg.norm(axis3)
+        self.va = l1
+        self.vb = l2
+        self.vc = l3
         axis1 = np.array(axis1) / l1
         axis2 = np.array(axis2) / l2
         axis3 = np.array(axis3) / l3
@@ -1503,6 +1516,7 @@ class Ellipsoid(Mesh):
         tf.SetTransform(t)
         tf.Update()
         pd = tf.GetOutput()
+        self.transformation = t
 
         Mesh.__init__(self, pd, c, alpha)
         self.phong()
@@ -1511,7 +1525,97 @@ class Ellipsoid(Mesh):
         self.Length = -np.array(axis1) / 2 + pos
         self.top = np.array(axis1) / 2 + pos
         settings.collectable_actors.append(self)
-        self.name = "Ellipsoid"
+
+    def asphericity(self):
+        """Return a measure of how different an ellipsoid is froma sphere.
+        Values close to zero correspond to a spheric object.
+        """
+        a,b,c = self.va, self.vb, self.vc
+        asp = ( ((a-b)/(a+b))**2
+              + ((a-c)/(a+c))**2
+              + ((b-c)/(b+c))**2 )/3. * 4.
+        return asp
+
+    def asphericity_error(self):
+        """Calculate statistical error on the asphericity value."""
+        a,b,c = self.va, self.vb, self.vc
+        sqrtn = np.sqrt(self.nr_of_points)
+        ea, eb, ec = a/2/sqrtn, b/2/sqrtn, b/2/sqrtn
+
+        #from sympy import *
+        #init_printing(use_unicode=True)
+        #a, b, c, ea, eb, ec = symbols("a b c, ea, eb,ec")
+        #L = (
+        #    (((a - b) / (a + b)) ** 2 + ((c - b) / (c + b)) ** 2 + ((a - c) / (a + c)) ** 2)
+        #    / 3 * 4)
+        #dl2 = (diff(L, a) * ea) ** 2 + (diff(L, b) * eb) ** 2 + (diff(L, c) * ec) ** 2
+        #print(dl2)
+        #exit()
+        dL2 = (
+            ea ** 2
+            * (
+                -8 * (a - b) ** 2 / (3 * (a + b) ** 3)
+                - 8 * (a - c) ** 2 / (3 * (a + c) ** 3)
+                + 4 * (2 * a - 2 * c) / (3 * (a + c) ** 2)
+                + 4 * (2 * a - 2 * b) / (3 * (a + b) ** 2)
+            ) ** 2
+            + eb ** 2
+            * (
+                4 * (-2 * a + 2 * b) / (3 * (a + b) ** 2)
+                - 8 * (a - b) ** 2 / (3 * (a + b) ** 3)
+                - 8 * (-b + c) ** 2 / (3 * (b + c) ** 3)
+                + 4 * (2 * b - 2 * c) / (3 * (b + c) ** 2)
+            ) ** 2
+            + ec ** 2
+            * (
+                4 * (-2 * a + 2 * c) / (3 * (a + c) ** 2)
+                - 8 * (a - c) ** 2 / (3 * (a + c) ** 3)
+                + 4 * (-2 * b + 2 * c) / (3 * (b + c) ** 2)
+                - 8 * (-b + c) ** 2 / (3 * (b + c) ** 3)
+            ) ** 2
+        )
+        err = np.sqrt(dL2)
+
+        self.va_error = ea
+        self.vb_error = eb
+        self.vc_error = ec
+        self.info["va_error"] = ea
+        self.info["vb_error"] = eb
+        self.info["vc_error"] = ec
+        return err
+
+#    def asphericity2(self):
+#        """Return a measure of how different an ellipsoid is froma sphere.
+#        Values close to zero correspond to a spheric object.
+#        """
+#        a,b,c = self.va, self.vb, self.vc
+#        asp = ((a/b)**2 + (b/a)**2 +(b/c)**2 +(c/b)**2 +(c/a)**2 +(a/c)**2)/6
+#        return asp
+#
+#    def asphericity_error2(self):
+#        """Calculate statistical error on the asphericity value."""
+#        a,b,c = self.va, self.vb, self.vc
+#        sqrtn = np.sqrt(self.nr_of_points)
+#        ea, eb, ec = a/2/sqrtn, b/2/sqrtn, b/2/sqrtn
+#
+#        #from sympy import *
+#        #init_printing(use_unicode=True)
+#        #a, b, c, ea, eb, ec = symbols("a b c, ea, eb,ec")
+#        #L = ((a/b)**2 + (b/a)**2 +(b/c)**2 +(c/b)**2 +(c/a)**2 +(a/c)**2)/6
+#        #dl2 = (diff(L, a) * ea) ** 2 + (diff(L, b) * eb) ** 2 + (diff(L, c) * ec) ** 2
+#        #print(dl2)
+#        #exit()
+#        dL2 = ea**2*(a/(3*c**2) + a/(3*b**2) - b**2/(3*a**3) - c**2/(3*a**3))**2 + eb**2*(-a**2/(3*b**3) + b/(3*c**2) - c**2/(3*b**3) + b/(3*a**2))**2 + ec**2*(-a**2/(3*c**3) - b**2/(3*c**3) + c/(3*b**2) + c/(3*a**2))**2
+#
+#        err = np.sqrt(dL2)
+#
+#        self.va_error = ea
+#        self.vb_error = eb
+#        self.vc_error = ec
+#        self.info["va_error"] = ea
+#        self.info["vb_error"] = eb
+#        self.info["vc_error"] = ec
+#        return err
 
 
 class Grid(Mesh):
@@ -1629,7 +1733,7 @@ class Plane(Mesh):
         self.bottom = np.array([0,0,0])
 
 
-def Rectangle(p1=(0, 0, 0), p2=(2, 1, 0), lw=1, c="g", alpha=1):
+def Rectangle(p1=(0, 0), p2=(2, 1), c="g", alpha=1):
     """Build a rectangle in the xy plane identified by two corner points."""
     if len(p1) == 2:
         p1 = np.array([p1[0], p1[1], 0.])

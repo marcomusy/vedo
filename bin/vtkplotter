@@ -486,7 +486,7 @@ def draw_scene():
                 obj.SetAbortRender(1)
         vp.window.AddObserver("AbortCheckEvent", CheckAbort)
 
-        act.legend(leg)
+        #act.legend(leg)
         vp.show(act, zoom=args.zoom, viewup="z")
         return
 
@@ -577,7 +577,7 @@ def draw_scene():
                 else:
                     ic = args.color
 
-            actor = vp.load(f, c=ic, alpha=args.alpha).legend(leg)
+            actor = vp.load(f, c=ic, alpha=args.alpha)
             if hasattr(actor, "wireframe"):  # can be Image or volume
                 actor.wireframe(wire)
                 if args.point_size > 0:

@@ -1,5 +1,4 @@
 from __future__ import division, print_function
-
 import numpy as np
 import vtk
 import vtkplotter.colors as colors
@@ -22,7 +21,10 @@ __all__ = ["Volume"]
 ##########################################################################
 class Volume(vtk.vtkVolume, ActorBase):
     """Derived class of ``vtkVolume``.
-    Can be initialized with a numpy object, see e.g.: |numpy2volume.py|_
+    Can be initialized with a numpy object, a ``vtkImageData``
+    or a list of 2D bmp files.
+
+    See e.g.: |numpy2volume.py|_
 
     :param c: sets colors along the scalar range, or a matplotlib color map name
     :type c: list, str
@@ -47,7 +49,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         |read_vti| |read_vti.py|_
     """
 
-    def __init__(self, inputobj,
+    def __init__(self, inputobj=None,
                  c=('b','lb','lg','y','r'),
                  alpha=(0.0, 0.0, 0.2, 0.4, 0.8, 1),
                  alphaGradient=None,
@@ -64,32 +66,56 @@ class Volume(vtk.vtkVolume, ActorBase):
         inputtype = str(type(inputobj))
         #colors.printc('Volume inputtype', inputtype)
 
+        if isinstance(inputobj, str):
+            import glob
+            inputobj = sorted(glob.glob(inputobj))
+
+
         if inputobj is None:
             img = vtk.vtkImageData()
 
         elif utils.isSequence(inputobj):
-            if "ndarray" not in inputtype:
-                inputobj = np.array(inputobj)
 
-            varr = numpy_to_vtk(inputobj.ravel(order='F'),
-                                deep=True, array_type=vtk.VTK_FLOAT)
-            varr.SetName('input_scalars')
+            if isinstance(inputobj[0], str): # scan sequence of BMP files
+                ima = vtk.vtkImageAppend()
+                ima.SetAppendAxis(2)
+                pb = utils.ProgressBar(0, len(inputobj))
+                for i in pb.range():
+                    f = inputobj[i]
+                    picr = vtk.vtkBMPReader()
+                    picr.SetFileName(f)
+                    picr.Update()
+                    mgf = vtk.vtkImageMagnitude()
+                    mgf.SetInputData(picr.GetOutput())
+                    mgf.Update()
+                    ima.AddInputData(mgf.GetOutput())
+                    pb.print('loading..')
+                ima.Update()
+                img = ima.GetOutput()
 
-            img = vtk.vtkImageData()
-            if shape is not None:
-                img.SetDimensions(shape)
             else:
-                img.SetDimensions(inputobj.shape)
-            img.GetPointData().SetScalars(varr)
+                if "ndarray" not in inputtype:
+                    inputobj = np.array(inputobj)
 
-            #to convert rgb to numpy
-            #        img_scalar = data.GetPointData().GetScalars()
-            #        dims = data.GetDimensions()
-            #        n_comp = img_scalar.GetNumberOfComponents()
-            #        temp = numpy_support.vtk_to_numpy(img_scalar)
-            #        numpy_data = temp.reshape(dims[1],dims[0],n_comp)
-            #        numpy_data = numpy_data.transpose(0,1,2)
-            #        numpy_data = np.flipud(numpy_data)
+                varr = numpy_to_vtk(inputobj.ravel(order='F'),
+                                    deep=True, array_type=vtk.VTK_FLOAT)
+                varr.SetName('input_scalars')
+
+                img = vtk.vtkImageData()
+                if shape is not None:
+                    img.SetDimensions(shape)
+                else:
+                    img.SetDimensions(inputobj.shape)
+                img.GetPointData().SetScalars(varr)
+
+                #to convert rgb to numpy
+                #        img_scalar = data.GetPointData().GetScalars()
+                #        dims = data.GetDimensions()
+                #        n_comp = img_scalar.GetNumberOfComponents()
+                #        temp = numpy_support.vtk_to_numpy(img_scalar)
+                #        numpy_data = temp.reshape(dims[1],dims[0],n_comp)
+                #        numpy_data = numpy_data.transpose(0,1,2)
+                #        numpy_data = np.flipud(numpy_data)
 
         elif "ImageData" in inputtype:
             img = inputobj
@@ -118,6 +144,9 @@ class Volume(vtk.vtkVolume, ActorBase):
             self._mapper = vtk.vtkProjectedTetrahedraMapper()
         elif 'unstr' in mapperType:
             self._mapper = vtk.vtkUnstructuredGridVolumeRayCastMapper()
+        else:
+            print("Error unknown mapperType", mapperType)
+            raise RuntimeError()
 
         if origin is not None:
             img.SetOrigin(origin)
@@ -130,6 +159,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         self._mapper.SetInputData(img)
         self.SetMapper(self._mapper)
         self.mode(mode).color(c).alpha(alpha).alphaGradient(alphaGradient)
+        self.GetProperty().SetInterpolationType(1)
         # remember stuff:
         self._mode = mode
         self._color = c
@@ -191,6 +221,22 @@ class Volume(vtk.vtkVolume, ActorBase):
     def imagedata(self):
         """Return the underlying ``vtkImagaData`` object."""
         return self._imagedata
+
+    def getDataArray(self):
+        """Get read-write access to voxels of a Volume object as a numpy array.
+
+        When you set values in the output image, you don’t want numpy to reallocate the array
+        but instead set values in the existing array, so use the [:] operator.
+        Example: arr[:] = arr*2 + 15
+
+        If the array is modified call:
+        ``volume.imagedata().GetPointData().GetScalars().Modified()``
+        when all your modifications are completed.
+        """
+        from vtk.util.numpy_support import vtk_to_numpy
+        narray_shape = tuple(reversed(self._imagedata.GetDimensions()))
+        narray = vtk_to_numpy(self._imagedata.GetPointData().GetScalars()).reshape(narray_shape)
+        return narray
 
     def dimensions(self):
         """Return the nr. of voxels in the 3 dimensions."""
@@ -287,8 +333,6 @@ class Volume(vtk.vtkVolume, ActorBase):
             colors.printc("volume.color(): unknown input type:", col, c=1)
 
         volumeProperty.SetColor(ctf)
-        volumeProperty.SetInterpolationTypeToLinear()
-        #volumeProperty.SetInterpolationTypeToNearest()
         return self
 
     def alpha(self, alpha):
@@ -316,7 +360,6 @@ class Volume(vtk.vtkVolume, ActorBase):
             opacityTransferFunction.AddPoint(smax, alpha)
 
         volumeProperty.SetScalarOpacity(opacityTransferFunction)
-        volumeProperty.SetInterpolationTypeToLinear()
         return self
 
     def alphaGradient(self, alphaGrad):
@@ -353,7 +396,23 @@ class Volume(vtk.vtkVolume, ActorBase):
             gotf.AddPoint(smax, alphaGrad)
 
         volumeProperty.SetGradientOpacity(gotf)
-        volumeProperty.SetInterpolationTypeToLinear()
+        return self
+
+    def interpolation(self, itype):
+        """
+        Set interpolation type.
+
+        0 = nearest neighbour
+        1 = linear
+        """
+        self.GetProperty().SetInterpolationType(itype)
+        return self
+
+    def componentWeight(self, i, weight):
+        """
+        Set the scalar component weight in range [0,1].
+        """
+        self.GetProperty().SetComponentWeight(i, weight)
         return self
 
     def threshold(self, vmin=None, vmax=None, replaceWith=0):
@@ -633,6 +692,9 @@ class Volume(vtk.vtkVolume, ActorBase):
             srng[0] = vmin
         if vmax is not None:
             srng[1] = vmax
+        tol = 0.00001*(srng[1]-srng[0])
+        srng[0] -= tol
+        srng[1] += tol
         window.SetWindowRange(srng)
 
         extract = vtk.vtkExtractGeometry()
@@ -647,15 +709,12 @@ class Volume(vtk.vtkVolume, ActorBase):
         gf.Update()
 
         a = Mesh(gf.GetOutput()).lw(0.1).flat()
-
-        scalars = np.array(a.getPointArray(0), dtype=np.float)
-
-        if cmap:
-            a.pointColors(scalars, vmin=self._imagedata.GetScalarRange()[0], cmap=cmap)
-            a.mapPointsToCells()
+        scalars = a.getPointArray(0).astype(np.float)
+        a.pointColors(scalars, vmin=srng[0], vmax=srng[1], cmap=cmap)
+        a.mapPointsToCells()
         return a
 
-
+    
     def operation(self, operation, volume2=None):
         """
         Perform operations with ``Volume`` objects.

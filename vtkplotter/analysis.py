@@ -85,17 +85,24 @@ def delaunay2D(plist, mode='xy', tol=None):
     delny.Update()
     return Mesh(delny.GetOutput())
 
-
-def delaunay3D(dataset, alpha=0, tol=None, boundary=True):
+def delaunay3D(mesh, alpha=0, tol=None, boundary=False):
     """Create 3D Delaunay triangulation of input points."""
     deln = vtk.vtkDelaunay3D()
-    deln.SetInputData(dataset.data())
+    if utils.isSequence(mesh):
+        pd = vtk.vtkPolyData()
+        vpts = vtk.vtkPoints()
+        vpts.SetData(numpy_to_vtk(np.ascontiguousarray(mesh), deep=True))
+        pd.SetPoints(vpts)
+        deln.SetInputData(pd)
+    else:
+        deln.SetInputData(mesh.GetMapper().GetInput())
     deln.SetAlpha(alpha)
     if tol:
         deln.SetTolerance(tol)
     deln.SetBoundingTriangulation(boundary)
     deln.Update()
     return deln.GetOutput()
+
 
 def normalLines(mesh, ratio=1, atCells=True, scale=1):
     """
@@ -354,16 +361,17 @@ def fitSphere(coords):
     return s
 
 
-def pcaEllipsoid(points, pvalue=0.95, pcaAxes=False):
+def pcaEllipsoid(points, pvalue=0.95):
     """
     Show the oriented PCA ellipsoid that contains fraction `pvalue` of points.
 
     :param float pvalue: ellypsoid will contain the specified fraction of points.
-    :param bool pcaAxes: if `True`, show the 3 PCA semi axes.
 
-    Extra info is stored in ``mesh.info['sphericity']``,
-    ``mesh.info['va']``, ``mesh.info['vb']``, ``mesh.info['vc']``
-    (sphericity is equal to 0 for a perfect sphere).
+    Extra can be calculated with ``mesh.asphericity()``, ``mesh.asphericity_error()``
+    (asphericity is equal to 0 for a perfect sphere).
+
+    Axes can be accessed in ``mesh.va``, ``mesh.vb``, ``mesh.vc``.
+    End point of the axes are stored in ``mesh.axis1``, ``mesh.axis12`` and ``mesh.axis3``.
 
     .. hint:: Examples: |pca.py|_  |cell_colony.py|_
 
@@ -372,14 +380,15 @@ def pcaEllipsoid(points, pvalue=0.95, pcaAxes=False):
     try:
         from scipy.stats import f
     except ImportError:
-        colors.printc("~times Error in Ellipsoid(): scipy not installed. Skip.", c=1)
+        colors.printc("Error in pcaEllipsoid(): scipy not installed. Skip.", c=1)
         return None
 
     if isinstance(points, Mesh):
         coords = points.points()
     else:
         coords = points
-    if len(coords) == 0:
+    if len(coords) < 4:
+        colors.printc("Warning in pcaEllipsoid(): not enough points!", c='y')
         return None
 
     P = np.array(coords, ndmin=2, dtype=float)
@@ -387,49 +396,36 @@ def pcaEllipsoid(points, pvalue=0.95, pcaAxes=False):
     U, s, R = np.linalg.svd(cov)  # singular value decomposition
     p, n = s.size, P.shape[0]
     fppf = f.ppf(pvalue, p, n-p)*(n-1)*p*(n+1)/n/(n-p)  # f % point function
-    ua, ub, uc = np.sqrt(s*fppf)*2  # semi-axes (largest first)
-    center = np.mean(P, axis=0)     # centroid of the hyperellipsoid
-    sphericity = (  ((ua-ub)/(ua+ub))**2
-                  + ((ua-uc)/(ua+uc))**2
-                  + ((ub-uc)/(ub+uc))**2)/3. * 4.
+    cfac = 1 + 6/(n-1)            # correction factor for low statistics
+    ua, ub, uc = np.sqrt(s*fppf)/cfac  # semi-axes (largest first)
+    center = np.mean(P, axis=0)   # centroid of the hyperellipsoid
 
-    elliSource = vtk.vtkSphereSource()
-    elliSource.SetThetaResolution(48)
-    elliSource.SetPhiResolution(48)
+    elli = shapes.Ellipsoid((0,0,0), (1,0,0), (0,1,0), (0,0,1), alpha=0.2)
 
     matri = vtk.vtkMatrix4x4()
-    matri.DeepCopy((R[0][0] * ua, R[1][0] * ub, R[2][0] * uc, center[0],
-                    R[0][1] * ua, R[1][1] * ub, R[2][1] * uc, center[1],
-                    R[0][2] * ua, R[1][2] * ub, R[2][2] * uc, center[2], 0, 0, 0, 1))
+    matri.DeepCopy((R[0][0] * ua*2, R[1][0] * ub*2, R[2][0] * uc*2, center[0],
+                    R[0][1] * ua*2, R[1][1] * ub*2, R[2][1] * uc*2, center[1],
+                    R[0][2] * ua*2, R[1][2] * ub*2, R[2][2] * uc*2, center[2],
+                    0, 0, 0, 1))
     vtra = vtk.vtkTransform()
     vtra.SetMatrix(matri)
-    ftra = vtk.vtkTransformFilter()
-    ftra.SetTransform(vtra)
-    ftra.SetInputConnection(elliSource.GetOutputPort())
-    ftra.Update()
-    mesh_elli = Mesh(ftra.GetOutput(), "c", 0.5).phong()
-    mesh_elli.GetProperty().BackfaceCullingOn()
-    if pcaAxes:
-        axs = []
-        for ax in ([1, 0, 0], [0, 1, 0], [0, 0, 1]):
-            l = vtk.vtkLineSource()
-            l.SetPoint1([0, 0, 0])
-            l.SetPoint2(ax)
-            l.Update()
-            t = vtk.vtkTransformFilter()
-            t.SetTransform(vtra)
-            t.SetInputData(l.GetOutput())
-            t.Update()
-            axs.append(Mesh(t.GetOutput(), "c", 0.5).lineWidth(3))
-        finact = Assembly([mesh_elli] + axs)
-    else:
-        finact = mesh_elli
-    finact.info["sphericity"] = sphericity
-    finact.info["va"] = ua
-    finact.info["vb"] = ub
-    finact.info["vc"] = uc
-    finact.name = "pcaEllipsoid"
-    return finact
+    # assign the transformation
+    elli.SetScale(vtra.GetScale())
+    elli.SetOrientation(vtra.GetOrientation())
+    elli.SetPosition(vtra.GetPosition())
+
+    elli.GetProperty().BackfaceCullingOn()
+
+    elli.nr_of_points = n
+    elli.va = ua
+    elli.vb = ub
+    elli.vc = uc
+    elli.axis1 = vtra.TransformPoint([1,0,0])
+    elli.axis2 = vtra.TransformPoint([0,1,0])
+    elli.axis3 = vtra.TransformPoint([0,0,1])
+    elli.transformation = vtra
+    elli.name = "pcaEllipsoid"
+    return elli
 
 
 def smoothMLS1D(mesh, f=0.2, radius=None, showNLines=0):
