@@ -2194,17 +2194,15 @@ class Plotter:
                 if not ia.GetPickable():
                     continue
                 if isinstance(ia, Mesh):
-                    iascals = ia.getPointArray()
-                    if iascals is not None and len(iascals):
-                        stype, sname = iascals[ia._scals_idx]
-                        if sname and "Normals" not in sname.lower(): # exclude normals
+                    arnames = ia.getArrayNames()['PointData']
+                    if len(arnames):
+                        arnam =  arnames[ia._scals_idx]
+                        if arnam and "normals" not in arnam.lower(): # exclude normals
                             ia.getPointArray( ia._scals_idx )
-                            colors.printc("..active scalars set to:", sname,
-                                          "\ttype:", stype, c='g', bold=0)
+                            colors.printc("..active scalars set to:", arnam, c='g', bold=0)
                         ia._scals_idx += 1
-                        if ia._scals_idx >= len(iascals):
+                        if ia._scals_idx >= len(arnames):
                             ia._scals_idx = 0
-            addons.addLegend()
 
         elif key == "5":
             bgc = np.array(self.renderer.GetBackground()).sum() / 3
