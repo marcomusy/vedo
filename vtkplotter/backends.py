@@ -96,9 +96,9 @@ def getNotebookBackend(actors2show, zoom, viewup):
             if isinstance(ia, Mesh) and ia.N():
 
                 iap = ia.GetProperty()
-                #ia.clean().triangle().computeNormals()
-                #ia.triangle()
-                iapoly = ia.clone().clean().triangle().computeNormals().polydata()
+                #ia.clean().triangulate().computeNormals()
+                #ia.triangulate())
+                iapoly = ia.clone().clean().triangulate().computeNormals().polydata()
 
                 vtkscals = None
                 color_attribute = None

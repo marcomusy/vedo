@@ -21,6 +21,7 @@ __all__ = [
     "quiver",
     "violin",
     "streamplot",
+    "plotMatrix",
 ]
 
 
@@ -83,17 +84,11 @@ class Plot(Assembly):
             plot2 = objs[0]
             elems = plot2.unpack()
             objs2 = []
-            # print('XXX', plot2.yscale, self.yscale, self.fixed_scale)
             for e in elems:
                 if e.name == "axes" or "Text" in e.name:
                     continue
-                # print('name=',e.name, isinstance(e, typs))
                 if isinstance(e, typs):
-                    # continue                                  #todo
-                    # print('ggg', e.name, e.scale())
                     ec = e.clone()
-                    # py = ec.y()
-                    # e.y(py/oplot2.yscale)
                     ec.SetScale(1, 1 / plot2.yscale * self.yscale, 1)
                 else:
                     ec = e.clone()
@@ -136,6 +131,15 @@ class Plot(Assembly):
         plt = plot(*args, **kwargs)
         plt.format = self
         for a in plt.unpack():
+            self.AddPart(a)
+        return self
+
+    def histogram(self, *args, **kwargs):
+        """Plot histogram on top of an already existing plot."""
+        kwargs['format'] = self
+        h = histogram(*args, **kwargs)
+        h.format = self
+        for a in h.unpack():
             self.AddPart(a)
         return self
 
@@ -339,6 +343,120 @@ def plot(*args, **kwargs):
     return _plotxy(np.c_[x, y], **kwargs)
 
 
+def histogram(*args, **kwargs):
+    """
+    Histogramming for 1D and 2D data arrays.
+
+    For 1D arrays:
+
+    :param int bins: number of bins.
+    :param list vrange: restrict the range of the histogram.
+    :param bool logscale: use logscale on y-axis.
+    :param bool fill: fill bars woth solid color `c`.
+    :param float gap: leave a small space btw bars.
+    :param bool outline: show outline of the bins.
+    :param bool errors: show error bars.
+
+    |histo_1D| |histo_1D.py|_
+
+
+    If ``mode='polar'`` assume input is polar coordinate system (rho, theta):
+
+    :param list weights: array of weights, of the same shape as the input.
+        Each value only contributes its associated weight towards the bin count (instead of 1).
+
+    :param str title: histogram title
+    :param float tsize: title size
+    :param int bins: number of bins in phi
+    :param float r1: inner radius
+    :param float r2: outer radius
+    :param float phigap: gap angle btw 2 radial bars, in degrees
+    :param float rgap: gap factor along radius of numeric angle labels
+    :param float lpos: label gap factor along radius
+    :param float lsize: label size
+    :param c: color of the histogram bars, can be a list of length `bins`.
+    :param bc: color of the frame and labels
+    :param alpha: alpha of the frame
+    :param str cmap: color map name
+    :param bool deg: input array is in degrees
+    :param float vmin: minimum value of the radial axis
+    :param float vmax: maximum value of the radial axis
+    :param list labels: list of labels, must be of length `bins`
+    :param bool showDisc: show the outer ring axis
+    :param int nrays: draw this number of axis rays (continuous and dashed)
+    :param bool showLines: show lines to the origin
+    :param bool showAngles: show angular values
+    :param bool showErrors: show error bars
+
+    |histo_polar| |histo_polar.py|_
+
+
+    For 2D arrays:
+
+    Input data formats [(x1,x2,..), (y1,y2,..)] or [(x1,y1), (x2,y2),..] are both valid.
+
+    :param str xtitle: x axis title
+    :param str ytitle: y axis title
+    :param list bins: binning as (nx, ny)
+    :param list vrange: range in x and y in format [(xmin,xmax), (ymin,ymax)]
+    :param str cmap: color map name
+    :param float lw: line width of the binning
+    :param bool scalarbar: add a scalarbar
+
+    |histo_2D| |histo_2D.py|_
+
+
+    If ``mode='hexbin'``, build a hexagonal histogram from a list of x and y values.
+
+    :param str xtitle: x axis title
+    :param str ytitle: y axis title
+    :param bool bins: nr of bins for the smaller range in x or y.
+    :param list vrange: range in x and y in format [(xmin,xmax), (ymin,ymax)]
+    :param float norm: sets a scaling factor for the z axis (freq. axis).
+    :param bool fill: draw solid hexagons.
+    :param str cmap: color map name for elevation.
+
+    |histo_hexagonal| |histo_hexagonal.py|_
+
+
+    If ``mode='spheric'``, build a histogram from list of theta and phi values.
+
+    :param float rmax: maximum radial elevation of bin
+    :param int res: sphere resolution
+    :param cmap: color map name
+    :param float lw: line width of the bin edges
+    :param bool scalarbar: add a scalarbar to plot
+
+    |histo_spheric| |histo_spheric.py|_
+    """
+    mode = kwargs.pop("mode", "")
+    if len(args) == 2:  # x, y
+        if "spher" in mode:
+            return _histogramSpheric(args[0], args[1], **kwargs)
+        if "hex" in mode:
+            return _histogramHexBin(args[0], args[1], **kwargs)
+        return _histogram2D(args[0], args[1], **kwargs)
+
+    elif len(args) == 1:
+        data = np.array(args[0])
+
+        if "spher" in mode:
+            return _histogramSpheric(args[0][:, 0], args[0][:, 1], **kwargs)
+
+        if len(data.shape) == 1:
+            if "polar" in mode:
+                return _histogramPolar(data, **kwargs)
+            return _histogram1D(data, **kwargs)
+        else:
+            if "hex" in mode:
+                return _histogramHexBin(args[0][:, 0], args[0][:, 1], **kwargs)
+            return _histogram2D(args[0], **kwargs)
+
+    print("histogram(): Could not understand input", args[0])
+    return None
+
+
+#########################################################################################
 def _plotxy(
     data,
     format=None,
@@ -472,7 +590,7 @@ def _plotxy(
 
             if utils.isSequence(mc):
                 # print('mc is sequence')
-                mk = shapes.Marker(marker, s=ms).triangle()
+                mk = shapes.Marker(marker, s=ms).triangulate()
                 msv = np.zeros_like(pts.points())
                 msv[:, 0] = 1
                 marked = shapes.Glyph(
@@ -480,7 +598,7 @@ def _plotxy(
                 )
             else:
                 # print('mc is fixed color')
-                mk = shapes.Marker(marker, s=ms).triangle()
+                mk = shapes.Marker(marker, s=ms).triangulate()
                 marked = shapes.Glyph(pts, glyphObj=mk, c=mc)
 
         marked.alpha(ma).z(offs)
@@ -609,15 +727,15 @@ def _plotxy(
 
 def _plotFxy(
     z,
-    x=(0, 3),
-    y=(0, 3),
-    zlimits=(None, None),
+    xlim=(0, 3),
+    ylim=(0, 3),
+    zlim=(None, None),
     showNan=True,
     zlevels=10,
     c="b",
     bc="aqua",
     alpha=1,
-    texture="paper",
+    texture="paper4",
     bins=(100, 100),
     axes=True,
 ):
@@ -637,14 +755,14 @@ def _plotFxy(
     ps.SetNormal([0, 0, 1])
     ps.Update()
     poly = ps.GetOutput()
-    dx = x[1] - x[0]
-    dy = y[1] - y[0]
+    dx = xlim[1] - xlim[0]
+    dy = ylim[1] - ylim[0]
     todel, nans = [], []
 
     for i in range(poly.GetNumberOfPoints()):
         px, py, _ = poly.GetPoint(i)
-        xv = (px + 0.5) * dx + x[0]
-        yv = (py + 0.5) * dy + y[0]
+        xv = (px + 0.5) * dx + xlim[0]
+        yv = (py + 0.5) * dy + ylim[0]
         try:
             zv = z(xv, yv)
         except:
@@ -670,13 +788,13 @@ def _plotFxy(
         colors.printc("Function is not real in the domain", c=1)
         return None
 
-    if zlimits[0]:
+    if zlim[0]:
         tmpact1 = Mesh(poly)
-        a = tmpact1.cutWithPlane((0, 0, zlimits[0]), (0, 0, 1))
+        a = tmpact1.cutWithPlane((0, 0, zlim[0]), (0, 0, 1))
         poly = a.polydata()
-    if zlimits[1]:
+    if zlim[1]:
         tmpact2 = Mesh(poly)
-        a = tmpact2.cutWithPlane((0, 0, zlimits[1]), (0, 0, -1))
+        a = tmpact2.cutWithPlane((0, 0, zlim[1]), (0, 0, -1))
         poly = a.polydata()
 
     if c is None:
@@ -778,8 +896,6 @@ def _plotFz(
 
     mesh = Mesh(poly, alpha).lighting("plastic")
     v = max(abs(np.min(arrImg)), abs(np.max(arrImg)))
-    # print(arrImg)
-    # print(np.min(arrImg), np.max(arrImg), v)
     mesh.pointColors(arrImg, cmap=cmap, vmin=-v, vmax=v)
     # mesh.mapPointsToCells()
     mesh.computeNormals().lw(lw)
@@ -824,7 +940,6 @@ def _plotPolar(
     showAngles=True,
 ):
     if len(rphi) == 2:
-        # rphi = list(zip(rphi[0], rphi[1]))
         rphi = np.stack((rphi[0], rphi[1]), axis=1)
 
     rphi = np.array(rphi)
@@ -991,119 +1106,7 @@ def _plotSpheric(rfunc, normalize=True, res=25, scalarbar=True, c="grey", alpha=
     asse.name = "plotPolar"
     return asse
 
-
-def histogram(*args, **kwargs):
-    """
-    Histogramming for 1D and 2D data arrays.
-
-    For 1D arrays:
-
-    :param int bins: number of bins.
-    :param list vrange: restrict the range of the histogram.
-    :param bool logscale: use logscale on y-axis.
-    :param bool fill: fill bars woth solid color `c`.
-    :param float gap: leave a small space btw bars.
-    :param bool outline: show outline of the bins.
-    :param bool errors: show error bars.
-
-    |histo_1D| |histo_1D.py|_
-
-
-    If ``mode='polar'`` assume input is polar coordinate system (rho, theta):
-
-    :param list weights: array of weights, of the same shape as the input.
-        Each value only contributes its associated weight towards the bin count (instead of 1).
-
-    :param str title: histogram title
-    :param float tsize: title size
-    :param int bins: number of bins in phi
-    :param float r1: inner radius
-    :param float r2: outer radius
-    :param float phigap: gap angle btw 2 radial bars, in degrees
-    :param float rgap: gap factor along radius of numeric angle labels
-    :param float lpos: label gap factor along radius
-    :param float lsize: label size
-    :param c: color of the histogram bars, can be a list of length `bins`.
-    :param bc: color of the frame and labels
-    :param alpha: alpha of the frame
-    :param str cmap: color map name
-    :param bool deg: input array is in degrees
-    :param float vmin: minimum value of the radial axis
-    :param float vmax: maximum value of the radial axis
-    :param list labels: list of labels, must be of length `bins`
-    :param bool showDisc: show the outer ring axis
-    :param int nrays: draw this number of axis rays (continuous and dashed)
-    :param bool showLines: show lines to the origin
-    :param bool showAngles: show angular values
-    :param bool showErrors: show error bars
-
-    |histo_polar| |histo_polar.py|_
-
-
-    For 2D arrays:
-
-    Input data formats [(x1,x2,..), (y1,y2,..)] or [(x1,y1), (x2,y2),..] are both valid.
-
-    :param str xtitle: x axis title
-    :param str ytitle: y axis title
-    :param list bins: binning as (nx, ny)
-    :param list vrange: range in x and y in format [(xmin,xmax), (ymin,ymax)]
-    :param str cmap: color map name
-    :param float lw: line width of the binning
-    :param bool scalarbar: add a scalarbar
-
-    |histo_2D| |histo_2D.py|_
-
-
-    If ``mode='hexbin'``, build a hexagonal histogram from a list of x and y values.
-
-    :param str xtitle: x axis title
-    :param str ytitle: y axis title
-    :param bool bins: nr of bins for the smaller range in x or y.
-    :param list vrange: range in x and y in format [(xmin,xmax), (ymin,ymax)]
-    :param float norm: sets a scaling factor for the z axis (freq. axis).
-    :param bool fill: draw solid hexagons.
-    :param str cmap: color map name for elevation.
-
-    |histo_hexagonal| |histo_hexagonal.py|_
-
-
-    If ``mode='spheric'``, build a histogram from list of theta and phi values.
-
-    :param float rmax: maximum radial elevation of bin
-    :param int res: sphere resolution
-    :param cmap: color map name
-    :param float lw: line width of the bin edges
-    :param bool scalarbar: add a scalarbar to plot
-
-    |histo_spheric| |histo_spheric.py|_
-    """
-    mode = kwargs.pop("mode", "")
-    if len(args) == 2:  # x, y
-        if "spher" in mode:
-            return _histogramSpheric(args[0], args[1], **kwargs)
-        if "hex" in mode:
-            return _histogramHexBin(args[0], args[1], **kwargs)
-        return _histogram2D(args[0], args[1], **kwargs)
-
-    elif len(args) == 1:
-        data = np.array(args[0])
-
-        if "spher" in mode:
-            return _histogramSpheric(args[0][:, 0], args[0][:, 1], **kwargs)
-
-        if len(data.shape) == 1:
-            if "polar" in mode:
-                return _histogramPolar(data, **kwargs)
-            return _histogram1D(data, **kwargs)
-        else:
-            if "hex" in mode:
-                return _histogramHexBin(args[0][:, 0], args[0][:, 1], **kwargs)
-            return _histogram2D(args[0], **kwargs)
-
-    print("histogram(): Could not understand input", args[0])
-    return None
-
+#########################################################################################
 
 def _histogram1D(
     data,
@@ -2145,6 +2148,47 @@ def streamplot(
     stream.scale([1 / (n - 1) * (xmax - xmin), 1 / (n - 1) * (ymax - ymin), 1])
     stream.addPos(np.array([xmin, ymin, 0]))
     return stream
+
+def plotMatrix(M, title='matrix', continuous=True, cmap='Greys'):
+    """
+	 Plot a matrix using `matplotlib`.
+
+    :Example:
+        .. code-block:: python
+
+            from vtkplotter.dolfin import plotMatrix
+            import numpy as np
+
+            M = np.eye(9) + np.random.randn(9,9)/4
+
+            plotMatrix(M)
+
+        |pmatrix|
+    """
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+    M    = np.array(M)
+    m,n  = np.shape(M)
+    M    = M.round(decimals=2)
+
+    fig  = plt.figure()
+    ax   = fig.add_subplot(111)
+    cmap = mpl.cm.get_cmap(cmap)
+    if not continuous:
+        unq  = np.unique(M)
+    im      = ax.imshow(M, cmap=cmap, interpolation='None')
+    divider = make_axes_locatable(ax)
+    cax     = divider.append_axes("right", size="5%", pad=0.05)
+    dim     = r'$%i \times %i$ ' % (m,n)
+    ax.set_title(dim + title)
+    ax.axis('off')
+    cb = plt.colorbar(im, cax=cax)
+    if not continuous:
+       cb.set_ticks(unq)
+       cb.set_ticklabels(unq)
+    plt.show()
 
 
 def cornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True):

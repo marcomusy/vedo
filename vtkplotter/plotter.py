@@ -32,8 +32,10 @@ def show(*actors, **options):
     """
     Create on the fly an instance of class ``Plotter`` and show the object(s) provided.
 
-    Allowed input objects are: ``filename``, ``vtkPolyData``, ``vtkActor``,
-    ``vtkActor2D``, ``vtkImageActor``, ``vtkAssembly`` or ``vtkVolume``.
+    Allowed input objects types are:
+    ``str``, ``Mesh``, ``Volume``, ``Picture``, ``Assembly``
+    ``vtkPolyData``, ``vtkActor``, ``vtkActor2D``, ``vtkImageActor``,
+    ``vtkAssembly`` or ``vtkVolume``.
 
     If filename is given, its type is guessed based on its extension.
     Supported formats are:
@@ -529,6 +531,7 @@ class Plotter:
         self.extralight = None
         self.size = size
         self.interactor = None
+        self.allowInteraction = None
 
         self.xtitle = settings.xtitle  # x axis label and units
         self.ytitle = settings.ytitle  # y axis label and units
@@ -1952,7 +1955,7 @@ class Plotter:
         # qt creates and passes a vtkGenericRenderWindowInteractor
 
         key = iren.GetKeySym()
-        #print('Pressed key:', key, [vp])
+        #print('Pressed key:', key)
 
         if key in ["q", "Q", "space", "Return"]:
             iren.ExitCallback()

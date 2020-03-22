@@ -480,10 +480,10 @@ def loadDolfin(filename, exterior=False):
     bm = dolfin.BoundaryMesh(m, "exterior")
 
     if exterior:
-        poly = utils.buildPolyData(bm.points(), bm.cells(), fast=True)
+        poly = utils.buildPolyData(bm.coordinates(), bm.cells(), fast=True, tetras=True)
     else:
-        polyb = utils.buildPolyData(bm.points(), bm.cells(), fast=True)
-        polym = utils.buildPolyData(m.points(), m.cells(), fast=True)
+        polyb = utils.buildPolyData(bm.coordinates(), bm.cells(), fast=True, tetras=True)
+        polym = utils.buildPolyData(m.coordinates(), m.cells(), fast=True, tetras=True)
         app = vtk.vtkAppendPolyData()
         app.AddInputData(polym)
         app.AddInputData(polyb)
@@ -583,7 +583,7 @@ def loadPDB(filename, bondScale=1, hydrogenBondScale=1, coilWidth=0.3, helixWidt
 
 
 def loadNeutral(filename):
-    """Reads a `Neutral` tetrahedral file format. Return an ``Mesh(vtkActor)`` object."""
+    """Reads a `Neutral` tetrahedral file format. Return an ``Mesh`` object."""
     f = open(filename, "r")
     lines = f.readlines()
     f.close()
@@ -611,7 +611,7 @@ def loadNeutral(filename):
 
 
 def loadGmesh(filename):
-    """Reads a `gmesh` file format. Return an ``Mesh(vtkActor)`` object."""
+    """Reads a `gmesh` file format. Return an ``Mesh`` object."""
     f = open(filename, "r")
     lines = f.readlines()
     f.close()
@@ -646,7 +646,7 @@ def loadGmesh(filename):
 
 def loadPCD(filename):
     """Return a ``Mesh`` made of only vertex points
-    from `Point Cloud` file format. Return an ``Mesh(vtkActor)`` object."""
+    from `Point Cloud` file format. Return an ``Mesh`` object."""
     f = open(filename, "r")
     lines = f.readlines()
     f.close()

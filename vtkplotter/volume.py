@@ -57,7 +57,7 @@ class Volume(vtk.vtkVolume, ActorBase):
                  origin=None,
                  spacing=None,
                  shape=None,
-                 mapperType='gpu',
+                 mapperType='smart',
                  ):
 
         vtk.vtkVolume.__init__(self)
@@ -225,7 +225,7 @@ class Volume(vtk.vtkVolume, ActorBase):
     def getDataArray(self):
         """Get read-write access to voxels of a Volume object as a numpy array.
 
-        When you set values in the output image, you don’t want numpy to reallocate the array
+        When you set values in the output image, you don't want numpy to reallocate the array
         but instead set values in the existing array, so use the [:] operator.
         Example: arr[:] = arr*2 + 15
 

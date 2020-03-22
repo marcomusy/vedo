@@ -754,7 +754,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
             return self
 
         if self.GetProperty().GetOpacity() < 1:
-            colors.printc("In backColor(): only active for alpha=1", c="y")
+            #colors.printc("In backColor(): only active for alpha=1", c="y")
             return self
 
         if not backProp:
@@ -932,7 +932,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         if value is not None:
             if not v:
                 colors.printc("Volume is zero: cannot rescale.", c=1, end="")
-                colors.printc(" Consider adding mesh.triangle()", c=1)
+                colors.printc(" Consider adding mesh.triangulate()", c=1)
                 return self
             self.scale(value / v)
             return self
@@ -952,7 +952,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         if value is not None:
             if not ar:
                 colors.printc("Area is zero: cannot rescale.", c=1, end="")
-                colors.printc(" Consider adding mesh.triangle()", c=1)
+                colors.printc(" Consider adding mesh.triangulate()", c=1)
                 return self
             self.scale(value / ar)
             return self
@@ -1656,20 +1656,40 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
 
     def triangle(self, verts=True, lines=True):
+        """Deprecated: use ``triangulate()`` instead."""
+        print("\nDeprecated triangle() method: use ``triangulate()`` instead.\n")
+        return self.triangulate(verts, lines)
+
+    def triangulate(self, verts=True, lines=True):
         """
-        Converts mesh polygons and strips to triangles.
+        Converts mesh polygons into triangles.
+
+        If the input mesh is only made of 2D lines (no faces) the output will be a triangulation
+        that fills the internal area. The contours may be concave, and may even contain holes,
+        i.e. a contour may contain an internal contour winding in the opposite
+        direction to indicate that it is a hole.
 
         :param bool verts: if True, break input vertex cells into individual vertex cells
             (one point per cell). If False, the input vertex cells will be ignored.
         :param bool lines: if True, break input polylines into line segments.
             If False, input lines will be ignored and the output will have no lines.
         """
-        tf = vtk.vtkTriangleFilter()
-        tf.SetPassLines(lines)
-        tf.SetPassVerts(verts)
-        tf.SetInputData(self._polydata)
-        tf.Update()
-        return self._update(tf.GetOutput())
+        if self._polydata.GetNumberOfPolys() or self._polydata.GetNumberOfStrips():
+            tf = vtk.vtkTriangleFilter()
+            tf.SetPassLines(lines)
+            tf.SetPassVerts(verts)
+            tf.SetInputData(self._polydata)
+            tf.Update()
+            return self._update(tf.GetOutput())
+
+        elif self._polydata.GetNumberOfLines():
+            vct = vtk.vtkContourTriangulator()
+            vct.SetInputData(self._polydata)
+            vct.Update()
+            return self._update(vct.GetOutput())
+        else:
+            colors.printc("Error in triangulate()")
+            return self
 
 
     def pointColors(self, scalars_or_colors, cmap="jet", alpha=1,

@@ -6,7 +6,7 @@ from vtk.util.numpy_support import numpy_to_vtk
 import numpy as np
 
 import vtkplotter.utils as utils
-from vtkplotter.utils import printHistogram, ProgressBar, plotMatrix
+from vtkplotter.utils import printHistogram, ProgressBar
 
 import vtkplotter.docs as docs
 
@@ -25,7 +25,7 @@ from vtkplotter.shapes import Text, Text2D, Latex
 from vtkplotter.plotter import show, clear, Plotter
 from vtkplotter.plotter import closeWindow, closePlotter, interactive
 
-from vtkplotter.pyplot import histogram
+from vtkplotter.pyplot import histogram, plotMatrix
 
 # Install fenics with commands (e.g. in Anaconda3):
 #         conda install -c conda-forge fenics

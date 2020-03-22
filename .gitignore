@@ -2,13 +2,6 @@
 .DS_Store
 
 .ipynb
-examples/.ipynb
-examples/notebooks/.ipynb
-examples/basic/.ipynb
-examples/volumetric/.ipynb
-examples/advanced/.ipynb
-examples/other/.ipynb
-examples/other/dolfin/.ipynb
 
 docs/build/
 docs/source/content

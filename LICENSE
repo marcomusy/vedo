@@ -1,3 +1,9 @@
+All files contained in the vtkplotter package are licensed under MIT License.
+Files in vtkplotter/vtkplotter/fonts are distributed under the conditions
+and licenses specified in folder vtkplotter/vtkplotter/fonts/licenses.
+
+--------------------------------------------------------------------------
+
 MIT License
 
 Copyright (c) 2017 Marco Musy

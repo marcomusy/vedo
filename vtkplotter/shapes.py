@@ -1188,7 +1188,7 @@ class Star(Mesh):
 
     |extrude| |extrude.py|_
     """
-    def __init__(self, pos=(0,0,0), n=5, r1=0.7, r2=1.0, line=False, c="lb", alpha=1):
+    def __init__(self, pos=(0,0,0), n=5, r1=0.7, r2=1.0, line=False, c="m", alpha=1):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
@@ -1206,8 +1206,9 @@ class Star(Mesh):
 
         if line:
             apts.append(pts[0])
-            #mesh = Line(apts).c(c).alpha(alpha)
-            Mesh.__init__(self, [apts, list(range(len(apts)))], c, alpha)
+            poly = utils.buildPolyData(apts, lines=list(range(len(apts))))
+            Mesh.__init__(self, poly, c, alpha)
+            self.lw(2)
         else:
             apts.append((0,0,0))
             cells=[]
@@ -2121,6 +2122,7 @@ class Text(Mesh):
         if bc is not None:
             self.backColor(bc)
         self.SetPosition(pos)
+        self.flat().lighting('ambient')
         settings.collectable_actors.append(self)
         self.name = "Text"
 

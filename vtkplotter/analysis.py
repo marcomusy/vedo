@@ -613,7 +613,7 @@ def smoothMLS3D(meshs, neighbours=10):
     return act
 
 
-def recoSurface(pts, bins=256):
+def recoSurface(pts, bins=256, radius=None):
     """
     Surface reconstruction from a scattered cloud of points.
 
@@ -654,9 +654,10 @@ def recoSurface(pts, bins=256):
         distance.SetInputConnection(normals.GetOutputPort())
         print("Recalculating normals for", N, "Points, sample size=", int(N / 50))
 
-    b = polyData.GetBounds()
-    diagsize = np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
-    radius = diagsize / bins * 5
+    if radius is None:
+        b = polyData.GetBounds()
+        diagsize = np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
+        radius = diagsize / bins * 5
     distance.SetRadius(radius)
     distance.SetDimensions(bins, bins, bins)
     distance.Update()

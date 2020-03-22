@@ -325,8 +325,8 @@ def _init():
     for f in os.listdir(textures_path):
         tfn = f.split(".")[0]
         if 'earth' in tfn: continue
+        if 'Licences' in tfn: continue
         textures.append(tfn)
-    textures = list(sorted(textures))
 
     for f in os.listdir(fonts_path):
         fonts.append(f.split(".")[0])

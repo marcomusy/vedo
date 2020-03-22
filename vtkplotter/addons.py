@@ -468,7 +468,6 @@ def addSlider3D(
     sliderRep.SetTitleHeight(s * t)
     sliderRep.SetLabelHeight(s * t * 0.85)
 
-    sliderRep.GetTubeProperty()
     sliderRep.GetTubeProperty().SetColor(c)
 
     sliderWidget = vtk.vtkSliderWidget()

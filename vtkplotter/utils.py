@@ -35,7 +35,6 @@ __all__ = [
     "pol2cart",
     "humansort",
     "printHistogram",
-    "plotMatrix",
     "cameraFromQuaternion",
     "cameraFromNeuroglancer",
     "orientedCamera",
@@ -201,7 +200,7 @@ def geometry(obj, extent=None):
     return Mesh(gf.GetOutput())
 
 
-def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True):
+def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, tetras=False):
     """
     Build a ``vtkPolyData`` object from a list of vertices
     where faces represents the connectivity of the polygonal mesh.
@@ -212,9 +211,11 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True):
 
     Use ``indexOffset=1`` if face numbering starts from 1 instead of 0.
 
-    if fast=False the mesh is built "manually" by setting polygons and triangles
+    If fast=False the mesh is built "manually" by setting polygons and triangles
     one by one. This is the fallback case when a mesh contains faces of
     different number of vertices.
+    
+    If tetras=True, interpret 4-point faces as tetrahedrons instead of surface quads.
     """
     if len(vertices[0]) < 3: # make sure it is 3d
         vertices = np.c_[np.array(vertices), np.zeros(len(vertices))]
@@ -280,7 +281,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True):
                     pids.SetId(i, f[i] - indexOffset)
                 sourcePolygons.InsertNextCell(ele)
 
-            elif n == 4:
+            elif n == 4 and tetras:
                 # do not use vtkTetra() because it fails
                 # with dolfin faces orientation
                 ele0 = vtk.vtkTriangle()
@@ -837,7 +838,7 @@ def printInfo(obj):
             colors.printc(mapper.GetScalarModeAsString(),
                           '  coloring =', mapper.GetColorModeAsString(), c="g", bold=0)
 
-            colors.printc(tab + " active scalars: ", c="g", bold=1, end="")
+            colors.printc(tab + "   active array: ", c="g", bold=1, end="")
             if ptdata.GetScalars():
                 colors.printc(ptdata.GetScalars().GetName(), "(point data)  ", c="g", bold=0, end="")
             if cldata.GetScalars():
@@ -1173,48 +1174,6 @@ def makeBands(inputlist, numberOfBands):
 
     return np.array(newlist)
 
-
-
-def plotMatrix(M, title='matrix', continuous=True, cmap='Greys'):
-    """
-	 Plot a matrix using `matplotlib`.
-
-    :Example:
-        .. code-block:: python
-
-            from vtkplotter.dolfin import plotMatrix
-            import numpy as np
-
-            M = np.eye(9) + np.random.randn(9,9)/4
-
-            plotMatrix(M)
-
-        |pmatrix|
-    """
-    import matplotlib.pyplot as plt
-    import matplotlib as mpl
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
-
-    M    = np.array(M)
-    m,n  = np.shape(M)
-    M    = M.round(decimals=2)
-
-    fig  = plt.figure()
-    ax   = fig.add_subplot(111)
-    cmap = mpl.cm.get_cmap(cmap)
-    if not continuous:
-        unq  = np.unique(M)
-    im      = ax.imshow(M, cmap=cmap, interpolation='None')
-    divider = make_axes_locatable(ax)
-    cax     = divider.append_axes("right", size="5%", pad=0.05)
-    dim     = r'$%i \times %i$ ' % (m,n)
-    ax.set_title(dim + title)
-    ax.axis('off')
-    cb = plt.colorbar(im, cax=cax)
-    if not continuous:
-       cb.set_ticks(unq)
-       cb.set_ticklabels(unq)
-    plt.show()
 
 
 #################################################################
