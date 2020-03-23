@@ -1687,8 +1687,9 @@ class Mesh(vtk.vtkFollower, ActorBase):
             vct.SetInputData(self._polydata)
             vct.Update()
             return self._update(vct.GetOutput())
+
         else:
-            colors.printc("Error in triangulate()")
+            #colors.printc("Error in triangulate()")
             return self
 
 

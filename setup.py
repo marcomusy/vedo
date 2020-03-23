@@ -54,7 +54,7 @@ setup(
 # remove trailing spaces
 # pip install .
 
-# cd ~/Projects/vtkplotter-examples/vtkplotter_examples
+# cd ~/Projects/vtkplotter/examples/
 # ./run_all.sh
 # cd ~/Projects/vtkplotter/
 # python prove/test_filetypes.py
@@ -69,19 +69,19 @@ setup(
 # check on python2 the same stuff is ok
 # cd ~/Projects/vtkplotter/
 # sudo -H pip install . -U
-# python ~/Projects/vtkplotter-examples/vtkplotter_examples/tutorial.py
+# python ~/Projects/vtkplotter/examples/tutorial.py
 
 # check notebooks:
-# cd ~/Projects/vtkplotter-examples/
+# cd ~/Projects/vtkplotter/examples/
 # jupyter notebook > /dev/null 2>&1
 
-# cd ~/Projects/vtkplotter-examples/
-# rm -rf v*examples/*/.ipynb_checkpoints v*examples/*/*/.ipynb_checkpoints .ipynb_checkpoints/
-# rm -rf v*examples/other/dolfin/navier_stokes_cylinder/ v*examples/other/dolfin/shuttle.xml
-# rm v*examples/other/trimesh/featuretype.STL v*examples/other/trimesh/machinist.XAML
-# rm v*examples/other/scene.npy v*examples/other/timecourse1d.npy vtkplotter/data/290.ply
-# rm v*examples/other/voronoi3d.txt v*examples/other/voronoi3d.txt.vol
-# rm v*examples/other/embryo.html v*examples/other/embryo.x3d
+# cd ~/Projects/vtkplotter/examples/
+# rm -rf examples/*/.ipynb_checkpoints examples/*/*/.ipynb_checkpoints .ipynb_checkpoints/
+# rm -rf examples/other/dolfin/navier_stokes_cylinder/ examples/other/dolfin/shuttle.xml
+# rm examples/other/trimesh/featuretype.STL examples/other/trimesh/machinist.XAML
+# rm examples/other/scene.npy examples/other/timecourse1d.npy vtkplotter/data/290.ply
+# rm examples/other/voronoi3d.txt examples/other/voronoi3d.txt.vol
+# rm examples/other/embryo.html examples/other/embryo.x3d
 
 # git status
 # git add [files]
@@ -121,7 +121,6 @@ setup(
 # sudo docker ps   # to know the container name
 # cd Projects
 # sudo docker cp  vtkplotter admiring_panini:/home/fenics/shared/
-# sudo docker cp  vtkplotter-examples admiring_panini:/home/fenics/shared/
 # sudo chmod -R 755 vtkplotter*/
 #
 # cd vtkplotter

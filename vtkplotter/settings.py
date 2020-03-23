@@ -44,7 +44,7 @@ General settings.
     # Flag-style label options
     flagDelay    = 0.0       # popup delay in milliseconds
     flagFont     = "Courier" # font type ("Arial", "Courier", "Times")
-    flagFontSize = 18
+    flagFontSize = 14
     flagAngle    = 0
     flagBold     = False
     flagItalic   = True
@@ -157,7 +157,7 @@ allowInteraction = True
 # Flag-style label options
 flagDelay = 0          # popup delay in milliseconds
 flagFont = "Courier"   # font type ("Arial", "Courier", "Times")
-flagFontSize = 20
+flagFontSize = 14
 flagJustification = 0
 flagAngle = 0
 flagBold = False
@@ -246,12 +246,7 @@ textures = []
 fonts_path = os.path.join(_cdir, "fonts/")
 fonts = []
 
-try:
-    import vtkplotter_examples
-    datadir = os.path.join(os.path.dirname(vtkplotter_examples.__file__), 'data/')
-except:
-    datadir = "/PLEASE_INSTALL_vtkplotter-examples_TO_USE_VARIABLE_DATADIR/"
-    #no error message here
+datadir = os.path.join(_cdir, "examples/data/")
 
 
 ####################################################################################

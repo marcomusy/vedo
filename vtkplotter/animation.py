@@ -13,7 +13,7 @@ Submodule which allows to animate simultaneously various objects
 by specifying event times and durations of different visual effects.
 
 See examples
-`here <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other>`_.
+`here <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other>`_.
 
 |animation1| |animation2|
 

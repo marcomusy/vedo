@@ -50,7 +50,7 @@ Basic example:
     |dolfinmesh|
 
 Find many more examples in
-`vtkplotter/examples/dolfin <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/dolfin>`_
+`vtkplotter/examples/dolfin <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin>`_
 
 
 Image Gallery

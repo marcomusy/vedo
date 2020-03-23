@@ -1138,7 +1138,7 @@ def buildAxes(obj=None,
                 v1 = (xticks_float[i]-xTickThickness/2, -xTickLength/2, 0)
                 v2 = (xticks_float[i]+xTickThickness/2,  xTickLength/2, 0)
                 ticks.append(shapes.Rectangle(v1, v2))
-            if len(ticks):
+            if len(ticks)>1:
                 xmajticks = merge(ticks).c(xTickColor)
                 xmajticks.name = "xMajorTicks"
                 maj_ticks.append(xmajticks)
@@ -1148,7 +1148,7 @@ def buildAxes(obj=None,
                 v1 = (-yTickLength/2, yticks_float[i]-yTickThickness/2, 0)
                 v2 = ( yTickLength/2, yticks_float[i]+yTickThickness/2, 0)
                 ticks.append(shapes.Rectangle(v1, v2))
-            if len(ticks):
+            if len(ticks)>1:
                 ymajticks = merge(ticks).c(yTickColor)
                 ymajticks.name = "yMajorTicks"
                 maj_ticks.append(ymajticks)
@@ -1158,7 +1158,7 @@ def buildAxes(obj=None,
                 v1 = (zticks_float[i]-zTickThickness/2, -zTickLength/2.84, 0)
                 v2 = (zticks_float[i]+zTickThickness/2,  zTickLength/2.84, 0)
                 ticks.append(shapes.Rectangle(v1, v2))
-            if len(ticks):
+            if len(ticks)>1:
                 zmajticks = merge(ticks).c(zTickColor)
                 zmajticks.RotateZ(-45)
                 zmajticks.RotateY(-90)
@@ -1168,7 +1168,7 @@ def buildAxes(obj=None,
         ################################################ MINOR cylindrical ticks
         if xMinorTicks and xtitle and len(xticks_float)>2:
             xMinorTicks += 1
-            step = (xticks_float[2]-xticks_float[1])/xMinorTicks
+            step = (xticks_float[1]-xticks_float[0])/xMinorTicks
             ticks = []
             for i in range(-xMinorTicks, int(1/step)+1):
                 x = xticks_float[1]+step*i
@@ -1176,14 +1176,14 @@ def buildAxes(obj=None,
                 v1 = (x-xTickThickness/4, -xTickLength/4, 0)
                 v2 = (x+xTickThickness/4,  xTickLength/4, 0)
                 ticks.append(shapes.Rectangle(v1, v2))
-            if len(ticks):
+            if len(ticks)>1:
                 xminticks = merge(ticks).c(xTickColor)
                 xminticks.name = "xMinorTicks"
                 min_ticks.append(xminticks)
 
         if yMinorTicks and ytitle and len(yticks_float)>2:
             yMinorTicks += 1
-            step = (yticks_float[2]-yticks_float[1])/yMinorTicks
+            step = (yticks_float[1]-yticks_float[0])/yMinorTicks
             ticks = []
             for i in range(-yMinorTicks, int(1/step)+1):
                 y = yticks_float[1]+step*i
@@ -1191,22 +1191,22 @@ def buildAxes(obj=None,
                 v1 = (-yTickLength/4, y-yTickThickness/4, 0)
                 v2 = ( yTickLength/4, y+yTickThickness/4, 0)
                 ticks.append(shapes.Rectangle(v1, v2))
-            if len(ticks):
+            if len(ticks)>1:
                 yminticks = merge(ticks).c(yTickColor)
                 yminticks.name = "yMinorTicks"
                 min_ticks.append(yminticks)
 
         if zMinorTicks and ztitle and len(zticks_float)>2:
             zMinorTicks += 1
-            step = (zticks_float[2]-zticks_float[1])/zMinorTicks
+            step = (zticks_float[1]-zticks_float[0])/zMinorTicks
             ticks = []
-            for i in range(-zMinorTicks, int(1/step)+1):
+            for i in range(-zMinorTicks, int(1/step)):
                 z = zticks_float[1]+step*i
                 if z<=0 or z>=1: continue
                 v1 = (z-zTickThickness/4, -zTickLength/5.7, 0)
                 v2 = (z+zTickThickness/4,  zTickLength/5.7, 0)
                 ticks.append(shapes.Rectangle(v1, v2))
-            if len(ticks):
+            if len(ticks)>1:
                 zminticks = merge(ticks).c(zTickColor)
                 zminticks.RotateZ(-45)
                 zminticks.RotateY(-90)

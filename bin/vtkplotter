@@ -962,8 +962,8 @@ else:  #########################################################################
     pr.add_argument("--lego",                       help="Voxel rendering for 3D image files", action="store_true")
     pr.add_argument("--cmap",                       help="Voxel rendering color map name", default='jet', metavar='')
     pr.add_argument("--mode",                       help="Voxel rendering composite mode", default=0, metavar='')
-    pr.add_argument("-r", "--run",                  help="Run example from vtkplotter-examples", metavar='')
-    pr.add_argument("--list",                       help="List examples in vtkplotter-examples", action="store_true")
+    pr.add_argument("-r", "--run",                  help="Run example from vtkplotter/examples", metavar='')
+    pr.add_argument("--list",                       help="List examples in vtkplotter/examples", action="store_true")
     args = pr.parse_args()
 
     if args.run:
@@ -1023,10 +1023,10 @@ else:  #########################################################################
                     for f in glob.glob(expath + "**/*.py", recursive=True)]
         nl = 4
 
-        if not len(exfiles):
-            printc("vtkplotter-example not installed?")
-            printc("> pip install -U git+https://github.com/marcomusy/vtkplotter-examples")
-            exit()
+        #if not len(exfiles):
+        #    printc("vtkplotter-example not installed?")
+        #    printc("> pip install -U git+https://github.com/marcomusy/vtkplotter-examples")
+        #    exit()
 
         printc("Basic examples:", c='g', bold=1, underline=1)
         scs = []

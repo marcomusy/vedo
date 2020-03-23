@@ -4,18 +4,18 @@
 A python module for scientific visualization,
 analysis and animation of 3D objects and point clouds based on VTK.
 
-.. note:: **Please check out the** `git repository <https://github.com/marcomusy/vtkplotter-examples>`_.
+.. note:: **Please check out the** `git repository <https://github.com/marcomusy/vtkplotter>`_.
 
     A full list of examples can be found in directories:
 
-    - `examples/basic <https://github.com/marcomusy/vtkplotter-examples/blob/vtkplotter_master/examples/basic>`_
-    - `examples/advanced <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/advanced>`_
-    - `examples/volumetric <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/volumetric>`_
-    - `examples/simulations <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations>`_
-    - `examples/pyplot <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/pyplot>`_
-    - `examples/others <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other>`_
-    - `examples/others/dolfin <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/dolfin>`_.
-    - `examples/others/trimesh <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/trimesh>`_
+    - `examples/basic <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic>`_
+    - `examples/advanced <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced>`_
+    - `examples/volumetric <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric>`_
+    - `examples/simulations <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations>`_
+    - `examples/pyplot <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot>`_
+    - `examples/others <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other>`_
+    - `examples/others/dolfin <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin>`_.
+    - `examples/others/trimesh <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/trimesh>`_
 """
 from __future__ import print_function
 
@@ -24,7 +24,7 @@ __license__ = "MIT"
 __maintainer__ = "M. Musy, G. Dalmasso"
 __email__ = "marco.musy@embl.es"
 __status__ = "dev"
-__website__ = "https://github.com/marcomusy/vtkplotter-examples"
+__website__ = "https://github.com/marcomusy/vtkplotter"
 
 from vtkplotter.version import _version as __version__
 from vtkplotter.animation import Animation

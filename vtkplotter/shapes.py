@@ -807,17 +807,34 @@ class Tube(Mesh):
         settings.collectable_actors.append(self)
         self.name = "Tube"
 
+
 class Ribbon(Mesh):
     """Connect two lines to generate the surface inbetween.
+Set the mode by which to create the ruled surface.
+
+    :param int mode: If mode=0, resample evenly the input lines (based on length)
+        and generates triangle strips.
+        If mode=1, use the existing points and walks around the polyline using existing points.
+
+    :param bool closed: if True, join the last point with the first to form
+        a closed surface
+
+    :param list res: ribbon resolutions along the line and perpendicularly to it.
 
     |ribbon| |ribbon.py|_
     """
-    def __init__(self, line1, line2, c="m", alpha=1, res=(200,5)):
+    def __init__(self, line1, line2, mode=0, closed=False, c="m", alpha=1, res=(200,5)):
 
         if isinstance(line1, Mesh):
             line1 = line1.points()
         if isinstance(line2, Mesh):
             line2 = line2.points()
+
+        if closed:
+            line1 = line1.tolist()
+            line1 += [line1[0]]
+            line2 = line2.tolist()
+            line2 += [line2[0]]
 
         ppoints1 = vtk.vtkPoints()  # Generate the polyline1
         ppoints1.SetData(numpy_to_vtk(np.ascontiguousarray(line1), deep=True))
@@ -865,7 +882,7 @@ class Ribbon(Mesh):
 
         rsf = vtk.vtkRuledSurfaceFilter()
         rsf.CloseSurfaceOff()
-        rsf.SetRuledModeToResample()
+        rsf.SetRuledMode(mode)
         rsf.SetResolution(res[0], res[1])
         rsf.SetInputData(mergedPolyData.GetOutput())
         rsf.Update()
@@ -1410,22 +1427,17 @@ class Spheres(Mesh):
             ucols.SetNumberOfComponents(3)
             ucols.SetName("colors")
             for i, p in enumerate(centers):
-                vpts.SetPoint(i, p)
                 cx, cy, cz = getColor(c[i])
                 ucols.InsertNextTuple3(cx * 255, cy * 255, cz * 255)
             pd.GetPointData().SetScalars(ucols)
             glyph.ScalingOff()
         elif risseq:
             glyph.SetScaleModeToScaleByScalar()
-            urads = vtk.vtkFloatArray()
-            urads.SetName("scales")
-            for i, p in enumerate(centers):
-                vpts.SetPoint(i, p)
-                urads.InsertNextValue(r[i])
+            urads = numpy_to_vtk(np.ascontiguousarray(2*r).astype(float), deep=True)
+            urads.SetName("radii")
             pd.GetPointData().SetScalars(urads)
-        else:
-            for i, p in enumerate(centers):
-                vpts.SetPoint(i, p)
+
+        vpts.SetData(numpy_to_vtk(np.ascontiguousarray(centers), deep=True))
 
         glyph.SetInputData(pd)
         glyph.Update()
@@ -2394,7 +2406,7 @@ class Latex(Picture):
 
 class ParametricShape(Mesh):
     """
-    A set of built-in shapes for illustration purposes.
+    A set of built-in shapes mainly for illustration purposes.
 
     Name can be an integer or a string in this list:
 

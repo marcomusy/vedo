@@ -1,9 +1,6 @@
-All files contained in the vtkplotter package are licensed under MIT License.
-Files in vtkplotter/vtkplotter/fonts are distributed under the conditions
-and licenses specified in folder vtkplotter/vtkplotter/fonts/licenses.
+Unless stated otherwise, all files provided by vtkplotter are licensed under the MIT licence.
 
---------------------------------------------------------------------------
-
+------------------------------------------------------------------------------
 MIT License
 
 Copyright (c) 2017 Marco Musy
@@ -25,3 +22,299 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+------------------------------------------------------------------------------
+
+=============
+Special cases
+=============
+
+Files:
+vtkplotter/examples/data/apple.ply
+vtkplotter/examples/data/mug.ply
+vtkplotter/examples/data/shark.ply
+vtkplotter/examples/data/airboat.vtk
+vtkplotter/examples/data/porsche.ply
+vtkplotter/examples/data/spider.ply
+vtkplotter/examples/data/atc.ply
+vtkplotter/examples/data/beethoven.ply
+vtkplotter/examples/data/skyscraper.obj
+vtkplotter/examples/data/shuttle.obj
+vtkplotter/examples/data/lamp.vtk
+vtkplotter/examples/data/cube.off
+vtkplotter/examples/data/dodecahedron.vtk
+vtkplotter/examples/data/icosahedron.vtk
+vtkplotter/examples/data/magnolia.vtk
+vtkplotter/examples/data/octahedron.vtk
+vtkplotter/examples/data/shark.ply
+vtkplotter/examples/data/cessna.vtk
+vtkplotter/examples/data/teddy.vtk
+vtkplotter/examples/data/teapot.vtk
+
+Are distributed under the GNU LGPL license (see at bottom of this file):
+
+Copyright: 2012 John Burkardt
+Source: https://people.sc.fsu.edu/~jburkardt/data/data.html
+License: LGPL-3, https://people.sc.fsu.edu/~jburkardt/txt/gnu_lgpl.txt
+         (see copy of the text at the end of this file).
+
+
+------------------------------------------------------------------------------
+Files:
+vtkplotter/examples/data/bunny.obj
+vtkplotter/examples/data/clown.facet
+vtkplotter/examples/data/combq.bin
+vtkplotter/examples/data/combxyz.bin
+vtkplotter/examples/data/cow.vtk
+vtkplotter/examples/data/cavity.vtk
+vtkplotter/examples/data/flamingo.3ds
+vtkplotter/examples/data/head.vti
+vtkplotter/examples/data/motor.byu
+vtkplotter/examples/data/office.binary.vtk
+vtkplotter/examples/data/structgrid.vts
+vtkplotter/examples/data/SuperQuadric.vtp
+vtkplotter/examples/data/teapot.xyz
+vtkplotter/examples/data/vase.vti
+
+Source: https://gitlab.kitware.com/vtk/vtk/-/tree/master/Testing/Data
+
+Are licensed with BSD-3-clause:
+
+  Program:   Visualization Toolkit
+  Module:    Copyright.txt
+
+Copyright (c) 1993-2015 Ken Martin, Will Schroeder, Bill Lorensen
+All rights reserved.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+ * Neither name of Ken Martin, Will Schroeder, or Bill Lorensen nor the names
+   of any contributors may be used to endorse or promote products derived
+   from this software without specific prior written permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+------------------------------------------------------------------------------
+Files:
+vtkplotter/examples/data/man.vtk
+Author: Paul Chen
+Source: https://free3d.com/3d-model/male-base-mesh-6682.html
+Submitted by: https://free3d.com/user/nixor
+Format change: M. Musy
+Licence: Personal Use License, available at https://free3d.com/royalty-free-license
+
+vtkplotter/examples/data/man_low.vtk
+Author: https://free3d.com/user/sea206
+Description: Model Maya, OBJ, no textures.
+Site: https://free3d.com/3d-model/low-poly-male-26691.html
+Format change: M. Musy
+Licence: Personal Use License, available at https://free3d.com/royalty-free-license
+
+
+------------------------------------------------------------------------------
+Files:
+vtkplotter/examples/data/ugrid.vtk
+Source: https://stackoverflow.com/questions/56401123
+Author: Andras Deak, https://stackoverflow.com/users/5067311/andras-deak
+License: Creative Commons Attribution-Share Alike.
+
+
+------------------------------------------------------------------------------
+Files:
+vtkplotter/examples/data/images/wave_wiki.png
+Screenshot from Source: https://en.wikipedia.org/wiki/Wave_equation#From_Hooke's_law
+Licensed under Creative Commons:
+https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License
+
+vtkplotter/examples/data/images/harvest.jpg
+Source: https://pixabay.com/photos/harvest-grain-cereals-field-4858574
+Licence: Free for commercial use. No attribution required. https://pixabay.com/service/license
+
+
+------------------------------------------------------------------------------
+Files:
+vtkplotter/vtkplotter/fonts/*ttf
+are licenced as specified in file vtkplotter/vtkplotter/fonts/Licenses.txt
+
+
+
+------------------------------------------------------------------------------
+		             GNU LESSER GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+
+  This version of the GNU Lesser General Public License incorporates
+the terms and conditions of version 3 of the GNU General Public
+License, supplemented by the additional permissions listed below.
+
+  0. Additional Definitions.
+
+  As used herein, "this License" refers to version 3 of the GNU Lesser
+General Public License, and the "GNU GPL" refers to version 3 of the GNU
+General Public License.
+
+  "The Library" refers to a covered work governed by this License,
+other than an Application or a Combined Work as defined below.
+
+  An "Application" is any work that makes use of an interface provided
+by the Library, but which is not otherwise based on the Library.
+Defining a subclass of a class defined by the Library is deemed a mode
+of using an interface provided by the Library.
+
+  A "Combined Work" is a work produced by combining or linking an
+Application with the Library.  The particular version of the Library
+with which the Combined Work was made is also called the "Linked
+Version".
+
+  The "Minimal Corresponding Source" for a Combined Work means the
+Corresponding Source for the Combined Work, excluding any source code
+for portions of the Combined Work that, considered in isolation, are
+based on the Application, and not on the Linked Version.
+
+  The "Corresponding Application Code" for a Combined Work means the
+object code and/or source code for the Application, including any data
+and utility programs needed for reproducing the Combined Work from the
+Application, but excluding the System Libraries of the Combined Work.
+
+  1. Exception to Section 3 of the GNU GPL.
+
+  You may convey a covered work under sections 3 and 4 of this License
+without being bound by section 3 of the GNU GPL.
+
+  2. Conveying Modified Versions.
+
+  If you modify a copy of the Library, and, in your modifications, a
+facility refers to a function or data to be supplied by an Application
+that uses the facility (other than as an argument passed when the
+facility is invoked), then you may convey a copy of the modified
+version:
+
+   a) under this License, provided that you make a good faith effort to
+   ensure that, in the event an Application does not supply the
+   function or data, the facility still operates, and performs
+   whatever part of its purpose remains meaningful, or
+
+   b) under the GNU GPL, with none of the additional permissions of
+   this License applicable to that copy.
+
+  3. Object Code Incorporating Material from Library Header Files.
+
+  The object code form of an Application may incorporate material from
+a header file that is part of the Library.  You may convey such object
+code under terms of your choice, provided that, if the incorporated
+material is not limited to numerical parameters, data structure
+layouts and accessors, or small macros, inline functions and templates
+(ten or fewer lines in length), you do both of the following:
+
+   a) Give prominent notice with each copy of the object code that the
+   Library is used in it and that the Library and its use are
+   covered by this License.
+
+   b) Accompany the object code with a copy of the GNU GPL and this license
+   document.
+
+  4. Combined Works.
+
+  You may convey a Combined Work under terms of your choice that,
+taken together, effectively do not restrict modification of the
+portions of the Library contained in the Combined Work and reverse
+engineering for debugging such modifications, if you also do each of
+the following:
+
+   a) Give prominent notice with each copy of the Combined Work that
+   the Library is used in it and that the Library and its use are
+   covered by this License.
+
+   b) Accompany the Combined Work with a copy of the GNU GPL and this license
+   document.
+
+   c) For a Combined Work that displays copyright notices during
+   execution, include the copyright notice for the Library among
+   these notices, as well as a reference directing the user to the
+   copies of the GNU GPL and this license document.
+
+   d) Do one of the following:
+
+       0) Convey the Minimal Corresponding Source under the terms of this
+       License, and the Corresponding Application Code in a form
+       suitable for, and under terms that permit, the user to
+       recombine or relink the Application with a modified version of
+       the Linked Version to produce a modified Combined Work, in the
+       manner specified by section 6 of the GNU GPL for conveying
+       Corresponding Source.
+
+       1) Use a suitable shared library mechanism for linking with the
+       Library.  A suitable mechanism is one that (a) uses at run time
+       a copy of the Library already present on the user's computer
+       system, and (b) will operate properly with a modified version
+       of the Library that is interface-compatible with the Linked
+       Version.
+
+   e) Provide Installation Information, but only if you would otherwise
+   be required to provide such information under section 6 of the
+   GNU GPL, and only to the extent that such information is
+   necessary to install and execute a modified version of the
+   Combined Work produced by recombining or relinking the
+   Application with a modified version of the Linked Version. (If
+   you use option 4d0, the Installation Information must accompany
+   the Minimal Corresponding Source and Corresponding Application
+   Code. If you use option 4d1, you must provide the Installation
+   Information in the manner specified by section 6 of the GNU GPL
+   for conveying Corresponding Source.)
+
+  5. Combined Libraries.
+
+  You may place library facilities that are a work based on the
+Library side by side in a single library together with other library
+facilities that are not Applications and are not covered by this
+License, and convey such a combined library under terms of your
+choice, if you do both of the following:
+
+   a) Accompany the combined library with a copy of the same work based
+   on the Library, uncombined with any other library facilities,
+   conveyed under the terms of this License.
+
+   b) Give prominent notice with the combined library that part of it
+   is a work based on the Library, and explaining where to find the
+   accompanying uncombined form of the same work.
+
+  6. Revised Versions of the GNU Lesser General Public License.
+
+  The Free Software Foundation may publish revised and/or new versions
+of the GNU Lesser General Public License from time to time. Such new
+versions will be similar in spirit to the present version, but may
+differ in detail to address new problems or concerns.
+
+  Each version is given a distinguishing version number. If the
+Library as you received it specifies that a certain numbered version
+of the GNU Lesser General Public License "or any later version"
+applies to it, you have the option of following the terms and
+conditions either of that published version or of any later version
+published by the Free Software Foundation. If the Library as you
+received it does not specify a version number of the GNU Lesser
+General Public License, you may choose any version of the GNU Lesser
+General Public License ever published by the Free Software Foundation.
+
+  If the Library as you received it specifies that a proxy can decide
+whether future versions of the GNU Lesser General Public License shall
+apply, that proxy's public statement of acceptance of any version is
+permanent authorization for you to choose that version for the
+Library.
