@@ -8,3 +8,13 @@ git clone https://github.com/marcomusy/vtkplotter.git
 cd vtkplotter/examples
 python tutorial.py
 ```
+
+## Run any of the built-in examples with command:
+`vtkplotter --list`
+
+and
+
+`vtkplotter -ir covid19.py`
+
+
+

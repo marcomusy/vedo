@@ -1023,11 +1023,6 @@ else:  #########################################################################
                     for f in glob.glob(expath + "**/*.py", recursive=True)]
         nl = 4
 
-        #if not len(exfiles):
-        #    printc("vtkplotter-example not installed?")
-        #    printc("> pip install -U git+https://github.com/marcomusy/vtkplotter-examples")
-        #    exit()
-
         printc("Basic examples:", c='g', bold=1, underline=1)
         scs = []
         for f,bn in exfiles:

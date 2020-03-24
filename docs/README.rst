@@ -48,10 +48,10 @@ Download and Install:
 
    pip install -U vtkplotter
 
-Check out the **Git repository** here: https://github.com/marcomusy/vtkplotter-examples
+Check out the **Git repository** here: https://github.com/marcomusy/vtkplotter
 
 *Windows-10 users* can manually place this file
-`vtkplotter.bat <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter.bat>`_
+`vtkplotter.bat <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter.bat>`_
 on the desktop to *drag&drop* files to visualize.
 (Need to edit the path of their local Anaconda installation).
 
@@ -63,7 +63,7 @@ Intuitive and straightforward API which can be combined with VTK seamlessly
 in a program, whilst mantaining access to the full range of VTK native classes.
 
 It includes a
-`large set of working examples <https://github.com/marcomusy/vtkplotter-examples/tree/master/vtkplotter_examples>`_
+`large set of working examples <https://github.com/marcomusy/vtkplotter/tree/master/vtkplotter/examples>`_
 for the all following functionalities:
 
 - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, XML, Neutral, GMSH, PCD (PointCloud), volumetric TIFF stacks, SLC, MHD, 2D images PNG, JPEG.
@@ -184,27 +184,26 @@ Visualize colorized voxels:
 Examples
 --------
 
-Run any of the available scripts from the `vtkplotter-examples <https://github.com/marcomusy/vtkplotter-examples>`_ module with:
+Run any of the available scripts from with:
 
 .. code-block:: bash
 
-    pip install -U git+https://github.com/marcomusy/vtkplotter-examples
     vtkplotter --list
-    vtkplotter --run tube.py
+    vtkplotter -ir tube.py
 
 
-More than 280 examples can be found in directories:
+More than 300 examples can be found in directories:
 
-- `examples/basic <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/basic>`_ ,
-- `examples/advanced <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/advanced>`_ ,
-- `examples/volumetric <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/volumetric>`_,
-- `examples/simulations <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations>`_,
-- `examples/others <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other>`_.
+- `examples/basic <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic>`_ ,
+- `examples/advanced <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced>`_ ,
+- `examples/volumetric <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric>`_,
+- `examples/simulations <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations>`_,
+- `examples/others <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other>`_.
 
 
 Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a
 large cloud of scattered points in space
-(`moving_least_squares2D.py <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/advanced/moving_least_squares2D.py>`_):
+(`moving_least_squares2D.py <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/moving_least_squares2D.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg
    :target: https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg
@@ -212,7 +211,7 @@ large cloud of scattered points in space
 
 
 Simulation of a gyroscope hanging from a spring
-(`gyroscope1.py <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations/gyroscope1.py>`_):
+(`gyroscope1.py <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/gyroscope1.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif
    :target: https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif
@@ -221,7 +220,7 @@ Simulation of a gyroscope hanging from a spring
 
 Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method.
 The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier
-(`tunnelling2.py <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations/tunnelling2.py>`_):
+(`tunnelling2.py <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/tunnelling2.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif
    :target: https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif
@@ -230,7 +229,7 @@ The animation shows the evolution of a particle in a box hitting a sinusoidal po
 
 
 Visualizing a Turing system of reaction-diffusion between two molecules
-(`turing.py <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/simulations/turing.py>`_):
+(`turing.py <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/turing.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif
    :target: https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif
@@ -240,7 +239,7 @@ Visualizing a Turing system of reaction-diffusion between two molecules
 
 Support for the `FEniCS/dolfin <https://fenicsproject.org/>`_ platform for visualization of PDE and
 finite element solutions
-(`see here <https://github.com/marcomusy/vtkplotter-examples/blob/master/vtkplotter_examples/other/dolfin>`_.
+(`see here <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin>`_.
 
 .. image:: https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif
 
