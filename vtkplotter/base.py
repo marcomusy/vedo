@@ -613,6 +613,17 @@ class ActorBase(object):
         return self.color(color)
 
 
+    def cellCenters(self):
+        """Get the coordinates of the cell centers.
+
+        |delaunay2d| |delaunay2d.py|_
+        """
+        vcen = vtk.vtkCellCenters()
+        vcen.SetInputData(self.inputdata())
+        vcen.Update()
+        return vtk_to_numpy(vcen.GetOutput().GetPoints().GetData())
+
+
     def getTransform(self):
         """
         Check if ``info['transform']`` exists and returns a ``vtkTransform``.
@@ -773,7 +784,7 @@ class ActorBase(object):
         """
         data = self.inputdata()
         if len(vectors) != data.GetNumberOfCells():
-            colors.printc('addPointVectors Error: Number of vectors != nr. of cells',
+            colors.printc('addCellVectors Error: Number of vectors != nr. of cells',
                           len(vectors), data.GetNumberOfCells(), c=1)
             raise RuntimeError()
         arr = vtk.vtkFloatArray()

@@ -67,7 +67,6 @@ def addLight(
     light.SetFocalPoint(focalPoint)
     light.SetIntensity(intensity)
     light.SetColor(getColor(c))
-    #light.SetShadowAttenuation(0.1) # doesn't work
     if showsource:
         lightActor = vtk.vtkLightActor()
         lightActor.SetLight(light)
@@ -729,7 +728,7 @@ def buildAxes(obj=None,
               xTickLength=0.015, yTickLength=0.015, zTickLength=0.015,
               xTickThickness=0.0025, yTickThickness=0.0025, zTickThickness=0.0025,
               xTickColor=None, yTickColor=None, zTickColor=None,
-              xMinorTicks=True, yMinorTicks=True, zMinorTicks=True,
+              xMinorTicks=1, yMinorTicks=1, zMinorTicks=1,
               tipSize=None,
               xLabelSize=0.0175, yLabelSize=0.0175, zLabelSize=0.0175,
               xLabelOffset=0.015, yLabelOffset=0.015, zLabelOffset=0.01,
@@ -1128,90 +1127,91 @@ def buildAxes(obj=None,
             cz.name = "zTipCone"
             cones.append(cz)
 
-    ################################################ MAJOR cylindrical ticks
-    maj_ticks = []
-    min_ticks = []
+    ################################################ MAJOR ticks
+    majorticks, minorticks= [], []
+    xticks, yticks, zticks = [],[],[]
     if showTicks:
         if xtitle:
-            ticks = []
             for i in range(1, len(xticks_float)-1):
                 v1 = (xticks_float[i]-xTickThickness/2, -xTickLength/2, 0)
                 v2 = (xticks_float[i]+xTickThickness/2,  xTickLength/2, 0)
-                ticks.append(shapes.Rectangle(v1, v2))
-            if len(ticks)>1:
-                xmajticks = merge(ticks).c(xTickColor)
+                xticks.append(shapes.Rectangle(v1, v2))
+            if len(xticks)>1:
+                xmajticks = merge(xticks).c(xTickColor)
                 xmajticks.name = "xMajorTicks"
-                maj_ticks.append(xmajticks)
+                majorticks.append(xmajticks)
         if ytitle:
-            ticks = []
             for i in range(1, len(yticks_float)-1):
                 v1 = (-yTickLength/2, yticks_float[i]-yTickThickness/2, 0)
                 v2 = ( yTickLength/2, yticks_float[i]+yTickThickness/2, 0)
-                ticks.append(shapes.Rectangle(v1, v2))
-            if len(ticks)>1:
-                ymajticks = merge(ticks).c(yTickColor)
+                yticks.append(shapes.Rectangle(v1, v2))
+            if len(yticks)>1:
+                ymajticks = merge(yticks).c(yTickColor)
                 ymajticks.name = "yMajorTicks"
-                maj_ticks.append(ymajticks)
+                majorticks.append(ymajticks)
         if ztitle:
-            ticks = []
             for i in range(1, len(zticks_float)-1):
                 v1 = (zticks_float[i]-zTickThickness/2, -zTickLength/2.84, 0)
                 v2 = (zticks_float[i]+zTickThickness/2,  zTickLength/2.84, 0)
-                ticks.append(shapes.Rectangle(v1, v2))
-            if len(ticks)>1:
-                zmajticks = merge(ticks).c(zTickColor)
+                zticks.append(shapes.Rectangle(v1, v2))
+            if len(zticks)>1:
+                zmajticks = merge(zticks).c(zTickColor)
                 zmajticks.RotateZ(-45)
                 zmajticks.RotateY(-90)
                 zmajticks.name = "zMajorTicks"
-                maj_ticks.append(zmajticks)
+                majorticks.append(zmajticks)
 
-        ################################################ MINOR cylindrical ticks
-        if xMinorTicks and xtitle and len(xticks_float)>2:
+        ################################################ MINOR ticks
+        if xMinorTicks and xtitle and len(xticks)>1:
             xMinorTicks += 1
-            step = (xticks_float[1]-xticks_float[0])/xMinorTicks
             ticks = []
-            for i in range(-xMinorTicks, int(1/step)+1):
-                x = xticks_float[1]+step*i
-                if x<=0 or x>=1: continue
-                v1 = (x-xTickThickness/4, -xTickLength/4, 0)
-                v2 = (x+xTickThickness/4,  xTickLength/4, 0)
-                ticks.append(shapes.Rectangle(v1, v2))
-            if len(ticks)>1:
+            for i in range(1,len(xticks)):
+                t0, t1 = xticks[i-1].pos(), xticks[i].pos()
+                dt = t1 - t0
+                for j in range(1, xMinorTicks):
+                    mt = dt*(j/xMinorTicks) + t0
+                    v1 = (mt[0]-xTickThickness/4, -xTickLength/4, 0)
+                    v2 = (mt[0]+xTickThickness/4,  xTickLength/4, 0)
+                    ticks.append(shapes.Rectangle(v1, v2))
+            if len(ticks):
                 xminticks = merge(ticks).c(xTickColor)
                 xminticks.name = "xMinorTicks"
-                min_ticks.append(xminticks)
+                minorticks.append(xminticks)
 
-        if yMinorTicks and ytitle and len(yticks_float)>2:
+        if yMinorTicks and ytitle and len(yticks)>1:
             yMinorTicks += 1
-            step = (yticks_float[1]-yticks_float[0])/yMinorTicks
             ticks = []
-            for i in range(-yMinorTicks, int(1/step)+1):
-                y = yticks_float[1]+step*i
-                if y<=0 or y>=1: continue
-                v1 = (-yTickLength/4, y-yTickThickness/4, 0)
-                v2 = ( yTickLength/4, y+yTickThickness/4, 0)
-                ticks.append(shapes.Rectangle(v1, v2))
-            if len(ticks)>1:
+            for i in range(1,len(yticks)):
+                t0, t1 = yticks[i-1].pos(), yticks[i].pos()
+                dt = t1 - t0
+                for j in range(1, yMinorTicks):
+                    mt = dt*(j/yMinorTicks) + t0
+                    v1 = (-yTickLength/4, mt[1]-yTickThickness/4, 0)
+                    v2 = ( yTickLength/4, mt[1]+yTickThickness/4, 0)
+                    ticks.append(shapes.Rectangle(v1, v2))
+            if len(ticks):
                 yminticks = merge(ticks).c(yTickColor)
                 yminticks.name = "yMinorTicks"
-                min_ticks.append(yminticks)
+                minorticks.append(yminticks)
 
-        if zMinorTicks and ztitle and len(zticks_float)>2:
+        if zMinorTicks and ztitle and len(zticks)>1:
             zMinorTicks += 1
-            step = (zticks_float[1]-zticks_float[0])/zMinorTicks
             ticks = []
-            for i in range(-zMinorTicks, int(1/step)):
-                z = zticks_float[1]+step*i
-                if z<=0 or z>=1: continue
-                v1 = (z-zTickThickness/4, -zTickLength/5.7, 0)
-                v2 = (z+zTickThickness/4,  zTickLength/5.7, 0)
-                ticks.append(shapes.Rectangle(v1, v2))
-            if len(ticks)>1:
+            for i in range(1,len(zticks)):
+                t0, t1 = zticks[i-1].pos(), zticks[i].pos()
+                dt = t1 - t0
+                for j in range(1, zMinorTicks):
+                    mt = dt*(j/zMinorTicks) + t0
+                    v1 = (mt[0]-zTickThickness/4, -zTickLength/5., 0)
+                    v2 = (mt[0]+zTickThickness/4,  zTickLength/5., 0)
+                    ticks.append(shapes.Rectangle(v1, v2))
+            if len(ticks):
                 zminticks = merge(ticks).c(zTickColor)
                 zminticks.RotateZ(-45)
                 zminticks.RotateY(-90)
                 zminticks.name = "zMinorTicks"
-                min_ticks.append(zminticks)
+                minorticks.append(zminticks)
+
 
     ################################################ axes tick NUMERIC text labels
     labels = []
@@ -1251,7 +1251,7 @@ def buildAxes(obj=None,
             labels.append(zlab.c(zTickColor))
 
     acts = titles + lines + labels + grids + grids2 + highlights + framelines
-    acts += maj_ticks + min_ticks + originmarks + cones
+    acts += majorticks + minorticks + originmarks + cones
 
     tol *= mag(ss)
     orig = np.array([min_bns[0], min_bns[2], min_bns[4]]) - tol

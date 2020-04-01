@@ -246,93 +246,116 @@ class Glyph(Mesh):
     """
     At each vertex of a mesh, another mesh - a `'glyph'` - is shown with
     various orientation options and coloring.
-
     The input ``mesh`` can also be a simple list of 2D or 3D coordinates.
-
     Color can be specified as a colormap which maps the size of the orientation
     vectors in `orientationArray`.
 
     :param orientationArray: list of vectors, ``vtkAbstractArray``
         or the name of an already existing points array.
     :type orientationArray: list, str, vtkAbstractArray
+
+    :param bool scaleByScalar: glyph mesh is scaled by the active scalars.
     :param bool scaleByVectorSize: glyph mesh is scaled by the size of the vectors.
+    :param bool scaleByVectorComponents: glyph mesh is scaled by the 3 vectors components.
+    :param bool colorByScalar: glyph mesh is colored based on the scalar value.
+    :param bool colorByVectorSize: glyph mesh is colored based on the vector size.
+
     :param float tol: set a minimum separation between two close glyphs
         (not compatible with `orientationArray` being a list).
 
     |glyphs.py|_ |glyphs_arrows.py|_
-
     |glyphs| |glyphs_arrows|
     """
 
-    def __init__(self, mesh, glyphObj, orientationArray=None,
-                 scaleByVectorSize=False, tol=0, c=None, alpha=1):
-        cmap = None
-        # user passing a color map to map orientationArray sizes
-        if c in list(_mapscales.cmap_d.keys()):
-            cmap = c
-            c = None
+    def __init__(self,
+                 mesh,
+                 glyphObj,
+                 orientationArray=None,
+                 scaleByScalar=False,
+                 scaleByVectorSize=False,
+                 scaleByVectorComponents=False,
+                 colorByScalar=False,
+                 colorByVectorSize=False,
+                 tol=0,
+                 c='white',
+                 alpha=1,
+                 ):
 
         if utils.isSequence(mesh):
             # create a cloud of points
-            mesh = Points(mesh)
-            settings.collectable_actors.pop()
+            poly = utils.buildPolyData(mesh)
+        elif isinstance(mesh, vtk.vtkPolyData):
+            poly = mesh
+        else:
+            poly = mesh.polydata()
 
         if tol:
-            mesh = mesh.clone().clean(tol)
-        poly = mesh.polydata()
+            cleanPolyData = vtk.vtkCleanPolyData()
+            cleanPolyData.SetInputData(poly)
+            cleanPolyData.SetTolerance(tol)
+            cleanPolyData.Update()
+            poly = cleanPolyData.GetOutput()
 
-        # user is passing an array of point colors
-        if utils.isSequence(c) and len(c) > 3:
+        if isinstance(glyphObj, Mesh):
+            glyphObj = glyphObj.clean().polydata()
+
+        cmap=''
+        if c in list(_mapscales.cmap_d.keys()):
+            cmap = c
+            c = None
+        elif utils.isSequence(c): # user passing an array of point colors
             ucols = vtk.vtkUnsignedCharArray()
             ucols.SetNumberOfComponents(3)
-            ucols.SetName("glyphRGB")
+            ucols.SetName("glyph_RGB")
             for col in c:
                 cl = getColor(col)
                 ucols.InsertNextTuple3(cl[0]*255, cl[1]*255, cl[2]*255)
             poly.GetPointData().SetScalars(ucols)
             c = None
 
-        if isinstance(glyphObj, Mesh):
-            glyphObj = glyphObj.clean().polydata()
-
         gly = vtk.vtkGlyph3D()
         gly.SetInputData(poly)
         gly.SetSourceData(glyphObj)
-        gly.SetColorModeToColorByScalar()
-        gly.SetRange(mesh.mapper().GetScalarRange())
+
+        if scaleByScalar:
+            gly.SetScaleModeToScaleByScalar()
+        elif scaleByVectorSize:
+            gly.SetScaleModeToScaleByVector()
+        elif scaleByVectorComponents:
+            gly.SetScaleModeToScaleByVectorComponents()
+        else:
+            gly.SetScaleModeToDataScalingOff()
+
+        if colorByVectorSize:
+            gly.SetVectorModeToUseVector()
+            gly.SetColorModeToColorByVector()
+        elif colorByScalar:
+            gly.SetColorModeToColorByScalar()
+        else:
+            gly.SetColorModeToColorByScale()
 
         if orientationArray is not None:
             gly.OrientOn()
-            gly.SetScaleFactor(1)
-
-            if scaleByVectorSize:
-                gly.SetScaleModeToScaleByVector()
-            else:
-                gly.SetScaleModeToDataScalingOff()
-
             if isinstance(orientationArray, str):
                 if orientationArray.lower() == "normals":
                     gly.SetVectorModeToUseNormal()
                 else:  # passing a name
                     gly.SetInputArrayToProcess(0, 0, 0, 0, orientationArray)
                     gly.SetVectorModeToUseVector()
-            elif isinstance(orientationArray, vtk.vtkAbstractArray):
-                poly.GetPointData().AddArray(orientationArray)
+            elif utils.isSequence(orientationArray) and not tol: # passing a list
+                varr = vtk.vtkFloatArray()
+                varr.SetNumberOfComponents(3)
+                varr.SetName("glyph_vectors")
+                for v in orientationArray:
+                    varr.InsertNextTuple(v)
+                poly.GetPointData().AddArray(varr)
                 poly.GetPointData().SetActiveVectors("glyph_vectors")
                 gly.SetInputArrayToProcess(0, 0, 0, 0, "glyph_vectors")
                 gly.SetVectorModeToUseVector()
-            elif utils.isSequence(orientationArray) and not tol:  # passing a list
-                mesh.addPointVectors(orientationArray, "glyph_vectors")
-                gly.SetInputArrayToProcess(0, 0, 0, 0, "glyph_vectors")
-
-            if cmap:
-                gly.SetColorModeToColorByVector()
-            else:
-                gly.SetColorModeToColorByScalar()
 
         gly.Update()
 
-        Mesh.__init__(self, gly.GetOutput(), c, alpha)
+        Mesh.__init__(self, gly.GetOutput(), c=c, alpha=alpha)
         self.flat()
 
         if cmap:
@@ -345,11 +368,13 @@ class Glyph(Mesh):
             self.mapper().SetLookupTable(lut)
             self.mapper().ScalarVisibilityOn()
             self.mapper().SetScalarModeToUsePointData()
-            rng = gly.GetOutput().GetPointData().GetScalars().GetRange()
-            self.mapper().SetScalarRange(rng[0], rng[1])
+            if gly.GetOutput().GetPointData().GetScalars():
+                rng = gly.GetOutput().GetPointData().GetScalars().GetRange()
+                self.mapper().SetScalarRange(rng[0], rng[1])
 
         settings.collectable_actors.append(self)
         self.name = "Glyph"
+
 
 class Tensors(Mesh):
     """Geometric representation of tensors defined on a domain or set of points.
@@ -507,6 +532,14 @@ class Line(Mesh):
         #self.SetOrigin((firstpt+lastpt)/2)
         settings.collectable_actors.append(self)
         self.name = "Line"
+
+    def length(self):
+        """Calculate length of line."""
+        distance = 0.
+        pts = self.points()
+        for i in range(1,len(pts)):
+            distance += np.linalg.norm(pts[i]-pts[i-1])
+        return distance
 
 
 class DashedLine(Mesh):
@@ -690,6 +723,14 @@ class Spline(Mesh):
         self.top = np.array(points[-1])
         settings.collectable_actors.append(self)
         self.name = "Spline"
+
+    def length(self):
+        """Calculate length of line."""
+        distance = 0.
+        pts = self.points()
+        for i in range(1,len(pts)):
+            distance += np.linalg.norm(pts[i]-pts[i-1])
+        return distance
 
 
 def KSpline(points,
@@ -946,7 +987,7 @@ class Arrow(Mesh):
         self.name = "Arrow"
 
 
-def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12):
+def Arrows(startPoints, endPoints=None, s=None, scale=1, c=None, alpha=1, res=12):
     """
     Build arrows between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
@@ -955,7 +996,7 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12)
 
     :param float s: fix aspect-ratio of the arrow and scale its cross section
     :param float scale: apply a rescaling factor to the length
-    :param c: color or array of colors, can also be a color map name.
+    :param c: color or color map name.
     :param float alpha: set transparency
     :param int res: set arrow resolution
 
@@ -976,12 +1017,13 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c="r", alpha=1, res=12)
         sz = 0.02 * s
         arr.SetTipRadius(sz*2)
         arr.SetShaftRadius(sz)
-        arr.SetTipLength(sz * 10)
+        arr.SetTipLength(sz*10)
     arr.Update()
-    pts = Points(startPoints, r=0.001, c=c, alpha=alpha).off()
     orients = (endPoints - startPoints) * scale
-    arrg = Glyph(pts, arr.GetOutput(),
-                 orientationArray=orients, scaleByVectorSize=True,
+    arrg = Glyph(startPoints, arr.GetOutput(),
+                 orientationArray=orients,
+                 scaleByVectorSize=True,
+                 colorByVectorSize=True,
                  c=c, alpha=alpha).flat()
     settings.collectable_actors.append(arrg)
     arrg.name = "Arrows"
@@ -1069,7 +1111,9 @@ def Arrows2D(startPoints, endPoints=None,
              headWidth=0.2,
              fill=True,
              scale=1,
-             c="r", alpha=1):
+             c=None,
+             cmap=None,
+             alpha=1):
     """
     Build 2D arrows between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
@@ -1083,7 +1127,7 @@ def Arrows2D(startPoints, endPoints=None,
     :param bool fill: if False only generate the outline
 
     :param float scale: apply a rescaling factor to the length
-    :param c: color or array of colors, can also be a color map name.
+    :param c: color
     :param float alpha: set transparency
 
     :Example:
@@ -1122,6 +1166,9 @@ def Arrows2D(startPoints, endPoints=None,
     arrg = Glyph(pts, arr.polydata(False),
                  orientationArray=orients, scaleByVectorSize=True,
                  c=c, alpha=alpha).flat().lighting('ambient')
+    if c is not None:
+        arrg.color(c)
+
     settings.collectable_actors.append(arrg)
     arrg.name = "Arrows2D"
     return arrg
@@ -1318,6 +1365,14 @@ class Arc(Mesh):
         self.flat().lw(2)
         settings.collectable_actors.append(self)
         self.name = "Arc"
+
+    def length(self):
+        """Calculate length of the arc."""
+        distance = 0.
+        pts = self.points()
+        for i in range(1,len(pts)):
+            distance += np.linalg.norm(pts[i]-pts[i-1])
+        return distance
 
 
 class Sphere(Mesh):
@@ -1596,40 +1651,6 @@ class Ellipsoid(Mesh):
         self.info["vb_error"] = eb
         self.info["vc_error"] = ec
         return err
-
-#    def asphericity2(self):
-#        """Return a measure of how different an ellipsoid is froma sphere.
-#        Values close to zero correspond to a spheric object.
-#        """
-#        a,b,c = self.va, self.vb, self.vc
-#        asp = ((a/b)**2 + (b/a)**2 +(b/c)**2 +(c/b)**2 +(c/a)**2 +(a/c)**2)/6
-#        return asp
-#
-#    def asphericity_error2(self):
-#        """Calculate statistical error on the asphericity value."""
-#        a,b,c = self.va, self.vb, self.vc
-#        sqrtn = np.sqrt(self.nr_of_points)
-#        ea, eb, ec = a/2/sqrtn, b/2/sqrtn, b/2/sqrtn
-#
-#        #from sympy import *
-#        #init_printing(use_unicode=True)
-#        #a, b, c, ea, eb, ec = symbols("a b c, ea, eb,ec")
-#        #L = ((a/b)**2 + (b/a)**2 +(b/c)**2 +(c/b)**2 +(c/a)**2 +(a/c)**2)/6
-#        #dl2 = (diff(L, a) * ea) ** 2 + (diff(L, b) * eb) ** 2 + (diff(L, c) * ec) ** 2
-#        #print(dl2)
-#        #exit()
-#        dL2 = ea**2*(a/(3*c**2) + a/(3*b**2) - b**2/(3*a**3) - c**2/(3*a**3))**2 + eb**2*(-a**2/(3*b**3) + b/(3*c**2) - c**2/(3*b**3) + b/(3*a**2))**2 + ec**2*(-a**2/(3*c**3) - b**2/(3*c**3) + c/(3*b**2) + c/(3*a**2))**2
-#
-#        err = np.sqrt(dL2)
-#
-#        self.va_error = ea
-#        self.vb_error = eb
-#        self.vc_error = ec
-#        self.info["va_error"] = ea
-#        self.info["vb_error"] = eb
-#        self.info["vc_error"] = ec
-#        return err
-
 
 class Grid(Mesh):
     """Return an even or uneven 2D grid at `z=0`.

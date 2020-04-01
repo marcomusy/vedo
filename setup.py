@@ -72,7 +72,7 @@ setup(
 # python ~/Projects/vtkplotter/examples/tutorial.py
 
 # check notebooks:
-# cd ~/Projects/vtkplotter/examples/
+# cd ~/Projects/vtkplotter/notebooks/
 # jupyter notebook > /dev/null 2>&1
 
 # cd ~/Projects/vtkplotter/examples/

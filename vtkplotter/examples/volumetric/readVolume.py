@@ -9,8 +9,7 @@ from vtkplotter import *
 # to define the opacity transfer function in the range of the scalar.
 #  E.g.: setting alpha=[0, 0, 0, 1, 0, 0, 0] would make visible
 #  only voxels with value close to center of the range (see printed histogram).
-fpath = download("https://vtkplotter.embl.es/data/embryo.slc")
-vol = load(fpath, spacing=[1, 1, 1]) # returns Volume(vtkVolume)
+vol = load(datadir+'embryo.slc', spacing=[1, 1, 1]) # returns Volume(vtkVolume)
 vol.c("green").alpha([0, 0, 0.4, 0.9, 0.9])
 
 printHistogram(vol, logscale=True)

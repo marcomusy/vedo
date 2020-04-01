@@ -214,7 +214,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
     If fast=False the mesh is built "manually" by setting polygons and triangles
     one by one. This is the fallback case when a mesh contains faces of
     different number of vertices.
-    
+
     If tetras=True, interpret 4-point faces as tetrahedrons instead of surface quads.
     """
     if len(vertices[0]) < 3: # make sure it is 3d

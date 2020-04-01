@@ -117,7 +117,7 @@ class Morpher:
             newpts.append(newp)
             arrs.append([p, newp])
         sphere1.points(newpts)
-        hair = Arrows(arrs, s=0.3, alpha=0.5)
+        hair = Arrows(arrs, s=0.3, alpha=0.5, c='jet')
 
         zero = Point(pos, c="black")
         x1, x2, y1, y2, z1, z2 = self.target.polydata().GetBounds()

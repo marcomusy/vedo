@@ -61,6 +61,7 @@ __all__ = [
     "extractCellsByType",
     "pointCloudFrom",
     "pointDensity",
+    "visiblePoints",
 ]
 
 
@@ -1846,8 +1847,53 @@ def pointDensity(mesh, dims=(30,30,30), bounds=None, radius=None, computeGradien
     return vol.operation('/', img.GetScalarRange()[1])
 
 
+def visiblePoints(mesh, area=(), tol=None, invert=False):
+    """Extract points based on whether they are visible or not.
+    Visibility is determined by accessing the z-buffer of a rendering window.
+    The position of each input point is converted into display coordinates,
+    and then the z-value at that point is obtained.
+    If within the user-specified tolerance, the point is considered visible.
+    Associated data attributes are passed to the output as well.
 
+    This filter also allows you to specify a rectangular window in display (pixel)
+    coordinates in which the visible points must lie.
 
+    :param list area: specify a rectangular region as (xmin,xmax,ymin,ymax)
+    :param float tol: a tolerance in normalized display coordinate system
+    :param bool invert: select invisible points instead.
+
+    :Example:
+        .. code-block:: python
+
+            from vtkplotter import Ellipsoid, show, visiblePoints
+
+            s = Ellipsoid().rotateY(30)
+
+            #Camera options: pos, focalPoint, viewup, distance,
+            # clippingRange, parallelScale, thickness, viewAngle
+            camopts = dict(pos=(0,0,25), focalPoint=(0,0,0))
+            show(s, camera=camopts, offscreen=True)
+
+            m = visiblePoints(s)
+            #print('visible pts:', m.points()) # numpy array
+            show(m, newPlotter=True, axes=1)   # optionally draw result
+    """
+    # specify a rectangular region
+    from vtkplotter import settings
+    svp = vtk.vtkSelectVisiblePoints()
+    svp.SetInputData(mesh.polydata())
+    svp.SetRenderer(settings.plotter_instance.renderer)
+
+    if len(area)==4:
+        svp.SetSelection(area[0],area[1],area[2],area[3])
+    if tol is not None:
+        svp.SetTolerance(tol)
+    if invert:
+        svp.SelectInvisibleOn()
+    svp.Update()
+
+    m = Mesh(svp.GetOutput()).pointSize(5)
+    return m
 
 
 

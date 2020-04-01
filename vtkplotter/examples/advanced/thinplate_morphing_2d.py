@@ -68,7 +68,7 @@ class Morpher:
 
         text1 = Text2D(__doc__, c="k")
         text2 = Text2D("morphed vs target\nn.d.f.="+str(self.ndf), c="k")
-        arrows = Arrows(self.ptsource, self.pttarget, c='gray', alpha=0.5, s=1)
+        arrows = Arrows(self.ptsource, self.pttarget, alpha=0.5, s=1).c("k")
 
         self.morphed_source.pointSize(10).c('g')
         settings.interactorStyle = 7 # lock scene to 2D

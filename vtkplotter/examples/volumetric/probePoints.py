@@ -5,8 +5,7 @@ and plot a histogram of the values
 from vtkplotter import *
 import numpy as np
 
-fpath = download("https://vtkplotter.embl.es/data/embryo.slc")
-vol = load(fpath)
+vol = load(datadir+'embryo.slc')
 
 pts = np.random.rand(2000, 3)*256
 

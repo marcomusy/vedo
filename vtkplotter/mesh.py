@@ -51,7 +51,11 @@ def merge(*meshs):
     for a in acts:
         polyapp.AddInputData(a.polydata())
     polyapp.Update()
-    return Mesh(polyapp.GetOutput())
+    msh = Mesh(polyapp.GetOutput())
+    cprp = vtk.vtkProperty()
+    cprp.DeepCopy(acts[0].GetProperty())
+    msh.SetProperty(cprp)
+    return msh
 
 
 ####################################################
@@ -268,9 +272,9 @@ class Mesh(vtk.vtkFollower, ActorBase):
             return meshs
         return Assembly([self, meshs])
 
-    def __str__(self):
-        utils.printInfo(self)
-        return ""
+    #def __str__(self):
+    #    utils.printInfo(self)
+    #    return ""
 
     def _update(self, polydata):
         """Overwrite the polygonal mesh with a new vtkPolyData."""
@@ -775,6 +779,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         if lw is not None:
             if lw == 0:
                 self.GetProperty().EdgeVisibilityOff()
+                self.GetProperty().SetRepresentationToSurface()
                 return self
             self.GetProperty().EdgeVisibilityOn()
             self.GetProperty().SetLineWidth(lw)
@@ -1095,6 +1100,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         self._mapper.ScalarVisibilityOn()
         return self
 
+
     def clone(self):
         """
         Clone a ``Mesh`` object to make an exact copy of it.
@@ -1109,6 +1115,11 @@ class Mesh(vtk.vtkFollower, ActorBase):
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.GetProperty())
         cloned.SetProperty(pr)
+
+        if self.GetBackfaceProperty():
+            bfpr = vtk.vtkProperty()
+            bfpr.DeepCopy(self.GetBackfaceProperty())
+            cloned.SetBackfaceProperty(bfpr)
 
         # assign the same transformation to the copy
         cloned.SetOrigin(self.GetOrigin())
@@ -2538,17 +2549,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
         else:
             return mask1
 
-    def cellCenters(self):
-        """Get the list of cell centers of the mesh surface.
-
-        |delaunay2d| |delaunay2d.py|_
-        """
-        vcen = vtk.vtkCellCenters()
-        vcen.SetInputData(self.polydata())
-        vcen.Update()
-        return vtk_to_numpy(vcen.GetOutput().GetPoints().GetData())
-
-
     def boundaries(self,
                    boundaryEdges=True,
                    featureAngle=65,
@@ -2984,6 +2984,45 @@ class Mesh(vtk.vtkFollower, ActorBase):
         warpTo.SetAbsolute(absolute)
         warpTo.Update()
         return self._update(warpTo.GetOutput())
+
+    def warpByVectors(self, vects, factor=1, useCells=False):
+        """Modify point coordinates by moving points along vector times the scale factor.
+        Useful for showing flow profiles or mechanical deformation.
+        Input can be an existing point/cell data array or a new array, in this case
+        it will be named 'WarpVectors'.
+
+        :parameter float factor: value to scale displacement
+        :parameter bool useCell: if True, look for cell array instead of point array
+
+        Example:
+            .. code-block:: python
+
+                from vtkplotter import *
+                b = load(datadir+'dodecahedron.vtk').computeNormals()
+                b.warpByVectors("Normals", factor=0.15).show()
+
+            |warpv|
+        """
+        wf = vtk.vtkWarpVector()
+        wf.SetInputDataObject(self.polydata())
+
+        if useCells:
+            asso = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
+        else:
+            asso = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
+
+        vname = vects
+        if utils.isSequence(vects):
+            varr = numpy_to_vtk(np.ascontiguousarray(vects), deep=True)
+            vname = "WarpVectors"
+            if useCells:
+                self.addCellVectors(varr, vname)
+            else:
+                self.addPointVectors(varr, vname)
+        wf.SetInputArrayToProcess(0, 0, 0, asso, vname)
+        wf.SetScaleFactor(factor)
+        wf.Update()
+        return self._update(wf.GetOutput())
 
 
     def thinPlateSpline(self, sourcePts, targetPts, userFunctions=(None,None), sigma=1):

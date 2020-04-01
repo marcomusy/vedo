@@ -1,8 +1,6 @@
 #!/bin/bash
 # source run_all.sh
 #
-printf "\033c"
-
 echo #############################################
 echo    Press F1 at anytime to skip example
 echo #############################################

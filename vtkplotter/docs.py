@@ -126,7 +126,7 @@ google-chrome --enable-webgl --use-gl=desktop
 _defs = """
 
 .. |tutorial_spline| image:: https://user-images.githubusercontent.com/32848391/35976041-15781de8-0cdf-11e8-997f-aeb725bc33cc.png
-    :width: 350 px
+    :width: 300 px
 
 .. |tutorial.py| replace:: tutorial.py
 .. _tutorial.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/tutorial.py
@@ -135,21 +135,21 @@ _defs = """
 .. |thinplate_grid.py| replace:: thinplate_grid.py
 .. _thinplate_grid.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/thinplate_grid.py
 .. |thinplate_grid| image:: https://user-images.githubusercontent.com/32848391/51433540-d188b380-1c4c-11e9-81e7-a1cf4642c54b.png
-    :width: 350 px
+    :width: 300 px
     :target: thinplate_grid.py_
     :alt: thinplate_grid.py
 
 .. |gyroscope2.py| replace:: gyroscope2.py
 .. _gyroscope2.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/gyroscope2.py
 .. |gyroscope2| image:: https://user-images.githubusercontent.com/32848391/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif
-    :width: 350 px
+    :width: 300 px
     :target: gyroscope2.py_
     :alt: gyroscope2.py
 
 .. |trail.py| replace:: trail.py
 .. _trail.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/trail.py
 .. |trail| image:: https://user-images.githubusercontent.com/32848391/58370826-4aee2680-7f0b-11e9-91e6-3120770cfede.gif
-    :width: 350 px
+    :width: 300 px
     :target: trail.py_
     :alt: trail.py
 
@@ -159,21 +159,21 @@ _defs = """
 .. |quadratic_morphing.py| replace:: quadratic_morphing.py
 .. _quadratic_morphing.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/quadratic_morphing.py
 .. |quadratic_morphing| image:: https://user-images.githubusercontent.com/32848391/50738890-db380300-11d8-11e9-9cef-4c1276cca334.jpg
-    :width: 350 px
+    :width: 300 px
     :target: quadratic_morphing.py_
     :alt: quadratic_morphing.py
 
 .. |align1.py| replace:: align1.py
 .. _align1.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/align1.py
 .. |align1| image:: https://user-images.githubusercontent.com/32848391/50738875-c196bb80-11d8-11e9-8bdc-b80fd01a928d.jpg
-    :width: 350 px
+    :width: 300 px
     :target: align1.py_
     :alt: align1.py
 
 .. |align2.py| replace:: align2.py
 .. _align2.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/align2.py
 .. |align2| image:: https://user-images.githubusercontent.com/32848391/50738874-c196bb80-11d8-11e9-9587-2177d1680b70.jpg
-    :width: 350 px
+    :width: 300 px
     :target: align2.py_
     :alt: align2.py
 
@@ -186,28 +186,28 @@ _defs = """
 .. |shrink.py| replace:: shrink.py
 .. _shrink.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/shrink.py
 .. |shrink| image:: https://user-images.githubusercontent.com/32848391/46819143-41042280-cd83-11e8-9492-4f53679887fa.png
-    :width: 350 px
+    :width: 300 px
     :target: shrink.py_
     :alt: shrink.py
 
 .. |aspring.py| replace:: aspring.py
 .. _aspring.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/aspring.py
 .. |aspring| image:: https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif
-    :width: 350 px
+    :width: 300 px
     :target: aspring.py_
     :alt: aspring.py
 
 .. |delaunay2d.py| replace:: delaunay2d.py
 .. _delaunay2d.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/delaunay2d.py
 .. |delaunay2d| image:: https://user-images.githubusercontent.com/32848391/50738865-c0658e80-11d8-11e9-8616-b77363aa4695.jpg
-    :width: 350 px
+    :width: 300 px
     :target: delaunay2d.py_
     :alt: delaunay2d.py
 
 .. |moving_least_squares1D.py| replace:: moving_least_squares1D.py
 .. _moving_least_squares1D.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/moving_least_squares1D.py
 .. |moving_least_squares1D| image:: https://user-images.githubusercontent.com/32848391/50738937-61544980-11d9-11e9-8be8-8826032b8baf.jpg
-    :width: 350 px
+    :width: 300 px
     :target: moving_least_squares1D.py_
     :alt: moving_least_squares1D.py
 
@@ -220,7 +220,7 @@ _defs = """
 .. |fatlimb.py| replace:: fatlimb.py
 .. _fatlimb.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/fatlimb.py
 .. |fatlimb| image:: https://user-images.githubusercontent.com/32848391/50738945-7335ec80-11d9-11e9-9d3f-c6c19df8f10d.jpg
-    :width: 350 px
+    :width: 300 px
     :target: fatlimb.py_
     :alt: fatlimb.py
 
@@ -233,35 +233,35 @@ _defs = """
 .. |mesh_coloring.py| replace:: mesh_coloring.py
 .. _mesh_coloring.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/mesh_coloring.py
 .. |mesh_coloring| image:: https://user-images.githubusercontent.com/32848391/50738856-bf346180-11d8-11e9-909c-a3f9d32c4e8c.jpg
-    :width: 350 px
+    :width: 300 px
     :target: mesh_coloring.py_
     :alt: mesh_coloring.py
 
 .. |mesh_alphas.py| replace:: mesh_alphas.py
 .. _mesh_alphas.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/mesh_alphas.py
 .. |mesh_alphas| image:: https://user-images.githubusercontent.com/32848391/50738857-bf346180-11d8-11e9-80a1-d283aed0b305.jpg
-    :width: 350 px
+    :width: 300 px
     :target: mesh_alphas.py_
     :alt: mesh_alphas.py
 
 .. |mesh_bands.py| replace:: mesh_bands.py
 .. _mesh_bands.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/mesh_bands.py
 .. |mesh_bands| image:: https://user-images.githubusercontent.com/32848391/51211548-26a78b00-1916-11e9-9306-67b677d1be3a.png
-    :width: 350 px
+    :width: 300 px
     :target: mesh_bands.py_
     :alt: mesh_bands.py
 
 .. |mesh_custom.py| replace:: mesh_custom.py
 .. _mesh_custom.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/mesh_custom.py
 .. |mesh_custom| image:: https://user-images.githubusercontent.com/32848391/51390972-20d9c180-1b31-11e9-955d-025f1ef24cb7.png
-    :width: 350 px
+    :width: 300 px
     :target: mesh_custom.py_
     :alt: mesh_custom.py
 
 .. |connVtx.py| replace:: connVtx.py
 .. _connVtx.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/connVtx.py
 .. |connVtx| image:: https://user-images.githubusercontent.com/32848391/51558919-ec436e00-1e80-11e9-91ac-0787c35fc20e.png
-    :width: 350 px
+    :width: 300 px
     :target: connVtx.py_
     :alt: connVtx.py
 
@@ -280,54 +280,54 @@ _defs = """
 .. |gyroscope1.py| replace:: gyroscope1.py
 .. _gyroscope1.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/gyroscope1.py
 .. |gyroscope1| image:: https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif
-    :width: 350 px
+    :width: 300 px
     :target: gyroscope1.py_
     :alt: gyroscope1.py
 
 .. |icon.py| replace:: icon.py
 .. _icon.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/icon.py
 .. |icon| image:: https://user-images.githubusercontent.com/32848391/50739009-2bfc2b80-11da-11e9-9e2e-a5e0e987a91a.jpg
-    :width: 350 px
+    :width: 300 px
     :target: icon.py_
 
 .. |lights.py| replace:: lights.py
 .. _lights.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/lights.py
-    :width: 350 px
+    :width: 300 px
     :target: lights.py_
     :alt: lights.py
 
 .. |lorenz.py| replace:: lorenz.py
 .. _lorenz.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/lorenz.py
 .. |lorenz| image:: https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png
-    :width: 350 px
+    :width: 300 px
     :target: lorenz.py_
     :alt: lorenz.py
 
 .. |sliders.py| replace:: sliders.py
 .. _sliders.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/sliders.py
 .. |sliders| image:: https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg
-    :width: 350 px
+    :width: 300 px
     :target: sliders.py_
     :alt: sliders.py
 
 .. |buttons.py| replace:: buttons.py
 .. _buttons.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/buttons.py
 .. |buttons| image:: https://user-images.githubusercontent.com/32848391/50738870-c0fe2500-11d8-11e9-9b78-92754f5c5968.jpg
-    :width: 350 px
+    :width: 300 px
     :target: buttons.py_
     :alt: buttons.py
 
 .. |cutter.py| replace:: cutter.py
 .. _cutter.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/cutter.py
 .. |cutter| image:: https://user-images.githubusercontent.com/32848391/50738866-c0658e80-11d8-11e9-955b-551d4d8b0db5.jpg
-    :width: 350 px
+    :width: 300 px
     :target: cutter.py_
     :alt: cutter.py
 
 .. |makeVideo.py| replace:: makeVideo.py
 .. _makeVideo.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/makeVideo.py
 .. |makeVideo| image:: https://user-images.githubusercontent.com/32848391/50739007-2bfc2b80-11da-11e9-97e6-620a3541a6fa.jpg
-    :width: 350 px
+    :width: 300 px
     :target: makeVideo.py_
     :alt: makeVideo.py
 
@@ -337,35 +337,35 @@ _defs = """
 .. |fitspheres2.py| replace:: fitspheres2.py
 .. _fitspheres2.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/fitspheres2.py
 .. |fitspheres2| image:: https://user-images.githubusercontent.com/32848391/50738943-687b5780-11d9-11e9-87a6-054e0fe76241.jpg
-    :width: 350 px
+    :width: 300 px
     :target: fitspheres2.py_
     :alt: fitspheres2.py
 
 .. |plot4_fxy.py| replace:: plot4_fxy.py
 .. _plot4_fxy.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/plot4_fxy.py
 .. |plot4_fxy| image:: https://user-images.githubusercontent.com/32848391/36611824-fd524fac-18d4-11e8-8c76-d3d1b1bb3954.png
-    :width: 350 px
+    :width: 300 px
     :target: plot4_fxy.py_
     :alt: plot4_fxy.py
 
 .. |histo_hexagonal.py| replace:: histo_hexagonal.py
 .. _histo_hexagonal.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/histo_hexagonal.py
 .. |histo_hexagonal| image:: https://user-images.githubusercontent.com/32848391/72434748-b471bc80-379c-11ea-95d7-d70333770582.png
-    :width: 350 px
+    :width: 300 px
     :target: histo_hexagonal.py_
     :alt: histo_hexagonal.py
 
 .. |histo_1D.py| replace:: histo_1D.py
 .. _histo_1D.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/histo_1D.py
 .. |histo_1D| image:: https://user-images.githubusercontent.com/32848391/68141260-77cc4e00-ff2d-11e9-9280-0efc5b87314d.png
-    :width: 350 px
+    :width: 300 px
     :target: histo_1D.py_
     :alt: histo_1D.py
 
 .. |histo_violin.py| replace:: histo_violin.py
 .. _histo_violin.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/histo_violin.py
 .. |histo_violin| image:: https://user-images.githubusercontent.com/32848391/73481240-b55d3d80-439b-11ea-89a4-6c35ecc84b0d.png
-    :width: 350 px
+    :width: 300 px
     :target: histo_violin.py_
     :alt: histo_violin.py
 
@@ -373,49 +373,49 @@ _defs = """
 .. |align3.py| replace:: align3.py
 .. _align3.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/align3.py
 .. |align3| image:: https://user-images.githubusercontent.com/32848391/50738873-c196bb80-11d8-11e9-8653-a41108a5f02d.png
-    :width: 350 px
+    :width: 300 px
     :target: align3.py_
     :alt: align3.py
 
 .. |pca.py| replace:: pca.py
 .. _pca.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/pca.py
 .. |pca| image:: https://user-images.githubusercontent.com/32848391/50738852-be9bcb00-11d8-11e9-8ac8-ad9278d9cee0.jpg
-    :width: 350 px
+    :width: 300 px
     :target: pca.py_
     :alt: pca.py
 
 .. |cell_colony.py| replace:: cell_colony.py
 .. _cell_colony.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/cell_colony.py
 .. |cell_colony| image:: https://user-images.githubusercontent.com/32848391/50738947-7335ec80-11d9-11e9-9a45-6053b4eaf9f9.jpg
-    :width: 350 px
+    :width: 300 px
     :target: cell_colony.py_
     :alt: cell_colony.py
 
 .. |mesh_smoothers.py| replace:: mesh_smoothers.py
 .. _mesh_smoothers.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/mesh_smoothers.py
 .. |mesh_smoothers| image:: https://user-images.githubusercontent.com/32848391/50738939-67e2c100-11d9-11e9-90cb-716ff3f03f67.jpg
-    :width: 350 px
+    :width: 300 px
     :target: mesh_smoothers.py_
     :alt: mesh_smoothers.py
 
 .. |moving_least_squares3D.py| replace:: moving_least_squares3D.py
 .. _moving_least_squares3D.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/moving_least_squares3D.py
 .. |moving_least_squares3D| image:: https://user-images.githubusercontent.com/32848391/50738935-61544980-11d9-11e9-9c20-f2ce944d2238.jpg
-    :width: 350 px
+    :width: 300 px
     :target: moving_least_squares3D.py_
     :alt: moving_least_squares3D.py
 
 .. |moving_least_squares2D.py| replace:: moving_least_squares2D.py
 .. _moving_least_squares2D.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/moving_least_squares2D.py
 .. |moving_least_squares2D| image:: https://user-images.githubusercontent.com/32848391/50738936-61544980-11d9-11e9-9efb-e2a923762b72.jpg
-    :width: 350 px
+    :width: 300 px
     :target: moving_least_squares2D.py_
     :alt: moving_least_squares2D.py
 
 .. |boolean.py| replace:: boolean.py
 .. _boolean.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/boolean.py
 .. |boolean| image:: https://user-images.githubusercontent.com/32848391/50738871-c0fe2500-11d8-11e9-8812-442b69be6db9.png
-    :width: 350 px
+    :width: 300 px
     :target: boolean.py_
     :alt: boolean.py
 
@@ -425,48 +425,48 @@ _defs = """
 .. |probeLine.py| replace:: probeLine.py
 .. _probeLine.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/probeLine.py
 .. |probeLine| image:: https://user-images.githubusercontent.com/32848391/48198460-3aa0a080-e359-11e8-982d-23fadf4de66f.jpg
-    :width: 350 px
+    :width: 300 px
     :target: probeLine.py_
     :alt: probeLine.py
 
 .. |probePlane.py| replace:: probePlane.py
 .. _probePlane.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/probePlane.py
 .. |probePlane| image:: https://user-images.githubusercontent.com/32848391/48198461-3aa0a080-e359-11e8-8c29-18f287f105e6.jpg
-    :width: 350 px
+    :width: 300 px
     :target: probePlane.py_
     :alt: probePlane.py
 
 .. |volumeOperations.py| replace:: volumeOperations.py
 .. _volumeOperations.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/volumeOperations.py
 .. |volumeOperations| image:: https://user-images.githubusercontent.com/32848391/48198940-d1ba2800-e35a-11e8-96a7-ffbff797f165.jpg
-    :width: 350 px
+    :width: 300 px
     :alt: volumeOperations.py
 
 .. |clustering.py| replace:: clustering.py
 .. _clustering.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/clustering.py
 .. |clustering| image:: https://user-images.githubusercontent.com/32848391/46817286-2039ce00-cd7f-11e8-8b29-42925e03c974.png
-    :width: 350 px
+    :width: 300 px
     :target: clustering.py_
     :alt: clustering.py
 
 .. |thinplate_morphing1.py| replace:: thinplate_morphing1.py
 .. _thinplate_morphing1.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/thinplate_morphing1.py
 .. |thinplate_morphing1| image:: https://user-images.githubusercontent.com/32848391/51403917-34495480-1b52-11e9-956c-918c7805a9b5.png
-    :width: 350 px
+    :width: 300 px
     :target: thinplate_morphing1.py_
     :alt: thinplate_morphing1.py
 
 .. |colorcubes.py| replace:: colorcubes.py
 .. _colorcubes.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/colorcubes.py
 .. |colorcubes| image:: https://user-images.githubusercontent.com/32848391/50738867-c0658e80-11d8-11e9-9e05-ac69b546b7ec.png
-    :width: 350 px
+    :width: 300 px
     :target: colorcubes.py_
     :alt: colorcubes.py
 
 .. |colorpalette.py| replace:: colorpalette.py
 .. _colorpalette.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/colorpalette.py
 .. |colorpalette| image:: https://user-images.githubusercontent.com/32848391/50739011-2c94c200-11da-11e9-8f36-ede1b2a014a8.jpg
-    :width: 350 px
+    :width: 300 px
     :target: colorpalette.py
     :alt: colorpalette.py
 
@@ -486,7 +486,7 @@ _defs = """
 .. |ribbon.py| replace:: ribbon.py
 .. _ribbon.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/ribbon.py
 .. |ribbon| image:: https://user-images.githubusercontent.com/32848391/50738851-be9bcb00-11d8-11e9-80ee-bd73c1c29c06.jpg
-    :width: 350 px
+    :width: 300 px
     :target: ribbon.py_
     :alt: ribbon.py
 
@@ -501,27 +501,27 @@ _defs = """
 .. |earth.py| replace:: earth.py
 .. _earth.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/earth.py
 .. |earth| image:: https://user-images.githubusercontent.com/32848391/51031592-5a448700-159d-11e9-9b66-bee6abb18679.png
-    :width: 350 px
+    :width: 300 px
     :target: earth.py_
     :alt: earth.py
 
 .. |brownian2D.py| replace:: brownian2D.py
 .. _brownian2D.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/brownian2D.py
 .. |brownian2D| image:: https://user-images.githubusercontent.com/32848391/50738948-73ce8300-11d9-11e9-8ef6-fc4f64c4a9ce.gif
-    :width: 350 px
+    :width: 300 px
     :target: brownian2D.py_
 
 .. |gas.py| replace:: gas.py
 .. _gas.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/gas.py
 .. |gas| image:: https://user-images.githubusercontent.com/32848391/50738954-7e891800-11d9-11e9-95aa-67c92ca6476b.gif
-    :width: 350 px
+    :width: 300 px
     :target: gas.py_
     :alt: gas.py
 
 .. |tube.py| replace:: tube.py
 .. _tube.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/tube.py
 .. |tube| image:: https://user-images.githubusercontent.com/32848391/51801626-adc30000-2240-11e9-8866-9d9d5d8790ab.png
-    :width: 350 px
+    :width: 300 px
     :target: tube.py_
     :alt: tube.py
 
@@ -540,27 +540,27 @@ _defs = """
     :alt: cutWithMesh.py
 
 .. |paraboloid| image:: https://user-images.githubusercontent.com/32848391/51211547-260ef480-1916-11e9-95f6-4a677e37e355.png
-    :width: 350 px
+    :width: 300 px
     :alt: paraboloid
 
 .. |isosurfaces.py| replace:: isosurfaces.py
 .. _isosurfaces.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/isosurfaces.py
 .. |isosurfaces| image:: https://user-images.githubusercontent.com/32848391/51558920-ec436e00-1e80-11e9-9d96-aa9b7c72d58b.png
-    :width: 350 px
+    :width: 300 px
     :target: isosurfaces.py_
     :alt: isosurfaces.py
 
 .. |meshquality.py| replace:: meshquality.py
 .. _meshquality.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/meshquality.py
 .. |meshquality| image:: https://user-images.githubusercontent.com/32848391/51831269-fb4b7580-22f1-11e9-81ea-13467a5649ca.png
-    :width: 350 px
+    :width: 300 px
     :target: meshquality.py_
     :alt: meshquality.py
 
 .. |geodesic.py| replace:: geodesic.py
 .. _geodesic.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/geodesic.py
 .. |geodesic| image:: https://user-images.githubusercontent.com/32848391/51855637-015f4780-232e-11e9-92ca-053a558e7f70.png
-    :width: 350 px
+    :width: 300 px
     :target: geodesic.py_
     :alt: geodesic.py
 
@@ -568,7 +568,7 @@ _defs = """
 .. |cutAndCap.py| replace:: cutAndCap.py
 .. _cutAndCap.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/cutAndCap.py
 .. |cutAndCap| image:: https://user-images.githubusercontent.com/32848391/51930515-16ee7300-23fb-11e9-91af-2b6b3d626246.png
-    :width: 350 px
+    :width: 300 px
     :target: cutAndCap.py_
     :alt: cutAndCap.py
 
@@ -576,7 +576,7 @@ _defs = """
 .. |convexHull.py| replace:: convexHull.py
 .. _convexHull.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/convexHull.py
 .. |convexHull| image:: https://user-images.githubusercontent.com/32848391/51932732-068cc700-2400-11e9-9b68-30294a4fa4e3.png
-    :width: 350 px
+    :width: 300 px
     :target: convexHull.py_
     :alt: convexHull.py
 
@@ -593,51 +593,51 @@ _defs = """
 .. _annotations.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/annotations.py
 
 .. |Cone| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestCone.png
-    :width: 350 px
+    :width: 300 px
 
 .. |Cylinder| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestCylinder.png
-    :width: 350 px
+    :width: 300 px
 
 .. |Disk| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestDisk.png
-    :width: 350 px
+    :width: 300 px
 
 .. |OrientedArrow| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestOrientedArrow.png
-    :width: 350 px
+    :width: 300 px
 
 .. |Plane| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestPlane.png
-    :width: 350 px
+    :width: 300 px
 
 .. |Polygon| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestRegularPolygonSource.png
-    :width: 350 px
+    :width: 300 px
 
 .. |Sphere| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/GeometricObjects/TestSphere.png
-    :width: 350 px
+    :width: 300 px
 
 
 .. |embryoslider| image:: https://user-images.githubusercontent.com/32848391/52141624-975ce000-2656-11e9-8d31-2a3c92ab79d6.png
-    :width: 350 px
+    :width: 300 px
 
 .. |isosurfaces1| image:: https://user-images.githubusercontent.com/32848391/52141625-975ce000-2656-11e9-91fc-291e072fc4c1.png
-    :width: 350 px
+    :width: 300 px
 
 .. |splitmesh.py| replace:: splitmesh.py
 .. _splitmesh.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/splitmesh.py
 .. |splitmesh| image:: https://user-images.githubusercontent.com/32848391/52141626-97f57680-2656-11e9-80ea-fcd3571a6422.png
-    :width: 350 px
+    :width: 300 px
     :target: splitmesh.py_
     :alt: splitmesh.py
 
 .. |thinplate_morphing2.py| replace:: thinplate_morphing2.py
 .. _thinplate_morphing2.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/thinplate_morphing2.py
 .. |thinplate_morphing2| image:: https://user-images.githubusercontent.com/32848391/52142303-9927a300-2658-11e9-98db-ebad4883f99f.png
-    :width: 350 px
+    :width: 300 px
     :target: thinplate_morphing2.py_
     :alt: thinplate_morphing2.py
 
 .. |projectsphere.py| replace:: projectsphere.py
 .. _projectsphere.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/projectsphere.py
 .. |projectsphere| image:: https://user-images.githubusercontent.com/32848391/52144163-c9be0b80-265d-11e9-9ce6-d6f2b919c214.png
-    :width: 350 px
+    :width: 300 px
     :target: projectsphere.py_
     :alt: projectsphere.py
 
@@ -645,14 +645,14 @@ _defs = """
 .. |mesh2volume.py| replace:: mesh2volume.py
 .. _mesh2volume.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/mesh2volume.py
 .. |mesh2volume| image:: https://user-images.githubusercontent.com/32848391/52168902-5638fe80-2730-11e9-8033-8e470a3d4f0f.jpg
-    :width: 350 px
+    :width: 300 px
     :target: mesh2volume.py_
     :alt: mesh2volume.py
 
 .. |markpoint.py| replace:: markpoint.py
 .. _markpoint.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/markpoint.py
 .. |markpoint| image:: https://user-images.githubusercontent.com/32848391/52169969-1fb7af80-2741-11e9-937f-5c331d9a1d11.jpg
-    :width: 350 px
+    :width: 300 px
     :target: markpoint.py_
     :alt: markpoint.py
 
@@ -662,35 +662,35 @@ _defs = """
 .. |read_vti.py| replace:: read_vti.py
 .. _read_vti.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/read_vti.py
 .. |read_vti| image:: https://user-images.githubusercontent.com/32848391/50739036-6bc31300-11da-11e9-89b3-04a75187f812.jpg
-    :width: 350 px
+    :width: 300 px
     :target: read_vti.py_
     :alt: read_vti.py
 
 .. |glyphs.py| replace:: glyphs.py
 .. _glyphs.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/glyphs.py
 .. |glyphs| image:: https://user-images.githubusercontent.com/32848391/52233403-47cd1d00-28bf-11e9-86b0-cbceebbde0de.jpg
-    :width: 350 px
+    :width: 300 px
     :target: glyphs.py_
     :alt: glyphs.py
 
 .. |glyphs_arrows.py| replace:: glyphs_arrows.py
 .. _glyphs_arrows.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/glyphs_arrows.py
 .. |glyphs_arrows| image:: https://user-images.githubusercontent.com/32848391/55897850-a1a0da80-5bc1-11e9-81e0-004c8f396b43.jpg
-    :width: 350 px
+    :width: 300 px
     :target: glyphs_arrows.py_
     :alt: glyphs_arrows.py
 
 .. |interpolateField.py| replace:: interpolateField.py
 .. _interpolateField.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/interpolateField.py
 .. |interpolateField| image:: https://user-images.githubusercontent.com/32848391/52416117-25b6e300-2ae9-11e9-8d86-575b97e543c0.png
-    :width: 350 px
+    :width: 300 px
     :target: interpolateField.py_
     :alt: interpolateField.py
 
 .. |rotateImage.py| replace:: rotateImage.py
 .. _rotateImage.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/rotateImage.py
 .. |rotateImage| image:: https://user-images.githubusercontent.com/32848391/52416910-fb662500-2aea-11e9-88ba-9c73128e8666.jpg
-    :width: 350 px
+    :width: 300 px
     :target: rotateImage.py_
     :alt: rotateImage.py
 
@@ -698,7 +698,7 @@ _defs = """
     :alt: basicshapes
 
 .. |lines| image:: https://user-images.githubusercontent.com/32848391/52503049-ac9cb600-2be4-11e9-86af-72a538af14ef.png
-    :width: 350 px
+    :width: 300 px
     :alt: lines
 
 .. |vlogo_large| image:: https://user-images.githubusercontent.com/32848391/52522716-4fa70b80-2c89-11e9-92a7-0d22cbe34758.png
@@ -722,42 +722,42 @@ _defs = """
 .. |fitline.py| replace:: fitline.py
 .. _fitline.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/fitline.py
 .. |fitline| image:: https://user-images.githubusercontent.com/32848391/50738864-c0658e80-11d8-11e9-8754-c670f1f331d6.jpg
-    :width: 350 px
+    :width: 300 px
     :target: fitline.py_
     :alt: fitline.py
 
 .. |sliders3d.py| replace:: sliders3d.py
 .. _sliders3d.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/sliders3d.py
 .. |sliders3d| image:: https://user-images.githubusercontent.com/32848391/52859555-4efcf200-312d-11e9-9290-6988c8295163.png
-    :width: 350 px
+    :width: 300 px
     :target: sliders3d.py_
     :alt: sliders3d.py
 
 .. |ex01_showmesh.py| replace:: ex01_showmesh.py
 .. _ex01_showmesh.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/ex01_show-mesh.py
 .. |ex01_showmesh| image:: https://user-images.githubusercontent.com/32848391/53026243-d2d31900-3462-11e9-9dde-518218c241b6.jpg
-    :width: 350 px
+    :width: 300 px
     :target: ex01_showmesh.py_
     :alt: ex01_showmesh.py
 
 .. |ex02_tetralize-mesh.py| replace:: ex02_tetralize-mesh.py
 .. _ex02_tetralize-mesh.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/ex02_tetralize-mesh.py
 .. |ex02_tetralize-mesh| image:: https://user-images.githubusercontent.com/32848391/53026244-d2d31900-3462-11e9-835a-1fa9d66d3dae.png
-    :width: 350 px
+    :width: 300 px
     :target: ex02_tetralize-mesh.py_
     :alt: ex02_tetralize-mesh.py
 
 .. |ex06_elasticity1.py| replace:: ex06_elasticity1.py
 .. _ex06_elasticity1.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/ex06_elasticity1.py
 .. |ex06_elasticity1| image:: https://user-images.githubusercontent.com/32848391/53026245-d2d31900-3462-11e9-9db4-96211569d114.jpg
-    :width: 350 px
+    :width: 300 px
     :target: ex06_elasticity1.py_
     :alt: ex06_elasticity1.py
 
 .. |ex06_elasticity2.py| replace:: ex06_elasticity2.py
 .. _ex06_elasticity2.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/ex06_elasticity2.py
 .. |ex06_elasticity2| image:: https://user-images.githubusercontent.com/32848391/53026246-d36baf80-3462-11e9-96a5-8eaf0bb0f9a4.jpg
-    :width: 350 px
+    :width: 300 px
     :target: ex06_elasticity2.py_
     :alt: ex06_elasticity2.py
 
@@ -765,41 +765,41 @@ _defs = """
 .. |flatarrow.py| replace:: flatarrow.py
 .. _flatarrow.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/basic/flatarrow.py
 .. |flatarrow| image:: https://user-images.githubusercontent.com/32848391/54612632-97c00780-4a59-11e9-8532-940c25a5dfd8.png
-    :width: 350 px
+    :width: 300 px
     :target: flatarrow.py_
     :alt: flatarrow.py
 
 .. |printhisto| image:: https://user-images.githubusercontent.com/32848391/55073046-03732780-508d-11e9-9bf9-c5de8631dd73.png
-    :width: 350 px
+    :width: 300 px
 
 .. |pmatrix| image:: https://user-images.githubusercontent.com/32848391/55098070-6da3c080-50bd-11e9-8f2b-be94a3f01831.png
-    :width: 350 px
+    :width: 300 px
 
 .. |distance2mesh.py| replace:: distance2mesh.py
 .. _distance2mesh.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/distance2mesh.py
 .. |distance2mesh| image:: https://user-images.githubusercontent.com/32848391/55965881-b5a71380-5c77-11e9-8680-5bddceab813a.png
-    :width: 350 px
+    :width: 300 px
     :target: distance2mesh.py_
     :alt: distance2mesh.py
 
 .. |pendulum.py| replace:: pendulum.py
 .. _pendulum.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/pendulum.py
 .. |pendulum| image:: https://user-images.githubusercontent.com/32848391/55420020-51e56200-5576-11e9-8513-4a5d93913b17.png
-    :width: 350 px
+    :width: 300 px
     :target: pendulum.py_
     :alt: pendulum.py
 
 .. |latex.py| replace:: latex.py
 .. _latex.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/latex.py
 .. |latex| image:: https://user-images.githubusercontent.com/32848391/55568648-6190b200-5700-11e9-9547-0798c588a7a5.png
-    :width: 350 px
+    :width: 300 px
     :target: latex.py_
     :alt: latex.py
 
 .. |ft04_heat_gaussian.py| replace:: ft04_heat_gaussian.py
 .. _ft04_heat_gaussian.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/ft04_heat_gaussian.py
 .. |ft04_heat_gaussian| image:: https://user-images.githubusercontent.com/32848391/55578167-88a5ae80-5715-11e9-84ea-bdab54099887.gif
-    :width: 350 px
+    :width: 300 px
     :target: ft04_heat_gaussian.py_
     :alt: ft04_heat_gaussian.py
 
@@ -807,25 +807,25 @@ _defs = """
     :width: 200 px
 
 .. |intline| image:: https://user-images.githubusercontent.com/32848391/55967065-eee08300-5c79-11e9-8933-265e1bab9f7e.png
-    :width: 350 px
+    :width: 300 px
 
 .. |cropped| image:: https://user-images.githubusercontent.com/32848391/57081955-0ef1e800-6cf6-11e9-99de-b45220939bc9.png
-    :width: 350 px
+    :width: 300 px
 
 .. |dolfinmesh| image:: https://user-images.githubusercontent.com/32848391/53026243-d2d31900-3462-11e9-9dde-518218c241b6.jpg
-    :width: 350 px
+    :width: 300 px
 
 .. |turing_pattern.py| replace:: turing_pattern.py
 .. _turing_pattern.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/turing_pattern.py
 .. |turing_pattern| image:: https://user-images.githubusercontent.com/32848391/56056437-77cfeb00-5d5c-11e9-9887-828e5745d547.gif
-    :width: 350 px
+    :width: 300 px
     :target: turing_pattern.py_
     :alt: turing_pattern.py
 
 .. |demo_cahn-hilliard.py| replace:: demo_cahn-hilliard.py
 .. _demo_cahn-hilliard.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/demo_cahn-hilliard.py
 .. |demo_cahn-hilliard| image:: https://user-images.githubusercontent.com/32848391/56664730-edb34b00-66a8-11e9-9bf3-73431f2a98ac.gif
-    :width: 350 px
+    :width: 300 px
     :target: demo_cahn-hilliard.py_
     :alt: demo_cahn-hilliard.py
 
@@ -833,7 +833,7 @@ _defs = """
 .. |navier-stokes_lshape.py| replace:: navier-stokes_lshape.py
 .. _navier-stokes_lshape.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/navier-stokes_lshape.py
 .. |navier-stokes_lshape| image:: https://user-images.githubusercontent.com/32848391/56671156-6bc91f00-66b4-11e9-8c58-e6b71e2ad1d0.gif
-    :width: 350 px
+    :width: 300 px
     :target: navier-stokes_lshape.py_
     :alt: navier-stokes_lshape.py
 
@@ -841,7 +841,7 @@ _defs = """
 .. |mesh_map2cell.py| replace:: mesh_map2cell.py
 .. _mesh_map2cell.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/mesh_map2cell.py
 .. |mesh_map2cell| image:: https://user-images.githubusercontent.com/32848391/56600859-0153a880-65fa-11e9-88be-34fd96b18e9a.png
-    :width: 350 px
+    :width: 300 px
     :target: mesh_map2cell.py_
     :alt: mesh_map2cell.py
 
@@ -849,21 +849,21 @@ _defs = """
 .. |ex03_poisson.py| replace:: ex03_poisson.py
 .. _ex03_poisson.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/ex03_poisson.py
 .. |ex03_poisson| image:: https://user-images.githubusercontent.com/32848391/54925524-bec18200-4f0e-11e9-9eab-29fd61ef3b8e.png
-    :width: 350 px
+    :width: 300 px
     :target: ex03_poisson.py_
     :alt: ex03_poisson.py
 
 .. |elastodynamics.py| replace:: elastodynamics.py
 .. _elastodynamics.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/elastodynamics.py
 .. |elastodynamics| image:: https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif
-    :width: 350 px
+    :width: 300 px
     :target: elastodynamics.py_
     :alt: elastodynamics.py
 
 .. |ft02_poisson_membrane.py| replace:: ft02_poisson_membrane.py
 .. _ft02_poisson_membrane.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/ft02_poisson_membrane.py
 .. |ft02_poisson_membrane| image:: https://user-images.githubusercontent.com/32848391/55499287-ed91d380-5645-11e9-8e9a-e31e2e3b1649.jpg
-    :width: 350 px
+    :width: 300 px
     :target: ft02_poisson_membrane.py_
     :alt: ft02_poisson_membrane.py
 
@@ -871,49 +871,49 @@ _defs = """
 .. |stokes.py| replace:: stokes.py
 .. _stokes.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/stokes.py
 .. |stokes| image:: https://user-images.githubusercontent.com/32848391/55098209-aba0e480-50bd-11e9-8842-42d3f0b2d9c8.png
-    :width: 350 px
+    :width: 300 px
     :target: stokes.py_
     :alt: stokes.py
 
 .. |stokes1.py| replace:: stokes1.py
 .. _stokes1.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/stokes.py
 .. |stokes1| image:: https://user-images.githubusercontent.com/32848391/56986911-6116fa00-6b8c-11e9-83f5-5b4efe430c0c.jpg
-    :width: 350 px
+    :width: 300 px
     :target: stokes1.py_
     :alt: stokes1.py
 
 .. |demo_submesh.py| replace:: demo_submesh.py
 .. _demo_submesh.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/demo_submesh.py
 .. |demo_submesh| image:: https://user-images.githubusercontent.com/32848391/56675428-4e984e80-66bc-11e9-90b0-43dde7e4cc29.png
-    :width: 350 px
+    :width: 300 px
     :target: demo_submesh.py_
     :alt: demo_submesh.py
 
 .. |pi_estimate.py| replace:: pi_estimate.py
 .. _pi_estimate.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/pi_estimate.py
 .. |pi_estimate| image:: https://user-images.githubusercontent.com/32848391/56675429-4e984e80-66bc-11e9-9217-a0652a8e74fe.png
-    :width: 350 px
+    :width: 300 px
     :target: pi_estimate.py_
     :alt: pi_estimate.py
 
 .. |isolines.py| replace:: isolines.py
 .. _isolines.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/isolines.py
 .. |isolines| image:: https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png
-    :width: 350 px
+    :width: 300 px
     :target: isolines.py_
     :alt: isolines.py
 
 .. |inset.py| replace:: inset.py
 .. _inset.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/inset.py
 .. |inset| image:: https://user-images.githubusercontent.com/32848391/56758560-3c3f1300-6797-11e9-9b33-49f5a4876039.jpg
-    :width: 350 px
+    :width: 300 px
     :target: inset.py_
     :alt: inset.py
 
 .. |legosurface.py| replace:: legosurface.py
 .. _legosurface.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/legosurface.py
 .. |legosurface| image:: https://user-images.githubusercontent.com/32848391/56820682-da40e500-684c-11e9-8ea3-91cbcba24b3a.png
-    :width: 350 px
+    :width: 300 px
     :target: legosurface.py_
     :alt: legosurface.py
 
@@ -921,7 +921,7 @@ _defs = """
 .. |streamribbons.py| replace:: streamribbons.py
 .. _streamribbons.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/streamribbons.py
 .. |streamribbons| image:: https://user-images.githubusercontent.com/32848391/56963999-9145a500-6b5a-11e9-9461-0037c471faab.png
-    :width: 350 px
+    :width: 300 px
     :target: streamribbons.py_
     :alt: streamribbons.py
 
@@ -929,42 +929,42 @@ _defs = """
 .. |streamlines1.py| replace:: streamlines1.py
 .. _streamlines1.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/streamlines1.py
 .. |streamlines1| image:: https://user-images.githubusercontent.com/32848391/56964002-9145a500-6b5a-11e9-9e3f-da712609d896.png
-    :width: 350 px
+    :width: 300 px
     :target: streamlines1.py_
     :alt: streamlines1.py
 
 .. |streamlines2.py| replace:: streamlines2.py
 .. _streamlines2.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/streamlines2.py
 .. |streamlines2| image:: https://user-images.githubusercontent.com/32848391/56964001-9145a500-6b5a-11e9-935b-1b2425bd7dd2.png
-    :width: 350 px
+    :width: 300 px
     :target: streamlines2.py_
     :alt: streamlines2.py
 
 .. |office.py| replace:: office.py
 .. _office.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/office.py
 .. |office| image:: https://user-images.githubusercontent.com/32848391/56964003-9145a500-6b5a-11e9-9d9e-9736d90e1900.png
-    :width: 350 px
+    :width: 300 px
     :target: office.py_
     :alt: office.py
 
 .. |value-iteration.py| replace:: value-iteration.py
 .. _value-iteration.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/value-iteration.py
 .. |value-iteration| image:: https://user-images.githubusercontent.com/32848391/56964055-afaba080-6b5a-11e9-99cf-3fac99df9878.jpg
-    :width: 350 px
+    :width: 300 px
     :target: value-iteration.py_
     :alt: value-iteration.py
 
 .. |magnetostatics.py| replace:: magnetostatics.py
 .. _magnetostatics.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/magnetostatics.py
 .. |magnetostatics| image:: https://user-images.githubusercontent.com/32848391/56985162-fb287380-6b87-11e9-9cf9-045bd08c3b9b.jpg
-    :width: 350 px
+    :width: 300 px
     :target: magnetostatics.py_
     :alt: magnetostatics.py
 
 .. |voronoi3d.py| replace:: voronoi3d.py
 .. _voronoi3d.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/voronoi3d.py
 .. |voronoi3d| image:: http://math.lbl.gov/voro++/obliquevoro.png
-    :width: 350 px
+    :width: 300 px
     :target: voronoi3d.py_
     :alt: voronoi3d.py
 
@@ -979,21 +979,21 @@ _defs = """
 .. |silhouette.py| replace:: silhouette.py
 .. _silhouette.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/silhouette.py
 .. |silhouette| image:: https://user-images.githubusercontent.com/32848391/57179369-8e5df380-6e7d-11e9-99b4-3b1a120dd375.png
-    :width: 350 px
+    :width: 300 px
     :target: silhouette.py_
     :alt: silhouette.py
 
 .. |shadow.py| replace:: shadow.py
 .. _shadow.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/shadow.py
 .. |shadow| image:: https://user-images.githubusercontent.com/32848391/57312574-1d714280-70ee-11e9-8741-04fc5386d692.png
-    :width: 350 px
+    :width: 300 px
     :target: shadow.py_
     :alt: shadow.py
 
 .. |airplanes.py| replace:: airplanes.py
 .. _airplanes.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/.py
 .. |airplanes| image:: https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif
-    :width: 350 px
+    :width: 300 px
     :target: airplanes.py_
     :alt: airplanes.py
 
@@ -1001,14 +1001,14 @@ _defs = """
 .. |heatconv.py| replace:: heatconv.py
 .. _heatconv.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/heatconv.py
 .. |heatconv| image:: https://user-images.githubusercontent.com/32848391/57455107-b200af80-726a-11e9-897d-9c7bcb9854ac.gif
-    :width: 350 px
+    :width: 300 px
     :target: heatconv.py_
     :alt: heatconv.py
 
 .. |scalemesh.py| replace:: scalemesh.py
 .. _scalemesh.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/scalemesh.py
 .. |scalemesh| image:: https://user-images.githubusercontent.com/32848391/57393382-431c4b80-71c3-11e9-9a2c-8abb172f5468.png
-    :width: 350 px
+    :width: 300 px
     :target: scalemesh.py_
     :alt: scalemesh.py
 
@@ -1022,14 +1022,14 @@ _defs = """
 .. |specular.py| replace:: specular.py
 .. _specular.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/specular.py
 .. |specular| image:: https://user-images.githubusercontent.com/32848391/57543051-8c030a00-7353-11e9-84cd-b01f3449d255.jpg
-    :width: 350 px
+    :width: 300 px
     :target: specular.py_
     :alt: specular.py
 
 .. |wavy_1d.py| replace:: wavy_1d.py
 .. _wavy_1d.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/wavy_1d.py
 .. |wavy_1d| image:: https://user-images.githubusercontent.com/32848391/57570898-70593b80-7407-11e9-87cf-ce498f499c09.gif
-    :width: 350 px
+    :width: 300 px
     :target: wavy_1d.py_
     :alt: wavy_1d.py
 
@@ -1043,13 +1043,13 @@ _defs = """
 .. |idealpass.link| replace:: idealpass.link
 .. _idealpass.link: https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
 .. |idealpass| image:: https://raw.githubusercontent.com/lorensen/VTKExamples/master/src/Testing/Baseline/Cxx/ImageProcessing/TestIdealHighPass.png
-    :width: 350 px
+    :width: 300 px
     :target: idealpass.link_
 
 .. |buildmesh.py| replace:: buildmesh.py
 .. _buildmesh.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/buildmesh.py
 .. |buildmesh| image:: https://user-images.githubusercontent.com/32848391/57858625-b0e2fb80-77f1-11e9-94f0-1973ed86ae70.png
-    :width: 350 px
+    :width: 300 px
     :target: buildmesh.py_
     :alt: buildmesh.py
 
@@ -1062,7 +1062,7 @@ _defs = """
 .. |awefem.py| replace:: awefem.py
 .. _awefem.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/awefem.py
 .. |awefem| image:: https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif
-    :width: 350 px
+    :width: 300 px
     :target: awefem.py_
     :alt: awefem.py
 
@@ -1071,42 +1071,42 @@ _defs = """
 .. |thinplate_morphing_2d.py| replace:: thinplate_morphing_2d.py
 .. _thinplate_morphing_2d.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/thinplate_morphing_2d.py
 .. |thinplate_morphing_2d| image:: https://user-images.githubusercontent.com/32848391/59032715-385ae200-8867-11e9-9b07-7f4f8fbfa5bd.png
-    :width: 350 px
+    :width: 300 px
     :target: thinplate_morphing_2d.py_
     :alt: thinplate_morphing_2d.py
 
 .. |interpolateVolume.py| replace:: interpolateVolume.py
 .. _interpolateVolume.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/interpolateVolume.py
 .. |interpolateVolume| image:: https://user-images.githubusercontent.com/32848391/59095175-1ec5a300-8918-11e9-8bc0-fd35c8981e2b.jpg
-    :width: 350 px
+    :width: 300 px
     :target: interpolateVolume.py_
     :alt: interpolateVolume.py
 
 .. |deleteMeshPoints.py| replace:: deleteMeshPoints.py
 .. _deleteMeshPoints.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/deleteMeshPoints.py
 .. |deleteMeshPoints| image:: https://user-images.githubusercontent.com/32848391/59768041-e9b83980-92a3-11e9-94f4-ca1f92540e9f.png
-    :width: 350 px
+    :width: 300 px
     :target: deleteMeshPoints.py_
     :alt: deleteMeshPoints.py
 
 .. |gray_scott.ipynb| replace:: gray_scott.ipynb
 .. _gray_scott.ipynb: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/gray_scott.ipynb
 .. |gray_scott| image:: https://user-images.githubusercontent.com/32848391/59788744-aaeaa980-92cc-11e9-825d-58da26ca21ff.gif
-    :width: 350 px
+    :width: 300 px
     :target: gray_scott.ipynb_
     :alt: gray_scott.ipynb
 
 .. |volterra.py| replace:: volterra.py
 .. _volterra.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/volterra.py
 .. |volterra| image:: https://user-images.githubusercontent.com/32848391/59788745-aaeaa980-92cc-11e9-93d5-f6a577ba5e4d.png
-    :width: 350 px
+    :width: 300 px
     :target: volterra.py_
     :alt: volterra.py
 
 .. |tensors.py| replace:: tensors.py
 .. _tensors.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/tensors.py
 .. |tensors| image:: https://user-images.githubusercontent.com/32848391/59944747-e2d92480-9465-11e9-8012-1fc34a2e30c6.png
-    :width: 350 px
+    :width: 300 px
     :target: tensors.py_
     :alt: tensors.py
 
@@ -1116,7 +1116,7 @@ _defs = """
 .. |scalarbars.py| replace:: scalarbars.py
 .. _scalarbars.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/scalarbars.py
 .. |scalarbars| image:: https://user-images.githubusercontent.com/32848391/62940174-4bdc7900-bdd3-11e9-9713-e4f3e2fdab63.png
-    :width: 350 px
+    :width: 300 px
     :target: scalarbars.py_
     :alt: scalarbars.py
 
@@ -1159,35 +1159,35 @@ _defs = """
 .. |polarHisto.py| replace:: polarHisto.py
 .. _polarHisto.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/polarHisto.py
 .. |polarHisto| image:: https://user-images.githubusercontent.com/32848391/64912717-5754f400-d733-11e9-8a1f-612165955f23.png
-    :width: 350 px
+    :width: 300 px
     :target: polarHisto.py_
     :alt: polarHisto.py
 
 .. |histo_polar.py| replace:: histo_polar.py
 .. _histo_polar.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/histo_polar.py
 .. |histo_polar| image:: https://user-images.githubusercontent.com/32848391/64992590-7fc82400-d8d4-11e9-9c10-795f4756a73f.png
-    :width: 350 px
+    :width: 300 px
     :target: histo_polar.py_
     :alt: histo_polar.py
 
 .. |donut.py| replace:: donut.py
 .. _donut.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/donut.py
 .. |donut| image:: https://user-images.githubusercontent.com/32848391/64998178-6f6b7580-d8e3-11e9-9bd8-8dfb9ccd90e4.png
-    :width: 350 px
+    :width: 300 px
     :target: donut.py_
     :alt: donut.py
 
 .. |extrude.py| replace:: extrude.py
 .. _extrude.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/extrude.py
 .. |extrude| image:: https://user-images.githubusercontent.com/32848391/65963682-971e1a00-e45b-11e9-9f29-05522ae4a800.png
-    :width: 350 px
+    :width: 300 px
     :target: extrude.py_
     :alt: extrude.py
 
 .. |kspline.py| replace:: kspline.py
 .. _kspline.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/kspline.py
 .. |kspline| image:: https://user-images.githubusercontent.com/32848391/65975805-73fd6580-e46f-11e9-8957-75eddb28fa72.png
-    :width: 350 px
+    :width: 300 px
     :target: kspline.py_
     :alt: kspline.py
 
@@ -1195,87 +1195,87 @@ _defs = """
 .. _mesh_lut.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/mesh_lut.py
 
 .. |elevation| image:: https://user-images.githubusercontent.com/32848391/68478872-3986a580-0231-11ea-8245-b68a683aa295.png
-    :width: 350 px
+    :width: 300 px
 
 .. |paramshapes| image:: https://user-images.githubusercontent.com/32848391/69181075-bb6aae80-0b0e-11ea-92f7-d0cd3b9087bf.png
-    :width: 350 px
+    :width: 300 px
 
 .. |warpto| image:: https://user-images.githubusercontent.com/32848391/69259878-3c817e80-0bbf-11ea-9025-03b9f6affccc.png
-    :width: 350 px
+    :width: 300 px
 
 .. |linInterpolate.py| replace:: linInterpolate.py
 .. _linInterpolate.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/linInterpolate.py
 .. |linInterpolate| image:: https://user-images.githubusercontent.com/32848391/70559826-a621f680-1b87-11ea-89f3-e6b74d8953d9.png
-    :width: 350 px
+    :width: 300 px
     :target: linInterpolate.py_
     :alt: linInterpolate.py
 
 .. |plot1_errbars.py| replace:: plot1_errbars.py
 .. _plot1_errbars.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/plot1_errbars.py
 .. |plot1_errbars| image:: https://user-images.githubusercontent.com/32848391/69158509-d6c1c380-0ae6-11ea-9dbf-ff5cd396a9a6.png
-    :width: 350 px
+    :width: 300 px
     :target: plot1_errbars.py_
     :alt: plot1_errbars.py
 
 .. |quiver.py| replace:: quiver.py
 .. _quiver.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/quiver.py
 .. |quiver| image::  https://user-images.githubusercontent.com/32848391/72261438-199aa600-3615-11ea-870e-e44ca4c4b8d3.png
-    :width: 350 px
+    :width: 300 px
     :target: quiver.py_
     :alt: quiver.py
 
 .. |plot5_spheric.py| replace:: plot5_spheric.py
 .. _plot5_spheric.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/plot5_spheric.py
 .. |plot5_spheric| image:: https://user-images.githubusercontent.com/32848391/72433091-f0a31e00-3798-11ea-86bd-6c522e23ec61.png
-    :width: 350 px
+    :width: 300 px
     :target: plot5_spheric.py_
     :alt: plot5_spheric.py
 
 .. |fcomplex| image:: https://user-images.githubusercontent.com/32848391/73392962-1709a300-42db-11ea-9278-30c9d6e5eeaa.png
-    :width: 350 px
+    :width: 300 px
 
 .. |histo_spheric.py| replace:: histo_spheric.py
 .. _histo_spheric.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/histo_spheric.py
 .. |histo_spheric| image:: https://user-images.githubusercontent.com/32848391/73392901-fccfc500-42da-11ea-828a-9bad6982a823.png
-    :width: 350 px
+    :width: 300 px
     :target: histo_spheric.py_
     :alt: histo_spheric.py
 
 .. |sphericgrid| image:: https://user-images.githubusercontent.com/32848391/72433092-f0a31e00-3798-11ea-85f7-b2f5fcc31568.png
-    :width: 350 px
+    :width: 300 px
 
 .. |histo_2D.py| replace:: histo_2D.py
 .. _histo_2D.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/histo_2D.py
 .. |histo_2D| image:: https://user-images.githubusercontent.com/32848391/74361190-c019c880-4dc6-11ea-9c72-0f2a890e6664.png
-    :width: 350 px
+    :width: 300 px
     :target: histo_2D.py_
     :alt: histo_2D.py
 
 .. |plot2_errband.py| replace:: plot2_errband.py
 .. _plot2_errband.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/plot2_errband.py
 .. |plot2_errband| image:: https://user-images.githubusercontent.com/32848391/73483464-c019d180-439f-11ea-9a8c-59fa49e9ecf4.png
-    :width: 350 px
+    :width: 300 px
     :target: plot2_errband.py_
     :alt: plot2_errband.py
 
 .. |plot3_pip.py| replace:: plot3_pip.py
 .. _plot3_pip.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/plot3_pip.py
 .. |plot3_pip| image:: https://user-images.githubusercontent.com/32848391/73393632-4ff64780-42dc-11ea-8798-45a81c067f45.png
-    :width: 350 px
+    :width: 300 px
     :target: plot3_pip.py_
     :alt: plot3_pip.py
 
 .. |scatter1.py| replace:: scatter1.py
 .. _scatter1.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/scatter1.py
 .. |scatter1| image:: https://user-images.githubusercontent.com/32848391/72615028-013bcb80-3934-11ea-8ab8-823f1916bc6c.png
-    :width: 350 px
+    :width: 300 px
     :target: scatter1.py_
     :alt: scatter1.py
 
 .. |scatter2.py| replace:: scatter2.py
 .. _scatter2.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/scatter2.py
 .. |scatter2| image:: https://user-images.githubusercontent.com/32848391/72446102-2d7c0e80-37b3-11ea-8fe4-b27526af574f.png
-    :width: 350 px
+    :width: 300 px
     :target: scatter2.py_
     :alt: scatter2.py
 
@@ -1292,7 +1292,11 @@ _defs = """
     :alt: plot7_stream.py
 
 .. |simpleplot| image:: https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png
-    :width: 350 px
+    :width: 300 px
+
+
+.. |warpv| image:: https://user-images.githubusercontent.com/32848391/77864546-7a577900-7229-11ea-84ce-4e8e6eeff27f.png
+    :width: 300 px
 
 """
 

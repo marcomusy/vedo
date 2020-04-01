@@ -18,7 +18,7 @@ cd simulations; ./run_all.sh; cd ..
 
 cd volumetric;  ./run_all.sh; cd ..
 
-cd pyplot;    ./run_all.sh; cd ..
+cd pyplot;      ./run_all.sh; cd ..
 
 cd other;       ./run_all.sh; cd ..
 
@@ -37,7 +37,6 @@ else
 fi
 
 #################################  command line tests
-printf "\033c"
 echo '---------------------------- command line tests'
 echo vtkplotter  data/2*.vtk
 vtkplotter       data/2*.vtk
@@ -51,8 +50,8 @@ echo vtkplotter --lego --cmap afmhot_r data/embryo.tif
 vtkplotter      --lego --cmap afmhot_r data/embryo.tif
 
 echo '----------------------------'
-echo vtkplotter -g -c blue data/embryo.tif
-vtkplotter      -g -c blue data/embryo.tif
+echo vtkplotter -g -c blue data/embryo.slc
+vtkplotter      -g -c blue data/embryo.slc
 
 echo '----------------------------'
 echo vtkplotter --slicer data/embryo.tif

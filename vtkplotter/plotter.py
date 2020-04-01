@@ -811,9 +811,9 @@ class Plotter:
         return
         ####################### ..init ends here.
 
-    def __str__(self):
-        utils.printInfo(self)
-        return ""
+    #def __str__(self): # causing problems #116
+    #    utils.printInfo(self)
+    #    return ""
 
     def __iadd__(self, actors):
         self.add(actors, render=False)

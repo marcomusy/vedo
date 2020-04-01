@@ -670,7 +670,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         return a
 
 
-    def legosurface(self, vmin=None, vmax=None, cmap='afmhot_r'):
+    def legosurface(self, vmin=None, vmax=None, invert=False, cmap='afmhot_r'):
         """
         Represent a ``Volume`` as lego blocks (voxels).
         By default colors correspond to the volume's scalar.
@@ -700,7 +700,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         extract = vtk.vtkExtractGeometry()
         extract.SetInputData(self._imagedata)
         extract.SetImplicitFunction(window)
-        extract.ExtractInsideOff()
+        extract.SetExtractInside(invert)
         extract.ExtractBoundaryCellsOff()
         extract.Update()
 
@@ -714,7 +714,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         a.mapPointsToCells()
         return a
 
-    
+
     def operation(self, operation, volume2=None):
         """
         Perform operations with ``Volume`` objects.

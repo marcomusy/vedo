@@ -3,31 +3,33 @@ at each vertex of a mesh, another mesh
 is shown with various orientation options
 """
 from vtkplotter import *
-from numpy.random import rand
+import numpy as np
 
-t = Text2D(__doc__, c='w') # pick the above header as description
+comment = Text2D(__doc__, c='w') # pick the above header as description
 
 s = Sphere(res=12).c('white').alpha(0.1).wireframe()
 
-randvs = rand(s.NPoints(), 3)  # random orientation vectors for each vertex
+randvs = np.random.rand(s.NPoints(), 3)  # random orientation vectors
 
 #######################################
-gly1 = Cylinder().rotateY(90).scale(0.03)
+gly1 = Ellipsoid().scale(0.04)
 
 gsphere1 = Glyph(s, gly1,
-                 c='lightgreen',
                  orientationArray=randvs,
                  scaleByVectorSize=True,
+                 colorByVectorSize=True,
+                 c='jet',
                  )
+
 
 #######################################
 gly2 = load(datadir+"shuttle.obj").rotateY(180).scale(0.02)
 
 gsphere2 = Glyph(s, gly2,
-                 c='lavender',
                  orientationArray="normals",
-                 tol=0.1,  # impose a minimum seaparation of 10%
+                 tol=0.1,  # minimum seaparation of 10% of bounding box
+                 c='lightblue',
                  )
 
 # show two groups of objects on N=2 renderers:
-show([(s, gsphere1, t), (s, gsphere2)], N=2, bg='bb', zoom=1.4)
+show([(s, gsphere1, comment), (s, gsphere2)], N=2, bg='bb', zoom=1.4)

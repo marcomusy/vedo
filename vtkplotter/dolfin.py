@@ -814,7 +814,7 @@ class MeshActor(Mesh):
         else:
             coords = mesh.geometry.points
 
-        poly = utils.buildPolyData(coords, meshc.cells(), fast=fast)
+        poly = utils.buildPolyData(coords, meshc.cells(), fast=fast, tetras=True)
 
         Mesh.__init__(self,
             poly,
@@ -983,7 +983,8 @@ def MeshArrows(*inputobj, **options):
         endPoints = np.insert(endPoints, 2, 0, axis=1)  # make it 3d
 
     actor = shapes.Arrows(startPoints, endPoints,
-                          s=s, scale=scale, c=c, alpha=alpha, res=res)
+                          s=s, scale=scale, alpha=alpha, res=res)
+    actor.color(c)
     actor.mesh = mesh
     actor.u = u
     actor.u_values = u_values

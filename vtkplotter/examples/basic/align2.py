@@ -20,7 +20,7 @@ vpts2 = Points(pts2, r=8, c="r").legend("target")
 aligned_pts1 = alignICP(vpts1, vpts2)
 
 # draw arrows to see where points end up
-arrows = Arrows(pts1, aligned_pts1, c="k", s=0.7, alpha=0.2)
+arrows = Arrows(pts1, aligned_pts1, s=0.7, alpha=0.2).c("k")
 
 show(vpts1, vpts2, Text2D(__doc__), at=0, N=2, axes=1)
 

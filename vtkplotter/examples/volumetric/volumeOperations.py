@@ -10,8 +10,7 @@ from vtkplotter import *
 
 vp = Plotter(N=6)
 
-fpath = download("https://vtkplotter.embl.es/data/embryo.slc")
-v0 = load(fpath).c(0)
+v0 = load(datadir+'embryo.slc').c(0)
 vp.show(v0, at=0)
 
 v1 = v0.clone().operation("gradient")

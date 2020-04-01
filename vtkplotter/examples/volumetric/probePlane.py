@@ -3,8 +3,7 @@ Intersect a Volume (voxel dataset) with planes
 """
 from vtkplotter import *
 
-fpath = download("https://vtkplotter.embl.es/data/embryo.slc")
-vol = load(fpath)
+vol = load(datadir+'embryo.slc')
 
 planes = []
 for i in range(6):

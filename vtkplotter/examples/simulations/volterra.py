@@ -40,7 +40,7 @@ curve_points3 = np.vstack([np.zeros(sol3[:,0].shape), sol3[:,0], sol3[:,1]]).T
 ########################################################################
 from vtkplotter import *
 
-Arrows(origins, origins+vectors)
+Arrows(origins, origins+vectors, c='w')
 
 Points(curve_points1, c='y')
 Line(curve_points1, c='y')
