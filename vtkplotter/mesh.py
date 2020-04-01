@@ -38,7 +38,7 @@ def merge(*meshs):
     acts = []
     for a in utils.flatten(meshs):
         if isinstance(a, vtk.vtkAssembly):
-            acts += a.getMeshes()
+            acts += a.unpack()
         elif a:
             acts += [a]
 
