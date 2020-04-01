@@ -375,6 +375,15 @@ class Mesh(vtk.vtkFollower, ActorBase):
         colors.printc("WARNING: coordinates() is obsolete, use points() instead.", box='=', c=1)
         return self.points(transformed=transformed, copy=copy)
 
+    def cellCenters(self):
+        """Get the coordinates of the cell centers.
+
+        |delaunay2d| |delaunay2d.py|_
+        """
+        vcen = vtk.vtkCellCenters()
+        vcen.SetInputData(self.polydata())
+        vcen.Update()
+        return vtk_to_numpy(vcen.GetOutput().GetPoints().GetData())
 
     def addScalarBar(self,
                      pos=(0.8,0.05),
