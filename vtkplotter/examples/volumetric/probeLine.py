@@ -1,8 +1,7 @@
 """Probe a Volume (voxel dataset) with lines."""
 from vtkplotter import *
 
-fpath = download("https://vtkplotter.embl.es/data/embryo.slc")
-vol = load(fpath)
+vol = load(datadir+"embryo.slc")
 
 pos = vol.imagedata().GetCenter()
 

@@ -3,7 +3,7 @@
 Press q:
 Control returns to terminal,
 window will not close but become unresponsive"""
-from vtkplotter import Text, Paraboloid, Hyperboloid, Plotter, show
+from vtkplotter import Text2D, Paraboloid, Hyperboloid, Plotter, show
 
 mesh = Paraboloid()
 

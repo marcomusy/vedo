@@ -236,6 +236,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         from vtk.util.numpy_support import vtk_to_numpy
         narray_shape = tuple(reversed(self._imagedata.GetDimensions()))
         narray = vtk_to_numpy(self._imagedata.GetPointData().GetScalars()).reshape(narray_shape)
+        narray = np.transpose(narray, axes=[2, 1, 0])
         return narray
 
     def dimensions(self):

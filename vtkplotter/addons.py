@@ -139,6 +139,7 @@ def addScalarBar(mesh,
         titprop.ShadowOff()
         titprop.SetColor(c)
         titprop.SetVerticalJustificationToTop()
+        titprop.SetFontSize(titleFontSize)
         sb.SetTitle(title)
         sb.SetVerticalTitleSeparation(titleYOffset)
         sb.SetTitleTextProperty(titprop)

@@ -3,7 +3,6 @@ N points that are closest to a given point of the surface.
 For some of these point we show the fitting sphere.
 Red lines join the center of the sphere to the surface point.
 Blue points are the N points used for fitting.
-Fitted radius can be accessed from mesh.info['radius'].
 """
 from __future__ import division, print_function
 from vtkplotter import *
@@ -22,7 +21,7 @@ for i, p in enumerate(s.points()):
         continue  # may fail if all points sit on a plane
     vp += sph
     vp += Points(pts)
-    vp += Line(sph.info["center"], p, lw=2)
+    vp += Line(sph.center, p, lw=2)
 
 vp += Text2D(__doc__)
 vp.show(viewup="z")

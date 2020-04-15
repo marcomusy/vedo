@@ -2,7 +2,7 @@ from vtkplotter import Plotter, Plane, datadir
 
 vp = Plotter()
 
-cow = vp.load(datadir+"cow.byu", c="grey", alpha=0.7)
+cow = vp.load(datadir+"cow.vtk", c="grey").scale(4).rotateX(-90)
 vp += Plane(pos=[0, -3.6, 0], normal=[0, 1, 0], sx=20).texture("grass")
 vp.show(viewup='y', interactive=0)
 

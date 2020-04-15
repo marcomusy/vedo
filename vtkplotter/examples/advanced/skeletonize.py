@@ -5,9 +5,9 @@ print(__doc__)
 from vtkplotter import *
 
 N = 9    # nr of iterations
-f = 0.1  # fraction of neighbours
+f = 0.2  # fraction of neighbours
 
-pts = load(datadir+"man.vtk").triangulate().decimate(0.1).points()
+pts = load(datadir+"man.vtk").clean(tol=0.02).points()
 # pts = load(datadir+'spider.ply').points()
 # pts = load(datadir+'magnolia.vtk').subdivide().points()
 # pts = load(datadir+'apple.ply').points()
@@ -16,8 +16,7 @@ pts = load(datadir+"man.vtk").triangulate().decimate(0.1).points()
 pc = Points(pts)
 
 for i in range(N):
-    pc = pc.clone()
-    pc = smoothMLS1D(pc, f).color(i)
+    pc = pc.clone().smoothMLS1D(f=f).color(i)
     show(pc, at=i, N=N, elevation=-5)
 
 interactive()

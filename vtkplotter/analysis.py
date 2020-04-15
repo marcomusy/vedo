@@ -31,8 +31,6 @@ __all__ = [
     "fitSphere",
     "pcaEllipsoid",
     "smoothMLS3D",
-    "smoothMLS2D",
-    "smoothMLS1D",
     "booleanOperation",
     "surfaceIntersection",
     "probePoints",
@@ -170,7 +168,7 @@ def alignLandmarks(source, target, rigid=False):
     tf.SetTransform(lmt)
     tf.Update()
     mesh = Mesh(tf.GetOutput())
-    mesh.info["transform"] = lmt
+    mesh.transform = lmt
     pr = vtk.vtkProperty()
     pr.DeepCopy(source.GetProperty())
     mesh.SetProperty(pr)
@@ -231,7 +229,7 @@ def alignICP(source, target, iters=100, rigid=False):
     landmarkTransform.SetTargetLandmarks(targetPoints)
     if rigid:
         landmarkTransform.SetModeToRigidBody()
-    mesh.info["transform"] = landmarkTransform
+    mesh.transform = landmarkTransform
 
     return mesh
 
@@ -270,7 +268,7 @@ def alignProcrustes(sources, rigid=False):
         mesh.SetProperty(s.GetProperty())
         acts.append(mesh)
     assem = Assembly(acts)
-    assem.info["transform"] = procrustes.GetLandmarkTransform()
+    assem.transform = procrustes.GetLandmarkTransform()
     return assem
 
 
@@ -279,7 +277,7 @@ def fitLine(points):
     """
     Fits a line through points.
 
-    Extra info is stored in ``mesh.info['slope']``, ``mesh.info['center']``, ``mesh.info['variances']``.
+    Extra info is stored in ``Line.slope``, ``Line.center``, ``Line.variances``.
 
     |fitline| |fitline.py|_
     """
@@ -296,9 +294,9 @@ def fitLine(points):
     p1 = datamean - a * vv
     p2 = datamean + b * vv
     l = shapes.Line(p1, p2, lw=1)
-    l.info["slope"] = vv
-    l.info["center"] = datamean
-    l.info["variances"] = dd
+    l.slope = vv
+    l.center = datamean
+    l.variances = dd
     return l
 
 
@@ -306,7 +304,7 @@ def fitPlane(points):
     """
     Fits a plane to a set of points.
 
-    Extra info is stored in ``mesh.info['normal']``, ``mesh.info['center']``, ``mesh.info['variance']``.
+    Extra info is stored in ``Plane.normal``, ``Plane.center``, ``Plane.variance``.
 
     .. hint:: Example: |fitplanes.py|_
     """
@@ -319,9 +317,9 @@ def fitPlane(points):
     s = np.linalg.norm(xyz_max - xyz_min)
     n = np.cross(vv[0], vv[1])
     pla = shapes.Plane(datamean, n, s, s)
-    pla.info["normal"] = n
-    pla.info["center"] = datamean
-    pla.info["variance"] = dd[2]
+    pla.normal = n
+    pla.center = datamean
+    pla.variance = dd[2]
     return pla
 
 
@@ -329,7 +327,7 @@ def fitSphere(coords):
     """
     Fits a sphere to a set of points.
 
-    Extra info is stored in ``mesh.info['radius']``, ``mesh.info['center']``, ``mesh.info['residue']``.
+    Extra info is stored in ``Sphere.radius``, ``Sphere.center``, ``Sphere.residue``.
 
     .. hint:: Example: |fitspheres1.py|_
 
@@ -356,9 +354,9 @@ def fitSphere(coords):
     else:
         residue = 0
     s = shapes.Sphere(center, radius, c=(1,0,0)).wireframe(1)
-    s.info["radius"] = radius
-    s.info["center"] = center
-    s.info["residue"] = residue
+    s.radius = radius # used by fitSphere
+    s.center = center
+    s.residue = residue
     return s
 
 
@@ -378,11 +376,7 @@ def pcaEllipsoid(points, pvalue=0.95):
 
          |pca| |cell_colony|
     """
-    try:
-        from scipy.stats import f
-    except ImportError:
-        colors.printc("Error in pcaEllipsoid(): scipy not installed. Skip.", c=1)
-        return None
+    from scipy.stats import f
 
     if isinstance(points, Mesh):
         coords = points.points()
@@ -429,126 +423,126 @@ def pcaEllipsoid(points, pvalue=0.95):
     return elli
 
 
-def smoothMLS1D(mesh, f=0.2, radius=None, showNLines=0):
-    """
-    Smooth mesh or points with a `Moving Least Squares` variant.
-    The list ``mesh.info['variances']`` contain the residue calculated for each point.
-    Input mesh's polydata is modified.
-
-    :param float f: smoothing factor - typical range is [0,2].
-    :param int showNLines: build a mesh showing the fitting line for N random points.
-
-    .. hint:: |moving_least_squares1D.py|_  |skeletonize.py|_
-
-        |moving_least_squares1D| |skeletonize|
-    """
-    coords = mesh.points()
-    ncoords = len(coords)
-    Ncp = int(ncoords * f / 10)
-    nshow = int(ncoords)
-    if showNLines:
-        ndiv = int(nshow / showNLines)
-
-    if not radius and Ncp < 4:
-        colors.printc("smoothMLS1D: Please choose a fraction higher than " + str(f), c=1)
-        Ncp = 4
-
-    variances, newline, acts = [], [], []
-    for i, p in enumerate(coords):
-
-        points = mesh.closestPoint(p, N=Ncp, radius=radius)
-        if len(points) < 4:
-            continue
-
-        points = np.array(points)
-        pointsmean = points.mean(axis=0)  # plane center
-        uu, dd, vv = np.linalg.svd(points - pointsmean)
-        newp = np.dot(p - pointsmean, vv[0]) * vv[0] + pointsmean
-        variances.append(dd[1] + dd[2])
-        newline.append(newp)
-
-        if showNLines and not i % ndiv:
-            fline = fitLine(points)  # fitting plane
-            iapts = shapes.Points(points)  # blue points
-            acts += [fline, iapts]
-
-    pcloud = shapes.Points(newline, c="r", alpha=0.5)
-    pcloud.GetProperty().SetPointSize(mesh.GetProperty().GetPointSize())
-
-    if showNLines:
-        asse = Assembly([pcloud] + acts)
-        asse.info["variances"] = np.array(variances)
-        return asse  # NB: a demo mesh is returned
-    else:
-        pcloud.info["variances"] = np.array(variances)
-        return pcloud
-
-def smoothMLS2D(mesh, f=0.2, radius=None, decimate=1, showNPlanes=0):
-    """
-    Smooth mesh or points with a `Moving Least Squares` algorithm variant.
-    The list ``mesh.info['variances']`` contains the residue calculated for each point.
-
-    :param float f: smoothing factor - typical range is [0,2]. Ignored if ``radius`` is set.
-    :param float radius: radius search in absolute units. If set then ``f`` is ignored.
-    :param int decimate: decimation integer factor.
-    :param showNPlanes: build a demo object showing the fitting plane for N random points.
-
-    .. hint:: |moving_least_squares2D.py|_  |recosurface.py|_
-
-        |moving_least_squares2D| |recosurface|
-    """
-    coords = mesh.points()
-    ncoords = len(coords)
-    Ncp = int(ncoords * f / 100)
-    nshow = int(ncoords / decimate)
-    decimate = int(decimate)
-    if showNPlanes:
-        ndiv = int(nshow / showNPlanes * decimate)
-
-    if radius:
-        print("smoothMLS2D: Searching radius, #pt:", radius, ncoords)
-    else:
-        if Ncp < 5:
-            colors.printc("~target Please choose a fraction higher than " + str(f), c=1)
-            Ncp = 5
-        print("smoothMLS2D: Searching #neighbours, #pt:", Ncp, ncoords)
-
-    variances, newpts, acts = [], [], []
-    pb = utils.ProgressBar(0, ncoords)
-    for i, p in enumerate(coords):
-        pb.print("smoothing mesh ...")
-        if i % decimate:
-            continue
-
-        points = mesh.closestPoint(p, N=Ncp, radius=radius)
-        if radius and len(points) < 5:
-            continue
-
-        pointsmean = points.mean(axis=0)  # plane center
-        uu, dd, vv = np.linalg.svd(points - pointsmean)
-        a, b, c = np.cross(vv[0], vv[1])  # normal
-        d, e, f = pointsmean  # plane center
-        x, y, z = p
-        t = a * d - a * x + b * e - b * y + c * f - c * z  # /(a*a+b*b+c*c)
-        variances.append(dd[2])
-        newpts.append((x + t*a, y + t*b, z + t*c))
-
-        if showNPlanes and not i % ndiv:
-            plane = fitPlane(points).alpha(0.3)  # fitting plane
-            iapts = shapes.Points(points)  # blue points
-            acts += [plane, iapts]
-
-    pcloud = shapes.Points(newpts, c="r", alpha=0.5, r=2)
-    pcloud.GetProperty().SetPointSize(mesh.GetProperty().GetPointSize())
-
-    if showNPlanes:
-        asse = Assembly([pcloud] + acts)
-        asse.info["variances"] = np.array(variances)
-        return asse  # NB: a demo Assembly is returned
-    else:
-        pcloud.info["variances"] = np.array(variances)
-
-    return pcloud
+#def smoothMLS1D(mesh, f=0.2, radius=None, showNLines=0):
+#    """
+#    Smooth mesh or points with a `Moving Least Squares` variant.
+#    The list ``mesh.info['variances']`` contain the residue calculated for each point.
+#    Input mesh's polydata is modified.
+#
+#    :param float f: smoothing factor - typical range is [0,2].
+#    :param int showNLines: build a mesh showing the fitting line for N random points.
+#
+#    .. hint:: |moving_least_squares1D.py|_  |skeletonize.py|_
+#
+#        |moving_least_squares1D| |skeletonize|
+#    """
+#    coords = mesh.points()
+#    ncoords = len(coords)
+#    Ncp = int(ncoords * f / 10)
+#    nshow = int(ncoords)
+#    if showNLines:
+#        ndiv = int(nshow / showNLines)
+#
+#    if not radius and Ncp < 4:
+#        colors.printc("smoothMLS1D: Please choose a fraction higher than " + str(f), c=1)
+#        Ncp = 4
+#
+#    variances, newline, acts = [], [], []
+#    for i, p in enumerate(coords):
+#
+#        points = mesh.closestPoint(p, N=Ncp, radius=radius)
+#        if len(points) < 4:
+#            continue
+#
+#        points = np.array(points)
+#        pointsmean = points.mean(axis=0)  # plane center
+#        uu, dd, vv = np.linalg.svd(points - pointsmean)
+#        newp = np.dot(p - pointsmean, vv[0]) * vv[0] + pointsmean
+#        variances.append(dd[1] + dd[2])
+#        newline.append(newp)
+#
+#        if showNLines and not i % ndiv:
+#            fline = fitLine(points)  # fitting plane
+#            iapts = shapes.Points(points)  # blue points
+#            acts += [fline, iapts]
+#
+#    pcloud = shapes.Points(newline, c="r", alpha=0.5)
+#    pcloud.GetProperty().SetPointSize(mesh.GetProperty().GetPointSize())
+#
+#    if showNLines:
+#        asse = Assembly([pcloud] + acts)
+#        asse.info["variances"] = np.array(variances)
+#        return asse  # NB: a demo mesh is returned
+#    else:
+#        pcloud.info["variances"] = np.array(variances)
+#        return pcloud
+#
+#def smoothMLS2D(mesh, f=0.2, radius=None, decimate=1, showNPlanes=0):
+#    """
+#    Smooth mesh or points with a `Moving Least Squares` algorithm variant.
+#    The list ``mesh.info['variances']`` contains the residue calculated for each point.
+#
+#    :param float f: smoothing factor - typical range is [0,2]. Ignored if ``radius`` is set.
+#    :param float radius: radius search in absolute units. If set then ``f`` is ignored.
+#    :param int decimate: decimation integer factor.
+#    :param showNPlanes: build a demo object showing the fitting plane for N random points.
+#
+#    .. hint:: |moving_least_squares2D.py|_  |recosurface.py|_
+#
+#        |moving_least_squares2D| |recosurface|
+#    """
+#    coords = mesh.points()
+#    ncoords = len(coords)
+#    Ncp = int(ncoords * f / 100)
+#    nshow = int(ncoords / decimate)
+#    decimate = int(decimate)
+#    if showNPlanes:
+#        ndiv = int(nshow / showNPlanes * decimate)
+#
+#    if radius:
+#        print("smoothMLS2D: Searching radius, #pt:", radius, ncoords)
+#    else:
+#        if Ncp < 5:
+#            colors.printc("~target Please choose a fraction higher than " + str(f), c=1)
+#            Ncp = 5
+#        print("smoothMLS2D: Searching #neighbours, #pt:", Ncp, ncoords)
+#
+#    variances, newpts, acts = [], [], []
+#    pb = utils.ProgressBar(0, ncoords)
+#    for i, p in enumerate(coords):
+#        pb.print("smoothing mesh ...")
+#        if i % decimate:
+#            continue
+#
+#        points = mesh.closestPoint(p, N=Ncp, radius=radius)
+#        if radius and len(points) < 5:
+#            continue
+#
+#        pointsmean = points.mean(axis=0)  # plane center
+#        uu, dd, vv = np.linalg.svd(points - pointsmean)
+#        a, b, c = np.cross(vv[0], vv[1])  # normal
+#        d, e, f = pointsmean  # plane center
+#        x, y, z = p
+#        t = a * d - a * x + b * e - b * y + c * f - c * z  # /(a*a+b*b+c*c)
+#        variances.append(dd[2])
+#        newpts.append((x + t*a, y + t*b, z + t*c))
+#
+#        if showNPlanes and not i % ndiv:
+#            plane = fitPlane(points).alpha(0.3)  # fitting plane
+#            iapts = shapes.Points(points)  # blue points
+#            acts += [plane, iapts]
+#
+#    pcloud = shapes.Points(newpts, c="r", alpha=0.5, r=2)
+#    pcloud.GetProperty().SetPointSize(mesh.GetProperty().GetPointSize())
+#
+#    if showNPlanes:
+#        asse = Assembly([pcloud] + acts)
+#        asse.info["variances"] = np.array(variances)
+#        return asse  # NB: a demo Assembly is returned
+#    else:
+#        pcloud.info["variances"] = np.array(variances)
+#
+#    return pcloud
 
 
 def smoothMLS3D(meshs, neighbours=10):
@@ -614,64 +608,87 @@ def smoothMLS3D(meshs, neighbours=10):
     return act
 
 
-def recoSurface(pts, bins=256, radius=None):
+def extractSurface(volume, radius=0.5):
+    """Generate the zero-crossing isosurface from truncated signed distance volume in input.
+    Output is an ``Mesh`` object.
+    """
+    img = _getinput(volume)
+    fe = vtk.vtkExtractSurface()
+    fe.SetInputData(img)
+    fe.SetRadius(radius)
+    fe.Update()
+    return Mesh(fe.GetOutput())
+
+
+def recoSurface(pts, dims=(250,250,250), radius=None,
+                sampleSize=None, holeFilling=True, bounds=(), pad=0.1):
     """
     Surface reconstruction from a scattered cloud of points.
 
-    :param int bins: number of voxels in x, y and z to control precision.
+    :param int dims: number of voxels in x, y and z to control precision.
+    :param float radius: radius of influence of each point.
+        Smaller values generally improve performance markedly.
+        Note that after the signed distance function is computed,
+        any voxel taking on the value >= radius
+        is presumed to be "unseen" or uninitialized.
+    :param int sampleSize: if normals are not present
+        they will be calculated using this sample size per point.
+    :param bool holeFilling: enables hole filling, this generates
+        separating surfaces between the empty and unseen portions of the volume.
+    :param list bounds: region in space in which to perform the sampling
+        in format (xmin,xmax, ymin,ymax, zim, zmax)
+    :param float pad: increase by this fraction the bounding box
 
     |recosurface| |recosurface.py|_
     """
+    if not utils.isSequence(dims):
+        dims = (dims,dims,dims)
 
     if isinstance(pts, Mesh):
-        pts = pts.points()
-    N = len(pts)
-    if N < 50:
-        print("recoSurface: Use at least 50 points.")
-        return None
-    pts = np.array(pts)
+        polyData = pts.polydata()
+    else:
+        polyData = shapes.Points(pts).polydata()
 
-    ptsSource = vtk.vtkPointSource()
-    ptsSource.SetNumberOfPoints(N)
-    ptsSource.Update()
-    vpts = ptsSource.GetOutput().GetPoints()
-    for i, p in enumerate(pts):
-        vpts.SetPoint(i, p)
-    polyData = ptsSource.GetOutput()
+    sdf = vtk.vtkSignedDistance()
 
-    distance = vtk.vtkSignedDistance()
-    f = 0.1
-    x0, x1, y0, y1, z0, z1 = polyData.GetBounds()
-    distance.SetBounds(x0-(x1-x0)*f, x1+(x1-x0)*f,
-                       y0-(y1-y0)*f, y1+(y1-y0)*f,
-                       z0-(z1-z0)*f, z1+(z1-z0)*f)
+    if len(bounds)==6:
+        sdf.SetBounds(bounds)
+    else:
+        x0, x1, y0, y1, z0, z1 = polyData.GetBounds()
+        sdf.SetBounds(x0-(x1-x0)*pad, x1+(x1-x0)*pad,
+                      y0-(y1-y0)*pad, y1+(y1-y0)*pad,
+                      z0-(z1-z0)*pad, z1+(z1-z0)*pad)
+
     if polyData.GetPointData().GetNormals():
-        distance.SetInputData(polyData)
+        sdf.SetInputData(polyData)
     else:
         normals = vtk.vtkPCANormalEstimation()
         normals.SetInputData(polyData)
-        normals.SetSampleSize(int(N / 50))
+        if not sampleSize:
+            sampleSize = int(polyData.GetNumberOfPoints()/50)
+        normals.SetSampleSize(sampleSize)
         normals.SetNormalOrientationToGraphTraversal()
-        distance.SetInputConnection(normals.GetOutputPort())
-        print("Recalculating normals for", N, "Points, sample size=", int(N / 50))
+        sdf.SetInputConnection(normals.GetOutputPort())
+        #print("Recalculating normals with sample size =", sampleSize)
 
     if radius is None:
         b = polyData.GetBounds()
-        diagsize = np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
-        radius = diagsize / bins * 5
-    distance.SetRadius(radius)
-    distance.SetDimensions(bins, bins, bins)
-    distance.Update()
+        diagsize = np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])**2 + (b[5]-b[4])**2)
+        radius = diagsize / (sum(dims)/3) * 5
+        #print("Calculating mesh from points with radius =", radius)
 
-    print("Calculating mesh from points with R =", radius)
+    sdf.SetRadius(radius)
+    sdf.SetDimensions(dims)
+    sdf.Update()
+
     surface = vtk.vtkExtractSurface()
     surface.SetRadius(radius * 0.99)
-    surface.HoleFillingOn()
+    surface.SetHoleFilling(holeFilling)
     surface.ComputeNormalsOff()
     surface.ComputeGradientsOff()
-    surface.SetInputConnection(distance.GetOutputPort())
+    surface.SetInputConnection(sdf.GetOutputPort())
     surface.Update()
-    return Mesh(surface.GetOutput(), "gold").bc("tomato")
+    return Mesh(surface.GetOutput())
 
 
 def cluster(points, radius):
@@ -1167,19 +1184,6 @@ def mesh2Volume(mesh, spacing=(1, 1, 1)):
     imgstenc.SetBackgroundValue(outval)
     imgstenc.Update()
     return Volume(imgstenc.GetOutput())
-
-
-def extractSurface(volume, radius=0.5):
-    """Generate the zero-crossing isosurface from truncated signed distance volume in input.
-    Output is an ``Mesh`` object.
-    """
-    img = _getinput(volume)
-    fe = vtk.vtkExtractSurface()
-    fe.SetInputData(img)
-    fe.SetRadius(radius)
-    fe.Update()
-    return Mesh(fe.GetOutput()).phong()
-
 
 def projectSphereFilter(mesh):
     """
@@ -1828,6 +1832,8 @@ def pointDensity(mesh, dims=(30,30,30), bounds=None, radius=None, computeGradien
 
     See example script: |pointDensity.py|_
     """
+    if not utils.isSequence(dims):
+        dims = (dims,dims,dims)
     pdf = vtk.vtkPointDensityFilter()
     pdf.SetInputData(mesh.polydata())
     pdf.SetSampleDimensions(dims)

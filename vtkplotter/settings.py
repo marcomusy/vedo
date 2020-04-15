@@ -42,9 +42,9 @@ General settings.
     allowInteraction = True
 
     # Flag-style label options
-    flagDelay    = 0.0       # popup delay in milliseconds
+    flagDelay    = 150       # popup delay in milliseconds
     flagFont     = "Courier" # font type ("Arial", "Courier", "Times")
-    flagFontSize = 14
+    flagFontSize = 18
     flagAngle    = 0
     flagBold     = False
     flagItalic   = True
@@ -155,9 +155,9 @@ interactorStyle = None
 allowInteraction = True
 
 # Flag-style label options
-flagDelay = 0          # popup delay in milliseconds
+flagDelay = 150         # popup delay in milliseconds
 flagFont = "Courier"   # font type ("Arial", "Courier", "Times")
-flagFontSize = 14
+flagFontSize = 18
 flagJustification = 0
 flagAngle = 0
 flagBold = False

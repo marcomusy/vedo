@@ -15,12 +15,12 @@ vp.show(s1, s2, at=0)
 
 # make 3 different possible operations:
 b1 = booleanOperation(s1, "intersect", s2).c('m').legend("intersect")
-vp.show(b1, at=1)
+vp.show(b1, at=1, resetcam=False)
 
 b2 = booleanOperation(s1, "plus", s2).c("b").wireframe(True).legend("plus")
-vp.show(b2, at=2)
+vp.show(b2, at=2, resetcam=False)
 
 b3 = booleanOperation(s1, "minus", s2).legend("minus").addScalarBar(c='w')
-vp.show(b3, at=3)
+vp.show(b3, at=3, resetcam=False)
 
 interactive()

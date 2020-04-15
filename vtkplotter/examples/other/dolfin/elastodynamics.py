@@ -1,5 +1,4 @@
-'''
-Time-integration of the 
+'''Time-integration of the 
 elastodynamics equation
 '''
 from __future__ import division, print_function

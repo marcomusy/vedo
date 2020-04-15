@@ -106,10 +106,13 @@ class Mesh(vtk.vtkFollower, ActorBase):
             pof, pou = settings.polygonOffsetFactor, settings.polygonOffsetUnits
             self._mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
 
+        self.SetMapper(self._mapper)
+
         inputtype = str(type(inputobj))
 
         if inputobj is None:
             self._polydata = vtk.vtkPolyData()
+
         elif isinstance(inputobj, Mesh) or isinstance(inputobj, vtk.vtkActor):
             polyCopy = vtk.vtkPolyData()
             polyCopy.DeepCopy(inputobj.GetMapper().GetInput())
@@ -119,6 +122,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
             pr = vtk.vtkProperty()
             pr.DeepCopy(inputobj.GetProperty())
             self.SetProperty(pr)
+
         elif "PolyData" in inputtype:
             if inputobj.GetNumberOfCells() == 0:
                 carr = vtk.vtkCellArray()
@@ -127,6 +131,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
                     carr.InsertCellPoint(i)
                 inputobj.SetVerts(carr)
             self._polydata = inputobj  # cache vtkPolyData and mapper for speed
+
         elif "structured" in inputtype.lower() or "RectilinearGrid" in inputtype:
             if settings.visibleGridEdges:
                 gf = vtk.vtkExtractEdges()
@@ -136,9 +141,11 @@ class Mesh(vtk.vtkFollower, ActorBase):
                 gf.SetInputData(inputobj)
             gf.Update()
             self._polydata = gf.GetOutput()
+
         elif "trimesh" in inputtype:
             tact = utils.trimesh2vtk(inputobj, alphaPerCell=False)
             self._polydata = tact.polydata()
+
         elif "meshio" in inputtype:
             if inputobj.cells: # assume [vertices, faces]
                 mcells =[]
@@ -155,19 +162,24 @@ class Mesh(vtk.vtkFollower, ActorBase):
             if inputobj.cell_data:
                 vcldata = numpy_to_vtk(inputobj.cell_data, deep=True)
                 self._polydata.SetPointData(vcldata)
+
         elif utils.isSequence(inputobj):
-            if len(inputobj) == 2: # assume [vertices, faces]
+            ninp = len(inputobj)
+            if ninp == 0:
+                self._polydata = vtk.vtkPolyData()
+            elif ninp == 2: # assume [vertices, faces]
                 self._polydata = utils.buildPolyData(inputobj[0], inputobj[1])
-            else:
+            else:           # assume [vertices] or vertices
                 self._polydata = utils.buildPolyData(inputobj, None)
+
         elif hasattr(inputobj, "GetOutput"): # passing vtk object
             if hasattr(inputobj, "Update"): inputobj.Update()
             self._polydata = inputobj.GetOutput()
+
         else:
             colors.printc("Error: cannot build mesh from type:\n", inputtype, c=1)
             raise RuntimeError()
 
-        self.SetMapper(self._mapper)
 
         if settings.computeNormals is not None:
             computeNormals = settings.computeNormals
@@ -183,12 +195,12 @@ class Mesh(vtk.vtkFollower, ActorBase):
                 pdnorm.Update()
                 self._polydata = pdnorm.GetOutput()
 
-            if self._mapper:
-                self._mapper.SetInputData(self._polydata)
+        self._mapper.SetInputData(self._polydata)
 
         self.point_locator = None
         self.cell_locator = None
         self.line_locator = None
+        self.transform = None
         self._bfprop = None  # backface property holder
         self._scals_idx = 0  # index of the active scalar changed from CLI
         self._ligthingnr = 0
@@ -271,10 +283,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
             meshs.AddPart(self)
             return meshs
         return Assembly([self, meshs])
-
-    #def __str__(self):
-    #    utils.printInfo(self)
-    #    return ""
 
     def _update(self, polydata):
         """Overwrite the polygonal mesh with a new vtkPolyData."""
@@ -2430,6 +2438,91 @@ class Mesh(vtk.vtkFollower, ActorBase):
         smoothFilter.Update()
         return self._update(smoothFilter.GetOutput())
 
+    def smoothMLS1D(self, f=0.2, radius=None):
+        """
+        Smooth mesh or points with a `Moving Least Squares` variant.
+        The list ``mesh.info['variances']`` contain the residue calculated for each point.
+        Input mesh's polydata is modified.
+
+        :param float f: smoothing factor - typical range is [0,2].
+        :param float radius: radius search in absolute units. If set then ``f`` is ignored.
+
+        .. hint:: |moving_least_squares1D.py|_  |skeletonize.py|_
+
+            |moving_least_squares1D| |skeletonize|
+        """
+        coords = self.points()
+        ncoords = len(coords)
+
+        if radius:
+            Ncp=0
+        else:
+            Ncp = int(ncoords * f / 10)
+            if Ncp < 5:
+                colors.printc("Please choose a fraction higher than " + str(f), c=1)
+                Ncp = 5
+
+        variances, newline = [], []
+        for i, p in enumerate(coords):
+
+            points = self.closestPoint(p, N=Ncp, radius=radius)
+            if len(points) < 4:
+                continue
+
+            points = np.array(points)
+            pointsmean = points.mean(axis=0)  # plane center
+            uu, dd, vv = np.linalg.svd(points - pointsmean)
+            newp = np.dot(p - pointsmean, vv[0]) * vv[0] + pointsmean
+            variances.append(dd[1] + dd[2])
+            newline.append(newp)
+
+        self.info["variances"] = np.array(variances)
+        return self.points(newline)
+
+    def smoothMLS2D(self, f=0.2, radius=None):
+        """
+        Smooth mesh or points with a `Moving Least Squares` algorithm variant.
+        The list ``mesh.info['variances']`` contains the residue calculated for each point.
+
+        :param float f: smoothing factor - typical range is [0,2].
+        :param float radius: radius search in absolute units. If set then ``f`` is ignored.
+
+        .. hint:: |moving_least_squares2D.py|_  |recosurface.py|_
+
+            |moving_least_squares2D| |recosurface|
+        """
+        coords = self.points()
+        ncoords = len(coords)
+
+        if radius:
+            Ncp = 0
+        else:
+            Ncp = int(ncoords * f / 100)
+            if Ncp < 5:
+                colors.printc("Please choose a fraction higher than " + str(f), c=1)
+                Ncp = 5
+
+        variances, newpts = [], []
+        #pb = utils.ProgressBar(0, ncoords)
+        for i, p in enumerate(coords):
+            #pb.print("smoothing mesh ...")
+
+            pts = self.closestPoint(p, N=Ncp, radius=radius)
+            if radius and len(pts) < 5:
+                continue
+
+            ptsmean = pts.mean(axis=0)  # plane center
+            _, dd, vv = np.linalg.svd(pts - ptsmean)
+            cv = np.cross(vv[0], vv[1])
+            t = (np.dot(cv, ptsmean) - np.dot(cv, p)) / np.dot(cv,cv)
+            newp = p + cv*t
+            newpts.append(newp)
+            variances.append(dd[2])
+
+        self.info["variances"] = np.array(variances)
+        return self.points(newpts)
+
+
     def fillHoles(self, size=None):
         """Identifies and fills holes in input mesh.
         Holes are identified by locating boundary edges, linking them together into loops,
@@ -2526,9 +2619,10 @@ class Mesh(vtk.vtkFollower, ActorBase):
         sep.Update()
         return sep.IsInside(0)
 
-    def insidePoints(self, pts, invert=False, tol=1e-05):
+
+    def insidePoints(self, pts, invert=False, tol=1e-05, returnIds=False):
         """
-        Return the sublist of points that are inside a polydata closed surface.
+        Return the point cloud that is inside mesh surface.
 
         |pca| |pca.py|_
         """
@@ -2537,7 +2631,8 @@ class Mesh(vtk.vtkFollower, ActorBase):
             pts = pts.points()
         else:
             vpoints = vtk.vtkPoints()
-            vpoints.SetData(numpy_to_vtk(np.ascontiguousarray(pts), deep=True))
+            pts = np.ascontiguousarray(pts)
+            vpoints.SetData(numpy_to_vtk(pts, deep=True))
             pointsPolydata = vtk.vtkPolyData()
             pointsPolydata.SetPoints(vpoints)
 
@@ -2545,18 +2640,19 @@ class Mesh(vtk.vtkFollower, ActorBase):
         sep.SetTolerance(tol)
         sep.SetInputData(pointsPolydata)
         sep.SetSurfaceData(self.polydata())
+        sep.SetInsideOut(invert)
         sep.Update()
 
-        mask1, mask2 = [], []
-        for i, p in enumerate(pts):
-            if sep.IsInside(i):
-                mask1.append(p)
-            else:
-                mask2.append(p)
-        if invert:
-            return mask2
+        mask = Mesh(sep.GetOutput()).getPointArray(0).astype(np.bool)
+        ids = np.array(range(len(pts)))[mask]
+
+        if returnIds:
+            return ids
         else:
-            return mask1
+            from vtkplotter.shapes import Points
+            pcl = Points(pts[ids])
+            pcl.name = "insidePoints"
+            return pcl
 
     def boundaries(self,
                    boundaryEdges=True,
@@ -3079,7 +3175,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         transform.SetSigma(sigma)
         transform.SetSourceLandmarks(ptsou)
         transform.SetTargetLandmarks(pttar)
-        self.info["transform"] = transform
+        self.info["transform"] = transform # to disappear in future - replace by base.transform
         self.applyTransform(transform)
         return self
 

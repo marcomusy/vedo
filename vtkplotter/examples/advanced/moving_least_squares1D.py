@@ -25,7 +25,7 @@ a = Points(pts).legend("cloud")
 show(a, at=0, N=N, axes=5)
 
 for i in range(1, N):
-    a = smoothMLS1D(a.clone(), f=0.2).color(i).legend("iter #" + str(i))
+    a = a.clone().smoothMLS1D(f=0.2).color(i).legend("iter #" + str(i))
 
     # at last iteration make sure points are separated by tol (in % of bbox)
     if i == N-1:

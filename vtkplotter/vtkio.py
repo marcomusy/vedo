@@ -234,14 +234,14 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
             return Assembly(acts)
         return acts
 
-    elif fl.endswith(".geojson") or fl.endswith(".geojson.gz"):
-        return loadGeoJSON(fl)
+    elif fl.endswith(".geojson"):
+        return loadGeoJSON(filename)
 
     elif fl.endswith(".pvd"):
-        return loadPVD(fl)
+        return loadPVD(filename)
 
     elif fl.endswith(".pdb"):
-        return loadPDB(fl)
+        return loadPDB(filename)
 
         ################################################################# polygonal mesh:
     else:
@@ -1412,18 +1412,25 @@ class Video:
     |makeVideo| |makeVideo.py|_
     """
 
-    def __init__(self, name="movie.avi", **kwargs):
+    def __init__(self,
+                 name="movie.mp4",
+                 duration=None,
+                 fps=24,
+                 backend='ffmpeg',
+                ):
 
         from tempfile import TemporaryDirectory
 
         self.name = name
-        self.duration = kwargs.pop('duration', None)
-        self.fps = float(kwargs.pop('fps', 12))
-        self.ffmpeg = kwargs.pop('ffmpeg', 'ffmpeg')
+        self.duration = duration
+        self.backend = backend
+        self.fps = float(fps)
+        self.command = "ffmpeg -loglevel panic -y -r"
+
         self.frames = []
         self.tmp_dir = TemporaryDirectory()
         self.get_filename = lambda x: os.path.join(self.tmp_dir.name, x)
-        colors.printc("~video Video", name, "is open...", c="m")
+        colors.printc("~video Video", self.name, "is open...", c="m")
 
     def addFrame(self):
         """Add frame to current video."""
@@ -1440,19 +1447,117 @@ class Video:
             self.frames.append(fr2)
             os.system("cp -f %s %s" % (fr, fr2))
 
+
+    def action(self, elevation_range=(0,80),
+               azimuth_range=(0,359),
+               zoom=None,
+               cam1=None, cam2=None):
+        """Automatic shooting of the video with rotation and elevation ranges.
+
+        :param list elevation_range: initial and final elevation angles
+        :param list azimuth_range: initial and final azimuth angles
+        :param float zoom: initial zooming
+        :param cam12: initial and final camera position, can be dictionary or a vtkCamera
+        """
+        if not self.duration:
+            self.duration = 5
+
+        def buildcam(cm):
+            cm_pos = cm.pop("pos", None)
+            cm_focalPoint = cm.pop("focalPoint", None)
+            cm_viewup = cm.pop("viewup", None)
+            cm_distance = cm.pop("distance", None)
+            cm_clippingRange = cm.pop("clippingRange", None)
+            cm_parallelScale = cm.pop("parallelScale", None)
+            cm_thickness = cm.pop("thickness", None)
+            cm_viewAngle = cm.pop("viewAngle", None)
+            cm = vtk.vtkCamera()
+            if cm_pos is not None: cm.SetPosition(cm_pos)
+            if cm_focalPoint is not None: cm.SetFocalPoint(cm_focalPoint)
+            if cm_viewup is not None: cm.SetViewUp(cm_viewup)
+            if cm_distance is not None: cm.SetDistance(cm_distance)
+            if cm_clippingRange is not None: cm.SetClippingRange(cm_clippingRange)
+            if cm_parallelScale is not None: cm.SetParallelScale(cm_parallelScale)
+            if cm_thickness is not None: cm.SetThickness(cm_thickness)
+            if cm_viewAngle is not None: cm.SetViewAngle(cm_viewAngle)
+            return cm
+
+        vp = settings.plotter_instance
+
+        if zoom:
+            vp.camera.Zoom(zoom)
+
+        if isinstance(cam1, dict):
+            cam1 = buildcam(cam1)
+        if isinstance(cam2, dict):
+            cam2 = buildcam(cam2)
+
+        if len(elevation_range)==2:
+            vp.camera.Elevation(elevation_range[0])
+        if len(azimuth_range)==2:
+            vp.camera.Azimuth(azimuth_range[0])
+
+        vp.show(resetcam=False, interactive=False)
+
+        n = self.fps * self.duration
+        for i in range(int(n)):
+            if cam1 and cam2:
+                vp.moveCamera(cam1, cam2, i/n)
+            else:
+                if len(elevation_range)==2:
+                    vp.camera.Elevation((elevation_range[1]-elevation_range[0])/n)
+                if len(azimuth_range)==2:
+                    vp.camera.Azimuth((azimuth_range[1]-azimuth_range[0])/n)
+            vp.show()
+            self.addFrame()
+
     def close(self):
         """Render the video and write to file."""
+
         if self.duration:
             self.fps = len(self.frames) / float(self.duration)
             colors.printc("Recalculated video FPS to", round(self.fps, 3), c="m")
         else:
             self.fps = int(self.fps)
+
         self.name = self.name.split('.')[0]+'.mp4'
-        out = os.system(self.ffmpeg + " -loglevel panic -y -r " + str(self.fps)
-                        + " -i " + self.tmp_dir.name + os.sep + "%01d.png " + self.name)
-        if out:
-            colors.printc("ffmpeg returning error", c=1)
-        colors.printc("~save Video saved as", self.name, c="m")
+
+        ########################################
+        if self.backend == 'ffmpeg':
+            out = os.system(self.command + " " + str(self.fps)
+                            + " -i " + self.tmp_dir.name + os.sep + "%01d.png " + self.name)
+            if out:
+                colors.printc("ffmpeg returning error", c=1)
+            else:
+                colors.printc("~save Video saved as", self.name, c="m")
+
+        ########################################
+        elif 'cv' in self.backend:
+            try:
+                import cv2
+            except:
+                colors.printc("Error in Video backend: opencv not installed!", c=1)
+                return
+
+            cap = cv2.VideoCapture(os.path.join(self.tmp_dir.name, "%1d.png"))
+            fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+            w,h = settings.plotter_instance.window.GetSize()
+            writer = cv2.VideoWriter(self.name, fourcc, self.fps, (w, h), True)
+
+            found = False
+            while True:
+                ret, frame = cap.read()
+                if not ret: break
+                writer.write(frame)
+                found = True
+
+            cap.release()
+            writer.release()
+            if found:
+                colors.printc("~save Video saved as", self.name, c="m")
+            else:
+                colors.printc("could not find snapshots", c=1)
+
         self.tmp_dir.cleanup()
         return
 

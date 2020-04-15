@@ -52,6 +52,7 @@ class ActorBase(object):
         self.renderedAt = set()
         self.flagText = None
         self._mapper = None
+        self.transform = None
 
     def mapper(self, newMapper=None):
         """Return the ``vtkMapper`` data object, or update it with a new one."""
@@ -449,11 +450,6 @@ class ActorBase(object):
             self.SetScale(np.multiply(self.GetScale(), s))
         return self
 
-    def print(self):
-        """Print  ``Mesh``, ``Assembly``, ``Volume`` or ``Image`` infos."""
-        utils.printInfo(self)
-        return self
-
     def on(self):
         """Switch on object visibility. Object is not removed."""
         self.VisibilityOn()
@@ -626,12 +622,11 @@ class ActorBase(object):
 
     def getTransform(self):
         """
-        Check if ``info['transform']`` exists and returns a ``vtkTransform``.
+        Check if ``info.transform`` exists and returns a ``vtkTransform``.
         Otherwise return current user transformation (where the object is currently placed).
         """
-        if "transform" in self.info.keys():
-            T = self.info["transform"]
-            return T
+        if self.transform:
+            return self.transform
         else:
             T = self.GetMatrix()
             tr = vtk.vtkTransform()

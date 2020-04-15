@@ -20,13 +20,12 @@ s0 = Points(pts, r=3).color("blue").legend("original\npoint cloud")
 vp1.show(s0, at=0)
 
 # project s1 points into a smooth surface of points
-# return a demo object showing 30 regressions at random points
 # The parameter f controls the size of the local regression.
-mls1 = smoothMLS2D(  s0, f=0.5, showNPlanes=30)  #first pass
+mls1 = s0.clone().smoothMLS2D(f=0.5).legend("first pass")
 vp1.show(mls1, at=1)
 
 # mls1 is an Assembly so unpack it to get the first object it contains
-mls2 = smoothMLS2D(mls1.unpack(0), radius=0.1).legend("second pass")
+mls2 = mls1.clone().smoothMLS2D(radius=0.1).legend("second pass")
 vp1.show(mls2, at=2)
 
 

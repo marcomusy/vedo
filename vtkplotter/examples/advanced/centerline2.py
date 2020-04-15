@@ -21,7 +21,7 @@ tube.computeNormals().alpha(0.2).lineWidth(0.1)
 
 t = tube.clone().clean(tol/2)
 for i in range(niter):
-    t = smoothMLS1D(t, f=f).c('white').pointSize(10)
+    t = t.clone().smoothMLS1D(f=f).c('white').pointSize(10)
     show(t, at=i, N=niter, elevation=-1, bg='bb')
 t.clean(tol)
 

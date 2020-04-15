@@ -28,16 +28,16 @@ noise = np.random.randn(mesh.N(), 3) * 0.03
 pts0 = Points(mesh.points() + noise, r=3).legend("noisy cloud")
 vp.show(pts0, at=1)
 
-pts1 = smoothMLS2D(pts0, f=0.8)  # smooth cloud, input mesh is modified
+pts1 = pts0.clone().smoothMLS2D(f=0.8)  # smooth cloud
 
-print("Nr of points before cleaning polydata:", pts1.N())
+print("Nr of points before cleaning nr. points:", pts1.N())
 
 # impose a min distance among mesh points
 pts1.clean(tol=0.005).legend("smooth cloud")
-print("             after  cleaning polydata:", pts1.N())
+print("             after  cleaning nr. points:", pts1.N())
 
 vp.show(pts1, at=2)
 
 # reconstructed surface from point cloud
-reco = recoSurface(pts1, bins=100, radius=0.2).legend("surf reco")
+reco = recoSurface(pts1, dims=100, radius=0.2).legend("surf. reco")
 vp.show(reco, at=3, axes=7, zoom=1.2, interactive=1)

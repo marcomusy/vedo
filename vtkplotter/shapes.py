@@ -114,13 +114,18 @@ def Marker(symbol, pos=(0, 0, 0), c='lb', alpha=1, s=0.1, filled=True):
 
 def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
     """Create a simple point."""
-    if len(pos) == 2:
-        pos = (pos[0], pos[1], 0)
     if isinstance(pos, vtk.vtkActor):
         pos = pos.GetPosition()
-    mesh = Points([pos], r, c, alpha)
-    mesh.name = "Point"
-    return mesh
+    pd = utils.buildPolyData([[0,0,0]])
+    if len(pos)==2:
+        pos = (pos[0], pos[1], 0.)
+
+    pt = Mesh(pd, c, alpha)
+    pt.SetPosition(pos)
+    pt.GetProperty().SetPointSize(r)
+    pt.name = "Point"
+    return pt
+
 
 class Points(Mesh):
     """
@@ -139,7 +144,7 @@ class Points(Mesh):
 
     |lorenz|
     """
-    def __init__(self, plist, r=5, c=(.3,.3,.3), alpha=1):
+    def __init__(self, plist, r=5, c=(0.3,0.3,0.3), alpha=1):
 
         ################ interpret user input format:
         if isinstance(plist, Mesh):
@@ -147,99 +152,79 @@ class Points(Mesh):
 
         n = len(plist)
 
-        if   n == 0:
-            return None
-        elif n == 3:  # assume plist is in the format [all_x, all_y, all_z]
+        if n == 3:  # assume plist is in the format [all_x, all_y, all_z]
             if utils.isSequence(plist[0]) and len(plist[0]) > 3:
                 plist = np.stack((plist[0], plist[1], plist[2]), axis=1)
         elif n == 2:  # assume plist is in the format [all_x, all_y, 0]
             if utils.isSequence(plist[0]) and len(plist[0]) > 3:
                 plist = np.stack((plist[0], plist[1], np.zeros(len(plist[0]))), axis=1)
 
-        if len(plist[0]) == 2: # make it 3d
+        if n and len(plist[0]) == 2: # make it 3d
             plist = np.c_[np.array(plist), np.zeros(len(plist))]
         ################
 
         if ((utils.isSequence(c) and (len(c)>3 or (utils.isSequence(c[0]) and len(c[0])==4)))
             or utils.isSequence(alpha) ):
 
-                cols = c
+            cols = c
 
-                n = len(plist)
-                if n != len(cols):
-                    printc("Mismatch in Points() colors", n, len(cols), c=1)
+            n = len(plist)
+            if n != len(cols):
+                printc("Mismatch in Points() colors", n, len(cols), c=1)
+                raise RuntimeError()
+
+            src = vtk.vtkPointSource()
+            src.SetNumberOfPoints(n)
+            src.Update()
+
+            vgf = vtk.vtkVertexGlyphFilter()
+            vgf.SetInputData(src.GetOutput())
+            vgf.Update()
+            pd = vgf.GetOutput()
+
+            pd.GetPoints().SetData(numpy_to_vtk(np.ascontiguousarray(plist), deep=True))
+
+            ucols = vtk.vtkUnsignedCharArray()
+            ucols.SetNumberOfComponents(4)
+            ucols.SetName("Points_RGBA")
+            if utils.isSequence(alpha):
+                if len(alpha) != n:
+                    printc("Mismatch in Points() alphas", n, len(alpha), c=1)
                     raise RuntimeError()
-                src = vtk.vtkPointSource()
-                src.SetNumberOfPoints(n)
-                src.Update()
-                vgf = vtk.vtkVertexGlyphFilter()
-                vgf.SetInputData(src.GetOutput())
-                vgf.Update()
-                pd = vgf.GetOutput()
-                pd.GetPoints().SetData(numpy_to_vtk(np.ascontiguousarray(plist), deep=True))
+                alphas = alpha
+                alpha = 1
+            else:
+               alphas = (alpha,) * n
 
-                ucols = vtk.vtkUnsignedCharArray()
-                ucols.SetNumberOfComponents(4)
-                ucols.SetName("pointsRGBA")
-                if utils.isSequence(alpha):
-                    if len(alpha) != n:
-                        printc("Mismatch in Points() alphas", n, len(alpha), c=1)
-                        raise RuntimeError()
-                    alphas = alpha
-                    alpha = 1
+            if utils.isSequence(cols):
+                c = None
+                if len(cols[0]) == 4:
+                    for i in range(n): # FAST
+                        rc,gc,bc,ac = cols[i]
+                        ucols.InsertNextTuple4(rc, gc, bc, ac)
                 else:
-                   alphas = (alpha,) * n
+                    for i in range(n): # SLOW
+                        rc,gc,bc = getColor(cols[i])
+                        ucols.InsertNextTuple4(rc*255, gc*255, bc*255, alphas[i]*255)
+            else:
+                c = cols
 
-                if utils.isSequence(cols):
-                    c = None
-                    if len(cols[0]) == 4:
-                        for i in range(n): # FAST
-                            rc,gc,bc,ac = cols[i]
-                            ucols.InsertNextTuple4(rc, gc, bc, ac)
-                    else:
-                        for i in range(n): # SLOW
-                            rc,gc,bc = getColor(cols[i])
-                            ucols.InsertNextTuple4(rc*255, gc*255, bc*255, alphas[i]*255)
-                else:
-                    c = cols
+            pd.GetPointData().SetScalars(ucols)
 
-                pd.GetPointData().SetScalars(ucols)
-                Mesh.__init__(self, pd, c, alpha)
-                self.flat().pointSize(r)
-                self.mapper().ScalarVisibilityOn()
+            Mesh.__init__(self, pd, c, alpha)
+            self.mapper().ScalarVisibilityOn()
 
         else:
 
-            n = len(plist)  # refresh
-            sourcePoints = vtk.vtkPoints()
-            sourceVertices = vtk.vtkCellArray()
-            is3d = len(plist[0]) > 2
-            if is3d:  # its faster
-                for pt in plist:
-                    aid = sourcePoints.InsertNextPoint(pt)
-                    sourceVertices.InsertNextCell(1)
-                    sourceVertices.InsertCellPoint(aid)
-            else:
-                for pt in plist:
-                    aid = sourcePoints.InsertNextPoint(pt[0], pt[1], 0)
-                    sourceVertices.InsertNextCell(1)
-                    sourceVertices.InsertCellPoint(aid)
+            pd = utils.buildPolyData(plist)
 
-            pd = vtk.vtkPolyData()
-            pd.SetPoints(sourcePoints)
-            pd.SetVerts(sourceVertices)
-
-            if n == 1:  # passing just one point
-                pd.GetPoints().SetPoint(0, [0, 0, 0])
-            else:
-                pd.GetPoints().SetData(numpy_to_vtk(np.ascontiguousarray(plist), deep=True))
             Mesh.__init__(self, pd, c, alpha)
-            self.GetProperty().SetPointSize(r)
-            if n == 1:
-                self.SetPosition(plist[0])
+
+        self.GetProperty().SetPointSize(r)
 
         settings.collectable_actors.append(self)
         self.name = "Points"
+
 
 
 class Glyph(Mesh):
@@ -283,7 +268,7 @@ class Glyph(Mesh):
 
         if utils.isSequence(mesh):
             # create a cloud of points
-            poly = utils.buildPolyData(mesh)
+            poly = Points(mesh).polydata()
         elif isinstance(mesh, vtk.vtkPolyData):
             poly = mesh
         else:
@@ -355,7 +340,7 @@ class Glyph(Mesh):
 
         gly.Update()
 
-        Mesh.__init__(self, gly.GetOutput(), c=c, alpha=alpha)
+        Mesh.__init__(self, gly.GetOutput(), c, alpha)
         self.flat()
 
         if cmap:
@@ -472,17 +457,21 @@ class Line(Mesh):
     If `p0` is a list of points returns the line connecting them.
     A 2D set of coords can also be passed as p0=[x..], p1=[y..].
 
+    :param bool closed: join last to first point
     :param c: color name, number, or list of [R,G,B] colors.
     :type c: int, str, list
     :param float alpha: transparency in range [0,1].
     :param lw: line width.
-    :param bool dotted: draw a dotted line
     :param int res: number of intermediate points in the segment
     """
 
-    def __init__(self, p0, p1=None, c="r", alpha=1, lw=1, dotted=False, res=None):
+    def __init__(self, p0, p1=None, closed=False, c="r", alpha=1, lw=1, res=None):
         if isinstance(p0, vtk.vtkActor): p0 = p0.GetPosition()
         if isinstance(p1, vtk.vtkActor): p1 = p1.GetPosition()
+
+        self.slope = [] # used by analysis.fitLine
+        self.center = []
+        self.variances = []
 
         # detect if user is passing a 2D list of points as p0=xlist, p1=ylist:
         if len(p0) > 3:
@@ -490,23 +479,23 @@ class Line(Mesh):
                 # assume input is 2D xlist, ylist
                 p0 = np.stack((p0, p1), axis=1)
                 p1 = None
+            if len(p0[0]) == 2: # make it 3d
+                p0 = np.c_[np.array(p0), np.zeros(len(p0))]
+            self.base = p0[0]
+            if closed:
+                p0 = np.append(p0, [p0[0]], axis=0)
+                self.top = p0[-2]
+            else:
+                self.top = p0[-1]
 
         # detect if user is passing a list of points:
         if utils.isSequence(p0[0]):
             ppoints = vtk.vtkPoints()  # Generate the polyline
-            dim = len((p0[0]))
-            if dim == 2:
-                firstpt = np.array([p0[0][0], p0[0][1], 0])
-                lastpt = np.array([p0[-1][0], p0[-1][0], 0])
-                for i, p in enumerate(p0):
-                    ppoints.InsertPoint(i, p[0], p[1], 0)
-            else:
-                firstpt = np.array(p0[0])
-                lastpt = np.array(p0[-1])
-                ppoints.SetData(numpy_to_vtk(np.ascontiguousarray(p0), deep=True))
-            lines = vtk.vtkCellArray()  # Create the polyline.
-            lines.InsertNextCell(len(p0))
-            for i in range(len(p0)):
+            ppoints.SetData(numpy_to_vtk(np.ascontiguousarray(p0), deep=True))
+            lines = vtk.vtkCellArray()  # Create the polyline
+            npt = len(p0)
+            lines.InsertNextCell(npt)
+            for i in range(npt):
                 lines.InsertCellPoint(i)
             poly = vtk.vtkPolyData()
             poly.SetPoints(ppoints)
@@ -519,17 +508,15 @@ class Line(Mesh):
                 lineSource.SetResolution(res)
             lineSource.Update()
             poly = lineSource.GetOutput()
-            firstpt = np.array(p0)
-            lastpt = np.array(p1)
+            self.top = np.array(p1)
+            self.base = np.array(p0)
 
         Mesh.__init__(self, poly, c, alpha)
         self.lw(lw)
-        if dotted:
-            self.GetProperty().SetLineStipplePattern(0xF0F0)
-            self.GetProperty().SetLineStippleRepeatFactor(1)
-        self.base = firstpt
-        self.top  = lastpt
-        #self.SetOrigin((firstpt+lastpt)/2)
+        #if dotted: # not functional
+        #    self.GetProperty().SetLineStipplePattern(0xF0F0)
+        #    self.GetProperty().SetLineStippleRepeatFactor(1)
+        #self.SetOrigin((self.base+self.top)/2)
         settings.collectable_actors.append(self)
         self.name = "Line"
 
@@ -537,24 +524,25 @@ class Line(Mesh):
         """Calculate length of line."""
         distance = 0.
         pts = self.points()
-        for i in range(1,len(pts)):
+        for i in range(1, len(pts)):
             distance += np.linalg.norm(pts[i]-pts[i-1])
         return distance
 
 
-class DashedLine(Mesh):
+class DashedLine(Line):
     """
     Build a dashed line segment between points `p0` and `p1`.
     If `p0` is a list of points returns the line connecting them.
     A 2D set of coords can also be passed as p0=[x..], p1=[y..].
 
+    :param bool closed: join last to first point
     :param float spacing: relative size of the dash.
     :param c: color name, number, or list of [R,G,B] colors.
     :type c: int, str, list
     :param float alpha: transparency in range [0,1].
     :param lw: line width.
     """
-    def __init__(self, p0, p1=None, spacing=0.1, c="red", alpha=1, lw=2):
+    def __init__(self, p0, p1=None, spacing=0.1, closed=False, c="red", alpha=1, lw=2):
 
         if isinstance(p0, vtk.vtkActor): p0 = p0.GetPosition()
         if isinstance(p1, vtk.vtkActor): p1 = p1.GetPosition()
@@ -565,6 +553,10 @@ class DashedLine(Mesh):
                 # assume input is 2D xlist, ylist
                 p0 = np.stack((p0, p1), axis=1)
                 p1 = None
+            if len(p0[0]) == 2: # make it 3d
+                p0 = np.c_[np.array(p0), np.zeros(len(p0))]
+            if closed:
+                p0 = np.append(p0, [p0[0]], axis=0)
 
         if p1 is not None: # assume passing p0=[x,y]
             if len(p0) == 2 and not utils.isSequence(p0[0]):
@@ -626,9 +618,13 @@ class DashedLine(Mesh):
         Mesh.__init__(self, poly, c, alpha)
         self.lw(lw)
         self.base = listp[0]
-        self.top  = listp[-1]
+        if closed:
+            self.top = listp[-2]
+        else:
+            self.top = listp[-1]
         settings.collectable_actors.append(self)
         self.name = "DashedLine"
+
 
 
 class Lines(Mesh):
@@ -673,7 +669,7 @@ class Lines(Mesh):
         self.name = "Lines"
 
 
-class Spline(Mesh):
+class Spline(Line):
     """
     Return an ``Mesh`` for a spline which does not necessarly
     passing exactly through all the input points.
@@ -689,9 +685,16 @@ class Spline(Mesh):
 
     |tutorial_spline| |tutorial.py|_
     """
-    def __init__(self, points, smooth=0.5, degree=2, s=2, res=None):
+    def __init__(self, points, smooth=0.5, degree=2, closed=False, s=2, res=None):
 
-        if isinstance(points, Mesh): points = points.points()
+        if isinstance(points, Mesh):
+            points = points.points()
+
+        if len(points[0]) == 2: # make it 3d
+            points = np.c_[np.array(points), np.zeros(len(points))]
+
+        if closed:
+            points = np.append(points, [points[0]], axis=0)
 
         from scipy.interpolate import splprep, splev
         if res is None:
@@ -708,34 +711,13 @@ class Spline(Mesh):
         # evaluate spLine, including interpolated points:
         xnew, ynew, znew = splev(np.linspace(0, 1, res), tckp)
 
-        ppoints = vtk.vtkPoints()  # Generate the polyline for the spline
-        profileData = vtk.vtkPolyData()
-        ppoints.SetData(numpy_to_vtk(np.c_[xnew, ynew, znew], deep=True))
-        lines = vtk.vtkCellArray()  # Create the polyline
-        lines.InsertNextCell(res)
-        for i in range(res):
-            lines.InsertCellPoint(i)
-        profileData.SetPoints(ppoints)
-        profileData.SetLines(lines)
-        Mesh.__init__(self, profileData, c='k')
-        self.GetProperty().SetLineWidth(s)
-        self.base = np.array(points[0])
-        self.top = np.array(points[-1])
+        Line.__init__(self, np.c_[xnew, ynew, znew], lw=2)
+        settings.collectable_actors.pop()
         settings.collectable_actors.append(self)
         self.name = "Spline"
 
-    def length(self):
-        """Calculate length of line."""
-        distance = 0.
-        pts = self.points()
-        for i in range(1,len(pts)):
-            distance += np.linalg.norm(pts[i]-pts[i-1])
-        return distance
 
-
-def KSpline(points,
-            continuity=0, tension=0, bias=0,
-            closed=False, res=None):
+class KSpline(Line):
     """
     Return a Kochanek-Bartel spline which runs exactly through all the input points.
 
@@ -750,38 +732,48 @@ def KSpline(points,
 
     |kspline| |kspline.py|_
     """
-    if not res: res = len(points)*20
+    def __init__(self, points,
+                 continuity=0, tension=0, bias=0,
+                 closed=False, res=None):
 
-    xspline = vtk.vtkKochanekSpline()
-    yspline = vtk.vtkKochanekSpline()
-    zspline = vtk.vtkKochanekSpline()
-    for s in [xspline, yspline, zspline]:
-        if bias: s.SetDefaultBias(bias)
-        if tension: s.SetDefaultTension(tension)
-        if continuity: s.SetDefaultContinuity(continuity)
-        s.SetClosed(closed)
+        if isinstance(points, Mesh):
+            points = points.points()
 
-    for i,p in enumerate(points):
-        xspline.AddPoint(i, p[0])
-        yspline.AddPoint(i, p[1])
-        if len(p)>2:
-            zspline.AddPoint(i, p[2])
+        if not res: res = len(points)*20
 
-    ln = []
-    for pos in np.linspace(0, len(points), res):
-        x = xspline.Evaluate(pos)
-        y = yspline.Evaluate(pos)
-        z=0
-        if len(p)>2:
-            z = zspline.Evaluate(pos)
-        ln.append((x,y,z))
+        if len(points[0]) == 2: # make it 3d
+            points = np.c_[np.array(points), np.zeros(len(points))]
 
-    mesh = Line(ln, c='gray')
-    mesh.base = np.array(points[0])
-    mesh.top = np.array(points[-1])
-    settings.collectable_actors.append(mesh)
-    mesh.name = "KSpline"
-    return mesh
+        xspline = vtk.vtkKochanekSpline()
+        yspline = vtk.vtkKochanekSpline()
+        zspline = vtk.vtkKochanekSpline()
+        for s in [xspline, yspline, zspline]:
+            if bias: s.SetDefaultBias(bias)
+            if tension: s.SetDefaultTension(tension)
+            if continuity: s.SetDefaultContinuity(continuity)
+            s.SetClosed(closed)
+
+        for i,p in enumerate(points):
+            xspline.AddPoint(i, p[0])
+            yspline.AddPoint(i, p[1])
+            if len(p)>2:
+                zspline.AddPoint(i, p[2])
+
+        ln = []
+        for pos in np.linspace(0, len(points), res):
+            x = xspline.Evaluate(pos)
+            y = yspline.Evaluate(pos)
+            z=0
+            if len(p)>2:
+                z = zspline.Evaluate(pos)
+            ln.append((x,y,z))
+
+        Line.__init__(self, ln, lw=2, c='gray')
+        settings.collectable_actors.pop()
+        self.base = np.array(points[0])
+        self.top = np.array(points[-1])
+        settings.collectable_actors.append(self)
+        self.name = "KSpline"
 
 
 class Tube(Mesh):
@@ -1344,6 +1336,7 @@ class Arc(Mesh):
             point1 = (point1[0], point1[1], 0)
         if point2 is not None and len(point2):
             point2 = (point2[0], point2[1], 0)
+
         ar = vtk.vtkArcSource()
         if point2 is not None:
             ar.UseNormalAndAngleOff()
@@ -1385,6 +1378,10 @@ class Sphere(Mesh):
     |Sphere| |sphericgrid|
     """
     def __init__(self, pos=(0, 0, 0), r=1, c="r", alpha=1, res=24, quads=False):
+
+        self.radius = r # used by fitSphere
+        self.center = pos
+        self.residue = 0
 
         if quads:
             if res<4: res=4
@@ -1605,7 +1602,13 @@ class Ellipsoid(Mesh):
         return asp
 
     def asphericity_error(self):
-        """Calculate statistical error on the asphericity value."""
+        """Calculate statistical error on the asphericity value.
+
+        Errors on the main axes are stored in
+        `Ellipsoid.va_error`
+        `Ellipsoid.vb_error`
+        `Ellipsoid.vc_error`
+        """
         a,b,c = self.va, self.vb, self.vc
         sqrtn = np.sqrt(self.nr_of_points)
         ea, eb, ec = a/2/sqrtn, b/2/sqrtn, b/2/sqrtn
@@ -1647,10 +1650,8 @@ class Ellipsoid(Mesh):
         self.va_error = ea
         self.vb_error = eb
         self.vc_error = ec
-        self.info["va_error"] = ea
-        self.info["vb_error"] = eb
-        self.info["vc_error"] = ec
         return err
+
 
 class Grid(Mesh):
     """Return an even or uneven 2D grid at `z=0`.
@@ -1738,6 +1739,10 @@ class Plane(Mesh):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
+
+        self.normal = np.array(normal)
+        self.center = np.array(pos)
+        self.variance = 0
 
         if sy is None:
             sy = sx
@@ -2339,7 +2344,7 @@ class Latex(Picture):
     :param bool usetex: use latex compiler of matplotlib
     :param fromweb: retrieve the latex image from online server (codecogs)
 
-    You can access the latex formula from the `Mesh` object with `mesh.info['formula']`.
+    You can access the latex formula in `Latex.formula'`.
 
     |latex| |latex.py|_
     """
@@ -2354,6 +2359,8 @@ class Latex(Picture):
         usetex=False,
         fromweb=False,
     ):
+        self.formula = formula
+
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
         try:
@@ -2402,7 +2409,6 @@ class Latex(Picture):
                 build_img_plt(formula, '_lateximg.png')
 
             Picture.__init__(self, '_lateximg.png')
-            self.info['formula'] = formula
             self.alpha(alpha)
             b = self.GetBounds()
             xm, ym = (b[1]+b[0])/200*s, (b[3]+b[2])/200*s

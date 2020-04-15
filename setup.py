@@ -83,6 +83,8 @@ setup(
 # rm examples/other/voronoi3d.txt examples/other/voronoi3d.txt.vol
 # rm examples/other/embryo.html examples/other/embryo.x3d
 
+# comment out defs in docs.py
+
 # git status
 # git add [files]
 # git commit -a -m 'comment'
@@ -98,6 +100,7 @@ setup(
 # release examples
 
 ## to generate documentation:
+# comment in defs in docs.py
 # Install the dependencies in docs/requirements.txt
 #  pip install -r docs/requirements.txt
 #

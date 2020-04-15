@@ -35,8 +35,6 @@ python example.py
 |    |    |
 | [![delaunay2d](https://user-images.githubusercontent.com/32848391/50738865-c0658e80-11d8-11e9-8616-b77363aa4695.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/delaunay2d.py)<br/> `delaunay2d.py`  | Build a mesh starting from points in space using _Delaunay_ triangulation (points must be projectable on the _xy_ plane). |
 |    |    |
-| [![fitline](https://user-images.githubusercontent.com/32848391/50738864-c0658e80-11d8-11e9-8754-c670f1f331d6.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/fitline.py)<br/> `fitline.py`           | Draw a line in 3D that fits a cloud of points. <br/>The example also fits a plane to the same points.|
-|    |    |
 | [![keypress](https://user-images.githubusercontent.com/32848391/50738860-bfccf800-11d8-11e9-96ca-dab2bb7adae3.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/keypress.py)<br/> `keypress.py`        | How to implement a custom function that is triggered by pressing a keyboard button when the rendering window is in interactive mode. <br/>In the example, every time a key is pressed the picked point of the mesh is used to add a sphere and some info is printed. |
 |    |    |
 | [![largestregion](https://user-images.githubusercontent.com/32848391/50738859-bfccf800-11d8-11e9-8c59-17c0ca4d8e06.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/largestregion.py)<br/> `largestregion.py`    | Extract the mesh region that has the largest connected surface with method `analysis.extractLargestRegion()`. |

@@ -217,12 +217,18 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
 
     If tetras=True, interpret 4-point faces as tetrahedrons instead of surface quads.
     """
+    poly = vtk.vtkPolyData()
+
+    if len(vertices) == 0:
+        return poly
+
+    if not isSequence(vertices[0]):
+        return poly
+
     if len(vertices[0]) < 3: # make sure it is 3d
         vertices = np.c_[np.array(vertices), np.zeros(len(vertices))]
         if len(vertices[0]) == 2:
             vertices = np.c_[np.array(vertices), np.zeros(len(vertices))]
-
-    poly = vtk.vtkPolyData()
 
     sourcePoints = vtk.vtkPoints()
     sourcePoints.SetData(numpy_to_vtk(np.ascontiguousarray(vertices), deep=True))
