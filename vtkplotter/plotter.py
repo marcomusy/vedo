@@ -1112,6 +1112,7 @@ class Plotter:
         xmax,
         value=None,
         s=0.03,
+        t=1,
         title="",
         rotation=0,
         c=None,
@@ -1126,6 +1127,7 @@ class Plotter:
         :param float xmax:  upper value
         :param float value: initial value
         :param float s: label scaling factor
+        :param float t: tube scaling factor
         :param str title: title text
         :param c: slider color
         :param float rotation: title rotation around slider axis
@@ -1134,7 +1136,7 @@ class Plotter:
         |sliders3d| |sliders3d.py|_
         """
         return addons.addSlider3D(
-            sliderfunc, pos1, pos2, xmin, xmax, value, s, title, rotation, c, showValue
+            sliderfunc, pos1, pos2, xmin, xmax, value, s, t, title, rotation, c, showValue
         )
 
     def addButton(

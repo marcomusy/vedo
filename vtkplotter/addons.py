@@ -372,7 +372,7 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     sliderRep.GetTubeProperty().SetColor(c)
     sliderRep.GetTubeProperty().SetOpacity(0.6)
     sliderRep.GetSliderProperty().SetColor(c)
-    sliderRep.GetSelectedProperty().SetColor(0.8, 0, 0)
+    sliderRep.GetSelectedProperty().SetColor(np.sqrt(np.array(c)))
     sliderRep.GetCapProperty().SetColor(c)
 
     if title:
@@ -407,6 +407,7 @@ def addSlider3D(
     xmax,
     value=None,
     s=0.03,
+    t=1,
     title="",
     rotation=0,
     c=None,
@@ -421,6 +422,7 @@ def addSlider3D(
     :param float xmax:  upper value
     :param float value: initial value
     :param float s: label scaling factor
+    :param float t: tube scaling factor
     :param str title: title text
     :param c: slider color
     :param float rotation: title rotation around slider axis
@@ -439,12 +441,10 @@ def addSlider3D(
     if value is None or value < xmin:
         value = xmin
 
-    t = 1.5 / np.sqrt(mag(np.array(pos2) - pos1))  # better norm
-
     sliderRep = vtk.vtkSliderRepresentation3D()
     sliderRep.SetMinimumValue(xmin)
-    sliderRep.SetValue(value)
     sliderRep.SetMaximumValue(xmax)
+    sliderRep.SetValue(value)
 
     sliderRep.GetPoint1Coordinate().SetCoordinateSystemToWorld()
     sliderRep.GetPoint2Coordinate().SetCoordinateSystemToWorld()
@@ -455,10 +455,9 @@ def addSlider3D(
     sliderRep.SetTubeWidth(0.01 * t)
     sliderRep.SetSliderLength(0.04 * t)
     sliderRep.SetSliderShapeToCylinder()
-    sliderRep.GetSelectedProperty().SetColor(1, 0, 0)
-    sliderRep.GetSliderProperty().SetColor(np.array(c) / 2)
+    sliderRep.GetSelectedProperty().SetColor(np.sqrt(np.array(c)))
+    sliderRep.GetSliderProperty().SetColor(np.array(c) / 1.5)
     sliderRep.GetCapProperty().SetOpacity(0)
-
     sliderRep.SetRotation(rotation)
 
     if not showValue:

@@ -1721,7 +1721,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
             return self
 
 
-    def pointColors(self, scalars_or_colors, cmap="jet", alpha=1,
+    def pointColors(self, scalars_or_colors=None, cmap="jet", alpha=1,
                     mode='scalars',
                     bands=None, vmin=None, vmax=None):
         """
@@ -1752,13 +1752,13 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
         poly = self.polydata(False)
 
-        if isinstance(scalars_or_colors, str):  # if a name is passed
-            scalars_or_colors = vtk_to_numpy(poly.GetPointData().GetArray(scalars_or_colors))
+        if scalars_or_colors is None:
+            scalars_or_colors = vtk_to_numpy(poly.GetPointData().GetScalars()).astype(np.float)
 
-        try:
-            n = len(scalars_or_colors)
-        except TypeError:  # invalid type
-            return self
+        elif isinstance(scalars_or_colors, str):  # if a name is passed
+            scalars_or_colors = vtk_to_numpy(poly.GetPointData().GetArray(scalars_or_colors)).astype(np.float)
+
+        n = len(scalars_or_colors)
 
         useAlpha = False
         if n != poly.GetNumberOfPoints():
@@ -1770,6 +1770,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
                 colors.printc('Error in pointColors(): nr. of scalars < nr. of alpha values',
                               n, len(alpha), c=1)
                 raise RuntimeError()
+                
         if bands:
             scalars_or_colors = utils.makeBands(scalars_or_colors, bands)
 
@@ -1892,10 +1893,14 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
         poly = self.polydata(False)
 
-        if isinstance(scalars_or_colors, str):  # if a name is passed
-            scalars_or_colors = vtk_to_numpy(poly.GetCellData().GetArray(scalars_or_colors))
+        if scalars_or_colors is None:
+            scalars_or_colors = vtk_to_numpy(poly.GetCellData().GetScalars()).astype(np.float)
+
+        elif isinstance(scalars_or_colors, str):  # if a name is passed
+            scalars_or_colors = vtk_to_numpy(poly.GetCellData().GetArray(scalars_or_colors)).astype(np.float)
 
         n = len(scalars_or_colors)
+        
         useAlpha = False
         if n != poly.GetNumberOfCells():
             colors.printc('Error in cellColors(): nr. of scalars != nr. of cells',

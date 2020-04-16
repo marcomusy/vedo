@@ -44,6 +44,7 @@ vp = None
 args = MyArgs()
 _alphaslider0, _alphaslider1, _alphaslider2 = 0.33, 0.66, 1  # defaults
 kact = 0
+cmap = args.cmap
 
 #################################################################################################
 def _setspacing(img):
@@ -155,7 +156,6 @@ def draw_scene():
         colorTransferFunction = volumeProperty.GetRGBTransferFunction()
         cmaps = [
             args.cmap,
-            "rainbow",
             "viridis",
             "bone",
             "hot",
@@ -285,21 +285,11 @@ def draw_scene():
         # add histogram of scalar
         from vtkplotter.pyplot import cornerHistogram
 
-        dims = img.GetDimensions()
-        nvx = min(100000, dims[0] * dims[1] * dims[2])
-        np.random.seed(0)
-        idxs = np.random.randint(0, min(dims), size=(nvx, 3))
-        data = []
-        for ix, iy, iz in idxs:
-            d = img.GetScalarComponentAsFloat(ix, iy, iz, 0)
-            data.append(d)
-
-        plot = cornerHistogram(
-            data, bins=40, logscale=1, c="gray", bg="gray", pos=(0.78, 0.065)
+        plot = cornerHistogram(volume.getPointArray(),
+            bins=25, logscale=1, c="gray", bg="gray", pos=(0.78, 0.065)
         )
         plot.GetPosition2Coordinate().SetValue(0.197, 0.20, 0)
-        plot.SetNumberOfXLabels(2)
-        plot.GetXAxisActor2D().SetFontFactor(0.8)
+        plot.GetXAxisActor2D().SetFontFactor(0.7)
         plot.GetProperty().SetOpacity(0.5)
 
         vp.add(plot)
@@ -327,60 +317,136 @@ def draw_scene():
     elif args.slicer:
         # print('DEBUG special case of SLC/TIFF/DICOM volumes with --slicer option')
 
+        from vtkplotter.pyplot import cornerHistogram
+        from vtkplotter import show, mag
+
         filename = args.files[0]
-        img = vtkio.load(filename).imagedata()
+        alpha = args.alpha
 
-        ren1 = vtk.vtkRenderer()
-        renWin = vtk.vtkRenderWindow()
-        renWin.AddRenderer(ren1)
-        iren = vtk.vtkRenderWindowInteractor()
-        iren.SetRenderWindow(renWin)
+        useSlider2D = True
+        if args.axes_type == 4:
+            args.axes_type=1
+        elif args.axes_type == 3:
+            args.axes_type=1
+            useSlider2D = False
 
-        im = vtk.vtkImageResliceMapper()
-        im.SetInputData(img)
-        im.SliceFacesCameraOn()
-        im.SliceAtFocalPointOn()
-        im.BorderOn()
+        cmaps = [args.cmap, "hot_r", "gist_earth_r", "viridis", "bone_r"]
 
-        ip = vtk.vtkImageProperty()
-        ip.SetInterpolationTypeToLinear()
+        ################################
+        vol = vtkio.load(filename)#.printInfo()
+        box = vol.box().wireframe().alpha(0)
 
-        ia = vtk.vtkImageSlice()
-        ia.SetMapper(im)
-        ia.SetProperty(ip)
+        settings.plotter_instance = None # reset
+        wsize = (800,700)
+        if args.full_screen:
+            wsize = "full"
 
-        ren1.AddViewProp(ia)
-        ren1.SetBackground(0.6, 0.6, 0.7)
-        renWin.SetSize(900, 900)
+        vp = show(box, axes=args.axes_type, bg='w', bg2='lb', size=wsize,
+                  title=filename, viewup="z", interactive=False)
+        vp.showInset(vol, pos=(1,1), size=0.3, c='w', draggable=False)
 
-        iren = vtk.vtkRenderWindowInteractor()
-        style = vtk.vtkInteractorStyleImage()
-        style.SetInteractionModeToImage3D()
-        iren.SetInteractorStyle(style)
-        renWin.SetInteractor(iren)
+        # inits
+        dims = vol.dimensions()
+        cmap = cmaps[0]
+        visibles = [None, None, None]
+        msh = vol.zSlice(int(dims[2]/2)).alpha(alpha)
+        msh.pointColors(cmap=cmap)
+        vp.renderer.AddActor(msh)
+        visibles[2] = msh
 
-        renWin.Render()
-        cam1 = ren1.GetActiveCamera()
-        cam1.ParallelProjectionOn()
-        ren1.ResetCameraClippingRange()
-        cam1.Zoom(1.3)
-        renWin.Render()
+        def sliderfunc_x(widget, event):
+            global cmap
+            i = int(widget.GetRepresentation().GetValue())
+            msh = vol.xSlice(i).alpha(alpha).lighting('plastic')
+            msh.pointColors(cmap=cmap)
+            vp.renderer.RemoveActor(visibles[0])
+            if i and i<dims[0]-1: vp.renderer.AddActor(msh)
+            vp.window.Render()
+            visibles[0] = msh
 
-        printc("Slicer Mode:", invert=1, c="m")
-        printc(
-            """Press  SHIFT+Left mouse    to rotate the camera for oblique slicing
-           SHIFT+Middle mouse  to slice perpendicularly through the image
-           Left mouse and Drag to modify luminosity and contrast
-           X                   to Reset to sagittal view
-           Y                   to Reset to coronal view
-           Z                   to Reset to axial view
-           R                   to Reset the Window/Levels
-           Q                   to Quit.""",
-            c="m",
+        def sliderfunc_y(widget, event):
+            global cmap
+            i = int(widget.GetRepresentation().GetValue())
+            msh = vol.ySlice(i).alpha(alpha).lighting('plastic')
+            msh.pointColors(cmap=cmap)
+            vp.renderer.RemoveActor(visibles[1])
+            if i and i<dims[1]-1: vp.renderer.AddActor(msh)
+            vp.window.Render()
+            visibles[1] = msh
+
+        def sliderfunc_z(widget, event):
+            global cmap
+            i = int(widget.GetRepresentation().GetValue())
+            msh = vol.zSlice(i).alpha(alpha).lighting('plastic')
+            msh.pointColors(cmap=cmap)
+            vp.renderer.RemoveActor(visibles[2])
+            if i and i<dims[2]-1: vp.renderer.AddActor(msh)
+            vp.window.Render()
+            visibles[2] = msh
+
+        if useSlider2D:
+            vp.addSlider2D(sliderfunc_x, 0, dims[0],
+                           pos=[(0.8,0.12), (0.95,0.12)], showValue=False, c='dr')
+            vp.addSlider2D(sliderfunc_y, 0, dims[1],
+                           pos=[(0.8,0.08), (0.95,0.08)], showValue=False, c='dg')
+            vp.addSlider2D(sliderfunc_z, 0, dims[2], value=int(dims[2]/2),
+                           pos=[(0.8,0.04), (0.95,0.04)], showValue=False, c='db')
+            bu_pos = (0.9, 0.155)
+        else: # 3d sliders attached to the axes bounds
+            bs = box.bounds()
+            vp.addSlider3D(sliderfunc_x,
+                pos1=(bs[0], bs[2], bs[4]),
+                pos2=(bs[1], bs[2], bs[4]),
+                xmin=0, xmax=dims[0]-1,
+                t=box.diagonalSize()/mag(box.xbounds())*0.6,
+                c="dr",
+                showValue=False,
+            )
+            vp.addSlider3D(sliderfunc_y,
+                pos1=(bs[1], bs[2], bs[4]),
+                pos2=(bs[1], bs[3], bs[4]),
+                xmin=0, xmax=dims[1]-1,
+                t=box.diagonalSize()/mag(box.ybounds())*0.6,
+                c="dg",
+                showValue=False,
+            )
+            vp.addSlider3D(sliderfunc_z,
+                pos1=(bs[0], bs[2], bs[4]),
+                pos2=(bs[0], bs[2], bs[5]),
+                xmin=0, xmax=dims[2]-1,
+                value=int(dims[2]/2),
+                t=box.diagonalSize()/mag(box.zbounds())*0.6,
+                c="db",
+                showValue=False,
+            )
+            bu_pos = (0.09, 0.22)
+
+
+        #################
+        def buttonfunc():
+            global cmap
+            bu.switch()
+            cmap = bu.status()
+            for mesh in visibles:
+                if mesh:
+                    mesh.pointColors(cmap=cmap)
+        bu = vp.addButton(buttonfunc,
+            pos=bu_pos,  # x,y fraction from bottom left corner
+            states=cmaps,
+            c=["db"]*len(cmaps),
+            bc=["lb"]*len(cmaps),  # colors of states
+            size=12,
+            bold=True,
         )
 
-        iren.Start()
+        #################
+        hist = cornerHistogram(vol.getPointArray(), s=0.18,
+                               bins=25, logscale=True, pos=(0.03, 0.015),
+                               c=(0.5,0.5,0.5), bg=(0.5,0.5,0.5), alpha=0.6)
+
+        vp.show(msh, hist, interactive=True)
         return
+
 
     ########################################################################
     # normal mode for single VOXEL file with Isosurface Slider or LEGO mode

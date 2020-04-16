@@ -2264,6 +2264,7 @@ def cornerHistogram(
     title="",
     c="g",
     bg="k",
+    alpha=1,
     pos=1,
     s=0.2,
     lines=True,
@@ -2295,10 +2296,12 @@ def cornerHistogram(
     plot.SetNumberOfXLabels(3)
     tprop = vtk.vtkTextProperty()
     tprop.SetColor(colors.getColor(bg))
+    tprop.SetOpacity(alpha)
     plot.SetAxisTitleTextProperty(tprop)
+    plot.GetProperty().SetOpacity(alpha)
     plot.GetXAxisActor2D().SetLabelTextProperty(tprop)
     plot.GetXAxisActor2D().SetTitleTextProperty(tprop)
-    plot.GetXAxisActor2D().SetFontFactor(0.5)
+    plot.GetXAxisActor2D().SetFontFactor(0.55)
     plot.GetYAxisActor2D().SetLabelFactor(0.0)
     plot.GetYAxisActor2D().LabelVisibilityOff()
     return plot
