@@ -95,7 +95,7 @@ def showSolution3D(S, start, goal):
     gradient = np.flip(S[1], axis=0).ravel()
     grd = Grid(pos=((sx-1)/2, -(sy-1)/2, -0.49), sx=sx, sy=sy, resx=sx, resy=sy)
     grd.lw(0).wireframe(False).cellColors(gradient, cmap='gist_earth_r')
-    grd.addScalarBar(title='Gradient', horizontal=True, c='k')
+    grd.addScalarBar(title='Gradient', horizontal=True, c='k', nlabels=2)
 
     txts.append(Text2D(__doc__, c='k'))
     txts.append(Text('Start', pos=[start[1]-1,-start[0]+1.5,1], c='k'))

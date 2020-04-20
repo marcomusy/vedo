@@ -1,10 +1,25 @@
 import numpy as np
 import sys
 
-date = '04-14-2020'
-if len(sys.argv)>1: date = sys.argv[1]
 
 # ----------------------------------------------------------------------
+# pick today date
+date="04-18-2020"
+if len(sys.argv)>1: 
+    date = sys.argv[1]
+else:
+    import datetime
+    from vtkplotter import download
+    for i in range(3):
+        try:
+            yesterday = datetime.datetime.now() - datetime.timedelta(days=i)
+            date = yesterday.strftime("%m-%d-%Y")
+            url = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master'
+            fpath = download(url+'/csse_covid_19_data/csse_covid_19_daily_reports/'+date+'.csv')
+            break
+        except:
+            continue
+
 def load_data():
     # Download and read the data from the Johns Hopkins University repo:
     # Credits and terms of use: https://github.com/CSSEGISandData/COVID-19
@@ -12,9 +27,6 @@ def load_data():
     #FIPS,Admin2,Province_State,Country_Region,Last_Update,Lat,Long_,
     #7          8     9          10    11
     #Confirmed,Deaths,Recovered,Active,Combined_Key
-    from vtkplotter import download
-    url = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master'
-    fpath = download(url+'/csse_covid_19_data/csse_covid_19_daily_reports/'+date+'.csv')
     with open(fpath, "r") as f: lines = f.readlines()
     data, allconf, allreco, alldeat, conf_us, reco_us, deat_us = [], 0,0,0, 0,0,0
     for i,ln in enumerate(lines):
@@ -62,7 +74,7 @@ for place, theta, phi, confd, deaths, recos in data:
 Text2D('COVID-19 spread on '+date
        +'\n#cases : '+str(allconf)
        +'\n#deaths: '+str(alldeat)
-       +'\n#recovd: '+str(allreco))
+       +'\n#recovd: '+str(allreco), font="Overspray", s=0.9)
 Earth()
-show(..., axes=12, bg2='lb', zoom=1.7, elevation=-70, size='full')
+show(..., axes=12, bg2='lb', zoom=1.7, elevation=-70, size='fullscreen')
 

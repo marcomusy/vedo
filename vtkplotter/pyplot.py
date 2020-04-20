@@ -1117,11 +1117,11 @@ def _histogram1D(
     ylim=(0,None),
     errors=False,
     title="",
-    xtitle="x",
-    ytitle="dN/dx",
+    xtitle=" ",
+    ytitle="counts",
     titleSize=None,
     titleColor=None,
-    # logscale=False,
+    logscale=False,
     fill=True,
     c="olivedrab",
     gap=0.02,
@@ -1159,8 +1159,8 @@ def _histogram1D(
 
     fs, edges = np.histogram(data, bins=bins, range=xlim)
     # print('frequencies', fs)
-    # if logscale:
-    #    fs = np.log10(fs + 1)
+    if logscale:
+        fs = np.log10(fs + 1)
 
     x0, x1 = np.min(edges), np.max(edges)
     y0, y1 = 0, np.max(fs)

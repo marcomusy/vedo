@@ -84,9 +84,10 @@ def addScalarBar(mesh,
                  titleXOffset=0,
                  titleYOffset=15,
                  titleFontSize=12,
-                 nlabels=10,
+                 nlabels=None,
                  c=None,
                  horizontal=False,
+                 width=None, height=None,
                  vmin=None, vmax=None,
                  ):
     """Add a 2D scalar bar for the specified mesh.
@@ -153,17 +154,24 @@ def addScalarBar(mesh,
 
     if horizontal:
         sb.SetOrientationToHorizontal()
-        sb.SetNumberOfLabels(int((nlabels-1)/2.))
+        sb.SetNumberOfLabels(3)
         sb.SetTextPositionToSucceedScalarBar()
         sb.SetPosition(pos)
         sb.SetMaximumWidthInPixels(1000)
         sb.SetMaximumHeightInPixels(50)
     else:
-        sb.SetNumberOfLabels(nlabels)
+        sb.SetNumberOfLabels(10)
         sb.SetTextPositionToPrecedeScalarBar()
         sb.SetPosition(pos[0]+0.07, pos[1])
         sb.SetMaximumWidthInPixels(80)
         sb.SetMaximumHeightInPixels(500)
+
+    if nlabels is not None:
+        sb.SetNumberOfLabels(nlabels)
+#    if width is not None:
+#        sb.SetMaximumWidthInPixels(int(width))
+#    if height is not None:
+#        sb.SetMaximumHeightInPixels(int(height))
 
     sctxt = sb.GetLabelTextProperty()
     sctxt.SetColor(c)

@@ -1060,9 +1060,6 @@ class Plotter:
         cam.SetDistance(s2 * fraction + s1 * (1 - fraction))
         cam.SetClippingRange(c2 * fraction + c1 * (1 - fraction))
         self.camera = cam
-#        save_int = self.interactive
-#        self.show(resetcam=0, interactive=0)
-#        self.interactive = save_int
         return cam
 
     ##################################################################

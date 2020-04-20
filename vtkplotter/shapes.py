@@ -1645,6 +1645,7 @@ class Ellipsoid(Mesh):
                 - 8 * (-b + c) ** 2 / (3 * (b + c) ** 3)
             ) ** 2
         )
+
         err = np.sqrt(dL2)
 
         self.va_error = ea
@@ -2087,6 +2088,7 @@ class Text(Mesh):
     :param list pos: position coordinates in 3D space
     :param float s: size of text.
     :param float depth: text thickness.
+    :param bool italic: italic font type (can be a `float` too).
     :param str justify: text justification
         (bottom-left, bottom-right, top-left, top-right, centered).
 
@@ -2100,6 +2102,7 @@ class Text(Mesh):
                 pos=(0,0,0),
                 s=1,
                 depth=0,
+                italic=False,
                 justify="bottom-left",
                 c=None,
                 alpha=1,
@@ -2140,8 +2143,17 @@ class Text(Mesh):
         if "right"  in justify: shift += np.array([-dx,  0, 0])
 
         t = vtk.vtkTransform()
-        t.Translate(shift)
+        t.PostMultiply()
         t.Scale(s, s, s)
+        t.Translate(shift)
+        if italic is True:
+            italic = 1
+        if italic:
+            t.Concatenate([1,italic*0.28,0,0,
+                           0,1,0,0,
+                           0,0,1,0,
+                           0,0,0,1])
+
         tf = vtk.vtkTransformPolyDataFilter()
         tf.SetInputData(tpoly)
         tf.SetTransform(t)
@@ -2172,7 +2184,7 @@ def Text2D(
     c=None,
     alpha=1,
     bg=None,
-    font="courier",
+    font="Montserrat",
     justify="bottom-left",
 ):
     """Returns a ``vtkActor2D`` representing 2D text.

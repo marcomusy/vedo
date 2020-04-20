@@ -1,5 +1,4 @@
-"""
-Extruding a polygon
+"""Extruding a polygon
 along the z-axis
 """
 from vtkplotter import *

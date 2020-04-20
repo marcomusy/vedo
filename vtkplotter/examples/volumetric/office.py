@@ -1,5 +1,4 @@
-"""
-Stream tubes originating from a probing grid of points.
+"""Stream tubes originating from a probing grid of points.
 Data is from CFD analysis of airflow in an office with
 ventilation and a burning cigarette.
 """

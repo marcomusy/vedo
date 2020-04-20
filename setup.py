@@ -75,7 +75,7 @@ setup(
 # cd ~/Projects/vtkplotter/notebooks/
 # jupyter notebook > /dev/null 2>&1
 
-# cd ~/Projects/vtkplotter/examples/
+# cd ~/Projects/vtkplotter/
 # rm -rf examples/*/.ipynb_checkpoints examples/*/*/.ipynb_checkpoints .ipynb_checkpoints/
 # rm -rf examples/other/dolfin/navier_stokes_cylinder/ examples/other/dolfin/shuttle.xml
 # rm examples/other/trimesh/featuretype.STL examples/other/trimesh/machinist.XAML

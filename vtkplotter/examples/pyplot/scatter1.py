@@ -1,4 +1,4 @@
-"""A simple scatter plot with plotxy()"""
+"""A simple scatter plot"""
 from vtkplotter import plot, show, Text2D
 import numpy as np
 

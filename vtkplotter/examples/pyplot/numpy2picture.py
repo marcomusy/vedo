@@ -10,4 +10,4 @@ arr = imread(fname)
 pic = Picture(arr) # create Picture object from numpy array
 
 # (press r to reset):
-show(pic, Text2D(__doc__), axes=8, viewup='2d')
+show(pic, Text2D(__doc__), axes=8)

@@ -6,13 +6,14 @@ from vtkplotter import *
 X, Y, Z = np.mgrid[:30, :30, :30]
 # scaled distance from the center at (15, 15, 15)
 scalar_field = ((X-15)**2 + (Y-15)**2 + (Z-15)**2)/225
-print('scalar min, max =', np.min(scalar_field), np.max(scalar_field))
 
 vol = Volume(scalar_field)
 lego = vol.legosurface(vmin=1, vmax=2)
-text1 = Text2D('Make a Volume from a numpy object', c='blue')
-text2 = Text2D('lego isosurface representation\nvmin=1, vmax=2', c='darkred')
+text1 = Text2D('Make a Volume from numpy.mgrid', c='blue')
+text2 = Text2D('its lego isosurface representation\nvmin=1, vmax=2', c='dr')
 
-print('numpy array from Volume:', vol.getPointArray().shape)
+print('numpy array from Volume:', 
+      vol.getPointArray().shape, 
+      vol.getDataArray().shape)
 
 show([(vol,text1), (lego,text2)], N=2)

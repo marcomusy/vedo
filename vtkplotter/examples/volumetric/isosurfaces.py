@@ -1,5 +1,4 @@
-"""
-Generate the isosurfaces corresponding to a set of thresholds.
+"""Generate the isosurfaces corresponding to a set of thresholds.
 (These surfaces are not separate meshes).
 """
 from vtk import vtkQuadric, vtkSampleFunction

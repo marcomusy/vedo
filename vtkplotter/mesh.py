@@ -399,7 +399,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
                      titleXOffset=0,
                      titleYOffset=15,
                      titleFontSize=12,
-                     nlabels=10,
+                     nlabels=None,
                      c=None,
                      horizontal=False,
                      vmin=None, vmax=None,
@@ -434,7 +434,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         titleYOffset = 0.0,
         titleSize =  1.5,
         titleRotation = 0.0,
-        nlabels=9,
+        nlabels=None,
         precision=3,
         labelOffset = 0.4,  # space btw numeric labels and scale
         c=None,
@@ -1770,7 +1770,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
                 colors.printc('Error in pointColors(): nr. of scalars < nr. of alpha values',
                               n, len(alpha), c=1)
                 raise RuntimeError()
-                
+
         if bands:
             scalars_or_colors = utils.makeBands(scalars_or_colors, bands)
 
@@ -1900,7 +1900,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
             scalars_or_colors = vtk_to_numpy(poly.GetCellData().GetArray(scalars_or_colors)).astype(np.float)
 
         n = len(scalars_or_colors)
-        
+
         useAlpha = False
         if n != poly.GetNumberOfCells():
             colors.printc('Error in cellColors(): nr. of scalars != nr. of cells',
