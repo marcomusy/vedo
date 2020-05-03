@@ -252,7 +252,7 @@ def _compute_uvalues(u, mesh):
 
     if hasattr(u, 'compute_vertex_values'): # old dolfin, works fine
         u_values = u.compute_vertex_values(mesh)
-        
+
 
         if u.value_rank() and u.value_dimension(0)>1:
             l = u_values.shape[0]

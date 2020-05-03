@@ -1090,6 +1090,7 @@ class Arrow2D(Mesh):
         tf.Update()
 
         Mesh.__init__(self, tf.GetOutput(), c, alpha)
+        self.printInfo()
         self.SetPosition(startPoint)
         self.flat().lighting('ambient')
         self.DragableOff()
@@ -1281,7 +1282,7 @@ class Disc(Mesh):
     """
     Build a 2D disc of inner radius `r1` and outer radius `r2`.
 
-    :param list res: resolution in R and Phi 
+    :param list res: resolution in R and Phi
 
     |Disk|
     """
@@ -1472,7 +1473,7 @@ class Spheres(Mesh):
             res_t, res_phi = res
         else:
             res_t, res_phi = 2*res, res
-            
+
         src.SetThetaResolution(res_t)
         src.SetPhiResolution(res_phi)
         src.Update()
@@ -1570,7 +1571,7 @@ class Ellipsoid(Mesh):
             res_t, res_phi = res
         else:
             res_t, res_phi = 2*res, res
-            
+
         elliSource = vtk.vtkSphereSource()
         elliSource.SetThetaResolution(res_t)
         elliSource.SetPhiResolution(res_phi)

@@ -488,7 +488,6 @@ def _plotxy(
     pad=0.05,
     axes={},
 ):
-#    settings.defaultAxesType = 0  # because of yscaling
     ncolls = len(settings.collectable_actors)
 
     if marker == "" and not line and not spline:
@@ -845,7 +844,6 @@ def _plotFxy(
         acts.append(nansact)
 
     if axes:
-#        settings.defaultAxesType = 0
         axs = addons.buildAxes(mesh)
         acts.append(axs)
     asse = Assembly(acts)
@@ -910,7 +908,6 @@ def _plotFz(
 
     acts = [mesh]
     if axes:
-#        settings.defaultAxesType = 0
         axs = addons.buildAxes(mesh, ztitle="Real part")
         acts.append(axs)
     asse = Assembly(acts)
@@ -1141,7 +1138,6 @@ def _histogram1D(
     axes={},
     bc="k",
 ):
-#    settings.defaultAxesType = 0  # because of yscaling
     ncolls = len(settings.collectable_actors)
 
     # purge NaN from data
@@ -1397,7 +1393,6 @@ def _histogram2D(
     axes=True,
     bc="k",
 ):
-#    settings.defaultAxesType = 0  # because of yscaling
     ncolls = len(settings.collectable_actors)
     offs = 0  # z offset
 
@@ -1446,15 +1441,14 @@ def _histogram2D(
         resx=bins[0],
         resy=bins[1],
     )
-    g.alpha(alpha).lw(lw).wireframe(0).flat().lighting("ambient")
+    g.alpha(alpha).lw(lw).wireframe(0).flat().lighting(enabled=False)
     g.cellColors(np.ravel(H.T), cmap=cmap)
     g.SetOrigin(x0lim, y0lim, 0)
     if scalarbar:
-        sc = addons.addScalarBar3D(g, c=bc)
+        sc = g.addScalarBar3D(c=bc)
         scy0, scy1 = sc.ybounds()
         sc_scale = (y1lim-y0lim)/(scy1-scy0)
         sc.scale(sc_scale)
-        sc.pos(x1lim-sc.xbounds()[0]*1.1, (y0lim+y1lim)/2, offs)
         acts.append(sc)
     g.base = np.array([0, 0, 0])
     g.top = np.array([0, 0, 1])
@@ -1933,7 +1927,7 @@ def donut(
 def quiver(
     points,
     vectors,
-    cmap="jet",
+    c="k",
     alpha=1,
     shaftLength=0.8,
     shaftWidth=0.05,
@@ -1969,7 +1963,7 @@ def quiver(
     arrs2d = shapes.Arrows2D(
         spts,
         epts,
-        c=cmap,
+        c=c,
         shaftLength=shaftLength,
         shaftWidth=shaftWidth,
         headLength=headLength,

@@ -360,17 +360,17 @@ class Mesh(vtk.vtkFollower, ActorBase):
     def lines(self, joined=False, flat=False):
         """Get lines connectivity ids as a numpy array.
         Default format is [[id0,id1], [id3,id4], ...]
-        
+
         :param bool joined: join ends in format, [(1,2), (2,3,4)] -> [(1,2,3,4)]
         :param bool flat: 1D numpy array as [2, 10,20, 3, 10,11,12, 2, 70,80, ...]
         """
         #Get cell connettivity ids as a 1D array. The vtk format is:
         #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
         arr1d = vtk_to_numpy(self.polydata(False).GetLines().GetData())
-        
+
         if flat:
             return arr1d
-        
+
         i = 0
         conn = []
         n = len(arr1d)
@@ -380,7 +380,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
             i += arr1d[i]+1
             if i >= n:
                 break
-            
+
         if joined: # join ends: [(1,2), (2,3,4)] -> [(1,2,3,4)]
             conn = sorted(conn, key=lambda x:x[0])
             res=[conn[0]]

@@ -19,7 +19,7 @@ __all__ = []
 def getNotebookBackend(actors2show, zoom, viewup):
 
     vp = settings.plotter_instance
-    
+
     if isinstance(vp.shape, str) or sum(vp.shape) > 2:
         colors.printc("Multirendering is not supported in jupyter.", c=1)
         return
@@ -101,7 +101,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
             kobj = None
             kcmap= None
             name = None
-            
+
             #####################################################################scalars
             # work out scalars first, Points Lines are also Mesh objs
             if isinstance(ia, (Mesh, shapes.Line, shapes.Points)):
@@ -179,7 +179,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                 pos = (ia.GetPosition()[0],ia.GetPosition()[1])
                 kobj = k3d.text2d(ia.info['formula'], position=pos)
                 settings.notebook_plotter += kobj
-                
+
             #####################################################################Points
             elif isinstance(ia, shapes.Points) or ia.NPoints() == ia.NCells():
 #                print('Points', ia.name, ia.N())
@@ -227,9 +227,9 @@ def getNotebookBackend(actors2show, zoom, viewup):
                     kcols = k3d.helpers.map_colors(scals, kcmap,
                                                    [scals_min,scals_max]).astype(numpy.uint32)
                 sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
-                                
+
                 for i, ln_idx in enumerate(ia.lines(joined=True)):
-                    if i>200: 
+                    if i>200:
                         print('WARNING: K3D nr of line segments is limited to 200.')
                         break
                     pts = ia.points()[ln_idx]
@@ -241,7 +241,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                                     width=iap.GetLineWidth()*sqsize/1000,
                                     name=name,
                                     )
-    
+
                     settings.notebook_plotter += kobj
 
 

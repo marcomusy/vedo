@@ -597,7 +597,7 @@ class Volume(vtk.vtkVolume, ActorBase):
 
     def slicePlane(self, origin=(0,0,0), normal=(1,1,1)):
         """Extract the slice along a given plane position and normal.
-        
+
         |slicePlane| |slicePlane.py|_
         """
         reslice = vtk.vtkImageReslice()

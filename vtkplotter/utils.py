@@ -263,7 +263,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
             sourceVertices.InsertCellPoint(i)
         poly.SetVerts(sourceVertices)
         return poly ###################
-    
+
 
     # faces exist
     sourcePolygons = vtk.vtkCellArray()

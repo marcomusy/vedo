@@ -730,7 +730,7 @@ class ActorBase(object):
             colors.printc('~times addPointArray(): Number of elements != nr. of points',
                           len(input_array), data.GetNumberOfPoints(), c=1)
             raise RuntimeError()
-        
+
         nparr = np.ascontiguousarray(input_array)
         if len(nparr.shape)==1: # scalars
             varr = numpy_to_vtk(nparr, deep=True)
@@ -777,12 +777,12 @@ class ActorBase(object):
                 self._mapper.SetArrayName(name)
             self._mapper.SetScalarModeToUseCellData()
             return self
-            
+
         if len(input_array) != data.GetNumberOfCells():
             colors.printc('~times addCellArray(): Number of elements != nr. of Cells',
                           len(input_array), data.GetNumberOfCells(), c=1)
             raise RuntimeError()
-        
+
         nparr = np.ascontiguousarray(input_array)
         if len(nparr.shape)==1: # scalars
             varr = numpy_to_vtk(nparr, deep=True)
@@ -791,7 +791,7 @@ class ActorBase(object):
             data.GetCellData().SetActiveScalars(name)
             self._mapper.ScalarVisibilityOn()
             self._mapper.SetScalarRange(varr.GetRange())
-        
+
         elif len(nparr.shape)==2: # vectors or higher dim ntuples
             varr = vtk.vtkFloatArray()
             varr.SetNumberOfComponents(nparr.shape[1])
@@ -871,7 +871,7 @@ class ActorBase(object):
                      useAlpha=True,
     ):
         """
-        Add a 2D scalar bar for the specified obj. 
+        Add a 2D scalar bar for the specified obj.
 
         .. hint:: |mesh_coloring| |mesh_coloring.py|_ |scalarbars.py|_
         """
@@ -888,7 +888,7 @@ class ActorBase(object):
                                              useAlpha,
                                              )
         return self
-        
+
 
     def addScalarBar3D(self,
         pos=None,
@@ -908,15 +908,15 @@ class ActorBase(object):
     ):
         """
         Draw a 3D scalar bar.
-        
+
         ``obj`` input can be:
             - a list of numbers,
             - a list of two numbers in the form `(min, max)`,
             - a ``Mesh`` already containing a set of scalars associated to vertices or cells,
             - if ``None`` the last object in the list of actors will be used.
-        
+
         Return an ``Assembly`` object.
-    
+
         :param float sx: thickness of scalarbar
         :param float sy: length of scalarbar
         :param str title: scalar bar title
@@ -928,7 +928,7 @@ class ActorBase(object):
         :param float labelOffset: space btw numeric labels and scale
         :param bool,float italic: use italic font for title and labels
         :param bool useAlpha: render transparency of the color bar, otherwise ignore
-        :param bool drawBox: draw a box around the colorbar (useful with useAlpha=True) 
+        :param bool drawBox: draw a box around the colorbar (useful with useAlpha=True)
 
         |mesh_coloring| |mesh_coloring.py|_
         """

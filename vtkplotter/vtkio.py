@@ -1211,7 +1211,7 @@ def exportWindow(fileoutput, binary=False, speed=None):
         outF.close()
         colors.printc("~save Saved files:", fileoutput,
                       fileoutput.replace('.x3d', '.html'), c="g")
-    
+
     elif fr.endswith(".npy"):
         sdict = dict()
         vp = settings.plotter_instance
@@ -1237,22 +1237,22 @@ def exportWindow(fileoutput, binary=False, speed=None):
         for a in vp.getMeshes() + vp.getVolumes():
             sdict['objects'].append(_np_dump(a))
         np.save(fileoutput, [sdict])
-    
+
     elif fr.endswith(".html"):
         from vtkplotter.backends import getNotebookBackend
-        
+
         savebk = settings.notebookBackend
         settings.notebookBackend='k3d'
         plt = getNotebookBackend(settings.plotter_instance.actors, 1.5, '')
-        
+
         with open(fileoutput,'w') as fp:
             fp.write(plt.get_snapshot())
-        
+
         settings.notebookBackend = savebk
 
     else:
         colors.printc("Export extensions is not supported.", c=1)
-        
+
 
     return
 
@@ -1307,7 +1307,7 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
             #colors.printc("Trying to import a single mesh.. use load() instead.", c=1)
             #colors.printc(" -> try to load a single object with load().", c=1)
             objs = [loadNumpy(fileinput)]
-        
+
         vp.actors = objs
         return vp
 
