@@ -18,4 +18,4 @@ for p in arim.points():
 printc("ave. squared distance =", d / arim.N(), c="g")
 printc("vtkTransform is available with getTransform():")
 printc([arim.getTransform()])
-show(limb, rim, arim, Text2D(__doc__), axes=1)
+show(limb, rim, arim, __doc__, axes=1)

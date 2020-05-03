@@ -1,4 +1,5 @@
 import numpy as np
+from vtkplotter.pyplot import histogram
 from vtkplotter import *
 
 np.random.seed(3)

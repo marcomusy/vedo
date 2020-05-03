@@ -1,6 +1,6 @@
 """Read a tetrahedral mesh from a
-vtkUnstructuredGrid object and visualize
-it as either a Volume or a Mesh
+vtkUnstructuredGrid object and visualize it
+as either a Volume (left) or a Mesh (right)
 """
 from vtkplotter import *
 
@@ -16,6 +16,4 @@ settings.visibleGridEdges = True
 
 mesh = Mesh(ug).color(cmap).alpha(0.2).addScalarBar(c='w')
 
-txt = Text2D(__doc__, c='w')
-
-show([(txt,vol), mesh], N=2, bg='bb')
+show([(vol,__doc__), mesh], N=2, bg='bb')

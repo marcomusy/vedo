@@ -22,6 +22,5 @@ coords = domain.points()
 vects  = domain.getPointArray('U')/200
 arrows = Arrows(coords-vects, coords+vects, c='jet_r') # use colormap
 box    = domain.box().c('k') # build a box frame of the domain
-comment= Text2D(__doc__)
 
-show(stream, arrows, box, probe, comment, axes=5)
+show(stream, arrows, box, probe, __doc__, axes=5)

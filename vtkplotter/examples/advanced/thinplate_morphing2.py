@@ -1,7 +1,6 @@
 """Warp the tip of a mesh using Thin Plate Splines.
 Red points stay fixed while a single point in space
-moves as the arrow shows.
-"""
+moves as the arrow indicates. """
 from vtkplotter import *
 
 
@@ -24,4 +23,4 @@ warp.c("blue").alpha(0.4).lineWidth(0)
 
 apts = Points(sources).c("red")
 
-show(mesh, arrow, warp, apts, Text2D(__doc__), viewup="z", axes=1)
+show(mesh, arrow, warp, apts, __doc__, viewup="z", axes=1)

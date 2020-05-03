@@ -64,7 +64,7 @@ def morph(clm1, clm2, t, lmax):
     return pts
 
 
-vp = Plotter(shape=[2, 2], verbose=0, axes=3, interactive=0)
+vp = Plotter(shape=[2, 2], axes=3, interactive=0)
 
 shape1 = Sphere(alpha=0.2)
 shape2 = vp.load(datadir + "icosahedron.vtk").normalize().lineWidth(1)

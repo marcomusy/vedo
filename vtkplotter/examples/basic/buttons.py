@@ -1,5 +1,5 @@
 """Add a square button with N possible internal states
-to a rendering window that calls an external function."""
+to a rendering window that calls an external function"""
 from vtkplotter import *
 
 vp = Plotter()
@@ -24,4 +24,4 @@ bu = vp.addButton(
     italic=False,
 )
 
-vp.show(mesh, Text2D(__doc__))
+vp.show(mesh, __doc__)

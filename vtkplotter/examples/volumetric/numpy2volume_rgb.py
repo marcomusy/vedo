@@ -1,7 +1,7 @@
 """Modify a Volume dataset and
 colorize voxels individually
 """
-from vtkplotter import Text2D, Volume, show
+from vtkplotter import Volume, show
 import numpy as np
 
 vol = Volume(shape=(10,11,12), mode=0)
@@ -17,4 +17,4 @@ arr[:] = np.random.randint(0,255, (10*11*12,4)).astype(np.uint8)
 # (see https://vtk.org/doc/nightly/html/classvtkVolumeProperty.html):
 vol.GetProperty().IndependentComponentsOff()
 
-show(vol, Text2D(__doc__), axes=1)
+show(vol, __doc__, axes=1)

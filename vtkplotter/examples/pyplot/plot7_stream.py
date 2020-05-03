@@ -3,6 +3,7 @@ u(x,y) = -1 - x^2 + y
 v(x,y) =  1 + x   - y^2
 """
 from vtkplotter import *
+from vtkplotter.pyplot import streamplot
 import numpy as np
 
 # a grid with a vector field (U,V):
@@ -21,6 +22,4 @@ sp = streamplot(X,Y, U,V,
 
 pts = Points(prob_pts, r=5, c='white')
 
-show(sp, pts,
-     Text2D(__doc__, c='w'),
-     axes=1, bg='bb')
+show(sp, pts, __doc__, axes=1, bg='bb')

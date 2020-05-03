@@ -1,7 +1,5 @@
-"""Extract points on 
-the boundary of a mesh.
-Add a label to all vertices.
-"""
+"""Extract points on the boundary of a mesh.
+Add a label to all vertices. """
 from vtkplotter import *
 
 b = load(datadir+'290.vtk')
@@ -14,4 +12,4 @@ pts = Points(bpts, r=10, c='red')
 
 labs = b.labels('id').c('dg') # add point labels
 
-show(b, pts, labs, Text2D(__doc__), zoom=2)
+show(b, pts, labs, __doc__, zoom=2)

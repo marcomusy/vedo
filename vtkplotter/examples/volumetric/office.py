@@ -8,26 +8,23 @@ ventilation and a burning cigarette.
 from vtkplotter import *
 from office_furniture import furniture
 
-
 # We read a data file the is a CFD analysis of airflow in an office
 # (with ventilation and a burning cigarette).
 sgrid = loadStructuredGrid(datadir + "office.binary.vtk")
 
-
-# Now we will generate multiple streamlines in the data. We create a
-# grid of points of points and then use those as integration seeds.
+# Create a grid of points and use those as integration seeds
 seeds = Grid(pos=[2,2,1], normal=[1,0,0], resx=2, resy=3, c="gray")
 
+# Now we will generate multiple streamlines in the data.
 # We select the integration order to use (RungeKutta order 4) and
 # associate it with the streamer. We integrate in the forward direction.
-slines = streamLines(
-                    sgrid, seeds,
-                    integrator="rk4",
-                    direction="forward",
-                    initialStepSize=0.01,
-                    maxPropagation=15,
-                    tubes={"radius":0.004, "varyRadius":2, "ratio":1},
+slines = streamLines(sgrid, seeds,
+                     integrator="rk4",
+                     direction="forward",
+                     initialStepSize=0.01,
+                     maxPropagation=15,
+                     tubes={"radius":0.004, "varyRadius":2, "ratio":1},
                     )
+slines.addScalarBar3D(c='w').x(5.)
 
-comment = Text2D(__doc__, c="w")
-show(slines, seeds, furniture(), comment, axes=0, bg='bb')
+show(slines, seeds, furniture(), __doc__, axes=1, bg='bb')

@@ -11,10 +11,10 @@ npts = 200                       # nr. of points
 coords = np.random.rand(npts, 3) # range is [0, 1]
 scals = np.abs(coords[:, 2])     # let the scalar be the z of point itself
 
-apts = Points(coords, r=9).addPointScalars(scals, name='scals')
+apts = Points(coords, r=9).addPointArray(scals, name='scals')
 
 densecloud = densifyCloud(apts, .05, closestN=10, maxIter=1)
-print(apts.N(), '->', densecloud.N())
+print('npt increased', apts.N(), '->', densecloud.N())
 
 ppp = Points(densecloud.points())
-show(apts, densecloud, Text2D(__doc__), axes=8)
+show(apts, densecloud, __doc__, axes=8)

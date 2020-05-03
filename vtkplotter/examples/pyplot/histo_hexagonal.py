@@ -1,4 +1,5 @@
 from vtkplotter import *
+from vtkplotter.pyplot import histogram
 import numpy as np
 
 N = 2000

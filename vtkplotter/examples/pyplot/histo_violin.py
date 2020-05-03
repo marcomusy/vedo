@@ -1,4 +1,5 @@
 from vtkplotter import *
+from vtkplotter.pyplot import violin
 import numpy as np
 
 n = 1000

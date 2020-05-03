@@ -1,6 +1,7 @@
 # Scatter plot of a gaussian distribution
 # with varying color and point sizes
 from vtkplotter import *
+from vtkplotter.pyplot import plot
 import numpy as np
 
 n = 1000

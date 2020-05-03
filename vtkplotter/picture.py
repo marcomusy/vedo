@@ -56,6 +56,11 @@ class Picture(vtk.vtkImageActor, ActorBase):
                 picr = vtk.vtkJPEGReader()
             elif ".bmp" in obj:
                 picr = vtk.vtkBMPReader()
+            elif ".tif" in obj:
+                picr = vtk.vtkTIFFReader()
+            else:
+                colors.printc("Cannot understand picture format", obj, c=1)
+            
             picr.SetFileName(obj)
             picr.Update()
             img = picr.GetOutput()

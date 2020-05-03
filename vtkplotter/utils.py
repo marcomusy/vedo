@@ -208,6 +208,7 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
     E.g. :
         - ``vertices=[[x1,y1,z1],[x2,y2,z2], ...]``
         - ``faces=[[0,1,2], [1,2,3], ...]``
+        - ``lines=[[0,1], [1,2,3,4], ...]``
 
     Use ``indexOffset=1`` if face numbering starts from 1 instead of 0.
 
@@ -227,8 +228,8 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
 
     if len(vertices[0]) < 3: # make sure it is 3d
         vertices = np.c_[np.array(vertices), np.zeros(len(vertices))]
-        if len(vertices[0]) == 2:
-            vertices = np.c_[np.array(vertices), np.zeros(len(vertices))]
+        if len(vertices[0]) == 2: # make sure it was not 1d!
+            vertices = np.c_[vertices, np.zeros(len(vertices))]
 
     sourcePoints = vtk.vtkPoints()
     sourcePoints.SetData(numpy_to_vtk(np.ascontiguousarray(vertices), deep=True))
@@ -237,14 +238,23 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
     if lines is not None:
         # Create a cell array to store the lines in and add the lines to it
         linesarr = vtk.vtkCellArray()
-
-        for i in range(0, len(lines)-1):
-            vline = vtk.vtkLine()
-            vline.GetPointIds().SetId(0,lines[i])
-            vline.GetPointIds().SetId(1,lines[i+1])
-            linesarr.InsertNextCell(vline)
+        if isSequence(lines[0]): # assume format [(id0,id1),..]
+            for iline in lines:
+                for i in range(0, len(iline)-1):
+                    i1, i2 =  iline[i], iline[i+1]
+                    if i1 != i2:
+                        vline = vtk.vtkLine()
+                        vline.GetPointIds().SetId(0,i1)
+                        vline.GetPointIds().SetId(1,i2)
+                        linesarr.InsertNextCell(vline)
+        else: # assume format [id0,id1,...]
+            for i in range(0, len(lines)-1):
+                vline = vtk.vtkLine()
+                vline.GetPointIds().SetId(0,lines[i])
+                vline.GetPointIds().SetId(1,lines[i+1])
+                linesarr.InsertNextCell(vline)
+            #print('Wrong format for lines in utils.buildPolydata(), skip.')
         poly.SetLines(linesarr)
-
 
     if faces is None:
         sourceVertices = vtk.vtkCellArray()
@@ -252,8 +262,8 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
             sourceVertices.InsertNextCell(1)
             sourceVertices.InsertCellPoint(i)
         poly.SetVerts(sourceVertices)
-
         return poly ###################
+    
 
     # faces exist
     sourcePolygons = vtk.vtkCellArray()
@@ -386,9 +396,9 @@ def humansort(l):
     return l  # NB: input list is modified
 
 
-def sortByColumn(array, n):
+def sortByColumn(array, nth):
     '''Sort a numpy array by the `n-th` column'''
-    return array[array[:,n].argsort()]
+    return array[array[:,nth].argsort()]
 
 
 def findDistanceToLines2D(P0,P1, pts):
@@ -396,14 +406,14 @@ def findDistanceToLines2D(P0,P1, pts):
     compute distance from each point j (P[j]) to each line i (P0[i],P1[i]).
     """
     #Author: Italmassov Kuanysh, at https://github.com/rougier/numpy-100
-    def distance(P0, P1, p):
+    def _distance(P0, P1, p):
         T = P1 - P0
         L = (T**2).sum(axis=1)
         U = -((P0[:,0]-p[...,0])*T[:,0] + (P0[:,1]-p[...,1])*T[:,1]) / L
         U = U.reshape(len(U),1)
         D = P0 + U*T - p
         return np.sqrt((D**2).sum(axis=1))
-    return [distance(P0,P1,p_i) for p_i in pts]
+    return [_distance(P0,P1,p_i) for p_i in pts]
 
 
 def linInterpolate(x, rangeX, rangeY):
@@ -694,7 +704,7 @@ def spher2cyl(rho, theta, phi):
 
 
 def grep(filename, tag, firstOccurrence=False):
-    """Greps the line that starts with a specific `tag` string from inside a file."""
+    """Greps the line that starts with a specific `tag` string inside the file."""
     import re
 
     try:
@@ -1170,14 +1180,12 @@ def makeBands(inputlist, numberOfBands):
     dr = bb[1] - bb[0]
     bb += dr / 2
     tol = dr / 2 * 1.001
-
     newlist = []
     for s in inputlist:
         for b in bb:
             if abs(s - b) < tol:
                 newlist.append(b)
                 break
-
     return np.array(newlist)
 
 
@@ -1282,8 +1290,8 @@ def vtkCameraToK3D(vtkcam):
 
     Output format is: [posx,posy,posz, targetx,targety,targetz, upx,upy,upz]
     """
-    cdis = vtkcam.GetDistance()
-    cpos = np.array(vtkcam.GetPosition())*cdis
+    #cdis = vtkcam.GetDistance()
+    cpos = np.array(vtkcam.GetPosition())#*cdis
     kam = [cpos.tolist()]
     kam.append(vtkcam.GetFocalPoint())
     kam.append(vtkcam.GetViewUp())
@@ -1403,7 +1411,7 @@ def vtk2trimesh(mesh):
     lut = mesh.mapper().GetLookupTable()
 
     tris = mesh.faces()
-    carr = mesh.getCellArray('CellColors')
+    carr = mesh.getCellArray('CellIndividualColors')
     ccols = None
     if carr is not None and len(carr)==len(tris):
         ccols = []
@@ -1462,14 +1470,13 @@ def trimesh2vtk(inputobj, alphaPerCell=False):
                     tact.c(trim_c[0, [0,1,2]]).alpha(trim_c[0, 3])
                 else:
                     if inputobj.visual.kind == "face":
-                        tact.cellColors(trim_c[:, [0,1,2]],
-                                        mode='colors',
-                                        alpha=trim_c[:,3],
-                                        alphaPerCell=alphaPerCell)
-                    else:
-                        tact.pointColors(trim_c[:, [0,1,2]],
-                                         mode='colors',
-                                         alpha=trim_c[3])
+                        tact.cellIndividualColors(trim_c[:, [0,1,2]],
+                                                  alpha=trim_c[:,3],
+                                                  alphaPerCell=alphaPerCell)
+#                    else:
+#                        tact.pointColors(trim_c[:, [0,1,2]],
+#                                         mode='colors',
+#                                         alpha=trim_c[3])
         return tact
 
     elif "PointCloud" in inputobj_type:

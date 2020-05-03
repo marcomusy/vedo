@@ -11,7 +11,7 @@ from tessagon.types.floret_tessagon import FloretTessagon
 from tessagon.adaptors.vtk_adaptor import VtkAdaptor
 from tessagon.misc.shapes import general_torus, one_sheet_hyperboloid, klein, warp_var
 
-from vtkplotter import Mesh, Text2D, show
+from vtkplotter import Mesh, show
 
 
 # ---------------------------------------------------------
@@ -64,5 +64,5 @@ floret = Mesh(poly_data).reverse().y(-9).scale(0.7)
 floret.cellColors("color_pattern", cmap='Greens_r').lineWidth(0.1)
 
 # ---------------------------------------------------------
-show(rhombus, dodeca, floret, Text2D(__doc__), axes=1)
+show(rhombus, dodeca, floret, __doc__, axes=1)
 

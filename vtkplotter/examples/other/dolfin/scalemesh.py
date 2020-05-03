@@ -15,12 +15,12 @@ f = interpolate(e, V)
 from vtkplotter.dolfin import plot
 
 plt = plot(f,
+           xtitle='y-coord is scaled by factor 100',
            scaleMeshFactors=(0.01, 1, 1),
-           warpZfactor = 0.05,
            style=1,
            lw=0,
+           warpZfactor=0.001,
            scalarbar='horizontal',
-           xtitle = 'y-coord is scaled by factor 100',
            axes={'xTitleOffset':0.2},
            text=__doc__,
            )

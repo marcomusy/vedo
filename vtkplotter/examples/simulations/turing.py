@@ -9,8 +9,6 @@ import numpy as np
 
 settings.renderPointsAsSpheres = False
 
-doc = Text2D(__doc__, c="k")
-
 # Load (with numpy) an existing set of mesh points and a list
 # of scalars that represent the concentration of a substance
 mesh, conc, cgradfac = np.load(datadir+"turing_data.npy",
@@ -20,7 +18,7 @@ nc, n = conc.shape  # nc= nr. of time Points, n= nr. of vertices
 
 # Create the Plotter instance and position the camera.
 # (values can be copied in the code by pressing C in the rendering window)
-vp = Plotter(verbose=0, axes=0, interactive=0, size=(700, 700))
+vp = Plotter(axes=0, interactive=0, size=(700, 700))
 #
 #vp.camera.SetPosition(962, -239, 1034)
 #vp.camera.SetFocalPoint(0.0, 0.0, 10.0)
@@ -32,7 +30,7 @@ for t1 in pb.range():  # for each time point
     if t1 == nc - 1:
         t2 = t1  # avoid index overflow with last time point
 
-    vp.actors = [doc]  # clean up the list of meshes at each iteration
+    vp.actors = [__doc__]  # reset the list of meshes at each iteration
     vp += Cylinder([0, 0, -15], r=260, height=10, c="gray", res=60)
     vp += Cylinder([0, 0, 10], r=260, height=50, c="gray", res=60).wireframe(1)
 

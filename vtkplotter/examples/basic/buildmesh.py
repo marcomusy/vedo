@@ -1,7 +1,5 @@
-"""Manually build a mesh
-from points and faces
-"""
-from vtkplotter import *
+"""Manually build a mesh from points and faces"""
+from vtkplotter import Mesh, printc, show
 
 verts = [(50,50,50), (70,40,50), (50,40,80), (80,70,50)]
 faces = [(0,1,2), (2,1,3), (1,0,3)]
@@ -15,4 +13,4 @@ m.backColor('violet').lineColor('tomato').lineWidth(2)
 printc('points():\n', m.points(), c=3)
 printc('faces(): \n', m.faces(),  c=3)
 
-show(m, Text2D(__doc__), viewup='z', axes=8)
+show(m, __doc__, viewup='z', axes=8)

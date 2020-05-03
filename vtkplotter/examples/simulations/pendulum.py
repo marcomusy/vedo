@@ -40,4 +40,4 @@ for THETA_0 in arange(0, 3.1415, 0.2):
         l = Line(pts).color(int(THETA_DOT_0))
         lines.append(l)
 
-show(lines, Text2D(__doc__), axes=2)
+show(lines, __doc__, axes=2)

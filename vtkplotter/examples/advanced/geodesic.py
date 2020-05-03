@@ -12,6 +12,4 @@ for i in range(20):
     paths.append(geodesic(s, 2500, i * 700))
     # print(paths[-1].info['CumulativeWeights'])
 
-doc = Text2D(__doc__)
-
-show(s, Earth(), doc, paths, bg2='lb', viewup="z")
+show(s, Earth(), __doc__, paths, bg2='lb', viewup="z")

@@ -1,4 +1,5 @@
-from vtkplotter import Hyperboloid, histogram, show
+from vtkplotter import Hyperboloid, show
+from vtkplotter.pyplot import histogram
 import numpy as np
 np.random.seed(1)
 

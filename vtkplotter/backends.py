@@ -5,9 +5,11 @@ import os
 
 import vtkplotter.colors as colors
 from vtkplotter.mesh import Mesh
+
 from vtkplotter.volume import Volume
 import vtkplotter.settings as settings
 import vtkplotter.addons as addons
+import vtkplotter.shapes as shapes
 import vtkplotter.utils as utils
 from vtk.util.numpy_support import vtk_to_numpy
 
@@ -17,15 +19,16 @@ __all__ = []
 def getNotebookBackend(actors2show, zoom, viewup):
 
     vp = settings.plotter_instance
+    
+    if isinstance(vp.shape, str) or sum(vp.shape) > 2:
+        colors.printc("Multirendering is not supported in jupyter.", c=1)
+        return
 
     ####################################################################################
     # https://github.com/InsightSoftwareConsortium/itkwidgets
     #  /blob/master/itkwidgets/widget_viewer.py
     if 'itk' in settings.notebookBackend:
         from itkwidgets import view
-
-        if sum(vp.shape) != 2:
-            colors.printc("Warning: multirendering is not supported in jupyter.", c=1)
 
         settings.notebook_plotter = view(actors=actors2show,
                                          cmap='jet', ui_collapsed=True,
@@ -34,17 +37,18 @@ def getNotebookBackend(actors2show, zoom, viewup):
 
     ####################################################################################
     elif settings.notebookBackend == 'k3d':
-        import k3d # https://github.com/K3D-tools/K3D-jupyter
-
-        if vp.shape[0] != 1 or vp.shape[1] != 1:
-            colors.printc("Warning: multirendering is not supported in jupyter.", c=1)
+        try:
+            import k3d # https://github.com/K3D-tools/K3D-jupyter
+        except ModuleNotFoundError:
+            print("Cannot find k3d, install with:  pip install k3d")
+            return
 
         actors2show2 = []
         for ia in actors2show:
+            if not ia:
+                continue
             if isinstance(ia, vtk.vtkAssembly): #unpack assemblies
                 acass = ia.unpack()
-                #for a in acass:
-                #    a.SetScale(ia.GetScale())
                 actors2show2 += acass
             else:
                 actors2show2.append(ia)
@@ -61,12 +65,12 @@ def getNotebookBackend(actors2show, zoom, viewup):
         # set k3d camera
         settings.notebook_plotter.camera_auto_fit = False
 
-        eps = 1 + numpy.random.random()*1.0e-04 # workaround to bug in k3d
-        # https://github.com/K3D-tools/K3D-jupyter/issues/180
-
         if settings.plotter_instance and settings.plotter_instance.camera:
             k3dc =  utils.vtkCameraToK3D(settings.plotter_instance.camera)
-            k3dc[2] = k3dc[2]*eps
+            if zoom:
+                k3dc[0] /= zoom
+                k3dc[1] /= zoom
+                k3dc[2] /= zoom
             settings.notebook_plotter.camera = k3dc
         else:
             vsx, vsy, vsz = vbb[0]-vbb[1], vbb[2]-vbb[3], vbb[4]-vbb[5]
@@ -83,22 +87,36 @@ def getNotebookBackend(actors2show, zoom, viewup):
             else:
                 vup = (0,1,0)
                 vpos= vfp[0]+vss*0.01, vfp[1]+vss*0.01, vfp[2] + vss/1.5  # camera position
-            settings.notebook_plotter.camera = [vpos[0], vpos[1], vpos[2]*eps,
+            settings.notebook_plotter.camera = [vpos[0], vpos[1], vpos[2],
                                                  vfp[0],  vfp[1],  vfp[2],
                                                  vup[0],  vup[1],  vup[2] ]
         if not vp.axes:
             settings.notebook_plotter.grid_visible = False
 
         for ia in actors2show2:
+
+            if isinstance(ia, (vtk.vtkCornerAnnotation, vtk.vtkAssembly)):
+                continue
+
             kobj = None
             kcmap= None
-
-            if isinstance(ia, Mesh) and ia.N():
-
+            name = None
+            
+            #####################################################################scalars
+            # work out scalars first, Points Lines are also Mesh objs
+            if isinstance(ia, (Mesh, shapes.Line, shapes.Points)):
+#                print('scalars', ia.name, ia.N())
                 iap = ia.GetProperty()
-                #ia.clean().triangulate().computeNormals()
-                #ia.triangulate())
-                iapoly = ia.clone().clean().triangulate().computeNormals().polydata()
+
+                if ia.filename:
+                    name = os.path.basename(ia.filename)
+                if ia.name:
+                    name = os.path.basename(ia.name)
+
+                if isinstance(ia, (shapes.Line, shapes.Points)):
+                    iapoly = ia.polydata()
+                else:
+                    iapoly = ia.clone().clean().triangulate().computeNormals().polydata()
 
                 vtkscals = None
                 color_attribute = None
@@ -130,50 +148,10 @@ def getNotebookBackend(actors2show, zoom, viewup):
                             r,g,b,a = lut.GetTableValue(i)
                             kcmap += [i/(nlut-1), r,g,b]
 
-                if iapoly.GetNumberOfPolys() > 0:
-                    name = None
-                    if ia.filename:
-                        name = os.path.basename(ia.filename)
-                    kobj = k3d.vtk_poly_data(iapoly,
-                                             name=name,
-                                             color=colors.rgb2int(iap.GetColor()),
-                                             color_attribute=color_attribute,
-                                             color_map=kcmap,
-                                             opacity=iap.GetOpacity(),
-                                             wireframe=(iap.GetRepresentation()==1))
 
-                    if iap.GetInterpolation() == 0:
-                        kobj.flat_shading = True
-
-                else:
-                    kcols=[]
-                    if color_attribute is not None:
-                        scals = vtk_to_numpy(vtkscals)
-                        kcols = k3d.helpers.map_colors(scals, kcmap,
-                                                       [scals_min,scals_max]).astype(numpy.uint32)
-                    sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
-
-                    if ia.NPoints() == ia.NCells():
-                        kobj = k3d.points(ia.points().astype(numpy.float32),
-                                          color=colors.rgb2int(iap.GetColor()),
-                                          colors=kcols,
-                                          opacity=iap.GetOpacity(),
-                                          shader="3d",
-                                          point_size=iap.GetPointSize()*sqsize/400,
-                                          #compression_level=9,
-                                          )
-                    else:
-                        kobj = k3d.line(ia.points().astype(numpy.float32),
-                                        color=colors.rgb2int(iap.GetColor()),
-                                        colors=kcols,
-                                        opacity=iap.GetOpacity(),
-                                        shader="thick",
-                                        width=iap.GetLineWidth()*sqsize/1000,
-                                        )
-
-                settings.notebook_plotter += kobj
-
-            elif isinstance(ia, Volume):
+            #####################################################################Volume
+            if isinstance(ia, Volume):
+#                print('Volume', ia.name, ia.dimensions())
                 kx, ky, kz = ia.dimensions()
                 arr = ia.getPointArray()
                 kimage = arr.reshape(-1, ky, kx)
@@ -183,9 +161,6 @@ def getNotebookBackend(actors2show, zoom, viewup):
                 for i in range(128):
                     r,g,b = colorTransferFunction.GetColor(i/127)
                     kcmap += [i/127, r,g,b]
-
-                #print('vol scal range', ia.imagedata().GetScalarRange())
-                #print(numpy.min(kimage), numpy.max(kimage))
 
                 kbounds = numpy.array(ia.imagedata().GetBounds()) \
                     + numpy.repeat(numpy.array(ia.imagedata().GetSpacing()) / 2.0, 2)\
@@ -199,10 +174,77 @@ def getNotebookBackend(actors2show, zoom, viewup):
                                   )
                 settings.notebook_plotter += kobj
 
+            #####################################################################text
             elif hasattr(ia, 'info') and 'formula' in ia.info.keys():
                 pos = (ia.GetPosition()[0],ia.GetPosition()[1])
                 kobj = k3d.text2d(ia.info['formula'], position=pos)
                 settings.notebook_plotter += kobj
+                
+            #####################################################################Points
+            elif isinstance(ia, shapes.Points) or ia.NPoints() == ia.NCells():
+#                print('Points', ia.name, ia.N())
+                kcols=[]
+                if color_attribute is not None:
+                    scals = vtk_to_numpy(vtkscals)
+                    kcols = k3d.helpers.map_colors(scals, kcmap,
+                                                   [scals_min,scals_max]).astype(numpy.uint32)
+                sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
+
+                kobj = k3d.points(ia.points().astype(numpy.float32),
+                                  color=colors.rgb2int(iap.GetColor()),
+                                  colors=kcols,
+                                  opacity=iap.GetOpacity(),
+                                  shader="3d",
+                                  point_size=iap.GetPointSize()*sqsize/800,
+                                  name=name,
+                                  #compression_level=9,
+                                  )
+                settings.notebook_plotter += kobj
+
+            #####################################################################Mesh
+            elif isinstance(ia, Mesh) and ia.N() and len(ia.faces()):
+#                print('Mesh', ia.name, ia.N(), len(ia.faces()))
+                kobj = k3d.vtk_poly_data(iapoly,
+                                         name=name,
+                                         color=colors.rgb2int(iap.GetColor()),
+                                         color_attribute=color_attribute,
+                                         color_map=kcmap,
+                                         opacity=iap.GetOpacity(),
+                                         wireframe=(iap.GetRepresentation()==1))
+
+                if iap.GetInterpolation() == 0:
+                    kobj.flat_shading = True
+                settings.notebook_plotter += kobj
+
+            #####################################################################Line
+            elif ia.polydata(False).GetNumberOfLines():
+#                print('Line', ia.name, ia.N(), len(ia.faces()),
+#                      ia.polydata(False).GetNumberOfLines(), len(ia.lines(joined=True)),
+#                      color_attribute, [vtkscals])
+                kcols=[]
+                if color_attribute is not None:
+                    scals = vtk_to_numpy(vtkscals)
+                    kcols = k3d.helpers.map_colors(scals, kcmap,
+                                                   [scals_min,scals_max]).astype(numpy.uint32)
+                sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
+                                
+                for i, ln_idx in enumerate(ia.lines(joined=True)):
+                    if i>200: 
+                        print('WARNING: K3D nr of line segments is limited to 200.')
+                        break
+                    pts = ia.points()[ln_idx]
+                    kobj = k3d.line(pts.astype(numpy.float32),
+                                    color=colors.rgb2int(iap.GetColor()),
+#                                    colors=kcols,
+                                    opacity=iap.GetOpacity(),
+                                    shader="thick",
+                                    width=iap.GetLineWidth()*sqsize/1000,
+                                    name=name,
+                                    )
+    
+                    settings.notebook_plotter += kobj
+
+
 
 
     ####################################################################################

@@ -1,47 +1,31 @@
-"""
-Example on how to specify a color for each
-individual cell or point of a Mesh.
-Last example also shows the usage of addScalarBar3D().
-"""
-print(__doc__)
-
+"""Specify a colors for cells
+and points of a Mesh"""
 from vtkplotter import *
-import numpy as np
 
-##################################### addPointScalars
-man1 = load(datadir+"man.vtk")
-nv = man1.N()  # nr. of vertices
-scals = np.linspace(0, 1, nv)  # coloring by index nr of vertex
+##################################### addCellArray
+man1 = load(datadir+"man.vtk").lineWidth(0.1)
+nv = man1.NCells()                         # nr. of cells
+scals = range(nv)                          # coloring by the index of cell
 
-man1.addPointScalars(scals, "mypointscalars")  # add a vtkArray to mesh
-# print(man1.getPointArray('mypointscalars')) # info can be retrieved this way
-man1.addScalarBar()  # add a default scalarbar
-show(man1, at=0, N=3, axes=4, elevation=-60)
+man1.addCellArray(scals, "mycellscalars")  # add an array of scalars to mesh
+#print(man1.getCellArray('mycellscalars')) # it can be retrieved this way
+show(man1, __doc__, at=0, N=3, axes=4, elevation=-60)
 
 
 ##################################### pointColors
 man2 = load(datadir+"man.vtk")
-scals = man2.points()[:, 1] + 37  # pick y coordinates of vertices
+scals = man2.points()[:, 0] + 37           # pick x coordinates of vertices
 
-man2.pointColors(scals, cmap="bone", vmin=36.2, vmax=36.7)  # right dark arm
+man2.pointColors(scals, cmap="hot", vmax=37)
 man2.addScalarBar(horizontal=True)
-show(man2, at=1)
+show(man2, "mesh.pointColors()", at=1)
 
 
 ##################################### cellColors
 man3 = load(datadir+"man.vtk")
-scals = man3.cellCenters()[:, 2] + 37  # pick z coordinates of cells
+scals = man3.cellCenters()[:, 2] + 37      # pick z coordinates of cells
 man3.cellColors(scals, cmap="afmhot")
-# print(man3.getPointArray('cellColors_afmhot')) # info can be retrieved this way
-
-# add some oriented 3D text
-txt = Text("Floor temperature is 35C", s=0.1).rotateZ(90).pos(1,-0.9,-1.7)
 
 # add a fancier 3D scalar bar embedded in the scene
-man3.addScalarBar3D(pos=(-1, 0, -1.7))
-show(man3, txt, at=2, interactive=1)
-
-
-# N.B. in the above example one can also do:
-# import matplotlib.cm as cm
-# man2.pointColors(scals, cmap=cm.bone)
+man3.addScalarBar3D(sy=3).rotateX(90).y(0.2)
+show(man3, "mesh.cellColors()", at=2, zoom=1.2, interactive=True)

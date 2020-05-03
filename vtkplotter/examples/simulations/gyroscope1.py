@@ -1,8 +1,5 @@
-"""
-Simulation of a gyroscope hanging from a spring.
-"""
+"""Simulation of a gyroscope hanging from a spring"""
 # (adapted by M. Musy from Bruce Sherwood, 2009)
-from __future__ import division, print_function
 from vtkplotter import *
 
 # ############################################################ parameters
@@ -27,7 +24,7 @@ cm = gpos + 0.5 * Ls * gaxis  # center of mass of shaft
 
 # ############################################################ the scene
 vp = Plotter(axes=0, interactive=0)
-vp += Text2D(__doc__)
+vp += __doc__
 
 shaft = Cylinder([[0, 0, 0], Ls * gaxis], r=0.03, c="dg")
 rotor = Cylinder([(Ls - 0.55) * gaxis, (Ls - 0.45) * gaxis], r=R, c="t")

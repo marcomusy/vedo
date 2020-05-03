@@ -7,7 +7,7 @@ p1 = load(datadir+'motor.byu')
 
 cutmesh = Sphere().y(-0.4).scale(0.4).wireframe().alpha(0.1)
 
-show(p1, cutmesh, Text2D(__doc__), at=0, N=2, axes=1, viewup="z")
+show(p1, cutmesh, __doc__, at=0, N=2, axes=1, viewup="z")
 
 p2 = p1.clone().cutWithMesh(cutmesh)
 

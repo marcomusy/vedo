@@ -5,13 +5,12 @@
 #
 # pip install pymeshfix
 #
-from pyvista import wrap
 from pymeshfix import MeshFix
 from vtkplotter import *
 
-amesh = load(datadir+'270.vtk').flat()
+amesh = load(datadir+'270.vtk')
 
-meshfix = MeshFix(amesh.polydata())
+meshfix = MeshFix(amesh.points(), amesh.faces())
 meshfix.repair()
 repaired = meshfix.mesh
 

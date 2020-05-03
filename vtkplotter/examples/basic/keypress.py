@@ -20,13 +20,13 @@ def myfnc(key):
 
 ##############################################################################
 
-vp = Plotter(verbose=0)
+vp = Plotter()
 
 vp.keyPressFunction = myfnc  # make it known to Plotter class
 
 vp.load(datadir+"bunny.obj")
 
-vp += Text2D(__doc__)
+vp += __doc__
 
 printc("\nPress c to execute myfnc()", c=1)
 vp.show()

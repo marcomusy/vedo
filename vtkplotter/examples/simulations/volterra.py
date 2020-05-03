@@ -1,5 +1,4 @@
-"""The Lotka-Volterra model
-where:
+"""The Lotka-Volterra model where:
 x is the number of preys
 y is the number of predators
 """
@@ -40,7 +39,7 @@ curve_points3 = np.vstack([np.zeros(sol3[:,0].shape), sol3[:,0], sol3[:,1]]).T
 ########################################################################
 from vtkplotter import *
 
-Arrows(origins, origins+vectors, c='w')
+Arrows(origins, origins+vectors, c='lr')
 
 Points(curve_points1, c='y')
 Line(curve_points1, c='y')
@@ -56,9 +55,8 @@ Line(np.vstack([T, sol3[:,0], sol3[:,1]]).T, c='lb')
 
 Latex(r'\dot{x}=x-x y',        c='white').rotateZ(-90).pos(4,6.5,0)
 Latex(r'\dot{y}=\alpha(xy-y)', c='white').rotateZ(-90).pos(3,6.5,0)
-Text2D(__doc__, c='w') # the text comment in the header
 
-show(...,  # all sofar created objects
+show(...,  __doc__, # all sofar created objects and the header
     axes={'xtitle':'time', 'ytitle':'x', 'ztitle':'y', 'zxGrid':True, 'yzGrid':False},
     bg="blackboard", viewup='x',
 )

@@ -3,6 +3,7 @@ the minimum of the 2-variable function:
 z = (x-1)**2 + (y-1)**2 + 9*sin(y-1)**2
 """
 from vtkplotter import *
+from vtkplotter.pyplot import plot
 import nevergrad as ng # install with: pip install nevergrad
 
 
@@ -32,4 +33,4 @@ printc('Minimum at:', res.value)
 ln = Line(pts, lw=3)
 fu = plot(f, xlim=[-3,4], ylim=[-3,4], alpha=0.5)
 
-show(fu, ln, Text2D(__doc__))
+show(fu, ln, __doc__)

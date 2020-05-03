@@ -28,5 +28,5 @@ pts3 = Glyph([x,y], mark, c='k').z(0.2)
 label = Text("preliminary\nresults!", s=.6, pos=(-8,4,.2))
 label.c('green').rotateZ(20)
 
-show(pts1, pts2, pts3, label, Text2D(__doc__),
+show(pts1, pts2, pts3, label, __doc__,
      title='A simple scatter plot', axes=1, viewup='2d')

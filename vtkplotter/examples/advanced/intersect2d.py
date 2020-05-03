@@ -1,5 +1,5 @@
 """Find the overlap area of 2 triangles"""
-from vtkplotter import Mesh, Text2D, show
+from vtkplotter import Mesh, show
 import numpy as np
 
 verts1 = [(1.9, 0.5), (2.1, 0.8), (2.4, 0.4)]
@@ -21,4 +21,4 @@ if m3.NPoints():
     m3.cutWithPlane(origin=v2, normal=np.cross(zax, v0-v2))
 
 print("Area of overlap:", m3.area())
-show(m1, m2, m3, Text2D(__doc__), axes=8, verbose=0)
+show(m1, m2, m3, __doc__, axes=8)

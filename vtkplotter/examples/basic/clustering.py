@@ -2,7 +2,7 @@
 Example usage of removeOutliers()
 and cluster() methods.
 """
-from vtkplotter import show, cluster, removeOutliers, Text2D
+from vtkplotter import show, cluster, removeOutliers
 import numpy as np
 
 
@@ -22,4 +22,4 @@ pts = noise1.tolist() + noise2.tolist() + noise3.tolist() + noise4.tolist()
 # find back their identity through clustering
 cl = cluster(pts, radius=0.1)  # returns a vtkAssembly
 
-show(cl, Text2D(__doc__), axes=1, viewup='z')
+show(cl, __doc__, axes=1, viewup='z')

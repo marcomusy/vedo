@@ -1,9 +1,9 @@
-"""
-For each point finds the 9 closest ones and fit a sphere
-color points based on the size of the sphere radius
+"""For each point finds the 12 closest ones and fit a sphere.
+Color points from the size of the sphere radius.
 """
 from __future__ import division, print_function
 from vtkplotter import *
+from vtkplotter.pyplot import histogram
 
 vp = Plotter()
 
@@ -28,7 +28,7 @@ for i in range(0, s.N(), 10):
 
 vp += Points(pts1, c=cols)
 vp += Lines(pts1, pts2, c="black")
-vp += histogram(vals, bins=20, xlim=[0,1]).scale(2).pos(-1,0.5,-1)
+vp += histogram(vals, xtitle='radius', xlim=[0,2]).pos(-1,0.5,-1)
 vp += Text2D(__doc__, pos=1)
 
 vp.show()

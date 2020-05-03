@@ -1,8 +1,6 @@
+"""Simulation of a block connected 
+to a spring in a viscous medium.
 """
-Simulation of a block connected 
-to a spring in a vicous medium.
-"""
-from __future__ import division, print_function
 from vtkplotter import *
 
 vp = Plotter(interactive=0, axes=0)

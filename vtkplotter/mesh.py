@@ -20,12 +20,6 @@ __all__ = ["Mesh", "merge"]
 
 
 ####################################################
-def Actor(*args, **kargs):
-    """``Actor`` class is obsolete: use ``Mesh`` instead, with same syntax."""
-    colors.printc("WARNING: Actor() is obsolete, use Mesh() instead, with same syntax.", box='=', c=1)
-    #raise RuntimeError()
-    return Mesh(*args, **kargs)
-
 def merge(*meshs):
     """
     Build a new mesh formed by the fusion of the polygonal meshes of the input objects.
@@ -146,22 +140,29 @@ class Mesh(vtk.vtkFollower, ActorBase):
             tact = utils.trimesh2vtk(inputobj, alphaPerCell=False)
             self._polydata = tact.polydata()
 
-        elif "meshio" in inputtype:
-            if inputobj.cells: # assume [vertices, faces]
+        elif "meshio" in inputtype: # meshio-4.0.11
+            if len(inputobj.cells): # assume [vertices, faces]
                 mcells =[]
-                if 'triangle' in inputobj.cells.keys():
-                    mcells += inputobj.cells['triangle'].tolist()
-                if 'quad' in inputobj.cells.keys():
-                    mcells += inputobj.cells['quad'].tolist()
+                for cellblock in inputobj.cells:
+                    #print(cellblock.type)
+                    mcells += cellblock.data.tolist()
                 self._polydata = utils.buildPolyData(inputobj.points, mcells)
             else:
                 self._polydata = utils.buildPolyData(inputobj.points, None)
-            if inputobj.point_data:
-                vptdata = numpy_to_vtk(inputobj.point_data, deep=True)
-                self._polydata.SetPointData(vptdata)
-            if inputobj.cell_data:
-                vcldata = numpy_to_vtk(inputobj.cell_data, deep=True)
-                self._polydata.SetPointData(vcldata)
+            try:
+                if len(inputobj.point_data):
+                    for k in inputobj.point_data.keys():
+                        vdata = numpy_to_vtk(inputobj.point_data[k], deep=True)
+                        self._polydata.GetPointData().AddArray(vdata)
+            except AssertionError:
+                print("Could not add meshio point data, skip.")
+            try:
+                if len(inputobj.cell_data):
+                    for k in inputobj.cell_data.keys():
+                        vdata = numpy_to_vtk(inputobj.cell_data[k], deep=True)
+                        self._polydata.GetCellData().AddArray(vdata)
+            except AssertionError:
+                print("Could not add meshio cell data, skip.")
 
         elif utils.isSequence(inputobj):
             ninp = len(inputobj)
@@ -200,7 +201,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         self.point_locator = None
         self.cell_locator = None
         self.line_locator = None
-        self.transform = None
+
         self._bfprop = None  # backface property holder
         self._scals_idx = 0  # index of the active scalar changed from CLI
         self._ligthingnr = 0
@@ -251,7 +252,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
                                 self._mapper.SetScalarModeToUsePointData()
                                 self._mapper.SetScalarRange(iarr.GetRange())
                                 arrexists = True
-                                break
+                                break # stop at first good one
 
             if not arrexists:
                 if c is None:
@@ -341,10 +342,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
         if len(arr1d) == 0:
             arr1d = vtk_to_numpy(self._polydata.GetStrips().GetData())
 
-        #conn = arr1d.reshape(ncells, int(len(arr1d)/len(arr1d)))
-        #return conn[:, 1:]
-        # instead of:
-
         i = 0
         conn = []
         n = len(arr1d)
@@ -360,28 +357,42 @@ class Mesh(vtk.vtkFollower, ActorBase):
         return conn # cannot always make a numpy array of it!
 
 
-    def lines(self):
-        """Get lines connectivity ids as a numpy array."""
+    def lines(self, joined=False, flat=False):
+        """Get lines connectivity ids as a numpy array.
+        Default format is [[id0,id1], [id3,id4], ...]
+        
+        :param bool joined: join ends in format, [(1,2), (2,3,4)] -> [(1,2,3,4)]
+        :param bool flat: 1D numpy array as [2, 10,20, 3, 10,11,12, 2, 70,80, ...]
+        """
         #Get cell connettivity ids as a 1D array. The vtk format is:
         #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
         arr1d = vtk_to_numpy(self.polydata(False).GetLines().GetData())
-        return arr1d
+        
+        if flat:
+            return arr1d
+        
+        i = 0
+        conn = []
+        n = len(arr1d)
+        for idummy in range(n):
+            cell = [arr1d[i+k+1] for k in range(arr1d[i])]
+            conn.append(cell)
+            i += arr1d[i]+1
+            if i >= n:
+                break
+            
+        if joined: # join ends: [(1,2), (2,3,4)] -> [(1,2,3,4)]
+            conn = sorted(conn, key=lambda x:x[0])
+            res=[conn[0]]
+            for i in range(1, len(conn)):
+                l1 = conn[i]
+                if res[-1][-1] == l1[0]:
+                    res[-1] += l1[1:]
+                else:
+                    res.append(l1)
+            conn = res
+        return conn # cannot always make a numpy array of it!
 
-    # obsolete stuff:
-    def getPoints(self, transformed=True, copy=False):
-        """Obsolete, use points() instead."""
-        colors.printc("WARNING: getPoints() is obsolete, use points() instead.", box='=', c=1)
-        return self.points(transformed=transformed, copy=copy)
-
-    def setPoints(self, pts):
-        """Obsolete, use points(pts) instead."""
-        colors.printc("WARNING: setPoints(pts) is obsolete, use points(pts) instead.", box='=', c=1)
-        return self.points(pts)
-
-    def coordinates(self, transformed=True, copy=False):
-        """Obsolete, use points() instead."""
-        colors.printc("WARNING: coordinates() is obsolete, use points() instead.", box='=', c=1)
-        return self.points(transformed=transformed, copy=copy)
 
     def cellCenters(self):
         """Get the coordinates of the cell centers.
@@ -392,75 +403,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
         vcen.SetInputData(self.polydata())
         vcen.Update()
         return vtk_to_numpy(vcen.GetOutput().GetPoints().GetData())
-
-    def addScalarBar(self,
-                     pos=(0.8,0.05),
-                     title="",
-                     titleXOffset=0,
-                     titleYOffset=15,
-                     titleFontSize=12,
-                     nlabels=None,
-                     c=None,
-                     horizontal=False,
-                     vmin=None, vmax=None,
-    ):
-        """
-        Add a 2D scalar bar to mesh.
-
-        |mesh_bands| |mesh_bands.py|_
-        """
-        import vtkplotter.addons as addons
-        self.scalarbar = addons.addScalarBar(self,
-                 pos,
-                 title,
-                 titleXOffset,
-                 titleYOffset,
-                 titleFontSize,
-                 nlabels,
-                 c,
-                 horizontal,
-                 vmin, vmax,
-                 )
-        return self
-
-    def addScalarBar3D(
-        self,
-        pos=(0, 0, 0),
-        normal=(0, 0, 1),
-        sx=0.1,
-        sy=2,
-        title='',
-        titleXOffset = -1.4, # space btw title and scale
-        titleYOffset = 0.0,
-        titleSize =  1.5,
-        titleRotation = 0.0,
-        nlabels=None,
-        precision=3,
-        labelOffset = 0.4,  # space btw numeric labels and scale
-        c=None,
-        alpha=1,
-        cmap=None,
-    ):
-        """
-        Draw a 3D scalar bar to mesh.
-
-        |mesh_coloring| |mesh_coloring.py|_
-        """
-        import vtkplotter.addons as addons
-        self.scalarbar = addons.addScalarBar3D(self,
-                                                pos,
-                                                normal,
-                                                sx, sy,
-                                                title,
-                                                titleXOffset,
-                                                titleYOffset,
-                                                titleSize,
-                                                titleRotation,
-                                                nlabels,
-                                                precision,
-                                                labelOffset,
-                                                c, alpha, cmap)
-        return self.scalarbar
 
 
     def texture(self, tname,
@@ -744,17 +686,18 @@ class Mesh(vtk.vtkFollower, ActorBase):
         elif c is None:
             self._mapper.ScalarVisibilityOn()
             return self
-        elif isinstance(c, str):
-            if c in colors._mapscales_cmaps:
-                self.cmap = c
-                if self._polydata.GetPointData().GetScalars():
-                    aname = self._polydata.GetPointData().GetScalars().GetName()
-                    if aname: self.pointColors(aname, cmap=c)
-                elif self._polydata.GetCellData().GetScalars():
-                    aname = self._polydata.GetCellData().GetScalars().GetName()
-                    if aname: self.cellColors(aname, cmap=c)
-                self._mapper.ScalarVisibilityOn()
-                return self
+#        elif isinstance(c, str):
+#            if c in colors._mapscales_cmaps:
+#                self.cmap = c
+#                if self._polydata.GetPointData().GetScalars():
+#                    aname = self._polydata.GetPointData().GetScalars().GetName()
+#                    if aname: self.pointColors(aname, cmap=c)
+#                elif self._polydata.GetCellData().GetScalars():
+#                    aname = self._polydata.GetCellData().GetScalars().GetName()
+#                    if aname: self.cellColors(aname, cmap=c)
+#                self._mapper.ScalarVisibilityOn()
+#                return self
+#       #  otherwise is of kind "red"
         self._mapper.ScalarVisibilityOff()
         cc = colors.getColor(c)
         self.GetProperty().SetColor(cc)
@@ -913,9 +856,10 @@ class Mesh(vtk.vtkFollower, ActorBase):
         qf.SaveCellQualityOn()
         qf.Update()
         pd = qf.GetOutput()
-        arr = vtk_to_numpy(pd.GetCellData().GetArray('Quality'))
-        self.addCellScalars(arr, "Quality")
+        varr = pd.GetCellData().GetArray('Quality')
+        self.addCellArray(varr, "Quality")
         self.cellColors("Quality", cmap)
+        arr = vtk_to_numpy(pd.GetCellData().GetArray('Quality'))
         return arr
 
     def averageSize(self):
@@ -1654,7 +1598,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         |mesh_threshold| |mesh_threshold.py|_
         """
         if utils.isSequence(scalars):
-            self.addPointScalars(scalars, "threshold")
+            self.addPointArray(scalars, "threshold")
             scalars = "threshold"
         elif self.getPointArray(scalars) is None:
             colors.printc("No scalars found with name/nr:", scalars, c=1)
@@ -1682,11 +1626,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
         gf.Update()
         return self._update(gf.GetOutput())
 
-
-    def triangle(self, verts=True, lines=True):
-        """Deprecated: use ``triangulate()`` instead."""
-        print("\nDeprecated triangle() method: use ``triangulate()`` instead.\n")
-        return self.triangulate(verts, lines)
 
     def triangulate(self, verts=True, lines=True):
         """
@@ -1721,15 +1660,16 @@ class Mesh(vtk.vtkFollower, ActorBase):
             return self
 
 
-    def pointColors(self, scalars_or_colors=None, cmap="jet", alpha=1,
-                    mode='scalars',
-                    bands=None, vmin=None, vmax=None):
+    def pointColors(self,
+                    input_array=None,
+                    cmap="jet",
+                    alpha=1,
+                    vmin=None, vmax=None,
+                    arrayName="PointScalars",
+                    ):
         """
         Set individual point colors by providing a list of scalar values and a color map.
         `scalars` can be a string name of the ``vtkArray``.
-
-        if ``mode='colors'``, colorize vertices of a mesh one by one,
-        passing a 1-to-1 list of colors.
 
         :param list alphas: single value or list of transparencies for each vertex
 
@@ -1737,143 +1677,234 @@ class Mesh(vtk.vtkFollower, ActorBase):
         :type cmap: str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap
         :param alpha: mesh transparency. Can be a ``list`` of values one for each vertex.
         :type alpha: float, list
-        :param int bands: group scalars in this number of bins, typically to form bands or stripes.
         :param float vmin: clip scalars to this minimum value
         :param float vmax: clip scalars to this maximum value
+        :param str arrayName: give a name to the array
 
-        .. hint::|mesh_coloring.py|_ |mesh_alphas.py|_ |mesh_bands.py|_ |mesh_custom.py|_
+        .. hint::|mesh_coloring.py|_ |mesh_alphas.py|_ |mesh_custom.py|_
 
-             |mesh_coloring| |mesh_alphas| |mesh_bands| |mesh_custom|
+             |mesh_coloring| |mesh_alphas| |mesh_custom|
         """
-        ####################################################################
-        if 'color' in mode:
-            return self._pointColors1By1(scalars_or_colors, alpha)
-        ####################################################################
-
         poly = self.polydata(False)
 
-        if scalars_or_colors is None:
-            scalars_or_colors = vtk_to_numpy(poly.GetPointData().GetScalars()).astype(np.float)
+        if input_array is None:             # if None try to fetch the active scalars
+            arr = poly.GetPointData().GetScalars()
+            if not arr:
+                print('Cannot find any active point array ...skip coloring.')
+                return self
 
-        elif isinstance(scalars_or_colors, str):  # if a name is passed
-            scalars_or_colors = vtk_to_numpy(poly.GetPointData().GetArray(scalars_or_colors)).astype(np.float)
+        elif isinstance(input_array, str):  # if a name string is passed
+            arr = poly.GetPointData().GetArray(input_array)
+            if not arr:
+                print('Cannot find point array with name:', input_array, '...skip coloring.')
+                return self
 
-        n = len(scalars_or_colors)
+        elif isinstance(input_array, int):  # if a int is passed
+            if input_array < poly.GetPointData().GetNumberOfArrays():
+                arr = poly.GetPointData().GetArray(input_array)
+            else:
+                print('Cannot find point array at position:', input_array, '...skip coloring.')
+                return self
 
-        useAlpha = False
-        if n != poly.GetNumberOfPoints():
-            colors.printc('Error in pointColors(): nr. of scalars != nr. of points',
-                          n, poly.GetNumberOfPoints(), c=1)
-        if utils.isSequence(alpha):
-            useAlpha = True
-            if len(alpha) > n:
-                colors.printc('Error in pointColors(): nr. of scalars < nr. of alpha values',
-                              n, len(alpha), c=1)
-                raise RuntimeError()
+        elif utils.isSequence(input_array): # if a numpy array is passed
+            n = len(input_array)
+            if n != poly.GetNumberOfPoints():
+                print('In pointColors(): nr. of scalars != nr. of points',
+                      n, poly.GetNumberOfPoints(), '...skip coloring.')
+                return self
+            input_array = np.ascontiguousarray(input_array)
+            arr = numpy_to_vtk(input_array, deep=True)
+            arr.SetName(arrayName)
 
-        if bands:
-            scalars_or_colors = utils.makeBands(scalars_or_colors, bands)
-
-        if vmin is None:
-            vmin = np.min(scalars_or_colors)
-        if vmax is None:
-            vmax = np.max(scalars_or_colors)
-
-        lut = vtk.vtkLookupTable()  # build the look-up table
-
-        if utils.isSequence(cmap):
-            lut.SetNumberOfTableValues(len(cmap))
-            lut.Build()
-            for i, c in enumerate(cmap):
-                col = colors.getColor(c)
-                r, g, b = col
-                if useAlpha:
-                    lut.SetTableValue(i, r, g, b, alpha[i])
-                else:
-                    lut.SetTableValue(i, r, g, b, alpha)
-
-        elif isinstance(cmap, vtk.vtkLookupTable):
-            lut.DeepCopy(cmap)
+        elif isinstance(input_array, vtk.vtkArray): # if a vtkArray is passed
+            arr = input_array
 
         else:
-            if isinstance(cmap, str):
-                self.cmap = cmap
-            lut.SetNumberOfTableValues(256)
-            lut.Build()
-            for i in range(256):
-                r, g, b = colors.colorMap(i, cmap, 0, 256)
-                if useAlpha:
-                    idx = int(i / 256 * len(alpha))
-                    lut.SetTableValue(i, r, g, b, alpha[idx])
-                else:
-                    lut.SetTableValue(i, r, g, b, alpha)
+            print('In pointColors(): cannot understand input:', input_array)
+            raise RuntimeError()
 
-        sname = "pointColors"
-        arr = numpy_to_vtk(np.ascontiguousarray(scalars_or_colors), deep=True)
-        arr.SetName(sname)
+        ##########################
+        arrfl = vtk.vtkFloatArray() #casting
+        arrfl.ShallowCopy(arr)
+        arr = arrfl
+
+        if not arr.GetName():
+            arr.SetName(arrayName)
+        else:
+            arrayName = arr.GetName()
+
+        if not utils.isSequence(alpha):
+            alpha = [alpha]*256
+
+        if vmin is None:
+            vmin = arr.GetRange()[0]
+        if vmax is None:
+            vmax = arr.GetRange()[1]
+
+        ########################### build the look-up table
+        lut = vtk.vtkLookupTable()
+        lut.SetRange(vmin,vmax)
+        if utils.isSequence(cmap):                 # manual sequence of colors
+            ncols, nalpha = len(cmap), len(alpha)
+            lut.SetNumberOfTableValues(ncols)
+            for i, c in enumerate(cmap):
+                r, g, b = colors.getColor(c)
+                idx = int(i/ncols * nalpha)
+                lut.SetTableValue(i, r, g, b, alpha[idx])
+            lut.Build()
+
+        elif isinstance(cmap, vtk.vtkLookupTable): # vtkLookupTable
+            lut.DeepCopy(cmap)
+
+        else: # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
+            self.cmap = cmap
+            ncols, nalpha = 256, len(alpha)
+            lut.SetNumberOfTableValues(ncols)
+            mycols = colors.colorMap(range(ncols), cmap, 0,ncols)
+            for i,c in enumerate(mycols):
+                r, g, b = c
+                idx = int(i/ncols * nalpha)
+                lut.SetTableValue(i, r, g, b, alpha[idx])
+            lut.Build()
+
+        self._mapper.SetLookupTable(lut)
+        self._mapper.SetScalarModeToUsePointData()
+        self._mapper.ScalarVisibilityOn()
         if hasattr(self._mapper, 'SetArrayName'):
-            self._mapper.SetArrayName(sname)
+            self._mapper.SetArrayName(arrayName)
         if settings.autoResetScalarRange:
             self._mapper.SetScalarRange(vmin, vmax)
-        self._mapper.SetLookupTable(lut)
-        self._mapper.SetScalarModeToUsePointData()
-        self._mapper.ScalarVisibilityOn()
         poly.GetPointData().SetScalars(arr)
-        poly.GetPointData().SetActiveScalars(sname)
-        return self
-
-    def _pointColors1By1(self, acolors, alphas=1):
-        ptData = vtk.vtkUnsignedIntArray()
-        ptData.SetName("VertexColors")
-        lut = vtk.vtkLookupTable()
-        n = self._polydata.GetNumberOfPoints()
-        if len(acolors) != n or (utils.isSequence(alphas) and len(alphas) != n):
-            colors.printc("Error in pointColors1By1(): mismatch in input list sizes.", c=1)
-            return self
-        lut.SetNumberOfTableValues(n)
-        lut.Build()
-        cols = colors.getColor(acolors)
-        if not utils.isSequence(alphas):
-            alphas = [alphas] * n
-        for i in range(n):
-            ptData.InsertNextValue(i)
-            c = cols[i]
-            lut.SetTableValue(i, c[0], c[1], c[2], alphas[i])
-        self._polydata.GetPointData().SetScalars(ptData)
-        self._polydata.GetPointData().Modified()
-        self._mapper.SetScalarRange(0, n-1)
-        self._mapper.SetLookupTable(lut)
-        if hasattr(self._mapper, 'SetArrayName'):
-            self._mapper.SetArrayName("VertexColors")
-        self._mapper.SetScalarModeToUsePointData()
-        self._mapper.ScalarVisibilityOn()
+        poly.GetPointData().SetActiveScalars(arrayName)
+        poly.GetPointData().Modified()
         return self
 
 
-    def cellColors(self, scalars_or_colors, cmap="jet", alpha=1, alphaPerCell=False,
-                   mode='scalars',
-                   bands=None, vmin=None, vmax=None):
+    def cellColors(self,
+                   input_array=None,
+                    cmap="jet",
+                    alpha=1,
+                    vmin=None, vmax=None,
+                    arrayName="CellScalars",
+                    ):
         """
-        Set individual cell colors by setting a list of scalars.
+        Set individual cell colors by providing a list of scalar values and a color map.
+        `scalars` can be a string name of the ``vtkArray``.
 
-        If ``mode='scalars'`` (default), set individual cell colors by the
-        provided list of scalars.
-
-        If ``mode='colors'``, colorize the faces of a mesh one by one,
-        passing a 1-to-1 list of colors and optionally a list of transparencies.
-
-        :param alpha: mesh transparency. Can be a ``list`` of values one for each cell.
-        :type alpha: float, list
-
-        Only relevant with ``mode='scalars'`` (default):
+        :param list alphas: single value or list of transparencies for each vertex
 
         :param cmap: color map scheme to transform a real number into a color.
         :type cmap: str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap
-        :param int bands: group scalars in this number of bins, typically to form bands of stripes.
+        :param alpha: mesh transparency. Can be a ``list`` of values one for each vertex.
+        :type alpha: float, list
         :param float vmin: clip scalars to this minimum value
         :param float vmax: clip scalars to this maximum value
+        :param str arrayName: give a name to the array
 
-        Only relevant with ``mode='colors'``:
+        .. hint::|mesh_coloring.py|_ |mesh_alphas.py|_ |mesh_custom.py|_
+
+             |mesh_coloring| |mesh_alphas| |mesh_custom|
+        """
+        poly = self.polydata(False)
+
+        if input_array is None:             # if None try to fetch the active scalars
+            arr = poly.GetCellData().GetScalars()
+            if not arr:
+                print('Cannot find any active Cell array ...skip coloring.')
+                return self
+
+        elif isinstance(input_array, str):  # if a name string is passed
+            arr = poly.GetCellData().GetArray(input_array)
+            if not arr:
+                print('Cannot find Cell array with name:', input_array, '...skip coloring.')
+                return self
+
+        elif isinstance(input_array, int):  # if a int is passed
+            if input_array < poly.GetCellData().GetNumberOfArrays():
+                arr = poly.GetCellData().GetArray(input_array)
+            else:
+                print('Cannot find Cell array at position:', input_array, '...skip coloring.')
+                return self
+
+        elif utils.isSequence(input_array): # if a numpy array is passed
+            n = len(input_array)
+            if n != poly.GetNumberOfCells():
+                print('In cellColors(): nr. of scalars != nr. of Cells',
+                      n, poly.GetNumberOfCells(), '...skip coloring.')
+                return self
+            input_array = np.ascontiguousarray(input_array)
+            arr = numpy_to_vtk(input_array, deep=True)
+            arr.SetName(arrayName)
+
+        elif isinstance(input_array, vtk.vtkArray): # if a vtkArray is passed
+            arr = input_array
+
+        else:
+            print('In cellColors(): cannot understand input:', input_array)
+            raise RuntimeError()
+
+        ##########################
+        arrfl = vtk.vtkFloatArray() #casting
+        arrfl.ShallowCopy(arr)
+        arr = arrfl
+
+        if not arr.GetName():
+            arr.SetName(arrayName)
+        else:
+            arrayName = arr.GetName()
+
+        if not utils.isSequence(alpha):
+            alpha = [alpha]*256
+
+        if vmin is None:
+            vmin = arr.GetRange()[0]
+        if vmax is None:
+            vmax = arr.GetRange()[1]
+
+        ########################### build the look-up table
+        lut = vtk.vtkLookupTable()
+        lut.SetRange(vmin,vmax)
+        if utils.isSequence(cmap):                 # manual sequence of colors
+            ncols, nalpha = len(cmap), len(alpha)
+            lut.SetNumberOfTableValues(ncols)
+            for i, c in enumerate(cmap):
+                r, g, b = colors.getColor(c)
+                idx = int(i/ncols * nalpha)
+                lut.SetTableValue(i, r, g, b, alpha[idx])
+            lut.Build()
+
+        elif isinstance(cmap, vtk.vtkLookupTable): # vtkLookupTable
+            lut.DeepCopy(cmap)
+
+        else: # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
+            self.cmap = cmap
+            ncols, nalpha = 256, len(alpha)
+            lut.SetNumberOfTableValues(ncols)
+            mycols = colors.colorMap(range(ncols), cmap, 0,ncols)
+            for i,c in enumerate(mycols):
+                r, g, b = c
+                idx = int(i/ncols * nalpha)
+                lut.SetTableValue(i, r, g, b, alpha[idx])
+            lut.Build()
+
+        self._mapper.SetLookupTable(lut)
+        self._mapper.SetScalarModeToUseCellData()
+        self._mapper.ScalarVisibilityOn()
+        if hasattr(self._mapper, 'SetArrayName'):
+            self._mapper.SetArrayName(arrayName)
+        if settings.autoResetScalarRange:
+            self._mapper.SetScalarRange(vmin, vmax)
+        poly.GetCellData().SetScalars(arr)
+        poly.GetCellData().SetActiveScalars(arrayName)
+        poly.GetCellData().Modified()
+        return self
+
+
+
+    def cellIndividualColors(self, colorlist, alpha=1, alphaPerCell=False):
+        """
+        Colorize the faces of a mesh one by one,
+        passing a 1-to-1 list of colors and optionally a list of transparencies.
 
         :param bool alphaPerCell: Only matters if `alpha` is a sequence. If so:
             if `True` assume that the list of opacities is independent
@@ -1883,118 +1914,38 @@ class Mesh(vtk.vtkFollower, ActorBase):
             if `False` [default] assume that the alpha matches the color list
             (same color has the same opacity).
             This is very fast even for large meshes.
-
-        |mesh_coloring| |mesh_coloring.py|_
         """
-        ####################################################################
-        if 'color' in mode:
-            return self._cellColors1By1(scalars_or_colors, alpha, alphaPerCell)
-        ####################################################################
-
-        poly = self.polydata(False)
-
-        if scalars_or_colors is None:
-            scalars_or_colors = vtk_to_numpy(poly.GetCellData().GetScalars()).astype(np.float)
-
-        elif isinstance(scalars_or_colors, str):  # if a name is passed
-            scalars_or_colors = vtk_to_numpy(poly.GetCellData().GetArray(scalars_or_colors)).astype(np.float)
-
-        n = len(scalars_or_colors)
-
-        useAlpha = False
-        if n != poly.GetNumberOfCells():
-            colors.printc('Error in cellColors(): nr. of scalars != nr. of cells',
-                          n, poly.GetNumberOfCells(), c=1)
-        if utils.isSequence(alpha):
-            useAlpha = True
-            if len(alpha) > n:
-                colors.printc('Error in cellColors(): nr. of scalars != nr. of alpha values',
-                              n, len(alpha), c=1)
-                raise RuntimeError()
-        if bands:
-            scalars_or_colors = utils.makeBands(scalars_or_colors, bands)
-
-        if vmin is None:
-            vmin = np.min(scalars_or_colors)
-        if vmax is None:
-            vmax = np.max(scalars_or_colors)
-
-        lut = vtk.vtkLookupTable()  # build the look-up table
-
-        if utils.isSequence(cmap):
-            lut.SetNumberOfTableValues(len(cmap))
-            lut.Build()
-            for i, c in enumerate(cmap):
-                col = colors.getColor(c)
-                r, g, b = col
-                if useAlpha:
-                    lut.SetTableValue(i, r, g, b, alpha[i])
-                else:
-                    lut.SetTableValue(i, r, g, b, alpha)
-
-        elif isinstance(cmap, vtk.vtkLookupTable):
-            lut.DeepCopy(cmap)
-
-        else:
-            if isinstance(cmap, str):
-                self.cmap = cmap
-            lut.SetNumberOfTableValues(256)
-            lut.Build()
-            for i in range(256):
-                r, g, b = colors.colorMap(i, cmap, 0, 256)
-                if useAlpha:
-                    idx = int(i / 256 * len(alpha))
-                    lut.SetTableValue(i, r, g, b, alpha[idx])
-                else:
-                    lut.SetTableValue(i, r, g, b, alpha)
-
-        sname = "cellColors"
-        arr = numpy_to_vtk(np.ascontiguousarray(scalars_or_colors), deep=True)
-        arr.SetName(sname)
-        if hasattr(self._mapper, 'SetArrayName'):
-            self._mapper.SetArrayName(sname)
-        if settings.autoResetScalarRange:
-            self._mapper.SetScalarRange(vmin, vmax)
-        self._mapper.SetLookupTable(lut)
-        self._mapper.SetScalarModeToUseCellData()
-        self._mapper.ScalarVisibilityOn()
-        poly.GetCellData().SetScalars(arr)
-        poly.GetCellData().SetActiveScalars(sname)
-        return self
-
-    def _cellColors1By1(self, acolors, alphas, alphaPerCell):
         cellData = vtk.vtkUnsignedIntArray()
-        cellData.SetName("CellColors")
+        cellData.SetName("CellIndividualColors")
 
         n = self._polydata.GetNumberOfCells()
-        if len(acolors) != n or (utils.isSequence(alphas) and len(alphas) != n):
-            colors.printc("Error in cellColors(): mismatch in input list sizes.",
-                          len(acolors), n, c=1)
+        if len(colorlist) != n or (utils.isSequence(alpha) and len(alpha) != n):
+            colors.printc("Error in cellIndividualColors(): mismatch in input list sizes.",
+                          len(colorlist), n, c=1)
             return self
 
         lut = vtk.vtkLookupTable()
-
         if alphaPerCell:
             lut.SetNumberOfTableValues(n)
             lut.Build()
-            cols = colors.getColor(acolors)
-            if not utils.isSequence(alphas):
-                alphas = [alphas] * n
+            cols = colors.getColor(colorlist)
+            if not utils.isSequence(alpha):
+                alpha = [alpha] * n
             for i in range(n):
                 cellData.InsertNextValue(i)
                 c = cols[i]
-                lut.SetTableValue(i, c[0], c[1], c[2], alphas[i])
+                lut.SetTableValue(i, c[0], c[1], c[2], alpha[i])
         else:
-            ucolors, uids, inds = np.unique(acolors, axis=0,
+            ucolors, uids, inds = np.unique(colorlist, axis=0,
                                             return_index=True, return_inverse=True)
             nc = len(ucolors)
 
             if nc == 1:
                 self.color(colors.getColor(ucolors[0]))
-                if utils.isSequence(alphas):
-                    self.alpha(alphas[0])
+                if utils.isSequence(alpha):
+                    self.alpha(alpha[0])
                 else:
-                    self.alpha(alphas)
+                    self.alpha(alpha)
                 return self
 
             for i in range(n):
@@ -2005,12 +1956,12 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
             cols = colors.getColor(ucolors)
 
-            if not utils.isSequence(alphas):
-                alphas = np.ones(n)
+            if not utils.isSequence(alpha):
+                alpha = np.ones(n)
 
             for i in range(nc):
                 c = cols[i]
-                lut.SetTableValue(i, c[0], c[1], c[2], alphas[uids[i]])
+                lut.SetTableValue(i, c[0], c[1], c[2], alpha[uids[i]])
 
         self._polydata.GetCellData().SetScalars(cellData)
         self._polydata.GetCellData().Modified()
@@ -2021,6 +1972,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         self._mapper.SetScalarModeToUseCellData()
         self._mapper.ScalarVisibilityOn()
         return self
+
 
     def addIDs(self, asfield=False):
         """
@@ -2132,7 +2084,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         vpts.SetData(numpy_to_vtk(pts + ns, deep=True))
         self._polydata.SetPoints(vpts)
         self._polydata.GetPoints().Modified()
-        self.addPointVectors(-ns, 'GaussNoise')
+        self.addPointArray(-ns, 'GaussNoise')
         return self
 
     def addShadow(self, x=None, y=None, z=None, c=(0.5, 0.5, 0.5), alpha=1):
@@ -2253,65 +2205,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
         tpoly = self.trail.polydata()
         tpoly.GetPoints().SetData(numpy_to_vtk(self.trailPoints))
         return self
-
-    def scalars(self, name_or_idx=None, datatype="point"):
-        """Obsolete. Use methods getArrayNames(), getPointArray(), getCellArray(),
-        addPointScalars(), addCellScalars or addPointVectors() instead."""
-        colors.printc("WARNING: scalars() is obsolete!", c=1)
-        colors.printc("       : Use getArrayNames(), getPointArray(), getCellArray(),", c=1)
-        colors.printc("       : addPointScalars() or addPointVectors() instead.", c=1)
-        #raise RuntimeError
-
-        poly = self.polydata(False)
-
-        # no argument: return list of available arrays
-        if name_or_idx is None:
-            ncd = poly.GetCellData().GetNumberOfArrays()
-            npd = poly.GetPointData().GetNumberOfArrays()
-            arrs = []
-            for i in range(npd):
-                #print(i, "PointData", poly.GetPointData().GetArrayName(i))
-                arrs.append(["PointData", poly.GetPointData().GetArrayName(i)])
-            for i in range(ncd):
-                #print(i, "CellData", poly.GetCellData().GetArrayName(i))
-                arrs.append(["CellData", poly.GetCellData().GetArrayName(i)])
-            return arrs
-
-        else:  # return a specific array (and set it as active one)
-
-            pdata = poly.GetPointData()
-            arr = None
-
-            if 'point' in datatype.lower():
-                if isinstance(name_or_idx, int):
-                    name = pdata.GetArrayName(name_or_idx)
-                else:
-                    name = name_or_idx
-                if name:
-                    arr = pdata.GetArray(name)
-                    data = pdata
-                    self._mapper.SetScalarModeToUsePointData()
-
-
-            if not arr or 'cell' in datatype.lower():
-                cdata = poly.GetCellData()
-                if isinstance(name_or_idx, int):
-                    name = cdata.GetArrayName(name_or_idx)
-                else:
-                    name = name_or_idx
-                if name:
-                    arr = cdata.GetArray(name)
-                    data = cdata
-                    self._mapper.SetScalarModeToUseCellData()
-
-            if arr:
-                data.SetActiveScalars(name)
-                self._mapper.ScalarVisibilityOn()
-                if settings.autoResetScalarRange:
-                    self._mapper.SetScalarRange(arr.GetRange())
-                return vtk_to_numpy(arr)
-
-            return None
 
 
     def subdivide(self, N=1, method=0):
@@ -2777,7 +2670,9 @@ class Mesh(vtk.vtkFollower, ActorBase):
         gf.Update()
         return Mesh(gf.GetOutput()).lw(1)
 
-    def labels(self, content=None, cells=False, scale=None, ratio=1, precision=3):
+    def labels(self, content=None, cells=False, scale=None,
+               rotX=0, rotY=0, rotZ=0,
+               ratio=1, precision=3):
         """Generate value or ID labels for mesh cells or points.
 
         :param list,int,str content: either 'id', array name or array number.
@@ -2785,6 +2680,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
         :param bool cells: generate labels for cells instead of points [False]
         :param float scale: absolute size of labels, if left as None it is automatic
+        :param float rotX: local rotation angle of label in degrees
         :param int ratio: skipping ratio, to reduce nr of labels for large meshes
         :param int precision: numeric precision of labels
 
@@ -2855,7 +2751,10 @@ class Mesh(vtk.vtkFollower, ActorBase):
             if mode==1:
                 tx.SetText(str(i))
             else:
-                tx.SetText(utils.precision(arr[i], precision))
+                if precision:
+                    tx.SetText(utils.precision(arr[i], precision))
+                else:
+                    tx.SetText(str(arr[i]))
             tx.Update()
 
             T = vtk.vtkTransform()
@@ -2866,11 +2765,18 @@ class Mesh(vtk.vtkFollower, ActorBase):
                     bb = tx.GetOutput().GetBounds()
                     dx, dy = (bb[1]-bb[0])/2, (bb[3]-bb[2])/2
                     T.Translate(-dx,-dy,0)
+                if rotX: T.RotateX(rotX)
+                if rotY: T.RotateY(rotY)
+                if rotZ: T.RotateZ(rotZ)
                 crossvec = np.cross([0,0,1], ni)
                 angle = np.arccos(np.dot([0,0,1], ni))*57.3
                 T.RotateWXYZ(angle, crossvec)
                 if cells: # small offset along normal only for cells
                     T.Translate(ni*scale/2)
+            else:
+                if rotX: T.RotateX(rotX)
+                if rotY: T.RotateY(rotY)
+                if rotZ: T.RotateZ(rotZ)
             T.Scale(scale,scale,scale)
             T.Translate(e)
             tf = vtk.vtkTransformPolyDataFilter()
@@ -2879,7 +2785,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
             tf.Update()
             tapp.AddInputData(tf.GetOutput())
         tapp.Update()
-        ids = Mesh(tapp.GetOutput(), c=[.5,.5,.5]).pickable(0)
+        ids = Mesh(tapp.GetOutput(), c=[.5,.5,.5]).pickable(False)
         ids.flat().lighting('ambient')
         return ids
 
@@ -2994,6 +2900,60 @@ class Mesh(vtk.vtkFollower, ActorBase):
         return self
 
 
+    def isobands(self, n=10, vmin=None, vmax=None):
+        """
+        Return a new ``Mesh`` representing the isobands of the active scalars.
+        This is a new mesh where the scalar is now associated to cell faces and
+        used to colorize the mesh.
+
+        :param int n: number of isolines in the range
+        :param float vmin: minimum of the range
+        :param float vmax: maximum of the range
+
+        |isolines| |isolines.py|_
+        """
+        r0, r1 = self._polydata.GetScalarRange()
+        if vmin is None:
+            vmin = r0
+        if vmax is None:
+            vmax = r1
+
+        # --------------------------------
+        bands = []
+        dx = (vmax - vmin)/float(n)
+        b = [vmin, vmin + dx / 2.0, vmin + dx]
+        i = 0
+        while i < n:
+            bands.append(b)
+            b = [b[0] + dx, b[1] + dx, b[2] + dx]
+            i += 1
+
+        # annotate, use the midpoint of the band as the label
+        lut = self.mapper().GetLookupTable()
+        labels = []
+        for b in bands:
+            labels.append('{:4.2f}'.format(b[1]))
+        values = vtk.vtkVariantArray()
+        for la in labels:
+            values.InsertNextValue(vtk.vtkVariant(la))
+        for i in range(values.GetNumberOfTuples()):
+            lut.SetAnnotation(i, values.GetValue(i).ToString())
+
+        bcf = vtk.vtkBandedPolyDataContourFilter()
+        bcf.SetInputData(self.polydata())
+        # Use either the minimum or maximum value for each band.
+        for i in range(len(bands)):
+            bcf.SetValue(i, bands[i][2])
+        # We will use an indexed lookup table.
+        bcf.SetScalarModeToIndex()
+        bcf.GenerateContourEdgesOff()
+        bcf.Update()
+        bcf.GetOutput().GetCellData().GetScalars().SetName("IsoBands")
+        m1 = Mesh(bcf.GetOutput()).computeNormals(cells=True)
+        m1.mapper().SetLookupTable(lut)
+        return m1
+
+
     def isolines(self, n=10, vmin=None, vmax=None):
         """
         Return a new ``Mesh`` representing the isolines of the active scalars.
@@ -3004,10 +2964,8 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
         |isolines| |isolines.py|_
         """
-        bcf = vtk.vtkBandedPolyDataContourFilter()
+        bcf = vtk.vtkContourFilter()
         bcf.SetInputData(self.polydata())
-        bcf.SetScalarModeToValue()
-        bcf.GenerateContourEdgesOn()
         r0, r1 = self._polydata.GetScalarRange()
         if vmin is None:
             vmin = r0
@@ -3015,9 +2973,10 @@ class Mesh(vtk.vtkFollower, ActorBase):
             vmax = r1
         bcf.GenerateValues(n, vmin, vmax)
         bcf.Update()
-        zpoly = bcf.GetContourEdgesOutput()
+        zpoly = bcf.GetOutput()
         zbandsact = Mesh(zpoly, c="k")
-        zbandsact.GetProperty().SetLineWidth(1.5)
+        zbandsact.lighting(enabled=False)
+        zbandsact._mapper.SetResolveCoincidentTopologyToPolygonOffset()
         return zbandsact
 
 
@@ -3126,9 +3085,9 @@ class Mesh(vtk.vtkFollower, ActorBase):
             varr = numpy_to_vtk(np.ascontiguousarray(vects), deep=True)
             vname = "WarpVectors"
             if useCells:
-                self.addCellVectors(varr, vname)
+                self.addCellArray(varr, vname)
             else:
-                self.addPointVectors(varr, vname)
+                self.addPointArray(varr, vname)
         wf.SetInputArrayToProcess(0, 0, 0, asso, vname)
         wf.SetScaleFactor(factor)
         wf.Update()
@@ -3142,7 +3101,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         be moved to a place close to the corresponding target landmark.
         The points in between are interpolated smoothly using Bookstein's Thin Plate Spline algorithm.
 
-        Transformation object can be retrieved with ``mesh.getTransform()``.
+        Transformation object can be accessed with ``mesh.transform``.
 
         :param userFunctions: You may supply both the function and its derivative with respect to r.
 
@@ -3180,7 +3139,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         transform.SetSigma(sigma)
         transform.SetSourceLandmarks(ptsou)
         transform.SetTargetLandmarks(pttar)
-        self.info["transform"] = transform # to disappear in future - replace by base.transform
+        self.transform = transform
         self.applyTransform(transform)
         return self
 
@@ -3241,24 +3200,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
         m.SetOrientation(self.GetOrientation())
         m.SetPosition(self.GetPosition())
         return m
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

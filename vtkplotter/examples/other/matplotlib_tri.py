@@ -4,7 +4,7 @@ matplotlib.tri.Triangulation
 # https://matplotlib.org/mpl_examples/mplot3d/trisurf3d_demo2.py
 import numpy as np
 from matplotlib.tri import Triangulation
-from vtkplotter import Text2D, Mesh, show
+from vtkplotter import Mesh, show
 
 # Make a mesh in the space of parameterisation variables u and v
 u = np.linspace(0, 2.0 * np.pi, endpoint=True, num=50)
@@ -24,4 +24,4 @@ points, faces = np.c_[x,y,z], tri.triangles
 mesh = Mesh((points, faces), c='orange')
 mesh.computeNormals().phong().lineWidth(0.1).lighting('glossy')
 
-show(mesh, Text2D(__doc__), axes=1)
+show(mesh, __doc__, axes=1)

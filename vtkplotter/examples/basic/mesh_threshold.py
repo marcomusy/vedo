@@ -1,9 +1,8 @@
-"""Extracts the cells where scalar value
-satisfies a threshold criterion.
+"""Extracts cells of a Mesh which satisfy
+a threshold criterion:
+37 < scalar < 37.5
 """
 from vtkplotter import *
-
-doc = Text2D(__doc__)
 
 man = load(datadir+"man.vtk")
 
@@ -13,9 +12,7 @@ man.pointColors(scals, cmap="cool")
 man.addScalarBar(title="threshold", horizontal=True)
 
 # make a copy and threshold the mesh
-cutman = man.clone().threshold(scals, vmin=36.9, vmax=37.5)
-
-printInfo(cutman)
+cutman = man.clone().threshold(scals, vmin=37, vmax=37.5)
 
 # distribute the meshes on 2 renderers
-show([[man, doc], cutman], N=2, elevation=-30, axes=0)
+show([(man, __doc__), cutman], N=2, elevation=-30, axes=0)

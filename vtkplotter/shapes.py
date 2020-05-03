@@ -512,7 +512,7 @@ class Line(Mesh):
             self.base = np.array(p0)
 
         Mesh.__init__(self, poly, c, alpha)
-        self.lw(lw)
+        self.lw(lw).lighting(enabled=False)
         #if dotted: # not functional
         #    self.GetProperty().SetLineStipplePattern(0xF0F0)
         #    self.GetProperty().SetLineStippleRepeatFactor(1)
@@ -616,7 +616,7 @@ class DashedLine(Line):
         poly = polylns.GetOutput()
 
         Mesh.__init__(self, poly, c, alpha)
-        self.lw(lw)
+        self.lw(lw).lighting(enabled=False)
         self.base = listp[0]
         if closed:
             self.top = listp[-2]
@@ -627,7 +627,7 @@ class DashedLine(Line):
 
 
 
-class Lines(Mesh):
+class Lines(Line):
     """
     Build the line segments between two lists of points `startPoints` and `endPoints`.
     `startPoints` can be also passed in the form ``[[point1, point2], ...]``.
@@ -649,18 +649,18 @@ class Lines(Mesh):
             lineSource = vtk.vtkLineSource()
             lineSource.SetPoint1(twopts[0])
 
-            if scale != 1:
+            if scale == 1:
+                pt2 = twopts[1]
+            else:
                 vers = (np.array(twopts[1]) - twopts[0]) * scale
                 pt2 = np.array(twopts[0]) + vers
-            else:
-                pt2 = twopts[1]
 
             lineSource.SetPoint2(pt2)
             polylns.AddInputConnection(lineSource.GetOutputPort())
         polylns.Update()
 
         Mesh.__init__(self, polylns.GetOutput(), c, alpha)
-        self.lw(lw)
+        self.lw(lw).lighting(enabled=False)
         if dotted:
             self.GetProperty().SetLineStipplePattern(0xF0F0)
             self.GetProperty().SetLineStippleRepeatFactor(1)
@@ -712,6 +712,7 @@ class Spline(Line):
         xnew, ynew, znew = splev(np.linspace(0, 1, res), tckp)
 
         Line.__init__(self, np.c_[xnew, ynew, znew], lw=2)
+        self.lighting(enabled=False)
         settings.collectable_actors.pop()
         settings.collectable_actors.append(self)
         self.name = "Spline"
@@ -719,7 +720,7 @@ class Spline(Line):
 
 class KSpline(Line):
     """
-    Return a Kochanek-Bartel spline which runs exactly through all the input points.
+    Return a Kochanek spline which runs exactly through all the input points.
 
     See: https://en.wikipedia.org/wiki/Kochanek%E2%80%93Bartels_spline
 
@@ -730,7 +731,7 @@ class KSpline(Line):
     :param int res: resolution of the output line. Default is 20 times the number
         of input points.
 
-    |kspline| |kspline.py|_
+    |kspline|
     """
     def __init__(self, points,
                  continuity=0, tension=0, bias=0,
@@ -770,6 +771,7 @@ class KSpline(Line):
 
         Line.__init__(self, ln, lw=2, c='gray')
         settings.collectable_actors.pop()
+        self.lighting(enabled=False)
         self.base = np.array(points[0])
         self.top = np.array(points[-1])
         settings.collectable_actors.append(self)
@@ -783,6 +785,7 @@ class Tube(Mesh):
     :type r: float, list
     :param c: constant color or list of colors for each point.
     :type c: float, list
+    :para int res: resolution, number of sides of the tube
 
     |ribbon.py|_ |tube.py|_
 
@@ -1212,12 +1215,7 @@ class Polygon(Mesh):
         x, y = utils.pol2cart(np.ones_like(t)*r, t)
         faces = [list(range(nsides))]
         Mesh.__init__(self, [np.c_[x,y], faces], c, alpha)
-
-        #ps = vtk.vtkRegularPolygonSource() # bugged!
-        #ps.SetNumberOfSides(nsides)
-        #ps.SetRadius(r)
-        #ps.Update()
-        #Mesh.__init__(self, ps.GetOutput(), c, alpha)
+        self.lighting('plastic')
         self.SetPosition(pos)
         settings.collectable_actors.append(self)
         self.name = "Polygon " + str(nsides)
@@ -1283,6 +1281,8 @@ class Disc(Mesh):
     """
     Build a 2D disc of inner radius `r1` and outer radius `r2`.
 
+    :param list res: resolution in R and Phi 
+
     |Disk|
     """
     def __init__(self,
@@ -1292,17 +1292,18 @@ class Disc(Mesh):
         c="coral",
         alpha=1,
         res=12,
-        resphi=None,
     ):
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
+        if utils.isSequence(res):
+            res_r, res_phi = res
+        else:
+            res_r, res_phi = res, 6*res
         ps = vtk.vtkDiskSource()
         ps.SetInnerRadius(r1)
         ps.SetOuterRadius(r2)
-        ps.SetRadialResolution(res)
-        if not resphi:
-            resphi = 6 * res
-        ps.SetCircumferentialResolution(resphi)
+        ps.SetRadialResolution(res_r)
+        ps.SetCircumferentialResolution(res_phi)
         ps.Update()
         Mesh.__init__(self, ps.GetOutput(), c, alpha)
         self.flat()
@@ -1355,7 +1356,7 @@ class Arc(Mesh):
         ar.SetResolution(res)
         ar.Update()
         Mesh.__init__(self, ar.GetOutput(), c, alpha)
-        self.flat().lw(2)
+        self.flat().lw(2).lighting(enabled=False)
         settings.collectable_actors.append(self)
         self.name = "Arc"
 
@@ -1407,11 +1408,15 @@ class Sphere(Mesh):
             self.points(pts)
 
         else:
+            if utils.isSequence(res):
+                res_t, res_phi = res
+            else:
+                res_t, res_phi = 2*res, res
 
             ss = vtk.vtkSphereSource()
             ss.SetRadius(r)
-            ss.SetPhiResolution(res)
-            ss.SetThetaResolution(2 * res)
+            ss.SetThetaResolution(res_t)
+            ss.SetPhiResolution(res_phi)
             ss.Update()
 
             Mesh.__init__(self, ss.GetOutput(), c, alpha)
@@ -1431,6 +1436,9 @@ class Spheres(Mesh):
     |manyspheres| |manyspheres.py|_
     """
     def __init__(self, centers, r=1, c="r", alpha=1, res=8):
+
+        if isinstance(centers, Mesh):
+            centers = centers.points()
 
         cisseq = False
         if utils.isSequence(c):
@@ -1460,8 +1468,13 @@ class Spheres(Mesh):
         src = vtk.vtkSphereSource()
         if not risseq:
             src.SetRadius(r)
-        src.SetPhiResolution(res)
-        src.SetThetaResolution(2 * res)
+        if utils.isSequence(res):
+            res_t, res_phi = res
+        else:
+            res_t, res_phi = 2*res, res
+            
+        src.SetThetaResolution(res_t)
+        src.SetPhiResolution(res_phi)
         src.Update()
 
         psrc = vtk.vtkPointSource()
@@ -1553,9 +1566,14 @@ class Ellipsoid(Mesh):
         self.axis3 = axis3
         self.nr_of_points = 1 # used by pcaEllipsoid
 
+        if utils.isSequence(res):
+            res_t, res_phi = res
+        else:
+            res_t, res_phi = 2*res, res
+            
         elliSource = vtk.vtkSphereSource()
-        elliSource.SetThetaResolution(2*res)
-        elliSource.SetPhiResolution(res)
+        elliSource.SetThetaResolution(res_t)
+        elliSource.SetPhiResolution(res_phi)
         elliSource.Update()
         l1 = np.linalg.norm(axis1)
         l2 = np.linalg.norm(axis2)
@@ -1724,7 +1742,7 @@ class Grid(Mesh):
 
         self.orientation(normal)
 
-        self.wireframe().lw(lw)
+        self.wireframe().lw(lw).lighting(enabled=False)
         settings.collectable_actors.append(self)
         self.name = "Grid"
 
@@ -2006,8 +2024,12 @@ class Torus(Mesh):
         rs.SetCrossSectionRadius(thickness)
         pfs = vtk.vtkParametricFunctionSource()
         pfs.SetParametricFunction(rs)
-        pfs.SetUResolution(res * 3)
-        pfs.SetVResolution(res)
+        if utils.isSequence(res):
+            res_u, res_v = res
+        else:
+            res_u, res_v = 3*res, res
+        pfs.SetUResolution(res_u)
+        pfs.SetVResolution(res_v)
         pfs.Update()
         Mesh.__init__(self, pfs.GetOutput(), c, alpha)
         self.phong()
@@ -2088,11 +2110,9 @@ class Text(Mesh):
     :param list pos: position coordinates in 3D space
     :param float s: size of text.
     :param float depth: text thickness.
-    :param bool italic: italic font type (can be a `float` too).
+    :param bool,float italic: italic font type (can be a +-`float` too).
     :param str justify: text justification
         (bottom-left, bottom-right, top-left, top-right, centered).
-
-    :param bc: back face color of text (not background)
 
     |markpoint| |markpoint.py|_
     """
@@ -2106,7 +2126,6 @@ class Text(Mesh):
                 justify="bottom-left",
                 c=None,
                 alpha=1,
-                bc=None,
                 ):
 
         if isinstance(pos, str):
@@ -2169,10 +2188,8 @@ class Text(Mesh):
             extrude.Update()
             tpoly = extrude.GetOutput()
         Mesh.__init__(self, tpoly, c, alpha)
-        if bc is not None:
-            self.backColor(bc)
         self.SetPosition(pos)
-        self.flat().lighting('ambient')
+        self.flat().lighting(enabled=False)
         settings.collectable_actors.append(self)
         self.name = "Text"
 
@@ -2215,28 +2232,17 @@ def Text2D(
             - Courier
             - Times
             - Arial
-            - Ageo
-            - Aldora
             - CallingCode
+            - ChineseRuler
             - Godsway
-            - Gula
             - ImpactLabel
             - Komiko
-            - Lamborgini
-            - MidnightDrive
-            - Militech
-            - MonaShark
+            - Monospace
             - Montserrat
-            - MyDisplaySt
-            - PointedLaidSt
-            - SchoolTeacher
+            - Overspray
             - SpecialElite
 
         A path to `otf` or `ttf` font-file can also be supplied as input.
-
-        All fonts are free for personal use.
-        Check out conditions in `vtkplotter/fonts/licenses` for commercial use
-        and: https://www.1001freefonts.com
 
     .. hint:: Examples, |fonts.py|_ |colorcubes.py|_ |annotations.py|_
 
@@ -2520,6 +2526,7 @@ class ParametricShape(Mesh):
         pfs.SetUResolution(res)
         pfs.SetVResolution(res)
         pfs.SetWResolution(res)
+        pfs.SetScalarModeToZ()
         pfs.Update()
 
         Mesh.__init__(self, pfs.GetOutput(), c, alpha)

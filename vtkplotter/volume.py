@@ -50,8 +50,8 @@ class Volume(vtk.vtkVolume, ActorBase):
     """
 
     def __init__(self, inputobj=None,
-                 c=('b','lb','lg','y','r'),
-                 alpha=(0.0, 0.0, 0.2, 0.4, 0.8, 1),
+                 c=('r','y','lg','lb','b'), #('b','lb','lg','y','r')
+                 alpha=(0.0,0.0, 0.5, 0.8,1.0),
                  alphaGradient=None,
                  mode=0,
                  origin=None,
@@ -243,6 +243,10 @@ class Volume(vtk.vtkVolume, ActorBase):
         """Return the nr. of voxels in the 3 dimensions."""
         return self._imagedata.GetDimensions()
 
+    def scalarRange(self):
+        """Return the range of the scalar values."""
+        return np.array(self._imagedata.GetScalarRange())
+
     def spacing(self, s=None):
         """Set/get the voxels size in the 3 dimensions."""
         if s is not None:
@@ -306,17 +310,17 @@ class Volume(vtk.vtkVolume, ActorBase):
         ``volume.color(['red', 'violet', 'green'])``
         """
         smin, smax = self._imagedata.GetScalarRange()
-        volumeProperty = self.GetProperty()
-        ctf = vtk.vtkColorTransferFunction()
+        ctf = self.GetProperty().GetRGBTransferFunction()
+        ctf.RemoveAllPoints()
         self._color = col
 
         if utils.isSequence(col):
             for i, ci in enumerate(col):
                 r, g, b = colors.getColor(ci)
-                xalpha = smin + (smax - smin) * i / (len(col) - 1)
-                ctf.AddRGBPoint(xalpha, r, g, b)
-                #colors.printc('\tcolor at', round(xalpha, 1),
-                #              '\tset to', colors.getColorName((r, g, b)), c='b', bold=0)
+                x = smin + (smax - smin) * i / (len(col) - 1)
+                ctf.AddRGBPoint(x, r, g, b)
+                #colors.printc('\tcolor at', round(x, 1),
+                #              '\tset to', colors.getColorName((r, g, b)), c='w', bold=0)
         elif isinstance(col, str):
             if col in colors.colors.keys() or col in colors.color_nicks.keys():
                 r, g, b = colors.getColor(col)
@@ -332,8 +336,6 @@ class Volume(vtk.vtkVolume, ActorBase):
             ctf.AddRGBPoint(smax, r,g,b)
         else:
             colors.printc("volume.color(): unknown input type:", col, c=1)
-
-        volumeProperty.SetColor(ctf)
         return self
 
     def alpha(self, alpha):
@@ -345,22 +347,20 @@ class Volume(vtk.vtkVolume, ActorBase):
         of the range will get an alpha equal to 0.3 and voxels with value close to 150
         will be completely opaque.
         """
-        volumeProperty = self.GetProperty()
         smin, smax = self._imagedata.GetScalarRange()
-        opacityTransferFunction = vtk.vtkPiecewiseFunction()
+        otf = self.GetProperty().GetScalarOpacity()
+        otf.RemoveAllPoints()
         self._alpha = alpha
 
         if utils.isSequence(alpha):
             for i, al in enumerate(alpha):
                 xalpha = smin + (smax - smin) * i / (len(alpha) - 1)
                 # Create transfer mapping scalar value to opacity
-                opacityTransferFunction.AddPoint(xalpha, al)
-                #colors.printc("alpha at", round(xalpha, 1), "\tset to", al, c="b", bold=0)
+                otf.AddPoint(xalpha, al)
+                #colors.printc("alpha at", round(xalpha, 1), "\tset to", al)
         else:
-            opacityTransferFunction.AddPoint(smin, alpha) # constant alpha
-            opacityTransferFunction.AddPoint(smax, alpha)
-
-        volumeProperty.SetScalarOpacity(opacityTransferFunction)
+            otf.AddPoint(smin, alpha) # constant alpha
+            otf.AddPoint(smax, alpha)
         return self
 
     def alphaGradient(self, alphaGrad):
@@ -385,7 +385,7 @@ class Volume(vtk.vtkVolume, ActorBase):
 
         #smin, smax = self._imagedata.GetScalarRange()
         smin, smax = 0, 255
-        gotf = vtk.vtkPiecewiseFunction()
+        gotf = volumeProperty.GetGradientOpacity()
         if utils.isSequence(alphaGrad):
             for i, al in enumerate(alphaGrad):
                 xalpha = smin + (smax - smin) * i / (len(alphaGrad) - 1)
@@ -395,8 +395,6 @@ class Volume(vtk.vtkVolume, ActorBase):
         else:
             gotf.AddPoint(smin, alphaGrad) # constant alphaGrad
             gotf.AddPoint(smax, alphaGrad)
-
-        volumeProperty.SetGradientOpacity(gotf)
         return self
 
     def interpolation(self, itype):
@@ -511,33 +509,6 @@ class Volume(vtk.vtkVolume, ActorBase):
         ima.Update()
         return self._update(ima.GetOutput())
 
-    def cutWithPlane(self, origin=(0,0,0), normal=(1,0,0)):
-        """
-        Cuts ``Volume`` with the plane defined by a point and a normal
-        creating a tetrahedral mesh object.
-        Makes sense only if the plane is not along any of the cartesian planes,
-        otherwise use ``crop()`` which is way faster.
-
-        :param origin: the cutting plane goes through this point
-        :param normal: normal of the cutting plane
-        """
-        plane = vtk.vtkPlane()
-        plane.SetOrigin(origin)
-        plane.SetNormal(normal)
-
-        clipper = vtk.vtkClipVolume()
-        clipper.SetInputData(self._imagedata)
-        clipper.SetClipFunction(plane)
-        clipper.GenerateClipScalarsOff()
-        clipper.GenerateClippedOutputOff()
-        clipper.Mixed3DCellGenerationOff() # generate only tets
-        clipper.SetValue(0)
-        clipper.Update()
-
-        vol = Volume(clipper.GetOutput()).color(self._color)
-        return vol #self._update(clipper.GetOutput())
-
-
     def resize(self, *newdims):
         """Increase or reduce the number of voxels of a Volume with interpolation."""
         old_dims = np.array(self.imagedata().GetDimensions())
@@ -624,6 +595,34 @@ class Volume(vtk.vtkVolume, ActorBase):
         vslice.Update()
         return Mesh(vslice.GetOutput())
 
+    def slicePlane(self, origin=(0,0,0), normal=(1,1,1)):
+        """Extract the slice along a given plane position and normal.
+        
+        |slicePlane| |slicePlane.py|_
+        """
+        reslice = vtk.vtkImageReslice()
+        reslice.SetInputData(self._imagedata)
+        reslice.SetOutputDimensionality(2)
+        newaxis = utils.versor(normal)
+        pos = np.array(origin)
+        initaxis = (0,0,1)
+        crossvec = np.cross(initaxis, newaxis)
+        angle = np.arccos(np.dot(initaxis, newaxis))
+        T = vtk.vtkTransform()
+        T.PostMultiply()
+        T.RotateWXYZ(np.rad2deg(angle), crossvec)
+        T.Translate(pos)
+        M = T.GetMatrix()
+        reslice.SetResliceAxes(M)
+        reslice.SetInterpolationModeToLinear()
+        reslice.Update()
+        vslice = vtk.vtkImageDataGeometryFilter()
+        vslice.SetInputData(reslice.GetOutput())
+        vslice.Update()
+        msh = Mesh(vslice.GetOutput())
+        msh.SetOrientation(T.GetOrientation())
+        msh.SetPosition(pos)
+        return msh
 
     def isosurface(self, threshold=True, connectivity=False):
         """Return an ``Mesh`` isosurface extracted from the ``Volume`` object.

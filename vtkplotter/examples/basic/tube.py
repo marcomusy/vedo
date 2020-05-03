@@ -1,11 +1,7 @@
-"""A scalar array can be specified to vary
-radius and color of a line represented as a tube.
+"""Use array to vary radius and color
+of a line represented as a tube.
 """
-print(__doc__)
-
 from vtkplotter import *
-
-doc = Text2D(__doc__)
 
 
 ln = [[sin(x), cos(x), x / 2] for x in arange(0,9, 0.1)]
@@ -24,6 +20,6 @@ cols = makeBands(cols, 5)  # make color bins
 t3 = Tube(ln, r=rads, c=cols, res=24)
 
 
-show(t1, doc, at=0, N=3, axes=1, viewup="z")
+show(t1, __doc__, at=0, N=3, axes=1, viewup="z")
 show(t2, at=1)
 show(t3, at=2, interactive=1)

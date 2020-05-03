@@ -1,15 +1,14 @@
-"""
-Draw the isolines of a
-scalar field on a surface
-"""
+"""Draw the isolines and isobands
+of a scalar field on a surface"""
 from vtkplotter import *
 
-mesh = ParametricShape('RandomHills') # a whatever mesh
+mesh = ParametricShape('RandomHills').printInfo()
+# RandomHills already has an active scalar associated 
+# to points so assign it a colormap:
+mesh.pointColors(cmap='terrain')
 
-pts = mesh.points() 
-# use z coords of vertices as scalars:
-mesh.pointColors(pts[:,2], cmap='terrain').addScalarBar()
+isol = mesh.isolines(n=10).color('w')
 
-isols = mesh.isolines(n=10, vmin=-0.1).color('w')
+isob = mesh.clone().isobands(n=5).addScalarBar()
 
-show(mesh, isols, Text2D(__doc__), axes=1, viewup='z')
+show([(mesh, isol, __doc__), isob], N=2, axes=1)

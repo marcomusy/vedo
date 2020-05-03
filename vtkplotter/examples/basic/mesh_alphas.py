@@ -1,7 +1,7 @@
 """Create a set of transparencies
 which can be passed to method pointColors()
 """
-from vtkplotter import load, show, Text2D, datadir
+from vtkplotter import load, show, datadir
 
 mesh = load(datadir+"beethoven.ply")
 
@@ -16,4 +16,4 @@ alphas = [0.1, 0.1, 0.3, 0.4, 0.9]
 mesh.pointColors(scals, alpha=alphas, cmap="copper")
 # print(mesh.getPointArray('pointColors_copper')) # retrieve scalars
 
-show(mesh, Text2D(__doc__), axes=9)
+show(mesh, __doc__, axes=9)

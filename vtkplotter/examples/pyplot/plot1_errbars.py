@@ -1,4 +1,4 @@
-from vtkplotter import plot
+from vtkplotter.pyplot import plot
 import numpy as np
 
 x = np.linspace(0, 10, num=21)

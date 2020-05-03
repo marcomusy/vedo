@@ -523,13 +523,14 @@ class ActorBase(object):
         from vtkplotter.shapes import Box
         pos = (b[0]+b[1])/2, (b[3]+b[2])/2, (b[5]+b[4])/2
         length, width, height = b[1]-b[0], b[3]-b[2], b[5]-b[4]
-        oa = Box(pos, length*scale, width*scale, height*scale, c='gray')
+        bx = Box(pos, length*scale, width*scale, height*scale, c='gray')
         if isinstance(self.GetProperty(), vtk.vtkProperty):
             pr = vtk.vtkProperty()
             pr.DeepCopy(self.GetProperty())
-            oa.SetProperty(pr)
-            oa.wireframe()
-        return oa
+            bx.SetProperty(pr)
+            bx.flat()
+        bx.wireframe()
+        return bx
 
     def bounds(self):
         """Get the object bounds."""
@@ -706,90 +707,127 @@ class ActorBase(object):
         return vtk_to_numpy(arr)
 
 
-    def addPointScalars(self, scalars, name):
+    def addPointArray(self, input_array, name):
         """
-        Add point scalars and assign it a name.
+        Add point array and assign it a name.
 
         |mesh_coloring| |mesh_coloring.py|_
         """
         data = self.inputdata()
-        if len(scalars) != data.GetNumberOfPoints():
-            colors.printc('~times addPointScalars(): Number of scalars != nr. of points',
-                          len(scalars), data.GetNumberOfPoints(), c=1)
-            raise RuntimeError()
 
-        arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
-        arr.SetName(name)
-        data.GetPointData().AddArray(arr)
-        data.GetPointData().SetActiveScalars(name)
+        if isinstance(input_array, vtk.vtkDataArray):
+            data.GetPointData().AddArray(input_array)
+            input_array.SetName(name)
+            data.GetPointData().SetActiveScalars(name)
+            self._mapper.ScalarVisibilityOn()
+            self._mapper.SetScalarRange(input_array.GetRange())
+            if hasattr(self._mapper, 'SetArrayName'):
+                self._mapper.SetArrayName(name)
+            self._mapper.SetScalarModeToUsePointData()
+            return self
+
+        if len(input_array) != data.GetNumberOfPoints():
+            colors.printc('~times addPointArray(): Number of elements != nr. of points',
+                          len(input_array), data.GetNumberOfPoints(), c=1)
+            raise RuntimeError()
+        
+        nparr = np.ascontiguousarray(input_array)
+        if len(nparr.shape)==1: # scalars
+            varr = numpy_to_vtk(nparr, deep=True)
+            varr.SetName(name)
+            data.GetPointData().AddArray(varr)
+            data.GetPointData().SetActiveScalars(name)
+            self._mapper.ScalarVisibilityOn()
+            self._mapper.SetScalarRange(varr.GetRange())
+
+        elif len(nparr.shape)==2: # vectors or higher dim ntuples
+            varr = vtk.vtkFloatArray()
+            varr.SetNumberOfComponents(nparr.shape[1])
+            varr.SetName(name)
+            for v in nparr:
+                varr.InsertNextTuple(v)
+            data.GetPointData().AddArray(varr)
+            if nparr.shape[1] == 3:
+                data.GetPointData().SetActiveVectors(name)
+        else:
+            colors.printc('~times addPointArray(): cannot understand shape:',
+                          nparr.shape, c=1)
+            return self
+
         if hasattr(self._mapper, 'SetArrayName'):
             self._mapper.SetArrayName(name)
-        if settings.autoResetScalarRange:
-            self._mapper.SetScalarRange(np.min(scalars), np.max(scalars))
         self._mapper.SetScalarModeToUsePointData()
-        self._mapper.ScalarVisibilityOn()
         return self
 
-    def addCellScalars(self, scalars, name):
+    def addCellArray(self, input_array, name):
         """
-        Add cell scalars and assign it a name.
+        Add Cell array and assign it a name.
+
+        |mesh_coloring| |mesh_coloring.py|_
         """
         data = self.inputdata()
-        if isinstance(scalars, str):
-            scalars = vtk_to_numpy(data.GetPointData().GetArray(scalars))
 
-        if len(scalars) != data.GetNumberOfCells():
-            colors.printc("addCellScalars() Error: Number of scalars != nr. of cells",
-                          len(scalars), data.GetNumberOfCells(), c=1)
+        if isinstance(input_array, vtk.vtkDataArray):
+            data.GetCellData().AddArray(input_array)
+            input_array.SetName(name)
+            data.GetCellData().SetActiveScalars(name)
+            self._mapper.ScalarVisibilityOn()
+            self._mapper.SetScalarRange(input_array.GetRange())
+            if hasattr(self._mapper, 'SetArrayName'):
+                self._mapper.SetArrayName(name)
+            self._mapper.SetScalarModeToUseCellData()
+            return self
+            
+        if len(input_array) != data.GetNumberOfCells():
+            colors.printc('~times addCellArray(): Number of elements != nr. of Cells',
+                          len(input_array), data.GetNumberOfCells(), c=1)
             raise RuntimeError()
+        
+        nparr = np.ascontiguousarray(input_array)
+        if len(nparr.shape)==1: # scalars
+            varr = numpy_to_vtk(nparr, deep=True)
+            varr.SetName(name)
+            data.GetCellData().AddArray(varr)
+            data.GetCellData().SetActiveScalars(name)
+            self._mapper.ScalarVisibilityOn()
+            self._mapper.SetScalarRange(varr.GetRange())
+        
+        elif len(nparr.shape)==2: # vectors or higher dim ntuples
+            varr = vtk.vtkFloatArray()
+            varr.SetNumberOfComponents(nparr.shape[1])
+            varr.SetName(name)
+            for v in nparr:
+                varr.InsertNextTuple(v)
+            data.GetCellData().AddArray(varr)
+            if nparr.shape[1] == 3:
+                data.GetCellData().SetActiveVectors(name)
+        else:
+            colors.printc('~times addCellArray(): cannot understand shape:',
+                          nparr.shape, c=1)
+            return self
 
-        arr = numpy_to_vtk(np.ascontiguousarray(scalars), deep=True)
-        arr.SetName(name)
-        data.GetCellData().AddArray(arr)
-        data.GetCellData().SetActiveScalars(name)
         if hasattr(self._mapper, 'SetArrayName'):
             self._mapper.SetArrayName(name)
-        if settings.autoResetScalarRange:
-            self._mapper.SetScalarRange(np.min(scalars), np.max(scalars))
         self._mapper.SetScalarModeToUseCellData()
-        self._mapper.ScalarVisibilityOn()
         return self
 
+
+    def addPointScalars(self, scalars, name):
+        """addPointScalars is OBSOLETE: use addPointArray."""
+        colors.printc("WARNING - addPointScalars is OBSOLETE: use addPointArray.", c='y', box='-')
+        return self.addPointArray(scalars, name)
     def addPointVectors(self, vectors, name):
-        """
-        Add a point vector field to the object and assign it a name.
-        """
-        data = self.inputdata()
-        if len(vectors) != data.GetNumberOfPoints():
-            colors.printc('addPointVectors Error: Number of vectors != nr. of points',
-                          len(vectors), data.GetNumberOfPoints(), c=1)
-            raise RuntimeError()
-        arr = vtk.vtkFloatArray()
-        arr.SetNumberOfComponents(3)
-        arr.SetName(name)
-        for v in vectors:
-            arr.InsertNextTuple(v)
-        data.GetPointData().AddArray(arr)
-        data.GetPointData().SetActiveVectors(name)
-        return self
-
+        """addPointVectors is OBSOLETE: use addPointArray."""
+        colors.printc("WARNING - addPointVectors is OBSOLETE: use addPointArray.", c='y', box='-')
+        return self.addPointArray(vectors, name)
+    def addCellScalars(self, scalars, name):
+        """addCellScalars is OBSOLETE: use addCellArray."""
+        colors.printc("WARNING - addCellScalars is OBSOLETE: use addCellArray.", c='y', box='-')
+        return self.addCellArray(scalars, name)
     def addCellVectors(self, vectors, name):
-        """
-        Add a vector field to each object cell and assign it a name.
-        """
-        data = self.inputdata()
-        if len(vectors) != data.GetNumberOfCells():
-            colors.printc('addCellVectors Error: Number of vectors != nr. of cells',
-                          len(vectors), data.GetNumberOfCells(), c=1)
-            raise RuntimeError()
-        arr = vtk.vtkFloatArray()
-        arr.SetNumberOfComponents(3)
-        arr.SetName(name)
-        for v in vectors:
-            arr.InsertNextTuple(v)
-        data.GetCellData().AddArray(arr)
-        data.GetCellData().SetActiveVectors(name)
-        return self
+        """addCellVectors is OBSOLETE: use addCellArray."""
+        colors.printc("WARNING - addCellVectors is OBSOLETE: use addCellArray.", c='y', box='-')
+        return self.addCellArray(vectors, name)
 
 
     def mapCellsToPoints(self):
@@ -815,8 +853,100 @@ class ActorBase(object):
         |mesh_map2cell| |mesh_map2cell.py|_
         """
         p2c = vtk.vtkPointDataToCellData()
-        p2c.SetInputData(self.polydata(False))
+        p2c.SetInputData(self.inputdata())
         p2c.Update()
         self._mapper.SetScalarModeToUseCellData()
         return self._update(p2c.GetOutput())
 
+
+    def addScalarBar(self,
+                     pos=(0.8,0.05),
+                     title="",
+                     titleXOffset=0,
+                     titleYOffset=15,
+                     titleFontSize=12,
+                     nlabels=None,
+                     c=None,
+                     horizontal=False,
+                     useAlpha=True,
+    ):
+        """
+        Add a 2D scalar bar for the specified obj. 
+
+        .. hint:: |mesh_coloring| |mesh_coloring.py|_ |scalarbars.py|_
+        """
+        import vtkplotter.addons as addons
+        self.scalarbar = addons.addScalarBar(self,
+                                             pos,
+                                             title,
+                                             titleXOffset,
+                                             titleYOffset,
+                                             titleFontSize,
+                                             nlabels,
+                                             c,
+                                             horizontal,
+                                             useAlpha,
+                                             )
+        return self
+        
+
+    def addScalarBar3D(self,
+        pos=None,
+        sx=None,
+        sy=None,
+        title='',
+        titleXOffset = -1.5,
+        titleYOffset = 0.0,
+        titleSize =  1.5,
+        titleRotation = 0.0,
+        nlabels=9,
+        labelOffset = 0.375,
+        italic=0,
+        c=None,
+        useAlpha=True,
+        drawBox=True,
+    ):
+        """
+        Draw a 3D scalar bar.
+        
+        ``obj`` input can be:
+            - a list of numbers,
+            - a list of two numbers in the form `(min, max)`,
+            - a ``Mesh`` already containing a set of scalars associated to vertices or cells,
+            - if ``None`` the last object in the list of actors will be used.
+        
+        Return an ``Assembly`` object.
+    
+        :param float sx: thickness of scalarbar
+        :param float sy: length of scalarbar
+        :param str title: scalar bar title
+        :param float titleXOffset: horizontal space btw title and color scalarbar
+        :param float titleYOffset: vertical space offset
+        :param float titleSize: size of title wrt numeric labels
+        :param float titleRotation: title rotation in degrees
+        :param int nlabels: number of numeric labels
+        :param float labelOffset: space btw numeric labels and scale
+        :param bool,float italic: use italic font for title and labels
+        :param bool useAlpha: render transparency of the color bar, otherwise ignore
+        :param bool drawBox: draw a box around the colorbar (useful with useAlpha=True) 
+
+        |mesh_coloring| |mesh_coloring.py|_
+        """
+        import vtkplotter.addons as addons
+        self.scalarbar = addons.addScalarBar3D(self,
+                                                pos,
+                                                sx,
+                                                sy,
+                                                title,
+                                                titleXOffset,
+                                                titleYOffset,
+                                                titleSize,
+                                                titleRotation,
+                                                nlabels,
+                                                labelOffset,
+                                                italic,
+                                                c,
+                                                useAlpha,
+                                                drawBox,
+                                                )
+        return self.scalarbar

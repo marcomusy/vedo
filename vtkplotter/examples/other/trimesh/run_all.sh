@@ -1,11 +1,10 @@
 #!/bin/bash
 # source run_all.sh
 #
-printf "\033c"
 echo Running examples in directory other/trimesh/
 
-echo Running trimesh_first_example.py
-python trimesh_first_example.py
+echo Running first_example.py
+python first_example.py
 
 echo Running nearest.py
 python nearest.py

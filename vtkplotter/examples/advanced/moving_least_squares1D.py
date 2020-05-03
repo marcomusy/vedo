@@ -4,8 +4,6 @@ Moving Least Squares (MLS) algorithm to project a cloud
 of unordered points to become a smooth line.
 The parameter f controls the size of the local regression.
 """
-from __future__ import division, print_function
-
 print(__doc__)
 from vtkplotter import *
 import numpy as np

@@ -13,15 +13,15 @@ sphere = Sphere(res=24)
 
 carr = cone.cellCenters()[:, 2]
 parr = cone.points()[:, 0]
-cone.addCellScalars(carr, 'carr')
-cone.addPointScalars(parr, 'parr')
+cone.addCellArray(carr, 'carr')
+cone.addPointArray(parr, 'parr')
 
 carr = sphere.cellCenters()[:, 2]
 parr = sphere.points()[:, 0]
-sphere.addCellScalars(carr, 'carr')
-sphere.addPointScalars(parr, 'parr')
+sphere.addCellArray(carr, 'carr')
+sphere.addPointArray(parr, 'parr')
 
-sphere.addPointVectors(np.sin(sphere.points()), 'pvectors')
+sphere.addPointArray(np.sin(sphere.points()), 'pvectors')
 sphere.addElevationScalars()
 
 cone.computeNormals()

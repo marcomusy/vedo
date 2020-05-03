@@ -1,6 +1,4 @@
-"""
-A model of an ideal gas with hard-sphere collisions.
-"""
+"""A model of an ideal gas with hard-sphere collisions"""
 ## Based on gas.py by Bruce Sherwood for a cube as a container
 ## Slightly modified by Andrey Antonov for a torus.
 ## Adapted by M. Musy for vtkplotter
@@ -31,7 +29,7 @@ def reflection(p, pos):
 
 vp = Plotter(title="gas in toroid", interactive=0, axes=0)
 
-vp += Text2D(__doc__)
+vp += __doc__
 vp += Torus(c="g", r=RingRadius, thickness=RingThickness, alpha=0.1).wireframe(1)  ### <--
 
 Atoms = []

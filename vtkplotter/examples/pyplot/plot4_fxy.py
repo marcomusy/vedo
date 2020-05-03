@@ -1,4 +1,5 @@
 from vtkplotter import *
+from vtkplotter.pyplot import plot
 
 ########################################################### REAL
 #Draw a surface representing a 2-var function specified
@@ -15,16 +16,14 @@ f2 = plot("sin(3*x)*log(x-y)/3")
 # specify x and y ranges and z vertical limits:
 f3 = plot("log(x**2+y**2-1)", xlim=[-2,2], ylim=[-1,8], zlim=[-1,None])
 
-show(f1, f2, f3, N=3, axes=1, sharecam=False)
+show(f1, f2, f3, N=3, sharecam=False)
 
 
 ########################################################## COMPLEX
-comment = Text2D("""
-Vertical axis shows the real part of complex z:
+comment = """Vertical axis shows the real part of complex z:
     z = sin(log(x*y))
 Color map the value of the imaginary part
 (green=positive, purple=negative)"""
-)
 
 plt = plot(lambda x,y: sin(log(x*y))/25, mode='complex')
 

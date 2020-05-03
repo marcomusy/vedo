@@ -1,13 +1,13 @@
 import trimesh
 import numpy as np
-from vtkplotter import show, Plane, Text2D, printc, download
+from vtkplotter import show, Plane, printc, download
 
 # load the mesh from filename, file objects are also supported
 f = download('https://github.com/mikedh/trimesh/raw/master/models/featuretype.STL')
 mesh = trimesh.load_mesh(f)
 
 # get a single cross section of the mesh
-txt = Text2D('cross section of the mesh', c='k')
+txt = 'cross section of the mesh'
 mslice = mesh.section(plane_origin=mesh.centroid, plane_normal=[0,0,1])
 
 pl = Plane(mesh.centroid, normal=[0,0,1], sx=6, sy=4, alpha=0.3)
@@ -35,10 +35,8 @@ printc("nr. of sections:", N, c='green')
 # summing the array of Path2D objects will put all of the curves
 # into one Path2D object, which we can plot easily
 combined = np.sum(sections)
-sections.append([combined, Text2D('combined')])
+sections.append([combined, 'combined'])
 
 # show objects in N synced renderers:
 show(sections, N=N, axes=True, newPlotter=True)
 
-# the medial axis is available for closed Path2D objects
-show(slice_2D + slice_2D.medial_axis(), axes=True, newPlotter=True)

@@ -1,4 +1,4 @@
-from vtkplotter import Latex, show
+from vtkplotter import Latex
 
 # https://matplotlib.org/tutorials/text/mathtext.html
 
@@ -10,10 +10,8 @@ latex5 = r'\left( \begin{array}{l}{c t^{\prime}} \\ {x^{\prime}} \\ {y^{\prime}}
 latex6 = r'\mathrm{CO}_{2}+6 \mathrm{H}_{2} \mathrm{O} \rightarrow \mathrm{C}_{6} \mathrm{H}_{12} \mathrm{O}_{6}+6 \mathrm{O}_{2}'
 latex7 = r'x \mathrm{(arb. units)}'
 
-l = Latex(latex4, s=1, c='white', bg='', alpha=0.9, usetex=False, fromweb=False)
-l.crop(0.3, 0.3) # crop top and bottom 30%
-l.pos(2,0,0)
+ltx = Latex(latex4, s=1, c='darkblue', bg='', alpha=0.9, usetex=False, fromweb=False)
+ltx.crop(0.3, 0.3) # crop top and bottom 30%
+ltx.pos(2,0,0)
 
-box = l.box() # return the bounding box of a mesh
-
-show(l, box, axes=8)
+ltx.show(axes=1)

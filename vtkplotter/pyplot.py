@@ -1,7 +1,7 @@
 from __future__ import division, print_function
 import vtk
 import numpy as np
-from vtk.util.numpy_support import numpy_to_vtk
+from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
 import vtkplotter.docs as docs
 import vtkplotter.settings as settings
@@ -11,6 +11,7 @@ import vtkplotter.shapes as shapes
 import vtkplotter.addons as addons
 from vtkplotter.assembly import Assembly
 from vtkplotter.mesh import Mesh, merge
+from vtkplotter.base import ActorBase
 
 __doc__ = """Plotting utility functions.""" + docs._defs
 
@@ -22,6 +23,7 @@ __all__ = [
     "violin",
     "streamplot",
     "plotMatrix",
+    "DirectedGraph",
 ]
 
 
@@ -486,7 +488,7 @@ def _plotxy(
     pad=0.05,
     axes={},
 ):
-    settings.defaultAxesType = 0  # because of yscaling
+#    settings.defaultAxesType = 0  # because of yscaling
     ncolls = len(settings.collectable_actors)
 
     if marker == "" and not line and not spline:
@@ -827,7 +829,8 @@ def _plotFxy(
         bcf.GenerateValues(zlevels, elevation.GetScalarRange())
         bcf.Update()
         zpoly = bcf.GetContourEdgesOutput()
-        zbandsact = Mesh(zpoly, "k", alpha).lw(2).lighting("ambient")
+        zbandsact = Mesh(zpoly, "k", alpha).lw(1).lighting(enabled=False)
+        zbandsact._mapper.SetResolveCoincidentTopologyToPolygonOffset()
         acts.append(zbandsact)
 
     if showNan and len(todel):
@@ -842,7 +845,7 @@ def _plotFxy(
         acts.append(nansact)
 
     if axes:
-        settings.defaultAxesType = 0
+#        settings.defaultAxesType = 0
         axs = addons.buildAxes(mesh)
         acts.append(axs)
     asse = Assembly(acts)
@@ -907,7 +910,7 @@ def _plotFz(
 
     acts = [mesh]
     if axes:
-        settings.defaultAxesType = 0
+#        settings.defaultAxesType = 0
         axs = addons.buildAxes(mesh, ztitle="Real part")
         acts.append(axs)
     asse = Assembly(acts)
@@ -997,9 +1000,9 @@ def _plotPolar(
     back = None
     back2 = None
     if showDisc:
-        back = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=1, resphi=360)
+        back = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=(1,360))
         back.z(-0.01).lighting(diffuse=0, ambient=1).alpha(alpha)
-        back2 = shapes.Disc(r1=r2e/2, r2=r2e/2 * 1.005, c=bc, res=1, resphi=360)
+        back2 = shapes.Disc(r1=r2e/2, r2=r2e/2 * 1.005, c=bc, res=(1,360))
         back2.z(-0.01).lighting(diffuse=0, ambient=1).alpha(alpha)
 
     ti = None
@@ -1090,17 +1093,18 @@ def _plotSpheric(rfunc, normalize=True, res=25, scalarbar=True, c="grey", alpha=
 
     ssurf.alpha(1).wireframe(0).lw(0.1)
 
+    ssurf.pointColors(newr, cmap=cmap)
+    ssurf.computeNormals()
+
     if scalarbar:
         xm = np.max([np.max(pts[0]), 1])
         ym = np.max([np.abs(np.max(pts[1])), 1])
         ssurf.mapper().SetScalarRange(np.min(newr), np.max(newr))
-        sb3d = ssurf.addScalarBar3D(cmap=cmap, sx=xm * 0.07, sy=ym)
+        sb3d = ssurf.addScalarBar3D(sx=xm * 0.07, sy=ym, c='k')
         sb3d.rotateX(90).pos(xm * 1.1, 0, -0.5)
     else:
         sb3d = None
 
-    ssurf.pointColors(newr, cmap=cmap)
-    ssurf.computeNormals()
     sg.pickable(False)
     asse = Assembly([ssurf, sg] + nanpts + [sb3d])
     asse.name = "plotPolar"
@@ -1137,7 +1141,7 @@ def _histogram1D(
     axes={},
     bc="k",
 ):
-    settings.defaultAxesType = 0  # because of yscaling
+#    settings.defaultAxesType = 0  # because of yscaling
     ncolls = len(settings.collectable_actors)
 
     # purge NaN from data
@@ -1393,7 +1397,7 @@ def _histogram2D(
     axes=True,
     bc="k",
 ):
-    settings.defaultAxesType = 0  # because of yscaling
+#    settings.defaultAxesType = 0  # because of yscaling
     ncolls = len(settings.collectable_actors)
     offs = 0  # z offset
 
@@ -1685,7 +1689,7 @@ def _histogramPolar(
 
     back = None
     if showDisc:
-        back = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=1, resphi=360)
+        back = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=(1,360))
         back.z(-0.01)
 
     slices = []
@@ -1695,7 +1699,7 @@ def _histogramPolar(
 
     for i, t in enumerate(thetas):
         r = histodata[i] / vmax * r2
-        d = shapes.Disc((0, 0, 0), r1, r1+r, res=1, resphi=360)
+        d = shapes.Disc((0, 0, 0), r1, r1+r, res=(1,360))
         delta = np.pi/bins - np.pi/2 - phigap/k
         d.cutWithPlane(normal=(np.cos(t + delta), np.sin(t + delta), 0))
         d.cutWithPlane(normal=(np.cos(t - delta), np.sin(t - delta), 0))
@@ -1727,9 +1731,9 @@ def _histogramPolar(
     labs=[]
     rays = []
     if showDisc:
-        outerdisc = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=1, resphi=360)
+        outerdisc = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=(1,360))
         outerdisc.z(-0.01)
-        innerdisc = shapes.Disc(r1=r2e/2, r2=r2e/2 * 1.005, c=bc, res=1, resphi=360)
+        innerdisc = shapes.Disc(r1=r2e/2, r2=r2e/2 * 1.005, c=bc, res=(1, 360))
         innerdisc.z(-0.01)
         rays.append(outerdisc)
         rays.append(innerdisc)
@@ -2115,7 +2119,7 @@ def streamplot(
     uf = np.ravel(U, order="F")
     vf = np.ravel(V, order="F")
     vects = np.c_[uf, vf, np.zeros_like(uf)]
-    vol.addPointVectors(vects, "vects")
+    vol.addPointArray(vects, "vects")
 
     if len(probes) == 0:
         probe = shapes.Grid(pos=((n-1)/2,(n-1)/2,0), sx=n-1, sy=n-1, resx=n-1, resy=n-1)
@@ -2305,3 +2309,282 @@ def cornerHistogram(
     plot.GetYAxisActor2D().SetLabelFactor(0.0)
     plot.GetYAxisActor2D().LabelVisibilityOff()
     return plot
+
+
+class DirectedGraph(Assembly):
+    """A graph consists of a collection of vertices (without postional information)
+    and a collection of edges connecting pairs of vertices.
+    The task is to determine the vertex positions only based on their connections.
+
+    This class is derived from class ``Assembly``, and it assembles 4 Mesh objects
+    representing the graph, the vertex labels, edge labels and edge arrows.
+
+    :param c: color of the Graph
+    :param int n: number of the initial set of vertices
+    :param int,str layout: layout in ['2d', 'fast2d', 'clustering2d', 'circular',
+                                      'circular3d', 'cone', 'force', 'tree']
+
+    Each of these layouts has diferent available options.
+
+    Options for layouts '2d', 'fast2d' and 'clustering2d':
+
+        :param int seed: seed of the random number generator used to jitter point positions
+        :param float restDistance: manually set the resting distance
+        :param int maxNumberOfIterations: the maximum number of iterations to be used
+        :param float zrange: expand 2d graph along z axis.
+
+    Options for layouts 'circular', and 'circular3d':
+
+        :param float radius: set the radius of the circles.
+        :param float height: set the vertical (local z) distance between the circles
+        :param float zrange: expand 2d graph along z axis.
+
+    Options for layout 'cone':
+
+        :param float compactness: ratio between the average width of a cone in the tree,
+            and the height of the cone. The default setting is 0.75.
+
+        :param bool compression: put children closer together, possibly allowing sub-trees to overlap.
+            This is useful if the tree is actually the spanning tree of a graph.
+
+        :param float spacing: space between layers of the tree
+
+    Options for layout 'force':
+
+        :param int seed: seed the random number generator used to jitter point positions
+        :param list bounds: set the region in space in which to place the final graph
+        :param int maxNumberOfIterations: the maximum number of iterations to be used
+        :param bool threeDimensional: allow optimization in the 3rd dimension too
+        :param bool randomInitialPoints: use random positions within the graph bounds as initial points
+
+    Example:
+
+        |lineage_graph| |lineage_graph.py|_
+    """
+    def __init__(self, **kargs):
+        ActorBase.__init__(self)
+
+        self.vertices = []
+        self.edges = []
+
+        self._vertexLabels = []  # holds strings
+        self._edgeLabels = []
+        self.edgeOrientations = []
+        self.edgeGlyphPosition = 0.6
+
+        self.zrange = 0.0
+
+        self.rotX = 0
+        self.rotY = 0
+        self.rotZ = 0
+
+        self.arrowScale = 0.2
+        self.vertexLabelScale = None
+        self.edgeLabelScale   = None
+
+        self.mdg = vtk.vtkMutableDirectedGraph()
+
+        n = kargs.pop('n', 0)
+        for i in range(n): self.addVertex()
+
+        self._c = kargs.pop('c', (0.3,0.3,0.3))
+
+        self.gl = vtk.vtkGraphLayout()
+
+        s = kargs.pop('layout', '2d')
+        if isinstance(s, int):
+            ss = ['2d', 'fast2d', 'clustering2d', 'circular', 'circular3d',
+                  'cone', 'force', 'tree']
+            s = ss[s]
+        self.layout = s
+
+        if '2d' in s:
+            if 'clustering' in s:
+                self.strategy = vtk.vtkClustering2DLayoutStrategy()
+            elif 'fast' in s:
+                self.strategy = vtk.vtkFast2DLayoutStrategy()
+            else:
+                self.strategy = vtk.vtkSimple2DLayoutStrategy()
+            self.rotX = 180
+            opt = kargs.pop('restDistance', None)
+            if opt is not None: self.strategy.SetRestDistance(opt)
+            opt = kargs.pop('seed', None)
+            if opt is not None: self.strategy.SetRandomSeed(opt)
+            opt = kargs.pop('maxNumberOfIterations', None)
+            if opt is not None: self.strategy.SetMaxNumberOfIterations(opt)
+            self.zrange = kargs.pop('zrange', 0)
+
+        elif 'circ' in s:
+            if '3d' in s:
+                self.strategy = vtk.vtkSimple3DCirclesStrategy()
+                self.strategy.SetDirection(0,0,-1)
+                self.strategy.SetAutoHeight(True)
+                self.strategy.SetMethod(1)
+                self.rotX = -90
+                opt = kargs.pop('radius', None) # float
+                if opt is not None:
+                    self.strategy.SetMethod(0)
+                    self.strategy.SetRadius(opt) # float
+                opt = kargs.pop('height', None)
+                if opt is not None:
+                    self.strategy.SetAutoHeight(False)
+                    self.strategy.SetHeight(opt) # float
+            else:
+                self.strategy = vtk.vtkCircularLayoutStrategy()
+                self.zrange = kargs.pop('zrange', 0)
+
+        elif 'cone' in s:
+            self.strategy = vtk.vtkConeLayoutStrategy()
+            self.rotX = 180
+            opt = kargs.pop('compactness', None)
+            if opt is not None: self.strategy.SetCompactness(opt)
+            opt = kargs.pop('compression', None)
+            if opt is not None: self.strategy.SetCompression(opt)
+            opt = kargs.pop('spacing', None)
+            if opt is not None: self.strategy.SetSpacing(opt)
+
+        elif 'force' in s:
+            self.strategy = vtk.vtkForceDirectedLayoutStrategy()
+            opt = kargs.pop('seed', None)
+            if opt is not None: self.strategy.SetRandomSeed(opt)
+            opt = kargs.pop('bounds', None)
+            if opt is not None:
+                self.strategy.SetAutomaticBoundsComputation(False)
+                self.strategy.SetGraphBounds(opt) # list
+            opt = kargs.pop('maxNumberOfIterations', None)
+            if opt is not None: self.strategy.SetMaxNumberOfIterations(opt) # int
+            opt = kargs.pop('threeDimensional', True)
+            if opt is not None: self.strategy.SetThreeDimensionalLayout(opt) # bool
+            opt = kargs.pop('randomInitialPoints', None)
+            if opt is not None: self.strategy.SetRandomInitialPoints(opt) # bool
+
+        elif 'tree' in s:
+            self.strategy = vtk.vtkSpanTreeLayoutStrategy()
+            self.rotX = 180
+
+        else:
+            colors.printc("Cannot understand layout:", s, c=1)
+            colors.printc("Available layouts:", c=1)
+            colors.printc("[2d,fast2d,clustering2d,circular,circular3d,cone,force,tree]", c=1)
+            raise RuntimeError()
+
+        self.gl.SetLayoutStrategy(self.strategy)
+
+        if len(kargs):
+            colors.printc("Cannot understand options:", kargs, c=1)
+        return
+
+
+    def addVertex(self, label="id"):
+        """Add a new vertex to the Graph."""
+        v = self.mdg.AddVertex()
+        self.vertices.append(v)
+        if label == 'id': label=int(v)
+        self._vertexLabels.append(str(label))
+        return v
+
+    def addEdge(self, v1, v2, label=""):
+        """Add a new edge between to vertices.
+        An extra vertex is created automatically if needed."""
+        nv = len(self.vertices)
+        if v1>=nv:
+            for i in range(nv, v1+1):
+                self.addVertex()
+        nv = len(self.vertices)
+        if v2>=nv:
+            for i in range(nv, v2+1):
+                self.addVertex()
+        e = self.mdg.AddEdge(v1,v2)
+        self.edges.append(e)
+        self._edgeLabels.append(str(label))
+        return e
+
+    def addChild(self, v, vertexLabel="id", edgeLabel=""):
+        """Add a new edge to a new vertex.
+        The extra vertex is created automatically if needed."""
+        nv = len(self.vertices)
+        if v>=nv:
+            for i in range(nv, v+1):
+                self.addVertex()
+        child = self.mdg.AddChild(v)
+        self.edges.append((v,child))
+        self.vertices.append(child)
+        if vertexLabel == 'id': vertexLabel=int(child)
+        self._vertexLabels.append(str(vertexLabel))
+        self._edgeLabels.append(str(edgeLabel))
+        return child
+
+
+    def build(self):
+        """
+        Build the DirectedGraph(Assembly).
+        Accessory objects are also created for labels and arrows.
+        """
+
+        self.gl.SetZRange(self.zrange)
+        self.gl.SetInputData(self.mdg)
+        self.gl.Update()
+
+        graphToPolyData = vtk.vtkGraphToPolyData()
+        graphToPolyData.EdgeGlyphOutputOn()
+        graphToPolyData.SetEdgeGlyphPosition(self.edgeGlyphPosition)
+        graphToPolyData.SetInputData(self.gl.GetOutput())
+        graphToPolyData.Update()
+
+        dgraph = Mesh(graphToPolyData.GetOutput(0))
+        dgraph.flat().color(self._c).lw(2)
+        dgraph.name = "DirectedGraph"
+
+        diagsz = self.diagonalSize()/1.42
+        if not diagsz:
+            return None
+
+        dgraph.SetScale(1/diagsz)
+        if self.rotX:
+            dgraph.rotateX(self.rotX)
+        if self.rotY:
+            dgraph.rotateY(self.rotY)
+        if self.rotZ:
+            dgraph.rotateZ(self.rotZ)
+
+        vecs = graphToPolyData.GetOutput(1).GetPointData().GetVectors()
+        self.edgeOrientations = vtk_to_numpy(vecs)
+
+        # Use Glyph3D to repeat the glyph on all edges.
+        arrows=None
+        if self.arrowScale:
+            arrowSource = vtk.vtkGlyphSource2D()
+            arrowSource.SetGlyphTypeToEdgeArrow()
+            arrowSource.SetScale(self.arrowScale)
+            arrowSource.Update()
+            arrowGlyph = vtk.vtkGlyph3D()
+            arrowGlyph.SetInputData(0, graphToPolyData.GetOutput(1))
+            arrowGlyph.SetInputData(1, arrowSource.GetOutput())
+            arrowGlyph.Update()
+            arrows = Mesh(arrowGlyph.GetOutput())
+            arrows.SetScale(1/diagsz)
+            arrows.lighting(enabled=False).flat().color(self._c)
+            if self.rotX:
+                arrows.rotateX(self.rotX)
+            if self.rotY:
+                arrows.rotateY(self.rotY)
+            if self.rotZ:
+                arrows.rotateZ(self.rotZ)
+            arrows.name = "DirectedGraphArrows"
+
+        vertexLabels = dgraph.labels(self._vertexLabels,
+                                     scale=self.vertexLabelScale,
+                                     precision=0)
+        vertexLabels.color(self._c).pickable(True)
+        vertexLabels.name = "DirectedGraphVertexLabels"
+
+        edgeLabels = dgraph.labels(self._edgeLabels,
+                                   cells=True,
+                                   scale=self.edgeLabelScale,
+                                   precision=0)
+        edgeLabels.color(self._c).pickable(True)
+        edgeLabels.name = "DirectedGraphEdgeLabels"
+
+        Assembly.__init__(self, [dgraph, vertexLabels, edgeLabels, arrows])
+        self.name = "DirectedGraphAssembly"
+        return

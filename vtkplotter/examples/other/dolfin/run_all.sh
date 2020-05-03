@@ -1,8 +1,6 @@
 #!/bin/bash
 # source run_all.sh
 #
-printf "\033c"
-
 ##########################
 echo Running ascalarbar.py
 python ascalarbar.py
@@ -56,9 +54,6 @@ python simple1Dplot.py
 ######################################
 echo Running ex01_show-mesh.py
 python ex01_show-mesh.py
-
-echo Running ex02_tetralize-mesh.py
-python ex02_tetralize-mesh.py
 
 echo Running ex03_poisson.py
 python ex03_poisson.py

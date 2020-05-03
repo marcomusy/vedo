@@ -1,5 +1,4 @@
-"""
-Apply a vector-valued point load
+"""Apply a vector-valued point load
 to a corner of a linear-elastic cube.
 """
 # Credit https://fenicsproject.discourse.group/t/
@@ -61,7 +60,3 @@ for bc in [bc1, bc2]:
 # Solve:
 u = Function(V)
 solve(A, u.vector(), B)
-
-# Plot results:
-txt = Text2D(__doc__)
-plot(u, txt, mode="displacement")

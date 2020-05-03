@@ -43,8 +43,6 @@ python example.py
 |    |    |
 | [![mesh_alphas](https://user-images.githubusercontent.com/32848391/50738857-bf346180-11d8-11e9-80a1-d283aed0b305.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/mesh_alphas.py)<br/> `mesh_alphas.py`          |  Create a set of transparencies which can be passed to method `pointColors()`.|
 |    |    |
-| [![mesh_bands](https://user-images.githubusercontent.com/32848391/51211548-26a78b00-1916-11e9-9306-67b677d1be3a.png)](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/mesh_bands.py)<br/> `mesh_bands.py`             | Use a scalar to paint colored bands on a mesh. This can be combined with opacities values for each vertex.<br/>Keyword `depthpeeling` improves the rendering of translucent objects. |
-|    |    |
 | [![mesh_coloring](https://user-images.githubusercontent.com/32848391/50738856-bf346180-11d8-11e9-909c-a3f9d32c4e8c.jpg)](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/mesh_coloring.py)<br/> `mesh_coloring.py`    | How to specify a color for each individual cell or point of an actors mesh. <br/>The example also shows the usage of `addScalarBar3D()`. |
 |    |    |
 | [![mesh_custom](https://user-images.githubusercontent.com/32848391/51390972-20d9c180-1b31-11e9-955d-025f1ef24cb7.png)](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/mesh_custom.py)<br/> `mesh_custom.py`          | Build a custom color map to specify the color for each vertex of a mesh. |

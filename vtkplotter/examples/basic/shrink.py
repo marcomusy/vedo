@@ -8,4 +8,4 @@ pot = load(datadir+"teapot.vtk").shrink(0.75)
 
 s = Sphere(r=0.2).pos(0, 0, -0.5)
 
-show(pot, s, Text2D(__doc__), viewup="z")
+show(pot, s, __doc__, viewup="z")

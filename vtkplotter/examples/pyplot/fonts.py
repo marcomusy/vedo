@@ -3,11 +3,11 @@ from vtkplotter.settings import fonts
 
 Text2D("List of available fonts:")
 
-Cube().c('white').rotateX(20).rotateZ(20)
+Cube().c('grey').rotateX(20).rotateZ(20)
 
 for i, f in enumerate(fonts):
-    Text2D(f+':  The quick fox jumps over the lazy dog.',
+    Text2D(f+':  The quick fox jumps over the lazy dog. 12345',
            pos=(5,i*40+20), font=f, c=i)
 
 # three points, aka ellipsis, retrieves the list of all created objects
-show(..., bg='wheat', axes=False)
+show(..., bg='w', bg2='wheat', axes=False)

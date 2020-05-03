@@ -28,6 +28,6 @@ print("Line 0 Fit slope = ", vp.actors[0].slope)
 plane = fitPlane(data)  # fit a plane
 print("Plane Fit normal =", plane.normal)
 
-vp += [plane, Text2D(__doc__)]
+vp += [plane, __doc__]
 
 vp.show(axes=1)

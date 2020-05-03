@@ -2,10 +2,13 @@
 
 from vtkplotter import *
 
-t1 = Text2D("Original mesh")
-s  = load(datadir+'spider.ply')
+s  = load(datadir+'bunny.obj').normalize().subdivide(2).pointSize(2)
 
-t2 = Text2D("Density field as a Volume from point cloud")
-v  = pointDensity(s).mode(1).printInfo()
+vol= pointDensity(s).printInfo()
 
-show([ [s,t1], [v,t2] ], N=2)
+plane = probePlane(vol, normal=(1,1,1)).alpha(0.5)
+
+show([("Point cloud", s),
+      ("Point density as Volume", vol, vol.box(), plane) ],
+     N=2,
+     )

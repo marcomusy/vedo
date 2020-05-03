@@ -42,7 +42,7 @@ def d_dt(psi):  # find Psi(t+dt)-Psi(t) /dt with 4th order Runge-Kutta method
     return (k1 + 2 * k2 + 2 * k3 + k4) / 6
 
 
-vp = Plotter(interactive=0, axes=2, verbose=0, size=(1000,500))
+vp = Plotter(interactive=0, axes=2, size=(1000,500))
 vp.xtitle = ""
 vp.ytitle = "Psi^2(x,t)"
 vp.ztitle = ""

@@ -1,5 +1,4 @@
-"""
-Find the vertices that are connected
+"""Find the vertices that are connected
 to a specific vertex in a mesh
 """
 from vtkplotter import *
@@ -14,4 +13,4 @@ vtxs = s.connectedVertices(index, returnIds=False)
 apt  = Point(pt, c="r", r=15)
 cpts = Points(vtxs, c="blue", r=15)
 
-show(s, apt, cpts, Text2D(__doc__, c='w'), bg='bb')
+show(s, apt, cpts, __doc__, bg='bb')

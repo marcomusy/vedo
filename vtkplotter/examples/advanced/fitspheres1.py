@@ -7,7 +7,7 @@ Blue points are the N points used for fitting.
 from __future__ import division, print_function
 from vtkplotter import *
 
-vp = Plotter(verbose=0, axes=0)
+vp = Plotter(axes=0)
 
 # load mesh and increase by a lot (N=2) the nr of surface vertices
 s = vp.load(datadir+"cow.vtk").alpha(0.3).subdivide(N=2)
@@ -23,5 +23,5 @@ for i, p in enumerate(s.points()):
     vp += Points(pts)
     vp += Line(sph.center, p, lw=2)
 
-vp += Text2D(__doc__)
+vp += __doc__
 vp.show(viewup="z")

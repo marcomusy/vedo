@@ -6,8 +6,6 @@ with the walls of the box. The masses of the spheres
 are proportional to their radius**3 (as in 3D).
 """
 # Adapted by M. Musy from E. Velasco (2009)
-from __future__ import division, print_function
-
 print(__doc__)
 
 from vtkplotter import Plotter, ProgressBar, arange, dot

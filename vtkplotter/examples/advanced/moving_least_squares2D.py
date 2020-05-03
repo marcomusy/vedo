@@ -40,8 +40,7 @@ vcols = [colorMap(v, "jet", vmin, vmax) for v in variances]  # scalars->colors
 sp0 = Spheres(mls2.points(), c=vcols, r=0.02) # error as color
 sp1 = Spheres(mls2.points(), c="red", r=variances/4) # error as point size
 
-txt = Text2D(__doc__, c="k")
 mesh.color("k").alpha(0.05).wireframe()
 
-vp2.show(sp0, txt, at=0)
+vp2.show(sp0, __doc__, at=0)
 vp2.show(sp1, mesh, at=1, zoom=1.3, interactive=1)

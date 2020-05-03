@@ -5,6 +5,7 @@ Y(l=2, m=0) = 3*cos(theta)**2 - 1
 (red points are made NaN on purpose)
 """
 from vtkplotter import *
+from vtkplotter.pyplot import plot
 import numpy as np
 
 def rhofunc(theta, phi):
@@ -20,4 +21,4 @@ def rhofunc(theta, phi):
 #  the red Points where rho is a complex number:
 spl = plot(rhofunc, mode='spheric', cmap='viridis')
 
-show(spl, Text2D(__doc__), axes=12, viewup='z')
+show(spl, __doc__, axes=12, viewup='z')

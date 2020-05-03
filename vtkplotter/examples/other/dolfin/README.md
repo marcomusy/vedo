@@ -2,8 +2,6 @@
 In this directory you will find a bunch of examples of to visualize meshes in conjunction with 
 [FEniCS/Dolfin](https://fenicsproject.org/) package.
 It emulates the functionality of the `plot()` command of *matplotlib*.
-To gain more control on the property of the shown objects see the analogous examples in 
-[noplot](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/noplot).
 
 To run the examples:
 ```bash
@@ -60,3 +58,13 @@ python example.py
 | [![wavy](https://user-images.githubusercontent.com/32848391/57570898-70593b80-7407-11e9-87cf-ce498f499c09.gif)](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/wavy_1d.py)<br/> `wavy_1d.py`                         | 1-dimensional time integration of the wave equation with the Crank-Nicolson method. |
 |    |    |
 | [![wavy](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin/awefem.py)<br/> `awefem.py`                         | Solve the constant velocity scalar wave equation in arbitrary number of dimensions.<br>Original script by [C. da Costa](https://github.com/cako/fenics-scripts). |
+
+
+To gain more control on the property of the shown objects one can access the output of the `plot()`
+method and chenge their properties, e.g.:
+```python
+plt = plot(u)
+msh = plt.actors[0]
+msh.color('blue').alpha(0.5).cutWithPlane() # etc
+plt.show()
+```

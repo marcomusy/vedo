@@ -9,6 +9,7 @@ from vtkplotter.utils import mag, isSequence, make_ticks
 import vtkplotter.shapes as shapes
 import vtkplotter.settings as settings
 import vtkplotter.docs as docs
+from vtkplotter.volume import Volume
 import numpy as np
 import vtk
 
@@ -78,7 +79,7 @@ def addLight(
 
 
 #####################################################################
-def addScalarBar(mesh,
+def addScalarBar(obj,
                  pos=(0.8,0.05),
                  title="",
                  titleXOffset=0,
@@ -87,52 +88,67 @@ def addScalarBar(mesh,
                  nlabels=None,
                  c=None,
                  horizontal=False,
-                 width=None, height=None,
-                 vmin=None, vmax=None,
+                 useAlpha=True,
                  ):
-    """Add a 2D scalar bar for the specified mesh.
+    """Add a 2D scalar bar for the specified obj.
 
     .. hint:: |mesh_coloring| |mesh_coloring.py|_ |scalarbars.py|_
     """
     vp = settings.plotter_instance
 
-    if not hasattr(mesh, "mapper"):
-        printc("~times addScalarBar(): input is invalid,", type(mesh), c=1)
+    if not hasattr(obj, "mapper"):
+        printc("~times addScalarBar(): input is invalid,", type(obj), c=1)
         return None
 
     if vp and vp.renderer:
         c = (0.9, 0.9, 0.9)
         if np.sum(vp.renderer.GetBackground()) > 1.5:
             c = (0.1, 0.1, 0.1)
-        if isinstance(mesh.scalarbar, vtk.vtkActor):
-            vp.renderer.RemoveActor(mesh.scalarbar)
-        elif isinstance(mesh.scalarbar, Assembly):
-            for a in mesh.scalarbar.getMeshes():
+        if isinstance(obj.scalarbar, vtk.vtkActor):
+            vp.renderer.RemoveActor(obj.scalarbar)
+        elif isinstance(obj.scalarbar, Assembly):
+            for a in obj.scalarbar.getMeshes():
                 vp.renderer.RemoveActor(a)
     if c is None: c = 'gray'
 
-    if isinstance(mesh, Mesh):
-        lut = mesh.mapper().GetLookupTable()
+    if isinstance(obj, Mesh):
+        lut = obj.mapper().GetLookupTable()
         if not lut:
             return None
-        vtkscalars = mesh._polydata.GetPointData().GetScalars()
+        vtkscalars = obj._polydata.GetPointData().GetScalars()
         if vtkscalars is None:
-            vtkscalars = mesh._polydata.GetCellData().GetScalars()
+            vtkscalars = obj._polydata.GetCellData().GetScalars()
         if not vtkscalars:
             return None
 
-        rng = list(vtkscalars.GetRange())
-        if vmin is not None: rng[0] = vmin
-        if vmax is not None: rng[1] = vmax
-        mesh.mapper().SetScalarRange(rng)
+    elif isinstance(obj, Volume):
+        ctf = obj.GetProperty().GetRGBTransferFunction()
+        otf = obj.GetProperty().GetScalarOpacity()
+        x0,x1 = obj.scalarRange()
+        cols, alphas = [],[]
+        for x in np.linspace(x0,x1, 256):
+            cols.append(ctf.GetColor(x))
+            alphas.append(otf.GetValue(x))
+        lut = vtk.vtkLookupTable()
+        lut.SetRange(x0,x1)
+        lut.SetNumberOfTableValues(len(cols))
+        for i, col in enumerate(cols):
+            r, g, b = col
+            lut.SetTableValue(i, r, g, b, alphas[i])
+        lut.Build()
 
-    elif isinstance(mesh, 'Volume'):
-        # to be implemented
-        pass
+    else:
+        return obj
 
     c = getColor(c)
     sb = vtk.vtkScalarBarActor()
+    #sb.SetLabelFormat('%-#6.3g')
+    #print(sb.GetLabelFormat())
     sb.SetLookupTable(lut)
+    sb.SetUseOpacity(useAlpha)
+    sb.SetDrawFrame(0)
+    sb.SetDrawBackground(0)
+
     if title:
         titprop = vtk.vtkTextProperty()
         titprop.BoldOn()
@@ -145,12 +161,15 @@ def addScalarBar(mesh,
         sb.SetVerticalTitleSeparation(titleYOffset)
         sb.SetTitleTextProperty(titprop)
 
-    if vtk.vtkVersion().GetVTKMajorVersion() > 7:
-        sb.UnconstrainedFontSizeOn()
-        sb.FixedAnnotationLeaderLineColorOff()
-        sb.DrawAnnotationsOn()
-        sb.DrawTickLabelsOn()
+    sb.UnconstrainedFontSizeOn()
+#    sb.FixedAnnotationLeaderLineColorOff()
+    sb.DrawAnnotationsOn()
+    sb.DrawTickLabelsOn()
     sb.SetMaximumNumberOfColors(256)
+#    sb.GetTitleTextProperty().SetFontFamilyToCourier()
+#    sb.GetAnnotationTextProperty().SetFontFamilyToCourier()
+#    sb.GetLabelTextProperty().SetFontFamilyToCourier()
+#    sb.AnnotationTextScalingOff()
 
     if horizontal:
         sb.SetOrientationToHorizontal()
@@ -160,20 +179,17 @@ def addScalarBar(mesh,
         sb.SetMaximumWidthInPixels(1000)
         sb.SetMaximumHeightInPixels(50)
     else:
-        sb.SetNumberOfLabels(10)
+        sb.SetNumberOfLabels(7)
         sb.SetTextPositionToPrecedeScalarBar()
-        sb.SetPosition(pos[0]+0.07, pos[1])
-        sb.SetMaximumWidthInPixels(80)
-        sb.SetMaximumHeightInPixels(500)
+        sb.SetPosition(pos[0]+0.09, pos[1])
+        sb.SetMaximumWidthInPixels(60)
+        sb.SetMaximumHeightInPixels(250)
 
     if nlabels is not None:
         sb.SetNumberOfLabels(nlabels)
-#    if width is not None:
-#        sb.SetMaximumWidthInPixels(int(width))
-#    if height is not None:
-#        sb.SetMaximumHeightInPixels(int(height))
 
     sctxt = sb.GetLabelTextProperty()
+    sb.SetAnnotationTextProperty(sctxt)
     sctxt.SetColor(c)
     sctxt.SetShadow(0)
     sctxt.SetFontFamily(0)
@@ -181,28 +197,27 @@ def addScalarBar(mesh,
     sctxt.SetBold(0)
     sctxt.SetFontSize(titleFontSize)
     sb.PickableOff()
-    mesh.scalarbar = sb
+    obj.scalarbar = sb
     return sb
 
 
 #####################################################################
 def addScalarBar3D(
     obj,
-    pos=(0, 0, 0),
-    normal=(0, 0, 1),
-    sx=0.1,
-    sy=2,
+    pos=None,
+    sx=None,
+    sy=None,
     title='',
-    titleXOffset = -1.5,
-    titleYOffset = 0.0,
-    titleSize =  1.5,
-    titleRotation = 0.0,
+    titleXOffset=-1.5,
+    titleYOffset=0.0,
+    titleSize=1.5,
+    titleRotation=0.0,
     nlabels=9,
-    prec=2,
-    labelOffset = 0.4,
+    labelOffset=0.375,
+    italic=0,
     c=None,
-    alpha=1,
-    cmap=None,
+    useAlpha=True,
+    drawBox=True,
 ):
     """Draw a 3D scalar bar.
 
@@ -210,7 +225,7 @@ def addScalarBar3D(
         - a list of numbers,
         - a list of two numbers in the form `(min, max)`,
         - a ``Mesh`` already containing a set of scalars associated to vertices or cells,
-        - if ``None`` the last mesh in the list of meshs will be used.
+        - if ``None`` the last object in the list of actors will be used.
 
     :param float sx: thickness of scalarbar
     :param float sy: length of scalarbar
@@ -220,90 +235,128 @@ def addScalarBar3D(
     :param float titleSize: size of title wrt numeric labels
     :param float titleRotation: title rotation in degrees
     :param int nlabels: number of numeric labels
-    :param int prec: number of significant digits
     :param float labelOffset: space btw numeric labels and scale
-    :param str cmap: specify cmap to be used
+    :param bool useAlpha: render transparency of the color bar, otherwise ignore
+    :param bool drawBox: draw a box around the colorbar (useful with useAlpha=True)
 
     .. hint:: |scalarbars| |scalarbars.py|_
     """
     vp = settings.plotter_instance
     if vp and c is None:  # automatic black or white
-        c = (0.8, 0.8, 0.8)
+        c = (0.9, 0.9, 0.9)
         if np.sum(getColor(vp.backgrcol)) > 1.5:
-            c = (0.2, 0.2, 0.2)
+            c = (0.1, 0.1, 0.1)
     if c is None: c = 'gray'
     c = getColor(c)
 
+    bns = obj.bounds()
+    if sy is None:
+        sy = (bns[3]-bns[2])
+    if sx is None:
+        sx = sy/18
+
     if isinstance(obj, Mesh):
-        if cmap is None:
-            lut = obj.mapper().GetLookupTable()
-            if not lut:
-                print("Error in ScalarBar3D: mesh has no active scalar array.", [obj])
-                return None
-        else:
-            lut = cmap
+        lut = obj.mapper().GetLookupTable()
+        if not lut:
+            print("Error in addScalarBar3D: mesh has no lookup table.", [obj])
+            return None
         vmin, vmax = obj.mapper().GetScalarRange()
+
+    elif isinstance(obj, Volume):
+        ctf = obj.GetProperty().GetRGBTransferFunction()
+        otf = obj.GetProperty().GetScalarOpacity()
+        vmin, vmax = obj.scalarRange()
+        cols, alphas = [],[]
+        for x in np.linspace(vmin, vmax, 256):
+            cols.append(ctf.GetColor(x))
+            if useAlpha: alphas.append(otf.GetValue(x))
+
+        lut = vtk.vtkLookupTable()
+        lut.SetRange(vmin, vmax)
+        lut.SetNumberOfTableValues(len(cols))
+        for i, col in enumerate(cols):
+            r, g, b = col
+            if useAlpha:
+                lut.SetTableValue(i, r, g, b, alphas[i])
+            else:
+                lut.SetTableValue(i, r, g, b, 1)
+        lut.Build()
 
     elif isSequence(obj):
         vmin, vmax = np.min(obj), np.max(obj)
     else:
         print("Error in ScalarBar3D(): input must be Mesh or list.", type(obj))
-        raise RuntimeError()
+        return obj
 
     # build the color scale part
-    scale = shapes.Grid([-sx *labelOffset, 0, 0], c=c, alpha=alpha,
+    scale = shapes.Grid([-sx *labelOffset, 0, 0], c=c, alpha=1,
                         sx=sx, sy=sy, resx=1, resy=256)
     scale.lw(0).wireframe(False)
     cscals = scale.cellCenters()[:, 1]
-    scale.cellColors(cscals, lut, alpha)
-    scale.lighting(ambient=1, diffuse=0, specular=0, specularPower=0)
+    scale.cellColors(cscals, cmap=lut)
+    scale.lighting(enabled=False)
+    xbns = scale.xbounds()
 
-    # build text
+    if pos is None:
+        d=sx/2
+        if title:
+            d = np.sqrt((bns[1]-bns[0])**2+sy*sy)/20
+        pos=(bns[1]-xbns[0]+d,
+             (bns[2]+bns[3])/2,
+             bns[4])
+
     tacts = []
-
     ticks_pos, ticks_txt = make_ticks(vmin, vmax, nlabels)
-    nlabels = len(ticks_pos)-1
+    nlabels2 = len(ticks_pos)-1
     for i, p in enumerate(ticks_pos):
         tx = ticks_txt[i]
-        y = -sy / 1.98 + sy * i / nlabels
-        a = shapes.Text(tx, pos=[sx*labelOffset, y, 0], s=sy/50, c=c, alpha=alpha)
-        a.lighting(ambient=1, diffuse=0, specular=0, specularPower=0)
-        a.PickableOff()
-        tacts.append(a)
+        if i and tx:
+            # build numeric text
+            y = -sy /2 + sy * i / nlabels2
+            a = shapes.Text(tx, pos=[sx*labelOffset, y, 0], s=sy/50,
+                            justify='center-left', c=c, italic=italic)
+            tacts.append(a)
+            # build ticks
+            tic = shapes.Line([xbns[1], y, 0],
+                              [xbns[1]+sx*labelOffset/4, y, 0], lw=0.1, c=c)
+            tacts.append(tic)
 
     # build title
     if title:
-        t = shapes.Text(title, (0,0,0), s=sy/50*titleSize, c=c, alpha=alpha, justify='centered')
+        t = shapes.Text(title, (0,0,0), s=sy/50*titleSize,
+                        c=c, justify='centered', italic=italic)
         t.RotateZ(90+titleRotation)
         t.pos(sx*titleXOffset,titleYOffset,0)
-        t.lighting(ambient=1, diffuse=0, specular=0, specularPower=0)
-        t.PickableOff()
         tacts.append(t)
 
-    sact = Assembly([scale] + tacts)
-    normal = np.array(normal) / np.linalg.norm(normal)
-    theta = np.arccos(normal[2])
-    phi = np.arctan2(normal[1], normal[0])
-    sact.RotateZ(np.rad2deg(phi))
-    sact.RotateY(np.rad2deg(theta))
+    if drawBox:
+        tacts.append(scale.box().lw(0.1))
+
+    mtacts = merge(tacts).lighting(enabled=False)
+    mtacts.PickableOff()
+
+    sact = Assembly(scale, tacts)
     sact.SetPosition(pos)
     sact.PickableOff()
     if isinstance(obj, Mesh):
         obj.scalarbar = sact
     return sact
 
+
 #####################################################################
 def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
-                title='', c=None, showValue=True):
+                title='', font='arial', titleSize=1, c=None, showValue=True):
     """Add a slider widget which can call an external custom function.
 
     :param sliderfunc: external function to be called by the widget
     :param float xmin:  lower value
     :param float xmax:  upper value
     :param float value: current value
-    :param list pos:  position corner number: horizontal [1-4] or vertical [11-14]
-                        it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
+    :param list pos: position corner number: horizontal [1-5] or vertical [11-15]
+          it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
     :param str title: title text
+    :param str font: title font [arial, courier]
+    :param float titleSize: title text scale [1.0]
     :param bool showValue:  if true current value is shown
 
     |sliders| |sliders.py|_
@@ -339,14 +392,14 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
         sliderRep.GetPoint1Coordinate().SetValue(0.55, 0.96)
         sliderRep.GetPoint2Coordinate().SetValue(0.96, 0.96)
     elif pos == 3:
-        sliderRep.GetPoint1Coordinate().SetValue(0.04, 0.04)
-        sliderRep.GetPoint2Coordinate().SetValue(0.45, 0.04)
+        sliderRep.GetPoint1Coordinate().SetValue(0.04, 0.045)
+        sliderRep.GetPoint2Coordinate().SetValue(0.45, 0.045)
     elif pos == 4:  # bottom-right
-        sliderRep.GetPoint1Coordinate().SetValue(0.55, 0.04)
-        sliderRep.GetPoint2Coordinate().SetValue(0.96, 0.04)
+        sliderRep.GetPoint1Coordinate().SetValue(0.55, 0.045)
+        sliderRep.GetPoint2Coordinate().SetValue(0.96, 0.045)
     elif pos == 5:  # bottom margin horizontal
-        sliderRep.GetPoint1Coordinate().SetValue(0.04, 0.04)
-        sliderRep.GetPoint2Coordinate().SetValue(0.96, 0.04)
+        sliderRep.GetPoint1Coordinate().SetValue(0.04, 0.045)
+        sliderRep.GetPoint2Coordinate().SetValue(0.96, 0.045)
     elif pos == 11:  # top-left vertical
         sliderRep.GetPoint1Coordinate().SetValue(0.04, 0.54)
         sliderRep.GetPoint2Coordinate().SetValue(0.04, 0.9)
@@ -383,13 +436,20 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     sliderRep.GetSelectedProperty().SetColor(np.sqrt(np.array(c)))
     sliderRep.GetCapProperty().SetColor(c)
 
+    sliderRep.SetTitleHeight(0.02*titleSize)
+    sliderRep.GetTitleProperty().SetShadow(0)
+    sliderRep.GetTitleProperty().SetColor(c)
+    sliderRep.GetTitleProperty().SetOpacity(1)
+    sliderRep.GetTitleProperty().SetBold(0)
+    if font == 'courier':
+        sliderRep.GetTitleProperty().SetFontFamilyToCourier()
+    elif font.lower() == "times":
+        sliderRep.GetTitleProperty().SetFontFamilyToTimes()
+    else:
+        sliderRep.GetTitleProperty().SetFontFamilyToArial()
+
     if title:
         sliderRep.SetTitleText(title)
-        sliderRep.SetTitleHeight(0.012)
-        sliderRep.GetTitleProperty().SetShadow(0)
-        sliderRep.GetTitleProperty().SetColor(c)
-        sliderRep.GetTitleProperty().SetOpacity(1)
-        sliderRep.GetTitleProperty().SetBold(0)
         if not isSequence(pos):
             if isinstance(pos, int) and pos > 10:
                 sliderRep.GetTitleProperty().SetOrientation(90)
@@ -713,7 +773,7 @@ def buildAxes(obj=None,
               reorientShortTitle=True,
               titleDepth=0,
               xTitlePosition=0.95, yTitlePosition=0.95, zTitlePosition=0.95,
-              xTitleOffset=0.05, yTitleOffset=0.05, zTitleOffset=0.05,
+              xTitleOffset=0.06, yTitleOffset=0.06, zTitleOffset=0.06,
               xTitleJustify="top-right", yTitleJustify="bottom-right", zTitleJustify="bottom-right",
               xTitleRotation=0, yTitleRotation=90, zTitleRotation=135,
               xTitleSize=0.025, yTitleSize=0.025, zTitleSize=0.025,
@@ -913,18 +973,18 @@ def buildAxes(obj=None,
     y_aspect_ratio_scale=1
     z_aspect_ratio_scale=1
     if xtitle:
-        if ss[0] > ss[1]:
+        if ss[1] and ss[0] > ss[1]:
             x_aspect_ratio_scale = (1, ss[0]/ss[1], 1)
-        else:
+        elif ss[0]:
             x_aspect_ratio_scale = (ss[1]/ss[0], 1, 1)
     if ytitle:
-        if ss[0] > ss[1]:
+        if ss[1] and ss[0] > ss[1]:
             y_aspect_ratio_scale = (ss[0]/ss[1], 1, 1)
-        else:
+        elif ss[0]:
             y_aspect_ratio_scale = (1, ss[1]/ss[0], 1)
     if ztitle:
         smean = (ss[0]+ss[1])/2
-        if smean:
+        if ss[2] and smean:
             if ss[2] > smean:
                 zarfact = smean/ss[2]
                 z_aspect_ratio_scale = (zarfact, zarfact*ss[2]/smean, zarfact)
@@ -1049,8 +1109,9 @@ def buildAxes(obj=None,
     ################################################ axes titles
     titles = []
     if xtitle:
-        xt = shapes.Text(xtitle, pos=(0,0,0), s=xTitleSize, bc=xTitleBackfaceColor,
+        xt = shapes.Text(xtitle, pos=(0,0,0), s=xTitleSize,
                          c=xTitleColor, justify=xTitleJustify, depth=titleDepth)
+        if xTitleBackfaceColor: xt.backColor(xTitleBackfaceColor)
         if reorientShortTitle and len(ytitle) < 3:  # title is short
             wpos = [xTitlePosition, -xTitleOffset +0.02, 0]
         else:
@@ -1062,8 +1123,9 @@ def buildAxes(obj=None,
         titles.append(xt)
 
     if ytitle:
-        yt = shapes.Text(ytitle, pos=(0, 0, 0), s=yTitleSize, bc=yTitleBackfaceColor,
+        yt = shapes.Text(ytitle, pos=(0, 0, 0), s=yTitleSize,
                          c=yTitleColor, justify=yTitleJustify, depth=titleDepth)
+        if yTitleBackfaceColor: yt.backColor(yTitleBackfaceColor)
         if reorientShortTitle and len(ytitle) < 3:  # title is short
             wpos = [-yTitleOffset +0.03-0.01*len(ytitle), yTitlePosition, 0]
             if yKeepAspectRatio: yt.SetScale(x_aspect_ratio_scale) #x!
@@ -1076,12 +1138,13 @@ def buildAxes(obj=None,
         titles.append(yt)
 
     if ztitle:
-        zt = shapes.Text(ztitle, pos=(0, 0, 0), s=zTitleSize, bc=zTitleBackfaceColor,
+        zt = shapes.Text(ztitle, pos=(0, 0, 0), s=zTitleSize,
                          c=zTitleColor, justify=zTitleJustify, depth=titleDepth)
+        if zTitleBackfaceColor: zt.backColor(zTitleBackfaceColor)
         if reorientShortTitle and len(ztitle) < 3:  # title is short
             wpos = [(-zTitleOffset+0.02-0.003*len(ztitle))/1.42,
                     (-zTitleOffset+0.02-0.003*len(ztitle))/1.42, zTitlePosition]
-            if zKeepAspectRatio:
+            if zKeepAspectRatio and isSequence(z_aspect_ratio_scale):
                 zr2 = (z_aspect_ratio_scale[1], z_aspect_ratio_scale[0], z_aspect_ratio_scale[2])
                 zt.SetScale(zr2)
             zt.RotateX(90)
@@ -1266,14 +1329,12 @@ def buildAxes(obj=None,
     for a in acts:
         a.PickableOff()
         a.SetPosition(a.GetPosition() + orig)
-        pr = a.GetProperty()
-        pr.SetAmbient(0.9)
-        pr.SetDiffuse(0.1)
-        pr.SetSpecular(0)
+        a.GetProperty().LightingOff()
     asse = Assembly(acts)
     asse.SetOrigin(orig)
     asse.SetScale(ss)
     asse.PickableOff()
+    # throw away all extra created obj in collectable_actors
     settings.collectable_actors = settings.collectable_actors[:ncolls]
     return asse
 
@@ -1609,10 +1670,10 @@ def addGlobalAxes(axtype=None, c=None):
         x0 = (vbb[0] + vbb[1]) / 2, (vbb[3] + vbb[2]) / 2, (vbb[5] + vbb[4]) / 2
         rx, ry, rz = (vbb[1]-vbb[0])/2, (vbb[3]-vbb[2])/2, (vbb[5]-vbb[4])/2
         rm = max(rx, ry, rz)
-        xc = shapes.Disc(x0, r1=rm, r2=rm, c='lr', res=1, resphi=72)
-        yc = shapes.Disc(x0, r1=rm, r2=rm, c='lg', res=1, resphi=72)
+        xc = shapes.Disc(x0, r1=rm, r2=rm, c='lr', res=(1,72))
+        yc = shapes.Disc(x0, r1=rm, r2=rm, c='lg', res=(1,72))
         yc.RotateX(90)
-        zc = shapes.Disc(x0, r1=rm, r2=rm, c='lb', res=1, resphi=72)
+        zc = shapes.Disc(x0, r1=rm, r2=rm, c='lb', res=(1,72))
         yc.RotateY(90)
         xc.clean().alpha(0.2).wireframe().lineWidth(2.5).PickableOff()
         yc.clean().alpha(0.2).wireframe().lineWidth(2.5).PickableOff()

@@ -17,7 +17,7 @@ img = sample.GetOutput()  # vtkImageData
 print("Scalar Range", img.GetScalarRange(), "\ntry press shift-x.")
 
 ########################
-from vtkplotter import show, Text2D, Volume
+from vtkplotter import show, Volume
 
 # generate an isosurface the volume for each thresholds
 ts = [0.1, 0.25, 0.4, 0.6, 0.75, 0.9]
@@ -25,4 +25,4 @@ ts = [0.1, 0.25, 0.4, 0.6, 0.75, 0.9]
 # Use c=None to use the default vtk color map. isos is of type Mesh
 isos = Volume(img).isosurface(threshold=ts)
 
-show(isos, Text2D(__doc__))
+show(isos, __doc__)

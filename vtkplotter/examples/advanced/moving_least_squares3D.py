@@ -11,7 +11,6 @@ from vtkplotter import *
 
 # generate uniform points on sphere (tol separates points by 2% of mesh size)
 cc = Sphere(res=200).clean(tol=0.02).points()
-txt = Text2D(__doc__, c="k")
 
 a, b, noise = 0.2, 0.4, 0.1  # some random warping parameters, and noise factor
 sets = []
@@ -21,12 +20,12 @@ for i in range(5):  # generate a time sequence of 5 shapes
     ap = Points(cs, c=i, alpha=0.5).addGaussNoise(1.0).time(0.2 * i)
     sets.append(ap)
 
-show(sets, txt, at=0, N=2, zoom=1.4)
+show(sets, __doc__, at=0, N=2, zoom=1.4)
 
 #The nr neighbours in the local 4D fitting must be specified.
 sm3d = smoothMLS3D(sets, neighbours=10)
 
 #color indicates fitted time
-sm3d.addScalarBar3D(pos=(-2, 0, -1), title='time [a.u.]')
+sm3d.addScalarBar3D(pos=(-2,0,-1), title='time [a.u.]')
 
 show(sm3d, at=1, zoom=1.4, interactive=1)

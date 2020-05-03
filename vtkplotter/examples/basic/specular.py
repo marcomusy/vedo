@@ -1,10 +1,9 @@
-"""
-Setting illumination properties:
+"""Setting illumination properties:
 ambient, diffuse
 specular, specularPower, specularColor.
 """
 #https://lorensen.github.io/VTKExamples/site/Python/Rendering/SpecularSpheres
-from vtkplotter import Plotter, Text2D, Arrow, datadir
+from vtkplotter import Plotter, Arrow, datadir
 
 
 vp = Plotter(axes=1)
@@ -25,7 +24,7 @@ for i in range(8):
     diffuse += 0.125
     specular += 0.125
 
-vp += Text2D(__doc__)
+vp += __doc__
 vp.show()
 
 print('Adding a light source..')

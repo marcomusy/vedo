@@ -10,6 +10,8 @@ t2 = Text2D('High freqs in the FFT\nare cut off:', c='lb')
 
 printHistogram(v1, logscale=1, horizontal=1, c='g')
 printHistogram(v2, logscale=1, horizontal=1, c='b')
+v1.addScalarBar3D(c='w')
+v2.addScalarBar3D(c='w')
 
 show([(v1,t1), (v2,t2)], N=2, bg='bb', zoom=1.5, axes=1)
 #write(v2, 'embryo_filtered.vti')

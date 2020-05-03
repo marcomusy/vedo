@@ -1,4 +1,4 @@
-from vtkplotter import donut
+from vtkplotter.pyplot import donut
 
 title     = "A donut plot"
 fractions = [0.1, 0.2, 0.3, 0.1, 0.3]

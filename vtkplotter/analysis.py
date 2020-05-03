@@ -281,6 +281,8 @@ def fitLine(points):
 
     |fitline| |fitline.py|_
     """
+    if isinstance(points, Mesh):
+        points = points.points()
     data = np.array(points)
     datamean = data.mean(axis=0)
     uu, dd, vv = np.linalg.svd(data - datamean)
@@ -308,6 +310,8 @@ def fitPlane(points):
 
     .. hint:: Example: |fitplanes.py|_
     """
+    if isinstance(points, Mesh):
+        points = points.points()
     data = np.array(points)
     datamean = data.mean(axis=0)
     res = np.linalg.svd(data - datamean)
@@ -333,6 +337,8 @@ def fitSphere(coords):
 
         |fitspheres2| |fitspheres2.py|_
     """
+    if isinstance(coords, Mesh):
+        coords = coords.points()
     coords = np.array(coords)
     n = len(coords)
     A = np.zeros((n, 4))
@@ -835,7 +841,7 @@ def probePoints(vol, pts):
     and probes its scalars at the specified points in space.
 
     Note that a mask is also output with valid/invalid points which can be accessed
-    with `mesh.getPointArray()`.
+    with `mesh.getPointArray('vtkValidPointMask')`.
     """
     if isinstance(pts, Mesh):
         pts = pts.points()
@@ -862,19 +868,22 @@ def probePoints(vol, pts):
     probeFilter.SetSourceData(img)
     probeFilter.SetInputConnection(src.GetOutputPort())
     probeFilter.Update()
-
-    pact = Mesh(probeFilter.GetOutput())
-    pact.mapper().SetScalarRange(img.GetScalarRange())
-    #del src # to avoid memory leaks, incompatible with python2
-    return pact
-
+    poly = probeFilter.GetOutput()
+    pm = Mesh(poly)
+    pm.name = 'ProbePoints'
+    return pm
 
 def probeLine(vol, p1, p2, res=100):
     """
     Takes a ``Volume``  (or any other vtk data set)
     and probes its scalars along a line defined by 2 points `p1` and `p2`.
 
-    |probeLine| |probeLine.py|_
+    Note that a mask is also output with valid/invalid points which can be accessed
+    with `mesh.getPointArray('vtkValidPointMask')`.
+
+    :param int res: nr of points along the line
+
+    |probeLine1| |probeLine1.py|_ |probeLine2.py|_
     """
     line = vtk.vtkLineSource()
     line.SetResolution(res)
@@ -885,12 +894,10 @@ def probeLine(vol, p1, p2, res=100):
     probeFilter.SetSourceData(img)
     probeFilter.SetInputConnection(line.GetOutputPort())
     probeFilter.Update()
-
-    lact = Mesh(probeFilter.GetOutput())
-    lact.mapper().SetScalarRange(img.GetScalarRange())
-    #del line # to avoid memory leaks, incompatible with python2
-    return lact
-
+    poly = probeFilter.GetOutput()
+    lnn = Mesh(poly)
+    lnn.name = 'ProbeLine'
+    return lnn
 
 def probePlane(vol, origin=(0, 0, 0), normal=(1, 0, 0)):
     """
@@ -903,13 +910,12 @@ def probePlane(vol, origin=(0, 0, 0), normal=(1, 0, 0)):
     plane = vtk.vtkPlane()
     plane.SetOrigin(origin)
     plane.SetNormal(normal)
-
     planeCut = vtk.vtkCutter()
     planeCut.SetInputData(img)
     planeCut.SetCutFunction(plane)
     planeCut.Update()
-    cutmesh = Mesh(planeCut.GetOutput(), c=None)  # ScalarVisibilityOn
-    cutmesh.mapper().SetScalarRange(img.GetScalarRange())
+    poly = planeCut.GetOutput()
+    cutmesh = Mesh(poly)
     return cutmesh
 
 
@@ -1825,7 +1831,7 @@ def volumeFromMesh(mesh, bounds=None, dims=(20,20,20), signed=True, negate=False
     return Volume(img)
 
 
-def pointDensity(mesh, dims=(30,30,30), bounds=None, radius=None, computeGradient=False):
+def pointDensity(mesh, dims=(40,40,40), bounds=None, radius=None, computeGradient=False):
     """Generate a density field from a point cloud. Output is a ``Volume``.
     The local neighborhood is specified as a `radius` around each sample position (each voxel).
     The density is normalized to the upper value of the scalar range.
@@ -1838,7 +1844,7 @@ def pointDensity(mesh, dims=(30,30,30), bounds=None, radius=None, computeGradien
     pdf.SetInputData(mesh.polydata())
     pdf.SetSampleDimensions(dims)
     pdf.SetDensityEstimateToFixedRadius()
-    #pdf.SetDensityFormToVolumeNormalized()
+    pdf.SetDensityFormToVolumeNormalized()
     pdf.SetDensityFormToNumberOfPoints ()
     if radius is None:
         radius = mesh.diagonalSize()/20
@@ -1850,7 +1856,7 @@ def pointDensity(mesh, dims=(30,30,30), bounds=None, radius=None, computeGradien
     pdf.Update()
     img = pdf.GetOutput()
     vol = Volume(img)
-    return vol.operation('/', img.GetScalarRange()[1])
+    return vol
 
 
 def visiblePoints(mesh, area=(), tol=None, invert=False):

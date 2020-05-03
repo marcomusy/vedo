@@ -716,12 +716,12 @@ def loadNumpy(inobj):
         act.mapper().ScalarVisibilityOff()
         if 'celldata' in keys:
             for csc, cscname in d['celldata']:
-                act.addCellScalars(csc, cscname)
+                act.addCellArray(csc, cscname)
                 if 'normal' not in cscname.lower():
                     act.getCellArray(cscname) # activate
         if 'pointdata' in keys:
             for psc, pscname in d['pointdata']:
-                act.addPointScalars(psc, pscname)
+                act.addPointArray(psc, pscname)
                 if 'normal' not in pscname.lower():
                     act.getPointArray(pscname) # activate
 
@@ -770,9 +770,9 @@ def loadNumpy(inobj):
         elif 'image' == d['type']:
             shp = d['shape'][1], d['shape'][0]
             arr0 = d['array']
-            rcv =   arr0[:,0].reshape(shp)
-            gcv =   arr0[:,1].reshape(shp)
-            bcv =   arr0[:,2].reshape(shp)
+            rcv = arr0[:,0].reshape(shp)
+            gcv = arr0[:,1].reshape(shp)
+            bcv = arr0[:,2].reshape(shp)
             arr = np.array([rcv, gcv, bcv])
             arr = np.swapaxes(arr, 0, 2)
             vimg = Picture(arr)
@@ -838,7 +838,7 @@ def _np_dump(obj):
                 adict['cells'] = obj.faces()
 
         if poly.GetNumberOfLines():
-            adict['lines'] = vtk_to_numpy(poly.GetLines().GetData()).astype(np.uint32)
+            adict['lines'] = obj.lines()
 
         fillcommon(obj, adict)
         adict['pointdata'] = []
@@ -1161,14 +1161,13 @@ def save(objct, fileoutput, binary=True):
 
 
 ###########################################################
-def exportWindow(fileoutput, binary=False, speed=None, html=True):
+def exportWindow(fileoutput, binary=False, speed=None):
     '''
-    Exporter which writes out the renderered scene into an OBJ, X3D or Numpy file.
+    Exporter which writes out the renderered scene into an HTML, X3D or Numpy file.
     X3D is an XML-based format for representation 3D scenes (similar to VRML).
     Check out http://www.web3d.org/x3d for more details.
 
     :param float speed: set speed for x3d files.
-    :param bool html: generate a test html page for x3d files.
 
     |export_x3d| |export_x3d.py|_
 
@@ -1187,43 +1186,36 @@ def exportWindow(fileoutput, binary=False, speed=None, html=True):
         w.Update()
         colors.printc("~save Saved file:", fileoutput, c="g")
 
-    elif fr.endswith(".obj"):
-        writer = vtk.vtkOBJWriter()
-        writer.SetInputData(settings.plotter_instance.window)
-        writer.SetFileName(fileoutput)
-        writer.Write()
+#    elif fr.endswith(".obj"):
+#        writer = vtk.vtkOBJWriter()
+#        writer.SetInputData(settings.plotter_instance.window)
+#        writer.SetFileName(fileoutput)
+#        writer.Write()
 
     elif fr.endswith(".x3d"):
+        from vtkplotter.docs import x3d_html
         exporter = vtk.vtkX3DExporter()
         exporter.SetBinary(binary)
         exporter.FastestOff()
-        if speed:
-            exporter.SetSpeed(speed)
+        if speed: exporter.SetSpeed(speed)
         exporter.SetInput(settings.plotter_instance.window)
         exporter.SetFileName(fileoutput)
         exporter.Update()
         exporter.Write()
-        if not html:
-            return
-        from vtkplotter.docs import x3d_html
         x3d_html = x3d_html.replace("~fileoutput", fileoutput)
         wsize = settings.plotter_instance.window.GetSize()
         x3d_html = x3d_html.replace("~width", str(wsize[0]))
         x3d_html = x3d_html.replace("~height", str(wsize[1]))
-        #b = settings.plotter_instance.renderer.ComputeVisiblePropBounds()
-        #s = max(b[1] - b[0], b[3] - b[2], b[5] - b[4])
-        #c = (b[1] + b[0])/2, (b[3] + b[2])/2, (b[5] + b[4])/2
-        #x3d_html = x3d_html.replace("~size", str(s*2))
-        #x3d_html = x3d_html.replace("~center", str(c[0])+" "+str(c[1])+" "+str(c[2]))
         outF = open(fileoutput.replace('.x3d', '.html'), "w")
         outF.write(x3d_html)
         outF.close()
         colors.printc("~save Saved files:", fileoutput,
                       fileoutput.replace('.x3d', '.html'), c="g")
+    
     elif fr.endswith(".npy"):
         sdict = dict()
         vp = settings.plotter_instance
-        sdict['shape'] = vp.shape #todo
+        sdict['shape'] = (1,1) #vp.shape #todo
         sdict['sharecam'] = vp.sharecam #todo
         sdict['camera'] = None #todo
         sdict['position'] = vp.pos
@@ -1245,12 +1237,28 @@ def exportWindow(fileoutput, binary=False, speed=None, html=True):
         for a in vp.getMeshes() + vp.getVolumes():
             sdict['objects'].append(_np_dump(a))
         np.save(fileoutput, [sdict])
+    
+    elif fr.endswith(".html"):
+        from vtkplotter.backends import getNotebookBackend
+        
+        savebk = settings.notebookBackend
+        settings.notebookBackend='k3d'
+        plt = getNotebookBackend(settings.plotter_instance.actors, 1.5, '')
+        
+        with open(fileoutput,'w') as fp:
+            fp.write(plt.get_snapshot())
+        
+        settings.notebookBackend = savebk
+
+    else:
+        colors.printc("Export extensions is not supported.", c=1)
+        
 
     return
 
 def importWindow(fileinput, mtlFile=None, texturePath=None):
     """Import a whole scene from a Numpy or OBJ wavefront file.
-    Return ``Plotter`` instance.
+    Return a ``Plotter`` instance.
 
     :param str mtlFile: MTL file for OBJ wavefront files.
     :param str texturePath: path of the texture files directory.
@@ -1278,7 +1286,7 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
         backgrcol = data.pop('backgrcol', "blackboard")
 
         vp = Plotter(size=data['size'], # not necessarily a good idea to set it
-                     #shape=data['shape'],
+                     #shape=data['shape'], # will need to create a Renderer class first
                      axes=axes,
                      title=title,
                      bg=backgrcol,
@@ -1288,27 +1296,19 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
         vp.ztitle = data.pop('ztitle', 'z')
 
         #print(data.keys())
-#        print(data['objects'])
-#        exit()
+        #print(data['objects'])
+        #exit()
 
         if 'objects' in data.keys():
             objs = loadNumpy(data['objects'])
             if not utils.isSequence(objs):
                objs = [objs]
         else:
-            colors.printc("Trying to import a that was not exported.", c=1)
-            colors.printc(" -> try to load a single object with load().", c=1)
-            return loadNumpy(fileinput)
+            #colors.printc("Trying to import a single mesh.. use load() instead.", c=1)
+            #colors.printc(" -> try to load a single object with load().", c=1)
+            objs = [loadNumpy(fileinput)]
+        
         vp.actors = objs
-
-        #    if vp.shape==(1,1):
-        #        vp.actors = loadNumpy(data['objects'])
-        #    else:
-        #        print(objs, )
-        #        for a in objs:
-        #            for ar in a.renderedAt:
-        #                print(vp.shape, [a], ar )
-        #                vp.show(a, at=ar)
         return vp
 
     elif '.obj' in fileinput.lower():

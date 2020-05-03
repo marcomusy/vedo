@@ -1,6 +1,4 @@
-"""
-A gyroscope sitting on a pedestal.
-
+"""A gyroscope sitting on a pedestal.
 The analysis is in terms of Lagrangian mechanics.
 The Lagrangian variables are polar angle theta,
 azimuthal angle phi, and spin angle psi.
@@ -28,7 +26,7 @@ v = vector(thetadot, phidot, psidot)
 
 # ############################################################ the scene
 vp = Plotter(axes=0, interactive=0)
-vp += Text2D(__doc__)
+vp += __doc__
 
 shaft = Cylinder([[0, 0, 0], [Lshaft, 0, 0]], r=0.03, c="dg")
 rotor = Cylinder([[Lshaft / 2.2, 0, 0], [Lshaft / 1.8, 0, 0]], r=R).texture("white1")

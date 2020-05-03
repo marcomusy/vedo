@@ -1,5 +1,6 @@
 """A simple quiver plot"""
-from vtkplotter import *
+from vtkplotter import Grid, show
+from vtkplotter.pyplot import quiver
 
 # create displacements
 pts1 = Grid(sx=1.0, sy=1.0).points()
@@ -10,4 +11,4 @@ qp = quiver(pts1,       # points
             cmap='jet', # can also be a fixed color
            )
 
-show(qp, Text2D(__doc__), axes=1)
+show(qp, __doc__, axes=1)

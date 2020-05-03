@@ -17,7 +17,7 @@ def onRightClick(mesh):
     printc("Right  button pressed on", [mesh], c="r")
 
 
-vp = Plotter(verbose=0)
+vp = Plotter()
 
 vp.load(datadir+"skyscraper.obj", c='gold')
 
@@ -27,5 +27,5 @@ vp.mouseRightClickFunction = onRightClick
 
 printc("Click object to trigger function call", invert=1, box="-")
 
-vp += Text2D(__doc__)
+vp += __doc__
 vp.show()

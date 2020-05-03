@@ -35,8 +35,8 @@ warped = apos.clone().thinPlateSpline(sources, sources+deltas)
 warped.alpha(0.4).color("lg").pointSize(10)
 allarr = Arrows(apos.points(), warped.points())
 
-set1 = [apos, warped, src, trs, arr, Text2D(__doc__, s=1.2, c='w')]
-vp = show([set1, allarr], N=2, verbose=0, bg='bb')  # returns the Plotter class
+set1 = [apos, warped, src, trs, arr, __doc__]
+vp = show([set1, allarr], N=2, bg='bb')  # returns the Plotter class
 
 
 ################################################# RBF
@@ -59,7 +59,7 @@ allarr_rbf = Arrows(apos.points(), warped_rbf.points())
 
 arr = Arrows(sources, sources + deltas)
 
-vp2 = Plotter(N=2, pos=(200, 300), verbose=0, bg='bb')
+vp2 = Plotter(N=2, pos=(200, 300), bg='bb')
 vp2.camera = vp.camera  # share the same camera with previous Plotter
-vp2.show(apos, warped_rbf, src, trs, arr, Text2D("Radial Basis Function"), at=0)
+vp2.show(apos, warped_rbf, src, trs, arr, "Radial Basis Function", at=0)
 vp2.show(allarr_rbf, at=1, interactive=1)

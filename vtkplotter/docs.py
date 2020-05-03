@@ -244,13 +244,6 @@ _defs = ""
 #    :target: mesh_alphas.py_
 #    :alt: mesh_alphas.py
 #
-#.. |mesh_bands.py| replace:: mesh_bands.py
-#.. _mesh_bands.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/mesh_bands.py
-#.. |mesh_bands| image:: https://user-images.githubusercontent.com/32848391/51211548-26a78b00-1916-11e9-9306-67b677d1be3a.png
-#    :width: 300 px
-#    :target: mesh_bands.py_
-#    :alt: mesh_bands.py
-#
 #.. |mesh_custom.py| replace:: mesh_custom.py
 #.. _mesh_custom.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/mesh_custom.py
 #.. |mesh_custom| image:: https://user-images.githubusercontent.com/32848391/51390972-20d9c180-1b31-11e9-955d-025f1ef24cb7.png
@@ -422,19 +415,22 @@ _defs = ""
 #.. |surfIntersect.py| replace:: surfIntersect.py
 #.. _surfIntersect.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/surfIntersect.py
 #
-#.. |probeLine.py| replace:: probeLine.py
-#.. _probeLine.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/probeLine.py
-#.. |probeLine| image:: https://user-images.githubusercontent.com/32848391/48198460-3aa0a080-e359-11e8-982d-23fadf4de66f.jpg
+#.. |probeLine1.py| replace:: probeLine1.py
+#.. _probeLine1.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/probeLine1.py
+#.. |probeLine1| image:: https://user-images.githubusercontent.com/32848391/48198460-3aa0a080-e359-11e8-982d-23fadf4de66f.jpg
 #    :width: 300 px
-#    :target: probeLine.py_
-#    :alt: probeLine.py
+#    :target: probeLine1.py_
+#    :alt: probeLine1.py
 #
-#.. |probePlane.py| replace:: probePlane.py
-#.. _probePlane.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/probePlane.py
-#.. |probePlane| image:: https://user-images.githubusercontent.com/32848391/48198461-3aa0a080-e359-11e8-8c29-18f287f105e6.jpg
+#.. |probeLine2.py| replace:: probeLine2.py
+#.. _probeLine2.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/probeLine2.py
+#
+#.. |slicePlane.py| replace:: slicePlane.py
+#.. _slicePlane.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/slicePlane.py
+#.. |slicePlane| image:: https://user-images.githubusercontent.com/32848391/48198461-3aa0a080-e359-11e8-8c29-18f287f105e6.jpg
 #    :width: 300 px
-#    :target: probePlane.py_
-#    :alt: probePlane.py
+#    :target: slicePlane.py_
+#    :alt: slicePlane.py
 #
 #.. |volumeOperations.py| replace:: volumeOperations.py
 #.. _volumeOperations.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/volumeOperations.py
@@ -1184,12 +1180,8 @@ _defs = ""
 #    :target: extrude.py_
 #    :alt: extrude.py
 #
-#.. |kspline.py| replace:: kspline.py
-#.. _kspline.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/kspline.py
 #.. |kspline| image:: https://user-images.githubusercontent.com/32848391/65975805-73fd6580-e46f-11e9-8957-75eddb28fa72.png
 #    :width: 300 px
-#    :target: kspline.py_
-#    :alt: kspline.py
 #
 #.. |mesh_lut.py| replace:: mesh_lut.py
 #.. _mesh_lut.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic/mesh_lut.py
@@ -1298,6 +1290,12 @@ _defs = ""
 #.. |warpv| image:: https://user-images.githubusercontent.com/32848391/77864546-7a577900-7229-11ea-84ce-4e8e6eeff27f.png
 #    :width: 300 px
 #
+#.. |lineage_graph.py| replace:: lineage_graph.py
+#.. _lineage_graph.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot/lineage_graph.py
+#.. |lineage_graph| image:: https://user-images.githubusercontent.com/32848391/80291851-8152a800-8751-11ea-893e-4a0bb85397b1.png
+#    :width: 350 px
+#    :target: lineage_graph.py_
+#    :alt: lineage_graph.py
 #"""
 
 

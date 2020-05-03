@@ -248,9 +248,11 @@ def _compute_uvalues(u, mesh):
     # to have a scalar (or vector) for each point of the mesh
 
     if not u: return
+#    print('u',u)
 
     if hasattr(u, 'compute_vertex_values'): # old dolfin, works fine
         u_values = u.compute_vertex_values(mesh)
+        
 
         if u.value_rank() and u.value_dimension(0)>1:
             l = u_values.shape[0]
@@ -273,7 +275,7 @@ def _compute_uvalues(u, mesh):
 
         tdim = mesh.topology.dim
 
-        print('fvec.getSize', fvec.getSize(), mesh.num_entities(tdim))
+        #print('fvec.getSize', fvec.getSize(), mesh.num_entities(tdim))
         if fvec.getSize() == mesh.num_entities(tdim):
             # DG0 cellwise function
             C = fvec.get_local()
@@ -329,7 +331,6 @@ def plot(*inputobj, **options):
     :param float vmax: set the maximum for the range of the scalar [None]
     :param float scale: add a scaling factor to arrows and lines sizes [1]
     :param str cmap: choose a color map for scalars
-    :param int bands: group colors in `n` bands
     :param str shading: mesh shading ['flat', 'phong', 'gouraud']
     :param str text: add a gray text comment to the top-left of the window [None]
 
@@ -515,7 +516,6 @@ def plot(*inputobj, **options):
     vmin = options.pop("vmin", None)
     vmax = options.pop("vmax", None)
     cmap = options.pop("cmap", None)
-    bands = options.pop("bands", None)
     scale = options.pop("scale", 1)
     scaleMeshFactors = options.pop("scaleMeshFactors", [1,1,1])
     shading = options.pop("shading", 'phong')
@@ -684,29 +684,33 @@ def plot(*inputobj, **options):
         if cmap and (actor.u_values is not None) and c is None:
             if u.value_rank() > 0: # will show the size of the vector
                 actor.pointColors(utils.mag(actor.u_values),
-                                  cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
+                                  cmap=cmap, vmin=vmin, vmax=vmax)
             else:
                 actor.pointColors(actor.u_values,
-                                  cmap=cmap, bands=bands, vmin=vmin, vmax=vmax)
+                                  cmap=cmap, vmin=vmin, vmax=vmax)
 
         if 'displace' in mode: actor.move(u)
 
         if scbar and c is None:
-            if 'h' in scbar:
-                actor.addScalarBar(horizontal=True,  vmin=vmin, vmax=vmax)
+            if '3d' in scbar:
+                actor.addScalarBar3D()
+            elif 'h' in scbar:
+                actor.addScalarBar(horizontal=True)
             else:
-                actor.addScalarBar(horizontal=False, vmin=vmin, vmax=vmax)
+                actor.addScalarBar(horizontal=False)
 
-        if warpZfactor:
-            scals = actor.getPointArray(0)
-            if len(scals):
-                pts_act = actor.points(copy=False)
-                pts_act[:, 2] = scals*warpZfactor*scaleMeshFactors[2]
         if warpYfactor:
-            scals = actor.getPointArray(0)
+            scals = actor.getPointArray()
             if len(scals):
                 pts_act = actor.points(copy=False)
                 pts_act[:, 1] = scals*warpYfactor*scaleMeshFactors[1]
+        if warpZfactor:
+            scals = actor.getPointArray()
+            if len(scals):
+                pts_act = actor.points(copy=False)
+                pts_act[:, 2] = scals*warpZfactor*scaleMeshFactors[2]
+        if warpYfactor or warpZfactor:
+            actor.points(pts_act)
 
         if len(isolns) > 0:
             ison = isolns.pop("n", 10)
@@ -902,7 +906,7 @@ def MeshPoints(*inputobj, **options):
                 dispsizes = utils.mag(u_values)
         else:  # u_values is 1D
             dispsizes = u_values
-        actor.addPointScalars(dispsizes, "u_values")
+        actor.addPointArray(dispsizes, "u_values")
     return actor
 
 
@@ -1022,7 +1026,7 @@ def MeshStreamLines(*inputobj, **options):
         u_values = np.insert(u_values, 2, 0, axis=1)  # make it 3d
 
     meshact = MeshActor(u)
-    meshact.addPointVectors(u_values, 'u_values')
+    meshact.addPointArray(u_values, 'u_values')
 
     if utils.isSequence(probes):
         pass # it's already it

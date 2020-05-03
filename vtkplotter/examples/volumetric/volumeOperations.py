@@ -11,20 +11,25 @@ from vtkplotter import *
 vp = Plotter(N=6)
 
 v0 = load(datadir+'embryo.slc').c(0)
-vp.show(v0, at=0)
+v0.addScalarBar3D()
+vp.show(v0, "original", at=0)
 
-v1 = v0.clone().operation("gradient")
-v1 = v1.operation("+", 92.0).c(1).alpha([0, 1, 0, 0, 0])
-vp.show(v1, at=1)
+v1 = v0.clone().operation("gradient").alpha([0,0,1,0,0,0,0])#.printHistogram(logscale=1)
+v1.addScalarBar3D()
+vp.show(v1, "gradient", at=1)
 
 v2 = v0.clone().operation("divergence").c(2)
-vp.show(v2, at=2)
+v2.addScalarBar3D()
+vp.show(v2, "divergence", at=2)
 
-v3 = v0.clone().operation("laplacian").c(3).alpha([0, 1, 0, 0, 1])
-vp.show(v3, at=3)
+v3 = v0.clone().operation("laplacian")#.c(3).alpha([0, 1, 0, 0, 1])
+v3.addScalarBar3D()
+vp.show(v3, "laplacian", at=3)
 
 v4 = v0.clone().operation("median").c(4)
-vp.show(v4, at=4)
+v4.addScalarBar3D()
+vp.show(v4, "median", at=4)
 
 v5 = v0.clone().operation("dot", v0).c(7)
-vp.show(v5, at=5, zoom=1.3, interactive=1)
+v5.addScalarBar3D()
+vp.show(v5, "dot(v0,v0)", at=5, zoom=1.3, interactive=1)

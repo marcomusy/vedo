@@ -11,7 +11,7 @@ import numpy as np
 import pyshtools
 
 from scipy.interpolate import griddata
-from vtkplotter import Points, load, mag, Text2D, show, spher2cart, datadir
+from vtkplotter import Points, load, mag, show, spher2cart, datadir
 print(__doc__)
 
 #############################################################
@@ -78,5 +78,6 @@ for i, long in enumerate(np.linspace(0, 360, num=agrid_reco_finer.shape[1], endp
 mesh2 = Points(pts2, r=2, c="r", alpha=0.5)
 mesh2.clean(0.01) # impose point separation of 1% of the bounding box size
 
-comment = Text2D('spherical harmonics\nexpansion of order '+str(lmax))
-show(mesh2, comment, at=1, interactive=True)
+show(mesh2,
+     'Spherical harmonics\nexpansion of order '+str(lmax),
+     at=1, interactive=True)

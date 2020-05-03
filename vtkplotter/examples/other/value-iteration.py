@@ -80,7 +80,7 @@ def printSolution(S, start, goal):
         print()
 
 def showSolution3D(S, start, goal):
-    from vtkplotter import Text2D, Text, Cube, Line, Grid, merge, show
+    from vtkplotter import Text, Cube, Line, Grid, merge, show
 
     pts, cubes, txts = [], [], []
     pts = [(x,-y) for y,x in S[0]]
@@ -97,7 +97,7 @@ def showSolution3D(S, start, goal):
     grd.lw(0).wireframe(False).cellColors(gradient, cmap='gist_earth_r')
     grd.addScalarBar(title='Gradient', horizontal=True, c='k', nlabels=2)
 
-    txts.append(Text2D(__doc__, c='k'))
+    txts.append(__doc__)
     txts.append(Text('Start', pos=[start[1]-1,-start[0]+1.5,1], c='k'))
     txts.append(Text('Goal!', pos=[goal[1] -2,-goal[0] -2.7,1], c='k'))
     show(path, walls, grd, txts, axes=0, zoom=1.2)

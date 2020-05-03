@@ -7,10 +7,11 @@ It injects a point source with a time-dependent source time function.
 #
 from __future__ import print_function, division
 from dolfin import *
-from vtkplotter.dolfin import plot, interactive, ProgressBar, printc, datadir
+from vtkplotter.dolfin import plot, interactive, ProgressBar, printc, datadir, settings
 import numpy as np
 set_log_level(30)
 
+#settings.autoResetScalarRange=True
 
 def ricker_source(t, f=40):
     t -= 2 / f
@@ -75,7 +76,7 @@ def awefem(mesh, t, source_loc=None):
         if t_>0.03:
             plot(u,
                  warpZfactor=20, # set elevation along z
-                 vmin=0,         # sets a minimum to the color scale
+                 vmin=.0,     # sets a minimum to the color scale
                  vmax=0.003,
                  cmap='rainbow', # the color map style
                  alpha=1,        # transparency of the mesh

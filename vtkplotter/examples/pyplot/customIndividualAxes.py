@@ -24,7 +24,7 @@ axes3.unpack('xNumericLabel7').scale(5).c('fuchsia')
 # By specifiyng axes in show(), new axes are
 #  created which span the whole bounding box.
 #  Options are passed through a dictionary
-show(pt, s1,axes1, s2,axes2, s3,axes3, Text2D(__doc__),
+show(pt, s1,axes1, s2,axes2, s3,axes3, __doc__,
      viewup='z',
      axes=dict(c='black',
                numberOfDivisions=10,

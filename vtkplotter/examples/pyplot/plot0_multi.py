@@ -1,6 +1,7 @@
 """Use of plot() function analogous to matplotlib"""
 import numpy as np, vtk
 from vtkplotter import *
+from vtkplotter.pyplot import plot
 
 x = np.linspace(0, 5, 10)
 

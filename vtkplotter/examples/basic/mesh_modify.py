@@ -1,6 +1,4 @@
-"""
-Modify mesh vertex positions.
-"""
+"""Modify mesh vertex positions"""
 from vtkplotter import *
 
 t = Text2D(__doc__)

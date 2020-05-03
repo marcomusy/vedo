@@ -1,5 +1,4 @@
-"""
-Make a icon to indicate orientation
+"""Make a icon to indicate orientation
 and place it in one of the 4 corners
 within the same renderer.
 """
@@ -22,6 +21,6 @@ vp.addIcon(elg, pos=2, size=0.06)
 plg = load(datadir+"images/vlogo_small.png")
 vp.addIcon(plg, pos=4, size=0.1) # 4=bottom-right
 
-vp += Text2D(__doc__, pos=8)
+vp += Text2D(__doc__, pos=8, s=0.8)
 
 vp.show(interactive=1)

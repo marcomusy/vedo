@@ -21,7 +21,7 @@ slits = slit1 + slit2
 # slits = [(cos(x)*4e-5, sin(x)*4e-5, 0) for x in arange(0,2*pi, .1)] # Arago spot
 # slits = Grid(sx=1e-4, sy=1e-4, resx=9, resy=9).points() # a square lattice
 
-vp = Plotter(title="The Double Slit Experiment", axes=9, verbose=0, bg="black")
+vp = Plotter(title="The Double Slit Experiment", axes=9, bg="black")
 
 screen = Grid(pos=[0, 0, -D], sx=0.1, sy=0.1, lw=0, resx=200, resy=50)
 screen.wireframe(False).phong()  # show it as a solid plane (not as wireframe)
@@ -49,6 +49,6 @@ vp += Grid(sx=0.1, sy=0.1, resx=6, resy=6, c="w", alpha=0.1)
 vp += Line([0, 0, 0], [0, 0, -D], c="w", alpha=0.1)
 vp += Text("source plane", pos=[-0.04, -0.05, 0], s=0.002, c="gray")
 vp += Text("detector plane D = "+str(D)+" m", pos=[-.04,-.05,-D+.001], s=.002, c="gray")
-vp += Text2D(__doc__, c="lb")
+vp += __doc__
 
 vp.show(zoom=1.1)

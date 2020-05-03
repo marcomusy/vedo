@@ -5,8 +5,6 @@ is shown with various orientation options
 from vtkplotter import *
 import numpy as np
 
-comment = Text2D(__doc__, c='w') # pick the above header as description
-
 s = Sphere(res=12).c('white').alpha(0.1).wireframe()
 
 randvs = np.random.rand(s.NPoints(), 3)  # random orientation vectors
@@ -32,4 +30,4 @@ gsphere2 = Glyph(s, gly2,
                  )
 
 # show two groups of objects on N=2 renderers:
-show([(s, gsphere1, comment), (s, gsphere2)], N=2, bg='bb', zoom=1.4)
+show([(s, gsphere1, __doc__), (s, gsphere2)], N=2, bg='bb', zoom=1.4)

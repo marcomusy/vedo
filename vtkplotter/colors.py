@@ -447,11 +447,8 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
         values = np.clip(values, vmin, vmax)
         values -= vmin
         values = values / (vmax - vmin)
-        cols = []
         mp = cm_mpl.get_cmap(name=name)
-        for v in values:
-            cols.append(mp(v)[0:3])
-        return np.array(cols)
+        return mp(values)[:,[0,1,2]]
     else:
         value -= vmin
         value /= vmax - vmin

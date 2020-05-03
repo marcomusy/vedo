@@ -8,7 +8,7 @@
       <Geometry GeometryType="XYZ">
         <DataItem Dimensions="125 3" Format="HDF">dolfin_cube.h5:/Mesh/mesh/geometry</DataItem>
       </Geometry>
-      <Attribute Name="f_14" AttributeType="Scalar" Center="Node">
+      <Attribute Name="f_5" AttributeType="Scalar" Center="Node">
         <DataItem Dimensions="125 1" Format="HDF">dolfin_cube.h5:/VisualisationVector/0</DataItem>
       </Attribute>
     </Grid>

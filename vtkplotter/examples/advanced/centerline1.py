@@ -20,4 +20,4 @@ for i in range(niter):
 # reduce nr of points by imposing a min distance
 t.clean(tol)
 
-show(tube, t, Text2D(__doc__), axes=1, bg='bb', newPlotter=True)
+show(tube, t, __doc__, axes=1, bg='bb', newPlotter=True)

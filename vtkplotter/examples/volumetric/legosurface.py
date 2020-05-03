@@ -14,8 +14,6 @@ vol.crop(back=0.5) # crop 50% from neg. y
 lego = vol.legosurface(vmin=60, cmap='seismic')
 
 # make colormap start at 40
-lego.addScalarBar(vmin=40, horizontal=1, c='k')
+lego.addScalarBar(horizontal=True, c='k')
 
-comment = Text2D(__doc__, c='k')
-
-show(lego, comment, axes=1, viewup='z')
+show(lego, __doc__, axes=1, viewup='z')

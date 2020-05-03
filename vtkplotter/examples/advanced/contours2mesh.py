@@ -18,6 +18,6 @@ for i in range(len(cs) - 1):
     rbs.append(rb)
 mesh = merge(rbs).clean().cap().color('limegreen')
 
-cs.append(Text2D(__doc__))
+cs.append(__doc__)
 
 show([cs, mesh], N=2, axes=1, elevation=-40, bg2='lb')

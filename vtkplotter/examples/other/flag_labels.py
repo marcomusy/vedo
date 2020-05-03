@@ -20,4 +20,4 @@ c = Cube(side=0.2).x(0.3).flag('my cube\nlabel')
 
 #s.flag(False) #disable
 
-show(s, c, Text2D(__doc__))
+show(s, c, __doc__)

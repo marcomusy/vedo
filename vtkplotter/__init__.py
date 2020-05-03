@@ -30,13 +30,12 @@ from vtkplotter.version import _version as __version__
 from vtkplotter.animation import Animation
 from vtkplotter.plotter import *
 from vtkplotter.analysis import *
-from vtkplotter.pyplot import *
 from vtkplotter.shapes import *
 from vtkplotter.vtkio import *
 
 from vtkplotter.base import ActorBase
 from vtkplotter.assembly import Assembly
-from vtkplotter.mesh import Mesh, merge, Actor # Actor is obsolete
+from vtkplotter.mesh import Mesh, merge
 from vtkplotter.picture import Picture
 from vtkplotter.volume import Volume
 

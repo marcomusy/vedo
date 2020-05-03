@@ -1,7 +1,6 @@
-"""
-Create an animated logo.
-"""
+"""Create an animated logo"""
 from vtkplotter import *
+from vtkplotter.pyplot import histogram
 
 exa = Polygon().scale(4.1).pos(5.25, 4.8, 0).off()
 his = histogram([-1, 1], [-1, 1], mode='hex').unpack()

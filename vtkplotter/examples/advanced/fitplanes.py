@@ -5,9 +5,10 @@ Black points are the N points used for fitting.
 Green histogram is the distribution of residuals from the fitting.
 """
 from vtkplotter import *
+from vtkplotter.pyplot import histogram
 
 vp = Plotter()
-vp += Text2D(__doc__)
+vp += __doc__
 
 s = load(datadir+"cow.vtk").subdivide().normalize().alpha(0.3)
 vp += s

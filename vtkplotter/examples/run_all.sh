@@ -42,6 +42,10 @@ echo vtkplotter  data/2*.vtk
 vtkplotter       data/2*.vtk
 
 echo '----------------------------'
+echo vtkplotter  data/2*.vtk
+vtkplotter  -ni  data/2*.vtk
+
+echo '----------------------------'
 echo vtkplotter  data/embryo.tif
 vtkplotter       data/embryo.tif
 
@@ -69,18 +73,9 @@ vtkplotter
 # python basic/closewindow.py
 # python basic/lights.py
 # python basic/multiblocks.py
-# python basic/kspline.py
-# python advanced/pointsCutMesh2.py
-# python simulations/tunnelling1.py
-# python pyplot/text_just.py
 # python other/animation1.py
 # python other/animation2.py
-# python other/qt_tabs_ui.py
-# python other/remesh_meshfix.py
 # python other/pygmsh_extrude.py
 # python other/voronoi3d.py
 # python other/makeVideo.py
 # python other/spherical_harmonics2.py
-# python other/remesh_ACVD.py
-# python other/tf_learn_embryo.py
-# python other/self_org_maps3d.py

@@ -1,7 +1,7 @@
 """A uniform distribution on a plane
 is not uniform on a sphere"""
 import numpy as np
-from vtkplotter import histogram
+from vtkplotter.pyplot import histogram
 
 phi = np.random.rand(1000)*6.28
 the = np.random.rand(1000)*3.14

@@ -1,5 +1,4 @@
-"""
-Thin Plate Spline transformations describe a nonlinear warp
+"""Thin Plate Spline transformations describe a nonlinear warp
 transform defined by a set of source and target landmarks.
 Any point on the mesh close to a source landmark will
 be moved to a place close to the corresponding target landmark.
@@ -29,4 +28,4 @@ warped.alpha(0.4).color("b")
 
 apts = Points(ptsource, r=15, c="r")
 
-show(mesh, warped, apts, Text2D(__doc__), viewup="z", axes=1)
+show(mesh, warped, apts, __doc__, viewup="z", axes=1)

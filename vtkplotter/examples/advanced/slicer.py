@@ -1,8 +1,8 @@
 """Use sliders to slice volume
 Click button to change colormap
 """
-from vtkplotter import datadir,load,Text2D
-from vtkplotter.applications import slicer
+from vtkplotter import datadir, load, addons, show, Text2D
+from vtkplotter.applications import Slicer
 
 filename = datadir+'embryo.slc'
 #filename = datadir+'embryo.tif'
@@ -10,7 +10,7 @@ filename = datadir+'embryo.slc'
 
 vol = load(filename)#.printInfo()
 
-plt = slicer(vol,
+plt = Slicer(vol,
              bg='white', bg2='lightblue',
              cmaps=("gist_ncar_r","jet","Spectral_r","hot_r","bone_r"),
              useSlider3D=False,

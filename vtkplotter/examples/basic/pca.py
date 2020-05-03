@@ -21,4 +21,4 @@ print("inside  points #", inpcl.NPoints() )
 print("outside points #", outpcl.NPoints() )
 print("asphericity:", elli.asphericity(), '+-', elli.asphericity_error())
 
-show(elli, inpcl, outpcl, Text2D(__doc__), axes=1)
+show(elli, inpcl, outpcl, __doc__, axes=1)

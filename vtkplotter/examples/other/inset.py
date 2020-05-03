@@ -1,5 +1,4 @@
-"""
-Renderer meshes into insets.
+"""Renderer meshes into insets
 (can be dragged)
 """
 from vtkplotter import *
@@ -8,9 +7,8 @@ vp = Plotter(axes=1)
 
 e = load(datadir+"embryo.tif", threshold=True) # automatic isosurfacing
 e.normalize().c("gold")
-msg = Text2D(__doc__)
 
-vp.show(e, msg, viewup='z', interactive=0)
+vp.show(e, __doc__, viewup='z', interactive=0)
 
 e1 = e.clone().cutWithPlane(normal=[1,0,0]).c("red")
 e2 = e.clone().cutWithPlane(normal=[0,1,0]).c("pink")

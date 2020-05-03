@@ -7,23 +7,23 @@
 # Adapted for vtkplotter by Marco Musy (2020)
 # -----------------------------------------------------------------------------
 import numpy as np
-from vtkplotter import Grid, interactive
+from vtkplotter import Grid, Latex, show, interactive
 
-# -----------------------------------------------------
+# ---------------------------------------------------------------
 Nsteps = 300
 n = 200 # grid subdivisions
-# Du, Dv, F, k = 0.16, 0.08, 0.035, 0.065  # Bacteria 1
-# Du, Dv, F, k = 0.14, 0.06, 0.035, 0.065  # Bacteria 2
-# Du, Dv, F, k = 0.16, 0.08, 0.060, 0.062  # Coral
-# Du, Dv, F, k = 0.19, 0.05, 0.060, 0.062  # Fingerprint
-# Du, Dv, F, k = 0.10, 0.10, 0.018, 0.050  # Spirals
-# Du, Dv, F, k = 0.12, 0.08, 0.020, 0.050  # Spirals Dense
-# Du, Dv, F, k = 0.10, 0.16, 0.020, 0.050  # Spirals Fast
-# Du, Dv, F, k = 0.16, 0.08, 0.020, 0.055  # Unstable
-# Du, Dv, F, k = 0.16, 0.08, 0.050, 0.065  # Worms 1
-# Du, Dv, F, k = 0.16, 0.08, 0.054, 0.063  # Worms 2
-Du, Dv, F, k = 0.16, 0.08, 0.035, 0.060  # Zebrafish
-# -----------------------------------------------------
+#Du, Dv, F, k, name = 0.16, 0.08, 0.035, 0.065, 'Bacteria 1'
+#Du, Dv, F, k, name = 0.14, 0.06, 0.035, 0.065, 'Bacteria 2'
+#Du, Dv, F, k, name = 0.16, 0.08, 0.060, 0.062, 'Coral'
+#Du, Dv, F, k, name = 0.19, 0.05, 0.060, 0.062, 'Fingerprint'
+#Du, Dv, F, k, name = 0.10, 0.10, 0.018, 0.050, 'Spirals'
+#Du, Dv, F, k, name = 0.12, 0.08, 0.020, 0.050, 'Spirals Dense'
+#Du, Dv, F, k, name = 0.10, 0.16, 0.020, 0.050, 'Spirals Fast'
+#Du, Dv, F, k, name = 0.16, 0.08, 0.020, 0.055, 'Unstable'
+#Du, Dv, F, k, name = 0.16, 0.08, 0.050, 0.065, 'Worms 1'
+#Du, Dv, F, k, name = 0.16, 0.08, 0.054, 0.063, 'Worms 2'
+Du, Dv, F, k, name = 0.16, 0.08, 0.035, 0.060, 'Zebrafish'
+# ---------------------------------------------------------------
 
 
 Z = np.zeros((n+2, n+2), [('U', np.double), ('V', np.double)])
@@ -40,9 +40,12 @@ v += 0.05*np.random.uniform(-1, 1, (n, n))
 sy, sx = V.shape
 grd = Grid(sx=sx, sy=sy, resx=sx, resy=sy)
 grd.lineWidth(0).wireframe(False).lighting(ambient=0.5)
+formula = r'(u,v)=(D_u\cdot\Delta u -u v v+F(1-u), D_v\cdot\Delta v +u v v -(F+k)v)'
+ltx = Latex(formula, s=15, pos=(0,-sy/1.9,0))
+print('Du, Dv, F, k, name =', Du, Dv, F, k, name)
 
 for step in range(Nsteps):
-    for i in range(20):
+    for i in range(25):
         Lu = (                  U[0:-2, 1:-1] +
               U[1:-1, 0:-2] - 4*U[1:-1, 1:-1] + U[1:-1, 2:] +
                                 U[2:  , 1:-1])
@@ -50,12 +53,13 @@ for step in range(Nsteps):
               V[1:-1, 0:-2] - 4*V[1:-1, 1:-1] + V[1:-1, 2:] +
                                 V[2:  , 1:-1])
         uvv = u*v*v
-        u += (Du*Lu - uvv + F*(1-u))
-        v += (Dv*Lv + uvv - (F+k)*v)
+        u += Du*Lu - uvv + F*(1-u)
+        v += Dv*Lv + uvv - (F+k)*v
 
-    vvals = np.flip(V, axis=0).ravel()
-    grd.cellColors(vvals, cmap='ocean_r').mapCellsToPoints()
-    newpts = np.c_[grd.points()[:,[0,1]], grd.getPointArray('cellColors')*20]
-    grd.points(newpts).show(axes=9, zoom=1.3, elevation=-.15, interactive=False)
+    grd.cellColors(V.ravel(), cmap='ocean_r').mapCellsToPoints()
+    newpts = grd.points()
+    newpts[:,2] = grd.getPointArray('CellScalars')*25 # assign z
+    grd.points(newpts) # set the new points
+    show(ltx, grd, zoom=1.25, elevation=-.15, bg='linen', interactive=False)
 
 interactive()

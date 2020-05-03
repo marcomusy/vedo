@@ -70,6 +70,7 @@ setup(
 # cd ~/Projects/vtkplotter/
 # sudo -H pip install . -U
 # python ~/Projects/vtkplotter/examples/tutorial.py
+# python ~/Dropbox/documents/ExamenesMedicos/RESONANCIA.py
 
 # check notebooks:
 # cd ~/Projects/vtkplotter/notebooks/
@@ -80,10 +81,7 @@ setup(
 # rm -rf examples/other/dolfin/navier_stokes_cylinder/ examples/other/dolfin/shuttle.xml
 # rm examples/other/trimesh/featuretype.STL examples/other/trimesh/machinist.XAML
 # rm examples/other/scene.npy examples/other/timecourse1d.npy vtkplotter/data/290.ply
-# rm examples/other/voronoi3d.txt examples/other/voronoi3d.txt.vol
 # rm examples/other/embryo.html examples/other/embryo.x3d
-
-# comment out defs in docs.py
 
 # git status
 # git add [files]
@@ -113,6 +111,8 @@ setup(
 #
 # mount_staging
 # cp -r build/html/* ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/
+# comment out defs in docs.py
+
 # version bump vtkplotter/version.py
 
 ## to generate gif: ezgif.com

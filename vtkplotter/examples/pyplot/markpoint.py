@@ -12,4 +12,4 @@ tx2 = Text("Follower Text", sp.points(144), s=0.07, c="lg")
 plt.show(sp)
 tx2.followCamera() # a vtkCamera can also be passed as argument
 
-plt.show(sp, tx1, tx2, Text2D(__doc__, c='w'), interactive=1)
+plt.show(sp, tx1, tx2, __doc__, interactive=1)

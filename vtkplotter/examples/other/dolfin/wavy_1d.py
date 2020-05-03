@@ -61,6 +61,9 @@ for i in range(nt):
     solve(a==L, uh, [bc1, bc2])
     uk1, uk2 = uh.split()
     un.assign(uh)
+#    
+#    plot(uk1, warpYfactor=.0)
+#    exit()
 
     if not i%4:
         plot(uk1, frame,

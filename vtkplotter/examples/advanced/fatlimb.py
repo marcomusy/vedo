@@ -11,7 +11,7 @@ s = vp.load(datadir+"290.vtk").subdivide()
 s.c("red").bc("lightblue")
 
 cn = s.centerOfMass()
-vp += [Point(cn), Text2D(__doc__, c="k")]
+vp += [Point(cn), __doc__]
 
 Niter = 4
 for t in range(Niter):

@@ -26,7 +26,7 @@ end = int(len(mesh.vertices) / 2.0)
 path = nx.shortest_path(g, source=start, target=end, weight="length")
 
 ################################### VISUALIZE RESULT
-from vtkplotter import Text2D, show
+from vtkplotter import show
 
 # make the sphere transparent-ish
 mesh.visual.face_colors = [100, 100, 100, 100]
@@ -37,6 +37,6 @@ path_visual = trimesh.load_path(mesh.vertices[path])
 # visualizable two points
 points_visual = trimesh.points.PointCloud(mesh.vertices[[start, end]])
 
-txt = Text2D('Shortest path query\nusing length for edge weight', c='blue')
+txt = 'Shortest path query\nusing length for edge weight'
 
 show(mesh, points_visual, path_visual, txt, axes=6)

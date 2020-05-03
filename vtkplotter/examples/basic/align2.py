@@ -22,7 +22,7 @@ aligned_pts1 = alignICP(vpts1, vpts2)
 # draw arrows to see where points end up
 arrows = Arrows(pts1, aligned_pts1, s=0.7, alpha=0.2).c("k")
 
-show(vpts1, vpts2, Text2D(__doc__), at=0, N=2, axes=1)
+show(vpts1, vpts2, __doc__, at=0, N=2, axes=1)
 
 show(aligned_pts1, arrows, vpts2, at=1, interactive=1)
 

@@ -1,6 +1,5 @@
 """Load an existing vtkStructuredGrid and draw
-the streamlines of the velocity field
-"""
+the streamlines of the velocity field"""
 import vtk
 from vtkplotter import *
 
@@ -20,7 +19,6 @@ probe= Grid(pos=[9,0,30], normal=[1,0,0], sx=5, sy=5, resx=6, resy=6)
 
 stream = streamLines(domain, probe, direction='backwards')
 
-comment = Text2D(__doc__, c='w')
 box = Mesh(domain).alpha(0.1)
 
-show(stream, probe, box, comment, axes=8, bg='bb')
+show(stream, probe, box, __doc__, axes=8, bg='bb')

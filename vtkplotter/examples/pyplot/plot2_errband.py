@@ -1,6 +1,7 @@
 """Plotting functions with error bands"""
 import numpy as np
 from vtkplotter import *
+from vtkplotter.pyplot import plot
 
 # Make up same data
 x = np.arange(0, 6, 0.1)

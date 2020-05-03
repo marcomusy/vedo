@@ -1,19 +1,19 @@
-"""
-Probe a voxel dataset at specified points
+"""Probe a voxel dataset at specified points
 and plot a histogram of the values
 """
 from vtkplotter import *
+from vtkplotter.pyplot import histogram
 import numpy as np
 
 vol = load(datadir+'embryo.slc')
 
-pts = np.random.rand(2000, 3)*256
+pts = np.random.rand(4000, 3)*256
 
-mpts = probePoints(vol, pts).pointSize(3)
+mpts = probePoints(vol, pts).pointSize(3).printInfo()
 
-scals = mpts.getPointArray() # the list of scalars
+scals = mpts.getPointArray()
 
 h = histogram(scals, xlim=(5,120), xtitle='voxel value')
 h.scale(2.2)
 
-show(vol, mpts, h, Text2D(__doc__))
+show(vol, mpts, h, __doc__)

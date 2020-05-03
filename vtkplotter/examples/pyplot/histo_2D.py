@@ -1,5 +1,6 @@
 """Histogram of 2 variables"""
 from vtkplotter import *
+from vtkplotter.pyplot import histogram
 import numpy as np
 
 n = 10000

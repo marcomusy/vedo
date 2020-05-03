@@ -1,5 +1,6 @@
 """A simple scatter plot"""
-from vtkplotter import plot, show, Text2D
+from vtkplotter import show
+from vtkplotter.pyplot import plot
 import numpy as np
 
 x = np.random.randn(100)+10
@@ -17,4 +18,4 @@ plt = plot( x, y,
 
 # show Assembly object and lock interaction to 2d:
 # (can zoom in a region w/ mouse, press r to reset)
-show(plt, Text2D(__doc__), viewup='2d')
+show(plt, __doc__, viewup='2d')

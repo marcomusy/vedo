@@ -15,9 +15,12 @@ filename = vtkplotter.download(url + 'machinist.XAML')
 
 mesh = trimesh.load(filename)
 
-vmesh = trimesh2vtk(mesh) # returns a Mesh(vtkActor) object from Trimesh
 vtkplotter.show(mesh) # vtkplotter visualizer (conversion is on the fly)
 
+
+# explicit conversion
+vmesh = trimesh2vtk(mesh) # returns a vtkplotter.Mesh(vtkActor) object
 trimsh_reconverted = vtk2trimesh(vmesh)
+
 trimsh_reconverted.show() # this is the trimesh built-in visualizer
 

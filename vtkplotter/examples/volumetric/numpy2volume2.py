@@ -7,7 +7,9 @@ data_matrix[0:35,   0:35,  0:35] = 1
 data_matrix[35:55, 35:55, 35:55] = 2
 data_matrix[55:74, 55:74, 55:74] = 3
 
-from vtkplotter import Volume, Text2D, show
+from vtkplotter import Volume, show
 
 vol = Volume(data_matrix, c=['white','b','g','r'])
-show(vol, Text2D(__doc__), axes=1)
+vol.addScalarBar3D()
+
+show(vol, __doc__, axes=1)

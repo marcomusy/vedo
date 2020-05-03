@@ -13,6 +13,6 @@ show(s,
      sx, sx.silhouette(),
      sy, sy.silhouette(),
      sz, sz.silhouette(),
-     Text2D(__doc__),
+     __doc__,
      axes={'zxGrid':True},
      viewup='z')

@@ -27,7 +27,7 @@ Because life is short.
   * [Command Line Interface](https://github.com/marcomusy/vtkplotter#command-line-interface)
   * [Graphic User Interface](https://github.com/marcomusy/vtkplotter#graphic-user-interface)
 * [Examples](https://github.com/marcomusy/vtkplotter#-examples)
-  * [Gallery](https://github.com/marcomusy/vtkplotter#-gallery)
+  * [Gallery](https://github.com/marcomusy/vtkplotter#-random-gallery)
 * [References](https://github.com/marcomusy/vtkplotter#-references)
 
 
@@ -176,28 +176,34 @@ Moreover:
 
 
 ## ⌨ Command Line Interface
-Visualize a mesh from a terminal window with:
+Visualize a polygonal mesh from a terminal window with:
 ```bash
 vtkplotter mesh.obj
 # valid formats: [vtk,vtu,vts,vtp,vtm,ply,obj,stl,3ds,dolfin-xml,neutral,gmsh,
 #                 pcd,xyz,txt,byu,tif,off,slc,vti,mhd,dcm,dem,nrrd,nii,bmp,png,jpg]
 ```
-Voxel-data (_mhd, vti, slc, tiff, dicom etc.._) files can be visualized with options `-g`. E.g.:<br>
-`vtkplotter -g embryo.slc`<br>
+Voxel-data (_mhd, vti, slc, tiff, dicom etc.._) files can be visualized with options:<br>
 
-![isohead](https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif)
+|Use sliders to slice a volume in the 3 planes:<br>`vtkplotter --slicer embryo.slc`|  Ray-casting rendering:<br>`vtkplotter -g embryo.slc`|
+|:--------|:-----|
+| ![slicer](https://user-images.githubusercontent.com/32848391/80292484-50757180-8757-11ea-841f-2c0c5fe2c3b4.jpg)|![isohead](https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif)|
+
+
+<br>
 
 To visualize multiple files or files time-sequences try `-n` or `-s` options. Use `-h` for the complete list of options.
 
-| Use a slider to control isosurfacing of a volume:|  Load and browse a sequence of meshes:| Slice a 3D volume with a plane:| Visualize colorized voxels:|
+| Interactive volume isosurfacing:|  Load and browse a sequence of meshes:| Slice a 3D volume with a plane:| Visualize colorized voxels:|
 |:--------|:-----|:----|:----|
-|`vtkplotter head.vti` |`vtkplotter -s *.vtk` |`vtkplotter `<br>`--slicer embr.slc` |   `vtkplotter --lego embryo.slc`|
+|`vtkplotter head.vti` |`vtkplotter -s *.vtk` |`vtkplotter `<br>`--slicer2d em.slc` |   `vtkplotter --lego embryo.slc`|
 |![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif)|   ![viz_raycast](https://user-images.githubusercontent.com/32848391/58336919-f7b1a080-7e44-11e9-9106-f574371093a8.gif)  | ![viz_slicer](https://user-images.githubusercontent.com/32848391/56972084-a7f3f800-6b6a-11e9-98c4-dc4ffec70a5e.png)  |![lego](https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg) |
 
-### 🖥 Graphic User Interface
-A Graphic User Interface is available (mainly useful to *Windows 10* users):
+## 🖥 Graphic User Interface
+<details>
+<summary>A GUI is available (mainly useful to *Windows 10* users)</summary>
 
 ![gui](https://user-images.githubusercontent.com/32848391/63259840-c861d280-c27f-11e9-9c2a-99d0fae85313.png)
+</details>
 
 ## 🐾 Examples
 **More than 300 working examples can be found in directories** _(scroll down to see thumbnails):_ <br>
@@ -209,7 +215,7 @@ A Graphic User Interface is available (mainly useful to *Windows 10* users):
 [**examples/other**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other)<br>
 [**examples/other/dolfin**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin)<br>
 [**examples/other/trimesh**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/trimesh)<br>
-[**examples/notebooks**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/notebooks).<br>
+[**examples/notebooks**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/notebooks).<br>
 
 |         |      |
 |:--------|:-----|
@@ -221,12 +227,12 @@ A Graphic User Interface is available (mainly useful to *Windows 10* users):
 
 <br>
 
-### Gallery
-Run any of the built-in examples with command:
+### Random Gallery
+Run any of the built-in examples from command line, e.g.:
 
-`vtkplotter -ir  covid19`
+`vtkplotter -ir  grayscott`
 
-![covid](https://user-images.githubusercontent.com/32848391/77330206-4824b380-6d1f-11ea-9bc3-e3aef970dcc2.gif)
+![covid](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)
 
 
 More examples *(press spacebar to continue or `F1` to interrupt execution)*:
@@ -235,6 +241,7 @@ More examples *(press spacebar to continue or `F1` to interrupt execution)*:
 
 |     |     |     |     |
 |:---:|:---:|:---:|:---:|
+| ![covid](https://user-images.githubusercontent.com/32848391/77330206-4824b380-6d1f-11ea-9bc3-e3aef970dcc2.gif) <br>`covid19`| ![lineage_graph](https://user-images.githubusercontent.com/32848391/80291851-8152a800-8751-11ea-893e-4a0bb85397b1.png) <br>`lineage_graph` |![siluette](https://user-images.githubusercontent.com/32848391/57179369-8e5df380-6e7d-11e9-99b4-3b1a120dd375.png) <br>`silhouette1`  | ![levelterrain](https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png)<br>`isolines`|
 | ![gyro](https://user-images.githubusercontent.com/32848391/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif) <br>`gyroscope2` | ![thinplate_grid](https://user-images.githubusercontent.com/32848391/51433540-d188b380-1c4c-11e9-81e7-a1cf4642c54b.png ) <br>`thinplate_grid`  | ![trail](https://user-images.githubusercontent.com/32848391/58370826-4aee2680-7f0b-11e9-91e6-3120770cfede.gif) <br>`trail`   | ![quadratic_morphing](https://user-images.githubusercontent.com/32848391/50738890-db380300-11d8-11e9-9cef-4c1276cca334.jpg)  <br>`quadratic_morphing`  |
 | ![shrink](https://user-images.githubusercontent.com/32848391/46819143-41042280-cd83-11e8-9492-4f53679887fa.png) <br>`shrink` | ![mesh_custom](https://user-images.githubusercontent.com/32848391/51390972-20d9c180-1b31-11e9-955d-025f1ef24cb7.png) <br>`mesh_custom`   | ![spring](https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif) <br>`spring`   | ![lorenz](https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png) <br>`lorentz`   |
 | ![sliders](https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg) <br>`sliders` | ![fitspheres1](https://user-images.githubusercontent.com/32848391/50738943-687b5780-11d9-11e9-87a6-054e0fe76241.jpg) <br>`fitspheres1`   | ![fxy](https://user-images.githubusercontent.com/32848391/36611824-fd524fac-18d4-11e8-8c76-d3d1b1bb3954.png) <br>`plot4_fxy`   | ![histogram](https://user-images.githubusercontent.com/32848391/68141260-77cc4e00-ff2d-11e9-9280-0efc5b87314d.png) <br>`histo_1D`   |

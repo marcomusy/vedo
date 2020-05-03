@@ -8,7 +8,7 @@ plt = Plotter(bg='lightblue', interactive=False)
 
 s = load(datadir+'shark.ply')
 s.alpha(0.1).c('gray').lw(0.1).lc('red')
-plt.show(s, Text2D(__doc__))
+plt.show(s, __doc__)
 
 sil = vtk.vtkPolyDataSilhouette()
 sil.SetInputData(s.polydata())

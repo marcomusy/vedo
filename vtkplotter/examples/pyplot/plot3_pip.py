@@ -1,7 +1,6 @@
-"""
-Picture in picture plotting
-"""
-from vtkplotter import plot, show
+"""Picture in picture plotting"""
+from vtkplotter import show
+from vtkplotter.pyplot import plot
 import numpy as np
 
 x = np.arange(0, 4, 0.1)

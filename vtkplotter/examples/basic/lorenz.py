@@ -1,3 +1,5 @@
+"""The Lorenz attractor is a set of chaotic solutions of
+a particular system of ordinary differential equations"""
 import numpy as np
 
 dt = 0.002
@@ -18,12 +20,13 @@ for t in np.linspace(0, 20, int(20 / dt)):
     pts.append(y)
 
 
-from vtkplotter import Plotter, Line, Point, Points, settings
+from vtkplotter import *
 settings.renderPointsAsSpheres = False # render points as squares
 
-scene = Plotter(title="Lorenz attractor", axes=1, verbose=0)
+scene = Plotter(title="Lorenz attractor", axes=1)
 scene += Point(y, r=10, c="g") # end point
 scene += Points(pts, r=3, c=cols)
 scene += Line(pts).off().addShadow(x=3) # only show shadow, not line
 scene += Line(pts).off().addShadow(z=-30)
+scene += __doc__
 scene.show(viewup='z')

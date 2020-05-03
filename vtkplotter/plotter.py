@@ -954,11 +954,6 @@ class Plotter:
                     vols.append(a)
             return vols
 
-    def getActors(self, obj=None, renderer=None):
-        """Obsolete. Please use getMeshes()"""
-        colors.printc("getActors is obsolete, use getMeshes() instead.", box='=', c=1)
-        raise RuntimeError
-
     def getMeshes(self, obj=None, renderer=None):
         """
         Return a list of Meshes (which may include Volume objects too).
@@ -1084,21 +1079,25 @@ class Plotter:
                                intensity, removeOthers, showsource)
 
     def addSlider2D(self, sliderfunc, xmin, xmax,
-                    value=None, pos=4, title="", c=None, showValue=True):
+                    value=None, pos=4, title="", font='arial', titleSize=1, c=None,
+                    showValue=True):
         """Add a slider widget which can call an external custom function.
 
         :param sliderfunc: external function to be called by the widget
         :param float xmin:  lower value
         :param float xmax:  upper value
         :param float value: current value
-        :param list pos:  position corner number: horizontal [1-4] or vertical [11-14]
-                            it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
+        :param list pos: position corner number: horizontal [1-5] or vertical [11-15]
+            it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
         :param str title: title text
+        :param float titleSize: title text scale [1.0]
+        :param str font: title font [arial, courier]
         :param bool showValue:  if true current value is shown
 
         |sliders| |sliders.py|_
         """
-        return addons.addSlider2D(sliderfunc, xmin, xmax, value, pos, title, c, showValue)
+        return addons.addSlider2D(sliderfunc, xmin, xmax, value,
+                                  pos, title, font, titleSize, c, showValue)
 
     def addSlider3D(
         self,
@@ -1423,8 +1422,13 @@ class Plotter:
                 elif isinstance(a, vtk.vtkBillboardTextActor3D):
                     scannedacts.append(a)
 
-                elif isinstance(a, str):  # assume a filepath was given
-                    out = vtkio.load(a)
+                elif isinstance(a, str):  # assume a filepath or 2D comment was given
+                    import os.path
+                    if "." in a and ". " not in a and os.path.isfile(a):
+                        out = vtkio.load(a)
+                    else:
+                        from vtkplotter.shapes import Text2D
+                        out = Text2D(a, pos=3)
                     scannedacts.append(out)
 
                 elif isinstance(a, vtk.vtkMultiBlockDataSet):
@@ -1437,8 +1441,7 @@ class Plotter:
 
                 elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
                     from vtkplotter.dolfin import MeshActor
-                    out = MeshActor(a)
-                    scannedacts.append(out)
+                    scannedacts.append(MeshActor(a))
 
                 elif "trimesh" in str(type(a)):
                     from vtkplotter.utils import trimesh2vtk
@@ -1501,7 +1504,6 @@ class Plotter:
         else:
             if settings.notebookBackend:
                 colors.printc("Error in show(): multiple renderings not supported in notebooks.", c=1)
-                colors.printc("                 Please set N=1.", c=1)
             else:
                 colors.printc("Error in show(): wrong renderer index", at, c=1)
             return self
@@ -1624,8 +1626,8 @@ class Plotter:
             addons.addRendererFrame(c=settings.rendererFrameColor)
 
         if not self.initializedIren and self.interactor:
-            self.initializedIren = True
             self.interactor.Initialize()
+            self.initializedIren = True
             self.interactor.RemoveObservers("CharEvent")
 
             if self.verbose and self.interactive:
@@ -1739,6 +1741,7 @@ class Plotter:
 
         if q:  # exit python
             if self.verbose:
+                if not self.interactive: self.interactor.Start()
                 print("q flag set to True.  Exit python session.")
             sys.exit(0)
 

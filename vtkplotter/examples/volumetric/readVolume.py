@@ -1,6 +1,5 @@
 """Show Volume and Mesh objects
-in the same rendering window.
-"""
+in the same rendering window."""
 from vtkplotter import *
 
 # Build a vtkVolume object.
@@ -9,16 +8,16 @@ from vtkplotter import *
 #  E.g.: setting alpha=[0, 0, 0, 1, 0, 0, 0] would make visible
 #  only voxels with value close to center of the range (see printed histogram).
 vol = load(datadir+'embryo.slc', spacing=[1, 1, 1]) # returns Volume(vtkVolume)
-vol.color(["green", "pink", "blue"]).alpha([0, 0, 0.2, 0.5, 0.9])
+vol.color(["green", "pink", "blue"])
+vol.alpha([0, 0, 0.2, 0.5, 0.9])
 
-printHistogram(vol, logscale=True)
+vol.addScalarBar3D(title='color*alpha transfer function')
+vol.printHistogram(logscale=True)
 
 # can relocate volume in space:
 # vol.scale(0.3).pos([-1,1,0]).rotate(90, axis=[0,1,1])
 
 sph = Sphere(pos=(100, 100, 100), r=20)  # add a dummy surface
 
-doc = Text2D(__doc__, c="k")
-
 # show both Volume and Mesh
-show(vol, sph, doc, axes=1, verbose=0, zoom=1.2)
+show(vol, sph, __doc__, axes=1, zoom=1.2)

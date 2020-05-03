@@ -1,6 +1,5 @@
-"""Customizing axes style
-(30 control parameters)"""
-from vtkplotter import Box, Text2D, show
+"""Customizing axes style (30 control parameters)"""
+from vtkplotter import Box, show
 
 #an invisible box:
 box = Box(pos=(2.4,0,0), length=12, width=10, height=8).alpha(0)
@@ -46,5 +45,5 @@ axes_opts = dict(
     xLabelOffset= -0.05, # offset of numeric labels
 )
 
-show(box, Text2D(__doc__), axes=axes_opts)
+show(box, __doc__, axes=axes_opts)
 
