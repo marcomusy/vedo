@@ -61,9 +61,9 @@ for i, long in enumerate(np.linspace(0, 360, num=agrid_reco.shape[1], endpoint=T
         ll.append((lat, long))
 
 radii = agrid_reco.T.ravel()
-n = 250j
+n = 200j
 lnmin, lnmax = np.array(ll).min(axis=0), np.array(ll).max(axis=0)
-grid = np.mgrid[lnmax[0]:lnmin[0]:(n), lnmin[1]:lnmax[1]:(n + 1j)]
+grid = np.mgrid[lnmax[0]:lnmin[0]:n, lnmin[1]:lnmax[1]:n]
 grid_x, grid_y = grid
 agrid_reco_finer = griddata(ll, radii, (grid_x, grid_y), method='cubic')
 

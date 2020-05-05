@@ -19,7 +19,7 @@ vol.c(["maroon","g","b"]).alpha([0.3, 0.9])  # set color/opacity transfer functi
 vol.addScalarBar3D(sy=1, title='height is the scalar').rotateX(90).pos(1.15,1,0.5)
 
 # replace voxels of specific range with a new value
-vol.threshold(vmin=0.3, vmax=0.4, replaceWith=0.9)
+vol.threshold(above=0.3, below=0.4, replaceWith=0.9)
 
 printHistogram(vol, bins=25, c='b')
 

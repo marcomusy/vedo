@@ -288,7 +288,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         :param int interpolation: 0=nearest_neighbor, 1=linear, 2=cubic
         """
         rsp = vtk.vtkImageResample()
-        oldsp = self.GetSpacing()
+        oldsp = self.spacing()
         for i in range(3):
             if oldsp[i] != newSpacing[i]:
                 rsp.SetAxisOutputSpacing(i, newSpacing[i])
@@ -414,23 +414,34 @@ class Volume(vtk.vtkVolume, ActorBase):
         self.GetProperty().SetComponentWeight(i, weight)
         return self
 
-    def threshold(self, vmin=None, vmax=None, replaceWith=0):
+    def threshold(self, above=None, below=None, replaceWith=0):
         """
         Binary or continuous volume thresholding.
-        Find the voxels that contain the value below/above or inbetween
-        [vmin, vmax] and replaces it with the provided value (default is 0).
+        Find the voxels that contain a value above/below the input values
+        and replace them with a new value (default is 0).
         """
         th = vtk.vtkImageThreshold()
         th.SetInputData(self.imagedata())
+        
+        if above is not None and below is not None:
+            if above<below:
+                th.ThresholdBetween(above, below)
+                th.SetInValue(replaceWith)
+            elif above==below:
+                return self
+            else:
+                th.SetReplaceOut(True)
+                th.SetOutValue(replaceWith)
+                th.ThresholdBetween(below, above)
+                
+        elif above is not None:
+            th.ThresholdByUpper(above)
+            th.SetInValue(replaceWith)
 
-        if vmin is not None and vmax is not None:
-            th.ThresholdBetween(vmin, vmax)
-        elif vmin is not None:
-            th.ThresholdByLower(vmin)
-        elif vmax is not None:
-            th.ThresholdByUpper(vmax)
+        elif below is not None:
+            th.ThresholdByLower(below)
+            th.SetInValue(replaceWith)
 
-        th.SetInValue(replaceWith)
         th.Update()
         return self._update(th.GetOutput())
 

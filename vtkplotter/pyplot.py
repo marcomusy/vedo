@@ -657,7 +657,7 @@ def _plotxy(
         a.cutWithPlane([0, y1lim, 0], [0, -1, 0])
         a.cutWithPlane([x0lim, 0, 0], [1, 0, 0])
         a.cutWithPlane([x1lim, 0, 0], [-1, 0, 0])
-        a.lighting("ambient").phong()
+        a.lighting(enabled=False)
 
     if title:
         if titleSize is None:
@@ -1104,7 +1104,7 @@ def _plotSpheric(rfunc, normalize=True, res=25, scalarbar=True, c="grey", alpha=
 
     sg.pickable(False)
     asse = Assembly([ssurf, sg] + nanpts + [sb3d])
-    asse.name = "plotPolar"
+    asse.name = "plotSpheric"
     return asse
 
 #########################################################################################
@@ -1161,6 +1161,8 @@ def _histogram1D(
     # print('frequencies', fs)
     if logscale:
         fs = np.log10(fs + 1)
+        if ytitle=='counts':
+            ytitle='log(counts)'
 
     x0, x1 = np.min(edges), np.max(edges)
     y0, y1 = 0, np.max(fs)
@@ -1230,7 +1232,7 @@ def _histogram1D(
             r = shapes.Rectangle(p0, p1)
             r.origin(p0)
             maxheigth = max(maxheigth, p1[1])
-            r.color(c).alpha(alpha).lighting("ambient").z(offs)
+            r.color(c).alpha(alpha).lighting(enabled=False).z(offs)
             rs.append(r)
         # print('rectangles', r.z())
 
@@ -1301,7 +1303,7 @@ def _histogram1D(
         a.cutWithPlane([0, y1lim, 0], [0, -1, 0])
         a.cutWithPlane([x0lim, 0, 0], [1, 0, 0])
         a.cutWithPlane([x1lim, 0, 0], [-1, 0, 0])
-        a.lighting("ambient").phong()
+        a.lighting(enabled=False).phong()
 
     if title:  #####################
         if titleColor is None:
@@ -2032,7 +2034,7 @@ def violin(
             rs.append(spl)
             rs.append(spr)
         if fill:
-            rb = shapes.Ribbon(spl, spr, c=c, alpha=alpha).lighting("ambient")
+            rb = shapes.Ribbon(spl, spr, c=c, alpha=alpha).lighting(enabled=False)
             rs.append(rb)
 
     else:
@@ -2057,7 +2059,7 @@ def violin(
                 p0 = (-fs[i], edges[i], 0)
                 p1 = (fs[i], edges[i + 1], 0)
                 r = shapes.Rectangle(p0, p1).x(p0[0] + x)
-                r.color(c).alpha(alpha).lighting("ambient")
+                r.color(c).alpha(alpha).lighting(enabled=False)
                 rs.append(r)
 
     if centerline:
@@ -2141,7 +2143,7 @@ def streamplot(
         stream.color(c)
     else:
         stream.addScalarBar()
-    stream.lighting("ambient")
+    stream.lighting(enabled=False)
 
     stream.scale([1 / (n - 1) * (xmax - xmin), 1 / (n - 1) * (ymax - ymin), 1])
     stream.addPos(np.array([xmin, ymin, 0]))

@@ -139,12 +139,14 @@ class Points(Mesh):
     :param c: color name, number, or list of [R,G,B] colors of same length as plist.
     :type c: int, str, list
     :param float alpha: transparency in range [0,1].
+    :param bool blur: make the point fluffy and blurred
+        (works better with ``settings.useDepthPeeling=True``.)
 
     |manypoints.py|_ |lorenz.py|_
 
     |lorenz|
     """
-    def __init__(self, plist, r=5, c=(0.3,0.3,0.3), alpha=1):
+    def __init__(self, plist, r=5, c=(0.3,0.3,0.3), alpha=1, blur=False):
 
         ################ interpret user input format:
         if isinstance(plist, Mesh):
@@ -217,14 +219,21 @@ class Points(Mesh):
         else:
 
             pd = utils.buildPolyData(plist)
-
             Mesh.__init__(self, pd, c, alpha)
 
-        self.GetProperty().SetPointSize(r)
-
+        if blur:
+            #settings.useDepthPeeling = True
+            point_mapper = vtk.vtkPointGaussianMapper()
+            point_mapper.SetInputData(pd)
+            point_mapper.SetScaleFactor(0.0005*self.diagonalSize()*r)
+            point_mapper.EmissiveOn()
+            self._mapper = point_mapper
+            self.SetMapper(point_mapper)
+        else:
+            self.GetProperty().SetPointSize(r)
+            
         settings.collectable_actors.append(self)
         self.name = "Points"
-
 
 
 class Glyph(Mesh):
@@ -1005,6 +1014,11 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c=None, alpha=1, res=12
         endPoints = startPoints[:,1]
         startPoints = strt
 
+    if startPoints.shape[1] == 2: # make it 3d
+        startPoints = np.c_[startPoints, np.zeros(len(startPoints))]
+    if endPoints.shape[1] == 2: # make it 3d
+        endPoints = np.c_[np.array(endPoints), np.zeros(len(endPoints))]
+
     arr = vtk.vtkArrowSource()
     arr.SetShaftResolution(res)
     arr.SetTipResolution(res)
@@ -1019,7 +1033,8 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c=None, alpha=1, res=12
                  orientationArray=orients,
                  scaleByVectorSize=True,
                  colorByVectorSize=True,
-                 c=c, alpha=alpha).flat()
+                 c=c, alpha=alpha)
+    arrg.flat()
     settings.collectable_actors.append(arrg)
     arrg.name = "Arrows"
     return arrg
@@ -2078,8 +2093,6 @@ class Hyperboloid(Mesh):
 
     Full volumetric expression is:
         :math:`F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
-
-    |mesh_bands| |mesh_bands.py|_
     """
     def __init__(self, pos=(0,0,0), a2=1, value=0.5, height=1, c="m", alpha=1, res=100):
         q = vtk.vtkQuadric()

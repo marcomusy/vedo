@@ -1,29 +1,25 @@
 """Fit a plane to regions of a surface defined by
 N points that are closest to a given point of the surface.
-For some of these point we show the fitting plane.
-Black points are the N points used for fitting.
 Green histogram is the distribution of residuals from the fitting.
 """
 from vtkplotter import *
 from vtkplotter.pyplot import histogram
 
-vp = Plotter()
-vp += __doc__
+plt = Plotter()
 
-s = load(datadir+"cow.vtk").subdivide().normalize().alpha(0.3)
-vp += s
+apple = load(datadir+"apple.ply").subdivide().addGaussNoise(1)
+plt += apple.alpha(0.1)
 
 variances = []
-for i, p in enumerate(s.points()):
-    if i % 100:
-        continue  # skip most points
-    pts = s.closestPoint(p, N=12)  # find the N closest points to p
-    plane = fitPlane(pts)          # find the fitting plane
-    vp += plane
-    vp += Points(pts)              # blue points
-    vp += Arrow(plane.center, plane.center+plane.normal/10, c="g")
+for i, p in enumerate(apple.points()):
+    pts = apple.closestPoint(p, N=12) # find the N closest points to p
+    plane = fitPlane(pts)             # find the fitting plane
     variances.append(plane.variance)
+    if i % 400: continue
+    plt += plane
+    plt += Points(pts)              
+    plt += Arrow(plane.center, plane.center+plane.normal/5)
 
-vp += histogram(variances).scale(25).pos(.6,-.3,-.9)
-
-vp.show(viewup="z")
+plt += histogram(variances).scale(6).pos(1.2,.2,-1)
+plt += __doc__ + "\nNr. of fits performed: "+str(len(variances))
+plt.show()

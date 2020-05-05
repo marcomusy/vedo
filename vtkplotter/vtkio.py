@@ -1051,35 +1051,34 @@ def write(objct, fileoutput, binary=True):
         outF = open(fileoutput, "w")
         outF.write('# OBJ file format with ext .obj\n')
         outF.write('# File Created by vtkplotter\n')
-        cobjct = objct.clone().clean()
 
-        for p in cobjct.points():
+        for p in objct.points():
             outF.write('v '+ str(p[0]) +" "+ str(p[1])+" "+ str(p[2])+'\n')
 
-        for vn in cobjct.normals(cells=False):
+        for vn in objct.normals(cells=False):
             outF.write('vn '+str(vn[0])+" "+str(vn[1])+" "+str(vn[2])+'\n')
 
-        #pdata = cobjct.polydata().GetPointData().GetScalars()
+        #pdata = objct.polydata().GetPointData().GetScalars()
         #if pdata:
         #    ndata = vtk_to_numpy(pdata)
         #    for vd in ndata:
         #        outF.write('vp '+ str(vd) +'\n')
 
-        #ptxt = cobjct.polydata().GetPointData().GetTCoords() # not working
+        #ptxt = objct.polydata().GetPointData().GetTCoords() # not working
         #if ptxt:
         #    ntxt = vtk_to_numpy(ptxt)
-        #    print(len(cobjct.faces()), cobjct.points().shape, ntxt.shape)
+        #    print(len(objct.faces()), objct.points().shape, ntxt.shape)
         #    for vt in ntxt:
         #        outF.write('vt '+ str(vt[0]) +" "+ str(vt[1])+ ' 0\n')
 
-        for f in cobjct.faces():
+        for f in objct.faces():
             fs = ''
             for fi in f:
                 fs += " "+str(fi+1)
             outF.write('f' + fs + '\n')
 
-        #ldata = cobjct.polydata().GetLines().GetData()
-        #print(cobjct.polydata().GetLines())
+        #ldata = objct.polydata().GetLines().GetData()
+        #print(objct.polydata().GetLines())
         #if ldata:
         #    ndata = vtk_to_numpy(ldata)
         #    print(ndata)

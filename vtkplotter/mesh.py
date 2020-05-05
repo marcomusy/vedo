@@ -2599,7 +2599,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
             fe.SetInputData(self.polydata())
             fe.Update()
-            return Mesh(fe.GetOutput(), c="p").lw(5)
+            return Mesh(fe.GetOutput(), c="p").lw(5).lighting(enabled=False).flat()
 
 
     def connectedVertices(self, index, returnIds=False):

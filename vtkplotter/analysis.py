@@ -44,7 +44,7 @@ __all__ = [
     "geodesic",
     "convexHull",
     "mesh2Volume",
-    "projectSphereFilter",
+    "projectSphereToPlane",
     "voronoi3D",
     "connectedPoints",
     "interpolateToVolume",
@@ -316,14 +316,15 @@ def fitPlane(points):
     datamean = data.mean(axis=0)
     res = np.linalg.svd(data - datamean)
     dd, vv = res[1], res[2]
+    n = np.cross(vv[0], vv[1])
     xyz_min = points.min(axis=0)
     xyz_max = points.max(axis=0)
     s = np.linalg.norm(xyz_max - xyz_min)
-    n = np.cross(vv[0], vv[1])
     pla = shapes.Plane(datamean, n, s, s)
     pla.normal = n
     pla.center = datamean
     pla.variance = dd[2]
+    pla.name = "fitPlane"
     return pla
 
 
@@ -363,6 +364,7 @@ def fitSphere(coords):
     s.radius = radius # used by fitSphere
     s.center = center
     s.residue = residue
+    s.name = "fitSphere"
     return s
 
 
@@ -427,128 +429,6 @@ def pcaEllipsoid(points, pvalue=0.95):
     elli.transformation = vtra
     elli.name = "pcaEllipsoid"
     return elli
-
-
-#def smoothMLS1D(mesh, f=0.2, radius=None, showNLines=0):
-#    """
-#    Smooth mesh or points with a `Moving Least Squares` variant.
-#    The list ``mesh.info['variances']`` contain the residue calculated for each point.
-#    Input mesh's polydata is modified.
-#
-#    :param float f: smoothing factor - typical range is [0,2].
-#    :param int showNLines: build a mesh showing the fitting line for N random points.
-#
-#    .. hint:: |moving_least_squares1D.py|_  |skeletonize.py|_
-#
-#        |moving_least_squares1D| |skeletonize|
-#    """
-#    coords = mesh.points()
-#    ncoords = len(coords)
-#    Ncp = int(ncoords * f / 10)
-#    nshow = int(ncoords)
-#    if showNLines:
-#        ndiv = int(nshow / showNLines)
-#
-#    if not radius and Ncp < 4:
-#        colors.printc("smoothMLS1D: Please choose a fraction higher than " + str(f), c=1)
-#        Ncp = 4
-#
-#    variances, newline, acts = [], [], []
-#    for i, p in enumerate(coords):
-#
-#        points = mesh.closestPoint(p, N=Ncp, radius=radius)
-#        if len(points) < 4:
-#            continue
-#
-#        points = np.array(points)
-#        pointsmean = points.mean(axis=0)  # plane center
-#        uu, dd, vv = np.linalg.svd(points - pointsmean)
-#        newp = np.dot(p - pointsmean, vv[0]) * vv[0] + pointsmean
-#        variances.append(dd[1] + dd[2])
-#        newline.append(newp)
-#
-#        if showNLines and not i % ndiv:
-#            fline = fitLine(points)  # fitting plane
-#            iapts = shapes.Points(points)  # blue points
-#            acts += [fline, iapts]
-#
-#    pcloud = shapes.Points(newline, c="r", alpha=0.5)
-#    pcloud.GetProperty().SetPointSize(mesh.GetProperty().GetPointSize())
-#
-#    if showNLines:
-#        asse = Assembly([pcloud] + acts)
-#        asse.info["variances"] = np.array(variances)
-#        return asse  # NB: a demo mesh is returned
-#    else:
-#        pcloud.info["variances"] = np.array(variances)
-#        return pcloud
-#
-#def smoothMLS2D(mesh, f=0.2, radius=None, decimate=1, showNPlanes=0):
-#    """
-#    Smooth mesh or points with a `Moving Least Squares` algorithm variant.
-#    The list ``mesh.info['variances']`` contains the residue calculated for each point.
-#
-#    :param float f: smoothing factor - typical range is [0,2]. Ignored if ``radius`` is set.
-#    :param float radius: radius search in absolute units. If set then ``f`` is ignored.
-#    :param int decimate: decimation integer factor.
-#    :param showNPlanes: build a demo object showing the fitting plane for N random points.
-#
-#    .. hint:: |moving_least_squares2D.py|_  |recosurface.py|_
-#
-#        |moving_least_squares2D| |recosurface|
-#    """
-#    coords = mesh.points()
-#    ncoords = len(coords)
-#    Ncp = int(ncoords * f / 100)
-#    nshow = int(ncoords / decimate)
-#    decimate = int(decimate)
-#    if showNPlanes:
-#        ndiv = int(nshow / showNPlanes * decimate)
-#
-#    if radius:
-#        print("smoothMLS2D: Searching radius, #pt:", radius, ncoords)
-#    else:
-#        if Ncp < 5:
-#            colors.printc("~target Please choose a fraction higher than " + str(f), c=1)
-#            Ncp = 5
-#        print("smoothMLS2D: Searching #neighbours, #pt:", Ncp, ncoords)
-#
-#    variances, newpts, acts = [], [], []
-#    pb = utils.ProgressBar(0, ncoords)
-#    for i, p in enumerate(coords):
-#        pb.print("smoothing mesh ...")
-#        if i % decimate:
-#            continue
-#
-#        points = mesh.closestPoint(p, N=Ncp, radius=radius)
-#        if radius and len(points) < 5:
-#            continue
-#
-#        pointsmean = points.mean(axis=0)  # plane center
-#        uu, dd, vv = np.linalg.svd(points - pointsmean)
-#        a, b, c = np.cross(vv[0], vv[1])  # normal
-#        d, e, f = pointsmean  # plane center
-#        x, y, z = p
-#        t = a * d - a * x + b * e - b * y + c * f - c * z  # /(a*a+b*b+c*c)
-#        variances.append(dd[2])
-#        newpts.append((x + t*a, y + t*b, z + t*c))
-#
-#        if showNPlanes and not i % ndiv:
-#            plane = fitPlane(points).alpha(0.3)  # fitting plane
-#            iapts = shapes.Points(points)  # blue points
-#            acts += [plane, iapts]
-#
-#    pcloud = shapes.Points(newpts, c="r", alpha=0.5, r=2)
-#    pcloud.GetProperty().SetPointSize(mesh.GetProperty().GetPointSize())
-#
-#    if showNPlanes:
-#        asse = Assembly([pcloud] + acts)
-#        asse.info["variances"] = np.array(variances)
-#        return asse  # NB: a demo Assembly is returned
-#    else:
-#        pcloud.info["variances"] = np.array(variances)
-#
-#    return pcloud
 
 
 def smoothMLS3D(meshs, neighbours=10):
@@ -809,6 +689,7 @@ def booleanOperation(mesh1, operation, mesh2):
     bf.SetInputData(1, poly2)
     bf.Update()
     mesh = Mesh(bf.GetOutput(), c=None)
+    mesh.name = mesh1.name+operation+mesh2.name
     return mesh
 
 
@@ -825,6 +706,7 @@ def surfaceIntersection(mesh1, mesh2, tol=1e-06):
     bf.Update()
     mesh = Mesh(bf.GetOutput(), "k", 1)
     mesh.GetProperty().SetLineWidth(3)
+    mesh.name = "surfaceIntersection"
     return mesh
 
 
@@ -870,7 +752,7 @@ def probePoints(vol, pts):
     probeFilter.Update()
     poly = probeFilter.GetOutput()
     pm = Mesh(poly)
-    pm.name = 'ProbePoints'
+    pm.name = 'probePoints'
     return pm
 
 def probeLine(vol, p1, p2, res=100):
@@ -896,15 +778,13 @@ def probeLine(vol, p1, p2, res=100):
     probeFilter.Update()
     poly = probeFilter.GetOutput()
     lnn = Mesh(poly)
-    lnn.name = 'ProbeLine'
+    lnn.name = 'probeLine'
     return lnn
 
 def probePlane(vol, origin=(0, 0, 0), normal=(1, 0, 0)):
     """
     Takes a ``Volume`` (or any other vtk data set)
     and probes its scalars on a plane defined by a point and a normal.
-
-    |probePlane| |probePlane.py|_
     """
     img = _getinput(vol)
     plane = vtk.vtkPlane()
@@ -916,37 +796,31 @@ def probePlane(vol, origin=(0, 0, 0), normal=(1, 0, 0)):
     planeCut.Update()
     poly = planeCut.GetOutput()
     cutmesh = Mesh(poly)
+    cutmesh.name = 'probePlane'
     return cutmesh
 
 
 def resampleArrays(source, target, tol=None):
-        """Resample point and cell data of a dataset on points from another dataset.
-        It takes two inputs - source and target, and samples the point and cell values
-        of target onto the point locations of source.
-        The output has the same structure as the source but its point data have
-        the resampled values from target.
+    """Resample point and cell data of a dataset on points from another dataset.
+    It takes two inputs - source and target, and samples the point and cell values
+    of target onto the point locations of source.
+    The output has the same structure as the source but its point data have
+    the resampled values from target.
 
-        :param float tol: set the tolerance used to compute whether
-            a point in the target is in a cell of the source.
-            Points without resampled values, and their cells, are be marked as blank.
-        """
-        rs = vtk.vtkResampleWithDataSet()
-        rs.SetInputData(source.polydata())
-        rs.SetSourceData(target.polydata())
-        rs.SetPassPointArrays(True)
-        rs.SetPassCellArrays(True)
-        if tol:
-            rs.SetComputeTolerance(False)
-            rs.SetTolerance(tol)
-        rs.Update()
-        return rs.GetOutput()
-
-
-def thinPlateSpline(*args, **kwargs):
-    """Obsolete! Use mesh.thinPlateSpline() and mesh.applyTransform() instead."""
-    colors.printc("WARNING: thinPlateSpline(mesh) is obsolete!", c=1)
-    colors.printc("       : Use mesh.thinPlateSpline() and mesh.applyTransform() instead.", c=1)
-    raise RuntimeError()
+    :param float tol: set the tolerance used to compute whether
+        a point in the target is in a cell of the source.
+        Points without resampled values, and their cells, are be marked as blank.
+    """
+    rs = vtk.vtkResampleWithDataSet()
+    rs.SetInputData(source.polydata())
+    rs.SetSourceData(target.polydata())
+    rs.SetPassPointArrays(True)
+    rs.SetPassCellArrays(True)
+    if tol:
+        rs.SetComputeTolerance(False)
+        rs.SetTolerance(tol)
+    rs.Update()
+    return rs.GetOutput()
 
 
 def connectedPoints(mesh, radius, mode=0, regions=(), vrange=(0,1), seeds=(), angle=0):
@@ -1024,15 +898,14 @@ def connectedPoints(mesh, radius, mode=0, regions=(), vrange=(0,1), seeds=(), an
         cpf.SetNormalAngle(angle)
 
     cpf.Update()
-
-    return Mesh(cpf.GetOutput())
+    m = Mesh(cpf.GetOutput())
+    m.name = "connectedPoints"
+    return m
 
 
 def pointSampler(mesh, distance=None):
-    """
-    Algorithm to generate points the specified distance apart.
-    """
-    poly = mesh.polydata(True)
+    """Generate a cloud of points the specified distance apart from the input."""
+    poly = mesh.polydata()
 
     pointSampler = vtk.vtkPolyDataPointSampler()
     if not distance:
@@ -1049,13 +922,14 @@ def pointSampler(mesh, distance=None):
     prop = vtk.vtkProperty()
     prop.DeepCopy(mesh.GetProperty())
     umesh.SetProperty(prop)
+    umesh.name = 'pointSampler'
     return umesh
 
 
 def geodesic(mesh, start, end):
-    """
-    Dijkstra algorithm to compute the graph geodesic.
-    Takes as input a polygonal mesh and performs a single source shortest path calculation.
+    """Dijkstra algorithm to compute the graph geodesic.
+    Takes as input a polygonal mesh and performs a single source
+    shortest path calculation.
 
     :param start: start vertex index or close point `[x,y,z]`
     :type start: int, list
@@ -1095,6 +969,7 @@ def geodesic(mesh, start, end):
     prop.SetOpacity(1)
     dmesh.SetProperty(prop)
     dmesh.info["CumulativeWeights"] = arr
+    dmesh.name = "geodesicLine"
     return dmesh
 
 
@@ -1133,7 +1008,9 @@ def convexHull(mesh_or_list, alphaConstant=0):
     surfaceFilter = vtk.vtkDataSetSurfaceFilter()
     surfaceFilter.SetInputConnection(delaunay.GetOutputPort())
     surfaceFilter.Update()
-    return Mesh(surfaceFilter.GetOutput())
+    m = Mesh(surfaceFilter.GetOutput())
+    m.name = "convexHull"
+    return m
 
 
 def mesh2Volume(mesh, spacing=(1, 1, 1)):
@@ -1191,7 +1068,7 @@ def mesh2Volume(mesh, spacing=(1, 1, 1)):
     imgstenc.Update()
     return Volume(imgstenc.GetOutput())
 
-def projectSphereFilter(mesh):
+def projectSphereToPlane(mesh):
     """
     Project a spherical-like object onto a plane.
 
@@ -1201,7 +1078,9 @@ def projectSphereFilter(mesh):
     psf = vtk.vtkProjectSphereFilter()
     psf.SetInputData(poly)
     psf.Update()
-    return Mesh(psf.GetOutput())
+    m = Mesh(psf.GetOutput())
+    m.name = "projectSphereToPlane"
+    return m
 
 
 def voronoi3D(nuclei, bbfactor=1, tol=None):
@@ -1305,8 +1184,7 @@ def extractCellsByType(obj, types=(7,)):
 
 
 def pointCloudFrom(obj, useCellData=False):
-    """
-    Build a `Mesh` object from any VTK dataset as a point cloud.
+    """Build a `Mesh` object from any VTK dataset as a point cloud.
 
     :param bool useCellData: if True cell data is interpolated at point positions.
     """
@@ -1329,7 +1207,9 @@ def pointCloudFrom(obj, useCellData=False):
         arr = obj.GetPointData().GetArray(name)
         poly.GetPointData().AddArray(arr)
 
-    return Mesh(poly, c=None)
+    m = Mesh(poly, c=None)
+    m.name = "pointCloud"
+    return m
 
 
 def interpolateToVolume(mesh, kernel='shepard', radius=None,
@@ -1583,7 +1463,9 @@ def streamLines(domain, probe,
         maxPropagation = size
 
     if utils.isSequence(probe):
-        pts = probe
+        pts = np.array(probe)
+        if pts.shape[1] == 2: # make it 3d
+            pts = np.c_[pts, np.zeros(len(pts))]
     else:
         pts = probe.clean().points()
     src = vtk.vtkProgrammableSource()
@@ -1606,7 +1488,7 @@ def streamLines(domain, probe,
     st.SetMaximumPropagation(maxPropagation)
     st.SetSurfaceStreamlines(surfaceConstrain)
     if stepLength:
-        st.SetStepLength(stepLength)
+        st.SetMaximumIntegrationStep(stepLength)
 
     if 'f' in direction:
         st.SetIntegrationDirectionToForward()
@@ -1737,7 +1619,9 @@ def densifyCloud(mesh, targetDistance, closestN=6, radius=0, maxIter=None, maxN=
         raise RuntimeError()
     dens.Update()
     pts = vtk_to_numpy(dens.GetOutput().GetPoints().GetData())
-    return shapes.Points(pts, c=None).pointSize(3)
+    cld = shapes.Points(pts, c=None).pointSize(3)
+    cld.name = "densifiedCloud"
+    return cld
 
 
 def implicitModeller(mesh, distance=0.05, res=(110,40,20), bounds=(), maxdist=None, outer=True):
@@ -1784,7 +1668,9 @@ def signedDistanceFromPointCloud(mesh, maxradius=None, bounds=None, dims=(20,20,
     dist.SetBounds(bounds)
     dist.SetDimensions(dims)
     dist.Update()
-    return Volume(dist.GetOutput())
+    vol = Volume(dist.GetOutput())
+    vol.name = "signedDistanceVolume"
+    return vol
 
 
 def volumeFromMesh(mesh, bounds=None, dims=(20,20,20), signed=True, negate=False):
@@ -1828,7 +1714,9 @@ def volumeFromMesh(mesh, bounds=None, dims=(20,20,20), signed=True, negate=False
                     v = abs(v)
                 img.SetScalarComponentFromFloat(i,j,k, 0, v)
 
-    return Volume(img)
+    vol = Volume(img)
+    vol.name = "VolumeFromMesh"
+    return vol
 
 
 def pointDensity(mesh, dims=(40,40,40), bounds=None, radius=None, computeGradient=False):
@@ -1856,6 +1744,7 @@ def pointDensity(mesh, dims=(40,40,40), bounds=None, radius=None, computeGradien
     pdf.Update()
     img = pdf.GetOutput()
     vol = Volume(img)
+    vol.name = "PointDensity"
     return vol
 
 
@@ -1905,6 +1794,7 @@ def visiblePoints(mesh, area=(), tol=None, invert=False):
     svp.Update()
 
     m = Mesh(svp.GetOutput()).pointSize(5)
+    m.name = "VisiblePoints"
     return m
 
 
