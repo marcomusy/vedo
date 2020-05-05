@@ -37,6 +37,11 @@ Use [pip](https://projects.raspberrypi.org/en/projects/using-pip-on-windows) to 
 ```bash
 pip install -U vtkplotter
 ```
+or use [conda](https://anaconda.org/conda-forge/vtkplotter) to install from the conda-forge channel:
+```
+conda install -c conda-forge vtkplotter
+```
+
 *Windows-10 users* can place this file
 [vtkplotter.bat](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter.bat)
 on the desktop to *drag&drop* files to visualize.
