@@ -1052,12 +1052,12 @@ def _plotPolar(
     return rh
 
 
-def _plotSpheric(rfunc, normalize=True, res=25, scalarbar=True, c="grey", alpha=0.05, cmap="jet"):
+def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=0.05, cmap="jet"):
     sg = shapes.Sphere(res=res, quads=True)
     sg.alpha(alpha).c(c).wireframe()
 
     cgpts = sg.points()
-    r, theta, phi = utils.cart2spher(*cgpts.T)
+    r, theta, phi = utils.cart2spher(*cgpts.T)   
 
     newr, inans = [], []
     for i in range(len(r)):
@@ -1076,7 +1076,7 @@ def _plotSpheric(rfunc, normalize=True, res=25, scalarbar=True, c="grey", alpha=
     if normalize:
         newr = newr / np.max(newr)
         newr[inans] = 1
-
+ 
     nanpts = []
     if len(inans):
         redpts = utils.spher2cart(newr[inans], theta[inans], phi[inans])

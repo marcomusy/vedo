@@ -699,8 +699,14 @@ def surfaceIntersection(mesh1, mesh2, tol=1e-06):
     .. hint:: |surfIntersect.py|_
     """
     bf = vtk.vtkIntersectionPolyDataFilter()
-    poly1 = mesh1.GetMapper().GetInput()
-    poly2 = mesh2.GetMapper().GetInput()
+    if isinstance(mesh1, Mesh):
+        poly1 = mesh1.polydata()
+    else:
+        poly1 = mesh1.GetMapper().GetInput()
+    if isinstance(mesh2, Mesh):
+        poly2 = mesh2.polydata()
+    else:
+        poly2 = mesh2.GetMapper().GetInput()
     bf.SetInputData(0, poly1)
     bf.SetInputData(1, poly2)
     bf.Update()

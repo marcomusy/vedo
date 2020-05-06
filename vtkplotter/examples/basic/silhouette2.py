@@ -1,23 +1,13 @@
 """Make the silhouette of an object
-move along with camera position.
-"""
+move along with camera position"""
 from vtkplotter import *
-import vtk
-
-plt = Plotter(bg='lightblue', interactive=False)
 
 s = load(datadir+'shark.ply')
-s.alpha(0.1).c('gray').lw(0.1).lc('red')
-plt.show(s, __doc__)
+s.alpha(0.1).c('gray').lw(0.1).lc('k')
 
-sil = vtk.vtkPolyDataSilhouette()
-sil.SetInputData(s.polydata())
-sil.SetCamera(plt.camera)
-silMapper = vtk.vtkPolyDataMapper()
-silMapper.SetInputConnection(sil.GetOutputPort())
+# this call creates the camera object needed by silhouette()
+show(s, bg='db', bg2='lb', interactive=False)
 
-mesh = Mesh()
-mesh.lw(4).c('black').SetMapper(silMapper)
+sil = s.silhouette().c('violet').alpha(0.7)
 
-plt.add(mesh) # add() also renders the scene
-interactive()
+show(s, sil, __doc__, interactive=True)

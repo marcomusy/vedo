@@ -2153,7 +2153,11 @@ class Text(Mesh):
             pli = settings.plotter_instance
             if pli and pli.renderer:
                 c = (0.9, 0.9, 0.9)
-                if np.sum(pli.renderer.GetBackground()) > 1.5:
+                if pli.renderer.GetGradientBackground():
+                    bgcol = pli.renderer.GetBackground2()
+                else:
+                    bgcol = pli.renderer.GetBackground()
+                if np.sum(bgcol) > 1.5:
                     c = (0.1, 0.1, 0.1)
             else:
                 c = (0.6, 0.6, 0.6)
@@ -2266,8 +2270,12 @@ def Text2D(
     """
     if c is None: # automatic black or white
         if settings.plotter_instance and settings.plotter_instance.renderer:
-            c = (0.9, 0.9, 0.9)
-            if np.sum(settings.plotter_instance.renderer.GetBackground()) > 1.5:
+            c = (0.9, 0.9, 0.9)           
+            if settings.plotter_instance.renderer.GetGradientBackground():
+                bgcol = settings.plotter_instance.renderer.GetBackground2()
+            else:
+                bgcol = settings.plotter_instance.renderer.GetBackground()
+            if np.sum(bgcol) > 1.5:
                 c = (0.1, 0.1, 0.1)
         else:
             c = (0.3, 0.3, 0.3)

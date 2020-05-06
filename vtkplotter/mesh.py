@@ -336,24 +336,27 @@ class Mesh(vtk.vtkFollower, ActorBase):
         """Get cell polygonal connectivity ids as a python ``list``.
         The output format is: [[id0 ... idn], [id0 ... idm],  etc].
         """
-        #Get cell connettivity ids as a 1D array. The vtk format is:
-        #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
         arr1d = vtk_to_numpy(self._polydata.GetPolys().GetData())
+        if arr1d is None:
+            return []
+
+        #Get cell connettivity ids as a 1D array. vtk format is:
+        #[nids1, id0 ... idn, niids2, id0 ... idm,  etc].
         if len(arr1d) == 0:
             arr1d = vtk_to_numpy(self._polydata.GetStrips().GetData())
+            if arr1d is None:
+                return []
 
         i = 0
         conn = []
         n = len(arr1d)
-        for idummy in range(n):
-            # cell = []
-            # for k in range(arr1d[i]):
-            #    cell.append(arr1d[i+k+1])
-            cell = [arr1d[i+k+1] for k in range(arr1d[i])]
-            conn.append(cell)
-            i += arr1d[i]+1
-            if i >= n:
-                break
+        if n:
+            while True:
+                cell = tuple(arr1d[i+k] for k in range(1, arr1d[i]+1))
+                conn.append(cell)
+                i += arr1d[i]+1
+                if i >= n:
+                    break
         return conn # cannot always make a numpy array of it!
 
 
@@ -367,6 +370,9 @@ class Mesh(vtk.vtkFollower, ActorBase):
         #Get cell connettivity ids as a 1D array. The vtk format is:
         #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
         arr1d = vtk_to_numpy(self.polydata(False).GetLines().GetData())
+        
+        if arr1d is None:
+            return []
 
         if flat:
             return arr1d
@@ -381,7 +387,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
             if i >= n:
                 break
 
-        if joined: # join ends: [(1,2), (2,3,4)] -> [(1,2,3,4)]
+        if n and joined: # join ends: [(1,2), (2,3,4)] -> [(1,2,3,4)]
             conn = sorted(conn, key=lambda x:x[0])
             res=[conn[0]]
             for i in range(1, len(conn)):
@@ -2838,10 +2844,10 @@ class Mesh(vtk.vtkFollower, ActorBase):
             raise RuntimeError()
         self.alpha(0.1)
         self.points(coords)
-        #self._polydata.GetPoints().Modified()
         return self
 
-    def silhouette(self, direction=None, borderEdges=True, featureAngle=None):
+
+    def silhouette(self, direction=None, borderEdges=True, featureAngle=False):
         """
         Return a new line ``Mesh`` which corresponds to the outer `silhouette`
         of the input as seen along a specified `direction`, this can also be
@@ -2851,33 +2857,49 @@ class Mesh(vtk.vtkFollower, ActorBase):
             If *None* this is guessed by looking at the minimum
             of the sides of the bounding box.
         :param bool borderEdges: enable or disable generation of border edges
-        :param float borderEdges: minimal angle for sharp edges detection.
+        :param float featureAngle: minimal angle for sharp edges detection.
             If set to `False` the functionality is disabled.
 
         |silhouette| |silhouette.py|_
         """
         sil = vtk.vtkPolyDataSilhouette()
         sil.SetInputData(self.polydata())
-        if direction is None:
-            b = self.GetBounds()
-            i = np.argmin([b[1]-b[0], b[3]-b[2], b[5]-b[4]])
-            d = ((1, 0, 0), (0, 1, 0), (0, 0, 1))
-            sil.SetVector(d[i])
-            sil.SetDirectionToSpecifiedVector()
-        elif isinstance(direction, vtk.vtkCamera):
-            sil.SetCamera(direction)
+        sil.SetBorderEdges(borderEdges)
+        if featureAngle == False:
+            sil.SetEnableFeatureAngle(0)
         else:
-            sil.SetVector(direction)
-            sil.SetDirectionToSpecifiedVector()
-        if featureAngle is not None:
             sil.SetEnableFeatureAngle(1)
             sil.SetFeatureAngle(featureAngle)
-            if featureAngle == False:
-                sil.SetEnableFeatureAngle(0)
 
-        sil.SetBorderEdges(borderEdges)
-        sil.Update()
-        return Mesh(sil.GetOutput()).lw(2).c((0,0,0))
+        if (direction is None
+            and settings.plotter_instance and settings.plotter_instance.camera):
+            sil.SetCamera(settings.plotter_instance.camera)
+            m = Mesh()
+            m._mapper.SetInputConnection(sil.GetOutputPort())
+
+        elif isinstance(direction, vtk.vtkCamera):
+            sil.SetCamera(direction)
+            m = Mesh()
+            m._mapper.SetInputConnection(sil.GetOutputPort())
+
+        elif direction == '2d':
+            sil.SetVector(3.4,4.5,5.6) # random
+            sil.SetDirectionToSpecifiedVector()
+            sil.Update()
+            m = Mesh(sil.GetOutput())
+
+        elif utils.isSequence(direction):
+            sil.SetVector(direction)
+            sil.SetDirectionToSpecifiedVector()
+            sil.Update()
+            m = Mesh(sil.GetOutput())
+        else:
+            colors.printc('Error in silhouette(): direction is', [direction], c=1)
+            colors.printc(' render the scene with show() or specify  camera/directions', c=1)
+            return self
+
+        m.lw(2).c((0,0,0)).lighting(enabled=False)
+        return m
 
 
     def followCamera(self, cam=None):
