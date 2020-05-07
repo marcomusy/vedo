@@ -73,6 +73,10 @@ def delaunay2D(plist, mode='xy', tol=None):
     """
     pd = vtk.vtkPolyData()
     vpts = vtk.vtkPoints()
+    plist = np.ascontiguousarray(plist)
+    if plist.shape[1] == 2: # make it 3d
+        plist = np.c_[plist, np.zeros(len(plist))]
+
     vpts.SetData(numpy_to_vtk(np.ascontiguousarray(plist), deep=True))
     pd.SetPoints(vpts)
     delny = vtk.vtkDelaunay2D()

@@ -1,4 +1,5 @@
 from __future__ import division, print_function
+import os
 import vtk
 import numpy as np
 from vtkplotter import settings
@@ -104,7 +105,7 @@ def Marker(symbol, pos=(0, 0, 0), c='lb', alpha=1, s=0.1, filled=True):
     else:
         mesh = Text(symbol, pos=(0,0,0), s=s*2, justify='center', depth=0)
     settings.collectable_actors.pop()
-    mesh.flat().lighting('ambient').wireframe(not filled).c(c).alpha(alpha)
+    mesh.flat().lighting('off').wireframe(not filled).c(c).alpha(alpha)
     if len(pos) == 2:
         pos = (pos[0], pos[1], 0)
     mesh.SetPosition(pos)
@@ -231,7 +232,7 @@ class Points(Mesh):
             self.SetMapper(point_mapper)
         else:
             self.GetProperty().SetPointSize(r)
-            
+
         settings.collectable_actors.append(self)
         self.name = "Points"
 
@@ -521,7 +522,7 @@ class Line(Mesh):
             self.base = np.array(p0)
 
         Mesh.__init__(self, poly, c, alpha)
-        self.lw(lw).lighting(enabled=False)
+        self.lw(lw).lighting('off')
         #if dotted: # not functional
         #    self.GetProperty().SetLineStipplePattern(0xF0F0)
         #    self.GetProperty().SetLineStippleRepeatFactor(1)
@@ -625,7 +626,7 @@ class DashedLine(Line):
         poly = polylns.GetOutput()
 
         Mesh.__init__(self, poly, c, alpha)
-        self.lw(lw).lighting(enabled=False)
+        self.lw(lw).lighting('off')
         self.base = listp[0]
         if closed:
             self.top = listp[-2]
@@ -669,7 +670,7 @@ class Lines(Line):
         polylns.Update()
 
         Mesh.__init__(self, polylns.GetOutput(), c, alpha)
-        self.lw(lw).lighting(enabled=False)
+        self.lw(lw).lighting('off')
         if dotted:
             self.GetProperty().SetLineStipplePattern(0xF0F0)
             self.GetProperty().SetLineStippleRepeatFactor(1)
@@ -721,7 +722,7 @@ class Spline(Line):
         xnew, ynew, znew = splev(np.linspace(0, 1, res), tckp)
 
         Line.__init__(self, np.c_[xnew, ynew, znew], lw=2)
-        self.lighting(enabled=False)
+        self.lighting('off')
         settings.collectable_actors.pop()
         settings.collectable_actors.append(self)
         self.name = "Spline"
@@ -780,7 +781,7 @@ class KSpline(Line):
 
         Line.__init__(self, ln, lw=2, c='gray')
         settings.collectable_actors.pop()
-        self.lighting(enabled=False)
+        self.lighting('off')
         self.base = np.array(points[0])
         self.top = np.array(points[-1])
         settings.collectable_actors.append(self)
@@ -1013,6 +1014,8 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c=None, alpha=1, res=12
         strt = startPoints[:,0]
         endPoints = startPoints[:,1]
         startPoints = strt
+    else:
+         endPoints = np.array(endPoints)
 
     if startPoints.shape[1] == 2: # make it 3d
         startPoints = np.c_[startPoints, np.zeros(len(startPoints))]
@@ -1107,7 +1110,7 @@ class Arrow2D(Mesh):
         Mesh.__init__(self, tf.GetOutput(), c, alpha)
         self.printInfo()
         self.SetPosition(startPoint)
-        self.flat().lighting('ambient')
+        self.lighting('off')
         self.DragableOff()
         self.PickableOff()
         self.base = np.array(startPoint)
@@ -1174,9 +1177,11 @@ def Arrows2D(startPoints, endPoints=None,
     if orients.shape[1] == 2: # make it 3d
         orients = np.c_[np.array(orients), np.zeros(len(orients))]
 
-    arrg = Glyph(pts, arr.polydata(False),
-                 orientationArray=orients, scaleByVectorSize=True,
-                 c=c, alpha=alpha).flat().lighting('ambient')
+    arrg = Glyph(pts,
+                 arr.polydata(False),
+                 orientationArray=orients,
+                 scaleByVectorSize=True,
+                 c=c, alpha=alpha).flat().lighting('off')
     if c is not None:
         arrg.color(c)
 
@@ -1372,7 +1377,7 @@ class Arc(Mesh):
         ar.SetResolution(res)
         ar.Update()
         Mesh.__init__(self, ar.GetOutput(), c, alpha)
-        self.flat().lw(2).lighting(enabled=False)
+        self.flat().lw(2).lighting('off')
         settings.collectable_actors.append(self)
         self.name = "Arc"
 
@@ -1758,7 +1763,7 @@ class Grid(Mesh):
 
         self.orientation(normal)
 
-        self.wireframe().lw(lw).lighting(enabled=False)
+        self.wireframe().lw(lw).lighting('off')
         settings.collectable_actors.append(self)
         self.name = "Grid"
 
@@ -2130,7 +2135,6 @@ class Text(Mesh):
 
     |markpoint| |markpoint.py|_
     """
-
     def __init__(self,
                 txt,
                 pos=(0,0,0),
@@ -2141,10 +2145,6 @@ class Text(Mesh):
                 c=None,
                 alpha=1,
                 ):
-
-        if isinstance(pos, str):
-            printc("Please use Text2D() instead of Text() for 2D text and corner annotations.", c=1)
-            raise RuntimeError()
 
         if len(pos)==2:
             pos = (pos[0], pos[1], 0)
@@ -2206,8 +2206,7 @@ class Text(Mesh):
             extrude.Update()
             tpoly = extrude.GetOutput()
         Mesh.__init__(self, tpoly, c, alpha)
-        self.SetPosition(pos)
-        self.flat().lighting(enabled=False)
+        self.lighting('off').SetPosition(pos)
         settings.collectable_actors.append(self)
         self.name = "Text"
 
@@ -2221,6 +2220,8 @@ def Text2D(
     bg=None,
     font="Montserrat",
     justify="bottom-left",
+    bold=False,
+    italic=False,
 ):
     """Returns a ``vtkActor2D`` representing 2D text.
 
@@ -2270,7 +2271,7 @@ def Text2D(
     """
     if c is None: # automatic black or white
         if settings.plotter_instance and settings.plotter_instance.renderer:
-            c = (0.9, 0.9, 0.9)           
+            c = (0.9, 0.9, 0.9)
             if settings.plotter_instance.renderer.GetGradientBackground():
                 bgcol = settings.plotter_instance.renderer.GetBackground2()
             else:
@@ -2278,7 +2279,7 @@ def Text2D(
             if np.sum(bgcol) > 1.5:
                 c = (0.1, 0.1, 0.1)
         else:
-            c = (0.3, 0.3, 0.3)
+            c = (0.5, 0.5, 0.5)
 
     if isinstance(pos, str): # corners
         if "top" in pos:
@@ -2315,8 +2316,10 @@ def Text2D(
             bgcol = getColor(bg)
             cap.SetBackgroundColor(bgcol)
             cap.SetBackgroundOpacity(alpha * 0.5)
-            cap.SetFrameColor(bgcol)
-            cap.FrameOn()
+            #cap.SetFrameColor(bgcol)
+            #cap.FrameOn()
+        cap.SetBold(bold)
+        cap.SetItalic(italic)
         setattr(ca, 'renderedAt', set())
         settings.collectable_actors.append(ca)
         return ca
@@ -2352,7 +2355,6 @@ def Text2D(
     elif font.lower() == "arial": tp.SetFontFamilyToArial()
     else:
         tp.SetFontFamily(vtk.VTK_FONT_FILE)
-        import os
         if font in settings.fonts:
             tp.SetFontFile(settings.fonts_path + font + '.ttf')
         elif os.path.exists(font):
@@ -2494,8 +2496,8 @@ class ParametricShape(Mesh):
         |paramshapes|
     """
     def __init__(self, name, c='powderblue', alpha=1, res=51):
-        shapes = ['Boy', 'ConicSpiral', 'CrossCap', 'Dini', 'Enneper',
-                  'Figure8Klein', 'Klein', 'Mobius', 'RandomHills', 'Roman',
+        shapes = ['Boy', 'ConicSpiral', 'CrossCap', 'Enneper',
+                  'Figure8Klein', 'Klein', 'Dini', 'Mobius', 'RandomHills', 'Roman',
                   'SuperEllipsoid', 'BohemianDome', 'Bour', 'CatalanMinimal',
                   'Henneberg', 'Kuen', 'PluckerConoid', 'Pseudosphere']
 
@@ -2553,5 +2555,7 @@ class ParametricShape(Mesh):
 
         Mesh.__init__(self, pfs.GetOutput(), c, alpha)
         if name != 'Kuen': self.normalize()
+        if name == 'Dini': self.scale(0.4)
+        if name == 'Enneper': self.scale(0.4)
         settings.collectable_actors.append(self)
         self.name = name

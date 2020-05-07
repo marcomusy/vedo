@@ -15,12 +15,15 @@ apts = Points(coords).addPointArray(scals, name='scals')
 # Now interpolate these points to a full Volume
 # Available interpolation kernels are: shepard, gaussian, voronoi, linear.
 vol = interpolateToVolume(apts, kernel='shepard', radius=0.2, dims=(90,90,90))
-vol.c(["maroon","g","b"]).alpha([0.3, 0.9])  # set color/opacity transfer functions
+vol.c(["maroon","g","b"])        # set color   transfer function
+vol.alpha([0.3, 0.9])            # set opacity transfer function
+#vol.alpha([(0.3,0.3), (0.9,0.9)]) # alternative way, by specifying (xscalar, alpha)
+
 vol.addScalarBar3D(sy=1, title='height is the scalar').rotateX(90).pos(1.15,1,0.5)
 
 # replace voxels of specific range with a new value
 vol.threshold(above=0.3, below=0.4, replaceWith=0.9)
 
-printHistogram(vol, bins=25, c='b')
+vol.printHistogram(bins=25, c='b')
 
 show(apts, vol, __doc__, axes=1, elevation=-90)

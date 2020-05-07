@@ -88,7 +88,6 @@ setup(
 # git commit -a -m 'comment'
 # git push
 
-# git status
 # (sudo apt install twine)
 # (python -m pip install --user --upgrade twine)
 # python setup.py sdist bdist_wheel

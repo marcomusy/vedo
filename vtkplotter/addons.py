@@ -294,7 +294,7 @@ def addScalarBar3D(
     scale.lw(0).wireframe(False)
     cscals = scale.cellCenters()[:, 1]
     scale.cellColors(cscals, cmap=lut)
-    scale.lighting(enabled=False)
+    scale.lighting('off')
     xbns = scale.xbounds()
 
     if pos is None:
@@ -332,7 +332,7 @@ def addScalarBar3D(
     if drawBox:
         tacts.append(scale.box().lw(0.1))
 
-    mtacts = merge(tacts).lighting(enabled=False)
+    mtacts = merge(tacts).lighting('off')
     mtacts.PickableOff()
 
     sact = Assembly(scale, tacts)

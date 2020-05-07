@@ -53,19 +53,19 @@ def show(*actors, **options):
 
     :param int axes: set the type of axes to be shown
 
-          - 0,  no axes,
-          - 1,  draw three gray grid walls
-          - 2,  show cartesian axes from (0,0,0)
-          - 3,  show positive range of cartesian axes from (0,0,0)
-          - 4,  show a triad at bottom left
-          - 5,  show a cube at bottom left
-          - 6,  mark the corners of the bounding box
-          - 7,  draw a simple ruler at the bottom of the window
-          - 8,  show the ``vtkCubeAxesActor`` object,
-          - 9,  show the bounding box outLine,
-          - 10, show three circles representing the maximum bounding box
-          - 11, show a large grid on the x-y plane (use with zoom=8)
-          - 12, show polar axes
+            - 0,  no axes,
+            - 1,  draw three gray grid walls
+            - 2,  show cartesian axes from (0,0,0)
+            - 3,  show positive range of cartesian axes from (0,0,0)
+            - 4,  show a triad at bottom left
+            - 5,  show a cube at bottom left
+            - 6,  mark the corners of the bounding box
+            - 7,  draw a simple ruler at the bottom of the window
+            - 8,  show the ``vtkCubeAxesActor`` object,
+            - 9,  show the bounding box outLine,
+            - 10, show three circles representing the maximum bounding box
+            - 11, show a large grid on the x-y plane (use with zoom=8)
+            - 12, show polar axes
 
         Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
@@ -198,9 +198,6 @@ def show(*actors, **options):
     size = options.pop("size", "auto")
     screensize = options.pop("screensize", "auto")
     title = options.pop("title", "")
-    #xtitle = options.pop("xtitle", "x")
-    #ytitle = options.pop("ytitle", "y")
-    #ztitle = options.pop("ztitle", "z")
     bg = options.pop("bg", "white")
     bg2 = options.pop("bg2", None)
     axes = options.pop("axes", settings.defaultAxesType)
@@ -235,7 +232,6 @@ def show(*actors, **options):
 
     if settings.plotter_instance and newPlotter is False:
         vp = settings.plotter_instance
-        #vp.renderer.SetBackground(colors.getColor(bg))
     else:
         if utils.isSequence(at):
             if not utils.isSequence(actors):
@@ -254,23 +250,20 @@ def show(*actors, **options):
             at = range(len(actors))
 
         vp = Plotter(
-            shape=shape,
-            N=N,
-            pos=pos,
-            size=size,
-            screensize=screensize,
-            title=title,
-            bg=bg,
-            bg2=bg2,
-            axes=axes,
-            sharecam=sharecam,
-            verbose=verbose,
-            interactive=interactive,
-            offscreen=offscreen,
+                    shape=shape,
+                    N=N,
+                    pos=pos,
+                    size=size,
+                    screensize=screensize,
+                    title=title,
+                    axes=axes,
+                    sharecam=sharecam,
+                    verbose=verbose,
+                    interactive=interactive,
+                    offscreen=offscreen,
+                    bg=bg,
+                    bg2=bg2,
         )
-        #vp.xtitle = xtitle
-        #vp.ytitle = ytitle
-        #vp.ztitle = ztitle
 
     # use _vp_to_return because vp.show() can return a k3d/panel plot
     if utils.isSequence(at):
@@ -287,6 +280,9 @@ def show(*actors, **options):
                 camera=camera,
                 interactive=interactive,
                 interactorStyle=interactorStyle,
+                bg=bg,
+                bg2=bg2,
+                axes=axes,
                 q=q,
             )
         vp.interactor.Start()
@@ -303,6 +299,9 @@ def show(*actors, **options):
             camera=camera,
             interactive=interactive,
             interactorStyle=interactorStyle,
+            bg=bg,
+            bg2=bg2,
+            axes=axes,
             q=q,
         )
 
@@ -607,8 +606,6 @@ class Plotter:
                     minl = l
             shape = lm[ind]
 
-        self.shape = shape
-
         if isinstance(shape, str):
 
             if '|' in shape:
@@ -664,6 +661,36 @@ class Plotter:
 
             self.shape = (n+m,)
 
+        elif utils.isSequence(shape) and isinstance(shape[0], dict):
+            # passing a sequence of dicts for renderers specifications
+
+            if self.size == "auto":
+                self.size = (1200,900)
+
+            for ir, rd in enumerate(shape):
+                x0, y0 = rd['bottomleft']
+                x1, y1 = rd['topright']
+                bg_ = rd.pop('bg', 'white')
+                bg2_ = rd.pop('bg2', None)
+
+                arenderer = vtk.vtkRenderer()
+                arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
+                arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
+                arenderer.SetUseFXAA(settings.useFXAA)
+                if settings.useFXAA:
+                    self.window.SetMultiSamples(settings.multiSamples)
+                arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
+                arenderer.SetViewport(x0, y0, x1, y1)
+                arenderer.SetBackground(colors.getColor(bg_))
+                if bg2_:
+                    arenderer.GradientBackgroundOn()
+                    arenderer.SetBackground2(colors.getColor(bg2_))
+
+                self.renderers.append(arenderer)
+                self.axes_instances.append(None)
+
+            self.shape = (len(shape),)
+
         else:
 
             if self.size == "auto":  # figure out a reasonable window size
@@ -683,8 +710,6 @@ class Plotter:
                 self.size = (self.size[0], self.size[1])
 
             ############################
-            self.shape = shape
-
             if sum(shape) > 3:
                 self.legendSize *= 2
 
@@ -728,6 +753,7 @@ class Plotter:
                     arenderer.SetViewport(y0, x0, y1, x1)
                     self.renderers.append(arenderer)
                     self.axes_instances.append(None)
+            self.shape = shape
 
         if len(self.renderers):
             self.renderer = self.renderers[0]
@@ -823,24 +849,32 @@ class Plotter:
         self.remove(actors)
         return self
 
-    def add(self, actors, render=True):
+    def add(self, actors, render=True, at=None):
         """Append input object to the internal list of actors to be shown.
+
+        :param bool render: render the scene after adding the object
+        :param int at: add the object at the specified renderer
 
         :return: returns input actor for possible concatenation.
         """
+        if at is not None:
+            ren = self.renderers[at]
+        else:
+            ren = self.renderer
+
         if utils.isSequence(actors):
             for a in actors:
                 if a not in self.actors:
                     self.actors.append(a)
-                    if render and self.renderer:
-                        self.renderer.AddActor(a)
+                    if render and ren:
+                        ren.AddActor(a)
             if render and self.interactor:
                 self.interactor.Render()
             return None
         else:
             self.actors.append(actors)
-            if render and self.renderer:
-                self.renderer.AddActor(actors)
+            if render and ren:
+                ren.AddActor(actors)
                 if self.interactor:
                     self.interactor.Render()
             return actors
@@ -1364,7 +1398,19 @@ class Plotter:
         camera = options.pop("camera", None)
         interactorStyle = options.pop("interactorStyle", 0)
         rate = options.pop("rate", None)
+        bg_ = options.pop("bg", None)
+        bg2_ = options.pop("bg2", None)
+        axes_ = options.pop("axes", None)
         q = options.pop("q", False)
+
+        if bg_ is not None:
+            self.backgrcol = colors.getColor(bg_)
+            self.renderer.SetBackground(self.backgrcol)
+        if bg2_ is not None:
+            self.renderer.GradientBackgroundOn()
+            self.renderer.SetBackground2(colors.getColor(bg2_))
+        if axes_ is not None:
+            self.axes = axes_
 
         if self.offscreen:
             interactive = False
@@ -2381,9 +2427,9 @@ class Plotter:
                               c=4)
 
         elif key == "E":
-            colors.printc("~camera Exported 3D window to scene.npy.", c="blue", end="")
+            colors.printc("~camera Exporting 3D window to scene.npy.", c="blue", end="")
             vtkio.exportWindow('scene.npy')
-            colors.printc("Try:\n> vtkplotter scene.npy", c="blue")
+            colors.printc(" Try:\n> vtkplotter scene.npy", c="blue")
 
         elif key == "i":  # print info
             if self.clickedActor:

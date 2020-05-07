@@ -11,6 +11,9 @@
 A lightweight pure python module for scientific analysis and visualization of 3D objects
 and *point clouds* based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/).<br>
 
+[![isohead](https://user-images.githubusercontent.com/32848391/81347909-59eacc00-90bd-11ea-9392-f1a3ecc0c850.jpg)](https://vtkplotter.embl.es/examples/geo_scene.html)
+
+*(click on the picture to open a 3D viewer)*
 
 ## ✨ Philosophy
 Inspired by the [vpython](https://vpython.org/) *manifesto* "3D programming for ordinary mortals",
@@ -177,7 +180,7 @@ Moreover:
 - Support for [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of finite-element calculations.
 - Interoperability with the [trimesh](https://trimsh.org/) library.
 - Export a 3D scene and embed it into a [web page](https://vtkplotter.embl.es/examples/fenics_elasticity.html).
-- Embed the 3D rendering in a *jupyter* notebook with [K3D](https://github.com/K3D-tools/K3D-jupyter) (can export an interactive 3D-snapshot page [here](https://vtkplotter.embl.es/examples/K3D_snapshot.html)).
+- Embed the 3D rendering in a *jupyter* notebook with [K3D](https://github.com/K3D-tools/K3D-jupyter) (can export an interactive 3D-snapshot page [here](https://vtkplotter.embl.es/examples/geo_scene.html)).
 
 
 ## ⌨ Command Line Interface

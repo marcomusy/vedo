@@ -74,6 +74,7 @@ for i in range(nt):
              ytitle="diplacement at  T=%g" % (i*dt),
              scalarbar=False,
              bg='bb',
+             size=(500,1000),
              interactive=False,
              )
         plot(uk2, frame,
@@ -83,6 +84,7 @@ for i in range(nt):
              lc='tomato',
              ytitle="velocity [a.u.]",
              scalarbar=False,
+             bg='bb',
              interactive=False,
              )
 

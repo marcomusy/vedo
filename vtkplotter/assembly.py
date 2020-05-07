@@ -105,7 +105,7 @@ class Assembly(vtk.vtkAssembly, ActorBase):
 
 
     def lighting(self, style='', ambient=None, diffuse=None,
-                 specular=None, specularPower=None, specularColor=None, enabled=True):
+                 specular=None, specularPower=None, specularColor=None):
         """Set the lighting type to all ``Mesh`` in the ``Assembly`` object.
 
         :param str style: preset style, can be `[metallic, plastic, shiny, glossy]`
@@ -114,10 +114,9 @@ class Assembly(vtk.vtkAssembly, ActorBase):
         :param float specular: fraction of reflected light [0-1]
         :param float specularPower: precision of reflection [1-100]
         :param color specularColor: color that is being reflected by the surface
-        :param bool enabled: enable/disable all surface light emission
         """
         for a in self.actors:
             a.lighting(style, ambient, diffuse,
-                       specular, specularPower, specularColor, enabled)
+                       specular, specularPower, specularColor)
         return self
 

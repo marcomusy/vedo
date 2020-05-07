@@ -55,15 +55,5 @@ wline = Line(y, w_line*10, c='white', lw=4)
 pline = Line(y, p_line/ 4, c='lightgreen', lw=4)
 
 plot(w, wline, tex, at=0, N=2, bg='bb', text='Deflection')
-plot(p, pline, at=1, text='Load')
+plot(p, pline, at=1, bg='bb', text='Load')
 
-
-#######################################################################
-#import matplotlib.pyplot as plt
-#plot(w)
-#plt.plot(y, 50*w_line, 'k', linewidth=2)  # magnify w
-#plt.plot(y, p_line, 'b--', linewidth=2)
-#plt.grid(True)
-#plt.xlabel('$y$')
-#plt.legend(['Deflection ($\\times 50$)', 'Load'], loc='upper left')
-#plt.show()

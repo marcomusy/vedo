@@ -1,6 +1,6 @@
 from vtkplotter import *
 
-styles = ['default', 'metallic', 'plastic', 'shiny', 'glossy', 'ambient']
+styles = ['default', 'metallic', 'plastic', 'shiny', 'glossy', 'ambient', 'off']
 
 a = load(datadir+"beethoven.ply", c='gold').subdivide()
 

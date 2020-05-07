@@ -11,7 +11,7 @@ coords1 = s1.points() # get the vertices coords
 coords2 = s2.points()
 
 # --- color can be a colormap which maps arrrow sizes
-t1 = Text2D('Color arrows by size\nusing a color map', c='w')
+t1 = 'Color arrows by size\nusing a color map'
 a1 = Arrows(coords1, coords2, c='coolwarm', alpha=0.4).addScalarBar(c='w')
 
 
@@ -19,8 +19,8 @@ a1 = Arrows(coords1, coords2, c='coolwarm', alpha=0.4).addScalarBar(c='w')
 nrs = np.random.randint(0, 10, len(coords1))
 cols = getColor(nrs)
 
-t2 = Text2D('Color arrows by an array\nand scale them by half', c='w')
+t2 = 'Color arrows by an array\nand scale them by half'
 a2 = Arrows(coords1, coords2, c=cols, scale=0.5)
 
 # draw 2 groups of objects on two renderers
-show([[s1, s2, a1, t1], [s1, s2, a2, t2]], N=2, bg='bb')
+show([(s1, s2, a1, t1), (s1, s2, a2, t2)], N=2, bg='bb', bg2='lb')

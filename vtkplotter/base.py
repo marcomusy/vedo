@@ -142,11 +142,12 @@ class ActorBase(object):
         show one single object.
 
         This is meant as a shortcut. If more than one object needs to be visualised
-        please use the syntax `show([mesh1, mesh2, volume, ...], options)`.
+        please use the syntax `show(mesh1, mesh2, volume, ..., options)`.
 
         :param bool newPlotter: if set to `True`, a call to ``show`` will instantiate
             a new ``Plotter`` object (a new window) instead of reusing the first created.
             See e.g.: |readVolumeAsIsoSurface.py|_
+
         :return: the current ``Plotter`` class instance.
 
         .. note:: E.g.:
@@ -461,18 +462,17 @@ class ActorBase(object):
         return self
 
     def lighting(self, style='', ambient=None, diffuse=None,
-                 specular=None, specularPower=None, specularColor=None,
-                 enabled=True):
+                 specular=None, specularPower=None, specularColor=None):
         """
         Set the ambient, diffuse, specular and specularPower lighting constants.
 
-        :param str,int style: preset style, can be `[metallic, plastic, shiny, glossy, ambient]`
+        :param str,int style: preset style,
+            option presets are `[metallic, plastic, shiny, glossy, ambient, off]`
         :param float ambient: ambient fraction of emission [0-1]
         :param float diffuse: emission of diffused light in fraction [0-1]
         :param float specular: fraction of reflected light [0-1]
         :param float specularPower: precision of reflection [1-100]
         :param color specularColor: color that is being reflected by the surface
-        :param bool enabled: enable/disable all surface light emission
 
         |wikiphong|
 
@@ -481,6 +481,11 @@ class ActorBase(object):
         pr = self.GetProperty()
 
         if style:
+            if style=='off':
+                pr.SetInterpolationToFlat()
+                pr.LightingOff()
+                return self
+
             if hasattr(pr, "GetColor"):  # could be Volume
                 c = pr.GetColor()
             else:
@@ -488,15 +493,15 @@ class ActorBase(object):
             mpr = self._mapper
             if hasattr(mpr, 'GetScalarVisibility') and mpr.GetScalarVisibility():
                 c = (1,1,0.99)
-            if   style=='metallic': pars = [0.1, 0.3, 1.0, 10, c]
+            if style=='metallic': pars = [0.1, 0.3, 1.0, 10, c]
             elif style=='plastic' : pars = [0.3, 0.4, 0.3,  5, c]
             elif style=='shiny'   : pars = [0.2, 0.6, 0.8, 50, c]
             elif style=='glossy'  : pars = [0.1, 0.7, 0.9, 90, (1,1,0.99)]
-            elif style=='ambient' : pars = [1.0, 0.0, 0.0,  0, (1,1,1)]
+            elif style=='ambient' : pars = [0.8, 0.1, 0.0,  0, (1,1,1)]
             elif style=='default' : pars = [0.1, 1.0, 0.05, 5, c]
             else:
                 colors.printc("Error in lighting(): Available styles are", c=1)
-                colors.printc(" [default, metallic, plastic, shiny, glossy, ambient]", c=1)
+                colors.printc("[default,metallic,plastic,shiny,glossy,ambient,off]", c=1)
                 raise RuntimeError()
             pr.SetAmbient(pars[0])
             pr.SetDiffuse(pars[1])
@@ -509,7 +514,6 @@ class ActorBase(object):
         if specular is not None: pr.SetSpecular(specular)
         if specularPower is not None: pr.SetSpecularPower(specularPower)
         if specularColor is not None: pr.SetSpecularColor(colors.getColor(specularColor))
-        if not enabled: pr.LightingOff()
         return self
 
     def box(self, scale=1):

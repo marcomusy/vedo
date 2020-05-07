@@ -657,7 +657,7 @@ def _plotxy(
         a.cutWithPlane([0, y1lim, 0], [0, -1, 0])
         a.cutWithPlane([x0lim, 0, 0], [1, 0, 0])
         a.cutWithPlane([x1lim, 0, 0], [-1, 0, 0])
-        a.lighting(enabled=False)
+        a.lighting('off')
 
     if title:
         if titleSize is None:
@@ -828,7 +828,7 @@ def _plotFxy(
         bcf.GenerateValues(zlevels, elevation.GetScalarRange())
         bcf.Update()
         zpoly = bcf.GetContourEdgesOutput()
-        zbandsact = Mesh(zpoly, "k", alpha).lw(1).lighting(enabled=False)
+        zbandsact = Mesh(zpoly, "k", alpha).lw(1).lighting('off')
         zbandsact._mapper.SetResolveCoincidentTopologyToPolygonOffset()
         acts.append(zbandsact)
 
@@ -998,9 +998,9 @@ def _plotPolar(
     back2 = None
     if showDisc:
         back = shapes.Disc(r1=r2e, r2=r2e * 1.01, c=bc, res=(1,360))
-        back.z(-0.01).lighting(diffuse=0, ambient=1).alpha(alpha)
+        back.z(-0.01).lighting('off').alpha(alpha)
         back2 = shapes.Disc(r1=r2e/2, r2=r2e/2 * 1.005, c=bc, res=(1,360))
-        back2.z(-0.01).lighting(diffuse=0, ambient=1).alpha(alpha)
+        back2.z(-0.01).lighting('off').alpha(alpha)
 
     ti = None
     if title:
@@ -1044,7 +1044,7 @@ def _plotPolar(
 
     mrg = merge(back, back2, angles, rays, ti)
     if mrg:
-        mrg.color(bc).alpha(alpha).lighting(diffuse=0, ambient=1)
+        mrg.color(bc).alpha(alpha).lighting('off')
     rh = Assembly([lines, ptsact, filling] + [mrg])
     rh.base = np.array([0, 0, 0])
     rh.top = np.array([0, 0, 1])
@@ -1057,7 +1057,7 @@ def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=
     sg.alpha(alpha).c(c).wireframe()
 
     cgpts = sg.points()
-    r, theta, phi = utils.cart2spher(*cgpts.T)   
+    r, theta, phi = utils.cart2spher(*cgpts.T)
 
     newr, inans = [], []
     for i in range(len(r)):
@@ -1076,7 +1076,7 @@ def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=
     if normalize:
         newr = newr / np.max(newr)
         newr[inans] = 1
- 
+
     nanpts = []
     if len(inans):
         redpts = utils.spher2cart(newr[inans], theta[inans], phi[inans])
@@ -1232,7 +1232,7 @@ def _histogram1D(
             r = shapes.Rectangle(p0, p1)
             r.origin(p0)
             maxheigth = max(maxheigth, p1[1])
-            r.color(c).alpha(alpha).lighting(enabled=False).z(offs)
+            r.color(c).alpha(alpha).lighting('off').z(offs)
             rs.append(r)
         # print('rectangles', r.z())
 
@@ -1303,7 +1303,7 @@ def _histogram1D(
         a.cutWithPlane([0, y1lim, 0], [0, -1, 0])
         a.cutWithPlane([x0lim, 0, 0], [1, 0, 0])
         a.cutWithPlane([x1lim, 0, 0], [-1, 0, 0])
-        a.lighting(enabled=False).phong()
+        a.lighting('off').phong()
 
     if title:  #####################
         if titleColor is None:
@@ -1443,7 +1443,7 @@ def _histogram2D(
         resx=bins[0],
         resy=bins[1],
     )
-    g.alpha(alpha).lw(lw).wireframe(0).flat().lighting(enabled=False)
+    g.alpha(alpha).lw(lw).wireframe(0).flat().lighting('off')
     g.cellColors(np.ravel(H.T), cmap=cmap)
     g.SetOrigin(x0lim, y0lim, 0)
     if scalarbar:
@@ -1709,7 +1709,7 @@ def _histogramPolar(
                 d.color(c[i])
             else:
                 d.color(c)
-        d.alpha(alpha).lighting(diffuse=0, ambient=1)
+        d.alpha(alpha).lighting('off')
         slices.append(d)
 
         ct, st = np.cos(t), np.sin(t)
@@ -1781,7 +1781,7 @@ def _histogramPolar(
 
     mrg = merge(lines, angles, rays, ti, labs)
     if mrg:
-        mrg.color(bc).lighting(diffuse=0, ambient=1)
+        mrg.color(bc).lighting('off')
 
     rh = Plot(slices + errbars + [mrg])
     rh.freqs = histodata
@@ -2034,7 +2034,7 @@ def violin(
             rs.append(spl)
             rs.append(spr)
         if fill:
-            rb = shapes.Ribbon(spl, spr, c=c, alpha=alpha).lighting(enabled=False)
+            rb = shapes.Ribbon(spl, spr, c=c, alpha=alpha).lighting('off')
             rs.append(rb)
 
     else:
@@ -2059,7 +2059,7 @@ def violin(
                 p0 = (-fs[i], edges[i], 0)
                 p1 = (fs[i], edges[i + 1], 0)
                 r = shapes.Rectangle(p0, p1).x(p0[0] + x)
-                r.color(c).alpha(alpha).lighting(enabled=False)
+                r.color(c).alpha(alpha).lighting('off')
                 rs.append(r)
 
     if centerline:
@@ -2143,7 +2143,7 @@ def streamplot(
         stream.color(c)
     else:
         stream.addScalarBar()
-    stream.lighting(enabled=False)
+    stream.lighting('off')
 
     stream.scale([1 / (n - 1) * (xmax - xmin), 1 / (n - 1) * (ymax - ymin), 1])
     stream.addPos(np.array([xmin, ymin, 0]))
@@ -2559,7 +2559,7 @@ class DirectedGraph(Assembly):
             arrowGlyph.Update()
             arrows = Mesh(arrowGlyph.GetOutput())
             arrows.SetScale(1/diagsz)
-            arrows.lighting(enabled=False).flat().color(self._c)
+            arrows.lighting('off').color(self._c)
             if self.rotX:
                 arrows.rotateX(self.rotX)
             if self.rotY:

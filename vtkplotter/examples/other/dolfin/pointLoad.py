@@ -60,3 +60,5 @@ for bc in [bc1, bc2]:
 # Solve:
 u = Function(V)
 solve(A, u.vector(), B)
+
+plot(u, mode='displacement')

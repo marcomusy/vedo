@@ -739,8 +739,21 @@ def loadNumpy(inobj):
         if 'color' in keys and d['color']: act.color(d['color'])
         if 'backColor' in keys and d['backColor']: act.backColor(d['backColor'])
 
-        if 'activedata' in keys and d['activedata'] is not None:
+        if 'flagText' in keys and d['flagText']: act.flag(d['flagText'])
+
+        if 'LUT' in keys and 'activedata' in keys and d['activedata']:
+            lut_list = d['LUT']
+            ncols = len(lut_list)
+            lut = vtk.vtkLookupTable()
+            lut.SetNumberOfTableValues(ncols)
+            lut.SetRange(d['LUT_range'])
+            for i in range(ncols):
+                r, g, b, a = lut_list[i]
+                lut.SetTableValue(i, r, g, b, a)
+            lut.Build()
+            act.mapper().SetLookupTable(lut)
             act.mapper().ScalarVisibilityOn()
+            act.mapper().SetScalarModeToUseCellData()
             if d['activedata'][0] == 'celldata':
                 poly.GetCellData().SetActiveScalars(d['activedata'][1])
             if d['activedata'][0] == 'pointdata':
@@ -829,6 +842,7 @@ def _np_dump(obj):
         poly = obj.polydata()
         adict['cells'] = None
         adict['lines'] = None
+        adict['flagText'] = obj.flagText
 
         if poly.GetNumberOfCells():
             try:
@@ -852,6 +866,18 @@ def _np_dump(obj):
             adict['pointdata'].append([obj.getPointArray(iname), iname])
         for iname in obj.getArrayNames()['CellData']:
             adict['celldata'].append([obj.getCellArray(iname), iname])
+
+        adict['LUT'] = None
+        adict['LUT_range'] = None
+        lut = obj._mapper.GetLookupTable()
+        if lut:
+            nlut = lut.GetNumberOfTableValues()
+            lutvals=[]
+            for i in range(nlut):
+                v4 = lut.GetTableValue(i) # r, g, b, alpha
+                lutvals.append(v4)
+            adict['LUT'] = lutvals
+            adict['LUT_range'] = lut.GetRange()
 
         prp = obj.GetProperty()
         adict['alpha'] = prp.GetOpacity()

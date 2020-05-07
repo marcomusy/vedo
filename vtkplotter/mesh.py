@@ -352,7 +352,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         n = len(arr1d)
         if n:
             while True:
-                cell = tuple(arr1d[i+k] for k in range(1, arr1d[i]+1))
+                cell = [arr1d[i+k] for k in range(1, arr1d[i]+1)]
                 conn.append(cell)
                 i += arr1d[i]+1
                 if i >= n:
@@ -370,7 +370,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         #Get cell connettivity ids as a 1D array. The vtk format is:
         #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
         arr1d = vtk_to_numpy(self.polydata(False).GetLines().GetData())
-        
+
         if arr1d is None:
             return []
 
@@ -791,6 +791,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         cleanPolyData.PointMergingOn()
         cleanPolyData.ConvertLinesToPointsOn()
         cleanPolyData.ConvertPolysToLinesOn()
+        cleanPolyData.ConvertStripsToPolysOn()
         cleanPolyData.SetInputData(poly)
         if tol:
             cleanPolyData.SetTolerance(tol)
@@ -2605,7 +2606,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
             fe.SetInputData(self.polydata())
             fe.Update()
-            return Mesh(fe.GetOutput(), c="p").lw(5).lighting(enabled=False).flat()
+            return Mesh(fe.GetOutput(), c="p").lw(5).lighting('off')
 
 
     def connectedVertices(self, index, returnIds=False):
@@ -2792,7 +2793,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
             tapp.AddInputData(tf.GetOutput())
         tapp.Update()
         ids = Mesh(tapp.GetOutput(), c=[.5,.5,.5]).pickable(False)
-        ids.flat().lighting('ambient')
+        ids.lighting('off')
         return ids
 
     def intersectWithLine(self, p0, p1):
@@ -2898,7 +2899,8 @@ class Mesh(vtk.vtkFollower, ActorBase):
             colors.printc(' render the scene with show() or specify  camera/directions', c=1)
             return self
 
-        m.lw(2).c((0,0,0)).lighting(enabled=False)
+        m.lw(2).c((0,0,0)).lighting('off')
+        m._mapper.SetResolveCoincidentTopologyToPolygonOffset()
         return m
 
 
@@ -2997,7 +2999,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         bcf.Update()
         zpoly = bcf.GetOutput()
         zbandsact = Mesh(zpoly, c="k")
-        zbandsact.lighting(enabled=False)
+        zbandsact.lighting('off')
         zbandsact._mapper.SetResolveCoincidentTopologyToPolygonOffset()
         return zbandsact
 

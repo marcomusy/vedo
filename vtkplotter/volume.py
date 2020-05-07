@@ -346,6 +346,11 @@ class Volume(vtk.vtkVolume, ActorBase):
         Then all voxels with a value close to -10 will be completely transparent, voxels at 1/4
         of the range will get an alpha equal to 0.3 and voxels with value close to 150
         will be completely opaque.
+
+        As a second option one can set explicit (x, alpha_x) pairs to define the transfer function.
+        E.g.: say alpha=[(-5, 0), (35, 0.4) (123,0.9)] and the scalar range goes from -10 to 150.
+        Then all voxels below -5 will be completely transparent, voxels with a scalar value of 35
+        will get an opacity of 40% and above 123 alpha is set to 90%.
         """
         smin, smax = self._imagedata.GetScalarRange()
         otf = self.GetProperty().GetScalarOpacity()
@@ -353,14 +358,24 @@ class Volume(vtk.vtkVolume, ActorBase):
         self._alpha = alpha
 
         if utils.isSequence(alpha):
-            for i, al in enumerate(alpha):
-                xalpha = smin + (smax - smin) * i / (len(alpha) - 1)
-                # Create transfer mapping scalar value to opacity
-                otf.AddPoint(xalpha, al)
-                #colors.printc("alpha at", round(xalpha, 1), "\tset to", al)
+            alpha = np.array(alpha)
+            if len(alpha.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
+                for i, al in enumerate(alpha):
+                    xalpha = smin + (smax - smin) * i / (len(alpha) - 1)
+                    # Create transfer mapping scalar value to opacity
+                    otf.AddPoint(xalpha, al)
+            elif len(alpha.shape)==2: # user passing [(x0,alpha0), ...]
+                otf.AddPoint(smin, alpha[0][1])
+                for xalpha, al in alpha:
+                    # Create transfer mapping scalar value to opacity
+                    otf.AddPoint(xalpha, al)
+                otf.AddPoint(smax, alpha[-1][1])
+            #colors.printc("alpha at", round(xalpha, 1), "\tset to", al)
+
         else:
             otf.AddPoint(smin, alpha) # constant alpha
             otf.AddPoint(smax, alpha)
+
         return self
 
     def alphaGradient(self, alphaGrad):
@@ -372,6 +387,8 @@ class Volume(vtk.vtkVolume, ActorBase):
         in the "flat" regions of the volume while maintaining the opacity
         at the boundaries between material types.  The gradient is measured
         as the amount by which the intensity changes over unit distance.
+
+        The format for alphaGrad is the same as for method ``volume.alpha()``.
 
         |read_vti| |read_vti.py|_
         """
@@ -387,11 +404,19 @@ class Volume(vtk.vtkVolume, ActorBase):
         smin, smax = 0, 255
         gotf = volumeProperty.GetGradientOpacity()
         if utils.isSequence(alphaGrad):
-            for i, al in enumerate(alphaGrad):
-                xalpha = smin + (smax - smin) * i / (len(alphaGrad) - 1)
-                # Create transfer mapping scalar value to gradient opacity
-                gotf.AddPoint(xalpha, al)
-                #colors.printc("alphaGrad at", round(xalpha, 1), "\tset to", al, c="b", bold=0)
+            alphaGrad = np.array(alphaGrad)
+            if len(alphaGrad.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
+                for i, al in enumerate(alphaGrad):
+                    xalpha = smin + (smax - smin) * i / (len(alphaGrad) - 1)
+                    # Create transfer mapping scalar value to gradient opacity
+                    gotf.AddPoint(xalpha, al)
+            elif len(alphaGrad.shape)==2: # user passing [(x0,alpha0), ...]
+                gotf.AddPoint(smin, alphaGrad[0][1])
+                for xalpha, al in alphaGrad:
+                    # Create transfer mapping scalar value to opacity
+                    gotf.AddPoint(xalpha, al)
+                gotf.AddPoint(smax, alphaGrad[-1][1])
+            #colors.printc("alphaGrad at", round(xalpha, 1), "\tset to", al, c="b", bold=0)
         else:
             gotf.AddPoint(smin, alphaGrad) # constant alphaGrad
             gotf.AddPoint(smax, alphaGrad)
@@ -422,7 +447,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         """
         th = vtk.vtkImageThreshold()
         th.SetInputData(self.imagedata())
-        
+
         if above is not None and below is not None:
             if above<below:
                 th.ThresholdBetween(above, below)
@@ -433,7 +458,7 @@ class Volume(vtk.vtkVolume, ActorBase):
                 th.SetReplaceOut(True)
                 th.SetOutValue(replaceWith)
                 th.ThresholdBetween(below, above)
-                
+
         elif above is not None:
             th.ThresholdByUpper(above)
             th.SetInValue(replaceWith)
