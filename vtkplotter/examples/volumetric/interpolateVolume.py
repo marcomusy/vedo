@@ -15,9 +15,11 @@ apts = Points(coords).addPointArray(scals, name='scals')
 # Now interpolate these points to a full Volume
 # Available interpolation kernels are: shepard, gaussian, voronoi, linear.
 vol = interpolateToVolume(apts, kernel='shepard', radius=0.2, dims=(90,90,90))
+
 vol.c(["maroon","g","b"])        # set color   transfer function
 vol.alpha([0.3, 0.9])            # set opacity transfer function
 #vol.alpha([(0.3,0.3), (0.9,0.9)]) # alternative way, by specifying (xscalar, alpha)
+vol.alphaUnit(0.5)               # make the whole object less transparent (defualt is 1)
 
 vol.addScalarBar3D(sy=1, title='height is the scalar').rotateX(90).pos(1.15,1,0.5)
 

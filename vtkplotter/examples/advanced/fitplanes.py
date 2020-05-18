@@ -20,6 +20,6 @@ for i, p in enumerate(apple.points()):
     plt += Points(pts)              
     plt += Arrow(plane.center, plane.center+plane.normal/5)
 
-plt += histogram(variances).scale(6).pos(1.2,.2,-1)
+plt += histogram(variances, xtitle='variance').scale(6).pos(1.2,.2,-1)
 plt += __doc__ + "\nNr. of fits performed: "+str(len(variances))
 plt.show()

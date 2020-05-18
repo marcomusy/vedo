@@ -39,7 +39,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
     elif settings.notebookBackend == 'k3d':
         try:
             import k3d # https://github.com/K3D-tools/K3D-jupyter
-        except ModuleNotFoundError:
+        except:
             print("Cannot find k3d, install with:  pip install k3d")
             return
 
@@ -101,17 +101,16 @@ def getNotebookBackend(actors2show, zoom, viewup):
             kobj = None
             kcmap= None
             name = None
+            if ia.filename:
+                name = os.path.basename(ia.filename)
+            if ia.name:
+                name = os.path.basename(ia.name)
 
             #####################################################################scalars
             # work out scalars first, Points Lines are also Mesh objs
             if isinstance(ia, (Mesh, shapes.Line, shapes.Points)):
 #                print('scalars', ia.name, ia.N())
                 iap = ia.GetProperty()
-
-                if ia.filename:
-                    name = os.path.basename(ia.filename)
-                if ia.name:
-                    name = os.path.basename(ia.name)
 
                 if isinstance(ia, (shapes.Line, shapes.Points)):
                     iapoly = ia.polydata()
@@ -171,6 +170,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                                   #color_range=ia.imagedata().GetScalarRange(),
                                   alpha_coef=10,
                                   bounds=kbounds,
+                                  name=name,
                                   )
                 settings.notebook_plotter += kobj
 

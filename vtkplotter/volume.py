@@ -26,13 +26,12 @@ class Volume(vtk.vtkVolume, ActorBase):
 
     See e.g.: |numpy2volume.py|_
 
-    :param c: sets colors along the scalar range, or a matplotlib color map name
-    :type c: list, str
-    :param alphas: sets transparencies along the scalar range
-    :type c: float, list
+    :param list,str c: sets colors along the scalar range, or a matplotlib color map name
+    :param float,list alphas: sets transparencies along the scalar range
+    :param float alphaUnit: low values make composite rendering look brighter and denser
     :param list origin: set volume origin coordinates
     :param list spacing: voxel dimensions in x, y and z.
-    :param list shape: specify the shape.
+    :param list dims: specify the dimensions of the volume.
     :param str mapperType: either 'gpu', 'opengl_gpu', 'fixed' or 'smart'
 
     :param int mode: define the volumetric rendering style:
@@ -53,10 +52,11 @@ class Volume(vtk.vtkVolume, ActorBase):
                  c=('r','y','lg','lb','b'), #('b','lb','lg','y','r')
                  alpha=(0.0,0.0, 0.5, 0.8,1.0),
                  alphaGradient=None,
+                 alphaUnit=None,
                  mode=0,
-                 origin=None,
                  spacing=None,
-                 shape=None,
+                 dims=None,
+                 origin=None,
                  mapperType='smart',
                  ):
 
@@ -70,7 +70,7 @@ class Volume(vtk.vtkVolume, ActorBase):
             import glob
             inputobj = sorted(glob.glob(inputobj))
 
-
+        ###################
         if inputobj is None:
             img = vtk.vtkImageData()
 
@@ -89,7 +89,7 @@ class Volume(vtk.vtkVolume, ActorBase):
                     mgf.SetInputData(picr.GetOutput())
                     mgf.Update()
                     ima.AddInputData(mgf.GetOutput())
-                    pb.print('loading..')
+                    pb.print('loading...')
                 ima.Update()
                 img = ima.GetOutput()
 
@@ -97,14 +97,21 @@ class Volume(vtk.vtkVolume, ActorBase):
                 if "ndarray" not in inputtype:
                     inputobj = np.array(inputobj)
 
-                varr = numpy_to_vtk(inputobj.ravel(order='F'),
-                                    deep=True, array_type=vtk.VTK_FLOAT)
+                if len(inputobj.shape)==1:
+                    varr = numpy_to_vtk(inputobj, deep=True, array_type=vtk.VTK_FLOAT)
+                else:
+                    inputobj = np.transpose(inputobj, axes=[2, 1, 0])
+                    varr = numpy_to_vtk(inputobj.ravel(order='F'),
+                                        deep=True, array_type=vtk.VTK_FLOAT)
                 varr.SetName('input_scalars')
 
                 img = vtk.vtkImageData()
-                if shape is not None:
-                    img.SetDimensions(shape)
+                if dims is not None:
+                    img.SetDimensions(dims)
                 else:
+                    if len(inputobj.shape)==1:
+                        colors.printc("Error: must set dimensions (dims keyword) in Volume.", c=1)
+                        raise RuntimeError()
                     img.SetDimensions(inputobj.shape)
                 img.GetPointData().SetScalars(varr)
 
@@ -148,18 +155,23 @@ class Volume(vtk.vtkVolume, ActorBase):
             print("Error unknown mapperType", mapperType)
             raise RuntimeError()
 
+        if dims is not None:
+            img.SetDimensions(dims)
+
         if origin is not None:
-            img.SetOrigin(origin)
+            img.SetOrigin(origin) ### DIFFERENT from volume.origin()!
+
         if spacing is not None:
             img.SetSpacing(spacing)
-        if shape is not None:
-            img.SetDimensions(shape)
 
         self._imagedata = img
         self._mapper.SetInputData(img)
         self.SetMapper(self._mapper)
         self.mode(mode).color(c).alpha(alpha).alphaGradient(alphaGradient)
         self.GetProperty().SetInterpolationType(1)
+        if alphaUnit:
+            self.GetProperty().SetScalarOpacityUnitDistance(alphaUnit)
+
         # remember stuff:
         self._mode = mode
         self._color = c
@@ -251,10 +263,17 @@ class Volume(vtk.vtkVolume, ActorBase):
         """Set/get the voxels size in the 3 dimensions."""
         if s is not None:
             self._imagedata.SetSpacing(s)
-            self._update(self._imagedata)
             return self
         else:
             return np.array(self._imagedata.GetSpacing())
+
+    def origin(self, s=None):                                ### superseedes base.origin()
+        """Set/get the origin of the volumetric dataset.""" ### DIFFERENT from base.origin()!
+        if s is not None:
+            self._imagedata.SetOrigin(s)
+            return self
+        else:
+            return np.array(self._imagedata.GetOrigin())
 
     def center(self, center=None):
         """Set/get the volume coordinates of its center.
@@ -421,6 +440,21 @@ class Volume(vtk.vtkVolume, ActorBase):
             gotf.AddPoint(smin, alphaGrad) # constant alphaGrad
             gotf.AddPoint(smax, alphaGrad)
         return self
+
+    def alphaUnit(self, u=None):
+        """Defines light attenuation per unit length. Default is 1.
+        The larger the unit length, the further light has to travel to attenuate the same amount.
+
+        E.g., if you set the unit distance to 0, you will get full opacity.
+        It means that when light travels 0 distance it's already attenuated a finite amount.
+        Thus, any finite distance should attenuate all light.
+        The larger you make the unit distance, the more transparent the rendering becomes.
+        """
+        if u is None:
+            return self.GetProperty().GetScalarOpacityUnitDistance()
+        else:
+            self.GetProperty().SetScalarOpacityUnitDistance(u)
+            return self
 
     def interpolation(self, itype):
         """
@@ -684,8 +718,8 @@ class Volume(vtk.vtkVolume, ActorBase):
         else:
             if threshold is True:
                 threshold = (2 * scrange[0] + scrange[1]) / 3.0
-                print('automatic threshold set to ' + utils.precision(threshold, 3), end=' ')
-                print('in [' + utils.precision(scrange[0], 3) + ', ' + utils.precision(scrange[1], 3)+']')
+                #print('automatic threshold set to ' + utils.precision(threshold, 3), end=' ')
+                #print('in [' + utils.precision(scrange[0], 3) + ', ' + utils.precision(scrange[1], 3)+']')
             cf.SetValue(0, threshold)
             cf.Update()
 
@@ -745,7 +779,10 @@ class Volume(vtk.vtkVolume, ActorBase):
         gf.Update()
 
         a = Mesh(gf.GetOutput()).lw(0.1).flat()
-        scalars = a.getPointArray(0).astype(np.float)
+        scalars = a.getPointArray()
+        if scalars is None:
+            print("Error in legosurface(): no scalars found!")
+            return a
         a.pointColors(scalars, vmin=srng[0], vmax=srng[1], cmap=cmap)
         a.mapPointsToCells()
         return a

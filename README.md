@@ -20,17 +20,12 @@ Inspired by the [vpython](https://vpython.org/) *manifesto* "3D programming for 
 *vtkplotter* makes it easy to work wth three-dimensional objects, create displays and animations
 in just a few lines of code, even for those with less programming experience.
 
-Because life is short.
-
 ## 🎯 Table of Contents
 * [Installation](https://github.com/marcomusy/vtkplotter#-installation)
 * [Documentation](https://github.com/marcomusy/vtkplotter#-documentation)
-	* [Need help?](https://github.com/marcomusy/vtkplotter#-need-help)
 * [Features](https://github.com/marcomusy/vtkplotter#-features)
-  * [Command Line Interface](https://github.com/marcomusy/vtkplotter#command-line-interface)
-  * [Graphic User Interface](https://github.com/marcomusy/vtkplotter#graphic-user-interface)
-* [Examples](https://github.com/marcomusy/vtkplotter#-examples)
-  * [Gallery](https://github.com/marcomusy/vtkplotter#-random-gallery)
+* [Command Line Interface](https://github.com/marcomusy/vtkplotter#command-line-interface)
+* [Examples Gallery](https://github.com/marcomusy/vtkplotter#-examples)
 * [References](https://github.com/marcomusy/vtkplotter#-references)
 
 
@@ -55,8 +50,7 @@ on the desktop to *drag&drop* files to visualize.
 Automatically generated documentation can be found [**here**](https://vtkplotter.embl.es).
 
 
-##### 📌 Need help?
-Have any question, or wish to suggest or ask for a missing feature?
+📌 **Need help?** Have any question, or wish to suggest or ask for a missing feature?
 Do not hesitate to open a [**issue**](https://github.com/marcomusy/vtkplotter/issues)
 or send an [email](mailto:marco.musy@embl.es).
 
@@ -66,9 +60,9 @@ Intuitive and straightforward API which can be combined with VTK seamlessly
 in a program, whilst mantaining access to the full range of VTK native classes.
 
 It includes a **[large set of working examples](https://github.com/marcomusy/vtkplotter/tree/master/vtkplotter/examples)**
-for a wide range of functionalities *(click triangle to expand...)*:
+for a wide range of functionalities:
 <details>
-<summary>working with polygonal meshes and point clouds</summary>
+<summary>working with polygonal meshes and point clouds *[click triangle to expand]*</summary>
 
 	- Import meshes from VTK format, STL, Wavefront OBJ, 3DS, Dolfin-XML, Neutral, GMSH, OFF, PCD (PointCloud),
 
@@ -190,25 +184,17 @@ vtkplotter mesh.obj
 # valid formats: [vtk,vtu,vts,vtp,vtm,ply,obj,stl,3ds,dolfin-xml,neutral,gmsh,
 #                 pcd,xyz,txt,byu,tif,off,slc,vti,mhd,dcm,dem,nrrd,nii,bmp,png,jpg]
 ```
-Voxel-data (_mhd, vti, slc, tiff, dicom etc.._) files can be visualized with options:<br>
+Volumetric files (_mhd, vti, slc, tiff, DICOM etc.._) can be visualized with options:<br>
 
-|Use sliders to slice a volume in the 3 planes:<br>`vtkplotter --slicer embryo.slc`|  Ray-casting rendering:<br>`vtkplotter -g embryo.slc`|
-|:--------|:-----|
-| ![slicer](https://user-images.githubusercontent.com/32848391/80292484-50757180-8757-11ea-841f-2c0c5fe2c3b4.jpg)|![isohead](https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif)|
+|Slice a volume in the 3 planes:<br>`vtkplotter --slicer embryo.slc`|  Ray-casting rendering:<br>`-g embryo.slc`| 2D slice:<br>`--slicer2d`| Colorize voxels:<br>`--lego`|
+|:--------|:-----|:--------|:-----|
+| ![slicer](https://user-images.githubusercontent.com/32848391/80292484-50757180-8757-11ea-841f-2c0c5fe2c3b4.jpg)|![isohead](https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif)|![viz_slicer](https://user-images.githubusercontent.com/32848391/56972084-a7f3f800-6b6a-11e9-98c4-dc4ffec70a5e.png)  |![lego](https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg) |
 
-
-<br>
 
 To visualize multiple files or files time-sequences try `-n` or `-s` options. Use `-h` for the complete list of options.
 
-| Interactive volume isosurfacing:|  Load and browse a sequence of meshes:| Slice a 3D volume with a plane:| Visualize colorized voxels:|
-|:--------|:-----|:----|:----|
-|`vtkplotter head.vti` |`vtkplotter -s *.vtk` |`vtkplotter `<br>`--slicer2d em.slc` |   `vtkplotter --lego embryo.slc`|
-|![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif)|   ![viz_raycast](https://user-images.githubusercontent.com/32848391/58336919-f7b1a080-7e44-11e9-9106-f574371093a8.gif)  | ![viz_slicer](https://user-images.githubusercontent.com/32848391/56972084-a7f3f800-6b6a-11e9-98c4-dc4ffec70a5e.png)  |![lego](https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg) |
-
-## 🖥 Graphic User Interface
 <details>
-<summary>A GUI is available (mainly useful to *Windows 10* users)</summary>
+<summary>A GUI is also available (mainly useful to *Windows 10* users).</summary>
 
 ![gui](https://user-images.githubusercontent.com/32848391/63259840-c861d280-c27f-11e9-9c2a-99d0fae85313.png)
 </details>
@@ -223,7 +209,7 @@ To visualize multiple files or files time-sequences try `-n` or `-s` options. Us
 [**examples/other**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other)<br>
 [**examples/other/dolfin**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin)<br>
 [**examples/other/trimesh**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/trimesh)<br>
-[**examples/notebooks**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/notebooks).<br>
+[**examples/notebooks**](https://github.com/marcomusy/vtkplotter/blob/master/notebooks)<br>
 
 |         |      |
 |:--------|:-----|
@@ -231,24 +217,18 @@ To visualize multiple files or files time-sequences try `-n` or `-s` options. Us
 |         |      |
 | Simulation of a gyroscope hanging from a spring ([script](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/gyroscope1.py)).<br> ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)     | ![qsine2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)<br>  Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. ([script](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/tunnelling2.py)) |
 |         |      |
-|Visualizing a Turing system of reaction-diffusion between two molecules<sup>1</sup> ([script](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/turing.py)) <br> ![turing](https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif)  | ![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif) <br> Support for the [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of PDE and finite element solutions ([see here](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin)) |
+|Turing system of reaction-diffusion between two molecules ([script](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/grayscott.py)) <br>![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)  | ![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif) <br> Support for the [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of PDE and finite element solutions ([see here](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin)) |
 
 <br>
 
-### Random Gallery
+### Random Gallery of Examples
 Run any of the built-in examples from command line, e.g.:
 
-`vtkplotter -ir  grayscott`
-
-![covid](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)
-
-
-More examples *(press spacebar to continue or `F1` to interrupt execution)*:
-
-`vtkplotter --list`
+> `vtkplotter -ir  covid19`
 
 |     |     |     |     |
 |:---:|:---:|:---:|:---:|
+|![geologic](https://user-images.githubusercontent.com/32848391/81397531-d2867280-9127-11ea-8cc8-0effbbbebf2d.jpg) <br>`geological`|![multirender](https://user-images.githubusercontent.com/32848391/81459297-80813380-919f-11ea-89b1-39a305dd9897.png) <br>`multirender`| ![cartoony](https://user-images.githubusercontent.com/32848391/81459306-8840d800-919f-11ea-859e-d9c0b432e644.png) <br>`cartoony`|![streamline4](https://user-images.githubusercontent.com/32848391/81459343-b9210d00-919f-11ea-846c-152d62cba06e.png) <br>`streamlines4`|
 | ![covid](https://user-images.githubusercontent.com/32848391/77330206-4824b380-6d1f-11ea-9bc3-e3aef970dcc2.gif) <br>`covid19`| ![lineage_graph](https://user-images.githubusercontent.com/32848391/80291851-8152a800-8751-11ea-893e-4a0bb85397b1.png) <br>`lineage_graph` |![siluette](https://user-images.githubusercontent.com/32848391/57179369-8e5df380-6e7d-11e9-99b4-3b1a120dd375.png) <br>`silhouette1`  | ![levelterrain](https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png)<br>`isolines`|
 | ![gyro](https://user-images.githubusercontent.com/32848391/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif) <br>`gyroscope2` | ![thinplate_grid](https://user-images.githubusercontent.com/32848391/51433540-d188b380-1c4c-11e9-81e7-a1cf4642c54b.png ) <br>`thinplate_grid`  | ![trail](https://user-images.githubusercontent.com/32848391/58370826-4aee2680-7f0b-11e9-91e6-3120770cfede.gif) <br>`trail`   | ![quadratic_morphing](https://user-images.githubusercontent.com/32848391/50738890-db380300-11d8-11e9-9cef-4c1276cca334.jpg)  <br>`quadratic_morphing`  |
 | ![shrink](https://user-images.githubusercontent.com/32848391/46819143-41042280-cd83-11e8-9492-4f53679887fa.png) <br>`shrink` | ![mesh_custom](https://user-images.githubusercontent.com/32848391/51390972-20d9c180-1b31-11e9-955d-025f1ef24cb7.png) <br>`mesh_custom`   | ![spring](https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif) <br>`spring`   | ![lorenz](https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png) <br>`lorentz`   |
@@ -259,7 +239,8 @@ More examples *(press spacebar to continue or `F1` to interrupt execution)*:
 | ![legosurface](https://user-images.githubusercontent.com/32848391/56820682-da40e500-684c-11e9-8ea3-91cbcba24b3a.png)<br>`legosurface`| ![streamlines2](https://user-images.githubusercontent.com/32848391/56964001-9145a500-6b5a-11e9-935b-1b2425bd7dd2.png) <br>`streamlines2`   | ![office](https://user-images.githubusercontent.com/32848391/56964003-9145a500-6b5a-11e9-9d9e-9736d90e1900.png) <br>`office.py`   | ![value-iteration](https://user-images.githubusercontent.com/32848391/56964055-afaba080-6b5a-11e9-99cf-3fac99df9878.jpg)  <br>`value-iteration`  |
 | ![shadow](https://user-images.githubusercontent.com/32848391/57312574-1d714280-70ee-11e9-8741-04fc5386d692.png) <br>`shadow`| ![multiple_pendulum](https://user-images.githubusercontent.com/32848391/50738892-db380300-11d8-11e9-807c-fb320c7b7917.gif) <br>`multiple_pend`   | ![interpolateVolume](https://user-images.githubusercontent.com/32848391/59095175-1ec5a300-8918-11e9-8bc0-fd35c8981e2b.jpg) <br>`interpolateVolume`   | ![histo_polar](https://user-images.githubusercontent.com/32848391/64912717-5754f400-d733-11e9-8a1f-612165955f23.png)  <br>`histo_polar`  |
 | ![streamplot](https://user-images.githubusercontent.com/32848391/73614123-93162a80-45fc-11ea-969b-9a3293b26f35.png) <br>`plot7_stream`| ![violin](https://user-images.githubusercontent.com/32848391/73481240-b55d3d80-439b-11ea-89a4-6c35ecc84b0d.png) <br>`histo_violin`   | ![plot3_pip](https://user-images.githubusercontent.com/32848391/73393632-4ff64780-42dc-11ea-8798-45a81c067f45.png) <br>`plot3_pip`   | ![histo_spheric](https://user-images.githubusercontent.com/32848391/73392901-fccfc500-42da-11ea-828a-9bad6982a823.png)  <br>`histo_spheric`  |
-| ![gray_scott](https://user-images.githubusercontent.com/32848391/59788744-aaeaa980-92cc-11e9-825d-58da26ca21ff.gif) | ![donutPlot](https://user-images.githubusercontent.com/32848391/64998178-6f6b7580-d8e3-11e9-9bd8-8dfb9ccd90e4.png)  <br>`donut`  | ![extrude](https://user-images.githubusercontent.com/32848391/65963682-971e1a00-e45b-11e9-9f29-05522ae4a800.png) <br>`extrude`   | ![plotxy](https://user-images.githubusercontent.com/32848391/69158509-d6c1c380-0ae6-11ea-9dbf-ff5cd396a9a6.png) <br>`plot1_errbars`   |
+| ![readvts](https://user-images.githubusercontent.com/32848391/80862655-04568f80-8c77-11ea-8249-5b61283e04ce.png)  <br>`read_vts`  | ![donutPlot](https://user-images.githubusercontent.com/32848391/64998178-6f6b7580-d8e3-11e9-9bd8-8dfb9ccd90e4.png)  <br>`donut`  | ![extrude](https://user-images.githubusercontent.com/32848391/65963682-971e1a00-e45b-11e9-9f29-05522ae4a800.png) <br>`extrude`   | ![plotxy](https://user-images.githubusercontent.com/32848391/69158509-d6c1c380-0ae6-11ea-9dbf-ff5cd396a9a6.png) <br>`plot1_errbars`   |
+|![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif)|   ![viz_raycast](https://user-images.githubusercontent.com/32848391/58336919-f7b1a080-7e44-11e9-9106-f574371093a8.gif)  | ![viz_slicer](https://user-images.githubusercontent.com/32848391/80866479-3bd13600-8c8f-11ea-83c7-5f5b4fccb29d.png)  |![lego](https://user-images.githubusercontent.com/32848391/59788744-aaeaa980-92cc-11e9-825d-58da26ca21ff.gif) |
 | ![particle_simulator](https://user-images.githubusercontent.com/32848391/50738891-db380300-11d8-11e9-84c2-0f55be7228f1.gif) <br>`particle_simulator`| ![heatconv](https://user-images.githubusercontent.com/32848391/57455107-b200af80-726a-11e9-897d-9c7bcb9854ac.gif) <br>`heatconv` |![elastodynamics](https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif) <br>`elastodynamics`  | ![navier-stokes_lshape](https://user-images.githubusercontent.com/32848391/56671156-6bc91f00-66b4-11e9-8c58-e6b71e2ad1d0.gif)<br>`stokes_lshape`|
 
 ## 📜 References

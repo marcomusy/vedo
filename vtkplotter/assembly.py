@@ -54,28 +54,6 @@ class Assembly(vtk.vtkAssembly, ActorBase):
         return self
 
 
-    def getActors(self):
-        """Obsolete, use getMeshes() instead."""
-        print("WARNING: getActors() is obsolete, use unpack() instead.")
-        return self.unpack()
-
-    def getMeshes(self):
-        """Obsolete, use unpack() instead."""
-        print("WARNING: getMeshes() is obsolete, use unpack() instead.")
-        raise RuntimeError()
-        return self.unpack()
-
-    def getMesh(self, i):
-        """Obsolete, use unpack(i) instead."""
-        print("WARNING: getMesh(i) is obsolete, use unpack(i) instead.")
-        if isinstance(i, str):
-            for m in self.actors:
-                if i in m.name:
-                    return m
-            return None
-        return self.actors[i]
-
-
     def clone(self):
         """Make a clone copy of the object."""
         newlist = []

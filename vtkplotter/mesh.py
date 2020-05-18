@@ -2446,12 +2446,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
         fh.Update()
         return self._update(fh.GetOutput())
 
-    def write(self, filename="mesh.vtk", binary=True):
-        """Write mesh to file."""
-        import vtkplotter.vtkio as vtkio
-
-        return vtkio.write(self, filename, binary)
-
     def normalAt(self, i):
         """Return the normal vector at vertex point `i`."""
         normals = self.polydata().GetPointData().GetNormals()
@@ -3030,24 +3024,39 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
         |extrude| |extrude.py|_
         """
-        rf = vtk.vtkRotationalExtrusionFilter()
-        rf.SetInputData(self._polydata)
-        rf.SetResolution(res)
-        rf.SetCapping(cap)
-        rf.SetAngle(rotation)
-        rf.SetTranslation(zshift)
-        rf.SetDeltaRadius(dR)
-        rf.Update()
-        m = Mesh(rf.GetOutput(), c=self.c(), alpha=self.alpha())
-        prop = vtk.vtkProperty()
-        prop.DeepCopy(self.GetProperty())
-        m.SetProperty(prop)
-        # assign the same transformation
-        m.SetOrigin(self.GetOrigin())
-        m.SetScale(self.GetScale())
-        m.SetOrientation(self.GetOrientation())
-        m.SetPosition(self.GetPosition())
-        return m.computeNormals(cells=False).phong()
+        if utils.isSequence(zshift):
+#            ms = [] # todo
+#            poly0 = self.clone().polydata()
+#            for i in range(len(zshift)-1):
+#                rf = vtk.vtkRotationalExtrusionFilter()
+#                rf.SetInputData(poly0)
+#                rf.SetResolution(res)
+#                rf.SetCapping(0)
+#                rf.SetAngle(rotation)
+#                rf.SetTranslation(zshift)
+#                rf.SetDeltaRadius(dR)
+#                rf.Update()
+#                poly1 = rf.GetOutput()
+            return self
+        else:
+            rf = vtk.vtkRotationalExtrusionFilter()
+            rf.SetInputData(self.polydata())
+            rf.SetResolution(res)
+            rf.SetCapping(cap)
+            rf.SetAngle(rotation)
+            rf.SetTranslation(zshift)
+            rf.SetDeltaRadius(dR)
+            rf.Update()
+            m = Mesh(rf.GetOutput(), c=self.c(), alpha=self.alpha())
+            prop = vtk.vtkProperty()
+            prop.DeepCopy(self.GetProperty())
+            m.SetProperty(prop)
+            # assign the same transformation
+            m.SetOrigin(self.GetOrigin())
+            m.SetScale(self.GetScale())
+            m.SetOrientation(self.GetOrientation())
+            m.SetPosition(self.GetPosition())
+            return m.computeNormals(cells=False).phong()
 
 
     def warpToPoint(self, point, factor=0.1, absolute=True):

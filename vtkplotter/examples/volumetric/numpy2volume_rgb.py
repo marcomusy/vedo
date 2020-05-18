@@ -4,7 +4,7 @@ colorize voxels individually
 from vtkplotter import Volume, show
 import numpy as np
 
-vol = Volume(shape=(10,11,12), mode=0)
+vol = Volume(dims=(10,11,12), mode=0)
 vol.alpha(0.8).jittering(False)
 vol.interpolation(0) # nearest neighbour interpolation type
 

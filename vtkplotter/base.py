@@ -606,6 +606,12 @@ class ActorBase(object):
         return self
 
 
+    def write(self, filename, binary=True):
+        """Write object to file."""
+        import vtkplotter.vtkio as vtkio
+        return vtkio.write(self, filename, binary)
+
+
     def c(self, color=False):
         """
         Shortcut for `color()`.
@@ -656,59 +662,96 @@ class ActorBase(object):
     def getArrayNames(self):
         from vtk.numpy_interface import dataset_adapter
         wrapped = dataset_adapter.WrapDataObject(self.GetMapper().GetInput())
-        return {"PointData":wrapped.PointData.keys(), "CellData":wrapped.CellData.keys()}
+        return {"PointData":wrapped.PointData.keys(),
+                "CellData":wrapped.CellData.keys() }
+
 
     def getPointArray(self, name=0):
         """Return point array content as a ``numpy.array``.
-        This can be identified either as a string or by an integer number."""
+        This can be identified either as a string or by an integer number.
 
-        data = None
+        Getting an array also makes it the active one, if more than one is present.
+        """
         if hasattr(self, '_polydata') and self._polydata:
-            data = self._polydata
-            self.mapper().ScalarVisibilityOn()
-            arr = data.GetPointData().GetArray(name)
+            data = self._polydata.GetPointData()
+            if isinstance(name, int):
+                name = data.GetArrayName(name)
+            arr = data.GetArray(name)
             if not arr:
                 return None
 
-            if isinstance(name, int):
-                name = data.GetPointData().GetArrayName(name)
-            data.GetPointData().SetActiveScalars(name)
-            self.mapper().SetScalarModeToUsePointData()
+            self._mapper.ScalarVisibilityOn()
             if settings.autoResetScalarRange:
-                self.mapper().SetScalarRange(arr.GetRange())
+                self._mapper.SetScalarRange(arr.GetRange())
 
         elif hasattr(self, '_imagedata') and self._imagedata:
-            data = self._imagedata
-            arr = data.GetPointData().GetArray(name)
+            data = self._imagedata.GetPointData()
+            if isinstance(name, int):
+                name = data.GetArrayName(name)
+            arr = data.GetArray(name)
             if not arr:
                 return None
 
+        data.SetActiveScalars(name)
+        self._mapper.SetScalarModeToUsePointData()
         return vtk_to_numpy(arr)
+
 
     def getCellArray(self, name=0):
-        """Return cell array content as a ``numpy.array``."""
-        data = None
+        """Return cell array content as a ``numpy.array``.
+        This can be identified either as a string or by an integer number.
+
+        Getting an array also makes it the active one, if more than one is present.
+        """
         if hasattr(self, '_polydata') and self._polydata:
-            data = self._polydata
-            self.mapper().ScalarVisibilityOn()
-            arr = data.GetCellData().GetArray(name)
+            data = self._polydata.GetCellData()
+            if isinstance(name, int):
+                name = data.GetArrayName(name)
+            arr = data.GetArray(name)
             if not arr:
                 return None
 
-            if isinstance(name, int):
-                name = data.GetCellData().GetArrayName(name)
-            data.GetCellData().SetActiveScalars(name)
-            self.mapper().SetScalarModeToUseCellData()
+            self._mapper.ScalarVisibilityOn()
             if settings.autoResetScalarRange:
-                self.mapper().SetScalarRange(arr.GetRange())
+                self._mapper.SetScalarRange(arr.GetRange())
 
         elif hasattr(self, '_imagedata') and self._imagedata:
-            data = self._imagedata
-            arr = data.GetCellData().GetArray(name)
+            data = self._imagedata.GetCellData()
+            if isinstance(name, int):
+                name = data.GetArrayName(name)
+            arr = data.GetArray(name)
             if not arr:
                 return None
 
+        data.SetActiveScalars(name)
+        self._mapper.SetScalarModeToUseCellData()
         return vtk_to_numpy(arr)
+
+
+    # def getCellArray(self, name=0):
+    #     """Return cell array content as a ``numpy.array``."""
+    #     data = None
+    #     if hasattr(self, '_polydata') and self._polydata:
+    #         data = self._polydata
+    #         self.mapper().ScalarVisibilityOn()
+    #         arr = data.GetCellData().GetArray(name)
+    #         if not arr:
+    #             return None
+
+    #         if isinstance(name, int):
+    #             name = data.GetCellData().GetArrayName(name)
+    #         data.GetCellData().SetActiveScalars(name)
+    #         self.mapper().SetScalarModeToUseCellData()
+    #         if settings.autoResetScalarRange:
+    #             self.mapper().SetScalarRange(arr.GetRange())
+
+    #     elif hasattr(self, '_imagedata') and self._imagedata:
+    #         data = self._imagedata
+    #         arr = data.GetCellData().GetArray(name)
+    #         if not arr:
+    #             return None
+
+    #     return vtk_to_numpy(arr)
 
 
     def addPointArray(self, input_array, name):
@@ -731,7 +774,7 @@ class ActorBase(object):
             return self
 
         if len(input_array) != data.GetNumberOfPoints():
-            colors.printc('~times addPointArray(): Number of elements != nr. of points',
+            colors.printc('Error in addPointArray(): Number of inputs != nr. of points',
                           len(input_array), data.GetNumberOfPoints(), c=1)
             raise RuntimeError()
 
@@ -741,8 +784,10 @@ class ActorBase(object):
             varr.SetName(name)
             data.GetPointData().AddArray(varr)
             data.GetPointData().SetActiveScalars(name)
-            self._mapper.ScalarVisibilityOn()
-            self._mapper.SetScalarRange(varr.GetRange())
+            self._mapper.SetScalarModeToUsePointData()
+            if hasattr(self._mapper, 'ScalarVisibilityOn'): # could be volume mapper
+                self._mapper.ScalarVisibilityOn()
+                self._mapper.SetScalarRange(varr.GetRange())
 
         elif len(nparr.shape)==2: # vectors or higher dim ntuples
             varr = vtk.vtkFloatArray()
@@ -754,7 +799,7 @@ class ActorBase(object):
             if nparr.shape[1] == 3:
                 data.GetPointData().SetActiveVectors(name)
         else:
-            colors.printc('~times addPointArray(): cannot understand shape:',
+            colors.printc('Error in addPointArray(): cannot deal with shape:',
                           nparr.shape, c=1)
             return self
 
@@ -783,7 +828,7 @@ class ActorBase(object):
             return self
 
         if len(input_array) != data.GetNumberOfCells():
-            colors.printc('~times addCellArray(): Number of elements != nr. of Cells',
+            colors.printc('Error in addCellArray(): Number of inputs != nr. of Cells',
                           len(input_array), data.GetNumberOfCells(), c=1)
             raise RuntimeError()
 
@@ -793,8 +838,9 @@ class ActorBase(object):
             varr.SetName(name)
             data.GetCellData().AddArray(varr)
             data.GetCellData().SetActiveScalars(name)
-            self._mapper.ScalarVisibilityOn()
-            self._mapper.SetScalarRange(varr.GetRange())
+            if hasattr(self._mapper, 'ScalarVisibilityOn'): # could be volume mapper
+                self._mapper.ScalarVisibilityOn()
+                self._mapper.SetScalarRange(varr.GetRange())
 
         elif len(nparr.shape)==2: # vectors or higher dim ntuples
             varr = vtk.vtkFloatArray()
@@ -806,7 +852,7 @@ class ActorBase(object):
             if nparr.shape[1] == 3:
                 data.GetCellData().SetActiveVectors(name)
         else:
-            colors.printc('~times addCellArray(): cannot understand shape:',
+            colors.printc('Error in addCellArray(): cannot deal with shape:',
                           nparr.shape, c=1)
             return self
 

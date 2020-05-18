@@ -7,7 +7,7 @@ x = np.random.randn(100)+10
 y = np.random.randn(100)*20
 
 plt = plot( x, y,         
-            line=False,
+            lw=0,
             xtitle="variable x",
             ytitle="variable y",
             aspect=4/3,   # aspect ratio

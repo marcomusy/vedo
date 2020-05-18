@@ -856,7 +856,10 @@ class Tube(Mesh):
 
 class Ribbon(Mesh):
     """Connect two lines to generate the surface inbetween.
-Set the mode by which to create the ruled surface.
+    Set the mode by which to create the ruled surface.
+
+    It also works with a single line in input. In this case the ribbon
+    is formed by following the local plane of the line in space.
 
     :param int mode: If mode=0, resample evenly the input lines (based on length)
         and generates triangle strips.
@@ -869,10 +872,25 @@ Set the mode by which to create the ruled surface.
 
     |ribbon| |ribbon.py|_
     """
-    def __init__(self, line1, line2, mode=0, closed=False, c="m", alpha=1, res=(200,5)):
+    def __init__(self, line1, line2=None, mode=0, closed=False, width=None,
+                 c="m", alpha=1, res=(200,5)):
 
         if isinstance(line1, Mesh):
             line1 = line1.points()
+
+        if line2 is None:
+            RibbonFilter = vtk.vtkRibbonFilter()
+            aline = Line(line1)
+            RibbonFilter.SetInputData(aline.polydata(False))
+            if width is None:
+                width = aline.diagonalSize()/20.
+            RibbonFilter.SetWidth(width)
+            RibbonFilter.Update()
+            Mesh.__init__(self, RibbonFilter.GetOutput(), c, alpha)
+            settings.collectable_actors.append(self)
+            self.name = "Ribbon"
+            return
+
         if isinstance(line2, Mesh):
             line2 = line2.points()
 
@@ -2133,6 +2151,8 @@ class Text(Mesh):
     :param str justify: text justification
         (bottom-left, bottom-right, top-left, top-right, centered).
 
+    :param bool : render strings like 3.7 10^9 in with sub and superscripts
+
     |markpoint| |markpoint.py|_
     """
     def __init__(self,
@@ -2141,6 +2161,7 @@ class Text(Mesh):
                 s=1,
                 depth=0,
                 italic=False,
+                useSubScripts=True,
                 justify="bottom-left",
                 c=None,
                 alpha=1,
@@ -2162,11 +2183,77 @@ class Text(Mesh):
             else:
                 c = (0.6, 0.6, 0.6)
 
-        # otherwise build the 3D text, fonts do not apply
-        tt = vtk.vtkVectorText()
-        tt.SetText(str(txt))
-        tt.Update()
-        tpoly = tt.GetOutput()
+        def _mktxt(s, x=0, ypos=0):
+            tt = vtk.vtkVectorText()
+            tt.SetText(s)
+            tt.Update()
+            kpoly = tt.GetOutput()
+            if x:
+                tr = vtk.vtkTransform()
+                if not ypos:
+                    tr.Translate(x,ypos,0)
+                else:
+                    tr.Translate(x+0.1,ypos,0)
+                    tr.Scale(0.5,0.5,1)
+                tf = vtk.vtkTransformPolyDataFilter()
+                tf.SetInputData(kpoly)
+                tf.SetTransform(tr)
+                tf.Update()
+                kpoly = tf.GetOutput()
+            return kpoly, kpoly.GetBounds()[1]
+
+        if useSubScripts and str(txt):
+
+            sn = str(txt).replace("**","^")
+            sn = sn.replace("e+0","^. 10^").replace("e-0","^. 10^-")
+            sn = sn.replace("E+0","^. 10^").replace("E-0","^. 10^-")
+            sn = sn.replace("e+","^. 10^").replace("e-","^. 10^-")
+            sn = sn.replace("E+","^. 10^").replace("E-","^. 10^-")
+
+            x=0
+            vtxts = []
+            txt=''
+            itersn = iter(range(len(sn)))
+            for i in itersn:
+                car = sn[i]
+                if car=='^':
+                    yshift = 0.7
+                elif car=='_':
+                    yshift = -0.3
+                else:
+                    yshift = 0
+
+                if yshift:
+                    vtxt, x = _mktxt(txt,x) # normal text
+                    vtxts.append(vtxt)
+                    txt=''
+                    etxt = ''
+                    for k in range(i+1,len(sn)): # sub/super script
+                        snk = sn[k]
+                        next(itersn)
+                        if snk==" ":break
+                        etxt+=snk
+                    if etxt:
+                        vetxt, x = _mktxt(etxt,x, yshift)
+                        vtxts.append(vetxt)
+                else:
+                    txt+=car
+
+            if txt:
+                vtxts.append(_mktxt(txt,x)[0])
+
+            if len(vtxts) == 1:
+                tpoly = vtxts[0]
+            else:
+                polyapp = vtk.vtkAppendPolyData()
+                for polyd in vtxts:
+                    polyapp.AddInputData(polyd)
+                polyapp.Update()
+                tpoly = polyapp.GetOutput()
+
+        else:
+            tpoly = _mktxt(str(txt))[0]
+
 
         bb = tpoly.GetBounds()
         dx, dy = (bb[1] - bb[0]) / 2 * s, (bb[3] - bb[2]) / 2 * s
@@ -2315,64 +2402,71 @@ def Text2D(
         if bg:
             bgcol = getColor(bg)
             cap.SetBackgroundColor(bgcol)
-            cap.SetBackgroundOpacity(alpha * 0.5)
+            cap.SetBackgroundOpacity(alpha * 0.1)
             #cap.SetFrameColor(bgcol)
             #cap.FrameOn()
         cap.SetBold(bold)
         cap.SetItalic(italic)
         setattr(ca, 'renderedAt', set())
         settings.collectable_actors.append(ca)
+
+        ###############
         return ca
+        ###############
 
     if len(pos)!=2:
-        print("Error in Text2D(): len(pos) must be 2 or integer value.")
+        print("Error in Text2D(): len(pos) must be 2 or integer value or string.")
         raise RuntimeError()
 
-    actor2d = vtk.vtkActor2D()
-    actor2d.SetPosition(pos)
-    tmapper = vtk.vtkTextMapper()
-    tmapper.SetInput(str(txt))
-    actor2d.SetMapper(tmapper)
-    tp = tmapper.GetTextProperty()
-    tp.BoldOff()
-    tp.SetFontSize(s*20)
-    tp.SetColor(getColor(c))
-    tp.SetJustificationToLeft()
-    if "top" in justify:
-        tp.SetVerticalJustificationToTop()
-    if "bottom" in justify:
-        tp.SetVerticalJustificationToBottom()
-    if "cent" in justify:
-        tp.SetVerticalJustificationToCentered()
-        tp.SetJustificationToCentered()
-    if "left" in justify:
-        tp.SetJustificationToLeft()
-    if "right" in justify:
-        tp.SetJustificationToRight()
-
-    if font.lower() == "courier": tp.SetFontFamilyToCourier()
-    elif font.lower() == "times": tp.SetFontFamilyToTimes()
-    elif font.lower() == "arial": tp.SetFontFamilyToArial()
     else:
-        tp.SetFontFamily(vtk.VTK_FONT_FILE)
-        if font in settings.fonts:
-            tp.SetFontFile(settings.fonts_path + font + '.ttf')
-        elif os.path.exists(font):
-            tp.SetFontFile(font)
+
+        ###############
+        actor2d = vtk.vtkActor2D()
+        actor2d.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+        actor2d.SetPosition(pos)
+        tmapper = vtk.vtkTextMapper()
+        tmapper.SetInput(str(txt))
+        actor2d.SetMapper(tmapper)
+        tp = tmapper.GetTextProperty()
+        tp.BoldOff()
+        tp.SetFontSize(int(s*20))
+        tp.SetColor(getColor(c))
+        tp.SetJustificationToLeft()
+        if "top" in justify:
+            tp.SetVerticalJustificationToTop()
+        if "bottom" in justify:
+            tp.SetVerticalJustificationToBottom()
+        if "cent" in justify:
+            tp.SetVerticalJustificationToCentered()
+            tp.SetJustificationToCentered()
+        if "left" in justify:
+            tp.SetJustificationToLeft()
+        if "right" in justify:
+            tp.SetJustificationToRight()
+
+        if font.lower() == "courier": tp.SetFontFamilyToCourier()
+        elif font.lower() == "times": tp.SetFontFamilyToTimes()
+        elif font.lower() == "arial": tp.SetFontFamilyToArial()
         else:
-            printc("~sad Font", font, "not found in", settings.fonts_path, c="r")
-            printc("~pin Available fonts are:", settings.fonts, c="m")
-            return None
-    if bg:
-        bgcol = getColor(bg)
-        tp.SetBackgroundColor(bgcol)
-        tp.SetBackgroundOpacity(alpha * 0.5)
-        tp.SetFrameColor(bgcol)
-        tp.FrameOn()
-    actor2d.PickableOff()
-    setattr(actor2d, 'renderedAt', set())
-    settings.collectable_actors.append(actor2d)
-    return actor2d
+            tp.SetFontFamily(vtk.VTK_FONT_FILE)
+            if font in settings.fonts:
+                tp.SetFontFile(settings.fonts_path + font + '.ttf')
+            elif os.path.exists(font):
+                tp.SetFontFile(font)
+            else:
+                printc("~sad Font", font, "not found in", settings.fonts_path, c="r")
+                printc("~pin Available fonts are:", settings.fonts, c="m")
+                return None
+        if bg:
+            bgcol = getColor(bg)
+            tp.SetBackgroundColor(bgcol)
+            tp.SetBackgroundOpacity(alpha * 0.1)
+            tp.SetFrameColor(bgcol)
+            tp.FrameOn()
+        actor2d.PickableOff()
+        setattr(actor2d, 'renderedAt', set())
+        settings.collectable_actors.append(actor2d)
+        return actor2d
 
 class Latex(Picture):
     """

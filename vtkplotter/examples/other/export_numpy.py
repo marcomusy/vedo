@@ -12,7 +12,7 @@ printc("Window exported to numpy file: scene.npy", c='g')
 ################################################
 vp = importWindow('scene.npy')
 
-vp += Text2D("Imported scene", c='w', bg='b')
+vp += Text2D("Imported scene", c='k', bg='b')
 
 vp.show()
 

@@ -308,14 +308,16 @@ def download(url, prefix=''):
     """Retrieve a file from a url, save it locally and return its path."""
 
     if "https://" not in url and "http://" not in url:
-        #colors.printc('Invalid URL:\n', url, c=1)
+        colors.printc('Invalid URL:\n', url, c=1)
         return url
 
     basename = os.path.basename(url)
     if os.path.exists(basename):
         return basename
 
-    colors.printc('..downloading:\n', url)
+    colors.printc('..downloading:', url.split('/')[-1][-20:], 'from',
+                  url.split('/')[2][:40],'...')
+
     try:
         from urllib.request import urlopen
     except ImportError:
@@ -411,7 +413,7 @@ def load3DS(filename):
 
 
 def loadOFF(filename):
-    """Read OFF file format."""
+    """Read the OFF file format."""
     f = open(filename, "r")
     lines = f.readlines()
     f.close()
@@ -664,7 +666,7 @@ def loadPCD(filename):
         if not start and "DATA ascii" in text:
             start = True
     if expN != N:
-        colors.printc("~!? Mismatch in pcd file", expN, len(pts), c="red")
+        colors.printc("Mismatch in pcd file", expN, len(pts), c="red")
     poly = utils.buildPolyData(pts)
     return Mesh(poly).pointSize(4)
 
@@ -753,7 +755,7 @@ def loadNumpy(inobj):
             lut.Build()
             act.mapper().SetLookupTable(lut)
             act.mapper().ScalarVisibilityOn()
-            act.mapper().SetScalarModeToUseCellData()
+            act.mapper().SetScalarRange(d['LUT_range'])
             if d['activedata'][0] == 'celldata':
                 poly.GetCellData().SetActiveScalars(d['activedata'][1])
             if d['activedata'][0] == 'pointdata':
@@ -1359,6 +1361,9 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
     if not settings.plotter_instance or not settings.plotter_instance.window:
         colors.printc('~bomb screenshot(): Rendering window is not present, skip.', c=1)
         return
+    
+    if not filename.lower().endswith('.png'):
+        filename = filename+".png"
 
     if scale is None:
         scale = settings.screeshotScale

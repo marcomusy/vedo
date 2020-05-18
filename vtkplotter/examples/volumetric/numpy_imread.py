@@ -13,9 +13,7 @@ printc('voxel size is', voriginal.spacing(), c='cyan')
 raw = imread(f)
 
 vraw = Volume(raw, spacing=(104,104,104))
-# Need to change axes and mirror
-# NOTE: spacing specified above is now inverted: (z,y,x)
-vraw.permuteAxes(2,1,0).mirror("y")
+vraw.mirror("y")
 
 # Compare loading the volume directly with the numpy volume:
 # they should be the same

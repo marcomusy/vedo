@@ -16,21 +16,21 @@ marker_cols = np.c_[np.cos(2*x), np.zeros(n), np.zeros(n)]
 
 
 txt0 = Text2D("A scatter plot of a\n 2D gaussian distribution")
-plt0 = plot(x, y, ma=0.3, line=False,  # ma = marker alpha
+plt0 = plot(x, y, ma=0.3, lw=0,        # ma = marker alpha
             marker="*",                # marker style
             xtitle="variable A",
             ytitle="variable B",
            )
 
 txt1 = Text2D(" marker size = sin(2x) ")
-plt1 = plot(x, y, ma=0.3, line=False,
+plt1 = plot(x, y, ma=0.3, lw=0,
             marker="*",                # marker style
             ms=marker_sizes,           # VARIABLE marker sizes
             mc='red',                  # same color for markers
            )
 
 txt2 = Text2D(" marker size = sin(2x)\n red level   = cos(2x)")
-plt2 = plot(x, y, ma=0.3, line=False,
+plt2 = plot(x, y, ma=0.3, lw=0,
             marker=">",                # marker style
             ms=marker_sizes,           # VARIABLE marker sizes
             mc=marker_cols,            # VARIABLE marker colors

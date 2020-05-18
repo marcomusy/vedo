@@ -1297,6 +1297,11 @@ class Plotter:
     def addLegend(self):
         return addons.addLegend()
 
+    def addCallback(self, eventName, func):
+        """Add a function to be executed while show() is active"""
+        if self.interactor:
+            self.interactor.AddObserver(eventName, func)
+        return self
 
     ##############################################################################
     def show(self, *actors, **options):
@@ -1403,12 +1408,14 @@ class Plotter:
         axes_ = options.pop("axes", None)
         q = options.pop("q", False)
 
-        if bg_ is not None:
-            self.backgrcol = colors.getColor(bg_)
-            self.renderer.SetBackground(self.backgrcol)
-        if bg2_ is not None:
-            self.renderer.GradientBackgroundOn()
-            self.renderer.SetBackground2(colors.getColor(bg2_))
+        if not settings.notebookBackend:
+            if bg_ is not None:
+                self.backgrcol = colors.getColor(bg_)
+                self.renderer.SetBackground(self.backgrcol)
+            if bg2_ is not None:
+                self.renderer.GradientBackgroundOn()
+                self.renderer.SetBackground2(colors.getColor(bg2_))
+
         if axes_ is not None:
             self.axes = axes_
 
@@ -1895,7 +1902,11 @@ class Plotter:
         self.closeWindow()
         self.actors = []
         settings.collectable_actors = []
-        return None
+        settings.plotter_instance = None
+
+    def screenshot(self, filename):
+        vtkio.screenshot(filename)
+        return self
 
 
     #######################################################################

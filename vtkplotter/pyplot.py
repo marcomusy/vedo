@@ -172,7 +172,6 @@ def plot(*args, **kwargs):
     :param str lc: color of line
     :param float la: transparency of line
     :param float lw: width of line
-    :param bool line: join points with line
     :param bool dashed: use a dashed line style
     :param bool splined: spline the line joining the point as a countinous curve
     :param str,int marker: use a marker shape for the data points
@@ -292,9 +291,9 @@ def plot(*args, **kwargs):
             kwargs["dashed"] = True
         elif "-" in opts:
             opts = opts.replace("-", "")
-            kwargs["line"] = True
+            kwargs["lw"] = 2
         else:
-            kwargs["line"] = False
+            kwargs["lw"] = 0
         symbs = [".", "p", "*", "h", "D", "d", "o", "v", "^", ">", "<", "s", "x", "+", "a"]
         for ss in symbs:
             if ss in opts:
@@ -462,7 +461,7 @@ def histogram(*args, **kwargs):
 def _plotxy(
     data,
     format=None,
-    aspect=4 / 3,
+    aspect=4/3,
     xlim=None,
     ylim=None,
     xerrors=None,
@@ -477,7 +476,6 @@ def _plotxy(
     lc="k",
     la=1,
     lw=3,
-    line=False,
     dashed=False,
     spline=False,
     errorBand=False,
@@ -490,8 +488,13 @@ def _plotxy(
 ):
     ncolls = len(settings.collectable_actors)
 
+    line=False
+    if lw>0:
+        line=True
+
     if marker == "" and not line and not spline:
         line = True
+    
 
     # purge NaN from data
     validIds = np.all(np.logical_not(np.isnan(data)), axis=1)
