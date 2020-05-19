@@ -12,7 +12,7 @@ man.pointColors(scals, cmap="cool")
 man.addScalarBar(title="threshold", horizontal=True)
 
 # make a copy and threshold the mesh
-cutman = man.clone().threshold(scals, vmin=37, vmax=37.5)
+cutman = man.clone().threshold(scals, 37, 37.5)
 
 # distribute the meshes on 2 renderers
 show([(man, __doc__), cutman], N=2, elevation=-30, axes=0)

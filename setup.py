@@ -46,7 +46,8 @@ setup(
 
 
 
-##############################################################
+##########################################################################
+# sudo -H pip install -U git+https://github.com/marcomusy/vtkplotter.git
 # # check examples
 # change version in vtkplotter/version.py
 

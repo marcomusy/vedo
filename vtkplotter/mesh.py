@@ -1592,24 +1592,33 @@ class Mesh(vtk.vtkFollower, ActorBase):
             polyapp.Update()
             return self._update(polyapp.GetOutput()).clean().phong()
 
-    def threshold(self, scalars, vmin=None, vmax=None, useCells=False):
+
+    def threshold(self, scalars, above=None, below=None, useCells=False):
         """
         Extracts cells where scalar value satisfies threshold criterion.
 
-        :param scalars: name of the scalars array.
-        :type scalars: str, list
-        :param float vmin: minimum value of the scalar
-        :param float vmax: maximum value of the scalar
+        :param str,list scalars: name of the scalars array.
+        :param float above: minimum value of the scalar
+        :param float below: maximum value of the scalar
         :param bool useCells: if `True`, assume array scalars refers to cells.
 
         |mesh_threshold| |mesh_threshold.py|_
         """
         if utils.isSequence(scalars):
-            self.addPointArray(scalars, "threshold")
+            if useCells:
+                self.addCellArray(scalars, "threshold")
+            else:
+                self.addPointArray(scalars, "threshold")
             scalars = "threshold"
-        elif self.getPointArray(scalars) is None:
-            colors.printc("No scalars found with name/nr:", scalars, c=1)
-            raise RuntimeError()
+        else: # string is passed
+            if useCells:
+                arr = self.getCellArray(scalars)
+            else:
+                arr = self.getPointArray(scalars)
+            if arr is None:
+                colors.printc("No scalars found with name/nr:", scalars, c=1)
+                colors.printc("Available scalars are:\n", self.getArrayNames(), c='y')
+                raise RuntimeError()
 
         thres = vtk.vtkThreshold()
         thres.SetInputData(self._polydata)
@@ -1620,12 +1629,25 @@ class Mesh(vtk.vtkFollower, ActorBase):
             asso = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
         thres.SetInputArrayToProcess(0, 0, 0, asso, scalars)
 
-        if vmin is None and vmax is not None:
-            thres.ThresholdByLower(vmax)
-        elif vmax is None and vmin is not None:
-            thres.ThresholdByUpper(vmin)
+        #        if above is not None and below is not None:
+        #            if above<below:
+        #                thres.ThresholdBetween(above, below)
+        #            elif above==below:
+        #                return self
+        #            else:
+        #                thres.InvertOn()
+        #                thres.ThresholdBetween(below, above)
+        #        elif above is not None:
+        #            thres.ThresholdByUpper(above)
+        #        elif below is not None:
+        #            thres.ThresholdByLower(below)
+
+        if above is None and below is not None:
+            thres.ThresholdByLower(below)
+        elif below is None and above is not None:
+            thres.ThresholdByUpper(above)
         else:
-            thres.ThresholdBetween(vmin, vmax)
+            thres.ThresholdBetween(above, below)
         thres.Update()
 
         gf = vtk.vtkGeometryFilter()
