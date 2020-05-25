@@ -180,15 +180,12 @@ class TetMesh(vtk.vtkVolume, ActorBase):
         """
         gf = vtk.vtkGeometryFilter()
         if fill:
-            ugtmp = vtk.vtkUnstructuredGrid()
-            ugtmp.DeepCopy(self._ugrid)
             sf = vtk.vtkShrinkFilter()
             sf.SetInputData(self._ugrid)
             sf.SetShrinkFactor(shrink)
             sf.Update()
             gf.SetInputData(sf.GetOutput())
             gf.Update()
-            del ugtmp
         else:
             gf.SetInputData(self._ugrid)
             gf.Update()

@@ -1,7 +1,6 @@
 include vtkplotter/*
 include vtkplotter/textures/*
 include vtkplotter/fonts/*
-include vtkplotter/fonts/licenses/*
 
 include vtkplotter/examples/*
 include vtkplotter/examples/advanced/*
@@ -15,7 +14,7 @@ include vtkplotter/examples/other/trimesh/*
 include vtkplotter/examples/pyplot/*
 include vtkplotter/examples/simulations/*
 include vtkplotter/examples/volumetric/*
+include vtkplotter/examples/tetmesh/*
 
 include vtkplotter/examples/data/*
 include vtkplotter/examples/data/images/*
-include vtkplotter/examples/data/timecourse1d/*
