@@ -3,9 +3,10 @@
 from __future__ import division, print_function
 from vtkplotter import Plotter
 from vtkplotter.mesh import Mesh
+from vtkplotter.tetmesh import TetMesh
 from vtkplotter.volume import Volume
 from vtkplotter import settings, printc, getColor, humansort, __version__
-from vtkplotter import vtkio, datadir
+from vtkplotter import vtkio, datadir, load
 import sys, argparse, os
 
 #################################################################################################
@@ -213,7 +214,10 @@ def draw_scene():
             if args.color is None and N > 1:
                 colb = i
 
-            actor = vp.load(f, c=colb, alpha=args.alpha)
+            actor = load(f, c=colb, alpha=args.alpha)
+
+            if isinstance(actor, TetMesh):
+                actor = actor.toMesh().shrink(0.95).c(colb).alpha(args.alpha)
 
             if isinstance(actor, Mesh):
                 actors.append(actor)
@@ -250,7 +254,7 @@ def draw_scene():
         if args.multirenderer_mode:
             vp.interactor.Start()
         else:
-            vp.show(interactive=True, zoom=args.zoom)
+            vp.show(actors, interactive=True, zoom=args.zoom)
         return
 
     ########################################################################
@@ -678,6 +682,14 @@ else:  #########################################################################
                 lb = ' ' if (len(scs)+1)%nl else '\n'
                 scs.append(lb+bn.replace('.py',''))
         printc("".join(scs), c='b', bold=0)
+
+        printc("Tetrahedral mesh examples:", c='y', bold=1, underline=1)
+        scs = []
+        for f,bn in exfiles:
+            if "tetmesh" in f:
+                lb = ' ' if (len(scs)+1)%nl else '\n'
+                scs.append(lb+bn.replace('.py',''))
+        printc("".join(scs), c='y', bold=0)
 
         printc("Other examples:", c='cyan', bold=1, underline=1)
         scs = []

@@ -494,7 +494,7 @@ def _plotxy(
 
     if marker == "" and not line and not spline:
         line = True
-    
+
 
     # purge NaN from data
     validIds = np.all(np.logical_not(np.isnan(data)), axis=1)
@@ -2113,7 +2113,7 @@ def streamplot(
 
     field = np.sqrt(U * U + V * V)
 
-    vol = Volume(field, shape=(n, n, 1))
+    vol = Volume(field, dims=(n, n, 1))
 
     uf = np.ravel(U, order="F")
     vf = np.ravel(V, order="F")

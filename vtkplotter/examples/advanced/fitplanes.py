@@ -7,7 +7,7 @@ from vtkplotter.pyplot import histogram
 
 plt = Plotter()
 
-apple = load(datadir+"apple.ply").subdivide().addGaussNoise(1)
+apple = load(datadir+"apple.ply").subdivide().pointGaussNoise(1)
 plt += apple.alpha(0.1)
 
 variances = []
@@ -17,7 +17,7 @@ for i, p in enumerate(apple.points()):
     variances.append(plane.variance)
     if i % 400: continue
     plt += plane
-    plt += Points(pts)              
+    plt += Points(pts)
     plt += Arrow(plane.center, plane.center+plane.normal/5)
 
 plt += histogram(variances, xtitle='variance').scale(6).pos(1.2,.2,-1)

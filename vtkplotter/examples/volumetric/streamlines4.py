@@ -2,7 +2,7 @@ from vtkplotter import *
 import numpy as np
 
 f = download('https://github.com/marcomusy/vtkplotter/files/4602353/domain_unstruct.vtk.gz')
-g = load(f)
+g = Mesh(f)
 
 # make up some custom vector field
 pts   = g.points()
@@ -20,4 +20,4 @@ probes = np.c_[xpr, ypr]
 
 str_lns = streamLines(g, probes, maxPropagation=80, lw=3)
 
-show(g.boundaries(), ars, str_lns, zoom=8, bg2='lb')
+show(ars, str_lns, zoom=8, bg2='lb')

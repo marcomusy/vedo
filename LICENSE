@@ -1,320 +1,1078 @@
-Unless stated otherwise, all files provided by vtkplotter are licensed under the MIT licence.
-
 ------------------------------------------------------------------------------
-MIT License
+Files: *
+Copyright: 2017 Marco Musy <marco.musy@embl.es>
+License: MIT
 
-Copyright (c) 2017 Marco Musy
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
-------------------------------------------------------------------------------
-
-=============
-Special cases
-=============
-
-Files:
-vtkplotter/examples/data/apple.ply
-vtkplotter/examples/data/mug.ply
-vtkplotter/examples/data/shark.ply
-vtkplotter/examples/data/airboat.vtk
-vtkplotter/examples/data/porsche.ply
-vtkplotter/examples/data/spider.ply
-vtkplotter/examples/data/atc.ply
-vtkplotter/examples/data/beethoven.ply
-vtkplotter/examples/data/skyscraper.obj
-vtkplotter/examples/data/shuttle.obj
-vtkplotter/examples/data/lamp.vtk
-vtkplotter/examples/data/cube.off
-vtkplotter/examples/data/dodecahedron.vtk
-vtkplotter/examples/data/icosahedron.vtk
-vtkplotter/examples/data/magnolia.vtk
-vtkplotter/examples/data/octahedron.vtk
-vtkplotter/examples/data/shark.ply
-vtkplotter/examples/data/cessna.vtk
-vtkplotter/examples/data/teddy.vtk
-vtkplotter/examples/data/teapot.vtk
-
-Are distributed under the GNU LGPL license (see at bottom of this file):
-
+Files: vtkplotter/examples/data/apple.ply
+ vtkplotter/examples/data/mug.ply
+ vtkplotter/examples/data/shark.ply
+ vtkplotter/examples/data/airboat.vtk
+ vtkplotter/examples/data/porsche.ply
+ vtkplotter/examples/data/spider.ply
+ vtkplotter/examples/data/atc.ply
+ vtkplotter/examples/data/beethoven.ply
+ vtkplotter/examples/data/skyscraper.obj
+ vtkplotter/examples/data/shuttle.obj
+ vtkplotter/examples/data/lamp.vtk
+ vtkplotter/examples/data/cube.off
+ vtkplotter/examples/data/dodecahedron.vtk
+ vtkplotter/examples/data/icosahedron.vtk
+ vtkplotter/examples/data/magnolia.vtk
+ vtkplotter/examples/data/octahedron.vtk
+ vtkplotter/examples/data/shark.ply
+ vtkplotter/examples/data/cessna.vtk
+ vtkplotter/examples/data/teddy.vtk
+ vtkplotter/examples/data/teapot.vtk
 Copyright: 2012 John Burkardt
 Source: https://people.sc.fsu.edu/~jburkardt/data/data.html
-License: LGPL-3, https://people.sc.fsu.edu/~jburkardt/txt/gnu_lgpl.txt
-         (see copy of the text at the end of this file).
+License: LGPL-3
+ The text of the LGPL-3 license can be found at
+ /usr/share/common-licenses/LGPL-3.
+ https://people.sc.fsu.edu/~jburkardt/txt/gnu_lgpl.txt
+ (see a copy of the text at the end of this file).
 
 
 ------------------------------------------------------------------------------
-Files:
-vtkplotter/examples/data/bunny.obj
-vtkplotter/examples/data/clown.facet
-vtkplotter/examples/data/combq.bin
-vtkplotter/examples/data/combxyz.bin
-vtkplotter/examples/data/cow.vtk
-vtkplotter/examples/data/cavity.vtk
-vtkplotter/examples/data/flamingo.3ds
-vtkplotter/examples/data/head.vti
-vtkplotter/examples/data/motor.byu
-vtkplotter/examples/data/office.binary.vtk
-vtkplotter/examples/data/structgrid.vts
-vtkplotter/examples/data/SuperQuadric.vtp
-vtkplotter/examples/data/teapot.xyz
-vtkplotter/examples/data/vase.vti
-
+Files: vtkplotter/examples/data/bunny.obj
+ vtkplotter/examples/data/clown.facet
+ vtkplotter/examples/data/combq.bin
+ vtkplotter/examples/data/combxyz.bin
+ vtkplotter/examples/data/cow.vtk
+ vtkplotter/examples/data/cavity.vtk
+ vtkplotter/examples/data/flamingo.3ds
+ vtkplotter/examples/data/head.vti
+ vtkplotter/examples/data/motor.byu
+ vtkplotter/examples/data/office.binary.vtk
+ vtkplotter/examples/data/structgrid.vts
+ vtkplotter/examples/data/SuperQuadric.vtp
+ vtkplotter/examples/data/teapot.xyz
+ vtkplotter/examples/data/vase.vti
+Copyright: 1993-2015 Ken Martin, Will Schroeder, Bill Lorensen
 Source: https://gitlab.kitware.com/vtk/vtk/-/tree/master/Testing/Data
-
-Are licensed with BSD-3-clause:
-
-  Program:   Visualization Toolkit
-  Module:    Copyright.txt
-
-Copyright (c) 1993-2015 Ken Martin, Will Schroeder, Bill Lorensen
-All rights reserved.
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
- * Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
- * Neither name of Ken Martin, Will Schroeder, or Bill Lorensen nor the names
-   of any contributors may be used to endorse or promote products derived
-   from this software without specific prior written permission.
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+License: BSD-3-clause
 
 ------------------------------------------------------------------------------
-Files:
-vtkplotter/examples/data/man.vtk
-Author: Paul Chen
-Source: https://free3d.com/3d-model/male-base-mesh-6682.html
-Submitted by: https://free3d.com/user/nixor
-Format change: M. Musy
-Licence: Personal Use License, available at https://free3d.com/royalty-free-license
+Files: vtkplotter/examples/data/man.vtk
+Copyright: 2015-2019 Paul Chen,
+ 2020 M. Musy
+Comment:
+ Original source from https://free3d.com/3d-model/male-base-mesh-6682.html,
+ modified for vtkplotter.
+License: PersonalUseLicense-RoyaltyFreeLicense
 
-vtkplotter/examples/data/man_low.vtk
-Author: https://free3d.com/user/sea206
-Description: Model Maya, OBJ, no textures.
-Site: https://free3d.com/3d-model/low-poly-male-26691.html
-Format change: M. Musy
-Licence: Personal Use License, available at https://free3d.com/royalty-free-license
+Files: vtkplotter/examples/data/man_low.vtk
+Copyright: 2013-2019 Gregory [sea206, https://free3d.com/user/sea206]
+ 2020 M. Musy
+Comment:
+ Original source from https://free3d.com/3d-model/low-poly-male-26691.html
+ modified for vtkplotter.
+License: PersonalUseLicense-RoyaltyFreeLicense
+
+Files: vtkplotter/examples/data/man_low.vtk
+Copyright: 2013-2019 Gregory [sea206, https://free3d.com/user/sea206]
+ 2020 M. Musy
+Comment:
+ Original source from https://free3d.com/3d-model/low-poly-male-26691.html
+ modified for vtkplotter.
+License: PersonalUseLicense-RoyaltyFreeLicense
+
+Files: vtkplotter/examples/data/ugrid.vtk
+Copyright: Andras Deak
+Comment:
+ From https://stackoverflow.com/questions/56401123
+License: cc-by-sa
 
 
-------------------------------------------------------------------------------
-Files:
-vtkplotter/examples/data/ugrid.vtk
-Source: https://stackoverflow.com/questions/56401123
-Author: Andras Deak, https://stackoverflow.com/users/5067311/andras-deak
-License: Creative Commons Attribution-Share Alike.
+Files: vtkplotter/examples/data/images/wave_wiki.png
+Copyright: Wikipedia
+Comment:
+ Screenshot from Source: https://en.wikipedia.org/wiki/Wave_equation#From_Hooke's_law
+License: cc-by-sa
 
-
-------------------------------------------------------------------------------
-Files:
-vtkplotter/examples/data/images/wave_wiki.png
-Screenshot from Source: https://en.wikipedia.org/wiki/Wave_equation#From_Hooke's_law
-Licensed under Creative Commons:
-https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License
-
-vtkplotter/examples/data/images/harvest.jpg
+Files: vtkplotter/examples/data/images/harvest.jpg
+Copyright: 2020 Albrecht Fietz, 86899 Landsberg am Lech/Germany,
+ https://pixabay.com/users/fietzfotos-6795508/
 Source: https://pixabay.com/photos/harvest-grain-cereals-field-4858574
-Licence: Free for commercial use. No attribution required. https://pixabay.com/service/license
+License: pixabay
+
+Files: vtkplotter/textures/textile1.jpg
+Copyright: 2015 Polina, https://pixabay.com/users/virin000-4559233/
+Source: https://pixabay.com/photos/textile-jute-brown-fabric-texture-2918844/
+License: pixabay
+
+Files: vtkplotter/textures/water.jpg
+Copyright: 2015 Polina, https://pixabay.com/users/virin000-4559233/
+Source: https://pixabay.com/photos/water-blue-surface-sea-ocean-768745/
+License: pixabay
+
+Files: vtkplotter/textures/gold1.jpg
+Copyright: 2016 Manuela, https://pixabay.com/users/sinnesreich-2779296/
+Source: https://pixabay.com/illustrations/texture-background-gold-pattern-1647380/
+License: pixabay
+
+Files: vtkplotter/textures/clouds.jpg
+Copyright: 2019 Elisa, https://pixabay.com/users/klickblick-8872450/
+Source: https://pixabay.com/photos/clouds-nature-sky-cumulus-mood-4215608/
+License: pixabay
+
+Files: vtkplotter/textures/bricks.jpg
+Copyright: 2016 Nebenbei, https://pixabay.com/users/nebenbei-1873844/
+Source: https://pixabay.com/photos/texture-structure-wall-brick-stone-1260304/
+License: pixabay
+
+Files: vtkplotter/textures/grass.jpg
+Copyright: 2012 PublicDomainPictures,
+ https://pixabay.com/users/publicdomainpictures-14/
+Source: https://pixabay.com/photos/grass-lawn-backdrop-background-84622/
+License: pixabay
+
+Files: vtkplotter/textures/white1.jpg
+Copyright: 2018 Katrin D.,
+ https://pixabay.com/users/katinkavomwolfenmond-6764465/
+Source: https://pixabay.com/photos/pattern-background-frost-texture-3160023/
+License: pixabay
+
+Files: vtkplotter/textures/wood1.jpg
+Copyright: 2007 Peggy and Marco Lachmann-Anke,
+ https://pixabay.com/users/peggy_marco-1553824/
+Source: https://pixabay.com/illustrations/texture-wood-grain-structure-1027559/
+License: pixabay
+
+Files: vtkplotter/textures/gold2.jpg
+ vtkplotter/textures/wood2.jpg
+Copyright: 2017, 2018 djedj, https://pixabay.com/users/djedj-59194/
+Source: https://pixabay.com/photos/background-abstract-pattern-texture-2022763/
+ https://pixabay.com/photos/pattern-wood-retro-wooden-surface-3371709/
+License: pixabay
+
+Files: vtkplotter/textures/paper1.jpg
+Copyright: 2015 ChrisFiedler,
+ https://pixabay.com/users/chrisfiedler-935884/
+Source: https://pixabay.com/photos/paper-old-texture-parchment-1074131/
+License: pixabay
+
+Files: vtkplotter/textures/paper2.jpg
+Copyright: 2017 mohamed Hassan,
+ https://pixabay.com/users/mohamed_hassan-5229782/
+Source: https://pixabay.com/photos/paper-background-writing-school-2500942/
+License: pixabay
+
+Files: vtkplotter/textures/paper3.jpg
+Copyright: 2016 mzter, https://pixabay.com/users/mzter-104756/
+Source: https://pixabay.com/photos/paper-certificate-grunge-antique-1217311/
+License: pixabay
+
+Files: vtkplotter/textures/paper4.jpg
+Copyright: 2013 OpenClipart-Vectors,
+ https://pixabay.com/users/openclipart-vectors-30363/
+Source: https://pixabay.com/vectors/paper-texture-pattern-146904/
+License: pixabay
+
+Files: vtkplotter/textures/earth1.jpg
+ vtkplotter/textures/earth1_lights.jpg
+ vtkplotter/textures/earth1_bw.jpg
+Source: http://planetpixelemporium.com/earth.html
+Copyright: 2006 james hastings-trew <jimht@shaw.ca>
+License: public-domain
+ I have gathered together all of the public domain data to create this
+ synthesis of images.
+ .
+ 1K versions of these images are free.
+
+
+Files: vtkplotter/textures/earth2.jpg
+Copyright: 2019 Tom Patterson
+Source: http://www.shadedrelief.com/natural3/pages/textures.html
+License: public-domain-earth-III
+ All Natural Earth III data (and images) found on this website are in
+ the public domain.  You may use the data in any manner, including
+ modifying the content and design, electronic dissemination, and
+ offset printing. The author, Tom Patterson, renounces all financial
+ claim to the data and invites you to use it for personal,
+ educational, and commercial purposes.
+ .
+ No permission is needed to use Natural Earth III. Crediting the
+ author is unnecessary.  However, if you wish to cite the data source,
+ simply use: Tom Patterson, www.shadedrelief.com.
+ .
+ The author provides Natural Earth III as a public service and is not
+ responsible for any problems relating to accuracy, content, design,
+ and how it is used.
+ .
+ http://www.shadedrelief.com/natural3/pages/use.html
 
 
 ------------------------------------------------------------------------------
-Files:
-vtkplotter/vtkplotter/fonts/*ttf
-are licenced as specified in file vtkplotter/vtkplotter/fonts/Licenses.txt
+Files: vtkplotter/fonts/CallingCode.ttf
+Source: https://www.1001freefonts.com/calling-code.font
+Copyright: 2017 Ryoichi Tsunekawa
+License: public-domain
 
+Files: vtkplotter/fonts/ChineseRuler.ttf
+Source: https://www.1001freefonts.com/chinese-ruler.font
+Copyright: 2009 Michael Tension, Tension Type
+License: tension-donationware
+
+Files: vtkplotter/fonts/Godsway.ttf
+Source: https://www.1001freefonts.com/godsway-font.font
+Copyright: Eldamar Studio, https://eldamar-studio.com
+License: Donationware
+
+Files: vtkplotter/fonts/ImpactLabel.ttf
+Source: https://www.1001freefonts.com/impact-label.font
+Copyright: 2011 Michael Tension, Tension Type
+License: tension-donationware
+
+Files: vtkplotter/fonts/Komiko.ttf
+Source: https://www.1001freefonts.com/komiko.font
+Copyright: Agustian Eko Saputro
+License: Free
+
+Files: vtkplotter/fonts/MonospaceTypewriter.ttf
+Source: https://www.1001freefonts.com/monospace-typewriter.font
+Copyright: Manfred Klein
+License: Free
+
+Files: vtkplotter/fonts/Montserrat.ttf
+Source: https://www.1001freefonts.com/montserrat.font
+Copyright: 2011-2012, Julieta Ulanovsky (julieta.ulanovsky@gmail.com)
+License: OFL
+
+Files: vtkplotter/fonts/Overspray.ttf
+Source: https://www.1001freefonts.com/overspray.font
+Copyright: Michael Tension, Tension Type
+License: tension-donationware
 
 
 ------------------------------------------------------------------------------
-		             GNU LESSER GENERAL PUBLIC LICENSE
-                       Version 3, 29 June 2007
+License: MIT
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ .
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
 
- Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
- Everyone is permitted to copy and distribute verbatim copies
- of this license document, but changing it is not allowed.
+------------------------------------------------------------------------------
+License: BSD-2-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ .
+ * Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+ .
+ * Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the
+   distribution.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+ OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+ AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
+ WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
 
 
-  This version of the GNU Lesser General Public License incorporates
-the terms and conditions of version 3 of the GNU General Public
-License, supplemented by the additional permissions listed below.
+------------------------------------------------------------------------------
+License: BSD-3-clause
+ All rights reserved.
+ .
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ * Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the
+   distribution.
+ * Neither name of Ken Martin, Will Schroeder, or Bill Lorensen nor
+   the names of any contributors may be used to endorse or promote
+   products derived from this software without specific prior written
+   permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR
+ CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-  0. Additional Definitions.
 
-  As used herein, "this License" refers to version 3 of the GNU Lesser
-General Public License, and the "GNU GPL" refers to version 3 of the GNU
-General Public License.
+------------------------------------------------------------------------------
+License: cc-by-sa
+ Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
+ .
+ This is a human-readable summary of (and not a substitute for) the
+ license. The full text is found at
+ https://creativecommons.org/licenses/by-sa/3.0/legalcode
+ .
+ You are free to:
+ .
+ Share — copy and redistribute the material in any medium or format
+ .
+ Adapt — remix, transform, and build upon the material for any
+ purpose, even commercially.
+ .
+ This license is acceptable for Free Cultural Works.
+ .
+ The licensor cannot revoke these freedoms as long as you follow the
+ license terms.
+ .
+ Under the following terms:
+ .
+ Attribution — You must give appropriate credit, provide a link to the
+  license, and indicate if changes were made. You may do so in any
+  reasonable manner, but not in any way that suggests the licensor
+  endorses you or your use.
+ .
+ ShareAlike — If you remix, transform, or build upon the material, you
+  must distribute your contributions under the same license as the
+  original.
+ .
+ No additional restrictions — You may not apply legal terms or
+  technological measures that legally restrict others from doing
+  anything the license permits.
+ .
+ Notices:
+ .
+ You do not have to comply with the license for elements of the
+ material in the public domain or where your use is permitted by an
+ applicable exception or limitation.
+ .
+ No warranties are given. The license may not give you all of the
+ permissions necessary for your intended use. For example, other
+ rights such as publicity, privacy, or moral rights may limit how you
+ use the material.
 
-  "The Library" refers to a covered work governed by this License,
-other than an Application or a Combined Work as defined below.
+------------------------------------------------------------------------------
+License: pixabay
+ Simplified Pixabay License.
+ .
+ Full text at https://pixabay.com/service/terms/#license
+ .
+ Our license empowers creators and protects our community. We want to
+ keep it as simple as possible. Here is an overview of what Pixabay
+ content can and can't be used for.
+ .
+ What is allowed?
+ .
+ ✓ All content on Pixabay can be used for free for commercial and
+ noncommercial use across print and digital, except in the cases
+ mentioned in "What is not allowed".
+ .
+ ✓ Attribution is not required. Giving credit to the contributor or
+ Pixabay is not necessary but is always appreciated by our community.
+ .
+ ✓ You can make modifications to content from Pixabay.
+ .
+ What is not allowed?
+ .
+ This section only applies to image users and not to the appropriate
+ image authors.
+ .
+ ✕ Don't redistribute or sell someone else's Pixabay images or videos
+ on other stock or wallpaper platforms.
+ .
+ ✕ Don't sell unaltered copies of an image. e.g. sell an exact copy of
+ a stock photo as a poster, print or on a physical product.
+ .
+ ✕ Don't portray identifiable people in a bad light or in a way that
+ is offensive.
+ .
+ ✕ Don't use images with identifiable brands to create a misleading
+ association with a product or service.
 
-  An "Application" is any work that makes use of an interface provided
-by the Library, but which is not otherwise based on the Library.
-Defining a subclass of a class defined by the Library is deemed a mode
-of using an interface provided by the Library.
+------------------------------------------------------------------------------
+License: PersonalUseLicense-RoyaltyFreeLicense
+ https://free3d.com/royalty-free-license
+ .
+ Royalty Free License
+ .
+ This is a legally binding agreement between licensee (“you”), and
+ Free3D regarding your rights to use Stock Media Products from the Site
+ under this license. “You” refers to the purchasing entity, whether
+ that is a natural person who must be at least 18 years of age, or a
+ corporate entity. The rights granted in this agreement are granted to
+ the purchasing entity, its parent company, and its majority owned
+ affiliates on a “royalty free” basis, which means that after a
+ Purchase, there are no future royalties or payments that are
+ required. Collectively, these rights are considered “extended uses”,
+ and are granted to you, subject to applicable Editorial Use
+ Restrictions described below. The license granted is wholly
+ transferable to other parties so long it is in force and not
+ terminated, otherwise violated, or extinguished, as set forth
+ herein. This agreement incorporates by reference the Terms of Use as
+ well as the Site’s policies and procedures as such.
+ .
+ These Terms may be translated into other languages, but the governing
+ language is English in the event of any contradiction in terms between
+ the English and foreign translation.
+ .
+ I. Introduction & Definitions
+ II. License Rights
+ III. License Term & Termination
+ IV. Warranties
+ V. Limitation of Liability
+ VI. Other Terms
+ .
+ I. Introduction & Definitions
+ .
+ Definitions
+ .
+ This agreement is intended to be easy to understand, and to provide
+ clarity for using Stock Media Products in the work you create
+ (“Creations”). Over the years, Free3D has been asked many questions
+ about how Stock Media Products may be used in Creations, and we have
+ attempted to answer those questions in this agreement.
+ .
+ Some words in this agreement are given specific meanings. Words that
+ appear initially in quotations, such as “you” and “Creations”, are
+ defined in the text preceding the word. Other capitalized words are
+ defined below:
+ .
+ * “Stock Media Product” is the collection of one or more digital
+  files, packaged in the form of a product on the Site that can be
+  identified by a product ID, and that is uploaded by you, or
+  otherwise made available to you, for Purchase on the Site. A Stock
+  Media Product may include 3D models, texture maps, motion captures,
+  photographs, imagery, application and plug-in software, materials
+  and shaders, shapes and vector graphics, training materials,
+  building components, sound effects, stock music, and
+  videos. Additionally, a Stock Media Product may include a number of
+  individual files of different file formats to make it easier for
+  Customers to work in a variety of software applications (such as 3ds
+  Max, Maya, and Cinema 4D), and may also include other files (such as
+  jpeg images used for texturing), and images or other files that are
+  used for promotional purposes. For Customers and their use in
+  Creations, this definition also includes derivative and intermediary
+  files used for that purpose.
+ * “Site” refers to the Free3D websites, API’s, software applications
+  or any approved means or utility either currently in existence or in
+  the future; the software and source code used by Free3D to provide
+  such services; user interface layouts, designs, images, text,
+  knowledge base articles, program offers; site information provided
+  in reports (such as popular keyword searches); and all other
+  intellectual property protected under copyright, trademark, patent,
+  publicity, or any other proprietary right.
+ * “Purchase” is the acquisition of a Stock Media Product by you from
+  the Site under this agreement, whether as a purchase of Stock Media
+  Product made available at a price of greater than $0, or a download
+  of Stock Media Product made available at no charge.
+ * “Free3D” includes Free3D, Inc., d/b/a the Free3D brand and all
+  licensed affiliates and partners that distribute Stock Media
+  Products on behalf of TurboSquid, Inc.
+ * “Product Page” is the product page or interface that displays Stock
+  Media Products available for Purchase on the Site.
+ * “Computer Game” is a type of Creation that includes digital games,
+  computer-based games, handheld electronic games, mobile games,
+  online games, social games, game mods, and console-based games.
+ * “Imagery” is a Creation made of any single image or sequence of
+  images.
+ * “Intellectual Property” means, copyright, trademark, trade secret,
+  right of publicity, or any other proprietary right throughout the
+  world.
+ .
+ To make reading this agreement easier and less repetitive, the
+ following constructions are used:
+ .
+ “Include,” including,” and “such as” are considered to be followed
+ with “but not limited to.” Examples are used in this agreement to
+ illustrate, rather than limit, the scope of the terms.
+ .
+ “The following restrictions”, “the foregoing restrictions”, and
+ “subject to the restrictions” are considered to be followed with “in
+ addition to all other restrictions applicable within this agreement.”
+ .
+ II. License Rights
+ .
+ 1. Ownership. Free3D does not grant title or ownership in Stock Media
+    Products. All rights in Stock Media Products not expressly granted
+    in this agreement are reserved by Free3D for itself and its
+    licensors.
+ .
+ 2. Rights Granted. For Stock Media Products, Free3D grants to you a
+    non-exclusive, perpetual, worldwide right and license to copy,
+    distribute, reproduce, adapt, publicly display, publicly perform,
+    digitally perform, transmit, broadcast, telecast, advertise,
+    create derivative works, and market Stock Media Products within
+    Creations in the uses authorized in this agreement. You may
+    request authorization for a use not covered by this agreement
+    (“New Use”) by writing agent@turbosquid.com. Free3D is authorized
+    to approve a New Use if Free3D finds in its sole judgment that the
+    New Use is substantially similar to another established use in
+    this agreement, and authorizes the New Use in writing.
+ .
+ 3. Rights Granted When Sharing Stock Media Products. If you Purchase
+    as an employee of a corporate entity,sharing Purchased Stock Media
+    Products with other employees of your corporate entity is allowed.
+    Examples of allowed sharing include storing files on a networked
+    hard drive, and aggregating Stock Media Products for later use in
+    future Creations. You are responsible for any downstream
+    distribution, use, or misuse by a recipient of a shared Stock
+    Media Product.In all cases, sharing Stock Media Products with
+    external people or entities is only allowed in the following
+    situations, and with the following restrictions:
+ .
+    1. In the production of a Creation owned by you, if you are
+       working in collaboration with external parties, and there is a
+       need to share Stock Media Products for the development and
+       production of your Creation, sharing Stock Media Products with
+       those external parties is allowed. Any external party that
+       receives Stock Media Products may only use Stock Media Products
+       on your Creations and must take reasonable care to secure and
+       limit access to Stock Media Products to that purpose.
+ .
+    2. In the production of a Creation owned by another entity (“your
+       Client”), if you are working as a contractor and need to share
+       Stock Media Products with your Client, or any external parties
+       working with your Client, sharing Stock Media Products is
+       allowed, subject to the restriction that all parties may use
+       Stock Media Products only for your Client’s particular
+       Creation, and for successive versions of your Client’s
+       Creation, such as sequel Computer Games or movies that utilize
+       the same 3D models.  All parties must take reasonable care to
+       secure and limit access to Stock Media Products to the parties
+       working on your Client’s Creation. For all other use by any
+       party, Stock Media Products must be Purchased again to create a
+       new license agreement governing that use.
+ .
+ 4. Editorial Use Restriction for Some Stock Media Products. The
+    following restrictions apply to any Stock Media Product affixed
+    with an “Editorial” notice on its Product Page. The Editorial
+    notice is one way to alert you that certain subject matter
+    depicted by Stock Media Products, such as a manufactured product
+    under a brand name, may be protected by another party’s
+    Intellectual Property rights (“Other-Party Intellectual
+    Property”). Permitted use of Other-Party Intellectual Property in
+    Stock Media Products is limited to news reporting in Creations of
+    some cultural, editorial, journalistic, or otherwise newsworthy
+    value, and includes news reporting on television and the
+    internet. This restriction does not apply if you have the needed
+    authorization to use the Other-Party Intellectual Property for
+    your Creation, such as if you are the Intellectual Property owner
+    yourself, or an Intellectual Property owner’s advertising team,
+    hired party, or licensee purchasing that company’s product.
+ .
+ 5. Other-Party Intellectual Property. Free3D does not own or license
+    any Other-Party Intellectual Property. Free3D does not in any way
+    make any representations or warranties about Other-Party
+    Intellectual Property associated with Stock Media Products. You
+    are solely responsible for determining the need for and, if
+    appropriate, obtaining any needed Other-Party clearance, consent,
+    or release to use any Other-Party Intellectual Property in your
+    Creations.
+ .
+ 6. *Creations of Imagery.*
+ .
+    *Permitted Uses of Creations of Imagery*. Subject to the following
+    restrictions, you may use Creations of Imagery within news, film,
+    movies, television programs, video projects, multi-media projects,
+    theatrical display, software user interfaces; architectural
+    renderings, Computer Games, virtual worlds, simulation and
+    training environments; corporate communications, marketing
+    collateral, tradeshow promotional items, booth decorations and
+    presentations;
+ .
+    *Restrictions on Permitted Uses of Creations of Imagery.*
+ .
+    1. Stock Media Clearinghouse. You may NOT publish or distribute
+       Creations of Imagery through another stock media clearinghouse,
+       for example as part of an online marketplace for photography,
+       clip art, or design templates.
+ .
+    2. Promotional Images. Images displayed for the promotion of Stock
+       Media Products, such as preview images on the Stock Media
+       Product’s Product Page (“Promotional Images”), may be used in
+       Creations of Imagery, provided that the Stock Media Product
+       itself has been Purchased and subject to the following
+       restrictions:
+ .
+       1. You may NOT use a Promotional Image that has any added
+          element which is not included as part of the Stock Media
+          Product. An example of this type of restricted use is if the
+          Stock Media Product contains a 3D model of an airplane, and
+          there is a Promotional Image of that airplane rendered over
+          a blue sky; however, the blue sky image is not included as
+          part of the Stock Media Product. Other prohibited examples
+          include use of Promotional Images from movies or
+          advertisements that may have used Stock Media Product.
+ .
+       2. You may NOT use any Promotional Image that has a logo, mark,
+          watermark, attribution, copyright or other notice
+          superimposed on the image without prior approval from Free3D
+          Support.
+ .
+    3. Business Logos. You may NOT use Imagery in any Creation that is
+       a trademark, servicemark, or business logo. This restriction is
+       included because the owners of these types of Creations
+       typically seek exclusivity on the use of the imagery in their
+       Creation, which is incompatible with the non-exclusive license
+       granted to you under this agreement.
+ .
+ 7. *Creations of Computer Games and Software.*
+ .
+    *Permitted Uses in Creations of Computer Games and Software.*
+ .
+    Subject to the following restrictions, you may include Stock Media
+    Products in Creations of Computer Games, virtual worlds,
+    simulation and training environments; mobile, desktop and web
+    applications; and interactive electronic publications of
+    literature such as e-books and electronic textbooks.
+ .
+    *Restrictions on Permitted Uses of Stock Media Products in
+    Creations of Games and Software.*
+ .
+    1. Interactivity. Your inclusion of Stock Media Products within
+       any such Creation is limited to uses where Stock Media Product
+       is contained in an interactive experience for the user and not
+       made available outside of the interactive experience. Such a
+       permitted example of this use would be to include a 3D model of
+       human anatomy in a medical training application, in a way that
+       the 3D model or its environment may be manipulated or
+       interacted with.
+ .
+    2. Access to Stock Media Products. You must take all reasonable and
+       industry standard measures to prevent other parties from gaining
+        access to Stock Media Products. Stock Media Products must be
+        contained in proprietary formats so that they cannot be opened
+        or imported in a publicly available software application or
+        framework, or extracted without reverse engineering. You may NOT
+        publish or distribute Stock Media Products in any open format,
+        or format encrypted with decryptable open standards (such as
+        WebGL or an encrypted compression archive).
+ .
+    3. Open Systems. You may NOT include Stock Media Products in
+       Creations that have the general functionality for importing
+       and/or exporting Stock Media Products. An example of such a
+       prohibited use is to include Stock Media Products as a starter
+       library within a Creation that allows users to generally work
+       with 3D models, even if the Stock Media Product itself is
+       somehow protected and is not capable of being
+       exported. Instead, the users of such a software application may
+       Purchase Stock Media Products directly from the Site.
+ .
+    4. Virtual Good Sales. You may NOT import, upload, reproduce, make
+       available, publish, transmit, distribute, or sublicense Stock
+       Media Products in Creations of virtual goods or worlds for any
+       3D community (“Virtual World”), unless you or your Client owns
+       the Virtual World platform and it complies with the foregoing
+       restrictions.
+ .
+ 8. *Creations of Physical Form.*
+ .
+    *Permitted Uses in Creations of Physical Form.*
+ .
+     Subject to the following restrictions, you may use Stock Media
+     Products to make physical Creations such as 3D printed works,
+     articles of manufacture, custom vehicles, furniture, jewelry,
+     sculptural artwork, toys, and physical entertainment goods
+     (“Creations of Physical Form”).
+ .
+    *Restrictions on Permitted Uses in Creations of Physical Form.*
+ .
+    1. Substantially Similar Creations. Permitted use of any Creation
+       of Physical Form in which a Stock Media Product is
+       untransformed or substantially similar to the Stock Media
+       Product, is limited to personal use, gifts, or charitable
+       donations, with a maximum of 5 instances of such Creation per
+       Purchase; unless the Stock Media Product is a small part of a
+       much larger array of other physical objects in the
+       Creation. For example, if you are creating a real-world,
+       physical human skeleton for manufacture for sale, it is
+       permitted to add a 3D printed human head that exactly resembles
+       the Purchased Stock Media Product, but it is not permitted to
+       sell the 3D printed head by itself. Another permitted example
+       of a Stock Media Product being a small part of a larger array
+       is using a 3D model that ends up within an automobile as a part
+       of the automobile.
+ .
+    2. No Other-Party Intellectual Property. You may NOT reproduce
+       Other-Party Intellectual Property in any Creation of Physical
+       Form for any purpose.
+ .
+ 9. 3D Industry Promotional Use. If Free3D has granted you, as a
+    hardware or software partner, access to priced Stock Media
+    Products on a free-of-charge basis, your use of Stock Media
+    Products is restricted to internal testing for your 3D software or
+    hardware products, and to the promotion of your software or
+    hardware products with Creations of Imagery provided that an
+    attribution of the artist’s name and the Site are included. You
+    agree that should any Stock Media Products be used outside of
+    these purposes in ways that are normally allowed after a Purchase,
+    that you will promptly Purchase the Stock Media Products and
+    otherwise comply with the terms herein.
+ .
+ 10. Unauthorized Use. If you use Stock Media Products in an
+     unauthorized way, Free3D may terminate your account and pursue
+     other penalties, damages, losses, and profits Free3D is entitled
+     to under this agreement or at law or equity. The following are
+     unauthorized uses that are explicitly prohibited:
+ .
+     1. Competition. You may NOT use Stock Media Products in a way
+        that competes with the Site or the Stock Media Products
+        themselves.
+ .
+     2. Re-Distribution. You may NOT re-distribute, publish, or make
+        Stock Media Products available to any third party except in
+        the form of a permitted Creation, or shared as authorized in
+        this agreement.
+ .
+     3. Group Buying. You may NOT aggregate funds to Purchase Stock
+        Media Products with one or more other parties. An example of
+        this prohibited use is a website membership where members pool
+        their money to make a single Purchase that is shared by the
+        members of the group. Each such member must Purchase
+        individually.
+ .
+     4. Stock Media Product Clearinghouses. You may NOT publish,
+        distribute, or make Stock Media Products available through any
+        online clearinghouse infrastructure.
+ .
+     5. No Obscene or Unlawful Use. You may NOT use Stock Media
+        Products for any defamatory, harassing, pornographic, obscene,
+        or racist purpose, or to infringe any party’s Intellectual
+        Property rights.
+ .
+     6. False Attribution. You may NOT misrepresent yourself as the
+        creator of Stock Media Products.
+ .
+ III. License Term & Termination
+ .
+ 1. Term. Your right and license to Stock Media Products is perpetual,
+    unless terminated as described herein.
+ .
+ 2. Termination. Your license grant is terminated immediately and
+    without notice in the cases below. In such termination, you and
+    any recipients of Stock Media Products must cease use,
+    distribution, and destroy all copies of Stock Media Products.
+ .
+    1. Reversal of Purchase. Your right and license to Stock Media
+       Products are contingent on your Purchase of Stock Media
+       Products. Any payment reversal of a Purchase for any reason
+       immediately terminates all rights granted under this agreement.
+       Potential Reasons for a payment reversal include:
+ .
+       1. Free3D reverses your Purchase at your request.
+       2. Free3D receives a charge back notice from your bank or
+          credit card cancelling your Purchase and withdrawing the
+          funds used for your Purchase.
+       3. Free3D determines in its sole discretion that your Purchase
+          was fraudulent.
+       4. Your purchase was made with a dishonored check.
+       5. Your purchase was made and there is a bank transfer failure.
+       6. When you are granted delayed payment terms, and fail to make
+          payments such that Free3D sends you notice and terminates
+          your account.
+ .
+     2. Failure to Abide by the License Grant. Material failure to
+        abide by the terms of this agreement immediately terminates
+        your right and license to Stock Media Products. If you detect
+        a violation of the license grant by you or any recipient of
+        shared Stock Media Products, and promptly report the violation
+        to agent@turbosquid.com, Free3D will make a good faith effort
+        to find an appropriate remedy to preserve your license grant.
+ .
+ IV. Warranties
+ .
+ You covenant, represent, and warrant to Free3D that:
+ .
+ 1. You have full right, power, legal capacity, and authority to enter
+    into and perform this agreement, have obtained any third-party
+    consent needed to do so, and, prior to any Purchase, had an
+    opportunity to seek independent legal counsel.
+ .
+ 2. You will not use Stock Media Products except pursuant to the terms
+    of this agreement. Should you use Stock Media Products in an
+    unauthorized way, you agree to any reasonable fee or penalty
+    exercised by Free3D under this agreement or applicable law.
+ .
+ 3. You will, prior to Purchase, determine the need for and, if
+    appropriate, obtain any needed third-party clearance, consent, or
+    release to use Other-Party Intellectual Property shown in the
+    digital rendering of Stock Media Products, and shall not use Stock
+    Media Products to infringe any party’s Intellectual Property
+    rights.
+ .
+ 4. You will immediately notify Free3D of any Intellectual Property
+    claim against your use of Stock Media Products or any other rights
+    issue, before disclosing such issue to any third-party.
+ .
+ V. Limitation of Liability
+ .
+ 1. Stock Media Products are provided on an “as is”, “as available”,
+    and “with all faults” basis. Free3D makes no representations,
+    warranties, conditions, or guarantees as to the usefulness,
+    quality, suitability, truth, fitness for a particular purpose,
+    non-infringement, merchantability, or cosmetic attributes of Stock
+    Media Products, and does not guarantee the accuracy or
+    completeness of specifications associated with Stock Media
+    Products, including measurements, weight, durability, strength,
+    materials, general physical properties, regulatory compliance,
+    other engineering or construction attributes.
+ .
+ 2. Free3D disclaims all express or implied conditions,
+    representations, and warranties of any kind regarding Stock Media
+    Products, including any implied warranty or condition of
+    merchantability. Free3D allows your Purchase to be refunded under
+    certain reasonable time frames and conditions, subject to the
+    Site’s policies.
+ .
+ 3. You assume all risk for any damage to your computer systems and
+    network for any damage to your computer system by obtaining Stock
+    Media Products, including any damages resulting from computer
+    viruses.
+ .
+ 4. To the fullest extent permitted by law, Free3D shall not be liable
+    for any direct, indirect, punitive, special, incidental,
+    consequential, or exemplary damages (including loss of business,
+    revenue, profits, goodwill, use, data, electronically transmitted
+    orders, or other economic advantage) arising out of or in
+    connection with Stock Media Products, even if Free3D has
+    previously been advised of, or reasonably could have foreseen, the
+    possibility of such damages, however they arise, whether in breach
+    of contract or in tort (including negligence). To the extent that
+    any jurisdiction does not allow the exclusion or limitation of
+    direct, incidental, or consequential damages, portions of the
+    preceding limitation or exclusion may not apply, but should be
+    construed to the greatest extent applicable in such jurisdictions.
+ .
+ 5. You agree to indemnify and hold Free3D and its subsidiaries,
+    affiliates, shareholders, officers, directors, agents, licensors,
+    licensee, suppliers, alliance members, other partners, employees
+    and representatives (“Free3D Parties”) harmless from any claim or
+    demand, including reasonable attorneys’ fees, made by any third
+    party due to, or arising out of your use of the Source Material or
+    Creations.
+ .
+ VI. Other Terms
+ .
+ 1. Entire Agreement. This agreement constitutes the entire agreement
+    between you and Free3D relating to your Purchase, unless you have
+    a corporate license agreement with Free3D. Corporate licenses are
+    available with additional protections for additional fees. Please
+    contact agent@turbosquid.com if your organization requires a
+    corporate license. Free3D does not otherwise offer any other
+    changes, additions, variations, or additional signed forms related
+    to this agreement. No modification to this agreement will be
+    binding, unless in writing and signed by an authorized Free3D
+    representative.
+ .
+ 2. Material Breach. You agree that any material breach of these Terms
+    will result in irreparable harm to Free3D for which damages would
+    be an inadequate remedy and, therefore, in addition to its rights
+    and remedies otherwise available at law, Free3D will be entitled
+    to equitable relief, including both a preliminary and permanent
+    injunction, if such a breach occurs. You waive any requirement for
+    the posting of a bond or other security if Free3D seeks such an
+    injunction.
+ .
+ 3. Import/Export Regulations. Stock Media Products may be subject to
+    the U.S. export laws and the export or import laws of other
+    countries. You agree to comply strictly with all such laws and, in
+    particular, shall with Stock Media Products: (a) obtain any
+    export, re-export, or import authorizations required by U.S. or
+    Your local laws; (b) not design, develop or produce missile,
+    chemical/biological, or nuclear weaponry; and (c) not provide
+    Stock Media Products to prohibited countries and entities
+    identified in the U.S. export regulations.
+ .
+ 4. Governing Law. This agreement is governed by New York law,
+    excluding conflict of law principles. Any action or proceeding
+    arising out of or related to this agreement must be brought in a
+    state or federal court located in New York, New York, and both
+    parties irrevocably submit to the exclusive jurisdiction of such
+    courts. All notices, requests and other communications under this
+    agreement must be in writing (e-mail messages shall be deemed
+    writings).
+ .
+ 5. LIMITED INTERNAL USER ARBITRATION. You acknowledge and agree that
+    Free3D may, in its sole discretion, arbitrate disputes between
+    Free3D users involving Stock Media Products (including any
+    purchaser or supplier of Stock Media Products), and such findings
+    shall be final and non-appealable. Either party may request that
+    Free3D arbitrate the dispute, or Free3D may elect, at its option,
+    to arbitrate the dispute. After Free3D elects to arbitrate any
+    dispute hereunder, Free3D will waive any rights to a commission
+    from both the Purchase and arbitration, and the parties must keep
+    the results and process confidential and may not disclose anything
+    related to the dispute to any other party (whether by oral,
+    written, or other type of disclosure). To resolve disputes, Free3D
+    may decide to terminate or suspend users, revoke the license,
+    offer replacement Stock Media Products, reestablish the licensee,
+    or surrender or reallocate fees (whether by refund, charitable
+    donation, or otherwise). Free3D may award up to 3X the Purchase
+    price to either party depending on the circumstances. YOU
+    UNDERSTAND, ACKNOWLEDGE, AND AGREE THAT ACCEPTING THIS ARBITRATION
+    PROVISION WAIVES RIGHTS TO JUDICIAL RESOLUTION, TRIAL BY JURY AND
+    RIGHTS YOU WOULD OTHERWISE HAVE IF YOU HAD NOT AGREED TO THIS
+    ARBITRATION PROVISION.
+ .
+ 6. Notice. Any notice under this agreement shall be via email to
+    agent@turbosquid.com, provided that you receive an acknowledgement
+    email from a Free3D representative within 5 business days. If no
+    such acknowledgement email is received, notice must be in writing
+    and delivered by mail to the following address.
+ .
+    *TurboSquid, Inc.*
+    c/o TurboSquid Support
+    935 Gravier St., Suite 1600
+    New Orleans, LA 70112
+ .
+ 7. Assignment. Free3D may not assign its rights under this agreement
+    without providing you notice, except in the case of a bankruptcy,
+    merger, acquisition, sale of all or substantially all of Free3D’s
+    assets to a subsequent owner or operator, or similar event. You
+    may not assign your rights under this agreement without the prior
+    written consent of Free3D, which will not be unreasonably
+    withheld.
+ .
+ 8. English. This agreement may be translated into other languages,
+    but English is the official language of this agreement and in any
+    conflict between the English language version and any other
+    version, the English language version shall control.
+ .
+ This Royalty Free License is effective for use with Stock Media
+ Products for use on or after July 23, 2015.
 
-  A "Combined Work" is a work produced by combining or linking an
-Application with the Library.  The particular version of the Library
-with which the Combined Work was made is also called the "Linked
-Version".
+-----------------------------------------------------------
+Licence: OFL
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+.
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+.
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+.
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+.
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+.
+"Original Version" refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+.
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+.
+"Author" refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+.
+PERMISSION & CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+.
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+.
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+.
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+.
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+.
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+.
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+.
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.
 
-  The "Minimal Corresponding Source" for a Combined Work means the
-Corresponding Source for the Combined Work, excluding any source code
-for portions of the Combined Work that, considered in isolation, are
-based on the Application, and not on the Linked Version.
+-----------------------------------------------------------
+License: tension-donationware
+This Tension Type Free Font is free to use in any and all of your personal
+and commercial work.
+.
+A donation is much appreciated, but not necessary
+(donations may be done through PayPal to: mtension@gmail.com). No donation is too small.
+.
+You may install and use an unlimited number of copies of a Tension Type Free Font.
+.
+Reproduction and Distribution. You may reproduce and distribute an unlimited number
+of copies of a Tension Type Free Font; provided that each copy shall be a true and
+complete copy, including all copyright and trademark notices (if applicable), and
+shall be accompanied by a copy of this text file. Copies of the Font may not be
+distributed for profit either on a standalone basis or included as part of your own
+product unless by prior permission of Tension Type.
+.
+You may not rename, edit or create any derivative works from a Tension Type Free Font,
+other than subsetting when embedding them in documents unless you have permission from
+Tension Type.
+.
+Embedding a Tension Type Free Font in a PDF document and web pages is allowed.
+.
+Michael Tension and Tension Type are not responsible for any damage resulting
+from the use of this Tension Type Free Font.
+.
+Any questions, or if you wish to share your designs,
+please contact Michael Tension: mtension@gmail.com
 
-  The "Corresponding Application Code" for a Combined Work means the
-object code and/or source code for the Application, including any data
-and utility programs needed for reproducing the Combined Work from the
-Application, but excluding the System Libraries of the Combined Work.
 
-  1. Exception to Section 3 of the GNU GPL.
-
-  You may convey a covered work under sections 3 and 4 of this License
-without being bound by section 3 of the GNU GPL.
-
-  2. Conveying Modified Versions.
-
-  If you modify a copy of the Library, and, in your modifications, a
-facility refers to a function or data to be supplied by an Application
-that uses the facility (other than as an argument passed when the
-facility is invoked), then you may convey a copy of the modified
-version:
-
-   a) under this License, provided that you make a good faith effort to
-   ensure that, in the event an Application does not supply the
-   function or data, the facility still operates, and performs
-   whatever part of its purpose remains meaningful, or
-
-   b) under the GNU GPL, with none of the additional permissions of
-   this License applicable to that copy.
-
-  3. Object Code Incorporating Material from Library Header Files.
-
-  The object code form of an Application may incorporate material from
-a header file that is part of the Library.  You may convey such object
-code under terms of your choice, provided that, if the incorporated
-material is not limited to numerical parameters, data structure
-layouts and accessors, or small macros, inline functions and templates
-(ten or fewer lines in length), you do both of the following:
-
-   a) Give prominent notice with each copy of the object code that the
-   Library is used in it and that the Library and its use are
-   covered by this License.
-
-   b) Accompany the object code with a copy of the GNU GPL and this license
-   document.
-
-  4. Combined Works.
-
-  You may convey a Combined Work under terms of your choice that,
-taken together, effectively do not restrict modification of the
-portions of the Library contained in the Combined Work and reverse
-engineering for debugging such modifications, if you also do each of
-the following:
-
-   a) Give prominent notice with each copy of the Combined Work that
-   the Library is used in it and that the Library and its use are
-   covered by this License.
-
-   b) Accompany the Combined Work with a copy of the GNU GPL and this license
-   document.
-
-   c) For a Combined Work that displays copyright notices during
-   execution, include the copyright notice for the Library among
-   these notices, as well as a reference directing the user to the
-   copies of the GNU GPL and this license document.
-
-   d) Do one of the following:
-
-       0) Convey the Minimal Corresponding Source under the terms of this
-       License, and the Corresponding Application Code in a form
-       suitable for, and under terms that permit, the user to
-       recombine or relink the Application with a modified version of
-       the Linked Version to produce a modified Combined Work, in the
-       manner specified by section 6 of the GNU GPL for conveying
-       Corresponding Source.
-
-       1) Use a suitable shared library mechanism for linking with the
-       Library.  A suitable mechanism is one that (a) uses at run time
-       a copy of the Library already present on the user's computer
-       system, and (b) will operate properly with a modified version
-       of the Library that is interface-compatible with the Linked
-       Version.
-
-   e) Provide Installation Information, but only if you would otherwise
-   be required to provide such information under section 6 of the
-   GNU GPL, and only to the extent that such information is
-   necessary to install and execute a modified version of the
-   Combined Work produced by recombining or relinking the
-   Application with a modified version of the Linked Version. (If
-   you use option 4d0, the Installation Information must accompany
-   the Minimal Corresponding Source and Corresponding Application
-   Code. If you use option 4d1, you must provide the Installation
-   Information in the manner specified by section 6 of the GNU GPL
-   for conveying Corresponding Source.)
-
-  5. Combined Libraries.
-
-  You may place library facilities that are a work based on the
-Library side by side in a single library together with other library
-facilities that are not Applications and are not covered by this
-License, and convey such a combined library under terms of your
-choice, if you do both of the following:
-
-   a) Accompany the combined library with a copy of the same work based
-   on the Library, uncombined with any other library facilities,
-   conveyed under the terms of this License.
-
-   b) Give prominent notice with the combined library that part of it
-   is a work based on the Library, and explaining where to find the
-   accompanying uncombined form of the same work.
-
-  6. Revised Versions of the GNU Lesser General Public License.
-
-  The Free Software Foundation may publish revised and/or new versions
-of the GNU Lesser General Public License from time to time. Such new
-versions will be similar in spirit to the present version, but may
-differ in detail to address new problems or concerns.
-
-  Each version is given a distinguishing version number. If the
-Library as you received it specifies that a certain numbered version
-of the GNU Lesser General Public License "or any later version"
-applies to it, you have the option of following the terms and
-conditions either of that published version or of any later version
-published by the Free Software Foundation. If the Library as you
-received it does not specify a version number of the GNU Lesser
-General Public License, you may choose any version of the GNU Lesser
-General Public License ever published by the Free Software Foundation.
-
-  If the Library as you received it specifies that a proxy can decide
-whether future versions of the GNU Lesser General Public License shall
-apply, that proxy's public statement of acceptance of any version is
-permanent authorization for you to choose that version for the
-Library.

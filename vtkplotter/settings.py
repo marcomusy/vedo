@@ -63,6 +63,9 @@ General settings.
     # Use tex, matplotlib latex compiler
     usetex = False
 
+    # In 3D Text allow interpreting _ and ^ as sub/super script
+    allowSubScripts = True
+
     # Qt embedding
     usingQt = False
 
@@ -83,7 +86,7 @@ General settings.
     # Remove hidden lines when in wireframe mode
     hiddenLineRemoval = False
 
-    # For (Un)Structured and RectilinearGrid: show internal edges not only outline
+    # For RectilinearGrid: show internal edges not only outline
     visibleGridEdges = False
 
     # Turn on/off the automatic repositioning of lights as the camera moves.
@@ -172,6 +175,9 @@ rendererFrameColor = None
 
 # Use tex, matplotlib latex compiler
 usetex = False
+
+# In 3D Text allow interpreting _ and ^ as sub/super script
+allowSubScripts = True
 
 # Qt embedding
 usingQt = False
@@ -320,12 +326,10 @@ def _init():
     for f in os.listdir(textures_path):
         tfn = f.split(".")[0]
         if 'earth' in tfn: continue
-        if 'Licences' in tfn: continue
         textures.append(tfn)
 
     for f in os.listdir(fonts_path):
         fonts.append(f.split(".")[0])
-    fonts.remove("licenses")
     fonts = list(sorted(fonts))
 
     import warnings

@@ -30,7 +30,7 @@ vp.addSlider2D(sliderfunc, k, len(objs)-1,
                pos=[(0.4,0.1), (0.9,0.1)], showValue=False,
                font='courier', titleSize=1.6)
 
-vp += Text2D(__doc__, font='SpecialElite', pos=8, s=0.9, c='w')
+vp += Text2D(__doc__, font='ChineseRuler', pos=8, s=0.9, c='w')
 vp += load(datadir+'images/limbs_tc.jpg').scale(0.0154).y(10.0)
 vp += Line([(0,8), (0,10), (28.6,10), (4.5,8)], c='gray')
 

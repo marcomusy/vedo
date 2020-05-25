@@ -64,7 +64,7 @@ setup(
 # ./run_all.sh
 # check also scripts in docs
 
-# check vtkconvert:
+# check vtkplotter-convert:
 # vtkplotter-convert data/290.vtk -to ply; vtkplotter data/290.ply
 
 # check on python2 the same stuff is ok

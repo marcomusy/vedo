@@ -59,6 +59,7 @@ __all__ = [
     "Glyph",
     "Tensors",
     "ParametricShape",
+    "convexHull",
 ]
 
 
@@ -2202,7 +2203,7 @@ class Text(Mesh):
                 kpoly = tf.GetOutput()
             return kpoly, kpoly.GetBounds()[1]
 
-        if useSubScripts and str(txt):
+        if settings.allowSubScripts and useSubScripts and str(txt):
 
             sn = str(txt).replace("**","^")
             sn = sn.replace("e+0","^. 10^").replace("e-0","^. 10^-")
@@ -2346,7 +2347,6 @@ def Text2D(
             - Monospace
             - Montserrat
             - Overspray
-            - SpecialElite
 
         A path to `otf` or `ttf` font-file can also be supplied as input.
 
@@ -2454,9 +2454,9 @@ def Text2D(
             elif os.path.exists(font):
                 tp.SetFontFile(font)
             else:
-                printc("~sad Font", font, "not found in", settings.fonts_path, c="r")
-                printc("~pin Available fonts are:", settings.fonts, c="m")
-                return None
+                #printc("Font", font, "not found in", settings.fonts_path, c="r")
+                #printc("Available fonts are:", settings.fonts, c="y")
+                tp.SetFontFamilyToCourier() # silently fail
         if bg:
             bgcol = getColor(bg)
             tp.SetBackgroundColor(bgcol)
@@ -2653,3 +2653,40 @@ class ParametricShape(Mesh):
         if name == 'Enneper': self.scale(0.4)
         settings.collectable_actors.append(self)
         self.name = name
+
+
+def convexHull(pts):
+    """
+    Create the 2D/3D convex hull of a set of input points or input Mesh.
+
+    |convexHull| |convexHull.py|_
+    """
+    if utils.isSequence(pts):
+        if len(pts[0]) == 2: # make it 3d
+            pts = np.c_[np.array(pts), np.zeros(len(pts))]
+        mesh = Points(pts)
+    else:
+        mesh = pts
+    apoly = mesh.clean().polydata()
+
+    # Create the convex hull of the pointcloud
+    if np.count_nonzero(mesh.points()[:,2]):
+        delaunay = vtk.vtkDelaunay3D()
+    else:
+        delaunay = vtk.vtkDelaunay2D()
+
+    delaunay.SetInputData(apoly)
+    delaunay.Update()
+
+    surfaceFilter = vtk.vtkDataSetSurfaceFilter()
+    surfaceFilter.SetInputConnection(delaunay.GetOutputPort())
+    surfaceFilter.Update()
+    m = Mesh(surfaceFilter.GetOutput(), alpha=0.75).flat()
+    m.name = "ConvexHull"
+    return m
+
+
+
+
+
+

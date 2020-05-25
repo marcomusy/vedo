@@ -175,7 +175,21 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
         elif hasattr(inputobj, "GetOutput"): # passing vtk object
             if hasattr(inputobj, "Update"): inputobj.Update()
-            self._polydata = inputobj.GetOutput()
+            if isinstance(inputobj.GetOutput(), vtk.vtkPolyData):
+                self._polydata = inputobj.GetOutput()
+            else:
+                gf = vtk.vtkGeometryFilter()
+                gf.SetInputData(inputobj.GetOutput())
+                gf.Update()
+                self._polydata = gf.GetOutput()
+
+        elif isinstance(inputobj, str):
+            from vtkplotter.vtkio import load
+            dataset = load(inputobj)
+            if "TetMesh" in str(type(dataset)):
+                self._polydata = dataset.toMesh().polydata()
+            else:
+                self._polydata = dataset.polydata()
 
         else:
             colors.printc("Error: cannot build mesh from type:\n", inputtype, c=1)
@@ -398,17 +412,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
                     res.append(l1)
             conn = res
         return conn # cannot always make a numpy array of it!
-
-
-    def cellCenters(self):
-        """Get the coordinates of the cell centers.
-
-        |delaunay2d| |delaunay2d.py|_
-        """
-        vcen = vtk.vtkCellCenters()
-        vcen.SetInputData(self.polydata())
-        vcen.Update()
-        return vtk_to_numpy(vcen.GetOutput().GetPoints().GetData())
 
 
     def texture(self, tname,
@@ -692,18 +695,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
         elif c is None:
             self._mapper.ScalarVisibilityOn()
             return self
-#        elif isinstance(c, str):
-#            if c in colors._mapscales_cmaps:
-#                self.cmap = c
-#                if self._polydata.GetPointData().GetScalars():
-#                    aname = self._polydata.GetPointData().GetScalars().GetName()
-#                    if aname: self.pointColors(aname, cmap=c)
-#                elif self._polydata.GetCellData().GetScalars():
-#                    aname = self._polydata.GetCellData().GetScalars().GetName()
-#                    if aname: self.cellColors(aname, cmap=c)
-#                self._mapper.ScalarVisibilityOn()
-#                return self
-#       #  otherwise is of kind "red"
         self._mapper.ScalarVisibilityOff()
         cc = colors.getColor(c)
         self.GetProperty().SetColor(cc)
@@ -991,53 +982,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
             return np.array(trgp)
 
 
-    def findCellsWithin(self, xbounds=(), ybounds=(), zbounds=(), c=None):
-        """
-        Find cells that are within specified bounds.
-        Setting a color will add a vtk array to colorize these cells.
-        """
-        if len(xbounds) == 6:
-            bnds = xbounds
-        else:
-            bnds = list(self.bounds())
-            if len(xbounds) == 2:
-                bnds[0] = xbounds[0]
-                bnds[1] = xbounds[1]
-            if len(ybounds) == 2:
-                bnds[2] = ybounds[0]
-                bnds[3] = ybounds[1]
-            if len(zbounds) == 2:
-                bnds[4] = zbounds[0]
-                bnds[5] = zbounds[1]
-
-        cellIds = vtk.vtkIdList()
-        self.cell_locator = vtk.vtkCellTreeLocator()
-        self.cell_locator.SetDataSet(self.polydata())
-        #self.cell_locator.SetNumberOfCellsPerNode(2)
-        self.cell_locator.BuildLocator()
-        self.cell_locator.FindCellsWithinBounds(bnds, cellIds)
-
-        if c is not None:
-            cellData = vtk.vtkUnsignedCharArray()
-            cellData.SetNumberOfComponents(3)
-            cellData.SetName('CellsWithinBoundsColor')
-            cellData.SetNumberOfTuples(self.polydata(False).GetNumberOfCells())
-            defcol = np.array(self.color())*255
-            for i in range(cellData.GetNumberOfTuples()):
-                cellData.InsertTuple(i, defcol)
-            self.polydata(False).GetCellData().SetScalars(cellData)
-            self._mapper.ScalarVisibilityOn()
-            flagcol = np.array(colors.getColor(c))*255
-
-        cids = []
-        for i in range(cellIds.GetNumberOfIds()):
-            cid = cellIds.GetId(i)
-            if c is not None:
-                cellData.InsertTuple(cid, flagcol)
-            cids.append(cid)
-
-        return np.array(cids)
-
 
     def distanceToMesh(self, mesh, signed=False, negate=False):
         '''
@@ -1158,56 +1102,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
         tf.Update()
         return self._update(tf.GetOutput())
 
-#    def mirror(self, axis="x"):
-#        """
-#        Mirror the mesh  along one of the cartesian axes.
-#
-#        .. note::  ``axis='n'``, will flip only mesh normals.
-#
-#        |mirror| |mirror.py|_
-#        """
-#        poly = self.polydata()
-#        polyCopy = vtk.vtkPolyData()
-#        polyCopy.DeepCopy(poly)
-#
-#        sx, sy, sz = 1, 1, 1
-#        dx, dy, dz = self.GetPosition()
-#        if axis.lower() == "x":
-#            sx = -1
-#        elif axis.lower() == "y":
-#            sy = -1
-#        elif axis.lower() == "z":
-#            sz = -1
-#        elif axis.lower() == "n":
-#            pass
-#        else:
-#            colors.printc("Error in mirror(): mirror must be set to x, y, z or n.", c=1)
-#            raise RuntimeError()
-#
-#        if axis != "n":
-#            for j in range(polyCopy.GetNumberOfPoints()):
-#                p = [0, 0, 0]
-#                polyCopy.GetPoint(j, p)
-#                polyCopy.GetPoints().SetPoint(
-#                    j,
-#                    p[0] * sx - dx * (sx - 1),
-#                    p[1] * sy - dy * (sy - 1),
-#                    p[2] * sz - dz * (sz - 1),
-#                )
-#        rs = vtk.vtkReverseSense()
-#        rs.SetInputData(polyCopy)
-#        rs.ReverseNormalsOn()
-#        rs.Update()
-#        polyCopy = rs.GetOutput()
-#
-#        pdnorm = vtk.vtkPolyDataNormals()
-#        pdnorm.SetInputData(polyCopy)
-#        pdnorm.ComputePointNormalsOn()
-#        pdnorm.ComputeCellNormalsOn()
-#        pdnorm.FlipNormalsOff()
-#        pdnorm.ConsistencyOn()
-#        pdnorm.Update()
-#        return self._update(pdnorm.GetOutput())
 
     def mirror(self, axis="x"):
         """
@@ -1254,6 +1148,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         rs.Update()
         return self._update(rs.GetOutput())
 
+
     def shrink(self, fraction=0.85):
         """Shrink the triangle polydata in the representation of the input mesh.
 
@@ -1272,6 +1167,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         shrink.SetShrinkFactor(fraction)
         shrink.Update()
         return self._update(shrink.GetOutput())
+
 
     def stretch(self, q1, q2):
         """Stretch mesh between points `q1` and `q2`. Mesh is not affected.
@@ -1296,7 +1192,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
         cosa = np.dot(p2 - p1, z) / plength
         n = np.cross(p2 - p1, z)
         T.RotateWXYZ(np.rad2deg(np.arccos(cosa)), n)
-
         T.Scale(1, 1, qlength / plength)
 
         cosa = np.dot(q2 - q1, z) / qlength
@@ -1376,7 +1271,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
         :param origin: the cutting plane goes through this point
         :param normal: normal of the cutting plane
-        :param showcut: if `True` show the cut off part of the mesh as thin wireframe.
 
         :Example:
             .. code-block:: python
@@ -1450,9 +1344,9 @@ class Mesh(vtk.vtkFollower, ActorBase):
 
     def cutWithMesh(self, mesh, invert=False):
         """
-        Cut an ``Mesh`` mesh with another ``vtkPolyData`` or ``Mesh``.
+        Cut an ``Mesh`` mesh with another ``Mesh``.
 
-        :param bool invert: if True return cut off part of mesh.
+        :param bool invert: if True return cut off part of Mesh.
 
         .. hint:: |cutWithMesh.py|_ |cutAndCap.py|_
 
@@ -1475,11 +1369,8 @@ class Mesh(vtk.vtkFollower, ActorBase):
             p = poly.GetPoint(pointId)
             signedDistance = ippd.EvaluateFunction(p)
             signedDistances.InsertNextValue(signedDistance)
-
-        # add the SignedDistances to the grid
         poly.GetPointData().SetScalars(signedDistances)
 
-        # use vtkClipDataSet to slice the grid with the polydata
         clipper = vtk.vtkClipPolyData()
         clipper.SetInputData(poly)
         clipper.SetInsideOut(not invert)
@@ -2003,22 +1894,31 @@ class Mesh(vtk.vtkFollower, ActorBase):
         return self
 
 
-    def addIDs(self, asfield=False):
+    def pointGaussNoise(self, sigma):
         """
-        Generate point and cell ids.
+        Add gaussian noise to point positions.
 
-        :param bool asfield: flag to control whether to generate scalar or field data.
+        :param float sigma: sigma is expressed in percent of the diagonal size of mesh.
+
+        :Example:
+            .. code-block:: python
+
+                from vtkplotter import Sphere
+
+                Sphere().addGaussNoise(1.0).show()
         """
-        ids = vtk.vtkIdFilter()
-        ids.SetInputData(self._polydata)
-        ids.PointIdsOn()
-        ids.CellIdsOn()
-        if asfield:
-            ids.FieldDataOn()
-        else:
-            ids.FieldDataOff()
-        ids.Update()
-        return self._update(ids.GetOutput())
+        sz = self.diagonalSize()
+        pts = self.points()
+        n = len(pts)
+        ns = np.random.randn(n, 3) * sigma * sz / 100
+        vpts = vtk.vtkPoints()
+        vpts.SetNumberOfPoints(n)
+        vpts.SetData(numpy_to_vtk(pts + ns, deep=True))
+        self._polydata.SetPoints(vpts)
+        self._polydata.GetPoints().Modified()
+        self.addPointArray(-ns, 'GaussNoise')
+        return self
+
 
     def addCurvatureScalars(self, method=0, lut=None):
         """
@@ -2050,6 +1950,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         self.Modified()
         self._mapper.ScalarVisibilityOn()
         return self
+
 
     def addElevationScalars(self, lowPoint=(), highPoint=(), vrange=(), lut=None):
         """
@@ -2089,31 +1990,6 @@ class Mesh(vtk.vtkFollower, ActorBase):
         self._mapper.Update()
         self.Modified()
         self._mapper.ScalarVisibilityOn()
-        return self
-
-    def addGaussNoise(self, sigma):
-        """
-        Add gaussian noise.
-
-        :param float sigma: sigma is expressed in percent of the diagonal size of mesh.
-
-        :Example:
-            .. code-block:: python
-
-                from vtkplotter import Sphere
-
-                Sphere().addGaussNoise(1.0).show()
-        """
-        sz = self.diagonalSize()
-        pts = self.points()
-        n = len(pts)
-        ns = np.random.randn(n, 3) * sigma * sz / 100
-        vpts = vtk.vtkPoints()
-        vpts.SetNumberOfPoints(n)
-        vpts.SetData(numpy_to_vtk(pts + ns, deep=True))
-        self._polydata.SetPoints(vpts)
-        self._polydata.GetPoints().Modified()
-        self.addPointArray(-ns, 'GaussNoise')
         return self
 
     def addShadow(self, x=None, y=None, z=None, c=(0.5, 0.5, 0.5), alpha=1):

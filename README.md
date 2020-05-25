@@ -3,8 +3,8 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/e8c5f1f9afb6433a9cdf4edb5499bd46)](https://app.codacy.com/app/marcomusy/vtkplotter?utm_source=github.com&utm_medium=referral&utm_content=marcomusy/vtkplotter&utm_campaign=Badge_Grade_Dashboard)
 [![Downloads](https://pepy.tech/badge/vtkplotter)](https://pepy.tech/project/vtkplotter)
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
-[![pythvers](https://img.shields.io/badge/python-2.7%7C3-brightgreen.svg)](https://pypi.org/project/vtkplotter)
-[![gdocs](https://img.shields.io/badge/docs%20by-gendocs-blue.svg)](https://gendocs.readthedocs.io/en/latest)
+[![Anaconda-Server Badge](https://anaconda.org/conda-forge/vtkplotter/badges/version.svg)](https://anaconda.org/conda-forge/vtkplotter)
+[![Ubuntu 20.04 package](https://repology.org/badge/version-for-repo/ubuntu_20_04/vtkplotter.svg)](https://repology.org/project/vtkplotter/versions)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2561402.svg)](https://doi.org/10.5281/zenodo.2561402)
 [![CircleCI](https://circleci.com/gh/marcomusy/vtkplotter.svg?style=svg)](https://circleci.com/gh/marcomusy/vtkplotter)
 
@@ -36,8 +36,12 @@ Use [pip](https://projects.raspberrypi.org/en/projects/using-pip-on-windows) to 
 pip install -U vtkplotter
 ```
 or use [conda](https://anaconda.org/conda-forge/vtkplotter) to install from the conda-forge channel:
-```
+```bash
 conda install -c conda-forge vtkplotter
+```
+or on Ubuntu OS:
+```bash
+sudo apt install python3-vtkplotter
 ```
 
 *Windows-10 users* can place this file
@@ -121,7 +125,7 @@ for a wide range of functionalities:
 	 - Decimate a cloud to a uniform distribution.
 </details>
 <details>
-<summary>working with volumetric data</summary>
+<summary>working with volumetric data, and tetrahedral meshes</summary>
 
 	- Import data from VTK format volumetric TIFF stacks, DICOM, SLC, MHD and more
 
@@ -161,7 +165,7 @@ for a wide range of functionalities:
 	- Draw latex-formatted formulas in the rendering window.
 
 	- Quiver plots
-	
+
 	- Stream line plots
 
 	- Point markers analogous to matplotlib
@@ -194,7 +198,7 @@ Volumetric files (_mhd, vti, slc, tiff, DICOM etc.._) can be visualized with opt
 To visualize multiple files or files time-sequences try `-n` or `-s` options. Use `-h` for the complete list of options.
 
 <details>
-<summary>A GUI is also available (mainly useful to *Windows 10* users).</summary>
+<summary>A GUI is also available (mainly useful to Windows 10 users).</summary>
 
 ![gui](https://user-images.githubusercontent.com/32848391/63259840-c861d280-c27f-11e9-9c2a-99d0fae85313.png)
 </details>
@@ -204,6 +208,7 @@ To visualize multiple files or files time-sequences try `-n` or `-s` options. Us
 [**examples/basic**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic)<br>
 [**examples/advanced**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced)<br>
 [**examples/volumetric**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric)<br>
+[**examples/tetmesh**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/tetmesh)<br>
 [**examples/simulations**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations)<br>
 [**examples/pyplot**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot)<br>
 [**examples/other**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other)<br>
@@ -263,7 +268,7 @@ Scientific publications using `vtkplotter` so far:
 Development, 5 April 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/content/145/7/dev154856).
 3. G. Dalmasso *et al.*, *"Evolution in space and time of 3D volumetric images"*, in preparation.
 4. F. Claudi, A. L. Tyson, T. Branco, *"Brainrender. A python based software for visualisation of neuroanatomical and morphological data."*
-bioRxiv 2020.02.23.961748; doi: https://doi.org/10.1101/2020.02.23.961748 
+bioRxiv 2020.02.23.961748; doi: https://doi.org/10.1101/2020.02.23.961748
 
 **Have you found this software useful for your research? Please cite it as:**<br>
 M. Musy  _et al._

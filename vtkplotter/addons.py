@@ -5,11 +5,12 @@ from __future__ import division, print_function
 from vtkplotter.colors import printc, getColor
 from vtkplotter.assembly import Assembly
 from vtkplotter.mesh import Mesh, merge
-from vtkplotter.utils import mag, isSequence, make_ticks
+from vtkplotter.utils import mag, isSequence, make_ticks, ctf2lut
 import vtkplotter.shapes as shapes
 import vtkplotter.settings as settings
 import vtkplotter.docs as docs
 from vtkplotter.volume import Volume
+from vtkplotter.tetmesh import TetMesh
 import numpy as np
 import vtk
 
@@ -94,21 +95,21 @@ def addScalarBar(obj,
 
     .. hint:: |mesh_coloring| |mesh_coloring.py|_ |scalarbars.py|_
     """
-    vp = settings.plotter_instance
+    plt = settings.plotter_instance
 
     if not hasattr(obj, "mapper"):
         printc("~times addScalarBar(): input is invalid,", type(obj), c=1)
         return None
 
-    if vp and vp.renderer:
+    if plt and plt.renderer:
         c = (0.9, 0.9, 0.9)
-        if np.sum(vp.renderer.GetBackground()) > 1.5:
+        if np.sum(plt.renderer.GetBackground()) > 1.5:
             c = (0.1, 0.1, 0.1)
         if isinstance(obj.scalarbar, vtk.vtkActor):
-            vp.renderer.RemoveActor(obj.scalarbar)
+            plt.renderer.RemoveActor(obj.scalarbar)
         elif isinstance(obj.scalarbar, Assembly):
             for a in obj.scalarbar.getMeshes():
-                vp.renderer.RemoveActor(a)
+                plt.renderer.RemoveActor(a)
     if c is None: c = 'gray'
 
     if isinstance(obj, Mesh):
@@ -121,21 +122,8 @@ def addScalarBar(obj,
         if not vtkscalars:
             return None
 
-    elif isinstance(obj, Volume):
-        ctf = obj.GetProperty().GetRGBTransferFunction()
-        otf = obj.GetProperty().GetScalarOpacity()
-        x0,x1 = obj.scalarRange()
-        cols, alphas = [],[]
-        for x in np.linspace(x0,x1, 256):
-            cols.append(ctf.GetColor(x))
-            alphas.append(otf.GetValue(x))
-        lut = vtk.vtkLookupTable()
-        lut.SetRange(x0,x1)
-        lut.SetNumberOfTableValues(len(cols))
-        for i, col in enumerate(cols):
-            r, g, b = col
-            lut.SetTableValue(i, r, g, b, alphas[i])
-        lut.Build()
+    elif isinstance(obj, (Volume, TetMesh)):
+        lut = ctf2lut(obj)
 
     else:
         return obj
@@ -241,10 +229,10 @@ def addScalarBar3D(
 
     .. hint:: |scalarbars| |scalarbars.py|_
     """
-    vp = settings.plotter_instance
-    if vp and c is None:  # automatic black or white
+    plt = settings.plotter_instance
+    if plt and c is None:  # automatic black or white
         c = (0.9, 0.9, 0.9)
-        if np.sum(getColor(vp.backgrcol)) > 1.5:
+        if np.sum(getColor(plt.backgrcol)) > 1.5:
             c = (0.1, 0.1, 0.1)
     if c is None: c = 'gray'
     c = getColor(c)
@@ -262,28 +250,13 @@ def addScalarBar3D(
             return None
         vmin, vmax = obj.mapper().GetScalarRange()
 
-    elif isinstance(obj, Volume):
-        ctf = obj.GetProperty().GetRGBTransferFunction()
-        otf = obj.GetProperty().GetScalarOpacity()
-        vmin, vmax = obj.scalarRange()
-        cols, alphas = [],[]
-        for x in np.linspace(vmin, vmax, 256):
-            cols.append(ctf.GetColor(x))
-            if useAlpha: alphas.append(otf.GetValue(x))
-
-        lut = vtk.vtkLookupTable()
-        lut.SetRange(vmin, vmax)
-        lut.SetNumberOfTableValues(len(cols))
-        for i, col in enumerate(cols):
-            r, g, b = col
-            if useAlpha:
-                lut.SetTableValue(i, r, g, b, alphas[i])
-            else:
-                lut.SetTableValue(i, r, g, b, 1)
-        lut.Build()
+    elif isinstance(obj, (Volume, TetMesh)):
+        lut = ctf2lut(obj)
+        vmin, vmax = lut.GetRange()
 
     elif isSequence(obj):
         vmin, vmax = np.min(obj), np.max(obj)
+
     else:
         print("Error in ScalarBar3D(): input must be Mesh or list.", type(obj))
         return obj
@@ -361,10 +334,10 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
 
     |sliders| |sliders.py|_
     """
-    vp = settings.plotter_instance
+    plt = settings.plotter_instance
     if c is None:  # automatic black or white
         c = (0.8, 0.8, 0.8)
-        if np.sum(getColor(vp.backgrcol)) > 1.5:
+        if np.sum(getColor(plt.backgrcol)) > 1.5:
             c = (0.2, 0.2, 0.2)
     c = getColor(c)
 
@@ -458,12 +431,12 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
                 sliderRep.GetTitleProperty().SetOrientation(90)
 
     sliderWidget = vtk.vtkSliderWidget()
-    sliderWidget.SetInteractor(vp.interactor)
+    sliderWidget.SetInteractor(plt.interactor)
     sliderWidget.SetAnimationModeToJump()
     sliderWidget.SetRepresentation(sliderRep)
     sliderWidget.AddObserver("InteractionEvent", sliderfunc)
     sliderWidget.EnabledOn()
-    vp.sliders.append([sliderWidget, sliderfunc])
+    plt.sliders.append([sliderWidget, sliderfunc])
     return sliderWidget
 
 #####################################################################
@@ -498,10 +471,10 @@ def addSlider3D(
 
     |sliders3d| |sliders3d.py|_
     """
-    vp = settings.plotter_instance
+    plt = settings.plotter_instance
     if c is None:  # automatic black or white
         c = (0.8, 0.8, 0.8)
-        if np.sum(getColor(vp.backgrcol)) > 1.5:
+        if np.sum(getColor(plt.backgrcol)) > 1.5:
             c = (0.2, 0.2, 0.2)
     else:
         c = getColor(c)
@@ -518,6 +491,9 @@ def addSlider3D(
     sliderRep.GetPoint2Coordinate().SetCoordinateSystemToWorld()
     sliderRep.GetPoint1Coordinate().SetValue(pos2)
     sliderRep.GetPoint2Coordinate().SetValue(pos1)
+
+    # sliderRep.SetPoint1InWorldCoordinates(pos2[0], pos2[1], pos2[2])
+    # sliderRep.SetPoint2InWorldCoordinates(pos1[0], pos1[1], pos1[2])
 
     sliderRep.SetSliderWidth(0.03 * t)
     sliderRep.SetTubeWidth(0.01 * t)
@@ -538,12 +514,12 @@ def addSlider3D(
     sliderRep.GetTubeProperty().SetColor(c)
 
     sliderWidget = vtk.vtkSliderWidget()
-    sliderWidget.SetInteractor(vp.interactor)
+    sliderWidget.SetInteractor(plt.interactor)
     sliderWidget.SetRepresentation(sliderRep)
     sliderWidget.SetAnimationModeToJump()
     sliderWidget.AddObserver("InteractionEvent", sliderfunc)
     sliderWidget.EnabledOn()
-    vp.sliders.append([sliderWidget, sliderfunc])
+    plt.sliders.append([sliderWidget, sliderfunc])
     return sliderWidget
 
 #####################################################################
@@ -575,14 +551,14 @@ def addButton(
 
     |buttons| |buttons.py|_
     """
-    vp = settings.plotter_instance
-    if not vp.renderer:
+    plt = settings.plotter_instance
+    if not plt.renderer:
         printc("~timesError: Use addButton() after rendering the scene.", c=1)
         return
     bu = Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
-    vp.renderer.AddActor2D(bu.actor)
-    vp.window.Render()
-    vp.buttons.append(bu)
+    plt.renderer.AddActor2D(bu.actor)
+    plt.window.Render()
+    plt.buttons.append(bu)
     return bu
 
 
@@ -597,13 +573,13 @@ def addCutterTool(mesh):
         from vtkplotter import Volume
         return _addVolumeCutterTool(Volume(mesh))
 
-    vp = settings.plotter_instance
-    if not vp.renderer:
-        save_int = vp.interactive
-        vp.show(interactive=0)
-        vp.interactive = save_int
+    plt = settings.plotter_instance
+    if not plt.renderer:
+        save_int = plt.interactive
+        plt.show(interactive=0)
+        plt.interactive = save_int
 
-    vp.clickedActor = mesh
+    plt.clickedActor = mesh
     apd = mesh.polydata()
 
     planes = vtk.vtkPlanes()
@@ -626,10 +602,10 @@ def addCutterTool(mesh):
     act1.mapper().SetInputConnection(clipper.GetClippedOutputPort()) # needs OutputPort??
     act1.alpha(0.04).color((0.5,0.5,0.5)).wireframe()
 
-    vp.renderer.RemoveActor(mesh)
-    vp.renderer.AddActor(act0)
-    vp.renderer.AddActor(act1)
-    vp.renderer.ResetCamera()
+    plt.renderer.RemoveActor(mesh)
+    plt.renderer.AddActor(act0)
+    plt.renderer.AddActor(act1)
+    plt.renderer.ResetCamera()
 
     def selectPolygons(vobj, event):
         vobj.GetPlanes(planes)
@@ -640,43 +616,43 @@ def addCutterTool(mesh):
     boxWidget.GetOutlineProperty().SetColor(0.2, 0.2, 0.2)
     boxWidget.GetOutlineProperty().SetOpacity(0.8)
     boxWidget.SetPlaceFactor(1.05)
-    boxWidget.SetInteractor(vp.interactor)
+    boxWidget.SetInteractor(plt.interactor)
     boxWidget.SetInputData(apd)
     boxWidget.PlaceWidget()
     boxWidget.AddObserver("InteractionEvent", selectPolygons)
     boxWidget.On()
 
-    vp.cutterWidget = boxWidget
-    vp.clickedActor = act0
-    if mesh in vp.actors:
-        ia = vp.actors.index(mesh)
-        vp.actors[ia] = act0
+    plt.cutterWidget = boxWidget
+    plt.clickedActor = act0
+    if mesh in plt.actors:
+        ia = plt.actors.index(mesh)
+        plt.actors[ia] = act0
 
     printc("Mesh Cutter Tool:", c="m", invert=1)
     printc("  Move gray handles to cut away parts of the mesh", c="m")
     printc("  Press X to save file to: clipped.vtk", c="m")
-    vp.interactor.Start()
+    plt.interactor.Start()
 
     boxWidget.Off()
-    vp.widgets.append(boxWidget)
+    plt.widgets.append(boxWidget)
 
-    vp.interactor.Start()  # allow extra interaction
+    plt.interactor.Start()  # allow extra interaction
     return act0
 
 def _addVolumeCutterTool(vol):
-    vp = settings.plotter_instance
-    if not vp.renderer:
-        save_int = vp.interactive
-        vp.show(interactive=0)
-        vp.interactive = save_int
+    plt = settings.plotter_instance
+    if not plt.renderer:
+        save_int = plt.interactive
+        plt.show(interactive=0)
+        plt.interactive = save_int
 
     boxWidget = vtk.vtkBoxWidget()
-    boxWidget.SetInteractor(vp.interactor)
+    boxWidget.SetInteractor(plt.interactor)
     boxWidget.SetPlaceFactor(1.0)
 
-    vp.cutterWidget = boxWidget
+    plt.cutterWidget = boxWidget
 
-    vp.renderer.AddVolume(vol)
+    plt.renderer.AddVolume(vol)
 
     planes = vtk.vtkPlanes()
     def clipVolumeRender(obj, event):
@@ -696,12 +672,12 @@ def _addVolumeCutterTool(vol):
     printc("Volume Cutter Tool:", c="m", invert=1)
     printc("  Move gray handles to cut parts of the volume", c="m")
 
-    vp.interactor.Render()
+    plt.interactor.Render()
     boxWidget.On()
 
-    vp.interactor.Start()
+    plt.interactor.Start()
     boxWidget.Off()
-    vp.widgets.append(boxWidget)
+    plt.widgets.append(boxWidget)
 
 #####################################################################
 def addIcon(mesh, pos=3, size=0.08):
@@ -713,15 +689,15 @@ def addIcon(mesh, pos=3, size=0.08):
 
     |icon| |icon.py|_
     """
-    vp = settings.plotter_instance
-    if not vp.renderer:
+    plt = settings.plotter_instance
+    if not plt.renderer:
         printc("~lightningWarning: Use addIcon() after first rendering the scene.", c=3)
-        save_int = vp.interactive
-        vp.show(interactive=0)
-        vp.interactive = save_int
+        save_int = plt.interactive
+        plt.show(interactive=0)
+        plt.interactive = save_int
     widget = vtk.vtkOrientationMarkerWidget()
     widget.SetOrientationMarker(mesh)
-    widget.SetInteractor(vp.interactor)
+    widget.SetInteractor(plt.interactor)
     if isSequence(pos):
         widget.SetViewport(pos[0] - size, pos[1] - size, pos[0] + size, pos[1] + size)
     else:
@@ -735,9 +711,9 @@ def addIcon(mesh, pos=3, size=0.08):
             widget.SetViewport(1 - 2 * size, 0, 1, size * 2)
     widget.EnabledOn()
     widget.InteractiveOff()
-    vp.widgets.append(widget)
-    if mesh in vp.actors:
-        vp.actors.remove(mesh)
+    plt.widgets.append(widget)
+    if mesh in plt.actors:
+        plt.actors.remove(mesh)
     return widget
 
 #####################################################################
@@ -864,9 +840,9 @@ def buildAxes(obj=None,
     if c is None:  # automatic black or white
         c = (0.9, 0.9, 0.9)
         bgcol = (0,0,0)
-        vp = settings.plotter_instance
-        if vp and vp.renderer:
-            bgcol = vp.renderer.GetBackground()
+        plt = settings.plotter_instance
+        if plt and plt.renderer:
+            bgcol = plt.renderer.GetBackground()
         else:
             if isinstance(obj, Mesh):
                 bgcol = obj.color()
@@ -1416,44 +1392,44 @@ def addGlobalAxes(axtype=None, c=None):
 
     |customAxes| |customAxes.py|_
     """
-    vp = settings.plotter_instance
+    plt = settings.plotter_instance
     if axtype is not None:
-        vp.axes = axtype  # override
+        plt.axes = axtype  # override
 
-    r = vp.renderers.index(vp.renderer)
+    r = plt.renderers.index(plt.renderer)
 
-    if not vp.axes:
+    if not plt.axes:
         return
 
     if c is None:  # automatic black or white
         c = (0.9, 0.9, 0.9)
-        if np.sum(vp.renderer.GetBackground()) > 1.5:
+        if np.sum(plt.renderer.GetBackground()) > 1.5:
             c = (0.1, 0.1, 0.1)
     else:
         c = getColor(c) # for speed
 
-    if not vp.renderer:
+    if not plt.renderer:
         return
 
-    if vp.axes_instances[r]:
+    if plt.axes_instances[r]:
         return
 
     ############################################################
     # custom grid walls
-    if vp.axes == 1 or vp.axes is True or isinstance(vp.axes, dict):
+    if plt.axes == 1 or plt.axes is True or isinstance(plt.axes, dict):
 
-        if isinstance(vp.axes, dict):
-            vp.axes.update({'useGlobal':True})
-            asse = buildAxes(None, **vp.axes)
+        if isinstance(plt.axes, dict):
+            plt.axes.update({'useGlobal':True})
+            asse = buildAxes(None, **plt.axes)
         else:
             asse = buildAxes(None, useGlobal=True)
 
-        vp.renderer.AddActor(asse)
-        vp.axes_instances[r] = asse
+        plt.renderer.AddActor(asse)
+        plt.axes_instances[r] = asse
 
 
-    elif vp.axes == 2 or vp.axes == 3:
-        x0, x1, y0, y1, z0, z1 = vp.renderer.ComputeVisiblePropBounds()
+    elif plt.axes == 2 or plt.axes == 3:
+        x0, x1, y0, y1, z0, z1 = plt.renderer.ComputeVisiblePropBounds()
         xcol, ycol, zcol = "dr", "dg", "db"
         s = 1
         alpha = 1
@@ -1464,7 +1440,7 @@ def addGlobalAxes(axtype=None, c=None):
         y0, y1 = min(y0, 0), max(y1, 0)
         z0, z1 = min(z0, 0), max(z1, 0)
 
-        if vp.axes == 3:
+        if plt.axes == 3:
             if x1 > 0:
                 x0 = 0
             if y1 > 0:
@@ -1478,35 +1454,35 @@ def addGlobalAxes(axtype=None, c=None):
             zero = shapes.Sphere(r=aves / 120 * s, c="k", alpha=alpha, res=10)
             acts += [zero]
 
-        if len(vp.xtitle) and dx > aves/100:
+        if len(plt.xtitle) and dx > aves/100:
             xl = shapes.Cylinder([[x0, 0, 0], [x1, 0, 0]], r=aves/250*s, c=xcol, alpha=alpha)
             xc = shapes.Cone(pos=[x1, 0, 0], c=xcol, alpha=alpha,
                              r=aves/100*s, height=aves/25*s, axis=[1, 0, 0], res=10)
-            wpos = [x1-(len(vp.xtitle)+1)*aves/40*s, -aves/25*s, 0]  # aligned to arrow tip
+            wpos = [x1-(len(plt.xtitle)+1)*aves/40*s, -aves/25*s, 0]  # aligned to arrow tip
             if centered:
-                wpos = [(x0 + x1) / 2 - len(vp.xtitle) / 2 * aves / 40 * s, -aves / 25 * s, 0]
-            xt = shapes.Text(vp.xtitle, pos=wpos, s=aves / 40 * s, c=xcol)
+                wpos = [(x0 + x1) / 2 - len(plt.xtitle) / 2 * aves / 40 * s, -aves / 25 * s, 0]
+            xt = shapes.Text(plt.xtitle, pos=wpos, s=aves / 40 * s, c=xcol)
             acts += [xl, xc, xt]
 
-        if len(vp.ytitle) and dy > aves/100:
+        if len(plt.ytitle) and dy > aves/100:
             yl = shapes.Cylinder([[0, y0, 0], [0, y1, 0]], r=aves/250*s, c=ycol, alpha=alpha)
             yc = shapes.Cone(pos=[0, y1, 0], c=ycol, alpha=alpha,
                              r=aves/100*s, height=aves/25*s, axis=[0, 1, 0], res=10)
-            wpos = [-aves/40*s, y1-(len(vp.ytitle)+1)*aves/40*s, 0]
+            wpos = [-aves/40*s, y1-(len(plt.ytitle)+1)*aves/40*s, 0]
             if centered:
-                wpos = [-aves / 40 * s, (y0 + y1) / 2 - len(vp.ytitle) / 2 * aves / 40 * s, 0]
-            yt = shapes.Text(vp.ytitle, pos=(0, 0, 0), s=aves / 40 * s, c=ycol)
+                wpos = [-aves / 40 * s, (y0 + y1) / 2 - len(plt.ytitle) / 2 * aves / 40 * s, 0]
+            yt = shapes.Text(plt.ytitle, pos=(0, 0, 0), s=aves / 40 * s, c=ycol)
             yt.pos(wpos).RotateZ(90)
             acts += [yl, yc, yt]
 
-        if len(vp.ztitle) and dz > aves/100:
+        if len(plt.ztitle) and dz > aves/100:
             zl = shapes.Cylinder([[0, 0, z0], [0, 0, z1]], r=aves/250*s, c=zcol, alpha=alpha)
             zc = shapes.Cone(pos=[0, 0, z1], c=zcol, alpha=alpha,
                              r=aves/100*s, height=aves/25*s, axis=[0, 0, 1], res=10)
-            wpos = [-aves/50*s, -aves/50*s, z1 - (len(vp.ztitle)+1)*aves/40*s]
+            wpos = [-aves/50*s, -aves/50*s, z1 - (len(plt.ztitle)+1)*aves/40*s]
             if centered:
-                wpos = [-aves/50*s, -aves/50*s, (z0+z1)/2-len(vp.ztitle)/2*aves/40*s]
-            zt = shapes.Text(vp.ztitle, pos=(0,0,0), s=aves/40*s, c=zcol)
+                wpos = [-aves/50*s, -aves/50*s, (z0+z1)/2-len(plt.ztitle)/2*aves/40*s]
+            zt = shapes.Text(plt.ztitle, pos=(0,0,0), s=aves/40*s, c=zcol)
             zt.pos(wpos).RotateZ(45)
             zt.RotateX(90)
             acts += [zl, zc, zt]
@@ -1514,23 +1490,23 @@ def addGlobalAxes(axtype=None, c=None):
             a.PickableOff()
         ass = Assembly(acts)
         ass.PickableOff()
-        vp.renderer.AddActor(ass)
-        vp.axes_instances[r] = ass
+        plt.renderer.AddActor(ass)
+        plt.axes_instances[r] = ass
 
-    elif vp.axes == 4:
+    elif plt.axes == 4:
         axact = vtk.vtkAxesActor()
         axact.SetShaftTypeToCylinder()
         axact.SetCylinderRadius(0.03)
-        axact.SetXAxisLabelText(vp.xtitle)
-        axact.SetYAxisLabelText(vp.ytitle)
-        axact.SetZAxisLabelText(vp.ztitle)
+        axact.SetXAxisLabelText(plt.xtitle)
+        axact.SetYAxisLabelText(plt.ytitle)
+        axact.SetZAxisLabelText(plt.ztitle)
         axact.GetXAxisShaftProperty().SetColor(1, 0, 0)
         axact.GetYAxisShaftProperty().SetColor(0, 1, 0)
         axact.GetZAxisShaftProperty().SetColor(0, 0, 1)
         axact.GetXAxisTipProperty().SetColor(1, 0, 0)
         axact.GetYAxisTipProperty().SetColor(0, 1, 0)
         axact.GetZAxisTipProperty().SetColor(0, 0, 1)
-        bc = np.array(vp.renderer.GetBackground())
+        bc = np.array(plt.renderer.GetBackground())
         if np.sum(bc) < 1.5:
             lc = (1, 1, 1)
         else:
@@ -1549,9 +1525,9 @@ def addGlobalAxes(axtype=None, c=None):
         axact.GetZAxisCaptionActor2D().GetCaptionTextProperty().SetColor(lc)
         axact.PickableOff()
         icn = addIcon(axact, size=0.1)
-        vp.axes_instances[r] = icn
+        plt.axes_instances[r] = icn
 
-    elif vp.axes == 5:
+    elif plt.axes == 5:
         axact = vtk.vtkAnnotatedCubeActor()
         axact.GetCubeProperty().SetColor(0.75, 0.75, 0.75)
         axact.SetTextEdgesVisibility(0)
@@ -1572,13 +1548,13 @@ def addGlobalAxes(axtype=None, c=None):
         axact.GetZMinusFaceProperty().SetColor(getColor("db"))
         axact.PickableOff()
         icn = addIcon(axact, size=0.06)
-        vp.axes_instances[r] = icn
+        plt.axes_instances[r] = icn
 
-    elif vp.axes == 6:
+    elif plt.axes == 6:
         ocf = vtk.vtkOutlineCornerFilter()
         ocf.SetCornerFactor(0.1)
         largestact, sz = None, -1
-        for a in vp.actors:
+        for a in plt.actors:
             if a.GetPickable():
                 b = a.GetBounds()
                 if b is None:
@@ -1596,17 +1572,17 @@ def addGlobalAxes(axtype=None, c=None):
         ocMapper.SetInputConnection(0, ocf.GetOutputPort(0))
         ocActor = vtk.vtkActor()
         ocActor.SetMapper(ocMapper)
-        bc = np.array(vp.renderer.GetBackground())
+        bc = np.array(plt.renderer.GetBackground())
         if np.sum(bc) < 1.5:
             lc = (1, 1, 1)
         else:
             lc = (0, 0, 0)
         ocActor.GetProperty().SetColor(lc)
         ocActor.PickableOff()
-        vp.renderer.AddActor(ocActor)
-        vp.axes_instances[r] = ocActor
+        plt.renderer.AddActor(ocActor)
+        plt.axes_instances[r] = ocActor
 
-    elif vp.axes == 7:
+    elif plt.axes == 7:
         # draws a simple ruler at the bottom of the window
         ls = vtk.vtkLegendScaleActor()
         ls.RightAxisVisibilityOff()
@@ -1620,14 +1596,14 @@ def addGlobalAxes(axtype=None, c=None):
         ls.GetBottomAxis().GetLabelTextProperty().ItalicOff()
         ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
         ls.PickableOff()
-        vp.renderer.AddActor(ls)
-        vp.axes_instances[r] = ls
+        plt.renderer.AddActor(ls)
+        plt.axes_instances[r] = ls
 
-    elif vp.axes == 8:
+    elif plt.axes == 8:
         vbb = computeVisibleBounds()[0]
         ca = vtk.vtkCubeAxesActor()
         ca.SetBounds(vbb)
-        ca.SetCamera(vp.renderer.GetActiveCamera())
+        ca.SetCamera(plt.renderer.GetActiveCamera())
         ca.GetXAxesLinesProperty().SetColor(c)
         ca.GetYAxesLinesProperty().SetColor(c)
         ca.GetZAxesLinesProperty().SetColor(c)
@@ -1636,23 +1612,23 @@ def addGlobalAxes(axtype=None, c=None):
             ca.GetTitleTextProperty(i).SetColor(c)
         ca.SetTitleOffset(5)
         ca.SetFlyMode(3)
-        ca.SetXTitle(vp.xtitle)
-        ca.SetYTitle(vp.ytitle)
-        ca.SetZTitle(vp.ztitle)
-        if vp.xtitle == "":
+        ca.SetXTitle(plt.xtitle)
+        ca.SetYTitle(plt.ytitle)
+        ca.SetZTitle(plt.ztitle)
+        if plt.xtitle == "":
             ca.SetXAxisVisibility(0)
             ca.XAxisLabelVisibilityOff()
-        if vp.ytitle == "":
+        if plt.ytitle == "":
             ca.SetYAxisVisibility(0)
             ca.YAxisLabelVisibilityOff()
-        if vp.ztitle == "":
+        if plt.ztitle == "":
             ca.SetZAxisVisibility(0)
             ca.ZAxisLabelVisibilityOff()
         ca.PickableOff()
-        vp.renderer.AddActor(ca)
-        vp.axes_instances[r] = ca
+        plt.renderer.AddActor(ca)
+        plt.axes_instances[r] = ca
 
-    elif vp.axes == 9:
+    elif plt.axes == 9:
         vbb = computeVisibleBounds()[0]
         src = vtk.vtkCubeSource()
         src.SetXLength(vbb[1] - vbb[0])
@@ -1662,10 +1638,10 @@ def addGlobalAxes(axtype=None, c=None):
         ca = Mesh(src.GetOutput(), c, 0.5).wireframe(True)
         ca.pos((vbb[0] + vbb[1]) / 2, (vbb[3] + vbb[2]) / 2, (vbb[5] + vbb[4]) / 2)
         ca.PickableOff()
-        vp.renderer.AddActor(ca)
-        vp.axes_instances[r] = ca
+        plt.renderer.AddActor(ca)
+        plt.axes_instances[r] = ca
 
-    elif vp.axes == 10:
+    elif plt.axes == 10:
         vbb = computeVisibleBounds()[0]
         x0 = (vbb[0] + vbb[1]) / 2, (vbb[3] + vbb[2]) / 2, (vbb[5] + vbb[4]) / 2
         rx, ry, rz = (vbb[1]-vbb[0])/2, (vbb[3]-vbb[2])/2, (vbb[5]-vbb[4])/2
@@ -1680,10 +1656,10 @@ def addGlobalAxes(axtype=None, c=None):
         zc.clean().alpha(0.2).wireframe().lineWidth(2.5).PickableOff()
         ca = xc + yc + zc
         ca.PickableOff()
-        vp.renderer.AddActor(ca)
-        vp.axes_instances[r] = ca
+        plt.renderer.AddActor(ca)
+        plt.axes_instances[r] = ca
 
-    elif vp.axes == 11:
+    elif plt.axes == 11:
         vbb, ss = computeVisibleBounds()[0:2]
         xpos, ypos = (vbb[1] + vbb[0]) /2, (vbb[3] + vbb[2]) /2
         gr = shapes.Grid((xpos, ypos, vbb[4]),
@@ -1691,23 +1667,23 @@ def addGlobalAxes(axtype=None, c=None):
                          resx=7, resy=7,
                          c=c, alpha=0.2)
         gr.lighting('ambient').PickableOff()
-        vp.renderer.AddActor(gr)
-        vp.axes_instances[r] = gr
+        plt.renderer.AddActor(gr)
+        plt.axes_instances[r] = gr
 
-    elif vp.axes == 12:
+    elif plt.axes == 12:
         polaxes = vtk.vtkPolarAxesActor()
         vbb = computeVisibleBounds()[0]
 
-        if vp.xtitle == 'x':
+        if plt.xtitle == 'x':
             polaxes.SetPolarAxisTitle('radial distance')
         else:
-            polaxes.SetPolarAxisTitle(vp.xtitle)
+            polaxes.SetPolarAxisTitle(plt.xtitle)
         polaxes.SetPole(0,0, vbb[4])
         rd = max(abs(vbb[0]), abs(vbb[2]), abs(vbb[1]), abs(vbb[3]))
         polaxes.SetMaximumRadius(rd)
         polaxes.AutoSubdividePolarAxisOff()
         polaxes.SetNumberOfPolarAxisTicks(10)
-        polaxes.SetCamera(vp.renderer.GetActiveCamera())
+        polaxes.SetCamera(plt.renderer.GetActiveCamera())
         polaxes.SetPolarLabelFormat("%6.1f")
         polaxes.PolarLabelVisibilityOff() # due to bad overlap of labels
 
@@ -1724,8 +1700,8 @@ def addGlobalAxes(axtype=None, c=None):
         polaxes.SetMaximumAngle(315.)
         polaxes.SetNumberOfPolarAxisTicks(5)
         polaxes.PickableOff()
-        vp.renderer.AddActor(polaxes)
-        vp.axes_instances[r] = polaxes
+        plt.renderer.AddActor(polaxes)
+        plt.axes_instances[r] = polaxes
 
     else:
         printc('~bomb Keyword axes must be in range [0-10].', c=1)
@@ -1746,8 +1722,8 @@ def addGlobalAxes(axtype=None, c=None):
   12 = show polar axes.
   ''', c=1, bold=0)
 
-    if not vp.axes_instances[r]:
-        vp.axes_instances[r] = True
+    if not plt.axes_instances[r]:
+        plt.axes_instances[r] = True
     return
 
 
@@ -1791,24 +1767,24 @@ def addRendererFrame(c=None, alpha=0.5, bg=None, lw=0.5):
 
 def addLegend():
 
-    vp = settings.plotter_instance
-    if not isSequence(vp._legend):
+    plt = settings.plotter_instance
+    if not isSequence(plt._legend):
         return
 
     # remove old legend if present on current renderer:
-    acs = vp.renderer.GetActors2D()
+    acs = plt.renderer.GetActors2D()
     acs.InitTraversal()
     for i in range(acs.GetNumberOfItems()):
         a = acs.GetNextItem()
         if isinstance(a, vtk.vtkLegendBoxActor):
-            vp.renderer.RemoveActor(a)
+            plt.renderer.RemoveActor(a)
 
-    meshs = vp.getMeshes()
+    meshs = plt.getMeshes()
     acts, texts = [], []
     for i, a in enumerate(meshs):
-        if i < len(vp._legend) and vp._legend[i] != "":
-            if isinstance(vp._legend[i], str):
-                texts.append(vp._legend[i])
+        if i < len(plt._legend) and plt._legend[i] != "":
+            if isinstance(plt._legend[i], str):
+                texts.append(plt._legend[i])
                 acts.append(a)
         elif hasattr(a, "_legend") and a._legend:
             if isinstance(a._legend, str):
@@ -1830,8 +1806,8 @@ def addLegend():
         if c == (1, 1, 1):
             c = (0.2, 0.2, 0.2)
         vtklegend.SetEntry(i, a.polydata(), "  " + ti, c)
-    pos = vp.legendPos
-    width = vp.legendSize
+    pos = plt.legendPos
+    width = plt.legendSize
     vtklegend.SetWidth(width)
     vtklegend.SetHeight(width / 5.0 * NT)
     sx, sy = 1 - width, 1 - width / 5.0 * NT
@@ -1844,10 +1820,10 @@ def addLegend():
     elif pos == 4:
         vtklegend.GetPositionCoordinate().SetValue(sx, 0)
     vtklegend.UseBackgroundOn()
-    vtklegend.SetBackgroundColor(vp.legendBC)
+    vtklegend.SetBackgroundColor(plt.legendBC)
     vtklegend.SetBackgroundOpacity(0.6)
     vtklegend.LockBorderOn()
-    vp.renderer.AddActor(vtklegend)
+    plt.renderer.AddActor(vtklegend)
 
 
 ###########################################################################################

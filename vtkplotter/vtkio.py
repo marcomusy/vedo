@@ -9,6 +9,7 @@ import vtkplotter.colors as colors
 
 from vtkplotter.assembly import Assembly
 from vtkplotter.mesh import Mesh
+from vtkplotter.tetmesh import TetMesh
 from vtkplotter.picture import Picture
 from vtkplotter.volume import Volume
 
@@ -297,9 +298,13 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
             colors.printc("~noentry Unable to load", filename, c=1)
             return None
 
-        actor = Mesh(routput, c, alpha)
-        if fl.endswith(".txt") or fl.endswith(".xyz"):
-            actor.GetProperty().SetPointSize(4)
+        if isinstance(routput, vtk.vtkUnstructuredGrid):
+            actor = TetMesh(routput)
+
+        else:
+            actor = Mesh(routput, c, alpha)
+            if fl.endswith(".txt") or fl.endswith(".xyz"):
+                actor.GetProperty().SetPointSize(4)
 
     actor.filename = filename
     return actor
@@ -360,7 +365,10 @@ def loadStructuredPoints(filename):
 
 def loadStructuredGrid(filename):
     """Load a ``vtkStructuredGrid`` object from file."""
-    reader = vtk.vtkStructuredGridReader()
+    if filename.endswith(".vts"):
+        reader = vtk.vtkXMLStructuredGridReader()
+    else:
+        reader = vtk.vtkStructuredGridReader()
     reader.SetFileName(filename)
     reader.Update()
     return reader.GetOutput()
@@ -368,7 +376,10 @@ def loadStructuredGrid(filename):
 
 def loadUnStructuredGrid(filename):
     """Load a ``vtkunStructuredGrid`` object from file."""
-    reader = vtk.vtkUnstructuredGridReader()
+    if filename.endswith(".vtu"):
+        reader = vtk.vtkXMLUnstructuredGridReader()
+    else:
+        reader = vtk.vtkUnstructuredGridReader()
     reader.SetFileName(filename)
     reader.Update()
     return reader.GetOutput()
@@ -376,13 +387,16 @@ def loadUnStructuredGrid(filename):
 
 def loadRectilinearGrid(filename):
     """Load a ``vtkRectilinearGrid`` object from file."""
-    reader = vtk.vtkRectilinearGridReader()
+    if filename.endswith(".vtr"):
+        reader = vtk.vtkXMLRectilinearGridReader()
+    else:
+        reader = vtk.vtkRectilinearGridReader()
     reader.SetFileName(filename)
     reader.Update()
     return reader.GetOutput()
 
 
-def loadXMLGenericData(filename):
+def loadXMLData(filename):
     """Read any type of vtk data object encoded in XML format."""
     reader = vtk.vtkXMLGenericDataObjectReader()
     reader.SetFileName(filename)
@@ -464,7 +478,7 @@ def loadGeoJSON(filename):
 
 def loadDolfin(filename, exterior=False):
     """Reads a `Fenics/Dolfin` file format (.xml or .xdmf).
-    Return an ``Mesh(vtkActor)`` object."""
+    Return an ``Mesh`` object."""
     import sys
     if sys.version_info[0] < 3:
         return _loadDolfin_old(filename)
@@ -1013,7 +1027,7 @@ def write(objct, fileoutput, binary=True):
 
     fr = fileoutput.lower()
     if   fr.endswith(".vtk"):
-        writer = vtk.vtkPolyDataWriter()
+        writer = vtk.vtkDataSetWriter()
     elif fr.endswith(".ply"):
         writer = vtk.vtkPLYWriter()
         pscal = obj.GetPointData().GetScalars()
@@ -1029,6 +1043,8 @@ def write(objct, fileoutput, binary=True):
         writer = vtk.vtkSTLWriter()
     elif fr.endswith(".vtp"):
         writer = vtk.vtkXMLPolyDataWriter()
+    elif fr.endswith(".vtu"):
+        writer = vtk.vtkXMLUnstructuredGridWriter()
     elif fr.endswith(".vtm"):
         g = vtk.vtkMultiBlockDataGroupFilter()
         for ob in objct:
@@ -1361,7 +1377,7 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
     if not settings.plotter_instance or not settings.plotter_instance.window:
         colors.printc('~bomb screenshot(): Rendering window is not present, skip.', c=1)
         return
-    
+
     if not filename.lower().endswith('.png'):
         filename = filename+".png"
 

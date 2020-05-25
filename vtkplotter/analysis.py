@@ -21,7 +21,6 @@ Defines methods useful to analyse 3D meshes.
 
 __all__ = [
     "delaunay2D",
-    "delaunay3D",
     "normalLines",
     "alignLandmarks",
     "alignICP",
@@ -42,7 +41,6 @@ __all__ = [
     "removeOutliers",
     "pointSampler",
     "geodesic",
-    "convexHull",
     "mesh2Volume",
     "projectSphereToPlane",
     "voronoi3D",
@@ -55,8 +53,6 @@ __all__ = [
     "signedDistanceFromPointCloud",
     "volumeFromMesh",
     "pointDensity",
-    "rectilinearGridToTetrahedra",
-    "extractCellsByType",
     "pointCloudFrom",
     "pointDensity",
     "visiblePoints",
@@ -87,25 +83,6 @@ def delaunay2D(plist, mode='xy', tol=None):
         delny.SetProjectionPlaneMode(vtk.VTK_BEST_FITTING_PLANE)
     delny.Update()
     return Mesh(delny.GetOutput())
-
-def delaunay3D(mesh, alpha=0, tol=None, boundary=False):
-    """Create 3D Delaunay triangulation of input points."""
-    deln = vtk.vtkDelaunay3D()
-    if utils.isSequence(mesh):
-        pd = vtk.vtkPolyData()
-        vpts = vtk.vtkPoints()
-        vpts.SetData(numpy_to_vtk(np.ascontiguousarray(mesh), deep=True))
-        pd.SetPoints(vpts)
-        deln.SetInputData(pd)
-    else:
-        deln.SetInputData(mesh.GetMapper().GetInput())
-    deln.SetAlpha(alpha)
-    if tol:
-        deln.SetTolerance(tol)
-    deln.SetBoundingTriangulation(boundary)
-    deln.Update()
-    return deln.GetOutput()
-
 
 def normalLines(mesh, ratio=1, atCells=True, scale=1):
     """
@@ -721,7 +698,7 @@ def surfaceIntersection(mesh1, mesh2, tol=1e-06):
     bf.SetInputData(0, poly1)
     bf.SetInputData(1, poly2)
     bf.Update()
-    mesh = Mesh(bf.GetOutput(), "k", 1)
+    mesh = Mesh(bf.GetOutput(), "k", 1).lighting('off')
     mesh.GetProperty().SetLineWidth(3)
     mesh.name = "surfaceIntersection"
     return mesh
@@ -990,46 +967,6 @@ def geodesic(mesh, start, end):
     return dmesh
 
 
-def convexHull(mesh_or_list, alphaConstant=0):
-    """
-    Create a 2D/3D Delaunay triangulation of input points.
-
-    :param mesh_or_list: can be either an ``Mesh`` or a list of 3D points.
-    :param float alphaConstant: For a non-zero alpha value, only verts, edges, faces,
-        or tetra contained within the circumsphere (of radius alpha) will be output.
-        Otherwise, only tetrahedra will be output.
-
-    |convexHull| |convexHull.py|_
-    """
-    if utils.isSequence(mesh_or_list):
-        mesh = shapes.Points(mesh_or_list)
-    else:
-        mesh = mesh_or_list
-    apoly = mesh.clean().polydata()
-
-    triangleFilter = vtk.vtkTriangleFilter()
-    triangleFilter.SetInputData(apoly)
-    triangleFilter.Update()
-    poly = triangleFilter.GetOutput()
-
-    if np.count_nonzero(mesh.points()[:,2]):
-        delaunay = vtk.vtkDelaunay3D()  # Create the convex hull of the pointcloud
-    else:
-        delaunay = vtk.vtkDelaunay2D()
-
-    if alphaConstant:
-        delaunay.SetAlpha(alphaConstant)
-    delaunay.SetInputData(poly)
-    delaunay.Update()
-
-    surfaceFilter = vtk.vtkDataSetSurfaceFilter()
-    surfaceFilter.SetInputConnection(delaunay.GetOutputPort())
-    surfaceFilter.Update()
-    m = Mesh(surfaceFilter.GetOutput())
-    m.name = "convexHull"
-    return m
-
-
 def mesh2Volume(mesh, spacing=(1, 1, 1)):
     """
     Convert a mesh it into a ``Volume``
@@ -1183,21 +1120,6 @@ def voronoi3D(nuclei, bbfactor=1, tol=None):
     voro.info['volumes'] = volumes
     return voro
 
-
-def extractCellsByType(obj, types=(7,)):
-    """Extract cells of a specified type.
-
-    Given an input vtkDataSet and a list of cell types, produce an output
-    containing only cells of the specified type(s).
-
-    Find `here <https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html>`_
-    the list of possible cell types.
-    """
-    ef = vtk.vtkExtractCellsByType()
-    for ct in types:
-        ef.AddCellType(ct)
-    ef.Update()
-    return Mesh(ef.GetOutput())
 
 
 def pointCloudFrom(obj, useCellData=False):
@@ -1374,25 +1296,6 @@ def interpolateToStructuredGrid(mesh, kernel=None, radius=None,
         interpolator.SetNullPointsStrategyToClosestPoint()
     interpolator.Update()
     return interpolator.GetOutput()
-
-
-def rectilinearGridToTetrahedra(rgrid, tetraPerCell=6):
-    """Create a tetrahedral mesh from a ``vtkRectilinearGrid``.
-    The tetrahedra can be 5 per cell, 6 per cell, or a mixture of 5 or 12 per cell.
-    The resulting mesh is consistent, meaning that there are no edge crossings and
-    that each tetrahedron face is shared by two tetrahedra,
-    except those tetrahedra on the boundary. All tetrahedra are right handed.
-    """
-    r2t = vtk.vtkRectilinearGridToTetrahedra()
-    r2t.SetInputData(rgrid)
-    if tetraPerCell == 5:
-        r2t.SetTetraPerCellTo5()
-    if tetraPerCell == 6:
-        r2t.SetTetraPerCellTo6()
-    if tetraPerCell == 12:
-        r2t.SetTetraPerCellTo12()
-    r2t.Update()
-    return r2t.GetOutput()
 
 
 def streamLines(domain, probe,

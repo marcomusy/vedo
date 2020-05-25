@@ -1,5 +1,4 @@
 from __future__ import division, print_function
-
 import numpy as np
 import vtk
 import vtkplotter.colors as colors
@@ -175,6 +174,63 @@ class ActorBase(object):
     def NCells(self):
         """Retrieve number of cells."""
         return self.inputdata().GetNumberOfCells()
+
+
+    def cellCenters(self):
+        """Get the coordinates of the cell centers.
+
+        |delaunay2d| |delaunay2d.py|_
+        """
+        vcen = vtk.vtkCellCenters()
+        vcen.SetInputData(self.inputdata())
+        vcen.Update()
+        return vtk_to_numpy(vcen.GetOutput().GetPoints().GetData())
+
+    def findCellsWithin(self, xbounds=(), ybounds=(), zbounds=(), c=None):
+        """
+        Find cells that are within specified bounds.
+        Setting a color will add a vtk array to colorize these cells.
+        """
+        if len(xbounds) == 6:
+            bnds = xbounds
+        else:
+            bnds = list(self.bounds())
+            if len(xbounds) == 2:
+                bnds[0] = xbounds[0]
+                bnds[1] = xbounds[1]
+            if len(ybounds) == 2:
+                bnds[2] = ybounds[0]
+                bnds[3] = ybounds[1]
+            if len(zbounds) == 2:
+                bnds[4] = zbounds[0]
+                bnds[5] = zbounds[1]
+
+        cellIds = vtk.vtkIdList()
+        self.cell_locator = vtk.vtkCellTreeLocator()
+        self.cell_locator.SetDataSet(self.polydata())
+        self.cell_locator.BuildLocator()
+        self.cell_locator.FindCellsWithinBounds(bnds, cellIds)
+
+        if c is not None:
+            cellData = vtk.vtkUnsignedCharArray()
+            cellData.SetNumberOfComponents(3)
+            cellData.SetName('CellsWithinBoundsColor')
+            cellData.SetNumberOfTuples(self.polydata(False).GetNumberOfCells())
+            defcol = np.array(self.color())*255
+            for i in range(cellData.GetNumberOfTuples()):
+                cellData.InsertTuple(i, defcol)
+            self.polydata(False).GetCellData().SetScalars(cellData)
+            self._mapper.ScalarVisibilityOn()
+            flagcol = np.array(colors.getColor(c))*255
+
+        cids = []
+        for i in range(cellIds.GetNumberOfIds()):
+            cid = cellIds.GetId(i)
+            if c is not None:
+                cellData.InsertTuple(cid, flagcol)
+            cids.append(cid)
+
+        return np.array(cids)
 
 
     def pickable(self, value=None):
@@ -620,16 +676,6 @@ class ActorBase(object):
         return self.color(color)
 
 
-    def cellCenters(self):
-        """Get the coordinates of the cell centers.
-
-        |delaunay2d| |delaunay2d.py|_
-        """
-        vcen = vtk.vtkCellCenters()
-        vcen.SetInputData(self.inputdata())
-        vcen.Update()
-        return vtk_to_numpy(vcen.GetOutput().GetPoints().GetData())
-
 
     def getTransform(self):
         """
@@ -728,31 +774,44 @@ class ActorBase(object):
         return vtk_to_numpy(arr)
 
 
-    # def getCellArray(self, name=0):
-    #     """Return cell array content as a ``numpy.array``."""
-    #     data = None
-    #     if hasattr(self, '_polydata') and self._polydata:
-    #         data = self._polydata
-    #         self.mapper().ScalarVisibilityOn()
-    #         arr = data.GetCellData().GetArray(name)
-    #         if not arr:
-    #             return None
+    def addIDs(self, asfield=False):
+        """
+        Generate point and cell ids.
 
-    #         if isinstance(name, int):
-    #             name = data.GetCellData().GetArrayName(name)
-    #         data.GetCellData().SetActiveScalars(name)
-    #         self.mapper().SetScalarModeToUseCellData()
-    #         if settings.autoResetScalarRange:
-    #             self.mapper().SetScalarRange(arr.GetRange())
+        :param bool asfield: flag to control whether to generate scalar or field data.
+        """
+        ids = vtk.vtkIdFilter()
+        ids.SetInputData(self._polydata)
+        ids.PointIdsOn()
+        ids.CellIdsOn()
+        if asfield:
+            ids.FieldDataOn()
+        else:
+            ids.FieldDataOff()
+        ids.Update()
+        return self._update(ids.GetOutput())
 
-    #     elif hasattr(self, '_imagedata') and self._imagedata:
-    #         data = self._imagedata
-    #         arr = data.GetCellData().GetArray(name)
-    #         if not arr:
-    #             return None
+    def selectPointArray(self, name):
+        """Make this point array the active one. Name can be a string or integer."""
+        data = self.inputdata().GetPointData()
+        if isinstance(name, int):
+            name = data.GetArray(name)
+        data.SetActiveScalars(name)
+        if hasattr(self._mapper, 'SetArrayName'):
+            self._mapper.SetArrayName(name)
+        self._mapper.SetScalarModeToUsePointData()
+        return self
 
-    #     return vtk_to_numpy(arr)
-
+    def selectCellArray(self, name):
+        """Make this cell array the active one. Name can be a string or integer."""
+        data = self.inputdata().GetCellData()
+        if isinstance(name, int):
+            name = data.GetArray(name)
+        data.SetActiveScalars(name)
+        if hasattr(self._mapper, 'SetArrayName'):
+            self._mapper.SetArrayName(name)
+        self._mapper.SetScalarModeToUseCellData()
+        return self
 
     def addPointArray(self, input_array, name):
         """

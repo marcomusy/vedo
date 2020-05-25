@@ -2,16 +2,19 @@ from __future__ import division, print_function
 import time
 import sys
 import vtk
+from vtk.util.numpy_support import vtk_to_numpy
 import numpy as np
 
 from vtkplotter import __version__
 import vtkplotter.vtkio as vtkio
 import vtkplotter.utils as utils
 import vtkplotter.colors as colors
+from vtkplotter.colors import printc, getColor
 from vtkplotter.assembly import Assembly
 from vtkplotter.mesh import Mesh
 from vtkplotter.picture import Picture
 from vtkplotter.volume import Volume
+from vtkplotter.tetmesh import TetMesh
 import vtkplotter.docs as docs
 import vtkplotter.settings as settings
 import vtkplotter.addons as addons
@@ -183,13 +186,13 @@ def show(*actors, **options):
             show(p, at=2, interactive=True)
             #
             # is equivalent to:
-            vp = Plotter(shape=(3,1))
+            plt = Plotter(shape=(3,1))
             s = Sphere()
             c = Cube()
             p = Paraboloid()
-            vp.show(s, at=0)
-            vp.show(p, at=1)
-            vp.show(c, at=2, interactive=True)
+            plt.show(s, at=0)
+            plt.show(p, at=1)
+            plt.show(c, at=2, interactive=True)
     """
     at = options.pop("at", None)
     shape = options.pop("shape", (1, 1))
@@ -218,7 +221,7 @@ def show(*actors, **options):
 
     if len(options):
         for op in options:
-            colors.printc("Warning: unknown keyword in show():", op, c=5)
+            printc("Warning: unknown keyword in show():", op, c=5)
 
     if len(actors) == 0:
         actors = None
@@ -231,25 +234,25 @@ def show(*actors, **options):
         actors = settings.collectable_actors
 
     if settings.plotter_instance and newPlotter is False:
-        vp = settings.plotter_instance
+        plt = settings.plotter_instance
     else:
         if utils.isSequence(at):
             if not utils.isSequence(actors):
-                colors.printc("show() Error: input must be a list.", c=1)
+                printc("show() Error: input must be a list.", c=1)
                 raise RuntimeError()
             if len(at) != len(actors):
-                colors.printc("show() Error: lists 'input' and 'at', must have equal lengths.", c=1)
+                printc("show() Error: lists 'input' and 'at', must have equal lengths.", c=1)
                 raise RuntimeError()
             if len(at) > 1 and (shape == (1, 1) and N is None):
                 N = max(at) + 1
         elif at is None and (N or shape != (1, 1)):
             if not utils.isSequence(actors):
-                colors.printc('show() Error: N or shape is set, but input is not a sequence.', c=1)
-                colors.printc('              you may need to specify e.g. at=0', c=1)
+                printc('show() Error: N or shape is set, but input is not a sequence.', c=1)
+                printc('              you may need to specify e.g. at=0', c=1)
                 raise RuntimeError()
             at = range(len(actors))
 
-        vp = Plotter(
+        plt = Plotter(
                     shape=shape,
                     N=N,
                     pos=pos,
@@ -265,10 +268,10 @@ def show(*actors, **options):
                     bg2=bg2,
         )
 
-    # use _vp_to_return because vp.show() can return a k3d/panel plot
+    # use _plt_to_return because plt.show() can return a k3d/panel plot
     if utils.isSequence(at):
         for i, a in enumerate(actors):
-            _vp_to_return = vp.show(
+            _plt_to_return = plt.show(
                 a,
                 at=i,
                 zoom=zoom,
@@ -285,9 +288,9 @@ def show(*actors, **options):
                 axes=axes,
                 q=q,
             )
-        vp.interactor.Start()
+        plt.interactor.Start()
     else:
-        _vp_to_return = vp.show(
+        _plt_to_return = plt.show(
             actors,
             at=at,
             zoom=zoom,
@@ -305,7 +308,7 @@ def show(*actors, **options):
             q=q,
         )
 
-    return _vp_to_return
+    return _plt_to_return
 
 
 def interactive():
@@ -584,7 +587,7 @@ class Plotter:
         x, y = screensize
         if N:  # N = number of renderers. Find out the best
             if shape != (1, 1):  # arrangement based on minimum nr. of empty renderers
-                colors.printc("Warning: having set N, shape is ignored.", c=1)
+                printc("Warning: having set N, shape is ignored.", c=1)
             nx = int(np.sqrt(int(N * y / x) + 1))
             ny = int(np.sqrt(int(N * x / y) + 1))
             lm = [
@@ -656,7 +659,7 @@ class Plotter:
                     r.SetUseDepthPeeling(True)
                     r.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
                     r.SetOcclusionRatio(settings.occlusionRatio)
-                r.SetBackground(colors.getColor(self.backgrcol))
+                r.SetBackground(getColor(self.backgrcol))
                 self.axes_instances.append(None)
 
             self.shape = (n+m,)
@@ -681,10 +684,10 @@ class Plotter:
                     self.window.SetMultiSamples(settings.multiSamples)
                 arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
                 arenderer.SetViewport(x0, y0, x1, y1)
-                arenderer.SetBackground(colors.getColor(bg_))
+                arenderer.SetBackground(getColor(bg_))
                 if bg2_:
                     arenderer.GradientBackgroundOn()
-                    arenderer.SetBackground2(colors.getColor(bg2_))
+                    arenderer.SetBackground2(getColor(bg2_))
 
                 self.renderers.append(arenderer)
                 self.axes_instances.append(None)
@@ -720,7 +723,7 @@ class Plotter:
                 self.backgroundRenderer = vtk.vtkRenderer()
                 self.backgroundRenderer.SetLayer(0)
                 self.backgroundRenderer.InteractiveOff()
-                self.backgroundRenderer.SetBackground(colors.getColor(bg2))
+                self.backgroundRenderer.SetBackground(getColor(bg2))
                 image_actor = Picture(self.backgrcol)
                 self.window.AddRenderer(self.backgroundRenderer)
                 self.backgroundRenderer.AddActor(image_actor)
@@ -741,10 +744,10 @@ class Plotter:
                     if image_actor:
                         arenderer.SetLayer(1)
 
-                    arenderer.SetBackground(colors.getColor(self.backgrcol))
+                    arenderer.SetBackground(getColor(self.backgrcol))
                     if bg2:
                         arenderer.GradientBackgroundOn()
-                        arenderer.SetBackground2(colors.getColor(bg2))
+                        arenderer.SetBackground2(getColor(bg2))
 
                     x0 = i / shape[0]
                     y0 = j / shape[1]
@@ -973,7 +976,7 @@ class Plotter:
             if obj is None:
                 acs = renderer.GetVolumes()
             elif obj >= len(self.renderers):
-                colors.printc("Error in getVolumes(): non existing renderer", obj, c=1)
+                printc("Error in getVolumes(): non existing renderer", obj, c=1)
                 return []
             else:
                 acs = self.renderers[obj].GetVolumes()
@@ -1014,7 +1017,7 @@ class Plotter:
             if obj is None:
                 acs = renderer.GetActors()
             elif obj >= len(self.renderers):
-                colors.printc("Error in getMeshes(): non existing renderer", obj, c=1)
+                printc("Error in getMeshes(): non existing renderer", obj, c=1)
                 return []
             else:
                 acs = self.renderers[obj].GetActors()
@@ -1052,7 +1055,7 @@ class Plotter:
             return [obj]
 
         if self.verbose:
-            colors.printc("Warning in getMeshes(): unexpected input type", obj, c=1)
+            printc("Warning in getMeshes(): unexpected input type", obj, c=1)
         return []
 
 
@@ -1067,9 +1070,9 @@ class Plotter:
         of parameters for the current camera view.
         """
         if isinstance(fraction, int):
-            colors.printc("Warning in moveCamera(): fraction should not be an integer", c=1)
+            printc("Warning in moveCamera(): fraction should not be an integer", c=1)
         if fraction > 1:
-            colors.printc("Warning in moveCamera(): fraction is > 1", c=1)
+            printc("Warning in moveCamera(): fraction is > 1", c=1)
         cam = vtk.vtkCamera()
         cam.DeepCopy(camstart)
         p1 = np.array(camstart.GetPosition())
@@ -1341,14 +1344,14 @@ class Plotter:
               - 12, show polar axes.
 
         :param float azimuth/elevation/roll:  move camera accordingly
-        :param str viewup:  either ['x', 'y', 'z'] or a vector to set vertical direction
+        :param str viewup:  either ['x', 'y', 'z'] to set vertical direction
         :param bool resetcam:  re-adjust camera position to fit objects
         :param dict camera: Camera parameters can further be specified with a dictionary assigned
            to the ``camera`` keyword (E.g. `show(camera={'pos':(1,2,3), 'thickness':1000,})`)
 
             - pos, `(list)`,  the position of the camera in world coordinates
             - focalPoint `(list)`, the focal point of the camera in world coordinates
-            - viewup `(list)`, the view up direction for the camera
+            - viewup `(list)`, the view up direction vector for the camera
             - distance `(float)`, set the focal point to the specified distance from the camera position.
             - clippingRange `(float)`, distance of the near and far clipping planes along
                 the direction of projection.
@@ -1410,11 +1413,11 @@ class Plotter:
 
         if not settings.notebookBackend:
             if bg_ is not None:
-                self.backgrcol = colors.getColor(bg_)
+                self.backgrcol = getColor(bg_)
                 self.renderer.SetBackground(self.backgrcol)
             if bg2_ is not None:
                 self.renderer.GradientBackgroundOn()
-                self.renderer.SetBackground2(colors.getColor(bg2_))
+                self.renderer.SetBackground2(getColor(bg2_))
 
         if axes_ is not None:
             self.axes = axes_
@@ -1460,14 +1463,28 @@ class Plotter:
                 elif a is Ellipsis:
                     scannedacts += settings.collectable_actors
 
-                elif isinstance(a, vtk.vtkImageActor):
-                    scannedacts.append(a)
-
                 elif isinstance(a, Volume):
                     scannedacts.append(a)
 
-                elif isinstance(a, vtk.vtkVolume):
+                elif isinstance(a, TetMesh):
+                    # check ugrid is all made of tets
+                    uarr = a.ugrid().GetCellTypesArray()
+                    celltypes = np.unique(vtk_to_numpy(uarr))
+                    ncelltypes = len(celltypes)
+                    if ncelltypes > 1 or (ncelltypes==1 and celltypes[0]!=10):
+                        scannedacts.append(a.toMesh())
+                    else:
+                        if not a.ugrid().GetPointData().GetScalars():
+                            if not a.ugrid().GetCellData().GetScalars():
+                                #add dummy array for vtkProjectedTetrahedraMapper to work:
+                                a.addCellArray(np.ones(a.NCells()), 'DummyOneArray')
+                        scannedacts.append(a)
+
+                elif isinstance(a, vtk.vtkVolume): # order matters!
                     scannedacts.append(Volume(a.GetMapper().GetInput()))
+
+                elif isinstance(a, vtk.vtkImageActor):
+                    scannedacts.append(a)
 
                 elif isinstance(a, vtk.vtkImageData):
                     scannedacts.append(Volume(a))
@@ -1504,7 +1521,7 @@ class Plotter:
                     try:
                         scannedacts.append(Mesh(a))
                     except:
-                        colors.printc("Cannot understand input in show():", type(a), c=1)
+                        printc("Cannot understand input in show():", type(a), c=1)
             return scannedacts
 
         if len(actors) == 0:
@@ -1556,9 +1573,9 @@ class Plotter:
             self.renderer = self.renderers[at]
         else:
             if settings.notebookBackend:
-                colors.printc("Error in show(): multiple renderings not supported in notebooks.", c=1)
+                printc("Error in show(): multiple renderings not supported in notebooks.", c=1)
             else:
-                colors.printc("Error in show(): wrong renderer index", at, c=1)
+                printc("Error in show(): wrong renderer index", at, c=1)
             return self
 
         if self.qtWidget is not None:
@@ -1624,8 +1641,8 @@ class Plotter:
                             breppr.SetFontSize(settings.flagFontSize)
                             breppr.SetBold(settings.flagBold)
                             breppr.SetItalic(settings.flagItalic)
-                            breppr.SetColor(colors.getColor(settings.flagColor))
-                            breppr.SetBackgroundColor(colors.getColor(settings.flagBackgroundColor))
+                            breppr.SetColor(getColor(settings.flagColor))
+                            breppr.SetBackgroundColor(getColor(settings.flagBackgroundColor))
                             breppr.SetShadow(settings.flagShadow)
                             breppr.SetJustification(settings.flagJustification)
                             breppr.UseTightBoundingBoxOn()
@@ -1817,13 +1834,13 @@ class Plotter:
         draggable = options.pop("draggable", True)
 
         if not self.renderer:
-            colors.printc("Use showInset() after first rendering the scene.",
+            printc("Use showInset() after first rendering the scene.",
                           c=3)
             save_int = self.interactive
             self.show(interactive=0)
             self.interactive = save_int
         widget = vtk.vtkOrientationMarkerWidget()
-        r,g,b = colors.getColor(c)
+        r,g,b = getColor(c)
         widget.SetOutlineColor(r,g,b)
         if len(actors)==1:
             widget.SetOrientationMarker(actors[0])
@@ -2026,7 +2043,7 @@ class Plotter:
 
         elif key in ["F1", "Pause"]:
             sys.stdout.flush()
-            colors.printc('\n[F1] pressed. Execution aborted. Exiting python now.', c=1)
+            printc('\n[F1] pressed. Execution aborted. Exiting python now.', c=1)
             settings.plotter_instance.close()
             sys.exit(0)
 
@@ -2183,19 +2200,27 @@ class Plotter:
 
         if key == "S":
             vtkio.screenshot("screenshot.png")
-            colors.printc("~camera Saved rendering window as screenshot.png", c="blue")
+            printc("~camera Saved rendering window as screenshot.png", c="blue")
             return
 
         if key == "C":
             cam = self.renderer.GetActiveCamera()
-            print('\n### Example code to position this vtkCamera:')
-            print('vp = vtkplotter.Plotter()\n...')
-            print('vp.camera.SetPosition(',   [round(e, 3) for e in cam.GetPosition()],  ')')
-            print('vp.camera.SetFocalPoint(', [round(e, 3) for e in cam.GetFocalPoint()], ')')
-            print('vp.camera.SetViewUp(',     [round(e, 3) for e in cam.GetViewUp()], ')')
-            print('vp.camera.SetDistance(',   round(cam.GetDistance(), 3), ')')
-            print('vp.camera.SetClippingRange(',
-                                    [round(e, 3) for e in cam.GetClippingRange()], ')')
+            printc('\n###################################################', c=3)
+            printc('### Template code to position the Camera: #########', c=3)
+            printc('cam = dict(pos='          +utils.precision(cam.GetPosition(),3)+',', c=3)
+            printc('           focalPoint='   +utils.precision(cam.GetFocalPoint(),3)+',', c=3)
+            printc('           viewup='       +utils.precision(cam.GetViewUp(),3)+',', c=3)
+            printc('           distance='     +utils.precision(cam.GetDistance(),3)+',', c=3)
+            printc('           clippingRange='+utils.precision(cam.GetClippingRange(),3)+')', c=3)
+            printc('show(mymeshes, camera=cam)', c=3)
+            printc('\n### OR equivalently: ##############################', c=3)
+            printc('plt = vtkplotter.Plotter()\n...', c=3)
+            printc('plt.camera.SetPosition(',   [round(e, 3) for e in cam.GetPosition()],  ')', c=3)
+            printc('plt.camera.SetFocalPoint(', [round(e, 3) for e in cam.GetFocalPoint()], ')', c=3)
+            printc('plt.camera.SetViewUp(',     [round(e, 3) for e in cam.GetViewUp()], ')', c=3)
+            printc('plt.camera.SetDistance(',   round(cam.GetDistance(), 3), ')', c=3)
+            printc('plt.camera.SetClippingRange(',
+                                    [round(e, 3) for e in cam.GetClippingRange()], ')', c=3)
             return
 
         if key == "s":
@@ -2239,7 +2264,7 @@ class Plotter:
             addons.addLegend()
 
         elif key == "3":
-            c = colors.getColor("gold")
+            c = getColor("gold")
             acs = self.getMeshes()
             if len(acs) == 0: return
             alpha = 1.0 / len(acs)
@@ -2261,7 +2286,7 @@ class Plotter:
                         arnam =  arnames[ia._scals_idx]
                         if arnam and "normals" not in arnam.lower(): # exclude normals
                             ia.getPointArray( ia._scals_idx )
-                            colors.printc("..active scalars set to:", arnam, c='g', bold=0)
+                            printc("..active scalars set to:", arnam, c='g', bold=0)
                         ia._scals_idx += 1
                         if ia._scals_idx >= len(arnames):
                             ia._scals_idx = 0
@@ -2356,7 +2381,7 @@ class Plotter:
                         lnr = (ia._ligthingnr+1)%5
                         ia.lighting(shds[lnr])
                         ia._ligthingnr = lnr
-                        colors.printc('-> lighting set to:', shds[lnr], c='g', bold=0)
+                        printc('-> lighting set to:', shds[lnr], c='g', bold=0)
                     except AttributeError:
                         pass
 
@@ -2370,7 +2395,7 @@ class Plotter:
                     ia.computeNormals()
                     intrp = (ia.GetProperty().GetInterpolation()+1)%3
                     ia.GetProperty().SetInterpolation(intrp)
-                    colors.printc('->  shading set to:',
+                    printc('->  shading set to:',
                                   ia.GetProperty().GetInterpolationAsString(),
                                   c='g', bold=0)
 
@@ -2425,7 +2450,7 @@ class Plotter:
                     w.SetInputData(cpd.GetOutput())
                     w.SetFileName(fname)
                     w.Write()
-                    colors.printc("~save Saved file:", fname, c="m")
+                    printc("~save Saved file:", fname, c="m")
                     self.cutterWidget.Off()
                     self.cutterWidget = None
             else:
@@ -2434,13 +2459,13 @@ class Plotter:
                         addons.addCutterTool(a)
                         return
 
-                colors.printc("Click object and press X to open the cutter box widget.",
+                printc("Click object and press X to open the cutter box widget.",
                               c=4)
 
         elif key == "E":
-            colors.printc("~camera Exporting 3D window to scene.npy.", c="blue", end="")
+            printc("~camera Exporting 3D window to scene.npy.", c="blue", end="")
             vtkio.exportWindow('scene.npy')
-            colors.printc(" Try:\n> vtkplotter scene.npy", c="blue")
+            printc(" Try:\n> vtkplotter scene.npy", c="blue")
 
         elif key == "i":  # print info
             if self.clickedActor:

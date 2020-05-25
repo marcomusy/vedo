@@ -451,7 +451,9 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
         return mp(values)[:,[0,1,2]]
     else:
         value -= vmin
-        value /= vmax - vmin
+        dv = vmax - vmin
+        if dv:
+            value /= dv
         if value > 0.999:
             value = 0.999
         elif value < 0:

@@ -206,7 +206,7 @@ def Slicer(volume,
     vp.show(msh, hist, comment, interactive=False)
     vp.interactive = True
     if verbose:
-        printc("Press button to cycle through color maps:\n", cmaps, c="m")
+        printc("Press button to cycle through color maps,", c="m")
         printc("Use sliders to select the slicing planes.", c="m")
     return vp
 

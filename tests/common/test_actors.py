@@ -234,9 +234,9 @@ s2 = sphere.clone().decimate(0.2)
 assert s2.N() == 213
 
 
-###################################### addGaussNoise
-print('Test addGaussNoise')
-s2 = sphere.clone().addGaussNoise(2)
+###################################### pointGaussNoise
+print('Test pointGaussNoise')
+s2 = sphere.clone().pointGaussNoise(2)
 assert s2.maxBoundSize() > 1.1
 
 

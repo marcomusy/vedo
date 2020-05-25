@@ -681,23 +681,15 @@ def plot(*inputobj, **options):
             elif shading[0] == 'g':
                 actor.gouraud()
 
+        if 'displace' in mode: actor.move(u)
+
         if cmap and (actor.u_values is not None) and c is None:
             if u.value_rank() > 0: # will show the size of the vector
                 actor.pointColors(utils.mag(actor.u_values),
-                                  cmap=cmap, vmin=vmin, vmax=vmax)
+                                  vmin=vmin, vmax=vmax, cmap=cmap)
             else:
                 actor.pointColors(actor.u_values,
-                                  cmap=cmap, vmin=vmin, vmax=vmax)
-
-        if 'displace' in mode: actor.move(u)
-
-        if scbar and c is None:
-            if '3d' in scbar:
-                actor.addScalarBar3D()
-            elif 'h' in scbar:
-                actor.addScalarBar(horizontal=True)
-            else:
-                actor.addScalarBar(horizontal=False)
+                                  vmin=vmin, vmax=vmax, cmap=cmap)
 
         if warpYfactor:
             scals = actor.getPointArray()
@@ -711,6 +703,16 @@ def plot(*inputobj, **options):
                 pts_act[:, 2] = scals*warpZfactor*scaleMeshFactors[2]
         if warpYfactor or warpZfactor:
             actor.points(pts_act)
+            if vmin is not None and vmax is not None:
+                actor._mapper.SetScalarRange(vmin, vmax)
+
+        if scbar and c is None:
+            if '3d' in scbar:
+                actor.addScalarBar3D()
+            elif 'h' in scbar:
+                actor.addScalarBar(horizontal=True)
+            else:
+                actor.addScalarBar(horizontal=False)
 
         if len(isolns) > 0:
             ison = isolns.pop("n", 10)

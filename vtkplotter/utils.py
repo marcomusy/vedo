@@ -5,6 +5,7 @@ import numpy as np
 import vtkplotter.colors as colors
 import vtkplotter.docs as docs
 import time
+import math
 
 __doc__ = (
     """
@@ -416,6 +417,34 @@ def findDistanceToLines2D(P0,P1, pts):
     return [_distance(P0,P1,p_i) for p_i in pts]
 
 
+def pointIsInTriangle(p, p1, p2, p3):
+    """
+    Return True if a point is inside (or above/below) a triangle defined by 3 points in space.
+    """
+    p1 = np.array(p1)
+    u = p2 - p1
+    v = p3 - p1
+    n = np.cross(u, v)
+    w = p - p1
+    ln = np.dot(n, n)
+    if not ln:
+        return None  # degenerate triangle
+    gamma = (np.dot(np.cross(u, w), n)) / ln
+    if 0 < gamma < 1:
+        beta = (np.dot(np.cross(w, v), n)) / ln
+        if 0 < beta < 1 :
+            alpha = 1 - gamma - beta
+            if 0 < alpha < 1:
+                return True
+    return False
+
+
+def pointToLineDistance(p, p1, p2):
+    """Compute the distance of a point to a line (not the segment) defined by `p1` and `p2`."""
+    d = np.sqrt(vtk.vtkLine.DistanceToLine(p, p1, p2))
+    return d
+
+
 def linInterpolate(x, rangeX, rangeY):
     """
     Interpolate linearly variable x in rangeX onto rangeY.
@@ -542,7 +571,7 @@ def mag2(z):
     return np.dot(z, z)
 
 
-def precision(x, p, vrange=None):
+def precision(x, p, vrange=None, delimiter='e'):
     """
     Returns a string representation of `x` formatted with precision `p`.
 
@@ -558,15 +587,11 @@ def precision(x, p, vrange=None):
     #print(precision(x, 3))
     if isSequence(x):
         out = '('
-        for ix in x:
+        nn=len(x)-1
+        for i, ix in enumerate(x):
             out += precision(ix, p)
-            if ix == x[-1]:
-                pass
-            else:
-                out += ', '
-        return out+')'
-
-    import math
+            if i<nn: out += ', '
+        return out+')' ############ <--
 
     x = float(x)
 
@@ -600,7 +625,7 @@ def precision(x, p, vrange=None):
         if p > 1:
             out.append(".")
             out.extend(m[1:p])
-        out.append("e")
+        out.append(delimiter)
         if e > 0:
             out.append("+")
         out.append(str(e))
@@ -616,34 +641,6 @@ def precision(x, p, vrange=None):
         out.extend(["0"] * -(e + 1))
         out.append(m)
     return "".join(out)
-
-
-def pointIsInTriangle(p, p1, p2, p3):
-    """
-    Return True if a point is inside (or above/below) a triangle defined by 3 points in space.
-    """
-    p1 = np.array(p1)
-    u = p2 - p1
-    v = p3 - p1
-    n = np.cross(u, v)
-    w = p - p1
-    ln = np.dot(n, n)
-    if not ln:
-        return None  # degenerate triangle
-    gamma = (np.dot(np.cross(u, w), n)) / ln
-    if 0 < gamma < 1:
-        beta = (np.dot(np.cross(w, v), n)) / ln
-        if 0 < beta < 1 :
-            alpha = 1 - gamma - beta
-            if 0 < alpha < 1:
-                return True
-    return False
-
-
-def pointToLineDistance(p, p1, p2):
-    """Compute the distance of a point to a line (not the segment) defined by `p1` and `p2`."""
-    d = np.sqrt(vtk.vtkLine.DistanceToLine(p, p1, p2))
-    return d
 
 
 # 2d
@@ -729,6 +726,8 @@ def grep(filename, tag, firstOccurrence=False):
 
 def printInfo(obj):
     """Print information about a vtk object."""
+
+    from vtkplotter.tetmesh import TetMesh
 
     def printvtkactor(actor, tab=""):
 
@@ -929,6 +928,9 @@ def printInfo(obj):
             act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
             if isinstance(act, vtk.vtkActor):
                 printvtkactor(act, tab="     ")
+
+    elif isinstance(obj, TetMesh):
+        return # todo
 
     elif isinstance(obj, vtk.vtkVolume):
         colors.printc("_" * 65, c="b", bold=0)
@@ -1290,8 +1292,7 @@ def vtkCameraToK3D(vtkcam):
 
     Output format is: [posx,posy,posz, targetx,targety,targetz, upx,upy,upz]
     """
-    #cdis = vtkcam.GetDistance()
-    cpos = np.array(vtkcam.GetPosition())#*cdis
+    cpos = np.array(vtkcam.GetPosition())
     kam = [cpos.tolist()]
     kam.append(vtkcam.GetFocalPoint())
     kam.append(vtkcam.GetViewUp())
@@ -1504,3 +1505,44 @@ def trimesh2vtk(inputobj, alphaPerCell=False):
 
     return None
 
+def vtkVersionIsAtLeast(major, minor=0, build=0):
+    """
+    Check the VTK version.
+    Return ``True`` if the requested VTK version is greater or equal
+    to the actual VTK version.
+
+    :param major: Major version.
+    :param minor: Minor version.
+    :param build: Build version.
+    """
+    needed_version = 10000000000*int(major) +100000000*int(minor) +int(build)
+    try:
+        vtk_version_number = vtk.VTK_VERSION_NUMBER
+    except AttributeError:  # as error:
+        ver = vtk.vtkVersion()
+        vtk_version_number = 10000000000 * ver.GetVTKMajorVersion() \
+                             + 100000000 * ver.GetVTKMinorVersion() \
+                             + ver.GetVTKBuildVersion()
+    if vtk_version_number >= needed_version:
+        return True
+    else:
+        return False
+
+
+def ctf2lut(tvobj):
+    # build LUT from a color transfer function for tmesh or volume
+    ctf = tvobj.GetProperty().GetRGBTransferFunction()
+    otf = tvobj.GetProperty().GetScalarOpacity()
+    x0,x1 = tvobj.inputdata().GetScalarRange()
+    cols, alphas = [],[]
+    for x in np.linspace(x0,x1, 256):
+        cols.append(ctf.GetColor(x))
+        alphas.append(otf.GetValue(x))
+    lut = vtk.vtkLookupTable()
+    lut.SetRange(x0,x1)
+    lut.SetNumberOfTableValues(len(cols))
+    for i, col in enumerate(cols):
+        r, g, b = col
+        lut.SetTableValue(i, r, g, b, alphas[i])
+    lut.Build()
+    return lut

@@ -17,7 +17,7 @@ sets = []
 for i in range(5):  # generate a time sequence of 5 shapes
     cs = cc + a * i * cc ** 2 + b * i * cc ** 3  # warp sphere in weird ways
     # set absolute time of points, and add 1% noise on positions
-    ap = Points(cs, c=i, alpha=0.5).addGaussNoise(1.0).time(0.2 * i)
+    ap = Points(cs, c=i, alpha=0.5).pointGaussNoise(1.0).time(0.2 * i)
     sets.append(ap)
 
 show(sets, __doc__, at=0, N=2, zoom=1.4)

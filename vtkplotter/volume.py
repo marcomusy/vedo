@@ -24,7 +24,7 @@ class Volume(vtk.vtkVolume, ActorBase):
     Can be initialized with a numpy object, a ``vtkImageData``
     or a list of 2D bmp files.
 
-    See e.g.: |numpy2volume.py|_
+    See e.g.: |numpy2volume1.py|_
 
     :param list,str c: sets colors along the scalar range, or a matplotlib color map name
     :param float,list alphas: sets transparencies along the scalar range
@@ -32,7 +32,7 @@ class Volume(vtk.vtkVolume, ActorBase):
     :param list origin: set volume origin coordinates
     :param list spacing: voxel dimensions in x, y and z.
     :param list dims: specify the dimensions of the volume.
-    :param str mapperType: either 'gpu', 'opengl_gpu', 'fixed' or 'smart'
+    :param str mapper: either 'gpu', 'opengl_gpu', 'fixed' or 'smart'
 
     :param int mode: define the volumetric rendering style:
 
@@ -52,12 +52,12 @@ class Volume(vtk.vtkVolume, ActorBase):
                  c=('r','y','lg','lb','b'), #('b','lb','lg','y','r')
                  alpha=(0.0,0.0, 0.5, 0.8,1.0),
                  alphaGradient=None,
-                 alphaUnit=None,
+                 alphaUnit=1,
                  mode=0,
                  spacing=None,
                  dims=None,
                  origin=None,
-                 mapperType='smart',
+                 mapper='smart',
                  ):
 
         vtk.vtkVolume.__init__(self)
@@ -100,7 +100,8 @@ class Volume(vtk.vtkVolume, ActorBase):
                 if len(inputobj.shape)==1:
                     varr = numpy_to_vtk(inputobj, deep=True, array_type=vtk.VTK_FLOAT)
                 else:
-                    inputobj = np.transpose(inputobj, axes=[2, 1, 0])
+                    if len(inputobj.shape)>2:
+                        inputobj = np.transpose(inputobj, axes=[2, 1, 0])
                     varr = numpy_to_vtk(inputobj.ravel(order='F'),
                                         deep=True, array_type=vtk.VTK_FLOAT)
                 varr.SetName('input_scalars')
@@ -126,33 +127,36 @@ class Volume(vtk.vtkVolume, ActorBase):
 
         elif "ImageData" in inputtype:
             img = inputobj
+
         elif "UniformGrid" in inputtype:
             img = inputobj
-        elif "UnstructuredGrid" in inputtype:
-            img = inputobj
-            mapperType = 'tetra'
+
         elif hasattr(inputobj, "GetOutput"): # passing vtk object, try extract imagdedata
             if hasattr(inputobj, "Update"):
                 inputobj.Update()
             img = inputobj.GetOutput()
+
+        elif isinstance(inputobj, str):
+            from vtkplotter.vtkio import loadImageData
+            img = loadImageData(inputobj)
+
         else:
             colors.printc("Volume(): cannot understand input type:\n", inputtype, c=1)
             return
 
-        if 'gpu' in mapperType:
+        ###################
+        if 'gpu' in mapper:
             self._mapper = vtk.vtkGPUVolumeRayCastMapper()
-        elif 'opengl_gpu' in mapperType:
+        elif 'opengl_gpu' in mapper:
             self._mapper = vtk.vtkOpenGLGPUVolumeRayCastMapper()
-        elif 'smart' in mapperType:
+        elif 'smart' in mapper:
             self._mapper = vtk.vtkSmartVolumeMapper()
-        elif 'fixed' in mapperType:
+        elif 'fixed' in mapper:
             self._mapper = vtk.vtkFixedPointVolumeRayCastMapper()
-        elif 'tetra' in mapperType:
-            self._mapper = vtk.vtkProjectedTetrahedraMapper()
-        elif 'unstr' in mapperType:
-            self._mapper = vtk.vtkUnstructuredGridVolumeRayCastMapper()
+        elif isinstance(mapper, vtk.vtkMapper):
+            self._mapper = mapper
         else:
-            print("Error unknown mapperType", mapperType)
+            print("Error unknown mapper type", [mapper])
             raise RuntimeError()
 
         if dims is not None:
@@ -169,14 +173,14 @@ class Volume(vtk.vtkVolume, ActorBase):
         self.SetMapper(self._mapper)
         self.mode(mode).color(c).alpha(alpha).alphaGradient(alphaGradient)
         self.GetProperty().SetInterpolationType(1)
-        if alphaUnit:
-            self.GetProperty().SetScalarOpacityUnitDistance(alphaUnit)
+        self.GetProperty().SetScalarOpacityUnitDistance(alphaUnit)
 
         # remember stuff:
         self._mode = mode
         self._color = c
         self._alpha = alpha
         self._alphaGrad = alphaGradient
+        self._alphaUnit = alphaUnit
 
     def _update(self, img):
         self._imagedata = img
@@ -697,8 +701,7 @@ class Volume(vtk.vtkVolume, ActorBase):
     def isosurface(self, threshold=True, connectivity=False):
         """Return an ``Mesh`` isosurface extracted from the ``Volume`` object.
 
-        :param threshold: value or list of values to draw the isosurface(s)
-        :type threshold: float, list
+        :param float,list threshold: value or list of values to draw the isosurface(s)
         :param bool connectivity: if True only keeps the largest portion of the polydata
 
         |isosurfaces| |isosurfaces.py|_

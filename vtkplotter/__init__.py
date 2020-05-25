@@ -38,6 +38,7 @@ from vtkplotter.assembly import Assembly
 from vtkplotter.mesh import Mesh, merge
 from vtkplotter.picture import Picture
 from vtkplotter.volume import Volume
+from vtkplotter.tetmesh import *
 
 from vtkplotter.utils import *
 from vtkplotter.colors import *

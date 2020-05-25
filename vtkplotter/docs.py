@@ -1131,8 +1131,8 @@ _defs = ""
 #.. |volumeFromMesh.py| replace:: volumeFromMesh.py
 #.. _volumeFromMesh.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/volumeFromMesh.py
 #
-#.. |numpy2volume.py| replace:: numpy2volume.py
-#.. _numpy2volume.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/numpy2volume.py
+#.. |numpy2volume1.py| replace:: numpy2volume1.py
+#.. _numpy2volume1.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric/numpy2volume1.py
 #
 #.. |G_Of_Omega| image:: https://wikimedia.org/api/rest_v1/media/math/render/svg/9c4d02a66b6ff279aae0c4bf07c25e5727d192e4
 #

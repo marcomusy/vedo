@@ -1,9 +1,0 @@
-File name	File size	File type
-Godsway regular.otf	52 KB	Font File
-
-Font Details
-Designer Name:	Eldamar Studio
-Font License:	Donationware
-Website:	https://eldamar-studio.com
-
-Source: https://www.1001freefonts.com/godsway-font.font

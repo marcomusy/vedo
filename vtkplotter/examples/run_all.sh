@@ -18,6 +18,8 @@ cd simulations; ./run_all.sh; cd ..
 
 cd volumetric;  ./run_all.sh; cd ..
 
+cd tetmesh;     ./run_all.sh; cd ..
+
 cd pyplot;      ./run_all.sh; cd ..
 
 cd other;       ./run_all.sh; cd ..
