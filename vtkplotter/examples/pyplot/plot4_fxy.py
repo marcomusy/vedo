@@ -16,7 +16,10 @@ f2 = plot("sin(3*x)*log(x-y)/3")
 # specify x and y ranges and z vertical limits:
 f3 = plot("log(x**2+y**2-1)", xlim=[-2,2], ylim=[-1,8], zlim=[-1,None])
 
-show(f1, f2, f3, N=3, sharecam=False)
+show([(f1, 'y = sin(3*x)*log(x-y)/3'),
+      (f2, 'y = log(x**2+y**2-1)'),
+      (f3, 'y = sin(2*x*y) * cos(3*y) /2'),
+      ], N=3, sharecam=False)
 
 
 ########################################################## COMPLEX

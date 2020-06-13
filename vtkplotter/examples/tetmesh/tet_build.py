@@ -24,10 +24,10 @@ scal = [10.0, 20.0, 30.0] # cell scalars
 tm = TetMesh([points,tets]).addCellArray(scal,'myscal').color('jet')
 # tm.color('green') # or set a single color
 
-printc("tetmesh.ugrid() type:", type(tm.ugrid())) # vtkUnstructuredGrid
-printc("points, cells       :", len(tm.points()), len(tm.cells()))
+printc("tetmesh.inputdata():", type(tm.inputdata())) # vtkUnstructuredGrid
+printc("points, cells      :", len(tm.points()), len(tm.cells()))
 
 # Optionally convert tm to a Mesh (for visualization)
 show([(tm, __doc__),
-      (tm.toMesh(),"TetMesh.toMesh()"),
+      (tm.tomesh(),"TetMesh.tomesh()"),
      ],  N=2, axes=1)

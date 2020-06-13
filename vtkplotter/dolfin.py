@@ -197,6 +197,7 @@ def _inputsort(obj):
 
     for ob in obj:
         inputtype = str(type(ob))
+        
         #printc('inputtype is', inputtype, c=2)
 
         if "vtk" in inputtype: # skip vtk objects, will be added later
@@ -217,6 +218,8 @@ def _inputsort(obj):
                     v2d = dolfin.vertex_to_dof_map(V)
                     u.vector()[v2d] = ob.array()
             elif "Function" in inputtype or "Expression" in inputtype:
+                u = ob
+            elif "ufl.mathfunctions" in inputtype: # not working
                 u = ob
             elif "Mesh" in inputtype:
                 mesh = ob

@@ -63,8 +63,8 @@ General settings.
     # Use tex, matplotlib latex compiler
     usetex = False
 
-    # In 3D Text allow interpreting _ and ^ as sub/super script
-    allowSubScripts = True
+    # In 3D Text interpret _ and ^ as sub/super script
+    useModifiersInText = True
 
     # Qt embedding
     usingQt = False
@@ -176,8 +176,8 @@ rendererFrameColor = None
 # Use tex, matplotlib latex compiler
 usetex = False
 
-# In 3D Text allow interpreting _ and ^ as sub/super script
-allowSubScripts = True
+# In 3D Text interpret _ and ^ as sub/super script
+useModifiersInText = True
 
 # Qt embedding
 usingQt = False
@@ -266,6 +266,12 @@ def embedWindow(backend='k3d', verbose=True):
         notebook_plotter = None
         return
     else:
+
+        if any(['SPYDER' in name for name in os.environ]):
+            notebookBackend = None
+            notebook_plotter = None
+            return
+
         try:
             get_ipython()
         except:

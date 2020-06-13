@@ -1,5 +1,5 @@
-"""
-Create a 3D Delaunay triangulation of input points.
+"""Create the Convex Hull of
+a Mesh or a set of input points
 """
 from vtkplotter import *
 

@@ -1,7 +1,5 @@
-"""Draw the PCA (Principal Component Analysis)
-ellipsoid that contains 50% of a cloud of Points,
-then check if points are inside the surface.
-"""
+"""Draw the ellipsoid that contains 50% of a cloud of Points,
+then check how many points are inside the surface"""
 from vtkplotter import *
 import numpy as np
 

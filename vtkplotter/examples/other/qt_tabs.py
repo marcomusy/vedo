@@ -16,8 +16,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.plt = Plotter(qtWidget=self.vtkWidget, axes=1)
         
         self.plt += load(datadir+'shark.ply').c('cyan')
-        
-        self.plt.show()
+
+        self.plt.show(interactorStyle=0)
 
     def onClose(self):
         print("Disable the interactor before closing to prevent it from trying to act on a already deleted items")

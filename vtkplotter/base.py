@@ -5,7 +5,7 @@ import vtkplotter.colors as colors
 import vtkplotter.docs as docs
 import vtkplotter.settings as settings
 import vtkplotter.utils as utils
-from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
+from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy, numpy_to_vtkIdTypeArray
 
 __doc__ = (
     """
@@ -15,17 +15,13 @@ and ``vtkImageActor`` objects functionality.
     + docs._defs
 )
 
-__all__ = ['ActorBase']
+__all__ = ['Base3DProp','BaseActor','BaseGrid']
 
-####################################################
+###############################################################################
 # classes
-class ActorBase(object):
-    """Adds functionality to ``Mesh(vtkActor)``, ``Assembly``,
-    ``Volume`` and ``Picture`` objects.
-
-    .. warning:: Do not use this class to instance objects, use the above ones.
+class Base3DProp(object):
     """
-
+    """
     def __init__(self):
 
         self.filename = ""
@@ -40,197 +36,14 @@ class ActorBase(object):
         self.shadowZ = None
         self.axes = None
         self.picked3d = None
-        self.cmap = None
         self.units = None
         self.top = np.array([0,0,1])
         self.base = np.array([0,0,0])
         self.info = dict()
         self._time = 0
         self._legend = None
-        self.scalarbar = None
         self.renderedAt = set()
-        self.flagText = None
-        self._mapper = None
         self.transform = None
-
-    def mapper(self, newMapper=None):
-        """Return the ``vtkMapper`` data object, or update it with a new one."""
-        if newMapper:
-            self.SetMapper(newMapper)
-            if self._mapper:
-                iptdata = self._mapper.GetInput()
-                if iptdata:
-                    newMapper.SetInputData(self._mapper.GetInput())
-            self._mapper = newMapper
-            self._mapper.Modified()
-        return self._mapper
-
-    def inputdata(self):
-        """Return the VTK input data object."""
-        if self._mapper:
-            return self._mapper.GetInput()
-        return self.GetMapper().GetInput()
-
-    def buildAxes(self, **kargs):
-        """Draw axes on a ``Mesh`` or ``Volume``.
-        Returns a ``Assembly`` object.
-
-        - `xtitle`,            ['x'], x-axis title text.
-        - `xrange`,           [None], x-axis range in format (xmin, ymin), default is automatic.
-        - `numberOfDivisions`,[None], approximate number of divisions on the longest axis
-        - `axesLineWidth`,       [1], width of the axes lines
-        - `gridLineWidth`,       [1], width of the grid lines
-        - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally
-        - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
-        - `titleDepth`,          [0], extrusion fractional depth of title text
-        - `xyGrid`,           [True], show a gridded wall on plane xy
-        - `yzGrid`,           [True], show a gridded wall on plane yz
-        - `zxGrid`,           [True], show a gridded wall on plane zx
-        - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
-        - `xyGridTransparent`  [False], make grid plane completely transparent
-        - `xyGrid2Transparent` [False], make grid plane completely transparent on opposite side box
-        - `xyPlaneColor`,   ['gray'], color of the plane
-        - `xyGridColor`,    ['gray'], grid line color
-        - `xyAlpha`,          [0.15], grid plane opacity
-        - `showTicks`,        [True], show major ticks
-        - `xTitlePosition`,   [0.32], title fractional positions along axis
-        - `xTitleOffset`,     [0.05], title fractional offset distance from axis line
-        - `xTitleJustify`, ["top-right"], title justification
-        - `xTitleRotation`,      [0], add a rotation of the axis title
-        - `xLineColor`,  [automatic], color of the x-axis
-        - `xTitleColor`, [automatic], color of the axis title
-        - `xTitleBackfaceColor`, [None],  color of axis title on its backface
-        - `xTitleSize`,      [0.025], size of the axis title
-        - `xHighlightZero`,   [True], draw a line highlighting zero position if in range
-        - `xHighlightZeroColor`, [automatic], color of the line highlighting the zero position
-        - `xTickRadius`,     [0.005], radius of the major ticks
-        - `xTickThickness`, [0.0025], thickness of the major ticks along their axis
-        - `xTickColor`,  [automatic], color of major ticks
-        - `xMinorTicks`,         [1], number of minor ticks between two major ticks
-        - `tipSize`,          [0.01], size of the arrow tip
-        - `xPositionsAndLabels`   [], assign custom tick positions and labels [(pos1, label1), ...]
-        - `xLabelPrecision`,     [2], nr. of significative digits to be shown
-        - `xLabelSize`,      [0.015], size of the numeric labels along axis
-        - `xLabelOffset`,    [0.025], offset of numeric labels
-        - `limitRatio`,       [0.04], below this ratio don't plot small axis
-
-        :Example:
-
-            .. code-block:: python
-
-                from vtkplotter import Box, show
-
-                b = Box(pos=(1,2,3), length=8, width=9, height=7).alpha(0)
-                bax = b.buildAxes(c='white')  # returns Assembly object
-
-                show(b, bax)
-
-        |customAxes| |customAxes.py|_
-
-        |customIndividualAxes| |customIndividualAxes.py|_
-        """
-        from vtkplotter.addons import buildAxes
-        a = buildAxes(self, **kargs)
-        self.axes = a
-        return a
-
-
-    def show(self, **options):
-        """
-        Create on the fly an instance of class ``Plotter`` or use the last existing one to
-        show one single object.
-
-        This is meant as a shortcut. If more than one object needs to be visualised
-        please use the syntax `show(mesh1, mesh2, volume, ..., options)`.
-
-        :param bool newPlotter: if set to `True`, a call to ``show`` will instantiate
-            a new ``Plotter`` object (a new window) instead of reusing the first created.
-            See e.g.: |readVolumeAsIsoSurface.py|_
-
-        :return: the current ``Plotter`` class instance.
-
-        .. note:: E.g.:
-
-            .. code-block:: python
-
-                from vtkplotter import *
-                s = Sphere()
-                s.show(at=1, N=2)
-                c = Cube()
-                c.show(at=0, interactive=True)
-        """
-        from vtkplotter.plotter import show
-        return show(self, **options)
-
-
-    def N(self):
-        """Retrieve number of points. Shortcut for `NPoints()`."""
-        return self.inputdata().GetNumberOfPoints()
-
-    def NPoints(self):
-        """Retrieve number of points. Same as `N()`."""
-        return self.inputdata().GetNumberOfPoints()
-
-    def NCells(self):
-        """Retrieve number of cells."""
-        return self.inputdata().GetNumberOfCells()
-
-
-    def cellCenters(self):
-        """Get the coordinates of the cell centers.
-
-        |delaunay2d| |delaunay2d.py|_
-        """
-        vcen = vtk.vtkCellCenters()
-        vcen.SetInputData(self.inputdata())
-        vcen.Update()
-        return vtk_to_numpy(vcen.GetOutput().GetPoints().GetData())
-
-    def findCellsWithin(self, xbounds=(), ybounds=(), zbounds=(), c=None):
-        """
-        Find cells that are within specified bounds.
-        Setting a color will add a vtk array to colorize these cells.
-        """
-        if len(xbounds) == 6:
-            bnds = xbounds
-        else:
-            bnds = list(self.bounds())
-            if len(xbounds) == 2:
-                bnds[0] = xbounds[0]
-                bnds[1] = xbounds[1]
-            if len(ybounds) == 2:
-                bnds[2] = ybounds[0]
-                bnds[3] = ybounds[1]
-            if len(zbounds) == 2:
-                bnds[4] = zbounds[0]
-                bnds[5] = zbounds[1]
-
-        cellIds = vtk.vtkIdList()
-        self.cell_locator = vtk.vtkCellTreeLocator()
-        self.cell_locator.SetDataSet(self.polydata())
-        self.cell_locator.BuildLocator()
-        self.cell_locator.FindCellsWithinBounds(bnds, cellIds)
-
-        if c is not None:
-            cellData = vtk.vtkUnsignedCharArray()
-            cellData.SetNumberOfComponents(3)
-            cellData.SetName('CellsWithinBoundsColor')
-            cellData.SetNumberOfTuples(self.polydata(False).GetNumberOfCells())
-            defcol = np.array(self.color())*255
-            for i in range(cellData.GetNumberOfTuples()):
-                cellData.InsertTuple(i, defcol)
-            self.polydata(False).GetCellData().SetScalars(cellData)
-            self._mapper.ScalarVisibilityOn()
-            flagcol = np.array(colors.getColor(c))*255
-
-        cids = []
-        for i in range(cellIds.GetNumberOfIds()):
-            cid = cellIds.GetId(i)
-            if c is not None:
-                cellData.InsertTuple(cid, flagcol)
-            cids.append(cid)
-
-        return np.array(cids)
 
 
     def pickable(self, value=None):
@@ -256,19 +69,6 @@ class ActorBase(object):
             self._legend = str(txt)
             return self
 
-    def flag(self, text=None):
-        """Add a flag label which becomes visible when hovering the object with mouse.
-        Can be later disabled by setting `flag(False)`.
-        """
-        if text is None:
-            if self.filename:
-                text = self.filename.split('/')[-1]
-            elif self.name:
-                text = self.name
-            else:
-                text = ""
-        self.flagText = text
-        return self
 
 
     def time(self, t=None):
@@ -404,7 +204,6 @@ class ActorBase(object):
         T.RotateX(angle)
         self.SetOrientation(T.GetOrientation())
         self.SetPosition(T.GetPosition())
-
         if self.trail:
             self.updateTrail()
         if self.shadow:
@@ -424,7 +223,6 @@ class ActorBase(object):
         T.RotateY(angle)
         self.SetOrientation(T.GetOrientation())
         self.SetPosition(T.GetPosition())
-
         if self.trail:
             self.updateTrail()
         if self.shadow:
@@ -444,7 +242,6 @@ class ActorBase(object):
         T.RotateZ(angle)
         self.SetOrientation(T.GetOrientation())
         self.SetPosition(T.GetPosition())
-
         if self.trail:
             self.updateTrail()
         if self.shadow:
@@ -507,14 +304,323 @@ class ActorBase(object):
             self.SetScale(np.multiply(self.GetScale(), s))
         return self
 
+
+    def getTransform(self):
+        """
+        Check if ``info.transform`` exists and returns a ``vtkTransform``.
+        Otherwise return current user transformation (where the object is currently placed).
+        """
+        if self.transform:
+            return self.transform
+        else:
+            T = self.GetMatrix()
+            tr = vtk.vtkTransform()
+            tr.SetMatrix(T)
+            return tr
+
+    def setTransform(self, T):
+        """
+        Transform object position and orientation.
+        """
+        if isinstance(T, vtk.vtkMatrix4x4):
+            self.SetUserMatrix(T)
+        else:
+            try:
+                self.SetUserTransform(T)
+            except TypeError:
+                colors.printc('~times Error in setTransform():',
+                              'consider transformPolydata() instead.', c=1)
+        return self
+
+
     def on(self):
-        """Switch on object visibility. Object is not removed."""
+        """Switch on  object visibility. Object is not removed."""
         self.VisibilityOn()
         return self
 
     def off(self):
         """Switch off object visibility. Object is not removed."""
         self.VisibilityOff()
+        return self
+
+    def box(self, scale=1, pad=0):
+        """Return the bounding box as a new ``Mesh``.
+
+        :param float scale: box size can be scaled by a factor
+        :param float,list pad: a constant pad can be added (can be a list [padx,pady,padz])
+
+        .. hint:: |latex.py|_
+        """
+        b = self.GetBounds()
+        from vtkplotter.shapes import Box
+        if not utils.isSequence(pad):
+            pad=[pad,pad,pad]
+        pos = (b[0]+b[1])/2, (b[3]+b[2])/2, (b[5]+b[4])/2
+        length, width, height = b[1]-b[0], b[3]-b[2], b[5]-b[4]
+        bx = Box(pos,
+                 length*scale+pad[0], width*scale+pad[1], height*scale+pad[2],
+                 c='gray')
+        if hasattr(self, 'GetProperty'): # could be Assembly
+            if isinstance(self.GetProperty(), vtk.vtkProperty): # could be volume
+                pr = vtk.vtkProperty()
+                pr.DeepCopy(self.GetProperty())
+                bx.SetProperty(pr)
+        bx.flat().lighting('off')
+        bx.wireframe()
+        return bx
+
+    def bounds(self):
+        """Get the object bounds.
+        Returns a list in format [xmin,xmax, ymin,ymax, zmin,zmax]."""
+        return self.GetBounds()
+
+    def xbounds(self):
+        """Get the bounds [xmin,xmax]."""
+        b = self.GetBounds()
+        return (b[0], b[1])
+
+    def ybounds(self):
+        """Get the bounds [ymin,ymax]."""
+        b = self.GetBounds()
+        return (b[2], b[3])
+
+    def zbounds(self):
+        """Get the bounds [zmin,zmax]."""
+        b = self.GetBounds()
+        return (b[4], b[5])
+
+    def diagonalSize(self):
+        """Get the length of the diagonal of mesh bounding box."""
+        b = self.GetBounds()
+        return np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])* 2 + (b[5]-b[4])**2)
+
+    def maxBoundSize(self):
+        """Get the maximum size in x, y or z of the bounding box."""
+        b = self.GetBounds()
+        return max(b[1]-b[0], b[3]-b[2], b[5]-b[4])
+
+    def minBoundSize(self):
+        """Get the minimum size in x, y or z of the bounding box."""
+        b = self.GetBounds()
+        xm = b[1] - b[0]
+        ym = b[3] - b[2]
+        zm = b[5] - b[4]
+        m = 0
+        if xm: m=xm
+        if ym and m>ym: m=ym
+        if zm and m>zm: m=zm
+        return m
+
+    def printInfo(self):
+        """Print information about an object."""
+        utils.printInfo(self)
+        return self
+
+    def buildAxes(self, **kargs):
+        """Draw axes for the input object or for a specified range.
+        Returns an ``Assembly`` object.
+
+        - `xtitle`,            ['x'], x-axis title text.
+        - `xrange`,           [None], x-axis range in format (xmin, ymin), default is automatic.
+        - `numberOfDivisions`,[None], approximate number of divisions on the longest axis
+        - `axesLineWidth`,       [1], width of the axes lines
+        - `gridLineWidth`,       [1], width of the grid lines
+        - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally
+        - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
+        - `titleDepth`,          [0], extrusion fractional depth of title text
+        - `xyGrid`,           [True], show a gridded wall on plane xy
+        - `yzGrid`,           [True], show a gridded wall on plane yz
+        - `zxGrid`,           [True], show a gridded wall on plane zx
+        - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
+        - `xyGridTransparent`  [False], make grid plane completely transparent
+        - `xyGrid2Transparent` [False], make grid plane completely transparent on opposite side box
+        - `xyPlaneColor`,   ['gray'], color of the plane
+        - `xyGridColor`,    ['gray'], grid line color
+        - `xyAlpha`,          [0.15], grid plane opacity
+        - `showTicks`,        [True], show major ticks
+        - `xTitlePosition`,   [0.32], title fractional positions along axis
+        - `xTitleOffset`,     [0.05], title fractional offset distance from axis line
+        - `xTitleJustify`, ["top-right"], title justification
+        - `xTitleRotation`,      [0], add a rotation of the axis title
+        - `xLineColor`,  [automatic], color of the x-axis
+        - `xTitleColor`, [automatic], color of the axis title
+        - `xTitleBackfaceColor`, [None],  color of axis title on its backface
+        - `xTitleSize`,      [0.025], size of the axis title
+        - `xHighlightZero`,   [True], draw a line highlighting zero position if in range
+        - `xHighlightZeroColor`, [automatic], color of the line highlighting the zero position
+        - `xTickRadius`,     [0.005], radius of the major ticks
+        - `xTickThickness`, [0.0025], thickness of the major ticks along their axis
+        - `xTickColor`,  [automatic], color of major ticks
+        - `xMinorTicks`,         [1], number of minor ticks between two major ticks
+        - `tipSize`,          [0.01], size of the arrow tip
+        - `xPositionsAndLabels`   [], assign custom tick positions and labels [(pos1, label1), ...]
+        - `xLabelPrecision`,     [2], nr. of significative digits to be shown
+        - `xLabelSize`,      [0.015], size of the numeric labels along axis
+        - `xLabelOffset`,    [0.025], offset of numeric labels
+        - `limitRatio`,       [0.04], below this ratio don't plot small axis
+
+        :Example:
+
+            .. code-block:: python
+
+                from vtkplotter import Box, show
+
+                b = Box(pos=(1,2,3), length=8, width=9, height=7).alpha(0)
+                bax = b.buildAxes(c='white')  # returns Assembly object
+
+                show(b, bax)
+
+        |customAxes| |customAxes.py|_
+
+        |customIndividualAxes| |customIndividualAxes.py|_
+        """
+        from vtkplotter.addons import buildAxes
+        a = buildAxes(self, **kargs)
+        self.axes = a
+        return a
+
+    def show(self, **options):
+        """
+        Create on the fly an instance of class ``Plotter`` or use the last existing one to
+        show one single object.
+
+        This is meant as a shortcut. If more than one object needs to be visualised
+        please use the syntax `show(mesh1, mesh2, volume, ..., options)`.
+
+        :param bool newPlotter: if set to `True`, a call to ``show`` will instantiate
+            a new ``Plotter`` object (a new window) instead of reusing the first created.
+            See e.g.: |readVolumeAsIsoSurface.py|_
+
+        :return: the current ``Plotter`` class instance.
+
+        .. note:: E.g.:
+
+            .. code-block:: python
+
+                from vtkplotter import *
+                s = Sphere()
+                s.show(at=1, N=2)
+                c = Cube()
+                c.show(at=0, interactive=True)
+        """
+        from vtkplotter.plotter import show
+        return show(self, **options)
+
+
+########################################################################################
+class BaseActor(Base3DProp):
+    """Adds functionality to ``Mesh(vtkActor)``, ``Assembly``,
+    ``Volume`` and ``Picture`` objects.
+
+    .. warning:: Do not use this class to instance objects, use the above ones.
+    """
+    def __init__(self):
+        Base3DProp.__init__(self)
+
+        self.scalarbar = None
+        self.flagText = None
+        self._mapper = None
+
+    def mapper(self, newMapper=None):
+        """Return the ``vtkMapper`` data object, or update it with a new one."""
+        if newMapper:
+            self.SetMapper(newMapper)
+            if self._mapper:
+                iptdata = self._mapper.GetInput()
+                if iptdata:
+                    newMapper.SetInputData(self._mapper.GetInput())
+            self._mapper = newMapper
+            self._mapper.Modified()
+        return self._mapper
+
+    def inputdata(self):
+        """Return the VTK input data object."""
+        if self._mapper:
+            return self._mapper.GetInput()
+        return self.GetMapper().GetInput()
+
+
+    def N(self):
+        """Retrieve number of points. Shortcut for `NPoints()`."""
+        return self.inputdata().GetNumberOfPoints()
+
+    def NPoints(self):
+        """Retrieve number of points. Same as `N()`."""
+        return self.inputdata().GetNumberOfPoints()
+
+    def NCells(self):
+        """Retrieve number of cells."""
+        return self.inputdata().GetNumberOfCells()
+
+    def cellCenters(self):
+        """Get the coordinates of the cell centers.
+
+        |delaunay2d| |delaunay2d.py|_
+        """
+        vcen = vtk.vtkCellCenters()
+        vcen.SetInputData(self.inputdata())
+        vcen.Update()
+        return vtk_to_numpy(vcen.GetOutput().GetPoints().GetData())
+
+    def findCellsWithin(self, xbounds=(), ybounds=(), zbounds=(), c=None):
+        """
+        Find cells that are within specified bounds.
+        Setting a color will add a vtk array to colorize these cells.
+        """
+        if len(xbounds) == 6:
+            bnds = xbounds
+        else:
+            bnds = list(self.bounds())
+            if len(xbounds) == 2:
+                bnds[0] = xbounds[0]
+                bnds[1] = xbounds[1]
+            if len(ybounds) == 2:
+                bnds[2] = ybounds[0]
+                bnds[3] = ybounds[1]
+            if len(zbounds) == 2:
+                bnds[4] = zbounds[0]
+                bnds[5] = zbounds[1]
+
+        cellIds = vtk.vtkIdList()
+        self.cell_locator = vtk.vtkCellTreeLocator()
+        self.cell_locator.SetDataSet(self.polydata())
+        self.cell_locator.BuildLocator()
+        self.cell_locator.FindCellsWithinBounds(bnds, cellIds)
+
+        if c is not None:
+            cellData = vtk.vtkUnsignedCharArray()
+            cellData.SetNumberOfComponents(3)
+            cellData.SetName('CellsWithinBoundsColor')
+            cellData.SetNumberOfTuples(self.polydata(False).GetNumberOfCells())
+            defcol = np.array(self.color())*255
+            for i in range(cellData.GetNumberOfTuples()):
+                cellData.InsertTuple(i, defcol)
+            self.polydata(False).GetCellData().SetScalars(cellData)
+            self._mapper.ScalarVisibilityOn()
+            flagcol = np.array(colors.getColor(c))*255
+
+        cids = []
+        for i in range(cellIds.GetNumberOfIds()):
+            cid = cellIds.GetId(i)
+            if c is not None:
+                cellData.InsertTuple(cid, flagcol)
+            cids.append(cid)
+
+        return np.array(cids)
+
+
+    def flag(self, text=None):
+        """Add a flag label which becomes visible when hovering the object with mouse.
+        Can be later disabled by setting `flag(False)`.
+        """
+        if text is None:
+            if self.filename:
+                text = self.filename.split('/')[-1]
+            elif self.name:
+                text = self.name
+            else:
+                text = ""
+        self.flagText = text
         return self
 
     def lighting(self, style='', ambient=None, diffuse=None,
@@ -572,56 +678,6 @@ class ActorBase(object):
         if specularColor is not None: pr.SetSpecularColor(colors.getColor(specularColor))
         return self
 
-    def box(self, scale=1):
-        """Return the bounding box as a new ``Mesh``.
-
-        :param float scale: box size can be scaled by a factor
-
-        .. hint:: |latex.py|_
-        """
-        b = self.GetBounds()
-        from vtkplotter.shapes import Box
-        pos = (b[0]+b[1])/2, (b[3]+b[2])/2, (b[5]+b[4])/2
-        length, width, height = b[1]-b[0], b[3]-b[2], b[5]-b[4]
-        bx = Box(pos, length*scale, width*scale, height*scale, c='gray')
-        if isinstance(self.GetProperty(), vtk.vtkProperty):
-            pr = vtk.vtkProperty()
-            pr.DeepCopy(self.GetProperty())
-            bx.SetProperty(pr)
-            bx.flat()
-        bx.wireframe()
-        return bx
-
-    def bounds(self):
-        """Get the object bounds."""
-        return self.GetBounds()
-
-    def xbounds(self):
-        """Get the bounds `[xmin,xmax]`."""
-        b = self.GetBounds()
-        return (b[0], b[1])
-
-    def ybounds(self):
-        """Get the bounds `[ymin,ymax]`."""
-        b = self.GetBounds()
-        return (b[2], b[3])
-
-    def zbounds(self):
-        """Get the bounds `[zmin,zmax]`."""
-        b = self.GetBounds()
-        return (b[4], b[5])
-
-
-    def diagonalSize(self):
-        """Get the length of the diagonal of mesh bounding box."""
-        b = self.GetBounds()
-        return np.sqrt((b[1] - b[0]) ** 2 + (b[3] - b[2]) ** 2 + (b[5] - b[4]) ** 2)
-
-    def maxBoundSize(self):
-        """Get the maximum dimension in x, y or z of the bounding box."""
-        b = self.GetBounds()
-        return max(abs(b[1] - b[0]), abs(b[3] - b[2]), abs(b[5] - b[4]))
-
     def printHistogram(self, bins=10, height=10, logscale=False, minbin=0,
                        horizontal=False, char=u"\U00002589",
                        c=None, bold=True, title='Histogram'):
@@ -656,17 +712,6 @@ class ActorBase(object):
                              horizontal, char, c, bold, title)
         return self
 
-    def printInfo(self):
-        """Print information about a vtk object."""
-        utils.printInfo(self)
-        return self
-
-
-    def write(self, filename, binary=True):
-        """Write object to file."""
-        import vtkplotter.vtkio as vtkio
-        return vtkio.write(self, filename, binary)
-
 
     def c(self, color=False):
         """
@@ -674,35 +719,6 @@ class ActorBase(object):
         If None is passed as input, will use colors from current active scalars.
         """
         return self.color(color)
-
-
-
-    def getTransform(self):
-        """
-        Check if ``info.transform`` exists and returns a ``vtkTransform``.
-        Otherwise return current user transformation (where the object is currently placed).
-        """
-        if self.transform:
-            return self.transform
-        else:
-            T = self.GetMatrix()
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(T)
-            return tr
-
-    def setTransform(self, T):
-        """
-        Transform object position and orientation.
-        """
-        if isinstance(T, vtk.vtkMatrix4x4):
-            self.SetUserMatrix(T)
-        else:
-            try:
-                self.SetUserTransform(T)
-            except TypeError:
-                colors.printc('~times Error in setTransform():',
-                              'consider transformPolydata() instead.', c=1)
-        return self
 
 
     def getArrayNames(self):
@@ -730,13 +746,15 @@ class ActorBase(object):
             if settings.autoResetScalarRange:
                 self._mapper.SetScalarRange(arr.GetRange())
 
-        elif hasattr(self, '_imagedata') and self._imagedata:
-            data = self._imagedata.GetPointData()
-            if isinstance(name, int):
-                name = data.GetArrayName(name)
-            arr = data.GetArray(name)
-            if not arr:
-                return None
+        else:
+            indata = self.inputdata()
+            if indata:
+                data = indata.GetPointData()
+                if isinstance(name, int):
+                    name = data.GetArrayName(name)
+                arr = data.GetArray(name)
+                if not arr:
+                    return None
 
         data.SetActiveScalars(name)
         self._mapper.SetScalarModeToUsePointData()
@@ -761,13 +779,15 @@ class ActorBase(object):
             if settings.autoResetScalarRange:
                 self._mapper.SetScalarRange(arr.GetRange())
 
-        elif hasattr(self, '_imagedata') and self._imagedata:
-            data = self._imagedata.GetCellData()
-            if isinstance(name, int):
-                name = data.GetArrayName(name)
-            arr = data.GetArray(name)
-            if not arr:
-                return None
+        else:
+            indata = self.inputdata()
+            if indata:
+                data = indata.GetCellData()
+                if isinstance(name, int):
+                    name = data.GetArrayName(name)
+                arr = data.GetArray(name)
+                if not arr:
+                    return None
 
         data.SetActiveScalars(name)
         self._mapper.SetScalarModeToUseCellData()
@@ -1059,3 +1079,503 @@ class ActorBase(object):
                                                 drawBox,
                                                 )
         return self.scalarbar
+
+
+    def write(self, filename, binary=True):
+        """Write object to file."""
+        import vtkplotter.vtkio as vtkio
+        return vtkio.write(self, filename, binary)
+
+
+class BaseGrid(BaseActor):
+    """
+    """
+    def __init__(self):
+
+        BaseActor.__init__(self)
+
+        self._data = None
+        self.useCells = True
+        #-----------------------------------------------------------
+
+    def _update(self, data):
+        self._data = data
+        self._mapper.SetInputData(self.tomesh().polydata())
+        self._mapper.Modified()
+        return self
+
+    def tomesh(self, fill=True, shrink=1.0):
+        """
+        Build a polygonal Mesh from the current Grid object.
+
+        If fill=True, the interior faces of all the cells are created.
+        (setting a `shrink` value slightly smaller than the default 1.0
+        can avoid flickering due to internal adjacent faces).
+        If fill=False, only the boundary faces will be generated.
+        """
+        from vtkplotter.mesh import Mesh
+        gf = vtk.vtkGeometryFilter()
+        if fill:
+            sf = vtk.vtkShrinkFilter()
+            sf.SetInputData(self._data)
+            sf.SetShrinkFactor(shrink)
+            sf.Update()
+            gf.SetInputData(sf.GetOutput())
+            gf.Update()
+        else:
+            gf.SetInputData(self._data)
+            gf.Update()
+        poly = gf.GetOutput()
+
+        msh = Mesh(poly).flat()
+        msh.scalarbar = self.scalarbar
+        lut = utils.ctf2lut(self)
+        if lut:
+            msh._mapper.SetLookupTable(lut)
+        if self.useCells:
+            msh._mapper.SetScalarModeToUseCellData()
+        else:
+            msh._mapper.SetScalarModeToUsePointData()
+        #msh._mapper.SetScalarRange(msh._mapper.GetScalarRange())
+        # print(msh._mapper.GetScalarRange(), lut.GetRange())
+        # msh._mapper.SetScalarRange()
+        # msh.selectCellArray('chem_0')
+        return msh
+
+    def points(self, pts=None, transformed=True, copy=False):
+        """
+        Set/Get the vertex coordinates of the mesh.
+        Argument can be an index, a set of indices
+        or a complete new set of points to update the mesh.
+
+        :param bool transformed: if `False` ignore any previous transformation
+            applied to the mesh.
+        :param bool copy: if `False` return the reference to the points
+            so that they can be modified in place, otherwise a copy is built.
+        """
+        if pts is None: ### getter
+
+            vpts = self._data.GetPoints()
+            if vpts:
+                if copy:
+                    return np.array(vtk_to_numpy(vpts.GetData()))
+                else:
+                    return vtk_to_numpy(vpts.GetData())
+            else:
+                return np.array([])
+
+        elif (utils.isSequence(pts) and not utils.isSequence(pts[0])) or isinstance(pts, (int, np.integer)):
+            #passing a list of indices or a single index
+            return vtk_to_numpy(self.polydata(transformed).GetPoints().GetData())[pts]
+
+        else:           ### setter
+
+            if len(pts) == 3 and len(pts[0]) != 3:
+                # assume plist is in the format [all_x, all_y, all_z]
+                pts = np.stack((pts[0], pts[1], pts[2]), axis=1)
+            vpts = self._data.GetPoints()
+            vpts.SetData(numpy_to_vtk(np.ascontiguousarray(pts), deep=True))
+            self._data.GetPoints().Modified()
+            # reset mesh to identity matrix position/rotation:
+            self.PokeMatrix(vtk.vtkMatrix4x4())
+            return self
+
+
+    def cells(self):
+        """
+        Get the cells connectivity ids as a numpy array.
+        The output format is: [[id0 ... idn], [id0 ... idm],  etc].
+        """
+        arr1d = vtk_to_numpy(self._data.GetCells().GetData())
+        if arr1d is None:
+            return []
+
+        #Get cell connettivity ids as a 1D array. vtk format is:
+        #[nids1, id0 ... idn, niids2, id0 ... idm,  etc].
+        i = 0
+        conn = []
+        n = len(arr1d)
+        if n:
+            while True:
+                cell = [arr1d[i+k] for k in range(1, arr1d[i]+1)]
+                conn.append(cell)
+                i += arr1d[i]+1
+                if i >= n:
+                    break
+        return conn
+
+
+    def color(self, col):
+        """
+        Assign a color or a set of colors along the range of the scalar value.
+        A single constant color can also be assigned.
+        Any matplotlib color map name is also accepted, e.g. ``volume.color('jet')``.
+
+        E.g.: say that your cells scalar runs from -3 to 6,
+        and you want -3 to show red and 1.5 violet and 6 green, then just set:
+
+        ``volume.color(['red', 'violet', 'green'])``
+        """
+        smin, smax = self._data.GetScalarRange()
+        ctf = self.GetProperty().GetRGBTransferFunction()
+        ctf.RemoveAllPoints()
+        self._color = col
+
+        if utils.isSequence(col):
+            for i, ci in enumerate(col):
+                r, g, b = colors.getColor(ci)
+                x = smin + (smax - smin) * i / (len(col) - 1)
+                ctf.AddRGBPoint(x, r, g, b)
+                #colors.printc('\tcolor at', round(x, 1),
+                #              '\tset to', colors.getColorName((r, g, b)), c='w', bold=0)
+        elif isinstance(col, str):
+            if col in colors.colors.keys() or col in colors.color_nicks.keys():
+                r, g, b = colors.getColor(col)
+                ctf.AddRGBPoint(smin, r,g,b) # constant color
+                ctf.AddRGBPoint(smax, r,g,b)
+            elif colors._mapscales:
+                for x in np.linspace(smin, smax, num=64, endpoint=True):
+                    r,g,b = colors.colorMap(x, name=col, vmin=smin, vmax=smax)
+                    ctf.AddRGBPoint(x, r, g, b)
+        elif isinstance(col, int):
+            r, g, b = colors.getColor(col)
+            ctf.AddRGBPoint(smin, r,g,b) # constant color
+            ctf.AddRGBPoint(smax, r,g,b)
+        else:
+            colors.printc("volume.color(): unknown input type:", col, c=1)
+        return self
+
+    def alpha(self, alpha):
+        """
+        Assign a set of tranparencies along the range of the scalar value.
+        A single constant value can also be assigned.
+
+        E.g.: say alpha=(0.0, 0.3, 0.9, 1) and the scalar range goes from -10 to 150.
+        Then all cells with a value close to -10 will be completely transparent, cells at 1/4
+        of the range will get an alpha equal to 0.3 and voxels with value close to 150
+        will be completely opaque.
+
+        As a second option one can set explicit (x, alpha_x) pairs to define the transfer function.
+        E.g.: say alpha=[(-5, 0), (35, 0.4) (123,0.9)] and the scalar range goes from -10 to 150.
+        Then all cells below -5 will be completely transparent, cells with a scalar value of 35
+        will get an opacity of 40% and above 123 alpha is set to 90%.
+        """
+        smin, smax = self._data.GetScalarRange()
+        otf = self.GetProperty().GetScalarOpacity()
+        otf.RemoveAllPoints()
+        self._alpha = alpha
+
+        if utils.isSequence(alpha):
+            alpha = np.array(alpha)
+            if len(alpha.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
+                for i, al in enumerate(alpha):
+                    xalpha = smin + (smax - smin) * i / (len(alpha) - 1)
+                    # Create transfer mapping scalar value to opacity
+                    otf.AddPoint(xalpha, al)
+            elif len(alpha.shape)==2: # user passing [(x0,alpha0), ...]
+                otf.AddPoint(smin, alpha[0][1])
+                for xalpha, al in alpha:
+                    # Create transfer mapping scalar value to opacity
+                    otf.AddPoint(xalpha, al)
+                otf.AddPoint(smax, alpha[-1][1])
+            #colors.printc("alpha at", round(xalpha, 1), "\tset to", al)
+
+        else:
+            otf.AddPoint(smin, alpha) # constant alpha
+            otf.AddPoint(smax, alpha)
+
+        return self
+
+    def alphaUnit(self, u=None):
+        """
+        Defines light attenuation per unit length. Default is 1.
+        The larger the unit length, the further light has to travel to attenuate the same amount.
+
+        E.g., if you set the unit distance to 0, you will get full opacity.
+        It means that when light travels 0 distance it's already attenuated a finite amount.
+        Thus, any finite distance should attenuate all light.
+        The larger you make the unit distance, the more transparent the rendering becomes.
+        """
+        if u is None:
+            return self.GetProperty().GetScalarOpacityUnitDistance()
+        else:
+            self.GetProperty().SetScalarOpacityUnitDistance(u)
+            return self
+
+
+    def shrink(self, fraction=0.8):
+        """Shrink the individual cells to improve visibility."""
+        sf = vtk.vtkShrinkFilter()
+        sf.SetInputData(self._data)
+        sf.SetShrinkFactor(fraction)
+        sf.Update()
+        return self._update(sf.GetOutput())
+
+    def isosurface(self, threshold=True, connectivity=False):
+        """Return an ``Mesh`` isosurface extracted from the ``Volume`` object.
+
+        :param float,list threshold: value or list of values to draw the isosurface(s)
+        :param bool connectivity: if True only keeps the largest portion of the polydata
+
+        |isosurfaces| |isosurfaces.py|_
+        """
+        from vtkplotter.mesh import Mesh
+        scrange = self._data.GetScalarRange()
+        cf = vtk.vtkContourFilter()
+        cf.SetInputData(self._data)
+        cf.UseScalarTreeOn()
+        cf.ComputeScalarsOn()
+        cf.ComputeNormalsOn()
+
+        if utils.isSequence(threshold):
+            cf.SetNumberOfContours(len(threshold))
+            for i, t in enumerate(threshold):
+                cf.SetValue(i, t)
+            cf.Update()
+        else:
+            if threshold is True:
+                threshold = (2 * scrange[0] + scrange[1]) / 3.0
+                #print('automatic threshold set to ' + utils.precision(threshold, 3), end=' ')
+                #print('in [' + utils.precision(scrange[0], 3) + ', ' + utils.precision(scrange[1], 3)+']')
+            cf.SetValue(0, threshold)
+            cf.Update()
+
+        clp = vtk.vtkCleanPolyData()
+        clp.SetInputConnection(cf.GetOutputPort())
+        clp.Update()
+        poly = clp.GetOutput()
+
+        if connectivity:
+            conn = vtk.vtkPolyDataConnectivityFilter()
+            conn.SetExtractionModeToLargestRegion()
+            conn.SetInputData(poly)
+            conn.Update()
+            poly = conn.GetOutput()
+
+        a = Mesh(poly, c=None).phong()
+        a._mapper.SetScalarRange(scrange[0], scrange[1])
+        return a
+
+
+    def legosurface(self, vmin=None, vmax=None, invert=False, cmap='afmhot_r'):
+        """
+        Represent a ``Volume`` as lego blocks (voxels).
+        By default colors correspond to the volume's scalar.
+        Returns an ``Mesh``.
+
+        :param float vmin: the lower threshold, voxels below this value are not shown.
+        :param float vmax: the upper threshold, voxels above this value are not shown.
+        :param str cmap: color mapping of the scalar associated to the voxels.
+
+        |legosurface| |legosurface.py|_
+        """
+        from vtkplotter.mesh import Mesh
+        dataset = vtk.vtkImplicitDataSet()
+        dataset.SetDataSet(self._data)
+        window = vtk.vtkImplicitWindowFunction()
+        window.SetImplicitFunction(dataset)
+
+        srng = list(self._data.GetScalarRange())
+        if vmin is not None:
+            srng[0] = vmin
+        if vmax is not None:
+            srng[1] = vmax
+        tol = 0.00001*(srng[1]-srng[0])
+        srng[0] -= tol
+        srng[1] += tol
+        window.SetWindowRange(srng)
+
+        extract = vtk.vtkExtractGeometry()
+        extract.SetInputData(self._data)
+        extract.SetImplicitFunction(window)
+        extract.SetExtractInside(invert)
+        extract.ExtractBoundaryCellsOff()
+        extract.Update()
+
+        gf = vtk.vtkGeometryFilter()
+        gf.SetInputData(extract.GetOutput())
+        gf.Update()
+
+        a = Mesh(gf.GetOutput()).lw(0.1).flat()
+        scalars = a.getPointArray()
+        if scalars is None:
+            print("Error in legosurface(): no scalars found!")
+            return a
+        a.pointColors(scalars, vmin=srng[0], vmax=srng[1], cmap=cmap)
+        a.mapPointsToCells()
+        return a
+
+
+    def cutWithPlane(self, origin=(0,0,0), normal=(1,0,0)):
+        """
+        Cut the mesh with the plane defined by a point and a normal.
+
+        :param origin: the cutting plane goes through this point
+        :param normal: normal of the cutting plane
+        """
+        strn = str(normal)
+        if strn   ==  "x": normal = (1, 0, 0)
+        elif strn ==  "y": normal = (0, 1, 0)
+        elif strn ==  "z": normal = (0, 0, 1)
+        elif strn == "-x": normal = (-1, 0, 0)
+        elif strn == "-y": normal = (0, -1, 0)
+        elif strn == "-z": normal = (0, 0, -1)
+        plane = vtk.vtkPlane()
+        plane.SetOrigin(origin)
+        plane.SetNormal(normal)
+        clipper = vtk.vtkClipDataSet()
+        clipper.SetInputData(self._data)
+        clipper.SetClipFunction(plane)
+        clipper.GenerateClipScalarsOff()
+        clipper.GenerateClippedOutputOff()
+        clipper.SetValue(0)
+        clipper.Update()
+        cout = clipper.GetOutput()
+        return self._update(cout)
+
+
+    def cutWithBoundingBox(self, box):
+        """
+        Cut the grid with the specified bounding box.
+
+        Parameter box has format [xmin, xmax, ymin, ymax, zmin, zmax].
+        If a Mesh is passed, its bounding box is used.
+
+        Example:
+
+            .. code-block:: python
+
+                from vtkplotter import *
+                tetmesh = TetMesh(datadir+'limb_ugrid.vtk')
+                tetmesh.color('rainbow')
+                cu = Cube(side=500).x(500) # any Mesh works
+                tetmesh.cutWithBox(cu).show(axes=1)
+        """
+        bc = vtk.vtkBoxClipDataSet()
+        bc.SetInputData(self._data)
+        if isinstance(box, vtk.vtkProp):
+            box = box.GetBounds()
+        bc.SetBoxClip(*box)
+        bc.Update()
+        cout = bc.GetOutput()
+        return self._update(cout)
+
+
+    def cutWithMesh(self, mesh, invert=False, wholeCells=False, onlyBoundary=False):
+        """
+        Cut a UGrid, TetMesh or Volume mesh with a Mesh.
+
+        :param bool invert: if True return cut off part of the input TetMesh.
+        """
+        polymesh = mesh.polydata()
+        ug = self._data
+
+        ippd = vtk.vtkImplicitPolyDataDistance()
+        ippd.SetInput(polymesh)
+
+        if wholeCells or onlyBoundary:
+            clipper = vtk.vtkExtractGeometry()
+            clipper.SetInputData(ug)
+            clipper.SetImplicitFunction(ippd)
+            clipper.SetExtractInside(not invert)
+            clipper.SetExtractBoundaryCells(False)
+            if onlyBoundary:
+                clipper.SetExtractBoundaryCells(True)
+                clipper.SetExtractOnlyBoundaryCells(True)
+        else:
+            signedDistances = vtk.vtkFloatArray()
+            signedDistances.SetNumberOfComponents(1)
+            signedDistances.SetName("SignedDistances")
+            for pointId in range(ug.GetNumberOfPoints()):
+                p = ug.GetPoint(pointId)
+                signedDistance = ippd.EvaluateFunction(p)
+                signedDistances.InsertNextValue(signedDistance)
+            ug.GetPointData().SetScalars(signedDistances)
+            clipper = vtk.vtkClipDataSet()
+            clipper.SetInputData(ug)
+            clipper.SetInsideOut(not invert)
+            clipper.SetValue(0.0)
+
+        clipper.Update()
+        cug = clipper.GetOutput()
+
+        if ug.GetCellData().GetScalars(): # not working
+            scalname = ug.GetCellData().GetScalars().GetName()
+            if scalname: # not working
+                if self.useCells:
+                    self.selectCellArray(scalname)
+                else:
+                    self.selectPointArray(scalname)
+
+        self._update(cug)
+        return self
+    
+
+    def tetralize(self, tetsOnly=True):
+        """Tetralize the grid.
+        If tetsOnly=True will cull all 1D and 2D cells from the output.
+
+        Return a TetMesh.
+
+        Example:
+
+            .. code-block:: python
+
+                from vtkplotter import *
+                ug = loadUnStructuredGrid(datadir+'ugrid.vtk')
+                tmesh = tetralize(ug)
+                tmesh.write('ugrid.vtu').show(axes=1)
+        """
+        from vtkplotter.tetmesh import tetralize
+        return tetralize(self._data, tetsOnly)
+
+
+    def extractCellsByID(self, idlist, usePointIDs=False):
+        """Return a new UGrid composed of the specified subset of indices."""
+        from vtkplotter.ugrid import UGrid
+        selectionNode = vtk.vtkSelectionNode()
+        if usePointIDs:
+            selectionNode.SetFieldType(vtk.vtkSelectionNode.POINT)
+            contcells = vtk.vtkSelectionNode.CONTAINING_CELLS()
+            selectionNode.GetProperties().Set(contcells, 1)
+        else:
+            selectionNode.SetFieldType(vtk.vtkSelectionNode.CELL)
+        selectionNode.SetContentType(vtk.vtkSelectionNode.INDICES)
+        vidlist = numpy_to_vtkIdTypeArray(np.array(idlist).astype(np.int64))
+        selectionNode.SetSelectionList(vidlist)
+        selection = vtk.vtkSelection()
+        selection.AddNode(selectionNode)
+        es = vtk.vtkExtractSelection()
+        es.SetInputData(0, self._data)
+        es.SetInputData(1, selection)
+        es.Update()
+        tm_sel = UGrid(es.GetOutput())
+        pr = vtk.vtkProperty()
+        pr.DeepCopy(self.GetProperty())
+        tm_sel.SetProperty(pr)
+
+        #assign the same transformation to the copy
+        tm_sel.SetOrigin(self.GetOrigin())
+        tm_sel.SetScale(self.GetScale())
+        tm_sel.SetOrientation(self.GetOrientation())
+        tm_sel.SetPosition(self.GetPosition())
+        tm_sel._mapper.SetLookupTable(utils.ctf2lut(self))
+        return tm_sel
+
+
+
+###################################################################################
+# def extractCellsByType(obj, types=(7,)):    ### VTK9 only
+#     """Extract cells of a specified type.
+#     Given an input vtkDataSet and a list of cell types, produce an output
+#     containing only cells of the specified type(s).
+#     Find `here <https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html>`_
+#     the list of possible cell types.
+#     """
+#     ef = vtk.vtkExtractCellsByType()
+#     for ct in types:
+#         ef.AddCellType(ct)
+#     ef.Update()
+#     return Mesh(ef.GetOutput())
+
+

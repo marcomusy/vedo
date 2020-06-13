@@ -11,7 +11,7 @@ import vtkplotter.shapes as shapes
 import vtkplotter.addons as addons
 from vtkplotter.assembly import Assembly
 from vtkplotter.mesh import Mesh, merge
-from vtkplotter.base import ActorBase
+from vtkplotter.base import BaseActor
 
 __doc__ = """Plotting utility functions.""" + docs._defs
 
@@ -2361,7 +2361,7 @@ class DirectedGraph(Assembly):
         |lineage_graph| |lineage_graph.py|_
     """
     def __init__(self, **kargs):
-        ActorBase.__init__(self)
+        BaseActor.__init__(self)
 
         self.vertices = []
         self.edges = []

@@ -3,20 +3,20 @@ default ray casting..
 """
 from vtkplotter import *
 
-tetmesh = load(datadir+'limb_ugrid.vtk') # returns vtkplotter.TetMesh
-tetmesh.color('jet').alphaUnit(100) # make the tets more transparent
-tetmesh.addScalarBar3D()
+tetm = load(datadir+'limb_ugrid.vtk') # returns vtkplotter.TetMesh
+tetm.color('jet').alphaUnit(100) # make the tets more transparent
+tetm.addScalarBar3D()
 
 # Build a Mesh object made of all the boundary triangles
-wmesh = tetmesh.toMesh(fill=False).wireframe()
+wmesh = tetm.tomesh(fill=False).wireframe()
 
-# Make a copy of tetmesh and shrink the tets
-shrinked = tetmesh.clone().shrink(0.5)
+# Make a copy of tetm and shrink the tets
+shrinked = tetm.clone().shrink(0.5)
 
 # Build a Mesh object and cut it
-cmesh = shrinked.toMesh(fill=True)
+cmesh = shrinked.tomesh(fill=True)
 
-show([(tetmesh, __doc__),
+show([(tetm, __doc__),
       (wmesh, "..wireframe surface"),
       (cmesh, "..shrinked tetrahedra"),
      ], N=3, axes=1)

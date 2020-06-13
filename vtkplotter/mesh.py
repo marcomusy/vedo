@@ -1,5 +1,4 @@
 from __future__ import division, print_function
-
 import numpy as np
 import os
 import vtk
@@ -8,7 +7,7 @@ import vtkplotter.docs as docs
 import vtkplotter.settings as settings
 import vtkplotter.utils as utils
 
-from vtkplotter.base import ActorBase
+from vtkplotter.base import BaseActor
 
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
@@ -53,7 +52,7 @@ def merge(*meshs):
 
 
 ####################################################
-class Mesh(vtk.vtkFollower, ActorBase):
+class Mesh(vtk.vtkFollower, BaseActor):
     """
     Build an instance of object ``Mesh`` derived from ``vtkActor``.
 
@@ -88,7 +87,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         computeNormals=False,
     ):
         vtk.vtkActor.__init__(self)
-        ActorBase.__init__(self)
+        BaseActor.__init__(self)
 
         self._polydata = None
         self._mapper = vtk.vtkPolyDataMapper()
@@ -117,7 +116,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
             pr.DeepCopy(inputobj.GetProperty())
             self.SetProperty(pr)
 
-        elif "PolyData" in inputtype:
+        elif isinstance(inputobj, vtk.vtkPolyData):
             if inputobj.GetNumberOfCells() == 0:
                 carr = vtk.vtkCellArray()
                 for i in range(inputobj.GetNumberOfPoints()):
@@ -126,7 +125,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
                 inputobj.SetVerts(carr)
             self._polydata = inputobj  # cache vtkPolyData and mapper for speed
 
-        elif "structured" in inputtype.lower() or "RectilinearGrid" in inputtype:
+        elif isinstance(inputobj, (vtk.vtkStructuredGrid, vtk.vtkRectilinearGrid)):
             if settings.visibleGridEdges:
                 gf = vtk.vtkExtractEdges()
                 gf.SetInputData(inputobj)
@@ -187,7 +186,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
             from vtkplotter.vtkio import load
             dataset = load(inputobj)
             if "TetMesh" in str(type(dataset)):
-                self._polydata = dataset.toMesh().polydata()
+                self._polydata = dataset.tomesh().polydata()
             else:
                 self._polydata = dataset.polydata()
 
@@ -374,11 +373,10 @@ class Mesh(vtk.vtkFollower, ActorBase):
         return conn # cannot always make a numpy array of it!
 
 
-    def lines(self, joined=False, flat=False):
+    def lines(self, flat=False):
         """Get lines connectivity ids as a numpy array.
         Default format is [[id0,id1], [id3,id4], ...]
 
-        :param bool joined: join ends in format, [(1,2), (2,3,4)] -> [(1,2,3,4)]
         :param bool flat: 1D numpy array as [2, 10,20, 3, 10,11,12, 2, 70,80, ...]
         """
         #Get cell connettivity ids as a 1D array. The vtk format is:
@@ -401,16 +399,16 @@ class Mesh(vtk.vtkFollower, ActorBase):
             if i >= n:
                 break
 
-        if n and joined: # join ends: [(1,2), (2,3,4)] -> [(1,2,3,4)]
-            conn = sorted(conn, key=lambda x:x[0])
-            res=[conn[0]]
-            for i in range(1, len(conn)):
-                l1 = conn[i]
-                if res[-1][-1] == l1[0]:
-                    res[-1] += l1[1:]
-                else:
-                    res.append(l1)
-            conn = res
+        # if n and joined: # join ends: [(1,2), (2,3,4)] -> [(1,2,3,4)]
+        #     conn = sorted(conn, key=lambda x:x[0])
+        #     res=[conn[0]]
+        #     for i in range(1, len(conn)):
+        #         l1 = conn[i]
+        #         if res[-1][-1] == l1[0]:
+        #             res[-1] += l1[1:]
+        #         else:
+        #             res.append(l1)
+        #     conn = res
         return conn # cannot always make a numpy array of it!
 
 
@@ -866,14 +864,9 @@ class Mesh(vtk.vtkFollower, ActorBase):
         cm = self.centerOfMass()
         coords = self.points(copy=False)
         if not len(coords):
-            return 0
-        s, c = 0.0, 0.0
-        n = len(coords)
-        step = int(n / 10000.0) + 1
-        for i in np.arange(0, n, step):
-            s += utils.mag(coords[i] - cm)
-            c += 1
-        return s / c
+            return 0.0
+        cc = coords-cm
+        return np.mean(np.linalg.norm(cc, axis=1))
 
     def centerOfMass(self):
         """Get the center of mass of mesh.
@@ -881,7 +874,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         |fatlimb| |fatlimb.py|_
         """
         cmf = vtk.vtkCenterOfMass()
-        cmf.SetInputData(self.polydata(True))
+        cmf.SetInputData(self.polydata())
         cmf.Update()
         c = cmf.GetCenter()
         return np.array(c)
@@ -890,7 +883,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         """Get/set the volume occupied by mesh."""
         mass = vtk.vtkMassProperties()
         mass.SetGlobalWarningDisplay(0)
-        mass.SetInputData(self.polydata())
+        mass.SetInputData(self.polydata(False))
         mass.Update()
         v = mass.GetVolume()
         if value is not None:
@@ -910,7 +903,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         """
         mass = vtk.vtkMassProperties()
         mass.SetGlobalWarningDisplay(0)
-        mass.SetInputData(self.polydata())
+        mass.SetInputData(self.polydata(False))
         mass.Update()
         ar = mass.GetSurfaceArea()
         if value is not None:
@@ -1067,7 +1060,7 @@ class Mesh(vtk.vtkFollower, ActorBase):
         """
         Apply a linear or non-linear transformation to the mesh polygonal data.
 
-        :param transformation: ``vtkTransform`` or ``vtkMatrix4x4`` object.
+        :param transformation: the``vtkTransform`` or ``vtkMatrix4x4`` objects.
         """
         if isinstance(transformation, vtk.vtkMatrix4x4):
             tr = vtk.vtkTransform()
@@ -1136,6 +1129,21 @@ class Mesh(vtk.vtkFollower, ActorBase):
         rs.Update()
 
         return self._update(rs.GetOutput())
+
+    def shear(self, x=0, y=0, z=0):
+        """
+        Apply a shear deformation to the Mesh along one of the main axes.
+        The transformation resets position and rotations so it should be applied first.
+        """
+        t = vtk.vtkTransform()
+        sx, sy, sz = self.GetScale()
+        t.SetMatrix([sx, x, 0, 0,
+                      y,sy, z, 0,
+                      0, 0,sz, 0,
+                      0, 0, 0, 1])
+        self.applyTransform(t)
+        return self
+
 
     def flipNormals(self):
         """
@@ -1482,6 +1490,39 @@ class Mesh(vtk.vtkFollower, ActorBase):
             polyapp.AddInputData(tf.GetOutput())
             polyapp.Update()
             return self._update(polyapp.GetOutput()).clean().phong()
+
+
+    def join(self, polys=True):
+        """
+        Generate triangle strips and/or polylines from
+        input polygons, triangle strips, and lines.
+
+        Input polygons are assembled into triangle strips only if they are triangles;
+        other types of polygons are passed through to the output and not stripped.
+        Use mesh.triangulate() to triangulate non-triangular polygons prior to running
+        this filter if you need to strip all the data.
+
+        Also note that if triangle strips or polylines are present in the input
+        they are passed through and not joined nor extended.
+        If you wish to strip these use mesh.triangulate() to fragment the input
+        into triangles and lines prior to applying strip().
+
+        :param bool polys: polygonal segments will be joined if they are contiguous
+
+        :Warning:
+
+            If triangle strips or polylines exist in the input data
+            they will be passed through to the output data.
+            This filter will only construct triangle strips if triangle polygons
+            are available; and will only construct polylines if lines are available.
+        """
+        sf = vtk.vtkStripper()
+        sf.SetPassThroughCellIds(True)
+        sf.SetPassThroughPointIds(True)
+        sf.SetJoinContiguousSegments(polys)
+        sf.SetInputData(self.polydata(False))
+        sf.Update()
+        return self._update(sf.GetOutput())
 
 
     def threshold(self, scalars, above=None, below=None, useCells=False):
@@ -2889,11 +2930,16 @@ class Mesh(vtk.vtkFollower, ActorBase):
             vmax = r1
         bcf.GenerateValues(n, vmin, vmax)
         bcf.Update()
-        zpoly = bcf.GetOutput()
-        zbandsact = Mesh(zpoly, c="k")
-        zbandsact.lighting('off')
-        zbandsact._mapper.SetResolveCoincidentTopologyToPolygonOffset()
-        return zbandsact
+        sf = vtk.vtkStripper()
+        sf.SetJoinContiguousSegments(True)
+        sf.SetInputData(bcf.GetOutput())
+        sf.Update()
+        cl = vtk.vtkCleanPolyData()
+        cl.SetInputData(sf.GetOutput())
+        cl.Update()
+        msh = Mesh(cl.GetOutput(), c="k").lighting('off')
+        msh._mapper.SetResolveCoincidentTopologyToPolygonOffset()
+        return msh
 
 
     def extrude(self, zshift=1, rotation=0, dR=0, cap=True, res=1):

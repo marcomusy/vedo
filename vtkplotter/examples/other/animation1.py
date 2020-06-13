@@ -3,6 +3,7 @@ This example shows how to animate simultaneously various objects
 by specifying event times and durations of the effects
 """
 from vtkplotter import *
+from vtkplotter.applications import Animation
 
 sp = Sphere(r=0.5).cutWithPlane(origin=(0.15,0,0)).lw(0.1)
 cu = Cube().pos(-2,0,0)

@@ -12,6 +12,7 @@ import vtkplotter.colors as colors
 from vtkplotter.colors import printc, getColor
 from vtkplotter.assembly import Assembly
 from vtkplotter.mesh import Mesh
+from vtkplotter.ugrid import UGrid
 from vtkplotter.picture import Picture
 from vtkplotter.volume import Volume
 from vtkplotter.tetmesh import TetMesh
@@ -805,8 +806,8 @@ class Plotter:
         else:
             self.interactor = vtk.vtkRenderWindowInteractor()
         self.interactor.SetRenderWindow(self.window)
-        vsty = vtk.vtkInteractorStyleTrackballCamera()
-        self.interactor.SetInteractorStyle(vsty)
+        #vsty = vtk.vtkInteractorStyleTrackballCamera()
+        #self.interactor.SetInteractorStyle(vsty)
 
         self.interactor.AddObserver("LeftButtonPressEvent", self._mouseleft)
         self.interactor.AddObserver("RightButtonPressEvent", self._mouseright)
@@ -1468,17 +1469,21 @@ class Plotter:
 
                 elif isinstance(a, TetMesh):
                     # check ugrid is all made of tets
-                    uarr = a.ugrid().GetCellTypesArray()
+                    ugrid = a.inputdata()
+                    uarr = ugrid.GetCellTypesArray()
                     celltypes = np.unique(vtk_to_numpy(uarr))
                     ncelltypes = len(celltypes)
                     if ncelltypes > 1 or (ncelltypes==1 and celltypes[0]!=10):
-                        scannedacts.append(a.toMesh())
+                        scannedacts.append(a.tomesh())
                     else:
-                        if not a.ugrid().GetPointData().GetScalars():
-                            if not a.ugrid().GetCellData().GetScalars():
+                        if not ugrid.GetPointData().GetScalars():
+                            if not ugrid.GetCellData().GetScalars():
                                 #add dummy array for vtkProjectedTetrahedraMapper to work:
                                 a.addCellArray(np.ones(a.NCells()), 'DummyOneArray')
                         scannedacts.append(a)
+
+                elif isinstance(a, UGrid):
+                    scannedacts.append(a.tomesh())
 
                 elif isinstance(a, vtk.vtkVolume): # order matters!
                     scannedacts.append(Volume(a.GetMapper().GetInput()))
@@ -1770,7 +1775,9 @@ class Plotter:
         if settings.interactorStyle is not None:
             interactorStyle = settings.interactorStyle
         if interactorStyle == 0 or interactorStyle == "TrackballCamera":
-            pass  # do nothing
+            #csty = self.interactor.GetInteractorStyle().GetCurrentStyle().GetClassName()
+            #if "TrackballCamera" not in csty:
+            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
         elif interactorStyle == 1 or interactorStyle == "TrackballActor":
             self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
         elif interactorStyle == 2 or interactorStyle == "JoystickCamera":
@@ -2206,7 +2213,7 @@ class Plotter:
         if key == "C":
             cam = self.renderer.GetActiveCamera()
             printc('\n###################################################', c=3)
-            printc('### Template code to position the Camera: #########', c=3)
+            printc('### Template python code to position this camera: ###', c=3)
             printc('cam = dict(pos='          +utils.precision(cam.GetPosition(),3)+',', c=3)
             printc('           focalPoint='   +utils.precision(cam.GetFocalPoint(),3)+',', c=3)
             printc('           viewup='       +utils.precision(cam.GetViewUp(),3)+',', c=3)
@@ -2221,6 +2228,7 @@ class Plotter:
             printc('plt.camera.SetDistance(',   round(cam.GetDistance(), 3), ')', c=3)
             printc('plt.camera.SetClippingRange(',
                                     [round(e, 3) for e in cam.GetClippingRange()], ')', c=3)
+            printc('###################################################', c=3)
             return
 
         if key == "s":

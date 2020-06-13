@@ -3,6 +3,7 @@ This example shows how to animate simultaneously various objects
 by specifying event times and durations of the visual effects.
 """
 from vtkplotter import *
+from vtkplotter.applications import Animation
 
 s = load(datadir+"bunny.obj").subdivide().normalize()
 

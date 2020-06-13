@@ -774,10 +774,10 @@ def printc(*strings, **keys):
     :param bool underline: underline text [False]
     :param bool strike: strike through text [False]
     :param bool dim: make text look dimmer [False]
-    :param bool invert: invert background anf forward colors [False]
+    :param bool invert: invert background and forward colors [False]
     :param box: print a box with specified text character ['']
     :param bool flush: flush buffer after printing [True]
-    :param str end: end character to be printed [newline]
+    :param str end: the end character to be printed [newline]
 
     :Example:
         .. code-block:: python
@@ -794,10 +794,14 @@ def printc(*strings, **keys):
     end = keys.pop("end", "\n")
     flush = keys.pop("flush", True)
 
+    if sys.version_info[0] < 3:
+        print(strings)
+        return
+
     if not settings.notebookBackend:
-        if not _terminal_has_colors or sys.version_info[0] < 3:
+        if not _terminal_has_colors:
             for s in strings:
-                if "~" in str(s):
+                if '~' in str(s):
                     for k in emoji.keys():
                         if k in s:
                             s = s.replace(k, "")

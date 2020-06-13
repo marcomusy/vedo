@@ -26,7 +26,7 @@ class MainWindow(Qt.QMainWindow):
         cc = Cube().pos(1, 1, 1).color("pink")
         ss = Torus()
         vp.show(cn, cc, at=0)
-        vp.show(ss, at=1, viewup="z")
+        vp.show(ss, at=1, viewup="z", interactorStyle=0)
 
         self.start(vp)
 

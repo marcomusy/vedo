@@ -221,14 +221,16 @@ def getNotebookBackend(actors2show, zoom, viewup):
 #                print('Line', ia.name, ia.N(), len(ia.faces()),
 #                      ia.polydata(False).GetNumberOfLines(), len(ia.lines(joined=True)),
 #                      color_attribute, [vtkscals])
-                kcols=[]
-                if color_attribute is not None:
-                    scals = vtk_to_numpy(vtkscals)
-                    kcols = k3d.helpers.map_colors(scals, kcmap,
-                                                   [scals_min,scals_max]).astype(numpy.uint32)
+
+                # kcols=[]
+                # if color_attribute is not None:
+                #     scals = vtk_to_numpy(vtkscals)
+                #     kcols = k3d.helpers.map_colors(scals, kcmap,
+                #                                    [scals_min,scals_max]).astype(numpy.uint32)
+
                 sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
 
-                for i, ln_idx in enumerate(ia.lines(joined=True)):
+                for i, ln_idx in enumerate(ia.lines()):
                     if i>200:
                         print('WARNING: K3D nr of line segments is limited to 200.')
                         break

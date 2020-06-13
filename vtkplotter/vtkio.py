@@ -123,7 +123,25 @@ def load(inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
                 else:
                     actor = Volume(image).isosurface(threshold=threshold)
                     actor.color(c).alpha(alpha)
+
+                actor.info['PixelSpacing'] = reader.GetPixelSpacing()
+                actor.info['Width'] = reader.GetWidth()
+                actor.info['Height'] = reader.GetHeight()
+                actor.info['PositionPatient'] = reader.GetImagePositionPatient()
+                actor.info['OrientationPatient'] = reader.GetImageOrientationPatient()
+                actor.info['BitsAllocated'] = reader.GetBitsAllocated()
+                actor.info['PixelRepresentation'] = reader.GetPixelRepresentation()
+                actor.info['NumberOfComponents'] = reader.GetNumberOfComponents()
+                actor.info['TransferSyntaxUID'] = reader.GetTransferSyntaxUID()
+                actor.info['RescaleSlope'] = reader.GetRescaleSlope()
+                actor.info['RescaleOffset'] = reader.GetRescaleOffset()
+                actor.info['PatientName'] = reader.GetPatientName()
+                actor.info['StudyUID'] = reader.GetStudyUID()
+                actor.info['StudyID'] = reader.GetStudyID()
+                actor.info['GantryAngle'] = reader.GetGantryAngle()
+
                 acts.append(actor)
+
             else: ### it's a normal directory
                 utils.humansort(flist)
                 for ifile in flist:

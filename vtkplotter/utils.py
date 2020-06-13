@@ -56,25 +56,47 @@ class ProgressBar:
             pb = ProgressBar(0,400, c='red')
             for i in pb.range():
                 time.sleep(.1)
-                pb.print('some message') # or pb.print(counts=i)
+                pb.print('some message')
 
         |progbar|
     """
 
-    def __init__(self, start, stop, step=1, c=None, ETA=True, width=24, char=u"\U000025AC"):
+    def __init__(self,
+                 start, stop, step=1,
+                 c=None,
+                 bold=True,
+                 italic=False,
+                 title='',
+                 ETA=True,
+                 width=25,
+                 char=u"\U00002501",
+                 char_back=u"\U00002500",
+                 ):
 
-        char_arrow = u"\U000025BA"
+        char_arrow = ""
         if sys.version_info[0]<3:
             char="="
-            char_arrow = '>'
+            char_arrow = ''
+            char_back=''
+            bold=False
+
+        self.char_back = char_back
+        self.char_arrow = char_arrow
+
+        self.char0 = ''
+        self.char1 = ''
+        self.title = title+' '
+        if title:
+            self.title = ' '+self.title
 
         self.start = start
         self.stop = stop
         self.step = step
         self.color = c
+        self.bold = bold
+        self.italic = italic
         self.width = width
         self.char = char
-        self.char_arrow = char_arrow
         self.bar = ""
         self.percent = 0
         self.clock0 = 0
@@ -88,8 +110,10 @@ class ProgressBar:
         self._range = np.arange(start, stop, step)
         self._len = len(self._range)
 
-    def print(self, txt="", counts=None):
+    def print(self, txt="", counts=None, c=None):
         """Print the progress bar and optional message."""
+        if not c:
+            c=self.color
         if counts:
             self._update(counts)
         else:
@@ -126,17 +150,15 @@ class ProgressBar:
                     else:
                         mins = ""
                         secs = str(int(dt + 0.5)) + "s "
-                    eta = "Elapsed time: " + mins + secs + "(" + vel + " it/s)        "
+                    eta = "elapsed: " + mins + secs + "(" + vel + " it/s)        "
                     txt = ""
             else:
                 eta = ""
             txt = eta + str(txt)
             s = self.bar + " " + eraser + txt + "\r"
-            if self.color:
-                colors.printc(s, c=self.color, end="")
-            else:
-                sys.stdout.write(s)
-                sys.stdout.flush()
+            colors.printc(s, c=c, bold=self.bold, italic=self.italic, end="")
+            sys.stdout.flush()
+
             if self.percent == 100:
                 print("")
             self._lentxt = len(txt)
@@ -164,13 +186,10 @@ class ProgressBar:
         self.percent = int(round(self.percent))
         af = self.width - 2
         nh = int(round(self.percent / 100 * af))
-        if nh == 0:
-            self.bar = "["+self.char_arrow+"%s]" % (" " * (af - 1))
-        elif nh == af:
-            self.bar = "[%s]" % (self.char * af)
-        else:
-            self.bar = "[%s%s%s]" % (self.char *(nh-1), self.char_arrow, " " *(af-nh))
-        if self.percent < 100:  # and self._remt > 1:
+        br_bk = "\x1b[2m"+self.char_back*(af-nh)
+        br = "%s%s%s" % (self.char*(nh-1), self.char_arrow, br_bk)
+        self.bar = self.title + self.char0 + br + self.char1
+        if self.percent < 100:
             ps = " " + str(self.percent) + "%"
         else:
             ps = ""
@@ -1531,8 +1550,11 @@ def vtkVersionIsAtLeast(major, minor=0, build=0):
 
 def ctf2lut(tvobj):
     # build LUT from a color transfer function for tmesh or volume
-    ctf = tvobj.GetProperty().GetRGBTransferFunction()
-    otf = tvobj.GetProperty().GetScalarOpacity()
+    pr = tvobj.GetProperty()
+    if not isinstance(pr, vtk.vtkVolumeProperty):
+        return None
+    ctf = pr.GetRGBTransferFunction()
+    otf = pr.GetScalarOpacity()
     x0,x1 = tvobj.inputdata().GetScalarRange()
     cols, alphas = [],[]
     for x in np.linspace(x0,x1, 256):
@@ -1546,3 +1568,8 @@ def ctf2lut(tvobj):
         lut.SetTableValue(i, r, g, b, alphas[i])
     lut.Build()
     return lut
+
+
+
+
+

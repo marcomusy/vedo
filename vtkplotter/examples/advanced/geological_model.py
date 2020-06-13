@@ -1,7 +1,6 @@
 """Recreate a model of a geothermal reservoir, Utah
 (Credits: A. Pollack, SCRF)"""
-from vtkplotter import Plotter, Mesh, Points, Line, Lines, printc, exportWindow
-from scipy.spatial import Delaunay
+from vtkplotter import *
 import pandas as pd
 
 
@@ -35,11 +34,8 @@ border = pd.read_csv(url+"FORGE_Border.csv")
 ## land surface: a mesh with varying color
 printc("analyzing...", invert=1, end='')
 
-# perform a 2D Delaunay triangulation to get the cells from the point cloud
-tri = Delaunay(landSurfacePD.values[:, 0:2])
-
-# create a mesh object for the land surface
-landSurface = Mesh([landSurfacePD.values, tri.simplices])
+# create a mesh object from the 2D Delaunay triangulation of the point cloud
+landSurface = delaunay2D(landSurfacePD.values)
 
 # in order to color it by the elevation, we use the z values of the mesh
 zvals = landSurface.points()[:, 2]
@@ -55,37 +51,32 @@ plt += landSurface.isolines(5).lw(1).c('k')
 #############################################
 ## Different meshes with constant colors
 # Mesh of 175 C isotherm
-tri = Delaunay(vertices_175CPD.values[:, 0:2])
-vertices_175C = Mesh([vertices_175CPD.values, tri.simplices])
+vertices_175C = delaunay2D(vertices_175CPD.values)
 vertices_175C.name = "175C temperature isosurface"
 plt += vertices_175C.c("orange").opacity(0.3).flag()
 
 # Mesh of 225 C isotherm
-tri = Delaunay(vertices_225CPD.values[:, 0:2])
-vertices_225CT = Mesh([vertices_225CPD.values, tri.simplices])
+vertices_225CT = delaunay2D(vertices_225CPD.values)
 vertices_225CT.name = "225C temperature isosurface"
 plt += vertices_225CT.c("red").opacity(0.4).flag()
 
-# Negro fault
-tri = Delaunay(Negro_Mag_Fault_verticesPD.values[:, 1:3])
-Negro_Mag_Fault_vertices = Mesh([Negro_Mag_Fault_verticesPD.values, tri.simplices])
+# Negro fault, mode=fit is used because point cloud is not in xy plane
+Negro_Mag_Fault_vertices = delaunay2D(Negro_Mag_Fault_verticesPD.values, mode='fit')
 Negro_Mag_Fault_vertices.name = "Negro Fault"
 plt += Negro_Mag_Fault_vertices.c("f").opacity(0.6).flag()
 
 # Opal fault
-tri = Delaunay(Opal_Mound_Fault_verticesPD.values[:, 1:3])
-Opal_Mound_Fault_vertices = Mesh([Opal_Mound_Fault_verticesPD.values, tri.simplices])
+Opal_Mound_Fault_vertices = delaunay2D(Opal_Mound_Fault_verticesPD.values, mode='fit')
 Opal_Mound_Fault_vertices.name = "Opal Mound Fault"
 plt += Opal_Mound_Fault_vertices.c("g").opacity(0.6).flag()
 
-# Top Granite
-xyz = top_granitoid_verticesPD.values
-xyz[:, 2] = top_granitoid_verticesPD.values[:, 2] - 20
-tri = Delaunay(top_granitoid_verticesPD.values[:, 0:2])
-top_granitoid_vertices = Mesh([xyz, tri.simplices]).texture('white1')
+# Top Granite, (shift it a bit to avoid overlapping)
+xyz = top_granitoid_verticesPD.values - [0,0,20]
+top_granitoid_vertices = delaunay2D(xyz).texture('white1')
 top_granitoid_vertices.name = "Top of granite surface"
 plt += top_granitoid_vertices.flag()
 
+###################################################
 printc("plotting...", invert=1)
 
 # Microseismic

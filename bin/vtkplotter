@@ -4,6 +4,7 @@ from __future__ import division, print_function
 from vtkplotter import Plotter
 from vtkplotter.mesh import Mesh
 from vtkplotter.tetmesh import TetMesh
+from vtkplotter.ugrid import UGrid
 from vtkplotter.volume import Volume
 from vtkplotter import settings, printc, getColor, humansort, __version__
 from vtkplotter import vtkio, datadir, load
@@ -216,8 +217,10 @@ def draw_scene():
 
             actor = load(f, c=colb, alpha=args.alpha)
 
-            if isinstance(actor, TetMesh):
-                actor = actor.toMesh().shrink(0.95).c(colb).alpha(args.alpha)
+            if isinstance(actor, (TetMesh, UGrid)):
+                actor = actor.tomesh().shrink(0.95).c(colb).alpha(args.alpha)
+            #if isinstance(actor, UGrid):
+            #    actor = actor.tomesh().shrink(0.95).c(colb).alpha(args.alpha)
 
             if isinstance(actor, Mesh):
                 actors.append(actor)
@@ -245,6 +248,8 @@ def draw_scene():
                         actor.GetProperty().SetRepresentationToSurface()
                     except AttributeError:
                         pass
+            else:
+                actors.append(actor)
 
             if args.multirenderer_mode:
                 actor._legend = None

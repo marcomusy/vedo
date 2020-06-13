@@ -2,7 +2,7 @@ from __future__ import division, print_function
 
 import vtk
 import vtkplotter.docs as docs
-from vtkplotter.base import ActorBase
+from vtkplotter.base import Base3DProp
 import vtkplotter.utils as utils
 
 __doc__ = (
@@ -16,7 +16,7 @@ __all__ = ["Assembly"]
 
 
 #################################################
-class Assembly(vtk.vtkAssembly, ActorBase):
+class Assembly(vtk.vtkAssembly, Base3DProp):
     """Group many meshes as a single new mesh as a ``vtkAssembly``.
 
     |gyroscope1| |gyroscope1.py|_
@@ -25,7 +25,7 @@ class Assembly(vtk.vtkAssembly, ActorBase):
     def __init__(self, *meshs):
 
         vtk.vtkAssembly.__init__(self)
-        ActorBase.__init__(self)
+        Base3DProp.__init__(self)
 
         if len(meshs) == 1:
             meshs = meshs[0]

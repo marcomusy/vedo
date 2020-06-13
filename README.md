@@ -15,12 +15,12 @@ and *point clouds* based on [VTK](https://www.vtk.org/) and [numpy](http://www.n
 
 *(click on the picture to open a 3D viewer)*
 
-## ✨ Philosophy
+## ✨  Philosophy
 Inspired by the [vpython](https://vpython.org/) *manifesto* "3D programming for ordinary mortals",
 *vtkplotter* makes it easy to work wth three-dimensional objects, create displays and animations
 in just a few lines of code, even for those with less programming experience.
 
-## 🎯 Table of Contents
+## 🎯  Table of Contents
 * [Installation](https://github.com/marcomusy/vtkplotter#-installation)
 * [Documentation](https://github.com/marcomusy/vtkplotter#-documentation)
 * [Features](https://github.com/marcomusy/vtkplotter#-features)
@@ -30,7 +30,7 @@ in just a few lines of code, even for those with less programming experience.
 
 
 
-## 💾 Installation
+## 💾  Installation
 Use [pip](https://projects.raspberrypi.org/en/projects/using-pip-on-windows) to install:
 ```bash
 pip install -U vtkplotter
@@ -50,7 +50,7 @@ on the desktop to *drag&drop* files to visualize.
 (Need to edit the path of the local python installation).
 
 
-## 📙 Documentation
+## 📙  Documentation
 Automatically generated documentation can be found [**here**](https://vtkplotter.embl.es).
 
 
@@ -59,7 +59,7 @@ Do not hesitate to open a [**issue**](https://github.com/marcomusy/vtkplotter/is
 or send an [email](mailto:marco.musy@embl.es).
 
 
-## 🎨 Features
+## 🎨  Features
 Intuitive and straightforward API which can be combined with VTK seamlessly
 in a program, whilst mantaining access to the full range of VTK native classes.
 
@@ -181,7 +181,7 @@ Moreover:
 - Embed the 3D rendering in a *jupyter* notebook with [K3D](https://github.com/K3D-tools/K3D-jupyter) (can export an interactive 3D-snapshot page [here](https://vtkplotter.embl.es/examples/geo_scene.html)).
 
 
-## ⌨ Command Line Interface
+## ⌨  Command Line Interface
 Visualize a polygonal mesh from a terminal window with:
 ```bash
 vtkplotter mesh.obj
@@ -203,7 +203,7 @@ To visualize multiple files or files time-sequences try `-n` or `-s` options. Us
 ![gui](https://user-images.githubusercontent.com/32848391/63259840-c861d280-c27f-11e9-9c2a-99d0fae85313.png)
 </details>
 
-## 🐾 Examples
+## 🐾  Examples
 **More than 300 working examples can be found in directories** _(scroll down to see thumbnails):_ <br>
 [**examples/basic**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic)<br>
 [**examples/advanced**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced)<br>
@@ -248,7 +248,7 @@ Run any of the built-in examples from command line, e.g.:
 |![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif)|   ![viz_raycast](https://user-images.githubusercontent.com/32848391/58336919-f7b1a080-7e44-11e9-9106-f574371093a8.gif)  | ![viz_slicer](https://user-images.githubusercontent.com/32848391/80866479-3bd13600-8c8f-11ea-83c7-5f5b4fccb29d.png)  |![lego](https://user-images.githubusercontent.com/32848391/59788744-aaeaa980-92cc-11e9-825d-58da26ca21ff.gif) |
 | ![particle_simulator](https://user-images.githubusercontent.com/32848391/50738891-db380300-11d8-11e9-84c2-0f55be7228f1.gif) <br>`particle_simulator`| ![heatconv](https://user-images.githubusercontent.com/32848391/57455107-b200af80-726a-11e9-897d-9c7bcb9854ac.gif) <br>`heatconv` |![elastodynamics](https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif) <br>`elastodynamics`  | ![navier-stokes_lshape](https://user-images.githubusercontent.com/32848391/56671156-6bc91f00-66b4-11e9-8c58-e6b71e2ad1d0.gif)<br>`stokes_lshape`|
 
-## 📜 References
+## 📜  References
 
 - M. Musy, G. Dalmasso, J. Sharpe and N. Sime, "`vtkplotter`*: plotting in FEniCS with python*", ([link](https://github.com/marcomusy/vtkplotter/blob/master/docs/fenics_poster.pdf)).
 Poster at the [FEniCS'2019](https://fenicsproject.org/fenics19/) Conference,

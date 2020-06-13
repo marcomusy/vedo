@@ -59,7 +59,7 @@ __all__ = [
 ]
 
 
-def delaunay2D(plist, mode='xy', tol=None):
+def delaunay2D(plist, mode='scipy', tol=None):
     """
     Create a mesh from points in the XY plane.
     If `mode='fit'` then the filter computes a best fitting
@@ -67,18 +67,29 @@ def delaunay2D(plist, mode='xy', tol=None):
 
     |delaunay2d| |delaunay2d.py|_
     """
+    plist = np.ascontiguousarray(plist)
+
+    if mode == 'scipy':
+        try:
+            from scipy.spatial import Delaunay as scipy_Delaunay
+            tri = scipy_Delaunay(plist[:, 0:2])
+            return Mesh([plist, tri.simplices])
+
+        except:
+            mode='xy'
+
     pd = vtk.vtkPolyData()
     vpts = vtk.vtkPoints()
-    plist = np.ascontiguousarray(plist)
-    if plist.shape[1] == 2: # make it 3d
-        plist = np.c_[plist, np.zeros(len(plist))]
-
     vpts.SetData(numpy_to_vtk(np.ascontiguousarray(plist), deep=True))
     pd.SetPoints(vpts)
+
+    if plist.shape[1] == 2: # make it 3d
+        plist = np.c_[plist, np.zeros(len(plist))]
     delny = vtk.vtkDelaunay2D()
     delny.SetInputData(pd)
     if tol:
         delny.SetTolerance(tol)
+
     if mode=='fit':
         delny.SetProjectionPlaneMode(vtk.VTK_BEST_FITTING_PLANE)
     delny.Update()

@@ -838,16 +838,14 @@ def buildAxes(obj=None,
     """
     ncolls = len(settings.collectable_actors)
     if c is None:  # automatic black or white
-        c = (0.9, 0.9, 0.9)
-        bgcol = (0,0,0)
+        c = (0.1, 0.1, 0.1)
         plt = settings.plotter_instance
         if plt and plt.renderer:
             bgcol = plt.renderer.GetBackground()
         else:
-            if isinstance(obj, Mesh):
-                bgcol = obj.color()
-        if np.sum(bgcol) > 1.5:
-            c = (0.1, 0.1, 0.1)
+            bgcol = (1,1,1)
+        if np.sum(bgcol) < 1.5:
+            c = (0.9, 0.9, 0.9)
     else:
         c = getColor(c)
 

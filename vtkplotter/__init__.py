@@ -11,6 +11,7 @@ analysis and animation of 3D objects and point clouds based on VTK.
     - `examples/basic <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic>`_
     - `examples/advanced <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced>`_
     - `examples/volumetric <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric>`_
+    - `examples/tetmesh <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/tetmesh>`_
     - `examples/simulations <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations>`_
     - `examples/pyplot <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot>`_
     - `examples/others <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other>`_
@@ -19,21 +20,21 @@ analysis and animation of 3D objects and point clouds based on VTK.
 """
 from __future__ import print_function
 
-__author__ = "Marco Musy"
-__license__ = "MIT"
+__author__     = "Marco Musy"
+__license__    = "MIT"
 __maintainer__ = "M. Musy, G. Dalmasso"
-__email__ = "marco.musy@embl.es"
-__status__ = "dev"
-__website__ = "https://github.com/marcomusy/vtkplotter"
+__email__      = "marco.musy@embl.es"
+__status__     = "dev"
+__website__    = "https://github.com/marcomusy/vtkplotter"
 
 from vtkplotter.version import _version as __version__
-from vtkplotter.animation import Animation
 from vtkplotter.plotter import *
 from vtkplotter.analysis import *
 from vtkplotter.shapes import *
 from vtkplotter.vtkio import *
 
-from vtkplotter.base import ActorBase
+from vtkplotter.base import BaseActor, BaseGrid
+from vtkplotter.ugrid import UGrid
 from vtkplotter.assembly import Assembly
 from vtkplotter.mesh import Mesh, merge
 from vtkplotter.picture import Picture

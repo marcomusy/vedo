@@ -2148,11 +2148,13 @@ class Text(Mesh):
     :param list pos: position coordinates in 3D space
     :param float s: size of text.
     :param float depth: text thickness.
-    :param bool,float italic: italic font type (can be a +-`float` too).
+    :param bool,float italic: italic font type (can be a signed float too).
     :param str justify: text justification
         (bottom-left, bottom-right, top-left, top-right, centered).
 
-    :param bool : render strings like 3.7 10^9 in with sub and superscripts
+    :param bool useModifiers: render strings like 3.7 10^9 or H_2 O
+        with subscripts and superscripts.
+        The first space after symbols _ and ^ marks the end of the modifier.
 
     |markpoint| |markpoint.py|_
     """
@@ -2162,7 +2164,7 @@ class Text(Mesh):
                 s=1,
                 depth=0,
                 italic=False,
-                useSubScripts=True,
+                useModifiers=True,
                 justify="bottom-left",
                 c=None,
                 alpha=1,
@@ -2203,9 +2205,11 @@ class Text(Mesh):
                 kpoly = tf.GetOutput()
             return kpoly, kpoly.GetBounds()[1]
 
-        if settings.allowSubScripts and useSubScripts and str(txt):
+        txt = str(txt)
 
-            sn = str(txt).replace("**","^")
+        if settings.useModifiersInText and useModifiers and len(txt)>2 and ' ' in txt:
+
+            sn = txt.replace("**","^")
             sn = sn.replace("e+0","^. 10^").replace("e-0","^. 10^-")
             sn = sn.replace("E+0","^. 10^").replace("E-0","^. 10^-")
             sn = sn.replace("e+","^. 10^").replace("e-","^. 10^-")
@@ -2253,7 +2257,7 @@ class Text(Mesh):
                 tpoly = polyapp.GetOutput()
 
         else:
-            tpoly = _mktxt(str(txt))[0]
+            tpoly = _mktxt(txt)[0]
 
 
         bb = tpoly.GetBounds()

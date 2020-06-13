@@ -5,9 +5,8 @@ import vtkplotter.colors as colors
 import vtkplotter.docs as docs
 import vtkplotter.utils as utils
 from vtk.util.numpy_support import numpy_to_vtk
-from vtkplotter.base import ActorBase
 from vtkplotter.mesh import Mesh
-
+from vtkplotter.base import BaseGrid
 __doc__ = (
     """
 Submodule extending the ``vtkVolume`` object functionality.
@@ -19,7 +18,7 @@ __all__ = ["Volume"]
 
 
 ##########################################################################
-class Volume(vtk.vtkVolume, ActorBase):
+class Volume(vtk.vtkVolume, BaseGrid):
     """Derived class of ``vtkVolume``.
     Can be initialized with a numpy object, a ``vtkImageData``
     or a list of 2D bmp files.
@@ -61,7 +60,7 @@ class Volume(vtk.vtkVolume, ActorBase):
                  ):
 
         vtk.vtkVolume.__init__(self)
-        ActorBase.__init__(self)
+        BaseGrid.__init__(self)
 
         inputtype = str(type(inputobj))
         #colors.printc('Volume inputtype', inputtype)
@@ -168,7 +167,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         if spacing is not None:
             img.SetSpacing(spacing)
 
-        self._imagedata = img
+        self._data = img
         self._mapper.SetInputData(img)
         self.SetMapper(self._mapper)
         self.mode(mode).color(c).alpha(alpha).alphaGradient(alphaGradient)
@@ -183,7 +182,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         self._alphaUnit = alphaUnit
 
     def _update(self, img):
-        self._imagedata = img
+        self._data = img
         self._mapper.SetInputData(img)
         self._mapper.Modified()
         return self
@@ -215,12 +214,16 @@ class Volume(vtk.vtkVolume, ActorBase):
     def clone(self):
         """Return a clone copy of the Volume."""
         newimg = vtk.vtkImageData()
-        newimg.CopyStructure(self._imagedata)
-        newimg.CopyAttributes(self._imagedata)
+        newimg.CopyStructure(self._data)
+        newimg.CopyAttributes(self._data)
         newvol = Volume(newimg)
         prop = vtk.vtkVolumeProperty()
         prop.DeepCopy(self.GetProperty())
         newvol.SetProperty(prop)
+        newvol.SetOrigin(self.GetOrigin())
+        newvol.SetScale(self.GetScale())
+        newvol.SetOrientation(self.GetOrientation())
+        newvol.SetPosition(self.GetPosition())
         return newvol
 
     def jittering(self, status=None):
@@ -235,8 +238,8 @@ class Volume(vtk.vtkVolume, ActorBase):
         return None
 
     def imagedata(self):
-        """Return the underlying ``vtkImagaData`` object."""
-        return self._imagedata
+        """Return the underlying vtkImagaData object."""
+        return self._data
 
     def getDataArray(self):
         """Get read-write access to voxels of a Volume object as a numpy array.
@@ -250,46 +253,46 @@ class Volume(vtk.vtkVolume, ActorBase):
         when all your modifications are completed.
         """
         from vtk.util.numpy_support import vtk_to_numpy
-        narray_shape = tuple(reversed(self._imagedata.GetDimensions()))
-        narray = vtk_to_numpy(self._imagedata.GetPointData().GetScalars()).reshape(narray_shape)
+        narray_shape = tuple(reversed(self._data.GetDimensions()))
+        narray = vtk_to_numpy(self._data.GetPointData().GetScalars()).reshape(narray_shape)
         narray = np.transpose(narray, axes=[2, 1, 0])
         return narray
 
     def dimensions(self):
         """Return the nr. of voxels in the 3 dimensions."""
-        return self._imagedata.GetDimensions()
+        return self._data.GetDimensions()
 
     def scalarRange(self):
         """Return the range of the scalar values."""
-        return np.array(self._imagedata.GetScalarRange())
+        return np.array(self._data.GetScalarRange())
 
     def spacing(self, s=None):
         """Set/get the voxels size in the 3 dimensions."""
         if s is not None:
-            self._imagedata.SetSpacing(s)
+            self._data.SetSpacing(s)
             return self
         else:
-            return np.array(self._imagedata.GetSpacing())
+            return np.array(self._data.GetSpacing())
 
     def origin(self, s=None):                                ### superseedes base.origin()
         """Set/get the origin of the volumetric dataset.""" ### DIFFERENT from base.origin()!
         if s is not None:
-            self._imagedata.SetOrigin(s)
+            self._data.SetOrigin(s)
             return self
         else:
-            return np.array(self._imagedata.GetOrigin())
+            return np.array(self._data.GetOrigin())
 
     def center(self, center=None):
         """Set/get the volume coordinates of its center.
         Position is reset to (0,0,0)."""
         if center is not None:
-            cn = self._imagedata.GetCenter()
-            self._imagedata.SetOrigin(-np.array(cn)/2)
-            self._update(self._imagedata)
+            cn = self._data.GetCenter()
+            self._data.SetOrigin(-np.array(cn)/2)
+            self._update(self._data)
             self.pos(0,0,0)
             return self
         else:
-            return np.array(self._imagedata.GetCenter())
+            return np.array(self._data.GetCenter())
 
     def permuteAxes(self, x, y ,z):
         """Reorder the axes of the Volume by specifying
@@ -322,84 +325,84 @@ class Volume(vtk.vtkVolume, ActorBase):
         return self._update(rsp.GetOutput())
 
 
-    def color(self, col):
-        """Assign a color or a set of colors to a volume along the range of the scalar value.
-        A single constant color can also be assigned.
-        Any matplotlib color map name is also accepted, e.g. ``volume.color('jet')``.
+    # def color(self, col):
+    #     """Assign a color or a set of colors to a volume along the range of the scalar value.
+    #     A single constant color can also be assigned.
+    #     Any matplotlib color map name is also accepted, e.g. ``volume.color('jet')``.
 
-        E.g.: say that your voxel scalar runs from -3 to 6,
-        and you want -3 to show red and 1.5 violet and 6 green, then just set:
+    #     E.g.: say that your voxel scalar runs from -3 to 6,
+    #     and you want -3 to show red and 1.5 violet and 6 green, then just set:
 
-        ``volume.color(['red', 'violet', 'green'])``
-        """
-        smin, smax = self._imagedata.GetScalarRange()
-        ctf = self.GetProperty().GetRGBTransferFunction()
-        ctf.RemoveAllPoints()
-        self._color = col
+    #     ``volume.color(['red', 'violet', 'green'])``
+    #     """
+    #     smin, smax = self._data.GetScalarRange()
+    #     ctf = self.GetProperty().GetRGBTransferFunction()
+    #     ctf.RemoveAllPoints()
+    #     self._color = col
 
-        if utils.isSequence(col):
-            for i, ci in enumerate(col):
-                r, g, b = colors.getColor(ci)
-                x = smin + (smax - smin) * i / (len(col) - 1)
-                ctf.AddRGBPoint(x, r, g, b)
-                #colors.printc('\tcolor at', round(x, 1),
-                #              '\tset to', colors.getColorName((r, g, b)), c='w', bold=0)
-        elif isinstance(col, str):
-            if col in colors.colors.keys() or col in colors.color_nicks.keys():
-                r, g, b = colors.getColor(col)
-                ctf.AddRGBPoint(smin, r,g,b) # constant color
-                ctf.AddRGBPoint(smax, r,g,b)
-            elif colors._mapscales:
-                for x in np.linspace(smin, smax, num=64, endpoint=True):
-                    r,g,b = colors.colorMap(x, name=col, vmin=smin, vmax=smax)
-                    ctf.AddRGBPoint(x, r, g, b)
-        elif isinstance(col, int):
-            r, g, b = colors.getColor(col)
-            ctf.AddRGBPoint(smin, r,g,b) # constant color
-            ctf.AddRGBPoint(smax, r,g,b)
-        else:
-            colors.printc("volume.color(): unknown input type:", col, c=1)
-        return self
+    #     if utils.isSequence(col):
+    #         for i, ci in enumerate(col):
+    #             r, g, b = colors.getColor(ci)
+    #             x = smin + (smax - smin) * i / (len(col) - 1)
+    #             ctf.AddRGBPoint(x, r, g, b)
+    #             #colors.printc('\tcolor at', round(x, 1),
+    #             #              '\tset to', colors.getColorName((r, g, b)), c='w', bold=0)
+    #     elif isinstance(col, str):
+    #         if col in colors.colors.keys() or col in colors.color_nicks.keys():
+    #             r, g, b = colors.getColor(col)
+    #             ctf.AddRGBPoint(smin, r,g,b) # constant color
+    #             ctf.AddRGBPoint(smax, r,g,b)
+    #         elif colors._mapscales:
+    #             for x in np.linspace(smin, smax, num=64, endpoint=True):
+    #                 r,g,b = colors.colorMap(x, name=col, vmin=smin, vmax=smax)
+    #                 ctf.AddRGBPoint(x, r, g, b)
+    #     elif isinstance(col, int):
+    #         r, g, b = colors.getColor(col)
+    #         ctf.AddRGBPoint(smin, r,g,b) # constant color
+    #         ctf.AddRGBPoint(smax, r,g,b)
+    #     else:
+    #         colors.printc("volume.color(): unknown input type:", col, c=1)
+    #     return self
 
-    def alpha(self, alpha):
-        """Assign a set of tranparencies to a volume along the range of the scalar value.
-        A single constant value can also be assigned.
+    # def alpha(self, alpha):
+    #     """Assign a set of tranparencies to a volume along the range of the scalar value.
+    #     A single constant value can also be assigned.
 
-        E.g.: say alpha=(0.0, 0.3, 0.9, 1) and the scalar range goes from -10 to 150.
-        Then all voxels with a value close to -10 will be completely transparent, voxels at 1/4
-        of the range will get an alpha equal to 0.3 and voxels with value close to 150
-        will be completely opaque.
+    #     E.g.: say alpha=(0.0, 0.3, 0.9, 1) and the scalar range goes from -10 to 150.
+    #     Then all voxels with a value close to -10 will be completely transparent, voxels at 1/4
+    #     of the range will get an alpha equal to 0.3 and voxels with value close to 150
+    #     will be completely opaque.
 
-        As a second option one can set explicit (x, alpha_x) pairs to define the transfer function.
-        E.g.: say alpha=[(-5, 0), (35, 0.4) (123,0.9)] and the scalar range goes from -10 to 150.
-        Then all voxels below -5 will be completely transparent, voxels with a scalar value of 35
-        will get an opacity of 40% and above 123 alpha is set to 90%.
-        """
-        smin, smax = self._imagedata.GetScalarRange()
-        otf = self.GetProperty().GetScalarOpacity()
-        otf.RemoveAllPoints()
-        self._alpha = alpha
+    #     As a second option one can set explicit (x, alpha_x) pairs to define the transfer function.
+    #     E.g.: say alpha=[(-5, 0), (35, 0.4) (123,0.9)] and the scalar range goes from -10 to 150.
+    #     Then all voxels below -5 will be completely transparent, voxels with a scalar value of 35
+    #     will get an opacity of 40% and above 123 alpha is set to 90%.
+    #     """
+    #     smin, smax = self._data.GetScalarRange()
+    #     otf = self.GetProperty().GetScalarOpacity()
+    #     otf.RemoveAllPoints()
+    #     self._alpha = alpha
 
-        if utils.isSequence(alpha):
-            alpha = np.array(alpha)
-            if len(alpha.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
-                for i, al in enumerate(alpha):
-                    xalpha = smin + (smax - smin) * i / (len(alpha) - 1)
-                    # Create transfer mapping scalar value to opacity
-                    otf.AddPoint(xalpha, al)
-            elif len(alpha.shape)==2: # user passing [(x0,alpha0), ...]
-                otf.AddPoint(smin, alpha[0][1])
-                for xalpha, al in alpha:
-                    # Create transfer mapping scalar value to opacity
-                    otf.AddPoint(xalpha, al)
-                otf.AddPoint(smax, alpha[-1][1])
-            #colors.printc("alpha at", round(xalpha, 1), "\tset to", al)
+    #     if utils.isSequence(alpha):
+    #         alpha = np.array(alpha)
+    #         if len(alpha.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
+    #             for i, al in enumerate(alpha):
+    #                 xalpha = smin + (smax - smin) * i / (len(alpha) - 1)
+    #                 # Create transfer mapping scalar value to opacity
+    #                 otf.AddPoint(xalpha, al)
+    #         elif len(alpha.shape)==2: # user passing [(x0,alpha0), ...]
+    #             otf.AddPoint(smin, alpha[0][1])
+    #             for xalpha, al in alpha:
+    #                 # Create transfer mapping scalar value to opacity
+    #                 otf.AddPoint(xalpha, al)
+    #             otf.AddPoint(smax, alpha[-1][1])
+    #         #colors.printc("alpha at", round(xalpha, 1), "\tset to", al)
 
-        else:
-            otf.AddPoint(smin, alpha) # constant alpha
-            otf.AddPoint(smax, alpha)
+    #     else:
+    #         otf.AddPoint(smin, alpha) # constant alpha
+    #         otf.AddPoint(smax, alpha)
 
-        return self
+    #     return self
 
     def alphaGradient(self, alphaGrad):
         """
@@ -423,7 +426,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         else:
             volumeProperty.DisableGradientOpacityOff()
 
-        #smin, smax = self._imagedata.GetScalarRange()
+        #smin, smax = self._data.GetScalarRange()
         smin, smax = 0, 255
         gotf = volumeProperty.GetGradientOpacity()
         if utils.isSequence(alphaGrad):
@@ -445,20 +448,20 @@ class Volume(vtk.vtkVolume, ActorBase):
             gotf.AddPoint(smax, alphaGrad)
         return self
 
-    def alphaUnit(self, u=None):
-        """Defines light attenuation per unit length. Default is 1.
-        The larger the unit length, the further light has to travel to attenuate the same amount.
+    # def alphaUnit(self, u=None):
+    #     """Defines light attenuation per unit length. Default is 1.
+    #     The larger the unit length, the further light has to travel to attenuate the same amount.
 
-        E.g., if you set the unit distance to 0, you will get full opacity.
-        It means that when light travels 0 distance it's already attenuated a finite amount.
-        Thus, any finite distance should attenuate all light.
-        The larger you make the unit distance, the more transparent the rendering becomes.
-        """
-        if u is None:
-            return self.GetProperty().GetScalarOpacityUnitDistance()
-        else:
-            self.GetProperty().SetScalarOpacityUnitDistance(u)
-            return self
+    #     E.g., if you set the unit distance to 0, you will get full opacity.
+    #     It means that when light travels 0 distance it's already attenuated a finite amount.
+    #     Thus, any finite distance should attenuate all light.
+    #     The larger you make the unit distance, the more transparent the rendering becomes.
+    #     """
+    #     if u is None:
+    #         return self.GetProperty().GetScalarOpacityUnitDistance()
+    #     else:
+    #         self.GetProperty().SetScalarOpacityUnitDistance(u)
+    #         return self
 
     def interpolation(self, itype):
         """
@@ -592,10 +595,10 @@ class Volume(vtk.vtkVolume, ActorBase):
         rsz.SetInputData(self.imagedata())
         rsz.SetOutputDimensions(newdims)
         rsz.Update()
-        self._imagedata = rsz.GetOutput()
+        self._data = rsz.GetOutput()
         new_spac = old_spac * old_dims/newdims  # keep aspect ratio
-        self._imagedata.SetSpacing(new_spac)
-        return self._update(self._imagedata)
+        self._data.SetSpacing(new_spac)
+        return self._update(self._data)
 
     def normalize(self):
         """Normalize that scalar components for each point."""
@@ -675,7 +678,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         |slicePlane| |slicePlane.py|_
         """
         reslice = vtk.vtkImageReslice()
-        reslice.SetInputData(self._imagedata)
+        reslice.SetInputData(self._data)
         reslice.SetOutputDimensionality(2)
         newaxis = utils.versor(normal)
         pos = np.array(origin)
@@ -698,98 +701,6 @@ class Volume(vtk.vtkVolume, ActorBase):
         msh.SetPosition(pos)
         return msh
 
-    def isosurface(self, threshold=True, connectivity=False):
-        """Return an ``Mesh`` isosurface extracted from the ``Volume`` object.
-
-        :param float,list threshold: value or list of values to draw the isosurface(s)
-        :param bool connectivity: if True only keeps the largest portion of the polydata
-
-        |isosurfaces| |isosurfaces.py|_
-        """
-        scrange = self._imagedata.GetScalarRange()
-        cf = vtk.vtkContourFilter()
-        cf.SetInputData(self._imagedata)
-        cf.UseScalarTreeOn()
-        cf.ComputeScalarsOn()
-        cf.ComputeNormalsOn()
-
-        if utils.isSequence(threshold):
-            cf.SetNumberOfContours(len(threshold))
-            for i, t in enumerate(threshold):
-                cf.SetValue(i, t)
-            cf.Update()
-        else:
-            if threshold is True:
-                threshold = (2 * scrange[0] + scrange[1]) / 3.0
-                #print('automatic threshold set to ' + utils.precision(threshold, 3), end=' ')
-                #print('in [' + utils.precision(scrange[0], 3) + ', ' + utils.precision(scrange[1], 3)+']')
-            cf.SetValue(0, threshold)
-            cf.Update()
-
-        clp = vtk.vtkCleanPolyData()
-        clp.SetInputConnection(cf.GetOutputPort())
-        clp.Update()
-        poly = clp.GetOutput()
-
-        if connectivity:
-            conn = vtk.vtkPolyDataConnectivityFilter()
-            conn.SetExtractionModeToLargestRegion()
-            conn.SetInputData(poly)
-            conn.Update()
-            poly = conn.GetOutput()
-
-        a = Mesh(poly, c=None).phong()
-        a._mapper.SetScalarRange(scrange[0], scrange[1])
-        return a
-
-
-    def legosurface(self, vmin=None, vmax=None, invert=False, cmap='afmhot_r'):
-        """
-        Represent a ``Volume`` as lego blocks (voxels).
-        By default colors correspond to the volume's scalar.
-        Returns an ``Mesh``.
-
-        :param float vmin: the lower threshold, voxels below this value are not shown.
-        :param float vmax: the upper threshold, voxels above this value are not shown.
-        :param str cmap: color mapping of the scalar associated to the voxels.
-
-        |legosurface| |legosurface.py|_
-        """
-        dataset = vtk.vtkImplicitDataSet()
-        dataset.SetDataSet(self._imagedata)
-        window = vtk.vtkImplicitWindowFunction()
-        window.SetImplicitFunction(dataset)
-
-        srng = list(self._imagedata.GetScalarRange())
-        if vmin is not None:
-            srng[0] = vmin
-        if vmax is not None:
-            srng[1] = vmax
-        tol = 0.00001*(srng[1]-srng[0])
-        srng[0] -= tol
-        srng[1] += tol
-        window.SetWindowRange(srng)
-
-        extract = vtk.vtkExtractGeometry()
-        extract.SetInputData(self._imagedata)
-        extract.SetImplicitFunction(window)
-        extract.SetExtractInside(invert)
-        extract.ExtractBoundaryCellsOff()
-        extract.Update()
-
-        gf = vtk.vtkGeometryFilter()
-        gf.SetInputData(extract.GetOutput())
-        gf.Update()
-
-        a = Mesh(gf.GetOutput()).lw(0.1).flat()
-        scalars = a.getPointArray()
-        if scalars is None:
-            print("Error in legosurface(): no scalars found!")
-            return a
-        a.pointColors(scalars, vmin=srng[0], vmax=srng[1], cmap=cmap)
-        a.mapPointsToCells()
-        return a
-
 
     def operation(self, operation, volume2=None):
         """
@@ -804,7 +715,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         |volumeOperations| |volumeOperations.py|_
         """
         op = operation.lower()
-        image1 = self._imagedata
+        image1 = self._data
 
         if op in ["median"]:
             mf = vtk.vtkImageMedian3D()
@@ -819,7 +730,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         elif op in ["dot", "dotproduct"]:
             mf = vtk.vtkImageDotProduct()
             mf.SetInput1Data(image1)
-            mf.SetInput2Data(volume2._imagedata)
+            mf.SetInput2Data(volume2._data)
             mf.Update()
             return Volume(mf.GetOutput())
         elif op in ["grad", "gradient"]:
@@ -850,7 +761,7 @@ class Volume(vtk.vtkVolume, ActorBase):
             mat.SetConstantK(K)
             mat.SetConstantC(K)
         elif volume2 is not None:  # assume image2 is a constant value
-            mat.SetInput2Data(volume2._imagedata)
+            mat.SetInput2Data(volume2._data)
 
         if op in ["+", "add", "plus"]:
             if K:
@@ -932,7 +843,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         """
         #https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
         fft = vtk.vtkImageFFT()
-        fft.SetInputData(self._imagedata)
+        fft.SetInputData(self._data)
         fft.Update()
         out = fft.GetOutput()
 
@@ -1005,7 +916,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         See example script: |erode_dilate.py|_
         """
         ver = vtk.vtkImageContinuousErode3D()
-        ver.SetInputData(self._imagedata)
+        ver.SetInputData(self._data)
         ver.SetKernelSize(neighbours[0], neighbours[1], neighbours[2])
         ver.Update()
         return self._update(ver.GetOutput())
@@ -1018,7 +929,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         See example script: |erode_dilate.py|_
         """
         ver = vtk.vtkImageContinuousDilate3D()
-        ver.SetInputData(self._imagedata)
+        ver.SetInputData(self._data)
         ver.SetKernelSize(neighbours[0], neighbours[1], neighbours[2])
         ver.Update()
         return self._update(ver.GetOutput())
@@ -1061,7 +972,7 @@ class Volume(vtk.vtkVolume, ActorBase):
         See example script: |euclDist.py|_
         """
         euv = vtk.vtkImageEuclideanDistance()
-        euv.SetInputData(self._imagedata)
+        euv.SetInputData(self._data)
         euv.SetConsiderAnisotropy(anisotropy)
         if maxDistance is not None:
             euv.InitializeOn()
@@ -1079,8 +990,8 @@ class Volume(vtk.vtkVolume, ActorBase):
         The second input is considered the correlation kernel.
         """
         imc = vtk.vtkImageCorrelation()
-        imc.SetInput1Data(self._imagedata)
-        imc.SetInput2Data(vol2._imagedata)
+        imc.SetInput1Data(self._data)
+        imc.SetInput2Data(vol2._data)
         imc.SetDimensionality(dim)
         imc.Update()
         return Volume(imc.GetOutput())

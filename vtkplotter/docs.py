@@ -120,8 +120,9 @@ google-chrome --enable-webgl --use-gl=desktop
 </html>
 """
 
-
+####################################################################################
 _defs = ""
+####################################################################################
 
 #_defs = """
 #
@@ -384,12 +385,12 @@ _defs = ""
 #    :target: cell_colony.py_
 #    :alt: cell_colony.py
 #
-#.. |mesh_smoothers.py| replace:: mesh_smoothers.py
-#.. _mesh_smoothers.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/mesh_smoothers.py
-#.. |mesh_smoothers| image:: https://user-images.githubusercontent.com/32848391/50738939-67e2c100-11d9-11e9-90cb-716ff3f03f67.jpg
+#.. |mesh_smoother1.py| replace:: mesh_smoother1.py
+#.. _mesh_smoother1.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/mesh_smoother1.py
+#.. |mesh_smoother1| image:: https://user-images.githubusercontent.com/32848391/50738939-67e2c100-11d9-11e9-90cb-716ff3f03f67.jpg
 #    :width: 300 px
-#    :target: mesh_smoothers.py_
-#    :alt: mesh_smoothers.py
+#    :target: mesh_smoother1.py_
+#    :alt: mesh_smoother1.py
 #
 #.. |moving_least_squares3D.py| replace:: moving_least_squares3D.py
 #.. _moving_least_squares3D.py: https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/moving_least_squares3D.py

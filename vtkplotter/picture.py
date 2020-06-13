@@ -7,7 +7,7 @@ import vtkplotter.docs as docs
 import vtkplotter.utils as utils
 import vtkplotter.settings as settings
 from vtk.util.numpy_support import numpy_to_vtk
-from vtkplotter.base import ActorBase
+from vtkplotter.base import Base3DProp
 
 __doc__ = (
     """
@@ -20,7 +20,7 @@ __all__ = ["Picture"]
 
 
 #################################################
-class Picture(vtk.vtkImageActor, ActorBase):
+class Picture(vtk.vtkImageActor, Base3DProp):
     """
     Derived class of ``vtkImageActor``. Used to represent 2D pictures.
     Can be instantiated with a path file name or with a numpy array.
@@ -29,7 +29,7 @@ class Picture(vtk.vtkImageActor, ActorBase):
     """
     def __init__(self, obj=None):
         vtk.vtkImageActor.__init__(self)
-        ActorBase.__init__(self)
+        Base3DProp.__init__(self)
 
         if utils.isSequence(obj) and len(obj):
             iac = vtk.vtkImageAppendComponents()
@@ -50,7 +50,7 @@ class Picture(vtk.vtkImageActor, ActorBase):
             img = obj
 
         elif isinstance(obj, str):
-            if ".png" in obj:
+            if   ".png" in obj:
                 picr = vtk.vtkPNGReader()
             elif ".jpg" in obj or ".jpeg" in obj:
                 picr = vtk.vtkJPEGReader()
@@ -60,7 +60,6 @@ class Picture(vtk.vtkImageActor, ActorBase):
                 picr = vtk.vtkTIFFReader()
             else:
                 colors.printc("Cannot understand picture format", obj, c=1)
-
             picr.SetFileName(obj)
             picr.Update()
             img = picr.GetOutput()
@@ -70,16 +69,16 @@ class Picture(vtk.vtkImageActor, ActorBase):
             img = vtk.vtkImageData()
             self.SetInputData(img)
 
-        self._imagedata = img
+        self._data = img
         self._mapper = self.GetMapper()
 
     def imagedata(self):
         """Return the underlying ``vtkImagaData`` object."""
-        return self._imagedata
+        return self._data
 
     def _update(self, data):
         """Overwrite the Picture data mesh with a new data."""
-        self._imagedata = data
+        self._data = data
         self._mapper.SetInputData(data)
         self._mapper.Modified()
         return self
@@ -214,8 +213,8 @@ class Picture(vtk.vtkImageActor, ActorBase):
         them according to the alpha values and/or the opacity setting for each input.
         """
         blf = vtk.vtkImageBlend()
-        blf.AddInputData(self._imagedata)
-        blf.AddInputData(pic._imagedata)
+        blf.AddInputData(self._data)
+        blf.AddInputData(pic._data)
         blf.SetOpacity(0, alpha1)
         blf.SetOpacity(1, alpha2)
         blf.SetBlendModeToNormal()
