@@ -1,0 +1,21 @@
+
+#To be placed in /usr/share/applications/
+#then right-click a file
+#choose Properties
+#choose Open With ... vedo
+
+[Desktop Entry]
+Type=Application
+Name=vedo
+GenericName=vedo
+Comment=Scientific 3D Viewer
+Comment[it]=Visualizzatore di modelli 3D in vari formati
+Exec=vedo %F
+Categories=Science;Graphics;3DGraphics;
+Icon=python
+Terminal=true
+StartupNotify=false
+MimeType=text/x-python;application/x-wavefront-obj;application/x-collada;
+X-AppStream-Ignore=True
+Keywords=browser;vtk;collada;
+

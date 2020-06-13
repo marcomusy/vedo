@@ -1,5 +1,5 @@
 
-from vtkplotter import Arc
+from vedo import Arc
 import numpy as np
 import vtk
 

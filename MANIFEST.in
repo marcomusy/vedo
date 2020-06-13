@@ -1,20 +1,20 @@
-include vtkplotter/*
-include vtkplotter/textures/*
-include vtkplotter/fonts/*
+include vedo/*
+include vedo/textures/*
+include vedo/fonts/*
 
-include vtkplotter/examples/*
-include vtkplotter/examples/advanced/*
-include vtkplotter/examples/basic/*
-include vtkplotter/examples/notebooks/*
+include vedo/examples/*
+include vedo/examples/advanced/*
+include vedo/examples/basic/*
+include vedo/examples/notebooks/*
 
-include vtkplotter/examples/other/*
-include vtkplotter/examples/other/dolfin/*
-include vtkplotter/examples/other/trimesh/*
+include vedo/examples/other/*
+include vedo/examples/other/dolfin/*
+include vedo/examples/other/trimesh/*
 
-include vtkplotter/examples/pyplot/*
-include vtkplotter/examples/simulations/*
-include vtkplotter/examples/volumetric/*
-include vtkplotter/examples/tetmesh/*
+include vedo/examples/pyplot/*
+include vedo/examples/simulations/*
+include vedo/examples/volumetric/*
+include vedo/examples/tetmesh/*
 
-include vtkplotter/examples/data/*
-include vtkplotter/examples/data/images/*
+include vedo/examples/data/*
+include vedo/examples/data/images/*

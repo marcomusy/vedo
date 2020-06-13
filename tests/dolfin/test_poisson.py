@@ -22,8 +22,8 @@ solve( dot(grad(w), grad(v))*dx == f*v*dx,  u, bc)
 
 f = r'-\nabla^{2} u=f'
 
-########################################################### vtkplotter
-from vtkplotter.dolfin import plot, Latex, clear, show
+########################################################### vedo
+from vedo.dolfin import plot, Latex, clear, show
 
 l = Latex(f, s=0.2, c='w').addPos(.6,.6,.1)
 

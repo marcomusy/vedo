@@ -1,12 +1,12 @@
 .. role:: raw-html-m2r(raw)
    :format: html
 
-.. image:: https://user-images.githubusercontent.com/32848391/52522718-50d83880-2c89-11e9-80ff-df1b5618a84a.png
+.. image:: https://user-images.githubusercontent.com/32848391/84578825-f1cc8b80-adc8-11ea-867b-a75a99f99a39.png
 
 :raw-html-m2r:`<br />`
 
-.. image:: https://pepy.tech/badge/vtkplotter
-   :target: https://pepy.tech/project/vtkplotter
+.. image:: https://pepy.tech/badge/vedo
+   :target: https://pepy.tech/project/vedo
    :alt: Downloads
 
 .. image:: https://img.shields.io/badge/license-MIT-blue.svg
@@ -14,7 +14,7 @@
    :alt: lics
 
 .. image:: https://img.shields.io/badge/python-2.7%7C3.6-brightgreen.svg
-   :target: https://pypi.org/project/vtkplotter
+   :target: https://pypi.org/project/vedo
    :alt: pythvers
 
 .. image:: https://img.shields.io/badge/docs%20by-gendocs-blue.svg
@@ -35,10 +35,8 @@ Philosophy
 ----------
 
 Inspired by the `vpython <https://vpython.org/>`_ *manifesto* "3D programming for ordinary mortals",
-*vtkplotter* makes it easy to work wth three-dimensional objects, create displays and animations
+*vedo* makes it easy to work wth three-dimensional objects, create displays and animations
 in just a few lines of code, even for those with less programming experience.
-
-Because life is short.
 
 
 Download and Install:
@@ -46,12 +44,12 @@ Download and Install:
 
 .. code-block:: bash
 
-   pip install -U vtkplotter
+   pip install -U vedo
 
-Check out the **Git repository** here: https://github.com/marcomusy/vtkplotter
+Check out the **Git repository** here: https://github.com/marcomusy/vedo
 
 *Windows-10 users* can manually place this file
-`vtkplotter.bat <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter.bat>`_
+`vedo.bat <https://github.com/marcomusy/vedo/blob/master/vedo.bat>`_
 on the desktop to *drag&drop* files to visualize.
 (Need to edit the path of their local Anaconda installation).
 
@@ -59,11 +57,8 @@ on the desktop to *drag&drop* files to visualize.
 Features:
 ---------
 
-Intuitive and straightforward API which can be combined with VTK seamlessly
-in a program, whilst mantaining access to the full range of VTK native classes.
-
-It includes a
-`large set of working examples <https://github.com/marcomusy/vtkplotter/tree/master/vtkplotter/examples>`_
+The module includes a
+`large set of working examples <https://github.com/marcomusy/vedo/tree/master/vedo/examples>`_
 for the all following functionalities:
 
 - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, XML, Neutral, GMSH, PCD (PointCloud), volumetric TIFF stacks, SLC, MHD, 2D images PNG, JPEG.
@@ -110,7 +105,7 @@ for the all following functionalities:
 - Support for `FEniCS/dolfin <https://fenicsproject.org/>`_ package.
 - Visualization of tensors.
 - Embed the 3D rendering in a jupyter notebook with the *K3D* backend.
-- Export a 3D scene and embed it into a `web page <https://vtkplotter.embl.es/examples/fenics_elasticity.html>`_.
+- Export a 3D scene and embed it into a `web page <https://vedo.embl.es/examples/fenics_elasticity.html>`_.
 - Interoperability with the `trimesh <https://trimsh.org/>`_ library.
 
 
@@ -121,16 +116,12 @@ In your python script, load a simple ``3DS`` file and display it:
 
 .. code-block:: python
 
-    from vtkplotter import show
+    from vedo import datadir, show
 
-    show('flamingo.3ds')
+    show(datadir+'flamingo.3ds')
 
 .. image:: https://user-images.githubusercontent.com/32848391/50738813-58af4380-11d8-11e9-84ce-53579c1dba65.png
    :alt: flam
-
-Allowed input objects to the ``show()`` command are: \ :raw-html-m2r:`<br>`
-``filename``, ``vtkPolyData``, ``vtkActor``,
-``vtkActor2D``, ``vtkImageActor``, ``vtkAssembly`` or ``vtkVolume``.
 
 
 Command-line interface
@@ -140,15 +131,15 @@ Visualize a mesh with:
 
 .. code-block:: bash
 
-    vtkplotter mesh.obj
+    vedo mesh.obj
     # valid formats: [vtk,vtu,vts,vtp,vtm,ply,obj,stl,3ds,dolfin-xml,neutral,gmsh,
-    #                 pcd,xyz,txt,byu,tif,off,slc,vti,mhd,dicom,dem,nrrd,bmp,png,jpg]
+    #                 pcd,xyz,txt,byu,tif,off,slc,vti,mhd,DICOM,dem,nrrd,bmp,png,jpg]
 
 Voxel-data (*mhd, vti, slc, tiff, dicom*) files can also be visualized with options `-g`, e.g.:
 
 .. code-block:: bash
 
-    vtkplotter -g examples/data/embryo.slc
+    vedo -g examples/data/embryo.slc
 
 .. image:: https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif
 
@@ -159,7 +150,7 @@ Use a slider to control isosurfacing of a volume:
 
 .. code-block:: bash
 
-    vtkplotter examples/data/head.vti
+    vedo examples/data/head.vti
 
 .. image:: https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif
 
@@ -167,7 +158,7 @@ Load and browse a sequence of meshes:
 
 .. code-block:: bash
 
-    vtkplotter -s examples/data/timecourse1d/*.vtk
+    vedo -s examples/data/2?0.vtk
 
 .. image:: https://user-images.githubusercontent.com/32848391/58336919-f7b1a080-7e44-11e9-9106-f574371093a8.gif
 
@@ -175,7 +166,7 @@ Visualize colorized voxels:
 
 .. code-block:: bash
 
-    vtkplotter --lego examples/data/embryo.tif
+    vedo --lego examples/data/embryo.tif
 
 .. image:: https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg
 
@@ -188,22 +179,22 @@ Run any of the available scripts from with:
 
 .. code-block:: bash
 
-    vtkplotter --list
-    vtkplotter -ir tube.py
+    vedo --list
+    vedo -ir tube.py
 
 
 More than 300 examples can be found in directories:
 
-- `examples/basic <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic>`_ ,
-- `examples/advanced <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced>`_ ,
-- `examples/volumetric <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric>`_,
-- `examples/simulations <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations>`_,
-- `examples/others <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other>`_.
+- `examples/basic <https://github.com/marcomusy/vedo/blob/master/vedo/examples/basic>`_ ,
+- `examples/advanced <https://github.com/marcomusy/vedo/blob/master/vedo/examples/advanced>`_ ,
+- `examples/volumetric <https://github.com/marcomusy/vedo/blob/master/vedo/examples/volumetric>`_,
+- `examples/simulations <https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations>`_,
+- `examples/others <https://github.com/marcomusy/vedo/blob/master/vedo/examples/other>`_.
 
 
 Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a
 large cloud of scattered points in space
-(`moving_least_squares2D.py <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/moving_least_squares2D.py>`_):
+(`moving_least_squares2D.py <https://github.com/marcomusy/vedo/blob/master/vedo/examples/advanced/moving_least_squares2D.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg
    :target: https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg
@@ -211,7 +202,7 @@ large cloud of scattered points in space
 
 
 Simulation of a gyroscope hanging from a spring
-(`gyroscope1.py <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/gyroscope1.py>`_):
+(`gyroscope1.py <https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/gyroscope1.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif
    :target: https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif
@@ -220,7 +211,7 @@ Simulation of a gyroscope hanging from a spring
 
 Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method.
 The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier
-(`tunnelling2.py <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/tunnelling2.py>`_):
+(`tunnelling2.py <https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/tunnelling2.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif
    :target: https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif
@@ -229,7 +220,7 @@ The animation shows the evolution of a particle in a box hitting a sinusoidal po
 
 
 Visualizing a Turing system of reaction-diffusion between two molecules
-(`turing.py <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/turing.py>`_):
+(`turing.py <https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/turing.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif
    :target: https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif
@@ -239,7 +230,7 @@ Visualizing a Turing system of reaction-diffusion between two molecules
 
 Support for the `FEniCS/dolfin <https://fenicsproject.org/>`_ platform for visualization of PDE and
 finite element solutions
-(`see here <https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin>`_.
+(`see here <https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/dolfin>`_.
 
 .. image:: https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif
 
@@ -248,11 +239,11 @@ finite element solutions
 Mesh format conversion
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The command ``vtkplotter-convert`` can be used to convert multiple files from a format to a different one:
+The command ``vedo-convert`` can be used to convert multiple files from a format to a different one:
 
 .. code-block:: bash
 
-   Usage: vtkplotter-convert [-h] [-to] [files [files ...]]
+   Usage: vedo-convert [-h] [-to] [files [files ...]]
    allowed targets formats: [vtk, vtp, vtu, vts, ply, stl, byu, xml]
 
-   Example: > vtkplotter-convert myfile.vtk -to ply
+   Example: > vedo-convert myfile.vtk -to ply

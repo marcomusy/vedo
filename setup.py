@@ -1,7 +1,7 @@
 from setuptools import setup
 
 try:
-    VERSIONFILE = "vtkplotter/version.py"
+    VERSIONFILE = "vedo/version.py"
     verstrline = open(VERSIONFILE, "rt").read()
     verstr = verstrline.split('=')[1].replace('\n','').replace("'","")
 except:
@@ -9,20 +9,20 @@ except:
 
 ##############################################################
 setup(
-    name='vtkplotter',
+    name='vedo',
     version=verstr,
-    packages=['vtkplotter'],
-    scripts=['bin/vtkplotter', 'bin/vtkplotter-convert'],
+    packages=['vedo'],
+    scripts=['bin/vedo', 'bin/vedo-convert'],
     install_requires=['vtk'],
     description='''A python module for scientific visualization,
     analysis and animation of 3D objects and point clouds based on VTK.''',
     long_description="""A python module for scientific visualization,
     analysis and animation of 3D objects and point clouds based on VTK.
-    Check out https://vtkplotter.embl.es for documentation.""",
+    Check out https://vedo.embl.es for documentation.""",
     author='Marco Musy',
     author_email='marco.musy@gmail.com',
     license='MIT',
-    url='https://github.com/marcomusy/vtkplotter',
+    url='https://github.com/marcomusy/vedo',
     keywords='vtk 3D visualization mesh numpy',
     classifiers=['Intended Audience :: Science/Research',
                 'Intended Audience :: Education',
@@ -47,42 +47,42 @@ setup(
 
 
 ##########################################################################
-# sudo -H pip install -U git+https://github.com/marcomusy/vtkplotter.git
+# sudo -H pip install -U git+https://github.com/marcomusy/vedo.git
 # # check examples
-# change version in vtkplotter/version.py
+# change version in vedo/version.py
 
-# cd ~/Projects/vtkplotter/
+# cd ~/Projects/vedo/
 # remove trailing spaces
 # pip install .
 
-# cd ~/Projects/vtkplotter/examples/
+# cd ~/Projects/vedo/examples/
 # ./run_all.sh
-# cd ~/Projects/vtkplotter/
+# cd ~/Projects/vedo/
 # python prove/test_filetypes.py
 
-# cd ~/Projects/vtkplotter/tests/common
+# cd ~/Projects/vedo/tests/common
 # ./run_all.sh
 # check also scripts in docs
 
-# check vtkplotter-convert:
-# cd ~/Projects/vtkplotter
-# vtkplotter-convert data/290.vtk -to ply; vtkplotter data/290.ply
+# check vedo-convert:
+# cd ~/Projects/vedo
+# vedo-convert data/290.vtk -to ply; vedo data/290.ply
 
 # check on python2 the same stuff is ok
-# cd ~/Projects/vtkplotter/
+# cd ~/Projects/vedo/
 # sudo -H pip install . -U
-# python ~/Projects/vtkplotter/examples/tutorial.py
+# python ~/Projects/vedo/examples/tutorial.py
 # python ~/Dropbox/documents/ExamenesMedicos/RESONANCIA.py
 
 # check notebooks:
-# cd ~/Projects/vtkplotter/notebooks/
+# cd ~/Projects/vedo/notebooks/
 # jupyter notebook > /dev/null 2>&1
 
-# cd ~/Projects/vtkplotter/
+# cd ~/Projects/vedo/
 # rm -rf examples/*/.ipynb_checkpoints examples/*/*/.ipynb_checkpoints .ipynb_checkpoints/
 # rm -rf examples/other/dolfin/navier_stokes_cylinder/ examples/other/dolfin/shuttle.xml
 # rm examples/other/trimesh/featuretype.STL examples/other/trimesh/machinist.XAML
-# rm examples/other/scene.npy examples/other/timecourse1d.npy vtkplotter/data/290.ply
+# rm examples/other/scene.npy examples/other/timecourse1d.npy vedo/data/290.ply
 # rm examples/other/embryo.html examples/other/embryo.x3d notebooks/volumetric/.ipynb_checkpoints/
 
 # git status
@@ -93,7 +93,7 @@ setup(
 # (sudo apt install twine)
 # (python -m pip install --user --upgrade twine)
 # python setup.py sdist bdist_wheel
-# twine upload dist/vtkplotter-?.?.?.tar.gz -r pypi
+# twine upload dist/vedo-?.?.?.tar.gz -r pypi
 
 # make release
 # release examples
@@ -111,10 +111,10 @@ setup(
 # check if dolfin shows up
 #
 # mount_staging
-# cp -r build/html/* ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/
+# cp -r build/html/* ~/Projects/StagingServer/var/www/html/vedo.embl.es/
 # comment out defs in docs.py
 
-# version bump vtkplotter/version.py
+# version bump vedo/version.py
 
 ## to generate gif: ezgif.com
 
@@ -124,10 +124,10 @@ setup(
 # To copy files over:
 # sudo docker ps   # to know the container name
 # cd Projects
-# sudo docker cp  vtkplotter admiring_panini:/home/fenics/shared/
-# sudo chmod -R 755 vtkplotter*/
+# sudo docker cp  vedo admiring_panini:/home/fenics/shared/
+# sudo chmod -R 755 vedo*/
 #
-# cd vtkplotter
+# cd vedo
 # sudo pip install .
 # sudo apt update -y
 # sudo apt upgrade -y
@@ -138,9 +138,9 @@ setup(
 # docker run -ti -v $(pwd):/home/musy/my-project/shared --name fenics-container quay.io/fenicsproject/dolfinx:dev-env-real
 #
 #    cd
-#    pip3 install vtkplotter # OR
-#    git clone https://github.com/marcomusy/vtkplotter.git
-#    cd vtkplotter
+#    pip3 install vedo # OR
+#    git clone https://github.com/marcomusy/vedo.git
+#    cd vedo
 #    pip3 -v install . --user
 #
 #    cd

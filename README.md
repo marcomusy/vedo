@@ -1,12 +1,15 @@
-![vlogo](https://user-images.githubusercontent.com/32848391/52522718-50d83880-2c89-11e9-80ff-df1b5618a84a.png)
+
+![vlogo](https://user-images.githubusercontent.com/32848391/84578825-f1cc8b80-adc8-11ea-867b-a75a99f99a39.png)
+
+[former `vtkplotter`]
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/e8c5f1f9afb6433a9cdf4edb5499bd46)](https://app.codacy.com/app/marcomusy/vtkplotter?utm_source=github.com&utm_medium=referral&utm_content=marcomusy/vtkplotter&utm_campaign=Badge_Grade_Dashboard)
 [![Downloads](https://pepy.tech/badge/vtkplotter)](https://pepy.tech/project/vtkplotter)
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vtkplotter/badges/version.svg)](https://anaconda.org/conda-forge/vtkplotter)
-[![Ubuntu 20.04 package](https://repology.org/badge/version-for-repo/ubuntu_20_04/vtkplotter.svg)](https://repology.org/project/vtkplotter/versions)
+[![Ubuntu 20.04 package](https://repology.org/badge/version-for-repo/ubuntu_20_04/vedo.svg)](https://repology.org/project/vedo/versions)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2561402.svg)](https://doi.org/10.5281/zenodo.2561402)
-[![CircleCI](https://circleci.com/gh/marcomusy/vtkplotter.svg?style=svg)](https://circleci.com/gh/marcomusy/vtkplotter)
+[![CircleCI](https://circleci.com/gh/marcomusy/vtkplotter.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)
 
 A lightweight pure python module for scientific analysis and visualization of 3D objects
 and *point clouds* based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/).<br>
@@ -17,35 +20,37 @@ and *point clouds* based on [VTK](https://www.vtk.org/) and [numpy](http://www.n
 
 ## ✨  Philosophy
 Inspired by the [vpython](https://vpython.org/) *manifesto* "3D programming for ordinary mortals",
-*vtkplotter* makes it easy to work wth three-dimensional objects, create displays and animations
+**`vedo`** makes it easy to work wth three-dimensional objects, create displays and animations
 in just a few lines of code, even for those with less programming experience.
 
 ## 🎯  Table of Contents
-* [Installation](https://github.com/marcomusy/vtkplotter#-installation)
-* [Documentation](https://github.com/marcomusy/vtkplotter#-documentation)
-* [Features](https://github.com/marcomusy/vtkplotter#-features)
-* [Command Line Interface](https://github.com/marcomusy/vtkplotter#command-line-interface)
-* [Examples Gallery](https://github.com/marcomusy/vtkplotter#-examples)
-* [References](https://github.com/marcomusy/vtkplotter#-references)
+* [Installation](https://github.com/marcomusy/vedo#-installation)
+* [Documentation](https://github.com/marcomusy/vedo#-documentation)
+* [Features](https://github.com/marcomusy/vedo#-features)
+* [Command Line Interface](https://github.com/marcomusy/vedo#command-line-interface)
+* [Examples Gallery](https://github.com/marcomusy/vedo#-examples)
+* [References](https://github.com/marcomusy/vedo#-references)
 
 
 
 ## 💾  Installation
 Use [pip](https://projects.raspberrypi.org/en/projects/using-pip-on-windows) to install:
 ```bash
-pip install -U vtkplotter
+pip install -U vedo
 ```
-or use [conda](https://anaconda.org/conda-forge/vtkplotter) to install from the conda-forge channel:
+<!---
+or use [conda](https://anaconda.org/conda-forge/vedo) to install from the conda-forge channel:
 ```bash
-conda install -c conda-forge vtkplotter
+conda install -c conda-forge vedo
 ```
 or on Ubuntu OS:
 ```bash
-sudo apt install python3-vtkplotter
+sudo apt install python3-vedo
 ```
+--->
 
 *Windows-10 users* can place this file
-[vtkplotter.bat](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter.bat)
+[vedo.bat](https://github.com/marcomusy/vedo/blob/master/vedo.bat)
 on the desktop to *drag&drop* files to visualize.
 (Need to edit the path of the local python installation).
 
@@ -55,15 +60,12 @@ Automatically generated documentation can be found [**here**](https://vtkplotter
 
 
 📌 **Need help?** Have any question, or wish to suggest or ask for a missing feature?
-Do not hesitate to open a [**issue**](https://github.com/marcomusy/vtkplotter/issues)
+Do not hesitate to open a [**issue**](https://github.com/marcomusy/vedo/issues)
 or send an [email](mailto:marco.musy@embl.es).
 
 
 ## 🎨  Features
-Intuitive and straightforward API which can be combined with VTK seamlessly
-in a program, whilst mantaining access to the full range of VTK native classes.
-
-It includes a **[large set of working examples](https://github.com/marcomusy/vtkplotter/tree/master/vtkplotter/examples)**
+The `vedo` module includes a **[large set of working examples](https://github.com/marcomusy/vedo/tree/master/vedo/examples)**
 for a wide range of functionalities:
 <details>
 <summary>working with polygonal meshes and point clouds *[click triangle to expand]*</summary>
@@ -184,13 +186,13 @@ Moreover:
 ## ⌨  Command Line Interface
 Visualize a polygonal mesh from a terminal window with:
 ```bash
-vtkplotter mesh.obj
+vedo mesh.obj
 # valid formats: [vtk,vtu,vts,vtp,vtm,ply,obj,stl,3ds,dolfin-xml,neutral,gmsh,
 #                 pcd,xyz,txt,byu,tif,off,slc,vti,mhd,dcm,dem,nrrd,nii,bmp,png,jpg]
 ```
 Volumetric files (_mhd, vti, slc, tiff, DICOM etc.._) can be visualized with options:<br>
 
-|Slice a volume in the 3 planes:<br>`vtkplotter --slicer embryo.slc`|  Ray-casting rendering:<br>`-g embryo.slc`| 2D slice:<br>`--slicer2d`| Colorize voxels:<br>`--lego`|
+|Slice a volume in the 3 planes:<br>`vedo --slicer embryo.slc`|  Ray-casting rendering:<br>`-g embryo.slc`| 2D slice:<br>`--slicer2d`| Colorize voxels:<br>`--lego`|
 |:--------|:-----|:--------|:-----|
 | ![slicer](https://user-images.githubusercontent.com/32848391/80292484-50757180-8757-11ea-841f-2c0c5fe2c3b4.jpg)|![isohead](https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif)|![viz_slicer](https://user-images.githubusercontent.com/32848391/56972084-a7f3f800-6b6a-11e9-98c4-dc4ffec70a5e.png)  |![lego](https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg) |
 
@@ -205,31 +207,31 @@ To visualize multiple files or files time-sequences try `-n` or `-s` options. Us
 
 ## 🐾  Examples
 **More than 300 working examples can be found in directories** _(scroll down to see thumbnails):_ <br>
-[**examples/basic**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/basic)<br>
-[**examples/advanced**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced)<br>
-[**examples/volumetric**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/volumetric)<br>
-[**examples/tetmesh**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/tetmesh)<br>
-[**examples/simulations**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations)<br>
-[**examples/pyplot**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/pyplot)<br>
-[**examples/other**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other)<br>
-[**examples/other/dolfin**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin)<br>
-[**examples/other/trimesh**](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/trimesh)<br>
-[**examples/notebooks**](https://github.com/marcomusy/vtkplotter/blob/master/notebooks)<br>
+[**examples/basic**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/basic)<br>
+[**examples/advanced**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/advanced)<br>
+[**examples/volumetric**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/volumetric)<br>
+[**examples/tetmesh**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/tetmesh)<br>
+[**examples/simulations**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations)<br>
+[**examples/pyplot**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/pyplot)<br>
+[**examples/other**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/other)<br>
+[**examples/other/dolfin**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/dolfin)<br>
+[**examples/other/trimesh**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/trimesh)<br>
+[**examples/notebooks**](https://github.com/marcomusy/vedo/blob/master/notebooks)<br>
 
 |         |      |
 |:--------|:-----|
-|Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a large cloud of scattered points in space ([script](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/advanced/moving_least_squares2D.py))<br>![rabbit](https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg)  | ![airplanes](https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)<br> Create a simple 3D animation in exactly 10 lines of code ([script](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/airplanes.py)).<br>Trails and shadows can be added to moving objects easily.|
+|Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a large cloud of scattered points in space ([script](https://github.com/marcomusy/vedo/blob/master/vedo/examples/advanced/moving_least_squares2D.py))<br>![rabbit](https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg)  | ![airplanes](https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)<br> Create a simple 3D animation in exactly 10 lines of code ([script](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/airplanes.py)).<br>Trails and shadows can be added to moving objects easily.|
 |         |      |
-| Simulation of a gyroscope hanging from a spring ([script](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/gyroscope1.py)).<br> ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)     | ![qsine2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)<br>  Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. ([script](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/tunnelling2.py)) |
+| Simulation of a gyroscope hanging from a spring ([script](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/gyroscope1.py)).<br> ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)     | ![qsine2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)<br>  Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. ([script](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/tunnelling2.py)) |
 |         |      |
-|Turing system of reaction-diffusion between two molecules ([script](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/simulations/grayscott.py)) <br>![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)  | ![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif) <br> Support for the [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of PDE and finite element solutions ([see here](https://github.com/marcomusy/vtkplotter/blob/master/vtkplotter/examples/other/dolfin)) |
+|Turing system of reaction-diffusion between two molecules ([script](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/grayscott.py)) <br>![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)  | ![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif) <br> Support for the [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of PDE and finite element solutions ([see here](https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/dolfin)) |
 
 <br>
 
 ### Random Gallery of Examples
 Run any of the built-in examples from command line, e.g.:
 
-> `vtkplotter -ir  covid19`
+> `vedo -ir  covid19`
 
 |     |     |     |     |
 |:---:|:---:|:---:|:---:|
@@ -250,7 +252,7 @@ Run any of the built-in examples from command line, e.g.:
 
 ## 📜  References
 
-- M. Musy, G. Dalmasso, J. Sharpe and N. Sime, "`vtkplotter`*: plotting in FEniCS with python*", ([link](https://github.com/marcomusy/vtkplotter/blob/master/docs/fenics_poster.pdf)).
+- M. Musy, G. Dalmasso, J. Sharpe and N. Sime, "`vedo`*: plotting in FEniCS with python*", ([link](https://github.com/marcomusy/vedo/blob/master/docs/fenics_poster.pdf)).
 Poster at the [FEniCS'2019](https://fenicsproject.org/fenics19/) Conference,
 Carnegie Institution for Science Department of Terrestrial Magnetism, Washington DC, June 2019.
 
@@ -258,7 +260,7 @@ Carnegie Institution for Science Department of Terrestrial Magnetism, Washington
 Max Planck Institute for the Physics of Complex Systems, Dresden, Germany, March 2019.
 
 
-Scientific publications using `vtkplotter` so far:
+Scientific publications using `vedo` so far:
 
 1. X. Diego _et al._:
 *"Key features of Turing systems are determined purely by network topology"*,
@@ -272,7 +274,7 @@ bioRxiv 2020.02.23.961748; doi: https://doi.org/10.1101/2020.02.23.961748
 
 **Have you found this software useful for your research? Please cite it as:**<br>
 M. Musy  _et al._
-"`vtkplotter`*, a python module for scientific visualization and analysis of 3D objects
+"`vedo`*, a python module for scientific visualization and analysis of 3D objects
 and point clouds based on VTK (Visualization Toolkit)*",
 Zenodo, 10 February 2019, [doi: 10.5281/zenodo.2561402](http://doi.org/10.5281/zenodo.2561402).
 

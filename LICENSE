@@ -3,26 +3,26 @@ Copyright: 2017 Marco Musy <marco.musy@embl.es>
 License: MIT
 
 
-Files: vtkplotter/examples/data/apple.ply
- vtkplotter/examples/data/mug.ply
- vtkplotter/examples/data/shark.ply
- vtkplotter/examples/data/airboat.vtk
- vtkplotter/examples/data/porsche.ply
- vtkplotter/examples/data/spider.ply
- vtkplotter/examples/data/atc.ply
- vtkplotter/examples/data/beethoven.ply
- vtkplotter/examples/data/skyscraper.obj
- vtkplotter/examples/data/shuttle.obj
- vtkplotter/examples/data/lamp.vtk
- vtkplotter/examples/data/cube.off
- vtkplotter/examples/data/dodecahedron.vtk
- vtkplotter/examples/data/icosahedron.vtk
- vtkplotter/examples/data/magnolia.vtk
- vtkplotter/examples/data/octahedron.vtk
- vtkplotter/examples/data/shark.ply
- vtkplotter/examples/data/cessna.vtk
- vtkplotter/examples/data/teddy.vtk
- vtkplotter/examples/data/teapot.vtk
+Files: vedo/examples/data/apple.ply
+ vedo/examples/data/mug.ply
+ vedo/examples/data/shark.ply
+ vedo/examples/data/airboat.vtk
+ vedo/examples/data/porsche.ply
+ vedo/examples/data/spider.ply
+ vedo/examples/data/atc.ply
+ vedo/examples/data/beethoven.ply
+ vedo/examples/data/skyscraper.obj
+ vedo/examples/data/shuttle.obj
+ vedo/examples/data/lamp.vtk
+ vedo/examples/data/cube.off
+ vedo/examples/data/dodecahedron.vtk
+ vedo/examples/data/icosahedron.vtk
+ vedo/examples/data/magnolia.vtk
+ vedo/examples/data/octahedron.vtk
+ vedo/examples/data/shark.ply
+ vedo/examples/data/cessna.vtk
+ vedo/examples/data/teddy.vtk
+ vedo/examples/data/teapot.vtk
 Copyright: 2012 John Burkardt
 Source: https://people.sc.fsu.edu/~jburkardt/data/data.html
 License: LGPL-3
@@ -32,141 +32,141 @@ License: LGPL-3
  (see a copy of the text at the end of this file).
 
 
-Files: vtkplotter/examples/data/bunny.obj
- vtkplotter/examples/data/clown.facet
- vtkplotter/examples/data/combq.bin
- vtkplotter/examples/data/combxyz.bin
- vtkplotter/examples/data/cow.vtk
- vtkplotter/examples/data/cavity.vtk
- vtkplotter/examples/data/flamingo.3ds
- vtkplotter/examples/data/head.vti
- vtkplotter/examples/data/motor.byu
- vtkplotter/examples/data/office.binary.vtk
- vtkplotter/examples/data/structgrid.vts
- vtkplotter/examples/data/SuperQuadric.vtp
- vtkplotter/examples/data/teapot.xyz
- vtkplotter/examples/data/vase.vti
+Files: vedo/examples/data/bunny.obj
+ vedo/examples/data/clown.facet
+ vedo/examples/data/combq.bin
+ vedo/examples/data/combxyz.bin
+ vedo/examples/data/cow.vtk
+ vedo/examples/data/cavity.vtk
+ vedo/examples/data/flamingo.3ds
+ vedo/examples/data/head.vti
+ vedo/examples/data/motor.byu
+ vedo/examples/data/office.binary.vtk
+ vedo/examples/data/structgrid.vts
+ vedo/examples/data/SuperQuadric.vtp
+ vedo/examples/data/teapot.xyz
+ vedo/examples/data/vase.vti
 Copyright: 1993-2015 Ken Martin, Will Schroeder, Bill Lorensen
 Source: https://gitlab.kitware.com/vtk/vtk/-/tree/master/Testing/Data
 License: BSD-3-clause
 
 
-Files: vtkplotter/examples/data/man.vtk
+Files: vedo/examples/data/man.vtk
 Copyright: 2015-2019 Paul Chen,
  2020 M. Musy
 Comment:
  Original source from https://free3d.com/3d-model/male-base-mesh-6682.html,
- modified for vtkplotter.
+ modified for vedo.
 License: PersonalUseLicense-RoyaltyFreeLicense
 
-Files: vtkplotter/examples/data/man_low.vtk
+Files: vedo/examples/data/man_low.vtk
 Copyright: 2013-2019 Gregory [sea206, https://free3d.com/user/sea206]
  2020 M. Musy
 Comment:
  Original source from https://free3d.com/3d-model/low-poly-male-26691.html
- modified for vtkplotter.
+ modified for vedo.
 License: PersonalUseLicense-RoyaltyFreeLicense
 
-Files: vtkplotter/examples/data/ugrid.vtk
+Files: vedo/examples/data/ugrid.vtk
 Copyright: Andras Deak
 Comment:
  From https://stackoverflow.com/questions/56401123
 License: cc-by-sa
 
-Files: vtkplotter/examples/data/panther.stl
+Files: vedo/examples/data/panther.stl
 Copyright: W-LAN-Kabel September 18, 2019
 Comment:
  From https://www.thingiverse.com/thing:3868321
 License: cc-by-sa
 
-Files: vtkplotter/examples/data/images/wave_wiki.png
+Files: vedo/examples/data/images/wave_wiki.png
 Copyright: Wikipedia
 Comment: W-LAN-Kabelis
  Screenshot from Source: https://en.wikipedia.org/wiki/Wave_equation#From_Hooke's_law
 License: cc-by-sa
 
-Files: vtkplotter/examples/data/images/harvest.jpg
+Files: vedo/examples/data/images/harvest.jpg
 Copyright: 2020 Albrecht Fietz, 86899 Landsberg am Lech/Germany,
  https://pixabay.com/users/fietzfotos-6795508/
 Source: https://pixabay.com/photos/harvest-grain-cereals-field-4858574
 License: pixabay
 
-Files: vtkplotter/textures/textile1.jpg
+Files: vedo/textures/textile1.jpg
 Copyright: 2015 Polina, https://pixabay.com/users/virin000-4559233/
 Source: https://pixabay.com/photos/textile-jute-brown-fabric-texture-2918844/
 License: pixabay
 
-Files: vtkplotter/textures/water.jpg
+Files: vedo/textures/water.jpg
 Copyright: 2015 Polina, https://pixabay.com/users/virin000-4559233/
 Source: https://pixabay.com/photos/water-blue-surface-sea-ocean-768745/
 License: pixabay
 
-Files: vtkplotter/textures/gold1.jpg
+Files: vedo/textures/gold1.jpg
 Copyright: 2016 Manuela, https://pixabay.com/users/sinnesreich-2779296/
 Source: https://pixabay.com/illustrations/texture-background-gold-pattern-1647380/
 License: pixabay
 
-Files: vtkplotter/textures/clouds.jpg
+Files: vedo/textures/clouds.jpg
 Copyright: 2019 Elisa, https://pixabay.com/users/klickblick-8872450/
 Source: https://pixabay.com/photos/clouds-nature-sky-cumulus-mood-4215608/
 License: pixabay
 
-Files: vtkplotter/textures/bricks.jpg
+Files: vedo/textures/bricks.jpg
 Copyright: 2016 Nebenbei, https://pixabay.com/users/nebenbei-1873844/
 Source: https://pixabay.com/photos/texture-structure-wall-brick-stone-1260304/
 License: pixabay
 
-Files: vtkplotter/textures/grass.jpg
+Files: vedo/textures/grass.jpg
 Copyright: 2012 PublicDomainPictures,
  https://pixabay.com/users/publicdomainpictures-14/
 Source: https://pixabay.com/photos/grass-lawn-backdrop-background-84622/
 License: pixabay
 
-Files: vtkplotter/textures/white1.jpg
+Files: vedo/textures/white1.jpg
 Copyright: 2018 Katrin D.,
  https://pixabay.com/users/katinkavomwolfenmond-6764465/
 Source: https://pixabay.com/photos/pattern-background-frost-texture-3160023/
 License: pixabay
 
-Files: vtkplotter/textures/wood1.jpg
+Files: vedo/textures/wood1.jpg
 Copyright: 2007 Peggy and Marco Lachmann-Anke,
  https://pixabay.com/users/peggy_marco-1553824/
 Source: https://pixabay.com/illustrations/texture-wood-grain-structure-1027559/
 License: pixabay
 
-Files: vtkplotter/textures/gold2.jpg
- vtkplotter/textures/wood2.jpg
+Files: vedo/textures/gold2.jpg
+ vedo/textures/wood2.jpg
 Copyright: 2017, 2018 djedj, https://pixabay.com/users/djedj-59194/
 Source: https://pixabay.com/photos/background-abstract-pattern-texture-2022763/
  https://pixabay.com/photos/pattern-wood-retro-wooden-surface-3371709/
 License: pixabay
 
-Files: vtkplotter/textures/paper1.jpg
+Files: vedo/textures/paper1.jpg
 Copyright: 2015 ChrisFiedler,
  https://pixabay.com/users/chrisfiedler-935884/
 Source: https://pixabay.com/photos/paper-old-texture-parchment-1074131/
 License: pixabay
 
-Files: vtkplotter/textures/paper2.jpg
+Files: vedo/textures/paper2.jpg
 Copyright: 2017 mohamed Hassan,
  https://pixabay.com/users/mohamed_hassan-5229782/
 Source: https://pixabay.com/photos/paper-background-writing-school-2500942/
 License: pixabay
 
-Files: vtkplotter/textures/paper3.jpg
+Files: vedo/textures/paper3.jpg
 Copyright: 2016 mzter, https://pixabay.com/users/mzter-104756/
 Source: https://pixabay.com/photos/paper-certificate-grunge-antique-1217311/
 License: pixabay
 
-Files: vtkplotter/textures/paper4.jpg
+Files: vedo/textures/paper4.jpg
 Copyright: 2013 OpenClipart-Vectors,
  https://pixabay.com/users/openclipart-vectors-30363/
 Source: https://pixabay.com/vectors/paper-texture-pattern-146904/
 License: pixabay
 
-Files: vtkplotter/textures/earth1.jpg
- vtkplotter/textures/earth1_lights.jpg
- vtkplotter/textures/earth1_bw.jpg
+Files: vedo/textures/earth1.jpg
+ vedo/textures/earth1_lights.jpg
+ vedo/textures/earth1_bw.jpg
 Source: http://planetpixelemporium.com/earth.html
 Copyright: 2006 james hastings-trew <jimht@shaw.ca>
 License: public-domain
@@ -174,7 +174,7 @@ License: public-domain
  synthesis of images. 1K versions of these images are free.
 
 
-Files: vtkplotter/textures/earth2.jpg
+Files: vedo/textures/earth2.jpg
 Copyright: 2019 Tom Patterson
 Source: http://www.shadedrelief.com/natural3/pages/textures.html
 License: public-domain-earth-III
@@ -197,42 +197,42 @@ License: public-domain-earth-III
 
 
 ------------------------------------------------------------------------------
-Files: vtkplotter/fonts/CallingCode.ttf
+Files: vedo/fonts/CallingCode.ttf
 Source: https://www.1001freefonts.com/calling-code.font
 Copyright: 2017 Ryoichi Tsunekawa
 License: public-domain
 
-Files: vtkplotter/fonts/ChineseRuler.ttf
+Files: vedo/fonts/ChineseRuler.ttf
 Source: https://www.1001freefonts.com/chinese-ruler.font
 Copyright: 2009 Michael Tension, Tension Type
 License: tension-donationware
 
-Files: vtkplotter/fonts/Godsway.ttf
+Files: vedo/fonts/Godsway.ttf
 Source: https://www.1001freefonts.com/godsway-font.font
 Copyright: Eldamar Studio, https://eldamar-studio.com
 License: public-domain
 
-Files: vtkplotter/fonts/ImpactLabel.ttf
+Files: vedo/fonts/ImpactLabel.ttf
 Source: https://www.1001freefonts.com/impact-label.font
 Copyright: 2011 Michael Tension, Tension Type
 License: tension-donationware
 
-Files: vtkplotter/fonts/Komiko.ttf
+Files: vedo/fonts/Komiko.ttf
 Source: https://www.1001freefonts.com/komiko.font
 Copyright: Agustian Eko Saputro
 License: public-domain
 
-Files: vtkplotter/fonts/MonospaceTypewriter.ttf
+Files: vedo/fonts/MonospaceTypewriter.ttf
 Source: https://www.1001freefonts.com/monospace-typewriter.font
 Copyright: Manfred Klein
 License: public-domain
 
-Files: vtkplotter/fonts/Montserrat.ttf
+Files: vedo/fonts/Montserrat.ttf
 Source: https://www.1001freefonts.com/montserrat.font
 Copyright: 2011-2012, Julieta Ulanovsky (julieta.ulanovsky@gmail.com)
 License: OFL
 
-Files: vtkplotter/fonts/Overspray.ttf
+Files: vedo/fonts/Overspray.ttf
 Source: https://www.1001freefonts.com/overspray.font
 Copyright: Michael Tension, Tension Type
 License: tension-donationware

@@ -1,7 +1,7 @@
 '''
-vtkplotter logo
+vedo logo
 '''
-from vtkplotter import *
+from vedo import *
 
 ln = [ [sin(x), cos(x), x/2] for x in arange(0,9, 0.1)]
 N = len(ln)

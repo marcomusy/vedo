@@ -6,7 +6,7 @@ It allows to embed a redering window into a jupyter notebook via
 (or optionally with `itkwidgets` or [panel](https://github.com/pyviz/panel)).
 
 On top of this `K3D` allows to export an interactive
-[snapshot](https://vtkplotter.embl.es/examples/K3D_snapshot.html)
+[snapshot](https://vedo.embl.es/examples/K3D_snapshot.html)
 of the rendered scene.
 
 `jupyter notebook examples/notebooks/basic/embryo.ipynb`

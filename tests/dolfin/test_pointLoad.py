@@ -5,7 +5,7 @@ to a corner of a linear-elastic cube.
 # Credit https://fenicsproject.discourse.group/t/
 #applying-pointsource-at-two-different-vectors/1459/2
 from dolfin import *
-from vtkplotter.dolfin import plot
+from vedo.dolfin import plot
 import numpy as np
 
 

@@ -158,7 +158,7 @@ solver.solve(b, u.vector)
 
 
 ############################### Plot solution
-from vtkplotter.dolfin import plot
+from vedo.dolfin import plot
 
 plot(u, mode="displaced mesh",
      scalarbar=False,
@@ -168,7 +168,7 @@ plot(u, mode="displaced mesh",
      offscreen=1)
 
 #################################################################################
-from vtkplotter import settings, screenshot
+from vedo import settings, screenshot
 actor = settings.plotter_instance.actors[0]
 solution = actor.scalars(0)
 

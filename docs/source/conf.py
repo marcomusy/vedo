@@ -20,24 +20,24 @@ sys.path.insert(0, path)
 
 
 # -- Automatic Doc Pages Generation ------------------------------------------
-import vtkplotter # for documenting
+import vedo # for documenting
 from gendocs import Generator
 
 # Automatically generate documentaion pages
-Generator().DocumentPackages([vtkplotter],
+Generator().DocumentPackages([vedo],
                              '../README.rst',
                              showprivate=False,
                              notify=False,      )
 
 
 # -- Project information -----------------------------------------------------
-project = 'vtkplotter'
+project = 'vedo'
 copyright = '2019, M. Musy'
 author = 'Marco Musy'
 
 # package version
 try:
-    VERSIONFILE = "../../vtkplotter/version.py"
+    VERSIONFILE = "../../vedo/version.py"
     verstrline = open(VERSIONFILE, "rt").read()
     verstr = verstrline.split('=')[1].replace('\n','').replace("'","")
 except:
