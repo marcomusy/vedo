@@ -9,7 +9,7 @@
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vtkplotter/badges/version.svg)](https://anaconda.org/conda-forge/vtkplotter)
 [![Ubuntu 20.04 package](https://repology.org/badge/version-for-repo/ubuntu_20_04/vedo.svg)](https://repology.org/project/vedo/versions)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2561402.svg)](https://doi.org/10.5281/zenodo.2561402)
-[![CircleCI](https://circleci.com/gh/marcomusy/vtkplotter.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)
+[![CircleCI](https://circleci.com/gh/marcomusy/vedo.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)
 
 A lightweight pure python module for scientific analysis and visualization of 3D objects
 and *point clouds* based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/).<br>
