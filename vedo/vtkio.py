@@ -1135,7 +1135,7 @@ def write(objct, fileoutput, binary=True):
                 fs += " {:d}".format(fi+1)
             outF.write('f' + fs + '\n')
 
-        for l in objct.lines(joined=True):
+        for l in objct.lines():
             ls = ''
             for li in l:
                 ls += str(li+1)+" "

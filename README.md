@@ -1,8 +1,6 @@
 
 ![vlogo](https://user-images.githubusercontent.com/32848391/84578825-f1cc8b80-adc8-11ea-867b-a75a99f99a39.png)
 
-[former `vtkplotter`]
-
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/e8c5f1f9afb6433a9cdf4edb5499bd46)](https://app.codacy.com/app/marcomusy/vtkplotter?utm_source=github.com&utm_medium=referral&utm_content=marcomusy/vtkplotter&utm_campaign=Badge_Grade_Dashboard)
 [![Downloads](https://pepy.tech/badge/vtkplotter)](https://pepy.tech/project/vtkplotter)
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
@@ -10,9 +8,11 @@
 [![Ubuntu 20.04 package](https://repology.org/badge/version-for-repo/ubuntu_20_04/vedo.svg)](https://repology.org/project/vedo/versions)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2561402.svg)](https://doi.org/10.5281/zenodo.2561402)
 [![CircleCI](https://circleci.com/gh/marcomusy/vedo.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)
+(former `vtkplotter`)
 
-A lightweight pure python module for scientific analysis and visualization of 3D objects
-and *point clouds* based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/).<br>
+
+A lightweight pure python module for scientific analysis and **v**isualization of **3d** 
+**o**bjects and point clouds based on *VTK*.<br>
 
 [![isohead](https://user-images.githubusercontent.com/32848391/81347909-59eacc00-90bd-11ea-9392-f1a3ecc0c850.jpg)](https://vtkplotter.embl.es/examples/geo_scene.html)
 
@@ -20,7 +20,7 @@ and *point clouds* based on [VTK](https://www.vtk.org/) and [numpy](http://www.n
 
 ## ✨  Philosophy
 Inspired by the [vpython](https://vpython.org/) *manifesto* "3D programming for ordinary mortals",
-**`vedo`** makes it easy to work wth three-dimensional objects, create displays and animations
+`vedo` makes it easy to work wth three-dimensional meshes and volumes, create displays and animations
 in just a few lines of code, even for those with less programming experience.
 
 ## 🎯  Table of Contents
@@ -68,7 +68,7 @@ or send an [email](mailto:marco.musy@embl.es).
 The `vedo` module includes a **[large set of working examples](https://github.com/marcomusy/vedo/tree/master/vedo/examples)**
 for a wide range of functionalities:
 <details>
-<summary>working with polygonal meshes and point clouds *[click triangle to expand]*</summary>
+<summary>working with polygonal meshes and point clouds (click triangle to expand)</summary>
 
 	- Import meshes from VTK format, STL, Wavefront OBJ, 3DS, Dolfin-XML, Neutral, GMSH, OFF, PCD (PointCloud),
 
@@ -197,13 +197,8 @@ Volumetric files (_mhd, vti, slc, tiff, DICOM etc.._) can be visualized with opt
 | ![slicer](https://user-images.githubusercontent.com/32848391/80292484-50757180-8757-11ea-841f-2c0c5fe2c3b4.jpg)|![isohead](https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif)|![viz_slicer](https://user-images.githubusercontent.com/32848391/56972084-a7f3f800-6b6a-11e9-98c4-dc4ffec70a5e.png)  |![lego](https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg) |
 
 
-To visualize multiple files or files time-sequences try `-n` or `-s` options. Use `-h` for the complete list of options.
-
-<details>
-<summary>A GUI is also available (mainly useful to Windows 10 users).</summary>
-
-![gui](https://user-images.githubusercontent.com/32848391/63259840-c861d280-c27f-11e9-9c2a-99d0fae85313.png)
-</details>
+To visualize multiple files or files time-sequences try `-n` or `-s` options. Use `-h` for the complete list of options.  <br>
+A GUI is also available (mainly useful to Windows 10 users) which can be invoked with command line `vedo`.
 
 ## 🐾  Examples
 **More than 300 working examples can be found in directories** _(scroll down to see thumbnails):_ <br>

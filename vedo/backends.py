@@ -219,7 +219,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
             #####################################################################Line
             elif ia.polydata(False).GetNumberOfLines():
 #                print('Line', ia.name, ia.N(), len(ia.faces()),
-#                      ia.polydata(False).GetNumberOfLines(), len(ia.lines(joined=True)),
+#                      ia.polydata(False).GetNumberOfLines(), len(ia.lines()),
 #                      color_attribute, [vtkscals])
 
                 # kcols=[]
