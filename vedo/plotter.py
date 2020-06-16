@@ -534,6 +534,7 @@ class Plotter:
         self.extralight = None
         self.size = size
         self.interactor = None
+        self.resetcam= True
         self.allowInteraction = None
 
         self.xtitle = settings.xtitle  # x axis label and units
@@ -806,8 +807,8 @@ class Plotter:
         else:
             self.interactor = vtk.vtkRenderWindowInteractor()
         self.interactor.SetRenderWindow(self.window)
-        #vsty = vtk.vtkInteractorStyleTrackballCamera()
-        #self.interactor.SetInteractorStyle(vsty)
+        vsty = vtk.vtkInteractorStyleTrackballCamera()
+        self.interactor.SetInteractorStyle(vsty)
 
         self.interactor.AddObserver("LeftButtonPressEvent", self._mouseleft)
         self.interactor.AddObserver("RightButtonPressEvent", self._mouseright)
@@ -873,6 +874,8 @@ class Plotter:
                     if render and ren:
                         ren.AddActor(a)
             if render and self.interactor:
+                if self.resetcam:
+                    self.renderer.ResetCamera()
                 self.interactor.Render()
             return None
         else:
@@ -1426,6 +1429,8 @@ class Plotter:
         if self.offscreen:
             interactive = False
             self.interactive = False
+
+        self.resetcam = resetcam
 
         def scan(wannabeacts):
             scannedacts = []
