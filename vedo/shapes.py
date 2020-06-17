@@ -2375,12 +2375,12 @@ def Text2D(
     if isinstance(pos, str): # corners
         if "top" in pos:
             if "left" in pos: pos = 3
-            elif "mid" in pos: pos = 8
             elif "right" in pos: pos = 4
+            elif "mid" in pos or "cent" in pos: pos = 8
         elif "bottom" in pos:
             if "left" in pos: pos = 1
-            elif "mid" in pos: pos = 5
             elif "right" in pos: pos = 2
+            elif "mid" in pos or "cent" in pos: pos = 5
         else:
             if "left" in pos: pos = 7
             elif "right" in pos: pos = 6
