@@ -8,6 +8,6 @@ s.alpha(0.1).c('gray').lw(0.1).lc('k')
 # this call creates the camera object needed by silhouette()
 show(s, bg='db', bg2='lb', interactive=False)
 
-sil = s.silhouette().c('violet').alpha(0.7)
+sil = s.silhouette().c('darkred').alpha(0.9).lw(3)
 
 show(s, sil, __doc__, interactive=True)

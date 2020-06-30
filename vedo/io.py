@@ -6,19 +6,19 @@ import numpy as np
 
 import vedo.utils as utils
 import vedo.colors as colors
-
 from vedo.assembly import Assembly
 from vedo.mesh import Mesh
+from vedo.ugrid import UGrid
 from vedo.tetmesh import TetMesh
 from vedo.picture import Picture
 from vedo.volume import Volume
-
 import vedo.docs as docs
 import vedo.settings as settings
 
 __doc__ = (
     """
-Submodule to load meshes of different formats, and other I/O functionalities.
+Submodule to load/write meshes and other objects in different formats,
+and other I/O functionalities.
 """
     + docs._defs
 )
@@ -39,28 +39,19 @@ __all__ = [
 ]
 
 
-def load(inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
+def load(inputobj, unpack=True, force=False):
     """
-    Load ``Mesh``, ``Volume`` and ``Picture`` objects from file.
+    Load ``Mesh``, ``Volume`` and ``Picture`` objects from file or from the web.
 
     The output will depend on the file extension. See examples below.
     Unzip on the fly, if it ends with `.gz`.
+    Can load an object directly from a URL address.
 
-    :param c: color in RGB format, hex, symbol or name
-    :param alpha: transparency/opacity of the polygonal data.
-
-    For volumetric data `(tiff, slc, vti etc..)`:
-
-    :param list c: can be a list of any length of colors. This list represents the color
-        transfer function values equally spaced along the range of the volumetric scalar.
-    :param list alpha: can be a list of any length of tranparencies. This list represents the
-        transparency transfer function values equally spaced along the range of the volumetric scalar.
-    :param float threshold: value to draw the isosurface, False by default to return a ``Volume``.
-        If set to True will return an ``Mesh`` with automatic choice of the isosurfacing threshold.
-    :param list spacing: specify the voxel spacing in the three dimensions
-    :param bool unpack: only for multiblock data, if True returns a flat list of objects.
+    :param bool unpack: unpack MultiBlockData into a flat list of objects.
+    :param bool force: when downloading a file ignore any previous cached downloads and force a new one.
 
     :Examples:
+
         .. code-block:: python
 
             from vedo import datadir, load, show
@@ -75,33 +66,37 @@ def load(inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
 
             # Return a list of meshes by reading all files in a directory
             # (if directory contains DICOM files then a Volume is returned)
-            g = load(datadir+'timecourse1d/')
+            g = load('mydicomdir/')
             show(g)
 
             # Return a Volume. Color/Opacity transfer functions can be specified too.
             g = load(datadir+'embryo.slc')
-            g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1))
-            show(g)
+            g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1)).show()
 
-            # Return a Mesh from a SLC volume with automatic thresholding
-            g = load(datadir+'embryo.slc', threshold=True)
+            # Download a file from a URL address and unzip it on the fly
+            g = load('https://vedo.embl.es/examples/panther.stl.gz')
             show(g)
     """
     acts = []
     if utils.isSequence(inputobj):
         flist = inputobj
+    elif isinstance(inputobj, str) and inputobj.startswith('https://'):
+        flist = [inputobj]
     else:
         import glob
         flist = sorted(glob.glob(inputobj))
 
     for fod in flist:
 
+        if fod.startswith('https://'):
+            fod = download(fod, force=force)
+
         if os.path.isfile(fod): ### it's a file
 
             if fod.endswith('.gz'):
                 fod = gunzip(fod)
 
-            a = _load_file(fod, c, alpha, threshold, spacing, unpack)
+            a = _load_file(fod, unpack)
             acts.append(a)
 
         elif os.path.isdir(fod):### it's a directory or DICOM
@@ -111,18 +106,7 @@ def load(inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
                 reader.SetDirectoryName(fod)
                 reader.Update()
                 image = reader.GetOutput()
-                if len(spacing) == 3:
-                    image.SetSpacing(spacing[0], spacing[1], spacing[2])
-                if threshold is False:
-                    if c is None and alpha == 1:
-                        c = ['b','lb','lg','y','r'] # good for blackboard background
-                        alpha = (0.0, 0.0, 0.2, 0.4, 0.8, 1)
-                        #c = ['lb','db','dg','dr']  # good for white backgr
-                        #alpha = (0.0, 0.0, 0.2, 0.6, 0.8, 1)
-                    actor = Volume(image, c, alpha)
-                else:
-                    actor = Volume(image).isosurface(threshold=threshold)
-                    actor.color(c).alpha(alpha)
+                actor = Volume(image)
 
                 actor.info['PixelSpacing'] = reader.GetPixelSpacing()
                 actor.info['Width'] = reader.GetWidth()
@@ -145,7 +129,7 @@ def load(inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
             else: ### it's a normal directory
                 utils.humansort(flist)
                 for ifile in flist:
-                    a = _load_file(fod+'/'+ifile, c, alpha, threshold, spacing, unpack)
+                    a = _load_file(fod+'/'+ifile, unpack)
                     acts.append(a)
         else:
             colors.printc("~times Error in load(): cannot find", fod, c=1)
@@ -163,7 +147,7 @@ def load(inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
         return acts
 
 
-def _load_file(filename, c, alpha, threshold, spacing, unpack):
+def _load_file(filename, unpack):
     fl = filename.lower()
 
     ################################################################# other formats:
@@ -198,15 +182,8 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
     elif fl.endswith(".tif") or fl.endswith(".slc") or fl.endswith(".vti") \
         or fl.endswith(".mhd") or fl.endswith(".nrrd") or fl.endswith(".nii") \
         or fl.endswith(".dem"):
-        img = loadImageData(filename, spacing)
-        if threshold is False:
-            if c is None and alpha == 1:
-                c = ['b','lb','lg','y','r'] # good for blackboard background
-                alpha = (0.0, 0.0, 0.2, 0.4, 0.8, 1)
-            actor = Volume(img)
-        else:
-            actor = Volume(img).isosurface(threshold=threshold)
-            actor.color(c).alpha(alpha)
+        img = loadImageData(filename)
+        actor = Volume(img)
 
         ################################################################# 2D images:
     elif fl.endswith(".png") or fl.endswith(".jpg") or fl.endswith(".bmp") or fl.endswith(".jpeg"):
@@ -218,11 +195,7 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
             picr = vtk.vtkBMPReader()
         picr.SetFileName(filename)
         picr.Update()
-        actor = Picture()  # object derived from vtk.vtkImageActor()
-        actor.SetInputData(picr.GetOutput())
-        if alpha is None:
-            alpha = 1
-        actor.SetOpacity(alpha)
+        actor = Picture(picr.GetOutput())  # object derived from vtk.vtkImageActor()
 
         ################################################################# multiblock:
     elif fl.endswith(".vtm") or fl.endswith(".vtmb"):
@@ -238,9 +211,11 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
                                   vtk.vtkUnstructuredGrid,
                                   vtk.vtkStructuredGrid,
                                   vtk.vtkRectilinearGrid)):
-                    acts.append(Mesh(b, c=c, alpha=alpha))
-                if isinstance(b, vtk.vtkImageData):
+                    acts.append(Mesh(b))
+                elif isinstance(b, vtk.vtkImageData):
                     acts.append(Volume(b))
+                elif isinstance(b, vtk.vtkUnstructuredGrid):
+                    acts.append(UGrid(b))
             return acts
         else:
             return mb
@@ -248,6 +223,7 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
         ################################################################# numpy:
     elif fl.endswith(".npy"):
         acts = loadNumpy(filename)
+
         if unpack is False:
             return Assembly(acts)
         return acts
@@ -320,26 +296,36 @@ def _load_file(filename, c, alpha, threshold, spacing, unpack):
             actor = TetMesh(routput)
 
         else:
-            actor = Mesh(routput, c, alpha)
+            actor = Mesh(routput)
             if fl.endswith(".txt") or fl.endswith(".xyz"):
                 actor.GetProperty().SetPointSize(4)
 
     actor.filename = filename
     return actor
 
-def download(url, prefix=''):
+
+def download(url, force=False):
     """Retrieve a file from a url, save it locally and return its path."""
 
-    if "https://" not in url and "http://" not in url:
+    if "https://" not in url:
         colors.printc('Invalid URL:\n', url, c=1)
         return url
+    url = url.replace('www.dropbox', 'dl.dropbox')
 
     basename = os.path.basename(url)
-    if os.path.exists(basename):
-        return basename
 
-    colors.printc('..downloading:', url.split('/')[-1][-20:], 'from',
-                  url.split('/')[2][:40],'...')
+    if '?' in basename:
+        basename = basename.split('?')[0]
+
+    from tempfile import NamedTemporaryFile
+    tmp_file = NamedTemporaryFile(delete=False)
+    tmp_file.name = os.path.join(os.path.dirname(tmp_file.name),
+                                 os.path.basename(basename))
+
+    if force==False and os.path.exists(tmp_file.name):
+        colors.printc("using cached file:", tmp_file.name)
+        #colors.printc("     (use force=True to force a new download)")
+        return tmp_file.name
 
     try:
         from urllib.request import urlopen
@@ -348,10 +334,16 @@ def download(url, prefix=''):
         import contextlib
         urlopen = lambda url_: contextlib.closing(urllib2.urlopen(url_))
 
-    basename += prefix
-    with urlopen(url) as response, open(basename, 'wb') as output:
+    colors.printc('reading', basename, 'from',
+                  url.split('/')[2][:40],'...', end='')
+
+    with urlopen(url) as response, open(tmp_file.name, 'wb') as output:
         output.write(response.read())
-    return basename
+
+    colors.printc(' done.')
+
+    return tmp_file.name
+
 
 def gunzip(filename):
     """Unzip a ``.gz`` file to a temporary file and returns its path."""
@@ -486,8 +478,6 @@ def loadOFF(filename):
 
 def loadGeoJSON(filename):
     """Load GeoJSON files."""
-    if filename.endswith('.gz'):
-        filename = gunzip(filename)
     jr = vtk.vtkGeoJSONReader()
     jr.SetFileName(filename)
     jr.Update()
@@ -540,7 +530,7 @@ def _loadDolfin_old(filename, exterior='dummy'):
     else:
         tree = et.parse(filename)
 
-    coords, connectivity = [], []
+    coords, faces = [], []
     for mesh in tree.getroot():
         for elem in mesh:
             for e in elem.findall("vertex"):
@@ -560,16 +550,16 @@ def _loadDolfin_old(filename, exterior='dummy'):
                     v0 = int(e.get("v0"))
                     v1 = int(e.get("v1"))
                     v2 = int(e.get("v2"))
-                    connectivity.append([v0, v1, v2])
+                    faces.append([v0, v1, v2])
             else:
                 for e in tets:
                     v0 = int(e.get("v0"))
                     v1 = int(e.get("v1"))
                     v2 = int(e.get("v2"))
                     v3 = int(e.get("v3"))
-                    connectivity.append([v0, v1, v2, v3])
+                    faces.append([v0, v1, v2, v3])
 
-    poly = utils.buildPolyData(coords, connectivity)
+    poly = utils.buildPolyData(coords, faces)
     return Mesh(poly)
 
 
@@ -703,152 +693,16 @@ def loadPCD(filename):
     return Mesh(poly).pointSize(4)
 
 
-def loadNumpy(inobj):
-    """Load a vedo format file."""
-    if isinstance(inobj, str):
-        data = np.load(inobj, allow_pickle=True, encoding='latin1')
-    else:
-        data = inobj
+def toNumpy(obj):
+    '''Dump a vedo object to numpy format.'''
 
-    def loadcommon(obj, d):
-        keys = d.keys()
-        if 'time' in keys: obj.time(d['time'])
-        if 'transform' in keys and len(d['transform']) == 4:
-            vm = vtk.vtkMatrix4x4()
-            for i in [0, 1, 2, 3]:
-               for j in [0, 1, 2, 3]:
-                   vm.SetElement(i, j, d['transform'][i,j])
-            obj.setTransform(vm)
-        elif 'position' in keys:
-            obj.pos(d['position'])
-        if hasattr(obj, 'GetProperty'):
-            prp = obj.GetProperty()
-            if 'ambient' in keys: prp.SetAmbient(d['ambient'])
-            if 'diffuse' in keys: prp.SetDiffuse(d['diffuse'])
-
-    ##################
-    def _buildactor(d):
-
-        #print('_buildactor', d)
-
-        vertices = d['points']
-        if not len(vertices):
-            return None
-        cells = None
-        lines = None
-        keys = d.keys()
-        if 'cells' in keys:
-            cells = d['cells']
-        if 'lines' in keys:
-            lines = d['lines']
-
-        poly = utils.buildPolyData(vertices, cells, lines)
-        act = Mesh(poly)
-        loadcommon(act, d)
-
-        act.mapper().ScalarVisibilityOff()
-        if 'celldata' in keys:
-            for csc, cscname in d['celldata']:
-                act.addCellArray(csc, cscname)
-                if 'normal' not in cscname.lower():
-                    act.getCellArray(cscname) # activate
-        if 'pointdata' in keys:
-            for psc, pscname in d['pointdata']:
-                act.addPointArray(psc, pscname)
-                if 'normal' not in pscname.lower():
-                    act.getPointArray(pscname) # activate
-
-        prp = act.GetProperty()
-        if 'specular' in keys:      prp.SetSpecular(d['specular'])
-        if 'specularpower' in keys: prp.SetSpecularPower(d['specularpower'])
-        if 'specularcolor' in keys: prp.SetSpecularColor(d['specularcolor'])
-        if 'shading' in keys:       prp.SetInterpolation(d['shading'])
-        if 'alpha' in keys:         prp.SetOpacity(d['alpha'])
-        if 'opacity' in keys:       prp.SetOpacity(d['opacity']) # synonym
-        if 'pointsize' in keys and d['pointsize']: prp.SetPointSize(d['pointsize'])
-        if 'texture' in keys and d['texture']:     act.texture(d['texture'])
-        if 'linewidth' in keys and d['linewidth']: act.lineWidth(d['linewidth'])
-        if 'linecolor' in keys and d['linecolor']: act.lineColor(d['linecolor'])
-        if 'representation' in keys: prp.SetRepresentation(d['representation'])
-        if 'color' in keys and d['color']: act.color(d['color'])
-        if 'backColor' in keys and d['backColor']: act.backColor(d['backColor'])
-
-        if 'flagText' in keys and d['flagText']: act.flag(d['flagText'])
-
-        if 'LUT' in keys and 'activedata' in keys and d['activedata']:
-            lut_list = d['LUT']
-            ncols = len(lut_list)
-            lut = vtk.vtkLookupTable()
-            lut.SetNumberOfTableValues(ncols)
-            lut.SetRange(d['LUT_range'])
-            for i in range(ncols):
-                r, g, b, a = lut_list[i]
-                lut.SetTableValue(i, r, g, b, a)
-            lut.Build()
-            act.mapper().SetLookupTable(lut)
-            act.mapper().ScalarVisibilityOn()
-            act.mapper().SetScalarRange(d['LUT_range'])
-            if d['activedata'][0] == 'celldata':
-                poly.GetCellData().SetActiveScalars(d['activedata'][1])
-            if d['activedata'][0] == 'pointdata':
-                poly.GetPointData().SetActiveScalars(d['activedata'][1])
-
-        return act
-        ##################
-
-    objs = []
-    for d in data:
-        #print('loadNumpy:', d)
-
-        if 'mesh' == d['type']:
-            a = _buildactor(d)
-            if a:
-                objs.append(a)
-
-        elif 'assembly' == d['type']:
-            assacts = []
-            for ad in d['actors']:
-                assacts.append(_buildactor(ad))
-            asse = Assembly(assacts)
-            loadcommon(asse, d)
-            objs.append(asse)
-
-        elif 'image' == d['type']:
-            shp = d['shape'][1], d['shape'][0]
-            arr0 = d['array']
-            rcv = arr0[:,0].reshape(shp)
-            gcv = arr0[:,1].reshape(shp)
-            bcv = arr0[:,2].reshape(shp)
-            arr = np.array([rcv, gcv, bcv])
-            arr = np.swapaxes(arr, 0, 2)
-            vimg = Picture(arr)
-            loadcommon(vimg, d)
-            objs.append(vimg)
-
-        elif 'volume' == d['type']:
-            vol = Volume(d['array'])
-            loadcommon(vol, d)
-            vol.jittering(d['jittering'])
-            vol.mode(d['mode'])
-            vol.color(d['color'])
-            vol.alpha(d['alpha'])
-            vol.alphaGradient(d['alphagrad'])
-            objs.append(vol)
-
-    if len(objs) == 1:
-        return objs[0]
-    elif len(objs) == 0:
-        return None
-    else:
-        return objs
-
-
-def _np_dump(obj):
-    '''dump a vedo obj to a numpy dictionary'''
     adict = dict()
+    adict['type'] = 'unknown'
 
-    def fillcommon(obj, adict):
+    ########################################################
+    def _fillcommon(obj, adict):
         adict['filename'] = obj.filename
+        adict['name'] = obj.name
         adict['legend'] = obj.legend()
         adict['time'] = obj.time()
         adict['rendered_at'] = obj.renderedAt
@@ -865,41 +719,41 @@ def _np_dump(obj):
             for j in [0, 1, 2, 3]:
                 minv[i,j] = vm.GetElement(i, j)
         adict['transform_inverse'] = minv
-        if hasattr(obj, 'GetProperty'): # assembly doesn't
-            prp = obj.GetProperty()
-            adict['ambient'] = prp.GetAmbient()
-            adict['diffuse'] = prp.GetDiffuse()
 
+    ########################################################
+    def _fillmesh(obj, adict):
 
-    def _doactor(obj, adict):
-        adict['points'] = obj.points(transformed=0).astype(np.float32)
+        adict['points'] = obj.points(transformed=False).astype(np.float32)
         poly = obj.polydata()
-        adict['cells'] = None
-        adict['lines'] = None
         adict['flagText'] = obj.flagText
 
+        adict['cells'] = None
         if poly.GetNumberOfCells():
             try:
                 adict['cells'] = np.array(obj.faces(), dtype=np.uint32)
             except ValueError:
                 adict['cells'] = obj.faces()
 
+        adict['lines'] = None
         if poly.GetNumberOfLines():
             adict['lines'] = obj.lines()
 
-        fillcommon(obj, adict)
         adict['pointdata'] = []
+        for iname in obj.getArrayNames()['PointData']:
+            if 'Normals' in iname.lower(): continue
+            arr = poly.GetPointData().GetArray(iname)
+            adict['pointdata'].append([vtk_to_numpy(arr), iname])
         adict['celldata'] = []
+        for iname in obj.getArrayNames()['CellData']:
+            if 'Normals' in iname.lower(): continue
+            arr = poly.GetCellData().GetArray(iname)
+            adict['celldata'].append([vtk_to_numpy(arr), iname])
+
         adict['activedata'] = None
-        if poly.GetCellData().GetScalars():
-            adict['activedata'] = ['celldata', poly.GetCellData().GetScalars().GetName()]
         if poly.GetPointData().GetScalars():
             adict['activedata'] = ['pointdata', poly.GetPointData().GetScalars().GetName()]
-
-        for iname in obj.getArrayNames()['PointData']:
-            adict['pointdata'].append([obj.getPointArray(iname), iname])
-        for iname in obj.getArrayNames()['CellData']:
-            adict['celldata'].append([obj.getCellArray(iname), iname])
+        elif poly.GetCellData().GetScalars():
+            adict['activedata'] = ['celldata',  poly.GetCellData().GetScalars().GetName()]
 
         adict['LUT'] = None
         adict['LUT_range'] = None
@@ -916,62 +770,57 @@ def _np_dump(obj):
         prp = obj.GetProperty()
         adict['alpha'] = prp.GetOpacity()
         adict['representation'] = prp.GetRepresentation()
-        adict['texture'] = None
         adict['pointsize'] = prp.GetPointSize()
+
+        adict['linecolor'] = None
+        adict['linewidth'] = None
         if prp.GetEdgeVisibility():
-            adict['linewidth'] = prp.GetLineWidth()
-            if hasattr(prp, 'GetLineColor'):
-                adict['linecolor'] = prp.GetLineColor()
-        else:
-            adict['linewidth'] = 0
-            adict['linecolor'] = 0
+            adict['linewidth'] = obj.lineWidth()
+            adict['linecolor'] = obj.lineColor()
+
+        adict['ambient'] = prp.GetAmbient()
+        adict['diffuse'] = prp.GetDiffuse()
         adict['specular'] = prp.GetSpecular()
         adict['specularpower'] = prp.GetSpecularPower()
         adict['specularcolor'] = prp.GetSpecularColor()
         adict['shading'] = prp.GetInterpolation()
         adict['color'] = prp.GetColor()
-
+        adict['lightingIsOn'] = prp.GetLighting()
         adict['backColor'] = None
         if obj.GetBackfaceProperty():
             adict['backColor'] = obj.GetBackfaceProperty().GetColor()
 
+        adict['scalarvisibility'] = obj.mapper().GetScalarVisibility()
 
-    ############################
-    adict['type'] = 'unknown'
+        adict['texture'] = None
+
+    ######################################################## Mesh
     if isinstance(obj, Mesh):
-        adict['type'] = 'mesh'
-        _doactor(obj, adict)
+        adict['type'] = 'Mesh'
+        _fillcommon(obj, adict)
+        _fillmesh(obj, adict)
 
+    ######################################################## Assembly
     elif isinstance(obj, Assembly):
-        adict['type'] = 'assembly'
-        adict['actors'] = []
-        for a in obj.getMeshes():
-            assdict = dict()
-            if not isinstance(a, Mesh): #normal vtkActor
-                b = Mesh(a) # promote it to a Actor
-                pra = vtk.vtkProperty()
-                pra.DeepCopy(a.GetProperty())
-                b.SetProperty(pra)
-                a = b
-            _doactor(a, assdict)
-            adict['actors'].append(assdict)
-        fillcommon(obj, adict)
+        pass
+        # adict['type'] = 'Assembly'
+        # _fillcommon(obj, adict)
+        # adict['actors'] = []
+        # for a in obj.unpack():
+        #     assdict = dict()
+        #     if isinstance(a, Mesh):
+        #         _fillmesh(a, assdict)
+        #         adict['actors'].append(assdict)
 
-    elif isinstance(obj, Picture):
-        adict['type'] = 'image'
-        arr = vtk_to_numpy(obj.inputdata().GetPointData().GetScalars())
-        adict['array'] = arr
-        adict['shape'] = obj.inputdata().GetDimensions()
-        fillcommon(obj, adict)
-        #print('image', arr, arr.shape, obj.inputdata().GetDimensions())
-
+    ######################################################## Volume
     elif isinstance(obj, Volume):
-        adict['type'] = 'volume'
+        adict['type'] = 'Volume'
+        _fillcommon(obj, adict)
         imgdata = obj.inputdata()
         arr = vtk_to_numpy(imgdata.GetPointData().GetScalars())
         adict['array'] = arr.reshape(imgdata.GetDimensions())
         adict['mode'] = obj.mode()
-        adict['jittering'] = obj.mapper().GetUseJittering()
+        #adict['jittering'] = obj.mapper().GetUseJittering()
 
         prp = obj.GetProperty()
         ctf = prp.GetRGBTransferFunction()
@@ -988,12 +837,224 @@ def _np_dump(obj):
         adict['color'] = cols
         adict['alpha'] = als
         adict['alphagrad'] = algrs
-        fillcommon(obj, adict)
+
+    ######################################################## Picture
+    elif isinstance(obj, Picture):
+        adict['type'] = 'Picture'
+        _fillcommon(obj, adict)
+        arr = vtk_to_numpy(obj.inputdata().GetPointData().GetScalars())
+        adict['array'] = arr
+        adict['shape'] = obj.inputdata().GetDimensions()
+
+    ######################################################## Annotation
+    elif isinstance(obj, vtk.vtkCornerAnnotation):
+        tx = ''
+        for i in range(8):
+            tx = obj.GetText(i)
+            if tx: break
+        if tx:
+            adict['type'] = 'Annotation'
+            #adict['rendered_at'] = obj.renderedAt
+            adict['text'] = obj.GetText(i)
+            adict['position'] = i
+            adict['color'] = obj.GetTextProperty().GetColor()
+            adict['font'] = obj.GetTextProperty().GetFontFamilyAsString()
+            if 'File' in adict['font']:
+                adict['font'] = 'Montserrat'
+            adict['size'] = obj.GetNonlinearFontScaleFactor()
+            adict['bgcol'] = obj.GetTextProperty().GetBackgroundColor()
+            adict['alpha'] = obj.GetTextProperty().GetBackgroundOpacity()
+
+    else:
+        pass
+        #colors.printc('Unknown object type in toNumpy()', [obj], c=1)
 
     return adict
 
 
-def loadImageData(filename, spacing=()):
+def loadNumpy(inobj):
+    """Load a vedo format file or scene."""
+
+    # make sure the numpy file is not containing a scene
+    if isinstance(inobj, str): # user passing a file
+        data = np.load(inobj, allow_pickle=True, encoding='latin1').flatten()
+
+        if "objects" in data[0].keys():  # loading a full scene!!
+            return importWindow(data[0]) # <-------
+
+    else:
+        data = inobj
+
+
+    ######################################################
+    def _loadcommon(obj, d):
+        keys = d.keys()
+        if 'time' in keys: obj.time(d['time'])
+        if 'name' in keys: obj.name = d['name']
+        if 'filename' in keys: obj.filename = d['filename']
+
+        if 'transform' in keys and len(d['transform']) == 4:
+            vm = vtk.vtkMatrix4x4()
+            for i in [0, 1, 2, 3]:
+               for j in [0, 1, 2, 3]:
+                   vm.SetElement(i, j, d['transform'][i,j])
+            obj.setTransform(vm)
+        elif 'position' in keys:
+            obj.pos(d['position'])
+
+    ######################################################
+    def _buildmesh(d):
+        keys = d.keys()
+
+        vertices = d['points']
+        if not len(vertices):
+            return None
+
+        cells = None
+        if 'cells' in keys:
+            cells = d['cells']
+
+        lines = None
+        if 'lines' in keys:
+            lines = d['lines']
+
+        poly = utils.buildPolyData(vertices, cells, lines)
+        msh = Mesh(poly)
+        _loadcommon(msh, d)
+
+        prp = msh.GetProperty()
+        if 'ambient' in keys:        prp.SetAmbient(d['ambient'])
+        if 'diffuse' in keys:        prp.SetDiffuse(d['diffuse'])
+        if 'specular' in keys:       prp.SetSpecular(d['specular'])
+        if 'specularpower' in keys:  prp.SetSpecularPower(d['specularpower'])
+        if 'specularcolor' in keys:  prp.SetSpecularColor(d['specularcolor'])
+        if 'lightingIsOn' in keys:   prp.SetLighting(d['lightingIsOn'])
+        if 'shading' in keys:        prp.SetInterpolation(d['shading'])
+        if 'alpha' in keys:          prp.SetOpacity(d['alpha'])
+        if 'opacity' in keys:        prp.SetOpacity(d['opacity']) # synonym
+        if 'representation' in keys: prp.SetRepresentation(d['representation'])
+        if 'pointsize' in keys and d['pointsize']: prp.SetPointSize(d['pointsize'])
+
+        if 'linewidth' in keys and d['linewidth']: msh.lineWidth(d['linewidth'])
+        if 'linecolor' in keys and d['linecolor']: msh.lineColor(d['linecolor'])
+
+        if 'color' in keys and d['color'] is not None:
+            msh.color(d['color'])
+        if 'backColor' in keys and d['backColor'] is not None:
+            msh.backColor(d['backColor'])
+
+        if 'flagText' in keys and d['flagText']:   msh.flag(d['flagText'])
+
+        if 'celldata' in keys:
+            for csc, cscname in d['celldata']:
+                msh.addCellArray(csc, cscname)
+        if 'pointdata' in keys:
+            for psc, pscname in d['pointdata']:
+                msh.addPointArray(psc, pscname)
+        msh.mapper().ScalarVisibilityOff()     # deactivate scalars
+
+        if 'LUT' in keys and 'activedata' in keys and d['activedata']:
+            # print(d['activedata'],'', msh.filename)
+            lut_list = d['LUT']
+            ncols = len(lut_list)
+            lut = vtk.vtkLookupTable()
+            lut.SetNumberOfTableValues(ncols)
+            lut.SetRange(d['LUT_range'])
+            for i in range(ncols):
+                r, g, b, a = lut_list[i]
+                lut.SetTableValue(i, r, g, b, a)
+            lut.Build()
+            msh.mapper().SetLookupTable(lut)
+            msh.mapper().ScalarVisibilityOn()  # activate scalars
+            msh.mapper().SetScalarRange(d['LUT_range'])
+            if d['activedata'][0] == 'celldata':
+                poly.GetCellData().SetActiveScalars(d['activedata'][1])
+            if d['activedata'][0] == 'pointdata':
+                poly.GetPointData().SetActiveScalars(d['activedata'][1])
+
+        if 'shading' in keys and int(d['shading'])>0:
+            msh.computeNormals(cells=0) # otherwise cannot renderer phong
+
+        if 'scalarvisibility' in keys:
+            if d['scalarvisibility']:
+                msh.mapper().ScalarVisibilityOn()
+            else:
+                msh.mapper().ScalarVisibilityOff()
+
+        if 'texture' in keys and d['texture']:
+            msh.texture(d['texture'])
+
+        return msh
+    ######################################################
+
+    objs = []
+    for d in data:
+        #print('loadNumpy:', d)
+
+        ### Mesh
+        if 'mesh' == d['type'].lower():
+            a = _buildmesh(d)
+            if a: objs.append(a)
+
+        ### Assembly
+        elif 'assembly' == d['type'].lower():
+            assacts = []
+            for ad in d['actors']:
+                assacts.append(_buildmesh(ad))
+            asse = Assembly(assacts)
+            _loadcommon(asse, d)
+            objs.append(asse)
+
+        ### Volume
+        elif 'volume' == d['type'].lower():
+            vol = Volume(d['array'])
+            _loadcommon(vol, d)
+            if 'jittering' in d.keys(): vol.jittering(d['jittering'])
+            #print(d['mode'])
+            vol.mode(d['mode'])
+            vol.color(d['color'])
+            vol.alpha(d['alpha'])
+            vol.alphaGradient(d['alphagrad'])
+            objs.append(vol)
+
+        ### Picture
+        elif 'picture' == d['type'].lower():
+            shp = d['shape'][1], d['shape'][0]
+            arr0 = d['array']
+            rcv = arr0[:,0].reshape(shp)
+            rcv = np.flip(rcv, 0)
+            gcv = arr0[:,1].reshape(shp)
+            gcv = np.flip(gcv, 0)
+            bcv = arr0[:,2].reshape(shp)
+            bcv = np.flip(bcv, 0)
+            arr = np.array([rcv, gcv, bcv])
+            arr = np.swapaxes(arr, 0, 2)
+            arr = np.swapaxes(arr, 0, 1)
+            vimg = Picture(arr)
+            _loadcommon(vimg, d)
+            objs.append(vimg)
+
+        ### Annotation
+        elif 'annotation' == d['type'].lower():
+            from vedo.shapes import Text2D
+            pos = d['position']
+            t = Text2D(d['text'], pos=pos+1, font=d['font'], c=d['color'])
+            t.SetNonlinearFontScaleFactor(d['size'])
+            t.GetTextProperty().SetBackgroundColor(d['bgcol'])
+            t.GetTextProperty().SetBackgroundOpacity(d['alpha'])
+            t.GetTextProperty().SetFrameColor(d['bgcol'])
+            t.GetTextProperty().BoldOff()
+            objs.append(t)
+
+    if len(objs) == 1:
+        return objs[0]
+    elif len(objs) == 0:
+        return None
+    else:
+        return objs
+
+
+def loadImageData(filename):
     """Read and return a ``vtkImageData`` object from file.
     Use ``load`` instead.
     E.g. `img = load('myfile.tif').imagedata()`
@@ -1021,8 +1082,6 @@ def loadImageData(filename, spacing=()):
     reader.SetFileName(filename)
     reader.Update()
     image = reader.GetOutput()
-    if len(spacing) == 3:
-        image.SetSpacing(spacing[0], spacing[1], spacing[2])
     return image
 
 
@@ -1053,7 +1112,6 @@ def write(objct, fileoutput, binary=True):
             pscal = obj.GetCellData().GetScalars()
         if pscal and pscal.GetName():
             writer.SetArrayName(pscal.GetName())
-            #writer.SetColorMode(0)
         lut = objct.GetMapper().GetLookupTable()
         if lut:
             writer.SetLookupTable(lut)
@@ -1104,7 +1162,7 @@ def write(objct, fileoutput, binary=True):
             objslist = [objct]
         dicts2save = []
         for obj in objslist:
-            dicts2save.append( _np_dump(obj) )
+            dicts2save.append( toNumpy(obj) )
         np.save(fileoutput, dicts2save)
         return dicts2save
 
@@ -1203,14 +1261,10 @@ def write(objct, fileoutput, binary=True):
     return objct
 
 
-###########################################################
-def exportWindow(fileoutput, binary=False, speed=None):
+###############################################################################
+def exportWindow(fileoutput, binary=False):
     '''
     Exporter which writes out the renderered scene into an HTML, X3D or Numpy file.
-    X3D is an XML-based format for representation 3D scenes (similar to VRML).
-    Check out http://www.web3d.org/x3d for more details.
-
-    :param float speed: set speed for x3d files.
 
     |export_x3d| |export_x3d.py|_
 
@@ -1223,24 +1277,72 @@ def exportWindow(fileoutput, binary=False, speed=None):
     '''
     fr = fileoutput.lower()
 
-    if fr.endswith(".obj"):
-        w = vtk.vtkOBJExporter()
-        w.SetInputData(settings.plotter_instance.window)
-        w.Update()
-        colors.printc("~save Saved file:", fileoutput, c="g")
+    ####################################################################
+    if fr.endswith(".npy"):
+        sdict = dict()
+        vp = settings.plotter_instance
+        sdict['shape'] = vp.shape #todo
+        sdict['sharecam'] = vp.sharecam #todo
+        sdict['camera'] = dict( pos=vp.camera.GetPosition(),
+                                focalPoint=vp.camera.GetFocalPoint(),
+                                viewup=vp.camera.GetViewUp(),
+                                distance=vp.camera.GetDistance(),
+                                clippingRange=vp.camera.GetClippingRange() )
+        sdict['position'] = vp.pos
+        sdict['size'] = vp.size
+        sdict['axes'] = vp.axes
+        sdict['title'] = vp.title
+        sdict['xtitle'] = vp.xtitle
+        sdict['ytitle'] = vp.ytitle
+        sdict['ztitle'] = vp.ztitle
+        sdict['backgrcol'] = colors.getColor(vp.backgrcol)
+        sdict['backgrcol2'] = None
+        if vp.renderer.GetGradientBackground():
+            sdict['backgrcol2'] = vp.renderer.GetBackground2()
+        sdict['useDepthPeeling'] = settings.useDepthPeeling
+        sdict['renderPointsAsSpheres'] = settings.renderPointsAsSpheres
+        sdict['renderLinesAsTubes'] = settings.renderLinesAsTubes
+        sdict['hiddenLineRemoval'] = settings.hiddenLineRemoval
+        sdict['visibleGridEdges'] = settings.visibleGridEdges
+        sdict['interactorStyle'] = settings.interactorStyle
+        sdict['useParallelProjection'] = settings.useParallelProjection
+        sdict['objects'] = []
 
-#    elif fr.endswith(".obj"):
-#        writer = vtk.vtkOBJWriter()
-#        writer.SetInputData(settings.plotter_instance.window)
-#        writer.SetFileName(fileoutput)
-#        writer.Write()
+        allobjs = vp.getMeshes() + vp.getVolumes()
+        # print(vp.renderer.GetActors2D())
+        acts2d = vp.renderer.GetActors2D()
+        acts2d.InitTraversal()
+        for i in range(acts2d.GetNumberOfItems()):
+            a = acts2d.GetNextItem()
+            if isinstance(a, vtk.vtkCornerAnnotation):
+                allobjs.append(a)
 
+        # ir = vp.renderers.index(vp.renderer)
+        # for a in vp.actors:
+        #     # because of vtkXYPlotActor is not wrapped
+        #     if hasattr(a, 'renderedAt') and ir in a.renderedAt:
+        #         allobjs.append(a)
+        # allobjs = list(set(allobjs)) # unique
+
+        for a in allobjs:
+            sdict['objects'].append(toNumpy(a))
+
+        np.save(fileoutput, [sdict])
+
+    ####################################################################
+    # elif fr.endswith(".obj"):
+    #     w = vtk.vtkOBJExporter()
+    #     w.SetInputData(settings.plotter_instance.window)
+    #     w.Update()
+    #     colors.printc("~save Saved file:", fileoutput, c="g")
+
+
+    ####################################################################
     elif fr.endswith(".x3d"):
         from vedo.docs import x3d_html
         exporter = vtk.vtkX3DExporter()
         exporter.SetBinary(binary)
         exporter.FastestOff()
-        if speed: exporter.SetSpeed(speed)
         exporter.SetInput(settings.plotter_instance.window)
         exporter.SetFileName(fileoutput)
         exporter.Update()
@@ -1255,32 +1357,7 @@ def exportWindow(fileoutput, binary=False, speed=None):
         colors.printc("~save Saved files:", fileoutput,
                       fileoutput.replace('.x3d', '.html'), c="g")
 
-    elif fr.endswith(".npy"):
-        sdict = dict()
-        vp = settings.plotter_instance
-        sdict['shape'] = (1,1) #vp.shape #todo
-        sdict['sharecam'] = vp.sharecam #todo
-        sdict['camera'] = None #todo
-        sdict['position'] = vp.pos
-        sdict['size'] = vp.size
-        sdict['axes'] = vp.axes
-        sdict['title'] = vp.title
-        sdict['xtitle'] = vp.xtitle
-        sdict['ytitle'] = vp.ytitle
-        sdict['ztitle'] = vp.ztitle
-        sdict['backgrcol'] = colors.getColor(vp.backgrcol)
-        sdict['useDepthPeeling'] = settings.useDepthPeeling
-        sdict['renderPointsAsSpheres'] = settings.renderPointsAsSpheres
-        sdict['renderLinesAsTubes'] = settings.renderLinesAsTubes
-        sdict['hiddenLineRemoval'] = settings.hiddenLineRemoval
-        sdict['visibleGridEdges'] = settings.visibleGridEdges
-        sdict['interactorStyle'] = settings.interactorStyle
-        sdict['useParallelProjection'] = settings.useParallelProjection
-        sdict['objects'] = []
-        for a in vp.getMeshes() + vp.getVolumes():
-            sdict['objects'].append(_np_dump(a))
-        np.save(fileoutput, [sdict])
-
+    ####################################################################
     elif fr.endswith(".html"):
         from vedo.backends import getNotebookBackend
 
@@ -1295,9 +1372,8 @@ def exportWindow(fileoutput, binary=False, speed=None):
 
     else:
         colors.printc("Export extensions is not supported.", c=1)
-
-
     return
+
 
 def importWindow(fileinput, mtlFile=None, texturePath=None):
     """Import a whole scene from a Numpy or OBJ wavefront file.
@@ -1308,8 +1384,11 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
     """
     from vedo import Plotter
 
-    if '.npy' in fileinput:
-        data = np.load(fileinput, allow_pickle=True, encoding="latin1").flatten()[0]
+    if '.npy' in fileinput or isinstance(fileinput, dict):
+        if isinstance(fileinput, dict):
+            data = fileinput
+        else:
+            data = np.load(fileinput, allow_pickle=True, encoding="latin1").flatten()[0]
 
         if 'renderPointsAsSpheres' in data.keys():
             settings.renderPointsAsSpheres = data['renderPointsAsSpheres']
@@ -1323,24 +1402,41 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
             settings.interactorStyle = data['interactorStyle']
         if 'useParallelProjection' in data.keys():
             settings.useParallelProjection = data['useParallelProjection']
+        if 'usePolygonOffset' in data.keys():
+            settings.usePolygonOffset = data['usePolygonOffset']
+        if 'polygonOffsetFactor' in data.keys():
+            settings.polygonOffsetFactor = data['polygonOffsetFactor']
+        if 'polygonOffsetUnits' in data.keys():
+            settings.polygonOffsetUnits = data['polygonOffsetUnits']
+        if 'interpolateScalarsBeforeMapping' in data.keys():
+            settings.interpolateScalarsBeforeMapping = data['interpolateScalarsBeforeMapping']
 
         axes = data.pop('axes', 4)
         title = data.pop('title', '')
-        backgrcol = data.pop('backgrcol', "blackboard")
+        backgrcol = data.pop('backgrcol', "white")
+        backgrcol2 = data.pop('backgrcol2', None)
+        cam = data.pop('camera', None)
+
+        if data['shape'] != (1,1): data['size']="auto" # disable size
 
         vp = Plotter(size=data['size'], # not necessarily a good idea to set it
                      #shape=data['shape'], # will need to create a Renderer class first
                      axes=axes,
                      title=title,
                      bg=backgrcol,
+                     bg2=backgrcol2,
         )
         vp.xtitle = data.pop('xtitle', 'x')
         vp.ytitle = data.pop('ytitle', 'y')
         vp.ztitle = data.pop('ztitle', 'z')
 
-        #print(data.keys())
-        #print(data['objects'])
-        #exit()
+        if cam:
+            if 'pos' in cam.keys(): vp.camera.SetPosition( cam['pos'] )
+            if 'focalPoint' in cam.keys(): vp.camera.SetFocalPoint( cam['focalPoint'] )
+            if 'viewup' in cam.keys(): vp.camera.SetViewUp(cam['viewup']  )
+            if 'distance' in cam.keys(): vp.camera.SetDistance( cam['distance'] )
+            if 'clippingRange' in cam.keys(): vp.camera.SetClippingRange( cam['clippingRange'] )
+            vp.resetcam = False
 
         if 'objects' in data.keys():
             objs = loadNumpy(data['objects'])

@@ -7,7 +7,7 @@ from vedo.pyplot import histogram
 
 vp = Plotter()
 
-s = vp.load(datadir+"cow.vtk", alpha=0.3)
+s = vp.load(datadir+"cow.vtk").alpha(0.3)
 
 pts1, pts2, vals, cols = [], [], [], []
 

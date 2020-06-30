@@ -30,17 +30,6 @@ import vtk, sys
 __all__ = []
 
 
-def onelinetip():
-    from vedo import colors, __version__
-
-    msg = " vedo " + __version__ + " "
-    colors.printc(msg, invert=1, dim=1, end="")
-    #msg = "| vtk " + vtk.vtkVersion().GetVTKVersion()
-    #msg += " | python " + str(sys.version_info[0]) + "." + str(sys.version_info[1])
-    msg = " | press h for help."
-    colors.printc(msg, invert=0, dim=1)
-
-
 def tips():
     from vedo import colors, __version__
     msg  = " ==========================================================\n"
@@ -50,7 +39,7 @@ def tips():
     msg += "|        /     maximize opacity                            |\n"
     msg += "|        w/s   toggle wireframe/solid style                |\n"
     msg += "|        p/P   change point size of vertices               |\n"
-    msg += "|        l     toggle edges line visibility                |\n"
+    msg += "|        l     toggle edges visibility                     |\n"
     msg += "|        x     toggle mesh visibility                      |\n"
     msg += "|        X     invoke a cutter widget tool                 |\n"
     msg += "|        1-3   change mesh color                           |\n"
@@ -70,10 +59,11 @@ def tips():
     msg += "|        q     return control to python script             |\n"
     msg += "|        Esc   close the rendering window and continue     |\n"
     msg += "|        F1    abort execution and exit python kernel      |\n"
+    msg += "|----------------------------------------------------------|\n"
     msg += "| Mouse: Left-click    rotate scene / pick actors          |\n"
     msg += "|        Middle-click  pan scene                           |\n"
     msg += "|        Right-click   zoom scene in or out                |\n"
-    msg += "|        Cntrl-click   rotate scene perpendicularly        |\n"
+    msg += "|        Cntrl-click   rotate scene                        |\n"
     msg += "|----------------------------------------------------------|\n"
     msg += "| Check out documentation at:  https://vedo.embl.es        |\n"
     msg += " =========================================================="
@@ -301,12 +291,15 @@ _defs = ""
 #     :target: lorenz.py_
 #     :alt: lorenz.py
 
-# .. |sliders.py| replace:: sliders.py
-# .. _sliders.py: https://github.com/marcomusy/vedo/blob/master/vedo/examples/basic/sliders.py
-# .. |sliders| image:: https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg
+# .. |sliders1.py| replace:: sliders1.py
+# .. _sliders1.py: https://github.com/marcomusy/vedo/blob/master/vedo/examples/basic/sliders1.py
+# .. |sliders1| image:: https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg
 #     :width: 300 px
-#     :target: sliders.py_
-#     :alt: sliders.py
+#     :target: sliders1.py_
+#     :alt: sliders1.py
+
+# .. |sliders2.py| replace:: sliders2.py
+# .. _sliders2.py: https://github.com/marcomusy/vedo/blob/master/vedo/examples/basic/sliders2.py
 
 # .. |buttons.py| replace:: buttons.py
 # .. _buttons.py: https://github.com/marcomusy/vedo/blob/master/vedo/examples/basic/buttons.py

@@ -50,6 +50,10 @@ class Picture(vtk.vtkImageActor, Base3DProp):
             img = obj
 
         elif isinstance(obj, str):
+            if "https://" in obj:
+                import vedo.io as io
+                obj = io.download(obj)
+
             if   ".png" in obj:
                 picr = vtk.vtkPNGReader()
             elif ".jpg" in obj or ".jpeg" in obj:
@@ -60,6 +64,7 @@ class Picture(vtk.vtkImageActor, Base3DProp):
                 picr = vtk.vtkTIFFReader()
             else:
                 colors.printc("Cannot understand picture format", obj, c=1)
+                return
             picr.SetFileName(obj)
             picr.Update()
             img = picr.GetOutput()
@@ -72,7 +77,7 @@ class Picture(vtk.vtkImageActor, Base3DProp):
         self._data = img
         self._mapper = self.GetMapper()
 
-    def imagedata(self):
+    def inputdata(self):
         """Return the underlying ``vtkImagaData`` object."""
         return self._data
 

@@ -51,7 +51,6 @@ class Base3DProp(object):
             self.SetPickable(value)
             return self
 
-
     def legend(self, txt=None):
         """Set/get ``Mesh`` legend text.
 
@@ -65,8 +64,6 @@ class Base3DProp(object):
         else:
             self._legend = str(txt)
             return self
-
-
 
     def time(self, t=None):
         """Set/get object's absolute time."""
@@ -155,7 +152,6 @@ class Base3DProp(object):
             self._updateShadow()
         return self
 
-
     def rotate(self, angle, axis=(1, 0, 0), axis_point=(0, 0, 0), rad=False):
         """Rotate around an arbitrary `axis` passing through `axis_point`."""
         if rad:
@@ -188,7 +184,6 @@ class Base3DProp(object):
                            self.shadow.GetProperty().GetColor(),
                            self.shadow.GetProperty().GetOpacity())
         return self
-
 
     def rotateX(self, angle, rad=False):
         """Rotate around x-axis. If angle is in radians set ``rad=True``."""
@@ -555,7 +550,10 @@ class BaseActor(Base3DProp):
         |delaunay2d| |delaunay2d.py|_
         """
         vcen = vtk.vtkCellCenters()
-        vcen.SetInputData(self.inputdata())
+        if hasattr(self, "polydata"):
+            vcen.SetInputData(self.polydata())
+        else:
+            vcen.SetInputData(self.inputdata())
         vcen.Update()
         return vtk_to_numpy(vcen.GetOutput().GetPoints().GetData())
 
@@ -1080,8 +1078,8 @@ class BaseActor(Base3DProp):
 
     def write(self, filename, binary=True):
         """Write object to file."""
-        import vedo.vtkio as vtkio
-        return vtkio.write(self, filename, binary)
+        import vedo.io as io
+        return io.write(self, filename, binary)
 
 
 class BaseGrid(BaseActor):
@@ -1308,11 +1306,11 @@ class BaseGrid(BaseActor):
         sf.Update()
         return self._update(sf.GetOutput())
 
-    def isosurface(self, threshold=True, connectivity=False):
+    def isosurface(self, threshold=None, largest=False):
         """Return an ``Mesh`` isosurface extracted from the ``Volume`` object.
 
         :param float,list threshold: value or list of values to draw the isosurface(s)
-        :param bool connectivity: if True only keeps the largest portion of the polydata
+        :param bool largest: if True keep only the largest portion of the mesh
 
         |isosurfaces| |isosurfaces.py|_
         """
@@ -1321,28 +1319,21 @@ class BaseGrid(BaseActor):
         cf = vtk.vtkContourFilter()
         cf.SetInputData(self._data)
         cf.UseScalarTreeOn()
-        cf.ComputeScalarsOn()
         cf.ComputeNormalsOn()
 
         if utils.isSequence(threshold):
             cf.SetNumberOfContours(len(threshold))
             for i, t in enumerate(threshold):
                 cf.SetValue(i, t)
-            cf.Update()
         else:
-            if threshold is True:
+            if threshold is None:
                 threshold = (2 * scrange[0] + scrange[1]) / 3.0
-                #print('automatic threshold set to ' + utils.precision(threshold, 3), end=' ')
-                #print('in [' + utils.precision(scrange[0], 3) + ', ' + utils.precision(scrange[1], 3)+']')
             cf.SetValue(0, threshold)
-            cf.Update()
 
-        clp = vtk.vtkCleanPolyData()
-        clp.SetInputConnection(cf.GetOutputPort())
-        clp.Update()
-        poly = clp.GetOutput()
+        cf.Update()
+        poly = cf.GetOutput()
 
-        if connectivity:
+        if largest:
             conn = vtk.vtkPolyDataConnectivityFilter()
             conn.SetExtractionModeToLargestRegion()
             conn.SetInputData(poly)

@@ -7,7 +7,7 @@ from vedo import *
 # to define the opacity transfer function in the range of the scalar.
 #  E.g.: setting alpha=[0, 0, 0, 1, 0, 0, 0] would make visible
 #  only voxels with value close to center of the range (see printed histogram).
-vol = load(datadir+'embryo.slc', spacing=[1, 1, 1]) # returns Volume(vtkVolume)
+vol = load(datadir+'embryo.slc').spacing([1,1,1]) # returns Volume(vtkVolume)
 vol.color(["green", "pink", "blue"])
 vol.alpha([0, 0, 0.2, 0.5, 0.9])
 

@@ -46,7 +46,7 @@ vp.xtitle = ""
 vp.ytitle = "Psi^2(x,t)"
 vp.ztitle = ""
 
-bck = vp.load(datadir+"images/schrod.png", alpha=.3).scale(.0255).pos([0,-5,-.1])
+bck = vp.load(datadir+"images/schrod.png").alpha(.3).scale(.0255).pos([0,-5,-.1])
 barrier = Line(np.stack((x, V*15, np.zeros_like(x)), axis=1), c="black", lw=2)
 
 lines = []

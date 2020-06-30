@@ -1233,7 +1233,7 @@ def _histogram1D(
             p0 = (myedges[i] + gap * binsize, 0, 0)
             p1 = (myedges[i + 1] - gap * binsize, fs[i], 0)
             r = shapes.Rectangle(p0, p1)
-            r.origin(p0)
+            r.origin(p0).PickableOff()
             maxheigth = max(maxheigth, p1[1])
             r.color(c).alpha(alpha).lighting('off').z(offs)
             rs.append(r)

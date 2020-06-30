@@ -1869,8 +1869,39 @@ class Box(Mesh):
         src.SetZLength(height)
         src.Update()
         pd = src.GetOutput()
+
+        tc = [
+                [0.0, 0.0],
+                [1.0, 0.0],
+                [0.0, 1.0],
+                [1.0, 1.0],
+                [1.0, 0.0],
+                [0.0, 0.0],
+                [1.0, 1.0],
+                [0.0, 1.0],
+                [1.0, 1.0],
+                [1.0, 0.0],
+                [0.0, 1.0],
+                [0.0, 0.0],
+                [0.0, 1.0],
+                [0.0, 0.0],
+                [1.0, 1.0],
+                [1.0, 0.0],
+                [1.0, 0.0],
+                [0.0, 0.0],
+                [1.0, 1.0],
+                [0.0, 1.0],
+                [0.0, 0.0],
+                [1.0, 0.0],
+                [0.0, 1.0],
+                [1.0, 1.0],
+        ]
+        vtc = numpy_to_vtk(tc)
+        pd.GetPointData().SetTCoords(vtc)
+
         Mesh.__init__(self, pd, c, alpha)
         self.SetPosition(pos)
+
         settings.collectable_actors.append(self)
         self.name = "Box"
 
@@ -2278,7 +2309,7 @@ class Text(Mesh):
         if italic is True:
             italic = 1
         if italic:
-            t.Concatenate([1,italic*0.28,0,0,
+            t.Concatenate([1,italic*0.25,0,0,
                            0,1,0,0,
                            0,0,1,0,
                            0,0,0,1])
@@ -2303,12 +2334,120 @@ class Text(Mesh):
         self.name = "Text"
 
 
+# class Text2D(vtk.vtkCornerAnnotation):
+
+#     def __init__(self,
+#                 txt,
+#                 pos='top-cent',
+#                 s=1,
+#                 c=None,
+#                 alpha=1,
+#                 bg=None,
+#                 font="Montserrat",
+#                 justify="bottom-left",
+#                 bold=False,
+#                 italic=False,
+#                 ):
+#         vtk.vtkCornerAnnotation.__init__(self)
+
+#         self.renderedAt = set()
+
+#         if c is None: # automatic black or white
+#             if settings.plotter_instance and settings.plotter_instance.renderer:
+#                 c = (0.9, 0.9, 0.9)
+#                 if settings.plotter_instance.renderer.GetGradientBackground():
+#                     bgcol = settings.plotter_instance.renderer.GetBackground2()
+#                 else:
+#                     bgcol = settings.plotter_instance.renderer.GetBackground()
+#                 if np.sum(bgcol) > 1.5:
+#                     c = (0.1, 0.1, 0.1)
+#             else:
+#                 c = (0.5, 0.5, 0.5)
+
+#         if isinstance(pos, str): # corners
+#             tol = 0.005
+#             if "top" in pos:
+#                 if "left" in pos:
+#                     pos = (tol,1)
+#                     justify='top-left'
+#                 elif "right" in pos:
+#                     pos = (1-tol,1)
+#                     justify='top-right'
+#                 elif "mid" in pos or "cent" in pos:
+#                     pos = (0.5, 1)
+#                     justify='top-center'
+#             elif "bottom" in pos:
+#                 if "left" in pos:
+#                     pos = (tol,0)
+#                     justify='bottom-left'
+#                 elif "right" in pos:
+#                     pos = (1-tol,0)
+#                     justify='bottom-right'
+#                 elif "mid" in pos or "cent" in pos:
+#                     pos = (0.5,0)
+#                     justify='bottom-center'
+
+#         if len(pos)!=2:
+#             print("Error in Text2D(): len(pos) must be 2 or integer value or string.")
+#             raise RuntimeError()
+
+#         else:
+
+#             ###############
+#             # self.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+#             self.SetText(4 - 1, str(txt))
+#             print(self.GetPosition())
+#             self.SetTextActorsPosition(0.1, 0.85)
+#             print(self.GetPosition())
+#             # self.SetPosition(pos)
+#             # tmapper = vtk.vtkTextMapper()
+#             # tmapper.SetInput(str(txt))
+#             # self.SetMapper(tmapper)
+#             tp = self.GetTextProperty()
+#             tp.BoldOff()
+#             tp.SetFontSize(int(s*20))
+#             tp.SetColor(getColor(c))
+#             tp.SetJustificationToLeft()
+#             if "top" in justify:
+#                 tp.SetVerticalJustificationToTop()
+#             if "bottom" in justify:
+#                 tp.SetVerticalJustificationToBottom()
+#             if "cent" in justify:
+#                 tp.SetVerticalJustificationToCentered()
+#                 # tp.SetJustificationToCentered()
+#             if "left" in justify:
+#                 tp.SetJustificationToLeft()
+#             if "right" in justify:
+#                 tp.SetJustificationToRight()
+
+#             if font.lower() == "courier": tp.SetFontFamilyToCourier()
+#             elif font.lower() == "times": tp.SetFontFamilyToTimes()
+#             elif font.lower() == "arial": tp.SetFontFamilyToArial()
+#             else:
+#                 tp.SetFontFamily(vtk.VTK_FONT_FILE)
+#                 if font in settings.fonts:
+#                     tp.SetFontFile(settings.fonts_path + font + '.ttf')
+#                 elif os.path.exists(font):
+#                     tp.SetFontFile(font)
+#                 else:
+#                     #printc("Font", font, "not found in", settings.fonts_path, c="r")
+#                     #printc("Available fonts are:", settings.fonts, c="y")
+#                     tp.SetFontFamilyToCourier() # silently fail
+#             if bg:
+#                 bgcol = getColor(bg)
+#                 tp.SetBackgroundColor(bgcol)
+#                 tp.SetBackgroundOpacity(alpha * 0.1)
+#                 tp.SetFrameColor(bgcol)
+#                 tp.FrameOn()
+#             self.PickableOff()
+
+
 def Text2D(
     txt,
     pos=3,
     s=1,
     c=None,
-    alpha=1,
+    alpha=0.15,
     bg=None,
     font="Montserrat",
     justify="bottom-left",
@@ -2406,7 +2545,7 @@ def Text2D(
         if bg:
             bgcol = getColor(bg)
             cap.SetBackgroundColor(bgcol)
-            cap.SetBackgroundOpacity(alpha * 0.1)
+            cap.SetBackgroundOpacity(alpha)
             #cap.SetFrameColor(bgcol)
             #cap.FrameOn()
         cap.SetBold(bold)

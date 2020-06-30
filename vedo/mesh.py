@@ -30,9 +30,7 @@ def merge(*meshs):
     """
     acts = []
     for a in utils.flatten(meshs):
-        if isinstance(a, vtk.vtkAssembly):
-            acts += a.unpack()
-        elif a:
+        if a:
             acts += [a]
 
     if len(acts) == 1:
@@ -183,7 +181,7 @@ class Mesh(vtk.vtkFollower, BaseActor):
                 self._polydata = gf.GetOutput()
 
         elif isinstance(inputobj, str):
-            from vedo.vtkio import load
+            from vedo.io import load
             dataset = load(inputobj)
             if "TetMesh" in str(type(dataset)):
                 self._polydata = dataset.tomesh().polydata()
@@ -399,24 +397,16 @@ class Mesh(vtk.vtkFollower, BaseActor):
             if i >= n:
                 break
 
-        # if n and joined: # join ends: [(1,2), (2,3,4)] -> [(1,2,3,4)]
-        #     conn = sorted(conn, key=lambda x:x[0])
-        #     res=[conn[0]]
-        #     for i in range(1, len(conn)):
-        #         l1 = conn[i]
-        #         if res[-1][-1] == l1[0]:
-        #             res[-1] += l1[1:]
-        #         else:
-        #             res.append(l1)
-        #     conn = res
         return conn # cannot always make a numpy array of it!
-
 
     def texture(self, tname,
                 tcoords=None,
                 interpolate=True,
                 repeat=True,
                 edgeClamp=False,
+                scale=None,
+                ushift=None,
+                vshift=None,
                 ):
         """Assign a texture to mesh from image file or predefined texture `tname`.
         If tname is ``None`` texture is disabled.
@@ -426,6 +416,9 @@ class Mesh(vtk.vtkFollower, BaseActor):
         :param bool edgeClamp: turn on/off the clamping of the texture map when
             the texture coords extend beyond the [0,1] range.
             Only used when repeat is False, and edge clamping is supported by the graphics card.
+        :param bool scale: scale the texture image by this factor
+        :param bool ushift: shift u-coordinates of texture by this amaount
+        :param bool vshift: shift v-coordinates of texture by this amaount
         """
         pd = self.polydata(False)
         if tname is None:
@@ -458,6 +451,12 @@ class Mesh(vtk.vtkFollower, BaseActor):
                     tmapper.SetInputData(pd)
                     tmapper.Update()
                     tc = tmapper.GetOutput().GetPointData().GetTCoords()
+                    if scale or ushift or vshift:
+                        ntc = vtk_to_numpy(tc)
+                        if scale: ntc *= scale
+                        if ushift: ntc[:,0] += ushift
+                        if vshift: ntc[:,1] += vshift
+                        tc = numpy_to_vtk(tc, deep=True)
                     pd.GetPointData().SetTCoords(tc)
                     pd.GetPointData().Modified()
 
@@ -1056,6 +1055,76 @@ class Mesh(vtk.vtkFollower, BaseActor):
         return cloned
 
 
+    def clone2D(self, pos=(0,0), coordsys=4, scale=None,
+                c=None, alpha=None, ps=2, lw=1,
+                sendback=False, layer=0):
+        """
+        Copy a 3D Mesh into a static 2D image. Returns a ``vtkActor2D``.
+
+            :param int coordsys: the coordinate system, options are
+
+                0. Displays
+
+                1. Normalized Display
+
+                2. Viewport (origin is the bottom-left corner of the window)
+
+                3. Normalized Viewport
+
+                4. View (origin is the center of the window)
+
+                5. World (anchor the 2d image to mesh)
+
+            :param int ps: point size in pixel units
+            :param int lw: line width in pixel units
+            :param bool sendback: put it behind any other 3D object
+        """
+        msiz = self.diagonalSize()
+        if scale is None:
+            if settings.plotter_instance:
+                sz = settings.plotter_instance.window.GetSize()
+                dsiz = utils.mag(sz)
+                scale = dsiz/msiz/9
+            else:
+                scale = 350/msiz
+            colors.printc('clone2D(): scale set to', utils.precision(scale/300,3))
+        else:
+            scale *= 300
+
+        cmsh = self.clone()
+
+        if self.color() is not None or c is not None:
+            cmsh._polydata.GetPointData().SetScalars(None)
+            cmsh._polydata.GetCellData().SetScalars(None)
+        poly = cmsh.pos(0,0,0).scale(scale).polydata()
+        mapper2d = vtk.vtkPolyDataMapper2D()
+        mapper2d.SetInputData(poly)
+        act2d = vtk.vtkActor2D()
+        act2d.SetMapper(mapper2d)
+        act2d.SetLayerNumber(layer)
+        csys = act2d.GetPositionCoordinate()
+        csys.SetCoordinateSystem(coordsys)
+        act2d.SetPosition(pos)
+        if c is not None:
+            c = colors.getColor(c)
+            act2d.GetProperty().SetColor(c)
+        else:
+            act2d.GetProperty().SetColor(cmsh.color())
+        if alpha is not None:
+            act2d.GetProperty().SetOpacity(alpha)
+        else:
+            act2d.GetProperty().SetOpacity(cmsh.alpha())
+        act2d.GetProperty().SetPointSize(ps)
+        act2d.GetProperty().SetLineWidth(lw)
+        act2d.GetProperty().SetDisplayLocationToForeground()
+        if sendback:
+            act2d.GetProperty().SetDisplayLocationToBackground()
+
+        # print(csys.GetCoordinateSystemAsString())
+        # print(act2d.GetHeight(), act2d.GetWidth(), act2d.GetLayerNumber())
+        return act2d
+
+
     def applyTransform(self, transformation):
         """
         Apply a linear or non-linear transformation to the mesh polygonal data.
@@ -1077,18 +1146,17 @@ class Mesh(vtk.vtkFollower, BaseActor):
 
     def normalize(self):
         """
-        Shift mesh center of mass at origin and scale its average size to unit.
+        Scale Mesh average size to unit.
         """
-        cm = self.centerOfMass()
         coords = self.points()
         if not len(coords):
-            return
+            return self
+        cm = np.mean(coords, axis=0)
         pts = coords - cm
         xyz2 = np.sum(pts * pts, axis=0)
         scale = 1 / np.sqrt(np.sum(xyz2) / len(pts))
         t = vtk.vtkTransform()
         t.Scale(scale, scale, scale)
-        t.Translate(-cm)
         tf = vtk.vtkTransformPolyDataFilter()
         tf.SetInputData(self._polydata)
         tf.SetTransform(t)
@@ -1377,7 +1445,13 @@ class Mesh(vtk.vtkFollower, BaseActor):
             p = poly.GetPoint(pointId)
             signedDistance = ippd.EvaluateFunction(p)
             signedDistances.InsertNextValue(signedDistance)
-        poly.GetPointData().SetScalars(signedDistances)
+
+        currentscals = poly.GetPointData().GetScalars()
+        if currentscals:
+            currentscals = currentscals.GetName()
+
+        poly.GetPointData().AddArray(signedDistances)
+        poly.GetPointData().SetActiveScalars("SignedDistances")
 
         clipper = vtk.vtkClipPolyData()
         clipper.SetInputData(poly)
@@ -1385,6 +1459,9 @@ class Mesh(vtk.vtkFollower, BaseActor):
         clipper.SetValue(0.0)
         clipper.Update()
         cpoly = clipper.GetOutput()
+
+        if currentscals:
+            cpoly.GetPointData().SetActiveScalars(currentscals)
 
         if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
             self._update(cpoly)
@@ -2644,6 +2721,7 @@ class Mesh(vtk.vtkFollower, BaseActor):
             elems = self.points()
             norms = self.normals(cells=False, compute=False)
             ns = np.sqrt(self.NPoints())
+
         hasnorms=False
         if len(norms):
             hasnorms=True
@@ -2725,7 +2803,7 @@ class Mesh(vtk.vtkFollower, BaseActor):
             tf.Update()
             tapp.AddInputData(tf.GetOutput())
         tapp.Update()
-        ids = Mesh(tapp.GetOutput(), c=[.5,.5,.5]).pickable(False)
+        ids = Mesh(tapp.GetOutput(), c=[.5,.5,.5])
         ids.lighting('off')
         return ids
 

@@ -7,12 +7,6 @@ echo #############################################
 echo
 echo
 
-echo Running colorpalette.py
-python colorpalette.py
-
-echo Running printc.py
-python printc.py
-
 echo Running flag_labels.py
 python flag_labels.py
 
@@ -26,10 +20,10 @@ echo Running matplotlib_tri.py
 python matplotlib_tri.py
 
 echo Running qt_window.py # needs qt5
-python qt_window.py
+python qt_window1.py
 
 echo Running qt_window_split.py # needs qt5
-python qt_window_split.py
+python qt_window2.py
 
 echo Running qt_tabs.py # needs qt5
 python qt_tabs.py
@@ -41,16 +35,10 @@ echo Running value-iteration.py
 python value-iteration.py
 
 echo Running remesh_meshfix.py
-python  remesh_meshfix.py
+python remesh_meshfix.py
 
 echo Running spherical_harmonics1.py
 python spherical_harmonics1.py 
-
-echo Running tf_learn_volume.py
-python tf_learn_volume.py
-
-echo Running export_x3d.py
-python export_x3d.py
 
 echo Running create_logo.py
 python create_logo.py

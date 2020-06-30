@@ -1,10 +1,9 @@
-# Download a large file from a URL link and unzip it
-#
-from vedo import download, gunzip, show
+"""Download a file from a URL address
+https://vedo.embl.es/examples/panther.stl.gz
+and unzip it on the fly"""
+from vedo import load, show
 
-fgz = download('https://vedo.embl.es/examples/truck.vtk.gz') # 200MB
+# use force=True to discard any previous cached downloads
+mesh = load('https://vedo.embl.es/examples/panther.stl.gz', force=False)
 
-filename = gunzip(fgz)
-print('gunzip-ped to temporary file:', filename)
-
-show(filename)
+show(mesh, __doc__, axes=True)

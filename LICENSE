@@ -197,6 +197,16 @@ License: public-domain-earth-III
 
 
 ------------------------------------------------------------------------------
+Files: vedo/fonts/BPmonoBold.ttf
+Source: https://www.1001freefonts.com/bp-mono.font
+Copyright: 2020 Backpacker (http://www.backpacker.gr)
+License: cc-by-sa
+
+Files: vedo/fonts/BPmonoItalics.ttf
+Source: https://www.1001freefonts.com/bp-mono.font
+Copyright: 2020 Backpacker (http://www.backpacker.gr)
+License: cc-by-sa
+
 Files: vedo/fonts/CallingCode.ttf
 Source: https://www.1001freefonts.com/calling-code.font
 Copyright: 2017 Ryoichi Tsunekawa
@@ -206,6 +216,11 @@ Files: vedo/fonts/ChineseRuler.ttf
 Source: https://www.1001freefonts.com/chinese-ruler.font
 Copyright: 2009 Michael Tension, Tension Type
 License: tension-donationware
+
+Files: vedo/fonts/ClassCoder.ttf
+Source: https://www.1001freefonts.com/class-coder.font
+Copyright: 2020, Walter E. Stewart
+License: OFL
 
 Files: vedo/fonts/Godsway.ttf
 Source: https://www.1001freefonts.com/godsway-font.font
@@ -236,6 +251,11 @@ Files: vedo/fonts/Overspray.ttf
 Source: https://www.1001freefonts.com/overspray.font
 Copyright: Michael Tension, Tension Type
 License: tension-donationware
+
+Files: vedo/fonts/Quikhand.ttf
+Source: https://www.1001freefonts.com/quikhand.font
+Copyright: 2020 Qwerks (http://graphicriver.net/user/joiaco)
+License: public-domain
 
 
 ------------------------------------------------------------------------------

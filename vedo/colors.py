@@ -327,11 +327,7 @@ def getColor(rgb=None, hsv=None):
 
         if c.lower() in colors.keys():  # matplotlib name color
             c = colors[c.lower()]
-        else:  # vtk name color
-            namedColors = vtk.vtkNamedColors()
-            rgba = [0, 0, 0, 0]
-            namedColors.GetColor(c, rgba)
-            return list(np.array(rgba[0:3]) / 255.0)
+            # from now format is hex!
 
         if "#" in c:  # hex to rgb
             h = c.lstrip("#")
@@ -341,6 +337,13 @@ def getColor(rgb=None, hsv=None):
                 print("Error in getColor(): Wrong hex color", c)
                 return (0.5, 0.5, 0.5)
             return tuple(rgbh)
+
+        else:  # vtk name color
+            namedColors = vtk.vtkNamedColors()
+            rgba = [0, 0, 0, 0]
+            namedColors.GetColor(c, rgba)
+            return list(np.array(rgba[0:3]) / 255.0)
+
 
     elif isinstance(c, int):  # color number
         if c >= 0:

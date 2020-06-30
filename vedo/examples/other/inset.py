@@ -5,7 +5,7 @@ from vedo import *
 
 vp = Plotter(axes=1)
 
-e = load(datadir+"embryo.tif", threshold=True) # automatic isosurfacing
+e = load(datadir+"embryo.tif").isosurface()
 e.normalize().c("gold")
 
 vp.show(e, __doc__, viewup='z', interactive=0)

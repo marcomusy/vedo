@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-# 
+#
 from __future__ import print_function
-from vedo.vtkio import load, write
+from vedo.io import load, write
 from vedo.utils import humansort
 from vedo import printc
 import sys, argparse
@@ -11,17 +11,17 @@ allowedexts = ['vtk', 'vtp', 'vtu', 'vts', 'npy', 'ply', 'stl', 'obj',
 
 pr = argparse.ArgumentParser(description="Allowed targets: "+str(allowedexts))
 pr.add_argument('files', nargs='*', help="Input filename(s)")
-pr.add_argument("-n", "--normalize",help="normalize target size", action="store_true") 
-pr.add_argument("-c", "--clean",    help="remove coincident points", action="store_true") 
-pr.add_argument("-m", "--mirror",   help="mirror along the x-axis", action="store_true") 
-pr.add_argument("-b", "--binary",   help="whether output is binary or not", action="store_true") 
-pr.add_argument("-t", "--triangle", help="Convert polygons to triangles", action="store_true") 
+pr.add_argument("-n", "--normalize",help="normalize target size", action="store_true")
+pr.add_argument("-c", "--clean",    help="remove coincident points", action="store_true")
+pr.add_argument("-m", "--mirror",   help="mirror along the x-axis", action="store_true")
+pr.add_argument("-b", "--binary",   help="whether output is binary or not", action="store_true")
+pr.add_argument("-t", "--triangle", help="Convert polygons to triangles", action="store_true")
 pr.add_argument("-to", type=str,    help="target format [vtk]", default='vtk', metavar='')
 args = pr.parse_args()
 
 humansort(args.files)
 nfiles = len(args.files)
-if nfiles == 0: 
+if nfiles == 0:
     sys.exit()
 
 target_ext = args.to.lower()
@@ -32,7 +32,7 @@ if target_ext not in allowedexts:
 
 for f in args.files:
     source_ext = f.split('.')[-1]
-    
+
     if target_ext == source_ext:
         continue
 
@@ -45,7 +45,6 @@ for f in args.files:
         a.clean()
     if args.mirror:
         a.mirror()
-            
+
     newf = f.replace("."+source_ext,"")+"."+target_ext
     write(a, newf, binary=args.binary)
- 

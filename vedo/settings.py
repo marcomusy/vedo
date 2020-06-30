@@ -86,7 +86,7 @@ General settings.
     # Remove hidden lines when in wireframe mode
     hiddenLineRemoval = False
 
-    # For RectilinearGrid: show internal edges not only outline
+    # For Structured and RectilinearGrid: show internal edges not only outline
     visibleGridEdges = False
 
     # Turn on/off the automatic repositioning of lights as the camera moves.
@@ -116,6 +116,16 @@ General settings.
     # Path to Voro++ library, http://math.lbl.gov/voro++
     voro_path = '/usr/local/bin'
 
+    # AnnotatedCube axis type nr. 5 options:
+    annotatedCubeColor      = (0.75, 0.75, 0.75)
+    annotatedCubeTextColor  = None # use default, otherwise specify a single color
+    annotatedCubeTextScale  = 0.2
+    annotatedCubeXPlusText  = "right"
+    annotatedCubeXMinusText = "left "
+    annotatedCubeYPlusText  = "front"
+    annotatedCubeYMinusText = "back "
+    annotatedCubeZPlusText  = " top "
+    annotatedCubeZMinusText = "bttom"
 
 Usage example:
 
@@ -172,6 +182,8 @@ flagBackgroundColor = 'w'
 # Show a gray frame margin in multirendering windows
 showRendererFrame = True
 rendererFrameColor = None
+rendererFrameAlpha = 0.5
+rendererFrameWidth = 0.5
 
 # Use tex, matplotlib latex compiler
 usetex = False
@@ -199,7 +211,7 @@ pointSmoothing = False
 lineSmoothing = False
 polygonSmoothing = False
 
-# For (Un)Structured and RectilinearGrid: show internal edges not only outline
+# For Structured and RectilinearGrid: show internal edges not only outline
 visibleGridEdges = False
 
 # Turn on/off the automatic repositioning of lights as the camera moves.
@@ -233,6 +245,16 @@ windowSplittingPosition = None
 # Path to Voro++ library, http://math.lbl.gov/voro++
 voro_path = '/usr/local/bin'
 
+# AnnotatedCube axis type 5 customization:
+annotatedCubeColor      = (0.75, 0.75, 0.75)
+annotatedCubeTextColor  = None # use default, otherwise specify a single color
+annotatedCubeTextScale  = 0.2
+annotatedCubeXPlusText  = "right"
+annotatedCubeXMinusText = "left "
+annotatedCubeYPlusText  = "front"
+annotatedCubeYMinusText = "back "
+annotatedCubeZPlusText  = " top "
+annotatedCubeZMinusText = "bttom"
 
 ####################################################################################
 # notebook support with K3D

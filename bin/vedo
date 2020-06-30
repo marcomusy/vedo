@@ -6,9 +6,13 @@ from vedo.mesh import Mesh
 from vedo.tetmesh import TetMesh
 from vedo.ugrid import UGrid
 from vedo.volume import Volume
-from vedo import settings, printc, getColor, humansort, __version__
-from vedo import vtkio, datadir, load
-import sys, argparse, os
+from vedo import settings, printc, getColor, humansort, isSequence, __version__
+from vedo import io, datadir, load
+import vedo.applications as applications
+from vedo.picture import Picture
+from vedo.shapes import Point, Text2D
+from vedo.docs import tips
+import sys, argparse, os, numpy, glob
 
 #################################################################################################
 class MyArgs:
@@ -104,8 +108,7 @@ def draw_scene():
     if args.ray_cast_mode:
         # print('DEBUG special case of SLC/TIFF volumes with -g option')
 
-        from vedo.applications import RayCaster
-        vol = vtkio.load(args.files[0])
+        vol = io.load(args.files[0])
 
         if not isinstance(vol, Volume):
             printc("~times Type Error:\nExpected a Volume but loaded", type(vol),
@@ -115,7 +118,7 @@ def draw_scene():
         sp = vol.spacing()
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
         vol.mode(int(args.mode)).color(args.cmap).jittering(True)
-        vp = RayCaster(vol)
+        vp = applications.RayCaster(vol)
         vp.show(viewup="z", interactive=True)
         vp.sliders[0][0].SetEnabled(False)
         vp.sliders[1][0].SetEnabled(False)
@@ -127,8 +130,6 @@ def draw_scene():
     elif args.slicer:
         # print('DEBUG special case of SLC/TIFF/DICOM volumes with --slicer option')
 
-        from vedo.applications import Slicer
-
         useSlider3D = False
         if args.axes_type == 4:
             args.axes_type=1
@@ -136,14 +137,15 @@ def draw_scene():
             args.axes_type=1
             useSlider3D = True
 
-        vol = vtkio.load(args.files[0])
+        vol = io.load(args.files[0])
 
         sp = vol.spacing()
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
 
         settings.plotter_instance = None # reset
 
-        plt = Slicer(vol,
+        plt = applications.Slicer(
+                     vol,
                      bg='white', bg2='lb',
                      useSlider3D=useSlider3D,
                      cmaps=[args.cmap, "Spectral_r", "hot_r", "bone_r", "gist_ncar_r"],
@@ -159,12 +161,11 @@ def draw_scene():
     ########################################################################
     elif args.slicer2d:
         # print('DEBUG special case of SLC/TIFF/DICOM volumes with --slicer2d option')
-        from vedo.applications import Slicer2d
-        vol = vtkio.load(args.files[0])
+        vol = io.load(args.files[0])
         sp = vol.spacing()
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
         settings.plotter_instance = None # reset
-        Slicer2d(vol)
+        applications.Slicer2d(vol)
         return
 
 
@@ -179,13 +180,12 @@ def draw_scene():
         or ".dem" in args.files[0].lower()
     ):
         # print('DEBUG normal mode for single VOXEL file with Isosurface Slider or LEGO mode')
-        from vedo.applications import IsosurfaceBrowser
-        vol = vtkio.load(args.files[0])
+        vol = io.load(args.files[0])
         sp = vol.spacing()
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
         if not args.color:
             args.color = 'gold'
-        vp = IsosurfaceBrowser(vol, lego=args.lego, c=args.color, cmap=args.cmap)
+        vp = applications.IsosurfaceBrowser(vol, lego=args.lego, c=args.color, cmap=args.cmap)
         vp.show(zoom=args.zoom, viewup="z")
         return
 
@@ -198,12 +198,14 @@ def draw_scene():
         ##########################################################
         # loading a full scene
         if ".npy" in args.files[0] and nfiles == 1:
-            import numpy
 
-            data = numpy.load(args.files[0], allow_pickle=True, encoding='latin1').flatten()[0]
-            if "objects" in data.keys():
-                vp = vtkio.importWindow(args.files[0])
-                vp.show()
+            objct = io.load(args.files[0])
+
+            if "Plotter" in str(type(objct)): # loading a full scene
+                objct.show()
+                return
+            else:                             # loading a set of meshes
+                vp.show(objct)
                 return
         ##########################################################
 
@@ -215,17 +217,14 @@ def draw_scene():
             if args.color is None and N > 1:
                 colb = i
 
-            actor = load(f, c=colb, alpha=args.alpha)
+            actor = load(f)
 
             if isinstance(actor, (TetMesh, UGrid)):
-                actor = actor.tomesh().shrink(0.95).c(colb).alpha(args.alpha)
-            #if isinstance(actor, UGrid):
-            #    actor = actor.tomesh().shrink(0.95).c(colb).alpha(args.alpha)
+                actor = actor.tomesh().shrink(0.975).c(colb).alpha(args.alpha)
 
             if isinstance(actor, Mesh):
                 actors.append(actor)
-                actor.wireframe(wire)
-                actor.lighting(args.lighting)
+                actor.lighting(args.lighting).c(colb).alpha(args.alpha).wireframe(wire)
                 if args.flat:
                     actor.flat()
                 else:
@@ -259,6 +258,17 @@ def draw_scene():
         if args.multirenderer_mode:
             vp.interactor.Start()
         else:
+
+            # if scene is empty just draw the logo
+            if all(a is None for a in actors):
+                actors = [Picture(datadir+'images/vedo_small.png'),
+                          Point([175,50,1200], alpha=0),
+                          Text2D('..could not load file(s)', s=0.7, bg='y',
+                                 c='r', font='MonospaceTypewriter',
+                                 pos='bottom-center'),
+                          ]
+                vp.axes=0
+
             vp.show(actors, interactive=True, zoom=args.zoom)
         return
 
@@ -266,11 +276,13 @@ def draw_scene():
     # scrolling mode  -s
     else:
         #print("DEBUG simple browser mode  -s")
-        from vedo.applications import Browser
         if vp.axes==4:
             vp.axes=1
 
-        Browser(vp.load(args.files, c=args.color, alpha=args.alpha))
+        acts = vp.load(args.files)
+        for a in acts: a.c(args.color).alpha(args.alpha)
+
+        applications.Browser(acts)
         vp.show(interactive=True, zoom=args.zoom)
 
 
@@ -456,7 +468,6 @@ if len(sys.argv) == 1 or os.name == "nt":  # no args are passed, pop up GUI
 
         def _run(self):
 
-            from vedo.docs import tips
             tips()
 
             args.files = list(self.filenames)
@@ -523,9 +534,9 @@ if len(sys.argv) == 1 or os.name == "nt":  # no args are passed, pop up GUI
             elif self.modeCB.get() == "lego":
                 args.lego = True
 
-            args.x_spacing = None
-            args.y_spacing = None
-            args.z_spacing = None
+            args.x_spacing = 1
+            args.y_spacing = 1
+            args.z_spacing = 1
             if self.xspacing.get() != '1.0': args.x_spacing = float(self.xspacing.get())
             if self.yspacing.get() != '1.0': args.y_spacing = float(self.yspacing.get())
             if self.zspacing.get() != '1.0': args.z_spacing = float(self.zspacing.get())
@@ -592,7 +603,6 @@ else:  #########################################################################
     args = pr.parse_args()
 
     if args.run:
-        import glob
         exfiles = [f for f in glob.glob(datadir.replace('data','') + "**/*.py", recursive=True)]
         matching = [s for s in exfiles if (args.run.lower() in os.path.basename(s).lower() and "__" not in s)]
         matching = list(sorted(matching))
@@ -643,9 +653,8 @@ else:  #########################################################################
         printc("Available examples are:", box='-')
         expath = datadir.replace('data','')
 
-        import glob
         exfiles = [(f, os.path.basename(f))
-                    for f in glob.glob(expath + "**/*.py", recursive=True)]
+                    for f in sorted(glob.glob(expath + "**/*.py", recursive=True))]
         nl = 4
 
         printc("Basic examples:", c='g', bold=1, underline=1)

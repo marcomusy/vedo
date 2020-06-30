@@ -54,7 +54,6 @@ __all__ = [
     "volumeFromMesh",
     "pointDensity",
     "pointCloudFrom",
-    "pointDensity",
     "visiblePoints",
 ]
 
@@ -1653,32 +1652,58 @@ def volumeFromMesh(mesh, bounds=None, dims=(20,20,20), signed=True, negate=False
     return vol
 
 
-def pointDensity(mesh, dims=(40,40,40), bounds=None, radius=None, computeGradient=False):
-    """Generate a density field from a point cloud. Output is a ``Volume``.
-    The local neighborhood is specified as a `radius` around each sample position (each voxel).
-    The density is normalized to the upper value of the scalar range.
+def pointDensity(mesh, dims=(40,40,40),
+                 bounds=None, radius=None,
+                 computeGradient=False, locator=None):
+    """
+    Generate a density field from a point cloud. Input can also be a set of 3D coordinates.
+    Output is a ``Volume``.
+    The local neighborhood is specified as the `radius` around each sample position (each voxel).
+    The density is expressed as the number of counts in the radius search.
+
+    :param int,list dims: numer of voxels in x, y and z of the output Volume.
+    :param bool computeGradient: Turn on/off the generation of the gradient vector,
+        gradient magnitude scalar, and function classification scalar.
+        By default this is off. Note that this will increase execution time
+        and the size of the output. (The names of these point data arrays are:
+        "Gradient", "Gradient Magnitude", and "Classification".)
+
+    :param vtkStaticPointLocator locator: can be assigned from a previous call for speed.
 
     See example script: |pointDensity.py|_
     """
     if not utils.isSequence(dims):
         dims = (dims,dims,dims)
     pdf = vtk.vtkPointDensityFilter()
-    pdf.SetInputData(mesh.polydata())
+    if utils.isSequence(mesh): # user passing coords
+        if len(mesh)==3:
+            mesh = np.c_[mesh[0],mesh[1],mesh[2]]
+        poly = utils.buildPolyData(mesh)
+        b = poly.GetBounds()
+        diag = np.sqrt((b[1]-b[0])**2+(b[3]-b[2])**2+(b[5]-b[4])**2)
+    else:
+        poly = mesh.polydata()
+        b = poly.GetBounds()
+        diag = mesh.diagonalSize()
+    pdf.SetInputData(poly)
     pdf.SetSampleDimensions(dims)
     pdf.SetDensityEstimateToFixedRadius()
-    pdf.SetDensityFormToVolumeNormalized()
-    pdf.SetDensityFormToNumberOfPoints ()
+    pdf.SetDensityFormToNumberOfPoints()
+    if locator:
+        pdf.SetLocator(locator)
     if radius is None:
-        radius = mesh.diagonalSize()/20
+        radius = diag/15
     pdf.SetRadius(radius)
-    pdf.SetComputeGradient(computeGradient)
     if bounds is None:
-        bounds = mesh.GetBounds()
+        bounds = b
     pdf.SetModelBounds(bounds)
+    pdf.SetComputeGradient(computeGradient)
     pdf.Update()
     img = pdf.GetOutput()
     vol = Volume(img)
     vol.name = "PointDensity"
+    vol.info['radius'] = radius
+    vol.locator = pdf.GetLocator()
     return vol
 
 

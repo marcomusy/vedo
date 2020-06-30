@@ -31,7 +31,7 @@ from vedo.version import _version as __version__
 from vedo.plotter import *
 from vedo.analysis import *
 from vedo.shapes import *
-from vedo.vtkio import *
+from vedo.io import *
 
 from vedo.base import BaseActor, BaseGrid
 from vedo.ugrid import UGrid
@@ -53,10 +53,10 @@ from vedo.dolfin import _inputsort
 from numpy import sin, cos, sqrt, exp, log, dot, cross, array, arange
 
 # imports hierarchy
-# plotter : utils, colors, actors, vtkio, shapes
-# analysis: utils, colors, actors, vtkio, shapes
+# plotter : utils, colors, actors, io, shapes
+# analysis: utils, colors, actors, io, shapes
 # shapes  : utils, colors, actors
-# vtkio   : utils, colors, actors
+# io   : utils, colors, actors
 # actors  : utils, colors
 # utils   :        colors
 # colors  : -

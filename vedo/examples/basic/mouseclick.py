@@ -1,7 +1,5 @@
-"""
-Mouse click event example
-click of the mouse causes a call to a custom function.
-"""
+"""Mouse click event example
+click of the mouse causes a call to a custom function"""
 from vedo import *
 
 
@@ -19,11 +17,11 @@ def onRightClick(mesh):
 
 vp = Plotter()
 
-vp.load(datadir+"skyscraper.obj", c='gold')
+vp.load(datadir+"skyscraper.obj").c("gold")
 
-vp.mouseLeftClickFunction = onLeftClick
+vp.mouseLeftClickFunction   = onLeftClick
 vp.mouseMiddleClickFunction = onMiddleClick
-vp.mouseRightClickFunction = onRightClick
+vp.mouseRightClickFunction  = onRightClick
 
 printc("Click object to trigger function call", invert=1, box="-")
 

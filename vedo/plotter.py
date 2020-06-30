@@ -6,7 +6,7 @@ from vtk.util.numpy_support import vtk_to_numpy
 import numpy as np
 
 from vedo import __version__
-import vedo.vtkio as vtkio
+import vedo.io as io
 import vedo.utils as utils
 import vedo.colors as colors
 from vedo.colors import printc, getColor
@@ -73,44 +73,47 @@ def show(*actors, **options):
 
         Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
-            - `xtitle`,            ['x'], x-axis title text.
-            - `ytitle`,            ['y'], y-axis title text.
-            - `ztitle`,            ['z'], z-axis title text.
-            - `numberOfDivisions`, [automatic], number of divisions on the shortest axis
-            - `axesLineWidth`,       [1], width of the axes lines
-            - `gridLineWidth`,       [1], width of the grid lines
-            - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally
-            - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
-            - `titleDepth`,          [0], extrusion fractional depth of title text
-            - `xyGrid`,           [True], show a gridded wall on plane xy
-            - `yzGrid`,           [True], show a gridded wall on plane yz
-            - `zxGrid`,           [True], show a gridded wall on plane zx
-            - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
-            - `xyGridTransparent`  [False], make grid plane completely transparent
-            - `xyGrid2Transparent` [False], make grid plane completely transparent on opposite side box
-            - `xyPlaneColor`,   ['gray'], color of the plane
-            - `xyGridColor`,    ['gray'], grid line color
-            - `xyAlpha`,          [0.15], grid plane opacity
-            - `showTicks`,        [True], show major ticks
-            - `xTitlePosition`,   [0.32], title fractional positions along axis
-            - `xTitleOffset`,     [0.05], title fractional offset distance from axis line
+            - `xtitle`,                ['x'], x-axis title text
+            - `xrange`,               [None], x-axis range in format (xmin, ymin), default is automatic.
+            - `numberOfDivisions`,    [None], approximate number of divisions on the longest axis
+            - `axesLineWidth`,           [1], width of the axes lines
+            - `gridLineWidth`,           [1], width of the grid lines
+            - `reorientShortTitle`,   [True], titles shorter than 2 letter are placed horizontally
+            - `originMarkerSize`,     [0.01], draw a small cube on the axis where the origin is
+            - `titleDepth`,              [0], extrusion fractional depth of title text
+            - `xyGrid`,               [True], show a gridded wall on plane xy
+            - `yzGrid`,               [True], show a gridded wall on plane yz
+            - `zxGrid`,               [True], show a gridded wall on plane zx
+            - `zxGrid2`,             [False], show zx plane on opposite side of the bounding box
+            - `xyGridTransparent`    [False], make grid plane completely transparent
+            - `xyGrid2Transparent`   [False], make grid plane completely transparent on opposite side box
+            - `xyPlaneColor`,       ['gray'], color of the plane
+            - `xyGridColor`,        ['gray'], grid line color
+            - `xyAlpha`,              [0.15], grid plane opacity
+            - `xyFrameLine`,          [None], add a frame for the plane
+            - `showTicks`,            [True], show major ticks
+            - `xTitlePosition`,       [0.32], title fractional positions along axis
+            - `xTitleOffset`,         [0.05], title fractional offset distance from axis line
             - `xTitleJustify`, ["top-right"], title justification
-            - `xTitleRotation`,      [0], add a rotation of the axis title
-            - `xLineColor`,  [automatic], color of the x-axis
-            - `xTitleColor`, [automatic], color of the axis title
-            - `xTitleBackfaceColor`, [None],  color of axis title on its backface
-            - `xTitleSize`,      [0.025], size of the axis title
-            - `xHighlightZero`,   [True], draw a line highlighting zero position if in range
-            - `xHighlightZeroColor`, [automatic], color of the line highlighting the zero position
-            - `xTickRadius`,     [0.005], radius of the major ticks
-            - `xTickThickness`, [0.0025], thickness of the major ticks along their axis
-            - `xTickColor`,  [automatic], color of major ticks
-            - `xMinorTicks`,         [1], number of minor ticks between two major ticks
-            - `tipSize`,          [0.01], size of the arrow tip
-            - `xPositionsAndLabels`   [], assign custom tick positions and labels [(pos1, label1), ...]
-            - `xLabelPrecision`,     [2], nr. of significative digits to be shown
-            - `xLabelSize`,      [0.015], size of the numeric labels along axis
-            - `xLabelOffset`,    [0.025], offset of numeric labels
+            - `xTitleRotation`,          [0], add a rotation of the axis title
+            - `xLineColor`,      [automatic], color of the x-axis
+            - `xTitleColor`,     [automatic], color of the axis title
+            - `xTitleBackfaceColor`,  [None],  color of axis title on its backface
+            - `xTitleSize`,          [0.025], size of the axis title
+            - 'xTitleItalic',            [0], a bool or float to make the font italic
+            - `xHighlightZero`,       [True], draw a line highlighting zero position if in range
+            - `xHighlightZeroColor`, [autom], color of the line highlighting the zero position
+            - `xTickLength`,         [0.005], radius of the major ticks
+            - `xTickThickness`,     [0.0025], thickness of the major ticks along their axis
+            - `xTickColor`,      [automatic], color of major ticks
+            - `xMinorTicks`,             [1], number of minor ticks between two major ticks
+            - `xPositionsAndLabels`       [], assign custom tick positions and labels [(pos1, label1), ...]
+            - `xLabelPrecision`,         [2], nr. of significative digits to be shown
+            - `xLabelSize`,          [0.015], size of the numeric labels along axis
+            - `xLabelOffset`,        [0.025], offset of numeric labels
+            - 'xFlipText'.           [False], flip axis title and numeric labels orientation
+            - `tipSize`,              [0.01], size of the arrow tip
+            - `limitRatio`,           [0.04], below this ratio don't plot small axis
 
     :param float azimuth/elevation/roll:  move camera accordingly
     :param str viewup:  either ['x', 'y', 'z'] or a vector to set vertical direction
@@ -842,10 +845,6 @@ class Plotter:
         return
         ####################### ..init ends here.
 
-    #def __str__(self): # causing problems #116
-    #    utils.printInfo(self)
-    #    return ""
-
     def __iadd__(self, actors):
         self.add(actors, render=False)
         return self
@@ -910,27 +909,21 @@ class Plotter:
 
 
     ####################################################
-    def load(self, inputobj, c=None, alpha=1, threshold=False, spacing=(), unpack=True):
+    def load(self, filename, unpack=True, force=False):
         """
         Load Mesh and Volume objects from file.
         The output will depend on the file extension. See examples below.
 
-        :param c: color in RGB format, hex, symbol or name
-        :param alpha: transparency (0=invisible)
-
-        For volumetric data (tiff, slc, vti etc):
-        :param float threshold: value to draw the isosurface, False by default to return a ``Volume``
-        :param list spacing: specify the voxel spacing in the three dimensions
-        :param bool unpack: only for multiblock data, if True returns a flat list of objects.
+        :param bool unpack: only for multiblock data,
+            if True returns a flat list of objects.
+        :param bool force: when downloading a file ignore any previous
+            cached downloads and force a new one.
 
         :Example:
+
             .. code-block:: python
 
                 from vedo import datadir, load, show
-
-                # Return an Mesh
-                g = load(datadir+'ring.gmsh')
-                show(g)
 
                 # Return a list of 2 Mesh
                 g = load([datadir+'250.vtk', datadir+'290.vtk'])
@@ -938,19 +931,14 @@ class Plotter:
 
                 # Return a list of meshes by reading all files in a directory
                 # (if directory contains DICOM files then a Volume is returned)
-                g = load(datadir+'timecourse1d/')
+                g = load('mydicomdir/')
                 show(g)
 
                 # Return a Volume. Color/Opacity transfer function can be specified too.
                 g = load(datadir+'embryo.slc')
-                g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1))
-                show(g)
-
-                # Return a Mesh from a SLC volume with automatic thresholding
-                g = load(datadir+'embryo.slc', threshold=True)
-                show(g)
+                g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1)).show()
         """
-        acts = vtkio.load(inputobj, c, alpha, threshold, spacing, unpack)
+        acts = io.load(filename, unpack, force)
         if utils.isSequence(acts):
             self.actors += acts
         else:
@@ -1135,7 +1123,7 @@ class Plotter:
         :param str font: title font [arial, courier]
         :param bool showValue:  if true current value is shown
 
-        |sliders| |sliders.py|_
+        |sliders1| |sliders1.py|_ |sliders2.py|_
         """
         return addons.addSlider2D(sliderfunc, xmin, xmax, value,
                                   pos, title, font, titleSize, c, showValue)
@@ -1246,42 +1234,47 @@ class Plotter:
 
         Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
-            - `xtitle`,            ['x'], x-axis title text.
-            - `ytitle`,            ['y'], y-axis title text.
-            - `ztitle`,            ['z'], z-axis title text.
-            - `numberOfDivisions`,   [4], number of divisions on the longest axis
-            - `axesLineWidth`,       [1], width of the axes lines
-            - `gridLineWidth`,       [1], width of the grid lines
-            - `reorientShortTitle`, [True], titles shorter than 3 letters are placed horizontally
-            - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
-            - `enableLastLabel`, [False], show last numeric label on axes
-            - `titleDepth`,          [0], extrusion fractional depth of title text
-            - `xyGrid`,           [True], show a gridded wall on plane xy
-            - `yzGrid`,           [True], show a gridded wall on plane yz
-            - `zxGrid`,          [False], show a gridded wall on plane zx
-            - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
-            - `xyPlaneColor`,   ['gray'], color of gridded plane
-            - `xyGridColor`,    ['gray'], grid line color
-            - `xyAlpha`,          [0.15], grid plane opacity
-            - `showTicks`,        [True], show major ticks
-            - `xTitlePosition`,   [0.32], title fractional positions along axis
-            - `xTitleOffset`,     [0.05], title fractional offset distance from axis line
+            - `xtitle`,                ['x'], x-axis title text
+            - `xrange`,               [None], x-axis range in format (xmin, ymin), default is automatic.
+            - `numberOfDivisions`,    [None], approximate number of divisions on the longest axis
+            - `axesLineWidth`,           [1], width of the axes lines
+            - `gridLineWidth`,           [1], width of the grid lines
+            - `reorientShortTitle`,   [True], titles shorter than 2 letter are placed horizontally
+            - `originMarkerSize`,     [0.01], draw a small cube on the axis where the origin is
+            - `titleDepth`,              [0], extrusion fractional depth of title text
+            - `xyGrid`,               [True], show a gridded wall on plane xy
+            - `yzGrid`,               [True], show a gridded wall on plane yz
+            - `zxGrid`,               [True], show a gridded wall on plane zx
+            - `zxGrid2`,             [False], show zx plane on opposite side of the bounding box
+            - `xyGridTransparent`    [False], make grid plane completely transparent
+            - `xyGrid2Transparent`   [False], make grid plane completely transparent on opposite side box
+            - `xyPlaneColor`,       ['gray'], color of the plane
+            - `xyGridColor`,        ['gray'], grid line color
+            - `xyAlpha`,              [0.15], grid plane opacity
+            - `xyFrameLine`,          [None], add a frame for the plane
+            - `showTicks`,            [True], show major ticks
+            - `xTitlePosition`,       [0.32], title fractional positions along axis
+            - `xTitleOffset`,         [0.05], title fractional offset distance from axis line
             - `xTitleJustify`, ["top-right"], title justification
-            - `xTitleRotation`,      [0], add a rotation of the axis title
-            - `xLineColor`,  [automatic], color of the x-axis
-            - `xTitleColor`, [automatic], color of the axis title
-            - `xTitleBackfaceColor`, [None],  color of axis title on its backface
-            - `xTitleSize`,      [0.025], size of the axis title
-            - `xHighlightZero`,   [True], draw a line highlighting zero position if in range
-            - `xHighlightZeroColor`, [automatic], color of the line highlighting the zero position
-            - `xTickRadius`,     [0.005], radius of the major ticks
-            - `xTickThickness`, [0.0025], thickness of the major ticks along their axis
-            - `xTickColor`,  [automatic], color of major ticks
-            - `xMinorTicks`,         [1], number of minor ticks between two major ticks
-            - `tipSize`,          [0.01], size of the arrow tip
-            - `xLabelPrecision`,     [2], nr. of significative digits to be shown
-            - `xLabelSize`,      [0.015], size of the numeric labels along axis
-            - `xLabelOffset`,    [0.025], offset of numeric labels
+            - `xTitleRotation`,          [0], add a rotation of the axis title
+            - `xLineColor`,      [automatic], color of the x-axis
+            - `xTitleColor`,     [automatic], color of the axis title
+            - `xTitleBackfaceColor`,  [None],  color of axis title on its backface
+            - `xTitleSize`,          [0.025], size of the axis title
+            - 'xTitleItalic',            [0], a bool or float to make the font italic
+            - `xHighlightZero`,       [True], draw a line highlighting zero position if in range
+            - `xHighlightZeroColor`, [autom], color of the line highlighting the zero position
+            - `xTickLength`,         [0.005], radius of the major ticks
+            - `xTickThickness`,     [0.0025], thickness of the major ticks along their axis
+            - `xTickColor`,      [automatic], color of major ticks
+            - `xMinorTicks`,             [1], number of minor ticks between two major ticks
+            - `xPositionsAndLabels`       [], assign custom tick positions and labels [(pos1, label1), ...]
+            - `xLabelPrecision`,         [2], nr. of significative digits to be shown
+            - `xLabelSize`,          [0.015], size of the numeric labels along axis
+            - `xLabelOffset`,        [0.025], offset of numeric labels
+            - 'xFlipText'.           [False], flip axis title and numeric labels orientation
+            - `tipSize`,              [0.01], size of the arrow tip
+            - `limitRatio`,           [0.04], below this ratio don't plot small axis
 
             :Example:
 
@@ -1505,7 +1498,7 @@ class Plotter:
                 elif isinstance(a, str):  # assume a filepath or 2D comment was given
                     import os.path
                     if "." in a and ". " not in a and os.path.isfile(a):
-                        out = vtkio.load(a)
+                        out = io.load(a)
                     else:
                         from vedo.shapes import Text2D
                         out = Text2D(a, pos=3)
@@ -1710,10 +1703,6 @@ class Plotter:
             self.initializedIren = True
             self.interactor.RemoveObservers("CharEvent")
 
-            # if self.verbose and self.interactive:
-            #     if not settings.notebookBackend:
-            #         docs.onelinetip()
-
         if self.flagWidget:
             self.flagWidget.EnabledOn()
 
@@ -1840,7 +1829,7 @@ class Plotter:
 
         |inset| |inset.py|_
         """
-        pos = options.pop("pos", None)
+        pos = options.pop("pos", 0)
         size = options.pop("size", 0.1)
         c = options.pop("c", 'r')
         draggable = options.pop("draggable", True)
@@ -1858,7 +1847,9 @@ class Plotter:
             widget.SetOrientationMarker(actors[0])
         else:
             widget.SetOrientationMarker(Assembly(utils.flatten(actors)))
+
         widget.SetInteractor(self.interactor)
+
         if utils.isSequence(pos):
             widget.SetViewport(pos[0] - size, pos[1] - size, pos[0] + size, pos[1] + size)
         else:
@@ -1876,7 +1867,9 @@ class Plotter:
         for a in actors:
             if a in self.actors:
                 self.actors.remove(a)
+        self.interactor.Render()
         return widget
+
 
     def clear(self, actors=None):
         """Delete specified list of actors, by default delete all."""
@@ -1934,7 +1927,7 @@ class Plotter:
         settings.plotter_instance = None
 
     def screenshot(self, filename):
-        vtkio.screenshot(filename)
+        io.screenshot(filename)
         return self
 
 
@@ -2211,7 +2204,7 @@ class Plotter:
             return
 
         if key == "S":
-            vtkio.screenshot("screenshot.png")
+            io.screenshot("screenshot.png")
             printc("~camera Saved rendering window as screenshot.png", c="blue")
             return
 
@@ -2472,13 +2465,13 @@ class Plotter:
                         addons.addCutterTool(a)
                         return
 
-                printc("Click object and press X to open the cutter box widget.",
-                              c=4)
+                printc("Click object and press X to open the cutter box widget.", c=4)
 
         elif key == "E":
-            printc("~camera Exporting 3D window to scene.npy.", c="blue", end="")
-            vtkio.exportWindow('scene.npy')
-            printc(" Try:\n> vedo scene.npy", c="blue")
+            printc("~camera Exporting 3D window to scene.npy", c="blue", end="")
+            io.exportWindow('scene.npy')
+            printc(". Try:\n> vedo scene.npy", c="blue")
+            settings.plotter_instance.interactor.Start()
 
         elif key == "i":  # print info
             if self.clickedActor:

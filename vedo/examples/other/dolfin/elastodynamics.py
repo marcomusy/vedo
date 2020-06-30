@@ -1,4 +1,4 @@
-'''Time-integration of the 
+'''Time-integration of the
 elastodynamics equation
 '''
 from __future__ import division, print_function
@@ -206,7 +206,7 @@ for (i, dt) in enumerate(np.diff(time)):
 
     # Save solution to XDMF format
     #xdmf_file.write(u, t)
-    
+
     # Compute stresses and save to file
     local_project(sigma(u), Vsig, sig)
     #xdmf_file.write(sig, t)
@@ -221,7 +221,7 @@ for (i, dt) in enumerate(np.diff(time)):
     # E_ext += assemble(Wext(u-u_old))
     E_tot = E_elas+E_kin+E_damp #-E_ext
     energies[i+1, :] = np.array([E_elas, E_kin, E_damp, E_tot])
-    
+
     plot(u, box, tex,
     	 mode='displace',
          style='matplotlib',

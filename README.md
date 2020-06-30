@@ -11,8 +11,8 @@
 (former `vtkplotter`)
 
 
-A lightweight pure python module for scientific analysis and **v**isualization of **3d** 
-**o**bjects and point clouds based on *VTK*.<br>
+A fast and lightweight python module for scientific analysis and **V**isualization of **3D**
+**O**bjects.<br>
 
 [![isohead](https://user-images.githubusercontent.com/32848391/81347909-59eacc00-90bd-11ea-9392-f1a3ecc0c850.jpg)](https://vtkplotter.embl.es/examples/geo_scene.html)
 
@@ -20,8 +20,14 @@ A lightweight pure python module for scientific analysis and **v**isualization o
 
 ## ✨  Philosophy
 Inspired by the [vpython](https://vpython.org/) *manifesto* "3D programming for ordinary mortals",
-`vedo` makes it easy to work wth three-dimensional meshes and volumes, create displays and animations
+`vedo` makes it easy to work wth three-dimensional meshes and volumes, creating displays and animations
 in just a few lines of code, even for those with less programming experience.
+
+`vedo` is based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/),
+with no other dependencies.
+It offers an intuitive and straightforward API which can be combined with VTK seamlessly
+in a program, whilst mantaining access to the full range of VTK native classes.
+
 
 ## 🎯  Table of Contents
 * [Installation](https://github.com/marcomusy/vedo#-installation)
@@ -34,25 +40,33 @@ in just a few lines of code, even for those with less programming experience.
 
 
 ## 💾  Installation
-Use [pip](https://projects.raspberrypi.org/en/projects/using-pip-on-windows) to install:
+Use [pip](https://projects.raspberrypi.org/en/projects/using-pip-on-windows) to install. Type:
 ```bash
-pip install -U vedo
+pip install vedo
 ```
-<!---
 or use [conda](https://anaconda.org/conda-forge/vedo) to install from the conda-forge channel:
 ```bash
 conda install -c conda-forge vedo
 ```
-or on Ubuntu OS:
-```bash
-sudo apt install python3-vedo
-```
---->
+￼
+￼_________________________________________________________________________________________￼
 
-*Windows-10 users* can place this file
+📌 **Done?** Run any of the built-in examples. In a terminal, type:
+￼
+> `vedo -r covid19`
+
+Visualize a file from web URL (or your dropbox!), type:
+
+> `vedo https://vtkplotter.embl.es/examples/data/panther.stl.gz`
+
+Visualize a whole scene, type:
+
+> `vedo https://vtkplotter.embl.es/examples/geo_scene.npy`
+
+*Windows-10 users* can place
 [vedo.bat](https://github.com/marcomusy/vedo/blob/master/vedo.bat)
-on the desktop to *drag&drop* files to visualize.
-(Need to edit the path of the local python installation).
+on the desktop to *drag&drop* files to visualize
+(need to edit the path of your local python installation).
 
 
 ## 📙  Documentation
@@ -148,7 +162,7 @@ for a wide range of functionalities:
 	- Support for other volumetric structures (structured and grid data)
 </details>
 <details>
-<summary>plotting and histogramming</summary>
+<summary>plotting and histogramming in 2D and 3D</summary>
 
 	- Fully customizable axis styles
 
@@ -176,21 +190,20 @@ for a wide range of functionalities:
 
 Moreover:
 - Integration with the *Qt5* framework.
-- Examples using [SHTools](https://shtools.oca.eu/shtools) package for *spherical harmonics* expansion of a mesh shape.
 - Support for [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of finite-element calculations.
 - Interoperability with the [trimesh](https://trimsh.org/) library.
-- Export a 3D scene and embed it into a [web page](https://vtkplotter.embl.es/examples/fenics_elasticity.html).
-- Embed the 3D rendering in a *jupyter* notebook with [K3D](https://github.com/K3D-tools/K3D-jupyter) (can export an interactive 3D-snapshot page [here](https://vtkplotter.embl.es/examples/geo_scene.html)).
+- Export 3D scenes and embed into a [web page](https://vtkplotter.embl.es/examples/fenics_elasticity.html).
+- Embed 3D scenes in *jupyter* notebooks with [K3D](https://github.com/K3D-tools/K3D-jupyter) (can export an interactive 3D-snapshot page [here](https://vtkplotter.embl.es/examples/geo_scene.html)).
 
 
 ## ⌨  Command Line Interface
-Visualize a polygonal mesh from a terminal window with:
+Visualize a polygonal mesh from a terminal window simply with:
 ```bash
-vedo mesh.obj
+vedo mymesh.obj
 # valid formats: [vtk,vtu,vts,vtp,vtm,ply,obj,stl,3ds,dolfin-xml,neutral,gmsh,
 #                 pcd,xyz,txt,byu,tif,off,slc,vti,mhd,dcm,dem,nrrd,nii,bmp,png,jpg]
 ```
-Volumetric files (_mhd, vti, slc, tiff, DICOM etc.._) can be visualized with options:<br>
+Volumetric files (_mhd, vti, slc, tiff, DICOM etc.._) can be visualized in different modes:<br>
 
 |Slice a volume in the 3 planes:<br>`vedo --slicer embryo.slc`|  Ray-casting rendering:<br>`-g embryo.slc`| 2D slice:<br>`--slicer2d`| Colorize voxels:<br>`--lego`|
 |:--------|:-----|:--------|:-----|
@@ -201,7 +214,7 @@ To visualize multiple files or files time-sequences try `-n` or `-s` options. Us
 A GUI is also available (mainly useful to Windows 10 users) which can be invoked with command line `vedo`.
 
 ## 🐾  Examples
-**More than 300 working examples can be found in directories** _(scroll down to see thumbnails):_ <br>
+**300+ working examples can be found in directories**: <br>
 [**examples/basic**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/basic)<br>
 [**examples/advanced**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/advanced)<br>
 [**examples/volumetric**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/volumetric)<br>
@@ -215,7 +228,7 @@ A GUI is also available (mainly useful to Windows 10 users) which can be invoked
 
 |         |      |
 |:--------|:-----|
-|Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a large cloud of scattered points in space ([script](https://github.com/marcomusy/vedo/blob/master/vedo/examples/advanced/moving_least_squares2D.py))<br>![rabbit](https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg)  | ![airplanes](https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)<br> Create a simple 3D animation in exactly 10 lines of code ([script](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/airplanes.py)).<br>Trails and shadows can be added to moving objects easily.|
+|Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a large cloud of scattered points in space ([script](https://github.com/marcomusy/vedo/blob/master/vedo/examples/advanced/moving_least_squares2D.py))<br>![rabbit](https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg)  | ![airplanes](https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)<br> Create a simple 3D animation in exactly 10 lines of code ([script](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/airplanes.py)). Trails and shadows can be added to moving objects easily.|
 |         |      |
 | Simulation of a gyroscope hanging from a spring ([script](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/gyroscope1.py)).<br> ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)     | ![qsine2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)<br>  Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. ([script](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/tunnelling2.py)) |
 |         |      |
@@ -224,13 +237,13 @@ A GUI is also available (mainly useful to Windows 10 users) which can be invoked
 <br>
 
 ### Random Gallery of Examples
-Run any of the built-in examples from command line, e.g.:
+Run any of the following built-in examples from command line, type:
 
-> `vedo -ir  covid19`
+> `vedo -ir covid19`
 
 |     |     |     |     |
 |:---:|:---:|:---:|:---:|
-|![geologic](https://user-images.githubusercontent.com/32848391/81397531-d2867280-9127-11ea-8cc8-0effbbbebf2d.jpg) <br>`geological`|![multirender](https://user-images.githubusercontent.com/32848391/81459297-80813380-919f-11ea-89b1-39a305dd9897.png) <br>`multirender`| ![cartoony](https://user-images.githubusercontent.com/32848391/81459306-8840d800-919f-11ea-859e-d9c0b432e644.png) <br>`cartoony`|![streamline4](https://user-images.githubusercontent.com/32848391/81459343-b9210d00-919f-11ea-846c-152d62cba06e.png) <br>`streamlines4`|
+| ![geologic](https://user-images.githubusercontent.com/32848391/81397531-d2867280-9127-11ea-8cc8-0effbbbebf2d.jpg) <br>`geological`|![multirender](https://user-images.githubusercontent.com/32848391/81459297-80813380-919f-11ea-89b1-39a305dd9897.png) <br>`multirender`| ![cartoony](https://user-images.githubusercontent.com/32848391/81459306-8840d800-919f-11ea-859e-d9c0b432e644.png) <br>`cartoony`|![streamline4](https://user-images.githubusercontent.com/32848391/81459343-b9210d00-919f-11ea-846c-152d62cba06e.png) <br>`streamlines4`|
 | ![covid](https://user-images.githubusercontent.com/32848391/77330206-4824b380-6d1f-11ea-9bc3-e3aef970dcc2.gif) <br>`covid19`| ![lineage_graph](https://user-images.githubusercontent.com/32848391/80291851-8152a800-8751-11ea-893e-4a0bb85397b1.png) <br>`lineage_graph` |![siluette](https://user-images.githubusercontent.com/32848391/57179369-8e5df380-6e7d-11e9-99b4-3b1a120dd375.png) <br>`silhouette1`  | ![levelterrain](https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png)<br>`isolines`|
 | ![gyro](https://user-images.githubusercontent.com/32848391/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif) <br>`gyroscope2` | ![thinplate_grid](https://user-images.githubusercontent.com/32848391/51433540-d188b380-1c4c-11e9-81e7-a1cf4642c54b.png ) <br>`thinplate_grid`  | ![trail](https://user-images.githubusercontent.com/32848391/58370826-4aee2680-7f0b-11e9-91e6-3120770cfede.gif) <br>`trail`   | ![quadratic_morphing](https://user-images.githubusercontent.com/32848391/50738890-db380300-11d8-11e9-9cef-4c1276cca334.jpg)  <br>`quadratic_morphing`  |
 | ![shrink](https://user-images.githubusercontent.com/32848391/46819143-41042280-cd83-11e8-9492-4f53679887fa.png) <br>`shrink` | ![mesh_custom](https://user-images.githubusercontent.com/32848391/51390972-20d9c180-1b31-11e9-955d-025f1ef24cb7.png) <br>`mesh_custom`   | ![spring](https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif) <br>`spring`   | ![lorenz](https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png) <br>`lorentz`   |
@@ -242,7 +255,7 @@ Run any of the built-in examples from command line, e.g.:
 | ![shadow](https://user-images.githubusercontent.com/32848391/57312574-1d714280-70ee-11e9-8741-04fc5386d692.png) <br>`shadow`| ![multiple_pendulum](https://user-images.githubusercontent.com/32848391/50738892-db380300-11d8-11e9-807c-fb320c7b7917.gif) <br>`multiple_pend`   | ![interpolateVolume](https://user-images.githubusercontent.com/32848391/59095175-1ec5a300-8918-11e9-8bc0-fd35c8981e2b.jpg) <br>`interpolateVolume`   | ![histo_polar](https://user-images.githubusercontent.com/32848391/64912717-5754f400-d733-11e9-8a1f-612165955f23.png)  <br>`histo_polar`  |
 | ![streamplot](https://user-images.githubusercontent.com/32848391/73614123-93162a80-45fc-11ea-969b-9a3293b26f35.png) <br>`plot7_stream`| ![violin](https://user-images.githubusercontent.com/32848391/73481240-b55d3d80-439b-11ea-89a4-6c35ecc84b0d.png) <br>`histo_violin`   | ![plot3_pip](https://user-images.githubusercontent.com/32848391/73393632-4ff64780-42dc-11ea-8798-45a81c067f45.png) <br>`plot3_pip`   | ![histo_spheric](https://user-images.githubusercontent.com/32848391/73392901-fccfc500-42da-11ea-828a-9bad6982a823.png)  <br>`histo_spheric`  |
 | ![readvts](https://user-images.githubusercontent.com/32848391/80862655-04568f80-8c77-11ea-8249-5b61283e04ce.png)  <br>`read_vts`  | ![donutPlot](https://user-images.githubusercontent.com/32848391/64998178-6f6b7580-d8e3-11e9-9bd8-8dfb9ccd90e4.png)  <br>`donut`  | ![extrude](https://user-images.githubusercontent.com/32848391/65963682-971e1a00-e45b-11e9-9f29-05522ae4a800.png) <br>`extrude`   | ![plotxy](https://user-images.githubusercontent.com/32848391/69158509-d6c1c380-0ae6-11ea-9dbf-ff5cd396a9a6.png) <br>`plot1_errbars`   |
-|![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif)|   ![viz_raycast](https://user-images.githubusercontent.com/32848391/58336919-f7b1a080-7e44-11e9-9106-f574371093a8.gif)  | ![viz_slicer](https://user-images.githubusercontent.com/32848391/80866479-3bd13600-8c8f-11ea-83c7-5f5b4fccb29d.png)  |![lego](https://user-images.githubusercontent.com/32848391/59788744-aaeaa980-92cc-11e9-825d-58da26ca21ff.gif) |
+| ![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif)|   ![viz_raycast](https://user-images.githubusercontent.com/32848391/58336919-f7b1a080-7e44-11e9-9106-f574371093a8.gif)  | ![viz_slicer](https://user-images.githubusercontent.com/32848391/80866479-3bd13600-8c8f-11ea-83c7-5f5b4fccb29d.png)  |![lego](https://user-images.githubusercontent.com/32848391/59788744-aaeaa980-92cc-11e9-825d-58da26ca21ff.gif) |
 | ![particle_simulator](https://user-images.githubusercontent.com/32848391/50738891-db380300-11d8-11e9-84c2-0f55be7228f1.gif) <br>`particle_simulator`| ![heatconv](https://user-images.githubusercontent.com/32848391/57455107-b200af80-726a-11e9-897d-9c7bcb9854ac.gif) <br>`heatconv` |![elastodynamics](https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif) <br>`elastodynamics`  | ![navier-stokes_lshape](https://user-images.githubusercontent.com/32848391/56671156-6bc91f00-66b4-11e9-8c58-e6b71e2ad1d0.gif)<br>`stokes_lshape`|
 
 ## 📜  References
@@ -255,7 +268,7 @@ Carnegie Institution for Science Department of Terrestrial Magnetism, Washington
 Max Planck Institute for the Physics of Complex Systems, Dresden, Germany, March 2019.
 
 
-Scientific publications using `vedo` so far:
+Scientific publications using `vedo`:
 
 1. X. Diego _et al._:
 *"Key features of Turing systems are determined purely by network topology"*,
@@ -267,7 +280,7 @@ Development, 5 April 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/c
 4. F. Claudi, A. L. Tyson, T. Branco, *"Brainrender. A python based software for visualisation of neuroanatomical and morphological data."*
 bioRxiv 2020.02.23.961748; doi: https://doi.org/10.1101/2020.02.23.961748
 
-**Have you found this software useful for your research? Please cite it as:**<br>
+Have you found this software useful for your research? Please cite it as:<br>
 M. Musy  _et al._
 "`vedo`*, a python module for scientific visualization and analysis of 3D objects
 and point clouds based on VTK (Visualization Toolkit)*",

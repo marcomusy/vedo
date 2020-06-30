@@ -205,8 +205,9 @@ assert np.allclose(s3.centerOfMass(), (35,67,87))
 
 ######################################normalize
 print('Test normalize')
-c3 = cone.clone().pos(35,67,87).normalize()
-assert np.allclose(c3.centerOfMass(), [1.34488709, 2.57449836, 3.3430024 ])
+c3 = cone.clone().normalize()
+#print('centerOfMass =', c3.centerOfMass())
+assert np.allclose(c3.centerOfMass(), [0,0,-1.41262311])
 assert 0.9 < c3.averageSize() < 1.1
 
 

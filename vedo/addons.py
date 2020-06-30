@@ -305,14 +305,18 @@ def addScalarBar3D(
     if drawBox:
         tacts.append(scale.box().lw(0.1))
 
+    for a in tacts: a.PickableOff()
+
     mtacts = merge(tacts).lighting('off')
     mtacts.PickableOff()
+    scale.PickableOff()
 
     sact = Assembly(scale, tacts)
     sact.SetPosition(pos)
     sact.PickableOff()
-    if isinstance(obj, Mesh):
-        obj.scalarbar = sact
+    # if isinstance(obj, Mesh):
+    #     obj.scalarbar = sact
+    sact.name = 'ScalarBar3D'
     return sact
 
 
@@ -332,7 +336,7 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     :param float titleSize: title text scale [1.0]
     :param bool showValue:  if true current value is shown
 
-    |sliders| |sliders.py|_
+    |sliders1| |sliders1.py|_ |sliders2.py|_
     """
     plt = settings.plotter_instance
     if c is None:  # automatic black or white
@@ -409,7 +413,7 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     sliderRep.GetSelectedProperty().SetColor(np.sqrt(np.array(c)))
     sliderRep.GetCapProperty().SetColor(c)
 
-    sliderRep.SetTitleHeight(0.02*titleSize)
+    sliderRep.SetTitleHeight(0.022*titleSize)
     sliderRep.GetTitleProperty().SetShadow(0)
     sliderRep.GetTitleProperty().SetColor(c)
     sliderRep.GetTitleProperty().SetOpacity(1)
@@ -435,6 +439,8 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     sliderWidget.SetAnimationModeToJump()
     sliderWidget.SetRepresentation(sliderRep)
     sliderWidget.AddObserver("InteractionEvent", sliderfunc)
+    if plt.renderer:
+        sliderWidget.SetCurrentRenderer(plt.renderer)
     sliderWidget.EnabledOn()
     plt.sliders.append([sliderWidget, sliderfunc])
     return sliderWidget
@@ -749,12 +755,13 @@ def buildAxes(obj=None,
               reorientShortTitle=True,
               titleDepth=0,
               xTitlePosition=0.95, yTitlePosition=0.95, zTitlePosition=0.95,
-              xTitleOffset=0.06, yTitleOffset=0.06, zTitleOffset=0.06,
+              xTitleOffset=0.06,   yTitleOffset=0.06,   zTitleOffset=0.05,
               xTitleJustify="top-right", yTitleJustify="bottom-right", zTitleJustify="bottom-right",
               xTitleRotation=0, yTitleRotation=90, zTitleRotation=135,
               xTitleSize=0.025, yTitleSize=0.025, zTitleSize=0.025,
               xTitleColor=None, yTitleColor=None, zTitleColor=None,
               xTitleBackfaceColor=None, yTitleBackfaceColor=None, zTitleBackfaceColor=None,
+              xTitleItalic=0, yTitleItalic=0, zTitleItalic=0,
               xKeepAspectRatio=True, yKeepAspectRatio=True, zKeepAspectRatio=True,
               xyGrid=True, yzGrid=True, zxGrid=False,
               xyGrid2=False, yzGrid2=False, zxGrid2=False,
@@ -777,6 +784,7 @@ def buildAxes(obj=None,
               xLabelSize=0.0175, yLabelSize=0.0175, zLabelSize=0.0175,
               xLabelOffset=0.015, yLabelOffset=0.015, zLabelOffset=0.01,
               xPositionsAndLabels=None, yPositionsAndLabels=None, zPositionsAndLabels=None,
+              xFlipText=False, yFlipText=False, zFlipText=False,
               useGlobal=False,
               tol=0.0001,
               ):
@@ -810,17 +818,19 @@ def buildAxes(obj=None,
     - `xTitleColor`,     [automatic], color of the axis title
     - `xTitleBackfaceColor`,  [None],  color of axis title on its backface
     - `xTitleSize`,          [0.025], size of the axis title
+    - 'xTitleItalic',            [0], a bool or float to make the font italic
     - `xHighlightZero`,       [True], draw a line highlighting zero position if in range
     - `xHighlightZeroColor`, [autom], color of the line highlighting the zero position
     - `xTickLength`,         [0.005], radius of the major ticks
     - `xTickThickness`,     [0.0025], thickness of the major ticks along their axis
     - `xTickColor`,      [automatic], color of major ticks
     - `xMinorTicks`,             [1], number of minor ticks between two major ticks
-    - `tipSize`,              [0.01], size of the arrow tip
     - `xPositionsAndLabels`       [], assign custom tick positions and labels [(pos1, label1), ...]
     - `xLabelPrecision`,         [2], nr. of significative digits to be shown
     - `xLabelSize`,          [0.015], size of the numeric labels along axis
     - `xLabelOffset`,        [0.025], offset of numeric labels
+    - 'xFlipText'.           [False], flip axis title and numeric labels orientation
+    - `tipSize`,              [0.01], size of the arrow tip
     - `limitRatio`,           [0.04], below this ratio don't plot small axis
 
     :Example:
@@ -1083,8 +1093,9 @@ def buildAxes(obj=None,
     ################################################ axes titles
     titles = []
     if xtitle:
+        if xFlipText: xTitleJustify = 'bottom-left'
         xt = shapes.Text(xtitle, pos=(0,0,0), s=xTitleSize,
-                         c=xTitleColor, justify=xTitleJustify, depth=titleDepth)
+                         c=xTitleColor, justify=xTitleJustify, depth=titleDepth, italic=xTitleItalic)
         if xTitleBackfaceColor: xt.backColor(xTitleBackfaceColor)
         if reorientShortTitle and len(ytitle) < 3:  # title is short
             wpos = [xTitlePosition, -xTitleOffset +0.02, 0]
@@ -1092,13 +1103,15 @@ def buildAxes(obj=None,
             wpos = [xTitlePosition, -xTitleOffset, 0]
         if xKeepAspectRatio: xt.SetScale(x_aspect_ratio_scale)
         xt.RotateX(xTitleRotation)
+        if xFlipText: xt.RotateZ(180)
         xt.pos(wpos)
         xt.name = "xtitle "+str(xtitle)
         titles.append(xt)
 
     if ytitle:
+        if yFlipText: yTitleJustify = 'top-left'
         yt = shapes.Text(ytitle, pos=(0, 0, 0), s=yTitleSize,
-                         c=yTitleColor, justify=yTitleJustify, depth=titleDepth)
+                         c=yTitleColor, justify=yTitleJustify, depth=titleDepth, italic=yTitleItalic)
         if yTitleBackfaceColor: yt.backColor(yTitleBackfaceColor)
         if reorientShortTitle and len(ytitle) < 3:  # title is short
             wpos = [-yTitleOffset +0.03-0.01*len(ytitle), yTitlePosition, 0]
@@ -1107,13 +1120,15 @@ def buildAxes(obj=None,
             wpos = [-yTitleOffset, yTitlePosition, 0]
             if yKeepAspectRatio: yt.SetScale(y_aspect_ratio_scale)
             yt.RotateZ(yTitleRotation)
+        if yFlipText: yt.RotateZ(180)
         yt.pos(wpos)
         yt.name = "ytitle "+str(ytitle)
         titles.append(yt)
 
     if ztitle:
+        if zFlipText: zTitleJustify = 'top-left'
         zt = shapes.Text(ztitle, pos=(0, 0, 0), s=zTitleSize,
-                         c=zTitleColor, justify=zTitleJustify, depth=titleDepth)
+                         c=zTitleColor, justify=zTitleJustify, depth=titleDepth, italic=yTitleItalic)
         if zTitleBackfaceColor: zt.backColor(zTitleBackfaceColor)
         if reorientShortTitle and len(ztitle) < 3:  # title is short
             wpos = [(-zTitleOffset+0.02-0.003*len(ztitle))/1.42,
@@ -1129,6 +1144,7 @@ def buildAxes(obj=None,
             wpos = [-zTitleOffset/1.42, -zTitleOffset/1.42, zTitlePosition]
             zt.RotateY(-90)
             zt.RotateX(zTitleRotation)
+            if zFlipText: zt.RotateZ(180)
             zt.pos(wpos)
         zt.name = "ztitle "+str(ztitle)
         titles.append(zt)
@@ -1261,36 +1277,45 @@ def buildAxes(obj=None,
     ################################################ axes tick NUMERIC text labels
     labels = []
     if xLabelSize and xtitle:
+        jus ="center-top"
+        if xFlipText: jus ="center-bottom"
         for i in range(1, len(xticks_str)):
             t = xticks_str[i]
             if not t: continue
             v = (xticks_float[i], -xLabelOffset, 0)
-            xlab = shapes.Text(t, pos=v, s=xLabelSize, justify="center-top", depth=0)
+            xlab = shapes.Text(t, pos=v, s=xLabelSize, justify=jus, depth=0)
             if xKeepAspectRatio: xlab.SetScale(x_aspect_ratio_scale)
+            if xFlipText: xlab.RotateZ(180)
             xlab.name = "xNumericLabel"+str(i)+" "+t
             labels.append(xlab.c(xTickColor))
 
     if yLabelSize and ytitle:
+        jus = "center-bottom"
+        if yFlipText: jus = "center-top"
         for i in range(1,len(yticks_str)):
             t = yticks_str[i]
             if not t: continue
             v = (-yLabelOffset, yticks_float[i], 0)
-            ylab = shapes.Text(t, pos=(0,0,0), s=yLabelSize, justify="center-bottom", depth=0)
+            ylab = shapes.Text(t, pos=(0,0,0), s=yLabelSize, justify=jus, depth=0)
             if yKeepAspectRatio: ylab.SetScale(y_aspect_ratio_scale)
             ylab.RotateZ(yTitleRotation)
+            if yFlipText: ylab.RotateZ(180)
             ylab.pos(v)
             ylab.name = "yNumericLabel"+str(i)+" "+t
             labels.append(ylab.c(yTickColor))
 
     if zLabelSize and ztitle:
+        jus = "center-bottom"
+        if zFlipText: jus = "center-top"
         for i in range(1, len(zticks_str)):
             t = zticks_str[i]
             if not t: continue
             v = (-zLabelOffset, -zLabelOffset, zticks_float[i])
-            zlab = shapes.Text(t, pos=(0,0,0), s=zLabelSize, justify="center-bottom", depth=0)
+            zlab = shapes.Text(t, pos=(0,0,0), s=zLabelSize, justify=jus, depth=0)
             if zKeepAspectRatio: zlab.SetScale(z_aspect_ratio_scale)
             zlab.RotateY(-90)
             zlab.RotateX(zTitleRotation)
+            if zFlipText: zlab.RotateZ(180)
             zlab.pos(v)
             zlab.name = "zNumericLabel"+str(i)+" "+t
             labels.append(zlab.c(zTickColor))
@@ -1527,23 +1552,33 @@ def addGlobalAxes(axtype=None, c=None):
 
     elif plt.axes == 5:
         axact = vtk.vtkAnnotatedCubeActor()
-        axact.GetCubeProperty().SetColor(0.75, 0.75, 0.75)
+        axact.GetCubeProperty().SetColor(getColor(settings.annotatedCubeColor))
         axact.SetTextEdgesVisibility(0)
-        axact.SetFaceTextScale(0.2)
-        axact.SetXPlusFaceText ( "right" )
-        axact.SetXMinusFaceText( "left " )
-        axact.SetYPlusFaceText ( "front" )
-        axact.SetYMinusFaceText( "back " )
-        axact.SetZPlusFaceText ( " top " )
-        axact.SetZMinusFaceText( "bttom" )
+        axact.SetFaceTextScale(settings.annotatedCubeTextScale)
+        axact.SetXPlusFaceText (settings.annotatedCubeXPlusText)
+        axact.SetXMinusFaceText(settings.annotatedCubeXMinusText)
+        axact.SetYPlusFaceText (settings.annotatedCubeYPlusText)
+        axact.SetYMinusFaceText(settings.annotatedCubeYMinusText)
+        axact.SetZPlusFaceText (settings.annotatedCubeZPlusText)
+        axact.SetZMinusFaceText(settings.annotatedCubeZMinusText)
         axact.SetZFaceTextRotation(90)
 
-        axact.GetXPlusFaceProperty().SetColor(getColor("r"))
-        axact.GetXMinusFaceProperty().SetColor(getColor("dr"))
-        axact.GetYPlusFaceProperty().SetColor(getColor("g"))
-        axact.GetYMinusFaceProperty().SetColor(getColor("dg"))
-        axact.GetZPlusFaceProperty().SetColor(getColor("b"))
-        axact.GetZMinusFaceProperty().SetColor(getColor("db"))
+        if settings.annotatedCubeTextColor is None: # use default
+            axact.GetXPlusFaceProperty().SetColor( getColor("r"))
+            axact.GetXMinusFaceProperty().SetColor(getColor("dr"))
+            axact.GetYPlusFaceProperty().SetColor( getColor("g"))
+            axact.GetYMinusFaceProperty().SetColor(getColor("dg"))
+            axact.GetZPlusFaceProperty().SetColor( getColor("b"))
+            axact.GetZMinusFaceProperty().SetColor(getColor("db"))
+        else: # use single user color
+            ac = getColor(getColor(settings.annotatedCubeTextColor))
+            axact.GetXPlusFaceProperty().SetColor(ac)
+            axact.GetXMinusFaceProperty().SetColor(ac)
+            axact.GetYPlusFaceProperty().SetColor(ac)
+            axact.GetYMinusFaceProperty().SetColor(ac)
+            axact.GetZPlusFaceProperty().SetColor(ac)
+            axact.GetZMinusFaceProperty().SetColor(ac)
+
         axact.PickableOff()
         icn = addIcon(axact, size=0.06)
         plt.axes_instances[r] = icn
@@ -1577,6 +1612,7 @@ def addGlobalAxes(axtype=None, c=None):
             lc = (0, 0, 0)
         ocActor.GetProperty().SetColor(lc)
         ocActor.PickableOff()
+        ocActor.UseBoundsOff()
         plt.renderer.AddActor(ocActor)
         plt.axes_instances[r] = ocActor
 
@@ -1623,6 +1659,7 @@ def addGlobalAxes(axtype=None, c=None):
             ca.SetZAxisVisibility(0)
             ca.ZAxisLabelVisibilityOff()
         ca.PickableOff()
+        ca.UseBoundsOff()
         plt.renderer.AddActor(ca)
         plt.axes_instances[r] = ca
 
@@ -1636,6 +1673,7 @@ def addGlobalAxes(axtype=None, c=None):
         ca = Mesh(src.GetOutput(), c, 0.5).wireframe(True)
         ca.pos((vbb[0] + vbb[1]) / 2, (vbb[3] + vbb[2]) / 2, (vbb[5] + vbb[4]) / 2)
         ca.PickableOff()
+        ca.UseBoundsOff()
         plt.renderer.AddActor(ca)
         plt.axes_instances[r] = ca
 
@@ -1654,6 +1692,7 @@ def addGlobalAxes(axtype=None, c=None):
         zc.clean().alpha(0.2).wireframe().lineWidth(2.5).PickableOff()
         ca = xc + yc + zc
         ca.PickableOff()
+        ca.UseBoundsOff()
         plt.renderer.AddActor(ca)
         plt.axes_instances[r] = ca
 
@@ -1665,6 +1704,7 @@ def addGlobalAxes(axtype=None, c=None):
                          resx=7, resy=7,
                          c=c, alpha=0.2)
         gr.lighting('ambient').PickableOff()
+        gr.UseBoundsOff()
         plt.renderer.AddActor(gr)
         plt.axes_instances[r] = gr
 
@@ -1697,6 +1737,7 @@ def addGlobalAxes(axtype=None, c=None):
         polaxes.SetMinimumAngle(0.)
         polaxes.SetMaximumAngle(315.)
         polaxes.SetNumberOfPolarAxisTicks(5)
+        polaxes.UseBoundsOff()
         polaxes.PickableOff()
         plt.renderer.AddActor(polaxes)
         plt.axes_instances[r] = polaxes
@@ -1726,13 +1767,19 @@ def addGlobalAxes(axtype=None, c=None):
 
 
 #####################################################################
-def addRendererFrame(c=None, alpha=0.5, bg=None, lw=0.5):
+def addRendererFrame(c=None, alpha=None, lw=None):
 
     if c is None:  # automatic black or white
         c = (0.9, 0.9, 0.9)
         if np.sum(settings.plotter_instance.renderer.GetBackground())>1.5:
             c = (0.1, 0.1, 0.1)
     c = getColor(c)
+
+    if alpha is None:
+        alpha = settings.rendererFrameAlpha
+
+    if lw is None:
+        lw = settings.rendererFrameWidth
 
     ppoints = vtk.vtkPoints()  # Generate the polyline
     psqr = [[0,0],[0,1],[1,1],[1,0],[0,0]]
@@ -1844,9 +1891,8 @@ class Button:
         self.actor = vtk.vtkTextActor()
 
         self.actor.GetActualPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-
         self.actor.SetPosition(pos[0], pos[1])
-        #self.actor.SetDisplayPosition(pos[0], pos[1]) # pixel coords
+
         self.framewidth = 2
         self.offset = 5
         self.spacer = " "
@@ -1857,8 +1903,11 @@ class Button:
             self.textproperty.SetFontFamilyToCourier()
         elif font.lower() == "times":
             self.textproperty.SetFontFamilyToTimes()
-        else:
+        elif font.lower() == "arial":
             self.textproperty.SetFontFamilyToArial()
+        else:
+            self.textproperty.SetFontFamily(vtk.VTK_FONT_FILE)
+            self.textproperty.SetFontFile(settings.fonts_path + font +'.ttf')
         self.textproperty.SetFontSize(size)
         self.textproperty.SetBackgroundOpacity(alpha)
         self.textproperty.BoldOff()

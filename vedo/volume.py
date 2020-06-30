@@ -1,4 +1,5 @@
 from __future__ import division, print_function
+import glob
 import numpy as np
 import vtk
 import vedo.colors as colors
@@ -49,7 +50,7 @@ class Volume(vtk.vtkVolume, BaseGrid):
 
     def __init__(self, inputobj=None,
                  c=('r','y','lg','lb','b'), #('b','lb','lg','y','r')
-                 alpha=(0.0,0.0, 0.5, 0.8,1.0),
+                 alpha=(0.0, 0.0, 0.5, 0.8, 1.0),
                  alphaGradient=None,
                  alphaUnit=1,
                  mode=0,
@@ -62,14 +63,19 @@ class Volume(vtk.vtkVolume, BaseGrid):
         vtk.vtkVolume.__init__(self)
         BaseGrid.__init__(self)
 
+        ###################
+        if isinstance(inputobj, str):
+
+            if "https://" in inputobj:
+                from vedo.io import download
+                inputobj = download(inputobj) # fpath
+            else:
+                inputobj = sorted(glob.glob(inputobj))
+
+        ###################
         inputtype = str(type(inputobj))
         #colors.printc('Volume inputtype', inputtype)
 
-        if isinstance(inputobj, str):
-            import glob
-            inputobj = sorted(glob.glob(inputobj))
-
-        ###################
         if inputobj is None:
             img = vtk.vtkImageData()
 
@@ -136,7 +142,7 @@ class Volume(vtk.vtkVolume, BaseGrid):
             img = inputobj.GetOutput()
 
         elif isinstance(inputobj, str):
-            from vedo.vtkio import loadImageData
+            from vedo.io import loadImageData
             img = loadImageData(inputobj)
 
         else:
@@ -234,8 +240,7 @@ class Volume(vtk.vtkVolume, BaseGrid):
             if status is None:
                 return self._mapper.GetUseJittering()
             self._mapper.SetUseJittering(status)
-            return self
-        return None
+        return self
 
     def imagedata(self):
         """Return the underlying vtkImagaData object."""

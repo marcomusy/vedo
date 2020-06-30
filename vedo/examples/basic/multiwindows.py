@@ -17,7 +17,7 @@ vp1.renderers[24].SetBackground(0.8, 0.9, 0.9)  # use vtk method SetBackground()
 
 # load the meshes and give them a name
 a = vp1.load(datadir+"airboat.vtk")
-b = vp1.load(datadir+"cessna.vtk", c="red")
+b = vp1.load(datadir+"cessna.vtk").c("red")
 c = vp1.load(datadir+"atc.ply")
 
 # show a Text2D in each renderer

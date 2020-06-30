@@ -1,10 +1,7 @@
 #!/bin/bash
 # source run_all.sh
 #
-echo #############################################
-echo    Press Esc at anytime to skip example
-echo #############################################
-echo
+echo Press Esc at anytime to skip example, F1 to interrupt
 
 for f in *.py
     do

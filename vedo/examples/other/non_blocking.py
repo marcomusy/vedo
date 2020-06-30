@@ -21,4 +21,4 @@ printc("..python flow is not blocked, wait 1 sec..", c='y')
 time.sleep(1)
 
 printc("..continuing in main", c='r')
-#os._exit(0) # this exits immediately with no cleanup or buffer flushing 
+os._exit(0) # this exits immediately with no cleanup or buffer flushing 

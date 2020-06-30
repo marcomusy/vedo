@@ -6,7 +6,7 @@ from vedo import Plotter, datadir
 vp = Plotter()
 
 mesh = vp.load(datadir+"spider.ply")
-mesh.normalize().rotateZ(190).scale(0.8)
+mesh.normalize().rotateZ(190)
 
 
 def slider_y(widget, event):
@@ -15,8 +15,8 @@ def slider_y(widget, event):
 
 vp.addSlider3D(
     slider_y,
-    pos1=[2, -1, -1],
-    pos2=[2, 1, -1],
+    pos1=[.5, -3.5, .35],
+    pos2=[.5, -1.0, .35],
     xmin=-1,
     xmax=1,
     value=0,
@@ -26,4 +26,5 @@ vp.addSlider3D(
     title="y position",
 )
 
-vp.show(viewup="z", axes=1)
+
+vp.show(viewup="z", axes=11, bg='bb')

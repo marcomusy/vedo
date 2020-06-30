@@ -1,8 +1,7 @@
 from vedo import *
 import numpy as np
 
-f = download('https://github.com/marcomusy/vedo/files/4602353/domain_unstruct.vtk.gz')
-g = Mesh(f)
+g = Mesh('https://github.com/marcomusy/vedo/files/4602353/domain_unstruct.vtk.gz')
 
 # make up some custom vector field
 pts   = g.points()

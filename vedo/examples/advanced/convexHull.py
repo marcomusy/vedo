@@ -3,7 +3,7 @@ a Mesh or a set of input points
 """
 from vedo import *
 
-spid = load(datadir+"spider.ply", c="brown")
+spid = load(datadir+"spider.ply").c("brown")
 
 ch = convexHull(spid.points()).alpha(0.2)
 

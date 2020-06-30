@@ -1,5 +1,4 @@
-"""
-Simulate a discrete collection of oscillators
+"""Simulate a discrete collection of oscillators
 We will use this as a model of a vibrating string and
 compare two methods of integration: Euler and Runge-Kutta4.
 For too large values of dt the simple Euler can diverge.
@@ -109,7 +108,7 @@ pts_actors_rk[0].legend = "Runge-Kutta4"
 vp.actors = pts_actors_eu + pts_actors_rk
 
 # let's also add a fancy background image from wikipedia
-vp.load(datadir+"images/wave_wiki.png", alpha=0.8).scale(0.4).pos(0,-100,-20)
+vp.load(datadir+"images/wave_wiki.png").alpha(0.8).scale(0.4).pos(0,-100,-20)
 vp += __doc__
 
 pb = ProgressBar(0, Nsteps, c="red", ETA=1)

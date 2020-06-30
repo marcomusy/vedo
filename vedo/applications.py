@@ -447,7 +447,8 @@ def IsosurfaceBrowser(volume, c=None, alpha=1, lego=False, cmap='hot', pos=None)
         sliderpos = 4
         slidertitle = "threshold"
         showval = True
-        mesh = volume.isosurface(threshold=threshold).color(c).alpha(alpha)
+        mesh = volume.isosurface(threshold)
+        mesh.color(c).alpha(alpha)
 
     if pos is not None:
         sliderpos = pos
@@ -535,12 +536,12 @@ class Animation(Plotter):
     """
     Animate simultaneously various objects
     by specifying event times and durations of different visual effects.
-    
+
     See examples
     `here <https://github.com/marcomusy/vedo/blob/master/vedo/examples/other>`_.
-    
+
     |animation1| |animation2|
-    
+
     N.B.: this is still an experimental feature at the moment.
 
     A ``Plotter`` derived class that allows to animate simultaneously various objects

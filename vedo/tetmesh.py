@@ -86,8 +86,10 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         ###################
         if inputobj is None:
             self._data = vtk.vtkUnstructuredGrid()
+
         elif isinstance(inputobj, vtk.vtkUnstructuredGrid):
             self._data = inputobj
+
         elif isinstance(inputobj, vtk.vtkRectilinearGrid):
             r2t = vtk.vtkRectilinearGridToTetrahedra()
             r2t.SetInputData(inputobj)
@@ -95,20 +97,25 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
             r2t.SetTetraPerCellTo6()
             r2t.Update()
             self._data = r2t.GetOutput()
+
         elif isinstance(inputobj, vtk.vtkDataSet):
             r2t = vtk.vtkDataSetTriangleFilter()
             r2t.SetInputData(inputobj)
             #r2t.TetrahedraOnlyOn()
             r2t.Update()
             self._data = r2t.GetOutput()
+
         elif isinstance(inputobj, str):
-            from vedo.vtkio import loadUnStructuredGrid
+            from vedo.io import download, loadUnStructuredGrid
+            if "https://" in inputobj:
+                inputobj = download(inputobj)
             ug = loadUnStructuredGrid(inputobj)
             tt = vtk.vtkDataSetTriangleFilter()
             tt.SetInputData(ug)
             tt.SetTetrahedraOnly(True)
             tt.Update()
             self._data = tt.GetOutput()
+
         elif utils.isSequence(inputobj):
             if "ndarray" not in inputtype:
                 inputobj = np.array(inputobj)

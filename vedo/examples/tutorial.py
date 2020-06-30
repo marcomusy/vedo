@@ -39,9 +39,9 @@ vp.show()
 # Load 3 actors assigning each a different (r,g,b) color,
 # No need to use any variables here, as actors are stored internally in vp.actors:
 vp = Plotter(title="Three limb shapes")
-vp.load(datadir+"250.vtk", c=(1, 0.4, 0), alpha=0.3)
-vp.load(datadir+"270.vtk", c=(1, 0.6, 0), alpha=0.3)
-vp.load(datadir+"290.vtk", c=(1, 0.8, 0), alpha=0.3)
+vp.load(datadir+"250.vtk").color([1, 0.4, 0]).alpha(0.3)
+vp.load(datadir+"270.vtk").color([1, 0.6, 0]).alpha(0.3)
+vp.load(datadir+"290.vtk").color([1, 0.8, 0]).alpha(0.3)
 print("Loaded meshes: ", len(vp.actors))
 vp.show()
 

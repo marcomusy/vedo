@@ -17,7 +17,7 @@ setup(
     description='''A python module for scientific visualization,
     analysis and animation of 3D objects and point clouds based on VTK.''',
     long_description="""A python module for scientific visualization,
-    analysis and animation of 3D objects and point clouds based on VTK.
+    analysis of 3D objects and point clouds based on VTK.
     Check out https://vedo.embl.es for documentation.""",
     author='Marco Musy',
     author_email='marco.musy@gmail.com',
@@ -48,20 +48,20 @@ setup(
 
 ##########################################################################
 # sudo -H pip install -U git+https://github.com/marcomusy/vedo.git
-# # check examples
 # change version in vedo/version.py
 
 # cd ~/Projects/vedo/
 # remove trailing spaces
 # pip install .
 
+### check examples
 # cd ~/Projects/vedo/examples/
 # ./run_all.sh
 # cd ~/Projects/vedo/
 # python prove/test_filetypes.py
 
 # cd ~/Projects/vedo/tests/common
-# ./run_all.sh
+# ./run_all.sh &
 # check also scripts in docs
 
 # check vedo-convert:
@@ -96,7 +96,6 @@ setup(
 # twine upload dist/vedo-?.?.?.tar.gz -r pypi
 
 # make release
-# release examples
 
 ## to generate documentation:
 # comment in defs in docs.py
@@ -111,7 +110,10 @@ setup(
 # check if dolfin shows up
 #
 # mount_staging
-# cp -r build/html/* ~/Projects/StagingServer/var/www/html/vedo.embl.es/
+# cp -r build/html/* ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es/
+# scp -r build/html/* musy@pcba-sharpe012.embl.es:Projects/StagingServer/var/www/html/vtkplotter.embl.es/
+# cd ~/Projects/StagingServer/var/www/html/vtkplotter.embl.es
+# chmod -R 755 content
 # comment out defs in docs.py
 
 # version bump vedo/version.py

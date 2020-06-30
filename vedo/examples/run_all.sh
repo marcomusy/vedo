@@ -1,14 +1,5 @@
 #!/bin/bash
 #
-printf "\033c"
-
-echo ###########################################################
-echo    Press Esc at anytime to skip example, F1 to interrupt
-echo ###########################################################
-echo
-echo
-
-#python tutorial.py
 
 cd basic;       ./run_all.sh; cd ..
 

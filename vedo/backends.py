@@ -270,7 +270,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
             raise Exception('IPython not available.')
             return
 
-        from vedo.vtkio import screenshot
+        from vedo.io import screenshot
         settings.screeshotLargeImage = True
         nn = screenshot(returnNumpy=True, scale=settings.screeshotScale+2)
         pil_img = PIL.Image.fromarray(nn)

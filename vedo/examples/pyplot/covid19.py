@@ -9,7 +9,7 @@ def load_data():
     if len(sys.argv)>1:
         date = sys.argv[1]
     else:
-        for i in range(3):
+        for i in range(10):
             try:
                 yesterday = datetime.datetime.now() - datetime.timedelta(days=i)
                 date = yesterday.strftime("%m-%d-%Y")
