@@ -13,7 +13,7 @@ setup(
     version=verstr,
     packages=['vedo'],
     scripts=['bin/vedo', 'bin/vedo-convert'],
-    install_requires=['vtk'],
+    install_requires=['vtk', 'numpy'],
     description='''A python module for scientific visualization,
     analysis and animation of 3D objects and point clouds based on VTK.''',
     long_description="""A python module for scientific visualization,
