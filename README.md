@@ -11,8 +11,8 @@
 (former `vtkplotter`)
 
 
-A fast and lightweight python module for scientific analysis and **V**isualization of **3D**
-**O**bjects.<br>
+`vedo` is a fast and lightweight python module for scientific analysis and **v**isualization of **3D**
+**o**bjects.<br>
 
 [![isohead](https://user-images.githubusercontent.com/32848391/81347909-59eacc00-90bd-11ea-9392-f1a3ecc0c850.jpg)](https://vtkplotter.embl.es/examples/geo_scene.html)
 
@@ -48,11 +48,12 @@ or use [conda](https://anaconda.org/conda-forge/vedo) to install from the conda-
 ```bash
 conda install -c conda-forge vedo
 ```
-￼
-￼_________________________________________________________________________________________￼
+
+_________________________________________________________________________
+
 
 📌 **Done?** Run any of the built-in examples. In a terminal, type:
-￼
+
 > `vedo -r covid19`
 
 Visualize a file from web URL (or your dropbox!), type:

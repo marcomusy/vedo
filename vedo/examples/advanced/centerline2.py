@@ -15,7 +15,7 @@ l1  = [vector(0,0,1)*(1-s)+vector(0.5,0,2)*s for s in rng]
 t0 = Tube(l0, r=0.1, res=24)
 t1 = Tube(l1, r=0.1, res=24)
 
-tube = booleanOperation(t0,'+',t1)
+tube = t0.boolean('+',t1)
 tube.computeNormals().alpha(0.2).lineWidth(0.1)
 
 t = tube.clone().clean(tol/2)

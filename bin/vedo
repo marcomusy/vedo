@@ -10,7 +10,8 @@ from vedo import settings, printc, getColor, humansort, isSequence, __version__
 from vedo import io, datadir, load
 import vedo.applications as applications
 from vedo.picture import Picture
-from vedo.shapes import Point, Text2D
+from vedo.shapes import Text2D
+from vedo.pointcloud import Point
 from vedo.docs import tips
 import sys, argparse, os, numpy, glob
 

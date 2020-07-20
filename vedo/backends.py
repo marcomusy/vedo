@@ -5,6 +5,7 @@ import os
 
 import vedo.colors as colors
 from vedo.mesh import Mesh
+from vedo.pointcloud import Points
 
 from vedo.volume import Volume
 import vedo.settings as settings
@@ -108,11 +109,11 @@ def getNotebookBackend(actors2show, zoom, viewup):
 
             #####################################################################scalars
             # work out scalars first, Points Lines are also Mesh objs
-            if isinstance(ia, (Mesh, shapes.Line, shapes.Points)):
+            if isinstance(ia, (Mesh, shapes.Line, Points)):
 #                print('scalars', ia.name, ia.N())
                 iap = ia.GetProperty()
 
-                if isinstance(ia, (shapes.Line, shapes.Points)):
+                if isinstance(ia, (shapes.Line, Points)):
                     iapoly = ia.polydata()
                 else:
                     iapoly = ia.clone().clean().triangulate().computeNormals().polydata()
@@ -180,9 +181,25 @@ def getNotebookBackend(actors2show, zoom, viewup):
                 kobj = k3d.text2d(ia.info['formula'], position=pos)
                 settings.notebook_plotter += kobj
 
+
+            #####################################################################Mesh
+            elif isinstance(ia, Mesh) and ia.N() and len(ia.faces()):
+                # print('Mesh', ia.name, ia.N(), len(ia.faces()))
+                kobj = k3d.vtk_poly_data(iapoly,
+                                         name=name,
+                                         color=colors.rgb2int(iap.GetColor()),
+                                         color_attribute=color_attribute,
+                                         color_map=kcmap,
+                                         opacity=iap.GetOpacity(),
+                                         wireframe=(iap.GetRepresentation()==1))
+
+                if iap.GetInterpolation() == 0:
+                    kobj.flat_shading = True
+                settings.notebook_plotter += kobj
+
             #####################################################################Points
-            elif isinstance(ia, shapes.Points) or ia.NPoints() == ia.NCells():
-#                print('Points', ia.name, ia.N())
+            elif isinstance(ia, Points) or ia.NPoints() == ia.NCells():
+                # print('Points', ia.name, ia.N())
                 kcols=[]
                 if color_attribute is not None:
                     scals = vtk_to_numpy(vtkscals)
@@ -201,26 +218,12 @@ def getNotebookBackend(actors2show, zoom, viewup):
                                   )
                 settings.notebook_plotter += kobj
 
-            #####################################################################Mesh
-            elif isinstance(ia, Mesh) and ia.N() and len(ia.faces()):
-#                print('Mesh', ia.name, ia.N(), len(ia.faces()))
-                kobj = k3d.vtk_poly_data(iapoly,
-                                         name=name,
-                                         color=colors.rgb2int(iap.GetColor()),
-                                         color_attribute=color_attribute,
-                                         color_map=kcmap,
-                                         opacity=iap.GetOpacity(),
-                                         wireframe=(iap.GetRepresentation()==1))
-
-                if iap.GetInterpolation() == 0:
-                    kobj.flat_shading = True
-                settings.notebook_plotter += kobj
 
             #####################################################################Line
             elif ia.polydata(False).GetNumberOfLines():
-#                print('Line', ia.name, ia.N(), len(ia.faces()),
-#                      ia.polydata(False).GetNumberOfLines(), len(ia.lines()),
-#                      color_attribute, [vtkscals])
+                # print('Line', ia.name, ia.N(), len(ia.faces()),
+                #       ia.polydata(False).GetNumberOfLines(), len(ia.lines()),
+                #       color_attribute, [vtkscals])
 
                 # kcols=[]
                 # if color_attribute is not None:

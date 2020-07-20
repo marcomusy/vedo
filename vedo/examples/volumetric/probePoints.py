@@ -13,7 +13,7 @@ mpts = probePoints(vol, pts).pointSize(3).printInfo()
 
 scals = mpts.getPointArray()
 
-h = histogram(scals, xlim=(5,120), xtitle='voxel value')
+h = histogram(scals, xlim=(5,120), xtitle='probed voxel value')
 h.scale(2.2)
 
 show(vol, mpts, h, __doc__)

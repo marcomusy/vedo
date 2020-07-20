@@ -8,7 +8,7 @@ trimesh to vedo interoperability
 
 import trimesh
 import vedo
-from vedo import trimesh2vtk, vtk2trimesh
+from vedo import trimesh2vedo
 
 url = 'https://raw.githubusercontent.com/mikedh/trimesh/master/models/'
 filename = vedo.download(url + 'machinist.XAML')
@@ -19,8 +19,8 @@ vedo.show(mesh) # vedo visualizer (conversion is on the fly)
 
 
 # explicit conversion
-vmesh = trimesh2vtk(mesh) # returns a vedo.Mesh(vtkActor) object
-trimsh_reconverted = vtk2trimesh(vmesh)
+vmesh = trimesh2vedo(mesh) # returns a vedo.Mesh(vtkActor) object
+trimsh_reconverted = vmesh.to_trimesh()
 
 trimsh_reconverted.show() # this is the trimesh built-in visualizer
 

@@ -1,14 +1,11 @@
-"""
-1D intersection of two polygonal meshes
-"""
+"""Intersection of two polygonal meshes"""
 from vedo import *
 
 car = load(datadir+"porsche.ply").alpha(0.2)
 
-cline = [(-9.,0.,0.), (0.,1.,0.), (9.,0.,0.)]
-t = Tube(cline).triangulate().color("violet").alpha(0.2)
+line = [(-9.,0.,0.), (0.,1.,0.), (9.,0.,0.)]
+tube = Tube(line).triangulate().c("violet").alpha(0.2)
 
-contour = surfaceIntersection(car, t)
-contour.lw(4).printInfo()
+contour = car.intersectWith(tube).lineWidth(4).c('black')
 
-show(car, t, contour, __doc__)
+show(car, tube, contour, __doc__)

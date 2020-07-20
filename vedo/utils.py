@@ -35,13 +35,15 @@ __all__ = [
     "cart2pol",
     "pol2cart",
     "humansort",
+    "dotdict",
     "printHistogram",
     "cameraFromQuaternion",
     "cameraFromNeuroglancer",
     "orientedCamera",
     "vtkCameraToK3D",
-    "vtk2trimesh",
-    "trimesh2vtk",
+    "vedo2trimesh",
+    "trimesh2vedo",
+    "resampleArrays",
 ]
 
 ###########################################################################
@@ -122,7 +124,7 @@ class ProgressBar:
             self._oldbar = self.bar
             eraser = [" "] * self._lentxt + ["\b"] * self._lentxt
             eraser = "".join(eraser)
-            if self.ETA:
+            if self.ETA and self._counts>1:
                 tdenom = (time.time() - self.clock0)
                 if tdenom:
                     vel = self._counts / tdenom
@@ -194,6 +196,56 @@ class ProgressBar:
         else:
             ps = ""
         self.bar += ps
+
+
+class dotdict(dict):
+    """
+    A dictionary supporting dot notation.
+
+    Example:
+
+        .. code-block:: python
+
+            dd = dotdict({"a": 1,
+                          "b": {"c": "hello",
+                                "d": [1, 2, {"e": 123}]}
+                              }
+                         )
+            dd.update({'k':3})
+            dd.g = 7
+            print("k=", dd.k)           # k= 3
+            print(dd.b.c)               # hello
+            print(isinstance(dd, dict)) # True
+            print(dd.lookup("b.d"))     # [1, 2, {"e": 123}]
+    """
+    # Credits: https://stackoverflow.com/users/89391/miku
+    #  https://gist.github.com/miku/dc6d06ed894bc23dfd5a364b7def5ed8
+
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for k, v in self.items():
+            if isinstance(v, dict):
+                self[k] = dotdict(v)
+
+    def lookup(self, dotkey):
+        """
+        Lookup value in a nested structure with a single key, e.g. "a.b.c".
+        """
+        path = list(reversed(dotkey.split(".")))
+        v = self
+        while path:
+            key = path.pop()
+            if isinstance(v, dict):
+                v = v[key]
+            elif isinstance(v, list):
+                v = v[int(key)]
+            else:
+                raise KeyError(key)
+        return v
 
 
 ###########################################################
@@ -422,7 +474,8 @@ def sortByColumn(array, nth):
 
 
 def findDistanceToLines2D(P0,P1, pts):
-    """Consider 2 sets of points P0,P1 describing lines (2D) and a set of points pts,
+    """
+    Consider 2 sets of points P0,P1 describing lines (2D) and a set of points pts,
     compute distance from each point j (P[j]) to each line i (P0[i],P1[i]).
     """
     #Author: Italmassov Kuanysh, at https://github.com/rougier/numpy-100
@@ -1352,12 +1405,15 @@ def make_ticks(x0, x1, N, labels=None):
 
         if x1:
             expo = np.ceil(np.log10(abs(x1)))
-            upBound =  pow(10, expo)*np.sign(x1)
+            upBound = pow(10, expo)*np.sign(x1)
         else:
             upBound = 0
-        if upBound<0 and lowBound+dstep > 0: upBound = 0
+        if upBound<0 and lowBound+dstep > 0:
+            upBound = 0
+        if -1<=upBound<0:
+            upBound /= 10
         if lowBound == upBound:
-            if upBound <0 :
+            if upBound<0:
                 upBound /= 10
             else:
                 upBound *= 10
@@ -1416,14 +1472,14 @@ def make_ticks(x0, x1, N, labels=None):
 #Check the example gallery in: examples/other/trimesh>
 ###########################################################################
 
-def vtk2trimesh(mesh):
+def vedo2trimesh(mesh):
     """
     Convert ``vedo.Mesh`` to ``Trimesh.Mesh`` object.
     """
     if isSequence(mesh):
         tms = []
         for a in mesh:
-            tms.append(vtk2trimesh(a))
+            tms.append(vedo2trimesh(a))
         return tms
 
     from trimesh import Trimesh
@@ -1456,17 +1512,17 @@ def vtk2trimesh(mesh):
     return Trimesh(vertices=points, faces=tris,
                    face_colors=ccols, vertex_colors=vcols)
 
-def trimesh2vtk(inputobj, alphaPerCell=False):
+def trimesh2vedo(inputobj, alphaPerCell=False):
     """
     Convert ``Trimesh`` object to ``Mesh(vtkActor)`` or ``Assembly`` object.
     """
     if isSequence(inputobj):
         vms = []
         for ob in inputobj:
-            vms.append(trimesh2vtk(ob))
+            vms.append(trimesh2vedo(ob))
         return vms
 
-    # print('trimesh2vtk inputobj', type(inputobj))
+    # print('trimesh2vedo inputobj', type(inputobj))
 
     inputobj_type = str(type(inputobj))
 
@@ -1524,6 +1580,7 @@ def trimesh2vtk(inputobj, alphaPerCell=False):
 
     return None
 
+
 def vtkVersionIsAtLeast(major, minor=0, build=0):
     """
     Check the VTK version.
@@ -1546,6 +1603,30 @@ def vtkVersionIsAtLeast(major, minor=0, build=0):
         return True
     else:
         return False
+
+def systemReport():
+    try:
+        import scooby
+        r = scooby.Report(additional=['vtk',
+                                      'vedo',
+                                      'meshio',
+                                      'matplotlib',
+                                      'k3d',
+                                      'itkwidgets',
+                                      'panel',
+                                      'dolfin',
+                                      'trimesh',
+                                      'pymeshfix',
+                                      'pygmsh',
+                                      'nevergrad',
+                                      'pyshtools',
+                                      'cv2',
+                                      ])
+        colors.printc(r)
+    except:
+        print('Install scooby with command: pip install scooby')
+        r = ''
+    return r
 
 
 def ctf2lut(tvobj):
@@ -1570,6 +1651,27 @@ def ctf2lut(tvobj):
     return lut
 
 
+def resampleArrays(source, target, tol=None):
+    """Resample point and cell data of a dataset on points from another dataset.
+    It takes two inputs - source and target, and samples the point and cell values
+    of target onto the point locations of source.
+    The output has the same structure as the source but its point data have
+    the resampled values from target.
+
+    :param float tol: set the tolerance used to compute whether
+        a point in the target is in a cell of the source.
+        Points without resampled values, and their cells, are be marked as blank.
+    """
+    rs = vtk.vtkResampleWithDataSet()
+    rs.SetInputData(source.polydata())
+    rs.SetSourceData(target.polydata())
+    rs.SetPassPointArrays(True)
+    rs.SetPassCellArrays(True)
+    if tol:
+        rs.SetComputeTolerance(False)
+        rs.SetTolerance(tol)
+    rs.Update()
+    return rs.GetOutput()
 
 
 

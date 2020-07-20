@@ -6,8 +6,8 @@ from vedo import *
 
 splines = load(datadir+'splines.npy') # returns a list of Lines
 
-procus = alignProcrustes(splines, rigid=0)
-alignedsplines = procus.unpack() # unpack Assembly into a list
+procus = procrustesAlignment(splines, rigid=False)
+alignedsplines = procus.unpack() # unpack Assembly into a python list
 mean = procus.info['mean']
 lmean = Line(mean, lw=4, c='b')
 
@@ -20,4 +20,3 @@ alignedsplines.append(__doc__)
 
 show([splines, alignedsplines], N=2, sharecam=False, axes=1)
 
-        

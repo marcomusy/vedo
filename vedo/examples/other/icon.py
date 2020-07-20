@@ -16,6 +16,9 @@ vp.show(interactive=0)
 elg = load(datadir+"images/embl_logo.jpg")
 vp.addIcon(elg, pos=2, size=0.06)
 
+vlo = load(datadir+"images/vedo_small.png")
+vp.addIcon(vlo, pos=1, size=0.06)
+
 vp += Text2D(__doc__, pos=8, s=0.8)
 
 vp.show(interactive=1)

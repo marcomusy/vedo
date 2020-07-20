@@ -34,18 +34,16 @@ def tips():
     from vedo import colors, __version__
     msg  = " ==========================================================\n"
     msg += "| Press: i     print info about selected object            |\n"
-    msg += "|        m     minimise opacity of selected mesh           |\n"
-    msg += "|        .,    reduce/increase opacity                     |\n"
-    msg += "|        /     maximize opacity                            |\n"
-    msg += "|        w/s   toggle wireframe/solid style                |\n"
+    msg += "|              use arrows to reduce/increase opacity       |\n"
+    msg += "|        w/s   toggle wireframe/surface style              |\n"
     msg += "|        p/P   change point size of vertices               |\n"
     msg += "|        l     toggle edges visibility                     |\n"
     msg += "|        x     toggle mesh visibility                      |\n"
     msg += "|        X     invoke a cutter widget tool                 |\n"
-    msg += "|        1-3   change mesh color                           |\n"
+    msg += "|        1-2   change mesh color                           |\n"
     msg += "|        4     use data array as colors, if present        |\n"
     msg += "|        5     change background color                     |\n"
-    msg += "|        0-9   (on keypad) change axes style               |\n"
+    msg += "|        0-9+  (on keypad) or + to change axes style       |\n"
     msg += "|        k     cycle available lighting styles             |\n"
     msg += "|        K     cycle available shading styles              |\n"
     msg += "|        o/O   add/remove light to scene and rotate it     |\n"
@@ -71,7 +69,12 @@ def tips():
 
     msg = " vedo " + __version__ + " "
     colors.printc(msg, invert=1, dim=1, end="")
-    msg = "| vtk " + vtk.vtkVersion().GetVTKVersion()
+    vtkVers = ''
+    try:
+        vtkVers = vtk.VTK_VERSION_NUMBER
+    except AttributeError:
+        vtkVers = vtk.vtkVersion().GetVTKVersion()
+    msg = "| vtk " + vtkVers
     msg += " | python " + str(sys.version_info[0]) + "." + str(sys.version_info[1])
     colors.printc(msg, invert=0, dim=1)
 
@@ -766,9 +769,6 @@ _defs = ""
 # .. |printhisto| image:: https://user-images.githubusercontent.com/32848391/55073046-03732780-508d-11e9-9bf9-c5de8631dd73.png
 #     :width: 300 px
 
-# .. |pmatrix| image:: https://user-images.githubusercontent.com/32848391/55098070-6da3c080-50bd-11e9-8f2b-be94a3f01831.png
-#     :width: 300 px
-
 # .. |distance2mesh.py| replace:: distance2mesh.py
 # .. _distance2mesh.py: https://github.com/marcomusy/vedo/blob/master/vedo/examples/basic/distance2mesh.py
 # .. |distance2mesh| image:: https://user-images.githubusercontent.com/32848391/55965881-b5a71380-5c77-11e9-8680-5bddceab813a.png
@@ -954,13 +954,6 @@ _defs = ""
 #     :width: 300 px
 #     :target: magnetostatics.py_
 #     :alt: magnetostatics.py
-
-# .. |voronoi3d.py| replace:: voronoi3d.py
-# .. _voronoi3d.py: https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/voronoi3d.py
-# .. |voronoi3d| image:: http://math.lbl.gov/voro++/obliquevoro.png
-#     :width: 300 px
-#     :target: voronoi3d.py_
-#     :alt: voronoi3d.py
 
 # .. |export_x3d.py| replace:: export_x3d.py
 # .. _export_x3d.py: https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/export_x3d.py

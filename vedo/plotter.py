@@ -12,6 +12,7 @@ import vedo.colors as colors
 from vedo.colors import printc, getColor
 from vedo.assembly import Assembly
 from vedo.mesh import Mesh
+from vedo.pointcloud import Points
 from vedo.ugrid import UGrid
 from vedo.picture import Picture
 from vedo.volume import Volume
@@ -1517,8 +1518,8 @@ class Plotter:
                     scannedacts.append(MeshActor(a))
 
                 elif "trimesh" in str(type(a)):
-                    from vedo.utils import trimesh2vtk
-                    scannedacts.append(trimesh2vtk(a))
+                    from vedo.utils import trimesh2vedo
+                    scannedacts.append(trimesh2vedo(a))
 
                 else:
                     try:
@@ -2052,7 +2053,7 @@ class Plotter:
             settings.plotter_instance.close()
             sys.exit(0)
 
-        elif key == "m":
+        elif key == "Down":
             if self.clickedActor in self.getMeshes():
                 self.clickedActor.GetProperty().SetOpacity(0.02)
                 bfp = self.clickedActor.GetBackfaceProperty()
@@ -2068,7 +2069,7 @@ class Plotter:
                             a._bfprop = bfp
                             a.SetBackfaceProperty(None)
 
-        elif key == "comma":
+        elif key == "Left":
             if self.clickedActor in self.getMeshes():
                 ap = self.clickedActor.GetProperty()
                 aal = max([ap.GetOpacity() * 0.75, 0.01])
@@ -2088,7 +2089,7 @@ class Plotter:
                             a._bfprop = bfp
                             a.SetBackfaceProperty(None)
 
-        elif key == "period":
+        elif key == "Right":
             if self.clickedActor in self.getMeshes():
                 ap = self.clickedActor.GetProperty()
                 aal = min([ap.GetOpacity() * 1.25, 1.0])
@@ -2106,7 +2107,7 @@ class Plotter:
                         if aal == 1 and hasattr(a, "_bfprop") and a._bfprop:
                             a.SetBackfaceProperty(a._bfprop)
 
-        elif key == "slash":
+        elif key == "slash" or key == "Up":
             if self.clickedActor in self.getMeshes():
                 self.clickedActor.GetProperty().SetOpacity(1)
                 if hasattr(self.clickedActor, "_bfprop") and self.clickedActor._bfprop:
@@ -2286,7 +2287,7 @@ class Plotter:
             for ia in self.getMeshes():
                 if not ia.GetPickable():
                     continue
-                if isinstance(ia, Mesh):
+                if isinstance(ia, Points):
                     arnames = ia.getArrayNames()['PointData']
                     if len(arnames):
                         arnam =  arnames[ia._scals_idx]
@@ -2330,6 +2331,18 @@ class Plotter:
                     self.axes_instances[clickedr] = None
                 addons.addGlobalAxes(axtype=asso[key], c=None)
                 self.interactor.Render()
+
+        elif "plus" in key or "equal" in key:  # change axes style
+            clickedr = self.renderers.index(self.renderer)
+            if self.axes_instances[clickedr]:
+                if hasattr(self.axes_instances[clickedr], "EnabledOff"):  # widget
+                    self.axes_instances[clickedr].EnabledOff()
+                else:
+                    self.renderer.RemoveActor(self.axes_instances[clickedr])
+                self.axes_instances[clickedr] = None
+            addons.addGlobalAxes(axtype=(self.axes+1)%13, c=None)
+            self.interactor.Render()
+
 
         if key == "O":
             settings.plotter_instance.renderer.RemoveLight(self.extralight)
@@ -2406,11 +2419,10 @@ class Plotter:
                                   c='g', bold=0)
 
         elif key == "n":  # show normals to an actor
-            from vedo.analysis import normalLines
-
+            from vedo.shapes import NormalLines
             if self.clickedActor in self.getMeshes():
                 if self.clickedActor.GetPickable():
-                    self.renderer.AddActor(normalLines(self.clickedActor))
+                    self.renderer.AddActor(NormalLines(self.clickedActor))
                     iren.Render()
             else:
                 print("Click an actor and press n to add normals.")

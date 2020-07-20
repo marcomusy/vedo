@@ -2,11 +2,12 @@ from __future__ import division, print_function
 import os
 import vtk
 import numpy as np
-from vedo import settings
 from vtk.util.numpy_support import numpy_to_vtk
+from vedo import settings
 import vedo.utils as utils
 from vedo.colors import printc, getColor, colorMap, _mapscales
 from vedo.mesh import Mesh
+from vedo.pointcloud import Points, Point
 from vedo.picture import Picture
 import vedo.docs as docs
 
@@ -16,8 +17,6 @@ __doc__ = ("""Submodule to generate basic geometric shapes.
 )
 
 __all__ = [
-    "Point",
-    "Points",
     "Marker",
     "Line",
     "DashedLine",
@@ -25,6 +24,7 @@ __all__ = [
     "Lines",
     "Spline",
     "KSpline",
+    "NormalLines",
     "Ribbon",
     "Arrow",
     "Arrows",
@@ -59,7 +59,7 @@ __all__ = [
     "Glyph",
     "Tensors",
     "ParametricShape",
-    "convexHull",
+    "ConvexHull",
 ]
 
 
@@ -112,130 +112,6 @@ def Marker(symbol, pos=(0, 0, 0), c='lb', alpha=1, s=0.1, filled=True):
     mesh.SetPosition(pos)
     mesh.name = "Marker"
     return mesh
-
-
-def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
-    """Create a simple point."""
-    if isinstance(pos, vtk.vtkActor):
-        pos = pos.GetPosition()
-    pd = utils.buildPolyData([[0,0,0]])
-    if len(pos)==2:
-        pos = (pos[0], pos[1], 0.)
-
-    pt = Mesh(pd, c, alpha)
-    pt.SetPosition(pos)
-    pt.GetProperty().SetPointSize(r)
-    pt.name = "Point"
-    return pt
-
-
-class Points(Mesh):
-    """
-    Build a ``Mesh`` made of only vertex points for a list of 2D/3D points.
-    Both shapes (N, 3) or (3, N) are accepted as input, if N>3.
-
-    For very large point clouds a list of colors and alpha can be assigned to each
-    point in the form `c=[(R,G,B,A), ... ]` where `0 <= R < 256, ... 0 <= A < 256`.
-
-    :param float r: point radius.
-    :param c: color name, number, or list of [R,G,B] colors of same length as plist.
-    :type c: int, str, list
-    :param float alpha: transparency in range [0,1].
-    :param bool blur: make the point fluffy and blurred
-        (works better with ``settings.useDepthPeeling=True``.)
-
-    |manypoints.py|_ |lorenz.py|_
-
-    |lorenz|
-    """
-    def __init__(self, plist, r=5, c=(0.3,0.3,0.3), alpha=1, blur=False):
-
-        ################ interpret user input format:
-        if isinstance(plist, Mesh):
-            plist = plist.points()
-
-        n = len(plist)
-
-        if n == 3:  # assume plist is in the format [all_x, all_y, all_z]
-            if utils.isSequence(plist[0]) and len(plist[0]) > 3:
-                plist = np.stack((plist[0], plist[1], plist[2]), axis=1)
-        elif n == 2:  # assume plist is in the format [all_x, all_y, 0]
-            if utils.isSequence(plist[0]) and len(plist[0]) > 3:
-                plist = np.stack((plist[0], plist[1], np.zeros(len(plist[0]))), axis=1)
-
-        if n and len(plist[0]) == 2: # make it 3d
-            plist = np.c_[np.array(plist), np.zeros(len(plist))]
-        ################
-
-        if ((utils.isSequence(c) and (len(c)>3 or (utils.isSequence(c[0]) and len(c[0])==4)))
-            or utils.isSequence(alpha) ):
-
-            cols = c
-
-            n = len(plist)
-            if n != len(cols):
-                printc("Mismatch in Points() colors", n, len(cols), c=1)
-                raise RuntimeError()
-
-            src = vtk.vtkPointSource()
-            src.SetNumberOfPoints(n)
-            src.Update()
-
-            vgf = vtk.vtkVertexGlyphFilter()
-            vgf.SetInputData(src.GetOutput())
-            vgf.Update()
-            pd = vgf.GetOutput()
-
-            pd.GetPoints().SetData(numpy_to_vtk(np.ascontiguousarray(plist), deep=True))
-
-            ucols = vtk.vtkUnsignedCharArray()
-            ucols.SetNumberOfComponents(4)
-            ucols.SetName("Points_RGBA")
-            if utils.isSequence(alpha):
-                if len(alpha) != n:
-                    printc("Mismatch in Points() alphas", n, len(alpha), c=1)
-                    raise RuntimeError()
-                alphas = alpha
-                alpha = 1
-            else:
-               alphas = (alpha,) * n
-
-            if utils.isSequence(cols):
-                c = None
-                if len(cols[0]) == 4:
-                    for i in range(n): # FAST
-                        rc,gc,bc,ac = cols[i]
-                        ucols.InsertNextTuple4(rc, gc, bc, ac)
-                else:
-                    for i in range(n): # SLOW
-                        rc,gc,bc = getColor(cols[i])
-                        ucols.InsertNextTuple4(rc*255, gc*255, bc*255, alphas[i]*255)
-            else:
-                c = cols
-
-            pd.GetPointData().SetScalars(ucols)
-
-            Mesh.__init__(self, pd, c, alpha)
-            self.mapper().ScalarVisibilityOn()
-
-        else:
-
-            pd = utils.buildPolyData(plist)
-            Mesh.__init__(self, pd, c, alpha)
-
-        if blur:
-            #settings.useDepthPeeling = True
-            point_mapper = vtk.vtkPointGaussianMapper()
-            point_mapper.SetInputData(pd)
-            point_mapper.SetScaleFactor(0.0005*self.diagonalSize()*r)
-            point_mapper.EmissiveOn()
-            self._mapper = point_mapper
-            self.SetMapper(point_mapper)
-        else:
-            self.GetProperty().SetPointSize(r)
-
-        settings.collectable_actors.append(self)
-        self.name = "Points"
 
 
 class Glyph(Mesh):
@@ -292,7 +168,7 @@ class Glyph(Mesh):
             cleanPolyData.Update()
             poly = cleanPolyData.GetOutput()
 
-        if isinstance(glyphObj, Mesh):
+        if isinstance(glyphObj, Points):
             glyphObj = glyphObj.clean().polydata()
 
         cmap=''
@@ -411,7 +287,7 @@ class Tensors(Mesh):
     def __init__(self, domain, source='ellipsoid', useEigenValues=True, isSymmetric=True,
                 threeAxes=False, scale=1, maxScale=None, length=None,
                 c=None, alpha=1):
-        if isinstance(source, Mesh):
+        if isinstance(source, Points):
             src = source.normalize().polydata(False)
         else:
             if 'ellip' in source:
@@ -637,7 +513,6 @@ class DashedLine(Line):
         self.name = "DashedLine"
 
 
-
 class Lines(Line):
     """
     Build the line segments between two lists of points `startPoints` and `endPoints`.
@@ -658,7 +533,10 @@ class Lines(Line):
         polylns = vtk.vtkAppendPolyData()
         for twopts in startPoints:
             lineSource = vtk.vtkLineSource()
-            lineSource.SetPoint1(twopts[0])
+            if len(twopts[0])==2:
+                lineSource.SetPoint1(twopts[0][0], twopts[0][1], 0.0)
+            else:
+                lineSource.SetPoint1(twopts[0])
 
             if scale == 1:
                 pt2 = twopts[1]
@@ -666,7 +544,10 @@ class Lines(Line):
                 vers = (np.array(twopts[1]) - twopts[0]) * scale
                 pt2 = np.array(twopts[0]) + vers
 
-            lineSource.SetPoint2(pt2)
+            if len(pt2)==2:
+                lineSource.SetPoint2(pt2[0], pt2[1], 0.0)
+            else:
+                lineSource.SetPoint2(pt2)
             polylns.AddInputConnection(lineSource.GetOutputPort())
         polylns.Update()
 
@@ -787,6 +668,49 @@ class KSpline(Line):
         self.top = np.array(points[-1])
         settings.collectable_actors.append(self)
         self.name = "KSpline"
+
+
+def NormalLines(mesh, ratio=1, atCells=True, scale=1):
+    """
+    Build an ``Mesh`` made of the normals at cells shown as lines.
+
+    if `atCells` is `False` normals are shown at vertices.
+    """
+    poly = mesh.clone().computeNormals().polydata()
+
+    if atCells:
+        centers = vtk.vtkCellCenters()
+        centers.SetInputData(poly)
+        centers.Update()
+        poly = centers.GetOutput()
+
+    maskPts = vtk.vtkMaskPoints()
+    maskPts.SetInputData(poly)
+    maskPts.SetOnRatio(ratio)
+    maskPts.RandomModeOff()
+    maskPts.Update()
+
+    ln = vtk.vtkLineSource()
+    ln.SetPoint1(0, 0, 0)
+    ln.SetPoint2(1, 0, 0)
+    ln.Update()
+    glyph = vtk.vtkGlyph3D()
+    glyph.SetSourceData(ln.GetOutput())
+    glyph.SetInputData(maskPts.GetOutput())
+    glyph.SetVectorModeToUseNormal()
+
+    b = poly.GetBounds()
+    sc = max([b[1] - b[0], b[3] - b[2], b[5] - b[4]]) / 50 *scale
+    glyph.SetScaleFactor(sc)
+    glyph.OrientOn()
+    glyph.Update()
+    glyphActor = Mesh(glyph.GetOutput())
+    glyphActor.mapper().SetScalarModeToUsePointFieldData()
+    glyphActor.PickableOff()
+    prop = vtk.vtkProperty()
+    prop.DeepCopy(mesh.GetProperty())
+    glyphActor.SetProperty(prop)
+    return glyphActor
 
 
 class Tube(Mesh):
@@ -1026,8 +950,8 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c=None, alpha=1, res=12
 
     |glyphs_arrows| |glyphs_arrows.py|_
     """
-    if isinstance(startPoints, Mesh): startPoints = startPoints.points()
-    if isinstance(endPoints,   Mesh): endPoints   = endPoints.points()
+    if isinstance(startPoints, Points): startPoints = startPoints.points()
+    if isinstance(endPoints,   Points): endPoints   = endPoints.points()
     startPoints = np.array(startPoints)
     if endPoints is None:
         strt = startPoints[:,0]
@@ -1174,8 +1098,8 @@ def Arrows2D(startPoints, endPoints=None,
 
         |quiver|
     """
-    if isinstance(startPoints, Mesh): startPoints = startPoints.points()
-    if isinstance(endPoints,   Mesh): endPoints   = endPoints.points()
+    if isinstance(startPoints, Points): startPoints = startPoints.points()
+    if isinstance(endPoints,   Points): endPoints   = endPoints.points()
     startPoints = np.array(startPoints)
     if endPoints is None:
         strt = startPoints[:,0]
@@ -1214,8 +1138,8 @@ def FlatArrow(line1, line2, c="m", alpha=1, tipSize=1, tipWidth=1):
 
     |flatarrow| |flatarrow.py|_
     """
-    if isinstance(line1, Mesh): line1 = line1.points()
-    if isinstance(line2, Mesh): line2 = line2.points()
+    if isinstance(line1, Points): line1 = line1.points()
+    if isinstance(line2, Points): line2 = line2.points()
 
     sm1, sm2 = np.array(line1[-1]), np.array(line2[-1])
 
@@ -1477,7 +1401,7 @@ class Spheres(Mesh):
     """
     def __init__(self, centers, r=1, c="r", alpha=1, res=8):
 
-        if isinstance(centers, Mesh):
+        if isinstance(centers, Points):
             centers = centers.points()
 
         cisseq = False
@@ -2798,7 +2722,7 @@ class ParametricShape(Mesh):
         self.name = name
 
 
-def convexHull(pts):
+def ConvexHull(pts):
     """
     Create the 2D/3D convex hull of a set of input points or input Mesh.
 

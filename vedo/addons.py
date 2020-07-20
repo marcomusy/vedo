@@ -5,7 +5,8 @@ from __future__ import division, print_function
 from vedo.colors import printc, getColor
 from vedo.assembly import Assembly
 from vedo.mesh import Mesh, merge
-from vedo.utils import mag, isSequence, make_ticks, ctf2lut
+from vedo.pointcloud import Points
+from vedo.utils import mag, isSequence, make_ticks, ctf2lut, vtkVersionIsAtLeast
 import vedo.shapes as shapes
 import vedo.settings as settings
 import vedo.docs as docs
@@ -112,7 +113,7 @@ def addScalarBar(obj,
                 plt.renderer.RemoveActor(a)
     if c is None: c = 'gray'
 
-    if isinstance(obj, Mesh):
+    if isinstance(obj, Points):
         lut = obj.mapper().GetLookupTable()
         if not lut:
             return None
@@ -243,7 +244,7 @@ def addScalarBar3D(
     if sx is None:
         sx = sy/18
 
-    if isinstance(obj, Mesh):
+    if isinstance(obj, Points):
         lut = obj.mapper().GetLookupTable()
         if not lut:
             print("Error in addScalarBar3D: mesh has no lookup table.", [obj])
@@ -314,8 +315,7 @@ def addScalarBar3D(
     sact = Assembly(scale, tacts)
     sact.SetPosition(pos)
     sact.PickableOff()
-    # if isinstance(obj, Mesh):
-    #     obj.scalarbar = sact
+    sact.UseBoundsOff()
     sact.name = 'ScalarBar3D'
     return sact
 
@@ -922,7 +922,9 @@ def buildAxes(obj=None,
     if not xTickColor:  xTickColor = xLineColor
     if not yTickColor:  yTickColor = yLineColor
     if not zTickColor:  zTickColor = zLineColor
-    if settings.useDepthPeeling:
+
+    # vtk version<9 dont like depthpeeling
+    if settings.useDepthPeeling and not vtkVersionIsAtLeast(9):
         xyGrid = False
         yzGrid = False
         zxGrid = False
@@ -950,7 +952,6 @@ def buildAxes(obj=None,
     if xtitle: xticks_float, xticks_str = make_ticks(vbb[0], vbb[1], rx, xPositionsAndLabels)
     if ytitle: yticks_float, yticks_str = make_ticks(vbb[2], vbb[3], ry, yPositionsAndLabels)
     if ztitle: zticks_float, zticks_str = make_ticks(vbb[4], vbb[5], rz, zPositionsAndLabels)
-
 
     ################################## calculate aspect ratio scales
     x_aspect_ratio_scale=1
@@ -1700,9 +1701,9 @@ def addGlobalAxes(axtype=None, c=None):
         vbb, ss = computeVisibleBounds()[0:2]
         xpos, ypos = (vbb[1] + vbb[0]) /2, (vbb[3] + vbb[2]) /2
         gr = shapes.Grid((xpos, ypos, vbb[4]),
-                         sx=ss[0]*8, sy=ss[1]*8,
-                         resx=7, resy=7,
-                         c=c, alpha=0.2)
+                          sx=ss[0]*8, sy=ss[1]*8,
+                          resx=11, resy=11,
+                          c=c, alpha=0.2)
         gr.lighting('ambient').PickableOff()
         gr.UseBoundsOff()
         plt.renderer.AddActor(gr)
@@ -1743,7 +1744,7 @@ def addGlobalAxes(axtype=None, c=None):
         plt.axes_instances[r] = polaxes
 
     else:
-        printc('~bomb Keyword axes must be in range [0-10].', c=1)
+        printc('~bomb Keyword axes type must be in range [0-12].', c=1)
         printc('''
   ~target Available axes types:
   0 = no axes,

@@ -29,16 +29,16 @@ __website__    = "https://github.com/marcomusy/vedo"
 
 from vedo.version import _version as __version__
 from vedo.plotter import *
-from vedo.analysis import *
 from vedo.shapes import *
 from vedo.io import *
 
-from vedo.base import BaseActor, BaseGrid
+from vedo.base import *
 from vedo.ugrid import UGrid
-from vedo.assembly import Assembly
-from vedo.mesh import Mesh, merge
+from vedo.assembly import Assembly, procrustesAlignment
+from vedo.pointcloud import *
+from vedo.mesh import *
 from vedo.picture import Picture
-from vedo.volume import Volume
+from vedo.volume import *
 from vedo.tetmesh import *
 
 from vedo.utils import *
@@ -52,23 +52,36 @@ from vedo.dolfin import _inputsort
 
 from numpy import sin, cos, sqrt, exp, log, dot, cross, array, arange
 
-# imports hierarchy
-# plotter : utils, colors, actors, io, shapes
-# analysis: utils, colors, actors, io, shapes
-# shapes  : utils, colors, actors
-# io   : utils, colors, actors
-# actors  : utils, colors
-# utils   :        colors
-# colors  : -
-
 
 ###########################################################################
 settings._init()
 ###########################################################################
 
+
 ## deprecations ############################################################
-#def isolines(*args, **kargs):
-#    printc("Obsolete. Use mesh.isolines() instead of isolines(mesh).", c=1)
-#    raise RuntimeError()
+def alignICP(source, target, iters=100, rigid=False, invert=False, useCentroids=False):
+    """Obsolete: Please use source.alignTo(target) instead."""
+    colors.printc("Obsolete alignICP: Please use source.alignTo(target) instead",
+                  c=1, box='-')
+    return source.alignTo(target, iters, rigid, invert, useCentroids)
+
+def pcaEllipsoid(points, pvalue=0.95):
+    """Obsolete: Please use fitEllipsoid() instead."""
+    colors.printc("Obsolete pcaEllipsoid: Please use fitEllipsoid() instead",
+                  c=1, box='-')
+    from vedo.mesh import fitEllipsoid
+    return fitEllipsoid(points, pvalue)
+
+def booleanOperation(mesh1, operation, mesh2):
+    """Obsolete: Please use mesh1.boolean(operation, mesh2) instead."""
+    colors.printc("Obsolete booleanOperation: Please use mesh1.boolean(operation, mesh2) instead",
+                  c=1, box='-')
+    return mesh1.boolean(operation, mesh2)
+
+def surfaceIntersection(mesh1, mesh2, tol=1e-06):
+    """Obsolete: Please use mesh1.intersectWith(mesh2) instead."""
+    colors.printc("Obsolete surfaceIntersection: Please use mesh1.intersectWith(mesh2) instead",
+                  c=1, box='-')
+    return mesh1.intersectWith(mesh2)
 
 

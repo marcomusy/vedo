@@ -4,7 +4,7 @@ them using Procrustes method.
 from __future__ import division, print_function
 from random import uniform as u
 
-from vedo import Plotter, alignProcrustes, Points
+from vedo import Plotter, procrustesAlignment, Points
 
 vp = Plotter(shape=[1, 2], axes=2, sharecam=0)
 
@@ -23,7 +23,7 @@ vp.show(vpts1, vpts2, vpts3, __doc__, at=0)
 
 # find best alignment among the n sets of Points,
 # return an Assembly object formed by the aligned sets
-aligned = alignProcrustes([vpts1, vpts2, vpts3])
+aligned = procrustesAlignment([vpts1, vpts2, vpts3])
 
 # print(aligned.info['transform'])
 

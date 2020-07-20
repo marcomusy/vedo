@@ -8,6 +8,7 @@ import vedo.utils as utils
 import vedo.colors as colors
 from vedo.assembly import Assembly
 from vedo.mesh import Mesh
+from vedo.pointcloud import Points
 from vedo.ugrid import UGrid
 from vedo.tetmesh import TetMesh
 from vedo.picture import Picture
@@ -795,7 +796,7 @@ def toNumpy(obj):
         adict['texture'] = None
 
     ######################################################## Mesh
-    if isinstance(obj, Mesh):
+    if isinstance(obj, Points):
         adict['type'] = 'Mesh'
         _fillcommon(obj, adict)
         _fillmesh(obj, adict)
@@ -1095,7 +1096,7 @@ def write(objct, fileoutput, binary=True):
         - vtk, vti, npy, ply, obj, stl, byu, vtp, vti, mhd, xyz, tif, png, bmp.
     """
     obj = objct
-    if isinstance(obj, Mesh): # picks transformation
+    if isinstance(obj, Points): # picks transformation
         obj = objct.polydata(True)
     elif isinstance(obj, (vtk.vtkActor, vtk.vtkVolume)):
         obj = objct.GetMapper().GetInput()
@@ -1124,7 +1125,7 @@ def write(objct, fileoutput, binary=True):
     elif fr.endswith(".vtm"):
         g = vtk.vtkMultiBlockDataGroupFilter()
         for ob in objct:
-            if isinstance(ob, Mesh): # picks transformation
+            if isinstance(ob, Points): # picks transformation
                 ob = ob.polydata(True)
             elif isinstance(ob, (vtk.vtkActor, vtk.vtkVolume)):
                 ob = ob.GetMapper().GetInput()
@@ -1278,7 +1279,7 @@ def exportWindow(fileoutput, binary=False):
     fr = fileoutput.lower()
 
     ####################################################################
-    if fr.endswith(".npy"):
+    if fr.endswith(".npy") or fr.endswith(".v3d"):
         sdict = dict()
         vp = settings.plotter_instance
         sdict['shape'] = vp.shape #todo

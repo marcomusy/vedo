@@ -15,7 +15,265 @@ Submodule extending the ``vtkVolume`` object functionality.
     + docs._defs
 )
 
-__all__ = ["Volume"]
+__all__ = ["Volume",
+           "mesh2Volume",
+           "volumeFromMesh",
+           "interpolateToVolume",
+           "signedDistanceFromPointCloud",
+           "pointDensity",
+          ]
+
+
+
+def mesh2Volume(mesh, spacing=(1, 1, 1)):
+    """
+    Convert a mesh it into a ``Volume``
+    where the foreground (exterior) voxels value is 1 and the background
+    (interior) voxels value is 0.
+    Internally the ``vtkPolyDataToImageStencil`` class is used.
+
+    |mesh2volume| |mesh2volume.py|_
+    """
+    # https://vtk.org/Wiki/VTK/Examples/Cxx/PolyData/PolyDataToImageData
+    pd = mesh.polydata()
+
+    whiteImage = vtk.vtkImageData()
+    bounds = pd.GetBounds()
+
+    whiteImage.SetSpacing(spacing)
+
+    # compute dimensions
+    dim = [0, 0, 0]
+    for i in [0, 1, 2]:
+        dim[i] = int(np.ceil((bounds[i * 2 + 1] - bounds[i * 2]) / spacing[i]))
+    whiteImage.SetDimensions(dim)
+    whiteImage.SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1)
+
+    origin = [0, 0, 0]
+    origin[0] = bounds[0] + spacing[0] / 2
+    origin[1] = bounds[2] + spacing[1] / 2
+    origin[2] = bounds[4] + spacing[2] / 2
+    whiteImage.SetOrigin(origin)
+    whiteImage.AllocateScalars(vtk.VTK_UNSIGNED_CHAR, 1)
+
+    # fill the image with foreground voxels:
+    inval = 255
+    count = whiteImage.GetNumberOfPoints()
+    for i in range(count):
+        whiteImage.GetPointData().GetScalars().SetTuple1(i, inval)
+
+    # polygonal data --> image stencil:
+    pol2stenc = vtk.vtkPolyDataToImageStencil()
+    pol2stenc.SetInputData(pd)
+    pol2stenc.SetOutputOrigin(origin)
+    pol2stenc.SetOutputSpacing(spacing)
+    pol2stenc.SetOutputWholeExtent(whiteImage.GetExtent())
+    pol2stenc.Update()
+
+    # cut the corresponding white image and set the background:
+    outval = 0
+    imgstenc = vtk.vtkImageStencil()
+    imgstenc.SetInputData(whiteImage)
+    imgstenc.SetStencilConnection(pol2stenc.GetOutputPort())
+    imgstenc.ReverseStencilOff()
+    imgstenc.SetBackgroundValue(outval)
+    imgstenc.Update()
+    return Volume(imgstenc.GetOutput())
+
+
+def volumeFromMesh(mesh, bounds=None, dims=(20,20,20), signed=True, negate=False):
+    """
+    Compute signed distances over a volume from an input mesh.
+    The output is a ``Volume`` object whose voxels contains the signed distance from
+    the mesh.
+
+    :param list bounds: bounds of the output volume.
+    :param list dims: dimensions (nr. of voxels) of the output volume.
+
+    See example script: |volumeFromMesh.py|_
+    """
+    if bounds is None:
+        bounds = mesh.GetBounds()
+    sx = (bounds[1]-bounds[0])/dims[0]
+    sy = (bounds[3]-bounds[2])/dims[1]
+    sz = (bounds[5]-bounds[4])/dims[2]
+
+    img = vtk.vtkImageData()
+    img.SetDimensions(dims)
+    img.SetSpacing(sx, sy, sz)
+    img.SetOrigin(bounds[0], bounds[2], bounds[4])
+    img.AllocateScalars(vtk.VTK_FLOAT, 1)
+
+    imp = vtk.vtkImplicitPolyDataDistance()
+    imp.SetInput(mesh.polydata())
+    b4 = bounds[4]
+    r2 = range(dims[2])
+
+    for i in range(dims[0]):
+        x = i*sx+bounds[0]
+        for j in range(dims[1]):
+            y = j*sy+bounds[2]
+            for k in r2:
+                v = imp.EvaluateFunction((x, y, k*sz+b4))
+                if signed:
+                    if negate:
+                        v = -v
+                else:
+                    v = abs(v)
+                img.SetScalarComponentFromFloat(i,j,k, 0, v)
+
+    vol = Volume(img)
+    vol.name = "VolumeFromMesh"
+    return vol
+
+def interpolateToVolume(mesh, kernel='shepard', radius=None,
+                       bounds=None, nullValue=None,
+                       dims=(20,20,20)):
+    """
+    Generate a ``Volume`` by interpolating a scalar
+    or vector field which is only known on a scattered set of points or mesh.
+    Available interpolation kernels are: shepard, gaussian, voronoi, linear.
+
+    :param str kernel: interpolation kernel type [shepard]
+    :param float radius: radius of the local search
+    :param list bounds: bounding box of the output Volume object
+    :param list dims: dimensions of the output Volume object
+    :param float nullValue: value to be assigned to invalid points
+
+    |interpolateVolume| |interpolateVolume.py|_
+    """
+    if isinstance(mesh, vtk.vtkPolyData):
+        output = mesh
+    else:
+        output = mesh.polydata()
+
+    # Create a probe volume
+    probe = vtk.vtkImageData()
+    probe.SetDimensions(dims)
+    if bounds is None:
+        bounds = output.GetBounds()
+    probe.SetOrigin(bounds[0],bounds[2],bounds[4])
+    probe.SetSpacing((bounds[1]-bounds[0])/dims[0],
+                     (bounds[3]-bounds[2])/dims[1],
+                     (bounds[5]-bounds[4])/dims[2])
+
+    if radius is None:
+        radius = min(bounds[1]-bounds[0], bounds[3]-bounds[2], bounds[5]-bounds[4])/3
+
+    locator = vtk.vtkPointLocator()
+    locator.SetDataSet(output)
+    locator.BuildLocator()
+
+    if kernel == 'shepard':
+        kern = vtk.vtkShepardKernel()
+        kern.SetPowerParameter(2)
+        kern.SetRadius(radius)
+    elif kernel == 'gaussian':
+        kern = vtk.vtkGaussianKernel()
+        kern.SetRadius(radius)
+    elif kernel == 'voronoi':
+        kern = vtk.vtkVoronoiKernel()
+    elif kernel == 'linear':
+        kern = vtk.vtkLinearKernel()
+        kern.SetRadius(radius)
+    else:
+        print('Error in interpolateToVolume, available kernels are:')
+        print(' [shepard, gaussian, voronoi, linear]')
+        raise RuntimeError()
+
+    interpolator = vtk.vtkPointInterpolator()
+    interpolator.SetInputData(probe)
+    interpolator.SetSourceData(output)
+    interpolator.SetKernel(kern)
+    interpolator.SetLocator(locator)
+    if nullValue is not None:
+        interpolator.SetNullValue(nullValue)
+    else:
+        interpolator.SetNullPointsStrategyToClosestPoint()
+    interpolator.Update()
+    return Volume(interpolator.GetOutput())
+
+
+
+def signedDistanceFromPointCloud(mesh, maxradius=None, bounds=None, dims=(20,20,20)):
+    """
+    Compute signed distances over a volume from an input point cloud.
+    The output is a ``Volume`` object whose voxels contains the signed distance from
+    the cloud.
+
+    :param float maxradius: how far out to propagate distance calculation
+    :param list bounds: volume bounds.
+    :param list dims: dimensions (nr. of voxels) of the output volume.
+    """
+    if bounds is None:
+        bounds = mesh.GetBounds()
+    if maxradius is None:
+        maxradius = mesh.diagonalSize()/10.
+    dist = vtk.vtkSignedDistance()
+    dist.SetInputData(mesh.polydata(True))
+    dist.SetRadius(maxradius)
+    dist.SetBounds(bounds)
+    dist.SetDimensions(dims)
+    dist.Update()
+    vol = Volume(dist.GetOutput())
+    vol.name = "signedDistanceVolume"
+    return vol
+
+
+def pointDensity(mesh, dims=(40,40,40),
+                 bounds=None, radius=None,
+                 computeGradient=False, locator=None):
+    """
+    Generate a density field from a point cloud. Input can also be a set of 3D coordinates.
+    Output is a ``Volume``.
+    The local neighborhood is specified as the `radius` around each sample position (each voxel).
+    The density is expressed as the number of counts in the radius search.
+
+    :param int,list dims: numer of voxels in x, y and z of the output Volume.
+    :param bool computeGradient: Turn on/off the generation of the gradient vector,
+        gradient magnitude scalar, and function classification scalar.
+        By default this is off. Note that this will increase execution time
+        and the size of the output. (The names of these point data arrays are:
+        "Gradient", "Gradient Magnitude", and "Classification".)
+
+    :param vtkStaticPointLocator locator: can be assigned from a previous call for speed.
+
+    See example script: |pointDensity.py|_
+    """
+    if not utils.isSequence(dims):
+        dims = (dims,dims,dims)
+    pdf = vtk.vtkPointDensityFilter()
+    if utils.isSequence(mesh): # user passing coords
+        if len(mesh)==3:
+            mesh = np.c_[mesh[0],mesh[1],mesh[2]]
+        poly = utils.buildPolyData(mesh)
+        b = poly.GetBounds()
+        diag = np.sqrt((b[1]-b[0])**2+(b[3]-b[2])**2+(b[5]-b[4])**2)
+    else:
+        poly = mesh.polydata()
+        b = poly.GetBounds()
+        diag = mesh.diagonalSize()
+    pdf.SetInputData(poly)
+    pdf.SetSampleDimensions(dims)
+    pdf.SetDensityEstimateToFixedRadius()
+    pdf.SetDensityFormToNumberOfPoints()
+    if locator:
+        pdf.SetLocator(locator)
+    if radius is None:
+        radius = diag/15
+    pdf.SetRadius(radius)
+    if bounds is None:
+        bounds = b
+    pdf.SetModelBounds(bounds)
+    pdf.SetComputeGradient(computeGradient)
+    pdf.Update()
+    img = pdf.GetOutput()
+    vol = Volume(img)
+    vol.name = "PointDensity"
+    vol.info['radius'] = radius
+    vol.locator = pdf.GetLocator()
+    return vol
+
 
 
 ##########################################################################

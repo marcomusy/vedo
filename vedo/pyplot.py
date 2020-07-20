@@ -11,6 +11,7 @@ import vedo.shapes as shapes
 import vedo.addons as addons
 from vedo.assembly import Assembly
 from vedo.mesh import Mesh, merge
+from vedo.pointcloud import Points
 from vedo.base import BaseActor
 
 __doc__ = """Plotting utility functions.""" + docs._defs
@@ -22,7 +23,6 @@ __all__ = [
     "quiver",
     "violin",
     "streamplot",
-    "plotMatrix",
     "DirectedGraph",
 ]
 
@@ -1840,11 +1840,6 @@ def _histogramSpheric(
     if scalarbar:
         newsg.addScalarBar()
     newsg.name = "histogramSpheric"
-    # from vedo.analysis import normalLines
-    # nrm = normalLines(newsg, scale=0.5)
-    # asse = Assembly(newsg, nrm)
-    # sg0 = shapes.Sphere(r=0.99, res=res, quads=True).lw(.1).c([.9,.9,.9])
-    # return Assembly(newsg, sg0)
     return newsg
 
 
@@ -1956,7 +1951,7 @@ def quiver(
 
     |quiver| |quiver.py|_
     """
-    if isinstance(points, Mesh):
+    if isinstance(points, Points):
         points = points.points()
     else:
         points = np.array(points)
@@ -2078,9 +2073,8 @@ def violin(
     return asse
 
 
-def streamplot(
-    X, Y, U, V, direction="both", maxPropagation=None, mode=1, lw=0.001, c=None, probes=[],
-):
+def streamplot(X, Y, U, V, direction="both",
+               maxPropagation=None, mode=1, lw=0.001, c=None, probes=[]):
     """
     Generate a streamline plot of a vectorial field (U,V) defined at positions (X,Y).
     Returns a ``Mesh`` object.
@@ -2098,7 +2092,7 @@ def streamplot(
     |plot7_stream| |plot7_stream.py|_
     """
     from vedo.volume import Volume
-    from vedo.analysis import streamLines
+    from vedo.base import streamLines
 
     n = len(X)
     m = len(Y[0])
@@ -2108,8 +2102,6 @@ def streamplot(
 
     xmin, xmax = X[0][0], X[-1][-1]
     ymin, ymax = Y[0][0], Y[-1][-1]
-    # print('xrange:', xmin, xmax)
-    # print('yrange:', ymin, ymax)
 
     field = np.sqrt(U * U + V * V)
 
@@ -2123,7 +2115,7 @@ def streamplot(
     if len(probes) == 0:
         probe = shapes.Grid(pos=((n-1)/2,(n-1)/2,0), sx=n-1, sy=n-1, resx=n-1, resy=n-1)
     else:
-        if isinstance(probes, Mesh):
+        if isinstance(probes, Points):
             probes = probes.points()
         else:
             probes = np.array(probes)
@@ -2135,12 +2127,12 @@ def streamplot(
         probe = shapes.Points(probes)
 
     stream = streamLines(
-        vol.imagedata(),
-        probe,
-        tubes={"radius": lw, "varyRadius": mode,},
-        lw=lw,
-        maxPropagation=maxPropagation,
-        direction=direction,
+                            vol.imagedata(),
+                            probe,
+                            tubes={"radius": lw, "varyRadius": mode,},
+                            lw=lw,
+                            maxPropagation=maxPropagation,
+                            direction=direction,
     )
     if c is not None:
         stream.color(c)
@@ -2151,47 +2143,6 @@ def streamplot(
     stream.scale([1 / (n - 1) * (xmax - xmin), 1 / (n - 1) * (ymax - ymin), 1])
     stream.addPos(np.array([xmin, ymin, 0]))
     return stream
-
-def plotMatrix(M, title='matrix', continuous=True, cmap='Greys'):
-    """
-	 Plot a matrix using `matplotlib`.
-
-    :Example:
-        .. code-block:: python
-
-            from vedo.dolfin import plotMatrix
-            import numpy as np
-
-            M = np.eye(9) + np.random.randn(9,9)/4
-
-            plotMatrix(M)
-
-        |pmatrix|
-    """
-    import matplotlib.pyplot as plt
-    import matplotlib as mpl
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
-
-    M    = np.array(M)
-    m,n  = np.shape(M)
-    M    = M.round(decimals=2)
-
-    fig  = plt.figure()
-    ax   = fig.add_subplot(111)
-    cmap = mpl.cm.get_cmap(cmap)
-    if not continuous:
-        unq  = np.unique(M)
-    im      = ax.imshow(M, cmap=cmap, interpolation='None')
-    divider = make_axes_locatable(ax)
-    cax     = divider.append_axes("right", size="5%", pad=0.05)
-    dim     = r'$%i \times %i$ ' % (m,n)
-    ax.set_title(dim + title)
-    ax.axis('off')
-    cb = plt.colorbar(im, cax=cax)
-    if not continuous:
-       cb.set_ticks(unq)
-       cb.set_ticklabels(unq)
-    plt.show()
 
 
 def cornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True):
@@ -2377,7 +2328,7 @@ class DirectedGraph(Assembly):
         self.rotY = 0
         self.rotZ = 0
 
-        self.arrowScale = 0.2
+        self.arrowScale = 0.15
         self.vertexLabelScale = None
         self.edgeLabelScale   = None
 

@@ -25,7 +25,7 @@ from vedo.shapes import Text, Text2D, Latex
 from vedo.plotter import show, clear, Plotter
 from vedo.plotter import closeWindow, closePlotter, interactive
 
-from vedo.pyplot import histogram, plotMatrix
+from vedo.pyplot import histogram
 
 # Install fenics with commands (e.g. in Anaconda3):
 #         conda install -c conda-forge fenics
@@ -119,7 +119,6 @@ __all__ = [
     "datadir",
     "screenshot",
     "Video",
-    "plotMatrix",
     "exportWindow",
     "closeWindow",
     "closePlotter",
@@ -1007,7 +1006,7 @@ def MeshStreamLines(*inputobj, **options):
     """
     Build streamplot.
     """
-    from vedo.analysis import streamLines
+    from vedo.base import streamLines
 
     print('Building streamlines...')
 

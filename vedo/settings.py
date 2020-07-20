@@ -99,6 +99,9 @@ General settings.
     maxNumberOfPeels= 8     # maximum number of rendering passes
     occlusionRatio  = 0.0   # occlusion ratio, 0 = exact image.
 
+    # Turn on/off nvidia FXAA anti-aliasing, if supported.
+    useFXAA = None          # either True or False. None sets the system default
+
     # Use a polygon/edges offset to possibly resolve conflicts in rendering
     usePolygonOffset    = False
     polygonOffsetFactor = 0.1
@@ -107,14 +110,8 @@ General settings.
     # Interpolate scalars to render them smoothly
     interpolateScalarsBeforeMapping = True
 
-    # Turn on/off nvidia FXAA anti-aliasing, if supported.
-    useFXAA = None          # either True or False. None sets the system default
-
     # Set parallel projection On or Off (place camera to infinity, no perspective effects)
     useParallelProjection = False
-
-    # Path to Voro++ library, http://math.lbl.gov/voro++
-    voro_path = '/usr/local/bin'
 
     # AnnotatedCube axis type nr. 5 options:
     annotatedCubeColor      = (0.75, 0.75, 0.75)
@@ -225,6 +222,9 @@ multiSamples    = 0
 maxNumberOfPeels= 8
 occlusionRatio  = 0.0
 
+# Turn on/off nvidia FXAA anti-aliasing, if supported.
+useFXAA = None           # either True or False. None sets the system default
+
 # Use a polygon/edges offset to possibly resolve conflicts in rendering
 usePolygonOffset = False
 polygonOffsetFactor = 0.1
@@ -233,17 +233,11 @@ polygonOffsetUnits  = 0.1
 # Interpolate scalars to render them smoothly
 interpolateScalarsBeforeMapping = True
 
-# Turn on/off nvidia FXAA anti-aliasing, if supported.
-useFXAA = None           # either True or False. None sets the system default
-
 # Set parallel projection On or Off (place camera to infinity, no perspective effects)
 useParallelProjection = False
 
 # In multirendering mode set the position of the horizontal of vertical splitting [0,1]
 windowSplittingPosition = None
-
-# Path to Voro++ library, http://math.lbl.gov/voro++
-voro_path = '/usr/local/bin'
 
 # AnnotatedCube axis type 5 customization:
 annotatedCubeColor      = (0.75, 0.75, 0.75)
