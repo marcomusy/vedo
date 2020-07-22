@@ -1,5 +1,6 @@
 
 ![vlogo](https://user-images.githubusercontent.com/32848391/84578825-f1cc8b80-adc8-11ea-867b-a75a99f99a39.png)
+
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/4acbc84816a540bfb9dc67bbff520d38)](https://www.codacy.com/manual/marcomusy/vedo?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=marcomusy/vedo&amp;utm_campaign=Badge_Grade)
 [![Downloads](https://pepy.tech/badge/vtkplotter)](https://pepy.tech/project/vtkplotter)
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
