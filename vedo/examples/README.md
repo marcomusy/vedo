@@ -10,11 +10,9 @@ python tutorial.py
 ```
 
 ## Run any of the built-in examples with command:
+
 `vedo --list`
 
 and
 
 `vedo -ir covid19.py`
-
-
-

@@ -619,8 +619,8 @@ def _plotxy(
             colors.printc("Error in plotxy(xerrors=...): mismatched array length.", c=1)
             return None
         errs = []
-        for i in range(len(data)):
-            xval, yval = data[i]
+        for dta in data:
+            xval, yval = dta
             xerr = xerrors[i] / 2
             el = shapes.Line((xval - xerr, yval, offs), (xval + xerr, yval, offs))
             errs.append(el)
@@ -1540,12 +1540,8 @@ def _histogramHexBin(
     alpha=1,
 ):
     if xtitle:
-        from vedo import settings
-
         settings.xtitle = xtitle
     if ytitle:
-        from vedo import settings
-
         settings.ytitle = ytitle
 
     xmin, xmax = np.min(xvalues), np.max(xvalues)
@@ -2074,7 +2070,7 @@ def violin(
 
 
 def streamplot(X, Y, U, V, direction="both",
-               maxPropagation=None, mode=1, lw=0.001, c=None, probes=[]):
+               maxPropagation=None, mode=1, lw=0.001, c=None, probes=()):
     """
     Generate a streamline plot of a vectorial field (U,V) defined at positions (X,Y).
     Returns a ``Mesh`` object.

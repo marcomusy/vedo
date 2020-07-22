@@ -1371,7 +1371,7 @@ def vtkCameraToK3D(vtkcam):
     return np.array(kam).ravel()
 
 
-def make_ticks(x0, x1, N, labels=None):
+def make_ticks(x0, x1, N, labels=None, digits=None):
 
     ticks_str, ticks_float = [], []
 
@@ -1429,15 +1429,22 @@ def make_ticks(x0, x1, N, labels=None):
         sel_axis = np.clip(sel_axis, x0, x1)
         sel_axis = np.unique(sel_axis)
 
-        np.set_printoptions(suppress=True) # avoid zero precision
-        sas = str(sel_axis).replace('[','').replace(']','')
-        sas = sas.replace('.e','e').replace('e+0','e+').replace('e-0','e-')
+        if digits is None:
+            np.set_printoptions(suppress=True) # avoid zero precision
+            sas = str(sel_axis).replace('[','').replace(']','')
+            sas = sas.replace('.e','e').replace('e+0','e+').replace('e-0','e-')
+            np.set_printoptions(suppress=None) # set back to default
+        else:
+            sas = precision(sel_axis, digits, vrange=(x0,x1))
+            sas = sas.replace('[','').replace(']','').replace(')','').replace(',','')
+
         sas2 = []
         for s in sas.split():
             if s.endswith('.'):
                 s = s[:-1]
             if s == '-0':
                 s = '0'
+            if digits is not None and 'e' in s: s+=' ' # add space to terminate modifiers
             sas2.append(s)
 
         for i in range(len(sel_axis)):
@@ -1453,7 +1460,6 @@ def make_ticks(x0, x1, N, labels=None):
         #printc('bounds            ', lowBound, upBound)
         #printc('dstep, steps      ', dstep, steps)
         #printc('Result tick array\n', sel_axis, sel_axis.shape[0], c='y')
-        np.set_printoptions(suppress=None) # set back to default
 
     ticks_str.append('')
     ticks_float.append(1)

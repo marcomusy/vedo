@@ -6,5 +6,5 @@ echo Press Esc at anytime to skip example, F1 to interrupt
 for f in *.py
     do
         echo "Processing $f script.."
-        python $f
+        python "$f"
     done

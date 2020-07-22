@@ -576,7 +576,6 @@ def addCutterTool(mesh):
     if isinstance(mesh, vtk.vtkVolume):
         return _addVolumeCutterTool(mesh)
     elif isinstance(mesh, vtk.vtkImageData):
-        from vedo import Volume
         return _addVolumeCutterTool(Volume(mesh))
 
     plt = settings.plotter_instance
@@ -749,6 +748,7 @@ def buildAxes(obj=None,
               xrange=None, yrange=None, zrange=None,
               c=None,
               numberOfDivisions=None,
+              digits=None,
               limitRatio=0.04,
               axesLineWidth=1,
               gridLineWidth=1,
@@ -810,6 +810,7 @@ def buildAxes(obj=None,
     - `xyAlpha`,              [0.15], grid plane opacity
     - `xyFrameLine`,          [None], add a frame for the plane
     - `showTicks`,            [True], show major ticks
+    - `digits`,               [None], use this number of significant digits in scientific notation
     - `xTitlePosition`,       [0.32], title fractional positions along axis
     - `xTitleOffset`,         [0.05], title fractional offset distance from axis line
     - `xTitleJustify`, ["top-right"], title justification
@@ -949,9 +950,9 @@ def buildAxes(obj=None,
     rx, ry, rz = np.round(ss/max(ss)*numberOfDivisions+1).astype(int)
     #printc('numberOfDivisions', numberOfDivisions, '\t r=', rx, ry, rz)
 
-    if xtitle: xticks_float, xticks_str = make_ticks(vbb[0], vbb[1], rx, xPositionsAndLabels)
-    if ytitle: yticks_float, yticks_str = make_ticks(vbb[2], vbb[3], ry, yPositionsAndLabels)
-    if ztitle: zticks_float, zticks_str = make_ticks(vbb[4], vbb[5], rz, zPositionsAndLabels)
+    if xtitle: xticks_float, xticks_str = make_ticks(vbb[0], vbb[1], rx, xPositionsAndLabels, digits)
+    if ytitle: yticks_float, yticks_str = make_ticks(vbb[2], vbb[3], ry, yPositionsAndLabels, digits)
+    if ztitle: zticks_float, zticks_str = make_ticks(vbb[4], vbb[5], rz, zPositionsAndLabels, digits)
 
     ################################## calculate aspect ratio scales
     x_aspect_ratio_scale=1

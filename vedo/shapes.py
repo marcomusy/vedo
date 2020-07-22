@@ -6,8 +6,8 @@ from vtk.util.numpy_support import numpy_to_vtk
 from vedo import settings
 import vedo.utils as utils
 from vedo.colors import printc, getColor, colorMap, _mapscales
-from vedo.mesh import Mesh
-from vedo.pointcloud import Points, Point
+from vedo.mesh import Mesh, merge
+from vedo.pointcloud import Points
 from vedo.picture import Picture
 import vedo.docs as docs
 
@@ -37,6 +37,8 @@ __all__ = [
     "Circle",
     "Arc",
     "Star",
+    "Star3D",
+    "Cross3D",
     "Sphere",
     "Spheres",
     "Earth",
@@ -112,6 +114,45 @@ def Marker(symbol, pos=(0, 0, 0), c='lb', alpha=1, s=0.1, filled=True):
     mesh.SetPosition(pos)
     mesh.name = "Marker"
     return mesh
+
+
+class Star3D(Mesh):
+    """
+    Build a 3D star shape of 5 cusps, mainly useful as a 3D marker.
+    """
+    def __init__(self, pos=(0,0,0), r=1.0, thickness=0.1, c="b", alpha=1):
+
+        if len(pos) == 2:
+            pos = (pos[0], pos[1], 0)
+
+        pts = ((1.34, 0., -0.370), (5.75e-3, -0.588, thickness/10), (0.377, 0., -0.380),
+               (0.0116, 0., -1.35), (-0.366, 0., -0.384), (-1.33, 0., -0.385),
+               (-0.600, 0., 0.321), (-0.829, 0., 1.19), (-1.17e-3, 0., 0.761),
+               (0.824, 0., 1.20), (0.602, 0., 0.328), (6.07e-3, 0.588, thickness/10))
+        fcs = [[0, 1, 2], [0, 11, 10], [2, 1, 3], [2, 11, 0], [3, 1, 4], [3, 11, 2],
+               [4, 1, 5], [4, 11, 3], [5, 1, 6], [5, 11, 4], [6, 1, 7], [6, 11, 5],
+               [7, 1, 8], [7, 11, 6], [8, 1, 9], [8, 11, 7], [9, 1, 10], [9, 11, 8],
+               [10, 1, 0], [10, 11, 9]]
+
+        Mesh.__init__(self, [pts, fcs], c, alpha)
+        self.rotateX(90).scale(r).lighting('shiny')
+        self.SetPosition(pos)
+        settings.collectable_actors.append(self)
+        self.name = "Star3D"
+
+
+def Cross3D(pos=(0,0,0), s=1.0, thickness=0.3, c="b", alpha=1):
+    """
+    Build a 3D cross shape, mainly useful as a 3D marker.
+    """
+    c1 = Cylinder(r=thickness*s, height=2*s)
+    c2 = Cylinder(r=thickness*s, height=2*s).rotateX(90)
+    c3 = Cylinder(r=thickness*s, height=2*s).rotateY(90)
+    cr = merge(c1,c2,c3).color(c).alpha(alpha)
+    cr.SetPosition(pos)
+    settings.collectable_actors.append(cr)
+    cr.name = "Cross3D"
+    return cr
 
 
 class Glyph(Mesh):
@@ -1455,8 +1496,9 @@ class Spheres(Mesh):
             ucols = vtk.vtkUnsignedCharArray()
             ucols.SetNumberOfComponents(3)
             ucols.SetName("colors")
-            for i, p in enumerate(centers):
-                cx, cy, cz = getColor(c[i])
+            #for i, p in enumerate(centers):
+            for acol in c:
+                cx, cy, cz = getColor(acol)
                 ucols.InsertNextTuple3(cx * 255, cy * 255, cz * 255)
             pd.GetPointData().SetScalars(ucols)
             glyph.ScalingOff()
@@ -2619,7 +2661,6 @@ class Latex(Picture):
             self.SetScale(0.25/res*s, 0.25/res*s, 0.25/res*s)
             self.SetPosition(pos)
             try:
-                import os
                 os.unlink('_lateximg.png')
             except:
                 pass

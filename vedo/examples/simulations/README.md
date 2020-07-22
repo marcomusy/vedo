@@ -1,11 +1,10 @@
 # Simulation examples
 In this directory you will find a set of examples of a number of simulations.
-```bash
-git clone https://github.com/marcomusy/vedo.git
-cd vedo/vedo/examples/simulations
-python example.py
-```
-(_click thumbnail image to get to the python script_)
+
+Run any of the examples with:
+
+`vedo -ir example.py`
+
 
 |    |    |
 |:-------------:|:-----|
@@ -35,10 +34,8 @@ python example.py
 |    |    |
 | [![tunneling2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/tunnelling2.py)<br/> `tunnelling2.py` |Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. |
 |    |    |
-| [![turing](https://user-images.githubusercontent.com/32848391/50738887-da9f6c80-11d8-11e9-83a6-fb002c0613bd.gif)](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/turing.py)<br/> `turing.py`             | Visualizing a Turing system of reaction-diffusion between two molecules.|
-|    |    |
 | [![grayscott](https://user-images.githubusercontent.com/32848391/59788744-aaeaa980-92cc-11e9-825d-58da26ca21ff.gif)](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/gray_scott.ipynb)<br/> `gray_scott.ipynb`       | A GPU simulation of system of reaction-diffusion between two species. |
 |    |    |
 | [![wave](https://user-images.githubusercontent.com/32848391/50738956-7e891800-11d9-11e9-92d7-fa109b1b8551.gif)](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/wave_equation.py)<br/> `wave_equation.py` | Simulate a collection of discrete coupled oscillators. We use this as a model of a vibrating string and compare two methods of integration: Euler and Runge-Kutta4.|
 |    |    |
-| [![pianoplayer](https://user-images.githubusercontent.com/32848391/44957809-b2c09500-aed6-11e8-9dc5-c2e52b632f94.gif)](https://github.com/marcomusy/pianoplayer)                                                                              | Finding and animating the optimal fingering to play a piano score with<br />[`pianoplayer 2.0`](https://github.com/marcomusy/pianoplayer)|
+| [![pianoplayer](https://user-images.githubusercontent.com/32848391/44957809-b2c09500-aed6-11e8-9dc5-c2e52b632f94.gif)](https://github.com/marcomusy/pianoplayer) | Finding and animating the optimal fingering to play a piano score with<br />[`pianoplayer 2.0`](https://github.com/marcomusy/pianoplayer)|

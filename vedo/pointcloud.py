@@ -388,7 +388,6 @@ def visiblePoints(mesh, area=(), tol=None, invert=False):
             show(m, newPlotter=True, axes=1)   # optionally draw result
     """
     # specify a rectangular region
-    from vedo import settings
     svp = vtk.vtkSelectVisiblePoints()
     svp.SetInputData(mesh.polydata())
     svp.SetRenderer(settings.plotter_instance.renderer)
@@ -717,12 +716,14 @@ class Points(vtk.vtkFollower, BaseActor):
     Both shapes (N, 3) or (3, N) are accepted as input, if N>3.
     For very large point clouds a list of colors and alpha can be assigned to each
     point in the form `c=[(R,G,B,A), ... ]` where `0 <= R < 256, ... 0 <= A < 256`.
+
     :param float r: point radius.
     :param c: color name, number, or list of [R,G,B] colors of same length as plist.
     :type c: int, str, list
     :param float alpha: transparency in range [0,1].
     :param bool blur: make the point fluffy and blurred
         (works better with ``settings.useDepthPeeling=True``.)
+
     |manypoints.py|_ |lorenz.py|_
     |lorenz|
     """
@@ -1670,7 +1671,6 @@ class Points(vtk.vtkFollower, BaseActor):
         |mirror| |mirror.py|_
         """
         sx, sy, sz = 1, 1, 1
-        dx, dy, dz = self.GetPosition()
         if axis.lower() == "x":
             sx = -1
         elif axis.lower() == "y":
@@ -1953,8 +1953,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 Ncp = 5
 
         variances, newline = [], []
-        for i, p in enumerate(coords):
-
+        for p in coords:
             points = self.closestPoint(p, N=Ncp, radius=radius)
             if len(points) < 4:
                 continue
@@ -2161,6 +2160,61 @@ class Points(vtk.vtkFollower, BaseActor):
 
 
 
+
+    def density(self, dims=(40,40,40),
+                bounds=None, radius=None,
+                computeGradient=False, locator=None):
+        """
+        Generate a density field from a point cloud. Input can also be a set of 3D coordinates.
+        Output is a ``Volume``.
+        The local neighborhood is specified as the `radius` around each sample position (each voxel).
+        The density is expressed as the number of counts in the radius search.
+
+        :param int,list dims: numer of voxels in x, y and z of the output Volume.
+        :param bool computeGradient: Turn on/off the generation of the gradient vector,
+            gradient magnitude scalar, and function classification scalar.
+            By default this is off. Note that this will increase execution time
+            and the size of the output. (The names of these point data arrays are:
+            "Gradient", "Gradient Magnitude", and "Classification".)
+
+        :param vtkStaticPointLocator locator: can be assigned from a previous call for speed.
+
+        See example script: |pointDensity.py|_
+        """
+        pdf = vtk.vtkPointDensityFilter()
+
+        poly = self.polydata()
+        b = list(poly.GetBounds())
+        diag = self.diagonalSize()
+
+        if not utils.isSequence(dims):
+            dims = [dims,dims,dims]
+
+        if b[5]-b[4] == 0 or len(dims) == 2: # its 2D
+            dims = list(dims)
+            dims = [dims[0],dims[1], 2]
+            b[5] = b[4] + diag/1000
+
+        pdf.SetInputData(poly)
+        pdf.SetSampleDimensions(dims)
+        pdf.SetDensityEstimateToFixedRadius()
+        pdf.SetDensityFormToNumberOfPoints()
+        if locator:
+            pdf.SetLocator(locator)
+        if radius is None:
+            radius = diag/15
+        pdf.SetRadius(radius)
+        if bounds is None:
+            bounds = b
+        pdf.SetModelBounds(bounds)
+        pdf.SetComputeGradient(computeGradient)
+        pdf.Update()
+        img = pdf.GetOutput()
+        vol = vedo.volume.Volume(img).mode(1)
+        vol.name = "PointDensity"
+        vol.info['radius'] = radius
+        vol.locator = pdf.GetLocator()
+        return vol
 
 
 

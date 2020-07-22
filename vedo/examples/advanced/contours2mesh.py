@@ -1,7 +1,5 @@
 """Form a surface mesh
-by joining countour lines
-"""
-import numpy as np
+by joining countour lines"""
 from vedo import *
 
 cs = []

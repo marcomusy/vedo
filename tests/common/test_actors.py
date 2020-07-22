@@ -1,4 +1,4 @@
-from vedo import Cone, Sphere, merge, Volume, show
+from vedo import Cone, Sphere, merge, Volume
 import numpy as np
 import vtk
 

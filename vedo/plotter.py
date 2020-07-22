@@ -676,7 +676,7 @@ class Plotter:
             if self.size == "auto":
                 self.size = (1200,900)
 
-            for ir, rd in enumerate(shape):
+            for rd in shape:
                 x0, y0 = rd['bottomleft']
                 x1, y1 = rd['topright']
                 bg_ = rd.pop('bg', 'white')
@@ -2053,7 +2053,18 @@ class Plotter:
             settings.plotter_instance.close()
             sys.exit(0)
 
-        elif key == "Down":
+
+        #############################################################
+        ### now intercept custom observer ###########################
+        #############################################################
+        if self.keyPressFunction:
+            if key not in ["Shift_L", "Control_L", "Super_L", "Alt_L"]:
+                if key not in ["Shift_R", "Control_R", "Super_R", "Alt_R"]:
+                    self.verbose = False
+                    self.keyPressFunction(key)
+                    return
+
+        if key == "Down":
             if self.clickedActor in self.getMeshes():
                 self.clickedActor.GetProperty().SetOpacity(0.02)
                 bfp = self.clickedActor.GetBackfaceProperty()
@@ -2162,23 +2173,13 @@ class Plotter:
         elif key == "r":
             self.renderer.ResetCamera()
 
-        #############################################################
-        ### now intercept custom observer ###########################
-        #############################################################
-        if self.keyPressFunction:
-            if key not in ["Shift_L", "Control_L", "Super_L", "Alt_L"]:
-                if key not in ["Shift_R", "Control_R", "Super_R", "Alt_R"]:
-                    self.verbose = False
-                    self.keyPressFunction(key)
-                    return
 
-        if key == "h":
+        elif key == "h":
             from vedo.docs import tips
-
             tips()
             return
 
-        if key == "a":
+        elif key == "a":
             iren.ExitCallback()
             cur = iren.GetInteractorStyle()
             if isinstance(cur, vtk.vtkInteractorStyleTrackballCamera):
@@ -2192,7 +2193,7 @@ class Plotter:
             iren.Start()
             return
 
-        if key == "j":
+        elif key == "j":
             iren.ExitCallback()
             cur = iren.GetInteractorStyle()
             if isinstance(cur, vtk.vtkInteractorStyleJoystickCamera):
@@ -2204,12 +2205,12 @@ class Plotter:
             iren.Start()
             return
 
-        if key == "S":
+        elif key == "S":
             io.screenshot("screenshot.png")
             printc("~camera Saved rendering window as screenshot.png", c="blue")
             return
 
-        if key == "C":
+        elif key == "C":
             cam = self.renderer.GetActiveCamera()
             printc('\n###################################################', c=3)
             printc('### Template python code to position this camera: ###', c=3)
@@ -2230,19 +2231,13 @@ class Plotter:
             printc('###################################################', c=3)
             return
 
-        if key == "s":
+        elif key == "s":
             if self.clickedActor and self.clickedActor in self.getMeshes():
                 self.clickedActor.GetProperty().SetRepresentationToSurface()
             else:
                 for a in self.getMeshes():
                     if a and a.GetPickable():
                         a.GetProperty().SetRepresentationToSurface()
-
-        elif key == "V":
-            if not (self.verbose):
-                self._tips()
-            self.verbose = not (self.verbose)
-            print("Verbose: ", self.verbose)
 
         elif key == "1":
             self.icol += 1
@@ -2480,9 +2475,9 @@ class Plotter:
                 printc("Click object and press X to open the cutter box widget.", c=4)
 
         elif key == "E":
-            printc("~camera Exporting 3D window to scene.npy", c="blue", end="")
-            io.exportWindow('scene.npy')
-            printc(". Try:\n> vedo scene.npy", c="blue")
+            printc("~camera Exporting 3D window to file", c="blue", end="")
+            io.exportWindow('scene.npz')
+            printc(". Try:\n> vedo scene.npz", c="blue")
             settings.plotter_instance.interactor.Start()
 
         elif key == "i":  # print info

@@ -222,7 +222,7 @@ def _load_file(filename, unpack):
             return mb
 
         ################################################################# numpy:
-    elif fl.endswith(".npy"):
+    elif fl.endswith(".npy") or fl.endswith(".npz"):
         acts = loadNumpy(filename)
 
         if unpack is False:
@@ -878,7 +878,12 @@ def loadNumpy(inobj):
 
     # make sure the numpy file is not containing a scene
     if isinstance(inobj, str): # user passing a file
-        data = np.load(inobj, allow_pickle=True, encoding='latin1').flatten()
+
+        if inobj.endswith('.npy'):
+            data = np.load(inobj, allow_pickle=True, encoding='latin1').flatten()
+        elif  inobj.endswith('.npz'):
+            data = np.load(inobj, allow_pickle=True)['vedo_scenes']
+            #print(data.files)
 
         if "objects" in data[0].keys():  # loading a full scene!!
             return importWindow(data[0]) # <-------
@@ -1093,7 +1098,7 @@ def write(objct, fileoutput, binary=True):
     Write 3D object to file. (same as `save()`).
 
     Possile extensions are:
-        - vtk, vti, npy, ply, obj, stl, byu, vtp, vti, mhd, xyz, tif, png, bmp.
+        - vtk, vti, npy, npz, ply, obj, stl, byu, vtp, vti, mhd, xyz, tif, png, bmp.
     """
     obj = objct
     if isinstance(obj, Points): # picks transformation
@@ -1156,7 +1161,7 @@ def write(objct, fileoutput, binary=True):
         writer = vtk.vtkJPEGWriter()
     elif fr.endswith(".bmp"):
         writer = vtk.vtkBMPWriter()
-    elif fr.endswith(".npy"):
+    elif fr.endswith(".npy") or fr.endswith(".npz"):
         if utils.isSequence(objct):
             objslist = objct
         else:
@@ -1265,7 +1270,8 @@ def write(objct, fileoutput, binary=True):
 ###############################################################################
 def exportWindow(fileoutput, binary=False):
     '''
-    Exporter which writes out the renderered scene into an HTML, X3D or Numpy file.
+    Exporter which writes out the renderered scene into an HTML, X3D
+    or Numpy file.
 
     |export_x3d| |export_x3d.py|_
 
@@ -1273,13 +1279,13 @@ def exportWindow(fileoutput, binary=False):
 
         See also: FEniCS test `webpage <https://vedo.embl.es/examples/fenics_elasticity.html>`_.
 
-    .. note:: the rendering window can also be exported to `numpy` file `scene.npy`
+    .. note:: the rendering window can also be exported to `numpy` file `scene.npz`
         by pressing ``E`` keyboard at any moment during visualization.
     '''
     fr = fileoutput.lower()
 
     ####################################################################
-    if fr.endswith(".npy") or fr.endswith(".v3d"):
+    if fr.endswith(".npy") or fr.endswith(".npz"):
         sdict = dict()
         vp = settings.plotter_instance
         sdict['shape'] = vp.shape #todo
@@ -1328,7 +1334,10 @@ def exportWindow(fileoutput, binary=False):
         for a in allobjs:
             sdict['objects'].append(toNumpy(a))
 
-        np.save(fileoutput, [sdict])
+        if fr.endswith(".npz"):
+            np.savez_compressed(fileoutput, vedo_scenes=[sdict])
+        else:
+            np.save(fileoutput, [sdict])
 
     ####################################################################
     # elif fr.endswith(".obj"):
@@ -1385,12 +1394,20 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
     """
     from vedo import Plotter
 
-    if '.npy' in fileinput or isinstance(fileinput, dict):
-        if isinstance(fileinput, dict):
-            data = fileinput
-        else:
-            data = np.load(fileinput, allow_pickle=True, encoding="latin1").flatten()[0]
+    data = None
+    if isinstance(fileinput, dict):
+        data = fileinput
+    elif fileinput.endswith('.npy'):
+        data = np.load(fileinput, allow_pickle=True, encoding="latin1").flatten()[0]
+    elif fileinput.endswith('.npz'):
+        data = np.load(fileinput, allow_pickle=True, encoding="latin1")
 
+    # if isinstance(fileinput, dict) or fileinput.endswith('.npy') or fileinput.endswith('.npz'):
+    #     if isinstance(fileinput, dict):
+    #         data = fileinput
+    #     else:
+    #         data = np.load(fileinput, allow_pickle=True, encoding="latin1").flatten()[0]
+    if data is not None:
         if 'renderPointsAsSpheres' in data.keys():
             settings.renderPointsAsSpheres = data['renderPointsAsSpheres']
         if 'renderLinesAsTubes' in data.keys():

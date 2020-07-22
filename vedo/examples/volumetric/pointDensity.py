@@ -4,7 +4,7 @@ from vedo import *
 
 s  = load(datadir+'bunny.obj').normalize().subdivide(2).pointSize(2)
 
-vol= pointDensity(s).printInfo()
+vol= s.density().printInfo()
 
 plane = probePlane(vol, normal=(1,1,1)).alpha(0.5)
 

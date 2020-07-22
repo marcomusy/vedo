@@ -198,7 +198,7 @@ def draw_scene():
 
         ##########################################################
         # loading a full scene
-        if ".npy" in args.files[0] and nfiles == 1:
+        if ".npy" in args.files[0] or ".npz" in args.files[0] and nfiles == 1:
 
             objct = io.load(args.files[0])
 
@@ -462,6 +462,7 @@ if len(sys.argv) == 1 or os.name == "nt":  # no args are passed, pop up GUI
                 ("Point Cloud", "*.pcd"),
                 ("3DS", "*.3ds"),
                 ("Numpy scene file", "*.npy"),
+                ("Numpy scene file", "*.npz"),
             ]
             self.filenames = tkFileDialog.askopenfilenames(parent=root, filetypes=ftypes)
             args.files = list(self.filenames)
@@ -618,6 +619,7 @@ else:  #########################################################################
             printc("\nSelect one of", nmat, "matching scripts:", c='y', italic=1)
 
         for mat in matching[:25]:
+            # printc('Running matching example:', c='y', italic=0, end=' ')
             printc(os.path.basename(mat).replace('.py',''), c='y', italic=1, end=' ')
             with open(mat) as fm:
                 lline = ''.join(fm.readlines(60))
@@ -646,7 +648,7 @@ else:  #########################################################################
                 printc(line.strip(), c='cyan', italic=1, bold=0)
             print()
 
-        printc("(in", os.path.dirname(matching[0])+')', c='y', bold=0, italic=1)
+        printc("("+matching[0]+")", c='y', bold=0, italic=1)
         os.system('python3 ' + matching[0])
 
     elif args.list:

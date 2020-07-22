@@ -255,10 +255,6 @@ annotatedCubeZMinusText = "bttom"
 notebookBackend = None
 notebook_plotter = None
 
-plotter_instance = None
-collectable_actors = []
-
-
 ####################################################################################
 _cdir = os.path.dirname(__file__)
 
@@ -269,7 +265,10 @@ fonts_path = os.path.join(_cdir, "fonts/")
 fonts = []
 
 datadir = os.path.join(_cdir, "examples/data/")
+plotter_instances = []
 
+plotter_instance = None
+collectable_actors = []
 
 ####################################################################################
 def embedWindow(backend='k3d', verbose=True):
