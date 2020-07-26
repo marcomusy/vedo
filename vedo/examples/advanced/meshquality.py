@@ -20,6 +20,10 @@ hist.rotateX(-90).scale(.1).pos(2,3.5,10)
 mesh.addScalarBar()
 
 # create numeric labels of active scalar on top of cells
-labs = mesh.labels(cells=True, precision=3).color('k')
+labs = mesh.labels(cells=True,
+                   precision=3,
+                   font='Quikhand',
+                   c='black',
+                   ratio=5)
 
 show(mesh, labs, hist, __doc__, bg='bb')

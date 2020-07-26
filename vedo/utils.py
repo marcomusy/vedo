@@ -1555,10 +1555,6 @@ def trimesh2vedo(inputobj, alphaPerCell=False):
                         tact.cellIndividualColors(trim_c[:, [0,1,2]],
                                                   alpha=trim_c[:,3],
                                                   alphaPerCell=alphaPerCell)
-#                    else:
-#                        tact.pointColors(trim_c[:, [0,1,2]],
-#                                         mode='colors',
-#                                         alpha=trim_c[3])
         return tact
 
     elif "PointCloud" in inputobj_type:

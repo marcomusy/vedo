@@ -12,18 +12,17 @@ man = load(datadir+"man.vtk")
 scals = man.points()[:, 2]
 
 # custom color map with specified opacities
-#mymap = ["darkblue", "cyan", (1, 0, 0)]
-#alphas = [0.8, 0.4, 0.2]
+mymap = ["darkblue", "cyan", (1, 0, 0)]
+alphas = [0.8, 0.4, 0.2]
 
 # - OR by predefined color numbers:
 #mymap = [i for i in range(10)]
 #alphas = [i/10. for i in range(10)]
 
 # - OR by generating a palette betwwen 2 colors:
-mymap = makePalette('pink', 'green', N=500, hsv=True)
-alphas = 1
+#mymap = makePalette('pink', 'green', N=500, hsv=True)
+#alphas = 1
 
-man.pointColors(scals, cmap=mymap, alpha=alphas)
-man.addScalarBar()
+man.cmap(mymap, scals, alpha=alphas).addScalarBar()
 
 show(man, __doc__, viewup="z", axes=8)

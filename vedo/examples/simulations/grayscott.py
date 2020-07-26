@@ -56,9 +56,10 @@ for step in range(Nsteps):
         u += Du*Lu - uvv + F*(1-u)
         v += Dv*Lv + uvv - (F+k)*v
 
-    grd.cellColors(V.ravel(), cmap='ocean_r').mapCellsToPoints()
+    grd.cmap('ocean_r', V.ravel(), mode='cells', arrayName="escals")
+    grd.mapCellsToPoints()
     newpts = grd.points()
-    newpts[:,2] = grd.getPointArray('CellScalars')*25 # assign z
+    newpts[:,2] = grd.getPointArray('escals')*25 # assign z
     grd.points(newpts) # set the new points
     show(ltx, grd, zoom=1.25, elevation=-.15, bg='linen', interactive=False)
 

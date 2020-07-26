@@ -1400,7 +1400,7 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
     elif fileinput.endswith('.npy'):
         data = np.load(fileinput, allow_pickle=True, encoding="latin1").flatten()[0]
     elif fileinput.endswith('.npz'):
-        data = np.load(fileinput, allow_pickle=True, encoding="latin1")
+        data = np.load(fileinput, allow_pickle=True)
 
     # if isinstance(fileinput, dict) or fileinput.endswith('.npy') or fileinput.endswith('.npz'):
     #     if isinstance(fileinput, dict):

@@ -20,7 +20,7 @@ g.addChild(1); g.addChild(1)
 g.addChild(2); g.addChild(2); g.addChild(2)
 g.addChild(3); g.addChild(3, edgeLabel="It's a male!")
 g.addChild(4); g.addChild(4)
-for i in range(7): g.addChild(5, vertexLabel="cell5_"+str(i))
+for i in range(7): g.addChild(5, nodeLabel="cell5_"+str(i))
 g.addChild(7); g.addChild(7); g.addChild(7)
 
 g.build() # optimize layout

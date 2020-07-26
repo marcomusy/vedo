@@ -350,6 +350,7 @@ def _init():
         textures.append(tfn)
 
     for f in os.listdir(fonts_path):
+        if '.npz' in f: continue
         fonts.append(f.split(".")[0])
     fonts = list(sorted(fonts))
 

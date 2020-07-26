@@ -27,7 +27,7 @@ itr = Rbf(x, y, z, desc)          # Radial Basis Function interpolator
 xi, yi, zi = np.split(pts, 3, axis=1)
 interpolated_desc = itr(xi, yi, zi)
 
-mesh.pointColors(interpolated_desc, cmap='rainbow')
+mesh.cmap('rainbow', interpolated_desc)
 mesh.addScalarBar(title='3*sin(4*y)')
 rpts = Points(ptsubset, r=8, c='white')
 

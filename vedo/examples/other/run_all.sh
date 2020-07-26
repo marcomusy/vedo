@@ -7,6 +7,9 @@ echo #############################################
 echo
 echo
 
+echo Running clone2d.py
+python clone2d.py
+
 echo Running flag_labels.py
 python flag_labels.py
 
@@ -18,6 +21,15 @@ python inset.py
 
 echo Running matplotlib_tri.py
 python matplotlib_tri.py
+
+echo Running meshio_read.py
+python meshio_read.py
+
+echo Running nevergrad_opt.py
+python nevergrad_opt.py
+
+echo Running non_blocking.py
+python non_blocking.py
 
 echo Running qt_window.py # needs qt5
 python qt_window1.py
@@ -39,9 +51,6 @@ python remesh_meshfix.py
 
 echo Running spherical_harmonics1.py
 python spherical_harmonics1.py 
-
-echo Running create_logo.py
-python create_logo.py
 
 echo Running export_numpy.py
 python export_numpy.py

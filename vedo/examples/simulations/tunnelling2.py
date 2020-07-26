@@ -67,7 +67,7 @@ bck.alpha(1)
 for i in range(Nsteps):
     p = [0, 0, i*size/Nsteps]  # shift along z
     l, a = lines[i]
-    l.pointColors(a, cmap="gist_earth_r")
+    l.cmap("gist_earth_r", a)
     vp += [l.pos(p), barrier.clone().alpha(0.3).pos(p)]
     vp.show()
 

@@ -91,7 +91,7 @@ def Slicer(volume,
     visibles = [None, None, None]
     msh = volume.zSlice(int(dims[2]/2))
     msh.alpha(alpha).lighting('', la, ld, 0)
-    msh.pointColors(cmap=_cmap_slicer, vmin=rmin, vmax=rmax)
+    msh.cmap(_cmap_slicer, vmin=rmin, vmax=rmax)
     if map2cells: msh.mapPointsToCells()
     vp.renderer.AddActor(msh)
     visibles[2] = msh
@@ -100,7 +100,7 @@ def Slicer(volume,
     def sliderfunc_x(widget, event):
         i = int(widget.GetRepresentation().GetValue())
         msh = volume.xSlice(i).alpha(alpha).lighting('', la, ld, 0)
-        msh.pointColors(cmap=_cmap_slicer, vmin=rmin, vmax=rmax)
+        msh.cmap(_cmap_slicer, vmin=rmin, vmax=rmax)
         if map2cells: msh.mapPointsToCells()
         vp.renderer.RemoveActor(visibles[0])
         if i and i<dims[0]: vp.renderer.AddActor(msh)
@@ -109,7 +109,7 @@ def Slicer(volume,
     def sliderfunc_y(widget, event):
         i = int(widget.GetRepresentation().GetValue())
         msh = volume.ySlice(i).alpha(alpha).lighting('', la, ld, 0)
-        msh.pointColors(cmap=_cmap_slicer, vmin=rmin, vmax=rmax)
+        msh.cmap(_cmap_slicer, vmin=rmin, vmax=rmax)
         if map2cells: msh.mapPointsToCells()
         vp.renderer.RemoveActor(visibles[1])
         if i and i<dims[1]: vp.renderer.AddActor(msh)
@@ -118,7 +118,7 @@ def Slicer(volume,
     def sliderfunc_z(widget, event):
         i = int(widget.GetRepresentation().GetValue())
         msh = volume.zSlice(i).alpha(alpha).lighting('', la, ld, 0)
-        msh.pointColors(cmap=_cmap_slicer, vmin=rmin, vmax=rmax)
+        msh.cmap(_cmap_slicer, vmin=rmin, vmax=rmax)
         if map2cells: msh.mapPointsToCells()
         vp.renderer.RemoveActor(visibles[2])
         if i and i<dims[2]: vp.renderer.AddActor(msh)
@@ -173,7 +173,7 @@ def Slicer(volume,
         _cmap_slicer = bu.status()
         for mesh in visibles:
             if mesh:
-                mesh.pointColors(cmap=_cmap_slicer, vmin=rmin, vmax=rmax)
+                mesh.cmap(_cmap_slicer, vmin=rmin, vmax=rmax)
                 if map2cells:
                     mesh.mapPointsToCells()
         vp.renderer.RemoveActor(mesh.scalarbar)

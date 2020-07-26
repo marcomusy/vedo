@@ -5,7 +5,7 @@ from vedo import *
 mesh = ParametricShape('RandomHills').printInfo()
 # RandomHills already has an active scalar associated 
 # to points so assign it a colormap:
-mesh.pointColors(cmap='terrain')
+mesh.cmap('terrain')
 
 isol = mesh.isolines(n=10).color('w')
 

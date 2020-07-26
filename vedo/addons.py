@@ -197,18 +197,21 @@ def addScalarBar3D(
     sx=None,
     sy=None,
     title='',
+    titleFont="VTK",
     titleXOffset=-1.5,
     titleYOffset=0.0,
     titleSize=1.5,
     titleRotation=0.0,
     nlabels=9,
+    labelFont="VTK",
     labelOffset=0.375,
     italic=0,
     c=None,
     useAlpha=True,
     drawBox=True,
 ):
-    """Draw a 3D scalar bar.
+    """
+    Draw a 3D scalar bar.
 
     ``obj`` input can be:
         - a list of numbers,
@@ -238,7 +241,7 @@ def addScalarBar3D(
     if c is None: c = 'gray'
     c = getColor(c)
 
-    bns = obj.bounds()
+    bns = obj.GetBounds()
     if sy is None:
         sy = (bns[3]-bns[2])
     if sx is None:
@@ -267,7 +270,7 @@ def addScalarBar3D(
                         sx=sx, sy=sy, resx=1, resy=256)
     scale.lw(0).wireframe(False)
     cscals = scale.cellCenters()[:, 1]
-    scale.cellColors(cscals, cmap=lut)
+    scale.cmap(lut, cscals, mode='cells')
     scale.lighting('off')
     xbns = scale.xbounds()
 
@@ -288,7 +291,7 @@ def addScalarBar3D(
             # build numeric text
             y = -sy /2 + sy * i / nlabels2
             a = shapes.Text(tx, pos=[sx*labelOffset, y, 0], s=sy/50,
-                            justify='center-left', c=c, italic=italic)
+                            justify='center-left', c=c, italic=italic, font=labelFont)
             tacts.append(a)
             # build ticks
             tic = shapes.Line([xbns[1], y, 0],
@@ -298,7 +301,7 @@ def addScalarBar3D(
     # build title
     if title:
         t = shapes.Text(title, (0,0,0), s=sy/50*titleSize,
-                        c=c, justify='centered', italic=italic)
+                        c=c, justify='centered', italic=italic, font=titleFont)
         t.RotateZ(90+titleRotation)
         t.pos(sx*titleXOffset,titleYOffset,0)
         tacts.append(t)
@@ -754,6 +757,7 @@ def buildAxes(obj=None,
               gridLineWidth=1,
               reorientShortTitle=True,
               titleDepth=0,
+              titleFont="VTK",
               xTitlePosition=0.95, yTitlePosition=0.95, zTitlePosition=0.95,
               xTitleOffset=0.06,   yTitleOffset=0.06,   zTitleOffset=0.05,
               xTitleJustify="top-right", yTitleJustify="bottom-right", zTitleJustify="bottom-right",
@@ -781,6 +785,7 @@ def buildAxes(obj=None,
               xTickColor=None, yTickColor=None, zTickColor=None,
               xMinorTicks=1, yMinorTicks=1, zMinorTicks=1,
               tipSize=None,
+              labelFont="VTK",
               xLabelSize=0.0175, yLabelSize=0.0175, zLabelSize=0.0175,
               xLabelOffset=0.015, yLabelOffset=0.015, zLabelOffset=0.01,
               xPositionsAndLabels=None, yPositionsAndLabels=None, zPositionsAndLabels=None,
@@ -1096,7 +1101,7 @@ def buildAxes(obj=None,
     titles = []
     if xtitle:
         if xFlipText: xTitleJustify = 'bottom-left'
-        xt = shapes.Text(xtitle, pos=(0,0,0), s=xTitleSize,
+        xt = shapes.Text(xtitle, pos=(0,0,0), s=xTitleSize, font=titleFont,
                          c=xTitleColor, justify=xTitleJustify, depth=titleDepth, italic=xTitleItalic)
         if xTitleBackfaceColor: xt.backColor(xTitleBackfaceColor)
         if reorientShortTitle and len(ytitle) < 3:  # title is short
@@ -1112,7 +1117,7 @@ def buildAxes(obj=None,
 
     if ytitle:
         if yFlipText: yTitleJustify = 'top-left'
-        yt = shapes.Text(ytitle, pos=(0, 0, 0), s=yTitleSize,
+        yt = shapes.Text(ytitle, pos=(0, 0, 0), s=yTitleSize, font=titleFont,
                          c=yTitleColor, justify=yTitleJustify, depth=titleDepth, italic=yTitleItalic)
         if yTitleBackfaceColor: yt.backColor(yTitleBackfaceColor)
         if reorientShortTitle and len(ytitle) < 3:  # title is short
@@ -1129,7 +1134,7 @@ def buildAxes(obj=None,
 
     if ztitle:
         if zFlipText: zTitleJustify = 'top-left'
-        zt = shapes.Text(ztitle, pos=(0, 0, 0), s=zTitleSize,
+        zt = shapes.Text(ztitle, pos=(0, 0, 0), s=zTitleSize, font=titleFont,
                          c=zTitleColor, justify=zTitleJustify, depth=titleDepth, italic=yTitleItalic)
         if zTitleBackfaceColor: zt.backColor(zTitleBackfaceColor)
         if reorientShortTitle and len(ztitle) < 3:  # title is short
@@ -1285,7 +1290,7 @@ def buildAxes(obj=None,
             t = xticks_str[i]
             if not t: continue
             v = (xticks_float[i], -xLabelOffset, 0)
-            xlab = shapes.Text(t, pos=v, s=xLabelSize, justify=jus, depth=0)
+            xlab = shapes.Text(t, pos=v, s=xLabelSize, font=labelFont, justify=jus)
             if xKeepAspectRatio: xlab.SetScale(x_aspect_ratio_scale)
             if xFlipText: xlab.RotateZ(180)
             xlab.name = "xNumericLabel"+str(i)+" "+t
@@ -1298,7 +1303,7 @@ def buildAxes(obj=None,
             t = yticks_str[i]
             if not t: continue
             v = (-yLabelOffset, yticks_float[i], 0)
-            ylab = shapes.Text(t, pos=(0,0,0), s=yLabelSize, justify=jus, depth=0)
+            ylab = shapes.Text(t, pos=(0,0,0), s=yLabelSize, font=labelFont, justify=jus)
             if yKeepAspectRatio: ylab.SetScale(y_aspect_ratio_scale)
             ylab.RotateZ(yTitleRotation)
             if yFlipText: ylab.RotateZ(180)
@@ -1313,7 +1318,7 @@ def buildAxes(obj=None,
             t = zticks_str[i]
             if not t: continue
             v = (-zLabelOffset, -zLabelOffset, zticks_float[i])
-            zlab = shapes.Text(t, pos=(0,0,0), s=zLabelSize, justify=jus, depth=0)
+            zlab = shapes.Text(t, pos=(0,0,0), s=zLabelSize, font=labelFont, justify=jus)
             if zKeepAspectRatio: zlab.SetScale(z_aspect_ratio_scale)
             zlab.RotateY(-90)
             zlab.RotateX(zTitleRotation)

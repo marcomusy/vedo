@@ -4,5 +4,5 @@ from vedo import *
 vol = load(datadir+'embryo.slc').mode(1).c('bone')
 msh = Paraboloid(res=200).scale(200).pos(100,100,200)
 scals = probePoints(vol, msh).getPointArray()
-msh.pointColors(scals, cmap='Spectral').addScalarBar()
+msh.cmap('Spectral', scals).addScalarBar()
 show(vol, msh, __doc__, axes=True)

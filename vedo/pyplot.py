@@ -619,7 +619,7 @@ def _plotxy(
             colors.printc("Error in plotxy(xerrors=...): mismatched array length.", c=1)
             return None
         errs = []
-        for dta in data:
+        for i, dta in enumerate(data):
             xval, yval = dta
             xerr = xerrors[i] / 2
             el = shapes.Line((xval - xerr, yval, offs), (xval + xerr, yval, offs))
@@ -900,8 +900,7 @@ def _plotFz(
 
     mesh = Mesh(poly, alpha).lighting("plastic")
     v = max(abs(np.min(arrImg)), abs(np.max(arrImg)))
-    mesh.pointColors(arrImg, cmap=cmap, vmin=-v, vmax=v)
-    # mesh.mapPointsToCells()
+    mesh.cmap(cmap, arrImg, vmin=-v, vmax=v)
     mesh.computeNormals().lw(lw)
 
     if zlimits[0]:
@@ -1093,7 +1092,7 @@ def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=
 
     ssurf.alpha(1).wireframe(0).lw(0.1)
 
-    ssurf.pointColors(newr, cmap=cmap)
+    ssurf.cmap(cmap, newr)
     ssurf.computeNormals()
 
     if scalarbar:
@@ -1447,7 +1446,7 @@ def _histogram2D(
         resy=bins[1],
     )
     g.alpha(alpha).lw(lw).wireframe(0).flat().lighting('off')
-    g.cellColors(np.ravel(H.T), cmap=cmap)
+    g.cmap(cmap, np.ravel(H.T), mode='cells')
     g.SetOrigin(x0lim, y0lim, 0)
     if scalarbar:
         sc = g.addScalarBar3D(c=bc)
@@ -1831,7 +1830,7 @@ def _histogramSpheric(
         newsgpts[fs] = np.c_[x, y, z]
 
     newsg.points(newsgpts)
-    newsg.cellColors(acounts, cmap=cmap)
+    newsg.cmap(cmap, acounts, mode='cells')
 
     if scalarbar:
         newsg.addScalarBar()
@@ -2258,15 +2257,15 @@ def cornerHistogram(
 
 
 class DirectedGraph(Assembly):
-    """A graph consists of a collection of vertices (without postional information)
-    and a collection of edges connecting pairs of vertices.
-    The task is to determine the vertex positions only based on their connections.
+    """A graph consists of a collection of nodes (without postional information)
+    and a collection of edges connecting pairs of nodes.
+    The task is to determine the node positions only based on their connections.
 
     This class is derived from class ``Assembly``, and it assembles 4 Mesh objects
-    representing the graph, the vertex labels, edge labels and edge arrows.
+    representing the graph, the node labels, edge labels and edge arrows.
 
     :param c: color of the Graph
-    :param int n: number of the initial set of vertices
+    :param int n: number of the initial set of nodes
     :param int,str layout: layout in ['2d', 'fast2d', 'clustering2d', 'circular',
                                       'circular3d', 'cone', 'force', 'tree']
 
@@ -2310,10 +2309,10 @@ class DirectedGraph(Assembly):
     def __init__(self, **kargs):
         BaseActor.__init__(self)
 
-        self.vertices = []
+        self.nodes = []
         self.edges = []
 
-        self._vertexLabels = []  # holds strings
+        self._nodeLabels = []  # holds strings
         self._edgeLabels = []
         self.edgeOrientations = []
         self.edgeGlyphPosition = 0.6
@@ -2325,13 +2324,13 @@ class DirectedGraph(Assembly):
         self.rotZ = 0
 
         self.arrowScale = 0.15
-        self.vertexLabelScale = None
+        self.nodeLabelScale = None
         self.edgeLabelScale   = None
 
         self.mdg = vtk.vtkMutableDirectedGraph()
 
         n = kargs.pop('n', 0)
-        for i in range(n): self.addVertex()
+        for i in range(n): self.addNode()
 
         self._c = kargs.pop('c', (0.3,0.3,0.3))
 
@@ -2421,42 +2420,42 @@ class DirectedGraph(Assembly):
         return
 
 
-    def addVertex(self, label="id"):
-        """Add a new vertex to the Graph."""
-        v = self.mdg.AddVertex()
-        self.vertices.append(v)
+    def addNode(self, label="id"):
+        """Add a new node to the Graph."""
+        v = self.mdg.AddVertex() # vtk calls it vertex..
+        self.nodes.append(v)
         if label == 'id': label=int(v)
-        self._vertexLabels.append(str(label))
+        self._nodeLabels.append(str(label))
         return v
 
     def addEdge(self, v1, v2, label=""):
-        """Add a new edge between to vertices.
-        An extra vertex is created automatically if needed."""
-        nv = len(self.vertices)
+        """Add a new edge between to nodes.
+        An extra node is created automatically if needed."""
+        nv = len(self.nodes)
         if v1>=nv:
             for i in range(nv, v1+1):
-                self.addVertex()
-        nv = len(self.vertices)
+                self.addNode()
+        nv = len(self.nodes)
         if v2>=nv:
             for i in range(nv, v2+1):
-                self.addVertex()
+                self.addNode()
         e = self.mdg.AddEdge(v1,v2)
         self.edges.append(e)
         self._edgeLabels.append(str(label))
         return e
 
-    def addChild(self, v, vertexLabel="id", edgeLabel=""):
-        """Add a new edge to a new vertex.
-        The extra vertex is created automatically if needed."""
-        nv = len(self.vertices)
+    def addChild(self, v, nodeLabel="id", edgeLabel=""):
+        """Add a new edge to a new node as its child.
+        The extra node is created automatically if needed."""
+        nv = len(self.nodes)
         if v>=nv:
             for i in range(nv, v+1):
-                self.addVertex()
+                self.addNode()
         child = self.mdg.AddChild(v)
         self.edges.append((v,child))
-        self.vertices.append(child)
-        if vertexLabel == 'id': vertexLabel=int(child)
-        self._vertexLabels.append(str(vertexLabel))
+        self.nodes.append(child)
+        if nodeLabel == 'id': nodeLabel=int(child)
+        self._nodeLabels.append(str(nodeLabel))
         self._edgeLabels.append(str(edgeLabel))
         return child
 
@@ -2466,7 +2465,6 @@ class DirectedGraph(Assembly):
         Build the DirectedGraph(Assembly).
         Accessory objects are also created for labels and arrows.
         """
-
         self.gl.SetZRange(self.zrange)
         self.gl.SetInputData(self.mdg)
         self.gl.Update()
@@ -2478,6 +2476,7 @@ class DirectedGraph(Assembly):
         graphToPolyData.Update()
 
         dgraph = Mesh(graphToPolyData.GetOutput(0))
+        dgraph.clean() # important to clean and have the same nr of points as vtxs
         dgraph.flat().color(self._c).lw(2)
         dgraph.name = "DirectedGraph"
 
@@ -2518,11 +2517,11 @@ class DirectedGraph(Assembly):
                 arrows.rotateZ(self.rotZ)
             arrows.name = "DirectedGraphArrows"
 
-        vertexLabels = dgraph.labels(self._vertexLabels,
-                                     scale=self.vertexLabelScale,
-                                     precision=0)
-        vertexLabels.color(self._c).pickable(True)
-        vertexLabels.name = "DirectedGraphVertexLabels"
+        nodeLabels = dgraph.labels(self._nodeLabels,
+                                   scale=self.nodeLabelScale,
+                                   precision=0)
+        nodeLabels.color(self._c).pickable(True)
+        nodeLabels.name = "DirectedGraphNodeLabels"
 
         edgeLabels = dgraph.labels(self._edgeLabels,
                                    cells=True,
@@ -2531,6 +2530,6 @@ class DirectedGraph(Assembly):
         edgeLabels.color(self._c).pickable(True)
         edgeLabels.name = "DirectedGraphEdgeLabels"
 
-        Assembly.__init__(self, [dgraph, vertexLabels, edgeLabels, arrows])
+        Assembly.__init__(self, [dgraph, nodeLabels, edgeLabels, arrows])
         self.name = "DirectedGraphAssembly"
-        return
+        return self

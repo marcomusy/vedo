@@ -690,11 +690,9 @@ def plot(*inputobj, **options):
 
         if cmap and (actor.u_values is not None) and c is None:
             if u.value_rank() > 0: # will show the size of the vector
-                actor.pointColors(utils.mag(actor.u_values),
-                                  vmin=vmin, vmax=vmax, cmap=cmap)
+                actor.cmap(cmap, utils.mag(actor.u_values), vmin=vmin, vmax=vmax)
             else:
-                actor.pointColors(actor.u_values,
-                                  vmin=vmin, vmax=vmax, cmap=cmap)
+                actor.cmap(cmap, actor.u_values, vmin=vmin, vmax=vmax)
 
         if warpYfactor:
             scals = actor.getPointArray()

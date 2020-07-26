@@ -54,10 +54,11 @@ for place, theta, phi, confd, deaths, recos in data:
     Sphere(pos, np.power(deaths, 1/3)/1500, alpha=0.4, c='k', res=10)
 
 Text2D('COVID-19 spread on '+date
-        +'\n#cases : '+str(allconf)
-        +'\n#deaths: '+str(alldeat)
-        +'\n#recovd: '+str(allreco),
-        font="Overspray", s=0.9)
+        +'\n# cases : '+str(allconf)
+        +'\n# deaths: '+str(alldeat)
+        +'\n# recovd: '+str(allreco)
+        +'\n(hover mouse for local info)',
+        font="BPmonoBold")
 Earth()
 show(..., axes=12, bg2='lb', zoom=1.7, elevation=-70, size='fullscreen')
 

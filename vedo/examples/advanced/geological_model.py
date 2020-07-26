@@ -39,7 +39,7 @@ landSurface = delaunay2D(landSurfacePD.values)
 
 # in order to color it by the elevation, we use the z values of the mesh
 zvals = landSurface.points()[:, 2]
-landSurface.pointColors(zvals, cmap="terrain", vmin=1100)
+landSurface.cmap("terrain", zvals, vmin=1100)
 landSurface.name = "Land Surface" # give the object a name
 
 # Create a plotter and add landSurface to it
@@ -82,7 +82,7 @@ printc("plotting...", invert=1)
 # Microseismic
 microseismicxyz = microseismic[["xloc", "yloc", "zloc"]].values
 scals = microseismic[["mw"]]
-microseismicPts = Points(microseismicxyz, r=5).pointColors(scals, cmap="jet")
+microseismicPts = Points(microseismicxyz, r=5).cmap("jet", scals)
 microseismicPts.name = "Microseismic events"
 plt += microseismicPts.flag()
 
@@ -102,21 +102,21 @@ plt += Well1.flag()
 # A porosity log in the well
 xyz = nphi_well[["X", "Y", "Z"]].values
 porosity = nphi_well["Nphi"].values
-Well2 = Line(xyz, lw=3).pointColors(porosity, cmap="hot")
+Well2 = Line(xyz, lw=3).cmap("hot", porosity)
 Well2.name = "Porosity log well 58-32"
 plt += Well2.flag()
 
 # This well data is actually represented by points since as of right now,
 xyz = pressure_well[["X", "Y", "Z"]].values
 pressure = pressure_well["Pressure"].values
-Well3 = Line(xyz, lw=3).pointColors(pressure, cmap="cool")
+Well3 = Line(xyz, lw=3).cmap("cool", pressure)
 Well3.name = "Pressure log well 58-32"
 plt += Well3.flag()
 
 # Temperatue log
 xyz = temp_well[["X", "Y", "Z"]].values
 temp = temp_well["Temperature"].values
-Well4 = Line(xyz, lw=3).pointColors(temp, cmap="seismic")
+Well4 = Line(xyz, lw=3).cmap("seismic", temp)
 Well4.name = "Temperature log well 58-32"
 plt += Well4.flag()
 

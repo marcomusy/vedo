@@ -371,6 +371,12 @@ class Base3DProp(object):
         bx.wireframe()
         return bx
 
+    def useBounds(self, ub=True):
+        """Instruct the current camera to either take into account or ignore
+        the object bounds when resetting."""
+        self.SetUseBounds(ub)
+        return self
+
     def bounds(self):
         """Get the object bounds.
         Returns a list in format [xmin,xmax, ymin,ymax, zmin,zmax]."""
@@ -1029,11 +1035,13 @@ class BaseActor(Base3DProp):
         sx=None,
         sy=None,
         title='',
+        titleFont="VTK",
         titleXOffset = -1.5,
         titleYOffset = 0.0,
         titleSize =  1.5,
         titleRotation = 0.0,
         nlabels=9,
+        labelFont="VTK",
         labelOffset = 0.375,
         italic=0,
         c=None,
@@ -1072,11 +1080,13 @@ class BaseActor(Base3DProp):
                                                 sx,
                                                 sy,
                                                 title,
+                                                titleFont,
                                                 titleXOffset,
                                                 titleYOffset,
                                                 titleSize,
                                                 titleRotation,
                                                 nlabels,
+                                                labelFont,
                                                 labelOffset,
                                                 italic,
                                                 c,
@@ -1758,7 +1768,7 @@ class BaseGrid(BaseActor):
         if scalars is None:
             print("Error in legosurface(): no scalars found!")
             return a
-        a.pointColors(scalars, vmin=srng[0], vmax=srng[1], cmap=cmap)
+        a.cmap(cmap, scalars, vmin=srng[0], vmax=srng[1])
         a.mapPointsToCells()
         return a
 

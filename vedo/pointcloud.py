@@ -8,6 +8,7 @@ import vedo.settings as settings
 import vedo.utils as utils
 from vedo.base import BaseActor
 
+
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 from vtk.numpy_interface import dataset_adapter
 
@@ -185,7 +186,7 @@ def smoothMLS3D(meshs, neighbours=10):
     ctimes = newcoords4d[:, 3]
     ccoords3d = np.delete(newcoords4d, 3, axis=1)  # get rid of time
     act = Points(ccoords3d)
-    act.pointColors(ctimes, cmap="jet")  # use a colormap to associate a color to time
+    act.cmap('jet', ctimes)  # use a colormap to associate a color to time
     return act
 
 
@@ -1421,7 +1422,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
     def labels(self, content=None, cells=False, scale=None,
                rotX=0, rotY=0, rotZ=0,
-               ratio=1, precision=None, italic=False):
+               ratio=1, precision=None, font="VTK", c='black', alpha=1, italic=False):
         """Generate value or ID labels for mesh cells or points.
 
         :param list,int,str content: either 'id', array name or array number.
@@ -1494,18 +1495,26 @@ class Points(vtk.vtkFollower, BaseActor):
             return None
 
         tapp = vtk.vtkAppendPolyData()
+
         for i,e in enumerate(elems):
             if i % ratio:
                 continue
-            tx = vtk.vtkVectorText()
+
             if mode==1:
-                tx.SetText(str(i))
+                txt_lab = str(i)
             else:
                 if precision:
-                    tx.SetText(utils.precision(arr[i], precision))
+                    txt_lab = utils.precision(arr[i], precision)
                 else:
-                    tx.SetText(str(arr[i]))
-            tx.Update()
+                    txt_lab = str(arr[i])
+
+            if font=="VTK":
+                tx = vtk.vtkVectorText()
+                tx.SetText(txt_lab)
+                tx.Update()
+                tx_poly = tx.GetOutput()
+            else:
+                tx_poly = vedo.shapes.Text(txt_lab, font=font).polydata(False)
 
             T = vtk.vtkTransform()
             T.PostMultiply()
@@ -1517,7 +1526,7 @@ class Points(vtk.vtkFollower, BaseActor):
             if hasnorms:
                 ni = norms[i]
                 if cells: # center-justify
-                    bb = tx.GetOutput().GetBounds()
+                    bb = tx_poly.GetBounds()
                     dx, dy = (bb[1]-bb[0])/2, (bb[3]-bb[2])/2
                     T.Translate(-dx,-dy,0)
                 if rotX: T.RotateX(rotX)
@@ -1535,13 +1544,13 @@ class Points(vtk.vtkFollower, BaseActor):
             T.Scale(scale,scale,scale)
             T.Translate(e)
             tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetInputData(tx.GetOutput())
+            tf.SetInputData(tx_poly)
             tf.SetTransform(T)
             tf.Update()
             tapp.AddInputData(tf.GetOutput())
         tapp.Update()
-        ids = vedo.mesh.Mesh(tapp.GetOutput(), c=[.5,.5,.5])
-        ids.lighting('off')
+        ids = vedo.mesh.Mesh(tapp.GetOutput(), c=c, alpha=alpha)
+        ids.GetProperty().LightingOff()
         return ids
 
 
@@ -1724,57 +1733,92 @@ class Points(vtk.vtkFollower, BaseActor):
         return self._update(rs.GetOutput())
 
 
+    #####################################################################################
+    def cmap(self, 
+             cname,
+             input_array=None,
+             mode="points",
+             arrayName="",
+             vmin=None, vmax=None,
+             alpha=1,
+            ):
+        """
+        Set individual point/cell colors by providing a list of scalar values and a color map.
+        `scalars` can be the string name of a ``vtkArray``.
+
+        :param cname: color map scheme to transform a real number into a color.
+        :type cname: str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap
+        :param str mode: either 'points' or 'cells'
+            to apply the color map to either point or cell-associated data.
+
+        :param str arrayName: give a name to the array
+        :param float vmin: clip scalars to this minimum value
+        :param float vmax: clip scalars to this maximum value
+        :param float,list alpha: mesh transparency.
+            Can be a ``list`` of values one for each vertex.
+
+        .. hint::|mesh_coloring.py|_ |mesh_alphas.py|_ |mesh_custom.py|_
+
+             |mesh_coloring| |mesh_alphas| |mesh_custom|
+        """
+        if not mode:
+            poly = self.polydata(False)
+            parr = poly.GetPointData().GetScalars()
+            carr = poly.GetPointData().GetScalars()
+            if parr and not carr:
+                mode = 'points'
+            elif carr and not parr:
+                mode = 'cells'
+
+        if mode.startswith('p'):
+            if not arrayName: arrayName="PointScalars"
+            self.pointColors(input_array, cname, alpha, vmin, vmax, arrayName)
+        elif mode.startswith('c'):
+            if not arrayName: arrayName="CellScalars"
+            self.cellColors(input_array, cname, alpha, vmin, vmax, arrayName)
+        else:
+            colors.printc('Must specify mode in cmap(mode="either cells or points")!', c=1)
+            raise RuntimeError()
+        return self
+
     def pointColors(self,
                     input_array=None,
-                    cmap="jet",
+                    cmap="rainbow",
                     alpha=1,
                     vmin=None, vmax=None,
                     arrayName="PointScalars",
                     ):
         """
-        Set individual point colors by providing a list of scalar values and a color map.
-        `scalars` can be a string name of the ``vtkArray``.
-
-        :param list alphas: single value or list of transparencies for each vertex
-
-        :param cmap: color map scheme to transform a real number into a color.
-        :type cmap: str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap
-        :param alpha: mesh transparency. Can be a ``list`` of values one for each vertex.
-        :type alpha: float, list
-        :param float vmin: clip scalars to this minimum value
-        :param float vmax: clip scalars to this maximum value
-        :param str arrayName: give a name to the array
-
-        .. hint::|mesh_coloring.py|_ |mesh_alphas.py|_ |mesh_custom.py|_
-
-             |mesh_coloring| |mesh_alphas| |mesh_custom|
+        DEPRECATED: use cmap(mode="points") instead.
         """
         poly = self.polydata(False)
 
         if input_array is None:             # if None try to fetch the active scalars
             arr = poly.GetPointData().GetScalars()
             if not arr:
-                print('Cannot find any active point array ...skip coloring.')
+                colors.printc('In cmap(): cannot find any active point array ...skip coloring.', c=1)
                 return self
 
         elif isinstance(input_array, str):  # if a name string is passed
             arr = poly.GetPointData().GetArray(input_array)
             if not arr:
-                print('Cannot find point array with name:', input_array, '...skip coloring.')
+                colors.printc('In cmap(): cannot find point array with name:',
+                      input_array, '...skip coloring.', c=1)
                 return self
 
         elif isinstance(input_array, int):  # if a int is passed
             if input_array < poly.GetPointData().GetNumberOfArrays():
                 arr = poly.GetPointData().GetArray(input_array)
             else:
-                print('Cannot find point array at position:', input_array, '...skip coloring.')
+                colors.printc('In cmap(): cannot find point array at position:', input_array,
+                              '...skip coloring.', c=1)
                 return self
 
         elif utils.isSequence(input_array): # if a numpy array is passed
             n = len(input_array)
             if n != poly.GetNumberOfPoints():
-                print('In pointColors(): nr. of scalars != nr. of points',
-                      n, poly.GetNumberOfPoints(), '...skip coloring.')
+                colors.printc('In cmap(): nr. of scalars != nr. of points',
+                              n, poly.GetNumberOfPoints(), '...skip coloring.', c=1)
                 return self
             input_array = np.ascontiguousarray(input_array)
             arr = numpy_to_vtk(input_array, deep=True)
@@ -1784,7 +1828,7 @@ class Points(vtk.vtkFollower, BaseActor):
             arr = input_array
 
         else:
-            print('In pointColors(): cannot understand input:', input_array)
+            colors.printc('In cmap(): cannot understand input:', input_array, c=1)
             raise RuntimeError()
 
         ##########################
@@ -1821,7 +1865,6 @@ class Points(vtk.vtkFollower, BaseActor):
             lut.DeepCopy(cmap)
 
         else: # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
-            self.cmap = cmap
             ncols, nalpha = 256, len(alpha)
             lut.SetNumberOfTableValues(ncols)
             mycols = colors.colorMap(range(ncols), cmap, 0,ncols)
@@ -1842,6 +1885,185 @@ class Points(vtk.vtkFollower, BaseActor):
         poly.GetPointData().SetActiveScalars(arrayName)
         poly.GetPointData().Modified()
         return self
+
+    def cellColors(self,
+                   input_array=None,
+                   cmap="jet",
+                   alpha=1,
+                   vmin=None, vmax=None,
+                   arrayName="CellScalars",
+                  ):
+        """
+        DEPRECATED: use cmap(mode='cells') instead.
+        """
+        poly = self.polydata(False)
+
+        if input_array is None:             # if None try to fetch the active scalars
+            arr = poly.GetCellData().GetScalars()
+            if not arr:
+                colors.printc('In cmap(): Cannot find any active Cell array ...skip coloring.', c=1)
+                return self
+
+        elif isinstance(input_array, str):  # if a name string is passed
+            arr = poly.GetCellData().GetArray(input_array)
+            if not arr:
+                colors.printc('In cmap(): Cannot find Cell array with name:', input_array,
+                              '...skip coloring.', c=1)
+                return self
+
+        elif isinstance(input_array, int):  # if a int is passed
+            if input_array < poly.GetCellData().GetNumberOfArrays():
+                arr = poly.GetCellData().GetArray(input_array)
+            else:
+                colors.printc('In cmap(): Cannot find Cell array at position:', input_array,
+                              '...skip coloring.', c=1)
+                return self
+
+        elif utils.isSequence(input_array): # if a numpy array is passed
+            n = len(input_array)
+            if n != poly.GetNumberOfCells():
+                colors.printc('In cmap(): nr. of scalars != nr. of Cells',
+                              n, poly.GetNumberOfCells(), '...skip coloring.', c=1)
+                return self
+            input_array = np.ascontiguousarray(input_array)
+            arr = numpy_to_vtk(input_array, deep=True)
+            arr.SetName(arrayName)
+
+        elif isinstance(input_array, vtk.vtkArray): # if a vtkArray is passed
+            arr = input_array
+
+        else:
+            colors.printc('In cmap(): cannot understand input:', input_array, c=1)
+            raise RuntimeError()
+
+        ##########################
+        arrfl = vtk.vtkFloatArray() #casting
+        arrfl.ShallowCopy(arr)
+        arr = arrfl
+
+        if not arr.GetName():
+            arr.SetName(arrayName)
+        else:
+            arrayName = arr.GetName()
+
+        if not utils.isSequence(alpha):
+            alpha = [alpha]*256
+
+        if vmin is None:
+            vmin = arr.GetRange()[0]
+        if vmax is None:
+            vmax = arr.GetRange()[1]
+
+        ########################### build the look-up table
+        lut = vtk.vtkLookupTable()
+        lut.SetRange(vmin,vmax)
+        if utils.isSequence(cmap):                 # manual sequence of colors
+            ncols, nalpha = len(cmap), len(alpha)
+            lut.SetNumberOfTableValues(ncols)
+            for i, c in enumerate(cmap):
+                r, g, b = colors.getColor(c)
+                idx = int(i/ncols * nalpha)
+                lut.SetTableValue(i, r, g, b, alpha[idx])
+            lut.Build()
+
+        elif isinstance(cmap, vtk.vtkLookupTable): # vtkLookupTable
+            lut.DeepCopy(cmap)
+
+        else: # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
+            ncols, nalpha = 256, len(alpha)
+            lut.SetNumberOfTableValues(ncols)
+            mycols = colors.colorMap(range(ncols), cmap, 0,ncols)
+            for i,c in enumerate(mycols):
+                r, g, b = c
+                idx = int(i/ncols * nalpha)
+                lut.SetTableValue(i, r, g, b, alpha[idx])
+            lut.Build()
+
+        self._mapper.SetLookupTable(lut)
+        self._mapper.SetScalarModeToUseCellData()
+        self._mapper.ScalarVisibilityOn()
+        if hasattr(self._mapper, 'SetArrayName'):
+            self._mapper.SetArrayName(arrayName)
+        if settings.autoResetScalarRange:
+            self._mapper.SetScalarRange(vmin, vmax)
+        poly.GetCellData().SetScalars(arr)
+        poly.GetCellData().SetActiveScalars(arrayName)
+        poly.GetCellData().Modified()
+        return self
+
+
+    def cellIndividualColors(self, colorlist, alpha=1, alphaPerCell=False):
+        """
+        Colorize the faces of a mesh one by one
+        passing a 1-to-1 list of colors and optionally a list of transparencies.
+
+        :param bool alphaPerCell: Only matters if `alpha` is a sequence. If so:
+            if `True` assume that the list of opacities is independent
+            on the colors (same color cells can have different opacity),
+            this can be very slow for large meshes,
+
+            if `False` [default] assume that the alpha matches the color list
+            (same color has the same opacity).
+            This is very fast even for large meshes.
+        """
+        cellData = vtk.vtkUnsignedIntArray()
+        cellData.SetName("CellIndividualColors")
+
+        n = self._polydata.GetNumberOfCells()
+        if len(colorlist) != n or (utils.isSequence(alpha) and len(alpha) != n):
+            colors.printc("Error in cellIndividualColors(): mismatch in input list sizes.",
+                          len(colorlist), n, c=1)
+            return self
+
+        lut = vtk.vtkLookupTable()
+        if alphaPerCell:
+            lut.SetNumberOfTableValues(n)
+            lut.Build()
+            cols = colors.getColor(colorlist)
+            if not utils.isSequence(alpha):
+                alpha = [alpha] * n
+            for i in range(n):
+                cellData.InsertNextValue(i)
+                c = cols[i]
+                lut.SetTableValue(i, c[0], c[1], c[2], alpha[i])
+        else:
+            ucolors, uids, inds = np.unique(colorlist, axis=0,
+                                            return_index=True, return_inverse=True)
+            nc = len(ucolors)
+
+            if nc == 1:
+                self.color(colors.getColor(ucolors[0]))
+                if utils.isSequence(alpha):
+                    self.alpha(alpha[0])
+                else:
+                    self.alpha(alpha)
+                return self
+
+            for i in range(n):
+                cellData.InsertNextValue(int(inds[i]))
+
+            lut.SetNumberOfTableValues(nc)
+            lut.Build()
+
+            cols = colors.getColor(ucolors)
+
+            if not utils.isSequence(alpha):
+                alpha = np.ones(n)
+
+            for i in range(nc):
+                c = cols[i]
+                lut.SetTableValue(i, c[0], c[1], c[2], alpha[uids[i]])
+
+        self._polydata.GetCellData().SetScalars(cellData)
+        self._polydata.GetCellData().Modified()
+        self._mapper.SetScalarRange(0, lut.GetNumberOfTableValues()-1)
+        self._mapper.SetLookupTable(lut)
+        if hasattr(self._mapper, 'SetArrayName'):
+            self._mapper.SetArrayName("CellColors")
+        self._mapper.SetScalarModeToUseCellData()
+        self._mapper.ScalarVisibilityOn()
+        return self
+
 
     def pointGaussNoise(self, sigma):
         """

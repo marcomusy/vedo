@@ -493,7 +493,8 @@ def makePalette(color1, color2, N, hsv=True):
 def makeLUT(colorlist,
             interpolate=False,
             vmin=None, vmax=None,
-            belowColor=None, aboveColor=None, nanColor=None):
+            belowColor=None, aboveColor=None, nanColor=None
+            ):
     """
     Generate colors in a vtk lookup table.
 

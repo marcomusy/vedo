@@ -11,7 +11,7 @@ for i in range(3):
 
     # colorize mesh
     scals = s.points()[:,2]
-    s.pointColors(scals, cmap=cmaps[i])
+    s.cmap(cmaps[i], scals)
 
     ms.append(s)
 
@@ -21,9 +21,11 @@ ms[0].addScalarBar(title="my scalarbar\nnumber #0") #2D
 # add 3D scalar bars
 ms[1].addScalarBar3D(title="scalarbar #1", sy=3)
 
-sc = ms[2].addScalarBar3D(pos=(1,0,-5), c="k",
+sc = ms[2].addScalarBar3D(pos=(1,0,-5),
+                          c="k",
                           sy=2.8,                    # change y-size
                           title="A viridis 3D\nscalarbar to play with",
+                          titleFont='Quikhand',
                           titleXOffset=-2,           # offset of labels
                           titleSize=1.5)
 sc.rotateX(90) # make it vertical

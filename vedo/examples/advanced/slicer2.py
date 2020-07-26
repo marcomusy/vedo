@@ -13,7 +13,7 @@ def slicerfunc(index, data):
     dims = vol.dimensions()
     box = vol.box().alpha(0.5)
     vmin, vmax = vol.scalarRange()
-    msh = vol.zSlice(0).pointColors(cmap=cmaps[index], vmin=vmin, vmax=vmax)
+    msh = vol.zSlice(0).cmap(cmaps[index], vmin=vmin, vmax=vmax)
     sb = msh.lighting('off').addScalarBar3D()
     zb = vol.zbounds()
     visibles = [msh]
@@ -24,7 +24,7 @@ def slicerfunc(index, data):
         plt.renderer = widget.GetCurrentRenderer()
         plt.resetcam = False
         msh = vol.zSlice(i).lighting('off')
-        msh.pointColors(cmap=cmaps[index], vmin=vmin, vmax=vmax)
+        msh.cmap(cmaps[index], vmin=vmin, vmax=vmax)
         plt.remove(visibles[0], render=False)
         if 0 < i < dims[2]:
             zlev = zb[1]/(zb[1]-zb[0])*i + zb[0]

@@ -7,7 +7,8 @@ You may also want to compare with the Cell.contains(Point) tool.
 # Script by Rudy at https://fenicsproject.discourse.group/t/
 #           any-function-to-determine-if-the-point-is-in-the-mesh/275/3
 import dolfin
-from vedo.dolfin import shapes, plot, printc
+from vedo.dolfin import plot
+from vedo import printc, pointcloud
 
 n  = 4
 Px = 0.5
@@ -24,6 +25,6 @@ for cell in dolfin.cells(mesh):
     printc("Cell", cell.index(), "contains P:", contains, c=contains)
 
 ###########################################
-pt = shapes.Point([Px, Py], c='blue')
+pt = pointcloud.Point([Px, Py], c='blue')
 
 plot(mesh, pt, text=__doc__)

@@ -207,6 +207,11 @@ Source: https://www.1001freefonts.com/bp-mono.font
 Copyright: 2020 Backpacker (http://www.backpacker.gr)
 License: cc-by-sa
 
+Files: vedo/fonts/BPmonoRegular.ttf
+Source: https://www.1001freefonts.com/bp-mono.font
+Copyright: 2020 Backpacker (http://www.backpacker.gr)
+License: cc-by-sa
+
 Files: vedo/fonts/CallingCode.ttf
 Source: https://www.1001freefonts.com/calling-code.font
 Copyright: 2017 Ryoichi Tsunekawa
@@ -246,11 +251,6 @@ Files: vedo/fonts/Montserrat.ttf
 Source: https://www.1001freefonts.com/montserrat.font
 Copyright: 2011-2012, Julieta Ulanovsky (julieta.ulanovsky@gmail.com)
 License: OFL
-
-Files: vedo/fonts/Overspray.ttf
-Source: https://www.1001freefonts.com/overspray.font
-Copyright: Michael Tension, Tension Type
-License: tension-donationware
 
 Files: vedo/fonts/Quikhand.ttf
 Source: https://www.1001freefonts.com/quikhand.font

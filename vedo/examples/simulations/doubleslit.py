@@ -41,7 +41,7 @@ for i, x in enumerate(screen_pts):
     screen_pts[i] = x + [0, 0, psi2 / norm]
 screen.points(screen_pts)
 
-screen.pointColors(amplitudes, cmap="hot")
+screen.cmap("hot", amplitudes)
 
 vp += screen
 vp += Points(array(slits) * 200, c="w")  # slits scale magnified by factor 200

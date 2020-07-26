@@ -8,7 +8,7 @@ data[10:20] = float('nan')
 
 # Build a lookup table of colors:
 #               scalar  color   alpha
-lut1 = makeLUT([(-0.80, 'pink'       ),
+lut = makeLUT( [(-0.80, 'pink'       ),
                 (-0.33, 'green',  0.8),
                 ( 0.67, 'red'        ),
                ],
@@ -18,9 +18,6 @@ lut1 = makeLUT([(-0.80, 'pink'       ),
                interpolate=False,
                )
 
-mesh.pointColors(data, cmap=lut1).addScalarBar()
-
-#Avoid interpolating cell colors before mapping:
-#mesh.mapper.InterpolateScalarsBeforeMappingOff()
+mesh.cmap(lut, data).addScalarBar()
 
 mesh.show(axes=1, viewup='z')

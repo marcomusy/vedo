@@ -12,7 +12,7 @@ print('numpy array shapes are:', coords.shape, vects.shape)
 # build arrows from starting points to endpoints, with colormap
 arrows = Arrows(coords-vects, coords+vects, c='hot_r')
 
-g.pointColors('Density').lineWidth(0.1).alpha(0.3)
+g.cmap('jet', input_array='Density').lineWidth(0.1).alpha(0.3)
 #g.color('grey').alpha(0.3)
 
 show(g, arrows, __doc__, axes=9) # axes type 9 is a simple box

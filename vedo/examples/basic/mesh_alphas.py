@@ -1,5 +1,5 @@
 """Create a set of transparencies
-which can be passed to method pointColors()
+which can be passed to method cmap()
 """
 from vedo import load, show, datadir
 
@@ -13,7 +13,7 @@ scals = mesh.points()[:, 1]
 # at max(scals) alpha is 0.9:
 alphas = [0.1, 0.1, 0.3, 0.4, 0.9]
 
-mesh.pointColors(scals, alpha=alphas, cmap="copper")
-# print(mesh.getPointArray('pointColors_copper')) # retrieve scalars
+mesh.cmap("copper", scals, alpha=alphas)
+# print(mesh.getPointArray('PointScalars')) # retrieve scalars
 
 show(mesh, __doc__, axes=9)

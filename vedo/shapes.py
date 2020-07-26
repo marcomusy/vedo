@@ -64,6 +64,8 @@ __all__ = [
     "ConvexHull",
 ]
 
+_fonts_cache = dict()
+
 
 ########################################################################
 def Marker(symbol, pos=(0, 0, 0), c='lb', alpha=1, s=0.1, filled=True):
@@ -2140,7 +2142,7 @@ class Hyperboloid(Mesh):
 
 class Text(Mesh):
     """
-    Returns a polygonal ``Mesh`` of 3D text.
+    Returns a 3D polygonal ``Mesh`` of a text string.
 
     :param list pos: position coordinates in 3D space
     :param float s: size of text.
@@ -2153,12 +2155,26 @@ class Text(Mesh):
         with subscripts and superscripts.
         The first space after symbols _ and ^ marks the end of the modifier.
 
-    |markpoint| |markpoint.py|_
+    :param str font: available fonts are:
+        VTK, BPmonoBold, BPmonoItalics, BPmonoRegular, CallingCode
+        ChineseRuler, ClassCoder, MonospaceTypewriter, Montserrat, Quikhand.
+
+        Symbols ~ ^ _ are reserved modifiers:
+            use ~ to add a short space, 1/4 of the default size,
+            use ^ and _ to start up/sub scripting, a space terminates their effect.
+
+    :param float hspacing: horizontal spacing of the font.
+    :param float vspacing: vertical spacing of the font in multiple lines text.
+
+    |markpoint| |markpoint.py|_ |fonts.py|_
     """
     def __init__(self,
                 txt,
                 pos=(0,0,0),
                 s=1,
+                font="VTK",
+                hspacing = 1.15,
+                vspacing = 2.15,
                 depth=0,
                 italic=False,
                 useModifiers=True,
@@ -2166,6 +2182,8 @@ class Text(Mesh):
                 c=None,
                 alpha=1,
                 ):
+
+        global _fonts_cache
 
         if len(pos)==2:
             pos = (pos[0], pos[1], 0)
@@ -2203,58 +2221,189 @@ class Text(Mesh):
             return kpoly, kpoly.GetBounds()[1]
 
         txt = str(txt)
+        notfounds = 0
 
-        if settings.useModifiersInText and useModifiers and len(txt)>2 and ' ' in txt:
+        if font == "VTK":
 
-            sn = txt.replace("**","^")
-            sn = sn.replace("e+0","^. 10^").replace("e-0","^. 10^-")
-            sn = sn.replace("E+0","^. 10^").replace("E-0","^. 10^-")
-            sn = sn.replace("e+","^. 10^").replace("e-","^. 10^-")
-            sn = sn.replace("E+","^. 10^").replace("E-","^. 10^-")
+            if settings.useModifiersInText and useModifiers and len(txt)>2 and ' ' in txt:
 
-            x=0
-            vtxts = []
-            txt=''
-            itersn = iter(range(len(sn)))
-            for i in itersn:
-                car = sn[i]
-                if car=='^':
-                    yshift = 0.7
-                elif car=='_':
-                    yshift = -0.3
+                sn = txt.replace("**","^")
+                sn = sn.replace("e+0","^. 10^").replace("e-0","^. 10^-")
+                sn = sn.replace("E+0","^. 10^").replace("E-0","^. 10^-")
+                sn = sn.replace("e+","^. 10^").replace("e-","^. 10^-")
+                sn = sn.replace("E+","^. 10^").replace("E-","^. 10^-")
+
+                x=0
+                vtxts = []
+                txt=''
+                itersn = iter(range(len(sn)))
+                for i in itersn:
+                    car = sn[i]
+                    if car=='^':
+                        yshift = 0.7
+                    elif car=='_':
+                        yshift = -0.3
+                    else:
+                        yshift = 0
+
+                    if yshift:
+                        vtxt, x = _mktxt(txt,x) # normal text
+                        vtxts.append(vtxt)
+                        txt=''
+                        etxt = ''
+                        for k in range(i+1,len(sn)): # sub/super script
+                            snk = sn[k]
+                            next(itersn)
+                            if snk==" ":break
+                            etxt+=snk
+                        if etxt:
+                            vetxt, x = _mktxt(etxt,x, yshift)
+                            vtxts.append(vetxt)
+                    else:
+                        txt+=car
+
+                if txt:
+                    vtxts.append(_mktxt(txt,x)[0])
+
+                if len(vtxts) == 1:
+                    tpoly = vtxts[0]
                 else:
-                    yshift = 0
+                    polyapp = vtk.vtkAppendPolyData()
+                    for polyd in vtxts:
+                        polyapp.AddInputData(polyd)
+                    polyapp.Update()
+                    tpoly = polyapp.GetOutput()
 
-                if yshift:
-                    vtxt, x = _mktxt(txt,x) # normal text
-                    vtxts.append(vtxt)
-                    txt=''
-                    etxt = ''
-                    for k in range(i+1,len(sn)): # sub/super script
-                        snk = sn[k]
-                        next(itersn)
-                        if snk==" ":break
-                        etxt+=snk
-                    if etxt:
-                        vetxt, x = _mktxt(etxt,x, yshift)
-                        vtxts.append(vetxt)
-                else:
-                    txt+=car
-
-            if txt:
-                vtxts.append(_mktxt(txt,x)[0])
-
-            if len(vtxts) == 1:
-                tpoly = vtxts[0]
             else:
+                tpoly = _mktxt(txt)[0]
+
+        else: ################################################# font is not "VTK"
+
+            if font in _fonts_cache.keys():
+                _font_meshes = _fonts_cache[font]
+            else:
+                try:
+                    fontfile = settings.fonts_path + font + '.npz'
+                    _font_meshes = np.load(fontfile, allow_pickle=True)['font'][0]
+                    _fonts_cache.update({font : _font_meshes})
+                except:
+                    printc("Text() error: font name", font, "not found. Skip.", c='r')
+                    return None
+
+            keys = _font_meshes.keys()
+
+            txt = txt.replace("**","^")
+            txt = txt.replace("e+0","^. 10^").replace("e-0","^. 10^-")
+            txt = txt.replace("E+0","^. 10^").replace("E-0","^. 10^-")
+            txt = txt.replace("e+","^. 10^").replace("e-","^. 10^-")
+            txt = txt.replace("E+","^. 10^").replace("E-","^. 10^-")
+
+            mono = True
+            skipspace = True
+            fscale = 0.85 # an extra factor to match the default vtk font size :(
+            if font=='ImpactLabel':
+                mono = False
+                hspacing *= -40/115
+                skipspace= False
+            elif font=='ChineseRuler':
+                mono = False
+                hspacing *= 1.2
+            elif font=='Montserrat':
+                mono = False
+                hspacing *= 100/115
+            elif font=='Quikhand':
+                mono = False
+                hspacing *= 70/115
+                fscale = 0.7
+
+            xmax, ymax, yshift, scale = 0, 0, 0, 1
+            save_xmax = 0
+
+            polydict = dict() # cache-ing letters
+            polyletters = []
+            ntxt = len(txt)
+            for i, t in enumerate(txt):
+                ##########
+                if t=='^':
+                    if yshift<0:
+                        xmax = save_xmax
+                    yshift = 0.9*fscale
+                    scale = 0.5
+                    continue
+                elif t=='_':
+                    if yshift>0:
+                        xmax = save_xmax
+                    yshift = -0.3*fscale
+                    scale = 0.5
+                    continue
+                elif (t==' ' or t=="\n") and yshift:
+                    yshift = 0
+                    scale = 1
+                    save_xmax = xmax
+                    if t==' ': continue
+                elif t=='~':
+                    if i<ntxt-1 and txt[i+1]=='_':
+                        continue
+                    xmax += hspacing*scale*fscale / 4
+                    continue
+
+                ############
+                if skipspace and t==" ":
+                    xmax += hspacing*scale*fscale
+
+                elif t=="\n":
+                    xmax = 0
+                    save_xmax = 0
+                    ymax -= vspacing
+
+                elif t in keys:
+                    if t in polydict.keys():
+                        poly = polydict[t] # save time for repeated chars
+                    else:
+                        mt = _font_meshes[t]
+                        poly = utils.buildPolyData(mt[0], mt[1])
+                        polydict.update({t:poly})
+                    pscale = scale*fscale / 1000
+                    tr = vtk.vtkTransform()
+                    tr.Translate(xmax, ymax+yshift, 0)
+                    tr.Scale(pscale, pscale, pscale)
+                    tf = vtk.vtkTransformPolyDataFilter()
+                    tf.SetInputData(poly)
+                    tf.SetTransform(tr)
+                    tf.Update()
+                    poly = tf.GetOutput()
+                    polyletters.append(poly)
+
+                    bx = poly.GetBounds()
+                    if mono:
+                        xmax += hspacing*scale*fscale
+                    else:
+                        xmax += bx[1]-bx[0] + hspacing*scale*fscale/10
+                    if yshift==0:
+                        save_xmax = xmax
+                else:
+                    printc("In Text(): char", t,
+                           "not found in", font, 'ord =', ord(t), c='y')
+                    notfounds += 1
+                    xmax += hspacing*scale*fscale
+
+            if len(polyletters) > 1:
                 polyapp = vtk.vtkAppendPolyData()
-                for polyd in vtxts:
-                    polyapp.AddInputData(polyd)
+                for poly in polyletters:
+                    polyapp.AddInputData(poly)
                 polyapp.Update()
                 tpoly = polyapp.GetOutput()
+            else:
+                tpoly = poly
 
-        else:
-            tpoly = _mktxt(txt)[0]
+        if notfounds:
+            # printc('Type "vedo -r fonts" to check available characters for', font)
+            printc(font + " - available characters are:", " "*25, bold=1, invert=1)
+            for k in _font_meshes.keys(): printc(k, end=' ')
+            printc('\n(use the above to copy&paste any char into your python script!)', italic=1)
+            printc('Symbols ~ ^ _ are reserved modifiers:', italic=1)
+            printc(' use ~ to add a short space, 1/4 of the default size,', italic=1)
+            printc(' use ^ and _ to start up/sub scripting, space terminates them.\n', italic=1)
 
 
         bb = tpoly.GetBounds()
@@ -2294,118 +2443,11 @@ class Text(Mesh):
             extrude.SetScaleFactor(depth*dy)
             extrude.Update()
             tpoly = extrude.GetOutput()
+
         Mesh.__init__(self, tpoly, c, alpha)
         self.lighting('off').SetPosition(pos)
         settings.collectable_actors.append(self)
         self.name = "Text"
-
-
-# class Text2D(vtk.vtkCornerAnnotation):
-
-#     def __init__(self,
-#                 txt,
-#                 pos='top-cent',
-#                 s=1,
-#                 c=None,
-#                 alpha=1,
-#                 bg=None,
-#                 font="Montserrat",
-#                 justify="bottom-left",
-#                 bold=False,
-#                 italic=False,
-#                 ):
-#         vtk.vtkCornerAnnotation.__init__(self)
-
-#         self.renderedAt = set()
-
-#         if c is None: # automatic black or white
-#             if settings.plotter_instance and settings.plotter_instance.renderer:
-#                 c = (0.9, 0.9, 0.9)
-#                 if settings.plotter_instance.renderer.GetGradientBackground():
-#                     bgcol = settings.plotter_instance.renderer.GetBackground2()
-#                 else:
-#                     bgcol = settings.plotter_instance.renderer.GetBackground()
-#                 if np.sum(bgcol) > 1.5:
-#                     c = (0.1, 0.1, 0.1)
-#             else:
-#                 c = (0.5, 0.5, 0.5)
-
-#         if isinstance(pos, str): # corners
-#             tol = 0.005
-#             if "top" in pos:
-#                 if "left" in pos:
-#                     pos = (tol,1)
-#                     justify='top-left'
-#                 elif "right" in pos:
-#                     pos = (1-tol,1)
-#                     justify='top-right'
-#                 elif "mid" in pos or "cent" in pos:
-#                     pos = (0.5, 1)
-#                     justify='top-center'
-#             elif "bottom" in pos:
-#                 if "left" in pos:
-#                     pos = (tol,0)
-#                     justify='bottom-left'
-#                 elif "right" in pos:
-#                     pos = (1-tol,0)
-#                     justify='bottom-right'
-#                 elif "mid" in pos or "cent" in pos:
-#                     pos = (0.5,0)
-#                     justify='bottom-center'
-
-#         if len(pos)!=2:
-#             print("Error in Text2D(): len(pos) must be 2 or integer value or string.")
-#             raise RuntimeError()
-
-#         else:
-
-#             ###############
-#             # self.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-#             self.SetText(4 - 1, str(txt))
-#             print(self.GetPosition())
-#             self.SetTextActorsPosition(0.1, 0.85)
-#             print(self.GetPosition())
-#             # self.SetPosition(pos)
-#             # tmapper = vtk.vtkTextMapper()
-#             # tmapper.SetInput(str(txt))
-#             # self.SetMapper(tmapper)
-#             tp = self.GetTextProperty()
-#             tp.BoldOff()
-#             tp.SetFontSize(int(s*20))
-#             tp.SetColor(getColor(c))
-#             tp.SetJustificationToLeft()
-#             if "top" in justify:
-#                 tp.SetVerticalJustificationToTop()
-#             if "bottom" in justify:
-#                 tp.SetVerticalJustificationToBottom()
-#             if "cent" in justify:
-#                 tp.SetVerticalJustificationToCentered()
-#                 # tp.SetJustificationToCentered()
-#             if "left" in justify:
-#                 tp.SetJustificationToLeft()
-#             if "right" in justify:
-#                 tp.SetJustificationToRight()
-
-#             if font.lower() == "courier": tp.SetFontFamilyToCourier()
-#             elif font.lower() == "times": tp.SetFontFamilyToTimes()
-#             elif font.lower() == "arial": tp.SetFontFamilyToArial()
-#             else:
-#                 tp.SetFontFamily(vtk.VTK_FONT_FILE)
-#                 if font in settings.fonts:
-#                     tp.SetFontFile(settings.fonts_path + font + '.ttf')
-#                 elif os.path.exists(font):
-#                     tp.SetFontFile(font)
-#                 else:
-#                     #printc("Font", font, "not found in", settings.fonts_path, c="r")
-#                     #printc("Available fonts are:", settings.fonts, c="y")
-#                     tp.SetFontFamilyToCourier() # silently fail
-#             if bg:
-#                 bgcol = getColor(bg)
-#                 tp.SetBackgroundColor(bgcol)
-#                 tp.SetBackgroundOpacity(alpha * 0.1)
-#                 tp.SetFrameColor(bgcol)
-#                 tp.FrameOn()
-#             self.PickableOff()
 
 
 def Text2D(
