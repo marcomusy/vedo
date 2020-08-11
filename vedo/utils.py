@@ -884,15 +884,16 @@ def printInfo(obj):
             colors.printc(tab + "  diagonal size: ", c="g", bold=1, end="")
             colors.printc(precision(actor.diagonalSize(), 6), c="g", bold=0)
 
-            _area = actor.area()
-            if _area:
-                colors.printc(tab + "           area: ", c="g", bold=1, end="")
-                colors.printc(precision(_area, 6), c="g", bold=0)
+            if hasattr(actor, "area"):
+                _area = actor.area()
+                if _area:
+                    colors.printc(tab + "           area: ", c="g", bold=1, end="")
+                    colors.printc(precision(_area, 6), c="g", bold=0)
 
-            _vol = actor.volume()
-            if _vol:
-                colors.printc(tab + "         volume: ", c="g", bold=1, end="")
-                colors.printc(precision(_vol, 6), c="g", bold=0)
+                _vol = actor.volume()
+                if _vol:
+                    colors.printc(tab + "         volume: ", c="g", bold=1, end="")
+                    colors.printc(precision(_vol, 6), c="g", bold=0)
 
         colors.printc(tab + "         bounds: ", c="g", bold=1, end="")
         bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
@@ -1055,10 +1056,13 @@ def printInfo(obj):
             4: "(axes triad at bottom left)",
             5: "(oriented cube at bottom left)",
             6: "(mark the corners of the bounding box)",
-            7: "(ruler at the bottom of the window)",
+            7: "(3D ruler at each side of the cartesian axes)",
             8: "(the vtkCubeAxesActor object)",
             9: "(the bounding box outline)",
             10: "(circles of maximum bounding box range)",
+            11: "(show a large grid on the x-y plane)",
+            12: "(show polar axes)",
+            13: "(simple ruler at the bottom of the window)",
         }
         bns, totpt = [], 0
         for a in obj.actors:

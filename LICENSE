@@ -19,7 +19,6 @@ Files: vedo/examples/data/apple.ply
  vedo/examples/data/icosahedron.vtk
  vedo/examples/data/magnolia.vtk
  vedo/examples/data/octahedron.vtk
- vedo/examples/data/shark.ply
  vedo/examples/data/cessna.vtk
  vedo/examples/data/teddy.vtk
  vedo/examples/data/teapot.vtk
@@ -68,101 +67,113 @@ Comment:
 License: PersonalUseLicense-RoyaltyFreeLicense
 
 Files: vedo/examples/data/ugrid.vtk
-Copyright: Andras Deak
+Copyright: 2019 Andras Deak
 Comment:
  From https://stackoverflow.com/questions/56401123
 License: cc-by-sa
 
 Files: vedo/examples/data/panther.stl
-Copyright: W-LAN-Kabel September 18, 2019
+Copyright: 2019 W-LAN-Kabel
 Comment:
  From https://www.thingiverse.com/thing:3868321
 License: cc-by-sa
+
+------------------------------------------------------------------------------
+Files: bricks.jpg
+Source: https://pxhere.com/en/photo/1257585
+Copyright: 2017 pxhere
+License: cc0-universal
+
+Files: clouds.jpg
+Source: https://pxhere.com/en/photo/1248502
+Copyright: 2017 pxhere
+License: cc0-universal
+
+Files: earth3.jpg
+Source: https://pxhere.com/en/photo/1025037
+Copyright: 2017 pxhere
+License: cc0-universal
+
+Files: gold.jpg
+Source: https://pxhere.com/en/photo/670741
+Copyright: 2017 pxhere
+License: cc0-universal
+
+Files: grass.jpg
+Source: https://pxhere.com/en/photo/1153308
+Copyright: 2017 pxhere
+License: cc0-universal
+
+Files: leather.jpg
+Source: https://pxhere.com/en/photo/771255
+Copyright: 2017 pxhere
+License: cc0-universal
+
+Files: marble.jpg
+Source: https://pxhere.com/en/photo/1294720
+Copyright: 2017 pxhere
+License: cc0-universal
+
+Files: vedo/textures/paper1.jpg
+Source: https://pxhere.com/en/photo/1326585
+Copyright: 2017 pxhere
+License: cc0-universal
+
+Files: vedo/textures/paper2.jpg
+Source: https://pxhere.com/en/photo/554100
+Copyright: 2017 pxhere
+License: cc0-universal
+
+Files: vedo/textures/paper3.jpg
+Source: https://pxhere.com/en/photo/1412534
+Copyright: 2017 pxhere
+License: cc0-universal
+
+Files: vedo/textures/paper4.jpg
+Source: https://pxhere.com/en/photo/1412534
+Copyright: 2017 pxhere
+License: cc0-universal
+
+Files: vedo/examples/data/images/tropical.jpg
+Source: https://pxhere.com/en/photo/1138124
+Copyright: 2017 pxhere
+License: cc0-universal
+
+Files: vedo/textures/textile.jpg
+Source: https://pxhere.com/en/photo/668225
+Copyright: 2017 pxhere
+License: cc0-universal
+
+Files: vedo/textures/water.jpg
+Source: https://pxhere.com/en/photo/726313
+Copyright: 2017, pxhere
+License: cc0-universal
+
+Files: vedo/textures/white.jpg
+Source: https://pxhere.com/en/photo/1153705
+Copyright: 2017 pxhere
+License: cc0-universal
+
+Files: vedo/textures/wood1.jpg
+Source: https://pxhere.com/en/photo/764955
+Copyright: 2017 pxhere
+License: cc0-universal
+
+Files: vedo/textures/wood2.jpg
+Source: https://pxhere.com/en/photo/99133
+Copyright: 2016 pxhere
+License: cc0-universal
+
+Files: vedo/textures/wood3.jpg
+Source: https://pxhere.com/en/photo/841363
+Copyright: 2017 pxhere
+License: cc0-universal
 
 Files: vedo/examples/data/images/wave_wiki.png
 Copyright: Wikipedia
 Comment: W-LAN-Kabelis
  Screenshot from Source: https://en.wikipedia.org/wiki/Wave_equation#From_Hooke's_law
 License: cc-by-sa
-
-Files: vedo/examples/data/images/harvest.jpg
-Copyright: 2020 Albrecht Fietz, 86899 Landsberg am Lech/Germany,
- https://pixabay.com/users/fietzfotos-6795508/
-Source: https://pixabay.com/photos/harvest-grain-cereals-field-4858574
-License: pixabay
-
-Files: vedo/textures/textile1.jpg
-Copyright: 2015 Polina, https://pixabay.com/users/virin000-4559233/
-Source: https://pixabay.com/photos/textile-jute-brown-fabric-texture-2918844/
-License: pixabay
-
-Files: vedo/textures/water.jpg
-Copyright: 2015 Polina, https://pixabay.com/users/virin000-4559233/
-Source: https://pixabay.com/photos/water-blue-surface-sea-ocean-768745/
-License: pixabay
-
-Files: vedo/textures/gold1.jpg
-Copyright: 2016 Manuela, https://pixabay.com/users/sinnesreich-2779296/
-Source: https://pixabay.com/illustrations/texture-background-gold-pattern-1647380/
-License: pixabay
-
-Files: vedo/textures/clouds.jpg
-Copyright: 2019 Elisa, https://pixabay.com/users/klickblick-8872450/
-Source: https://pixabay.com/photos/clouds-nature-sky-cumulus-mood-4215608/
-License: pixabay
-
-Files: vedo/textures/bricks.jpg
-Copyright: 2016 Nebenbei, https://pixabay.com/users/nebenbei-1873844/
-Source: https://pixabay.com/photos/texture-structure-wall-brick-stone-1260304/
-License: pixabay
-
-Files: vedo/textures/grass.jpg
-Copyright: 2012 PublicDomainPictures,
- https://pixabay.com/users/publicdomainpictures-14/
-Source: https://pixabay.com/photos/grass-lawn-backdrop-background-84622/
-License: pixabay
-
-Files: vedo/textures/white1.jpg
-Copyright: 2018 Katrin D.,
- https://pixabay.com/users/katinkavomwolfenmond-6764465/
-Source: https://pixabay.com/photos/pattern-background-frost-texture-3160023/
-License: pixabay
-
-Files: vedo/textures/wood1.jpg
-Copyright: 2007 Peggy and Marco Lachmann-Anke,
- https://pixabay.com/users/peggy_marco-1553824/
-Source: https://pixabay.com/illustrations/texture-wood-grain-structure-1027559/
-License: pixabay
-
-Files: vedo/textures/gold2.jpg
- vedo/textures/wood2.jpg
-Copyright: 2017, 2018 djedj, https://pixabay.com/users/djedj-59194/
-Source: https://pixabay.com/photos/background-abstract-pattern-texture-2022763/
- https://pixabay.com/photos/pattern-wood-retro-wooden-surface-3371709/
-License: pixabay
-
-Files: vedo/textures/paper1.jpg
-Copyright: 2015 ChrisFiedler,
- https://pixabay.com/users/chrisfiedler-935884/
-Source: https://pixabay.com/photos/paper-old-texture-parchment-1074131/
-License: pixabay
-
-Files: vedo/textures/paper2.jpg
-Copyright: 2017 mohamed Hassan,
- https://pixabay.com/users/mohamed_hassan-5229782/
-Source: https://pixabay.com/photos/paper-background-writing-school-2500942/
-License: pixabay
-
-Files: vedo/textures/paper3.jpg
-Copyright: 2016 mzter, https://pixabay.com/users/mzter-104756/
-Source: https://pixabay.com/photos/paper-certificate-grunge-antique-1217311/
-License: pixabay
-
-Files: vedo/textures/paper4.jpg
-Copyright: 2013 OpenClipart-Vectors,
- https://pixabay.com/users/openclipart-vectors-30363/
-Source: https://pixabay.com/vectors/paper-texture-pattern-146904/
-License: pixabay
 
 Files: vedo/textures/earth1.jpg
  vedo/textures/earth1_lights.jpg
@@ -172,7 +183,6 @@ Copyright: 2006 james hastings-trew <jimht@shaw.ca>
 License: public-domain
  I have gathered together all of the public domain data to create this
  synthesis of images. 1K versions of these images are free.
-
 
 Files: vedo/textures/earth2.jpg
 Copyright: 2019 Tom Patterson
@@ -197,65 +207,60 @@ License: public-domain-earth-III
 
 
 ------------------------------------------------------------------------------
-Files: vedo/fonts/BPmonoBold.ttf
+Files: vedo/fonts/Biysk.*
+Source: https://www.1001freefonts.com/biysk.font
+Copyright: 2018 Vladimir Nikolic (http://www.coroflot.com/vladimirnikolic)
+License: public-domain
+
+Files: vedo/fonts/Bongas.*
+Source: https://www.1001freefonts.com/boogaloo.font
+Copyright: 2011 John Vargas Beltrán, with Reserved Font Name Boogaloo
+License: OFL
+
+Files: vedo/fonts/BPmonoBold.*
 Source: https://www.1001freefonts.com/bp-mono.font
 Copyright: 2020 Backpacker (http://www.backpacker.gr)
-License: cc-by-sa
+License: cc-by-nd
 
-Files: vedo/fonts/BPmonoItalics.ttf
+Files: vedo/fonts/BPmonoItalics.*
 Source: https://www.1001freefonts.com/bp-mono.font
 Copyright: 2020 Backpacker (http://www.backpacker.gr)
-License: cc-by-sa
+License: cc-by-nd
 
-Files: vedo/fonts/BPmonoRegular.ttf
-Source: https://www.1001freefonts.com/bp-mono.font
-Copyright: 2020 Backpacker (http://www.backpacker.gr)
-License: cc-by-sa
-
-Files: vedo/fonts/CallingCode.ttf
+Files: vedo/fonts/MonoCodeElegant.*
 Source: https://www.1001freefonts.com/calling-code.font
-Copyright: 2017 Ryoichi Tsunekawa
-License: public-domain
+Copyright: 2017 Ryoichi Tsunekawa, with Reserved Font Name Calling Code
+License: OFL
 
-Files: vedo/fonts/ChineseRuler.ttf
-Source: https://www.1001freefonts.com/chinese-ruler.font
-Copyright: 2009 Michael Tension, Tension Type
-License: tension-donationware
-
-Files: vedo/fonts/ClassCoder.ttf
+Files: vedo/fonts/MonoCodeFresh.*
 Source: https://www.1001freefonts.com/class-coder.font
-Copyright: 2020, Walter E. Stewart
+Copyright: 2017 Walter E Stewart, with Reserved Font Name Class Coder
 License: OFL
 
-Files: vedo/fonts/Godsway.ttf
-Source: https://www.1001freefonts.com/godsway-font.font
-Copyright: Eldamar Studio, https://eldamar-studio.com
-License: public-domain
-
-Files: vedo/fonts/ImpactLabel.ttf
-Source: https://www.1001freefonts.com/impact-label.font
-Copyright: 2011 Michael Tension, Tension Type
-License: tension-donationware
-
-Files: vedo/fonts/Komiko.ttf
-Source: https://www.1001freefonts.com/komiko.font
-Copyright: Agustian Eko Saputro
-License: public-domain
-
-Files: vedo/fonts/MonospaceTypewriter.ttf
-Source: https://www.1001freefonts.com/monospace-typewriter.font
-Copyright: Manfred Klein
-License: public-domain
-
-Files: vedo/fonts/Montserrat.ttf
-Source: https://www.1001freefonts.com/montserrat.font
-Copyright: 2011-2012, Julieta Ulanovsky (julieta.ulanovsky@gmail.com)
+Files: vedo/fonts/SmartCourier.*
+Source: https://www.fontsquirrel.com/fonts/courier-prime
+Copyright: 2013 Quote-Unquote Apps, with Reserved Font Name Courier Prime
 License: OFL
 
-Files: vedo/fonts/Quikhand.ttf
+Files: vedo/fonts/Inversionz.*
+Source: https://www.1001freefonts.com/inversionz.font
+Copyright: 2017 Darrell Flood
+License: public-domain
+
+Files: vedo/fonts/Quikhand.*
 Source: https://www.1001freefonts.com/quikhand.font
 Copyright: 2020 Qwerks (http://graphicriver.net/user/joiaco)
 License: public-domain
+
+Files: vedo/fonts/NormoGraph.*
+Source: https://www.1001freefonts.com/tecnico-font-19886.font
+Copyright: 2017 Cristhian Gomez, with Reserved Font Name Tecnico
+License: OFL
+
+Files: vedo/fonts/VictorMono.*
+Source: https://www.fontsquirrel.com/fonts/victor-mono
+Copyright: 2019 Rune Bjørnerås, (https://rubjo.github.io/victor-mono)
+License: MIT
 
 
 ------------------------------------------------------------------------------
@@ -336,6 +341,27 @@ License: BSD-3-clause
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ------------------------------------------------------------------------------
+License: public-domain
+ Files in the public domain have no restrictions on use and may be
+ used, modified and redistributed freely.
+
+------------------------------------------------------------------------------
+License: cc0-universal
+ Creative Commons Public Domain Dedication (CC0 1.0)
+ .
+ This is a human-readable summary of (and not a substitute for) the
+ license. The full text is found at
+ https://creativecommons.org/publicdomain/zero/1.0/
+ .
+ The person who associated a work with this deed has dedicated the work
+ to the public domain by waiving all of his or her rights to the work worldwide
+ under copyright law, including all related and neighboring rights,
+ to the extent allowed by law.
+ .
+ You can copy, modify, distribute and perform the work,
+ even for commercial purposes, all without asking permission.
+
+------------------------------------------------------------------------------
 License: cc-by-sa
  Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
  .
@@ -382,42 +408,45 @@ License: cc-by-sa
  use the material.
 
 ------------------------------------------------------------------------------
-License: pixabay
- Simplified Pixabay License.
+License: cc-by-nd
+ Creative Commons Attribution-NoDerivs 3.0 Unported (CC BY-ND 3.0)
  .
- Full text at https://pixabay.com/service/terms/#license
+ This is a human-readable summary of (and not a substitute for) the
+ license. The full text is found at
+ https://creativecommons.org/licenses/by-nd/3.0/legalcode
  .
- Our license empowers creators and protects our community. We want to
- keep it as simple as possible. Here is an overview of what Pixabay
- content can and can't be used for.
+ You are free to:
  .
- What is allowed?
+ Share — copy and redistribute the material in any medium or format
+ for any purpose, even commercially
  .
- ✓ All content on Pixabay can be used for free for commercial and
- noncommercial use across print and digital, except in the cases
- mentioned in "What is not allowed".
+ The licensor cannot revoke these freedoms as long as you follow the
+ license terms.
  .
- ✓ Attribution is not required. Giving credit to the contributor or
- Pixabay is not necessary but is always appreciated by our community.
+ Under the following terms:
  .
- ✓ You can make modifications to content from Pixabay.
+ Attribution — You must give appropriate credit, provide a link to the
+  license, and indicate if changes were made. You may do so in any
+  reasonable manner, but not in any way that suggests the licensor
+  endorses you or your use.
  .
- What is not allowed?
+ No Derivatives — If you remix, transform, or build upon the material,
+  you may not distribute the modified material.
  .
- This section only applies to image users and not to the appropriate
- image authors.
+ No additional restrictions — You may not apply legal terms or
+  technological measures that legally restrict others from doing
+  anything the license permits.
  .
- ✕ Don't redistribute or sell someone else's Pixabay images or videos
- on other stock or wallpaper platforms.
+ Notices:
  .
- ✕ Don't sell unaltered copies of an image. e.g. sell an exact copy of
- a stock photo as a poster, print or on a physical product.
+ You do not have to comply with the license for elements of the
+ material in the public domain or where your use is permitted by an
+ applicable exception or limitation.
  .
- ✕ Don't portray identifiable people in a bad light or in a way that
- is offensive.
- .
- ✕ Don't use images with identifiable brands to create a misleading
- association with a product or service.
+ No warranties are given. The license may not give you all of the
+ permissions necessary for your intended use. For example, other
+ rights such as publicity, privacy, or moral rights may limit how you
+ use the material.
 
 ------------------------------------------------------------------------------
 License: PersonalUseLicense-RoyaltyFreeLicense
@@ -1057,31 +1086,3 @@ Licence: OFL
  DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
  OTHER DEALINGS IN THE FONT SOFTWARE.
-
------------------------------------------------------------
-License: tension-donationware
- This Tension Type Free Font is free to use in any and all of your personal
- and commercial work.
- .
- A donation is much appreciated, but not necessary
- (donations may be done through PayPal to: mtension@gmail.com). No donation is too small.
- .
- You may install and use an unlimited number of copies of a Tension Type Free Font.
- .
- Reproduction and Distribution. You may reproduce and distribute an unlimited number
- of copies of a Tension Type Free Font; provided that each copy shall be a true and
- complete copy, including all copyright and trademark notices (if applicable), and
- shall be accompanied by a copy of this text file. Copies of the Font may not be
- distributed for profit either on a standalone basis or included as part of your own
- product unless by prior permission of Tension Type.
- .
- You may not rename, edit or create any derivative works from a Tension Type Free Font,
- other than subsetting when embedding them in documents unless you have permission from
- Tension Type.
- .
- Embedding a Tension Type Free Font in a PDF document and web pages is allowed.
- .
- Michael Tension and Tension Type are not responsible for any damage resulting
- from the use of this Tension Type Free Font.
-
-

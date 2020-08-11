@@ -45,6 +45,7 @@ from vedo.utils import *
 from vedo.colors import *
 import vedo.settings as settings
 import vedo.addons as addons
+from vedo.addons import Ruler, Goniometer, buildRulerAxes, buildAxes
 from vedo.settings import datadir, embedWindow
 
 # hack: need to uncomment this to generate documentation html
@@ -64,13 +65,6 @@ def alignICP(source, target, iters=100, rigid=False, invert=False, useCentroids=
     printc("Obsolete alignICP: Please use source.alignTo(target) instead",
                   c=1, box='-')
     return source.alignTo(target, iters, rigid, invert, useCentroids)
-
-def pcaEllipsoid(points, pvalue=0.95):
-    """Obsolete: Please use fitEllipsoid() instead."""
-    printc("Obsolete pcaEllipsoid: Please use fitEllipsoid() instead",
-                  c=1, box='-')
-    from vedo.mesh import fitEllipsoid
-    return fitEllipsoid(points, pvalue)
 
 def booleanOperation(mesh1, operation, mesh2):
     """Obsolete: Please use mesh1.boolean(operation, mesh2) instead."""

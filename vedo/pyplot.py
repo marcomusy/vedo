@@ -1603,8 +1603,7 @@ def _histogramHexBin(
             if c is None:
                 col = i
             h = Mesh(tf.GetOutput(), c=col, alpha=alpha).flat()
-            h.GetProperty().SetSpecular(0)
-            h.GetProperty().SetDiffuse(1)
+            h.lighting('plastic')
             h.PickableOff()
             hexs.append(h)
             if ne > binmax:
@@ -1772,7 +1771,8 @@ def _histogramPolar(
 
     for i,t in enumerate(thetas):
         if i < len(labels):
-            lab = shapes.Text(labels[i], (0, 0, 0), s=lsize, depth=0, justify="center")
+            lab = shapes.Text(labels[i], (0, 0, 0), #font="VTK",
+                              s=lsize, depth=0, justify="center")
             lab.pos(r2e *np.cos(t) * (1 + rgap) * lpos / 2,
                     r2e *np.sin(t) * (1 + rgap) * lpos / 2, 0.01)
             labs.append(lab)
@@ -1875,7 +1875,7 @@ def donut(
     angles = np.add.accumulate(2 * np.pi * fractions)
     angles[-1] = 2 * np.pi
     if angles[-2] > 2 * np.pi:
-        print("Error in donutPlot(): fractions must sum to 1.")
+        print("Error in donut(): fractions must sum to 1.")
         raise RuntimeError
 
     cols = []
@@ -2336,6 +2336,8 @@ class DirectedGraph(Assembly):
 
         self.gl = vtk.vtkGraphLayout()
 
+        self.font = kargs.pop('font', 'Normografo')
+
         s = kargs.pop('layout', '2d')
         if isinstance(s, int):
             ss = ['2d', 'fast2d', 'clustering2d', 'circular', 'circular3d',
@@ -2518,17 +2520,25 @@ class DirectedGraph(Assembly):
             arrows.name = "DirectedGraphArrows"
 
         nodeLabels = dgraph.labels(self._nodeLabels,
-                                   scale=self.nodeLabelScale,
-                                   precision=0)
+                                    scale=self.nodeLabelScale,
+                                    precision=0,
+                                    font=self.font,
+                                    )
         nodeLabels.color(self._c).pickable(True)
         nodeLabels.name = "DirectedGraphNodeLabels"
 
         edgeLabels = dgraph.labels(self._edgeLabels,
-                                   cells=True,
-                                   scale=self.edgeLabelScale,
-                                   precision=0)
+                                    cells=True,
+                                    scale=self.edgeLabelScale,
+                                    precision=0,
+                                    font=self.font,
+                                    )
         edgeLabels.color(self._c).pickable(True)
         edgeLabels.name = "DirectedGraphEdgeLabels"
+
+        # # if edgeLabels.N() == 0:
+        # edgeLabels = None
+        # exit()
 
         Assembly.__init__(self, [dgraph, nodeLabels, edgeLabels, arrows])
         self.name = "DirectedGraphAssembly"

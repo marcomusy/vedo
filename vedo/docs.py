@@ -34,7 +34,7 @@ def tips():
     from vedo import colors, __version__
     msg  = " ==========================================================\n"
     msg += "| Press: i     print info about selected object            |\n"
-    msg += "|              use arrows to reduce/increase opacity       |\n"
+    msg += "|        <-->  use arrows to reduce/increase opacity       |\n"
     msg += "|        w/s   toggle wireframe/surface style              |\n"
     msg += "|        p/P   change point size of vertices               |\n"
     msg += "|        l     toggle edges visibility                     |\n"
@@ -42,7 +42,7 @@ def tips():
     msg += "|        X     invoke a cutter widget tool                 |\n"
     msg += "|        1-2   change mesh color                           |\n"
     msg += "|        4     use data array as colors, if present        |\n"
-    msg += "|        5     change background color                     |\n"
+    msg += "|        5-6   change background color(s)                  |\n"
     msg += "|        0-9+  (on keypad) or + to change axes style       |\n"
     msg += "|        k     cycle available lighting styles             |\n"
     msg += "|        K     cycle available shading styles              |\n"
@@ -51,7 +51,7 @@ def tips():
     msg += "|        a     toggle interaction to Actor Mode            |\n"
     msg += "|        j     toggle interaction to Joystick Mode         |\n"
     msg += "|        r     reset camera position                       |\n"
-    msg += "|        C     print current camera info                   |\n"
+    msg += "|        C     print current camera settings               |\n"
     msg += "|        S     save a screenshot                           |\n"
     msg += "|        E     export rendering window to numpy file       |\n"
     msg += "|        q     return control to python script             |\n"
@@ -74,11 +74,12 @@ def tips():
         vtkVers = vtk.VTK_VERSION_NUMBER
     except AttributeError:
         vtkVers = vtk.vtkVersion().GetVTKVersion()
-    msg = "| vtk " + vtkVers
+    msg = "| vtk " + str(vtkVers)
     msg += " | python " + str(sys.version_info[0]) + "." + str(sys.version_info[1])
     colors.printc(msg, invert=0, dim=1)
 
-# example web page
+
+# example web page for X3D
 x3d_html = """
 <html>
 <head>

@@ -9,9 +9,9 @@ from vedo.volume import Volume
 from vedo import settings, printc, getColor, humansort, __version__
 from vedo import io, datadir, load
 import vedo.applications as applications
-from vedo.picture import Picture
-from vedo.shapes import Text2D
-from vedo.pointcloud import Point
+# from vedo.picture import Picture
+from vedo.shapes import Text2D, VedoLogo
+# from vedo.pointcloud import Point
 from vedo.docs import tips
 import sys, argparse, os, glob
 
@@ -262,13 +262,12 @@ def draw_scene():
 
             # if scene is empty just draw the logo
             if all(a is None for a in actors):
-                actors = [Picture(datadir+'images/vedo_small.png'),
-                          Point([175,50,1200], alpha=0),
-                          Text2D('..could not load file(s)', s=0.7, bg='y',
-                                 c='r', font='MonospaceTypewriter',
-                                 pos='bottom-center'),
+                actors = [VedoLogo(distance=6),
+                          Text2D('..could not load file(s)', s=0.8, bg='y',
+                                  c='r', font='BPmonoBold', pos='bottom-center'),
                           ]
                 vp.axes=0
+                vp.backgroundColor('w','bb')
 
             vp.show(actors, interactive=True, zoom=args.zoom)
         return
@@ -282,7 +281,7 @@ def draw_scene():
 
         acts = vp.load(args.files)
         for a in acts:
-            if hasattr(a, 'c'):
+            if hasattr(a, 'c'): #Picture doesnt have it
                 a.c(args.color)
             a.alpha(args.alpha)
 

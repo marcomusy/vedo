@@ -23,7 +23,6 @@ __all__ = ['Base3DProp',
            ]
 
 
-
 ###############################################################################
 # classes
 class Base3DProp(object):
@@ -51,6 +50,7 @@ class Base3DProp(object):
         self._legend = None
         self.renderedAt = set()
         self.transform = None
+        self._set2actcam = False
 
 
     def pickable(self, value=None):
@@ -486,6 +486,13 @@ class Base3DProp(object):
         a = buildAxes(self, **kargs)
         self.axes = a
         return a
+
+#    def delete(self):
+#        """
+#        """
+#        settings.collectable_actors.remove(self)
+#        del self
+
 
     def show(self, **options):
         """
@@ -1035,13 +1042,13 @@ class BaseActor(Base3DProp):
         sx=None,
         sy=None,
         title='',
-        titleFont="VTK",
+        titleFont="Normografo",
         titleXOffset = -1.5,
         titleYOffset = 0.0,
         titleSize =  1.5,
         titleRotation = 0.0,
         nlabels=9,
-        labelFont="VTK",
+        labelFont="Normografo",
         labelOffset = 0.375,
         italic=0,
         c=None,
@@ -1100,6 +1107,476 @@ class BaseActor(Base3DProp):
         """Write object to file."""
         import vedo.io as io
         return io.write(self, filename, binary)
+
+
+########################################################################################
+class BaseGrid(BaseActor):
+
+    def __init__(self):
+
+        BaseActor.__init__(self)
+
+        self._data = None
+        self.useCells = True
+        #-----------------------------------------------------------
+
+    def _update(self, data):
+        self._data = data
+        self._mapper.SetInputData(self.tomesh().polydata())
+        self._mapper.Modified()
+        return self
+
+    def tomesh(self, fill=True, shrink=1.0):
+        """
+        Build a polygonal Mesh from the current Grid object.
+
+        If fill=True, the interior faces of all the cells are created.
+        (setting a `shrink` value slightly smaller than the default 1.0
+        can avoid flickering due to internal adjacent faces).
+        If fill=False, only the boundary faces will be generated.
+        """
+        from vedo.mesh import Mesh
+        gf = vtk.vtkGeometryFilter()
+        if fill:
+            sf = vtk.vtkShrinkFilter()
+            sf.SetInputData(self._data)
+            sf.SetShrinkFactor(shrink)
+            sf.Update()
+            gf.SetInputData(sf.GetOutput())
+            gf.Update()
+        else:
+            gf.SetInputData(self._data)
+            gf.Update()
+        poly = gf.GetOutput()
+
+        msh = Mesh(poly).flat()
+        msh.scalarbar = self.scalarbar
+        lut = utils.ctf2lut(self)
+        if lut:
+            msh._mapper.SetLookupTable(lut)
+        if self.useCells:
+            msh._mapper.SetScalarModeToUseCellData()
+        else:
+            msh._mapper.SetScalarModeToUsePointData()
+        #msh._mapper.SetScalarRange(msh._mapper.GetScalarRange())
+        # print(msh._mapper.GetScalarRange(), lut.GetRange())
+        # msh._mapper.SetScalarRange()
+        # msh.selectCellArray('chem_0')
+        return msh
+
+    def points(self, pts=None, transformed=True, copy=False):
+        """
+        Set/Get the vertex coordinates of the mesh.
+        Argument can be an index, a set of indices
+        or a complete new set of points to update the mesh.
+
+        :param bool transformed: if `False` ignore any previous transformation
+            applied to the mesh.
+        :param bool copy: if `False` return the reference to the points
+            so that they can be modified in place, otherwise a copy is built.
+        """
+        if pts is None: ### getter
+
+            vpts = self._data.GetPoints()
+            if vpts:
+                if copy:
+                    return np.array(vtk_to_numpy(vpts.GetData()))
+                else:
+                    return vtk_to_numpy(vpts.GetData())
+            else:
+                return np.array([])
+
+        elif (utils.isSequence(pts) and not utils.isSequence(pts[0])) or isinstance(pts, (int, np.integer)):
+            #passing a list of indices or a single index
+            return vtk_to_numpy(self.polydata(transformed).GetPoints().GetData())[pts]
+
+        else:           ### setter
+
+            if len(pts) == 3 and len(pts[0]) != 3:
+                # assume plist is in the format [all_x, all_y, all_z]
+                pts = np.stack((pts[0], pts[1], pts[2]), axis=1)
+            vpts = self._data.GetPoints()
+            vpts.SetData(numpy_to_vtk(np.ascontiguousarray(pts), deep=True))
+            self._data.GetPoints().Modified()
+            # reset mesh to identity matrix position/rotation:
+            self.PokeMatrix(vtk.vtkMatrix4x4())
+            return self
+
+
+    def cells(self):
+        """
+        Get the cells connectivity ids as a numpy array.
+        The output format is: [[id0 ... idn], [id0 ... idm],  etc].
+        """
+        arr1d = vtk_to_numpy(self._data.GetCells().GetData())
+        if arr1d is None:
+            return []
+
+        #Get cell connettivity ids as a 1D array. vtk format is:
+        #[nids1, id0 ... idn, niids2, id0 ... idm,  etc].
+        i = 0
+        conn = []
+        n = len(arr1d)
+        if n:
+            while True:
+                cell = [arr1d[i+k] for k in range(1, arr1d[i]+1)]
+                conn.append(cell)
+                i += arr1d[i]+1
+                if i >= n:
+                    break
+        return conn
+
+
+    def color(self, col):
+        """
+        Assign a color or a set of colors along the range of the scalar value.
+        A single constant color can also be assigned.
+        Any matplotlib color map name is also accepted, e.g. ``volume.color('jet')``.
+
+        E.g.: say that your cells scalar runs from -3 to 6,
+        and you want -3 to show red and 1.5 violet and 6 green, then just set:
+
+        ``volume.color(['red', 'violet', 'green'])``
+        """
+        smin, smax = self._data.GetScalarRange()
+        ctf = self.GetProperty().GetRGBTransferFunction()
+        ctf.RemoveAllPoints()
+        self._color = col
+
+        if utils.isSequence(col):
+            for i, ci in enumerate(col):
+                r, g, b = colors.getColor(ci)
+                x = smin + (smax - smin) * i / (len(col) - 1)
+                ctf.AddRGBPoint(x, r, g, b)
+                #colors.printc('\tcolor at', round(x, 1),
+                #              '\tset to', colors.getColorName((r, g, b)), c='w', bold=0)
+        elif isinstance(col, str):
+            if col in colors.colors.keys() or col in colors.color_nicks.keys():
+                r, g, b = colors.getColor(col)
+                ctf.AddRGBPoint(smin, r,g,b) # constant color
+                ctf.AddRGBPoint(smax, r,g,b)
+            elif colors._mapscales:
+                for x in np.linspace(smin, smax, num=64, endpoint=True):
+                    r,g,b = colors.colorMap(x, name=col, vmin=smin, vmax=smax)
+                    ctf.AddRGBPoint(x, r, g, b)
+        elif isinstance(col, int):
+            r, g, b = colors.getColor(col)
+            ctf.AddRGBPoint(smin, r,g,b) # constant color
+            ctf.AddRGBPoint(smax, r,g,b)
+        else:
+            colors.printc("ugrid.color(): unknown input type:", col, c=1)
+        return self
+
+    def alpha(self, alpha):
+        """
+        Assign a set of tranparencies along the range of the scalar value.
+        A single constant value can also be assigned.
+
+        E.g.: say alpha=(0.0, 0.3, 0.9, 1) and the scalar range goes from -10 to 150.
+        Then all cells with a value close to -10 will be completely transparent, cells at 1/4
+        of the range will get an alpha equal to 0.3 and voxels with value close to 150
+        will be completely opaque.
+
+        As a second option one can set explicit (x, alpha_x) pairs to define the transfer function.
+        E.g.: say alpha=[(-5, 0), (35, 0.4) (123,0.9)] and the scalar range goes from -10 to 150.
+        Then all cells below -5 will be completely transparent, cells with a scalar value of 35
+        will get an opacity of 40% and above 123 alpha is set to 90%.
+        """
+        smin, smax = self._data.GetScalarRange()
+        otf = self.GetProperty().GetScalarOpacity()
+        otf.RemoveAllPoints()
+        self._alpha = alpha
+
+        if utils.isSequence(alpha):
+            alpha = np.array(alpha)
+            if len(alpha.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
+                for i, al in enumerate(alpha):
+                    xalpha = smin + (smax - smin) * i / (len(alpha) - 1)
+                    # Create transfer mapping scalar value to opacity
+                    otf.AddPoint(xalpha, al)
+            elif len(alpha.shape)==2: # user passing [(x0,alpha0), ...]
+                otf.AddPoint(smin, alpha[0][1])
+                for xalpha, al in alpha:
+                    # Create transfer mapping scalar value to opacity
+                    otf.AddPoint(xalpha, al)
+                otf.AddPoint(smax, alpha[-1][1])
+            #colors.printc("alpha at", round(xalpha, 1), "\tset to", al)
+
+        else:
+            otf.AddPoint(smin, alpha) # constant alpha
+            otf.AddPoint(smax, alpha)
+
+        return self
+
+    def alphaUnit(self, u=None):
+        """
+        Defines light attenuation per unit length. Default is 1.
+        The larger the unit length, the further light has to travel to attenuate the same amount.
+
+        E.g., if you set the unit distance to 0, you will get full opacity.
+        It means that when light travels 0 distance it's already attenuated a finite amount.
+        Thus, any finite distance should attenuate all light.
+        The larger you make the unit distance, the more transparent the rendering becomes.
+        """
+        if u is None:
+            return self.GetProperty().GetScalarOpacityUnitDistance()
+        else:
+            self.GetProperty().SetScalarOpacityUnitDistance(u)
+            return self
+
+
+    def shrink(self, fraction=0.8):
+        """Shrink the individual cells to improve visibility."""
+        sf = vtk.vtkShrinkFilter()
+        sf.SetInputData(self._data)
+        sf.SetShrinkFactor(fraction)
+        sf.Update()
+        return self._update(sf.GetOutput())
+
+    def isosurface(self, threshold=None, largest=False):
+        """Return an ``Mesh`` isosurface extracted from the ``Volume`` object.
+
+        :param float,list threshold: value or list of values to draw the isosurface(s)
+        :param bool largest: if True keep only the largest portion of the mesh
+
+        |isosurfaces| |isosurfaces.py|_
+        """
+        from vedo.mesh import Mesh
+        scrange = self._data.GetScalarRange()
+        cf = vtk.vtkContourFilter()
+        cf.SetInputData(self._data)
+        cf.UseScalarTreeOn()
+        cf.ComputeNormalsOn()
+
+        if utils.isSequence(threshold):
+            cf.SetNumberOfContours(len(threshold))
+            for i, t in enumerate(threshold):
+                cf.SetValue(i, t)
+        else:
+            if threshold is None:
+                threshold = (2 * scrange[0] + scrange[1]) / 3.0
+            cf.SetValue(0, threshold)
+
+        cf.Update()
+        poly = cf.GetOutput()
+
+        if largest:
+            conn = vtk.vtkPolyDataConnectivityFilter()
+            conn.SetExtractionModeToLargestRegion()
+            conn.SetInputData(poly)
+            conn.Update()
+            poly = conn.GetOutput()
+
+        a = Mesh(poly, c=None).phong()
+        a._mapper.SetScalarRange(scrange[0], scrange[1])
+        return a
+
+
+    def legosurface(self, vmin=None, vmax=None, invert=False, cmap='afmhot_r'):
+        """
+        Represent a ``Volume`` as lego blocks (voxels).
+        By default colors correspond to the volume's scalar.
+        Returns an ``Mesh``.
+
+        :param float vmin: the lower threshold, voxels below this value are not shown.
+        :param float vmax: the upper threshold, voxels above this value are not shown.
+        :param str cmap: color mapping of the scalar associated to the voxels.
+
+        |legosurface| |legosurface.py|_
+        """
+        from vedo.mesh import Mesh
+        dataset = vtk.vtkImplicitDataSet()
+        dataset.SetDataSet(self._data)
+        window = vtk.vtkImplicitWindowFunction()
+        window.SetImplicitFunction(dataset)
+
+        srng = list(self._data.GetScalarRange())
+        if vmin is not None:
+            srng[0] = vmin
+        if vmax is not None:
+            srng[1] = vmax
+        tol = 0.00001*(srng[1]-srng[0])
+        srng[0] -= tol
+        srng[1] += tol
+        window.SetWindowRange(srng)
+
+        extract = vtk.vtkExtractGeometry()
+        extract.SetInputData(self._data)
+        extract.SetImplicitFunction(window)
+        extract.SetExtractInside(invert)
+        extract.ExtractBoundaryCellsOff()
+        extract.Update()
+
+        gf = vtk.vtkGeometryFilter()
+        gf.SetInputData(extract.GetOutput())
+        gf.Update()
+
+        a = Mesh(gf.GetOutput()).lw(0.1).flat()
+        scalars = a.getPointArray()
+        if scalars is None:
+            print("Error in legosurface(): no scalars found!")
+            return a
+        a.cmap(cmap, scalars, vmin=srng[0], vmax=srng[1])
+        a.mapPointsToCells()
+        return a
+
+
+    def cutWithPlane(self, origin=(0,0,0), normal=(1,0,0)):
+        """
+        Cut the mesh with the plane defined by a point and a normal.
+
+        :param origin: the cutting plane goes through this point
+        :param normal: normal of the cutting plane
+        """
+        strn = str(normal)
+        if strn   ==  "x": normal = (1, 0, 0)
+        elif strn ==  "y": normal = (0, 1, 0)
+        elif strn ==  "z": normal = (0, 0, 1)
+        elif strn == "-x": normal = (-1, 0, 0)
+        elif strn == "-y": normal = (0, -1, 0)
+        elif strn == "-z": normal = (0, 0, -1)
+        plane = vtk.vtkPlane()
+        plane.SetOrigin(origin)
+        plane.SetNormal(normal)
+        clipper = vtk.vtkClipDataSet()
+        clipper.SetInputData(self._data)
+        clipper.SetClipFunction(plane)
+        clipper.GenerateClipScalarsOff()
+        clipper.GenerateClippedOutputOff()
+        clipper.SetValue(0)
+        clipper.Update()
+        cout = clipper.GetOutput()
+        return self._update(cout)
+
+
+    def cutWithBoundingBox(self, box):
+        """
+        Cut the grid with the specified bounding box.
+
+        Parameter box has format [xmin, xmax, ymin, ymax, zmin, zmax].
+        If a Mesh is passed, its bounding box is used.
+
+        Example:
+
+            .. code-block:: python
+
+                from vedo import *
+                tetmesh = TetMesh(datadir+'limb_ugrid.vtk')
+                tetmesh.color('rainbow')
+                cu = Cube(side=500).x(500) # any Mesh works
+                tetmesh.cutWithBox(cu).show(axes=1)
+        """
+        bc = vtk.vtkBoxClipDataSet()
+        bc.SetInputData(self._data)
+        if isinstance(box, vtk.vtkProp):
+            box = box.GetBounds()
+        bc.SetBoxClip(*box)
+        bc.Update()
+        cout = bc.GetOutput()
+        return self._update(cout)
+
+
+    def cutWithMesh(self, mesh, invert=False, wholeCells=False, onlyBoundary=False):
+        """
+        Cut a UGrid, TetMesh or Volume mesh with a Mesh.
+
+        :param bool invert: if True return cut off part of the input TetMesh.
+        """
+        polymesh = mesh.polydata()
+        ug = self._data
+
+        ippd = vtk.vtkImplicitPolyDataDistance()
+        ippd.SetInput(polymesh)
+
+        if wholeCells or onlyBoundary:
+            clipper = vtk.vtkExtractGeometry()
+            clipper.SetInputData(ug)
+            clipper.SetImplicitFunction(ippd)
+            clipper.SetExtractInside(not invert)
+            clipper.SetExtractBoundaryCells(False)
+            if onlyBoundary:
+                clipper.SetExtractBoundaryCells(True)
+                clipper.SetExtractOnlyBoundaryCells(True)
+        else:
+            signedDistances = vtk.vtkFloatArray()
+            signedDistances.SetNumberOfComponents(1)
+            signedDistances.SetName("SignedDistances")
+            for pointId in range(ug.GetNumberOfPoints()):
+                p = ug.GetPoint(pointId)
+                signedDistance = ippd.EvaluateFunction(p)
+                signedDistances.InsertNextValue(signedDistance)
+            ug.GetPointData().SetScalars(signedDistances)
+            clipper = vtk.vtkClipDataSet()
+            clipper.SetInputData(ug)
+            clipper.SetInsideOut(not invert)
+            clipper.SetValue(0.0)
+
+        clipper.Update()
+        cug = clipper.GetOutput()
+
+        if ug.GetCellData().GetScalars(): # not working
+            scalname = ug.GetCellData().GetScalars().GetName()
+            if scalname: # not working
+                if self.useCells:
+                    self.selectCellArray(scalname)
+                else:
+                    self.selectPointArray(scalname)
+
+        self._update(cug)
+        return self
+
+
+    def tetralize(self, tetsOnly=True):
+        """Tetralize the grid.
+        If tetsOnly=True will cull all 1D and 2D cells from the output.
+
+        Return a TetMesh.
+
+        Example:
+
+            .. code-block:: python
+
+                from vedo import *
+                ug = loadUnStructuredGrid(datadir+'ugrid.vtk')
+                tmesh = tetralize(ug)
+                tmesh.write('ugrid.vtu').show(axes=1)
+        """
+        from vedo.tetmesh import tetralize
+        return tetralize(self._data, tetsOnly)
+
+
+    def extractCellsByID(self, idlist, usePointIDs=False):
+        """Return a new UGrid composed of the specified subset of indices."""
+        from vedo.ugrid import UGrid
+        selectionNode = vtk.vtkSelectionNode()
+        if usePointIDs:
+            selectionNode.SetFieldType(vtk.vtkSelectionNode.POINT)
+            contcells = vtk.vtkSelectionNode.CONTAINING_CELLS()
+            selectionNode.GetProperties().Set(contcells, 1)
+        else:
+            selectionNode.SetFieldType(vtk.vtkSelectionNode.CELL)
+        selectionNode.SetContentType(vtk.vtkSelectionNode.INDICES)
+        vidlist = numpy_to_vtkIdTypeArray(np.array(idlist).astype(np.int64))
+        selectionNode.SetSelectionList(vidlist)
+        selection = vtk.vtkSelection()
+        selection.AddNode(selectionNode)
+        es = vtk.vtkExtractSelection()
+        es.SetInputData(0, self._data)
+        es.SetInputData(1, selection)
+        es.Update()
+        tm_sel = UGrid(es.GetOutput())
+        pr = vtk.vtkProperty()
+        pr.DeepCopy(self.GetProperty())
+        tm_sel.SetProperty(pr)
+
+        #assign the same transformation to the copy
+        tm_sel.SetOrigin(self.GetOrigin())
+        tm_sel.SetScale(self.GetScale())
+        tm_sel.SetOrientation(self.GetOrientation())
+        tm_sel.SetPosition(self.GetPosition())
+        tm_sel._mapper.SetLookupTable(utils.ctf2lut(self))
+        return tm_sel
+
 
 
 ############################################################################### funcs
@@ -1461,474 +1938,6 @@ def streamLines(domain, probe,
         sta.mapper().SetScalarRange(scalarRange)
     return sta
 
-class BaseGrid(BaseActor):
-    """
-    """
-    def __init__(self):
-
-        BaseActor.__init__(self)
-
-        self._data = None
-        self.useCells = True
-        #-----------------------------------------------------------
-
-    def _update(self, data):
-        self._data = data
-        self._mapper.SetInputData(self.tomesh().polydata())
-        self._mapper.Modified()
-        return self
-
-    def tomesh(self, fill=True, shrink=1.0):
-        """
-        Build a polygonal Mesh from the current Grid object.
-
-        If fill=True, the interior faces of all the cells are created.
-        (setting a `shrink` value slightly smaller than the default 1.0
-        can avoid flickering due to internal adjacent faces).
-        If fill=False, only the boundary faces will be generated.
-        """
-        from vedo.mesh import Mesh
-        gf = vtk.vtkGeometryFilter()
-        if fill:
-            sf = vtk.vtkShrinkFilter()
-            sf.SetInputData(self._data)
-            sf.SetShrinkFactor(shrink)
-            sf.Update()
-            gf.SetInputData(sf.GetOutput())
-            gf.Update()
-        else:
-            gf.SetInputData(self._data)
-            gf.Update()
-        poly = gf.GetOutput()
-
-        msh = Mesh(poly).flat()
-        msh.scalarbar = self.scalarbar
-        lut = utils.ctf2lut(self)
-        if lut:
-            msh._mapper.SetLookupTable(lut)
-        if self.useCells:
-            msh._mapper.SetScalarModeToUseCellData()
-        else:
-            msh._mapper.SetScalarModeToUsePointData()
-        #msh._mapper.SetScalarRange(msh._mapper.GetScalarRange())
-        # print(msh._mapper.GetScalarRange(), lut.GetRange())
-        # msh._mapper.SetScalarRange()
-        # msh.selectCellArray('chem_0')
-        return msh
-
-    def points(self, pts=None, transformed=True, copy=False):
-        """
-        Set/Get the vertex coordinates of the mesh.
-        Argument can be an index, a set of indices
-        or a complete new set of points to update the mesh.
-
-        :param bool transformed: if `False` ignore any previous transformation
-            applied to the mesh.
-        :param bool copy: if `False` return the reference to the points
-            so that they can be modified in place, otherwise a copy is built.
-        """
-        if pts is None: ### getter
-
-            vpts = self._data.GetPoints()
-            if vpts:
-                if copy:
-                    return np.array(vtk_to_numpy(vpts.GetData()))
-                else:
-                    return vtk_to_numpy(vpts.GetData())
-            else:
-                return np.array([])
-
-        elif (utils.isSequence(pts) and not utils.isSequence(pts[0])) or isinstance(pts, (int, np.integer)):
-            #passing a list of indices or a single index
-            return vtk_to_numpy(self.polydata(transformed).GetPoints().GetData())[pts]
-
-        else:           ### setter
-
-            if len(pts) == 3 and len(pts[0]) != 3:
-                # assume plist is in the format [all_x, all_y, all_z]
-                pts = np.stack((pts[0], pts[1], pts[2]), axis=1)
-            vpts = self._data.GetPoints()
-            vpts.SetData(numpy_to_vtk(np.ascontiguousarray(pts), deep=True))
-            self._data.GetPoints().Modified()
-            # reset mesh to identity matrix position/rotation:
-            self.PokeMatrix(vtk.vtkMatrix4x4())
-            return self
-
-
-    def cells(self):
-        """
-        Get the cells connectivity ids as a numpy array.
-        The output format is: [[id0 ... idn], [id0 ... idm],  etc].
-        """
-        arr1d = vtk_to_numpy(self._data.GetCells().GetData())
-        if arr1d is None:
-            return []
-
-        #Get cell connettivity ids as a 1D array. vtk format is:
-        #[nids1, id0 ... idn, niids2, id0 ... idm,  etc].
-        i = 0
-        conn = []
-        n = len(arr1d)
-        if n:
-            while True:
-                cell = [arr1d[i+k] for k in range(1, arr1d[i]+1)]
-                conn.append(cell)
-                i += arr1d[i]+1
-                if i >= n:
-                    break
-        return conn
-
-
-    def color(self, col):
-        """
-        Assign a color or a set of colors along the range of the scalar value.
-        A single constant color can also be assigned.
-        Any matplotlib color map name is also accepted, e.g. ``volume.color('jet')``.
-
-        E.g.: say that your cells scalar runs from -3 to 6,
-        and you want -3 to show red and 1.5 violet and 6 green, then just set:
-
-        ``volume.color(['red', 'violet', 'green'])``
-        """
-        smin, smax = self._data.GetScalarRange()
-        ctf = self.GetProperty().GetRGBTransferFunction()
-        ctf.RemoveAllPoints()
-        self._color = col
-
-        if utils.isSequence(col):
-            for i, ci in enumerate(col):
-                r, g, b = colors.getColor(ci)
-                x = smin + (smax - smin) * i / (len(col) - 1)
-                ctf.AddRGBPoint(x, r, g, b)
-                #colors.printc('\tcolor at', round(x, 1),
-                #              '\tset to', colors.getColorName((r, g, b)), c='w', bold=0)
-        elif isinstance(col, str):
-            if col in colors.colors.keys() or col in colors.color_nicks.keys():
-                r, g, b = colors.getColor(col)
-                ctf.AddRGBPoint(smin, r,g,b) # constant color
-                ctf.AddRGBPoint(smax, r,g,b)
-            elif colors._mapscales:
-                for x in np.linspace(smin, smax, num=64, endpoint=True):
-                    r,g,b = colors.colorMap(x, name=col, vmin=smin, vmax=smax)
-                    ctf.AddRGBPoint(x, r, g, b)
-        elif isinstance(col, int):
-            r, g, b = colors.getColor(col)
-            ctf.AddRGBPoint(smin, r,g,b) # constant color
-            ctf.AddRGBPoint(smax, r,g,b)
-        else:
-            colors.printc("volume.color(): unknown input type:", col, c=1)
-        return self
-
-    def alpha(self, alpha):
-        """
-        Assign a set of tranparencies along the range of the scalar value.
-        A single constant value can also be assigned.
-
-        E.g.: say alpha=(0.0, 0.3, 0.9, 1) and the scalar range goes from -10 to 150.
-        Then all cells with a value close to -10 will be completely transparent, cells at 1/4
-        of the range will get an alpha equal to 0.3 and voxels with value close to 150
-        will be completely opaque.
-
-        As a second option one can set explicit (x, alpha_x) pairs to define the transfer function.
-        E.g.: say alpha=[(-5, 0), (35, 0.4) (123,0.9)] and the scalar range goes from -10 to 150.
-        Then all cells below -5 will be completely transparent, cells with a scalar value of 35
-        will get an opacity of 40% and above 123 alpha is set to 90%.
-        """
-        smin, smax = self._data.GetScalarRange()
-        otf = self.GetProperty().GetScalarOpacity()
-        otf.RemoveAllPoints()
-        self._alpha = alpha
-
-        if utils.isSequence(alpha):
-            alpha = np.array(alpha)
-            if len(alpha.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
-                for i, al in enumerate(alpha):
-                    xalpha = smin + (smax - smin) * i / (len(alpha) - 1)
-                    # Create transfer mapping scalar value to opacity
-                    otf.AddPoint(xalpha, al)
-            elif len(alpha.shape)==2: # user passing [(x0,alpha0), ...]
-                otf.AddPoint(smin, alpha[0][1])
-                for xalpha, al in alpha:
-                    # Create transfer mapping scalar value to opacity
-                    otf.AddPoint(xalpha, al)
-                otf.AddPoint(smax, alpha[-1][1])
-            #colors.printc("alpha at", round(xalpha, 1), "\tset to", al)
-
-        else:
-            otf.AddPoint(smin, alpha) # constant alpha
-            otf.AddPoint(smax, alpha)
-
-        return self
-
-    def alphaUnit(self, u=None):
-        """
-        Defines light attenuation per unit length. Default is 1.
-        The larger the unit length, the further light has to travel to attenuate the same amount.
-
-        E.g., if you set the unit distance to 0, you will get full opacity.
-        It means that when light travels 0 distance it's already attenuated a finite amount.
-        Thus, any finite distance should attenuate all light.
-        The larger you make the unit distance, the more transparent the rendering becomes.
-        """
-        if u is None:
-            return self.GetProperty().GetScalarOpacityUnitDistance()
-        else:
-            self.GetProperty().SetScalarOpacityUnitDistance(u)
-            return self
-
-
-    def shrink(self, fraction=0.8):
-        """Shrink the individual cells to improve visibility."""
-        sf = vtk.vtkShrinkFilter()
-        sf.SetInputData(self._data)
-        sf.SetShrinkFactor(fraction)
-        sf.Update()
-        return self._update(sf.GetOutput())
-
-    def isosurface(self, threshold=None, largest=False):
-        """Return an ``Mesh`` isosurface extracted from the ``Volume`` object.
-
-        :param float,list threshold: value or list of values to draw the isosurface(s)
-        :param bool largest: if True keep only the largest portion of the mesh
-
-        |isosurfaces| |isosurfaces.py|_
-        """
-        from vedo.mesh import Mesh
-        scrange = self._data.GetScalarRange()
-        cf = vtk.vtkContourFilter()
-        cf.SetInputData(self._data)
-        cf.UseScalarTreeOn()
-        cf.ComputeNormalsOn()
-
-        if utils.isSequence(threshold):
-            cf.SetNumberOfContours(len(threshold))
-            for i, t in enumerate(threshold):
-                cf.SetValue(i, t)
-        else:
-            if threshold is None:
-                threshold = (2 * scrange[0] + scrange[1]) / 3.0
-            cf.SetValue(0, threshold)
-
-        cf.Update()
-        poly = cf.GetOutput()
-
-        if largest:
-            conn = vtk.vtkPolyDataConnectivityFilter()
-            conn.SetExtractionModeToLargestRegion()
-            conn.SetInputData(poly)
-            conn.Update()
-            poly = conn.GetOutput()
-
-        a = Mesh(poly, c=None).phong()
-        a._mapper.SetScalarRange(scrange[0], scrange[1])
-        return a
-
-
-    def legosurface(self, vmin=None, vmax=None, invert=False, cmap='afmhot_r'):
-        """
-        Represent a ``Volume`` as lego blocks (voxels).
-        By default colors correspond to the volume's scalar.
-        Returns an ``Mesh``.
-
-        :param float vmin: the lower threshold, voxels below this value are not shown.
-        :param float vmax: the upper threshold, voxels above this value are not shown.
-        :param str cmap: color mapping of the scalar associated to the voxels.
-
-        |legosurface| |legosurface.py|_
-        """
-        from vedo.mesh import Mesh
-        dataset = vtk.vtkImplicitDataSet()
-        dataset.SetDataSet(self._data)
-        window = vtk.vtkImplicitWindowFunction()
-        window.SetImplicitFunction(dataset)
-
-        srng = list(self._data.GetScalarRange())
-        if vmin is not None:
-            srng[0] = vmin
-        if vmax is not None:
-            srng[1] = vmax
-        tol = 0.00001*(srng[1]-srng[0])
-        srng[0] -= tol
-        srng[1] += tol
-        window.SetWindowRange(srng)
-
-        extract = vtk.vtkExtractGeometry()
-        extract.SetInputData(self._data)
-        extract.SetImplicitFunction(window)
-        extract.SetExtractInside(invert)
-        extract.ExtractBoundaryCellsOff()
-        extract.Update()
-
-        gf = vtk.vtkGeometryFilter()
-        gf.SetInputData(extract.GetOutput())
-        gf.Update()
-
-        a = Mesh(gf.GetOutput()).lw(0.1).flat()
-        scalars = a.getPointArray()
-        if scalars is None:
-            print("Error in legosurface(): no scalars found!")
-            return a
-        a.cmap(cmap, scalars, vmin=srng[0], vmax=srng[1])
-        a.mapPointsToCells()
-        return a
-
-
-    def cutWithPlane(self, origin=(0,0,0), normal=(1,0,0)):
-        """
-        Cut the mesh with the plane defined by a point and a normal.
-
-        :param origin: the cutting plane goes through this point
-        :param normal: normal of the cutting plane
-        """
-        strn = str(normal)
-        if strn   ==  "x": normal = (1, 0, 0)
-        elif strn ==  "y": normal = (0, 1, 0)
-        elif strn ==  "z": normal = (0, 0, 1)
-        elif strn == "-x": normal = (-1, 0, 0)
-        elif strn == "-y": normal = (0, -1, 0)
-        elif strn == "-z": normal = (0, 0, -1)
-        plane = vtk.vtkPlane()
-        plane.SetOrigin(origin)
-        plane.SetNormal(normal)
-        clipper = vtk.vtkClipDataSet()
-        clipper.SetInputData(self._data)
-        clipper.SetClipFunction(plane)
-        clipper.GenerateClipScalarsOff()
-        clipper.GenerateClippedOutputOff()
-        clipper.SetValue(0)
-        clipper.Update()
-        cout = clipper.GetOutput()
-        return self._update(cout)
-
-
-    def cutWithBoundingBox(self, box):
-        """
-        Cut the grid with the specified bounding box.
-
-        Parameter box has format [xmin, xmax, ymin, ymax, zmin, zmax].
-        If a Mesh is passed, its bounding box is used.
-
-        Example:
-
-            .. code-block:: python
-
-                from vedo import *
-                tetmesh = TetMesh(datadir+'limb_ugrid.vtk')
-                tetmesh.color('rainbow')
-                cu = Cube(side=500).x(500) # any Mesh works
-                tetmesh.cutWithBox(cu).show(axes=1)
-        """
-        bc = vtk.vtkBoxClipDataSet()
-        bc.SetInputData(self._data)
-        if isinstance(box, vtk.vtkProp):
-            box = box.GetBounds()
-        bc.SetBoxClip(*box)
-        bc.Update()
-        cout = bc.GetOutput()
-        return self._update(cout)
-
-
-    def cutWithMesh(self, mesh, invert=False, wholeCells=False, onlyBoundary=False):
-        """
-        Cut a UGrid, TetMesh or Volume mesh with a Mesh.
-
-        :param bool invert: if True return cut off part of the input TetMesh.
-        """
-        polymesh = mesh.polydata()
-        ug = self._data
-
-        ippd = vtk.vtkImplicitPolyDataDistance()
-        ippd.SetInput(polymesh)
-
-        if wholeCells or onlyBoundary:
-            clipper = vtk.vtkExtractGeometry()
-            clipper.SetInputData(ug)
-            clipper.SetImplicitFunction(ippd)
-            clipper.SetExtractInside(not invert)
-            clipper.SetExtractBoundaryCells(False)
-            if onlyBoundary:
-                clipper.SetExtractBoundaryCells(True)
-                clipper.SetExtractOnlyBoundaryCells(True)
-        else:
-            signedDistances = vtk.vtkFloatArray()
-            signedDistances.SetNumberOfComponents(1)
-            signedDistances.SetName("SignedDistances")
-            for pointId in range(ug.GetNumberOfPoints()):
-                p = ug.GetPoint(pointId)
-                signedDistance = ippd.EvaluateFunction(p)
-                signedDistances.InsertNextValue(signedDistance)
-            ug.GetPointData().SetScalars(signedDistances)
-            clipper = vtk.vtkClipDataSet()
-            clipper.SetInputData(ug)
-            clipper.SetInsideOut(not invert)
-            clipper.SetValue(0.0)
-
-        clipper.Update()
-        cug = clipper.GetOutput()
-
-        if ug.GetCellData().GetScalars(): # not working
-            scalname = ug.GetCellData().GetScalars().GetName()
-            if scalname: # not working
-                if self.useCells:
-                    self.selectCellArray(scalname)
-                else:
-                    self.selectPointArray(scalname)
-
-        self._update(cug)
-        return self
-
-
-    def tetralize(self, tetsOnly=True):
-        """Tetralize the grid.
-        If tetsOnly=True will cull all 1D and 2D cells from the output.
-
-        Return a TetMesh.
-
-        Example:
-
-            .. code-block:: python
-
-                from vedo import *
-                ug = loadUnStructuredGrid(datadir+'ugrid.vtk')
-                tmesh = tetralize(ug)
-                tmesh.write('ugrid.vtu').show(axes=1)
-        """
-        from vedo.tetmesh import tetralize
-        return tetralize(self._data, tetsOnly)
-
-
-    def extractCellsByID(self, idlist, usePointIDs=False):
-        """Return a new UGrid composed of the specified subset of indices."""
-        from vedo.ugrid import UGrid
-        selectionNode = vtk.vtkSelectionNode()
-        if usePointIDs:
-            selectionNode.SetFieldType(vtk.vtkSelectionNode.POINT)
-            contcells = vtk.vtkSelectionNode.CONTAINING_CELLS()
-            selectionNode.GetProperties().Set(contcells, 1)
-        else:
-            selectionNode.SetFieldType(vtk.vtkSelectionNode.CELL)
-        selectionNode.SetContentType(vtk.vtkSelectionNode.INDICES)
-        vidlist = numpy_to_vtkIdTypeArray(np.array(idlist).astype(np.int64))
-        selectionNode.SetSelectionList(vidlist)
-        selection = vtk.vtkSelection()
-        selection.AddNode(selectionNode)
-        es = vtk.vtkExtractSelection()
-        es.SetInputData(0, self._data)
-        es.SetInputData(1, selection)
-        es.Update()
-        tm_sel = UGrid(es.GetOutput())
-        pr = vtk.vtkProperty()
-        pr.DeepCopy(self.GetProperty())
-        tm_sel.SetProperty(pr)
-
-        #assign the same transformation to the copy
-        tm_sel.SetOrigin(self.GetOrigin())
-        tm_sel.SetScale(self.GetScale())
-        tm_sel.SetOrientation(self.GetOrientation())
-        tm_sel.SetPosition(self.GetPosition())
-        tm_sel._mapper.SetLookupTable(utils.ctf2lut(self))
-        return tm_sel
-
 
 
 ###################################################################################
@@ -1944,5 +1953,3 @@ class BaseGrid(BaseActor):
 #         ef.AddCellType(ct)
 #     ef.Update()
 #     return Mesh(ef.GetOutput())
-
-

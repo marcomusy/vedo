@@ -220,7 +220,6 @@ def signedDistanceFromPointCloud(mesh, maxradius=None, bounds=None, dims=(20,20,
     return vol
 
 
-
 ##########################################################################
 class Volume(vtk.vtkVolume, BaseGrid):
     """Derived class of ``vtkVolume``.
@@ -482,8 +481,10 @@ class Volume(vtk.vtkVolume, BaseGrid):
         else:
             return np.array(self._data.GetSpacing())
 
-    def origin(self, s=None):                                ### superseedes base.origin()
-        """Set/get the origin of the volumetric dataset.""" ### DIFFERENT from base.origin()!
+    def origin(self, s=None):
+        """Set/get the origin of the volumetric dataset."""
+        ### superseedes base.origin()
+        ### DIFFERENT from base.origin()!
         if s is not None:
             self._data.SetOrigin(s)
             return self
@@ -533,85 +534,6 @@ class Volume(vtk.vtkVolume, BaseGrid):
         return self._update(rsp.GetOutput())
 
 
-    # def color(self, col):
-    #     """Assign a color or a set of colors to a volume along the range of the scalar value.
-    #     A single constant color can also be assigned.
-    #     Any matplotlib color map name is also accepted, e.g. ``volume.color('jet')``.
-
-    #     E.g.: say that your voxel scalar runs from -3 to 6,
-    #     and you want -3 to show red and 1.5 violet and 6 green, then just set:
-
-    #     ``volume.color(['red', 'violet', 'green'])``
-    #     """
-    #     smin, smax = self._data.GetScalarRange()
-    #     ctf = self.GetProperty().GetRGBTransferFunction()
-    #     ctf.RemoveAllPoints()
-    #     self._color = col
-
-    #     if utils.isSequence(col):
-    #         for i, ci in enumerate(col):
-    #             r, g, b = colors.getColor(ci)
-    #             x = smin + (smax - smin) * i / (len(col) - 1)
-    #             ctf.AddRGBPoint(x, r, g, b)
-    #             #colors.printc('\tcolor at', round(x, 1),
-    #             #              '\tset to', colors.getColorName((r, g, b)), c='w', bold=0)
-    #     elif isinstance(col, str):
-    #         if col in colors.colors.keys() or col in colors.color_nicks.keys():
-    #             r, g, b = colors.getColor(col)
-    #             ctf.AddRGBPoint(smin, r,g,b) # constant color
-    #             ctf.AddRGBPoint(smax, r,g,b)
-    #         elif colors._mapscales:
-    #             for x in np.linspace(smin, smax, num=64, endpoint=True):
-    #                 r,g,b = colors.colorMap(x, name=col, vmin=smin, vmax=smax)
-    #                 ctf.AddRGBPoint(x, r, g, b)
-    #     elif isinstance(col, int):
-    #         r, g, b = colors.getColor(col)
-    #         ctf.AddRGBPoint(smin, r,g,b) # constant color
-    #         ctf.AddRGBPoint(smax, r,g,b)
-    #     else:
-    #         colors.printc("volume.color(): unknown input type:", col, c=1)
-    #     return self
-
-    # def alpha(self, alpha):
-    #     """Assign a set of tranparencies to a volume along the range of the scalar value.
-    #     A single constant value can also be assigned.
-
-    #     E.g.: say alpha=(0.0, 0.3, 0.9, 1) and the scalar range goes from -10 to 150.
-    #     Then all voxels with a value close to -10 will be completely transparent, voxels at 1/4
-    #     of the range will get an alpha equal to 0.3 and voxels with value close to 150
-    #     will be completely opaque.
-
-    #     As a second option one can set explicit (x, alpha_x) pairs to define the transfer function.
-    #     E.g.: say alpha=[(-5, 0), (35, 0.4) (123,0.9)] and the scalar range goes from -10 to 150.
-    #     Then all voxels below -5 will be completely transparent, voxels with a scalar value of 35
-    #     will get an opacity of 40% and above 123 alpha is set to 90%.
-    #     """
-    #     smin, smax = self._data.GetScalarRange()
-    #     otf = self.GetProperty().GetScalarOpacity()
-    #     otf.RemoveAllPoints()
-    #     self._alpha = alpha
-
-    #     if utils.isSequence(alpha):
-    #         alpha = np.array(alpha)
-    #         if len(alpha.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
-    #             for i, al in enumerate(alpha):
-    #                 xalpha = smin + (smax - smin) * i / (len(alpha) - 1)
-    #                 # Create transfer mapping scalar value to opacity
-    #                 otf.AddPoint(xalpha, al)
-    #         elif len(alpha.shape)==2: # user passing [(x0,alpha0), ...]
-    #             otf.AddPoint(smin, alpha[0][1])
-    #             for xalpha, al in alpha:
-    #                 # Create transfer mapping scalar value to opacity
-    #                 otf.AddPoint(xalpha, al)
-    #             otf.AddPoint(smax, alpha[-1][1])
-    #         #colors.printc("alpha at", round(xalpha, 1), "\tset to", al)
-
-    #     else:
-    #         otf.AddPoint(smin, alpha) # constant alpha
-    #         otf.AddPoint(smax, alpha)
-
-    #     return self
-
     def alphaGradient(self, alphaGrad):
         """
         Assign a set of tranparencies to a volume's gradient
@@ -655,21 +577,6 @@ class Volume(vtk.vtkVolume, BaseGrid):
             gotf.AddPoint(smin, alphaGrad) # constant alphaGrad
             gotf.AddPoint(smax, alphaGrad)
         return self
-
-    # def alphaUnit(self, u=None):
-    #     """Defines light attenuation per unit length. Default is 1.
-    #     The larger the unit length, the further light has to travel to attenuate the same amount.
-
-    #     E.g., if you set the unit distance to 0, you will get full opacity.
-    #     It means that when light travels 0 distance it's already attenuated a finite amount.
-    #     Thus, any finite distance should attenuate all light.
-    #     The larger you make the unit distance, the more transparent the rendering becomes.
-    #     """
-    #     if u is None:
-    #         return self.GetProperty().GetScalarOpacityUnitDistance()
-    #     else:
-    #         self.GetProperty().SetScalarOpacityUnitDistance(u)
-    #         return self
 
     def interpolation(self, itype):
         """
@@ -720,17 +627,19 @@ class Volume(vtk.vtkVolume, BaseGrid):
         return self._update(th.GetOutput())
 
     def crop(self,
-             top=None, bottom=None,
-             right=None, left=None,
-             front=None, back=None, VOI=()):
+             left=None, right=None,
+             back=None, front=None,
+             bottom=None, top=None,
+             VOI=()
+            ):
         """Crop a ``Volume`` object.
 
-        :param float top:    fraction to crop from the top plane (positive z)
-        :param float bottom: fraction to crop from the bottom plane (negative z)
-        :param float front:  fraction to crop from the front plane (positive y)
-        :param float back:   fraction to crop from the back plane (negative y)
-        :param float right:  fraction to crop from the right plane (positive x)
         :param float left:   fraction to crop from the left plane (negative x)
+        :param float right:  fraction to crop from the right plane (positive x)
+        :param float back:   fraction to crop from the back plane (negative y)
+        :param float front:  fraction to crop from the front plane (positive y)
+        :param float bottom: fraction to crop from the bottom plane (negative z)
+        :param float top:    fraction to crop from the top plane (positive z)
         :param list VOI:     extract Volume Of Interest expressed in voxel numbers
 
             Eg.: vol.crop(VOI=(xmin, xmax, ymin, ymax, zmin, zmax)) # all integers nrs
@@ -1032,8 +941,8 @@ class Volume(vtk.vtkVolume, BaseGrid):
         """
         Low-pass and high-pass filtering become trivial in the frequency domain.
         A portion of the pixels/voxels are simply masked or attenuated.
-        This function applies a high pass Butterworth filter that attenuates the frequency domain
-        image with the function
+        This function applies a high pass Butterworth filter that attenuates the
+        frequency domain image with the function
 
         |G_Of_Omega|
 
@@ -1058,7 +967,7 @@ class Volume(vtk.vtkVolume, BaseGrid):
         if highcutoff:
             butterworthLowPass = vtk.vtkImageButterworthLowPass()
             butterworthLowPass.SetInputData(out)
-            butterworthLowPass.SetCutOff(highcutoff) # actually inverted..(?)
+            butterworthLowPass.SetCutOff(highcutoff)
             butterworthLowPass.SetOrder(order)
             butterworthLowPass.Update()
             out = butterworthLowPass.GetOutput()

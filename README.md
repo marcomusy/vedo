@@ -29,12 +29,12 @@ in a program, whilst mantaining access to the full range of VTK native classes.
 
 
 ## 🎯  Table of Contents
-* [Installation](https://github.com/marcomusy/vedo#-installation)
-* [Documentation](https://github.com/marcomusy/vedo#-documentation)
-* [Features](https://github.com/marcomusy/vedo#-features)
-* [Command Line Interface](https://github.com/marcomusy/vedo#command-line-interface)
-* [Examples Gallery](https://github.com/marcomusy/vedo#-examples)
-* [References](https://github.com/marcomusy/vedo#-references)
+* [Installation](https://github.com/marcomusy/vedo#--installation)
+* [Documentation](https://github.com/marcomusy/vedo#--documentation)
+* [Features](https://github.com/marcomusy/vedo#--features)
+* [Command Line Interface](https://github.com/marcomusy/vedo#--command-line-interface)
+* [Examples Gallery](https://github.com/marcomusy/vedo#--examples)
+* [References](https://github.com/marcomusy/vedo#--references)
 
 
 

@@ -72,9 +72,6 @@ General settings.
     # OpenVR rendering
     useOpenVR = False
 
-    # On some vtk versions/platforms points are rendered as ugly squares
-    renderPointsAsSpheres = True
-
     # Wrap lines in tubes
     renderLinesAsTubes = False
 
@@ -193,9 +190,6 @@ usingQt = False
 
 # OpenVR rendering
 useOpenVR = False
-
-# On some vtk versions/platforms points are rendered as ugly squares
-renderPointsAsSpheres = True
 
 # Wrap lines in tubes
 renderLinesAsTubes = False

@@ -729,7 +729,7 @@ def toNumpy(obj):
         adict['flagText'] = obj.flagText
 
         adict['cells'] = None
-        if poly.GetNumberOfCells():
+        if poly.GetNumberOfPolys():
             try:
                 adict['cells'] = np.array(obj.faces(), dtype=np.uint32)
             except ValueError:
@@ -1307,7 +1307,6 @@ def exportWindow(fileoutput, binary=False):
         if vp.renderer.GetGradientBackground():
             sdict['backgrcol2'] = vp.renderer.GetBackground2()
         sdict['useDepthPeeling'] = settings.useDepthPeeling
-        sdict['renderPointsAsSpheres'] = settings.renderPointsAsSpheres
         sdict['renderLinesAsTubes'] = settings.renderLinesAsTubes
         sdict['hiddenLineRemoval'] = settings.hiddenLineRemoval
         sdict['visibleGridEdges'] = settings.visibleGridEdges
@@ -1408,8 +1407,6 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
     #     else:
     #         data = np.load(fileinput, allow_pickle=True, encoding="latin1").flatten()[0]
     if data is not None:
-        if 'renderPointsAsSpheres' in data.keys():
-            settings.renderPointsAsSpheres = data['renderPointsAsSpheres']
         if 'renderLinesAsTubes' in data.keys():
             settings.renderLinesAsTubes = data['renderLinesAsTubes']
         if 'hiddenLineRemoval' in data.keys():

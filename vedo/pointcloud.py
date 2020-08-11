@@ -29,9 +29,8 @@ __all__ = ["Points",
            "fitLine",
            "fitPlane",
            "fitSphere",
-           "fitEllipsoid",
+           "pcaEllipsoid",
            "recoSurface",
-           "pointSampler",
            ]
 
 
@@ -188,7 +187,6 @@ def smoothMLS3D(meshs, neighbours=10):
     act = Points(ccoords3d)
     act.cmap('jet', ctimes)  # use a colormap to associate a color to time
     return act
-
 
 
 def connectedPoints(mesh, radius, mode=0, regions=(), vrange=(0,1), seeds=(), angle=0):
@@ -386,7 +384,7 @@ def visiblePoints(mesh, area=(), tol=None, invert=False):
 
             m = visiblePoints(s)
             #print('visible pts:', m.points()) # numpy array
-            show(m, newPlotter=True, axes=1)   # optionally draw result
+            show(m, new=True, axes=1) # optionally draw result on a new window
     """
     # specify a rectangular region
     svp = vtk.vtkSelectVisiblePoints()
@@ -538,7 +536,7 @@ def fitSphere(coords):
     return s
 
 
-def fitEllipsoid(points, pvalue=0.95):
+def pcaEllipsoid(points, pvalue=0.95):
     """
     Show the oriented PCA ellipsoid that contains fraction `pvalue` of points.
 
@@ -672,30 +670,6 @@ def recoSurface(pts, dims=(250,250,250), radius=None,
     return vedo.mesh.Mesh(surface.GetOutput())
 
 
-def pointSampler(mesh, distance=None):
-    """Generate a cloud of points the specified distance apart from the input."""
-    poly = mesh.polydata()
-
-    pointSampler = vtk.vtkPolyDataPointSampler()
-    if not distance:
-        distance = mesh.diagonalSize() / 100.0
-    pointSampler.SetDistance(distance)
-    #    pointSampler.GenerateVertexPointsOff()
-    #    pointSampler.GenerateEdgePointsOff()
-    #    pointSampler.GenerateVerticesOn()
-    #    pointSampler.GenerateInteriorPointsOn()
-    pointSampler.SetInputData(poly)
-    pointSampler.Update()
-
-    umesh = Points(pointSampler.GetOutput())
-    prop = vtk.vtkProperty()
-    prop.DeepCopy(mesh.GetProperty())
-    umesh.SetProperty(prop)
-    umesh.name = 'pointSampler'
-    return umesh
-
-
-
 
 ###################################################
 def Point(pos=(0, 0, 0), r=12, c="red", alpha=1):
@@ -745,10 +719,8 @@ class Points(vtk.vtkFollower, BaseActor):
         self.SetMapper(self._mapper)
 
         prp = self.GetProperty()
-        if settings.renderPointsAsSpheres:
-            if hasattr(prp, 'RenderPointsAsSpheresOn'):
-                prp.RenderPointsAsSpheresOn()
-
+        if hasattr(prp, 'RenderPointsAsSpheresOn'):
+            prp.RenderPointsAsSpheresOn()
 
         if inputobj is None:
             self._polydata = vtk.vtkPolyData()
@@ -1231,9 +1203,9 @@ class Points(vtk.vtkFollower, BaseActor):
 
             newpoly = utils.buildPolyData(coords[pts_inds], newfaces)
             return self._update(newpoly)
-
-        self._mapper.Modified()
-        return self
+        else:
+            self._mapper.Modified()
+            return self
 
 
     def computeNormalsWithPCA(self, n=20, orientationPoint=None, flip=False):
@@ -1250,7 +1222,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         :param bool flip: flip all normals
         """
-        poly = self.polydata(False)
+        poly = self.polydata()
         pcan = vtk.vtkPCANormalEstimation()
         pcan.SetInputData(poly)
         pcan.SetSampleSize(n)
@@ -1265,7 +1237,13 @@ class Points(vtk.vtkFollower, BaseActor):
             pcan.FlipNormalsOn()
 
         pcan.Update()
-        return self._update(pcan.GetOutput())
+        out = pcan.GetOutput()
+        varr = out.GetPointData().GetNormals()
+        varr.SetName("Normals")
+        pdt = self.polydata(False).GetPointData()
+        pdt.SetNormals(varr)
+        pdt.Modified()
+        return self
 
 
     def alpha(self, opacity=None):
@@ -1308,6 +1286,12 @@ class Points(vtk.vtkFollower, BaseActor):
     def ps(self, pointSize=None):
         """Set/get mesh's point size of vertices. Same as `mesh.pointSize()`"""
         return self.pointSize(pointSize)
+
+    def renderAsSpheres(self, ras=True):
+        """Make points look spheric or make them look as squares."""
+        self.GetProperty().SetRenderPointsAsSpheres(ras)
+        return self
+
 
     def color(self, c=False):
         """
@@ -1422,7 +1406,9 @@ class Points(vtk.vtkFollower, BaseActor):
 
     def labels(self, content=None, cells=False, scale=None,
                rotX=0, rotY=0, rotZ=0,
-               ratio=1, precision=None, font="VTK", c='black', alpha=1, italic=False):
+               ratio=1, precision=None,
+               font="VTK",
+               c='black', alpha=1, italic=False):
         """Generate value or ID labels for mesh cells or points.
 
         :param list,int,str content: either 'id', array name or array number.
@@ -1495,6 +1481,7 @@ class Points(vtk.vtkFollower, BaseActor):
             return None
 
         tapp = vtk.vtkAppendPolyData()
+        ninputs = 0
 
         for i,e in enumerate(elems):
             if i % ratio:
@@ -1516,10 +1503,14 @@ class Points(vtk.vtkFollower, BaseActor):
             else:
                 tx_poly = vedo.shapes.Text(txt_lab, font=font).polydata(False)
 
+            if tx_poly.GetNumberOfPoints() == 0:
+                continue #######################
+            ninputs += 1
+
             T = vtk.vtkTransform()
             T.PostMultiply()
             if italic:
-                T.Concatenate([1,0.25,0,0,
+                T.Concatenate([1,0.2,0,0,
                                0,1,0,0,
                                0,0,1,0,
                                0,0,0,1])
@@ -1548,10 +1539,120 @@ class Points(vtk.vtkFollower, BaseActor):
             tf.SetTransform(T)
             tf.Update()
             tapp.AddInputData(tf.GetOutput())
-        tapp.Update()
-        ids = vedo.mesh.Mesh(tapp.GetOutput(), c=c, alpha=alpha)
+
+        if ninputs:
+            tapp.Update()
+            lpoly = tapp.GetOutput()
+        else: #return an empty obj
+            lpoly = vtk.vtkPolyData()
+
+        ids = vedo.mesh.Mesh(lpoly, c=c, alpha=alpha)
         ids.GetProperty().LightingOff()
         return ids
+
+    def vignette(self,
+        txt,
+        pt=None,
+        offset=None,
+        font="VictorMono",
+        rounded=True,
+        c=None,
+        alpha=1,
+        lw=2,
+        s=None,
+        italic=0,
+    ):
+        """
+        Generate a vignette to describe an object.
+
+        Parameters
+        ----------
+        txt : str
+            Text to display.
+        pt : list, optional
+            position of the vignette pointer. The default is None.
+        offset : list, optional
+            text offset wrt the application point. The default is None.
+        font : str, optional
+            text font. The default is "VictorMono".
+        rounded : bool, optional
+            draw a rounded or squared box around the text. The default is True.
+        c : list, optional
+            text and box color. The default is None.
+        alpha : float, optional
+            transparency of text and box. The default is 1.
+        lw : float, optional
+            line with of box frame. The default is 2.
+        s : float, optional
+            size of the vignette. The default is None.
+        italic : float, optional
+            italicness of text (multiline is not supported). The default is 0.
+
+        |intersect2d| |intersect2d.py|_
+
+        |vignette| |vignette.py|_
+        """
+        ncolls = len(settings.collectable_actors)
+        acts = []
+
+        sph = None
+        x0, x1, y0, y1, z0, z1 = self.bounds()
+        d = self.diagonalSize()
+        if pt is None:
+            pt = self.closestPoint([(x0 + x1) / 2, (y0 + y1) / 2, z1])
+
+        if offset is None:
+            offset = [(x1 - x0) / 3, (y1 - y0) / 6, 0]
+        elif len(offset) == 2:
+            offset = [offset[0], offset[1], 0] # make it 3d
+
+        if s is None:
+            s = d / 50
+
+        if (z1 - z0) / d > 0.1:
+            sph = vedo.shapes.Sphere(pt, r=s*0.4, res=6)
+
+        if c is None:
+            c = np.array(self.color())/1.2
+
+        if len(pt) == 2:
+            pt = [pt[0], pt[1], 0.0]
+        pt = np.array(pt)
+
+        lb = vedo.shapes.Text(
+            txt, pos=pt + offset, s=s, font=font, italic=italic, justify="bottom-left"
+        )
+        acts.append(lb)
+
+        if not sph:
+            sph = vedo.shapes.Circle(pt, r=s / 4, res=15)
+        acts.append(sph)
+
+        x0, x1, y0, y1, z0, z1 = lb.GetBounds()
+        if rounded:
+            box = vedo.shapes.KSpline(
+                [(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0)], closed=True
+            ).scale(0.91)
+        else:
+            box = vedo.shapes.Line(
+                [(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0), (x0, y0, z0)]
+            )
+        box.origin([(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2]).scale(1.2)
+        acts.append(box)
+
+        x0, x1, y0, y1, z0, z1 = box.bounds()
+        c0 = [x0, (y0 + y1) / 2, pt[2]]
+        c1 = [x0 + (pt[0] - x0) / 4, (y0 + y1) / 2, pt[2]]
+        con = vedo.shapes.Line([c0, c1, pt])
+        acts.append(con)
+
+        macts = vedo.merge(acts).c(c).alpha(alpha)
+        macts.SetOrigin(pt)
+        macts.bc('t').pickable(False).GetProperty().LightingOff()
+        macts.GetProperty().SetLineWidth(lw)
+        macts.UseBoundsOff()
+        settings.collectable_actors = settings.collectable_actors[:ncolls]
+        return macts
 
 
     def alignTo(self, target, iters=100, rigid=False,
@@ -1734,13 +1835,14 @@ class Points(vtk.vtkFollower, BaseActor):
 
 
     #####################################################################################
-    def cmap(self, 
+    def cmap(self,
              cname,
              input_array=None,
              mode="points",
              arrayName="",
              vmin=None, vmax=None,
              alpha=1,
+             n=256,
             ):
         """
         Set individual point/cell colors by providing a list of scalar values and a color map.
@@ -1757,25 +1859,18 @@ class Points(vtk.vtkFollower, BaseActor):
         :param float,list alpha: mesh transparency.
             Can be a ``list`` of values one for each vertex.
 
+        :param int n: number of distinct colors to be used.
+
         .. hint::|mesh_coloring.py|_ |mesh_alphas.py|_ |mesh_custom.py|_
 
              |mesh_coloring| |mesh_alphas| |mesh_custom|
         """
-        if not mode:
-            poly = self.polydata(False)
-            parr = poly.GetPointData().GetScalars()
-            carr = poly.GetPointData().GetScalars()
-            if parr and not carr:
-                mode = 'points'
-            elif carr and not parr:
-                mode = 'cells'
-
         if mode.startswith('p'):
             if not arrayName: arrayName="PointScalars"
-            self.pointColors(input_array, cname, alpha, vmin, vmax, arrayName)
+            self.pointColors(input_array, cname, alpha, vmin, vmax, arrayName, n)
         elif mode.startswith('c'):
             if not arrayName: arrayName="CellScalars"
-            self.cellColors(input_array, cname, alpha, vmin, vmax, arrayName)
+            self.cellColors(input_array, cname, alpha, vmin, vmax, arrayName, n)
         else:
             colors.printc('Must specify mode in cmap(mode="either cells or points")!', c=1)
             raise RuntimeError()
@@ -1787,6 +1882,7 @@ class Points(vtk.vtkFollower, BaseActor):
                     alpha=1,
                     vmin=None, vmax=None,
                     arrayName="PointScalars",
+                    n=256,
                     ):
         """
         DEPRECATED: use cmap(mode="points") instead.
@@ -1815,8 +1911,8 @@ class Points(vtk.vtkFollower, BaseActor):
                 return self
 
         elif utils.isSequence(input_array): # if a numpy array is passed
-            n = len(input_array)
-            if n != poly.GetNumberOfPoints():
+            npts = len(input_array)
+            if npts != poly.GetNumberOfPoints():
                 colors.printc('In cmap(): nr. of scalars != nr. of points',
                               n, poly.GetNumberOfPoints(), '...skip coloring.', c=1)
                 return self
@@ -1842,7 +1938,7 @@ class Points(vtk.vtkFollower, BaseActor):
             arrayName = arr.GetName()
 
         if not utils.isSequence(alpha):
-            alpha = [alpha]*256
+            alpha = [alpha]*n
 
         if vmin is None:
             vmin = arr.GetRange()[0]
@@ -1865,7 +1961,7 @@ class Points(vtk.vtkFollower, BaseActor):
             lut.DeepCopy(cmap)
 
         else: # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
-            ncols, nalpha = 256, len(alpha)
+            ncols, nalpha = n, len(alpha)
             lut.SetNumberOfTableValues(ncols)
             mycols = colors.colorMap(range(ncols), cmap, 0,ncols)
             for i,c in enumerate(mycols):
@@ -1892,6 +1988,7 @@ class Points(vtk.vtkFollower, BaseActor):
                    alpha=1,
                    vmin=None, vmax=None,
                    arrayName="CellScalars",
+                   n=256,
                   ):
         """
         DEPRECATED: use cmap(mode='cells') instead.
@@ -1920,10 +2017,10 @@ class Points(vtk.vtkFollower, BaseActor):
                 return self
 
         elif utils.isSequence(input_array): # if a numpy array is passed
-            n = len(input_array)
-            if n != poly.GetNumberOfCells():
+            npts = len(input_array)
+            if npts != poly.GetNumberOfCells():
                 colors.printc('In cmap(): nr. of scalars != nr. of Cells',
-                              n, poly.GetNumberOfCells(), '...skip coloring.', c=1)
+                              npts, poly.GetNumberOfCells(), '...skip coloring.', c=1)
                 return self
             input_array = np.ascontiguousarray(input_array)
             arr = numpy_to_vtk(input_array, deep=True)
@@ -1947,7 +2044,7 @@ class Points(vtk.vtkFollower, BaseActor):
             arrayName = arr.GetName()
 
         if not utils.isSequence(alpha):
-            alpha = [alpha]*256
+            alpha = [alpha]*n
 
         if vmin is None:
             vmin = arr.GetRange()[0]
@@ -1970,7 +2067,7 @@ class Points(vtk.vtkFollower, BaseActor):
             lut.DeepCopy(cmap)
 
         else: # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
-            ncols, nalpha = 256, len(alpha)
+            ncols, nalpha = n, len(alpha)
             lut.SetNumberOfTableValues(ncols)
             mycols = colors.colorMap(range(ncols), cmap, 0,ncols)
             for i,c in enumerate(mycols):

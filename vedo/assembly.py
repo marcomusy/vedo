@@ -4,6 +4,7 @@ import vtk
 import vedo.docs as docs
 from vedo.base import Base3DProp
 import vedo.utils as utils
+import vedo.colors as colors
 from vtk.util.numpy_support import vtk_to_numpy
 
 __doc__ = (
@@ -90,7 +91,7 @@ class Assembly(vtk.vtkAssembly, Base3DProp):
             self.top = None
 
         for a in meshs:
-            if a:
+            if a: #and a.GetNumberOfPoints():
                 self.AddPart(a)
 
     def __add__(self, meshs):

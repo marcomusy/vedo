@@ -359,7 +359,7 @@ def plot(*inputobj, **options):
 
     :param list scaleMeshFactors: rescale mesh by these factors [1,1,1]
 
-    :param bool newPlotter: spawn a new instance of Plotter class, pops up a new window
+    :param bool new: spawn a new instance of Plotter class, pops up a new window
     :param int at: renderer number to plot to
     :param list shape: subdvide window in (n,m) rows and columns
     :param int N: automatically subdvide window in N renderers

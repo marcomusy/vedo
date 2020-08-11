@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Additional objects like axes, legends etc..
 """
@@ -6,7 +8,9 @@ from vedo.colors import printc, getColor
 from vedo.assembly import Assembly
 from vedo.mesh import Mesh, merge
 from vedo.pointcloud import Points
-from vedo.utils import mag, isSequence, make_ticks, ctf2lut, vtkVersionIsAtLeast
+from vedo.utils import mag, isSequence, make_ticks
+from vedo.utils import versor, ctf2lut, vtkVersionIsAtLeast
+from vedo.utils import precision as nrprecision
 import vedo.shapes as shapes
 import vedo.settings as settings
 import vedo.docs as docs
@@ -32,7 +36,287 @@ __all__ = [
         "addCutterTool",
         "addIcon",
         "addLegend",
+        "buildAxes",
+        "buildRulerAxes",
+        "Goniometer",
+        "Ruler",
         ]
+
+
+#####################################################################
+def Ruler(
+    p1, p2,
+    label="",
+    s=None,
+    font="Normografo",
+    italic=0,
+    prefix="",
+    units="",  #eg.'μm'
+    c=(0.2, 0.1, 0.1),
+    alpha=1,
+    lw=1,
+    precision=3,
+    labelRotation=0,
+    axisRotation=0,
+    tickAngle=90,
+):
+    """
+    Build a 3D ruler to indicate the distance of two points p1 and p2.
+
+    :param str label: alternative fixed label to be shown
+    :param float s: size of the label
+    :param str font: font name
+    :param float italic: italicness of the font [0,1]
+    :param str units: string to be appended to the numeric value
+    :param float lw: line width in pixel units
+    :param int precision: nr of significant digits to be shown
+    :param float labelRotation: initial rotation of the label around the z-axis
+    :param float axisRotation: initial rotation of the line around the main axis
+    :param float tickAngle: initial rotation of the line around the main axis
+
+    |vignette| |vignette.py|_
+    """
+    ncolls = len(settings.collectable_actors)
+
+    if isinstance(p1, Points): p1 = p1.GetPosition()
+    if isinstance(p2, Points): p2 = p2.GetPosition()
+    if len(p1)==2: p1=[p1[0],p1[1],0.0]
+    if len(p2)==2: p2=[p2[0],p2[1],0.0]
+    p1, p2 = np.array(p1), np.array(p2)
+    q1, q2 = [0, 0, 0], [mag(p2 - p1), 0, 0]
+    q1, q2 = np.array(q1), np.array(q2)
+    v = q2 - q1
+    d = mag(v)
+
+    if s is None:
+        s = d*0.02
+
+    if not label:
+        label = str(d)
+        if precision:
+            label = nrprecision(d, precision)
+    if prefix:
+        label = prefix+ '~' + label
+    if units:
+        label += '~'+ units
+
+    lb = shapes.Text(label, pos=(q1 + q2) / 2, s=s,
+                     font=font, italic=italic, justify="center")
+    if labelRotation:
+        lb.RotateZ(labelRotation)
+
+    x0, x1 = lb.xbounds()
+    gap = [(x1 - x0) / 2, 0, 0]
+    pc1 = (v / 2 - gap) * 0.9 + q1
+    pc2 = q2 - (v / 2 - gap) * 0.9
+
+    lc1 = shapes.Line(q1 - v / 50, pc1)
+    lc2 = shapes.Line(q2 + v / 50, pc2)
+
+    zs = np.array([0, d / 50, 0])
+    ml1 = shapes.Line(-zs, zs).pos(q1)
+    ml2 = shapes.Line(-zs, zs).pos(q2)
+    ml1.RotateZ(tickAngle-90)
+    ml2.RotateZ(tickAngle-90)
+
+    c1 = shapes.Circle(q1, r=d / 180, res=20)
+    c2 = shapes.Circle(q2, r=d / 180, res=20)
+
+    acts = [lb, lc1, lc2, c1, c2, ml1, ml2]
+    macts = merge(acts).pos(p1).c(c).alpha(alpha)
+    macts.GetProperty().LightingOff()
+    macts.GetProperty().SetLineWidth(lw)
+    macts.base = q1
+    macts.top = q2
+    macts.orientation(p2 - p1, rotation=axisRotation).bc('t').pickable(False)
+    settings.collectable_actors = settings.collectable_actors[:ncolls]
+    return macts
+
+
+#####################################################################
+def Goniometer(
+        p1,p2,p3,
+        font="Normografo",
+        arcSize=0.4,
+        fill=0.1,
+        s=1,
+        italic=0,
+        rotation=0,
+        prefix="",
+        c=(0.2, 0, 0),
+        alpha=1,
+        lw=1,
+        precision=3,
+    ):
+    """
+    Build a graphical goniometer to measure the angle formed by 3 points in space.
+
+    Parameters
+    ----------
+    p1 : list
+        first point.
+    p2 : list
+        the vertex point.
+    p3 : list
+        the last point defining the angle.
+    font : str, optional
+        Font name to be used. The default is "Normografo".
+    arcSize : float, optional
+        dimension of the arc wrt the smallest axis. The default is 0.4.
+    fill : bool, optional
+        fill the arc area. The default is 0.1.
+    s : float, optional
+        size of the text. The default is 1.
+    italic : float, bool, optional
+        italic text. The default is 0.
+    rotation : float, optional
+        rotation of text in degrees. The default is 0.
+    prefix : str, optional
+        append this string to the numeric value of the angle. The default is "".
+    c : list, optional
+        color of the goniometer. The default is (0.2, 0, 0).
+    alpha : float, optional
+        transparency level. The default is 1.
+    lw : float, optional
+        line width. The default is 1.
+    precision : int, optional
+        number of significant digits. The default is 3.
+
+    Returns
+    -------
+    asse : Assembly
+
+    |vignette| |vignette.py|_
+    """
+    ncolls = len(settings.collectable_actors)
+
+    if isinstance(p1, Points): p1 = p1.GetPosition()
+    if isinstance(p2, Points): p2 = p2.GetPosition()
+    if isinstance(p3, Points): p3 = p3.GetPosition()
+    if len(p1)==2: p1=[p1[0], p1[1], 0.0]
+    if len(p2)==2: p2=[p2[0], p2[1], 0.0]
+    if len(p3)==2: p3=[p3[0], p3[1], 0.0]
+    p1, p2, p3 = np.array(p1), np.array(p2), np.array(p3)
+
+    acts=[]
+    ln = shapes.Line([p1,p2,p3], lw=lw, c=c).alpha(alpha).lighting('off')
+    acts.append(ln)
+
+    va = versor(p1-p2)
+    vb = versor(p3-p2)
+    r = min(mag(p3-p2), mag(p1-p2))*arcSize
+    ptsarc = []
+    res = 120
+    imed = int(res/2)
+    for i in range(res+1):
+        vi = versor(vb*i/res + va*(res-i)/res)
+        if i==imed: vc = np.array(vi)
+        ptsarc.append(p2+vi*r)
+    arc = shapes.Line(ptsarc).lw(lw).c(c).alpha(alpha).lighting('off')
+    acts.append(arc)
+
+    angle = np.arccos(np.dot(va,vb))*180/np.pi
+
+    lb = shapes.Text(prefix+nrprecision(angle,precision)+'º', s=r/12*s,
+                     font=font, italic=italic, justify="center")
+    cr = np.cross(va,vb)
+    lb.pos(p2+vc*r/1.75).orientation(cr*np.sign(cr[2]), rotation=rotation)
+    # lb.base=np.array([0,0,0])
+    # lb.top=np.array([1,0,0])
+    # lb.pos(p2+vc*r/1.75).orientation(va, rotation=0)
+    lb.c(c).alpha(alpha).bc('tomato').lighting('off')
+    acts.append(lb)
+
+    if fill:
+        pts = [p2] + arc.points().tolist() + [p2]
+        msh = Mesh([pts, [list(range(arc.N()+2))]], c=c, alpha=fill).triangulate()
+        msh.addPos(0,0,r/10000) # to resolve 2d conflicts..
+        acts.append(msh)
+
+    asse = Assembly(acts)
+    settings.collectable_actors = settings.collectable_actors[:ncolls]
+    return asse
+
+
+###########################################################################################
+class Button:
+    """
+    Build a Button object to be shown in the rendering window.
+
+    |buttons| |buttons.py|_
+    """
+
+    def __init__(self, fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle):
+        """
+        Build a Button object to be shown in the rendering window.
+        """
+        self._status = 0
+        self.states = states
+        self.colors = c
+        self.bcolors = bc
+        self.function = fnc
+        self.actor = vtk.vtkTextActor()
+
+        self.actor.GetActualPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+        self.actor.SetPosition(pos[0], pos[1])
+
+        self.framewidth = 2
+        self.offset = 5
+        self.spacer = " "
+
+        self.textproperty = self.actor.GetTextProperty()
+        self.textproperty.SetJustificationToCentered()
+        if font.lower() == "courier":
+            self.textproperty.SetFontFamilyToCourier()
+        elif font.lower() == "times":
+            self.textproperty.SetFontFamilyToTimes()
+        elif font.lower() == "arial":
+            self.textproperty.SetFontFamilyToArial()
+        else:
+            self.textproperty.SetFontFamily(vtk.VTK_FONT_FILE)
+            self.textproperty.SetFontFile(settings.fonts_path + font +'.ttf')
+        self.textproperty.SetFontSize(size)
+        self.textproperty.SetBackgroundOpacity(alpha)
+        self.textproperty.BoldOff()
+        if bold:
+            self.textproperty.BoldOn()
+        self.textproperty.ItalicOff()
+        if italic:
+            self.textproperty.ItalicOn()
+        self.textproperty.ShadowOff()
+        self.textproperty.SetOrientation(angle)
+        self.showframe = hasattr(self.textproperty, "FrameOn")
+        self.status(0)
+
+    def status(self, s=None):
+        """
+        Set/Get the status of the button.
+        """
+        if s is None:
+            return self.states[self._status]
+
+        if isinstance(s, str):
+            s = self.states.index(s)
+        self._status = s
+        self.textproperty.SetLineOffset(self.offset)
+        self.actor.SetInput(self.spacer + self.states[s] + self.spacer)
+        s = s % len(self.colors)  # to avoid mismatch
+        self.textproperty.SetColor(getColor(self.colors[s]))
+        bcc = np.array(getColor(self.bcolors[s]))
+        self.textproperty.SetBackgroundColor(bcc)
+        if self.showframe:
+            self.textproperty.FrameOn()
+            self.textproperty.SetFrameWidth(self.framewidth)
+            self.textproperty.SetFrameColor(np.sqrt(bcc))
+        return self
+
+    def switch(self):
+        """
+        Change/cycle button status to the next defined status in states list.
+        """
+        self._status = (self._status + 1) % len(self.states)
+        self.status(self._status)
+        return self
 
 
 #####################################################################
@@ -197,13 +481,13 @@ def addScalarBar3D(
     sx=None,
     sy=None,
     title='',
-    titleFont="VTK",
+    titleFont="Normografo",
     titleXOffset=-1.5,
     titleYOffset=0.0,
     titleSize=1.5,
     titleRotation=0.0,
     nlabels=9,
-    labelFont="VTK",
+    labelFont="Normografo",
     labelOffset=0.375,
     italic=0,
     c=None,
@@ -290,7 +574,7 @@ def addScalarBar3D(
         if i and tx:
             # build numeric text
             y = -sy /2 + sy * i / nlabels2
-            a = shapes.Text(tx, pos=[sx*labelOffset, y, 0], s=sy/50,
+            a = shapes.Text(tx, pos=[sx*labelOffset, y, 0], s=sy/60,
                             justify='center-left', c=c, italic=italic, font=labelFont)
             tacts.append(a)
             # build ticks
@@ -746,6 +1030,91 @@ def computeVisibleBounds():
 
 
 #####################################################################
+def buildRulerAxes(
+    inputobj,
+    xtitle="",
+    ytitle="",
+    ztitle="",
+    xpad=0.04,
+    ypad=0.04,
+    zpad=0,
+    font="Normografo",
+    s=None,
+    italic=0,
+    units="",
+    c=(0.2, 0, 0),
+    alpha=1,
+    lw=1,
+    precision=3,
+    labelRotation=0,
+    axisRotation=0,
+    xycross=True,
+):
+    """
+    Build a 3D ruler to indicate the distance of two points p1 and p2.
+
+    :param str xtitle: alternative fixed label to be shown instead of the distance
+    :param float xpad: gap distance from the x-axis
+    :param float s: size of the label
+    :param str font: font name
+    :param float italic: italicness of the font [0,1]
+    :param str units: string to be appended to the numeric value
+    :param float lw: line width in pixel units
+    :param int precision: nr of significant digits to be shown
+    :param float labelRotation: initial rotation of the label around the z-axis
+    :param float axisRotation: initial rotation of the line around the main axis
+    :param bool xycross: show two back crossing lines in the xy plane
+
+    |vignette| |vignette.py|_
+    """
+    if isSequence(inputobj):
+        x0,x1,y0,y1,z0,z1 = inputobj
+    else:
+        x0,x1,y0,y1,z0,z1 = inputobj.GetBounds()
+    dx,dy,dz = (y1-y0)*xpad, (x1-x0)*ypad, (y1-y0)*zpad
+    d = np.sqrt((y1-y0)**2+(x1-x0)**2+(z1-z0)**2)
+
+    if s is None:
+        s = d/75
+
+    acts, rx, ry = [], None, None
+    if xtitle is not None and (x1-x0)/d>0.1:
+        rx = Ruler( [x0,y0-dx,z0],
+                    [x1,y0-dx,z0],
+                    s=s, font=font, precision=precision,
+                    labelRotation=labelRotation, axisRotation=axisRotation,
+                    lw=lw, italic=italic, prefix=xtitle, units=units)
+        acts.append(rx)
+    if ytitle is not None and (y1-y0)/d>0.1:
+        ry = Ruler( [x1+dy,y0,z0],
+                    [x1+dy,y1,z0],
+                    s=s, font=font, precision=precision,
+                    labelRotation=labelRotation, axisRotation=axisRotation,
+                    lw=lw, italic=italic, prefix=ytitle, units=units)
+        acts.append(ry)
+    if ztitle is not None and (z1-z0)/d>0.1:
+        rz = Ruler( [x0-dy,y0+dz,z0],
+                    [x0-dy,y0+dz,z1],
+                    s=s, font=font, precision=precision,
+                    labelRotation=labelRotation, axisRotation=axisRotation+90,
+                    lw=lw, italic=italic, prefix=ztitle, units=units)
+        acts.append(rz)
+
+    if xycross and rx and ry:
+        ncolls = len(settings.collectable_actors)
+        lx = shapes.Line([x0,y0,z0],    [x0,y1+dx,z0])
+        ly = shapes.Line([x0-dy,y1,z0], [x1,y1,z0])
+        d = min((x1-x0), (y1-y0))/200
+        cxy = shapes.Circle([x0,y1,z0], r=d, res=15)
+        acts.extend([lx,ly,cxy])
+
+    macts = merge(acts).c(c).alpha(alpha).bc('t')
+    macts.UseBoundsOff()
+    settings.collectable_actors = settings.collectable_actors[:ncolls]
+    return macts
+
+
+#####################################################################
 def buildAxes(obj=None,
               xtitle=None, ytitle=None, ztitle=None,
               xrange=None, yrange=None, zrange=None,
@@ -757,9 +1126,9 @@ def buildAxes(obj=None,
               gridLineWidth=1,
               reorientShortTitle=True,
               titleDepth=0,
-              titleFont="VTK",
+              titleFont="Normografo",
               xTitlePosition=0.95, yTitlePosition=0.95, zTitlePosition=0.95,
-              xTitleOffset=0.06,   yTitleOffset=0.06,   zTitleOffset=0.05,
+              xTitleOffset=0.062,   yTitleOffset=0.06,   zTitleOffset=0.05,
               xTitleJustify="top-right", yTitleJustify="bottom-right", zTitleJustify="bottom-right",
               xTitleRotation=0, yTitleRotation=90, zTitleRotation=135,
               xTitleSize=0.025, yTitleSize=0.025, zTitleSize=0.025,
@@ -785,8 +1154,8 @@ def buildAxes(obj=None,
               xTickColor=None, yTickColor=None, zTickColor=None,
               xMinorTicks=1, yMinorTicks=1, zMinorTicks=1,
               tipSize=None,
-              labelFont="VTK",
-              xLabelSize=0.0175, yLabelSize=0.0175, zLabelSize=0.0175,
+              labelFont="Normografo",
+              xLabelSize=0.014, yLabelSize=0.014, zLabelSize=0.014,
               xLabelOffset=0.015, yLabelOffset=0.015, zLabelOffset=0.01,
               xPositionsAndLabels=None, yPositionsAndLabels=None, zPositionsAndLabels=None,
               xFlipText=False, yFlipText=False, zFlipText=False,
@@ -1112,6 +1481,7 @@ def buildAxes(obj=None,
         xt.RotateX(xTitleRotation)
         if xFlipText: xt.RotateZ(180)
         xt.pos(wpos)
+        xt.UseBoundsOff()
         xt.name = "xtitle "+str(xtitle)
         titles.append(xt)
 
@@ -1129,6 +1499,7 @@ def buildAxes(obj=None,
             yt.RotateZ(yTitleRotation)
         if yFlipText: yt.RotateZ(180)
         yt.pos(wpos)
+        yt.UseBoundsOff()
         yt.name = "ytitle "+str(ytitle)
         titles.append(yt)
 
@@ -1153,6 +1524,7 @@ def buildAxes(obj=None,
             zt.RotateX(zTitleRotation)
             if zFlipText: zt.RotateZ(180)
             zt.pos(wpos)
+        # zt.UseBoundsOff()
         zt.name = "ztitle "+str(ztitle)
         titles.append(zt)
 
@@ -1294,6 +1666,7 @@ def buildAxes(obj=None,
             if xKeepAspectRatio: xlab.SetScale(x_aspect_ratio_scale)
             if xFlipText: xlab.RotateZ(180)
             xlab.name = "xNumericLabel"+str(i)+" "+t
+            xlab.UseBoundsOff()
             labels.append(xlab.c(xTickColor))
 
     if yLabelSize and ytitle:
@@ -1308,6 +1681,7 @@ def buildAxes(obj=None,
             ylab.RotateZ(yTitleRotation)
             if yFlipText: ylab.RotateZ(180)
             ylab.pos(v)
+            ylab.UseBoundsOff()
             ylab.name = "yNumericLabel"+str(i)+" "+t
             labels.append(ylab.c(yTickColor))
 
@@ -1324,6 +1698,7 @@ def buildAxes(obj=None,
             zlab.RotateX(zTitleRotation)
             if zFlipText: zlab.RotateZ(180)
             zlab.pos(v)
+            # zlab.UseBoundsOff()
             zlab.name = "zNumericLabel"+str(i)+" "+t
             labels.append(zlab.c(zTickColor))
 
@@ -1357,12 +1732,13 @@ def addGlobalAxes(axtype=None, c=None):
           - 4,  show a triad at bottom left
           - 5,  show a cube at bottom left
           - 6,  mark the corners of the bounding box
-          - 7,  draw a simple ruler at the bottom of the window
+          - 7,  draw a 3D ruler at each side of the cartesian axes
           - 8,  show the ``vtkCubeAxesActor`` object
           - 9,  show the bounding box outLine
           - 10, show three circles representing the maximum bounding box
           - 11, show a large grid on the x-y plane (use with zoom=8)
           - 12, show polar axes
+          - 13, draw a simple ruler at the bottom of the window
 
     Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
@@ -1624,21 +2000,15 @@ def addGlobalAxes(axtype=None, c=None):
         plt.axes_instances[r] = ocActor
 
     elif plt.axes == 7:
-        # draws a simple ruler at the bottom of the window
-        ls = vtk.vtkLegendScaleActor()
-        ls.RightAxisVisibilityOff()
-        ls.TopAxisVisibilityOff()
-        ls.LegendVisibilityOff()
-        ls.LeftAxisVisibilityOff()
-        ls.GetBottomAxis().SetNumberOfMinorTicks(1)
-        ls.GetBottomAxis().GetProperty().SetColor(c)
-        ls.GetBottomAxis().GetLabelTextProperty().SetColor(c)
-        ls.GetBottomAxis().GetLabelTextProperty().BoldOff()
-        ls.GetBottomAxis().GetLabelTextProperty().ItalicOff()
-        ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
-        ls.PickableOff()
-        plt.renderer.AddActor(ls)
-        plt.axes_instances[r] = ls
+        vbb = computeVisibleBounds()[0]
+        rulax = buildRulerAxes(vbb, c=c,
+                               xtitle=plt.xtitle+' - ',
+                               ytitle=plt.ytitle+' - ',
+                               ztitle=plt.ztitle+' - ')
+        rulax.UseBoundsOff()
+        rulax.PickableOff()
+        plt.renderer.AddActor(rulax)
+        plt.axes_instances[r] = rulax
 
     elif plt.axes == 8:
         vbb = computeVisibleBounds()[0]
@@ -1749,6 +2119,23 @@ def addGlobalAxes(axtype=None, c=None):
         plt.renderer.AddActor(polaxes)
         plt.axes_instances[r] = polaxes
 
+    elif plt.axes == 13:
+        # draws a simple ruler at the bottom of the window
+        ls = vtk.vtkLegendScaleActor()
+        ls.RightAxisVisibilityOff()
+        ls.TopAxisVisibilityOff()
+        ls.LegendVisibilityOff()
+        ls.LeftAxisVisibilityOff()
+        ls.GetBottomAxis().SetNumberOfMinorTicks(1)
+        ls.GetBottomAxis().GetProperty().SetColor(c)
+        ls.GetBottomAxis().GetLabelTextProperty().SetColor(c)
+        ls.GetBottomAxis().GetLabelTextProperty().BoldOff()
+        ls.GetBottomAxis().GetLabelTextProperty().ItalicOff()
+        ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
+        ls.PickableOff()
+        plt.renderer.AddActor(ls)
+        plt.axes_instances[r] = ls
+
     else:
         printc('~bomb Keyword axes type must be in range [0-12].', c=1)
         printc('''
@@ -1760,12 +2147,13 @@ def addGlobalAxes(axtype=None, c=None):
   4 = show a triad at bottom left
   5 = show a cube at bottom left
   6 = mark the corners of the bounding box
-  7 = draw a simple ruler at the bottom of the window
+  7 = draw a 3D ruler at each side of the cartesian axes
   8 = show the vtkCubeAxesActor object
   9 = show the bounding box outline
   10 = show three circles representing the maximum bounding box
   11 = show a large grid on the x-y plane (use with zoom=8)
   12 = show polar axes.
+  13 = draw a simple ruler at the bottom of the window
   ''', c=1, bold=0)
 
     if not plt.axes_instances[r]:
@@ -1878,82 +2266,3 @@ def addLegend():
     plt.renderer.AddActor(vtklegend)
 
 
-###########################################################################################
-class Button:
-    """
-    Build a Button object to be shown in the rendering window.
-
-    |buttons| |buttons.py|_
-    """
-
-    def __init__(self, fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle):
-        """
-        Build a Button object to be shown in the rendering window.
-        """
-        self._status = 0
-        self.states = states
-        self.colors = c
-        self.bcolors = bc
-        self.function = fnc
-        self.actor = vtk.vtkTextActor()
-
-        self.actor.GetActualPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-        self.actor.SetPosition(pos[0], pos[1])
-
-        self.framewidth = 2
-        self.offset = 5
-        self.spacer = " "
-
-        self.textproperty = self.actor.GetTextProperty()
-        self.textproperty.SetJustificationToCentered()
-        if font.lower() == "courier":
-            self.textproperty.SetFontFamilyToCourier()
-        elif font.lower() == "times":
-            self.textproperty.SetFontFamilyToTimes()
-        elif font.lower() == "arial":
-            self.textproperty.SetFontFamilyToArial()
-        else:
-            self.textproperty.SetFontFamily(vtk.VTK_FONT_FILE)
-            self.textproperty.SetFontFile(settings.fonts_path + font +'.ttf')
-        self.textproperty.SetFontSize(size)
-        self.textproperty.SetBackgroundOpacity(alpha)
-        self.textproperty.BoldOff()
-        if bold:
-            self.textproperty.BoldOn()
-        self.textproperty.ItalicOff()
-        if italic:
-            self.textproperty.ItalicOn()
-        self.textproperty.ShadowOff()
-        self.textproperty.SetOrientation(angle)
-        self.showframe = hasattr(self.textproperty, "FrameOn")
-        self.status(0)
-
-    def status(self, s=None):
-        """
-        Set/Get the status of the button.
-        """
-        if s is None:
-            return self.states[self._status]
-
-        if isinstance(s, str):
-            s = self.states.index(s)
-        self._status = s
-        self.textproperty.SetLineOffset(self.offset)
-        self.actor.SetInput(self.spacer + self.states[s] + self.spacer)
-        s = s % len(self.colors)  # to avoid mismatch
-        self.textproperty.SetColor(getColor(self.colors[s]))
-        bcc = np.array(getColor(self.bcolors[s]))
-        self.textproperty.SetBackgroundColor(bcc)
-        if self.showframe:
-            self.textproperty.FrameOn()
-            self.textproperty.SetFrameWidth(self.framewidth)
-            self.textproperty.SetFrameColor(np.sqrt(bcc))
-        return self
-
-    def switch(self):
-        """
-        Change/cycle button status to the next defined status in states list.
-        """
-        self._status = (self._status + 1) % len(self.states)
-        self.status(self._status)
-        return self

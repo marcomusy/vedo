@@ -58,19 +58,20 @@ def show(*actors, **options):
 
     :param int axes: set the type of axes to be shown
 
-            - 0,  no axes,
+            - 0,  no axes
             - 1,  draw three gray grid walls
             - 2,  show cartesian axes from (0,0,0)
             - 3,  show positive range of cartesian axes from (0,0,0)
             - 4,  show a triad at bottom left
             - 5,  show a cube at bottom left
             - 6,  mark the corners of the bounding box
-            - 7,  draw a simple ruler at the bottom of the window
-            - 8,  show the ``vtkCubeAxesActor`` object,
-            - 9,  show the bounding box outLine,
+            - 7,  draw a 3D ruler at each side of the cartesian axes
+            - 8,  show the ``vtkCubeAxesActor`` object
+            - 9,  show the bounding box outLine
             - 10, show three circles representing the maximum bounding box
             - 11, show a large grid on the x-y plane (use with zoom=8)
             - 12, show polar axes
+            - 13, draw a simple ruler at the bottom of the window
 
         Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
@@ -172,7 +173,7 @@ def show(*actors, **options):
 
     :param bool q:  force program to quit after `show()` command returns.
 
-    :param bool newPlotter: if set to `True`, a call to ``show`` will instantiate
+    :param bool new: if set to `True`, a call to ``show`` will instantiate
         a new ``Plotter`` object (a new window) instead of reusing the first created.
 
         See e.g.: |readVolumeAsIsoSurface.py|_
@@ -221,8 +222,13 @@ def show(*actors, **options):
     roll = options.pop("roll", 0)
     camera = options.pop("camera", None)
     interactorStyle = options.pop("interactorStyle", 0)
-    newPlotter = options.pop("newPlotter", False)
     q = options.pop("q", False)
+
+    newPlotter = options.pop("new", False)
+    newPlotter_old = options.pop("newPlotter", 'dont')
+    if newPlotter_old != 'dont':
+        colors.printc("\nPlease use keyword new in show() instead of newPlotter\n", c=1)
+        newPlotter = newPlotter_old
 
     if len(options):
         for op in options:
@@ -238,7 +244,7 @@ def show(*actors, **options):
     if actors is Ellipsis:
         actors = settings.collectable_actors
 
-    if settings.plotter_instance and newPlotter is False:
+    if settings.plotter_instance and not newPlotter:
         plt = settings.plotter_instance
     else:
         if utils.isSequence(at):
@@ -394,12 +400,13 @@ class Plotter:
       - 4,  show a triad at bottom left
       - 5,  show a cube at bottom left
       - 6,  mark the corners of the bounding box
-      - 7,  draw a simple ruler at the bottom of the window
+      - 7,  draw a 3D ruler at each side of the cartesian axes
       - 8,  show the ``vtkCubeAxesActor`` object
       - 9,  show the bounding box outLine,
       - 10, show three circles representing the maximum bounding box,
       - 11, show a large grid on the x-y plane (use with zoom=8)
       - 12, show polar axes.
+      - 13, draw a simple ruler at the bottom of the window
 
     Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
@@ -778,7 +785,6 @@ class Plotter:
 
         if not title:
             title = " vedo " + __version__
-            #title+= " (vtk " + vtk.vtkVersion().GetVTKVersion()+ ")"
 
         self.window.SetWindowName(title)
 
@@ -908,6 +914,42 @@ class Plotter:
         if render and hasattr(self, 'interactor') and self.interactor:
             self.interactor.Render()
 
+    def render(self):
+        """Render the scene."""
+        self.interactor.Render()
+        return self
+
+    def resetCamera(self):
+        """Reset the camera position and zooming."""
+        self.interactor.ResetCamera()
+        return self
+
+    def backgroundColor(self, c1=None, c2=None, at=0):
+        """Set the color of the background for the current renderer.
+        A different renderer index can be specified by keyword ``at``.
+
+        Parameters
+        ----------
+        c1 : list, optional
+            background main color. The default is None.
+        c2 : list, optional
+            background color for the upper part of the window.
+            The default is None.
+        at : int, optional
+            renderer index. The default is 0.
+        """
+        if not len(self.renderers):
+            return self
+        r = self.renderers[at]
+        if r:
+            if c1 is not None:
+                r.SetBackground(colors.getColor(c1))
+            if c2 is not None:
+                r.GradientBackgroundOn()
+                r.SetBackground2(colors.getColor(c2))
+            else:
+                r.GradientBackgroundOff()
+        return self
 
     ####################################################
     def load(self, filename, unpack=True, force=False):
@@ -1219,19 +1261,20 @@ class Plotter:
 
         :param int axtype:
 
-              - 0,  no axes,
-              - 1,  draw three gray grid walls
-              - 2,  show cartesian axes from (0,0,0)
-              - 3,  show positive range of cartesian axes from (0,0,0)
-              - 4,  show a triad at bottom left
-              - 5,  show a cube at bottom left
-              - 6,  mark the corners of the bounding box
-              - 7,  draw a simple ruler at the bottom of the window
-              - 8,  show the ``vtkCubeAxesActor`` object
-              - 9,  show the bounding box outLine
-              - 10, show three circles representing the maximum bounding box
-              - 11, show a large grid on the x-y plane (use with zoom=8)
-              - 12, show polar axes.
+            - 0,  no axes,
+            - 1,  draw three gray grid walls
+            - 2,  show cartesian axes from (0,0,0)
+            - 3,  show positive range of cartesian axes from (0,0,0)
+            - 4,  show a triad at bottom left
+            - 5,  show a cube at bottom left
+            - 6,  mark the corners of the bounding box
+            - 7,  draw a 3D ruler at each side of the cartesian axes
+            - 8,  show the ``vtkCubeAxesActor`` object
+            - 9,  show the bounding box outLine
+            - 10, show three circles representing the maximum bounding box
+            - 11, show a large grid on the x-y plane
+            - 12, show polar axes
+            - 13, draw a simple ruler at the bottom of the window
 
         Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
@@ -1327,19 +1370,20 @@ class Plotter:
 
         :param int axes: set the type of axes to be shown
 
-              - 0,  no axes,
-              - 1,  draw three customizable gray grid walls
-              - 2,  show cartesian axes from (0,0,0)
-              - 3,  show positive range of cartesian axes from (0,0,0)
-              - 4,  show a triad at bottom left
-              - 5,  show a cube at bottom left
-              - 6,  mark the corners of the bounding box
-              - 7,  draw a simple ruler at the bottom of the window
-              - 8,  show the ``vtkCubeAxesActor`` object,
-              - 9,  show the bounding box outLine,
-              - 10, show three circles representing the maximum bounding box
-              - 11, show a large grid on the x-y plane (use with zoom=8)
-              - 12, show polar axes.
+            - 0,  no axes
+            - 1,  draw three customizable gray grid walls
+            - 2,  show cartesian axes from (0,0,0)
+            - 3,  show positive range of cartesian axes from (0,0,0)
+            - 4,  show a triad at bottom left
+            - 5,  show a cube at bottom left
+            - 6,  mark the corners of the bounding box
+            - 7,  draw a 3D ruler at each side of the cartesian axes
+            - 8,  show the ``vtkCubeAxesActor`` object
+            - 9,  show the bounding box outLine
+            - 10, show three circles representing the maximum bounding box
+            - 11, show a large grid on the x-y plane (use with zoom=8)
+            - 12, show polar axes
+            - 13, draw a simple ruler at the bottom of the window
 
         :param float azimuth/elevation/roll:  move camera accordingly
         :param str viewup:  either ['x', 'y', 'z'] to set vertical direction
@@ -1608,6 +1652,9 @@ class Plotter:
                 else:
                     self.renderer.AddActor(ia)
 
+                if hasattr(ia, '_set2actcam') and ia._set2actcam:
+                    ia.SetCamera(self.camera)
+
                 if hasattr(ia, 'renderedAt'):
                     ia.renderedAt.add(at)
 
@@ -1772,7 +1819,9 @@ class Plotter:
         if interactorStyle == 0 or interactorStyle == "TrackballCamera":
             #csty = self.interactor.GetInteractorStyle().GetCurrentStyle().GetClassName()
             #if "TrackballCamera" not in csty:
-            self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+            # this causes problems (when pressing 3 eg):
+            # self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+            pass
         elif interactorStyle == 1 or interactorStyle == "TrackballActor":
             self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
         elif interactorStyle == 2 or interactorStyle == "JoystickCamera":
@@ -1971,6 +2020,7 @@ class Plotter:
             self.mouseLeftClickFunction(clickedActor)
 
 
+    #######################################################################
     def _mouseright(self, iren, event):
 
         x, y = iren.GetEventPosition()
@@ -2002,6 +2052,7 @@ class Plotter:
             self.mouseRightClickFunction(clickedActor)
 
 
+    #######################################################################
     def _mousemiddle(self, iren, event):
 
         x, y = iren.GetEventPosition()
@@ -2033,13 +2084,14 @@ class Plotter:
             self.mouseMiddleClickFunction(self.clickedActor)
 
 
+    #######################################################################
     def _keypress(self, iren, event):
         # qt creates and passes a vtkGenericRenderWindowInteractor
 
         key = iren.GetKeySym()
         #print('Pressed key:', key)
 
-        if key in ["q", "Q", "space", "Return"]:
+        if key in ["q", "space", "Return"]:
             iren.ExitCallback()
             return
 
@@ -2303,6 +2355,22 @@ class Plotter:
                 bgc = 0
             self.renderer.SetBackground(bgc, bgc, bgc)
 
+        elif key == "6":
+            bg2cols = ['moccasin', 'darkseagreen', 'steelblue','lightblue',
+                       'white', 'blackboard', 'black']
+            bg2name = colors.getColorName(self.renderer.GetBackground2())
+            if bg2name in bg2cols:
+                idx = bg2cols.index(bg2name)
+            else:
+                idx = 4
+            if idx is not None:
+                bg2name_next = bg2cols[(idx+1)%(len(bg2cols)-1)]
+            if not bg2name_next:
+                self.renderer.GradientBackgroundOff()
+            else:
+                self.renderer.GradientBackgroundOn()
+                self.renderer.SetBackground2(colors.getColor(bg2name_next))
+
         elif "KP_" in key:  # change axes style
             asso = {
                     "KP_Insert":0, "KP_0":0,
@@ -2327,7 +2395,7 @@ class Plotter:
                 addons.addGlobalAxes(axtype=asso[key], c=None)
                 self.interactor.Render()
 
-        elif "plus" in key or "equal" in key:  # change axes style
+        elif "plus" in key or "equal" in key or "0" in key:  # cycle axes style
             clickedr = self.renderers.index(self.renderer)
             if self.axes_instances[clickedr]:
                 if hasattr(self.axes_instances[clickedr], "EnabledOff"):  # widget
@@ -2335,9 +2403,9 @@ class Plotter:
                 else:
                     self.renderer.RemoveActor(self.axes_instances[clickedr])
                 self.axes_instances[clickedr] = None
-            addons.addGlobalAxes(axtype=(self.axes+1)%13, c=None)
+            if not self.axes: self.axes=0
+            addons.addGlobalAxes(axtype=(self.axes+1)%14, c=None)
             self.interactor.Render()
-
 
         if key == "O":
             settings.plotter_instance.renderer.RemoveLight(self.extralight)
@@ -2405,7 +2473,7 @@ class Plotter:
             else:
                 acts = self.getMeshes()
             for ia in acts:
-                if ia.GetPickable():
+                if ia.GetPickable() and isinstance(ia, Mesh):
                     ia.computeNormals()
                     intrp = (ia.GetProperty().GetInterpolation()+1)%3
                     ia.GetProperty().SetInterpolation(intrp)

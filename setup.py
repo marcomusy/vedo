@@ -1,5 +1,12 @@
 from setuptools import setup
 
+short_description = '''A python module for scientific analysis
+and visualization of 3D objects and point clouds based on VTK.'''
+
+long_description = """A python module for scientific visualization,
+analysis of 3D objects and point clouds based on VTK.
+Check out https://vedo.embl.es for documentation."""
+
 try:
     VERSIONFILE = "vedo/version.py"
     verstrline = open(VERSIONFILE, "rt").read()
@@ -11,15 +18,13 @@ except:
 setup(
     name='vedo',
     version=verstr,
-    packages=['vedo'],
+    packages=['vedo', 'vedo.examples'],
     scripts=['bin/vedo', 'bin/vedo-convert'],
     install_requires=['vtk', 'numpy'],
-    description='A python module for scientific analysis and visualization of 3D objects and point clouds based on VTK.',
-    long_description="""A python module for scientific visualization,
-analysis of 3D objects and point clouds based on VTK.
-Check out https://vedo.embl.es for documentation.""",
+    description=short_description,
+    long_description=long_description,
     author='Marco Musy',
-    author_email='marco.musy@gmail.com',
+    author_email='marco.musy@embl.es',
     license='MIT',
     url='https://github.com/marcomusy/vedo',
     keywords='vtk 3D visualization mesh numpy',
@@ -40,29 +45,3 @@ Check out https://vedo.embl.es for documentation.""",
                 ],
     include_package_data=True
 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

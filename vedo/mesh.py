@@ -133,18 +133,20 @@ class Mesh(Points):
             self._polydata = tact.polydata()
 
         elif "meshio" in inputtype: # meshio-4.0.11
-            if len(inputobj.cells): # assume [vertices, faces]
+            if len(inputobj.cells):
                 mcells =[]
                 for cellblock in inputobj.cells:
-                    #print(cellblock.type)
-                    mcells += cellblock.data.tolist()
+                    if cellblock.type in ("triangle", "quad"):
+                        mcells += cellblock.data.tolist()
                 self._polydata = utils.buildPolyData(inputobj.points, mcells)
             else:
                 self._polydata = utils.buildPolyData(inputobj.points, None)
+            # add arrays:
             try:
                 if len(inputobj.point_data):
                     for k in inputobj.point_data.keys():
                         vdata = numpy_to_vtk(inputobj.point_data[k], deep=True)
+                        vdata.SetName(str(k))
                         self._polydata.GetPointData().AddArray(vdata)
             except AssertionError:
                 print("Could not add meshio point data, skip.")
@@ -152,6 +154,7 @@ class Mesh(Points):
                 if len(inputobj.cell_data):
                     for k in inputobj.cell_data.keys():
                         vdata = numpy_to_vtk(inputobj.cell_data[k], deep=True)
+                        vdata.SetName(str(k))
                         self._polydata.GetCellData().AddArray(vdata)
             except AssertionError:
                 print("Could not add meshio cell data, skip.")
@@ -880,12 +883,16 @@ class Mesh(Points):
 
         |trail| |trail.py|_
         """
-        if str(normal) == "x":
+        s = str(normal)
+        if "x" in s:
             normal = (1, 0, 0)
-        elif str(normal) == "y":
+            if '-' in s: normal = -np.array(normal)
+        elif "y" in s:
             normal = (0, 1, 0)
-        elif str(normal) == "z":
+            if '-' in s: normal = -np.array(normal)
+        elif "z" in s:
             normal = (0, 0, 1)
+            if '-' in s: normal = -np.array(normal)
         plane = vtk.vtkPlane()
         plane.SetOrigin(origin)
         plane.SetNormal(normal)
@@ -1675,6 +1682,16 @@ class Mesh(Points):
             self.line_locator.SetDataSet(self.polydata())
             self.line_locator.BuildLocator()
 
+#        t = vtk.mutable(tol)
+#        x = [0,0,0]
+#        pcoords = [0,0,0]
+#        subId = vtk.mutable(0)
+#        found = self.line_locator.IntersectWithLine(p0, p1, tol, t, x, pcoords, subId)
+#        if found:
+#            return [x]
+#        else:
+#            return []
+
         intersectPoints = vtk.vtkPoints()
         self.line_locator.IntersectWithLine(p0, p1, intersectPoints, None)
         pts = []
@@ -1742,7 +1759,9 @@ class Mesh(Points):
 
 
     def followCamera(self, cam=None):
-        """Mesh object will follow camera movements and stay locked to it.
+        """
+        Mesh object will follow camera movements and stay locked to it.
+        Use ``mesh.followCamera(False)`` to disable it.
 
         :param vtkCamera cam: if `None` the text will auto-orient itself to the active camera.
             A ``vtkCamera`` object can also be passed.
@@ -1753,11 +1772,12 @@ class Mesh(Points):
         if isinstance(cam, vtk.vtkCamera):
             self.SetCamera(cam)
         else:
-            if not settings.plotter_instance or not settings.plotter_instance.camera:
-                colors.printc("Error in followCamera(): needs an already rendered scene,", c=1)
-                colors.printc("                         or passing a vtkCamera object.", c=1)
-                return self
-            self.SetCamera(settings.plotter_instance.camera)
+            # if settings.plotter_instance and settings.plotter_instance.camera:
+            #     self.SetCamera(settings.plotter_instance.camera)
+            # else:
+            self._set2actcam=True
+            # colors.printc("Error in followCamera(): needs an already rendered scene,", c=1)
+            # colors.printc("                         or passing a vtkCamera object.", c=1)
         return self
 
 

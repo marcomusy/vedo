@@ -1,6 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 from __future__ import division, print_function
-import os
-import vtk
+import os, sys, vtk
 import numpy as np
 from vtk.util.numpy_support import numpy_to_vtk
 from vedo import settings
@@ -62,9 +63,76 @@ __all__ = [
     "Tensors",
     "ParametricShape",
     "ConvexHull",
+    "VedoLogo",
 ]
 
+##############################################
 _fonts_cache = dict()
+_reps = [
+    ("\nabla", "∇"),
+    ("\infty", "∞"),
+    ("\rightarrow", "→"),
+    ("\lefttarrow", "←"),
+    ("\partial", "∂"),
+    ("\sqrt", "√"),
+    ("\approx", "≈"),
+    ("\neq", "≠"),
+    ("\leq", "≤"),
+    ("\geq", "≥"),
+    ("\foreach", "∀"),
+    ("\permille", "‰"),
+    ("\euro", "€"),
+    ("\dot", "•"),
+    ("\varnothing", "∅"),
+    ("\int", "∫"),
+    ("\pm", "±"),
+    ("\times","×"),
+    ###############
+    ("\Gamma", "Γ"),
+    ("\Delta", "Δ"),
+    ("\Theta", "Θ"),
+    ("\Lambda", "Λ"),
+    ("\Pi", "Π"),
+    ("\Sigma", "Σ"),
+    ("\Phi", "Φ"),
+    ("\Chi", "X"),
+    ("\Xi", "Ξ"),
+    ("\Psi", "Ψ"),
+    ("\Omega", "Ω"),
+    ###############
+    ("\alpha", "α"),
+    ("\beta", "β"),
+    ("\gamma", "γ"),
+    ("\delta", "δ"),
+    ("\epsilon", "ε"),
+    ("\zeta", "ζ"),
+    ("\eta", "η"),
+    ("\theta", "θ"),
+    ("\kappa", "κ"),
+    ("\lambda", "λ"),
+    ("\mu", "μ"),
+    ("\lowerxi", "ξ"),
+    ("\nu", "ν"),
+    ("\pi", "π"),
+    ("\rho", "ρ"),
+    ("\sigma", "σ"),
+    ("\tau", "τ"),
+    ("\varphi", "φ"),
+    ("\phi", "φ"),
+    ("\chi", "χ"),
+    ("\psi", "ψ"),
+    ("\omega", "ω"),
+    ###############
+    ("\circ", "°"),
+    ("\onehalf", "½"),
+    ("\onefourth", "¼"),
+    ("\threefourths", "¾"),
+    ("\^1", "¹"),
+    ("\^2", "²"),
+    ("\^3", "³"),
+    ("\,", "~"), # small spacing
+    ###############
+]
 
 
 ########################################################################
@@ -147,12 +215,13 @@ def Cross3D(pos=(0,0,0), s=1.0, thickness=0.3, c="b", alpha=1):
     """
     Build a 3D cross shape, mainly useful as a 3D marker.
     """
+    ncolls = len(settings.collectable_actors)
     c1 = Cylinder(r=thickness*s, height=2*s)
     c2 = Cylinder(r=thickness*s, height=2*s).rotateX(90)
     c3 = Cylinder(r=thickness*s, height=2*s).rotateY(90)
     cr = merge(c1,c2,c3).color(c).alpha(alpha)
     cr.SetPosition(pos)
-    settings.collectable_actors.append(cr)
+    settings.collectable_actors = settings.collectable_actors[:ncolls] +[cr]
     cr.name = "Cross3D"
     return cr
 
@@ -420,6 +489,15 @@ class Line(Mesh):
 
         # detect if user is passing a list of points:
         if utils.isSequence(p0[0]):
+            if len(p0[0]) == 2: # make it 3d
+                p0 = np.c_[np.array(p0), np.zeros(len(p0))]
+
+            if closed:
+                p0 = np.append(p0, [p0[0]], axis=0)
+                self.top = p0[-2]
+            else:
+                self.top = p0[-1]
+
             ppoints = vtk.vtkPoints()  # Generate the polyline
             ppoints.SetData(numpy_to_vtk(np.ascontiguousarray(p0), deep=True))
             lines = vtk.vtkCellArray()  # Create the polyline
@@ -432,6 +510,10 @@ class Line(Mesh):
             poly.SetLines(lines)
         else:  # or just 2 points to link
             lineSource = vtk.vtkLineSource()
+            if len(p0) == 2: # make it 3d
+                p0 = [p0[0],p0[1],0]
+            if len(p1) == 2:
+                p1 = [p1[0],p1[1],0]
             lineSource.SetPoint1(p0)
             lineSource.SetPoint2(p1)
             if res:
@@ -707,10 +789,10 @@ class KSpline(Line):
         Line.__init__(self, ln, lw=2, c='gray')
         settings.collectable_actors.pop()
         self.lighting('off')
+        self.name = "KSpline"
         self.base = np.array(points[0])
         self.top = np.array(points[-1])
         settings.collectable_actors.append(self)
-        self.name = "KSpline"
 
 
 def NormalLines(mesh, ratio=1, atCells=True, scale=1):
@@ -928,8 +1010,7 @@ class Arrow(Mesh):
     Build a 3D arrow from `startPoint` to `endPoint` of section size `s`,
     expressed as the fraction of the window size.
 
-    .. note:: If ``s=None`` the arrow is scaled proportionally to its length,
-              otherwise it represents the fraction of the window size.
+    .. note:: If ``s=None`` the arrow is scaled proportionally to its length
 
     |OrientedArrow|
     """
@@ -1531,7 +1612,7 @@ class Earth(Mesh):
 
     |geodesic| |geodesic.py|_
     """
-    def __init__(self, pos=(0, 0, 0), r=1, style=1):
+    def __init__(self, style=1, r=1):
         tss = vtk.vtkTexturedSphereSource()
         tss.SetRadius(r)
         tss.SetThetaResolution(72)
@@ -1546,7 +1627,6 @@ class Earth(Mesh):
         atext.SetInputConnection(pnmReader.GetOutputPort())
         atext.InterpolateOn()
         self.SetTexture(atext)
-        self.SetPosition(pos)
         settings.collectable_actors.append(self)
         self.name = "Earth"
 
@@ -2144,24 +2224,21 @@ class Text(Mesh):
     """
     Returns a 3D polygonal ``Mesh`` of a text string.
 
+    Can render strings like 3.7 10^9 or H_2 O with subscripts and superscripts.
+    Symbols ~ ^ _ are reserved modifiers:
+        use ~ to add a short space, 1/4 of the default size,
+        use ^ and _ to start up/sub scripting, a space terminates their effect.
+
     :param list pos: position coordinates in 3D space
     :param float s: size of text.
     :param float depth: text thickness.
     :param bool,float italic: italic font type (can be a signed float too).
-    :param str justify: text justification
+    :param str justify: text justification as centering of the bounding box
         (bottom-left, bottom-right, top-left, top-right, centered).
 
-    :param bool useModifiers: render strings like 3.7 10^9 or H_2 O
-        with subscripts and superscripts.
-        The first space after symbols _ and ^ marks the end of the modifier.
-
     :param str font: available fonts are:
-        VTK, BPmonoBold, BPmonoItalics, BPmonoRegular, CallingCode
-        ChineseRuler, ClassCoder, MonospaceTypewriter, Montserrat, Quikhand.
-
-        Symbols ~ ^ _ are reserved modifiers:
-            use ~ to add a short space, 1/4 of the default size,
-            use ^ and _ to start up/sub scripting, a space terminates their effect.
+        VTK, BPmonoBold, BPmonoItalics, Biysk, Bongas, CallingCode, Inversionz
+        MonoCodeElegant, MonoCodeFresh, Normografo, Quikhand, SmartCourier, VictorMono
 
     :param float hspacing: horizontal spacing of the font.
     :param float vspacing: vertical spacing of the font in multiple lines text.
@@ -2172,7 +2249,7 @@ class Text(Mesh):
                 txt,
                 pos=(0,0,0),
                 s=1,
-                font="VTK",
+                font="Normografo",
                 hspacing = 1.15,
                 vspacing = 2.15,
                 depth=0,
@@ -2201,210 +2278,199 @@ class Text(Mesh):
             else:
                 c = (0.6, 0.6, 0.6)
 
-        def _mktxt(s, x=0, ypos=0):
-            tt = vtk.vtkVectorText()
-            tt.SetText(s)
-            tt.Update()
-            kpoly = tt.GetOutput()
-            if x:
-                tr = vtk.vtkTransform()
-                if not ypos:
-                    tr.Translate(x,ypos,0)
-                else:
-                    tr.Translate(x+0.1,ypos,0)
-                    tr.Scale(0.5,0.5,1)
-                tf = vtk.vtkTransformPolyDataFilter()
-                tf.SetInputData(kpoly)
-                tf.SetTransform(tr)
-                tf.Update()
-                kpoly = tf.GetOutput()
-            return kpoly, kpoly.GetBounds()[1]
-
         txt = str(txt)
-        notfounds = 0
+
+        stxt = set(txt) # check here if null or only spaces
+        if not txt or (len(stxt)==1 and " " in stxt):
+            Mesh.__init__(self, vtk.vtkPolyData(), c, alpha)
+            self.name = "TextNull"
+            return
+
+        ###################################################
+        notfounds=0
+        isvtkfont = False
+
+        if sys.version_info[0] < 3: font="VTK" # disable python2
 
         if font == "VTK":
 
-            if settings.useModifiersInText and useModifiers and len(txt)>2 and ' ' in txt:
+            if font not in _fonts_cache.keys():
+                _fonts_cache.update({font:dict()})
+                _fonts_cache.update({font+'_letters':dict()})
+            isvtkfont = True
 
-                sn = txt.replace("**","^")
-                sn = sn.replace("e+0","^. 10^").replace("e-0","^. 10^-")
-                sn = sn.replace("E+0","^. 10^").replace("E-0","^. 10^-")
-                sn = sn.replace("e+","^. 10^").replace("e-","^. 10^-")
-                sn = sn.replace("E+","^. 10^").replace("E-","^. 10^-")
-
-                x=0
-                vtxts = []
-                txt=''
-                itersn = iter(range(len(sn)))
-                for i in itersn:
-                    car = sn[i]
-                    if car=='^':
-                        yshift = 0.7
-                    elif car=='_':
-                        yshift = -0.3
-                    else:
-                        yshift = 0
-
-                    if yshift:
-                        vtxt, x = _mktxt(txt,x) # normal text
-                        vtxts.append(vtxt)
-                        txt=''
-                        etxt = ''
-                        for k in range(i+1,len(sn)): # sub/super script
-                            snk = sn[k]
-                            next(itersn)
-                            if snk==" ":break
-                            etxt+=snk
-                        if etxt:
-                            vetxt, x = _mktxt(etxt,x, yshift)
-                            vtxts.append(vetxt)
-                    else:
-                        txt+=car
-
-                if txt:
-                    vtxts.append(_mktxt(txt,x)[0])
-
-                if len(vtxts) == 1:
-                    tpoly = vtxts[0]
-                else:
-                    polyapp = vtk.vtkAppendPolyData()
-                    for polyd in vtxts:
-                        polyapp.AddInputData(polyd)
-                    polyapp.Update()
-                    tpoly = polyapp.GetOutput()
-
-            else:
-                tpoly = _mktxt(txt)[0]
-
-        else: ################################################# font is not "VTK"
+        else:
 
             if font in _fonts_cache.keys():
                 _font_meshes = _fonts_cache[font]
             else:
                 try:
+                    #print('loading',font)
                     fontfile = settings.fonts_path + font + '.npz'
                     _font_meshes = np.load(fontfile, allow_pickle=True)['font'][0]
                     _fonts_cache.update({font : _font_meshes})
+                    _fonts_cache.update({font+'_letters': dict()})
                 except:
                     printc("Text() error: font name", font, "not found. Skip.", c='r')
-                    return None
-
+                    raise RuntimeError
             keys = _font_meshes.keys()
 
-            txt = txt.replace("**","^")
-            txt = txt.replace("e+0","^. 10^").replace("e-0","^. 10^-")
-            txt = txt.replace("E+0","^. 10^").replace("E-0","^. 10^-")
-            txt = txt.replace("e+","^. 10^").replace("e-","^. 10^-")
-            txt = txt.replace("E+","^. 10^").replace("E-","^. 10^-")
+        # replacements
+        if not isvtkfont and "\\" in repr(txt):
+            for r in _reps:
+                txt = txt.replace(r[0], r[1])
+        reps2 = [
+                ("\_", "┭"), # trick to protect ~ _ and ^ chars
+                ("\^", "┮"), #
+                ("\~", "┯"), #
+                ("**","^"),  # order matters
+                ("e+0","~^.~ 10^"), ("e-0","~^.~ 10^-"),
+                ("E+0","~^.~ 10^"), ("E-0","~^.~ 10^-"),
+                ("e+" ,"~^.~ 10^"), ("e-" ,"~^.~ 10^-"),
+                ("E+" ,"~^.~ 10^"), ("E-" ,"~^.~ 10^-"),
+        ]
+        for r in reps2:
+            txt = txt.replace(r[0], r[1])
 
-            mono = True
-            skipspace = True
-            fscale = 0.85 # an extra factor to match the default vtk font size :(
-            if font=='ImpactLabel':
-                mono = False
-                hspacing *= -40/115
-                skipspace= False
-            elif font=='ChineseRuler':
-                mono = False
-                hspacing *= 1.2
-            elif font=='Montserrat':
-                mono = False
-                hspacing *= 100/115
-            elif font=='Quikhand':
-                mono = False
-                hspacing *= 70/115
-                fscale = 0.7
+        if font == "ImpactLabel": font='Inversionz'
 
-            xmax, ymax, yshift, scale = 0, 0, 0, 1
-            save_xmax = 0
+        mono = True
+        skipspace = True
+        xinterletter = 0.1 # spacing inbetween letter
+        fscale = 0.8       # an extra factor to equalize different fonts sizes
+        if font=='VTK':
+            mono = False
+            xinterletter = 0.35
+            hspacing *= 0.55
+        elif font=='Normografo':
+            mono = False
+            xinterletter = 0.2
+        elif font=='Quikhand':
+            mono = False
+            hspacing *= 0.6
+            xinterletter = 0.15
+            fscale = 0.75
+        elif font=='CourierSmart':
+            mono = False
+            fscale = 0.85
+            xinterletter = 0.2
+        elif font=='ClassCoder':
+            fscale = 0.7
+        elif font=='Bongas':
+            mono = False
+            xinterletter = 0.2
+        elif font=='Inversionz':
+            fscale = 0.9
+        elif font=='Biysk': # the vedo logo font
+            mono = False
+            xinterletter = 0.2
+            fscale = 0.9
 
-            polydict = dict() # cache-ing letters
-            polyletters = []
-            ntxt = len(txt)
-            for i, t in enumerate(txt):
-                ##########
-                if t=='^':
-                    if yshift<0:
-                        xmax = save_xmax
-                    yshift = 0.9*fscale
-                    scale = 0.5
+        xmax, ymax, yshift, scale = 0, 0, 0, 1
+        save_xmax = 0
+
+        polydict = _fonts_cache[font+'_letters']   # cache-ing letters
+        polyletters = []
+        ntxt = len(txt)
+        for i, t in enumerate(txt):
+            ##########
+            if t=='┭':
+                t="_"
+            elif t=='┮':
+                t="^"
+            elif t=='┯':
+                t="~"
+            elif t=='^':
+                if yshift<0:
+                    xmax = save_xmax
+                yshift = 0.9*fscale
+                scale = 0.5
+                continue
+            elif t=='_':
+                if yshift>0:
+                    xmax = save_xmax
+                yshift = -0.3*fscale
+                scale = 0.5
+                continue
+            elif (t==' ' or t=="\n") and yshift:
+                yshift = 0
+                scale = 1
+                save_xmax = xmax
+                if t==' ': continue
+            elif t=='~':
+                if i<ntxt-1 and txt[i+1]=='_':
                     continue
-                elif t=='_':
-                    if yshift>0:
-                        xmax = save_xmax
-                    yshift = -0.3*fscale
-                    scale = 0.5
-                    continue
-                elif (t==' ' or t=="\n") and yshift:
-                    yshift = 0
-                    scale = 1
-                    save_xmax = xmax
-                    if t==' ': continue
-                elif t=='~':
-                    if i<ntxt-1 and txt[i+1]=='_':
-                        continue
-                    xmax += hspacing*scale*fscale / 4
-                    continue
+                xmax += hspacing*scale*fscale / 4
+                continue
 
-                ############
-                if skipspace and t==" ":
-                    xmax += hspacing*scale*fscale
+            ############
+            if skipspace and t==" ":
+                xmax += hspacing*scale*fscale
 
-                elif t=="\n":
-                    xmax = 0
-                    save_xmax = 0
-                    ymax -= vspacing
+            elif t=="\n":
+                xmax = 0
+                save_xmax = 0
+                ymax -= vspacing
 
-                elif t in keys:
-                    if t in polydict.keys():
-                        poly = polydict[t] # save time for repeated chars
+            elif isvtkfont or t in keys:
+                if t in polydict.keys():
+                    poly = polydict[t] # save time for repeated chars
+                    if isvtkfont:
+                        pscale = scale
+                    else:
+                        pscale = scale*fscale / 1000
+                else:
+                    if isvtkfont:
+                        vtt = vtk.vtkVectorText()
+                        vtt.SetText(t)
+                        vtt.Update()
+                        poly = vtt.GetOutput()
+                        pscale = scale
                     else:
                         mt = _font_meshes[t]
                         poly = utils.buildPolyData(mt[0], mt[1])
-                        polydict.update({t:poly})
-                    pscale = scale*fscale / 1000
-                    tr = vtk.vtkTransform()
-                    tr.Translate(xmax, ymax+yshift, 0)
-                    tr.Scale(pscale, pscale, pscale)
-                    tf = vtk.vtkTransformPolyDataFilter()
-                    tf.SetInputData(poly)
-                    tf.SetTransform(tr)
-                    tf.Update()
-                    poly = tf.GetOutput()
-                    polyletters.append(poly)
+                        pscale = scale*fscale / 1000
+                    polydict.update({t:poly})
+                tr = vtk.vtkTransform()
+                tr.Translate(xmax, ymax+yshift, 0)
+                tr.Scale(pscale, pscale, pscale)
+                tf = vtk.vtkTransformPolyDataFilter()
+                tf.SetInputData(poly)
+                tf.SetTransform(tr)
+                tf.Update()
+                poly = tf.GetOutput()
+                polyletters.append(poly)
 
-                    bx = poly.GetBounds()
-                    if mono:
-                        xmax += hspacing*scale*fscale
-                    else:
-                        xmax += bx[1]-bx[0] + hspacing*scale*fscale/10
-                    if yshift==0:
-                        save_xmax = xmax
-                else:
-                    printc("In Text(): char", t,
-                           "not found in", font, 'ord =', ord(t), c='y')
-                    notfounds += 1
+                bx = poly.GetBounds()
+                if mono:
                     xmax += hspacing*scale*fscale
-
-            if len(polyletters) > 1:
-                polyapp = vtk.vtkAppendPolyData()
-                for poly in polyletters:
-                    polyapp.AddInputData(poly)
-                polyapp.Update()
-                tpoly = polyapp.GetOutput()
+                else:
+                    xmax += bx[1]-bx[0] + hspacing*scale*fscale*xinterletter
+                if yshift==0:
+                    save_xmax = xmax
             else:
-                tpoly = poly
+                printc("In Text(): char", t,
+                       "not found in", font, 'ord =', ord(t), c='y')
+                notfounds += 1
+                xmax += hspacing*scale*fscale
+
+        if len(polyletters) == 1:
+            tpoly = polyletters[0]
+        else:
+            polyapp = vtk.vtkAppendPolyData()
+            for polyd in polyletters:
+                polyapp.AddInputData(polyd)
+            polyapp.Update()
+            tpoly = polyapp.GetOutput()
 
         if notfounds:
-            # printc('Type "vedo -r fonts" to check available characters for', font)
             printc(font + " - available characters are:", " "*25, bold=1, invert=1)
             for k in _font_meshes.keys(): printc(k, end=' ')
             printc('\n(use the above to copy&paste any char into your python script!)', italic=1)
             printc('Symbols ~ ^ _ are reserved modifiers:', italic=1)
             printc(' use ~ to add a short space, 1/4 of the default size,', italic=1)
             printc(' use ^ and _ to start up/sub scripting, space terminates them.\n', italic=1)
-
+            printc('Type "vedo -r fonts" for a demo.', italic=1)
 
         bb = tpoly.GetBounds()
         dx, dy = (bb[1] - bb[0]) / 2 * s, (bb[3] - bb[2]) / 2 * s
@@ -2424,7 +2490,7 @@ class Text(Mesh):
         if italic is True:
             italic = 1
         if italic:
-            t.Concatenate([1,italic*0.25,0,0,
+            t.Concatenate([1,italic*0.2,0,0,
                            0,1,0,0,
                            0,0,1,0,
                            0,0,0,1])
@@ -2457,7 +2523,7 @@ def Text2D(
     c=None,
     alpha=0.15,
     bg=None,
-    font="Montserrat",
+    font="Normografo",
     justify="bottom-left",
     bold=False,
     italic=False,
@@ -2491,13 +2557,8 @@ def Text2D(
             - Times
             - Arial
             - CallingCode
-            - ChineseRuler
-            - Godsway
-            - ImpactLabel
-            - Komiko
             - Monospace
             - Montserrat
-            - Overspray
 
         A path to `otf` or `ttf` font-file can also be supplied as input.
 
@@ -2519,6 +2580,13 @@ def Text2D(
         else:
             c = (0.5, 0.5, 0.5)
 
+    if font == "ImpactLabel": font='Inversionz'
+
+    txt = str(txt)
+    if "\\" in repr(txt):
+        for r in _reps:
+            txt = txt.replace(r[0], r[1])
+
     if isinstance(pos, str): # corners
         if "top" in pos:
             if "left" in pos: pos = 3
@@ -2539,8 +2607,9 @@ def Text2D(
         if pos < 1:
             pos = 1
         ca = vtk.vtkCornerAnnotation()
-        ca.SetNonlinearFontScaleFactor(s/2.7)
-        ca.SetText(pos - 1, str(txt))
+        ca.SetLinearFontScaleFactor(s*5.5)
+        #ca.SetNonlinearFontScaleFactor(s/2.7)
+        ca.SetText(pos - 1, txt)
         ca.PickableOff()
         cap = ca.GetTextProperty()
         cap.SetColor(getColor(c))
@@ -2594,6 +2663,8 @@ def Text2D(
             tp.SetJustificationToLeft()
         if "right" in justify:
             tp.SetJustificationToRight()
+
+        if font == "Godsway": font="Quikhand" # for cloneviewr
 
         if font.lower() == "courier": tp.SetFontFamilyToCourier()
         elif font.lower() == "times": tp.SetFontFamilyToTimes()
@@ -2836,6 +2907,52 @@ def ConvexHull(pts):
     return m
 
 
+def VedoLogo(distance=0, version=True, c=None, bc='dr'):
+    """
+    Create the 3D vedo logo.
+
+    :param float distance: send back logo by this distance from camera
+    :param bool version: add version text at the right end of the logo
+    :param bc: text back face color
+    """
+    import vedo
+
+    if c is None:
+        c = (0,0,0)
+        if settings.plotter_instance:
+            if sum(getColor(settings.plotter_instance.backgrcol))>1.5:
+                c=[0,0,0]
+            else:
+                c='linen'
+
+    sphere = Sphere(r=500, res=12, c=c).x(400).alpha(0.16)
+    # generate and save
+    # tetm = TetMesh(datadir+'limb_ugrid.vtk')
+    # ms = tetm.cutWithMesh(sphere, onlyBoundary=True).tomesh(shrink=1)
+    # ms.clean().write('omesh.vtk')
+
+    ms = vedo.io.load(vedo.datadir+'omesh.vtk')
+    ms.scale([1,1,0.3]).pos(1500, 550, 95).lighting('shiny').pickable(0)
+    # Spectral, viridis_r, jet, gist_ncar, prism, seismic_r, brg_r
+    ms.cmap('jet_r', mode='cells')
+
+    vlogo = Text("v3d", font='Biysk', s=1350, depth=0.2, c=c, hspacing=0.9)
+    vlogo.x(-2525).pickable(False).bc(bc)
+    vlogo.GetProperty().LightingOn()
+
+    sphere.scale([1,1,0.3]).pos(1846, 548, 82)
+    sphere.lighting('off').frontFaceCulling(True).pickable(False)
+
+    vr = None
+    if version:
+        vr = Text(vedo.__version__, font='Biysk',
+                  s=175, depth=0.2, c=c, hspacing=0.8)
+        vr.RotateZ(90)
+        vr.pos(2800,50,80).bc(bc).pickable(False)
+
+    fakept = vedo.Point((0,500,distance*1725), alpha=0, c=c, r=1).pickable(0)
+    asso = vedo.Assembly([vlogo, vr, ms, sphere, fakept]).scale(1/1725)
+    return asso
 
 
 
