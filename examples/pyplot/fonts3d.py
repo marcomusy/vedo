@@ -15,18 +15,20 @@ show(..., bg2='cornsilk', axes=False, zoom=1.2, size=(1300,800), interactive=Fal
 
 
 ################################################################################## 3D
-# font = 'BPmonoBold'
-# font = 'BPmonoItalics'
-# font = 'Biysk'
-# font = 'Bongas'
-# font = 'Inversionz'
-# font = 'MonoCodeElegant'
-# font = 'MonoCodeFresh'
-# font = 'SmartCourier'
-# font = 'Quikhand'
-font = 'Normografo'
-# font = 'VictorMono'
+# font = "Biysk"
+# font = "Bongas"
+# font = "Galax"
+# font = "Inversionz"
+font = "Kanopus"
+# font = "MonoCodeElegant"
+# font = "MonoCodeFresh"
+# font = "Normografo"
+# font = "Quikhand"
+# font = "SmartCouric"
+# font = "Theemim"
+# font = "VictorMono"
 # font = 'VTK'
+
 
 # Symbols ~ ^ _ are reserved modifiers:
 #  use ~ to add a short space, 1/4 of the default size,
@@ -36,7 +38,7 @@ txt = """The quick fox jumps over the lazy dog.
 Symbols: !@#$%&*()+=-{}[]:;|<>?/\euro1234567890\~
 Units:  \delta=0.25E-03 ~mμ, T_sea ~=~5.3~±0.7~\circC
 LaTeX: \nabla\dotE=~4\pi~\rho, \nabla\timesE=~-1/c~~\partialB/\partialt
-       ih~\partial/\partialt~Psi = [-h^2 /2m\nabla^2  + V(r,t)]~\Psi(r,t)
+       ih~\partial/\partialt~\Psi = [-h^2 /2m\nabla^2  + V(r,t)]~\Psi(r,t)
        \DeltaE~=~h\nu, y = \Sigma_n ~A_n cos(\omega_n t+\delta_n ) sin(k_n x)
        \intx\dot~dx = \onehalf x\^2 + const.
        d^2 x^\mu  + \Gamma^\mu_\alpha\beta ~dx^\alpha ~dx^\beta  = 0
@@ -44,7 +46,7 @@ LaTeX: \nabla\dotE=~4\pi~\rho, \nabla\timesE=~-1/c~~\partialB/\partialt
 Protect underscore \\\_ and \\\^ with a backslash.
 """
 
-t = Text(txt, font=font).c('darkblue').bc('tomato').scale(12300)
+t = Text(txt, font=font, italic=0).c('darkblue').bc('tomato').scale(12300)
 
 cam = dict(pos=(5.02e+5, 1.01e+5, 6.35e+5),
            focalPoint=(2.68e+5, 1.01e+5, -1.11e+4),
@@ -75,13 +77,11 @@ for font in fonts:
         font_meshes = np.load(fontfile, allow_pickle=True)['font'][0]
     except:
         pass
-    if font=="BPmonoBold":
-        continue
     for k in font_meshes.keys():
         printc(k, end=' ')
     print()
 
-printc('\n\n(use the above to copy&paste any char into your python script!)', italic=1)
+printc('\n(use the above to copy&paste any char into your python script!)', italic=1)
 printc('Symbols ~ ^ _ are reserved modifiers:', italic=1)
 printc(' use ~ to add a short space, 1/4 of the default size,', italic=1)
 printc(' use ^ and _ to start up/sub scripting, space terminates them.\n', italic=1)
@@ -164,21 +164,22 @@ cam = dict(pos=(71.6, 5.87, 126),
            distance=138,
            clippingRange=(104, 185))
 
-ln0 = Line([-1,1.5],[51,1.5], lw=0.1, c='grey')
-ln1 = Line([-1,-2],[51,-2], lw=0.1, c='grey')
+ln0 = Line([-1,1.5],[52,1.5], lw=0.1, c='grey')
+ln1 = Line([-1,-2],[52,-2], lw=0.1, c='grey')
 fn3d=[ln0,ln1]
 gap = 0
-txt = " Font Name\n"
+txt = "Font Name\n"
 for i, font in enumerate(fonts+['VTK']):
     txt += font+": abcdefghijklmnopqrtuvwxyz 1234567890"
-    if font in ["BPmonoBold", "BPmonoItalics", "Normografo", "VictorMono"]:
-         txt += "\n            αβγδεζηθκλμνξπρστφχψω ΔΘΛΞΠΣΦΨΩ"
+    if font in ["Theemim", "Kanopus", "Normografo", "VictorMono", "Galax"]:
+         txt += "\n         αβγδεζηθκλμνξπρστφχψω ΔΘΛΞΠΣΦΨΩ"
          gap -= 2
     if "Biysk" in font: txt += " v3do"
-    if "VictorMono" in font: txt+= " БГДЖЗИЙКЛ"
+    if "VictorMono" == font or "Kanopus" == font:
+        txt+= " БГДЖЗИЙКЛ"
     gap -= 4
-    t2 = Text(txt, font=font).c(i).bc('tomato').y(gap)
-    ln = Line([-1,gap-1],[51,gap-1], lw=0.5, c='grey')
+    t2 = Text(txt, font=font, italic=0).c(i).bc('tomato').y(gap)
+    ln = Line([-1,gap-1],[52,gap-1], lw=0.5, c='grey')
     fn3d.extend([t2,ln])
     txt=''
 

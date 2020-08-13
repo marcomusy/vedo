@@ -59,7 +59,7 @@ tx = Text2D('COVID-19 spread on '+date
            +'\n# deaths: '+str(alldeat)
            +'\n# recovd: '+str(allreco)
            +'\n(hover mouse for local info)',
-           font="BPmonoBold")
+           font="VictorMono")
 
 show(Earth(), s1, merge(s2), tx,
      axes=12, bg2='lb', zoom=1.7, elevation=-70, size='fullscreen')

@@ -207,7 +207,7 @@ License: public-domain-earth-III
 
 
 ------------------------------------------------------------------------------
-Files: vedo/fonts/Biysk.*
+Files: vedo/fonts/Biysk.ttf
 Source: https://www.1001freefonts.com/biysk.font
 Copyright: 2018 Vladimir Nikolic (http://www.coroflot.com/vladimirnikolic)
 License: public-domain
@@ -215,49 +215,70 @@ License: public-domain
 Files: vedo/fonts/Bongas.*
 Source: https://www.1001freefonts.com/boogaloo.font
 Copyright: 2011 John Vargas Beltrán, with Reserved Font Name Boogaloo
+ 2020 M. Musy
+Comment: 2020 subset and polygonized for vedo with name Bongas
 License: OFL
 
-Files: vedo/fonts/BPmonoBold.*
-Source: https://www.1001freefonts.com/bp-mono.font
-Copyright: 2020 Backpacker (http://www.backpacker.gr)
-License: cc-by-nd
+Files: vedo/fonts/Galax.*
+Source: https://www.1001freefonts.com/galatia-sil.font
+Copyright: 1979 SIL International, with Reserved Font Names "Galatia" and "SIL"
+ 2020 M. Musy
+Comment: 2020 subset and polygonized for vedo with name Galax
+License: OFL
 
-Files: vedo/fonts/BPmonoItalics.*
-Source: https://www.1001freefonts.com/bp-mono.font
-Copyright: 2020 Backpacker (http://www.backpacker.gr)
-License: cc-by-nd
+Files: vedo/fonts/Kanopus.*
+Source: https://www.1001freefonts.com/kelvinch.font
+Copyright: 2016 Paul Miller, with Reserved Font Names "Kelvinch" and "SIL"
+ 2020 M. Musy
+Comment: 2020 subset and polygonized for vedo with name Kanopus
+License: OFL
+
+Files: vedo/fonts/Inversionz.ttf
+Source: https://www.1001freefonts.com/inversionz.font
+Copyright: 2017 Darrell Flood
+License: public-domain
 
 Files: vedo/fonts/MonoCodeElegant.*
 Source: https://www.1001freefonts.com/calling-code.font
 Copyright: 2017 Ryoichi Tsunekawa, with Reserved Font Name Calling Code
+ 2020 M. Musy
+Comment: 2020 subset and polygonized for vedo with name MonoCodeElegant
 License: OFL
 
 Files: vedo/fonts/MonoCodeFresh.*
 Source: https://www.1001freefonts.com/class-coder.font
 Copyright: 2017 Walter E Stewart, with Reserved Font Name Class Coder
+ 2020 M. Musy
+Comment: 2020 subset and polygonized for vedo with name MonoCodeFresh
 License: OFL
 
-Files: vedo/fonts/SmartCourier.*
-Source: https://www.fontsquirrel.com/fonts/courier-prime
-Copyright: 2013 Quote-Unquote Apps, with Reserved Font Name Courier Prime
+Files: vedo/fonts/Normografo.*
+Source: https://www.1001freefonts.com/tecnico-font-19886.font
+Copyright: 2017 Cristhian Gomez, with Reserved Font Name Tecnico
+ 2020 M. Musy
+Comment: 2020 subset and polygonized for vedo with name Normografo
 License: OFL
 
-Files: vedo/fonts/Inversionz.*
-Source: https://www.1001freefonts.com/inversionz.font
-Copyright: 2017 Darrell Flood
-License: public-domain
-
-Files: vedo/fonts/Quikhand.*
+Files: vedo/fonts/Quikhand.ttf
 Source: https://www.1001freefonts.com/quikhand.font
 Copyright: 2020 Qwerks (http://graphicriver.net/user/joiaco)
 License: public-domain
 
-Files: vedo/fonts/NormoGraph.*
-Source: https://www.1001freefonts.com/tecnico-font-19886.font
-Copyright: 2017 Cristhian Gomez, with Reserved Font Name Tecnico
+Files: vedo/fonts/SmartCouric.*
+Source: https://www.fontsquirrel.com/fonts/courier-prime
+Copyright: 2013 Quote-Unquote Apps, with Reserved Font Name Courier Prime
+ 2020 M. Musy
+Comment: 2020 subset and polygonized for vedo with name SmartCouric
 License: OFL
 
-Files: vedo/fonts/VictorMono.*
+Files: vedo/fonts/Theemim.*
+Source: https://www.1001freefonts.com/theano-didot.font
+Copyright: Alexey Kryukov, with Reserved Font Name Theano Didot
+ 2020 M. Musy
+Comment: 2020 subset and polygonized for vedo with name Theemim
+License: OFL
+
+Files: vedo/fonts/VictorMono.ttf
 Source: https://www.fontsquirrel.com/fonts/victor-mono
 Copyright: 2019 Rune Bjørnerås, (https://rubjo.github.io/victor-mono)
 License: MIT
@@ -407,46 +428,6 @@ License: cc-by-sa
  rights such as publicity, privacy, or moral rights may limit how you
  use the material.
 
-------------------------------------------------------------------------------
-License: cc-by-nd
- Creative Commons Attribution-NoDerivs 3.0 Unported (CC BY-ND 3.0)
- .
- This is a human-readable summary of (and not a substitute for) the
- license. The full text is found at
- https://creativecommons.org/licenses/by-nd/3.0/legalcode
- .
- You are free to:
- .
- Share — copy and redistribute the material in any medium or format
- for any purpose, even commercially
- .
- The licensor cannot revoke these freedoms as long as you follow the
- license terms.
- .
- Under the following terms:
- .
- Attribution — You must give appropriate credit, provide a link to the
-  license, and indicate if changes were made. You may do so in any
-  reasonable manner, but not in any way that suggests the licensor
-  endorses you or your use.
- .
- No Derivatives — If you remix, transform, or build upon the material,
-  you may not distribute the modified material.
- .
- No additional restrictions — You may not apply legal terms or
-  technological measures that legally restrict others from doing
-  anything the license permits.
- .
- Notices:
- .
- You do not have to comply with the license for elements of the
- material in the public domain or where your use is permitted by an
- applicable exception or limitation.
- .
- No warranties are given. The license may not give you all of the
- permissions necessary for your intended use. For example, other
- rights such as publicity, privacy, or moral rights may limit how you
- use the material.
 
 ------------------------------------------------------------------------------
 License: PersonalUseLicense-RoyaltyFreeLicense

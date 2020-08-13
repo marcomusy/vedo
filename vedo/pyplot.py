@@ -2336,7 +2336,7 @@ class DirectedGraph(Assembly):
 
         self.gl = vtk.vtkGraphLayout()
 
-        self.font = kargs.pop('font', 'Normografo')
+        self.font = kargs.pop('font', '')
 
         s = kargs.pop('layout', '2d')
         if isinstance(s, int):

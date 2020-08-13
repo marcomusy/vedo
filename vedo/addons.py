@@ -48,7 +48,7 @@ def Ruler(
     p1, p2,
     label="",
     s=None,
-    font="Normografo",
+    font="",
     italic=0,
     prefix="",
     units="",  #eg.'μm'
@@ -136,7 +136,7 @@ def Ruler(
 #####################################################################
 def Goniometer(
         p1,p2,p3,
-        font="Normografo",
+        font="",
         arcSize=0.4,
         fill=0.1,
         s=1,
@@ -160,7 +160,7 @@ def Goniometer(
     p3 : list
         the last point defining the angle.
     font : str, optional
-        Font name to be used. The default is "Normografo".
+        Font name to be used. The default is "".
     arcSize : float, optional
         dimension of the arc wrt the smallest axis. The default is 0.4.
     fill : bool, optional
@@ -481,13 +481,13 @@ def addScalarBar3D(
     sx=None,
     sy=None,
     title='',
-    titleFont="Normografo",
+    titleFont="",
     titleXOffset=-1.5,
     titleYOffset=0.0,
     titleSize=1.5,
     titleRotation=0.0,
     nlabels=9,
-    labelFont="Normografo",
+    labelFont="",
     labelOffset=0.375,
     italic=0,
     c=None,
@@ -1126,7 +1126,7 @@ def buildAxes(obj=None,
               gridLineWidth=1,
               reorientShortTitle=True,
               titleDepth=0,
-              titleFont="Normografo",
+              titleFont="",
               xTitlePosition=0.95, yTitlePosition=0.95, zTitlePosition=0.95,
               xTitleOffset=0.062,   yTitleOffset=0.06,   zTitleOffset=0.05,
               xTitleJustify="top-right", yTitleJustify="bottom-right", zTitleJustify="bottom-right",
@@ -1154,8 +1154,8 @@ def buildAxes(obj=None,
               xTickColor=None, yTickColor=None, zTickColor=None,
               xMinorTicks=1, yMinorTicks=1, zMinorTicks=1,
               tipSize=None,
-              labelFont="Normografo",
-              xLabelSize=0.014, yLabelSize=0.014, zLabelSize=0.014,
+              labelFont="",
+              xLabelSize=0.015, yLabelSize=0.015, zLabelSize=0.015,
               xLabelOffset=0.015, yLabelOffset=0.015, zLabelOffset=0.01,
               xPositionsAndLabels=None, yPositionsAndLabels=None, zPositionsAndLabels=None,
               xFlipText=False, yFlipText=False, zFlipText=False,
@@ -1222,6 +1222,12 @@ def buildAxes(obj=None,
     |customAxes| |customAxes.py|_
     """
     ncolls = len(settings.collectable_actors)
+
+    if not titleFont:
+        titleFont = settings.defaultFont
+    if not labelFont:
+        labelFont = settings.defaultFont
+
     if c is None:  # automatic black or white
         c = (0.1, 0.1, 0.1)
         plt = settings.plotter_instance

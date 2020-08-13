@@ -1554,16 +1554,16 @@ class Points(vtk.vtkFollower, BaseActor):
         txt,
         pt=None,
         offset=None,
+        s=None,
         font="VictorMono",
         rounded=True,
         c=None,
         alpha=1,
         lw=2,
-        s=None,
         italic=0,
     ):
         """
-        Generate a vignette to describe an object.
+        Generate a vignette to describe an object. Returns a Mesh object.
 
         Parameters
         ----------
@@ -1573,6 +1573,8 @@ class Points(vtk.vtkFollower, BaseActor):
             position of the vignette pointer. The default is None.
         offset : list, optional
             text offset wrt the application point. The default is None.
+        s : float, optional
+            size of the vignette. The default is None.
         font : str, optional
             text font. The default is "VictorMono".
         rounded : bool, optional
@@ -1583,8 +1585,6 @@ class Points(vtk.vtkFollower, BaseActor):
             transparency of text and box. The default is 1.
         lw : float, optional
             line with of box frame. The default is 2.
-        s : float, optional
-            size of the vignette. The default is None.
         italic : float, optional
             italicness of text (multiline is not supported). The default is 0.
 
@@ -1620,29 +1620,37 @@ class Points(vtk.vtkFollower, BaseActor):
         pt = np.array(pt)
 
         lb = vedo.shapes.Text(
-            txt, pos=pt + offset, s=s, font=font, italic=italic, justify="bottom-left"
+            txt, pos=pt+offset, s=s, font=font, italic=italic, justify="bottom-left"
         )
         acts.append(lb)
 
         if not sph:
-            sph = vedo.shapes.Circle(pt, r=s / 4, res=15)
+            sph = vedo.shapes.Circle(pt, r=s/3, res=15)
         acts.append(sph)
 
         x0, x1, y0, y1, z0, z1 = lb.GetBounds()
         if rounded:
             box = vedo.shapes.KSpline(
-                [(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0)], closed=True
+                [(x0,y0,z0), (x1,y0,z0), (x1,y1,z0), (x0,y1,z0)], closed=True
             ).scale(0.91)
         else:
             box = vedo.shapes.Line(
-                [(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0), (x0, y0, z0)]
+                [(x0,y0,z0), (x1,y0,z0), (x1,y1,z0), (x0,y1,z0), (x0,y0,z0)]
             )
         box.origin([(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2]).scale(1.2)
         acts.append(box)
 
         x0, x1, y0, y1, z0, z1 = box.bounds()
-        c0 = [x0, (y0 + y1) / 2, pt[2]]
-        c1 = [x0 + (pt[0] - x0) / 4, (y0 + y1) / 2, pt[2]]
+        if x0 < pt[0] < x1:
+            c0 = box.closestPoint(pt)
+            c1 = [c0[0], c0[1] + (pt[1] - y0) / 4, pt[2]]
+        elif (pt[0]-x0) < (x1-pt[0]):
+            c0 = [x0, (y0 + y1) / 2, pt[2]]
+            c1 = [x0 + (pt[0] - x0) / 4, (y0 + y1) / 2, pt[2]]
+        else:
+            c0 = [x1, (y0 + y1) / 2, pt[2]]
+            c1 = [x1 + (pt[0] - x1) / 4, (y0 + y1) / 2, pt[2]]
+
         con = vedo.shapes.Line([c0, c1, pt])
         acts.append(con)
 

@@ -25,6 +25,7 @@ __all__ = [
     "Lines",
     "Spline",
     "KSpline",
+    "Bezier",
     "NormalLines",
     "Ribbon",
     "Arrow",
@@ -82,7 +83,7 @@ _reps = [
     ("\foreach", "∀"),
     ("\permille", "‰"),
     ("\euro", "€"),
-    ("\dot", "•"),
+    ("\dot", "·"),
     ("\varnothing", "∅"),
     ("\int", "∫"),
     ("\pm", "±"),
@@ -793,6 +794,47 @@ class KSpline(Line):
         self.base = np.array(points[0])
         self.top = np.array(points[-1])
         settings.collectable_actors.append(self)
+
+
+def Bezier(points, res=None):
+    """Generate the Bezier line that links the first to the last point.
+
+    :Example:
+        .. code-block:: python
+
+            from vedo import *
+            import numpy as np
+            pts = np.random.randn(25,3)
+            for i,p in enumerate(pts):
+                p += [5*i, 15*sin(i/2), i*i*i/200]
+            show(Points(pts), Bezier(pts), axes=1)
+
+    """
+    N = len(points)
+    if res is None:
+        res = 10 * N
+    t = np.linspace(0, 1, num=res)
+    bcurve = np.zeros((res, len(points[0])))
+
+    def binom(n, k):
+        b = 1
+        for t in range(1, min(k, n-k)+1):
+            b *= n/t
+            n -= 1
+        return b
+
+    def bernstein(n, k):
+        coeff = binom(n, k)
+        def _bpoly(x):
+            return coeff * x**k * (1-x)**(n-k)
+        return _bpoly
+
+    for ii in range(N):
+        b = bernstein(N-1, ii)(t)
+        bcurve += np.outer(b, points[ii])
+    ln = Line(bcurve, lw=2)
+    ln.name = "BezierLine"
+    return ln
 
 
 def NormalLines(mesh, ratio=1, atCells=True, scale=1):
@@ -2237,8 +2279,8 @@ class Text(Mesh):
         (bottom-left, bottom-right, top-left, top-right, centered).
 
     :param str font: available fonts are:
-        VTK, BPmonoBold, BPmonoItalics, Biysk, Bongas, CallingCode, Inversionz
-        MonoCodeElegant, MonoCodeFresh, Normografo, Quikhand, SmartCourier, VictorMono
+        VTK, Biysk, Bongas, Kanopus, Galax, MonoCodeElegant, MonoCodeFresh,
+        Inversionz, Normografo, Quikhand, SmartCouric, Theemim, VictorMono
 
     :param float hspacing: horizontal spacing of the font.
     :param float vspacing: vertical spacing of the font in multiple lines text.
@@ -2249,7 +2291,7 @@ class Text(Mesh):
                 txt,
                 pos=(0,0,0),
                 s=1,
-                font="Normografo",
+                font='',
                 hspacing = 1.15,
                 vspacing = 2.15,
                 depth=0,
@@ -2261,6 +2303,9 @@ class Text(Mesh):
                 ):
 
         global _fonts_cache
+
+        if not font:
+            font = settings.defaultFont
 
         if len(pos)==2:
             pos = (pos[0], pos[1], 0)
@@ -2289,6 +2334,8 @@ class Text(Mesh):
         ###################################################
         notfounds=0
         isvtkfont = False
+        if italic is True:
+            italic = 1
 
         if sys.version_info[0] < 3: font="VTK" # disable python2
 
@@ -2315,6 +2362,56 @@ class Text(Mesh):
                     raise RuntimeError
             keys = _font_meshes.keys()
 
+        dotsep = '·'
+        mono = True
+        xinterletter = 0.1 # spacing inbetween letter
+        fscale = 0.8       # an extra factor to equalize different fonts sizes
+        if font=='VTK':
+            mono = False
+            xinterletter = 0.35
+            hspacing *= 0.55
+            dotsep = "~^.~ "
+        elif font=='Normografo':
+            mono = False
+            xinterletter = 0.2
+            dotsep = "~·"
+            fscale = 0.75
+        elif font=='Quikhand':
+            mono = False
+            hspacing *= 0.6
+            xinterletter = 0.15
+            fscale = 0.75
+            dotsep = "~·~~"
+        elif font=='SmartCouric':
+            fscale = 0.85
+            hspacing *= 1.05
+        elif font=='MonoCodeElegant':
+            fscale = 0.75
+        elif font=='Bongas':
+            mono = False
+            xinterletter = 0.15
+        elif font=='Inversionz':
+            fscale = 0.9
+            dotsep = "~^.~ "
+        elif font=='Biysk': # the vedo logo font
+            mono = False
+            xinterletter = 0.2
+            fscale = 0.9
+            dotsep = "~^.~ "
+        elif font=='Galax':
+            mono = False
+            fscale = 0.75
+            dotsep = "~^.~ "
+        elif font=='Kanopus':
+            mono = False
+            fscale = 0.82
+            xinterletter = 0.15
+            dotsep = '~·'
+        elif font=='Theemim':
+            mono = False
+            xinterletter = 0.175
+            dotsep = '~·'
+
         # replacements
         if not isvtkfont and "\\" in repr(txt):
             for r in _reps:
@@ -2323,48 +2420,14 @@ class Text(Mesh):
                 ("\_", "┭"), # trick to protect ~ _ and ^ chars
                 ("\^", "┮"), #
                 ("\~", "┯"), #
-                ("**","^"),  # order matters
-                ("e+0","~^.~ 10^"), ("e-0","~^.~ 10^-"),
-                ("E+0","~^.~ 10^"), ("E-0","~^.~ 10^-"),
-                ("e+" ,"~^.~ 10^"), ("e-" ,"~^.~ 10^-"),
-                ("E+" ,"~^.~ 10^"), ("E-" ,"~^.~ 10^-"),
+                ("**", "^"),  # order matters
+                ("e+0", dotsep+"10^"), ("e-0", dotsep+"10^-"),
+                ("E+0", dotsep+"10^"), ("E-0", dotsep+"10^-"),
+                ("e+" , dotsep+"10^"), ("e-" , dotsep+"10^-"),
+                ("E+" , dotsep+"10^"), ("E-" , dotsep+"10^-"),
         ]
         for r in reps2:
             txt = txt.replace(r[0], r[1])
-
-        if font == "ImpactLabel": font='Inversionz'
-
-        mono = True
-        skipspace = True
-        xinterletter = 0.1 # spacing inbetween letter
-        fscale = 0.8       # an extra factor to equalize different fonts sizes
-        if font=='VTK':
-            mono = False
-            xinterletter = 0.35
-            hspacing *= 0.55
-        elif font=='Normografo':
-            mono = False
-            xinterletter = 0.2
-        elif font=='Quikhand':
-            mono = False
-            hspacing *= 0.6
-            xinterletter = 0.15
-            fscale = 0.75
-        elif font=='CourierSmart':
-            mono = False
-            fscale = 0.85
-            xinterletter = 0.2
-        elif font=='ClassCoder':
-            fscale = 0.7
-        elif font=='Bongas':
-            mono = False
-            xinterletter = 0.2
-        elif font=='Inversionz':
-            fscale = 0.9
-        elif font=='Biysk': # the vedo logo font
-            mono = False
-            xinterletter = 0.2
-            fscale = 0.9
 
         xmax, ymax, yshift, scale = 0, 0, 0, 1
         save_xmax = 0
@@ -2404,7 +2467,7 @@ class Text(Mesh):
                 continue
 
             ############
-            if skipspace and t==" ":
+            if t==" ":
                 xmax += hspacing*scale*fscale
 
             elif t=="\n":
@@ -2434,6 +2497,11 @@ class Text(Mesh):
                 tr = vtk.vtkTransform()
                 tr.Translate(xmax, ymax+yshift, 0)
                 tr.Scale(pscale, pscale, pscale)
+                if italic:
+                    tr.Concatenate([1,italic*0.15,0,0,
+                                   0,1,0,0,
+                                   0,0,1,0,
+                                   0,0,0,1])
                 tf = vtk.vtkTransformPolyDataFilter()
                 tf.SetInputData(poly)
                 tf.SetTransform(tr)
@@ -2487,14 +2555,6 @@ class Text(Mesh):
         t.PostMultiply()
         t.Scale(s, s, s)
         t.Translate(shift)
-        if italic is True:
-            italic = 1
-        if italic:
-            t.Concatenate([1,italic*0.2,0,0,
-                           0,1,0,0,
-                           0,0,1,0,
-                           0,0,0,1])
-
         tf = vtk.vtkTransformPolyDataFilter()
         tf.SetInputData(tpoly)
         tf.SetTransform(t)
@@ -2523,7 +2583,7 @@ def Text2D(
     c=None,
     alpha=0.15,
     bg=None,
-    font="Normografo",
+    font="",
     justify="bottom-left",
     bold=False,
     italic=False,
@@ -2580,7 +2640,8 @@ def Text2D(
         else:
             c = (0.5, 0.5, 0.5)
 
-    if font == "ImpactLabel": font='Inversionz'
+    if not font:
+        font=settings.defaultFont
 
     txt = str(txt)
     if "\\" in repr(txt):

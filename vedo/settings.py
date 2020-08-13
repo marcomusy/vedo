@@ -9,6 +9,12 @@ General settings.
     ztitle = 'z'
     defaultAxesType = 4
 
+    # Set a default for the font to be used for axes, comments etc.
+    defaultFont = 'Normografo'
+    # Options are:
+    #    VTK, Biysk, Bongas, Kanopus, Galax, MonoCodeElegant, MonoCodeFresh,
+    #    Inversionz, Normografo, Quikhand, SmartCouric, Theemim, VictorMono
+
     # Scale magnification of the screenshot (must be an integer)
     screeshotScale = 1
     screenshotTransparentBackground = False
@@ -143,6 +149,9 @@ xtitle = 'x'
 ytitle = 'y'
 ztitle = 'z'
 defaultAxesType = None
+
+# Set a default for the font to be used for axes, comments etc.
+defaultFont = 'Normografo'
 
 # Scale magnification of the screenshot (must be an integer)
 screeshotScale = 1
