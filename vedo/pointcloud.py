@@ -2341,23 +2341,68 @@ class Points(vtk.vtkFollower, BaseActor):
 
 
 
-    def projectOnPlane(self, direction='z'):
+    def projectOnPlane(self, plane='z', point=None, direction=None):
         """
         Project the mesh on one of the Cartesian planes.
+
+        :param str,Plane plane: if plane is `str`, plane can be one of x-plane,
+            y-plane and z-plane. Otherwise, plane should be an instance of `vedo.shapes.Plane`.
+        :param array point: camera point of perspective projection
+        :param array direction: direction of oblique projection
+
+        Note:
+            Parameters `point` and `direction` are only used if the given plane
+            is an instance of `vedo.shapes.Plane`. And one of these two params
+            should be left as `None` to specify the projection type.
+
+        Example:
+        >>> s.projectOnPlane(plane='z') # project to z-plane
+
+        >>> plane = Plane(pos=(4, 8, -4), normal=(-1, 0, 1), sx=5)
+        >>> s.projectOnPlane(plane=plane) # orthogonal projection
+        >>> s.projectOnPlane(plane=plane, point=(6, 6, 6)) # perspective projection
+        >>> s.projectOnPlane(plane=plane, direction=(1, 2, -1)) # oblique projection
         """
+        from vedo.shapes import Plane
+
         coords = self.points(transformed=1)
-        if   'x' == direction:
+
+        if   'x' == plane:
             coords[:, 0] = self.GetOrigin()[0]
             self.x(self.xbounds()[0])
-        elif 'y' == direction:
+        elif 'y' == plane:
             coords[:, 1] = self.GetOrigin()[1]
             self.y(self.ybounds()[0])
-        elif 'z' == direction:
+        elif 'z' == plane:
             coords[:, 2] = self.GetOrigin()[2]
             self.z(self.zbounds()[0])
+
+        elif isinstance(plane, Plane):
+            normal = plane.normal / np.linalg.norm(plane.normal)
+            pl = np.hstack((normal, -np.dot(plane.pos(), normal))).reshape(4, 1)
+            if direction is None and point is None:
+                # orthogonal projection
+                pt = np.hstack((normal, [0])).reshape(4, 1)
+                proj_mat = pt.T @ pl * np.eye(4) - pt @ pl.T
+
+            elif direction is None:
+                # perspective projection
+                pt = np.hstack((np.array(point), [1])).reshape(4, 1)
+                proj_mat = pt.T @ pl * np.eye(4) - pt @ pl.T
+
+            elif point is None:
+                # oblique projection
+                pt = np.hstack((np.array(direction), [0])).reshape(4, 1)
+                proj_mat = pt.T @ pl * np.eye(4) - pt @ pl.T
+                
+            coords = np.concatenate([coords, np.ones((coords.shape[:-1] + (1,)))], axis=-1)
+            coords = coords @ proj_mat.T
+            coords = coords[:, :3] / coords[:, 3:]
+
         else:
-            colors.printc("Error in projectOnPlane(): unknown direction", direction, c=1)
+            colors.printc("Error in projectOnPlane(): unknown plane", plane, c=1)
             raise RuntimeError()
+
         self.alpha(0.1)
         self.points(coords)
         return self
