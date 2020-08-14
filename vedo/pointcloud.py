@@ -345,7 +345,7 @@ def densifyCloud(mesh, targetDistance, closestN=6, radius=0, maxIter=None, maxN=
         dens.SetNeighborhoodTypeToNClosest()
         dens.SetNumberOfClosestPoints(closestN)
     else:
-        colors.printc("Error in densifyCloud: set either radius or closestN", c=1)
+        colors.printc("Error in densifyCloud: set either radius or closestN", c='r')
         raise RuntimeError()
     dens.Update()
     pts = vtk_to_numpy(dens.GetOutput().GetPoints().GetData())
@@ -774,7 +774,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
                 n = len(plist)
                 if n != len(cols):
-                    colors.printc("Mismatch in Points() colors", n, len(cols), c=1)
+                    colors.printc("Mismatch in Points() colors", n, len(cols), c='r')
                     raise RuntimeError()
 
                 src = vtk.vtkPointSource()
@@ -793,7 +793,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 ucols.SetName("Points_RGBA")
                 if utils.isSequence(alpha):
                     if len(alpha) != n:
-                        colors.printc("Mismatch in Points() alphas", n, len(alpha), c=1)
+                        colors.printc("Mismatch in Points() alphas", n, len(alpha), c='r')
                         raise RuntimeError()
                     alphas = alpha
                     alpha = 1
@@ -843,7 +843,7 @@ class Points(vtk.vtkFollower, BaseActor):
             self._polydata = utils.buildPolyData(verts, None)
 
         else:
-            colors.printc("Error: cannot build PointCloud from type:\n", [inputobj], c=1)
+            colors.printc("Error: cannot build PointCloud from type:\n", [inputobj], c='r')
             raise RuntimeError()
 
         c = colors.getColor(c)
@@ -1473,11 +1473,11 @@ class Points(vtk.vtkFollower, BaseActor):
             arr = content
             if len(arr) != len(content):
                 colors.printc('Error in labels(): array length mismatch',
-                              len(arr), len(content), c=1)
+                              len(arr), len(content), c='r')
                 return None
 
         if arr is None and mode == 0:
-            colors.printc('Error in labels(): array not found for points/cells', c=1)
+            colors.printc('Error in labels(): array not found for points/cells', c='r')
             return None
 
         tapp = vtk.vtkAppendPolyData()
@@ -1586,7 +1586,7 @@ class Points(vtk.vtkFollower, BaseActor):
         lw : float, optional
             line with of box frame. The default is 2.
         italic : float, optional
-            italicness of text (multiline is not supported). The default is 0.
+            italicness of text. The default is 0.
 
         |intersect2d| |intersect2d.py|_
 
@@ -1613,7 +1613,7 @@ class Points(vtk.vtkFollower, BaseActor):
             sph = vedo.shapes.Sphere(pt, r=s*0.4, res=6)
 
         if c is None:
-            c = np.array(self.color())/1.2
+            c = np.array(self.color())/1.4
 
         if len(pt) == 2:
             pt = [pt[0], pt[1], 0.0]
@@ -1659,6 +1659,10 @@ class Points(vtk.vtkFollower, BaseActor):
         macts.bc('t').pickable(False).GetProperty().LightingOff()
         macts.GetProperty().SetLineWidth(lw)
         macts.UseBoundsOff()
+
+        #mm= vedo.merge(vedo.Line(box.points()))
+        #fl = mm.reverse().triangulate().printInfo().show(axes=7)
+
         settings.collectable_actors = settings.collectable_actors[:ncolls]
         return macts
 
@@ -1729,9 +1733,9 @@ class Points(vtk.vtkFollower, BaseActor):
             st = targetLandmarks.polydata().GetPoints()
 
         if ss.GetNumberOfPoints() != st.GetNumberOfPoints():
-            colors.printc('Error in transformWithLandmarks():', c=1)
+            colors.printc('Error in transformWithLandmarks():', c='r')
             colors.printc('Source and Target have != nr of points',
-                          ss.GetNumberOfPoints(), st.GetNumberOfPoints(), c=1)
+                          ss.GetNumberOfPoints(), st.GetNumberOfPoints(), c='r')
             raise RuntimeError()
 
         lmt.SetSourceLandmarks(ss)
@@ -1798,7 +1802,7 @@ class Points(vtk.vtkFollower, BaseActor):
         elif axis.lower() == "n":
             pass
         else:
-            colors.printc("Error in mirror(): mirror must be set to x, y, z or n.", c=1)
+            colors.printc("Error in mirror(): mirror must be set to x, y, z or n.", c='r')
             raise RuntimeError()
 
         tr = vtk.vtkTransform()
@@ -1880,7 +1884,7 @@ class Points(vtk.vtkFollower, BaseActor):
             if not arrayName: arrayName="CellScalars"
             self.cellColors(input_array, cname, alpha, vmin, vmax, arrayName, n)
         else:
-            colors.printc('Must specify mode in cmap(mode="either cells or points")!', c=1)
+            colors.printc('Must specify mode in cmap(mode="either cells or points")!', c='r')
             raise RuntimeError()
         return self
 
@@ -1900,14 +1904,14 @@ class Points(vtk.vtkFollower, BaseActor):
         if input_array is None:             # if None try to fetch the active scalars
             arr = poly.GetPointData().GetScalars()
             if not arr:
-                colors.printc('In cmap(): cannot find any active point array ...skip coloring.', c=1)
+                colors.printc('In cmap(): cannot find any active point array ...skip coloring.', c='r')
                 return self
 
         elif isinstance(input_array, str):  # if a name string is passed
             arr = poly.GetPointData().GetArray(input_array)
             if not arr:
                 colors.printc('In cmap(): cannot find point array with name:',
-                      input_array, '...skip coloring.', c=1)
+                              input_array, '...skip coloring.', c='r')
                 return self
 
         elif isinstance(input_array, int):  # if a int is passed
@@ -1915,14 +1919,14 @@ class Points(vtk.vtkFollower, BaseActor):
                 arr = poly.GetPointData().GetArray(input_array)
             else:
                 colors.printc('In cmap(): cannot find point array at position:', input_array,
-                              '...skip coloring.', c=1)
+                              '...skip coloring.', c='r')
                 return self
 
         elif utils.isSequence(input_array): # if a numpy array is passed
             npts = len(input_array)
             if npts != poly.GetNumberOfPoints():
                 colors.printc('In cmap(): nr. of scalars != nr. of points',
-                              n, poly.GetNumberOfPoints(), '...skip coloring.', c=1)
+                              n, poly.GetNumberOfPoints(), '...skip coloring.', c='r')
                 return self
             input_array = np.ascontiguousarray(input_array)
             arr = numpy_to_vtk(input_array, deep=True)
@@ -1932,7 +1936,7 @@ class Points(vtk.vtkFollower, BaseActor):
             arr = input_array
 
         else:
-            colors.printc('In cmap(): cannot understand input:', input_array, c=1)
+            colors.printc('In cmap(): cannot understand input:', input_array, c='r')
             raise RuntimeError()
 
         ##########################
@@ -2006,14 +2010,14 @@ class Points(vtk.vtkFollower, BaseActor):
         if input_array is None:             # if None try to fetch the active scalars
             arr = poly.GetCellData().GetScalars()
             if not arr:
-                colors.printc('In cmap(): Cannot find any active Cell array ...skip coloring.', c=1)
+                colors.printc('In cmap(): Cannot find any active Cell array ...skip coloring.', c='r')
                 return self
 
         elif isinstance(input_array, str):  # if a name string is passed
             arr = poly.GetCellData().GetArray(input_array)
             if not arr:
                 colors.printc('In cmap(): Cannot find Cell array with name:', input_array,
-                              '...skip coloring.', c=1)
+                              '...skip coloring.', c='r')
                 return self
 
         elif isinstance(input_array, int):  # if a int is passed
@@ -2021,14 +2025,14 @@ class Points(vtk.vtkFollower, BaseActor):
                 arr = poly.GetCellData().GetArray(input_array)
             else:
                 colors.printc('In cmap(): Cannot find Cell array at position:', input_array,
-                              '...skip coloring.', c=1)
+                              '...skip coloring.', c='r')
                 return self
 
         elif utils.isSequence(input_array): # if a numpy array is passed
             npts = len(input_array)
             if npts != poly.GetNumberOfCells():
                 colors.printc('In cmap(): nr. of scalars != nr. of Cells',
-                              npts, poly.GetNumberOfCells(), '...skip coloring.', c=1)
+                              npts, poly.GetNumberOfCells(), '...skip coloring.', c='r')
                 return self
             input_array = np.ascontiguousarray(input_array)
             arr = numpy_to_vtk(input_array, deep=True)
@@ -2038,7 +2042,7 @@ class Points(vtk.vtkFollower, BaseActor):
             arr = input_array
 
         else:
-            colors.printc('In cmap(): cannot understand input:', input_array, c=1)
+            colors.printc('In cmap(): cannot understand input:', input_array, c='r')
             raise RuntimeError()
 
         ##########################
@@ -2117,7 +2121,7 @@ class Points(vtk.vtkFollower, BaseActor):
         n = self._polydata.GetNumberOfCells()
         if len(colorlist) != n or (utils.isSequence(alpha) and len(alpha) != n):
             colors.printc("Error in cellIndividualColors(): mismatch in input list sizes.",
-                          len(colorlist), n, c=1)
+                          len(colorlist), n, c='r')
             return self
 
         lut = vtk.vtkLookupTable()
@@ -2276,7 +2280,7 @@ class Points(vtk.vtkFollower, BaseActor):
         else:
             Ncp = int(ncoords * f / 10)
             if Ncp < 5:
-                colors.printc("Please choose a fraction higher than " + str(f), c=1)
+                colors.printc("Please choose a fraction higher than " + str(f), c='r')
                 Ncp = 5
 
         variances, newline = [], []
@@ -2316,7 +2320,7 @@ class Points(vtk.vtkFollower, BaseActor):
         else:
             Ncp = int(ncoords * f / 100)
             if Ncp < 5:
-                colors.printc("Please choose a fraction higher than " + str(f), c=1)
+                colors.printc("Please choose a fraction higher than " + str(f), c='r')
                 Ncp = 5
 
         variances, newpts = [], []
@@ -2340,7 +2344,6 @@ class Points(vtk.vtkFollower, BaseActor):
         return self.points(newpts)
 
 
-
     def projectOnPlane(self, plane='z', point=None, direction=None):
         """
         Project the mesh on one of the Cartesian planes.
@@ -2356,16 +2359,13 @@ class Points(vtk.vtkFollower, BaseActor):
             should be left as `None` to specify the projection type.
 
         Example:
-        >>> s.projectOnPlane(plane='z') # project to z-plane
-
-        >>> plane = Plane(pos=(4, 8, -4), normal=(-1, 0, 1), sx=5)
-        >>> s.projectOnPlane(plane=plane) # orthogonal projection
-        >>> s.projectOnPlane(plane=plane, point=(6, 6, 6)) # perspective projection
-        >>> s.projectOnPlane(plane=plane, direction=(1, 2, -1)) # oblique projection
+            >>> s.projectOnPlane(plane='z') # project to z-plane
+            >>> plane = Plane(pos=(4, 8, -4), normal=(-1, 0, 1), sx=5)
+            >>> s.projectOnPlane(plane=plane)                       # orthogonal projection
+            >>> s.projectOnPlane(plane=plane, point=(6, 6, 6))      # perspective projection
+            >>> s.projectOnPlane(plane=plane, direction=(1, 2, -1)) # oblique projection
         """
-        from vedo.shapes import Plane
-
-        coords = self.points(transformed=1)
+        coords = self.points()
 
         if   'x' == plane:
             coords[:, 0] = self.GetOrigin()[0]
@@ -2377,7 +2377,7 @@ class Points(vtk.vtkFollower, BaseActor):
             coords[:, 2] = self.GetOrigin()[2]
             self.z(self.zbounds()[0])
 
-        elif isinstance(plane, Plane):
+        elif isinstance(plane, vedo.shapes.Plane):
             normal = plane.normal / np.linalg.norm(plane.normal)
             pl = np.hstack((normal, -np.dot(plane.pos(), normal))).reshape(4, 1)
             if direction is None and point is None:
@@ -2394,13 +2394,13 @@ class Points(vtk.vtkFollower, BaseActor):
                 # oblique projection
                 pt = np.hstack((np.array(direction), [0])).reshape(4, 1)
                 proj_mat = pt.T @ pl * np.eye(4) - pt @ pl.T
-                
+
             coords = np.concatenate([coords, np.ones((coords.shape[:-1] + (1,)))], axis=-1)
             coords = coords @ proj_mat.T
             coords = coords[:, :3] / coords[:, 3:]
 
         else:
-            colors.printc("Error in projectOnPlane(): unknown plane", plane, c=1)
+            colors.printc("Error in projectOnPlane(): unknown plane", plane, c='r')
             raise RuntimeError()
 
         self.alpha(0.1)
@@ -2505,7 +2505,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         nt = len(targetPts)
         if ns != nt:
-            colors.printc("Error in thinPlateSpline(): #source != #target points", ns, nt, c=1)
+            colors.printc("Error in thinPlateSpline(): #source != #target points", ns, nt, c='r')
             raise RuntimeError()
 
         pttar = vtk.vtkPoints()

@@ -3,7 +3,7 @@
 Press q:
 Control returns to terminal,
 window will not close but become unresponsive"""
-from vedo import Paraboloid, Hyperboloid, Plotter, show
+from vedo import Paraboloid, Hyperboloid, Plotter, show, printc
 
 mesh = Paraboloid()
 
@@ -15,14 +15,16 @@ vp1 = show(mesh, __doc__, title='First Plotter instance')
 # You can go back to interavtion mode by simply calling:
 #show()
 
-input('\nControl returned to terminal shell:\nwindow is now unresponsive (press Enter)')
+printc('\nControl returned to terminal shell:', c='tomato', invert=1)
+printc('window is now unresponsive (press Enter here)', c='tomato', invert=1)
+input()
 
 vp1.closeWindow()
 
 # window should now close, the Plotter instance becomes unusable
 # but mesh objects still exist in it:
 
-print("First Plotter actors:", vp1.actors)
+printc("First Plotter actors:", vp1.actors, '\n press enter again')
 vp1.show()  # THIS HAS NO EFFECT: window does not exist anymore. Cannot reopen.
 
 ##################################################################
@@ -35,11 +37,11 @@ vp2.show(vp1.actors[0].color('red'))
 vp3 = Plotter(title='Third Plotter instance')
 
 vp2.closeWindow()
-print('vp2.closeWindow() called')
+printc('vp2.closeWindow() called')
 
 vp3.show(Hyperboloid())
 
 from vedo import closeWindow
 closeWindow()  # automatically find and close the current window
 
-print('done.')
+printc('done.')

@@ -383,7 +383,7 @@ def addScalarBar(obj,
     plt = settings.plotter_instance
 
     if not hasattr(obj, "mapper"):
-        printc("~times addScalarBar(): input is invalid,", type(obj), c=1)
+        printc("\times addScalarBar(): input is invalid,", type(obj), c='r')
         return None
 
     if plt and plt.renderer:
@@ -846,7 +846,7 @@ def addButton(
     """
     plt = settings.plotter_instance
     if not plt.renderer:
-        printc("~timesError: Use addButton() after rendering the scene.", c=1)
+        printc("\timesError: Use addButton() after rendering the scene.", c='r')
         return
     bu = Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
     plt.renderer.AddActor2D(bu.actor)
@@ -983,7 +983,7 @@ def addIcon(mesh, pos=3, size=0.08):
     """
     plt = settings.plotter_instance
     if not plt.renderer:
-        printc("~lightningWarning: Use addIcon() after first rendering the scene.", c=3)
+        printc("\lightningWarning: Use addIcon() after first rendering the scene.", c='y')
         save_int = plt.interactive
         plt.show(interactive=0)
         plt.interactive = save_int
@@ -1126,11 +1126,13 @@ def buildAxes(obj=None,
               gridLineWidth=1,
               reorientShortTitle=True,
               titleDepth=0,
-              titleFont="",
+              titleFont="", # grab settings.defaultFont
+              textScale=1.0,
               xTitlePosition=0.95, yTitlePosition=0.95, zTitlePosition=0.95,
-              xTitleOffset=0.062,   yTitleOffset=0.06,   zTitleOffset=0.05,
+              xTitleOffset=0.02,   yTitleOffset=0.025,   zTitleOffset=0.02,
               xTitleJustify="top-right", yTitleJustify="bottom-right", zTitleJustify="bottom-right",
-              xTitleRotation=0, yTitleRotation=90, zTitleRotation=135,
+              xTitleRotation=0, yTitleRotation=0, zTitleRotation=0,
+              xTitleBox=False,  yTitleBox=False,
               xTitleSize=0.025, yTitleSize=0.025, zTitleSize=0.025,
               xTitleColor=None, yTitleColor=None, zTitleColor=None,
               xTitleBackfaceColor=None, yTitleBackfaceColor=None, zTitleBackfaceColor=None,
@@ -1155,13 +1157,13 @@ def buildAxes(obj=None,
               xMinorTicks=1, yMinorTicks=1, zMinorTicks=1,
               tipSize=None,
               labelFont="",
-              xLabelSize=0.015, yLabelSize=0.015, zLabelSize=0.015,
+              xLabelSize=0.016, yLabelSize=0.016, zLabelSize=0.016,
               xLabelOffset=0.015, yLabelOffset=0.015, zLabelOffset=0.01,
               xPositionsAndLabels=None, yPositionsAndLabels=None, zPositionsAndLabels=None,
               xFlipText=False, yFlipText=False, zFlipText=False,
               useGlobal=False,
               tol=0.0001,
-              ):
+    ):
     """Draw axes on a ``Mesh`` or ``Volume``.
     Returns a ``Assembly`` object.
 
@@ -1185,10 +1187,14 @@ def buildAxes(obj=None,
     - `xyFrameLine`,          [None], add a frame for the plane
     - `showTicks`,            [True], show major ticks
     - `digits`,               [None], use this number of significant digits in scientific notation
+    - `titleFont`,              [''], font for axes titles
+    - `labelFont`,              [''], font for numeric labels
+    - `textScale`,             [1.0], global scaling factor for text elements (titles, labels)
     - `xTitlePosition`,       [0.32], title fractional positions along axis
     - `xTitleOffset`,         [0.05], title fractional offset distance from axis line
     - `xTitleJustify`, ["top-right"], title justification
     - `xTitleRotation`,          [0], add a rotation of the axis title
+    - `xTitleBox`,           [False], add a box around title text
     - `xLineColor`,      [automatic], color of the x-axis
     - `xTitleColor`,     [automatic], color of the axis title
     - `xTitleBackfaceColor`,  [None],  color of axis title on its backface
@@ -1335,9 +1341,9 @@ def buildAxes(obj=None,
     if ztitle: zticks_float, zticks_str = make_ticks(vbb[4], vbb[5], rz, zPositionsAndLabels, digits)
 
     ################################## calculate aspect ratio scales
-    x_aspect_ratio_scale=1
-    y_aspect_ratio_scale=1
-    z_aspect_ratio_scale=1
+    x_aspect_ratio_scale = [1,1,1]
+    y_aspect_ratio_scale = [1,1,1]
+    z_aspect_ratio_scale = [1,1,1]
     if xtitle:
         if ss[1] and ss[0] > ss[1]:
             x_aspect_ratio_scale = (1, ss[0]/ss[1], 1)
@@ -1356,7 +1362,6 @@ def buildAxes(obj=None,
                 z_aspect_ratio_scale = (zarfact, zarfact*ss[2]/smean, zarfact)
             else:
                 z_aspect_ratio_scale = (smean/ss[2], 1, 1)
-
 
     ################################################ axes lines
     lines = []
@@ -1472,68 +1477,7 @@ def buildAxes(obj=None,
             hxz.name = "xzHighlightZero"
             highlights.append(hxz)
 
-    ################################################ axes titles
     titles = []
-    if xtitle:
-        if xFlipText: xTitleJustify = 'bottom-left'
-        xt = shapes.Text(xtitle, pos=(0,0,0), s=xTitleSize, font=titleFont,
-                         c=xTitleColor, justify=xTitleJustify, depth=titleDepth, italic=xTitleItalic)
-        if xTitleBackfaceColor: xt.backColor(xTitleBackfaceColor)
-        if reorientShortTitle and len(ytitle) < 3:  # title is short
-            wpos = [xTitlePosition, -xTitleOffset +0.02, 0]
-        else:
-            wpos = [xTitlePosition, -xTitleOffset, 0]
-        if xKeepAspectRatio: xt.SetScale(x_aspect_ratio_scale)
-        xt.RotateX(xTitleRotation)
-        if xFlipText: xt.RotateZ(180)
-        xt.pos(wpos)
-        xt.UseBoundsOff()
-        xt.name = "xtitle "+str(xtitle)
-        titles.append(xt)
-
-    if ytitle:
-        if yFlipText: yTitleJustify = 'top-left'
-        yt = shapes.Text(ytitle, pos=(0, 0, 0), s=yTitleSize, font=titleFont,
-                         c=yTitleColor, justify=yTitleJustify, depth=titleDepth, italic=yTitleItalic)
-        if yTitleBackfaceColor: yt.backColor(yTitleBackfaceColor)
-        if reorientShortTitle and len(ytitle) < 3:  # title is short
-            wpos = [-yTitleOffset +0.03-0.01*len(ytitle), yTitlePosition, 0]
-            if yKeepAspectRatio: yt.SetScale(x_aspect_ratio_scale) #x!
-        else:
-            wpos = [-yTitleOffset, yTitlePosition, 0]
-            if yKeepAspectRatio: yt.SetScale(y_aspect_ratio_scale)
-            yt.RotateZ(yTitleRotation)
-        if yFlipText: yt.RotateZ(180)
-        yt.pos(wpos)
-        yt.UseBoundsOff()
-        yt.name = "ytitle "+str(ytitle)
-        titles.append(yt)
-
-    if ztitle:
-        if zFlipText: zTitleJustify = 'top-left'
-        zt = shapes.Text(ztitle, pos=(0, 0, 0), s=zTitleSize, font=titleFont,
-                         c=zTitleColor, justify=zTitleJustify, depth=titleDepth, italic=yTitleItalic)
-        if zTitleBackfaceColor: zt.backColor(zTitleBackfaceColor)
-        if reorientShortTitle and len(ztitle) < 3:  # title is short
-            wpos = [(-zTitleOffset+0.02-0.003*len(ztitle))/1.42,
-                    (-zTitleOffset+0.02-0.003*len(ztitle))/1.42, zTitlePosition]
-            if zKeepAspectRatio and isSequence(z_aspect_ratio_scale):
-                zr2 = (z_aspect_ratio_scale[1], z_aspect_ratio_scale[0], z_aspect_ratio_scale[2])
-                zt.SetScale(zr2)
-            zt.RotateX(90)
-            zt.RotateY(45)
-            zt.pos(wpos)
-        else:
-            if zKeepAspectRatio: zt.SetScale(z_aspect_ratio_scale)
-            wpos = [-zTitleOffset/1.42, -zTitleOffset/1.42, zTitlePosition]
-            zt.RotateY(-90)
-            zt.RotateX(zTitleRotation)
-            if zFlipText: zt.RotateZ(180)
-            zt.pos(wpos)
-        # zt.UseBoundsOff()
-        zt.name = "ztitle "+str(ztitle)
-        titles.append(zt)
-
     ################################################ cube origin ticks
     originmarks = []
     if xOriginMarkerSize:
@@ -1661,6 +1605,7 @@ def buildAxes(obj=None,
 
     ################################################ axes tick NUMERIC text labels
     labels = []
+    xlab, ylab, zlab = None, None, None
     if xLabelSize and xtitle:
         jus ="center-top"
         if xFlipText: jus ="center-bottom"
@@ -1668,7 +1613,7 @@ def buildAxes(obj=None,
             t = xticks_str[i]
             if not t: continue
             v = (xticks_float[i], -xLabelOffset, 0)
-            xlab = shapes.Text(t, pos=v, s=xLabelSize, font=labelFont, justify=jus)
+            xlab = shapes.Text(t, pos=v, s=xLabelSize*textScale, font=labelFont, justify=jus)
             if xKeepAspectRatio: xlab.SetScale(x_aspect_ratio_scale)
             if xFlipText: xlab.RotateZ(180)
             xlab.name = "xNumericLabel"+str(i)+" "+t
@@ -1682,9 +1627,9 @@ def buildAxes(obj=None,
             t = yticks_str[i]
             if not t: continue
             v = (-yLabelOffset, yticks_float[i], 0)
-            ylab = shapes.Text(t, pos=(0,0,0), s=yLabelSize, font=labelFont, justify=jus)
+            ylab = shapes.Text(t, pos=(0,0,0), s=yLabelSize*textScale, font=labelFont, justify=jus)
             if yKeepAspectRatio: ylab.SetScale(y_aspect_ratio_scale)
-            ylab.RotateZ(yTitleRotation)
+            ylab.RotateZ(90+yTitleRotation)
             if yFlipText: ylab.RotateZ(180)
             ylab.pos(v)
             ylab.UseBoundsOff()
@@ -1698,15 +1643,92 @@ def buildAxes(obj=None,
             t = zticks_str[i]
             if not t: continue
             v = (-zLabelOffset, -zLabelOffset, zticks_float[i])
-            zlab = shapes.Text(t, pos=(0,0,0), s=zLabelSize, font=labelFont, justify=jus)
+            zlab = shapes.Text(t, pos=(0,0,0), s=zLabelSize*textScale, font=labelFont, justify=jus)
             if zKeepAspectRatio: zlab.SetScale(z_aspect_ratio_scale)
             zlab.RotateY(-90)
-            zlab.RotateX(zTitleRotation)
+            zlab.RotateX(135+zTitleRotation)
             if zFlipText: zlab.RotateZ(180)
             zlab.pos(v)
             # zlab.UseBoundsOff()
             zlab.name = "zNumericLabel"+str(i)+" "+t
             labels.append(zlab.c(zTickColor))
+
+    ################################################ axes titles
+    if xtitle:
+        if xFlipText: xTitleJustify = 'bottom-left'
+        xt = shapes.Text(xtitle, pos=(0,0,0), s=xTitleSize*textScale, font=titleFont,
+                         c=xTitleColor, justify=xTitleJustify, depth=titleDepth, italic=xTitleItalic)
+        if xTitleBackfaceColor: xt.backColor(xTitleBackfaceColor)
+        shift = 0
+        if xlab:
+            ly0, ly1 = xlab.GetBounds()[2:4]
+            shift =  ly1 - ly0
+        wpos = [xTitlePosition, -xTitleOffset -shift, 0]
+        if xKeepAspectRatio:
+            xt.SetScale(x_aspect_ratio_scale)
+        xt.RotateX(xTitleRotation)
+        if xFlipText:
+            xt.RotateZ(180)
+        xt.pos(wpos)
+        # xt.UseBoundsOff()
+        xt.name = "xtitle "+str(xtitle)
+        titles.append(xt)
+        if xTitleBox: titles.append(xt.box())
+
+    if ytitle:
+        if yFlipText: yTitleJustify = 'top-left'
+        yt = shapes.Text(ytitle, pos=(0, 0, 0), s=yTitleSize*textScale, font=titleFont,
+                         c=yTitleColor, justify=yTitleJustify, depth=titleDepth, italic=yTitleItalic)
+        if yTitleBackfaceColor: yt.backColor(yTitleBackfaceColor)
+        shift = 0
+        rxr = x_aspect_ratio_scale[0]/x_aspect_ratio_scale[1]
+        if ylab:
+            ly0, ly1 = ylab.GetBounds()[2:4]
+            shift = (ly1-ly0)*rxr
+        if reorientShortTitle and len(ytitle) < 4:  # title is short
+            shift = yTitleOffset*rxr*1.1*textScale
+            yTitlePosition *= 0.975
+            if yKeepAspectRatio: yt.SetScale(x_aspect_ratio_scale) #x!
+        else:
+            if yKeepAspectRatio: yt.SetScale(y_aspect_ratio_scale)
+            yt.RotateZ(90+yTitleRotation)
+            if yFlipText: yt.RotateZ(180)
+        wpos = [-yTitleOffset -shift, yTitlePosition, 0]
+        yt.pos(wpos)
+        yt.UseBoundsOff()
+        yt.name = "ytitle "+str(ytitle)
+        titles.append(yt)
+        if yTitleBox: titles.append(yt.box())
+
+    if ztitle:
+        if zFlipText: zTitleJustify = 'top-left'
+        zt = shapes.Text(ztitle, pos=(0, 0, 0), s=zTitleSize*textScale, font=titleFont,
+                         c=zTitleColor, justify=zTitleJustify, depth=titleDepth, italic=yTitleItalic)
+        if zTitleBackfaceColor: zt.backColor(zTitleBackfaceColor)
+        shift = 0
+        if zlab:
+            ly0, ly1 = zlab.GetBounds()[2:4]
+            shift =  (ly1 - ly0)/1.5
+        wpos = [-zTitleOffset-shift, -zTitleOffset-shift, zTitlePosition]
+        if reorientShortTitle and len(ztitle) < 4:  # title is short
+            if zKeepAspectRatio:
+                zt.SetScale(z_aspect_ratio_scale[1],
+                            z_aspect_ratio_scale[0],
+                            z_aspect_ratio_scale[2])
+            zt.RotateX(90)
+            zt.RotateY(45)
+        else:
+            if zKeepAspectRatio:
+                zt.SetScale(z_aspect_ratio_scale)
+            zt.RotateY(-90)
+            zt.RotateX(135+zTitleRotation)
+        if zFlipText:
+            zt.RotateZ(180)
+        zt.pos(wpos)
+        zt.UseBoundsOff()
+        zt.name = "ztitle "+str(ztitle)
+        titles.append(zt)
+    ###################################################
 
     acts = titles + lines + labels + grids + grids2 + highlights + framelines
     acts += majorticks + minorticks + originmarks + cones
@@ -2143,9 +2165,9 @@ def addGlobalAxes(axtype=None, c=None):
         plt.axes_instances[r] = ls
 
     else:
-        printc('~bomb Keyword axes type must be in range [0-12].', c=1)
+        printc('\bomb Keyword axes type must be in range [0-13].', c='r')
         printc('''
-  ~target Available axes types:
+  \target Available axes types:
   0 = no axes,
   1 = draw three customizable gray grid walls
   2 = show cartesian axes from (0,0,0)
@@ -2160,7 +2182,7 @@ def addGlobalAxes(axtype=None, c=None):
   11 = show a large grid on the x-y plane (use with zoom=8)
   12 = show polar axes.
   13 = draw a simple ruler at the bottom of the window
-  ''', c=1, bold=0)
+  ''', c='r', bold=0)
 
     if not plt.axes_instances[r]:
         plt.axes_instances[r] = True

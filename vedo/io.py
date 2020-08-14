@@ -133,15 +133,15 @@ def load(inputobj, unpack=True, force=False):
                     a = _load_file(fod+'/'+ifile, unpack)
                     acts.append(a)
         else:
-            colors.printc("~times Error in load(): cannot find", fod, c=1)
+            colors.printc("\times Error in load(): cannot find", fod, c='r')
 
     if len(acts) == 1:
         if not acts[0]:
-            colors.printc("~times Error in load(): cannot load", inputobj, c=1)
+            colors.printc("\times Error in load(): cannot load", inputobj, c='r')
         settings.collectable_actors.append(acts[0])
         return acts[0]
     elif len(acts) == 0:
-        colors.printc("~times Error in load(): cannot load", inputobj, c=1)
+        colors.printc("\times Error in load(): cannot load", inputobj, c='r')
         return None
     else:
         settings.collectable_actors += acts
@@ -290,7 +290,7 @@ def _load_file(filename, unpack):
         routput = reader.GetOutput()
 
         if not routput:
-            colors.printc("~noentry Unable to load", filename, c=1)
+            colors.printc("\noentry Unable to load", filename, c='r')
             return None
 
         if isinstance(routput, vtk.vtkUnstructuredGrid):
@@ -309,7 +309,7 @@ def download(url, force=False):
     """Retrieve a file from a url, save it locally and return its path."""
 
     if "https://" not in url:
-        colors.printc('Invalid URL:\n', url, c=1)
+        colors.printc('Invalid URL:\n', url, c='r')
         return url
     url = url.replace('www.dropbox', 'dl.dropbox')
 
@@ -349,7 +349,7 @@ def download(url, force=False):
 def gunzip(filename):
     """Unzip a ``.gz`` file to a temporary file and returns its path."""
     if not filename.endswith('.gz'):
-        #colors.printc("gunzip() error: file must end with .gz", c=1)
+        #colors.printc("gunzip() error: file must end with .gz", c='r')
         return filename
     from tempfile import NamedTemporaryFile
     import gzip
@@ -861,14 +861,14 @@ def toNumpy(obj):
             adict['color'] = obj.GetTextProperty().GetColor()
             adict['font'] = obj.GetTextProperty().GetFontFamilyAsString()
             if 'File' in adict['font']:
-                adict['font'] = 'Montserrat'
-            adict['size'] = obj.GetNonlinearFontScaleFactor()
+                adict['font'] = os.path.basename(obj.GetTextProperty().GetFontFile()).split('.')[0]
+            adict['size']  = obj.GetNonlinearFontScaleFactor()
             adict['bgcol'] = obj.GetTextProperty().GetBackgroundColor()
             adict['alpha'] = obj.GetTextProperty().GetBackgroundOpacity()
 
     else:
         pass
-        #colors.printc('Unknown object type in toNumpy()', [obj], c=1)
+        #colors.printc('Unknown object type in toNumpy()', [obj], c='r')
 
     return adict
 
@@ -1044,6 +1044,7 @@ def loadNumpy(inobj):
         elif 'annotation' == d['type'].lower():
             from vedo.shapes import Text2D
             pos = d['position']
+            print(d['font'])
             t = Text2D(d['text'], pos=pos+1, font=d['font'], c=d['color'])
             t.SetNonlinearFontScaleFactor(d['size'])
             t.GetTextProperty().SetBackgroundColor(d['bgcol'])
@@ -1070,7 +1071,7 @@ def loadImageData(filename):
     elif ".slc" in filename.lower():
         reader = vtk.vtkSLCReader()
         if not reader.CanReadFile(filename):
-            colors.printc("~prohibited Sorry bad slc file " + filename, c=1)
+            colors.printc("\prohibited Sorry bad slc file " + filename, c='r')
             return None
     elif ".vti" in filename.lower():
         reader = vtk.vtkXMLImageDataReader()
@@ -1083,7 +1084,7 @@ def loadImageData(filename):
     elif ".nrrd" in filename.lower():
         reader = vtk.vtkNrrdReader()
         if not reader.CanReadFile(filename):
-            colors.printc("~prohibited Sorry bad nrrd file " + filename, c=1)
+            colors.printc("\prohibited Sorry bad nrrd file " + filename, c='r')
             return None
     reader.SetFileName(filename)
     reader.Update()
@@ -1250,7 +1251,7 @@ def write(objct, fileoutput, binary=True):
         return objct
 
     else:
-        colors.printc("~noentry Unknown format", fileoutput, "file not saved.", c="r")
+        colors.printc("\noentry Unknown format", fileoutput, "file not saved.", c="r")
         return objct
 
     try:
@@ -1263,7 +1264,7 @@ def write(objct, fileoutput, binary=True):
         writer.SetFileName(fileoutput)
         writer.Write()
     except Exception as e:
-        colors.printc("~noentry Error saving: " + fileoutput, "\n", e, c="r")
+        colors.printc("\noentry Error saving: " + fileoutput, "\n", e, c="r")
     return objct
 
 
@@ -1312,6 +1313,7 @@ def exportWindow(fileoutput, binary=False):
         sdict['visibleGridEdges'] = settings.visibleGridEdges
         sdict['interactorStyle'] = settings.interactorStyle
         sdict['useParallelProjection'] = settings.useParallelProjection
+        sdict['defaultFont'] = settings.defaultFont
         sdict['objects'] = []
 
         allobjs = vp.getMeshes() + vp.getVolumes()
@@ -1343,7 +1345,7 @@ def exportWindow(fileoutput, binary=False):
     #     w = vtk.vtkOBJExporter()
     #     w.SetInputData(settings.plotter_instance.window)
     #     w.Update()
-    #     colors.printc("~save Saved file:", fileoutput, c="g")
+    #     colors.printc("\save Saved file:", fileoutput, c="g")
 
 
     ####################################################################
@@ -1363,7 +1365,7 @@ def exportWindow(fileoutput, binary=False):
         outF = open(fileoutput.replace('.x3d', '.html'), "w")
         outF.write(x3d_html)
         outF.close()
-        colors.printc("~save Saved files:", fileoutput,
+        colors.printc("\save Saved files:", fileoutput,
                       fileoutput.replace('.x3d', '.html'), c="g")
 
     ####################################################################
@@ -1380,7 +1382,7 @@ def exportWindow(fileoutput, binary=False):
         settings.notebookBackend = savebk
 
     else:
-        colors.printc("Export extensions is not supported.", c=1)
+        colors.printc("Export extensions is not supported.", c='r')
     return
 
 
@@ -1425,6 +1427,8 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
             settings.polygonOffsetUnits = data['polygonOffsetUnits']
         if 'interpolateScalarsBeforeMapping' in data.keys():
             settings.interpolateScalarsBeforeMapping = data['interpolateScalarsBeforeMapping']
+        if 'defaultFont' in data.keys():
+            settings.defaultFont = data['defaultFont']
 
         axes = data.pop('axes', 4)
         title = data.pop('title', '')
@@ -1458,8 +1462,8 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
             if not utils.isSequence(objs):
                objs = [objs]
         else:
-            #colors.printc("Trying to import a single mesh.. use load() instead.", c=1)
-            #colors.printc(" -> try to load a single object with load().", c=1)
+            #colors.printc("Trying to import a single mesh.. use load() instead.", c='r')
+            #colors.printc(" -> try to load a single object with load().", c='r')
             objs = [loadNumpy(fileinput)]
 
         vp.actors = objs
@@ -1504,7 +1508,7 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
     :param bool returnNumpy: return a numpy array of the image
     """
     if not settings.plotter_instance or not settings.plotter_instance.window:
-        colors.printc('~bomb screenshot(): Rendering window is not present, skip.', c=1)
+        colors.printc('\bomb screenshot(): Rendering window is not present, skip.', c='r')
         return
 
     if not filename.lower().endswith('.png'):
@@ -1587,7 +1591,7 @@ class Video:
         self.frames = []
         self.tmp_dir = TemporaryDirectory()
         self.get_filename = lambda x: os.path.join(self.tmp_dir.name, x)
-        colors.printc("~video Video", self.name, "is open...", c="m")
+        colors.printc("\video Video", self.name, "is open...", c="m")
 
     def addFrame(self):
         """Add frame to current video."""
@@ -1684,16 +1688,16 @@ class Video:
             out = os.system(self.command + " " + str(self.fps)
                             + " -i " + self.tmp_dir.name + os.sep + "%01d.png " + self.name)
             if out:
-                colors.printc("ffmpeg returning error", c=1)
+                colors.printc("ffmpeg returning error", c='r')
             else:
-                colors.printc("~save Video saved as", self.name, c="m")
+                colors.printc("\save Video saved as", self.name, c="m")
 
         ########################################
         elif 'cv' in self.backend:
             try:
                 import cv2
             except:
-                colors.printc("Error in Video backend: opencv not installed!", c=1)
+                colors.printc("Error in Video backend: opencv not installed!", c='r')
                 return
 
             cap = cv2.VideoCapture(os.path.join(self.tmp_dir.name, "%1d.png"))
@@ -1711,9 +1715,9 @@ class Video:
             cap.release()
             writer.release()
             if found:
-                colors.printc("~save Video saved as", self.name, c="m")
+                colors.printc("\save Video saved as", self.name, c="m")
             else:
-                colors.printc("could not find snapshots", c=1)
+                colors.printc("could not find snapshots", c='r')
 
         self.tmp_dir.cleanup()
         return

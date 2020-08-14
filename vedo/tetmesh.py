@@ -131,7 +131,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         elif isinstance(mapper, vtk.vtkMapper):
             self._mapper = mapper
         else:
-            printc('Unknown mapper type', [mapper], c=1)
+            printc('Unknown mapper type', [mapper], c='r')
             raise RuntimeError()
 
         self._mapper.SetInputData(self._data)
@@ -214,7 +214,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
                 name=ns['PointData'][0]
                 th.SetInputArrayToProcess(0,0,0, 0, name)
             if name is None:
-                printc("threshold(): Cannot find active array. Skip.", c=1)
+                printc("threshold(): Cannot find active array. Skip.", c='r')
                 return self
         else:
             if self.useCells:

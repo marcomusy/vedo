@@ -7,6 +7,8 @@ Blue points are the N points used for fitting.
 from __future__ import division, print_function
 from vedo import *
 
+settings.defaultFont = 'Kanopus'
+
 vp = Plotter(axes=0)
 
 # load mesh and increase by a lot (N=2) the nr of surface vertices
@@ -24,4 +26,4 @@ for i, p in enumerate(s.points()):
     vp += Line(sph.center, p, lw=2)
 
 vp += __doc__
-vp.show(viewup="z")
+vp.show(viewup="z", axes=1)

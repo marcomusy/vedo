@@ -13,7 +13,7 @@ idx = np.argmax(y)
 # Plot the two variables, return a Plot(Assembly) object:
 plt = plot(x,y,
            yerrors=ye,
-           xtitle='time in seconds',
+           xtitle='time in \museconds',
            ytitle='y oscillation [a.u.]',
            ylim=(0.5, 5),
            aspect=4/3,     # aspect ratio (any float = x_size/y_size)
@@ -28,7 +28,7 @@ plt = plot(x,y,
 plt += Rectangle([1,0.5], [2.7,5], alpha=0.2, c='k')
 
 # Add some text and latex formula
-plt += Text("excluded", s=0.2, c='k').rotateZ(20).pos(1.3, 3.7)
+plt += Text("Excluded\ntime range!", s=.2, c='k', font="Quikhand").rotateZ(20).pos(1.3, 3.6)
 plt += Latex(r"y(t)=2+2\cdot\frac{\sin(2t)}{(t+1)}", pos=(4.7, 4.7), s=.8, c='db')
 
 # Add a star marker at maximum of function (at z=0.1, so it stays on top):

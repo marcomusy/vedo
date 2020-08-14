@@ -318,7 +318,7 @@ class Volume(vtk.vtkVolume, BaseGrid):
                     img.SetDimensions(dims)
                 else:
                     if len(inputobj.shape)==1:
-                        colors.printc("Error: must set dimensions (dims keyword) in Volume.", c=1)
+                        colors.printc("Error: must set dimensions (dims keyword) in Volume.", c='r')
                         raise RuntimeError()
                     img.SetDimensions(inputobj.shape)
                 img.GetPointData().SetScalars(varr)
@@ -348,7 +348,7 @@ class Volume(vtk.vtkVolume, BaseGrid):
             img = loadImageData(inputobj)
 
         else:
-            colors.printc("Volume(): cannot understand input type:\n", inputtype, c=1)
+            colors.printc("Volume(): cannot understand input type:\n", inputtype, c='r')
             return
 
         ###################
@@ -751,7 +751,7 @@ class Volume(vtk.vtkVolume, BaseGrid):
         elif axis.lower() == "z":
             ff.SetFilteredAxis(2)
         else:
-            colors.printc("~times Error in mirror(): mirror must be set to x, y, z or n.", c=1)
+            colors.printc("\times Error in mirror(): mirror must be set to x, y, z or n.", c='r')
             raise RuntimeError()
         ff.Update()
         return self._update(ff.GetOutput())
@@ -931,7 +931,7 @@ class Volume(vtk.vtkVolume, BaseGrid):
         elif op in ["atan2"]:
             mat.SetOperationToATAN2()
         else:
-            colors.printc("~times Error in volumeOperation: unknown operation", operation, c=1)
+            colors.printc("\times Error in volumeOperation: unknown operation", operation, c='r')
             raise RuntimeError()
         mat.Update()
         return self._update(mat.GetOutput())

@@ -3,7 +3,6 @@ import vtk
 import numpy as np
 import sys
 import vedo.docs as docs
-import vedo.settings as settings
 
 __doc__ = (
     """
@@ -182,7 +181,6 @@ colors = {  # from matplotlib
 color_nicks = {  # color nicknames
     "a": "aqua",
     "b": "blue",
-    "bb": "blackboard",
     "c": "cyan",
     "d": "gold",
     "f": "fuchsia",
@@ -200,13 +198,14 @@ color_nicks = {  # color nicknames
     "v": "violet",
     "y": "yellow",
     "w": "white",
+    "bb": "blackboard",
     "lb": "lightblue",  # light
     "lg": "lightgreen",
     "lr": "orangered",
     "lc": "lightcyan",
     "ls": "lightsalmon",
     "ly": "lightyellow",
-    "dr": "darkred",  # dark
+    "dr": "darkred",    # dark
     "db": "darkblue",
     "dg": "darkgreen",
     "dm": "darkmagenta",
@@ -666,112 +665,46 @@ def _has_colors(stream):
     except:
         return False
 
-
 _terminal_has_colors = _has_colors(sys.stdout)
 
-_terminal_cols = {
-    "black": 0,
-    "red": 1,
-    "green": 2,
-    "yellow": 3,
-    "blue": 4,
-    "magenta": 5,
-    "cyan": 6,
-    "white": 7,
-    "k": 0,
-    "r": 1,
-    "g": 2,
-    "y": 3,
-    "b": 4,
-    "m": 5,
-    "c": 6,
-    "w": 7,
-}
-
 emoji = {
-    "~bomb": u"\U0001F4A5",
-    "~sparks": u"\U00002728",
-    "~thumbup": u"\U0001F44d",
-    "~target": u"\U0001F3af",
-    "~save": u"\U0001F4be",
-    "~noentry": u"\U000026d4",
-    "~video": u"\U0001F4fd ",
-    "~lightning": u"\U000026a1",
-    "~camera": u"\U0001F4f8",
-    "~!?": u"\U00002049",
-    "~times": u"\U0000274c",
-    "~world": u"\U0001F30d",
-    "~rainbow": u"\U0001F308",
-    "~idea": u"\U0001F4a1",
-    "~pin": u"\U0001F4CC",
-    "~construction": u"\U0001F6A7",
-    "~uparrow": u"\U00002b06",
-    "~rightarrow": u"\U000027a1",
-    "~leftarrow": u"\U00002b05",
-    "~downarrow": u"\U00002b07",
-    "~plus": u"\U00002795",
-    "~minus": u"\U00002796",
-    "~division": u"\U00002797",
-    "~rocket": u"\U0001F680",
-    "~hourglass": u"\U000023f3",
-    "~diamomd": u"\U0001F48e",
-    "~dna": u"\U0001F9ec",
-    "~prohibited": u"\U0001F6ab",
-    "~checked": u"\U00002705",
-    "~copyright": u"\U000000a9",
-    "~registered": u"\U000000ae",
-    "~trademark": u"\U00002122",
-    "~flag": u"\U0001F3c1",
-    "~smile": u"\U0001F642",
-    "~sad": u"\U0001F612",
-    "~bigstar": u"\U00002B50",
-    "~smallstar": u"\U00002733",
-    "~redtriangle": u"\U0001F53a",
-    "~orangesquare": u"\U0001F538",
-    "~bluesquare": u"\U0001F537",
-    "~zzz": u"\U0001F4a4",
-    "~alpha": u"\U000003B1",
-    "~beta": u"\U000003B2",
-    "~gamma": u"\U000003B3",
-    "~delta": u"\U000003B4",
-    "~epsilon": u"\U000003B5",
-    "~eta": u"\U000003B7",
-    "~theta": u"\U000003B8",
-    "~kappa": u"\U000003BA",
-    "~lambda": u"\U000003BB",
-    "~mu": u"\U000003BC",
-    "~nu": u"\U000003BD",
-    "~xi": u"\U000003BE",
-    "~pi": u"\U000003C0",
-    "~rho": u"\U000003C1",
-    "~sigma": u"\U000003C3",
-    "~tau": u"\U000003C4",
-    "~phi": u"\U000003C6",
-    "~chi": u"\U000003C7",
-    "~psi": u"\U000003C8",
-    "~omega": u"\U000003C9",
-    "~Gamma": u"\U00000393",
-    "~Delta": u"\U00000394",
-    "~Lambda": u"\U0000039B",
-    "~Pi": u"\U000003A0",
-    "~Sigma": u"\U000003A3",
-    "~Omega": u"\U000003A9",
-    "~integral": u"\U0000222B",
-    "~cinteg": u"\U0000222E",
-    "~block": u"\U000023F9",
+    "\bomb": u"\U0001F4A5",
+    "\sparks": u"\U00002728",
+    "\ethumbup": u"\U0001F44d",
+    "\etarget": u"\U0001F3af",
+    "\save": u"\U0001F4be",
+    "\noentry": u"\U000026d4",
+    "\video": u"\U0001F4fd ",
+    "\lightning": u"\U000026a1",
+    "\camera": u"\U0001F4f8",
+    "\!?": u"\U00002049",
+    "\times": u"\U0000274c",
+    "\world": u"\U0001F30d",
+    "\erainbow": u"\U0001F308",
+    "\idea": u"\U0001F4a1",
+    "\pin": u"\U0001F4CC",
+    "\construction": u"\U0001F6A7",
+    "\rightarrow": u"\U000027a1",
+    "\minus": u"\U00002796",
+    "\erocket": u"\U0001F680",
+    "\hourglass": u"\U000023f3",
+    "\prohibited": u"\U0001F6ab",
+    "\checked": u"\U00002705",
+    "\smile": u"\U0001F642",
+    "\sad": u"\U0001F612",
+    "\star": u"\U00002B50",
+    "\zzz": u"\U0001F4a4",
+    "\mu": u"\U000003BC",
+    "\pi": u"\U000003C0",
+    "\sigma": u"\U000003C3",
 }
-
 
 def printc(*strings, **keys):
     """
-    Print to terminal in colors (python3 only).
+    Print to terminal in color (any color!).
 
-    Available colors are:
-        black, red, green, yellow, blue, magenta, cyan, white.
-
-    :param c: foreground color
-    :param bc: background color
-    :param bool hidden: do not show text [False]
+    :param c: foreground color name or (r,g,b)
+    :param bc: background color name or (r,g,b)
     :param bool bold: boldface [True]
     :param bool italic: italic [False]
     :param bool blink: blinking text [False]
@@ -787,9 +720,9 @@ def printc(*strings, **keys):
         .. code-block:: python
 
             from vedo.colors import printc
-            printc('anything', c='red', bold=False, end='' )
-            printc('anything', 455.5, vtkObject, c='green')
-            printc(299792.48, c=4) # 4 is blue
+            printc('anything', c='tomato', bold=False, end='' )
+            printc('anything', 455.5, vtkObject, c='lightblue')
+            printc(299792.48, c=4)
 
     .. hint::  |colorprint.py|_
 
@@ -798,26 +731,13 @@ def printc(*strings, **keys):
     end = keys.pop("end", "\n")
     flush = keys.pop("flush", True)
 
-    if sys.version_info[0] < 3:
+    if not _terminal_has_colors or sys.version_info[0] < 3:
         print(strings)
+        sys.stdout.flush()
         return
-
-    if not settings.notebookBackend:
-        if not _terminal_has_colors:
-            for s in strings:
-                if '~' in str(s):
-                    for k in emoji.keys():
-                        if k in s:
-                            s = s.replace(k, "")
-                print(s, end=' ')
-            print(end=end)
-            if flush:
-                sys.stdout.flush()
-            return
 
     c = keys.pop("c", None)
     bc = keys.pop("bc", None)
-    hidden = keys.pop("hidden", False)
     bold = keys.pop("bold", True)
     italic = keys.pop("italic", False)
     blink = keys.pop("blink", False)
@@ -832,7 +752,16 @@ def printc(*strings, **keys):
     elif c is False:
         c = "red"
 
+    if box is True:
+        box='-'
+
+    if c is not None:
+        c = getColor(c)
+    if bc is not None:
+        bc = getColor(bc)
+
     try:
+
         txt = str()
         ns = len(strings) - 1
         separator = " "
@@ -840,55 +769,35 @@ def printc(*strings, **keys):
         for i, s in enumerate(strings):
             if i == ns:
                 separator = ""
-
             # txt += str(s) + separator
-            if "~" in str(s):  # "in" for some reasons changes s
+            if "\\" in repr(s):  # "in" for some reasons changes s
                 for k in emoji.keys():
                     if k in str(s):
                         s = s.replace(k, emoji[k])
                         offset += 1
             txt += str(s) + separator
 
-        if c:
-            if isinstance(c, int):
-                cf = abs(c) % 8
-            elif isinstance(c, str):
-                cf = _terminal_cols[c.lower()]
-            else:
-                print("Error in printc(): unknown color c=", c)
-                raise RuntimeError()
-        if bc:
-            if isinstance(bc, int):
-                cb = abs(bc) % 8
-            elif isinstance(bc, str):
-                cb = _terminal_cols[bc.lower()]
-            else:
-                print("Error in printc(): unknown color c=", c)
-                raise RuntimeError()
-
         special, cseq = "", ""
-        if hidden:
-            special += "\x1b[8m"
-            box = ""
-        else:
-            if c:
-                cseq += "\x1b[" + str(30 + cf) + "m"
-            if bc:
-                cseq += "\x1b[" + str(40 + cb) + "m"
-            if underline and not box:
-                special += "\x1b[4m"
-            if strike and not box:
-                special += "\x1b[9m"
-            if dim:
-                special += "\x1b[2m"
-            if invert:
-                special += "\x1b[7m"
-            if bold:
-                special += "\x1b[1m"
-            if italic:
-                special += "\x1b[3m"
-            if blink:
-                special += "\x1b[5m"
+        if c is not None:
+            r,g,b = c
+            cseq += "\x1b[38;2;"+str(int(r*255))+";"+str(int(g*255))+";"+str(int(b*255))+"m"
+        if bc:
+            r,g,b = bc
+            cseq += "\x1b[48;2;"+str(int(r*255))+";"+str(int(g*255))+";"+str(int(b*255))+"m"
+        if underline and not box:
+            special += "\x1b[4m"
+        if strike and not box:
+            special += "\x1b[9m"
+        if dim:
+            special += "\x1b[2m"
+        if invert:
+            special += "\x1b[7m"
+        if bold:
+            special += "\x1b[1m"
+        if italic:
+            special += "\x1b[3m"
+        if blink:
+            special += "\x1b[5m"
 
         if box and not ("\n" in txt):
             if len(box) > 1:

@@ -63,7 +63,7 @@ class Picture(vtk.vtkImageActor, Base3DProp):
             elif ".tif" in obj:
                 picr = vtk.vtkTIFFReader()
             else:
-                colors.printc("Cannot understand picture format", obj, c=1)
+                colors.printc("Cannot understand picture format", obj, c='r')
                 return
             picr.SetFileName(obj)
             picr.Update()
@@ -138,8 +138,8 @@ class Picture(vtk.vtkImageActor, Base3DProp):
             elif os.path.exists(font):
                 tp.SetFontFile(font)
             else:
-                colors.printc("~sad Font", font, "not found in", settings.fonts_path, c="r")
-                colors.printc("~pin Available fonts are:", settings.fonts, c="m")
+                colors.printc("\sad Font", font, "not found in", settings.fonts_path, c="r")
+                colors.printc("\pin Available fonts are:", settings.fonts, c="m")
                 return None
 
         if bg:
@@ -208,7 +208,7 @@ class Picture(vtk.vtkImageActor, Base3DProp):
         elif axis.lower() == "y":
             ff.SetFilteredAxis(1)
         else:
-            colors.printc("~times Error in mirror(): mirror must be set to x or y.", c=1)
+            colors.printc("\times Error in mirror(): mirror must be set to x or y.", c='r')
             raise RuntimeError()
         ff.Update()
         return self._update(ff.GetOutput())

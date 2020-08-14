@@ -227,12 +227,12 @@ def show(*actors, **options):
     newPlotter = options.pop("new", False)
     newPlotter_old = options.pop("newPlotter", 'dont')
     if newPlotter_old != 'dont':
-        colors.printc("\nPlease use keyword new in show() instead of newPlotter\n", c=1)
+        colors.printc("\nPlease use keyword new in show() instead of newPlotter\n", c='r')
         newPlotter = newPlotter_old
 
     if len(options):
         for op in options:
-            printc("Warning: unknown keyword in show():", op, c=5)
+            printc("Warning: unknown keyword in show():", op, c='y')
 
     if len(actors) == 0:
         actors = None
@@ -249,17 +249,17 @@ def show(*actors, **options):
     else:
         if utils.isSequence(at):
             if not utils.isSequence(actors):
-                printc("show() Error: input must be a list.", c=1)
+                printc("show() Error: input must be a list.", c='r')
                 raise RuntimeError()
             if len(at) != len(actors):
-                printc("show() Error: lists 'input' and 'at', must have equal lengths.", c=1)
+                printc("show() Error: lists 'input' and 'at', must have equal lengths.", c='r')
                 raise RuntimeError()
             if len(at) > 1 and (shape == (1, 1) and N is None):
                 N = max(at) + 1
         elif at is None and (N or shape != (1, 1)):
             if not utils.isSequence(actors):
-                printc('show() Error: N or shape is set, but input is not a sequence.', c=1)
-                printc('              you may need to specify e.g. at=0', c=1)
+                printc('show() Error: N or shape is set, but input is not a sequence.', c='r')
+                printc('              you may need to specify e.g. at=0', c='r')
                 raise RuntimeError()
             at = range(len(actors))
 
@@ -600,7 +600,7 @@ class Plotter:
         x, y = screensize
         if N:  # N = number of renderers. Find out the best
             if shape != (1, 1):  # arrangement based on minimum nr. of empty renderers
-                printc("Warning: having set N, shape is ignored.", c=1)
+                printc("Warning: having set N, shape is ignored.", c='r')
             nx = int(np.sqrt(int(N * y / x) + 1))
             ny = int(np.sqrt(int(N * x / y) + 1))
             lm = [
@@ -1011,7 +1011,7 @@ class Plotter:
             if obj is None:
                 acs = renderer.GetVolumes()
             elif obj >= len(self.renderers):
-                printc("Error in getVolumes(): non existing renderer", obj, c=1)
+                printc("Error in getVolumes(): non existing renderer", obj, c='r')
                 return []
             else:
                 acs = self.renderers[obj].GetVolumes()
@@ -1052,7 +1052,7 @@ class Plotter:
             if obj is None:
                 acs = renderer.GetActors()
             elif obj >= len(self.renderers):
-                printc("Error in getMeshes(): non existing renderer", obj, c=1)
+                printc("Error in getMeshes(): non existing renderer", obj, c='r')
                 return []
             else:
                 acs = self.renderers[obj].GetActors()
@@ -1090,7 +1090,7 @@ class Plotter:
             return [obj]
 
         if self.verbose:
-            printc("Warning in getMeshes(): unexpected input type", obj, c=1)
+            printc("Warning in getMeshes(): unexpected input type", obj, c='r')
         return []
 
 
@@ -1105,9 +1105,9 @@ class Plotter:
         of parameters for the current camera view.
         """
         if isinstance(fraction, int):
-            printc("Warning in moveCamera(): fraction should not be an integer", c=1)
+            printc("Warning in moveCamera(): fraction should not be an integer", c='r')
         if fraction > 1:
-            printc("Warning in moveCamera(): fraction is > 1", c=1)
+            printc("Warning in moveCamera(): fraction is > 1", c='r')
         cam = vtk.vtkCamera()
         cam.DeepCopy(camstart)
         p1 = np.array(camstart.GetPosition())
@@ -1569,7 +1569,7 @@ class Plotter:
                     try:
                         scannedacts.append(Mesh(a))
                     except:
-                        printc("Cannot understand input in show():", type(a), c=1)
+                        printc("Cannot understand input in show():", type(a), c='r')
             return scannedacts
 
         if len(actors) == 0:
@@ -1621,9 +1621,9 @@ class Plotter:
             self.renderer = self.renderers[at]
         else:
             if settings.notebookBackend:
-                printc("Error in show(): multiple renderings not supported in notebooks.", c=1)
+                printc("Error in show(): multiple renderings not supported in notebooks.", c='r')
             else:
-                printc("Error in show(): wrong renderer index", at, c=1)
+                printc("Error in show(): wrong renderer index", at, c='r')
             return self
 
         if self.qtWidget is not None:
@@ -1885,8 +1885,7 @@ class Plotter:
         draggable = options.pop("draggable", True)
 
         if not self.renderer:
-            printc("Use showInset() after first rendering the scene.",
-                          c=3)
+            printc("Use showInset() after first rendering the scene.", c='y')
             save_int = self.interactive
             self.show(interactive=0)
             self.interactive = save_int
@@ -2101,7 +2100,7 @@ class Plotter:
 
         elif key in ["F1", "Pause"]:
             sys.stdout.flush()
-            printc('\n[F1] pressed. Execution aborted. Exiting python now.', c=1)
+            printc('\n[F1] pressed. Execution aborted. Exiting python now.', c='r')
             settings.plotter_instance.close()
             sys.exit(0)
 
@@ -2259,28 +2258,28 @@ class Plotter:
 
         elif key == "S":
             io.screenshot("screenshot.png")
-            printc("~camera Saved rendering window as screenshot.png", c="blue")
+            printc("\camera Saved rendering window as screenshot.png", c="blue")
             return
 
         elif key == "C":
             cam = self.renderer.GetActiveCamera()
-            printc('\n###################################################', c=3)
-            printc('### Template python code to position this camera: ###', c=3)
-            printc('cam = dict(pos='          +utils.precision(cam.GetPosition(),3)+',', c=3)
-            printc('           focalPoint='   +utils.precision(cam.GetFocalPoint(),3)+',', c=3)
-            printc('           viewup='       +utils.precision(cam.GetViewUp(),3)+',', c=3)
-            printc('           distance='     +utils.precision(cam.GetDistance(),3)+',', c=3)
-            printc('           clippingRange='+utils.precision(cam.GetClippingRange(),3)+')', c=3)
-            printc('show(mymeshes, camera=cam)', c=3)
-            printc('\n### OR equivalently: ##############################', c=3)
-            printc('plt = vedo.Plotter()\n...', c=3)
-            printc('plt.camera.SetPosition(',   [round(e, 3) for e in cam.GetPosition()],  ')', c=3)
-            printc('plt.camera.SetFocalPoint(', [round(e, 3) for e in cam.GetFocalPoint()], ')', c=3)
-            printc('plt.camera.SetViewUp(',     [round(e, 3) for e in cam.GetViewUp()], ')', c=3)
-            printc('plt.camera.SetDistance(',   round(cam.GetDistance(), 3), ')', c=3)
+            printc('\n###################################################', c='y')
+            printc('### Template python code to position this camera: ###', c='y')
+            printc('cam = dict(pos='          +utils.precision(cam.GetPosition(),3)+',', c='y')
+            printc('           focalPoint='   +utils.precision(cam.GetFocalPoint(),3)+',', c='y')
+            printc('           viewup='       +utils.precision(cam.GetViewUp(),3)+',', c='y')
+            printc('           distance='     +utils.precision(cam.GetDistance(),3)+',', c='y')
+            printc('           clippingRange='+utils.precision(cam.GetClippingRange(),3)+')', c='y')
+            printc('show(mymeshes, camera=cam)', c='y')
+            printc('\n### OR equivalently: ##############################', c='y')
+            printc('plt = vedo.Plotter()\n...', c='y')
+            printc('plt.camera.SetPosition(',   [round(e, 3) for e in cam.GetPosition()],  ')', c='y')
+            printc('plt.camera.SetFocalPoint(', [round(e, 3) for e in cam.GetFocalPoint()], ')', c='y')
+            printc('plt.camera.SetViewUp(',     [round(e, 3) for e in cam.GetViewUp()], ')', c='y')
+            printc('plt.camera.SetDistance(',   round(cam.GetDistance(), 3), ')', c='y')
             printc('plt.camera.SetClippingRange(',
-                                    [round(e, 3) for e in cam.GetClippingRange()], ')', c=3)
-            printc('###################################################', c=3)
+                                    [round(e, 3) for e in cam.GetClippingRange()], ')', c='y')
+            printc('###################################################', c='y')
             return
 
         elif key == "s":
@@ -2531,7 +2530,7 @@ class Plotter:
                     w.SetInputData(cpd.GetOutput())
                     w.SetFileName(fname)
                     w.Write()
-                    printc("~save Saved file:", fname, c="m")
+                    printc("\save Saved file:", fname, c="m")
                     self.cutterWidget.Off()
                     self.cutterWidget = None
             else:
@@ -2543,7 +2542,7 @@ class Plotter:
                 printc("Click object and press X to open the cutter box widget.", c=4)
 
         elif key == "E":
-            printc("~camera Exporting 3D window to file", c="blue", end="")
+            printc("\camera Exporting 3D window to file", c="blue", end="")
             io.exportWindow('scene.npz')
             printc(". Try:\n> vedo scene.npz", c="blue")
             settings.plotter_instance.interactor.Start()

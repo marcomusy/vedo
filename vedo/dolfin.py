@@ -207,9 +207,9 @@ def _inputsort(obj):
                 mesh = ob.mesh()
 
                 if ob.dim()>0:
-                    printc('MeshFunction of dim>0 not supported.', c=1)
-                    printc('Try e.g.:  MeshFunction("size_t", mesh, 0)', c=1, italic=1)
-                    printc('instead of MeshFunction("size_t", mesh, 1)', c=1, strike=1)
+                    printc('MeshFunction of dim>0 not supported.', c='r')
+                    printc('Try e.g.:  MeshFunction("size_t", mesh, 0)', c='r', italic=1)
+                    printc('instead of MeshFunction("size_t", mesh, 1)', c='r', strike=1)
                 else:
                     #printc(ob.dim(), mesh.num_cells(), len(mesh.coordinates()), len(ob.array()))
                     V = dolfin.FunctionSpace(mesh, "CG", 1)
@@ -296,7 +296,7 @@ def _compute_uvalues(u, mesh):
         coords = mesh.geometry.points
 
     if u_values.shape[0] != coords.shape[0]:
-        printc('Warning: mismatch in vedo.dolfin._compute_uvalues()', c=1)
+        printc('Warning: mismatch in vedo.dolfin._compute_uvalues()', c='r')
         u_values = np.array([u(p) for p in coords])
     return u_values
 
@@ -859,8 +859,8 @@ class MeshActor(Mesh):
 
         if coords.shape != deltas.shape:
             printc("ERROR: Try to move mesh with wrong solution type shape:",
-                  coords.shape, 'vs', deltas.shape, c=1)
-            printc("Mesh is not moved. Try mode='color' in plot().", c=1)
+                  coords.shape, 'vs', deltas.shape, c='r')
+            printc("Mesh is not moved. Try mode='color' in plot().", c='r')
             return
 
         movedpts = coords + deltas
@@ -941,7 +941,7 @@ def MeshLines(*inputobj, **options):
 
     u_values = _compute_uvalues(u,mesh)
     if not utils.isSequence(u_values[0]):
-        printc("~times Error: cannot show Lines for 1D scalar values!", c=1)
+        printc("\times Error: cannot show Lines for 1D scalar values!", c='r')
         raise RuntimeError()
 
     endPoints = startPoints + u_values
@@ -982,7 +982,7 @@ def MeshArrows(*inputobj, **options):
 
     u_values = _compute_uvalues(u,mesh)
     if not utils.isSequence(u_values[0]):
-        printc("~times Error: cannot show Arrows for 1D scalar values!", c=1)
+        printc("\times Error: cannot show Arrows for 1D scalar values!", c='r')
         raise RuntimeError()
 
     endPoints = startPoints + u_values
@@ -1025,7 +1025,7 @@ def MeshStreamLines(*inputobj, **options):
 
     u_values = _compute_uvalues(u, mesh)
     if not utils.isSequence(u_values[0]):
-        printc("~times Error: cannot show Arrows for 1D scalar values!", c=1)
+        printc("\times Error: cannot show Arrows for 1D scalar values!", c='r')
         raise RuntimeError()
     if u_values.shape[1] == 2:  # u_values is 2D
         u_values = np.insert(u_values, 2, 0, axis=1)  # make it 3d

@@ -1,8 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from vedo import printc, Text2D, Text, show, settings, Line
+from vedo import printc, Text2D, Text, show, settings, Line, Plotter
 from vedo.settings import fonts
 import numpy as np
+
+# ----------------
+# | Font Summary |
+# ----------------
+# Font:  Biysk
+# Font:  Bongas
+# Font:  Galax
+# Font:  Inversionz
+# Font:  Kanopus
+# Font:  MonoCodeElegant
+# Font:  MonoCodeFresh
+# Font:  Normografo
+# Font:  Quikhand
+# Font:  SmartCouric
+# Font:  Theemim
+# Font:  VictorMono
+# Symbols ~ ^ _ are reserved modifiers:
+#  use ~ to add a short space, 1/4 of the default size,
+#  use ^ and _ to start up/sub scripting, a space terminates them.
 
 ################################################################################## 2D
 for i, f in enumerate(fonts):
@@ -11,29 +30,10 @@ for i, f in enumerate(fonts):
 
 Text2D("List of Available Fonts",
        pos='top-center', bg='k', s=1.1)
-show(..., bg2='cornsilk', axes=False, zoom=1.2, size=(1300,800), interactive=False)
+show(..., bg2='cornsilk', axes=False, zoom=1.2, size=(1200,800), interactive=False)
 
 
 ################################################################################## 3D
-# font = "Biysk"
-# font = "Bongas"
-# font = "Galax"
-# font = "Inversionz"
-font = "Kanopus"
-# font = "MonoCodeElegant"
-# font = "MonoCodeFresh"
-# font = "Normografo"
-# font = "Quikhand"
-# font = "SmartCouric"
-# font = "Theemim"
-# font = "VictorMono"
-# font = 'VTK'
-
-
-# Symbols ~ ^ _ are reserved modifiers:
-#  use ~ to add a short space, 1/4 of the default size,
-#  use ^ and _ to start up/sub scripting, a space terminates them.
-
 txt = """The quick fox jumps over the lazy dog.
 Symbols: !@#$%&*()+=-{}[]:;|<>?/\euro1234567890\~
 Units:  \delta=0.25E-03 ~mμ, T_sea ~=~5.3~±0.7~\circC
@@ -46,28 +46,30 @@ LaTeX: \nabla\dotE=~4\pi~\rho, \nabla\timesE=~-1/c~~\partialB/\partialt
 Protect underscore \\\_ and \\\^ with a backslash.
 """
 
-t = Text(txt, font=font, italic=0).c('darkblue').bc('tomato').scale(12300)
+plt = Plotter(N=4, pos=(300,0), size=(1600,950))
 
-cam = dict(pos=(5.02e+5, 1.01e+5, 6.35e+5),
-           focalPoint=(2.68e+5, 1.01e+5, -1.11e+4),
-           viewup=(0, 1.00, 0),
-           distance=6.87e+5,
-           clippingRange=(4.89e+5, 9.45e+5))
+cam = dict(pos=(3.99e+5, 8.51e+3, 6.47e+5),
+           focalPoint=(2.46e+5, 1.16e+5, -9.24e+3),
+           viewup=(-0.0591, 0.983, 0.175),
+           distance=6.82e+5,
+           clippingRange=(5.26e+5, 8.92e+5))
 
-show(t,
-     Text2D("3D polygonal Text demo\nfor "+font, font=font),
-     new=True,
-     pos=(900,0), size=(1000,500), azimuth=20,
-     axes=dict(xtitle='my units for L_x  (\mum)',
-               ytitle='my Y-axis with\na long description',
-               titleFont=font,
-               labelFont=font,
-               digits=2,
-              ),
-     camera=cam,
-     interactive=0,
-     )
-
+for i,fnt in enumerate(["Kanopus", "Normografo", "Theemim", "VictorMono"]):
+    t = Text(txt, font=fnt, italic=0).c('darkblue').bc('tomato').scale(12300)
+    plt.show(t,
+             Text2D("3D font: "+fnt, font=fnt, bg='r'),
+             axes=dict(xtitle='my units for L_x  (\mum)',
+                       ytitle='my Y-axis with\na long description',
+                       titleFont=fnt,
+                       labelFont=fnt,
+                       digits=2,
+                       yTitleOffset=-.015,
+                       xLabelSize=0.015, yLabelSize=0.015, zLabelSize=0.015,
+                      ),
+             at=i,
+             camera=cam,
+             resetcam=not bool(i),
+         )
 
 ################################################################################ printout
 for font in fonts:
@@ -152,6 +154,10 @@ reps = [
 for r in reps:
     printc('\\'+repr(r[0]).replace("'","").replace("\\",""),' = ', r[1], c='y')
 print()
+
+printc("In the example shown:\n", repr(txt),c='y')
+print()
+
 printc('Font Summary', c='g', box='-')
 
 for i, f in enumerate(fonts):
@@ -189,4 +195,5 @@ show(fn3d,
      axes=7,
      camera=cam,
      bg='bb',
+     bg2='k',
     )

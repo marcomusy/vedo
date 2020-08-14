@@ -1,6 +1,7 @@
-"""Assign texture coordinates to a polygon
-"""
-from vedo import Mesh, datadir, show
+"""Assign texture coordinates to a polygon"""
+from vedo import *
+
+settings.defaultFont = 'Bongas'
 
 # define a polygon of 4 vertices:
 polygon = [
@@ -23,4 +24,4 @@ m.texture(datadir+"images/dog.jpg",
           edgeClamp=False,  #  only used when repeat is False
          )
 
-show(m, __doc__, axes=8)
+show(m, __doc__, axes=1)

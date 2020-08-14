@@ -27,4 +27,4 @@ vp.addSlider3D(
 )
 
 
-vp.show(viewup="z", axes=11, bg='bb')
+vp.show(viewup="z", axes=11, bg='bb', bg2='navy')

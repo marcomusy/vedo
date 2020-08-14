@@ -37,7 +37,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
             self._data = loadUnStructuredGrid(inputobj)
 
         else:
-            colors.printc("UGrid(): cannot understand input type:\n", inputtype, c=1)
+            colors.printc("UGrid(): cannot understand input type:\n", inputtype, c='r')
             return
 
         self._mapper = vtk.vtkPolyDataMapper()

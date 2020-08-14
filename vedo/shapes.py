@@ -591,7 +591,7 @@ class DashedLine(Line):
         xmx = np.max(listp, axis=0)
         dlen = np.linalg.norm(xmx-xmn)*spacing/10
         if not dlen:
-            printc("Error in DashedLine: zero dash length.", c=1)
+            printc("Error in DashedLine: zero dash length.", c='r')
             Mesh.__init__(self, vtk.vtkPolyData(), c, alpha)
             return
 
@@ -1217,7 +1217,6 @@ class Arrow2D(Mesh):
         tf.Update()
 
         Mesh.__init__(self, tf.GetOutput(), c, alpha)
-        self.printInfo()
         self.SetPosition(startPoint)
         self.lighting('off')
         self.DragableOff()
@@ -1480,7 +1479,7 @@ class Arc(Mesh):
             ar.SetPolarVector(point1)
             ar.SetNormal(normal)
         else:
-            printc("Error in Arc(): incorrect input.", c=1)
+            printc("Error in Arc(): incorrect input.", c='r')
             return None
         ar.SetNegative(invert)
         ar.SetResolution(res)
@@ -1576,10 +1575,10 @@ class Spheres(Mesh):
 
         if cisseq:
             if len(centers) > len(c):
-                printc("~times Mismatch in Spheres() colors", len(centers), len(c), c=1)
+                printc("\times Mismatch in Spheres() colors", len(centers), len(c), c='r')
                 raise RuntimeError()
             if len(centers) != len(c):
-                printc("~lightningWarning: mismatch in Spheres() colors", len(centers), len(c))
+                printc("\lightningWarning: mismatch in Spheres() colors", len(centers), len(c))
 
         risseq = False
         if utils.isSequence(r):
@@ -1587,12 +1586,12 @@ class Spheres(Mesh):
 
         if risseq:
             if len(centers) > len(r):
-                printc("times Mismatch in Spheres() radius", len(centers), len(r), c=1)
+                printc("times Mismatch in Spheres() radius", len(centers), len(r), c='r')
                 raise RuntimeError()
             if len(centers) != len(r):
-                printc("~lightning Warning: mismatch in Spheres() radius", len(centers), len(r))
+                printc("\lightning Warning: mismatch in Spheres() radius", len(centers), len(r))
         if cisseq and risseq:
-            printc("~noentry Limitation: c and r cannot be both sequences.", c=1)
+            printc("\noentry Limitation: c and r cannot be both sequences.", c='r')
             raise RuntimeError()
 
         src = vtk.vtkSphereSource()
@@ -2288,18 +2287,18 @@ class Text(Mesh):
     |markpoint| |markpoint.py|_ |fonts.py|_
     """
     def __init__(self,
-                txt,
-                pos=(0,0,0),
-                s=1,
-                font='',
-                hspacing = 1.15,
-                vspacing = 2.15,
-                depth=0,
-                italic=False,
-                useModifiers=True,
-                justify="bottom-left",
-                c=None,
-                alpha=1,
+                 txt,
+                 pos=(0,0,0),
+                 s=1,
+                 font='',
+                 hspacing = 1.15,
+                 vspacing = 2.15,
+                 depth=0,
+                 italic=False,
+                 useModifiers=True,
+                 justify="bottom-left",
+                 c=None,
+                 alpha=1,
                 ):
 
         global _fonts_cache
@@ -2358,7 +2357,7 @@ class Text(Mesh):
                     _fonts_cache.update({font : _font_meshes})
                     _fonts_cache.update({font+'_letters': dict()})
                 except:
-                    printc("Text() error: font name", font, "not found. Skip.", c='r')
+                    printc("Text() error: font name", font, "not found.", c='r')
                     raise RuntimeError
             keys = _font_meshes.keys()
 
@@ -2366,51 +2365,57 @@ class Text(Mesh):
         mono = True
         xinterletter = 0.1 # spacing inbetween letter
         fscale = 0.8       # an extra factor to equalize different fonts sizes
-        if font=='VTK':
+        if font=='Normografo':
             mono = False
-            xinterletter = 0.35
-            hspacing *= 0.55
-            dotsep = "~^.~ "
-        elif font=='Normografo':
-            mono = False
+            fscale = 0.75
             xinterletter = 0.2
             dotsep = "~·"
+        elif font=='Biysk': # the vedo logo font
+            mono = False
+            fscale = 0.9
+            xinterletter = 0.2
+            dotsep = "~^.~ "
+        elif font=='Bongas':
+            mono = False
+            fscale = 0.875
+            hspacing *= 0.52
+            xinterletter = 0.25
+        elif font=='Inversionz':
+            fscale = 0.9
+            dotsep = "~^.~ "
+        elif font=='Galax':
+            mono = False
+            dotsep = "~·"
+        elif font=='Kanopus':
+            mono = False
+            fscale = 0.75
+            xinterletter = 0.15
+            dotsep = '~·'
+        elif font=='MonoCodeElegant':
+            fscale = 0.75
+        elif font=='MonoCodeFresh':
             fscale = 0.75
         elif font=='Quikhand':
             mono = False
             hspacing *= 0.6
             xinterletter = 0.15
-            fscale = 0.75
-            dotsep = "~·~~"
+            dotsep = "~~·~"
         elif font=='SmartCouric':
-            fscale = 0.85
+            fscale = 0.775
             hspacing *= 1.05
-        elif font=='MonoCodeElegant':
-            fscale = 0.75
-        elif font=='Bongas':
-            mono = False
-            xinterletter = 0.15
-        elif font=='Inversionz':
-            fscale = 0.9
-            dotsep = "~^.~ "
-        elif font=='Biysk': # the vedo logo font
-            mono = False
-            xinterletter = 0.2
-            fscale = 0.9
-            dotsep = "~^.~ "
-        elif font=='Galax':
-            mono = False
-            fscale = 0.75
-            dotsep = "~^.~ "
-        elif font=='Kanopus':
-            mono = False
-            fscale = 0.82
-            xinterletter = 0.15
-            dotsep = '~·'
         elif font=='Theemim':
             mono = False
-            xinterletter = 0.175
+            fscale = 0.825
+            hspacing *= 0.52
+            xinterletter = 0.3
             dotsep = '~·'
+        elif font=='VictorMono':
+            fscale = 0.725
+        elif font=='VTK':
+            mono = False
+            hspacing *= 0.6
+            xinterletter = 0.4
+            dotsep = "~^.~ "
 
         # replacements
         if not isvtkfont and "\\" in repr(txt):
@@ -2797,7 +2802,7 @@ class Latex(Picture):
                     f.write(r.content)
                     f.close()
                 except requests.exceptions.ConnectionError:
-                    printc('Latex error. Web site unavailable?', wsite, c=1)
+                    printc('Latex error. Web site unavailable?', wsite, c='r')
 
             def build_img_plt(formula, tfile):
                 import matplotlib.pyplot as plt
@@ -2840,10 +2845,10 @@ class Latex(Picture):
                 pass
 
         except:
-            printc('Error in Latex()\n', formula, c=1)
-            printc(' latex or dvipng not installed?', c=1)
-            printc(' Try: usetex=False' , c=1)
-            printc(' Try: sudo apt install dvipng' , c=1)
+            printc('Error in Latex()\n', formula, c='r')
+            printc(' latex or dvipng not installed?', c='r')
+            printc(' Try: usetex=False' , c='r')
+            printc(' Try: sudo apt install dvipng' , c='r')
 
         settings.collectable_actors.append(self)
         self.name = "Latex"
@@ -2917,7 +2922,7 @@ class ParametricShape(Mesh):
         elif name == 'PluckerConoid': ps = vtk.vtkParametricPluckerConoid()
         elif name == 'Pseudosphere': ps = vtk.vtkParametricPseudosphere()
         else:
-            printc("Error in ParametricShape: unknown name", name, c=1)
+            printc("Error in ParametricShape: unknown name", name, c='r')
             printc("Available shape names:\n", shapes)
             return None
 

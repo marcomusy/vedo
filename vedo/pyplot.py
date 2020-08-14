@@ -616,7 +616,7 @@ def _plotxy(
 
     if xerrors is not None and not errorBand:
         if len(xerrors) != len(data):
-            colors.printc("Error in plotxy(xerrors=...): mismatched array length.", c=1)
+            colors.printc("Error in plotxy(xerrors=...): mismatched array length.", c='r')
             return None
         errs = []
         for i, dta in enumerate(data):
@@ -629,7 +629,7 @@ def _plotxy(
 
     if yerrors is not None and not errorBand:
         if len(yerrors) != len(data):
-            colors.printc("Error in plotxy(yerrors=...): mismatched array length.", c=1)
+            colors.printc("Error in plotxy(yerrors=...): mismatched array length.", c='r')
             return None
         errs = []
         for i in range(len(data)):
@@ -751,7 +751,7 @@ def _plotFxy(
             exec(code, namespace)
             z = namespace["zfunc"]
         except:
-            colors.printc("Syntax Error in plotFxy()", c=1)
+            colors.printc("Syntax Error in plotFxy()", c='r')
             return None
 
     ps = vtk.vtkPlaneSource()
@@ -789,7 +789,7 @@ def _plotFxy(
         poly = cl.GetOutput()
 
     if not poly.GetNumberOfPoints():
-        colors.printc("Function is not real in the domain", c=1)
+        colors.printc("Function is not real in the domain", c='r')
         return None
 
     if zlim[0]:
@@ -875,7 +875,7 @@ def _plotFz(
             exec(code, namespace)
             z = namespace["zfunc"]
         except:
-            colors.printc("Syntax Error in complex plotFz()", c=1)
+            colors.printc("Syntax Error in complex plotFz()", c='r')
             return None
 
     ps = vtk.vtkPlaneSource()
@@ -2410,15 +2410,15 @@ class DirectedGraph(Assembly):
             self.rotX = 180
 
         else:
-            colors.printc("Cannot understand layout:", s, c=1)
-            colors.printc("Available layouts:", c=1)
-            colors.printc("[2d,fast2d,clustering2d,circular,circular3d,cone,force,tree]", c=1)
+            colors.printc("Cannot understand layout:", s, c='r')
+            colors.printc("Available layouts:", c='r')
+            colors.printc("[2d,fast2d,clustering2d,circular,circular3d,cone,force,tree]", c='r')
             raise RuntimeError()
 
         self.gl.SetLayoutStrategy(self.strategy)
 
         if len(kargs):
-            colors.printc("Cannot understand options:", kargs, c=1)
+            colors.printc("Cannot understand options:", kargs, c='r')
         return
 
 
@@ -2460,7 +2460,6 @@ class DirectedGraph(Assembly):
         self._nodeLabels.append(str(nodeLabel))
         self._edgeLabels.append(str(edgeLabel))
         return child
-
 
     def build(self):
         """

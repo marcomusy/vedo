@@ -330,8 +330,8 @@ class Base3DProp(object):
             try:
                 self.SetUserTransform(T)
             except TypeError:
-                colors.printc('~times Error in setTransform():',
-                              'consider transformPolydata() instead.', c=1)
+                colors.printc('\times Error in setTransform():',
+                              'consider transformPolydata() instead.', c='r')
         return self
 
 
@@ -680,8 +680,8 @@ class BaseActor(Base3DProp):
             elif style=='ambient' : pars = [0.8, 0.1, 0.0,  0, (1,1,1)]
             elif style=='default' : pars = [0.1, 1.0, 0.05, 5, c]
             else:
-                colors.printc("Error in lighting(): Available styles are", c=1)
-                colors.printc("[default,metallic,plastic,shiny,glossy,ambient,off]", c=1)
+                colors.printc("Error in lighting(): Available styles are", c='r')
+                colors.printc("[default,metallic,plastic,shiny,glossy,ambient,off]", c='r')
                 raise RuntimeError()
             pr.SetAmbient(pars[0])
             pr.SetDiffuse(pars[1])
@@ -872,7 +872,7 @@ class BaseActor(Base3DProp):
 
         if len(input_array) != data.GetNumberOfPoints():
             colors.printc('Error in addPointArray(): Number of inputs != nr. of points',
-                          len(input_array), data.GetNumberOfPoints(), c=1)
+                          len(input_array), data.GetNumberOfPoints(), c='r')
             raise RuntimeError()
 
         nparr = np.ascontiguousarray(input_array)
@@ -897,7 +897,7 @@ class BaseActor(Base3DProp):
                 data.GetPointData().SetActiveVectors(name)
         else:
             colors.printc('Error in addPointArray(): cannot deal with shape:',
-                          nparr.shape, c=1)
+                          nparr.shape, c='r')
             return self
 
         if hasattr(self._mapper, 'SetArrayName'):
@@ -926,7 +926,7 @@ class BaseActor(Base3DProp):
 
         if len(input_array) != data.GetNumberOfCells():
             colors.printc('Error in addCellArray(): Number of inputs != nr. of Cells',
-                          len(input_array), data.GetNumberOfCells(), c=1)
+                          len(input_array), data.GetNumberOfCells(), c='r')
             raise RuntimeError()
 
         nparr = np.ascontiguousarray(input_array)
@@ -950,7 +950,7 @@ class BaseActor(Base3DProp):
                 data.GetCellData().SetActiveVectors(name)
         else:
             colors.printc('Error in addCellArray(): cannot deal with shape:',
-                          nparr.shape, c=1)
+                          nparr.shape, c='r')
             return self
 
         if hasattr(self._mapper, 'SetArrayName'):
@@ -1264,7 +1264,7 @@ class BaseGrid(BaseActor):
             ctf.AddRGBPoint(smin, r,g,b) # constant color
             ctf.AddRGBPoint(smax, r,g,b)
         else:
-            colors.printc("ugrid.color(): unknown input type:", col, c=1)
+            colors.printc("ugrid.color(): unknown input type:", col, c='r')
         return self
 
     def alpha(self, alpha):
@@ -1874,7 +1874,7 @@ def streamLines(domain, probe,
     elif integrator == 'rk45':
         st.SetIntegratorTypeToRungeKutta45()
     else:
-        colors.printc("Error in streamlines, unknown integrator", integrator, c=1)
+        colors.printc("Error in streamlines, unknown integrator", integrator, c='r')
 
     st.Update()
     output = st.GetOutput()

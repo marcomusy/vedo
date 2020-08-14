@@ -590,7 +590,7 @@ class Animation(Plotter):
             if self._lastActs:
                 objs = self._lastActs
             else:
-                printc('Need to specify actors!', c=1)
+                printc('Need to specify actors!', c='r')
                 raise RuntimeError
 
         objs2 = objs
@@ -787,7 +787,7 @@ class Animation(Plotter):
             elif style=='glossy'  : pars = [0.1, 0.7, 0.9, 90, c]
             elif style=='default' : pars = [0.1, 1.0, 0.05, 5, c]
             else:
-                printc('Unknown lighting style:', [style], c=1)
+                printc('Unknown lighting style:', [style], c='r')
 
             for tt in rng:
                 inputvalues = []
@@ -819,7 +819,7 @@ class Animation(Plotter):
         if self.bookingMode:
             acts, t, duration, rng = self._parse(act, t, duration)
             if len(acts) != 1:
-                printc('Error in move(), can move only one object.', c=1)
+                printc('Error in move(), can move only one object.', c='r')
             cpos = acts[0].pos()
             pt = np.array(pt)
             dv = (pt - cpos)/len(rng)
@@ -842,7 +842,7 @@ class Animation(Plotter):
         if self.bookingMode:
             acts, t, duration, rng = self._parse(act, t, duration)
             if len(acts) != 1:
-                printc('Error in rotate(), can move only one object.', c=1)
+                printc('Error in rotate(), can move only one object.', c='r')
             for tt in rng:
                 ang = angle/len(rng)
                 self.events.append((tt, self.rotate, acts, (axis, ang)))
@@ -877,7 +877,7 @@ class Animation(Plotter):
         if self.bookingMode:
             acts, t, duration, rng = self._parse(act, t, duration)
             if len(acts) != 1:
-                printc('Error in meshErode(), can erode only one object.', c=1)
+                printc('Error in meshErode(), can erode only one object.', c='r')
             diag = acts[0].diagonalSize()
             x0,x1, y0,y1, z0,z1 = acts[0].GetBounds()
             corners = [ (x0,y0,z0), (x1,y0,z0), (x1,y1,z0), (x0,y1,z0),

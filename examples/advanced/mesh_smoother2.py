@@ -10,4 +10,5 @@ s2.lighting('glossy').phong()
 # other useful filters to combine are
 # mesh.decimate(), clean(), smoothLaplacian(), smoothMLS2D()
 
-show([(s1, __doc__), s2], N=2, viewup='z')
+show([(s1, __doc__), s2],
+     N=2, viewup='z', bg='k', bg2='lg', axes=11)

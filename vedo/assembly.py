@@ -38,8 +38,8 @@ def procrustesAlignment(sources, rigid=False):
     group = vtk.vtkMultiBlockDataGroupFilter()
     for source in sources:
         if sources[0].N() != source.N():
-            colors.printc("Error in procrustesAlignment():", c=1)
-            colors.printc(" sources have different nr of points", c=1)
+            colors.printc("Error in procrustesAlignment():", c='r')
+            colors.printc(" sources have different nr of points", c='r')
             raise RuntimeError()
         group.AddInputData(source.polydata())
     procrustes = vtk.vtkProcrustesAlignmentFilter()

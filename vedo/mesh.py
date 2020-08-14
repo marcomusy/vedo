@@ -187,7 +187,7 @@ class Mesh(Points):
                 self._polydata = dataset.polydata()
 
         else:
-            colors.printc("Error: cannot build mesh from type:\n", inputtype, c=1)
+            colors.printc("Error: cannot build mesh from type:\n", inputtype, c='r')
             raise RuntimeError()
 
 
@@ -423,13 +423,13 @@ class Mesh(Points):
                 if not isinstance(tcoords, np.ndarray):
                     tcoords = np.array(tcoords)
                 if tcoords.ndim != 2:
-                    colors.printc('tcoords must be a 2-dimensional array', c=1)
+                    colors.printc('tcoords must be a 2-dimensional array', c='r')
                     return self
                 if tcoords.shape[0] != pd.GetNumberOfPoints():
-                    colors.printc('Error in texture(): nr of texture coords must match nr of points', c=1)
+                    colors.printc('Error in texture(): nr of texture coords must match nr of points', c='r')
                     return self
                 if tcoords.shape[1] != 2:
-                    colors.printc('Error in texture(): vector must have 2 components', c=1)
+                    colors.printc('Error in texture(): vector must have 2 components', c='r')
                 tarr = numpy_to_vtk(np.ascontiguousarray(tcoords), deep=True)
                 tarr.SetName('TCoordinates')
                 pd.GetPointData().SetTCoords(tarr)
@@ -456,7 +456,7 @@ class Mesh(Points):
             elif not os.path.exists(fn):
                 colors.printc("File does not exist or texture", tname,
                               "not found in", settings.textures_path, c="r")
-                colors.printc("~pin Available built-in textures:", c="m", end=" ")
+                colors.printc("\pin Available built-in textures:", c="m", end=" ")
                 for ff in os.listdir(settings.textures_path):
                     colors.printc(ff.split(".")[0], end=" ", c="m")
                 print()
@@ -689,8 +689,8 @@ class Mesh(Points):
         v = mass.GetVolume()
         if value is not None:
             if not v:
-                colors.printc("Volume is zero: cannot rescale.", c=1, end="")
-                colors.printc(" Consider adding mesh.triangulate()", c=1)
+                colors.printc("Volume is zero: cannot rescale.", c='r', end="")
+                colors.printc(" Consider adding mesh.triangulate()", c='r')
                 return self
             self.scale(value / v)
             return self
@@ -709,8 +709,8 @@ class Mesh(Points):
         ar = mass.GetSurfaceArea()
         if value is not None:
             if not ar:
-                colors.printc("Area is zero: cannot rescale.", c=1, end="")
-                colors.printc(" Consider adding mesh.triangulate()", c=1)
+                colors.printc("Area is zero: cannot rescale.", c='r', end="")
+                colors.printc(" Consider adding mesh.triangulate()", c='r')
                 return self
             self.scale(value / ar)
             return self
@@ -1152,7 +1152,7 @@ class Mesh(Points):
             else:
                 arr = self.getPointArray(scalars)
             if arr is None:
-                colors.printc("No scalars found with name/nr:", scalars, c=1)
+                colors.printc("No scalars found with name/nr:", scalars, c='r')
                 colors.printc("Available scalars are:\n", self.getArrayNames(), c='y')
                 raise RuntimeError()
 
@@ -1749,8 +1749,8 @@ class Mesh(Points):
             sil.Update()
             m = Mesh(sil.GetOutput())
         else:
-            colors.printc('Error in silhouette(): direction is', [direction], c=1)
-            colors.printc(' render the scene with show() or specify  camera/directions', c=1)
+            colors.printc('Error in silhouette(): direction is', [direction], c='r')
+            colors.printc(' render the scene with show() or specify camera/direction', c='r')
             return self
 
         m.lw(2).c((0,0,0)).lighting('off')
@@ -1776,8 +1776,8 @@ class Mesh(Points):
             #     self.SetCamera(settings.plotter_instance.camera)
             # else:
             self._set2actcam=True
-            # colors.printc("Error in followCamera(): needs an already rendered scene,", c=1)
-            # colors.printc("                         or passing a vtkCamera object.", c=1)
+            # colors.printc("Error in followCamera(): needs an already rendered scene,", c='r')
+            # colors.printc("                         or passing a vtkCamera object.", c='r')
         return self
 
 

@@ -3,6 +3,8 @@ a Mesh or a set of input points
 """
 from vedo import *
 
+settings.defaultFont = 'Bongas'
+
 spid = load(datadir+"spider.ply").c("brown")
 
 ch = ConvexHull(spid.points()).alpha(0.2)

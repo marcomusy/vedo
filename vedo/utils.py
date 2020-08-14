@@ -532,7 +532,7 @@ def linInterpolate(x, rangeX, rangeY):
         x0, x1 = np.array(rangeX)
         y0, y1 = np.array(rangeY)
         if len(np.unique([x.shape, x0.shape, x1.shape, y1.shape]))>1:
-            colors.printc("Error in linInterpolate(): mismatch in input shapes.", c=1)
+            colors.printc("Error in linInterpolate(): mismatch in input shapes.", c='r')
             raise RuntimeError()
         dx = x1 - x0
         dxn = np.linalg.norm(dx)
