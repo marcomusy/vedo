@@ -6,12 +6,14 @@ the velocity and first degree elements for the pressure (Taylor-Hood elements).
 # https://github.com/pf4d/fenics_scripts/blob/master/cbc_block/stokes.py
 from dolfin import *
 import numpy as np
-from vedo.dolfin import plot, datadir, Latex
+from vedo.dolfin import plot, datadir, download, Latex
 
 # Load mesh and subdomains
-mesh = Mesh(datadir+"dolfin_fine.xml")
-sub_domains = MeshFunction("size_t", mesh,
-                           datadir+"dolfin_fine_subdomains.xml.gz")
+fpath = download(datadir+"dolfin_fine.xml")
+mesh = Mesh(fpath)
+
+fpath = download(datadir+"dolfin_fine_subdomains.xml.gz")
+sub_domains = MeshFunction("size_t", mesh, fpath)
 
 # Define function spaces
 P2 = VectorElement("Lagrange", mesh.ufl_cell(), 2)
@@ -56,10 +58,10 @@ plot(p, at=1, text="pressure", cmap='rainbow', interactive=False)
 ally = np.linspace(0,1, num=100)
 probes = np.c_[np.ones_like(ally), ally, np.zeros_like(ally)]
 
-plot(u, 
+plot(u,
      mode='mesh with streamlines',
      streamlines={'tol':0.02,            # control density of streams
-                  'lw':2,                # line width 
+                  'lw':2,                # line width
                   'direction':'forward', # direction of integration
                   'maxPropagation':1.2,  # max length of propagation
                   'probes':probes,       # custom list of point in space as seeds

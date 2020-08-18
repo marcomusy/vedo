@@ -94,14 +94,14 @@ vp.show(Cylinder(),                     at=8, interactive=1)
 # Draw a bunch of objects from various mesh formats.
 vp = Plotter(shape=(3,3))              # split window in 3 rows and 3 columns
 vp.sharecam = False                    # each object can be moved independently
-vp.show(datadir+"beethoven.ply", at=0, axes=0)     # dont show axes, add a ruler
-vp.show(datadir+"cow.vtk",       at=1, zoom=1.15)  # make it 15% bigger
-vp.show(datadir+"limb.pcd",      at=2)
-vp.show(datadir+"images/dog.jpg",at=3)             # 2d images can be loaded the same way
-vp.show(datadir+"shuttle.obj",   at=4)
-vp.show(datadir+"man.vtk",       at=5, axes=2)     # show negative axes from (0, 0, 0)
-vp.show(datadir+"teapot.xyz",    at=6, axes=3)     # hide negative axes
-vp.show(datadir+"apple.ply",     at=7, interactive=True)
+vp.show(download(datadir+"beethoven.ply"), at=0, axes=0)     # dont show axes, add a ruler
+vp.show(download(datadir+"cow.vtk"),       at=1, zoom=1.15)  # make it 15% bigger
+vp.show(download(datadir+"limb.pcd"),      at=2)
+vp.show(download(datadir+"images/dog.jpg"),at=3)             # 2d images can be loaded the same way
+vp.show(download(datadir+"shuttle.obj"),   at=4)
+vp.show(download(datadir+"man.vtk"),       at=5, axes=2)     # show negative axes from (0, 0, 0)
+vp.show(download(datadir+"teapot.xyz"),    at=6, axes=3)     # hide negative axes
+vp.show(download(datadir+"apple.ply"),     at=7, interactive=True)
 
 
 ########################################################################################

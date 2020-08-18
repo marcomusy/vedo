@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 import numpy as np
-import vtk
+import vtk, os
 import vedo
 import vedo.colors as colors
 import vedo.docs as docs
@@ -1411,6 +1411,8 @@ class Points(vtk.vtkFollower, BaseActor):
                c='black', alpha=1, italic=False):
         """Generate value or ID labels for mesh cells or points.
 
+        See also: ``flag()``, ``vignette()``, ``caption()`` and ``legend()``.
+
         :param list,int,str content: either 'id', array name or array number.
             A array can also be passed (must match the nr. of points or cells).
 
@@ -1550,12 +1552,45 @@ class Points(vtk.vtkFollower, BaseActor):
         ids.GetProperty().LightingOff()
         return ids
 
+    def legend(self, txt=None, pos=2, size=0.2, bg=(0.96,0.96,0.9), font=""):
+        """Generate legend text.
+
+        :param str txt: legend text.
+        :param float size: legend size
+        :param str bg: background color
+        :param int pos: 1=top-left, 2=top-right, 3=bottom-left, 4=bottom-right
+
+        Default size and position can be modified by setting attributes
+        ``Plotter.legendSize``, ``Plotter.legendBC`` and ``Plotter.legendPos``.
+
+        |flag_labels|  |flag_labels.py|_
+        """
+        if not txt:
+            self._legend = None
+        else:
+            self._legend = str(txt)
+        settings.legendSize = size  # size of legend
+        settings.legendBC = bg  # legend background color
+        settings.legendFont = font
+
+        if isinstance(pos, str):
+            spos = 2
+            if "top" in pos:
+                if "left" in pos: spos=1
+                elif "right" in pos: spos=2
+            elif "bottom" in pos:
+                if "left" in pos: spos=3
+                elif "right" in pos: spos=4
+            pos = spos
+        settings.legendPos = pos
+        return self
+
     def vignette(self,
-        txt,
+        txt=None,
         pt=None,
         offset=None,
         s=None,
-        font="VictorMono",
+        font="",
         rounded=True,
         c=None,
         alpha=1,
@@ -1563,12 +1598,13 @@ class Points(vtk.vtkFollower, BaseActor):
         italic=0,
     ):
         """
-        Generate a vignette to describe an object. Returns a Mesh object.
+        Generate and return a vignette to describe an object.
+        Returns a ``Mesh`` object.
 
         Parameters
         ----------
-        txt : str
-            Text to display.
+        txt : str, optional
+            Text to display. The default is the filename or the object name.
         pt : list, optional
             position of the vignette pointer. The default is None.
         offset : list, optional
@@ -1576,7 +1612,7 @@ class Points(vtk.vtkFollower, BaseActor):
         s : float, optional
             size of the vignette. The default is None.
         font : str, optional
-            text font. The default is "VictorMono".
+            text font. The default is "".
         rounded : bool, optional
             draw a rounded or squared box around the text. The default is True.
         c : list, optional
@@ -1590,10 +1626,22 @@ class Points(vtk.vtkFollower, BaseActor):
 
         |intersect2d| |intersect2d.py|_
 
-        |vignette| |vignette.py|_
+        |goniometer| |goniometer.py|_
+
+        |flag_labels| |flag_labels.py|_
+
+        |intersect2d| |intersect2d.py|_
         """
         ncolls = len(settings.collectable_actors)
         acts = []
+
+        if txt is None:
+            if self.filename:
+                txt = self.filename.split('/')[-1]
+            elif self.name:
+                txt = self.name
+            else:
+                return None
 
         sph = None
         x0, x1, y0, y1, z0, z1 = self.bounds()
@@ -1665,6 +1713,192 @@ class Points(vtk.vtkFollower, BaseActor):
 
         settings.collectable_actors = settings.collectable_actors[:ncolls]
         return macts
+
+    def caption(self,
+                txt=None,
+                point=None,
+                size=(0.30, 0.15),
+                pad=5,
+                font="VictorMono",
+                justify="center-right",
+                vspacing=1,
+                c=None,
+                alpha=1,
+                ontop=True,
+        ):
+        """
+        Add a 2D caption to an object which follows the camera movements.
+        Latex is not supported. Returns the same input object for concatenation.
+
+        See also ``vignette()``, ``flag()``, ``labels()`` and ``legend()``
+        with similar functionality.
+
+        Parameters
+        ----------
+        txt : str, optional
+            text to be rendered. The default is the file name.
+        point : list, optional
+            anchoring point. The default is None.
+        size : list, optional
+            (width, height) of the caption box. The default is (0.30, 0.15).
+        pad : float, optional
+            padding space of the caption box in pixels. The default is 5.
+        font : str, optional
+            font name. Font "LogoType" allows for Japanese and Chinese characters.
+            Use a monospace font for better rendering. The default is "VictorMono".
+        justify : str, optional
+            internal text justification. The default is "center-right".
+        vspacing : float, optional
+            vertical spacing between lines. The default is 1.
+        c : str, optional
+            text and box color. The default is 'lb'.
+        alpha : float, optional
+            text and box transparency. The default is 1.
+        ontop : bool, optional
+            keep the 2d caption always on top. The default is True.
+
+        |caption| |caption.py|_
+
+        |flag_labels|  |flag_labels.py|_
+        """
+        if txt is None:
+            if self.filename:
+                txt = self.filename.split('/')[-1]
+            elif self.name:
+                txt = self.name
+
+        if not txt: # disable it
+            self._caption = None
+            return self
+
+        for r in vedo.shapes._reps:
+            txt = txt.replace(r[0], r[1])
+
+        if c is None:
+            c = np.array(self.GetProperty().GetColor())/2
+        else:
+            c = colors.getColor(c)
+
+        if not font:
+           font =  settings.defaultFont
+
+        if point is None:
+            x0,x1,y0,y1,z0,z1 = self.GetBounds()
+            pt = [(x0+x1)/2, (y0+y1)/2, z1]
+            point = self.closestPoint(pt)
+
+        capt = vtk.vtkCaptionActor2D()
+        capt.SetAttachmentPoint(point)
+        capt.SetBorder(True)
+        capt.SetLeader(True)
+        sph = vtk.vtkSphereSource()
+        sph.Update()
+        capt.SetLeaderGlyphData(sph.GetOutput())
+        capt.SetMaximumLeaderGlyphSize(5)
+        capt.SetPadding(pad)
+        capt.SetCaption(txt)
+        capt.SetWidth(size[0])
+        capt.SetHeight(size[1])
+        capt.SetThreeDimensionalLeader(not ontop)
+
+        pra = capt.GetProperty()
+        pra.SetColor(c)
+        pra.SetOpacity(alpha*0.5)
+
+        pr = capt.GetCaptionTextProperty()
+        pr.SetFontFamily(vtk.VTK_FONT_FILE)
+        if 'LogoType' in font: # special case of big file
+            fl = vedo.io.download("https://vedo.embl.es/fonts/LogoType.ttf",
+                                  verbose=False, force=False)
+        else:
+            fl = settings.fonts_path + font + '.ttf'
+        if not os.path.isfile(fl):
+            fl = font
+        pr.SetFontFile(fl)
+        pr.ShadowOff()
+        pr.BoldOff()
+        pr.FrameOff()
+        pr.SetColor(c)
+        pr.SetOpacity(alpha)
+        pr.SetJustificationToLeft()
+        if "top" in justify:
+            pr.SetVerticalJustificationToTop()
+        if "bottom" in justify:
+            pr.SetVerticalJustificationToBottom()
+        if "cent" in justify:
+            pr.SetVerticalJustificationToCentered()
+            pr.SetJustificationToCentered()
+        if "left" in justify:
+            pr.SetJustificationToLeft()
+        if "right" in justify:
+            pr.SetJustificationToRight()
+        pr.SetLineSpacing(vspacing)
+        self._caption = capt
+        return self
+
+    def flag(self,
+             text=None,
+             font="Courier",
+             size=18,
+             angle=0,
+             bold=False,
+             italic=False,
+             shadow=False,
+             c='k',
+             bg='w',
+             justify=0,
+             delay=150,
+        ):
+        """
+        Add a flag label which becomes visible when hovering the object with mouse.
+        Can be later disabled by setting `flag(False)`.
+
+        See also: ``labels()``, ``vignette()``, ``caption()`` and ``legend()``.
+
+        Parameters
+        ----------
+        text : str, optional
+            text string to be rendered. The default is the filename without extension.
+        font : str, optional
+            name of font to use. The default is "Courier".
+        size : int, optional
+            size of font. The default is 18. Fonts are: "Arial", "Courier", "Times".
+        angle : float, optional
+            rotation angle. The default is 0.
+        bold : bool, optional
+            bold face. The default is False.
+        italic : bool, optional
+            italic face. The default is False.
+        shadow : bool, optional
+            add a shadow to the font. The default is False.
+        c : str, optional
+            color name or index. The default is 'k'.
+        bg : str, optional
+            color name of the background. The default is 'w'.
+        justify : TYPE, optional
+            justification code. The default is 0.
+        delay : float, optional
+            pop up delay in milliseconds. The default is 150.
+        """
+        if text is None:
+            if self.filename:
+                text = self.filename.split('/')[-1]
+            elif self.name:
+                text = self.name
+            else:
+                text = ""
+        self.flagText = text
+        settings.flagDelay    = delay
+        settings.flagFont     = font
+        settings.flagFontSize = size
+        settings.flagAngle    = angle
+        settings.flagBold     = bold
+        settings.flagItalic   = italic
+        settings.flagShadow   = shadow
+        settings.flagColor    = c
+        settings.flagJustification = justify
+        settings.flagBackgroundColor = bg
+        return self
 
 
     def alignTo(self, target, iters=100, rigid=False,
@@ -2383,20 +2617,24 @@ class Points(vtk.vtkFollower, BaseActor):
             if direction is None and point is None:
                 # orthogonal projection
                 pt = np.hstack((normal, [0])).reshape(4, 1)
-                proj_mat = pt.T @ pl * np.eye(4) - pt @ pl.T
+                # proj_mat = pt.T @ pl * np.eye(4) - pt @ pl.T # python3 only
+                proj_mat = np.matmul(pt.T, pl) * np.eye(4) - np.matmul(pt, pl.T)
 
             elif direction is None:
                 # perspective projection
                 pt = np.hstack((np.array(point), [1])).reshape(4, 1)
-                proj_mat = pt.T @ pl * np.eye(4) - pt @ pl.T
+                # proj_mat = pt.T @ pl * np.eye(4) - pt @ pl.T
+                proj_mat = np.matmul(pt.T, pl) * np.eye(4) - np.matmul(pt, pl.T)
 
             elif point is None:
                 # oblique projection
                 pt = np.hstack((np.array(direction), [0])).reshape(4, 1)
-                proj_mat = pt.T @ pl * np.eye(4) - pt @ pl.T
+                # proj_mat = pt.T @ pl * np.eye(4) - pt @ pl.T
+                proj_mat = np.matmul(pt.T, pl) * np.eye(4) - np.matmul(pt, pl.T)
 
             coords = np.concatenate([coords, np.ones((coords.shape[:-1] + (1,)))], axis=-1)
-            coords = coords @ proj_mat.T
+            # coords = coords @ proj_mat.T
+            coords = np.matmul(coords, proj_mat.T)
             coords = coords[:, :3] / coords[:, 3:]
 
         else:
@@ -2552,6 +2790,8 @@ class Points(vtk.vtkFollower, BaseActor):
         :param vtkStaticPointLocator locator: can be assigned from a previous call for speed.
 
         See example script: |pointDensity.py|_
+
+        |plot_density3d| |plot_density3d|_
         """
         pdf = vtk.vtkPointDensityFilter()
 

@@ -108,7 +108,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         elif isinstance(inputobj, str):
             from vedo.io import download, loadUnStructuredGrid
             if "https://" in inputobj:
-                inputobj = download(inputobj)
+                inputobj = download(inputobj, verbose=False)
             ug = loadUnStructuredGrid(inputobj)
             tt = vtk.vtkDataSetTriangleFilter()
             tt.SetInputData(ug)

@@ -49,7 +49,8 @@ def load(inputobj, unpack=True, force=False):
     Can load an object directly from a URL address.
 
     :param bool unpack: unpack MultiBlockData into a flat list of objects.
-    :param bool force: when downloading a file ignore any previous cached downloads and force a new one.
+    :param bool force: when downloading a file ignore any previous cached downloads
+        and force a new one.
 
     :Examples:
 
@@ -70,7 +71,7 @@ def load(inputobj, unpack=True, force=False):
             g = load('mydicomdir/')
             show(g)
 
-            # Return a Volume. Color/Opacity transfer functions can be specified too.
+            # Return a Volume. Color/Opacity transfer functions can be specified later.
             g = load(datadir+'embryo.slc')
             g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1)).show()
 
@@ -90,7 +91,7 @@ def load(inputobj, unpack=True, force=False):
     for fod in flist:
 
         if fod.startswith('https://'):
-            fod = download(fod, force=force)
+            fod = download(fod, force=force, verbose=False)
 
         if os.path.isfile(fod): ### it's a file
 
@@ -305,11 +306,11 @@ def _load_file(filename, unpack):
     return actor
 
 
-def download(url, force=False):
+def download(url, force=False, verbose=True):
     """Retrieve a file from a url, save it locally and return its path."""
 
-    if "https://" not in url:
-        colors.printc('Invalid URL:\n', url, c='r')
+    if not url.startswith('https://'):
+        colors.printc('Invalid URL (must start with https):\n', url, c='r')
         return url
     url = url.replace('www.dropbox', 'dl.dropbox')
 
@@ -324,7 +325,7 @@ def download(url, force=False):
                                  os.path.basename(basename))
 
     if force==False and os.path.exists(tmp_file.name):
-        colors.printc("using cached file:", tmp_file.name)
+        if verbose: colors.printc("using cached file:", tmp_file.name)
         #colors.printc("     (use force=True to force a new download)")
         return tmp_file.name
 
@@ -335,13 +336,14 @@ def download(url, force=False):
         import contextlib
         urlopen = lambda url_: contextlib.closing(urllib2.urlopen(url_))
 
-    colors.printc('reading', basename, 'from',
-                  url.split('/')[2][:40],'...', end='')
+    if verbose:
+        colors.printc('reading', basename, 'from',
+                      url.split('/')[2][:40],'...', end='')
 
     with urlopen(url) as response, open(tmp_file.name, 'wb') as output:
         output.write(response.read())
 
-    colors.printc(' done.')
+    if verbose: colors.printc(' done.')
 
     return tmp_file.name
 
@@ -704,7 +706,6 @@ def toNumpy(obj):
     def _fillcommon(obj, adict):
         adict['filename'] = obj.filename
         adict['name'] = obj.name
-        adict['legend'] = obj.legend()
         adict['time'] = obj.time()
         adict['rendered_at'] = obj.renderedAt
         adict['position'] = obj.pos()
@@ -727,6 +728,7 @@ def toNumpy(obj):
         adict['points'] = obj.points(transformed=False).astype(np.float32)
         poly = obj.polydata()
         adict['flagText'] = obj.flagText
+        adict['legend'] = obj._legend
 
         adict['cells'] = None
         if poly.GetNumberOfPolys():
@@ -1044,7 +1046,6 @@ def loadNumpy(inobj):
         elif 'annotation' == d['type'].lower():
             from vedo.shapes import Text2D
             pos = d['position']
-            print(d['font'])
             t = Text2D(d['text'], pos=pos+1, font=d['font'], c=d['color'])
             t.SetNonlinearFontScaleFactor(d['size'])
             t.GetTextProperty().SetBackgroundColor(d['bgcol'])
@@ -1317,7 +1318,6 @@ def exportWindow(fileoutput, binary=False):
         sdict['objects'] = []
 
         allobjs = vp.getMeshes() + vp.getVolumes()
-        # print(vp.renderer.GetActors2D())
         acts2d = vp.renderer.GetActors2D()
         acts2d.InitTraversal()
         for i in range(acts2d.GetNumberOfItems()):
@@ -1401,13 +1401,8 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
     elif fileinput.endswith('.npy'):
         data = np.load(fileinput, allow_pickle=True, encoding="latin1").flatten()[0]
     elif fileinput.endswith('.npz'):
-        data = np.load(fileinput, allow_pickle=True)
+        data = np.load(fileinput, allow_pickle=True)['vedo_scenes'][0]
 
-    # if isinstance(fileinput, dict) or fileinput.endswith('.npy') or fileinput.endswith('.npz'):
-    #     if isinstance(fileinput, dict):
-    #         data = fileinput
-    #     else:
-    #         data = np.load(fileinput, allow_pickle=True, encoding="latin1").flatten()[0]
     if data is not None:
         if 'renderLinesAsTubes' in data.keys():
             settings.renderLinesAsTubes = data['renderLinesAsTubes']
@@ -1511,9 +1506,6 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
         colors.printc('\bomb screenshot(): Rendering window is not present, skip.', c='r')
         return
 
-    if not filename.lower().endswith('.png'):
-        filename = filename+".png"
-
     if scale is None:
         scale = settings.screeshotScale
 
@@ -1543,22 +1535,22 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
     if filename.endswith('.png'):
         writer = vtk.vtkPNGWriter()
         writer.SetFileName(filename)
-        writer.SetInputConnection(w2if.GetOutputPort())
+        writer.SetInputData(w2if.GetOutput())
         writer.Write()
     elif filename.endswith('.jpg'):
         writer = vtk.vtkJPEGWriter()
         writer.SetFileName(filename)
-        writer.SetInputConnection(w2if.GetOutputPort())
+        writer.SetInputData(w2if.GetOutput())
         writer.Write()
-    elif filename.endswith('.svg'):
-        writer = vtk.vtkGL2PSExporter()
-        #writer.SetFileFormatToPDF()
-        #writer.SetFileFormatToTeX()
-        writer.SetFileFormatToSVG()
-        writer.CompressOff()
-        writer.SetInput(settings.plotter_instance.window)
-        writer.SetFilePrefix(filename.split('.')[0])
-        writer.Write()
+    # elif filename.endswith('.svg'): # not really doing anything..
+    #     writer = vtk.vtkGL2PSExporter()
+    #     #writer.SetFileFormatToPDF()
+    #     #writer.SetFileFormatToTeX()
+    #     writer.SetFileFormatToSVG()
+    #     writer.CompressOff()
+    #     writer.SetInput(settings.plotter_instance.window)
+    #     writer.SetFilePrefix(filename.split('.')[0])
+    #     writer.Write()
 
 
 class Video:

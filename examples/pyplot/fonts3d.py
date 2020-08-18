@@ -12,8 +12,8 @@ import numpy as np
 # Font:  Galax
 # Font:  Inversionz
 # Font:  Kanopus
-# Font:  MonoCodeElegant
-# Font:  MonoCodeFresh
+# Font:  Calco
+# Font:  Glasgo
 # Font:  Normografo
 # Font:  Quikhand
 # Font:  SmartCouric
@@ -55,7 +55,7 @@ cam = dict(pos=(3.99e+5, 8.51e+3, 6.47e+5),
            clippingRange=(5.26e+5, 8.92e+5))
 
 for i,fnt in enumerate(["Kanopus", "Normografo", "Theemim", "VictorMono"]):
-    t = Text(txt, font=fnt, italic=0).c('darkblue').bc('tomato').scale(12300)
+    t = Text(txt, font=fnt, italic=0).c('darkblue').scale(12300)
     plt.show(t,
              Text2D("3D font: "+fnt, font=fnt, bg='r'),
              axes=dict(xtitle='my units for L_x  (\mum)',
@@ -164,11 +164,11 @@ for i, f in enumerate(fonts):
     printc('Font: ', f, c='g')
 
 ################################################################################## 3D
-cam = dict(pos=(71.6, 5.87, 126),
-           focalPoint=(27.3, -31.1, 0.610),
-           viewup=(-0.0758, 0.963, -0.258),
-           distance=138,
-           clippingRange=(104, 185))
+cam = dict(pos=(67.7, -3.94, 145),
+           focalPoint=(29.3, -37.3, 1.55),
+           viewup=(-0.0642, 0.976, -0.210),
+           distance=152,
+           clippingRange=(122, 194))
 
 ln0 = Line([-1,1.5],[52,1.5], lw=0.1, c='grey')
 ln1 = Line([-1,-2],[52,-2], lw=0.1, c='grey')
@@ -177,14 +177,15 @@ gap = 0
 txt = "Font Name\n"
 for i, font in enumerate(fonts+['VTK']):
     txt += font+": abcdefghijklmnopqrtuvwxyz 1234567890"
-    if font in ["Theemim", "Kanopus", "Normografo", "VictorMono", "Galax"]:
+    if font in ["Theemim", "Kanopus", "Normografo", "VictorMono",
+                "Galax", "LogoType", "Comae"]:
          txt += "\n         αβγδεζηθκλμνξπρστφχψω ΔΘΛΞΠΣΦΨΩ"
          gap -= 2
     if "Biysk" in font: txt += " v3do"
-    if "VictorMono" == font or "Kanopus" == font:
+    if "VictorMono" == font or "Kanopus" == font or "LogoType" == font or "Comae" == font:
         txt+= " БГДЖЗИЙКЛ"
     gap -= 4
-    t2 = Text(txt, font=font, italic=0).c(i).bc('tomato').y(gap)
+    t2 = Text(txt, font=font, italic=0).c(i).y(gap)
     ln = Line([-1,gap-1],[52,gap-1], lw=0.5, c='grey')
     fn3d.extend([t2,ln])
     txt=''
@@ -192,8 +193,8 @@ for i, font in enumerate(fonts+['VTK']):
 show(fn3d,
      new=True,
      pos=(400,100), size=(900,900), azimuth=20,
-     axes=7,
+     axes=9,
      camera=cam,
-     bg='bb',
-     bg2='k',
+     bg2='bb',
+     bg='k',
     )

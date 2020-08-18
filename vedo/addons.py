@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Additional objects like axes, legends etc..
-"""
 from __future__ import division, print_function
+import vedo
 from vedo.colors import printc, getColor
 from vedo.assembly import Assembly
 from vedo.mesh import Mesh, merge
@@ -423,26 +421,31 @@ def addScalarBar(obj,
     sb.SetDrawBackground(0)
 
     if title:
-        titprop = vtk.vtkTextProperty()
+        titprop = sb.GetTitleTextProperty()
         titprop.BoldOn()
         titprop.ItalicOff()
         titprop.ShadowOff()
         titprop.SetColor(c)
         titprop.SetVerticalJustificationToTop()
         titprop.SetFontSize(titleFontSize)
+        titprop.SetFontFamily(vtk.VTK_FONT_FILE)
+        titprop.SetFontFile(settings.fonts_path + settings.defaultFont +'.ttf')
         sb.SetTitle(title)
         sb.SetVerticalTitleSeparation(titleYOffset)
         sb.SetTitleTextProperty(titprop)
 
+    #     lpr = sb.GetAnnotationTextProperty ()# GetLabelTextProperty()
+    #     lpr.BoldOff()
+    #     lpr.ItalicOff()
+    #     lpr.ShadowOff()
+    #     lpr.SetColor(c)
+    #     lpr.SetFontFamily(vtk.VTK_FONT_FILE)
+    #     lpr.SetFontFile(settings.fonts_path + settings.defaultFont +'.ttf')
+
     sb.UnconstrainedFontSizeOn()
-#    sb.FixedAnnotationLeaderLineColorOff()
     sb.DrawAnnotationsOn()
     sb.DrawTickLabelsOn()
     sb.SetMaximumNumberOfColors(256)
-#    sb.GetTitleTextProperty().SetFontFamilyToCourier()
-#    sb.GetAnnotationTextProperty().SetFontFamilyToCourier()
-#    sb.GetLabelTextProperty().SetFontFamilyToCourier()
-#    sb.AnnotationTextScalingOff()
 
     if horizontal:
         sb.SetOrientationToHorizontal()
@@ -1284,6 +1287,7 @@ def buildAxes(obj=None,
     ssmax = max(ss)
     if not ssmax:
         return
+
     if ss[0]/ssmax < limitRatio:
         ss[0] = 0
         xtitle = ''
@@ -1356,6 +1360,8 @@ def buildAxes(obj=None,
             y_aspect_ratio_scale = (1, ss[1]/ss[0], 1)
     if ztitle:
         smean = (ss[0]+ss[1])/2
+        if smean and ss[2]>smean:
+            textScale *= np.sqrt(ssmax/smean) # equalize text size for large z ranges
         if ss[2] and smean:
             if ss[2] > smean:
                 zarfact = smean/ss[2]
@@ -1753,20 +1759,20 @@ def addGlobalAxes(axtype=None, c=None):
 
     :param int axtype:
 
-          - 0,  no axes,
-          - 1,  draw three gray grid walls
-          - 2,  show cartesian axes from (0,0,0)
-          - 3,  show positive range of cartesian axes from (0,0,0)
-          - 4,  show a triad at bottom left
-          - 5,  show a cube at bottom left
-          - 6,  mark the corners of the bounding box
-          - 7,  draw a 3D ruler at each side of the cartesian axes
-          - 8,  show the ``vtkCubeAxesActor`` object
-          - 9,  show the bounding box outLine
-          - 10, show three circles representing the maximum bounding box
-          - 11, show a large grid on the x-y plane (use with zoom=8)
-          - 12, show polar axes
-          - 13, draw a simple ruler at the bottom of the window
+        - 0,  no axes,
+        - 1,  draw three gray grid walls
+        - 2,  show cartesian axes from (0,0,0)
+        - 3,  show positive range of cartesian axes from (0,0,0)
+        - 4,  show a triad at bottom left
+        - 5,  show a cube at bottom left
+        - 6,  mark the corners of the bounding box
+        - 7,  draw a 3D ruler at each side of the cartesian axes
+        - 8,  show the ``vtkCubeAxesActor`` object
+        - 9,  show the bounding box outLine
+        - 10, show three circles representing the maximum bounding box
+        - 11, show a large grid on the x-y plane (use with zoom=8)
+        - 12, show polar axes
+        - 13, draw a simple ruler at the bottom of the window
 
     Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
@@ -1817,12 +1823,10 @@ def addGlobalAxes(axtype=None, c=None):
 
                 from vedo import Box, show
                 b = Box(pos=(0,0,0), length=80, width=90, height=70).alpha(0)
-
                 show(b, axes={ 'xtitle':'Some long variable [a.u.]',
                                'numberOfDivisions':4,
                                # ...
-                             }
-                )
+                             })
 
     |customAxes| |customAxes.py|_
     """
@@ -2104,11 +2108,10 @@ def addGlobalAxes(axtype=None, c=None):
     elif plt.axes == 11:
         vbb, ss = computeVisibleBounds()[0:2]
         xpos, ypos = (vbb[1] + vbb[0]) /2, (vbb[3] + vbb[2]) /2
-        gr = shapes.Grid((xpos, ypos, vbb[4]),
-                          sx=ss[0]*8, sy=ss[1]*8,
-                          resx=11, resy=11,
-                          c=c, alpha=0.2)
-        gr.lighting('ambient').PickableOff()
+        gs = sum(ss)*3
+        gr = shapes.Grid((xpos, ypos, vbb[4]), sx=gs, sy=gs,
+                          resx=11, resy=11, c=c, alpha=0.1)
+        gr.lighting('off').PickableOff()
         gr.UseBoundsOff()
         plt.renderer.AddActor(gr)
         plt.axes_instances[r] = gr
@@ -2265,6 +2268,19 @@ def addLegend():
     vtklegend = vtk.vtkLegendBoxActor()
     vtklegend.SetNumberOfEntries(NT)
     vtklegend.ScalarVisibilityOff()
+    pr = vtklegend.GetEntryTextProperty()
+    pr.SetFontFamily(vtk.VTK_FONT_FILE)
+    if 'LogoType' in settings.legendFont: # special case of big file
+        fl = vedo.io.download("https://vedo.embl.es/fonts/LogoType.ttf",
+                              verbose=False, force=False)
+    else:
+        if settings.legendFont == "":
+            settings.legendFont = settings.defaultFont
+        fl = settings.fonts_path + settings.legendFont + '.ttf'
+    pr.SetFontFile(fl)
+    pr.ShadowOff()
+    pr.BoldOff()
+
     for i in range(NT):
         ti = texts[i]
         if not ti:
@@ -2274,8 +2290,8 @@ def addLegend():
         if c == (1, 1, 1):
             c = (0.2, 0.2, 0.2)
         vtklegend.SetEntry(i, a.polydata(), "  " + ti, c)
-    pos = plt.legendPos
-    width = plt.legendSize
+    pos = settings.legendPos
+    width = settings.legendSize
     vtklegend.SetWidth(width)
     vtklegend.SetHeight(width / 5.0 * NT)
     sx, sy = 1 - width, 1 - width / 5.0 * NT
@@ -2288,7 +2304,7 @@ def addLegend():
     elif pos == 4:
         vtklegend.GetPositionCoordinate().SetValue(sx, 0)
     vtklegend.UseBackgroundOn()
-    vtklegend.SetBackgroundColor(plt.legendBC)
+    vtklegend.SetBackgroundColor(getColor(settings.legendBC))
     vtklegend.SetBackgroundOpacity(0.6)
     vtklegend.LockBorderOn()
     plt.renderer.AddActor(vtklegend)

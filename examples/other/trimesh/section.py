@@ -15,7 +15,7 @@ pl = Plane(mesh.centroid, normal=[0,0,1], sx=6, sy=4, alpha=0.3)
 slice_2D, to_3D = mslice.to_planar()
 
 # show objects on N=2 non-synced renderers:
-show([(mesh, pl), (slice_2D, txt)], N=2, sharecam=False, axes=True)
+show([(mesh, pl), (slice_2D, txt)], N=2, sharecam=False, axes=7)
 
 # if we wanted to take a bunch of parallel slices, like for a 3D printer
 # we can do that easily with the section_multiplane method
@@ -26,8 +26,8 @@ z_extents = mesh.bounds[:,2]
 z_levels  = np.arange(*z_extents, step=0.125)
 
 # find a bunch of parallel cross sections
-sections = mesh.section_multiplane(plane_origin=mesh.bounds[0], 
-                                   plane_normal=[0,0,1], 
+sections = mesh.section_multiplane(plane_origin=mesh.bounds[0],
+                                   plane_normal=[0,0,1],
                                    heights=z_levels)
 N = len(sections)
 printc("nr. of sections:", N, c='green')

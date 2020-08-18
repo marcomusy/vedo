@@ -67,7 +67,7 @@ solver.parameters["relative_tolerance"] = 1e-2
 from vedo.dolfin import plot, printc
 
 t = 0
-printc('~bomb Press F1 to abort.', c='y', invert=True)
+printc('\bomb Press F1 to abort.', c='y', invert=True)
 while t < T:
     t += dt
     w0.vector()[:] = w.vector()

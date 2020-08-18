@@ -17,7 +17,7 @@ def slicerfunc(index, data):
     sb = msh.lighting('off').addScalarBar3D()
     zb = vol.zbounds()
     visibles = [msh]
-    txt = Text2D('..'+data.filename[-30:], font='MonospaceTypewriter')
+    txt = Text2D('..'+data.filename[-30:], font='Calco')
     plt.show(vol, msh, sb, box, txt, at=index, interactorStyle=6)
     def func(widget, event):
         i = int(widget.GetRepresentation().GetValue())

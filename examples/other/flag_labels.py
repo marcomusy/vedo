@@ -1,23 +1,27 @@
 """Hover mouse onto an object
-to pop a flag-style label
-"""
+to pop a flag-style label"""
 from vedo import *
 
-# Can modify default behaviour through settings:
-#settings.flagDelay = 0          # popup delay in milliseconds
-#settings.flagFont = "Courier"   # font type ("Arial", "Courier", "Times")
-#settings.flagFontSize = 18
-#settings.flagJustification = 0
-#settings.flagAngle = 0
-#settings.flagBold = False
-#settings.flagItalic = True
-#settings.flagShadow = False
-#settings.flagColor = 'black'
-#settings.flagBackgroundColor = 'white'
+b = load(datadir+'/bunny.obj').flag().color('m')
+c = Cube(side=0.1).computeNormals().alpha(0.5).y(-0.02)
 
-s = load(datadir+'/bunny.obj').flag() # picks filename by default
-c = Cube(side=0.2).x(0.3).flag('my cube\nlabel')
+# vignette returns a Mesh type object which can be later modified
+vig = b.vignette('A vignette descriptor\nfor a rabbit', font='Quikhand')
+vig.scale(0.5).color('v').useBounds() # tell camera to take vig bounds into account
 
-#s.flag(False) #disable
+# add a pop up flag
+c.flag('my cube\nflag-style label') # picks filename by default
+#c.flag(False) # to later disable it
 
-show(s, c, __doc__)
+c.caption('2d caption for a cube\nwith face indices', point=[0.044, 0.03, -0.04],
+          size=(0.3,0.06), font="VictorMono", alpha=1)
+
+# create a new object made of polygonal text labels to indicate the cell numbers
+labs = c.labels('id', cells=True, font='Theemim')
+
+# create an entry to the legend
+b.legend('Bugs the bunny')
+c.legend('The Cube box',
+         pos="bottom-left", size=0.3, font="Bongas") # set options to the last entry
+
+show(b, c, vig, labs, __doc__, axes=11, bg2='linen')

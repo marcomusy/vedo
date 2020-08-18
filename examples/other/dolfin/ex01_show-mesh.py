@@ -3,9 +3,10 @@ Visualize a Fenics/dolfin mesh.
 Select mesh and press X to slice it.
 """
 import dolfin
-from vedo.dolfin import plot, datadir
+from vedo.dolfin import plot, download
 
-mesh1 = dolfin.Mesh(datadir + "dolfin_fine.xml")
+fpath = download("https://vedo.embl.es/examples/data/dolfin_fine.xml")
+mesh1 = dolfin.Mesh(fpath)
 
 plot(mesh1)
 

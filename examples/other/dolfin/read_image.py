@@ -3,10 +3,11 @@
 """Interpolate a jpg image to a mesh and plot it"""
 from dolfin import *
 import matplotlib.pyplot as plt
-from vedo.dolfin import plot, datadir
+from vedo.dolfin import plot, download
 
 scale = 0.1
-img = plt.imread(datadir+"images/embl_logo.jpg")
+fpath = download("https://vedo.embl.es/examples/data/images/embl_logo.jpg")
+img = plt.imread(fpath)
 print('Image shape is', img.shape)
 
 img = img[:,:,1]

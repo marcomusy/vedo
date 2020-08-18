@@ -38,4 +38,4 @@ for t in range(Niter):
 
     vp += s # add into Plotter
 
-vp.show()
+vp.show(axes=11)

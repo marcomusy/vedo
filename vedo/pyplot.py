@@ -1941,7 +1941,6 @@ def quiver(
     :param float headLength: fractional head length
     :param float headWidth: fractional head width
     :param bool fill: if False only generate the outline
-
     :param float scale: apply a rescaling factor to the length
 
     |quiver| |quiver.py|_
@@ -2305,6 +2304,8 @@ class DirectedGraph(Assembly):
     Example:
 
         |lineage_graph| |lineage_graph.py|_
+
+        |graph_network| |graph_network.py|_
     """
     def __init__(self, **kargs):
         BaseActor.__init__(self)

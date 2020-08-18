@@ -1,13 +1,14 @@
 """Read a data from ascii file and make a simple analysis
 visualizing 3 of the 5 dimensions of the dataset"""
 import numpy as np
-from vedo import datadir, Points, show
+from vedo import download, Points, show
 from vedo.pyplot import histogram
 
 
 ################################### Read the csv data:
 delimiter=','
-with open(datadir+'genes.csv', "r") as f:
+fpath = download('https://vedo.embl.es/examples/data/genes.csv')
+with open(fpath, "r") as f:
     lines = f.readlines()
 data = []
 for i,lns in enumerate(lines):

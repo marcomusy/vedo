@@ -17,7 +17,7 @@ def onRightClick(mesh):
 
 vp = Plotter()
 
-vp.load(datadir+"skyscraper.obj").c("gold")
+vp.load(datadir+"teapot.vtk").c("gold")
 
 vp.mouseLeftClickFunction   = onLeftClick
 vp.mouseMiddleClickFunction = onMiddleClick

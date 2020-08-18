@@ -14,10 +14,12 @@ polygon = [
 tc = [(0,0), (1,0), (1,1), (0,1)]
 #tc = [(0,0), (2,0), (2,2), (0,2)]
 
-# create the Mesh(vtkActor) object
+# create the Mesh object (a rectangle)
 m = Mesh(polygon)
 
-m.texture(datadir+"images/dog.jpg",
+# apply texture to m
+fpath = download('https://vedo.embl.es/examples/data/images/dog.jpg')
+m.texture(fpath,
           tcoords=tc,
           interpolate=True,
           repeat=True,      # when tcoords extend beyond [0,1]

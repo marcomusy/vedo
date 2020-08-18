@@ -5,18 +5,9 @@ import vtk
 from vtk.util.numpy_support import vtk_to_numpy
 import numpy as np
 
-from vedo import __version__
-import vedo.io as io
-import vedo.utils as utils
-import vedo.colors as colors
+import vedo
 from vedo.colors import printc, getColor
-from vedo.assembly import Assembly
-from vedo.mesh import Mesh
-from vedo.pointcloud import Points
-from vedo.ugrid import UGrid
-from vedo.picture import Picture
-from vedo.volume import Volume
-from vedo.tetmesh import TetMesh
+import vedo.utils as utils
 import vedo.docs as docs
 import vedo.settings as settings
 import vedo.addons as addons
@@ -227,7 +218,7 @@ def show(*actors, **options):
     newPlotter = options.pop("new", False)
     newPlotter_old = options.pop("newPlotter", 'dont')
     if newPlotter_old != 'dont':
-        colors.printc("\nPlease use keyword new in show() instead of newPlotter\n", c='r')
+        printc("\nPlease use keyword new in show() instead of newPlotter\n", c='r')
         newPlotter = newPlotter_old
 
     if len(options):
@@ -456,8 +447,7 @@ class Plotter:
       render in a Qt-Widget using an QVTKRenderWindowInteractor.
       Overrides offscreen to True
       Overrides interactive to False
-      Sets setting.usingQt to True
-      See Also: example qt_windows.py
+      See Also: example qt_windows1.py and qt_windows2.py
 
     |multiwindows|
     """
@@ -487,7 +477,6 @@ class Plotter:
             # overrides the interactive and offscreen properties
             interactive = False
             offscreen = True
-            settings.usingQt = True
 
         if interactive is None:
             if N==1:
@@ -512,9 +501,6 @@ class Plotter:
         self.title = title  # window title
         self.sharecam = sharecam  # share the same camera if multiple renderers
         self._legend = []  # list of legend entries for actors
-        self.legendSize = 0.15  # size of legend
-        self.legendBC = (0.96, 0.96, 0.9)  # legend background color
-        self.legendPos = 2  # 1=topright, 2=top-right, 3=bottom-left
         self.picked3d = None  # 3d coords of a clicked point on an actor
         self.backgrcol = bg
         self.offscreen = offscreen
@@ -727,7 +713,7 @@ class Plotter:
 
             ############################
             if sum(shape) > 3:
-                self.legendSize *= 2
+                settings.legendSize *= 2
 
             image_actor=None
             bgname = str(self.backgrcol).lower()
@@ -737,7 +723,7 @@ class Plotter:
                 self.backgroundRenderer.SetLayer(0)
                 self.backgroundRenderer.InteractiveOff()
                 self.backgroundRenderer.SetBackground(getColor(bg2))
-                image_actor = Picture(self.backgrcol)
+                image_actor = vedo.Picture(self.backgrcol)
                 self.window.AddRenderer(self.backgroundRenderer)
                 self.backgroundRenderer.AddActor(image_actor)
 
@@ -784,20 +770,20 @@ class Plotter:
         self.window.SetPosition(pos)
 
         if not title:
-            title = " vedo " + __version__
-
-        self.window.SetWindowName(title)
-
-        if not settings.usingQt:
-            for r in self.renderers:
-                self.window.AddRenderer(r)
+            title = " vedo " + vedo.__version__
 
         if self.qtWidget is not None:
             self.interactor = self.qtWidget.GetRenderWindow().GetInteractor()
-            self.window.SetOffScreenRendering(True)
+            self.window = self.qtWidget.GetRenderWindow() # overwrite
+            self.window.SetWindowName(title)
             ########################
             return
             ########################
+
+        self.window.SetWindowName(title)
+
+        for r in self.renderers:
+            self.window.AddRenderer(r)
 
         if self.offscreen:
             if self.axes == 4 or self.axes == 5:
@@ -943,10 +929,10 @@ class Plotter:
         r = self.renderers[at]
         if r:
             if c1 is not None:
-                r.SetBackground(colors.getColor(c1))
+                r.SetBackground(getColor(c1))
             if c2 is not None:
                 r.GradientBackgroundOn()
-                r.SetBackground2(colors.getColor(c2))
+                r.SetBackground2(getColor(c2))
             else:
                 r.GradientBackgroundOff()
         return self
@@ -981,7 +967,7 @@ class Plotter:
                 g = load(datadir+'embryo.slc')
                 g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1)).show()
         """
-        acts = io.load(filename, unpack, force)
+        acts = vedo.io.load(filename, unpack, force)
         if utils.isSequence(acts):
             self.actors += acts
         else:
@@ -1482,10 +1468,13 @@ class Plotter:
 
                 elif isinstance(a, vtk.vtkActor):
                     scannedacts.append(a)
-                    if hasattr(a, 'trail') and a.trail and a.trail not in self.actors:
-                        scannedacts.append(a.trail)
-                    if hasattr(a, 'shadow') and a.shadow and a.shadow not in self.actors:
-                        scannedacts.append(a.shadow)
+                    if isinstance(a, vedo.base.BaseActor):
+                        if a.trail and a.trail not in self.actors:
+                            scannedacts.append(a.trail)
+                        if a.shadow and a.shadow not in self.actors:
+                            scannedacts.append(a.shadow)
+                        if a._caption and a._caption not in self.actors:
+                            scannedacts.append(a._caption)
 
                 elif isinstance(a, vtk.vtkAssembly):
                     scannedacts.append(a)
@@ -1507,10 +1496,10 @@ class Plotter:
                 elif a is Ellipsis:
                     scannedacts += settings.collectable_actors
 
-                elif isinstance(a, Volume):
+                elif isinstance(a, vedo.Volume):
                     scannedacts.append(a)
 
-                elif isinstance(a, TetMesh):
+                elif isinstance(a, vedo.TetMesh):
                     # check ugrid is all made of tets
                     ugrid = a.inputdata()
                     uarr = ugrid.GetCellTypesArray()
@@ -1525,17 +1514,17 @@ class Plotter:
                                 a.addCellArray(np.ones(a.NCells()), 'DummyOneArray')
                         scannedacts.append(a)
 
-                elif isinstance(a, UGrid):
+                elif isinstance(a, vedo.UGrid):
                     scannedacts.append(a.tomesh())
 
                 elif isinstance(a, vtk.vtkVolume): # order matters!
-                    scannedacts.append(Volume(a.GetMapper().GetInput()))
+                    scannedacts.append(vedo.Volume(a.GetMapper().GetInput()))
 
                 elif isinstance(a, vtk.vtkImageActor):
                     scannedacts.append(a)
 
                 elif isinstance(a, vtk.vtkImageData):
-                    scannedacts.append(Volume(a))
+                    scannedacts.append(vedo.Volume(a))
 
                 elif isinstance(a, vtk.vtkBillboardTextActor3D):
                     scannedacts.append(a)
@@ -1543,7 +1532,7 @@ class Plotter:
                 elif isinstance(a, str):  # assume a filepath or 2D comment was given
                     import os.path
                     if "." in a and ". " not in a and os.path.isfile(a):
-                        out = io.load(a)
+                        out = vedo.io.load(a)
                     else:
                         from vedo.shapes import Text2D
                         out = Text2D(a, pos=3)
@@ -1553,9 +1542,9 @@ class Plotter:
                     for i in range(a.GetNumberOfBlocks()):
                         b =  a.GetBlock(i)
                         if isinstance(b, vtk.vtkPolyData):
-                            scannedacts.append(Mesh(b))
+                            scannedacts.append(vedo.Mesh(b))
                         elif isinstance(b, vtk.vtkImageData):
-                            scannedacts.append(Volume(b))
+                            scannedacts.append(vedo.Volume(b))
 
                 elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
                     from vedo.dolfin import MeshActor
@@ -1567,7 +1556,7 @@ class Plotter:
 
                 else:
                     try:
-                        scannedacts.append(Mesh(a))
+                        scannedacts.append(vedo.Mesh(a))
                     except:
                         printc("Cannot understand input in show():", type(a), c='r')
             return scannedacts
@@ -1722,7 +1711,7 @@ class Plotter:
                 if hasattr(ia, 'scalarbar') and ia.scalarbar:
                     if isinstance(ia.scalarbar, vtk.vtkActor):
                         self.renderer.RemoveActor(ia.scalarbar)
-                    elif isinstance(ia.scalarbar, Assembly):
+                    elif isinstance(ia.scalarbar, vedo.Assembly):
                         for a in ia.scalarbar.unpack():
                             self.renderer.RemoveActor(a)
                 if hasattr(ia, 'renderedAt'):
@@ -1895,7 +1884,7 @@ class Plotter:
         if len(actors)==1:
             widget.SetOrientationMarker(actors[0])
         else:
-            widget.SetOrientationMarker(Assembly(utils.flatten(actors)))
+            widget.SetOrientationMarker(vedo.Assembly(utils.flatten(actors)))
 
         widget.SetInteractor(self.interactor)
 
@@ -1976,7 +1965,7 @@ class Plotter:
         settings.plotter_instance = None
 
     def screenshot(self, filename):
-        io.screenshot(filename)
+        vedo.io.screenshot(filename)
         return self
 
 
@@ -2257,7 +2246,7 @@ class Plotter:
             return
 
         elif key == "S":
-            io.screenshot("screenshot.png")
+            vedo.io.screenshot("screenshot.png")
             printc("\camera Saved rendering window as screenshot.png", c="blue")
             return
 
@@ -2294,12 +2283,12 @@ class Plotter:
             self.icol += 1
             if self.clickedActor and hasattr(self.clickedActor, "GetProperty"):
                 self.clickedActor.GetMapper().ScalarVisibilityOff()
-                self.clickedActor.GetProperty().SetColor(colors.colors1[(self.icol) % 10])
+                self.clickedActor.GetProperty().SetColor(vedo.colors.colors1[(self.icol) % 10])
             else:
                 for i, ia in enumerate(self.getMeshes()):
                     if not ia.GetPickable():
                         continue
-                    ia.GetProperty().SetColor(colors.colors1[(i + self.icol) % 10])
+                    ia.GetProperty().SetColor(vedo.colors.colors1[(i + self.icol) % 10])
                     ia.GetMapper().ScalarVisibilityOff()
             addons.addLegend()
 
@@ -2307,12 +2296,12 @@ class Plotter:
             self.icol += 1
             if self.clickedActor and hasattr(self.clickedActor, "GetProperty"):
                 self.clickedActor.GetMapper().ScalarVisibilityOff()
-                self.clickedActor.GetProperty().SetColor(colors.colors2[(self.icol) % 10])
+                self.clickedActor.GetProperty().SetColor(vedo.colors.colors2[(self.icol) % 10])
             else:
                 for i, ia in enumerate(self.getMeshes()):
                     if not ia.GetPickable():
                         continue
-                    ia.GetProperty().SetColor(colors.colors2[(i + self.icol) % 10])
+                    ia.GetProperty().SetColor(vedo.colors.colors2[(i + self.icol) % 10])
                     ia.GetMapper().ScalarVisibilityOff()
             addons.addLegend()
 
@@ -2333,7 +2322,7 @@ class Plotter:
             for ia in self.getMeshes():
                 if not ia.GetPickable():
                     continue
-                if isinstance(ia, Points):
+                if isinstance(ia, vedo.pointcloud.Points):
                     arnames = ia.getArrayNames()['PointData']
                     if len(arnames):
                         arnam =  arnames[ia._scals_idx]
@@ -2357,7 +2346,7 @@ class Plotter:
         elif key == "6":
             bg2cols = ['moccasin', 'darkseagreen', 'steelblue','lightblue',
                        'white', 'blackboard', 'black']
-            bg2name = colors.getColorName(self.renderer.GetBackground2())
+            bg2name = vedo.colors.getColorName(self.renderer.GetBackground2())
             if bg2name in bg2cols:
                 idx = bg2cols.index(bg2name)
             else:
@@ -2368,7 +2357,7 @@ class Plotter:
                 self.renderer.GradientBackgroundOff()
             else:
                 self.renderer.GradientBackgroundOn()
-                self.renderer.SetBackground2(colors.getColor(bg2name_next))
+                self.renderer.SetBackground2(getColor(bg2name_next))
 
         elif "KP_" in key:  # change axes style
             asso = {
@@ -2472,7 +2461,7 @@ class Plotter:
             else:
                 acts = self.getMeshes()
             for ia in acts:
-                if ia.GetPickable() and isinstance(ia, Mesh):
+                if ia.GetPickable() and isinstance(ia, vedo.Mesh):
                     ia.computeNormals()
                     intrp = (ia.GetProperty().GetInterpolation()+1)%3
                     ia.GetProperty().SetInterpolation(intrp)
@@ -2543,7 +2532,7 @@ class Plotter:
 
         elif key == "E":
             printc("\camera Exporting 3D window to file", c="blue", end="")
-            io.exportWindow('scene.npz')
+            vedo.io.exportWindow('scene.npz')
             printc(". Try:\n> vedo scene.npz", c="blue")
             settings.plotter_instance.interactor.Start()
 

@@ -52,7 +52,7 @@ class Picture(vtk.vtkImageActor, Base3DProp):
         elif isinstance(obj, str):
             if "https://" in obj:
                 import vedo.io as io
-                obj = io.download(obj)
+                obj = io.download(obj, verbose=False)
 
             if   ".png" in obj:
                 picr = vtk.vtkPNGReader()

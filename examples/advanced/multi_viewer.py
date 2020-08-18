@@ -35,9 +35,9 @@ def onLeftClick(mesh):
 
     ishape = shapes[i]
     sname = Text2D('This is called: '+ishape.name,
-                   pos='top-center', c='r', bg='y', font='MonoCodeElegant')
+                   pos='top-center', c='r', bg='y', font='Calco')
     sprop = Text2D('color = '+getColorName(ishape.color()),
-                   pos='bottom-left', c=ishape.color(), bg='k', font='MonoCodeElegant')
+                   pos='bottom-left', c=ishape.color(), bg='k', font='Calco')
     instt = Text2D(instr, pos='bottom-right', c='dg', bg='g', font='Quikhand')
 
     axes = addons.buildAxes(ishape, yzGrid=False)
@@ -59,7 +59,7 @@ plt1.show(Picture(datadir+'images/embl_logo.jpg').rotateX(-20),
 shapes = []
 for i in range(15):
     ps = ParametricShape(i).color(i-9)
-    pname = Text2D(ps.name, pos=1, bg='b', s=0.9, font='MonoCodeElegant')
+    pname = Text2D(ps.name, pos=1, bg='b', s=0.9, font='Calco')
     plt1.show(ps, pname, at=i)
     shapes.append(ps)
 

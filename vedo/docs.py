@@ -1278,7 +1278,6 @@ _defs = ""
 #.. |simpleplot| image:: https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png
 #    :width: 300 px
 #
-#
 #.. |warpv| image:: https://user-images.githubusercontent.com/32848391/77864546-7a577900-7229-11ea-84ce-4e8e6eeff27f.png
 #    :width: 300 px
 #
@@ -1288,6 +1287,58 @@ _defs = ""
 #    :width: 350 px
 #    :target: lineage_graph.py_
 #    :alt: lineage_graph.py
+
+#.. |bezier| image:: https://user-images.githubusercontent.com/32848391/90437534-dafd2a80-e0d2-11ea-9b93-9ecb3f48a3ff.png
+#    :width: 300 px
+
+#.. |fontlist| image:: https://user-images.githubusercontent.com/32848391/90437539-dcc6ee00-e0d2-11ea-8381-93d211b1bc85.png
+#    :width: 350 px
+
+#.. |fonts3d| image:: https://user-images.githubusercontent.com/32848391/90437540-dd5f8480-e0d2-11ea-8ddc-8839688979d0.png
+#    :width: 350 px
+
+#.. |caption.py| replace:: caption.py
+#.. _caption.py: https://github.com/marcomusy/vedo/blob/master/vedo/examples/pyplot/caption.py
+#.. |caption| image::https://user-images.githubusercontent.com/32848391/90437536-dc2e5780-e0d2-11ea-8951-f905ffb54f54.png
+#    :width: 350 px
+#    :target: desc_caption.py_
+#    :alt: caption.py
+
+#.. |goniometer.py| replace:: goniometer.py
+#.. _goniometer.py: https://github.com/marcomusy/vedo/blob/master/vedo/examples/pyplot/goniometer.py
+#.. |goniometer| image:: https://user-images.githubusercontent.com/32848391/90437544-dd5f8480-e0d2-11ea-8321-b52d073444c4.png
+#    :width: 350 px
+#    :target: goniometer.py_
+#    :alt: goniometer.py
+
+#.. |intersect2d.py| replace:: intersect2d.py
+#.. _intersect2d.py: https://github.com/marcomusy/vedo/blob/master/vedo/examples/pyplot/intersect2d.py
+#.. |intersect2d| image:: https://user-images.githubusercontent.com/32848391/90437548-de90b180-e0d2-11ea-8e0c-d821db4da8a9.png
+#    :width: 350 px
+#    :target: intersect2d.py_
+#    :alt: intersect2d.py
+
+#.. |fonts.py| replace:: fonts.py
+#.. _fonts.py: https://github.com/marcomusy/vedo/blob/master/vedo/examples/pyplot/fonts.py
+#.. |fonts| image:: https://user-images.githubusercontent.com/32848391/90437539-dcc6ee00-e0d2-11ea-8381-93d211b1bc85.png
+#    :width: 350 px
+#    :target: fonts.py_
+#    :alt: fonts.py
+
+#.. |graph_network.py| replace:: graph_network.py
+#.. _graph_network.py: https://github.com/marcomusy/vedo/blob/master/vedo/examples/pyplot/graph_network.py
+#.. |graph_network| image:: https://user-images.githubusercontent.com/32848391/90437546-ddf81b00-e0d2-11ea-84d5-e4356a5c5f85.png
+#    :width: 350 px
+#    :target: graph_network.py_
+#    :alt: graph_network.py
+
+#.. |plot_density3d.py| replace:: plot_density3d.py
+#.. _plot_density3d.py: https://github.com/marcomusy/vedo/blob/master/vedo/examples/pyplot/plot_density3d.py
+#.. |plot_density3d| image:: https://user-images.githubusercontent.com/32848391/90437537-dc2e5780-e0d2-11ea-982c-8dafd467c3cd.png
+#    :width: 350 px
+#    :target: plot_density3d.py_
+#    :alt: plot_density3d.py
+
 #"""
 
 

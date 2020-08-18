@@ -20,7 +20,6 @@ __all__ = ["Volume",
            "volumeFromMesh",
            "interpolateToVolume",
            "signedDistanceFromPointCloud",
-           # "pointDensity",
           ]
 
 
@@ -270,7 +269,7 @@ class Volume(vtk.vtkVolume, BaseGrid):
 
             if "https://" in inputobj:
                 from vedo.io import download
-                inputobj = download(inputobj) # fpath
+                inputobj = download(inputobj, verbose=False) # fpath
             else:
                 inputobj = sorted(glob.glob(inputobj))
 
@@ -344,7 +343,9 @@ class Volume(vtk.vtkVolume, BaseGrid):
             img = inputobj.GetOutput()
 
         elif isinstance(inputobj, str):
-            from vedo.io import loadImageData
+            from vedo.io import loadImageData, download
+            if "https://" in inputobj:
+                inputobj = download(inputobj, verbose=False)
             img = loadImageData(inputobj)
 
         else:

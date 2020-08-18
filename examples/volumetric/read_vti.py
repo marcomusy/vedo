@@ -1,22 +1,10 @@
-"""Load and render a 3D Volume.
+"""Load and render a 3D Volume
 
 mode=0, composite rendering
-mode=1, maximum-projection rendering
-"""
-import vtk
-from vedo import datadir, load, Volume, show
+mode=1, maximum-projection rendering"""
+from vedo import datadir, load, show
 
-# Create the reader for the data.
-reader = vtk.vtkXMLImageDataReader()
-reader.SetFileName(datadir+"vase.vti")
-reader.Update()
-img = reader.GetOutput() # vtkImageData object
-
-vol1 = Volume(img, mode=0) # mode=0, composite rendering
-
-# --- NB: THE ABOVE LINES COULD BE REDUCED TO:
-#vol1 = load(datadir+"vase.vti")
-# -------------------------------------------
+vol1 = load(datadir+"vase.vti")
 
 # can set colors and transparencies along the scalar range
 # from minimum to maximum value. In this example voxels with

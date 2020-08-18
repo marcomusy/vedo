@@ -3,7 +3,8 @@
 from vedo import *
 
 # load file as type vtkUnStructuredGrid
-ugrid = loadUnStructuredGrid(datadir+'cavity.vtk')
+fpath = download(datadir+"cavity.vtk")
+ugrid = loadUnStructuredGrid(fpath)
 
 # make a grid of points to probe as type Mesh(vtkActor)
 probe = Grid(pos=(0.05,0.08,0.005), normal=(0,1,0),

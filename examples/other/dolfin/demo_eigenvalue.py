@@ -2,10 +2,11 @@
 # ==========================
 
 from dolfin import *
-from vedo.dolfin import datadir, plot
+from vedo.dolfin import download, plot
 
 # Define mesh, function space
-mesh = Mesh(datadir+"box_with_dent.xml.gz")
+fpath = download("https://vedo.embl.es/examples/data/box_with_dent.xml.gz")
+mesh = Mesh(fpath)
 V = FunctionSpace(mesh, "Lagrange", 1)
 
 # Define basis and bilinear form

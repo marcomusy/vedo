@@ -1,12 +1,13 @@
 """Read and show meshio objects"""
 import meshio
-from vedo import datadir, show, Mesh
+from vedo import download, show, Mesh
 
-mesh = meshio.read(datadir+'shuttle.obj')
+fpath = download('https://vedo.embl.es/examples/data/shuttle.obj')
+mesh = meshio.read(fpath)
 
 # vedo understands meshio format for polygonal data:
-#show(mesh, __doc__)
+# show(mesh, __doc__, axes=7)
 
 # explicitly convert it to a vedo.Mesh object:
 m = Mesh(mesh).lineWidth(1).color('tomato').printInfo()
-show(m, __doc__)
+show(m, __doc__, axes=7)

@@ -7,11 +7,9 @@ from vedo.tetmesh import TetMesh
 from vedo.ugrid import UGrid
 from vedo.volume import Volume
 from vedo import settings, printc, getColor, humansort, __version__
-from vedo import io, datadir, load
+from vedo import io, load
 import vedo.applications as applications
-# from vedo.picture import Picture
 from vedo.shapes import Text2D, VedoLogo
-# from vedo.pointcloud import Point
 from vedo.docs import tips
 import sys, argparse, os, glob
 
@@ -264,7 +262,7 @@ def draw_scene():
             if all(a is None for a in actors):
                 actors = [VedoLogo(distance=6),
                           Text2D('..could not load file(s)', s=0.9, bg='y',
-                                  c='r', font='Normografo', pos='bottom-center'),
+                                  c='r', font='', pos='bottom-center'),
                           ]
                 vp.axes=0
                 vp.backgroundColor('w','bb')
@@ -607,14 +605,16 @@ else:  #########################################################################
     args = pr.parse_args()
 
     if args.run:
-        exfiles = [f for f in glob.glob(datadir.replace('data','') + "**/*.py", recursive=True)]
-        matching = [s for s in exfiles if (args.run.lower() in os.path.basename(s).lower() and "__" not in s)]
+        expath = os.path.join(settings.installdir, "examples", "**", "*.py")
+        exfiles = [f for f in glob.glob(expath, recursive=True)]
+        f2search = os.path.basename(args.run).lower()
+        matching = [s for s in exfiles if (f2search in os.path.basename(s).lower() and "__" not in s)]
         matching = list(sorted(matching))
         nmat = len(matching)
         if nmat == 0:
             printc("No matching example found containing string:", args.run, c=1)
             printc(" Use vedo --list to show available scripts.", c=1)
-            printc(" Current datadir is:", datadir, c=1)
+            printc(" Current installation directory is:", settings.installdir, c=1)
             exit(1)
 
         if nmat > 1:
@@ -656,10 +656,15 @@ else:  #########################################################################
     elif args.list:
         print()
         printc("Available examples are:", box='-')
-        expath = datadir.replace('data','')
+        expath = os.path.join(settings.installdir, 'examples')
 
         exfiles = [(f, os.path.basename(f))
-                    for f in sorted(glob.glob(expath + "**/*.py", recursive=True))]
+                    for f in sorted(glob.glob(
+                                              os.path.join(expath, "**", "*.py"),
+                                              recursive=True,
+                                             )
+                                    )
+                  ]
         nl = 4
 
         printc("Basic examples:", c='g', bold=1, underline=1)

@@ -3,6 +3,7 @@
 from __future__ import division, print_function
 import os, sys, vtk
 import numpy as np
+import vedo
 from vtk.util.numpy_support import numpy_to_vtk
 from vedo import settings
 import vedo.utils as utils
@@ -808,6 +809,8 @@ def Bezier(points, res=None):
             for i,p in enumerate(pts):
                 p += [5*i, 15*sin(i/2), i*i*i/200]
             show(Points(pts), Bezier(pts), axes=1)
+
+        |bezier|
 
     """
     N = len(points)
@@ -1658,9 +1661,7 @@ class Earth(Mesh):
         tss.SetRadius(r)
         tss.SetThetaResolution(72)
         tss.SetPhiResolution(36)
-
         Mesh.__init__(self, tss, c="w")
-
         atext = vtk.vtkTexture()
         pnmReader = vtk.vtkJPEGReader()
         fn = settings.textures_path + "earth" + str(style) +".jpg"
@@ -2263,7 +2264,7 @@ class Hyperboloid(Mesh):
 
 class Text(Mesh):
     """
-    Returns a 3D polygonal ``Mesh`` of a text string.
+    Generate a 3D polygonal ``Mesh`` representing a text string.
 
     Can render strings like 3.7 10^9 or H_2 O with subscripts and superscripts.
     Symbols ~ ^ _ are reserved modifiers:
@@ -2277,14 +2278,17 @@ class Text(Mesh):
     :param str justify: text justification as centering of the bounding box
         (bottom-left, bottom-right, top-left, top-right, centered).
 
-    :param str font: available fonts are:
-        VTK, Biysk, Bongas, Kanopus, Galax, MonoCodeElegant, MonoCodeFresh,
-        Inversionz, Normografo, Quikhand, SmartCouric, Theemim, VictorMono
+    :param str font: available 3D-polygonized fonts are:
+        VTK, Biysk, Bongas, Calco, Comae, Kanopus, Galax, Glasgo,
+        Inversionz, LogoType, Normografo, Quikhand, SmartCouric, Theemim, VictorMono.
+        Default is Normografo, which can be changed using ``settings.defaultFont``
 
     :param float hspacing: horizontal spacing of the font.
     :param float vspacing: vertical spacing of the font in multiple lines text.
 
-    |markpoint| |markpoint.py|_ |fonts.py|_
+    |markpoint| |markpoint.py|_ |fonts.py|_ |caption.py|_
+
+    |fontlist| |fonts3d| |caption|
     """
     def __init__(self,
                  txt,
@@ -2295,7 +2299,6 @@ class Text(Mesh):
                  vspacing = 2.15,
                  depth=0,
                  italic=False,
-                 useModifiers=True,
                  justify="bottom-left",
                  c=None,
                  alpha=1,
@@ -2341,18 +2344,26 @@ class Text(Mesh):
         if font == "VTK":
 
             if font not in _fonts_cache.keys():
-                _fonts_cache.update({font:dict()})
-                _fonts_cache.update({font+'_letters':dict()})
+                _fonts_cache.update({"VTK":dict()})
+                _fonts_cache.update({"VTK_letters":dict()})
             isvtkfont = True
 
         else:
+
+            if font.startswith('https'): # user passed URL link, make it a path
+                font = vedo.io.download(font, verbose=False, force=False)
+
+            if font.endswith('.npz'):    # user passed font as a path
+                fontfile = font
+                font = os.path.basename(font).split('.')[0]
+            else:                        # user passed font by its name
+                fontfile = settings.fonts_path + font + '.npz'
 
             if font in _fonts_cache.keys():
                 _font_meshes = _fonts_cache[font]
             else:
                 try:
-                    #print('loading',font)
-                    fontfile = settings.fonts_path + font + '.npz'
+                    #printc('loading', font, fontfile)
                     _font_meshes = np.load(fontfile, allow_pickle=True)['font'][0]
                     _fonts_cache.update({font : _font_meshes})
                     _fonts_cache.update({font+'_letters': dict()})
@@ -2361,10 +2372,9 @@ class Text(Mesh):
                     raise RuntimeError
             keys = _font_meshes.keys()
 
+        # ad hoc adjustments
+        fscale = 0.8
         dotsep = '·'
-        mono = True
-        xinterletter = 0.1 # spacing inbetween letter
-        fscale = 0.8       # an extra factor to equalize different fonts sizes
         if font=='Normografo':
             mono = False
             fscale = 0.75
@@ -2380,29 +2390,46 @@ class Text(Mesh):
             fscale = 0.875
             hspacing *= 0.52
             xinterletter = 0.25
-        elif font=='Inversionz':
-            fscale = 0.9
-            dotsep = "~^.~ "
+        elif font=='Calco':
+            mono = True
+            xinterletter = 0.1
+        elif font=='Comae':
+            mono = False
+            fscale = 0.75
+            xinterletter = 0.2
+            dotsep = '~·'
         elif font=='Galax':
             mono = False
+            xinterletter = 0.1
             dotsep = "~·"
+        elif font=='Glasgo':
+            mono = True
+            fscale = 0.75
+            xinterletter = 0.1
+        elif font=='Inversionz':
+            mono = True
+            fscale = 0.9
+            xinterletter = 0.1
+            dotsep = "~^.~ "
         elif font=='Kanopus':
             mono = False
             fscale = 0.75
             xinterletter = 0.15
             dotsep = '~·'
-        elif font=='MonoCodeElegant':
+        elif font=='LogoType':
+            mono = False
             fscale = 0.75
-        elif font=='MonoCodeFresh':
-            fscale = 0.75
+            xinterletter = 0.2
+            dotsep = '·~~'
         elif font=='Quikhand':
             mono = False
             hspacing *= 0.6
             xinterletter = 0.15
             dotsep = "~~·~"
         elif font=='SmartCouric':
-            fscale = 0.775
+            mono = True
             hspacing *= 1.05
+            xinterletter = 0.1
         elif font=='Theemim':
             mono = False
             fscale = 0.825
@@ -2410,12 +2437,18 @@ class Text(Mesh):
             xinterletter = 0.3
             dotsep = '~·'
         elif font=='VictorMono':
+            mono = True
             fscale = 0.725
+            xinterletter = 0.1
         elif font=='VTK':
             mono = False
             hspacing *= 0.6
             xinterletter = 0.4
             dotsep = "~^.~ "
+        else:
+            mono = settings.fontIsMono
+            hspacing *= settings.fontHSpacing
+            xinterletter = settings.fontLSpacing
 
         # replacements
         if not isvtkfont and "\\" in repr(txt):
@@ -2618,20 +2651,30 @@ def Text2D(
     :param str justify: text justification
     :param str font: available fonts are
 
-            - Courier
-            - Times
-            - Arial
-            - CallingCode
-            - Monospace
-            - Montserrat
+        - Biysk
+        - Bongas
+        - Comae
+        - Galax
+        - Inversionz
+        - Kanopus
+        - LogoType
+        - Calco
+        - Glasgo
+        - Normografo
+        - Quikhand
+        - SmartCouric
+        - Theemim
+        - VictorMono
 
         A path to `otf` or `ttf` font-file can also be supplied as input.
 
-    .. hint:: Examples, |fonts.py|_ |colorcubes.py|_ |annotations.py|_
+    .. hint:: Examples, |fonts.py|_ |colorcubes.py|_ |caption.py|_
 
         |colorcubes|
 
-        |fonts|
+        |fontlist|
+
+        |caption|
     """
     if c is None: # automatic black or white
         if settings.plotter_instance and settings.plotter_instance.renderer:
@@ -2645,8 +2688,14 @@ def Text2D(
         else:
             c = (0.5, 0.5, 0.5)
 
-    if not font:
-        font=settings.defaultFont
+    if not font:                   # use default font
+        fpath = settings.fonts_path + settings.defaultFont +'.ttf'
+    elif font.startswith('https'): # user passed URL link, make it a path
+        fpath = vedo.io.download(font, verbose=False, force=False)
+    elif font.endswith('.ttf'):    # user passing a local path to font file
+        fpath = font
+    else:                          # user passing name of preset font
+        fpath = settings.fonts_path + font +'.ttf'
 
     txt = str(txt)
     if "\\" in repr(txt):
@@ -2684,13 +2733,11 @@ def Text2D(
         elif font.lower() == "arial": cap.SetFontFamilyToArial()
         else:
             cap.SetFontFamily(vtk.VTK_FONT_FILE)
-            cap.SetFontFile(settings.fonts_path + font +'.ttf')
+            cap.SetFontFile(fpath)
         if bg:
             bgcol = getColor(bg)
             cap.SetBackgroundColor(bgcol)
             cap.SetBackgroundOpacity(alpha)
-            #cap.SetFrameColor(bgcol)
-            #cap.FrameOn()
         cap.SetBold(bold)
         cap.SetItalic(italic)
         setattr(ca, 'renderedAt', set())
@@ -2730,21 +2777,12 @@ def Text2D(
         if "right" in justify:
             tp.SetJustificationToRight()
 
-        if font == "Godsway": font="Quikhand" # for cloneviewr
-
         if font.lower() == "courier": tp.SetFontFamilyToCourier()
         elif font.lower() == "times": tp.SetFontFamilyToTimes()
         elif font.lower() == "arial": tp.SetFontFamilyToArial()
         else:
             tp.SetFontFamily(vtk.VTK_FONT_FILE)
-            if font in settings.fonts:
-                tp.SetFontFile(settings.fonts_path + font + '.ttf')
-            elif os.path.exists(font):
-                tp.SetFontFile(font)
-            else:
-                #printc("Font", font, "not found in", settings.fonts_path, c="r")
-                #printc("Available fonts are:", settings.fonts, c="y")
-                tp.SetFontFamilyToCourier() # silently fail
+            tp.SetFontFile(fpath)
         if bg:
             bgcol = getColor(bg)
             tp.SetBackgroundColor(bgcol)
@@ -2997,16 +3035,16 @@ def VedoLogo(distance=0, version=True, c=None, bc='dr'):
     # ms = tetm.cutWithMesh(sphere, onlyBoundary=True).tomesh(shrink=1)
     # ms.clean().write('omesh.vtk')
 
-    ms = vedo.io.load(vedo.datadir+'omesh.vtk')
-    ms.scale([1,1,0.3]).pos(1500, 550, 95).lighting('shiny').pickable(0)
-    # Spectral, viridis_r, jet, gist_ncar, prism, seismic_r, brg_r
-    ms.cmap('jet_r', mode='cells')
-
-    vlogo = Text("v3d", font='Biysk', s=1350, depth=0.2, c=c, hspacing=0.9)
+    vlogo = Text("v3d", font='Biysk', s=1350, depth=0.2, c=c, hspacing=0.4)
     vlogo.x(-2525).pickable(False).bc(bc)
     vlogo.GetProperty().LightingOn()
 
-    sphere.scale([1,1,0.3]).pos(1846, 548, 82)
+    ms = vedo.io.load(vedo.datadir+'omesh.vtk')
+    ms.scale([1,1,0.3]).pos(1210, 550, 95).lighting('shiny').pickable(0)
+    # Spectral, viridis_r, jet_r, gist_ncar, prism, seismic_r, brg_r
+    ms.cmap('jet_r', mode='cells')
+
+    sphere.scale([1,1,0.3]).pos(1540, 548, 82)
     sphere.lighting('off').frontFaceCulling(True).pickable(False)
 
     vr = None
@@ -3014,7 +3052,7 @@ def VedoLogo(distance=0, version=True, c=None, bc='dr'):
         vr = Text(vedo.__version__, font='Biysk',
                   s=175, depth=0.2, c=c, hspacing=0.8)
         vr.RotateZ(90)
-        vr.pos(2800,50,80).bc(bc).pickable(False)
+        vr.pos(2450,50,80).bc(bc).pickable(False)
 
     fakept = vedo.Point((0,500,distance*1725), alpha=0, c=c, r=1).pickable(0)
     asso = vedo.Assembly([vlogo, vr, ms, sphere, fakept]).scale(1/1725)

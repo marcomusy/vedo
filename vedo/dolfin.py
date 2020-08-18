@@ -17,7 +17,7 @@ from vedo.settings import datadir, embedWindow
 
 from vedo.mesh import Mesh
 
-from vedo.io import load, screenshot, Video, exportWindow
+from vedo.io import load, screenshot, Video, exportWindow, download
 
 import vedo.shapes as shapes
 from vedo.shapes import Text, Text2D, Latex
@@ -107,6 +107,7 @@ __all__ = [
     "plot",
     "histogram",
     "load",
+    "download",
     "show",
     "clear",
     "printc",

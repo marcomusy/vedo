@@ -1,10 +1,10 @@
 """Load a picture with matplotlib imread()
-and make it a 3D object.
-"""
+and make it a 3D object"""
 from matplotlib.image import imread
 from vedo import *
 
-fname = datadir+'images/tropical.jpg'
+fname = download('https://vedo.embl.es/examples/data/images/tropical.jpg')
+
 arr = imread(fname)
 
 pic = Picture(arr) # create Picture object from numpy array

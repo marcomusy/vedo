@@ -61,20 +61,6 @@ class Base3DProp(object):
             self.SetPickable(value)
             return self
 
-    def legend(self, txt=None):
-        """Set/get ``Mesh`` legend text.
-
-        :param str txt: legend text.
-
-        Size and positions can be modified by setting attributes
-        ``Plotter.legendSize``, ``Plotter.legendBC`` and ``Plotter.legendPos``.
-        """
-        if txt is None:
-            return self._legend
-        else:
-            self._legend = str(txt)
-            return self
-
     def time(self, t=None):
         """Set/get object's absolute time."""
         if t is None:
@@ -533,8 +519,11 @@ class BaseActor(Base3DProp):
         Base3DProp.__init__(self)
 
         self.scalarbar = None
-        self.flagText = None
         self._mapper = None
+
+        self.flagText = None
+        self._caption = None
+
 
     def mapper(self, newMapper=None):
         """Return the ``vtkMapper`` data object, or update it with a new one."""
@@ -626,20 +615,6 @@ class BaseActor(Base3DProp):
 
         return np.array(cids)
 
-
-    def flag(self, text=None):
-        """Add a flag label which becomes visible when hovering the object with mouse.
-        Can be later disabled by setting `flag(False)`.
-        """
-        if text is None:
-            if self.filename:
-                text = self.filename.split('/')[-1]
-            elif self.name:
-                text = self.name
-            else:
-                text = ""
-        self.flagText = text
-        return self
 
     def lighting(self, style='', ambient=None, diffuse=None,
                  specular=None, specularPower=None, specularColor=None):

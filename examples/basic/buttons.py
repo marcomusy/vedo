@@ -24,4 +24,4 @@ bu = vp.addButton(
     italic=False,
 )
 
-vp.show(mesh, __doc__)
+vp.show(mesh, __doc__, axes=11)

@@ -7,7 +7,7 @@ It injects a point source with a time-dependent source time function.
 #
 from __future__ import print_function, division
 from dolfin import *
-from vedo.dolfin import plot, interactive, ProgressBar, printc, datadir, settings
+from vedo.dolfin import plot, interactive, ProgressBar, printc, download, settings
 import numpy as np
 set_log_level(30)
 
@@ -61,7 +61,7 @@ def awefem(mesh, t, source_loc=None):
         source_loc = Point(source_loc)
 
     # Time stepping
-    printc('~bomb Hit F1 to interrupt.', c='yellow')
+    printc('\bomb Hit F1 to interrupt.', c='yellow')
     pb = ProgressBar(0, len(t))
     for i, t_ in enumerate(t[1:]):
         pb.print()
@@ -94,7 +94,8 @@ if __name__ == "__main__":
     t = ot + np.arange(nt) * dt
 
     print("Computing wavefields over dolfin mesh")
-    mesh = Mesh(datadir+"dolfin_fine.xml")
+    fpath = download("https://vedo.embl.es/examples/data/dolfin_fine.xml")
+    mesh = Mesh(fpath)
     awefem(mesh, t, source_loc=(0.8, 0.8))
 
 #    print('Computing wavefields over unit square')

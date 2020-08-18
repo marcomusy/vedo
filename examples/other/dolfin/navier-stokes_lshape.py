@@ -4,13 +4,14 @@ on an L-shaped domain using Chorin's splitting method.
 """
 from __future__ import print_function
 from dolfin import *
-from vedo.dolfin import ProgressBar, plot, datadir
+from vedo.dolfin import ProgressBar, plot, download
 
 # Print log messages only from the root process in parallel
 parameters["std_out_all_processes"] = False
 
 # Load mesh from file
-mesh = Mesh(datadir + "lshape.xml.gz")
+fpath = download("https://vedo.embl.es/examples/data/lshape.xml.gz")
+mesh = Mesh(fpath)
 
 # Define function spaces (P2-P1)
 V = VectorFunctionSpace(mesh, "Lagrange", 2)

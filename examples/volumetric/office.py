@@ -10,7 +10,8 @@ from office_furniture import furniture
 
 # We read a data file the is a CFD analysis of airflow in an office
 # (with ventilation and a burning cigarette).
-sgrid = loadStructuredGrid(datadir + "office.binary.vtk")
+fpath = download('https://vedo.embl.es/examples/data/office.binary.vtk')
+sgrid = loadStructuredGrid(fpath)
 
 # Create a grid of points and use those as integration seeds
 seeds = Grid(pos=[2,2,1], normal=[1,0,0], resx=2, resy=3, c="gray")

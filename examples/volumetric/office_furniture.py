@@ -6,9 +6,10 @@ def furniture():
     # generate a whole bunch of planes which correspond to
     # the geometry in the analysis; tables, bookshelves and so on.
 
-    from vedo import datadir
+    from vedo import download
     reader = vtk.vtkStructuredGridReader()
-    reader.SetFileName(datadir + "office.binary.vtk")
+    fpath = download('https://vedo.embl.es/examples/data/office.binary.vtk', verbose=0)
+    reader.SetFileName(fpath)
     reader.Update()
     sgrid = reader.GetOutput()
 

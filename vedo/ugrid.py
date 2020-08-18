@@ -33,7 +33,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
         elif isinstance(inputobj, str):
             from vedo.io import download, loadUnStructuredGrid
             if "https://" in inputobj:
-                inputobj = download(inputobj)
+                inputobj = download(inputobj, verbose=False)
             self._data = loadUnStructuredGrid(inputobj)
 
         else:

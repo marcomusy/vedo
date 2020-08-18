@@ -12,8 +12,11 @@ General settings.
     # Set a default for the font to be used for axes, comments etc.
     defaultFont = 'Normografo'
     # Options are:
-    #    VTK, Biysk, Bongas, Kanopus, Galax, MonoCodeElegant, MonoCodeFresh,
-    #    Inversionz, Normografo, Quikhand, SmartCouric, Theemim, VictorMono
+    #    Biysk, Bongas, Calco, Comae, Kanopus, Galax, Glasgo, Inversionz,
+    #    LogoType, Normografo, Quikhand, SmartCouric, Theemim, VictorMono
+    fontIsMono = True  # mono means that all letters occupy the same space slot horizontally
+    fontHSpacing = 1   # an horizontal stretching factor (affects both letters and words)
+    fontLSpacing = 0.1 # horizontal spacing inbetween letters (not words)
 
     # Scale magnification of the screenshot (must be an integer)
     screeshotScale = 1
@@ -47,18 +50,6 @@ General settings.
     # Allow to interact with scene during interactor.Start() execution
     allowInteraction = True
 
-    # Flag-style label options
-    flagDelay    = 150       # popup delay in milliseconds
-    flagFont     = "Courier" # font type ("Arial", "Courier", "Times")
-    flagFontSize = 18
-    flagAngle    = 0
-    flagBold     = False
-    flagItalic   = True
-    flagShadow   = False
-    flagColor    = 'k'
-    flagJustification = 0
-    flagBackgroundColor = 'w'
-
     # Show a gray frame margin in multirendering windows
     showRendererFrame = True
     rendererFrameColor = None
@@ -69,13 +60,10 @@ General settings.
     # Use tex, matplotlib latex compiler
     usetex = False
 
-    # In 3D Text interpret _ and ^ as sub/super script
-    useModifiersInText = True
-
     # Qt embedding
     usingQt = False
 
-    # OpenVR rendering
+    # OpenVR rendering (untested)
     useOpenVR = False
 
     # Wrap lines in tubes
@@ -152,6 +140,9 @@ defaultAxesType = None
 
 # Set a default for the font to be used for axes, comments etc.
 defaultFont = 'Normografo'
+fontIsMono = True
+fontHSpacing = 1
+fontLSpacing = 0.1
 
 # Scale magnification of the screenshot (must be an integer)
 screeshotScale = 1
@@ -170,18 +161,6 @@ interactorStyle = None
 # Allow to interact with scene during interactor.Start() execution
 allowInteraction = True
 
-# Flag-style label options
-flagDelay = 150         # popup delay in milliseconds
-flagFont = "Courier"   # font type ("Arial", "Courier", "Times")
-flagFontSize = 18
-flagJustification = 0
-flagAngle = 0
-flagBold = False
-flagItalic = True
-flagShadow = False
-flagColor = 'k'
-flagBackgroundColor = 'w'
-
 # Show a gray frame margin in multirendering windows
 showRendererFrame = True
 rendererFrameColor = None
@@ -190,9 +169,6 @@ rendererFrameWidth = 0.5
 
 # Use tex, matplotlib latex compiler
 usetex = False
-
-# In 3D Text interpret _ and ^ as sub/super script
-useModifiersInText = True
 
 # Qt embedding
 usingQt = False
@@ -259,15 +235,32 @@ notebookBackend = None
 notebook_plotter = None
 
 ####################################################################################
-_cdir = os.path.dirname(__file__)
+flagDelay = 150 # values will be superseded
+flagFont = "Courier"
+flagFontSize = 18
+flagJustification = 0
+flagAngle = 0
+flagBold = False
+flagItalic = True
+flagShadow = False
+flagColor = 'k'
+flagBackgroundColor = 'w'
+legendSize = 0.2
+legendBC = (0.96, 0.96, 0.9)
+legendPos = 2
+legendFont = ""
 
-textures_path = os.path.join(_cdir, "textures/")
+installdir = os.path.dirname(__file__)
+
+textures_path = os.path.join(installdir, "textures/")
 textures = []
 
-fonts_path = os.path.join(_cdir, "fonts/")
+fonts_path = os.path.join(installdir, "fonts/")
 fonts = []
 
-datadir = os.path.join(_cdir, "examples/data/")
+#datadir = "/home/musy/Dropbox/Public/vktwork/vedo_data/"
+datadir = "https://vedo.embl.es/examples/data/"
+
 plotter_instances = []
 
 plotter_instance = None

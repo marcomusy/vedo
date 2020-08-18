@@ -1,21 +1,16 @@
-
-![vlogo](https://user-images.githubusercontent.com/32848391/84578825-f1cc8b80-adc8-11ea-867b-a75a99f99a39.png)
+![vlogo](https://user-images.githubusercontent.com/32848391/90509164-2d812a00-e159-11ea-8f31-8b341b27f316.png)
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/4acbc84816a540bfb9dc67bbff520d38)](https://www.codacy.com/manual/marcomusy/vedo?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=marcomusy/vedo&amp;utm_campaign=Badge_Grade)
 [![Downloads](https://pepy.tech/badge/vtkplotter)](https://pepy.tech/project/vtkplotter)
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vedo/badges/version.svg)](https://anaconda.org/conda-forge/vedo)
-[![Ubuntu 20.04 package](https://repology.org/badge/version-for-repo/ubuntu_20_04/vedo.svg)](https://repology.org/project/vedo/versions)
+[![Ubuntu 20.10](https://repology.org/badge/version-for-repo/ubuntu_20_10/vedo.svg)](https://repology.org/project/vedo/versions)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2561402.svg)](https://doi.org/10.5281/zenodo.2561402)
 [![CircleCI](https://circleci.com/gh/marcomusy/vedo.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)
 
 
 `vedo` is a fast and lightweight python module
 for scientific analysis and **v**isualization of **3D** **o**bjects.<br>
-
-[![isohead](https://user-images.githubusercontent.com/32848391/81347909-59eacc00-90bd-11ea-9392-f1a3ecc0c850.jpg)](https://vedo.embl.es/examples/geo_scene.html)
-
-*(click on the above picture to open a 3D viewer)*
 
 ## ✨  Philosophy
 Inspired by the [vpython](https://vpython.org/) *manifesto* "3D programming for ordinary mortals",
@@ -120,7 +115,7 @@ for a wide range of functionalities:
 
 	- Generate meshes by joining nearby lines in space.
 
-	- Find the closest path from one point to another, travelling along the edges of a mesh.
+	- Find the closest path from one point to another, traveling along the edges of a mesh.
 
 	- Find the intersection of a mesh with lines, planes or other meshes.
 
@@ -188,6 +183,7 @@ for a wide range of functionalities:
 </details>
 
 Moreover:
+- Polygonal 3D text rendering with Latex-like syntax and/or _unicode_, with 15 different fonts.
 - Integration with the *Qt5* framework.
 - Support for [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of finite-element calculations.
 - Interoperability with the [trimesh](https://trimsh.org/) library.
@@ -223,7 +219,7 @@ A GUI is also available (mainly useful to Windows 10 users) which can be invoked
 [**examples/other**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/other)<br>
 [**examples/other/dolfin**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/dolfin)<br>
 [**examples/other/trimesh**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/trimesh)<br>
-[**examples/notebooks**](https://github.com/marcomusy/vedo/blob/master/notebooks)<br>
+[**notebooks**](https://github.com/marcomusy/vedo/blob/master/notebooks)<br>
 
 |         |      |
 |:--------|:-----|
@@ -238,12 +234,14 @@ A GUI is also available (mainly useful to Windows 10 users) which can be invoked
 ### Random Gallery of Examples
 Run any of the following built-in examples from command line, type:
 
-> `vedo -ir covid19`
+> `vedo -r covid19`
 
 |     |     |     |     |
 |:---:|:---:|:---:|:---:|
+|![graph1](https://user-images.githubusercontent.com/32848391/90437546-ddf81b00-e0d2-11ea-84d5-e4356a5c5f85.png)<br>`graph_network`     | ![intersect](https://user-images.githubusercontent.com/32848391/90437548-de90b180-e0d2-11ea-8e0c-d821db4da8a9.png)<br>`intersect2d`    |![goniom](https://user-images.githubusercontent.com/32848391/90437544-dd5f8480-e0d2-11ea-8321-b52d073444c4.png)<br>`goniometer`     |![](https://user-images.githubusercontent.com/32848391/82767103-2500a800-9e25-11ea-8506-e583e8ec4b01.jpg)<br>`tet_threshold`     |
+|![density](https://user-images.githubusercontent.com/32848391/90437537-dc2e5780-e0d2-11ea-982c-8dafd467c3cd.png)<br>`density3d`|![caption](https://user-images.githubusercontent.com/32848391/90437536-dc2e5780-e0d2-11ea-8951-f905ffb54f54.png)<br>`caption`|![fonts](https://user-images.githubusercontent.com/32848391/90507486-3e7c6c00-e156-11ea-8ae6-4406b7332873.png)<br>`fonts`|![fonts3d](https://user-images.githubusercontent.com/32848391/90437540-dd5f8480-e0d2-11ea-8ddc-8839688979d0.png)<br>`fonts`|
 | ![geologic](https://user-images.githubusercontent.com/32848391/81397531-d2867280-9127-11ea-8cc8-0effbbbebf2d.jpg) <br>`geological`|![multirender](https://user-images.githubusercontent.com/32848391/81459297-80813380-919f-11ea-89b1-39a305dd9897.png) <br>`multirender`| ![cartoony](https://user-images.githubusercontent.com/32848391/81459306-8840d800-919f-11ea-859e-d9c0b432e644.png) <br>`cartoony`|![streamline4](https://user-images.githubusercontent.com/32848391/81459343-b9210d00-919f-11ea-846c-152d62cba06e.png) <br>`streamlines4`|
-| ![covid](https://user-images.githubusercontent.com/32848391/77330206-4824b380-6d1f-11ea-9bc3-e3aef970dcc2.gif) <br>`covid19`| ![lineage_graph](https://user-images.githubusercontent.com/32848391/80291851-8152a800-8751-11ea-893e-4a0bb85397b1.png) <br>`lineage_graph` |![siluette](https://user-images.githubusercontent.com/32848391/57179369-8e5df380-6e7d-11e9-99b4-3b1a120dd375.png) <br>`silhouette1`  | ![levelterrain](https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png)<br>`isolines`|
+| ![covid](https://user-images.githubusercontent.com/32848391/77330206-4824b380-6d1f-11ea-9bc3-e3aef970dcc2.gif) <br>`covid19`| ![lineage_graph](https://user-images.githubusercontent.com/32848391/80291851-8152a800-8751-11ea-893e-4a0bb85397b1.png) <br>`graph_lineage` |![siluette](https://user-images.githubusercontent.com/32848391/57179369-8e5df380-6e7d-11e9-99b4-3b1a120dd375.png) <br>`silhouette1`  | ![levelterrain](https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png)<br>`isolines`|
 | ![gyro](https://user-images.githubusercontent.com/32848391/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif) <br>`gyroscope2` | ![thinplate_grid](https://user-images.githubusercontent.com/32848391/51433540-d188b380-1c4c-11e9-81e7-a1cf4642c54b.png ) <br>`thinplate_grid`  | ![trail](https://user-images.githubusercontent.com/32848391/58370826-4aee2680-7f0b-11e9-91e6-3120770cfede.gif) <br>`trail`   | ![quadratic_morphing](https://user-images.githubusercontent.com/32848391/50738890-db380300-11d8-11e9-9cef-4c1276cca334.jpg)  <br>`quadratic_morphing`  |
 | ![shrink](https://user-images.githubusercontent.com/32848391/46819143-41042280-cd83-11e8-9492-4f53679887fa.png) <br>`shrink` | ![mesh_custom](https://user-images.githubusercontent.com/32848391/51390972-20d9c180-1b31-11e9-955d-025f1ef24cb7.png) <br>`mesh_custom`   | ![spring](https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif) <br>`spring`   | ![lorenz](https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png) <br>`lorentz`   |
 | ![sliders](https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg) <br>`sliders` | ![fitspheres1](https://user-images.githubusercontent.com/32848391/50738943-687b5780-11d9-11e9-87a6-054e0fe76241.jpg) <br>`fitspheres1`   | ![fxy](https://user-images.githubusercontent.com/32848391/36611824-fd524fac-18d4-11e8-8c76-d3d1b1bb3954.png) <br>`plot4_fxy`   | ![histogram](https://user-images.githubusercontent.com/32848391/68141260-77cc4e00-ff2d-11e9-9280-0efc5b87314d.png) <br>`histo_1D`   |

@@ -202,7 +202,7 @@ def Slicer(volume,
     comment = None
     if verbose:
         comment = Text2D("Use sliders to slice volume\nClick button to change colormap",
-                         font='Montserrat', s=0.8)
+                         font='', s=0.8)
 
     vp.show(msh, hist, comment, interactive=False)
     vp.interactive = True
@@ -530,8 +530,7 @@ def Browser(meshes, sliderpos=((0.55, 0.07),(0.96, 0.07)), c=None):
     return vp
 
 
-
-
+########################################################################
 class Animation(Plotter):
     """
     Animate simultaneously various objects
