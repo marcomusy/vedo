@@ -181,7 +181,15 @@ assert sd.NCells() < sphere.NCells()
 # this fails on some archs (see issue #185)
 # lets comment it out temporarily
 sr = sphere.clone().reverse().cutWithPlane()
-print('DISABLED: reverse', sr.N(), 576)
+print('DISABLED: reverse test', sr.N(), 576)
+rev = vtk.vtkReverseSense()
+rev.SetInputData(sr.polydata())
+rev.Update()
+print(rev.GetOutput())
+print('DISABLED: reverse vtk nr.pts, nr.cells')
+print(rev.GetOutput().GetNumberOfPoints(),sr.polydata().GetNumberOfPoints(),
+      rev.GetOutput().GetNumberOfCells(), sr.polydata().GetNumberOfCells(),
+      )
 # assert sr.N() == 576
 
 

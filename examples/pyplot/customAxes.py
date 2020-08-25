@@ -1,55 +1,47 @@
 """Customizing axes style
 (40+ control parameters!)
-
-Axes font: """
-from vedo import Box, show, settings
+Title font: """
+from vedo import Box, Lines, Points, Spline, show, settings
 
 settings.defaultFont = 'Theemim'
 
-#an invisible box:
-box = Box(pos=(2.7,0,0), length=12, width=10, height=8, alpha=0)
+# an invisible box:
+world = Box(pos=(2.7,0,0), size=(12,10,8), alpha=0)
 
 # make a dictionary of axes options
 axes_opts = dict(
-    xtitle='My variable \Sigma^\lowerxi_lm  in units of \mum^3',
-    ytitle='This is my \ncustomized y-axis',
-    ztitle='z values go here!',
-    yPositionsAndLabels= [(-3.2,'Mark'), (-1.2,'Carmen'), (3,'John')],
-    textScale=1.2,       # make text 20% bigger
-    numberOfDivisions=5, # approx number of divisions on longest axis
+    xtitle='My variable \Omega^\lowerxi_lm  in units of \mum^3', # latex-style
+    ytitle='This is my highly\ncustomized y-axis',
+    ztitle='z in units of Å', # many unicode chars are supported (type: vedo -r fonts)
+    yValuesAndLabels=[(-3.2,'Mark^a_-3.2'), (-1.2,'Carmen^b_-1.2'), (3,'John^c_3')],
+    textScale=1.3,       # make all text 30% bigger
+    numberOfDivisions=5, # approximate number of divisions on longest axis
     axesLineWidth= 2,
     gridLineWidth= 1,
-    xOriginMarkerSize=0.02,
-    yOriginMarkerSize=None,
-    titleDepth=0.1,      # extrusion fractional depth of title text
-    xyGrid=True,         # show a gridded wall on plane xy
-    yzGrid=True,
-    zxGrid=False,
     zxGrid2=True,        # show zx plane on opposite side of the bounding box
     xyPlaneColor='green',
-    xyGridColor='darkgreen', # line color
-    xyAlpha=0.2,         # plane opacity
-    showTicks=True,      # show major ticks
-    xTitlePosition= 0.5, # title fractional positions along axis
-    yTitleOffset=-0.02,  # title fractional offset distance from axis line
-    xTitleJustify="top-center",
+    xyGridColor='dg',    # darkgreen line color
+    xyAlpha=0.2,         # grid opacity
+    xTitlePosition=0.5,  # title fractional positions along axis
+    xTitleJustify="top-center", # align title wrt to its axis
     xTitleRotation=20,
     yTitleBox=True,
+    yHighlightZero=True, # draw a line highlighting zero position if in range
+    yHighlightZeroColor='red',
     xLineColor='black',
     zLineColor='blue',
     zTitleColor='blue',
-    zTitleBackfaceColor='red', # color of axis title on the backface
-    zTitleSize=0.04,
-    xHighlightZero=True, # draw a line highlighting zero position if in range
-    xHighlightZeroColor='tomato',
-    xTickLength=0.015,
-    xTickThickness=0.0025,
-    xTickColor='black',
-    xMinorTicks=3,       # number of minor ticks btw two major ticks
-    tipSize=0.01,        # size of the arrow tip cone
-    xLabelOffset=0.015,  # offset of numeric labels
+    zTitleBackfaceColor='v', # violet color of axis title on the backface
+    labelFont="Quikhand",
     yLabelSize=0.025,    # size of the numeric labels along Y axis
+    yLabelColor='dg',    # color of the numeric labels along Y axis
+    yLabelRotation=1,    # rotate clockwise by 90 deg
 )
 
-show(box, __doc__+settings.defaultFont, axes=axes_opts, viewup='z')
+# a dummy spline with its shadow on the xy plane
+pts = Points([(-2,-3.2,-1.5), (3,-1.2,-2), (7,3,4)], r=12)
+spl = Spline(pts, res=50).addShadow(z=-4) # make spline and add its shadow at z=-4
+lns = Lines(spl, spl.shadow)              # join spline points with its own shadow
+
+show(world, pts, spl, lns, __doc__+settings.defaultFont, axes=axes_opts)
 

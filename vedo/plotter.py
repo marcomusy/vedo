@@ -72,7 +72,6 @@ def show(*actors, **options):
             - `axesLineWidth`,           [1], width of the axes lines
             - `gridLineWidth`,           [1], width of the grid lines
             - `reorientShortTitle`,   [True], titles shorter than 2 letter are placed horizontally
-            - `originMarkerSize`,     [0.01], draw a small cube on the axis where the origin is
             - `titleDepth`,              [0], extrusion fractional depth of title text
             - `xyGrid`,               [True], show a gridded wall on plane xy
             - `yzGrid`,               [True], show a gridded wall on plane yz
@@ -85,10 +84,15 @@ def show(*actors, **options):
             - `xyAlpha`,              [0.15], grid plane opacity
             - `xyFrameLine`,          [None], add a frame for the plane
             - `showTicks`,            [True], show major ticks
+            - `digits`,               [None], use this number of significant digits in scientific notation
+            - `titleFont`,              [''], font for axes titles
+            - `labelFont`,              [''], font for numeric labels
+            - `textScale`,             [1.0], global scaling factor for text elements (titles, labels)
             - `xTitlePosition`,       [0.32], title fractional positions along axis
             - `xTitleOffset`,         [0.05], title fractional offset distance from axis line
             - `xTitleJustify`, ["top-right"], title justification
             - `xTitleRotation`,          [0], add a rotation of the axis title
+            - `xTitleBox`,           [False], add a box around title text
             - `xLineColor`,      [automatic], color of the x-axis
             - `xTitleColor`,     [automatic], color of the axis title
             - `xTitleBackfaceColor`,  [None],  color of axis title on its backface
@@ -98,13 +102,14 @@ def show(*actors, **options):
             - `xHighlightZeroColor`, [autom], color of the line highlighting the zero position
             - `xTickLength`,         [0.005], radius of the major ticks
             - `xTickThickness`,     [0.0025], thickness of the major ticks along their axis
-            - `xTickColor`,      [automatic], color of major ticks
             - `xMinorTicks`,             [1], number of minor ticks between two major ticks
-            - `xPositionsAndLabels`       [], assign custom tick positions and labels [(pos1, label1), ...]
+            - `xValuesAndLabels`          [], assign custom tick positions and labels [(pos1, label1), ...]
+            - `xLabelColor`,     [automatic], color of numeric labels and ticks
             - `xLabelPrecision`,         [2], nr. of significative digits to be shown
             - `xLabelSize`,          [0.015], size of the numeric labels along axis
+            - 'xLabelRotation',          [0], rotate clockwise [1] or anticlockwise [-1] by 90 degrees
+            - 'xFlipText',           [False], flip axis title and numeric labels orientation
             - `xLabelOffset`,        [0.025], offset of numeric labels
-            - 'xFlipText'.           [False], flip axis title and numeric labels orientation
             - `tipSize`,              [0.01], size of the arrow tip
             - `limitRatio`,           [0.04], below this ratio don't plot small axis
 
@@ -149,6 +154,7 @@ def show(*actors, **options):
         or continue execution (False)
     :param float rate:  maximum rate of `show()` in Hertz
     :param int interactorStyle: set the type of interaction
+
         - 0 = TrackballCamera [default]
         - 1 = TrackballActor
         - 2 = JoystickCamera
@@ -805,7 +811,6 @@ class Plotter:
         self.interactor.SetRenderWindow(self.window)
         vsty = vtk.vtkInteractorStyleTrackballCamera()
         self.interactor.SetInteractorStyle(vsty)
-
         self.interactor.AddObserver("LeftButtonPressEvent", self._mouseleft)
         self.interactor.AddObserver("RightButtonPressEvent", self._mouseright)
         self.interactor.AddObserver("MiddleButtonPressEvent", self._mousemiddle)
@@ -910,7 +915,7 @@ class Plotter:
         self.interactor.ResetCamera()
         return self
 
-    def backgroundColor(self, c1=None, c2=None, at=0):
+    def backgroundColor(self, c1=None, c2=None, at=None):
         """Set the color of the background for the current renderer.
         A different renderer index can be specified by keyword ``at``.
 
@@ -926,7 +931,10 @@ class Plotter:
         """
         if not len(self.renderers):
             return self
-        r = self.renderers[at]
+        if at is None:
+            r = self.renderer
+        else:
+            r = self.renderers[at]
         if r:
             if c1 is not None:
                 r.SetBackground(getColor(c1))
@@ -1808,9 +1816,11 @@ class Plotter:
         if interactorStyle == 0 or interactorStyle == "TrackballCamera":
             #csty = self.interactor.GetInteractorStyle().GetCurrentStyle().GetClassName()
             #if "TrackballCamera" not in csty:
-            # this causes problems (when pressing 3 eg):
-            # self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
-            pass
+
+            # this causes problems (when pressing 3 eg) :
+            if self.qtWidget:
+                self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+            # pass
         elif interactorStyle == 1 or interactorStyle == "TrackballActor":
             self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
         elif interactorStyle == 2 or interactorStyle == "JoystickCamera":
@@ -2344,7 +2354,8 @@ class Plotter:
             self.renderer.SetBackground(bgc, bgc, bgc)
 
         elif key == "6":
-            bg2cols = ['moccasin', 'darkseagreen', 'steelblue','lightblue',
+            bg2cols = ['lightyellow', 'darkseagreen', 'palegreen',
+                       'steelblue','lightblue', 'cadetblue','lavender',
                        'white', 'blackboard', 'black']
             bg2name = vedo.colors.getColorName(self.renderer.GetBackground2())
             if bg2name in bg2cols:
@@ -2358,6 +2369,21 @@ class Plotter:
             else:
                 self.renderer.GradientBackgroundOn()
                 self.renderer.SetBackground2(getColor(bg2name_next))
+
+        elif key in ["plus", "equal", "KP_Add", "minus", "KP_Subtract"]:  # cycle axes style
+            clickedr = self.renderers.index(self.renderer)
+            if self.axes_instances[clickedr]:
+                if hasattr(self.axes_instances[clickedr], "EnabledOff"):  # widget
+                    self.axes_instances[clickedr].EnabledOff()
+                else:
+                    self.renderer.RemoveActor(self.axes_instances[clickedr])
+                self.axes_instances[clickedr] = None
+            if not self.axes: self.axes=0
+            if key in ["minus", "KP_Subtract"]:
+                addons.addGlobalAxes(axtype=(self.axes-1)%14, c=None)
+            else:
+                addons.addGlobalAxes(axtype=(self.axes+1)%14, c=None)
+            self.interactor.Render()
 
         elif "KP_" in key:  # change axes style
             asso = {
@@ -2382,18 +2408,6 @@ class Plotter:
                     self.axes_instances[clickedr] = None
                 addons.addGlobalAxes(axtype=asso[key], c=None)
                 self.interactor.Render()
-
-        elif "plus" in key or "equal" in key or "0" in key:  # cycle axes style
-            clickedr = self.renderers.index(self.renderer)
-            if self.axes_instances[clickedr]:
-                if hasattr(self.axes_instances[clickedr], "EnabledOff"):  # widget
-                    self.axes_instances[clickedr].EnabledOff()
-                else:
-                    self.renderer.RemoveActor(self.axes_instances[clickedr])
-                self.axes_instances[clickedr] = None
-            if not self.axes: self.axes=0
-            addons.addGlobalAxes(axtype=(self.axes+1)%14, c=None)
-            self.interactor.Render()
 
         if key == "O":
             settings.plotter_instance.renderer.RemoveLight(self.extralight)

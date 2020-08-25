@@ -41,12 +41,16 @@ def merge(*meshs):
 
     polyapp = vtk.vtkAppendPolyData()
     for a in acts:
-        polyapp.AddInputData(a.polydata())
+        if isinstance(a, vtk.vtkPolyData):
+            polyapp.AddInputData(a)
+        else:
+            polyapp.AddInputData(a.polydata())
     polyapp.Update()
     msh = Mesh(polyapp.GetOutput())
-    cprp = vtk.vtkProperty()
-    cprp.DeepCopy(acts[0].GetProperty())
-    msh.SetProperty(cprp)
+    if isinstance(acts[0], vtk.vtkActor):
+        cprp = vtk.vtkProperty()
+        cprp.DeepCopy(acts[0].GetProperty())
+        msh.SetProperty(cprp)
     return msh
 
 
@@ -207,7 +211,6 @@ class Mesh(Points):
 
         self._mapper.SetInputData(self._polydata)
 
-        self.cell_locator = None
         self.line_locator = None
 
         self._bfprop = None  # backface property holder
@@ -1298,7 +1301,7 @@ class Mesh(Points):
         self._mapper.ScalarVisibilityOn()
         return self
 
-    def addShadow(self, x=None, y=None, z=None, c=(0.5, 0.5, 0.5), alpha=1):
+    def addShadow(self, x=None, y=None, z=None, c=(0.5, 0.5, 0.5), alpha=1, culling=1):
         """
         Generate a shadow out of an ``Mesh`` on one of the three Cartesian planes.
         The output is a new ``Mesh`` representing the shadow.
@@ -1309,9 +1312,11 @@ class Mesh(Points):
             The shadow will lay on the orthogonal plane to the specified axis at the
             specified value of either x, y or z.
 
+        :param int culling: choose between front [1] or backface [-1] culling or None.
+
         |shadow|  |shadow.py|_
 
-            |airplanes| |airplanes.py|_
+        |airplanes| |airplanes.py|_
         """
         if x is not None:
             self.shadowX = x
@@ -1325,9 +1330,14 @@ class Mesh(Points):
         else:
             print('Error in addShadow(): must set x, y or z to a float!')
             return self
-        shad.c(c).alpha(alpha).wireframe(False)
-        shad.flat().backFaceCulling()
+        shad.c(c).alpha(alpha).wireframe(False).flat()
+        if culling==1:
+            shad.frontFaceCulling()
+        elif culling==-1:
+            shad.backFaceCulling()
         shad.GetProperty().LightingOff()
+        #shad.SetPickable(False)
+        shad.SetUseBounds(True)
         self.shadow = shad
         return self
 

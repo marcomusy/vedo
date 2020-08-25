@@ -19,8 +19,8 @@ python icon.py
 echo Running inset.py
 python inset.py
 
-echo Running matplotlib_tri.py
-python matplotlib_tri.py
+echo Running vpolyscope.py
+python vpolyscope.py
 
 echo Running meshio_read.py
 python meshio_read.py

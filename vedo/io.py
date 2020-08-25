@@ -33,6 +33,8 @@ __all__ = [
     "loadRectilinearGrid",
     "loadUnStructuredGrid",
     "write",
+    "writeTransform",
+    "readTransform",
     "exportWindow",
     "importWindow",
     "screenshot",
@@ -1269,6 +1271,73 @@ def write(objct, fileoutput, binary=True):
     return objct
 
 
+def writeTransform(inobj, filename='transform.mat', comment=''):
+    """
+    Save a transformation for a mesh or pointcloud to ASCII file.
+
+    Parameters
+    ----------
+    filename : str, optional
+        output file name. The default is 'transform.mat'.
+    comment : str, optional
+        some optional comment. The default is ''.
+
+    Returns
+    -------
+    None.
+    """
+    if isinstance(inobj, Points):
+        M = inobj.getTransform().GetMatrix()
+    elif isinstance(inobj, vtk.vtkTransform):
+        M = inobj.GetMatrix()
+    elif isinstance(inobj, vtk.vtkMatrix4x4):
+        M = inobj
+    else:
+        colors.printc("Error in io.writeTransform: cannot understand input type",
+                      type(inobj), c='r')
+    with open(filename,'w') as f:
+        if comment:
+            f.write('#'+comment+'\n')
+        for i in range(4):
+            f.write( str(M.GetElement(i,0))+' '+
+                     str(M.GetElement(i,1))+' '+
+                     str(M.GetElement(i,2))+' '+
+                     str(M.GetElement(i,3))+'\n',
+                    )
+        f.write('\n')
+    return
+
+def readTransform(filename):
+    """
+    Read a ``vtkTransform`` from a file.mat.
+
+    Returns
+    -------
+    T : vtkTransform
+        The transformation to be applied to some object (``use applyTransform()``).
+    comment : str
+        a comment string associated to this transformation file.
+    """
+    with open(filename,'r') as f:
+        lines = f.readlines()
+        M = vtk.vtkMatrix4x4()
+        i=0
+        comment = ''
+        for l in lines:
+            if l.startswith('#'):
+                comment = l.replace('#', "").replace('\n', "")
+                continue
+            vals = l.split(' ')
+            if len(vals)==4:
+                for j in range(4):
+                    v = vals[j].replace('\n', '')
+                    M.SetElement(i,j, float(v))
+                i+=1
+        T = vtk.vtkTransform()
+        T.SetMatrix(M)
+    return (T, comment)
+
+
 ###############################################################################
 def exportWindow(fileoutput, binary=False):
     '''
@@ -1532,25 +1601,18 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
         npdata = np.flip(npdata, axis=0)
         return npdata
 
-    if filename.endswith('.png'):
+    if filename.lower().endswith('.png'):
         writer = vtk.vtkPNGWriter()
         writer.SetFileName(filename)
-        writer.SetInputData(w2if.GetOutput())
-        writer.Write()
-    elif filename.endswith('.jpg'):
+    elif filename.lower().endswith('.jpg'):
         writer = vtk.vtkJPEGWriter()
         writer.SetFileName(filename)
-        writer.SetInputData(w2if.GetOutput())
-        writer.Write()
-    # elif filename.endswith('.svg'): # not really doing anything..
-    #     writer = vtk.vtkGL2PSExporter()
-    #     #writer.SetFileFormatToPDF()
-    #     #writer.SetFileFormatToTeX()
-    #     writer.SetFileFormatToSVG()
-    #     writer.CompressOff()
-    #     writer.SetInput(settings.plotter_instance.window)
-    #     writer.SetFilePrefix(filename.split('.')[0])
-    #     writer.Write()
+    else:
+        writer = vtk.vtkPNGWriter()
+        writer.SetFileName(filename+'.png')
+    writer.SetInputData(w2if.GetOutput())
+    writer.Write()
+    return writer.GetFileName()
 
 
 class Video:

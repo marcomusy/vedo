@@ -2,8 +2,8 @@ from __future__ import division, print_function
 import vtk, sys
 from vtk.util.numpy_support import numpy_to_vtk, numpy_to_vtkIdTypeArray
 import numpy as np
-import vedo.colors as colors
-import vedo.docs as docs
+import vedo
+from vedo.colors import printc
 import time
 import math
 
@@ -11,7 +11,7 @@ __doc__ = (
     """
 Utilities submodule.
 """
-    + docs._defs
+    + vedo.docs._defs
 )
 
 __all__ = [
@@ -158,7 +158,7 @@ class ProgressBar:
                 eta = ""
             txt = eta + str(txt)
             s = self.bar + " " + eraser + txt + "\r"
-            colors.printc(s, c=c, bold=self.bold, italic=self.italic, end="")
+            printc(s, c=c, bold=self.bold, italic=self.italic, end="")
             sys.stdout.flush()
 
             if self.percent == 100:
@@ -532,7 +532,7 @@ def linInterpolate(x, rangeX, rangeY):
         x0, x1 = np.array(rangeX)
         y0, y1 = np.array(rangeY)
         if len(np.unique([x.shape, x0.shape, x1.shape, y1.shape]))>1:
-            colors.printc("Error in linInterpolate(): mismatch in input shapes.", c='r')
+            printc("Error in linInterpolate(): mismatch in input shapes.", c='r')
             raise RuntimeError()
         dx = x1 - x0
         dxn = np.linalg.norm(dx)
@@ -825,31 +825,31 @@ def printInfo(obj):
         npl = poly.GetNumberOfPolys()
 
         print(tab, end="")
-        colors.printc("Mesh", c="g", bold=1, invert=1, dim=1, end=" ")
+        printc("Mesh", c="g", bold=1, invert=1, dim=1, end=" ")
 
         if hasattr(actor, "_legend") and actor._legend:
-            colors.printc("legend: ", c="g", bold=1, end="")
-            colors.printc(actor._legend, c="g", bold=0)
+            printc("legend: ", c="g", bold=1, end="")
+            printc(actor._legend, c="g", bold=0)
         else:
             print()
 
         if hasattr(actor, "name") and actor.name:
-            colors.printc(tab + "           name: ", c="g", bold=1, end="")
-            colors.printc(actor.name, c="g", bold=0)
+            printc(tab + "           name: ", c="g", bold=1, end="")
+            printc(actor.name, c="g", bold=0)
 
         if hasattr(actor, "filename") and actor.filename:
-            colors.printc(tab + "           file: ", c="g", bold=1, end="")
-            colors.printc(actor.filename, c="g", bold=0)
+            printc(tab + "           file: ", c="g", bold=1, end="")
+            printc(actor.filename, c="g", bold=0)
 
         if hasattr(actor, "_time") and actor._time:
-            colors.printc(tab + "           time: ", c="g", bold=1, end="")
-            colors.printc(actor._time, c="g", bold=0)
+            printc(tab + "           time: ", c="g", bold=1, end="")
+            printc(actor._time, c="g", bold=0)
 
         if not actor.GetMapper().GetScalarVisibility():
-            colors.printc(tab + "          color: ", c="g", bold=1, end="")
-            #colors.printc("defined by point or cell data", c="g", bold=0)
+            printc(tab + "          color: ", c="g", bold=1, end="")
+            #printc("defined by point or cell data", c="g", bold=0)
         #else:
-            colors.printc(colors.getColorName(col) + ', rgb=('+colr+', '
+            printc(vedo.colors.getColorName(col) + ', rgb=('+colr+', '
                           + colg+', '+colb+'), alpha='+str(alpha), c='g', bold=0)
 
             if actor.GetBackfaceProperty():
@@ -857,55 +857,55 @@ def printInfo(obj):
                 bcolr = precision(bcol[0], 3)
                 bcolg = precision(bcol[1], 3)
                 bcolb = precision(bcol[2], 3)
-                colors.printc(tab+'     back color: ', c='g', bold=1, end='')
-                colors.printc(colors.getColorName(bcol) + ', rgb=('+bcolr+', '
+                printc(tab+'     back color: ', c='g', bold=1, end='')
+                printc(vedo.colors.getColorName(bcol) + ', rgb=('+bcolr+', '
                               + bcolg+', ' + bcolb+')', c='g', bold=0)
 
-        colors.printc(tab + "         points: ", c="g", bold=1, end="")
-        colors.printc(npt, c="g", bold=0)
+        printc(tab + "         points: ", c="g", bold=1, end="")
+        printc(npt, c="g", bold=0)
 
-        colors.printc(tab + "          cells: ", c="g", bold=1, end="")
-        colors.printc(ncl, c="g", bold=0)
+        printc(tab + "          cells: ", c="g", bold=1, end="")
+        printc(ncl, c="g", bold=0)
 
-        colors.printc(tab + "       polygons: ", c="g", bold=1, end="")
-        colors.printc(npl, c="g", bold=0)
+        printc(tab + "       polygons: ", c="g", bold=1, end="")
+        printc(npl, c="g", bold=0)
 
-        colors.printc(tab + "       position: ", c="g", bold=1, end="")
-        colors.printc(pos, c="g", bold=0)
+        printc(tab + "       position: ", c="g", bold=1, end="")
+        printc(pos, c="g", bold=0)
 
         if hasattr(actor, "polydata") and actor.N():
-            colors.printc(tab + " center of mass: ", c="g", bold=1, end="")
+            printc(tab + " center of mass: ", c="g", bold=1, end="")
             cm = tuple(actor.centerOfMass())
-            colors.printc(precision(cm, 3), c="g", bold=0)
+            printc(precision(cm, 3), c="g", bold=0)
 
-            colors.printc(tab + "   average size: ", c="g", bold=1, end="")
-            colors.printc(precision(actor.averageSize(), 6), c="g", bold=0)
+            printc(tab + "   average size: ", c="g", bold=1, end="")
+            printc(precision(actor.averageSize(), 6), c="g", bold=0)
 
-            colors.printc(tab + "  diagonal size: ", c="g", bold=1, end="")
-            colors.printc(precision(actor.diagonalSize(), 6), c="g", bold=0)
+            printc(tab + "  diagonal size: ", c="g", bold=1, end="")
+            printc(precision(actor.diagonalSize(), 6), c="g", bold=0)
 
             if hasattr(actor, "area"):
                 _area = actor.area()
                 if _area:
-                    colors.printc(tab + "           area: ", c="g", bold=1, end="")
-                    colors.printc(precision(_area, 6), c="g", bold=0)
+                    printc(tab + "           area: ", c="g", bold=1, end="")
+                    printc(precision(_area, 6), c="g", bold=0)
 
                 _vol = actor.volume()
                 if _vol:
-                    colors.printc(tab + "         volume: ", c="g", bold=1, end="")
-                    colors.printc(precision(_vol, 6), c="g", bold=0)
+                    printc(tab + "         volume: ", c="g", bold=1, end="")
+                    printc(precision(_vol, 6), c="g", bold=0)
 
-        colors.printc(tab + "         bounds: ", c="g", bold=1, end="")
+        printc(tab + "         bounds: ", c="g", bold=1, end="")
         bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
-        colors.printc("x=(" + bx1 + ", " + bx2 + ")", c="g", bold=0, end="")
+        printc("x=(" + bx1 + ", " + bx2 + ")", c="g", bold=0, end="")
         by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
-        colors.printc(" y=(" + by1 + ", " + by2 + ")", c="g", bold=0, end="")
+        printc(" y=(" + by1 + ", " + by2 + ")", c="g", bold=0, end="")
         bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
-        colors.printc(" z=(" + bz1 + ", " + bz2 + ")", c="g", bold=0)
+        printc(" z=(" + bz1 + ", " + bz2 + ")", c="g", bold=0)
 
         if actor.picked3d is not None:
-            colors.printc(tab + "  clicked point: ", c="g", bold=1, end="")
-            colors.printc(vector(actor.picked3d), c="g", bold=0)
+            printc(tab + "  clicked point: ", c="g", bold=1, end="")
+            printc(vector(actor.picked3d), c="g", bold=0)
 
         ptdata = poly.GetPointData()
         cldata = poly.GetCellData()
@@ -922,77 +922,77 @@ def printInfo(obj):
             arrtypes[vtk.VTK_ID_TYPE]       = "ID"
             arrtypes[vtk.VTK_FLOAT]         = "FLOAT"
             arrtypes[vtk.VTK_DOUBLE]        = "DOUBLE"
-            colors.printc(tab + "    scalar mode:", c="g", bold=1, end=" ")
-            colors.printc(mapper.GetScalarModeAsString(),
+            printc(tab + "    scalar mode:", c="g", bold=1, end=" ")
+            printc(mapper.GetScalarModeAsString(),
                           '  coloring =', mapper.GetColorModeAsString(), c="g", bold=0)
 
-            colors.printc(tab + "   active array: ", c="g", bold=1, end="")
+            printc(tab + "   active array: ", c="g", bold=1, end="")
             if ptdata.GetScalars():
-                colors.printc(ptdata.GetScalars().GetName(), "(point data)  ", c="g", bold=0, end="")
+                printc(ptdata.GetScalars().GetName(), "(point data)  ", c="g", bold=0, end="")
             if cldata.GetScalars():
-                colors.printc(cldata.GetScalars().GetName(), "(cell data)", c="g", bold=0, end="")
+                printc(cldata.GetScalars().GetName(), "(cell data)", c="g", bold=0, end="")
             print()
 
             for i in range(ptdata.GetNumberOfArrays()):
                 name = ptdata.GetArrayName(i)
                 if name and ptdata.GetArray(i):
-                    colors.printc(tab + "     point data: ", c="g", bold=1, end="")
+                    printc(tab + "     point data: ", c="g", bold=1, end="")
                     try:
                         tt = arrtypes[ptdata.GetArray(i).GetDataType()]
                     except:
                         tt = str(ptdata.GetArray(i).GetDataType())
                     ncomp = str(ptdata.GetArray(i).GetNumberOfComponents())
-                    colors.printc("name=" + name, "("+ncomp+" "+tt+"),", c="g", bold=0, end="")
+                    printc("name=" + name, "("+ncomp+" "+tt+"),", c="g", bold=0, end="")
                     rng = ptdata.GetArray(i).GetRange()
-                    colors.printc(" range=(" + precision(rng[0],4) + ',' +
+                    printc(" range=(" + precision(rng[0],4) + ',' +
                                             precision(rng[1],4) + ')', c="g", bold=0)
 
             for i in range(cldata.GetNumberOfArrays()):
                 name = cldata.GetArrayName(i)
                 if name and cldata.GetArray(i):
-                    colors.printc(tab + "      cell data: ", c="g", bold=1, end="")
+                    printc(tab + "      cell data: ", c="g", bold=1, end="")
                     try:
                         tt = arrtypes[cldata.GetArray(i).GetDataType()]
                     except:
                         tt = str(cldata.GetArray(i).GetDataType())
                     ncomp = str(cldata.GetArray(i).GetNumberOfComponents())
-                    colors.printc("name=" + name, "("+ncomp+" "+tt+"),", c="g", bold=0, end="")
+                    printc("name=" + name, "("+ncomp+" "+tt+"),", c="g", bold=0, end="")
                     rng = cldata.GetArray(i).GetRange()
-                    colors.printc(" range=(" + precision(rng[0],4) + ',' +
+                    printc(" range=(" + precision(rng[0],4) + ',' +
                                             precision(rng[1],4) + ')', c="g", bold=0)
         else:
-            colors.printc(tab + "        scalars:", c="g", bold=1, end=" ")
-            colors.printc('no point or cell scalars are present.', c="g", bold=0)
+            printc(tab + "        scalars:", c="g", bold=1, end=" ")
+            printc('no point or cell scalars are present.', c="g", bold=0)
 
 
     if not obj:
         return
 
     elif isinstance(obj, vtk.vtkActor):
-        colors.printc("_" * 65, c="g", bold=0)
+        printc("_" * 65, c="g", bold=0)
         printvtkactor(obj)
 
     elif isinstance(obj, vtk.vtkAssembly):
-        colors.printc("_" * 65, c="g", bold=0)
-        colors.printc("vtkAssembly", c="g", bold=1, invert=1, end=" ")
+        printc("_" * 65, c="g", bold=0)
+        printc("vtkAssembly", c="g", bold=1, invert=1, end=" ")
         if hasattr(obj, "_legend"):
-            colors.printc("legend: ", c="g", bold=1, end="")
-            colors.printc(obj._legend, c="g", bold=0)
+            printc("legend: ", c="g", bold=1, end="")
+            printc(obj._legend, c="g", bold=0)
         else:
             print()
 
         pos = obj.GetPosition()
         bnds = obj.GetBounds()
-        colors.printc("          position: ", c="g", bold=1, end="")
-        colors.printc(pos, c="g", bold=0)
+        printc("          position: ", c="g", bold=1, end="")
+        printc(pos, c="g", bold=0)
 
-        colors.printc("            bounds: ", c="g", bold=1, end="")
+        printc("            bounds: ", c="g", bold=1, end="")
         bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
-        colors.printc("x=(" + bx1 + ", " + bx2 + ")", c="g", bold=0, end="")
+        printc("x=(" + bx1 + ", " + bx2 + ")", c="g", bold=0, end="")
         by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
-        colors.printc(" y=(" + by1 + ", " + by2 + ")", c="g", bold=0, end="")
+        printc(" y=(" + by1 + ", " + by2 + ")", c="g", bold=0, end="")
         bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
-        colors.printc(" z=(" + bz1 + ", " + bz2 + ")", c="g", bold=0)
+        printc(" z=(" + bz1 + ", " + bz2 + ")", c="g", bold=0)
 
         cl = vtk.vtkPropCollection()
         obj.GetActors(cl)
@@ -1006,43 +1006,43 @@ def printInfo(obj):
         return # todo
 
     elif isinstance(obj, vtk.vtkVolume):
-        colors.printc("_" * 65, c="b", bold=0)
-        colors.printc("vtkVolume", c="b", bold=1, invert=1, end=" ")
+        printc("_" * 65, c="b", bold=0)
+        printc("vtkVolume", c="b", bold=1, invert=1, end=" ")
         if hasattr(obj, "_legend") and obj._legend:
-            colors.printc("legend: ", c="b", bold=1, end="")
-            colors.printc(obj._legend, c="b", bold=0)
+            printc("legend: ", c="b", bold=1, end="")
+            printc(obj._legend, c="b", bold=0)
         else:
             print()
 
         pos = obj.GetPosition()
         bnds = obj.GetBounds()
         img = obj.GetMapper().GetInput()
-        colors.printc("         position: ", c="b", bold=1, end="")
-        colors.printc(pos, c="b", bold=0)
+        printc("         position: ", c="b", bold=1, end="")
+        printc(pos, c="b", bold=0)
 
-        colors.printc("       dimensions: ", c="b", bold=1, end="")
-        colors.printc(img.GetDimensions(), c="b", bold=0)
-        colors.printc("          spacing: ", c="b", bold=1, end="")
-        colors.printc(img.GetSpacing(), c="b", bold=0)
-        colors.printc("   data dimension: ", c="b", bold=1, end="")
-        colors.printc(img.GetDataDimension(), c="b", bold=0)
+        printc("       dimensions: ", c="b", bold=1, end="")
+        printc(img.GetDimensions(), c="b", bold=0)
+        printc("          spacing: ", c="b", bold=1, end="")
+        printc(img.GetSpacing(), c="b", bold=0)
+        printc("   data dimension: ", c="b", bold=1, end="")
+        printc(img.GetDataDimension(), c="b", bold=0)
 
-        colors.printc("      memory size: ", c="b", bold=1, end="")
-        colors.printc(int(img.GetActualMemorySize()/1024), 'Mb', c="b", bold=0)
+        printc("      memory size: ", c="b", bold=1, end="")
+        printc(int(img.GetActualMemorySize()/1024), 'Mb', c="b", bold=0)
 
-        colors.printc("    scalar #bytes: ", c="b", bold=1, end="")
-        colors.printc(img.GetScalarSize(), c="b", bold=0)
+        printc("    scalar #bytes: ", c="b", bold=1, end="")
+        printc(img.GetScalarSize(), c="b", bold=0)
 
-        colors.printc("           bounds: ", c="b", bold=1, end="")
+        printc("           bounds: ", c="b", bold=1, end="")
         bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
-        colors.printc("x=(" + bx1 + ", " + bx2 + ")", c="b", bold=0, end="")
+        printc("x=(" + bx1 + ", " + bx2 + ")", c="b", bold=0, end="")
         by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
-        colors.printc(" y=(" + by1 + ", " + by2 + ")", c="b", bold=0, end="")
+        printc(" y=(" + by1 + ", " + by2 + ")", c="b", bold=0, end="")
         bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
-        colors.printc(" z=(" + bz1 + ", " + bz2 + ")", c="b", bold=0)
+        printc(" z=(" + bz1 + ", " + bz2 + ")", c="b", bold=0)
 
-        colors.printc("     scalar range: ", c="b", bold=1, end="")
-        colors.printc(img.GetScalarRange(), c="b", bold=0)
+        printc("     scalar range: ", c="b", bold=1, end="")
+        printc(img.GetScalarRange(), c="b", bold=0)
 
         printHistogram(obj, horizontal=True,
                        logscale=True, bins=8, height=15, c='b', bold=0)
@@ -1074,49 +1074,49 @@ def printInfo(obj):
         if len(bns) == 0:
             return
         acts = obj.getMeshes()
-        colors.printc("_" * 65, c="c", bold=0)
-        colors.printc("Plotter", invert=1, dim=1, c="c", end=" ")
+        printc("_" * 65, c="c", bold=0)
+        printc("Plotter", invert=1, dim=1, c="c", end=" ")
         otit = obj.title
         if not otit:
             otit = None
-        colors.printc("   title:", otit, bold=0, c="c")
-        colors.printc(" active renderer:", obj.renderers.index(obj.renderer), bold=0, c="c")
-        colors.printc("   nr. of actors:", len(acts), bold=0, c="c", end="")
-        colors.printc(" (" + str(totpt), "vertices)", bold=0, c="c")
+        printc("   title:", otit, bold=0, c="c")
+        printc(" active renderer:", obj.renderers.index(obj.renderer), bold=0, c="c")
+        printc("   nr. of actors:", len(acts), bold=0, c="c", end="")
+        printc(" (" + str(totpt), "vertices)", bold=0, c="c")
         max_bns = np.max(bns, axis=0)
         min_bns = np.min(bns, axis=0)
-        colors.printc("      max bounds: ", c="c", bold=0, end="")
+        printc("      max bounds: ", c="c", bold=0, end="")
         bx1, bx2 = precision(min_bns[0], 3), precision(max_bns[1], 3)
-        colors.printc("x=(" + bx1 + ", " + bx2 + ")", c="c", bold=0, end="")
+        printc("x=(" + bx1 + ", " + bx2 + ")", c="c", bold=0, end="")
         by1, by2 = precision(min_bns[2], 3), precision(max_bns[3], 3)
-        colors.printc(" y=(" + by1 + ", " + by2 + ")", c="c", bold=0, end="")
+        printc(" y=(" + by1 + ", " + by2 + ")", c="c", bold=0, end="")
         bz1, bz2 = precision(min_bns[4], 3), precision(max_bns[5], 3)
-        colors.printc(" z=(" + bz1 + ", " + bz2 + ")", c="c", bold=0)
+        printc(" z=(" + bz1 + ", " + bz2 + ")", c="c", bold=0)
         if isinstance(obj.axes, dict): obj.axes=1
         if obj.axes:
-            colors.printc("       axes type:", obj.axes, axtype[obj.axes], bold=0, c="c")
+            printc("       axes type:", obj.axes, axtype[obj.axes], bold=0, c="c")
 
         for a in obj.getVolumes():
             if a.GetBounds() is not None:
                 img = a.GetMapper().GetDataSetInput()
-                colors.printc('_'*65, c='b', bold=0)
-                colors.printc('Volume', invert=1, dim=1, c='b')
-                colors.printc('      scalar range:',
+                printc('_'*65, c='b', bold=0)
+                printc('Volume', invert=1, dim=1, c='b')
+                printc('      scalar range:',
                               np.round(img.GetScalarRange(), 4), c='b', bold=0)
                 bnds = a.GetBounds()
-                colors.printc("            bounds: ", c="b", bold=0, end="")
+                printc("            bounds: ", c="b", bold=0, end="")
                 bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
-                colors.printc("x=(" + bx1 + ", " + bx2 + ")", c="b", bold=0, end="")
+                printc("x=(" + bx1 + ", " + bx2 + ")", c="b", bold=0, end="")
                 by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
-                colors.printc(" y=(" + by1 + ", " + by2 + ")", c="b", bold=0, end="")
+                printc(" y=(" + by1 + ", " + by2 + ")", c="b", bold=0, end="")
                 bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
-                colors.printc(" z=(" + bz1 + ", " + bz2 + ")", c="b", bold=0)
+                printc(" z=(" + bz1 + ", " + bz2 + ")", c="b", bold=0)
 
-        colors.printc(" Click mesh and press i for info.", c="c")
+        printc(" Click mesh and press i for info.", c="c")
 
     else:
-        colors.printc("_" * 65, c="g", bold=0)
-        colors.printc(type(obj), c="g", invert=1)
+        printc("_" * 65, c="g", bold=0)
+        printc(type(obj), c="g", invert=1)
 
 
 
@@ -1237,9 +1237,9 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
 
     if horizontal:
         height *= 2
-        colors.printc(_h(), c=c, bold=bold)
+        printc(_h(), c=c, bold=bold)
     else:
-        colors.printc(_v(), c=c, bold=bold)
+        printc(_v(), c=c, bold=bold)
     return data
 
 
@@ -1628,7 +1628,7 @@ def systemReport():
                                       'pyshtools',
                                       'cv2',
                                       ])
-        colors.printc(r)
+        printc(r)
     except:
         print('Install scooby with command: pip install scooby')
         r = ''
@@ -1678,6 +1678,4 @@ def resampleArrays(source, target, tol=None):
         rs.SetTolerance(tol)
     rs.Update()
     return rs.GetOutput()
-
-
 

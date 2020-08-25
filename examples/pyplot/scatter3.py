@@ -25,7 +25,7 @@ mark = Marker('*', s=0.2, filled=True)
 pts3 = Glyph([x,y], mark, c='k').z(0.2)
 
 
-label = Text("preliminary\nresults!", s=.6, pos=(-8,4,.2))
+label = Text("preliminary\nresults!", font='Inversionz', s=.8, pos=(-8,4,.2))
 label.c('green').rotateZ(20)
 
 show(pts1, pts2, pts3, label, __doc__,

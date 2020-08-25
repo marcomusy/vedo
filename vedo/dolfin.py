@@ -380,19 +380,19 @@ def plot(*inputobj, **options):
 
     :param int axes: axes type number
 
-      - 0,  no axes,
-      - 1,  draw customizable grid axes (see below).
-      - 2,  show cartesian axes from (0,0,0)
-      - 3,  show positive range of cartesian axes from (0,0,0)
-      - 4,  show a triad at bottom left
-      - 5,  show a cube at bottom left
-      - 6,  mark the corners of the bounding box
-      - 7,  draw a simple ruler at the bottom of the window
-      - 8,  show the `vtkCubeAxesActor` object,
-      - 9,  show the bounding box outLine,
-      - 10, show three circles representing the maximum bounding box,
-      - 11, show a large grid on the x-y plane (use with zoom=8)
-      - 12, show polar axes.
+       - 0,  no axes,
+       - 1,  draw customizable grid axes (see below).
+       - 2,  show cartesian axes from (0,0,0)
+       - 3,  show positive range of cartesian axes from (0,0,0)
+       - 4,  show a triad at bottom left
+       - 5,  show a cube at bottom left
+       - 6,  mark the corners of the bounding box
+       - 7,  draw a simple ruler at the bottom of the window
+       - 8,  show the `vtkCubeAxesActor` object,
+       - 9,  show the bounding box outLine,
+       - 10, show three circles representing the maximum bounding box,
+       - 11, show a large grid on the x-y plane (use with zoom=8)
+       - 12, show polar axes.
 
     Axes type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
@@ -402,7 +402,6 @@ def plot(*inputobj, **options):
         - `axesLineWidth`,           [1], width of the axes lines
         - `gridLineWidth`,           [1], width of the grid lines
         - `reorientShortTitle`,   [True], titles shorter than 2 letter are placed horizontally
-        - `originMarkerSize`,     [0.01], draw a small cube on the axis where the origin is
         - `titleDepth`,              [0], extrusion fractional depth of title text
         - `xyGrid`,               [True], show a gridded wall on plane xy
         - `yzGrid`,               [True], show a gridded wall on plane yz
@@ -415,10 +414,15 @@ def plot(*inputobj, **options):
         - `xyAlpha`,              [0.15], grid plane opacity
         - `xyFrameLine`,          [None], add a frame for the plane
         - `showTicks`,            [True], show major ticks
+        - `digits`,               [None], use this number of significant digits in scientific notation
+        - `titleFont`,              [''], font for axes titles
+        - `labelFont`,              [''], font for numeric labels
+        - `textScale`,             [1.0], global scaling factor for text elements (titles, labels)
         - `xTitlePosition`,       [0.32], title fractional positions along axis
         - `xTitleOffset`,         [0.05], title fractional offset distance from axis line
         - `xTitleJustify`, ["top-right"], title justification
         - `xTitleRotation`,          [0], add a rotation of the axis title
+        - `xTitleBox`,           [False], add a box around title text
         - `xLineColor`,      [automatic], color of the x-axis
         - `xTitleColor`,     [automatic], color of the axis title
         - `xTitleBackfaceColor`,  [None],  color of axis title on its backface
@@ -428,13 +432,14 @@ def plot(*inputobj, **options):
         - `xHighlightZeroColor`, [autom], color of the line highlighting the zero position
         - `xTickLength`,         [0.005], radius of the major ticks
         - `xTickThickness`,     [0.0025], thickness of the major ticks along their axis
-        - `xTickColor`,      [automatic], color of major ticks
         - `xMinorTicks`,             [1], number of minor ticks between two major ticks
-        - `xPositionsAndLabels`       [], assign custom tick positions and labels [(pos1, label1), ...]
+        - `xValuesAndLabels`          [], assign custom tick positions and labels [(pos1, label1), ...]
+        - `xLabelColor`,     [automatic], color of numeric labels and ticks
         - `xLabelPrecision`,         [2], nr. of significative digits to be shown
         - `xLabelSize`,          [0.015], size of the numeric labels along axis
+        - 'xLabelRotation',          [0], rotate clockwise [1] or anticlockwise [-1] by 90 degrees
+        - 'xFlipText',           [False], flip axis title and numeric labels orientation
         - `xLabelOffset`,        [0.025], offset of numeric labels
-        - 'xFlipText'.           [False], flip axis title and numeric labels orientation
         - `tipSize`,              [0.01], size of the arrow tip
         - `limitRatio`,           [0.04], below this ratio don't plot small axis
 

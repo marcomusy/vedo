@@ -691,7 +691,7 @@ def _plotxy(
             labs.append([ynew, ts[i]])
         axes["xtitle"] = xtitle
         axes["ytitle"] = ytitle
-        axes["yPositionsAndLabels"] = labs
+        axes["yValuesAndLabels"] = labs
         axes["xrange"] = (x0lim, x1lim)
         axes["yrange"] = (y0lim, y1lim)
         axes["zrange"] = (0, 0)
@@ -1338,7 +1338,7 @@ def _histogram1D(
             labs.append([ynew, ts[i]])
         axes["xtitle"] = xtitle
         axes["ytitle"] = ytitle
-        axes["yPositionsAndLabels"] = labs
+        axes["yValuesAndLabels"] = labs
         axes["xrange"] = (x0lim, x1lim)
         axes["yrange"] = (y0lim, y1lim)
         axes["zrange"] = (0, 0)
@@ -1489,7 +1489,7 @@ def _histogram2D(
             labs.append([ynew, ts[i]])
         axes["xtitle"] = xtitle
         axes["ytitle"] = ytitle
-        axes["yPositionsAndLabels"] = labs
+        axes["yValuesAndLabels"] = labs
         axes["xrange"] = (x0lim, x1lim)
         axes["yrange"] = (y0lim, y1lim)
         axes["zrange"] = (0, 0)

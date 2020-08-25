@@ -9,7 +9,7 @@ scals = range(nv)                          # coloring by the index of cell
 
 man1.addCellArray(scals, "mycellscalars")  # add an array of scalars to mesh
 #print(man1.getCellArray('mycellscalars')) # it can be retrieved this way
-show(man1, __doc__, at=0, N=3, axes=4, elevation=-60)
+show(man1, __doc__, at=0, N=3, axes=11, elevation=-60)
 
 
 ##################################### Point coloring
@@ -23,9 +23,9 @@ show(man2, "mesh.cmap()", at=1)
 
 ##################################### Cell coloring
 man3 = load(datadir+"man_low.vtk")
-scals = man3.cellCenters()[:, 0] + 37      # pick x coordinates of cells
+scals = man3.cellCenters()[:, 2] + 37      # pick z coordinates of cells
 man3.cmap("afmhot", scals, mode='cells')
 
 # add a fancier 3D scalar bar embedded in the scene
 man3.addScalarBar3D(sy=3).rotateX(90).y(0.2)
-show(man3, "mesh.cmap(mode='cells')", at=2, zoom=1.2, interactive=True)
+show(man3, "mesh.cmap(mode='cells')", at=2, interactive=True)

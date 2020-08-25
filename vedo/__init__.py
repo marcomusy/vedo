@@ -8,15 +8,15 @@ analysis and animation of 3D objects and point clouds based on VTK.
 
     A full list of examples can be found in directories:
 
-    - `examples/basic <https://github.com/marcomusy/vedo/blob/master/vedo/examples/basic>`_
-    - `examples/advanced <https://github.com/marcomusy/vedo/blob/master/vedo/examples/advanced>`_
-    - `examples/volumetric <https://github.com/marcomusy/vedo/blob/master/vedo/examples/volumetric>`_
-    - `examples/tetmesh <https://github.com/marcomusy/vedo/blob/master/vedo/examples/tetmesh>`_
-    - `examples/simulations <https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations>`_
-    - `examples/pyplot <https://github.com/marcomusy/vedo/blob/master/vedo/examples/pyplot>`_
-    - `examples/others <https://github.com/marcomusy/vedo/blob/master/vedo/examples/other>`_
-    - `examples/others/dolfin <https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/dolfin>`_.
-    - `examples/others/trimesh <https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/trimesh>`_
+    - `examples/basic <https://github.com/marcomusy/vedo/tree/master/examples/basic>`_
+    - `examples/advanced <https://github.com/marcomusy/vedo/tree/master/examples/advanced>`_
+    - `examples/volumetric <https://github.com/marcomusy/vedo/tree/master/examples/volumetric>`_
+    - `examples/tetmesh <https://github.com/marcomusy/vedo/tree/master/examples/tetmesh>`_
+    - `examples/simulations <https://github.com/marcomusy/vedo/tree/master/examples/simulations>`_
+    - `examples/pyplot <https://github.com/marcomusy/vedo/tree/master/examples/pyplot>`_
+    - `examples/others <https://github.com/marcomusy/vedo/tree/master/examples/other>`_
+    - `examples/others/dolfin <https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin>`_
+    - `examples/others/trimesh <https://github.com/marcomusy/vedo/tree/master/examples/other/trimesh>`_
 """
 from __future__ import print_function
 

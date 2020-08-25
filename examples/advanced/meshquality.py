@@ -25,10 +25,10 @@ labs = mesh.labels(cells=True,
                    c='black',
                   )
 
-cam = dict(pos=(59.5, -189, 78.1),
-           focalPoint=(27.8, -2.37, 3.10),
-           viewup=(0, 1.00e-3, 1.00),
-           distance=203,
-           clippingRange=(85.4, 352))
+cam = dict(pos=(59.8, -191, 78.9),
+           focalPoint=(27.9, -2.94, 3.33),
+           viewup=(-0.0170, 0.370, 0.929),
+           distance=205,
+           clippingRange=(87.8, 355))
 
 show(mesh, labs, hist, __doc__, bg='bb', camera=cam, axes=11)

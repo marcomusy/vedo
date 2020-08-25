@@ -223,7 +223,7 @@ def draw_scene():
 
             if isinstance(actor, Mesh):
                 actors.append(actor)
-                actor.lighting(args.lighting).c(colb).alpha(args.alpha).wireframe(wire)
+                actor.c(colb).alpha(args.alpha).wireframe(wire).lighting(args.lighting)
                 if args.flat:
                     actor.flat()
                 else:
@@ -260,7 +260,7 @@ def draw_scene():
 
             # if scene is empty just draw the logo
             if all(a is None for a in actors):
-                actors = [VedoLogo(distance=6),
+                actors = [VedoLogo(distance=6, c='k'),
                           Text2D('..could not load file(s)', s=0.9, bg='y',
                                   c='r', font='', pos='bottom-center'),
                           ]

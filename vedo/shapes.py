@@ -132,7 +132,7 @@ _reps = [
     ("\^1", "¹"),
     ("\^2", "²"),
     ("\^3", "³"),
-    ("\,", "~"), # small spacing
+    ("\,", "~"),
     ###############
 ]
 
@@ -197,14 +197,14 @@ class Star3D(Mesh):
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
 
-        pts = ((1.34, 0., -0.370), (5.75e-3, -0.588, thickness/10), (0.377, 0., -0.380),
+        pts = ((1.34, 0., -0.37), (5.75e-3, -0.588, thickness/10), (0.377, 0.,-0.38),
                (0.0116, 0., -1.35), (-0.366, 0., -0.384), (-1.33, 0., -0.385),
                (-0.600, 0., 0.321), (-0.829, 0., 1.19), (-1.17e-3, 0., 0.761),
                (0.824, 0., 1.20), (0.602, 0., 0.328), (6.07e-3, 0.588, thickness/10))
-        fcs = [[0, 1, 2], [0, 11, 10], [2, 1, 3], [2, 11, 0], [3, 1, 4], [3, 11, 2],
+        fcs = [[0, 1, 2], [0, 11,10], [2, 1, 3], [2, 11, 0], [3, 1, 4], [3, 11, 2],
                [4, 1, 5], [4, 11, 3], [5, 1, 6], [5, 11, 4], [6, 1, 7], [6, 11, 5],
-               [7, 1, 8], [7, 11, 6], [8, 1, 9], [8, 11, 7], [9, 1, 10], [9, 11, 8],
-               [10, 1, 0], [10, 11, 9]]
+               [7, 1, 8], [7, 11, 6], [8, 1, 9], [8, 11, 7], [9, 1,10], [9, 11, 8],
+               [10,1, 0],[10,11, 9]]
 
         Mesh.__init__(self, [pts, fcs], c, alpha)
         self.rotateX(90).scale(r).lighting('shiny')
@@ -252,7 +252,6 @@ class Glyph(Mesh):
     |glyphs.py|_ |glyphs_arrows.py|_
     |glyphs| |glyphs_arrows|
     """
-
     def __init__(self,
                  mesh,
                  glyphObj,
@@ -265,7 +264,7 @@ class Glyph(Mesh):
                  tol=0,
                  c='white',
                  alpha=1,
-                 ):
+        ):
 
         if utils.isSequence(mesh):
             # create a cloud of points
@@ -465,7 +464,6 @@ class Line(Mesh):
     :param lw: line width.
     :param int res: number of intermediate points in the segment
     """
-
     def __init__(self, p0, p1=None, closed=False, c="r", alpha=1, lw=1, res=None):
         if isinstance(p0, vtk.vtkActor): p0 = p0.GetPosition()
         if isinstance(p1, vtk.vtkActor): p1 = p1.GetPosition()
@@ -654,6 +652,11 @@ class Lines(Line):
     def __init__(self, startPoints, endPoints=None,
                  c='gray', alpha=1, lw=1, dotted=False, scale=1):
 
+        if isinstance(startPoints, Points):
+            startPoints = startPoints.points()
+        if isinstance(endPoints, Points):
+            endPoints = endPoints.points()
+
         if endPoints is not None:
             startPoints = np.stack((startPoints, endPoints), axis=1)
 
@@ -706,7 +709,7 @@ class Spline(Line):
     """
     def __init__(self, points, smooth=0.5, degree=2, closed=False, s=2, res=None):
 
-        if isinstance(points, Mesh):
+        if isinstance(points, Points):
             points = points.points()
 
         if len(points[0]) == 2: # make it 3d
@@ -756,7 +759,7 @@ class KSpline(Line):
                  continuity=0, tension=0, bias=0,
                  closed=False, res=None):
 
-        if isinstance(points, Mesh):
+        if isinstance(points, Points):
             points = points.points()
 
         if not res: res = len(points)*20
@@ -811,7 +814,6 @@ def Bezier(points, res=None):
             show(Points(pts), Bezier(pts), axes=1)
 
         |bezier|
-
     """
     N = len(points)
     if res is None:
@@ -2267,8 +2269,10 @@ class Text(Mesh):
     Generate a 3D polygonal ``Mesh`` representing a text string.
 
     Can render strings like 3.7 10^9 or H_2 O with subscripts and superscripts.
+    Most Latex symbols are also supported (e.g. \mu_\lambda).
     Symbols ~ ^ _ are reserved modifiers:
-        use ~ to add a short space, 1/4 of the default size,
+
+        use ~ to add a short space, 1/4 of the default empty space,
         use ^ and _ to start up/sub scripting, a space terminates their effect.
 
     :param list pos: position coordinates in 3D space
@@ -2278,13 +2282,13 @@ class Text(Mesh):
     :param str justify: text justification as centering of the bounding box
         (bottom-left, bottom-right, top-left, top-right, centered).
 
-    :param str font: available 3D-polygonized fonts are:
-        VTK, Biysk, Bongas, Calco, Comae, Kanopus, Galax, Glasgo,
-        Inversionz, LogoType, Normografo, Quikhand, SmartCouric, Theemim, VictorMono.
+    :param str font: available 3D-polygonized fonts are
+        Bongas, Calco, Comae, Kanopus, Glasgo, LionelOfParis,
+        Inversionz, LogoType, Normografo, Quikhand, SmartCouric, Theemim, VictorMono, VTK.
         Default is Normografo, which can be changed using ``settings.defaultFont``
 
     :param float hspacing: horizontal spacing of the font.
-    :param float vspacing: vertical spacing of the font in multiple lines text.
+    :param float vspacing: vertical spacing of the font for multiple lines text.
 
     |markpoint| |markpoint.py|_ |fonts.py|_ |caption.py|_
 
@@ -2349,6 +2353,8 @@ class Text(Mesh):
             isvtkfont = True
 
         else:
+            if font=="LogoType":
+                font = "https://vedo.embl.es/fonts/LogoType.npz"
 
             if font.startswith('https'): # user passed URL link, make it a path
                 font = vedo.io.download(font, verbose=False, force=False)
@@ -2375,80 +2381,76 @@ class Text(Mesh):
         # ad hoc adjustments
         fscale = 0.8
         dotsep = '·'
-        if font=='Normografo':
+        if font=='Normografo': # the default
             mono = False
             fscale = 0.75
-            xinterletter = 0.2
+            lspacing = 0.2
             dotsep = "~·"
-        elif font=='Biysk': # the vedo logo font
-            mono = False
-            fscale = 0.9
-            xinterletter = 0.2
-            dotsep = "~^.~ "
         elif font=='Bongas':
             mono = False
             fscale = 0.875
             hspacing *= 0.52
-            xinterletter = 0.25
+            lspacing = 0.25
         elif font=='Calco':
             mono = True
-            xinterletter = 0.1
-        elif font=='Comae':
+            lspacing = 0.1
+        elif font=='Comae': # the vedo logo font
             mono = False
             fscale = 0.75
-            xinterletter = 0.2
+            lspacing = 0.2
             dotsep = '~·'
-        elif font=='Galax':
-            mono = False
-            xinterletter = 0.1
-            dotsep = "~·"
         elif font=='Glasgo':
             mono = True
             fscale = 0.75
-            xinterletter = 0.1
+            lspacing = 0.1
         elif font=='Inversionz':
             mono = True
             fscale = 0.9
-            xinterletter = 0.1
+            lspacing = 0.1
             dotsep = "~^.~ "
         elif font=='Kanopus':
             mono = False
             fscale = 0.75
-            xinterletter = 0.15
+            lspacing = 0.15
             dotsep = '~·'
+        elif font=='LionelOfParis':
+            mono = False
+            fscale = 0.875
+            hspacing *= 0.7
+            lspacing = 0.3
         elif font=='LogoType':
             mono = False
             fscale = 0.75
-            xinterletter = 0.2
+            lspacing = 0.2
             dotsep = '·~~'
         elif font=='Quikhand':
             mono = False
             hspacing *= 0.6
-            xinterletter = 0.15
+            lspacing = 0.15
             dotsep = "~~·~"
         elif font=='SmartCouric':
             mono = True
             hspacing *= 1.05
-            xinterletter = 0.1
+            lspacing = 0.1
         elif font=='Theemim':
             mono = False
             fscale = 0.825
             hspacing *= 0.52
-            xinterletter = 0.3
+            lspacing = 0.3
             dotsep = '~·'
         elif font=='VictorMono':
             mono = True
             fscale = 0.725
-            xinterletter = 0.1
+            lspacing = 0.1
         elif font=='VTK':
             mono = False
             hspacing *= 0.6
-            xinterletter = 0.4
+            lspacing = 0.4
             dotsep = "~^.~ "
         else:
             mono = settings.fontIsMono
             hspacing *= settings.fontHSpacing
-            xinterletter = settings.fontLSpacing
+            lspacing = settings.fontLSpacing
 
         # replacements
         if not isvtkfont and "\\" in repr(txt):
@@ -2458,7 +2460,7 @@ class Text(Mesh):
                 ("\_", "┭"), # trick to protect ~ _ and ^ chars
                 ("\^", "┮"), #
                 ("\~", "┯"), #
-                ("**", "^"),  # order matters
+                ("**", "^"), # order matters
                 ("e+0", dotsep+"10^"), ("e-0", dotsep+"10^-"),
                 ("E+0", dotsep+"10^"), ("E-0", dotsep+"10^-"),
                 ("e+" , dotsep+"10^"), ("e-" , dotsep+"10^-"),
@@ -2551,7 +2553,7 @@ class Text(Mesh):
                 if mono:
                     xmax += hspacing*scale*fscale
                 else:
-                    xmax += bx[1]-bx[0] + hspacing*scale*fscale*xinterletter
+                    xmax += bx[1]-bx[0] + hspacing*scale*fscale*lspacing
                 if yshift==0:
                     save_xmax = xmax
             else:
@@ -2653,13 +2655,13 @@ def Text2D(
 
         - Biysk
         - Bongas
+        - Calco
         - Comae
-        - Galax
+        - Glasgo
         - Inversionz
         - Kanopus
+        - LionelOfParis
         - LogoType
-        - Calco
-        - Glasgo
         - Normografo
         - Quikhand
         - SmartCouric
@@ -3011,12 +3013,12 @@ def ConvexHull(pts):
     return m
 
 
-def VedoLogo(distance=0, version=True, c=None, bc='dr'):
+def VedoLogo(distance=0, c=None, bc='dr', version=False, frame=True):
     """
     Create the 3D vedo logo.
 
     :param float distance: send back logo by this distance from camera
-    :param bool version: add version text at the right end of the logo
+    :param bool version: add version text to the right end of the logo
     :param bc: text back face color
     """
     import vedo
@@ -3035,29 +3037,39 @@ def VedoLogo(distance=0, version=True, c=None, bc='dr'):
     # ms = tetm.cutWithMesh(sphere, onlyBoundary=True).tomesh(shrink=1)
     # ms.clean().write('omesh.vtk')
 
-    vlogo = Text("v3d", font='Biysk', s=1350, depth=0.2, c=c, hspacing=0.4)
-    vlogo.x(-2525).pickable(False).bc(bc)
+    try: # might be offline
+        txt = 'vэd' #chr(1101)
+        ms = vedo.io.load(vedo.datadir+'omesh.vtk')
+        ms.scale([1,1,0.3]).pos(1210, 550, 95).lighting('shiny').pickable(0)
+        # Spectral, viridis_r, jet_r, gist_ncar, prism, seismic_r, brg_r
+        ms.cmap('jet_r', mode='cells')
+        sphere.scale([1,1,0.3]).pos(1540, 548, 82)
+        sphere.lighting('off').frontFaceCulling(True).pickable(False)
+    except:
+        txt = 'vэdo'
+        ms = None
+        sphere = None
+
+    vlogo = Text(txt, font='Comae', s=1350, depth=0.2, c=c, hspacing=0.8)
+    vlogo.scale([1,.95,1]).x(-2525).pickable(False).bc(bc)
     vlogo.GetProperty().LightingOn()
 
-    ms = vedo.io.load(vedo.datadir+'omesh.vtk')
-    ms.scale([1,1,0.3]).pos(1210, 550, 95).lighting('shiny').pickable(0)
-    # Spectral, viridis_r, jet_r, gist_ncar, prism, seismic_r, brg_r
-    ms.cmap('jet_r', mode='cells')
-
-    sphere.scale([1,1,0.3]).pos(1540, 548, 82)
-    sphere.lighting('off').frontFaceCulling(True).pickable(False)
-
-    vr = None
+    vr, rul = None, None
     if version:
-        vr = Text(vedo.__version__, font='Biysk',
-                  s=175, depth=0.2, c=c, hspacing=0.8)
+        vr = Text(vedo.__version__, font='Comae',
+                  s=165, depth=0.2, c=c, hspacing=1).scale([1,.7,1])
         vr.RotateZ(90)
         vr.pos(2450,50,80).bc(bc).pickable(False)
-
-    fakept = vedo.Point((0,500,distance*1725), alpha=0, c=c, r=1).pickable(0)
-    asso = vedo.Assembly([vlogo, vr, ms, sphere, fakept]).scale(1/1725)
+    elif frame:
+        # print(vedo.Assembly(vlogo, sphere, ms).bounds()[0:4])
+        rul = vedo.buildRulerAxes((-2600,2110, 0,1650, 0,0),
+                                  xlabel='European Molecular Biology Laboratory',
+                                  ylabel=vedo.__version__,
+                                  font="Comae",
+                                  xpad=0.09, ypad=0.04,
+                                 )
+    fakept = vedo.Point((0,500, distance*1725), alpha=0, c=c, r=1).pickable(0)
+    asso = vedo.Assembly([vlogo, vr, ms, sphere, fakept, rul]).scale(1/1725)
     return asso
-
-
 
 

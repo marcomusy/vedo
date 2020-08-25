@@ -15,8 +15,8 @@ for h in his:
 
 v1 = vector(9.4, 5.2, 0)
 v2 = vector(9.4, 2.7, 0)
-t1 = Text("EMBL",  v1, c="k",  s=1.5, depth=0)
-t2 = Text("European Molecular\nBiology Laboratory", v2, c="dg", s=0.6, depth=0)
+t1 = Text("EMBL",  v1, c="k", font="VTK", s=1.5, depth=0)
+t2 = Text("European Molecular\nBiology Laboratory", v2, vspacing=1.75, c="dg", s=0.6)
 
 show(exa, exah, t1, t2, axes=0, interactive=0, elevation=-50)
 for ti in reversed(range(100)):

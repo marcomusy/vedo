@@ -1,12 +1,12 @@
 .. role:: raw-html-m2r(raw)
    :format: html
 
-.. image:: https://user-images.githubusercontent.com/32848391/84578825-f1cc8b80-adc8-11ea-867b-a75a99f99a39.png
+.. image:: https://user-images.githubusercontent.com/32848391/90509164-2d812a00-e159-11ea-8f31-8b341b27f316.png
 
 :raw-html-m2r:`<br />`
 
-.. image:: https://pepy.tech/badge/vedo
-   :target: https://pepy.tech/project/vedo
+.. image:: https://pepy.tech/badge/vtkplotter
+   :target: https://pepy.tech/project/vtkplotter
    :alt: Downloads
 
 .. image:: https://img.shields.io/badge/license-MIT-blue.svg
@@ -26,9 +26,8 @@
 
 ---------------------
 
-A lightweight python module for scientific visualization, analysis and animation of 3D objects
-and `point clouds` based on `VTK <https://www.vtk.org/>`_
-and `numpy <http://www.numpy.org/>`_.
+`vedo` is a fast and lightweight python module
+for scientific analysis and visualization of 3D objects.
 
 
 Philosophy
@@ -38,13 +37,16 @@ Inspired by the `vpython <https://vpython.org/>`_ *manifesto* "3D programming fo
 *vedo* makes it easy to work wth three-dimensional objects, create displays and animations
 in just a few lines of code, even for those with less programming experience.
 
+`vedo` is based on `VTK <https://www.vtk.org/>`_ and `numpy <http://www.numpy.org/>`_,
+with no other dependencies.
+
 
 Download and Install:
 ---------------------
 
 .. code-block:: bash
 
-   pip install -U vedo
+   pip install vedo
 
 Check out the **Git repository** here: https://github.com/marcomusy/vedo
 
@@ -58,7 +60,7 @@ Features:
 ---------
 
 The module includes a
-`large set of working examples <https://github.com/marcomusy/vedo/tree/master/vedo/examples>`_
+`large set (300+) of working examples <https://github.com/marcomusy/vedo/tree/master/vedo/examples>`_
 for the all following functionalities:
 
 - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, XML, Neutral, GMSH, PCD (PointCloud), volumetric TIFF stacks, SLC, MHD, 2D images PNG, JPEG.
@@ -98,7 +100,7 @@ for the all following functionalities:
     - Probe a volume with lines and planes.
 - Add sliders and buttons to interact with the scene and the individual objects.
 - Fully customizable axis style.
-- Examples with `SHTools <https://shtools.oca.eu/shtools>`_ package for *spherical harmonics* expansion of a mesh shape.
+- Examples with `SHTools <https://shtools.oca.eu>`_ package for *spherical harmonics* expansion of a mesh shape.
 - Integration with the *Qt5* framework.
 - Draw `latex`-formatted formulas on the rending window.
 - Export a 3D scene and embed it into a html page.
@@ -111,17 +113,25 @@ for the all following functionalities:
 
 Hello World example
 -------------------
+Run any of the built-in examples. In a terminal, type:
 
-In your python script, load a simple ``3DS`` file and display it:
+.. code-block:: bash
 
-.. code-block:: python
+    vedo -r covid19
 
-    from vedo import datadir, show
+Visualize a file from web URL (or your dropbox!), type:
 
-    show(datadir+'flamingo.3ds')
+.. code-block:: bash
 
-.. image:: https://user-images.githubusercontent.com/32848391/50738813-58af4380-11d8-11e9-84ce-53579c1dba65.png
-   :alt: flam
+    vedo https://vedo.embl.es/examples/data/panther.stl.gz
+
+Visualize a whole scene, type:
+
+.. code-block:: bash
+
+    vedo https://vedo.embl.es/examples/geo_scene.npy
+
+.. image:: https://user-images.githubusercontent.com/32848391/81397531-d2867280-9127-11ea-8cc8-0effbbbebf2d.jpg
 
 
 Command-line interface
@@ -139,7 +149,7 @@ Voxel-data (*mhd, vti, slc, tiff, dicom*) files can also be visualized with opti
 
 .. code-block:: bash
 
-    vedo -g examples/data/embryo.slc
+    vedo -g  https://vedo.embl.es/examples/data/embryo.slc
 
 .. image:: https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif
 
@@ -150,23 +160,15 @@ Use a slider to control isosurfacing of a volume:
 
 .. code-block:: bash
 
-    vedo examples/data/head.vti
+    vedo https://vedo.embl.es/examples/data/head.vti
 
 .. image:: https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif
-
-Load and browse a sequence of meshes:
-
-.. code-block:: bash
-
-    vedo -s examples/data/2?0.vtk
-
-.. image:: https://user-images.githubusercontent.com/32848391/58336919-f7b1a080-7e44-11e9-9106-f574371093a8.gif
 
 Visualize colorized voxels:
 
 .. code-block:: bash
 
-    vedo --lego examples/data/embryo.tif
+    vedo --lego https://vedo.embl.es/examples/data/embryo.tif
 
 .. image:: https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg
 
@@ -185,52 +187,55 @@ Run any of the available scripts from with:
 
 More than 300 examples can be found in directories:
 
-- `examples/basic <https://github.com/marcomusy/vedo/blob/master/vedo/examples/basic>`_ ,
-- `examples/advanced <https://github.com/marcomusy/vedo/blob/master/vedo/examples/advanced>`_ ,
-- `examples/volumetric <https://github.com/marcomusy/vedo/blob/master/vedo/examples/volumetric>`_,
-- `examples/simulations <https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations>`_,
-- `examples/others <https://github.com/marcomusy/vedo/blob/master/vedo/examples/other>`_.
-
+- `examples/basic <https://github.com/marcomusy/vedo/tree/master/examples/basic>`_
+- `examples/advanced <https://github.com/marcomusy/vedo/tree/master/examples/advanced>`_
+- `examples/volumetric <https://github.com/marcomusy/vedo/tree/master/examples/volumetric>`_
+- `examples/simulations <https://github.com/marcomusy/vedo/tree/master/examples/simulations>`_
+- `examples/tetmesh <https://github.com/marcomusy/vedo/tree/master/examples/tetmesh>`_
+- `examples/other <https://github.com/marcomusy/vedo/tree/master/examples/other>`_
+- `examples/other/dolfin <https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin>`_
+- `examples/other/trimesh <https://github.com/marcomusy/vedo/tree/master/examples/other/trimesh>`_
+- `notebooks <https://github.com/marcomusy/vedo/blob/master/notebooks>`_
 
 Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a
 large cloud of scattered points in space
-(`moving_least_squares2D.py <https://github.com/marcomusy/vedo/blob/master/vedo/examples/advanced/moving_least_squares2D.py>`_):
+(`moving_least_squares2D.py <https://github.com/marcomusy/vedo/blob/master/examples/advanced/moving_least_squares2D.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg
-   :target: https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg
+   :target: https://github.com/marcomusy/vedo/blob/master/examples/advanced/moving_least_squares2D.py
    :alt: rabbit
 
 
 Simulation of a gyroscope hanging from a spring
-(`gyroscope1.py <https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/gyroscope1.py>`_):
+(`gyroscope1.py <https://github.com/marcomusy/vedo/blob/master/examples/simulations/gyroscope1.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif
-   :target: https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif
+   :target: https://github.com/marcomusy/vedo/blob/master/examples/simulations/gyroscope1.py
    :alt: gyro
 
 
 Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method.
 The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier
-(`tunnelling2.py <https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/tunnelling2.py>`_):
+(`tunnelling2.py <https://github.com/marcomusy/vedo/blob/master/examples/simulations/tunnelling2.py>`_):
 
 .. image:: https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif
-   :target: https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif
+   :target: https://github.com/marcomusy/vedo/blob/master/examples/simulations/tunnelling2.py
    :alt: qsine2
 
 
 
 Visualizing a Turing system of reaction-diffusion between two molecules
-(`turing.py <https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/turing.py>`_):
+(`grayscott.py <https://github.com/marcomusy/vedo/blob/master/examples/simulations/grayscott.py>`_):
 
-.. image:: https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif
-   :target: https://user-images.githubusercontent.com/32848391/40665257-1412a30e-635d-11e8-9536-4c73bf6bdd92.gif
+.. image:: https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif
+   :target: https://github.com/marcomusy/vedo/blob/master/examples/simulations/grayscott.py
    :alt: turing
 
 
 
 Support for the `FEniCS/dolfin <https://fenicsproject.org/>`_ platform for visualization of PDE and
 finite element solutions
-(`see here <https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/dolfin>`_.
+(`see here <https://github.com/marcomusy/vedo/blob/master/examples/other/dolfin>`_.
 
 .. image:: https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif
 

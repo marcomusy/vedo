@@ -715,6 +715,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         self._polydata = None
         self.point_locator = None
+        self.cell_locator = None
         self._mapper = vtk.vtkPolyDataMapper()
         self.SetMapper(self._mapper)
 
@@ -1587,7 +1588,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
     def vignette(self,
         txt=None,
-        pt=None,
+        point=None,
         offset=None,
         s=None,
         font="",
@@ -1605,7 +1606,7 @@ class Points(vtk.vtkFollower, BaseActor):
         ----------
         txt : str, optional
             Text to display. The default is the filename or the object name.
-        pt : list, optional
+        point : list, optional
             position of the vignette pointer. The default is None.
         offset : list, optional
             text offset wrt the application point. The default is None.
@@ -1623,6 +1624,7 @@ class Points(vtk.vtkFollower, BaseActor):
             line with of box frame. The default is 2.
         italic : float, optional
             italicness of text. The default is 0.
+
 
         |intersect2d| |intersect2d.py|_
 
@@ -1646,8 +1648,8 @@ class Points(vtk.vtkFollower, BaseActor):
         sph = None
         x0, x1, y0, y1, z0, z1 = self.bounds()
         d = self.diagonalSize()
-        if pt is None:
-            pt = self.closestPoint([(x0 + x1) / 2, (y0 + y1) / 2, z1])
+        if point is None:
+            point = self.closestPoint([(x0 + x1) / 2, (y0 + y1) / 2, z1])
 
         if offset is None:
             offset = [(x1 - x0) / 3, (y1 - y0) / 6, 0]
@@ -1658,14 +1660,14 @@ class Points(vtk.vtkFollower, BaseActor):
             s = d / 50
 
         if (z1 - z0) / d > 0.1:
-            sph = vedo.shapes.Sphere(pt, r=s*0.4, res=6)
+            sph = vedo.shapes.Sphere(point, r=s*0.4, res=6)
 
         if c is None:
             c = np.array(self.color())/1.4
 
-        if len(pt) == 2:
-            pt = [pt[0], pt[1], 0.0]
-        pt = np.array(pt)
+        if len(point) == 2:
+            point = [point[0], point[1], 0.0]
+        pt = np.array(point)
 
         lb = vedo.shapes.Text(
             txt, pos=pt+offset, s=s, font=font, italic=italic, justify="bottom-left"
@@ -1746,6 +1748,7 @@ class Points(vtk.vtkFollower, BaseActor):
         font : str, optional
             font name. Font "LogoType" allows for Japanese and Chinese characters.
             Use a monospace font for better rendering. The default is "VictorMono".
+            Type ``vedo -r fonts`` for a font demo.
         justify : str, optional
             internal text justification. The default is "center-right".
         vspacing : float, optional
@@ -1756,6 +1759,7 @@ class Points(vtk.vtkFollower, BaseActor):
             text and box transparency. The default is 1.
         ontop : bool, optional
             keep the 2d caption always on top. The default is True.
+
 
         |caption| |caption.py|_
 
@@ -1879,6 +1883,8 @@ class Points(vtk.vtkFollower, BaseActor):
             justification code. The default is 0.
         delay : float, optional
             pop up delay in milliseconds. The default is 150.
+
+        |flag_labels| |flag_labels.py|_
         """
         if text is None:
             if self.filename:
@@ -2769,8 +2775,6 @@ class Points(vtk.vtkFollower, BaseActor):
         return utils.vedo2trimesh(self)
 
 
-
-
     def density(self, dims=(40,40,40),
                 bounds=None, radius=None,
                 computeGradient=False, locator=None):
@@ -2789,9 +2793,9 @@ class Points(vtk.vtkFollower, BaseActor):
 
         :param vtkStaticPointLocator locator: can be assigned from a previous call for speed.
 
-        See example script: |pointDensity.py|_
+        See example script:
 
-        |plot_density3d| |plot_density3d|_
+        |plot_density3d| |plot_density3d.py|_
         """
         pdf = vtk.vtkPointDensityFilter()
 

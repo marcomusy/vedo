@@ -1,4 +1,5 @@
-![vlogo](https://user-images.githubusercontent.com/32848391/90509164-2d812a00-e159-11ea-8f31-8b341b27f316.png)
+
+![vlogo](https://user-images.githubusercontent.com/32848391/90966721-1e420980-e4d6-11ea-998f-3285d512541f.png)
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/4acbc84816a540bfb9dc67bbff520d38)](https://www.codacy.com/manual/marcomusy/vedo?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=marcomusy/vedo&amp;utm_campaign=Badge_Grade)
 [![Downloads](https://pepy.tech/badge/vtkplotter)](https://pepy.tech/project/vtkplotter)
@@ -10,7 +11,7 @@
 
 
 `vedo` is a fast and lightweight python module
-for scientific analysis and **v**isualization of **3D** **o**bjects.<br>
+for scientific analysis and **v**isualization of **3d** **o**bjects.<br>
 
 ## ✨  Philosophy
 Inspired by the [vpython](https://vpython.org/) *manifesto* "3D programming for ordinary mortals",
@@ -19,9 +20,6 @@ in just a few lines of code, even for those with less programming experience.
 
 `vedo` is based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/),
 with no other dependencies.
-It offers an intuitive and straightforward API which can be combined with VTK seamlessly
-in a program, whilst mantaining access to the full range of VTK native classes.
-
 
 ## 🎯  Table of Contents
 * [Installation](https://github.com/marcomusy/vedo#--installation)
@@ -37,8 +35,11 @@ in a program, whilst mantaining access to the full range of VTK native classes.
 Use [pip](https://projects.raspberrypi.org/en/projects/using-pip-on-windows) to install. Type:
 ```bash
 pip install vedo
+
+# to get the latest dev version use:
+pip install -U git+https://github.com/marcomusy/vedo.git
 ```
-or use [conda](https://anaconda.org/conda-forge/vedo) to install from the conda-forge channel:
+or [conda](https://anaconda.org/conda-forge/vedo) to install from the conda-forge channel:
 ```bash
 conda install -c conda-forge vedo
 ```
@@ -183,7 +184,7 @@ for a wide range of functionalities:
 </details>
 
 Moreover:
-- Polygonal 3D text rendering with Latex-like syntax and/or _unicode_, with 15 different fonts.
+- Polygonal 3D text rendering with Latex-like syntax and _unicode_ characters, with 14 different fonts.
 - Integration with the *Qt5* framework.
 - Support for [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of finite-element calculations.
 - Interoperability with the [trimesh](https://trimsh.org/) library.
@@ -202,11 +203,11 @@ Volumetric files (_mhd, vti, slc, tiff, DICOM etc.._) can be visualized in diffe
 
 |Slice a volume in the 3 planes:<br>`vedo --slicer embryo.slc`|  Ray-casting rendering:<br>`-g embryo.slc`| 2D slice:<br>`--slicer2d`| Colorize voxels:<br>`--lego`|
 |:--------|:-----|:--------|:-----|
-| ![slicer](https://user-images.githubusercontent.com/32848391/80292484-50757180-8757-11ea-841f-2c0c5fe2c3b4.jpg)|![isohead](https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif)|![viz_slicer](https://user-images.githubusercontent.com/32848391/56972084-a7f3f800-6b6a-11e9-98c4-dc4ffec70a5e.png)  |![lego](https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg) |
+| ![slicer](https://user-images.githubusercontent.com/32848391/80292484-50757180-8757-11ea-841f-2c0c5fe2c3b4.jpg)|![isohead](https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif)|![viz_slicer](https://user-images.githubusercontent.com/32848391/90966778-fc955200-e4d6-11ea-8e29-215f7aea3860.png)  |![lego](https://user-images.githubusercontent.com/32848391/56969949-71b47980-6b66-11e9-8251-4bbdb275cb22.jpg) |
 
 
-To visualize multiple files or files time-sequences try `-n` or `-s` options. Use `-h` for the complete list of options.  <br>
-A GUI is also available (mainly useful to Windows 10 users) which can be invoked with command line `vedo`.
+To visualize multiple files or files time-sequences try `-n` or `-s` options. Use `-h` for the complete list of options.<br>
+A GUI is also available (mainly useful to Windows 10 users) which can be invoked with command `vedo`.
 
 ## 🐾  Examples
 **300+ working examples can be found in directories**: <br>
@@ -232,16 +233,17 @@ A GUI is also available (mainly useful to Windows 10 users) which can be invoked
 <br>
 
 ### Random Gallery of Examples
-Run any of the following built-in examples from command line, type:
+Run any of the following _built-in_ examples from command line. Type:
 
 > `vedo -r covid19`
 
 |     |     |     |     |
 |:---:|:---:|:---:|:---:|
-|![graph1](https://user-images.githubusercontent.com/32848391/90437546-ddf81b00-e0d2-11ea-84d5-e4356a5c5f85.png)<br>`graph_network`     | ![intersect](https://user-images.githubusercontent.com/32848391/90437548-de90b180-e0d2-11ea-8e0c-d821db4da8a9.png)<br>`intersect2d`    |![goniom](https://user-images.githubusercontent.com/32848391/90437544-dd5f8480-e0d2-11ea-8321-b52d073444c4.png)<br>`goniometer`     |![](https://user-images.githubusercontent.com/32848391/82767103-2500a800-9e25-11ea-8506-e583e8ec4b01.jpg)<br>`tet_threshold`     |
-|![density](https://user-images.githubusercontent.com/32848391/90437537-dc2e5780-e0d2-11ea-982c-8dafd467c3cd.png)<br>`density3d`|![caption](https://user-images.githubusercontent.com/32848391/90437536-dc2e5780-e0d2-11ea-8951-f905ffb54f54.png)<br>`caption`|![fonts](https://user-images.githubusercontent.com/32848391/90507486-3e7c6c00-e156-11ea-8ae6-4406b7332873.png)<br>`fonts`|![fonts3d](https://user-images.githubusercontent.com/32848391/90437540-dd5f8480-e0d2-11ea-8ddc-8839688979d0.png)<br>`fonts`|
+| ![covid](https://user-images.githubusercontent.com/32848391/77330206-4824b380-6d1f-11ea-9bc3-e3aef970dcc2.gif) <br>`vedo -r covid19`   |![caption](https://user-images.githubusercontent.com/32848391/90437536-dc2e5780-e0d2-11ea-8951-f905ffb54f54.png)<br>`caption`|![fonts3d](https://user-images.githubusercontent.com/32848391/90437540-dd5f8480-e0d2-11ea-8ddc-8839688979d0.png)<br>`font`|![fonts](https://user-images.githubusercontent.com/32848391/90966829-9bba4980-e4d7-11ea-9ec8-23bac4b7448e.png)<br>`fonts`|
+| ![customaxes](https://user-images.githubusercontent.com/32848391/90966973-0750e680-e4d9-11ea-8e56-d75a1ad523dd.png)<br>`customaxes`    | ![intersect](https://user-images.githubusercontent.com/32848391/90437548-de90b180-e0d2-11ea-8e0c-d821db4da8a9.png)<br>`intersect2d`    |![goniom](https://user-images.githubusercontent.com/32848391/90437544-dd5f8480-e0d2-11ea-8321-b52d073444c4.png)<br>`goniometer`     |![](https://user-images.githubusercontent.com/32848391/82767103-2500a800-9e25-11ea-8506-e583e8ec4b01.jpg)<br>`tet_threshold`     |
+|![density](https://user-images.githubusercontent.com/32848391/90437537-dc2e5780-e0d2-11ea-982c-8dafd467c3cd.png)<br>`density3d`     |![mquality](https://user-images.githubusercontent.com/32848391/90976242-91319b80-e53b-11ea-8ff6-77ec78330657.png)<br>`meshquality`     | ![levelterrain](https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png)<br>`isolines`    |![](https://user-images.githubusercontent.com/32848391/82767107-2631d500-9e25-11ea-967c-42558f98f721.jpg)<br>`tet_cutmesh1`     |
 | ![geologic](https://user-images.githubusercontent.com/32848391/81397531-d2867280-9127-11ea-8cc8-0effbbbebf2d.jpg) <br>`geological`|![multirender](https://user-images.githubusercontent.com/32848391/81459297-80813380-919f-11ea-89b1-39a305dd9897.png) <br>`multirender`| ![cartoony](https://user-images.githubusercontent.com/32848391/81459306-8840d800-919f-11ea-859e-d9c0b432e644.png) <br>`cartoony`|![streamline4](https://user-images.githubusercontent.com/32848391/81459343-b9210d00-919f-11ea-846c-152d62cba06e.png) <br>`streamlines4`|
-| ![covid](https://user-images.githubusercontent.com/32848391/77330206-4824b380-6d1f-11ea-9bc3-e3aef970dcc2.gif) <br>`covid19`| ![lineage_graph](https://user-images.githubusercontent.com/32848391/80291851-8152a800-8751-11ea-893e-4a0bb85397b1.png) <br>`graph_lineage` |![siluette](https://user-images.githubusercontent.com/32848391/57179369-8e5df380-6e7d-11e9-99b4-3b1a120dd375.png) <br>`silhouette1`  | ![levelterrain](https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png)<br>`isolines`|
+| ![graph1](https://user-images.githubusercontent.com/32848391/90437546-ddf81b00-e0d2-11ea-84d5-e4356a5c5f85.png)<br>`graph_network`   | ![lineage_graph](https://user-images.githubusercontent.com/32848391/80291851-8152a800-8751-11ea-893e-4a0bb85397b1.png) <br>`graph_lineage` |![siluette](https://user-images.githubusercontent.com/32848391/57179369-8e5df380-6e7d-11e9-99b4-3b1a120dd375.png) <br>`silhouette1`  | ![](https://user-images.githubusercontent.com/32848391/90298998-a734c180-de94-11ea-8dbe-bf68d451b1d6.png)<br>`silhouette2`        |
 | ![gyro](https://user-images.githubusercontent.com/32848391/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif) <br>`gyroscope2` | ![thinplate_grid](https://user-images.githubusercontent.com/32848391/51433540-d188b380-1c4c-11e9-81e7-a1cf4642c54b.png ) <br>`thinplate_grid`  | ![trail](https://user-images.githubusercontent.com/32848391/58370826-4aee2680-7f0b-11e9-91e6-3120770cfede.gif) <br>`trail`   | ![quadratic_morphing](https://user-images.githubusercontent.com/32848391/50738890-db380300-11d8-11e9-9cef-4c1276cca334.jpg)  <br>`quadratic_morphing`  |
 | ![shrink](https://user-images.githubusercontent.com/32848391/46819143-41042280-cd83-11e8-9492-4f53679887fa.png) <br>`shrink` | ![mesh_custom](https://user-images.githubusercontent.com/32848391/51390972-20d9c180-1b31-11e9-955d-025f1ef24cb7.png) <br>`mesh_custom`   | ![spring](https://user-images.githubusercontent.com/32848391/36788885-e97e80ae-1c8f-11e8-8b8f-ffc43dad1eb1.gif) <br>`spring`   | ![lorenz](https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png) <br>`lorentz`   |
 | ![sliders](https://user-images.githubusercontent.com/32848391/50738848-be033480-11d8-11e9-9b1a-c13105423a79.jpg) <br>`sliders` | ![fitspheres1](https://user-images.githubusercontent.com/32848391/50738943-687b5780-11d9-11e9-87a6-054e0fe76241.jpg) <br>`fitspheres1`   | ![fxy](https://user-images.githubusercontent.com/32848391/36611824-fd524fac-18d4-11e8-8c76-d3d1b1bb3954.png) <br>`plot4_fxy`   | ![histogram](https://user-images.githubusercontent.com/32848391/68141260-77cc4e00-ff2d-11e9-9280-0efc5b87314d.png) <br>`histo_1D`   |
@@ -253,7 +255,7 @@ Run any of the following built-in examples from command line, type:
 | ![streamplot](https://user-images.githubusercontent.com/32848391/73614123-93162a80-45fc-11ea-969b-9a3293b26f35.png) <br>`plot7_stream`| ![violin](https://user-images.githubusercontent.com/32848391/73481240-b55d3d80-439b-11ea-89a4-6c35ecc84b0d.png) <br>`histo_violin`   | ![plot3_pip](https://user-images.githubusercontent.com/32848391/73393632-4ff64780-42dc-11ea-8798-45a81c067f45.png) <br>`plot3_pip`   | ![histo_spheric](https://user-images.githubusercontent.com/32848391/73392901-fccfc500-42da-11ea-828a-9bad6982a823.png)  <br>`histo_spheric`  |
 | ![readvts](https://user-images.githubusercontent.com/32848391/80862655-04568f80-8c77-11ea-8249-5b61283e04ce.png)  <br>`read_vts`  | ![donutPlot](https://user-images.githubusercontent.com/32848391/64998178-6f6b7580-d8e3-11e9-9bd8-8dfb9ccd90e4.png)  <br>`donut`  | ![extrude](https://user-images.githubusercontent.com/32848391/65963682-971e1a00-e45b-11e9-9f29-05522ae4a800.png) <br>`extrude`   | ![plotxy](https://user-images.githubusercontent.com/32848391/69158509-d6c1c380-0ae6-11ea-9dbf-ff5cd396a9a6.png) <br>`plot1_errbars`   |
 | ![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif)|   ![viz_raycast](https://user-images.githubusercontent.com/32848391/58336919-f7b1a080-7e44-11e9-9106-f574371093a8.gif)  | ![viz_slicer](https://user-images.githubusercontent.com/32848391/80866479-3bd13600-8c8f-11ea-83c7-5f5b4fccb29d.png)  |![lego](https://user-images.githubusercontent.com/32848391/59788744-aaeaa980-92cc-11e9-825d-58da26ca21ff.gif) |
-| ![particle_simulator](https://user-images.githubusercontent.com/32848391/50738891-db380300-11d8-11e9-84c2-0f55be7228f1.gif) <br>`particle_simulator`| ![heatconv](https://user-images.githubusercontent.com/32848391/57455107-b200af80-726a-11e9-897d-9c7bcb9854ac.gif) <br>`heatconv` |![elastodynamics](https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif) <br>`elastodynamics`  | ![navier-stokes_lshape](https://user-images.githubusercontent.com/32848391/56671156-6bc91f00-66b4-11e9-8c58-e6b71e2ad1d0.gif)<br>`stokes_lshape`|
+| ![particle_simulator](https://user-images.githubusercontent.com/32848391/50738891-db380300-11d8-11e9-84c2-0f55be7228f1.gif) <br>`particle_simulator`| ![heatconv](https://user-images.githubusercontent.com/32848391/57455107-b200af80-726a-11e9-897d-9c7bcb9854ac.gif) <br>`heatconv` |![elastodynamics](https://user-images.githubusercontent.com/32848391/56986911-6116fa00-6b8c-11e9-83f5-5b4efe430c0c.jpg) <br>`stokes`  | ![navier-stokes_lshape](https://user-images.githubusercontent.com/32848391/56671156-6bc91f00-66b4-11e9-8c58-e6b71e2ad1d0.gif)<br>`stokes_lshape`|
 
 ## 📜  References
 

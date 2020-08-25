@@ -22,8 +22,7 @@ c = vp1.load(datadir+"porsche.ply")
 
 # show a Text2D in each renderer
 for i in range(25):
-    txt = Text2D("renderer\nnr."+str(i), c='k', font='arial', s=1)
-    vp1.show(txt, at=i)
+    vp1.show("renderer\nnr."+str(i), at=i)
 
 vp1.show(a, at= 6)
 vp1.show(b, at=23)

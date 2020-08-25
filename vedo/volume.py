@@ -1,5 +1,5 @@
 from __future__ import division, print_function
-import glob
+import glob, os
 import numpy as np
 import vtk
 import vedo.colors as colors
@@ -270,6 +270,8 @@ class Volume(vtk.vtkVolume, BaseGrid):
             if "https://" in inputobj:
                 from vedo.io import download
                 inputobj = download(inputobj, verbose=False) # fpath
+            elif os.path.isfile(inputobj):
+                pass
             else:
                 inputobj = sorted(glob.glob(inputobj))
 

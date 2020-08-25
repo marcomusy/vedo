@@ -13,9 +13,9 @@ a1 = precision(m1.area(),3) + " \mum\^2"
 a2 = precision(m2.area(),3) + " \mum\^2"
 
 vig1 = m1.vignette('Triangle 1\nA=' + a1,
-                   pt=(2.1,0.7), s=0.012, offset=(-0.3,0.04))
+                   point=(2.1,0.7), s=0.012, offset=(-0.3,0.04))
 vig2 = m2.vignette('Triangle 2\nA=' + a2,
-                   pt=(1.9,0.4), s=0.012, offset=(0.2,-0.2))
+                   point=(1.9,0.4), s=0.012, offset=(0.2,-0.2))
 
 m3 = m1.clone().wireframe(False).c('tomato').lw(0)
 
@@ -29,7 +29,7 @@ if m3.NPoints():
     m3.cutWithPlane(origin=v2, normal=np.cross(zax, v0-v2))
 
 vig3 = m3.vignette('Overlap polygon\nA=' + precision(m3.area(),3),
-                   pt=(2.2,0.6), s=0.012)
+                   point=(2.2,0.6), s=0.012)
 
 show(m1, m2, m3, vig1, vig2, vig3, __doc__,
      axes=1, size=(800,600), zoom=1.3)
