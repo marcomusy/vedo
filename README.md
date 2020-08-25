@@ -39,7 +39,7 @@ pip install vedo
 # To get the latest dev version use:
 pip install -U git+https://github.com/marcomusy/vedo.git
 ```
-or [conda](https://anaconda.org/conda-forge/vedo) to install from the conda-forge channel:
+or from the conda-forge channel:
 ```bash
 conda install -c conda-forge vedo
 ```
@@ -75,7 +75,7 @@ or send an [email](mailto:marco.musy@embl.es).
 
 
 ## 🎨  Features
-The `vedo` module includes a **[large set of working examples](https://github.com/marcomusy/vedo/tree/master/vedo/examples)**
+The `vedo` module includes a **[large set of working examples](https://github.com/marcomusy/vedo/tree/master/examples)**
 for a wide range of functionalities:
 <details>
 <summary>working with polygonal meshes and point clouds (click triangle to expand)</summary>
@@ -211,24 +211,24 @@ A GUI is also available (mainly useful to Windows 10 users) which can be invoked
 
 ## 🐾  Examples
 **300+ working examples can be found in directories**: <br>
-[**examples/basic**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/basic)<br>
-[**examples/advanced**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/advanced)<br>
-[**examples/volumetric**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/volumetric)<br>
-[**examples/tetmesh**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/tetmesh)<br>
-[**examples/simulations**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations)<br>
-[**examples/pyplot**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/pyplot)<br>
-[**examples/other**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/other)<br>
-[**examples/other/dolfin**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/dolfin)<br>
-[**examples/other/trimesh**](https://github.com/marcomusy/vedo/blob/master/vedo/examples/other/trimesh)<br>
+[**examples/basic**](https://github.com/marcomusy/vedo/tree/master/examples/basic)<br>
+[**examples/advanced**](https://github.com/marcomusy/vedo/tree/master/examples/advanced)<br>
+[**examples/volumetric**](https://github.com/marcomusy/vedo/tree/master/examples/volumetric)<br>
+[**examples/tetmesh**](https://github.com/marcomusy/vedo/tree/master/examples/tetmesh)<br>
+[**examples/simulations**](https://github.com/marcomusy/vedo/tree/master/examples/simulations)<br>
+[**examples/pyplot**](https://github.com/marcomusy/vedo/tree/master/examples/pyplot)<br>
+[**examples/other**](https://github.com/marcomusy/vedo/tree/master/examples/other)<br>
+[**examples/other/dolfin**](https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin)<br>
+[**examples/other/trimesh**](https://github.com/marcomusy/vedo/tree/master/examples/other/trimesh)<br>
 [**notebooks**](https://github.com/marcomusy/vedo/blob/master/notebooks)<br>
 
 |         |      |
 |:--------|:-----|
-|Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a large cloud of scattered points in space ([script](https://github.com/marcomusy/vedo/blob/master/vedo/examples/advanced/moving_least_squares2D.py))<br>![rabbit](https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg)  | ![airplanes](https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)<br> Create a simple 3D animation in exactly 10 lines of code ([script](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/airplanes.py)). Trails and shadows can be added to moving objects easily|
+|Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a large cloud of scattered points in space ([script](https://github.com/marcomusy/vedo/tree/master/examples/advanced/moving_least_squares2D.py))<br>![rabbit](https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg)  | ![airplanes](https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)<br> Create a simple 3D animation in exactly 10 lines of code ([script](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplanes.py)). Trails and shadows can be added to moving objects easily|
 |         |      |
-| Simulation of a gyroscope hanging from a spring ([script](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/gyroscope1.py))<br> ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)     | ![qsine2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)<br>  Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. ([script](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/tunnelling2.py)) |
+| Simulation of a gyroscope hanging from a spring ([script](https://github.com/marcomusy/vedo/tree/master/examples/simulations/gyroscope1.py))<br> ![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)     | ![qsine2](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)<br>  Quantum-tunnelling effect integrating the Schroedinger equation with 4th order Runge-Kutta method. The animation shows the evolution of a particle in a box hitting a sinusoidal potential barrier. ([script](https://github.com/marcomusy/vedo/tree/master/examples/simulations/tunnelling2.py)) |
 |         |      |
-|Turing system of reaction-diffusion between two molecules ([script](https://github.com/marcomusy/vedo/blob/master/vedo/examples/simulations/grayscott.py)) <br>![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)  | ![trimesh](https://user-images.githubusercontent.com/32848391/91164151-e8b44080-e6ce-11ea-8213-cf5b12aa4d16.png)<br>Interoperability with the [trimesh](https://trimsh.org/) library |
+|Turing system of reaction-diffusion between two molecules ([script](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)) <br>![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)  | [![trimesh](https://user-images.githubusercontent.com/32848391/91164151-e8b44080-e6ce-11ea-8213-cf5b12aa4d16.png)](https://github.com/marcomusy/vedo/blob/master/examples/other/trimesh/section.py)<br>Interoperability with the [trimesh](https://trimsh.org/) library (see [here](https://github.com/marcomusy/vedo/tree/master/examples/other/trimesh)) |
 |         |      |
 |Support for the [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of PDE and finite element solutions ([see here](https://vedo.embl.es/content/vedo/dolfin.html)) <br>![elastodyn](https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif) | ![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif) |
 
@@ -243,7 +243,7 @@ Run any of the following _built-in_ examples from command line. Type:
 |:---:|:---:|:---:|:---:|
 | ![covid](https://user-images.githubusercontent.com/32848391/77330206-4824b380-6d1f-11ea-9bc3-e3aef970dcc2.gif) <br>`vedo -r covid19`   |![caption](https://user-images.githubusercontent.com/32848391/90437536-dc2e5780-e0d2-11ea-8951-f905ffb54f54.png)<br>`caption`|![fonts3d](https://user-images.githubusercontent.com/32848391/90437540-dd5f8480-e0d2-11ea-8ddc-8839688979d0.png)<br>`font`|![fonts](https://user-images.githubusercontent.com/32848391/90966829-9bba4980-e4d7-11ea-9ec8-23bac4b7448e.png)<br>`fonts`|
 | ![customaxes](https://user-images.githubusercontent.com/32848391/90966973-0750e680-e4d9-11ea-8e56-d75a1ad523dd.png)<br>`customaxes`    | ![intersect](https://user-images.githubusercontent.com/32848391/90437548-de90b180-e0d2-11ea-8e0c-d821db4da8a9.png)<br>`intersect2d`    |![goniom](https://user-images.githubusercontent.com/32848391/90437544-dd5f8480-e0d2-11ea-8321-b52d073444c4.png)<br>`goniometer`     |![](https://user-images.githubusercontent.com/32848391/82767103-2500a800-9e25-11ea-8506-e583e8ec4b01.jpg)<br>`tet_threshold`     |
-|![density](https://user-images.githubusercontent.com/32848391/90437537-dc2e5780-e0d2-11ea-982c-8dafd467c3cd.png)<br>`density3d`     |![mquality](https://user-images.githubusercontent.com/32848391/90976242-91319b80-e53b-11ea-8ff6-77ec78330657.png)<br>`meshquality`     | ![levelterrain](https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png)<br>`isolines`    |![](https://user-images.githubusercontent.com/32848391/82767107-2631d500-9e25-11ea-967c-42558f98f721.jpg)<br>`tet_cutmesh1`     |
+| ![density](https://user-images.githubusercontent.com/32848391/90437537-dc2e5780-e0d2-11ea-982c-8dafd467c3cd.png)<br>`density3d`     |![mquality](https://user-images.githubusercontent.com/32848391/90976242-91319b80-e53b-11ea-8ff6-77ec78330657.png)<br>`meshquality`     | ![levelterrain](https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png)<br>`isolines`    |![](https://user-images.githubusercontent.com/32848391/82767107-2631d500-9e25-11ea-967c-42558f98f721.jpg)<br>`tet_cutmesh1`     |
 | ![geologic](https://user-images.githubusercontent.com/32848391/81397531-d2867280-9127-11ea-8cc8-0effbbbebf2d.jpg) <br>`geological`|![multirender](https://user-images.githubusercontent.com/32848391/81459297-80813380-919f-11ea-89b1-39a305dd9897.png) <br>`multirender`| ![cartoony](https://user-images.githubusercontent.com/32848391/81459306-8840d800-919f-11ea-859e-d9c0b432e644.png) <br>`cartoony`|![streamline4](https://user-images.githubusercontent.com/32848391/81459343-b9210d00-919f-11ea-846c-152d62cba06e.png) <br>`streamlines4`|
 | ![graph1](https://user-images.githubusercontent.com/32848391/90437546-ddf81b00-e0d2-11ea-84d5-e4356a5c5f85.png)<br>`graph_network`   | ![lineage_graph](https://user-images.githubusercontent.com/32848391/80291851-8152a800-8751-11ea-893e-4a0bb85397b1.png) <br>`graph_lineage` |![siluette](https://user-images.githubusercontent.com/32848391/57179369-8e5df380-6e7d-11e9-99b4-3b1a120dd375.png) <br>`silhouette1`  | ![](https://user-images.githubusercontent.com/32848391/90298998-a734c180-de94-11ea-8dbe-bf68d451b1d6.png)<br>`silhouette2`        |
 | ![gyro](https://user-images.githubusercontent.com/32848391/50738942-687b5780-11d9-11e9-97f0-72bbd63f7d6e.gif) <br>`gyroscope2` | ![thinplate_grid](https://user-images.githubusercontent.com/32848391/51433540-d188b380-1c4c-11e9-81e7-a1cf4642c54b.png ) <br>`thinplate_grid`  | ![trail](https://user-images.githubusercontent.com/32848391/58370826-4aee2680-7f0b-11e9-91e6-3120770cfede.gif) <br>`trail`   | ![quadratic_morphing](https://user-images.githubusercontent.com/32848391/50738890-db380300-11d8-11e9-9cef-4c1276cca334.jpg)  <br>`quadratic_morphing`  |
