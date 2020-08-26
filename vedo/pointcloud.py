@@ -2090,7 +2090,7 @@ class Points(vtk.vtkFollower, BaseActor):
     def cmap(self,
              cname,
              input_array=None,
-             mode="points",
+             on="points",
              arrayName="",
              vmin=None, vmax=None,
              alpha=1,
@@ -2102,8 +2102,8 @@ class Points(vtk.vtkFollower, BaseActor):
 
         :param cname: color map scheme to transform a real number into a color.
         :type cname: str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap
-        :param str mode: either 'points' or 'cells'
-            to apply the color map to either point or cell-associated data.
+        :param str on: either 'points' or 'cells'.
+            Apply the color map as defined on either point or cell data.
 
         :param str arrayName: give a name to the array
         :param float vmin: clip scalars to this minimum value
@@ -2117,14 +2117,14 @@ class Points(vtk.vtkFollower, BaseActor):
 
              |mesh_coloring| |mesh_alphas| |mesh_custom|
         """
-        if mode.startswith('p'):
+        if on.startswith('p'):
             if not arrayName: arrayName="PointScalars"
             self.pointColors(input_array, cname, alpha, vmin, vmax, arrayName, n)
-        elif mode.startswith('c'):
+        elif on.startswith('c'):
             if not arrayName: arrayName="CellScalars"
             self.cellColors(input_array, cname, alpha, vmin, vmax, arrayName, n)
         else:
-            colors.printc('Must specify mode in cmap(mode="either cells or points")!', c='r')
+            colors.printc('Must specify mode in cmap(on="either cells or points")!', c='r')
             raise RuntimeError()
         return self
 
@@ -2137,7 +2137,7 @@ class Points(vtk.vtkFollower, BaseActor):
                     n=256,
                     ):
         """
-        DEPRECATED: use cmap(mode="points") instead.
+        DEPRECATED: use cmap() instead.
         """
         poly = self.polydata(False)
 
@@ -2243,7 +2243,7 @@ class Points(vtk.vtkFollower, BaseActor):
                    n=256,
                   ):
         """
-        DEPRECATED: use cmap(mode='cells') instead.
+        DEPRECATED: use cmap(on='cells') instead.
         """
         poly = self.polydata(False)
 

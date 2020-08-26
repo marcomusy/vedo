@@ -56,7 +56,7 @@ for step in range(Nsteps):
         u += Du*Lu - uvv + F*(1-u)
         v += Dv*Lv + uvv - (F+k)*v
 
-    grd.cmap('ocean_r', V.ravel(), mode='cells', arrayName="escals")
+    grd.cmap('ocean_r', V.ravel(), on='cells', arrayName="escals")
     grd.mapCellsToPoints()
     newpts = grd.points()
     newpts[:,2] = grd.getPointArray('escals')*25 # assign z

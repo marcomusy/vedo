@@ -958,6 +958,39 @@ class BaseActor(Base3DProp):
         return self.addCellArray(vectors, name)
 
 
+    def gradient(self, arrname=None, on='points'):
+        """
+        Compute and return the gradiend of a scalar field as a numpy array.
+
+        :param str arrname: name of the existing scalar field
+        :param str on: either 'points' or 'cells'
+
+        |isolines| |isolines.py|_
+        """
+        gra = vtk.vtkGradientFilter()
+        if on.startswith('p'):
+            varr = self.inputdata().GetPointData()
+            tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
+        else:
+            varr = self.inputdata().GetCellData()
+            tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
+        if not arrname:
+            if self.GetScalars():
+                arrname = varr.GetScalars().GetName()
+            else:
+                colors.printc('Error in gradient: no scalars found for', on, c='r')
+                raise RuntimeError
+        gra.SetInputData(self.inputdata())
+        gra.SetInputScalars(tp, arrname)
+        gra.SetResultArrayName('Gradients')
+        gra.Update()
+        if on.startswith('p'):
+            gvecs = vtk_to_numpy(gra.GetOutput().GetPointData().GetArray('Gradients'))
+        else:
+            gvecs = vtk_to_numpy(gra.GetOutput().GetCellData().GetArray('Gradients'))
+        return gvecs
+
+
     def mapCellsToPoints(self):
         """
         Transform cell data (i.e., data specified per cell)

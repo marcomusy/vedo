@@ -522,7 +522,7 @@ def addScalarBar3D(
         c = (0.9, 0.9, 0.9)
         if np.sum(getColor(plt.backgrcol)) > 1.5:
             c = (0.1, 0.1, 0.1)
-    if c is None: c = 'gray'
+    if c is None: c = (0,0,0)
     c = getColor(c)
 
     bns = obj.GetBounds()
@@ -554,7 +554,7 @@ def addScalarBar3D(
                         sx=sx, sy=sy, resx=1, resy=256)
     scale.lw(0).wireframe(False)
     cscals = scale.cellCenters()[:, 1]
-    scale.cmap(lut, cscals, mode='cells')
+    scale.cmap(lut, cscals, on='cells')
     scale.lighting('off')
     xbns = scale.xbounds()
 
@@ -1038,7 +1038,7 @@ def buildRulerAxes(
     xlabel="",
     ylabel="",
     zlabel="",
-    xpad=0.04,
+    xpad=0.05,
     ypad=0.04,
     zpad=0,
     font="Normografo",
@@ -1104,8 +1104,8 @@ def buildRulerAxes(
                     lw=lw, italic=italic, prefix=ztitle, label=zlabel, units=units)
         acts.append(rz)
 
+    ncolls = len(settings.collectable_actors)
     if xycross and rx and ry:
-        ncolls = len(settings.collectable_actors)
         lx = shapes.Line([x0,y0,z0],    [x0,y1+dx,z0])
         ly = shapes.Line([x0-dy,y1,z0], [x1,y1,z0])
         d = min((x1-x0), (y1-y0))/200

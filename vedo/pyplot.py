@@ -1446,7 +1446,7 @@ def _histogram2D(
         resy=bins[1],
     )
     g.alpha(alpha).lw(lw).wireframe(0).flat().lighting('off')
-    g.cmap(cmap, np.ravel(H.T), mode='cells')
+    g.cmap(cmap, np.ravel(H.T), on='cells')
     g.SetOrigin(x0lim, y0lim, 0)
     if scalarbar:
         sc = g.addScalarBar3D(c=bc)
@@ -1830,7 +1830,7 @@ def _histogramSpheric(
         newsgpts[fs] = np.c_[x, y, z]
 
     newsg.points(newsgpts)
-    newsg.cmap(cmap, acounts, mode='cells')
+    newsg.cmap(cmap, acounts, on='cells')
 
     if scalarbar:
         newsg.addScalarBar()

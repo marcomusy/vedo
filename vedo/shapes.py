@@ -3013,7 +3013,7 @@ def ConvexHull(pts):
     return m
 
 
-def VedoLogo(distance=0, c=None, bc='dr', version=False, frame=True):
+def VedoLogo(distance=0, c=None, bc='t', version=False, frame=True):
     """
     Create the 3D vedo logo.
 
@@ -3042,7 +3042,7 @@ def VedoLogo(distance=0, c=None, bc='dr', version=False, frame=True):
         ms = vedo.io.load(vedo.datadir+'omesh.vtk')
         ms.scale([1,1,0.3]).pos(1210, 550, 95).lighting('shiny').pickable(0)
         # Spectral, viridis_r, jet_r, gist_ncar, prism, seismic_r, brg_r
-        ms.cmap('jet_r', mode='cells')
+        ms.cmap('jet_r', on='cells')
         sphere.scale([1,1,0.3]).pos(1540, 548, 82)
         sphere.lighting('off').frontFaceCulling(True).pickable(False)
     except:
@@ -3050,13 +3050,14 @@ def VedoLogo(distance=0, c=None, bc='dr', version=False, frame=True):
         ms = None
         sphere = None
 
-    vlogo = Text(txt, font='Comae', s=1350, depth=0.2, c=c, hspacing=0.8)
+    font = 'Comae'
+    vlogo = Text(txt, font=font, s=1350, depth=0.2, c=c, hspacing=0.8)
     vlogo.scale([1,.95,1]).x(-2525).pickable(False).bc(bc)
     vlogo.GetProperty().LightingOn()
 
     vr, rul = None, None
     if version:
-        vr = Text(vedo.__version__, font='Comae',
+        vr = Text(vedo.__version__, font=font,
                   s=165, depth=0.2, c=c, hspacing=1).scale([1,.7,1])
         vr.RotateZ(90)
         vr.pos(2450,50,80).bc(bc).pickable(False)
@@ -3065,9 +3066,9 @@ def VedoLogo(distance=0, c=None, bc='dr', version=False, frame=True):
         rul = vedo.buildRulerAxes((-2600,2110, 0,1650, 0,0),
                                   xlabel='European Molecular Biology Laboratory',
                                   ylabel=vedo.__version__,
-                                  font="Comae",
+                                  font=font,
                                   xpad=0.09, ypad=0.04,
-                                 )
+                                 ).pickable(False)
     fakept = vedo.Point((0,500, distance*1725), alpha=0, c=c, r=1).pickable(0)
     asso = vedo.Assembly([vlogo, vr, ms, sphere, fakept, rul]).scale(1/1725)
     return asso

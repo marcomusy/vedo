@@ -8,9 +8,14 @@ settings.defaultFont = 'Theemim'
 # an invisible box:
 world = Box(pos=(2.7,0,0), size=(12,10,8), alpha=0)
 
+# a dummy spline with its shadow on the xy plane
+pts = Points([(-2,-3.2,-1.5), (3,-1.2,-2), (7,3,4)], r=12)
+spl = Spline(pts, res=50).addShadow(z=-4) # make spline and add its shadow at z=-4
+lns = Lines(spl, spl.shadow)              # join spline points with its own shadow
+
 # make a dictionary of axes options
 axes_opts = dict(
-    xtitle='My variable \Omega^\lowerxi_lm  in units of \mum^3', # latex-style
+    xtitle='My variable \Omega^\lowerxi_lm  in units of \mum^3', # latex-style syntax
     ytitle='This is my highly\ncustomized y-axis',
     ztitle='z in units of Å', # many unicode chars are supported (type: vedo -r fonts)
     yValuesAndLabels=[(-3.2,'Mark^a_-3.2'), (-1.2,'Carmen^b_-1.2'), (3,'John^c_3')],
@@ -37,11 +42,6 @@ axes_opts = dict(
     yLabelColor='dg',    # color of the numeric labels along Y axis
     yLabelRotation=1,    # rotate clockwise by 90 deg
 )
-
-# a dummy spline with its shadow on the xy plane
-pts = Points([(-2,-3.2,-1.5), (3,-1.2,-2), (7,3,4)], r=12)
-spl = Spline(pts, res=50).addShadow(z=-4) # make spline and add its shadow at z=-4
-lns = Lines(spl, spl.shadow)              # join spline points with its own shadow
 
 show(world, pts, spl, lns, __doc__+settings.defaultFont, axes=axes_opts)
 

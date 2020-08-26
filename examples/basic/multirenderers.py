@@ -19,6 +19,6 @@ for i in range(len(custom_shape)):
     msg = 'Renderer nr.'+str(i)+'\n'+str(custom_shape[i])+'\nShape = '+s.name
     plt.show(s, msg, at=i)
 
-plt.add(Text2D(__doc__, pos=2, font="Quikhand", s=1.5), at=0)
+plt.add(Text2D(__doc__, pos='bottom-right', font="Quikhand", s=1.5), at=0)
 
 interactive()

@@ -61,7 +61,7 @@ options = dict(
 poly_data = FloretTessagon(**options).create_mesh()
 poly_data.GetCellData().GetScalars().SetName("color_pattern")
 floret = Mesh(poly_data).reverse().y(-9).scale(0.7)
-floret.cmap('Greens_r', input_array="color_pattern", mode='cells').lineWidth(0.1)
+floret.cmap('Greens_r', input_array="color_pattern", on='cells').lineWidth(0.1)
 
 # ---------------------------------------------------------
 show(rhombus, dodeca, floret, __doc__, axes=1)

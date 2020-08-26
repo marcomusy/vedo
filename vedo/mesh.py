@@ -678,7 +678,7 @@ class Mesh(Points):
         pd = qf.GetOutput()
         varr = pd.GetCellData().GetArray('Quality')
         self.addCellArray(varr, "Quality")
-        self.cmap(cmap, "Quality", mode='cells')
+        self.cmap(cmap, "Quality", on='cells')
         arr = vtk_to_numpy(pd.GetCellData().GetArray('Quality'))
         return arr
 
