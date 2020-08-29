@@ -44,6 +44,7 @@ __all__ = [
 #####################################################################
 def Ruler(
     p1, p2,
+    scale_factor=1,
     label="",
     s=None,
     font="",
@@ -62,6 +63,7 @@ def Ruler(
     Build a 3D ruler to indicate the distance of two points p1 and p2.
 
     :param str label: alternative fixed label to be shown
+    :param float scale_factor: factor to scale units (e.g. μm to mm)
     :param float s: size of the label
     :param str font: font name
     :param float italic: italicness of the font [0,1]
@@ -84,10 +86,10 @@ def Ruler(
     q1, q2 = [0, 0, 0], [mag(p2 - p1), 0, 0]
     q1, q2 = np.array(q1), np.array(q2)
     v = q2 - q1
-    d = mag(v)
+    d = mag(v) * scale_factor
 
     if s is None:
-        s = d*0.02
+        s = d*0.02*(1/scale_factor)
 
     if not label:
         label = str(d)
@@ -111,14 +113,14 @@ def Ruler(
     lc1 = shapes.Line(q1 - v / 50, pc1)
     lc2 = shapes.Line(q2 + v / 50, pc2)
 
-    zs = np.array([0, d / 50, 0])
+    zs = np.array([0, d / 50 * (1/scale_factor), 0])
     ml1 = shapes.Line(-zs, zs).pos(q1)
     ml2 = shapes.Line(-zs, zs).pos(q2)
     ml1.RotateZ(tickAngle-90)
     ml2.RotateZ(tickAngle-90)
 
-    c1 = shapes.Circle(q1, r=d / 180, res=20)
-    c2 = shapes.Circle(q2, r=d / 180, res=20)
+    c1 = shapes.Circle(q1, r=d / 180 * (1/scale_factor), res=20)
+    c2 = shapes.Circle(q2, r=d / 180 * (1/scale_factor), res=20)
 
     acts = [lb, lc1, lc2, c1, c2, ml1, ml2]
     macts = merge(acts).pos(p1).c(c).alpha(alpha)
