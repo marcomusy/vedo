@@ -2,26 +2,24 @@ from __future__ import division, print_function
 import glob, os
 import numpy as np
 import vtk
+from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 import vedo.colors as colors
 import vedo.docs as docs
 import vedo.utils as utils
-from vtk.util.numpy_support import numpy_to_vtk
 from vedo.mesh import Mesh
 from vedo.base import BaseGrid
-__doc__ = (
-    """
-Submodule extending the ``vtkVolume`` object functionality.
-"""
+
+__doc__ = ("""Submodule extending the ``vtkVolume`` object functionality."""
     + docs._defs
 )
 
-__all__ = ["Volume",
+__all__ = [
+           "Volume",
            "mesh2Volume",
            "volumeFromMesh",
            "interpolateToVolume",
            "signedDistanceFromPointCloud",
           ]
-
 
 
 def mesh2Volume(mesh, spacing=(1, 1, 1)):
@@ -462,7 +460,6 @@ class Volume(vtk.vtkVolume, BaseGrid):
         ``volume.imagedata().GetPointData().GetScalars().Modified()``
         when all your modifications are completed.
         """
-        from vtk.util.numpy_support import vtk_to_numpy
         narray_shape = tuple(reversed(self._data.GetDimensions()))
         narray = vtk_to_numpy(self._data.GetPointData().GetScalars()).reshape(narray_shape)
         narray = np.transpose(narray, axes=[2, 1, 0])
@@ -1061,6 +1058,24 @@ class Volume(vtk.vtkVolume, BaseGrid):
         imgm.SetInputData(self.imagedata())
         imgm.Update()
         return self._update(imgm.GetOutput())
+
+
+    # def histogram(self, bins=25, component=0, logscale=True, normalized=False):
+    #     # seems not to work properly>???
+    #     hi = vtk.vtkImageHistogram()
+    #     hi.SetInputData(self._data)
+    #     hi.GenerateHistogramImageOff()
+    #     hi.SetNumberOfBins(bins)
+    #     hi.SetActiveComponent(component)
+    #     hi.Update()
+    #     arr = vtk_to_numpy(hi.GetHistogram())
+    #     tot = hi.GetTotal()
+    #     if logscale:
+    #         arr = np.log10(arr+1)
+    #         tot = np.log10(tot+bins)
+    #     if normalized:
+    #         arr = arr /tot
+    #     return arr
 
 
     def toPoints(self):

@@ -102,10 +102,11 @@ def getNotebookBackend(actors2show, zoom, viewup):
             kobj = None
             kcmap= None
             name = None
-            if ia.filename:
-                name = os.path.basename(ia.filename)
-            if ia.name:
-                name = os.path.basename(ia.name)
+            if hasattr(ia, 'filename'):
+                if ia.filename:
+                    name = os.path.basename(ia.filename)
+                if ia.name:
+                    name = os.path.basename(ia.name)
 
             #####################################################################scalars
             # work out scalars first, Points Lines are also Mesh objs

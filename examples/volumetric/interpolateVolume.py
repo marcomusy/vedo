@@ -21,7 +21,8 @@ vol.alpha([0.3, 0.9])            # set opacity transfer function
 #vol.alpha([(0.3,0.3), (0.9,0.9)]) # alternative way, by specifying (xscalar, alpha)
 vol.alphaUnit(0.5)               # make the whole object less transparent (defualt is 1)
 
-vol.addScalarBar3D(sy=1, title='height is the scalar').rotateX(90).pos(1.15,1,0.5)
+vol.addScalarBar3D(sy=1, title='height is the scalar')
+vol.scalarbar.rotateX(90).pos(1.15,1,0.5)
 
 # replace voxels of specific range with a new value
 vol.threshold(above=0.3, below=0.4, replaceWith=0.9)

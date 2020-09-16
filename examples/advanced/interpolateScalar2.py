@@ -28,7 +28,7 @@ xi, yi, zi = np.split(pts, 3, axis=1)
 interpolated_desc = itr(xi, yi, zi)
 
 mesh.cmap('rainbow', interpolated_desc)
-mesh.addScalarBar(title='3*sin(4*y)')
+mesh.addScalarBar(title='3sin(4y)')
 rpts = Points(ptsubset, r=8, c='white')
 
 show(mesh, rpts, __doc__, axes=1)

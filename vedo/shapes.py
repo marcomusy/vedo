@@ -26,6 +26,7 @@ __all__ = [
     "Lines",
     "Spline",
     "KSpline",
+    "CSpline",
     "Bezier",
     "NormalLines",
     "Ribbon",
@@ -693,9 +694,10 @@ class Lines(Line):
 
 class Spline(Line):
     """
-    Return an ``Mesh`` for a spline which does not necessarly
-    passing exactly through all the input points.
-    Needs to import `scypi`.
+    Find the B-Spline curve through a set of points. This curve does not necessarly
+    pass exactly through all the input points. Needs to import `scypi`.
+
+    Return an ``Mesh`` object.
 
     :param float smooth: smoothing factor.
 
@@ -795,6 +797,53 @@ class KSpline(Line):
         settings.collectable_actors.pop()
         self.lighting('off')
         self.name = "KSpline"
+        self.base = np.array(points[0])
+        self.top = np.array(points[-1])
+        settings.collectable_actors.append(self)
+
+class CSpline(Line):
+    """
+    Return a Cardinal spline which runs exactly through all the input points.
+
+    :param bool closed: join last to first point to produce a closed curve
+    :param int res: resolution of the output line. Default is 20 times the number
+        of input points.
+    """
+    def __init__(self, points, closed=False, res=None):
+
+        if isinstance(points, Points):
+            points = points.points()
+
+        if not res: res = len(points)*20
+
+        if len(points[0]) == 2: # make it 3d
+            points = np.c_[np.array(points), np.zeros(len(points))]
+
+        xspline = vtk.vtkCardinalSpline()
+        yspline = vtk.vtkCardinalSpline()
+        zspline = vtk.vtkCardinalSpline()
+        for s in [xspline, yspline, zspline]:
+            s.SetClosed(closed)
+
+        for i,p in enumerate(points):
+            xspline.AddPoint(i, p[0])
+            yspline.AddPoint(i, p[1])
+            if len(p)>2:
+                zspline.AddPoint(i, p[2])
+
+        ln = []
+        for pos in np.linspace(0, len(points), res):
+            x = xspline.Evaluate(pos)
+            y = yspline.Evaluate(pos)
+            z=0
+            if len(p)>2:
+                z = zspline.Evaluate(pos)
+            ln.append((x,y,z))
+
+        Line.__init__(self, ln, lw=2, c='gray')
+        settings.collectable_actors.pop()
+        self.lighting('off')
+        self.name = "CSpline"
         self.base = np.array(points[0])
         self.top = np.array(points[-1])
         settings.collectable_actors.append(self)
@@ -2102,7 +2151,8 @@ class Cylinder(Mesh):
 
     |Cylinder|
     """
-    def __init__(self, pos=(0,0,0), r=1, height=2, axis=(0,0,1), c="teal", alpha=1, res=24):
+    def __init__(self, pos=(0,0,0), r=1, height=2, axis=(0,0,1),
+                 c="teal", alpha=1, cap=True, res=24):
 
         if utils.isSequence(pos[0]):  # assume user is passing pos=[base, top]
             base = np.array(pos[0])
@@ -2120,6 +2170,7 @@ class Cylinder(Mesh):
         cyl.SetResolution(res)
         cyl.SetRadius(r)
         cyl.SetHeight(height)
+        cyl.SetCapping(cap)
         cyl.Update()
 
         theta = np.arccos(axis[2])
@@ -2353,13 +2404,19 @@ class Text(Mesh):
             isvtkfont = True
 
         else:
-            if font=="LogoType":
-                font = "https://vedo.embl.es/fonts/LogoType.npz"
+
+            # some fonts are downloadable from the vedo website
+            if font in ("LogoType", "Capsmall", "Cartoons123", "PlanetBenson", "Vega"):
+                font = "https://vedo.embl.es/fonts/"+font+".npz"
 
             if font.startswith('https'): # user passed URL link, make it a path
-                font = vedo.io.download(font, verbose=False, force=False)
+                try:
+                    font = vedo.io.download(font, verbose=False, force=False)
+                except:
+                    printc('Font not found. Check URL', font, c='r')
+                    font = 'Normografo'
 
-            if font.endswith('.npz'):    # user passed font as a path
+            if font.endswith('.npz'):    # user passed font as a local path
                 fontfile = font
                 font = os.path.basename(font).split('.')[0]
             else:                        # user passed font by its name
@@ -2442,6 +2499,16 @@ class Text(Mesh):
             mono = True
             fscale = 0.725
             lspacing = 0.1
+        elif font=='Capsmall' or font=='Cartoons123' or font=='Vega':
+            mono = False
+            fscale = 0.8
+            hspacing *= 0.75
+            lspacing = 0.15
+        elif font=='PlanetBenson':
+            mono = False
+            fscale = 0.8
+            hspacing *= 0.8
+            lspacing = 0.11
         elif font=='VTK':
             mono = False
             hspacing *= 0.6
@@ -2616,19 +2683,19 @@ class Text(Mesh):
         self.name = "Text"
 
 
-def Text2D(
-    txt,
-    pos=3,
-    s=1,
-    c=None,
-    alpha=0.15,
-    bg=None,
-    font="",
-    justify="bottom-left",
-    bold=False,
-    italic=False,
+def Text2D( txt,
+            pos=3,
+            s=1,
+            c=None,
+            alpha=0.15,
+            bg=None,
+            font="",
+            justify="bottom-left",
+            bold=False,
+            italic=False,
 ):
-    """Returns a ``vtkActor2D`` representing 2D text.
+    """
+    Returns a ``vtkActor2D`` representing 2D text.
 
     :param pos: text is placed in one of the 8 positions:
 
@@ -2651,12 +2718,13 @@ def Text2D(
     :param bg: background color
     :param float alpha: background opacity
     :param str justify: text justification
-    :param str font: available fonts are
+    :param str font: predefined available fonts are
 
-        - Biysk
+        - Arial
         - Bongas
         - Calco
         - Comae
+        - Courier
         - Glasgo
         - Inversionz
         - Kanopus
@@ -2666,9 +2734,10 @@ def Text2D(
         - Quikhand
         - SmartCouric
         - Theemim
+        - Times
         - VictorMono
 
-        A path to `otf` or `ttf` font-file can also be supplied as input.
+        A path to a `.otf` or `.ttf` font-file can also be supplied as input.
 
     .. hint:: Examples, |fonts.py|_ |colorcubes.py|_ |caption.py|_
 
@@ -2730,10 +2799,12 @@ def Text2D(
         ca.PickableOff()
         cap = ca.GetTextProperty()
         cap.SetColor(getColor(c))
-        if font.lower() == "courier": cap.SetFontFamilyToCourier()
-        elif font.lower() == "times": cap.SetFontFamilyToTimes()
-        elif font.lower() == "arial": cap.SetFontFamilyToArial()
+        if font == "Courier": cap.SetFontFamilyToCourier()
+        elif font == "Times": cap.SetFontFamilyToTimes()
+        elif font == "Arial": cap.SetFontFamilyToArial()
         else:
+            if font in ("LogoType", "Capsmall", "Cartoons123", "PlanetBenson", "Vega"):
+                fpath= vedo.download("https://vedo.embl.es/fonts/"+font+".npz")
             cap.SetFontFamily(vtk.VTK_FONT_FILE)
             cap.SetFontFile(fpath)
         if bg:
@@ -2779,12 +2850,15 @@ def Text2D(
         if "right" in justify:
             tp.SetJustificationToRight()
 
-        if font.lower() == "courier": tp.SetFontFamilyToCourier()
-        elif font.lower() == "times": tp.SetFontFamilyToTimes()
-        elif font.lower() == "arial": tp.SetFontFamilyToArial()
+        if font == "Courier": tp.SetFontFamilyToCourier()
+        elif font == "Times": tp.SetFontFamilyToTimes()
+        elif font == "Arial": tp.SetFontFamilyToArial()
         else:
+            if font=="LogoType":
+                fpath= vedo.download("https://vedo.embl.es/fonts/LogoType.ttf")
             tp.SetFontFamily(vtk.VTK_FONT_FILE)
             tp.SetFontFile(fpath)
+
         if bg:
             bgcol = getColor(bg)
             tp.SetBackgroundColor(bgcol)

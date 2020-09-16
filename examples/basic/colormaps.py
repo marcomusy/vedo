@@ -29,7 +29,7 @@ mug = vp.load(datadir+"mug.ply")
 scalars = mug.points()[:, 1]  # let y-coord be the scalar
 
 for i, key in enumerate(mapkeys):  # for each available color map name
-    imug = mug.clone().cmap(key, scalars, n=5)
+    imug = mug.clone(deep=False).cmap(key, scalars, n=5)
     vp.show(imug, key, at=i)
 
 vp.show(interactive=1)

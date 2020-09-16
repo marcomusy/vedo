@@ -29,7 +29,7 @@ def Slicer(volume,
            title="",
            bg="white",
            bg2="lightblue",
-           axes=1,
+           axes=7,
            showHisto=True,
            showIcon=True,
            draggable=False,
@@ -396,7 +396,7 @@ def RayCaster(volume):
         states=["composite", "max proj."],
         c=["bb", "gray"],
         bc=["gray", "bb"],  # colors of states
-        font="arial",
+        font="",
         size=16,
         bold=0,
         italic=False,
@@ -410,18 +410,22 @@ def RayCaster(volume):
     vp.window.AddObserver("AbortCheckEvent", CheckAbort)
 
     # add histogram of scalar
-    from vedo.pyplot import cornerHistogram
-
     plot = cornerHistogram(volume.getPointArray(),
-        bins=25, logscale=1, c="gray", bg="gray", pos=(0.78, 0.065)
+        bins=25, logscale=1, c=(.7,.7,.7), bg=(.7,.7,.7), pos=(0.78, 0.065),
+        lines=True, dots=False,
     )
+
+    # xbins = np.linspace(smin, smax, 25)
+    # yvals = volume.histogram(bins=25, logscale=1)
+    # plot = cornerPlot(np.c_[xbins, yvals],
+    #     c=(.7,.7,.7), bg=(.7,.7,.7), pos=(0.78, 0.065), s=0.4,
+    #     lines=True, dots=False,
+    # )
+
     plot.GetPosition2Coordinate().SetValue(0.197, 0.20, 0)
     plot.GetXAxisActor2D().SetFontFactor(0.7)
     plot.GetProperty().SetOpacity(0.5)
-
-    vp.add(plot)
-    vp.add(volume)
-
+    vp.add([plot, volume])
     return vp
 
 

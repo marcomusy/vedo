@@ -1099,7 +1099,7 @@ def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=
         xm = np.max([np.max(pts[0]), 1])
         ym = np.max([np.abs(np.max(pts[1])), 1])
         ssurf.mapper().SetScalarRange(np.min(newr), np.max(newr))
-        sb3d = ssurf.addScalarBar3D(sx=xm * 0.07, sy=ym, c='k')
+        sb3d = ssurf.addScalarBar3D(sx=xm * 0.07, sy=ym, c='k').scalarbar
         sb3d.rotateX(90).pos(xm * 1.1, 0, -0.5)
     else:
         sb3d = None
@@ -2139,7 +2139,7 @@ def streamplot(X, Y, U, V, direction="both",
     return stream
 
 
-def cornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True):
+def cornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=True):
     """
     Return a ``vtkXYPlotActor`` that is a plot of `x` versus `y`,
     where `points` is a list of `(x,y)` points.
@@ -2186,7 +2186,7 @@ def cornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True):
     plot.SetXTitle(title)
     plot.SetYTitle("")
     plot.ExchangeAxesOff()
-    plot.PlotPointsOn()
+    plot.SetPlotPoints(dots)
     if not lines:
         plot.PlotLinesOff()
     if pos == 1:
@@ -2216,6 +2216,7 @@ def cornerHistogram(
     pos=1,
     s=0.2,
     lines=True,
+    dots=False,
 ):
     """
     Build a histogram from a list of values in n bins.
@@ -2239,11 +2240,13 @@ def cornerHistogram(
     for i in range(len(fs)):
         pts.append([(edges[i] + edges[i + 1]) / 2, fs[i]])
 
-    plot = cornerPlot(pts, pos, s, title, c, bg, lines)
+    plot = cornerPlot(pts, pos, s, title, c, bg, lines, dots)
     plot.SetNumberOfYLabels(2)
     plot.SetNumberOfXLabels(3)
     tprop = vtk.vtkTextProperty()
     tprop.SetColor(colors.getColor(bg))
+    tprop.SetFontFamily(vtk.VTK_FONT_FILE)
+    tprop.SetFontFile(settings.fonts_path + settings.defaultFont + '.ttf')
     tprop.SetOpacity(alpha)
     plot.SetAxisTitleTextProperty(tprop)
     plot.GetProperty().SetOpacity(alpha)
@@ -2326,7 +2329,9 @@ class DirectedGraph(Assembly):
 
         self.arrowScale = 0.15
         self.nodeLabelScale = None
-        self.edgeLabelScale   = None
+        self.nodeLabelJustify = "bottom-left"
+
+        self.edgeLabelScale = None
 
         self.mdg = vtk.vtkMutableDirectedGraph()
 
@@ -2478,7 +2483,7 @@ class DirectedGraph(Assembly):
         graphToPolyData.Update()
 
         dgraph = Mesh(graphToPolyData.GetOutput(0))
-        dgraph.clean() # important to clean and have the same nr of points as vtxs
+        # dgraph.clean() # WRONG!!! dont uncomment
         dgraph.flat().color(self._c).lw(2)
         dgraph.name = "DirectedGraph"
 
@@ -2519,10 +2524,13 @@ class DirectedGraph(Assembly):
                 arrows.rotateZ(self.rotZ)
             arrows.name = "DirectedGraphArrows"
 
+        # print('self._nodeLabels', self._nodeLabels)
+        # print(dgraph.N())
         nodeLabels = dgraph.labels(self._nodeLabels,
                                     scale=self.nodeLabelScale,
                                     precision=0,
                                     font=self.font,
+                                    justify=self.nodeLabelJustify,
                                     )
         nodeLabels.color(self._c).pickable(True)
         nodeLabels.name = "DirectedGraphNodeLabels"
@@ -2536,10 +2544,9 @@ class DirectedGraph(Assembly):
         edgeLabels.color(self._c).pickable(True)
         edgeLabels.name = "DirectedGraphEdgeLabels"
 
-        # # if edgeLabels.N() == 0:
-        # edgeLabels = None
-        # exit()
-
-        Assembly.__init__(self, [dgraph, nodeLabels, edgeLabels, arrows])
+        Assembly.__init__(self, [dgraph,
+                                 nodeLabels,
+                                 edgeLabels,
+                                 arrows])
         self.name = "DirectedGraphAssembly"
         return self

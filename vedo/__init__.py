@@ -59,23 +59,4 @@ settings._init()
 ###########################################################################
 
 
-## deprecations ############################################################
-def alignICP(source, target, iters=100, rigid=False, invert=False, useCentroids=False):
-    """Obsolete: Please use source.alignTo(target) instead."""
-    printc("Obsolete alignICP: Please use source.alignTo(target) instead",
-                  c=1, box='-')
-    return source.alignTo(target, iters, rigid, invert, useCentroids)
-
-def booleanOperation(mesh1, operation, mesh2):
-    """Obsolete: Please use mesh1.boolean(operation, mesh2) instead."""
-    printc("Obsolete booleanOperation: Please use mesh1.boolean(operation, mesh2) instead",
-                  c=1, box='-')
-    return mesh1.boolean(operation, mesh2)
-
-def surfaceIntersection(mesh1, mesh2, tol=1e-06):
-    """Obsolete: Please use mesh1.intersectWith(mesh2) instead."""
-    printc("Obsolete surfaceIntersection: Please use mesh1.intersectWith(mesh2) instead",
-                  c=1, box='-')
-    return mesh1.intersectWith(mesh2)
-
 

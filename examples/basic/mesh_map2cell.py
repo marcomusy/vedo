@@ -12,7 +12,7 @@ scals = mesh1.points()[:, 2]
 mesh1.addPointArray(scals, 'myzscalars')
 
 msg2 = Text2D("..is interpolated to cells.", pos=5)
-mesh2 = mesh1.clone().mapPointsToCells()
+mesh2 = mesh1.clone(deep=False).mapPointsToCells()
 
 show(mesh1, msg1, doc, at=0, N=2, axes=11, viewup="z")
 show(mesh2, msg2,      at=1, interactive=True)

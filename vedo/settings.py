@@ -21,9 +21,7 @@ General settings.
     # Scale magnification of the screenshot (must be an integer)
     screeshotScale = 1
     screenshotTransparentBackground = False
-
-    # Sometimes setting this to True gives better results
-    screeshotLargeImage = False
+    screeshotLargeImage = False # Sometimes setting this to True gives better results
 
     # Recompute vertex and cell normals
     computeNormals = None
@@ -82,6 +80,7 @@ General settings.
 
     # Turn on/off the automatic repositioning of lights as the camera moves.
     lightFollowsCamera = False
+    twoSidedLighting = True
 
     # Turn on/off rendering of translucent material with depth peeling technique.
     useDepthPeeling = False
@@ -192,6 +191,7 @@ visibleGridEdges = False
 
 # Turn on/off the automatic repositioning of lights as the camera moves.
 lightFollowsCamera = False
+twoSidedLighting = True
 
 # Turn on/off rendering of translucent material with depth peeling technique.
 #https://lorensen.github.io/VTKExamples/site/Cxx/Visualization/CorrectlyRenderTranslucentGeometry
@@ -259,10 +259,10 @@ fonts_path = os.path.join(installdir, "fonts/")
 fonts = []
 
 #datadir = "/home/musy/Dropbox/Public/vktwork/vedo_data/"
+#print('\ndatadir=',datadir)
 datadir = "https://vedo.embl.es/examples/data/"
 
 plotter_instances = []
-
 plotter_instance = None
 collectable_actors = []
 

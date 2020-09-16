@@ -1,7 +1,7 @@
 .. role:: raw-html-m2r(raw)
    :format: html
 
-.. image:: https://user-images.githubusercontent.com/32848391/90509164-2d812a00-e159-11ea-8f31-8b341b27f316.png
+.. image:: https://user-images.githubusercontent.com/32848391/90966721-1e420980-e4d6-11ea-998f-3285d512541f.png
 
 :raw-html-m2r:`<br />`
 
@@ -27,7 +27,9 @@
 ---------------------
 
 `vedo` is a fast and lightweight python module
-for scientific analysis and visualization of 3D objects.
+for scientific analysis and **v**isualization of **3d o**bjects.
+
+Not limited to 3d, `vedo` can also generate high quality renderings in 2d (scatter plots, histograms etc).
 
 
 Philosophy
@@ -111,19 +113,25 @@ for the all following functionalities:
 - Interoperability with the `trimesh <https://trimsh.org/>`_ library.
 
 
-Hello World example
--------------------
-Run any of the built-in examples. In a terminal, type:
+Hello World examples
+--------------------
+Use **command line** to un any of the built-in examples. In a terminal, type:
 
 .. code-block:: bash
 
     vedo -r covid19
+
+.. image:: https://user-images.githubusercontent.com/32848391/77330206-4824b380-6d1f-11ea-9bc3-e3aef970dcc2.gif
+
 
 Visualize a file from web URL (or your dropbox!), type:
 
 .. code-block:: bash
 
     vedo https://vedo.embl.es/examples/data/panther.stl.gz
+
+.. image:: https://user-images.githubusercontent.com/32848391/91658688-c05f8400-eaca-11ea-9cb9-7c4896e116f9.png
+
 
 Visualize a whole scene, type:
 
@@ -134,22 +142,15 @@ Visualize a whole scene, type:
 .. image:: https://user-images.githubusercontent.com/32848391/81397531-d2867280-9127-11ea-8cc8-0effbbbebf2d.jpg
 
 
-Command-line interface
-----------------------
-
-Visualize a mesh with:
-
-.. code-block:: bash
-
-    vedo mesh.obj
-    # valid formats: [vtk,vtu,vts,vtp,vtm,ply,obj,stl,3ds,dolfin-xml,neutral,gmsh,
-    #                 pcd,xyz,txt,byu,tif,off,slc,vti,mhd,DICOM,dem,nrrd,bmp,png,jpg]
-
-Voxel-data (*mhd, vti, slc, tiff, dicom*) files can also be visualized with options `-g`, e.g.:
+Visualize any polygonal mesh.
+Voxel-data (*mhd, vti, slc, tiff, dicom*) files can also be visualized
+with options `-g`, e.g.:
 
 .. code-block:: bash
 
     vedo -g  https://vedo.embl.es/examples/data/embryo.slc
+    # valid formats: [vtk,vtu,vts,vtp,vtm,ply,obj,stl,3ds,dolfin-xml,neutral,gmsh,
+    #                 pcd,xyz,txt,byu,tif,off,slc,vti,mhd,DICOM,dem,nrrd,bmp,png,jpg]
 
 .. image:: https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif
 
@@ -163,6 +164,7 @@ Use a slider to control isosurfacing of a volume:
     vedo https://vedo.embl.es/examples/data/head.vti
 
 .. image:: https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif
+
 
 Visualize colorized voxels:
 

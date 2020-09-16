@@ -27,5 +27,6 @@ scals = man3.cellCenters()[:, 2] + 37      # pick z coordinates of cells
 man3.cmap("afmhot", scals, on='cells')
 
 # add a fancier 3D scalar bar embedded in the scene
-man3.addScalarBar3D(sy=3).rotateX(90).y(0.2)
+man3.addScalarBar3D(sy=3)
+man3.scalarbar.rotateX(90).y(0.2)
 show(man3, "mesh.cmap(on='cells')", at=2, interactive=True)

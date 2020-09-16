@@ -32,7 +32,8 @@ labs1 = pts.labels(v1, scale=.04, italic=True).addPos(.05,0.04,0).c('green')
 labs2 = pts.labels(v2, scale=.04, precision=3).addPos(.05,-.04,0).c('red')
 
 # Interpolate the node value to color the edges:
-graph.cmap('viridis', v2).addScalarBar3D(c='k').addPos(.3,0,0)
+graph.cmap('viridis', v2).addScalarBar3D(c='k')
+graph.scalarbar.addPos(.3,0,0)
 pts.cmap('viridis', v2)
 
 # This would colorize the edges directly with solid color based on a v3 array:

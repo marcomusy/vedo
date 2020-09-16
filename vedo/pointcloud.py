@@ -7,8 +7,6 @@ import vedo.docs as docs
 import vedo.settings as settings
 import vedo.utils as utils
 from vedo.base import BaseActor
-
-
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 from vtk.numpy_interface import dataset_adapter
 
@@ -216,6 +214,7 @@ def connectedPoints(mesh, radius, mode=0, regions=(), vrange=(0,1), seeds=(), an
     if not extracting all regions then the output size may be less than the input size.
 
     :param float radius: radius variable specifying a local sphere used to define local point neighborhood
+
     :param int mode:
 
         - 0,  Extract all regions
@@ -226,8 +225,11 @@ def connectedPoints(mesh, radius, mode=0, regions=(), vrange=(0,1), seeds=(), an
         - 5,  Extract point seeded regions
 
     :param list regions: a list of non-negative regions id to extract
+
     :param list vrange: scalar range to use to extract points based on scalar connectivity
+
     :param list seeds: a list of non-negative point seed ids
+
     :param list angle: points are connected if the angle between their normals is
         within this angle threshold (expressed in degrees).
     """
@@ -367,7 +369,9 @@ def visiblePoints(mesh, area=(), tol=None, invert=False):
     coordinates in which the visible points must lie.
 
     :param list area: specify a rectangular region as (xmin,xmax,ymin,ymax)
+
     :param float tol: a tolerance in normalized display coordinate system
+
     :param bool invert: select invisible points instead.
 
     :Example:
@@ -605,17 +609,22 @@ def recoSurface(pts, dims=(250,250,250), radius=None,
     Surface reconstruction from a scattered cloud of points.
 
     :param int dims: number of voxels in x, y and z to control precision.
+
     :param float radius: radius of influence of each point.
         Smaller values generally improve performance markedly.
         Note that after the signed distance function is computed,
         any voxel taking on the value >= radius
         is presumed to be "unseen" or uninitialized.
+
     :param int sampleSize: if normals are not present
         they will be calculated using this sample size per point.
+
     :param bool holeFilling: enables hole filling, this generates
         separating surfaces between the empty and unseen portions of the volume.
+
     :param list bounds: region in space in which to perform the sampling
         in format (xmin,xmax, ymin,ymax, zim, zmax)
+
     :param float pad: increase by this fraction the bounding box
 
     |recosurface| |recosurface.py|_
@@ -840,8 +849,9 @@ class Points(vtk.vtkFollower, BaseActor):
 
         elif isinstance(inputobj, str):
             from vedo.io import load
-            verts = load(inputobj).points()
-            self._polydata = utils.buildPolyData(verts, None)
+            verts = load(inputobj)
+            self.filename = inputobj
+            self._polydata = verts.polydata()
 
         else:
             colors.printc("Error: cannot build PointCloud from type:\n", [inputobj], c='r')
@@ -877,35 +887,6 @@ class Points(vtk.vtkFollower, BaseActor):
             return meshs
         return Assembly([self, meshs])
 
-    ##################################################################################
-    # def polydata(self, transformed=True):
-    #     """
-    #     Returns the ``vtkPolyData`` object of a ``Mesh``.
-
-    #     .. note:: If ``transformed=True`` returns a copy of polydata that corresponds
-    #         to the current mesh's position in space.
-    #     """
-    #     if not transformed:
-    #         if not self._polydata:
-    #             self._polydata = self._mapper.GetInput()
-    #         return self._polydata
-    #     else:
-    #         if self.GetIsIdentity() or self._polydata.GetNumberOfPoints()==0:
-    #             # if identity return the original polydata
-    #             if not self._polydata:
-    #                 self._polydata = self._mapper.GetInput()
-    #             return self._polydata
-    #         else:
-    #             # otherwise make a copy that corresponds to
-    #             # the actual position in space of the mesh
-    #             M = self.GetMatrix()
-    #             transform = vtk.vtkTransform()
-    #             transform.SetMatrix(M)
-    #             tp = vtk.vtkTransformPolyDataFilter()
-    #             tp.SetTransform(transform)
-    #             tp.SetInputData(self._polydata)
-    #             tp.Update()
-    #             return tp.GetOutput()
 
     def polydata(self, transformed=True):
         """
@@ -916,6 +897,7 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         if not self._polydata:
             self._polydata = self._mapper.GetInput()
+            return self._polydata
 
         if transformed:
             if self.GetIsIdentity() or self._polydata.GetNumberOfPoints()==0:
@@ -944,6 +926,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         :param bool transformed: if `False` ignore any previous transformation
             applied to the mesh.
+
         :param bool copy: if `False` return the reference to the points
             so that they can be modified in place, otherwise a copy is built.
         """
@@ -1047,7 +1030,9 @@ class Points(vtk.vtkFollower, BaseActor):
                 5. World (anchor the 2d image to mesh)
 
             :param int ps: point size in pixel units
+
             :param int lw: line width in pixel units
+
             :param bool sendback: put it behind any other 3D object
         """
         msiz = self.diagonalSize()
@@ -1058,7 +1043,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 scale = dsiz/msiz/9
             else:
                 scale = 350/msiz
-            colors.printc('clone2D(): scale set to', utils.precision(scale/300,3))
+            #colors.printc('clone2D(): scale set to', utils.precision(scale/300,3))
         else:
             scale *= 300
 
@@ -1100,10 +1085,13 @@ class Points(vtk.vtkFollower, BaseActor):
         """Add a trailing line to mesh.
         This new mesh is accessible through `mesh.trail`.
 
-        :param offset: set an offset vector from the object center.
-        :param maxlength: length of trailing line in absolute units
-        :param n: number of segments to control precision
-        :param lw: line width of the trail
+        :param float offset: set an offset vector from the object center.
+
+        :param float maxlength: length of trailing line in absolute units
+
+        :param int n: number of segments to control precision
+
+        :param float lw: line width of the trail
 
         .. hint:: See examples: |trail.py|_  |airplanes.py|_
 
@@ -1217,6 +1205,7 @@ class Points(vtk.vtkFollower, BaseActor):
         to the neighborhood (via PCA).
 
         :param int n: neighborhood size to calculate the normal
+
         :param list orientationPoint: adjust the +/- sign of the normals so that
             the normals all point towards a specified point. If None, perform a traversal
             of the point cloud and flip neighboring normals so that they are mutually consistent.
@@ -1387,6 +1376,7 @@ class Points(vtk.vtkFollower, BaseActor):
         """Retrieve vertex normals as a numpy array.
 
         :params bool cells: if `True` return cell normals.
+
         :params bool compute: if `True` normals are recalculated if not already present.
             Note that this might modify the number of mesh points.
         """
@@ -1408,8 +1398,7 @@ class Points(vtk.vtkFollower, BaseActor):
     def labels(self, content=None, cells=False, scale=None,
                rotX=0, rotY=0, rotZ=0,
                ratio=1, precision=None,
-               font="VTK",
-               c='black', alpha=1, italic=False):
+               font="", justify="bottom-left", c='black', alpha=1, italic=False):
         """Generate value or ID labels for mesh cells or points.
 
         See also: ``flag()``, ``vignette()``, ``caption()`` and ``legend()``.
@@ -1418,9 +1407,13 @@ class Points(vtk.vtkFollower, BaseActor):
             A array can also be passed (must match the nr. of points or cells).
 
         :param bool cells: generate labels for cells instead of points [False]
+
         :param float scale: absolute size of labels, if left as None it is automatic
+
         :param float rotX: local rotation angle of label in degrees
+
         :param int ratio: skipping ratio, to reduce nr of labels for large meshes
+
         :param int precision: numeric precision of labels
 
         :Example:
@@ -1474,10 +1467,8 @@ class Points(vtk.vtkFollower, BaseActor):
         elif utils.isSequence(content):
             mode = 0
             arr = content
-            if len(arr) != len(content):
-                colors.printc('Error in labels(): array length mismatch',
-                              len(arr), len(content), c='r')
-                return None
+            # print('ccccc1', content)  # WEIRD!
+            # exit()
 
         if arr is None and mode == 0:
             colors.printc('Error in labels(): array not found for points/cells', c='r')
@@ -1485,6 +1476,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         tapp = vtk.vtkAppendPolyData()
         ninputs = 0
+
 
         for i,e in enumerate(elems):
             if i % ratio:
@@ -1498,13 +1490,19 @@ class Points(vtk.vtkFollower, BaseActor):
                 else:
                     txt_lab = str(arr[i])
 
+            if not txt_lab:
+                continue
+
             if font=="VTK":
                 tx = vtk.vtkVectorText()
                 tx.SetText(txt_lab)
                 tx.Update()
                 tx_poly = tx.GetOutput()
             else:
-                tx_poly = vedo.shapes.Text(txt_lab, font=font).polydata(False)
+                tx_poly = vedo.shapes.Text(txt_lab,
+                                           font=font,
+                                           justify=justify,
+                                           ).polydata(False)
 
             if tx_poly.GetNumberOfPoints() == 0:
                 continue #######################
@@ -1812,8 +1810,7 @@ class Points(vtk.vtkFollower, BaseActor):
         pr = capt.GetCaptionTextProperty()
         pr.SetFontFamily(vtk.VTK_FONT_FILE)
         if 'LogoType' in font: # special case of big file
-            fl = vedo.io.download("https://vedo.embl.es/fonts/LogoType.ttf",
-                                  verbose=False, force=False)
+            fl = vedo.io.download("https://vedo.embl.es/fonts/LogoType.ttf")
         else:
             fl = settings.fonts_path + font + '.ttf'
         if not os.path.isfile(fl):
@@ -1842,11 +1839,9 @@ class Points(vtk.vtkFollower, BaseActor):
 
     def flag(self,
              text=None,
-             font="Courier",
+             font="Normografo",
              size=18,
              angle=0,
-             bold=False,
-             italic=False,
              shadow=False,
              c='k',
              bg='w',
@@ -1869,10 +1864,6 @@ class Points(vtk.vtkFollower, BaseActor):
             size of font. The default is 18. Fonts are: "Arial", "Courier", "Times".
         angle : float, optional
             rotation angle. The default is 0.
-        bold : bool, optional
-            bold face. The default is False.
-        italic : bool, optional
-            italic face. The default is False.
         shadow : bool, optional
             add a shadow to the font. The default is False.
         c : str, optional
@@ -1893,19 +1884,19 @@ class Points(vtk.vtkFollower, BaseActor):
                 text = self.name
             else:
                 text = ""
+        if "\\" in repr(text):
+            for r in vedo.shapes._reps:
+                text = text.replace(r[0], r[1])
         self.flagText = text
         settings.flagDelay    = delay
         settings.flagFont     = font
         settings.flagFontSize = size
         settings.flagAngle    = angle
-        settings.flagBold     = bold
-        settings.flagItalic   = italic
         settings.flagShadow   = shadow
         settings.flagColor    = c
         settings.flagJustification = justify
         settings.flagBackgroundColor = bg
         return self
-
 
     def alignTo(self, target, iters=100, rigid=False,
                 invert=False, useCentroids=False):
@@ -1917,9 +1908,11 @@ class Points(vtk.vtkFollower, BaseActor):
         that modify one surface to best match the other (in the least-square sense).
 
         :param bool rigid: if True do not allow scaling
+
         :param bool invert: if True start by aligning the target to the source but
              invert the transformation finally. Useful when the target is smaller
              than the source.
+
 
         :param bool useCentroids: start by matching the centroids of the two objects.
 
@@ -1988,22 +1981,43 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
 
-    def applyTransform(self, transformation):
+    def applyTransform(self, transformation, reset=False):
         """
         Apply a linear or non-linear transformation to the mesh polygonal data.
 
-        :param transformation: the``vtkTransform`` or ``vtkMatrix4x4`` objects.
+        :param transformation: a ``vtkTransform``, ``vtkMatrix4x4``
+            or a 4x4 or 3x3 python or numpy matrix.
+
+        :param bool reset: if True reset the current transformation matrix
+            to identity after having moved the object, otherwise the internal
+            matrix will stay the same (to only affect visualization).
+            It the input transformation has no internal defined matrix (ie. non linear)
+            then reset will be assumed as True.
         """
         if isinstance(transformation, vtk.vtkMatrix4x4):
             tr = vtk.vtkTransform()
             tr.SetMatrix(transformation)
             transformation = tr
-        tf = vtk.vtkTransformPolyDataFilter()
-        tf.SetTransform(transformation)
-        tf.SetInputData(self.polydata())
-        tf.Update()
-        self.PokeMatrix(vtk.vtkMatrix4x4())  # identity
-        return self._update(tf.GetOutput())
+        elif utils.isSequence(transformation):
+            M = vtk.vtkMatrix4x4()
+            n = len(transformation[0])
+            for i in range(n):
+                for j in range(n):
+                    M.SetElement(i, j, transformation[i][j])
+            tr = vtk.vtkTransform()
+            tr.SetMatrix(M)
+            transformation = tr
+
+        if reset or not hasattr(transformation, 'GetMatrix'):
+            tf = vtk.vtkTransformPolyDataFilter()
+            tf.SetTransform(transformation)
+            tf.SetInputData(self.polydata())
+            tf.Update()
+            self.PokeMatrix(vtk.vtkMatrix4x4())  # reset to identity
+            return self._update(tf.GetOutput())
+        else:
+            self.SetUserMatrix(transformation.GetMatrix())
+            return self
 
 
     def normalize(self):
@@ -2026,38 +2040,45 @@ class Points(vtk.vtkFollower, BaseActor):
         return self._update(tf.GetOutput())
 
 
-    def mirror(self, axis="x"):
+    def mirror(self, axis="x", origin=[0,0,0], reset=False):
         """
-        Mirror the mesh  along one of the cartesian axes.
+        Mirror the mesh  along one of the cartesian axes
+
+        :param str axis: axis to use for mirroring, must be set to x, y, z or n.
+            Or any combination of those. Adding 'n' reverses mesh faces (hence normals).
+
+        :param list origin: use this point as the origin of the mirroring transformation.
+
+        :param bool reset: if True keep into account the current position of the object,
+            and then reset its internal transformation matrix to Identity.
 
         |mirror| |mirror.py|_
         """
         sx, sy, sz = 1, 1, 1
-        if axis.lower() == "x":
-            sx = -1
-        elif axis.lower() == "y":
-            sy = -1
-        elif axis.lower() == "z":
-            sz = -1
-        elif axis.lower() == "n":
-            pass
-        else:
-            colors.printc("Error in mirror(): mirror must be set to x, y, z or n.", c='r')
-            raise RuntimeError()
-
+        if "x" in axis.lower(): sx = -1
+        if "y" in axis.lower(): sy = -1
+        if "z" in axis.lower(): sz = -1
+        origin = np.array(origin)
         tr = vtk.vtkTransform()
-        tr.Scale(sx,sy,sz)
+        tr.PostMultiply()
+        tr.Translate(-origin)
+        tr.Scale(sx, sy, sz)
+        tr.Translate(origin)
         tf = vtk.vtkTransformPolyDataFilter()
+        tf.SetInputData(self.polydata(reset))
         tf.SetTransform(tr)
-        tf.SetInputData(self._polydata)
         tf.Update()
+        outpoly = tf.GetOutput()
+        if reset:
+            self.PokeMatrix(vtk.vtkMatrix4x4())  # reset to identity
+        if sx*sy*sz<0 or 'n' in axis:
+            rs = vtk.vtkReverseSense()
+            rs.SetInputData(outpoly)
+            rs.ReverseNormalsOff()
+            rs.Update()
+            outpoly = rs.GetOutput()
+        return self._update(outpoly)
 
-        rs = vtk.vtkReverseSense()
-        rs.SetInputData(tf.GetOutput())
-        rs.ReverseNormalsOff()
-        rs.Update()
-
-        return self._update(rs.GetOutput())
 
     def shear(self, x=0, y=0, z=0):
         """
@@ -2070,7 +2091,7 @@ class Points(vtk.vtkFollower, BaseActor):
                       y,sy, z, 0,
                       0, 0,sz, 0,
                       0, 0, 0, 1])
-        self.applyTransform(t)
+        self.applyTransform(t, reset=True)
         return self
 
 
@@ -2102,12 +2123,16 @@ class Points(vtk.vtkFollower, BaseActor):
 
         :param cname: color map scheme to transform a real number into a color.
         :type cname: str, list, vtkLookupTable, matplotlib.colors.LinearSegmentedColormap
+
         :param str on: either 'points' or 'cells'.
             Apply the color map as defined on either point or cell data.
 
         :param str arrayName: give a name to the array
+
         :param float vmin: clip scalars to this minimum value
+
         :param float vmax: clip scalars to this maximum value
+
         :param float,list alpha: mesh transparency.
             Can be a ``list`` of values one for each vertex.
 
@@ -2413,6 +2438,90 @@ class Points(vtk.vtkFollower, BaseActor):
         self._mapper.ScalarVisibilityOn()
         return self
 
+    def interpolateDataFrom(self, source,
+                            radius=None, N=None,
+                            kernel='shepard',
+                            exclude=('Normals',),
+                            nullStrategy=1,
+                            nullValue=0,
+        ):
+        """
+        Interpolate over source to port its data onto the current object using various kernels.
+
+        If N (number of closest points to use) is set then radius value is ignored.
+
+        :param str kernel: available kernels are [shepard, gaussian, linear]
+
+        :param int nullStrategy: specify a strategy to use when encountering a "null" point
+            during the interpolation process. Null points occur when the local neighborhood
+            (of nearby points to interpolate from) is empty.
+            Case 0: an output array is created that marks points
+            as being valid (=1) or null (invalid =0), and the nullValue is set as well
+            Case 1: the output data value(s) are set to the provided nullValue
+            Case 2: simply use the closest point to perform the interpolation.
+
+        :param float nullValue: see above.
+        """
+        if radius is None and not N:
+            colors.printc("Error in interpolateDataFrom(): please set either radius or N", c='r')
+            raise RuntimeError
+
+        points = source.polydata()
+
+        locator = vtk.vtkPointLocator()
+        locator.SetDataSet(points)
+        locator.BuildLocator()
+
+        if kernel.lower() == 'shepard':
+            kern = vtk.vtkShepardKernel()
+            kern.SetPowerParameter(2)
+        elif kernel.lower() == 'gaussian':
+            kern = vtk.vtkGaussianKernel()
+            kern.SetSharpness(2)
+        elif kernel.lower() == 'linear':
+            kern = vtk.vtkLinearKernel()
+        else:
+            colors.printc('Error in interpolateDataFrom(), available kernels are:', c='r')
+            colors.printc(' [shepard, gaussian, linear]', c='r')
+            raise RuntimeError()
+
+        if N:
+            kern.SetNumberOfPoints(N)
+            kern.SetKernelFootprintToNClosest()
+        else:
+            kern.SetRadius(radius)
+
+        interpolator = vtk.vtkPointInterpolator()
+        interpolator.SetInputData(self.polydata())
+        interpolator.SetSourceData(points)
+        interpolator.SetKernel(kern)
+        interpolator.SetLocator(locator)
+        interpolator.PassFieldArraysOff()
+        interpolator.SetNullPointsStrategy(nullStrategy)
+        interpolator.SetNullValue(nullValue)
+        interpolator.SetValidPointsMaskArrayName("ValidPointMask")
+        for ex in exclude:
+            interpolator.AddExcludedArray(ex)
+        interpolator.Update()
+        cpoly = interpolator.GetOutput()
+
+        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
+            self._update(cpoly)
+        else:
+            # bring the underlying polydata to where _polydata is
+            M = vtk.vtkMatrix4x4()
+            M.DeepCopy(self.GetMatrix())
+            M.Invert()
+            tr = vtk.vtkTransform()
+            tr.SetMatrix(M)
+            tf = vtk.vtkTransformPolyDataFilter()
+            tf.SetTransform(tr)
+            tf.SetInputData(cpoly)
+            tf.Update()
+            self._update(tf.GetOutput())
+
+        return self
+
 
     def pointGaussNoise(self, sigma):
         """
@@ -2445,7 +2554,9 @@ class Points(vtk.vtkFollower, BaseActor):
         Find the closest point(s) on a mesh given from the input point `pt`.
 
         :param int N: if greater than 1, return a list of N ordered closest points.
+
         :param float radius: if given, get all points within that radius.
+
         :param bool returnIds: return points IDs instead of point coordinates.
 
         .. hint:: |align1.py|_ |fitplanes.py|_  |quadratic_morphing.py|_
@@ -2506,6 +2617,7 @@ class Points(vtk.vtkFollower, BaseActor):
         Input mesh's polydata is modified.
 
         :param float f: smoothing factor - typical range is [0,2].
+
         :param float radius: radius search in absolute units. If set then ``f`` is ignored.
 
         .. hint:: |moving_least_squares1D.py|_  |skeletonize.py|_
@@ -2546,6 +2658,7 @@ class Points(vtk.vtkFollower, BaseActor):
         The list ``mesh.info['variances']`` contains the residue calculated for each point.
 
         :param float f: smoothing factor - typical range is [0,2].
+
         :param float radius: radius search in absolute units. If set then ``f`` is ignored.
 
         .. hint:: |moving_least_squares2D.py|_  |recosurface.py|_
@@ -2590,7 +2703,9 @@ class Points(vtk.vtkFollower, BaseActor):
 
         :param str,Plane plane: if plane is `str`, plane can be one of x-plane,
             y-plane and z-plane. Otherwise, plane should be an instance of `vedo.shapes.Plane`.
+
         :param array point: camera point of perspective projection
+
         :param array direction: direction of oblique projection
 
         Note:
@@ -2687,6 +2802,7 @@ class Points(vtk.vtkFollower, BaseActor):
         it will be named 'WarpVectors'.
 
         :parameter float factor: value to scale displacement
+
         :parameter bool useCell: if True, look for cell array instead of point array
 
         Example:
@@ -2766,7 +2882,7 @@ class Points(vtk.vtkFollower, BaseActor):
         transform.SetSourceLandmarks(ptsou)
         transform.SetTargetLandmarks(pttar)
         self.transform = transform
-        self.applyTransform(transform)
+        self.applyTransform(transform, reset=True)
         return self
 
 
@@ -2785,6 +2901,7 @@ class Points(vtk.vtkFollower, BaseActor):
         The density is expressed as the number of counts in the radius search.
 
         :param int,list dims: numer of voxels in x, y and z of the output Volume.
+
         :param bool computeGradient: Turn on/off the generation of the gradient vector,
             gradient magnitude scalar, and function classification scalar.
             By default this is off. Note that this will increase execution time
@@ -2831,13 +2948,6 @@ class Points(vtk.vtkFollower, BaseActor):
         vol.info['radius'] = radius
         vol.locator = pdf.GetLocator()
         return vol
-
-
-
-
-
-
-
 
 
 

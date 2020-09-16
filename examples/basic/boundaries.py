@@ -10,6 +10,6 @@ bpts = b.points()[pids]
 
 pts = Points(bpts, r=10, c='red')
 
-labs = b.labels('id').c('dg') # add point labels
+labs = b.labels('id', scale=10).c('dg') # add point labels
 
 show(b, pts, labs, __doc__, zoom=2)

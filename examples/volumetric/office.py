@@ -26,6 +26,7 @@ slines = streamLines(sgrid, seeds,
                      maxPropagation=15,
                      tubes={"radius":0.004, "varyRadius":2, "ratio":1},
                     )
-slines.addScalarBar3D(c='w').x(5.)
+slines.addScalarBar3D(c='w')
+slines.scalarbar.x(5) # reposition scalarbar at x=5
 
 show(slines, seeds, furniture(), __doc__, axes=1, bg='bb')

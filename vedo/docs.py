@@ -32,6 +32,7 @@ import vtk, sys
 __all__ = []
 
 
+####################################################################################
 def tips():
     from vedo import colors, __version__
     msg  = " ==========================================================\n"
@@ -71,16 +72,16 @@ def tips():
 
     msg = " vedo " + __version__ + " "
     colors.printc(msg, invert=1, dim=1, end="")
-    vtkVers = ''
     try:
-        vtkVers = vtk.VTK_VERSION_NUMBER
-    except AttributeError:
         vtkVers = vtk.vtkVersion().GetVTKVersion()
+        # vtkVers = vtk.VTK_VERSION_NUMBER
+    except AttributeError:
+        vtkVers = 'unkonwn'
     msg = "| vtk " + str(vtkVers)
     msg += " | python " + str(sys.version_info[0]) + "." + str(sys.version_info[1])
     colors.printc(msg, invert=0, dim=1)
 
-
+####################################################################################
 # example web page for X3D
 x3d_html = """
 <html>
@@ -119,6 +120,8 @@ google-chrome --enable-webgl --use-gl=desktop
 </font></body>
 </html>
 """
+####################################################################################
+
 
 ####################################################################################
 _defs = ""

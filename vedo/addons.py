@@ -6,12 +6,9 @@ from vedo.colors import printc, getColor
 from vedo.assembly import Assembly
 from vedo.mesh import Mesh, merge
 from vedo.pointcloud import Points
-from vedo.utils import mag, isSequence, make_ticks
-from vedo.utils import versor, ctf2lut, vtkVersionIsAtLeast
-from vedo.utils import precision as nrprecision
+import vedo.utils as utils
 import vedo.shapes as shapes
 import vedo.settings as settings
-import vedo.docs as docs
 from vedo.volume import Volume
 from vedo.tetmesh import TetMesh
 import numpy as np
@@ -19,25 +16,25 @@ import vtk
 
 __doc__ = (
     """
-Additional objects like axes, legends etc..
+Create additional objects like axes, legends, lights, etc..
 """
-    + docs._defs
+    + vedo.docs._defs
 )
 
 __all__ = [
-        "addLight",
-        "addScalarBar",
-        "addScalarBar3D",
-        "addSlider2D",
-        "addSlider3D",
-        "addButton",
-        "addCutterTool",
-        "addIcon",
-        "addLegend",
-        "buildAxes",
-        "buildRulerAxes",
-        "Goniometer",
-        "Ruler",
+            "addLight",
+            "addScalarBar",
+            "addScalarBar3D",
+            "addSlider2D",
+            "addSlider3D",
+            "addButton",
+            "addCutterTool",
+            "addIcon",
+            "addLegend",
+            "buildAxes",
+            "buildRulerAxes",
+            "Goniometer",
+            "Ruler",
         ]
 
 
@@ -81,10 +78,10 @@ def Ruler(
     if len(p1)==2: p1=[p1[0],p1[1],0.0]
     if len(p2)==2: p2=[p2[0],p2[1],0.0]
     p1, p2 = np.array(p1), np.array(p2)
-    q1, q2 = [0, 0, 0], [mag(p2 - p1), 0, 0]
+    q1, q2 = [0, 0, 0], [utils.mag(p2 - p1), 0, 0]
     q1, q2 = np.array(q1), np.array(q2)
     v = q2 - q1
-    d = mag(v)
+    d = utils.mag(v)
 
     if s is None:
         s = d*0.02
@@ -92,7 +89,7 @@ def Ruler(
     if not label:
         label = str(d)
         if precision:
-            label = nrprecision(d, precision)
+            label = utils.precision(d, precision)
     if prefix:
         label = prefix+ '~' + label
     if units:
@@ -124,6 +121,7 @@ def Ruler(
     macts = merge(acts).pos(p1).c(c).alpha(alpha)
     macts.GetProperty().LightingOff()
     macts.GetProperty().SetLineWidth(lw)
+    macts.UseBoundsOff()
     macts.base = q1
     macts.top = q2
     macts.orientation(p2 - p1, rotation=axisRotation).bc('t').pickable(False)
@@ -197,14 +195,14 @@ def Goniometer(
     ln = shapes.Line([p1,p2,p3], lw=lw, c=c).alpha(alpha).lighting('off')
     acts.append(ln)
 
-    va = versor(p1-p2)
-    vb = versor(p3-p2)
-    r = min(mag(p3-p2), mag(p1-p2))*arcSize
+    va = utils.versor(p1-p2)
+    vb = utils.versor(p3-p2)
+    r = min(utils.mag(p3-p2), utils.mag(p1-p2))*arcSize
     ptsarc = []
     res = 120
     imed = int(res/2)
     for i in range(res+1):
-        vi = versor(vb*i/res + va*(res-i)/res)
+        vi = utils.versor(vb*i/res + va*(res-i)/res)
         if i==imed: vc = np.array(vi)
         ptsarc.append(p2+vi*r)
     arc = shapes.Line(ptsarc).lw(lw).c(c).alpha(alpha).lighting('off')
@@ -212,13 +210,10 @@ def Goniometer(
 
     angle = np.arccos(np.dot(va,vb))*180/np.pi
 
-    lb = shapes.Text(prefix+nrprecision(angle,precision)+'º', s=r/12*s,
+    lb = shapes.Text(prefix+utils.precision(angle,precision)+'º', s=r/12*s,
                      font=font, italic=italic, justify="center")
     cr = np.cross(va,vb)
     lb.pos(p2+vc*r/1.75).orientation(cr*np.sign(cr[2]), rotation=rotation)
-    # lb.base=np.array([0,0,0])
-    # lb.top=np.array([1,0,0])
-    # lb.pos(p2+vc*r/1.75).orientation(va, rotation=0)
     lb.c(c).alpha(alpha).bc('tomato').lighting('off')
     acts.append(lb)
 
@@ -268,6 +263,8 @@ class Button:
         elif font.lower() == "arial":
             self.textproperty.SetFontFamilyToArial()
         else:
+            if not font:
+                font = settings.defaultFont
             self.textproperty.SetFontFamily(vtk.VTK_FONT_FILE)
             self.textproperty.SetFontFile(settings.fonts_path + font +'.ttf')
         self.textproperty.SetFontSize(size)
@@ -403,7 +400,7 @@ def addScalarBar(obj,
             return None
 
     elif isinstance(obj, (Volume, TetMesh)):
-        lut = ctf2lut(obj)
+        lut = utils.ctf2lut(obj)
 
     else:
         return obj
@@ -418,6 +415,9 @@ def addScalarBar(obj,
     sb.SetDrawBackground(0)
 
     if title:
+        if "\\" in repr(title):
+            for r in shapes._reps:
+                title = title.replace(r[0], r[1])
         titprop = sb.GetTitleTextProperty()
         titprop.BoldOn()
         titprop.ItalicOff()
@@ -430,14 +430,6 @@ def addScalarBar(obj,
         sb.SetTitle(title)
         sb.SetVerticalTitleSeparation(titleYOffset)
         sb.SetTitleTextProperty(titprop)
-
-    #     lpr = sb.GetAnnotationTextProperty ()# GetLabelTextProperty()
-    #     lpr.BoldOff()
-    #     lpr.ItalicOff()
-    #     lpr.ShadowOff()
-    #     lpr.SetColor(c)
-    #     lpr.SetFontFamily(vtk.VTK_FONT_FILE)
-    #     lpr.SetFontFile(settings.fonts_path + settings.defaultFont +'.ttf')
 
     sb.UnconstrainedFontSizeOn()
     sb.DrawAnnotationsOn()
@@ -462,13 +454,12 @@ def addScalarBar(obj,
         sb.SetNumberOfLabels(nlabels)
 
     sctxt = sb.GetLabelTextProperty()
-    sb.SetAnnotationTextProperty(sctxt)
+    sctxt.SetFontFamily(vtk.VTK_FONT_FILE)
+    sctxt.SetFontFile(settings.fonts_path + settings.defaultFont +'.ttf')
     sctxt.SetColor(c)
     sctxt.SetShadow(0)
-    sctxt.SetFontFamily(0)
-    sctxt.SetItalic(0)
-    sctxt.SetBold(0)
-    sctxt.SetFontSize(titleFontSize)
+    sctxt.SetFontSize(titleFontSize-2)
+    sb.SetAnnotationTextProperty(sctxt)
     sb.PickableOff()
     obj.scalarbar = sb
     return sb
@@ -518,6 +509,7 @@ def addScalarBar3D(
     .. hint:: |scalarbars| |scalarbars.py|_
     """
     plt = settings.plotter_instance
+    ncolls = len(settings.collectable_actors)
     if plt and c is None:  # automatic black or white
         c = (0.9, 0.9, 0.9)
         if np.sum(getColor(plt.backgrcol)) > 1.5:
@@ -537,12 +529,13 @@ def addScalarBar3D(
             print("Error in addScalarBar3D: mesh has no lookup table.", [obj])
             return None
         vmin, vmax = obj.mapper().GetScalarRange()
+        # vmin, vmax = lut.GetRange()
 
     elif isinstance(obj, (Volume, TetMesh)):
-        lut = ctf2lut(obj)
+        lut = utils.ctf2lut(obj)
         vmin, vmax = lut.GetRange()
 
-    elif isSequence(obj):
+    elif utils.isSequence(obj):
         vmin, vmax = np.min(obj), np.max(obj)
 
     else:
@@ -567,7 +560,7 @@ def addScalarBar3D(
              bns[4])
 
     tacts = []
-    ticks_pos, ticks_txt = make_ticks(vmin, vmax, nlabels)
+    ticks_pos, ticks_txt = utils.make_ticks(vmin, vmax, nlabels)
     nlabels2 = len(ticks_pos)-1
     for i, p in enumerate(ticks_pos):
         tx = ticks_txt[i]
@@ -604,12 +597,13 @@ def addScalarBar3D(
     sact.PickableOff()
     sact.UseBoundsOff()
     sact.name = 'ScalarBar3D'
+    settings.collectable_actors = settings.collectable_actors[:ncolls]
     return sact
 
 
 #####################################################################
 def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
-                title='', font='arial', titleSize=1, c=None, showValue=True):
+                title='', font='', titleSize=1, c=None, showValue=True):
     """Add a slider widget which can call an external custom function.
 
     :param sliderfunc: external function to be called by the widget
@@ -619,7 +613,7 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     :param list pos: position corner number: horizontal [1-5] or vertical [11-15]
           it can also be specified by corners coordinates [(x1,y1), (x2,y2)]
     :param str title: title text
-    :param str font: title font [arial, courier]
+    :param str font: title font
     :param float titleSize: title text scale [1.0]
     :param bool showValue:  if true current value is shown
 
@@ -646,7 +640,7 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     sliderRep.SetTubeWidth(0.0075)
     sliderRep.GetPoint1Coordinate().SetCoordinateSystemToNormalizedDisplay()
     sliderRep.GetPoint2Coordinate().SetCoordinateSystemToNormalizedDisplay()
-    if isSequence(pos):
+    if utils.isSequence(pos):
         sliderRep.GetPoint1Coordinate().SetValue(pos[0][0], pos[0][1])
         sliderRep.GetPoint2Coordinate().SetValue(pos[1][0], pos[1][1])
     elif pos == 1:  # top-left horizontal
@@ -705,16 +699,22 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     sliderRep.GetTitleProperty().SetColor(c)
     sliderRep.GetTitleProperty().SetOpacity(1)
     sliderRep.GetTitleProperty().SetBold(0)
-    if font == 'courier':
+    if font == 'Courier':
         sliderRep.GetTitleProperty().SetFontFamilyToCourier()
-    elif font.lower() == "times":
+    elif font == "Times":
         sliderRep.GetTitleProperty().SetFontFamilyToTimes()
-    else:
+    elif font == "Arial":
         sliderRep.GetTitleProperty().SetFontFamilyToArial()
+    else:
+        font = settings.fonts_path + settings.defaultFont + '.ttf'
+        sliderRep.GetTitleProperty().SetFontFamily(vtk.VTK_FONT_FILE)
+        sliderRep.GetLabelProperty().SetFontFamily(vtk.VTK_FONT_FILE)
+        sliderRep.GetTitleProperty().SetFontFile(font)
+        sliderRep.GetLabelProperty().SetFontFile(font)
 
     if title:
         sliderRep.SetTitleText(title)
-        if not isSequence(pos):
+        if not utils.isSequence(pos):
             if isinstance(pos, int) and pos > 10:
                 sliderRep.GetTitleProperty().SetOrientation(90)
         else:
@@ -823,7 +823,7 @@ def addButton(
     bc=("dg", "dr"),
     pos=(20, 40),
     size=24,
-    font="arial",
+    font="Normografo",
     bold=False,
     italic=False,
     alpha=1,
@@ -864,12 +864,12 @@ def addCutterTool(mesh):
         return _addVolumeCutterTool(mesh)
     elif isinstance(mesh, vtk.vtkImageData):
         return _addVolumeCutterTool(Volume(mesh))
+        #########################################
 
     plt = settings.plotter_instance
-    if not plt.renderer:
-        save_int = plt.interactive
-        plt.show(interactive=0)
-        plt.interactive = save_int
+    if not plt:
+        printc("addCutterTool(): scene must be first rendered.", c='r')
+        raise RuntimeError()
 
     plt.clickedActor = mesh
     apd = mesh.polydata()
@@ -878,7 +878,7 @@ def addCutterTool(mesh):
     planes.SetBounds(apd.GetBounds())
 
     clipper = vtk.vtkClipPolyData()
-    clipper.GenerateClipScalarsOn()
+    clipper.GenerateClipScalarsOff()
     clipper.SetInputData(apd)
     clipper.SetClipFunction(planes)
     clipper.InsideOutOn()
@@ -891,13 +891,11 @@ def addCutterTool(mesh):
     act0.mapper().SetScalarRange(mesh.mapper().GetScalarRange())
 
     act1 = Mesh()
-    act1.mapper().SetInputConnection(clipper.GetClippedOutputPort()) # needs OutputPort??
+    act1.mapper().SetInputConnection(clipper.GetClippedOutputPort()) # needs OutputPort
     act1.alpha(0.04).color((0.5,0.5,0.5)).wireframe()
 
-    plt.renderer.RemoveActor(mesh)
-    plt.renderer.AddActor(act0)
-    plt.renderer.AddActor(act1)
-    plt.renderer.ResetCamera()
+    plt.remove(mesh)
+    plt.add([act0, act1])
 
     def selectPolygons(vobj, event):
         vobj.GetPlanes(planes)
@@ -907,12 +905,13 @@ def addCutterTool(mesh):
     boxWidget.GetSelectedOutlineProperty().SetColor(1, 0, 1)
     boxWidget.GetOutlineProperty().SetColor(0.2, 0.2, 0.2)
     boxWidget.GetOutlineProperty().SetOpacity(0.8)
-    boxWidget.SetPlaceFactor(1.05)
+    boxWidget.SetPlaceFactor(1.025)
     boxWidget.SetInteractor(plt.interactor)
     boxWidget.SetInputData(apd)
     boxWidget.PlaceWidget()
     boxWidget.AddObserver("InteractionEvent", selectPolygons)
     boxWidget.On()
+    plt.widgets.append(boxWidget)
 
     plt.cutterWidget = boxWidget
     plt.clickedActor = act0
@@ -923,12 +922,9 @@ def addCutterTool(mesh):
     printc("Mesh Cutter Tool:", c="m", invert=1)
     printc("  Move gray handles to cut away parts of the mesh", c="m")
     printc("  Press X to save file to: clipped.vtk", c="m")
-    plt.interactor.Start()
+    plt.interactor.Start() # allow extra interaction
 
     boxWidget.Off()
-    plt.widgets.append(boxWidget)
-
-    plt.interactor.Start()  # allow extra interaction
     return act0
 
 def _addVolumeCutterTool(vol):
@@ -990,7 +986,7 @@ def addIcon(mesh, pos=3, size=0.08):
     widget = vtk.vtkOrientationMarkerWidget()
     widget.SetOrientationMarker(mesh)
     widget.SetInteractor(plt.interactor)
-    if isSequence(pos):
+    if utils.isSequence(pos):
         widget.SetViewport(pos[0] - size, pos[1] - size, pos[0] + size, pos[1] + size)
     else:
         if pos < 2:
@@ -1010,7 +1006,7 @@ def addIcon(mesh, pos=3, size=0.08):
 
 #####################################################################
 def computeVisibleBounds():
-    """Calculate max meshs bounds and sizes."""
+    """Calculate max meshes bounds and sizes."""
     bns = []
     for a in settings.plotter_instance.actors:
         if a and a.GetUseBounds():
@@ -1054,7 +1050,7 @@ def buildRulerAxes(
     xycross=True,
 ):
     """
-    Build a 3D ruler to indicate the distance of two points p1 and p2.
+    Build 3D rulers to indicate the sizes of the input scene or object.
 
     :param str xtitle: name of the axis or title
     :param str xlabel: alternative fixed label to be shown instead of the distance
@@ -1071,7 +1067,8 @@ def buildRulerAxes(
 
     |goniometer| |goniometer.py|_
     """
-    if isSequence(inputobj):
+    ncolls = len(settings.collectable_actors)
+    if utils.isSequence(inputobj):
         x0,x1,y0,y1,z0,z1 = inputobj
     else:
         x0,x1,y0,y1,z0,z1 = inputobj.GetBounds()
@@ -1087,24 +1084,26 @@ def buildRulerAxes(
                     [x1,y0-dx,z0],
                     s=s, font=font, precision=precision,
                     labelRotation=labelRotation, axisRotation=axisRotation,
-                    lw=lw, italic=italic, prefix=xtitle, label=xlabel, units=units)
+                    lw=lw, italic=italic, prefix=xtitle, label=xlabel, units=units
+        )
         acts.append(rx)
     if ytitle is not None and (y1-y0)/d>0.1:
         ry = Ruler( [x1+dy,y0,z0],
                     [x1+dy,y1,z0],
                     s=s, font=font, precision=precision,
                     labelRotation=labelRotation, axisRotation=axisRotation,
-                    lw=lw, italic=italic, prefix=ytitle, label=ylabel, units=units)
+                    lw=lw, italic=italic, prefix=ytitle, label=ylabel, units=units
+        )
         acts.append(ry)
     if ztitle is not None and (z1-z0)/d>0.1:
         rz = Ruler( [x0-dy,y0+dz,z0],
                     [x0-dy,y0+dz,z1],
                     s=s, font=font, precision=precision,
                     labelRotation=labelRotation, axisRotation=axisRotation+90,
-                    lw=lw, italic=italic, prefix=ztitle, label=zlabel, units=units)
+                    lw=lw, italic=italic, prefix=ztitle, label=zlabel, units=units
+        )
         acts.append(rz)
 
-    ncolls = len(settings.collectable_actors)
     if xycross and rx and ry:
         lx = shapes.Line([x0,y0,z0],    [x0,y1+dx,z0])
         ly = shapes.Line([x0-dy,y1,z0], [x1,y1,z0])
@@ -1249,6 +1248,7 @@ def buildAxes(obj=None,
 
     if useGlobal:
         vbb, ss, min_bns, max_bns = computeVisibleBounds()
+        vbb = list(vbb) # so that we can modify it
     else:
         if obj:
             vbb = list(obj.GetBounds())
@@ -1313,7 +1313,7 @@ def buildAxes(obj=None,
     if not zLabelColor:  zLabelColor = zLineColor
 
     # vtk version<9 dont like depthpeeling
-    if settings.useDepthPeeling and not vtkVersionIsAtLeast(9):
+    if settings.useDepthPeeling and not utils.vtkVersionIsAtLeast(9):
         xyGrid = False
         yzGrid = False
         zxGrid = False
@@ -1339,11 +1339,11 @@ def buildAxes(obj=None,
     #printc('numberOfDivisions', numberOfDivisions, '\t r=', rx, ry, rz)
 
     if xtitle:
-        xticks_float, xticks_str = make_ticks(vbb[0], vbb[1], rx,
-                                              xValuesAndLabels, digits)
+        xticks_float, xticks_str = utils.make_ticks(vbb[0], vbb[1], rx,
+                                                    xValuesAndLabels, digits)
     if ytitle:
-        yticks_float, yticks_str = make_ticks(vbb[2], vbb[3], ry,
-                                              yValuesAndLabels, digits)
+        yticks_float, yticks_str = utils.make_ticks(vbb[2], vbb[3], ry,
+                                                    yValuesAndLabels, digits)
         if yLabelRotation is None: #automatic rotation of labels
             maxlentxt=0
             for i in range(1,len(yticks_str)-1):
@@ -1351,8 +1351,8 @@ def buildAxes(obj=None,
             if maxlentxt < 4:
                 yLabelRotation = 1 # rotate clockwise
     if ztitle:
-        zticks_float, zticks_str = make_ticks(vbb[4], vbb[5], rz,
-                                              zValuesAndLabels, digits)
+        zticks_float, zticks_str = utils.make_ticks(vbb[4], vbb[5], rz,
+                                                    zValuesAndLabels, digits)
         if zLabelRotation is None: #automatic rotation of labels
             maxlentxt=0
             for i in range(1,len(zticks_str)-1):
@@ -1761,7 +1761,7 @@ def buildAxes(obj=None,
     acts = titles + lines + labels + grids + grids2 + highlights
     acts += framelines + majorticks + minorticks + cones
 
-    tol *= mag(ss)
+    tol *= utils.mag(ss)
     orig = np.array([min_bns[0], min_bns[2], min_bns[4]]) - tol
     for a in acts:
         a.PickableOff()
@@ -1798,14 +1798,12 @@ def addGlobalAxes(axtype=None, c=None):
 
     Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
 
-
         - `xtitle`,                ['x'], x-axis title text
         - `xrange`,               [None], x-axis range in format (xmin, ymin), default is automatic.
         - `numberOfDivisions`,    [None], approximate number of divisions on the longest axis
         - `axesLineWidth`,           [1], width of the axes lines
         - `gridLineWidth`,           [1], width of the grid lines
         - `reorientShortTitle`,   [True], titles shorter than 2 letter are placed horizontally
-        - `originMarkerSize`,     [0.01], draw a small cube on the axis where the origin is
         - `titleDepth`,              [0], extrusion fractional depth of title text
         - `xyGrid`,               [True], show a gridded wall on plane xy
         - `yzGrid`,               [True], show a gridded wall on plane yz
@@ -1818,25 +1816,33 @@ def addGlobalAxes(axtype=None, c=None):
         - `xyAlpha`,              [0.15], grid plane opacity
         - `xyFrameLine`,          [None], add a frame for the plane
         - `showTicks`,            [True], show major ticks
+        - `digits`,               [None], use this number of significant digits in scientific notation
+        - `titleFont`,              [''], font for axes titles
+        - `labelFont`,              [''], font for numeric labels
+        - `textScale`,             [1.0], global scaling factor for text elements (titles, labels)
         - `xTitlePosition`,       [0.32], title fractional positions along axis
         - `xTitleOffset`,         [0.05], title fractional offset distance from axis line
         - `xTitleJustify`, ["top-right"], title justification
         - `xTitleRotation`,          [0], add a rotation of the axis title
+        - `xTitleBox`,           [False], add a box around title text
         - `xLineColor`,      [automatic], color of the x-axis
         - `xTitleColor`,     [automatic], color of the axis title
         - `xTitleBackfaceColor`,  [None],  color of axis title on its backface
         - `xTitleSize`,          [0.025], size of the axis title
+        - 'xTitleItalic',            [0], a bool or float to make the font italic
         - `xHighlightZero`,       [True], draw a line highlighting zero position if in range
         - `xHighlightZeroColor`, [autom], color of the line highlighting the zero position
         - `xTickLength`,         [0.005], radius of the major ticks
         - `xTickThickness`,     [0.0025], thickness of the major ticks along their axis
-        - `xLabelColor`,      [automatic], color of major ticks
         - `xMinorTicks`,             [1], number of minor ticks between two major ticks
-        - `tipSize`,              [0.01], size of the arrow tip
-        - `xValuesAndLabels`       [], assign custom tick positions and labels [(pos1, label1), ...]
+        - `xValuesAndLabels`          [], assign custom tick positions and labels [(pos1, label1), ...]
+        - `xLabelColor`,     [automatic], color of numeric labels and ticks
         - `xLabelPrecision`,         [2], nr. of significative digits to be shown
         - `xLabelSize`,          [0.015], size of the numeric labels along axis
+        - 'xLabelRotation',          [0], rotate clockwise [1] or anticlockwise [-1] by 90 degrees
+        - 'xFlipText',           [False], flip axis title and numeric labels orientation
         - `xLabelOffset`,        [0.025], offset of numeric labels
+        - `tipSize`,              [0.01], size of the arrow tip
         - `limitRatio`,           [0.04], below this ratio don't plot small axis
 
         :Example:
@@ -2185,6 +2191,9 @@ def addGlobalAxes(axtype=None, c=None):
         ls.GetBottomAxis().GetLabelTextProperty().BoldOff()
         ls.GetBottomAxis().GetLabelTextProperty().ItalicOff()
         ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
+        pr = ls.GetBottomAxis().GetLabelTextProperty()
+        pr.SetFontFamily(vtk.VTK_FONT_FILE)
+        pr.SetFontFile(settings.fonts_path + settings.defaultFont +'.ttf')
         ls.PickableOff()
         plt.renderer.AddActor(ls)
         plt.axes_instances[r] = ls
@@ -2261,7 +2270,7 @@ def addRendererFrame(c=None, alpha=None, lw=None):
 def addLegend():
 
     plt = settings.plotter_instance
-    if not isSequence(plt._legend):
+    if not utils.isSequence(plt._legend):
         return
 
     # remove old legend if present on current renderer:

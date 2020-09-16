@@ -117,7 +117,7 @@ assert bx.clean().N() == 8
 ct = cone.clone().rotateX(10).rotateY(10).rotateY(10)
 print('getTransform', [ct.getTransform()], [vtk.vtkTransform])
 assert isinstance(ct.getTransform(), vtk.vtkTransform)
-ct.setTransform(ct.getTransform())
+ct.applyTransform(ct.getTransform())
 print('getTransform',ct.getTransform().GetNumberOfConcatenatedTransforms())
 assert ct.getTransform().GetNumberOfConcatenatedTransforms()
 
@@ -239,7 +239,7 @@ assert len(ics) == 1404
 
 ######################################transformMesh
 T = cone.clone().pos(35,67,87).getTransform()
-s3 = sphere.clone().setTransform(T)
+s3 = sphere.clone().applyTransform(T)
 print('transformMesh',s3.centerOfMass(), (35,67,87))
 assert np.allclose(s3.centerOfMass(), (35,67,87))
 

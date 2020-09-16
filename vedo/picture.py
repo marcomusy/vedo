@@ -226,6 +226,45 @@ class Picture(vtk.vtkImageActor, Base3DProp):
         blf.Update()
         return self._update(blf.GetOutput())
 
+    def polygonize(self, threshold=None, flip=False):
+        """
+        Create a polygonal Mesh from a Picture by filling regions with pixels
+        luminosity above a specified threshold.
+
+        Parameters
+        ----------
+        threshold : float, optional
+            The default is None, e.i. 1/3 of the scalar range.
+
+        Returns
+        -------
+        Mesh
+            A polygonal mesh.
+        """
+        from vedo.mesh import Mesh
+        mgf = vtk.vtkImageMagnitude()
+        mgf.SetInputData(self._data)
+        mgf.Update()
+        msq = vtk.vtkMarchingSquares()
+        msq.SetInputData(mgf.GetOutput())
+        if threshold is None:
+            r0,r1 = self._data.GetScalarRange()
+            threshold = r0 + (r1-r0)/3
+        msq.SetValue(0, threshold)
+        msq.Update()
+        if flip:
+            rs = vtk.vtkReverseSense()
+            rs.SetInputData(msq.GetOutput())
+            rs.ReverseCellsOn()
+            rs.ReverseNormalsOff()
+            rs.Update()
+            output = rs.GetOutput()
+        else:
+            output = msq.GetOutput()
+        ctr = vtk.vtkContourTriangulator()
+        ctr.SetInputData(output)
+        ctr.Update()
+        return Mesh(ctr.GetOutput(), c='k').bc('t').lighting('off')
 
 
 

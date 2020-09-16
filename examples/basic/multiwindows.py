@@ -43,7 +43,7 @@ s = load(datadir+'mug.ply')
 vp2 = Plotter(pos=(500, 250), shape='2/6')
 
 for i in range(len(vp2.renderers)):
-    s2 = s.clone().color(i)
+    s2 = s.clone(deep=False).color(i)
     vp2.show(s2, 'renderer #'+str(i), at=i)
 
 interactive()

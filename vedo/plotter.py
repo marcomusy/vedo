@@ -8,7 +8,6 @@ import numpy as np
 import vedo
 from vedo.colors import printc, getColor
 import vedo.utils as utils
-import vedo.docs as docs
 import vedo.settings as settings
 import vedo.addons as addons
 import vedo.backends as backends
@@ -17,7 +16,7 @@ __doc__ = (
     """
 Defines main class ``Plotter`` to manage actors and 3D rendering.
 """
-    + docs._defs
+    + vedo.docs._defs
 )
 
 __all__ = ["show", "clear", "ion", "ioff",
@@ -277,6 +276,7 @@ def show(*actors, **options):
         )
 
     # use _plt_to_return because plt.show() can return a k3d/panel plot
+    _plt_to_return = None
     if utils.isSequence(at):
         for i, a in enumerate(actors):
             _plt_to_return = plt.show(
@@ -344,13 +344,14 @@ def ioff():
     return settings.plotter_instance
 
 
-def clear(actor=None):
+def clear(actor=None, at=None):
     """
     Clear specific actor or list of actors from the current rendering window.
+    Keyword ``at`` specify the reneder to be cleared.
     """
     if not settings.plotter_instance:
         return
-    settings.plotter_instance.clear(actor)
+    settings.plotter_instance.clear(actor, at)
     return settings.plotter_instance
 
 
@@ -648,6 +649,7 @@ class Plotter:
 
             for i in rangem:
                 arenderer = vtk.vtkRenderer()
+
                 if '|' in shape:
                     arenderer.SetViewport(xsplit, i/m, 1, (i+1)/m)
                 else:
@@ -741,6 +743,7 @@ class Plotter:
                         arenderer = vtk.vtkRenderer()
                         arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
                         arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
+                        arenderer.SetTwoSidedLighting(settings.twoSidedLighting)
                         arenderer.SetUseFXAA(settings.useFXAA)
                         if settings.useFXAA:
                             self.window.SetMultiSamples(settings.multiSamples)
@@ -1123,6 +1126,44 @@ class Plotter:
         self.camera = cam
         return cam
 
+    def flyTo(self, point, at=0):
+        """
+        Fly camera to the specified point.
+
+        Parameters
+        ----------
+        point : list
+            point in space to place camera.
+        at : int, optional
+            Renderer number. The default is 0.
+
+        Example:
+
+            .. code-block:: python
+
+            from vedo import Cone
+            Cone().show(axes=1).flyTo([1,0,0]).show()
+
+        """
+        self.resetcam = False
+        self.interactor.FlyTo(self.renderers[at], point)
+        return self
+
+    def parallelProjection(self, value=True):
+        """Use parallel projection. Obecjt is seen from "infinite" distance",
+        e.i. remove any perspective effects.
+        """
+        settings.useParallelProjection = value
+        for r in self.renderers:
+            r.GetActiveCamera().SetParallelProjection(value)
+            r.Modified()
+        return self
+
+    # def freeze(self, value=True, at=0):
+    #     """Freeze renderer's camera. Set to argument to False to unfreeze."""
+    #     return self.renderers[at].SetInteractive(value)
+
+
     ##################################################################
     def addLight(self, pos, focalPoint=(0, 0, 0), deg=180, c='white',
                  intensity=0.4, removeOthers=False, showsource=False):
@@ -1209,7 +1250,7 @@ class Plotter:
         bc=("dg", "dr"),
         pos=(20, 40),
         size=24,
-        font="arial",
+        font="Normografo",
         bold=False,
         italic=False,
         alpha=1,
@@ -1343,7 +1384,8 @@ class Plotter:
 
     ##############################################################################
     def show(self, *actors, **options):
-        """Render a list of actors.
+        """
+        Render a list of actors.
 
         Allowed input objects are: ``filename``, ``vtkPolyData``, ``vtkActor``,
         ``vtkActor2D``, ``vtkImageActor``, ``vtkAssembly`` or ``vtkVolume``.
@@ -1432,7 +1474,7 @@ class Plotter:
         """
         at = options.pop("at", None)
         axes = options.pop("axes", settings.defaultAxesType)
-        resetcam = options.pop("resetcam", True)
+        resetcam = options.pop("resetcam", None)
         zoom = options.pop("zoom", False)
         interactive = options.pop("interactive", None)
         viewup = options.pop("viewup", "")
@@ -1462,7 +1504,8 @@ class Plotter:
             interactive = False
             self.interactive = False
 
-        self.resetcam = resetcam
+        if resetcam is not None:
+            self.resetcam = resetcam
 
         def scan(wannabeacts):
             scannedacts = []
@@ -1685,10 +1728,9 @@ class Plotter:
                             self._flagRep = vtk.vtkBalloonRepresentation()
                             self._flagRep.SetBalloonLayoutToImageRight()
                             breppr = self._flagRep.GetTextProperty()
-                            breppr.SetFontFamilyAsString(settings.flagFont)
+                            breppr.SetFontFamily(vtk.VTK_FONT_FILE)
+                            breppr.SetFontFile(settings.fonts_path + settings.flagFont +'.ttf')
                             breppr.SetFontSize(settings.flagFontSize)
-                            breppr.SetBold(settings.flagBold)
-                            breppr.SetItalic(settings.flagItalic)
                             breppr.SetColor(getColor(settings.flagColor))
                             breppr.SetBackgroundColor(getColor(settings.flagBackgroundColor))
                             breppr.SetShadow(settings.flagShadow)
@@ -1737,7 +1779,7 @@ class Plotter:
 
         addons.addLegend()
 
-        if resetcam: #or self.initializedIren == False:
+        if self.resetcam: #or self.initializedIren == False:
             self.renderer.ResetCamera()
 
         if settings.showRendererFrame and len(self.renderers) > 1:
@@ -1795,7 +1837,7 @@ class Plotter:
             if cm_thickness is not None: self.camera.SetThickness(cm_thickness)
             if cm_viewAngle is not None: self.camera.SetViewAngle(cm_viewAngle)
 
-        if resetcam:
+        if self.resetcam:
             self.renderer.ResetCameraClippingRange()
 
         self.window.Render() ############################# <----
@@ -1867,7 +1909,6 @@ class Plotter:
 
         return self
 
-
     def showInset(self, *actors, **options):
         """Add a draggable inset space into a renderer.
 
@@ -1919,8 +1960,10 @@ class Plotter:
         return widget
 
 
-    def clear(self, actors=None):
+    def clear(self, actors=None, at=None):
         """Delete specified list of actors, by default delete all."""
+        if at is not None:
+            self.renderer = self.renderers[at]
         if actors is None:
             self.renderer.RemoveAllViewProps()
             self.actors = []
@@ -1968,14 +2011,24 @@ class Plotter:
         return self
 
     def close(self):
+        """Close the Plotter instance and release resources."""
         self.clear()
+        for r in self.renderers:
+            r.RemoveAllObservers()
+        self.camera.RemoveAllObservers()
         self.closeWindow()
         self.actors = []
         settings.collectable_actors = []
         settings.plotter_instance = None
 
-    def screenshot(self, filename):
+    def screenshot(self, filename='screenshot.png'):
+        """Take a screenshot of the Plotter window."""
         vedo.io.screenshot(filename)
+        return self
+
+    def export(self, filename='scene.npz'):
+        """Export scene to fileto to HTML, X3D or Numpy file."""
+        vedo.io.exportWindow(filename)
         return self
 
 
@@ -2225,8 +2278,7 @@ class Plotter:
 
 
         elif key == "h":
-            from vedo.docs import tips
-            tips()
+            vedo.docs.tips()
             return
 
         elif key == "a":
@@ -2337,11 +2389,29 @@ class Plotter:
                     if len(arnames):
                         arnam =  arnames[ia._scals_idx]
                         if arnam and "normals" not in arnam.lower(): # exclude normals
-                            ia.getPointArray( ia._scals_idx )
-                            printc("..active scalars set to:", arnam, c='g', bold=0)
-                        ia._scals_idx += 1
-                        if ia._scals_idx >= len(arnames):
-                            ia._scals_idx = 0
+                            arr = ia.getPointArray(ia._scals_idx)
+                            if arr is not None:
+                                arr = arr.ravel()
+                                printc("..active point array set to:", arnam, c='g', bold=0)
+                                ia.cmap('rainbow')
+                                ia._mapper.SetScalarRange(min(arr), max(arr))
+                                ia._scals_idx += 1
+                                if ia._scals_idx >= len(arnames):
+                                    ia._scals_idx = 0
+                    else:
+                        arnames = ia.getArrayNames()['CellData']
+                        if len(arnames):
+                            arnam =  arnames[ia._scals_idx]
+                            if arnam and "normals" not in arnam.lower(): # exclude normals
+                                arr = ia.getPointArray(ia._scals_idx)
+                                if arr is not None:
+                                    arr = arr.ravel()
+                                    printc("..active cell array set to:", arnam, c='g', bold=0)
+                                    ia.cmap('rainbow', on='cells')
+                                    ia._mapper.SetScalarRange(min(arr), max(arr))
+                                    ia._scals_idx += 1
+                                    if ia._scals_idx >= len(arnames):
+                                        ia._scals_idx = 0
 
         elif key == "5":
             bgc = np.array(self.renderer.GetBackground()).sum() / 3
@@ -2379,9 +2449,15 @@ class Plotter:
                     self.renderer.RemoveActor(self.axes_instances[clickedr])
                 self.axes_instances[clickedr] = None
             if not self.axes: self.axes=0
+            if isinstance(self.axes, dict):
+                self.axes=1
             if key in ["minus", "KP_Subtract"]:
+                if settings.useParallelProjection == False and self.axes==0:
+                    self.axes -= 1 # jump ruler doesnt make sense in perspective mode
                 addons.addGlobalAxes(axtype=(self.axes-1)%14, c=None)
             else:
+                if settings.useParallelProjection == False and self.axes==12:
+                    self.axes += 1 # jump ruler doesnt make sense in perspective mode
                 addons.addGlobalAxes(axtype=(self.axes+1)%14, c=None)
             self.interactor.Render()
 
@@ -2515,27 +2591,15 @@ class Plotter:
                 if not self.cutterWidget:
                     addons.addCutterTool(self.clickedActor)
                 else:
-                    fname = "clipped.vtk"
-                    confilter = vtk.vtkPolyDataConnectivityFilter()
                     if isinstance(self.clickedActor, vtk.vtkActor):
-                        confilter.SetInputData(self.clickedActor.GetMapper().GetInput())
-                    elif isinstance(self.clickedActor, vtk.vtkAssembly):
-                        act = self.clickedActor.getMeshes()[0]
-                        confilter.SetInputData(act.GetMapper().GetInput())
-                    else:
-                        confilter.SetInputData(self.clickedActor.polydata(True))
-                    confilter.SetExtractionModeToLargestRegion()
-                    confilter.Update()
-                    cpd = vtk.vtkCleanPolyData()
-                    cpd.SetInputData(confilter.GetOutput())
-                    cpd.Update()
-                    w = vtk.vtkPolyDataWriter()
-                    w.SetInputData(cpd.GetOutput())
-                    w.SetFileName(fname)
-                    w.Write()
-                    printc("\save Saved file:", fname, c="m")
-                    self.cutterWidget.Off()
-                    self.cutterWidget = None
+                        fname = "clipped.vtk"
+                        w = vtk.vtkPolyDataWriter()
+                        w.SetInputData(self.clickedActor.polydata())
+                        w.SetFileName(fname)
+                        w.Write()
+                        printc("\save Saved file:", fname, c="m")
+                        self.cutterWidget.Off()
+                        self.cutterWidget = None
             else:
                 for a in self.actors:
                     if isinstance(a, vtk.vtkVolume):

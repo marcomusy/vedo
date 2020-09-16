@@ -107,7 +107,7 @@ def draw_scene():
     if args.ray_cast_mode:
         # print('DEBUG special case of SLC/TIFF volumes with -g option')
 
-        vol = io.load(args.files[0])
+        vol = io.load(args.files[0], force=args.reload)
 
         if not isinstance(vol, Volume):
             printc("~times Type Error:\nExpected a Volume but loaded", type(vol),
@@ -117,6 +117,8 @@ def draw_scene():
         sp = vol.spacing()
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
         vol.mode(int(args.mode)).color(args.cmap).jittering(True)
+        if args.lighting !='default':
+            vol.lighting(args.lighting)
         vp = applications.RayCaster(vol)
         vp.show(viewup="z", interactive=True)
         vp.sliders[0][0].SetEnabled(False)
@@ -136,7 +138,7 @@ def draw_scene():
             args.axes_type=1
             useSlider3D = True
 
-        vol = io.load(args.files[0])
+        vol = io.load(args.files[0], force=args.reload)
 
         sp = vol.spacing()
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
@@ -160,7 +162,7 @@ def draw_scene():
     ########################################################################
     elif args.slicer2d:
         # print('DEBUG special case of SLC/TIFF/DICOM volumes with --slicer2d option')
-        vol = io.load(args.files[0])
+        vol = io.load(args.files[0], force=args.reload)
         sp = vol.spacing()
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
         settings.plotter_instance = None # reset
@@ -179,7 +181,7 @@ def draw_scene():
         or ".dem" in args.files[0].lower()
     ):
         # print('DEBUG normal mode for single VOXEL file with Isosurface Slider or LEGO mode')
-        vol = io.load(args.files[0])
+        vol = io.load(args.files[0], force=args.reload)
         sp = vol.spacing()
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
         if not args.color:
@@ -198,7 +200,7 @@ def draw_scene():
         # loading a full scene
         if ".npy" in args.files[0] or ".npz" in args.files[0] and nfiles == 1:
 
-            objct = io.load(args.files[0])
+            objct = io.load(args.files[0], force=args.reload)
 
             if "Plotter" in str(type(objct)): # loading a full scene
                 objct.show()
@@ -216,7 +218,7 @@ def draw_scene():
             if args.color is None and N > 1:
                 colb = i
 
-            actor = load(f)
+            actor = load(f, force=args.reload)
 
             if isinstance(actor, (TetMesh, UGrid)):
                 actor = actor.tomesh().shrink(0.975).c(colb).alpha(args.alpha)
@@ -277,7 +279,7 @@ def draw_scene():
         if vp.axes==4:
             vp.axes=1
 
-        acts = vp.load(args.files)
+        acts = vp.load(args.files, force=args.reload)
         for a in acts:
             if hasattr(a, 'c'): #Picture doesnt have it
                 a.c(args.color)
@@ -602,6 +604,7 @@ else:  #########################################################################
     pr.add_argument("--lego",                       help="Voxel rendering for 3D image files", action="store_true")
     pr.add_argument("-r", "--run",                  help="Run example from vedo/examples", metavar='')
     pr.add_argument("--list",                       help="List examples in vedo/examples", action="store_true")
+    pr.add_argument("--reload",                     help="Reload the file, ignoring any previous download", action="store_true")
     args = pr.parse_args()
 
     if args.run:

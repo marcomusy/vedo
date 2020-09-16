@@ -3,6 +3,7 @@ import vtk
 import numpy as np
 import sys
 import vedo.docs as docs
+import vedo.settings as settings
 
 __doc__ = (
     """
@@ -12,13 +13,13 @@ Colors definitions and printing methods.
 )
 
 __all__ = [
+    "ask",
     "printc",
     "getColor",
     "getColorName",
     "colorMap",
     "makePalette",
     "makeLUT",
-    "kelvin2rgb",
 ]
 
 
@@ -495,7 +496,7 @@ def makeLUT(colorlist,
             belowColor=None, aboveColor=None, nanColor=None
             ):
     """
-    Generate colors in a vtk lookup table.
+    Generate colors in a lookup table.
 
     :param list colorlist: a list in the form ``[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]``.
     :param bool interpolate: interpolate or not intermediate scalars
@@ -503,6 +504,7 @@ def makeLUT(colorlist,
     :param float vmax: specify maximum value of scalar range
     :param belowColor: color for scalars below the minimum in range
     :param aboveColor: color for scalars above the maximum in range
+    :param nanColor: color for invalid (nan) scalars
 
     :return: the lookup table object ``vtkLookupTable``. This can be fed into ``colorMap``.
 
@@ -561,66 +563,6 @@ def makeLUT(colorlist,
     lut.Build()
     return lut
 
-
-def kelvin2rgb(temperature):
-    """
-    Converts from Kelvin temperature to an RGB color.
-
-    Algorithm credits: |tannerhelland|_
-    """
-    # range check
-    if temperature < 1000:
-        temperature = 1000
-    elif temperature > 40000:
-        temperature = 40000
-
-    tmp_internal = temperature / 100.0
-
-    # red
-    if tmp_internal <= 66:
-        red = 255
-    else:
-        tmp_red = 329.698727446 * np.power(tmp_internal - 60, -0.1332047592)
-        if tmp_red < 0:
-            red = 0
-        elif tmp_red > 255:
-            red = 255
-        else:
-            red = tmp_red
-
-    # green
-    if tmp_internal <= 66:
-        tmp_green = 99.4708025861 * np.log(tmp_internal) - 161.1195681661
-        if tmp_green < 0:
-            green = 0
-        elif tmp_green > 255:
-            green = 255
-        else:
-            green = tmp_green
-    else:
-        tmp_green = 288.1221695283 * np.power(tmp_internal - 60, -0.0755148492)
-        if tmp_green < 0:
-            green = 0
-        elif tmp_green > 255:
-            green = 255
-        else:
-            green = tmp_green
-
-    # blue
-    if tmp_internal >= 66:
-        blue = 255
-    elif tmp_internal <= 19:
-        blue = 0
-    else:
-        tmp_blue = 138.5177312231 * np.log(tmp_internal - 10) - 305.0447927307
-        if tmp_blue < 0:
-            blue = 0
-        elif tmp_blue > 255:
-            blue = 255
-        else:
-            blue = tmp_blue
-
-    return [red / 255, green / 255, blue / 255]
 
 
 # default sets of colors
@@ -731,10 +673,16 @@ def printc(*strings, **keys):
     end = keys.pop("end", "\n")
     flush = keys.pop("flush", True)
 
-    if not _terminal_has_colors or sys.version_info[0] < 3:
+    if sys.version_info[0] < 3:
         print(strings)
-        sys.stdout.flush()
         return
+
+    if not settings.notebookBackend:
+        if not _terminal_has_colors:
+            print(end=end)
+            if flush:
+                sys.stdout.flush()
+            return
 
     c = keys.pop("c", None)
     bc = keys.pop("bc", None)
@@ -829,3 +777,17 @@ def printc(*strings, **keys):
 
     if flush:
         sys.stdout.flush()
+
+def ask(*question, **kwarg):
+    """
+    Ask a question from command line. Return the answer as a string.
+    See function `printc()` for the description of the options.
+    """
+    kwarg.update({'end': ' '})
+    if 'invert' not in kwarg.keys():
+        kwarg.update({'invert': True})
+    if 'box' in kwarg.keys():
+        kwarg.update({'box': ''})
+    printc(*question, **kwarg)
+    resp = input()
+    return resp

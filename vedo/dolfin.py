@@ -575,7 +575,7 @@ def plot(*inputobj, **options):
     # change some default to emulate standard behaviours
     options['verbose'] = False # don't disturb
     if  style == 0 or style == 'vtk':
-        font = 'courier'
+        font = 'Courier'
         axes = options.pop('axes', None)
         if axes is None:
             options['axes'] = {
@@ -588,7 +588,7 @@ def plot(*inputobj, **options):
         if cmap is None:
             cmap = 'rainbow'
     elif style == 1 or style == 'matplotlib':
-        font = 'courier'
+        font = 'Courier'
         bg = options.pop('bg', None)
         if bg is None:
             options['bg'] = 'white'
@@ -606,7 +606,7 @@ def plot(*inputobj, **options):
         if cmap is None:
             cmap = 'viridis'
     elif style == 2 or style == 'paraview':
-        font = 'arial'
+        font = 'Arial'
         bg = options.pop('bg', None)
         if bg is None:
             options['bg'] = (82, 87, 110)
@@ -615,7 +615,7 @@ def plot(*inputobj, **options):
         if cmap is None:
             cmap = 'coolwarm'
     elif style == 3 or style == 'meshlab':
-        font = 'courier'
+        font = 'Courier'
         bg = options.pop('bg', None)
         if bg is None:
             options['bg'] = (8, 8, 16)
@@ -630,7 +630,7 @@ def plot(*inputobj, **options):
         if cmap is None:
             cmap = 'afmhot'
     elif style == 4 or style == 'bw':
-        font = 'courier'
+        font = 'Courier'
         bg = options.pop('bg', None)
         if bg is None:
             options['bg'] = (217, 255, 238)

@@ -23,18 +23,21 @@ for k in range(1, N + 1):
     bob_y.append(bob_y[k - 1] + np.sin(alpha) + np.random.normal(0, 0.1))
 
 # Create the bobs
-vp = Plotter(title="Multiple Pendulum", axes=0, interactive=0)
+vp = Plotter(title="Multiple Pendulum", axes=0, interactive=0, bg2='ly')
 vp += Box(pos=(0, -5, 0), length=12, width=12, height=0.7, c="k").wireframe(1)
 bob = [vp.add(Sphere(pos=(bob_x[0], bob_y[0], 0), r=R / 2, c="gray"))]
 for k in range(1, N + 1):
-    bob.append(vp.add(Cylinder(pos=(bob_x[k], bob_y[k], 0), r=R, height=0.3, c=k)))
+    c = Cylinder(pos=(bob_x[k], bob_y[k], 0), r=R, height=0.3, c=k)
+    vp += c
+    bob.append(c)
 
 # Create the springs out of N links
 link = [None] * N
 for k in range(N):
     p0 = bob[k].pos()
     p1 = bob[k + 1].pos()
-    link[k] = vp.add(Spring(p0, p1, thickness=0.015, r=R / 3, c="gray"))
+    link[k] = Spring(p0, p1, thickness=0.015, r=R / 3, c="gray")
+    vp += link[k]
 
 # Create some auxiliary variables
 x_dot_m = np.zeros(N+1)

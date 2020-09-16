@@ -7,7 +7,7 @@ shape = load(datadir+"lamp.vtk")
 ms = []
 cmaps = ("jet", "PuOr", "viridis")
 for i in range(3):
-    s = shape.clone().pos(0, i*2.2, 0)
+    s = shape.clone(deep=False).pos(0, i*2.2, 0)
 
     # colorize mesh
     scals = s.points()[:,2]
@@ -28,7 +28,7 @@ sc = ms[2].addScalarBar3D(pos=(1,0,-5),
                           titleFont='Quikhand',
                           titleXOffset=-2,           # offset of labels
                           titleSize=1.5)
-sc.rotateX(90) # make it vertical
+sc.scalarbar.rotateX(90) # make it vertical
 
 show(ms, __doc__, axes=1, viewup='z')
 

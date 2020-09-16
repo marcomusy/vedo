@@ -3,12 +3,10 @@ include vedo/textures/*
 include vedo/fonts/*
 
 include examples/*
-
 include vedo/examples/*
 
 include vedo/examples/advanced/*
 include vedo/examples/basic/*
-include vedo/examples/notebooks/*
 
 include vedo/examples/other/*
 include vedo/examples/other/dolfin/*
@@ -16,8 +14,5 @@ include vedo/examples/other/trimesh/*
 
 include vedo/examples/pyplot/*
 include vedo/examples/simulations/*
-include vedo/examples/volumetric/*
 include vedo/examples/tetmesh/*
-
-include vedo/examples/data/*
-include vedo/examples/data/images/*
+include vedo/examples/volumetric/*

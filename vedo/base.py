@@ -3,14 +3,13 @@ import numpy as np
 import vtk
 import vedo
 import vedo.colors as colors
-import vedo.docs as docs
 import vedo.settings as settings
 import vedo.utils as utils
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy, numpy_to_vtkIdTypeArray
 
 __doc__ = (
     """Base classes. Do not instantiate these."""
-    + docs._defs
+    + vedo.docs._defs
 )
 
 __all__ = ['Base3DProp',
@@ -26,10 +25,8 @@ __all__ = ['Base3DProp',
 ###############################################################################
 # classes
 class Base3DProp(object):
-    """
-    """
-    def __init__(self):
 
+    def __init__(self):
         self.filename = ""
         self.name = ""
         self.trail = None
@@ -52,6 +49,14 @@ class Base3DProp(object):
         self.transform = None
         self._set2actcam = False
 
+    def address(self):
+        """
+        Return a unique memory address integer which can serve as the ID of the
+        object, or passed to c++ code.
+        """
+        # https://www.linkedin.com/pulse/speedup-your-code-accessing-python-vtk-objects-from-c-pletzer/
+        # https://github.com/tfmoraes/polydata_connectivity
+        return int(self.inputdata().GetAddressAsString('')[5:], 16)
 
     def pickable(self, value=None):
         """Set/get pickable property of mesh."""
@@ -306,18 +311,20 @@ class Base3DProp(object):
             tr.SetMatrix(T)
             return tr
 
-    def setTransform(self, T):
+    def applyTransform(self, T):
         """
         Transform object position and orientation.
         """
         if isinstance(T, vtk.vtkMatrix4x4):
             self.SetUserMatrix(T)
+        elif isinstance(T, (list,tuple)):
+            vm = vtk.vtkMatrix4x4()
+            for i in [0, 1, 2, 3]:
+               for j in [0, 1, 2, 3]:
+                   vm.SetElement(i, j, T[i][j])
+            self.SetUserMatrix(vm)
         else:
-            try:
-                self.SetUserTransform(T)
-            except TypeError:
-                colors.printc('\times Error in setTransform():',
-                              'consider transformPolydata() instead.', c='r')
+            self.SetUserTransform(T)
         return self
 
 
@@ -387,6 +394,7 @@ class Base3DProp(object):
         """Get the length of the diagonal of mesh bounding box."""
         b = self.GetBounds()
         return np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])* 2 + (b[5]-b[4])**2)
+        # return self.GetLength() # ???different???
 
     def maxBoundSize(self):
         """Get the maximum size in x, y or z of the bounding box."""
@@ -939,31 +947,25 @@ class BaseActor(Base3DProp):
         self._mapper.SetScalarModeToUseCellData()
         return self
 
+    def removePointArray(self, name):
+        """Remove an array which was defined on points, by its name."""
+        self.inputdata().GetPointData().RemoveArray(name)
+        return self
 
-    def addPointScalars(self, scalars, name):
-        """addPointScalars is OBSOLETE: use addPointArray."""
-        colors.printc("WARNING - addPointScalars is OBSOLETE: use addPointArray.", c='y', box='-')
-        return self.addPointArray(scalars, name)
-    def addPointVectors(self, vectors, name):
-        """addPointVectors is OBSOLETE: use addPointArray."""
-        colors.printc("WARNING - addPointVectors is OBSOLETE: use addPointArray.", c='y', box='-')
-        return self.addPointArray(vectors, name)
-    def addCellScalars(self, scalars, name):
-        """addCellScalars is OBSOLETE: use addCellArray."""
-        colors.printc("WARNING - addCellScalars is OBSOLETE: use addCellArray.", c='y', box='-')
-        return self.addCellArray(scalars, name)
-    def addCellVectors(self, vectors, name):
-        """addCellVectors is OBSOLETE: use addCellArray."""
-        colors.printc("WARNING - addCellVectors is OBSOLETE: use addCellArray.", c='y', box='-')
-        return self.addCellArray(vectors, name)
+    def removeCellArray(self, name):
+        """Remove an array which was defined on cells, by its name."""
+        self.inputdata().GetCellData().RemoveArray(name)
+        return self
 
 
-    def gradient(self, arrname=None, on='points'):
+    def gradient(self, arrname=None, on='points', fast=False):
         """
         Compute and return the gradiend of a scalar field as a numpy array.
 
-        :param str arrname: name of the existing scalar field
-        :param str on: either 'points' or 'cells'
+        :param str arrname: name of an existing field
+        :param str on: defined either on 'points' or 'cells'
+        :param bool fast: if True, will use a less accurate algorithm
+            that performs fewer derivative calculations (and is therefore faster).
 
         |isolines| |isolines.py|_
         """
@@ -982,13 +984,89 @@ class BaseActor(Base3DProp):
                 raise RuntimeError
         gra.SetInputData(self.inputdata())
         gra.SetInputScalars(tp, arrname)
-        gra.SetResultArrayName('Gradients')
+        gra.SetResultArrayName('Gradient')
+        gra.SetFasterApproximation(fast)
+        gra.ComputeDivergenceOff()
+        gra.ComputeVorticityOff()
+        gra.ComputeGradientOn()
         gra.Update()
         if on.startswith('p'):
-            gvecs = vtk_to_numpy(gra.GetOutput().GetPointData().GetArray('Gradients'))
+            gvecs = vtk_to_numpy(gra.GetOutput().GetPointData().GetArray('Gradient'))
         else:
-            gvecs = vtk_to_numpy(gra.GetOutput().GetCellData().GetArray('Gradients'))
+            gvecs = vtk_to_numpy(gra.GetOutput().GetCellData().GetArray('Gradient'))
         return gvecs
+
+    def divergence(self, arrname=None, on='points', fast=False):
+        """
+        Compute and return the divergence of a vector field as a numpy array.
+
+        :param str arrname: name of an existing field
+        :param str on: defined either on 'points' or 'cells'
+        :param bool fast: if True, will use a less accurate algorithm
+            that performs fewer derivative calculations (and is therefore faster).
+        """
+        div = vtk.vtkGradientFilter()
+        if on.startswith('p'):
+            varr = self.inputdata().GetPointData()
+            tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
+        else:
+            varr = self.inputdata().GetCellData()
+            tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
+        if not arrname:
+            if self.GetVectors():
+                arrname = varr.GetVectors().GetName()
+            else:
+                colors.printc('Error in divergence: no scalars found for', on, c='r')
+                raise RuntimeError
+        div.SetInputData(self.inputdata())
+        div.SetInputScalars(tp, arrname)
+        div.ComputeDivergenceOn()
+        div.ComputeGradientOff()
+        div.ComputeVorticityOff()
+        div.SetDivergenceArrayName('Divergence')
+        div.SetFasterApproximation(fast)
+        div.Update()
+        if on.startswith('p'):
+            dvecs = vtk_to_numpy(div.GetOutput().GetPointData().GetArray('Divergence'))
+        else:
+            dvecs = vtk_to_numpy(div.GetOutput().GetCellData().GetArray('Divergence'))
+        return dvecs
+
+    def vorticity(self, arrname=None, on='points', fast=False):
+        """
+        Compute and return the vorticity of a vector field as a numpy array.
+
+        :param str arrname: name of an existing field
+        :param str on: defined either on 'points' or 'cells'
+        :param bool fast: if True, will use a less accurate algorithm
+            that performs fewer derivative calculations (and is therefore faster).
+        """
+        vort = vtk.vtkGradientFilter()
+        if on.startswith('p'):
+            varr = self.inputdata().GetPointData()
+            tp = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
+        else:
+            varr = self.inputdata().GetCellData()
+            tp = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
+        if not arrname:
+            if self.GetVectors():
+                arrname = varr.GetVectors().GetName()
+            else:
+                colors.printc('Error in vortergence: no scalars found for', on, c='r')
+                raise RuntimeError
+        vort.SetInputData(self.inputdata())
+        vort.SetInputScalars(tp, arrname)
+        vort.ComputeDivergenceOff()
+        vort.ComputeGradientOff()
+        vort.ComputeVorticityOn()
+        vort.SetVorticityArrayName('Vorticity')
+        vort.SetFasterApproximation(fast)
+        vort.Update()
+        if on.startswith('p'):
+            vvecs = vtk_to_numpy(vort.GetOutput().GetPointData().GetArray('Vorticity'))
+        else:
+            vvecs = vtk_to_numpy(vort.GetOutput().GetCellData().GetArray('Vorticity'))
+        return vvecs
 
 
     def mapCellsToPoints(self):
@@ -1114,7 +1192,7 @@ class BaseActor(Base3DProp):
                                                 useAlpha,
                                                 drawBox,
                                                 )
-        return self.scalarbar
+        return self
 
 
     def write(self, filename, binary=True):

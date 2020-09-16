@@ -28,9 +28,9 @@ show(shape, at=0, N=2, axes=dict(zxGrid=False))
 ############################################################
 # cast rays from the center and find intersections
 agrid, pts = [], []
-for th in np.linspace(0, np.pi, N, endpoint=False):
+for th in np.linspace(0, np.pi, N, endpoint=0):
     lats = []
-    for ph in np.linspace(0, 2*np.pi, N, endpoint=False):
+    for ph in np.linspace(0, 2*np.pi, N, endpoint=0):
         p = spher2cart(rmax, th, ph)
         intersections = shape.intersectWithLine([0, 0, 0], p)
         if len(intersections):
@@ -76,7 +76,7 @@ for i, long in enumerate(np.linspace(0, 360, num=agrid_reco_finer.shape[1], endp
         pts2.append(p)
 
 mesh2 = Points(pts2, r=2, c="r", alpha=0.5)
-mesh2.clean(0.01) # impose point separation of 1% of the bounding box size
+# mesh2.clean(0.01) # impose point separation of 1% of the bounding box size
 
 show(mesh2,
      'Spherical harmonics\nexpansion of order '+str(lmax),

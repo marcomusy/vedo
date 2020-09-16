@@ -103,6 +103,11 @@ class Assembly(vtk.vtkAssembly, Base3DProp):
         return self
 
 
+    def __contains__(self, name):
+        """Allows to use ``in`` to check if an object is in the Assembly."""
+        return name in self.actors
+
+
     def clone(self):
         """Make a clone copy of the object."""
         newlist = []

@@ -10,13 +10,9 @@ from vedo.pointcloud import Points
 
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
-__doc__ = ("""Submodule to manage polygonal meshes."""
-    + docs._defs
-)
+__doc__ = ("""Submodule to manage polygonal meshes.""" + docs._defs)
 
-__all__ = ["Mesh",
-           "merge",
-           ]
+__all__ = ["Mesh", "merge"]
 
 
 ####################################################
@@ -185,6 +181,7 @@ class Mesh(Points):
         elif isinstance(inputobj, str):
             from vedo.io import load
             dataset = load(inputobj)
+            self.filename = inputobj
             if "TetMesh" in str(type(dataset)):
                 self._polydata = dataset.tomesh().polydata()
             else:
@@ -274,18 +271,24 @@ class Mesh(Points):
 
         if alpha is not None:
             prp.SetOpacity(alpha)
+        return
 
 
     ###############################################
-    def clone(self):
+    def clone(self, deep=True):
         """
         Clone a ``Mesh`` object to make an exact copy of it.
+
+        :param bool deep: if False only build a shallow copy of the object.
 
         |mirror| |mirror.py|_
         """
         poly = self.polydata(False)
         polyCopy = vtk.vtkPolyData()
-        polyCopy.DeepCopy(poly)
+        if deep:
+            polyCopy.DeepCopy(poly)
+        else:
+            polyCopy.ShallowCopy(poly)
 
         cloned = Mesh(polyCopy)
         pr = vtk.vtkProperty()
@@ -383,7 +386,7 @@ class Mesh(Points):
 
         return conn # cannot always make a numpy array of it!
 
-    def texture(self, tname,
+    def texture(self, tname='',
                 tcoords=None,
                 interpolate=True,
                 repeat=True,
@@ -392,8 +395,13 @@ class Mesh(Points):
                 ushift=None,
                 vshift=None,
                 ):
-        """Assign a texture to mesh from image file or predefined texture `tname`.
-        If tname is ``None`` texture is disabled.
+        """
+        Assign a texture to mesh from image file or predefined texture `tname`.
+
+        If tname is set to ``None`` texture is disabled.
+
+        If tname is set to '' then a png or jpg file is looked for with same name and path.
+
         Input tname can also be an array of shape (n,m,3).
 
         :param bool interpolate: turn on/off linear interpolation of the texture map when rendering.
@@ -410,6 +418,7 @@ class Mesh(Points):
             pd.GetPointData().SetTCoords(None)
             pd.GetPointData().Modified()
             return self
+            ###########
 
         if utils.isSequence(tname):
             from PIL import Image
@@ -418,6 +427,16 @@ class Mesh(Points):
             im = Image.fromarray(tname)
             im.save(tmp_file.name+".bmp")
             tname = tmp_file.name+".bmp"
+
+        if tname == '':
+            ext = os.path.basename(str(self.filename)).split('.')[-1]
+            tname = str(self.filename).replace('.'+ext, '.png')
+            if not os.path.isfile(tname):
+                tname = str(self.filename).replace('.'+ext, '.jpg')
+            if not os.path.isfile(tname):
+                colors.printc("Error in texture(): default texture file must be png or jpg",
+                              "\n e.g.", tname, c='r')
+                raise RuntimeError()
 
         if isinstance(tname, vtk.vtkTexture):
             tu = tname
@@ -924,7 +943,7 @@ class Mesh(Points):
             tr.SetMatrix(M)
             tf = vtk.vtkTransformPolyDataFilter()
             tf.SetTransform(tr)
-            tf.SetInputData(clipper.GetOutput())
+            tf.SetInputData(cpoly)
             tf.Update()
             self._update(tf.GetOutput())
 
