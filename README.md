@@ -15,7 +15,7 @@ for scientific analysis and **v**isualization of **3d** **o**bjects.<br>
 
 ## ✨  Philosophy
 Inspired by the [vpython](https://vpython.org/) *manifesto* "3D programming for ordinary mortals",
-`vedo` makes it easy to work wth three-dimensional meshes and volumes, creating displays and animations
+`vedo` makes it easy to work with three-dimensional meshes and volumes, creating displays and animations
 in just a few lines of code, even for those with less programming experience.
 
 `vedo` is based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/),
