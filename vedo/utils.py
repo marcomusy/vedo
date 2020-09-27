@@ -873,6 +873,10 @@ def printInfo(obj):
         printc(tab + "       position: ", c="g", bold=1, end="")
         printc(pos, c="g", bold=0)
 
+        if hasattr(actor, "GetScale"):
+            printc(tab + "          scale: ", c="g", bold=1, end="")
+            printc(precision(actor.GetScale(), 3), c="g", bold=0)
+
         if hasattr(actor, "polydata") and actor.N():
             printc(tab + " center of mass: ", c="g", bold=1, end="")
             cm = tuple(actor.centerOfMass())

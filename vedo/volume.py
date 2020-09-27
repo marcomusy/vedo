@@ -123,13 +123,14 @@ def volumeFromMesh(mesh, bounds=None, dims=(20,20,20), signed=True, negate=False
     vol.name = "VolumeFromMesh"
     return vol
 
-def interpolateToVolume(mesh, kernel='shepard', radius=None,
-                       bounds=None, nullValue=None,
-                       dims=(20,20,20)):
+def interpolateToVolume(mesh, kernel='shepard',
+                        radius=None, N=None,
+                        bounds=None, nullValue=None,
+                        dims=(25,25,25)):
     """
     Generate a ``Volume`` by interpolating a scalar
     or vector field which is only known on a scattered set of points or mesh.
-    Available interpolation kernels are: shepard, gaussian, voronoi, linear.
+    Available interpolation kernels are: shepard, gaussian, or linear.
 
     :param str kernel: interpolation kernel type [shepard]
     :param float radius: radius of the local search
@@ -144,6 +145,10 @@ def interpolateToVolume(mesh, kernel='shepard', radius=None,
     else:
         output = mesh.polydata()
 
+    if radius is None and not N:
+        colors.printc("Error in interpolateToVolume(): please set either radius or N", c='r')
+        raise RuntimeError
+
     # Create a probe volume
     probe = vtk.vtkImageData()
     probe.SetDimensions(dims)
@@ -154,8 +159,8 @@ def interpolateToVolume(mesh, kernel='shepard', radius=None,
                      (bounds[3]-bounds[2])/dims[1],
                      (bounds[5]-bounds[4])/dims[2])
 
-    if radius is None:
-        radius = min(bounds[1]-bounds[0], bounds[3]-bounds[2], bounds[5]-bounds[4])/3
+    # if radius is None:
+    #     radius = min(bounds[1]-bounds[0], bounds[3]-bounds[2], bounds[5]-bounds[4])/3
 
     locator = vtk.vtkPointLocator()
     locator.SetDataSet(output)
@@ -164,25 +169,30 @@ def interpolateToVolume(mesh, kernel='shepard', radius=None,
     if kernel == 'shepard':
         kern = vtk.vtkShepardKernel()
         kern.SetPowerParameter(2)
-        kern.SetRadius(radius)
     elif kernel == 'gaussian':
         kern = vtk.vtkGaussianKernel()
-        kern.SetRadius(radius)
-    elif kernel == 'voronoi':
-        kern = vtk.vtkVoronoiKernel()
     elif kernel == 'linear':
         kern = vtk.vtkLinearKernel()
-        kern.SetRadius(radius)
     else:
         print('Error in interpolateToVolume, available kernels are:')
-        print(' [shepard, gaussian, voronoi, linear]')
+        print(' [shepard, gaussian, linear]')
         raise RuntimeError()
+
+    if radius:
+        kern.SetRadius(radius)
 
     interpolator = vtk.vtkPointInterpolator()
     interpolator.SetInputData(probe)
     interpolator.SetSourceData(output)
     interpolator.SetKernel(kern)
     interpolator.SetLocator(locator)
+
+    if N:
+        kern.SetNumberOfPoints(N)
+        kern.SetKernelFootprintToNClosest()
+    else:
+        kern.SetRadius(radius)
+
     if nullValue is not None:
         interpolator.SetNullValue(nullValue)
     else:

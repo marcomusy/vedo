@@ -1466,7 +1466,7 @@ class BaseGrid(BaseActor):
 
     def legosurface(self, vmin=None, vmax=None, invert=False, cmap='afmhot_r'):
         """
-        Represent a ``Volume`` as lego blocks (voxels).
+        Represent an object - typically a Volume - as lego blocks (voxels).
         By default colors correspond to the volume's scalar.
         Returns an ``Mesh``.
 
@@ -1503,7 +1503,7 @@ class BaseGrid(BaseActor):
         gf.SetInputData(extract.GetOutput())
         gf.Update()
 
-        a = Mesh(gf.GetOutput()).lw(0.1).flat()
+        a = Mesh(gf.GetOutput()).lw(0.1).flat().lighting('plastic')
         scalars = a.getPointArray()
         if scalars is None:
             print("Error in legosurface(): no scalars found!")

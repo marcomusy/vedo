@@ -43,6 +43,7 @@ class MyArgs:
         self.lego = False
         self.cmap = "jet"
         self.mode = 0
+        self.reload = False
 
 #################################################################################################
 vp = None

@@ -14,7 +14,7 @@ vp = Plotter(bg='beige', axes=10, offscreen=True)
 vp.load(datadir+"spider.ply").texture("leather").rotateX(-90)
 
 # open a video file and force it to last 3 seconds in total
-video = Video("spider.mp4", duration=6, backend='ffmpeg') # backend='opencv'
+video = Video("spider.mp4", duration=6, backend='opencv') # backend='opencv'
 
 # Any rendering loop goes here, e.g.:
 #for i in range(80):

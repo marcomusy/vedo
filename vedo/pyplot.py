@@ -3,7 +3,7 @@ import vtk
 import numpy as np
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
-import vedo.docs as docs
+import vedo
 import vedo.settings as settings
 import vedo.utils as utils
 import vedo.colors as colors
@@ -11,10 +11,8 @@ import vedo.shapes as shapes
 import vedo.addons as addons
 from vedo.assembly import Assembly
 from vedo.mesh import Mesh, merge
-from vedo.pointcloud import Points
-from vedo.base import BaseActor
 
-__doc__ = """Plotting utility functions.""" + docs._defs
+__doc__ = """Plotting utility functions.""" + vedo.docs._defs
 
 __all__ = [
     "plot",
@@ -568,7 +566,7 @@ def _plotxy(
         l = shapes.KSpline(data).lw(lw).c(lc).alpha(la)
         acts.append(l)
     elif line:
-        l = shapes.Line(data, lw=lw, c=lc, alpha=la)
+        l = shapes.Line(data, c=lc, alpha=la).lw(lw)
         acts.append(l)
 
     if marker:
@@ -736,7 +734,7 @@ def _plotFxy(
     zlim=(None, None),
     showNan=True,
     zlevels=10,
-    c="b",
+    c=None,
     bc="aqua",
     alpha=1,
     texture="paper4",
@@ -751,8 +749,11 @@ def _plotFxy(
             exec(code, namespace)
             z = namespace["zfunc"]
         except:
-            colors.printc("Syntax Error in plotFxy()", c='r')
+            colors.printc("Syntax Error in _plotFxy()", c='r')
             return None
+
+    if c is not None:
+        texture = None # disable
 
     ps = vtk.vtkPlaneSource()
     ps.SetResolution(bins[0], bins[1])
@@ -809,7 +810,7 @@ def _plotFxy(
 
     mesh = Mesh(poly, c, alpha).computeNormals().lighting("plastic")
     if c is None:
-        mesh.getPointArray("Elevation")
+        mesh.selectPointArray("Elevation")
 
     if bc:
         mesh.bc(bc)
@@ -1945,7 +1946,7 @@ def quiver(
 
     |quiver| |quiver.py|_
     """
-    if isinstance(points, Points):
+    if isinstance(points, vedo.Points):
         points = points.points()
     else:
         points = np.array(points)
@@ -2085,8 +2086,8 @@ def streamplot(X, Y, U, V, direction="both",
 
     |plot7_stream| |plot7_stream.py|_
     """
-    from vedo.volume import Volume
-    from vedo.base import streamLines
+    # from vedo.volume import Volume
+    # from vedo.base import streamLines
 
     n = len(X)
     m = len(Y[0])
@@ -2099,7 +2100,7 @@ def streamplot(X, Y, U, V, direction="both",
 
     field = np.sqrt(U * U + V * V)
 
-    vol = Volume(field, dims=(n, n, 1))
+    vol = vedo.Volume(field, dims=(n, n, 1))
 
     uf = np.ravel(U, order="F")
     vf = np.ravel(V, order="F")
@@ -2109,7 +2110,7 @@ def streamplot(X, Y, U, V, direction="both",
     if len(probes) == 0:
         probe = shapes.Grid(pos=((n-1)/2,(n-1)/2,0), sx=n-1, sy=n-1, resx=n-1, resy=n-1)
     else:
-        if isinstance(probes, Points):
+        if isinstance(probes, vedo.Points):
             probes = probes.points()
         else:
             probes = np.array(probes)
@@ -2118,15 +2119,14 @@ def streamplot(X, Y, U, V, direction="both",
         sv = [(n - 1) / (xmax - xmin), (n - 1) / (ymax - ymin), 1]
         probes = probes - [xmin, ymin, 0]
         probes = np.multiply(probes, sv)
-        probe = shapes.Points(probes)
+        probe = vedo.Points(probes)
 
-    stream = streamLines(
-                            vol.imagedata(),
-                            probe,
-                            tubes={"radius": lw, "varyRadius": mode,},
-                            lw=lw,
-                            maxPropagation=maxPropagation,
-                            direction=direction,
+    stream = vedo.base.streamLines( vol.imagedata(),
+                                    probe,
+                                    tubes={"radius": lw, "varyRadius": mode,},
+                                    lw=lw,
+                                    maxPropagation=maxPropagation,
+                                    direction=direction,
     )
     if c is not None:
         stream.color(c)
@@ -2152,7 +2152,6 @@ def cornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=T
         - 4, bottomright.
     """
     if len(points) == 2:  # passing [allx, ally]
-        # points = list(zip(points[0], points[1]))
         points = np.stack((points[0], points[1]), axis=1)
 
     c = colors.getColor(c)  # allow different codings
@@ -2187,8 +2186,19 @@ def cornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=T
     plot.SetYTitle("")
     plot.ExchangeAxesOff()
     plot.SetPlotPoints(dots)
+
     if not lines:
         plot.PlotLinesOff()
+
+    if isinstance(pos, str):
+        spos = 2
+        if "top" in pos:
+            if "left" in pos: spos=1
+            elif "right" in pos: spos=2
+        elif "bottom" in pos:
+            if "left" in pos: spos=3
+            elif "right" in pos: spos=4
+        pos = spos
     if pos == 1:
         plot.GetPositionCoordinate().SetValue(0.0, 0.8, 0)
     elif pos == 2:
@@ -2199,6 +2209,7 @@ def cornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=T
         plot.GetPositionCoordinate().SetValue(0.76, 0.0, 0)
     else:
         plot.GetPositionCoordinate().SetValue(pos[0], pos[1], 0)
+
     plot.GetPosition2Coordinate().SetValue(s, s, 0)
     return plot
 
@@ -2231,6 +2242,9 @@ def cornerHistogram(
         - 4, bottomright,
         - (x, y), as fraction of the rendering window
     """
+    if hasattr(values, '_data'):
+        values = vtk_to_numpy(values._data.GetPointData().GetScalars())
+
     fs, edges = np.histogram(values, bins=bins, range=vrange)
     if minbin:
         fs = fs[minbin:-1]
@@ -2311,7 +2325,7 @@ class DirectedGraph(Assembly):
         |graph_network| |graph_network.py|_
     """
     def __init__(self, **kargs):
-        BaseActor.__init__(self)
+        vedo.base.BaseActor.__init__(self)
 
         self.nodes = []
         self.edges = []
@@ -2524,8 +2538,6 @@ class DirectedGraph(Assembly):
                 arrows.rotateZ(self.rotZ)
             arrows.name = "DirectedGraphArrows"
 
-        # print('self._nodeLabels', self._nodeLabels)
-        # print(dgraph.N())
         nodeLabels = dgraph.labels(self._nodeLabels,
                                     scale=self.nodeLabelScale,
                                     precision=0,

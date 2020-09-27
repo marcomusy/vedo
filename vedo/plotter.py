@@ -2027,7 +2027,7 @@ class Plotter:
         return self
 
     def export(self, filename='scene.npz'):
-        """Export scene to fileto to HTML, X3D or Numpy file."""
+        """Export scene to file to HTML, X3D or Numpy file."""
         vedo.io.exportWindow(filename)
         return self
 

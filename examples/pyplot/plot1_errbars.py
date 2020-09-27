@@ -27,7 +27,7 @@ plt.plot(
     xerrors=errs,    # set error bars on x
     yerrors=errs,    # set error bars on y
     spline=True,     # continous line through points
-    lw=1.5,
+    lw=3,
 )
 
 ################## plot again on top of plt

@@ -711,6 +711,8 @@ class Spline(Line):
     """
     def __init__(self, points, smooth=0.5, degree=2, closed=False, s=2, res=None):
 
+        from scipy.interpolate import splprep, splev
+
         if isinstance(points, Points):
             points = points.points()
 
@@ -720,7 +722,6 @@ class Spline(Line):
         if closed:
             points = np.append(points, [points[0]], axis=0)
 
-        from scipy.interpolate import splprep, splev
         if res is None:
             res = len(points)*20
 
@@ -2335,7 +2336,7 @@ class Text(Mesh):
 
     :param str font: available 3D-polygonized fonts are
         Bongas, Calco, Comae, Kanopus, Glasgo, LionelOfParis,
-        Inversionz, LogoType, Normografo, Quikhand, SmartCouric, Theemim, VictorMono, VTK.
+        LogoType, Normografo, Quikhand, SmartCouric, Theemim, VictorMono, VTK.
         Default is Normografo, which can be changed using ``settings.defaultFont``
 
     :param float hspacing: horizontal spacing of the font.
@@ -2460,11 +2461,11 @@ class Text(Mesh):
             mono = True
             fscale = 0.75
             lspacing = 0.1
-        elif font=='Inversionz':
-            mono = True
-            fscale = 0.9
-            lspacing = 0.1
-            dotsep = "~^.~ "
+        # elif font=='Inversionz':
+        #     mono = True
+        #     fscale = 0.9
+        #     lspacing = 0.1
+        #     dotsep = "~^.~ "
         elif font=='Kanopus':
             mono = False
             fscale = 0.75
@@ -2726,7 +2727,6 @@ def Text2D( txt,
         - Comae
         - Courier
         - Glasgo
-        - Inversionz
         - Kanopus
         - LionelOfParis
         - LogoType
@@ -2799,12 +2799,12 @@ def Text2D( txt,
         ca.PickableOff()
         cap = ca.GetTextProperty()
         cap.SetColor(getColor(c))
-        if font == "Courier": cap.SetFontFamilyToCourier()
+        if   font == "Courier": cap.SetFontFamilyToCourier()
         elif font == "Times": cap.SetFontFamilyToTimes()
         elif font == "Arial": cap.SetFontFamilyToArial()
         else:
             if font in ("LogoType", "Capsmall", "Cartoons123", "PlanetBenson", "Vega"):
-                fpath= vedo.download("https://vedo.embl.es/fonts/"+font+".npz")
+                fpath= vedo.download("https://vedo.embl.es/fonts/"+font+".ttf", verbose=False)
             cap.SetFontFamily(vtk.VTK_FONT_FILE)
             cap.SetFontFile(fpath)
         if bg:

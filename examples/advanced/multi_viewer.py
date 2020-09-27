@@ -69,7 +69,7 @@ instr += "Press c to make the shape red\n"
 instr += "Press x to reset to white the panel background"
 plt2.keyPressFunction = keyfunc
 plt2.show(__doc__, VedoLogo(distance=10),
-          Text2D("my multi viewer 1.0",
-                 pos=(.5,.8), s=2.5, c='dg', font='Inversionz', justify='center'),
+          Text2D("My Multi Viewer 1.0",
+                 pos=(.5,.8), s=2.5, c='dg', font='Kanopus', justify='center'),
           Text2D(instr, bg='g', pos=(0.5,0.2), s=1.2, font='Quikhand', justify='center'),
          )

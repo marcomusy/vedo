@@ -2,6 +2,7 @@ from __future__ import division, print_function
 import vtk
 from vtk.util.numpy_support import vtk_to_numpy
 import os
+import glob
 import numpy as np
 
 import vedo.utils as utils
@@ -87,7 +88,6 @@ def load(inputobj, unpack=True, force=False):
     elif isinstance(inputobj, str) and inputobj.startswith('https://'):
         flist = [inputobj]
     else:
-        import glob
         flist = sorted(glob.glob(inputobj))
 
     for fod in flist:
@@ -1115,6 +1115,9 @@ def write(objct, fileoutput, binary=True):
     elif isinstance(obj, (vtk.vtkPolyData, vtk.vtkImageData)):
         obj = objct
 
+    if hasattr(obj, 'filename'):
+        obj.filename = fileoutput
+
     fr = fileoutput.lower()
     if   fr.endswith(".vtk"):
         writer = vtk.vtkDataSetWriter()
@@ -1579,6 +1582,37 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
         colors.printc('\bomb screenshot(): Rendering window is not present, skip.', c='r')
         return
 
+    if filename.endswith('.pdf'):
+        writer = vtk.vtkGL2PSExporter()
+        writer.SetRenderWindow(settings.plotter_instance.window)
+        writer.Write3DPropsAsRasterImageOff()
+        writer.SilentOn()
+        writer.SetSortToBSP()
+        writer.SetFileFormatToPDF()
+        writer.SetFilePrefix(filename.replace('.pdf',''))
+        writer.Write()
+        return filename ##########
+    elif filename.endswith('.svg'):
+        writer = vtk.vtkGL2PSExporter()
+        writer.SetRenderWindow(settings.plotter_instance.window)
+        writer.Write3DPropsAsRasterImageOff()
+        writer.SilentOn()
+        writer.SetSortToBSP()
+        writer.SetFileFormatToSVG()
+        writer.SetFilePrefix(filename.replace('.svg',''))
+        writer.Write()
+        return filename ##########
+    elif filename.endswith('.eps'):
+        writer = vtk.vtkGL2PSExporter()
+        writer.SetRenderWindow(settings.plotter_instance.window)
+        writer.Write3DPropsAsRasterImageOff()
+        writer.SilentOn()
+        writer.SetSortToBSP()
+        writer.SetFileFormatToEPS()
+        writer.SetFilePrefix(filename.replace('.eps',''))
+        writer.Write()
+        return filename ##########
+
     if scale is None:
         scale = settings.screeshotScale
 
@@ -1608,15 +1642,19 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
     if filename.lower().endswith('.png'):
         writer = vtk.vtkPNGWriter()
         writer.SetFileName(filename)
-    elif filename.lower().endswith('.jpg'):
+        writer.SetInputData(w2if.GetOutput())
+        writer.Write()
+    elif filename.lower().endswith('.jpg') or filename.lower().endswith('.jpeg'):
         writer = vtk.vtkJPEGWriter()
         writer.SetFileName(filename)
-    else:
+        writer.SetInputData(w2if.GetOutput())
+        writer.Write()
+    else: #add .png
         writer = vtk.vtkPNGWriter()
         writer.SetFileName(filename+'.png')
-    writer.SetInputData(w2if.GetOutput())
-    writer.Write()
-    return writer.GetFileName()
+        writer.SetInputData(w2if.GetOutput())
+        writer.Write()
+    return filename
 
 
 class Video:
@@ -1626,7 +1664,8 @@ class Video:
     :param str name: name of the output file.
     :param int fps: set the number of frames per second.
     :param float duration: set the total `duration` of the video and recalculates `fps` accordingly.
-    :param str ffmpeg: set path to ffmpeg program. Default value considers ffmpeg is in the path.
+    :param str ffmpeg: set path to ffmpeg program.
+        Default value assumes ffmpeg command is in the path.
 
     |makeVideo| |makeVideo.py|_
     """

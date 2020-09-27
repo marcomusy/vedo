@@ -1,7 +1,7 @@
 from __future__ import division, print_function
 import vtk
 import numpy as np
-import sys
+import sys, os, time
 import vedo.docs as docs
 import vedo.settings as settings
 
@@ -22,6 +22,7 @@ __all__ = [
     "makeLUT",
 ]
 
+_global_start_time = time.time()
 
 try:
     import matplotlib
@@ -395,8 +396,8 @@ def rgb2int(rgb_tuple):
     """Return the int number of a color from (r,g,b), with 0<r<1 etc."""
     rgb = (int(rgb_tuple[0] * 255), int(rgb_tuple[1] * 255), int(rgb_tuple[2] * 255))
     return 65536 * rgb[0] + 256 * rgb[1] + rgb[2]
-#    r,g,b = np.array(rgb_tuple, dtype=np.int)*255
-#    return (r << 16) + (g << 8) + b
+    #r,g,b = np.array(rgb_tuple, dtype=np.int)*255
+    #return (r << 16) + (g << 8) + b
 
 
 def colorMap(value, name="jet", vmin=None, vmax=None):
@@ -694,6 +695,7 @@ def printc(*strings, **keys):
     dim = keys.pop("dim", False)
     invert = keys.pop("invert", False)
     box = keys.pop("box", "")
+    dbg = keys.pop("dbg", False)
 
     if c is True:
         c = "green"
@@ -708,7 +710,7 @@ def printc(*strings, **keys):
     if bc is not None:
         bc = getColor(bc)
 
-    try:
+    try: # -------------------------------------------------------------
 
         txt = str()
         ns = len(strings) - 1
@@ -719,10 +721,16 @@ def printc(*strings, **keys):
                 separator = ""
             # txt += str(s) + separator
             if "\\" in repr(s):  # "in" for some reasons changes s
+                from vedo.shapes import _reps
                 for k in emoji.keys():
                     if k in str(s):
                         s = s.replace(k, emoji[k])
                         offset += 1
+                for k, rp in _reps: # check symbols in shapes._reps
+                    if k in str(s):
+                        s = s.replace(k, rp)
+                        offset += 1
+
             txt += str(s) + separator
 
         special, cseq = "", ""
@@ -769,10 +777,42 @@ def printc(*strings, **keys):
                 outtxt += box * (len(txt) + offset + 4) + "\x1b[0m" + end
 
             sys.stdout.write(outtxt)
-        else:
-            sys.stdout.write(special + cseq + txt + "\x1b[0m" + end)
 
-    except:
+        else:
+
+            out = special + cseq + txt + "\x1b[0m"
+
+            if dbg:
+                from inspect import currentframe, getframeinfo
+                cf = currentframe().f_back
+                cfi = getframeinfo(cf)
+                fname = os.path.basename(getframeinfo(cf).filename)
+                print("\x1b[3m\x1b[37m\x1b[4m"+fname+":"+str(cfi.lineno)+"\x1b[0m", end='')
+                print('\t\t\t\t\t\x1b[3m\x1b[37m', time.ctime(), "\x1b[0m")
+                if txt: print("    \x1b[37mmessage : "+ out)
+                print("    \x1b[37mfunction: "+ str(cfi.function))
+                print('    \x1b[37mlocals  :\x1b[0m')
+                for loc in cf.f_locals.keys():
+                    obj = cf.f_locals[loc]
+                    var = str(obj)
+                    if 'module ' in var: continue
+                    if 'function ' in var: continue
+                    if 'class ' in var: continue
+                    if '_' in loc: continue
+                    if var.startswith('vtk') and hasattr(obj, 'name'):
+                        if not obj.name:
+                            oname = str(type(obj))
+                        else:
+                            oname = obj.name
+                        var = oname + ', at ' + str(obj.GetPosition())
+
+                    print('      \x1b[37m', loc,'=', var[:60].replace('\n',''), '\x1b[0m')
+                print("    \x1b[37melapsed :", str(time.time()-_global_start_time)[:6], 's\x1b[0m')
+
+            else:
+                sys.stdout.write(out + end)
+
+    except: # -------------------------------------------------------------
         print(*strings, end=end)
 
     if flush:
