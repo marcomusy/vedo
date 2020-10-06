@@ -657,6 +657,10 @@ def precision(x, p, vrange=None, delimiter='e'):
     #x= 13556.783434
     #print(round_to_n(x, 3))
     #print(precision(x, 3))
+
+    if isinstance(x, str): #do nothing
+        return x
+
     if isSequence(x):
         out = '('
         nn=len(x)-1

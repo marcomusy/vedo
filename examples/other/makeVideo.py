@@ -14,15 +14,14 @@ vp = Plotter(bg='beige', axes=10, offscreen=True)
 vp.load(datadir+"spider.ply").texture("leather").rotateX(-90)
 
 # open a video file and force it to last 3 seconds in total
-video = Video("spider.mp4", duration=6, backend='opencv') # backend='opencv'
+video = Video("spider.mp4", duration=6, backend='ffmpeg') # backend='opencv'
 
 # Any rendering loop goes here, e.g.:
-#for i in range(80):
-#    vp.show(elevation=1, azimuth=2)  # render the scene
-#    video.addFrame()                 # add individual frame
+# for i in range(80):
+#     vp.show(elevation=1, azimuth=2)  # render the scene
+#     video.addFrame()                 # add individual frame
 
 # OR use the automatic video shooting function:
-
 video.action(zoom=1.1)
 #Options are:  elevation_range=(0,80),
 #              azimuth_range=(0,359),

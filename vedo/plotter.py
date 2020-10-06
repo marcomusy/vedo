@@ -238,7 +238,8 @@ def show(*actors, **options):
         actors = utils.flatten(actors)
 
     if actors is Ellipsis:
-        actors = settings.collectable_actors
+        # actors = settings.collectable_actors
+        printc("WARNING: Ellipsis (...) shortcut has been removed. Sorry.", c='r')
 
     if settings.plotter_instance and not newPlotter:
         plt = settings.plotter_instance
@@ -328,7 +329,8 @@ def interactive():
     return settings.plotter_instance
 
 def ion():
-    """Set interactive mode ON.
+    """Set interactive mode ON for the current window.
+
     When calling ``show()`` python script exectution will stop and control
     will stay on the graphic window allowing mouse/keyboard interaction."""
     if settings.plotter_instance:
@@ -336,7 +338,8 @@ def ion():
     return settings.plotter_instance
 
 def ioff():
-    """Set interactive mode OFF.
+    """Set interactive mode OFF for the current window.
+    s
     When calling ``show()`` image will be rendered but python script execution
     will continue, the graphic window will be not responsive to interaction."""
     if settings.plotter_instance:
@@ -1537,15 +1540,15 @@ class Plotter:
                         scannedacts.append(a.trail)
 
                 elif isinstance(a, vtk.vtkActor2D):
-                    if isinstance(a, vtk.vtkCornerAnnotation):
-                        for a2 in settings.collectable_actors:
-                            if isinstance(a2, vtk.vtkCornerAnnotation):
-                                if at in a2.renderedAt: # remove old message
-                                    self.remove(a2)
+                    # if isinstance(a, vtk.vtkCornerAnnotation):
+                    #     for a2 in settings.collectable_actors:
+                    #         if isinstance(a2, vtk.vtkCornerAnnotation):
+                    #             if at in a2.renderedAt: # remove old message
+                    #                 self.remove(a2)
                     scannedacts.append(a)
 
-                elif a is Ellipsis:
-                    scannedacts += settings.collectable_actors
+                # elif a is Ellipsis:
+                #     scannedacts += settings.collectable_actors
 
                 elif isinstance(a, vedo.Volume):
                     scannedacts.append(a)
@@ -1967,7 +1970,7 @@ class Plotter:
         if actors is None:
             self.renderer.RemoveAllViewProps()
             self.actors = []
-            settings.collectable_actors = []
+            # settings.collectable_actors = []
             self.scalarbars = []
             self.sliders = []
             self.buttons = []
@@ -1981,9 +1984,9 @@ class Plotter:
             for a in actors:
                 self.remove(a)
         elif self.renderer:
-            for a in settings.collectable_actors:
-                self.remove(a)
-            settings.collectable_actors = []
+            # for a in settings.collectable_actors:
+            #     self.remove(a)
+            # settings.collectable_actors = []
             self.actors = []
             for a in self.getMeshes():
                 self.renderer.RemoveActor(a)
@@ -2018,7 +2021,7 @@ class Plotter:
         self.camera.RemoveAllObservers()
         self.closeWindow()
         self.actors = []
-        settings.collectable_actors = []
+        # settings.collectable_actors = []
         settings.plotter_instance = None
 
     def screenshot(self, filename='screenshot.png'):

@@ -484,7 +484,7 @@ def _plotxy(
     pad=0.05,
     axes={},
 ):
-    ncolls = len(settings.collectable_actors)
+    # ncolls = len(settings.collectable_actors)
 
     line=False
     if lw>0:
@@ -722,8 +722,8 @@ def _plotxy(
     asse.zmax = offs * 3  # z-order
     asse.name = "plotxy"
 
-    settings.collectable_actors = settings.collectable_actors[:ncolls]
-    settings.collectable_actors.append(asse)
+    # settings.collectable_actors = settings.collectable_actors[:ncolls]
+    # settings.collectable_actors.append(asse)
     return asse
 
 
@@ -802,20 +802,20 @@ def _plotFxy(
         a = tmpact2.cutWithPlane((0, 0, zlim[1]), (0, 0, -1))
         poly = a.polydata()
 
-    if c is None:
-        elev = vtk.vtkElevationFilter()
-        elev.SetInputData(poly)
-        elev.Update()
-        poly = elev.GetOutput()
+    cmap=''
+    if c in colors._mapscales_cmaps:
+        cmap = c
+        c = None
+        bc= None
 
     mesh = Mesh(poly, c, alpha).computeNormals().lighting("plastic")
-    if c is None:
-        mesh.selectPointArray("Elevation")
 
+    if cmap:
+        mesh.addElevationScalars().cmap(cmap)
     if bc:
         mesh.bc(bc)
-
-    mesh.texture(texture)
+    if texture:
+        mesh.texture(texture)
 
     acts = [mesh]
     if zlevels:
@@ -1141,7 +1141,7 @@ def _histogram1D(
     axes={},
     bc="k",
 ):
-    ncolls = len(settings.collectable_actors)
+    # ncolls = len(settings.collectable_actors)
 
     # purge NaN from data
     validIds = np.all(np.logical_not(np.isnan(data)))
@@ -1371,8 +1371,8 @@ def _histogram1D(
     asse.freqs = fs
     asse.name = "histogram1D"
 
-    settings.collectable_actors = settings.collectable_actors[:ncolls]
-    settings.collectable_actors.append(asse)
+    # settings.collectable_actors = settings.collectable_actors[:ncolls]
+    # settings.collectable_actors.append(asse)
     return asse
 
 
@@ -1398,7 +1398,7 @@ def _histogram2D(
     axes=True,
     bc="k",
 ):
-    ncolls = len(settings.collectable_actors)
+    # ncolls = len(settings.collectable_actors)
     offs = 0  # z offset
 
     if format is not None:  # reset to allow meaningful overlap
@@ -1521,8 +1521,8 @@ def _histogram2D(
     asse.zmax = offs * 3  # z-order
     asse.name = "histogram2D"
 
-    settings.collectable_actors = settings.collectable_actors[:ncolls]
-    settings.collectable_actors.append(asse)
+    # settings.collectable_actors = settings.collectable_actors[:ncolls]
+    # settings.collectable_actors.append(asse)
     return asse
 
 
@@ -2002,7 +2002,7 @@ def violin(
 
     |histo_violin| |histo_violin.py|_
     """
-    ncolls = len(settings.collectable_actors)
+    # ncolls = len(settings.collectable_actors)
 
     fs, edges = np.histogram(values, bins=bins, range=vlim)
     mine, maxe = np.min(edges), np.max(edges)
@@ -2063,8 +2063,8 @@ def violin(
     asse.base = np.array([0, 0, 0])
     asse.top = np.array([0, 1, 0])
     asse.name = "violin"
-    settings.collectable_actors = settings.collectable_actors[:ncolls]
-    settings.collectable_actors.append(asse)
+    # settings.collectable_actors = settings.collectable_actors[:ncolls]
+    # settings.collectable_actors.append(asse)
     return asse
 
 

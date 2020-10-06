@@ -18,8 +18,8 @@ __all__ = [
     "getColor",
     "getColorName",
     "colorMap",
-    "makePalette",
-    "makeLUT",
+    "buildPalette",
+    "buildLUT",
 ]
 
 _global_start_time = time.time()
@@ -465,7 +465,7 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
         return mp(value)[0:3]
 
 
-def makePalette(color1, color2, N, hsv=True):
+def buildPalette(color1, color2, N, hsv=True):
     """
     Generate N colors starting from `color1` to `color2`
     by linear interpolation HSV in or RGB spaces.
@@ -491,52 +491,58 @@ def makePalette(color1, color2, N, hsv=True):
     return cols
 
 
-def makeLUT(colorlist,
-            interpolate=False,
+def buildLUT(colorlist,
             vmin=None, vmax=None,
-            belowColor=None, aboveColor=None, nanColor=None
-            ):
+            belowColor=None, aboveColor=None, nanColor=None,
+            belowAlpha=1, aboveAlpha=1, nanAlpha=1,
+            interpolate=False,
+    ):
     """
-    Generate colors in a lookup table.
+    Generate colors in a lookup table (LUT).
 
     :param list colorlist: a list in the form ``[(scalar1, [r,g,b]), (scalar2, 'blue'), ...]``.
-    :param bool interpolate: interpolate or not intermediate scalars
+
     :param float vmin: specify minimum value of scalar range
+
     :param float vmax: specify maximum value of scalar range
+
     :param belowColor: color for scalars below the minimum in range
+
+    :param belowAlpha: alpha for scalars below the minimum in range
+
     :param aboveColor: color for scalars above the maximum in range
+
+    :param aboveAlpha: alpha for scalars above the maximum in range
+
     :param nanColor: color for invalid (nan) scalars
 
-    :return: the lookup table object ``vtkLookupTable``. This can be fed into ``colorMap``.
+    :param nanAlpha: alpha for invalid (nan) scalars
+
+    :param bool interpolate: interpolate or not intermediate scalars
+
+    :return: the lookup table object ``vtkLookupTable``. This can be fed into ``cmap``.
 
     .. hint:: Example: |mesh_lut.py|_
     """
-    lut = vtk.vtkLookupTable()
-    lut.SetNumberOfTableValues(256)
-    if nanColor is not None:
-        lut.SetNanColor(list(getColor(nanColor))+[1])
-
     ctf = vtk.vtkColorTransferFunction()
     ctf.SetColorSpaceToRGB()
     ctf.SetScaleToLinear()
-    if belowColor is not None:
-        ctf.SetBelowRangeColor(getColor(belowColor))
-        ctf.SetUseBelowRangeColor(True)
-        rgba = list(getColor(belowColor)) + [1]
-    if aboveColor is not None:
-        ctf.SetAboveRangeColor(getColor(aboveColor))
-        ctf.SetUseAboveRangeColor(True)
-        rgba = list(getColor(aboveColor)) + [1]
-
+    alpha_x, alpha_vals = [], []
     for sc in colorlist:
         if len(sc)==3:
-            scalar, col, _ = sc
+            scalar, col, alf = sc
         else:
+            alf = 1
             scalar, col = sc
         r, g, b = getColor(col)
         ctf.AddRGBPoint(scalar, r, g, b)
+        alpha_x.append(scalar)
+        alpha_vals.append(alf)
 
-    x0, x1 = ctf.GetRange()
+    lut = vtk.vtkLookupTable()
+    lut.SetNumberOfTableValues(256)
+
+    x0, x1 = ctf.GetRange() # range of the introduced values
     if vmin is not None:
         x0 = vmin
     if vmax is not None:
@@ -544,26 +550,35 @@ def makeLUT(colorlist,
     ctf.SetRange(x0, x1)
     lut.SetRange(x0, x1)
 
+    if belowColor is not None:
+        lut.SetBelowRangeColor(list(getColor(belowColor))+[belowAlpha])
+        lut.SetUseBelowRangeColor(True)
+    if aboveColor is not None:
+        lut.SetAboveRangeColor(list(getColor(aboveColor))+[aboveAlpha])
+        lut.SetUseAboveRangeColor(True)
+    if nanColor is not None:
+        lut.SetNanColor(list(getColor(nanColor))+[nanAlpha])
+
+    rgba = (1,1,1,1)
     for i in range(256):
         p = i/255
         x = (1-p) *x0 + p *x1
         if interpolate:
-            rgba = list(ctf.GetColor(x)) + [1]
+            alf = np.interp(x, alpha_x, alpha_vals)
+            rgba = list(ctf.GetColor(x)) + [alf]
         else:
-            rgba = [0.5,0.5,0.5,1]
             for c in colorlist:
                 if x <= c[0]:
                     if len(c)==3:
-                        al = c[2]
+                        alf = c[2]
                     else:
-                        al = 1
-                    rgba = list(getColor(c[1])) + [al]
+                        alf = 1
+                    rgba = list(getColor(c[1])) + [alf]
                     break
         lut.SetTableValue(i, rgba)
 
     lut.Build()
     return lut
-
 
 
 # default sets of colors
@@ -719,7 +734,6 @@ def printc(*strings, **keys):
         for i, s in enumerate(strings):
             if i == ns:
                 separator = ""
-            # txt += str(s) + separator
             if "\\" in repr(s):  # "in" for some reasons changes s
                 from vedo.shapes import _reps
                 for k in emoji.keys():
@@ -784,30 +798,39 @@ def printc(*strings, **keys):
 
             if dbg:
                 from inspect import currentframe, getframeinfo
+                from vedo.utils import isSequence, precision
                 cf = currentframe().f_back
                 cfi = getframeinfo(cf)
                 fname = os.path.basename(getframeinfo(cf).filename)
-                print("\x1b[3m\x1b[37m\x1b[4m"+fname+":"+str(cfi.lineno)+"\x1b[0m", end='')
-                print('\t\t\t\t\t\x1b[3m\x1b[37m', time.ctime(), "\x1b[0m")
-                if txt: print("    \x1b[37mmessage : "+ out)
-                print("    \x1b[37mfunction: "+ str(cfi.function))
-                print('    \x1b[37mlocals  :\x1b[0m')
+                print("\x1b[7m\x1b[3m\x1b[37m"+fname+" line:\x1b[1m"+str(cfi.lineno)+"\x1b[0m", end='')
+                print('\x1b[3m\x1b[37m\x1b[2m', "\U00002501"*30, time.ctime(), "\x1b[0m")
+                if txt: print("    \x1b[37m\x1b[1mMessage : "+ out)
+                print("    \x1b[37m\x1b[1mFunction:\x1b[0m\x1b[37m "+ str(cfi.function))
+                print('    \x1b[1mLocals:\x1b[0m')
                 for loc in cf.f_locals.keys():
                     obj = cf.f_locals[loc]
-                    var = str(obj)
+                    var = repr(obj)
                     if 'module ' in var: continue
                     if 'function ' in var: continue
                     if 'class ' in var: continue
                     if '_' in loc: continue
-                    if var.startswith('vtk') and hasattr(obj, 'name'):
+                    if hasattr(obj, 'name'):
                         if not obj.name:
                             oname = str(type(obj))
                         else:
                             oname = obj.name
-                        var = oname + ', at ' + str(obj.GetPosition())
+                        var = oname + ', at ' + precision(obj.GetPosition(),3)
 
                     print('      \x1b[37m', loc,'=', var[:60].replace('\n',''), '\x1b[0m')
-                print("    \x1b[37melapsed :", str(time.time()-_global_start_time)[:6], 's\x1b[0m')
+                    if isSequence(obj) and len(obj)>4:
+                        print('           \x1b[37m\x1b[2m\x1b[3m len:', len(obj),
+                              ' min:', precision(min(obj), 4),
+                              ' max:', precision(max(obj), 4),
+                               # ' mean:', np.mean(np.array(obj)),
+                              '\x1b[0m')
+
+                print("    \x1b[1m\x1b[37mElapsed time:\x1b[0m\x1b[37m",
+                      str(time.time()-_global_start_time)[:6], 's\x1b[0m')
 
             else:
                 sys.stdout.write(out + end)

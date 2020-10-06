@@ -6,12 +6,14 @@ import numpy as np
 
 
 ################################################################################## 2D
+acts2d = []
 for i, f in enumerate(fonts):
-    Text2D(f+': The quick fox jumps over the lazy dog. 1234567890 αβγδεθλμνπστφψω',
-           pos=(.015, 1-(i+3)*.06), font=f, s=1.3, c='k')
+    t = Text2D(f+': The quick fox jumps over the lazy dog. 1234567890 αβγδεθλμνπστφψω',
+               pos=(.015, 1-(i+3)*.06), font=f, s=1.3, c='k')
+    acts2d.append(t)
 
-Text2D("List of Available Fonts", pos='top-center', bg='k', s=1.1)
-show(..., bg2='cornsilk', axes=False, zoom=1.2, size=(1200,700), interactive=False)
+acts2d.append(Text2D("List of Available Fonts", pos='top-center', bg='k', s=1.1))
+show(acts2d, bg2='cornsilk', axes=False, zoom=1.2, size=(1200,700), interactive=False)
 
 
 ################################################################################## 3D
@@ -75,11 +77,11 @@ for i, f in enumerate(fonts):
     printc('Font: ', f, c='g')
 
 ################################################################################## 3D
-cam = dict(pos=(59.7, -2.91, 122),
-           focalPoint=(27.2, -31.2, 0.890),
+cam = dict(pos=(55.8, -4.27, 107),
+           focalPoint=(27.1, -29.2, -0.0532),
            viewup=(-0.0642, 0.976, -0.210),
-           distance=129,
-           clippingRange=(101, 167))
+           distance=113,
+           clippingRange=(87.1, 147))
 
 ln1 = Line([-1,-2],[52,-2], lw=0.1, c='grey')
 fn3d=[ln1]

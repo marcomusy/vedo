@@ -9,10 +9,8 @@ doc = Text2D(__doc__, pos='bottom-right', c='darkgreen', font='Quikhand')
 ############################################################### REAL
 # an existing function z(x,y) can be passed:
 def my_z(x, y): return sin(2*x*y) * cos(3*y)/2
-f1 = plot(my_z, c='lb', bc='t')
-# f1 = plot(my_z, texture=None, bc=None)
-# f1.unpack(0).addElevationScalars().cmap('terrain')
-# f1.show()
+f1 = plot(my_z, c='summer') # use a colormap
+# f1 = plot(my_z, c='lightblue', bc='tomato')
 
 # red dots are shown where the function does not exist (y>x):
 f2 = plot("sin(3*x)*log(x-y)/3")

@@ -16,7 +16,7 @@ show(man1, __doc__, at=0, N=3, axes=11, elevation=-60)
 man2 = load(datadir+"man_low.vtk")
 scals = man2.points()[:, 0] + 37           # pick x coordinates of vertices
 
-man2.cmap("hot", scals, vmax=37)
+man2.cmap("hot", scals)
 man2.addScalarBar(horizontal=True)
 show(man2, "mesh.cmap()", at=1)
 

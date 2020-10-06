@@ -264,7 +264,7 @@ datadir = "https://vedo.embl.es/examples/data/"
 
 plotter_instances = []
 plotter_instance = None
-collectable_actors = []
+collectable_actors = [] # OBSOLETE
 
 ####################################################################################
 def embedWindow(backend='k3d', verbose=True):
@@ -338,7 +338,7 @@ def _init():
 
     plotter_instance = None
     plotter_instances = []
-    collectable_actors = []
+    collectable_actors = [] # OBSOLETE
 
     for f in os.listdir(textures_path):
         tfn = f.split(".")[0]

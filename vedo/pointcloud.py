@@ -1289,6 +1289,7 @@ class Points(vtk.vtkFollower, BaseActor):
         If None is passed as input, will use colors from active scalars.
         Same as `mesh.c()`.
         """
+        # overrides base.color()
         if c is False:
             return np.array(self.GetProperty().GetColor())
         elif c is None:
@@ -1326,25 +1327,25 @@ class Points(vtk.vtkFollower, BaseActor):
         return self._update(cleanPolyData.GetOutput())
 
 
-    def threshold(self, scalars, above=None, below=None, useCells=False):
+    def threshold(self, scalars, above=None, below=None, on='points'):
         """
         Extracts cells where scalar value satisfies threshold criterion.
 
         :param str,list scalars: name of the scalars array.
         :param float above: minimum value of the scalar
         :param float below: maximum value of the scalar
-        :param bool useCells: if `True`, assume array scalars refers to cells.
+        :param str on: if 'cells' assume array of scalars refers to cell data.
 
         |mesh_threshold| |mesh_threshold.py|_
         """
         if utils.isSequence(scalars):
-            if useCells:
+            if on.startswith('c'):
                 self.addCellArray(scalars, "threshold")
             else:
                 self.addPointArray(scalars, "threshold")
             scalars = "threshold"
         else: # string is passed
-            if useCells:
+            if on.startswith('c'):
                 arr = self.getCellArray(scalars)
             else:
                 arr = self.getPointArray(scalars)
@@ -1356,7 +1357,7 @@ class Points(vtk.vtkFollower, BaseActor):
         thres = vtk.vtkThreshold()
         thres.SetInputData(self._polydata)
 
-        if useCells:
+        if on.startswith('c'):
             asso = vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS
         else:
             asso = vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS
@@ -1529,7 +1530,7 @@ class Points(vtk.vtkFollower, BaseActor):
         elif utils.isSequence(content):
             mode = 0
             arr = content
-            # print('ccccc1', content)  # WEIRD!
+            # print('testttt', content)  # WEIRD!
             # exit()
 
         if arr is None and mode == 0:
@@ -1694,7 +1695,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         |intersect2d| |intersect2d.py|_
         """
-        ncolls = len(settings.collectable_actors)
+        # ncolls = len(settings.collectable_actors)
         acts = []
 
         if txt is None:
@@ -1772,8 +1773,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         #mm= vedo.merge(vedo.Line(box.points()))
         #fl = mm.reverse().triangulate().printInfo().show(axes=7)
-
-        settings.collectable_actors = settings.collectable_actors[:ncolls]
+        # settings.collectable_actors = settings.collectable_actors[:ncolls]
         return macts
 
     def caption(self,
@@ -2285,9 +2285,12 @@ class Points(vtk.vtkFollower, BaseActor):
             vmax = arr.GetRange()[1]
 
         ########################### build the look-up table
-        lut = vtk.vtkLookupTable()
-        lut.SetRange(vmin,vmax)
-        if utils.isSequence(cmap):                 # manual sequence of colors
+        if isinstance(cmap, vtk.vtkLookupTable): # vtkLookupTable
+            lut = cmap
+
+        elif utils.isSequence(cmap):                 # manual sequence of colors
+            lut = vtk.vtkLookupTable()
+            lut.SetRange(vmin,vmax)
             ncols, nalpha = len(cmap), len(alpha)
             lut.SetNumberOfTableValues(ncols)
             for i, c in enumerate(cmap):
@@ -2296,10 +2299,9 @@ class Points(vtk.vtkFollower, BaseActor):
                 lut.SetTableValue(i, r, g, b, alpha[idx])
             lut.Build()
 
-        elif isinstance(cmap, vtk.vtkLookupTable): # vtkLookupTable
-            lut.DeepCopy(cmap)
-
         else: # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
+            lut = vtk.vtkLookupTable()
+            lut.SetRange(vmin,vmax)
             ncols, nalpha = n, len(alpha)
             lut.SetNumberOfTableValues(ncols)
             mycols = colors.colorMap(range(ncols), cmap, 0,ncols)
@@ -2310,12 +2312,13 @@ class Points(vtk.vtkFollower, BaseActor):
             lut.Build()
 
         self._mapper.SetLookupTable(lut)
+        # print('lut_tuples', lut.GetTable().GetNumberOfTuples())
         self._mapper.SetScalarModeToUsePointData()
         self._mapper.ScalarVisibilityOn()
         if hasattr(self._mapper, 'SetArrayName'):
             self._mapper.SetArrayName(arrayName)
         if settings.autoResetScalarRange:
-            self._mapper.SetScalarRange(vmin, vmax)
+            self._mapper.SetScalarRange(lut.GetRange())
         poly.GetPointData().SetScalars(arr)
         poly.GetPointData().SetActiveScalars(arrayName)
         poly.GetPointData().Modified()
@@ -2391,9 +2394,12 @@ class Points(vtk.vtkFollower, BaseActor):
             vmax = arr.GetRange()[1]
 
         ########################### build the look-up table
-        lut = vtk.vtkLookupTable()
-        lut.SetRange(vmin,vmax)
-        if utils.isSequence(cmap):                 # manual sequence of colors
+        if isinstance(cmap, vtk.vtkLookupTable):     # vtkLookupTable
+            lut = cmap
+
+        elif utils.isSequence(cmap):                 # manual sequence of colors
+            lut = vtk.vtkLookupTable()
+            lut.SetRange(vmin,vmax)
             ncols, nalpha = len(cmap), len(alpha)
             lut.SetNumberOfTableValues(ncols)
             for i, c in enumerate(cmap):
@@ -2402,10 +2408,9 @@ class Points(vtk.vtkFollower, BaseActor):
                 lut.SetTableValue(i, r, g, b, alpha[idx])
             lut.Build()
 
-        elif isinstance(cmap, vtk.vtkLookupTable): # vtkLookupTable
-            lut.DeepCopy(cmap)
-
         else: # assume string cmap name OR matplotlib.colors.LinearSegmentedColormap
+            lut = vtk.vtkLookupTable()
+            lut.SetRange(vmin,vmax)
             ncols, nalpha = n, len(alpha)
             lut.SetNumberOfTableValues(ncols)
             mycols = colors.colorMap(range(ncols), cmap, 0,ncols)
@@ -2421,7 +2426,7 @@ class Points(vtk.vtkFollower, BaseActor):
         if hasattr(self._mapper, 'SetArrayName'):
             self._mapper.SetArrayName(arrayName)
         if settings.autoResetScalarRange:
-            self._mapper.SetScalarRange(vmin, vmax)
+            self._mapper.SetScalarRange(lut.GetRange())
         poly.GetCellData().SetScalars(arr)
         poly.GetCellData().SetActiveScalars(arrayName)
         poly.GetCellData().Modified()

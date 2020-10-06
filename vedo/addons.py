@@ -75,7 +75,7 @@ def Ruler(
     """
     if unitScale != 1.0 and units == "":
         raise ValueError("When setting 'unitScale' to a value other than 1, a 'units' arguments must be specified.")
-    ncolls = len(settings.collectable_actors)
+    # ncolls = len(settings.collectable_actors)
 
     if isinstance(p1, Points): p1 = p1.GetPosition()
     if isinstance(p2, Points): p2 = p2.GetPosition()
@@ -129,7 +129,7 @@ def Ruler(
     macts.base = q1
     macts.top = q2
     macts.orientation(p2 - p1, rotation=axisRotation).bc('t').pickable(False)
-    settings.collectable_actors = settings.collectable_actors[:ncolls]
+    # settings.collectable_actors = settings.collectable_actors[:ncolls]
     return macts
 
 
@@ -185,7 +185,7 @@ def Goniometer(
 
     |goniometer| |goniometer.py|_
     """
-    ncolls = len(settings.collectable_actors)
+    # ncolls = len(settings.collectable_actors)
 
     if isinstance(p1, Points): p1 = p1.GetPosition()
     if isinstance(p2, Points): p2 = p2.GetPosition()
@@ -228,7 +228,7 @@ def Goniometer(
         acts.append(msh)
 
     asse = Assembly(acts)
-    settings.collectable_actors = settings.collectable_actors[:ncolls]
+    # settings.collectable_actors = settings.collectable_actors[:ncolls]
     return asse
 
 
@@ -417,6 +417,15 @@ def addScalarBar(obj,
     sb.SetUseOpacity(useAlpha)
     sb.SetDrawFrame(0)
     sb.SetDrawBackground(0)
+    if lut.GetUseBelowRangeColor():
+        sb.DrawBelowRangeSwatchOn()
+        sb.SetBelowRangeAnnotation('')
+    if lut.GetUseAboveRangeColor():
+        sb.DrawAboveRangeSwatchOn()
+        sb.SetAboveRangeAnnotation('')
+    if lut.GetNanColor() != (0.5, 0.0, 0.0, 1.0):
+        sb.DrawNanAnnotationOn()
+        sb.SetNanAnnotation('nan')
 
     if title:
         if "\\" in repr(title):
@@ -488,6 +497,9 @@ def addScalarBar3D(
     c=None,
     useAlpha=True,
     drawBox=True,
+    aboveText=None,
+    belowText=None,
+    nanText='NaN',
 ):
     """
     Draw a 3D scalar bar.
@@ -513,7 +525,7 @@ def addScalarBar3D(
     .. hint:: |scalarbars| |scalarbars.py|_
     """
     plt = settings.plotter_instance
-    ncolls = len(settings.collectable_actors)
+    # ncolls = len(settings.collectable_actors)
     if plt and c is None:  # automatic black or white
         c = (0.9, 0.9, 0.9)
         if np.sum(getColor(plt.backgrcol)) > 1.5:
@@ -532,8 +544,7 @@ def addScalarBar3D(
         if not lut:
             print("Error in addScalarBar3D: mesh has no lookup table.", [obj])
             return None
-        vmin, vmax = obj.mapper().GetScalarRange()
-        # vmin, vmax = lut.GetRange()
+        vmin, vmax = lut.GetRange()
 
     elif isinstance(obj, (Volume, TetMesh)):
         lut = utils.ctf2lut(obj)
@@ -548,29 +559,27 @@ def addScalarBar3D(
 
     # build the color scale part
     scale = shapes.Grid([-sx *labelOffset, 0, 0], c=c, alpha=1,
-                        sx=sx, sy=sy, resx=1, resy=256)
+                        sx=sx, sy=sy,
+                        resx=1, resy=lut.GetTable().GetNumberOfTuples())
     scale.lw(0).wireframe(False)
-    cscals = scale.cellCenters()[:, 1]
-    scale.cmap(lut, cscals, on='cells')
-    scale.lighting('off')
+    cscals = np.linspace(vmin, vmax, lut.GetTable().GetNumberOfTuples())
+    scale.cmap(lut, cscals, on='cells').lighting('off')
     xbns = scale.xbounds()
 
     if pos is None:
         d=sx/2
         if title:
             d = np.sqrt((bns[1]-bns[0])**2+sy*sy)/20
-        pos=(bns[1]-xbns[0]+d,
-             (bns[2]+bns[3])/2,
-             bns[4])
+        pos = (bns[1]-xbns[0]+d, (bns[2]+bns[3])/2, bns[4])
 
     tacts = []
     ticks_pos, ticks_txt = utils.make_ticks(vmin, vmax, nlabels)
-    nlabels2 = len(ticks_pos)-1
+
     for i, p in enumerate(ticks_pos):
         tx = ticks_txt[i]
         if i and tx:
             # build numeric text
-            y = -sy /2 + sy * i / nlabels2
+            y = (p - 0.5) *sy
             a = shapes.Text(tx, pos=[sx*labelOffset, y, 0], s=sy/60,
                             justify='center-left', c=c, italic=italic, font=labelFont)
             tacts.append(a)
@@ -587,6 +596,54 @@ def addScalarBar3D(
         t.pos(sx*titleXOffset,titleYOffset,0)
         tacts.append(t)
 
+    # build below scale
+    brect = None
+    if lut.GetUseBelowRangeColor():
+        r,g,b,alfa = lut.GetBelowRangeColor()
+        brect = shapes.Rectangle([-sx *labelOffset -sx/2, -sy/2-sx-sx*0.1, 0],
+                                 [-sx *labelOffset +sx/2, -sy/2   -sx*0.1, 0],
+                                 c=(r,g,b), alpha=alfa)
+        brect.lw(1).lc(c).lighting('off')
+        if belowText is None:
+           belowText = ' <'+str(vmin)
+        if belowText:
+            btx = shapes.Text(belowText, (0,0,0), s=sy/60,
+                              c=c, justify='center-left', italic=italic, font=labelFont)
+            btx.pos(sx*labelOffset, -sy/2-sx*0.66, 0)
+            tacts.append(btx)
+
+    # build above scale
+    arect = None
+    if lut.GetUseAboveRangeColor():
+        r,g,b,alfa = lut.GetAboveRangeColor()
+        arect = shapes.Rectangle([-sx *labelOffset -sx/2, sy/2   +sx*0.1, 0],
+                                 [-sx *labelOffset +sx/2, sy/2+sx+sx*0.1, 0],
+                                 c=(r,g,b), alpha=alfa)
+        arect.lw(1).lc(c).lighting('off')
+        if aboveText is None:
+            aboveText = ' >'+str(vmax)
+        if aboveText:
+            atx = shapes.Text(aboveText, (0,0,0), s=sy/60,
+                              c=c, justify='center-left', italic=italic, font=labelFont)
+            atx.pos(sx*labelOffset, sy/2+sx*0.66, 0)
+            tacts.append(atx)
+
+    # build NaN scale
+    nanrect = None
+    if lut.GetNanColor() != (0.5, 0.0, 0.0, 1.0):
+        nanshift = sx*0.1
+        if brect:
+            nanshift += sx
+        r,g,b,alfa = lut.GetNanColor()
+        nanrect = shapes.Rectangle([-sx *labelOffset -sx/2, -sy/2-sx-sx*0.1-nanshift, 0],
+                                   [-sx *labelOffset +sx/2, -sy/2   -sx*0.1-nanshift, 0],
+                                   c=(r,g,b), alpha=alfa)
+        nanrect.lw(1).lc(c).lighting('off')
+        nantx = shapes.Text(nanText, (0,0,0), s=sy/60,
+                            c=c, justify='center-left', italic=italic, font=labelFont)
+        nantx.pos(sx*labelOffset, -sy/2-sx*0.66-nanshift, 0)
+        tacts.append(nantx)
+
     if drawBox:
         tacts.append(scale.box().lw(0.1))
 
@@ -596,12 +653,12 @@ def addScalarBar3D(
     mtacts.PickableOff()
     scale.PickableOff()
 
-    sact = Assembly(scale, tacts)
+    sact = Assembly([scale, arect, brect, nanrect] + tacts)
     sact.SetPosition(pos)
     sact.PickableOff()
     sact.UseBoundsOff()
     sact.name = 'ScalarBar3D'
-    settings.collectable_actors = settings.collectable_actors[:ncolls]
+    # settings.collectable_actors = settings.collectable_actors[:ncolls]
     return sact
 
 
@@ -1071,7 +1128,7 @@ def buildRulerAxes(
 
     |goniometer| |goniometer.py|_
     """
-    ncolls = len(settings.collectable_actors)
+    # ncolls = len(settings.collectable_actors)
     if utils.isSequence(inputobj):
         x0,x1,y0,y1,z0,z1 = inputobj
     else:
@@ -1117,7 +1174,7 @@ def buildRulerAxes(
 
     macts = merge(acts).c(c).alpha(alpha).bc('t')
     macts.UseBoundsOff()
-    settings.collectable_actors = settings.collectable_actors[:ncolls]
+    # settings.collectable_actors = settings.collectable_actors[:ncolls]
     return macts
 
 
@@ -1231,7 +1288,7 @@ def buildAxes(obj=None,
 
     |customAxes| |customAxes.py|_
     """
-    ncolls = len(settings.collectable_actors)
+    # ncolls = len(settings.collectable_actors)
 
     if not titleFont:
         titleFont = settings.defaultFont
@@ -1776,7 +1833,7 @@ def buildAxes(obj=None,
     asse.SetScale(ss)
     asse.PickableOff()
     # throw away all extra created obj in collectable_actors
-    settings.collectable_actors = settings.collectable_actors[:ncolls]
+    # settings.collectable_actors = settings.collectable_actors[:ncolls]
     return asse
 
 

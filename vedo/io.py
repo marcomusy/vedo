@@ -141,13 +141,13 @@ def load(inputobj, unpack=True, force=False):
     if len(acts) == 1:
         if not acts[0]:
             colors.printc("\times Error in load(): cannot load", inputobj, c='r')
-        settings.collectable_actors.append(acts[0])
+        # settings.collectable_actors.append(acts[0])
         return acts[0]
     elif len(acts) == 0:
         colors.printc("\times Error in load(): cannot load", inputobj, c='r')
         return None
     else:
-        settings.collectable_actors += acts
+        # settings.collectable_actors += acts
         return acts
 
 
@@ -1757,6 +1757,7 @@ class Video:
             vp.camera.Azimuth(azimuth_range[0])
 
         vp.show(resetcam=False, interactive=False)
+        vp.renderer.ResetCamera()
 
         n = self.fps * self.duration
         for i in range(int(n)):

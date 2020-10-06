@@ -487,12 +487,6 @@ class Base3DProp(object):
         self.axes = a
         return a
 
-#    def delete(self):
-#        """
-#        """
-#        settings.collectable_actors.remove(self)
-#        del self
-
 
     def show(self, **options):
         """
@@ -751,7 +745,10 @@ class BaseActor(Base3DProp):
 
             self._mapper.ScalarVisibilityOn()
             if settings.autoResetScalarRange:
-                self._mapper.SetScalarRange(arr.GetRange())
+                if self._mapper.GetLookupTable().GetTable().GetNumberOfTuples():
+                    self._mapper.SetScalarRange(self._mapper.GetLookupTable().GetRange())
+                else:
+                    self._mapper.SetScalarRange(arr.GetRange())
 
         else:
             indata = self.inputdata()
@@ -784,7 +781,10 @@ class BaseActor(Base3DProp):
 
             self._mapper.ScalarVisibilityOn()
             if settings.autoResetScalarRange:
-                self._mapper.SetScalarRange(arr.GetRange())
+                if self._mapper.GetLookupTable().GetTable().GetNumberOfTuples():
+                    self._mapper.SetScalarRange(self._mapper.GetLookupTable().GetRange())
+                else:
+                    self._mapper.SetScalarRange(arr.GetRange())
 
         else:
             indata = self.inputdata()
@@ -1114,18 +1114,17 @@ class BaseActor(Base3DProp):
 
         .. hint:: |mesh_coloring| |mesh_coloring.py|_ |scalarbars.py|_
         """
-        import vedo.addons as addons
-        self.scalarbar = addons.addScalarBar(self,
-                                             pos,
-                                             title,
-                                             titleXOffset,
-                                             titleYOffset,
-                                             titleFontSize,
-                                             nlabels,
-                                             c,
-                                             horizontal,
-                                             useAlpha,
-                                             )
+        self.scalarbar = vedo.addons.addScalarBar(self,
+                                                 pos,
+                                                 title,
+                                                 titleXOffset,
+                                                 titleYOffset,
+                                                 titleFontSize,
+                                                 nlabels,
+                                                 c,
+                                                 horizontal,
+                                                 useAlpha,
+                                                 )
         return self
 
 
@@ -1146,6 +1145,9 @@ class BaseActor(Base3DProp):
         c=None,
         useAlpha=True,
         drawBox=True,
+        aboveText=None,
+        belowText=None,
+        nanText='NaN',
     ):
         """
         Draw a 3D scalar bar.
@@ -1170,28 +1172,33 @@ class BaseActor(Base3DProp):
         :param bool,float italic: use italic font for title and labels
         :param bool useAlpha: render transparency of the color bar, otherwise ignore
         :param bool drawBox: draw a box around the colorbar (useful with useAlpha=True)
+        :param str aboveText: text to show for above scale values
+        :param str belowText: text to show for below scale values
+        :param str nanText: text to show for nan values
 
         |mesh_coloring| |mesh_coloring.py|_
         """
-        import vedo.addons as addons
-        self.scalarbar = addons.addScalarBar3D(self,
-                                                pos,
-                                                sx,
-                                                sy,
-                                                title,
-                                                titleFont,
-                                                titleXOffset,
-                                                titleYOffset,
-                                                titleSize,
-                                                titleRotation,
-                                                nlabels,
-                                                labelFont,
-                                                labelOffset,
-                                                italic,
-                                                c,
-                                                useAlpha,
-                                                drawBox,
-                                                )
+        self.scalarbar = vedo.addons.addScalarBar3D(self,
+                                                    pos,
+                                                    sx,
+                                                    sy,
+                                                    title,
+                                                    titleFont,
+                                                    titleXOffset,
+                                                    titleYOffset,
+                                                    titleSize,
+                                                    titleRotation,
+                                                    nlabels,
+                                                    labelFont,
+                                                    labelOffset,
+                                                    italic,
+                                                    c,
+                                                    useAlpha,
+                                                    drawBox,
+                                                    aboveText,
+                                                    belowText,
+                                                    nanText,
+                                                    )
         return self
 
 

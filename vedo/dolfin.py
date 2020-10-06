@@ -786,12 +786,12 @@ def plot(*inputobj, **options):
             if options['at'] == N-1:
                 options['interactive'] = True
 
-    if settings.plotter_instance:
-        for a2 in settings.collectable_actors:
-            if isinstance(a2, vtk.vtkCornerAnnotation):
-                if 0 in a2.renderedAt: # remove old message
-                    settings.plotter_instance.remove(a2)
-                    break
+    # if settings.plotter_instance:
+    #     for a2 in settings.collectable_actors:
+    #         if isinstance(a2, vtk.vtkCornerAnnotation):
+    #             if 0 in a2.renderedAt: # remove old message
+    #                 settings.plotter_instance.remove(a2)
+    #                 break
 
     if len(actors)==0:
          print('Warning: no objects to show, check mode in plot(mode="...")')

@@ -1224,7 +1224,7 @@ class Mesh(Points):
         :param list low: one end of the line (small scalar values). Default (0,0,0).
         :param list high: other end of the line (large scalar values). Default (0,0,1).
         :param list vrange: set the range of the scalar. Default is (0, 1).
-        :param lut: optional vtkLookUpTable up table (see makeLUT method).
+        :param lut: optional vtkLookUpTable up table (see buildLUT method).
 
         :Example:
             .. code-block:: python
