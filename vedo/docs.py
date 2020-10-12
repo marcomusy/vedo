@@ -1340,5 +1340,24 @@ _defs = ""
 #     :width: 350 px
 #     :target: flag_labels.py_
 #     :alt: flag_labels.py
+
+# .. |whiskers.py| replace:: whiskers.py
+# .. _whiskers.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/.whiskerspy
+# .. |whiskers| image:: https://user-images.githubusercontent.com/32848391/95772479-170cd000-0cbd-11eb-98c4-20c5ca342cb8.png
+#     :width: 350 px
+#     :target: whiskers.py_
+#     :alt: whiskers.py
+
 # """
+
+######################################################################## template
+# .. |.py| replace:: .py
+# .. _.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/.py
+# .. || image::
+#     :width: 350 px
+#     :target: .py_
+#     :alt: .py
+########################################################################
+
+
 

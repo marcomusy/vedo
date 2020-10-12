@@ -11,8 +11,38 @@ except:
 setup(
     name="vedo",
     version=verstr,
-    packages=["vedo", "vedo.examples"],
-    scripts=["bin/vedo", "bin/vedo-convert"],
+    packages=[
+               "vedo",
+               "vedo.examples",
+               "vedo.examples.basic",
+               "vedo.examples.advanced",
+               "vedo.examples.pyplot",
+               "vedo.examples.simulations",
+               "vedo.examples.tetmesh",
+               "vedo.examples.volumetric",
+               "vedo.examples.other.dolfin",
+               "vedo.examples.other.trimesh",
+    ],
+    package_dir={
+                  'vedo': 'vedo',
+                  'vedo.examples': 'examples',
+                  'vedo.examples.basic': 'examples/basic',
+                  'vedo.examples.advanced': 'examples/advanced',
+                  'vedo.examples.pyplot': 'examples/pyplot',
+                  'vedo.examples.simulations': 'examples/simulations',
+                  'vedo.examples.tetmesh': 'examples/tetmesh',
+                  'vedo.examples.volumetric': 'examples/volumetric',
+                  'vedo.examples.other.dolfin': 'examples/other/dolfin',
+                  'vedo.examples.other.trimesh': 'examples/other/trimesh',
+    },
+    scripts=["bin/vedo",
+             "bin/vedo-convert",
+             ],
+    #entry_points={
+    #    'console_scripts': [
+    #        "vedo = bin/vedo:main"
+    #    ]
+    #},
     install_requires=["vtk<9.0.0", "numpy"],
     description="A python module for scientific analysis and visualization of 3D objects and point clouds based on VTK.",
     long_description="A python module for scientific visualization, analysis of 3D objects and point clouds based on VTK. Check out https://vedo.embl.es for documentation.",

@@ -12,7 +12,8 @@ __doc__ = (
     + vedo.docs._defs
 )
 
-__all__ = ['Base3DProp',
+__all__ = [
+           'Base3DProp',
            'BaseActor',
            'BaseGrid',
            "probePoints",
@@ -839,6 +840,14 @@ class BaseActor(Base3DProp):
             self._mapper.SetArrayName(name)
         self._mapper.SetScalarModeToUseCellData()
         return self
+
+    def removePointArray(self, name):
+        """Reomve point array from object."""
+        self.inputdata().GetPointData().RemoveArray(name)
+
+    def removeCellArray(self, name):
+        """Reomve cell array from object."""
+        self.inputdata().GetCellData().RemoveArray(name)
 
     def addPointArray(self, input_array, name):
         """

@@ -2024,10 +2024,14 @@ class Plotter:
         # settings.collectable_actors = []
         settings.plotter_instance = None
 
-    def screenshot(self, filename='screenshot.png'):
-        """Take a screenshot of the Plotter window."""
-        vedo.io.screenshot(filename)
-        return self
+    def screenshot(self, filename='screenshot.png', scale=None, returnNumpy=False):
+        """Take a screenshot of the Plotter window.
+
+        :param int scale: set image magnification
+        :param bool returnNumpy: return a numpy array of the image
+        """
+        retval = vedo.io.screenshot(filename, scale, returnNumpy)
+        return retval
 
     def export(self, filename='scene.npz'):
         """Export scene to file to HTML, X3D or Numpy file."""

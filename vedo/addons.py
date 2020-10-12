@@ -1189,6 +1189,15 @@ def buildAxes(obj=None,
               axesLineWidth=1,
               gridLineWidth=1,
               reorientShortTitle=True,
+              htitle="",
+              hTitleSize=0.03,
+              hTitleFont=None,
+              hTitleItalic=True,
+              hTitleColor=None,
+              hTitleJustify='bottom-center',
+              hTitleHorizontalOffset=0,
+              hTitleVerticalOffset=0.01,
+              hTitleZOffset=0,
               titleDepth=0,
               titleFont="", # grab settings.defaultFont
               textScale=1.0,
@@ -1252,6 +1261,15 @@ def buildAxes(obj=None,
     - `titleFont`,              [''], font for axes titles
     - `labelFont`,              [''], font for numeric labels
     - `textScale`,             [1.0], global scaling factor for text elements (titles, labels)
+    - `htitle`,                 [''], header title
+    - `hTitleSize`,           [0.03], header title size
+    - `hTitleFont`,           [None], header font (defaults to `titleFont`)
+    - `hTitleItalic`,         [True], header font is italic
+    - `hTitleColor`,          [None], header title color (defaults to `xTitleColor`)
+    - `hTitleJustify`, ['bottom-center'], origin of the title justification
+    - `hTitleHorizontalOffset`,  [0], control vertical positioning of header title
+    - `hTitleVerticalOffset`, [0.01], control horizontal positioning of header title
+    - `hTitleZOffset`,           [0], control positioning of header title along z-axis
     - `xTitlePosition`,       [0.32], title fractional positions along axis
     - `xTitleOffset`,         [0.05], title fractional offset distance from axis line
     - `xTitleJustify`, ["top-right"], title justification
@@ -1319,7 +1337,9 @@ def buildAxes(obj=None,
         else:
             vbb = np.zeros(6)
             ss = np.zeros(3)
-            if xrange is None or yrange is None or zrange is None:
+            if zrange is None:
+                zrange=(0,0)
+            if xrange is None or yrange is None:
                 printc("ERROR in buildAxes(): no mesh given, so must specify ranges.", c='r')
                 raise RuntimeError()
 
@@ -1817,7 +1837,24 @@ def buildAxes(obj=None,
         zt.UseBoundsOff()
         zt.name = "ztitle "+str(ztitle)
         titles.append(zt)
-    ###################################################
+
+    ################################################### header title
+    if htitle:
+        if hTitleFont is None:
+            hTitleFont = titleFont
+        if hTitleColor is None:
+            hTitleColor = xTitleColor
+        htit = shapes.Text(htitle, s=hTitleSize, font=hTitleFont,
+                           c=hTitleColor, justify=hTitleJustify, depth=titleDepth,
+                           italic=hTitleItalic,
+                           )
+        wpos = [0.5+hTitleHorizontalOffset, 1+hTitleVerticalOffset, hTitleZOffset]
+        htit.SetScale(x_aspect_ratios)
+        htit.pos(wpos)
+        # htit.UseBoundsOff()
+        htit.name = "htitle "+str(htitle)
+        titles.append(htit)
+
 
     acts = titles + lines + labels + grids + grids2 + highlights
     acts += framelines + majorticks + minorticks + cones

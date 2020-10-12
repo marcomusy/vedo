@@ -1580,7 +1580,7 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
     """
     if not settings.plotter_instance or not settings.plotter_instance.window:
         colors.printc('\bomb screenshot(): Rendering window is not present, skip.', c='r')
-        return
+        return settings.plotter_instance
 
     if filename.endswith('.pdf'):
         writer = vtk.vtkGL2PSExporter()
@@ -1591,7 +1591,7 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
         writer.SetFileFormatToPDF()
         writer.SetFilePrefix(filename.replace('.pdf',''))
         writer.Write()
-        return filename ##########
+        return settings.plotter_instance ##########
     elif filename.endswith('.svg'):
         writer = vtk.vtkGL2PSExporter()
         writer.SetRenderWindow(settings.plotter_instance.window)
@@ -1601,7 +1601,7 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
         writer.SetFileFormatToSVG()
         writer.SetFilePrefix(filename.replace('.svg',''))
         writer.Write()
-        return filename ##########
+        return settings.plotter_instance ##########
     elif filename.endswith('.eps'):
         writer = vtk.vtkGL2PSExporter()
         writer.SetRenderWindow(settings.plotter_instance.window)
@@ -1611,7 +1611,7 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
         writer.SetFileFormatToEPS()
         writer.SetFilePrefix(filename.replace('.eps',''))
         writer.Write()
-        return filename ##########
+        return settings.plotter_instance ##########
 
     if scale is None:
         scale = settings.screeshotScale
@@ -1654,7 +1654,7 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
         writer.SetFileName(filename+'.png')
         writer.SetInputData(w2if.GetOutput())
         writer.Write()
-    return filename
+    return settings.plotter_instance
 
 
 class Video:

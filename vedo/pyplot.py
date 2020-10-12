@@ -2068,6 +2068,63 @@ def violin(
     return asse
 
 
+def whisker(data,
+            s=0.25,
+            c='k',
+            lw=2,
+            bc='blue',
+            alpha=0.25,
+            r=3,
+            jitter=True,
+            horizontal=False,
+):
+    """
+    Generate a "whisker" bar from a 1-dimensional dataset.
+
+    :param float s: size of the box
+    :param c: color of the lines
+    :param float lw: line width
+    :param bc: color of the box
+    :param float alpha: transparency of the box
+    :param float r: point radius in pixels (use value 0 to disable)
+    :param bool jitter: add some randomness to points to avoid overlap
+    :param bool horizontal: set horizontal layout
+
+    |whiskers| |whiskers.py|_
+    """
+    xvals = np.zeros_like(data)
+    if jitter:
+        xjit = np.random.randn(len(xvals))*s/9
+        xjit = np.clip(xjit, -s/2.1, s/2.1)
+        xvals += xjit
+
+    dmean = np.mean(data)
+    dq05 = np.quantile(data, 0.05)
+    dq25 = np.quantile(data, 0.25)
+    dq75 = np.quantile(data, 0.75)
+    dq95 = np.quantile(data, 0.95)
+
+    pts = None
+    if r: pts = shapes.Points([xvals, data], c=c, r=r)
+
+    rec = shapes.Rectangle([-s/2, dq25],[s/2, dq75], c=bc, alpha=alpha)
+    rl = shapes.Line([[-s/2, dq25],[s/2, dq25],[s/2, dq75],[-s/2, dq75]], closed=True)
+    l1 = shapes.Line([0,dq05,0], [0,dq25,0], c=c, lw=lw)
+    l2 = shapes.Line([0,dq75,0], [0,dq95,0], c=c, lw=lw)
+    lm = shapes.Line([-s/2, dmean], [s/2, dmean])
+    lns = merge(l1,l2,lm,rl)
+    asse = Assembly([lns, rec, pts])
+    if horizontal:
+        asse.rotateZ(-90)
+    asse.name = "Whisker"
+    asse.info['mean'] = dmean
+    asse.info['quantile_05'] = dq05
+    asse.info['quantile_25'] = dq25
+    asse.info['quantile_75'] = dq75
+    asse.info['quantile_95'] = dq95
+    return asse
+
+
 def streamplot(X, Y, U, V, direction="both",
                maxPropagation=None, mode=1, lw=0.001, c=None, probes=()):
     """
