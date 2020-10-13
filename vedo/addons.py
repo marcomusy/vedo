@@ -541,9 +541,11 @@ def addScalarBar3D(
 
     if isinstance(obj, Points):
         lut = obj.mapper().GetLookupTable()
-        if not lut:
-            print("Error in addScalarBar3D: mesh has no lookup table.", [obj])
-            return None
+        if not lut or lut.GetTable().GetNumberOfTuples() == 0:
+            obj.cmap('jet_r') # create the most similar to the default
+            # todo: grab the auto created default LUT (but where is it?)
+            #       cells or points?
+            lut = obj.mapper().GetLookupTable()
         vmin, vmax = lut.GetRange()
 
     elif isinstance(obj, (Volume, TetMesh)):

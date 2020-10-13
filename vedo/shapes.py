@@ -2458,11 +2458,6 @@ class Text(Mesh):
             mono = True
             fscale = 0.75
             lspacing = 0.1
-        # elif font=='Inversionz':
-        #     mono = True
-        #     fscale = 0.9
-        #     lspacing = 0.1
-        #     dotsep = "~^.~ "
         elif font=='Kanopus':
             mono = False
             fscale = 0.75

@@ -488,7 +488,7 @@ def buildPalette(color1, color2, N, hsv=True):
         if hsv:
             c = np.array(hsv2rgb(c))
         cols.append(c)
-    return cols
+    return np.array(cols)
 
 
 def buildLUT(colorlist,
