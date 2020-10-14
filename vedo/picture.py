@@ -33,7 +33,8 @@ class Picture(vtk.vtkImageActor, Base3DProp):
 
         if utils.isSequence(obj) and len(obj):
             iac = vtk.vtkImageAppendComponents()
-            for i in range(3):
+            nchan = obj.shape[2] # get number of channels in inputimage (L/LA/RGB/RGBA)
+            for i in range(nchan):
                 #arr = np.flip(np.flip(array[:,:,i], 0), 0).ravel()
                 arr = np.flip(obj[:,:,i], 0).ravel()
                 varb = numpy_to_vtk(arr, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
