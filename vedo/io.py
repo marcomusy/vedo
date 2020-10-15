@@ -1664,8 +1664,7 @@ class Video:
     :param str name: name of the output file.
     :param int fps: set the number of frames per second.
     :param float duration: set the total `duration` of the video and recalculates `fps` accordingly.
-    :param str ffmpeg: set path to ffmpeg program.
-        Default value assumes ffmpeg command is in the path.
+    :param str ffmpeg: set path to ffmpeg program. Default value assumes ffmpeg command is in the path.
 
     |makeVideo| |makeVideo.py|_
     """

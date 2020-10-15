@@ -27,7 +27,7 @@
 ---------------------
 
 `vedo` is a fast and lightweight python module
-for scientific analysis and **v**isualization of **3d o**bjects.
+for scientific analysis and visualization of 3d objects.
 
 Not limited to 3d, `vedo` can also generate high quality renderings in 2d (scatter plots, histograms etc).
 
@@ -184,7 +184,7 @@ Run any of the available scripts from with:
 .. code-block:: bash
 
     vedo --list
-    vedo -ir tube.py
+    vedo -r covid19
 
 
 More than 300 examples can be found in directories:
@@ -197,7 +197,7 @@ More than 300 examples can be found in directories:
 - `examples/other <https://github.com/marcomusy/vedo/tree/master/examples/other>`_
 - `examples/other/dolfin <https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin>`_
 - `examples/other/trimesh <https://github.com/marcomusy/vedo/tree/master/examples/other/trimesh>`_
-- `notebooks <https://github.com/marcomusy/vedo/blob/master/notebooks>`_
+- `examples/notebooks <https://github.com/marcomusy/vedo/blob/master/examples/notebooks>`_
 
 Apply a *Moving Least Squares* algorithm to obtain a smooth surface from a to a
 large cloud of scattered points in space

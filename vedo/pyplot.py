@@ -20,6 +20,7 @@ __all__ = [
     "donut",
     "quiver",
     "violin",
+    "whisker",
     "streamplot",
     "DirectedGraph",
 ]
@@ -2074,7 +2075,7 @@ def whisker(data,
             lw=2,
             bc='blue',
             alpha=0.25,
-            r=3,
+            r=5,
             jitter=True,
             horizontal=False,
 ):
@@ -2092,7 +2093,7 @@ def whisker(data,
 
     |whiskers| |whiskers.py|_
     """
-    xvals = np.zeros_like(data)
+    xvals = np.zeros_like(np.array(data))
     if jitter:
         xjit = np.random.randn(len(xvals))*s/9
         xjit = np.clip(xjit, -s/2.1, s/2.1)
@@ -2108,6 +2109,7 @@ def whisker(data,
     if r: pts = shapes.Points([xvals, data], c=c, r=r)
 
     rec = shapes.Rectangle([-s/2, dq25],[s/2, dq75], c=bc, alpha=alpha)
+    rec.GetProperty().LightingOff()
     rl = shapes.Line([[-s/2, dq25],[s/2, dq25],[s/2, dq75],[-s/2, dq75]], closed=True)
     l1 = shapes.Line([0,dq05,0], [0,dq25,0], c=c, lw=lw)
     l2 = shapes.Line([0,dq75,0], [0,dq95,0], c=c, lw=lw)

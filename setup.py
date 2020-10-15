@@ -13,7 +13,7 @@ setup(
     version=verstr,
     packages=[
                "vedo",
-               "vedo.examples",
+               #"vedo.examples",
                "vedo.examples.basic",
                "vedo.examples.advanced",
                "vedo.examples.pyplot",
@@ -25,7 +25,7 @@ setup(
     ],
     package_dir={
                   'vedo': 'vedo',
-                  'vedo.examples': 'examples',
+                  #'vedo.examples': 'examples',
                   'vedo.examples.basic': 'examples/basic',
                   'vedo.examples.advanced': 'examples/advanced',
                   'vedo.examples.pyplot': 'examples/pyplot',

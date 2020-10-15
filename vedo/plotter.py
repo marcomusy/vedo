@@ -1458,6 +1458,7 @@ class Plotter:
 
         :param bool interactive:  pause and interact with window (True)
             or continue execution (False)
+
         :param float rate:  maximum rate of `show()` in Hertz
         :param int interactorStyle: set the type of interaction
             - 0 = TrackballCamera [default]
