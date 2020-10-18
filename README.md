@@ -2,7 +2,7 @@
 ![vlogo](https://user-images.githubusercontent.com/32848391/90966721-1e420980-e4d6-11ea-998f-3285d512541f.png)
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/4acbc84816a540bfb9dc67bbff520d38)](https://www.codacy.com/manual/marcomusy/vedo?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=marcomusy/vedo&amp;utm_campaign=Badge_Grade)
-[![Downloads](https://pepy.tech/badge/vtkplotter)](https://pepy.tech/project/vtkplotter)
+[![Downloads](https://pepy.tech/badge/vedo)](https://pepy.tech/project/vedo)
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vedo/badges/version.svg)](https://anaconda.org/conda-forge/vedo)
 [![Ubuntu 20.10](https://repology.org/badge/version-for-repo/ubuntu_20_10/vedo.svg)](https://repology.org/project/vedo/versions)
