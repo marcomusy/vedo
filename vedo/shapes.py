@@ -13,10 +13,7 @@ from vedo.pointcloud import Points
 from vedo.picture import Picture
 import vedo.docs as docs
 
-__doc__ = ("""Submodule to generate basic geometric shapes.
-"""
-    + docs._defs
-)
+__doc__ = ("""Submodule to generate basic geometric shapes.""" + docs._defs)
 
 __all__ = [
     "Marker",
@@ -180,7 +177,6 @@ def Marker(symbol, pos=(0, 0, 0), c='lb', alpha=1, s=0.1, filled=True):
         mesh = Text('*', pos=(0,0,0), s=s*3, justify='center', depth=0)
     else:
         mesh = Text(symbol, pos=(0,0,0), s=s*2, justify='center', depth=0)
-    # settings.collectable_actors.pop()
     mesh.flat().lighting('off').wireframe(not filled).c(c).alpha(alpha)
     if len(pos) == 2:
         pos = (pos[0], pos[1], 0)
@@ -210,7 +206,6 @@ class Star3D(Mesh):
         Mesh.__init__(self, [pts, fcs], c, alpha)
         self.rotateX(90).scale(r).lighting('shiny')
         self.SetPosition(pos)
-        # settings.collectable_actors.append(self)
         self.name = "Star3D"
 
 
@@ -218,13 +213,11 @@ def Cross3D(pos=(0,0,0), s=1.0, thickness=0.3, c="b", alpha=1):
     """
     Build a 3D cross shape, mainly useful as a 3D marker.
     """
-    # ncolls = len(settings.collectable_actors)
     c1 = Cylinder(r=thickness*s, height=2*s)
     c2 = Cylinder(r=thickness*s, height=2*s).rotateX(90)
     c3 = Cylinder(r=thickness*s, height=2*s).rotateY(90)
     cr = merge(c1,c2,c3).color(c).alpha(alpha)
     cr.SetPosition(pos)
-    # settings.collectable_actors = settings.collectable_actors[:ncolls] +[cr]
     cr.name = "Cross3D"
     return cr
 
@@ -358,7 +351,6 @@ class Glyph(Mesh):
                 rng = gly.GetOutput().GetPointData().GetScalars().GetRange()
                 self.mapper().SetScalarRange(rng[0], rng[1])
 
-        # settings.collectable_actors.append(self)
         self.name = "Glyph"
 
 
@@ -527,7 +519,6 @@ class Line(Mesh):
         #    self.GetProperty().SetLineStipplePattern(0xF0F0)
         #    self.GetProperty().SetLineStippleRepeatFactor(1)
         #self.SetOrigin((self.base+self.top)/2)
-        # settings.collectable_actors.append(self)
         self.name = "Line"
 
     def length(self):
@@ -632,7 +623,6 @@ class DashedLine(Line):
             self.top = listp[-2]
         else:
             self.top = listp[-1]
-        # settings.collectable_actors.append(self)
         self.name = "DashedLine"
 
 
@@ -685,7 +675,6 @@ class Lines(Line):
             self.GetProperty().SetLineStipplePattern(0xF0F0)
             self.GetProperty().SetLineStippleRepeatFactor(1)
 
-        # settings.collectable_actors.append(self)
         self.name = "Lines"
 
 
@@ -703,6 +692,8 @@ class Spline(Line):
 
     :param int degree: degree of the spline (1<degree<5)
     :param int res: number of points on the spline
+
+    See also: ``CSpline`` and ``KSpline``.
 
     |tutorial_spline| |tutorial.py|_
     """
@@ -735,8 +726,6 @@ class Spline(Line):
 
         Line.__init__(self, np.c_[xnew, ynew, znew], lw=2)
         self.lighting('off')
-        # settings.collectable_actors.pop()
-        # settings.collectable_actors.append(self)
         self.name = "Spline"
 
 
@@ -752,6 +741,8 @@ class KSpline(Line):
     :param bool closed: join last to first point to produce a closed curve
     :param int res: resolution of the output line. Default is 20 times the number
         of input points.
+
+    See also: ``Spline`` and ``CSpline``.
 
     |kspline|
     """
@@ -792,12 +783,10 @@ class KSpline(Line):
             ln.append((x,y,z))
 
         Line.__init__(self, ln, lw=2, c='gray')
-        # settings.collectable_actors.pop()
         self.lighting('off')
         self.name = "KSpline"
         self.base = np.array(points[0])
         self.top = np.array(points[-1])
-        # settings.collectable_actors.append(self)
 
 class CSpline(Line):
     """
@@ -806,6 +795,8 @@ class CSpline(Line):
     :param bool closed: join last to first point to produce a closed curve
     :param int res: resolution of the output line. Default is 20 times the number
         of input points.
+
+    See also: ``Spline`` and ``KSpline``.
     """
     def __init__(self, points, closed=False, res=None):
 
@@ -833,18 +824,16 @@ class CSpline(Line):
         for pos in np.linspace(0, len(points), res):
             x = xspline.Evaluate(pos)
             y = yspline.Evaluate(pos)
-            z=0
+            z = 0
             if len(p)>2:
                 z = zspline.Evaluate(pos)
             ln.append((x,y,z))
 
         Line.__init__(self, ln, lw=2, c='gray')
-        # settings.collectable_actors.pop()
         self.lighting('off')
         self.name = "CSpline"
         self.base = np.array(points[0])
         self.top = np.array(points[-1])
-        # settings.collectable_actors.append(self)
 
 
 def Bezier(points, res=None):
@@ -994,7 +983,6 @@ class Tube(Mesh):
 
         self.base = np.array(points[0])
         self.top = np.array(points[-1])
-        # settings.collectable_actors.append(self)
         self.name = "Tube"
 
 
@@ -1031,7 +1019,6 @@ class Ribbon(Mesh):
             RibbonFilter.SetWidth(width)
             RibbonFilter.Update()
             Mesh.__init__(self, RibbonFilter.GetOutput(), c, alpha)
-            # settings.collectable_actors.append(self)
             self.name = "Ribbon"
             return
 
@@ -1095,7 +1082,6 @@ class Ribbon(Mesh):
         rsf.SetInputData(mergedPolyData.GetOutput())
         rsf.Update()
         Mesh.__init__(self, rsf.GetOutput(), c, alpha)
-        # settings.collectable_actors.append(self)
         self.name = "Ribbon"
 
 
@@ -1149,7 +1135,6 @@ class Arrow(Mesh):
         self.DragableOff()
         self.base = np.array(startPoint)
         self.top = np.array(endPoint)
-        # settings.collectable_actors.append(self)
         self.name = "Arrow"
 
 
@@ -1199,7 +1184,6 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c=None, alpha=1, res=12
                  colorByVectorSize=True,
                  c=c, alpha=alpha)
     arrg.flat()
-    # settings.collectable_actors.append(arrg)
     arrg.name = "Arrows"
     return arrg
 
@@ -1275,7 +1259,6 @@ class Arrow2D(Mesh):
         self.PickableOff()
         self.base = np.array(startPoint)
         self.top = np.array(endPoint)
-        # settings.collectable_actors.append(self)
         self.name = "Arrow2D"
 
 def Arrows2D(startPoints, endPoints=None,
@@ -1344,8 +1327,6 @@ def Arrows2D(startPoints, endPoints=None,
                  c=c, alpha=alpha).flat().lighting('off')
     if c is not None:
         arrg.color(c)
-
-    # settings.collectable_actors.append(arrg)
     arrg.name = "Arrows2D"
     return arrg
 
@@ -1375,8 +1356,6 @@ def FlatArrow(line1, line2, c="m", alpha=1, tipSize=1, tipWidth=1):
     resm = max(100, len(line1))
 
     mesh = Ribbon(line1, line2, alpha=alpha, c=c, res=(resm, 1)).phong()
-    # settings.collectable_actors.pop()
-    # settings.collectable_actors.append(mesh)
     mesh.name = "FlatArrow"
     return mesh
 
@@ -1398,7 +1377,6 @@ class Polygon(Mesh):
         Mesh.__init__(self, [np.c_[x,y], faces], c, alpha)
         self.lighting('plastic')
         self.SetPosition(pos)
-        # settings.collectable_actors.append(self)
         self.name = "Polygon " + str(nsides)
 
 
@@ -1454,7 +1432,6 @@ class Star(Mesh):
             Mesh.__init__(self, [apts, cells], c, alpha)
 
         self.SetPosition(pos)
-        # settings.collectable_actors.append(self)
         self.name = "Star"
 
 
@@ -1489,7 +1466,6 @@ class Disc(Mesh):
         Mesh.__init__(self, ps.GetOutput(), c, alpha)
         self.flat()
         self.SetPosition(pos)
-        # settings.collectable_actors.append(self)
         self.name = "Disc"
 
 
@@ -1538,7 +1514,6 @@ class Arc(Mesh):
         ar.Update()
         Mesh.__init__(self, ar.GetOutput(), c, alpha)
         self.flat().lw(2).lighting('off')
-        # settings.collectable_actors.append(self)
         self.name = "Arc"
 
     def length(self):
@@ -1604,7 +1579,6 @@ class Sphere(Mesh):
 
         self.phong()
         self.SetPosition(pos)
-        # settings.collectable_actors.append(self)
         self.name = "Sphere"
 
 
@@ -1696,7 +1670,6 @@ class Spheres(Mesh):
         else:
             self.mapper().ScalarVisibilityOff()
             self.GetProperty().SetColor(getColor(c))
-        # settings.collectable_actors.append(self)
         self.name = "Spheres"
 
 
@@ -1718,7 +1691,6 @@ class Earth(Mesh):
         atext.SetInputConnection(pnmReader.GetOutputPort())
         atext.InterpolateOn()
         self.SetTexture(atext)
-        # settings.collectable_actors.append(self)
         self.name = "Earth"
 
 
@@ -1786,7 +1758,6 @@ class Ellipsoid(Mesh):
         self.SetPosition(pos)
         self.Length = -np.array(axis1) / 2 + pos
         self.top = np.array(axis1) / 2 + pos
-        # settings.collectable_actors.append(self)
 
     def asphericity(self):
         """Return a measure of how different an ellipsoid is froma sphere.
@@ -1922,7 +1893,6 @@ class Grid(Mesh):
         self.orientation(normal)
 
         self.wireframe().lw(lw).lighting('off')
-        # settings.collectable_actors.append(self)
         self.name = "Grid"
 
 
@@ -1964,7 +1934,6 @@ class Plane(Mesh):
         tf.Update()
         Mesh.__init__(self, tf.GetOutput(), c, alpha)
         self.SetPosition(pos)
-        # settings.collectable_actors.append(self)
         self.name = "Plane"
         self.top = np.array(normal)
         self.bottom = np.array([0,0,0])
@@ -2037,11 +2006,8 @@ class Box(Mesh):
         ]
         vtc = numpy_to_vtk(tc)
         pd.GetPointData().SetTCoords(vtc)
-
         Mesh.__init__(self, pd, c, alpha)
         self.SetPosition(pos)
-
-        # settings.collectable_actors.append(self)
         self.name = "Box"
 
 def Cube(pos=(0, 0, 0), side=1, c="g", alpha=1):
@@ -2136,7 +2102,6 @@ class Spring(Mesh):
         self.SetPosition(startPoint)
         self.base = np.array(startPoint)
         self.top = np.array(endPoint)
-        # settings.collectable_actors.append(self)
         self.name = "Spring"
 
 
@@ -2189,7 +2154,6 @@ class Cylinder(Mesh):
         self.SetPosition(pos)
         self.base = base + pos
         self.top = top + pos
-        # settings.collectable_actors.append(self)
         self.name = "Cylinder"
 
 
@@ -2212,7 +2176,6 @@ class Cone(Mesh):
         v = utils.versor(axis) * height / 2
         self.base = pos - v
         self.top = pos + v
-        # settings.collectable_actors.append(self)
         self.name = "Cone"
 
 class Pyramid(Cone):
@@ -2246,7 +2209,6 @@ class Torus(Mesh):
         Mesh.__init__(self, pfs.GetOutput(), c, alpha)
         self.phong()
         self.SetPosition(pos)
-        # settings.collectable_actors.append(self)
         self.name = "Torus"
 
 class Paraboloid(Mesh):
@@ -2279,9 +2241,7 @@ class Paraboloid(Mesh):
         self.computeNormals().phong()
         self.mapper().ScalarVisibilityOff()
         self.SetPosition(pos)
-        # settings.collectable_actors.append(self)
         self.name = "Paraboloid"
-
 
 class Hyperboloid(Mesh):
     """
@@ -2309,7 +2269,6 @@ class Hyperboloid(Mesh):
         self.computeNormals().phong()
         self.mapper().ScalarVisibilityOff()
         self.SetPosition(pos)
-        # settings.collectable_actors.append(self)
         self.name = "Hyperboloid"
 
 
@@ -2672,7 +2631,6 @@ class Text(Mesh):
 
         Mesh.__init__(self, tpoly, c, alpha)
         self.lighting('off').SetPosition(pos)
-        # settings.collectable_actors.append(self)
         self.name = "Text"
 
 
@@ -2806,8 +2764,6 @@ def Text2D( txt,
         cap.SetBold(bold)
         cap.SetItalic(italic)
         setattr(ca, 'renderedAt', set())
-        # settings.collectable_actors.append(ca)
-
         ###############
         return ca
         ###############
@@ -2859,7 +2815,6 @@ def Text2D( txt,
             tp.FrameOn()
         actor2d.PickableOff()
         setattr(actor2d, 'renderedAt', set())
-        # settings.collectable_actors.append(actor2d)
         return actor2d
 
 class Latex(Picture):
@@ -2956,7 +2911,6 @@ class Latex(Picture):
             printc(' Try: usetex=False' , c='r')
             printc(' Try: sudo apt install dvipng' , c='r')
 
-        # settings.collectable_actors.append(self)
         self.name = "Latex"
 
 
@@ -3044,7 +2998,6 @@ class ParametricShape(Mesh):
         if name != 'Kuen': self.normalize()
         if name == 'Dini': self.scale(0.4)
         if name == 'Enneper': self.scale(0.4)
-        # settings.collectable_actors.append(self)
         self.name = name
 
 

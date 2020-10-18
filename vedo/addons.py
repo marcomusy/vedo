@@ -986,8 +986,8 @@ def addCutterTool(mesh):
     printc("  Move gray handles to cut away parts of the mesh", c="m")
     printc("  Press X to save file to: clipped.vtk", c="m")
     plt.interactor.Start() # allow extra interaction
-
     boxWidget.Off()
+    plt.interactor.Start() # allow extra interaction
     return act0
 
 def _addVolumeCutterTool(vol):
@@ -1029,6 +1029,7 @@ def _addVolumeCutterTool(vol):
     plt.interactor.Start()
     boxWidget.Off()
     plt.widgets.append(boxWidget)
+    return vol
 
 #####################################################################
 def addIcon(mesh, pos=3, size=0.08):
