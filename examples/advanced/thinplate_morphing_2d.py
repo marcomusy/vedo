@@ -5,7 +5,7 @@ The fitting minimizes the distance to the target surface.
 from vedo import *
 import scipy.optimize as opt
 import numpy as np
-np.random.seed(0)
+np.random.seed(1)
 
 class Morpher:
     def __init__(self):
@@ -82,10 +82,8 @@ if __name__ == "__main__":
     mr = Morpher()
 
     # make up a random cloud and distort it
-    pts_s = np.random.randn(100, 3)
-    pts_t = np.array(pts_s) +np.sin(2*pts_s)/5
-    pts_s[:,2] = 0 # let's make it 2D
-    pts_t[:,2] = 0
+    pts_s = np.random.randn(10, 2)
+    pts_t = pts_s + np.sin(2*pts_s)/5
 
     mr.source = Points(pts_s, r=10, c="g", alpha=1)
     mr.target = Points(pts_t, r=10, c="r", alpha=1).rotateZ(10) # add rotation too

@@ -409,14 +409,33 @@ class Volume(vtk.vtkVolume, BaseGrid):
     def mode(self, mode=None):
         """Define the volumetric rendering style.
 
-            - 0, Composite rendering
+            - 0, composite rendering
             - 1, maximum projection rendering
-            - 2, minimum projection
-            - 3, average projection
+            - 2, minimum projection rendering
+            - 3, average projection rendering
             - 4, additive mode
         """
         if mode is None:
             return self._mapper.GetBlendMode()
+
+        if isinstance(mode, str):
+            if 'comp' in mode:
+                mode = 0
+            elif 'proj' in mode:
+                if 'max' in mode:
+                    mode = 1
+                elif 'min' in mode:
+                    mode = 2
+                elif 'ave' in mode:
+                    mode = 3
+                else:
+                    colors.printc("Error in volume.mode(): unknown mode", mode, c='r')
+                    mode = 0
+            elif 'add' in mode:
+                mode = 4
+            else:
+                colors.printc("Error in volume.mode(): unknown mode", mode, c='r')
+                mode = 0
 
         volumeProperty = self.GetProperty()
         self._mapper.SetBlendMode(mode)

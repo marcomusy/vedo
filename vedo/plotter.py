@@ -1586,6 +1586,8 @@ class Plotter:
 
                 elif isinstance(a, str):  # assume a filepath or 2D comment was given
                     import os.path
+                    if a.startswith('https'):
+                        a = vedo.io.download(a)
                     if "." in a and ". " not in a and os.path.isfile(a):
                         out = vedo.io.load(a)
                     else:

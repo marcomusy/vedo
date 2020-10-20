@@ -457,9 +457,14 @@ class Line(Mesh):
     :param lw: line width.
     :param int res: number of intermediate points in the segment
     """
-    def __init__(self, p0, p1=None, closed=False, c="r", alpha=1, lw=1, res=None):
-        if isinstance(p0, vtk.vtkActor): p0 = p0.GetPosition()
-        if isinstance(p1, vtk.vtkActor): p1 = p1.GetPosition()
+    def __init__(self, p0, p1=None, closed=False, c="grey", alpha=1, lw=1, res=None):
+
+        if isinstance(p1, vtk.vtkActor):
+            p1 = p1.GetPosition()
+            if isinstance(p0, vtk.vtkActor):
+                p0 = p0.GetPosition()
+        if isinstance(p0, Points):
+            p0 = p0.points()
 
         self.slope = [] # used by analysis.fitLine
         self.center = []
@@ -543,10 +548,14 @@ class DashedLine(Line):
     :param float alpha: transparency in range [0,1].
     :param lw: line width.
     """
-    def __init__(self, p0, p1=None, spacing=0.1, closed=False, c="red", alpha=1, lw=2):
+    def __init__(self, p0, p1=None, spacing=0.1, closed=False, c="grey", alpha=1, lw=2):
 
-        if isinstance(p0, vtk.vtkActor): p0 = p0.GetPosition()
-        if isinstance(p1, vtk.vtkActor): p1 = p1.GetPosition()
+        if isinstance(p1, vtk.vtkActor):
+            p1 = p1.GetPosition()
+            if isinstance(p0, vtk.vtkActor):
+                p0 = p0.GetPosition()
+        if isinstance(p0, Points):
+            p0 = p0.points()
 
         # detect if user is passing a 2D list of points as p0=xlist, p1=ylist:
         if len(p0) > 3:
@@ -577,10 +586,10 @@ class DashedLine(Line):
 
         xmn = np.min(listp, axis=0)
         xmx = np.max(listp, axis=0)
-        dlen = np.linalg.norm(xmx-xmn)*spacing/10
+        dlen = np.linalg.norm(xmx-xmn)*np.clip(spacing, 0.01,1.0)/10
         if not dlen:
-            printc("Error in DashedLine: zero dash length.", c='r')
             Mesh.__init__(self, vtk.vtkPolyData(), c, alpha)
+            self.name = "DashedLine (void)"
             return
 
         qs = []
@@ -614,9 +623,8 @@ class DashedLine(Line):
             lineSource.Update()
             polylns.AddInputData(lineSource.GetOutput())
         polylns.Update()
-        poly = polylns.GetOutput()
 
-        Mesh.__init__(self, poly, c, alpha)
+        Mesh.__init__(self, polylns.GetOutput(), c, alpha)
         self.lw(lw).lighting('off')
         self.base = listp[0]
         if closed:
@@ -915,9 +923,9 @@ def NormalLines(mesh, ratio=1, atCells=True, scale=1):
     glyphActor = Mesh(glyph.GetOutput())
     glyphActor.mapper().SetScalarModeToUsePointFieldData()
     glyphActor.PickableOff()
-    prop = vtk.vtkProperty()
-    prop.DeepCopy(mesh.GetProperty())
-    glyphActor.SetProperty(prop)
+    # prop = vtk.vtkProperty()
+    # prop.DeepCopy(mesh.GetProperty())
+    glyphActor.SetProperty(mesh.GetProperty())
     return glyphActor
 
 
@@ -1183,7 +1191,7 @@ def Arrows(startPoints, endPoints=None, s=None, scale=1, c=None, alpha=1, res=12
                  scaleByVectorSize=True,
                  colorByVectorSize=True,
                  c=c, alpha=alpha)
-    arrg.flat()
+    arrg.flat().lighting('plastic')
     arrg.name = "Arrows"
     return arrg
 

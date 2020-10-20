@@ -956,16 +956,6 @@ class BaseActor(Base3DProp):
         self._mapper.SetScalarModeToUseCellData()
         return self
 
-    def removePointArray(self, name):
-        """Remove an array which was defined on points, by its name."""
-        self.inputdata().GetPointData().RemoveArray(name)
-        return self
-
-    def removeCellArray(self, name):
-        """Remove an array which was defined on cells, by its name."""
-        self.inputdata().GetCellData().RemoveArray(name)
-        return self
-
 
     def gradient(self, arrname=None, on='points', fast=False):
         """
@@ -1352,12 +1342,19 @@ class BaseGrid(BaseActor):
         self._color = col
 
         if utils.isSequence(col):
-            for i, ci in enumerate(col):
-                r, g, b = colors.getColor(ci)
-                x = smin + (smax - smin) * i / (len(col) - 1)
-                ctf.AddRGBPoint(x, r, g, b)
-                #colors.printc('\tcolor at', round(x, 1),
-                #              '\tset to', colors.getColorName((r, g, b)), c='w', bold=0)
+            if utils.isSequence(col[0]) and len(col[0])==2:
+                # user passing [(value1, color1), ...]
+                for x, ci in col:
+                    r, g, b = colors.getColor(ci)
+                    ctf.AddRGBPoint(x, r, g, b)
+                    # colors.printc('color at', round(x, 1),
+                    #               'set to', colors.getColorName((r, g, b)), c='w', bold=0)
+            else:
+                # user passing [color1, color2, ..]
+                for i, ci in enumerate(col):
+                    r, g, b = colors.getColor(ci)
+                    x = smin + (smax - smin) * i / (len(col) - 1)
+                    ctf.AddRGBPoint(x, r, g, b)
         elif isinstance(col, str):
             if col in colors.colors.keys() or col in colors.color_nicks.keys():
                 r, g, b = colors.getColor(col)

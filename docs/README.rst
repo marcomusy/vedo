@@ -55,7 +55,7 @@ Check out the **Git repository** here: https://github.com/marcomusy/vedo
 *Windows-10 users* can manually place this file
 `vedo.bat <https://github.com/marcomusy/vedo/blob/master/vedo.bat>`_
 on the desktop to *drag&drop* files to visualize.
-(Need to edit the path of their local Anaconda installation).
+(Need to edit the path of their local python installation).
 
 
 Features:
