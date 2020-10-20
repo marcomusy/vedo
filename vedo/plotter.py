@@ -6,7 +6,7 @@ from vtk.util.numpy_support import vtk_to_numpy
 import numpy as np
 
 import vedo
-from vedo.colors import printc, getColor
+from vedo.colors import printc, getColor, getColorName
 import vedo.utils as utils
 import vedo.settings as settings
 import vedo.addons as addons
@@ -2046,7 +2046,7 @@ class Plotter:
     def _mouseleft(self, iren, event):
 
         x, y = iren.GetEventPosition()
-        #print('_mouseleft mouse at', x, y)
+        # print('_mouseleft mouse at', x, y)
 
         renderer = iren.FindPokedRenderer(x, y)
         self.renderer = renderer
@@ -2629,6 +2629,18 @@ class Plotter:
                 utils.printInfo(self.clickedActor)
             else:
                 utils.printInfo(self)
+
+        elif key == "I":  # print color under the mouse
+            x, y = iren.GetEventPosition()
+            w2if = vtk.vtkWindowToImageFilter()
+            w2if.SetInput(self.window)
+            w2if.ReadFrontBufferOff()
+            w2if.Update()
+            nx, ny = self.window.GetSize()
+            arr = vtk_to_numpy(w2if.GetOutput().GetPointData().GetScalars()).reshape(ny,nx,3)
+            printc('Pixel =', [x,y], ' RGB =', arr[y,x].tolist(), end='')
+            cnm = getColorName(arr[y,x])
+            printc(' ('+cnm+')', c=cnm)
 
         if iren:
             iren.Render()

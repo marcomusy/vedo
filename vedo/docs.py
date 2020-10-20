@@ -37,6 +37,7 @@ def tips():
     from vedo import colors, __version__
     msg  = " ==========================================================\n"
     msg += "| Press: i     print info about selected object            |\n"
+    msg += "|        I     print the RGB color under the mouse         |\n"
     msg += "|        <-->  use arrows to reduce/increase opacity       |\n"
     msg += "|        w/s   toggle wireframe/surface style              |\n"
     msg += "|        p/P   change point size of vertices               |\n"
