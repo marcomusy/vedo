@@ -44,7 +44,7 @@ pip install vedo
 
 ---------------------------------------------------------------------
 
-📌 **Done?** Run any of the built-in examples. In a terminal, type:
+📌 **Done?** Run any of the built-in examples. In a terminal, type e.g.:
 
 **`vedo -r covid19`**
 
@@ -156,7 +156,7 @@ for a wide range of functionalities:
 
 
 ## ⌨  Command Line Interface
-Visualize a polygonal mesh from a terminal window simply with:
+Visualize a polygonal mesh from a terminal window simply with e.g.:
 ```bash
 vedo my_mesh.obj
 # valid formats: [vtk,vtu,vts,vtp,vtm,ply,obj,stl,3ds,dolfin-xml,neutral,gmsh,
@@ -177,13 +177,13 @@ Type `vedo -h` for the complete list of options.<br>
 |         |         |         |
 |:--------|:--------|:--------|
 | [![cubecut](https://user-images.githubusercontent.com/32848391/99916179-e763d580-2d08-11eb-9044-b647115167ed.jpg)](https://github.com/marcomusy/vedo/tree/master/examples/advanced/cutWithMesh2.py)   | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)| [![quatumsine](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/tunnelling2.py) |
-| *Work with volumes and polygonal meshes.*                            | *Turing system of reaction-diffusion between two molecules.*                                                                   |  *Quantum-tunnelling of a particle in a box hitting a sinusoidal potential.*  |
+| *Easily work with volumes, tetrahedral and polygonal meshes.*        | *Turing system of reaction-diffusion between two molecules.*                                                                   |  *Quantum-tunnelling of a particle in a box hitting a sinusoidal potential.*  |
 | [![trimesh](https://user-images.githubusercontent.com/32848391/91164151-e8b44080-e6ce-11ea-8213-cf5b12aa4d16.png)](https://github.com/marcomusy/vedo/blob/master/examples/other/trimesh)              | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)| [![whisker](https://user-images.githubusercontent.com/32848391/99916183-e8950280-2d08-11eb-8070-8bb1146c7c62.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/whiskers.py) |
 | *Interoperability with the [trimesh](https://trimsh.org/) library.*  |  *Support for the [FEniCS/Dolfin](https://fenicsproject.org/) library for PDE and finite element solutions.*                   | *Advanced 2D histogramming and plotting capablities.* |
 
 
 ### Gallery
-Run any of the _built-in_ examples from command line by typing:
+Run any of the _built-in_ examples from command line, type e.g.:
 
 **`vedo --run covid19`**
 
@@ -207,7 +207,7 @@ Run any of the _built-in_ examples from command line by typing:
 | [![shadow](https://user-images.githubusercontent.com/32848391/57312574-1d714280-70ee-11e9-8741-04fc5386d692.png)](https://github.com/marcomusy/vedo/tree/master/examples/basic/shadow.py) <br>`shadow`                             | [![multiple_pendulum](https://user-images.githubusercontent.com/32848391/50738892-db380300-11d8-11e9-807c-fb320c7b7917.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/multiple_pendulum.py ) <br>`multiple_pend` | [![](https://user-images.githubusercontent.com/32848391/59095175-1ec5a300-8918-11e9-8bc0-fd35c8981e2b.jpg)](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/interpolateVolume.py) <br>`interpolateVolume`    | [![histo_polar](https://user-images.githubusercontent.com/32848391/64912717-5754f400-d733-11e9-8a1f-612165955f23.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_polar.py)  <br>`histo_polar`  |
 | [![streamplot](https://user-images.githubusercontent.com/32848391/73614123-93162a80-45fc-11ea-969b-9a3293b26f35.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot7_stream.py) <br>`plot7_stream`            | [![violin](https://user-images.githubusercontent.com/32848391/73481240-b55d3d80-439b-11ea-89a4-6c35ecc84b0d.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_violin.py) <br>`histo_violin`                        | [![plot3_pip](https://user-images.githubusercontent.com/32848391/73393632-4ff64780-42dc-11ea-8798-45a81c067f45.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot3_pip.py) <br>`plot3_pip`               | [![histo_spheric](https://user-images.githubusercontent.com/32848391/73392901-fccfc500-42da-11ea-828a-9bad6982a823.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_spheric.py)  <br>`histo_spheric`  |
 | [![readvts](https://user-images.githubusercontent.com/32848391/80862655-04568f80-8c77-11ea-8249-5b61283e04ce.png)](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/read_vts.py) <br>`read_vts`                   | [![donutPlot](https://user-images.githubusercontent.com/32848391/64998178-6f6b7580-d8e3-11e9-9bd8-8dfb9ccd90e4.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/donut.py) <br>`donut`                                   | [![extrude](https://user-images.githubusercontent.com/32848391/65963682-971e1a00-e45b-11e9-9f29-05522ae4a800.png)](https://github.com/marcomusy/vedo/tree/master/examples/basic/extrude.py) <br>`extrude`                      | [![plotxy](https://user-images.githubusercontent.com/32848391/96375341-cb549d80-1178-11eb-868f-3e7d55d989ff.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot1_errbars.py) <br>`plot1_errbars`   |
-| [![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif)](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/app_isobrowser.py) <br>`app_isobrowser`       | [![viz_raycast](https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif)](https://github.com/marcomusy/vedo/tree/master/examplesvolumetric/app_raycaster.py) <br>`app_raycaster`              | [![viz_slicer](https://user-images.githubusercontent.com/32848391/80866479-3bd13600-8c8f-11ea-83c7-5f5b4fccb29d.png)](https://github.com/marcomusy/vedo/tree/master/examples/)                                                 | [![lego](https://user-images.githubusercontent.com/32848391/59788744-aaeaa980-92cc-11e9-825d-58da26ca21ff.gif)](https://github.com/marcomusy/vedo/tree/master/examples/)                                               |
+| [![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif)](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/app_isobrowser.py) <br>`app_isobrowser`       | [![viz_raycast](https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif)](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/app_raycaster.py) <br>`app_raycaster`             | [![viz_slicer](https://user-images.githubusercontent.com/32848391/80866479-3bd13600-8c8f-11ea-83c7-5f5b4fccb29d.png)](https://github.com/marcomusy/vedo/tree/master/examples/)                                                 | [![lego](https://user-images.githubusercontent.com/32848391/59788744-aaeaa980-92cc-11e9-825d-58da26ca21ff.gif)](https://github.com/marcomusy/vedo/tree/master/examples/)                                               |
 | [![elastodyn](https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin/elastodynamics.py) <br> `elastodynamics`  | [![heatconv](https://user-images.githubusercontent.com/32848391/57455107-b200af80-726a-11e9-897d-9c7bcb9854ac.gif)](https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin/heatconv.py) <br>`heatconv`                        | [![stokes](https://user-images.githubusercontent.com/32848391/73683666-f36f9f80-46c2-11ea-9dca-2b559d2f458d.png)](https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin/stokes.py) <br>`stokes`                  | [![lshape](https://user-images.githubusercontent.com/32848391/56671156-6bc91f00-66b4-11e9-8c58-e6b71e2ad1d0.gif)](https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin/stokes_lshape.py) <br>`stokes_lshape`|
 
 <br>
@@ -245,3 +245,5 @@ and point clouds based on VTK (Visualization Toolkit)",
 Zenodo, 10 February 2019, <a href="http://doi.org/10.5281/zenodo.2561402">doi: 10.5281/zenodo.2561402</a>.
 
 [![embl_logo](https://user-images.githubusercontent.com/32848391/58046204-e9157180-7b44-11e9-81c9-e916cdf9ba84.gif)](https://www.embl.es)
+
+

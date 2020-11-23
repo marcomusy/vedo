@@ -13,7 +13,6 @@ setup(
     version=verstr,
     packages=[
                "vedo",
-               #"vedo.examples",
                "vedo.examples.basic",
                "vedo.examples.advanced",
                "vedo.examples.pyplot",
@@ -25,7 +24,6 @@ setup(
     ],
     package_dir={
                   'vedo': 'vedo',
-                  #'vedo.examples': 'examples',
                   'vedo.examples.basic': 'examples/basic',
                   'vedo.examples.advanced': 'examples/advanced',
                   'vedo.examples.pyplot': 'examples/pyplot',
@@ -43,7 +41,7 @@ setup(
     #        "vedo = bin/vedo:main"
     #    ]
     #},
-    install_requires=["vtk<9.0.0", "numpy"],
+    install_requires=["vtk", "numpy"],
     description="A python module for scientific analysis and visualization of 3D objects and point clouds based on VTK.",
     long_description="A python module for scientific visualization, analysis of 3D objects and point clouds based on VTK. Check out https://vedo.embl.es for documentation.",
     author="Marco Musy",
