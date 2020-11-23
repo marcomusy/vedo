@@ -251,8 +251,6 @@ def getNotebookBackend(actors2show, zoom, viewup):
                     settings.notebook_plotter += kobj
 
 
-
-
     ####################################################################################
     elif settings.notebookBackend == 'panel' and hasattr(vp, 'window') and vp.window:
 

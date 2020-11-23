@@ -154,8 +154,22 @@ class Base3DProp(object):
             self._updateShadow()
         return self
 
-    def rotate(self, angle, axis=(1, 0, 0), axis_point=(0, 0, 0), rad=False):
-        """Rotate around an arbitrary `axis` passing through `axis_point`."""
+    def rotate(self, angle, axis=(1, 0, 0), point=(0, 0, 0), rad=False):
+        """Rotate around an arbitrary `axis` passing through `point`.
+
+        :Example:
+
+            .. code-block:: python
+
+                from vedo import *
+                c1 = Cube()
+                c2 = c1.clone().c('violet').alpha(0.5) # copy of c1
+                v = vector(0.2,1,0)
+                p = vector(1,0,0)  # axis passes through this point
+                c2.rotate(90, axis=v, point=p)
+                l = Line(-v+p, v+p).lw(3).c('red')
+                show(c1, l, c2, axes=1)
+        """
         if rad:
             anglerad = angle
         else:
@@ -172,7 +186,7 @@ class Base3DProp(object):
                 [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc],
             ]
         )
-        rv = np.dot(R, self.GetPosition() - np.array(axis_point)) + axis_point
+        rv = np.dot(R, self.GetPosition() - np.asarray(point)) + point
 
         if rad:
             angle *= 180.0 / np.pi
@@ -483,8 +497,8 @@ class Base3DProp(object):
 
         |customIndividualAxes| |customIndividualAxes.py|_
         """
-        from vedo.addons import buildAxes
-        a = buildAxes(self, **kargs)
+        from vedo.addons import Axes
+        a = Axes(self, **kargs)
         self.axes = a
         return a
 
@@ -1100,9 +1114,9 @@ class BaseActor(Base3DProp):
     def addScalarBar(self,
                      pos=(0.8,0.05),
                      title="",
-                     titleXOffset=0,
                      titleYOffset=15,
                      titleFontSize=12,
+                     size=(None,None),
                      nlabels=None,
                      c=None,
                      horizontal=False,
@@ -1116,9 +1130,9 @@ class BaseActor(Base3DProp):
         self.scalarbar = vedo.addons.addScalarBar(self,
                                                  pos,
                                                  title,
-                                                 titleXOffset,
                                                  titleYOffset,
                                                  titleFontSize,
+                                                 size,
                                                  nlabels,
                                                  c,
                                                  horizontal,

@@ -1,12 +1,12 @@
 """
 Make a video (needs ffmpeg or opencv)
  Set offscreen=True to only produce the video
- without any graphical window showing
+ without any graphic window showing
 """
 print(__doc__)
 from vedo import *
 
-# settings.screeshotScale = 2 # to get higher resolution
+# settings.screeshotScale = 2           # to get higher resolution
 
 # declare the class instance
 vp = Plotter(bg='beige', axes=10, offscreen=True)
@@ -26,6 +26,6 @@ video.action(zoom=1.1)
 #Options are:  elevation_range=(0,80),
 #              azimuth_range=(0,359),
 #              zoom=None,
-#              cam1=None, cam2=None  # initial and final camera positions
+#              cam1=None, cam2=None   # initial and final camera positions
 
-video.close()                        # merge all the recorded frames
+video.close()                         # merge all the recorded frames

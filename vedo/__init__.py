@@ -45,7 +45,7 @@ from vedo.utils import *
 from vedo.colors import *
 import vedo.settings as settings
 import vedo.addons as addons
-from vedo.addons import Ruler, Goniometer, buildRulerAxes, buildAxes
+from vedo.addons import Ruler, Goniometer, buildRulerAxes, buildAxes, Axes, Light
 from vedo.settings import datadir, embedWindow
 
 # hack: need to uncomment this to generate documentation html

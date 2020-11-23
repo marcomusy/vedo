@@ -449,6 +449,10 @@ class Volume(vtk.vtkVolume, BaseGrid):
             self.jittering(True)
         return self
 
+    def cmap(self, c):
+        """Same as color() or c()."""
+        return self.c(c)
+
     def clone(self):
         """Return a clone copy of the Volume."""
         newimg = vtk.vtkImageData()

@@ -916,11 +916,6 @@ class Plotter:
         self.interactor.Render()
         return self
 
-    def resetCamera(self):
-        """Reset the camera position and zooming."""
-        self.interactor.ResetCamera()
-        return self
-
     def backgroundColor(self, c1=None, c2=None, at=None):
         """Set the color of the background for the current renderer.
         A different renderer index can be specified by keyword ``at``.
@@ -1093,6 +1088,10 @@ class Plotter:
             printc("Warning in getMeshes(): unexpected input type", obj, c='r')
         return []
 
+    def resetCamera(self):
+        """Reset the camera position and zooming."""
+        self.interactor.ResetCamera()
+        return self
 
     def moveCamera(self, camstart, camstop, fraction):
         """
@@ -1162,32 +1161,8 @@ class Plotter:
             r.Modified()
         return self
 
-    # def freeze(self, value=True, at=0):
-    #     """Freeze renderer's camera. Set to argument to False to unfreeze."""
-    #     return self.renderers[at].SetInteractive(value)
-
 
     ##################################################################
-    def addLight(self, pos, focalPoint=(0, 0, 0), deg=180, c='white',
-                 intensity=0.4, removeOthers=False, showsource=False):
-        """
-        Generate a source of light placed at pos, directed to focal point.
-        Returns a ``vtkLight`` object.
-
-        :param focalPoint: focal point, if this is a ``vtkActor`` use its position.
-        :type fp: vtkActor, list
-        :param deg: aperture angle of the light source
-        :param c: set light color
-        :param float intensity: intensity between 0 and 1.
-        :param bool removeOthers: remove all other lights in the scene
-        :param bool showsource: if `True`, will show a representation
-                                of the source of light as an extra Mesh
-
-        .. hint:: |lights.py|_
-        """
-        return addons.addLight(pos, focalPoint, deg, c,
-                               intensity, removeOthers, showsource)
-
     def addSlider2D(self, sliderfunc, xmin, xmax,
                     value=None, pos=4, title="", font='arial', titleSize=1, c=None,
                     showValue=True):
@@ -1491,7 +1466,21 @@ class Plotter:
         bg_ = options.pop("bg", None)
         bg2_ = options.pop("bg2", None)
         axes_ = options.pop("axes", None)
+        size_ = options.pop("size", None)
         q = options.pop("q", False)
+
+
+        if size_ is not None:
+            self.size = size_
+            if self.size[0] == 'f':  # full screen
+                self.size = 'fullscreen'
+                self.window.SetFullScreen(True)
+                self.window.BordersOn()
+            else:
+                self.window.SetSize(int(self.size[0]), int(self.size[1]))
+
+        if at is not None and len(self.renderers)>at:
+            self.renderer = self.renderers[at]
 
         if not settings.notebookBackend:
             if bg_ is not None:
@@ -1583,6 +1572,9 @@ class Plotter:
 
                 elif isinstance(a, vtk.vtkBillboardTextActor3D):
                     scannedacts.append(a)
+
+                elif isinstance(a, vtk.vtkLight):
+                    self.renderer.AddLight(a)
 
                 elif isinstance(a, str):  # assume a filepath or 2D comment was given
                     import os.path
@@ -1825,7 +1817,7 @@ class Plotter:
             elif viewup == "2d":
                 interactorStyle = 7
 
-        if camera is not None:
+        if isinstance(camera, dict):
             cm_pos = camera.pop("pos", None)
             cm_focalPoint = camera.pop("focalPoint", None)
             cm_viewup = camera.pop("viewup", None)
@@ -1834,6 +1826,9 @@ class Plotter:
             cm_parallelScale = camera.pop("parallelScale", None)
             cm_thickness = camera.pop("thickness", None)
             cm_viewAngle = camera.pop("viewAngle", None)
+            if len(camera.keys()):
+                printc("Warning in show(cam=...), key(s) not recognized:",
+                       *(camera.keys()), c='y')
             if cm_pos is not None: self.camera.SetPosition(cm_pos)
             if cm_focalPoint is not None: self.camera.SetFocalPoint(cm_focalPoint)
             if cm_viewup is not None: self.camera.SetViewUp(cm_viewup)
@@ -1925,6 +1920,8 @@ class Plotter:
 
         |inset| |inset.py|_
         """
+        if not self.interactor:
+            return None
         pos = options.pop("pos", 0)
         size = options.pop("size", 0.1)
         c = options.pop("c", 'r')
@@ -2150,7 +2147,7 @@ class Plotter:
         # qt creates and passes a vtkGenericRenderWindowInteractor
 
         key = iren.GetKeySym()
-        #print('Pressed key:', key)
+        # print('Pressed key:', key)
 
         if key in ["q", "space", "Return"]:
             iren.ExitCallback()
@@ -2325,7 +2322,7 @@ class Plotter:
         elif key == "C":
             cam = self.renderer.GetActiveCamera()
             printc('\n###################################################', c='y')
-            printc('### Template python code to position this camera: ###', c='y')
+            printc('## Template python code to position this camera: ##', c='y')
             printc('cam = dict(pos='          +utils.precision(cam.GetPosition(),3)+',', c='y')
             printc('           focalPoint='   +utils.precision(cam.GetFocalPoint(),3)+',', c='y')
             printc('           viewup='       +utils.precision(cam.GetViewUp(),3)+',', c='y')
@@ -2353,42 +2350,28 @@ class Plotter:
 
         elif key == "1":
             self.icol += 1
-            if self.clickedActor and hasattr(self.clickedActor, "GetProperty"):
+            if isinstance(self.clickedActor, vedo.Points):
                 self.clickedActor.GetMapper().ScalarVisibilityOff()
                 self.clickedActor.GetProperty().SetColor(vedo.colors.colors1[(self.icol) % 10])
-            else:
-                for i, ia in enumerate(self.getMeshes()):
-                    if not ia.GetPickable():
-                        continue
-                    ia.GetProperty().SetColor(vedo.colors.colors1[(i + self.icol) % 10])
-                    ia.GetMapper().ScalarVisibilityOff()
             addons.addLegend()
 
         elif key == "2":
             self.icol += 1
-            if self.clickedActor and hasattr(self.clickedActor, "GetProperty"):
+            if isinstance(self.clickedActor, vedo.Points):
                 self.clickedActor.GetMapper().ScalarVisibilityOff()
                 self.clickedActor.GetProperty().SetColor(vedo.colors.colors2[(self.icol) % 10])
-            else:
-                for i, ia in enumerate(self.getMeshes()):
-                    if not ia.GetPickable():
-                        continue
-                    ia.GetProperty().SetColor(vedo.colors.colors2[(i + self.icol) % 10])
-                    ia.GetMapper().ScalarVisibilityOff()
             addons.addLegend()
 
         elif key == "3":
-            c = getColor("gold")
-            acs = self.getMeshes()
-            if len(acs) == 0: return
-            alpha = 1.0 / len(acs)
-            for ia in acs:
-                if not ia.GetPickable():
-                    continue
-                ia.GetProperty().SetColor(c)
-                ia.GetProperty().SetOpacity(alpha)
-                ia.GetMapper().ScalarVisibilityOff()
-            addons.addLegend()
+            if isinstance(self.clickedActor, vedo.Mesh):
+                if self.clickedActor._current_texture_name in settings.textures:
+                    i = settings.textures.index(self.clickedActor._current_texture_name)
+                    i = (i+1) % len(settings.textures)
+                    self.clickedActor.texture(settings.textures[i])
+                    self.clickedActor._current_texture_name = settings.textures[i]
+                elif not self.clickedActor._current_texture_name:
+                    self.clickedActor.texture(settings.textures[0])
+                    self.clickedActor._current_texture_name = settings.textures[0]
 
         elif key == "4":
             for ia in self.getMeshes():
@@ -2496,7 +2479,7 @@ class Plotter:
                 self.interactor.Render()
 
         if key == "O":
-            settings.plotter_instance.renderer.RemoveLight(self.extralight)
+            self.renderer.RemoveLight(self.extralight)
             self.extralight = None
 
         elif key == "o":
@@ -2505,7 +2488,8 @@ class Plotter:
             if not self.extralight:
                 vup = self.renderer.GetActiveCamera().GetViewUp()
                 pos = cm + utils.vector(vup)*utils.mag(sizes)
-                self.extralight = addons.addLight(pos, focalPoint=cm)
+                self.extralight = addons.Light(pos, focalPoint=cm)
+                self.renderer.AddLight(self.extralight)
                 print("Press again o to rotate light source, or O to remove it.")
             else:
                 cpos = utils.vector(self.extralight.GetPosition())
@@ -2632,15 +2616,11 @@ class Plotter:
 
         elif key == "I":  # print color under the mouse
             x, y = iren.GetEventPosition()
-            w2if = vtk.vtkWindowToImageFilter()
-            w2if.SetInput(self.window)
-            w2if.ReadFrontBufferOff()
-            w2if.Update()
-            nx, ny = self.window.GetSize()
-            arr = vtk_to_numpy(w2if.GetOutput().GetPointData().GetScalars()).reshape(ny,nx,3)
-            printc('Pixel =', [x,y], ' RGB =', arr[y,x].tolist(), end='')
-            cnm = getColorName(arr[y,x])
+            rgb = vedo.colors.colorPicker([x,y], self)
+            printc('Pixel', [x,y], ' has RGB =', rgb.tolist(), end='')
+            cnm = getColorName(rgb)
             printc(' ('+cnm+')', c=cnm)
+
 
         if iren:
             iren.Render()

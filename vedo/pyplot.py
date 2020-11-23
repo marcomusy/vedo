@@ -485,8 +485,6 @@ def _plotxy(
     pad=0.05,
     axes={},
 ):
-    # ncolls = len(settings.collectable_actors)
-
     line=False
     if lw>0:
         line=True
@@ -695,7 +693,7 @@ def _plotxy(
         axes["yrange"] = (y0lim, y1lim)
         axes["zrange"] = (0, 0)
         axes["c"] = "k"
-        axs = addons.buildAxes(**axes)
+        axs = addons.Axes(**axes)
         axs.name = "axes"
         asse = Plot(acts, axs)
         asse.axes = axs
@@ -722,9 +720,6 @@ def _plotxy(
     asse._y1lim = y1lim
     asse.zmax = offs * 3  # z-order
     asse.name = "plotxy"
-
-    # settings.collectable_actors = settings.collectable_actors[:ncolls]
-    # settings.collectable_actors.append(asse)
     return asse
 
 
@@ -849,7 +844,7 @@ def _plotFxy(
         acts.append(nansact)
 
     if axes:
-        axs = addons.buildAxes(mesh)
+        axs = addons.Axes(mesh)
         acts.append(axs)
     asse = Assembly(acts)
     asse.name = "plotFxy"
@@ -912,7 +907,7 @@ def _plotFz(
 
     acts = [mesh]
     if axes:
-        axs = addons.buildAxes(mesh, ztitle="Real part")
+        axs = addons.Axes(mesh, ztitle="Real part")
         acts.append(axs)
     asse = Assembly(acts)
     asse.name = "plotFz"
@@ -1111,8 +1106,8 @@ def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=
     asse.name = "plotSpheric"
     return asse
 
-#########################################################################################
 
+#########################################################################################
 def _histogram1D(
     data,
     format=None,
@@ -1142,8 +1137,6 @@ def _histogram1D(
     axes={},
     bc="k",
 ):
-    # ncolls = len(settings.collectable_actors)
-
     # purge NaN from data
     validIds = np.all(np.logical_not(np.isnan(data)))
     data = data[validIds]
@@ -1345,7 +1338,7 @@ def _histogram1D(
         axes["yrange"] = (y0lim, y1lim)
         axes["zrange"] = (0, 0)
         axes["c"] = bc
-        axs = addons.buildAxes(**axes)
+        axs = addons.Axes(**axes)
         axs.name = "axes"
         asse = Plot(rs, axs)
         asse.axes = axs
@@ -1371,9 +1364,6 @@ def _histogram1D(
     asse.bins = edges
     asse.freqs = fs
     asse.name = "histogram1D"
-
-    # settings.collectable_actors = settings.collectable_actors[:ncolls]
-    # settings.collectable_actors.append(asse)
     return asse
 
 
@@ -1399,7 +1389,6 @@ def _histogram2D(
     axes=True,
     bc="k",
 ):
-    # ncolls = len(settings.collectable_actors)
     offs = 0  # z offset
 
     if format is not None:  # reset to allow meaningful overlap
@@ -1496,7 +1485,7 @@ def _histogram2D(
         axes["yrange"] = (y0lim, y1lim)
         axes["zrange"] = (0, 0)
         axes["c"] = bc
-        axs = addons.buildAxes(**axes)
+        axs = addons.Axes(**axes)
         axs.name = "axes"
         asse = Plot(acts, axs)
         asse.axes = axs
@@ -1521,9 +1510,6 @@ def _histogram2D(
     asse.bins = (xedges, yedges)
     asse.zmax = offs * 3  # z-order
     asse.name = "histogram2D"
-
-    # settings.collectable_actors = settings.collectable_actors[:ncolls]
-    # settings.collectable_actors.append(asse)
     return asse
 
 
@@ -1989,7 +1975,7 @@ def violin(
     lw=3,
 ):
     """
-    Violin histogram.
+    Violin style histogram.
 
     :param int bins: number of bins
     :param list vlim: input value limits. Crop values outside range.
@@ -2003,8 +1989,6 @@ def violin(
 
     |histo_violin| |histo_violin.py|_
     """
-    # ncolls = len(settings.collectable_actors)
-
     fs, edges = np.histogram(values, bins=bins, range=vlim)
     mine, maxe = np.min(edges), np.max(edges)
     fs = fs.astype(float) / len(values) * width
@@ -2064,8 +2048,6 @@ def violin(
     asse.base = np.array([0, 0, 0])
     asse.top = np.array([0, 1, 0])
     asse.name = "violin"
-    # settings.collectable_actors = settings.collectable_actors[:ncolls]
-    # settings.collectable_actors.append(asse)
     return asse
 
 
@@ -2114,7 +2096,7 @@ def whisker(data,
     l1 = shapes.Line([0,dq05,0], [0,dq25,0], c=c, lw=lw)
     l2 = shapes.Line([0,dq75,0], [0,dq95,0], c=c, lw=lw)
     lm = shapes.Line([-s/2, dmean], [s/2, dmean])
-    lns = merge(l1,l2,lm,rl)
+    lns = merge(l1, l2, lm, rl)
     asse = Assembly([lns, rec, pts])
     if horizontal:
         asse.rotateZ(-90)

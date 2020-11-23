@@ -26,13 +26,21 @@ with no other dependencies.
 ## 💾  Installation
 ```bash
 pip install vedo
-
-# To get the latest dev version use instead:
-pip install -U git+https://github.com/marcomusy/vedo.git
-
-# Or from the conda-forge channel:
-conda install -c conda-forge vedo
 ```
+
+<details>
+<summary>additional installation details <i>(click to expand)</i> </summary>
+
+- As some of the features work better and faster on the older VTK version 8 you can install it via:<br>
+`pip install vtk==8.1.2`
+
+- To get the latest _dev_ version of `vedo` use instead: <br>
+`pip install -U git+https://github.com/marcomusy/vedo.git`
+
+- Or install it from the conda-forge channel via: <br>
+`conda install -c conda-forge vedo`
+
+</details>
 
 ---------------------------------------------------------------------
 
@@ -62,7 +70,7 @@ The `vedo` library includes a [large set of working examples](https://github.com
 for a wide range of functionalities:
 
 <details>
-<summary>working with polygonal meshes and point clouds (click to expand)</summary>
+<summary>working with polygonal meshes and point clouds <i>(click to expand)</i> </summary>
 <i>
 
 - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, Dolfin-XML, Neutral, GMSH, OFF, PCD (PointCloud),
@@ -168,9 +176,9 @@ Type `vedo -h` for the complete list of options.<br>
 
 |         |         |         |
 |:--------|:--------|:--------|
-| [![airplanes](https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplanes.py) | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)| [![quatumsine](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/tunnelling2.py) |
-| *Create a simple 3D animation in exactly 10 lines of code.*          | *Turing system of reaction-diffusion between two molecules.*                                                                   |  *Quantum-tunnelling of a particle in a box hitting a sinusoidal potential.*  |
-| [![trimesh](https://user-images.githubusercontent.com/32848391/91164151-e8b44080-e6ce-11ea-8213-cf5b12aa4d16.png)](https://github.com/marcomusy/vedo/blob/master/examples/other/trimesh)              | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)| [![whisker](https://user-images.githubusercontent.com/32848391/95772479-170cd000-0cbd-11eb-98c4-20c5ca342cb8.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/whiskers.py) |
+| [![cubecut](https://user-images.githubusercontent.com/32848391/99916179-e763d580-2d08-11eb-9044-b647115167ed.jpg)](https://github.com/marcomusy/vedo/tree/master/examples/advanced/cutWithMesh2.py)   | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)| [![quatumsine](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/tunnelling2.py) |
+| *Work with volumes and polygonal meshes.*                            | *Turing system of reaction-diffusion between two molecules.*                                                                   |  *Quantum-tunnelling of a particle in a box hitting a sinusoidal potential.*  |
+| [![trimesh](https://user-images.githubusercontent.com/32848391/91164151-e8b44080-e6ce-11ea-8213-cf5b12aa4d16.png)](https://github.com/marcomusy/vedo/blob/master/examples/other/trimesh)              | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)| [![whisker](https://user-images.githubusercontent.com/32848391/99916183-e8950280-2d08-11eb-8070-8bb1146c7c62.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/whiskers.py) |
 | *Interoperability with the [trimesh](https://trimsh.org/) library.*  |  *Support for the [FEniCS/Dolfin](https://fenicsproject.org/) library for PDE and finite element solutions.*                   | *Advanced 2D histogramming and plotting capablities.* |
 
 
@@ -182,6 +190,7 @@ Run any of the _built-in_ examples from command line by typing:
 |     |     |     |     |
 |:---:|:---:|:---:|:---:|
 | [![covid](https://user-images.githubusercontent.com/32848391/77330206-4824b380-6d1f-11ea-9bc3-e3aef970dcc2.gif)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/covid19.py) <br>`covid19`                           | [![caption](https://user-images.githubusercontent.com/32848391/90437536-dc2e5780-e0d2-11ea-8951-f905ffb54f54.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/caption.py) <br>`caption`                                 | [![fonts3d](https://user-images.githubusercontent.com/32848391/90437540-dd5f8480-e0d2-11ea-8ddc-8839688979d0.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/fonts3d.py) <br>`font`                        | [![fonts](https://user-images.githubusercontent.com/32848391/90966829-9bba4980-e4d7-11ea-9ec8-23bac4b7448e.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/fonts3d.py) <br>`fonts` |
+| [![airplanes](https://user-images.githubusercontent.com/32848391/57341963-b8910900-713c-11e9-898a-84b6d3712bce.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/airplanes.py)  <br>`airplanes`             | [![scatter3](https://user-images.githubusercontent.com/32848391/99916178-e632a880-2d08-11eb-80e6-fe99f72fe913.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/scatter3.py)  <br>`scatter3`                             | [![fonts3d](https://user-images.githubusercontent.com/32848391/99916180-e763d580-2d08-11eb-85a0-2d87c2661466.png)](https://github.com/marcomusy/vedo/tree/master/examples/basic/lights.py) <br>`lights`                        | [![dens4d](https://user-images.githubusercontent.com/32848391/99916182-e7fc6c00-2d08-11eb-9097-9993f04ead00.gif)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_density4d.py)  <br>`density4d` |
 | [![wave_eq](https://user-images.githubusercontent.com/32848391/39360796-ea5f9ef0-4a1f-11e8-85cb-f3e21072c7d5.gif)](https://github.com/marcomusy/vedo/blob/master/examples/simulations/wave_equation.py) <br>`wave_equation`        | [![doubleslit](https://user-images.githubusercontent.com/32848391/96374703-86c70300-1174-11eb-9bfb-431a1ae5346d.png)](https://github.com/marcomusy/vedo/blob/master/examples/simulations/doubleslit.py) <br>`doubleslit`                   | [![tun1](https://user-images.githubusercontent.com/32848391/96375030-e0c8c800-1176-11eb-8fde-83a65de41330.gif)](https://github.com/marcomusy/vedo/blob/master/examples/simulations/tunnelling1.py)<br>`tunnelling1`            | [![image](https://user-images.githubusercontent.com/32848391/96374887-dc4fdf80-1175-11eb-860a-e719558e7ed7.png)](https://github.com/marcomusy/vedo/blob/master/examples/advanced/thinplate_morphing_2d.py) <br>`morphing_2d`   |
 | [![rabbits](https://user-images.githubusercontent.com/32848391/50738808-5816ad00-11d8-11e9-9854-c952be6fb941.jpg)](https://github.com/marcomusy/vedo/tree/master/examples/advanced/moving_least_squares2D.py) <br>`least_squares2d`| [![lut](https://user-images.githubusercontent.com/32848391/95255899-5c934e00-0822-11eb-9b07-fc3f31e2b6da.png)](https://github.com/marcomusy/vedo/tree/master/examples/basic/mesh_lut.py) <br> `mesh_lut`                                   | [![psimu](https://user-images.githubusercontent.com/32848391/50738891-db380300-11d8-11e9-84c2-0f55be7228f1.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/particle_simulator.py) <br>`particle_simulator` | [![gyro](https://user-images.githubusercontent.com/32848391/39766016-85c1c1d6-52e3-11e8-8575-d167b7ce5217.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/gyroscope1.py) <br> `gyroscope1`    |
 | [![customaxes](https://user-images.githubusercontent.com/32848391/90966973-0750e680-e4d9-11ea-8e56-d75a1ad523dd.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/customAxes.py) <br>`customaxes`                | [![intersect](https://user-images.githubusercontent.com/32848391/90437548-de90b180-e0d2-11ea-8e0c-d821db4da8a9.png)](https://github.com/marcomusy/vedo/tree/master/examples/advanced/intersect2d.py) <br>`intersect2d`                     | [![goniom](https://user-images.githubusercontent.com/32848391/90437544-dd5f8480-e0d2-11ea-8321-b52d073444c4.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/goniometer.py) <br>`goniometer`                | [![](https://user-images.githubusercontent.com/32848391/82767103-2500a800-9e25-11ea-8506-e583e8ec4b01.jpg)](https://github.com/marcomusy/vedo/tree/master/examples/tetmesh/tet_threshold.py) <br>`tet_threshold`     |
@@ -198,21 +207,13 @@ Run any of the _built-in_ examples from command line by typing:
 | [![shadow](https://user-images.githubusercontent.com/32848391/57312574-1d714280-70ee-11e9-8741-04fc5386d692.png)](https://github.com/marcomusy/vedo/tree/master/examples/basic/shadow.py) <br>`shadow`                             | [![multiple_pendulum](https://user-images.githubusercontent.com/32848391/50738892-db380300-11d8-11e9-807c-fb320c7b7917.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/multiple_pendulum.py ) <br>`multiple_pend` | [![](https://user-images.githubusercontent.com/32848391/59095175-1ec5a300-8918-11e9-8bc0-fd35c8981e2b.jpg)](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/interpolateVolume.py) <br>`interpolateVolume`    | [![histo_polar](https://user-images.githubusercontent.com/32848391/64912717-5754f400-d733-11e9-8a1f-612165955f23.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_polar.py)  <br>`histo_polar`  |
 | [![streamplot](https://user-images.githubusercontent.com/32848391/73614123-93162a80-45fc-11ea-969b-9a3293b26f35.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot7_stream.py) <br>`plot7_stream`            | [![violin](https://user-images.githubusercontent.com/32848391/73481240-b55d3d80-439b-11ea-89a4-6c35ecc84b0d.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_violin.py) <br>`histo_violin`                        | [![plot3_pip](https://user-images.githubusercontent.com/32848391/73393632-4ff64780-42dc-11ea-8798-45a81c067f45.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot3_pip.py) <br>`plot3_pip`               | [![histo_spheric](https://user-images.githubusercontent.com/32848391/73392901-fccfc500-42da-11ea-828a-9bad6982a823.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_spheric.py)  <br>`histo_spheric`  |
 | [![readvts](https://user-images.githubusercontent.com/32848391/80862655-04568f80-8c77-11ea-8249-5b61283e04ce.png)](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/read_vts.py) <br>`read_vts`                   | [![donutPlot](https://user-images.githubusercontent.com/32848391/64998178-6f6b7580-d8e3-11e9-9bd8-8dfb9ccd90e4.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/donut.py) <br>`donut`                                   | [![extrude](https://user-images.githubusercontent.com/32848391/65963682-971e1a00-e45b-11e9-9f29-05522ae4a800.png)](https://github.com/marcomusy/vedo/tree/master/examples/basic/extrude.py) <br>`extrude`                      | [![plotxy](https://user-images.githubusercontent.com/32848391/96375341-cb549d80-1178-11eb-868f-3e7d55d989ff.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot1_errbars.py) <br>`plot1_errbars`   |
-| [![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif)](https://github.com/marcomusy/vedo/tree/master/examples)                                                         | [![viz_raycast](https://user-images.githubusercontent.com/32848391/58336919-f7b1a080-7e44-11e9-9106-f574371093a8.gif)](https://github.com/marcomusy/vedo/tree/master/examples)                                                             | [![viz_slicer](https://user-images.githubusercontent.com/32848391/80866479-3bd13600-8c8f-11ea-83c7-5f5b4fccb29d.png)](https://github.com/marcomusy/vedo/tree/master/examples/)                                                 | [![lego](https://user-images.githubusercontent.com/32848391/59788744-aaeaa980-92cc-11e9-825d-58da26ca21ff.gif)](https://github.com/marcomusy/vedo/tree/master/examples/)                                               |
-| [![elastodyn](https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin/elastodynamics.py) <br> `elastodynamics` | [![heatconv](https://user-images.githubusercontent.com/32848391/57455107-b200af80-726a-11e9-897d-9c7bcb9854ac.gif)](https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin/heatconv.py) <br>`heatconv`                        | [![stokes](https://user-images.githubusercontent.com/32848391/73683666-f36f9f80-46c2-11ea-9dca-2b559d2f458d.png)](https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin/stokes.py) <br>`stokes`                  | [![lshape](https://user-images.githubusercontent.com/32848391/56671156-6bc91f00-66b4-11e9-8c58-e6b71e2ad1d0.gif)](https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin/stokes_lshape.py) <br>`stokes_lshape`|
+| [![isohead](https://user-images.githubusercontent.com/32848391/56972083-a7f3f800-6b6a-11e9-9cb3-1047b69dcad2.gif)](https://github.com/marcomusy/vedo/tree/master/examples/volumetric/app_isobrowser.py) <br>`app_isobrowser`       | [![viz_raycast](https://user-images.githubusercontent.com/32848391/58336107-5a09a180-7e43-11e9-8c4e-b50e4e95ae71.gif)](https://github.com/marcomusy/vedo/tree/master/examplesvolumetric/app_raycaster.py) <br>`app_raycaster`              | [![viz_slicer](https://user-images.githubusercontent.com/32848391/80866479-3bd13600-8c8f-11ea-83c7-5f5b4fccb29d.png)](https://github.com/marcomusy/vedo/tree/master/examples/)                                                 | [![lego](https://user-images.githubusercontent.com/32848391/59788744-aaeaa980-92cc-11e9-825d-58da26ca21ff.gif)](https://github.com/marcomusy/vedo/tree/master/examples/)                                               |
+| [![elastodyn](https://user-images.githubusercontent.com/32848391/54932788-bd4a8680-4f1b-11e9-9326-33645171a45e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin/elastodynamics.py) <br> `elastodynamics`  | [![heatconv](https://user-images.githubusercontent.com/32848391/57455107-b200af80-726a-11e9-897d-9c7bcb9854ac.gif)](https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin/heatconv.py) <br>`heatconv`                        | [![stokes](https://user-images.githubusercontent.com/32848391/73683666-f36f9f80-46c2-11ea-9dca-2b559d2f458d.png)](https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin/stokes.py) <br>`stokes`                  | [![lshape](https://user-images.githubusercontent.com/32848391/56671156-6bc91f00-66b4-11e9-8c58-e6b71e2ad1d0.gif)](https://github.com/marcomusy/vedo/tree/master/examples/other/dolfin/stokes_lshape.py) <br>`stokes_lshape`|
 
 <br>
 
 
 ## 📜  References
-
-**Presentations at interantional conferences:**
-
-- M. Musy, G. Dalmasso, J. Sharpe and N. Sime, "`vedo`*: plotting in FEniCS with python*", ([link](https://github.com/marcomusy/vedo/blob/master/docs/fenics_poster.pdf)).
-Poster at the [FEniCS'2019](https://fenicsproject.org/fenics19/) Conference,
-Carnegie Institution for Science Department of Terrestrial Magnetism, Washington DC, June 2019.
-- G. Dalmasso, *"Evolution in space and time of 3D volumetric images"*. Talk at the Conference for [Image-based Modeling and Simulation of Morphogenesis](https://www.pks.mpg.de/imsm19/).
-Max Planck Institute for the Physics of Complex Systems, Dresden, Germany, March 2019.
 
 **Scientific publications leveraging `vedo` (formerly known as `vtkplotter`):**
 
@@ -225,6 +226,17 @@ Development, 5 April 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/c
 - G. Dalmasso *et al.*, *"Evolution in space and time of 3D volumetric images"*, in preparation.
 - F. Claudi, A. L. Tyson, T. Branco, *"Brainrender. A python based software for visualisation of neuroanatomical and morphological data."*
 bioRxiv 2020.02.23.961748; doi: https://doi.org/10.1101/2020.02.23.961748
+
+
+**Presentations at international conferences:**
+
+- M. Musy, G. Dalmasso, J. Sharpe and N. Sime, "`vedo`*: plotting in FEniCS with python*",
+[Poster](https://github.com/marcomusy/vedo/blob/master/docs/fenics_poster.pdf) at the [FEniCS'2019](https://fenicsproject.org/fenics19/) Conference,
+SDTM, Washington DC, June 2019.
+- G. Dalmasso, *"Evolution in space and time of 3D volumetric images"*. Talk at [Image-based Modeling and Simulation of Morphogenesis](https://www.pks.mpg.de/imsm19/).
+Max Planck Institute for the Physics of Complex Systems, Dresden, Germany, March 2019.
+- G. Dalmasso, *"A four-dimensional growing mouse limb bud reconstruction"*. Talk at [SEBD](https://sebd.es/meeting-sebd-2020), Spain, November 2020.
+
 
 **Have you found this software useful for your research? Star ✨ the project and cite it as:**
 

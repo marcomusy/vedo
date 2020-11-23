@@ -433,6 +433,16 @@ def IsosurfaceBrowser(volume, c=None, alpha=1, lego=False, cmap='hot', pos=None)
     """
     Generate a ``Plotter`` window for Volume isosurfacing using a slider.
     Returns the ``Plotter`` object.
+
+    :Example:
+        .. code-block:: python
+
+            from vedo import datadir, Volume
+            from vedo.applications import IsosurfaceBrowser
+
+            vol = Volume(datadir+'head.vti')
+            plt = IsosurfaceBrowser(vol, c='gold')
+            plt.show(axes=7, bg2='lb')
     """
     vp = settings.plotter_instance
     if not vp:

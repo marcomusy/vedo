@@ -40,7 +40,7 @@ def onLeftClick(mesh):
                    pos='bottom-left', c=ishape.color(), bg='k', font='Calco')
     instt = Text2D(instr, pos='bottom-right', c='dg', bg='g', font='Quikhand')
 
-    axes = addons.buildAxes(ishape, yzGrid=False)
+    axes = ishape.buildAxes(yzGrid=False)
     acts = [ishape, axes, sname, sprop, instt]
 
     plt1.backgroundColor('silver')

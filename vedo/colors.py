@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 import vtk
+from vtk.util.numpy_support import vtk_to_numpy
 import numpy as np
 import sys, os, time
 import vedo.docs as docs
@@ -854,3 +855,27 @@ def ask(*question, **kwarg):
     printc(*question, **kwarg)
     resp = input()
     return resp
+
+def colorPicker(xy, plt=None):
+    """Pick color of specific (x,y) pixel on the screen."""
+    w2if = vtk.vtkWindowToImageFilter()
+    if plt is None:
+        plt = settings.plotter_instance
+    w2if.SetInput(plt.window)
+    w2if.ReadFrontBufferOff()
+    w2if.Update()
+    nx, ny = plt.window.GetSize()
+    varr = w2if.GetOutput().GetPointData().GetScalars()
+    arr = vtk_to_numpy(varr).reshape(ny,nx,3)
+    return arr[int(xy[1]),int(xy[0])]
+
+
+
+
+
+
+
+
+
+
+

@@ -22,7 +22,6 @@ Create additional objects like axes, legends, lights, etc..
 )
 
 __all__ = [
-            "addLight",
             "addScalarBar",
             "addScalarBar3D",
             "addSlider2D",
@@ -31,10 +30,12 @@ __all__ = [
             "addCutterTool",
             "addIcon",
             "addLegend",
+            "Light",
+            "Axes",
             "buildAxes",
+            "Ruler",
             "buildRulerAxes",
             "Goniometer",
-            "Ruler",
         ]
 
 
@@ -316,47 +317,53 @@ class Button:
 
 
 #####################################################################
-def addLight(
-    pos,
-    focalPoint=(0, 0, 0),
-    deg=180,
-    c='white',
-    intensity=0.4,
-    removeOthers=False,
-    showsource=False,
-):
+def Light(
+            pos,
+            focalPoint=(0, 0, 0),
+            angle=180,
+            c='white',
+            intensity=1,
+            removeOthers=False,
+    ):
     """
     Generate a source of light placed at pos, directed to focal point.
     Returns a ``vtkLight`` object.
 
-    :param focalPoint: focal point, if this is a ``vtkActor`` use its position.
-    :type fp: vtkActor, list
-    :param deg: aperture angle of the light source
-    :param c: set light color
-    :param float intensity: intensity between 0 and 1.
+    :param focalPoint: focal point, if this is a vedo object use its position.
+    :param angle: aperture angle of the light source
+    :param c: set the light color
+    :param float intensity: intensity value between 0 and 1.
     :param bool removeOthers: remove all other lights in the scene
-    :param bool showsource: if `True`, will show a representation
-                            of the source of light as an extra Mesh
+        (in this case a Plotter object must already exist)
 
     .. hint:: |lights.py|_
     """
-    if isinstance(focalPoint, vtk.vtkActor):
-        focalPoint = focalPoint.GetPosition()
+    if isinstance(pos, vedo.Base3DProp):
+        pos = pos.pos()
+    if isinstance(focalPoint, vedo.Base3DProp):
+        focalPoint = focalPoint.pos()
     light = vtk.vtkLight()
     light.SetLightTypeToSceneLight()
     light.SetPosition(pos)
-    light.SetPositional(True)
-    light.SetConeAngle(deg)
+    light.SetConeAngle(angle)
     light.SetFocalPoint(focalPoint)
     light.SetIntensity(intensity)
     light.SetColor(getColor(c))
-    if showsource:
-        lightActor = vtk.vtkLightActor()
-        lightActor.SetLight(light)
-        settings.plotter_instance.renderer.AddViewProp(lightActor)
+
+    # light.SetPositional(1) ##??
+    # if ambientColor is not None: # doesnt work anyway
+    #     light.SetAmbientColor(getColor(ambientColor))
+    # if diffuseColor is not None:
+    #     light.SetDiffuseColor(getColor(diffuseColor))
+    # if specularColor is not None:
+    #     light.SetSpecularColor(getColor(specularColor))
+
     if removeOthers:
-        settings.plotter_instance.renderer.RemoveAllLights()
-    settings.plotter_instance.renderer.AddLight(light)
+        if settings.plotter_instance and settings.plotter_instance.renderer:
+            settings.plotter_instance.renderer.RemoveAllLights()
+        else:
+            printc("Warning in Light(removeOthers=True): scene does not exist.", c='r')
+
     return light
 
 
@@ -364,15 +371,21 @@ def addLight(
 def addScalarBar(obj,
                  pos=(0.8,0.05),
                  title="",
-                 titleXOffset=0,
                  titleYOffset=15,
                  titleFontSize=12,
+                 size=(None,None),
                  nlabels=None,
                  c=None,
                  horizontal=False,
                  useAlpha=True,
                  ):
     """Add a 2D scalar bar for the specified obj.
+
+        :param list pos: fractional x and y position in the 2D window
+        :param list size: size of the scalarbar in pixel units (width, heigth)
+        :param int nlabels: number of numeric labels to be shown
+        :param bool useAlpha: retain trasparency in scalarbar
+        :param bool horizontal: show in horizontal layout
 
     .. hint:: |mesh_coloring| |mesh_coloring.py|_ |scalarbars.py|_
     """
@@ -462,6 +475,9 @@ def addScalarBar(obj,
         sb.SetPosition(pos[0]+0.09, pos[1])
         sb.SetMaximumWidthInPixels(60)
         sb.SetMaximumHeightInPixels(250)
+
+    if size[0] is not None: sb.SetMaximumWidthInPixels(size[0])
+    if size[1] is not None: sb.SetMaximumHeightInPixels(size[1])
 
     if nlabels is not None:
         sb.SetNumberOfLabels(nlabels)
@@ -1182,62 +1198,68 @@ def buildRulerAxes(
 
 
 #####################################################################
-def buildAxes(obj=None,
-              xtitle=None, ytitle=None, ztitle=None,
-              xrange=None, yrange=None, zrange=None,
-              c=None,
-              numberOfDivisions=None,
-              digits=None,
-              limitRatio=0.04,
-              axesLineWidth=1,
-              gridLineWidth=1,
-              reorientShortTitle=True,
-              htitle="",
-              hTitleSize=0.03,
-              hTitleFont=None,
-              hTitleItalic=True,
-              hTitleColor=None,
-              hTitleJustify='bottom-center',
-              hTitleHorizontalOffset=0,
-              hTitleVerticalOffset=0.01,
-              hTitleZOffset=0,
-              titleDepth=0,
-              titleFont="", # grab settings.defaultFont
-              textScale=1.0,
-              xTitlePosition=0.95, yTitlePosition=0.95, zTitlePosition=0.95,
-              xTitleOffset=0.02,   yTitleOffset=0.025,   zTitleOffset=0.02,
-              xTitleJustify="top-right", yTitleJustify="bottom-right", zTitleJustify="bottom-right",
-              xTitleRotation=0, yTitleRotation=0, zTitleRotation=0,
-              xTitleBox=False,  yTitleBox=False,
-              xTitleSize=0.025, yTitleSize=0.025, zTitleSize=0.025,
-              xTitleColor=None, yTitleColor=None, zTitleColor=None,
-              xTitleBackfaceColor=None, yTitleBackfaceColor=None, zTitleBackfaceColor=None,
-              xTitleItalic=0, yTitleItalic=0, zTitleItalic=0,
-              xyGrid=True, yzGrid=True, zxGrid=False,
-              xyGrid2=False, yzGrid2=False, zxGrid2=False,
-              xyGridTransparent=False, yzGridTransparent=False, zxGridTransparent=False,
-              xyGrid2Transparent=False, yzGrid2Transparent=False, zxGrid2Transparent=False,
-              xyPlaneColor=None, yzPlaneColor=None, zxPlaneColor=None,
-              xyGridColor=None, yzGridColor=None, zxGridColor=None,
-              xyAlpha=0.05, yzAlpha=0.05, zxAlpha=0.05,
-              xyFrameLine=None, yzFrameLine=None, zxFrameLine=None,
-              xLineColor=None, yLineColor=None, zLineColor=None,
-              xHighlightZero=False, yHighlightZero=False, zHighlightZero=False,
-              xHighlightZeroColor='r', yHighlightZeroColor='g', zHighlightZeroColor='b',
-              showTicks=True,
-              xTickLength=0.015, yTickLength=0.015, zTickLength=0.015,
-              xTickThickness=0.0025, yTickThickness=0.0025, zTickThickness=0.0025,
-              xMinorTicks=1, yMinorTicks=1, zMinorTicks=1,
-              tipSize=None,
-              labelFont="", # grab settings.defaultFont
-              xLabelColor=None, yLabelColor=None, zLabelColor=None,
-              xLabelSize=0.016, yLabelSize=0.016, zLabelSize=0.016,
-              xLabelOffset=0.015, yLabelOffset=0.015, zLabelOffset=0.010,
-              xLabelRotation=0, yLabelRotation=None, zLabelRotation=None,
-              xFlipText=False, yFlipText=False, zFlipText=False,
-              xValuesAndLabels=None, yValuesAndLabels=None, zValuesAndLabels=None,
-              useGlobal=False,
-              tol=0.0001,
+def buildAxes(*args, **kwargs):
+    """Deprecated. Use Axes() instead."""
+    printc("WARNING: deprecated buildAxes(), use Axes() instead.", c='r')
+    return Axes(*args, **kwargs)
+
+def Axes(
+        obj=None,
+        xtitle=None, ytitle=None, ztitle=None,
+        xrange=None, yrange=None, zrange=None,
+        c=None,
+        numberOfDivisions=None,
+        digits=None,
+        limitRatio=0.04,
+        axesLineWidth=1,
+        gridLineWidth=1,
+        reorientShortTitle=True,
+        htitle="",
+        hTitleSize=0.03,
+        hTitleFont=None,
+        hTitleItalic=True,
+        hTitleColor=None,
+        hTitleJustify='bottom-center',
+        hTitleHorizontalOffset=0,
+        hTitleVerticalOffset=0.01,
+        hTitleZOffset=0,
+        titleDepth=0,
+        titleFont="", # grab settings.defaultFont
+        textScale=1.0,
+        xTitlePosition=0.95, yTitlePosition=0.95, zTitlePosition=0.95,
+        xTitleOffset=0.02,   yTitleOffset=0.025,   zTitleOffset=0.02,
+        xTitleJustify="top-right", yTitleJustify="bottom-right", zTitleJustify="bottom-right",
+        xTitleRotation=0, yTitleRotation=0, zTitleRotation=0,
+        xTitleBox=False,  yTitleBox=False,
+        xTitleSize=0.025, yTitleSize=0.025, zTitleSize=0.025,
+        xTitleColor=None, yTitleColor=None, zTitleColor=None,
+        xTitleBackfaceColor=None, yTitleBackfaceColor=None, zTitleBackfaceColor=None,
+        xTitleItalic=0, yTitleItalic=0, zTitleItalic=0,
+        xyGrid=True, yzGrid=True, zxGrid=False,
+        xyGrid2=False, yzGrid2=False, zxGrid2=False,
+        xyGridTransparent=False, yzGridTransparent=False, zxGridTransparent=False,
+        xyGrid2Transparent=False, yzGrid2Transparent=False, zxGrid2Transparent=False,
+        xyPlaneColor=None, yzPlaneColor=None, zxPlaneColor=None,
+        xyGridColor=None, yzGridColor=None, zxGridColor=None,
+        xyAlpha=0.05, yzAlpha=0.05, zxAlpha=0.05,
+        xyFrameLine=None, yzFrameLine=None, zxFrameLine=None,
+        xLineColor=None, yLineColor=None, zLineColor=None,
+        xHighlightZero=False, yHighlightZero=False, zHighlightZero=False,
+        xHighlightZeroColor='r', yHighlightZeroColor='g', zHighlightZeroColor='b',
+        showTicks=True,
+        xTickLength=0.015, yTickLength=0.015, zTickLength=0.015,
+        xTickThickness=0.0025, yTickThickness=0.0025, zTickThickness=0.0025,
+        xMinorTicks=1, yMinorTicks=1, zMinorTicks=1,
+        tipSize=None,
+        labelFont="", # grab settings.defaultFont
+        xLabelColor=None, yLabelColor=None, zLabelColor=None,
+        xLabelSize=0.016, yLabelSize=0.016, zLabelSize=0.016,
+        xLabelOffset=0.015, yLabelOffset=0.015, zLabelOffset=0.010,
+        xLabelRotation=0, yLabelRotation=None, zLabelRotation=None,
+        xFlipText=False, yFlipText=False, zFlipText=False,
+        xValuesAndLabels=None, yValuesAndLabels=None, zValuesAndLabels=None,
+        useGlobal=False,
+        tol=0.0001,
     ):
     """
     Draw axes for the input object. Returns an ``Assembly`` object.
@@ -1304,12 +1326,16 @@ def buildAxes(obj=None,
 
             from vedo import Box, show
             b = Box(pos=(1,2,3), length=8, width=9, height=7).alpha(0)
-            bax = buildAxes(b, c='k')  # returns Assembly object
-            show(b, bax)
+            ax = Axes(b, c='k')  # returns Assembly object
+            show(b, ax)
 
     |customAxes| |customAxes.py|_
     """
     # ncolls = len(settings.collectable_actors)
+
+    if '9' in vtk.vtkVersion().GetVTKVersion():
+        # HACK to cope with weird VTK9 behavior
+        gridLineWidth += 1
 
     if not titleFont:
         titleFont = settings.defaultFont
@@ -1343,7 +1369,7 @@ def buildAxes(obj=None,
             if zrange is None:
                 zrange=(0,0)
             if xrange is None or yrange is None:
-                printc("ERROR in buildAxes(): no mesh given, so must specify ranges.", c='r')
+                printc("ERROR in Axes(): no mesh given, so must specify ranges.", c='r')
                 raise RuntimeError()
 
     if xrange is not None:
@@ -1987,9 +2013,9 @@ def addGlobalAxes(axtype=None, c=None):
 
         if isinstance(plt.axes, dict):
             plt.axes.update({'useGlobal':True})
-            asse = buildAxes(None, **plt.axes)
+            asse = Axes(None, **plt.axes)
         else:
-            asse = buildAxes(None, useGlobal=True)
+            asse = Axes(None, useGlobal=True)
 
         plt.renderer.AddActor(asse)
         plt.axes_instances[r] = asse
@@ -2302,7 +2328,8 @@ def addGlobalAxes(axtype=None, c=None):
     else:
         printc('\bomb Keyword axes type must be in range [0-13].', c='r')
         printc('''
-  \target Available axes types:
+  Available axes types are:
+
   0 = no axes,
   1 = draw three customizable gray grid walls
   2 = show cartesian axes from (0,0,0)

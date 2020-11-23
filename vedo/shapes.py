@@ -19,12 +19,14 @@ __all__ = [
     "Marker",
     "Line",
     "DashedLine",
+    "RoundedLine",
     "Tube",
     "Lines",
     "Spline",
     "KSpline",
     "CSpline",
     "Bezier",
+    "Brace",
     "NormalLines",
     "Ribbon",
     "Arrow",
@@ -535,6 +537,68 @@ class Line(Mesh):
         return distance
 
 
+    def sweep(self, direction=(1,0,0), res=1):
+        """
+        Sweep the Line along the specified vector direction.
+
+        Returns a Mesh surface.
+        Line position is updated to allow for additional sweepings.
+
+        :Example:
+            .. code-block:: python
+
+                from vedo import Line, show
+                aline = Line([(0,0,0),(1,3,0),(2,4,0)])
+                surf1 = aline.sweep((1,0.2,0), res=3)
+                surf2 = aline.sweep((0.2,0,1))
+                aline.color('r').lineWidth(4)
+                show(surf1, surf2, aline, axes=1)
+        """
+        line = self.polydata()
+        rows = line.GetNumberOfPoints()
+
+        spacing = 1 / res
+        surface = vtk.vtkPolyData()
+
+        res += 1
+        numberOfPoints = rows * res
+        numberOfPolys = (rows - 1) * (res - 1)
+        points = vtk.vtkPoints()
+        points.Allocate(numberOfPoints)
+
+        cnt = 0
+        x = [0.,0.,0.]
+        for row in range(rows):
+            for col in range(res):
+                p = [0.,0.,0.]
+                line.GetPoint(row, p)
+                x[0] = p[0] + direction[0] * col * spacing
+                x[1] = p[1] + direction[1] * col * spacing
+                x[2] = p[2] + direction[2] * col * spacing
+                points.InsertPoint(cnt, x)
+                cnt += 1
+
+        # Generate the quads
+        polys = vtk.vtkCellArray()
+        polys.Allocate(numberOfPolys*4)
+        pts = [0,0,0,0]
+        for row in range(rows-1):
+            for col in range(res-1):
+                pts[0] = col + row * res
+                pts[1] = pts[0] + 1
+                pts[2] = pts[0] + res + 1
+                pts[3] = pts[0] + res
+                polys.InsertNextCell(4, pts)
+        surface.SetPoints(points)
+        surface.SetPolys(polys)
+        asurface = vedo.Mesh(surface)
+        prop = vtk.vtkProperty()
+        prop.DeepCopy(self.GetProperty())
+        asurface.SetProperty(prop)
+        asurface.lighting('default')
+        self.points(self.points()+direction)
+        return asurface
+
 class DashedLine(Line):
     """
     Build a dashed line segment between points `p0` and `p1`.
@@ -632,6 +696,87 @@ class DashedLine(Line):
         else:
             self.top = listp[-1]
         self.name = "DashedLine"
+
+
+def RoundedLine(pts, lw, c='grey', alpha=1, res=10):
+    """
+    Create a 2D line of specified thickness (in absolute units) passing through
+    a list of input points. Borders of the line are rounded.
+
+    Parameters
+    ----------
+    pts : list
+        a list of points in 2D or 3D (z will be ignored).
+    lw : float
+        thickness of the line.
+    res : int, optional
+        resolution of the rounded regions. The default is 10.
+
+    :Example:
+        .. code-block:: python
+
+            from vedo import *
+            pts = [(-4,-3),(1,1),(2,4),(4,1),(3,-1),(2,-5),(9,-3)]
+            ln = Line(pts, c='r', lw=2).z(0.01)
+            rl = RoundedLine(pts, 0.6)
+            show(Points(pts), ln, rl, axes=1)
+    """
+    pts = np.asarray(pts)
+    if len(pts[0]) == 2: # make it 3d
+        pts = np.c_[pts, np.zeros(len(pts))]
+
+    def _getpts(pts, revd=False):
+
+        if revd:
+            pts = list(reversed(pts))
+
+        if len(pts)==2:
+            p0, p1 = pts
+            v = p1-p0
+            dv = np.linalg.norm(v)
+            nv = np.cross(v, (0,0,-1))
+            nv = nv/np.linalg.norm(nv)*lw
+            return [p0+nv, p1+nv]
+
+        ptsnew = []
+        for k in range(len(pts)-2):
+            p0 = pts[k]
+            p1 = pts[k+1]
+            p2 = pts[k+2]
+            v = p1-p0
+            u = p2-p1
+            du = np.linalg.norm(u)
+            dv = np.linalg.norm(v)
+            nv = np.cross(v, (0,0,-1))
+            nv = nv/np.linalg.norm(nv)*lw
+            nu = np.cross(u, (0,0,-1))
+            nu = nu/np.linalg.norm(nu)*lw
+            uv = np.cross(u,v)
+            if k==0:
+                ptsnew.append(p0+nv)
+            if uv[2]<=0:
+                alpha = np.arccos(np.dot(u,v)/du/dv)
+                db = lw*np.tan(alpha/2)
+                p1new = p1+nv -v/dv * db
+                ptsnew.append(p1new)
+            else:
+                p1a = p1+nv
+                p1b = p1+nu
+                for i in range(0,res+1):
+                    pab = p1a*(res-i)/res + p1b*i/res
+                    vpab = pab-p1
+                    vpab = vpab/np.linalg.norm(vpab)*lw
+                    ptsnew.append(p1+vpab)
+            if k == len(pts)-3:
+                ptsnew.append(p2+nu)
+                if revd:
+                    ptsnew.append(p2-nu)
+        return ptsnew
+
+    ptsnew = _getpts(pts) + _getpts(pts, revd=True)
+    lk = Line(ptsnew).triangulate().lw(0).lighting('off')
+    lk.name = "RoundedLine"
+    return lk
 
 
 class Lines(Line):
@@ -886,6 +1031,88 @@ def Bezier(points, res=None):
     return ln
 
 
+def Brace(q1, q2, style='}', pad=0.2, thickness=1,
+          font='Kanopus', comment='', s=1, c='black', alpha=1):
+    """
+    Create a brace (bracket) shape which spans from point q1 to point q2.
+
+    Parameters
+    ----------
+    q1 : list
+        point 1.
+    q2 : list
+        point 2.
+    style : str, optional
+        style of the bracket, eg. {}, [], (), <>. The default is '{'.
+    pad : float, optional
+        padding space in percent. The default is 0.2.
+    thickness : float, optional
+        thickness factor for the bracket. The default is 1.
+    font : str, optional
+        font type. The default is 'Kanopus'.
+    comment : str, optional
+        additional text to appear next to the bracket. The default is ''.
+    s : float, optional
+        scale factor for the comment
+
+    |scatter3| |scatter3.py|_
+    """
+    if isinstance(q1, vtk.vtkActor):
+        q1 = q1.GetPosition()
+    if isinstance(q2, vtk.vtkActor):
+        q2 = q2.GetPosition()
+    if len(q1)==2:
+        q1 = [q1[0],q1[1],0.0]
+    if len(q2)==2:
+        q2 = [q2[0],q2[1],0.0]
+    q1 = np.array(q1)
+    q2 = np.array(q2)
+    q2[2] = q1[2]
+
+    if style not in '{}[]()<>|I':
+        printc("Warning in Brace(): unknown style", style, c='y')
+
+    br = Text(style, c=c, alpha=alpha, font=font)
+    x0,x1, y0,y1, _,_ = br.bounds()
+
+    flip = False
+    if style in ['}',']',')','>']:
+        flip = True
+    if flip:
+        br.origin(x0-pad*(x1-x0),y0,0)
+    else:
+        br.origin(x1+pad*(x1-x0),y0,0)
+
+    angle = np.arctan2( q2[1]-q1[1], q2[0]-q1[0] )*57.3 - 90
+    br.rotateZ(angle)
+    fy = 1/(y1-y0)*np.linalg.norm(q1-q2)
+    fx = fy*0.3*thickness
+    br.scale([fx,fy,1])
+    br.pos(q1-br.origin())
+
+    if comment:
+        extra_angle = 90
+        just = 'center-bottom'
+        if q2[0]-q1[0] < 0:
+            extra_angle = -90
+            just = 'center-top'
+        if flip:
+            just = 'center-top'
+            if q2[0]-q1[0] < 0:
+                just = 'center-bottom'
+        cmt = Text(comment, c=c, alpha=alpha, font=font, justify=just)
+        cx0,cx1, cy0,cy1, _,_ = cmt.bounds()
+        if len(comment)>1:
+            cmt.rotateZ(angle+extra_angle)
+        cmt.scale(1/(cy1-cy0)*np.linalg.norm(q1-q2)/6*s)
+        cm = br.centerOfMass()
+        cmt.pos(cm+(cm-(q1+q2)/2)*1.4)
+        br = merge(br, cmt)
+
+    br.name = "Brace"
+    return br
+
+
 def NormalLines(mesh, ratio=1, atCells=True, scale=1):
     """
     Build an ``Mesh`` made of the normals at cells shown as lines.
@@ -1015,10 +1242,13 @@ class Ribbon(Mesh):
     def __init__(self, line1, line2=None, mode=0, closed=False, width=None,
                  c="m", alpha=1, res=(200,5)):
 
-        if isinstance(line1, Mesh):
+        if isinstance(line1, Points):
             line1 = line1.points()
 
-        if line2 is None:
+        if isinstance(line2, Points):
+            line2 = line2.points()
+
+        elif line2 is None:
             RibbonFilter = vtk.vtkRibbonFilter()
             aline = Line(line1)
             RibbonFilter.SetInputData(aline.polydata(False))
@@ -1028,16 +1258,18 @@ class Ribbon(Mesh):
             RibbonFilter.Update()
             Mesh.__init__(self, RibbonFilter.GetOutput(), c, alpha)
             self.name = "Ribbon"
-            return
-
-        if isinstance(line2, Mesh):
-            line2 = line2.points()
+            return #######################
 
         if closed:
             line1 = line1.tolist()
             line1 += [line1[0]]
             line2 = line2.tolist()
             line2 += [line2[0]]
+
+        if len(line1[0]) == 2:
+            line1 = np.c_[np.asarray(line1), np.zeros(len(line1))]
+        if len(line2[0]) == 2:
+            line2 = np.c_[np.asarray(line2), np.zeros(len(line2))]
 
         ppoints1 = vtk.vtkPoints()  # Generate the polyline1
         ppoints1.SetData(numpy_to_vtk(np.ascontiguousarray(line1), deep=True))
@@ -2027,7 +2259,7 @@ def Cube(pos=(0, 0, 0), side=1, c="g", alpha=1):
     mesh.name = "Cube"
     return mesh
 
-def CubicGrid(pos=(0, 0, 0), n=(10,10,10), spacing=(), c="lightgrey", alpha=0.1):
+def CubicGrid(pos=(0, 0, 0), n=(10,10,10), spacing=(), c="lightgrey", alpha=0.5):
     """Build a cubic Mesh made o `n` small quads in the 3 axis directions.
 
     :param list pos: position of the left bottom corner
@@ -2429,6 +2661,7 @@ class Text(Mesh):
             mono = False
             fscale = 0.75
             lspacing = 0.15
+            hspacing *= 0.75
             dotsep = '~·'
         elif font=='LionelOfParis':
             mono = False

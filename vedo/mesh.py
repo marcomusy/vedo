@@ -87,6 +87,8 @@ class Mesh(Points):
     ):
         Points.__init__(self)
 
+        self._current_texture_name = '' # used by plotter._keypress
+
         self._mapper.SetInterpolateScalarsBeforeMapping(settings.interpolateScalarsBeforeMapping)
 
         if settings.usePolygonOffset:
@@ -973,9 +975,23 @@ class Mesh(Points):
 
         :param bool invert: if True return cut off part of Mesh.
 
-        .. hint:: |cutWithMesh.py|_ |cutAndCap.py|_
+        :Example:
+        .. code-block:: python
 
-            |cutWithMesh| |cutAndCap|
+            from vedo import *
+            import numpy as np
+            x, y, z = np.mgrid[:30, :30, :30] / 15
+            U = sin(6*x)*cos(6*y) + sin(6*y)*cos(6*z) + sin(6*z)*cos(6*x)
+            iso = Volume(U).isosurface(0).smoothLaplacian().c('silver').lw(1)
+            cube = CubicGrid(n=(29,29,29), spacing=(1,1,1))
+            cube.cutWithMesh(iso).c('silver').alpha(1)
+            show(iso, cube)
+
+        |cutWithMesh2|
+
+        .. hint:: |cutWithMesh1.py|_ |cutAndCap.py|_
+
+            |cutWithMesh1| |cutAndCap|
         """
         polymesh = mesh.polydata()
         poly = self.polydata()

@@ -125,7 +125,7 @@ Usage example:
     Cube().color('green').show()
 
 """
-import os
+import os, vtk
 
 __all__ = ['datadir', 'embedWindow']
 
@@ -196,7 +196,9 @@ twoSidedLighting = True
 # Turn on/off rendering of translucent material with depth peeling technique.
 #https://lorensen.github.io/VTKExamples/site/Cxx/Visualization/CorrectlyRenderTranslucentGeometry
 useDepthPeeling = False
-alphaBitPlanes  = True  # only active if useDepthPeeling
+if '9' in vtk.vtkVersion().GetVTKVersion():
+    useDepthPeeling = True
+alphaBitPlanes  = True  # only relevant if useDepthPeeling
 multiSamples    = 0
 maxNumberOfPeels= 8
 occlusionRatio  = 0.0
@@ -218,7 +220,7 @@ useParallelProjection = False
 # In multirendering mode set the position of the horizontal of vertical splitting [0,1]
 windowSplittingPosition = None
 
-# AnnotatedCube axis type 5 customization:
+# AnnotatedCube axis (type 5) customization:
 annotatedCubeColor      = (0.75, 0.75, 0.75)
 annotatedCubeTextColor  = None # use default, otherwise specify a single color
 annotatedCubeTextScale  = 0.2
@@ -264,7 +266,7 @@ datadir = "https://vedo.embl.es/examples/data/"
 
 plotter_instances = []
 plotter_instance = None
-collectable_actors = [] # OBSOLETE
+collectable_actors = [] # OBSOLETE and void
 
 ####################################################################################
 def embedWindow(backend='k3d', verbose=True):
@@ -332,13 +334,12 @@ def embedWindow(backend='k3d', verbose=True):
 
 #####################
 def _init():
-    global plotter_instance, plotter_instances, collectable_actors
+    global plotter_instance, plotter_instances
     global textures, fonts
     global notebookBackend, notebook_plotter
 
     plotter_instance = None
     plotter_instances = []
-    collectable_actors = [] # OBSOLETE
 
     for f in os.listdir(textures_path):
         tfn = f.split(".")[0]

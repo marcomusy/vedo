@@ -1683,6 +1683,7 @@ class Video:
         self.backend = backend
         self.fps = float(fps)
         self.command = "ffmpeg -loglevel panic -y -r"
+        self.options = "-b:v 8000k"
 
         self.frames = []
         self.tmp_dir = TemporaryDirectory()
@@ -1784,7 +1785,8 @@ class Video:
         ########################################
         if self.backend == 'ffmpeg':
             out = os.system(self.command + " " + str(self.fps)
-                            + " -i " + self.tmp_dir.name + os.sep + "%01d.png " + self.name)
+                            + " -i " + self.tmp_dir.name + os.sep
+                            + "%01d.png " + self.options + " " + self.name)
             if out:
                 colors.printc("ffmpeg returning error", c='r')
             else:

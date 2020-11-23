@@ -1,16 +1,28 @@
-from vedo import Plotter, Plane, datadir
+"""Set custom lights to a 3D scene"""
+from vedo import Plotter, load, datadir, Point, Light, show
 
-vp = Plotter()
+man = load(datadir+'man.vtk').c('white').lighting('glossy')
 
-cow = vp.load(datadir+"cow.vtk").c("grey").scale(4).rotateX(-90)
-vp += Plane(pos=[0, -3.6, 0], normal=[0, 1, 0], sx=20).texture("grass")
-vp.show(viewup='y', interactive=0)
+p1 = Point([1,0,1], c='y')
+p2 = Point([0,0,2], c='r')
+p3 = Point([-1,-0.5,-1], c='b')
+p4 = Point([0,1,0], c='k')
 
-# vp.light() returns a vtkLight object with focal Point, fp, to mesh cow
-# fp can also be explicitly set as fp=[x,y,z]
-l = vp.addLight(pos=[-6, 6, 6], focalPoint=cow, deg=12, showsource=1)
+# Add light sources at the given positions
+l1 = Light(p1, c='y') # p1 can simply be [1,0,1]
+l2 = Light(p2, c='r')
+l3 = Light(p3, c='b')
+l4 = Light(p4, c='w', intensity=0.5)
 
-# can be switched on/off this way
-#l.SwitchOff()
+show(man, l1, l2, l3, l4, p1, p2, p3, p4,
+      __doc__, axes=1, viewup='z')
 
-vp.show(interactive=1)
+
+
+#####################################################
+##### Equivalent code using a Plotter instance: #####
+#####################################################
+# plt = Plotter(axes=1)
+# plt += [man, p1, p2, p3, p4, l1, l2, l3, l4]
+# plt.show(viewup='z')
+#####################################################
