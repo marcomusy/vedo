@@ -106,7 +106,7 @@ for a wide range of functionalities:
 </details>
 
 <details>
-<summary>working with volumetric data, and tetrahedral meshes</summary>
+<summary>working with volumetric data and tetrahedral meshes</summary>
 <i>
 
 - Import data from VTK format volumetric TIFF stacks, DICOM, SLC, MHD and more
@@ -179,7 +179,7 @@ Type `vedo -h` for the complete list of options.<br>
 | [![cubecut](https://user-images.githubusercontent.com/32848391/99916179-e763d580-2d08-11eb-9044-b647115167ed.jpg)](https://github.com/marcomusy/vedo/tree/master/examples/advanced/cutWithMesh2.py)   | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)| [![quatumsine](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/tunnelling2.py) |
 | *Easily work with volumes, tetrahedral and polygonal meshes.*        | *Turing system of reaction-diffusion between two molecules.*                                                                   |  *Quantum-tunnelling of a particle in a box hitting a sinusoidal potential.*  |
 | [![trimesh](https://user-images.githubusercontent.com/32848391/91164151-e8b44080-e6ce-11ea-8213-cf5b12aa4d16.png)](https://github.com/marcomusy/vedo/blob/master/examples/other/trimesh)              | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)| [![whisker](https://user-images.githubusercontent.com/32848391/99916183-e8950280-2d08-11eb-8070-8bb1146c7c62.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/whiskers.py) |
-| *Interoperability with the [trimesh](https://trimsh.org/) library.*  |  *Support for the [FEniCS/Dolfin](https://fenicsproject.org/) library for PDE and finite element solutions.*                   | *Advanced 2D histogramming and plotting capablities.* |
+| *Interoperability with external libraries like [trimesh](https://trimsh.org/).*  |  *Support for the [FEniCS/Dolfin](https://fenicsproject.org/) library for PDE and finite element solutions.*       | *Advanced 2D/3D histogramming and plotting capablities.* |
 
 
 ### Gallery

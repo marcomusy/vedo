@@ -2176,7 +2176,7 @@ def streamplot(X, Y, U, V, direction="both",
     stream.lighting('off')
 
     stream.scale([1 / (n - 1) * (xmax - xmin), 1 / (n - 1) * (ymax - ymin), 1])
-    stream.addPos(np.array([xmin, ymin, 0]))
+    stream.shift(xmin, ymin)
     return stream
 
 

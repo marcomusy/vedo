@@ -1911,12 +1911,19 @@ class Plotter:
         return self
 
     def showInset(self, *actors, **options):
+        """DEPRECATED, please use addInset() instead."""
+        printc("DEPRECATED showInset(): please use addInset() instead.", c='r')
+        return self.addInset(*actors, **options)
+
+    def addInset(self, *actors, **options):
         """Add a draggable inset space into a renderer.
 
+        :param int at: specify the renderer number
         :param pos: icon position in the range [1-4] indicating one of the 4 corners,
                     or it can be a tuple (x,y) as a fraction of the renderer size.
         :param float size: size of the square inset.
         :param bool draggable: if True the subrenderer space can be dragged around.
+        :param c: color of the inset frame when dragged
 
         |inset| |inset.py|_
         """
@@ -1924,7 +1931,8 @@ class Plotter:
             return None
         pos = options.pop("pos", 0)
         size = options.pop("size", 0.1)
-        c = options.pop("c", 'r')
+        c = options.pop("c", 'lb')
+        at = options.pop("at", None)
         draggable = options.pop("draggable", True)
 
         if not self.renderer:
@@ -1938,12 +1946,12 @@ class Plotter:
         if len(actors)==1:
             widget.SetOrientationMarker(actors[0])
         else:
-            widget.SetOrientationMarker(vedo.Assembly(utils.flatten(actors)))
+            widget.SetOrientationMarker(vedo.Assembly(actors))
 
         widget.SetInteractor(self.interactor)
 
         if utils.isSequence(pos):
-            widget.SetViewport(pos[0] - size, pos[1] - size, pos[0] + size, pos[1] + size)
+            widget.SetViewport(pos[0]-size, pos[1]-size, pos[0]+size, pos[1]+size)
         else:
             if pos < 2:
                 widget.SetViewport(0, 1 - 2 * size, size * 2, 1)
@@ -1955,11 +1963,9 @@ class Plotter:
                 widget.SetViewport(1 - 2 * size, 0, 1, size * 2)
         widget.EnabledOn()
         widget.SetInteractive(draggable)
+        if at is not None and at < len(self.renderers):
+            widget.SetCurrentRenderer(self.renderers[at])
         self.widgets.append(widget)
-        for a in actors:
-            if a in self.actors:
-                self.actors.remove(a)
-        self.interactor.Render()
         return widget
 
 

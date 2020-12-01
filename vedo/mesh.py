@@ -975,7 +975,6 @@ class Mesh(Points):
 
         :param bool invert: if True return cut off part of Mesh.
 
-        :Example:
         .. code-block:: python
 
             from vedo import *
@@ -986,8 +985,6 @@ class Mesh(Points):
             cube = CubicGrid(n=(29,29,29), spacing=(1,1,1))
             cube.cutWithMesh(iso).c('silver').alpha(1)
             show(iso, cube)
-
-        |cutWithMesh2|
 
         .. hint:: |cutWithMesh1.py|_ |cutAndCap.py|_
 

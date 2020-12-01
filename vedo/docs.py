@@ -537,12 +537,12 @@ _defs = ""
 #     :target: mesh_threshold.py_
 #     :alt: mesh_threshold.py
 
-# .. |cutWithMesh.py| replace:: cutWithMesh.py
-# .. _cutWithMesh.py: https://github.com/marcomusy/vedo/tree/master/examples/advanced/cutWithMesh.py
-# .. |cutWithMesh| image:: https://user-images.githubusercontent.com/32848391/51808907-e7c0f000-229a-11e9-98a7-fefc7261b3c3.png
+# .. |cutWithMesh1.py| replace:: cutWithMesh1.py
+# .. _cutWithMesh1.py: https://github.com/marcomusy/vedo/tree/master/examples/advanced/cutWithMesh1.py
+# .. |cutWithMesh1| image:: https://user-images.githubusercontent.com/32848391/51808907-e7c0f000-229a-11e9-98a7-fefc7261b3c3.png
 #     :width: 300 px
-#     :target: cutWithMesh.py_
-#     :alt: cutWithMesh.py
+#     :target: cutWithMesh1.py_
+#     :alt: cutWithMesh1.py
 
 # .. |paraboloid| image:: https://user-images.githubusercontent.com/32848391/51211547-260ef480-1916-11e9-95f6-4a677e37e355.png
 #     :width: 300 px

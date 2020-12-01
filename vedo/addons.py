@@ -76,7 +76,6 @@ def Ruler(
     """
     if unitScale != 1.0 and units == "":
         raise ValueError("When setting 'unitScale' to a value other than 1, a 'units' arguments must be specified.")
-    # ncolls = len(settings.collectable_actors)
 
     if isinstance(p1, Points): p1 = p1.GetPosition()
     if isinstance(p2, Points): p2 = p2.GetPosition()
@@ -130,7 +129,6 @@ def Ruler(
     macts.base = q1
     macts.top = q2
     macts.orientation(p2 - p1, rotation=axisRotation).bc('t').pickable(False)
-    # settings.collectable_actors = settings.collectable_actors[:ncolls]
     return macts
 
 
@@ -186,8 +184,6 @@ def Goniometer(
 
     |goniometer| |goniometer.py|_
     """
-    # ncolls = len(settings.collectable_actors)
-
     if isinstance(p1, Points): p1 = p1.GetPosition()
     if isinstance(p2, Points): p2 = p2.GetPosition()
     if isinstance(p3, Points): p3 = p3.GetPosition()
@@ -225,11 +221,10 @@ def Goniometer(
     if fill:
         pts = [p2] + arc.points().tolist() + [p2]
         msh = Mesh([pts, [list(range(arc.N()+2))]], c=c, alpha=fill).triangulate()
-        msh.addPos(0,0,r/10000) # to resolve 2d conflicts..
+        msh.shift(0,0,r/10000) # to resolve 2d conflicts..
         acts.append(msh)
 
     asse = Assembly(acts)
-    # settings.collectable_actors = settings.collectable_actors[:ncolls]
     return asse
 
 
@@ -541,7 +536,6 @@ def addScalarBar3D(
     .. hint:: |scalarbars| |scalarbars.py|_
     """
     plt = settings.plotter_instance
-    # ncolls = len(settings.collectable_actors)
     if plt and c is None:  # automatic black or white
         c = (0.9, 0.9, 0.9)
         if np.sum(getColor(plt.backgrcol)) > 1.5:
@@ -676,7 +670,6 @@ def addScalarBar3D(
     sact.PickableOff()
     sact.UseBoundsOff()
     sact.name = 'ScalarBar3D'
-    # settings.collectable_actors = settings.collectable_actors[:ncolls]
     return sact
 
 
@@ -1147,7 +1140,6 @@ def buildRulerAxes(
 
     |goniometer| |goniometer.py|_
     """
-    # ncolls = len(settings.collectable_actors)
     if utils.isSequence(inputobj):
         x0,x1,y0,y1,z0,z1 = inputobj
     else:
@@ -1193,7 +1185,6 @@ def buildRulerAxes(
 
     macts = merge(acts).c(c).alpha(alpha).bc('t')
     macts.UseBoundsOff()
-    # settings.collectable_actors = settings.collectable_actors[:ncolls]
     return macts
 
 
@@ -1227,7 +1218,7 @@ def Axes(
         titleFont="", # grab settings.defaultFont
         textScale=1.0,
         xTitlePosition=0.95, yTitlePosition=0.95, zTitlePosition=0.95,
-        xTitleOffset=0.02,   yTitleOffset=0.025,   zTitleOffset=0.02,
+        xTitleOffset=0.02,   yTitleOffset=0.025,  zTitleOffset=0.02,
         xTitleJustify="top-right", yTitleJustify="bottom-right", zTitleJustify="bottom-right",
         xTitleRotation=0, yTitleRotation=0, zTitleRotation=0,
         xTitleBox=False,  yTitleBox=False,
@@ -1331,11 +1322,9 @@ def Axes(
 
     |customAxes| |customAxes.py|_
     """
-    # ncolls = len(settings.collectable_actors)
-
-    if '9' in vtk.vtkVersion().GetVTKVersion():
+    #if '9' in vtk.vtkVersion().GetVTKVersion():
         # HACK to cope with weird VTK9 behavior
-        gridLineWidth += 1
+        #gridLineWidth += 1
 
     if not titleFont:
         titleFont = settings.defaultFont
@@ -1898,8 +1887,6 @@ def Axes(
     asse.SetOrigin(orig)
     asse.SetScale(ss)
     asse.PickableOff()
-    # throw away all extra created obj in collectable_actors
-    # settings.collectable_actors = settings.collectable_actors[:ncolls]
     return asse
 
 

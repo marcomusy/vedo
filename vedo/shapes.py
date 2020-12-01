@@ -457,9 +457,9 @@ class Line(Mesh):
     :type c: int, str, list
     :param float alpha: transparency in range [0,1].
     :param lw: line width.
-    :param int res: number of intermediate points in the segment
+    :param int res: resolution, number of points along the line
     """
-    def __init__(self, p0, p1=None, closed=False, c="grey", alpha=1, lw=1, res=None):
+    def __init__(self, p0, p1=None, closed=False, c="grey", alpha=1, lw=1, res=2):
 
         if isinstance(p1, vtk.vtkActor):
             p1 = p1.GetPosition()
@@ -513,8 +513,7 @@ class Line(Mesh):
                 p1 = [p1[0],p1[1],0]
             lineSource.SetPoint1(p0)
             lineSource.SetPoint2(p1)
-            if res:
-                lineSource.SetResolution(res)
+            lineSource.SetResolution(res-1)
             lineSource.Update()
             poly = lineSource.GetOutput()
             self.top = np.array(p1)
@@ -705,14 +704,19 @@ def RoundedLine(pts, lw, c='grey', alpha=1, res=10):
 
     Parameters
     ----------
+
     pts : list
         a list of points in 2D or 3D (z will be ignored).
+
     lw : float
         thickness of the line.
+
     res : int, optional
         resolution of the rounded regions. The default is 10.
 
-    :Example:
+    Example
+    -------
+
         .. code-block:: python
 
             from vedo import *

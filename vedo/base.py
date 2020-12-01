@@ -106,7 +106,7 @@ class Base3DProp(object):
         return self  # return itself to concatenate methods
 
     def addPos(self, dp_x=None, dy=None, dz=None):
-        """Add vector to current object position."""
+        """Add vector to current object position. Same as `shift()`."""
         p = np.array(self.GetPosition())
         if dz is None:  # assume dp_x is of the form (x,y,z)
             self.SetPosition(p + dp_x)
@@ -117,6 +117,10 @@ class Base3DProp(object):
         if self.shadow:
             self._updateShadow()
         return self
+
+    def shift(self, dp_x=None, dy=None, dz=None):
+        """Add vector to current object position. Same as `addPos()`."""
+        return self.addPos(dp_x, dy, dz)
 
     def x(self, position=None):
         """Set/Get object position along x axis."""

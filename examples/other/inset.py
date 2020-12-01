@@ -1,21 +1,31 @@
-"""Renderer meshes into insets
-(can be dragged)
-"""
+"""Render meshes into inset windows
+(which can be dragged)"""
 from vedo import *
 
-vp = Plotter(axes=1)
+plt = Plotter(bg2='bisque', size=(1000,800), interactive=False)
 
 e = load(datadir+"embryo.tif").isosurface()
-e.normalize().c("gold")
+e.normalize().shift(-2,-1.5,-2).c("gold")
 
-vp.show(e, __doc__, viewup='z', interactive=0)
+plt.show(e, __doc__, viewup='z')
 
-e1 = e.clone().cutWithPlane(normal=[1,0,0]).c("red")
-e2 = e.clone().cutWithPlane(normal=[0,1,0]).c("pink")
-e3 = e.clone().cutWithPlane(normal=[0,0,1]).c("blue")
+# make clone copies of the embryo surface and cut them:
+e1 = e.clone().cutWithPlane(normal=[0,1,0]).c("green")
+e2 = e.clone().cutWithPlane(normal=[1,0,0]).c("red")
 
-vp.showInset(e1, pos=(0.9,0.2))
-vp.showInset(e2, pos=(0.9,0.5))
-vp.showInset(e2, e3, pos=(0.9,0.8))
+# add 2 draggable inset windows:
+plt.addInset(e1, pos=(0.9,0.8))
+plt.addInset(e2, pos=(0.9,0.5))
 
-vp.show(interactive=1)
+# customised axes can also be inserted:
+ax = Axes(xrange=(0,1), yrange=(0,1), zrange=(0,1),
+          xtitle='front', ytitle='left', ztitle='head',
+          yzGrid=False, xTitleSize=0.15, yTitleSize=0.15, zTitleSize=0.15,
+          xLabelSize=0, yLabelSize=0, zLabelSize=0, tipSize=0.05,
+          axesLineWidth=2, xLineColor='dr', yLineColor='dg', zLineColor='db',
+          xTitleOffset=0.05, yTitleOffset=0.05, zTitleOffset=0.05,
+    )
+ex = e.clone().scale(0.25).pos(0,0.1,0.1).alpha(0.1).lighting('off')
+plt.addInset(ax, ex, pos=(0.1,0.1), size=0.15, draggable=False)
+
+interactive()

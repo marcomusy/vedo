@@ -22,9 +22,9 @@ vol1.alphaGradient([0.0, 0.5, 0.9]).addScalarBar3D(title='composite shade', c='k
 vol1.scalarbar.scale(0.8).x(20)
 
 # mode = 1 is maximum-projection volume rendering
-vol2 = load(datadir+"vase.vti").mode(1).addPos(60,0,0)
+vol2 = load(datadir+"vase.vti").mode(1).shift(60,0,0)
 vol2.addScalarBar3D(title='maximum-projection', c='k')
 vol2.scalarbar.scale(0.8).x(160)
 
 # show command creates and returns an instance of class Plotter
-show(vol1, vol2, __doc__, axes=1)
+show(vol1, vol2, __doc__, axes=1, size=(800,600))

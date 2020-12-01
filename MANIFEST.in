@@ -12,12 +12,3 @@ include examples/simulations/*
 include examples/tetmesh/*
 include examples/volumetric/*
 
-include vedo/examples/advanced/*
-include vedo/examples/basic/*
-include vedo/examples/other/*
-include vedo/examples/other/dolfin/*
-include vedo/examples/other/trimesh/*
-include vedo/examples/pyplot/*
-include vedo/examples/simulations/*
-include vedo/examples/tetmesh/*
-include vedo/examples/volumetric/*
