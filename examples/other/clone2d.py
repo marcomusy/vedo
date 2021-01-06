@@ -1,8 +1,7 @@
 """Make a 2D copy of a Mesh and place it in the 3D scene"""
 from vedo import load, datadir, show
 
-s = load(datadir+'man.vtk').rotateZ(20).rotateX(-70).scale(0.2)
-s.c('darkgreen').alpha(0.3)
+s = load(datadir+'man.vtk').rotateZ(20).rotateX(-70).scale(0.2).c('darkgreen', 0.3)
 
 # Make a sort of 2D snapshot of the mesh (return vtkActor2D)
 # The coordinate system options are

@@ -18,7 +18,7 @@ x = np.linspace(-1, 9, 100)
 y = x/5 + 0.2*np.sin(x)
 ye= y**2/5 + 0.1 # error on y
 line = Line(np.c_[x, y])
-band = Ribbon(np.c_[x, y-ye], np.c_[x, y+ye]).c('black').alpha(0.1)
+band = Ribbon(np.c_[x, y-ye], np.c_[x, y+ye]).c('black',0.1)
 
 # build braces to inndicate stats significance and dosage
 bra1 = Brace([0, 3],[2, 3], comment='*~*', s=0.7, style='[')

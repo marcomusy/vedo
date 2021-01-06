@@ -1,12 +1,15 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 from __future__ import division, print_function
 import time
 import sys
 import vtk
+import os.path
 from vtk.util.numpy_support import vtk_to_numpy
 import numpy as np
 
 import vedo
-from vedo.colors import printc, getColor, getColorName
+from vedo.colors import printc, getColor, getColorName, rgb2hex
 import vedo.utils as utils
 import vedo.settings as settings
 import vedo.addons as addons
@@ -19,8 +22,13 @@ Defines main class ``Plotter`` to manage actors and 3D rendering.
     + vedo.docs._defs
 )
 
-__all__ = ["show", "clear", "ion", "ioff",
-           "Plotter", "closeWindow", "closePlotter", "interactive"]
+__all__ = ["show",
+           "clear",
+           "ion", "ioff",
+           "Plotter",
+           "closeWindow", "closePlotter",
+           "interactive",
+           ]
 
 ########################################################################
 def show(*actors, **options):
@@ -59,58 +67,12 @@ def show(*actors, **options):
             - 8,  show the ``vtkCubeAxesActor`` object
             - 9,  show the bounding box outLine
             - 10, show three circles representing the maximum bounding box
-            - 11, show a large grid on the x-y plane (use with zoom=8)
+            - 11, show a large grid on the x-y plane
             - 12, show polar axes
             - 13, draw a simple ruler at the bottom of the window
 
         Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
-
-            - `xtitle`,                ['x'], x-axis title text
-            - `xrange`,               [None], x-axis range in format (xmin, ymin), default is automatic.
-            - `numberOfDivisions`,    [None], approximate number of divisions on the longest axis
-            - `axesLineWidth`,           [1], width of the axes lines
-            - `gridLineWidth`,           [1], width of the grid lines
-            - `reorientShortTitle`,   [True], titles shorter than 2 letter are placed horizontally
-            - `titleDepth`,              [0], extrusion fractional depth of title text
-            - `xyGrid`,               [True], show a gridded wall on plane xy
-            - `yzGrid`,               [True], show a gridded wall on plane yz
-            - `zxGrid`,               [True], show a gridded wall on plane zx
-            - `zxGrid2`,             [False], show zx plane on opposite side of the bounding box
-            - `xyGridTransparent`    [False], make grid plane completely transparent
-            - `xyGrid2Transparent`   [False], make grid plane completely transparent on opposite side box
-            - `xyPlaneColor`,       ['gray'], color of the plane
-            - `xyGridColor`,        ['gray'], grid line color
-            - `xyAlpha`,              [0.15], grid plane opacity
-            - `xyFrameLine`,          [None], add a frame for the plane
-            - `showTicks`,            [True], show major ticks
-            - `digits`,               [None], use this number of significant digits in scientific notation
-            - `titleFont`,              [''], font for axes titles
-            - `labelFont`,              [''], font for numeric labels
-            - `textScale`,             [1.0], global scaling factor for text elements (titles, labels)
-            - `xTitlePosition`,       [0.32], title fractional positions along axis
-            - `xTitleOffset`,         [0.05], title fractional offset distance from axis line
-            - `xTitleJustify`, ["top-right"], title justification
-            - `xTitleRotation`,          [0], add a rotation of the axis title
-            - `xTitleBox`,           [False], add a box around title text
-            - `xLineColor`,      [automatic], color of the x-axis
-            - `xTitleColor`,     [automatic], color of the axis title
-            - `xTitleBackfaceColor`,  [None],  color of axis title on its backface
-            - `xTitleSize`,          [0.025], size of the axis title
-            - 'xTitleItalic',            [0], a bool or float to make the font italic
-            - `xHighlightZero`,       [True], draw a line highlighting zero position if in range
-            - `xHighlightZeroColor`, [autom], color of the line highlighting the zero position
-            - `xTickLength`,         [0.005], radius of the major ticks
-            - `xTickThickness`,     [0.0025], thickness of the major ticks along their axis
-            - `xMinorTicks`,             [1], number of minor ticks between two major ticks
-            - `xValuesAndLabels`          [], assign custom tick positions and labels [(pos1, label1), ...]
-            - `xLabelColor`,     [automatic], color of numeric labels and ticks
-            - `xLabelPrecision`,         [2], nr. of significative digits to be shown
-            - `xLabelSize`,          [0.015], size of the numeric labels along axis
-            - 'xLabelRotation',          [0], rotate clockwise [1] or anticlockwise [-1] by 90 degrees
-            - 'xFlipText',           [False], flip axis title and numeric labels orientation
-            - `xLabelOffset`,        [0.025], offset of numeric labels
-            - `tipSize`,              [0.01], size of the arrow tip
-            - `limitRatio`,           [0.04], below this ratio don't plot small axis
+        Check ``addons.Axes()`` for the full list of options.
 
     :param float azimuth/elevation/roll:  move camera accordingly
     :param str viewup:  either ['x', 'y', 'z'] or a vector to set vertical direction
@@ -206,7 +168,6 @@ def show(*actors, **options):
     bg = options.pop("bg", "white")
     bg2 = options.pop("bg2", None)
     axes = options.pop("axes", settings.defaultAxesType)
-    verbose = options.pop("verbose", False)
     interactive = options.pop("interactive", None)
     offscreen = options.pop("offscreen", False)
     sharecam = options.pop("sharecam", True)
@@ -219,12 +180,7 @@ def show(*actors, **options):
     camera = options.pop("camera", None)
     interactorStyle = options.pop("interactorStyle", 0)
     q = options.pop("q", False)
-
     newPlotter = options.pop("new", False)
-    newPlotter_old = options.pop("newPlotter", 'dont')
-    if newPlotter_old != 'dont':
-        printc("\nPlease use keyword new in show() instead of newPlotter\n", c='r')
-        newPlotter = newPlotter_old
 
     if len(options):
         for op in options:
@@ -269,7 +225,7 @@ def show(*actors, **options):
                     title=title,
                     axes=axes,
                     sharecam=sharecam,
-                    verbose=verbose,
+                    resetcam=resetcam,
                     interactive=interactive,
                     offscreen=offscreen,
                     bg=bg,
@@ -361,8 +317,7 @@ def clear(actor=None, at=None):
 def closeWindow(plotterInstance=None):
     """Close the current or the input rendering window."""
     if not plotterInstance:
-        from vedo.settings import plotter_instance
-        plotterInstance  = plotter_instance
+        plotterInstance  = settings.plotter_instance
         if not plotterInstance:
             return
     if plotterInstance.interactor:
@@ -402,52 +357,15 @@ class Plotter:
       - 5,  show a cube at bottom left
       - 6,  mark the corners of the bounding box
       - 7,  draw a 3D ruler at each side of the cartesian axes
-      - 8,  show the ``vtkCubeAxesActor`` object
+      - 8,  show the VTK ``CubeAxesActor`` object
       - 9,  show the bounding box outLine,
       - 10, show three circles representing the maximum bounding box,
       - 11, show a large grid on the x-y plane (use with zoom=8)
       - 12, show polar axes.
       - 13, draw a simple ruler at the bottom of the window
 
-    Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
-
-        - `xtitle`,            ['x'], x-axis title text.
-        - `xrange`,           [None], x-axis range in format (xmin, ymin), default is automatic.
-        - `numberOfDivisions`, [automatic], number of divisions on the longest axis
-        - `axesLineWidth`,       [1], width of the axes lines
-        - `gridLineWidth`,       [1], width of the grid lines
-        - `reorientShortTitle`, [True], titles shorter than 2 letter are placed horizontally
-        - `originMarkerSize`, [0.01], draw a small cube on the axis where the origin is
-        - `enableLastLabel`, [False], show last numeric label on axes
-        - `titleDepth`,          [0], extrusion fractional depth of title text
-        - `xyGrid`,           [True], show a gridded wall on plane xy
-        - `yzGrid`,           [True], show a gridded wall on plane yz
-        - `zxGrid`,           [True], show a gridded wall on plane zx
-        - `zxGrid2`,         [False], show zx plane on opposite side of the bounding box
-        - `xyGridTransparent`  [False], make grid plane completely transparent
-        - `xyGrid2Transparent` [False], make grid plane completely transparent on opposite side box
-        - `xyPlaneColor`,   ['gray'], color of the plane
-        - `xyGridColor`,    ['gray'], grid line color
-        - `xyAlpha`,          [0.15], grid plane opacity
-        - `showTicks`,        [True], show major ticks
-        - `xTitlePosition`,   [0.32], title fractional positions along axis
-        - `xTitleOffset`,     [0.05], title fractional offset distance from axis line
-        - `xTitleJustify`, ["top-right"], title justification
-        - `xTitleRotation`,      [0], add a rotation of the axis title
-        - `xLineColor`,  [automatic], color of the x-axis
-        - `xTitleColor`, [automatic], color of the axis title
-        - `xTitleBackfaceColor`, [None],  color of axis title on its backface
-        - `xTitleSize`,      [0.025], size of the axis title
-        - `xHighlightZero`,   [True], draw a line highlighting zero position if in range
-        - `xHighlightZeroColor`, [automatic], color of the line highlighting the zero position
-        - `xTickRadius`,     [0.005], radius of the major ticks
-        - `xTickThickness`, [0.0025], thickness of the major ticks along their axis
-        - `xTickColor`,  [automatic], color of major ticks
-        - `xMinorTicks`,         [1], number of minor ticks between two major ticks
-        - `tipSize`,          [0.01], size of the arrow tip
-        - `xLabelPrecision`,     [2], nr. of significative digits to be shown
-        - `xLabelSize`,      [0.015], size of the numeric labels along axis
-        - `xLabelOffset`,    [0.025], offset of numeric labels
+    Axis type-1 can be fully customized by passing a dictionary ``axes=dict()``.
+    Check ``Axes()`` for the available options.
 
     :param bool sharecam: if False each renderer will have an independent vtkCamera
     :param bool interactive: if True will stop after show() to allow interaction w/ window
@@ -457,7 +375,7 @@ class Plotter:
       render in a Qt-Widget using an QVTKRenderWindowInteractor.
       Overrides offscreen to True
       Overrides interactive to False
-      See Also: example qt_windows1.py and qt_windows2.py
+      See Also: examples qt_windows1.py and qt_windows2.py
 
     |multiwindows|
     """
@@ -474,7 +392,7 @@ class Plotter:
         bg2=None,
         axes=settings.defaultAxesType,
         sharecam=True,
-        verbose=False,
+        resetcam=True,
         interactive=None,
         offscreen=False,
         qtWidget = None
@@ -496,30 +414,25 @@ class Plotter:
             else:
                 interactive = True
 
-        if not interactive:
-            verbose = False
-
-        self.verbose = verbose
         self.actors = []  # list of actors to be shown
         self.clickedActor = None  # holds the actor that has been clicked
         self.renderer = None  # current renderer
         self.renderers = []  # list of renderers
-        self.pos = pos
         self.shape = shape  # don't remove this line
         self.interactive = interactive  # allows to interact with renderer
         self.axes = axes  # show axes type nr.
         self.title = title  # window title
         self.sharecam = sharecam  # share the same camera if multiple renderers
-        self._legend = []  # list of legend entries for actors
+        self.picked2d = None  # 2d coords of a clicked point on the rendering window
         self.picked3d = None  # 3d coords of a clicked point on an actor
-        self.backgrcol = bg
         self.offscreen = offscreen
+        self.resetcam = resetcam
         self.qtWidget = qtWidget # (QVTKRenderWindowInteractor)
 
-        self.flagWidget = None
-        self._flagRep = None
-
         # mostly internal stuff:
+        self._legend = []  # list of legend entries for actors
+        self.backgrcol = bg
+        self.pos = pos     # used by vedo.io
         self.justremoved = None
         self.axes_instances = []
         self.icol = 0
@@ -531,6 +444,8 @@ class Plotter:
         self.sliders = []
         self.buttons = []
         self.widgets = []
+        self.flagWidget = None
+        self._flagRep = None
         self.scalarbars = []
         self.cutterWidget = None
         self.backgroundRenderer = None
@@ -541,9 +456,8 @@ class Plotter:
         self.extralight = None
         self.size = size
         self.interactor = None
-        self.resetcam= True
         self.allowInteraction = None
-
+        self.keyheld = ''
         self.xtitle = settings.xtitle  # x axis label and units
         self.ytitle = settings.ytitle  # y axis label and units
         self.ztitle = settings.ztitle  # z axis label and units
@@ -555,6 +469,7 @@ class Plotter:
         else:
             self.camera = vtk.vtkCamera()
             self.window = vtk.vtkRenderWindow()
+            self.window.GlobalWarningDisplayOff()
 
         ############################################################
         notebookBackend = settings.notebookBackend
@@ -782,7 +697,7 @@ class Plotter:
         self.window.SetPosition(pos)
 
         if not title:
-            title = " vedo " + vedo.__version__
+            title = " vedo "# + vedo.__version__
 
         if self.qtWidget is not None:
             self.interactor = self.qtWidget.GetRenderWindow().GetInteractor()
@@ -821,6 +736,7 @@ class Plotter:
         self.interactor.AddObserver("RightButtonPressEvent", self._mouseright)
         self.interactor.AddObserver("MiddleButtonPressEvent", self._mousemiddle)
         self.interactor.AddObserver("KeyPressEvent", self._keypress)
+        self.interactor.AddObserver("KeyReleaseEvent", self._keyrelease)
 
         if settings.allowInteraction:
             self._update_observer = None
@@ -1084,8 +1000,6 @@ class Plotter:
         elif isinstance(obj, vtk.vtkActor):
             return [obj]
 
-        if self.verbose:
-            printc("Warning in getMeshes(): unexpected input type", obj, c='r')
         return []
 
     def resetCamera(self):
@@ -1251,12 +1165,12 @@ class Plotter:
         """
         return addons.addButton(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
 
-    def addCutterTool(self, mesh):
+    def addCutterTool(self, mesh, mode='box'):
         """Create handles to cut away parts of a mesh.
 
         |cutter| |cutter.py|_
         """
-        return addons.addCutterTool(mesh)
+        return addons.addCutterTool(mesh, mode)
 
     def addIcon(self, icon, pos=3, size=0.08):
         """Add an inset icon mesh into the same renderer.
@@ -1360,7 +1274,7 @@ class Plotter:
             self.interactor.AddObserver(eventName, func)
         return self
 
-    ##############################################################################
+
     def show(self, *actors, **options):
         """
         Render a list of actors.
@@ -1499,6 +1413,8 @@ class Plotter:
 
         if resetcam is not None:
             self.resetcam = resetcam
+        if camera is not None:
+            self.resetcam = False
 
         def scan(wannabeacts):
             scannedacts = []
@@ -1522,8 +1438,7 @@ class Plotter:
 
                 elif isinstance(a, vtk.vtkAssembly):
                     scannedacts.append(a)
-                    import vedo.pyplot as pyplot
-                    if isinstance(a, pyplot.Plot):
+                    if isinstance(a, vedo.pyplot.Plot):
                         a.modified = False
                         self.sharecam = False
                     if a.trail and a.trail not in self.actors:
@@ -1536,9 +1451,6 @@ class Plotter:
                     #             if at in a2.renderedAt: # remove old message
                     #                 self.remove(a2)
                     scannedacts.append(a)
-
-                # elif a is Ellipsis:
-                #     scannedacts += settings.collectable_actors
 
                 elif isinstance(a, vedo.Volume):
                     scannedacts.append(a)
@@ -1577,14 +1489,12 @@ class Plotter:
                     self.renderer.AddLight(a)
 
                 elif isinstance(a, str):  # assume a filepath or 2D comment was given
-                    import os.path
                     if a.startswith('https'):
                         a = vedo.io.download(a)
                     if "." in a and ". " not in a and os.path.isfile(a):
                         out = vedo.io.load(a)
                     else:
-                        from vedo.shapes import Text2D
-                        out = Text2D(a, pos=3)
+                        out = vedo.shapes.Text2D(a, pos=3)
                     scannedacts.append(out)
 
                 elif isinstance(a, vtk.vtkMultiBlockDataSet):
@@ -1596,12 +1506,10 @@ class Plotter:
                             scannedacts.append(vedo.Volume(b))
 
                 elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
-                    from vedo.dolfin import MeshActor
-                    scannedacts.append(MeshActor(a))
+                    scannedacts.append(vedo.dolfin.MeshActor(a))
 
                 elif "trimesh" in str(type(a)):
-                    from vedo.utils import trimesh2vedo
-                    scannedacts.append(trimesh2vedo(a))
+                    scannedacts.append(utils.trimesh2vedo(a))
 
                 else:
                     try:
@@ -1630,7 +1538,7 @@ class Plotter:
         if axes is not None:
             self.axes = axes
 
-        #########################################################################
+        # Backend ###############################################################
         if settings.notebookBackend and settings.notebookBackend != "panel" and settings.notebookBackend != "2d":
             return backends.getNotebookBackend(actors2show, zoom, viewup)
         #########################################################################
@@ -1770,7 +1678,7 @@ class Plotter:
             if viewup != "2d" or self.axes in [1, 8] or isinstance(self.axes, dict):
                 addons.addGlobalAxes(self.axes)
 
-        #########################################################################
+        # panel #################################################################
         if settings.notebookBackend == "panel":
             return backends.getNotebookBackend(0, 0, 0)
         #########################################################################
@@ -1818,6 +1726,7 @@ class Plotter:
                 interactorStyle = 7
 
         if isinstance(camera, dict):
+            camera = dict(camera) # make a copy so it's not emptied by pop()
             cm_pos = camera.pop("pos", None)
             cm_focalPoint = camera.pop("focalPoint", None)
             cm_viewup = camera.pop("viewup", None)
@@ -1838,13 +1747,12 @@ class Plotter:
             if cm_thickness is not None: self.camera.SetThickness(cm_thickness)
             if cm_viewAngle is not None: self.camera.SetViewAngle(cm_viewAngle)
 
-        if self.resetcam:
-            self.renderer.ResetCameraClippingRange()
 
-        self.window.Render() ############################# <----
+        self.renderer.ResetCameraClippingRange()
+        self.window.Render() ############################# <----Render
 
 
-        #########################################################################
+        # 2d ####################################################################
         if settings.notebookBackend == "2d":
             return backends.getNotebookBackend(0, 0, 0)
         #########################################################################
@@ -1859,7 +1767,6 @@ class Plotter:
         if interactorStyle == 0 or interactorStyle == "TrackballCamera":
             #csty = self.interactor.GetInteractorStyle().GetCurrentStyle().GetClassName()
             #if "TrackballCamera" not in csty:
-
             # this causes problems (when pressing 3 eg) :
             if self.qtWidget:
                 self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
@@ -1903,9 +1810,6 @@ class Plotter:
                 self.clock = time.time() - self._clockt0
 
         if q:  # exit python
-            if self.verbose:
-                if not self.interactive: self.interactor.Start()
-                print("q flag set to True.  Exit python session.")
             sys.exit(0)
 
         return self
@@ -2056,7 +1960,13 @@ class Plotter:
 
         picker = vtk.vtkPropPicker()
         picker.PickProp(x, y, renderer)
+
         clickedActor = picker.GetActor()
+
+        # print("picked Volume:",   [picker.GetVolume()])
+        # print("picked Actor2D:",  [picker.GetActor2D()])
+        # print("picked Assembly:", [picker.GetAssembly()])
+        # print("picked Prop3D:",   [picker.GetProp3D()])
 
         # check if any button objects are clicked
         clickedActor2D = picker.GetActor2D()
@@ -2069,15 +1979,22 @@ class Plotter:
         if not clickedActor:
             clickedActor = picker.GetAssembly()
 
-        self.picked3d = picker.GetPickPosition()
-
-        self.justremoved = None
+        if not clickedActor:
+            clickedActor = picker.GetProp3D()
 
         if not hasattr(clickedActor, "GetPickable") or not clickedActor.GetPickable():
             return
 
+        self.picked3d = picker.GetPickPosition()
+        self.picked2d = np.array([x,y])
+
+        if not clickedActor:
+            return
+
+        self.justremoved = None
+
         self.clickedActor = clickedActor
-        if hasattr(clickedActor, 'picked3d'):
+        if hasattr(clickedActor, 'picked3d'): # might be not a vedo obj
             clickedActor.picked3d = picker.GetPickPosition()
 
         if self.mouseLeftClickFunction:
@@ -2088,6 +2005,7 @@ class Plotter:
     def _mouseright(self, iren, event):
 
         x, y = iren.GetEventPosition()
+        # print('_mouseright mouse at', x, y)
 
         renderer = iren.FindPokedRenderer(x, y)
         self.renderer = renderer
@@ -2106,10 +2024,14 @@ class Plotter:
 
         if not clickedActor:
             clickedActor = picker.GetAssembly()
-        self.picked3d = picker.GetPickPosition()
+
+        if not clickedActor:
+            clickedActor = picker.GetProp3D()
 
         if not hasattr(clickedActor, "GetPickable") or not clickedActor.GetPickable():
             return
+        self.picked3d = picker.GetPickPosition()
+        self.picked2d = np.array([x,y])
         self.clickedActor = clickedActor
 
         if self.mouseRightClickFunction:
@@ -2138,11 +2060,15 @@ class Plotter:
 
         if not clickedActor:
             clickedActor = picker.GetAssembly()
-        self.picked3d = picker.GetPickPosition()
+
+        if not clickedActor:
+            clickedActor = picker.GetProp3D()
 
         if not hasattr(clickedActor, "GetPickable") or not clickedActor.GetPickable():
             return
         self.clickedActor = clickedActor
+        self.picked3d = picker.GetPickPosition()
+        self.picked2d = np.array([x,y])
 
         if self.mouseMiddleClickFunction:
             self.mouseMiddleClickFunction(self.clickedActor)
@@ -2150,25 +2076,30 @@ class Plotter:
 
     #######################################################################
     def _keypress(self, iren, event):
+
         # qt creates and passes a vtkGenericRenderWindowInteractor
 
         key = iren.GetKeySym()
-        # print('Pressed key:', key)
+        # utils.printc('Pressed key:', self.keyheld, key, c='y', box='-')
+
+        if key in ["Shift_L", "Control_L", "Super_L", "Alt_L",
+                   "Shift_R", "Control_R", "Super_R", "Alt_R", "Menu"]:
+            self.keyheld = key
 
         if key in ["q", "space", "Return"]:
             iren.ExitCallback()
             return
 
-        elif key == "Escape":
+        elif key in ["F1", "Pause", "Escape"]:
             sys.stdout.flush()
-            settings.plotter_instance.closeWindow()
-
-        elif key in ["F1", "Pause"]:
-            sys.stdout.flush()
-            printc('\n[F1] pressed. Execution aborted. Exiting python now.', c='r')
+            printc('\nExecution aborted. Exiting python kernel now.', c='r')
             settings.plotter_instance.close()
             sys.exit(0)
 
+        # if ("Control_" in self.keyheld) and key=="c":
+        #     print('ctrl-c')
+        # if ("Control_" in self.keyheld) and key=="v":
+        #     print('ctrl-v')
 
         #############################################################
         ### now intercept custom observer ###########################
@@ -2176,9 +2107,9 @@ class Plotter:
         if self.keyPressFunction:
             if key not in ["Shift_L", "Control_L", "Super_L", "Alt_L"]:
                 if key not in ["Shift_R", "Control_R", "Super_R", "Alt_R"]:
-                    self.verbose = False
                     self.keyPressFunction(key)
                     return
+        #############################################################
 
         if key == "Down":
             if self.clickedActor in self.getMeshes():
@@ -2541,7 +2472,7 @@ class Plotter:
                         lnr = (ia._ligthingnr+1)%5
                         ia.lighting(shds[lnr])
                         ia._ligthingnr = lnr
-                        printc('-> lighting set to:', shds[lnr], c='g', bold=0)
+                        #printc('-> lighting set to:', shds[lnr], c='g', bold=0)
                     except AttributeError:
                         pass
 
@@ -2555,15 +2486,14 @@ class Plotter:
                     ia.computeNormals()
                     intrp = (ia.GetProperty().GetInterpolation()+1)%3
                     ia.GetProperty().SetInterpolation(intrp)
-                    printc('->  shading set to:',
-                                  ia.GetProperty().GetInterpolationAsString(),
-                                  c='g', bold=0)
+                    # printc('->  shading set to:',
+                    #               ia.GetProperty().GetInterpolationAsString(),
+                    #               c='g', bold=0)
 
         elif key == "n":  # show normals to an actor
-            from vedo.shapes import NormalLines
             if self.clickedActor in self.getMeshes():
                 if self.clickedActor.GetPickable():
-                    self.renderer.AddActor(NormalLines(self.clickedActor))
+                    self.renderer.AddActor(vedo.shapes.NormalLines(self.clickedActor))
                     iren.Render()
             else:
                 print("Click an actor and press n to add normals.")
@@ -2623,11 +2553,31 @@ class Plotter:
         elif key == "I":  # print color under the mouse
             x, y = iren.GetEventPosition()
             rgb = vedo.colors.colorPicker([x,y], self)
-            printc('Pixel', [x,y], ' has RGB =', rgb.tolist(), end='')
+            if rgb is None: return
+            printc('Pixel', [x,y], 'has RGB[',  end='')
+            printc('█', c=[rgb[0],0,0], end='')
+            printc('█', c=[0,rgb[1],0], end='')
+            printc('█', c=[0,0,rgb[2]], end='')
+            printc('] = ', end='')
             cnm = getColorName(rgb)
-            printc(' ('+cnm+')', c=cnm)
-
+            if np.sum(rgb) < 150:
+                printc(rgb.tolist(), rgb2hex(np.array(rgb)/255), c='w',
+                       bc=rgb, invert=1, end='')
+                printc('  ~ '+cnm, invert=1, c='w')
+            else:
+                printc(rgb.tolist(), rgb2hex(np.array(rgb)/255), c=rgb, end='')
+                printc('  ~ '+cnm, c=cnm)
 
         if iren:
             iren.Render()
+        return
+
+    ######################################
+    def _keyrelease(self, iren, event):
+        key = iren.GetKeySym()
+        # utils.printc('Released key:', key, c='v', box='-')
+        if key in ["Shift_L", "Control_L", "Super_L", "Alt_L",
+                   "Shift_R", "Control_R", "Super_R", "Alt_R", "Menu"]:
+            self.keyheld = ''
+        return
 

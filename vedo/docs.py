@@ -153,7 +153,7 @@ _defs = ""
 #     :alt: gyroscope2.py
 
 # .. |trail.py| replace:: trail.py
-# .. _trail.py: https://github.com/marcomusy/vedo/tree/master/examples/basic/trail.py
+# .. _trail.py: https://github.com/marcomusy/vedo/tree/master/examples/simulations/trail.py
 # .. |trail| image:: https://user-images.githubusercontent.com/32848391/58370826-4aee2680-7f0b-11e9-91e6-3120770cfede.gif
 #     :width: 300 px
 #     :target: trail.py_
@@ -296,7 +296,7 @@ _defs = ""
 #     :alt: lights.py
 
 # .. |lorenz.py| replace:: lorenz.py
-# .. _lorenz.py: https://github.com/marcomusy/vedo/tree/master/examples/basic/lorenz.py
+# .. _lorenz.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/lorenz.py
 # .. |lorenz| image:: https://user-images.githubusercontent.com/32848391/46818115-be7a6380-cd80-11e8-8ffb-60af2631bf71.png
 #     :width: 300 px
 #     :target: lorenz.py_
@@ -899,7 +899,7 @@ _defs = ""
 #     :alt: pi_estimate.py
 
 # .. |isolines.py| replace:: isolines.py
-# .. _isolines.py: https://github.com/marcomusy/vedo/tree/master/examples/basic/isolines.py
+# .. _isolines.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/isolines.py
 # .. |isolines| image:: https://user-images.githubusercontent.com/32848391/72433087-f00a8780-3798-11ea-9778-991f0abeca70.png
 #     :width: 300 px
 #     :target: isolines.py_

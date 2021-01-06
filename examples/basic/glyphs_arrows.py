@@ -4,8 +4,8 @@ Draw color arrow glyphs.
 from vedo import *
 import numpy as np
 
-s1 = Sphere(r=10, res=8).c('white').wireframe()
-s2 = Sphere(r=20, res=8).c('white').wireframe().alpha(0.1).pos(0,4,0)
+s1 = Sphere(r=10, res=8).wireframe().c('white')
+s2 = Sphere(r=20, res=8).wireframe().c('white',0.1).pos(0,4,0)
 
 coords1 = s1.points() # get the vertices coords
 coords2 = s2.points()

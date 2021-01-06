@@ -9,7 +9,7 @@ sliderstart, sliderstop = [0.025,0.04], [0.025,0.4] # slider positioning
 
 ######################################################################
 def slicerfunc(index, data):
-    vol = data.mode(1).c('k').alpha(alphas)
+    vol = data.mode(1).c('k',alphas)
     dims = vol.dimensions()
     box = vol.box().alpha(0.5)
     vmin, vmax = vol.scalarRange()

@@ -11,6 +11,7 @@ import vedo.shapes as shapes
 import vedo.addons as addons
 from vedo.assembly import Assembly
 from vedo.mesh import Mesh, merge
+from vedo.plotter import show # not used, but useful to import this
 
 __doc__ = """Plotting utility functions.""" + vedo.docs._defs
 
@@ -74,6 +75,7 @@ class Plot(Assembly):
             shapes.Latex,
             shapes.Sphere,
             Assembly,
+            vedo.Picture,
         )
         self.fixed_scale = np.min([self.xscale, self.yscale])
 
@@ -101,6 +103,9 @@ class Plot(Assembly):
         else:
             # print('adding individual objects', len(objs))
             for a in objs:
+                # if isinstance(a, str):
+                #     self.AddPart(vedo.Text2D(a))
+                # else:
                 self.AddPart(a)
                 if isinstance(a, typs):
                     # special scaling to preserve the aspect ratio
@@ -456,6 +461,163 @@ def histogram(*args, **kwargs):
     return None
 
 
+def fit(points,
+        deg=1,
+        niter=0,
+        nstd=3,
+        xerrors=None,
+        yerrors=None,
+        vrange=None,
+        res=250,
+        lw=3,
+        c='red4',
+    ):
+    """
+    Polynomial fitting in 2D with parameter error and error bands calculation.
+
+    Errors bars in both x and y are supported.
+
+    Additional information about the fitting output can be accessed. E.g.:
+
+        ``fit = fitPolynomial(pts)``
+
+        - ``fit.coefficients``: contains the coefficient of the polynomial fit
+        - ``fit.coefficientErrors``: errors on the fitting coefficients,
+            these numbers only make sense if parameters are not correlated
+
+        - ``fit.MonteCarloCoefficients``: fitting coefficient set from MC generation
+        - ``fit.covarianceMatrix``: covariance matrix as a numpy array
+        - ``fit.reducedChi2``: reduced chi-square of the fitting
+        - ``fit.ndof``: number of degrees of freedom
+        - ``fit.dataSigma``: mean data dispersion from the central fit assuming Chi2=1
+        - ``fit.errorLines``: a ``vedo.Line`` object for the upper and lower error band
+        - ``fit.errorBand``: the ``vedo.Mesh`` object representing the error band
+
+    Errors on x and y can be specified. If left `None` an estimate is made from
+    the statistical spread of the dataset itself. Errors are always assumed gaussian.
+
+    :param int deg: degree of the polynomial to be fitted
+    :param int niter: number of monte-carlo iterations to compute error bands.
+        If set to 0, return the simple least-squares fit with naive error estimation
+        on coefficients only. A reasonable non-zero value to set is about 500, in
+        this case ``errorLines``, ``errorBand`` and the other class attributes are filled
+
+    :param int nstd: nr. of standard deviation to use for error calculation
+    :param list xerrors: array of the same length of points with the errors on x
+    :param list yerrors: array of the same length of points with the errors on y
+    :param list vrange: specify the domain range of the fitting line
+        (only affects visualization, but can be used to extrapolate the fit
+         outside the data range)
+
+    :param int res: resolution of the output fitted line and error lines
+
+    |fitPolynomial1| |fitPolynomial1.py|_
+
+    |fitPolynomial2| |fitPolynomial2.py|_
+    """
+    if isinstance(points, vedo.pointcloud.Points):
+        points = points.points()
+    points = np.asarray(points)
+    if len(points) == 2: # assume user is passing [x,y]
+        points = np.c_[points[0],points[1]]
+    x = points[:,0]
+    y = points[:,1] # ignore z
+
+    n = len(x)
+    ndof = n - deg - 1
+    if vrange is not None:
+        x0, x1 = vrange
+    else:
+        x0, x1 = np.min(x), np.max(x)
+        if xerrors is not None:
+            x0 -= xerrors[0]/2
+            x1 += xerrors[-1]/2
+
+    tol = (x1-x0)/1000
+    xr = np.linspace(x0,x1, res)
+
+    # project x errs on y
+    if xerrors is not None:
+        xerrors = np.asarray(xerrors)
+        if yerrors is not None:
+            yerrors = np.asarray(yerrors)
+            w = 1.0/yerrors
+            coeffs = np.polyfit(x, y, deg, w=w, rcond=None)
+        else:
+            coeffs = np.polyfit(x, y, deg, rcond=None)
+        # update yerrors, 1 bootstrap iteration is enough
+        p1d = np.poly1d(coeffs)
+        der = (p1d(x+tol)-p1d(x))/tol
+        yerrors = np.sqrt(yerrors*yerrors + np.power(der*xerrors,2))
+
+    if yerrors is not None:
+        yerrors = np.asarray(yerrors)
+        w = 1.0/yerrors
+        coeffs, V = np.polyfit(x, y, deg, w=w, rcond=None, cov=True)
+    else:
+        w = 1
+        coeffs, V = np.polyfit(x, y, deg, rcond=None, cov=True)
+
+    p1d = np.poly1d(coeffs)
+    theor = p1d(xr)
+    l = shapes.Line(xr, theor, lw=lw, c=c).z(tol*2)
+    l.coefficients = coeffs
+    l.covarianceMatrix = V
+    residuals2_sum = np.sum(np.power(p1d(x)-y, 2))/ndof
+    sigma = np.sqrt(residuals2_sum)
+    l.reducedChi2 = np.sum(np.power((p1d(x)-y)*w, 2))/ndof
+    l.ndof = ndof
+    l.dataSigma = sigma # worked out from data using chi2=1 hypo
+    l.name = "LinePolynomialFit"
+
+    if not niter:
+        l.coefficientErrors = np.sqrt(np.diag(V))
+        return l ################################
+
+    if yerrors is not None:
+        sigma = yerrors
+    else:
+        w = None
+        l.reducedChi2 = 1
+
+    Theors, all_coeffs = [], []
+    for i in range(niter):
+        noise = np.random.randn(n)*sigma
+        Coeffs = np.polyfit(x, y + noise, deg, w=w, rcond=None)
+        all_coeffs.append(Coeffs)
+        P1d = np.poly1d(Coeffs)
+        Theor = P1d(xr)
+        Theors.append(Theor)
+    all_coeffs = np.array(all_coeffs)
+    l.MonteCarloCoefficients = all_coeffs
+
+    stds = np.std(Theors, axis=0)
+    l.coefficientErrors = np.std(all_coeffs, axis=0)
+
+    # check distributions on the fly
+    # for i in range(deg+1):
+    #     vedo.pyplot.histogram(all_coeffs[:,i],title='par'+str(i)).show(new=1)
+    # vedo.pyplot.histogram(all_coeffs[:,0], all_coeffs[:,1],
+    #                       xtitle='param0', ytitle='param1',scalarbar=1).show(new=1)
+    # vedo.pyplot.histogram(all_coeffs[:,1], all_coeffs[:,2],
+    #                       xtitle='param1', ytitle='param2').show(new=1)
+    # vedo.pyplot.histogram(all_coeffs[:,0], all_coeffs[:,2],
+    #                       xtitle='param0', ytitle='param2').show(new=1)
+
+    error_lines = []
+    for i in [nstd, -nstd]:
+        el = shapes.Line(xr, theor+stds*i, lw=1, alpha=0.2, c='k').z(tol)
+        error_lines.append(el)
+        el.name = "ErrorLine for sigma="+str(i)
+
+    l.errorLines = error_lines
+    l1 = error_lines[0].points().tolist()
+    cband = l1 + list(reversed(error_lines[1].points().tolist())) + [l1[0]]
+    l.errorBand = shapes.Line(cband).triangulate().lw(0).c('k', 0.15)
+    l.errorBand.name = "PolynomialFitErrorBand"
+    return l
+
+
 #########################################################################################
 def _plotxy(
     data,
@@ -668,7 +830,7 @@ def _plotxy(
             c=c,
             depth=0,
             alpha=alpha,
-            pos=((x0lim + x1lim) / 2, y1lim + dy / 80, 0),
+            pos=((x0lim + x1lim) / 2, y1lim + (y1lim-y0lim) / 80, 0),
             justify="bottom-center",
         )
         tit.pickable(False).z(3 * offs)
@@ -799,7 +961,7 @@ def _plotFxy(
         poly = a.polydata()
 
     cmap=''
-    if c in colors._mapscales_cmaps:
+    if c in colors.cmaps_names:
         cmap = c
         c = None
         bc= None
@@ -1314,7 +1476,7 @@ def _histogram1D(
             c=titleColor,
             depth=0,
             alpha=alpha,
-            pos=((x0lim + x1lim) / 2, y1lim + dy / 80, 0),
+            pos=((x0lim + x1lim) / 2, y1lim + (y1lim-y0lim) / 80, 0),
             justify="bottom-center",
         )
         tit.pickable(False).z(2.5 * offs)
@@ -1381,6 +1543,7 @@ def _histogram2D(
     title="",
     xtitle="x",
     ytitle="y",
+    ztitle="z",
     titleSize=None,
     titleColor=None,
     # logscale=False,
@@ -1400,6 +1563,7 @@ def _histogram2D(
         title = ""
         xtitle = ""
         ytitle = ""
+        ztitle = ""
         offs = format.zmax
 
     if yvalues is None:
@@ -1440,7 +1604,7 @@ def _histogram2D(
     g.cmap(cmap, np.ravel(H.T), on='cells')
     g.SetOrigin(x0lim, y0lim, 0)
     if scalarbar:
-        sc = g.addScalarBar3D(c=bc)
+        sc = g.addScalarBar3D(c=bc).scalarbar
         scy0, scy1 = sc.ybounds()
         sc_scale = (y1lim-y0lim)/(scy1-scy0)
         sc.scale(sc_scale)
@@ -1461,7 +1625,7 @@ def _histogram2D(
             c=titleColor,
             depth=0,
             alpha=alpha,
-            pos=((x0lim + x1lim) / 2, y1lim + dy / 40, 0),
+            pos=((x0lim + x1lim) / 2, y1lim + (y1lim-y0lim) / 80, 0),
             justify="bottom-center",
         )
         tit.pickable(False).z(2.5 * offs)
@@ -1480,10 +1644,11 @@ def _histogram2D(
             labs.append([ynew, ts[i]])
         axes["xtitle"] = xtitle
         axes["ytitle"] = ytitle
+        axes["ztitle"] = ztitle
         axes["yValuesAndLabels"] = labs
         axes["xrange"] = (x0lim, x1lim)
         axes["yrange"] = (y0lim, y1lim)
-        axes["zrange"] = (0, 0)
+        axes["zrange"] = (0, 0) # todo
         axes["c"] = bc
         axs = addons.Axes(**axes)
         axs.name = "axes"
@@ -1493,6 +1658,7 @@ def _histogram2D(
     else:
         settings.xtitle = xtitle
         settings.ytitle = ytitle
+        settings.ytitle = ztitle
         asse = Plot(acts)
 
     asse.yscale = yscale
@@ -1518,6 +1684,7 @@ def _histogramHexBin(
     yvalues,
     xtitle="",
     ytitle="",
+    ztitle="",
     bins=12,
     vrange=None,
     norm=1,
@@ -1530,6 +1697,8 @@ def _histogramHexBin(
         settings.xtitle = xtitle
     if ytitle:
         settings.ytitle = ytitle
+    if ztitle:
+        settings.ztitle = ztitle
 
     xmin, xmax = np.min(xvalues), np.max(xvalues)
     ymin, ymax = np.min(yvalues), np.max(yvalues)

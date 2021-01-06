@@ -445,6 +445,7 @@ def delaunay2D(plist, mode='scipy', tol=None):
     delny.Update()
     return vedo.mesh.Mesh(delny.GetOutput())
 
+
 def fitLine(points):
     """
     Fits a line through points.
@@ -727,6 +728,9 @@ class Points(vtk.vtkFollower, BaseActor):
         self.cell_locator = None
         self._mapper = vtk.vtkPolyDataMapper()
         self.SetMapper(self._mapper)
+
+        self._scals_idx = 0  # index of the active scalar changed from CLI
+        self._ligthingnr = 0 # index of the lighting mode changed from CLI
 
         prp = self.GetProperty()
         if hasattr(prp, 'RenderPointsAsSpheresOn'):
@@ -1118,7 +1122,6 @@ class Points(vtk.vtkFollower, BaseActor):
                 lines.InsertCellPoint(i)
             poly.SetPoints(ppoints)
             poly.SetLines(lines)
-            mapper = vtk.vtkPolyDataMapper()
 
             if c is None:
                 if hasattr(self, "GetProperty"):
@@ -1133,15 +1136,17 @@ class Points(vtk.vtkFollower, BaseActor):
                 if hasattr(self, "GetProperty"):
                     alpha = self.GetProperty().GetOpacity()
 
-            mapper.SetInputData(poly)
             tline = vedo.mesh.Mesh(poly, c=col, alpha=alpha)
-            tline.SetMapper(mapper)
             tline.GetProperty().SetLineWidth(lw)
             self.trail = tline  # holds the vtkActor
         return self
 
     def updateTrail(self):
-        currentpos = np.array(self.GetPosition())
+        if isinstance(self, vedo.shapes.Arrow):
+            currentpos= self.tipPoint() # the tip of Arrow
+        else:
+            currentpos = np.array(self.GetPosition())
+
         if self.trailOffset:
             currentpos += self.trailOffset
         lastpos = self.trailPoints[-1]
@@ -1283,7 +1288,7 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
 
-    def color(self, c=False):
+    def color(self, c=False, alpha=None):
         """
         Set/get mesh's color.
         If None is passed as input, will use colors from active scalars.
@@ -1300,6 +1305,8 @@ class Points(vtk.vtkFollower, BaseActor):
         self.GetProperty().SetColor(cc)
         if self.trail:
             self.trail.GetProperty().SetColor(cc)
+        if alpha is not None:
+            self.alpha(alpha)
         return self
 
     def clean(self, tol=None):

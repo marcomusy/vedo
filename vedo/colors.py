@@ -14,7 +14,6 @@ Colors definitions and printing methods.
 )
 
 __all__ = [
-    "ask",
     "printc",
     "getColor",
     "getColorName",
@@ -28,18 +27,18 @@ _global_start_time = time.time()
 try:
     import matplotlib
     import matplotlib.cm as cm_mpl
-
-    _mapscales = cm_mpl
+    _has_matplotlib = cm_mpl
 except:
-    _mapscales = None
+    from vedo.cmaps import cmaps
+    _has_matplotlib = False
     # see below, this is dealt with in colorMap()
 
 
 #########################################################
 # basic color schemes
 #########################################################
-colors = {  # from matplotlib
-    "aliceblue": "#F0F8FF",
+colors = {
+    "aliceblue": "#F0F8FF",      # matplotlib scheme
     "antiquewhite": "#FAEBD7",
     "aqua": "#00FFFF",
     "aquamarine": "#7FFFD4",
@@ -179,7 +178,119 @@ colors = {  # from matplotlib
     "whitesmoke": "#F5F5F5",
     "yellow": "#FFFF00",
     "yellowgreen": "#9ACD32",
+
+    "blue9": "#a8cbfe",      # bootstrap5 colors
+    "blue8": "#81b4fe",
+    "blue7": "#5a9cfe",
+    "blue6": "#3485fd",
+    "blue5": "#0d6efd",
+    "blue4": "#0b5cd5",
+    "blue3": "#094bac",
+    "blue2": "#073984",
+    "blue1": "#05285b",
+
+    "indigo9": "#c8a9fa",
+    "indigo8": "#af83f8",
+    "indigo7": "#975cf6",
+    "indigo6": "#7e36f4",
+    "indigo5": "#6610f2",
+    "indigo4": "#560dcb",
+    "indigo3": "#450ba5",
+    "indigo2": "#35087e",
+    "indigo1": "#250657",
+
+    "purple9": "#cbbbe9",
+    "purple8": "#b49ddf",
+    "purple7": "#9d7ed5",
+    "purple6": "#8660cb",
+    "purple5": "#6f42c1",
+    "purple4": "#5d37a2",
+    "purple3": "#4b2d83",
+    "purple2": "#3a2264",
+    "purple1": "#281845",
+
+    "pink9": "#f0b6d3",
+    "pink8": "#ea95bf",
+    "pink7": "#e374ab",
+    "pink6": "#dd5498",
+    "pink5": "#d63384",
+    "pink4": "#b42b6f",
+    "pink3": "#92235a",
+    "pink2": "#6f1b45",
+    "pink1": "#4d1230",
+
+    "red9": "#f2b6bc",
+    "red8": "#ed969e",
+    "red7": "#e77681",
+    "red6": "#e25563",
+    "red5": "#dc3545",
+    "red4": "#b92d3a",
+    "red3": "#96242f",
+    "red2": "#721c24",
+    "red1": "#4f1319",
+
+    "orange9": "#fed1aa",
+    "orange8": "#febc85",
+    "orange7": "#fea75f",
+    "orange6": "#fd933a",
+    "orange5": "#fd7e14",
+    "orange4": "#d56a11",
+    "orange3": "#ac560e",
+    "orange2": "#84420a",
+    "orange1": "#5b2d07",
+
+    "yellow9": "#ffe9a6",
+    "yellow8": "#ffdf7e",
+    "yellow7": "#ffd556",
+    "yellow6": "#ffcb2f",
+    "yellow5": "#ffc107",
+    "yellow4": "#d6a206",
+    "yellow3": "#ad8305",
+    "yellow2": "#856404",
+    "yellow1": "#5c4503",
+
+    "green9": "#b2dfbc",
+    "green8": "#8fd19e",
+    "green7": "#6dc381",
+    "green6": "#4ab563",
+    "green5": "#28a745",
+    "green4": "#228c3a",
+    "green3": "#1b722f",
+    "green2": "#155724",
+    "green1": "#0e3c19",
+
+    "teal9": "#afecda",
+    "teal8": "#8be3c9",
+    "teal7": "#67dab8",
+    "teal6": "#44d2a8",
+    "teal5": "#20c997",
+    "teal4": "#1ba97f",
+    "teal3": "#168967",
+    "teal2": "#11694f",
+    "teal1": "#0c4836",
+
+    "cyan9": "#abdee5",
+    "cyan8": "#86cfda",
+    "cyan7": "#61c0cf",
+    "cyan6": "#3cb1c3",
+    "cyan5": "#17a2b8",
+    "cyan4": "#13889b",
+    "cyan3": "#106e7d",
+    "cyan2": "#0c5460",
+    "cyan1": "#083a42",
+
+    "gray9": "#f8f9fa",
+    "gray8": "#e9edef",
+    "gray7": "#dee2e6",
+    "gray6": "#ced4da",
+    "gray5": "#adb5bd",
+    "gray4": "#6c757d",
+    "gray3": "#495057",
+    "gray2": "#343a40",
+    "gray1": "#212529",
+
 }
+
 
 color_nicks = {  # color nicknames
     "a": "aqua",
@@ -215,11 +326,83 @@ color_nicks = {  # color nicknames
     "dc": "darkcyan",
     "ds": "darksalmon",
     "dv": "darkviolet",
+    "b1": "blue1",      # bootstrap5 colors
+    "b2": "blue2",
+    "b3": "blue3",
+    "b4": "blue4",
+    "b5": "blue5",
+    "b6": "blue6",
+    "b7": "blue7",
+    "b8": "blue8",
+    "b9": "blue9",
+    "i1": "indigo1",
+    "i2": "indigo2",
+    "i3": "indigo3",
+    "i4": "indigo4",
+    "i5": "indigo5",
+    "i6": "indigo6",
+    "i7": "indigo7",
+    "i8": "indigo8",
+    "i9": "indigo9",
+    "p1": "purple1",
+    "p2": "purple2",
+    "p3": "purple3",
+    "p4": "purple4",
+    "p5": "purple5",
+    "p6": "purple6",
+    "p7": "purple7",
+    "p8": "purple8",
+    "p9": "purple9",
+    "r1": "red1",
+    "r2": "red2",
+    "r3": "red3",
+    "r4": "red4",
+    "r5": "red5",
+    "r6": "red6",
+    "r7": "red7",
+    "r8": "red8",
+    "r9": "red9",
+    "o1": "orange1",
+    "o2": "orange2",
+    "o3": "orange3",
+    "o4": "orange4",
+    "o5": "orange5",
+    "o6": "orange6",
+    "o7": "orange7",
+    "o8": "orange8",
+    "o9": "orange9",
+    "y1": "yellow1",
+    "y2": "yellow2",
+    "y3": "yellow3",
+    "y4": "yellow4",
+    "y5": "yellow5",
+    "y6": "yellow6",
+    "y7": "yellow7",
+    "y8": "yellow8",
+    "y9": "yellow9",
+    "g1": "green1",
+    "g2": "green2",
+    "g3": "green3",
+    "g4": "green4",
+    "g5": "green5",
+    "g6": "green6",
+    "g7": "green7",
+    "g8": "green8",
+    "g9": "green9",
+    "k1": "gray1",
+    "k2": "gray2",
+    "k3": "gray3",
+    "k4": "gray4",
+    "k5": "gray5",
+    "k6": "gray6",
+    "k7": "gray7",
+    "k8": "gray8",
+    "k9": "gray9",
 }
 
 
-# available colormap names from matplotlib:
-_mapscales_cmaps = (
+# available colormap names:
+cmaps_names = (
     "Accent",    "Accent_r",    "Blues",     "Blues_r",
     "BrBG",      "BrBG_r",      "BuGn",      "BuGn_r",
     "BuPu",      "BuPu_r",      "CMRmap",    "CMRmap_r",
@@ -331,7 +514,7 @@ def getColor(rgb=None, hsv=None):
             c = colors[c.lower()]
             # from now format is hex!
 
-        if "#" in c:  # hex to rgb
+        if c.startswith("#"):  # hex to rgb
             h = c.lstrip("#")
             rgb255 = list(int(h[i : i + 2], 16) for i in (0, 2, 4))
             rgbh = np.array(rgb255) / 255.0
@@ -392,6 +575,11 @@ def rgb2hsv(rgb):
     ma = vtk.vtkMath()
     return ma.RGBToHSV(getColor(rgb))
 
+def rgb2hex(rgb):
+    """Convert RGB to Hex color."""
+    h = '#%02x%02x%02x' % (int(rgb[0]*255),int(rgb[1]*255),int(rgb[2]*255))
+    return h
+
 
 def rgb2int(rgb_tuple):
     """Return the int number of a color from (r,g,b), with 0<r<1 etc."""
@@ -400,6 +588,11 @@ def rgb2int(rgb_tuple):
     #r,g,b = np.array(rgb_tuple, dtype=np.int)*255
     #return (r << 16) + (g << 8) + b
 
+def hex2rgb(hx):
+        h = hx.lstrip("#")
+        rgb255 = [int(h[i : i + 2], 16) for i in (0, 2, 4)]
+        rgbh = np.array(rgb255) / 255.0
+        return rgbh
 
 def colorMap(value, name="jet", vmin=None, vmax=None):
     """Map a real value in range [vmin, vmax] to a (r,g,b) color scale.
@@ -415,7 +608,7 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
 
         |colormaps|
 
-        Matplotlib full list:
+        Color maps list:
 
         .. image:: https://matplotlib.org/1.2.1/_images/show_colormaps.png
 
@@ -430,20 +623,9 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
 
                 (1.0, 0.809016994374948, 0.6173258487801733)
     """
-    if not _mapscales:
-        print("-------------------------------------------------------------------")
-        print("WARNING : cannot import matplotlib.cm (colormaps will show up gray).")
-        print("Try e.g.: sudo apt-get install python3-matplotlib")
-        print("     or : pip install matplotlib")
-        print("     or : build your own map (see example in basic/mesh_custom.py).")
-        return (0.5, 0.5, 0.5)
-
-    if isinstance(name, matplotlib.colors.LinearSegmentedColormap):
-        mp = name
-    else:
-        mp = cm_mpl.get_cmap(name=name)
-
+    value_isSequence = False
     if _isSequence(value):
+        value_isSequence = True
         values = np.array(value)
         if vmin is None:
             vmin = np.min(values)
@@ -452,6 +634,37 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
         values = np.clip(values, vmin, vmax)
         values -= vmin
         values = values / (vmax - vmin)
+
+    if not _has_matplotlib:
+        invert=False
+        if name.endswith('_r'):
+            invert=True
+            name = name.replace('_r', "")
+        cmap = cmaps[name]
+        n = len(cmap)-1
+        if value_isSequence:
+            outs = []
+            for v in values:
+                if invert:
+                    rgb = hex2rgb(cmap[int(v*n)])
+                else:
+                    rgb = hex2rgb(cmap[n-int(v*n)])
+                outs.append(rgb)
+            return outs
+
+        else:
+            if invert:
+                return hex2rgb(cmap[int(value*n)])
+            else:
+                return hex2rgb(cmap[n-int(value*n)])
+
+    # matplotlib is available, use it! #
+    if isinstance(name, matplotlib.colors.LinearSegmentedColormap):
+        mp = name
+    else:
+        mp = cm_mpl.get_cmap(name=name)
+
+    if value_isSequence:
         mp = cm_mpl.get_cmap(name=name)
         return mp(values)[:,[0,1,2]]
     else:
@@ -842,20 +1055,6 @@ def printc(*strings, **keys):
     if flush:
         sys.stdout.flush()
 
-def ask(*question, **kwarg):
-    """
-    Ask a question from command line. Return the answer as a string.
-    See function `printc()` for the description of the options.
-    """
-    kwarg.update({'end': ' '})
-    if 'invert' not in kwarg.keys():
-        kwarg.update({'invert': True})
-    if 'box' in kwarg.keys():
-        kwarg.update({'box': ''})
-    printc(*question, **kwarg)
-    resp = input()
-    return resp
-
 def colorPicker(xy, plt=None):
     """Pick color of specific (x,y) pixel on the screen."""
     w2if = vtk.vtkWindowToImageFilter()
@@ -867,7 +1066,9 @@ def colorPicker(xy, plt=None):
     nx, ny = plt.window.GetSize()
     varr = w2if.GetOutput().GetPointData().GetScalars()
     arr = vtk_to_numpy(varr).reshape(ny,nx,3)
-    return arr[int(xy[1]),int(xy[0])]
+    if int(xy[1])<ny and int(xy[0])<nx:
+        return arr[int(xy[1]),int(xy[0])]
+    return None
 
 
 

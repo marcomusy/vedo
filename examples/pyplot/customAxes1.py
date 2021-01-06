@@ -24,23 +24,21 @@ axes_opts = dict(
     axesLineWidth= 2,
     gridLineWidth= 1,
     zxGrid2=True,        # show zx plane on opposite side of the bounding box
-    xyPlaneColor='green',
+    xyPlaneColor='green7',
     xyGridColor='dg',    # darkgreen line color
     xyAlpha=0.2,         # grid opacity
     xTitlePosition=0.5,  # title fractional positions along axis
     xTitleJustify="top-center", # align title wrt to its axis
-    xTitleRotation=20,
+    yTitleSize=0.02,
     yTitleBox=True,
     yHighlightZero=True, # draw a line highlighting zero position if in range
     yHighlightZeroColor='red',
-    xLineColor='black',
     zLineColor='blue',
     zTitleColor='blue',
-    zTitleBackfaceColor='v', # violet color of axis title on the backface
+    zTitleBackfaceColor='v', # violet color of axis title backface
     labelFont="Quikhand",
     yLabelSize=0.025,    # size of the numeric labels along Y axis
     yLabelColor='dg',    # color of the numeric labels along Y axis
-    yLabelRotation=1,    # rotate clockwise by 90 deg
 )
 
 show(world, pts, spl, lns, __doc__+settings.defaultFont, axes=axes_opts)

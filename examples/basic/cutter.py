@@ -1,14 +1,10 @@
-"""
-Load a Volume (tif stack).
-Invoke a tool to cut off parts of it.
-"""
-print(__doc__)
+"""Drag the sphere to cut the mesh interactively
+Use mouse buttons to zoom and pan"""
+from vedo import *
 
-from vedo import Plotter, datadir
+s = Mesh(datadir+'cow.vtk')
 
-vp = Plotter()
+plt = show(s, __doc__, bg='black', bg2='bb', interactive=False)
+plt.addCutterTool(s, mode='sphere') #modes= sphere, plane, box
 
-vol = vp.load(datadir+"embryo.tif")
-
-vp.addCutterTool(vol)
-vp.show()
+interactive()

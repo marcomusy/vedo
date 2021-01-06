@@ -25,6 +25,8 @@ class Picture(vtk.vtkImageActor, Base3DProp):
     Derived class of ``vtkImageActor``. Used to represent 2D pictures.
     Can be instantiated with a path file name or with a numpy array.
 
+    Use `Picture.shape` to access the number of pixels in x and y.
+
     |rotateImage| |rotateImage.py|_
     """
     def __init__(self, obj=None):
@@ -76,7 +78,12 @@ class Picture(vtk.vtkImageActor, Base3DProp):
             self.SetInputData(img)
 
         self._data = img
+
+        sx,sy,_ = img.GetDimensions()
+        self.shape = np.array([sx,sy])
+
         self._mapper = self.GetMapper()
+
 
     def inputdata(self):
         """Return the underlying ``vtkImagaData`` object."""

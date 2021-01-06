@@ -2,15 +2,13 @@ from __future__ import division, print_function
 import numpy as np
 import os
 import vtk
-import vedo.colors as colors
-import vedo.docs as docs
-import vedo.settings as settings
-import vedo.utils as utils
+import vedo
+from vedo.colors import printc, getColor
+from vedo.utils import isSequence, flatten, buildPolyData
 from vedo.pointcloud import Points
-
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
-__doc__ = ("""Submodule to manage polygonal meshes.""" + docs._defs)
+__doc__ = ("""Submodule to manage polygonal meshes.""" + vedo.docs._defs)
 
 __all__ = ["Mesh", "merge"]
 
@@ -26,7 +24,7 @@ def merge(*meshs):
         |thinplate_grid| |value-iteration|
     """
     acts = []
-    for a in utils.flatten(meshs):
+    for a in flatten(meshs):
         if a:
             acts += [a]
 
@@ -87,13 +85,13 @@ class Mesh(Points):
     ):
         Points.__init__(self)
 
-        self._current_texture_name = '' # used by plotter._keypress
+        self._current_texture_name = ''  # used by plotter._keypress
 
-        self._mapper.SetInterpolateScalarsBeforeMapping(settings.interpolateScalarsBeforeMapping)
+        self._mapper.SetInterpolateScalarsBeforeMapping(vedo.settings.interpolateScalarsBeforeMapping)
 
-        if settings.usePolygonOffset:
+        if vedo.settings.usePolygonOffset:
             self._mapper.SetResolveCoincidentTopologyToPolygonOffset()
-            pof, pou = settings.polygonOffsetFactor, settings.polygonOffsetUnits
+            pof, pou = vedo.settings.polygonOffsetFactor, vedo.settings.polygonOffsetUnits
             self._mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
 
         inputtype = str(type(inputobj))
@@ -121,7 +119,7 @@ class Mesh(Points):
             self._polydata = inputobj  # cache vtkPolyData and mapper for speed
 
         elif isinstance(inputobj, (vtk.vtkStructuredGrid, vtk.vtkRectilinearGrid)):
-            if settings.visibleGridEdges:
+            if vedo.settings.visibleGridEdges:
                 gf = vtk.vtkExtractEdges()
                 gf.SetInputData(inputobj)
             else:
@@ -131,18 +129,18 @@ class Mesh(Points):
             self._polydata = gf.GetOutput()
 
         elif "trimesh" in inputtype:
-            tact = utils.trimesh2vedo(inputobj, alphaPerCell=False)
+            tact = vedo.utils.trimesh2vedo(inputobj, alphaPerCell=False)
             self._polydata = tact.polydata()
 
         elif "meshio" in inputtype: # meshio-4.0.11
             if len(inputobj.cells):
-                mcells =[]
+                mcells = []
                 for cellblock in inputobj.cells:
                     if cellblock.type in ("triangle", "quad"):
                         mcells += cellblock.data.tolist()
-                self._polydata = utils.buildPolyData(inputobj.points, mcells)
+                self._polydata = buildPolyData(inputobj.points, mcells)
             else:
-                self._polydata = utils.buildPolyData(inputobj.points, None)
+                self._polydata = buildPolyData(inputobj.points, None)
             # add arrays:
             try:
                 if len(inputobj.point_data):
@@ -161,16 +159,16 @@ class Mesh(Points):
             except AssertionError:
                 print("Could not add meshio cell data, skip.")
 
-        elif utils.isSequence(inputobj):
+        elif isSequence(inputobj):
             ninp = len(inputobj)
             if ninp == 0:
                 self._polydata = vtk.vtkPolyData()
-            elif ninp == 2: # assume [vertices, faces]
-                self._polydata = utils.buildPolyData(inputobj[0], inputobj[1])
-            else:           # assume [vertices] or vertices
-                self._polydata = utils.buildPolyData(inputobj, None)
+            elif ninp == 2:  # assume [vertices, faces]
+                self._polydata = buildPolyData(inputobj[0], inputobj[1])
+            else:            # assume [vertices] or vertices
+                self._polydata = buildPolyData(inputobj, None)
 
-        elif hasattr(inputobj, "GetOutput"): # passing vtk object
+        elif hasattr(inputobj, "GetOutput"):  # passing vtk object
             if hasattr(inputobj, "Update"): inputobj.Update()
             if isinstance(inputobj.GetOutput(), vtk.vtkPolyData):
                 self._polydata = inputobj.GetOutput()
@@ -190,12 +188,12 @@ class Mesh(Points):
                 self._polydata = dataset.polydata()
 
         else:
-            colors.printc("Error: cannot build mesh from type:\n", inputtype, c='r')
+            printc("Error: cannot build mesh from type:\n", inputtype, c='r')
             raise RuntimeError()
 
 
-        if settings.computeNormals is not None:
-            computeNormals = settings.computeNormals
+        if vedo.settings.computeNormals is not None:
+            computeNormals = vedo.settings.computeNormals
 
         if self._polydata:
             if computeNormals:
@@ -213,13 +211,11 @@ class Mesh(Points):
         self.line_locator = None
 
         self._bfprop = None  # backface property holder
-        self._scals_idx = 0  # index of the active scalar changed from CLI
-        self._ligthingnr = 0
 
         prp = self.GetProperty()
         prp.SetInterpolationToPhong()
 
-        if settings.renderLinesAsTubes:
+        if vedo.settings.renderLinesAsTubes:
             if hasattr(prp, 'RenderLinesAsTubesOn'):
                 prp.RenderLinesAsTubesOn()
 
@@ -263,7 +259,7 @@ class Mesh(Points):
             if not arrexists:
                 if c is None:
                     c = "gold"
-                c = colors.getColor(c)
+                c = getColor(c)
                 prp.SetColor(c)
                 prp.SetAmbient(0.1)
                 prp.SetDiffuse(1)
@@ -422,7 +418,10 @@ class Mesh(Points):
             return self
             ###########
 
-        if utils.isSequence(tname):
+        if 'https' in tname:
+            tname = vedo.io.download(tname)
+
+        if isSequence(tname):
             from PIL import Image
             from tempfile import NamedTemporaryFile
             tmp_file = NamedTemporaryFile()
@@ -436,8 +435,8 @@ class Mesh(Points):
             if not os.path.isfile(tname):
                 tname = str(self.filename).replace('.'+ext, '.jpg')
             if not os.path.isfile(tname):
-                colors.printc("Error in texture(): default texture file must be png or jpg",
-                              "\n e.g.", tname, c='r')
+                printc("Error in texture(): default texture file must be png or jpg",
+                       "\n e.g.", tname, c='r')
                 raise RuntimeError()
 
         if isinstance(tname, vtk.vtkTexture):
@@ -447,13 +446,13 @@ class Mesh(Points):
                 if not isinstance(tcoords, np.ndarray):
                     tcoords = np.array(tcoords)
                 if tcoords.ndim != 2:
-                    colors.printc('tcoords must be a 2-dimensional array', c='r')
+                    printc('tcoords must be a 2-dimensional array', c='r')
                     return self
                 if tcoords.shape[0] != pd.GetNumberOfPoints():
-                    colors.printc('Error in texture(): nr of texture coords must match nr of points', c='r')
+                    printc('Error in texture(): nr of texture coords must match nr of points', c='r')
                     return self
                 if tcoords.shape[1] != 2:
-                    colors.printc('Error in texture(): vector must have 2 components', c='r')
+                    printc('Error in texture(): vector must have 2 components', c='r')
                 tarr = numpy_to_vtk(np.ascontiguousarray(tcoords), deep=True)
                 tarr.SetName('TCoordinates')
                 pd.GetPointData().SetTCoords(tarr)
@@ -467,22 +466,22 @@ class Mesh(Points):
                     tc = tmapper.GetOutput().GetPointData().GetTCoords()
                     if scale or ushift or vshift:
                         ntc = vtk_to_numpy(tc)
-                        if scale: ntc *= scale
+                        if scale:  ntc *= scale
                         if ushift: ntc[:,0] += ushift
                         if vshift: ntc[:,1] += vshift
                         tc = numpy_to_vtk(tc, deep=True)
                     pd.GetPointData().SetTCoords(tc)
                     pd.GetPointData().Modified()
 
-            fn = settings.textures_path + tname + ".jpg"
+            fn = vedo.settings.textures_path + tname + ".jpg"
             if os.path.exists(tname):
                 fn = tname
             elif not os.path.exists(fn):
-                colors.printc("File does not exist or texture", tname,
-                              "not found in", settings.textures_path, c="r")
-                colors.printc("\pin Available built-in textures:", c="m", end=" ")
-                for ff in os.listdir(settings.textures_path):
-                    colors.printc(ff.split(".")[0], end=" ", c="m")
+                printc("File does not exist or texture", tname,
+                       "not found in", vedo.settings.textures_path, c="r")
+                printc("\tin Available built-in textures:", c="m", end=" ")
+                for ff in os.listdir(vedo.settings.textures_path):
+                    printc(ff.split(".")[0], end=" ", c="m")
                 print()
                 return self
 
@@ -494,7 +493,7 @@ class Mesh(Points):
             elif ".bmp" in fnl:
                 reader = vtk.vtkBMPReader()
             else:
-                colors.printc("Error in texture(): supported files, PNG, BMP or JPG", c="r")
+                printc("Error in texture(): supported files, PNG, BMP or JPG", c="r")
                 return self
             reader.SetFileName(fn)
             reader.Update()
@@ -600,13 +599,13 @@ class Mesh(Points):
             return self
 
         if self.GetProperty().GetOpacity() < 1:
-            #colors.printc("In backColor(): only active for alpha=1", c="y")
+            # printc("In backColor(): only active for alpha=1", c="y")
             return self
 
         if not backProp:
             backProp = vtk.vtkProperty()
 
-        backProp.SetDiffuseColor(colors.getColor(bc))
+        backProp.SetDiffuseColor(getColor(bc))
         backProp.SetOpacity(self.GetProperty().GetOpacity())
         self.SetBackfaceProperty(backProp)
         self._mapper.ScalarVisibilityOff()
@@ -641,7 +640,7 @@ class Mesh(Points):
                 self.color(lc)
                 return self
             self.GetProperty().EdgeVisibilityOn()
-            self.GetProperty().SetEdgeColor(colors.getColor(lc))
+            self.GetProperty().SetEdgeColor(getColor(lc))
         else:
             return self.GetProperty().GetEdgeColor()
         return self
@@ -713,8 +712,8 @@ class Mesh(Points):
         v = mass.GetVolume()
         if value is not None:
             if not v:
-                colors.printc("Volume is zero: cannot rescale.", c='r', end="")
-                colors.printc(" Consider adding mesh.triangulate()", c='r')
+                printc("Volume is zero: cannot rescale.", c='r', end="")
+                printc(" Consider adding mesh.triangulate()", c='r')
                 return self
             self.scale(value / v)
             return self
@@ -733,8 +732,8 @@ class Mesh(Points):
         ar = mass.GetSurfaceArea()
         if value is not None:
             if not ar:
-                colors.printc("Area is zero: cannot rescale.", c='r', end="")
-                colors.printc(" Consider adding mesh.triangulate()", c='r')
+                printc("Area is zero: cannot rescale.", c='r', end="")
+                printc(" Consider adding mesh.triangulate()", c='r')
                 return self
             self.scale(value / ar)
             return self
@@ -801,8 +800,8 @@ class Mesh(Points):
             two attributes ``mesh.base``, and ``mesh.top`` are already defined.
         """
         if self.base is None:
-            colors.printc('Error in stretch(): Please define vectors', c='r')
-            colors.printc('   mesh.base and mesh.top at creation.', c='r')
+            printc('Error in stretch(): Please define vectors', c='r')
+            printc('   mesh.base and mesh.top at creation.', c='r')
             raise RuntimeError()
 
         p1, p2 = self.base, self.top
@@ -834,7 +833,7 @@ class Mesh(Points):
     def crop(self,
              top=None, bottom=None, right=None, left=None, front=None, back=None,
              bounds=None,
-        ):
+             ):
         """Crop an ``Mesh`` object.
 
         :param float top:    fraction to crop from the top plane (positive z)
@@ -869,12 +868,12 @@ class Mesh(Points):
             if left:   x0 = x0 + left*dx
             bounds = (x0, x1, y0, y1, z0, z1)
         else:
-            if bounds[0] is None: bounds[0]=x0
-            if bounds[1] is None: bounds[1]=x1
-            if bounds[2] is None: bounds[2]=y0
-            if bounds[3] is None: bounds[3]=y1
-            if bounds[4] is None: bounds[4]=z0
-            if bounds[5] is None: bounds[5]=z1
+            if bounds[0] is None: bounds[0] = x0
+            if bounds[1] is None: bounds[1] = x1
+            if bounds[2] is None: bounds[2] = y0
+            if bounds[3] is None: bounds[3] = y1
+            if bounds[4] is None: bounds[4] = z0
+            if bounds[5] is None: bounds[5] = z1
         cu.SetBounds(bounds)
 
         clipper = vtk.vtkClipPolyData()
@@ -1193,7 +1192,7 @@ class Mesh(Points):
             return self._update(vct.GetOutput())
 
         else:
-            #colors.printc("Error in triangulate()")
+            #printc("Error in triangulate()")
             return self
 
 
@@ -1270,7 +1269,7 @@ class Mesh(Points):
         self._mapper.ScalarVisibilityOn()
         return self
 
-    def addShadow(self, x=None, y=None, z=None, c=(0.5, 0.5, 0.5), alpha=1, culling=1):
+    def addShadow(self, x=None, y=None, z=None, c=(0.6,0.6,0.6), alpha=1, culling=1):
         """
         Generate a shadow out of an ``Mesh`` on one of the three Cartesian planes.
         The output is a new ``Mesh`` representing the shadow.
@@ -1340,7 +1339,7 @@ class Mesh(Points):
         elif method == 3:
             sdf = vtk.vtkButterflySubdivisionFilter()
         else:
-            colors.printc("Error in subdivide: unknown method.", c="r")
+            printc("Error in subdivide: unknown method.", c="r")
             raise RuntimeError()
         if method != 2:
             sdf.SetNumberOfSubdivisions(N)
@@ -1699,15 +1698,16 @@ class Mesh(Points):
         sil = vtk.vtkPolyDataSilhouette()
         sil.SetInputData(self.polydata())
         sil.SetBorderEdges(borderEdges)
-        if featureAngle == False:
+        if featureAngle is False:
             sil.SetEnableFeatureAngle(0)
         else:
             sil.SetEnableFeatureAngle(1)
             sil.SetFeatureAngle(featureAngle)
 
         if (direction is None
-            and settings.plotter_instance and settings.plotter_instance.camera):
-            sil.SetCamera(settings.plotter_instance.camera)
+            and vedo.settings.plotter_instance
+            and vedo.settings.plotter_instance.camera):
+            sil.SetCamera(vedo.settings.plotter_instance.camera)
             m = Mesh()
             m._mapper.SetInputConnection(sil.GetOutputPort())
 
@@ -1722,14 +1722,14 @@ class Mesh(Points):
             sil.Update()
             m = Mesh(sil.GetOutput())
 
-        elif utils.isSequence(direction):
+        elif isSequence(direction):
             sil.SetVector(direction)
             sil.SetDirectionToSpecifiedVector()
             sil.Update()
             m = Mesh(sil.GetOutput())
         else:
-            colors.printc('Error in silhouette(): direction is', [direction], c='r')
-            colors.printc(' render the scene with show() or specify camera/direction', c='r')
+            printc('Error in silhouette(): direction is', [direction], c='r')
+            printc(' render the scene with show() or specify camera/direction', c='r')
             return self
 
         m.lw(2).c((0,0,0)).lighting('off')
@@ -1755,8 +1755,8 @@ class Mesh(Points):
             #     self.SetCamera(settings.plotter_instance.camera)
             # else:
             self._set2actcam=True
-            # colors.printc("Error in followCamera(): needs an already rendered scene,", c='r')
-            # colors.printc("                         or passing a vtkCamera object.", c='r')
+            # printc("Error in followCamera(): needs an already rendered scene,", c='r')
+            # printc("                         or passing a vtkCamera object.", c='r')
         return self
 
 
@@ -1871,19 +1871,19 @@ class Mesh(Points):
 
         |extrude| |extrude.py|_
         """
-        if utils.isSequence(zshift):
-#            ms = [] # todo
-#            poly0 = self.clone().polydata()
-#            for i in range(len(zshift)-1):
-#                rf = vtk.vtkRotationalExtrusionFilter()
-#                rf.SetInputData(poly0)
-#                rf.SetResolution(res)
-#                rf.SetCapping(0)
-#                rf.SetAngle(rotation)
-#                rf.SetTranslation(zshift)
-#                rf.SetDeltaRadius(dR)
-#                rf.Update()
-#                poly1 = rf.GetOutput()
+        if isSequence(zshift):
+            #            ms = [] # todo
+            #            poly0 = self.clone().polydata()
+            #            for i in range(len(zshift)-1):
+            #                rf = vtk.vtkRotationalExtrusionFilter()
+            #                rf.SetInputData(poly0)
+            #                rf.SetResolution(res)
+            #                rf.SetCapping(0)
+            #                rf.SetAngle(rotation)
+            #                rf.SetTranslation(zshift)
+            #                rf.SetDeltaRadius(dR)
+            #                rf.Update()
+            #                poly1 = rf.GetOutput()
             return self
         else:
             rf = vtk.vtkRotationalExtrusionFilter()
@@ -2051,7 +2051,7 @@ class Mesh(Points):
         """
         dijkstra = vtk.vtkDijkstraGraphGeodesicPath()
 
-        if utils.isSequence(start):
+        if isSequence(start):
             cc = self.points()
             pa = Points(cc)
             start = pa.closestPoint(start, returnIds=True)
@@ -2081,18 +2081,6 @@ class Mesh(Points):
         dmesh.info["CumulativeWeights"] = arr
         dmesh.name = "geodesicLine"
         return dmesh
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

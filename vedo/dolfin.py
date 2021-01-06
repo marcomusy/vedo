@@ -573,7 +573,6 @@ def plot(*inputobj, **options):
 
 
     # change some default to emulate standard behaviours
-    options['verbose'] = False # don't disturb
     if  style == 0 or style == 'vtk':
         font = 'Courier'
         axes = options.pop('axes', None)

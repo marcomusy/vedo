@@ -7,13 +7,9 @@ General settings.
     xtitle = 'x'
     ytitle = 'y'
     ztitle = 'z'
-    defaultAxesType = 4
 
     # Set a default for the font to be used for axes, comments etc.
-    defaultFont = 'Normografo'
-    # Options are:
-    #    Biysk, Bongas, Calco, Comae, Kanopus, Glasgo, LionelOfParis,
-    #    LogoType, Normografo, Quikhand, SmartCouric, Theemim, VictorMono, VTK.
+    defaultFont = 'Normografo' # check font options in shapes.Text
     fontIsMono = True  # mono means that all letters occupy the same space slot horizontally
     fontHSpacing = 1   # an horizontal stretching factor (affects both letters and words)
     fontLSpacing = 0.1 # horizontal spacing inbetween letters (not words)

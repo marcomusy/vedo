@@ -19,7 +19,7 @@ for pt in meshdec.points():
         targets.append(pt)   #
 
 warp = mesh.clone().thinPlateSpline(sources, targets)
-warp.c("blue").alpha(0.4).lineWidth(0)
+warp.c("blue",0.3).lineWidth(0)
 
 apts = Points(sources).c("red")
 

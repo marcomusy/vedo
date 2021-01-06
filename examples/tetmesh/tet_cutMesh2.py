@@ -4,7 +4,7 @@ from vedo import *
 
 tetm = TetMesh(datadir+'limb_ugrid.vtk')
 
-sphere = Sphere(r=500).x(400).c('green').alpha(0.1)
+sphere = Sphere(r=500).x(400).c('green', 0.1)
 
 # Clone and cut tetm, keep the outside:
 tetm1 = tetm.clone().cutWithMesh(sphere, invert=True)

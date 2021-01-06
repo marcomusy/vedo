@@ -60,11 +60,19 @@ class Base3DProp(object):
         return int(self.inputdata().GetAddressAsString('')[5:], 16)
 
     def pickable(self, value=None):
-        """Set/get pickable property of mesh."""
+        """Set/get pickable property of an object."""
         if value is None:
             return self.GetPickable()
         else:
             self.SetPickable(value)
+            return self
+
+    def draggable(self, value=None): # NOT FUNCTIONAL?
+        """Set/get draggable property of an object."""
+        if value is None:
+            return self.GetDragable()
+        else:
+            self.SetDragable(value)
             return self
 
     def time(self, t=None):
@@ -105,22 +113,41 @@ class Base3DProp(object):
             self._updateShadow()
         return self  # return itself to concatenate methods
 
-    def addPos(self, dp_x=None, dy=None, dz=None):
+    # def addPos(self, dp_x=None, dy=None, dz=None):
+    #     """Add vector to current object position. Same as `shift()`."""
+    #     p = np.array(self.GetPosition())
+
+    #     if dz is None:  # assume dp_x is of the form (x,y,z)
+    #         self.SetPosition(p + dp_x)
+    #     else:
+    #         self.SetPosition(p + [dp_x, dy, dz])
+    #     if self.trail:
+    #         self.updateTrail()
+    #     if self.shadow:
+    #         self._updateShadow()
+    #     return self
+
+    def addPos(self, dx=0, dy=0, dz=0):
         """Add vector to current object position. Same as `shift()`."""
         p = np.array(self.GetPosition())
-        if dz is None:  # assume dp_x is of the form (x,y,z)
-            self.SetPosition(p + dp_x)
+
+        if utils.isSequence(dx):
+            if len(dx) == 2:
+                self.SetPosition(p + [dx[0], dx[1], 0])
+            else:
+                self.SetPosition(p + dx)
         else:
-            self.SetPosition(p + [dp_x, dy, dz])
+            self.SetPosition(p + [dx,dy,dz])
+
         if self.trail:
             self.updateTrail()
         if self.shadow:
             self._updateShadow()
         return self
 
-    def shift(self, dp_x=None, dy=None, dz=None):
+    def shift(self, dx=0, dy=0, dz=0):
         """Add vector to current object position. Same as `addPos()`."""
-        return self.addPos(dp_x, dy, dz)
+        return self.addPos(dx, dy, dz)
 
     def x(self, position=None):
         """Set/Get object position along x axis."""
@@ -344,6 +371,61 @@ class Base3DProp(object):
             self.SetUserMatrix(vm)
         else:
             self.SetUserTransform(T)
+        self.transform = T
+        return self
+
+    def alignToBoundingBox(self, msh, rigid=False):
+        """
+        Align the current object's bounding box to the bounding box
+        of the input object.
+
+        :param bool rigid: do not allow scaling if set to True
+
+        :Example:
+
+            .. code-block:: python
+
+                from vedo import *
+                eli = Ellipsoid().alpha(0.4)
+                cube= Cube().pos(3,2,1).rotateX(10).rotateZ(10).alpha(0.4)
+                eli.alignToBoundingBox(cube, rigid=False)
+                axes1 = Axes(eli, c='db')
+                axes2 = Axes(cube, c='dg')
+                show(eli, cube, axes1, axes2)
+        """
+        lmt = vtk.vtkLandmarkTransform()
+        ss = vtk.vtkPoints()
+        xss0,xss1,yss0,yss1,zss0,zss1 = self.bounds()
+        for p in [[xss0, yss0, zss0],
+                  [xss1, yss0, zss0],
+                  [xss1, yss1, zss0],
+                  [xss0, yss1, zss0],
+                  [xss0, yss0, zss1],
+                  [xss1, yss0, zss1],
+                  [xss1, yss1, zss1],
+                  [xss0, yss1, zss1],
+                 ]:
+            ss.InsertNextPoint(p)
+        st = vtk.vtkPoints()
+        xst0,xst1,yst0,yst1,zst0,zst1 = msh.bounds()
+        for p in [[xst0, yst0, zst0],
+                  [xst1, yst0, zst0],
+                  [xst1, yst1, zst0],
+                  [xst0, yst1, zst0],
+                  [xst0, yst0, zst1],
+                  [xst1, yst0, zst1],
+                  [xst1, yst1, zst1],
+                  [xst0, yst1, zst1],
+                 ]:
+            st.InsertNextPoint(p)
+
+        lmt.SetSourceLandmarks(ss)
+        lmt.SetTargetLandmarks(st)
+        if rigid:
+            lmt.SetModeToRigidBody()
+        lmt.Update()
+        self.applyTransform(lmt)
+        self.transform = lmt
         return self
 
 
@@ -357,7 +439,7 @@ class Base3DProp(object):
         self.VisibilityOff()
         return self
 
-    def box(self, scale=1, pad=0):
+    def box(self, scale=1, pad=0, fill=False):
         """Return the bounding box as a new ``Mesh``.
 
         :param float scale: box size can be scaled by a factor
@@ -369,8 +451,9 @@ class Base3DProp(object):
         from vedo.shapes import Box
         if not utils.isSequence(pad):
             pad=[pad,pad,pad]
-        pos = (b[0]+b[1])/2, (b[3]+b[2])/2, (b[5]+b[4])/2
         length, width, height = b[1]-b[0], b[3]-b[2], b[5]-b[4]
+        tol = (length+width+height)/30000 # useful for boxing 2D text
+        pos = [(b[0]+b[1])/2, (b[3]+b[2])/2, (b[5]+b[4])/2 -tol]
         bx = Box(pos,
                  length*scale+pad[0], width*scale+pad[1], height*scale+pad[2],
                  c='gray')
@@ -380,7 +463,7 @@ class Base3DProp(object):
                 pr.DeepCopy(self.GetProperty())
                 bx.SetProperty(pr)
         bx.flat().lighting('off')
-        bx.wireframe()
+        bx.wireframe(not fill)
         return bx
 
     def useBounds(self, ub=True):
@@ -394,19 +477,24 @@ class Base3DProp(object):
         Returns a list in format [xmin,xmax, ymin,ymax, zmin,zmax]."""
         return self.GetBounds()
 
-    def xbounds(self):
-        """Get the bounds [xmin,xmax]."""
+    def xbounds(self, i=None):
+        """Get the bounds [xmin,xmax]. Can specify upper or lower with i (0,1)."""
         b = self.GetBounds()
+        if i is not None: return b[i]
         return (b[0], b[1])
 
-    def ybounds(self):
-        """Get the bounds [ymin,ymax]."""
+    def ybounds(self, i=None):
+        """Get the bounds [ymin,ymax]. Can specify upper or lower with i (0,1)."""
         b = self.GetBounds()
+        if i == 0: return b[2]
+        elif i == 1: return b[3]
         return (b[2], b[3])
 
-    def zbounds(self):
-        """Get the bounds [zmin,zmax]."""
+    def zbounds(self, i=None):
+        """Get the bounds [zmin,zmax]. Can specify upper or lower with i (0,1)."""
         b = self.GetBounds()
+        if i == 0: return b[4]
+        elif i == 1: return b[5]
         return (b[4], b[5])
 
     def diagonalSize(self):
@@ -515,7 +603,7 @@ class Base3DProp(object):
         This is meant as a shortcut. If more than one object needs to be visualised
         please use the syntax `show(mesh1, mesh2, volume, ..., options)`.
 
-        :param bool newPlotter: if set to `True`, a call to ``show`` will instantiate
+        :param bool new: if set to `True`, a call to ``show`` will instantiate
             a new ``Plotter`` object (a new window) instead of reusing the first created.
             See e.g.: |readVolumeAsIsoSurface.py|_
 
@@ -675,7 +763,7 @@ class BaseActor(Base3DProp):
             mpr = self._mapper
             if hasattr(mpr, 'GetScalarVisibility') and mpr.GetScalarVisibility():
                 c = (1,1,0.99)
-            if style=='metallic': pars = [0.1, 0.3, 1.0, 10, c]
+            if   style=='metallic': pars = [0.1, 0.3, 1.0, 10, c]
             elif style=='plastic' : pars = [0.3, 0.4, 0.3,  5, c]
             elif style=='shiny'   : pars = [0.2, 0.6, 0.8, 50, c]
             elif style=='glossy'  : pars = [0.1, 0.7, 0.9, 90, (1,1,0.99)]
@@ -733,12 +821,12 @@ class BaseActor(Base3DProp):
         return self
 
 
-    def c(self, color=False):
+    def c(self, color=False, alpha=None):
         """
         Shortcut for `color()`.
         If None is passed as input, will use colors from current active scalars.
         """
-        return self.color(color)
+        return self.color(color, alpha)
 
 
     def getArrayNames(self):
@@ -1132,40 +1220,40 @@ class BaseActor(Base3DProp):
         .. hint:: |mesh_coloring| |mesh_coloring.py|_ |scalarbars.py|_
         """
         self.scalarbar = vedo.addons.addScalarBar(self,
-                                                 pos,
-                                                 title,
-                                                 titleYOffset,
-                                                 titleFontSize,
-                                                 size,
-                                                 nlabels,
-                                                 c,
-                                                 horizontal,
-                                                 useAlpha,
+                                                  pos,
+                                                  title,
+                                                  titleYOffset,
+                                                  titleFontSize,
+                                                  size,
+                                                  nlabels,
+                                                  c,
+                                                  horizontal,
+                                                  useAlpha,
                                                  )
         return self
 
 
-    def addScalarBar3D(self,
-        pos=None,
-        sx=None,
-        sy=None,
-        title='',
-        titleFont="",
-        titleXOffset = -1.5,
-        titleYOffset = 0.0,
-        titleSize =  1.5,
-        titleRotation = 0.0,
-        nlabels=9,
-        labelFont="",
-        labelOffset = 0.375,
-        italic=0,
-        c=None,
-        useAlpha=True,
-        drawBox=True,
-        aboveText=None,
-        belowText=None,
-        nanText='NaN',
-    ):
+    def addScalarBar3D( self,
+                        pos=None,
+                        sx=None,
+                        sy=None,
+                        title='',
+                        titleFont="",
+                        titleXOffset = -1.5,
+                        titleYOffset = 0.0,
+                        titleSize =  1.5,
+                        titleRotation = 0.0,
+                        nlabels=9,
+                        labelFont="",
+                        labelOffset = 0.375,
+                        italic=0,
+                        c=None,
+                        useAlpha=True,
+                        drawBox=True,
+                        aboveText=None,
+                        belowText=None,
+                        nanText='NaN',
+        ):
         """
         Draw a 3D scalar bar.
 
@@ -1343,7 +1431,7 @@ class BaseGrid(BaseActor):
         return conn
 
 
-    def color(self, col):
+    def color(self, col, alpha=None):
         """
         Assign a color or a set of colors along the range of the scalar value.
         A single constant color can also be assigned.
@@ -1354,6 +1442,8 @@ class BaseGrid(BaseActor):
 
         ``volume.color(['red', 'violet', 'green'])``
         """
+        # superseeded in Points, Mesh
+
         smin, smax = self._data.GetScalarRange()
         ctf = self.GetProperty().GetRGBTransferFunction()
         ctf.RemoveAllPoints()
@@ -1378,7 +1468,7 @@ class BaseGrid(BaseActor):
                 r, g, b = colors.getColor(col)
                 ctf.AddRGBPoint(smin, r,g,b) # constant color
                 ctf.AddRGBPoint(smax, r,g,b)
-            elif colors._mapscales:
+            else: # assume it's a colormap
                 for x in np.linspace(smin, smax, num=64, endpoint=True):
                     r,g,b = colors.colorMap(x, name=col, vmin=smin, vmax=smax)
                     ctf.AddRGBPoint(x, r, g, b)
@@ -1387,7 +1477,10 @@ class BaseGrid(BaseActor):
             ctf.AddRGBPoint(smin, r,g,b) # constant color
             ctf.AddRGBPoint(smax, r,g,b)
         else:
-            colors.printc("ugrid.color(): unknown input type:", col, c='r')
+            colors.printc("color(): unknown input type:", col, c='r')
+
+        if alpha is not None:
+            self.alpha(alpha)
         return self
 
     def alpha(self, alpha):
@@ -2049,7 +2142,7 @@ def streamLines(domain, probe,
 
     sta = vedo.mesh.Mesh(output, c=None)
 
-    if lw is not None and len(tubes)==0 and not ribbons:
+    if lw is not None and len(tubes) == 0 and not ribbons:
         sta.lw(lw)
         sta._mapper.SetResolveCoincidentTopologyToPolygonOffset()
         sta.lighting('off')

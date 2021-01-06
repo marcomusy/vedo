@@ -63,14 +63,14 @@ def Slicer(volume,
                  screensize=screensize,
                  title=title,
                  interactive=False,
-                 verbose=verbose)
+                )
 
     ################################
     box = volume.box().wireframe().alpha(0)
 
     vp.show(box, viewup="z", axes=axes)
     if showIcon:
-        vp.showInset(volume, pos=(.85,.85), size=0.15, c='w', draggable=draggable)
+        vp.addInset(volume, pos=(.85,.85), size=0.15, c='w', draggable=draggable)
 
     # inits
     la, ld = 0.7, 0.3 #ambient, diffuse
@@ -570,7 +570,6 @@ class Animation(Plotter):
     def __init__(self, totalDuration=None, timeResolution=0.02, showProgressBar=True,
                  videoFileName='animation.mp4', videoFPS=12):
         Plotter.__init__(self)
-        self.verbose = False
         self.resetcam = True
 
         self.events = []

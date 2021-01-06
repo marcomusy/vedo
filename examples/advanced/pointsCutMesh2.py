@@ -25,6 +25,6 @@ pts1 = ptsmc + 0.2*vector(splinen)
 rb = Ribbon(pts0, pts1).bc('green')
 
 #cut with the ribbon and then with a yz plane
-scut = s.clone().c('blue').alpha(0.7).cutWithMesh(rb)
+scut = s.clone().c('blue',0.7).cutWithMesh(rb)
 
 show(s, Points(pts), ptsm, rb, scut, __doc__, axes=1)

@@ -97,7 +97,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
         return cloned
 
 
-    def color(self, c=False):
+    def color(self, c=False, alpha=None):
         """
         Set/get UGrid color.
         If None is passed as input, will use colors from active scalars.
@@ -113,6 +113,8 @@ class UGrid(vtk.vtkActor, BaseGrid):
         self.GetProperty().SetColor(cc)
         if self.trail:
             self.trail.GetProperty().SetColor(cc)
+        if alpha is not None:
+            self.alpha(alpha)
         return self
 
 

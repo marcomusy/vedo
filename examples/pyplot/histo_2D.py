@@ -9,12 +9,12 @@ y = np.random.normal(1, 1, n)*1 + 7
 xm, ym = np.mean(x), np.mean(y)
 
 h = histogram(x, y,
-              bins=50, 
+              bins=50,
               aspect=4/3,
-#              cmap='Blues',
-              cmap='PuBu',
+              cmap='Blues',
               title='2D Gauss histo',
-              )
+              scalarbar=True,
+             )
 
 # add some object to the plot
 h += Marker('*', s=0.3, c='r').pos(xm, ym, 0.1)

@@ -4,10 +4,10 @@ from __future__ import division, print_function
 import os, sys, vtk
 import numpy as np
 import vedo
-from vtk.util.numpy_support import numpy_to_vtk
+from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 from vedo import settings
 import vedo.utils as utils
-from vedo.colors import printc, getColor, colorMap, _mapscales_cmaps
+from vedo.colors import printc, getColor, colorMap, cmaps_names
 from vedo.mesh import Mesh, merge
 from vedo.pointcloud import Points
 from vedo.picture import Picture
@@ -89,7 +89,6 @@ _reps = [
     ("\int", "∫"),
     ("\pm", "±"),
     ("\times","×"),
-    ###############
     ("\Gamma", "Γ"),
     ("\Delta", "Δ"),
     ("\Theta", "Θ"),
@@ -101,7 +100,6 @@ _reps = [
     ("\Xi", "Ξ"),
     ("\Psi", "Ψ"),
     ("\Omega", "Ω"),
-    ###############
     ("\alpha", "α"),
     ("\beta", "β"),
     ("\gamma", "γ"),
@@ -124,7 +122,6 @@ _reps = [
     ("\chi", "χ"),
     ("\psi", "ψ"),
     ("\omega", "ω"),
-    ###############
     ("\circ", "°"),
     ("\onehalf", "½"),
     ("\onefourth", "¼"),
@@ -133,7 +130,6 @@ _reps = [
     ("\^2", "²"),
     ("\^3", "³"),
     ("\,", "~"),
-    ###############
 ]
 
 
@@ -281,7 +277,7 @@ class Glyph(Mesh):
             glyphObj = glyphObj.clean().polydata()
 
         cmap=''
-        if c in _mapscales_cmaps:
+        if c in cmaps_names:
             cmap = c
             c = None
         elif utils.isSequence(c): # user passing an array of point colors
@@ -458,6 +454,7 @@ class Line(Mesh):
     :param float alpha: transparency in range [0,1].
     :param lw: line width.
     :param int res: resolution, number of points along the line
+        (only relevant if only 2 points are specified)
     """
     def __init__(self, p0, p1=None, closed=False, c="grey", alpha=1, lw=1, res=2):
 
@@ -468,9 +465,20 @@ class Line(Mesh):
         if isinstance(p0, Points):
             p0 = p0.points()
 
-        self.slope = [] # used by analysis.fitLine
+        self.slope = [] # filled by analysis.fitLine
         self.center = []
         self.variances = []
+
+        self.coefficients = [] # filled by pyplot.fit()
+        self.covarianceMatrix = []
+        self.coefficients = []
+        self.coefficientErrors = []
+        self.MonteCarloCoefficients = []
+        self.reducedChi2 = -1
+        self.ndof = 0
+        self.dataSigma = 0
+        self.errorLines = []
+        self.errorBand = None
 
         # detect if user is passing a 2D list of points as p0=xlist, p1=ylist:
         if len(p0) > 3:
@@ -528,13 +536,37 @@ class Line(Mesh):
         self.name = "Line"
 
     def length(self):
-        """Calculate length of line."""
+        """Calculate length of the line."""
         distance = 0.
         pts = self.points()
         for i in range(1, len(pts)):
             distance += np.linalg.norm(pts[i]-pts[i-1])
         return distance
 
+    def eval(self, x):
+        """Calculate the position of an intermediate point
+        as a fraction of the length of the line,
+        being x=0 the first point and x=1 the last point.
+        This corresponds to an imaginary point that travels along the line
+        at constant speed.
+
+        Can be used in conjunction with `linInterpolate()`
+        to map any range to the [0,1] range.
+        """
+        distance1 = 0.
+        length = self.length()
+        pts = self.points()
+        for i in range(1, len(pts)):
+            p0 = pts[i-1]
+            p1 = pts[i]
+            seg = p1-p0
+            distance0 = distance1
+            distance1 += np.linalg.norm(seg)
+            w1 = distance1/length
+            if w1 >= x: break
+        w0 = distance0/length
+        v = p0 + seg*(x-w0)/(w1-w0)
+        return v
 
     def sweep(self, direction=(1,0,0), res=1):
         """
@@ -844,17 +876,31 @@ class Spline(Line):
 
     :param float smooth: smoothing factor.
 
-        - 0 = interpolate points exactly.
+        - 0 = interpolate points exactly [default].
         - 1 = average point positions.
 
     :param int degree: degree of the spline (1<degree<5)
+    :param str easing: control sensity of points along the spline.
+        Available options are
+        [InSine, OutSine, Sine, InQuad, OutQuad, InCubic, OutCubic,
+         InQuart, OutQuart, InCirc, OutCirc].
+        Can be used to create animations (move objects at varying speed).
+        See e.g.: https://easings.net
+
     :param int res: number of points on the spline
 
     See also: ``CSpline`` and ``KSpline``.
 
     |tutorial_spline| |tutorial.py|_
     """
-    def __init__(self, points, smooth=0.5, degree=2, closed=False, s=2, res=None):
+    def __init__(self, points,
+                 smooth=0,
+                 degree=2,
+                 closed=False,
+                 s=2,
+                 res=None,
+                 easing="",
+                 ):
 
         from scipy.interpolate import splprep, splev
 
@@ -864,8 +910,10 @@ class Spline(Line):
         if len(points[0]) == 2: # make it 3d
             points = np.c_[np.array(points), np.zeros(len(points))]
 
+        per = 0
         if closed:
             points = np.append(points, [points[0]], axis=0)
+            per = 1
 
         if res is None:
             res = len(points)*20
@@ -877,9 +925,37 @@ class Spline(Line):
         maxb = max(maxx - minx, maxy - miny, maxz - minz)
         smooth *= maxb / 2  # must be in absolute units
 
-        tckp, _ = splprep(points.T, task=0, s=smooth, k=degree)  # find the knots
+        x = np.linspace(0, 1, res)
+        if easing:
+            if easing=="InSine":
+                x = 1 - np.cos((x * np.pi) / 2)
+            elif easing=="OutSine":
+                x = np.sin((x * np.pi) / 2)
+            elif easing=="Sine":
+                x = -(np.cos(np.pi * x) - 1) / 2
+            elif easing=="InQuad":
+                x = x*x
+            elif easing=="OutQuad":
+                x = 1 - (1 - x) * (1 - x)
+            elif easing=="InCubic":
+                x = x*x
+            elif easing=="OutCubic":
+                x = 1 - np.power(1 - x, 3)
+            elif easing=="InQuart":
+                x = x * x * x * x
+            elif easing=="OutQuart":
+                x = 1 - np.power(1 - x, 4)
+            elif easing=="InCirc":
+                x = 1 - np.sqrt(1 - np.power(x, 2))
+            elif easing=="OutCirc":
+                x = np.sqrt(1 - np.power(x - 1, 2))
+            else:
+                printc("Unkown ease mode", easing, c='r')
+
+        # find the knots
+        tckp, _ = splprep(points.T, task=0, s=smooth, k=degree, per=per)
         # evaluate spLine, including interpolated points:
-        xnew, ynew, znew = splev(np.linspace(0, 1, res), tckp)
+        xnew, ynew, znew = splev(x, tckp)
 
         Line.__init__(self, np.c_[xnew, ynew, znew], lw=2)
         self.lighting('off')
@@ -896,8 +972,8 @@ class KSpline(Line):
     :param float tension: changes the length of the tangent vector
     :param float bias: changes the direction of the tangent vector
     :param bool closed: join last to first point to produce a closed curve
-    :param int res: resolution of the output line. Default is 20 times the number
-        of input points.
+    :param int res: approximate resolution of the output line.
+        Default is 20 times the number of input points.
 
     See also: ``Spline`` and ``CSpline``.
 
@@ -934,12 +1010,13 @@ class KSpline(Line):
         for pos in np.linspace(0, len(points), res):
             x = xspline.Evaluate(pos)
             y = yspline.Evaluate(pos)
-            z=0
+            z = 0
             if len(p)>2:
                 z = zspline.Evaluate(pos)
             ln.append((x,y,z))
 
         Line.__init__(self, ln, lw=2, c='gray')
+        self.clean()
         self.lighting('off')
         self.name = "KSpline"
         self.base = np.array(points[0])
@@ -950,8 +1027,8 @@ class CSpline(Line):
     Return a Cardinal spline which runs exactly through all the input points.
 
     :param bool closed: join last to first point to produce a closed curve
-    :param int res: resolution of the output line. Default is 20 times the number
-        of input points.
+    :param int res: approximateresolution of the output line.
+        Default is 20 times the number of input points.
 
     See also: ``Spline`` and ``KSpline``.
     """
@@ -987,6 +1064,7 @@ class CSpline(Line):
             ln.append((x,y,z))
 
         Line.__init__(self, ln, lw=2, c='gray')
+        self.clean()
         self.lighting('off')
         self.name = "CSpline"
         self.base = np.array(points[0])
@@ -1350,15 +1428,20 @@ class Arrow(Mesh):
             axis = axis / length
         theta = np.arccos(axis[2])
         phi = np.arctan2(axis[1], axis[0])
-        arr = vtk.vtkArrowSource()
-        arr.SetShaftResolution(res)
-        arr.SetTipResolution(res)
+        self.arr = vtk.vtkArrowSource()
+        self.arr.SetShaftResolution(res)
+        self.arr.SetTipResolution(res)
         if s:
             sz = 0.02
-            arr.SetTipRadius(sz)
-            arr.SetShaftRadius(sz / 1.75)
-            arr.SetTipLength(sz * 15)
-        arr.Update()
+            self.arr.SetTipRadius(sz)
+            self.arr.SetShaftRadius(sz / 1.75)
+            self.arr.SetTipLength(sz * 15)
+        self.arr.Update()
+
+        # cl = vtk.vtkCleanPolyData()
+        # cl.SetInputData(self.arr.GetOutput())
+        # cl.Update()
+
         t = vtk.vtkTransform()
         t.RotateZ(np.rad2deg(phi))
         t.RotateY(np.rad2deg(theta))
@@ -1369,7 +1452,7 @@ class Arrow(Mesh):
         else:
             t.Scale(length, length, length)
         tf = vtk.vtkTransformPolyDataFilter()
-        tf.SetInputData(arr.GetOutput())
+        tf.SetInputData(self.arr.GetOutput())
         tf.SetTransform(t)
         tf.Update()
 
@@ -1379,7 +1462,18 @@ class Arrow(Mesh):
         self.DragableOff()
         self.base = np.array(startPoint)
         self.top = np.array(endPoint)
+        self.tipIndex = None
         self.name = "Arrow"
+
+    def tipPoint(self, returnIndex=False):
+        """Return the coordinates of the tip of the Arrow, or the point index."""
+        if self.tipIndex is None:
+            arrpts = vtk_to_numpy(self.arr.GetOutput().GetPoints().GetData())
+            self.tipIndex = np.argmax(arrpts[:,0])
+        if returnIndex:
+            return self.tipIndex
+        else:
+            return self.points()[self.tipIndex]
 
 
 def Arrows(startPoints, endPoints=None, s=None, scale=1, c=None, alpha=1, res=12):
@@ -2541,6 +2635,7 @@ class Text(Mesh):
 
     :param float hspacing: horizontal spacing of the font.
     :param float vspacing: vertical spacing of the font for multiple lines text.
+    :param bool literal: if set to True will ignore modifiers like _ or ^
 
     |markpoint| |markpoint.py|_ |fonts.py|_ |caption.py|_
 
@@ -2558,6 +2653,7 @@ class Text(Mesh):
                  justify="bottom-left",
                  c=None,
                  alpha=1,
+                 literal=False,
                 ):
 
         global _fonts_cache
@@ -2597,6 +2693,15 @@ class Text(Mesh):
 
         if sys.version_info[0] < 3: font="VTK" # disable python2
 
+        if isinstance(font, int):
+            lfonts = ['Normografo', 'Bongas', 'Calco', 'Comae', 'Kanopus',
+                      'Glasgo', 'LionelOfParis', 'LogoType',  'Quikhand',
+                      'SmartCouric', 'Theemim', 'VictorMono', 'VTK',
+                      "Capsmall", "Cartoons123", "PlanetBenson", "Spears",
+                      "Vega", "Justino1", "Justino2", "Justino3", "Justino4"]
+            font = font%len(lfonts)
+            font = lfonts[font]
+
         if font == "VTK":
 
             if font not in _fonts_cache.keys():
@@ -2607,7 +2712,10 @@ class Text(Mesh):
         else:
 
             # some fonts are downloadable from the vedo website
-            if font in ("LogoType", "Capsmall", "Cartoons123", "PlanetBenson", "Vega"):
+            if font in ("LogoType", "Capsmall", "Cartoons123",
+                        "PlanetBenson", "Vega",
+                        "Justino1", "Justino2", "Justino3", "Justino4", "Spears",
+                        ):
                 font = "https://vedo.embl.es/fonts/"+font+".npz"
 
             if font.startswith('https'): # user passed URL link, make it a path
@@ -2686,6 +2794,10 @@ class Text(Mesh):
             mono = True
             hspacing *= 1.05
             lspacing = 0.1
+        elif font=='Spears':
+            mono = False
+            hspacing *= 0.5
+            lspacing = 0.2
         elif font=='Theemim':
             mono = False
             fscale = 0.825
@@ -2693,6 +2805,10 @@ class Text(Mesh):
             lspacing = 0.3
             dotsep = '~·'
         elif font=='VictorMono':
+            mono = True
+            fscale = 0.725
+            lspacing = 0.1
+        elif 'Justino' in font:
             mono = True
             fscale = 0.725
             lspacing = 0.1
@@ -2721,17 +2837,18 @@ class Text(Mesh):
             for r in _reps:
                 txt = txt.replace(r[0], r[1])
         reps2 = [
-                ("\_", "┭"), # trick to protect ~ _ and ^ chars
-                ("\^", "┮"), #
-                ("\~", "┯"), #
-                ("**", "^"), # order matters
-                ("e+0", dotsep+"10^"), ("e-0", dotsep+"10^-"),
-                ("E+0", dotsep+"10^"), ("E-0", dotsep+"10^-"),
-                ("e+" , dotsep+"10^"), ("e-" , dotsep+"10^-"),
-                ("E+" , dotsep+"10^"), ("E-" , dotsep+"10^-"),
+                    ("\_", "┭"), # trick to protect ~ _ and ^ chars
+                    ("\^", "┮"), #
+                    ("\~", "┯"), #
+                    ("**", "^"), # order matters
+                    ("e+0", dotsep+"10^"), ("e-0", dotsep+"10^-"),
+                    ("E+0", dotsep+"10^"), ("E-0", dotsep+"10^-"),
+                    ("e+" , dotsep+"10^"), ("e-" , dotsep+"10^-"),
+                    ("E+" , dotsep+"10^"), ("E-" , dotsep+"10^-"),
         ]
-        for r in reps2:
-            txt = txt.replace(r[0], r[1])
+        if not literal:
+            for r in reps2:
+                txt = txt.replace(r[0], r[1])
 
         xmax, ymax, yshift, scale = 0, 0, 0, 1
         save_xmax = 0
@@ -2954,6 +3071,15 @@ def Text2D( txt,
         else:
             c = (0.5, 0.5, 0.5)
 
+    if isinstance(font, int):
+        lfonts = ['Normografo', 'Bongas', 'Calco', 'Comae', 'Kanopus',
+                  'Glasgo', 'LionelOfParis', 'LogoType',  'Quikhand',
+                  'SmartCouric', 'Theemim', 'VictorMono', 'VTK',
+                  "Capsmall", "Cartoons123", "PlanetBenson", "Spears",
+                  "Vega", "Justino1", "Justino2", "Justino3", "Justino4"]
+        font = font%len(lfonts)
+        font = lfonts[font]
+
     if not font:                   # use default font
         fpath = settings.fonts_path + settings.defaultFont +'.ttf'
     elif font.startswith('https'): # user passed URL link, make it a path
@@ -2998,7 +3124,9 @@ def Text2D( txt,
         elif font == "Times": cap.SetFontFamilyToTimes()
         elif font == "Arial": cap.SetFontFamilyToArial()
         else:
-            if font in ("LogoType", "Capsmall", "Cartoons123", "PlanetBenson", "Vega"):
+            if font in ("LogoType", "Capsmall", "Cartoons123", "PlanetBenson", "Vega"
+                        "Justino1", "Justino2", "Justino3", "Justino4", "Spears",
+                        ):
                 fpath= vedo.download("https://vedo.embl.es/fonts/"+font+".ttf", verbose=False)
             cap.SetFontFamily(vtk.VTK_FONT_FILE)
             cap.SetFontFile(fpath)
@@ -3191,13 +3319,20 @@ class ParametricShape(Mesh):
             name = name%len(shapes)
             name = shapes[name]
 
-        if   name == 'Boy': ps = vtk.vtkParametricBoy()
-        elif name == 'ConicSpiral': ps = vtk.vtkParametricConicSpiral()
-        elif name == 'CrossCap': ps = vtk.vtkParametricCrossCap()
-        elif name == 'Dini': ps = vtk.vtkParametricDini()
-        elif name == 'Enneper': ps = vtk.vtkParametricEnneper()
-        elif name == 'Figure8Klein': ps = vtk.vtkParametricFigure8Klein()
-        elif name == 'Klein': ps = vtk.vtkParametricKlein()
+        if   name == 'Boy':
+            ps = vtk.vtkParametricBoy()
+        elif name == 'ConicSpiral':
+            ps = vtk.vtkParametricConicSpiral()
+        elif name == 'CrossCap':
+            ps = vtk.vtkParametricCrossCap()
+        elif name == 'Dini':
+            ps = vtk.vtkParametricDini()
+        elif name == 'Enneper':
+            ps = vtk.vtkParametricEnneper()
+        elif name == 'Figure8Klein':
+            ps = vtk.vtkParametricFigure8Klein()
+        elif name == 'Klein':
+            ps = vtk.vtkParametricKlein()
         elif name == 'Mobius':
             ps = vtk.vtkParametricMobius()
             ps.SetRadius(2.0)
@@ -3208,7 +3343,8 @@ class ParametricShape(Mesh):
             ps.AllowRandomGenerationOn()
             ps.SetRandomSeed(1)
             ps.SetNumberOfHills(25)
-        elif name == 'Roman': ps = vtk.vtkParametricRoman()
+        elif name == 'Roman':
+            ps = vtk.vtkParametricRoman()
         elif name == 'SuperEllipsoid':
             ps = vtk.vtkParametricSuperEllipsoid()
             ps.SetN1(0.5)
@@ -3218,14 +3354,19 @@ class ParametricShape(Mesh):
             ps.SetA(5.0)
             ps.SetB(1.0)
             ps.SetC(2.0)
-        elif name == 'Bour': ps = vtk.vtkParametricBour()
-        elif name == 'CatalanMinimal': ps = vtk.vtkParametricCatalanMinimal()
-        elif name == 'Henneberg': ps = vtk.vtkParametricHenneberg()
+        elif name == 'Bour':
+            ps = vtk.vtkParametricBour()
+        elif name == 'CatalanMinimal':
+            ps = vtk.vtkParametricCatalanMinimal()
+        elif name == 'Henneberg':
+            ps = vtk.vtkParametricHenneberg()
         elif name == 'Kuen':
             ps = vtk.vtkParametricKuen()
             ps.SetDeltaV0(0.001)
-        elif name == 'PluckerConoid': ps = vtk.vtkParametricPluckerConoid()
-        elif name == 'Pseudosphere': ps = vtk.vtkParametricPseudosphere()
+        elif name == 'PluckerConoid':
+            ps = vtk.vtkParametricPluckerConoid()
+        elif name == 'Pseudosphere':
+            ps = vtk.vtkParametricPseudosphere()
         else:
             printc("Error in ParametricShape: unknown name", name, c='r')
             printc("Available shape names:\n", shapes)

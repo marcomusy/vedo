@@ -12,6 +12,7 @@ histo = histogram(x, y,
                   mode='hexbin',
                   xtitle="\sigma_x =1.0",
                   ytitle="\sigma_y =1.5",
+                  ztitle="counts",
                   fill=True,
                   cmap='terrain',
                   )

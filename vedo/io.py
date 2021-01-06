@@ -39,6 +39,7 @@ __all__ = [
     "exportWindow",
     "importWindow",
     "screenshot",
+    "ask",
     "Video",
 ]
 
@@ -711,6 +712,7 @@ def toNumpy(obj):
         adict['time'] = obj.time()
         adict['rendered_at'] = obj.renderedAt
         adict['position'] = obj.pos()
+        adict['info'] = obj.info
         m = np.eye(4)
         vm = obj.getTransform().GetMatrix()
         for i in [0, 1, 2, 3]:
@@ -1656,6 +1658,19 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
         writer.Write()
     return settings.plotter_instance
 
+def ask(*question, **kwarg):
+    """
+    Ask a question from command line. Return the answer as a string.
+    See function `printc()` for the description of the options.
+    """
+    kwarg.update({'end': ' '})
+    if 'invert' not in kwarg.keys():
+        kwarg.update({'invert': True})
+    if 'box' in kwarg.keys():
+        kwarg.update({'box': ''})
+    colors.printc(*question, **kwarg)
+    resp = input()
+    return resp
 
 class Video:
     """
@@ -1695,6 +1710,7 @@ class Video:
         fr = self.get_filename(str(len(self.frames)) + ".png")
         screenshot(fr)
         self.frames.append(fr)
+        return self
 
     def pause(self, pause=0):
         """Insert a `pause`, in seconds."""
@@ -1704,19 +1720,22 @@ class Video:
             fr2 = self.get_filename(str(len(self.frames)) + ".png")
             self.frames.append(fr2)
             os.system("cp -f %s %s" % (fr, fr2))
+        return self
 
 
     def action(self, elevation_range=(0,80),
                azimuth_range=(0,359),
                zoom=None,
-               cam1=None, cam2=None):
+               cam1=None, cam2=None,
+               resetcam=False,
+               ):
         """
         Automatic shooting of a static scene by specifying rotation and elevation ranges.
 
         :param list elevation_range: initial and final elevation angles
         :param list azimuth_range: initial and final azimuth angles
         :param float zoom: initial zooming
-        :param cam12: initial and final camera position, can be dictionary or a vtkCamera
+        :param cam1 cam2: initial and final camera position, can be dictionary or a vtkCamera
         """
         if not self.duration:
             self.duration = 5
@@ -1756,8 +1775,8 @@ class Video:
         if len(azimuth_range)==2:
             vp.camera.Azimuth(azimuth_range[0])
 
-        vp.show(resetcam=False, interactive=False)
-        vp.renderer.ResetCamera()
+        vp.show(resetcam=resetcam, interactive=False)
+        # if resetcam: vp.renderer.ResetCamera()
 
         n = self.fps * self.duration
         for i in range(int(n)):
@@ -1770,10 +1789,13 @@ class Video:
                     vp.camera.Azimuth((azimuth_range[1]-azimuth_range[0])/n)
             vp.show()
             self.addFrame()
+        return self
 
     def close(self):
-        """Render the video and write to file."""
-
+        """
+        Render the video and write to file.
+        Return the current Plotter instance.
+        """
         if self.duration:
             self.fps = len(self.frames) / float(self.duration)
             colors.printc("Recalculated video FPS to", round(self.fps, 3), c="m")
@@ -1820,6 +1842,6 @@ class Video:
                 colors.printc("could not find snapshots", c='r')
 
         self.tmp_dir.cleanup()
-        return
+        return settings.plotter_instance
 
 

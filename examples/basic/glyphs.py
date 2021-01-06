@@ -5,7 +5,7 @@ is shown with various orientation options
 from vedo import *
 import numpy as np
 
-s = Sphere(res=12).c('white').alpha(0.1).wireframe()
+s = Sphere(res=12).c('white',0.1).wireframe()
 
 randvs = np.random.rand(s.NPoints(), 3)  # random orientation vectors
 

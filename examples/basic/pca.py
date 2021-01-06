@@ -7,8 +7,8 @@ pts = np.random.randn(10000, 3)/1.5*[3,2,1]  # random gaussian point cloud
 
 elli = pcaEllipsoid(pts, pvalue=0.5)
 
-inpcl  = elli.insidePoints(pts).c('green').alpha(0.2)
-outpcl = elli.insidePoints(pts, invert=True).c('red').alpha(0.2)
+inpcl  = elli.insidePoints(pts).c('green',0.2)
+outpcl = elli.insidePoints(pts, invert=True).c('red',0.2)
 
 # Extra info can be retrieved with:
 print("axis 1 size:", elli.va)

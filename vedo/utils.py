@@ -1475,7 +1475,7 @@ def make_ticks(x0, x1, N, labels=None, digits=None):
 
     ticks_str.append('')
     ticks_float.append(1)
-    return ticks_float, ticks_str
+    return np.array(ticks_float), ticks_str
 
 
 ############################################################################
