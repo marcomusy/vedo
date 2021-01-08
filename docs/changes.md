@@ -4,6 +4,8 @@
 
 ### [https://vedo.embl.es](https://vedo.embl.es)
 
+A bug in `mesh.closestPoint(returnIds=True)` has been fixed
+
 ---
 ### `base.py`
 - method `addPos()` (obsolete but still valid) renamed to `shift()`
@@ -62,5 +64,6 @@ Lower index means darker.
 - `vedo -r customAxes3`
 - `vedo -r glyphs3`
 - `vedo -r bloch`
+- `vedo -r slicePlane`
 
 

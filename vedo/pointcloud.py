@@ -1727,7 +1727,8 @@ class Points(vtk.vtkFollower, BaseActor):
         if s is None:
             s = d / 50
 
-        if (z1 - z0) / d > 0.1:
+        sph = None
+        if d and (z1 - z0) / d > 0.1:
             sph = vedo.shapes.Sphere(point, r=s*0.4, res=6)
 
         if c is None:
@@ -1742,7 +1743,7 @@ class Points(vtk.vtkFollower, BaseActor):
         )
         acts.append(lb)
 
-        if not sph:
+        if d and not sph:
             sph = vedo.shapes.Circle(pt, r=s/3, res=15)
         acts.append(sph)
 
@@ -2623,65 +2624,77 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
 
-    def closestPoint(self, pt, N=1, radius=None, returnIds=False):
+    def closestPoint(self, pt, N=1, radius=None, returnPointId=False, returnCellId=False):
         """
         Find the closest point(s) on a mesh given from the input point `pt`.
 
-        :param int N: if greater than 1, return a list of N ordered closest points.
-
+        :param int N: if greater than 1, return a list of N ordered closest points
         :param float radius: if given, get all points within that radius.
-
-        :param bool returnIds: return points IDs instead of point coordinates.
+        :param bool returnPointId: return point ID instead of coordinates
+        :param bool returnCellId: return cell ID in which the closest point sits
 
         .. hint:: |align1.py|_ |fitplanes.py|_  |quadratic_morphing.py|_
 
             |align1| |quadratic_morphing|
 
-        .. note:: The appropriate kd-tree search locator is built on the
-            fly and cached for speed.
+        .. note:: The appropriate tree search locator is built on the
+            fly and cached for speed. If the object is displaced/rotated you must
+            trigger a rebuild by setting
+            ``obj.point_locator=None`` or
+            ``obj.cell_locator=None``.
         """
-        poly = self.polydata(True)
+        if (N > 1 or radius) or (N==1 and returnPointId):
+            poly = None
+            if not self.point_locator:
+                poly = self.polydata()
+                self.point_locator = vtk.vtkPointLocator()
+                self.point_locator.SetDataSet(poly)
+                self.point_locator.BuildLocator()
 
-        if N > 1 or radius:
-            plocexists = self.point_locator
-            if not plocexists or (plocexists and self.point_locator is None):
-                point_locator = vtk.vtkPointLocator()
-                point_locator.SetDataSet(poly)
-                point_locator.BuildLocator()
-                self.point_locator = point_locator
-
-            vtklist = vtk.vtkIdList()
-            if N > 1:
-                self.point_locator.FindClosestNPoints(N, pt, vtklist)
-            else:
+            if radius:
+                vtklist = vtk.vtkIdList()
                 self.point_locator.FindPointsWithinRadius(radius, pt, vtklist)
-            if returnIds:
+            elif N > 1:
+                vtklist = vtk.vtkIdList()
+                self.point_locator.FindClosestNPoints(N, pt, vtklist)
+            else: # N==1 hence returnPointId==True
+                ########
+                return self.point_locator.FindClosestPoint(pt)
+                ########
+
+            if returnPointId:
+                ########
                 return [int(vtklist.GetId(k)) for k in range(vtklist.GetNumberOfIds())]
+                ########
             else:
+                if not poly:
+                    poly = self.polydata()
                 trgp = []
                 for i in range(vtklist.GetNumberOfIds()):
                     trgp_ = [0, 0, 0]
                     vi = vtklist.GetId(i)
                     poly.GetPoints().GetPoint(vi, trgp_)
                     trgp.append(trgp_)
+                ########
                 return np.array(trgp)
+                ########
 
-        clocexists = self.cell_locator
-        if not clocexists or (clocexists and self.cell_locator is None):
-            cell_locator = vtk.vtkCellLocator()
-            cell_locator.SetDataSet(poly)
-            cell_locator.BuildLocator()
-            self.cell_locator = cell_locator
-
-        trgp = [0, 0, 0]
-        cid = vtk.mutable(0)
-        dist2 = vtk.mutable(0)
-        subid = vtk.mutable(0)
-        self.cell_locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
-        if returnIds:
-            return int(cid)
         else:
-            return np.array(trgp)
+
+            if not self.cell_locator:
+                poly = self.polydata()
+                self.cell_locator = vtk.vtkCellLocator()
+                self.cell_locator.SetDataSet(poly)
+                self.cell_locator.BuildLocator()
+            trgp = [0, 0, 0]
+            cid = vtk.mutable(0)
+            dist2 = vtk.mutable(0)
+            subid = vtk.mutable(0)
+            self.cell_locator.FindClosestPoint(pt, trgp, cid, subid, dist2)
+            if returnCellId:
+                return int(cid)
+            else:
+                return np.array(trgp)
 
 
     def smoothMLS1D(self, f=0.2, radius=None):

@@ -1751,12 +1751,12 @@ class Mesh(Points):
         if isinstance(cam, vtk.vtkCamera):
             self.SetCamera(cam)
         else:
-            # if settings.plotter_instance and settings.plotter_instance.camera:
-            #     self.SetCamera(settings.plotter_instance.camera)
-            # else:
-            self._set2actcam=True
-            # printc("Error in followCamera(): needs an already rendered scene,", c='r')
-            # printc("                         or passing a vtkCamera object.", c='r')
+            plt = vedo.settings.plotter_instance
+            if plt and plt.camera:
+                self.SetCamera(plt.camera)
+            else:
+                # postpone to show() call
+                self._set2actcam=True
         return self
 
 

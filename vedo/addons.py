@@ -1465,7 +1465,9 @@ def Axes(
             ax = Axes(b, c='k')  # returns Assembly object
             show(b, ax)
 
-    |customAxes| |customAxes.py|_
+    |customAxes1| |customAxes1.py|_ |customAxes2.py|_ |customAxes3.py|_
+
+    |customIndividualAxes| |customIndividualAxes.py|_
     """
     if not titleFont:
         titleFont = settings.defaultFont

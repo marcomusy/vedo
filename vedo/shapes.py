@@ -881,17 +881,16 @@ class Spline(Line):
 
     :param int degree: degree of the spline (1<degree<5)
     :param str easing: control sensity of points along the spline.
+
         Available options are
         [InSine, OutSine, Sine, InQuad, OutQuad, InCubic, OutCubic,
-         InQuart, OutQuart, InCirc, OutCirc].
+        InQuart, OutQuart, InCirc, OutCirc].
         Can be used to create animations (move objects at varying speed).
         See e.g.: https://easings.net
 
     :param int res: number of points on the spline
 
     See also: ``CSpline`` and ``KSpline``.
-
-    |tutorial_spline| |tutorial.py|_
     """
     def __init__(self, points,
                  smooth=0,

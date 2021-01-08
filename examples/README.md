@@ -1,15 +1,14 @@
 # Example directories
 Check out more examples in the above directories.
 
-## Get Started tutorial
-Download the tutorial:
+## Get Started
 ```bash
 git clone https://github.com/marcomusy/vedo.git
-cd vedo/examples
-python tutorial.py
+cd vedo/examples/basic
+python align1.py
 ```
 
-## Run any of the built-in examples with command:
+## List and Run any of the built-in examples with commands:
 
 `vedo --list`
 
