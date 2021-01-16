@@ -9,6 +9,4 @@ include examples/other/dolfin/*
 include examples/other/trimesh/*
 include examples/pyplot/*
 include examples/simulations/*
-include examples/tetmesh/*
 include examples/volumetric/*
-

@@ -38,5 +38,5 @@ combined = np.sum(sections)
 sections.append([combined, 'combined'])
 
 # show objects in N synced renderers:
-show(sections, N=N, axes=True, new=True)
+show(sections, N=N, axes=True, new=True, interactive=True)
 

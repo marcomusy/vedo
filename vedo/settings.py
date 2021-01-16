@@ -10,9 +10,6 @@ General settings.
 
     # Set a default for the font to be used for axes, comments etc.
     defaultFont = 'Normografo' # check font options in shapes.Text
-    fontIsMono = True  # mono means that all letters occupy the same space slot horizontally
-    fontHSpacing = 1   # an horizontal stretching factor (affects both letters and words)
-    fontLSpacing = 0.1 # horizontal spacing inbetween letters (not words)
 
     # Scale magnification of the screenshot (must be an integer)
     screeshotScale = 1
@@ -135,9 +132,6 @@ defaultAxesType = None
 
 # Set a default for the font to be used for axes, comments etc.
 defaultFont = 'Normografo'
-fontIsMono = True
-fontHSpacing = 1
-fontLSpacing = 0.1
 
 # Scale magnification of the screenshot (must be an integer)
 screeshotScale = 1
@@ -256,13 +250,184 @@ textures = []
 fonts_path = os.path.join(installdir, "fonts/")
 fonts = []
 
-#datadir = "/home/musy/Dropbox/Public/vktwork/vedo_data/"
-#print('\ndatadir=',datadir)
+#datadir = "/home/musy/Dropbox/Public/vktwork/vedo_data/"; print('\ndatadir=',datadir)
 datadir = "https://vedo.embl.es/examples/data/"
 
 plotter_instances = []
 plotter_instance = None
-collectable_actors = [] # OBSOLETE and void
+collectable_actors = ['obsolete_do_not_use'] # OBSOLETE and void
+
+
+####################################################################################
+# mono       # means that all letters occupy the same space slot horizontally
+# hspacing   # an horizontal stretching factor (affects both letters and words)
+# lspacing   # horizontal spacing inbetween letters (not words)
+
+font_parameters = dict(
+
+        Normografo = dict(
+                        mono = False,
+                        fscale = 0.75,
+                        hspacing = 1,
+                        lspacing = 0.2,
+                        dotsep = "~·",
+                        ),
+        Bongas = dict(
+                        mono = False,
+                        fscale = 0.875,
+                        hspacing = 0.52,
+                        lspacing = 0.25,
+                        dotsep = "·",
+                        ),
+        Calco = dict(
+                        mono = True,
+                        fscale = 0.8,
+                        hspacing = 1,
+                        lspacing = 0.1,
+                        dotsep = "·",
+                        ),
+        Comae = dict(
+                        mono = False,
+                        fscale = 0.75,
+                        lspacing = 0.2,
+                        hspacing = 1,
+                        dotsep = '~·',
+                        ),
+        Glasgo = dict(
+                        mono = True,
+                        fscale = 0.75,
+                        lspacing = 0.1,
+                        hspacing = 1,
+                        dotsep = "·",
+                        ),
+        Kanopus = dict(
+                        mono = False,
+                        fscale = 0.75,
+                        lspacing = 0.15,
+                        hspacing = 0.75,
+                        dotsep = '~·',
+                        ),
+        LionelOfParis = dict(
+                        mono = False,
+                        fscale = 0.875,
+                        hspacing = 0.7,
+                        lspacing = 0.3,
+                        dotsep = "·",
+                        ),
+        LogoType = dict(
+                        mono = False,
+                        fscale = 0.75,
+                        hspacing = 1,
+                        lspacing = 0.2,
+                        dotsep = '·~~',
+                        ),
+        Quikhand = dict(
+                        mono = False,
+                        fscale = 0.8,
+                        hspacing = 0.6,
+                        lspacing = 0.15,
+                        dotsep = "~~·~",
+                        ),
+        SmartCouric = dict(
+                        mono = True,
+                        fscale = 0.8,
+                        hspacing = 1.05,
+                        lspacing = 0.1,
+                        dotsep = "·",
+                        ),
+        Spears = dict(
+                        mono = False,
+                        fscale = 0.8,
+                        hspacing = 0.5,
+                        lspacing = 0.2,
+                        dotsep = "·",
+                        ),
+        Theemim = dict(
+                        mono = False,
+                        fscale = 0.825,
+                        hspacing = 0.52,
+                        lspacing = 0.3,
+                        dotsep = '~·',
+                        ),
+        VictorMono = dict(
+                        mono = True,
+                        fscale = 0.725,
+                        hspacing = 1,
+                        lspacing = 0.1,
+                        dotsep = "·",
+                        ),
+        Justino1 = dict(
+                        mono = True,
+                        fscale = 0.725,
+                        hspacing = 1,
+                        lspacing = 0.1,
+                        dotsep = "·",
+                        ),
+        Justino2 = dict(
+                        mono = True,
+                        fscale = 0.725,
+                        hspacing = 1,
+                        lspacing = 0.1,
+                        dotsep = "·",
+                        ),
+        Justino3 = dict(
+                        mono = True,
+                        fscale = 0.725,
+                        hspacing = 1,
+                        lspacing = 0.1,
+                        dotsep = "·",
+                        ),
+        Justino4 = dict(
+                        mono = True,
+                        fscale = 0.725,
+                        hspacing = 1,
+                        lspacing = 0.1,
+                        dotsep = "·",
+                        ),
+        Capsmall = dict(
+                        mono = False,
+                        fscale = 0.8,
+                        hspacing = 0.75,
+                        lspacing = 0.15,
+                        dotsep = "·",
+                        ),
+        Cartoons123 = dict(
+                        mono = False,
+                        fscale = 0.8,
+                        hspacing = 0.75,
+                        lspacing = 0.15,
+                        dotsep = "·",
+                        ),
+        Vega = dict(
+                        mono = False,
+                        fscale = 0.8,
+                        hspacing = 0.75,
+                        lspacing = 0.15,
+                        dotsep = "·",
+                        ),
+        PlanetBenson = dict(
+                        mono = False,
+                        fscale = 0.8,
+                        hspacing = 0.8,
+                        lspacing = 0.11,
+                        dotsep = "·",
+                        ),
+        VTK = dict(
+                        mono = False,
+                        fscale = 0.8,
+                        hspacing = 0.6,
+                        lspacing = 0.4,
+                        dotsep = "~^.~ ",
+                        ),
+        Meson= dict(
+                        mono = False,
+                        fscale = 0.8,
+                        hspacing = 0.9,
+                        lspacing = 0.225,
+                        dotsep = "~^.~ ",
+                        ),
+)
+
 
 ####################################################################################
 def embedWindow(backend='k3d', verbose=True):

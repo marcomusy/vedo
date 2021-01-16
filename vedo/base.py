@@ -1,4 +1,3 @@
-from __future__ import division, print_function
 import numpy as np
 import vtk
 import vedo
@@ -98,13 +97,17 @@ class Base3DProp(object):
 
     def pos(self, x=None, y=None, z=None):
         """Set/Get object position."""
-        if x is None:
+        if x is None: # get functionality
             return np.array(self.GetPosition())
-        if z is None:  # assume p_x is of the form (x,y,z)
-            if y is not None: # assume x and y are given so z=0
-                z=0
-            else: # assume p_x is of the form (x,y,z)
+
+        if z is None and y is None: # assume x is of the form (x,y,z)
+            if len(x)==3:
                 x, y, z = x
+            else:
+                x, y = x
+                z=0
+        elif z is None:             # assume x,y is of the form x, y
+            z=0
         self.SetPosition(x, y, z)
 
         if self.trail:
@@ -112,20 +115,6 @@ class Base3DProp(object):
         if self.shadow:
             self._updateShadow()
         return self  # return itself to concatenate methods
-
-    # def addPos(self, dp_x=None, dy=None, dz=None):
-    #     """Add vector to current object position. Same as `shift()`."""
-    #     p = np.array(self.GetPosition())
-
-    #     if dz is None:  # assume dp_x is of the form (x,y,z)
-    #         self.SetPosition(p + dp_x)
-    #     else:
-    #         self.SetPosition(p + [dp_x, dy, dz])
-    #     if self.trail:
-    #         self.updateTrail()
-    #     if self.shadow:
-    #         self._updateShadow()
-    #     return self
 
     def addPos(self, dx=0, dy=0, dz=0):
         """Add vector to current object position. Same as `shift()`."""
@@ -448,15 +437,16 @@ class Base3DProp(object):
         .. hint:: |latex.py|_
         """
         b = self.GetBounds()
-        from vedo.shapes import Box
         if not utils.isSequence(pad):
             pad=[pad,pad,pad]
         length, width, height = b[1]-b[0], b[3]-b[2], b[5]-b[4]
         tol = (length+width+height)/30000 # useful for boxing 2D text
         pos = [(b[0]+b[1])/2, (b[3]+b[2])/2, (b[5]+b[4])/2 -tol]
-        bx = Box(pos,
-                 length*scale+pad[0], width*scale+pad[1], height*scale+pad[2],
-                 c='gray')
+        bx = vedo.shapes.Box(pos,
+                             length*scale+pad[0],
+                             width*scale+pad[1],
+                             height*scale+pad[2],
+                             c='gray')
         if hasattr(self, 'GetProperty'): # could be Assembly
             if isinstance(self.GetProperty(), vtk.vtkProperty): # could be volume
                 pr = vtk.vtkProperty()
@@ -542,8 +532,7 @@ class Base3DProp(object):
 
         |customIndividualAxes| |customIndividualAxes.py|_
         """
-        from vedo.addons import Axes
-        a = Axes(self, **kargs)
+        a = vedo.addons.Axes(self, **kargs)
         self.axes = a
         return a
 
@@ -572,8 +561,7 @@ class Base3DProp(object):
                 c = Cube()
                 c.show(at=0, interactive=True)
         """
-        from vedo.plotter import show
-        return show(self, **options)
+        return vedo.plotter.show(self, **options)
 
 
 ########################################################################################
@@ -704,6 +692,15 @@ class BaseActor(Base3DProp):
         pr = self.GetProperty()
 
         if style:
+
+            if isinstance(pr, vtk.vtkVolumeProperty):
+                self.shade(True)
+                if style=='off':
+                    self.shade(False)
+                elif style=='ambient':
+                    style='default'
+                    self.shade(False)
+
             if style=='off':
                 pr.SetInterpolationToFlat()
                 pr.LightingOff()
@@ -738,6 +735,7 @@ class BaseActor(Base3DProp):
         if specularPower is not None: pr.SetSpecularPower(specularPower)
         if specularColor is not None: pr.SetSpecularColor(colors.getColor(specularColor))
         return self
+
 
     def printHistogram(self, bins=10, height=10, logscale=False, minbin=0,
                        horizontal=False, char=u"\U00002589",
@@ -960,6 +958,10 @@ class BaseActor(Base3DProp):
         if hasattr(self._mapper, 'SetArrayName'):
             self._mapper.SetArrayName(name)
         self._mapper.SetScalarModeToUsePointData()
+
+        if name == "Normals":
+            data.GetPointData().SetActiveNormals(name)
+
         return self
 
     def addCellArray(self, input_array, name):
@@ -1013,6 +1015,10 @@ class BaseActor(Base3DProp):
         if hasattr(self._mapper, 'SetArrayName'):
             self._mapper.SetArrayName(name)
         self._mapper.SetScalarModeToUseCellData()
+
+        if name == "Normals":
+            data.GetCellData().SetActiveNormals(name)
+
         return self
 
 
@@ -1262,8 +1268,7 @@ class BaseActor(Base3DProp):
 
     def write(self, filename, binary=True):
         """Write object to file."""
-        import vedo.io as io
-        return io.write(self, filename, binary)
+        return vedo.io.write(self, filename, binary)
 
 
 ########################################################################################
@@ -1292,7 +1297,6 @@ class BaseGrid(BaseActor):
         can avoid flickering due to internal adjacent faces).
         If fill=False, only the boundary faces will be generated.
         """
-        from vedo.mesh import Mesh
         gf = vtk.vtkGeometryFilter()
         if fill:
             sf = vtk.vtkShrinkFilter()
@@ -1306,7 +1310,7 @@ class BaseGrid(BaseActor):
             gf.Update()
         poly = gf.GetOutput()
 
-        msh = Mesh(poly).flat()
+        msh = vedo.mesh.Mesh(poly).flat()
         msh.scalarbar = self.scalarbar
         lut = utils.ctf2lut(self)
         if lut:
@@ -1409,7 +1413,8 @@ class BaseGrid(BaseActor):
                     r, g, b = colors.getColor(ci)
                     ctf.AddRGBPoint(x, r, g, b)
                     # colors.printc('color at', round(x, 1),
-                    #               'set to', colors.getColorName((r, g, b)), c='w', bold=0)
+                    #               'set to', colors.getColorName((r, g, b)),
+                    #               c='w', bold=0)
             else:
                 # user passing [color1, color2, ..]
                 for i, ci in enumerate(col):
@@ -1463,15 +1468,16 @@ class BaseGrid(BaseActor):
                     xalpha = smin + (smax - smin) * i / (len(alpha) - 1)
                     # Create transfer mapping scalar value to opacity
                     otf.AddPoint(xalpha, al)
+                    #colors.printc("alpha at", round(xalpha, 1), "\tset to", al)
             elif len(alpha.shape)==2: # user passing [(x0,alpha0), ...]
                 otf.AddPoint(smin, alpha[0][1])
                 for xalpha, al in alpha:
                     # Create transfer mapping scalar value to opacity
                     otf.AddPoint(xalpha, al)
                 otf.AddPoint(smax, alpha[-1][1])
-            #colors.printc("alpha at", round(xalpha, 1), "\tset to", al)
 
         else:
+
             otf.AddPoint(smin, alpha) # constant alpha
             otf.AddPoint(smax, alpha)
 
@@ -1510,7 +1516,6 @@ class BaseGrid(BaseActor):
 
         |isosurfaces| |isosurfaces.py|_
         """
-        from vedo.mesh import Mesh
         scrange = self._data.GetScalarRange()
         cf = vtk.vtkContourFilter()
         cf.SetInputData(self._data)
@@ -1536,7 +1541,7 @@ class BaseGrid(BaseActor):
             conn.Update()
             poly = conn.GetOutput()
 
-        a = Mesh(poly, c=None).phong()
+        a = vedo.mesh.Mesh(poly, c=None).phong()
         a._mapper.SetScalarRange(scrange[0], scrange[1])
         return a
 
@@ -1553,7 +1558,6 @@ class BaseGrid(BaseActor):
 
         |legosurface| |legosurface.py|_
         """
-        from vedo.mesh import Mesh
         dataset = vtk.vtkImplicitDataSet()
         dataset.SetDataSet(self._data)
         window = vtk.vtkImplicitWindowFunction()
@@ -1580,7 +1584,7 @@ class BaseGrid(BaseActor):
         gf.SetInputData(extract.GetOutput())
         gf.Update()
 
-        a = Mesh(gf.GetOutput()).lw(0.1).flat().lighting('plastic')
+        a = vedo.mesh.Mesh(gf.GetOutput()).lw(0.1).flat().lighting('plastic')
         scalars = a.getPointArray()
         if scalars is None:
             print("Error in legosurface(): no scalars found!")
@@ -1710,13 +1714,11 @@ class BaseGrid(BaseActor):
                 tmesh = tetralize(ug)
                 tmesh.write('ugrid.vtu').show(axes=1)
         """
-        from vedo.tetmesh import tetralize
-        return tetralize(self._data, tetsOnly)
+        return vedo.tetmesh.tetralize(self._data, tetsOnly)
 
 
     def extractCellsByID(self, idlist, usePointIDs=False):
         """Return a new UGrid composed of the specified subset of indices."""
-        from vedo.ugrid import UGrid
         selectionNode = vtk.vtkSelectionNode()
         if usePointIDs:
             selectionNode.SetFieldType(vtk.vtkSelectionNode.POINT)
@@ -1733,7 +1735,7 @@ class BaseGrid(BaseActor):
         es.SetInputData(0, self._data)
         es.SetInputData(1, selection)
         es.Update()
-        tm_sel = UGrid(es.GetOutput())
+        tm_sel = vedo.ugrid.UGrid(es.GetOutput())
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.GetProperty())
         tm_sel.SetProperty(pr)

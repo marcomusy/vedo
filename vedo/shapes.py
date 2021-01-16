@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function
-import os, sys, vtk
+import os
+import vtk
 import numpy as np
 import vedo
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
@@ -11,9 +11,10 @@ from vedo.colors import printc, getColor, colorMap, cmaps_names
 from vedo.mesh import Mesh, merge
 from vedo.pointcloud import Points
 from vedo.picture import Picture
-import vedo.docs as docs
+from vedo.settings import font_parameters
 
-__doc__ = ("""Submodule to generate basic geometric shapes.""" + docs._defs)
+__doc__ = ("""Submodule to generate basic geometric shapes.""" +
+           vedo.docs._defs)
 
 __all__ = [
     "Marker",
@@ -529,6 +530,8 @@ class Line(Mesh):
 
         Mesh.__init__(self, poly, c, alpha)
         self.lw(lw).lighting('off')
+        self.PickableOff()
+        self.DragableOff()
         #if dotted: # not functional
         #    self.GetProperty().SetLineStipplePattern(0xF0F0)
         #    self.GetProperty().SetLineStippleRepeatFactor(1)
@@ -1411,17 +1414,26 @@ class Arrow(Mesh):
     Build a 3D arrow from `startPoint` to `endPoint` of section size `s`,
     expressed as the fraction of the window size.
 
+    If c is a `float` less than 1, the arrow is rendered as a in a color scale
+    from white to red.
+
     .. note:: If ``s=None`` the arrow is scaled proportionally to its length
 
     |OrientedArrow|
     """
-    def __init__(self, startPoint, endPoint, s=None, c="r", alpha=1, res=12):
-
+    def __init__(self,
+                 startPoint=(0,0,0),
+                 endPoint=(1,0,0),
+                 s=None,
+                 c="r",
+                 alpha=1,
+                 res=12
+                 ):
         # in case user is passing meshs
         if isinstance(startPoint, vtk.vtkActor): startPoint = startPoint.GetPosition()
         if isinstance(endPoint,   vtk.vtkActor): endPoint   = endPoint.GetPosition()
 
-        axis = np.array(endPoint) - np.array(startPoint)
+        axis = np.asarray(endPoint) - np.asarray(startPoint)
         length = np.linalg.norm(axis)
         if length:
             axis = axis / length
@@ -1436,10 +1448,6 @@ class Arrow(Mesh):
             self.arr.SetShaftRadius(sz / 1.75)
             self.arr.SetTipLength(sz * 15)
         self.arr.Update()
-
-        # cl = vtk.vtkCleanPolyData()
-        # cl.SetInputData(self.arr.GetOutput())
-        # cl.Update()
 
         t = vtk.vtkTransform()
         t.RotateZ(np.rad2deg(phi))
@@ -1456,8 +1464,10 @@ class Arrow(Mesh):
         tf.Update()
 
         Mesh.__init__(self, tf.GetOutput(), c, alpha)
+
         self.phong()
         self.SetPosition(startPoint)
+        self.PickableOff()
         self.DragableOff()
         self.base = np.array(startPoint)
         self.top = np.array(endPoint)
@@ -1535,7 +1545,9 @@ class Arrow2D(Mesh):
     :param float headWidth: fractional head width
     :param bool fill: if False only generate the outline
     """
-    def __init__(self, startPoint, endPoint,
+    def __init__(self,
+                 startPoint=(0,0,0),
+                 endPoint=(1,0,0),
                  shaftLength=0.8,
                  shaftWidth=0.05,
                  headLength=0.25,
@@ -1693,6 +1705,8 @@ def FlatArrow(line1, line2, c="m", alpha=1, tipSize=1, tipWidth=1):
     resm = max(100, len(line1))
 
     mesh = Ribbon(line1, line2, alpha=alpha, c=c, res=(resm, 1)).phong()
+    mesh.PickableOff()
+    mesh.DragableOff()
     mesh.name = "FlatArrow"
     return mesh
 
@@ -1850,7 +1864,7 @@ class Arc(Mesh):
         ar.SetResolution(res)
         ar.Update()
         Mesh.__init__(self, ar.GetOutput(), c, alpha)
-        self.flat().lw(2).lighting('off')
+        self.lw(2).lighting('off')
         self.name = "Arc"
 
     def length(self):
@@ -2620,6 +2634,8 @@ class Text(Mesh):
         use ~ to add a short space, 1/4 of the default empty space,
         use ^ and _ to start up/sub scripting, a space terminates their effect.
 
+    Monospaced fonts are: Calco, Glasgo, SmartCouric, VictorMono, Justino.
+
     :param list pos: position coordinates in 3D space
     :param float s: size of text.
     :param float depth: text thickness.
@@ -2629,7 +2645,8 @@ class Text(Mesh):
 
     :param str font: available 3D-polygonized fonts are
         Bongas, Calco, Comae, Kanopus, Glasgo, LionelOfParis,
-        LogoType, Normografo, Quikhand, SmartCouric, Theemim, VictorMono, VTK.
+        LogoType, Normografo, Quikhand, SmartCouric, Theemim, VictorMono, VTK,
+        Capsmall, Cartoons123, PlanetBenson, Vega, Justino, Spears, Meson.
         Default is Normografo, which can be changed using ``settings.defaultFont``
 
     :param float hspacing: horizontal spacing of the font.
@@ -2645,8 +2662,8 @@ class Text(Mesh):
                  pos=(0,0,0),
                  s=1,
                  font='',
-                 hspacing = 1.15,
-                 vspacing = 2.15,
+                 hspacing=1.15,
+                 vspacing=2.15,
                  depth=0,
                  italic=False,
                  justify="bottom-left",
@@ -2654,8 +2671,6 @@ class Text(Mesh):
                  alpha=1,
                  literal=False,
                 ):
-
-        global _fonts_cache
 
         if not font:
             font = settings.defaultFont
@@ -2682,7 +2697,7 @@ class Text(Mesh):
         if not txt or (len(stxt)==1 and " " in stxt):
             Mesh.__init__(self, vtk.vtkPolyData(), c, alpha)
             self.name = "TextNull"
-            return
+            return ################
 
         ###################################################
         notfounds=0
@@ -2690,14 +2705,14 @@ class Text(Mesh):
         if italic is True:
             italic = 1
 
-        if sys.version_info[0] < 3: font="VTK" # disable python2
-
         if isinstance(font, int):
             lfonts = ['Normografo', 'Bongas', 'Calco', 'Comae', 'Kanopus',
                       'Glasgo', 'LionelOfParis', 'LogoType',  'Quikhand',
                       'SmartCouric', 'Theemim', 'VictorMono', 'VTK',
-                      "Capsmall", "Cartoons123", "PlanetBenson", "Spears",
-                      "Vega", "Justino1", "Justino2", "Justino3", "Justino4"]
+                      "Capsmall", "Cartoons123", "PlanetBenson",
+                      "Vega", "Justino1", "Justino2", "Justino3", "Justino4",
+                      "Spears", "Meson",
+                      ]
             font = font%len(lfonts)
             font = lfonts[font]
 
@@ -2713,7 +2728,8 @@ class Text(Mesh):
             # some fonts are downloadable from the vedo website
             if font in ("LogoType", "Capsmall", "Cartoons123",
                         "PlanetBenson", "Vega",
-                        "Justino1", "Justino2", "Justino3", "Justino4", "Spears",
+                        "Justino1", "Justino2", "Justino3", "Justino4",
+                        "Spears", "Meson",
                         ):
                 font = "https://vedo.embl.es/fonts/"+font+".npz"
 
@@ -2744,92 +2760,12 @@ class Text(Mesh):
             keys = _font_meshes.keys()
 
         # ad hoc adjustments
-        fscale = 0.8
-        dotsep = '·'
-        if font=='Normografo': # the default
-            mono = False
-            fscale = 0.75
-            lspacing = 0.2
-            dotsep = "~·"
-        elif font=='Bongas':
-            mono = False
-            fscale = 0.875
-            hspacing *= 0.52
-            lspacing = 0.25
-        elif font=='Calco':
-            mono = True
-            lspacing = 0.1
-        elif font=='Comae': # the vedo logo font
-            mono = False
-            fscale = 0.75
-            lspacing = 0.2
-            dotsep = '~·'
-        elif font=='Glasgo':
-            mono = True
-            fscale = 0.75
-            lspacing = 0.1
-        elif font=='Kanopus':
-            mono = False
-            fscale = 0.75
-            lspacing = 0.15
-            hspacing *= 0.75
-            dotsep = '~·'
-        elif font=='LionelOfParis':
-            mono = False
-            fscale = 0.875
-            hspacing *= 0.7
-            lspacing = 0.3
-        elif font=='LogoType':
-            mono = False
-            fscale = 0.75
-            lspacing = 0.2
-            dotsep = '·~~'
-        elif font=='Quikhand':
-            mono = False
-            hspacing *= 0.6
-            lspacing = 0.15
-            dotsep = "~~·~"
-        elif font=='SmartCouric':
-            mono = True
-            hspacing *= 1.05
-            lspacing = 0.1
-        elif font=='Spears':
-            mono = False
-            hspacing *= 0.5
-            lspacing = 0.2
-        elif font=='Theemim':
-            mono = False
-            fscale = 0.825
-            hspacing *= 0.52
-            lspacing = 0.3
-            dotsep = '~·'
-        elif font=='VictorMono':
-            mono = True
-            fscale = 0.725
-            lspacing = 0.1
-        elif 'Justino' in font:
-            mono = True
-            fscale = 0.725
-            lspacing = 0.1
-        elif font=='Capsmall' or font=='Cartoons123' or font=='Vega':
-            mono = False
-            fscale = 0.8
-            hspacing *= 0.75
-            lspacing = 0.15
-        elif font=='PlanetBenson':
-            mono = False
-            fscale = 0.8
-            hspacing *= 0.8
-            lspacing = 0.11
-        elif font=='VTK':
-            mono = False
-            hspacing *= 0.6
-            lspacing = 0.4
-            dotsep = "~^.~ "
-        else:
-            mono = settings.fontIsMono
-            hspacing *= settings.fontHSpacing
-            lspacing = settings.fontLSpacing
+        fpars = font_parameters[font]
+        mono = fpars['mono']
+        lspacing = fpars['lspacing']
+        hspacing *=  fpars['hspacing']
+        fscale = fpars['fscale']
+        dotsep = fpars['dotsep']
 
         # replacements
         if not isvtkfont and "\\" in repr(txt):
@@ -2992,6 +2928,8 @@ class Text(Mesh):
 
         Mesh.__init__(self, tpoly, c, alpha)
         self.lighting('off').SetPosition(pos)
+        self.PickableOff()
+        self.DragableOff()
         self.name = "Text"
 
 
@@ -3425,8 +3363,6 @@ def VedoLogo(distance=0, c=None, bc='t', version=False, frame=True):
     :param bool version: add version text to the right end of the logo
     :param bc: text back face color
     """
-    import vedo
-
     if c is None:
         c = (0,0,0)
         if settings.plotter_instance:

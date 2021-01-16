@@ -118,8 +118,8 @@ def draw_scene():
         sp = vol.spacing()
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
         vol.mode(int(args.mode)).color(args.cmap).jittering(True)
-        if args.lighting !='default':
-            vol.lighting(args.lighting)
+        # if args.lighting !='default':
+        vol.lighting(args.lighting).jittering(True)
         vp = applications.RayCaster(vol)
         vp.show(viewup="z", interactive=True)
         vp.sliders[0][0].SetEnabled(False)
@@ -607,6 +607,9 @@ else:  #########################################################################
     pr.add_argument("--list",                       help="List examples in vedo/examples", action="store_true")
     pr.add_argument("--reload",                     help="Reload the file, ignoring any previous download", action="store_true")
     args = pr.parse_args()
+
+    if "/vedo/vedo" in settings.installdir:
+        settings.installdir = os.path.join(settings.installdir, "../")
 
     if args.run:
         expath = os.path.join(settings.installdir, "examples", "**", "*.py")

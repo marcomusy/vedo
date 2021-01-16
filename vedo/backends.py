@@ -1,4 +1,3 @@
-from __future__ import division, print_function
 import vtk
 import numpy
 import os
@@ -188,7 +187,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                 # print('Mesh', ia.name, ia.N(), len(ia.faces()))
                 kobj = k3d.vtk_poly_data(iapoly,
                                          name=name,
-                                         color=colors.rgb2int(iap.GetColor()),
+                                         color=_rgb2int(iap.GetColor()),
                                          color_attribute=color_attribute,
                                          color_map=kcmap,
                                          opacity=iap.GetOpacity(),
@@ -209,7 +208,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                 sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
 
                 kobj = k3d.points(ia.points().astype(numpy.float32),
-                                  color=colors.rgb2int(iap.GetColor()),
+                                  color=_rgb2int(iap.GetColor()),
                                   colors=kcols,
                                   opacity=iap.GetOpacity(),
                                   shader="3d",
@@ -240,7 +239,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                         break
                     pts = ia.points()[ln_idx]
                     kobj = k3d.line(pts.astype(numpy.float32),
-                                    color=colors.rgb2int(iap.GetColor()),
+                                    color=_rgb2int(iap.GetColor()),
 #                                    colors=kcols,
                                     opacity=iap.GetOpacity(),
                                     shader="thick",
@@ -278,3 +277,9 @@ def getNotebookBackend(actors2show, zoom, viewup):
         settings.notebook_plotter = IPython.display.display(pil_img)
 
     return settings.notebook_plotter
+
+
+def _rgb2int(rgb_tuple):
+    #Return the int number of a color from (r,g,b), with 0<r<1 etc.
+    rgb = (int(rgb_tuple[0] * 255), int(rgb_tuple[1] * 255), int(rgb_tuple[2] * 255))
+    return 65536 * rgb[0] + 256 * rgb[1] + rgb[2]

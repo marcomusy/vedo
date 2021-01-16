@@ -900,7 +900,7 @@ class Animation(Plotter):
                 d = linInterpolate(tt, [t,t+duration], [dmin, diag*1.01])
                 if d>0:
                     ids = acts[0].closestPoint(corners[corner],
-                                               radius=d, returnIds=True)
+                                               radius=d, returnPointId=True)
                     if len(ids) <= acts[0].N():
                         self.events.append((tt, self.meshErode, acts, ids))
         else:

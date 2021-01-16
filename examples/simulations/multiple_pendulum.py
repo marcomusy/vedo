@@ -25,7 +25,9 @@ for k in range(1, N + 1):
 # Create the bobs
 vp = Plotter(title="Multiple Pendulum", axes=0, interactive=0, bg2='ly')
 vp += Box(pos=(0, -5, 0), length=12, width=12, height=0.7, c="k").wireframe(1)
-bob = [vp.add(Sphere(pos=(bob_x[0], bob_y[0], 0), r=R / 2, c="gray"))]
+sph = Sphere(pos=(bob_x[0], bob_y[0], 0), r=R / 2, c="gray")
+vp += sph
+bob = [sph]
 for k in range(1, N + 1):
     c = Cylinder(pos=(bob_x[k], bob_y[k], 0), r=R, height=0.3, c=k)
     vp += c
@@ -52,7 +54,7 @@ Dt *= np.sqrt(1 / g)
 Dt2 = Dt / 2  # Midpoint time step
 DiaSq = (2 * R) ** 2  # Diameter of bob squared
 
-printc("Press F1 to exit.", c="red", invert=1)
+printc("Press ESC to exit.", c="red", invert=1)
 
 while True:
     bob_x_m = list(map((lambda x, dx: x + Dt2 * dx), bob_x, x_dot))  # midpoint variables

@@ -1,32 +1,26 @@
-"""This example shows how to implement a custom function that is triggered by
-pressing a keyboard button when the rendering window is in interactive mode.
+"""Implement a custom function that is triggered by
+pressing a keyboard button when the rendering window
+is in interactive mode
 
-Click anywhere on the mesh and press c.
+Place pointer anywhere on the mesh and press c
 """
 from vedo import *
 
-##############################################################################
-def myfnc(key):
-    mesh = vp.clickedActor
-    if not mesh or key != "c":
-        printc("click a mesh and press c.", c="r")
+#############################################################
+def myfnc(evt):
+    mesh = evt.actor
+    # printc('dump event info', evt)
+    if not mesh or evt.keyPressed != "c":
+        printc("touch mesh and press c", c="r")
         return
-    printc("clicked mesh    :", mesh.filename[-40:], c=4)
-    printc("clicked 3D point:", mesh.picked3d, c=4)
-    printc("clicked renderer:", [vp.renderer], c=2)
+    printc("mesh :", mesh.filename, c=mesh.color())
+    printc("point:", mesh.picked3d, c="v")
+    cpt = Point(pos=mesh.picked3d, r=9, c="v").pickable(False)
+    plt.add(cpt)
 
-    vp.add(Sphere(pos=mesh.picked3d, r=0.004, c="v"))
-
-
-##############################################################################
-
-vp = Plotter()
-
-vp.keyPressFunction = myfnc  # make it known to Plotter class
-
-vp.load(datadir+"bunny.obj")
-
-vp += __doc__
-
-printc("\nPress c to execute myfnc()", c=1)
-vp.show()
+##############################################################
+plt = Plotter(axes=1)
+plt += Mesh(datadir+"bunny.obj")
+plt += __doc__
+plt.addCallback('KeyPress', myfnc)
+plt.show()

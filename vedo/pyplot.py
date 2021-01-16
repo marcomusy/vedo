@@ -1,4 +1,3 @@
-from __future__ import division, print_function
 import vtk
 import numpy as np
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
@@ -23,6 +22,7 @@ __all__ = [
     "violin",
     "whisker",
     "streamplot",
+    "matrix",
     "DirectedGraph",
 ]
 
@@ -443,7 +443,13 @@ def histogram(*args, **kwargs):
         return _histogram2D(args[0], args[1], **kwargs)
 
     elif len(args) == 1:
-        data = np.array(args[0])
+
+        if isinstance(args[0], vedo.Volume):
+            data = args[0].getDataArray().ravel()
+        elif isinstance(args[0], vedo.Points):
+            data = args[0].getPointArray().ravel()
+        else:
+            data = np.array(args[0])
 
         if "spher" in mode:
             return _histogramSpheric(args[0][:, 0], args[0][:, 1], **kwargs)
@@ -1274,7 +1280,7 @@ def _histogram1D(
     data,
     format=None,
     bins=25,
-    aspect=4 / 3,
+    aspect=4/3,
     xlim=None,
     ylim=(0,None),
     errors=False,
@@ -1321,7 +1327,7 @@ def _histogram1D(
     if logscale:
         fs = np.log10(fs + 1)
         if ytitle=='counts':
-            ytitle='log(counts)'
+            ytitle='log_10 (counts+1)'
 
     x0, x1 = np.min(edges), np.max(edges)
     y0, y1 = 0, np.max(fs)
@@ -1391,7 +1397,11 @@ def _histogram1D(
             r = shapes.Rectangle(p0, p1)
             r.origin(p0).PickableOff()
             maxheigth = max(maxheigth, p1[1])
-            r.color(c).alpha(alpha).lighting('off').z(offs)
+            if c in colors.cmaps_names:
+                col = colors.colorMap((p0[0]+p1[0])/2, c, myedges[0], myedges[-1])
+            else:
+                col = c
+            r.color(col).alpha(alpha).lighting('off').z(offs)
             rs.append(r)
         # print('rectangles', r.z())
 
@@ -2296,9 +2306,6 @@ def streamplot(X, Y, U, V, direction="both",
 
     |plot7_stream| |plot7_stream.py|_
     """
-    # from vedo.volume import Volume
-    # from vedo.base import streamLines
-
     n = len(X)
     m = len(Y[0])
     if n != m:
@@ -2347,6 +2354,131 @@ def streamplot(X, Y, U, V, direction="both",
     stream.scale([1 / (n - 1) * (xmax - xmin), 1 / (n - 1) * (ymax - ymin), 1])
     stream.shift(xmin, ymin)
     return stream
+
+
+def matrix(M,
+           title='Matrix',
+           xtitle='',
+           ytitle='',
+           xlabels=[],
+           ylabels=[],
+           xrotation=0,
+           cmap='Reds',
+           vmin=None,
+           vmax=None,
+           precision=2,
+           font='Theemim',
+           scale=0,
+           scalarbar=True,
+           lc='white',
+           lw=0,
+           c='black',
+           alpha=1,
+    ):
+    """
+    Generate a matrix, or a 2D color-coded plot with bin labels.
+
+    Returns an ``Assembly`` object.
+
+    Parameters
+    ----------
+    M : list or numpy array
+        the input array to visualize.
+    title : str, optional
+        title of the plot. The default is 'Matrix'.
+    xtitle : str, optional
+        title of the horizontal colmuns. The default is ''.
+    ytitle : str, optional
+        title of the vertical rows. The default is ''.
+    xlabels : list, optional
+        individual string labels for each column. Must be of length m. The default is [].
+    ylabels : list, optional
+        individual string labels for each row. Must be of length n. The default is [].
+    xrotation : float, optional
+        rotation of the horizontal labels. The default is 0.
+    cmap : str, optional
+        color map name. The default is 'Reds'.
+    vmin : float, optional
+        minimum value of the colormap range. The default is None.
+    vmax : float, optional
+        maximum value of the colormap range. The default is None.
+    precision : int, optional
+        number of digits for the matrix entries or bins. The default is 2.
+    font : str, optional
+        font name. The default is ''.
+    scale : float, optional
+        size of the numeric entries or bin values. The default is 0.
+    scalarbar : bool, optional
+        add a scalar bar to the right of the plot. The default is True.
+    lc : str, optional
+        color of the line separating the bins. The default is 'white'.
+    lw : float, optional
+        Width of the line separating the bins. The default is 0.
+    c : str, optional
+        text color. The default is 'k'.
+    alpha : float, optional
+        plot transparency. The default is 1.
+    """
+    M = np.asarray(M)
+    n,m = M.shape
+    gr = shapes.Grid(resx=m, resy=n, sx=m/(m+n)*2, sy=n/(m+n)*2, c=c, alpha=alpha)
+    gr.wireframe(False).lc(lc).lw(lw)
+
+    matr = np.flip( np.flip(M), axis=1).ravel(order='C')
+    gr.cmap(cmap, matr, on='cells', vmin=vmin, vmax=vmax)
+    sbar=None
+    if scalarbar:
+        gr.addScalarBar3D(titleFont=font, labelFont=font)
+        sbar = gr.scalarbar
+    labs=None
+    if scale !=0:
+        labs = gr.labels(cells=True, scale=scale/max(m,n),
+                         precision=precision, font=font, justify='center', c=c)
+    t = None
+    if title:
+        if title == 'Matrix':
+            title += ' '+str(n)+'x'+str(m)
+        t = shapes.Text(title, font=font, s=0.04,
+                        justify='bottom-center', c=c)
+        t.shift(0, n/(m+n)*1.05)
+    xlabs=None
+    if len(xlabels)==m:
+        xlabs=[]
+        jus = 'top-center'
+        if xrotation>44:
+            jus = 'right-center'
+        for i in range(m):
+            xl = shapes.Text(xlabels[i], font=font, s=0.02,
+                             justify=jus, c=c).rotateZ(xrotation)
+            xl.shift((2*i-m+1)/(m+n), -n/(m+n)*1.05)
+            xlabs.append(xl)
+    ylabs=None
+    if len(ylabels)==n:
+        ylabs=[]
+        for i in range(n):
+            yl = shapes.Text(ylabels[i], font=font, s=.02,
+                             justify='right-center', c=c)
+            yl.shift(-m/(m+n)*1.05, (2*i-n+1)/(m+n))
+            ylabs.append(yl)
+    xt=None
+    if xtitle:
+        xt = shapes.Text(xtitle, font=font, s=0.035,
+                         justify='top-center', c=c)
+        xt.shift(0, -n/(m+n)*1.05)
+        if xlabs is not None:
+            y0,y1 = xlabs[0].ybounds()
+            xt.shift(0, -(y1-y0)-0.55/(m+n))
+    yt=None
+    if ytitle:
+        yt = shapes.Text(ytitle, font=font, s=0.035,
+                         justify='bottom-center', c=c).rotateZ(90)
+        yt.shift(-m/(m+n)*1.05, 0)
+        if ylabs is not None:
+            x0,x1 = ylabs[0].xbounds()
+            yt.shift(-(x1-x0)-0.55/(m+n),0)
+    asse = Assembly(gr, sbar, labs, t, xt, yt, xlabs, ylabs)
+    asse.name = "Matrix"
+    return asse
 
 
 def cornerPlot(points, pos=1, s=0.2, title="", c="b", bg="k", lines=True, dots=True):

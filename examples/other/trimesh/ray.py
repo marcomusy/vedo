@@ -2,7 +2,6 @@ import trimesh
 import numpy as np
 from vedo import show, settings
 
-settings.useDepthPeeling = True
 
 # test on a sphere mesh
 mesh = trimesh.creation.icosphere()
@@ -34,4 +33,4 @@ ray_visualize = trimesh.load_path(
 mesh.visual.face_colors = [200, 200, 250, 100]
 mesh.visual.face_colors[index_tri] = [255, 0, 0, 255]
 
-show(mesh, ray_visualize, locs)
+show(mesh, ray_visualize, locs, axes=1)

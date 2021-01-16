@@ -11,6 +11,7 @@ plt3 = plot(x, sqrt(x),'Db-',  title='Plot3: y=sqrt(x)')
 plt4 = plot(x, sin(x), '*t--', title='Plot4: y=sin(x)')
 
 # window shape can be expressed as "n/m" or "n|m"
-show(plt1, plt2, plt3, plt4, shape="3|1", sharecam=False, size=(1300,900))
+show(plt1, plt2, plt3, plt4,
+     shape="3|1", sharecam=False, size=(1300,900), interactive=True)
 
 printc('plt1 is vtkAssembly?', isinstance(plt1, vtk.vtkAssembly))

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function
 import vedo
 from vedo.colors import printc, getColor
 from vedo.assembly import Assembly
@@ -930,31 +929,31 @@ def addButton(
     return bu
 
 
-def addCutterTool(obj, mode="box"):
-    """Create handles to cut away parts of a mesh or volume.
+def addCutterTool(obj=None, mode="box", invert=False):
+    """Create an interactive tool to cut away parts of a mesh or volume.
 
-    The cutting shape can be either a box, a plane or a sphere.
+        :param str mode: either "box", "plane" or "sphere"
+        :param bool invert: invert selection (inside-out)
 
-    :param str mode: the cutting shape.
-
-    |cutter| |cutter.py|_
+        |cutter| |cutter.py|_
     """
+    if obj is None:
+        obj = settings.plotter_instance.actors[0]
+
     if isinstance(obj, vtk.vtkVolume):
-        return _addCutterToolVolumeWithBox(obj)
+        return _addCutterToolVolumeWithBox(obj, invert)
     else:
         if mode=='box':
-            return _addCutterToolMeshWithBox(obj)
+            return _addCutterToolMeshWithBox(obj, invert)
         elif mode=='plane':
-            return _addCutterToolMeshWithPlane(obj)
+            return _addCutterToolMeshWithPlane(obj, invert)
         elif mode=='sphere':
-            return _addCutterToolMeshWithSphere(obj)
+            return _addCutterToolMeshWithSphere(obj, invert)
+        else:
+            raise RuntimeError("Unknown mode: "+str(mode))
 
-def _addCutterToolMeshWithSphere(mesh, invert=True):
+def _addCutterToolMeshWithSphere(mesh, invert):
     plt = settings.plotter_instance
-    if not plt.renderer:
-        save_int = plt.interactive
-        plt.show(interactive=0)
-        plt.interactive = save_int
 
     sph = vtk.vtkSphere()
     cm = mesh.centerOfMass()
@@ -965,7 +964,8 @@ def _addCutterToolMeshWithSphere(mesh, invert=True):
     clipper.SetInputData(mesh.polydata())
     clipper.SetClipFunction(sph)
     clipper.GenerateClippedOutputOn()
-    clipper.SetInsideOut(invert)
+    clipper.GenerateClipScalarsOff()
+    clipper.SetInsideOut(not invert)
     clipper.Update()
     mesh.mapper().SetInputConnection(clipper.GetOutputPort())
 
@@ -993,6 +993,7 @@ def _addCutterToolMeshWithSphere(mesh, invert=True):
     sphereWidget.GetSphereProperty().SetOpacity(0.2)
     sphereWidget.GetSelectedSphereProperty().SetOpacity(0.1)
     sphereWidget.SetInteractor(plt.interactor)
+    sphereWidget.SetCurrentRenderer(plt.renderer)
     sphereWidget.SetInputData(mesh.inputdata())
     sphereWidget.AddObserver("InteractionEvent", myCallback)
     plt.interactor.Render()
@@ -1009,12 +1010,12 @@ def _addCutterToolMeshWithSphere(mesh, invert=True):
     printc("  Move gray handles to cut away parts of the mesh", c="m")
     printc("  Press X to save file to: clipped.vtk", c="m")
     printc("  [Press space bar to continue]", c="m")
-    plt.interactor.Start() # allow extra interaction
+    plt.interactor.Start()
     sphereWidget.Off()
     plt.interactor.Start() # allow extra interaction
     return act0
 
-def _addCutterToolMeshWithBox(mesh):
+def _addCutterToolMeshWithBox(mesh, invert):
     plt = settings.plotter_instance
     if not plt:
         printc("addCutterTool(): scene must be first rendered.", c='r')
@@ -1030,7 +1031,7 @@ def _addCutterToolMeshWithBox(mesh):
     clipper.GenerateClipScalarsOff()
     clipper.SetInputData(apd)
     clipper.SetClipFunction(planes)
-    clipper.InsideOutOn()
+    clipper.SetInsideOut(not invert)
     clipper.GenerateClippedOutputOn()
     clipper.Update()
     cpoly = clipper.GetOutput()
@@ -1056,6 +1057,7 @@ def _addCutterToolMeshWithBox(mesh):
     boxWidget.GetOutlineProperty().SetOpacity(0.8)
     boxWidget.SetPlaceFactor(1.025)
     boxWidget.SetInteractor(plt.interactor)
+    boxWidget.SetCurrentRenderer(plt.renderer)
     boxWidget.SetInputData(apd)
     boxWidget.PlaceWidget()
     boxWidget.AddObserver("InteractionEvent", selectPolygons)
@@ -1072,25 +1074,22 @@ def _addCutterToolMeshWithBox(mesh):
     printc("  Move gray handles to cut away parts of the mesh", c="m")
     printc("  Press X to save file to: clipped.vtk", c="m")
     printc("  [Press space bar to continue]", c="m")
-    plt.interactor.Start() # allow extra interaction
+    plt.interactor.Start()
     boxWidget.Off()
     plt.interactor.Start() # allow extra interaction
     return act0
 
-def _addCutterToolMeshWithPlane(mesh):
+def _addCutterToolMeshWithPlane(mesh, invert):
     plt = settings.plotter_instance
-    if not plt.renderer:
-        save_int = plt.interactive
-        plt.show(interactive=0)
-        plt.interactive = save_int
 
     plane = vtk.vtkPlane()
     plane.SetNormal(mesh.centerOfMass())
     clipper = vtk.vtkClipPolyData()
     clipper.SetInputData(mesh.polydata())
     clipper.SetClipFunction(plane)
+    clipper.GenerateClipScalarsOff()
     clipper.GenerateClippedOutputOn()
-    clipper.InsideOutOn()
+    clipper.SetInsideOut(invert)
     clipper.Update()
     mesh.mapper().SetInputConnection(clipper.GetOutputPort())
 
@@ -1112,6 +1111,7 @@ def _addCutterToolMeshWithPlane(mesh):
     planeWidget.SetNormal(1,0,0)
     planeWidget.SetPlaceFactor(1.25)
     planeWidget.SetInteractor(plt.interactor)
+    planeWidget.SetCurrentRenderer(plt.renderer)
     planeWidget.SetInputData(mesh.inputdata())
     planeWidget.PlaceWidget(mesh.GetBounds())
     planeWidget.AddObserver("InteractionEvent", myCallback)
@@ -1136,17 +1136,13 @@ def _addCutterToolMeshWithPlane(mesh):
     printc("  Move gray handles to cut away parts of the mesh", c="m")
     printc("  Press X to save file to: clipped.vtk", c="m")
     printc("  [Press space bar to continue]", c="m")
-    plt.interactor.Start() # allow extra interaction
+    plt.interactor.Start()
     planeWidget.Off()
     plt.interactor.Start() # allow extra interaction
     return act0
 
-def _addCutterToolVolumeWithBox(vol):
+def _addCutterToolVolumeWithBox(vol, invert):
     plt = settings.plotter_instance
-    if not plt.renderer:
-        save_int = plt.interactive
-        plt.show(interactive=0)
-        plt.interactive = save_int
 
     boxWidget = vtk.vtkBoxWidget()
     boxWidget.SetInteractor(plt.interactor)
@@ -1157,7 +1153,7 @@ def _addCutterToolVolumeWithBox(vol):
     plt.renderer.AddVolume(vol)
 
     planes = vtk.vtkPlanes()
-    def clipVolumeRender(obj, event):
+    def _clip(obj, event):
         obj.GetPlanes(planes)
         vol.mapper().SetClippingPlanes(planes)
 
@@ -1168,15 +1164,14 @@ def _addCutterToolVolumeWithBox(vol):
     boxWidget.GetOutlineProperty().SetOpacity(0.7)
     boxWidget.SetPlaceFactor(1.0)
     boxWidget.PlaceWidget()
-    boxWidget.InsideOutOn()
-    boxWidget.AddObserver("InteractionEvent", clipVolumeRender)
+    boxWidget.SetInsideOut(not invert)
+    boxWidget.AddObserver("InteractionEvent", _clip)
 
     printc("Volume Cutter Tool:", c="m", invert=1)
     printc("  Move gray handles to cut parts of the volume", c="m")
 
     plt.interactor.Render()
     boxWidget.On()
-
     plt.interactor.Start()
     boxWidget.Off()
     plt.widgets.append(boxWidget)

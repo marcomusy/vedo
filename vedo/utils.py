@@ -531,9 +531,9 @@ def linInterpolate(x, rangeX, rangeY):
         x = np.array(x)
         x0, x1 = np.array(rangeX)
         y0, y1 = np.array(rangeY)
-        if len(np.unique([x.shape, x0.shape, x1.shape, y1.shape]))>1:
-            printc("Error in linInterpolate(): mismatch in input shapes.", c='r')
-            raise RuntimeError()
+        # if len(np.unique([x.shape, x0.shape, x1.shape, y1.shape]))>1:
+        #     printc("Error in linInterpolate(): mismatch in input shapes.", c='r')
+        #     raise RuntimeError()
         dx = x1 - x0
         dxn = np.linalg.norm(dx)
         if not dxn:
@@ -542,6 +542,11 @@ def linInterpolate(x, rangeX, rangeY):
         t = np.linalg.norm(x - x1) / dxn
         st = s + t
         out = y0 * (t/st) + y1 * (s/st)
+        # allx = []
+        # for xx in x:
+        #     allx.append(linInterpolate(xx, rangeX, rangeY))
+        # out = np.array(allx)
+
     else: #faster
         x0 = rangeX[0]
         dx = rangeX[1] - x0
@@ -1403,7 +1408,7 @@ def make_ticks(x0, x1, N, labels=None, digits=None):
         # automatic
         dstep = (x1-x0)/N  # desired step size
         if dstep <= 0:
-            return [0,1], ["",""]
+            return np.array([0.0,1.0]), ["",""]
 
         if x0:
             expo = np.floor(np.log10(abs(x0)))
@@ -1435,7 +1440,7 @@ def make_ticks(x0, x1, N, labels=None, digits=None):
         idx = (np.abs(steps-dstep)).argmin()
         s = steps[idx]
         if not s or (upBound-lowBound)/s > 100000 or upBound == lowBound:
-            return [0,1], ["",""]
+            return np.array([0.0,1.0]), ["",""]
 
         sel_axis = np.arange(lowBound, upBound, s)
         sel_axis = np.clip(sel_axis, x0, x1)

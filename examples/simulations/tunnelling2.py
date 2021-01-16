@@ -41,22 +41,20 @@ def d_dt(psi):  # find Psi(t+dt)-Psi(t) /dt with 4th order Runge-Kutta method
     return (k1 + 2 * k2 + 2 * k3 + k4) / 6
 
 
-vp = Plotter(interactive=0, axes=2, bg=(0.95, 0.95, 1))
-vp.xtitle = ""
-vp.ytitle = "|\Psi(x,t)|\^2"
-
-bck = vp.load(datadir+"images/schrod.png").alpha(.3).scale(.0255).pos([0,-5,-.1])
+vp = Plotter(interactive=False)
+bck = vp.load(datadir+"images/schrod.png").alpha(.3).scale(.0256).pos([0,-5,-.1])
 barrier = Line(np.stack((x, V*15, np.zeros_like(x)), axis=1), c="black", lw=2)
+box = bck.box().c('black')
 
 lines = []
 for i in range(0, Nsteps):
     for j in range(500):
         Psi += d_dt(Psi) * dt  # integrate for a while before showing things
     A = np.real(Psi * np.conj(Psi)) * 1.5  # psi squared, probability(x)
-    coords = np.stack((x, A, np.zeros_like(x)), axis=1)
+    coords = np.stack((x, A), axis=1)
     Aline = Line(coords, c="db", lw=3)
-    vp.show([Aline, barrier, bck])
-    lines.append([Aline, A])  # store objects
+    vp.show(barrier, bck, Aline, box).remove(Aline)
+    lines.append([Aline, A])   # store objects
 
 # now show the same lines along z representing time
 vp.actors= [] # clean up internal list of objects to show
@@ -67,7 +65,7 @@ for i in range(Nsteps):
     p = [0, 0, i*size/Nsteps]  # shift along z
     l, a = lines[i]
     l.cmap("gist_earth_r", a)
-    vp += [l.pos(p), barrier.clone().alpha(0.3).pos(p)]
+    vp += [box, bck, l.pos(p), barrier.clone().alpha(0.3).pos(p)]
     vp.show()
 
 vp.show(interactive=1)

@@ -1,4 +1,3 @@
-from __future__ import division, print_function
 import vtk
 from vtk.util.numpy_support import vtk_to_numpy
 import os

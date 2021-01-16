@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function
 import time
 import sys
 import vtk
@@ -191,14 +190,12 @@ def show(*actors, **options):
     else:
         actors = utils.flatten(actors)
 
-    if actors is Ellipsis:
-        # actors = settings.collectable_actors
-        printc("WARNING: Ellipsis (...) shortcut has been removed. Sorry.", c='r')
-
-    if settings.plotter_instance and not newPlotter:
+    if settings.plotter_instance and not newPlotter: # Plotter exists
         plt = settings.plotter_instance
-    else:
-        if utils.isSequence(at):
+
+    else:                                            # Plotter must be created
+
+        if utils.isSequence(at):                     # user passed a sequence for "at"
             if not utils.isSequence(actors):
                 printc("show() Error: input must be a list.", c='r')
                 raise RuntimeError()
@@ -207,70 +204,78 @@ def show(*actors, **options):
                 raise RuntimeError()
             if len(at) > 1 and (shape == (1, 1) and N is None):
                 N = max(at) + 1
+
         elif at is None and (N or shape != (1, 1)):
             if not utils.isSequence(actors):
                 printc('show() Error: N or shape is set, but input is not a sequence.', c='r')
                 printc('              you may need to specify e.g. at=0', c='r')
                 raise RuntimeError()
-            at = range(len(actors))
+            at = list(range(len(actors)))
 
         plt = Plotter(
-                    shape=shape,
-                    N=N,
-                    pos=pos,
-                    size=size,
-                    screensize=screensize,
-                    title=title,
-                    axes=axes,
-                    sharecam=sharecam,
-                    resetcam=resetcam,
-                    interactive=interactive,
-                    offscreen=offscreen,
-                    bg=bg,
-                    bg2=bg2,
+                        shape=shape,
+                        N=N,
+                        pos=pos,
+                        size=size,
+                        screensize=screensize,
+                        title=title,
+                        axes=axes,
+                        sharecam=sharecam,
+                        resetcam=resetcam,
+                        interactive=interactive,
+                        offscreen=offscreen,
+                        bg=bg,
+                        bg2=bg2,
         )
 
     # use _plt_to_return because plt.show() can return a k3d/panel plot
     _plt_to_return = None
+
     if utils.isSequence(at):
         for i, a in enumerate(actors):
             _plt_to_return = plt.show(
-                a,
-                at=i,
-                zoom=zoom,
-                resetcam=resetcam,
-                viewup=viewup,
-                azimuth=azimuth,
-                elevation=elevation,
-                roll=roll,
-                camera=camera,
-                interactive=interactive,
-                interactorStyle=interactorStyle,
-                bg=bg,
-                bg2=bg2,
-                axes=axes,
-                q=q,
+                                        a,
+                                        at=i,
+                                        zoom=zoom,
+                                        resetcam=resetcam,
+                                        viewup=viewup,
+                                        azimuth=azimuth,
+                                        elevation=elevation,
+                                        roll=roll,
+                                        camera=camera,
+                                        interactive=False,
+                                        interactorStyle=interactorStyle,
+                                        bg=bg,
+                                        bg2=bg2,
+                                        axes=axes,
+                                        q=q,
             )
-        plt.interactor.Start()
-    else:
-        _plt_to_return = plt.show(
-            actors,
-            at=at,
-            zoom=zoom,
-            resetcam=resetcam,
-            viewup=viewup,
-            azimuth=azimuth,
-            elevation=elevation,
-            roll=roll,
-            camera=camera,
-            interactive=interactive,
-            interactorStyle=interactorStyle,
-            bg=bg,
-            bg2=bg2,
-            axes=axes,
-            q=q,
-        )
+        plt.interactive = interactive
 
+        if interactive or len(at)==N \
+            or (isinstance(shape[0],int) and len(at)==shape[0]*shape[1]):
+            # note that shape can be a string
+            plt.interactor.Start()
+
+    else:
+
+        _plt_to_return = plt.show(
+                                    actors,
+                                    at=at,
+                                    zoom=zoom,
+                                    resetcam=resetcam,
+                                    viewup=viewup,
+                                    azimuth=azimuth,
+                                    elevation=elevation,
+                                    roll=roll,
+                                    camera=camera,
+                                    interactive=interactive,
+                                    interactorStyle=interactorStyle,
+                                    bg=bg,
+                                    bg2=bg2,
+                                    axes=axes,
+                                    q=q,
+        )
     return _plt_to_return
 
 
@@ -421,6 +426,7 @@ class Plotter:
         self.axes = axes  # show axes type nr.
         self.title = title  # window title
         self.sharecam = sharecam  # share the same camera if multiple renderers
+        self.picker = None    # the vtkPicker object
         self.picked2d = None  # 2d coords of a clicked point on the rendering window
         self.picked3d = None  # 3d coords of a clicked point on an actor
         self.offscreen = offscreen
@@ -433,25 +439,25 @@ class Plotter:
         self.pos = pos     # used by vedo.io
         self.justremoved = None
         self.axes_instances = []
-        self.icol = 0
+        self._icol = 0
         self.clock = 0
         self._clockt0 = time.time()
         self.initializedPlotter = False
         self.initializedIren = False
-        self.keyPressFunction = None
         self.sliders = []
         self.buttons = []
         self.widgets = []
+        self.cutterWidget = None
         self.flagWidget = None
         self._flagRep = None
         self.scalarbars = []
-        self.cutterWidget = None
         self.backgroundRenderer = None
-        self.mouseLeftClickFunction = None
-        self.mouseMiddleClickFunction = None
-        self.mouseRightClickFunction = None
+        self.keyPressFunction = None # obsolete! use plotter.callBack()
+        self.mouseLeftClickFunction = None # obsolete! use plotter.callBack()
+        self.mouseMiddleClickFunction = None # obsolete! use plotter.callBack()
+        self.mouseRightClickFunction = None # obsolete! use plotter.callBack()
         self._first_viewup = True
-        self.extralight = None
+        self._extralight = None
         self.size = size
         self.interactor = None
         self.allowInteraction = None
@@ -768,21 +774,23 @@ class Plotter:
         return self
 
     def __isub__(self, actors):
-        self.remove(actors)
+        self.remove(actors, render=False)
         return self
 
-    def add(self, actors, render=True, at=None):
+    def add(self, actors, at=None, render=True, resetcam=False):
         """Append input object to the internal list of actors to be shown.
 
-        :param bool render: render the scene after adding the object
         :param int at: add the object at the specified renderer
-
-        :return: returns input actor for possible concatenation.
+        :param bool render: render the scene after adding the object
         """
+        if not self.interactor:
+            return self
         if at is not None:
             ren = self.renderers[at]
         else:
             ren = self.renderer
+
+        actors = self._scan_input(actors)
 
         if utils.isSequence(actors):
             for a in actors:
@@ -790,43 +798,54 @@ class Plotter:
                     self.actors.append(a)
                     if render and ren:
                         ren.AddActor(a)
-            if render and self.interactor:
-                if self.resetcam:
-                    self.renderer.ResetCamera()
-                self.interactor.Render()
-            return None
         else:
             self.actors.append(actors)
-            if render and ren:
-                ren.AddActor(actors)
-                if self.interactor:
-                    self.interactor.Render()
-            return actors
+            ren.AddActor(actors)
+        if render:
+            if resetcam:
+                ren.ResetCamera()
+            self.interactor.Render()
+        return self
 
-    def remove(self, actors, render=True):
-        """Remove ``vtkActor`` or actor index from current renderer."""
+    def remove(self, actors, at=None, render=False, resetcam=False):
+        """Remove input object to the internal list of actors to be shown.
+
+        :param int at: remove the object at the specified renderer
+        :param bool render: render the scene after removing the object
+        """
+        if not self.interactor:
+            return self
+        if at is not None:
+            ren = self.renderers[at]
+        else:
+            ren = self.renderer
         if not utils.isSequence(actors):
             actors = [actors]
 
         for a in actors:
-            if self.renderer:
-                self.renderer.RemoveActor(a)
+            if ren:
+                ren.RemoveActor(a)
                 if hasattr(a, 'renderedAt'):
-                    ir = self.renderers.index(self.renderer)
+                    ir = self.renderers.index(ren)
                     a.renderedAt.discard(ir)
                 if hasattr(a, 'scalarbar') and a.scalarbar:
-                    self.renderer.RemoveActor(a.scalarbar)
+                    ren.RemoveActor(a.scalarbar)
                 if hasattr(a, 'trail') and a.trail:
-                    self.renderer.RemoveActor(a.trail)
+                    ren.RemoveActor(a.trail)
                     a.trailPoints = []
             if a in self.actors:
                 i = self.actors.index(a)
                 del self.actors[i]
-        if render and hasattr(self, 'interactor') and self.interactor:
+        if render:
+            if resetcam:
+                ren.ResetCamera()
             self.interactor.Render()
+        return self
 
-    def render(self):
+    def render(self, resetcam=False):
         """Render the scene."""
+        if resetcam:
+            self.renderer.ResetCamera()
         self.interactor.Render()
         return self
 
@@ -1002,7 +1021,7 @@ class Plotter:
 
     def resetCamera(self):
         """Reset the camera position and zooming."""
-        self.interactor.ResetCamera()
+        self.renderer.ResetCamera()
         return self
 
     def moveCamera(self, camstart, camstop, fraction):
@@ -1149,26 +1168,30 @@ class Plotter:
         """Add a button to the renderer window.
 
         :param list states: a list of possible states, e.g. ['On', 'Off']
-        :param c:      a list of colors for each state
-        :param bc:     a list of background colors for each state
-        :param pos:    2D position in pixels from left-bottom corner
-        :param size:   size of button font
-        :param str font:   font type (arial, courier, times)
-        :param bool bold:   bold face (False)
+        :param c: a list of colors for each state
+        :param bc: a list of background colors for each state
+        :param pos: 2D position in pixels from left-bottom corner
+        :param size: size of button font
+        :param str font: font type (arial, courier, times)
+        :param bool bold: bold face (False)
         :param bool italic: italic face (False)
-        :param float alpha:  opacity level
-        :param float angle:  anticlockwise rotation in degrees
+        :param float alpha: opacity level
+        :param float angle: anticlockwise rotation in degrees
 
         |buttons| |buttons.py|_
         """
-        return addons.addButton(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
+        return addons.addButton(fnc, states, c, bc, pos, size, font,
+                                bold, italic, alpha, angle)
 
-    def addCutterTool(self, mesh, mode='box'):
-        """Create handles to cut away parts of a mesh.
+    def addCutterTool(self, obj=None, mode='box', invert=False):
+        """Create an interactive tool to cut away parts of a mesh or volume.
+
+        :param str mode: either "box", "plane" or "sphere"
+        :param bool invert: invert selection (inside-out)
 
         |cutter| |cutter.py|_
         """
-        return addons.addCutterTool(mesh, mode)
+        return addons.addCutterTool(obj, mode, invert)
 
     def addIcon(self, icon, pos=3, size=0.08):
         """Add an inset icon mesh into the same renderer.
@@ -1226,11 +1249,277 @@ class Plotter:
     def addLegend(self):
         return addons.addLegend()
 
-    def addCallback(self, eventName, func):
-        """Add a function to be executed while show() is active"""
+
+    def addCallback(self, eventName, func, priority=0.0):
+        """Add a function to be executed while show() is active.
+        Information about the event can be acquired with method ``getEvent()``.
+
+        Return a unique id for the callback.
+
+        The callback function (see example below) exposes a dictionary
+        with the following information:
+            - ``name``: event name,
+            - ``id``: event unique identifier,
+            - ``priority``: event priority (float),
+            - ``interactor``: the interactor object,
+            - ``at``: renderer nr. where the event occured
+            - ``actor``: object picked by the mouse
+            - ``picked3d``: point picked in world coordinates
+            - ``keyPressed``: key pressed as string
+            - ``picked2d``: screen coords of the mouse pointer
+            - ``delta2d``: shift wrt previous position (to calculate speed, direction)
+            - ``delta3d``: ...same but in 3D world coords
+            - ``angle2d``: angle of mouse movement on screen
+            - ``speed2d``: speed of mouse movement on screen
+            - ``speed3d``: speed of picked point in world coordinates
+            - ``isPoints``: True if of class
+            - ``isMesh``: True if of class
+            - ``isAssembly``: True if of class
+            - ``isVolume``: True if of class Volume
+            - ``isPicture``: True if of class
+
+        Frequently used events are:
+            - KeyPress, KeyRelease: listen to keyboard events
+            - LeftButtonPress, LeftButtonRelease: listen to mouse clicks
+            - MiddleButtonPress, MiddleButtonRelease
+            - RightButtonPress, RightButtonRelease
+            - MouseMove: listen to mouse pointer changing position
+            - MouseWheelForward, MouseWheelBackward
+            - Enter, Leave: listen to mouse entering or leaving the window
+            - Pick, StartPick, EndPick: listen to object picking
+            - ResetCamera, ResetCameraClippingRange
+            - Error, Warning
+            - Char
+            - Timer
+
+        Check the complete list of events here:
+            https://vtk.org/doc/nightly/html/classvtkCommand.html
+
+        :Example:
+
+            .. code-block:: python
+
+                from vedo import *
+
+                def func(evt): # called every time the mouse moves
+                    # evt is a dotted dictionary
+                    if not evt.actor:
+                        return  # no hit, return
+                    print("point coords =", evt.picked3d)
+                    # print("full event dump:", evt)
+
+                elli = Ellipsoid()
+                plt = show(elli, axes=1, interactive=False)
+                plt.addCallback('MouseMove', func)
+                interactive()
+        """
+        if not self.interactor:
+            return None
+
+        # since vtk tags are ugly and difficult to remember:
+        ln = eventName.lower()
+        if "click" in ln or "button" in ln:
+            eventName="LeftButtonPress"
+            if "right" in ln:
+                eventName="RightButtonPress"
+            elif "mid" in ln:
+                eventName="MiddleButtonPress"
+            if "release" in ln:
+                eventName.replace("Press","Release")
+        else:
+            if "key" in ln:
+                if 'release' in ln:
+                    eventName="KeyRelease"
+                else:
+                    eventName="KeyPress"
+        if ("mouse" in ln and "mov" in ln) or "over" in ln:
+            eventName="MouseMove"
+
+        if not eventName.endswith('Event'):
+            eventName += 'Event'
+
+        def _func_wrap(iren, ename):
+            x, y = self.interactor.GetEventPosition()
+            self.renderer = self.interactor.FindPokedRenderer(x, y)
+            if not self.picker:
+                self.picker = vtk.vtkPropPicker()
+            self.picker.PickProp(x, y, self.renderer)
+            self.picked2d = (x,y)
+            xp, yp = self.interactor.GetLastEventPosition()
+            actor = self.picker.GetProp3D()
+            delta3d = np.array([0,0,0])
+            if actor:
+                picked3d = np.array(self.picker.GetPickPosition())
+                if actor.picked3d is not None:
+                    delta3d = picked3d - actor.picked3d
+                actor.picked3d = picked3d
+            else:
+                picked3d = None
+
+            dx, dy = x-xp, y-yp
+
+            event_dict = utils.dotdict({
+                "name": ename,
+                "id": cid,
+                "priority": priority,
+                "at": self.renderers.index(self.renderer),
+                "actor": actor,
+                "picked3d": picked3d,
+                "keyPressed": self.interactor.GetKeySym(),
+                "picked2d": (x,y),
+                "delta2d": (dx, dy),
+                "angle2d": np.arctan2(dy,dx),
+                "speed2d": np.sqrt(dx*dx+dy*dy),
+                "delta3d": delta3d,
+                "speed3d": np.sqrt(np.dot(delta3d,delta3d)),
+                "isPoints":   isinstance(actor, vedo.Points),
+                "isMesh":     isinstance(actor, vedo.Mesh),
+                "isAssembly": isinstance(actor, vedo.Assembly),
+                "isVolume":   isinstance(actor, vedo.Volume),
+                "isPicture":  isinstance(actor, vedo.Picture),
+            })
+            func(event_dict)
+            return   ## _func_wrap
+
+        cid = self.interactor.AddObserver(eventName, _func_wrap, priority)
+        return cid
+
+    def removeCallback(self, cid):
+        """Remove a callback function by its id
+        or a whole category of callbacks by their name.
+
+        :param int,str cid: unique id of the callback.
+            If an event name is passed all callbacks of that type are removed
+        """
         if self.interactor:
-            self.interactor.AddObserver(eventName, func)
+            if isinstance(cid, str):
+                # since vtk tags are ugly and difficult to remember:
+                ln = cid.lower()
+                if "click" in ln or "button" in ln:
+                    cid="LeftButtonPress"
+                    if "right" in ln:
+                        cid="RightButtonPress"
+                    elif "mid" in ln:
+                        cid="MiddleButtonPress"
+                    if "release" in ln:
+                        cid.replace("Press","Release")
+                else:
+                    if "key" in ln:
+                        if 'release' in ln:
+                            cid="KeyRelease"
+                        else:
+                            cid="KeyPress"
+                if ("mouse" in ln and "mov" in ln) or "over" in ln:
+                    cid="MouseMove"
+                if not cid.endswith('Event'):
+                    cid += 'Event'
+                self.interactor.RemoveObservers(cid)
+            else:
+                self.interactor.RemoveObserver(cid)
         return self
+
+
+    def _scan_input(self, wannabeacts):
+
+        if not utils.isSequence(wannabeacts):
+            wannabeacts = [wannabeacts]
+
+        scannedacts = []
+        for a in wannabeacts:  # scan content of list
+
+            if a is None:
+                pass
+
+            elif isinstance(a, vtk.vtkActor):
+                scannedacts.append(a)
+                if isinstance(a, vedo.base.BaseActor):
+                    if a.trail and a.trail not in self.actors:
+                        scannedacts.append(a.trail)
+                    if a.shadow and a.shadow not in self.actors:
+                        scannedacts.append(a.shadow)
+                    if a._caption and a._caption not in self.actors:
+                        scannedacts.append(a._caption)
+
+            elif isinstance(a, vtk.vtkActor2D):
+                scannedacts.append(a)
+
+            elif isinstance(a, vtk.vtkAssembly):
+                scannedacts.append(a)
+                if isinstance(a, vedo.pyplot.Plot):
+                    a.modified = False
+                    self.sharecam = False
+                if a.trail and a.trail not in self.actors:
+                    scannedacts.append(a.trail)
+
+            elif isinstance(a, vedo.Volume):
+                scannedacts.append(a)
+
+            elif isinstance(a, vtk.vtkImageData):
+                scannedacts.append(vedo.Volume(a))
+
+            elif isinstance(a, vedo.TetMesh):
+                # check ugrid is all made of tets
+                ugrid = a.inputdata()
+                uarr = ugrid.GetCellTypesArray()
+                celltypes = np.unique(vtk_to_numpy(uarr))
+                ncelltypes = len(celltypes)
+                if ncelltypes > 1 or (ncelltypes==1 and celltypes[0]!=10):
+                    scannedacts.append(a.tomesh())
+                else:
+                    if not ugrid.GetPointData().GetScalars():
+                        if not ugrid.GetCellData().GetScalars():
+                            #add dummy array for vtkProjectedTetrahedraMapper to work:
+                            a.addCellArray(np.ones(a.NCells()), 'DummyOneArray')
+                    scannedacts.append(a)
+
+            elif isinstance(a, vedo.UGrid):
+                scannedacts.append(a.tomesh())
+
+            elif isinstance(a, vtk.vtkVolume): # order matters! dont move above TetMesh
+                vvol = vedo.Volume(a.GetMapper().GetInput())
+                vprop = vtk.vtkVolumeProperty()
+                vprop.DeepCopy(a.GetProperty())
+                vvol.SetProperty(vprop)
+                scannedacts.append(vvol)
+
+            elif isinstance(a, vtk.vtkImageActor):
+                scannedacts.append(a)
+
+            elif isinstance(a, vtk.vtkBillboardTextActor3D):
+                scannedacts.append(a)
+
+            elif isinstance(a, vtk.vtkLight):
+                self.renderer.AddLight(a)
+
+            elif isinstance(a, str):  # assume a filepath or 2D comment was given
+                if a.startswith('https'):
+                    a = vedo.io.download(a)
+                if "." in a and ". " not in a and os.path.isfile(a):
+                    out = vedo.io.load(a)
+                else:
+                    out = vedo.shapes.Text2D(a, pos=3)
+                scannedacts.append(out)
+
+            elif isinstance(a, vtk.vtkMultiBlockDataSet):
+                for i in range(a.GetNumberOfBlocks()):
+                    b =  a.GetBlock(i)
+                    if isinstance(b, vtk.vtkPolyData):
+                        scannedacts.append(vedo.Mesh(b))
+                    elif isinstance(b, vtk.vtkImageData):
+                        scannedacts.append(vedo.Volume(b))
+
+            elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
+                scannedacts.append(vedo.dolfin.MeshActor(a))
+
+            elif "trimesh" in str(type(a)):
+                scannedacts.append(utils.trimesh2vedo(a))
+
+            else:
+                try:
+                    scannedacts.append(vedo.Mesh(a))
+                except:
+                    printc("Cannot understand input in show():", type(a), c='r')
+        return scannedacts
 
 
     def show(self, *actors, **options):
@@ -1322,7 +1611,6 @@ class Plotter:
             - 11 = Unicam
 
         :param bool q:  force program to quit after `show()` command returns.
-
         """
         at = options.pop("at", None)
         axes = options.pop("axes", settings.defaultAxesType)
@@ -1341,7 +1629,6 @@ class Plotter:
         axes_ = options.pop("axes", None)
         size_ = options.pop("size", None)
         q = options.pop("q", False)
-
 
         if size_ is not None:
             self.size = size_
@@ -1375,108 +1662,6 @@ class Plotter:
         if camera is not None:
             self.resetcam = False
 
-        def scan(wannabeacts):
-            scannedacts = []
-            if not utils.isSequence(wannabeacts):
-                wannabeacts = [wannabeacts]
-
-            for a in wannabeacts:  # scan content of list
-
-                if a is None:
-                    pass
-
-                elif isinstance(a, vtk.vtkActor):
-                    scannedacts.append(a)
-                    if isinstance(a, vedo.base.BaseActor):
-                        if a.trail and a.trail not in self.actors:
-                            scannedacts.append(a.trail)
-                        if a.shadow and a.shadow not in self.actors:
-                            scannedacts.append(a.shadow)
-                        if a._caption and a._caption not in self.actors:
-                            scannedacts.append(a._caption)
-
-                elif isinstance(a, vtk.vtkAssembly):
-                    scannedacts.append(a)
-                    if isinstance(a, vedo.pyplot.Plot):
-                        a.modified = False
-                        self.sharecam = False
-                    if a.trail and a.trail not in self.actors:
-                        scannedacts.append(a.trail)
-
-                elif isinstance(a, vtk.vtkActor2D):
-                    # if isinstance(a, vtk.vtkCornerAnnotation):
-                    #     for a2 in settings.collectable_actors:
-                    #         if isinstance(a2, vtk.vtkCornerAnnotation):
-                    #             if at in a2.renderedAt: # remove old message
-                    #                 self.remove(a2)
-                    scannedacts.append(a)
-
-                elif isinstance(a, vedo.Volume):
-                    scannedacts.append(a)
-
-                elif isinstance(a, vedo.TetMesh):
-                    # check ugrid is all made of tets
-                    ugrid = a.inputdata()
-                    uarr = ugrid.GetCellTypesArray()
-                    celltypes = np.unique(vtk_to_numpy(uarr))
-                    ncelltypes = len(celltypes)
-                    if ncelltypes > 1 or (ncelltypes==1 and celltypes[0]!=10):
-                        scannedacts.append(a.tomesh())
-                    else:
-                        if not ugrid.GetPointData().GetScalars():
-                            if not ugrid.GetCellData().GetScalars():
-                                #add dummy array for vtkProjectedTetrahedraMapper to work:
-                                a.addCellArray(np.ones(a.NCells()), 'DummyOneArray')
-                        scannedacts.append(a)
-
-                elif isinstance(a, vedo.UGrid):
-                    scannedacts.append(a.tomesh())
-
-                elif isinstance(a, vtk.vtkVolume): # order matters!
-                    scannedacts.append(vedo.Volume(a.GetMapper().GetInput()))
-
-                elif isinstance(a, vtk.vtkImageActor):
-                    scannedacts.append(a)
-
-                elif isinstance(a, vtk.vtkImageData):
-                    scannedacts.append(vedo.Volume(a))
-
-                elif isinstance(a, vtk.vtkBillboardTextActor3D):
-                    scannedacts.append(a)
-
-                elif isinstance(a, vtk.vtkLight):
-                    self.renderer.AddLight(a)
-
-                elif isinstance(a, str):  # assume a filepath or 2D comment was given
-                    if a.startswith('https'):
-                        a = vedo.io.download(a)
-                    if "." in a and ". " not in a and os.path.isfile(a):
-                        out = vedo.io.load(a)
-                    else:
-                        out = vedo.shapes.Text2D(a, pos=3)
-                    scannedacts.append(out)
-
-                elif isinstance(a, vtk.vtkMultiBlockDataSet):
-                    for i in range(a.GetNumberOfBlocks()):
-                        b =  a.GetBlock(i)
-                        if isinstance(b, vtk.vtkPolyData):
-                            scannedacts.append(vedo.Mesh(b))
-                        elif isinstance(b, vtk.vtkImageData):
-                            scannedacts.append(vedo.Volume(b))
-
-                elif "dolfin" in str(type(a)):  # assume a dolfin.Mesh object
-                    scannedacts.append(vedo.dolfin.MeshActor(a))
-
-                elif "trimesh" in str(type(a)):
-                    scannedacts.append(utils.trimesh2vedo(a))
-
-                else:
-                    try:
-                        scannedacts.append(vedo.Mesh(a))
-                    except:
-                        printc("Cannot understand input in show():", type(a), c='r')
-            return scannedacts
-
         if len(actors) == 0:
             actors = None
         elif len(actors) == 1:
@@ -1486,12 +1671,12 @@ class Plotter:
 
         if actors is not None:
             self.actors = []
-            actors2show = scan(actors)
+            actors2show = self._scan_input(actors)
             for a in actors2show:
                 if a not in self.actors:
                     self.actors.append(a)
         else:
-            actors2show = scan(self.actors)
+            actors2show = self._scan_input(self.actors)
             self.actors = list(actors2show)
 
         if axes is not None:
@@ -1685,7 +1870,7 @@ class Plotter:
                 interactorStyle = 7
 
         if isinstance(camera, dict):
-            camera = dict(camera) # make a copy so it's not emptied by pop()
+            camera = dict(camera) # make a copy so input is not emptied by pop()
             cm_pos = camera.pop("pos", None)
             cm_focalPoint = camera.pop("focalPoint", None)
             cm_viewup = camera.pop("viewup", None)
@@ -1840,7 +2025,6 @@ class Plotter:
         if actors is None:
             self.renderer.RemoveAllViewProps()
             self.actors = []
-            # settings.collectable_actors = []
             self.scalarbars = []
             self.sliders = []
             self.buttons = []
@@ -1854,9 +2038,6 @@ class Plotter:
             for a in actors:
                 self.remove(a)
         elif self.renderer:
-            # for a in settings.collectable_actors:
-            #     self.remove(a)
-            # settings.collectable_actors = []
             self.actors = []
             for a in self.getMeshes():
                 self.renderer.RemoveActor(a)
@@ -1891,7 +2072,6 @@ class Plotter:
         self.camera.RemoveAllObservers()
         self.closeWindow()
         self.actors = []
-        # settings.collectable_actors = []
         settings.plotter_instance = None
 
     def screenshot(self, filename='screenshot.png', scale=None, returnNumpy=False):
@@ -2058,17 +2238,15 @@ class Plotter:
 
         # if ("Control_" in self.keyheld) and key=="c":
         #     print('ctrl-c')
-        # if ("Control_" in self.keyheld) and key=="v":
-        #     print('ctrl-v')
 
         #############################################################
         ### now intercept custom observer ###########################
         #############################################################
         if self.keyPressFunction:
-            if key not in ["Shift_L", "Control_L", "Super_L", "Alt_L"]:
-                if key not in ["Shift_R", "Control_R", "Super_R", "Alt_R"]:
-                    self.keyPressFunction(key)
-                    return
+            if key not in ["Shift_L", "Control_L", "Super_L", "Alt_L",
+                           "Shift_R", "Control_R", "Super_R", "Alt_R"]:
+                self.keyPressFunction(key)
+                return
         #############################################################
 
         if key == "Down":
@@ -2246,17 +2424,17 @@ class Plotter:
                         a.GetProperty().SetRepresentationToSurface()
 
         elif key == "1":
-            self.icol += 1
+            self._icol += 1
             if isinstance(self.clickedActor, vedo.Points):
                 self.clickedActor.GetMapper().ScalarVisibilityOff()
-                self.clickedActor.GetProperty().SetColor(vedo.colors.colors1[(self.icol) % 10])
+                self.clickedActor.GetProperty().SetColor(vedo.colors.colors1[(self._icol) % 10])
             addons.addLegend()
 
         elif key == "2":
-            self.icol += 1
+            self._icol += 1
             if isinstance(self.clickedActor, vedo.Points):
                 self.clickedActor.GetMapper().ScalarVisibilityOff()
-                self.clickedActor.GetProperty().SetColor(vedo.colors.colors2[(self.icol) % 10])
+                self.clickedActor.GetProperty().SetColor(vedo.colors.colors2[(self._icol) % 10])
             addons.addLegend()
 
         elif key == "3":
@@ -2376,27 +2554,27 @@ class Plotter:
                 self.interactor.Render()
 
         if key == "O":
-            self.renderer.RemoveLight(self.extralight)
-            self.extralight = None
+            self.renderer.RemoveLight(self._extralight)
+            self._extralight = None
 
         elif key == "o":
             vbb, sizes, _, _ = addons.computeVisibleBounds()
             cm = utils.vector((vbb[0]+vbb[1])/2, (vbb[2]+vbb[3])/2, (vbb[4]+vbb[5])/2)
-            if not self.extralight:
+            if not self._extralight:
                 vup = self.renderer.GetActiveCamera().GetViewUp()
                 pos = cm + utils.vector(vup)*utils.mag(sizes)
-                self.extralight = addons.Light(pos, focalPoint=cm)
-                self.renderer.AddLight(self.extralight)
+                self._extralight = addons.Light(pos, focalPoint=cm)
+                self.renderer.AddLight(self._extralight)
                 print("Press again o to rotate light source, or O to remove it.")
             else:
-                cpos = utils.vector(self.extralight.GetPosition())
-                x, y, z = self.extralight.GetPosition() - cm
+                cpos = utils.vector(self._extralight.GetPosition())
+                x, y, z = self._extralight.GetPosition() - cm
                 r,th,ph = utils.cart2spher(x,y,z)
                 th += 0.2
                 if th>np.pi: th=np.random.random()*np.pi/2
                 ph += 0.3
                 cpos = utils.spher2cart(r, th,ph) + cm
-                self.extralight.SetPosition(cpos)
+                self._extralight.SetPosition(cpos)
 
             self.window.Render()
 
@@ -2535,6 +2713,7 @@ class Plotter:
     ######################################
     def _keyrelease(self, iren, event):
         key = iren.GetKeySym()
+        # print(iren.GetShiftKey())
         # utils.printc('Released key:', key, c='v', box='-')
         if key in ["Shift_L", "Control_L", "Super_L", "Alt_L",
                    "Shift_R", "Control_R", "Super_R", "Alt_R", "Menu"]:

@@ -177,14 +177,15 @@ Type `vedo -h` for the complete list of options.<br>
 
 
 ### Galleries
-Check out the example galleries by subject here:
+Check out the example galleries organized by subject here:
 
 <a href="https://vedo.embl.es/#gallery" target="_blank">
 
-![](https://vedo.embl.es/images/logos/bar.png)
+![](https://user-images.githubusercontent.com/32848391/104370203-d1aba900-551e-11eb-876c-41e0961fcdb5.jpg)
 
 </a>
 <br>
+
 
 ## 📜  References
 

@@ -1,4 +1,3 @@
-from __future__ import division, print_function
 import numpy as np
 import vtk, os
 import vedo
@@ -9,6 +8,8 @@ import vedo.utils as utils
 from vedo.base import BaseActor
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 from vtk.numpy_interface import dataset_adapter
+
+
 
 __doc__ = ("""Submodule to manage point clouds."""
     + docs._defs
@@ -726,6 +727,7 @@ class Points(vtk.vtkFollower, BaseActor):
         self._polydata = None
         self.point_locator = None
         self.cell_locator = None
+
         self._mapper = vtk.vtkPolyDataMapper()
         self.SetMapper(self._mapper)
 
@@ -744,8 +746,6 @@ class Points(vtk.vtkFollower, BaseActor):
         prp.SetRepresentationToPoints()
         prp.SetPointSize(r)
         self.lighting(ambient=0.7, diffuse=0.3)
-        # self.lighting('plastic')
-        # prp.LightingOff()
 
         if isinstance(inputobj, vtk.vtkActor):
             polyCopy = vtk.vtkPolyData()
@@ -766,8 +766,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 inputobj.SetVerts(carr)
             self._polydata = inputobj  # cache vtkPolyData and mapper for speed
 
-
-        elif utils.isSequence(inputobj):
+        elif utils.isSequence(inputobj): # passing point coords
             plist = inputobj
             n = len(plist)
 
@@ -781,7 +780,11 @@ class Points(vtk.vtkFollower, BaseActor):
             if n and len(plist[0]) == 2: # make it 3d
                 plist = np.c_[np.array(plist), np.zeros(len(plist))]
 
-            if ((utils.isSequence(c) and (len(c)>3 or (utils.isSequence(c[0]) and len(c[0])==4)))
+            if ((utils.isSequence(c)
+                 and (len(c)>3
+                      or (utils.isSequence(c[0]) and len(c[0])==4)
+                     )
+                )
                 or utils.isSequence(alpha) ):
 
                 cols = c
@@ -830,19 +833,20 @@ class Points(vtk.vtkFollower, BaseActor):
                 pd.GetPointData().SetScalars(ucols)
                 self._mapper.SetInputData(pd)
                 self._mapper.ScalarVisibilityOn()
+                self._polydata = pd
 
             else:
 
                 pd = utils.buildPolyData(plist)
                 self._mapper.SetInputData(pd)
-
                 c = colors.getColor(c)
                 prp.SetColor(c)
                 prp.SetOpacity(alpha)
+                self._polydata = pd
 
             if blur:
                 point_mapper = vtk.vtkPointGaussianMapper()
-                point_mapper.SetInputData(pd)
+                point_mapper.SetInputData(self._polydata)
                 point_mapper.SetScaleFactor(0.0005*self.diagonalSize()*r)
                 point_mapper.EmissiveOn()
                 self._mapper = point_mapper
@@ -852,8 +856,7 @@ class Points(vtk.vtkFollower, BaseActor):
             ##########
 
         elif isinstance(inputobj, str):
-            from vedo.io import load
-            verts = load(inputobj)
+            verts = vedo.io.load(inputobj)
             self.filename = inputobj
             self._polydata = verts.polydata()
 
@@ -866,6 +869,8 @@ class Points(vtk.vtkFollower, BaseActor):
         prp.SetOpacity(alpha)
 
         self._mapper.SetInputData(self._polydata)
+        self.ForceOpaqueOn() # force the opaque pass, fixes picking in vtk9
+        return
 
 
     ##################################################################################
@@ -877,7 +882,6 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
     def __add__(self, meshs):
-        from vedo.assembly import Assembly
         if isinstance(meshs, list):
             alist = [self]
             for l in meshs:
@@ -885,11 +889,11 @@ class Points(vtk.vtkFollower, BaseActor):
                     alist += l.getMeshes()
                 else:
                     alist += l
-            return Assembly(alist)
+            return vedo.assembly.Assembly(alist)
         elif isinstance(meshs, vtk.vtkAssembly):
             meshs.AddPart(self)
             return meshs
-        return Assembly([self, meshs])
+        return vedo.assembly.Assembly([self, meshs])
 
 
     def polydata(self, transformed=True):
@@ -1702,7 +1706,6 @@ class Points(vtk.vtkFollower, BaseActor):
 
         |intersect2d| |intersect2d.py|_
         """
-        # ncolls = len(settings.collectable_actors)
         acts = []
 
         if txt is None:
@@ -1717,7 +1720,10 @@ class Points(vtk.vtkFollower, BaseActor):
         x0, x1, y0, y1, z0, z1 = self.bounds()
         d = self.diagonalSize()
         if point is None:
-            point = self.closestPoint([(x0 + x1) / 2, (y0 + y1) / 2, z1])
+            if d:
+                point = self.closestPoint([(x0 + x1) / 2, (y0 + y1) / 2, z1])
+            else:  # it's a Point
+                point = self.GetPosition()
 
         if offset is None:
             offset = [(x1 - x0) / 3, (y1 - y0) / 6, 0]
@@ -1736,7 +1742,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         if len(point) == 2:
             point = [point[0], point[1], 0.0]
-        pt = np.array(point)
+        pt = np.asarray(point)
 
         lb = vedo.shapes.Text(
             txt, pos=pt+offset, s=s, font=font, italic=italic, justify="bottom-left"
@@ -1778,10 +1784,6 @@ class Points(vtk.vtkFollower, BaseActor):
         macts.bc('t').pickable(False).GetProperty().LightingOff()
         macts.GetProperty().SetLineWidth(lw)
         macts.UseBoundsOff()
-
-        #mm= vedo.merge(vedo.Line(box.points()))
-        #fl = mm.reverse().triangulate().printInfo().show(axes=7)
-        # settings.collectable_actors = settings.collectable_actors[:ncolls]
         return macts
 
     def caption(self,

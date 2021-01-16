@@ -8,27 +8,25 @@ plt1 = Plotter(title='Window 1', sharecam=False, shape=(8,2))
 plt2 = Plotter(title='Window 2', size=(700,700), pos=(250,0))
 
 ####################################################################################
-def keyfunc(key):
-    printc('keyfunc called, pressed key:', key)
+def keyfunc(evt):
+    printc('keyfunc called, pressed key:', evt.keyPressed)
 
-    if key=='c':
+    if evt.keyPressed=='c':
         i = plt1.renderers.index(plt1.renderer)
         if i>= len(shapes): return
         shapes[i].color('red')
         plt1.render()
         plt2.render()
         onLeftClick(None)
-    elif key=='x':
+    elif evt.keyPressed=='b':
         for r in plt1.renderers: r.SetBackground(1,1,1) # white
         plt1.render()
-    elif key=='h':
+    elif evt.keyPressed=='h':
         plt2.add(Text2D(instr, pos='bottom-right', c='dg', bg='g', font='Quikhand'))
-    elif key=='r':
-        plt2.resetCamera()
-        plt2.render()
 
 ####################################################################################
-def onLeftClick(mesh):
+def onLeftClick(evt):
+    mesh = evt.actor
     i = plt1.renderers.index(plt1.renderer)
     if i>= len(shapes): return
     printc('onLeftClick called!', c='y')
@@ -50,8 +48,8 @@ def onLeftClick(mesh):
     plt2.resetcam = False
 
 ####################################################################################
-plt1.keyPressFunction = keyfunc
-plt1.mouseLeftClickFunction = onLeftClick
+plt1.addCallback("KeyPress", keyfunc)
+plt1.addCallback("LeftButtonPress", onLeftClick)
 plt1.show(Picture(datadir+'images/embl_logo.jpg').rotateX(-20),
           Text2D('Some footnote', pos='bottom-right', font='Quikhand', c='grey', s=0.6),
           at=len(plt1.renderers)-1)
@@ -66,9 +64,10 @@ for i in range(15):
 ####################################################################################
 instr  = "Click on the left panel to select a shape\n"
 instr += "Press c to make the shape red\n"
-instr += "Press x to reset to white the panel background"
-plt2.keyPressFunction = keyfunc
-plt2.show(__doc__, VedoLogo(distance=10),
+instr += "Press b to reset to white the panel background"
+plt2.addCallback('KeyPress', keyfunc)
+plt2.show(__doc__,
+          VedoLogo(distance=10),
           Text2D("My Multi Viewer 1.0",
                  pos=(.5,.8), s=2.5, c='dg', font='Kanopus', justify='center'),
           Text2D(instr, bg='g', pos=(0.5,0.2), s=1.2, font='Quikhand', justify='center'),

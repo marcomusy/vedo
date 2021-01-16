@@ -9,8 +9,6 @@ cd simulations; ./run_all.sh; cd ..
 
 cd volumetric;  ./run_all.sh; cd ..
 
-cd tetmesh;     ./run_all.sh; cd ..
-
 cd pyplot;      ./run_all.sh; cd ..
 
 cd other;       ./run_all.sh; cd ..
@@ -68,7 +66,5 @@ vedo
 # python basic/multiblocks.py
 # python other/animation1.py
 # python other/animation2.py
-# python other/pygmsh_extrude.py
-# python other/voronoi3d.py
 # python other/makeVideo.py
 # python other/spherical_harmonics2.py

@@ -1,9 +1,8 @@
-from __future__ import division, print_function
 import numpy as np
 import os
 import vtk
 import vedo
-from vedo.colors import printc, getColor
+from vedo.colors import printc, getColor, colorMap
 from vedo.utils import isSequence, flatten, buildPolyData
 from vedo.pointcloud import Points
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
@@ -179,8 +178,7 @@ class Mesh(Points):
                 self._polydata = gf.GetOutput()
 
         elif isinstance(inputobj, str):
-            from vedo.io import load
-            dataset = load(inputobj)
+            dataset = vedo.io.load(inputobj)
             self.filename = inputobj
             if "TetMesh" in str(type(dataset)):
                 self._polydata = dataset.tomesh().polydata()
@@ -259,7 +257,11 @@ class Mesh(Points):
             if not arrexists:
                 if c is None:
                     c = "gold"
-                c = getColor(c)
+                    c = getColor(c)
+                elif isinstance(c, float) and c<=1:
+                    c = colorMap(c, "rainbow", 0,1)
+                else:
+                    c = getColor(c)
                 prp.SetColor(c)
                 prp.SetAmbient(0.1)
                 prp.SetDiffuse(1)

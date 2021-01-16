@@ -4,14 +4,14 @@ from vedo.pyplot import plot, fit, histogram, show
 import numpy as np
 # np.random.seed(0)
 
-n = 25   # nr of data points to generate
+n   = 25 # nr of data points to generate
 deg = 3  # degree of the fitting polynomial
 
 # Generate some noisy data points
 x = np.linspace(0, 12, n)
 y = (x-6)**3 /50 + 6              # the "truth" is a cubic fuction!
-xerrs = np.linspace(0.4, 0.6, n)  # make last points less precise
-yerrs = np.linspace(1.0, 0.5, n)  # make first points less precise
+xerrs = np.linspace(0.4, 1.0, n)  # make last points less precise
+yerrs = np.linspace(1.0, 0.4, n)  # make first points less precise
 # xerrs = yerrs = None #assume errors are all the same (but unknown)
 noise = np.random.randn(n)
 
@@ -49,7 +49,7 @@ h = histogram(pfit.MonteCarloCoefficients[:,0],
               pfit.MonteCarloCoefficients[:,1],
               title="parameters correlation",
               xtitle='coeff_0', ytitle='coeff_1',
-              scalarbar=True)
+              cmap='bone_r', scalarbar=True)
 h.scale(150).shift(-1,11) # make it a lot bigger and move it
 
 show(plt, h, zoom=1.2)

@@ -4,12 +4,14 @@
 
 ### [https://vedo.embl.es](https://vedo.embl.es)
 
-A bug in `mesh.closestPoint(returnIds=True)` has been fixed
+- python2 is no more supported
+- A bug in `mesh.closestPoint(returnIds=True)` has been fixed
 
 ---
 ### `base.py`
 - method `addPos()` (obsolete but still valid) renamed to `shift()`
 - added shortcut to input the opacity with syntax `mesh.color("blue", 0.5)`
+- arrays with name "Normals" are set as active normals automatically ( @theponpon )
 
 ### `addons.py`
 
@@ -35,6 +37,8 @@ Lower index means darker.
 - passing camera no more empties the passed dictionary (thanks @icemtel )
 - `verbose` keyword has been removed (as hard to maintain)
 - mouse clicking can now pick `Picture` not only `Mesh`
+- revised and improved callback functionality with `plotter.addCallback()`
+  (see examples `mousehighligh`, `mousehover`)
 
 
 ---
@@ -45,11 +49,19 @@ Lower index means darker.
 ---
 ### `pyplot.py`
 - a brand new function `fit()` to perform polynomial fitting to data with error bars in both x and y with correct estimation of error bands via bootstrap method (there are out there soo many wrong scripts in matplotlib!)
+- added `pyplot.matrix()` to plot numpy matrices (eg. correlation/covariance matrix)
 
 ---
 ### `shapes.py`
 - `Spline` can control the *easing*, the density of points along the line.
 - support for closed splines.
+
+---
+### `volume.py`
+- added `volume.shade()` which can be `True` or `False`. Disable by default (was previously enabled)
+  to be used in conjunction with `volume.lighting()` to create a mesh-like rendering of the volume.
+  (thanks to @nantille for debugging)
+
 
 ## New/Revised examples:
 - `vedo -r colorcubes`
@@ -64,6 +76,9 @@ Lower index means darker.
 - `vedo -r customAxes3`
 - `vedo -r glyphs3`
 - `vedo -r bloch`
-- `vedo -r slicePlane`
-
-
+- `vedo -r slicePlane1`
+- `vedo -r slicePlane2`
+- `vedo -r np_matrix`
+- `vedo -r pygmsh_cut`
+- `vedo -r mousehighlight`
+- `vedo -r mousehover`

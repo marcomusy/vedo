@@ -245,11 +245,39 @@ class Volume(vtk.vtkVolume, BaseGrid):
 
     :param int mode: define the volumetric rendering style:
 
-        - 0, Composite rendering
+        - 0, composite rendering
         - 1, maximum projection rendering
         - 2, minimum projection
         - 3, average projection
         - 4, additive mode
+
+        The default mode is "composite" where the scalar values are sampled through
+        the volume and composited in a front-to-back scheme through alpha blending.
+        The final color and opacity is determined using the color and opacity transfer
+        functions specified in alpha keyword.
+
+        Maximum and minimum intensity blend modes use the maximum and minimum
+        scalar values, respectively, along the sampling ray.
+        The final color and opacity is determined by passing the resultant value
+        through the color and opacity transfer functions.
+
+        Additive blend mode accumulates scalar values by passing each value
+        through the opacity transfer function and then adding up the product
+        of the value and its opacity. In other words, the scalar values are scaled
+        using the opacity transfer function and summed to derive the final color.
+        Note that the resulting image is always grayscale i.e. aggregated values
+        are not passed through the color transfer function.
+        This is because the final value is a derived value and not a real data value
+        along the sampling ray.
+
+        Average intensity blend mode works similar to the additive blend mode where
+        the scalar values are multiplied by opacity calculated from the opacity
+        transfer function and then added.
+        The additional step here is to divide the sum by the number of samples
+        taken through the volume.
+        As is the case with the additive intensity projection, the final image will
+        always be grayscale i.e. the aggregated values are not passed through the
+        color transfer function.
 
     .. hint:: if a `list` of values is used for `alphas` this is interpreted
         as a transfer function along the range of the scalar.
@@ -258,16 +286,17 @@ class Volume(vtk.vtkVolume, BaseGrid):
     """
 
     def __init__(self, inputobj=None,
-                 c=('r','y','lg','lb','b'), #('b','lb','lg','y','r')
-                 alpha=(0.0, 0.0, 0.5, 0.8, 1.0),
+                 c='RdBu_r',
+                 alpha=(0.0, 0.0, 0.2, 0.4, 0.8, 1.0),
                  alphaGradient=None,
                  alphaUnit=1,
                  mode=0,
+                 shade=False,
                  spacing=None,
                  dims=None,
                  origin=None,
                  mapper='smart',
-                 ):
+        ):
 
         vtk.vtkVolume.__init__(self)
         BaseGrid.__init__(self)
@@ -390,6 +419,7 @@ class Volume(vtk.vtkVolume, BaseGrid):
         self._mapper.SetInputData(img)
         self.SetMapper(self._mapper)
         self.mode(mode).color(c).alpha(alpha).alphaGradient(alphaGradient)
+        self.GetProperty().SetShade(True)
         self.GetProperty().SetInterpolationType(1)
         self.GetProperty().SetScalarOpacityUnitDistance(alphaUnit)
 
@@ -414,6 +444,34 @@ class Volume(vtk.vtkVolume, BaseGrid):
             - 2, minimum projection rendering
             - 3, average projection rendering
             - 4, additive mode
+
+        The default mode is "composite" where the scalar values are sampled through
+        the volume and composited in a front-to-back scheme through alpha blending.
+        The final color and opacity is determined using the color and opacity transfer
+        functions specified in alpha keyword.
+
+        Maximum and minimum intensity blend modes use the maximum and minimum
+        scalar values, respectively, along the sampling ray.
+        The final color and opacity is determined by passing the resultant value
+        through the color and opacity transfer functions.
+
+        Additive blend mode accumulates scalar values by passing each value
+        through the opacity transfer function and then adding up the product
+        of the value and its opacity. In other words, the scalar values are scaled
+        using the opacity transfer function and summed to derive the final color.
+        Note that the resulting image is always grayscale i.e. aggregated values
+        are not passed through the color transfer function.
+        This is because the final value is a derived value and not a real data value
+        along the sampling ray.
+
+        Average intensity blend mode works similar to the additive blend mode where
+        the scalar values are multiplied by opacity calculated from the opacity
+        transfer function and then added.
+        The additional step here is to divide the sum by the number of samples
+        taken through the volume.
+        As is the case with the additive intensity projection, the final image will
+        always be grayscale i.e. the aggregated values are not passed through the
+        color transfer function.
         """
         if mode is None:
             return self._mapper.GetBlendMode()
@@ -437,21 +495,37 @@ class Volume(vtk.vtkVolume, BaseGrid):
                 colors.printc("Error in volume.mode(): unknown mode", mode, c='r')
                 mode = 0
 
-        volumeProperty = self.GetProperty()
         self._mapper.SetBlendMode(mode)
         self._mode = mode
-        if mode == 0:
-            volumeProperty.ShadeOn()
-            self.lighting('shiny')
-            self.jittering(True)
-        elif mode == 1:
-            volumeProperty.ShadeOff()
-            self.jittering(True)
+        return self
+
+    def shade(self, status=None):
+        """
+        Set/Get the shading of a Volume.
+        Shading can be further controlled with ``volume.lighting()`` method.
+
+        If shading is turned on, the mapper may perform shading calculations.
+        In some cases shading does not apply
+        (for example, in maximum intensity projection mode).
+        """
+        if status is None:
+            return self.GetProperty().GetShade()
+        self.GetProperty().SetShade(status)
         return self
 
     def cmap(self, c):
         """Same as color() or c()."""
         return self.c(c)
+
+    def jittering(self, status=None):
+        """If `jittering` is `True`, each ray traversal direction will be perturbed slightly
+        using a noise-texture to get rid of wood-grain effects.
+        """
+        if hasattr(self._mapper, 'SetUseJittering'): # tetmesh doesnt have it
+            if status is None:
+                return self._mapper.GetUseJittering()
+            self._mapper.SetUseJittering(status)
+        return self
 
     def clone(self):
         """Return a clone copy of the Volume."""
@@ -467,16 +541,6 @@ class Volume(vtk.vtkVolume, BaseGrid):
         newvol.SetOrientation(self.GetOrientation())
         newvol.SetPosition(self.GetPosition())
         return newvol
-
-    def jittering(self, status=None):
-        """If `jittering` is `True`, each ray traversal direction will be perturbed slightly
-        using a noise-texture to get rid of wood-grain effects.
-        """
-        if hasattr(self._mapper, 'SetUseJittering'):
-            if status is None:
-                return self._mapper.GetUseJittering()
-            self._mapper.SetUseJittering(status)
-        return self
 
     def imagedata(self):
         """Return the underlying vtkImagaData object."""

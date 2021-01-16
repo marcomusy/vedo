@@ -1,5 +1,4 @@
-from __future__ import division, print_function
-
+import os
 import numpy as np
 import vtk
 import vedo.colors as colors
@@ -140,7 +139,6 @@ class Picture(vtk.vtkImageActor, Base3DProp):
         elif font.lower() == "arial": tp.SetFontFamilyToArial()
         else:
             tp.SetFontFamily(vtk.VTK_FONT_FILE)
-            import os
             if font in settings.fonts:
                 tp.SetFontFile(settings.fonts_path + font + '.ttf')
             elif os.path.exists(font):

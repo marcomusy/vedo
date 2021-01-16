@@ -1,5 +1,3 @@
-from __future__ import division, print_function
-
 import vtk
 from vtk.util.numpy_support import numpy_to_vtk
 

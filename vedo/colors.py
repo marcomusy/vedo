@@ -1,4 +1,3 @@
-from __future__ import division, print_function
 import vtk
 from vtk.util.numpy_support import vtk_to_numpy
 import numpy as np
@@ -580,19 +579,10 @@ def rgb2hex(rgb):
     h = '#%02x%02x%02x' % (int(rgb[0]*255),int(rgb[1]*255),int(rgb[2]*255))
     return h
 
-
-def rgb2int(rgb_tuple):
-    """Return the int number of a color from (r,g,b), with 0<r<1 etc."""
-    rgb = (int(rgb_tuple[0] * 255), int(rgb_tuple[1] * 255), int(rgb_tuple[2] * 255))
-    return 65536 * rgb[0] + 256 * rgb[1] + rgb[2]
-    #r,g,b = np.array(rgb_tuple, dtype=np.int)*255
-    #return (r << 16) + (g << 8) + b
-
 def hex2rgb(hx):
         h = hx.lstrip("#")
         rgb255 = [int(h[i : i + 2], 16) for i in (0, 2, 4)]
-        rgbh = np.array(rgb255) / 255.0
-        return rgbh
+        return (rgb255[0]/255., rgb255[1]/255., rgb255[2]/255.)
 
 def colorMap(value, name="jet", vmin=None, vmax=None):
     """Map a real value in range [vmin, vmax] to a (r,g,b) color scale.
@@ -635,30 +625,34 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
         values -= vmin
         values = values / (vmax - vmin)
 
+    # matplotlib not available #######################
     if not _has_matplotlib:
         invert=False
         if name.endswith('_r'):
             invert=True
             name = name.replace('_r', "")
         cmap = cmaps[name]
+
         n = len(cmap)-1
         if value_isSequence:
             outs = []
             for v in values:
+                iv = min(255, int(v*n))
                 if invert:
-                    rgb = hex2rgb(cmap[int(v*n)])
+                    rgb = hex2rgb(cmap[n-iv])
                 else:
-                    rgb = hex2rgb(cmap[n-int(v*n)])
+                    rgb = hex2rgb(cmap[iv])
                 outs.append(rgb)
             return outs
 
         else:
+            iv = min(255, int(value*n))
             if invert:
-                return hex2rgb(cmap[int(value*n)])
+                return hex2rgb(cmap[n-iv])
             else:
-                return hex2rgb(cmap[n-int(value*n)])
+                return hex2rgb(cmap[iv])
 
-    # matplotlib is available, use it! #
+    # matplotlib is available, use it! #######################
     if isinstance(name, matplotlib.colors.LinearSegmentedColormap):
         mp = name
     else:
