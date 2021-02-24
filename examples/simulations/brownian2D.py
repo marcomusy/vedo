@@ -8,7 +8,7 @@ are proportional to their radius**3 (as in 3D).
 # Adapted by M. Musy from E. Velasco (2009)
 print(__doc__)
 
-from vedo import Plotter, ProgressBar, arange, dot
+from vedo import Plotter, ProgressBar, dot
 from vedo import Grid, Sphere, Point
 import random, numpy as np
 
@@ -36,8 +36,8 @@ Ls1 = LBox[1] - Rs
 ListPos = [(0, 0)]
 PossiblePos = [
     (x, y)
-    for x in arange(-LBox[0] + 2 * Rs, LBox[0] - 2 * Rs, 2.2 * Rs)
-    for y in arange(-LBox[1] + 2 * Rs, LBox[1] - 2 * Rs, 2.2 * Rs)
+    for x in np.arange(-LBox[0] + 2 * Rs, LBox[0] - 2 * Rs, 2.2 * Rs)
+    for y in np.arange(-LBox[1] + 2 * Rs, LBox[1] - 2 * Rs, 2.2 * Rs)
     if x * x + y * y > Rb + Rs
 ]
 

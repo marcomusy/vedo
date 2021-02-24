@@ -34,11 +34,12 @@ import vedo.addons as addons
 from vedo.addons import Ruler, Goniometer, buildRulerAxes, Axes, Light
 from vedo.settings import datadir, embedWindow
 
-# hack: need to uncomment this to generate documentation html
-from vedo.dolfin import _inputsort
+# hack: need to uncomment this to generate dolfin documentation html
+# from vedo.dolfin import _inputsort
 
-from numpy import sin, cos, sqrt, exp, log, dot, cross, array, arange
+import vedo.docs as docs  # needed by spyder console, otherwise complains
 
+from numpy import sin, cos, sqrt, exp, log, dot, cross, array
 
 ###########################################################################
 settings._init()

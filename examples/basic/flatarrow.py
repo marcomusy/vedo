@@ -1,5 +1,6 @@
 """Use 2 lines to define a flat arrow"""
 from vedo import *
+from numpy import arange
 
 arrs = []
 for i in range(10):

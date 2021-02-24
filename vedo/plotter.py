@@ -255,7 +255,8 @@ def show(*actors, **options):
         if interactive or len(at)==N \
             or (isinstance(shape[0],int) and len(at)==shape[0]*shape[1]):
             # note that shape can be a string
-            plt.interactor.Start()
+            if not offscreen:
+                plt.interactor.Start()
 
     else:
 
@@ -435,6 +436,7 @@ class Plotter:
 
         # mostly internal stuff:
         self._legend = []  # list of legend entries for actors
+        self.textLegends = []
         self.backgrcol = bg
         self.pos = pos     # used by vedo.io
         self.justremoved = None
@@ -469,11 +471,12 @@ class Plotter:
         # build the rendering window:
         if settings.useOpenVR:
             self.camera = vtk.vtkOpenVRCamera()
-            self.window =vtk.vtkOpenVRRenderWindow()
+            self.window = vtk.vtkOpenVRRenderWindow()
         else:
             self.camera = vtk.vtkCamera()
             self.window = vtk.vtkRenderWindow()
             self.window.GlobalWarningDisplayOff()
+
 
         ############################################################
         notebookBackend = settings.notebookBackend
@@ -496,23 +499,22 @@ class Plotter:
         if settings.useDepthPeeling:
             self.window.SetAlphaBitPlanes(settings.alphaBitPlanes)
             self.window.SetMultiSamples(settings.multiSamples)
-
         self.window.SetPolygonSmoothing(settings.polygonSmoothing)
         self.window.SetLineSmoothing(settings.lineSmoothing)
         self.window.SetPointSmoothing(settings.pointSmoothing)
 
         # sort out screen size
         if screensize == "auto":
-            aus = self.window.GetScreenSize()
-            if aus and len(aus) == 2 and aus[0] > 100 and aus[1] > 100:  # seems ok
-                if aus[0] / aus[1] > 2:  # looks like there are 2 or more screens
-                    screensize = (int(aus[0] / 2), aus[1])
-                else:
-                    screensize = aus
-            else:  # it went wrong, use a default 1.5 ratio
-                screensize = (2160, 1440)
-
+            screensize = (2160, 1440) # might go wrong, use a default 1.5 ratio
+            if not offscreen:
+                aus = self.window.GetScreenSize()
+                if aus and len(aus) == 2 and aus[0] > 100 and aus[1] > 100:  # seems ok
+                    if aus[0] / aus[1] > 2:  # looks like there are 2 or more screens
+                        screensize = (int(aus[0] / 2), aus[1])
+                    else:
+                        screensize = aus
         x, y = screensize
+
         if N:  # N = number of renderers. Find out the best
             if shape != (1, 1):  # arrangement based on minimum nr. of empty renderers
                 printc("Warning: having set N, shape is ignored.", c='r')
@@ -536,6 +538,7 @@ class Plotter:
                     ind = i
                     minl = l
             shape = lm[ind]
+
 
         if isinstance(shape, str):
 
@@ -742,6 +745,7 @@ class Plotter:
         self.interactor.AddObserver("KeyPressEvent", self._keypress)
         self.interactor.AddObserver("KeyReleaseEvent", self._keyrelease)
 
+
         if settings.allowInteraction:
             self._update_observer = None
             self._update_win_clock = time.time()
@@ -757,6 +761,7 @@ class Plotter:
                 if timenow - self._update_win_clock > 0.1:
                     self._update_win_clock = timenow
                     self._update_observer = self.interactor.CreateRepeatingTimer(1)
+
                     if hasattr(self, 'interactor') and self.interactor:
                         self.interactor.Start()
 
@@ -796,7 +801,7 @@ class Plotter:
             for a in actors:
                 if a not in self.actors:
                     self.actors.append(a)
-                    if render and ren:
+                    if ren:
                         ren.AddActor(a)
         else:
             self.actors.append(actors)
@@ -823,6 +828,15 @@ class Plotter:
             actors = [actors]
 
         for a in actors:
+
+            if isinstance(a, str):
+                for b in self.actors:
+                    if hasattr(b, "name") and a in b.name:
+                        a = b
+                        break
+                if isinstance(a, str):
+                    continue # did not find that name so skip
+
             if ren:
                 ren.RemoveActor(a)
                 if hasattr(a, 'renderedAt'):
@@ -840,6 +854,11 @@ class Plotter:
             if resetcam:
                 ren.ResetCamera()
             self.interactor.Render()
+        return self
+
+    def pop(self, render=False):
+        """Remove the last added object from the rendering window"""
+        self.remove(self.actors[-1], render=render)
         return self
 
     def render(self, resetcam=False):
@@ -1247,10 +1266,146 @@ class Plotter:
         return self
 
     def addLegend(self):
-        return addons.addLegend()
+        """Add a legend to the top right"""
+        addons.addLegend()
+        return self
+
+    def addTextLegend(self,
+                        at=0,
+                        c=None,
+                        pos='bottom-left',
+                        font="Calco",
+                        s=0.75,
+                        bg='auto',
+                        alpha=0.1,
+                        precision=2,
+                        maxlength=24,
+        ):
+        """Add a legend to the bottom left with 2D text info which is triggered
+        and updated by hovering the mouse on an object.
+
+        The created text object are stored in ``plotter.textLegends``.
+
+        :param c: text color. If None then black or white is chosen automatically
+        :param str pos: text positioning
+        :param str font: text font
+        :param float s: text size factor
+        :param bg: background color of the 2D box containing the text
+        :param float alpha: box transparency
+        :param int precision: number of significant digits
+        :param int maxlength: maximum number of characters per line
+        """
+        if isinstance(pos, str):
+            if "top" in pos:
+                if "left" in pos: pos = 2
+                elif "right" in pos: pos = 3
+                elif "mid" in pos or "cent" in pos: pos = 7
+            elif "bottom" in pos:
+                if "left" in pos: pos = 0
+                elif "right" in pos: pos = 1
+                elif "mid" in pos or "cent" in pos: pos = 4
+            else:
+                if "left" in pos: pos = 6
+                elif "right" in pos: pos = 5
+                else: pos = 0
+        if pos>7: pos=0
+
+        textLegend = vedo.shapes.Text2D('', pos=pos, font=font,
+                                        c=c, s=s, alpha=alpha, bg=bg)
+
+        def _legfunc(evt):
+            if not evt.actor or not self.renderer or at != evt.at:
+                if textLegend.GetText(pos): # clear and return
+                    textLegend.SetText(pos, '')
+                    self.interactor.Render()
+                return
+            t, tp = '', ''
+            if evt.isMesh:
+                tp = "Mesh "
+            elif evt.isPoints:
+                tp = "Points "
+            # elif evt.isVolume: # todo -not working
+            #     tp = "Volume "
+            elif evt.isPicture:
+                tp = "Pict "
+            elif evt.isAssembly:
+                tp = "Assembly "
+            else:
+                return self
+
+            if evt.isAssembly:
+                if not evt.actor.name:
+                    t += f"Assembly object of {len(evt.actor.unpack())} parts\n"
+                else:
+                    t += f"Assembly name: {evt.actor.name} ({len(evt.actor.unpack())} parts)"
+            else:
+                if evt.actor.name:
+                    t += f"{tp}name"
+                    if evt.isPoints: t += '  '
+                    if evt.isMesh: t += '  '
+                    t += f": {evt.actor.name[:maxlength]}".ljust(maxlength)
+
+            if evt.actor.filename:
+                if evt.actor.name: t +='\n'
+                t += f"{tp}filename: "
+                t += f"{os.path.basename(evt.actor.filename[-maxlength:])}".ljust(maxlength)
+                if not evt.actor.fileSize:
+                    evt.actor.fileSize, evt.actor.created = vedo.io.fileInfo(evt.actor.filename) #BUG?
+                if evt.actor.fileSize:
+                    t += "\n             : "
+                    sz, created = evt.actor.fileSize, evt.actor.created
+                    t += f"{created[4:-5]} ({sz})"
+
+            if evt.isPicture:
+                t += f"\nImage shape  : {evt.actor.shape}"
+                pcol = vedo.colors.colorPicker(evt.picked2d, plt=self)
+                t += f"\nPixel color  : {vedo.colors.rgb2hex(pcol/255)} {pcol}"
+
+            if evt.isPoints:
+                indata = evt.actor.polydata(False)
+                if indata.GetNumberOfPoints():
+                    t += f"\n#points/cells: {indata.GetNumberOfPoints()}"\
+                         f" / {indata.GetNumberOfCells()}"
+                pdata = indata.GetPointData()
+                cdata = indata.GetCellData()
+                if pdata.GetScalars() and pdata.GetScalars().GetName():
+                    t += f"\nPoint array  : {pdata.GetScalars().GetName()}"
+                    if pdata.GetScalars().GetName() == evt.actor.GetMapper().GetArrayName():
+                        t += " *"
+                if cdata.GetScalars() and cdata.GetScalars().GetName():
+                    t += f"\nCell  array  : {cdata.GetScalars().GetName()}"
+                    if cdata.GetScalars().GetName() == evt.actor.mapper().GetArrayName():
+                        t += " *"
+            t += f"\nWorld coords : {utils.precision(evt.picked3d, precision)}"
+            t += f"\nMouse coords : {evt.picked2d}"
+
+            # change box color if needed in 'auto' mode
+            if evt.isPoints and 'auto' in str(bg):
+                actcol = evt.actor.GetProperty().GetColor()
+                if textLegend.GetTextProperty().GetBackgroundColor() != actcol:
+                    textLegend.GetTextProperty().SetBackgroundColor(actcol)
+
+            # adapt to changes in bg color
+            bgcol = self.renderers[at].GetBackground()
+            _bgcol = c
+            if _bgcol == None:  # automatic black or white
+                _bgcol = (0.9, 0.9, 0.9)
+                if sum(bgcol) > 1.5:
+                    _bgcol = (0.1, 0.1, 0.1)
+                if len(set(_bgcol).intersection(bgcol))<3:
+                    textLegend.GetTextProperty().SetColor(_bgcol)
+
+            if textLegend.GetText(pos) != t:
+                textLegend.SetText(pos, t)
+                self.interactor.Render()
+
+        self.add(textLegend, render=False, at=at)
+        self.textLegends.append(textLegend)
+        self.addCallback('MouseMoveEvent', _legfunc)
+        return self
 
 
-    def addCallback(self, eventName, func, priority=0.0):
+    def addCallback(self, eventName, func, priority=0.0, verbose=False):
         """Add a function to be executed while show() is active.
         Information about the event can be acquired with method ``getEvent()``.
 
@@ -1316,7 +1471,7 @@ class Plotter:
         if not self.interactor:
             return None
 
-        # since vtk tags are ugly and difficult to remember:
+        # as vtk names are ugly and difficult to remember:
         ln = eventName.lower()
         if "click" in ln or "button" in ln:
             eventName="LeftButtonPress"
@@ -1325,7 +1480,7 @@ class Plotter:
             elif "mid" in ln:
                 eventName="MiddleButtonPress"
             if "release" in ln:
-                eventName.replace("Press","Release")
+                eventName = eventName.replace("Press","Release")
         else:
             if "key" in ln:
                 if 'release' in ln:
@@ -1343,18 +1498,22 @@ class Plotter:
             self.renderer = self.interactor.FindPokedRenderer(x, y)
             if not self.picker:
                 self.picker = vtk.vtkPropPicker()
-            self.picker.PickProp(x, y, self.renderer)
             self.picked2d = (x,y)
+            self.picker.PickProp(x, y, self.renderer)
             xp, yp = self.interactor.GetLastEventPosition()
             actor = self.picker.GetProp3D()
             delta3d = np.array([0,0,0])
             if actor:
                 picked3d = np.array(self.picker.GetPickPosition())
-                if actor.picked3d is not None:
-                    delta3d = picked3d - actor.picked3d
+                if isinstance(actor, vedo.base.Base3DProp): # needed!
+                    if actor.picked3d is not None:
+                        delta3d = picked3d - actor.picked3d
                 actor.picked3d = picked3d
             else:
                 picked3d = None
+
+            if not actor: # try 2D
+                actor = self.picker.GetActor2D()
 
             dx, dy = x-xp, y-yp
 
@@ -1377,11 +1536,14 @@ class Plotter:
                 "isAssembly": isinstance(actor, vedo.Assembly),
                 "isVolume":   isinstance(actor, vedo.Volume),
                 "isPicture":  isinstance(actor, vedo.Picture),
+                "isActor2D":  isinstance(actor, vtk.vtkActor2D),
             })
             func(event_dict)
             return   ## _func_wrap
 
         cid = self.interactor.AddObserver(eventName, _func_wrap, priority)
+        if verbose:
+            printc('addCallback(): registering event:', eventName, 'with id =', cid)
         return cid
 
     def removeCallback(self, cid):
@@ -1393,7 +1555,7 @@ class Plotter:
         """
         if self.interactor:
             if isinstance(cid, str):
-                # since vtk tags are ugly and difficult to remember:
+                # as vtk names are ugly and difficult to remember:
                 ln = cid.lower()
                 if "click" in ln or "button" in ln:
                     cid="LeftButtonPress"
@@ -1445,9 +1607,10 @@ class Plotter:
 
             elif isinstance(a, vtk.vtkAssembly):
                 scannedacts.append(a)
-                if isinstance(a, vedo.pyplot.Plot):
-                    a.modified = False
-                    self.sharecam = False
+                # from vedo.pyplot import Plot
+                # if isinstance(a, Plot):
+                #     a.modified = False
+                #     self.sharecam = False
                 if a.trail and a.trail not in self.actors:
                     scannedacts.append(a.trail)
 
@@ -1494,7 +1657,8 @@ class Plotter:
             elif isinstance(a, str):  # assume a filepath or 2D comment was given
                 if a.startswith('https'):
                     a = vedo.io.download(a)
-                if "." in a and ". " not in a and os.path.isfile(a):
+                if "." in a and ". " not in a and not a.endswith(".")\
+                    and os.path.isfile(a):
                     out = vedo.io.load(a)
                 else:
                     out = vedo.shapes.Text2D(a, pos=3)
@@ -1513,6 +1677,14 @@ class Plotter:
 
             elif "trimesh" in str(type(a)):
                 scannedacts.append(utils.trimesh2vedo(a))
+
+            elif "meshlab" in str(type(a)):
+                if "MeshSet" in str(type(a)):
+                    for i in range(a.number_meshes()):
+                        if a.mesh_id_exists(i):
+                            scannedacts.append(vedo.Mesh(utils.meshlab2vedo(a.mesh(i))))
+                else:
+                    scannedacts.append(vedo.Mesh(utils.meshlab2vedo(a)))
 
             else:
                 try:
@@ -1686,9 +1858,6 @@ class Plotter:
         if settings.notebookBackend and settings.notebookBackend != "panel" and settings.notebookBackend != "2d":
             return backends.getNotebookBackend(actors2show, zoom, viewup)
         #########################################################################
-
-        if not hasattr(self, 'window'):
-            return self
 
         if interactive is not None:
             self.interactive = interactive
@@ -2093,7 +2262,6 @@ class Plotter:
     def _mouseleft(self, iren, event):
 
         x, y = iren.GetEventPosition()
-        # print('_mouseleft mouse at', x, y)
 
         renderer = iren.FindPokedRenderer(x, y)
         self.renderer = renderer
@@ -2103,6 +2271,7 @@ class Plotter:
 
         clickedActor = picker.GetActor()
 
+        # print('_mouseleft mouse at', x, y)
         # print("picked Volume:",   [picker.GetVolume()])
         # print("picked Actor2D:",  [picker.GetActor2D()])
         # print("picked Assembly:", [picker.GetAssembly()])

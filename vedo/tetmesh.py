@@ -117,8 +117,8 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
             self._data = tt.GetOutput()
 
         elif utils.isSequence(inputobj):
-            if "ndarray" not in inputtype:
-                inputobj = np.array(inputobj)
+            # if "ndarray" not in inputtype:
+            #     inputobj = np.array(inputobj)
             self._data = self._buildtetugrid(inputobj[0], inputobj[1])
 
         ###################
@@ -154,12 +154,27 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
 
 
     def _buildtetugrid(self, points, cells):
-        if len(points) == 0:
-            return None
-        if not utils.isSequence(points[0]):
-            return None
-
         ug = vtk.vtkUnstructuredGrid()
+
+        if len(points) == 0:
+            return ug
+        if not utils.isSequence(points[0]):
+            return ug
+
+        if len(cells) == 0:
+            return ug
+
+        if not utils.isSequence(cells[0]):
+            tets=[]
+            nf=cells[0]+1
+            for i, cl in enumerate(cells):
+                if i==nf or i==0:
+                    k = i+1
+                    nf = cl+k
+                    cell = [cells[j+k] for j in range(cl)]
+                    tets.append(cell)
+            cells = tets
+
         sourcePoints = vtk.vtkPoints()
         varr = numpy_to_vtk(np.ascontiguousarray(points), deep=True)
         sourcePoints.SetData(varr)

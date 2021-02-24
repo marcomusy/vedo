@@ -1,11 +1,9 @@
 """
-Particle Simulator
-
-Simulates interacting charged particles in 3D space.
-Can also be imported as an independent module.
+Simulate interacting charged particles in 3D space.
 """
+# An example simulation of N particles scattering on a charged target.
+# See e.g. https://en.wikipedia.org/wiki/Rutherford_scattering
 # By Tommy Vandermolen, 3 August 2018
-print(__doc__)
 from vedo import Plotter, Cube, Sphere, mag2, versor, vector
 import numpy as np
 
@@ -15,8 +13,10 @@ vp = None  # so that it can be also used without visualization
 
 class ParticleSim:
     def __init__(self, dt, iterations):
-        """ Creates a new particle simulator
-                dt: time step, time between successive calculations of particle motion
+        """
+        Creates a new particle simulator
+
+        dt: time step, time between successive calculations of particle motion
         """
         self.dt = dt
         self.particles = []
@@ -33,15 +33,17 @@ class ParticleSim:
         fixed=False,
         negligible=False,
     ):
-        """ Adds a new particle with specified properties (in SI units) """
+        """
+        Adds a new particle with specified properties (in SI units)
+        """
         color = color or len(self.particles)  # assigned or default color number
-
         p = Particle(pos, charge, mass, radius, color, vel, fixed, negligible)
         self.particles.append(p)
 
     def simulate(self):
-        """ Runs the particle simulation. Simulates one time step, dt, of the particle motion.
-            Calculates the force between each pair of particles and updates particles' motion accordingly
+        """
+        Runs the particle simulation. Simulates one time step, dt, of the particle motion.
+        Calculates the force between each pair of particles and updates their motion accordingly
         """
         # Main simulation loop
         for i in range(self.iterations):
@@ -58,21 +60,22 @@ class ParticleSim:
                 a.pos += a.vel * self.dt
                 a.vsphere.pos(a.pos)
             if vp:
-                vp.show(zoom=1.2)
-                vp.camera.Azimuth(0.1)  # rotate camera
+                vp.show(resetcam=not i)
 
 
 class Particle:
     def __init__(self, pos, charge, mass, radius, color, vel, fixed, negligible):
-        """ Creates a new particle with specified properties (in SI units)
-                pos: XYZ starting position of the particle, in meters
-                charge: charge of the particle, in Coulombs
-                mass: mass of the particle, in kg
-                radius: radius of the particle, in meters. No effect on simulation
-                color: color of the particle. If None, a default color will be chosen
-                vel: initial velocity vector, in m/s
-                fixed: if True, particle will remain fixed in place
-                negligible: assume charge is small wrt other charges to speed up calculation
+        """
+        Creates a new particle with specified properties (in SI units)
+
+        pos: XYZ starting position of the particle, in meters
+        charge: charge of the particle, in Coulombs
+        mass: mass of the particle, in kg
+        radius: radius of the particle, in meters. No effect on simulation
+        color: color of the particle. If None, a default color will be chosen
+        vel: initial velocity vector, in m/s
+        fixed: if True, particle will remain fixed in place
+        negligible: assume charge is small wrt other charges to speed up calculation
         """
         self.pos = vector(pos)
         self.radius = radius
@@ -83,21 +86,16 @@ class Particle:
         self.negligible = negligible
         self.color = color
         if vp:
-            self.vsphere = vp.add(Sphere(pos, r=radius, c=color))  # Sphere representing the particle
-            # vp.addTrail(alpha=0.4, maxlength=1, n=50)
-            # Add a trail behind the particle
-            self.vsphere.addTrail(alpha=0.4, maxlength=1, n=50)
+            self.vsphere = Sphere(pos, r=radius, c=color).addTrail(alpha=0.4, maxlength=1, n=50)
+            vp.add(self.vsphere, render=False)  # Sphere representing the particle
 
 
 #####################################################################################################
 if __name__ == "__main__":
 
-    # An example simulation of N particles scattering on a charged target.
-    # See e.g. https://en.wikipedia.org/wiki/Rutherford_scattering
-
     vp = Plotter(title="Particle Simulator", bg="black", axes=0, interactive=False)
 
-    vp += Cube(c="white").wireframe(1) # a wireframe cube
+    vp += Cube().c('w').wireframe(True).lighting('off') # a wireframe cube
 
     sim = ParticleSim(dt=5e-6, iterations=200)
     sim.add_particle((-0.4, 0, 0), color="w", charge=3e-6, radius=0.01, fixed=True)  # the target

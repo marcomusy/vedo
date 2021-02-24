@@ -1,9 +1,10 @@
 import numpy as np
 import vtk
-from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtkIdTypeArray
+from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk, numpy_to_vtkIdTypeArray
 from vedo.base import BaseGrid
 import vedo.colors as colors
 import vedo.settings as settings
+import vedo.utils as utils
 
 __all__ = ["UGrid"]
 
@@ -25,7 +26,61 @@ class UGrid(vtk.vtkActor, BaseGrid):
         if inputobj is None:
             self._data = vtk.vtkUnstructuredGrid()
 
-        # elif utils.isSequence(inputobj):pass # TODO
+        elif utils.isSequence(inputobj):
+
+            pts, cells, celltypes = inputobj
+
+            self._data = vtk.vtkUnstructuredGrid()
+
+            if not utils.isSequence(cells[0]):
+                tets=[]
+                nf=cells[0]+1
+                for i, cl in enumerate(cells):
+                    if i==nf or i==0:
+                        k = i+1
+                        nf = cl+k
+                        cell = [cells[j+k] for j in range(cl)]
+                        tets.append(cell)
+                cells = tets
+
+            # This would fill the points and use those to define orientation
+            vpts = numpy_to_vtk(np.ascontiguousarray(pts), deep=True)
+            points = vtk.vtkPoints()
+            points.SetData(vpts)
+            self._data.SetPoints(points)
+
+            # This fill the points and use cells to define orientation
+            # points = vtk.vtkPoints()
+            # for c in cells:
+            #       for pid in c:
+            #           points.InsertNextPoint(pts[pid])
+            # self._data.SetPoints(points)
+
+            # Fill cells
+            # https://vtk.org/doc/nightly/html/vtkCellType_8h_source.html
+            for i, ct in enumerate(celltypes):
+                cell_conn =  cells[i]
+                if ct == vtk.VTK_HEXAHEDRON:
+                    cell = vtk.vtkHexahedron()
+                elif ct == vtk.VTK_TETRA:
+                    cell = vtk.vtkTetra()
+                elif ct == vtk.VTK_VOXEL:
+                    cell = vtk.vtkVoxel()
+                elif ct == vtk.VTK_WEDGE:
+                    cell = vtk.vtkWedge()
+                elif ct == vtk.VTK_PYRAMID:
+                    cell = vtk.vtkPyramid()
+                elif ct == vtk.VTK_HEXAGONAL_PRISM:
+                    cell = vtk.vtkHexagonalPrism()
+                elif ct == vtk.VTK_PENTAGONAL_PRISM:
+                    cell = vtk.vtkPentagonalPrism()
+                else:
+                    print("UGrid: cell type", ct, "not implemented. Skip.")
+                    continue
+                cpids = cell.GetPointIds()
+                for j, pid in enumerate(cell_conn):
+                    cpids.SetId(j, pid)
+                self._data.InsertNextCell(ct, cpids)
 
         elif "UnstructuredGrid" in inputtype:
             self._data = inputobj
@@ -40,7 +95,9 @@ class UGrid(vtk.vtkActor, BaseGrid):
             colors.printc("UGrid(): cannot understand input type:\n", inputtype, c='r')
             return
 
+        # self._mapper = vtk.vtkDataSetMapper()
         self._mapper = vtk.vtkPolyDataMapper()
+
         self._mapper.SetInterpolateScalarsBeforeMapping(settings.interpolateScalarsBeforeMapping)
 
         if settings.usePolygonOffset:
@@ -52,12 +109,14 @@ class UGrid(vtk.vtkActor, BaseGrid):
         if not self._data:
             return
 
+        # now fill the representation of the vtk unstr grid
         sf = vtk.vtkShrinkFilter()
         sf.SetInputData(self._data)
         sf.SetShrinkFactor(1.0)
         sf.Update()
         gf = vtk.vtkGeometryFilter()
         gf.SetInputData(sf.GetOutput())
+        # gf.SetInputData(self._data)
         gf.Update()
         self._polydata = gf.GetOutput()
 
@@ -71,7 +130,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
             self._mapper.SetScalarRange(sc.GetRange())
 
         self.SetMapper(self._mapper)
-        # ------------------------------------------------------------------
+    # ------------------------------------------------------------------
 
 
     def clone(self):

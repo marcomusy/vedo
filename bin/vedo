@@ -1,6 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
-from __future__ import division, print_function
 from vedo import Plotter
 from vedo.mesh import Mesh
 from vedo.tetmesh import TetMesh
@@ -86,12 +85,15 @@ def draw_scene():
             N = 200
         vp = Plotter(size=wsize, N=N, bg=args.background, bg2=args.background_grad)
         vp.axes = args.axes_type
+        for i in range(N):
+            vp.addTextLegend(at=i)
         if args.axes_type == 4 or args.axes_type == 5:
             vp.axes = 0
     else:
         N = nfiles
         vp = Plotter(size=wsize, bg=args.background, bg2=args.background_grad)
         vp.axes = args.axes_type
+        vp.addTextLegend()
 
     vp.verbose = not args.quiet
     vp.sharecam = not args.no_camera_share
@@ -584,7 +586,7 @@ else:  #########################################################################
     pr.add_argument("-e", "--showedges",            help="show a thin line on mesh edges", action="store_true")
     pr.add_argument("-k", "--lighting", type=str,   help="metallic, plastic, shiny or glossy", default='default', metavar='')
     pr.add_argument("-K", "--flat",                 help="use flat shading", action="store_true")
-    pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-5]", default=4, metavar='')
+    pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-5]", default=1, metavar='')
     pr.add_argument("-i", "--no-camera-share",      help="do not share camera in renderers", action="store_true")
     pr.add_argument("-l", "--legend-off",           help="do not show legends", action="store_true")
     pr.add_argument("-f", "--full-screen",          help="full screen mode", action="store_true")

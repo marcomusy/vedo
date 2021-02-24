@@ -237,11 +237,14 @@ flagItalic = True
 flagShadow = False
 flagColor = 'k'
 flagBackgroundColor = 'w'
+
+#############################
 legendSize = 0.2
 legendBC = (0.96, 0.96, 0.9)
 legendPos = 2
 legendFont = ""
 
+#############################
 installdir = os.path.dirname(__file__)
 
 textures_path = os.path.join(installdir, "textures/")

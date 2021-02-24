@@ -3,7 +3,7 @@ from vedo import *
 ################################################################
 def onLeftClick(evt):
     if not evt.actor: return
-    cpt = vector(evt.picked3d)+[0,0,1]
+    cpt = vector(evt.picked3d) + [0,0,1]
     printc("Added point:", precision(cpt[:2],4), c='g')
     cpoints.append(cpt)
     update()
@@ -17,12 +17,14 @@ def onRightClick(evt):
 
 def update():
     global spline, points
-    plt.remove([spline, points], render=False)
+    plt.remove([spline, points])
     points = Points(cpoints, r=8).c('violet').alpha(0.8)
     spline = None
     if len(cpoints)>2:
-        spline = Spline(cpoints, closed=1).c('yellow').alpha(0.8)
-    plt.add([spline, points])
+        spline = Spline(cpoints, closed=True).c('yellow').alpha(0.8)
+        # spline.ForceOpaqueOff()
+        # points.ForceOpaqueOff()
+    plt.add([points, spline])
 
 def keyfunc(evt):
     global spline, points, cpoints
@@ -39,7 +41,7 @@ def keyfunc(evt):
             #f.write(str(Spline(cpoints, smooth=0, res=100).points()[:,(0,1)])+'\n')
             printc("\nCoordinates saved to file:", outfl, c='y', invert=1)
     else:
-        printc('key press:', evt.keyPressed, 'ignored')
+        printc('key press:', evt.keyPressed)
 
 
 ############################################################

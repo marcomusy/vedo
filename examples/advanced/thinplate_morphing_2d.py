@@ -5,7 +5,7 @@ The fitting minimizes the distance to the target surface.
 from vedo import *
 import scipy.optimize as opt
 import numpy as np
-np.random.seed(1)
+# np.random.seed(1)
 
 class Morpher:
     def __init__(self):

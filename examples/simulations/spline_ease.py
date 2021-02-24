@@ -1,5 +1,6 @@
 """Spline three points in space"""
 from vedo import *
+import numpy as np
 
 pts = [[0,0,0],
        [0.5,0.6,0.8],
@@ -15,7 +16,7 @@ vpts = line.clone().pointSize(3).shift(0,0.1,0) # a dotted copy
 # being x=0 the first point and x=1 the last point.
 # This corresponds to an imaginary point that travels along the line
 # at constant speed:
-equi_pts = Points([line.eval(x) for x in arange(0,1, 0.1)]).c('blue')
+equi_pts = Points([line.eval(x) for x in np.arange(0,1, 0.1)]).c('blue')
 
 redpt = Point(r=25).c('red')
 plt = show(vpts, gpts, line, redpt, equi_pts, axes=1, interactive=0)

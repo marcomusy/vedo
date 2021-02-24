@@ -9,9 +9,13 @@ dist = mag(l1.points()-l2.points())  # make up some scalar values
 
 # The trick here is to think that the "body" of a line is a cell
 # so we can color cells as we do for any other polygonal mesh:
-lines = Lines(l1, l2).lw(4).cmap('Accent', dist, on='cells')
+lines = Lines(l1, l2).lw(8).cmap('Accent', dist, on='cells').addScalarBar('length')
 
-lines.addScalarBar(title='distance') # or e.g.:
-# lines.addScalarBar3D(title='distance').scalarbar.rotateX(90).pos(1,1,2)
+def clickfunc(evt):
+    if evt.actor:
+        idl = evt.actor.closestPoint(evt.picked3d, returnCellId=True)
+        print('clicked line', idl, 'length =', precision(dist[idl],3))
 
-show(l1,l2, lines, __doc__, axes=1, bg2='lightblue', viewup='z')
+plt = Plotter(axes=1, bg2='lightblue')
+plt.addCallback('mouse click', clickfunc)
+plt.show(l1,l2, lines, __doc__, viewup='z')

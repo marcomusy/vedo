@@ -11,7 +11,7 @@ import numpy as np
 N = 4  # nr. of iterations
 
 # build some initial cloud of noisy points along a line
-pts = [ (sin(6*x), cos(2*x)*x, cos(9*x)) for x in arange(0,2, .001)]
+pts = [ (sin(6*x), cos(2*x)*x, cos(9*x)) for x in np.arange(0,2, .001)]
 # pts = [ (0, sin(x), cos(x)) for x in arange(0,6, .002) ]
 # pts = [(sqrt(x), sin(x), x/5) for x in arange(0, 16, 0.01)]
 

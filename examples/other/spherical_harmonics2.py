@@ -6,7 +6,7 @@ In this example we morph a sphere into a octahedron and viceversa.
 from __future__ import division, print_function
 
 import numpy as np
-from vedo import Plotter, Points, Sphere, arange, cos, datadir, mag, sin
+from vedo import Plotter, Points, Sphere, cos, datadir, mag, sin
 
 try:
     import pyshtools
@@ -84,7 +84,7 @@ clm2 = pyshtools.SHGrid.from_array(agrid2).expand()
 # clm1.plot_spectrum2d()  # plot the value of the sph harm. coefficients
 # clm2.plot_spectrum2d()
 
-for t in arange(0, 1, 0.005):
+for t in np.arange(0, 1, 0.005):
     act21 = Points(morph(clm2, clm1, t, lmax), c="r", r=4)
     act12 = Points(morph(clm1, clm2, t, lmax), c="g", r=4)
 

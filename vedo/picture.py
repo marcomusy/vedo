@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import vtk
+import vedo
 import vedo.colors as colors
 import vedo.docs as docs
 import vedo.utils as utils
@@ -68,6 +69,7 @@ class Picture(vtk.vtkImageActor, Base3DProp):
                 colors.printc("Cannot understand picture format", obj, c='r')
                 return
             picr.SetFileName(obj)
+            self.filename = obj
             picr.Update()
             img = picr.GetOutput()
             self.SetInputData(img)
@@ -232,31 +234,33 @@ class Picture(vtk.vtkImageActor, Base3DProp):
         blf.Update()
         return self._update(blf.GetOutput())
 
-    def polygonize(self, threshold=None, flip=False):
+    def threshold(self, value=None, flip=False):
         """
         Create a polygonal Mesh from a Picture by filling regions with pixels
-        luminosity above a specified threshold.
+        luminosity above a specified value.
 
         Parameters
         ----------
-        threshold : float, optional
+        value : float, optional
             The default is None, e.i. 1/3 of the scalar range.
+
+        flip: bool, optional
+            Flip polygon orientations
 
         Returns
         -------
         Mesh
             A polygonal mesh.
         """
-        from vedo.mesh import Mesh
         mgf = vtk.vtkImageMagnitude()
         mgf.SetInputData(self._data)
         mgf.Update()
         msq = vtk.vtkMarchingSquares()
         msq.SetInputData(mgf.GetOutput())
-        if threshold is None:
+        if value is None:
             r0,r1 = self._data.GetScalarRange()
-            threshold = r0 + (r1-r0)/3
-        msq.SetValue(0, threshold)
+            value = r0 + (r1-r0)/3
+        msq.SetValue(0, value)
         msq.Update()
         if flip:
             rs = vtk.vtkReverseSense()
@@ -270,11 +274,19 @@ class Picture(vtk.vtkImageActor, Base3DProp):
         ctr = vtk.vtkContourTriangulator()
         ctr.SetInputData(output)
         ctr.Update()
-        return Mesh(ctr.GetOutput(), c='k').bc('t').lighting('off')
+        return vedo.Mesh(ctr.GetOutput(), c='k').bc('t').lighting('off')
 
 
-
-
-
+    def tomesh(self):
+        """
+        Convert an image to polygonal data (quads),
+        with each polygon vertex assigned a RGBA value.
+        """
+        dims = self._data.GetDimensions()
+        gr = vedo.shapes.Grid(sx=dims[0], sy=dims[1], resx=dims[0]-1, resy=dims[1]-1)
+        gr.pos(int(dims[0]/2), int(dims[1]/2)).pickable(True).wireframe(False).lw(0)
+        self._data.GetPointData().GetScalars().SetName("RGBA")
+        gr.inputdata().GetPointData().AddArray(self._data.GetPointData().GetScalars())
+        return gr
 
 

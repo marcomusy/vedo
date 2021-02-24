@@ -24,6 +24,7 @@ axes_opts = dict(
     axesLineWidth= 2,
     gridLineWidth= 1,
     zxGrid2=True,        # show zx plane on opposite side of the bounding box
+    yzGrid2=True,        # show yz plane on opposite side of the bounding box
     xyPlaneColor='green7',
     xyGridColor='dg',    # darkgreen line color
     xyAlpha=0.2,         # grid opacity

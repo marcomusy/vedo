@@ -126,66 +126,9 @@ __all__ = [
 ]
 
 
-def _inputsort_dolfinx(obj): # dolfinx
-    import dolfin
-
-    u = None
-    mesh = None
-    if not utils.isSequence(obj):
-        obj = [obj]
-
-    for ob in obj:
-        inputtype = str(type(ob))
-        #print('inputtype is', inputtype)
-
-        if "vtk" in inputtype: # skip vtk objects, will be added later
-            continue
-
-        if "dolfin" in inputtype or "ufl" in inputtype:
-            if "MeshFunction" in inputtype:
-                mesh = ob.mesh # dolfin 2019.2
-
-                if ob.dim > 0:
-                    print('MeshFunction of dim>0 not supported.')
-                    print('Try e.g.:  MeshFunction("size_t", mesh, 0)')
-                    print('instead of MeshFunction("size_t", mesh, 1)')
-                else:
-                    #print(ob.dim, mesh.num_cells, len(mesh.coordinates, len(ob.array()))
-                    V = dolfin.FunctionSpace(mesh, "CG", 1)
-                    u = dolfin.Function(V)
-                    v2d = dolfin.vertex_to_dof_map(V)
-                    u.vector[v2d] = ob.array
-            elif "Function" in inputtype or "Expression" in inputtype:
-                u = ob
-                mesh = ob.function_space.mesh
-            elif "Mesh" in inputtype:
-                mesh = ob
-            elif "algebra" in inputtype:
-                mesh = ob.ufl_domain
-                #print('algebra', ob.ufl_domain)
-
-        if "str" in inputtype:
-            mesh = dolfin.Mesh(ob)
-
-    if u and not mesh and hasattr(u, "function_space"):
-        V = u.function_space
-        if V:
-            mesh = V.mesh
-
-    if u and not mesh and hasattr(u, "mesh"):
-        mesh = u.function_space.mesh
-
-    print('------------------------------------')
-    print('mesh.topology dim=', mesh.topology.dim)
-    print('mesh.geometry dim=', mesh.geometry.dim)
-    if u: print('u.value_rank', u.value_rank)
-    if u and u.value_rank: print('u.value_dimension', u.value_dimension(0)) # axis=0
-    if u: print('u.value_shape', u.value_shape())
-    return (mesh, u)
-
-
 ##########################################################################
 def _inputsort(obj):
+# def _inputsort_dolfin(obj):
     import dolfin
 
     u = None
@@ -754,7 +697,7 @@ def plot(*inputobj, **options):
 
 ###################################################################################
 class MeshActor(Mesh):
-    """MeshActor, a vtkActor derived object for dolfin support."""
+    """MeshActor, a vedo.Mesh derived object for dolfin support."""
 
     def __init__(self, *inputobj, **options):
 

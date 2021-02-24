@@ -633,6 +633,7 @@ class Line(Mesh):
         self.points(self.points()+direction)
         return asurface
 
+
 class DashedLine(Line):
     """
     Build a dashed line segment between points `p0` and `p1`.
@@ -873,7 +874,7 @@ class Lines(Line):
 class Spline(Line):
     """
     Find the B-Spline curve through a set of points. This curve does not necessarly
-    pass exactly through all the input points. Needs to import `scypi`.
+    pass exactly through all the input points. Needs to import `scipy`.
 
     Return an ``Mesh`` object.
 
@@ -2189,8 +2190,9 @@ class Grid(Mesh):
         .. code-block:: python
 
             from vedo import *
-            xcoords = arange(0, 2, 0.2)
-            ycoords = arange(0, 1, 0.2)
+            impot numpy as np
+            xcoords = np.arange(0, 2, 0.2)
+            ycoords = np.arange(0, 1, 0.2)
             sqrtx = sqrt(xcoords)
             grid = Grid(sx=sqrtx, sy=ycoords)
             grid.show(axes=8)
@@ -2201,7 +2203,7 @@ class Grid(Mesh):
                 sx=1,
                 sy=1,
                 sz=(0,),
-                c="gray",
+                c="k5",
                 alpha=1,
                 lw=1,
                 resx=10,

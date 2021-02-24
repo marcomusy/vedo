@@ -158,6 +158,22 @@ class Mesh(Points):
             except AssertionError:
                 print("Could not add meshio cell data, skip.")
 
+        elif "meshlab" in inputtype:
+            # if "MeshSet" in inputtype:
+            #     inputobj = inputobj.current_mesh()
+            # mpoints, mcells = inputobj.vertex_matrix(), inputobj.face_matrix()
+            # pnorms = inputobj.vertex_normal_matrix()
+            # cnorms = inputobj.face_normal_matrix()
+            # if len(mcells):
+            #     self._polydata = buildPolyData(mpoints, mcells)
+            # else:
+            #     self._polydata = buildPolyData(mpoints, None)
+            # if len(pnorms):
+            #     self._polydata.GetPointData().SetNormals(numpy_to_vtk(pnorms, deep=True))
+            # if len(cnorms):
+            #     self._polydata.GetCellData().SetNormals(numpy_to_vtk(cnorms, deep=True))
+            self._polydata = vedo.utils.meshlab2vedo(inputobj)
+
         elif isSequence(inputobj):
             ninp = len(inputobj)
             if ninp == 0:
@@ -651,9 +667,10 @@ class Mesh(Points):
         """Set/get color of mesh edges. Same as `lineColor()`."""
         return self.lineColor(lineColor)
 
-    def quality(self, measure=6, cmap='RdYlBu'):
+    def addQuality(self, measure=6, cmap='RdYlBu'):
         """
-        Calculate functions of quality of the elements of a triangular mesh.
+        Calculate functions of quality for the elements of a triangular mesh.
+        This method adds to the mesh a cell array named "Quality".
         See class `vtkMeshQuality <https://vtk.org/doc/nightly/html/classvtkMeshQuality.html>`_
         for explanation.
 
@@ -698,11 +715,9 @@ class Mesh(Points):
         qf.SaveCellQualityOn()
         qf.Update()
         pd = qf.GetOutput()
-        varr = pd.GetCellData().GetArray('Quality')
-        self.addCellArray(varr, "Quality")
-        self.cmap(cmap, "Quality", on='cells')
-        arr = vtk_to_numpy(pd.GetCellData().GetArray('Quality'))
-        return arr
+        self._update(pd)
+        self.cmap(cmap, input_array="Quality", on='cells')
+        return self
 
 
     def volume(self, value=None):
@@ -1044,30 +1059,53 @@ class Mesh(Points):
         return self
 
 
-    def cutWithPointLoop(self, points, invert=False):
+    def cutWithPointLoop(self,
+                          points,
+                          invert=False,
+                          on='points',
+                          includeBoundary=False,
+        ):
         """
         Cut an ``Mesh`` object with a set of points forming a closed loop.
+
+        :param bool invert: invert selection (inside-out)
+        :param str on: if 'cells' will extract the whole cells lying inside
+            (or outside) the point loop
+
+        :param bool includeBoundary: include cells lying exactly on the
+            boundary line. Only relevant on 'cells' mode.
         """
         if isinstance(points, Points):
             vpts = points.polydata().GetPoints()
             points = points.points()
         else:
             vpts = vtk.vtkPoints()
+            if len(points[0])==2: # make it 3d
+                points = np.asarray(points)
+                points = np.c_[points, np.zeros(len(points))]
             for p in points:
                 vpts.InsertNextPoint(p)
 
-        spol = vtk.vtkSelectPolyData()
-        spol.SetLoop(vpts)
-        spol.GenerateSelectionScalarsOn()
-        spol.GenerateUnselectedOutputOff()
-        spol.SetInputData(self.polydata())
-        spol.Update()
-
-        # use vtkClipDataSet to slice the grid with the polydata
-        clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(spol.GetOutput())
-        clipper.SetInsideOut(not invert)
-        clipper.SetValue(0.0)
+        if 'cell' in on:
+            ippd = vtk.vtkImplicitSelectionLoop()
+            ippd.SetLoop(vpts)
+            ippd.AutomaticNormalGenerationOn()
+            clipper = vtk.vtkExtractPolyDataGeometry()
+            clipper.SetInputData(self.polydata())
+            clipper.SetImplicitFunction(ippd)
+            clipper.SetExtractInside(not invert)
+            clipper.SetExtractBoundaryCells(includeBoundary)
+        else:
+            spol = vtk.vtkSelectPolyData()
+            spol.SetLoop(vpts)
+            spol.GenerateSelectionScalarsOn()
+            spol.GenerateUnselectedOutputOff()
+            spol.SetInputData(self.polydata())
+            spol.Update()
+            clipper = vtk.vtkClipPolyData()
+            clipper.SetInputData(spol.GetOutput())
+            clipper.SetInsideOut(not invert)
+            clipper.SetValue(0.0)
         clipper.Update()
         cpoly = clipper.GetOutput()
 
@@ -1380,7 +1418,8 @@ class Mesh(Points):
             if self.GetTexture():
                 decimate.TCoordsAttributeOn()
             else:
-                decimate.SetVolumePreservation(True)
+                pass
+                # decimate.SetVolumePreservation(True)
         else:
             decimate = vtk.vtkDecimatePro()
             decimate.PreserveTopologyOn()
@@ -1393,7 +1432,8 @@ class Mesh(Points):
         decimate.Update()
         return self._update(decimate.GetOutput())
 
-    def smoothLaplacian(self, niter=15, relaxfact=0.1, edgeAngle=15, featureAngle=60):
+    def smoothLaplacian(self, niter=15, relaxfact=0.1, edgeAngle=15, featureAngle=60,
+                        boundary=False):
         """
         Adjust mesh point positions using `Laplacian` smoothing.
 
@@ -1416,13 +1456,14 @@ class Mesh(Points):
         smoothFilter.SetRelaxationFactor(relaxfact)
         smoothFilter.SetEdgeAngle(edgeAngle)
         smoothFilter.SetFeatureAngle(featureAngle)
-        smoothFilter.BoundarySmoothingOn()
+        smoothFilter.SetBoundarySmoothing(boundary)
         smoothFilter.FeatureEdgeSmoothingOn()
         smoothFilter.GenerateErrorScalarsOn()
         smoothFilter.Update()
         return self._update(smoothFilter.GetOutput())
 
-    def smoothWSinc(self, niter=15, passBand=0.1, edgeAngle=15, featureAngle=60):
+    def smoothWSinc(self, niter=15, passBand=0.1, edgeAngle=15, featureAngle=60,
+                    boundary=False):
         """
         Adjust mesh point positions using the `Windowed Sinc` function interpolation kernel.
 
@@ -1447,7 +1488,7 @@ class Mesh(Points):
         smoothFilter.NormalizeCoordinatesOn()
         smoothFilter.NonManifoldSmoothingOn()
         smoothFilter.FeatureEdgeSmoothingOn()
-        smoothFilter.BoundarySmoothingOn()
+        smoothFilter.SetBoundarySmoothing(boundary)
         smoothFilter.Update()
         return self._update(smoothFilter.GetOutput())
 
@@ -1908,30 +1949,44 @@ class Mesh(Points):
             return m.computeNormals(cells=False).phong()
 
 
+    def addConnectivity(self):
+        """
+        Flag a mesh by connectivity: each disconnected region will receive a different Id.
+        You can access the array of ids through ``mesh.getPointArray("RegionId")``.
+        """
+        cf = vtk.vtkConnectivityFilter()
+        cf.SetInputData(self.polydata(False))
+        cf.SetExtractionModeToAllRegions()
+        cf.ColorRegionsOn()
+        cf.Update()
+        return self._update(cf.GetOutput())
+
+
     def splitByConnectivity(self, maxdepth=1000):
         """
         Split a mesh by connectivity and order the pieces by increasing area.
 
         :param int maxdepth: only consider this number of mesh parts.
 
+        :param bool addRegions
+
         |splitmesh| |splitmesh.py|_
         """
-        self.addIDs()
-        pd = self.polydata()
+        pd = self.polydata(False)
         cf = vtk.vtkConnectivityFilter()
         cf.SetInputData(pd)
         cf.SetExtractionModeToAllRegions()
         cf.ColorRegionsOn()
         cf.Update()
-        cpd = cf.GetOutput()
-        a = Mesh(cpd)
+        a = Mesh(cf.GetOutput())
         alist = []
 
-        for t in range(max(a.getPointArray("RegionId")) - 1):
+        for t in range(max(a.getPointArray("RegionId")) + 1):
             if t == maxdepth:
                 break
             suba = a.clone().threshold("RegionId", t - 0.1, t + 0.1)
             area = suba.area()
+            # print('splitByConnectivity  piece:', t, ' area:', area, ' N:',suba.N())
             alist.append([suba, area])
 
         alist.sort(key=lambda x: x[1])

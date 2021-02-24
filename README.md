@@ -6,7 +6,7 @@
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vedo/badges/version.svg)](https://anaconda.org/conda-forge/vedo)
 [![Ubuntu 20.10](https://repology.org/badge/version-for-repo/ubuntu_20_10/vedo.svg)](https://repology.org/project/vedo/versions)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2561402.svg)](https://doi.org/10.5281/zenodo.2561402)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4287635.svg)](https://doi.org/10.5281/zenodo.4287635)
 [![CircleCI](https://circleci.com/gh/marcomusy/vedo.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)
 
 
@@ -203,12 +203,13 @@ Development, 5 April 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/c
 - J. S. Bennett, D. Sijacki, <i>"Resolving shocks and filaments in galaxy formation
                 simulations: effects on gas properties and star formation in the circumgalactic medium"</i>,
                 Monthly Notices of the Royal Astronomical Society, Vol. 499, Issue 1, Nov. 2020, <a href="https://doi.org/10.1093/mnras/staa2835">DOI</a>.
+- J.D.P. Deshapriya et al., *"Spectral analysis of craters on (101955) Bennu"*. (DOI: 10.1016/j.icarus.2020.114252)
 
 **Have you found this software useful for your research? Star ✨ the project and cite it as:**
 
-M. Musy  <em>et al.</em>, "<code>vedo</code>, a python module for scientific visualization and analysis of 3D objects
-and point clouds based on VTK (Visualization Toolkit)",
-Zenodo, 10 February 2019, <a href="http://doi.org/10.5281/zenodo.2561402">doi: 10.5281/zenodo.2561402</a>.
+M. Musy  <em>et al.</em>,
+"<code>vedo</code>, a python module for scientific analysis and visualization of 3D objects and point clouds",
+Zenodo, 2021, <a href="http://doi.org/10.5281/zenodo.4287635">doi: 10.5281/zenodo.4287635</a>.
 
 [![embl_logo](https://user-images.githubusercontent.com/32848391/58046204-e9157180-7b44-11e9-81c9-e916cdf9ba84.gif)](https://www.embl.es)
 

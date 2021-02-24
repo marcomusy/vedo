@@ -19,7 +19,6 @@ __all__ = [
     "geometry",
     "isSequence",
     "linInterpolate",
-    "fitCircle2D",
     "vector",
     "mag",
     "mag2",
@@ -557,65 +556,6 @@ def linInterpolate(x, rangeX, rangeY):
     return out
 
 
-def fitCircle2D(points):
-    """
-    Fits a circle through points in the plane, with a very fast non-iterative method.
-
-    Returns the tuple (center_x, center_y, radius).
-
-    Reference: J.F. Crawford, Nucl. Instr. Meth. 211, 1983, 223-225.
-
-    .. note:: E.g.:
-
-        .. code-block:: python
-
-            from vedo import *
-
-            x = arange(0, 3, 0.1)
-            y = sin(x)
-
-            cx, cy, R = fitCircle2D([x,y])
-            Points([x, y])
-            Point([cx, cy])
-            Circle([cx, cy], r=R)
-            show(..., axes=8)
-    """
-    if len(points) == 2:
-        data = np.c_[points[0],points[1]]
-    else:
-        data = np.array(points)
-    xi = data[:,0]
-    yi = data[:,1]
-
-    x   = sum(xi)
-    xx  = sum(xi*xi)
-    xxx = sum(xi*xi*xi)
-
-    y   = sum(yi)
-    yy  = sum(yi*yi)
-    yyy = sum(yi*yi*yi)
-
-    xy  = sum(xi*yi)
-    xyy = sum(xi*yi*yi)
-    xxy = sum(xi*xi*yi)
-
-    N = len(xi)
-    k = (xx+yy)/N
-
-    a1 = xx-x*x/N
-    b1 = xy-x*y/N
-    c1 = 0.5*(xxx + xyy - x*k)
-
-    a2 = xy-x*y/N
-    b2 = yy-y*y/N
-    c2 = 0.5*(xxy + yyy - y*k)
-
-    x0 = (b1*c2 - b2*c1)/(a2*b1 - a1*b2)
-    y0 = (c1 - a1*x0)/b1
-
-    R = np.sqrt(x0*x0 + y0*y0 -1/N*(2*x0*x +2*y0*y -xx -yy))
-    return x0, y0, R
-
 
 def vector(x, y=None, z=0.0, dtype=np.float64):
     """Return a 3D numpy array representing a vector.
@@ -670,6 +610,10 @@ def precision(x, p, vrange=None, delimiter='e'):
         out = '('
         nn=len(x)-1
         for i, ix in enumerate(x):
+
+            if np.isnan(ix):
+                return "NaN"
+
             out += precision(ix, p)
             if i<nn: out += ', '
         return out+')' ############ <--
@@ -790,17 +734,15 @@ def grep(filename, tag, firstOccurrence=False):
     except:
         print("Error in utils.grep(): cannot open file", filename)
         raise RuntimeError()
-    content = None
+
+    content = []
     for line in afile:
         if re.search(tag, line):
-            content = line.split()
+            c = line.split()
+            c[-1] = c[-1].replace('\n', '')
+            content.append(c)
             if firstOccurrence:
                 break
-    if content:
-        if len(content) == 2:
-            content = content[1]
-        else:
-            content = content[1:]
     afile.close()
     return content
 
@@ -808,7 +750,6 @@ def grep(filename, tag, firstOccurrence=False):
 def printInfo(obj):
     """Print information about a vtk object."""
 
-    from vedo.tetmesh import TetMesh
 
     def printvtkactor(actor, tab=""):
 
@@ -1015,8 +956,8 @@ def printInfo(obj):
             if isinstance(act, vtk.vtkActor):
                 printvtkactor(act, tab="     ")
 
-    elif isinstance(obj, TetMesh):
-        return # todo
+    # elif isinstance(obj, vedo.TetMesh):
+    #     return # todo
 
     elif isinstance(obj, vtk.vtkVolume):
         printc("_" * 65, c="b", bold=0)
@@ -1598,6 +1539,41 @@ def trimesh2vedo(inputobj, alphaPerCell=False):
         return Assembly(lines)
 
     return None
+
+
+def vedo2meshlab(vmesh):
+    try:
+        import pymeshlab as mlab
+    except RuntimeError:
+        printc("Need pymeshlab to run: pip install pymeshlab", c='r')
+
+    ms = mlab.MeshSet()
+    m = mlab.Mesh(vertex_matrix=vmesh.points(),
+                  face_matrix=vmesh.faces(),
+                  v_normals_matrix=vmesh.normals(cells=False, compute=False),
+                  f_normals_matrix=vmesh.normals(cells=True, compute=False),
+                 )
+    m.update_bounding_box()
+    ms.add_mesh(m)
+    return ms
+
+def meshlab2vedo(mmesh):
+    inputtype = str(type(mmesh))
+
+    if "MeshSet" in inputtype:
+        mmesh = mmesh.current_mesh()
+    mpoints, mcells = mmesh.vertex_matrix(), mmesh.face_matrix()
+    pnorms = mmesh.vertex_normal_matrix()
+    cnorms = mmesh.face_normal_matrix()
+    if len(mcells):
+        polydata = buildPolyData(mpoints, mcells)
+    else:
+        polydata = buildPolyData(mpoints, None)
+    if len(pnorms):
+        polydata.GetPointData().SetNormals(numpy_to_vtk(pnorms, deep=True))
+    if len(cnorms):
+        polydata.GetCellData().SetNormals(numpy_to_vtk(cnorms, deep=True))
+    return polydata
 
 
 def vtkVersionIsAtLeast(major, minor=0, build=0):

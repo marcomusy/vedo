@@ -362,8 +362,8 @@ def Light(
 
 #####################################################################
 def addScalarBar(obj,
-                 pos=(0.8,0.05),
                  title="",
+                 pos=(0.8,0.05),
                  titleYOffset=15,
                  titleFontSize=12,
                  size=(None,None),
@@ -490,10 +490,10 @@ def addScalarBar(obj,
 #####################################################################
 def addScalarBar3D(
     obj,
+    title='',
     pos=None,
     sx=None,
     sy=None,
-    title='',
     titleFont="",
     titleXOffset=-1.5,
     titleYOffset=0.0,
@@ -1364,7 +1364,7 @@ def Axes(
         xTitleColor=None, yTitleColor=None, zTitleColor=None,
         xTitleBackfaceColor=None, yTitleBackfaceColor=None, zTitleBackfaceColor=None,
         xTitleItalic=0, yTitleItalic=0, zTitleItalic=0,
-        xyGrid=True, yzGrid=True, zxGrid=False,
+        xyGrid=True, yzGrid=False, zxGrid=False,
         xyGrid2=False, yzGrid2=False, zxGrid2=False,
         xyShift=0, yzShift=0, zxShift=0,
         xyGridTransparent=False, yzGridTransparent=False, zxGridTransparent=False,
@@ -1540,6 +1540,7 @@ def Axes(
 
     x0,x1, y0,y1, z0,z1 = vbb
     dx, dy, dz = drange
+
     gscale = np.sqrt(dx*dx + dy*dy + dz*dz)*0.75
 
     if not xyPlaneColor: xyPlaneColor = c
@@ -1579,7 +1580,8 @@ def Axes(
     if tipSize is None:
         tipSize = 0.005*gscale
 
-    if not numberOfDivisions: numberOfDivisions = ndiv
+    if not numberOfDivisions:
+        numberOfDivisions = ndiv
 
     rx, ry, rz = np.round(drange/drangemax * numberOfDivisions + 1).astype(int)
     #printc('numberOfDivisions', numberOfDivisions, '\t r=', rx, ry, rz)

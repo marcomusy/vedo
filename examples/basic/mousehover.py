@@ -3,9 +3,9 @@ by hovering the mouse on a mesh
 Press c to clear"""
 from vedo import *
 
-def func(evt):                  ### called every time the mouse moves!
-    if not evt.actor: return    # no hits, return. (NB: evt is a dictionary)
-    pt = evt.picked3d           # 3d coords of picked point under mouse
+def func(evt):                     ### called every time the mouse moves!
+    if not evt.actor: return       # no hits, return. (NB: evt is a dictionary)
+    pt = evt.picked3d              # 3d coords of picked point under mouse
 
     pid = evt.actor.closestPoint(pt, returnPointId=True)
     txt = f"Point:  {precision(pt[:2],2)}\n"  \
@@ -23,6 +23,6 @@ hil = ParametricShape('RandomHills').cmap('terrain').addScalarBar()
 arr = hil.getPointArray("Scalars")
 
 plt = Plotter(axes=1, bg2='lightblue')
-plt.addCallback('MouseMove', func)  # the callback function (or use lambda!)
+plt.addCallback('MouseMove', func)  # the callback function
 plt.addCallback('KeyPress', lambda e: plt.remove(plt.actors[2:], render=True))
 plt.show(hil, __doc__, viewup='z')

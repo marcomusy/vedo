@@ -24,6 +24,7 @@ __all__ = [
     "streamplot",
     "matrix",
     "DirectedGraph",
+    "show",
 ]
 
 
@@ -447,7 +448,10 @@ def histogram(*args, **kwargs):
         if isinstance(args[0], vedo.Volume):
             data = args[0].getDataArray().ravel()
         elif isinstance(args[0], vedo.Points):
-            data = args[0].getPointArray().ravel()
+            if args[0].getPointArray():
+                data = args[0].getPointArray().ravel()
+            else:
+                data = args[0].getCellArray().ravel()
         else:
             data = np.array(args[0])
 
@@ -2434,6 +2438,7 @@ def matrix(M,
     if scale !=0:
         labs = gr.labels(cells=True, scale=scale/max(m,n),
                          precision=precision, font=font, justify='center', c=c)
+        labs.z(0.001)
     t = None
     if title:
         if title == 'Matrix':
@@ -2441,6 +2446,7 @@ def matrix(M,
         t = shapes.Text(title, font=font, s=0.04,
                         justify='bottom-center', c=c)
         t.shift(0, n/(m+n)*1.05)
+
     xlabs=None
     if len(xlabels)==m:
         xlabs=[]
@@ -2449,17 +2455,19 @@ def matrix(M,
             jus = 'right-center'
         for i in range(m):
             xl = shapes.Text(xlabels[i], font=font, s=0.02,
-                             justify=jus, c=c).rotateZ(xrotation)
+                              justify=jus, c=c).rotateZ(xrotation)
             xl.shift((2*i-m+1)/(m+n), -n/(m+n)*1.05)
             xlabs.append(xl)
+
     ylabs=None
     if len(ylabels)==n:
         ylabs=[]
         for i in range(n):
             yl = shapes.Text(ylabels[i], font=font, s=.02,
-                             justify='right-center', c=c)
+                              justify='right-center', c=c)
             yl.shift(-m/(m+n)*1.05, (2*i-n+1)/(m+n))
             ylabs.append(yl)
+
     xt=None
     if xtitle:
         xt = shapes.Text(xtitle, font=font, s=0.035,

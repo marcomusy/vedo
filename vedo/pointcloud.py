@@ -26,6 +26,7 @@ __all__ = ["Points",
            "visiblePoints",
            "delaunay2D",
            "fitLine",
+           "fitCircle",
            "fitPlane",
            "fitSphere",
            "pcaEllipsoid",
@@ -410,7 +411,7 @@ def visiblePoints(mesh, area=(), tol=None, invert=False):
 
 
 
-def delaunay2D(plist, mode='scipy', tol=None):
+def delaunay2D(plist, mode='scipy', boundaries=(), tol=None):
     """
     Create a mesh from points in the XY plane.
     If `mode='fit'` then the filter computes a best fitting
@@ -418,33 +419,88 @@ def delaunay2D(plist, mode='scipy', tol=None):
 
     |delaunay2d| |delaunay2d.py|_
     """
-    plist = np.ascontiguousarray(plist)
+    if isinstance(plist, Points):
+        plist = plist.points()
+    else:
+        plist = np.ascontiguousarray(plist)
+        if plist.shape[1] == 2: # make it 3d
+            plist = np.c_[plist, np.zeros(len(plist))]
 
     if mode == 'scipy':
-        try:
-            from scipy.spatial import Delaunay as scipy_Delaunay
-            tri = scipy_Delaunay(plist[:, 0:2])
-            return vedo.mesh.Mesh([plist, tri.simplices])
-
-        except:
-            mode='xy'
+        from scipy.spatial import Delaunay as scipy_Delaunay
+        tri = scipy_Delaunay(plist[:, 0:2])
+        return vedo.mesh.Mesh([plist, tri.simplices])
+        #############################################
 
     pd = vtk.vtkPolyData()
     vpts = vtk.vtkPoints()
     vpts.SetData(numpy_to_vtk(np.ascontiguousarray(plist), deep=True))
     pd.SetPoints(vpts)
 
-    if plist.shape[1] == 2: # make it 3d
-        plist = np.c_[plist, np.zeros(len(plist))]
     delny = vtk.vtkDelaunay2D()
     delny.SetInputData(pd)
     if tol:
         delny.SetTolerance(tol)
 
+    if mode=='xy' and len(boundaries):
+        boundary = vtk.vtkPolyData()
+        boundary.SetPoints(vpts)
+        aCellArray = vtk.vtkCellArray()
+        for b in boundaries:
+            cPolygon = vtk.vtkPolygon()
+            for idd in b:
+                cPolygon.GetPointIds().InsertNextId(idd)
+            aCellArray.InsertNextCell(cPolygon)
+        boundary.SetPolys(aCellArray)
+        delny.SetSourceData(boundary)
+
     if mode=='fit':
         delny.SetProjectionPlaneMode(vtk.VTK_BEST_FITTING_PLANE)
     delny.Update()
-    return vedo.mesh.Mesh(delny.GetOutput())
+    return vedo.mesh.Mesh(delny.GetOutput()).lighting('off')
+
+
+def rotatePoints(points, n0=None, n1=(0,0,1)):
+    """
+    Rotate a set of 3D points from direction n0 to direction n1.
+
+    Return the rotated points and the normal to the fitting plane (if n0 is None).
+    The pointing direction of the normal in this case is arbitrary.
+    """
+    points = np.asarray(points)
+
+    if points.ndim == 1:
+        points = points[np.newaxis,:]
+
+    if len(points[0])==2:
+        return points, (0,0,1)
+
+    if n0 is None: # fit plane
+        datamean = points.mean(axis=0)
+        vv = np.linalg.svd(points - datamean)[2]
+        n0 = np.cross(vv[0], vv[1])
+
+    n0 = n0/np.linalg.norm(n0)
+    n1 = n1/np.linalg.norm(n1)
+    k = np.cross(n0, n1)
+    l = np.linalg.norm(k)
+    if not l:
+        k = n0
+    k /= np.linalg.norm(k)
+
+    ct = np.dot(n0, n1)
+    theta = np.arccos(ct)
+    st = np.sin(theta)
+    v = k * (1-ct)
+
+    rpoints = []
+    for p in points:
+        a = p * ct
+        b = np.cross(k,p) * st
+        c = v * np.dot(k,p)
+        rpoints.append(a + b + c)
+
+    return np.array(rpoints), n0
 
 
 def fitLine(points):
@@ -500,6 +556,64 @@ def fitPlane(points):
     pla.variance = dd[2]
     pla.name = "fitPlane"
     return pla
+
+
+def fitCircle(points):
+    """
+    Fits a circle through a set of 3D points, with a very fast non-iterative method.
+
+    Returns the center, radius, normal_to_circle.
+
+    Reference: J.F. Crawford, Nucl. Instr. Meth. 211, 1983, 223-225.
+    """
+    if len(points) == 2:
+        data = np.c_[points[0], points[1]]
+    else:
+        data = np.asarray(points)
+
+    offs = data.mean(axis=0)
+    data, n0 = rotatePoints(data-offs)
+
+    xi = data[:,0]
+    yi = data[:,1]
+
+    x   = sum(xi)
+    xi2 = xi*xi
+    xx  = sum(xi2)
+    xxx = sum(xi2*xi)
+
+    y   = sum(yi)
+    yi2 = yi*yi
+    yy  = sum(yi2)
+    yyy = sum(yi2*yi)
+
+    xiyi = xi*yi
+    xy  = sum(xiyi)
+    xyy = sum(xiyi*yi)
+    xxy = sum(xi*xiyi)
+
+    N = len(xi)
+    k = (xx+yy)/N
+
+    a1 = xx-x*x/N
+    b1 = xy-x*y/N
+    c1 = 0.5*(xxx + xyy - x*k)
+
+    a2 = xy-x*y/N
+    b2 = yy-y*y/N
+    c2 = 0.5*(xxy + yyy - y*k)
+
+    d = a2*b1 - a1*b2
+    if not d:
+        return offs, 0, n0
+    x0 = (b1*c2 - b2*c1)/d
+    y0 = (c1 - a1*x0)/b1
+
+    R = np.sqrt(x0*x0 + y0*y0 -1/N*(2*x0*x +2*y0*y -xx -yy))
+
+    c, _ = rotatePoints([x0,y0,0], (0,0,1), n0)
+
+    return c[0]+offs, R, n0
 
 
 def fitSphere(coords):
@@ -730,18 +844,22 @@ class Points(vtk.vtkFollower, BaseActor):
 
         self._mapper = vtk.vtkPolyDataMapper()
         self.SetMapper(self._mapper)
+        ## force the opaque pass, fixes picking in vtk9
+        # but causes othr troubles..
+        # self.ForceOpaqueOn()
+        # self.ForceTranslucentOn()
 
         self._scals_idx = 0  # index of the active scalar changed from CLI
         self._ligthingnr = 0 # index of the lighting mode changed from CLI
-
-        prp = self.GetProperty()
-        if hasattr(prp, 'RenderPointsAsSpheresOn'):
-            prp.RenderPointsAsSpheresOn()
 
         if inputobj is None:
             self._polydata = vtk.vtkPolyData()
             return
         ##########
+
+        prp = self.GetProperty()
+        if hasattr(prp, 'RenderPointsAsSpheresOn'):
+            prp.RenderPointsAsSpheresOn()
 
         prp.SetRepresentationToPoints()
         prp.SetPointSize(r)
@@ -749,12 +867,16 @@ class Points(vtk.vtkFollower, BaseActor):
 
         if isinstance(inputobj, vtk.vtkActor):
             polyCopy = vtk.vtkPolyData()
+            pr = vtk.vtkProperty()
+            pr.DeepCopy(inputobj.GetProperty())
+            # if isinstance(inputobj, BaseActor):
+            #     polyCopy = polyCopy.DeepCopy(inputobj.polydata())
+            # else:
             polyCopy.DeepCopy(inputobj.GetMapper().GetInput())
+            pr.SetRepresentationToPoints()
             self._polydata = polyCopy
             self._mapper.SetInputData(polyCopy)
             self._mapper.SetScalarVisibility(inputobj.GetMapper().GetScalarVisibility())
-            pr = vtk.vtkProperty()
-            pr.DeepCopy(inputobj.GetProperty())
             self.SetProperty(pr)
 
         elif isinstance(inputobj, vtk.vtkPolyData):
@@ -869,7 +991,6 @@ class Points(vtk.vtkFollower, BaseActor):
         prp.SetOpacity(alpha)
 
         self._mapper.SetInputData(self._polydata)
-        self.ForceOpaqueOn() # force the opaque pass, fixes picking in vtk9
         return
 
 
@@ -1472,7 +1593,7 @@ class Points(vtk.vtkFollower, BaseActor):
     def labels(self, content=None, cells=False, scale=None,
                rotX=0, rotY=0, rotZ=0,
                ratio=1, precision=None,
-               font="", justify="bottom-left", c='black', alpha=1, italic=False):
+               font="", justify="bottom-left", c=None, alpha=1, italic=False):
         """Generate value or ID labels for mesh cells or points.
 
         See also: ``flag()``, ``vignette()``, ``caption()`` and ``legend()``.
@@ -1510,6 +1631,12 @@ class Points(vtk.vtkFollower, BaseActor):
             elems = self.points()
             norms = self.normals(cells=False, compute=False)
             ns = np.sqrt(self.NPoints())
+
+        if c is None:
+            if self._mapper.GetScalarVisibility():
+                c=(0,0,0)
+            else:
+                c=self.GetProperty().GetColor()
 
         hasnorms=False
         if len(norms):
@@ -1576,7 +1703,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 tx_poly = vedo.shapes.Text(txt_lab,
                                            font=font,
                                            justify=justify,
-                                           ).polydata(False)
+                          ).polydata(False)
 
             if tx_poly.GetNumberOfPoints() == 0:
                 continue #######################
@@ -2605,18 +2732,19 @@ class Points(vtk.vtkFollower, BaseActor):
         Add gaussian noise to point positions.
 
         :param float sigma: sigma is expressed in percent of the diagonal size of mesh.
+            Can be a list [sigma_x, sigma_y, sigma_z].
 
         :Example:
             .. code-block:: python
 
                 from vedo import Sphere
 
-                Sphere().addGaussNoise(1.0).show()
+                Sphere().pointGaussNoise(1.0).show()
         """
         sz = self.diagonalSize()
         pts = self.points()
         n = len(pts)
-        ns = np.random.randn(n, 3) * sigma * sz / 100
+        ns = (np.random.randn(n, 3) * sigma) * (sz / 100)
         vpts = vtk.vtkPoints()
         vpts.SetNumberOfPoints(n)
         vpts.SetData(numpy_to_vtk(pts + ns, deep=True))
@@ -2626,7 +2754,7 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
 
-    def closestPoint(self, pt, N=1, radius=None, returnPointId=False, returnCellId=False):
+    def closestPoint(self, pt, N=1, radius=None, returnPointId=False, returnCellId=False, returnIds=None):
         """
         Find the closest point(s) on a mesh given from the input point `pt`.
 
@@ -2645,6 +2773,10 @@ class Points(vtk.vtkFollower, BaseActor):
             ``obj.point_locator=None`` or
             ``obj.cell_locator=None``.
         """
+        if returnIds is not None:
+            colors.printc("ERROR returnIds is now obsolete. Use either returnPointId or returnCellId", c='r')
+            raise RuntimeError
+
         if (N > 1 or radius) or (N==1 and returnPointId):
             poly = None
             if not self.point_locator:
@@ -2975,9 +3107,137 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
 
+    def tomesh( self,
+                resLine=None,
+                resMesh=None,
+                smooth=0,
+                jitter=0.01,
+                grid=None,
+                quads=False,
+                invert=False,
+                verbose=False,
+        ):
+        """
+        Generate a polygonal Mesh from a closed contour line.
+        If line is not closed it will be closed with a straight segment.
+
+        Parameters
+        ----------
+        resLine : int, optional
+            resolution of the contour line. The default is None, in this case
+            the contour is not resampled.
+        resMesh : int, optional
+            resolution of the intenal triangles not touching the boundary.
+            The default is None.
+        smooth : float, optional
+            smoothing of the contour before meshing. The default is 0.
+        jitter : float, optional
+            add a small noise to the internal points. The default is 0.01.
+        grid : Grid, optional
+            manually pass a Grid object.
+            The default is True.
+        quads : bool, optional
+            generate a mesh of quads instead of triangles.
+        invert : bool, optional
+            flip the line orientation. The default is False.
+        verbose : bool, optional
+            printout info during the process. The default is False.
+        """
+        if resLine is None:
+            contour = vedo.shapes.Line(self.points())
+        else:
+            contour = vedo.shapes.Spline(self.points(), smooth=smooth, res=resLine)
+        contour.clean()
+
+        length = contour.length()
+        density= length/contour.N()
+        if verbose:
+            utils.printc('tomesh():\n\tline length =', length)
+            utils.printc('\tdensity =', density, 'length/pt_separation')
+
+        x0,x1 = contour.xbounds()
+        y0,y1 = contour.ybounds()
+
+        if grid is None:
+            if resMesh is None:
+                resx = int((x1-x0)/density+0.5)
+                resy = int((y1-y0)/density+0.5)
+                if verbose:
+                    utils.printc('\tresMesh =', [resx, resy])
+            else:
+                if utils.isSequence(resMesh):
+                    resx, resy = resMesh
+                else:
+                    resx, resy = resMesh, resMesh
+            grid = vedo.shapes.Grid([(x0+x1)/2, (y0+y1)/2, 0],
+                                    sx=(x1-x0)*1.025, sy=(y1-y0)*1.025,
+                                    resx=resx, resy=resy)
+        else:
+            grid = grid.clone()
+
+
+        cpts = contour.points()
+
+        # make sure it's closed
+        p0,p1 = cpts[0], cpts[-1]
+        nj = max(2, int(utils.mag(p1-p0)/density+0.5))
+        joinline = vedo.shapes.Line(p1, p0, res=nj)
+        contour = vedo.merge(contour, joinline).clean(0.0001)
+
+        ####################################### quads
+        if quads:
+            cmesh = grid.clone().cutWithPointLoop(contour, on='cells', invert=invert)
+            return cmesh.wireframe(False).lw(0.5)
+        #############################################
+
+        grid_tmp = grid.points()
+
+        if jitter:
+            np.random.seed(0)
+            sigma = 1.0/np.sqrt(grid.N())*grid.diagonalSize()*jitter
+            if verbose:
+                utils.printc('\tsigma jittering =', sigma)
+            grid_tmp += np.random.rand(grid.N(),3) * sigma
+            grid_tmp[:,2] = 0.0
+
+        todel = []
+        density /= np.sqrt(3)
+        vgrid_tmp = Points(grid_tmp)
+
+        for p in contour.points():
+            todel += vgrid_tmp.closestPoint(p, radius=density, returnPointId=True)
+        # cpoints = contour.points()
+        # for i, p in enumerate(cpoints):
+        #     if i:
+        #         den = utils.mag(p-cpoints[i-1])/1.732
+        #     else:
+        #         den = density
+        #     todel += vgrid_tmp.closestPoint(p, radius=den, returnPointId=True)
+
+        grid_tmp = grid_tmp.tolist()
+        for index in sorted(list(set(todel)), reverse=True):
+            del grid_tmp[index]
+
+        points = contour.points().tolist() + grid_tmp
+        if invert:
+            boundary = reversed(range(contour.N()))
+        else:
+            boundary = range(contour.N())
+        if verbose:
+            utils.printc('\tperforming Delaunay triangulation..')
+        dln = delaunay2D(points, mode='xy', boundaries=[boundary])
+        dln.computeNormals(points=False)  # fixes reversd faces
+        dln.lw(0.5)
+        return dln
+
+
     def to_trimesh(self):
         """Return the trimesh object."""
         return utils.vedo2trimesh(self)
+
+    def to_meshlab(self):
+        """Return the ``pymeshlab.Mesh`` object."""
+        return utils.vedo2meshlab(self)
 
 
     def density(self, dims=(40,40,40),

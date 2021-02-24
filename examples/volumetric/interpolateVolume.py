@@ -25,7 +25,7 @@ vol.addScalarBar3D(sy=1, title='height is the scalar')
 vol.scalarbar.rotateX(90).pos(1.15,1,0.5)
 
 # replace voxels of specific range with a new value
-vol.threshold(above=0.3, below=0.4, replaceWith=0.9)
+vol.threshold(above=0.3, below=0.4, replace=0.9)
 
 vol.printHistogram(bins=25, c='b')
 

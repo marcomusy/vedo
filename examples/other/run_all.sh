@@ -25,6 +25,9 @@ python vpolyscope.py
 echo Running meshio_read.py
 python meshio_read.py
 
+echo Running pygmsh_cut.py
+python pygmsh_cut.py
+
 echo Running nevergrad_opt.py
 python nevergrad_opt.py
 
@@ -50,7 +53,7 @@ echo Running remesh_meshfix.py
 python remesh_meshfix.py
 
 echo Running spherical_harmonics1.py
-python spherical_harmonics1.py 
+python spherical_harmonics1.py
 
 echo Running export_numpy.py
 python export_numpy.py

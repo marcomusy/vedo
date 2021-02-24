@@ -29,6 +29,8 @@ class Base3DProp(object):
     def __init__(self):
         self.filename = ""
         self.name = ""
+        self.fileSize = ''
+        self.created = ''
         self.trail = None
         self.trailPoints = []
         self.trailSegmentSize = 0
@@ -333,18 +335,41 @@ class Base3DProp(object):
         return self
 
 
-    def getTransform(self):
+    def getTransform(self, invert=False):
         """
-        Check if ``info.transform`` exists and returns a ``vtkTransform``.
+        Check if ``object.transform`` exists and returns a ``vtkTransform``.
         Otherwise return current user transformation (where the object is currently placed).
+
+        :param bool invert: return the inverse of the current transformation
+
+        :Example:
+
+            .. code-block:: python
+
+                from vedo import *
+
+                c1 = Cube()
+                c2 = c1.clone().c('violet').alpha(0.5) # copy of c1
+                v = vector(0.2,1,0)
+                p = vector(1,0,0)  # axis passes through this point
+                c2.rotate(90, axis=v, point=p)
+
+                # get the inverse of the current transformation
+                T = c2.getTransform(invert=True)
+                c2.applyTransform(T)  # put back c2 in place
+
+                l = Line(p-v, p+v).lw(3).c('red')
+                show(c1.wireframe().lw(3), l, c2, axes=1)
         """
         if self.transform:
-            return self.transform
+            tr = self.transform
         else:
             T = self.GetMatrix()
             tr = vtk.vtkTransform()
             tr.SetMatrix(T)
-            return tr
+        if invert:
+            tr = tr.GetInverse()
+        return tr
 
     def applyTransform(self, T):
         """
@@ -700,11 +725,14 @@ class BaseActor(Base3DProp):
                 elif style=='ambient':
                     style='default'
                     self.shade(False)
+            else:
+                if style!='off':
+                    pr.LightingOn()
 
             if style=='off':
                 pr.SetInterpolationToFlat()
                 pr.LightingOff()
-                return self
+                return self ##############
 
             if hasattr(pr, "GetColor"):  # could be Volume
                 c = pr.GetColor()
@@ -982,6 +1010,7 @@ class BaseActor(Base3DProp):
                 self._mapper.SetArrayName(name)
             self._mapper.SetScalarModeToUseCellData()
             return self
+            ###########
 
         if len(input_array) != data.GetNumberOfCells():
             colors.printc('Error in addCellArray(): Number of inputs != nr. of Cells',
@@ -1163,8 +1192,8 @@ class BaseActor(Base3DProp):
 
 
     def addScalarBar(self,
-                     pos=(0.8,0.05),
                      title="",
+                     pos=(0.8,0.05),
                      titleYOffset=15,
                      titleFontSize=12,
                      size=(None,None),
@@ -1179,8 +1208,8 @@ class BaseActor(Base3DProp):
         .. hint:: |mesh_coloring| |mesh_coloring.py|_ |scalarbars.py|_
         """
         self.scalarbar = vedo.addons.addScalarBar(self,
-                                                  pos,
                                                   title,
+                                                  pos,
                                                   titleYOffset,
                                                   titleFontSize,
                                                   size,
@@ -1193,10 +1222,10 @@ class BaseActor(Base3DProp):
 
 
     def addScalarBar3D( self,
+                        title='',
                         pos=None,
                         sx=None,
                         sy=None,
-                        title='',
                         titleFont="",
                         titleXOffset = -1.5,
                         titleYOffset = 0.0,
@@ -1224,9 +1253,9 @@ class BaseActor(Base3DProp):
 
         Return an ``Assembly`` object.
 
+        :param str title: scalar bar title
         :param float sx: thickness of scalarbar
         :param float sy: length of scalarbar
-        :param str title: scalar bar title
         :param float titleXOffset: horizontal space btw title and color scalarbar
         :param float titleYOffset: vertical space offset
         :param float titleSize: size of title wrt numeric labels
@@ -1243,10 +1272,10 @@ class BaseActor(Base3DProp):
         |mesh_coloring| |mesh_coloring.py|_
         """
         self.scalarbar = vedo.addons.addScalarBar3D(self,
+                                                    title,
                                                     pos,
                                                     sx,
                                                     sy,
-                                                    title,
                                                     titleFont,
                                                     titleXOffset,
                                                     titleYOffset,

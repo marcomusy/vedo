@@ -6,15 +6,18 @@
 
 - python2 is no more supported
 - A bug in `mesh.closestPoint(returnIds=True)` has been fixed
+- [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab) is now interfaced in `vedo`!
 
 ---
 ### `base.py`
 - method `addPos()` (obsolete but still valid) renamed to `shift()`
 - added shortcut to input the opacity with syntax `mesh.color("blue", 0.5)`
 - arrays with name "Normals" are set as active normals automatically ( @theponpon )
+- added keyword invert in `getTransform()` ( @Tai-Hsien )
 
+
+---
 ### `addons.py`
-
 - added mesh cutter with planes and spheres in addition to boxes ( @nantille )
 - major revision of the `Axes` class. with new added feature like axes inversion, free rotations
 - keyword `xFlipText` dispaered as is now substituted by `xLabelRotation`
@@ -22,14 +25,20 @@
   Added `xyShift` to shift the whole cartesian plane along one axis ( @JGarrett7 )
 - Axes can be flipped with their range with `xInverted` (caveat: this does not at all affect the world coordinate system!)
 
+
 ---
 ### `colors.py`
-
 - `vedo` is now independent of matplotlib for colormaps
 - added new bootstrap5 [color scheme](https://user-images.githubusercontent.com/98681/84801339-e5585680-afb3-11ea-8743-29647ff3f3a9.png)
 (e.g. `c='red1', 'red2', ..., 'red9'`, or in short: `c='r1', 'r2', ..., 'r9'`)
 Lower index means darker.
 - added `rgb2hex()` and `hex2rgb()` functions
+
+
+---
+### `mesh.py`
+- fixed bug in `splitByConnectivity()` ( @jsanchez679 )
+- added method `addConnectivity()` to add a connectivity array to mesh points
 
 ---
 ### `plotter.py`
@@ -44,6 +53,11 @@ Lower index means darker.
 ---
 ### `picture.py`
 - attribute `picture.shape` holds the shape of the picture in pixels
+
+
+---
+### `pointcloud.py`
+- added `fitCircle()` to fit a circle to a line in 3D.
 
 
 ---
@@ -82,3 +96,19 @@ Lower index means darker.
 - `vedo -r pygmsh_cut`
 - `vedo -r mousehighlight`
 - `vedo -r mousehover`
+- `vedo -r line2mesh_quads`
+- `vedo -r line2mesh_tri`
+- `vedo -r pointsCutMesh2`
+- `vedo -r textLegend`
+- `vedo -r fitCircle`
+- `vedo -r pymeshlab1.py`
+
+
+
+
+
+
+
+
+
+

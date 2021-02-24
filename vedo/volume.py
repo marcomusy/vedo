@@ -432,8 +432,10 @@ class Volume(vtk.vtkVolume, BaseGrid):
 
     def _update(self, img):
         self._data = img
+        self._data.GetPointData().Modified()
         self._mapper.SetInputData(img)
         self._mapper.Modified()
+        self._mapper.Update()
         return self
 
     def mode(self, mode=None):
@@ -692,7 +694,7 @@ class Volume(vtk.vtkVolume, BaseGrid):
         self.GetProperty().SetComponentWeight(i, weight)
         return self
 
-    def threshold(self, above=None, below=None, replaceWith=0):
+    def threshold_old(self, above=None, below=None, replaceWith=0):
         """
         Binary or continuous volume thresholding.
         Find the voxels that contain a value above/below the input values
@@ -708,6 +710,7 @@ class Volume(vtk.vtkVolume, BaseGrid):
             elif above==below:
                 return self
             else:
+                th.SetReplaceIn(False)
                 th.SetReplaceOut(True)
                 th.SetOutValue(replaceWith)
                 th.ThresholdBetween(below, above)
@@ -722,6 +725,50 @@ class Volume(vtk.vtkVolume, BaseGrid):
 
         th.Update()
         return self._update(th.GetOutput())
+
+
+    def threshold(self, above=None, below=None, replace=None, replaceOut=None):
+        """
+        Binary or continuous volume thresholding.
+        Find the voxels that contain a value above/below the input values
+        and replace them with a new value (default is 0).
+        """
+        th = vtk.vtkImageThreshold()
+        th.SetInputData(self.imagedata())
+
+        if above is not None and below is not None:
+
+            if above==below:
+                return self
+            elif above > below:
+                colors.printc("Error in volume.threshold(): above > below, skip.", c='r')
+                return self
+
+            th.ThresholdBetween(above, below)
+
+        elif above is not None:
+            th.ThresholdByUpper(above)
+
+        elif below is not None:
+            th.ThresholdByLower(below)
+
+        th.SetReplaceIn(False)
+        th.SetReplaceOut(False)
+        if replace is not None:
+            th.SetReplaceIn(True)
+            th.SetInValue(replace)
+        if replaceOut is not None:
+            th.SetReplaceOut(True)
+            th.SetOutValue(replaceOut)
+
+        th.Update()
+        out = th.GetOutput()
+        out.GetPointData().Modified()
+        # self._mapper = vtk.vtkSmartVolumeMapper()
+        return Volume(out)
+        # self._mapper.Modified()
+        # return self._update(out)
+
 
     def crop(self,
              left=None, right=None,

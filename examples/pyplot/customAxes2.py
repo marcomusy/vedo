@@ -20,6 +20,7 @@ axs = Axes([vpts1, vpts2],  # build axes for this set of objects
            xyFrameLine=2, yzFrameLine=1, zxFrameLine=1,
            xyFrameColor='red3',
            xyShift=1.05, # move xy 5% above the top of z-range
+           yzGrid=True,
            zxGrid=True,
            zxShift=1.0,
            xTitleJustify='bottom-right',

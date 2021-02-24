@@ -2,10 +2,11 @@
 of a line represented as a tube.
 """
 from vedo import *
+import numpy as np
 
 settings.defaultFont = 'Quikhand'
 
-ln = [[sin(x), cos(x), x / 2] for x in arange(0,9, 0.1)]
+ln = [[sin(x), cos(x), x / 2] for x in np.arange(0,9, 0.1)]
 N = len(ln)
 
 ############################### a simple tube( along ln

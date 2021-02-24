@@ -3,6 +3,7 @@ from vtk.util.numpy_support import vtk_to_numpy
 import os
 import glob
 import numpy as np
+import time
 
 import vedo.utils as utils
 import vedo.colors as colors
@@ -41,6 +42,7 @@ __all__ = [
     "ask",
     "Video",
 ]
+
 
 
 def load(inputobj, unpack=True, force=False):
@@ -305,6 +307,7 @@ def _load_file(filename, unpack):
                 actor.GetProperty().SetPointSize(4)
 
     actor.filename = filename
+    actor.fileSize, actor.created = fileInfo(filename)
     return actor
 
 
@@ -369,9 +372,23 @@ def gunzip(filename):
     return tmp_file.name
 
 
+def fileInfo(file_path):
+    sz, created= "", ""
+    if os.path.isfile(file_path):
+        file_info = os.stat(file_path)
+        num = file_info.st_size
+        for x in ['B', 'KB', 'MB', 'GB', 'TB']:
+            if num < 1024.0:
+                break
+            num /= 1024.0
+        sz =  "%3.1f%s" % (num, x)
+        created = time.ctime(os.path.getmtime(file_path))
+    return sz, created
+
+
 ###################################################################
 def loadStructuredPoints(filename):
-    """Load a ``vtkStructuredPoints`` object from file."""
+    """Load and return a ``vtkStructuredPoints`` object from file."""
     reader = vtk.vtkStructuredPointsReader()
     reader.SetFileName(filename)
     reader.Update()
@@ -379,7 +396,7 @@ def loadStructuredPoints(filename):
 
 
 def loadStructuredGrid(filename):
-    """Load a ``vtkStructuredGrid`` object from file."""
+    """Load and return a ``vtkStructuredGrid`` object from file."""
     if filename.endswith(".vts"):
         reader = vtk.vtkXMLStructuredGridReader()
     else:
@@ -390,7 +407,7 @@ def loadStructuredGrid(filename):
 
 
 def loadUnStructuredGrid(filename):
-    """Load a ``vtkunStructuredGrid`` object from file."""
+    """Load and return a ``vtkunStructuredGrid`` object from file."""
     if filename.endswith(".vtu"):
         reader = vtk.vtkXMLUnstructuredGridReader()
     else:
@@ -401,7 +418,7 @@ def loadUnStructuredGrid(filename):
 
 
 def loadRectilinearGrid(filename):
-    """Load a ``vtkRectilinearGrid`` object from file."""
+    """Load and return a ``vtkRectilinearGrid`` object from file."""
     if filename.endswith(".vtr"):
         reader = vtk.vtkXMLRectilinearGridReader()
     else:
@@ -1142,11 +1159,12 @@ def write(objct, fileoutput, binary=True):
     elif fr.endswith(".vtm"):
         g = vtk.vtkMultiBlockDataGroupFilter()
         for ob in objct:
-            if isinstance(ob, Points): # picks transformation
+            if isinstance(ob, (Points, Volume)): # picks transformation
                 ob = ob.polydata(True)
-            elif isinstance(ob, (vtk.vtkActor, vtk.vtkVolume)):
-                ob = ob.GetMapper().GetInput()
-            g.AddInputData(ob)
+                g.AddInputData(ob)
+            # elif isinstance(ob, (vtk.vtkActor, vtk.vtkVolume)):
+            #     ob = ob.GetMapper().GetInput()
+            #     g.AddInputData(ob)
         g.Update()
         mb = g.GetOutputDataObject(0)
         wri = vtk.vtkXMLMultiBlockDataWriter()
@@ -1459,7 +1477,8 @@ def exportWindow(fileoutput, binary=False):
         settings.notebookBackend = savebk
 
     else:
-        colors.printc("Export extensions is not supported.", c='r')
+        colors.printc("Export extension", fr.split('.')[-1],
+                      "is not supported.", c='r')
     return
 
 
