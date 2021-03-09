@@ -2,7 +2,7 @@
 
 from vedo import *
 
-s  = load(datadir+'bunny.obj').normalize().subdivide(2).pointSize(2)
+s  = load(dataurl+'bunny.obj').normalize().subdivide(2).pointSize(2)
 
 vol= s.density().printInfo()
 

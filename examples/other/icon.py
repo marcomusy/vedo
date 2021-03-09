@@ -9,11 +9,11 @@ from vedo import *
 vp = Plotter(axes=5)
 vp.show(interactive=0)
 
-elg = load(datadir+"images/embl_logo.jpg")
+elg = load(dataurl+"images/embl_logo.jpg")
 vp.addIcon(elg, pos=2, size=0.06)
 
 vp.addIcon(VedoLogo(), pos=1, size=0.06)
 
-vp += Text(__doc__).bc('tomato')
+vp += Text3D(__doc__).bc('tomato')
 
 vp.show(interactive=1)

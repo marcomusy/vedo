@@ -6,7 +6,7 @@ In this example we morph a sphere into a octahedron and viceversa.
 from __future__ import division, print_function
 
 import numpy as np
-from vedo import Plotter, Points, Sphere, cos, datadir, mag, sin
+from vedo import Plotter, Points, Sphere, cos, dataurl, mag, sin
 
 try:
     import pyshtools
@@ -67,7 +67,7 @@ def morph(clm1, clm2, t, lmax):
 vp = Plotter(shape=[2, 2], axes=3, interactive=0)
 
 shape1 = Sphere(alpha=0.2)
-shape2 = vp.load(datadir + "icosahedron.vtk").normalize().lineWidth(1)
+shape2 = vp.load(dataurl + "icosahedron.vtk").normalize().lineWidth(1)
 
 agrid1, actorpts1 = makeGrid(shape1, N)
 

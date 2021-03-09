@@ -5,7 +5,7 @@ from vedo import *
 from vedo.pyplot import histogram
 import numpy as np
 
-vol = load(datadir+'embryo.slc')
+vol = load(dataurl+'embryo.slc')
 
 pts = np.random.rand(4000, 3)*256
 

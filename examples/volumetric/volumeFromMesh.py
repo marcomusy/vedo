@@ -4,7 +4,7 @@ then extract an isosurface from the 3d image.
 """
 from vedo import *
 
-mesh = load(datadir+"apple.ply").subdivide()
+mesh = load(dataurl+"apple.ply").subdivide()
 
 # Generate signed distance volume
 vol = volumeFromMesh(mesh,

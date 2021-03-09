@@ -7,11 +7,11 @@ from vedo import *
 N = 9    # nr of iterations
 f = 0.2  # fraction of neighbours
 
-pts = load(datadir+"man.vtk").clean(tol=0.02).points()
-# pts = load(datadir+'spider.ply').points()
-# pts = load(datadir+'magnolia.vtk').subdivide().points()
-# pts = load(datadir+'apple.ply').points()
-# pts = load(datadir+'teapot.vtk').points()
+pts = load(dataurl+"man.vtk").clean(tol=0.02).points()
+# pts = load(dataurl+'spider.ply').points()
+# pts = load(dataurl+'magnolia.vtk').subdivide().points()
+# pts = load(dataurl+'apple.ply').points()
+# pts = load(dataurl+'teapot.vtk').points()
 
 pc = Points(pts)
 

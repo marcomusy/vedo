@@ -3,7 +3,7 @@ scalars associated to each voxel"""
 from vedo import *
 import numpy as np
 
-vol = load(datadir+'vase.vti')
+vol = load(dataurl+'vase.vti')
 nx, ny, nz = vol.dimensions()
 r0,r1 = vol.scalarRange()
 vol.addScalarBar3D(title='original voxel scalars')

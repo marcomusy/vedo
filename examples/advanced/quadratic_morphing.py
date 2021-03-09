@@ -122,9 +122,9 @@ class Morpher:
         zero = Point(pos, c="black")
         x1, x2, y1, y2, z1, z2 = self.target.polydata().GetBounds()
         tpos = [x1, y2, z1]
-        text1 = Text("source vs target", tpos, s=sz / 10, c="dg")
-        text2 = Text("morphed vs target", tpos, s=sz / 10, c="dg")
-        text3 = Text("deformation", tpos, s=sz / 10, c="dr")
+        text1 = Text3D("source vs target", tpos, s=sz / 10, c="dg")
+        text2 = Text3D("morphed vs target", tpos, s=sz / 10, c="dg")
+        text3 = Text3D("deformation", tpos, s=sz / 10, c="dr")
 
         vp.show(sphere0, sphere1, zero, text3, hair, at=2)
         vp.show(self.msource, self.target, text2, at=1)
@@ -135,8 +135,8 @@ class Morpher:
 if __name__ == "__main__":
 
     mr = Morpher()
-    mr.source = vp.load(datadir+"270.vtk").color("g").alpha(0.4)
-    mr.target = vp.load(datadir+"290.vtk").color("b").alpha(0.3)
+    mr.source = vp.load(dataurl+"270.vtk").color("g").alpha(0.4)
+    mr.target = vp.load(dataurl+"290.vtk").color("b").alpha(0.3)
     mr.target.wireframe()
     mr.allowScaling = True
     mr.bound = 0.4  # limits the parameter value

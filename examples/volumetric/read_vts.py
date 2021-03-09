@@ -1,9 +1,9 @@
 """Read structured grid data and show
 the associated vector and scalar fields
 """
-from vedo import load, datadir, Arrows, show
+from vedo import load, dataurl, Arrows, show
 
-g = load(datadir+'structgrid.vts')#.printInfo()
+g = load(dataurl+'structgrid.vts')#.printInfo()
 
 coords = g.points()
 vects  = g.getPointArray('Momentum')/600 # printInfo gives the list

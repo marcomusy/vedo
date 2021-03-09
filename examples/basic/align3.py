@@ -1,6 +1,5 @@
 """Generate 3 random sets of points and align
-them using Procrustes method.
-"""
+them using Procrustes method."""
 from __future__ import division, print_function
 from random import uniform as u
 

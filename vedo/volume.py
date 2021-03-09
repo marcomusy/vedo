@@ -282,7 +282,7 @@ class Volume(vtk.vtkVolume, BaseGrid):
     .. hint:: if a `list` of values is used for `alphas` this is interpreted
         as a transfer function along the range of the scalar.
 
-        |read_vti| |read_vti.py|_
+        |read_volume2| |read_volume2.py|_
     """
 
     def __init__(self, inputobj=None,
@@ -311,6 +311,22 @@ class Volume(vtk.vtkVolume, BaseGrid):
                 pass
             else:
                 inputobj = sorted(glob.glob(inputobj))
+
+        ###################
+        if 'gpu' in mapper:
+            self._mapper = vtk.vtkGPUVolumeRayCastMapper()
+        elif 'opengl_gpu' in mapper:
+            self._mapper = vtk.vtkOpenGLGPUVolumeRayCastMapper()
+        elif 'smart' in mapper:
+            self._mapper = vtk.vtkSmartVolumeMapper()
+        elif 'fixed' in mapper:
+            self._mapper = vtk.vtkFixedPointVolumeRayCastMapper()
+        elif isinstance(mapper, vtk.vtkMapper):
+            self._mapper = mapper
+        else:
+            print("Error unknown mapper type", [mapper])
+            raise RuntimeError()
+        self.SetMapper(self._mapper)
 
         ###################
         inputtype = str(type(inputobj))
@@ -373,6 +389,9 @@ class Volume(vtk.vtkVolume, BaseGrid):
         elif "ImageData" in inputtype:
             img = inputobj
 
+        elif isinstance(inputobj, Volume):
+            img = inputobj.inputdata()
+
         elif "UniformGrid" in inputtype:
             img = inputobj
 
@@ -391,20 +410,6 @@ class Volume(vtk.vtkVolume, BaseGrid):
             colors.printc("Volume(): cannot understand input type:\n", inputtype, c='r')
             return
 
-        ###################
-        if 'gpu' in mapper:
-            self._mapper = vtk.vtkGPUVolumeRayCastMapper()
-        elif 'opengl_gpu' in mapper:
-            self._mapper = vtk.vtkOpenGLGPUVolumeRayCastMapper()
-        elif 'smart' in mapper:
-            self._mapper = vtk.vtkSmartVolumeMapper()
-        elif 'fixed' in mapper:
-            self._mapper = vtk.vtkFixedPointVolumeRayCastMapper()
-        elif isinstance(mapper, vtk.vtkMapper):
-            self._mapper = mapper
-        else:
-            print("Error unknown mapper type", [mapper])
-            raise RuntimeError()
 
         if dims is not None:
             img.SetDimensions(dims)
@@ -417,7 +422,6 @@ class Volume(vtk.vtkVolume, BaseGrid):
 
         self._data = img
         self._mapper.SetInputData(img)
-        self.SetMapper(self._mapper)
         self.mode(mode).color(c).alpha(alpha).alphaGradient(alphaGradient)
         self.GetProperty().SetShade(True)
         self.GetProperty().SetInterpolationType(1)
@@ -694,38 +698,6 @@ class Volume(vtk.vtkVolume, BaseGrid):
         self.GetProperty().SetComponentWeight(i, weight)
         return self
 
-    def threshold_old(self, above=None, below=None, replaceWith=0):
-        """
-        Binary or continuous volume thresholding.
-        Find the voxels that contain a value above/below the input values
-        and replace them with a new value (default is 0).
-        """
-        th = vtk.vtkImageThreshold()
-        th.SetInputData(self.imagedata())
-
-        if above is not None and below is not None:
-            if above<below:
-                th.ThresholdBetween(above, below)
-                th.SetInValue(replaceWith)
-            elif above==below:
-                return self
-            else:
-                th.SetReplaceIn(False)
-                th.SetReplaceOut(True)
-                th.SetOutValue(replaceWith)
-                th.ThresholdBetween(below, above)
-
-        elif above is not None:
-            th.ThresholdByUpper(above)
-            th.SetInValue(replaceWith)
-
-        elif below is not None:
-            th.ThresholdByLower(below)
-            th.SetInValue(replaceWith)
-
-        th.Update()
-        return self._update(th.GetOutput())
-
 
     def threshold(self, above=None, below=None, replace=None, replaceOut=None):
         """
@@ -736,14 +708,16 @@ class Volume(vtk.vtkVolume, BaseGrid):
         th = vtk.vtkImageThreshold()
         th.SetInputData(self.imagedata())
 
+        # sanity checks
         if above is not None and below is not None:
-
             if above==below:
                 return self
-            elif above > below:
-                colors.printc("Error in volume.threshold(): above > below, skip.", c='r')
+            if above > below:
+                colors.printc("Warning in volume.threshold(): above > below, skip.", c='y')
                 return self
 
+        ## cases
+        if below is not None and above is not None:
             th.ThresholdBetween(above, below)
 
         elif above is not None:
@@ -752,22 +726,22 @@ class Volume(vtk.vtkVolume, BaseGrid):
         elif below is not None:
             th.ThresholdByLower(below)
 
-        th.SetReplaceIn(False)
-        th.SetReplaceOut(False)
+        ##
         if replace is not None:
             th.SetReplaceIn(True)
             th.SetInValue(replace)
+        else:
+            th.SetReplaceIn(False)
+
         if replaceOut is not None:
             th.SetReplaceOut(True)
             th.SetOutValue(replaceOut)
+        else:
+            th.SetReplaceOut(False)
 
         th.Update()
         out = th.GetOutput()
-        out.GetPointData().Modified()
-        # self._mapper = vtk.vtkSmartVolumeMapper()
-        return Volume(out)
-        # self._mapper.Modified()
-        # return self._update(out)
+        return self._update(out)
 
 
     def crop(self,

@@ -27,9 +27,7 @@ def merge(*meshs):
         if a:
             acts += [a]
 
-    if len(acts) == 1:
-        return acts[0].clone()
-    elif len(acts) == 0:
+    if not acts:
         return None
 
     polyapp = vtk.vtkAppendPolyData()
@@ -39,6 +37,7 @@ def merge(*meshs):
         else:
             polyapp.AddInputData(a.polydata())
     polyapp.Update()
+
     msh = Mesh(polyapp.GetOutput())
     if isinstance(acts[0], vtk.vtkActor):
         cprp = vtk.vtkProperty()
@@ -720,43 +719,35 @@ class Mesh(Points):
         return self
 
 
-    def volume(self, value=None):
+    def volume(self):
         """Get/set the volume occupied by mesh."""
         mass = vtk.vtkMassProperties()
         mass.SetGlobalWarningDisplay(0)
-        mass.SetInputData(self.polydata(False))
+        mass.SetInputData(self.polydata())
         mass.Update()
-        v = mass.GetVolume()
-        if value is not None:
-            if not v:
-                printc("Volume is zero: cannot rescale.", c='r', end="")
-                printc(" Consider adding mesh.triangulate()", c='r')
-                return self
-            self.scale(value / v)
-            return self
-        else:
-            return v
+        return mass.GetVolume()
 
-    def area(self, value=None):
+    def area(self):
         """Get/set the surface area of mesh.
 
         .. hint:: |largestregion.py|_
         """
         mass = vtk.vtkMassProperties()
         mass.SetGlobalWarningDisplay(0)
-        mass.SetInputData(self.polydata(False))
+        mass.SetInputData(self.polydata())
         mass.Update()
-        ar = mass.GetSurfaceArea()
-        if value is not None:
-            if not ar:
-                printc("Area is zero: cannot rescale.", c='r', end="")
-                printc(" Consider adding mesh.triangulate()", c='r')
-                return self
-            self.scale(value / ar)
-            return self
-        else:
-            return ar
+        return mass.GetSurfaceArea()
 
+    def isClosed(self):
+        """Return ``True`` if mesh is watertight."""
+        featureEdges = vtk.vtkFeatureEdges()
+        featureEdges.BoundaryEdgesOn()
+        featureEdges.FeatureEdgesOff()
+        featureEdges.NonManifoldEdgesOn()
+        featureEdges.SetInputData(self.polydata(False))
+        featureEdges.Update()
+        ne = featureEdges.GetOutput().GetNumberOfCells()
+        return not bool(ne)
 
     def distanceToMesh(self, mesh, signed=False, negate=False):
         '''
@@ -1237,7 +1228,7 @@ class Mesh(Points):
 
 
 
-    def addCurvatureScalars(self, method=0, lut=None):
+    def addCurvatureScalars(self, method=0):
         """
         Add scalars to ``Mesh`` that contains the
         curvature calculated in three different ways.
@@ -1260,9 +1251,6 @@ class Mesh(Points):
         self._polydata = curve.GetOutput()
 
         self._mapper.SetInputData(self._polydata)
-        if lut:
-            self._mapper.SetLookupTable(lut)
-            self._mapper.SetUseLookupTableScalarRange(1)
         self._mapper.Update()
         self.Modified()
         self._mapper.ScalarVisibilityOn()
@@ -1703,15 +1691,15 @@ class Mesh(Points):
             self.line_locator.SetDataSet(self.polydata())
             self.line_locator.BuildLocator()
 
-#        t = vtk.mutable(tol)
-#        x = [0,0,0]
-#        pcoords = [0,0,0]
-#        subId = vtk.mutable(0)
-#        found = self.line_locator.IntersectWithLine(p0, p1, tol, t, x, pcoords, subId)
-#        if found:
-#            return [x]
-#        else:
-#            return []
+        # t = vtk.mutable(tol)
+        # x = [0,0,0]
+        # pcoords = [0,0,0]
+        # subId = vtk.mutable(0)
+        # found = self.line_locator.IntersectWithLine(p0, p1, tol, t, x, pcoords, subId)
+        # if found:
+        #     return [x]
+        # else:
+        #     return []
 
         intersectPoints = vtk.vtkPoints()
         self.line_locator.IntersectWithLine(p0, p1, intersectPoints, None)
@@ -1721,7 +1709,6 @@ class Mesh(Points):
             intersectPoints.GetPoint(i, intersection)
             pts.append(intersection)
         return pts
-
 
     def silhouette(self, direction=None, borderEdges=True, featureAngle=False):
         """

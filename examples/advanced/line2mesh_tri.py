@@ -3,7 +3,7 @@ from a contour line."""
 from vedo import *
 from vedo.pyplot import histogram
 
-shapes = load(datadir+'timecourse1d.npy') # list of lines
+shapes = load(dataurl+'timecourse1d.npy') # list of lines
 shape = shapes[56].mirror().rotateZ(-90)
 
 msh = shape.tomesh()       # Generate the Mesh from the line

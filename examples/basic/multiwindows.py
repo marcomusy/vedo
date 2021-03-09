@@ -16,9 +16,9 @@ vp1 = Plotter(shape=(5,5), axes=0)
 vp1.renderers[24].SetBackground(0.8, 0.9, 0.9)  # use vtk method SetBackground()
 
 # load the meshes and give them a name
-a = vp1.load(datadir+"shuttle.obj")
-b = vp1.load(datadir+"cessna.vtk").c("red")
-c = vp1.load(datadir+"porsche.ply")
+a = vp1.load(dataurl+"shuttle.obj")
+b = vp1.load(dataurl+"cessna.vtk").c("red")
+c = vp1.load(dataurl+"porsche.ply")
 
 # show a Text2D in each renderer
 for i in range(25):
@@ -35,7 +35,7 @@ vp1.show(c, at=24)
 # shape="2/6" means 2 renderers above and 6 below
 # shape="3|1" means 3 renderers on the left and one on the right
 
-s = load(datadir+'mug.ply')
+s = load(dataurl+'mug.ply')
 
 # Set the position of the horizontal of vertical splitting [0,1]:
 #settings.windowSplittingPosition = 0.5

@@ -11,12 +11,11 @@ cone.caption(txt, size=(0.4,0.3), font="LogoType", c='lb')
 
 # download the polygonized version of the font (19MB) on the fly
 # (actual downloading only happens once, file is cached in /tmp area)
-show(cone, __doc__,
-     viewup='z', bg='k', bg2='bb',
+show(cone, __doc__, viewup='z', bg='k', bg2='bb',
      axes=dict(xtitle='マイクロメートル単位のx軸',
                ytitle='y軸にも長い説明があります',
                ztitle='Z軸始終來自中國',
-               titleFont='https://vedo.embl.es/fonts/LogoType.npz',
-               textScale=1.25,
+               titleFont='LogoType',
+               textScale=1.5,
               ),
     )

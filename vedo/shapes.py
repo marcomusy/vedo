@@ -48,7 +48,7 @@ __all__ = [
     "Earth",
     "Ellipsoid",
     "Grid",
-    "CubicGrid",
+    "TessellatedBox",
     "Plane",
     "Box",
     "Cube",
@@ -60,7 +60,9 @@ __all__ = [
     "Paraboloid",
     "Hyperboloid",
     "Text",
+    "Text3D",
     "Text2D",
+    "CornerAnnotation",
     "Latex",
     "Glyph",
     "Tensors",
@@ -170,12 +172,12 @@ def Marker(symbol, pos=(0, 0, 0), c='lb', alpha=1, s=0.1, filled=True):
     elif symbol == 's':
         mesh = Polygon(nsides=4, r=s).rotateZ(45)
     elif symbol == 'x':
-        mesh = Text('+', pos=(0,0,0), s=s*2.6, justify='center', depth=0)
+        mesh = Text3D('+', pos=(0,0,0), s=s*2.6, justify='center', depth=0)
         mesh.rotateZ(45)
     elif symbol == 'a':
-        mesh = Text('*', pos=(0,0,0), s=s*3, justify='center', depth=0)
+        mesh = Text3D('*', pos=(0,0,0), s=s*3, justify='center', depth=0)
     else:
-        mesh = Text(symbol, pos=(0,0,0), s=s*2, justify='center', depth=0)
+        mesh = Text3D(symbol, pos=(0,0,0), s=s*2, justify='center', depth=0)
     mesh.flat().lighting('off').wireframe(not filled).c(c).alpha(alpha)
     if len(pos) == 2:
         pos = (pos[0], pos[1], 0)
@@ -188,7 +190,7 @@ class Star3D(Mesh):
     """
     Build a 3D star shape of 5 cusps, mainly useful as a 3D marker.
     """
-    def __init__(self, pos=(0,0,0), r=1.0, thickness=0.1, c="b", alpha=1):
+    def __init__(self, pos=(0,0,0), r=1.0, thickness=0.1, c="blue4", alpha=1):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
@@ -255,7 +257,7 @@ class Glyph(Mesh):
                  colorByScalar=False,
                  colorByVectorSize=False,
                  tol=0,
-                 c='white',
+                 c='k8',
                  alpha=1,
         ):
 
@@ -457,7 +459,7 @@ class Line(Mesh):
     :param int res: resolution, number of points along the line
         (only relevant if only 2 points are specified)
     """
-    def __init__(self, p0, p1=None, closed=False, c="grey", alpha=1, lw=1, res=2):
+    def __init__(self, p0, p1=None, closed=False, c="k5", alpha=1, lw=1, res=2):
 
         if isinstance(p1, vtk.vtkActor):
             p1 = p1.GetPosition()
@@ -647,7 +649,7 @@ class DashedLine(Line):
     :param float alpha: transparency in range [0,1].
     :param lw: line width.
     """
-    def __init__(self, p0, p1=None, spacing=0.1, closed=False, c="grey", alpha=1, lw=2):
+    def __init__(self, p0, p1=None, spacing=0.1, closed=False, c="k5", alpha=1, lw=2):
 
         if isinstance(p1, vtk.vtkActor):
             p1 = p1.GetPosition()
@@ -733,7 +735,7 @@ class DashedLine(Line):
         self.name = "DashedLine"
 
 
-def RoundedLine(pts, lw, c='grey', alpha=1, res=10):
+def RoundedLine(pts, lw, c='gray4', alpha=1, res=10):
     """
     Create a 2D line of specified thickness (in absolute units) passing through
     a list of input points. Borders of the line are rounded.
@@ -831,7 +833,7 @@ class Lines(Line):
     .. hint:: |fitspheres2.py|_
     """
     def __init__(self, startPoints, endPoints=None,
-                 c='gray', alpha=1, lw=1, dotted=False, scale=1):
+                 c='k4', alpha=1, lw=1, dotted=False, scale=1):
 
         if isinstance(startPoints, Points):
             startPoints = startPoints.points()
@@ -1018,7 +1020,7 @@ class KSpline(Line):
                 z = zspline.Evaluate(pos)
             ln.append((x,y,z))
 
-        Line.__init__(self, ln, lw=2, c='gray')
+        Line.__init__(self, ln, lw=2)
         self.clean()
         self.lighting('off')
         self.name = "KSpline"
@@ -1066,7 +1068,7 @@ class CSpline(Line):
                 z = zspline.Evaluate(pos)
             ln.append((x,y,z))
 
-        Line.__init__(self, ln, lw=2, c='gray')
+        Line.__init__(self, ln, lw=2)
         self.clean()
         self.lighting('off')
         self.name = "CSpline"
@@ -1117,7 +1119,7 @@ def Bezier(points, res=None):
 
 
 def Brace(q1, q2, style='}', pad=0.2, thickness=1,
-          font='Kanopus', comment='', s=1, c='black', alpha=1):
+          font='Kanopus', comment='', s=1, c='k1', alpha=1):
     """
     Create a brace (bracket) shape which spans from point q1 to point q2.
 
@@ -1157,7 +1159,7 @@ def Brace(q1, q2, style='}', pad=0.2, thickness=1,
     if style not in '{}[]()<>|I':
         printc("Warning in Brace(): unknown style", style, c='y')
 
-    br = Text(style, c=c, alpha=alpha, font=font)
+    br = Text3D(style, c=c, alpha=alpha, font=font)
     x0,x1, y0,y1, _,_ = br.bounds()
 
     flip = False
@@ -1185,7 +1187,7 @@ def Brace(q1, q2, style='}', pad=0.2, thickness=1,
             just = 'center-top'
             if q2[0]-q1[0] < 0:
                 just = 'center-bottom'
-        cmt = Text(comment, c=c, alpha=alpha, font=font, justify=just)
+        cmt = Text3D(comment, c=c, alpha=alpha, font=font, justify=just)
         cx0,cx1, cy0,cy1, _,_ = cmt.bounds()
         if len(comment)>1:
             cmt.rotateZ(angle+extra_angle)
@@ -1325,7 +1327,7 @@ class Ribbon(Mesh):
     |ribbon| |ribbon.py|_
     """
     def __init__(self, line1, line2=None, mode=0, closed=False, width=None,
-                 c="m", alpha=1, res=(200,5)):
+                 c="indigo3", alpha=1, res=(200,5)):
 
         if isinstance(line1, Points):
             line1 = line1.points()
@@ -1426,7 +1428,7 @@ class Arrow(Mesh):
                  startPoint=(0,0,0),
                  endPoint=(1,0,0),
                  s=None,
-                 c="r",
+                 c="r4",
                  alpha=1,
                  res=12
                  ):
@@ -1554,7 +1556,7 @@ class Arrow2D(Mesh):
                  headLength=0.25,
                  headWidth=0.2,
                  fill=True,
-                 c="r",
+                 c="r4",
                  alpha=1):
 
         # in case user is passing meshs
@@ -1681,7 +1683,7 @@ def Arrows2D(startPoints, endPoints=None,
     return arrg
 
 
-def FlatArrow(line1, line2, c="m", alpha=1, tipSize=1, tipWidth=1):
+def FlatArrow(line1, line2, c="r4", alpha=1, tipSize=1, tipWidth=1):
     """Build a 2D arrow in 3D space by joining two close lines.
 
     |flatarrow| |flatarrow.py|_
@@ -1727,8 +1729,8 @@ class Polygon(Mesh):
         x, y = utils.pol2cart(np.ones_like(t)*r, t)
         faces = [list(range(nsides))]
         Mesh.__init__(self, [np.c_[x,y], faces], c, alpha)
-        self.lighting('plastic')
         self.SetPosition(pos)
+        self.GetProperty().LightingOff()
         self.name = "Polygon " + str(nsides)
 
 
@@ -1736,7 +1738,7 @@ class Circle(Polygon):
     """
     Build a Circle of radius `r`.
     """
-    def __init__(self, pos=(0,0,0), r=1, c="grey", alpha=1, res=120):
+    def __init__(self, pos=(0,0,0), r=1, c="gray5", alpha=1, res=120):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
@@ -1753,7 +1755,7 @@ class Star(Mesh):
 
     |extrude| |extrude.py|_
     """
-    def __init__(self, pos=(0,0,0), n=5, r1=0.7, r2=1.0, line=False, c="m", alpha=1):
+    def __init__(self, pos=(0,0,0), n=5, r1=0.7, r2=1.0, line=False, c="blue6", alpha=1):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
@@ -1799,7 +1801,7 @@ class Disc(Mesh):
         pos=(0, 0, 0),
         r1=0.5,
         r2=1,
-        c="coral",
+        c="gray4",
         alpha=1,
         res=12,
     ):
@@ -1838,7 +1840,7 @@ class Arc(Mesh):
         normal=None,
         angle=None,
         invert=False,
-        c="grey",
+        c="gray4",
         alpha=1,
         res=48,
     ):
@@ -1868,15 +1870,6 @@ class Arc(Mesh):
         self.lw(2).lighting('off')
         self.name = "Arc"
 
-    def length(self):
-        """Calculate length of the arc."""
-        distance = 0.
-        pts = self.points()
-        for i in range(1,len(pts)):
-            distance += np.linalg.norm(pts[i]-pts[i-1])
-        return distance
-
-
 class Sphere(Mesh):
     """Build a sphere at position `pos` of radius `r`.
 
@@ -1886,7 +1879,7 @@ class Sphere(Mesh):
 
     |Sphere| |sphericgrid|
     """
-    def __init__(self, pos=(0, 0, 0), r=1, c="r", alpha=1, res=24, quads=False):
+    def __init__(self, pos=(0, 0, 0), r=1, c="r5", alpha=1, res=24, quads=False):
 
         self.radius = r # used by fitSphere
         self.center = pos
@@ -1942,7 +1935,7 @@ class Spheres(Mesh):
 
     |manyspheres| |manyspheres.py|_
     """
-    def __init__(self, centers, r=1, c="r", alpha=1, res=8):
+    def __init__(self, centers, r=1, c="r5", alpha=1, res=8):
 
         if isinstance(centers, Points):
             centers = centers.points()
@@ -2038,7 +2031,7 @@ class Earth(Mesh):
         Mesh.__init__(self, tss, c="w")
         atext = vtk.vtkTexture()
         pnmReader = vtk.vtkJPEGReader()
-        fn = settings.textures_path + "earth" + str(style) +".jpg"
+        fn = os.path.join(settings.textures_path, "earth"+ str(style) +".jpg")
         pnmReader.SetFileName(fn)
         atext.SetInputConnection(pnmReader.GetOutputPort())
         atext.InterpolateOn()
@@ -2057,7 +2050,7 @@ class Ellipsoid(Mesh):
     |pca| |pca.py|_
     """
     def __init__(self, pos=(0, 0, 0), axis1=(1, 0, 0), axis2=(0, 2, 0), axis3=(0, 0, 3),
-                 c="c", alpha=1, res=24):
+                 c="cyan4", alpha=1, res=24):
 
         self.name = "Ellipsoid"
         self.center = pos
@@ -2203,7 +2196,7 @@ class Grid(Mesh):
                 sx=1,
                 sy=1,
                 sz=(0,),
-                c="k5",
+                c="k3",
                 alpha=1,
                 lw=1,
                 resx=10,
@@ -2256,7 +2249,7 @@ class Plane(Mesh):
 
     |Plane|
     """
-    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="g", alpha=1):
+    def __init__(self, pos=(0, 0, 0), normal=(0, 0, 1), sx=1, sy=None, c="gray6", alpha=1):
 
         if len(pos) == 2:
             pos = (pos[0], pos[1], 0)
@@ -2286,13 +2279,14 @@ class Plane(Mesh):
         tf.SetTransform(t)
         tf.Update()
         Mesh.__init__(self, tf.GetOutput(), c, alpha)
+        self.lighting('ambient')
         self.SetPosition(pos)
         self.name = "Plane"
         self.top = np.array(normal)
         self.bottom = np.array([0,0,0])
 
 
-def Rectangle(p1=(0, 0), p2=(2, 1), c="g", alpha=1):
+def Rectangle(p1=(0, 0), p2=(2, 1), c="gray6", alpha=1):
     """Build a rectangle in the xy plane identified by two corner points."""
     if len(p1) == 2:
         p1 = np.array([p1[0], p1[1], 0.])
@@ -2307,7 +2301,6 @@ def Rectangle(p1=(0, 0), p2=(2, 1), c="g", alpha=1):
     pts = ([0,0,0], p1r-p1 , p2-p1, p2l-p1)
     faces = [(0,1,2,3)]
     mesh = Mesh([pts, faces], c, alpha)
-    mesh.SetOrigin((p1r+p1)/2)
     mesh.SetPosition(p1)
     mesh.name = "Rectangle"
     return mesh
@@ -2320,7 +2313,7 @@ class Box(Mesh):
 
     |aspring| |aspring.py|_
     """
-    def __init__(self, pos=(0,0,0), length=1, width=2, height=3, size=(), c="g", alpha=1):
+    def __init__(self, pos=(0,0,0), length=1, width=2, height=3, size=(), c="g4", alpha=1):
 
         if len(size):
             length, width, height = size
@@ -2363,7 +2356,7 @@ class Box(Mesh):
         self.SetPosition(pos)
         self.name = "Box"
 
-def Cube(pos=(0, 0, 0), side=1, c="g", alpha=1):
+def Cube(pos=(0, 0, 0), side=1, c="g4", alpha=1):
     """Build a cube of size `side`.
 
     |colorcubes| |colorcubes.py|_
@@ -2372,24 +2365,35 @@ def Cube(pos=(0, 0, 0), side=1, c="g", alpha=1):
     mesh.name = "Cube"
     return mesh
 
-def CubicGrid(pos=(0, 0, 0), n=(10,10,10), spacing=(), c="lightgrey", alpha=0.5):
+def CubicGrid(*args, **kwargs):
+    printc("CubicGrid obsolete: use TessellatedBox.")
+    return TessellatedBox(*args, **kwargs)
+
+def TessellatedBox(pos=(0, 0, 0), n=10, spacing=(1,1,1), c="k5", alpha=0.5):
     """Build a cubic Mesh made o `n` small quads in the 3 axis directions.
 
     :param list pos: position of the left bottom corner
     :param int n: number of subdivisions
     :parameter list spacing: size of the side of the single quad in the 3 directions
     """
-    img = vtk.vtkImageData()
-    img.SetDimensions(n[0]+1,n[1]+1,n[2]+1)
-    if len(spacing)==3:
+    if utils.isSequence(n): # slow
+        img = vtk.vtkImageData()
+        img.SetDimensions(n[0]+1, n[1]+1, n[2]+1)
         img.SetSpacing(spacing)
-    else:
-        img.SetSpacing(1./n[0], 1./n[1], 1./n[2])
-    mesh = utils.geometry(img).c(c).alpha(alpha)
+        mesh = utils.geometry(img).c(c).alpha(alpha).lw(1)
+    else:  # fast
+        n -= 1
+        boxSource = vtk.vtkTessellatedBoxSource()
+        boxSource.SetLevel(n)
+        boxSource.QuadsOn()
+        boxSource.SetBounds(0,n*spacing[0], 0,n*spacing[1], 0,n*spacing[2])
+        boxSource.SetOutputPointsPrecision(vtk.vtkAlgorithm.SINGLE_PRECISION)
+        boxSource.Update()
+        mesh = Mesh(boxSource.GetOutput(), c=c, alpha=alpha).lw(1)
     mesh.SetPosition(pos)
     mesh.base = np.array([0.5,0.5,0])
     mesh.top  = np.array([0.5,0.5,1])
-    mesh.name = "CubicGrid"
+    mesh.name = "TessellatedBox"
     return mesh
 
 
@@ -2411,7 +2415,7 @@ class Spring(Mesh):
                 r=0.1,
                 r2=None,
                 thickness=None,
-                c="grey",
+                c="gray5",
                 alpha=1,
     ):
         diff = endPoint - np.array(startPoint)
@@ -2468,7 +2472,7 @@ class Cylinder(Mesh):
     |Cylinder|
     """
     def __init__(self, pos=(0,0,0), r=1, height=2, axis=(0,0,1),
-                 c="teal", alpha=1, cap=True, res=24):
+                 c="teal3", alpha=1, cap=True, res=24):
 
         if utils.isSequence(pos[0]):  # assume user is passing pos=[base, top]
             base = np.array(pos[0])
@@ -2516,7 +2520,7 @@ class Cone(Mesh):
 
     |Cone|
     """
-    def __init__(self, pos=(0,0,0), r=1, height=3, axis=(0,0,1), c="dg", alpha=1, res=48):
+    def __init__(self, pos=(0,0,0), r=1, height=3, axis=(0,0,1), c="green3", alpha=1, res=48):
         con = vtk.vtkConeSource()
         con.SetResolution(res)
         con.SetRadius(r)
@@ -2535,7 +2539,7 @@ class Pyramid(Cone):
     """
     Build a pyramid of specified base size `s` and `height`, centered at `pos`.
     """
-    def __init__(self, pos=(0,0,0), s=1, height=1, axis=(0,0,1), c="dg", alpha=1):
+    def __init__(self, pos=(0,0,0), s=1, height=1, axis=(0,0,1), c="green3", alpha=1):
         Cone.__init__(self, pos, s, height, axis, c, alpha, 4)
         self.name = "Pyramid"
 
@@ -2546,7 +2550,7 @@ class Torus(Mesh):
 
     |gas| |gas.py|_
     """
-    def __init__(self, pos=(0, 0, 0), r=1, thickness=0.2, c="khaki", alpha=1, res=30):
+    def __init__(self, pos=(0, 0, 0), r=1, thickness=0.2, c="yellow3", alpha=1, res=30):
         rs = vtk.vtkParametricTorus()
         rs.SetRingRadius(r)
         rs.SetCrossSectionRadius(thickness)
@@ -2575,7 +2579,7 @@ class Paraboloid(Mesh):
             |paraboloid|
     """
 
-    def __init__(self, pos=(0,0,0), r=1, height=1, c="cyan", alpha=1, res=50):
+    def __init__(self, pos=(0,0,0), r=1, height=1, c="cyan5", alpha=1, res=50):
         quadric = vtk.vtkQuadric()
         quadric.SetCoefficients(1, 1, 0, 0, 0, 0, 0, 0, height / 4, 0)
         # F(x,y,z) = a0*x^2 + a1*y^2 + a2*z^2
@@ -2603,7 +2607,7 @@ class Hyperboloid(Mesh):
     Full volumetric expression is:
         :math:`F(x,y,z)=a_0x^2+a_1y^2+a_2z^2+a_3xy+a_4yz+a_5xz+ a_6x+a_7y+a_8z+a_9`
     """
-    def __init__(self, pos=(0,0,0), a2=1, value=0.5, height=1, c="m", alpha=1, res=100):
+    def __init__(self, pos=(0,0,0), a2=1, value=0.5, height=1, c="pink4", alpha=1, res=100):
         q = vtk.vtkQuadric()
         q.SetCoefficients(2, 2, -1 / a2, 0, 0, 0, 0, 0, 0, 0)
         # F(x,y,z) = a0*x^2 + a1*y^2 + a2*z^2
@@ -2625,7 +2629,11 @@ class Hyperboloid(Mesh):
         self.name = "Hyperboloid"
 
 
-class Text(Mesh):
+def Text(*args, **kwargs):
+    printc("Deprecation: use Text3D() instead of Text().", c='r')
+    return Text3D(*args, **kwargs)
+
+class Text3D(Mesh):
     """
     Generate a 3D polygonal ``Mesh`` representing a text string.
 
@@ -2637,6 +2645,7 @@ class Text(Mesh):
         use ^ and _ to start up/sub scripting, a space terminates their effect.
 
     Monospaced fonts are: Calco, Glasgo, SmartCouric, VictorMono, Justino.
+    More fonts at: https://vedo.embl.es/fonts/
 
     :param list pos: position coordinates in 3D space
     :param float s: size of text.
@@ -2708,13 +2717,7 @@ class Text(Mesh):
             italic = 1
 
         if isinstance(font, int):
-            lfonts = ['Normografo', 'Bongas', 'Calco', 'Comae', 'Kanopus',
-                      'Glasgo', 'LionelOfParis', 'LogoType',  'Quikhand',
-                      'SmartCouric', 'Theemim', 'VictorMono', 'VTK',
-                      "Capsmall", "Cartoons123", "PlanetBenson",
-                      "Vega", "Justino1", "Justino2", "Justino3", "Justino4",
-                      "Spears", "Meson",
-                      ]
+            lfonts = list(settings.font_parameters.keys())
             font = font%len(lfonts)
             font = lfonts[font]
 
@@ -2728,11 +2731,7 @@ class Text(Mesh):
         else:
 
             # some fonts are downloadable from the vedo website
-            if font in ("LogoType", "Capsmall", "Cartoons123",
-                        "PlanetBenson", "Vega",
-                        "Justino1", "Justino2", "Justino3", "Justino4",
-                        "Spears", "Meson",
-                        ):
+            if not settings.font_parameters[font]['islocal']:
                 font = "https://vedo.embl.es/fonts/"+font+".npz"
 
             if font.startswith('https'): # user passed URL link, make it a path
@@ -2740,7 +2739,7 @@ class Text(Mesh):
                     font = vedo.io.download(font, verbose=False, force=False)
                 except:
                     printc('Font not found. Check URL', font, c='r')
-                    font = 'Normografo'
+                    font = settings.defaultFont
 
             if font.endswith('.npz'):    # user passed font as a local path
                 fontfile = font
@@ -2757,7 +2756,7 @@ class Text(Mesh):
                     _fonts_cache.update({font : _font_meshes})
                     _fonts_cache.update({font+'_letters': dict()})
                 except:
-                    printc("Text() error: font name", font, "not found.", c='r')
+                    printc("Text3D() error: font name", font, "not found.", c='r')
                     raise RuntimeError
             keys = _font_meshes.keys()
 
@@ -2875,7 +2874,7 @@ class Text(Mesh):
                 if yshift==0:
                     save_xmax = xmax
             else:
-                printc("In Text(): char", t,
+                printc("In Text3D(): char", t,
                        "not found in", font, 'ord =', ord(t), c='y')
                 notfounds += 1
                 xmax += hspacing*scale*fscale
@@ -2934,37 +2933,129 @@ class Text(Mesh):
         self.DragableOff()
         self.name = "Text"
 
+class BaseText:
+    "Do not instantiate this."
+    def __init__(self):
 
-def Text2D( txt,
-            pos=3,
-            s=1,
-            c=None,
-            alpha=0.15,
-            bg=None,
-            font="",
-            justify="bottom-left",
-            bold=False,
-            italic=False,
-):
+        self.renderedAt = set()
+
+
+    def angle(self, a):
+        """Orientation angle in degrees"""
+        self.tprop.SetOrientation(a)
+        return self
+
+    def lineSpacing(self, ls):
+        """Set the extra spacing between lines, expressed as a text height multiplication factor."""
+        self.tprop.SetLineSpacing(ls)
+        return self
+
+    def lineOffset(self, lo):
+        """Set/Get the vertical offset (measured in pixels)."""
+        self.tprop.SetLineOffset(lo)
+        return self
+
+    def bold(self, value=True):
+        self.tprop.SetBold(value)
+        return self
+
+    def italic(self, value=True):
+        self.tprop.SetItalic(value)
+        return self
+
+    def shadow(self, offset=(1,-1)):
+        """Text shadowing. Set to ``None`` to disable it."""
+        if offset is None:
+            self.tprop.ShadowOff()
+        else:
+            self.tprop.ShadowOn()
+            self.tprop.SetShadowOffset(offset)
+        return self
+
+    def color(self, c):
+        self.tprop.SetColor(getColor(c))
+        return self
+
+    def c(self, color):
+        return self.color(color)
+
+    def alpha(self, value):
+        self.tprop.SetBackgroundOpacity(value)
+        return self
+
+    def background(self, color="k9", alpha=1):
+        """Text background. Set to ``None`` to disable it."""
+        bg = getColor(color)
+        if color is None:
+            self.tprop.SetBackgroundOpacity(0)
+        else:
+            self.tprop.SetBackgroundColor(bg)
+            if alpha:
+                self.tprop.SetBackgroundOpacity(alpha)
+        return self
+
+    def frame(self, color='k1', lw=1):
+        if color is None:
+            self.tprop.FrameOff()
+        else:
+            c = getColor(color)
+            self.tprop.FrameOn()
+            self.tprop.SetFrameColor(c)
+            self.tprop.SetFrameWidth(lw)
+        return self
+
+    def font(self, font):
+
+        if isinstance(font, int):
+            lfonts = list(settings.font_parameters.keys())
+            font = font%len(lfonts)
+            font = lfonts[font]
+
+        if not font:                   # use default font
+            font = settings.defaultFont
+            fpath = settings.fonts_path + font +'.ttf'
+        elif font.startswith('https'): # user passed URL link, make it a path
+            fpath = vedo.io.download(font, verbose=False, force=False)
+        elif font.endswith('.ttf'):    # user passing a local path to font file
+            fpath = font
+        else:                          # user passing name of preset font
+            fpath = settings.fonts_path + font +'.ttf'
+
+        tprop = self.tprop
+        if   font == "Courier": tprop.SetFontFamilyToCourier()
+        elif font == "Times": tprop.SetFontFamilyToTimes()
+        elif font == "Arial": tprop.SetFontFamilyToArial()
+        else:
+            try:
+                if not settings.font_parameters[font]['islocal']:
+                    fpath = vedo.download("https://vedo.embl.es/fonts/"+font+".ttf", verbose=False)
+            except:
+                printc("Warning: could not download/set font", font,
+                       "-> Using default:", settings.defaultFont)
+                fpath = settings.fonts_path + settings.defaultFont +'.ttf'
+            tprop.SetFontFamily(vtk.VTK_FONT_FILE)
+            tprop.SetFontFile(fpath)
+        return self
+
+
+class Text2D(vtk.vtkActor2D, BaseText):
     """
     Returns a ``vtkActor2D`` representing 2D text.
 
     :param pos: text is placed in one of the 8 positions:
 
-            1, bottom-left
-            2, bottom-right
-            3, top-left
-            4, top-right
-            5, bottom-middle
-            6, middle-right
-            7, middle-left
-            8, top-middle
+            bottom-left
+            bottom-right
+            top-left
+            top-right
+            bottom-middle
+            middle-right
+            middle-left
+            top-middle
 
         If a pair (x,y) is passed as input the 2D text is place at that
         position in the coordinate system of the 2D screen (with the
         origin sitting at the bottom left).
-
-    :type pos: list, int
 
     :param float s: size of text.
     :param bg: background color
@@ -2987,6 +3078,7 @@ def Text2D( txt,
         - Theemim
         - Times
         - VictorMono
+        - More fonts at: https://vedo.embl.es/fonts/
 
         A path to a `.otf` or `.ttf` font-file can also be supplied as input.
 
@@ -2998,136 +3090,215 @@ def Text2D( txt,
 
         |caption|
     """
-    if c is None: # automatic black or white
-        if settings.plotter_instance and settings.plotter_instance.renderer:
-            c = (0.9, 0.9, 0.9)
-            if settings.plotter_instance.renderer.GetGradientBackground():
-                bgcol = settings.plotter_instance.renderer.GetBackground2()
+    def __init__(self,
+                 txt,
+                 pos="top-left",
+                 s=1,
+                 c=None,
+                 alpha=0.1,
+                 bg=None,
+                 font="",
+                 justify="",
+                 bold=False,
+                 italic=False,
+        ):
+
+        vtk.vtkActor2D.__init__(self)
+        BaseText.__init__(self)
+
+        self._mapper = vtk.vtkTextMapper()
+        self.SetMapper(self._mapper)
+
+        self.tprop = self._mapper.GetTextProperty()
+
+        self.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+
+        # automatic black or white
+        if c is None:
+            c = (0.1, 0.1, 0.1)
+            if settings.plotter_instance and settings.plotter_instance.renderer:
+                if settings.plotter_instance.renderer.GetGradientBackground():
+                    bgcol = settings.plotter_instance.renderer.GetBackground2()
+                else:
+                    bgcol = settings.plotter_instance.renderer.GetBackground()
+                c = (0.9, 0.9, 0.9)
+                if np.sum(bgcol) > 1.5:
+                    c = (0.1, 0.1, 0.1)
+
+        self.font(font).color(c).background(bg, alpha).bold(bold).italic(italic)
+        self.pos(pos, justify).size(s).text(txt).lineSpacing(1.2).lineOffset(5)
+        self.PickableOff()
+
+    def pos(self, pos="top-left", justify=""):
+        """Set position of the text to draw. Keyword ``pos`` can be a string
+        or 2D coordinates in the range [0,1], being (0,0) the bottom left corner."""
+
+        ajustify="top-left" # autojustify
+        if isinstance(pos, str): # corners
+            ajustify = pos
+            if "top" in pos:
+                if "left" in pos:
+                    pos = (0.008, 0.994)
+                elif "right" in pos:
+                    pos = (0.994, 0.994)
+                elif "mid" in pos or "cent" in pos:
+                    pos = (0.5, 0.994)
+            elif "bottom" in pos:
+                if "left" in pos:
+                    pos = (0.008, 0.008)
+                elif "right" in pos:
+                    pos = (0.994, 0.008)
+                elif "mid" in pos or "cent" in pos:
+                    pos = (0.5, 0.008)
             else:
-                bgcol = settings.plotter_instance.renderer.GetBackground()
-            if np.sum(bgcol) > 1.5:
-                c = (0.1, 0.1, 0.1)
-        else:
-            c = (0.5, 0.5, 0.5)
+                printc("Text2D(): cannot understand pos:", pos, c='r')
+                pos = (0.008, 0.994)
+                ajustify = "top-left"
 
-    if isinstance(font, int):
-        lfonts = ['Normografo', 'Bongas', 'Calco', 'Comae', 'Kanopus',
-                  'Glasgo', 'LionelOfParis', 'LogoType',  'Quikhand',
-                  'SmartCouric', 'Theemim', 'VictorMono', 'VTK',
-                  "Capsmall", "Cartoons123", "PlanetBenson", "Spears",
-                  "Vega", "Justino1", "Justino2", "Justino3", "Justino4"]
-        font = font%len(lfonts)
-        font = lfonts[font]
+        elif isinstance(pos, int):
+            printc(f"Text2D(pos={pos}): integer value no more supported. Use string descriptors!", c='r')
+            pos = (0.994, 0.994)
+            ajustify = "top-right"
 
-    if not font:                   # use default font
-        fpath = settings.fonts_path + settings.defaultFont +'.ttf'
-    elif font.startswith('https'): # user passed URL link, make it a path
-        fpath = vedo.io.download(font, verbose=False, force=False)
-    elif font.endswith('.ttf'):    # user passing a local path to font file
-        fpath = font
-    else:                          # user passing name of preset font
-        fpath = settings.fonts_path + font +'.ttf'
+        elif len(pos)!=2:
+            print("Error in Text2D.pos(): len(pos) must be 2 or integer value or string.")
+            raise RuntimeError()
 
-    txt = str(txt)
-    if "\\" in repr(txt):
-        for r in _reps:
-            txt = txt.replace(r[0], r[1])
-
-    if isinstance(pos, str): # corners
-        if "top" in pos:
-            if "left" in pos: pos = 3
-            elif "right" in pos: pos = 4
-            elif "mid" in pos or "cent" in pos: pos = 8
-        elif "bottom" in pos:
-            if "left" in pos: pos = 1
-            elif "right" in pos: pos = 2
-            elif "mid" in pos or "cent" in pos: pos = 5
-        else:
-            if "left" in pos: pos = 7
-            elif "right" in pos: pos = 6
-            else: pos = 3
-
-    if isinstance(pos, int): # corners
-        if pos > 8:
-            pos = 8
-        if pos < 1:
-            pos = 1
-        ca = vtk.vtkCornerAnnotation()
-        ca.SetLinearFontScaleFactor(s*5.5)
-        #ca.SetNonlinearFontScaleFactor(s/2.7)
-        ca.SetText(pos - 1, txt)
-        ca.PickableOff()
-        cap = ca.GetTextProperty()
-        cap.SetColor(getColor(c))
-        if   font == "Courier": cap.SetFontFamilyToCourier()
-        elif font == "Times": cap.SetFontFamilyToTimes()
-        elif font == "Arial": cap.SetFontFamilyToArial()
-        else:
-            if font in ("LogoType", "Capsmall", "Cartoons123", "PlanetBenson", "Vega"
-                        "Justino1", "Justino2", "Justino3", "Justino4", "Spears",
-                        ):
-                fpath= vedo.download("https://vedo.embl.es/fonts/"+font+".ttf", verbose=False)
-            cap.SetFontFamily(vtk.VTK_FONT_FILE)
-            cap.SetFontFile(fpath)
-        if bg:
-            bgcol = getColor(bg)
-            cap.SetBackgroundColor(bgcol)
-            cap.SetBackgroundOpacity(alpha)
-        cap.SetBold(bold)
-        cap.SetItalic(italic)
-        setattr(ca, 'renderedAt', set())
-        ###############
-        return ca
-        ###############
-
-    if len(pos)!=2:
-        print("Error in Text2D(): len(pos) must be 2 or integer value or string.")
-        raise RuntimeError()
-
-    else:
-
-        ###############
-        actor2d = vtk.vtkActor2D()
-        actor2d.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-        actor2d.SetPosition(pos)
-        tmapper = vtk.vtkTextMapper()
-        tmapper.SetInput(str(txt))
-        actor2d.SetMapper(tmapper)
-        tp = tmapper.GetTextProperty()
-        tp.BoldOff()
-        tp.SetFontSize(int(s*20))
-        tp.SetColor(getColor(c))
-        tp.SetJustificationToLeft()
+        if not justify:
+            justify = ajustify
+        self.tprop.SetJustificationToLeft()
         if "top" in justify:
-            tp.SetVerticalJustificationToTop()
+            self.tprop.SetVerticalJustificationToTop()
         if "bottom" in justify:
-            tp.SetVerticalJustificationToBottom()
-        if "cent" in justify:
-            tp.SetVerticalJustificationToCentered()
-            tp.SetJustificationToCentered()
+            self.tprop.SetVerticalJustificationToBottom()
+        if "cent" in justify or "mid" in justify:
+            self.tprop.SetJustificationToCentered()
         if "left" in justify:
-            tp.SetJustificationToLeft()
+            self.tprop.SetJustificationToLeft()
         if "right" in justify:
-            tp.SetJustificationToRight()
+            self.tprop.SetJustificationToRight()
 
-        if font == "Courier": tp.SetFontFamilyToCourier()
-        elif font == "Times": tp.SetFontFamilyToTimes()
-        elif font == "Arial": tp.SetFontFamilyToArial()
+        self.SetPosition(pos)
+        return self
+
+    def text(self, txt=None):
+        """Set/get the input text string"""
+
+        if txt is None:
+            return self._mapper.GetText()
+
+        if "\\" in repr(txt):
+            for r in _reps:
+                txt = txt.replace(r[0], r[1])
         else:
-            if font=="LogoType":
-                fpath= vedo.download("https://vedo.embl.es/fonts/LogoType.ttf")
-            tp.SetFontFamily(vtk.VTK_FONT_FILE)
-            tp.SetFontFile(fpath)
+            txt = str(txt)
 
-        if bg:
-            bgcol = getColor(bg)
-            tp.SetBackgroundColor(bgcol)
-            tp.SetBackgroundOpacity(alpha * 0.1)
-            tp.SetFrameColor(bgcol)
-            tp.FrameOn()
-        actor2d.PickableOff()
-        setattr(actor2d, 'renderedAt', set())
-        return actor2d
+        self._mapper.SetInput(txt)
+        return self
+
+    def size(self, s):
+        self.tprop.SetFontSize(int(s * 22.5))
+        return self
+
+
+# PROBABLY USELEES given that Text2D does the same and even better...
+class CornerAnnotation(vtk.vtkCornerAnnotation, BaseText):
+    """
+    Annotate the window corner with 2D text.
+
+    See ``Text2D`` description as the basic functionality is very similar.
+
+    The added value of this class is the possibility to manage with one single
+    object the all corner annotations (instead of creating 4 ``Text2D`` instances).
+
+    See example: ``advanced/timer_callback2.py``
+    """
+    def __init__( self,
+                  s=1,
+                  c=None,
+                  alpha=0.15,
+                  bg=None,
+                  font="",
+        ):
+        vtk.vtkCornerAnnotation.__init__(self)
+        BaseText.__init__(self)
+
+        self.tprop = self.GetTextProperty()
+
+        self.font(font)
+
+        # automatic black or white
+        if c is None:
+            if settings.plotter_instance and settings.plotter_instance.renderer:
+                c = (0.9, 0.9, 0.9)
+                if settings.plotter_instance.renderer.GetGradientBackground():
+                    bgcol = settings.plotter_instance.renderer.GetBackground2()
+                else:
+                    bgcol = settings.plotter_instance.renderer.GetBackground()
+                if np.sum(bgcol) > 1.5:
+                    c = (0.1, 0.1, 0.1)
+            else:
+                c = (0.5, 0.5, 0.5)
+
+        self.SetNonlinearFontScaleFactor(1/2.75)
+        self.PickableOff()
+        self.tprop.SetColor(getColor(c))
+        self.tprop.SetBold(False)
+        self.tprop.SetItalic(False)
+
+    def size(self, s, linear=False):
+        """
+        The font size is calculated as the largest possible value such that the annotations
+        for the given viewport do not overlap.
+
+        This font size can be scaled non-linearly with the viewport size, to maintain an
+        acceptable readable size at larger viewport sizes, without being too big.
+        f' = linearScale * pow(f,nonlinearScale)
+        """
+        if linear:
+            self.SetLinearFontScaleFactor(s*5.5)
+        else:
+            self.SetNonlinearFontScaleFactor(s/2.75)
+        return self
+
+    def text(self, txt, pos=2):
+        """Set text at the assigned position"""
+
+        if isinstance(pos, str): # corners
+            if "top" in pos:
+                if "left" in pos: pos = 2
+                elif "right" in pos: pos = 3
+                elif "mid" in pos or "cent" in pos: pos = 7
+            elif "bottom" in pos:
+                if "left" in pos: pos = 0
+                elif "right" in pos: pos = 1
+                elif "mid" in pos or "cent" in pos: pos = 4
+            else:
+                if "left" in pos: pos = 6
+                elif "right" in pos: pos = 5
+                else: pos = 2
+
+        if "\\" in repr(txt):
+            for r in _reps:
+                txt = txt.replace(r[0], r[1])
+        else:
+            txt = str(txt)
+
+        self.SetText(pos, txt)
+        return self
+
+    def clear(self):
+        self.ClearAllTexts()
+        return self
+
+    def icon(self, pict): #does not work
+        if pict:
+            self.SetImageActor(pict)
+            self.ShowSliceAndImageOn()
+        else:
+            self.ShowSliceAndImageOff()
+        return self
+
 
 class Latex(Picture):
     """
@@ -3139,7 +3310,6 @@ class Latex(Picture):
     :param bg: background color box
     :param int res: dpi resolution
     :param bool usetex: use latex compiler of matplotlib
-    :param fromweb: retrieve the latex image from online server (codecogs)
 
     You can access the latex formula in `Latex.formula'`.
 
@@ -3154,68 +3324,51 @@ class Latex(Picture):
         alpha=1,
         res=30,
         usetex=False,
-        fromweb=False,
     ):
         self.formula = formula
 
-        if len(pos) == 2:
-            pos = (pos[0], pos[1], 0)
         try:
-
-            def build_img_web(formula, tfile):
-                import requests
-                if c == 'k':
-                    ct = 'Black'
-                else:
-                    ct = 'White'
-                wsite = 'http://latex.codecogs.com/png.latex'
-                try:
-                    r = requests.get(wsite+'?\dpi{100} \huge \color{'+ct+'} ' + formula)
-                    f = open(tfile, 'wb')
-                    f.write(r.content)
-                    f.close()
-                except requests.exceptions.ConnectionError:
-                    printc('Latex error. Web site unavailable?', wsite, c='r')
+            from tempfile import NamedTemporaryFile
+            import matplotlib.pyplot as mpltib
 
             def build_img_plt(formula, tfile):
-                import matplotlib.pyplot as plt
 
-                plt.rc('text', usetex=usetex)
+                mpltib.rc('text', usetex=usetex)
 
                 formula1 = '$'+formula+'$'
-                plt.axis('off')
+                mpltib.axis('off')
                 col = getColor(c)
                 if bg:
                     bx = dict(boxstyle="square", ec=col, fc=getColor(bg))
                 else:
                     bx = None
-                plt.text(0.5, 0.5, formula1,
+                mpltib.text(0.5, 0.5, formula1,
                          size=res,
                          color=col,
                          alpha=alpha,
                          ha="center",
                          va="center",
                          bbox=bx)
-                plt.savefig('_lateximg.png', format='png',
+                mpltib.savefig(tfile, format='png',
                             transparent=True, bbox_inches='tight', pad_inches=0)
-                plt.close()
+                mpltib.close()
 
-            if fromweb:
-                build_img_web(formula, '_lateximg.png')
-            else:
-                build_img_plt(formula, '_lateximg.png')
+            if len(pos) == 2:
+                pos = (pos[0], pos[1], 0)
 
-            Picture.__init__(self, '_lateximg.png')
+            tmp_file = NamedTemporaryFile(delete=True)
+            tmp_file.name = tmp_file.name + ".png"
+
+            build_img_plt(formula, tmp_file.name)
+
+            Picture.__init__(self, tmp_file.name)
             self.alpha(alpha)
             b = self.GetBounds()
             xm, ym = (b[1]+b[0])/200*s, (b[3]+b[2])/200*s
             self.SetOrigin(-xm, -ym, 0)
             self.SetScale(0.25/res*s, 0.25/res*s, 0.25/res*s)
             self.SetPosition(pos)
-            try:
-                os.unlink('_lateximg.png')
-            except:
-                pass
+            self.name = "Latex"
 
         except:
             printc('Error in Latex()\n', formula, c='r')
@@ -3223,7 +3376,6 @@ class Latex(Picture):
             printc(' Try: usetex=False' , c='r')
             printc(' Try: sudo apt install dvipng' , c='r')
 
-        self.name = "Latex"
 
 
 class ParametricShape(Mesh):
@@ -3243,12 +3395,12 @@ class ParametricShape(Mesh):
             from vedo import *
             for i in range(18):
                 ps = ParametricShape(i, c=i)
-                show([ps, Text(ps.name)], at=i, N=18)
+                show([ps, Text3D(ps.name)], at=i, N=18)
             interactive()
 
         |paramshapes|
     """
-    def __init__(self, name, c='powderblue', alpha=1, res=51):
+    def __init__(self, name, c='purple3', alpha=1, res=51):
         shapes = ['Boy', 'ConicSpiral', 'CrossCap', 'Enneper',
                   'Figure8Klein', 'Klein', 'Dini', 'Mobius', 'RandomHills', 'Roman',
                   'SuperEllipsoid', 'BohemianDome', 'Bour', 'CatalanMinimal',
@@ -3357,13 +3509,14 @@ def ConvexHull(pts):
     return m
 
 
-def VedoLogo(distance=0, c=None, bc='t', version=False, frame=True):
+def VedoLogo(distance=0, c=None, bc='t', version=False, frame=True, simple=False):
     """
     Create the 3D vedo logo.
 
     :param float distance: send back logo by this distance from camera
     :param bool version: add version text to the right end of the logo
     :param bc: text back face color
+    :param bool simple: simple plain appearence
     """
     if c is None:
         c = (0,0,0)
@@ -3379,27 +3532,32 @@ def VedoLogo(distance=0, c=None, bc='t', version=False, frame=True):
     # ms = tetm.cutWithMesh(sphere, onlyBoundary=True).tomesh(shrink=1)
     # ms.clean().write('omesh.vtk')
 
-    try: # might be offline
-        txt = 'vэd' #chr(1101)
-        ms = vedo.io.load(vedo.datadir+'omesh.vtk')
-        ms.scale([1,1,0.3]).pos(1210, 550, 95).lighting('shiny').pickable(0)
-        # Spectral, viridis_r, jet_r, gist_ncar, prism, seismic_r, brg_r
-        ms.cmap('jet_r', on='cells')
-        sphere.scale([1,1,0.3]).pos(1540, 548, 82)
-        sphere.lighting('off').frontFaceCulling(True).pickable(False)
-    except:
+    if simple:
         txt = 'vэdo'
         ms = None
         sphere = None
+    else:
+        try: # might be offline
+            txt = 'vэd' #chr(1101)
+            ms = vedo.io.load(vedo.datadir+'omesh.vtk')
+            ms.scale([1,1,0.3]).pos(1210, 550, 95).lighting('shiny').pickable(False)
+            # Spectral, viridis_r, jet_r, gist_ncar, prism, seismic_r, brg_r
+            ms.cmap('jet_r', on='cells')
+            sphere.scale([1,1,0.3]).pos(1540, 548, 82)
+            sphere.lighting('off').frontFaceCulling(True).pickable(False)
+        except:
+            txt = 'vэdo'
+            ms = None
+            sphere = None
 
     font = 'Comae'
-    vlogo = Text(txt, font=font, s=1350, depth=0.2, c=c, hspacing=0.8)
+    vlogo = Text3D(txt, font=font, s=1350, depth=0.2, c=c, hspacing=0.8)
     vlogo.scale([1,.95,1]).x(-2525).pickable(False).bc(bc)
     vlogo.GetProperty().LightingOn()
 
     vr, rul = None, None
     if version:
-        vr = Text(vedo.__version__, font=font,
+        vr = Text3D(vedo.__version__, font=font,
                   s=165, depth=0.2, c=c, hspacing=1).scale([1,.7,1])
         vr.RotateZ(90)
         vr.pos(2450,50,80).bc(bc).pickable(False)

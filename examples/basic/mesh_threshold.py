@@ -3,7 +3,7 @@ the threshold criterion: 37 < scalar < 37.5
 """
 from vedo import *
 
-man = load(datadir+"man.vtk")
+man = load(dataurl+"man.vtk")
 
 scals = man.points()[:, 0] + 37  # pick y coords of vertices
 

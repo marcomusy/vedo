@@ -5,7 +5,7 @@ Right: the Volume is isosurfaced.
 """
 from vedo import *
 
-s = load(datadir+"bunny.obj").normalize().wireframe()
+s = load(dataurl+"bunny.obj").normalize().wireframe()
 
 v = mesh2Volume(s, spacing=(0.02, 0.02, 0.02)).alpha([0,0.5]).c('blue')
 

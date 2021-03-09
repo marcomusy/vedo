@@ -28,7 +28,7 @@ plt = plot(x,y,
 plt += Rectangle([1,0.5], [2.7,5], alpha=0.2, c='k')
 
 # Add some text and latex formula
-plt += Text("Excluded\ntime range!", s=.2, c='k', font="Quikhand").rotateZ(20).pos(1.3, 3.6)
+plt += Text3D("Excluded\ntime range!", s=.2, c='k', font="Quikhand").rotateZ(20).pos(1.3, 3.6)
 plt += Latex(r"y(t)=2+2\cdot\frac{\sin(2t)}{(t+1)}", pos=(4.7, 4.7), s=.8, c='db')
 
 # Add a star marker at maximum of function (at z=0.1, so it stays on top):

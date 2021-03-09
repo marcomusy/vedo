@@ -7,10 +7,10 @@ from vedo import *
 settings.showRendererFrame = False
 
 vp = Plotter(N=4, sharecam=False,
-			 bg=datadir+"images/tropical.jpg",
+			 bg=dataurl+"images/tropical.jpg",
 			 bg2='light blue')
 
-a1 = load(datadir+"flamingo.3ds").rotateX(-90)
+a1 = load(dataurl+"flamingo.3ds").rotateX(-90)
 
 vp.show(__doc__, at=2)
 

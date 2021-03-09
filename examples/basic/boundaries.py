@@ -2,7 +2,7 @@
 Add a label to all vertices. """
 from vedo import *
 
-b = load(datadir+'290.vtk')
+b = load(dataurl+'290.vtk')
 b.computeNormals().clean().lw(0.1)
 
 pids = b.boundaries(returnPointIds=True)

@@ -1,7 +1,7 @@
 # Thresholding and slicing a TetMesh
-from vedo import TetMesh, datadir, show
+from vedo import TetMesh, dataurl, show
 
-tetmesh = TetMesh(datadir+'limb_ugrid.vtk').color('Spectral')
+tetmesh = TetMesh(dataurl+'limb_ugrid.vtk').color('Spectral')
 tetmesh.addScalarBar3D(title='chem_0  expression', c='k')
 
 thrslist = [0.2, 0.3, 0.8]

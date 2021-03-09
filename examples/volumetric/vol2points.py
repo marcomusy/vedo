@@ -1,7 +1,7 @@
 """Extract all image voxels as points"""
 from vedo import *
 
-v = load(datadir+'vase.vti') # Volume
+v = load(dataurl+'vase.vti') # Volume
 
 pts = v.toPoints().printInfo() # returns a Mesh(vtkActor)
 

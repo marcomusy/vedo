@@ -3,7 +3,7 @@ default ray casting..
 """
 from vedo import *
 
-tetm = load(datadir+'limb_ugrid.vtk') # returns vedo.TetMesh
+tetm = load(dataurl+'limb_ugrid.vtk') # returns vedo.TetMesh
 tetm.color('jet').alphaUnit(100) # make the tets more transparent
 tetm.addScalarBar3D()
 

@@ -1,8 +1,8 @@
 """Insert 2D and 3D scalarbars
 in the rendering scene"""
-from vedo import load, datadir, show
+from vedo import load, dataurl, show
 
-shape = load(datadir+"lamp.vtk")
+shape = load(dataurl+"lamp.vtk")
 
 ms = []
 cmaps = ("jet", "PuOr", "viridis")

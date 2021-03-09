@@ -308,12 +308,12 @@ _defs = ""
 #     :target: fitspheres2.py_
 #     :alt: fitspheres2.py
 
-# .. |plot4_fxy.py| replace:: plot4_fxy.py
-# .. _plot4_fxy.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot4_fxy.py
-# .. |plot4_fxy| image:: https://user-images.githubusercontent.com/32848391/36611824-fd524fac-18d4-11e8-8c76-d3d1b1bb3954.png
+# .. |plot_fxy.py| replace:: plot_fxy.py
+# .. _plot_fxy.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_fxy.py
+# .. |plot_fxy| image:: https://user-images.githubusercontent.com/32848391/36611824-fd524fac-18d4-11e8-8c76-d3d1b1bb3954.png
 #     :width: 200 px
-#     :target: plot4_fxy.py_
-#     :alt: plot4_fxy.py
+#     :target: plot_fxy.py_
+#     :alt: plot_fxy.py
 
 # .. |histo_hexagonal.py| replace:: histo_hexagonal.py
 # .. _histo_hexagonal.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/histo_hexagonal.py
@@ -625,12 +625,12 @@ _defs = ""
 # .. |readVolumeAsIsoSurface.py| replace:: readVolumeAsIsoSurface.py
 # .. _readVolumeAsIsoSurface.py: https://github.com/marcomusy/vedo/tree/master/examples/volumetric/readVolumeAsIsoSurface.py
 
-# .. |read_vti.py| replace:: read_vti.py
-# .. _read_vti.py: https://github.com/marcomusy/vedo/tree/master/examples/volumetric/read_vti.py
-# .. |read_vti| image:: https://user-images.githubusercontent.com/32848391/50739036-6bc31300-11da-11e9-89b3-04a75187f812.jpg
+# .. |read_volume2.py| replace:: read_volume2.py
+# .. _read_volume2.py: https://github.com/marcomusy/vedo/tree/master/examples/volumetric/read_volume2.py
+# .. |read_volume2| image:: https://user-images.githubusercontent.com/32848391/50739036-6bc31300-11da-11e9-89b3-04a75187f812.jpg
 #     :width: 200 px
-#     :target: read_vti.py_
-#     :alt: read_vti.py
+#     :target: read_volume2.py_
+#     :alt: read_volume2.py
 
 # .. |glyphs.py| replace:: glyphs.py
 # .. _glyphs.py: https://github.com/marcomusy/vedo/tree/master/examples/basic/glyphs.py
@@ -1159,12 +1159,12 @@ _defs = ""
 #     :target: linInterpolate.py_
 #     :alt: linInterpolate.py
 
-# .. |plot1_errbars.py| replace:: plot1_errbars.py
-# .. _plot1_errbars.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot1_errbars.py
-# .. |plot1_errbars| image:: https://user-images.githubusercontent.com/32848391/69158509-d6c1c380-0ae6-11ea-9dbf-ff5cd396a9a6.png
+# .. |plot_errbars.py| replace:: plot_errbars.py
+# .. _plot_errbars.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_errbars.py
+# .. |plot_errbars| image:: https://user-images.githubusercontent.com/32848391/69158509-d6c1c380-0ae6-11ea-9dbf-ff5cd396a9a6.png
 #     :width: 200 px
-#     :target: plot1_errbars.py_
-#     :alt: plot1_errbars.py
+#     :target: plot_errbars.py_
+#     :alt: plot_errbars.py
 
 # .. |quiver.py| replace:: quiver.py
 # .. _quiver.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/quiver.py
@@ -1173,12 +1173,12 @@ _defs = ""
 #     :target: quiver.py_
 #     :alt: quiver.py
 
-# .. |plot5_spheric.py| replace:: plot5_spheric.py
-# .. _plot5_spheric.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot5_spheric.py
-# .. |plot5_spheric| image:: https://user-images.githubusercontent.com/32848391/72433091-f0a31e00-3798-11ea-86bd-6c522e23ec61.png
+# .. |plot_spheric.py| replace:: plot_spheric.py
+# .. _plot_spheric.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_spheric.py
+# .. |plot_spheric| image:: https://user-images.githubusercontent.com/32848391/72433091-f0a31e00-3798-11ea-86bd-6c522e23ec61.png
 #     :width: 200 px
-#     :target: plot5_spheric.py_
-#     :alt: plot5_spheric.py
+#     :target: plot_spheric.py_
+#     :alt: plot_spheric.py
 
 # .. |fcomplex| image:: https://user-images.githubusercontent.com/32848391/73392962-1709a300-42db-11ea-9278-30c9d6e5eeaa.png
 #     :width: 200 px
@@ -1200,19 +1200,19 @@ _defs = ""
 #     :target: histo_2D.py_
 #     :alt: histo_2D.py
 
-# .. |plot2_errband.py| replace:: plot2_errband.py
-# .. _plot2_errband.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot2_errband.py
-# .. |plot2_errband| image:: https://user-images.githubusercontent.com/32848391/73483464-c019d180-439f-11ea-9a8c-59fa49e9ecf4.png
+# .. |plot_errband.py| replace:: plot_errband.py
+# .. _plot_errband.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_errband.py
+# .. |plot_errband| image:: https://user-images.githubusercontent.com/32848391/73483464-c019d180-439f-11ea-9a8c-59fa49e9ecf4.png
 #     :width: 200 px
-#     :target: plot2_errband.py_
-#     :alt: plot2_errband.py
+#     :target: plot_errband.py_
+#     :alt: plot_errband.py
 
-# .. |plot3_pip.py| replace:: plot3_pip.py
-# .. _plot3_pip.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot3_pip.py
-# .. |plot3_pip| image:: https://user-images.githubusercontent.com/32848391/73393632-4ff64780-42dc-11ea-8798-45a81c067f45.png
+# .. |plot_pip.py| replace:: plot_pip.py
+# .. _plot_pip.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_pip.py
+# .. |plot_pip| image:: https://user-images.githubusercontent.com/32848391/73393632-4ff64780-42dc-11ea-8798-45a81c067f45.png
 #     :width: 200 px
-#     :target: plot3_pip.py_
-#     :alt: plot3_pip.py
+#     :target: plot_pip.py_
+#     :alt: plot_pip.py
 
 # .. |scatter1.py| replace:: scatter1.py
 # .. _scatter1.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/scatter1.py
@@ -1242,12 +1242,12 @@ _defs = ""
 #     :target: customIndividualAxes.py_
 #     :alt: customIndividualAxes.py
 
-# .. |plot7_stream.py| replace:: plot7_stream.py
-# .. _plot7_stream.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot7_stream.py
-# .. |plot7_stream| image:: https://user-images.githubusercontent.com/32848391/73614123-93162a80-45fc-11ea-969b-9a3293b26f35.png
+# .. |plot_stream.py| replace:: plot_stream.py
+# .. _plot_stream.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/plot_stream.py
+# .. |plot_stream| image:: https://user-images.githubusercontent.com/32848391/73614123-93162a80-45fc-11ea-969b-9a3293b26f35.png
 #     :width: 250 px
-#     :target: plot7_stream.py_
-#     :alt: plot7_stream.py
+#     :target: plot_stream.py_
+#     :alt: plot_stream.py
 
 # .. |simpleplot| image:: https://user-images.githubusercontent.com/32848391/74363882-c3638300-4dcb-11ea-8a78-eb492ad9711f.png
 #     :width: 200 px

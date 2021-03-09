@@ -4,7 +4,7 @@ from vedo import *
 
 plt = Plotter(bg2='bisque', size=(1000,800), interactive=False)
 
-e = load(datadir+"embryo.tif").isosurface()
+e = load(dataurl+"embryo.tif").isosurface()
 e.normalize().shift(-2,-1.5,-2).c("gold")
 
 plt.show(e, __doc__, viewup='z')

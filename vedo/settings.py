@@ -41,6 +41,10 @@ General settings.
     # Allow to interact with scene during interactor.Start() execution
     allowInteraction = True
 
+    # If False, when multiple renderers are present do not render each one for separate
+    #  but do it just once at the end (when interactive() is called)
+    immediateRendering = True
+
     # Show a gray frame margin in multirendering windows
     showRendererFrame = True
     rendererFrameColor = None
@@ -120,7 +124,7 @@ Usage example:
 """
 import os, vtk
 
-__all__ = ['datadir', 'embedWindow']
+__all__ = ['datadir', 'dataurl', 'embedWindow']
 
 
 ####################################################################################
@@ -149,6 +153,10 @@ interactorStyle = None
 
 # Allow to interact with scene during interactor.Start() execution
 allowInteraction = True
+
+# When multiple renderers are present do not render each one for separate.
+# but do it just once at the end (when interactive() is called)
+immediateRendering = True
 
 # Show a gray frame margin in multirendering windows
 showRendererFrame = True
@@ -253,8 +261,9 @@ textures = []
 fonts_path = os.path.join(installdir, "fonts/")
 fonts = []
 
-#datadir = "/home/musy/Dropbox/Public/vktwork/vedo_data/"; print('\ndatadir=',datadir)
-datadir = "https://vedo.embl.es/examples/data/"
+#dataurl = "/home/musy/Dropbox/Public/vktwork/vedo_data/"; print('\ndataurl=',dataurl)
+dataurl = "https://vedo.embl.es/examples/data/"
+datadir = dataurl
 
 plotter_instances = []
 plotter_instance = None
@@ -265,6 +274,7 @@ collectable_actors = ['obsolete_do_not_use'] # OBSOLETE and void
 # mono       # means that all letters occupy the same space slot horizontally
 # hspacing   # an horizontal stretching factor (affects both letters and words)
 # lspacing   # horizontal spacing inbetween letters (not words)
+# islocal    # is locally stored in /fonts, otherwise it's on vedo.embl.es/fonts
 
 font_parameters = dict(
 
@@ -274,6 +284,7 @@ font_parameters = dict(
                         hspacing = 1,
                         lspacing = 0.2,
                         dotsep = "~·",
+                        islocal = True,
                         ),
         Bongas = dict(
                         mono = False,
@@ -281,6 +292,7 @@ font_parameters = dict(
                         hspacing = 0.52,
                         lspacing = 0.25,
                         dotsep = "·",
+                        islocal = True,
                         ),
         Calco = dict(
                         mono = True,
@@ -288,6 +300,7 @@ font_parameters = dict(
                         hspacing = 1,
                         lspacing = 0.1,
                         dotsep = "·",
+                        islocal = True,
                         ),
         Comae = dict(
                         mono = False,
@@ -295,6 +308,7 @@ font_parameters = dict(
                         lspacing = 0.2,
                         hspacing = 1,
                         dotsep = '~·',
+                        islocal = True,
                         ),
         Glasgo = dict(
                         mono = True,
@@ -302,6 +316,7 @@ font_parameters = dict(
                         lspacing = 0.1,
                         hspacing = 1,
                         dotsep = "·",
+                        islocal = True,
                         ),
         Kanopus = dict(
                         mono = False,
@@ -309,6 +324,7 @@ font_parameters = dict(
                         lspacing = 0.15,
                         hspacing = 0.75,
                         dotsep = '~·',
+                        islocal = True,
                         ),
         LionelOfParis = dict(
                         mono = False,
@@ -316,6 +332,7 @@ font_parameters = dict(
                         hspacing = 0.7,
                         lspacing = 0.3,
                         dotsep = "·",
+                        islocal = True,
                         ),
         LogoType = dict(
                         mono = False,
@@ -323,6 +340,7 @@ font_parameters = dict(
                         hspacing = 1,
                         lspacing = 0.2,
                         dotsep = '·~~',
+                        islocal = False,
                         ),
         Quikhand = dict(
                         mono = False,
@@ -330,6 +348,7 @@ font_parameters = dict(
                         hspacing = 0.6,
                         lspacing = 0.15,
                         dotsep = "~~·~",
+                        islocal = True,
                         ),
         SmartCouric = dict(
                         mono = True,
@@ -337,6 +356,7 @@ font_parameters = dict(
                         hspacing = 1.05,
                         lspacing = 0.1,
                         dotsep = "·",
+                        islocal = True,
                         ),
         Spears = dict(
                         mono = False,
@@ -344,6 +364,7 @@ font_parameters = dict(
                         hspacing = 0.5,
                         lspacing = 0.2,
                         dotsep = "·",
+                        islocal = False,
                         ),
         Theemim = dict(
                         mono = False,
@@ -351,6 +372,7 @@ font_parameters = dict(
                         hspacing = 0.52,
                         lspacing = 0.3,
                         dotsep = '~·',
+                        islocal = True,
                         ),
         VictorMono = dict(
                         mono = True,
@@ -358,6 +380,7 @@ font_parameters = dict(
                         hspacing = 1,
                         lspacing = 0.1,
                         dotsep = "·",
+                        islocal = True,
                         ),
         Justino1 = dict(
                         mono = True,
@@ -365,6 +388,7 @@ font_parameters = dict(
                         hspacing = 1,
                         lspacing = 0.1,
                         dotsep = "·",
+                        islocal = False,
                         ),
         Justino2 = dict(
                         mono = True,
@@ -372,6 +396,7 @@ font_parameters = dict(
                         hspacing = 1,
                         lspacing = 0.1,
                         dotsep = "·",
+                        islocal = False,
                         ),
         Justino3 = dict(
                         mono = True,
@@ -379,6 +404,7 @@ font_parameters = dict(
                         hspacing = 1,
                         lspacing = 0.1,
                         dotsep = "·",
+                        islocal = False,
                         ),
         Justino4 = dict(
                         mono = True,
@@ -386,6 +412,7 @@ font_parameters = dict(
                         hspacing = 1,
                         lspacing = 0.1,
                         dotsep = "·",
+                        islocal = False,
                         ),
         Capsmall = dict(
                         mono = False,
@@ -393,6 +420,7 @@ font_parameters = dict(
                         hspacing = 0.75,
                         lspacing = 0.15,
                         dotsep = "·",
+                        islocal = False,
                         ),
         Cartoons123 = dict(
                         mono = False,
@@ -400,6 +428,7 @@ font_parameters = dict(
                         hspacing = 0.75,
                         lspacing = 0.15,
                         dotsep = "·",
+                        islocal = False,
                         ),
         Vega = dict(
                         mono = False,
@@ -407,6 +436,7 @@ font_parameters = dict(
                         hspacing = 0.75,
                         lspacing = 0.15,
                         dotsep = "·",
+                        islocal = False,
                         ),
         PlanetBenson = dict(
                         mono = False,
@@ -414,6 +444,7 @@ font_parameters = dict(
                         hspacing = 0.8,
                         lspacing = 0.11,
                         dotsep = "·",
+                        islocal = False,
                         ),
         VTK = dict(
                         mono = False,
@@ -421,6 +452,7 @@ font_parameters = dict(
                         hspacing = 0.6,
                         lspacing = 0.4,
                         dotsep = "~^.~ ",
+                        islocal = True,
                         ),
         Meson= dict(
                         mono = False,
@@ -428,6 +460,7 @@ font_parameters = dict(
                         hspacing = 0.9,
                         lspacing = 0.225,
                         dotsep = "~^.~ ",
+                        islocal = False,
                         ),
 )
 
@@ -491,6 +524,15 @@ def embedWindow(backend='k3d', verbose=True):
                 print('embedWindow(verbose=True): could not load panel try:')
                 print('> pip install panel -U   # and/or')
                 print('> conda install nodejs')
+
+    elif backend=='ipyvtk':
+        try:
+            from ipyvtk_simple.viewer import ViewInteractiveWidget
+        except:
+            if verbose:
+                print('embedWindow(verbose=True): could not load ipyvtk_simple try:')
+                print('> pip install -U git+https://github.com/Kitware/ipyvtk-simple.git')
+
     else:
         print("Unknown backend", backend)
         raise RuntimeError()

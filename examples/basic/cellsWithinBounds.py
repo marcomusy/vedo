@@ -1,9 +1,7 @@
-"""
-Find cells within specified bounds in x, y and/or z.
-"""
+"""Find cells within specified bounds in x, y and/or z."""
 from vedo import *
 
-mesh = load(datadir+'shark.ply').normalize()
+mesh = load(dataurl+'shark.ply').normalize()
 mesh.color('aqua').lineWidth(0.1)
 
 z1, z2 = -1.5, -1.0

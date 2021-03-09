@@ -410,7 +410,6 @@ def visiblePoints(mesh, area=(), tol=None, invert=False):
     return m
 
 
-
 def delaunay2D(plist, mode='scipy', boundaries=(), tol=None):
     """
     Create a mesh from points in the XY plane.
@@ -457,7 +456,7 @@ def delaunay2D(plist, mode='scipy', boundaries=(), tol=None):
     if mode=='fit':
         delny.SetProjectionPlaneMode(vtk.VTK_BEST_FITTING_PLANE)
     delny.Update()
-    return vedo.mesh.Mesh(delny.GetOutput()).lighting('off')
+    return vedo.mesh.Mesh(delny.GetOutput()).clean().lighting('off')
 
 
 def rotatePoints(points, n0=None, n1=(0,0,1)):
@@ -1700,10 +1699,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 tx.Update()
                 tx_poly = tx.GetOutput()
             else:
-                tx_poly = vedo.shapes.Text(txt_lab,
-                                           font=font,
-                                           justify=justify,
-                          ).polydata(False)
+                tx_poly = vedo.shapes.Text3D(txt_lab, font=font, justify=justify).polydata(False)
 
             if tx_poly.GetNumberOfPoints() == 0:
                 continue #######################
@@ -1871,9 +1867,7 @@ class Points(vtk.vtkFollower, BaseActor):
             point = [point[0], point[1], 0.0]
         pt = np.asarray(point)
 
-        lb = vedo.shapes.Text(
-            txt, pos=pt+offset, s=s, font=font, italic=italic, justify="bottom-left"
-        )
+        lb = vedo.shapes.Text3D(txt, pos=pt+offset, s=s, font=font, italic=italic, justify="bottom-left")
         acts.append(lb)
 
         if d and not sph:

@@ -7,6 +7,10 @@
 - python2 is no more supported
 - A bug in `mesh.closestPoint(returnIds=True)` has been fixed
 - [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab) is now interfaced in `vedo`!
+- Added interfaces and examples to libraries [iminuit](https://github.com/scikit-hep/iminuit)
+and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab)
+- variable `datadir` changed to `dataurl`
+
 
 ---
 ### `base.py`
@@ -39,6 +43,7 @@ Lower index means darker.
 ### `mesh.py`
 - fixed bug in `splitByConnectivity()` ( @jsanchez679 )
 - added method `addConnectivity()` to add a connectivity array to mesh points
+- added method `isClosed()` ti return if mesh is watertight (no holes)
 
 ---
 ### `plotter.py`
@@ -47,12 +52,13 @@ Lower index means darker.
 - `verbose` keyword has been removed (as hard to maintain)
 - mouse clicking can now pick `Picture` not only `Mesh`
 - revised and improved callback functionality with `plotter.addCallback()`
-  (see examples `mousehighligh`, `mousehover`)
-
+  (see examples `mousehighlight`, `mousehover`)
+- new way of creating a callback loop with a timer (thanks @nantille - see examples `timer_callback`)
 
 ---
 ### `picture.py`
 - attribute `picture.shape` holds the shape of the picture in pixels
+- added `gif` file reader to return a list of `Picture` objs.
 
 
 ---
@@ -64,45 +70,58 @@ Lower index means darker.
 ### `pyplot.py`
 - a brand new function `fit()` to perform polynomial fitting to data with error bars in both x and y with correct estimation of error bands via bootstrap method (there are out there soo many wrong scripts in matplotlib!)
 - added `pyplot.matrix()` to plot numpy matrices (eg. correlation/covariance matrix)
+- various minor fixes
 
 ---
 ### `shapes.py`
 - `Spline` can control the *easing*, the density of points along the line.
 - support for closed splines.
+- `Text2D` completely rewritten. Can now update it after creation (e.g. `mytxt.text("test").color("g")`)
 
 ---
 ### `volume.py`
 - added `volume.shade()` which can be `True` or `False`. Disable by default (was previously enabled)
   to be used in conjunction with `volume.lighting()` to create a mesh-like rendering of the volume.
   (thanks to @nantille for debugging)
+- fixed example `interpolateVolume`
 
 
 ## New/Revised examples:
 - `vedo -r colorcubes`
 - `vedo -r cutter`
-- `vedo -r fitPolynomial1`
-- `vedo -r fitPolynomial2`
 - `vedo -r spline_ease`
 - `vedo -r gyroid`
 - `vedo -r align6`
 - `vedo -r colormap_list`
-- `vedo -r customAxes2`
-- `vedo -r customAxes3`
-- `vedo -r glyphs3`
 - `vedo -r bloch`
 - `vedo -r slicePlane1`
 - `vedo -r slicePlane2`
-- `vedo -r np_matrix`
 - `vedo -r pygmsh_cut`
+
 - `vedo -r mousehighlight`
 - `vedo -r mousehover`
 - `vedo -r line2mesh_quads`
 - `vedo -r line2mesh_tri`
 - `vedo -r pointsCutMesh2`
-- `vedo -r textLegend`
-- `vedo -r fitCircle`
-- `vedo -r pymeshlab1.py`
 
+- `vedo -r hoverLegend`
+
+- `vedo -r iminuit`
+- `vedo -r pymeshlab1`
+
+- `vedo -r timer_callback1`
+- `vedo -r timer_callback2`
+
+- `vedo -r fitCircle`
+- `vedo -r anim_lines`
+- `vedo -r earthquake_browser`
+- `vedo -r np_matrix`
+- `vedo -r customAxes2`
+- `vedo -r customAxes3`
+- `vedo -r glyphs3`
+- `vedo -r fitPolynomial1`
+- `vedo -r fitPolynomial2`
+- `vedo -r histo_gauss`
 
 
 

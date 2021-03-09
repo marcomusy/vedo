@@ -2,13 +2,11 @@
 .. image:: https://user-images.githubusercontent.com/32848391/46815773-dc919500-cd7b-11e8-8e80-8b83f760a303.png
 
 A python module for scientific visualization,
-analysis and animation of 3D objects and point clouds based on VTK.
+analysis and animation of 3D objects and point clouds based on VTK and numpy.
 """
-from __future__ import print_function
-
 __author__     = "Marco Musy"
 __license__    = "MIT"
-__maintainer__ = "M. Musy, G. Dalmasso"
+__maintainer__ = "M. Musy"
 __email__      = "marco.musy@embl.es"
 __status__     = "dev"
 __website__    = "https://github.com/marcomusy/vedo"
@@ -29,10 +27,11 @@ from vedo.tetmesh import *
 
 from vedo.utils import *
 from vedo.colors import *
-import vedo.settings as settings
 import vedo.addons as addons
 from vedo.addons import Ruler, Goniometer, buildRulerAxes, Axes, Light
-from vedo.settings import datadir, embedWindow
+
+import vedo.settings as settings
+from vedo.settings import datadir, dataurl, embedWindow
 
 # hack: need to uncomment this to generate dolfin documentation html
 # from vedo.dolfin import _inputsort
@@ -46,4 +45,11 @@ settings._init()
 ###########################################################################
 
 
+################### deprecations
+def Text(*args, **kwargs):
+    print("*** Deprecation: use Text3D() instead of Text(). ***")
+    return Text3D(*args, **kwargs)
 
+def CubicGrid(*args, **kwargs):
+    print("*** CubicGrid is obsolete: use TessellatedBox. ***")
+    return TessellatedBox(*args, **kwargs)

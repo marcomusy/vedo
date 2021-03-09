@@ -13,7 +13,7 @@ for name in colors.cmaps_names:
     gr.lineWidth(0).wireframe(False).y(-i*1.2)
     grids.append([gr, gr.box().c('grey')])
 
-    tx1 = Text('\rightarrow '+name, justify='left-center', s=0.75, font=2)
+    tx1 = Text3D('\rightarrow '+name, justify='left-center', s=0.75, font=2)
     tx1.pos(gr.xbounds(1), gr.y()).c('w')
     tx2 = tx1.clone(deep=False).c('k')
     vnames1.append(tx1)

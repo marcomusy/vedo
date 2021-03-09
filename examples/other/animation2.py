@@ -5,7 +5,7 @@ by specifying event times and durations of the visual effects.
 from vedo import *
 from vedo.applications import Animation
 
-s = load(datadir+"bunny.obj").subdivide().normalize()
+s = load(dataurl+"bunny.obj").subdivide().normalize()
 
 vp = Animation()
 vp.timeResolution = 0.02  # secs

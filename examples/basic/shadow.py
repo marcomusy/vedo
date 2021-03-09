@@ -1,7 +1,7 @@
 """Make a shadow of 2 meshes on the wall"""
 from vedo import *
 
-a = load(datadir+"spider.ply").texture('leather')
+a = load(dataurl+"spider.ply").texture('leather')
 a.normalize().rotateZ(-90).addShadow(x=-3, alpha=0.5)
 
 s = Sphere(r=0.3).pos(0.4,0,0.6).addShadow(x=-3)

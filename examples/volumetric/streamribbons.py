@@ -6,8 +6,8 @@ from vedo import *
 ######################## vtk
 # Read the data and specify which scalars and vectors to read.
 pl3d = vtk.vtkMultiBlockPLOT3DReader()
-pl3d.SetXYZFileName(download(datadir+"combxyz.bin"))
-pl3d.SetQFileName(download(datadir+"combq.bin"))
+pl3d.SetXYZFileName(download(dataurl+"combxyz.bin"))
+pl3d.SetQFileName(download(dataurl+"combq.bin"))
 pl3d.SetScalarFunctionNumber(100)
 pl3d.SetVectorFunctionNumber(202)
 pl3d.Update()

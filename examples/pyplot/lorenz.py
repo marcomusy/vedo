@@ -23,7 +23,7 @@ for t in np.linspace(0, 20, int(20 / dt)):
 from vedo import *
 settings.renderPointsAsSpheres = False # render points as squares
 
-scene = Plotter(title="Lorenz attractor", axes=1)
+scene = Plotter(title="Lorenz attractor", axes=dict(yzGrid=True))
 scene += Point(y, r=10, c="g") # end point
 scene += Points(pts, r=3, c=cols)
 scene += Line(pts).off().addShadow(x=3) # only show shadow, not line

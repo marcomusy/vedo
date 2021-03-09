@@ -3,7 +3,7 @@ which are closest to a specified point.
 """
 from vedo import *
 
-pu = load(datadir+'apple.ply')
+pu = load(dataurl+'apple.ply')
 pu.c('lightgreen').bc('tomato').lw(0.1)
 
 pt = [1, 0.5, 1]

@@ -3,7 +3,7 @@ and plot the intensity values"""
 from vedo import *
 from vedo.pyplot import plot
 
-vol = load(datadir+'embryo.slc')
+vol = load(dataurl+'embryo.slc')
 vol.addScalarBar3D(title='wild-type mouse embryo', c='k')
 
 p1, p2 = (50,50,50), (200,200,200)

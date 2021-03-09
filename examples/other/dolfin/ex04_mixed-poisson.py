@@ -52,13 +52,13 @@ solve(a == L, w, bc)
 
 
 ########################################################### vedo
-from vedo.dolfin import plot, Text2D
+from vedo.dolfin import plot, Text3D
 
 # Plot solution on mesh, and warp z-axis by the scalar value
 plot(u, warpZfactor=0.8, legend='u', text=__doc__)
 
 # Plot the sigma vector on the mesh. Try also mode='arrows'
-msg = Text("> plot(sigma, mode='mesh lines', warpZfactor= -0.2)", c='w')
+msg = Text3D("> plot(sigma, mode='mesh lines', warpZfactor= -0.2)", c='w')
 plot(sigma, msg,
      mode='mesh lines',
      warpZfactor=-0.2,    # rise mesh in z based on scalar value

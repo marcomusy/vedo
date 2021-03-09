@@ -55,11 +55,11 @@ plot(u, mode="displaced mesh",
      viewup='z')
 #exportWindow('elasticbeam1.x3d') # generate a html test page
 
-txt = Text("Von Mises stress intensity", pos=(0.1,.12,0), s=0.03, c='white')
+txt = Text3D("Von Mises stress intensity", pos=(0.1,.12,0), s=0.03, c='white')
 plot(von_Mises, txt, cmap='plasma', scalarbar=False, new=True)
 #exportWindow('elasticbeam2.x3d') # generate a html test page
 
-txt = Text("Magnitude of displacement", pos=(0.1,.12,0), s=0.03, c='white')
+txt = Text3D("Magnitude of displacement", pos=(0.1,.12,0), s=0.03, c='white')
 plot(u_magnitude, txt, scalarbar=False, new=True)
 #exportWindow('elasticbeam3.x3d') # generate a html test page
 

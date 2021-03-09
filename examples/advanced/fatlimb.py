@@ -7,7 +7,7 @@ from vedo import *
 
 vp = Plotter()
 
-s = vp.load(datadir+"290.vtk").subdivide()
+s = vp.load(dataurl+"290.vtk").subdivide()
 s.c("red").bc("lightblue")
 
 cn = s.centerOfMass()

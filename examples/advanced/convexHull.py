@@ -5,7 +5,7 @@ from vedo import *
 
 settings.defaultFont = 'Bongas'
 
-spid = load(datadir+"spider.ply").c("brown")
+spid = load(dataurl+"spider.ply").c("brown")
 
 ch = ConvexHull(spid.points()).alpha(0.2)
 

@@ -1,5 +1,5 @@
 
-![vlogo](https://user-images.githubusercontent.com/32848391/90966721-1e420980-e4d6-11ea-998f-3285d512541f.png)
+![vlogo](https://user-images.githubusercontent.com/32848391/110344277-9bc20700-802d-11eb-8c0d-2e97226a9a32.png)
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/4acbc84816a540bfb9dc67bbff520d38)](https://www.codacy.com/manual/marcomusy/vedo?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=marcomusy/vedo&amp;utm_campaign=Badge_Grade)
 [![Downloads](https://pepy.tech/badge/vedo)](https://pepy.tech/project/vedo)
@@ -143,7 +143,7 @@ for a wide range of functionalities:
 
 - Integration with the [Qt5](https://www.qt.io/) framework.
 - Support for [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of PDE/FEM solutions.
-- Interoperability with the [trimesh](https://trimsh.org/) and [pyvista](https://github.com/pyvista/pyvista) libraries.
+- Interoperability with the [trimesh](https://trimsh.org/), [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab) and [pyvista](https://github.com/pyvista/pyvista) libraries.
 - Export 3D scenes and embed them into a [web page](https://vedo.embl.es/examples/fenics_elasticity.html).
 - Embed 3D scenes in *jupyter* notebooks with [K3D](https://github.com/K3D-tools/K3D-jupyter) (can export an interactive 3D-snapshot page [here](https://vedo.embl.es/examples/geo_scene.html)).
 
@@ -173,7 +173,7 @@ Type `vedo -h` for the complete list of options.<br>
 | [![cubecut](https://user-images.githubusercontent.com/32848391/99916179-e763d580-2d08-11eb-9044-b647115167ed.jpg)](https://github.com/marcomusy/vedo/tree/master/examples/advanced/cutWithMesh2.py)   | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)| [![quatumsine](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/tunnelling2.py) |
 | *Easily work with volumes, tetrahedral and polygonal meshes.*        | *Turing system of reaction-diffusion between two molecules.*                                                                   |  *Quantum-tunnelling of a particle in a box hitting a sinusoidal potential.*  |
 | [![trimesh](https://user-images.githubusercontent.com/32848391/91164151-e8b44080-e6ce-11ea-8213-cf5b12aa4d16.png)](https://github.com/marcomusy/vedo/blob/master/examples/other/trimesh)              | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)| [![whisker](https://user-images.githubusercontent.com/32848391/99916183-e8950280-2d08-11eb-8070-8bb1146c7c62.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/whiskers.py) |
-| *Interoperability with external libraries like [trimesh](https://trimsh.org/).*  |  *Support for the [FEniCS/Dolfin](https://fenicsproject.org/) library for PDE and finite element solutions.*       | *Advanced 2D/3D histogramming and plotting capablities.* |
+| *Interoperability with external libraries like [trimesh](https://trimsh.org/), [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab).*  |  *Support for the [FEniCS/Dolfin](https://fenicsproject.org/) library for PDE and finite element solutions.*       | *Advanced 2D/3D histogramming and plotting capablities.* |
 
 
 ### Galleries

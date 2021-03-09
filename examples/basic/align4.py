@@ -2,7 +2,7 @@
 with Procrustes method"""
 from vedo import *
 
-splines = load(datadir+'splines.npy')  # file contains a list of Lines
+splines = load(dataurl+'splines.npy')  # file contains a list of Lines
 
 procus = procrustesAlignment(splines, rigid=False)
 alignedsplines = procus.unpack()  # unpack Assembly into a python list

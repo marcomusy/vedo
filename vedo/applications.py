@@ -501,7 +501,7 @@ def IsosurfaceBrowser(volume, c=None, alpha=1, lego=False, cmap='hot', pos=None)
 
 
 ##############################################################################
-def Browser(meshes, sliderpos=((0.55, 0.07),(0.96, 0.07)), c=None):
+def Browser(meshes, sliderpos=((0.55, 0.07),(0.96, 0.07)), c=None, prefix=""):
     """
     Generate a ``Plotter`` window to browse a list of objects using a slider.
     Returns the ``Plotter`` object.
@@ -527,11 +527,7 @@ def Browser(meshes, sliderpos=((0.55, 0.07),(0.96, 0.07)), c=None):
             tx = tx.split("\\")[-1] # windows os
         elif ak.name:
             tx = ak.name
-        widget.GetRepresentation().SetTitleText(tx)
-        #printc("Browser Mode", c="y", invert=1, end="")
-        #if tx:
-        #    printc(": showing #", k, tx, " "*abs(40-len(tx))+"\r",
-        #           c="y", bold=0, end="")
+        widget.GetRepresentation().SetTitleText(prefix+tx)
 
     printc("Browser Mode", c="y", invert=1, end="")
     printc(" loaded", len(meshes), "objects", c="y", bold=False)

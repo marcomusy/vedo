@@ -1,7 +1,7 @@
-from vedo import datadir, Volume
+from vedo import dataurl, Volume
 from vedo.applications import IsosurfaceBrowser
 
-vol = Volume(datadir+'head.vti')
+vol = Volume(dataurl+'head.vti')
 
 plt = IsosurfaceBrowser(vol, c='gold') # Plotter instance
 

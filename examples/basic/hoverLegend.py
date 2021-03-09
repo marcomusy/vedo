@@ -2,7 +2,7 @@
 visualize object details"""
 from vedo import *
 
-mesh = Mesh(datadir+"bunny.obj")
+mesh = Mesh(dataurl+"bunny.obj")
 
 # Create multiple arrays associated to mesh vertices or cells
 mesh.addPointArray(mesh.points()[:,0], name='MYPOINTARRAY')
@@ -18,7 +18,7 @@ pts.name = 'The cube vertices'  # can give a name to any objects
 # Create an instance of the plotter window
 plt = Plotter(N=2, axes=1, sharecam=False)
 
-# Add a 2D text legend to both renderers and show:
-plt.addTextLegend(at=0).show(mesh, sph, __doc__, at=0)
-plt.addTextLegend(at=1).show(cub, pts, at=1)
+# Add a 2D hover legend to both renderers and show:
+plt.addHoverLegend(at=0).show(mesh, sph, __doc__, at=0)
+plt.addHoverLegend(at=1).show(cub, pts, at=1)
 interactive()

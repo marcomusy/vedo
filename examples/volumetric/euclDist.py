@@ -4,7 +4,7 @@ of the Euclidean distance values.
 """
 from vedo import *
 
-e = load(datadir+'embryo.tif') # Volume
+e = load(dataurl+'embryo.tif') # Volume
 
 edt = e.euclideanDistance()
 

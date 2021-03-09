@@ -881,6 +881,7 @@ def printc(*strings, **keys):
     :param box: print a box with specified text character ['']
     :param bool flush: flush buffer after printing [True]
     :param str end: the end character to be printed [newline]
+    :param bool debug: print debug information about the evironment
 
     :Example:
         .. code-block:: python
@@ -896,10 +897,6 @@ def printc(*strings, **keys):
     """
     end = keys.pop("end", "\n")
     flush = keys.pop("flush", True)
-
-    if sys.version_info[0] < 3:
-        print(strings)
-        return
 
     if not settings.notebookBackend:
         if not _terminal_has_colors:
@@ -918,7 +915,7 @@ def printc(*strings, **keys):
     dim = keys.pop("dim", False)
     invert = keys.pop("invert", False)
     box = keys.pop("box", "")
-    dbg = keys.pop("dbg", False)
+    dbg = keys.pop("debug", False)
 
     if c is True:
         c = "green"
@@ -1014,7 +1011,7 @@ def printc(*strings, **keys):
                 print('\x1b[3m\x1b[37m\x1b[2m', "\U00002501"*30, time.ctime(), "\x1b[0m")
                 if txt: print("    \x1b[37m\x1b[1mMessage : "+ out)
                 print("    \x1b[37m\x1b[1mFunction:\x1b[0m\x1b[37m "+ str(cfi.function))
-                print('    \x1b[1mLocals:\x1b[0m')
+                print('    \x1b[1mLocals  :\x1b[0m')
                 for loc in cf.f_locals.keys():
                     obj = cf.f_locals[loc]
                     var = repr(obj)

@@ -1,7 +1,7 @@
 """Create slicers for multiple datasets"""
-from vedo import Plotter, Text2D, load, printc, datadir
+from vedo import Plotter, Text2D, load, printc, dataurl
 
-volumes = load([datadir+'vase.vti', datadir+'embryo.slc', datadir+'head.vti'])
+volumes = load([dataurl+'vase.vti', dataurl+'embryo.slc', dataurl+'head.vti'])
 
 cmaps = ['hot_r', 'gist_ncar_r', 'bone_r']
 alphas = [0, 0, 0.15, 0, 0] # transparency of the grey volume

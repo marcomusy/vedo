@@ -1,7 +1,7 @@
 """Probe a Volume (voxel dataset) with lines"""
 from vedo import *
 
-vol = load(datadir+"embryo.slc")
+vol = load(dataurl+"embryo.slc")
 
 lines = []
 for i in range(60):  # probe scalars on 60 parallel lines
@@ -14,4 +14,4 @@ for i in range(60):  # probe scalars on 60 parallel lines
     #print(pl.getPointArray()) # numpy scalars can be accessed here
     #print(pl.getPointArray('vtkValidPointMask')) # the mask of valid points
 
-show(lines, __doc__)
+show(lines, __doc__, axes=1)

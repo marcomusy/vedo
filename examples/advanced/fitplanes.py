@@ -7,7 +7,7 @@ from vedo.pyplot import histogram
 
 plt = Plotter()
 
-apple = load(datadir+"apple.ply").subdivide().pointGaussNoise(1)
+apple = load(dataurl+"apple.ply").subdivide().pointGaussNoise(1)
 plt += apple.alpha(0.1)
 
 variances = []

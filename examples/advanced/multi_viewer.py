@@ -5,7 +5,7 @@ from vedo import *
 
 
 plt1 = Plotter(title='Window 1', sharecam=False, shape=(8,2))
-plt2 = Plotter(title='Window 2', size=(700,700), pos=(250,0))
+plt2 = Plotter(title='Window 2', size=(700,700), pos=(400,0))
 
 ####################################################################################
 def keyfunc(evt):
@@ -26,6 +26,7 @@ def keyfunc(evt):
 
 ####################################################################################
 def onLeftClick(evt):
+    if not evt: return
     mesh = evt.actor
     i = plt1.renderers.index(plt1.renderer)
     if i>= len(shapes): return
@@ -44,20 +45,20 @@ def onLeftClick(evt):
     plt1.backgroundColor('silver')
     plt1.render()
     plt2.clear()
-    plt2.add(acts)
-    plt2.resetcam = False
+    plt2.add(acts, resetcam=True)
 
 ####################################################################################
 plt1.addCallback("KeyPress", keyfunc)
 plt1.addCallback("LeftButtonPress", onLeftClick)
-plt1.show(Picture(datadir+'images/embl_logo.jpg').rotateX(-20),
+plt1.show(Picture(dataurl+'images/embl_logo.jpg').rotateX(-20),
           Text2D('Some footnote', pos='bottom-right', font='Quikhand', c='grey', s=0.6),
-          at=len(plt1.renderers)-1)
+          at=len(plt1.renderers)-1,
+)
 
 shapes = []
 for i in range(15):
     ps = ParametricShape(i).color(i-9)
-    pname = Text2D(ps.name, pos=1, bg='b', s=0.9, font='Calco')
+    pname = Text2D(ps.name, bg='b', s=0.7, font='Calco')
     plt1.show(ps, pname, at=i)
     shapes.append(ps)
 
@@ -68,7 +69,6 @@ instr += "Press b to reset to white the panel background"
 plt2.addCallback('KeyPress', keyfunc)
 plt2.show(__doc__,
           VedoLogo(distance=10),
-          Text2D("My Multi Viewer 1.0",
-                 pos=(.5,.8), s=2.5, c='dg', font='Kanopus', justify='center'),
-          Text2D(instr, bg='g', pos=(0.5,0.2), s=1.2, font='Quikhand', justify='center'),
-         )
+          Text2D("My Multi Viewer 1.0", pos=(.5,.8), s=2.5, c='dg', font='Kanopus', justify='center'),
+          Text2D(instr, bg='g', pos=(0.5,0.1), s=1.2, font='Quikhand', justify='center'),
+)

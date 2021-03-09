@@ -1,7 +1,7 @@
 """Cut UGrid with plane"""
 from vedo import *
 
-ug = UGrid(datadir+'ugrid.vtk')
+ug = UGrid(dataurl+'ugrid.vtk')
 
 ug.c('g',0.2).lc('r').lw(2)
 ug.cutWithPlane(origin=(5,0,1), normal=(1,1,5))

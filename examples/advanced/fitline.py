@@ -18,14 +18,14 @@ for i in range(500):
     data = np.stack((x,y,z), axis=1)
     data += np.random.normal(size=data.shape) * 0.8  # add gauss noise
 
-    vp += fitLine(data).lw(4).alpha(0.04)  # fit a line
+    vp += fitLine(data).lw(4).alpha(0.04).c("violet")  # fit a line
 
 # 'data' still contains the last iteration points
 vp += Points(data, r=10, c="yellow")
 
 print("Line 0 Fit slope = ", vp.actors[0].slope)
 
-plane = fitPlane(data)  # fit a plane
+plane = fitPlane(data).c("green4")  # fit a plane
 print("Plane Fit normal =", plane.normal)
 
 vp += [plane, __doc__]

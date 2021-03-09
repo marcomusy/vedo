@@ -18,7 +18,7 @@ from vedo.mesh import Mesh
 from vedo.io import load, screenshot, Video, exportWindow, download
 
 import vedo.shapes as shapes
-from vedo.shapes import Text, Text2D, Latex
+from vedo.shapes import Text3D, Text2D, Latex
 
 from vedo.plotter import show, clear, Plotter
 from vedo.plotter import closeWindow, closePlotter, interactive
@@ -112,7 +112,7 @@ __all__ = [
     "printHistogram",
     "Plotter",
     "ProgressBar",
-    "Text",
+    "Text3D",
     "Text2D",
     "Latex",
     "datadir",

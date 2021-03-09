@@ -1,5 +1,5 @@
 """A polynomial fit of degree="""
-from vedo import precision, Text, DashedLine
+from vedo import precision, Text3D, DashedLine
 from vedo.pyplot import plot, fit, histogram, show
 import numpy as np
 # np.random.seed(0)
@@ -42,7 +42,7 @@ plt += [pfit, pfit.errorBand, *pfit.errorLines] # add these objects to Plot
 txt = "fit coefficients:\n " + precision(pfit.coefficients, 2) \
     + "\n\pm" + precision(pfit.coefficientErrors, 2) \
     + "\n\Chi^2_\nu  = " + precision(pfit.reducedChi2, 3)
-plt += Text(txt, s=0.42, font='VictorMono').pos(2,-2).c('k')
+plt += Text3D(txt, s=0.42, font='VictorMono').pos(2,-2).c('k')
 
 # Create an histo to show the correlation of fit parameters
 h = histogram(pfit.MonteCarloCoefficients[:,0],

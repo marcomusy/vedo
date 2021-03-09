@@ -3,7 +3,7 @@ ambient, diffuse
 specular, specularPower, specularColor.
 """
 #https://lorensen.github.io/VTKExamples/site/Python/Rendering/SpecularSpheres
-from vedo import Plotter, Arrow, Light, datadir
+from vedo import Plotter, Arrow, Light, dataurl
 
 
 vp = Plotter(axes=1)
@@ -12,7 +12,7 @@ ambient, diffuse, specular = 0.1, 0., 0.
 specularPower, specularColor= 20, 'white'
 
 for i in range(8):
-    s = vp.load(datadir+'apple.ply').c('gold')
+    s = vp.load(dataurl+'apple.ply').c('gold')
     s.normalize().pos((i%4)*2.2, int(i<4)*3, 0)
 
     #s.phong()

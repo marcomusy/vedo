@@ -12,7 +12,7 @@ settings.defaultFont = 'Kanopus'
 vp = Plotter(axes=0)
 
 # load mesh and increase by a lot (N=2) the nr of surface vertices
-s = vp.load(datadir+"cow.vtk").alpha(0.3).subdivide(N=2)
+s = vp.load(dataurl+"cow.vtk").alpha(0.3).subdivide(N=2)
 
 for i, p in enumerate(s.points()):
     if i % 1000:

@@ -1,11 +1,11 @@
 """
 3D slider to move a mesh interactively
 """
-from vedo import Plotter, datadir
+from vedo import Plotter, dataurl
 
 vp = Plotter()
 
-mesh = vp.load(datadir+"spider.ply")
+mesh = vp.load(dataurl+"spider.ply")
 mesh.normalize().rotateZ(190)
 
 

@@ -2,7 +2,7 @@
 to pop a flag-style label"""
 from vedo import *
 
-b = Mesh(datadir+'bunny.obj').flag().color('m')
+b = Mesh(dataurl+'bunny.obj').flag().color('m')
 c = Cube(side=0.1).computeNormals().alpha(0.5).y(-0.02)
 
 # vignette returns a Mesh type object which can be later modified

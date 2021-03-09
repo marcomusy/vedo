@@ -1,5 +1,5 @@
 """Custom color and transparency maps for Volumes"""
-from vedo import load, datadir, show
+from vedo import load, dataurl, show
 from vedo.pyplot import cornerHistogram
 
 # Build a Volume object.
@@ -7,7 +7,7 @@ from vedo.pyplot import cornerHistogram
 # to define the transfer function in the range of the scalar.
 #  E.g.: setting alpha=[0, 0, 0, 1, 0, 0, 0] would make visible
 #  only voxels with value close to center of the range (see histogram).
-vol = load(datadir+'embryo.slc') # returns a Volume
+vol = load(dataurl+'embryo.slc') # returns a Volume
 vol.color([(0,"green"), (49,"green"),
            (50,"blue"), (109,"blue"),
            (110,"red"), (180,"red"),

@@ -22,8 +22,8 @@ def update():
     spline = None
     if len(cpoints)>2:
         spline = Spline(cpoints, closed=True).c('yellow').alpha(0.8)
-        # spline.ForceOpaqueOff()
-        # points.ForceOpaqueOff()
+        # spline.ForceOpaqueOn()  # VTK9 has problems with opacity
+        # points.ForceOpaqueOn()
     plt.add([points, spline])
 
 def keyfunc(evt):
@@ -50,7 +50,7 @@ cpoints = []
 points, spline= None, None
 
 pic = Picture("https://embryology.med.unsw.edu.au/embryology/images/4/40/Mouse-_embryo_E11.5.jpg")
-pic.alpha(0.99).pickable(True)
+pic.alpha(1).pickable(True)  # VTK9 has problems with opacity
 
 t = """Click to add a point
 Right-click to remove

@@ -18,7 +18,7 @@ hst1 = histogram(data1,
 
 # pick the 16th bin and color it violet
 hst1.unpack(15).c('violet')
-hst1 += Text('Highlight a\nspecial bin', pos=(0.5,20), c='v')
+hst1 += Text3D('Highlight a\nspecial bin', pos=(0.5,20), c='v')
 
 # A second histogram:
 # make it in same format as hst1 so it can be superimposed

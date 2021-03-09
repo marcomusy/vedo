@@ -53,6 +53,7 @@ cmap_slicer = None
 
 #################################################################################################
 def draw_scene():
+
     global kact, cmap_slicer
 
     nfiles = len(args.files)
@@ -75,6 +76,12 @@ def draw_scene():
     if args.background_grad:
         args.background_grad = getColor(args.background_grad)
 
+    if nfiles == 1 and args.files[0].endswith(".gif"): ###can be improved
+        frames = load(args.files[0])
+        applications.Browser(frames).show(bg=args.background, prefix="frame ",
+                                          bg2=args.background_grad)
+        return ##########################################################
+
     N = None
     if args.multirenderer_mode:
         if nfiles < 201:
@@ -84,16 +91,17 @@ def draw_scene():
             printc("         you are trying to load ", nfiles, " files.\n", c=1)
             N = 200
         vp = Plotter(size=wsize, N=N, bg=args.background, bg2=args.background_grad)
+        settings.immediateRendering=False
         vp.axes = args.axes_type
         for i in range(N):
-            vp.addTextLegend(at=i)
+            vp.addHoverLegend(at=i)
         if args.axes_type == 4 or args.axes_type == 5:
             vp.axes = 0
     else:
         N = nfiles
         vp = Plotter(size=wsize, bg=args.background, bg2=args.background_grad)
         vp.axes = args.axes_type
-        vp.addTextLegend()
+        vp.addHoverLegend()
 
     vp.verbose = not args.quiet
     vp.sharecam = not args.no_camera_share
@@ -260,7 +268,9 @@ def draw_scene():
                 vp.actors = actors
 
         if args.multirenderer_mode:
+
             vp.interactor.Start()
+
         else:
 
             # if scene is empty just draw the logo
@@ -457,6 +467,7 @@ if len(sys.argv) == 1 or os.name == "nt":  # no args are passed, pop up GUI
                 ("Picture files", "*.png"),
                 ("Picture files", "*.jpg"),
                 ("Picture files", "*.bmp"),
+                ("Picture files", "*.gif"),
                 ("Picture files", "*.jpeg"),
                 ("Geojson files", "*.geojson"),
                 ("DOLFIN files", "*.xml.gz"),
@@ -607,11 +618,13 @@ else:  #########################################################################
     pr.add_argument("--lego",                       help="Voxel rendering for 3D image files", action="store_true")
     pr.add_argument("-r", "--run",                  help="Run example from vedo/examples", metavar='')
     pr.add_argument("--list",                       help="List examples in vedo/examples", action="store_true")
+    pr.add_argument("--search-vtk-class", type=str, help="Search examples for this vtk class", default='', metavar='')
     pr.add_argument("--reload",                     help="Reload the file, ignoring any previous download", action="store_true")
     args = pr.parse_args()
 
     if "/vedo/vedo" in settings.installdir:
-        settings.installdir = os.path.join(settings.installdir, "../")
+        # settings.installdir = os.path.join(settings.installdir, "../")
+        settings.installdir = settings.installdir.replace('vedo/','').replace('vedo\\','')
 
     if args.run:
         expath = os.path.join(settings.installdir, "examples", "**", "*.py")
@@ -630,11 +643,10 @@ else:  #########################################################################
             printc("\nSelect one of", nmat, "matching scripts:", c='y', italic=1)
 
         for mat in matching[:25]:
-            # printc('Running matching example:', c='y', italic=0, end=' ')
             printc(os.path.basename(mat).replace('.py',''), c='y', italic=1, end=' ')
             with open(mat) as fm:
                 lline = ''.join(fm.readlines(60))
-                lline = lline.replace('\n','').replace('\'','').replace('\"','').replace('-','')
+                lline = lline.replace('\n',' ').replace('\'','').replace('\"','').replace('-','')
                 line = lline[:56] #cut
                 if line.startswith('from'): line=''
                 if line.startswith('import'): line=''
@@ -656,7 +668,7 @@ else:  #########################################################################
             with open(matching[0]) as fm:
                 codedump = fm.readlines()
             for line in codedump:
-                printc(line.strip(), c='cyan', italic=1, bold=0)
+                printc(line, c='cyan', italic=1, bold=0, end='')
             print()
 
         printc("("+matching[0]+")", c='y', bold=0, italic=1)
@@ -748,6 +760,68 @@ else:  #########################################################################
                 scs.append(lb+bn.replace('.py',''))
         printc("".join(scs), c='m', bold=0)
         print()
+
+
+    elif args.search_vtk_class:
+        # input a vtk class name to get links to examples that involve that class
+        # From https://kitware.github.io/vtk-examples/site/Python/Utilities/SelectExamples/
+        import json
+        import tempfile
+        from datetime import datetime
+        from pathlib import Path
+        from urllib.error import HTTPError
+        from urllib.request import urlretrieve
+
+        xref_url = 'https://raw.githubusercontent.com/Kitware/vtk-examples/gh-pages/src/Coverage/vtk_vtk-examples_xref.json'
+
+        def download_file(dl_path, dl_url, overwrite=False):
+            file_name = dl_url.split('/')[-1]
+            # Create necessary sub-directories in the dl_path (if they don't exist).
+            Path(dl_path).mkdir(parents=True, exist_ok=True)
+            # Download if it doesn't exist in the directory overriding if overwrite is True.
+            path = Path(dl_path, file_name)
+            if not path.is_file() or overwrite:
+                try:
+                    urlretrieve(dl_url, path)
+                except HTTPError as e:
+                    raise RuntimeError(f'Failed to download {dl_url}. {e.reason}')
+            return path
+
+        def get_examples(d, vtk_class, lang, all_values=False, number=5):
+            try:
+                kv = d[vtk_class][lang].items()
+            except KeyError as e:
+                print(f'For the combination {vtk_class} and {lang}, this key does not exist: {e}')
+                return None, None
+            total = len(kv)
+            samples = list(kv)
+            return total, [f'{s[1]}' for s in samples]
+
+        vtk_class, language, all_values, number = args.search_vtk_class, "Python", True, 10000
+        tmp_dir = tempfile.gettempdir()
+        path = download_file(tmp_dir, xref_url, overwrite=False)
+        if not path.is_file():
+            print(f'The path: {str(path)} does not exist.')
+
+        dt = datetime.today().timestamp() - os.path.getmtime(path)
+        # Force a new download if the time difference is > 10 minutes.
+        if dt > 600:
+            path = download_file(tmp_dir, xref_url, overwrite=True)
+        with open(path) as json_file:
+            xref_dict = json.load(json_file)
+
+        total_number, examples = get_examples(xref_dict, vtk_class, language, all_values=all_values, number=number)
+        if examples:
+            if total_number <= number or all_values:
+                print(f'VTK Class: {vtk_class}, language: {language}\n'
+                      f'Number of example(s): {total_number}.')
+            else:
+                print(f'VTK Class: {vtk_class}, language: {language}\n'
+                      f'Number of example(s): {total_number} with {number} random sample(s) shown.')
+            print('\n'.join(examples))
+        else:
+            print(f'No examples for the VTK Class: {vtk_class} and language: {language}')
+
 
     else:
         draw_scene()

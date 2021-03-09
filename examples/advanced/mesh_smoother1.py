@@ -1,10 +1,10 @@
 """Mesh smoothing with two different methods"""
-from vedo import Plotter, datadir
+from vedo import Plotter, dataurl
 
 vp = Plotter(N=3)
 
 # Load a mesh and show it
-vol = vp.load(datadir+"embryo.tif")
+vol = vp.load(dataurl+"embryo.tif")
 m0 = vol.isosurface().normalize().lw(0.1).c("violet")
 vp.show(m0, __doc__, at=0)
 

@@ -2,7 +2,7 @@
 set of points (landmarks) must move"""
 from vedo import *
 
-s1 = load(datadir + "bunny.obj").c("gold").flag('bunny1')
+s1 = load(dataurl + "bunny.obj").c("gold").flag('bunny1')
 
 # Make a copy of s1 (note that this mesh is not really necessary
 # we only used it to click a bunch of points as landmarks,

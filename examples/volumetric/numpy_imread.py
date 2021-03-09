@@ -5,7 +5,7 @@ from a numpy object using imread"""
 from vedo import *
 from skimage.io import imread
 
-f = datadir+'embryo.tif'
+f = dataurl+'embryo.tif'
 
 voriginal = load(f)
 printc('voxel size is', voriginal.spacing(), c='cyan')

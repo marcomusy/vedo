@@ -9,7 +9,7 @@ import numpy as np
 
 np.random.seed(1)
 
-mesh = load(datadir+"shuttle.obj").c('silver')
+mesh = load(dataurl+"shuttle.obj").c('silver')
 
 # pick 4 random points
 indxs = np.random.randint(0, mesh.N(), 4)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from vedo import printc, Text2D, Text, show, settings, Line, Plotter, shapes
+from vedo import printc, Text2D, Text3D, show, settings, Line, Plotter, shapes
 from vedo.settings import fonts
 import numpy as np
 
@@ -41,7 +41,7 @@ cam = dict(pos=(3.99e+5, 8.51e+3, 6.47e+5),
            clippingRange=(5.26e+5, 8.92e+5))
 
 for i,fnt in enumerate(["Kanopus", "Normografo", "Theemim", "VictorMono"]):
-    t = Text(txt, font=fnt, italic=0).c('darkblue').scale(12300)
+    t = Text3D(txt, font=fnt, italic=0).c('darkblue').scale(12300)
     plt.show(t,
              Text2D("Font: "+fnt, font=fnt, bg='r'),
              axes=dict(xtitle='my units for L_x  (\mum)',
@@ -95,7 +95,7 @@ for i, font in enumerate(fonts):
     if font in ["VictorMono", "Kanopus", "LogoType", "Comae","LionelOfParis"]:
         txt+= " БГДЖЗИЙКЛ"
     gap -= 4
-    t2 = Text(txt, font=font, italic=0).c(i).y(gap)
+    t2 = Text3D(txt, font=font, italic=0).c(i).y(gap)
     ln = Line([-1,gap-1],[52,gap-1], lw=0.5, c='grey')
     fn3d.extend([t2,ln])
 

@@ -8,7 +8,7 @@
 from pymeshfix import MeshFix
 from vedo import *
 
-amesh = load(datadir+'270.vtk')
+amesh = load(dataurl+'270.vtk')
 
 meshfix = MeshFix(amesh.points(), amesh.faces())
 meshfix.repair()

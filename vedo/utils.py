@@ -563,12 +563,13 @@ def vector(x, y=None, z=0.0, dtype=np.float64):
     If `y` is ``None``, assume input is in the form `[x,y,z]`.
     """
     if y is None:  # assume x is already [x,y,z]
-        return np.array(x, dtype=dtype)
+        return np.asarray(x, dtype=dtype)
     return np.array([x, y, z], dtype=dtype)
 
 
-def versor(v):
+def versor(x, y=None, z=0.0, dtype=np.float64):
     """Return the unit vector. Input can be a list of vectors."""
+    v = vector(x,y,z,dtype)
     if isinstance(v[0], np.ndarray):
         return np.divide(v, mag(v)[:, None])
     else:
@@ -1034,6 +1035,8 @@ def printInfo(obj):
         if not otit:
             otit = None
         printc("   title:", otit, bold=0, c="c")
+        printc("     window size:", obj.window.GetSize(),
+               "- full screen size:", obj.window.GetScreenSize(), bold=0, c="c")
         printc(" active renderer:", obj.renderers.index(obj.renderer), bold=0, c="c")
         printc("   nr. of actors:", len(acts), bold=0, c="c", end="")
         printc(" (" + str(totpt), "vertices)", bold=0, c="c")
@@ -1329,12 +1332,17 @@ def vtkCameraToK3D(vtkcam):
     return np.array(kam).ravel()
 
 
-def make_ticks(x0, x1, N, labels=None, digits=None):
-
+def makeTicks(x0, x1, N, labels=None, digits=None):
+    # Copyright M. Musy, 2021, license: MIT.
     ticks_str, ticks_float = [], []
+
+    if x1 <= x0:
+        printc("Error in makeTicks(): x0 >= x1.", c='r')
+        return np.array([0.0,1.0]), ["",""]
 
     if labels is not None:
         # user is passing custom labels
+
         ticks_float.append(0)
         ticks_str.append('')
         for tp, ts in labels:
@@ -1345,55 +1353,47 @@ def make_ticks(x0, x1, N, labels=None, digits=None):
             ticks_float.append(tickn)
 
     else:
-
-        # automatic
-        dstep = (x1-x0)/N  # desired step size
-        if dstep <= 0:
-            return np.array([0.0,1.0]), ["",""]
-
-        if x0:
-            expo = np.floor(np.log10(abs(x0)))
-            lowBound = pow(10, expo)*np.sign(x0)
-        else:
-            lowBound = 0.0
-        if np.sign(x0)<0: lowBound *= 10
-        if   lowBound>0 and lowBound-dstep < 0: lowBound = 0
-        elif lowBound<0 and lowBound+dstep > 0:
-            lowBound = - pow(10, np.floor(np.log10(dstep)))
-
-        if x1:
-            expo = np.ceil(np.log10(abs(x1)))
-            upBound = pow(10, expo)*np.sign(x1)
-        else:
-            upBound = 0
-        if upBound<0 and lowBound+dstep > 0:
-            upBound = 0
-        if -1<=upBound<0:
-            upBound /= 10
-        if lowBound == upBound:
-            if upBound<0:
-                upBound /= 10
-            else:
-                upBound *= 10
+        # ..now comes one of the shortest and most painful pieces of code i ever wrote:
+        # automatically choose the best natural axis subdivision based on multiples of 1,2,5
+        dstep = (x1-x0)/N  # desired step size, begin of the nightmare
 
         basestep = pow(10, np.floor(np.log10(dstep)))
-        steps = np.asarray([basestep*i for i in (1,2,4,5,10,20,40,50)])
+        steps = np.array([basestep*i for i in (1,2,5,10,20,50)])
         idx = (np.abs(steps-dstep)).argmin()
-        s = steps[idx]
-        if not s or (upBound-lowBound)/s > 100000 or upBound == lowBound:
-            return np.array([0.0,1.0]), ["",""]
+        s = steps[idx]  # chosen step size
 
-        sel_axis = np.arange(lowBound, upBound, s)
-        sel_axis = np.clip(sel_axis, x0, x1)
-        sel_axis = np.unique(sel_axis)
+        lowBound, upBound = 0, 0
+        if x0 < 0:
+            lowBound = -pow(10, np.ceil(np.log10(-x0)))
+        if x1 > 0:
+            upBound = pow(10, np.ceil(np.log10(x1)))
+
+        if lowBound<0:
+            if upBound<0:
+                negaxis = np.arange(lowBound, int(upBound/s)*s)
+            else:
+                negaxis = np.arange(lowBound, 0, s)
+        else:
+            negaxis = np.array([])
+
+        if upBound>0:
+            if lowBound>0:
+                posaxis = np.arange(int(lowBound/s)*s, upBound, s)
+            else:
+                posaxis = np.arange(0, upBound, s)
+        else:
+            posaxis = np.array([])
+
+        fulaxis = np.unique(np.clip(np.concatenate([negaxis, posaxis]), x0, x1))
+        #end of the nightmare
 
         if digits is None:
             np.set_printoptions(suppress=True) # avoid zero precision
-            sas = str(sel_axis).replace('[','').replace(']','')
+            sas = str(fulaxis).replace('[','').replace(']','')
             sas = sas.replace('.e','e').replace('e+0','e+').replace('e-0','e-')
             np.set_printoptions(suppress=None) # set back to default
         else:
-            sas = precision(sel_axis, digits, vrange=(x0,x1))
+            sas = precision(fulaxis, digits, vrange=(x0,x1))
             sas = sas.replace('[','').replace(']','').replace(')','').replace(',','')
 
         sas2 = []
@@ -1405,23 +1405,19 @@ def make_ticks(x0, x1, N, labels=None, digits=None):
             if digits is not None and 'e' in s: s+=' ' # add space to terminate modifiers
             sas2.append(s)
 
-        for i in range(len(sel_axis)):
+        for i in range(len(fulaxis)):
             ts = sas2[i]
-            tp = sel_axis[i]
+            tp = fulaxis[i]
             if tp == x1:
                 continue
             tickn = linInterpolate(tp, [x0,x1], [0,1])
             ticks_float.append(tickn)
             ticks_str.append(ts)
-        #printc('------------------------------------------------', c='y')
-        #printc('x0, x1, N       = ', x0, x1, N, c='y')
-        #printc('bounds            ', lowBound, upBound)
-        #printc('dstep, steps      ', dstep, steps)
-        #printc('Result tick array\n', sel_axis, sel_axis.shape[0], c='y')
 
     ticks_str.append('')
     ticks_float.append(1)
-    return np.array(ticks_float), ticks_str
+    ticks_float = np.array(ticks_float)
+    return ticks_float, ticks_str
 
 
 ############################################################################
@@ -1516,7 +1512,6 @@ def trimesh2vedo(inputobj, alphaPerCell=False):
         return tact
 
     elif "PointCloud" in inputobj_type:
-        from vedo.shapes import Points
 
         trim_cc, trim_al = "black", 1
         if hasattr(inputobj, "vertices_color"):
@@ -1525,18 +1520,16 @@ def trimesh2vedo(inputobj, alphaPerCell=False):
                 trim_cc = trim_c[:, [0, 1, 2]] / 255
                 trim_al = trim_c[:, 3] / 255
                 trim_al = np.sum(trim_al) / len(trim_al)  # just the average
-        return Points(inputobj.vertices, r=8, c=trim_cc, alpha=trim_al)
+        return vedo.shapes.Points(inputobj.vertices, r=8, c=trim_cc, alpha=trim_al)
 
     elif "path" in inputobj_type:
-        from vedo.shapes import Line
-        from vedo.assembly import Assembly
 
         lines = []
         for e in inputobj.entities:
             # print('trimesh entity', e.to_dict())
-            l = Line(inputobj.vertices[e.points], c="k", lw=2)
+            l = vedo.shapes.Line(inputobj.vertices[e.points], c="k", lw=2)
             lines.append(l)
-        return Assembly(lines)
+        return vedo.Assembly(lines)
 
     return None
 
@@ -1599,29 +1592,29 @@ def vtkVersionIsAtLeast(major, minor=0, build=0):
     else:
         return False
 
-def systemReport():
-    try:
-        import scooby
-        r = scooby.Report(additional=['vtk',
-                                      'vedo',
-                                      'meshio',
-                                      'matplotlib',
-                                      'k3d',
-                                      'itkwidgets',
-                                      'panel',
-                                      'dolfin',
-                                      'trimesh',
-                                      'pymeshfix',
-                                      'pygmsh',
-                                      'nevergrad',
-                                      'pyshtools',
-                                      'cv2',
-                                      ])
-        printc(r)
-    except:
-        print('Install scooby with command: pip install scooby')
-        r = ''
-    return r
+# def systemReport():
+#     try:
+#         import scooby
+#         r = scooby.Report(additional=['vtk',
+#                                       'vedo',
+#                                       'meshio',
+#                                       'matplotlib',
+#                                       'k3d',
+#                                       'itkwidgets',
+#                                       'panel',
+#                                       'dolfin',
+#                                       'trimesh',
+#                                       'pymeshfix',
+#                                       'pygmsh',
+#                                       'nevergrad',
+#                                       'pyshtools',
+#                                       'cv2',
+#                                       ])
+#         printc(r)
+#     except:
+#         print('Install scooby with command: pip install scooby')
+#         r = ''
+#     return r
 
 
 def ctf2lut(tvobj):

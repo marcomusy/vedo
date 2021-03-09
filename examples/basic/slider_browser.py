@@ -5,7 +5,7 @@ from vedo import *
 
 settings.defaultFont = "SmartCouric"
 
-objs = load(datadir+'timecourse1d.npy') # list of meshes
+objs = load(dataurl+'timecourse1d.npy') # list of meshes
 
 # show the biggest and continue (return a Plotter instance)
 vp = show(objs[-1], axes=1, interactive=False, bg='bb')
@@ -31,8 +31,8 @@ def sliderfunc(widget, event):
 vp.addSlider2D(sliderfunc, k, len(objs)-1,
                pos=[(0.4,0.1), (0.9,0.1)], showValue=False, titleSize=1.5)
 
-vp += Text2D(__doc__, pos=8, s=0.8, c='w')
-vp += load(datadir+'images/limbs_tc.jpg').scale(0.0154).y(10.0)
+vp += Text2D(__doc__, pos="top-center", s=1.2, c='w')
+vp += load(dataurl+'images/limbs_tc.jpg').scale(0.0154).y(10.0)
 vp += Line([(0,8), (0,10), (28.6,10), (4.5,8)], c='gray')
 
 vp.show(zoom=1.2, interactive=True)

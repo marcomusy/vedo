@@ -2,7 +2,7 @@
 hover the plane to get the scalar values"""
 from vedo import *
 
-vol = Volume(datadir+'embryo.slc').alpha([0,0,0.8]).c('w').pickable(False)
+vol = Volume(dataurl+'embryo.slc').alpha([0,0,0.8]).c('w').pickable(False)
 
 sl = vol.slicePlane(origin=vol.center(), normal=(0,1,1))
 sl.cmap('Purples_r').lighting('off').addScalarBar(title='Slice', c='w')

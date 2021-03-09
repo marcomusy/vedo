@@ -88,8 +88,8 @@ def getNotebookBackend(actors2show, zoom, viewup):
                 vup = (0,1,0)
                 vpos= vfp[0]+vss*0.01, vfp[1]+vss*0.01, vfp[2] + vss/1.5  # camera position
             settings.notebook_plotter.camera = [vpos[0], vpos[1], vpos[2],
-                                                 vfp[0],  vfp[1],  vfp[2],
-                                                 vup[0],  vup[1],  vup[2] ]
+                                                  vfp[0],  vfp[1],  vfp[2],
+                                                  vup[0],  vup[1],  vup[2] ]
         if not vp.axes:
             settings.notebook_plotter.grid_visible = False
 
@@ -254,12 +254,18 @@ def getNotebookBackend(actors2show, zoom, viewup):
     elif settings.notebookBackend == 'panel' and hasattr(vp, 'window') and vp.window:
 
         import panel # https://panel.pyviz.org/reference/panes/VTK.html
-
         vp.renderer.ResetCamera()
-
         settings.notebook_plotter = panel.pane.VTK(vp.window,
                                                    width=int(vp.size[0]/1.5),
                                                    height=int(vp.size[1]/2))
+
+
+    ####################################################################################
+    elif 'ipyvtk' in settings.notebookBackend and hasattr(vp, 'window') and vp.window:
+
+        from ipyvtk_simple.viewer import ViewInteractiveWidget
+        vp.renderer.ResetCamera()
+        settings.notebook_plotter = ViewInteractiveWidget(vp.window)
 
 
     ####################################################################################

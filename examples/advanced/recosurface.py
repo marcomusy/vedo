@@ -20,7 +20,7 @@ import numpy as np
 
 vp = Plotter(N=4, axes=0)
 
-mesh = vp.load(datadir+"apple.ply").subdivide()
+mesh = vp.load(dataurl+"apple.ply").subdivide()
 vp.show(mesh, at=0)
 
 noise = np.random.randn(mesh.N(), 3) * 0.03

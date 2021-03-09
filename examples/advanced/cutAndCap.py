@@ -3,7 +3,7 @@ and cap the holes
 """
 from vedo import *
 
-p1 = load(datadir+'motor.byu')
+p1 = load(dataurl+'motor.byu')
 
 cutmesh = Sphere().y(-0.4).scale(0.4).wireframe().alpha(0.1)
 

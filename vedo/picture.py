@@ -7,7 +7,6 @@ import vedo.docs as docs
 import vedo.utils as utils
 import vedo.settings as settings
 from vtk.util.numpy_support import numpy_to_vtk
-from vedo.base import Base3DProp
 
 __doc__ = (
     """
@@ -20,7 +19,7 @@ __all__ = ["Picture"]
 
 
 #################################################
-class Picture(vtk.vtkImageActor, Base3DProp):
+class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     """
     Derived class of ``vtkImageActor``. Used to represent 2D pictures.
     Can be instantiated with a path file name or with a numpy array.
@@ -31,39 +30,49 @@ class Picture(vtk.vtkImageActor, Base3DProp):
     """
     def __init__(self, obj=None):
         vtk.vtkImageActor.__init__(self)
-        Base3DProp.__init__(self)
+        vedo.base.Base3DProp.__init__(self)
 
-        if utils.isSequence(obj) and len(obj):
-            iac = vtk.vtkImageAppendComponents()
-            nchan = obj.shape[2] # get number of channels in inputimage (L/LA/RGB/RGBA)
-            for i in range(nchan):
-                #arr = np.flip(np.flip(array[:,:,i], 0), 0).ravel()
-                arr = np.flip(obj[:,:,i], 0).ravel()
+
+        if utils.isSequence(obj) and len(obj): # passing array
+            obj = np.asarray(obj)
+
+            if len(obj.shape) == 3: # has shape (nx,ny, ncolor_alpha_chan)
+                iac = vtk.vtkImageAppendComponents()
+                nchan = obj.shape[2] # get number of channels in inputimage (L/LA/RGB/RGBA)
+                for i in range(nchan):
+                    #arr = np.flip(np.flip(array[:,:,i], 0), 0).ravel()
+                    arr = np.flip(obj[:,:,i], 0).ravel()
+                    varb = numpy_to_vtk(arr, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
+                    varb.SetName("RGBA")
+                    imgb = vtk.vtkImageData()
+                    imgb.SetDimensions(obj.shape[1], obj.shape[0], 1)
+                    imgb.GetPointData().SetScalars(varb)
+                    iac.AddInputData(imgb)
+                iac.Update()
+                img = iac.GetOutput()
+
+            elif len(obj.shape) == 2: # black and white
+                arr = np.flip(obj[:,:], 0).ravel()
                 varb = numpy_to_vtk(arr, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
-                imgb = vtk.vtkImageData()
-                imgb.SetDimensions(obj.shape[1], obj.shape[0], 1)
-                imgb.GetPointData().SetScalars(varb)
-                iac.AddInputData(0, imgb)
-            iac.Update()
-            img = iac.GetOutput()
-            self.SetInputData(img)
+                varb.SetName("RGBA")
+                img = vtk.vtkImageData()
+                img.SetDimensions(obj.shape[1], obj.shape[0], 1)
+                img.GetPointData().SetScalars(varb)
 
         elif isinstance(obj, vtk.vtkImageData):
-            self.SetInputData(obj)
             img = obj
 
         elif isinstance(obj, str):
             if "https://" in obj:
-                import vedo.io as io
-                obj = io.download(obj, verbose=False)
+                obj = vedo.io.download(obj, verbose=False)
 
-            if   ".png" in obj:
+            if   ".png" in obj.lower():
                 picr = vtk.vtkPNGReader()
-            elif ".jpg" in obj or ".jpeg" in obj:
+            elif ".jpg" in obj.lower() or ".jpeg" in obj.lower():
                 picr = vtk.vtkJPEGReader()
-            elif ".bmp" in obj:
+            elif ".bmp" in obj.lower():
                 picr = vtk.vtkBMPReader()
-            elif ".tif" in obj:
+            elif ".tif" in obj.lower():
                 picr = vtk.vtkTIFFReader()
             else:
                 colors.printc("Cannot understand picture format", obj, c='r')
@@ -72,13 +81,12 @@ class Picture(vtk.vtkImageActor, Base3DProp):
             self.filename = obj
             picr.Update()
             img = picr.GetOutput()
-            self.SetInputData(img)
 
         else:
             img = vtk.vtkImageData()
-            self.SetInputData(img)
 
         self._data = img
+        self.SetInputData(img)
 
         sx,sy,_ = img.GetDimensions()
         self.shape = np.array([sx,sy])
@@ -103,7 +111,7 @@ class Picture(vtk.vtkImageActor, Base3DProp):
                    c=None,
                    alpha=1,
                    bg=None,
-                   font="Gula",
+                   font="Theemim",
                    dpi=500,
                    justify="bottom-left",
                    ):

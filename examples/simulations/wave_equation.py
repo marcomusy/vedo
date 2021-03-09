@@ -8,7 +8,7 @@ For too large values of dt the simple Euler can diverge.
 # We will keep them fixed, but adding them in as if they were
 # masses makes the programming easier.
 # Adapted from B.Martin (2009) http://www.kcvs.ca/martin by M.Musy
-from vedo import Plotter, ProgressBar, Point, datadir
+from vedo import Plotter, ProgressBar, Point, dataurl
 import numpy as np
 
 ####################################################
@@ -108,7 +108,7 @@ pts_actors_rk[0].legend = "Runge-Kutta4"
 vp.actors = pts_actors_eu + pts_actors_rk
 
 # let's also add a fancy background image from wikipedia
-vp.load(datadir+"images/wave_wiki.png").alpha(0.8).scale(0.4).pos(0,-100,-20)
+vp.load(dataurl+"images/wave_wiki.png").alpha(0.8).scale(0.4).pos(0,-100,-20)
 vp += __doc__
 
 pb = ProgressBar(0, Nsteps, c="red", ETA=1)

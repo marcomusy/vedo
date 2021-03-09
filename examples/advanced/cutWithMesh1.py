@@ -1,7 +1,7 @@
 """Cut a mesh with another mesh"""
 from vedo import *
 
-embryo = load(datadir+"embryo.tif").isosurface(30).normalize()
+embryo = load(dataurl+"embryo.tif").isosurface(30).normalize()
 txt = Text2D(__doc__, c='b', bg='lb')
 
 # mesh used to cut:

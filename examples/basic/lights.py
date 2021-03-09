@@ -1,7 +1,7 @@
 """Set custom lights to a 3D scene"""
-from vedo import Plotter, load, datadir, Point, Light, show
+from vedo import Plotter, load, dataurl, Point, Light, show
 
-man = load(datadir+'man.vtk').c('white').lighting('glossy')
+man = load(dataurl+'man.vtk').c('white').lighting('glossy')
 
 p1 = Point([1,0,1], c='y')
 p2 = Point([0,0,2], c='r')

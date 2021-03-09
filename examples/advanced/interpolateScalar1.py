@@ -3,7 +3,7 @@ one Mesh or Points object onto another one"""
 from vedo import *
 import numpy as np
 
-mesh = Mesh(datadir+"bunny.obj")
+mesh = Mesh(dataurl+"bunny.obj")
 
 # pick 100 points where we assume that some scalar value is known
 # (can be ANY points, not necessarily taken from the mesh)

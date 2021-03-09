@@ -8,7 +8,7 @@ import numpy as np
 
 vp1 = Plotter(N=3)
 
-mesh = vp1.load(datadir+"bunny.obj").normalize().subdivide()
+mesh = vp1.load(dataurl+"bunny.obj").normalize().subdivide()
 
 pts = mesh.points(copy=True)  # pts is a copy of the points not a reference
 pts += np.random.randn(len(pts), 3)/20  # add noise, will not mess up the original points

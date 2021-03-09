@@ -1,7 +1,7 @@
 
 from vedo import *
 
-ug1 = UGrid(datadir+'ugrid.vtk')
+ug1 = UGrid(dataurl+'ugrid.vtk')
 
 ug2= ug1.clone().tomesh().wireframe()
 

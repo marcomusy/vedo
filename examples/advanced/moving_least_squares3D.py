@@ -26,7 +26,7 @@ for i in range(5):  # generate a time sequence of 5 shapes
     ssc = ss.clone().points(cs).wireframe().c('gray').alpha(.01)
     warps.append(ssc)
 
-show(warps, __doc__, at=0, N=3, size=(1600,700))
+show(warps, Text2D(__doc__,s=0.75), at=0, N=3, size=(1600,700))
 show(sets, "add noise to vertices:", at=1, zoom=1.4)
 
 #The nr neighbours in the local 4D search must be specified

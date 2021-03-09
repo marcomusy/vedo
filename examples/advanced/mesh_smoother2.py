@@ -1,7 +1,7 @@
 """Smoothing a mesh"""
 from vedo import *
 
-s1 = load(datadir+'panther.stl').lw(0.1)
+s1 = load(dataurl+'panther.stl').lw(0.1)
 
 s2 = s1.clone().x(50).c('lb').lw(0)
 s2.subdivide(3).smoothWSinc().computeNormals()

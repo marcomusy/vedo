@@ -5,9 +5,9 @@ from __future__ import division, print_function
 from vedo import *
 from vedo.pyplot import histogram
 
-vp = Plotter()
+plt = Plotter()
 
-s = vp.load(datadir+"cow.vtk").alpha(0.3)
+s = plt.load(dataurl+"cow.vtk").alpha(0.3)
 
 pts1, pts2, vals, cols = [], [], [], []
 
@@ -26,9 +26,9 @@ for i in range(0, s.N(), 10):
     pts1.append(p)
     pts2.append(p + n / 8)
 
-vp += Points(pts1, c=cols)
-vp += Lines(pts1, pts2, c="black")
-vp += histogram(vals, xtitle='radius', xlim=[0,2]).pos(-1,0.5,-1)
-vp += Text2D(__doc__, pos=1)
+plt += Points(pts1, c=cols)
+plt += Lines(pts1, pts2, c="black")
+plt += histogram(vals, xtitle='radius', xlim=[0,2]).pos(-1,0.5,-1)
+plt += __doc__
 
-vp.show()
+plt.show()

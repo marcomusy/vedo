@@ -38,7 +38,6 @@ class Plot(Assembly):
 
         Assembly.__init__(self, *objs)
 
-        self.xscale = 1  # will always be one
         self.yscale = 1
         self.aspect = 4 / 3.0
         self.cut = True  # todo
@@ -56,69 +55,70 @@ class Plot(Assembly):
         self.bins = []
         self.freqs = []
 
-        # self.ylog = False # todo
-        # self.args = []  # maybe useless
-        # self.data = None
 
-        self.modified = False
+    def ybounds(self, scaled=True):
+        if scaled:
+            return (self._y0lim/self.yscale, self._y1lim/self.yscale)
+        else:
+            return (self._y0lim, self._y1lim)
 
     def __iadd__(self, *objs):
         """
         Add object to plot with taking automatically into account the correct aspect ratio.
         """
-        # these will scale proportionally to keep their shape aspect ratio
+        # these types will scale proportionally to keep their native shape aspect ratio intact
         typs = (
-            shapes.Text,
+            shapes.Text3D,
             shapes.Polygon,
             shapes.Star,
             shapes.Disc,
             shapes.Ellipsoid,
             shapes.Latex,
             shapes.Sphere,
+            # shapes.Arrow2D,
             Assembly,
             vedo.Picture,
         )
-        self.fixed_scale = np.min([self.xscale, self.yscale])
+        self.fixed_scale = np.min([1, self.yscale])
 
         objs = objs[0]  # make a list anyway
         if not utils.isSequence(objs):
             objs = [objs]
 
         if not utils.isSequence(objs[0]) and isinstance(objs[0], Plot):
+            # is adding another whole Plot # TO BE REVISED
             plot2 = objs[0]
+            plot_z = plot2.z() + (plot2._x1lim - plot2._x0lim)/1000 # add a small shift in z
+            # print(plot2.yscale, self.yscale)
             elems = plot2.unpack()
             objs2 = []
             for e in elems:
-                if e.name == "axes" or "Text" in e.name:
+                if e.name == "axes":
                     continue
-                if isinstance(e, typs):
-                    ec = e.clone()
-                    ec.SetScale(1, 1 / plot2.yscale * self.yscale, 1)
-                else:
-                    ec = e.clone()
-                    ec.SetScale(1, 1 / plot2.yscale * self.yscale, 1)
-                self.AddPart(ec)
+                ec = e.clone()
+                # remove plot2.yscale and apply self.yscale:
+                ec.SetScale(1, self.yscale/plot2.yscale, 1)
+                self.AddPart(ec.z(plot_z))
                 objs2.append(ec)
             objs = objs2
 
         else:
             # print('adding individual objects', len(objs))
             for a in objs:
-                # if isinstance(a, str):
-                #     self.AddPart(vedo.Text2D(a))
-                # else:
-                self.AddPart(a)
                 if isinstance(a, typs):
                     # special scaling to preserve the aspect ratio
+                    # print('adding', a.name, 'fixed scale', self.fixed_scale)
                     a.scale(self.fixed_scale)
                 else:
-                    a.scale([self.xscale, self.yscale, 1])
+                    # print('adding', a.name, 'yscale', self.yscale)
+                    a.scale([1, self.yscale, 1])
                 py = a.y()
                 a.y(py * self.yscale)
+                self.AddPart(a)
 
         if self.cut:  # todo
             for a in objs:
-                if not a or a.name == "axes" or "Text" in a.name:
+                if not a or a.name == "axes":
                     continue
                 if self._y0lim is not None and hasattr(a, "cutWithPlane"):
                     a.cutWithPlane([0, self._y0lim, 0], [0, 1, 0])
@@ -129,7 +129,6 @@ class Plot(Assembly):
                 if self._x1lim is not None and hasattr(a, "cutWithPlane"):
                     a.cutWithPlane([self._x1lim, 0, 0], [-1, 0, 0])
 
-        self.modified = True
         return self
 
     def plot(self, *args, **kwargs):
@@ -198,11 +197,11 @@ def plot(*args, **kwargs):
 
     More examples:
 
-    |plot1_errbars| |plot1_errbars.py|_
+    |plot_errbars| |plot_errbars.py|_
 
-    |plot2_errband| |plot2_errband.py|_
+    |plot_errband| |plot_errband.py|_
 
-    |plot3_pip| |plot3_pip.py|_
+    |plot_pip| |plot_pip.py|_
 
     |scatter1| |scatter1.py|_
 
@@ -219,7 +218,7 @@ def plot(*args, **kwargs):
     :param bool showNan: show where the function does not exist as red points.
     :param list bins: number of bins in x and y.
 
-    |plot4_fxy| |plot4_fxy.py|_
+    |plot_fxy| |plot_fxy.py|_
 
     Function is: :math:`f(x,y)=\sin(3x) \cdot \log(x-y)/3` in range :math:`x=[0,3], y=[0,3]`.
 
@@ -230,7 +229,7 @@ def plot(*args, **kwargs):
     :param float lw: line with of the binning
     :param list bins: binning in x and y
 
-    |fcomplex| |plot4_fxy.py|_
+    |fcomplex| |plot_fxy.py|_
 
 
     If ``mode='polar'`` input arrays are interpreted as a list of polar angles and radii.
@@ -272,7 +271,7 @@ def plot(*args, **kwargs):
     :param alpha: transparency of the unit grid
     :param str cmap: color map of the surface
 
-    |plot5_spheric| |plot5_spheric.py|_
+    |plot_spheric| |plot_spheric.py|_
     """
     mode = kwargs.pop("mode", "")
     if "spher" in mode:
@@ -296,7 +295,6 @@ def plot(*args, **kwargs):
             kwargs["dashed"] = True
         elif "-" in opts:
             opts = opts.replace("-", "")
-            kwargs["lw"] = 2
         else:
             kwargs["lw"] = 0
         symbs = [".", "p", "*", "h", "D", "d", "o", "v", "^", ">", "<", "s", "x", "+", "a"]
@@ -357,6 +355,7 @@ def histogram(*args, **kwargs):
 
     :param int bins: number of bins.
     :param list vrange: restrict the range of the histogram.
+    :param bool density: normalize the area to 1 by dividing by the nr of entries and bin size.
     :param bool logscale: use logscale on y-axis.
     :param bool fill: fill bars woth solid color `c`.
     :param float gap: leave a small space btw bars.
@@ -664,7 +663,6 @@ def _plotxy(
     if marker == "" and not line and not spline:
         line = True
 
-
     # purge NaN from data
     validIds = np.all(np.logical_not(np.isnan(data)), axis=1)
     data = data[validIds]
@@ -834,7 +832,7 @@ def _plotxy(
     if title:
         if titleSize is None:
             titleSize = dx / 40.0
-        tit = shapes.Text(
+        tit = shapes.Text3D(
             title,
             s=titleSize,
             c=c,
@@ -852,7 +850,7 @@ def _plotxy(
         ndiv = 6
         if "numberOfDivisions" in axes.keys():
             ndiv = axes["numberOfDivisions"]
-        tp, ts = utils.make_ticks(y0lim / yscale, y1lim / yscale, ndiv / aspect)
+        tp, ts = utils.makeTicks(y0lim / yscale, y1lim / yscale, ndiv / aspect)
         labs = []
         for i in range(1, len(tp) - 1):
             ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
@@ -865,14 +863,13 @@ def _plotxy(
         axes["yrange"] = (y0lim, y1lim)
         axes["zrange"] = (0, 0)
         axes["c"] = "k"
+        axes["yUseBounds"] = True
         axs = addons.Axes(**axes)
         axs.name = "axes"
         asse = Plot(acts, axs)
         asse.axes = axs
         asse.SetOrigin(x0lim, y0lim, 0)
-        # print('yscale =    ', yscale)
-        # print('y0,    y1   ', y0, y1)
-        # print('y0lim, y1lim', y0lim, y1lim)
+
     else:
         settings.xtitle = xtitle
         settings.ytitle = ytitle
@@ -1175,7 +1172,7 @@ def _plotPolar(
 
     ti = None
     if title:
-        ti = shapes.Text(title, (0, 0, 0), s=tsize, depth=0, justify="top-center")
+        ti = shapes.Text3D(title, (0, 0, 0), s=tsize, depth=0, justify="top-center")
         ti.pos(0, -r2e * 1.15, 0.01)
 
     rays = []
@@ -1209,7 +1206,7 @@ def _plotPolar(
                     ju = "top-center"
                 else:
                     ju = "top-left"
-                a = shapes.Text(int(t * k), pos=(0, 0, 0), s=lsize, depth=0, justify=ju)
+                a = shapes.Text3D(int(t * k), pos=(0, 0, 0), s=lsize, depth=0, justify=ju)
                 a.pos(r2e * ct * (1 + rgap), r2e * st * (1 + rgap), -0.01)
                 angles.append(a)
 
@@ -1293,6 +1290,7 @@ def _histogram1D(
     ytitle="counts",
     titleSize=None,
     titleColor=None,
+    density=False,
     logscale=False,
     fill=True,
     c="olivedrab",
@@ -1328,7 +1326,13 @@ def _histogram1D(
 
     fs, edges = np.histogram(data, bins=bins, range=xlim)
     # print('frequencies', fs)
-    if logscale:
+    if density:
+        ntot = len(data.ravel())
+        binsize = edges[1]-edges[0]
+        fs = fs/(ntot*binsize)
+        if ytitle=='counts':
+            ytitle=f"counts/({ntot}~\dot~{utils.precision(binsize,3)})"
+    elif logscale:
         fs = np.log10(fs + 1)
         if ytitle=='counts':
             ytitle='log_10 (counts+1)'
@@ -1484,7 +1488,7 @@ def _histogram1D(
 
         if titleSize is None:
             titleSize = dx / 40.0
-        tit = shapes.Text(
+        tit = shapes.Text3D(
             title,
             s=titleSize,
             c=titleColor,
@@ -1502,7 +1506,7 @@ def _histogram1D(
         ndiv = 6
         if "numberOfDivisions" in axes.keys():
             ndiv = axes["numberOfDivisions"]
-        tp, ts = utils.make_ticks(y0lim / yscale, y1lim / yscale, ndiv / aspect)
+        tp, ts = utils.makeTicks(y0lim / yscale, y1lim / yscale, ndiv / aspect)
         labs = []
         for i in range(1, len(tp) - 1):
             ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
@@ -1633,7 +1637,7 @@ def _histogram2D(
 
         if titleSize is None:
             titleSize = dx / 40.0
-        tit = shapes.Text(
+        tit = shapes.Text3D(
             title,
             s=titleSize,
             c=titleColor,
@@ -1651,7 +1655,7 @@ def _histogram2D(
         ndiv = 6
         if "numberOfDivisions" in axes.keys():
             ndiv = axes["numberOfDivisions"]
-        tp, ts = utils.make_ticks(y0lim / yscale, y1lim / yscale, ndiv / aspect)
+        tp, ts = utils.makeTicks(y0lim / yscale, y1lim / yscale, ndiv / aspect)
         labs = []
         for i in range(1, len(tp) - 1):
             ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
@@ -1931,18 +1935,18 @@ def _histogramPolar(
                     ju = "top-center"
                 else:
                     ju = "top-left"
-                a = shapes.Text(int(t * k), pos=(0, 0, 0), s=lsize, depth=0, justify=ju)
+                a = shapes.Text3D(int(t * k), pos=(0, 0, 0), s=lsize, depth=0, justify=ju)
                 a.pos(r2e * ct * (1 + rgap), r2e * st * (1 + rgap), -0.01)
                 angles.append(a)
 
     ti = None
     if title:
-        ti = shapes.Text(title, (0, 0, 0), s=tsize, depth=0, justify="top-center")
+        ti = shapes.Text3D(title, (0, 0, 0), s=tsize, depth=0, justify="top-center")
         ti.pos(0, -r2e * 1.15, 0.01)
 
     for i,t in enumerate(thetas):
         if i < len(labels):
-            lab = shapes.Text(labels[i], (0, 0, 0), #font="VTK",
+            lab = shapes.Text3D(labels[i], (0, 0, 0), #font="VTK",
                               s=lsize, depth=0, justify="center")
             lab.pos(r2e *np.cos(t) * (1 + rgap) * lpos / 2,
                     r2e *np.sin(t) * (1 + rgap) * lpos / 2, 0.01)
@@ -2308,7 +2312,7 @@ def streamplot(X, Y, U, V, direction="both",
         - 2 - vary line width vector magnitude
         - 3 - vary line width by absolute value of first vector component
 
-    |plot7_stream| |plot7_stream.py|_
+    |plot_stream| |plot_stream.py|_
     """
     n = len(X)
     m = len(Y[0])
@@ -2443,8 +2447,8 @@ def matrix(M,
     if title:
         if title == 'Matrix':
             title += ' '+str(n)+'x'+str(m)
-        t = shapes.Text(title, font=font, s=0.04,
-                        justify='bottom-center', c=c)
+        t = shapes.Text3D(title, font=font, s=0.04,
+                          justify='bottom-center', c=c)
         t.shift(0, n/(m+n)*1.05)
 
     xlabs=None
@@ -2454,8 +2458,8 @@ def matrix(M,
         if xrotation>44:
             jus = 'right-center'
         for i in range(m):
-            xl = shapes.Text(xlabels[i], font=font, s=0.02,
-                              justify=jus, c=c).rotateZ(xrotation)
+            xl = shapes.Text3D(xlabels[i], font=font, s=0.02,
+                               justify=jus, c=c).rotateZ(xrotation)
             xl.shift((2*i-m+1)/(m+n), -n/(m+n)*1.05)
             xlabs.append(xl)
 
@@ -2463,23 +2467,23 @@ def matrix(M,
     if len(ylabels)==n:
         ylabs=[]
         for i in range(n):
-            yl = shapes.Text(ylabels[i], font=font, s=.02,
-                              justify='right-center', c=c)
+            yl = shapes.Text3D(ylabels[i], font=font, s=.02,
+                               justify='right-center', c=c)
             yl.shift(-m/(m+n)*1.05, (2*i-n+1)/(m+n))
             ylabs.append(yl)
 
     xt=None
     if xtitle:
-        xt = shapes.Text(xtitle, font=font, s=0.035,
-                         justify='top-center', c=c)
+        xt = shapes.Text3D(xtitle, font=font, s=0.035,
+                           justify='top-center', c=c)
         xt.shift(0, -n/(m+n)*1.05)
         if xlabs is not None:
             y0,y1 = xlabs[0].ybounds()
             xt.shift(0, -(y1-y0)-0.55/(m+n))
     yt=None
     if ytitle:
-        yt = shapes.Text(ytitle, font=font, s=0.035,
-                         justify='bottom-center', c=c).rotateZ(90)
+        yt = shapes.Text3D(ytitle, font=font, s=0.035,
+                           justify='bottom-center', c=c).rotateZ(90)
         yt.shift(-m/(m+n)*1.05, 0)
         if ylabs is not None:
             x0,x1 = ylabs[0].xbounds()
@@ -2574,8 +2578,8 @@ def cornerHistogram(
     c="g",
     bg="k",
     alpha=1,
-    pos=1,
-    s=0.2,
+    pos="bottom-left",
+    s=0.175,
     lines=True,
     dots=False,
 ):

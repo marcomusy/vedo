@@ -12,7 +12,7 @@ cam = dict(pos=(4.14, -4.25, 2.35),
 
 msg1 = Text2D("\n The Bloch sphere \n",
               pos="top-center", font=2, c='w', bg='b3', alpha=1)
-msg2 = Text("|\Psi> state", font=10, c='k', italic=1).scale(.08).followCamera()
+msg2 = Text3D("|\Psi> state", font=10, c='k', italic=1).scale(.08).followCamera()
 axs = Axes(xrange=(-1,1), yrange=(-1,1), zrange=(-1,2), yzGrid=False)
 
 plt = show(s, v, msg1, msg2, axs, camera=cam, interactive=False)

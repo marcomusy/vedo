@@ -8,7 +8,7 @@ import numpy as np
 from vedo import *
 from scipy.interpolate import Rbf, NearestNDInterpolator as Near
 
-mesh = load(datadir+"bunny.obj").normalize()
+mesh = load(dataurl+"bunny.obj").normalize()
 pts = mesh.points()
 
 # pick a subset of 100 points where a scalar descriptor is known

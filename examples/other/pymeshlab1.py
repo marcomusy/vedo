@@ -1,14 +1,14 @@
 import pymeshlab
 import vedo
 
-filepath = vedo.download(vedo.datadir+'bunny.obj')
+filepath = vedo.download(vedo.dataurl+'bunny.obj')
 
 ms = pymeshlab.MeshSet()
 ms.load_new_mesh(filepath)
 # vedo.show(ms, axes=True) # this already works!
 
 filter_name = 'close_holes'
-ms.print_filter_parameter_list(filter_name)
+
 ms.apply_filter(filter_name)
 
 mlab_mesh = ms.current_mesh()

@@ -21,7 +21,7 @@ gsphere1 = Glyph(s, gly1,
 
 
 #######################################
-gly2 = load(datadir+"shuttle.obj").rotateY(180).scale(0.02)
+gly2 = load(dataurl+"shuttle.obj").rotateY(180).scale(0.02)
 
 gsphere2 = Glyph(s, gly2,
                  orientationArray="normals",

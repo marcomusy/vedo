@@ -6,7 +6,7 @@ from vedo import *
 #useDepthPeeling may improve the rendering of transparent objects
 settings.useDepthPeeling = True
 
-man = load(datadir+"man.vtk")
+man = load(dataurl+"man.vtk")
 
 # let the scalar be the z coordinate of the mesh vertices
 scals = man.points()[:, 2]

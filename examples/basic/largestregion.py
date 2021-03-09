@@ -3,7 +3,7 @@ has the largest connected surface
 """
 from vedo import *
 
-mesh1 = load(datadir+"embryo.tif").isosurface(80).c("y")
+mesh1 = load(dataurl+"embryo.tif").isosurface(80).c("y")
 printc("area1 =", mesh1.area(), c="y")
 
 mesh2 = mesh1.extractLargestRegion().color("lb")

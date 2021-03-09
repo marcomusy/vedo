@@ -2,9 +2,9 @@
 Holes are identified by locating boundary edges, linking them
 together into loops, and then triangulating the resulting loops.
 """
-from vedo import load, show, datadir
+from vedo import load, show, dataurl
 
-a = load(datadir+"bunny.obj").lw(0.1).bc('red')
+a = load(dataurl+"bunny.obj").lw(0.1).bc('red')
 
 # size = approximate limit to the size of the hole to be filled.
 b = a.clone().pos(.2,0,0).fillHoles(size=0.1)

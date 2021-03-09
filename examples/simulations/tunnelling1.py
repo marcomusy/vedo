@@ -8,7 +8,7 @@ The wave function is forced to be zero at the box walls (line 23).
 print(__doc__)
 
 import numpy as np
-from vedo import Plotter, Tube, Line, datadir, interactive
+from vedo import Plotter, Tube, Line, dataurl, interactive
 
 dt = 0.004  # time step
 x0 = 5  # peak initial position
@@ -46,7 +46,7 @@ vp = Plotter(interactive=0, axes=2, size=(1000,500))
 vp.xtitle = ""
 vp.ytitle = "|\Psi(x,t)|\^2"
 
-bck = vp.load(datadir+"images/schrod.png").scale(0.015).pos([0, 0, -0.5])
+bck = vp.load(dataurl+"images/schrod.png").scale(0.015).pos([0, 0, -0.5])
 barrier = Line(np.stack((x, V * 15), axis=1), c="dr", lw=3)
 
 lines = []

@@ -3,11 +3,11 @@ in a webpage with
 x3dom and vedo"""
 from vedo import *
 
-e = load(datadir+'embryo.tif').isosurface().decimate(0.5)
+e = load(dataurl+'embryo.tif').isosurface().decimate(0.5)
 ec = e.points()
 e.cmap('jet', ec[:,1]) # add dummy colors along y
 
-t = Text(__doc__, pos=[3000., 2000., 4723], s=150, c='k', depth=0.1)
+t = Text3D(__doc__, pos=[3000., 2000., 4723], s=150, c='k', depth=0.1)
 show(t, e)
 
 # This exports the scene and generates 2 files:

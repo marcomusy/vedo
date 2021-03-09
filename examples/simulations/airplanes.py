@@ -5,7 +5,7 @@ import numpy as np
 
 world = Box([0,0,0], 30, 15, 8).wireframe()
 
-plane1 = load(datadir+"cessna.vtk").c("green").addTrail().addShadow(z=-4)
+plane1 = load(dataurl+"cessna.vtk").c("green").addTrail().addShadow(z=-4)
 plane2 = plane1.clone().c("tomato") # make a clone copy of the first plane
 
 # Setup the scene

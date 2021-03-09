@@ -12,7 +12,7 @@ U = sin(x)*cos(y) + sin(y)*cos(z) + sin(z)*cos(x)
 s = Volume(U).isosurface(0).smoothLaplacian().lineWidth(1)
 
 # Create a gridded cube
-c = CubicGrid(n=(29,29,29), spacing=(1,1,1)).alpha(1)
+c = TessellatedBox(n=(29,29,29), spacing=(1,1,1)).alpha(1)
 
 s.cutWithMesh(c).color('silver')  # take what's inside of cube
 c.cutWithMesh(s).color('grey')    # take what's inside of isosurface

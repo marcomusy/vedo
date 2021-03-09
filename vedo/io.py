@@ -192,13 +192,24 @@ def _load_file(filename, unpack):
         actor = Volume(img)
 
         ################################################################# 2D images:
-    elif fl.endswith(".png") or fl.endswith(".jpg") or fl.endswith(".bmp") or fl.endswith(".jpeg"):
+    elif fl.endswith(".png") or fl.endswith(".jpg") \
+        or fl.endswith(".bmp") or fl.endswith(".jpeg") or fl.endswith(".gif"):
         if ".png" in fl:
             picr = vtk.vtkPNGReader()
         elif ".jpg" in fl or ".jpeg" in fl:
             picr = vtk.vtkJPEGReader()
         elif ".bmp" in fl:
             picr = vtk.vtkBMPReader()
+        elif ".gif" in fl:
+            from PIL import Image, ImageSequence
+            img = Image.open(filename)
+            frames = []
+            for frame in ImageSequence.Iterator(img):
+                a = np.array(frame.convert('RGB').getdata(), dtype=np.uint8)
+                a = a.reshape(frame.size[1], frame.size[0],3)
+                frames.append(Picture(a))
+            return frames
+
         picr.SetFileName(filename)
         picr.Update()
         actor = Picture(picr.GetOutput())  # object derived from vtk.vtkImageActor()

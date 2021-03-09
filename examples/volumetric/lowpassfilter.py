@@ -1,7 +1,7 @@
 from vedo import *
 
 # mode = 1 is maximum projection (default is 0=composite)
-v1 = load(datadir+'embryo.tif').mode(1)
+v1 = load(dataurl+'embryo.tif').mode(1)
 t1 = Text2D('Original volume', c='lg')
 
 # cutoff range is roughly in the range of 1 / size of object

@@ -14,6 +14,6 @@ show(s,
      sy, sy.silhouette('2d'),
      sz, sz.silhouette('2d'),
      __doc__,
-     axes={'zxGrid':True},
+     axes={'zxGrid':True, 'yzGrid':True},
      viewup='z',
      )

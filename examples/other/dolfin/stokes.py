@@ -6,13 +6,13 @@ the velocity and first degree elements for the pressure (Taylor-Hood elements).
 # https://github.com/pf4d/fenics_scripts/blob/master/cbc_block/stokes.py
 from dolfin import *
 import numpy as np
-from vedo.dolfin import plot, datadir, download, Latex
+from vedo.dolfin import plot, dataurl, download, Latex
 
 # Load mesh and subdomains
-fpath = download(datadir+"dolfin_fine.xml")
+fpath = download(dataurl+"dolfin_fine.xml")
 mesh = Mesh(fpath)
 
-fpath = download(datadir+"dolfin_fine_subdomains.xml.gz")
+fpath = download(dataurl+"dolfin_fine_subdomains.xml.gz")
 sub_domains = MeshFunction("size_t", mesh, fpath)
 
 # Define function spaces

@@ -4,7 +4,7 @@ The animation shows the evolution of a particle of relatively well defined
 momentum (hence undefined position) in a box hitting a potential barrier."""
 print(__doc__)
 import numpy as np
-from vedo import Plotter, Line, datadir
+from vedo import Plotter, Line, dataurl
 
 Nsteps = 250  # number of steps in time
 N = 300       # number of points in space
@@ -42,7 +42,7 @@ def d_dt(psi):  # find Psi(t+dt)-Psi(t) /dt with 4th order Runge-Kutta method
 
 
 vp = Plotter(interactive=False)
-bck = vp.load(datadir+"images/schrod.png").alpha(.3).scale(.0256).pos([0,-5,-.1])
+bck = vp.load(dataurl+"images/schrod.png").alpha(.3).scale(.0256).pos([0,-5,-.1])
 barrier = Line(np.stack((x, V*15, np.zeros_like(x)), axis=1), c="black", lw=2)
 box = bck.box().c('black')
 
