@@ -759,7 +759,6 @@ def toNumpy(obj):
         adict['points'] = obj.points(transformed=False).astype(np.float32)
         poly = obj.polydata()
         adict['flagText'] = obj.flagText
-        adict['legend'] = obj._legend
 
         adict['cells'] = None
         if poly.GetNumberOfPolys():
@@ -1080,12 +1079,11 @@ def loadNumpy(inobj):
         elif 'annotation' == d['type'].lower():
             from vedo.shapes import Text2D
             pos = d['position']
-            t = Text2D(d['text'], pos=pos+1, font=d['font'], c=d['color'])
-            t.SetNonlinearFontScaleFactor(d['size'])
-            t.GetTextProperty().SetBackgroundColor(d['bgcol'])
-            t.GetTextProperty().SetBackgroundOpacity(d['alpha'])
-            t.GetTextProperty().SetFrameColor(d['bgcol'])
-            t.GetTextProperty().BoldOff()
+            if isinstance(pos, int):                ## backward compatibility
+                pos = "top-left"                    ## backward compatibility
+                d['size'] *= 2.7 ## old convention  ## backward compatibility
+            t = Text2D(d['text'], font=d['font'], c=d['color']).pos(pos)
+            t.background(d['bgcol'], d['alpha']).size(d['size']).frame(d['bgcol'])
             objs.append(t)
 
     if len(objs) == 1:

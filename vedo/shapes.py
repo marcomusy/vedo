@@ -59,6 +59,7 @@ __all__ = [
     "Torus",
     "Paraboloid",
     "Hyperboloid",
+    "TextBase",
     "Text",
     "Text3D",
     "Text2D",
@@ -2052,7 +2053,6 @@ class Ellipsoid(Mesh):
     def __init__(self, pos=(0, 0, 0), axis1=(1, 0, 0), axis2=(0, 2, 0), axis3=(0, 0, 3),
                  c="cyan4", alpha=1, res=24):
 
-        self.name = "Ellipsoid"
         self.center = pos
         self.va_error = 0
         self.vb_error = 0
@@ -2103,6 +2103,7 @@ class Ellipsoid(Mesh):
         self.SetPosition(pos)
         self.Length = -np.array(axis1) / 2 + pos
         self.top = np.array(axis1) / 2 + pos
+        self.name = "Ellipsoid"
 
     def asphericity(self):
         """Return a measure of how different an ellipsoid is froma sphere.
@@ -2933,7 +2934,7 @@ class Text3D(Mesh):
         self.DragableOff()
         self.name = "Text"
 
-class BaseText:
+class TextBase:
     "Do not instantiate this."
     def __init__(self):
 
@@ -2942,66 +2943,66 @@ class BaseText:
 
     def angle(self, a):
         """Orientation angle in degrees"""
-        self.tprop.SetOrientation(a)
+        self.property.SetOrientation(a)
         return self
 
     def lineSpacing(self, ls):
         """Set the extra spacing between lines, expressed as a text height multiplication factor."""
-        self.tprop.SetLineSpacing(ls)
+        self.property.SetLineSpacing(ls)
         return self
 
     def lineOffset(self, lo):
         """Set/Get the vertical offset (measured in pixels)."""
-        self.tprop.SetLineOffset(lo)
+        self.property.SetLineOffset(lo)
         return self
 
     def bold(self, value=True):
-        self.tprop.SetBold(value)
+        self.property.SetBold(value)
         return self
 
     def italic(self, value=True):
-        self.tprop.SetItalic(value)
+        self.property.SetItalic(value)
         return self
 
     def shadow(self, offset=(1,-1)):
         """Text shadowing. Set to ``None`` to disable it."""
         if offset is None:
-            self.tprop.ShadowOff()
+            self.property.ShadowOff()
         else:
-            self.tprop.ShadowOn()
-            self.tprop.SetShadowOffset(offset)
+            self.property.ShadowOn()
+            self.property.SetShadowOffset(offset)
         return self
 
     def color(self, c):
-        self.tprop.SetColor(getColor(c))
+        self.property.SetColor(getColor(c))
         return self
 
     def c(self, color):
         return self.color(color)
 
     def alpha(self, value):
-        self.tprop.SetBackgroundOpacity(value)
+        self.property.SetBackgroundOpacity(value)
         return self
 
     def background(self, color="k9", alpha=1):
         """Text background. Set to ``None`` to disable it."""
         bg = getColor(color)
         if color is None:
-            self.tprop.SetBackgroundOpacity(0)
+            self.property.SetBackgroundOpacity(0)
         else:
-            self.tprop.SetBackgroundColor(bg)
+            self.property.SetBackgroundColor(bg)
             if alpha:
-                self.tprop.SetBackgroundOpacity(alpha)
+                self.property.SetBackgroundOpacity(alpha)
         return self
 
     def frame(self, color='k1', lw=1):
         if color is None:
-            self.tprop.FrameOff()
+            self.property.FrameOff()
         else:
             c = getColor(color)
-            self.tprop.FrameOn()
-            self.tprop.SetFrameColor(c)
-            self.tprop.SetFrameWidth(lw)
+            self.property.FrameOn()
+            self.property.SetFrameColor(c)
+            self.property.SetFrameWidth(lw)
         return self
 
     def font(self, font):
@@ -3021,7 +3022,7 @@ class BaseText:
         else:                          # user passing name of preset font
             fpath = settings.fonts_path + font +'.ttf'
 
-        tprop = self.tprop
+        tprop = self.property
         if   font == "Courier": tprop.SetFontFamilyToCourier()
         elif font == "Times": tprop.SetFontFamilyToTimes()
         elif font == "Arial": tprop.SetFontFamilyToArial()
@@ -3038,7 +3039,7 @@ class BaseText:
         return self
 
 
-class Text2D(vtk.vtkActor2D, BaseText):
+class Text2D(vtk.vtkActor2D, TextBase):
     """
     Returns a ``vtkActor2D`` representing 2D text.
 
@@ -3104,12 +3105,12 @@ class Text2D(vtk.vtkActor2D, BaseText):
         ):
 
         vtk.vtkActor2D.__init__(self)
-        BaseText.__init__(self)
+        TextBase.__init__(self)
 
         self._mapper = vtk.vtkTextMapper()
         self.SetMapper(self._mapper)
 
-        self.tprop = self._mapper.GetTextProperty()
+        self.property = self._mapper.GetTextProperty()
 
         self.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
 
@@ -3166,17 +3167,17 @@ class Text2D(vtk.vtkActor2D, BaseText):
 
         if not justify:
             justify = ajustify
-        self.tprop.SetJustificationToLeft()
+        self.property.SetJustificationToLeft()
         if "top" in justify:
-            self.tprop.SetVerticalJustificationToTop()
+            self.property.SetVerticalJustificationToTop()
         if "bottom" in justify:
-            self.tprop.SetVerticalJustificationToBottom()
+            self.property.SetVerticalJustificationToBottom()
         if "cent" in justify or "mid" in justify:
-            self.tprop.SetJustificationToCentered()
+            self.property.SetJustificationToCentered()
         if "left" in justify:
-            self.tprop.SetJustificationToLeft()
+            self.property.SetJustificationToLeft()
         if "right" in justify:
-            self.tprop.SetJustificationToRight()
+            self.property.SetJustificationToRight()
 
         self.SetPosition(pos)
         return self
@@ -3197,12 +3198,13 @@ class Text2D(vtk.vtkActor2D, BaseText):
         return self
 
     def size(self, s):
-        self.tprop.SetFontSize(int(s * 22.5))
+        self.property.SetFontSize(int(s * 22.5))
         return self
 
 
-# PROBABLY USELEES given that Text2D does the same and even better...
-class CornerAnnotation(vtk.vtkCornerAnnotation, BaseText):
+
+class CornerAnnotation(vtk.vtkCornerAnnotation, TextBase):
+# PROBABLY USELEES given that Text2D does pretty much the same ...
     """
     Annotate the window corner with 2D text.
 
@@ -3221,9 +3223,9 @@ class CornerAnnotation(vtk.vtkCornerAnnotation, BaseText):
                   font="",
         ):
         vtk.vtkCornerAnnotation.__init__(self)
-        BaseText.__init__(self)
+        TextBase.__init__(self)
 
-        self.tprop = self.GetTextProperty()
+        self.property = self.GetTextProperty()
 
         self.font(font)
 
@@ -3242,9 +3244,9 @@ class CornerAnnotation(vtk.vtkCornerAnnotation, BaseText):
 
         self.SetNonlinearFontScaleFactor(1/2.75)
         self.PickableOff()
-        self.tprop.SetColor(getColor(c))
-        self.tprop.SetBold(False)
-        self.tprop.SetItalic(False)
+        self.property.SetColor(getColor(c))
+        self.property.SetBold(False)
+        self.property.SetItalic(False)
 
     def size(self, s, linear=False):
         """

@@ -1385,28 +1385,20 @@ class Points(vtk.vtkFollower, BaseActor):
         return self.alpha(alpha)
 
 
-    def pointSize(self, ps=None):
+    def pointSize(self, value):
         """Set/get mesh's point size of vertices. Same as `mesh.ps()`"""
-        if ps is not None:
-            if isinstance(self, vtk.vtkAssembly):
-                cl = vtk.vtkPropCollection()
-                self.GetActors(cl)
-                cl.InitTraversal()
-                a = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
-                a.GetProperty().SetRepresentationToPoints()
-                a.GetProperty().SetPointSize(ps)
-            else:
-                self.GetProperty().SetRepresentationToPoints()
-                self.GetProperty().SetPointSize(ps)
+        if not value:
+            self.GetProperty().SetRepresentationToSurface()
         else:
-            return self.GetProperty().GetPointSize()
+            self.GetProperty().SetRepresentationToPoints()
+            self.GetProperty().SetPointSize(value)
         return self
 
     def ps(self, pointSize=None):
         """Set/get mesh's point size of vertices. Same as `mesh.pointSize()`"""
         return self.pointSize(pointSize)
 
-    def renderAsSpheres(self, ras=True):
+    def renderPointsAsSpheres(self, ras=True):
         """Make points look spheric or make them look as squares."""
         self.GetProperty().SetRenderPointsAsSpheres(ras)
         return self
@@ -1748,37 +1740,14 @@ class Points(vtk.vtkFollower, BaseActor):
         ids.GetProperty().LightingOff()
         return ids
 
-    def legend(self, txt=None, pos=2, size=0.2, bg=(0.96,0.96,0.9), font=""):
+    def legend(self, txt):
         """Generate legend text.
 
         :param str txt: legend text.
-        :param float size: legend size
-        :param str bg: background color
-        :param int pos: 1=top-left, 2=top-right, 3=bottom-left, 4=bottom-right
-
-        Default size and position can be modified by setting attributes
-        ``Plotter.legendSize``, ``Plotter.legendBC`` and ``Plotter.legendPos``.
 
         |flag_labels|  |flag_labels.py|_
         """
-        if not txt:
-            self._legend = None
-        else:
-            self._legend = str(txt)
-        settings.legendSize = size  # size of legend
-        settings.legendBC = bg  # legend background color
-        settings.legendFont = font
-
-        if isinstance(pos, str):
-            spos = 2
-            if "top" in pos:
-                if "left" in pos: spos=1
-                elif "right" in pos: spos=2
-            elif "bottom" in pos:
-                if "left" in pos: spos=3
-                elif "right" in pos: spos=4
-            pos = spos
-        settings.legendPos = pos
+        self.info['legend'] = txt
         return self
 
     def vignette(self,

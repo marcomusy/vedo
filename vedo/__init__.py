@@ -28,13 +28,13 @@ from vedo.tetmesh import *
 from vedo.utils import *
 from vedo.colors import *
 import vedo.addons as addons
-from vedo.addons import Ruler, Goniometer, buildRulerAxes, Axes, Light
+from vedo.addons import Ruler, Goniometer, buildRulerAxes, Axes, Light, LegendBox
 
 import vedo.settings as settings
 from vedo.settings import datadir, dataurl, embedWindow
 
 # hack: need to uncomment this to generate dolfin documentation html
-# from vedo.dolfin import _inputsort
+from vedo.dolfin import _inputsort
 
 import vedo.docs as docs  # needed by spyder console, otherwise complains
 

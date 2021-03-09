@@ -25,7 +25,6 @@ class MyArgs:
         self.flat = False##
         self.axes_type = 4
         self.no_camera_share = False
-        self.legend_off = True
         self.full_screen = False
         self.background = ""
         self.background_grad = ""
@@ -106,10 +105,7 @@ def draw_scene():
     vp.verbose = not args.quiet
     vp.sharecam = not args.no_camera_share
 
-    leg = True
     wire = False
-    if args.legend_off or nfiles == 1:
-        leg = None
     if args.wireframe:
         wire = True
 
@@ -242,9 +238,6 @@ def draw_scene():
                 else:
                     actor.phong()
 
-                if leg:
-                    actor.legend(os.path.basename(f))
-
                 if args.point_size > 0:
                     try:
                         actor.GetProperty().SetPointSize(args.point_size)
@@ -263,7 +256,6 @@ def draw_scene():
                 actors.append(actor)
 
             if args.multirenderer_mode:
-                actor._legend = None
                 vp.show(actor, at=i, interactive=False, zoom=args.zoom)
                 vp.actors = actors
 
@@ -599,7 +591,6 @@ else:  #########################################################################
     pr.add_argument("-K", "--flat",                 help="use flat shading", action="store_true")
     pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-5]", default=1, metavar='')
     pr.add_argument("-i", "--no-camera-share",      help="do not share camera in renderers", action="store_true")
-    pr.add_argument("-l", "--legend-off",           help="do not show legends", action="store_true")
     pr.add_argument("-f", "--full-screen",          help="full screen mode", action="store_true")
     pr.add_argument("-bg","--background", type=str, help="background color [integer or color name]", default='', metavar='')
     pr.add_argument("-bg2", "--background-grad",    help="use background color gradient", default='', metavar='')

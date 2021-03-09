@@ -46,7 +46,6 @@ class Base3DProp(object):
         self.base = np.array([0,0,0])
         self.info = dict()
         self._time = 0
-        self._legend = None
         self.renderedAt = set()
         self.transform = None
         self._set2actcam = False

@@ -241,16 +241,11 @@ flagFontSize = 18
 flagJustification = 0
 flagAngle = 0
 flagBold = False
-flagItalic = True
+flagItalic = False
 flagShadow = False
 flagColor = 'k'
 flagBackgroundColor = 'w'
 
-#############################
-legendSize = 0.2
-legendBC = (0.96, 0.96, 0.9)
-legendPos = 2
-legendFont = ""
 
 #############################
 installdir = os.path.dirname(__file__)
@@ -267,8 +262,6 @@ datadir = dataurl
 
 plotter_instances = []
 plotter_instance = None
-collectable_actors = ['obsolete_do_not_use'] # OBSOLETE and void
-
 
 ####################################################################################
 # mono       # means that all letters occupy the same space slot horizontally

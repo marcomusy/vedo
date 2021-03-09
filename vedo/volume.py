@@ -649,7 +649,7 @@ class Volume(vtk.vtkVolume, BaseGrid):
 
         The format for alphaGrad is the same as for method ``volume.alpha()``.
 
-        |read_vti| |read_vti.py|_
+        |read_volume2| |read_volume2.py|_
         """
         self._alphaGrad = alphaGrad
         volumeProperty = self.GetProperty()

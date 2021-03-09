@@ -436,7 +436,6 @@ class Plotter:
         self.qtWidget = qtWidget # (QVTKRenderWindowInteractor)
 
         # mostly internal stuff:
-        self._legend = []  # list of legend entries for actors
         self.hoverLegends = []
         self.backgrcol = bg
         self.pos = pos     # used by vedo.io
@@ -647,8 +646,6 @@ class Plotter:
                 self.size = (self.size[0], self.size[1])
 
             ############################
-            if sum(shape) > 3:
-                settings.legendSize *= 2
 
             image_actor=None
             bgname = str(self.backgrcol).lower()
@@ -1031,7 +1028,7 @@ class Plotter:
         elif isinstance(obj, str):  # search the actor by the legend name
             actors = []
             for a in self.actors:
-                if hasattr(a, "_legend") and obj in a._legend:
+                if hasattr(a, "name") and obj in a.name:
                     actors.append(a)
             return actors
 
@@ -1267,9 +1264,11 @@ class Plotter:
         addons.addGlobalAxes(axtype, c)
         return self
 
-    def addLegend(self):
+    def addLegendBox(self, **kwargs):
         """Add a legend to the top right"""
-        addons.addLegend()
+        acts = self.getMeshes()
+        lb = addons.LegendBox(acts, **kwargs)
+        self.add(lb)
         return self
 
     def addHoverLegend(self,
@@ -1407,6 +1406,7 @@ class Plotter:
 
         The callback function (see example below) exposes a dictionary
         with the following information:
+
             - ``name``: event name,
             - ``id``: event unique identifier,
             - ``priority``: event priority (float),
@@ -1428,6 +1428,7 @@ class Plotter:
             - ``isPicture``: True if of class
 
         Frequently used events are:
+
             - KeyPress, KeyRelease: listen to keyboard events
             - LeftButtonPress, LeftButtonRelease: listen to mouse clicks
             - MiddleButtonPress, MiddleButtonRelease
@@ -1636,6 +1637,7 @@ class Plotter:
                         scannedacts.append(a._caption)
 
             elif isinstance(a, vtk.vtkActor2D):
+                # print([a])
                 scannedacts.append(a)
 
             elif isinstance(a, vtk.vtkAssembly):
@@ -2029,8 +2031,6 @@ class Plotter:
         if settings.notebookBackend in ["panel","ipyvtk"]:
             return backends.getNotebookBackend(0, 0, 0)
         #########################################################################
-
-        addons.addLegend()
 
         if self.resetcam: #or self.initializedIren == False:
             self.renderer.ResetCamera()
@@ -2635,14 +2635,12 @@ class Plotter:
             if isinstance(self.clickedActor, vedo.Points):
                 self.clickedActor.GetMapper().ScalarVisibilityOff()
                 self.clickedActor.GetProperty().SetColor(vedo.colors.colors1[(self._icol) % 10])
-            addons.addLegend()
 
         elif key == "2":
             self._icol += 1
             if isinstance(self.clickedActor, vedo.Points):
                 self.clickedActor.GetMapper().ScalarVisibilityOff()
                 self.clickedActor.GetProperty().SetColor(vedo.colors.colors2[(self._icol) % 10])
-            addons.addLegend()
 
         elif key == "3":
             if isinstance(self.clickedActor, vedo.Mesh):
@@ -2831,9 +2829,6 @@ class Plotter:
                     ia.computeNormals()
                     intrp = (ia.GetProperty().GetInterpolation()+1)%3
                     ia.GetProperty().SetInterpolation(intrp)
-                    # printc('->  shading set to:',
-                    #               ia.GetProperty().GetInterpolationAsString(),
-                    #               c='g', bold=0)
 
         elif key == "n":  # show normals to an actor
             if self.clickedActor in self.getMeshes():
@@ -2850,16 +2845,10 @@ class Plotter:
                   or isinstance(self.clickedActor, vtk.vtkAssembly):
                     self.justremoved = self.clickedActor
                     self.renderer.RemoveActor(self.clickedActor)
-                if hasattr(self.clickedActor, '_legend') and self.clickedActor._legend:
-                    print('...removing actor: ' +
-                          str(self.clickedActor._legend)+', press x to put it back')
-                else:
-                    print("Click an actor and press x to toggle it.")
             else:
                 self.renderer.AddActor(self.justremoved)
                 self.renderer.Render()
                 self.justremoved = None
-            addons.addLegend()
 
         elif key == "X":
             if self.clickedActor:

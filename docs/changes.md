@@ -28,7 +28,7 @@ and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab)
   (this can affect @FedeClaudi @DeepaMahm  @jonnymaserati )
   Added `xyShift` to shift the whole cartesian plane along one axis ( @JGarrett7 )
 - Axes can be flipped with their range with `xInverted` (caveat: this does not at all affect the world coordinate system!)
-
+- new class `LegendBox` to show a legend with icons
 
 ---
 ### `colors.py`
@@ -83,7 +83,7 @@ Lower index means darker.
 - added `volume.shade()` which can be `True` or `False`. Disable by default (was previously enabled)
   to be used in conjunction with `volume.lighting()` to create a mesh-like rendering of the volume.
   (thanks to @nantille for debugging)
-- fixed example `interpolateVolume`
+- fixed example `interpolateVolume` (thanks @rafaelmarch3 )
 
 
 ## New/Revised examples:

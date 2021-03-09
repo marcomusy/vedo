@@ -17,11 +17,11 @@ c.caption('2d caption for a cube\nwith face indices', point=[0.044, 0.03, -0.04]
           size=(0.3,0.06), font="VictorMono", alpha=1)
 
 # create a new object made of polygonal text labels to indicate the cell numbers
-labs = c.labels('id', cells=True, font='Theemim', scale=None)
+labs = c.labels('id', cells=True, font='Theemim', scale=None, c='k')
 
-# create an entry to the legend
+# create a custom entry to the legend
 b.legend('Bugs the bunny')
-c.legend('The Cube box',
-         pos="bottom-left", size=0.3, font="Bongas") # set options at the last entry
+c.legend('The Cube box')
+lbox = LegendBox([b,c], font="Bongas", width=0.25)
 
-show(b, c, vig, labs, __doc__, axes=11, bg2='linen')
+show(b, c, vig, labs, lbox, __doc__, axes=11, bg2='linen')

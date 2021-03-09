@@ -778,9 +778,9 @@ def printInfo(obj):
         print(tab, end="")
         printc("Mesh", c="g", bold=1, invert=1, dim=1, end=" ")
 
-        if hasattr(actor, "_legend") and actor._legend:
+        if 'legend' in actor.info.keys() and actor.info['legend']:
             printc("legend: ", c="g", bold=1, end="")
-            printc(actor._legend, c="g", bold=0)
+            printc(actor.info['legend'], c="g", bold=0)
         else:
             print()
 
@@ -929,12 +929,7 @@ def printInfo(obj):
 
     elif isinstance(obj, vtk.vtkAssembly):
         printc("_" * 65, c="g", bold=0)
-        printc("vtkAssembly", c="g", bold=1, invert=1, end=" ")
-        if hasattr(obj, "_legend"):
-            printc("legend: ", c="g", bold=1, end="")
-            printc(obj._legend, c="g", bold=0)
-        else:
-            print()
+        printc("vtkAssembly", c="g", bold=1, invert=1)
 
         pos = obj.GetPosition()
         bnds = obj.GetBounds()
@@ -962,12 +957,7 @@ def printInfo(obj):
 
     elif isinstance(obj, vtk.vtkVolume):
         printc("_" * 65, c="b", bold=0)
-        printc("vtkVolume", c="b", bold=1, invert=1, end=" ")
-        if hasattr(obj, "_legend") and obj._legend:
-            printc("legend: ", c="b", bold=1, end="")
-            printc(obj._legend, c="b", bold=0)
-        else:
-            print()
+        printc("vtkVolume", c="b", bold=1, invert=1)
 
         pos = obj.GetPosition()
         bnds = obj.GetBounds()

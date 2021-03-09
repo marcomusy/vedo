@@ -28,7 +28,7 @@ __all__ = [
             "addButton",
             "addCutterTool",
             "addIcon",
-            "addLegend",
+            "LegendBox",
             "Light",
             "Axes",
             "Ruler",
@@ -235,9 +235,7 @@ class Button:
     """
 
     def __init__(self, fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle):
-        """
-        Build a Button object to be shown in the rendering window.
-        """
+
         self.statusIdx = 0
         self.states = states
         self.colors = c
@@ -2817,77 +2815,103 @@ def addRendererFrame(c=None, alpha=None, lw=None):
     return fractor
 
 
-def addLegend():
+class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
+    """
+    Create a 2D legend box for the list of specified objects
 
-    plt = settings.plotter_instance
-    if not utils.isSequence(plt._legend):
-        return
+    :param int nmax: max number of legend entries
+    :param c: text color, leave as None to pick the mesh color
+    :param float width: width of the box as fraction of the window width
+    :param float height: height of the box as fraction of the window height
+    :param int pad: padding space in number of pixels
+    :param bg: background color of the box
+    :param float alpha: opacity of the box
+    :param str pos: position of the box
+    """
+    def __init__( self,
+                 entries=(),
+                 nmax=12,
+                 c=None,
+                 font="",
+                 width=0.18,
+                 height=None,
+                 pad=2,
+                 bg="k8",
+                 alpha=0.25,
+                 pos="top-right",
+        ):
+        vtk.vtkLegendBoxActor.__init__(self)
 
-    # remove old legend if present on current renderer:
-    acs = plt.renderer.GetActors2D()
-    acs.InitTraversal()
-    for i in range(acs.GetNumberOfItems()):
-        a = acs.GetNextItem()
-        if isinstance(a, vtk.vtkLegendBoxActor):
-            plt.renderer.RemoveActor(a)
+        self.entries = entries[:nmax]
 
-    meshs = plt.getMeshes()
-    acts, texts = [], []
-    for i, a in enumerate(meshs):
-        if i < len(plt._legend) and plt._legend[i] != "":
-            if isinstance(plt._legend[i], str):
-                texts.append(plt._legend[i])
-                acts.append(a)
-        elif hasattr(a, "_legend") and a._legend:
-            if isinstance(a._legend, str):
-                texts.append(a._legend)
-                acts.append(a)
+        n = 0
+        texts = []
+        for e in self.entries:
+            ename = e.name
+            if 'legend' in e.info.keys():
+                if not e.info['legend']:
+                    ename = ''
+                else:
+                    ename = str(e.info['legend'])
 
-    NT = len(texts)
-    if NT > 20:
-        NT = 20
-    vtklegend = vtk.vtkLegendBoxActor()
-    vtklegend.SetNumberOfEntries(NT)
-    vtklegend.ScalarVisibilityOff()
-    pr = vtklegend.GetEntryTextProperty()
-    pr.SetFontFamily(vtk.VTK_FONT_FILE)
-    if 'LogoType' in settings.legendFont: # special case of big file
-        fl = vedo.io.download("https://vedo.embl.es/fonts/LogoType.ttf",
-                              verbose=False, force=False)
-    else:
-        if settings.legendFont == "":
-            settings.legendFont = settings.defaultFont
-        fl = settings.fonts_path + settings.legendFont + '.ttf'
-    pr.SetFontFile(fl)
-    pr.ShadowOff()
-    pr.BoldOff()
+            if not isinstance(e, vtk.vtkActor):
+                ename = ''
+            if ename:
+                n+=1
+            texts.append(ename)
+        self.SetNumberOfEntries(n)
 
-    for i in range(NT):
-        ti = texts[i]
-        if not ti:
-            continue
-        a = acts[i]
-        c = a.GetProperty().GetColor()
-        if c == (1, 1, 1):
-            c = (0.2, 0.2, 0.2)
-        vtklegend.SetEntry(i, a.polydata(), "  " + ti, c)
-    pos = settings.legendPos
-    width = settings.legendSize
-    vtklegend.SetWidth(width)
-    vtklegend.SetHeight(width / 5.0 * NT)
-    sx, sy = 1 - width, 1 - width / 5.0 * NT
-    if pos == 1:
-        vtklegend.GetPositionCoordinate().SetValue(0, sy)
-    elif pos == 2:
-        vtklegend.GetPositionCoordinate().SetValue(sx, sy)  # default
-    elif pos == 3:
-        vtklegend.GetPositionCoordinate().SetValue(0, 0)
-    elif pos == 4:
-        vtklegend.GetPositionCoordinate().SetValue(sx, 0)
-    vtklegend.UseBackgroundOn()
-    vtklegend.SetBackgroundColor(getColor(settings.legendBC))
-    vtklegend.SetBackgroundOpacity(0.6)
-    vtklegend.LockBorderOn()
-    plt.renderer.AddActor(vtklegend)
+        if not n:
+            return
 
+        self.ScalarVisibilityOff()
+        self.PickableOff()
+        self.SetPadding(pad)
 
+        self.property = self.GetEntryTextProperty()
+        self.property.ShadowOff()
+        self.property.BoldOff()
+
+        # self.property.SetJustificationToLeft() # no effect
+        # self.property.SetVerticalJustificationToTop()
+
+        self.font(font)
+
+        n = 0
+        for i in range(len(self.entries)):
+            ti = texts[i]
+            if not ti:
+                continue
+            e = entries[i]
+            if c is None:
+                col = e.GetProperty().GetColor()
+                if col == (1, 1, 1):
+                    col = (0.2, 0.2, 0.2)
+            else:
+                col = getColor(c)
+            poly = e.inputdata()
+            self.SetEntry(n, poly, ti, col)
+            n += 1
+
+        self.SetWidth(width)
+        if height is None:
+            self.SetHeight(width / 4.0 * n)
+        else:
+            self.SetHeight(height)
+
+        sx, sy = 1 - self.GetWidth(), 1 - self.GetHeight()
+        if   pos == 1 or ("top" in pos and "left" in pos):
+            self.GetPositionCoordinate().SetValue(0, sy)
+        elif pos == 2 or ("top" in pos and "right" in pos):
+            self.GetPositionCoordinate().SetValue(sx, sy)
+        elif pos == 3 or ("bottom" in pos and "left" in pos):
+            self.GetPositionCoordinate().SetValue(0, 0)
+        elif pos == 4 or ("bottom" in pos and "right" in pos):
+            self.GetPositionCoordinate().SetValue(sx, 0)
+        if alpha:
+            self.UseBackgroundOn()
+            self.SetBackgroundColor(getColor(bg))
+            self.SetBackgroundOpacity(alpha)
+        else:
+            self.UseBackgroundOff()
+        self.LockBorderOn()
