@@ -619,6 +619,9 @@ def precision(x, p, vrange=None, delimiter='e'):
             if i<nn: out += ', '
         return out+')' ############ <--
 
+    if np.isnan(x):
+        return "NaN"
+
     x = float(x)
 
     if x == 0.0 or (vrange is not None and abs(x) < vrange/pow(10,p)):

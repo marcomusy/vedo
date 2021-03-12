@@ -662,6 +662,18 @@ class BaseActor(Base3DProp):
         vcen.Update()
         return vtk_to_numpy(vcen.GetOutput().GetPoints().GetData())
 
+
+    def deleteCells(self, ids):
+        """Remove cells from the mesh object by ID. Points (vertices) are not affected."""
+        data = self.inputdata()
+        for cid in ids:
+            data.DeleteCell(cid)
+        data.RemoveDeletedCells()
+        data.Modified()
+        self._mapper.Modified()
+        return self
+
+
     def findCellsWithin(self, xbounds=(), ybounds=(), zbounds=(), c=None):
         """
         Find cells that are within specified bounds.

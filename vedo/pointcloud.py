@@ -7,7 +7,6 @@ import vedo.settings as settings
 import vedo.utils as utils
 from vedo.base import BaseActor
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
-from vtk.numpy_interface import dataset_adapter
 
 
 
@@ -22,7 +21,6 @@ __all__ = ["Points",
            "connectedPoints",
            "smoothMLS3D",
            "pointCloudFrom",
-           "densifyCloud",
            "visiblePoints",
            "delaunay2D",
            "fitLine",
@@ -278,6 +276,7 @@ def pointCloudFrom(obj, interpolateCellData=False):
 
     :param bool interpolateCellData: if True cell data is interpolated at point positions.
     """
+    from vtk.numpy_interface import dataset_adapter
     if interpolateCellData:
         c2p = vtk.vtkCellDataToPointData()
         c2p.SetInputData(obj)
@@ -300,62 +299,62 @@ def pointCloudFrom(obj, interpolateCellData=False):
     return m
 
 
-def densifyCloud(mesh, targetDistance, closestN=6, radius=0, maxIter=None, maxN=None):
-    """
-    Add new points to an input point cloud.
-    The new points are created in such a way that all points in any local neighborhood are
-    within a target distance of one another.
+# def densifyCloud(mesh, targetDistance, closestN=6, radius=0, maxIter=None, maxN=None):
+#     """
+#     Add new points to an input point cloud.
+#     The new points are created in such a way that all points in any local neighborhood are
+#     within a target distance of one another.
 
-    The algorithm works as follows. For each input point, the distance to all points
-    in its neighborhood is computed. If any of its neighbors is further than the target distance,
-    the edge connecting the point and its neighbor is bisected and a new point is inserted at the
-    bisection point. A single pass is completed once all the input points are visited.
-    Then the process repeats to the limit of the maximum number of iterations.
+#     The algorithm works as follows. For each input point, the distance to all points
+#     in its neighborhood is computed. If any of its neighbors is further than the target distance,
+#     the edge connecting the point and its neighbor is bisected and a new point is inserted at the
+#     bisection point. A single pass is completed once all the input points are visited.
+#     Then the process repeats to the limit of the maximum number of iterations.
 
-    .. note:: Points will be created in an iterative fashion until all points in their
-        local neighborhood are the target distance apart or less.
-        Note that the process may terminate early due to the limit on the
-        maximum number of iterations. By default the target distance is set to 0.5.
-        Note that the TargetDistance should be less than the Radius or nothing will change on output.
+#     .. note:: Points will be created in an iterative fashion until all points in their
+#         local neighborhood are the target distance apart or less.
+#         Note that the process may terminate early due to the limit on the
+#         maximum number of iterations. By default the target distance is set to 0.5.
+#         Note that the TargetDistance should be less than the Radius or nothing will change on output.
 
-    .. warning:: This class can generate a lot of points very quickly.
-        The maximum number of iterations is by default set to =1.0 for this reason.
-        Increase the number of iterations very carefully.
-        Also, `maxN` can be set to limit the explosion of points.
-        It is also recommended that a N closest neighborhood is used.
-    """
-    src = vtk.vtkProgrammableSource()
-    def readPoints():
-        output = src.GetPolyDataOutput()
-        points = vtk.vtkPoints()
-        pts = mesh.points()
-        for p in pts:
-            x, y, z = p
-            points.InsertNextPoint(x, y, z)
-        output.SetPoints(points)
-    src.SetExecuteMethod(readPoints)
+#     .. warning:: This class can generate a lot of points very quickly.
+#         The maximum number of iterations is by default set to =1.0 for this reason.
+#         Increase the number of iterations very carefully.
+#         Also, `maxN` can be set to limit the explosion of points.
+#         It is also recommended that a N closest neighborhood is used.
+#     """
+#     src = vtk.vtkProgrammableSource()
+#     def readPoints():
+#         output = src.GetPolyDataOutput()
+#         points = vtk.vtkPoints()
+#         pts = mesh.points()
+#         for p in pts:
+#             x, y, z = p
+#             points.InsertNextPoint(x, y, z)
+#         output.SetPoints(points)
+#     src.SetExecuteMethod(readPoints)
 
-    dens = vtk.vtkDensifyPointCloudFilter()
-    dens.SetInputConnection(src.GetOutputPort())
-    dens.InterpolateAttributeDataOn()
-    dens.SetTargetDistance(targetDistance)
-    if maxIter: dens.SetMaximumNumberOfIterations(maxIter)
-    if maxN: dens.SetMaximumNumberOfPoints(maxN)
+#     dens = vtk.vtkDensifyPointCloudFilter()
+#     dens.SetInputConnection(src.GetOutputPort())
+#     dens.InterpolateAttributeDataOn()
+#     dens.SetTargetDistance(targetDistance)
+#     if maxIter: dens.SetMaximumNumberOfIterations(maxIter)
+#     if maxN: dens.SetMaximumNumberOfPoints(maxN)
 
-    if radius:
-        dens.SetNeighborhoodTypeToRadius()
-        dens.SetRadius(radius)
-    elif closestN:
-        dens.SetNeighborhoodTypeToNClosest()
-        dens.SetNumberOfClosestPoints(closestN)
-    else:
-        colors.printc("Error in densifyCloud: set either radius or closestN", c='r')
-        raise RuntimeError()
-    dens.Update()
-    pts = vtk_to_numpy(dens.GetOutput().GetPoints().GetData())
-    cld = Points(pts, c=None).pointSize(3)
-    cld.name = "densifiedCloud"
-    return cld
+#     if radius:
+#         dens.SetNeighborhoodTypeToRadius()
+#         dens.SetRadius(radius)
+#     elif closestN:
+#         dens.SetNeighborhoodTypeToNClosest()
+#         dens.SetNumberOfClosestPoints(closestN)
+#     else:
+#         colors.printc("Error in densifyCloud: set either radius or closestN", c='r')
+#         raise RuntimeError()
+#     dens.Update()
+#     pts = vtk_to_numpy(dens.GetOutput().GetPoints().GetData())
+#     cld = Points(pts, c=None).pointSize(3)
+#     cld.name = "densifiedCloud"
+#     return cld
 
 
 
@@ -844,7 +843,7 @@ class Points(vtk.vtkFollower, BaseActor):
         self._mapper = vtk.vtkPolyDataMapper()
         self.SetMapper(self._mapper)
         ## force the opaque pass, fixes picking in vtk9
-        # but causes othr troubles..
+        # but causes other bad troubles with lines..
         # self.ForceOpaqueOn()
         # self.ForceTranslucentOn()
 
@@ -859,7 +858,6 @@ class Points(vtk.vtkFollower, BaseActor):
         prp = self.GetProperty()
         if hasattr(prp, 'RenderPointsAsSpheresOn'):
             prp.RenderPointsAsSpheresOn()
-
         prp.SetRepresentationToPoints()
         prp.SetPointSize(r)
         self.lighting(ambient=0.7, diffuse=0.3)
@@ -868,9 +866,6 @@ class Points(vtk.vtkFollower, BaseActor):
             polyCopy = vtk.vtkPolyData()
             pr = vtk.vtkProperty()
             pr.DeepCopy(inputobj.GetProperty())
-            # if isinstance(inputobj, BaseActor):
-            #     polyCopy = polyCopy.DeepCopy(inputobj.polydata())
-            # else:
             polyCopy.DeepCopy(inputobj.GetMapper().GetInput())
             pr.SetRepresentationToPoints()
             self._polydata = polyCopy
@@ -879,6 +874,9 @@ class Points(vtk.vtkFollower, BaseActor):
             self.SetProperty(pr)
 
         elif isinstance(inputobj, vtk.vtkPolyData):
+            # print(inputobj.GetNumberOfCells())
+            # print("ccc")
+
             if inputobj.GetNumberOfCells() == 0:
                 carr = vtk.vtkCellArray()
                 for i in range(inputobj.GetNumberOfPoints()):
@@ -1085,6 +1083,10 @@ class Points(vtk.vtkFollower, BaseActor):
             # reset mesh to identity matrix position/rotation:
             self.PokeMatrix(vtk.vtkMatrix4x4())
             return self
+
+    def vertices(self, pts=None, transformed=True, copy=False):
+        """Alias for ``points().``"""
+        return self.points(pts, transformed, copy)
 
 
     def clone(self):
@@ -2725,6 +2727,7 @@ class Points(vtk.vtkFollower, BaseActor):
         :param float radius: if given, get all points within that radius.
         :param bool returnPointId: return point ID instead of coordinates
         :param bool returnCellId: return cell ID in which the closest point sits
+        :param bool returnIds: obsolete, do not use.
 
         .. hint:: |align1.py|_ |fitplanes.py|_  |quadratic_morphing.py|_
 
@@ -3261,5 +3264,65 @@ class Points(vtk.vtkFollower, BaseActor):
         vol.locator = pdf.GetLocator()
         return vol
 
+
+    def densify(self, targetDistance=0.1, closest=6, radius=None, niter=1, maxN=None):
+        """
+        Return a copy of the cloud with new added points.
+        The new points are created in such a way that all points in any local neighborhood are
+        within a target distance of one another.
+
+        For each input point, the distance to all points in its neighborhood is computed.
+        If any of its neighbors is further than the target distance,
+        the edge connecting the point and its neighbor is bisected and
+        a new point is inserted at the bisection point.
+        A single pass is completed once all the input points are visited.
+        Then the process repeats to the number of iterations.
+
+        .. note:: Points will be created in an iterative fashion until all points in their
+            local neighborhood are the target distance apart or less.
+            Note that the process may terminate early due to the
+            number of iterations. By default the target distance is set to 0.5.
+            Note that the targetDistance should be less than the radius
+            or nothing will change on output.
+
+        .. warning:: This class can generate a lot of points very quickly.
+            The maximum number of iterations is by default set to =1.0 for this reason.
+            Increase the number of iterations very carefully.
+            Also, `maxN` can be set to limit the explosion of points.
+            It is also recommended that a N closest neighborhood is used.
+        """
+        src = vtk.vtkProgrammableSource()
+        opts = self.points()
+        def _readPoints():
+            output = src.GetPolyDataOutput()
+            points = vtk.vtkPoints()
+            for p in opts:
+                points.InsertNextPoint(p)
+            output.SetPoints(points)
+        src.SetExecuteMethod(_readPoints)
+
+        dens = vtk.vtkDensifyPointCloudFilter()
+        # dens.SetInputData(self.polydata()) # this doesnt work (?)
+        dens.SetInputConnection(src.GetOutputPort())
+        dens.InterpolateAttributeDataOn()
+        dens.SetTargetDistance(targetDistance)
+        dens.SetMaximumNumberOfIterations(niter)
+        if maxN: dens.SetMaximumNumberOfPoints(maxN)
+
+        if radius:
+            dens.SetNeighborhoodTypeToRadius()
+            dens.SetRadius(radius)
+        elif closest:
+            dens.SetNeighborhoodTypeToNClosest()
+            dens.SetNumberOfClosestPoints(closest)
+        else:
+            colors.printc("Error in densifyCloud: set either radius or closestN", c='r')
+            raise RuntimeError()
+        dens.Update()
+        pts = vtk_to_numpy(dens.GetOutput().GetPoints().GetData())
+        cld = Points(pts, c=None).pointSize(self.GetProperty().GetPointSize())
+        cld.interpolateDataFrom(self, N=closest, radius=radius)
+        cld.name = "densifiedCloud"
+        return cld
 
 

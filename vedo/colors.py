@@ -898,9 +898,15 @@ def printc(*strings, **keys):
     end = keys.pop("end", "\n")
     flush = keys.pop("flush", True)
 
+    if not settings.enablePrintColor:
+        print(*strings, end=end)
+        if flush:
+            sys.stdout.flush()
+        return
+
     if not settings.notebookBackend:
         if not _terminal_has_colors:
-            print(end=end)
+            print(*strings, end=end)
             if flush:
                 sys.stdout.flush()
             return

@@ -55,6 +55,9 @@ General settings.
     # Use tex, matplotlib latex compiler
     usetex = False
 
+    # Enable / disable color printing by printc()
+    enablePrintColor = True
+
     # Qt embedding
     usingQt = False
 
@@ -228,6 +231,9 @@ annotatedCubeYPlusText  = "front"
 annotatedCubeYMinusText = "back "
 annotatedCubeZPlusText  = " top "
 annotatedCubeZMinusText = "bttom"
+
+# enable / disable color printing
+enablePrintColor = True
 
 ####################################################################################
 # notebook support with K3D

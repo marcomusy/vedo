@@ -18,7 +18,7 @@ and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab)
 - added shortcut to input the opacity with syntax `mesh.color("blue", 0.5)`
 - arrays with name "Normals" are set as active normals automatically ( @theponpon )
 - added keyword invert in `getTransform()` ( @Tai-Hsien )
-
+- added `deleteCells()` method
 
 ---
 ### `addons.py`
@@ -37,7 +37,7 @@ and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab)
 (e.g. `c='red1', 'red2', ..., 'red9'`, or in short: `c='r1', 'r2', ..., 'r9'`)
 Lower index means darker.
 - added `rgb2hex()` and `hex2rgb()` functions
-
+- fixed bug on `printc()` and added `settings.enablePrintColor`. #337
 
 ---
 ### `mesh.py`
@@ -64,6 +64,7 @@ Lower index means darker.
 ---
 ### `pointcloud.py`
 - added `fitCircle()` to fit a circle to a line in 3D.
+- added a revision of `self.densify()`. Removed `densifyCloud()`. #338
 
 
 ---
@@ -122,6 +123,7 @@ Lower index means darker.
 - `vedo -r fitPolynomial1`
 - `vedo -r fitPolynomial2`
 - `vedo -r histo_gauss`
+- `vedo -r densifycloud`
 
 
 

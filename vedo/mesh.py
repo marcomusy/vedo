@@ -346,7 +346,8 @@ class Mesh(Points):
 
 
     def faces(self):
-        """Get cell polygonal connectivity ids as a python ``list``.
+        """
+        Get cell polygonal connectivity ids as a python ``list``.
         The output format is: [[id0 ... idn], [id0 ... idm],  etc].
         """
         arr1d = vtk_to_numpy(self._polydata.GetPolys().GetData())
@@ -371,6 +372,10 @@ class Mesh(Points):
                 if i >= n:
                     break
         return conn # cannot always make a numpy array of it!
+
+    def cells(self):
+        """Alias for ``faces()``."""
+        return self.faces()
 
 
     def lines(self, flat=False):
