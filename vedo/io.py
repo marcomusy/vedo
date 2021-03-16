@@ -5,13 +5,12 @@ import glob
 import numpy as np
 import time
 
+import vedo
 import vedo.utils as utils
 import vedo.colors as colors
 from vedo.assembly import Assembly
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points
-from vedo.ugrid import UGrid
-from vedo.tetmesh import TetMesh
 from vedo.picture import Picture
 from vedo.volume import Volume
 import vedo.docs as docs
@@ -232,7 +231,7 @@ def _load_file(filename, unpack):
                 elif isinstance(b, vtk.vtkImageData):
                     acts.append(Volume(b))
                 elif isinstance(b, vtk.vtkUnstructuredGrid):
-                    acts.append(UGrid(b))
+                    acts.append(vedo.UGrid(b))
             return acts
         else:
             return mb
@@ -310,7 +309,7 @@ def _load_file(filename, unpack):
             return None
 
         if isinstance(routput, vtk.vtkUnstructuredGrid):
-            actor = TetMesh(routput)
+            actor = vedo.TetMesh(routput)
 
         else:
             actor = Mesh(routput)
@@ -875,28 +874,23 @@ def toNumpy(obj):
     elif isinstance(obj, Picture):
         adict['type'] = 'Picture'
         _fillcommon(obj, adict)
-        arr = vtk_to_numpy(obj.inputdata().GetPointData().GetScalars())
-        adict['array'] = arr
+        adict['array'] = vtk_to_numpy(obj.inputdata().GetPointData().GetScalars())
         adict['shape'] = obj.inputdata().GetDimensions()
+        print('toNumpy(): vedo.Picture', obj.shape, obj.GetPosition())
 
-    ######################################################## Annotation
-    elif isinstance(obj, vtk.vtkCornerAnnotation):
-        tx = ''
-        for i in range(8):
-            tx = obj.GetText(i)
-            if tx: break
-        if tx:
-            adict['type'] = 'Annotation'
-            #adict['rendered_at'] = obj.renderedAt
-            adict['text'] = obj.GetText(i)
-            adict['position'] = i
-            adict['color'] = obj.GetTextProperty().GetColor()
-            adict['font'] = obj.GetTextProperty().GetFontFamilyAsString()
-            if 'File' in adict['font']:
-                adict['font'] = os.path.basename(obj.GetTextProperty().GetFontFile()).split('.')[0]
-            adict['size']  = obj.GetNonlinearFontScaleFactor()
-            adict['bgcol'] = obj.GetTextProperty().GetBackgroundColor()
-            adict['alpha'] = obj.GetTextProperty().GetBackgroundOpacity()
+    ######################################################## Text2D
+    elif isinstance(obj, vedo.Text2D):
+        adict['type'] = 'Text2D'
+        adict['rendered_at'] = obj.renderedAt
+        adict['text'] = obj.text()
+        adict['position'] = obj.GetPosition()
+        adict['color'] = obj.property.GetColor()
+        adict['font'] =  obj.font()
+        adict['size']  = obj.property.GetFontSize()/22.5
+        adict['bgcol'] = obj.property.GetBackgroundColor()
+        adict['alpha'] = obj.property.GetBackgroundOpacity()
+        adict['frame'] = obj.property.GetFrame()
+        # print('toNumpy(): vedo.Text2D', obj.text()[:10], obj.font(), obj.GetPosition())
 
     else:
         pass
@@ -1075,16 +1069,25 @@ def loadNumpy(inobj):
             _loadcommon(vimg, d)
             objs.append(vimg)
 
-        ### Annotation
+        ### Text2D
+        elif 'text2d' == d['type'].lower():
+            t = vedo.shapes.Text2D(d['text'], font=d['font'], c=d['color'])
+            t.pos(d['position']).size(d['size'])
+            t.background(d['bgcol'], d['alpha'])
+            if d['frame']:
+                t.frame(d['bgcol'])
+            objs.append(t)
+
+        ### Annotation ## backward compatibility - will disappear
         elif 'annotation' == d['type'].lower():
             from vedo.shapes import Text2D
             pos = d['position']
-            if isinstance(pos, int):                ## backward compatibility
-                pos = "top-left"                    ## backward compatibility
-                d['size'] *= 2.7 ## old convention  ## backward compatibility
+            if isinstance(pos, int):
+                pos = "top-left"
+                d['size'] *= 2.7
             t = Text2D(d['text'], font=d['font'], c=d['color']).pos(pos)
             t.background(d['bgcol'], d['alpha']).size(d['size']).frame(d['bgcol'])
-            objs.append(t)
+            objs.append(t) ## backward compatibility
 
     if len(objs) == 1:
         return objs[0]
@@ -1421,20 +1424,15 @@ def exportWindow(fileoutput, binary=False):
         sdict['defaultFont'] = settings.defaultFont
         sdict['objects'] = []
 
-        allobjs = vp.getMeshes() + vp.getVolumes()
+        allobjs = vp.getMeshes(includeNonPickables=True) + vp.getVolumes(includeNonPickables=True)
         acts2d = vp.renderer.GetActors2D()
         acts2d.InitTraversal()
         for i in range(acts2d.GetNumberOfItems()):
             a = acts2d.GetNextItem()
-            if isinstance(a, vtk.vtkCornerAnnotation):
+            if isinstance(a, vedo.Text2D):
                 allobjs.append(a)
 
-        # ir = vp.renderers.index(vp.renderer)
-        # for a in vp.actors:
-        #     # because of vtkXYPlotActor is not wrapped
-        #     if hasattr(a, 'renderedAt') and ir in a.renderedAt:
-        #         allobjs.append(a)
-        # allobjs = list(set(allobjs)) # unique
+        allobjs = list(set(allobjs)) # make sure its unique
 
         for a in allobjs:
             sdict['objects'].append(toNumpy(a))

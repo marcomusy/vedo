@@ -2939,7 +2939,7 @@ class TextBase:
     def __init__(self):
 
         self.renderedAt = set()
-
+        self.fontname = settings.defaultFont
 
     def angle(self, a):
         """Orientation angle in degrees"""
@@ -3005,7 +3005,10 @@ class TextBase:
             self.property.SetFrameWidth(lw)
         return self
 
-    def font(self, font):
+    def font(self, font=None):
+
+        if font is None:
+            return self.fontname
 
         if isinstance(font, int):
             lfonts = list(settings.font_parameters.keys())
@@ -3022,10 +3025,9 @@ class TextBase:
         else:                          # user passing name of preset font
             fpath = settings.fonts_path + font +'.ttf'
 
-        tprop = self.property
-        if   font == "Courier": tprop.SetFontFamilyToCourier()
-        elif font == "Times": tprop.SetFontFamilyToTimes()
-        elif font == "Arial": tprop.SetFontFamilyToArial()
+        if   font == "Courier": self.property.SetFontFamilyToCourier()
+        elif font == "Times":   self.property.SetFontFamilyToTimes()
+        elif font == "Arial":   self.property.SetFontFamilyToArial()
         else:
             try:
                 if not settings.font_parameters[font]['islocal']:
@@ -3033,15 +3035,20 @@ class TextBase:
             except:
                 printc("Warning: could not download/set font", font,
                        "-> Using default:", settings.defaultFont)
-                fpath = settings.fonts_path + settings.defaultFont +'.ttf'
-            tprop.SetFontFamily(vtk.VTK_FONT_FILE)
-            tprop.SetFontFile(fpath)
+                font = settings.defaultFont
+                fpath = settings.fonts_path + font +'.ttf'
+            self.property.SetFontFamily(vtk.VTK_FONT_FILE)
+            self.property.SetFontFile(fpath)
+
+        self.fontname = font  # io.toNumpy() uses it
         return self
 
 
 class Text2D(vtk.vtkActor2D, TextBase):
     """
-    Returns a ``vtkActor2D`` representing 2D text.
+    Returns a 2D text object.
+    All properties of the text, and the text itself, can be changed after creation
+    (which is expecially useful in loops).
 
     :param pos: text is placed in one of the 8 positions:
 
@@ -3092,7 +3099,7 @@ class Text2D(vtk.vtkActor2D, TextBase):
         |caption|
     """
     def __init__(self,
-                 txt,
+                 txt="",
                  pos="top-left",
                  s=1,
                  c=None,
@@ -3186,7 +3193,7 @@ class Text2D(vtk.vtkActor2D, TextBase):
         """Set/get the input text string"""
 
         if txt is None:
-            return self._mapper.GetText()
+            return self._mapper.GetInput()
 
         if "\\" in repr(txt):
             for r in _reps:

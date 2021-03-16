@@ -1,15 +1,17 @@
 """Normal jpg/png pictures can be loaded,
-cropped, rotated and positioned in 3D
-"""
-from vedo import Plotter, dataurl
+cropped, rotated and positioned in 3D."""
+from vedo import Plotter, Picture, dataurl
 
-vp = Plotter(axes=3)
+plt = Plotter(axes=7)
+
+pic = Picture(dataurl+"images/dog.jpg")
 
 for i in range(5):
-    p = vp.load(dataurl+"images/dog.jpg") # returns Picture
-    p.crop(bottom=0.2)             # crop 20%
-    p.scale(1-i/10.0).alpha(0.8)   # picture can be scaled in size
-    p.rotateX(20*i).pos(0,0,30*i)  # (can concatenate methods)
+    p = pic.clone()
+    p.crop(bottom=0.20) # crop 20% from bottom
+    p.scale(1-i/10.0).rotateX(20*i).z(30*i)
+    p.alpha(0.8)
+    plt += p
 
-vp += __doc__
-vp.show()
+plt += __doc__
+plt.show()

@@ -83,6 +83,7 @@ class Mesh(Points):
     ):
         Points.__init__(self)
 
+        self.line_locator = None
         self._current_texture_name = ''  # used by plotter._keypress
 
         self._mapper.SetInterpolateScalarsBeforeMapping(vedo.settings.interpolateScalarsBeforeMapping)
@@ -93,6 +94,7 @@ class Mesh(Points):
             self._mapper.SetResolveCoincidentTopologyPolygonOffsetParameters(pof, pou)
 
         inputtype = str(type(inputobj))
+
 
         if inputobj is None:
             pass
@@ -158,19 +160,6 @@ class Mesh(Points):
                 print("Could not add meshio cell data, skip.")
 
         elif "meshlab" in inputtype:
-            # if "MeshSet" in inputtype:
-            #     inputobj = inputobj.current_mesh()
-            # mpoints, mcells = inputobj.vertex_matrix(), inputobj.face_matrix()
-            # pnorms = inputobj.vertex_normal_matrix()
-            # cnorms = inputobj.face_normal_matrix()
-            # if len(mcells):
-            #     self._polydata = buildPolyData(mpoints, mcells)
-            # else:
-            #     self._polydata = buildPolyData(mpoints, None)
-            # if len(pnorms):
-            #     self._polydata.GetPointData().SetNormals(numpy_to_vtk(pnorms, deep=True))
-            # if len(cnorms):
-            #     self._polydata.GetCellData().SetNormals(numpy_to_vtk(cnorms, deep=True))
             self._polydata = vedo.utils.meshlab2vedo(inputobj)
 
         elif isSequence(inputobj):
@@ -221,16 +210,16 @@ class Mesh(Points):
 
         self._mapper.SetInputData(self._polydata)
 
-        self.line_locator = None
-
         self._bfprop = None  # backface property holder
 
         prp = self.GetProperty()
         prp.SetInterpolationToPhong()
 
         if vedo.settings.renderLinesAsTubes:
-            if hasattr(prp, 'RenderLinesAsTubesOn'):
+            try:
                 prp.RenderLinesAsTubesOn()
+            except:
+                pass
 
         # set the color by c or by scalar
         if self._polydata:

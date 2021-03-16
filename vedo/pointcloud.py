@@ -850,14 +850,18 @@ class Points(vtk.vtkFollower, BaseActor):
         self._scals_idx = 0  # index of the active scalar changed from CLI
         self._ligthingnr = 0 # index of the lighting mode changed from CLI
 
-        if inputobj is None:
-            self._polydata = vtk.vtkPolyData()
-            return
-        ##########
 
         prp = self.GetProperty()
-        if hasattr(prp, 'RenderPointsAsSpheresOn'):
+        try:
             prp.RenderPointsAsSpheresOn()
+        except:
+            pass
+
+        if inputobj is None:####################
+            self._polydata = vtk.vtkPolyData()
+            return
+        ########################################
+
         prp.SetRepresentationToPoints()
         prp.SetPointSize(r)
         self.lighting(ambient=0.7, diffuse=0.3)

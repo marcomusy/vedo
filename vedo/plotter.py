@@ -462,7 +462,6 @@ class Plotter:
         self._extralight = None
         self.size = size
         self.interactor = None
-        # self.allowInteraction = None
         self.keyheld = ''
         self.xtitle = settings.xtitle  # x axis label and units
         self.ytitle = settings.ytitle  # y axis label and units
@@ -480,21 +479,22 @@ class Plotter:
 
         ############################################################
         notebookBackend = settings.notebookBackend
-        if notebookBackend and notebookBackend.lower() == '2d':
-            self.offscreen = True
-            if self.size == "auto":
-                self.size = (900, 700)
+        if notebookBackend:
+            if notebookBackend == '2d':
+                self.offscreen = True
+                if self.size == "auto":
+                    self.size = (900, 700)
 
-        if notebookBackend and notebookBackend not in  ["panel","2d","ipyvtk"]:
-            self.interactive = False
-            self.interactor = None
-            self.window = None
-            self.camera = None # let the backend choose
-            if self.size == "auto":
-                self.size = (1000, 1000)
-            ############################
-            return #####################
-            ############################
+            elif notebookBackend == "k3d":
+                self.interactive = False
+                self.interactor = None
+                self.window = None
+                self.camera = None # let the backend choose
+                if self.size == "auto":
+                    self.size = (1000, 1000)
+                ############################
+                return #####################
+                ############################
 
         # more settings
         if settings.useDepthPeeling:
@@ -900,7 +900,7 @@ class Plotter:
     ####################################################
     def load(self, filename, unpack=True, force=False):
         """
-        Load Mesh and Volume objects from file.
+        Load objects from file.
         The output will depend on the file extension. See examples below.
 
         :param bool unpack: only for multiblock data,
@@ -935,107 +935,60 @@ class Plotter:
         return acts
 
 
-    def getVolumes(self, obj=None, renderer=None):
+    def getMeshes(self, at=None, includeNonPickables=False):
         """
-        Return the list of the rendered Volumes.
+        Return a list of Meshes from the specified renderer.
 
-        If ``obj`` is:
-            ``None``, return volumes of current renderer
-
-            ``int``, return volumes in given renderer number
-
-        :param int,vtkRenderer renderer: specify which renederer to look into.
+        :param int at: specify which renderer to look into.
+        :param bool includeNonPickables: include non-pickable objects
         """
-        if renderer is None:
+        if at is None:
             renderer = self.renderer
-        elif isinstance(renderer, int):
-                renderer = self.renderers.index(renderer)
-        else:
-            return []
+            at=0
+        elif isinstance(at, int):
+            renderer = self.renderers[at]
 
-        if obj is None or isinstance(obj, int):
-            if obj is None:
-                acs = renderer.GetVolumes()
-            elif obj >= len(self.renderers):
-                printc("Error in getVolumes(): non existing renderer", obj, c='r')
-                return []
-            else:
-                acs = self.renderers[obj].GetVolumes()
-            vols = []
-            acs.InitTraversal()
-            for i in range(acs.GetNumberOfItems()):
-                a = acs.GetNextItem()
-                if a.GetPickable():
-                    r = self.renderers.index(renderer)
-                    if a == self.axes_instances[r]:
-                        continue
-                    vols.append(a)
-            return vols
+        has_global_axes = False
+        if isinstance(self.axes_instances[at], vedo.Assembly):
+            has_global_axes=True
 
-    def getMeshes(self, obj=None, renderer=None):
+        actors = []
+        acs = renderer.GetActors()
+        acs.InitTraversal()
+        for i in range(acs.GetNumberOfItems()):
+            a = acs.GetNextItem()
+            if isinstance(a, vtk.vtkVolume):
+                continue
+            if includeNonPickables or a.GetPickable():
+                if a == self.axes_instances[at]:
+                    continue
+                if has_global_axes and a in self.axes_instances[at].actors:
+                    continue
+                actors.append(a)
+        return actors
+
+    def getVolumes(self, at=None, includeNonPickables=False):
         """
-        Return a list of Meshes (which may include Volume objects too).
+        Return a list of Volumes from the specified renderer.
 
-        If ``obj`` is:
-            ``None``, return meshes of current renderer
-
-            ``int``, return meshes in given renderer number
-
-            ``vtkAssembly`` return the contained meshes
-
-            ``string``, return meshes matching legend name
-
-        :param int,vtkRenderer renderer: specify which renederer to look into.
+        :param int at: specify which renderer to look into.
+        :param bool includeNonPickables: include non-pickable objects
         """
-        if renderer is None:
+        if at is None:
             renderer = self.renderer
-        elif isinstance(renderer, int):
-                renderer = self.renderers.index(renderer)
-        else:
-            return []
+            at=0
+        elif isinstance(at, int):
+            renderer = self.renderers[at]
 
-        if obj is None or isinstance(obj, int):
-            if obj is None:
-                acs = renderer.GetActors()
-            elif obj >= len(self.renderers):
-                printc("Error in getMeshes(): non existing renderer", obj, c='r')
-                return []
-            else:
-                acs = self.renderers[obj].GetActors()
+        vols = []
+        acs = renderer.GetVolumes()
+        acs.InitTraversal()
+        for i in range(acs.GetNumberOfItems()):
+            a = acs.GetNextItem()
+            if includeNonPickables or a.GetPickable():
+                vols.append(a)
+        return vols
 
-            actors = []
-            acs.InitTraversal()
-            for i in range(acs.GetNumberOfItems()):
-                a = acs.GetNextItem()
-                if a.GetPickable():
-                    r = self.renderers.index(renderer)
-                    if a == self.axes_instances[r]:
-                        continue
-                    actors.append(a)
-            return actors
-
-        elif isinstance(obj, vtk.vtkAssembly):
-            cl = vtk.vtkPropCollection()
-            obj.GetActors(cl)
-            actors = []
-            cl.InitTraversal()
-            for i in range(obj.GetNumberOfPaths()):
-                act = vtk.vtkActor.SafeDownCast(cl.GetNextProp())
-                if act.GetPickable():
-                    actors.append(act)
-            return actors
-
-        elif isinstance(obj, str):  # search the actor by the legend name
-            actors = []
-            for a in self.actors:
-                if hasattr(a, "name") and obj in a.name:
-                    actors.append(a)
-            return actors
-
-        elif isinstance(obj, vtk.vtkActor):
-            return [obj]
-
-        return []
 
     def resetCamera(self):
         """Reset the camera position and zooming."""
@@ -1948,7 +1901,7 @@ class Plotter:
                     self.renderer.AddActor(ia)
 
                 if hasattr(ia, '_set2actcam') and ia._set2actcam:
-                    ia.SetCamera(self.camera)
+                    ia.SetCamera(self.camera)  # used by mesh.followCamera()
 
                 if hasattr(ia, 'renderedAt'):
                     ia.renderedAt.add(at)
@@ -1966,15 +1919,6 @@ class Plotter:
                             ia.scalarbar.GetTitleTextProperty().SetColor(c)
                     if ia.scalarbar not in self.scalarbars:
                         self.scalarbars.append(ia.scalarbar)
-
-                # if hasattr(ia, 'GetTextProperty'):
-                #     #fix gray color of corner annotations
-                #     cacol = np.array(ia.GetTextProperty().GetColor())
-                #     if np.linalg.norm(cacol-(.5,.5,.5))/3 < 0.05:
-                #         c = (0.9, 0.9, 0.9)
-                #         if np.sum(self.renderer.GetBackground()) > 1.5:
-                #             c = (0.1, 0.1, 0.1)
-                #         ia.GetTextProperty().SetColor(c)
 
                 if hasattr(ia, 'flagText') and self.interactor and not self.offscreen:
                     #check balloons
@@ -2010,7 +1954,7 @@ class Plotter:
                         self.flagWidget.RemoveBalloon(ia)
 
         # remove the ones that are not in actors2show (and their scalarbar if any)
-        for ia in self.getMeshes(at) + self.getVolumes(at):
+        for ia in self.getMeshes(at, includeNonPickables=True) + self.getVolumes(at, includeNonPickables=True):
             if ia not in actors2show:
                 self.renderer.RemoveActor(ia)
                 if hasattr(ia, 'scalarbar') and ia.scalarbar:
@@ -2719,7 +2663,10 @@ class Plotter:
                 if hasattr(self.axes_instances[clickedr], "EnabledOff"):  # widget
                     self.axes_instances[clickedr].EnabledOff()
                 else:
-                    self.renderer.RemoveActor(self.axes_instances[clickedr])
+                    try:
+                        self.renderer.RemoveActor(self.axes_instances[clickedr])
+                    except:
+                        pass
                 self.axes_instances[clickedr] = None
             if not self.axes: self.axes=0
             if isinstance(self.axes, dict):
@@ -2753,7 +2700,10 @@ class Plotter:
                     if hasattr(self.axes_instances[clickedr], "EnabledOff"):  # widget
                         self.axes_instances[clickedr].EnabledOff()
                     else:
-                        self.renderer.RemoveActor(self.axes_instances[clickedr])
+                        try:
+                            self.renderer.RemoveActor(self.axes_instances[clickedr])
+                        except:
+                            pass
                     self.axes_instances[clickedr] = None
                 addons.addGlobalAxes(axtype=asso[key], c=None)
                 self.interactor.Render()

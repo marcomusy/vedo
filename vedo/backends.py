@@ -8,7 +8,7 @@ from vedo.pointcloud import Points
 
 from vedo.volume import Volume
 import vedo.settings as settings
-import vedo.addons as addons
+# import vedo.addons as addons
 import vedo.shapes as shapes
 import vedo.utils as utils
 from vtk.util.numpy_support import vtk_to_numpy
@@ -53,17 +53,18 @@ def getNotebookBackend(actors2show, zoom, viewup):
             else:
                 actors2show2.append(ia)
 
-        vbb, sizes, min_bns, max_bns = addons.computeVisibleBounds()
-        kgrid = vbb[0], vbb[2], vbb[4], vbb[1], vbb[3], vbb[5]
+        # vbb, sizes, _, _ = addons.computeVisibleBounds()
+        # kgrid = vbb[0], vbb[2], vbb[4], vbb[1], vbb[3], vbb[5]
 
         settings.notebook_plotter = k3d.plot(axes=[vp.xtitle, vp.ytitle, vp.ztitle],
                                              menu_visibility=True,
-                                             height=int(vp.size[1]/2) )
-        settings.notebook_plotter.grid = kgrid
+                                             # height=int(vp.size[1]/2),
+                                             )
+        # settings.notebook_plotter.grid = kgrid
         settings.notebook_plotter.lighting = 1.2
 
         # set k3d camera
-        settings.notebook_plotter.camera_auto_fit = False
+        settings.notebook_plotter.camera_auto_fit = True
 
         if settings.plotter_instance and settings.plotter_instance.camera:
             k3dc =  utils.vtkCameraToK3D(settings.plotter_instance.camera)
@@ -72,24 +73,24 @@ def getNotebookBackend(actors2show, zoom, viewup):
                 k3dc[1] /= zoom
                 k3dc[2] /= zoom
             settings.notebook_plotter.camera = k3dc
-        else:
-            vsx, vsy, vsz = vbb[0]-vbb[1], vbb[2]-vbb[3], vbb[4]-vbb[5]
-            vss = numpy.linalg.norm([vsx, vsy, vsz])
-            if zoom:
-                vss /= zoom
-            vfp = (vbb[0]+vbb[1])/2, (vbb[2]+vbb[3])/2, (vbb[4]+vbb[5])/2 # camera target
-            if viewup == 'z':
-                vup = (0,0,1) # camera up vector
-                vpos= vfp[0] + vss/1.9, vfp[1] + vss/1.9, vfp[2]+vss*0.01  # camera position
-            elif viewup == 'x':
-                vup = (1,0,0)
-                vpos= vfp[0]+vss*0.01, vfp[1] + vss/1.5, vfp[2]  # camera position
-            else:
-                vup = (0,1,0)
-                vpos= vfp[0]+vss*0.01, vfp[1]+vss*0.01, vfp[2] + vss/1.5  # camera position
-            settings.notebook_plotter.camera = [vpos[0], vpos[1], vpos[2],
-                                                  vfp[0],  vfp[1],  vfp[2],
-                                                  vup[0],  vup[1],  vup[2] ]
+        # else:
+        #     vsx, vsy, vsz = vbb[0]-vbb[1], vbb[2]-vbb[3], vbb[4]-vbb[5]
+        #     vss = numpy.linalg.norm([vsx, vsy, vsz])
+        #     if zoom:
+        #         vss /= zoom
+        #     vfp = (vbb[0]+vbb[1])/2, (vbb[2]+vbb[3])/2, (vbb[4]+vbb[5])/2 # camera target
+        #     if viewup == 'z':
+        #         vup = (0,0,1) # camera up vector
+        #         vpos= vfp[0] + vss/1.9, vfp[1] + vss/1.9, vfp[2]+vss*0.01  # camera position
+        #     elif viewup == 'x':
+        #         vup = (1,0,0)
+        #         vpos= vfp[0]+vss*0.01, vfp[1] + vss/1.5, vfp[2]  # camera position
+        #     else:
+        #         vup = (0,1,0)
+        #         vpos= vfp[0]+vss*0.01, vfp[1]+vss*0.01, vfp[2] + vss/1.5  # camera position
+        #     settings.notebook_plotter.camera = [vpos[0], vpos[1], vpos[2],
+        #                                           vfp[0],  vfp[1],  vfp[2],
+        #                                           vup[0],  vup[1],  vup[2] ]
         if not vp.axes:
             settings.notebook_plotter.grid_visible = False
 
@@ -187,7 +188,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                 # print('Mesh', ia.name, ia.N(), len(ia.faces()))
                 kobj = k3d.vtk_poly_data(iapoly,
                                          name=name,
-                                         color=_rgb2int(iap.GetColor()),
+                                         # color=_rgb2int(iap.GetColor()),
                                          color_attribute=color_attribute,
                                          color_map=kcmap,
                                          opacity=iap.GetOpacity(),
@@ -205,16 +206,15 @@ def getNotebookBackend(actors2show, zoom, viewup):
                     scals = vtk_to_numpy(vtkscals)
                     kcols = k3d.helpers.map_colors(scals, kcmap,
                                                    [scals_min,scals_max]).astype(numpy.uint32)
-                sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
+                # sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
 
                 kobj = k3d.points(ia.points().astype(numpy.float32),
                                   color=_rgb2int(iap.GetColor()),
                                   colors=kcols,
                                   opacity=iap.GetOpacity(),
-                                  shader="3d",
-                                  point_size=iap.GetPointSize()*sqsize/800,
+                                  shader="dot",
+                                  point_size=3, # point_size=iap.GetPointSize()*sqsize/800,
                                   name=name,
-                                  #compression_level=9,
                                   )
                 settings.notebook_plotter += kobj
 
@@ -231,7 +231,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                 #     kcols = k3d.helpers.map_colors(scals, kcmap,
                 #                                    [scals_min,scals_max]).astype(numpy.uint32)
 
-                sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
+                # sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
 
                 for i, ln_idx in enumerate(ia.lines()):
                     if i>200:
@@ -243,7 +243,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
 #                                    colors=kcols,
                                     opacity=iap.GetOpacity(),
                                     shader="thick",
-                                    width=iap.GetLineWidth()*sqsize/1000,
+                                    # width=iap.GetLineWidth()*sqsize/1000,
                                     name=name,
                                     )
 

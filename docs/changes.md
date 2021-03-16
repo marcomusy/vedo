@@ -10,6 +10,7 @@
 - Added interfaces and examples to libraries [iminuit](https://github.com/scikit-hep/iminuit)
 and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab)
 - variable `datadir` changed to `dataurl`
+- added `ipyvtk_simple` for notebooks
 
 
 ---
@@ -59,7 +60,7 @@ Lower index means darker.
 ### `picture.py`
 - attribute `picture.shape` holds the shape of the picture in pixels
 - added `gif` file reader to return a list of `Picture` objs.
-
+- added `clone()` method.
 
 ---
 ### `pointcloud.py`
@@ -123,7 +124,9 @@ Lower index means darker.
 - `vedo -r fitPolynomial1`
 - `vedo -r fitPolynomial2`
 - `vedo -r histo_gauss`
+- `vedo -r plot_polar`
 - `vedo -r densifycloud`
+- `vedo -r interpolateVolume`
 
 
 

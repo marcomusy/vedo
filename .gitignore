@@ -7,3 +7,10 @@ notebooks/.ipynb_checkpoints/
 docs/build/
 docs/source/content
 docs/source/index.rst
+
+untitled*.py
+bug_*.py
+prove
+speed_tester.py
+data
+

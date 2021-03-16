@@ -11,7 +11,7 @@ import vedo.docs as docs
 from vedo.colors import printc
 
 import vedo.settings as settings
-from vedo.settings import datadir, embedWindow
+from vedo.settings import datadir, dataurl, embedWindow
 
 from vedo.mesh import Mesh
 
@@ -39,9 +39,9 @@ Basic example:
     .. code-block:: python
 
         import dolfin
-        from vedo.dolfin import datadir, plot
+        from vedo.dolfin import dataurl, plot
 
-        mesh = dolfin.Mesh(datadir+"dolfin_fine.xml")
+        mesh = dolfin.Mesh(dataurl+"dolfin_fine.xml")
 
         plot(mesh)
 
@@ -116,6 +116,7 @@ __all__ = [
     "Text2D",
     "Latex",
     "datadir",
+    "dataurl",
     "screenshot",
     "Video",
     "exportWindow",

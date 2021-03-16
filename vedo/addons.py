@@ -1322,6 +1322,9 @@ def buildRulerAxes(
     dx,dy,dz = (y1-y0)*xpad, (x1-x0)*ypad, (y1-y0)*zpad
     d = np.sqrt((y1-y0)**2+(x1-x0)**2+(z1-z0)**2)
 
+    if not d:
+        return None
+
     if s is None:
         s = d/75
 
@@ -1358,7 +1361,10 @@ def buildRulerAxes(
         cxy = shapes.Circle([x0,y1,z0], r=d, res=15)
         acts.extend([lx,ly,cxy])
 
-    macts = merge(acts).c(c).alpha(alpha).bc('t')
+    macts = merge(acts)
+    if not macts:
+        return None
+    macts.c(c).alpha(alpha).bc('t')
     macts.UseBoundsOff()
     return macts
 
@@ -2580,10 +2586,12 @@ def addGlobalAxes(axtype=None, c=None):
                                xtitle=plt.xtitle+' - ',
                                ytitle=plt.ytitle+' - ',
                                ztitle=plt.ztitle+' - ')
+        plt.axes_instances[r] = rulax
+        if not rulax:
+            return None
         rulax.UseBoundsOff()
         rulax.PickableOff()
         plt.renderer.AddActor(rulax)
-        plt.axes_instances[r] = rulax
 
     elif plt.axes == 8:
         vbb = computeVisibleBounds()[0]

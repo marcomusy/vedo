@@ -488,8 +488,8 @@ def embedWindow(backend='k3d', verbose=True):
             notebook_plotter = None
             return
 
+    backend = backend.lower()
     notebookBackend = backend
-
 
     if backend=='k3d':
         try:
@@ -512,9 +512,9 @@ def embedWindow(backend='k3d', verbose=True):
                 print('> conda install nodejs')
 
     elif backend.lower() == '2d':
-        verbose=False
+        pass
 
-    elif backend=='panel':
+    elif backend =='panel':
         try:
             import panel
             panel.extension('vtk')
@@ -524,7 +524,7 @@ def embedWindow(backend='k3d', verbose=True):
                 print('> pip install panel -U   # and/or')
                 print('> conda install nodejs')
 
-    elif backend=='ipyvtk':
+    elif 'ipyvtk' in backend:
         try:
             from ipyvtk_simple.viewer import ViewInteractiveWidget
         except:

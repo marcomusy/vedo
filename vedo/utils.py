@@ -1330,7 +1330,7 @@ def makeTicks(x0, x1, N, labels=None, digits=None):
     ticks_str, ticks_float = [], []
 
     if x1 <= x0:
-        printc("Error in makeTicks(): x0 >= x1.", c='r')
+        # printc("Error in makeTicks(): x0 >= x1", x0,x1, c='r')
         return np.array([0.0,1.0]), ["",""]
 
     if labels is not None:

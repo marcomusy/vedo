@@ -105,6 +105,20 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         self._mapper.Modified()
         return self
 
+    def clone(self, transform=False):
+        """Return an exact copy of the input Picture.
+        If transform is True, it is given the same scaling and position."""
+        img = vtk.vtkImageData()
+        img.DeepCopy(self._data)
+        pic = Picture(img)
+        if transform:
+            # assign the same transformation to the copy
+            pic.SetOrigin(self.GetOrigin())
+            pic.SetScale(self.GetScale())
+            pic.SetOrientation(self.GetOrientation())
+            pic.SetPosition(self.GetPosition())
+        return pic
+
     def text(self, txt,
                    pos=(0,0,0),
                    s=1,

@@ -48,7 +48,7 @@ class Base3DProp(object):
         self._time = 0
         self.renderedAt = set()
         self.transform = None
-        self._set2actcam = False
+        self._set2actcam = False # used by mesh.followCamera()
 
     def address(self):
         """

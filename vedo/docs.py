@@ -1,4 +1,3 @@
-from __future__ import division, print_function
 import vtk, sys
 
 __all__ = []
@@ -32,8 +31,7 @@ def tips():
     msg += "|        S     save a screenshot                           |\n"
     msg += "|        E     export rendering window to numpy file       |\n"
     msg += "|        q     return control to python script             |\n"
-    msg += "|        Esc   close the rendering window and continue     |\n"
-    msg += "|        F1    abort execution and exit python kernel      |\n"
+    msg += "|        Esc   abort execution and exit python kernel      |\n"
     msg += "|----------------------------------------------------------|\n"
     msg += "| Mouse: Left-click    rotate scene / pick actors          |\n"
     msg += "|        Middle-click  pan scene                           |\n"
