@@ -185,11 +185,9 @@ print('DISABLED: reverse test', sr.N(), 576)
 rev = vtk.vtkReverseSense()
 rev.SetInputData(sr.polydata())
 rev.Update()
-print(rev.GetOutput())
 print('DISABLED: reverse vtk nr.pts, nr.cells')
 print(rev.GetOutput().GetNumberOfPoints(),sr.polydata().GetNumberOfPoints(),
-      rev.GetOutput().GetNumberOfCells(), sr.polydata().GetNumberOfCells(),
-      )
+      rev.GetOutput().GetNumberOfCells(), sr.polydata().GetNumberOfCells())
 # assert sr.N() == 576
 
 
@@ -245,12 +243,11 @@ assert np.allclose(s3.centerOfMass(), (35,67,87))
 
 
 ######################################normalize
-c3 = cone.clone().normalize()
-#print('centerOfMass =', c3.centerOfMass())
-print('normalize',c3.centerOfMass(), [0,0,-1.41262311])
-assert np.allclose(c3.centerOfMass(), [0,0,-1.41262311])
-print('normalize',c3.averageSize())
-assert 0.9 < c3.averageSize() < 1.1
+s3 = sphere.clone().pos(10,20,30).scale([7,8,9]).normalize()
+print('normalize',s3.centerOfMass(), (10,20,30))
+assert np.allclose(s3.centerOfMass(), (10,20,30))
+print('normalize',s3.averageSize())
+assert 0.9 < s3.averageSize() < 1.1
 
 
 ###################################### stretch
@@ -275,13 +272,6 @@ assert s2.N() == 270338
 s2 = sphere.clone().decimate(0.2)
 print('decimate',s2.N() , 213)
 assert s2.N() == 213
-
-
-###################################### pointGaussNoise
-s2 = sphere.clone().pointGaussNoise(2)
-print('pointGaussNoise',s2.maxBoundSize() ,'>', 1.1)
-assert s2.maxBoundSize() > 1.1
-
 
 ###################################### normalAt
 print('normalAt',sphere.normalAt(12), [9.97668684e-01, 1.01513637e-04, 6.82437494e-02])

@@ -527,7 +527,7 @@ class Base3DProp(object):
     def diagonalSize(self):
         """Get the length of the diagonal of mesh bounding box."""
         b = self.GetBounds()
-        return np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])* 2 + (b[5]-b[4])**2)
+        return np.sqrt((b[1]-b[0])**2 + (b[3]-b[2])**2 + (b[5]-b[4])**2)
         # return self.GetLength() # ???different???
 
     def maxBoundSize(self):
@@ -1637,7 +1637,7 @@ class BaseGrid(BaseActor):
         gf.SetInputData(extract.GetOutput())
         gf.Update()
 
-        a = vedo.mesh.Mesh(gf.GetOutput()).lw(0.1).flat().lighting('plastic')
+        a = vedo.mesh.Mesh(gf.GetOutput()).lw(0.1).flat().lighting('ambient')
         scalars = a.getPointArray()
         if scalars is None:
             print("Error in legosurface(): no scalars found!")

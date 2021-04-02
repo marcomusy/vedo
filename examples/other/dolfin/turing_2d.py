@@ -84,7 +84,7 @@ while (t < t_max):
     solver.solve(problem, W.vector())
     W0.assign(W)
     u_out, v_out = W.split()
-    plot(u_out, Text2D("time = "+str(t)),
+    plot(u_out, text="time = "+str(t),
          lw=0, warpZfactor=-0.1,
          vmin=0, vmax=1, scalarbar=False, interactive=False)
 

@@ -522,22 +522,36 @@ class Mesh(Points):
         return self
 
 
-
-    def computeNormals(self, points=True, cells=True):
+    def computeNormals(self, points=True, cells=True, featureAngle=None, consistency=True):
         """Compute cell and vertex normals for the mesh.
 
-        .. warning:: Mesh gets modified, output can have a different nr. of vertices.
+        :param bool points: do the computation for the vertices
+        :param bool cells: do the computation for the cells
+
+        :param float featureAngle: specify the angle that defines a sharp edge.
+            If the difference in angle across neighboring polygons is greater than this value,
+            the shared edge is considered "sharp" and it is splitted.
+
+        :param bool consistency: turn on/off the enforcement of consistent polygon ordering.
+
+        .. warning:: if featureAngle is set to a float the Mesh can be modified, and it
+            can have a different nr. of vertices from the original.
         """
         poly = self.polydata(False)
         pdnorm = vtk.vtkPolyDataNormals()
         pdnorm.SetInputData(poly)
         pdnorm.SetComputePointNormals(points)
         pdnorm.SetComputeCellNormals(cells)
+        pdnorm.SetConsistency(consistency)
         pdnorm.FlipNormalsOff()
-        pdnorm.ConsistencyOn()
+        if featureAngle:
+            pdnorm.SetSplitting(True)
+            pdnorm.SetFeatureAngle(featureAngle)
+        else:
+            pdnorm.SetSplitting(False)
+        # print(pdnorm.GetNonManifoldTraversal())
         pdnorm.Update()
         return self._update(pdnorm.GetOutput())
-
 
 
     def reverse(self, cells=True, normals=False):
@@ -659,59 +673,6 @@ class Mesh(Points):
     def lc(self, lineColor=None):
         """Set/get color of mesh edges. Same as `lineColor()`."""
         return self.lineColor(lineColor)
-
-    def addQuality(self, measure=6, cmap='RdYlBu'):
-        """
-        Calculate functions of quality for the elements of a triangular mesh.
-        This method adds to the mesh a cell array named "Quality".
-        See class `vtkMeshQuality <https://vtk.org/doc/nightly/html/classvtkMeshQuality.html>`_
-        for explanation.
-
-        :param int measure: type of estimator
-
-            - EDGE RATIO, 0
-            - ASPECT RATIO, 1
-            - RADIUS RATIO, 2
-            - ASPECT FROBENIUS, 3
-            - MED ASPECT_FROBENIUS, 4
-            - MAX ASPECT FROBENIUS, 5
-            - MIN_ANGLE, 6
-            - COLLAPSE RATIO, 7
-            - MAX ANGLE, 8
-            - CONDITION, 9
-            - SCALED JACOBIAN, 10
-            - SHEAR, 11
-            - RELATIVE SIZE SQUARED, 12
-            - SHAPE, 13
-            - SHAPE AND SIZE, 14
-            - DISTORTION, 15
-            - MAX EDGE RATIO, 16
-            - SKEW, 17
-            - TAPER, 18
-            - VOLUME, 19
-            - STRETCH, 20
-            - DIAGONAL, 21
-            - DIMENSION, 22
-            - ODDY, 23
-            - SHEAR AND SIZE, 24
-            - JACOBIAN, 25
-            - WARPAGE, 26
-            - ASPECT GAMMA, 27
-            - AREA, 28
-            - ASPECT BETA, 29
-
-        |meshquality| |meshquality.py|_
-        """
-        qf = vtk.vtkMeshQuality()
-        qf.SetInputData(self.polydata(False))
-        qf.SetTriangleQualityMeasure(measure)
-        qf.SaveCellQualityOn()
-        qf.Update()
-        pd = qf.GetOutput()
-        self._update(pd)
-        self.cmap(cmap, input_array="Quality", on='cells')
-        return self
-
 
     def volume(self):
         """Get/set the volume occupied by mesh."""
@@ -1023,8 +984,11 @@ class Mesh(Points):
         clipper.Update()
         cpoly = clipper.GetOutput()
 
+        vis = False
         if currentscals:
             cpoly.GetPointData().SetActiveScalars(currentscals)
+            vis = self._mapper.GetScalarVisibility()
+
 
         if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
             self._update(cpoly)
@@ -1041,6 +1005,7 @@ class Mesh(Points):
             tf.Update()
             self._update(tf.GetOutput())
 
+        self._mapper.SetScalarVisibility(vis)
         return self
 
 
@@ -1155,7 +1120,7 @@ class Mesh(Points):
             return self._update(polyapp.GetOutput()).clean().phong()
 
 
-    def join(self, polys=True):
+    def join(self, polys=True, reset=False):
         """
         Generate triangle strips and/or polylines from
         input polygons, triangle strips, and lines.
@@ -1168,9 +1133,10 @@ class Mesh(Points):
         Also note that if triangle strips or polylines are present in the input
         they are passed through and not joined nor extended.
         If you wish to strip these use mesh.triangulate() to fragment the input
-        into triangles and lines prior to applying strip().
+        into triangles and lines prior to applying join().
 
         :param bool polys: polygonal segments will be joined if they are contiguous
+        :param bool reset: reset points ordering
 
         :Warning:
 
@@ -1178,6 +1144,16 @@ class Mesh(Points):
             they will be passed through to the output data.
             This filter will only construct triangle strips if triangle polygons
             are available; and will only construct polylines if lines are available.
+
+        :Example:
+            .. code-block:: python
+
+                from vedo import *
+                c1 = Cylinder(pos=(0,0,0), r=2, height=3, axis=(1,.0,0), alpha=.1).triangulate()
+                c2 = Cylinder(pos=(0,0,2), r=1, height=2, axis=(0,.3,1), alpha=.1).triangulate()
+                intersect = c1.intersectWith(c2).join(reset=True)
+                spline = Spline(intersect).c('blue').lw(5)
+                show(c1, c2, spline, intersect.labels('id'), axes=1)
         """
         sf = vtk.vtkStripper()
         sf.SetPassThroughCellIds(True)
@@ -1185,7 +1161,21 @@ class Mesh(Points):
         sf.SetJoinContiguousSegments(polys)
         sf.SetInputData(self.polydata(False))
         sf.Update()
-        return self._update(sf.GetOutput())
+        if reset:
+            poly = sf.GetOutput()
+            cpd = vtk.vtkCleanPolyData()
+            cpd.PointMergingOn()
+            cpd.ConvertLinesToPointsOn()
+            cpd.ConvertPolysToLinesOn()
+            cpd.ConvertStripsToPolysOn()
+            cpd.SetInputData(poly)
+            cpd.Update()
+            poly = cpd.GetOutput()
+            vpts = poly.GetCell(0).GetPoints().GetData()
+            poly.GetPoints().SetData(vpts)
+            return self._update(poly)
+        else:
+            return self._update(sf.GetOutput())
 
 
     def triangulate(self, verts=True, lines=True):
@@ -1221,6 +1211,58 @@ class Mesh(Points):
             return self
 
 
+    def addQuality(self, measure=6, cmap='RdYlBu'):
+        """
+        Calculate functions of quality for the elements of a triangular mesh.
+        This method adds to the mesh a cell array named "Quality".
+        See class `vtkMeshQuality <https://vtk.org/doc/nightly/html/classvtkMeshQuality.html>`_
+        for explanation.
+
+        :param int measure: type of estimator
+
+            - EDGE RATIO, 0
+            - ASPECT RATIO, 1
+            - RADIUS RATIO, 2
+            - ASPECT FROBENIUS, 3
+            - MED ASPECT FROBENIUS, 4
+            - MAX ASPECT FROBENIUS, 5
+            - MIN_ANGLE, 6
+            - COLLAPSE RATIO, 7
+            - MAX ANGLE, 8
+            - CONDITION, 9
+            - SCALED JACOBIAN, 10
+            - SHEAR, 11
+            - RELATIVE SIZE SQUARED, 12
+            - SHAPE, 13
+            - SHAPE AND SIZE, 14
+            - DISTORTION, 15
+            - MAX EDGE RATIO, 16
+            - SKEW, 17
+            - TAPER, 18
+            - VOLUME, 19
+            - STRETCH, 20
+            - DIAGONAL, 21
+            - DIMENSION, 22
+            - ODDY, 23
+            - SHEAR AND SIZE, 24
+            - JACOBIAN, 25
+            - WARPAGE, 26
+            - ASPECT GAMMA, 27
+            - AREA, 28
+            - ASPECT BETA, 29
+
+        |meshquality| |meshquality.py|_
+        """
+        qf = vtk.vtkMeshQuality()
+        qf.SetInputData(self.polydata(False))
+        qf.SetTriangleQualityMeasure(measure)
+        qf.SaveCellQualityOn()
+        qf.Update()
+        pd = qf.GetOutput()
+        self._update(pd)
+        self.cmap(cmap, input_array="Quality", on='cells')
+        return self
+
 
     def addCurvatureScalars(self, method=0):
         """
@@ -1234,7 +1276,7 @@ class Mesh(Points):
             .. code-block:: python
 
                 from vedo import Torus
-                Torus().addCurvatureScalars().show()
+                Torus().addCurvatureScalars().addScalarBar().show(axes=1)
 
             |curvature|
         """
@@ -1242,29 +1284,35 @@ class Mesh(Points):
         curve.SetInputData(self._polydata)
         curve.SetCurvatureType(method)
         curve.Update()
-        self._polydata = curve.GetOutput()
-
-        self._mapper.SetInputData(self._polydata)
-        self._mapper.Update()
-        self.Modified()
+        self._update(curve.GetOutput())
         self._mapper.ScalarVisibilityOn()
         return self
 
+    def addConnectivity(self):
+        """
+        Flag a mesh by connectivity: each disconnected region will receive a different Id.
+        You can access the array of ids through ``mesh.getPointArray("RegionId")``.
+        """
+        cf = vtk.vtkConnectivityFilter()
+        cf.SetInputData(self.polydata(False))
+        cf.SetExtractionModeToAllRegions()
+        cf.ColorRegionsOn()
+        cf.Update()
+        return self._update(cf.GetOutput())
 
-    def addElevationScalars(self, lowPoint=(), highPoint=(), vrange=(), lut=None):
+
+    def addElevationScalars(self, lowPoint=(0,0,0), highPoint=(0,0,1), vrange=(0,1)):
         """
         Add to ``Mesh`` a scalar array that contains distance along a specified direction.
 
-        :param list low: one end of the line (small scalar values). Default (0,0,0).
-        :param list high: other end of the line (large scalar values). Default (0,0,1).
+        :param list lowPoint: one end of the line (small scalar values). Default (0,0,0).
+        :param list highPoint: other end of the line (large scalar values). Default (0,0,1).
         :param list vrange: set the range of the scalar. Default is (0, 1).
-        :param lut: optional vtkLookUpTable up table (see buildLUT method).
 
         :Example:
             .. code-block:: python
 
                 from vedo import Sphere
-
                 s = Sphere().addElevationScalars(lowPoint=(0,0,0), highPoint=(1,1,1))
                 s.addScalarBar().show(axes=1)
 
@@ -1272,24 +1320,14 @@ class Mesh(Points):
         """
         ef = vtk.vtkElevationFilter()
         ef.SetInputData(self.polydata())
-        if len(lowPoint) == 3:
-            ef.SetLowPoint(lowPoint)
-        if len(highPoint) == 3:
-            ef.SetHighPoint(highPoint)
-        if len(vrange) == 2:
-            ef.SetScalarRange(vrange)
-
+        ef.SetLowPoint(lowPoint)
+        ef.SetHighPoint(highPoint)
+        ef.SetScalarRange(vrange)
         ef.Update()
-        self._polydata = ef.GetOutput()
-
-        self._mapper.SetInputData(self._polydata)
-        if lut:
-            self._mapper.SetLookupTable(lut)
-            self._mapper.SetUseLookupTableScalarRange(1)
-        self._mapper.Update()
-        self.Modified()
+        self._update(ef.GetOutput())
         self._mapper.ScalarVisibilityOn()
         return self
+
 
     def addShadow(self, x=None, y=None, z=None, c=(0.6,0.6,0.6), alpha=1, culling=1):
         """
@@ -1547,8 +1585,8 @@ class Mesh(Points):
 
     def boundaries(self,
                    boundaryEdges=True,
-                   featureAngle=65,
-                   nonManifoldEdges=True,
+                   nonManifoldEdges=False,
+                   featureAngle=180,
                    returnPointIds=False,
                    returnCellIds=False,
                    ):
@@ -1556,8 +1594,8 @@ class Mesh(Points):
         Return a ``Mesh`` that shows the boundary lines of an input mesh.
 
         :param bool boundaryEdges: Turn on/off the extraction of boundary edges.
-        :param float featureAngle: Specify the feature angle for extracting feature edges.
         :param bool nonManifoldEdges: Turn on/off the extraction of non-manifold edges.
+        :param float featureAngle: Specify the min angle btw 2 faces for extracting edges.
         :param bool returnPointIds: return a numpy array of point indices
         :param bool returnCellIds: return a numpy array of cell indices
         """
@@ -1664,15 +1702,17 @@ class Mesh(Points):
         return Mesh(gf.GetOutput()).lw(1)
 
 
-    def intersectWithLine(self, p0, p1):
+    def intersectWithLine(self, p0, p1=None, returnIds=False):
         """Return the list of points intersecting the mesh
         along the segment defined by two points `p0` and `p1`.
+
+        :param bool returnIds: return the cell ids instead of point coords
 
         :Example:
             .. code-block:: python
 
                 from vedo import *
-                s = Spring(alpha=0.2)
+                s = Spring()
                 pts = s.intersectWithLine([0,0,0], [1,0.1,0])
                 ln = Line([0,0,0], [1,0.1,0], c='blue')
                 ps = Points(pts, r=10, c='r')
@@ -1680,6 +1720,9 @@ class Mesh(Points):
 
             |intline|
         """
+        if isinstance(p0, Points):
+            p0, p1 = p0.points()
+
         if not self.line_locator:
             self.line_locator = vtk.vtkOBBTree()
             self.line_locator.SetDataSet(self.polydata())
@@ -1695,14 +1738,20 @@ class Mesh(Points):
         # else:
         #     return []
 
-        intersectPoints = vtk.vtkPoints()
-        self.line_locator.IntersectWithLine(p0, p1, intersectPoints, None)
-        pts = []
-        for i in range(intersectPoints.GetNumberOfPoints()):
-            intersection = [0, 0, 0]
-            intersectPoints.GetPoint(i, intersection)
-            pts.append(intersection)
-        return pts
+        if returnIds:
+            idlist = vtk.vtkIdList()
+            self.line_locator.IntersectWithLine(p0, p1, None, idlist)
+            return [idlist.GetId(i) for i in range(idlist.GetNumberOfIds())]
+
+        else:
+            intersectPoints = vtk.vtkPoints()
+            self.line_locator.IntersectWithLine(p0, p1, intersectPoints, None)
+            pts = []
+            for i in range(intersectPoints.GetNumberOfPoints()):
+                intersection = [0, 0, 0]
+                intersectPoints.GetPoint(i, intersection)
+                pts.append(intersection)
+            return np.array(pts)
 
     def silhouette(self, direction=None, borderEdges=True, featureAngle=False):
         """
@@ -1911,7 +1960,7 @@ class Mesh(Points):
             return self
         else:
             rf = vtk.vtkRotationalExtrusionFilter()
-            rf.SetInputData(self.polydata())
+            rf.SetInputData(self.polydata(False)) #must not be transformed
             rf.SetResolution(res)
             rf.SetCapping(cap)
             rf.SetAngle(rotation)
@@ -1928,19 +1977,6 @@ class Mesh(Points):
             m.SetOrientation(self.GetOrientation())
             m.SetPosition(self.GetPosition())
             return m.computeNormals(cells=False).phong()
-
-
-    def addConnectivity(self):
-        """
-        Flag a mesh by connectivity: each disconnected region will receive a different Id.
-        You can access the array of ids through ``mesh.getPointArray("RegionId")``.
-        """
-        cf = vtk.vtkConnectivityFilter()
-        cf.SetInputData(self.polydata(False))
-        cf.SetExtractionModeToAllRegions()
-        cf.ColorRegionsOn()
-        cf.Update()
-        return self._update(cf.GetOutput())
 
 
     def splitByConnectivity(self, maxdepth=1000):
@@ -2000,6 +2036,8 @@ class Mesh(Points):
         m.SetScale(self.GetScale())
         m.SetOrientation(self.GetOrientation())
         m.SetPosition(self.GetPosition())
+        vis = self._mapper.GetScalarVisibility()
+        m._mapper.SetScalarVisibility(vis)
         return m
 
     def boolean(self, operation, mesh2):

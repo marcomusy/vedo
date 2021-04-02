@@ -1,13 +1,13 @@
 """Fit a plane to regions of a surface defined by
 N points that are closest to a given point of the surface.
-Green histogram is the distribution of residuals from the fitting.
-"""
+Green histogram is the distribution of residuals from the fitting."""
 from vedo import *
 from vedo.pyplot import histogram
 
-plt = Plotter()
 
-apple = load(dataurl+"apple.ply").subdivide().pointGaussNoise(1)
+apple = Mesh(dataurl+"apple.ply").subdivide().pointGaussNoise(0.5)
+
+plt = Plotter()
 plt += apple.alpha(0.1)
 
 variances = []

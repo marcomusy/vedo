@@ -6,7 +6,7 @@ import vedo.docs as docs
 import vedo.settings as settings
 import vedo.utils as utils
 from vedo.base import BaseActor
-from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
+from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy, numpy_to_vtkIdTypeArray
 
 
 
@@ -299,65 +299,6 @@ def pointCloudFrom(obj, interpolateCellData=False):
     return m
 
 
-# def densifyCloud(mesh, targetDistance, closestN=6, radius=0, maxIter=None, maxN=None):
-#     """
-#     Add new points to an input point cloud.
-#     The new points are created in such a way that all points in any local neighborhood are
-#     within a target distance of one another.
-
-#     The algorithm works as follows. For each input point, the distance to all points
-#     in its neighborhood is computed. If any of its neighbors is further than the target distance,
-#     the edge connecting the point and its neighbor is bisected and a new point is inserted at the
-#     bisection point. A single pass is completed once all the input points are visited.
-#     Then the process repeats to the limit of the maximum number of iterations.
-
-#     .. note:: Points will be created in an iterative fashion until all points in their
-#         local neighborhood are the target distance apart or less.
-#         Note that the process may terminate early due to the limit on the
-#         maximum number of iterations. By default the target distance is set to 0.5.
-#         Note that the TargetDistance should be less than the Radius or nothing will change on output.
-
-#     .. warning:: This class can generate a lot of points very quickly.
-#         The maximum number of iterations is by default set to =1.0 for this reason.
-#         Increase the number of iterations very carefully.
-#         Also, `maxN` can be set to limit the explosion of points.
-#         It is also recommended that a N closest neighborhood is used.
-#     """
-#     src = vtk.vtkProgrammableSource()
-#     def readPoints():
-#         output = src.GetPolyDataOutput()
-#         points = vtk.vtkPoints()
-#         pts = mesh.points()
-#         for p in pts:
-#             x, y, z = p
-#             points.InsertNextPoint(x, y, z)
-#         output.SetPoints(points)
-#     src.SetExecuteMethod(readPoints)
-
-#     dens = vtk.vtkDensifyPointCloudFilter()
-#     dens.SetInputConnection(src.GetOutputPort())
-#     dens.InterpolateAttributeDataOn()
-#     dens.SetTargetDistance(targetDistance)
-#     if maxIter: dens.SetMaximumNumberOfIterations(maxIter)
-#     if maxN: dens.SetMaximumNumberOfPoints(maxN)
-
-#     if radius:
-#         dens.SetNeighborhoodTypeToRadius()
-#         dens.SetRadius(radius)
-#     elif closestN:
-#         dens.SetNeighborhoodTypeToNClosest()
-#         dens.SetNumberOfClosestPoints(closestN)
-#     else:
-#         colors.printc("Error in densifyCloud: set either radius or closestN", c='r')
-#         raise RuntimeError()
-#     dens.Update()
-#     pts = vtk_to_numpy(dens.GetOutput().GetPoints().GetData())
-#     cld = Points(pts, c=None).pointSize(3)
-#     cld.name = "densifiedCloud"
-#     return cld
-
-
-
 def visiblePoints(mesh, area=(), tol=None, invert=False):
     """Extract points based on whether they are visible or not.
     Visibility is determined by accessing the z-buffer of a rendering window.
@@ -458,7 +399,7 @@ def delaunay2D(plist, mode='scipy', boundaries=(), tol=None):
     return vedo.mesh.Mesh(delny.GetOutput()).clean().lighting('off')
 
 
-def rotatePoints(points, n0=None, n1=(0,0,1)):
+def _rotatePoints(points, n0=None, n1=(0,0,1)):
     """
     Rotate a set of 3D points from direction n0 to direction n1.
 
@@ -530,11 +471,13 @@ def fitLine(points):
     return l
 
 
-def fitPlane(points):
+def fitPlane(points, signed=False):
     """
     Fits a plane to a set of points.
 
     Extra info is stored in ``Plane.normal``, ``Plane.center``, ``Plane.variance``.
+
+    :param bool signed: if True flip sign of the normal based on the ordering of the points
 
     .. hint:: Example: |fitplanes.py|_
     """
@@ -542,9 +485,18 @@ def fitPlane(points):
         points = points.points()
     data = np.array(points)
     datamean = data.mean(axis=0)
-    res = np.linalg.svd(data - datamean)
+    pts = data - datamean
+    res = np.linalg.svd(pts)
     dd, vv = res[1], res[2]
     n = np.cross(vv[0], vv[1])
+    if signed:
+        v = np.zeros_like(pts)
+        for i in range(len(pts)-1):
+            vi = np.cross(pts[i],  pts[i+1])
+            v[i] = vi/np.linalg.norm(vi)
+        ns = np.mean(v, axis=0) # normal to the points plane
+        if np.dot(n,ns) < 0:
+            n = -n
     xyz_min = points.min(axis=0)
     xyz_max = points.max(axis=0)
     s = np.linalg.norm(xyz_max - xyz_min)
@@ -570,7 +522,7 @@ def fitCircle(points):
         data = np.asarray(points)
 
     offs = data.mean(axis=0)
-    data, n0 = rotatePoints(data-offs)
+    data, n0 = _rotatePoints(data-offs)
 
     xi = data[:,0]
     yi = data[:,1]
@@ -609,7 +561,7 @@ def fitCircle(points):
 
     R = np.sqrt(x0*x0 + y0*y0 -1/N*(2*x0*x +2*y0*y -xx -yy))
 
-    c, _ = rotatePoints([x0,y0,0], (0,0,1), n0)
+    c, _ = _rotatePoints([x0,y0,0], (0,0,1), n0)
 
     return c[0]+offs, R, n0
 
@@ -819,8 +771,24 @@ class Points(vtk.vtkFollower, BaseActor):
     :param c: color name, number, or list of [R,G,B] colors of same length as plist.
     :type c: int, str, list
     :param float alpha: transparency in range [0,1].
-    :param bool blur: make the point fluffy and blurred
-        (works better with ``settings.useDepthPeeling=True``.)
+
+    Example:
+        .. code-block:: python
+
+            import numpy as np
+            from vedo import *
+
+            def fibonacci_sphere(n):
+                s = np.linspace(0, n, num=n, endpoint=False)
+                theta = s * 2.399963229728653
+                y = 1 - s * (2/(n-1))
+                r = np.sqrt(1 - y * y)
+                x = np.cos(theta) * r
+                z = np.sin(theta) * r
+                return [x,y,z]
+
+            Points(fibonacci_sphere(1000)).show(axes=1)
+
 
     |manypoints.py|_ |lorenz.py|_
     |lorenz|
@@ -831,7 +799,6 @@ class Points(vtk.vtkFollower, BaseActor):
         c=(0.2,0.2,0.2),
         alpha=1,
         r=4,
-        blur=False,
     ):
         vtk.vtkActor.__init__(self)
         BaseActor.__init__(self)
@@ -872,15 +839,13 @@ class Points(vtk.vtkFollower, BaseActor):
             pr.DeepCopy(inputobj.GetProperty())
             polyCopy.DeepCopy(inputobj.GetMapper().GetInput())
             pr.SetRepresentationToPoints()
+            pr.SetPointSize(r)
             self._polydata = polyCopy
             self._mapper.SetInputData(polyCopy)
             self._mapper.SetScalarVisibility(inputobj.GetMapper().GetScalarVisibility())
             self.SetProperty(pr)
 
         elif isinstance(inputobj, vtk.vtkPolyData):
-            # print(inputobj.GetNumberOfCells())
-            # print("ccc")
-
             if inputobj.GetNumberOfCells() == 0:
                 carr = vtk.vtkCellArray()
                 for i in range(inputobj.GetNumberOfPoints()):
@@ -967,14 +932,6 @@ class Points(vtk.vtkFollower, BaseActor):
                 prp.SetOpacity(alpha)
                 self._polydata = pd
 
-            if blur:
-                point_mapper = vtk.vtkPointGaussianMapper()
-                point_mapper.SetInputData(self._polydata)
-                point_mapper.SetScaleFactor(0.0005*self.diagonalSize()*r)
-                point_mapper.EmissiveOn()
-                self._mapper = point_mapper
-                self.SetMapper(point_mapper)
-
             return
             ##########
 
@@ -984,7 +941,7 @@ class Points(vtk.vtkFollower, BaseActor):
             self._polydata = verts.polydata()
 
         else:
-            colors.printc("Error: cannot build PointCloud from type:\n", [inputobj], c='r')
+            colors.printc("Error: cannot build Points from type:\n", [inputobj], c='r')
             raise RuntimeError()
 
         c = colors.getColor(c)
@@ -1330,6 +1287,33 @@ class Points(vtk.vtkFollower, BaseActor):
         else:
             self._mapper.Modified()
             return self
+
+
+    def delete(self, points=(), cells=()):
+        """Delete points and/or cells from a point cloud or mesh.
+        Only available in vtk>=9."""
+        rp = vtk.vtkRemovePolyData()
+
+        if isinstance(points, Points):
+            rp.SetInputData(self.polydata(False))
+            poly = points.polydata(False)
+            rp.RemoveInputData(poly)
+            rp.Update()
+            out = rp.GetOutput()
+            return self._update(out)
+
+        if points:
+            idarr = numpy_to_vtkIdTypeArray(points, deep=True)
+        elif cells:
+            idarr = numpy_to_vtkIdTypeArray(cells, deep=True)
+        else:
+            # utils.printc("delete(): nothing to delete, skip.", c='y')
+            return self
+        rp.SetPointIds(idarr)
+        rp.Update()
+        out = rp.GetOutput()
+        return self._update(out)
+
 
 
     def computeNormalsWithPCA(self, n=20, orientationPoint=None, flip=False):
@@ -1829,7 +1813,7 @@ class Points(vtk.vtkFollower, BaseActor):
             offset = [offset[0], offset[1], 0] # make it 3d
 
         if s is None:
-            s = d / 50
+            s = d / 20
 
         sph = None
         if d and (z1 - z0) / d > 0.1:
@@ -2251,7 +2235,6 @@ class Points(vtk.vtkFollower, BaseActor):
     def shear(self, x=0, y=0, z=0):
         """
         Apply a shear deformation to the Mesh along one of the main axes.
-        The transformation resets position and rotations so it should be applied first.
         """
         t = vtk.vtkTransform()
         sx, sy, sz = self.GetScale()
@@ -2284,7 +2267,7 @@ class Points(vtk.vtkFollower, BaseActor):
              vmin=None, vmax=None,
              alpha=1,
              n=256,
-            ):
+        ):
         """
         Set individual point/cell colors by providing a list of scalar values and a color map.
         `scalars` can be the string name of a ``vtkArray``.
@@ -2328,7 +2311,7 @@ class Points(vtk.vtkFollower, BaseActor):
                     vmin=None, vmax=None,
                     arrayName="PointScalars",
                     n=256,
-                    ):
+        ):
         """
         DEPRECATED: use cmap() instead.
         """
@@ -2418,7 +2401,6 @@ class Points(vtk.vtkFollower, BaseActor):
             lut.Build()
 
         self._mapper.SetLookupTable(lut)
-        # print('lut_tuples', lut.GetTable().GetNumberOfTuples())
         self._mapper.SetScalarModeToUsePointData()
         self._mapper.ScalarVisibilityOn()
         if hasattr(self._mapper, 'SetArrayName'):
@@ -2437,7 +2419,7 @@ class Points(vtk.vtkFollower, BaseActor):
                    vmin=None, vmax=None,
                    arrayName="CellScalars",
                    n=256,
-                  ):
+        ):
         """
         DEPRECATED: use cmap(on='cells') instead.
         """
@@ -2723,7 +2705,9 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
 
-    def closestPoint(self, pt, N=1, radius=None, returnPointId=False, returnCellId=False, returnIds=None):
+    def closestPoint(self, pt, N=1, radius=None,
+                     returnPointId=False, returnCellId=False, returnIds=None
+        ):
         """
         Find the closest point(s) on a mesh given from the input point `pt`.
 
@@ -3027,21 +3011,25 @@ class Points(vtk.vtkFollower, BaseActor):
         return self._update(wf.GetOutput())
 
 
-    def thinPlateSpline(self, sourcePts, targetPts, userFunctions=(None,None), sigma=1):
+    def thinPlateSpline(self, sourcePts, targetPts, sigma=1, mode="3d", funcs=(None,None)):
         """
         `Thin Plate Spline` transformations describe a nonlinear warp transform defined by a set
         of source and target landmarks. Any point on the mesh close to a source landmark will
         be moved to a place close to the corresponding target landmark.
-        The points in between are interpolated smoothly using Bookstein's Thin Plate Spline algorithm.
+        The points in between are interpolated smoothly using
+        Bookstein's Thin Plate Spline algorithm.
 
         Transformation object can be accessed with ``mesh.transform``.
 
-        :param userFunctions: You may supply both the function and its derivative with respect to r.
+        :param float sigma: specify the 'stiffness' of the spline.
+        :param str mode: set the basis function to either |R| (for 3d) or R2LogR (for 2d meshes)
+        :param funcs: You may supply both the function and its derivative with respect to r.
 
-        .. hint:: Examples: |thinplate_morphing1.py|_ |thinplate_morphing2.py|_ |thinplate_grid.py|_
-            |thinplate_morphing_2d.py|_ |interpolateField.py|_
+        .. hint:: Examples: |thinplate_morphing1.py|_ |thinplate_morphing2.py|_
+            |thinplate_grid.py|_ |thinplate_morphing_2d.py|_ |interpolateField.py|_
 
-            |thinplate_morphing1| |thinplate_morphing2| |thinplate_grid| |interpolateField| |thinplate_morphing_2d|
+            |thinplate_morphing1| |thinplate_morphing2| |thinplate_grid|
+            |interpolateField| |thinplate_morphing_2d|
         """
         if isinstance(sourcePts, Points):
             sourcePts = sourcePts.points()
@@ -3065,10 +3053,16 @@ class Points(vtk.vtkFollower, BaseActor):
             pttar.SetPoint(i, targetPts[i])
 
         transform = vtk.vtkThinPlateSplineTransform()
-        transform.SetBasisToR()
-        if userFunctions[0]:
-            transform.SetBasisFunction(userFunctions[0])
-            transform.SetBasisDerivative(userFunctions[1])
+        if mode.lower() == "3d":
+            transform.SetBasisToR()
+        elif mode.lower() == "2d":
+            transform.SetBasisToR2LogR()
+        else:
+            colors.printc("Error in thinPlateSpline(): unknown mode", mode, c='r')
+            raise RuntimeError()
+        if funcs[0]:
+            transform.SetBasisFunction(funcs[0])
+            transform.SetBasisDerivative(funcs[1])
         transform.SetSigma(sigma)
         transform.SetSourceLandmarks(ptsou)
         transform.SetTargetLandmarks(pttar)

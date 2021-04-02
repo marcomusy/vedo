@@ -2995,7 +2995,7 @@ class TextBase:
                 self.property.SetBackgroundOpacity(alpha)
         return self
 
-    def frame(self, color='k1', lw=1):
+    def frame(self, color='k1', lw=2):
         if color is None:
             self.property.FrameOff()
         else:

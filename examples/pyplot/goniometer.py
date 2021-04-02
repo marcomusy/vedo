@@ -7,8 +7,8 @@ mesh = Cone().c('steelblue').rotateY(90).pos(1,2,3)
 # add a vignette-style comment
 a, v = precision(mesh.area(),4), precision(mesh.volume(),4)
 vig = mesh.vignette("S = πr^2 +πr√(h^2 +r^2 )\n  = "+a
-                    +"~μm^2 \nV = πr^2 ·h/3\n  = "+v+"~μm^3")
-vig.color('r').backColor('b').scale(0.7).followCamera()
+                    +"~μm^2 \nV = πr^2 ·h/3\n  = "+v+"~μm^3", s=0.1)
+vig.color('r3').scale(0.7).followCamera()
 
 # measure the angle formed by 3 points
 gon = Goniometer([-0.5,1,2], [2.5,2,2], [-0.5,3,3],

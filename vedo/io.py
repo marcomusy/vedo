@@ -346,17 +346,21 @@ def download(url, force=False, verbose=True):
         return tmp_file.name
 
     try:
-        from urllib.request import urlopen
+        from urllib.request import urlopen, Request
+        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        if verbose:
+            colors.printc('reading', basename, 'from',
+                          url.split('/')[2][:40],'...', end='')
     except ImportError:
         import urllib2
         import contextlib
         urlopen = lambda url_: contextlib.closing(urllib2.urlopen(url_))
+        req = url
+        if verbose:
+            colors.printc('reading', basename, 'from',
+                          url.split('/')[2][:40],'...', end='')
 
-    if verbose:
-        colors.printc('reading', basename, 'from',
-                      url.split('/')[2][:40],'...', end='')
-
-    with urlopen(url) as response, open(tmp_file.name, 'wb') as output:
+    with urlopen(req) as response, open(tmp_file.name, 'wb') as output:
         output.write(response.read())
 
     if verbose: colors.printc(' done.')

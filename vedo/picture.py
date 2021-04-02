@@ -216,7 +216,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         :param float right: fraction to crop from the right margin
         """
         extractVOI = vtk.vtkExtractVOI()
-        extractVOI.SetInputData(self.GetInput())
+        extractVOI.SetInputData(self._data)
         extractVOI.IncludeBoundaryOn()
 
         d = self.GetInput().GetDimensions()
@@ -228,6 +228,31 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         extractVOI.SetVOI(bx0, bx1, by0, by1, 0, 0)
         extractVOI.Update()
         return self._update(extractVOI.GetOutput())
+
+    def resize(self, newsize):
+        """Resize the image by specifying the number of pixels in width and height.
+        If left to zero, it will be automatically calculated to keep the original aspect ratio.
+
+        :param list newsize: shape of picture as [npx, npy]
+        """
+        old_dims = np.array(self._data.GetDimensions())
+
+        if not newsize[1]:
+            ar = old_dims[1]/old_dims[0]
+            newsize = [newsize[0], int(newsize[0]*ar+0.5)]
+        if not newsize[0]:
+            ar = old_dims[0]/old_dims[1]
+            newsize = [int(newsize[1]*ar+0.5), newsize[1]]
+        newsize = [newsize[0], newsize[1], old_dims[2]]
+
+        rsz = vtk.vtkImageResize()
+        rsz.SetInputData(self._data)
+        rsz.SetResizeMethodToOutputDimensions()
+        rsz.SetOutputDimensions(newsize)
+        rsz.Update()
+        out = rsz.GetOutput()
+        out.SetSpacing(1,1,1)
+        return self._update(out)
 
     def mirror(self, axis="x"):
         """Mirror picture along x or y axis."""
@@ -242,6 +267,102 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             raise RuntimeError()
         ff.Update()
         return self._update(ff.GetOutput())
+
+    def extract(self, component):
+        """Extract one component of the rgb image"""
+        ec = vtk.vtkImageExtractComponents()
+        ec.SetInputData(self._data)
+        ec.SetComponents(component)
+        ec.Update()
+        return Picture(ec.GetOutput())
+
+
+    def fft(self, mode='magnitude', logscale=12, center=True):
+        """Fast Fourier transform of a picture.
+
+        :param float logscale: if non-zero, take the logarithm of the
+            intensity and scale it by this factor.
+
+        :param str mode: either [magnitude, real, imaginary, complex], compute the
+            point array data accordingly.
+        :param bool center: shift constant zero-frequency to the center of the image for display.
+            (FFT converts spatial images into frequency space, but puts the zero frequency at the origin)
+        """
+        ffti = vtk.vtkImageFFT()
+        ffti.SetInputData(self._data)
+        ffti.Update()
+
+        if 'mag' in mode:
+            mag = vtk.vtkImageMagnitude()
+            mag.SetInputData(ffti.GetOutput())
+            mag.Update()
+            out = mag.GetOutput()
+        elif 'real' in mode:
+            extractRealFilter = vtk.vtkImageExtractComponents()
+            extractRealFilter.SetInputData(ffti.GetOutput())
+            extractRealFilter.SetComponents(0)
+            extractRealFilter.Update()
+            out = extractRealFilter.GetOutput()
+        elif 'imaginary' in mode:
+            extractImgFilter = vtk.vtkImageExtractComponents()
+            extractImgFilter.SetInputData(ffti.GetOutput())
+            extractImgFilter.SetComponents(1)
+            extractImgFilter.Update()
+            out = extractImgFilter.GetOutput()
+        elif 'complex' in mode:
+            out = ffti.GetOutput()
+        else:
+            colors.printc("Error in fft(): unknown mode", mode)
+            raise RuntimeError()
+
+        if center:
+            center = vtk.vtkImageFourierCenter()
+            center.SetInputData(out)
+            center.Update()
+            out = center.GetOutput()
+
+        if 'complex' not in mode:
+            if logscale:
+                ils = vtk.vtkImageLogarithmicScale()
+                ils.SetInputData(out)
+                ils.SetConstant(logscale)
+                ils.Update()
+                out = ils.GetOutput()
+
+        return Picture(out)
+
+    def rfft(self, mode='magnitude'):
+        """Reverse Fast Fourier transform of a picture."""
+
+        ffti = vtk.vtkImageRFFT()
+        ffti.SetInputData(self._data)
+        ffti.Update()
+
+        if 'mag' in mode:
+            mag = vtk.vtkImageMagnitude()
+            mag.SetInputData(ffti.GetOutput())
+            mag.Update()
+            out = mag.GetOutput()
+        elif 'real' in mode:
+            extractRealFilter = vtk.vtkImageExtractComponents()
+            extractRealFilter.SetInputData(ffti.GetOutput())
+            extractRealFilter.SetComponents(0)
+            extractRealFilter.Update()
+            out = extractRealFilter.GetOutput()
+        elif 'imaginary' in mode:
+            extractImgFilter = vtk.vtkImageExtractComponents()
+            extractImgFilter.SetInputData(ffti.GetOutput())
+            extractImgFilter.SetComponents(1)
+            extractImgFilter.Update()
+            out = extractImgFilter.GetOutput()
+        elif 'complex' in mode:
+            out = ffti.GetOutput()
+        else:
+            colors.printc("Error in rfft(): unknown mode", mode)
+            raise RuntimeError()
+
+        return Picture(out)
+
 
     def blend(self, pic, alpha1=0.5, alpha2=0.5):
         """Take L, LA, RGB, or RGBA images as input and blends
@@ -310,5 +431,12 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         self._data.GetPointData().GetScalars().SetName("RGBA")
         gr.inputdata().GetPointData().AddArray(self._data.GetPointData().GetScalars())
         return gr
+
+    def write(self, filename):
+        """Write picture to file as png or jpg."""
+        vedo.io.write(self._data, filename)
+        return self
+
+
 
 

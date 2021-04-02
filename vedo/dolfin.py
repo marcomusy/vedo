@@ -169,9 +169,6 @@ def _inputsort(obj):
                 mesh = ob.ufl_domain()
                 #print('algebra', ob.ufl_domain())
 
-        if "str" in inputtype:
-            mesh = dolfin.Mesh(ob)
-
     if u and not mesh and hasattr(u, "function_space"):
         V = u.function_space()
         if V:
@@ -469,7 +466,6 @@ def plot(*inputobj, **options):
 
     # change some default to emulate standard behaviours
     if  style == 0 or style == 'vtk':
-        font = 'Courier'
         axes = options.pop('axes', None)
         if axes is None:
             options['axes'] = {
@@ -482,7 +478,6 @@ def plot(*inputobj, **options):
         if cmap is None:
             cmap = 'rainbow'
     elif style == 1 or style == 'matplotlib':
-        font = 'Courier'
         bg = options.pop('bg', None)
         if bg is None:
             options['bg'] = 'white'
@@ -500,7 +495,6 @@ def plot(*inputobj, **options):
         if cmap is None:
             cmap = 'viridis'
     elif style == 2 or style == 'paraview':
-        font = 'Arial'
         bg = options.pop('bg', None)
         if bg is None:
             options['bg'] = (82, 87, 110)
@@ -509,7 +503,6 @@ def plot(*inputobj, **options):
         if cmap is None:
             cmap = 'coolwarm'
     elif style == 3 or style == 'meshlab':
-        font = 'Courier'
         bg = options.pop('bg', None)
         if bg is None:
             options['bg'] = (8, 8, 16)
@@ -524,7 +517,6 @@ def plot(*inputobj, **options):
         if cmap is None:
             cmap = 'afmhot'
     elif style == 4 or style == 'bw':
-        font = 'Courier'
         bg = options.pop('bg', None)
         if bg is None:
             options['bg'] = (217, 255, 238)
@@ -671,8 +663,8 @@ def plot(*inputobj, **options):
            actors.append(ob)
 
     if text:
-        textact = Text2D(text, font=font)
-        actors.append(textact)
+        # textact = Text2D(text, font=font)
+        actors.append(text)
 
     if 'at' in options.keys() and 'interactive' not in options.keys():
         if settings.plotter_instance:

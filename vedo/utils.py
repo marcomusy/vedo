@@ -24,6 +24,7 @@ __all__ = [
     "mag2",
     "versor",
     "precision",
+    "roundToDigit",
     "pointIsInTriangle",
     "pointToLineDistance",
     "grep",
@@ -576,18 +577,29 @@ def versor(x, y=None, z=0.0, dtype=np.float64):
         return v / mag(v)
 
 
-def mag(z):
+def mag(v):
     """Get the magnitude of a vector."""
-    if isinstance(z[0], np.ndarray):
-        return np.array(list(map(np.linalg.norm, z)))
+    if isinstance(v[0], np.ndarray):
+        return np.array(list(map(np.linalg.norm, v)))
     else:
-        return np.linalg.norm(z)
+        return np.linalg.norm(v)
 
 
-def mag2(z):
+def mag2(v):
     """Get the squared magnitude of a vector."""
-    return np.dot(z, z)
+    return np.dot(v, v)
 
+
+def roundToDigit(x, p):
+    """Round a real number to the specified number of significant digits"""
+    if not x:
+        return x
+    k = np.int(np.floor(np.log10(np.abs(x)))) + (p-1)
+    r = np.around(x, -k)
+    if int(r) == r:
+        return int(r)
+    else:
+        return r
 
 def precision(x, p, vrange=None, delimiter='e'):
     """
@@ -595,15 +607,10 @@ def precision(x, p, vrange=None, delimiter='e'):
 
     :param float vrange: range in which x exists (to snap it to '0' if below precision).
 
-    Based on the webkit javascript implementation taken
+    Based on the webkit javascript implementation
     `from here <https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/kjs/number_object.cpp>`_,
     and implemented by `randlet <https://github.com/randlet/to-precision>`_.
     """
-    #round_to_n = lambda x, n: np.around(x, -np.int(np.floor(np.log10(np.abs(x)))) + (n - 1))
-    #x= 13556.783434
-    #print(round_to_n(x, 3))
-    #print(precision(x, 3))
-
     if isinstance(x, str): #do nothing
         return x
 
@@ -612,8 +619,12 @@ def precision(x, p, vrange=None, delimiter='e'):
         nn=len(x)-1
         for i, ix in enumerate(x):
 
-            if np.isnan(ix):
-                return "NaN"
+            try:
+                if np.isnan(ix):
+                    return "NaN"
+            except:
+                # cannot handle list of list
+                continue
 
             out += precision(ix, p)
             if i<nn: out += ', '
