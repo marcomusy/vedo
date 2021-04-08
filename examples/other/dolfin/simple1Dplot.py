@@ -13,7 +13,7 @@ class MyExpression(UserExpression):
     def __init__(self,u1,u2,**kwargs):
         self.u1 = u1
         self.u2 = u2
-        #super().__init__(**kwargs)
+        super().__init__(**kwargs)
     def eval(self, values, x):
         values[0] = self.u1(x)/self.u2(x)
     def value_shape(self):
@@ -34,8 +34,7 @@ plot( interpolate(f0,V),
             'yHighlightZero':True,
            },
       scalarbar=False,
-      viewup='2D',     # lock 2D view, press r to reset
-      zoom=1.25,
+      zoom=1.1,
     )
 
 #screenshot('pic.png') # uncomment to take a screenshot

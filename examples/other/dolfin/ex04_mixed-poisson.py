@@ -1,8 +1,5 @@
-"""
-Solving Poisson equation using
-a mixed (two-field) formulation.
-"""
-# needs python3
+"""Solving Poisson equation using
+a mixed (two-field) formulation."""
 # https://fenicsproject.org/docs/dolfin/2018.1.0/python/demos/mixed-poisson
 from dolfin import *
 
@@ -29,7 +26,7 @@ L = -f * v * dx
 class BoundarySource(UserExpression):
     def __init__(self, mesh, **kwargs):
         self.mesh = mesh
-#        super().__init__(**kwargs)
+        super().__init__(**kwargs)
     def eval_cell(self, values, x, ufc_cell):
         cell = Cell(self.mesh, ufc_cell.index)
         n = cell.normal(ufc_cell.local_facet)
@@ -57,12 +54,12 @@ from vedo.dolfin import plot, Text3D
 # Plot solution on mesh, and warp z-axis by the scalar value
 plot(u, warpZfactor=0.8, legend='u', text=__doc__)
 
-# Plot the sigma vector on the mesh. Try also mode='arrows'
-msg = Text3D("> plot(sigma, mode='mesh lines', warpZfactor= -0.2)", c='w')
-plot(sigma, msg,
-     mode='mesh lines',
-     warpZfactor=-0.2,    # rise mesh in z based on scalar value
-     scale=0.03,          # scale the lines or arrows
-     new=True,            # new window
-    )
+# # Plot the sigma vector on the mesh. Try also mode='arrows'
+# msg = Text3D("> plot(sigma, mode='mesh lines', warpZfactor= -0.2)", c='w')
+# plot(sigma, msg,
+#      mode='mesh lines',
+#      warpZfactor=-0.2,    # rise mesh in z based on scalar value
+#      scale=0.03,          # scale the lines or arrows
+#      new=True,            # new window
+#     )
 

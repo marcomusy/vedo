@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from functools import lru_cache
 import os
 import vtk
 import numpy as np
@@ -73,7 +74,6 @@ __all__ = [
 ]
 
 ##############################################
-_fonts_cache = dict()
 _reps = [
     ("\nabla", "∇"),
     ("\infty", "∞"),
@@ -922,7 +922,7 @@ class Spline(Line):
             per = 1
 
         if res is None:
-            res = len(points)*20
+            res = len(points)*10
 
         points = np.array(points)
 
@@ -1991,8 +1991,7 @@ class Spheres(Mesh):
             glyph.SetColorModeToColorByScalar()
             ucols = vtk.vtkUnsignedCharArray()
             ucols.SetNumberOfComponents(3)
-            ucols.SetName("colors")
-            #for i, p in enumerate(centers):
+            ucols.SetName("Colors")
             for acol in c:
                 cx, cy, cz = getColor(acol)
                 ucols.InsertNextTuple3(cx * 255, cy * 255, cz * 255)
@@ -2000,8 +1999,8 @@ class Spheres(Mesh):
             glyph.ScalingOff()
         elif risseq:
             glyph.SetScaleModeToScaleByScalar()
-            urads = numpy_to_vtk(np.ascontiguousarray(2*r).astype(float), deep=True)
-            urads.SetName("radii")
+            urads = numpy_to_vtk(2*np.ascontiguousarray(r).astype(float), deep=True)
+            urads.SetName("Radii")
             pd.GetPointData().SetScalars(urads)
 
         vpts.SetData(numpy_to_vtk(np.ascontiguousarray(centers), deep=True))
@@ -2634,6 +2633,45 @@ def Text(*args, **kwargs):
     printc("Deprecation: use Text3D() instead of Text().", c='r')
     return Text3D(*args, **kwargs)
 
+@lru_cache(None)
+def _load_font(font):
+    # print('_load_font', font)
+    if not settings.font_parameters[font]['islocal']:
+        font = "https://vedo.embl.es/fonts/"+font+".npz"
+
+    # some other fonts are downloadable from the vedo website
+    if font.startswith('https'): # user passed URL link, make it a path
+        try:
+            font = vedo.io.download(font, verbose=False, force=False)
+        except:
+            printc('Font not found. Check URL', font, c='r')
+            font = "Normografo"
+
+    if font.endswith('.npz'):    # user passed font as a local path
+        fontfile = font
+        font = os.path.basename(font).split('.')[0]
+    else:                        # user passed font by its name
+        fontfile = settings.fonts_path + font + '.npz'
+
+    try:
+        #printc('loading', font, fontfile)
+        font_meshes = np.load(fontfile, allow_pickle=True)['font'][0]
+    except:
+        printc("Text3D() error: font name", font, "not found.", c='r')
+        raise RuntimeError
+    return font_meshes
+
+@lru_cache(None)
+def _get_font_letter(font, letter):
+    # print("_get_font_letter", font, letter)
+    font_meshes = _load_font(font)
+
+    if letter in font_meshes.keys():
+        pts, faces = font_meshes[letter]
+        return utils.buildPolyData(pts, faces)
+    return None
+
+
 class Text3D(Mesh):
     """
     Generate a 3D polygonal ``Mesh`` representing a text string.
@@ -2682,8 +2720,7 @@ class Text3D(Mesh):
                  c=None,
                  alpha=1,
                  literal=False,
-                ):
-
+        ):
         if not font:
             font = settings.defaultFont
 
@@ -2705,205 +2742,155 @@ class Text3D(Mesh):
 
         txt = str(txt)
 
-        stxt = set(txt) # check here if null or only spaces
-        if not txt or (len(stxt)==1 and " " in stxt):
-            Mesh.__init__(self, vtk.vtkPolyData(), c, alpha)
-            self.name = "TextNull"
-            return ################
+        if font == "VTK": #######################################
+            vtt = vtk.vtkVectorText()
+            vtt.SetText(txt)
+            vtt.Update()
+            tpoly = vtt.GetOutput()
 
-        ###################################################
-        notfounds=0
-        isvtkfont = False
-        if italic is True:
-            italic = 1
+        else: ###################################################
 
-        if isinstance(font, int):
-            lfonts = list(settings.font_parameters.keys())
-            font = font%len(lfonts)
-            font = lfonts[font]
+            stxt = set(txt) # check here if null or only spaces
+            if not txt or (len(stxt)==1 and " " in stxt):
+                Mesh.__init__(self, vtk.vtkPolyData(), c, alpha)
+                self.name = "Text3D"
+                #######################
+                return ################
+                #######################
 
-        if font == "VTK":
+            if italic is True:
+                italic = 1
 
-            if font not in _fonts_cache.keys():
-                _fonts_cache.update({"VTK":dict()})
-                _fonts_cache.update({"VTK_letters":dict()})
-            isvtkfont = True
+            if isinstance(font, int):
+                lfonts = list(settings.font_parameters.keys())
+                font = font%len(lfonts)
+                font = lfonts[font]
 
-        else:
+            if font not in font_parameters.keys():
+                printc("Unknown font: ", font, c='r')
+                printc("Avaliable fonts are:", list(font_parameters.keys()))
+                font = "Normografo"
 
-            # some fonts are downloadable from the vedo website
-            if not settings.font_parameters[font]['islocal']:
-                font = "https://vedo.embl.es/fonts/"+font+".npz"
+            # ad hoc adjustments
+            fpars = font_parameters[font]
+            mono = fpars['mono']
+            lspacing = fpars['lspacing']
+            hspacing *=  fpars['hspacing']
+            fscale = fpars['fscale']
+            dotsep = fpars['dotsep']
 
-            if font.startswith('https'): # user passed URL link, make it a path
-                try:
-                    font = vedo.io.download(font, verbose=False, force=False)
-                except:
-                    printc('Font not found. Check URL', font, c='r')
-                    font = settings.defaultFont
+            # replacements
+            if "\\" in repr(txt):
+                for r in _reps:
+                    txt = txt.replace(r[0], r[1])
+            reps2 = [
+                        ("\_", "┭"), # trick to protect ~ _ and ^ chars
+                        ("\^", "┮"), #
+                        ("\~", "┯"), #
+                        ("**", "^"), # order matters
+                        ("e+0", dotsep+"10^"), ("e-0", dotsep+"10^-"),
+                        ("E+0", dotsep+"10^"), ("E-0", dotsep+"10^-"),
+                        ("e+" , dotsep+"10^"), ("e-" , dotsep+"10^-"),
+                        ("E+" , dotsep+"10^"), ("E-" , dotsep+"10^-"),
+            ]
+            if not literal:
+                for r in reps2:
+                    txt = txt.replace(r[0], r[1])
 
-            if font.endswith('.npz'):    # user passed font as a local path
-                fontfile = font
-                font = os.path.basename(font).split('.')[0]
-            else:                        # user passed font by its name
-                fontfile = settings.fonts_path + font + '.npz'
+            xmax, ymax, yshift, scale = 0, 0, 0, 1
+            save_xmax = 0
 
-            if font in _fonts_cache.keys():
-                _font_meshes = _fonts_cache[font]
-            else:
-                try:
-                    #printc('loading', font, fontfile)
-                    _font_meshes = np.load(fontfile, allow_pickle=True)['font'][0]
-                    _fonts_cache.update({font : _font_meshes})
-                    _fonts_cache.update({font+'_letters': dict()})
-                except:
-                    printc("Text3D() error: font name", font, "not found.", c='r')
-                    raise RuntimeError
-            keys = _font_meshes.keys()
-
-        # ad hoc adjustments
-        fpars = font_parameters[font]
-        mono = fpars['mono']
-        lspacing = fpars['lspacing']
-        hspacing *=  fpars['hspacing']
-        fscale = fpars['fscale']
-        dotsep = fpars['dotsep']
-
-        # replacements
-        if not isvtkfont and "\\" in repr(txt):
-            for r in _reps:
-                txt = txt.replace(r[0], r[1])
-        reps2 = [
-                    ("\_", "┭"), # trick to protect ~ _ and ^ chars
-                    ("\^", "┮"), #
-                    ("\~", "┯"), #
-                    ("**", "^"), # order matters
-                    ("e+0", dotsep+"10^"), ("e-0", dotsep+"10^-"),
-                    ("E+0", dotsep+"10^"), ("E-0", dotsep+"10^-"),
-                    ("e+" , dotsep+"10^"), ("e-" , dotsep+"10^-"),
-                    ("E+" , dotsep+"10^"), ("E-" , dotsep+"10^-"),
-        ]
-        if not literal:
-            for r in reps2:
-                txt = txt.replace(r[0], r[1])
-
-        xmax, ymax, yshift, scale = 0, 0, 0, 1
-        save_xmax = 0
-
-        polydict = _fonts_cache[font+'_letters']   # cache-ing letters
-        polyletters = []
-        ntxt = len(txt)
-        for i, t in enumerate(txt):
-            ##########
-            if t=='┭':
-                t="_"
-            elif t=='┮':
-                t="^"
-            elif t=='┯':
-                t="~"
-            elif t=='^':
-                if yshift<0:
-                    xmax = save_xmax
-                yshift = 0.9*fscale
-                scale = 0.5
-                continue
-            elif t=='_':
-                if yshift>0:
-                    xmax = save_xmax
-                yshift = -0.3*fscale
-                scale = 0.5
-                continue
-            elif (t==' ' or t=="\n") and yshift:
-                yshift = 0
-                scale = 1
-                save_xmax = xmax
-                if t==' ': continue
-            elif t=='~':
-                if i<ntxt-1 and txt[i+1]=='_':
+            notfounds = set()
+            polyletters = []
+            ntxt = len(txt)
+            for i, t in enumerate(txt):
+                ##########
+                if t=='┭':
+                    t="_"
+                elif t=='┮':
+                    t="^"
+                elif t=='┯':
+                    t="~"
+                elif t=='^':
+                    if yshift<0:
+                        xmax = save_xmax
+                    yshift = 0.9*fscale
+                    scale = 0.5
                     continue
-                xmax += hspacing*scale*fscale / 4
-                continue
-
-            ############
-            if t==" ":
-                xmax += hspacing*scale*fscale
-
-            elif t=="\n":
-                xmax = 0
-                save_xmax = 0
-                ymax -= vspacing
-
-            elif isvtkfont or t in keys:
-                if t in polydict.keys():
-                    poly = polydict[t] # save time for repeated chars
-                    if isvtkfont:
-                        pscale = scale
-                    else:
-                        pscale = scale*fscale / 1000
-                else:
-                    if isvtkfont:
-                        vtt = vtk.vtkVectorText()
-                        vtt.SetText(t)
-                        vtt.Update()
-                        poly = vtt.GetOutput()
-                        pscale = scale
-                    else:
-                        mt = _font_meshes[t]
-                        poly = utils.buildPolyData(mt[0], mt[1])
-                        pscale = scale*fscale / 1000
-                    polydict.update({t:poly})
-                tr = vtk.vtkTransform()
-                tr.Translate(xmax, ymax+yshift, 0)
-                tr.Scale(pscale, pscale, pscale)
-                if italic:
-                    tr.Concatenate([1,italic*0.15,0,0,
-                                   0,1,0,0,
-                                   0,0,1,0,
-                                   0,0,0,1])
-                tf = vtk.vtkTransformPolyDataFilter()
-                tf.SetInputData(poly)
-                tf.SetTransform(tr)
-                tf.Update()
-                poly = tf.GetOutput()
-                polyletters.append(poly)
-
-                bx = poly.GetBounds()
-                if mono:
-                    xmax += hspacing*scale*fscale
-                else:
-                    xmax += bx[1]-bx[0] + hspacing*scale*fscale*lspacing
-                if yshift==0:
+                elif t=='_':
+                    if yshift>0:
+                        xmax = save_xmax
+                    yshift = -0.3*fscale
+                    scale = 0.5
+                    continue
+                elif (t==' ' or t=="\n") and yshift:
+                    yshift = 0
+                    scale = 1
                     save_xmax = xmax
+                    if t==' ': continue
+                elif t=='~':
+                    if i<ntxt-1 and txt[i+1]=='_':
+                        continue
+                    xmax += hspacing*scale*fscale / 4
+                    continue
+
+                ############
+                if t==" ":
+                    xmax += hspacing*scale*fscale
+
+                elif t=="\n":
+                    xmax = 0
+                    save_xmax = 0
+                    ymax -= vspacing
+
+                else:
+                    poly = _get_font_letter(font, t)
+                    if not poly:
+                        notfounds.add(t)
+                        xmax += hspacing*scale*fscale
+                        continue
+
+                    tr = vtk.vtkTransform()
+                    tr.Translate(xmax, ymax+yshift, 0)
+                    pscale = scale*fscale / 1000
+                    tr.Scale(pscale, pscale, pscale)
+                    if italic:
+                        tr.Concatenate([1,italic*0.15,0,0,
+                                        0,1,0,0,
+                                        0,0,1,0,
+                                        0,0,0,1])
+                    tf = vtk.vtkTransformPolyDataFilter()
+                    tf.SetInputData(poly)
+                    tf.SetTransform(tr)
+                    tf.Update()
+                    poly = tf.GetOutput()
+                    polyletters.append(poly)
+
+                    bx = poly.GetBounds()
+                    if mono:
+                        xmax += hspacing*scale*fscale
+                    else:
+                        xmax += bx[1]-bx[0] + hspacing*scale*fscale*lspacing
+                    if yshift==0:
+                        save_xmax = xmax
+
+            if len(polyletters) == 1:
+                tpoly = polyletters[0]
             else:
-                printc("In Text3D(): char", t,
-                       "not found in", font, 'ord =', ord(t), c='y')
-                notfounds += 1
-                xmax += hspacing*scale*fscale
+                polyapp = vtk.vtkAppendPolyData()
+                for polyd in polyletters:
+                    polyapp.AddInputData(polyd)
+                polyapp.Update()
+                tpoly = polyapp.GetOutput()
 
-        if len(polyletters) == 1:
-            tpoly = polyletters[0]
-        else:
-            polyapp = vtk.vtkAppendPolyData()
-            for polyd in polyletters:
-                polyapp.AddInputData(polyd)
-            polyapp.Update()
-            tpoly = polyapp.GetOutput()
-
-        if notfounds:
-            printc(font + " - available characters are:", " "*25, bold=1, invert=1)
-            for k in _font_meshes.keys(): printc(k, end=' ')
-            printc('\n(use the above to copy&paste any char into your python script!)', italic=1)
-            printc('Symbols ~ ^ _ are reserved modifiers:', italic=1)
-            printc(' use ~ to add a short space, 1/4 of the default size,', italic=1)
-            printc(' use ^ and _ to start up/sub scripting, space terminates them.\n', italic=1)
-            printc('Type "vedo -r fonts" for a demo.', italic=1)
+            if notfounds:
+                printc("These characters are not available in font name", font+": ", c='y', end='')
+                printc(notfounds, c='y')
+                printc('Type "vedo -r fonts" for a demo.', c='y')
 
         bb = tpoly.GetBounds()
         dx, dy = (bb[1] - bb[0]) / 2 * s, (bb[3] - bb[2]) / 2 * s
-        cm = np.array([(bb[1] + bb[0]) / 2,
-                       (bb[3] + bb[2]) / 2,
-                       (bb[5] + bb[4]) / 2]) * s
-        shift = -cm
+        shift = -np.array([(bb[1] + bb[0]), (bb[3] + bb[2]), (bb[5] + bb[4])]) * s /2
         if "bottom" in justify: shift += np.array([  0, dy, 0])
         if "top"    in justify: shift += np.array([  0,-dy, 0])
         if "left"   in justify: shift += np.array([ dx,  0, 0])
@@ -2932,7 +2919,8 @@ class Text3D(Mesh):
         self.lighting('off').SetPosition(pos)
         self.PickableOff()
         self.DragableOff()
-        self.name = "Text"
+        self.name = "Text3D"
+
 
 class TextBase:
     "Do not instantiate this."

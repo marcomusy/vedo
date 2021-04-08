@@ -1376,6 +1376,8 @@ def makeTicks(x0, x1, N, labels=None, digits=None):
             if upBound<0:
                 negaxis = np.arange(lowBound, int(upBound/s)*s)
             else:
+                if -lowBound/s > 1.0e+06:
+                    return np.array([0.0,1.0]), ["",""]
                 negaxis = np.arange(lowBound, 0, s)
         else:
             negaxis = np.array([])
@@ -1384,6 +1386,8 @@ def makeTicks(x0, x1, N, labels=None, digits=None):
             if lowBound>0:
                 posaxis = np.arange(int(lowBound/s)*s, upBound, s)
             else:
+                if upBound/s > 1.0e+06:
+                    return np.array([0.0,1.0]), ["",""]
                 posaxis = np.arange(0, upBound, s)
         else:
             posaxis = np.array([])

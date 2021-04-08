@@ -1,16 +1,22 @@
-from __future__ import division, print_function
 import vtk
 from vedo.addons import addScalarBar
 from vedo.plotter import Plotter
 from vedo.pyplot import cornerHistogram
 from vedo.utils import mag, precision, linInterpolate, isSequence
 from vedo.colors import printc, colorMap, getColor
-from vedo.shapes import Text2D
+from vedo.shapes import Text2D, Line, Ribbon, Spline
+from vedo.pointcloud import Points, fitPlane
 from vedo import settings
 import numpy as np
+import os
 
-__all__ = ["Slicer", "Slicer2d", 'RayCaster',
-           'IsosurfaceBrowser', 'Browser']
+__all__ = ["SlicerPlotter",
+           "Slicer2d",
+           'RayCastPlotter',
+           'IsosurfaceBrowser',
+           'Browser',
+           'FreeHandCutPlotter',
+]
 
 # globals
 _cmap_slicer='gist_ncar_r'
@@ -18,13 +24,14 @@ _alphaslider0, _alphaslider1, _alphaslider2 = 0.33, 0.66, 1  # defaults
 _kact=0
 
 ##########################################################################
-def Slicer(volume,
+def SlicerPlotter(
+           volume,
            alpha=1,
            cmaps=('gist_ncar_r', "hot_r", "bone_r", "jet", "Spectral_r"),
            map2cells=False,  # buggy
            clamp=True,
            useSlider3D=False,
-           size=(850,700),
+           size=(1400,1200),
            screensize="auto",
            title="",
            bg="white",
@@ -56,7 +63,7 @@ def Slicer(volume,
     """
     global _cmap_slicer
 
-    if verbose: printc("Slicer tool", invert=1, c="m")
+    # if verbose: printc("Slicer tool", invert=1, c="m")
     ################################
     vp = Plotter(bg=bg, bg2=bg2,
                  size=size,
@@ -85,8 +92,8 @@ def Slicer(volume,
         rmax = min(rmax, meanlog+(meanlog-rmin)*0.9)
         rmin = max(rmin, meanlog-(rmax-meanlog)*0.9)
         if verbose:
-            printc('scalar range clamped to: (' +
-                   precision(rmin, 3) +', '+  precision(rmax, 3)+')', c='m', bold=0)
+            printc('scalar range clamped to range: (' +
+                    precision(rmin, 3) +', '+  precision(rmax, 3)+')', c='m', bold=0)
     _cmap_slicer = cmaps[0]
     visibles = [None, None, None]
     msh = volume.zSlice(int(dims[2]/2))
@@ -206,9 +213,9 @@ def Slicer(volume,
 
     vp.show(msh, hist, comment, interactive=False)
     vp.interactive = True
-    if verbose:
-        printc("Press button to cycle through color maps,", c="m")
-        printc("Use sliders to select the slicing planes.", c="m")
+    # if verbose:
+    #     printc("Press button to cycle through color maps,", c="m")
+    #     printc("Use sliders to select the slicing planes.", c="m")
     return vp
 
 
@@ -272,9 +279,8 @@ def Slicer2d(volume, size=(900,900), bg=(0.6,0.6,0.7), zoom=1.3):
     return iren
 
 
-
 ########################################################################
-def RayCaster(volume):
+def RayCastPlotter(volume):
     """
     Generate a ``Plotter`` window for Volume rendering using ray casting.
     Returns the ``Plotter`` object.
@@ -289,7 +295,7 @@ def RayCaster(volume):
     if volume.dimensions()[2]<3:
         print("Error in raycaster: not enough depth", volume.dimensions())
         return vp
-    printc("GPU Ray-casting tool", c="b", invert=1)
+    # printc("GPU Ray-casting tool", c="b", invert=1)
 
     smin, smax = img.GetScalarRange()
 
@@ -538,6 +544,192 @@ def Browser(meshes, sliderpos=((0.55, 0.07),(0.96, 0.07)), c=None, prefix=""):
     sliderfunc(wid) # init call
 
     return vp
+
+
+class FreeHandCutPlotter(Plotter):
+    """
+    A Plotter derived class which edits polygonal meshes interactively.
+    Can also be invoked from command line. E.g. with:
+    ``vedo --edit https://vedo.embl.es/examples/data/porsche.ply``
+
+    Usage
+    -----
+    - Left-click and hold to rotate
+    - Right-click and move to draw line
+    - Second right-click to stop drawing
+    - Press c to clear points
+    -       z/Z to cut mesh (Z inverts inside-out the selection area)
+    -       L to keep only the largest connected surface
+    -       s to save mesh to file (tag _edited is appended to filename)
+    -       u to undo last action
+    -       h for help, i for info
+
+    Parameters
+    ----------
+    mesh : Mesh, Points
+        The input Mesh or pointcloud.
+    splined : bool, optional
+        join points with a spline or a simple line. The default is True.
+    font : str, optional
+        Font name for the instructions. The default is "Bongas".
+    alpha : float, optional
+        transparency of the instruction message panel. The default is 0.9.
+    lw : str, optional
+        selection line width. The default is 3.
+    lc : str, optional
+        selection line color. The default is "red5".
+    pc : str, optional
+        selection points color. The default is "black".
+    c : str, optional
+        backgound color of instructions. The default is "green3".
+    tc : str, optional
+        text color of instructions. The default is "white".
+    tol : int, optional
+        tolerance of the point proximity. Default is 5.
+    """
+    # thanks to Jakub Kaminski for the original version of this script
+    def __init__(self,
+                 mesh,
+                 splined=True,
+                 font="Bongas",
+                 alpha=0.9,
+                 lw=4,
+                 lc="red5",
+                 pc="red4",
+                 c="green3",
+                 tc="k9",
+                 tol=0.008,
+        ):
+        Plotter.__init__(self, title="Free-hand mesh cutter")
+
+        self.mesh = mesh
+        self.mesh_prev = mesh
+        self.splined = splined
+        self.linecolor = lc
+        self.linewidth = lw
+        self.pointcolor = pc
+        self.color = c
+        self.alpha = alpha
+
+        self.msg  = "Right-click and move to draw line\n"
+        self.msg += "Second right-click to stop drawing\n"
+        self.msg += "Press L to extract largest surface\n"
+        self.msg += "        z/Z to cut mesh (s to save)\n"
+        self.msg += "        c to clear points, u to undo"
+        self.txt2d = Text2D(self.msg, pos='top-left', font=font, s=0.9)
+        self.txt2d.c(tc).background(c, alpha).frame()
+
+        self.idkeypress = self.addCallback('KeyPress', self._onKeyPress)
+        self.idrightclck = self.addCallback('RightButton', self._onRightClick)
+        self.idmousemove = self.addCallback('MouseMove', self._onMouseMove)
+        self.drawmode = False
+        self.tol = tol       # tolerance of point distance
+        self.cpoints = []
+        self.points = None
+        self.spline = None
+        self.jline = None
+
+    def _onRightClick(self, evt):
+        self.drawmode = not self.drawmode # toggle mode
+        if self.drawmode:
+            self.txt2d.background(self.linecolor, self.alpha)
+        else:
+            self.txt2d.background(self.color, self.alpha)
+            if len(self.cpoints) > 2:
+                self.remove([self.spline, self.jline])
+                if self.splined: # show the spline closed
+                    self.spline = Spline(self.cpoints, closed=True, res=len(self.cpoints)*4)
+                else:
+                    self.spline = Line(self.cpoints, closed=True)
+                self.spline.lw(self.linewidth).c(self.linecolor).pickable(False)
+                self.add(self.spline)
+
+    def _onMouseMove(self, evt):
+        if self.drawmode:
+            cpt = self.computeWorldPosition(evt.picked2d) # make this 2d-screen point 3d
+            if self.cpoints and mag(cpt - self.cpoints[-1]) < self.mesh.diagonalSize()*self.tol:
+                return  # new point is too close to the last one. skip
+            self.cpoints.append(cpt)
+            if len(self.cpoints) > 2:
+                self.remove([self.points, self.spline, self.jline])
+                self.points = Points(self.cpoints, r=self.linewidth).c(self.pointcolor).pickable(0)
+                if self.splined:
+                    self.spline = Spline(self.cpoints, res=len(self.cpoints)*4) # not closed here
+                else:
+                    self.spline = Line(self.cpoints)
+                self.spline.lw(self.linewidth).c(self.linecolor).pickable(False)
+                self.txt2d.background(self.linecolor)
+                self.jline = Line(self.cpoints[0], self.cpoints[-1], lw=1, c=self.linecolor).pickable(0)
+                self.add([self.points, self.spline, self.jline])
+
+    def _onKeyPress(self, evt):
+        if evt.keyPressed.lower() == 'z' and self.spline: # Cut mesh with a ribbon-like surface
+            inv = False
+            if evt.keyPressed == 'Z':
+                inv = True
+            self.txt2d.background('red8').text("  ... working ...  ")
+            self.render()
+            self.mesh_prev = self.mesh.clone()
+            tol = self.mesh.diagonalSize()/2            # size of ribbon (not shown)
+            pts = self.spline.points()
+            n = fitPlane(pts, signed=True).normal       # compute normal vector to points
+            rb = Ribbon(pts - tol*n, pts + tol*n, closed=True)
+            self.mesh.cutWithMesh(rb, invert=inv)       # CUT
+            self.txt2d.text(self.msg)                   # put back original message
+            if self.drawmode:
+                self._onRightClick(evt)                 # toggle mode to normal
+            else:
+                self.txt2d.background(self.color, self.alpha)
+            self.remove([self.spline, self.points, self.jline]).render()
+            self.cpoints, self.points, self.spline = [], None, None
+
+        elif evt.keyPressed == 'L':
+            self.txt2d.background('red8')
+            self.txt2d.text(" ... removing smaller ... \n ... parts of the mesh ... ")
+            self.render()
+            self.remove(self.mesh)
+            self.mesh_prev = self.mesh
+            mcut = self.mesh.extractLargestRegion()
+            mcut.filename = self.mesh.filename          # copy over various properties
+            mcut.name = self.mesh.name
+            mcut.scalarbar= self.mesh.scalarbar
+            mcut.info = self.mesh.info
+            self.mesh = mcut                            # discard old mesh by overwriting it
+            self.txt2d.text(self.msg).background(self.color)   # put back original message
+            self.add(mcut)
+
+        elif evt.keyPressed == 'u':                     # Undo last action
+            if self.drawmode:
+                self._onRightClick(evt)                 # toggle mode to normal
+            else:
+                self.txt2d.background(self.color, self.alpha)
+            self.remove([self.mesh, self.spline, self.jline, self.points])
+            self.mesh = self.mesh_prev
+            self.cpoints, self.points, self.spline = [], None, None
+            self.add(self.mesh)
+
+        elif evt.keyPressed == 'c' or evt.keyPressed == 'Delete':
+            # clear all points
+            self.remove([self.spline, self.points, self.jline]).render()
+            self.cpoints, self.points, self.spline = [], None, None
+
+        elif evt.keyPressed == 's':
+            if self.mesh.filename:
+                fname = os.path.basename(self.mesh.filename)
+                fname, extension = os.path.splitext(fname)
+                fname = fname.replace("_edited","")
+                fname = f"{fname}_edited{extension}"
+            else:
+                fname="mesh_edited.vtk"
+            self.write(fname)
+
+    def write(self, filename="mesh_edited.vtk"):
+        self.mesh.write(filename)
+        printc("\save saved to file:", filename, c='lb', invert=True)
+        return self
+
+    def start(self, *args, **kwargs):
+        return self.show([self.txt2d, self.mesh]+list(args), **kwargs)
 
 
 ########################################################################

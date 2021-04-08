@@ -1005,6 +1005,7 @@ class Mesh(Points):
             tf.Update()
             self._update(tf.GetOutput())
 
+        self.removePointArray("SignedDistances")
         self._mapper.SetScalarVisibility(vis)
         return self
 
@@ -1211,7 +1212,41 @@ class Mesh(Points):
             return self
 
 
-    def addQuality(self, measure=6, cmap='RdYlBu'):
+    def addCellArea(self, name="Area"):
+        """Add to this mesh a cell data array containing the areas of the polygonal faces"""
+        csf = vtk.vtkCellSizeFilter()
+        csf.SetInputData(self.polydata(False))
+        csf.SetComputeArea(True)
+        csf.SetComputeVolume(False)
+        csf.SetComputeLength(False)
+        csf.SetComputeVertexCount(False)
+        csf.SetAreaArrayName(name)
+        csf.Update()
+        return self._update(csf.GetOutput())
+
+
+    def addCellVertexCount(self, name="VertexCount"):
+        """Add to this mesh a cell data array containing the nr of vertices that a polygonal face has."""
+        csf = vtk.vtkCellSizeFilter()
+        csf.SetInputData(self.polydata(False))
+        csf.SetComputeArea(False)
+        csf.SetComputeVolume(False)
+        csf.SetComputeLength(False)
+        csf.SetComputeVertexCount(True)
+        csf.SetVertexCountArrayName(name)
+        csf.Update()
+        return self._update(csf.GetOutput())
+
+
+    def addArcLength(self, mesh, name="ArcLength"):
+        """Given a mesh, add the length of the arc intersecting each point of the line."""
+        arcl = vtk.vtkAppendArcLength()
+        arcl.SetInputData(mesh.polydata())
+        arcl.Update()
+        return self._update(arcl.GetOutput())
+
+
+    def addQuality(self, measure=6):
         """
         Calculate functions of quality for the elements of a triangular mesh.
         This method adds to the mesh a cell array named "Quality".
@@ -1260,7 +1295,6 @@ class Mesh(Points):
         qf.Update()
         pd = qf.GetOutput()
         self._update(pd)
-        self.cmap(cmap, input_array="Quality", on='cells')
         return self
 
 

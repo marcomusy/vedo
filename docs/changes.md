@@ -3,12 +3,19 @@
 - general improvements to the `vedo` command line
 - `colorcet` [colormaps](https://colorcet.holoviz.org) are directly usable in `vedo`. Check example `basic/mesh_custom.py`
 
+- general tool for free-hand cutting a mesh can be invoked from command line:
+`vedo --edit https://vedo.embl.es/examples/data/porsche.ply`
+
+- added example search by command line e.g.:
+`vedo --search triangle -i`  (`-i` to ignore capital letters)
+
 ---
 ### `base.py`
 - corected bug on `diagonalSize()` returning a wrong value
 
 ---
 ### `addons.py`
+- added `addSplineTool()` to interactively spline points in space
 
 ---
 ### `colors.py`
@@ -24,6 +31,7 @@
 
 - improved automatic text management in `show("some text")`
 - added `computeWorldPosition(point2d)` to get the 3d point in the scene from a screen 2d point
+- added `addSplineTool()` to interactively spline points in space
 
 ---
 ### `picture.py`
@@ -54,8 +62,9 @@
 - `vedo -r mesh_custom`
 - `vedo -r fft2d`
 - `vedo -r lines_intersect`
-
-
+- `vedo -r cutFreeHand`
+- `vedo -r spline_tool`
+- `vedo -r legendbox`
 
 
 

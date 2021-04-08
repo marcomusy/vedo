@@ -350,11 +350,28 @@ def visiblePoints(mesh, area=(), tol=None, invert=False):
     return m
 
 
-def delaunay2D(plist, mode='scipy', boundaries=(), tol=None):
+def delaunay2D(plist, mode='scipy', boundaries=(), tol=None, alpha=0, offset=0, transform=None):
     """
     Create a mesh from points in the XY plane.
     If `mode='fit'` then the filter computes a best fitting
     plane and projects the points onto it.
+    If `mode='fit'` then the xy plane is assumed.
+
+    When mode=='fit' or 'xy'
+
+    :param float tol: specify a tolerance to control discarding of closely spaced points.
+        This tolerance is specified as a fraction of the diagonal length of the bounding box of the points.
+
+    :param float alpha: for a non-zero alpha value, only edges or triangles contained
+        within a sphere centered at mesh vertices will be output.
+        Otherwise, only triangles will be output.
+
+    :param float offset: multiplier to control the size of the initial, bounding Delaunay triangulation.
+    :param transform: a vtk transformation (eg. a thinplate spline)
+        which is applied to points to generate a 2D problem.
+        This maps a 3D dataset into a 2D dataset where triangulation can be done on the XY plane.
+        The points are transformed and triangulated.
+        The topology of triangulated points is used as the output topology.
 
     |delaunay2d| |delaunay2d.py|_
     """
@@ -380,6 +397,12 @@ def delaunay2D(plist, mode='scipy', boundaries=(), tol=None):
     delny.SetInputData(pd)
     if tol:
         delny.SetTolerance(tol)
+    delny.SetAlpha(alpha)
+    delny.SetOffset(offset)
+    if transform:
+        if hasattr(transform, "transform"):
+            transform = transform.transform
+        delny.SetTransform(transform)
 
     if mode=='xy' and len(boundaries):
         boundary = vtk.vtkPolyData()
@@ -669,7 +692,7 @@ def pcaEllipsoid(points, pvalue=0.95):
     return elli
 
 
-def recoSurface(pts, dims=(250,250,250), radius=None,
+def recoSurface(pts, dims=(100,100,100), radius=None,
                 sampleSize=None, holeFilling=True, bounds=(), pad=0.1):
     """
     Surface reconstruction from a scattered cloud of points.

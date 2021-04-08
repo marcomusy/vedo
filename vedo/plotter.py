@@ -23,9 +23,11 @@ Defines main class ``Plotter`` to manage actors and 3D rendering.
 
 __all__ = ["show",
            "clear",
-           "ion", "ioff",
+           "ion",
+           "ioff",
            "Plotter",
-           "closeWindow", "closePlotter",
+           "closeWindow",
+           "closePlotter",
            "interactive",
            ]
 
@@ -1151,6 +1153,36 @@ class Plotter:
         return addons.addButton(fnc, states, c, bc, pos, size, font,
                                 bold, italic, alpha, angle)
 
+    def addSplineTool(self, points, pc='k', ps=8, lc='r4', ac='g5', lw=2, closed=False, interactive=True):
+        """
+        Add a spline tool to the current plotter. Nodes of the spline can be dragged in space
+        with the mouse.
+        Clicking on the line itself adds an extra point.
+        Selecting a point and pressing ``del`` removes it.
+
+        Parameters
+        ----------
+        points : Mesh, Points, array
+            the set of vertices forming the spline nodes.
+        pc : str, optional
+            point color. The default is 'k'.
+        ps : str, optional
+            point size. The default is 8.
+        lc : str, optional
+            line color. The default is 'r4'.
+        ac : str, optional
+            active point marker color. The default is 'g5'.
+        lw : int, optional
+            line width. The default is 2.
+        closed : bool, optional
+            spline is meant to be closed. The default is False.
+
+        Returns
+        -------
+        SplineTool object.
+        """
+        return addons.addSplineTool(self, points, pc, ps, lc, ac, lw, closed, interactive)
+
     def addCutterTool(self, obj=None, mode='box', invert=False):
         """Create an interactive tool to cut away parts of a mesh or volume.
 
@@ -1882,10 +1914,11 @@ class Plotter:
             interactive = False
             self.interactive = False
 
-        if resetcam is not None:
-            self.resetcam = resetcam
         if camera is not None:
             self.resetcam = False
+
+        if resetcam is not None:
+            self.resetcam = resetcam
 
         if len(actors) == 0:
             actors = None
@@ -2041,7 +2074,7 @@ class Plotter:
             return backends.getNotebookBackend(0, 0, 0)
         #########################################################################
 
-        if self.resetcam: #or self.initializedIren == False:
+        if self.resetcam:
             self.renderer.ResetCamera()
 
         if settings.showRendererFrame and len(self.renderers) > 1:

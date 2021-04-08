@@ -329,6 +329,9 @@ def download(url, force=False, verbose=True):
         return url
     url = url.replace('www.dropbox', 'dl.dropbox')
 
+    if "github.com" in url:
+        url = url.replace('/blob/', '/raw/')
+
     basename = os.path.basename(url)
 
     if '?' in basename:
@@ -705,7 +708,7 @@ def loadGmesh(filename):
 
 def loadPCD(filename):
     """Return a ``Mesh`` made of only vertex points
-    from `Point Cloud` file format. Return an ``Mesh`` object."""
+    from `Point Cloud` file format. Return an ``Points`` object."""
     f = open(filename, "r")
     lines = f.readlines()
     f.close()
@@ -726,7 +729,7 @@ def loadPCD(filename):
     if expN != N:
         colors.printc("Mismatch in pcd file", expN, len(pts), c="red")
     poly = utils.buildPolyData(pts)
-    return Mesh(poly).pointSize(4)
+    return Points(poly).pointSize(4)
 
 
 def toNumpy(obj):

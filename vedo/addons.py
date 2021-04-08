@@ -27,6 +27,7 @@ __all__ = [
             "addSlider3D",
             "addButton",
             "addCutterTool",
+            "addSplineTool",
             "addIcon",
             "LegendBox",
             "Light",
@@ -37,100 +38,253 @@ __all__ = [
         ]
 
 
-#####################################################################
-def Ruler(
-    p1, p2,
-    unitScale=1,
-    label="",
-    s=None,
-    font="",
-    italic=0,
-    prefix="",
-    units="",  #eg.'μm'
-    c=(0.2, 0.1, 0.1),
-    alpha=1,
-    lw=1,
-    precision=3,
-    labelRotation=0,
-    axisRotation=0,
-    tickAngle=90,
-):
+
+###########################################################################################
+class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
     """
-    Build a 3D ruler to indicate the distance of two points p1 and p2.
+    Create a 2D legend box for the list of specified objects
 
-    :param str label: alternative fixed label to be shown
-    :param float unitScale: factor to scale units (e.g. μm to mm)
-    :param float s: size of the label
-    :param str font: font name
-    :param float italic: italicness of the font [0,1]
-    :param str units: string to be appended to the numeric value
-    :param float lw: line width in pixel units
-    :param int precision: nr of significant digits to be shown
-    :param float labelRotation: initial rotation of the label around the z-axis
-    :param float axisRotation: initial rotation of the line around the main axis
-    :param float tickAngle: initial rotation of the line around the main axis
-
-    |goniometer| |goniometer.py|_
+    :param int nmax: max number of legend entries
+    :param c: text color, leave as None to pick the mesh color
+    :param float width: width of the box as fraction of the window width
+    :param float height: height of the box as fraction of the window height
+    :param int pad: padding space in number of pixels
+    :param bg: background color of the box
+    :param float alpha: opacity of the box
+    :param str pos: position of the box
     """
-    if unitScale != 1.0 and units == "":
-        raise ValueError("When setting 'unitScale' to a value other than 1, a 'units' arguments must be specified.")
+    def __init__( self,
+                 entries=(),
+                 nmax=12,
+                 c=None,
+                 font="",
+                 width=0.18,
+                 height=None,
+                 pad=2,
+                 bg="k8",
+                 alpha=0.25,
+                 pos="top-right",
+        ):
+        vtk.vtkLegendBoxActor.__init__(self)
 
-    if isinstance(p1, Points): p1 = p1.GetPosition()
-    if isinstance(p2, Points): p2 = p2.GetPosition()
-    if len(p1)==2: p1=[p1[0],p1[1],0.0]
-    if len(p2)==2: p2=[p2[0],p2[1],0.0]
-    p1, p2 = np.array(p1), np.array(p2)
-    q1, q2 = [0, 0, 0], [utils.mag(p2 - p1), 0, 0]
-    q1, q2 = np.array(q1), np.array(q2)
-    v = q2 - q1
-    d = utils.mag(v) * unitScale
+        self.entries = entries[:nmax]
 
-    if s is None:
-        s = d*0.02*(1/unitScale)
+        n = 0
+        texts = []
+        for e in self.entries:
+            ename = e.name
+            if 'legend' in e.info.keys():
+                if not e.info['legend']:
+                    ename = ''
+                else:
+                    ename = str(e.info['legend'])
 
-    if not label:
-        label = str(d)
-        if precision:
-            label = utils.precision(d, precision)
-    if prefix:
-        label = prefix+ '~' + label
-    if units:
-        label += '~'+ units
+            if not isinstance(e, vtk.vtkActor):
+                ename = ''
+            if ename:
+                n+=1
+            texts.append(ename)
+        self.SetNumberOfEntries(n)
 
-    lb = shapes.Text3D(label, pos=(q1 + q2) / 2, s=s,
-                       font=font, italic=italic, justify="center")
-    if labelRotation:
-        lb.RotateZ(labelRotation)
+        if not n:
+            return
 
-    x0, x1 = lb.xbounds()
-    gap = [(x1 - x0) / 2, 0, 0]
-    pc1 = (v / 2 - gap) * 0.9 + q1
-    pc2 = q2 - (v / 2 - gap) * 0.9
+        self.ScalarVisibilityOff()
+        self.PickableOff()
+        self.SetPadding(pad)
 
-    lc1 = shapes.Line(q1 - v / 50, pc1)
-    lc2 = shapes.Line(q2 + v / 50, pc2)
+        self.property = self.GetEntryTextProperty()
+        self.property.ShadowOff()
+        self.property.BoldOff()
 
-    zs = np.array([0, d / 50 * (1/unitScale), 0])
-    ml1 = shapes.Line(-zs, zs).pos(q1)
-    ml2 = shapes.Line(-zs, zs).pos(q2)
-    ml1.RotateZ(tickAngle-90)
-    ml2.RotateZ(tickAngle-90)
+        # self.property.SetJustificationToLeft() # no effect
+        # self.property.SetVerticalJustificationToTop()
 
-    c1 = shapes.Circle(q1, r=d / 180 * (1/unitScale), res=20)
-    c2 = shapes.Circle(q2, r=d / 180 * (1/unitScale), res=20)
+        self.font(font)
 
-    acts = [lb, lc1, lc2, c1, c2, ml1, ml2]
-    macts = merge(acts).pos(p1).c(c).alpha(alpha)
-    macts.GetProperty().LightingOff()
-    macts.GetProperty().SetLineWidth(lw)
-    macts.UseBoundsOff()
-    macts.base = q1
-    macts.top = q2
-    macts.orientation(p2 - p1, rotation=axisRotation).bc('t').pickable(False)
-    return macts
+        n = 0
+        for i in range(len(self.entries)):
+            ti = texts[i]
+            if not ti:
+                continue
+            e = entries[i]
+            if c is None:
+                col = e.GetProperty().GetColor()
+                if col == (1, 1, 1):
+                    col = (0.2, 0.2, 0.2)
+            else:
+                col = getColor(c)
+            poly = e.inputdata()
+            self.SetEntry(n, poly, ti, col)
+            n += 1
+
+        self.SetWidth(width)
+        if height is None:
+            self.SetHeight(width / 4.0 * n)
+        else:
+            self.SetHeight(height)
+
+        sx, sy = 1 - self.GetWidth(), 1 - self.GetHeight()
+        if   pos == 1 or ("top" in pos and "left" in pos):
+            self.GetPositionCoordinate().SetValue(0, sy)
+        elif pos == 2 or ("top" in pos and "right" in pos):
+            self.GetPositionCoordinate().SetValue(sx, sy)
+        elif pos == 3 or ("bottom" in pos and "left" in pos):
+            self.GetPositionCoordinate().SetValue(0, 0)
+        elif pos == 4 or ("bottom" in pos and "right" in pos):
+            self.GetPositionCoordinate().SetValue(sx, 0)
+        if alpha:
+            self.UseBackgroundOn()
+            self.SetBackgroundColor(getColor(bg))
+            self.SetBackgroundOpacity(alpha)
+        else:
+            self.UseBackgroundOff()
+        self.LockBorderOn()
+
+
+class Button:
+    """
+    Build a Button object to be shown in the rendering window.
+
+    |buttons| |buttons.py|_
+    """
+
+    def __init__(self, fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle):
+
+        self.statusIdx = 0
+        self.states = states
+        self.colors = c
+        self.bcolors = bc
+        self.function = fnc
+        self.actor = vtk.vtkTextActor()
+
+        self.actor.GetActualPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+        self.actor.SetPosition(pos[0], pos[1])
+
+        self.framewidth = 2
+        self.offset = 5
+        self.spacer = " "
+
+        self.textproperty = self.actor.GetTextProperty()
+        self.textproperty.SetJustificationToCentered()
+        if font.lower() == "courier":
+            self.textproperty.SetFontFamilyToCourier()
+        elif font.lower() == "times":
+            self.textproperty.SetFontFamilyToTimes()
+        elif font.lower() == "arial":
+            self.textproperty.SetFontFamilyToArial()
+        else:
+            if not font:
+                font = settings.defaultFont
+            self.textproperty.SetFontFamily(vtk.VTK_FONT_FILE)
+            self.textproperty.SetFontFile(settings.fonts_path + font +'.ttf')
+        self.textproperty.SetFontSize(size)
+        self.textproperty.SetBackgroundOpacity(alpha)
+        self.textproperty.BoldOff()
+        if bold:
+            self.textproperty.BoldOn()
+        self.textproperty.ItalicOff()
+        if italic:
+            self.textproperty.ItalicOn()
+        self.textproperty.ShadowOff()
+        self.textproperty.SetOrientation(angle)
+        self.showframe = hasattr(self.textproperty, "FrameOn")
+        self.status(0)
+
+    def status(self, s=None):
+        """
+        Set/Get the status of the button.
+        """
+        if s is None:
+            return self.states[self.statusIdx]
+
+        if isinstance(s, str):
+            s = self.states.index(s)
+        self.statusIdx = s
+        self.textproperty.SetLineOffset(self.offset)
+        self.actor.SetInput(self.spacer + self.states[s] + self.spacer)
+        s = s % len(self.colors)  # to avoid mismatch
+        self.textproperty.SetColor(getColor(self.colors[s]))
+        bcc = np.array(getColor(self.bcolors[s]))
+        self.textproperty.SetBackgroundColor(bcc)
+        if self.showframe:
+            self.textproperty.FrameOn()
+            self.textproperty.SetFrameWidth(self.framewidth)
+            self.textproperty.SetFrameColor(np.sqrt(bcc))
+        return self
+
+    def switch(self):
+        """
+        Change/cycle button status to the next defined status in states list.
+        """
+        self.statusIdx = (self.statusIdx + 1) % len(self.states)
+        self.status(self.statusIdx)
+        return self
 
 
 #####################################################################
+class SplineTool(vtk.vtkContourWidget):
+
+    def __init__(self, points, pc='k', ps=8, lc='r4', ac='g5', lw=2,
+                 closed=False):
+
+        vtk.vtkContourWidget.__init__(self)
+
+        self.repr = vtk.vtkOrientedGlyphContourRepresentation()
+        self.repr.AlwaysOnTopOn()
+
+        self.repr.GetLinesProperty().SetColor(getColor(lc))
+        self.repr.GetLinesProperty().SetLineWidth(lw)
+
+        self.repr.GetProperty().SetColor(getColor(pc))
+        self.repr.GetProperty().SetPointSize(ps)
+        self.repr.GetProperty().RenderPointsAsSpheresOn()
+
+        self.repr.GetActiveProperty().SetColor(getColor(ac))
+        self.repr.GetActiveProperty().SetLineWidth(lw+1)
+
+        self.SetRepresentation(self.repr)
+
+        if utils.isSequence(points):
+            self.points = Points(points)
+        else:
+            self.points = points
+
+        self.closed = closed
+        self.interactor = None
+
+    # def add(self, pt):
+    #     """add point"""
+    #     if len(pt)==2:
+    #         self.repr.AddNodeAtDisplayPosition(pt)
+    #     else:
+    #         self.repr.AddNodeAtWorldPosition(pt)
+    #     # self.Render()
+    #     return self
+
+    def on(self):
+        self.On()
+        self.Render()
+        return self
+
+    def off(self):
+        self.Off()
+        self.Render()
+        return self
+
+    def bounds(self):
+        return self.GetBounds()
+
+    def spline(self):
+        if self.closed:
+            self.repr.ClosedLoopOn()
+        self.repr.BuildRepresentation()
+        ln = vedo.Mesh(self.repr.GetContourRepresentationAsPolyData(), c='k')
+        ln.lighting('off').lw(2)
+        return ln
+
+#####################################################################
+
 def Goniometer(
         p1,p2,p3,
         font="",
@@ -225,89 +379,6 @@ def Goniometer(
     asse = Assembly(acts)
     return asse
 
-
-###########################################################################################
-class Button:
-    """
-    Build a Button object to be shown in the rendering window.
-
-    |buttons| |buttons.py|_
-    """
-
-    def __init__(self, fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle):
-
-        self.statusIdx = 0
-        self.states = states
-        self.colors = c
-        self.bcolors = bc
-        self.function = fnc
-        self.actor = vtk.vtkTextActor()
-
-        self.actor.GetActualPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-        self.actor.SetPosition(pos[0], pos[1])
-
-        self.framewidth = 2
-        self.offset = 5
-        self.spacer = " "
-
-        self.textproperty = self.actor.GetTextProperty()
-        self.textproperty.SetJustificationToCentered()
-        if font.lower() == "courier":
-            self.textproperty.SetFontFamilyToCourier()
-        elif font.lower() == "times":
-            self.textproperty.SetFontFamilyToTimes()
-        elif font.lower() == "arial":
-            self.textproperty.SetFontFamilyToArial()
-        else:
-            if not font:
-                font = settings.defaultFont
-            self.textproperty.SetFontFamily(vtk.VTK_FONT_FILE)
-            self.textproperty.SetFontFile(settings.fonts_path + font +'.ttf')
-        self.textproperty.SetFontSize(size)
-        self.textproperty.SetBackgroundOpacity(alpha)
-        self.textproperty.BoldOff()
-        if bold:
-            self.textproperty.BoldOn()
-        self.textproperty.ItalicOff()
-        if italic:
-            self.textproperty.ItalicOn()
-        self.textproperty.ShadowOff()
-        self.textproperty.SetOrientation(angle)
-        self.showframe = hasattr(self.textproperty, "FrameOn")
-        self.status(0)
-
-    def status(self, s=None):
-        """
-        Set/Get the status of the button.
-        """
-        if s is None:
-            return self.states[self.statusIdx]
-
-        if isinstance(s, str):
-            s = self.states.index(s)
-        self.statusIdx = s
-        self.textproperty.SetLineOffset(self.offset)
-        self.actor.SetInput(self.spacer + self.states[s] + self.spacer)
-        s = s % len(self.colors)  # to avoid mismatch
-        self.textproperty.SetColor(getColor(self.colors[s]))
-        bcc = np.array(getColor(self.bcolors[s]))
-        self.textproperty.SetBackgroundColor(bcc)
-        if self.showframe:
-            self.textproperty.FrameOn()
-            self.textproperty.SetFrameWidth(self.framewidth)
-            self.textproperty.SetFrameColor(np.sqrt(bcc))
-        return self
-
-    def switch(self):
-        """
-        Change/cycle button status to the next defined status in states list.
-        """
-        self.statusIdx = (self.statusIdx + 1) % len(self.states)
-        self.status(self.statusIdx)
-        return self
-
-
-#####################################################################
 def Light(
             pos,
             focalPoint=(0, 0, 0),
@@ -359,6 +430,54 @@ def Light(
 
 
 #####################################################################
+def addSplineTool(plotter, points, pc='k', ps=8, lc='r4', ac='g5', lw=2, closed=False, interactive=True):
+    """
+    Add a spline tool to the current plotter. Nodes of the spline can be dragged in space
+    with the mouse.
+    Clicking on the line itself adds an extra point.
+    Selecting a point and pressing ``del`` removes it.
+
+    Parameters
+    ----------
+    points : Mesh, Points, array
+        the set of vertices forming the spline nodes.
+    pc : str, optional
+        point color. The default is 'k'.
+    ps : str, optional
+        point size. The default is 8.
+    lc : str, optional
+        line color. The default is 'r4'.
+    ac : str, optional
+        active point marker color. The default is 'g5'.
+    lw : int, optional
+        line width. The default is 2.
+    closed : bool, optional
+        spline is meant to be closed. The default is False.
+
+    Returns
+    -------
+    SplineTool object.
+    """
+    sw = SplineTool(points, pc, ps, lc, ac, lw, closed)
+    if plotter.interactor:
+        sw.SetInteractor(plotter.interactor)
+    else:
+        printc("\times Error in addSplineTool: no interactor found.", c='r')
+        raise RuntimeError
+    sw.On()
+    sw.Initialize(sw.points.polydata())
+    if sw.closed:
+        sw.repr.ClosedLoopOn()
+    sw.repr.SetRenderer(plotter.renderer)
+    sw.repr.BuildRepresentation()
+    sw.Render()
+    if interactive:
+        plotter.interactor.Start()
+    else:
+        plotter.interactor.Render()
+    return sw
+
+
 def addScalarBar(obj,
                  title="",
                  pos=(0.8,0.05),
@@ -1274,6 +1393,97 @@ def computeVisibleBounds(actors=None):
 
 
 #####################################################################
+def Ruler(
+    p1, p2,
+    unitScale=1,
+    label="",
+    s=None,
+    font="",
+    italic=0,
+    prefix="",
+    units="",  #eg.'μm'
+    c=(0.2, 0.1, 0.1),
+    alpha=1,
+    lw=1,
+    precision=3,
+    labelRotation=0,
+    axisRotation=0,
+    tickAngle=90,
+):
+    """
+    Build a 3D ruler to indicate the distance of two points p1 and p2.
+
+    :param str label: alternative fixed label to be shown
+    :param float unitScale: factor to scale units (e.g. μm to mm)
+    :param float s: size of the label
+    :param str font: font name
+    :param float italic: italicness of the font [0,1]
+    :param str units: string to be appended to the numeric value
+    :param float lw: line width in pixel units
+    :param int precision: nr of significant digits to be shown
+    :param float labelRotation: initial rotation of the label around the z-axis
+    :param float axisRotation: initial rotation of the line around the main axis
+    :param float tickAngle: initial rotation of the line around the main axis
+
+    |goniometer| |goniometer.py|_
+    """
+    if unitScale != 1.0 and units == "":
+        raise ValueError("When setting 'unitScale' to a value other than 1, a 'units' arguments must be specified.")
+
+    if isinstance(p1, Points): p1 = p1.GetPosition()
+    if isinstance(p2, Points): p2 = p2.GetPosition()
+    if len(p1)==2: p1=[p1[0],p1[1],0.0]
+    if len(p2)==2: p2=[p2[0],p2[1],0.0]
+    p1, p2 = np.array(p1), np.array(p2)
+    q1, q2 = [0, 0, 0], [utils.mag(p2 - p1), 0, 0]
+    q1, q2 = np.array(q1), np.array(q2)
+    v = q2 - q1
+    d = utils.mag(v) * unitScale
+
+    if s is None:
+        s = d*0.02*(1/unitScale)
+
+    if not label:
+        label = str(d)
+        if precision:
+            label = utils.precision(d, precision)
+    if prefix:
+        label = prefix+ '~' + label
+    if units:
+        label += '~'+ units
+
+    lb = shapes.Text3D(label, pos=(q1 + q2) / 2, s=s,
+                       font=font, italic=italic, justify="center")
+    if labelRotation:
+        lb.RotateZ(labelRotation)
+
+    x0, x1 = lb.xbounds()
+    gap = [(x1 - x0) / 2, 0, 0]
+    pc1 = (v / 2 - gap) * 0.9 + q1
+    pc2 = q2 - (v / 2 - gap) * 0.9
+
+    lc1 = shapes.Line(q1 - v / 50, pc1)
+    lc2 = shapes.Line(q2 + v / 50, pc2)
+
+    zs = np.array([0, d / 50 * (1/unitScale), 0])
+    ml1 = shapes.Line(-zs, zs).pos(q1)
+    ml2 = shapes.Line(-zs, zs).pos(q2)
+    ml1.RotateZ(tickAngle-90)
+    ml2.RotateZ(tickAngle-90)
+
+    c1 = shapes.Circle(q1, r=d / 180 * (1/unitScale), res=20)
+    c2 = shapes.Circle(q2, r=d / 180 * (1/unitScale), res=20)
+
+    acts = [lb, lc1, lc2, c1, c2, ml1, ml2]
+    macts = merge(acts).pos(p1).c(c).alpha(alpha)
+    macts.GetProperty().LightingOff()
+    macts.GetProperty().SetLineWidth(lw)
+    macts.UseBoundsOff()
+    macts.base = q1
+    macts.top = q2
+    macts.orientation(p2 - p1, rotation=axisRotation).bc('t').pickable(False)
+    return macts
+
 def buildRulerAxes(
     inputobj,
     xtitle="",
@@ -1624,7 +1834,7 @@ def Axes(
 
     if xtitle:
         xticks_float, xticks_str = utils.makeTicks(x0,x1, rx, xValuesAndLabels, digits)
-        xticks_float *= dx
+        xticks_float = xticks_float * dx
         if xInverted:
             xticks_float = np.flip(-(xticks_float - xticks_float[-1]))
             xticks_str = list(reversed(xticks_str))
@@ -1632,7 +1842,7 @@ def Axes(
             xHighlightZero = False
     if ytitle:
         yticks_float, yticks_str = utils.makeTicks(y0,y1, ry, yValuesAndLabels, digits)
-        yticks_float *= dy
+        yticks_float = yticks_float * dy
         if yInverted:
             yticks_float = np.flip(-(yticks_float - yticks_float[-1]))
             yticks_str = list(reversed(yticks_str))
@@ -1640,7 +1850,7 @@ def Axes(
             yHighlightZero = False
     if ztitle:
         zticks_float, zticks_str = utils.makeTicks(z0,z1, rz, zValuesAndLabels, digits)
-        zticks_float *= dz
+        zticks_float = zticks_float * dz
         if zInverted:
             zticks_float = np.flip(-(zticks_float - zticks_float[-1]))
             zticks_str = list(reversed(zticks_str))
@@ -2003,8 +2213,6 @@ def Axes(
                 zminticks.name = "zMinorTicks"
                 minorticks.append(zminticks)
 
-
-
     ################################################ axes tick NUMERIC text labels
     labels = []
     xlab, ylab, zlab = None, None, None
@@ -2120,7 +2328,6 @@ def Axes(
             zlab.SetUseBounds(zUseBounds)
             zlab.name = "zNumericLabel"+str(i)
             labels.append(zlab.c(zLabelColor))
-
 
     ################################################ axes titles
     titles = []
@@ -2822,104 +3029,3 @@ def addRendererFrame(c=None, alpha=None, lw=None):
     settings.plotter_instance.renderer.AddActor(fractor)
     return fractor
 
-
-class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
-    """
-    Create a 2D legend box for the list of specified objects
-
-    :param int nmax: max number of legend entries
-    :param c: text color, leave as None to pick the mesh color
-    :param float width: width of the box as fraction of the window width
-    :param float height: height of the box as fraction of the window height
-    :param int pad: padding space in number of pixels
-    :param bg: background color of the box
-    :param float alpha: opacity of the box
-    :param str pos: position of the box
-    """
-    def __init__( self,
-                 entries=(),
-                 nmax=12,
-                 c=None,
-                 font="",
-                 width=0.18,
-                 height=None,
-                 pad=2,
-                 bg="k8",
-                 alpha=0.25,
-                 pos="top-right",
-        ):
-        vtk.vtkLegendBoxActor.__init__(self)
-
-        self.entries = entries[:nmax]
-
-        n = 0
-        texts = []
-        for e in self.entries:
-            ename = e.name
-            if 'legend' in e.info.keys():
-                if not e.info['legend']:
-                    ename = ''
-                else:
-                    ename = str(e.info['legend'])
-
-            if not isinstance(e, vtk.vtkActor):
-                ename = ''
-            if ename:
-                n+=1
-            texts.append(ename)
-        self.SetNumberOfEntries(n)
-
-        if not n:
-            return
-
-        self.ScalarVisibilityOff()
-        self.PickableOff()
-        self.SetPadding(pad)
-
-        self.property = self.GetEntryTextProperty()
-        self.property.ShadowOff()
-        self.property.BoldOff()
-
-        # self.property.SetJustificationToLeft() # no effect
-        # self.property.SetVerticalJustificationToTop()
-
-        self.font(font)
-
-        n = 0
-        for i in range(len(self.entries)):
-            ti = texts[i]
-            if not ti:
-                continue
-            e = entries[i]
-            if c is None:
-                col = e.GetProperty().GetColor()
-                if col == (1, 1, 1):
-                    col = (0.2, 0.2, 0.2)
-            else:
-                col = getColor(c)
-            poly = e.inputdata()
-            self.SetEntry(n, poly, ti, col)
-            n += 1
-
-        self.SetWidth(width)
-        if height is None:
-            self.SetHeight(width / 4.0 * n)
-        else:
-            self.SetHeight(height)
-
-        sx, sy = 1 - self.GetWidth(), 1 - self.GetHeight()
-        if   pos == 1 or ("top" in pos and "left" in pos):
-            self.GetPositionCoordinate().SetValue(0, sy)
-        elif pos == 2 or ("top" in pos and "right" in pos):
-            self.GetPositionCoordinate().SetValue(sx, sy)
-        elif pos == 3 or ("bottom" in pos and "left" in pos):
-            self.GetPositionCoordinate().SetValue(0, 0)
-        elif pos == 4 or ("bottom" in pos and "right" in pos):
-            self.GetPositionCoordinate().SetValue(sx, 0)
-        if alpha:
-            self.UseBackgroundOn()
-            self.SetBackgroundColor(getColor(bg))
-            self.SetBackgroundOpacity(alpha)
-        else:
-            self.UseBackgroundOff()
-        self.LockBorderOn()

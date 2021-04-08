@@ -197,12 +197,15 @@ twoSidedLighting = True
 # Turn on/off rendering of translucent material with depth peeling technique.
 #https://lorensen.github.io/VTKExamples/site/Cxx/Visualization/CorrectlyRenderTranslucentGeometry
 useDepthPeeling = False
+
+multiSamples = 0
+
 if '9' in vtk.vtkVersion().GetVTKVersion():
     useDepthPeeling = True
-alphaBitPlanes  = True  # only relevant if useDepthPeeling
-multiSamples    = 0
+    multiSamples    = 0
 maxNumberOfPeels= 8
 occlusionRatio  = 0.0
+alphaBitPlanes  = True
 
 # Turn on/off nvidia FXAA anti-aliasing, if supported.
 useFXAA = None           # either True or False. None sets the system default
@@ -444,14 +447,6 @@ font_parameters = dict(
                         lspacing = 0.11,
                         dotsep = "·",
                         islocal = False,
-                        ),
-        VTK = dict(
-                        mono = False,
-                        fscale = 0.8,
-                        hspacing = 0.6,
-                        lspacing = 0.4,
-                        dotsep = "~^.~ ",
-                        islocal = True,
                         ),
         Meson= dict(
                         mono = False,

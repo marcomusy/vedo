@@ -8,7 +8,6 @@ from vedo.volume import Volume
 from vedo import settings, printc, getColor, humansort, __version__
 from vedo import io, load
 import vedo.applications as applications
-from vedo.shapes import Text2D, VedoLogo
 from vedo.docs import tips
 import sys, argparse, os, glob
 
@@ -42,6 +41,7 @@ class MyArgs:
         self.cmap = "jet"
         self.mode = 0
         self.reload = False
+        self.edit = False
 
 #################################################################################################
 vp = None
@@ -57,7 +57,7 @@ def draw_scene():
 
     nfiles = len(args.files)
     if nfiles == 0:
-        print("No input files provided.")
+        printc("No input files.", c='r')
         return
     humansort(args.files)
 
@@ -126,7 +126,7 @@ def draw_scene():
         vol.mode(int(args.mode)).color(args.cmap).jittering(True)
         # if args.lighting !='default':
         vol.lighting(args.lighting).jittering(True)
-        vp = applications.RayCaster(vol)
+        vp = applications.RayCastPlotter(vol)
         vp.show(viewup="z", interactive=True)
         vp.sliders[0][0].SetEnabled(False)
         vp.sliders[1][0].SetEnabled(False)
@@ -152,7 +152,7 @@ def draw_scene():
 
         settings.plotter_instance = None # reset
 
-        plt = applications.Slicer(
+        plt = applications.SlicerPlotter(
                      vol,
                      bg='white', bg2='lb',
                      useSlider3D=useSlider3D,
@@ -161,10 +161,21 @@ def draw_scene():
                      axes=args.axes_type,
                      clamp=True,
                      size=(1000,800),
-                     )
-
+        )
         plt.show()
         return
+
+    ########################################################################
+    elif args.edit:
+        # print('edit mode for meshes and pointclouds')
+        settings.plotter_instance = None # reset
+        settings.useParallelProjection = True
+        m = Mesh(args.files[0], alpha=args.alpha/2, c=args.color)
+        vp = applications.FreeHandCutPlotter(m, splined=True)
+        vp.addHoverLegend()
+        if not args.background_grad:
+            args.background_grad = None
+        vp.start(axes=1, bg=args.background, bg2=args.background_grad)
 
     ########################################################################
     elif args.slicer2d:
@@ -268,14 +279,10 @@ def draw_scene():
 
         else:
 
-            # if scene is empty just draw the logo
+            # scene is empty
             if all(a is None for a in actors):
-                actors = [VedoLogo(distance=6, c='k'),
-                          Text2D('..could not load file(s)', s=0.9, bg='y',
-                                  c='r', font='', pos='bottom-center'),
-                          ]
-                vp.axes=0
-                vp.backgroundColor('w','bb')
+                printc("..could not load file(s). Quit.", c='r')
+                return
 
             vp.show(actors, interactive=True, zoom=args.zoom)
         return
@@ -589,7 +596,7 @@ else:  #########################################################################
     pr.add_argument("-a", "--alpha",    type=float, help="alpha value [0-1]", default=1, metavar='')
     pr.add_argument("-w", "--wireframe",            help="use wireframe representation", action="store_true")
     pr.add_argument("-p", "--point-size", type=float, help="specify point size", default=-1, metavar='')
-    pr.add_argument("-e", "--showedges",            help="show a thin line on mesh edges", action="store_true")
+    pr.add_argument("-l", "--showedges",            help="show a thin line on mesh edges", action="store_true")
     pr.add_argument("-k", "--lighting", type=str,   help="metallic, plastic, shiny or glossy", default='default', metavar='')
     pr.add_argument("-K", "--flat",                 help="use flat shading", action="store_true")
     pr.add_argument("-t", "--texture-file",         help="texture image file", default='', metavar='')
@@ -606,19 +613,19 @@ else:  #########################################################################
     pr.add_argument("-gx", "--x-spacing", type=float, help="Volume x-spacing factor [1]", default=1, metavar='')
     pr.add_argument("-gy", "--y-spacing", type=float, help="Volume y-spacing factor [1]", default=1, metavar='')
     pr.add_argument("-gz", "--z-spacing", type=float, help="Volume z-spacing factor [1]", default=1, metavar='')
-    pr.add_argument("--mode",                       help="Voxel rendering composite mode", default=0, metavar='')
+    pr.add_argument("--mode",                       help="Voxel rendering style (composite/maxproj/...)", default=0, metavar='')
     pr.add_argument("--cmap",                       help="Voxel rendering color map name", default='jet', metavar='')
+    pr.add_argument("-e", "--edit",                 help="Free-hand edit the input Mesh", action="store_true")
     pr.add_argument("--slicer",                     help="Slicer Mode for volumetric data", action="store_true")
     pr.add_argument("--slicer2d",                   help="2D Slicer Mode for volumetric data", action="store_true")
     pr.add_argument("--lego",                       help="Voxel rendering for 3D image files", action="store_true")
     pr.add_argument("-r", "--run",                  help="Run example from vedo/examples", metavar='')
-    pr.add_argument("--list",                       help="List examples in vedo/examples", action="store_true")
+    pr.add_argument("--search",           type=str, help="Search/grep for word in vedo examples", default='', metavar='')
     pr.add_argument("--search-vtk-class", type=str, help="Search examples for this vtk class", default='', metavar='')
     pr.add_argument("--reload",                     help="Reload the file, ignoring any previous download", action="store_true")
     args = pr.parse_args()
 
     if "/vedo/vedo" in settings.installdir:
-        # settings.installdir = os.path.join(settings.installdir, "../")
         settings.installdir = settings.installdir.replace('vedo/','').replace('vedo\\','')
 
     if args.run:
@@ -630,7 +637,6 @@ else:  #########################################################################
         nmat = len(matching)
         if nmat == 0:
             printc("No matching example found containing string:", args.run, c=1)
-            printc(" Use vedo --list to show available scripts.", c=1)
             printc(" Current installation directory is:", settings.installdir, c=1)
             exit(1)
 
@@ -669,93 +675,32 @@ else:  #########################################################################
         printc("("+matching[0]+")", c='y', bold=0, italic=1)
         os.system('python3 ' + matching[0])
 
-    elif args.list:
-        print()
-        printc("Available examples are:", box='-')
-        expath = os.path.join(settings.installdir, 'examples')
-
-        exfiles = [(f, os.path.basename(f))
-                    for f in sorted(glob.glob(
-                                              os.path.join(expath, "**", "*.py"),
-                                              recursive=True,
-                                             )
-                                    )
-                  ]
-        nl = 4
-
-        printc("Basic examples:", c='g', bold=1, underline=1)
-        scs = []
-        for f,bn in exfiles:
-            if "basic" in f:
-                lb = ' ' if (len(scs)+1)%nl else '\n'
-                scs.append(lb+bn.replace('.py',''))
-        printc("".join(scs), c='g', bold=0)
-
-        printc("Advanced examples:", c='y', bold=1, underline=1)
-        scs = []
-        for f,bn in exfiles:
-            if "advanced" in f:
-                lb = ' ' if (len(scs)+1)%nl else '\n'
-                scs.append(lb+bn.replace('.py',''))
-        printc("".join(scs), c='y', bold=0)
-
-        printc("Simulation examples:", c='m', bold=1, underline=1)
-        scs = []
-        for f,bn in exfiles:
-            if "simulation" in f:
-                lb = ' ' if (len(scs)+1)%nl else '\n'
-                scs.append(lb+bn.replace('.py',''))
-        printc("".join(scs), c='m', bold=0)
-
-        printc("Plotting 2D examples:", c='w', bold=1, underline=1)
-        scs = []
-        for f,bn in exfiles:
-            if "pyplot" in f:
-                lb = ' ' if (len(scs)+1)%nl else '\n'
-                scs.append(lb+bn.replace('.py',''))
-        printc("".join(scs), c='w', bold=0)
-
-        printc("Volumetric examples:", c='b', bold=1, underline=1)
-        scs = []
-        for f,bn in exfiles:
-            if "volumetric" in f:
-                lb = ' ' if (len(scs)+1)%nl else '\n'
-                scs.append(lb+bn.replace('.py',''))
-        printc("".join(scs), c='b', bold=0)
-
-        printc("Tetrahedral mesh examples:", c='y', bold=1, underline=1)
-        scs = []
-        for f,bn in exfiles:
-            if "tetmesh" in f:
-                lb = ' ' if (len(scs)+1)%nl else '\n'
-                scs.append(lb+bn.replace('.py',''))
-        printc("".join(scs), c='y', bold=0)
-
-        printc("Other examples:", c='cyan', bold=1, underline=1)
-        scs = []
-        for f,bn in exfiles:
-            if "other" in f and "dolfin" not in f and "trimesh" not in f:
-                lb = ' ' if (len(scs)+1)%nl else '\n'
-                scs.append(lb+bn.replace('.py',''))
-        printc("".join(scs), c='cyan', bold=0)
-
-        printc("      Dolfin examples:", c='r', bold=1, underline=1)
-        scs = []
-        for f,bn in exfiles:
-            if "dolfin" in f:
-                lb = ' ' if (len(scs)+1)%nl else '\n'
-                scs.append(lb+bn.replace('.py',''))
-        printc("".join(scs), c='r', bold=0)
-
-        printc("      Trimesh examples:", c='m', bold=1, underline=1)
-        scs = []
-        for f,bn in exfiles:
-            if "trimesh" in f:
-                lb = ' ' if (len(scs)+1)%nl else '\n'
-                scs.append(lb+bn.replace('.py',''))
-        printc("".join(scs), c='m', bold=0)
-        print()
-
+    elif args.search:
+        expath = os.path.join(settings.installdir, "examples", "**", "*.py")
+        exfiles = [f for f in sorted(glob.glob(expath, recursive=True))]
+        pattern = args.search
+        if args.no_camera_share:
+            pattern = pattern.lower()
+        if len(pattern) > 3:
+            for ifile in exfiles:
+                with open(ifile, "r") as file:
+                    fflag=True
+                    for i,line in enumerate(file):
+                        if args.no_camera_share:
+                            bline = line.lower()
+                        else:
+                            bline = line
+                        if pattern in bline:
+                            if fflag:
+                                name = os.path.basename(ifile)
+                                etype = ifile.split("/")[-2]
+                                printc("--> examples/"+etype+"/"+name+":", c='y', italic=True)
+                                fflag = False
+                            line = line.replace(pattern, "\x1b[4m\x1b[1m"+pattern+"\x1b[0m\u001b[33m")
+                            print(f"\u001b[33m{i}\t{line}\x1b[0m", end='')
+                            # printc(i, line, c='o', bold=False, end='')
+        else:
+            printc("Please specify at least four characters.", c='r')
 
     elif args.search_vtk_class:
         # input a vtk class name to get links to examples that involve that class
@@ -767,7 +712,7 @@ else:  #########################################################################
         from urllib.error import HTTPError
         from urllib.request import urlretrieve
 
-        xref_url = 'https://raw.githubusercontent.com/Kitware/vtk-examples/gh-pages/src/Coverage/vtk_vtk-examples_xref.json'
+        xref_url='https://raw.githubusercontent.com/Kitware/vtk-examples/gh-pages/src/Coverage/vtk_vtk-examples_xref.json'
 
         def download_file(dl_path, dl_url, overwrite=False):
             file_name = dl_url.split('/')[-1]
