@@ -1,6 +1,4 @@
 import vtk
-from vtk.util.numpy_support import numpy_to_vtk
-
 import numpy as np
 
 import vedo.utils as utils
@@ -758,8 +756,8 @@ class MeshActor(Mesh):
         movedpts = coords + deltas
         if movedpts.shape[1] == 2: #2d
             movedpts = np.c_[movedpts, np.zeros(movedpts.shape[0])]
-        self.polydata(False).GetPoints().SetData(numpy_to_vtk(np.ascontiguousarray(movedpts)))
-        self._polydata.GetPoints().Modified()
+        self.polydata(False).GetPoints().SetData(utils.numpy2vtk(movedpts, dtype=np.float))
+        self.polydata(False).GetPoints().Modified()
 
 
 def MeshPoints(*inputobj, **options):

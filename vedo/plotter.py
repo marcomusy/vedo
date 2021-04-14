@@ -4,7 +4,6 @@ import time
 import sys
 import vtk
 import os.path
-from vtk.util.numpy_support import vtk_to_numpy
 import numpy as np
 
 import vedo
@@ -163,7 +162,7 @@ def show(*actors, **options):
     pos = options.pop("pos", (0, 0))
     size = options.pop("size", "auto")
     screensize = options.pop("screensize", "auto")
-    title = options.pop("title", "")
+    title = options.pop("title", "vedo")
     bg = options.pop("bg", "white")
     bg2 = options.pop("bg2", None)
     axes = options.pop("axes", settings.defaultAxesType)
@@ -393,7 +392,7 @@ class Plotter:
         pos=(0, 0),
         size="auto",
         screensize="auto",
-        title="",
+        title="vedo",
         bg="white",
         bg2=None,
         axes=settings.defaultAxesType,
@@ -498,9 +497,9 @@ class Plotter:
                 ############################
 
         # more settings
-        if settings.useDepthPeeling:
-            self.window.SetAlphaBitPlanes(settings.alphaBitPlanes)
-            self.window.SetMultiSamples(settings.multiSamples)
+        self.window.SetAlphaBitPlanes(settings.alphaBitPlanes)
+        self.window.SetMultiSamples(settings.multiSamples)
+
         self.window.SetPolygonSmoothing(settings.polygonSmoothing)
         self.window.SetLineSmoothing(settings.lineSmoothing)
         self.window.SetPointSmoothing(settings.pointSmoothing)
@@ -586,14 +585,22 @@ class Plotter:
             for r in self.renderers:
                 r.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
                 r.SetLightFollowCamera(settings.lightFollowsCamera)
-                if settings.useFXAA is not None:
-                    r.SetUseFXAA(settings.useFXAA)
-                    self.window.SetMultiSamples(settings.multiSamples)
-                if settings.useDepthPeeling:
-                    r.SetUseDepthPeeling(True)
-                    r.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
-                    r.SetOcclusionRatio(settings.occlusionRatio)
+
+                r.SetUseDepthPeeling(settings.useDepthPeeling)
+                r.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
+                r.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
+                r.SetOcclusionRatio(settings.occlusionRatio)
+                r.SetUseFXAA(settings.useFXAA)
+                r.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
+                if hasattr(r, "SetUseSSAO"):
+                    r.SetUseSSAO(settings.useSSAO)
+                    r.SetSSAORadius(settings.SSAORadius)
+                    r.SetSSAOBias(settings.SSAOBias)
+                    r.SetSSAOKernelSize(settings.SSAOKernelSize)
+                    r.SetSSAOBlur(settings.SSAOBlur)
+
                 r.SetBackground(getColor(self.backgrcol))
+
                 self.axes_instances.append(None)
 
             self.shape = (n+m,)
@@ -613,10 +620,20 @@ class Plotter:
                 arenderer = vtk.vtkRenderer()
                 arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
                 arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
-                arenderer.SetUseFXAA(settings.useFXAA)
-                if settings.useFXAA:
-                    self.window.SetMultiSamples(settings.multiSamples)
+
                 arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
+                arenderer.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
+                arenderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
+                arenderer.SetOcclusionRatio(settings.occlusionRatio)
+                arenderer.SetUseFXAA(settings.useFXAA)
+                arenderer.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
+                if hasattr(arenderer, "SetUseSSAO"):
+                    arenderer.SetUseSSAO(settings.useSSAO)
+                    arenderer.SetSSAORadius(settings.SSAORadius)
+                    arenderer.SetSSAOBias(settings.SSAOBias)
+                    arenderer.SetSSAOKernelSize(settings.SSAOKernelSize)
+                    arenderer.SetSSAOBlur(settings.SSAOBlur)
+
                 arenderer.SetViewport(x0, y0, x1, y1)
                 arenderer.SetBackground(getColor(bg_))
                 if bg2_:
@@ -669,10 +686,19 @@ class Plotter:
                         arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
                         arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
                         arenderer.SetTwoSidedLighting(settings.twoSidedLighting)
-                        arenderer.SetUseFXAA(settings.useFXAA)
-                        if settings.useFXAA:
-                            self.window.SetMultiSamples(settings.multiSamples)
+
                         arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
+                        arenderer.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
+                        arenderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
+                        arenderer.SetOcclusionRatio(settings.occlusionRatio)
+                        arenderer.SetUseFXAA(settings.useFXAA)
+                        arenderer.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
+                        if hasattr(arenderer, "SetUseSSAO"):
+                            arenderer.SetUseSSAO(settings.useSSAO)
+                            arenderer.SetSSAORadius(settings.SSAORadius)
+                            arenderer.SetSSAOBias(settings.SSAOBias)
+                            arenderer.SetSSAOKernelSize(settings.SSAOKernelSize)
+                            arenderer.SetSSAOBlur(settings.SSAOBlur)
 
                     if image_actor:
                         arenderer.SetLayer(1)
@@ -713,8 +739,6 @@ class Plotter:
             ########################
             return #################
             ########################
-
-        self.window.SetWindowName(title)
 
         for r in self.renderers:
             self.window.AddRenderer(r)
@@ -1690,7 +1714,7 @@ class Plotter:
                 # check ugrid is all made of tets
                 ugrid = a.inputdata()
                 uarr = ugrid.GetCellTypesArray()
-                celltypes = np.unique(vtk_to_numpy(uarr))
+                celltypes = np.unique(utils.vtk2numpy(uarr))
                 ncelltypes = len(celltypes)
                 if ncelltypes > 1 or (ncelltypes==1 and celltypes[0]!=10):
                     scannedacts.append(a.tomesh())
@@ -1945,6 +1969,8 @@ class Plotter:
             if settings.notebookBackend not in ['panel', '2d', 'ipyvtk']:
                 return backends.getNotebookBackend(actors2show, zoom, viewup)
         #########################################################################
+
+        self.window.SetWindowName(self.title)
 
         if interactive is not None:
             self.interactive = interactive

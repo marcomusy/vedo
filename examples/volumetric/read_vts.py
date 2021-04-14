@@ -3,7 +3,7 @@ the associated vector and scalar fields
 """
 from vedo import load, dataurl, Arrows, show
 
-g = load(dataurl+'structgrid.vts')#.printInfo()
+g = load(dataurl+'structgrid.vts')
 
 coords = g.points()
 vects  = g.getPointArray('Momentum')/600 # printInfo gives the list

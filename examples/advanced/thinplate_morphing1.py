@@ -2,14 +2,13 @@
 transform defined by a set of source and target landmarks.
 Any point on the mesh close to a source landmark will
 be moved to a place close to the corresponding target landmark.
-The points in between are interpolated using Bookstein's algorithm.
-"""
-from vedo import *
+The points in between are interpolated using Bookstein's algorithm"""
+from vedo import Mesh, Points, show, dataurl
 import numpy as np
 
 np.random.seed(1)
 
-mesh = load(dataurl+"shuttle.obj").c('silver')
+mesh = Mesh(dataurl+"shuttle.obj").c('silver')
 
 # pick 4 random points
 indxs = np.random.randint(0, mesh.N(), 4)
@@ -23,8 +22,7 @@ for ptold in pts:
     pttarget.append(ptnew)
     # print(ptold,'->',ptnew)
 
-warped = mesh.clone().thinPlateSpline(ptsource, pttarget)
-warped.alpha(0.4).color("b")
+warped = mesh.clone().thinPlateSpline(ptsource, pttarget).color("b", 0.4)
 
 apts = Points(ptsource, r=15, c="r")
 

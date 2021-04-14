@@ -1,6 +1,5 @@
 import numpy as np
 import vtk
-from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk, numpy_to_vtkIdTypeArray
 from vedo.base import BaseGrid
 import vedo.colors as colors
 import vedo.settings as settings
@@ -44,7 +43,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
                 cells = tets
 
             # This would fill the points and use those to define orientation
-            vpts = numpy_to_vtk(np.ascontiguousarray(pts), deep=True)
+            vpts = utils.numpy2vtk(pts, dtype=np.float)
             points = vtk.vtkPoints()
             points.SetData(vpts)
             self._data.SetPoints(points)
@@ -243,8 +242,8 @@ class UGrid(vtk.vtkActor, BaseGrid):
     def extractCellType(self, ctype):
         """Extract a specific cell type and return a new UGrid."""
         uarr = self._data.GetCellTypesArray()
-        ctarrtyp = np.where(vtk_to_numpy(uarr)==ctype)[0]
-        uarrtyp = numpy_to_vtkIdTypeArray(ctarrtyp, deep=False)
+        ctarrtyp = np.where(utils.vtk2numpy(uarr)==ctype)[0]
+        uarrtyp = utils.numpy2vtk(ctarrtyp, deep=False, dtype='id')
         selectionNode = vtk.vtkSelectionNode()
         selectionNode.SetFieldType(vtk.vtkSelectionNode.CELL)
         selectionNode.SetContentType(vtk.vtkSelectionNode.INDICES)

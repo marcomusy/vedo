@@ -4,7 +4,7 @@ moves as the arrow indicates. """
 from vedo import *
 
 
-mesh = load(dataurl+"man.vtk").color('w').lineWidth(0.1)
+mesh = Mesh(dataurl+"man.vtk").color('w').lineWidth(0.1)
 
 # a heavily decimated copy
 meshdec = mesh.clone().triangulate().decimate(N=200)

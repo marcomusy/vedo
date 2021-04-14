@@ -3,22 +3,23 @@ scalars associated to each voxel"""
 from vedo import *
 import numpy as np
 
-vol = load(dataurl+'vase.vti')
+vol = Volume(dataurl+'vase.vti')
 nx, ny, nz = vol.dimensions()
 r0,r1 = vol.scalarRange()
 vol.addScalarBar3D(title='original voxel scalars')
+
 
 # create a set of scalars and add it to the Volume
 sc1 = np.linspace(r0,r1, num=nx*ny*nz)#.astype(np.uint8)
 vol.addPointArray(sc1, "myscalars1")
 
 # create another set of scalars and add it to the Volume
-sc2 = np.random.randint(r0,r1, nx*ny*nz)#.astype(np.uint8)
+sc2 = np.random.randint(-100,+100, nx*ny*nz)
 vol.addPointArray(sc2, "myscalars2")
 
 # make SLCImage scalars the active array (can set 0, to pick the first):
-printc('Arrays in Volume are:\n', vol.getArrayNames(), invert=1)
-vol.getPointArray('SLCImage')
+printc('Arrays in Volume are:\n', vol.getArrayNames(), invert=True)
+vol.selectPointArray('SLCImage')  # select the first data array
 
 # Build the isosurface of the active scalars,
 # but use testscals1 to colorize this isosurface, and then smooth it

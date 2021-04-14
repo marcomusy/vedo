@@ -1,5 +1,5 @@
 import vtk
-from vedo.addons import addScalarBar
+from vedo.addons import addScalarBar, addGlobalAxes
 from vedo.plotter import Plotter
 from vedo.pyplot import cornerHistogram
 from vedo.utils import mag, precision, linInterpolate, isSequence
@@ -600,6 +600,11 @@ class FreeHandCutPlotter(Plotter):
                  tc="k9",
                  tol=0.008,
         ):
+
+        if not isinstance(mesh, Points):
+            printc("FreeHandCutPlotter input must be Points or Mesh.", c='r')
+            raise RuntimeError()
+
         Plotter.__init__(self, title="Free-hand mesh cutter")
 
         self.mesh = mesh
@@ -628,6 +633,23 @@ class FreeHandCutPlotter(Plotter):
         self.points = None
         self.spline = None
         self.jline = None
+        self.topline = None
+        self.top_pts = []
+
+    def init(self, initpoints):
+        if isinstance(initpoints, Points):
+            self.cpoints = initpoints.points()
+        else:
+            self.cpoints = np.array(initpoints)
+        self.points = Points(self.cpoints, r=self.linewidth).c(self.pointcolor).pickable(0)
+        if self.splined:
+            self.spline = Spline(self.cpoints, res=len(self.cpoints)*4)
+        else:
+            self.spline = Line(self.cpoints)
+        self.spline.lw(self.linewidth).c(self.linecolor).pickable(False)
+        self.jline = Line(self.cpoints[0], self.cpoints[-1], lw=1, c=self.linecolor).pickable(0)
+        self.add([self.points, self.spline, self.jline], render=False)
+        return self
 
     def _onRightClick(self, evt):
         self.drawmode = not self.drawmode # toggle mode
@@ -651,16 +673,24 @@ class FreeHandCutPlotter(Plotter):
                 return  # new point is too close to the last one. skip
             self.cpoints.append(cpt)
             if len(self.cpoints) > 2:
-                self.remove([self.points, self.spline, self.jline])
+                self.remove([self.points, self.spline, self.jline, self.topline])
                 self.points = Points(self.cpoints, r=self.linewidth).c(self.pointcolor).pickable(0)
                 if self.splined:
                     self.spline = Spline(self.cpoints, res=len(self.cpoints)*4) # not closed here
                 else:
                     self.spline = Line(self.cpoints)
+
+                if evt.actor:
+                    self.top_pts.append(evt.picked3d)
+                    # self.topline = Line(self.top_pts)
+                    # self.topline.lw(self.linewidth-1).c(self.linecolor).pickable(False)
+                    self.topline = Points(self.top_pts, r=self.linewidth)
+                    self.topline.c(self.linecolor).pickable(False)
+
                 self.spline.lw(self.linewidth).c(self.linecolor).pickable(False)
                 self.txt2d.background(self.linecolor)
                 self.jline = Line(self.cpoints[0], self.cpoints[-1], lw=1, c=self.linecolor).pickable(0)
-                self.add([self.points, self.spline, self.jline])
+                self.add([self.points, self.spline, self.jline, self.topline])
 
     def _onKeyPress(self, evt):
         if evt.keyPressed.lower() == 'z' and self.spline: # Cut mesh with a ribbon-like surface
@@ -680,8 +710,9 @@ class FreeHandCutPlotter(Plotter):
                 self._onRightClick(evt)                 # toggle mode to normal
             else:
                 self.txt2d.background(self.color, self.alpha)
-            self.remove([self.spline, self.points, self.jline]).render()
+            self.remove([self.spline, self.points, self.jline, self.topline]).render()
             self.cpoints, self.points, self.spline = [], None, None
+            self.top_pts, self.topline = [], None
 
         elif evt.keyPressed == 'L':
             self.txt2d.background('red8')
@@ -703,15 +734,27 @@ class FreeHandCutPlotter(Plotter):
                 self._onRightClick(evt)                 # toggle mode to normal
             else:
                 self.txt2d.background(self.color, self.alpha)
-            self.remove([self.mesh, self.spline, self.jline, self.points])
+            self.remove([self.mesh, self.spline, self.jline, self.points, self.topline])
             self.mesh = self.mesh_prev
             self.cpoints, self.points, self.spline = [], None, None
+            self.top_pts, self.topline = [], None
             self.add(self.mesh)
 
         elif evt.keyPressed == 'c' or evt.keyPressed == 'Delete':
             # clear all points
-            self.remove([self.spline, self.points, self.jline]).render()
+            self.remove([self.spline, self.points, self.jline, self.topline]).render()
             self.cpoints, self.points, self.spline = [], None, None
+            self.top_pts, self.topline = [], None
+
+        elif evt.keyPressed == 'r': # reset camera and axes
+            try:
+                self.remove(self.axes_instances[0])
+                self.axes_instances[0] = None
+                self.addGlobalAxes(axtype=1, c=None)
+                self.renderer.ResetCamera()
+                self.interactor.Render()
+            except:
+                pass
 
         elif evt.keyPressed == 's':
             if self.mesh.filename:
@@ -729,7 +772,9 @@ class FreeHandCutPlotter(Plotter):
         return self
 
     def start(self, *args, **kwargs):
-        return self.show([self.txt2d, self.mesh]+list(args), **kwargs)
+        acts = [self.txt2d, self.mesh, self.points, self.spline, self.jline]
+        self.show(acts + list(args), **kwargs)
+        return self
 
 
 ########################################################################

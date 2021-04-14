@@ -2,7 +2,7 @@
 (Hover mouse to identify original and mirrored)"""
 from vedo import *
 
-myted1 = load(dataurl+"teddy.vtk").flag('original')
+myted1 = Mesh(dataurl+"teddy.vtk").flag('original')
 
 myted2 = myted1.clone(deep=False).mirror("y")
 myted2.pos(0,3,0).c("green").flag('mirrored')

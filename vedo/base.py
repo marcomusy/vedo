@@ -2,9 +2,7 @@ import numpy as np
 import vtk
 import vedo
 import vedo.colors as colors
-import vedo.settings as settings
 import vedo.utils as utils
-from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy, numpy_to_vtkIdTypeArray
 
 __doc__ = (
     """Base classes. Do not instantiate these."""
@@ -19,11 +17,9 @@ __all__ = [
            "probeLine",
            "probePlane",
            "streamLines",
-           ]
-
+]
 
 ###############################################################################
-# classes
 class Base3DProp(object):
 
     def __init__(self):
@@ -649,6 +645,49 @@ class BaseActor(Base3DProp):
         """Retrieve number of cells."""
         return self.inputdata().GetNumberOfCells()
 
+
+    def points(self, pts=None, transformed=True, copy=False):
+        """
+        Set/Get the vertex coordinates of a mesh or point cloud.
+        Argument can be an index, a set of indices
+        or a complete new set of points to update the mesh.
+
+        :param bool transformed: if `False` ignore any previous transformation
+            applied to the mesh.
+        :param bool copy: if `False` return the reference to the points
+            so that they can be modified in place, otherwise a copy is built.
+        """
+        if pts is None: ### getter
+
+            if isinstance(self, vedo.Points):
+                vpts = self.polydata(transformed).GetPoints()
+            else:
+                vpts = self._data.GetPoints()
+
+            if vpts:
+                if copy:
+                    return utils.vtk2numpy(vpts.GetData())
+                else:
+                    return utils.vtk2numpy(vpts.GetData())
+            else:
+                return np.array([])
+
+        elif (utils.isSequence(pts) and not utils.isSequence(pts[0])) or isinstance(pts, (int, np.integer)):
+            #passing a list of indices or a single index
+            return utils.vtk2numpy(self.polydata(transformed).GetPoints().GetData())[pts]
+
+        else:           ### setter
+
+            if len(pts) == 3 and len(pts[0]) != 3:
+                # assume plist is in the format [all_x, all_y, all_z]
+                pts = np.stack((pts[0], pts[1], pts[2]), axis=1)
+            vpts = self._data.GetPoints()
+            vpts.SetData(utils.numpy2vtk(pts, dtype=np.float))
+            vpts.Modified()
+            # reset mesh to identity matrix position/rotation:
+            self.PokeMatrix(vtk.vtkMatrix4x4())
+            return self
+
     def cellCenters(self):
         """Get the coordinates of the cell centers.
 
@@ -660,7 +699,7 @@ class BaseActor(Base3DProp):
         else:
             vcen.SetInputData(self.inputdata())
         vcen.Update()
-        return vtk_to_numpy(vcen.GetOutput().GetPoints().GetData())
+        return utils.vtk2numpy(vcen.GetOutput().GetPoints().GetData())
 
 
     def deleteCells(self, ids):
@@ -838,77 +877,31 @@ class BaseActor(Base3DProp):
         return {"PointData":wrapped.PointData.keys(),
                 "CellData":wrapped.CellData.keys() }
 
-
     def getPointArray(self, name=0):
-        """Return point array content as a ``numpy.array``.
-        This can be identified either as a string or by an integer number.
-
-        Getting an array also makes it the active one, if more than one is present.
         """
-        if hasattr(self, '_polydata') and self._polydata:
-            data = self._polydata.GetPointData()
-            if isinstance(name, int):
-                name = data.GetArrayName(name)
-            arr = data.GetArray(name)
-            if not arr:
-                return None
-
-            self._mapper.ScalarVisibilityOn()
-            if settings.autoResetScalarRange:
-                if self._mapper.GetLookupTable().GetTable().GetNumberOfTuples():
-                    self._mapper.SetScalarRange(self._mapper.GetLookupTable().GetRange())
-                else:
-                    self._mapper.SetScalarRange(arr.GetRange())
-
-        else:
-            indata = self.inputdata()
-            if indata:
-                data = indata.GetPointData()
-                if isinstance(name, int):
-                    name = data.GetArrayName(name)
-                arr = data.GetArray(name)
-                if not arr:
-                    return None
-
-        data.SetActiveScalars(name)
-        self._mapper.SetScalarModeToUsePointData()
-        return vtk_to_numpy(arr)
-
+        Return the point array content as a ``numpy.array``.
+        This can be identified either as a string or by an integer number.
+        """
+        data = self._data.GetPointData()
+        if isinstance(name, int):
+            name = data.GetArrayName(name)
+        arr = data.GetArray(name)
+        if not arr:
+            return None
+        return utils.vtk2numpy(arr)
 
     def getCellArray(self, name=0):
-        """Return cell array content as a ``numpy.array``.
-        This can be identified either as a string or by an integer number.
-
-        Getting an array also makes it the active one, if more than one is present.
         """
-        if hasattr(self, '_polydata') and self._polydata:
-            data = self._polydata.GetCellData()
-            if isinstance(name, int):
-                name = data.GetArrayName(name)
-            arr = data.GetArray(name)
-            if not arr:
-                return None
-
-            self._mapper.ScalarVisibilityOn()
-            if settings.autoResetScalarRange:
-                if self._mapper.GetLookupTable().GetTable().GetNumberOfTuples():
-                    self._mapper.SetScalarRange(self._mapper.GetLookupTable().GetRange())
-                else:
-                    self._mapper.SetScalarRange(arr.GetRange())
-
-        else:
-            indata = self.inputdata()
-            if indata:
-                data = indata.GetCellData()
-                if isinstance(name, int):
-                    name = data.GetArrayName(name)
-                arr = data.GetArray(name)
-                if not arr:
-                    return None
-
-        data.SetActiveScalars(name)
-        self._mapper.SetScalarModeToUseCellData()
-        return vtk_to_numpy(arr)
+        Return the cell array content as a ``numpy.array``.
+        This can be identified either as a string or by an integer number.
+        """
+        data = self._data.GetCellData()
+        if isinstance(name, int):
+            name = data.GetArrayName(name)
+        arr = data.GetArray(name)
+        if not arr:
+            return None
+        return utils.vtk2numpy(arr)
 
 
     def addIDs(self, asfield=False):
@@ -918,7 +911,7 @@ class BaseActor(Base3DProp):
         :param bool asfield: flag to control whether to generate scalar or field data.
         """
         ids = vtk.vtkIdFilter()
-        ids.SetInputData(self._polydata)
+        ids.SetInputData(self._data)
         ids.PointIdsOn()
         ids.CellIdsOn()
         if asfield:
@@ -931,32 +924,36 @@ class BaseActor(Base3DProp):
     def selectPointArray(self, name):
         """Make this point array the active one. Name can be a string or integer."""
         data = self.inputdata().GetPointData()
+        arrname = name
         if isinstance(name, int):
-            name = data.GetArray(name)
-        data.SetActiveScalars(name)
+            arrname = data.GetArrayName(name)
+        data.SetActiveScalars(arrname)
         if hasattr(self._mapper, 'SetArrayName'):
-            self._mapper.SetArrayName(name)
+            self._mapper.SetArrayName(arrname)
         self._mapper.SetScalarModeToUsePointData()
         return self
 
     def selectCellArray(self, name):
         """Make this cell array the active one. Name can be a string or integer."""
         data = self.inputdata().GetCellData()
+        arrname = name
         if isinstance(name, int):
-            name = data.GetArray(name)
-        data.SetActiveScalars(name)
+            arrname = data.GetArrayName(name)
+        data.SetActiveScalars(arrname)
         if hasattr(self._mapper, 'SetArrayName'):
-            self._mapper.SetArrayName(name)
+            self._mapper.SetArrayName(arrname)
         self._mapper.SetScalarModeToUseCellData()
         return self
 
     def removePointArray(self, name):
         """Reomve point array from object."""
         self.inputdata().GetPointData().RemoveArray(name)
+        return self
 
     def removeCellArray(self, name):
         """Reomve cell array from object."""
         self.inputdata().GetCellData().RemoveArray(name)
+        return self
 
     def addPointArray(self, input_array, name):
         """
@@ -984,7 +981,7 @@ class BaseActor(Base3DProp):
 
         nparr = np.ascontiguousarray(input_array)
         if len(nparr.shape)==1: # scalars
-            varr = numpy_to_vtk(nparr, deep=True)
+            varr = utils.numpy2vtk(nparr)
             varr.SetName(name)
             data.GetPointData().AddArray(varr)
             data.GetPointData().SetActiveScalars(name)
@@ -1043,7 +1040,7 @@ class BaseActor(Base3DProp):
 
         nparr = np.ascontiguousarray(input_array)
         if len(nparr.shape)==1: # scalars
-            varr = numpy_to_vtk(nparr, deep=True)
+            varr = utils.numpy2vtk(nparr)
             varr.SetName(name)
             data.GetCellData().AddArray(varr)
             data.GetCellData().SetActiveScalars(name)
@@ -1108,9 +1105,9 @@ class BaseActor(Base3DProp):
         gra.ComputeGradientOn()
         gra.Update()
         if on.startswith('p'):
-            gvecs = vtk_to_numpy(gra.GetOutput().GetPointData().GetArray('Gradient'))
+            gvecs = utils.vtk2numpy(gra.GetOutput().GetPointData().GetArray('Gradient'))
         else:
-            gvecs = vtk_to_numpy(gra.GetOutput().GetCellData().GetArray('Gradient'))
+            gvecs = utils.vtk2numpy(gra.GetOutput().GetCellData().GetArray('Gradient'))
         return gvecs
 
     def divergence(self, arrname=None, on='points', fast=False):
@@ -1144,9 +1141,9 @@ class BaseActor(Base3DProp):
         div.SetFasterApproximation(fast)
         div.Update()
         if on.startswith('p'):
-            dvecs = vtk_to_numpy(div.GetOutput().GetPointData().GetArray('Divergence'))
+            dvecs = utils.vtk2numpy(div.GetOutput().GetPointData().GetArray('Divergence'))
         else:
-            dvecs = vtk_to_numpy(div.GetOutput().GetCellData().GetArray('Divergence'))
+            dvecs = utils.vtk2numpy(div.GetOutput().GetCellData().GetArray('Divergence'))
         return dvecs
 
     def vorticity(self, arrname=None, on='points', fast=False):
@@ -1180,9 +1177,9 @@ class BaseActor(Base3DProp):
         vort.SetFasterApproximation(fast)
         vort.Update()
         if on.startswith('p'):
-            vvecs = vtk_to_numpy(vort.GetOutput().GetPointData().GetArray('Vorticity'))
+            vvecs = utils.vtk2numpy(vort.GetOutput().GetPointData().GetArray('Vorticity'))
         else:
-            vvecs = vtk_to_numpy(vort.GetOutput().GetCellData().GetArray('Vorticity'))
+            vvecs = utils.vtk2numpy(vort.GetOutput().GetCellData().GetArray('Vorticity'))
         return vvecs
 
 
@@ -1258,6 +1255,7 @@ class BaseActor(Base3DProp):
                         nlabels=9,
                         labelFont="",
                         labelOffset = 0.375,
+                        labelRotation=0,
                         italic=0,
                         c=None,
                         useAlpha=True,
@@ -1286,6 +1284,7 @@ class BaseActor(Base3DProp):
         :param float titleRotation: title rotation in degrees
         :param int nlabels: number of numeric labels
         :param float labelOffset: space btw numeric labels and scale
+        :param float labelRotation: label rotation in degrees
         :param bool,float italic: use italic font for title and labels
         :param bool useAlpha: render transparency of the color bar, otherwise ignore
         :param bool drawBox: draw a box around the colorbar (useful with useAlpha=True)
@@ -1308,6 +1307,7 @@ class BaseActor(Base3DProp):
                                                     nlabels,
                                                     labelFont,
                                                     labelOffset,
+                                                    labelRotation,
                                                     italic,
                                                     c,
                                                     useAlpha,
@@ -1378,51 +1378,12 @@ class BaseGrid(BaseActor):
         # msh.selectCellArray('chem_0')
         return msh
 
-    def points(self, pts=None, transformed=True, copy=False):
-        """
-        Set/Get the vertex coordinates of the mesh.
-        Argument can be an index, a set of indices
-        or a complete new set of points to update the mesh.
-
-        :param bool transformed: if `False` ignore any previous transformation
-            applied to the mesh.
-        :param bool copy: if `False` return the reference to the points
-            so that they can be modified in place, otherwise a copy is built.
-        """
-        if pts is None: ### getter
-
-            vpts = self._data.GetPoints()
-            if vpts:
-                if copy:
-                    return np.array(vtk_to_numpy(vpts.GetData()))
-                else:
-                    return vtk_to_numpy(vpts.GetData())
-            else:
-                return np.array([])
-
-        elif (utils.isSequence(pts) and not utils.isSequence(pts[0])) or isinstance(pts, (int, np.integer)):
-            #passing a list of indices or a single index
-            return vtk_to_numpy(self.polydata(transformed).GetPoints().GetData())[pts]
-
-        else:           ### setter
-
-            if len(pts) == 3 and len(pts[0]) != 3:
-                # assume plist is in the format [all_x, all_y, all_z]
-                pts = np.stack((pts[0], pts[1], pts[2]), axis=1)
-            vpts = self._data.GetPoints()
-            vpts.SetData(numpy_to_vtk(np.ascontiguousarray(pts), deep=True))
-            self._data.GetPoints().Modified()
-            # reset mesh to identity matrix position/rotation:
-            self.PokeMatrix(vtk.vtkMatrix4x4())
-            return self
-
-
     def cells(self):
         """
         Get the cells connectivity ids as a numpy array.
         The output format is: [[id0 ... idn], [id0 ... idm],  etc].
         """
-        arr1d = vtk_to_numpy(self._data.GetCells().GetData())
+        arr1d = utils.vtk2numpy(self._data.GetCells().GetData())
         if arr1d is None:
             return []
 
@@ -1780,7 +1741,7 @@ class BaseGrid(BaseActor):
         else:
             selectionNode.SetFieldType(vtk.vtkSelectionNode.CELL)
         selectionNode.SetContentType(vtk.vtkSelectionNode.INDICES)
-        vidlist = numpy_to_vtkIdTypeArray(np.array(idlist).astype(np.int64))
+        vidlist = utils.numpy2vtk(idlist, dtype='id')
         selectionNode.SetSelectionList(vidlist)
         selection = vtk.vtkSelection()
         selection.AddNode(selectionNode)

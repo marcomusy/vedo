@@ -3,7 +3,7 @@ and points of a Mesh"""
 from vedo import *
 
 ##################################### addCellArray
-man1 = load(dataurl+"man_low.vtk").lineWidth(0.1)
+man1 = Mesh(dataurl+"man_low.vtk").lineWidth(0.1)
 nv = man1.NCells()                         # nr. of cells
 scals = range(nv)                          # coloring by the index of cell
 
@@ -13,7 +13,7 @@ show(man1, __doc__, at=0, N=3, axes=11, elevation=-60)
 
 
 ##################################### Point coloring
-man2 = load(dataurl+"man_low.vtk")
+man2 = Mesh(dataurl+"man_low.vtk")
 scals = man2.points()[:, 0] + 37           # pick x coordinates of vertices
 
 man2.cmap("hot", scals)
@@ -22,7 +22,7 @@ show(man2, "mesh.cmap()", at=1)
 
 
 ##################################### Cell coloring
-man3 = load(dataurl+"man_low.vtk")
+man3 = Mesh(dataurl+"man_low.vtk")
 scals = man3.cellCenters()[:, 2] + 37      # pick z coordinates of cells
 man3.cmap("afmhot", scals, on='cells')
 

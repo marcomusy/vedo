@@ -1,7 +1,7 @@
-from vedo import load, dataurl
+from vedo import Volume, dataurl
 from vedo.applications import RayCastPlotter
 
-embryo = load(dataurl+"embryo.slc") # vtkVolume
+embryo = Volume(dataurl+"embryo.slc") # vtkVolume
 embryo.mode(1).c('jet') # change properties
 
 plt = RayCastPlotter(embryo) # Plotter instance

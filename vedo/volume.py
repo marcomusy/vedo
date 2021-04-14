@@ -1,8 +1,6 @@
-from __future__ import division, print_function
 import glob, os
 import numpy as np
 import vtk
-from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 import vedo.colors as colors
 import vedo.docs as docs
 import vedo.utils as utils
@@ -359,12 +357,11 @@ class Volume(vtk.vtkVolume, BaseGrid):
                     inputobj = np.array(inputobj)
 
                 if len(inputobj.shape)==1:
-                    varr = numpy_to_vtk(inputobj, deep=True, array_type=vtk.VTK_FLOAT)
+                    varr = utils.numpy2vtk(inputobj, dtype=np.float)
                 else:
                     if len(inputobj.shape)>2:
                         inputobj = np.transpose(inputobj, axes=[2, 1, 0])
-                    varr = numpy_to_vtk(inputobj.ravel(order='F'),
-                                        deep=True, array_type=vtk.VTK_FLOAT)
+                    varr = utils.numpy2vtk(inputobj.ravel(order='F'), dtype=np.float)
                 varr.SetName('input_scalars')
 
                 img = vtk.vtkImageData()
@@ -381,7 +378,7 @@ class Volume(vtk.vtkVolume, BaseGrid):
                 #        img_scalar = data.GetPointData().GetScalars()
                 #        dims = data.GetDimensions()
                 #        n_comp = img_scalar.GetNumberOfComponents()
-                #        temp = numpy_support.vtk_to_numpy(img_scalar)
+                #        temp = utils.vtk2numpy(img_scalar)
                 #        numpy_data = temp.reshape(dims[1],dims[0],n_comp)
                 #        numpy_data = numpy_data.transpose(0,1,2)
                 #        numpy_data = np.flipud(numpy_data)
@@ -564,7 +561,7 @@ class Volume(vtk.vtkVolume, BaseGrid):
         when all your modifications are completed.
         """
         narray_shape = tuple(reversed(self._data.GetDimensions()))
-        narray = vtk_to_numpy(self._data.GetPointData().GetScalars()).reshape(narray_shape)
+        narray = utils.vtk2numpy(self._data.GetPointData().GetScalars()).reshape(narray_shape)
         narray = np.transpose(narray, axes=[2, 1, 0])
         return narray
 
@@ -1176,24 +1173,6 @@ class Volume(vtk.vtkVolume, BaseGrid):
         imgm.SetInputData(self.imagedata())
         imgm.Update()
         return self._update(imgm.GetOutput())
-
-
-    # def histogram(self, bins=25, component=0, logscale=True, normalized=False):
-    #     # seems not to work properly>???
-    #     hi = vtk.vtkImageHistogram()
-    #     hi.SetInputData(self._data)
-    #     hi.GenerateHistogramImageOff()
-    #     hi.SetNumberOfBins(bins)
-    #     hi.SetActiveComponent(component)
-    #     hi.Update()
-    #     arr = vtk_to_numpy(hi.GetHistogram())
-    #     tot = hi.GetTotal()
-    #     if logscale:
-    #         arr = np.log10(arr+1)
-    #         tot = np.log10(tot+bins)
-    #     if normalized:
-    #         arr = arr /tot
-    #     return arr
 
 
     def toPoints(self):

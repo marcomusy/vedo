@@ -1,10 +1,9 @@
 """Generate a scalar field by the signed distance from a mesh,
 optionally save it to a vti file,
-then extract an isosurface from the 3d image.
-"""
+then extract an isosurface from the 3d image."""
 from vedo import *
 
-mesh = load(dataurl+"apple.ply").subdivide()
+mesh = Mesh(dataurl+"apple.ply").subdivide()
 
 # Generate signed distance volume
 vol = volumeFromMesh(mesh,

@@ -1,11 +1,8 @@
-from __future__ import division, print_function
-
 import vtk
 import vedo.docs as docs
 from vedo.base import Base3DProp
 import vedo.utils as utils
 import vedo.colors as colors
-from vtk.util.numpy_support import vtk_to_numpy
 
 __doc__ = (
     """
@@ -60,7 +57,7 @@ def procrustesAlignment(sources, rigid=False):
         acts.append(mesh)
     assem = Assembly(acts)
     assem.transform = procrustes.GetLandmarkTransform()
-    assem.info['mean'] = vtk_to_numpy(procrustes.GetMeanPoints().GetData())
+    assem.info['mean'] = utils.vtk2numpy(procrustes.GetMeanPoints().GetData())
     return assem
 
 

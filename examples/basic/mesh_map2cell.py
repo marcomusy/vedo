@@ -2,7 +2,7 @@
 the vertices of a mesh to its cells"""
 from vedo import *
 
-mesh1 = load(dataurl+'icosahedron.vtk').lineWidth(0.1)
+mesh1 = Mesh(dataurl+'icosahedron.vtk').lineWidth(0.1)
 
 doc = Text2D(__doc__, pos="bottom-left")
 

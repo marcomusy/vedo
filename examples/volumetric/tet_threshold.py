@@ -2,7 +2,7 @@
 with a scalar array"""
 from vedo import *
 
-tetm = load(dataurl+'limb_ugrid.vtk')
+tetm = TetMesh(dataurl+'limb_ugrid.vtk')
 tetm.color('prism').alpha([0,1])
 
 # Threshold the tetrahedral mesh for values in the range:

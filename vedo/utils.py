@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 import vtk, sys
-from vtk.util.numpy_support import numpy_to_vtk, numpy_to_vtkIdTypeArray
+from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy, numpy_to_vtkIdTypeArray
 import numpy as np
 import vedo
 from vedo.colors import printc
@@ -44,6 +44,8 @@ __all__ = [
     "vedo2trimesh",
     "trimesh2vedo",
     "resampleArrays",
+    "vtk2numpy",
+    "numpy2vtk",
 ]
 
 ###########################################################################
@@ -249,6 +251,33 @@ class dotdict(dict):
 
 
 ###########################################################
+def numpy2vtk(arr, dtype=None, deep=True, name=""):
+    """Convert a numpy array into a vtkDataArray"""
+    if arr is None:
+        return None
+    arr = np.ascontiguousarray(arr)
+    if dtype is not None and dtype!='id':
+        arr = arr.astype(dtype)
+
+    if dtype and dtype=='id':
+        varr = numpy_to_vtkIdTypeArray(arr.astype(np.int64), deep=deep)
+    else:
+        varr = numpy_to_vtk(arr, deep=deep)
+    if name:
+        varr.SetName(name)
+    return varr
+
+def vtk2numpy(varr):
+    """Convert a vtkDataArray or vtkIdList into a numpy array"""
+    if isinstance(varr, vtk.vtkIdList):
+        return np.array([varr.GetId(i) for i in range(varr.GetNumberOfIds())])
+    elif isinstance(varr, vtk.vtkBitArray):
+        carr = vtk.vtkCharArray()
+        carr.DeepCopy(varr)
+        varr = carr
+    return vtk_to_numpy(varr)
+
+
 def geometry(obj, extent=None):
     """
     Apply the ``vtkGeometryFilter``.
@@ -304,7 +333,8 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
             vertices = np.c_[vertices, np.zeros(len(vertices))]
 
     sourcePoints = vtk.vtkPoints()
-    sourcePoints.SetData(numpy_to_vtk(np.ascontiguousarray(vertices), deep=True))
+    # sourcePoints.SetData(numpy_to_vtk(np.ascontiguousarray(vertices), deep=True))
+    sourcePoints.SetData(numpy2vtk(vertices, dtype=np.float))
     poly.SetPoints(sourcePoints)
 
     if lines is not None:
@@ -1137,8 +1167,7 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
             if not arr:
                 return
 
-        from vtk.util.numpy_support import vtk_to_numpy
-        data = vtk_to_numpy(arr)
+        data = vtk2numpy(arr)
 
     h = np.histogram(data, bins=bins)
 
@@ -1466,6 +1495,8 @@ def vedo2trimesh(mesh):
 
     points = mesh.points()
     varr = mesh.getPointArray('VertexColors')
+    # print(varr, mesh.getArrayNames())
+    # exit()
     vcols = None
     if varr is not None and len(varr)==len(points):
         vcols = []
@@ -1571,9 +1602,9 @@ def meshlab2vedo(mmesh):
     else:
         polydata = buildPolyData(mpoints, None)
     if len(pnorms):
-        polydata.GetPointData().SetNormals(numpy_to_vtk(pnorms, deep=True))
+        polydata.GetPointData().SetNormals(numpy2vtk(pnorms))
     if len(cnorms):
-        polydata.GetCellData().SetNormals(numpy_to_vtk(cnorms, deep=True))
+        polydata.GetCellData().SetNormals(numpy2vtk(cnorms))
     return polydata
 
 
@@ -1599,30 +1630,6 @@ def vtkVersionIsAtLeast(major, minor=0, build=0):
         return True
     else:
         return False
-
-# def systemReport():
-#     try:
-#         import scooby
-#         r = scooby.Report(additional=['vtk',
-#                                       'vedo',
-#                                       'meshio',
-#                                       'matplotlib',
-#                                       'k3d',
-#                                       'itkwidgets',
-#                                       'panel',
-#                                       'dolfin',
-#                                       'trimesh',
-#                                       'pymeshfix',
-#                                       'pygmsh',
-#                                       'nevergrad',
-#                                       'pyshtools',
-#                                       'cv2',
-#                                       ])
-#         printc(r)
-#     except:
-#         print('Install scooby with command: pip install scooby')
-#         r = ''
-#     return r
 
 
 def ctf2lut(tvobj):

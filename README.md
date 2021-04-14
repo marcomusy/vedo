@@ -6,7 +6,7 @@
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vedo/badges/version.svg)](https://anaconda.org/conda-forge/vedo)
 [![Ubuntu 20.10](https://repology.org/badge/version-for-repo/ubuntu_20_10/vedo.svg)](https://repology.org/project/vedo/versions)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4287635.svg)](https://doi.org/10.5281/zenodo.4287635)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4609336.svg)](https://doi.org/10.5281/zenodo.4609336)
 [![CircleCI](https://circleci.com/gh/marcomusy/vedo.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)
 
 
@@ -34,10 +34,10 @@ pip install vedo
 - As some of the features work better and faster on the older VTK version 8 you can install it via:<br>
 `pip install vtk==8.1.2`
 
-- To get the latest _dev_ version of `vedo` use instead: <br>
+- To install the latest _dev_ version of `vedo`: <br>
 `pip install -U git+https://github.com/marcomusy/vedo.git`
 
-- Or install it from the conda-forge channel via: <br>
+- To install from the conda-forge channel: <br>
 `conda install -c conda-forge vedo`
 
 </details>
@@ -143,7 +143,7 @@ for a wide range of functionalities:
 
 - Integration with the [Qt5](https://www.qt.io/) framework.
 - Support for [FEniCS/Dolfin](https://fenicsproject.org/) platform for visualization of PDE/FEM solutions.
-- Interoperability with the [trimesh](https://trimsh.org/), [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab) and [pyvista](https://github.com/pyvista/pyvista) libraries.
+- Interoperability with the [trimesh](https://trimsh.org/), [pyvista](https://github.com/pyvista/pyvista) and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab) libraries.
 - Export 3D scenes and embed them into a [web page](https://vedo.embl.es/examples/fenics_elasticity.html).
 - Embed 3D scenes in *jupyter* notebooks with [K3D](https://github.com/K3D-tools/K3D-jupyter) (can export an interactive 3D-snapshot page [here](https://vedo.embl.es/examples/geo_scene.html)).
 
@@ -209,7 +209,7 @@ Development, 5 April 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/c
 
 M. Musy  <em>et al.</em>,
 "<code>vedo</code>, a python module for scientific analysis and visualization of 3D objects and point clouds",
-Zenodo, 2021, <a href="http://doi.org/10.5281/zenodo.4287635">doi: 10.5281/zenodo.4287635</a>.
+Zenodo, 2021, <a href="https://doi.org/10.5281/zenodo.4609336">doi: 10.5281/zenodo.4609336</a>.
 
 [![embl_logo](https://user-images.githubusercontent.com/32848391/58046204-e9157180-7b44-11e9-81c9-e916cdf9ba84.gif)](https://www.embl.es)
 

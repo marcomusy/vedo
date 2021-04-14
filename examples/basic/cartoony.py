@@ -3,9 +3,9 @@ from vedo import *
 
 Plotter() # creates a default camera, needed by silhouette()
 
-man = load(dataurl+'man.vtk').lighting('off').c('pink').alpha(0.9)
+man = Mesh(dataurl+'man.vtk').lighting('off').c('pink').alpha(0.9)
 
-ted = load(dataurl+'teddy.vtk').lighting('off').c('sienna')
+ted = Mesh(dataurl+'teddy.vtk').lighting('off').c('sienna')
 ted.scale(0.4).rotateZ(-45).pos(-1,-1,-1)
 
 show(ted, ted.silhouette(),

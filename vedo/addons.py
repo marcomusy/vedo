@@ -488,7 +488,7 @@ def addScalarBar(obj,
                  c=None,
                  horizontal=False,
                  useAlpha=True,
-                 ):
+    ):
     """Add a 2D scalar bar for the specified obj.
 
         :param list pos: fractional x and y position in the 2D window
@@ -520,9 +520,9 @@ def addScalarBar(obj,
         lut = obj.mapper().GetLookupTable()
         if not lut:
             return None
-        vtkscalars = obj._polydata.GetPointData().GetScalars()
+        vtkscalars = obj._data.GetPointData().GetScalars()
         if vtkscalars is None:
-            vtkscalars = obj._polydata.GetCellData().GetScalars()
+            vtkscalars = obj._data.GetCellData().GetScalars()
         if not vtkscalars:
             return None
 
@@ -619,6 +619,7 @@ def addScalarBar3D(
     nlabels=9,
     labelFont="",
     labelOffset=0.375,
+    labelRotation=0,
     italic=0,
     c=None,
     useAlpha=True,
@@ -645,6 +646,7 @@ def addScalarBar3D(
     :param float titleRotation: title rotation in degrees
     :param int nlabels: number of numeric labels
     :param float labelOffset: space btw numeric labels and scale
+    :param float labelRotation: label rotation in degrees
     :param bool useAlpha: render transparency of the color bar, otherwise ignore
     :param bool drawBox: draw a box around the colorbar (useful with useAlpha=True)
 
@@ -685,7 +687,7 @@ def addScalarBar3D(
         return obj
 
     # build the color scale part
-    scale = shapes.Grid([-sx *labelOffset, 0, 0], c=c, alpha=1,
+    scale = shapes.Grid([-sx * labelOffset, 0, 0], c=c, alpha=1,
                         sx=sx, sy=sy,
                         resx=1, resy=lut.GetTable().GetNumberOfTuples())
     scale.lw(0).wireframe(False)
@@ -707,9 +709,16 @@ def addScalarBar3D(
         if i and tx:
             # build numeric text
             y = (p - 0.5) *sy
-            a = shapes.Text3D(tx, pos=[sx*labelOffset, y, 0], s=sy/60,
-                              justify='center-left', c=c, italic=italic, font=labelFont)
+            if labelRotation:
+                a = shapes.Text3D(tx, pos=[sx*labelOffset, y, 0], s=sy/60,
+                                  justify='center-top', c=c, italic=italic, font=labelFont)
+                a.RotateZ(labelRotation)
+            else:
+                a = shapes.Text3D(tx, pos=[sx*labelOffset, y, 0], s=sy/60,
+                                  justify='center-left', c=c, italic=italic, font=labelFont)
+
             tacts.append(a)
+
             # build ticks
             tic = shapes.Line([xbns[1], y, 0],
                               [xbns[1]+sx*labelOffset/4, y, 0], lw=0.1, c=c)
@@ -734,8 +743,14 @@ def addScalarBar3D(
         if belowText is None:
            belowText = ' <'+str(vmin)
         if belowText:
-            btx = shapes.Text3D(belowText, (0,0,0), s=sy/60,
-                                c=c, justify='center-left', italic=italic, font=labelFont)
+            if labelRotation:
+                btx = shapes.Text3D(belowText, (0,0,0), s=sy/60,
+                                    c=c, justify='center-top', italic=italic, font=labelFont)
+                btx.RotateZ(labelRotation)
+            else:
+                btx = shapes.Text3D(belowText, (0,0,0), s=sy/60,
+                                    c=c, justify='center-left', italic=italic, font=labelFont)
+
             btx.pos(sx*labelOffset, -sy/2-sx*0.66, 0)
             tacts.append(btx)
 
@@ -750,8 +765,14 @@ def addScalarBar3D(
         if aboveText is None:
             aboveText = ' >'+str(vmax)
         if aboveText:
-            atx = shapes.Text3D(aboveText, (0,0,0), s=sy/60,
-                                c=c, justify='center-left', italic=italic, font=labelFont)
+            if labelRotation:
+                atx = shapes.Text3D(aboveText, (0,0,0), s=sy/60,
+                                    c=c, justify='center-top', italic=italic, font=labelFont)
+                atx.RotateZ(labelRotation)
+            else:
+                atx = shapes.Text3D(aboveText, (0,0,0), s=sy/60,
+                                    c=c, justify='center-left', italic=italic, font=labelFont)
+
             atx.pos(sx*labelOffset, sy/2+sx*0.66, 0)
             tacts.append(atx)
 
@@ -766,8 +787,13 @@ def addScalarBar3D(
                                    [-sx *labelOffset +sx/2, -sy/2   -sx*0.1-nanshift, 0],
                                    c=(r,g,b), alpha=alfa)
         nanrect.lw(1).lc(c).lighting('off')
-        nantx = shapes.Text3D(nanText, (0,0,0), s=sy/60,
-                              c=c, justify='center-left', italic=italic, font=labelFont)
+        if labelRotation:
+            nantx = shapes.Text3D(nanText, (0,0,0), s=sy/60,
+                                  c=c, justify='center-left', italic=italic, font=labelFont)
+            nantx.RotateZ(labelRotation)
+        else:
+            nantx = shapes.Text3D(nanText, (0,0,0), s=sy/60,
+                                  c=c, justify='center-left', italic=italic, font=labelFont)
         nantx.pos(sx*labelOffset, -sy/2-sx*0.66-nanshift, 0)
         tacts.append(nantx)
 

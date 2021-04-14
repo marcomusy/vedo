@@ -1,5 +1,4 @@
 import vtk
-from vtk.util.numpy_support import numpy_to_vtk
 import vedo.docs as docs
 import vedo.utils as utils
 from vedo.base import BaseGrid
@@ -24,7 +23,7 @@ def delaunay3D(mesh, alphaPar=0, tol=None, boundary=False):
     if utils.isSequence(mesh):
         pd = vtk.vtkPolyData()
         vpts = vtk.vtkPoints()
-        vpts.SetData(numpy_to_vtk(np.ascontiguousarray(mesh), deep=True))
+        vpts.SetData(utils.numpy2vtk(mesh, dtype=np.float))
         pd.SetPoints(vpts)
         deln.SetInputData(pd)
     else:
@@ -176,7 +175,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
             cells = tets
 
         sourcePoints = vtk.vtkPoints()
-        varr = numpy_to_vtk(np.ascontiguousarray(points), deep=True)
+        varr = utils.numpy2vtk(points, dtype=np.float)
         sourcePoints.SetData(varr)
         ug.SetPoints(sourcePoints)
 

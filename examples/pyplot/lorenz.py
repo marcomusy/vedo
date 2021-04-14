@@ -14,16 +14,14 @@ for t in np.linspace(0, 20, int(20 / dt)):
          -y[1] * y[0] + 28.0 * y[1] - y[2]]
     )
     y = y + dydt * dt
-
     c = np.clip([np.linalg.norm(dydt) * 0.005], 0, 1)[0]  # color by speed
     cols.append([c, 0, 1-c])
     pts.append(y)
 
 
 from vedo import *
-settings.renderPointsAsSpheres = False # render points as squares
 
-scene = Plotter(title="Lorenz attractor", axes=dict(yzGrid=True))
+scene  = Plotter(title="Lorenz attractor", axes=dict(yzGrid=True))
 scene += Point(y, r=10, c="g") # end point
 scene += Points(pts, r=3, c=cols)
 scene += Line(pts).off().addShadow(x=3) # only show shadow, not line

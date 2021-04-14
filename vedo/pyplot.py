@@ -1,7 +1,5 @@
 import vtk
 import numpy as np
-from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
-
 import vedo
 import vedo.settings as settings
 import vedo.utils as utils
@@ -1739,7 +1737,7 @@ def _histogramHexBin(
     zs = [[0.0]] * len(values)
     values = np.append(values, zs, axis=1)
 
-    pointsPolydata.GetPoints().SetData(numpy_to_vtk(values, deep=True))
+    pointsPolydata.GetPoints().SetData(utils.numpy2vtk(values, dtype=np.float))
     cloud = Mesh(pointsPolydata)
 
     col = None
@@ -2597,7 +2595,7 @@ def cornerHistogram(
         - (x, y), as fraction of the rendering window
     """
     if hasattr(values, '_data'):
-        values = vtk_to_numpy(values._data.GetPointData().GetScalars())
+        values = utils.vtk2numpy(values._data.GetPointData().GetScalars())
 
     fs, edges = np.histogram(values, bins=bins, range=vrange)
     if minbin:
@@ -2868,7 +2866,7 @@ class DirectedGraph(Assembly):
             dgraph.rotateZ(self.rotZ)
 
         vecs = graphToPolyData.GetOutput(1).GetPointData().GetVectors()
-        self.edgeOrientations = vtk_to_numpy(vecs)
+        self.edgeOrientations = utils.vtk2numpy(vecs)
 
         # Use Glyph3D to repeat the glyph on all edges.
         arrows=None

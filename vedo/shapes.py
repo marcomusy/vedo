@@ -5,7 +5,6 @@ import os
 import vtk
 import numpy as np
 import vedo
-from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 from vedo import settings
 import vedo.utils as utils
 from vedo.colors import printc, getColor, colorMap, cmaps_names
@@ -460,7 +459,7 @@ class Line(Mesh):
     :param int res: resolution, number of points along the line
         (only relevant if only 2 points are specified)
     """
-    def __init__(self, p0, p1=None, closed=False, c="k5", alpha=1, lw=1, res=2):
+    def __init__(self, p0, p1=None, closed=False, c="k4", alpha=1, lw=1, res=2):
 
         if isinstance(p1, vtk.vtkActor):
             p1 = p1.GetPosition()
@@ -499,7 +498,7 @@ class Line(Mesh):
                 p0 = np.c_[np.array(p0), np.zeros(len(p0))]
 
             ppoints = vtk.vtkPoints()  # Generate the polyline
-            ppoints.SetData(numpy_to_vtk(np.ascontiguousarray(p0), deep=True))
+            ppoints.SetData(utils.numpy2vtk(p0, dtype=np.float))
             lines = vtk.vtkCellArray()
             npt = len(p0)
             if closed:
@@ -513,8 +512,8 @@ class Line(Mesh):
             poly = vtk.vtkPolyData()
             poly.SetPoints(ppoints)
             poly.SetLines(lines)
-            self.top = p0[-1]
-            self.base = p0[0]
+            top = p0[-1]
+            base = p0[0]
 
         else:  # or just 2 points to link
 
@@ -528,17 +527,18 @@ class Line(Mesh):
             lineSource.SetResolution(res-1)
             lineSource.Update()
             poly = lineSource.GetOutput()
-            self.top = np.array(p1)
-            self.base = np.array(p0)
+            top = np.array(p1)
+            base = np.array(p0)
 
         Mesh.__init__(self, poly, c, alpha)
         self.lw(lw).lighting('off')
         self.PickableOff()
         self.DragableOff()
+        self.base = base
+        self.top = top
         #if dotted: # not functional
         #    self.GetProperty().SetLineStipplePattern(0xF0F0)
         #    self.GetProperty().SetLineStippleRepeatFactor(1)
-        #self.SetOrigin((self.base+self.top)/2)
         self.name = "Line"
 
     def length(self):
@@ -1260,7 +1260,7 @@ class Tube(Mesh):
     def __init__(self, points, r=1, cap=True, c=None, alpha=1, res=12):
 
         ppoints = vtk.vtkPoints()  # Generate the polyline
-        ppoints.SetData(numpy_to_vtk(np.ascontiguousarray(points), deep=True))
+        ppoints.SetData(utils.numpy2vtk(points, dtype=np.float))
         lines = vtk.vtkCellArray()
         lines.InsertNextCell(len(points))
         for i in range(len(points)):
@@ -1274,7 +1274,7 @@ class Tube(Mesh):
         tuf.SetNumberOfSides(res)
         tuf.SetInputData(polyln)
         if utils.isSequence(r):
-            arr = numpy_to_vtk(np.ascontiguousarray(r), deep=True)
+            arr = utils.numpy2vtk(r, dtype=np.float)
             arr.SetName("TubeRadius")
             polyln.GetPointData().AddArray(arr)
             polyln.GetPointData().SetActiveScalars("TubeRadius")
@@ -1360,7 +1360,7 @@ class Ribbon(Mesh):
             line2 = np.c_[np.asarray(line2), np.zeros(len(line2))]
 
         ppoints1 = vtk.vtkPoints()  # Generate the polyline1
-        ppoints1.SetData(numpy_to_vtk(np.ascontiguousarray(line1), deep=True))
+        ppoints1.SetData(utils.numpy2vtk(line1, dtype=np.float))
         lines1 = vtk.vtkCellArray()
         lines1.InsertNextCell(len(line1))
         for i in range(len(line1)):
@@ -1370,7 +1370,7 @@ class Ribbon(Mesh):
         poly1.SetLines(lines1)
 
         ppoints2 = vtk.vtkPoints()  # Generate the polyline2
-        ppoints2.SetData(numpy_to_vtk(np.ascontiguousarray(line2), deep=True))
+        ppoints2.SetData(utils.numpy2vtk(line2, dtype=np.float))
         lines2 = vtk.vtkCellArray()
         lines2.InsertNextCell(len(line2))
         for i in range(len(line2)):
@@ -1481,7 +1481,7 @@ class Arrow(Mesh):
     def tipPoint(self, returnIndex=False):
         """Return the coordinates of the tip of the Arrow, or the point index."""
         if self.tipIndex is None:
-            arrpts = vtk_to_numpy(self.arr.GetOutput().GetPoints().GetData())
+            arrpts = utils.vtk2numpy(self.arr.GetOutput().GetPoints().GetData())
             self.tipIndex = np.argmax(arrpts[:,0])
         if returnIndex:
             return self.tipIndex
@@ -1999,11 +1999,11 @@ class Spheres(Mesh):
             glyph.ScalingOff()
         elif risseq:
             glyph.SetScaleModeToScaleByScalar()
-            urads = numpy_to_vtk(2*np.ascontiguousarray(r).astype(float), deep=True)
+            urads = utils.numpy2vtk(2*np.ascontiguousarray(r), dtype=np.float)
             urads.SetName("Radii")
             pd.GetPointData().SetScalars(urads)
 
-        vpts.SetData(numpy_to_vtk(np.ascontiguousarray(centers), deep=True))
+        vpts.SetData(utils.numpy2vtk(centers, dtype=np.float))
 
         glyph.SetInputData(pd)
         glyph.Update()
@@ -2350,7 +2350,7 @@ class Box(Mesh):
                 [0.0, 1.0],
                 [1.0, 1.0],
         ]
-        vtc = numpy_to_vtk(tc)
+        vtc = utils.numpy2vtk(tc)
         pd.GetPointData().SetTCoords(vtc)
         Mesh.__init__(self, pd, c, alpha)
         self.SetPosition(pos)
@@ -2920,6 +2920,8 @@ class Text3D(Mesh):
         self.PickableOff()
         self.DragableOff()
         self.name = "Text3D"
+        self.text = txt
+
 
 
 class TextBase:

@@ -28,8 +28,8 @@ pts = Points(nodes, r=10).lighting('off')
 
 v1 = ['node'+str(n) for n in range(len(nodes))]
 v2 = [sin(x) for x in range(len(nodes))]
-labs1 = pts.labels(v1, scale=.04, italic=True).shift(.05,0.04,0).c('green')
-labs2 = pts.labels(v2, scale=.04, precision=3).shift(.05,-.04,0).c('red')
+labs1 = pts.labels(v1, scale=.02, italic=True).shift(.05,0.02,0).c('green')
+labs2 = pts.labels(v2, scale=.02, precision=3).shift(.05,-.02,0).c('red')
 
 # Interpolate the node value to color the edges:
 graph.cmap('viridis', v2).addScalarBar3D(c='k')

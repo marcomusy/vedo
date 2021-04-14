@@ -1,11 +1,10 @@
 """Smoothing a mesh"""
 from vedo import *
 
-s1 = load(dataurl+'panther.stl').lw(0.1)
+s1 = Mesh(dataurl+'panther.stl').lw(0.1)
 
 s2 = s1.clone().x(50).c('lb').lw(0)
-s2.subdivide(3).smoothWSinc().computeNormals()
-s2.lighting('glossy').phong()
+s2.subdivide(3).smoothWSinc().computeNormals().lighting('glossy').phong()
 
 # other useful filters to combine are
 # mesh.decimate(), clean(), smoothLaplacian(), smoothMLS2D()

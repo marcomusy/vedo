@@ -9,6 +9,7 @@
 - added example search by command line e.g.:
 `vedo --search triangle -i`  (`-i` to ignore capital letters)
 
+
 ---
 ### `base.py`
 - corected bug on `diagonalSize()` returning a wrong value
@@ -16,6 +17,7 @@
 ---
 ### `addons.py`
 - added `addSplineTool()` to interactively spline points in space
+- added `labelRotation` in addScalarBar3D
 
 ---
 ### `colors.py`

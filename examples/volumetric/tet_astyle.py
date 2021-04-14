@@ -1,9 +1,8 @@
 """Visualize a TetMesh with
-default ray casting..
-"""
+default ray casting."""
 from vedo import *
 
-tetm = load(dataurl+'limb_ugrid.vtk') # returns vedo.TetMesh
+tetm = TetMesh(dataurl+'limb_ugrid.vtk')
 tetm.color('jet').alphaUnit(100) # make the tets more transparent
 tetm.addScalarBar3D()
 

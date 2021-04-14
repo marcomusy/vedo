@@ -1,5 +1,4 @@
 import vtk
-from vtk.util.numpy_support import vtk_to_numpy
 import os
 import glob
 import numpy as np
@@ -781,12 +780,12 @@ def toNumpy(obj):
         for iname in obj.getArrayNames()['PointData']:
             if 'Normals' in iname.lower(): continue
             arr = poly.GetPointData().GetArray(iname)
-            adict['pointdata'].append([vtk_to_numpy(arr), iname])
+            adict['pointdata'].append([utils.vtk2numpy(arr), iname])
         adict['celldata'] = []
         for iname in obj.getArrayNames()['CellData']:
             if 'Normals' in iname.lower(): continue
             arr = poly.GetCellData().GetArray(iname)
-            adict['celldata'].append([vtk_to_numpy(arr), iname])
+            adict['celldata'].append([utils.vtk2numpy(arr), iname])
 
         adict['activedata'] = None
         if poly.GetPointData().GetScalars():
@@ -856,7 +855,7 @@ def toNumpy(obj):
         adict['type'] = 'Volume'
         _fillcommon(obj, adict)
         imgdata = obj.inputdata()
-        arr = vtk_to_numpy(imgdata.GetPointData().GetScalars())
+        arr = utils.vtk2numpy(imgdata.GetPointData().GetScalars())
         adict['array'] = arr.reshape(imgdata.GetDimensions())
         adict['mode'] = obj.mode()
         #adict['jittering'] = obj.mapper().GetUseJittering()
@@ -881,7 +880,7 @@ def toNumpy(obj):
     elif isinstance(obj, Picture):
         adict['type'] = 'Picture'
         _fillcommon(obj, adict)
-        adict['array'] = vtk_to_numpy(obj.inputdata().GetPointData().GetScalars())
+        adict['array'] = utils.vtk2numpy(obj.inputdata().GetPointData().GetScalars())
         adict['shape'] = obj.inputdata().GetDimensions()
         print('toNumpy(): vedo.Picture', obj.shape, obj.GetPosition())
 
@@ -1666,7 +1665,7 @@ def screenshot(filename="screenshot.png", scale=None, returnNumpy=False):
 
     if returnNumpy:
         w2ifout = w2if.GetOutput()
-        npdata = vtk_to_numpy(w2ifout.GetPointData().GetArray("ImageScalars"))
+        npdata = utils.vtk2numpy(w2ifout.GetPointData().GetArray("ImageScalars"))
         npdata = npdata[:,[0,1,2]]
         ydim, xdim, _ = w2ifout.GetDimensions()
         npdata = npdata.reshape([xdim, ydim, -1])

@@ -1,8 +1,8 @@
 """Extract points on the boundary of a mesh.
-Add a label to all vertices. """
+Add an ID label to all vertices."""
 from vedo import *
 
-b = load(dataurl+'290.vtk')
+b = Mesh(dataurl+'290.vtk')
 b.computeNormals().clean().lw(0.1)
 
 pids = b.boundaries(returnPointIds=True)
@@ -10,6 +10,6 @@ bpts = b.points()[pids]
 
 pts = Points(bpts, r=10, c='red')
 
-labs = b.labels('id', scale=10).c('dg') # add point labels
+labels = b.labels('id', scale=10).c('dg')
 
-show(b, pts, labs, __doc__, zoom=2)
+show(b, pts, labels, __doc__, zoom=2)

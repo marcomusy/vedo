@@ -4,7 +4,7 @@ from vedo import *
 
 plt = Plotter(bg2='bisque', size=(1000,800), interactive=False)
 
-e = load(dataurl+"embryo.tif").isosurface()
+e = Volume(dataurl+"embryo.tif").isosurface()
 e.normalize().shift(-2,-1.5,-2).c("gold")
 
 plt.show(e, __doc__, viewup='z')
@@ -24,7 +24,8 @@ ax = Axes(xrange=(0,1), yrange=(0,1), zrange=(0,1),
           xLabelSize=0, yLabelSize=0, zLabelSize=0, tipSize=0.05,
           axesLineWidth=2, xLineColor='dr', yLineColor='dg', zLineColor='db',
           xTitleOffset=0.05, yTitleOffset=0.05, zTitleOffset=0.05,
-    )
+)
+
 ex = e.clone().scale(0.25).pos(0,0.1,0.1).alpha(0.1).lighting('off')
 plt.addInset(ax, ex, pos=(0.1,0.1), size=0.15, draggable=False)
 

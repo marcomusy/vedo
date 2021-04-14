@@ -2,13 +2,12 @@
 of points on a new set of points where the scalar is not defined.
 
 Two interpolation methods are possible:
-Radial Basis Function (used here), and Nearest Point.
-"""
+Radial Basis Function (used here), and Nearest Point."""
 import numpy as np
 from vedo import *
 from scipy.interpolate import Rbf, NearestNDInterpolator as Near
 
-mesh = load(dataurl+"bunny.obj").normalize()
+mesh = Mesh(dataurl+"bunny.obj").normalize()
 pts = mesh.points()
 
 # pick a subset of 100 points where a scalar descriptor is known
@@ -27,8 +26,7 @@ itr = Rbf(x, y, z, desc)          # Radial Basis Function interpolator
 xi, yi, zi = np.split(pts, 3, axis=1)
 interpolated_desc = itr(xi, yi, zi)
 
-mesh.cmap('rainbow', interpolated_desc)
-mesh.addScalarBar(title='3sin(4y)')
+mesh.cmap('rainbow', interpolated_desc).addScalarBar(title='3sin(4y)')
 rpts = Points(ptsubset, r=8, c='white')
 
 show(mesh, rpts, __doc__, axes=1)

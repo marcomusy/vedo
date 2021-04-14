@@ -1,7 +1,7 @@
 """Probe a Volume (voxel dataset) with lines"""
 from vedo import *
 
-vol = load(dataurl+"embryo.slc")
+vol = Volume(dataurl+"embryo.slc")
 
 lines = []
 for i in range(60):  # probe scalars on 60 parallel lines

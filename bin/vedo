@@ -170,7 +170,13 @@ def draw_scene():
         # print('edit mode for meshes and pointclouds')
         settings.plotter_instance = None # reset
         settings.useParallelProjection = True
-        m = Mesh(args.files[0], alpha=args.alpha/2, c=args.color)
+
+        try:
+            m = Mesh(args.files[0], alpha=args.alpha/2, c=args.color)
+        except AttributeError:
+            printc("In edit mode, input file must be a point cloud or polygonal mesh. Exit.", c='r')
+            return
+
         vp = applications.FreeHandCutPlotter(m, splined=True)
         vp.addHoverLegend()
         if not args.background_grad:

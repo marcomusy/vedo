@@ -10,7 +10,7 @@ from vedo import *
 
 vp = Plotter(N=6)
 
-v0 = load(dataurl+'embryo.slc').c(0)
+v0 = Volume(dataurl+'embryo.slc').c(0)
 v0.addScalarBar3D()
 vp.show(v0, "original", at=0)
 

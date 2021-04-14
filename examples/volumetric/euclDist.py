@@ -1,10 +1,9 @@
 """Euclidean Distance Transform using Saito algorithm.
 The distance map produced contains the square
-of the Euclidean distance values.
-"""
+of the Euclidean distance values."""
 from vedo import *
 
-e = load(dataurl+'embryo.tif') # Volume
+e = Volume(dataurl+'embryo.tif')
 
 edt = e.euclideanDistance()
 

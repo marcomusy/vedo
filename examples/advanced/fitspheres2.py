@@ -1,7 +1,5 @@
 """For each point finds the 12 closest ones and fit a sphere.
-Color points from the size of the sphere radius.
-"""
-from __future__ import division, print_function
+Color points from the size of the sphere radius."""
 from vedo import *
 from vedo.pyplot import histogram
 

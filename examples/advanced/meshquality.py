@@ -4,7 +4,7 @@ the cells of a triangular mesh
 from vedo import *
 from vedo.pyplot import histogram
 
-mesh = load(dataurl+"panther.stl").computeNormals().lineWidth(0.1)
+mesh = Mesh(dataurl+"panther.stl").computeNormals().lineWidth(0.1)
 
 # generate a numpy array for mesh quality
 mesh.addQuality(measure=6).printInfo().cmap('RdYlBu', on='cells')

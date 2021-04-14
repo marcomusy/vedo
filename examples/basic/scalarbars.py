@@ -1,18 +1,16 @@
 """Insert 2D and 3D scalarbars
 in the rendering scene"""
-from vedo import load, dataurl, show
+from vedo import Mesh, dataurl, show
 
-shape = load(dataurl+"lamp.vtk")
+shape = Mesh(dataurl+"lamp.vtk")
 
 ms = []
 cmaps = ("jet", "PuOr", "viridis")
 for i in range(3):
     s = shape.clone(deep=False).pos(0, i*2.2, 0)
-
     # colorize mesh
     scals = s.points()[:,2]
     s.cmap(cmaps[i], scals)
-
     ms.append(s)
 
 # add 2D scalar bar to first mesh

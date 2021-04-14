@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-from vedo import load, dataurl, Plotter
+from vedo import Mesh, dataurl, Plotter
 
 from qttabsui import Ui_MainWindow
 
@@ -12,10 +12,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.vtkWidget = QVTKRenderWindowInteractor(self)
         self.vtkLayout.addWidget(self.vtkWidget)
-        
+
         self.plt = Plotter(qtWidget=self.vtkWidget, axes=1)
-        
-        self.plt += load(dataurl+'shark.ply').c('cyan')
+
+        self.plt += Mesh(dataurl+'shark.ply').c('cyan')
 
         self.plt.show(interactorStyle=0)
 

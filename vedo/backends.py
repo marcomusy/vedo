@@ -1,17 +1,13 @@
 import vtk
 import numpy
 import os
-
 import vedo.colors as colors
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points
-
 from vedo.volume import Volume
 import vedo.settings as settings
-# import vedo.addons as addons
 import vedo.shapes as shapes
 import vedo.utils as utils
-from vtk.util.numpy_support import vtk_to_numpy
 
 __all__ = []
 
@@ -203,7 +199,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                 # print('Points', ia.name, ia.N())
                 kcols=[]
                 if color_attribute is not None:
-                    scals = vtk_to_numpy(vtkscals)
+                    scals = utils.vtk2numpy(vtkscals)
                     kcols = k3d.helpers.map_colors(scals, kcmap,
                                                    [scals_min,scals_max]).astype(numpy.uint32)
                 # sqsize = numpy.sqrt(numpy.dot(sizes, sizes))
@@ -227,7 +223,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
 
                 # kcols=[]
                 # if color_attribute is not None:
-                #     scals = vtk_to_numpy(vtkscals)
+                #     scals = utils.vtk2numpy(vtkscals)
                 #     kcols = k3d.helpers.map_colors(scals, kcmap,
                 #                                    [scals_min,scals_max]).astype(numpy.uint32)
 

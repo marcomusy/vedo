@@ -5,8 +5,7 @@ Try also:
 # https://matplotlib.org/users/colormaps.html
 from vedo import *
 
-vol = load(dataurl+'embryo.tif') # load Volume
-printHistogram(vol, logscale=True)
+vol = Volume(dataurl+'embryo.tif').printHistogram(logscale=True)
 
 vol.crop(back=0.5) # crop 50% from neg. y
 

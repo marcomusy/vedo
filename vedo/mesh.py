@@ -3,9 +3,8 @@ import os
 import vtk
 import vedo
 from vedo.colors import printc, getColor, colorMap
-from vedo.utils import isSequence, flatten, buildPolyData
+from vedo.utils import isSequence, flatten, buildPolyData, numpy2vtk, vtk2numpy
 from vedo.pointcloud import Points
-from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
 __doc__ = ("""Submodule to manage polygonal meshes.""" + vedo.docs._defs)
 
@@ -51,12 +50,6 @@ class Mesh(Points):
     """
     Build an instance of object ``Mesh`` derived from ``PointCloud``.
 
-    Input can be ``vtkPolyData``, ``vtkActor``, or a python list of [vertices, faces].
-
-    If input is any of ``vtkUnstructuredGrid``, ``vtkStructuredGrid`` or ``vtkRectilinearGrid``
-    the geometry is extracted.
-    In this case the original VTK data structures can be accessed with: ``mesh.inputdata()``.
-
     Finally input can be a list of vertices and their connectivity (faces of the polygonal mesh).
     For point clouds - e.i. no faces - just substitute the `faces` list with ``None``.
 
@@ -95,14 +88,13 @@ class Mesh(Points):
 
         inputtype = str(type(inputobj))
 
-
         if inputobj is None:
             pass
 
         elif isinstance(inputobj, Mesh) or isinstance(inputobj, vtk.vtkActor):
             polyCopy = vtk.vtkPolyData()
             polyCopy.DeepCopy(inputobj.GetMapper().GetInput())
-            self._polydata = polyCopy
+            self._data = polyCopy
             self._mapper.SetInputData(polyCopy)
             self._mapper.SetScalarVisibility(inputobj.GetMapper().GetScalarVisibility())
             pr = vtk.vtkProperty()
@@ -116,7 +108,7 @@ class Mesh(Points):
                     carr.InsertNextCell(1)
                     carr.InsertCellPoint(i)
                 inputobj.SetVerts(carr)
-            self._polydata = inputobj  # cache vtkPolyData and mapper for speed
+            self._data = inputobj  # cache vtkPolyData and mapper for speed
 
         elif isinstance(inputobj, (vtk.vtkStructuredGrid, vtk.vtkRectilinearGrid)):
             if vedo.settings.visibleGridEdges:
@@ -126,11 +118,11 @@ class Mesh(Points):
                 gf = vtk.vtkGeometryFilter()
                 gf.SetInputData(inputobj)
             gf.Update()
-            self._polydata = gf.GetOutput()
+            self._data = gf.GetOutput()
 
         elif "trimesh" in inputtype:
             tact = vedo.utils.trimesh2vedo(inputobj, alphaPerCell=False)
-            self._polydata = tact.polydata()
+            self._data = tact.polydata()
 
         elif "meshio" in inputtype: # meshio-4.0.11
             if len(inputobj.cells):
@@ -138,56 +130,56 @@ class Mesh(Points):
                 for cellblock in inputobj.cells:
                     if cellblock.type in ("triangle", "quad"):
                         mcells += cellblock.data.tolist()
-                self._polydata = buildPolyData(inputobj.points, mcells)
+                self._data = buildPolyData(inputobj.points, mcells)
             else:
-                self._polydata = buildPolyData(inputobj.points, None)
+                self._data = buildPolyData(inputobj.points, None)
             # add arrays:
             try:
                 if len(inputobj.point_data):
                     for k in inputobj.point_data.keys():
-                        vdata = numpy_to_vtk(inputobj.point_data[k], deep=True)
+                        vdata = numpy2vtk(inputobj.point_data[k])
                         vdata.SetName(str(k))
-                        self._polydata.GetPointData().AddArray(vdata)
+                        self._data.GetPointData().AddArray(vdata)
             except AssertionError:
                 print("Could not add meshio point data, skip.")
             try:
                 if len(inputobj.cell_data):
                     for k in inputobj.cell_data.keys():
-                        vdata = numpy_to_vtk(inputobj.cell_data[k], deep=True)
+                        vdata = numpy2vtk(inputobj.cell_data[k])
                         vdata.SetName(str(k))
-                        self._polydata.GetCellData().AddArray(vdata)
+                        self._data.GetCellData().AddArray(vdata)
             except AssertionError:
                 print("Could not add meshio cell data, skip.")
 
         elif "meshlab" in inputtype:
-            self._polydata = vedo.utils.meshlab2vedo(inputobj)
+            self._data = vedo.utils.meshlab2vedo(inputobj)
 
         elif isSequence(inputobj):
             ninp = len(inputobj)
             if ninp == 0:
-                self._polydata = vtk.vtkPolyData()
+                self._data = vtk.vtkPolyData()
             elif ninp == 2:  # assume [vertices, faces]
-                self._polydata = buildPolyData(inputobj[0], inputobj[1])
+                self._data = buildPolyData(inputobj[0], inputobj[1])
             else:            # assume [vertices] or vertices
-                self._polydata = buildPolyData(inputobj, None)
+                self._data = buildPolyData(inputobj, None)
 
         elif hasattr(inputobj, "GetOutput"):  # passing vtk object
             if hasattr(inputobj, "Update"): inputobj.Update()
             if isinstance(inputobj.GetOutput(), vtk.vtkPolyData):
-                self._polydata = inputobj.GetOutput()
+                self._data = inputobj.GetOutput()
             else:
                 gf = vtk.vtkGeometryFilter()
                 gf.SetInputData(inputobj.GetOutput())
                 gf.Update()
-                self._polydata = gf.GetOutput()
+                self._data = gf.GetOutput()
 
         elif isinstance(inputobj, str):
             dataset = vedo.io.load(inputobj)
             self.filename = inputobj
             if "TetMesh" in str(type(dataset)):
-                self._polydata = dataset.tomesh().polydata()
+                self._data = dataset.tomesh().polydata()
             else:
-                self._polydata = dataset.polydata()
+                self._data = dataset.polydata()
 
         else:
             printc("Error: cannot build mesh from type:\n", inputtype, c='r')
@@ -197,18 +189,18 @@ class Mesh(Points):
         if vedo.settings.computeNormals is not None:
             computeNormals = vedo.settings.computeNormals
 
-        if self._polydata:
+        if self._data:
             if computeNormals:
                 pdnorm = vtk.vtkPolyDataNormals()
-                pdnorm.SetInputData(self._polydata)
+                pdnorm.SetInputData(self._data)
                 pdnorm.ComputePointNormalsOn()
                 pdnorm.ComputeCellNormalsOn()
                 pdnorm.FlipNormalsOff()
                 pdnorm.ConsistencyOn()
                 pdnorm.Update()
-                self._polydata = pdnorm.GetOutput()
+                self._data = pdnorm.GetOutput()
 
-        self._mapper.SetInputData(self._polydata)
+        self._mapper.SetInputData(self._data)
 
         self._bfprop = None  # backface property holder
 
@@ -222,13 +214,13 @@ class Mesh(Points):
                 pass
 
         # set the color by c or by scalar
-        if self._polydata:
+        if self._data:
 
             arrexists = False
 
             if c is None:
-                ptdata = self._polydata.GetPointData()
-                cldata = self._polydata.GetCellData()
+                ptdata = self._data.GetPointData()
+                cldata = self._data.GetCellData()
                 exclude = ['normals', 'tcoord']
 
                 if cldata.GetNumberOfArrays():
@@ -278,75 +270,19 @@ class Mesh(Points):
         return
 
 
-    ###############################################
-    def clone(self, deep=True):
-        """
-        Clone a ``Mesh`` object to make an exact copy of it.
-
-        :param bool deep: if False only build a shallow copy of the object.
-
-        |mirror| |mirror.py|_
-        """
-        poly = self.polydata(False)
-        polyCopy = vtk.vtkPolyData()
-        if deep:
-            polyCopy.DeepCopy(poly)
-        else:
-            polyCopy.ShallowCopy(poly)
-
-        cloned = Mesh(polyCopy)
-        pr = vtk.vtkProperty()
-        pr.DeepCopy(self.GetProperty())
-        cloned.SetProperty(pr)
-
-        if self.GetBackfaceProperty():
-            bfpr = vtk.vtkProperty()
-            bfpr.DeepCopy(self.GetBackfaceProperty())
-            cloned.SetBackfaceProperty(bfpr)
-
-        # assign the same transformation to the copy
-        cloned.SetOrigin(self.GetOrigin())
-        cloned.SetScale(self.GetScale())
-        cloned.SetOrientation(self.GetOrientation())
-        cloned.SetPosition(self.GetPosition())
-
-        cloned._mapper.SetScalarVisibility(self._mapper.GetScalarVisibility())
-        cloned._mapper.SetScalarRange(self._mapper.GetScalarRange())
-        cloned._mapper.SetColorMode(self._mapper.GetColorMode())
-        lsr = self._mapper.GetUseLookupTableScalarRange()
-        cloned._mapper.SetUseLookupTableScalarRange(lsr)
-        cloned._mapper.SetScalarMode(self._mapper.GetScalarMode())
-        lut = self._mapper.GetLookupTable()
-        if lut:
-            cloned._mapper.SetLookupTable(lut)
-
-        cloned.base = self.base
-        cloned.top = self.top
-        cloned.name = self.name
-        if self.trail:
-            n = len(self.trailPoints)
-            cloned.addTrail(self.trailOffset, self.trailSegmentSize*n, n,
-                            None, None, self.trail.GetProperty().GetLineWidth())
-        if self.shadow:
-            cloned.addShadow(self.shadowX, self.shadowY, self.shadowZ,
-                             self.shadow.GetProperty().GetColor(),
-                             self.shadow.GetProperty().GetOpacity())
-        return cloned
-
-
     def faces(self):
         """
         Get cell polygonal connectivity ids as a python ``list``.
         The output format is: [[id0 ... idn], [id0 ... idm],  etc].
         """
-        arr1d = vtk_to_numpy(self._polydata.GetPolys().GetData())
+        arr1d = vtk2numpy(self._data.GetPolys().GetData())
         if arr1d is None:
             return []
 
         #Get cell connettivity ids as a 1D array. vtk format is:
         #[nids1, id0 ... idn, niids2, id0 ... idm,  etc].
         if len(arr1d) == 0:
-            arr1d = vtk_to_numpy(self._polydata.GetStrips().GetData())
+            arr1d = vtk2numpy(self._data.GetStrips().GetData())
             if arr1d is None:
                 return []
 
@@ -375,7 +311,7 @@ class Mesh(Points):
         """
         #Get cell connettivity ids as a 1D array. The vtk format is:
         #    [nids1, id0 ... idn, niids2, id0 ... idm,  etc].
-        arr1d = vtk_to_numpy(self.polydata(False).GetLines().GetData())
+        arr1d = vtk2numpy(self.polydata(False).GetLines().GetData())
 
         if arr1d is None:
             return []
@@ -464,7 +400,7 @@ class Mesh(Points):
                     return self
                 if tcoords.shape[1] != 2:
                     printc('Error in texture(): vector must have 2 components', c='r')
-                tarr = numpy_to_vtk(np.ascontiguousarray(tcoords), deep=True)
+                tarr = numpy2vtk(tcoords)
                 tarr.SetName('TCoordinates')
                 pd.GetPointData().SetTCoords(tarr)
                 pd.GetPointData().Modified()
@@ -476,11 +412,11 @@ class Mesh(Points):
                     tmapper.Update()
                     tc = tmapper.GetOutput().GetPointData().GetTCoords()
                     if scale or ushift or vshift:
-                        ntc = vtk_to_numpy(tc)
+                        ntc = vtk2numpy(tc)
                         if scale:  ntc *= scale
                         if ushift: ntc[:,0] += ushift
                         if vshift: ntc[:,1] += vshift
-                        tc = numpy_to_vtk(tc, deep=True)
+                        tc = numpy2vtk(tc)
                     pd.GetPointData().SetTCoords(tc)
                     pd.GetPointData().Modified()
 
@@ -748,7 +684,7 @@ class Mesh(Points):
             |shrink| |shrink.py|_
         """
         shrink = vtk.vtkShrinkPolyData()
-        shrink.SetInputData(self._polydata)
+        shrink.SetInputData(self._data)
         shrink.SetShrinkFactor(fraction)
         shrink.Update()
         return self._update(shrink.GetOutput())
@@ -840,7 +776,7 @@ class Mesh(Points):
         cu.SetBounds(bounds)
 
         clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self._polydata)
+        clipper.SetInputData(self._data)
         clipper.SetClipFunction(cu)
         clipper.InsideOutOn()
         clipper.GenerateClippedOutputOff()
@@ -849,166 +785,6 @@ class Mesh(Points):
         clipper.Update()
         self._update(clipper.GetOutput())
         return self
-
-    def cutWithPlane(self, origin=(0, 0, 0), normal=(1, 0, 0), returnCut=False):
-        """
-        Cut the mesh with the plane defined by a point and a normal.
-
-        :param origin: the cutting plane goes through this point
-        :param normal: normal of the cutting plane
-
-        :Example:
-            .. code-block:: python
-
-                from vedo import Cube
-
-                cube = Cube().cutWithPlane(normal=(1,1,1))
-                cube.bc('pink').show()
-
-            |cutcube|
-
-        |trail| |trail.py|_
-        """
-        s = str(normal)
-        if "x" in s:
-            normal = (1, 0, 0)
-            if '-' in s: normal = -np.array(normal)
-        elif "y" in s:
-            normal = (0, 1, 0)
-            if '-' in s: normal = -np.array(normal)
-        elif "z" in s:
-            normal = (0, 0, 1)
-            if '-' in s: normal = -np.array(normal)
-        plane = vtk.vtkPlane()
-        plane.SetOrigin(origin)
-        plane.SetNormal(normal)
-
-        clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(self.polydata(True)) # must be True
-        clipper.SetClipFunction(plane)
-        if returnCut:
-            clipper.GenerateClippedOutputOn()
-        else:
-            clipper.GenerateClippedOutputOff()
-        clipper.GenerateClipScalarsOff()
-        clipper.SetValue(0)
-        clipper.Update()
-
-        cpoly = clipper.GetOutput()
-
-        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
-            self._update(cpoly)
-        else:
-            # bring the underlying polydata to where _polydata is
-            M = vtk.vtkMatrix4x4()
-            M.DeepCopy(self.GetMatrix())
-            M.Invert()
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(M)
-            tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetTransform(tr)
-            tf.SetInputData(cpoly)
-            tf.Update()
-            self._update(tf.GetOutput())
-
-        if returnCut:
-            c = self.GetProperty().GetColor()
-            xpoly = clipper.GetClippedOutput()
-            if self.GetIsIdentity():
-                return Mesh(xpoly, c, 0.1).wireframe(True)
-            else:
-                tfx = vtk.vtkTransformPolyDataFilter()
-                tfx.SetTransform(tr)
-                tfx.SetInputData(xpoly)
-                tfx.Update()
-                tfxpoly = tfx.GetOutput()
-                restmesh = Mesh(tfxpoly, c, 0.1).wireframe(True)
-                restmesh.SetScale(self.GetScale())
-                restmesh.SetOrientation(self.GetOrientation())
-                restmesh.SetPosition(self.GetPosition())
-                return restmesh
-        else:
-            return self
-
-
-    def cutWithMesh(self, mesh, invert=False):
-        """
-        Cut an ``Mesh`` mesh with another ``Mesh``.
-
-        :param bool invert: if True return cut off part of Mesh.
-
-        .. code-block:: python
-
-            from vedo import *
-            import numpy as np
-            x, y, z = np.mgrid[:30, :30, :30] / 15
-            U = sin(6*x)*cos(6*y) + sin(6*y)*cos(6*z) + sin(6*z)*cos(6*x)
-            iso = Volume(U).isosurface(0).smoothLaplacian().c('silver').lw(1)
-            cube = CubicGrid(n=(29,29,29), spacing=(1,1,1))
-            cube.cutWithMesh(iso).c('silver').alpha(1)
-            show(iso, cube)
-
-        .. hint:: |cutWithMesh1.py|_ |cutAndCap.py|_
-
-            |cutWithMesh1| |cutAndCap|
-        """
-        polymesh = mesh.polydata()
-        poly = self.polydata()
-
-        # Create an array to hold distance information
-        signedDistances = vtk.vtkFloatArray()
-        signedDistances.SetNumberOfComponents(1)
-        signedDistances.SetName("SignedDistances")
-
-        # implicit function that will be used to slice the mesh
-        ippd = vtk.vtkImplicitPolyDataDistance()
-        ippd.SetInput(polymesh)
-
-        # Evaluate the signed distance function at all of the grid points
-        for pointId in range(poly.GetNumberOfPoints()):
-            p = poly.GetPoint(pointId)
-            signedDistance = ippd.EvaluateFunction(p)
-            signedDistances.InsertNextValue(signedDistance)
-
-        currentscals = poly.GetPointData().GetScalars()
-        if currentscals:
-            currentscals = currentscals.GetName()
-
-        poly.GetPointData().AddArray(signedDistances)
-        poly.GetPointData().SetActiveScalars("SignedDistances")
-
-        clipper = vtk.vtkClipPolyData()
-        clipper.SetInputData(poly)
-        clipper.SetInsideOut(not invert)
-        clipper.SetValue(0.0)
-        clipper.Update()
-        cpoly = clipper.GetOutput()
-
-        vis = False
-        if currentscals:
-            cpoly.GetPointData().SetActiveScalars(currentscals)
-            vis = self._mapper.GetScalarVisibility()
-
-
-        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
-            self._update(cpoly)
-        else:
-            # bring the underlying polydata to where _polydata is
-            M = vtk.vtkMatrix4x4()
-            M.DeepCopy(self.GetMatrix())
-            M.Invert()
-            tr = vtk.vtkTransform()
-            tr.SetMatrix(M)
-            tf = vtk.vtkTransformPolyDataFilter()
-            tf.SetTransform(tr)
-            tf.SetInputData(clipper.GetOutput())
-            tf.Update()
-            self._update(tf.GetOutput())
-
-        self.removePointArray("SignedDistances")
-        self._mapper.SetScalarVisibility(vis)
-        return self
-
 
     def cutWithPointLoop(self,
                           points,
@@ -1063,7 +839,7 @@ class Mesh(Points):
         if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
             self._update(cpoly)
         else:
-            # bring the underlying polydata to where _polydata is
+            # bring the underlying polydata to where _data is
             M = vtk.vtkMatrix4x4()
             M.DeepCopy(self.GetMatrix())
             M.Invert()
@@ -1083,7 +859,7 @@ class Mesh(Points):
 
         |cutAndCap| |cutAndCap.py|_
         """
-        poly = self._polydata
+        poly = self._data
 
         fe = vtk.vtkFeatureEdges()
         fe.SetInputData(poly)
@@ -1193,17 +969,17 @@ class Mesh(Points):
         :param bool lines: if True, break input polylines into line segments.
             If False, input lines will be ignored and the output will have no lines.
         """
-        if self._polydata.GetNumberOfPolys() or self._polydata.GetNumberOfStrips():
+        if self._data.GetNumberOfPolys() or self._data.GetNumberOfStrips():
             tf = vtk.vtkTriangleFilter()
             tf.SetPassLines(lines)
             tf.SetPassVerts(verts)
-            tf.SetInputData(self._polydata)
+            tf.SetInputData(self._data)
             tf.Update()
             return self._update(tf.GetOutput())
 
-        elif self._polydata.GetNumberOfLines():
+        elif self._data.GetNumberOfLines():
             vct = vtk.vtkContourTriangulator()
-            vct.SetInputData(self._polydata)
+            vct.SetInputData(self._data)
             vct.Update()
             return self._update(vct.GetOutput())
 
@@ -1315,7 +1091,7 @@ class Mesh(Points):
             |curvature|
         """
         curve = vtk.vtkCurvatures()
-        curve.SetInputData(self._polydata)
+        curve.SetInputData(self._data)
         curve.SetCurvatureType(method)
         curve.Update()
         self._update(curve.GetOutput())
@@ -1368,7 +1144,7 @@ class Mesh(Points):
         Generate a shadow out of an ``Mesh`` on one of the three Cartesian planes.
         The output is a new ``Mesh`` representing the shadow.
         This new mesh is accessible through `mesh.shadow`.
-        By default the shadow mesh is placed on the bottom/back wall of the bounding box.
+        By default the shadow mesh is placed on the bottom wall of the bounding box.
 
         :param float x,y,z: identify the plane to cast the shadow to ['x', 'y' or 'z'].
             The shadow will lay on the orthogonal plane to the specified axis at the
@@ -1398,7 +1174,7 @@ class Mesh(Points):
         elif culling==-1:
             shad.backFaceCulling()
         shad.GetProperty().LightingOff()
-        #shad.SetPickable(False)
+        shad.SetPickable(False)
         shad.SetUseBounds(True)
         self.shadow = shad
         return self
@@ -1421,7 +1197,7 @@ class Mesh(Points):
         :param int method: Loop(0), Linear(1), Adaptive(2), Butterfly(3)
         """
         triangles = vtk.vtkTriangleFilter()
-        triangles.SetInputData(self._polydata)
+        triangles.SetInputData(self._data)
         triangles.Update()
         originalMesh = triangles.GetOutput()
         if method == 0:
@@ -1459,7 +1235,7 @@ class Mesh(Points):
 
         |skeletonize| |skeletonize.py|_
         """
-        poly = self._polydata
+        poly = self._data
         if N:  # N = desired number of points
             Np = poly.GetNumberOfPoints()
             fraction = float(N) / Np
@@ -1500,7 +1276,7 @@ class Mesh(Points):
 
         .. hint:: |mesh_smoother1.py|_
         """
-        poly = self._polydata
+        poly = self._data
         cl = vtk.vtkCleanPolyData()
         cl.SetInputData(poly)
         cl.Update()
@@ -1529,7 +1305,7 @@ class Mesh(Points):
 
         |mesh_smoother1| |mesh_smoother1.py|_
         """
-        poly = self._polydata
+        poly = self._data
         cl = vtk.vtkCleanPolyData()
         cl.SetInputData(poly)
         cl.Update()
@@ -1561,7 +1337,7 @@ class Mesh(Points):
             mb = self.maxBoundSize()
             size = mb / 10
         fh.SetHoleSize(size)
-        fh.SetInputData(self._polydata)
+        fh.SetInputData(self._data)
         fh.Update()
         return self._update(fh.GetOutput())
 
@@ -1596,7 +1372,7 @@ class Mesh(Points):
         else:
             vpoints = vtk.vtkPoints()
             pts = np.ascontiguousarray(pts)
-            vpoints.SetData(numpy_to_vtk(pts, deep=True))
+            vpoints.SetData(numpy2vtk(pts, dtype=np.float))
             pointsPolydata = vtk.vtkPolyData()
             pointsPolydata.SetPoints(vpoints)
 
@@ -1657,7 +1433,7 @@ class Mesh(Points):
                 vid = fe.GetOutput().GetPointData().GetArray("BoundaryIds")
             if returnCellIds:
                 vid = fe.GetOutput().GetCellData().GetArray("BoundaryIds")
-            npid = vtk_to_numpy(vid).astype(int)
+            npid = vtk2numpy(vid).astype(int)
             return npid
 
         else:
@@ -1674,7 +1450,7 @@ class Mesh(Points):
 
         |connVtx| |connVtx.py|_
         """
-        poly = self._polydata
+        poly = self._data
 
         cellIdList = vtk.vtkIdList()
         poly.GetPointCells(index, cellIdList)
@@ -1706,7 +1482,7 @@ class Mesh(Points):
         """Find all cellls connected to an input vertex specified by its index."""
 
         # Find all cells connected to point index
-        dpoly = self._polydata
+        dpoly = self._data
         cellPointIds = vtk.vtkIdList()
         dpoly.GetPointCells(index, cellPointIds)
 
@@ -1879,7 +1655,7 @@ class Mesh(Points):
 
         |isolines| |isolines.py|_
         """
-        r0, r1 = self._polydata.GetScalarRange()
+        r0, r1 = self._data.GetScalarRange()
         if vmin is None:
             vmin = r0
         if vmax is None:
@@ -1933,7 +1709,7 @@ class Mesh(Points):
         """
         bcf = vtk.vtkContourFilter()
         bcf.SetInputData(self.polydata())
-        r0, r1 = self._polydata.GetScalarRange()
+        r0, r1 = self._data.GetScalarRange()
         if vmin is None:
             vmin = r0
         if vmax is None:
@@ -2059,7 +1835,7 @@ class Mesh(Points):
         conn = vtk.vtkConnectivityFilter()
         conn.SetExtractionModeToLargestRegion()
         conn.ScalarConnectivityOff()
-        conn.SetInputData(self._polydata)
+        conn.SetInputData(self._data)
         conn.Update()
         m = Mesh(conn.GetOutput())
         pr = vtk.vtkProperty()

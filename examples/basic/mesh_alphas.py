@@ -1,9 +1,8 @@
 """Create a set of transparencies
-which can be passed to method cmap()
-"""
-from vedo import load, show, dataurl
+which can be passed to method cmap()"""
+from vedo import Mesh, show, dataurl
 
-mesh = load(dataurl+"beethoven.ply")
+mesh = Mesh(dataurl+"beethoven.ply")
 
 # pick y coordinates of vertices and use them as scalars
 scals = mesh.points()[:, 1]
