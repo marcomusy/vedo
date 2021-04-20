@@ -14,7 +14,7 @@ custom_shape = [
         dict(bottomleft=(0.1,0.6), topright=(0.30,0.80), bg='violet', bg2='w'),# ren4
 ]
 
-plt = Plotter(shape=custom_shape, axes=0, sharecam=True, size=(1200,900))
+plt = Plotter(shape=custom_shape, size=(1200,900))
 
 for i in range(len(custom_shape)):
     s = ParametricShape(i).color(i).lighting('glossy')

@@ -575,12 +575,8 @@ class Base3DProp(object):
         Create on the fly an instance of class ``Plotter`` or use the last existing one to
         show one single object.
 
-        This is meant as a shortcut. If more than one object needs to be visualised
+        This method is meant as a shortcut. If more than one object needs to be visualised
         please use the syntax `show(mesh1, mesh2, volume, ..., options)`.
-
-        :param bool new: if set to `True`, a call to ``show`` will instantiate
-            a new ``Plotter`` object (a new window) instead of reusing the first created.
-            See e.g.: |readVolumeAsIsoSurface.py|_
 
         :return: the current ``Plotter`` class instance.
 
@@ -872,6 +868,7 @@ class BaseActor(Base3DProp):
 
 
     def getArrayNames(self):
+        """Get the existing arrays names as a dictionary"""
         from vtk.numpy_interface import dataset_adapter
         wrapped = dataset_adapter.WrapDataObject(self.GetMapper().GetInput())
         return {"PointData":wrapped.PointData.keys(),

@@ -30,10 +30,10 @@ for t in range(Niter):
         dp = mag(q - p)
         alongn = n * dp
         alongr = q - p  # bias normal
-        newp = p + (alongn + alongr) / 2.0 / Niter
+        newp = p + (alongn + alongr) / 4.0 / Niter
         newpts.append(newp)
-    
-    s.points(newpts) # set the new points of the mesh
+
+    s.points(newpts).computeNormals() # set the new points of the mesh
     s.alpha(0.1).color("gold").wireframe(True) # cosmetics
 
     vp += s # add into Plotter

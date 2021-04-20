@@ -834,10 +834,9 @@ class Points(vtk.vtkFollower, BaseActor):
         self._scals_idx = 0  # index of the active scalar changed from CLI
         self._ligthingnr = 0 # index of the lighting mode changed from CLI
 
-
-        prp = self.GetProperty()
+        self.property = self.GetProperty()
         try:
-            prp.RenderPointsAsSpheresOn()
+            self.property.RenderPointsAsSpheresOn()
         except:
             pass
 
@@ -846,8 +845,8 @@ class Points(vtk.vtkFollower, BaseActor):
             return
         ########################################
 
-        prp.SetRepresentationToPoints()
-        prp.SetPointSize(r)
+        self.property.SetRepresentationToPoints()
+        self.property.SetPointSize(r)
         self.lighting(ambient=0.7, diffuse=0.3)
 
         if isinstance(inputobj, vtk.vtkActor):
@@ -945,8 +944,8 @@ class Points(vtk.vtkFollower, BaseActor):
                 pd = utils.buildPolyData(plist)
                 self._mapper.SetInputData(pd)
                 c = colors.getColor(c)
-                prp.SetColor(c)
-                prp.SetOpacity(alpha)
+                self.property.SetColor(c)
+                self.property.SetOpacity(alpha)
                 self._data = pd
 
             return
@@ -962,8 +961,8 @@ class Points(vtk.vtkFollower, BaseActor):
             raise RuntimeError()
 
         c = colors.getColor(c)
-        prp.SetColor(c)
-        prp.SetOpacity(alpha)
+        self.property.SetColor(c)
+        self.property.SetOpacity(alpha)
 
         self._mapper.SetInputData(self._data)
         return
@@ -1575,8 +1574,12 @@ class Points(vtk.vtkFollower, BaseActor):
     def labels(self, content=None, cells=False, scale=None,
                rotX=0, rotY=0, rotZ=0,
                ratio=1, precision=None,
-               font="", justify="bottom-left", c=None, alpha=1, italic=False):
-        """Generate value or ID labels for mesh cells or points.
+               italic=False, font="", justify="bottom-left",
+               c="black", alpha=1,
+        ):
+        """
+        Generate value or ID labels for mesh cells or points.
+        For large nr. of labels use ``font="VTK"`` which is much faster.
 
         See also: ``flag()``, ``vignette()``, ``caption()`` and ``legend()``.
 
@@ -1613,12 +1616,6 @@ class Points(vtk.vtkFollower, BaseActor):
             elems = self.points()
             norms = self.normals(cells=False, compute=False)
             ns = np.sqrt(self.NPoints())
-
-        if c is None:
-            if self._mapper.GetScalarVisibility():
-                c=(0,0,0)
-            else:
-                c=self.GetProperty().GetColor()
 
         hasnorms=False
         if len(norms):

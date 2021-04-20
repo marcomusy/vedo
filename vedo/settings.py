@@ -46,8 +46,10 @@ General settings.
     immediateRendering = True
 
     # Show a gray frame margin in multirendering windows
-    showRendererFrame = True
     rendererFrameColor = None
+    rendererFrameAlpha = 0.5
+    rendererFrameWidth = 0.5
+    rendererFramePadding = 0.0001
 
     # In multirendering mode set the position of the horizontal of vertical splitting [0,1]
     windowSplittingPosition = None
@@ -172,10 +174,10 @@ allowInteraction = True
 immediateRendering = True
 
 # Show a gray frame margin in multirendering windows
-showRendererFrame = True
 rendererFrameColor = None
 rendererFrameAlpha = 0.5
 rendererFrameWidth = 0.5
+rendererFramePadding = 0.0001
 
 # Use tex, matplotlib latex compiler
 usetex = False
@@ -211,11 +213,13 @@ useDepthPeeling = False
 multiSamples = 8
 if vtk.vtkVersion().GetVTKMajorVersion() >= 9:
     useDepthPeeling = True
-    multiSamples    = 0
 occlusionRatio  = 0.1
 maxNumberOfPeels= 16
 occlusionRatio  = 0.0
 alphaBitPlanes  = True
+
+# Turn on/off nvidia FXAA anti-aliasing, if supported.
+useFXAA         = False  # either True or False. None sets the system default
 
 # By default, the depth buffer is reset for each renderer. If true, use the existing depth buffer
 preserveDepthBuffer = False
@@ -226,9 +230,6 @@ SSAORadius     = 0.5     # define the SSAO hemisphere radius
 SSAOBias       = 0.01    # define the bias when comparing samples
 SSAOKernelSize = 32      # define the number of samples
 SSAOBlur       = False   # define blurring of the ambient occlusion (helps for low samples)
-
-# Turn on/off nvidia FXAA anti-aliasing, if supported.
-useFXAA = False          # either True or False. None sets the system default
 
 # Use a polygon/edges offset to possibly resolve conflicts in rendering
 usePolygonOffset = False
@@ -541,7 +542,7 @@ def embedWindow(backend='k3d', verbose=True):
 
     elif 'ipyvtk' in backend:
         try:
-            from ipyvtk_simple.viewer import ViewInteractiveWidget
+            from ipyvtklink.viewer import ViewInteractiveWidget
         except:
             if verbose:
                 print('embedWindow(verbose=True): could not load ipyvtk_simple try:')

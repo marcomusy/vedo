@@ -5,7 +5,7 @@ import vedo.colors as colors
 import vedo.docs as docs
 import vedo.utils as utils
 from vedo.mesh import Mesh
-from vedo.base import BaseGrid
+from vedo.base import BaseGrid, Base3DProp
 
 __doc__ = ("""Submodule extending the ``vtkVolume`` object functionality."""
     + docs._defs
@@ -13,6 +13,7 @@ __doc__ = ("""Submodule extending the ``vtkVolume`` object functionality."""
 
 __all__ = [
            "Volume",
+           "VolumeSlice",
            "mesh2Volume",
            "volumeFromMesh",
            "interpolateToVolume",
@@ -226,210 +227,10 @@ def signedDistanceFromPointCloud(mesh, maxradius=None, bounds=None, dims=(20,20,
 
 
 ##########################################################################
-class Volume(vtk.vtkVolume, BaseGrid):
-    """Derived class of ``vtkVolume``.
-    Can be initialized with a numpy object, a ``vtkImageData``
-    or a list of 2D bmp files.
-
-    See e.g.: |numpy2volume1.py|_
-
-    :param list,str c: sets colors along the scalar range, or a matplotlib color map name
-    :param float,list alphas: sets transparencies along the scalar range
-    :param float alphaUnit: low values make composite rendering look brighter and denser
-    :param list origin: set volume origin coordinates
-    :param list spacing: voxel dimensions in x, y and z.
-    :param list dims: specify the dimensions of the volume.
-    :param str mapper: either 'gpu', 'opengl_gpu', 'fixed' or 'smart'
-
-    :param int mode: define the volumetric rendering style:
-
-        - 0, composite rendering
-        - 1, maximum projection rendering
-        - 2, minimum projection
-        - 3, average projection
-        - 4, additive mode
-
-        The default mode is "composite" where the scalar values are sampled through
-        the volume and composited in a front-to-back scheme through alpha blending.
-        The final color and opacity is determined using the color and opacity transfer
-        functions specified in alpha keyword.
-
-        Maximum and minimum intensity blend modes use the maximum and minimum
-        scalar values, respectively, along the sampling ray.
-        The final color and opacity is determined by passing the resultant value
-        through the color and opacity transfer functions.
-
-        Additive blend mode accumulates scalar values by passing each value
-        through the opacity transfer function and then adding up the product
-        of the value and its opacity. In other words, the scalar values are scaled
-        using the opacity transfer function and summed to derive the final color.
-        Note that the resulting image is always grayscale i.e. aggregated values
-        are not passed through the color transfer function.
-        This is because the final value is a derived value and not a real data value
-        along the sampling ray.
-
-        Average intensity blend mode works similar to the additive blend mode where
-        the scalar values are multiplied by opacity calculated from the opacity
-        transfer function and then added.
-        The additional step here is to divide the sum by the number of samples
-        taken through the volume.
-        As is the case with the additive intensity projection, the final image will
-        always be grayscale i.e. the aggregated values are not passed through the
-        color transfer function.
-
-    .. hint:: if a `list` of values is used for `alphas` this is interpreted
-        as a transfer function along the range of the scalar.
-
-        |read_volume2| |read_volume2.py|_
-    """
-
-    def __init__(self, inputobj=None,
-                 c='RdBu_r',
-                 alpha=(0.0, 0.0, 0.2, 0.4, 0.8, 1.0),
-                 alphaGradient=None,
-                 alphaUnit=1,
-                 mode=0,
-                 shade=False,
-                 spacing=None,
-                 dims=None,
-                 origin=None,
-                 mapper='smart',
-        ):
-
-        vtk.vtkVolume.__init__(self)
-        BaseGrid.__init__(self)
-
-        ###################
-        if isinstance(inputobj, str):
-
-            if "https://" in inputobj:
-                from vedo.io import download
-                inputobj = download(inputobj, verbose=False) # fpath
-            elif os.path.isfile(inputobj):
-                pass
-            else:
-                inputobj = sorted(glob.glob(inputobj))
-
-        ###################
-        if 'gpu' in mapper:
-            self._mapper = vtk.vtkGPUVolumeRayCastMapper()
-        elif 'opengl_gpu' in mapper:
-            self._mapper = vtk.vtkOpenGLGPUVolumeRayCastMapper()
-        elif 'smart' in mapper:
-            self._mapper = vtk.vtkSmartVolumeMapper()
-        elif 'fixed' in mapper:
-            self._mapper = vtk.vtkFixedPointVolumeRayCastMapper()
-        elif isinstance(mapper, vtk.vtkMapper):
-            self._mapper = mapper
-        else:
-            print("Error unknown mapper type", [mapper])
-            raise RuntimeError()
-        self.SetMapper(self._mapper)
-
-        ###################
-        inputtype = str(type(inputobj))
-        #colors.printc('Volume inputtype', inputtype)
-
-        if inputobj is None:
-            img = vtk.vtkImageData()
-
-        elif utils.isSequence(inputobj):
-
-            if isinstance(inputobj[0], str): # scan sequence of BMP files
-                ima = vtk.vtkImageAppend()
-                ima.SetAppendAxis(2)
-                pb = utils.ProgressBar(0, len(inputobj))
-                for i in pb.range():
-                    f = inputobj[i]
-                    picr = vtk.vtkBMPReader()
-                    picr.SetFileName(f)
-                    picr.Update()
-                    mgf = vtk.vtkImageMagnitude()
-                    mgf.SetInputData(picr.GetOutput())
-                    mgf.Update()
-                    ima.AddInputData(mgf.GetOutput())
-                    pb.print('loading...')
-                ima.Update()
-                img = ima.GetOutput()
-
-            else:
-                if "ndarray" not in inputtype:
-                    inputobj = np.array(inputobj)
-
-                if len(inputobj.shape)==1:
-                    varr = utils.numpy2vtk(inputobj, dtype=np.float)
-                else:
-                    if len(inputobj.shape)>2:
-                        inputobj = np.transpose(inputobj, axes=[2, 1, 0])
-                    varr = utils.numpy2vtk(inputobj.ravel(order='F'), dtype=np.float)
-                varr.SetName('input_scalars')
-
-                img = vtk.vtkImageData()
-                if dims is not None:
-                    img.SetDimensions(dims)
-                else:
-                    if len(inputobj.shape)==1:
-                        colors.printc("Error: must set dimensions (dims keyword) in Volume.", c='r')
-                        raise RuntimeError()
-                    img.SetDimensions(inputobj.shape)
-                img.GetPointData().SetScalars(varr)
-
-                #to convert rgb to numpy
-                #        img_scalar = data.GetPointData().GetScalars()
-                #        dims = data.GetDimensions()
-                #        n_comp = img_scalar.GetNumberOfComponents()
-                #        temp = utils.vtk2numpy(img_scalar)
-                #        numpy_data = temp.reshape(dims[1],dims[0],n_comp)
-                #        numpy_data = numpy_data.transpose(0,1,2)
-                #        numpy_data = np.flipud(numpy_data)
-
-        elif "ImageData" in inputtype:
-            img = inputobj
-
-        elif isinstance(inputobj, Volume):
-            img = inputobj.inputdata()
-
-        elif "UniformGrid" in inputtype:
-            img = inputobj
-
-        elif hasattr(inputobj, "GetOutput"): # passing vtk object, try extract imagdedata
-            if hasattr(inputobj, "Update"):
-                inputobj.Update()
-            img = inputobj.GetOutput()
-
-        elif isinstance(inputobj, str):
-            from vedo.io import loadImageData, download
-            if "https://" in inputobj:
-                inputobj = download(inputobj, verbose=False)
-            img = loadImageData(inputobj)
-
-        else:
-            colors.printc("Volume(): cannot understand input type:\n", inputtype, c='r')
-            return
-
-
-        if dims is not None:
-            img.SetDimensions(dims)
-
-        if origin is not None:
-            img.SetOrigin(origin) ### DIFFERENT from volume.origin()!
-
-        if spacing is not None:
-            img.SetSpacing(spacing)
-
-        self._data = img
-        self._mapper.SetInputData(img)
-        self.mode(mode).color(c).alpha(alpha).alphaGradient(alphaGradient)
-        self.GetProperty().SetShade(True)
-        self.GetProperty().SetInterpolationType(1)
-        self.GetProperty().SetScalarOpacityUnitDistance(alphaUnit)
-
-        # remember stuff:
-        self._mode = mode
-        self._color = c
-        self._alpha = alpha
-        self._alphaGrad = alphaGradient
-        self._alphaUnit = alphaUnit
+class BaseVolume:
+    def __init__(self, inputobj=None):
+        self._data = None
+        self._mapper = None
 
     def _update(self, img):
         self._data = img
@@ -437,97 +238,6 @@ class Volume(vtk.vtkVolume, BaseGrid):
         self._mapper.SetInputData(img)
         self._mapper.Modified()
         self._mapper.Update()
-        return self
-
-    def mode(self, mode=None):
-        """Define the volumetric rendering style.
-
-            - 0, composite rendering
-            - 1, maximum projection rendering
-            - 2, minimum projection rendering
-            - 3, average projection rendering
-            - 4, additive mode
-
-        The default mode is "composite" where the scalar values are sampled through
-        the volume and composited in a front-to-back scheme through alpha blending.
-        The final color and opacity is determined using the color and opacity transfer
-        functions specified in alpha keyword.
-
-        Maximum and minimum intensity blend modes use the maximum and minimum
-        scalar values, respectively, along the sampling ray.
-        The final color and opacity is determined by passing the resultant value
-        through the color and opacity transfer functions.
-
-        Additive blend mode accumulates scalar values by passing each value
-        through the opacity transfer function and then adding up the product
-        of the value and its opacity. In other words, the scalar values are scaled
-        using the opacity transfer function and summed to derive the final color.
-        Note that the resulting image is always grayscale i.e. aggregated values
-        are not passed through the color transfer function.
-        This is because the final value is a derived value and not a real data value
-        along the sampling ray.
-
-        Average intensity blend mode works similar to the additive blend mode where
-        the scalar values are multiplied by opacity calculated from the opacity
-        transfer function and then added.
-        The additional step here is to divide the sum by the number of samples
-        taken through the volume.
-        As is the case with the additive intensity projection, the final image will
-        always be grayscale i.e. the aggregated values are not passed through the
-        color transfer function.
-        """
-        if mode is None:
-            return self._mapper.GetBlendMode()
-
-        if isinstance(mode, str):
-            if 'comp' in mode:
-                mode = 0
-            elif 'proj' in mode:
-                if 'max' in mode:
-                    mode = 1
-                elif 'min' in mode:
-                    mode = 2
-                elif 'ave' in mode:
-                    mode = 3
-                else:
-                    colors.printc("Error in volume.mode(): unknown mode", mode, c='r')
-                    mode = 0
-            elif 'add' in mode:
-                mode = 4
-            else:
-                colors.printc("Error in volume.mode(): unknown mode", mode, c='r')
-                mode = 0
-
-        self._mapper.SetBlendMode(mode)
-        self._mode = mode
-        return self
-
-    def shade(self, status=None):
-        """
-        Set/Get the shading of a Volume.
-        Shading can be further controlled with ``volume.lighting()`` method.
-
-        If shading is turned on, the mapper may perform shading calculations.
-        In some cases shading does not apply
-        (for example, in maximum intensity projection mode).
-        """
-        if status is None:
-            return self.GetProperty().GetShade()
-        self.GetProperty().SetShade(status)
-        return self
-
-    def cmap(self, c):
-        """Same as color() or c()."""
-        return self.c(c)
-
-    def jittering(self, status=None):
-        """If `jittering` is `True`, each ray traversal direction will be perturbed slightly
-        using a noise-texture to get rid of wood-grain effects.
-        """
-        if hasattr(self._mapper, 'SetUseJittering'): # tetmesh doesnt have it
-            if status is None:
-                return self._mapper.GetUseJittering()
-            self._mapper.SetUseJittering(status)
         return self
 
     def clone(self):
@@ -545,9 +255,11 @@ class Volume(vtk.vtkVolume, BaseGrid):
         newvol.SetPosition(self.GetPosition())
         return newvol
 
+
     def imagedata(self):
         """Return the underlying vtkImagaData object."""
         return self._data
+
 
     def getDataArray(self):
         """Get read-write access to voxels of a Volume object as a numpy array.
@@ -634,50 +346,6 @@ class Volume(vtk.vtkVolume, BaseGrid):
         return self._update(rsp.GetOutput())
 
 
-    def alphaGradient(self, alphaGrad):
-        """
-        Assign a set of tranparencies to a volume's gradient
-        along the range of the scalar value.
-        A single constant value can also be assigned.
-        The gradient function is used to decrease the opacity
-        in the "flat" regions of the volume while maintaining the opacity
-        at the boundaries between material types.  The gradient is measured
-        as the amount by which the intensity changes over unit distance.
-
-        The format for alphaGrad is the same as for method ``volume.alpha()``.
-
-        |read_volume2| |read_volume2.py|_
-        """
-        self._alphaGrad = alphaGrad
-        volumeProperty = self.GetProperty()
-        if alphaGrad is None:
-            volumeProperty.DisableGradientOpacityOn()
-            return self
-        else:
-            volumeProperty.DisableGradientOpacityOff()
-
-        #smin, smax = self._data.GetScalarRange()
-        smin, smax = 0, 255
-        gotf = volumeProperty.GetGradientOpacity()
-        if utils.isSequence(alphaGrad):
-            alphaGrad = np.array(alphaGrad)
-            if len(alphaGrad.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
-                for i, al in enumerate(alphaGrad):
-                    xalpha = smin + (smax - smin) * i / (len(alphaGrad) - 1)
-                    # Create transfer mapping scalar value to gradient opacity
-                    gotf.AddPoint(xalpha, al)
-            elif len(alphaGrad.shape)==2: # user passing [(x0,alpha0), ...]
-                gotf.AddPoint(smin, alphaGrad[0][1])
-                for xalpha, al in alphaGrad:
-                    # Create transfer mapping scalar value to opacity
-                    gotf.AddPoint(xalpha, al)
-                gotf.AddPoint(smax, alphaGrad[-1][1])
-            #colors.printc("alphaGrad at", round(xalpha, 1), "\tset to", al, c="b", bold=0)
-        else:
-            gotf.AddPoint(smin, alphaGrad) # constant alphaGrad
-            gotf.AddPoint(smax, alphaGrad)
-        return self
-
     def interpolation(self, itype):
         """
         Set interpolation type.
@@ -685,16 +353,8 @@ class Volume(vtk.vtkVolume, BaseGrid):
         0 = nearest neighbour
         1 = linear
         """
-        self.GetProperty().SetInterpolationType(itype)
+        self.property.SetInterpolationType(itype)
         return self
-
-    def componentWeight(self, i, weight):
-        """
-        Set the scalar component weight in range [0,1].
-        """
-        self.GetProperty().SetComponentWeight(i, weight)
-        return self
-
 
     def threshold(self, above=None, below=None, replace=None, replaceOut=None):
         """
@@ -870,68 +530,6 @@ class Volume(vtk.vtkVolume, BaseGrid):
             raise RuntimeError()
         ff.Update()
         return self._update(ff.GetOutput())
-
-    def xSlice(self, i):
-        """Extract the slice at index `i` of volume along x-axis."""
-        vslice = vtk.vtkImageDataGeometryFilter()
-        vslice.SetInputData(self.imagedata())
-        nx, ny, nz = self.imagedata().GetDimensions()
-        if i>nx-1:
-            i=nx-1
-        vslice.SetExtent(i,i, 0,ny, 0,nz)
-        vslice.Update()
-        return Mesh(vslice.GetOutput())
-
-    def ySlice(self, j):
-        """Extract the slice at index `j` of volume along y-axis."""
-        vslice = vtk.vtkImageDataGeometryFilter()
-        vslice.SetInputData(self.imagedata())
-        nx, ny, nz = self.imagedata().GetDimensions()
-        if j>ny-1:
-            j=ny-1
-        vslice.SetExtent(0,nx, j,j, 0,nz)
-        vslice.Update()
-        return Mesh(vslice.GetOutput())
-
-    def zSlice(self, k):
-        """Extract the slice at index `i` of volume along z-axis."""
-        vslice = vtk.vtkImageDataGeometryFilter()
-        vslice.SetInputData(self.imagedata())
-        nx, ny, nz = self.imagedata().GetDimensions()
-        if k>nz-1:
-            k=nz-1
-        vslice.SetExtent(0,nx, 0,ny, k,k)
-        vslice.Update()
-        return Mesh(vslice.GetOutput())
-
-    def slicePlane(self, origin=(0,0,0), normal=(1,1,1)):
-        """Extract the slice along a given plane position and normal.
-
-        |slicePlane| |slicePlane.py|_
-        """
-        reslice = vtk.vtkImageReslice()
-        reslice.SetInputData(self._data)
-        reslice.SetOutputDimensionality(2)
-        newaxis = utils.versor(normal)
-        pos = np.array(origin)
-        initaxis = (0,0,1)
-        crossvec = np.cross(initaxis, newaxis)
-        angle = np.arccos(np.dot(initaxis, newaxis))
-        T = vtk.vtkTransform()
-        T.PostMultiply()
-        T.RotateWXYZ(np.rad2deg(angle), crossvec)
-        T.Translate(pos)
-        M = T.GetMatrix()
-        reslice.SetResliceAxes(M)
-        reslice.SetInterpolationModeToLinear()
-        reslice.Update()
-        vslice = vtk.vtkImageDataGeometryFilter()
-        vslice.SetInputData(reslice.GetOutput())
-        vslice.Update()
-        msh = Mesh(vslice.GetOutput())
-        msh.SetOrientation(T.GetOrientation())
-        msh.SetPosition(pos)
-        return msh
 
 
     def operation(self, operation, volume2=None):
@@ -1227,6 +825,620 @@ class Volume(vtk.vtkVolume, BaseGrid):
         imc.SetDimensionality(dim)
         imc.Update()
         return Volume(imc.GetOutput())
+
+
+
+##########################################################################
+class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
+    """Derived class of ``vtkVolume``.
+    Can be initialized with a numpy object, a ``vtkImageData``
+    or a list of 2D bmp files.
+
+    See e.g.: |numpy2volume1.py|_
+
+    :param list,str c: sets colors along the scalar range, or a matplotlib color map name
+    :param float,list alphas: sets transparencies along the scalar range
+    :param float alphaUnit: low values make composite rendering look brighter and denser
+    :param list origin: set volume origin coordinates
+    :param list spacing: voxel dimensions in x, y and z.
+    :param list dims: specify the dimensions of the volume.
+    :param str mapper: either 'gpu', 'opengl_gpu', 'fixed' or 'smart'
+
+    :param int mode: define the volumetric rendering style:
+
+        - 0, composite rendering
+        - 1, maximum projection rendering
+        - 2, minimum projection
+        - 3, average projection
+        - 4, additive mode
+
+        The default mode is "composite" where the scalar values are sampled through
+        the volume and composited in a front-to-back scheme through alpha blending.
+        The final color and opacity is determined using the color and opacity transfer
+        functions specified in alpha keyword.
+
+        Maximum and minimum intensity blend modes use the maximum and minimum
+        scalar values, respectively, along the sampling ray.
+        The final color and opacity is determined by passing the resultant value
+        through the color and opacity transfer functions.
+
+        Additive blend mode accumulates scalar values by passing each value
+        through the opacity transfer function and then adding up the product
+        of the value and its opacity. In other words, the scalar values are scaled
+        using the opacity transfer function and summed to derive the final color.
+        Note that the resulting image is always grayscale i.e. aggregated values
+        are not passed through the color transfer function.
+        This is because the final value is a derived value and not a real data value
+        along the sampling ray.
+
+        Average intensity blend mode works similar to the additive blend mode where
+        the scalar values are multiplied by opacity calculated from the opacity
+        transfer function and then added.
+        The additional step here is to divide the sum by the number of samples
+        taken through the volume.
+        As is the case with the additive intensity projection, the final image will
+        always be grayscale i.e. the aggregated values are not passed through the
+        color transfer function.
+
+    .. hint:: if a `list` of values is used for `alphas` this is interpreted
+        as a transfer function along the range of the scalar.
+
+        |read_volume2| |read_volume2.py|_
+    """
+    def __init__(self, inputobj=None,
+                 c='RdBu_r',
+                 alpha=(0.0, 0.0, 0.2, 0.4, 0.8, 1.0),
+                 alphaGradient=None,
+                 alphaUnit=1,
+                 mode=0,
+                 shade=False,
+                 spacing=None,
+                 dims=None,
+                 origin=None,
+                 mapper='smart',
+        ):
+
+        vtk.vtkVolume.__init__(self)
+        BaseGrid.__init__(self)
+        BaseVolume.__init__(self)
+
+        ###################
+        if isinstance(inputobj, str):
+
+            if "https://" in inputobj:
+                from vedo.io import download
+                inputobj = download(inputobj, verbose=False) # fpath
+            elif os.path.isfile(inputobj):
+                pass
+            else:
+                inputobj = sorted(glob.glob(inputobj))
+
+        ###################
+        if 'gpu' in mapper:
+            self._mapper = vtk.vtkGPUVolumeRayCastMapper()
+        elif 'opengl_gpu' in mapper:
+            self._mapper = vtk.vtkOpenGLGPUVolumeRayCastMapper()
+        elif 'smart' in mapper:
+            self._mapper = vtk.vtkSmartVolumeMapper()
+        elif 'fixed' in mapper:
+            self._mapper = vtk.vtkFixedPointVolumeRayCastMapper()
+        elif isinstance(mapper, vtk.vtkMapper):
+            self._mapper = mapper
+        else:
+            print("Error unknown mapper type", [mapper])
+            raise RuntimeError()
+        self.SetMapper(self._mapper)
+
+        ###################
+        inputtype = str(type(inputobj))
+        #colors.printc('Volume inputtype', inputtype)
+
+        if inputobj is None:
+            img = vtk.vtkImageData()
+
+        elif utils.isSequence(inputobj):
+
+            if isinstance(inputobj[0], str): # scan sequence of BMP files
+                ima = vtk.vtkImageAppend()
+                ima.SetAppendAxis(2)
+                pb = utils.ProgressBar(0, len(inputobj))
+                for i in pb.range():
+                    f = inputobj[i]
+                    picr = vtk.vtkBMPReader()
+                    picr.SetFileName(f)
+                    picr.Update()
+                    mgf = vtk.vtkImageMagnitude()
+                    mgf.SetInputData(picr.GetOutput())
+                    mgf.Update()
+                    ima.AddInputData(mgf.GetOutput())
+                    pb.print('loading...')
+                ima.Update()
+                img = ima.GetOutput()
+
+            else:
+                if "ndarray" not in inputtype:
+                    inputobj = np.array(inputobj)
+
+                if len(inputobj.shape)==1:
+                    varr = utils.numpy2vtk(inputobj, dtype=np.float)
+                else:
+                    if len(inputobj.shape)>2:
+                        inputobj = np.transpose(inputobj, axes=[2, 1, 0])
+                    varr = utils.numpy2vtk(inputobj.ravel(order='F'), dtype=np.float)
+                varr.SetName('input_scalars')
+
+                img = vtk.vtkImageData()
+                if dims is not None:
+                    img.SetDimensions(dims)
+                else:
+                    if len(inputobj.shape)==1:
+                        colors.printc("Error: must set dimensions (dims keyword) in Volume.", c='r')
+                        raise RuntimeError()
+                    img.SetDimensions(inputobj.shape)
+                img.GetPointData().SetScalars(varr)
+
+                #to convert rgb to numpy
+                #        img_scalar = data.GetPointData().GetScalars()
+                #        dims = data.GetDimensions()
+                #        n_comp = img_scalar.GetNumberOfComponents()
+                #        temp = utils.vtk2numpy(img_scalar)
+                #        numpy_data = temp.reshape(dims[1],dims[0],n_comp)
+                #        numpy_data = numpy_data.transpose(0,1,2)
+                #        numpy_data = np.flipud(numpy_data)
+
+        elif "ImageData" in inputtype:
+            img = inputobj
+
+        elif isinstance(inputobj, Volume):
+            img = inputobj.inputdata()
+
+        elif "UniformGrid" in inputtype:
+            img = inputobj
+
+        elif hasattr(inputobj, "GetOutput"): # passing vtk object, try extract imagdedata
+            if hasattr(inputobj, "Update"):
+                inputobj.Update()
+            img = inputobj.GetOutput()
+
+        elif isinstance(inputobj, str):
+            from vedo.io import loadImageData, download
+            if "https://" in inputobj:
+                inputobj = download(inputobj, verbose=False)
+            img = loadImageData(inputobj)
+
+        else:
+            colors.printc("Volume(): cannot understand input type:\n", inputtype, c='r')
+            return
+
+
+        if dims is not None:
+            img.SetDimensions(dims)
+
+        if origin is not None:
+            img.SetOrigin(origin) ### DIFFERENT from volume.origin()!
+
+        if spacing is not None:
+            img.SetSpacing(spacing)
+
+        self._data = img
+        self._mapper.SetInputData(img)
+        self.mode(mode).color(c).alpha(alpha).alphaGradient(alphaGradient)
+        self.GetProperty().SetShade(True)
+        self.GetProperty().SetInterpolationType(1)
+        self.GetProperty().SetScalarOpacityUnitDistance(alphaUnit)
+
+        # remember stuff:
+        self._mode = mode
+        self._color = c
+        self._alpha = alpha
+        self._alphaGrad = alphaGradient
+        self._alphaUnit = alphaUnit
+
+    def _update(self, img):
+        self._data = img
+        self._data.GetPointData().Modified()
+        self._mapper.SetInputData(img)
+        self._mapper.Modified()
+        self._mapper.Update()
+        return self
+
+    def mode(self, mode=None):
+        """Define the volumetric rendering style.
+
+            - 0, composite rendering
+            - 1, maximum projection rendering
+            - 2, minimum projection rendering
+            - 3, average projection rendering
+            - 4, additive mode
+
+        The default mode is "composite" where the scalar values are sampled through
+        the volume and composited in a front-to-back scheme through alpha blending.
+        The final color and opacity is determined using the color and opacity transfer
+        functions specified in alpha keyword.
+
+        Maximum and minimum intensity blend modes use the maximum and minimum
+        scalar values, respectively, along the sampling ray.
+        The final color and opacity is determined by passing the resultant value
+        through the color and opacity transfer functions.
+
+        Additive blend mode accumulates scalar values by passing each value
+        through the opacity transfer function and then adding up the product
+        of the value and its opacity. In other words, the scalar values are scaled
+        using the opacity transfer function and summed to derive the final color.
+        Note that the resulting image is always grayscale i.e. aggregated values
+        are not passed through the color transfer function.
+        This is because the final value is a derived value and not a real data value
+        along the sampling ray.
+
+        Average intensity blend mode works similar to the additive blend mode where
+        the scalar values are multiplied by opacity calculated from the opacity
+        transfer function and then added.
+        The additional step here is to divide the sum by the number of samples
+        taken through the volume.
+        As is the case with the additive intensity projection, the final image will
+        always be grayscale i.e. the aggregated values are not passed through the
+        color transfer function.
+        """
+        if mode is None:
+            return self._mapper.GetBlendMode()
+
+        if isinstance(mode, str):
+            if 'comp' in mode:
+                mode = 0
+            elif 'proj' in mode:
+                if 'max' in mode:
+                    mode = 1
+                elif 'min' in mode:
+                    mode = 2
+                elif 'ave' in mode:
+                    mode = 3
+                else:
+                    colors.printc("Error in volume.mode(): unknown mode", mode, c='r')
+                    mode = 0
+            elif 'add' in mode:
+                mode = 4
+            else:
+                colors.printc("Error in volume.mode(): unknown mode", mode, c='r')
+                mode = 0
+
+        self._mapper.SetBlendMode(mode)
+        self._mode = mode
+        return self
+
+    def shade(self, status=None):
+        """
+        Set/Get the shading of a Volume.
+        Shading can be further controlled with ``volume.lighting()`` method.
+
+        If shading is turned on, the mapper may perform shading calculations.
+        In some cases shading does not apply
+        (for example, in maximum intensity projection mode).
+        """
+        if status is None:
+            return self.GetProperty().GetShade()
+        self.GetProperty().SetShade(status)
+        return self
+
+    def cmap(self, c):
+        """Same as color() or c()."""
+        return self.c(c)
+
+    def jittering(self, status=None):
+        """If `jittering` is `True`, each ray traversal direction will be perturbed slightly
+        using a noise-texture to get rid of wood-grain effects.
+        """
+        if hasattr(self._mapper, 'SetUseJittering'): # tetmesh doesnt have it
+            if status is None:
+                return self._mapper.GetUseJittering()
+            self._mapper.SetUseJittering(status)
+        return self
+
+    def alphaGradient(self, alphaGrad):
+        """
+        Assign a set of tranparencies to a volume's gradient
+        along the range of the scalar value.
+        A single constant value can also be assigned.
+        The gradient function is used to decrease the opacity
+        in the "flat" regions of the volume while maintaining the opacity
+        at the boundaries between material types.  The gradient is measured
+        as the amount by which the intensity changes over unit distance.
+
+        The format for alphaGrad is the same as for method ``volume.alpha()``.
+
+        |read_volume2| |read_volume2.py|_
+        """
+        self._alphaGrad = alphaGrad
+        volumeProperty = self.GetProperty()
+        if alphaGrad is None:
+            volumeProperty.DisableGradientOpacityOn()
+            return self
+        else:
+            volumeProperty.DisableGradientOpacityOff()
+
+        #smin, smax = self._data.GetScalarRange()
+        smin, smax = 0, 255
+        gotf = volumeProperty.GetGradientOpacity()
+        if utils.isSequence(alphaGrad):
+            alphaGrad = np.array(alphaGrad)
+            if len(alphaGrad.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
+                for i, al in enumerate(alphaGrad):
+                    xalpha = smin + (smax - smin) * i / (len(alphaGrad) - 1)
+                    # Create transfer mapping scalar value to gradient opacity
+                    gotf.AddPoint(xalpha, al)
+            elif len(alphaGrad.shape)==2: # user passing [(x0,alpha0), ...]
+                gotf.AddPoint(smin, alphaGrad[0][1])
+                for xalpha, al in alphaGrad:
+                    # Create transfer mapping scalar value to opacity
+                    gotf.AddPoint(xalpha, al)
+                gotf.AddPoint(smax, alphaGrad[-1][1])
+            #colors.printc("alphaGrad at", round(xalpha, 1), "\tset to", al, c="b", bold=0)
+        else:
+            gotf.AddPoint(smin, alphaGrad) # constant alphaGrad
+            gotf.AddPoint(smax, alphaGrad)
+        return self
+
+    def componentWeight(self, i, weight):
+        """
+        Set the scalar component weight in range [0,1].
+        """
+        self.GetProperty().SetComponentWeight(i, weight)
+        return self
+
+    def xSlice(self, i):
+        """Extract the slice at index `i` of volume along x-axis."""
+        vslice = vtk.vtkImageDataGeometryFilter()
+        vslice.SetInputData(self.imagedata())
+        nx, ny, nz = self.imagedata().GetDimensions()
+        if i>nx-1:
+            i=nx-1
+        vslice.SetExtent(i,i, 0,ny, 0,nz)
+        vslice.Update()
+        return Mesh(vslice.GetOutput())
+
+    def ySlice(self, j):
+        """Extract the slice at index `j` of volume along y-axis."""
+        vslice = vtk.vtkImageDataGeometryFilter()
+        vslice.SetInputData(self.imagedata())
+        nx, ny, nz = self.imagedata().GetDimensions()
+        if j>ny-1:
+            j=ny-1
+        vslice.SetExtent(0,nx, j,j, 0,nz)
+        vslice.Update()
+        return Mesh(vslice.GetOutput())
+
+    def zSlice(self, k):
+        """Extract the slice at index `i` of volume along z-axis."""
+        vslice = vtk.vtkImageDataGeometryFilter()
+        vslice.SetInputData(self.imagedata())
+        nx, ny, nz = self.imagedata().GetDimensions()
+        if k>nz-1:
+            k=nz-1
+        vslice.SetExtent(0,nx, 0,ny, k,k)
+        vslice.Update()
+        return Mesh(vslice.GetOutput())
+
+    def slicePlane(self, origin=(0,0,0), normal=(1,1,1)):
+        """Extract the slice along a given plane position and normal.
+
+        |slicePlane| |slicePlane.py|_
+        """
+        reslice = vtk.vtkImageReslice()
+        reslice.SetInputData(self._data)
+        reslice.SetOutputDimensionality(2)
+        newaxis = utils.versor(normal)
+        pos = np.array(origin)
+        initaxis = (0,0,1)
+        crossvec = np.cross(initaxis, newaxis)
+        angle = np.arccos(np.dot(initaxis, newaxis))
+        T = vtk.vtkTransform()
+        T.PostMultiply()
+        T.RotateWXYZ(np.rad2deg(angle), crossvec)
+        T.Translate(pos)
+        M = T.GetMatrix()
+        reslice.SetResliceAxes(M)
+        reslice.SetInterpolationModeToLinear()
+        reslice.Update()
+        vslice = vtk.vtkImageDataGeometryFilter()
+        vslice.SetInputData(reslice.GetOutput())
+        vslice.Update()
+        msh = Mesh(vslice.GetOutput())
+        msh.SetOrientation(T.GetOrientation())
+        msh.SetPosition(pos)
+        return msh
+
+
+
+##########################################################################
+class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
+    """
+    Derived class of ``vtkImageSlice``.
+    This class is equivalent to ``Volume`` except for its representation.
+    The main purpose of this class is to be used in conjunction with ``Volume``
+    for visualization using ``interactorStyle="Image"``.
+    """
+    def __init__(self, inputobj=None):
+
+        vtk.vtkImageSlice.__init__(self)
+        Base3DProp.__init__(self)
+        BaseVolume.__init__(self)
+
+        self._mapper = vtk.vtkImageResliceMapper()
+        self._mapper.SliceFacesCameraOn()
+        self._mapper.SliceAtFocalPointOn()
+        self._mapper.SetAutoAdjustImageQuality(False)
+        self._mapper.BorderOff()
+
+        self.lut = None
+
+        self.property = vtk.vtkImageProperty()
+        self.property.SetInterpolationTypeToLinear()
+        self.SetProperty(self.property)
+
+        ###################
+        if isinstance(inputobj, str):
+            if "https://" in inputobj:
+                from vedo.io import download
+                inputobj = download(inputobj, verbose=False) # fpath
+            elif os.path.isfile(inputobj):
+                pass
+            else:
+                inputobj = sorted(glob.glob(inputobj))
+
+        ###################
+        inputtype = str(type(inputobj))
+
+        if inputobj is None:
+            img = vtk.vtkImageData()
+
+        if isinstance(inputobj, Volume):
+            img = inputobj.imagedata()
+            self.lut = utils.ctf2lut(inputobj)
+
+        elif utils.isSequence(inputobj):
+
+            if isinstance(inputobj[0], str): # scan sequence of BMP files
+                ima = vtk.vtkImageAppend()
+                ima.SetAppendAxis(2)
+                pb = utils.ProgressBar(0, len(inputobj))
+                for i in pb.range():
+                    f = inputobj[i]
+                    picr = vtk.vtkBMPReader()
+                    picr.SetFileName(f)
+                    picr.Update()
+                    mgf = vtk.vtkImageMagnitude()
+                    mgf.SetInputData(picr.GetOutput())
+                    mgf.Update()
+                    ima.AddInputData(mgf.GetOutput())
+                    pb.print('loading...')
+                ima.Update()
+                img = ima.GetOutput()
+
+            else:
+                if "ndarray" not in inputtype:
+                    inputobj = np.array(inputobj)
+
+                if len(inputobj.shape)==1:
+                    varr = utils.numpy2vtk(inputobj, dtype=np.float)
+                else:
+                    if len(inputobj.shape)>2:
+                        inputobj = np.transpose(inputobj, axes=[2, 1, 0])
+                    varr = utils.numpy2vtk(inputobj.ravel(order='F'), dtype=np.float)
+                varr.SetName('input_scalars')
+
+                img = vtk.vtkImageData()
+                img.SetDimensions(inputobj.shape)
+                img.GetPointData().SetScalars(varr)
+
+        elif "ImageData" in inputtype:
+            img = inputobj
+
+        elif isinstance(inputobj, Volume):
+            img = inputobj.inputdata()
+
+        elif "UniformGrid" in inputtype:
+            img = inputobj
+
+        elif hasattr(inputobj, "GetOutput"): # passing vtk object, try extract imagdedata
+            if hasattr(inputobj, "Update"):
+                inputobj.Update()
+            img = inputobj.GetOutput()
+
+        elif isinstance(inputobj, str):
+            from vedo.io import loadImageData, download
+            if "https://" in inputobj:
+                inputobj = download(inputobj, verbose=False)
+            img = loadImageData(inputobj)
+
+        else:
+            colors.printc("VolumeSlice: cannot understand input type:\n", inputtype, c='r')
+            return
+
+        self._data = img
+        self._mapper.SetInputData(img)
+        self.SetMapper(self._mapper)
+
+    def bounds(self):
+        """Return the bounding box as [x0,x1, y0,y1, z0,z1]"""
+        bns = [0,0,0,0,0,0]
+        self.GetBounds(bns)
+        return bns
+
+    def colorize(self, lut=None, fixScalarRange=False):
+        """
+        Assign a LUT (Look Up Table) to colorize the slice, leave it ``None``
+        to reuse an exisiting Volume color map.
+        Use "bw" for automatic black and white.
+        """
+        if lut is None and self.lut:
+            self.property.SetLookupTable(self.lut)
+        elif isinstance(lut, vtk.vtkLookupTable):
+            self.property.SetLookupTable(lut)
+        elif lut == "bw":
+            self.property.SetLookupTable(None)
+        self.property.SetUseLookupTableScalarRange(fixScalarRange)
+        return self
+
+    def alpha(self, value):
+        """Set opacity to the slice"""
+        self.property.SetOpacity(value)
+        return self
+
+    def autoAdjustQuality(self, value=True):
+        """Automatically reduce the rendering quality for greater speed when interacting"""
+        self._mapper.SetAutoAdjustImageQuality(value)
+        return self
+
+    def slab(self, thickness=0, mode=0, sampleFactor=2):
+        """
+        Make a thick slice (slab).
+
+        Parameters
+        ----------
+        thickness : float, optional
+            set the slab thickness, for thick slicing
+        mode : int, optional
+            The slab type:
+                0 = min
+                1 = max
+                2 = mean
+                3 = sum
+        sampleFactor : float, optional
+            Set the number of slab samples to use as a factor of the number of input slices
+            within the slab thickness. The default value is 2, but 1 will increase speed
+            with very little loss of quality.
+        """
+        self._mapper.SetSlabThickness(thickness)
+        self._mapper.SetSlabType(mode)
+        self._mapper.SetSlabSampleFactor(sampleFactor)
+        return self
+
+
+    def faceCamera(self, value=True):
+        """Make the slice always face the camera or not."""
+        self._mapper.SetSliceFacesCameraOn(value)
+        return self
+
+    def jumpToNearestSlice(self, value=True):
+        """This causes the slicing to occur at the closest slice to the focal point,
+        instead of the default behavior where a new slice is interpolated between the original slices.
+        Nothing happens if the plane is oblique to the original slices."""
+        self.SetJumpToNearestSlice(value)
+        return self
+
+    def fillBackground(self, value=True):
+        """Instead of rendering only to the image border, render out to the viewport boundary with
+        the background color. The background color will be the lowest color on the lookup
+        table that is being used for the image."""
+        self._mapper.SetBackground(value)
+        return self
+
+    def lighting(self, window, level, ambient=1.0, diffuse=0.0):
+        """Assign the values for window and color level."""
+        self.property.SetColorWindow(window)
+        self.property.SetColorLevel(level)
+        self.property.SetAmbient(ambient)
+        self.property.SetDiffuse(diffuse)
+        return self
 
 
 

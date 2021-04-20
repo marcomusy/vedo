@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 #
-from vedo import Plotter
+from vedo import Plotter, printInfo, isSequence
+from vedo import settings, printc, getColor, humansort, __version__
+from vedo import io, load
 from vedo.mesh import Mesh
 from vedo.tetmesh import TetMesh
 from vedo.ugrid import UGrid
 from vedo.volume import Volume
-from vedo import settings, printc, getColor, humansort, __version__
-from vedo import io, load
 import vedo.applications as applications
 from vedo.docs import tips
 import sys, argparse, os, glob
+import vtk
+import numpy as np
 
 #################################################################################################
 class MyArgs:
@@ -595,9 +597,11 @@ if len(sys.argv) == 1 or os.name == "nt":  # no args are passed, pop up GUI
 
 else:  ################################################################################################# command line mode
 
-    pr = argparse.ArgumentParser(description="version "+str(__version__)+""" -
-                                 check out home page https://github.com/marcomusy/vedo""")
-    pr.add_argument('files', nargs='*',             help="Input filename(s)")
+    descr = f"version {__version__}"
+    descr+= " - check out home page at https://vedo.embl.es"
+
+    pr = argparse.ArgumentParser(description=descr)
+    pr.add_argument('files', nargs='*',             help="input filename(s)")
     pr.add_argument("-c", "--color", type=str,      help="mesh color [integer or color name]", default=None, metavar='')
     pr.add_argument("-a", "--alpha",    type=float, help="alpha value [0-1]", default=1, metavar='')
     pr.add_argument("-w", "--wireframe",            help="use wireframe representation", action="store_true")
@@ -606,35 +610,85 @@ else:  #########################################################################
     pr.add_argument("-k", "--lighting", type=str,   help="metallic, plastic, shiny or glossy", default='default', metavar='')
     pr.add_argument("-K", "--flat",                 help="use flat shading", action="store_true")
     pr.add_argument("-t", "--texture-file",         help="texture image file", default='', metavar='')
-    pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-5]", default=1, metavar='')
+    pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-14]", default=1, metavar='')
     pr.add_argument("-i", "--no-camera-share",      help="do not share camera in renderers", action="store_true")
     pr.add_argument("-f", "--full-screen",          help="full screen mode", action="store_true")
     pr.add_argument("-bg","--background", type=str, help="background color [integer or color name]", default='', metavar='')
     pr.add_argument("-bg2", "--background-grad",    help="use background color gradient", default='', metavar='')
     pr.add_argument("-z", "--zoom", type=float,     help="zooming factor", default=1, metavar='')
     pr.add_argument("-q", "--quiet",                help="quiet mode, less verbose", default=False, action="store_false")
-    pr.add_argument("-n", "--multirenderer-mode",   help="Multi renderer Mode: files go to separate renderers", action="store_true")
-    pr.add_argument("-s", "--scrolling-mode",       help="Scrolling Mode: use slider to scroll files", action="store_true")
+    pr.add_argument("-n", "--multirenderer-mode",   help="multi renderer mode: files go to separate renderers", action="store_true")
+    pr.add_argument("-s", "--scrolling-mode",       help="scrolling Mode: use slider to scroll files", action="store_true")
     pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode for 3D image files", action="store_true")
-    pr.add_argument("-gx", "--x-spacing", type=float, help="Volume x-spacing factor [1]", default=1, metavar='')
-    pr.add_argument("-gy", "--y-spacing", type=float, help="Volume y-spacing factor [1]", default=1, metavar='')
-    pr.add_argument("-gz", "--z-spacing", type=float, help="Volume z-spacing factor [1]", default=1, metavar='')
-    pr.add_argument("--mode",                       help="Voxel rendering style (composite/maxproj/...)", default=0, metavar='')
-    pr.add_argument("--cmap",                       help="Voxel rendering color map name", default='jet', metavar='')
-    pr.add_argument("-e", "--edit",                 help="Free-hand edit the input Mesh", action="store_true")
-    pr.add_argument("--slicer",                     help="Slicer Mode for volumetric data", action="store_true")
+    pr.add_argument("-gx", "--x-spacing", type=float, help="volume x-spacing factor [1]", default=1, metavar='')
+    pr.add_argument("-gy", "--y-spacing", type=float, help="volume y-spacing factor [1]", default=1, metavar='')
+    pr.add_argument("-gz", "--z-spacing", type=float, help="volume z-spacing factor [1]", default=1, metavar='')
+    pr.add_argument("--mode",                       help="volume rendering style (composite/maxproj/...)", default=0, metavar='')
+    pr.add_argument("--cmap",                       help="volume rendering color map name", default='jet', metavar='')
+    pr.add_argument("-e", "--edit",                 help="free-hand edit the input Mesh", action="store_true")
+    pr.add_argument("--slicer",                     help="slicer Mode for volumetric data", action="store_true")
     pr.add_argument("--slicer2d",                   help="2D Slicer Mode for volumetric data", action="store_true")
-    pr.add_argument("--lego",                       help="Voxel rendering for 3D image files", action="store_true")
-    pr.add_argument("-r", "--run",                  help="Run example from vedo/examples", metavar='')
-    pr.add_argument("--search",           type=str, help="Search/grep for word in vedo examples", default='', metavar='')
-    pr.add_argument("--search-vtk-class", type=str, help="Search examples for this vtk class", default='', metavar='')
-    pr.add_argument("--reload",                     help="Reload the file, ignoring any previous download", action="store_true")
+    pr.add_argument("--lego",                       help="voxel rendering for 3D image files", action="store_true")
+    pr.add_argument("-r", "--run",                  help="run example from vedo/examples", metavar='')
+    pr.add_argument("--search",           type=str, help="search/grep for word in vedo examples", default='', metavar='')
+    pr.add_argument("--search-vtk",       type=str, help="search examples for the input vtk class", default='', metavar='')
+    pr.add_argument("--reload",                     help="reload the file, ignoring any previous download", action="store_true")
+    pr.add_argument("--info", nargs='*',            help="get an info printout of the input file(s)")
     args = pr.parse_args()
 
     if "/vedo/vedo" in settings.installdir:
         settings.installdir = settings.installdir.replace('vedo/','').replace('vedo\\','')
 
-    if args.run:
+    if args.info is not None:
+        for i in range(2, len(sys.argv)):
+            file = sys.argv[i]
+            try:
+                A = load(file)
+                if isinstance(A, np.ndarray):
+                    printInfo(A)
+                elif isSequence(A):
+                    for a in A:
+                        printInfo(a)
+                else:
+                    printInfo(A)
+            except:
+                printc("Could not load:", file, "skip.", c="r")
+
+        printc("_" * 65, bold=0)
+        printc("vedo version      :", __version__, invert=1, end='   ')
+        printc("https://vedo.embl.es", underline=1, italic=1)
+        printc("vtk version       :", vtk.vtkVersion().GetVTKVersion())
+        printc("python version    :", sys.version.replace("\n", ""))
+        printc("python interpreter:", sys.executable)
+        printc("vedo installation :", settings.installdir)
+        try:
+            import platform
+            printc("system            :", platform.system(),
+                   platform.release(), os.name, platform.machine())
+        except:
+            pass
+        try:
+            import k3d
+            printc("k3d version       :", k3d.__version__, bold=0, dim=1)
+        except:
+            pass
+        try:
+            import ipyvtk_simple
+            printc("ipyvtk version    :", ipyvtk_simple.__version__, bold=0, dim=1)
+        except:
+            pass
+        try:
+            import itkwidgets
+            printc("itkwidgets version:", itkwidgets.__version__, bold=0, dim=1)
+        except:
+            pass
+        try:
+            import panel
+            printc("panel version     :", panel.__version__, bold=0, dim=1)
+        except:
+            pass
+
+    elif args.run:
         expath = os.path.join(settings.installdir, "examples", "**", "*.py")
         exfiles = [f for f in glob.glob(expath, recursive=True)]
         f2search = os.path.basename(args.run).lower()
@@ -700,7 +754,7 @@ else:  #########################################################################
                             if fflag:
                                 name = os.path.basename(ifile)
                                 etype = ifile.split("/")[-2]
-                                printc("--> examples/"+etype+"/"+name+":", c='y', italic=True)
+                                printc("--> examples/"+etype+"/"+name+":", c='y', italic=1, invert=1)
                                 fflag = False
                             line = line.replace(pattern, "\x1b[4m\x1b[1m"+pattern+"\x1b[0m\u001b[33m")
                             print(f"\u001b[33m{i}\t{line}\x1b[0m", end='')
@@ -708,7 +762,7 @@ else:  #########################################################################
         else:
             printc("Please specify at least four characters.", c='r')
 
-    elif args.search_vtk_class:
+    elif args.search_vtk:
         # input a vtk class name to get links to examples that involve that class
         # From https://kitware.github.io/vtk-examples/site/Python/Utilities/SelectExamples/
         import json
@@ -743,7 +797,7 @@ else:  #########################################################################
             samples = list(kv)
             return total, [f'{s[1]}' for s in samples]
 
-        vtk_class, language, all_values, number = args.search_vtk_class, "Python", True, 10000
+        vtk_class, language, all_values, number = args.search_vtk, "Python", True, 10000
         tmp_dir = tempfile.gettempdir()
         path = download_file(tmp_dir, xref_url, overwrite=False)
         if not path.is_file():

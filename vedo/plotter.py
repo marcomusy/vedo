@@ -31,7 +31,31 @@ __all__ = ["show",
            ]
 
 ########################################################################
-def show(*actors, **options):
+def show(*actors,
+        at=None,
+        shape=(1, 1),
+        N=None,
+        pos=(0, 0),
+        size="auto",
+        screensize="auto",
+        title="vedo",
+        bg="white",
+        bg2=None,
+        axes=None,
+        interactive=None,
+        offscreen=False,
+        sharecam=True,
+        resetcam=True,
+        zoom=None,
+        viewup="",
+        azimuth=0,
+        elevation=0,
+        roll=0,
+        camera=None,
+        interactorStyle=0,
+        q=False,
+        new=False,
+    ):
     """
     Create on the fly an instance of class ``Plotter`` and show the object(s) provided.
 
@@ -156,33 +180,8 @@ def show(*actors, **options):
             plt.show(p, at=1)
             plt.show(c, at=2, interactive=True)
     """
-    at = options.pop("at", None)
-    shape = options.pop("shape", (1, 1))
-    N = options.pop("N", None)
-    pos = options.pop("pos", (0, 0))
-    size = options.pop("size", "auto")
-    screensize = options.pop("screensize", "auto")
-    title = options.pop("title", "vedo")
-    bg = options.pop("bg", "white")
-    bg2 = options.pop("bg2", None)
-    axes = options.pop("axes", settings.defaultAxesType)
-    interactive = options.pop("interactive", None)
-    offscreen = options.pop("offscreen", False)
-    sharecam = options.pop("sharecam", True)
-    resetcam = options.pop("resetcam", True)
-    zoom = options.pop("zoom", None)
-    viewup = options.pop("viewup", "")
-    azimuth = options.pop("azimuth", 0)
-    elevation = options.pop("elevation", 0)
-    roll = options.pop("roll", 0)
-    camera = options.pop("camera", None)
-    interactorStyle = options.pop("interactorStyle", 0)
-    q = options.pop("q", False)
-    newPlotter = options.pop("new", False)
-
-    if len(options):
-        for op in options:
-            printc("Warning: unknown keyword in show():", op, c='y')
+    if axes is None:
+        axes = settings.defaultAxesType
 
     if len(actors) == 0:
         actors = None
@@ -191,7 +190,7 @@ def show(*actors, **options):
     else:
         actors = utils.flatten(actors)
 
-    if settings.plotter_instance and not newPlotter: # Plotter exists
+    if settings.plotter_instance and not new: # Plotter exists
         plt = settings.plotter_instance
 
     else:                                            # Plotter must be created
@@ -729,13 +728,9 @@ class Plotter:
 
         self.window.SetPosition(pos)
 
-        if not title:
-            title = " vedo "
-
         if self.qtWidget is not None:
             self.interactor = self.qtWidget.GetRenderWindow().GetInteractor()
             self.window = self.qtWidget.GetRenderWindow() # overwrite
-            self.window.SetWindowName(title)
             ########################
             return #################
             ########################
@@ -878,9 +873,9 @@ class Plotter:
             self.interactor.Render()
         return self
 
-    def pop(self, render=False):
+    def pop(self, at=0, render=False):
         """Remove the last added object from the rendering window"""
-        self.remove(self.actors[-1], render=render)
+        self.remove(self.actors[-1], at=at, render=render)
         return self
 
     def render(self, resetcam=False):
@@ -1704,7 +1699,7 @@ class Plotter:
                 if a.trail and a.trail not in self.actors:
                     scannedacts.append(a.trail)
 
-            elif isinstance(a, vedo.Volume):
+            elif isinstance(a, (vedo.Volume, vedo.VolumeSlice)):
                 scannedacts.append(a)
 
             elif isinstance(a, vtk.vtkImageData):
@@ -1803,17 +1798,33 @@ class Plotter:
         return scannedacts
 
 
-    def show(self, *actors, **options):
+    def show(self, *actors,
+                    at=None,
+                    axes=None,
+                    resetcam=None,
+                    zoom=False,
+                    interactive=None,
+                    viewup="",
+                    azimuth=0,
+                    elevation=0,
+                    roll=0,
+                    camera=None,
+                    interactorStyle=0,
+                    rate=None,
+                    bg=None,
+                    bg2=None,
+                    size=None,
+                    title=None,
+                    q=False,
+        ):
         """
         Render a list of actors.
-
-        Allowed input objects are: ``filename``, ``vtkPolyData``, ``vtkActor``,
-        ``vtkActor2D``, ``vtkImageActor``, ``vtkAssembly`` or ``vtkVolume``.
 
         If filename is given, its type is guessed based on its extension.
         Supported formats are:
         `vtu, vts, vtp, ply, obj, stl, 3ds, xml, neutral, gmsh, pcd, xyz, txt, byu,
         tif, slc, vti, mhd, png, jpg`.
+        Otherwise it will be interpreted as a comment to appear on the top-left of the window.
 
         :param int at: number of the renderer to plot to, if more than one exists
         :param list shape: Number of sub-render windows inside of the main window.
@@ -1890,29 +1901,18 @@ class Plotter:
             - 9 = 3D
             - 10 = Terrain
             - 11 = Unicam
+            - 12 = Image
 
         :param bool q:  force program to quit after `show()` command returns.
         """
-        at = options.pop("at", None)
-        axes = options.pop("axes", settings.defaultAxesType)
-        resetcam = options.pop("resetcam", None)
-        zoom = options.pop("zoom", False)
-        interactive = options.pop("interactive", None)
-        viewup = options.pop("viewup", "")
-        azimuth = options.pop("azimuth", 0)
-        elevation = options.pop("elevation", 0)
-        roll = options.pop("roll", 0)
-        camera = options.pop("camera", None)
-        interactorStyle = options.pop("interactorStyle", 0)
-        rate = options.pop("rate", None)
-        bg_ = options.pop("bg", None)
-        bg2_ = options.pop("bg2", None)
-        axes_ = options.pop("axes", None)
-        size_ = options.pop("size", None)
-        q = options.pop("q", False)
+        if title is not None:
+            self.title = title
 
-        if size_ is not None:
-            self.size = size_
+        if axes is None:
+            axes = settings.defaultAxesType
+
+        if size is not None:
+            self.size = size
             if self.size[0] == 'f':  # full screen
                 self.size = 'fullscreen'
                 self.window.SetFullScreen(True)
@@ -1924,15 +1924,15 @@ class Plotter:
             self.renderer = self.renderers[at]
 
         if not settings.notebookBackend:
-            if bg_ is not None:
-                self.backgrcol = getColor(bg_)
+            if bg is not None:
+                self.backgrcol = getColor(bg)
                 self.renderer.SetBackground(self.backgrcol)
-            if bg2_ is not None:
+            if bg2 is not None:
                 self.renderer.GradientBackgroundOn()
-                self.renderer.SetBackground2(getColor(bg2_))
+                self.renderer.SetBackground2(getColor(bg2))
 
-        if axes_ is not None:
-            self.axes = axes_
+        if axes is not None:
+            self.axes = axes
 
         if self.offscreen:
             interactive = False
@@ -1970,8 +1970,6 @@ class Plotter:
                 return backends.getNotebookBackend(actors2show, zoom, viewup)
         #########################################################################
 
-        self.window.SetWindowName(self.title)
-
         if interactive is not None:
             self.interactive = interactive
 
@@ -1982,6 +1980,7 @@ class Plotter:
                 if zoom:
                     self.camera.Zoom(zoom)
                 self.interactor.Render()
+                self.window.SetWindowName(self.title)
                 if self.interactive:
                     self.interactor.Start()
                 return self ###############
@@ -2103,8 +2102,7 @@ class Plotter:
         if self.resetcam:
             self.renderer.ResetCamera()
 
-        if settings.showRendererFrame and len(self.renderers) > 1:
-            addons.addRendererFrame(c=settings.rendererFrameColor)
+        addons.addRendererFrame()
 
         if not self.initializedIren and self.interactor:
             self.interactor.Initialize()
@@ -2164,11 +2162,8 @@ class Plotter:
 
         self.renderer.ResetCameraClippingRange()
         if settings.immediateRendering:
-            # if not self.interactive: #because Start will already call Render()
-            #     print("self.window.Render")
-            # if len(self.renderers)>1 or not self.interactive:
             self.window.Render() ##################################################### <----Render
-
+        self.window.SetWindowName(self.title)
 
         # 2d ####################################################################
         if settings.notebookBackend == "2d":
@@ -2211,6 +2206,10 @@ class Plotter:
             self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTerrain())
         elif interactorStyle ==11 or interactorStyle == "Unicam":
             self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleUnicam())
+        elif interactorStyle ==12 or interactorStyle == "Image":
+            style = vtk.vtkInteractorStyleImage()
+            style.SetInteractionModeToImage3D()
+            self.interactor.SetInteractorStyle(style)
 
         if self.interactor and self.interactive:
             # print("Start", [self.renderer])
@@ -2651,6 +2650,13 @@ class Plotter:
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
             iren.Start()
             return
+
+        elif key == "A": # toggle antialiasing
+            msam = settings.plotter_instance.window.GetMultiSamples()
+            if not msam:
+                settings.plotter_instance.window.SetMultiSamples(8)
+            else:
+                settings.plotter_instance.window.SetMultiSamples(0)
 
         elif key == "j":
             iren.ExitCallback()

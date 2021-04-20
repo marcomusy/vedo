@@ -865,7 +865,21 @@ emoji = {
     "\sigma": u"\U000003C3",
 }
 
-def printc(*strings, **keys):
+def printc(*strings,
+            c = None,
+            bc = None,
+            bold = True,
+            italic = False,
+            blink = False,
+            underline = False,
+            strike = False,
+            dim = False,
+            invert = False,
+            box = "",
+            dbg = False,
+            end = "\n",
+            flush = True,
+    ):
     """
     Print to terminal in color (any color!).
 
@@ -881,7 +895,7 @@ def printc(*strings, **keys):
     :param box: print a box with specified text character ['']
     :param bool flush: flush buffer after printing [True]
     :param str end: the end character to be printed [newline]
-    :param bool debug: print debug information about the evironment
+    :param bool dbg: print debug information about the evironment
 
     :Example:
         .. code-block:: python
@@ -895,46 +909,14 @@ def printc(*strings, **keys):
 
         |colorprint|
     """
-    end = keys.pop("end", "\n")
-    flush = keys.pop("flush", True)
-
     if not settings.enablePrintColor:
-        print(*strings, end=end)
-        if flush:
-            sys.stdout.flush()
+        print(*strings, end=end, flush=flush)
         return
 
     if not settings.notebookBackend:
         if not _terminal_has_colors:
-            print(*strings, end=end)
-            if flush:
-                sys.stdout.flush()
+            print(*strings, end=end, flush=flush)
             return
-
-    c = keys.pop("c", None)
-    bc = keys.pop("bc", None)
-    bold = keys.pop("bold", True)
-    italic = keys.pop("italic", False)
-    blink = keys.pop("blink", False)
-    underline = keys.pop("underline", False)
-    strike = keys.pop("strike", False)
-    dim = keys.pop("dim", False)
-    invert = keys.pop("invert", False)
-    box = keys.pop("box", "")
-    dbg = keys.pop("debug", False)
-
-    if c is True:
-        c = "green"
-    elif c is False:
-        c = "red"
-
-    if box is True:
-        box='-'
-
-    if c is not None:
-        c = getColor(c)
-    if bc is not None:
-        bc = getColor(bc)
 
     try: # -------------------------------------------------------------
 
@@ -958,13 +940,38 @@ def printc(*strings, **keys):
 
             txt += str(s) + separator
 
-        special, cseq = "", ""
+        special, cseq, reset = "", "", u"\u001b[0m"
+        oneletter_colors = {'k': u'\u001b[30;1m', # because these are supported by most terminals
+                            'r': u'\u001b[31;1m',
+                            'g': u'\u001b[32;1m',
+                            'y': u'\u001b[33;1m',
+                            'b': u'\u001b[34;1m',
+                            'm': u'\u001b[35;1m',
+                            'c': u'\u001b[36;1m',
+                            'w': u'\u001b[37;1m',
+        }
+
         if c is not None:
-            r,g,b = c
-            cseq += "\x1b[38;2;"+str(int(r*255))+";"+str(int(g*255))+";"+str(int(b*255))+"m"
+            if c is True:
+                c = "g"
+            elif c is False:
+                c = "r"
+
+            if isinstance(c, str) and c in oneletter_colors.keys():
+                cseq += oneletter_colors[c]
+            else:
+                r,g,b = getColor(c) # not all terms support this syntax
+                cseq += f"\x1b[38;2;{int(r*255)};{int(g*255)};{int(b*255)}m"
+
         if bc:
-            r,g,b = bc
-            cseq += "\x1b[48;2;"+str(int(r*255))+";"+str(int(g*255))+";"+str(int(b*255))+"m"
+            if bc in oneletter_colors.keys():
+                cseq += oneletter_colors[bc]
+            else:
+                r,g,b = getColor(bc)
+                cseq += f"\x1b[48;2;{int(r*255)};{int(g*255)};{int(b*255)}m"
+
+        if box is True:
+            box='-'
         if underline and not box:
             special += "\x1b[4m"
         if strike and not box:
@@ -981,12 +988,10 @@ def printc(*strings, **keys):
             special += "\x1b[5m"
 
         if box and not ("\n" in txt):
-            if len(box) > 1:
-                box = box[0]
+            box = box[0]
+            boxv = box
             if box in ["_", "=", "-", "+", "~"]:
                 boxv = "|"
-            else:
-                boxv = box
 
             if box == "_" or box == ".":
                 outtxt = special + cseq + " " + box * (len(txt) + offset + 2) + " \n"
@@ -997,15 +1002,15 @@ def printc(*strings, **keys):
             outtxt += boxv + " " + txt + " " + boxv + "\n"
 
             if box == "_":
-                outtxt += "|" + box * (len(txt) + offset + 2) + "|" + "\x1b[0m" + end
+                outtxt += "|" + box * (len(txt) + offset + 2) + "|" + reset + end
             else:
-                outtxt += box * (len(txt) + offset + 4) + "\x1b[0m" + end
+                outtxt += box * (len(txt) + offset + 4) + reset + end
 
             sys.stdout.write(outtxt)
 
         else:
 
-            out = special + cseq + txt + "\x1b[0m"
+            out = special + cseq + txt + reset
 
             if dbg:
                 from inspect import currentframe, getframeinfo
@@ -1013,11 +1018,12 @@ def printc(*strings, **keys):
                 cf = currentframe().f_back
                 cfi = getframeinfo(cf)
                 fname = os.path.basename(getframeinfo(cf).filename)
-                print("\x1b[7m\x1b[3m\x1b[37m"+fname+" line:\x1b[1m"+str(cfi.lineno)+"\x1b[0m", end='')
-                print('\x1b[3m\x1b[37m\x1b[2m', "\U00002501"*30, time.ctime(), "\x1b[0m")
-                if txt: print("    \x1b[37m\x1b[1mMessage : "+ out)
+                print("\x1b[7m\x1b[3m\x1b[37m"+fname+" line:\x1b[1m"+str(cfi.lineno)+reset, end='')
+                print('\x1b[3m\x1b[37m\x1b[2m', "\U00002501"*30, time.ctime(), reset)
+                if txt:
+                    print("    \x1b[37m\x1b[1mMessage : "+ out)
                 print("    \x1b[37m\x1b[1mFunction:\x1b[0m\x1b[37m "+ str(cfi.function))
-                print('    \x1b[1mLocals  :\x1b[0m')
+                print('    \x1b[1mLocals  :'+reset)
                 for loc in cf.f_locals.keys():
                     obj = cf.f_locals[loc]
                     var = repr(obj)
@@ -1032,35 +1038,35 @@ def printc(*strings, **keys):
                             oname = obj.name
                         var = oname + ', at ' + precision(obj.GetPosition(),3)
 
-                    print('      \x1b[37m', loc,'=', var[:60].replace('\n',''), '\x1b[0m')
+                    print('      \x1b[37m', loc,'=', var[:60].replace('\n',''), reset)
                     if isSequence(obj) and len(obj)>4:
                         print('           \x1b[37m\x1b[2m\x1b[3m len:', len(obj),
                               ' min:', precision(min(obj), 4),
                               ' max:', precision(max(obj), 4),
-                               # ' mean:', np.mean(np.array(obj)),
-                              '\x1b[0m')
+                              reset)
 
                 print("    \x1b[1m\x1b[37mElapsed time:\x1b[0m\x1b[37m",
-                      str(time.time()-_global_start_time)[:6], 's\x1b[0m')
+                      str(time.time()-_global_start_time)[:6], 's'+reset)
 
             else:
                 sys.stdout.write(out + end)
 
-    except: # -------------------------------------------------------------
+    except: # ------------------------------------------------------------- fallback
         print(*strings, end=end)
 
     if flush:
         sys.stdout.flush()
 
-def colorPicker(xy, plt=None):
+
+def colorPicker(xy, plotter=None):
     """Pick color of specific (x,y) pixel on the screen."""
     w2if = vtk.vtkWindowToImageFilter()
-    if plt is None:
-        plt = settings.plotter_instance
-    w2if.SetInput(plt.window)
+    if plotter is None:
+        plotter = settings.plotter_instance
+    w2if.SetInput(plotter.window)
     w2if.ReadFrontBufferOff()
     w2if.Update()
-    nx, ny = plt.window.GetSize()
+    nx, ny = plotter.window.GetSize()
     varr = w2if.GetOutput().GetPointData().GetScalars()
     arr = vtk_to_numpy(varr).reshape(ny,nx,3)
     if int(xy[1])<ny and int(xy[0])<nx:

@@ -1,10 +1,10 @@
 '''Draw a z = f(x,y) surface specified as
 a string or as a reference to an external function.
-Red points indicate where the function does not exist'''
+Red points indicate where the function does not exist!'''
 from vedo import *
 from vedo.pyplot import plot
 
-doc = Text2D(__doc__, pos='bottom-right', c='darkgreen', font='Quikhand')
+doc = Text2D(__doc__, pos='bottom-left', c='darkgreen', font='Quikhand')
 
 ############################################################### REAL
 # an existing function z(x,y) can be passed:
@@ -18,9 +18,9 @@ f2 = plot("sin(3*x)*log(x-y)/3")
 # specify x and y ranges and z vertical limits:
 f3 = plot("log(x**2+y**2-1)", xlim=[-2,2], ylim=[-1,8], zlim=[-1,None])
 
-show([(f1, 'y = sin(3*x)*log(x-y)/3', doc),
-      (f2, 'y = log(x**2+y**2-1)'),
-      (f3, 'y = sin(2*x*y) * cos(3*y) /2'),
+show([(f1, 'y = sin(2*x*y) * cos(3*y) /2', doc),
+      (f2, 'y = sin(3*x)*log(x-y)/3'),
+      (f3, 'y = log(x**2+y**2-1)'),
      ], N=3, sharecam=False)
 
 ############################################################## COMPLEX

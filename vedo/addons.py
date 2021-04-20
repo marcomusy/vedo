@@ -430,7 +430,8 @@ def Light(
 
 
 #####################################################################
-def addSplineTool(plotter, points, pc='k', ps=8, lc='r4', ac='g5', lw=2, closed=False, interactive=True):
+def addSplineTool(plotter, points, pc='k', ps=8, lc='r4', ac='g5',
+                  lw=2, closed=False, interactive=True):
     """
     Add a spline tool to the current plotter. Nodes of the spline can be dragged in space
     with the mouse.
@@ -1114,18 +1115,20 @@ def addCutterTool(obj=None, mode="box", invert=False):
     """
     if obj is None:
         obj = settings.plotter_instance.actors[0]
-
-    if isinstance(obj, vtk.vtkVolume):
-        return _addCutterToolVolumeWithBox(obj, invert)
-    else:
-        if mode=='box':
-            return _addCutterToolMeshWithBox(obj, invert)
-        elif mode=='plane':
-            return _addCutterToolMeshWithPlane(obj, invert)
-        elif mode=='sphere':
-            return _addCutterToolMeshWithSphere(obj, invert)
+    try:
+        if isinstance(obj, vedo.Volume):
+            return _addCutterToolVolumeWithBox(obj, invert)
         else:
-            raise RuntimeError("Unknown mode: "+str(mode))
+            if mode=='box':
+                return _addCutterToolMeshWithBox(obj, invert)
+            elif mode=='plane':
+                return _addCutterToolMeshWithPlane(obj, invert)
+            elif mode=='sphere':
+                return _addCutterToolMeshWithSphere(obj, invert)
+            else:
+                raise RuntimeError("Unknown mode: "+str(mode))
+    except:
+        return None
 
 def _addCutterToolMeshWithSphere(mesh, invert):
     plt = settings.plotter_instance
@@ -1401,21 +1404,26 @@ def computeVisibleBounds(actors=None):
     elif not utils.isSequence(actors):
         actors = [actors]
 
-    for a in actors:
-        if a and a.GetUseBounds():
-            b = a.GetBounds()
-            if b:
-                bns.append(b)
-    if len(bns):
-        max_bns = np.max(bns, axis=0)
-        min_bns = np.min(bns, axis=0)
-        vbb = [min_bns[0], max_bns[1], min_bns[2], max_bns[3], min_bns[4], max_bns[5]]
-    else:
-        vbb = settings.plotter_instance.renderer.ComputeVisiblePropBounds()
-        max_bns = vbb
-        min_bns = vbb
-    sizes = np.array([max_bns[1]-min_bns[0], max_bns[3]-min_bns[2], max_bns[5]-min_bns[4]])
-    return [vbb, sizes, min_bns, max_bns]
+    try:
+        # this block fails for VolumeSlice as vtkImageSlice.GetBounds() returns a pointer..
+        # in any case we dont need axes for that one.
+        for a in actors:
+            if a and a.GetUseBounds():
+                b = a.GetBounds()
+                if b:
+                    bns.append(b)
+        if len(bns):
+            max_bns = np.max(bns, axis=0)
+            min_bns = np.min(bns, axis=0)
+            vbb = [min_bns[0], max_bns[1], min_bns[2], max_bns[3], min_bns[4], max_bns[5]]
+        else:
+            vbb = settings.plotter_instance.renderer.ComputeVisiblePropBounds()
+            max_bns = vbb
+            min_bns = vbb
+        sizes = np.array([max_bns[1]-min_bns[0], max_bns[3]-min_bns[2], max_bns[5]-min_bns[4]])
+        return [vbb, sizes, min_bns, max_bns]
+    except:
+        return [(0,0,0,0,0,0), (0,0,0), 0,0]
 
 
 #####################################################################
@@ -1454,7 +1462,8 @@ def Ruler(
     |goniometer| |goniometer.py|_
     """
     if unitScale != 1.0 and units == "":
-        raise ValueError("When setting 'unitScale' to a value other than 1, a 'units' arguments must be specified.")
+        raise ValueError(f"When setting 'unitScale' to a value other than 1, "
+                         f"a 'units' arguments must be specified.")
 
     if isinstance(p1, Points): p1 = p1.GetPosition()
     if isinstance(p2, Points): p2 = p2.GetPosition()
@@ -3012,7 +3021,15 @@ def addGlobalAxes(axtype=None, c=None):
 
 
 #####################################################################
-def addRendererFrame(c=None, alpha=None, lw=None):
+def addRendererFrame(c=None, alpha=None, lw=None, pad=None):
+
+    if lw is None:
+        lw = settings.rendererFrameWidth
+    if lw==0:
+        return None
+
+    if pad is None:
+        pad = settings.rendererFramePadding
 
     if c is None:  # automatic black or white
         c = (0.9, 0.9, 0.9)
@@ -3023,13 +3040,11 @@ def addRendererFrame(c=None, alpha=None, lw=None):
     if alpha is None:
         alpha = settings.rendererFrameAlpha
 
-    if lw is None:
-        lw = settings.rendererFrameWidth
-
     ppoints = vtk.vtkPoints()  # Generate the polyline
-    psqr = [[0,0],[0,1],[1,1],[1,0],[0,0]]
+    xy = 1-pad
+    psqr = [[pad,pad],[pad,xy],[xy,xy],[xy,pad],[pad,pad]]
     for i, pt in enumerate(psqr):
-            ppoints.InsertPoint(i, pt[0], pt[1], 0)
+        ppoints.InsertPoint(i, pt[0], pt[1], 0)
     lines = vtk.vtkCellArray()
     lines.InsertNextCell(len(psqr))
     for i in range(len(psqr)):

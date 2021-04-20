@@ -1,10 +1,6 @@
-"""
-This example shows how to use a variant of a 1 dimensional
-Moving Least Squares (MLS) algorithm to project a cloud
-of unordered points to become a smooth line.
-The parameter f controls the size of the local regression.
-"""
-print(__doc__)
+"""1D Moving Least Squares (MLS)
+to project a cloud of unordered points
+to become a smooth line"""
 from vedo import *
 import numpy as np
 
@@ -18,18 +14,18 @@ pts = [ (sin(6*x), cos(2*x)*x, cos(9*x)) for x in np.arange(0,2, .001)]
 pts += np.random.randn(len(pts), 3) /20  # add noise
 np.random.shuffle(pts)  # make sure points are not ordered
 
-a = Points(pts).legend("cloud")
+pts = Points(pts, r=5)
 
-show(a, at=0, N=N, axes=5)
+show(pts, __doc__, at=0, N=N, axes=1)
 
 for i in range(1, N):
-    a = a.clone().smoothMLS1D(f=0.4).color(i).legend("iter #" + str(i))
+    pts = pts.clone().smoothMLS1D(f=0.4).color(i)
 
-    # at last iteration make sure points are separated by tol (in % of bbox)
     if i == N-1:
-        a.clean(tol=0.02).ps(9)
+        # at the last iteration make sure points
+        # are separated by tol (in % of bbox)
+        pts.clean(tol=0.02)
 
-    print("iteration", i, "#points:", len(a.points()))
-    show(a, at=i)
+    show(pts, f"Iteration {i}, #points: {pts.N()}", at=i)
 
 interactive()

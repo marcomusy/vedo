@@ -79,7 +79,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
 
         self.useArray = 0
 
-        inputtype = str(type(inputobj))
+        #inputtype = str(type(inputobj))
         #printc('TetMesh inputtype', inputtype)
 
         ###################

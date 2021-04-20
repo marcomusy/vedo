@@ -9,6 +9,8 @@
 - added example search by command line e.g.:
 `vedo --search triangle -i`  (`-i` to ignore capital letters)
 
+- added file(s) info dump by command line e.g.:
+`vedo --info some_image.jpg https://vedo.embl.es/examples/data/porsche.ply`
 
 ---
 ### `base.py`
@@ -51,6 +53,7 @@
 
 ---
 ### `volume.py`
+- added class `VolumeSlice` for volume-sliced visualization.
 
 ---
 ### `utils.py`
@@ -67,6 +70,8 @@
 - `vedo -r cutFreeHand`
 - `vedo -r spline_tool`
 - `vedo -r legendbox`
+- `vedo -r read_volume3`
+- `vedo -r multi_viewer2`
 
 
 

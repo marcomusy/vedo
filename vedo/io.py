@@ -139,15 +139,15 @@ def load(inputobj, unpack=True, force=False):
             colors.printc("\times Error in load(): cannot find", fod, c='r')
 
     if len(acts) == 1:
+        if "numpy" in str(type(acts[0])):
+            return acts[0]
         if not acts[0]:
             colors.printc("\times Error in load(): cannot load", inputobj, c='r')
-        # settings.collectable_actors.append(acts[0])
         return acts[0]
     elif len(acts) == 0:
         colors.printc("\times Error in load(): cannot load", inputobj, c='r')
         return None
     else:
-        # settings.collectable_actors += acts
         return acts
 
 
@@ -912,16 +912,20 @@ def loadNumpy(inobj):
     if isinstance(inobj, str): # user passing a file
 
         if inobj.endswith('.npy'):
-            data = np.load(inobj, allow_pickle=True, encoding='latin1').flatten()
+            data = np.load(inobj, allow_pickle=True, encoding='latin1')#.flatten()
         elif  inobj.endswith('.npz'):
             data = np.load(inobj, allow_pickle=True)['vedo_scenes']
-            #print(data.files)
 
-        if "objects" in data[0].keys():  # loading a full scene!!
-            return importWindow(data[0]) # <-------
+        isdict = hasattr(data[0], "keys")
 
+        if isdict and "objects" in data[0].keys():  # loading a full scene!!
+            return importWindow(data[0])
+
+        # it's a very normal numpy data object? just return it!
+        if not isdict:
+            return data
         if 'type' not in data[0].keys():
-            return data[0] # it's a very normal numpy data object, just return it!
+            return data
 
     else:
         data = inobj

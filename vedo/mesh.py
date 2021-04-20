@@ -66,7 +66,6 @@ class Mesh(Points):
 
         |buildmesh| |buildmesh.py|_
     """
-
     def __init__(
         self,
         inputobj=None,
@@ -204,12 +203,12 @@ class Mesh(Points):
 
         self._bfprop = None  # backface property holder
 
-        prp = self.GetProperty()
-        prp.SetInterpolationToPhong()
+        self.property = self.GetProperty()
+        self.property.SetInterpolationToPhong()
 
         if vedo.settings.renderLinesAsTubes:
             try:
-                prp.RenderLinesAsTubesOn()
+                self.property.RenderLinesAsTubesOn()
             except:
                 pass
 
@@ -258,15 +257,15 @@ class Mesh(Points):
                     c = colorMap(c, "rainbow", 0,1)
                 else:
                     c = getColor(c)
-                prp.SetColor(c)
-                prp.SetAmbient(0.1)
-                prp.SetDiffuse(1)
-                prp.SetSpecular(.05)
-                prp.SetSpecularPower(5)
+                self.property.SetColor(c)
+                self.property.SetAmbient(0.1)
+                self.property.SetDiffuse(1)
+                self.property.SetSpecular(.05)
+                self.property.SetSpecularPower(5)
                 self._mapper.ScalarVisibilityOff()
 
         if alpha is not None:
-            prp.SetOpacity(alpha)
+            self.property.SetOpacity(alpha)
         return
 
 
@@ -339,24 +338,24 @@ class Mesh(Points):
                 scale=None,
                 ushift=None,
                 vshift=None,
+                seamThreshold=None,
                 ):
         """
         Assign a texture to mesh from image file or predefined texture `tname`.
-
         If tname is set to ``None`` texture is disabled.
-
         If tname is set to '' then a png or jpg file is looked for with same name and path.
-
         Input tname can also be an array of shape (n,m,3).
-
         :param bool interpolate: turn on/off linear interpolation of the texture map when rendering.
         :param bool repeat: repeat of the texture when tcoords extend beyond the [0,1] range.
         :param bool edgeClamp: turn on/off the clamping of the texture map when
             the texture coords extend beyond the [0,1] range.
             Only used when repeat is False, and edge clamping is supported by the graphics card.
+
         :param bool scale: scale the texture image by this factor
         :param bool ushift: shift u-coordinates of texture by this amaount
         :param bool vshift: shift v-coordinates of texture by this amaount
+        :param float seamThreshold: try to seal seams in texture by collapsing triangles
+            (test values around 1.0, lower values = stronger collapse)
         """
         pd = self.polydata(False)
         if tname is None:
@@ -365,7 +364,7 @@ class Mesh(Points):
             return self
             ###########
 
-        if 'https' in tname:
+        if isinstance(tname, str) and 'https' in tname:
             tname = vedo.io.download(tname)
 
         if isSequence(tname):
@@ -454,6 +453,33 @@ class Mesh(Points):
         self.GetProperty().SetColor(1, 1, 1)
         self._mapper.ScalarVisibilityOff()
         self.SetTexture(tu)
+
+        if seamThreshold is not None:
+            tname = self._data.GetPointData().GetTCoords().GetName()
+            grad = self.gradient(tname)
+            ugrad, vgrad = np.split(grad, 2, axis=1)
+            ugradm, vgradm = vedo.utils.mag2(ugrad), vedo.utils.mag2(vgrad)
+            gradm = np.log(ugradm + vgradm)
+            largegrad_ids = np.arange(len(grad))[gradm>seamThreshold*4]
+            uvmap = self.getPointArray(tname)
+            # collapse triangles that have large gradient
+            new_points = self.points(transformed=False)
+            for f in self.faces():
+                if np.isin(f, largegrad_ids).all():
+                    id1, id2, id3 = f
+                    uv1, uv2, uv3 = uvmap[f]
+                    d12 = vedo.mag2(uv1-uv2)
+                    d23 = vedo.mag2(uv2-uv3)
+                    d31 = vedo.mag2(uv3-uv1)
+                    idm = np.argmin([d12, d23, d31])
+                    if idm == 0:
+                        new_points[id1] = new_points[id3]
+                        new_points[id2] = new_points[id3]
+                    elif idm == 1:
+                        new_points[id2] = new_points[id1]
+                        new_points[id3] = new_points[id1]
+            self.points(new_points)
+
         self.Modified()
         return self
 

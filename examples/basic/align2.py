@@ -10,8 +10,8 @@ x = 1.0  # add some randomness
 pts1 = [(u(0, x), u(0, x), u(0, x) + i) for i in range(N1)]
 pts2 = [(u(0, x)+3, u(0, x)+i/3+2, u(0, x)+i+1) for i in range(N2)]
 
-vpts1 = Points(pts1, r=8, c="b").legend("source")
-vpts2 = Points(pts2, r=8, c="r").legend("target")
+vpts1 = Points(pts1, r=8, c="b")
+vpts2 = Points(pts2, r=8, c="r")
 
 # Find best alignment between the 2 sets of Points,
 # e.i. find how to move vpts1 to best match vpts2

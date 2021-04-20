@@ -1,11 +1,11 @@
-from __future__ import division, print_function
-import vtk, sys
+import vtk
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy, numpy_to_vtkIdTypeArray
 import numpy as np
 import vedo
 from vedo.colors import printc
 import time
 import math
+import sys
 
 __doc__ = (
     """
@@ -608,20 +608,24 @@ def versor(x, y=None, z=0.0, dtype=np.float64):
 
 
 def mag(v):
-    """Get the magnitude of a vector."""
-    if isinstance(v[0], np.ndarray):
-        return np.array(list(map(np.linalg.norm, v)))
-    else:
+    """Get the magnitude of a vector or array of vectors."""
+    v = np.asarray(v)
+    if v.ndim == 1:
         return np.linalg.norm(v)
-
+    else:
+        return np.linalg.norm(v, axis=1)
 
 def mag2(v):
-    """Get the squared magnitude of a vector."""
-    return np.dot(v, v)
+    """Get the squared magnitude of a vector or array of vectors."""
+    v = np.asarray(v)
+    if v.ndim == 1:
+        return np.square(v).sum()
+    else:
+        return np.square(v).sum(axis=1)
 
 
 def roundToDigit(x, p):
-    """Round a real number to the specified number of significant digits"""
+    """Round a real number to the specified number of significant digits."""
     if not x:
         return x
     k = np.int(np.floor(np.log10(np.abs(x)))) + (p-1)
@@ -820,9 +824,9 @@ def printInfo(obj):
         npl = poly.GetNumberOfPolys()
 
         print(tab, end="")
-        printc("Mesh", c="g", bold=1, invert=1, dim=1, end=" ")
+        printc("Mesh/Points", c="g", bold=1, invert=1, dim=1, end=" ")
 
-        if 'legend' in actor.info.keys() and actor.info['legend']:
+        if hasattr(actor, "info") and 'legend' in actor.info.keys() and actor.info['legend']:
             printc("legend: ", c="g", bold=1, end="")
             printc(actor.info['legend'], c="g", bold=0)
         else:
@@ -902,7 +906,7 @@ def printInfo(obj):
         bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
         printc(" z=(" + bz1 + ", " + bz2 + ")", c="g", bold=0)
 
-        if actor.picked3d is not None:
+        if hasattr(actor, "picked3d") and actor.picked3d is not None:
             printc(tab + "  clicked point: ", c="g", bold=1, end="")
             printc(vector(actor.picked3d), c="g", bold=0)
 
@@ -964,16 +968,47 @@ def printInfo(obj):
             printc('no point or cell scalars are present.', c="g", bold=0)
 
 
-    if not obj:
+    if obj is None:
         return
 
-    elif isinstance(obj, vtk.vtkActor):
+    elif isinstance(obj, np.ndarray):
+        A = obj
+        cf = "y"
+        printc("_" * 65, c=cf, bold=0)
+        printc("Numpy array", c=cf, invert=1)
+        printc(A, c=cf)
+        printc("shape   =", A.shape, c=cf)
+        printc("range   =", np.min(A), "->", np.max(A), c=cf)
+        printc("min(abs)=", np.min(np.abs(A)), c=cf)
+        printc("mean \t=", np.mean(A), c=cf)
+        printc("std_dev\t=", np.std(A), c=cf)
+        if len(A.shape) >= 2:
+            printc("AXIS 0:", c=cf, italic=1)
+            printc("\tmin =", np.min(A, axis=0), c=cf)
+            printc("\tmax =", np.max(A, axis=0), c=cf)
+            printc("\tmean=", np.mean(A, axis=0), c=cf)
+            if A.shape[1] >3 :
+                printc("AXIS 1:", c=cf, italic=1)
+                printc("\tmin =",
+                    str(np.min(A, axis=1).tolist()[:2]).replace("]", ", ..."),
+                    c=cf,
+                )
+                printc("\tmax =",
+                    str(np.max(A, axis=1).tolist()[:2]).replace("]", ", ..."),
+                    c=cf,
+                )
+                printc("\tmean=",
+                    str(np.mean(A, axis=1).tolist()[:2]).replace("]", ", ..."),
+                    c=cf,
+                )
+
+    elif isinstance(obj, vedo.Points):
         printc("_" * 65, c="g", bold=0)
         printvtkactor(obj)
 
-    elif isinstance(obj, vtk.vtkAssembly):
+    elif isinstance(obj, vedo.Assembly):
         printc("_" * 65, c="g", bold=0)
-        printc("vtkAssembly", c="g", bold=1, invert=1)
+        printc("Assembly", c="g", bold=1, invert=1)
 
         pos = obj.GetPosition()
         bnds = obj.GetBounds()
@@ -996,12 +1031,28 @@ def printInfo(obj):
             if isinstance(act, vtk.vtkActor):
                 printvtkactor(act, tab="     ")
 
-    # elif isinstance(obj, vedo.TetMesh):
-    #     return # todo
+    elif isinstance(obj, vedo.TetMesh):
+        cf='m'
+        printc("_" * 65, c=cf, bold=0)
+        printc("TetMesh", c=cf, bold=1, invert=1)
+        pos = obj.GetPosition()
+        bnds = obj.GetBounds()
+        ug = obj._data
+        printc("    nr. of tetras: ", c=cf, bold=1, end="")
+        printc(ug.GetNumberOfCells(), c=cf, bold=0)
+        printc("         position: ", c=cf, bold=1, end="")
+        printc(pos, c=cf, bold=0)
+        printc("           bounds: ", c=cf, bold=1, end="")
+        bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
+        printc("x=(" + bx1 + ", " + bx2 + ")", c=cf, bold=0, end="")
+        by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
+        printc(" y=(" + by1 + ", " + by2 + ")", c=cf, bold=0, end="")
+        bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
+        printc(" z=(" + bz1 + ", " + bz2 + ")", c=cf, bold=0)
 
-    elif isinstance(obj, vtk.vtkVolume):
+    elif isinstance(obj, vedo.Volume):
         printc("_" * 65, c="b", bold=0)
-        printc("vtkVolume", c="b", bold=1, invert=1)
+        printc("Volume", c="b", bold=1, invert=1)
 
         pos = obj.GetPosition()
         bnds = obj.GetBounds()
@@ -1017,7 +1068,7 @@ def printInfo(obj):
         printc(img.GetDataDimension(), c="b", bold=0)
 
         printc("      memory size: ", c="b", bold=1, end="")
-        printc(int(img.GetActualMemorySize()/1024), 'Mb', c="b", bold=0)
+        printc(int(img.GetActualMemorySize()/1024), 'MB', c="b", bold=0)
 
         printc("    scalar #bytes: ", c="b", bold=1, end="")
         printc(img.GetScalarSize(), c="b", bold=0)
@@ -1036,7 +1087,7 @@ def printInfo(obj):
         printHistogram(obj, horizontal=True,
                        logscale=True, bins=8, height=15, c='b', bold=0)
 
-    elif hasattr(obj, "interactor"):  # dumps Plotter info
+    elif isinstance(obj, vedo.Plotter) and obj.interactor:  # dumps Plotter info
         axtype = {
             0: "(no axes)",
             1: "(three customizable gray grid walls)",
@@ -1062,7 +1113,6 @@ def printInfo(obj):
                 bns.append(b)
         if len(bns) == 0:
             return
-        acts = obj.getMeshes()
         printc("_" * 65, c="c", bold=0)
         printc("Plotter", invert=1, dim=1, c="c", end=" ")
         otit = obj.title
@@ -1072,7 +1122,7 @@ def printInfo(obj):
         printc("     window size:", obj.window.GetSize(),
                "- full screen size:", obj.window.GetScreenSize(), bold=0, c="c")
         printc(" active renderer:", obj.renderers.index(obj.renderer), bold=0, c="c")
-        printc("   nr. of actors:", len(acts), bold=0, c="c", end="")
+        printc("   nr. of actors:", len(obj.actors), bold=0, c="c", end="")
         printc(" (" + str(totpt), "vertices)", bold=0, c="c")
         max_bns = np.max(bns, axis=0)
         min_bns = np.min(bns, axis=0)
@@ -1104,6 +1154,33 @@ def printInfo(obj):
                 printc(" z=(" + bz1 + ", " + bz2 + ")", c="b", bold=0)
 
         printc(" Click mesh and press i for info.", c="c")
+
+    elif isinstance(obj, vedo.Picture):  # dumps Plotter info
+        printc("_" * 65, c="y", bold=0)
+        printc("Picture", c="y", bold=1, invert=1)
+
+        pos = obj.GetPosition()
+        bnds = obj.GetBounds()
+        img = obj.GetMapper().GetInput()
+        printc("         position: ", c="y", bold=1, end="")
+        printc(pos, c="y", bold=0)
+
+        printc("       dimensions: ", c="y", bold=1, end="")
+        printc(obj.shape, c="y", bold=0)
+
+        printc("      memory size: ", c="y", bold=1, end="")
+        printc(int(img.GetActualMemorySize()), 'kB', c="y", bold=0)
+
+        printc("           bounds: ", c="y", bold=1, end="")
+        bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)
+        printc("x=(" + bx1 + ", " + bx2 + ")", c="y", bold=0, end="")
+        by1, by2 = precision(bnds[2], 3), precision(bnds[3], 3)
+        printc(" y=(" + by1 + ", " + by2 + ")", c="y", bold=0, end="")
+        bz1, bz2 = precision(bnds[4], 3), precision(bnds[5], 3)
+        printc(" z=(" + bz1 + ", " + bz2 + ")", c="y", bold=0)
+
+        printc("     scalar range: ", c="y", bold=1, end="")
+        printc(img.GetScalarRange(), c="y", bold=0)
 
     else:
         printc("_" * 65, c="g", bold=0)
@@ -1141,7 +1218,8 @@ def printHistogram(data, bins=10, height=10, logscale=False, minbin=0,
 
         |printhisto|
     """
-    # Adapted from http://pyinsci.blogspot.com/2009/10/ascii-histograms.html
+    # credits: http://pyinsci.blogspot.com/2009/10/ascii-histograms.html
+    # adapted for vedo by M.Musy, 2019
 
     if not horizontal: # better aspect ratio
         bins *= 2
@@ -1457,6 +1535,51 @@ def makeTicks(x0, x1, N, labels=None, digits=None):
     return ticks_float, ticks_str
 
 
+def gridcorners(i, nm, size, margin=0):
+    """
+    Compute the 2 corners of the i-th box of a grid n*m.
+    The bottom-left square is number 1.
+
+    Parameters
+    ----------
+    i : int
+        input index of the desired grid square (to be used in ``show(..., at=...)``).
+    nm : list
+        grid shape as (n,m).
+    size : list
+        total size of the grid along x and y.
+    margin : float, optional
+        keep a small margin between boxes. The default is 0.
+
+    Returns
+    -------
+    Two 2D points representing the bottom-left corner and the top-right corner
+    of the ``i``-nth box in the grid.
+
+    :Example:
+        .. code-block:: python
+
+            from vedo import *
+            acts=[]
+            n,m = 5,7
+            for i in range(1, n*m + 1):
+                c1,c2 = utils.gridcorners(i, [n,m], [1,1], 0.01)
+                t = Text3D(i, (c1+c2)/2, c='k', s=0.02, justify='center').z(0.01)
+                r = Rectangle(c1, c2, c=i)
+                acts += [t,r]
+            show(acts, axes=1)
+    """
+    i -= 1
+    n,m = nm
+    sx,sy = size
+    dx, dy = sx/n, sy/m
+    nx = i%n
+    ny = int((i-nx)/n)
+    c1 = (dx*nx + margin, dy*ny + margin)
+    c2 = (dx*(nx+1) - margin, dy*(ny+1) - margin)
+    return np.array(c1), np.array(c2)
+
+
 ############################################################################
 #Trimesh support
 #
@@ -1495,8 +1618,6 @@ def vedo2trimesh(mesh):
 
     points = mesh.points()
     varr = mesh.getPointArray('VertexColors')
-    # print(varr, mesh.getArrayNames())
-    # exit()
     vcols = None
     if varr is not None and len(varr)==len(points):
         vcols = []

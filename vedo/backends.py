@@ -259,7 +259,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
     ####################################################################################
     elif 'ipyvtk' in settings.notebookBackend and hasattr(vp, 'window') and vp.window:
 
-        from ipyvtk_simple.viewer import ViewInteractiveWidget
+        from ipyvtklink.viewer import ViewInteractiveWidget
         vp.renderer.ResetCamera()
         settings.notebook_plotter = ViewInteractiveWidget(vp.window)
 

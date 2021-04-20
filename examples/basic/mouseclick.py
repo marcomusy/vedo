@@ -16,7 +16,7 @@ def onEvent(event):
 
 ######################
 tea = Mesh(dataurl+"teapot.vtk").c("gold")
-mug = Mesh(dataurl+"mug.ply").rotateX(90).scale(8).pos(2,0,-.7).c("silver")
+mug = Mesh(dataurl+"mug.ply").rotateX(90).scale(8).pos(2,0,-.7).c("red3")
 
 plt = Plotter(axes=11)
 plt.addCallback('LeftButtonPress', onLeftClick)
