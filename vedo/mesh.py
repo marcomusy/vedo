@@ -574,6 +574,21 @@ class Mesh(Points):
         self.GetProperty().SetFrontfaceCulling(value)
         return self
 
+    # def depthSort(self, camera=None):
+    #     """Depth Sort"""
+    #     https://gitlab.kitware.com/vtk/vtk/-/issues/18173
+    #     depth_sort = vtk.vtkDepthSortPolyData()
+    #     depth_sort.SetInputData(self.polydata(False))
+    #     depth_sort.SetDirectionToBackToFront()
+    #     if camera is None:
+    #         if vedo.settings.plotter_instance and vedo.settings.plotter_instance.renderer:
+    #             cam = vedo.settings.plotter_instance.renderer.GetActiveCamera()
+    #             if cam:
+    #                 depth_sort.SetCamera(cam)
+    #     depth_sort.SortScalarsOff()
+    #     depth_sort.Update()
+    #     return self._update(depth_sort.GetOuput())
+
     def backColor(self, bc=None):
         """
         Set/get mesh's backface color.

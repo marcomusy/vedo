@@ -41,7 +41,7 @@ actsonshow = [vlogo]
 
 title = "My Multi Viewer 1.0"
 instr = "Click on the left panel to select a shape\n"
-instr+= "Press h to print the full options"
+instr+= "Press h to print the full list of options"
 
 plt.show(vlogo, shapename,
          Text2D(title, pos=(0.5,0.85), s=2.5, c='dg', font='Kanopus', justify='center'),

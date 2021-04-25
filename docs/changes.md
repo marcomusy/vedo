@@ -36,6 +36,7 @@
 - improved automatic text management in `show("some text")`
 - added `computeWorldPosition(point2d)` to get the 3d point in the scene from a screen 2d point
 - added `addSplineTool()` to interactively spline points in space
+- small fix in `plotter.add()` for offscreen mode.
 
 ---
 ### `picture.py`

@@ -495,6 +495,8 @@ class Plotter:
                 return #####################
                 ############################
 
+        self.window.SetWindowName(self.title)
+
         # more settings
         self.window.SetAlphaBitPlanes(settings.alphaBitPlanes)
         self.window.SetMultiSamples(settings.multiSamples)
@@ -506,7 +508,7 @@ class Plotter:
         # sort out screen size
         if screensize == "auto":
             screensize = (2160, 1440) # might go wrong, use a default 1.5 ratio
-            if not offscreen:
+            if not self.offscreen:
                 aus = self.window.GetScreenSize()
                 if aus and len(aus) == 2 and aus[0] > 100 and aus[1] > 100:  # seems ok
                     if aus[0] / aus[1] > 2:  # looks like there are 2 or more screens
@@ -762,11 +764,14 @@ class Plotter:
         self.interactor.SetRenderWindow(self.window)
         vsty = vtk.vtkInteractorStyleTrackballCamera()
         self.interactor.SetInteractorStyle(vsty)
-        self.interactor.AddObserver("LeftButtonPressEvent", self._mouseleft)
-        self.interactor.AddObserver("RightButtonPressEvent", self._mouseright)
-        self.interactor.AddObserver("MiddleButtonPressEvent", self._mousemiddle)
-        self.interactor.AddObserver("KeyPressEvent", self._keypress)
-        self.interactor.AddObserver("KeyReleaseEvent", self._keyrelease)
+
+        if settings.enableDefaultMouseCallbacks:
+            self.interactor.AddObserver("LeftButtonPressEvent", self._mouseleft)
+            self.interactor.AddObserver("RightButtonPressEvent", self._mouseright)
+            self.interactor.AddObserver("MiddleButtonPressEvent", self._mousemiddle)
+        if settings.enableDefaultKeyboardCallbacks:
+            self.interactor.AddObserver("KeyPressEvent", self._keypress)
+            self.interactor.AddObserver("KeyReleaseEvent", self._keyrelease)
 
         self._repeating_timer_id = None
         self._timer_event_id = None
@@ -775,7 +780,6 @@ class Plotter:
             def win_interact(iren, event):  # flushing interactor events
                 if event == "TimerEvent":
                     iren.ExitCallback()
-
             self._timer_event_id = self.interactor.AddObserver("TimerEvent", win_interact)
 
         return ##############################################################
@@ -786,7 +790,7 @@ class Plotter:
         """Call this method from inside a loop to allow mouse and keyboard interaction."""
         if self._timer_event_id is not None and settings.immediateRendering:
             self._repeatingtimer_id = self.interactor.CreateRepeatingTimer(10)
-            # self.interactor.EnableRenderOff()
+            # self.interactor.EnableRenderOff() # or window.ProcessEvents()
             self.interactor.Start()
             # self.interactor.EnableRenderOn()
             self.interactor.DestroyTimer(self._repeatingtimer_id)
@@ -807,8 +811,6 @@ class Plotter:
         :param int at: add the object at the specified renderer
         :param bool render: render the scene after adding the object
         """
-        if not self.interactor:
-            return self
         if at is not None:
             self.renderer = self.renderers[at]
 
@@ -826,7 +828,7 @@ class Plotter:
         if render:
             if resetcam:
                 self.renderer.ResetCamera()
-            self.interactor.Render()
+            self.window.Render()
         return self
 
     def remove(self, actors, at=None, render=False, resetcam=False):
@@ -835,8 +837,6 @@ class Plotter:
         :param int at: remove the object at the specified renderer
         :param bool render: render the scene after removing the object
         """
-        if not self.interactor:
-            return self
         if at is not None:
             ren = self.renderers[at]
         else:
@@ -870,7 +870,7 @@ class Plotter:
         if render:
             if resetcam:
                 ren.ResetCamera()
-            self.interactor.Render()
+            self.window.Render()
         return self
 
     def pop(self, at=0, render=False):
@@ -1352,7 +1352,7 @@ class Plotter:
 
                 if evt.isPicture:
                     t += f"\nImage shape  : {evt.actor.shape}"
-                    pcol = vedo.colors.colorPicker(evt.picked2d, plt=self)
+                    pcol = vedo.colors.colorPicker(evt.picked2d, plotter=self)
                     t += f"\nPixel color  : {vedo.colors.rgb2hex(pcol/255)} {pcol}"
 
                 if evt.isPoints:
@@ -2043,7 +2043,10 @@ class Plotter:
                     if ia.scalarbar not in self.scalarbars:
                         self.scalarbars.append(ia.scalarbar)
 
-                if hasattr(ia, 'flagText') and self.interactor and not self.offscreen:
+                if (hasattr(ia, 'flagText')
+                    and self.interactor
+                    and not self.offscreen
+                    and settings.vtk_version[0]<9):
                     #check balloons
                     if ia.flagText:
                         if not self.flagWidget: # Create widget on the fly

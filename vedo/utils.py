@@ -499,24 +499,8 @@ def humansort(l):
 
 
 def sortByColumn(array, nth):
-    '''Sort a numpy array by the `n-th` column'''
+    '''Sort a numpy array by its `n-th` column'''
     return array[array[:,nth].argsort()]
-
-
-def findDistanceToLines2D(P0,P1, pts):
-    """
-    Consider 2 sets of points P0,P1 describing lines (2D) and a set of points pts,
-    compute distance from each point j (P[j]) to each line i (P0[i],P1[i]).
-    """
-    #Author: Italmassov Kuanysh, at https://github.com/rougier/numpy-100
-    def _distance(P0, P1, p):
-        T = P1 - P0
-        L = (T**2).sum(axis=1)
-        U = -((P0[:,0]-p[...,0])*T[:,0] + (P0[:,1]-p[...,1])*T[:,1]) / L
-        U = U.reshape(len(U),1)
-        D = P0 + U*T - p
-        return np.sqrt((D**2).sum(axis=1))
-    return [_distance(P0,P1,p_i) for p_i in pts]
 
 
 def pointIsInTriangle(p, p1, p2, p3):
@@ -540,6 +524,58 @@ def pointIsInTriangle(p, p1, p2, p3):
                 return True
     return False
 
+def intersectRayTriangle(P0,P1, V0,V1,V2):
+    """
+    Fast intersection between a directional ray defined by P0,P1
+    and triangle V0, V1, V2.
+
+    Returns the intersection point or
+    ``None`` if triangle is degenerate, or ray is  parallel to triangle plane.
+    ``False`` if no intersection, or ray direction points away from triangle.
+    """
+    # Credits: http://geomalgorithms.com/a06-_intersect-2.html
+    # Get triangle edge vectors and plane normal
+    V0 = np.asarray(V0, dtype=float)
+    P0 = np.asarray(P0, dtype=float)
+    u = V1 - V0
+    v = V2 - V0
+    n = np.cross(u, v)
+    if not np.abs(v).sum():   # triangle is degenerate
+        return None           # do not deal with this case
+
+    rd = P1 - P0              # ray direction vector
+    w0 = P0 - V0
+    a = -np.dot(n, w0)
+    b =  np.dot(n, rd)
+    if not b:                 # ray is  parallel to triangle plane
+        return None
+
+    # Get intersect point of ray with triangle plane
+    r = a / b
+    if r < 0.0:               # ray goes away from triangle
+        return False          #  => no intersect
+
+    # Gor a segment, also test if (r > 1.0) => no intersect
+    I = P0 + r * rd           # intersect point of ray and plane
+
+    # is I inside T?
+    uu = np.dot(u,u)
+    uv = np.dot(u,v)
+    vv = np.dot(v,v)
+    w = I - V0
+    wu = np.dot(w,u)
+    wv = np.dot(w,v)
+    D = uv * uv - uu * vv
+
+    # Get and test parametric coords
+    s = (uv * wv - vv * wu) / D
+    if s < 0.0 or s > 1.0:       # I is outside T
+        return False
+    t = (uv * wu - uu * wv) / D
+    if t < 0.0 or (s + t) > 1.0: # I is outside T
+        return False
+    return I                     # I is in T
+
 
 def pointToLineDistance(p, p1, p2):
     """Compute the distance of a point to a line (not the segment) defined by `p1` and `p2`."""
@@ -549,7 +585,7 @@ def pointToLineDistance(p, p1, p2):
 
 def linInterpolate(x, rangeX, rangeY):
     """
-    Interpolate linearly variable x in rangeX onto rangeY.
+    Interpolate linearly the variable x in rangeX onto the new rangeY.
     If x is a 3D vector the linear weight is the distance to the two 3D rangeX vectors.
 
     E.g. if x runs in rangeX=[x0,x1] and I want it to run in rangeY=[y0,y1] then
@@ -591,7 +627,7 @@ def linInterpolate(x, rangeX, rangeY):
 def vector(x, y=None, z=0.0, dtype=np.float64):
     """Return a 3D numpy array representing a vector.
 
-    If `y` is ``None``, assume input is in the form `[x,y,z]`.
+    If `y` is ``None``, assume input is already in the form `[x,y,z]`.
     """
     if y is None:  # assume x is already [x,y,z]
         return np.asarray(x, dtype=dtype)
@@ -600,7 +636,7 @@ def vector(x, y=None, z=0.0, dtype=np.float64):
 
 def versor(x, y=None, z=0.0, dtype=np.float64):
     """Return the unit vector. Input can be a list of vectors."""
-    v = vector(x,y,z,dtype)
+    v = vector(x,y,z, dtype)
     if isinstance(v[0], np.ndarray):
         return np.divide(v, mag(v)[:, None])
     else:
@@ -639,12 +675,12 @@ def precision(x, p, vrange=None, delimiter='e'):
     """
     Returns a string representation of `x` formatted with precision `p`.
 
-    :param float vrange: range in which x exists (to snap it to '0' if below precision).
-
-    Based on the webkit javascript implementation
-    `from here <https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/kjs/number_object.cpp>`_,
-    and implemented by `randlet <https://github.com/randlet/to-precision>`_.
+    :param float vrange: range in which x exists (to snap x to '0' if below precision).
     """
+    # Based on the webkit javascript implementation
+    # `from here <https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/kjs/number_object.cpp>`_,
+    # and implemented by `randlet <https://github.com/randlet/to-precision>`_.
+
     if isinstance(x, str): #do nothing
         return x
 
@@ -719,20 +755,20 @@ def precision(x, p, vrange=None, delimiter='e'):
 
 # 2d
 def cart2pol(x, y):
-    """Cartesian to Polar coordinates conversion."""
+    """2D Cartesian to Polar coordinates conversion."""
     theta = np.arctan2(y, x)
     rho = np.hypot(x, y)
     return rho, theta
 
 def pol2cart(rho, theta):
-    """Polar to Cartesian coordinates conversion."""
+    """2D Polar to Cartesian coordinates conversion."""
     x = rho * np.cos(theta)
     y = rho * np.sin(theta)
     return x, y
 
 # 3d
 def cart2spher(x, y, z):
-    """Cartesian to Spherical coordinate conversion."""
+    """3D Cartesian to Spherical coordinate conversion."""
     hxy = np.hypot(x, y)
     rho = np.hypot(hxy, z)
     #if not rho:
@@ -742,7 +778,7 @@ def cart2spher(x, y, z):
     return rho, theta, phi
 
 def spher2cart(rho, theta, phi):
-    """Spherical to Cartesian coordinate conversion."""
+    """3D Spherical to Cartesian coordinate conversion."""
     st = np.sin(theta)
     sp = np.sin(phi)
     ct = np.cos(theta)
@@ -754,21 +790,25 @@ def spher2cart(rho, theta, phi):
     return np.array([x, y, z])
 
 def cart2cyl(x,y,z):
+    """3D Cartesian to Cylindrical coordinate conversion."""
     rho = np.sqrt(x*x+y*y+z*z)
     theta = np.arctan2(y, x)
     return rho, theta, z
 
 def cyl2cart(rho, theta, z):
+    """3D Cylindrical to Cartesian coordinate conversion."""
     x = rho * np.cos(theta)
     y = rho * np.sin(theta)
-    return x, y, z
+    return np.array([x, y, z])
 
 def cyl2spher(rho,theta,z):
+    """3D Cylindrical to Spherical coordinate conversion."""
     rhos = np.sqrt(rho*rho+z*z)
     phi = np.arctan2(rho, z)
     return rhos, theta, phi
 
 def spher2cyl(rho, theta, phi):
+    """3D Spherical to Cylindrical coordinate conversion."""
     rhoc = rho * np.sin(phi)
     z = rho * np.cos(phi)
     return rhoc, theta, z
@@ -1535,7 +1575,7 @@ def makeTicks(x0, x1, N, labels=None, digits=None):
     return ticks_float, ticks_str
 
 
-def gridcorners(i, nm, size, margin=0):
+def gridcorners(i, nm, size, margin=0, flipy=True):
     """
     Compute the 2 corners of the i-th box of a grid n*m.
     The bottom-left square is number 1.
@@ -1550,6 +1590,8 @@ def gridcorners(i, nm, size, margin=0):
         total size of the grid along x and y.
     margin : float, optional
         keep a small margin between boxes. The default is 0.
+    flipy : bool, optional
+        y-coordinate points downwards
 
     Returns
     -------
@@ -1575,6 +1617,8 @@ def gridcorners(i, nm, size, margin=0):
     dx, dy = sx/n, sy/m
     nx = i%n
     ny = int((i-nx)/n)
+    if flipy:
+        ny = n - ny
     c1 = (dx*nx + margin, dy*ny + margin)
     c2 = (dx*(nx+1) - margin, dy*(ny+1) - margin)
     return np.array(c1), np.array(c2)
