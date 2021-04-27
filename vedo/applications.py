@@ -1,4 +1,4 @@
-import vtk
+import vedo
 from vedo.addons import addScalarBar, addGlobalAxes
 from vedo.plotter import Plotter
 from vedo.pyplot import cornerHistogram
@@ -213,70 +213,54 @@ def SlicerPlotter(
 
     vp.show(msh, hist, comment, interactive=False)
     vp.interactive = True
-    # if verbose:
-    #     printc("Press button to cycle through color maps,", c="m")
-    #     printc("Use sliders to select the slicing planes.", c="m")
     return vp
 
 
 ########################################################################################
-def Slicer2d(volume, size=(900,900), bg=(0.6,0.6,0.7), zoom=1.3):
-    """Create a 2D window with a single balck a nd white
-    slice of a Volume, wich can be oriented arbitrarily in space.
+def Slicer2d(volume, levels=(None, None), size=(900,900), bg='k9', zoom=1.2):
     """
-    img = volume.imagedata()
+    Create a 2D window with a single slice of a Volume,
+    wich can be oriented arbitrarily in space.
 
-    ren1 = vtk.vtkRenderer()
-    renWin = vtk.vtkRenderWindow()
-    renWin.AddRenderer(ren1)
-    iren = vtk.vtkRenderWindowInteractor()
-    iren.SetRenderWindow(renWin)
+    :param list wl: window and color levels
+    """
+    vsl = vedo.volume.VolumeSlice(volume) # reuse the same underlying data as in vol
 
-    im = vtk.vtkImageResliceMapper()
-    im.SetInputData(img)
-    im.SliceFacesCameraOn()
-    im.SliceAtFocalPointOn()
-    im.BorderOn()
+    # no argument will grab the existing cmap in vol (or use buildLUT())
+    vsl.colorize()
 
-    ip = vtk.vtkImageProperty()
-    ip.SetInterpolationTypeToLinear()
+    if levels[0] and levels[1]:
+        vsl.lighting(window=levels[0], level=levels[1])
 
-    ia = vtk.vtkImageSlice()
-    ia.SetMapper(im)
-    ia.SetProperty(ip)
-
-    ren1.AddViewProp(ia)
-    ren1.SetBackground(bg)
-    renWin.SetSize(size)
-
-    iren = vtk.vtkRenderWindowInteractor()
-    style = vtk.vtkInteractorStyleImage()
-    style.SetInteractionModeToImage3D()
-    iren.SetInteractorStyle(style)
-    renWin.SetInteractor(iren)
-
-    renWin.Render()
-    cam1 = ren1.GetActiveCamera()
-    cam1.ParallelProjectionOn()
-    ren1.ResetCameraClippingRange()
-    cam1.Zoom(zoom)
-    renWin.Render()
-
-    printc("Slicer2D tool", invert=1, c="m")
-    printc(
-        """Press  SHIFT+Left mouse    to rotate the camera for oblique slicing
-       SHIFT+Middle mouse  to slice perpendicularly through the image
-       Left mouse and Drag to modify luminosity and contrast
-       X                   to Reset to sagittal view
-       Y                   to Reset to coronal view
-       Z                   to Reset to axial view
-       R                   to Reset the Window/Levels
-       Q                   to Quit.""",
-        c="m",
+    usage = Text2D(
+        f"SHIFT+Left click   \rightarrow rotate camera for oblique slicing\n"
+        f"SHIFT+Middle click \rightarrow slice perpendicularly through image\n"
+        f"Left click & drag  \rightarrow modify luminosity and contrast\n"
+        f"R                  \rightarrow Reset the Window/Color levels\n"
+        f"X                  \rightarrow Reset to sagittal view\n"
+        f"Y                  \rightarrow Reset to coronal view\n"
+        f"Z                  \rightarrow Reset to axial view",
+        font="Calco", pos="top-left", s=0.8, bg='yellow', alpha=0.25
     )
 
-    iren.Start()
-    return iren
+    custom_shape = [ # define here the 2 rendering rectangle spaces
+        dict(bottomleft=(0.0,0.0), topright=(1,1), bg='k9'), # the full window
+        dict(bottomleft=(0.8,0.8), topright=(1,1), bg='k8', bg2='lb'),
+    ]
+
+    axes=11
+    if settings.vtk_version[0] == 9:
+        axes=0
+
+    hist = cornerHistogram(volume.getPointArray(),
+                           bins=25, logscale=1, pos=(0.02, 0.02), s=0.175,
+                           c='dg', bg='k', alpha=1)
+
+    plt = vedo.show([ (vsl,usage,hist), volume ],
+                   shape=custom_shape, interactorStyle="Image",
+                   title=volume.filename[:80],
+                   size=size, bg=bg, zoom=zoom, axes=axes, interactive=0)
+    return plt
 
 
 ########################################################################

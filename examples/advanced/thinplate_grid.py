@@ -21,7 +21,7 @@ ptsource, pttarget = [], []
 for pt in pts:
     ptold = pt + np.random.randn(3) * 0.02
     ptsource.append(ptold)
-    ptnew = ptold + [0, 0, np.random.randn(1) * 0.10]  # move in z
+    ptnew = ptold + [0, 0, np.random.randn(1) * 0.1]  # move in z
     pttarget.append(ptnew)
 
 warped = mesh.thinPlateSpline(ptsource, pttarget)

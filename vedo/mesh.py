@@ -345,6 +345,7 @@ class Mesh(Points):
         If tname is set to ``None`` texture is disabled.
         If tname is set to '' then a png or jpg file is looked for with same name and path.
         Input tname can also be an array of shape (n,m,3).
+
         :param bool interpolate: turn on/off linear interpolation of the texture map when rendering.
         :param bool repeat: repeat of the texture when tcoords extend beyond the [0,1] range.
         :param bool edgeClamp: turn on/off the clamping of the texture map when

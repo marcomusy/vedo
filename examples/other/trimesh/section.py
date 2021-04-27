@@ -10,7 +10,7 @@ mesh = trimesh.load_mesh(f)
 txt = 'cross section of the mesh'
 mslice = mesh.section(plane_origin=mesh.centroid, plane_normal=[0,0,1])
 
-pl = Plane(mesh.centroid, normal=[0,0,1], sx=6, sy=4, alpha=0.3)
+pl = Plane(mesh.centroid, normal=[0,0,1], sx=6, sy=4, c='green', alpha=0.3)
 
 slice_2D, to_3D = mslice.to_planar()
 

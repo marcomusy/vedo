@@ -839,7 +839,7 @@ def grep(filename, tag, firstOccurrence=False):
 def printInfo(obj):
     """Print information about a vtk object."""
 
-
+    ################################
     def printvtkactor(actor, tab=""):
 
         if not actor.GetPickable():
@@ -1223,8 +1223,8 @@ def printInfo(obj):
         printc(img.GetScalarRange(), c="y", bold=0)
 
     else:
-        printc("_" * 65, c="g", bold=0)
-        printc(type(obj), c="g", invert=1)
+        printc(type(obj), invert=1)
+        printc(obj)
 
 
 

@@ -1,7 +1,8 @@
 ## Main changes
 
 - general improvements to the `vedo` command line
-- `colorcet` [colormaps](https://colorcet.holoviz.org) are directly usable in `vedo`. Check example `basic/mesh_custom.py`
+- `colorcet` [colormaps](https://colorcet.holoviz.org) are directly usable in `vedo`.
+Check example `basic/mesh_custom.py`
 
 - general tool for free-hand cutting a mesh can be invoked from command line:
 `vedo --edit https://vedo.embl.es/examples/data/porsche.ply`
@@ -23,6 +24,7 @@
 
 ---
 ### `colors.py`
+- fixed small issue in `printc` to support different terminals
 
 ---
 ### `mesh.py`
@@ -32,7 +34,6 @@
 
 ---
 ### `plotter.py`
-
 - improved automatic text management in `show("some text")`
 - added `computeWorldPosition(point2d)` to get the 3d point in the scene from a screen 2d point
 - added `addSplineTool()` to interactively spline points in space

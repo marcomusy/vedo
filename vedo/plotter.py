@@ -467,13 +467,9 @@ class Plotter:
         self.ztitle = settings.ztitle  # z axis label and units
 
         # build the rendering window:
-        if settings.useOpenVR:
-            self.camera = vtk.vtkOpenVRCamera()
-            self.window = vtk.vtkOpenVRRenderWindow()
-        else:
-            self.camera = vtk.vtkCamera()
-            self.window = vtk.vtkRenderWindow()
-            self.window.GlobalWarningDisplayOff()
+        self.camera = vtk.vtkCamera()
+        self.window = vtk.vtkRenderWindow()
+        self.window.GlobalWarningDisplayOff()
 
 
         ############################################################
@@ -680,26 +676,23 @@ class Plotter:
 
             for i in reversed(range(shape[0])):
                 for j in range(shape[1]):
-                    if settings.useOpenVR:
-                        arenderer = vtk.vtkOpenVRRenderer()
-                    else:
-                        arenderer = vtk.vtkRenderer()
-                        arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
-                        arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
-                        arenderer.SetTwoSidedLighting(settings.twoSidedLighting)
+                    arenderer = vtk.vtkRenderer()
+                    arenderer.SetUseHiddenLineRemoval(settings.hiddenLineRemoval)
+                    arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
+                    arenderer.SetTwoSidedLighting(settings.twoSidedLighting)
 
-                        arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
-                        arenderer.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
-                        arenderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
-                        arenderer.SetOcclusionRatio(settings.occlusionRatio)
-                        arenderer.SetUseFXAA(settings.useFXAA)
-                        arenderer.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
-                        if hasattr(arenderer, "SetUseSSAO"):
-                            arenderer.SetUseSSAO(settings.useSSAO)
-                            arenderer.SetSSAORadius(settings.SSAORadius)
-                            arenderer.SetSSAOBias(settings.SSAOBias)
-                            arenderer.SetSSAOKernelSize(settings.SSAOKernelSize)
-                            arenderer.SetSSAOBlur(settings.SSAOBlur)
+                    arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
+                    arenderer.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
+                    arenderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
+                    arenderer.SetOcclusionRatio(settings.occlusionRatio)
+                    arenderer.SetUseFXAA(settings.useFXAA)
+                    arenderer.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
+                    if hasattr(arenderer, "SetUseSSAO"):
+                        arenderer.SetUseSSAO(settings.useSSAO)
+                        arenderer.SetSSAORadius(settings.SSAORadius)
+                        arenderer.SetSSAOBias(settings.SSAOBias)
+                        arenderer.SetSSAOKernelSize(settings.SSAOKernelSize)
+                        arenderer.SetSSAOBlur(settings.SSAOBlur)
 
                     if image_actor:
                         arenderer.SetLayer(1)
@@ -755,11 +748,8 @@ class Plotter:
             return #################
             ########################
 
-        if settings.useOpenVR:
-            self.interactor = vtk.vtkOpenVRRenderWindowInteractor()
-        else:
-            self.interactor = vtk.vtkRenderWindowInteractor()
-            # self.interactor.EnableRenderOff()
+        self.interactor = vtk.vtkRenderWindowInteractor()
+        # self.interactor.EnableRenderOff()
 
         self.interactor.SetRenderWindow(self.window)
         vsty = vtk.vtkInteractorStyleTrackballCamera()
@@ -882,7 +872,7 @@ class Plotter:
         """Render the scene."""
         if resetcam:
             self.renderer.ResetCamera()
-        self.interactor.Render()
+        self.window.Render()
         return self
 
     def backgroundColor(self, c1=None, c2=None, at=None):
@@ -1063,22 +1053,21 @@ class Plotter:
 
             .. code-block:: python
 
-            from vedo import Cone
-            Cone().show(axes=1).flyTo([1,0,0]).show()
-
+                from vedo import Cone
+                Cone().show(axes=1).flyTo([1,0,0]).show()
         """
         self.resetcam = False
         self.interactor.FlyTo(self.renderers[at], point)
         return self
 
-    def parallelProjection(self, value=True):
-        """Use parallel projection. Obecjt is seen from "infinite" distance",
-        e.i. remove any perspective effects.
+    def useParallelProjection(self, value=True, at=0):
         """
-        settings.useParallelProjection = value
-        for r in self.renderers:
-            r.GetActiveCamera().SetParallelProjection(value)
-            r.Modified()
+        Use parallel projection ``at`` a specified renderer.
+        Object is seen from "infinite" distance, e.i. remove any perspective effects.
+        """
+        r = self.renderers[at]
+        r.GetActiveCamera().SetParallelProjection(value)
+        r.Modified()
         return self
 
 
@@ -1518,6 +1507,7 @@ class Plotter:
 
             event_dict = utils.dotdict({
                 "name": ename,
+                "title": self.title, # window title, can be used as an id for the Plotter
                 "id": cid,
                 "priority": priority,
                 "at": self.renderers.index(self.renderer),
@@ -1940,6 +1930,8 @@ class Plotter:
 
         if camera is not None:
             self.resetcam = False
+            if isinstance(camera, vtk.vtkCamera):
+                self.camera = camera
 
         if resetcam is not None:
             self.resetcam = resetcam
@@ -1979,7 +1971,7 @@ class Plotter:
             if self.interactor:
                 if zoom:
                     self.camera.Zoom(zoom)
-                self.interactor.Render()
+                self.window.Render()
                 self.window.SetWindowName(self.title)
                 if self.interactive:
                     self.interactor.Start()
@@ -2001,10 +1993,7 @@ class Plotter:
             self.qtWidget.GetRenderWindow().AddRenderer(self.renderer)
 
         if not self.camera:
-            if isinstance(camera, vtk.vtkCamera):
-                self.camera = camera
-            else:
-                self.camera = self.renderer.GetActiveCamera()
+            self.camera = self.renderer.GetActiveCamera()
 
         self.camera.SetParallelProjection(settings.useParallelProjection)
 
@@ -2046,8 +2035,10 @@ class Plotter:
                 if (hasattr(ia, 'flagText')
                     and self.interactor
                     and not self.offscreen
-                    and settings.vtk_version[0]<9):
+                    and not (settings.vtk_version[0] == 9 and "Linux" in settings.sys_platform)
+                    ):
                     #check balloons
+                    # Linux vtk9 is bugged
                     if ia.flagText:
                         if not self.flagWidget: # Create widget on the fly
                             self._flagRep = vtk.vtkBalloonRepresentation()

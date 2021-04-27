@@ -189,10 +189,14 @@ def draw_scene():
     elif args.slicer2d:
         # print('DEBUG special case of SLC/TIFF/DICOM volumes with --slicer2d option')
         vol = io.load(args.files[0], force=args.reload)
+        if not vol:
+            return
+        vol.cmap('bone_r')
         sp = vol.spacing()
         vol.spacing([sp[0]*args.x_spacing, sp[1]*args.y_spacing, sp[2]*args.z_spacing])
         settings.plotter_instance = None # reset
-        applications.Slicer2d(vol)
+        plt = applications.Slicer2d(vol)
+        plt.interactor.Start()
         return
 
 

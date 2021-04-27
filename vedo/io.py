@@ -1114,6 +1114,8 @@ def loadImageData(filename):
     """
     if ".tif" in filename.lower():
         reader = vtk.vtkTIFFReader()
+        # print("GetOrientationType ", reader.GetOrientationType())
+        reader.SetOrientationType(settings.tiffOrientationType)
     elif ".slc" in filename.lower():
         reader = vtk.vtkSLCReader()
         if not reader.CanReadFile(filename):
@@ -1200,6 +1202,7 @@ def write(objct, fileoutput, binary=True):
         writer = vtk.vtkFacetWriter()
     elif fr.endswith(".tif"):
         writer = vtk.vtkTIFFWriter()
+        # print("GetCompression ", writer.GetCompression ())
         writer.SetFileDimensionality(len(obj.GetDimensions()))
     elif fr.endswith(".vti"):
         writer = vtk.vtkXMLImageDataWriter()

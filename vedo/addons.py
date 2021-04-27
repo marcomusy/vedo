@@ -2761,12 +2761,12 @@ def addGlobalAxes(axtype=None, c=None):
         axact.GetCubeProperty().SetColor(getColor(settings.annotatedCubeColor))
         axact.SetTextEdgesVisibility(0)
         axact.SetFaceTextScale(settings.annotatedCubeTextScale)
-        axact.SetXPlusFaceText (settings.annotatedCubeXPlusText)
-        axact.SetXMinusFaceText(settings.annotatedCubeXMinusText)
-        axact.SetYPlusFaceText (settings.annotatedCubeYPlusText)
-        axact.SetYMinusFaceText(settings.annotatedCubeYMinusText)
-        axact.SetZPlusFaceText (settings.annotatedCubeZPlusText)
-        axact.SetZMinusFaceText(settings.annotatedCubeZMinusText)
+        axact.SetXPlusFaceText (settings.annotatedCubeTexts[0])  #XPlus
+        axact.SetXMinusFaceText(settings.annotatedCubeTexts[1])  #XMinus
+        axact.SetYPlusFaceText (settings.annotatedCubeTexts[2])  #YPlus
+        axact.SetYMinusFaceText(settings.annotatedCubeTexts[3])  #YMinus
+        axact.SetZPlusFaceText (settings.annotatedCubeTexts[4])  #ZPlus
+        axact.SetZMinusFaceText(settings.annotatedCubeTexts[5])  #ZMinus
         axact.SetZFaceTextRotation(90)
 
         if settings.annotatedCubeTextColor is None: # use default

@@ -45,11 +45,7 @@ def tips():
 
     msg = " vedo " + __version__ + " "
     colors.printc(msg, invert=1, dim=1, end="")
-    # try:
     vtkVers = vtk.vtkVersion().GetVTKVersion()
-    # vtkVers = vtk.VTK_VERSION_NUMBER
-    # except AttributeError:
-    #     vtkVers = 'unkonwn'
     msg = "| vtk " + str(vtkVers)
     msg += " | python " + str(sys.version_info[0]) + "." + str(sys.version_info[1])
     colors.printc(msg, invert=0, dim=1)

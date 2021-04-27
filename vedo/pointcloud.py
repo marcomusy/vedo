@@ -3026,7 +3026,7 @@ class Points(vtk.vtkFollower, BaseActor):
         Transformation object can be accessed with ``mesh.transform``.
 
         :param float sigma: specify the 'stiffness' of the spline.
-        :param str mode: set the basis function to either |R| (for 3d) or R2LogR (for 2d meshes)
+        :param str mode: set the basis function to either abs(R) (for 3d) or R2LogR (for 2d meshes)
         :param funcs: You may supply both the function and its derivative with respect to r.
 
         .. hint:: Examples: |thinplate_morphing1.py|_ |thinplate_morphing2.py|_

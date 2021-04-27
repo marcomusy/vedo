@@ -2,8 +2,7 @@
 pressing a keyboard button when the rendering window
 is in interactive mode
 
-Place pointer anywhere on the mesh and press c
-"""
+Place pointer anywhere on the mesh and press c"""
 from vedo import *
 
 #############################################################
@@ -11,11 +10,11 @@ def myfnc(evt):
     mesh = evt.actor
     # printc('dump event info', evt)
     if not mesh or evt.keyPressed != "c":
-        printc("touch mesh and press c", c="r")
+        printc("click mesh and press c", c="r")
         return
     printc("mesh :", mesh.filename, c=mesh.color())
     printc("point:", mesh.picked3d, c="v")
-    cpt = Point(pos=mesh.picked3d, r=9, c="v").pickable(False)
+    cpt = Point(pos=mesh.picked3d, r=20, c="v").pickable(False)
     plt.add(cpt)
 
 ##############################################################

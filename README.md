@@ -16,10 +16,10 @@ for scientific analysis and **v**isualization of **3d** **o**bjects.<br>
 
 ## ✨  Philosophy
 Inspired by the [vpython](https://vpython.org/) *manifesto* "3D programming for ordinary mortals",
-`vedo` makes it easy to work with three-dimensional meshes and volumes, creating displays and animations
+`vedo` makes it easy to work with 3D pointclouds, meshes and volumes,
 in just a few lines of code, even for less experienced programmers.
 
-`vedo` is based on [numpy](http://www.numpy.org/) and [VTK](https://www.vtk.org/),
+`vedo` is based on [VTK](https://www.vtk.org/) and [numpy](http://www.numpy.org/),
 with no other dependencies.
 
 
@@ -39,6 +39,12 @@ pip install vedo
 
 - To install from the conda-forge channel: <br>
 `conda install -c conda-forge vedo`
+
+- For **windows** users, we suggest to install
+[anaconda](https://www.anaconda.com/products/individual)
+(or [miniconda](https://docs.conda.io/en/latest/miniconda.html)).
+Command line in windows-10 will then look something like e.g.: <br>
+`python c:\path_to\anaconda3\Scripts\vedo panther.stl`
 
 </details>
 
@@ -173,7 +179,7 @@ Type `vedo -h` for the complete list of options.<br>
 | [![cubecut](https://user-images.githubusercontent.com/32848391/99916179-e763d580-2d08-11eb-9044-b647115167ed.jpg)](https://github.com/marcomusy/vedo/tree/master/examples/advanced/cutWithMesh2.py)   | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)| [![quatumsine](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/tunnelling2.py) |
 | *Easily work with volumes, tetrahedral and polygonal meshes.*        | *Turing system of reaction-diffusion between two molecules.*                                                                   |  *Quantum-tunnelling of a particle in a box hitting a sinusoidal potential.*  |
 | [![trimesh](https://user-images.githubusercontent.com/32848391/91164151-e8b44080-e6ce-11ea-8213-cf5b12aa4d16.png)](https://github.com/marcomusy/vedo/blob/master/examples/other/trimesh)              | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)| [![whisker](https://user-images.githubusercontent.com/32848391/99916183-e8950280-2d08-11eb-8070-8bb1146c7c62.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/whiskers.py) |
-| *Interoperability with external libraries like [trimesh](https://trimsh.org/), [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab), and [pyvista](https://github.com/pyvista/pyvista).*  |  *Support for the [FEniCS/Dolfin](https://fenicsproject.org/) library for PDE and finite element solutions.*       | *Advanced 2D/3D histogramming and plotting capablities.* |
+| *Interoperability with external libraries like [trimesh](https://trimsh.org/), [pyvista](https://github.com/pyvista/pyvista), and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab).*  |  *Support for the [FEniCS/Dolfin](https://fenicsproject.org/) library for PDE and finite element solutions.*       | *Advanced 2D/3D histogramming and plotting capablities.* |
 
 
 ### Galleries
