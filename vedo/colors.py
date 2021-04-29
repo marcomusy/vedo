@@ -737,8 +737,8 @@ def buildLUT(colorlist,
     ctf.SetScaleToLinear()
     alpha_x, alpha_vals = [], []
     for sc in colorlist:
-        if len(sc)==3:
-            scalar, col, alf = sc
+        if len(sc)>=3:
+            scalar, col, alf = sc[:3]
         else:
             alf = 1
             scalar, col = sc

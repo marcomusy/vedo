@@ -221,8 +221,13 @@ twoSidedLighting = True
 #https://lorensen.github.io/VTKExamples/site/Cxx/Visualization/CorrectlyRenderTranslucentGeometry
 useDepthPeeling = False
 multiSamples = 8
+#print(vtk_version, sys_platform)
 if vtk_version[0] >= 9:
     useDepthPeeling = True
+if "Darwin" in sys_platform:
+    useDepthPeeling = False
+    multiSamples = 0
+    
 maxNumberOfPeels= 8
 occlusionRatio  = 0.1
 alphaBitPlanes  = True

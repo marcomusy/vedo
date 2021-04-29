@@ -218,61 +218,79 @@ class Base3DProp(object):
                            self.shadow.GetProperty().GetOpacity())
         return self
 
-    def rotateX(self, angle, rad=False):
-        """Rotate around x-axis. If angle is in radians set ``rad=True``."""
+    def rotateX(self, angle, rad=False, locally=False):
+        """Rotate around x-axis. If angle is in radians set ``rad=True``.
+
+        :param bool locally: ignore previous transformations. Rotate around object local origin.
+        """
         if rad:
             angle *= 180 / np.pi
-        T = vtk.vtkTransform()
-        self.ComputeMatrix()
-        T.SetMatrix(self.GetMatrix())
-        T.PostMultiply()
-        T.RotateX(angle)
-        self.SetOrientation(T.GetOrientation())
-        self.SetPosition(T.GetPosition())
-        if self.trail:
-            self.updateTrail()
-        if self.shadow:
-            self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
-                           self.shadow.GetProperty().GetColor(),
-                           self.shadow.GetProperty().GetOpacity())
+        if not locally:
+            T = vtk.vtkTransform()
+            self.ComputeMatrix()
+            T.SetMatrix(self.GetMatrix())
+            T.PostMultiply()
+            T.RotateX(angle)
+            self.SetOrientation(T.GetOrientation())
+            self.SetPosition(T.GetPosition())
+            if self.trail:
+                self.updateTrail()
+            if self.shadow:
+                self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
+                               self.shadow.GetProperty().GetColor(),
+                               self.shadow.GetProperty().GetOpacity())
+        else:
+            self.RotateX(angle)
         return self
 
-    def rotateY(self, angle, rad=False):
-        """Rotate around y-axis. If angle is in radians set ``rad=True``."""
+    def rotateY(self, angle, rad=False, locally=False):
+        """Rotate around y-axis. If angle is in radians set ``rad=True``.
+
+        :param bool locally: ignore previous transformations. Rotate around object local origin.
+        """
         if rad:
             angle *= 180 / np.pi
-        T = vtk.vtkTransform()
-        self.ComputeMatrix()
-        T.SetMatrix(self.GetMatrix())
-        T.PostMultiply()
-        T.RotateY(angle)
-        self.SetOrientation(T.GetOrientation())
-        self.SetPosition(T.GetPosition())
-        if self.trail:
-            self.updateTrail()
-        if self.shadow:
-            self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
-                           self.shadow.GetProperty().GetColor(),
-                           self.shadow.GetProperty().GetOpacity())
+        if not locally:
+            T = vtk.vtkTransform()
+            self.ComputeMatrix()
+            T.SetMatrix(self.GetMatrix())
+            T.PostMultiply()
+            T.RotateY(angle)
+            self.SetOrientation(T.GetOrientation())
+            self.SetPosition(T.GetPosition())
+            if self.trail:
+                self.updateTrail()
+            if self.shadow:
+                self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
+                               self.shadow.GetProperty().GetColor(),
+                               self.shadow.GetProperty().GetOpacity())
+        else:
+            self.RotateY(angle)
         return self
 
-    def rotateZ(self, angle, rad=False):
-        """Rotate around z-axis. If angle is in radians set ``rad=True``."""
+    def rotateZ(self, angle, rad=False, locally=False):
+        """Rotate around z-axis. If angle is in radians set ``rad=True``.
+
+        :param bool locally: ignore previous transformations. Rotate around object local origin.
+        """
         if rad:
             angle *= 180 / np.pi
-        T = vtk.vtkTransform()
-        self.ComputeMatrix()
-        T.SetMatrix(self.GetMatrix())
-        T.PostMultiply()
-        T.RotateZ(angle)
-        self.SetOrientation(T.GetOrientation())
-        self.SetPosition(T.GetPosition())
-        if self.trail:
-            self.updateTrail()
-        if self.shadow:
-            self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
-                           self.shadow.GetProperty().GetColor(),
-                           self.shadow.GetProperty().GetOpacity())
+        if not locally:
+            T = vtk.vtkTransform()
+            self.ComputeMatrix()
+            T.SetMatrix(self.GetMatrix())
+            T.PostMultiply()
+            T.RotateZ(angle)
+            self.SetOrientation(T.GetOrientation())
+            self.SetPosition(T.GetPosition())
+            if self.trail:
+                self.updateTrail()
+            if self.shadow:
+                self.addShadow(self.shadowX, self.shadowY, self.shadowZ,
+                               self.shadow.GetProperty().GetColor(),
+                               self.shadow.GetProperty().GetOpacity())
+        else:
+            self.RotateZ(angle)
         return self
 
 
@@ -1260,6 +1278,7 @@ class BaseActor(Base3DProp):
                         aboveText=None,
                         belowText=None,
                         nanText='NaN',
+                        categories=None,
         ):
         """
         Draw a 3D scalar bar.
@@ -1312,6 +1331,7 @@ class BaseActor(Base3DProp):
                                                     aboveText,
                                                     belowText,
                                                     nanText,
+                                                    categories,
                                                     )
         return self
 

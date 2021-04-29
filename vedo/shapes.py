@@ -1811,7 +1811,7 @@ class Disc(Mesh):
         if utils.isSequence(res):
             res_r, res_phi = res
         else:
-            res_r, res_phi = res, 6*res
+            res_r, res_phi = res, 12*res
         ps = vtk.vtkDiskSource()
         ps.SetInnerRadius(r1)
         ps.SetOuterRadius(r2)
@@ -2310,13 +2310,25 @@ class Box(Mesh):
     """
     Build a box of dimensions `x=length, y=width and z=height`.
     Alternatively dimensions can be defined by setting `size` keyword with a tuple.
+    If ``size`` is a list of 6 numbers, this will be interpreted as the bounding box:
+        [xmin,xmax, ymin,ymax, zmin,zmax]
 
     |aspring| |aspring.py|_
     """
     def __init__(self, pos=(0,0,0), length=1, width=2, height=3, size=(), c="g4", alpha=1):
 
-        if len(size):
+        if len(size)==6:
+            bounds = size
+            length = bounds[1]-bounds[0]
+            width  = bounds[3]-bounds[2]
+            height = bounds[5]-bounds[4]
+            xp = (bounds[1]+bounds[0])/2
+            yp = (bounds[3]+bounds[2])/2
+            zp = (bounds[5]+bounds[4])/2
+            pos = (xp, yp, zp)
+        elif len(size)==3:
             length, width, height = size
+
         src = vtk.vtkCubeSource()
         src.SetXLength(length)
         src.SetYLength(width)

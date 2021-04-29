@@ -774,7 +774,7 @@ class Mesh(Points):
     def crop(self,
              top=None, bottom=None, right=None, left=None, front=None, back=None,
              bounds=None,
-             ):
+        ):
         """Crop an ``Mesh`` object.
 
         :param float top:    fraction to crop from the top plane (positive z)

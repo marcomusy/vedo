@@ -494,7 +494,8 @@ class Plotter:
         self.window.SetWindowName(self.title)
 
         # more settings
-        self.window.SetAlphaBitPlanes(settings.alphaBitPlanes)
+        if settings.useDepthPeeling:
+            self.window.SetAlphaBitPlanes(settings.alphaBitPlanes)
         self.window.SetMultiSamples(settings.multiSamples)
 
         self.window.SetPolygonSmoothing(settings.polygonSmoothing)
@@ -584,7 +585,7 @@ class Plotter:
                 r.SetLightFollowCamera(settings.lightFollowsCamera)
 
                 r.SetUseDepthPeeling(settings.useDepthPeeling)
-                r.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
+                #r.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
                 r.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
                 r.SetOcclusionRatio(settings.occlusionRatio)
                 r.SetUseFXAA(settings.useFXAA)
@@ -619,9 +620,10 @@ class Plotter:
                 arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
 
                 arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
-                arenderer.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
-                arenderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
-                arenderer.SetOcclusionRatio(settings.occlusionRatio)
+                if settings.useDepthPeeling:
+                    #arenderer.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
+                    arenderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
+                    arenderer.SetOcclusionRatio(settings.occlusionRatio)
                 arenderer.SetUseFXAA(settings.useFXAA)
                 arenderer.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
                 if hasattr(arenderer, "SetUseSSAO"):
@@ -2096,7 +2098,8 @@ class Plotter:
         if self.resetcam:
             self.renderer.ResetCamera()
 
-        addons.addRendererFrame()
+        if len(self.renderers) > 1:
+            addons.addRendererFrame()
 
         if not self.initializedIren and self.interactor:
             self.interactor.Initialize()
@@ -2350,6 +2353,31 @@ class Plotter:
         """
         retval = vedo.io.screenshot(filename, scale, returnNumpy)
         return retval
+
+    def topicture(self, scale=None):
+        """Generate a Picture object from the current rendering window.
+
+        :param int scale: set image magnification
+        """
+        if scale is None:
+            scale = settings.screeshotScale
+
+        if settings.screeshotLargeImage:
+           w2if = vtk.vtkRenderLargeImage()
+           w2if.SetInput(settings.plotter_instance.renderer)
+           w2if.SetMagnification(scale)
+        else:
+            w2if = vtk.vtkWindowToImageFilter()
+            w2if.SetInput(settings.plotter_instance.window)
+            if hasattr(w2if, 'SetScale'):
+                w2if.SetScale(scale, scale)
+            if settings.screenshotTransparentBackground:
+                w2if.SetInputBufferTypeToRGBA()
+            w2if.ReadFrontBufferOff()  # read from the back buffer
+        w2if.Update()
+        pic = vedo.picture.Picture(w2if.GetOutput())
+        return pic
+
 
     def export(self, filename='scene.npz'):
         """Export scene to file to HTML, X3D or Numpy file."""
@@ -2647,6 +2675,7 @@ class Plotter:
 
         elif key == "A": # toggle antialiasing
             msam = settings.plotter_instance.window.GetMultiSamples()
+            # print('antialiasing MultiSamples set to', msam)
             if not msam:
                 settings.plotter_instance.window.SetMultiSamples(8)
             else:

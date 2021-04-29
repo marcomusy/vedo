@@ -3075,7 +3075,7 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
 
-    def cutWithPlane(self, origin=(0, 0, 0), normal=(1, 0, 0), returnCut=False):
+    def cutWithPlane(self, origin=(0, 0, 0), normal=(1, 0, 0)):
         """
         Cut the mesh with the plane defined by a point and a normal.
 
@@ -3086,13 +3086,15 @@ class Points(vtk.vtkFollower, BaseActor):
             .. code-block:: python
 
                 from vedo import Cube
-
                 cube = Cube().cutWithPlane(normal=(1,1,1))
                 cube.bc('pink').show()
 
             |cutcube|
 
         |trail| |trail.py|_
+
+        Check out also:
+            ``crop()``, ``cutWithBox()``, ``cutWithCylinder()``, ``cutWithSphere()``
         """
         s = str(normal)
         if "x" in s:
@@ -3111,10 +3113,7 @@ class Points(vtk.vtkFollower, BaseActor):
         clipper = vtk.vtkClipPolyData()
         clipper.SetInputData(self.polydata(True)) # must be True
         clipper.SetClipFunction(plane)
-        if returnCut:
-            clipper.GenerateClippedOutputOn()
-        else:
-            clipper.GenerateClippedOutputOff()
+        clipper.GenerateClippedOutputOff()
         clipper.GenerateClipScalarsOff()
         clipper.SetValue(0)
         clipper.Update()
@@ -3136,24 +3135,231 @@ class Points(vtk.vtkFollower, BaseActor):
             tf.Update()
             self._update(tf.GetOutput())
 
-        if returnCut:
-            c = self.GetProperty().GetColor()
-            xpoly = clipper.GetClippedOutput()
-            if self.GetIsIdentity():
-                return vedo.Mesh(xpoly, c, 0.1).wireframe(True)
-            else:
-                tfx = vtk.vtkTransformPolyDataFilter()
-                tfx.SetTransform(tr)
-                tfx.SetInputData(xpoly)
-                tfx.Update()
-                tfxpoly = tfx.GetOutput()
-                restmesh = vedo.Mesh(tfxpoly, c, 0.1).wireframe(True)
-                restmesh.SetScale(self.GetScale())
-                restmesh.SetOrientation(self.GetOrientation())
-                restmesh.SetPosition(self.GetPosition())
-                return restmesh
+        return self
+
+
+    def cutWithBox(self, bounds, invert=False):
+        """
+        Cut the current mesh with a box.
+        This is much faster than ``cutWithMesh()``.
+
+        Input ``bounds`` can be either:
+            - a Mesh or Points object
+            - a list of 6 number representing a bounding box [xmin,xmax, ymin,ymax, zmin,zmax]
+            - a list of bounding boxes like the above: [[xmin1,...], [xmin2,...], ...]
+
+        :Example:
+            .. code-block:: python
+
+                from vedo import Sphere, Cube, show
+                mesh = Sphere(r=1, res=50)
+                box  = Cube(side=1.5).wireframe()
+                mesh.cutWithBox(box)
+                show(mesh, box, axes=1)
+
+        Check out also:
+            ``crop()``, ``cutWithLine()``, ``cutWithPlane()``, ``cutWithCylinder()``
+        """
+        if isinstance(bounds, Points):
+            bounds = bounds.GetBounds()
+
+        box = vtk.vtkBox()
+        if utils.isSequence(bounds[0]):
+            for bs in bounds:
+                box.AddBounds(bs)
         else:
-            return self
+            box.SetBounds(bounds)
+
+        clipper = vtk.vtkClipPolyData()
+        clipper.SetInputData(self.polydata(True)) # must be True
+        clipper.SetClipFunction(box)
+        clipper.SetInsideOut(not invert)
+        clipper.GenerateClippedOutputOff()
+        clipper.GenerateClipScalarsOff()
+        clipper.SetValue(0)
+        clipper.Update()
+        cpoly = clipper.GetOutput()
+
+        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
+            self._update(cpoly)
+        else:
+            # bring the underlying polydata to where _data is
+            M = vtk.vtkMatrix4x4()
+            M.DeepCopy(self.GetMatrix())
+            M.Invert()
+            tr = vtk.vtkTransform()
+            tr.SetMatrix(M)
+            tf = vtk.vtkTransformPolyDataFilter()
+            tf.SetTransform(tr)
+            tf.SetInputData(cpoly)
+            tf.Update()
+            self._update(tf.GetOutput())
+
+        return self
+
+    def cutWithLine(self, points, invert=False):
+        """
+        Cut the current mesh with a line vertically in the z-axis direction.
+        The polyline is defined by a set of points (z-coordinates are ignored).
+        This is much faster than ``cutWithMesh()``.
+
+        Check out also:
+            ``crop()``, ``cutWithBox()``, ``cutWithPlane()``, ``cutWithSphere()``
+        """
+        pplane = vtk.vtkPolyPlane()
+        if isinstance(points, Points):
+            points = points.points()
+
+        vpoints = vtk.vtkPoints()
+        for p in points:
+            vpoints.InsertNextPoint(p)
+
+        n = len(points)
+        polyLine = vtk.vtkPolyLine()
+        polyLine.Initialize(n, vpoints)
+        polyLine.GetPointIds().SetNumberOfIds(n)
+        for i in range(n):
+            polyLine.GetPointIds().SetId(i, i)
+        pplane.SetPolyLine(polyLine)
+
+        clipper = vtk.vtkClipPolyData()
+        clipper.SetInputData(self.polydata(True)) # must be True
+        clipper.SetClipFunction(pplane)
+        clipper.SetInsideOut(invert)
+        clipper.GenerateClippedOutputOff()
+        clipper.GenerateClipScalarsOff()
+        clipper.SetValue(0)
+        clipper.Update()
+        cpoly = clipper.GetOutput()
+
+        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
+            self._update(cpoly)
+        else:
+            # bring the underlying polydata to where _data is
+            M = vtk.vtkMatrix4x4()
+            M.DeepCopy(self.GetMatrix())
+            M.Invert()
+            tr = vtk.vtkTransform()
+            tr.SetMatrix(M)
+            tf = vtk.vtkTransformPolyDataFilter()
+            tf.SetTransform(tr)
+            tf.SetInputData(cpoly)
+            tf.Update()
+            self._update(tf.GetOutput())
+
+        return self
+
+    def cutWithCylinder(self, center=(0,0,0), axis=(0,0,1), r=1, invert=False):
+        """
+        Cut the current mesh with an infinite cylinder.
+        This is much faster than ``cutWithMesh()``.
+
+        :param list center: the center of the cylinder
+        :param list normal: direction of the cylinder axis
+        :param float r: radius of the cylinder
+
+        :Example:
+            .. code-block:: python
+
+                from vedo import Disc, show
+                disc = Disc(r1=1, r2=1.2)
+                mesh = disc.extrude(3, res=50).lineWidth(1)
+                mesh.cutWithCylinder([0,0,2], r=0.4, axis='y', invert=True)
+                show(mesh, axes=1)
+
+        Check out also:
+            ``crop()``, ``cutWithBox()``, ``cutWithPlane()``, ``cutWithSphere()``
+        """
+        s = str(axis)
+        if "x" in s:
+            axis = (1, 0, 0)
+        elif "y" in s:
+            axis = (0, 1, 0)
+        elif "z" in s:
+            axis = (0, 0, 1)
+        cyl = vtk.vtkCylinder()
+        cyl.SetCenter(center)
+        cyl.SetAxis(axis[0], axis[1], axis[2])
+        cyl.SetRadius(r)
+
+        clipper = vtk.vtkClipPolyData()
+        clipper.SetInputData(self.polydata(True)) # must be True
+        clipper.SetClipFunction(cyl)
+        clipper.SetInsideOut(not invert)
+        clipper.GenerateClippedOutputOff()
+        clipper.GenerateClipScalarsOff()
+        clipper.SetValue(0)
+        clipper.Update()
+        cpoly = clipper.GetOutput()
+
+        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
+            self._update(cpoly)
+        else:
+            # bring the underlying polydata to where _data is
+            M = vtk.vtkMatrix4x4()
+            M.DeepCopy(self.GetMatrix())
+            M.Invert()
+            tr = vtk.vtkTransform()
+            tr.SetMatrix(M)
+            tf = vtk.vtkTransformPolyDataFilter()
+            tf.SetTransform(tr)
+            tf.SetInputData(cpoly)
+            tf.Update()
+            self._update(tf.GetOutput())
+
+        return self
+
+    def cutWithSphere(self, center=(0,0,0), r=1, invert=False):
+        """
+        Cut the current mesh with an sphere.
+        This is much faster than ``cutWithMesh()``.
+
+        :param list center: the center of the sphere
+        :param float r: radius of the sphere
+
+        :Example:
+            .. code-block:: python
+
+                from vedo import Disc, show
+                disc = Disc(r1=1, r2=1.2)
+                mesh = disc.extrude(3, res=50).lineWidth(1)
+                mesh.cutWithSphere([1,-0.7,2], r=0.5, invert=True)
+                show(mesh, axes=1)
+
+        Check out also:
+            ``crop()``, ``cutWithBox()``, ``cutWithPlane()``, ``cutWithCylinder()``
+        """
+        sph = vtk.vtkSphere()
+        sph.SetCenter(center)
+        sph.SetRadius(r)
+
+        clipper = vtk.vtkClipPolyData()
+        clipper.SetInputData(self.polydata(True)) # must be True
+        clipper.SetClipFunction(sph)
+        clipper.SetInsideOut(not invert)
+        clipper.GenerateClippedOutputOff()
+        clipper.GenerateClipScalarsOff()
+        clipper.SetValue(0)
+        clipper.Update()
+        cpoly = clipper.GetOutput()
+
+        if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
+            self._update(cpoly)
+        else:
+            # bring the underlying polydata to where _data is
+            M = vtk.vtkMatrix4x4()
+            M.DeepCopy(self.GetMatrix())
+            M.Invert()
+            tr = vtk.vtkTransform()
+            tr.SetMatrix(M)
+            tf = vtk.vtkTransformPolyDataFilter()
+            tf.SetTransform(tr)
+            tf.SetInputData(cpoly)
+            tf.Update()
+            self._update(tf.GetOutput())
+
+        return self
+
 
     def cutWithMesh(self, mesh, invert=False):
         """
@@ -3175,7 +3381,10 @@ class Points(vtk.vtkFollower, BaseActor):
         .. hint:: |cutWithMesh1.py|_ |cutAndCap.py|_
 
             |cutWithMesh1| |cutAndCap|
-        """
+
+       Check out also:
+           ``crop()``, ``cutWithBox()``, ``cutWithPlane()``, ``cutWithCylinder()``
+       """
         polymesh = mesh.polydata()
         poly = self.polydata()
 
