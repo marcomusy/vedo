@@ -3441,6 +3441,25 @@ class Points(vtk.vtkFollower, BaseActor):
         self._mapper.SetScalarVisibility(vis)
         return self
 
+    def implicitModeller(self, distance=0.05, res=(50,50,50), bounds=(), maxdist=None):
+        """Find the surface which sits at the specified distance from the input one."""
+        if not len(bounds):
+            bounds = self.bounds()
+
+        if not maxdist:
+            maxdist = self.diagonalSize()/2
+
+        imp = vtk.vtkImplicitModeller()
+        imp.SetInputData(self.polydata())
+        imp.SetSampleDimensions(res)
+        imp.SetMaximumDistance(maxdist)
+        imp.SetModelBounds(bounds)
+        contour = vtk.vtkContourFilter()
+        contour.SetInputConnection(imp.GetOutputPort())
+        contour.SetValue(0, distance)
+        contour.Update()
+        poly = contour.GetOutput()
+        return vedo.Mesh(poly, c='lb')
 
     def tomesh( self,
                 resLine=None,

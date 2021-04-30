@@ -1941,30 +1941,6 @@ class Mesh(Points):
         return mesh
 
 
-    def implicitModeller(self, distance=0.05, res=(50,50,50),
-                         bounds=(), maxdist=None, outer=True):
-        """Find the surface which sits at the specified distance from the input one."""
-        if not len(bounds):
-            bounds = self.bounds()
-
-        if not maxdist:
-            maxdist = self.diagonalSize()/2
-
-        imp = vtk.vtkImplicitModeller()
-        imp.SetInputData(self.polydata())
-        imp.SetSampleDimensions(res)
-        imp.SetMaximumDistance(maxdist)
-        imp.SetModelBounds(bounds)
-        contour = vtk.vtkContourFilter()
-        contour.SetInputConnection(imp.GetOutputPort())
-        contour.SetValue(0, distance)
-        contour.Update()
-        poly = contour.GetOutput()
-        if outer:
-            return Mesh(poly).extractLargestRegion().c('lb')
-        return Mesh(poly, c='lb')
-
-
     def geodesic(self, start, end):
         """Dijkstra algorithm to compute the geodesic line.
         Takes as input a polygonal mesh and performs a single source
