@@ -1269,6 +1269,7 @@ class BaseActor(Base3DProp):
                         titleRotation = 0.0,
                         nlabels=9,
                         labelFont="",
+                        labelSize=1,
                         labelOffset = 0.375,
                         labelRotation=0,
                         italic=0,
@@ -1299,6 +1300,8 @@ class BaseActor(Base3DProp):
         :param float titleSize: size of title wrt numeric labels
         :param float titleRotation: title rotation in degrees
         :param int nlabels: number of numeric labels
+        :param str labelFont: font type for labels
+        :param float labelSize: label scale factor
         :param float labelOffset: space btw numeric labels and scale
         :param float labelRotation: label rotation in degrees
         :param bool,float italic: use italic font for title and labels
@@ -1322,6 +1325,7 @@ class BaseActor(Base3DProp):
                                                     titleRotation,
                                                     nlabels,
                                                     labelFont,
+                                                    labelSize,
                                                     labelOffset,
                                                     labelRotation,
                                                     italic,

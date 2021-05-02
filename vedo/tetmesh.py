@@ -1,4 +1,5 @@
 import vtk
+import vedo
 import vedo.docs as docs
 import vedo.utils as utils
 from vedo.base import BaseGrid
@@ -211,16 +212,20 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         return cloned
 
 
-    def threshold(self, name=None, above=None, below=None):
+    def threshold(self, name=None, above=None, below=None, on='cells'):
         """
         Threshold the tetrahedral mesh by a cell scalar value.
         Reduce to only tets which satisfy the threshold limits.
+        If ``above==below`` will only select tets with that specific value.
+        If ``above > below`` selection range is "flipped" (vtk_version>8).
+
+        :param str on: either name refers to a "cells or "points" array.
         """
         th = vtk.vtkThreshold()
         th.SetInputData(self._data)
-        ns = self.getArrayNames()
 
         if name is None:
+            ns = self.getArrayNames()
             if len(ns['CellData']):
                 name=ns['CellData'][0]
                 th.SetInputArrayToProcess(0,0,0, 1, name)
@@ -231,16 +236,21 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
                 printc("threshold(): Cannot find active array. Skip.", c='r')
                 return self
         else:
-            if self.useCells:
+            if on.startswith('c'):
                 th.SetInputArrayToProcess(0,0,0, 1, name)
             else:
                 th.SetInputArrayToProcess(0,0,0, 0, name)
 
         if above is not None and below is not None:
-            if above<below:
+            if above > below:
+                if vedo.settings.vtk_version[0] >= 9:
+                    th.SetInvert(True)
+                    th.ThresholdBetween(below, above)
+                else:
+                    printc("threshold(): in vtk<9, above cannot be larger than below. Skip.", c='r')
+                    return self
+            else:
                 th.ThresholdBetween(above, below)
-            elif above==below:
-                return self
 
         elif above is not None:
             th.ThresholdByUpper(above)
@@ -249,9 +259,7 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
             th.ThresholdByLower(below)
 
         th.Update()
-        ugrid = th.GetOutput()
-        return self._update(ugrid)
-
+        return self._update(th.GetOutput())
 
 
     def decimate(self, scalarsName, fraction=0.5, N=None):

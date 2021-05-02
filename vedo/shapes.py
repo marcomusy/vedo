@@ -277,7 +277,7 @@ class Glyph(Mesh):
             poly = cleanPolyData.GetOutput()
 
         if isinstance(glyphObj, Points):
-            glyphObj = glyphObj.clean().polydata()
+            glyphObj = glyphObj.polydata()
 
         cmap=''
         if c in cmaps_names:

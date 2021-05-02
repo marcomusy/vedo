@@ -818,9 +818,7 @@ class Plotter:
             self.actors.append(actors)
             self.renderer.AddActor(actors)
         if render:
-            if resetcam:
-                self.renderer.ResetCamera()
-            self.window.Render()
+            self.render(resetcam=resetcam)
         return self
 
     def remove(self, actors, at=None, render=False, resetcam=False):
@@ -860,9 +858,7 @@ class Plotter:
                 i = self.actors.index(a)
                 del self.actors[i]
         if render:
-            if resetcam:
-                ren.ResetCamera()
-            self.window.Render()
+            self.render(resetcam=resetcam)
         return self
 
     def pop(self, at=0, render=False):
@@ -872,6 +868,11 @@ class Plotter:
 
     def render(self, resetcam=False):
         """Render the scene."""
+        if settings.vtk_version[0] == 9 and "Darwin" in settings.sys_platform:
+            for a in self.actors:
+                if isinstance(a, vtk.vtkVolume):
+                    self.window.SetMultiSamples(0) # to fix mac OSX BUG vtk9
+                    break
         if resetcam:
             self.renderer.ResetCamera()
         self.window.Render()
@@ -2006,6 +2007,11 @@ class Plotter:
         if len(self.renderers) == 1:
             self.renderer.SetActiveCamera(self.camera)
 
+        if settings.vtk_version[0] == 9 and "Darwin" in settings.sys_platform:
+            for a in self.actors:
+                if isinstance(a, vtk.vtkVolume):
+                    self.window.SetMultiSamples(0) # to fix mac OSX BUG vtk9
+                    break
         # rendering
         for ia in actors2show:  # add the actors that are not already in scene
             if ia:
