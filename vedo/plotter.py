@@ -586,8 +586,9 @@ class Plotter:
 
                 r.SetUseDepthPeeling(settings.useDepthPeeling)
                 #r.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
-                r.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
-                r.SetOcclusionRatio(settings.occlusionRatio)
+                if settings.useDepthPeeling:
+                    r.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
+                    r.SetOcclusionRatio(settings.occlusionRatio)
                 r.SetUseFXAA(settings.useFXAA)
                 r.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
                 if hasattr(r, "SetUseSSAO"):
@@ -620,8 +621,8 @@ class Plotter:
                 arenderer.SetLightFollowCamera(settings.lightFollowsCamera)
 
                 arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
+                #arenderer.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
                 if settings.useDepthPeeling:
-                    #arenderer.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
                     arenderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
                     arenderer.SetOcclusionRatio(settings.occlusionRatio)
                 arenderer.SetUseFXAA(settings.useFXAA)
@@ -684,9 +685,10 @@ class Plotter:
                     arenderer.SetTwoSidedLighting(settings.twoSidedLighting)
 
                     arenderer.SetUseDepthPeeling(settings.useDepthPeeling)
-                    arenderer.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
-                    arenderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
-                    arenderer.SetOcclusionRatio(settings.occlusionRatio)
+                    # arenderer.SetUseDepthPeelingForVolumes(settings.useDepthPeeling)
+                    if settings.useDepthPeeling:
+                        arenderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
+                        arenderer.SetOcclusionRatio(settings.occlusionRatio)
                     arenderer.SetUseFXAA(settings.useFXAA)
                     arenderer.SetPreserveDepthBuffer(settings.preserveDepthBuffer)
                     if hasattr(arenderer, "SetUseSSAO"):
@@ -2669,10 +2671,10 @@ class Plotter:
             iren.ExitCallback()
             cur = iren.GetInteractorStyle()
             if isinstance(cur, vtk.vtkInteractorStyleTrackballCamera):
-                print("\nInteractor style changed to TrackballActor")
-                print("  you can now move and rotate individual meshes:")
-                print("  press X twice to save the repositioned mesh,")
-                print("  press 'a' to go back to normal style.")
+                printc("\nInteractor style changed to TrackballActor")
+                printc("  you can now move and rotate individual meshes:")
+                printc("  press X twice to save the repositioned mesh,")
+                printc("  press 'a' to go back to normal style.")
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
             else:
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
@@ -2681,11 +2683,32 @@ class Plotter:
 
         elif key == "A": # toggle antialiasing
             msam = settings.plotter_instance.window.GetMultiSamples()
-            # print('antialiasing MultiSamples set to', msam)
             if not msam:
                 settings.plotter_instance.window.SetMultiSamples(8)
             else:
                 settings.plotter_instance.window.SetMultiSamples(0)
+            msam = settings.plotter_instance.window.GetMultiSamples()
+            if msam:
+                printc(f'Antialiasing is now set to {msam} samples', c=bool(msam))
+            else:
+                printc('Antialiasing is now disabled', c=bool(msam))
+
+        elif key == "D": # toggle depthpeeling
+            udp = not settings.plotter_instance.renderer.GetUseDepthPeeling()
+            settings.plotter_instance.renderer.SetUseDepthPeeling(udp)
+            #settings.plotter_instance.renderer.SetUseDepthPeelingForVolumes(udp)
+            # print(settings.plotter_instance.window.GetAlphaBitPlanes())
+            if udp:
+                settings.plotter_instance.window.SetAlphaBitPlanes(1)
+                settings.plotter_instance.renderer.SetMaximumNumberOfPeels(settings.maxNumberOfPeels)
+                settings.plotter_instance.renderer.SetOcclusionRatio(settings.occlusionRatio)
+            settings.plotter_instance.interactor.Render()
+            wasUsed = settings.plotter_instance.renderer.GetLastRenderingUsedDepthPeeling()
+            rnr = self.renderers.index(settings.plotter_instance.renderer)
+            printc(f'Depth Peeling is now set to {udp} for renderer nr.{rnr}', c=udp)
+            if not wasUsed and udp:
+                printc('\t...but last rendering did not actually used it!', c=udp, invert=True)
+            return
 
         elif key == "j":
             iren.ExitCallback()
@@ -2693,8 +2716,8 @@ class Plotter:
             if isinstance(cur, vtk.vtkInteractorStyleJoystickCamera):
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
             else:
-                print("\nInteractor style changed to Joystick,", end="")
-                print(" press j to go back to normal.")
+                printc("\nInteractor style changed to Joystick,", end="")
+                printc(" press j to go back to normal.")
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleJoystickCamera())
             iren.Start()
             return

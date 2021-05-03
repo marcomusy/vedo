@@ -13,14 +13,20 @@ Check example `basic/mesh_custom.py`
 - added file(s) info dump by command line e.g.:
 `vedo --info some_image.jpg https://vedo.embl.es/examples/data/porsche.ply`
 
+- pressing `shift-A` toggles antialiasing for the whole rendering window
+- pressing `shift-D` toggles depth-peeling algorithm (to visualize transparent object)
+
+- antialiasing set by default on vtk9
+
 ---
 ### `base.py`
-- corected bug on `diagonalSize()` returning a wrong value
+- corrected bug on `diagonalSize()` returning a wrong value
 
 ---
 ### `addons.py`
 - added `addSplineTool()` to interactively spline points in space
 - added `labelRotation` in addScalarBar3D
+- added `xAxisRotation` to rotate the whole axis (ticks and labels)
 - added `xShiftAlongY` keywords in `Axes` to slide the whole axis position along another axis
 - `addScalarBar3D()` can now render categorical data
 
@@ -56,6 +62,7 @@ Check example `basic/mesh_custom.py`
 
 ---
 ### `shapes.py`
+- fixed small bug in `Glyph`
 
 ---
 ### `volume.py`

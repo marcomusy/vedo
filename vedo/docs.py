@@ -23,6 +23,7 @@ def tips():
     msg += "|        k     cycle available lighting styles             |\n"
     msg += "|        K     cycle available shading styles              |\n"
     msg += "|        A     toggle anti-aliasing                        |\n"
+    msg += "|        D     toggle depth-peeling (for transparencies)   |\n"
     msg += "|        o/O   add/remove light to scene and rotate it     |\n"
     msg += "|        n     show surface mesh normals                   |\n"
     msg += "|        a     toggle interaction to Actor Mode            |\n"

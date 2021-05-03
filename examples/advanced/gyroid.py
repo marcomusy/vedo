@@ -12,7 +12,7 @@ gyr = Volume(U).isosurface(0).smoothLaplacian().subdivide()
 # Intersect it with a sphere made of quads
 sph = Sphere(pos=(15,15,15), r=14, quads=True, res=30).triangulate()
 printc("Please wait a few secs while I'm cutting your gyroid", c='y')
-gxs = gyr.boolean('intersect', sph).clean().computeNormals()
+gxs = gyr.boolean('intersect', sph).clean().flat()
 gxs.texture('https://www.dropbox.com/s/d99h7sh7rx7drah/marblings.jpg')
 
 show(gxs, __doc__, bg='wheat', bg2='lightblue', axes=5, zoom=1.4)

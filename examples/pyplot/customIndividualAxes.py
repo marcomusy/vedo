@@ -1,6 +1,8 @@
-"""Create individual axes to each separate object in a scene. 
+"""Create individual axes to each separate object in a scene.
 Access any element to change its size and color"""
 from vedo import *
+
+settings.useDepthPeeling = False
 
 # Create a bunch of objects
 s1 = Sphere(pos=(10, 0, 0), r=1, c='r')
@@ -30,4 +32,4 @@ show(pt, s1,axes1, s2,axes2, s3,axes3, __doc__,
                numberOfDivisions=10,
                yzGrid=False,
               ),
-     )
+)
