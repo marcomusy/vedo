@@ -16,5 +16,5 @@ s = Mesh(dataurl+'man.vtk').rotateZ(20).rotateX(-70).scale(0.2).c('darkgreen', 0
 
 s2d = s.clone2D(pos=[0.4,0.4], coordsys=4, c='r', alpha=1)
 
-show(s, s2d, __doc__, axes=1)
+show(s, s2d, __doc__, axes=1).close()
 

@@ -19,5 +19,5 @@ for i, p in enumerate(apple.points()):
     plt += Arrow(plane.center, plane.center+plane.normal/5)
 
 plt += __doc__ + "\nNr. of fits performed: "+str(len(variances))
-plt.show()
+plt.show().close()
 

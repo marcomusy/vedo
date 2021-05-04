@@ -16,4 +16,4 @@ points = Points(pts2, r=10).cmap('rainbow', scalars)
 # interpolate from points onto the mesh, by averaging the 5 closest ones
 mesh.interpolateDataFrom(points, N=5).cmap('rainbow').addScalarBar()
 
-show(mesh, points, __doc__, axes=9)
+show(mesh, points, __doc__, axes=9).close()

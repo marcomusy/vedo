@@ -1,6 +1,8 @@
 """Color lines by a scalar"""
 from vedo import *
 
+settings.allowInteraction=0
+
 pts1 = [(sin(x/8), cos(x/8), x/5) for x in range(25)]
 l1 = Line(pts1).c('black')
 l2 = l1.clone().rotateZ(180).shift(1,0,0)
@@ -19,3 +21,5 @@ def clickfunc(evt):
 plt = Plotter(axes=1, bg2='lightblue')
 plt.addCallback('mouse click', clickfunc)
 plt.show(l1,l2, lines, __doc__, viewup='z')
+# interactive()
+plt.close()

@@ -100,7 +100,7 @@ def showSolution3D(S, start, goal):
     txts.append(__doc__)
     txts.append(Text3D('Start', pos=[start[1]-1,-start[0]+1.5,1], c='k'))
     txts.append(Text3D('Goal!', pos=[goal[1] -2,-goal[0] -2.7,1], c='k'))
-    show(path, walls, grd, txts, axes=0, zoom=1.2)
+    return show(path, walls, grd, txts, axes=0, zoom=1.2)
 
 
 ##########################################################################
@@ -110,7 +110,8 @@ if __name__ == '__main__':
     Z = maze(shape=(50, 70))
 
     start, goal = (1,1), (Z.shape[0]-2, Z.shape[1]-2)
+    print("Please wait..")
     S = solve(Z, start, goal)
 
     #printSolution(S, start, goal)
-    showSolution3D(S, start, goal)
+    showSolution3D(S, start, goal).close()

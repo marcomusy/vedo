@@ -31,4 +31,4 @@ cam = dict(pos=(59.8, -191, 78.9),
            distance=205,
            clippingRange=(87.8, 355))
 
-show(mesh, labs, hist, __doc__, bg='bb', camera=cam, axes=11)
+show(mesh, labs, hist, __doc__, bg='bb', camera=cam, axes=11).close()

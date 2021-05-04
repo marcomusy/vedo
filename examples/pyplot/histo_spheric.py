@@ -8,4 +8,4 @@ the = np.random.rand(1000)*3.14
 
 h = histogram(the, phi, mode='spheric')
 
-h.show(axes=12, viewup='z')
+h.show(axes=12, viewup='z').close()

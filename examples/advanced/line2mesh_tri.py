@@ -1,5 +1,5 @@
 """Generate a polygonal Mesh
-from a contour line."""
+from a contour line"""
 from vedo import *
 from vedo.pyplot import histogram
 
@@ -19,4 +19,4 @@ show([
       [contour, contour.labels('id'), msh, __doc__],
       [histo],
      ], N=2, sharecam=False,
-)
+).close()

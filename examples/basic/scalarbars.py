@@ -28,5 +28,5 @@ sc = ms[2].addScalarBar3D(pos=(1,0,-5),
                           titleSize=1.5)
 sc.scalarbar.rotateX(90) # make it vertical
 
-show(ms, __doc__, axes=1, viewup='z')
+show(ms, __doc__, axes=1, viewup='z').close()
 

@@ -1,6 +1,5 @@
 """Use array to vary radius and color
-of a line represented as a tube.
-"""
+of a line represented as a tube"""
 from vedo import *
 import numpy as np
 
@@ -21,7 +20,6 @@ cols = [i for i in range(N)]
 cols = makeBands(cols, 5)  # make color bins
 t3 = Tube(ln, r=rads, c=cols, res=24)
 
-
 show(t1, __doc__, at=0, N=3, axes=dict(textScale=4), viewup="z")
 show(t2, at=1)
-show(t3, at=2, interactive=1)
+show(t3, at=2, interactive=1).close()

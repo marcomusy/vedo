@@ -18,4 +18,4 @@ mesh = merge(rbs).clean().cap().color('limegreen')
 
 cs.append(__doc__)
 
-show([cs, mesh], N=2, axes=1, elevation=-40, bg2='lb')
+show([cs, mesh], N=2, axes=1, elevation=-40, bg2='lb').close()

@@ -47,4 +47,4 @@ plt.show(vlogo, shapename,
          Text2D(title, pos=(0.5,0.85), s=2.5, c='dg', font='Kanopus', justify='center'),
          Text2D(instr, bg='g', pos=(0.5,0.05), s=1.2, font='Quikhand', justify='center'),
          at=1, interactive=True,
-)
+).close()

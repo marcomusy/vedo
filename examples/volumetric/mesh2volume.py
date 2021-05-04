@@ -12,4 +12,4 @@ iso = v.isosurface().color("b")
 
 show(v, s.scale(1.05), __doc__, at=0, N=2)
 
-show(iso, at=1, interactive=1)
+show(iso, at=1, interactive=1).close()

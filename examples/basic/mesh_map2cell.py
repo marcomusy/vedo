@@ -15,4 +15,4 @@ msg2 = Text2D("..is interpolated to cells.", pos="top-center")
 mesh2 = mesh1.clone(deep=False).mapPointsToCells()
 
 show(mesh1, msg1, doc, at=0, N=2, axes=11, viewup="z")
-show(mesh2, msg2,      at=1, interactive=True)
+show(mesh2, msg2,      at=1, interactive=True).close()

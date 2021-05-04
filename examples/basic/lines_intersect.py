@@ -22,4 +22,4 @@ id0 = line1.closestPoint(pint[0], returnPointId=True)
 id1 = line1.closestPoint(pint[1], returnPointId=True)
 msh = Line(line1.points()[id0:id1]).triangulate().lw(0).shift(0,0,-0.01)
 
-show(line1, line2, ps, msh, __doc__+f"\narea = {msh.area()} cm\^2", axes=1)
+show(line1, line2, ps, msh, __doc__+f"\narea = {msh.area()} cm\^2", axes=1).close()

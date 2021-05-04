@@ -23,4 +23,4 @@ t2 = 'Color arrows by an array\nand scale them by half'
 a2 = Arrows(coords1, coords2, c=cols, scale=0.5)
 
 # draw 2 groups of objects on two renderers
-show([(s1, s2, a1, t1), (s1, s2, a2, t2)], N=2, bg='bb', bg2='lb')
+show([(s1, s2, a1, t1), (s1, s2, a2, t2)], N=2, bg='bb', bg2='lb').close()

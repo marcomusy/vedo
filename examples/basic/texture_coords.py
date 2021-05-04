@@ -24,6 +24,6 @@ m.texture(fpath,
           interpolate=True,
           repeat=True,      # when tcoords extend beyond [0,1]
           edgeClamp=False,  #  only used when repeat is False
-         )
+)
 
-show(m, __doc__, axes=1)
+show(m, __doc__, axes=1).close()

@@ -14,4 +14,4 @@ arrows = Arrows(coords-vects, coords+vects, c='hot_r')
 
 g.cmap('jet', input_array='Density').lineWidth(0.1).alpha(0.3)
 
-show(g, arrows, __doc__, axes=7, viewup='z')
+show(g, arrows, __doc__, axes=7, viewup='z').close()

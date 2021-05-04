@@ -32,4 +32,5 @@ iso2.addScalarBar3D(title='myscalars2')
 show([(vol, __doc__),
        (iso1,"Colorize isosurface using\nmyscalars1"),
        (iso2,"Colorize isosurface using\nmyscalars2"),
-     ], N=3, axes=1)
+     ], N=3, axes=1
+).close()

@@ -10,4 +10,4 @@ for i in range(10):
     arrs.append(FlatArrow(l1, l2, c=i, tipSize=1, tipWidth=1))
 
 # three points, aka ellipsis, retrieves the list of all created actors
-show(arrs, __doc__, viewup="z", axes=1)
+show(arrs, __doc__, viewup="z", axes=1).close()

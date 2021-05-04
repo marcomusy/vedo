@@ -39,4 +39,4 @@ points_visual = trimesh.points.PointCloud(mesh.vertices[[start, end]])
 
 txt = 'Shortest path query\nusing length for edge weight'
 
-show(mesh, points_visual, path_visual, txt, axes=6)
+show(mesh, points_visual, path_visual, txt, axes=6).close()

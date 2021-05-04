@@ -1,5 +1,4 @@
-# Make a Volume from a numpy object
-#
+'Make a Volume from a numpy.mgrid'
 import numpy as np
 from vedo import *
 
@@ -12,11 +11,11 @@ vol.addScalarBar3D()
 
 lego = vol.legosurface(vmin=1, vmax=2)
 lego.addScalarBar3D()
-text1 = Text2D('Make a Volume from numpy.mgrid', c='blue')
+text1 = Text2D(__doc__, c='blue')
 text2 = Text2D('its lego isosurface representation\nvmin=1, vmax=2', c='dr')
 
 print('numpy array from Volume:', 
       vol.getPointArray().shape, 
       vol.getDataArray().shape)
 
-show([(vol,text1), (lego,text2)], N=2, azimuth=10)
+show([(vol,text1), (lego,text2)], N=2, azimuth=10).close()

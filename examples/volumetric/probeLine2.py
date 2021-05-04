@@ -23,6 +23,6 @@ plt = plot(xvals, yvals,
           )
 plt.shift(0,25,0)
 
-show(vol, pl, __doc__, plt, axes=dict(xyGrid=0, yzGrid=0))
+show(vol, pl, __doc__, plt, axes=dict(xyGrid=0, yzGrid=0)).close()
 # or:
-#show([(vol, pl, __doc__), plt], N=2, sharecam=False)
+#show([(vol, pl, __doc__), plt], N=2, sharecam=False).close()

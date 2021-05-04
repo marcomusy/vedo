@@ -23,4 +23,4 @@ for name in colors.cmaps_names:
 printc("Try picking a color by pressing Shift-i", invert=1)
 show(grids, vnames1, at=0, N=2, size=(1300,1000), bg='blackboard',
      title="Color Maps with n="+str(n)+" colors")
-show(grids, vnames2, at=1, bg='white', zoom=1.75, interactive=True)
+show(grids, vnames2, at=1, bg='white', zoom=1.75, interactive=True).close()

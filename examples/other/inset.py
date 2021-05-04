@@ -29,4 +29,4 @@ ax = Axes(xrange=(0,1), yrange=(0,1), zrange=(0,1),
 ex = e.clone().scale(0.25).pos(0,0.1,0.1).alpha(0.1).lighting('off')
 plt.addInset(ax, ex, pos=(0.1,0.1), size=0.15, draggable=False)
 
-interactive()
+interactive().close()

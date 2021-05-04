@@ -43,4 +43,5 @@ sp1 = Spheres(mls2.points(), c="red", r=variances/4) # error as point size
 mesh.color("k").alpha(0.05).wireframe()
 
 plt2.show(sp0, "Use color to represent variance", at=0)
-plt2.show(sp1, "point size to represent variance", at=1, zoom=1.3, interactive=1)
+plt2.show(sp1, "point size to represent variance", at=1, zoom=1.3, interactive=1).close()
+plt1.close()

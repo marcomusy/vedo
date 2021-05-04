@@ -15,4 +15,4 @@ cam = dict(pos=(113, -189, 62.1),
            distance=223,
            clippingRange=(74.3, 382))
 
-show(s1, s2, __doc__, bg='k', bg2='lg', axes=11, camera=cam)
+show(s1, s2, __doc__, bg='k', bg2='lg', axes=11, camera=cam).close()

@@ -4,7 +4,7 @@ The animation shows the evolution of a particle of relatively well defined
 momentum (hence undefined position) in a box hitting a potential barrier."""
 print(__doc__)
 import numpy as np
-from vedo import Plotter, Line, dataurl
+from vedo import Plotter, Line, dataurl, interactive
 
 Nsteps = 250  # number of steps in time
 N = 300       # number of points in space
@@ -41,8 +41,8 @@ def d_dt(psi):  # find Psi(t+dt)-Psi(t) /dt with 4th order Runge-Kutta method
     return (k1 + 2 * k2 + 2 * k3 + k4) / 6
 
 
-vp = Plotter(interactive=False)
-bck = vp.load(dataurl+"images/schrod.png").alpha(.3).scale(.0256).pos([0,-5,-.1])
+plt = Plotter(interactive=False)
+bck = plt.load(dataurl+"images/schrod.png").alpha(.3).scale(.0256).pos([0,-5,-.1])
 barrier = Line(np.stack((x, V*15, np.zeros_like(x)), axis=1), c="black", lw=2)
 box = bck.box().c('black')
 
@@ -53,19 +53,19 @@ for i in range(0, Nsteps):
     A = np.real(Psi * np.conj(Psi)) * 1.5  # psi squared, probability(x)
     coords = np.stack((x, A), axis=1)
     Aline = Line(coords, c="db", lw=3)
-    vp.show(barrier, bck, Aline, box).remove(Aline)
+    plt.show(barrier, bck, Aline, box).remove(Aline)
     lines.append([Aline, A])   # store objects
 
 # now show the same lines along z representing time
-vp.actors= [] # clean up internal list of objects to show
-vp.camera.Elevation(20)
-vp.camera.Azimuth(20)
+plt.actors= [] # clean up internal list of objects to show
+plt.camera.Elevation(20)
+plt.camera.Azimuth(20)
 bck.alpha(1)
 for i in range(Nsteps):
     p = [0, 0, i*size/Nsteps]  # shift along z
     l, a = lines[i]
     l.cmap("gist_earth_r", a)
-    vp += [box, bck, l.pos(p), barrier.clone().alpha(0.3).pos(p)]
-    vp.show()
+    plt += [box, bck, l.pos(p), barrier.clone().alpha(0.3).pos(p)]
+    plt.show()
 
-vp.show(interactive=1)
+interactive().close()

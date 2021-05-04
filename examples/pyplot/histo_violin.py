@@ -15,4 +15,4 @@ acts = [
     violin(np.random.chisquare(9, n)/4, x=10, vlim=(0,10), c='lg', lc='dg'),
 ]
 
-show(acts, axes=dict(xtitle=False, ytitle='distribution'))
+show(acts, axes=dict(xtitle=False, ytitle='distribution')).close()

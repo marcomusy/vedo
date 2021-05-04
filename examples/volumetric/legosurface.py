@@ -15,4 +15,4 @@ lego = vol.legosurface(vmin=60, cmap='seismic')
 # make colormap start at 40
 lego.addScalarBar(horizontal=True, c='k')
 
-show(lego, __doc__, axes=1, viewup='z')
+show(lego, __doc__, axes=1, viewup='z').close()

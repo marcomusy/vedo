@@ -17,4 +17,4 @@ plt += plot(x, y, "-", lc='orange5')
 plt += plot(x, y*(1+dy), "--", lc='orange5', lw=2)
 plt += plot(x, y*(1-dy), "--", lc='orange5', lw=2)
 
-plt.show(size=(800,700), zoom=1.2)
+plt.show(size=(800,700), zoom=1.2, interactorStyle="Image").close()

@@ -24,4 +24,4 @@ for i, p in enumerate(s.points()):
     plt += Line(sph.center, p, lw=2)
 
 plt += __doc__
-plt.show(viewup="z", axes=1)
+plt.show(viewup="z", axes=1).close()

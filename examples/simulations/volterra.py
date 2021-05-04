@@ -64,4 +64,4 @@ plt.show(axes={'xtitle':'time',
                'ztitle':'y',
                'zxGrid':True, 'yzGrid':False},
          viewup='x',
-)
+).close()

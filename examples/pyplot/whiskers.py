@@ -37,6 +37,6 @@ axes = Axes(xrange=[-1,9],
             xLabelSize=0.02,
            )
 
-show(ws, bra1, bra2, line, band, __doc__, axes, zoom=1.1)
+show(ws, bra1, bra2, line, band, __doc__, axes, zoom=1.1).close()
 
 

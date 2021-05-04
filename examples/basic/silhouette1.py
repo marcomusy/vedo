@@ -16,4 +16,4 @@ show(s,
      __doc__,
      axes={'zxGrid':True, 'yzGrid':True},
      viewup='z',
-     )
+).close()

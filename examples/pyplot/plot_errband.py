@@ -37,4 +37,4 @@ plt += Marker('*', pos=(x[idx], y[idx], 0.1), c='blue')
 # Add a dashed line for the minimum
 plt += DashedLine([x[0], miny], [x[-1], miny])
 
-plt.show()
+plt.show(zoom=1.2, interactorStyle="Image").close()

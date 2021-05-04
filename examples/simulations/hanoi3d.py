@@ -1,6 +1,6 @@
 """Demo to show how to solve the Tower of Hanoi"""
 
-from vedo import Plotter, Cylinder, Box, ProgressBar
+from vedo import Plotter, Cylinder, Box, ProgressBar, settings, interactive
 from copy import deepcopy
 
 
@@ -56,12 +56,13 @@ for _ in hanoi.moves():
 disks = { hanoi.nr_disks - i : Cylinder(r=0.2*(hanoi.nr_disks-i+1), c=i)
           for i in range(hanoi.nr_disks) }
 
-vp = Plotter(interactive=0, size=(800, 600), bg='wheat', bg2='lb')
-vp.camera.SetPosition( [14.57, -14.772, 6.132] )
-vp.camera.SetFocalPoint( [3.0, 0.6, 2.0] )
-vp.camera.SetViewUp( [-0.098, 0.167, 0.981] )
-vp += disks.values()
-vp += Box(pos=(3,0,-0.5), size=(12,4,0.1))
+settings.useDepthPeeling = False
+plt = Plotter(interactive=False, size=(800, 600), bg='wheat', bg2='lb')
+plt.camera.SetPosition( [14.57, -14.772, 6.132] )
+plt.camera.SetFocalPoint( [3.0, 0.6, 2.0] )
+plt.camera.SetViewUp( [-0.098, 0.167, 0.981] )
+plt += disks.values()
+plt += Box(pos=(3,0,-0.5), size=(12,4,0.1))
 
 pb = ProgressBar(0, len(tower_states), 1, c="y")
 for t in pb.range():
@@ -70,6 +71,6 @@ for t in pb.range():
     for tower_nr in range(3):
         for i, disk in enumerate(state[tower_nr]):
             disks[disk].pos([3 * tower_nr, 0, i+0.5])
-    vp.show(resetcam=0, rate=10)
-vp.show(interactive=1)
+    plt.show(resetcam=0, rate=10)
+interactive().close()
 

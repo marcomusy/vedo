@@ -14,5 +14,6 @@ cam = dict(pos=(10.1, -8.33, 7.25),  # params obtained by pressing "C"
            distance=13.7)
 
 show(s, c, e, h, lb, __doc__,
-      axes=1, bg='lightyellow', bg2='white', size=(1400,800), camera=cam)
+      axes=1, bg='lightyellow', bg2='white',
+      size=(1400,800), camera=cam).close()
 

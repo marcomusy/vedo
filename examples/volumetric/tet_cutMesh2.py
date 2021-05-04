@@ -22,4 +22,4 @@ tetm3.addScalarBar3D(c='k')
 show([(msh1, sphere, __doc__),
       (tetm2.tomesh(), "Keep only tets that lie\ncompletely outside the Sphere"),
       (tetm3.tomesh(), sphere, "Keep only tets that lie\nexactly on the Sphere"),
-     ], N=3, axes=dict(xtitle='x in \mum'))
+     ], N=3, axes=dict(xtitle='x in \mum')).close()

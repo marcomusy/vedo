@@ -26,4 +26,4 @@ evntId = plotter.addCallback("timer", handle_timer)
 
 earth = vedo.Earth()
 
-plotter.show(earth, __doc__, axes=1, bg2='b9', viewup='z')
+plotter.show(earth, __doc__, axes=1, bg2='b9', viewup='z').close()

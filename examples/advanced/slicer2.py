@@ -18,7 +18,7 @@ def slicerfunc(index, data):
     zb = vol.zbounds()
     visibles = [msh]
     txt = Text2D('..'+data.filename[-30:], font='Calco')
-    plt.show(vol, msh, sb, box, txt, at=index, interactorStyle=6)
+    plt.show(vol, msh, sb, box, txt, at=index)
     def func(widget, event):
         i = int(widget.GetRepresentation().GetValue())
         plt.renderer = widget.GetCurrentRenderer()
@@ -41,4 +41,4 @@ for index, data in enumerate(volumes):
                     pos=(sliderstart, sliderstop))
 
 printc("Right click to rotate, use slider to slice along z.", box='-')
-plt.show(interactive=True)
+plt.show(interactive=True).close()

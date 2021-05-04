@@ -36,4 +36,4 @@ mesh.scalarbar.scale(1.5).rotateX(90).y(1) # make it bigger and place it
 show(mesh, __doc__,
      axes=dict(zLabelSize=.04, numberOfDivisions=10),
      elevation=-80, bg='blackboard',
-)
+).close()

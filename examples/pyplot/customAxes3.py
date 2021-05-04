@@ -24,4 +24,4 @@ axs = Axes(sph,          # build axes for object sph
            zxShift=0.2,  # move zx plane 20% along y
           )
 
-show(sph, axs, __doc__)
+show(sph, axs, __doc__).close()

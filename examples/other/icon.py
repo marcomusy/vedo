@@ -6,14 +6,14 @@ from vedo import *
 
 
 # axes type 5 builds an annotated orientation cube
-vp = Plotter(axes=5)
-vp.show(interactive=0)
+plt = Plotter(axes=5)
+plt.show(interactive=0)
 
 elg = load(dataurl+"images/embl_logo.jpg")
-vp.addIcon(elg, pos=2, size=0.06)
+plt.addIcon(elg, pos=2, size=0.06)
 
-vp.addIcon(VedoLogo(), pos=1, size=0.06)
+plt.addIcon(VedoLogo(), pos=1, size=0.06)
 
-vp += Text3D(__doc__).bc('tomato')
+plt += Text3D(__doc__).bc('tomato')
 
-vp.show(interactive=1)
+plt.show(interactive=True).close()

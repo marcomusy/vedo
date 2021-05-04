@@ -12,4 +12,4 @@ s1.addScalarBar(title='Signed\nDistance')
 
 #print(s1.getPointArray("Distance"))
 
-show(s1, s2, __doc__ , axes=11)
+show(s1, s2, __doc__ , axes=11).close()

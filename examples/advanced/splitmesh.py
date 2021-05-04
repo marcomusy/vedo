@@ -8,4 +8,4 @@ em = Volume(dataurl+"embryo.tif").isosurface(80)
 # return the list of the largest 10 connected meshes:
 splitem = em.splitByConnectivity(maxdepth=40)[0:9]
 
-show(splitem, __doc__, axes=1, viewup='z')
+show(splitem, __doc__, axes=1, viewup='z').close()

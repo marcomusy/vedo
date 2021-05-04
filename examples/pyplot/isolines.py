@@ -2,6 +2,8 @@
 a scalar field H (height) on a surface"""
 from vedo import *
 
+settings.immediateRendering = False
+
 mesh0 = ParametricShape('RandomHills')
 # ParametricShapes already have a scalar associated to points
 printc('Mesh arrays are:    ', mesh0.getArrayNames())
@@ -32,4 +34,4 @@ cam = dict(pos=(2.57, -1.92, 3.25), # get these nrs by pressing C
            viewup=(-0.329, 0.563, 0.758),
            distance=5.00,
            clippingRange=(1.87, 8.79))
-show(mesh2, "Color=|\nablaH|", at=3, camera=cam, interactive=True)
+show(mesh2, "Color=|\nablaH|", at=3, camera=cam, interactive=True).close()

@@ -51,7 +51,7 @@ axes = (p1+p2).buildAxes(xtitle='gene4', ytitle='gene2', ztitle='gene3', c='k')
 # Show the two clouds superposed on a new plotter window:
 show([h0, h1, h2, h3, h4, (p1,p2, axes, __doc__)],
       shape="1/5", # 1 spaces above and 5 below
-      sharecam=0, axes=0, zoom=2, interactive=True)
+      sharecam=0, axes=0, zoom=2, interactive=True).close()
 
 
 

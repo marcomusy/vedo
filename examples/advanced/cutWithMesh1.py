@@ -12,4 +12,4 @@ msh = Ellipsoid().scale(0.4).pos(2.8, 1.5, 1.5).wireframe()
 cutembryo = embryo.clone().cutWithMesh(msh).c("gold").bc("t")
 
 show(embryo, msh,    at=0, N=2, axes=1, viewup="z")
-show(cutembryo, __doc__, at=1, interactive=True)
+show(cutembryo, __doc__, at=1, interactive=True).close()

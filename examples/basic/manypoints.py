@@ -28,4 +28,4 @@ pts = Points(pts, r=2, c=RGBA) #fast
 t1 = time.time()
 print("-> elapsed time:", t1-t0, "seconds for N:", N)
 
-show(pts, __doc__, axes=True)
+show(pts, __doc__, axes=True).close()

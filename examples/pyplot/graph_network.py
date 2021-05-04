@@ -40,4 +40,4 @@ pts.cmap('viridis', v2)
 # v3 = [sin(x) for x in range(graph.NCells())]
 # graph.cmap('jet', v3).addScalarBar()
 
-show(pts, graph, labs1, labs2, __doc__, axes=9)
+show(pts, graph, labs1, labs2, __doc__, axes=9, interactorStyle="Image").close()

@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-#
 """Density plot from a distribution of points in 3D"""
 import numpy as np
 from vedo import *
@@ -16,5 +14,5 @@ vol = pts.density().c('Dark2').alpha([0.1,1]) # density() returns a Volume
 r = precision(vol.info['radius'], 2) # retrieve automatic radius value
 vol.addScalarBar3D(title='Density (counts in r_s ='+r+')', c='k', italic=1)
 
-show([(pts,__doc__), vol], N=2, axes=True)
+show([(pts,__doc__), vol], N=2, axes=True).close()
 

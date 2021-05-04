@@ -4,11 +4,11 @@ Simulate interacting charged particles in 3D space.
 # An example simulation of N particles scattering on a charged target.
 # See e.g. https://en.wikipedia.org/wiki/Rutherford_scattering
 # By Tommy Vandermolen, 3 August 2018
-from vedo import Plotter, Cube, Sphere, mag2, versor, vector
+from vedo import Plotter, Cube, Sphere, mag2, versor, vector, settings
 import numpy as np
 
 K_COULOMB = 8987551787.3681764  # N*m^2/C^2
-vp = None  # so that it can be also used without visualization
+plt = None  # so that it can be also used without visualization
 
 
 class ParticleSim:
@@ -59,8 +59,9 @@ class ParticleSim:
                 a.vel += ftot / a.mass * self.dt  # update velocity and position of a
                 a.pos += a.vel * self.dt
                 a.vsphere.pos(a.pos)
-            if vp:
-                vp.show(resetcam=not i)
+            if plt:
+                plt.show(resetcam=not i, azimuth=1)
+                if plt.escaped: break # if ESC is hit during the loop
 
 
 class Particle:
@@ -85,25 +86,26 @@ class Particle:
         self.fixed = fixed
         self.negligible = negligible
         self.color = color
-        if vp:
-            self.vsphere = Sphere(pos, r=radius, c=color).addTrail(alpha=0.4, maxlength=1, n=50)
-            vp.add(self.vsphere, render=False)  # Sphere representing the particle
+        if plt:
+            self.vsphere = Sphere(pos, r=radius, c=color).addTrail(alpha=1, maxlength=1, n=50)
+            plt.add(self.vsphere, render=False)  # Sphere representing the particle
 
 
 #####################################################################################################
 if __name__ == "__main__":
+    settings.useDepthPeeling = False
 
-    vp = Plotter(title="Particle Simulator", bg="black", axes=0, interactive=False)
+    plt = Plotter(title="Particle Simulator", bg="black", axes=0, interactive=False)
 
-    vp += Cube().c('w').wireframe(True).lighting('off') # a wireframe cube
+    plt += Cube().c('w').wireframe(True).lighting('off') # a wireframe cube
 
-    sim = ParticleSim(dt=5e-6, iterations=200)
+    sim = ParticleSim(dt=1e-5, iterations=100)
     sim.add_particle((-0.4, 0, 0), color="w", charge=3e-6, radius=0.01, fixed=True)  # the target
 
-    positions = np.random.randn(500, 3) / 60  # generate a beam of 500 particles
+    positions = np.random.randn(300, 3) / 60  # generate a beam of 300 particles
     for p in positions:
         p[0] = -0.5  # Fix x position. Their charge are small/negligible compared to target:
         sim.add_particle(p, charge=0.01e-6, mass=0.1e-6, vel=(1000, 0, 0), negligible=True)
 
     sim.simulate()
-    vp.show(interactive=True, resetcam=False)
+    plt.show(interactive=True, resetcam=False).close()

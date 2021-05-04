@@ -9,4 +9,4 @@ for i,s in enumerate(symbols):
     vp += Text3D(s, pos=[i*0.6,-0.6,0], s=0.12).color('k')
 vp += __doc__
 
-vp.show(zoom=5, viewup='2d')
+vp.show(zoom=5, viewup='2d').close()

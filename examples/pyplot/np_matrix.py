@@ -15,5 +15,6 @@ mat = matrix(M,
              ylabels=[f'bmp{i}' for i in range(n)],
              scale=0.15,  # size of bin labels; set it to 0 to remove labels
              lw=2,        # separator line width
-            )
-show(mat, __doc__, bg='k7', zoom=1.2)
+)
+
+show(mat, __doc__, bg='k7', zoom=1.2).close()

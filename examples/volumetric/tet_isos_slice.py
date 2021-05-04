@@ -13,4 +13,4 @@ show([
       (tetmesh, "A TetMesh"),
       (isos, "Isosurfaces for thresholds:\n"+str(thrslist)),
       (slce, "Slice TetMesh with plane"),
-     ], N=3, axes=1, viewup='z')
+     ], N=3, axes=1, viewup='z').close()

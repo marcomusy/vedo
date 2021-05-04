@@ -19,4 +19,4 @@ vp.show(b2, at=2, resetcam=False)
 b3 = s1.boolean("minus", s2).legend("minus").addScalarBar(c='w')
 vp.show(b3, at=3, resetcam=False)
 
-interactive()
+interactive().close()

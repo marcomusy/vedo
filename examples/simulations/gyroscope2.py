@@ -1,10 +1,8 @@
 """A gyroscope sitting on a pedestal.
 The analysis is in terms of Lagrangian mechanics.
 The Lagrangian variables are polar angle theta,
-azimuthal angle phi, and spin angle psi.
-"""
+azimuthal angle phi, and spin angle psi"""
 # (adapted from http://www.glowscript.org)
-from __future__ import division, print_function
 from vedo import *
 
 # ############################################################ parameters
@@ -25,22 +23,23 @@ x = vector(theta, phi, psi)  # Lagrangian coordinates
 v = vector(thetadot, phidot, psidot)
 
 # ############################################################ the scene
-vp = Plotter(axes=0, interactive=0)
-vp += __doc__
+settings.useDepthPeeling = False
+plt = Plotter(axes=0, interactive=0)
+plt += __doc__
 
 shaft = Cylinder([[0, 0, 0], [Lshaft, 0, 0]], r=0.03, c="dg")
-rotor = Cylinder([[Lshaft / 2.2, 0, 0], [Lshaft / 1.8, 0, 0]], r=R).texture("white")
+rotor = Cylinder([[Lshaft / 2.2, 0, 0], [Lshaft / 1.8, 0, 0]], r=R).texture("white").c("ly")
 base  = Sphere([0, 0, 0], c="dg", r=0.03)
 tip   = Sphere([Lshaft, 0, 0], c="dg", r=0.03)
 gyro = shaft + rotor + base + tip  # group relevant meshes into single one of type Assembly
-vp += gyro  # add it to Plotter list
+plt += gyro  # add it to Plotter list
 
 pedestal = Box([0, -0.63, 0], height=0.1, length=0.1, width=1).texture("wood1")
 pedbase = Box([0, -1.13, 0], height=0.5, length=0.5, width=0.05).texture("wood1")
 pedpin = Pyramid([0, -0.08, 0], axis=[0, 1, 0], s=0.05, height=0.12).texture("wood1")
 formulas = load(dataurl+"images/gyro_formulas.png").alpha(0.9)
 formulas.scale(0.0035).pos(-1.4, -1.1, -1.1)
-vp += [pedestal + pedbase + pedpin + formulas]
+plt += [pedestal + pedbase + pedpin + formulas]
 
 # ############################################################ the physics
 pb = ProgressBar(0, 4, dt, c="b")
@@ -62,8 +61,9 @@ for i, t in enumerate(pb.range()):
     # set orientation along gaxis and rotate it around its axis by psidot*t degrees
     gyro.orientation(gaxis, rotation=psidot * t, rad=True)
     if not i % 200:  # add trace and render all, every 200 iterations
-        vp += Point(gaxis, r=3, c="r")
-        vp.show()
+        plt += Point(gaxis, r=3, c="r")
+        plt.show()
+        if plt.escaped: break # if ESC is hit during the loop
     pb.print()
 
-vp.show(interactive=1)
+interactive().close()

@@ -26,4 +26,4 @@ aligned = procrustesAlignment([vpts1, vpts2, vpts3])
 
 # print(aligned.info['transform'])
 
-vp.show(aligned, at=1, interactive=1)
+vp.show(aligned, at=1, interactive=1).close()

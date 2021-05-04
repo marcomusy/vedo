@@ -58,5 +58,5 @@ for j in range(100):
     plt.clear()
 # vd.close()
 
-interactive()
+interactive().close()
 

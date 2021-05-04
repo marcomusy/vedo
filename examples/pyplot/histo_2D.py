@@ -19,4 +19,4 @@ h = histogram(x, y,
 # add some object to the plot
 h += Marker('*', s=0.3, c='r').pos(xm, ym, 0.1)
 
-show(h)
+show(h, interactorStyle="Image").close()

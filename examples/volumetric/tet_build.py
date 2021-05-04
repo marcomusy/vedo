@@ -30,4 +30,5 @@ printc("points, cells      :", len(tm.points()), len(tm.cells()))
 # Optionally convert tm to a Mesh (for visualization)
 show([(tm, __doc__),
       (tm.tomesh(),"TetMesh.tomesh()"),
-     ],  N=2, axes=1)
+     ],  N=2, axes=1,
+).close()

@@ -1,9 +1,9 @@
 """Load an existing vtkStructuredGrid and draw
 the streamlines of the velocity field"""
-import vtk
 from vedo import *
 
 ######################## vtk
+import vtk
 # Read the data and specify which scalars and vectors to read.
 pl3d = vtk.vtkMultiBlockPLOT3DReader()
 fpath = download(dataurl+"combxyz.bin")
@@ -23,4 +23,4 @@ stream = streamLines(domain, probe, direction='backwards')
 
 box = Mesh(domain).alpha(0.1)
 
-show(stream, probe, box, __doc__, axes=7, bg='bb')
+show(stream, probe, box, __doc__, axes=7, bg='bb').close()

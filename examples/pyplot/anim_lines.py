@@ -1,6 +1,5 @@
 """Animated plot showing
 multiple temporal data lines"""
-# Original version: https://github.com/rougier/unknown-pleasures
 # Copyright (c) 2021, Nicolas P. Rougier. License: BSD 2-Clause*
 # Adapted for vedo by M. Musy, February 2021
 import numpy as np
@@ -33,6 +32,7 @@ for i in range(50):
         newpts[:,2] = G * data[i]
         lines[i].points(newpts).cmap('gist_heat_r', newpts[:,2])
     plt.show()
+    if plt.escaped: break # if ESC is hit during the loop
     # vd.addFrame()
 # vd.close()
 
@@ -67,3 +67,6 @@ interactive()
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Original version at: https://github.com/rougier/unknown-pleasures
+

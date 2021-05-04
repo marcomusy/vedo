@@ -7,7 +7,7 @@
 # Adapted for vedo by Marco Musy (2020)
 # -----------------------------------------------------------------------------
 import numpy as np
-from vedo import Grid, Latex, show, interactive
+from vedo import Grid, Latex, show, interactive, settings
 
 # ---------------------------------------------------------------
 Nsteps = 300
@@ -43,6 +43,7 @@ grd.lineWidth(0).wireframe(False).lighting(ambient=0.5)
 formula = r'(u,v)=(D_u\cdot\Delta u -u v v+F(1-u), D_v\cdot\Delta v +u v v -(F+k)v)'
 ltx = Latex(formula, s=15, pos=(0,-sy/1.9,0))
 print('Du, Dv, F, k, name =', Du, Dv, F, k, name)
+settings.useDepthPeeling = False
 
 for step in range(Nsteps):
     for i in range(25):
@@ -61,6 +62,7 @@ for step in range(Nsteps):
     newpts = grd.points()
     newpts[:,2] = grd.getPointArray('escals')*25 # assign z
     grd.points(newpts) # set the new points
-    show(ltx, grd, zoom=1.25, elevation=-.15, bg='linen', interactive=False)
+    plt = show(ltx, grd, zoom=1.25, elevation=-.15, bg='linen', interactive=False)
+    if plt.escaped: break  # if ESC is hit during loop
 
-interactive()
+interactive().close()

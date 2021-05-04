@@ -18,12 +18,12 @@ def buttonfunc():
     button.switch()              # change to next status
 
 ######
-vp = Plotter(N=2, axes=True)
+plt = Plotter(N=2, axes=True)
 
 ######
 sphere = Sphere(r=0.6).alpha(0.9).color(0)
-vp.show(sphere, __doc__, at=0)  # show the sphere on the first renderer
-vp.addSlider2D(slider0,
+plt.show(sphere, __doc__, at=0)  # show the sphere on the first renderer
+plt.addSlider2D(slider0,
                -9, 9,           # slider range
                value=0,         # initial value
                pos=([0.1,0.1],  # first point of slider in the renderer
@@ -32,8 +32,8 @@ vp.addSlider2D(slider0,
 
 ######
 cube = Cube().alpha(0.9).color(0)
-vp.show(cube, at=1)
-vp.addSlider2D(slider1,
+plt.show(cube, at=1)
+plt.addSlider2D(slider1,
                -9, 9,
                value=0,
                pos=([0.1,0.1],
@@ -41,7 +41,7 @@ vp.addSlider2D(slider1,
                title="slider 1, color number")
 
 ######
-button = vp.addButton(buttonfunc,
+button = plt.addButton(buttonfunc,
     pos=(0.5, 0.9),       # x,y fraction from bottom left corner
     states=["HIGH alpha (click here!)", "LOW alpha (click here!)"],
     c = ["w", "k"],       # colors of states (foreground)
@@ -50,4 +50,4 @@ button = vp.addButton(buttonfunc,
     size=35,
 )
 
-vp.show(interactive=1)
+plt.show(interactive=1).close()

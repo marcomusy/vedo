@@ -7,4 +7,4 @@ labels    = ["stuff_1 ", "stuff_2 ", "comp^A ", "comp^B ", ""]
 
 dn = donut(fractions, c=colors, labels=labels, title=title)
 
-dn.show(axes=None)
+dn.show(axes=None).close()

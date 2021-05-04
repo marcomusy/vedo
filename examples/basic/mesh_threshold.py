@@ -12,4 +12,4 @@ man.cmap("cool", scals).addScalarBar(title="threshold", horizontal=True)
 cutman = man.clone().threshold(scals, 37, 37.5)
 
 # distribute the meshes on the 2 renderers
-show([(man, __doc__), cutman], N=2, elevation=-30, axes=11)
+show([(man, __doc__), cutman], N=2, elevation=-30, axes=11).close()

@@ -47,3 +47,5 @@ for i in range(len(vp2.renderers)):
     vp2.show(s2, 'renderer #'+str(i), at=i)
 
 interactive()
+vp2.close()
+vp1.close()

@@ -24,4 +24,4 @@ for i in range(200):
     plt.show(s, v, msg2)
     # vd.addFrame()
 # vd.close()
-interactive()
+interactive().close()

@@ -11,4 +11,4 @@ for i in range(50):
     dsc.points(coords)  # modify mesh
     show(dsc, t, resetcam=not i, interactive=0, axes=7) # resetcam only for i=0
 
-interactive()
+interactive().close()

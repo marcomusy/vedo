@@ -9,4 +9,4 @@ sphere = Sphere(r=500, c='g').x(400).alpha(0.2)
 
 tetmesh.cutWithMesh(sphere, invert=True)
 
-show(tetmesh, sphere, __doc__, axes=dict(xtitle='x [\mum]'))
+show(tetmesh, sphere, __doc__, axes=dict(xtitle='x [\mum]')).close()

@@ -9,4 +9,4 @@ eli.alignToBoundingBox(cube, rigid=0)
 axes1 = Axes(eli, c='db', htitle='ellipsoid box')
 axes2 = Axes(cube, c='dg', htitle='cube box')
 
-show(eli, cube, axes1, axes2, __doc__)
+show(eli, cube, axes1, axes2, __doc__).close()

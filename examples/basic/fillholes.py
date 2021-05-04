@@ -9,4 +9,4 @@ a = Mesh(dataurl+"bunny.obj").lw(0.1).bc('red')
 b = a.clone().pos(.2,0,0).fillHoles(size=0.1)
 b.color("lb").bc('green').legend("filled mesh")
 
-show(a, b, __doc__, elevation=-70)
+show(a, b, __doc__, elevation=-70).close()

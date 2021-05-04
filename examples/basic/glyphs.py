@@ -29,4 +29,4 @@ gsphere2 = Glyph(s, gly2,
                 )
 
 # show two groups of objects on N=2 renderers:
-show([(s, gsphere1, __doc__), (s, gsphere2)], N=2, bg='bb', zoom=1.4)
+show([(s, gsphere1, __doc__), (s, gsphere2)], N=2, bg='bb', zoom=1.4).close()

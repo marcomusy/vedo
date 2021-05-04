@@ -15,10 +15,10 @@ g = DirectedGraph(layout='cone')
 
 # Vertex generation is automatic,
 #  add a child to vertex0, so that now vertex1 exists
-g.addChild(0, edgeLabel="Mother giving birth\nto her little baby cell")
+g.addChild(0, edgeLabel="Mother giving birth\nto her baby cell")
 g.addChild(1); g.addChild(1)
 g.addChild(2); g.addChild(2); g.addChild(2)
-g.addChild(3); g.addChild(3, edgeLabel="It's a male!")
+g.addChild(3); g.addChild(3, edgeLabel="daughter_38")
 g.addChild(4); g.addChild(4)
 for i in range(7): g.addChild(5, nodeLabel="cell5_"+str(i))
 g.addChild(7); g.addChild(7); g.addChild(7)
@@ -28,4 +28,4 @@ g.build() # optimize layout
 g.unpack(0).color('dg').lineWidth(3) #0=graph, 1=vertexLabels, 2=edgeLabels, 3=arrows
 g.unpack(2).color('dr')
 
-show(g, __doc__, axes=9, elevation=-40)
+show(g, __doc__, axes=9, elevation=-40).close()

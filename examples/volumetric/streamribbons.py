@@ -1,9 +1,9 @@
 """Load an existing vtkStructuredGrid and draw the
 lines of the velocity field joining them in ribbons"""
-import vtk
 from vedo import *
 
 ######################## vtk
+import vtk
 # Read the data and specify which scalars and vectors to read.
 pl3d = vtk.vtkMultiBlockPLOT3DReader()
 pl3d.SetXYZFileName(download(dataurl+"combxyz.bin"))
@@ -21,4 +21,4 @@ probe = Line([9,0,28], [11,0,33], res=11).color('k')
 
 stream = streamLines(domain, probe, direction='backwards', ribbons=2)
 
-show(box, probe, stream, __doc__, axes=7, bg='bb')
+show(box, probe, stream, __doc__, axes=7, bg='bb').close()

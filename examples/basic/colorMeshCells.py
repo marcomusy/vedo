@@ -13,4 +13,4 @@ for i in range(tor.NCells()):
 tor.cellIndividualColors(cols, alphas)
 print('Mesh arrays:', tor.getArrayNames())
 
-show(tor, __doc__)
+show(tor, __doc__).close()

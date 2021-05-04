@@ -20,4 +20,4 @@ def func(evt):
 plt = show(vol, sl, __doc__, axes=9, bg='k', bg2='bb', interactive=False)
 plt.actors += [None, None]  # 2 placeholders for [sphere, vignette]
 plt.addCallback('as my mouse moves please call', func) # be kind to vedo
-interactive()
+interactive().close()

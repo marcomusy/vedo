@@ -55,4 +55,4 @@ earth  = vedo.Earth()
 moon   = vedo.Sphere(r=0.1).x(1.5).color('k7')
 txt2d  = vedo.CornerAnnotation().font("Kanopus")
 
-viewer.show(earth, moon, txt2d, viewup='z')
+viewer.show(earth, moon, txt2d, viewup='z').close()

@@ -17,7 +17,7 @@ t = Text2D(
     """TrackballCamera is the default
 ...lets change it to JoystickCamera:""",
     c="k", bg="w"
-    )
+)
 
 print("..change it to JoystickCamera")
-show(Paraboloid(), t, at=2, interactorStyle=2, interactive=True)
+show(Paraboloid(), t, at=2, interactorStyle=2, interactive=True).close()

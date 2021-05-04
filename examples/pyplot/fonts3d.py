@@ -13,7 +13,7 @@ for i, f in enumerate(fonts):
     acts2d.append(t)
 
 acts2d.append(Text2D("List of Available Fonts", pos='top-center', bg='k', s=1.1))
-show(acts2d, bg2='cornsilk', axes=False, zoom=1.2, size=(1200,700), interactive=False)
+plt0 = show(acts2d, bg2='cornsilk', axes=False, zoom=1.2, size=(1200,700), interactive=False)
 
 
 ################################################################################## 3D
@@ -106,4 +106,7 @@ show(fn3d,
      camera=cam,
      bg2='bb',
      bg='k',
-    )
+    ).close()
+
+plt.close()
+plt0.close()

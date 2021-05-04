@@ -30,6 +30,7 @@ for q in pb.range():
     volf = np.log(12*volf/volf.max()+ 1) / 2.5
 
     vb = Volume(volf).mode(1).c("rainbow").alpha([0, 0.8, 1])
-    show(vb, bg="black", axes=1, viewup='z', interactive=False)
+    plt = show(vb, bg="black", axes=1, viewup='z', interactive=False)
+    if plt.escaped: break  # ESC button was hit
 
-interactive()
+interactive().close()

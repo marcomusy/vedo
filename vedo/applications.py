@@ -31,7 +31,7 @@ def SlicerPlotter(
            map2cells=False,  # buggy
            clamp=True,
            useSlider3D=False,
-           size=(1400,1200),
+           size=(1200,1000),
            screensize="auto",
            title="",
            bg="white",

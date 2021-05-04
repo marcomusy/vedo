@@ -38,4 +38,4 @@ plt2 = plot(x, y, ma=0.3, lw=0,
 
 show(plt0, txt0, at=0, N=3, size=(1800,500))
 show(plt1, txt1, at=1)
-show(plt2, txt2, at=2, interactive=True)
+show(plt2, txt2, at=2, interactive=True).close()

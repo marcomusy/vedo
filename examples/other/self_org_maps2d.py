@@ -54,9 +54,10 @@ class SOM:
                     for j in range(n):
                         grdpts[i*n+j] = (x[i,j], y[i,j], z[i,j])
                 grd.points(grdpts)
-                show(doc, pts, grd, axes=6, azimuth=2, interactive=False)
+                plt = show(doc, pts, grd, axes=6, azimuth=2, interactive=False)
+                if plt.escaped: break  # hit ESC
 
-        interactive()
+        interactive().close()
         return [self.codebook[:,i].reshape(n,n) for i in range(3)]
 
 # -------------------------------------------------------------------------------

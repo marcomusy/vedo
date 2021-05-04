@@ -9,4 +9,4 @@ arr = imread(fname)
 
 pic = Picture(arr) # create Picture object from numpy array
 
-show(pic, __doc__, axes=7)
+show(pic, __doc__, axes=7).close()

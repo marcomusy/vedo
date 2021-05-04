@@ -72,3 +72,5 @@ plt2.show(__doc__,
           Text2D("My Multi Viewer 1.0", pos=(.5,.8), s=2.5, c='dg', font='Kanopus', justify='center'),
           Text2D(instr, bg='g', pos=(0.5,0.1), s=1.2, font='Quikhand', justify='center'),
 )
+plt2.close()
+plt1.close()

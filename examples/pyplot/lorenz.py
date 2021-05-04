@@ -27,4 +27,4 @@ scene += Points(pts, r=3, c=cols)
 scene += Line(pts).off().addShadow(x=3) # only show shadow, not line
 scene += Line(pts).off().addShadow(z=-30)
 scene += __doc__
-scene.show(viewup='z')
+scene.show(viewup='z').close()

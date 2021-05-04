@@ -19,4 +19,4 @@ probes = np.c_[xpr, ypr]
 
 str_lns = streamLines(g, probes, maxPropagation=80, lw=3)
 
-show(ars, str_lns, zoom=8, bg2='lb')
+show(ars, str_lns, zoom=8, bg2='lb').close()

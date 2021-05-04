@@ -13,6 +13,6 @@ show([
       [picfft, "2D Fast Fourier Transform"],
       [pic.fft(mode='complex').rfft(), "Reversed FFT"],
      ], N=3, bg='gray7', axes=1,
-)
+).close()
 
 

@@ -32,5 +32,5 @@ plt2 = plot(x, y2,
 #  and position it anywhere in the scene:
 plt2.scale(0.5).pos(2, 1.4, 0.01)
 
-show(plt1, plt2, zoom=1.1)
+show(plt1, plt2, zoom=1.1).close()
 

@@ -29,4 +29,4 @@ interpolated_desc = itr(xi, yi, zi)
 mesh.cmap('rainbow', interpolated_desc).addScalarBar(title='3sin(4y)')
 rpts = Points(ptsubset, r=8, c='white')
 
-show(mesh, rpts, __doc__, axes=1)
+show(mesh, rpts, __doc__, axes=1).close()

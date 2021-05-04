@@ -18,4 +18,4 @@ s.cutWithMesh(c).color('silver')  # take what's inside of cube
 c.cutWithMesh(s).color('grey')    # take what's inside of isosurface
 
 # Show all the created objects
-show(s, c, __doc__, bg='darkseagreen', bg2='lightblue', axes=5)
+show(s, c, __doc__, bg='darkseagreen', bg2='lightblue', axes=5).close()

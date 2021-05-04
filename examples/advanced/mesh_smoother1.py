@@ -20,4 +20,4 @@ plt.show(m2, "WindowSinc smoothing", at=2)
 
 plt.backgroundColor([0.8, 1, 1], at=0)  # set first renderer color
 
-plt.show(zoom=1.4, interactive=True)
+plt.show(zoom=1.4, interactive=True).close()

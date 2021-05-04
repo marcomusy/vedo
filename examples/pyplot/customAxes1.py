@@ -44,5 +44,5 @@ axes_opts = dict(
     yLabelColor='dg',    # color of the numeric labels along Y axis
 )
 
-show(world, pts, spl, lns, __doc__+settings.defaultFont, axes=axes_opts)
+show(world, pts, spl, lns, __doc__+settings.defaultFont, axes=axes_opts).close()
 

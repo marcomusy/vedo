@@ -25,4 +25,4 @@ hst1 += Text3D('Highlight a\nspecial bin', pos=(0.5,20), c='v')
 hst2 = histogram(data2, format=hst1, alpha=0.5)
 
 # Show both:
-show(hst1, hst2)
+show(hst1, hst2, interactorStyle="Image").close()

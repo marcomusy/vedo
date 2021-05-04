@@ -12,4 +12,4 @@ for i in range(20):
     paths.append(s.geodesic(2500, i*700))
     # print(paths[-1].info['CumulativeWeights'])
 
-show(s, Earth(), __doc__, paths, bg2='lb', viewup="z")
+show(s, Earth(), __doc__, paths, bg2='lb', viewup="z").close()

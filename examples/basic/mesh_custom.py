@@ -18,7 +18,6 @@ try:
     alphas = np.linspace(0.8, 0.2, num=len(mycmap))
 except:
     printc("colorcet is not available, use custom cmap", c='y')
-
     mycmap = ["darkblue", "magenta", (1, 1, 0)]
     alphas = [0.8,              0.6,       0.2]
 
@@ -28,4 +27,4 @@ except:
 
 man.cmap(mycmap, scals, alpha=alphas).addScalarBar()
 
-show(man, __doc__, viewup="z", axes=7)
+show(man, __doc__, viewup="z", axes=7).close()

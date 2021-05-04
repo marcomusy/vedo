@@ -6,13 +6,12 @@ import numpy as np
 
 vol = Volume(dataurl+'embryo.slc')
 
-pts = np.random.rand(4000, 3)*256
+pts = np.random.rand(5000, 3)*256
 
 mpts = probePoints(vol, pts).pointSize(3).printInfo()
 
 scals = mpts.getPointArray()
 
-h = histogram(scals, xlim=(5,120), xtitle='probed voxel value')
-h.scale(2.2)  # make it bigger
+his = histogram(scals, xlim=(5,120), xtitle='probed voxel value')
 
-show(vol, mpts, h, __doc__)
+show([(vol, Axes(vol), mpts, __doc__), his], N=2, sharecam=False).close()

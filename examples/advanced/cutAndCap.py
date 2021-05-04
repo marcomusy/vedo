@@ -8,4 +8,4 @@ show(p1, cutmesh, __doc__, at=0, N=2, axes=1, viewup="z")
 
 p2 = p1.clone().cutWithMesh(cutmesh)
 redcap = p2.cap(returnCap=True).color("r", 0.5)
-show(redcap, p2, at=1, interactive=True)
+show(redcap, p2, at=1, interactive=True).close()

@@ -33,4 +33,4 @@ ray_visualize = trimesh.load_path(
 mesh.visual.face_colors = [200, 200, 250, 100]
 mesh.visual.face_colors[index_tri] = [255, 0, 0, 255]
 
-show(mesh, ray_visualize, locs, axes=1)
+show(mesh, ray_visualize, locs, axes=1).close()

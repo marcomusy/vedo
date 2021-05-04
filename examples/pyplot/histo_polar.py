@@ -41,4 +41,4 @@ for i in idx:
     rh.orientation(hyp.normalAt(i)) # orient it along normal
     radhistos.append(rh)
 
-show(hyp, radhistos, at=1, interactive=True)
+show(hyp, radhistos, at=1, interactive=True).close()

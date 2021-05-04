@@ -11,4 +11,4 @@ ltx = Latex(latex4, s=1, c='darkblue', bg='', alpha=0.9, usetex=False)
 ltx.crop(0.3, 0.3) # crop top and bottom 30%
 ltx.pos(2,0,0)
 
-ltx.show(axes=1, size=(1400,700), zoom=1.8)
+ltx.show(axes=1, size=(1400,700), zoom=1.8).close()

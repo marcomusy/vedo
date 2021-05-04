@@ -66,7 +66,7 @@ class Morpher:
         show(grid0, self.source, self.target, lines, arrows, __doc__, at=0, N=2)
         show(grid1, self.morphed_source, self.target, mlines,
              f"morphed source (green) vs target (red)\nNDF = {2*self.npts}",
-             at=1, interactive=True)
+             at=1, interactive=True).close()
 
 
 #################################

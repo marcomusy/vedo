@@ -31,4 +31,4 @@ print('Adding a light source..')
 p = (3, 1.5, 3)
 f = (3, 1.5, 0)
 vp += [Arrow(p,f, s=0.01, c='gray', alpha=0.2), Light(pos=p, focalPoint=f)]
-vp.show()
+vp.show().close()

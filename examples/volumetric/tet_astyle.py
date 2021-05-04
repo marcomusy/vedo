@@ -2,6 +2,8 @@
 default ray casting."""
 from vedo import *
 
+# settings.useDepthPeeling = False
+
 tetm = TetMesh(dataurl+'limb_ugrid.vtk')
 tetm.color('jet').alphaUnit(100) # make the tets more transparent
 tetm.addScalarBar3D()
@@ -18,4 +20,6 @@ cmesh = shrinked.tomesh(fill=True)
 show([(tetm, __doc__),
       (wmesh, "..wireframe surface"),
       (cmesh, "..shrinked tetrahedra"),
-     ], N=3, axes=1)
+     ], N=3, axes=1,
+).close()
+

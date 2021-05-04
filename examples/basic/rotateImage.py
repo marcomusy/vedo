@@ -15,3 +15,4 @@ for i in range(5):
 
 plt += __doc__
 plt.show()
+plt.close()

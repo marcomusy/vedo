@@ -25,4 +25,4 @@ for i in range(line.N()):
     x = line.points(i)
     redpt.pos(x) # assign the new position
     plt.render()
-interactive()
+interactive().close()

@@ -15,4 +15,5 @@ cmesh = tmesh.cutWithPlane(normal=(1,2,-1))
 
 show([(s, pin, "Generate points in a Sphere"),
       (cmesh, __doc__),
-     ], N=2, axes=1)
+     ], N=2, axes=1,
+).close()

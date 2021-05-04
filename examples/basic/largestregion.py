@@ -9,4 +9,4 @@ mesh2 = mesh1.extractLargestRegion().color("lb")
 printc("area2 =", mesh2.area(), c="lb")
 
 show(mesh1, __doc__, at=0, shape=(2,1), axes=7)
-show(mesh2, at=1, zoom=1.2, interactive=True)
+show(mesh2, at=1, zoom=1.2, interactive=True).close()

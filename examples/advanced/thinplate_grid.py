@@ -30,4 +30,4 @@ warped.alpha(0.2).color("b")
 apts = Points(ptsource, r=5, c="r")
 arrs = Arrows(ptsource, pttarget, c='k')
 
-show(warped, apts, arrs, __doc__, axes=9, viewup="z")
+show(warped, apts, arrs, __doc__, axes=9, viewup="z").close()

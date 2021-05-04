@@ -19,4 +19,4 @@ vp.backgroundRenderer.GetActiveCamera().Zoom(1.8)
 
 vp.show(VedoLogo(distance=2), at=0)
 
-vp.show(a1, at=3, interactive=1)
+vp.show(a1, at=3, interactive=1).close()

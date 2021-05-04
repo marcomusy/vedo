@@ -30,4 +30,4 @@ ch = cornerHistogram(vol, pos="bottom-left")
 vol.addScalarBar3D(sy=1, title='Height is the voxel scalar')
 vol.scalarbar.rotateX(90).pos(1.15,1,0.5)
 
-show(apts, vol, ch, __doc__, axes=1, elevation=-90)
+show(apts, vol, ch, __doc__, axes=1, elevation=-90).close()

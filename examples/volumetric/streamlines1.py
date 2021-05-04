@@ -17,4 +17,4 @@ stream = streamLines(mesh, probe,
                      maxPropagation=0.3,
                      extrapolateToBoundingBox={'dims':(10,10,10)})
 
-show(stream, probe, mesh, mesh.box(), __doc__, axes=3, viewup='z')
+show(stream, probe, mesh, mesh.box(), __doc__, axes=3, viewup='z').close()

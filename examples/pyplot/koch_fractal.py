@@ -27,4 +27,4 @@ for i in range(levels):
     kmsh = Line(koch(i)).tomesh(resMesh=1).lw(0).color(-i).z(-i/1000)
     kochs.append(kmsh)
 
-show(kochs, __doc__+ f"\nlevels: {levels}\npoints: {kmsh.N()}", axes=10)
+show(kochs, __doc__+ f"\nlevels: {levels}\npoints: {kmsh.N()}", axes=10).close()

@@ -13,4 +13,4 @@ apts = Points(coords, r=9).addPointArray(scals, name='scals')
 densecloud = apts.densify(0.1, closest=10, niter=1) # return a new pointcloud.Points
 printc('nr. points increased', apts.N(), '\rightarrow ', densecloud.N(), c='lg')
 
-show([(apts, __doc__), densecloud], N=2, axes=1)
+show([(apts, __doc__), densecloud], N=2, axes=1).close()

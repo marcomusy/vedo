@@ -11,4 +11,5 @@ tetm.addScalarBar3D(title='chem_0  expression levels', c='k', italic=1)
 
 show([(tetm,__doc__),
        tetm.tomesh(shrink=0.9),
-     ], N=2, axes=1)
+     ], N=2, axes=1,
+).close()

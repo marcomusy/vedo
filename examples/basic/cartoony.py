@@ -13,4 +13,4 @@ show(ted, ted.silhouette(),
      Text2D(__doc__, pos="bottom-center", font="Bongas", s=2, bg='dg'),
      bg='wheat', bg2='lb',
      elevation=-80, zoom=1.2,
-    )
+).close()

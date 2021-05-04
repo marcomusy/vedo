@@ -16,4 +16,4 @@ for x in range(0,10):
         v = linInterpolate(p, positions, directions)
         arrs.append(Arrow(p, p+v, s=0.001))
 
-show(arrs, __doc__, axes=1)
+show(arrs, __doc__, axes=1).close()

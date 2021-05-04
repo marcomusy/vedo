@@ -62,6 +62,6 @@ plt = Plotter()
 plt.addCallback('KeyPress', keyfunc)
 plt.addCallback('LeftButtonPress', onLeftClick)
 plt.addCallback('RightButtonPress', onRightClick)
-plt.show(pic, instrucs, axes=True, bg='blackboard')
+plt.show(pic, instrucs, axes=True, bg='blackboard').close()
 
 

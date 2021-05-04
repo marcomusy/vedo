@@ -32,4 +32,4 @@ show(pt, s1,axes1, s2,axes2, s3,axes3, __doc__,
                numberOfDivisions=10,
                yzGrid=False,
               ),
-)
+).close()

@@ -1,6 +1,5 @@
 """Orient and scale 'glyphs'
-(use a Mesh like a symbol)
-"""
+(use a Mesh like a symbol)"""
 # Credits: original example and data from https://plotly.com/python/cone-plot
 # Adapted for vedo by M. Musy, 2020.
 from vedo import Cone, Glyph, show
@@ -18,6 +17,6 @@ glyph = Glyph(pts, cone, vecs, scaleByVectorSize=True, colorByVectorSize=True)
 
 glyph.lighting('ambient').cmap('Blues').addScalarBar(title='wind speed')
 
-show(glyph, __doc__, axes=True)
+show(glyph, __doc__, axes=True).close()
 
 

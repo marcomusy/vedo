@@ -10,11 +10,11 @@ print('textures_path:', settings.textures_path)
 print('textures:', settings.textures)
 
 settings.immediateRendering = False
-vp = Plotter(N=len(settings.textures), axes=0)
+plt = Plotter(N=len(settings.textures), axes=0)
 
 for i, name in enumerate(settings.textures):
     if i>30: break
     cb = Cube().texture(name)
-    vp.show(cb, name, at=i, azimuth=1)
+    plt.show(cb, name, at=i, azimuth=1)
 
-vp.show(interactive=True)
+plt.show(interactive=True).close()

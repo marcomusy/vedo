@@ -15,7 +15,7 @@ printc("Please wait a few secs while I'm cutting your gyroid", c='y')
 gxs = gyr.boolean('intersect', sph).clean().flat()
 gxs.texture('https://www.dropbox.com/s/d99h7sh7rx7drah/marblings.jpg')
 
-show(gxs, __doc__, bg='wheat', bg2='lightblue', axes=5, zoom=1.4)
+plt = show(gxs, __doc__, bg='wheat', bg2='lightblue', axes=5, zoom=1.4)
 # Video('gyroid.mp4').action().close().interactive() # shoot video
-
+plt.close()
 

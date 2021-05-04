@@ -10,4 +10,4 @@ mesh = meshio.read(fpath)
 
 # explicitly convert it to a vedo.Mesh object:
 m = Mesh(mesh).lineWidth(1).color('tomato').printInfo()
-show(m, __doc__, axes=7)
+show(m, __doc__, axes=7).close()

@@ -22,4 +22,4 @@ plt = Plotter(axes=1)
 plt += Mesh(dataurl+"bunny.obj")
 plt += __doc__
 plt.addCallback('KeyPress', myfnc)
-plt.show()
+plt.show().close()

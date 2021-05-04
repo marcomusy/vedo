@@ -22,4 +22,4 @@ for i in range(shape.NPoints() - n):
 curvs += [curvs[-1]]*n  # fill the missing last n points
 
 shape.lw(8).cmap('rainbow', curvs).addScalarBar3D(title='\pm1/\sqrtR')
-show(shape, circles, Points(fitpts), __doc__, axes=1)
+show(shape, circles, Points(fitpts), __doc__, axes=1).close()

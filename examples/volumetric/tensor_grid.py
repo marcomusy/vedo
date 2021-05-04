@@ -12,4 +12,5 @@ ag.Update()
 ts = Tensors(ag.GetOutput(), scale=0.1)
 #ts.printInfo()
 
-show(domain, ts)
+show(domain, ts).close()
+

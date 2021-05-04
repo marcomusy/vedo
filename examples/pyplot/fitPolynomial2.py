@@ -52,4 +52,4 @@ h = histogram(pfit.MonteCarloCoefficients[:,0],
               cmap='bone_r', scalarbar=True)
 h.scale(150).shift(-1,11) # make it a lot bigger and move it
 
-show(plt, h, zoom=1.2)
+show(plt, h, zoom=1.3, interactorStyle="Image").close()

@@ -1,14 +1,13 @@
 """Simulate a discrete collection of oscillators
 We will use this as a model of a vibrating string and
 compare two methods of integration: Euler and Runge-Kutta4.
-For too large values of dt the simple Euler can diverge.
-"""
+For too large values of dt the simple Euler can diverge."""
 # To model 'N' oscillators, we will use N+2 Points, numbered
 # 0, 1, 2, 3, ... N+1.  Points 0 and N+1 are actually the boundaries.
 # We will keep them fixed, but adding them in as if they were
 # masses makes the programming easier.
 # Adapted from B.Martin (2009) http://www.kcvs.ca/martin by M.Musy
-from vedo import Plotter, ProgressBar, Point, dataurl
+from vedo import Plotter, ProgressBar, Point, dataurl, settings
 import numpy as np
 
 ####################################################
@@ -88,28 +87,29 @@ for i in pb.range():
 ####################################################
 # Visualize the result
 ####################################################
-vp = Plotter(interactive=0, axes=2)  # choose axes type nr.2
-vp.ytitle = "u(x,t)"
-vp.ztitle = ""  # will not draw z axis
+settings.useDepthPeeling = False
+plt = Plotter(interactive=0, axes=2)  # choose axes type nr.2
+plt.ytitle = "u(x,t)"
+plt.ztitle = ""  # will not draw z axis
 
 for i in x:
-    vp += Point([i, 0, 0], c="green", r=6)
-pts_actors_eu = vp.actors  # save a copy of the actors list
+    plt += Point([i, 0, 0], c="green", r=6)
+pts_actors_eu = plt.actors  # save a copy of the actors list
 pts_actors_eu[0].legend = "Euler method"
 
-vp.actors = []  # clean up the list
+plt.actors = []  # clean up the list
 
 for i in x:
-    vp += Point([i, 0, 0], c="red", r=6)
-pts_actors_rk = vp.actors  # save a copy of the actors list
+    plt += Point([i, 0, 0], c="red", r=6)
+pts_actors_rk = plt.actors  # save a copy of the actors list
 pts_actors_rk[0].legend = "Runge-Kutta4"
 
 # merge the two lists and set it as the current actors
-vp.actors = pts_actors_eu + pts_actors_rk
+plt.actors = pts_actors_eu + pts_actors_rk
 
 # let's also add a fancy background image from wikipedia
-vp.load(dataurl+"images/wave_wiki.png").alpha(0.8).scale(0.4).pos(0,-100,-20)
-vp += __doc__
+plt.load(dataurl+"images/wave_wiki.png").alpha(0.8).scale(0.4).pos(0,-100,-20)
+plt += __doc__
 
 pb = ProgressBar(0, Nsteps, c="red", ETA=1)
 for i in pb.range():
@@ -120,7 +120,8 @@ for i in pb.range():
     for j, act in enumerate(pts_actors_rk):
         act.pos(j, y_rk[j], 0)
     if i%10 ==0:
-        vp.show()
+        plt.show()
+    if plt.escaped: break  # if ESC is hit during the loop
     pb.print("Moving actors loop")
 
-vp.show(interactive=1)
+plt.show(interactive=1).close()

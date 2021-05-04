@@ -12,4 +12,4 @@ pts = Points(bpts, r=10, c='red')
 
 labels = b.labels('id', scale=10).c('dg')
 
-show(b, pts, labels, __doc__, zoom=2)
+show(b, pts, labels, __doc__, zoom=2).close()

@@ -6,3 +6,4 @@ s = Mesh(dataurl+'cow.vtk')
 
 plt = show(s, __doc__, bg='black', bg2='bb', interactive=False)
 plt.addCutterTool(s, mode='sphere') #modes= sphere, plane, box
+plt.close()

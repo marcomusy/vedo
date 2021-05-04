@@ -29,4 +29,4 @@ s3.flag('transformed bunny')
 
 ars = Arrows(landmarksFrom, landmarksTo, s=0.5).c('k').alpha(0.5)
 
-show(s1,s2,s3, ars, __doc__, axes=True)
+show(s1,s2,s3, ars, __doc__, axes=True).close()

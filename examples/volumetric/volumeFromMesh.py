@@ -18,4 +18,4 @@ iso = vol.isosurface(threshold=-0.01)
 
 pts = Points(mesh.points())
 
-show(iso, pts, __doc__, axes=1)
+show(iso, pts, __doc__, axes=1).close()

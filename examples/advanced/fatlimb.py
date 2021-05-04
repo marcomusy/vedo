@@ -1,17 +1,14 @@
 """Modify the mesh of a shape by moving the points
 along the normals to the surface and along the
-radius of a sphere centered at the center of mass.
-"""
+radius of a sphere centered at the center of mass"""
 from vedo import *
 
-
-vp = Plotter()
-
-s = vp.load(dataurl+"290.vtk").subdivide()
+plt = Plotter()
+s = plt.load(dataurl+"290.vtk").subdivide()
 s.c("red").bc("lightblue")
 
 cn = s.centerOfMass()
-vp += [Point(cn), __doc__]
+plt += [Point(cn), __doc__]
 
 Niter = 4
 for t in range(Niter):
@@ -36,6 +33,6 @@ for t in range(Niter):
     s.points(newpts).computeNormals() # set the new points of the mesh
     s.alpha(0.1).color("gold").wireframe(True) # cosmetics
 
-    vp += s # add into Plotter
+    plt += s # add into Plotter
 
-vp.show(axes=11)
+plt.show(axes=11).close()

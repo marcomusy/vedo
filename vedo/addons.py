@@ -2679,54 +2679,8 @@ def addGlobalAxes(axtype=None, c=None):
         - 12, show polar axes
         - 13, draw a simple ruler at the bottom of the window
 
-    Axis type-1 can be fully customized by passing a dictionary ``axes=dict()`` where:
-
-        - `xtitle`,                ['x'], x-axis title text
-        - `xrange`,               [None], x-axis range in format (xmin, ymin), default is automatic.
-        - `numberOfDivisions`,    [None], approximate number of divisions on the longest axis
-        - `axesLineWidth`,           [1], width of the axes lines
-        - `gridLineWidth`,           [1], width of the grid lines
-        - `reorientShortTitle`,   [True], titles shorter than 2 letter are placed horizontally
-        - `titleDepth`,              [0], extrusion fractional depth of title text
-        - `xyGrid`,               [True], show a gridded wall on plane xy
-        - `yzGrid`,               [True], show a gridded wall on plane yz
-        - `zxGrid`,               [True], show a gridded wall on plane zx
-        - `zxGrid2`,             [False], show zx plane on opposite side of the bounding box
-        - `xyGridTransparent`    [False], make grid plane completely transparent
-        - `xyGrid2Transparent`   [False], make grid plane completely transparent on opposite side box
-        - `xyPlaneColor`,       ['gray'], color of the plane
-        - `xyGridColor`,        ['gray'], grid line color
-        - `xyAlpha`,              [0.15], grid plane opacity
-        - `xyFrameLine`,          [None], add a frame for the plane
-        - `showTicks`,            [True], show major ticks
-        - `digits`,               [None], use this number of significant digits in scientific notation
-        - `titleFont`,              [''], font for axes titles
-        - `labelFont`,              [''], font for numeric labels
-        - `textScale`,             [1.0], global scaling factor for text elements (titles, labels)
-        - `xTitlePosition`,       [0.32], title fractional positions along axis
-        - `xTitleOffset`,         [0.05], title fractional offset distance from axis line
-        - `xTitleJustify`, ["top-right"], title justification
-        - `xTitleRotation`,          [0], add a rotation of the axis title
-        - `xTitleBox`,           [False], add a box around title text
-        - `xLineColor`,      [automatic], color of the x-axis
-        - `xTitleColor`,     [automatic], color of the axis title
-        - `xTitleBackfaceColor`,  [None],  color of axis title on its backface
-        - `xTitleSize`,          [0.025], size of the axis title
-        - 'xTitleItalic',            [0], a bool or float to make the font italic
-        - `xHighlightZero`,       [True], draw a line highlighting zero position if in range
-        - `xHighlightZeroColor`, [autom], color of the line highlighting the zero position
-        - `xTickLength`,         [0.005], radius of the major ticks
-        - `xTickThickness`,     [0.0025], thickness of the major ticks along their axis
-        - `xMinorTicks`,             [1], number of minor ticks between two major ticks
-        - `xValuesAndLabels`          [], assign custom tick positions and labels [(pos1, label1), ...]
-        - `xLabelColor`,     [automatic], color of numeric labels and ticks
-        - `xLabelPrecision`,         [2], nr. of significative digits to be shown
-        - `xLabelSize`,          [0.015], size of the numeric labels along axis
-        - 'xLabelRotation',          [0], rotate clockwise [1] or anticlockwise [-1] by 90 degrees
-        - 'xFlipText',           [False], flip axis title and numeric labels orientation
-        - `xLabelOffset`,        [0.025], offset of numeric labels
-        - `tipSize`,              [0.01], size of the arrow tip
-        - `limitRatio`,           [0.04], below this ratio don't plot small axis
+    Axis type-1 can be fully customized by passing a dictionary ``axes=dict()``,
+    see ``Axes`` for the complete list of options.
 
         :Example:
 
@@ -3009,9 +2963,9 @@ def addGlobalAxes(axtype=None, c=None):
         yc.RotateX(90)
         zc = shapes.Disc(x0, r1=rm, r2=rm, c='lb', res=(1,72))
         yc.RotateY(90)
-        xc.clean().alpha(0.2).wireframe().lineWidth(2.5).PickableOff()
-        yc.clean().alpha(0.2).wireframe().lineWidth(2.5).PickableOff()
-        zc.clean().alpha(0.2).wireframe().lineWidth(2.5).PickableOff()
+        xc.clean().alpha(0.5).wireframe().lineWidth(2).PickableOff()
+        yc.clean().alpha(0.5).wireframe().lineWidth(2).PickableOff()
+        zc.clean().alpha(0.5).wireframe().lineWidth(2).PickableOff()
         ca = xc + yc + zc
         ca.PickableOff()
         ca.UseBoundsOff()

@@ -12,7 +12,7 @@ dn1 = plot(angles, distances,
 
 dn2 = plot(angles+120, distances**2,
            mode='polar', deg=True, spline=True, fill=True,
-           c='red', alpha=0.7, vmax=0.65)
+           c='red', alpha=1, vmax=0.65)
 dn2.z(0.01) # set a positive z so it stays in front
 
-show(dn1, dn2, zoom=1.2, bg='k9')
+show(dn1, dn2, zoom=1.2, bg='k9').close()

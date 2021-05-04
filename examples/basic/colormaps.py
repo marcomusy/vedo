@@ -32,4 +32,4 @@ for i, key in enumerate(mapkeys):  # for each available color map name
     imug = mug.clone(deep=False).cmap(key, scalars, n=5)
     vp.show(imug, key, at=i)
 
-vp.show(interactive=1)
+vp.show(interactive=True).close()

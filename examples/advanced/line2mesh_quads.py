@@ -25,5 +25,5 @@ grd = Grid(sx=xcoords, sy=ycoords)  # create a gridded plane
 
 msh = shape.tomesh(grid=grd, quads=True)
 
-show(shape, msh, __doc__, axes=1)
+show(shape, msh, __doc__, axes=1).close()
 

@@ -1,10 +1,6 @@
 """Stream tubes originating from a probing grid of points.
 Data is from CFD analysis of airflow in an office with
-ventilation and a burning cigarette.
-"""
-# see original script at:
-# https://github.com/Kitware/VTK/blob/master/Examples/
-#  VisualizationAlgorithms/Python/officeTube.py
+ventilation and a burning cigarette"""
 from vedo import *
 from off_furniture import furniture
 
@@ -25,8 +21,8 @@ slines = streamLines(sgrid, seeds,
                      initialStepSize=0.01,
                      maxPropagation=15,
                      tubes={"radius":0.004, "varyRadius":2, "ratio":1},
-                    )
+)
 slines.addScalarBar3D(c='w')
 slines.scalarbar.x(5) # reposition scalarbar at x=5
 
-show(slines, seeds, furniture(), __doc__, axes=1, bg='bb')
+show(slines, seeds, furniture(), __doc__, axes=1, bg='bb').close()

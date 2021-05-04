@@ -32,4 +32,4 @@ vp.show(v4, "median", at=4)
 
 v5 = v0.clone().operation("dot", v0).c(7)
 v5.addScalarBar3D()
-vp.show(v5, "dot(v0,v0)", at=5, zoom=1.3, interactive=1)
+vp.show(v5, "dot(v0,v0)", at=5, zoom=1.3, interactive=1).close()

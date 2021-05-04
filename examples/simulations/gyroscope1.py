@@ -23,8 +23,9 @@ Lrot = I * omega * gaxis  # angular momentum
 cm = gpos + 0.5 * Ls * gaxis  # center of mass of shaft
 
 # ############################################################ the scene
-vp = Plotter(axes=0, interactive=0)
-vp += __doc__
+settings.useDepthPeeling = False
+plt = Plotter(axes=0, interactive=0)
+plt += __doc__
 
 shaft = Cylinder([[0, 0, 0], Ls * gaxis], r=0.03, c="dg")
 rotor = Cylinder([(Ls - 0.55) * gaxis, (Ls - 0.45) * gaxis], r=R, c="t")
@@ -32,9 +33,9 @@ bar   = Cylinder([Ls*gaxis/2-R*vector(0,1,0), Ls*gaxis/2+R*vector(0,1,0)], r=R/6
 gyro = shaft + rotor + bar  # group meshes into a single one of type Assembly
 
 spring = Spring(top, gpos, r=0.06, thickness=0.01, c="gray")
-vp += [gyro, spring] # add it to Plotter.
-vp += Box(top, length=0.2, width=0.02, height=0.2, c="gray")
-vp += Box(pos=(0, 0.5, 0), length=2.6, width=3, height=2.6, c="gray", alpha=0.2).wireframe()
+plt += [gyro, spring] # add it to Plotter.
+plt += Box(top, length=0.2, width=0.02, height=0.2, c="gray")
+plt += Box(pos=(0, 0.5, 0), length=2.6, width=3, height=2.6, c="gray", alpha=0.2).wireframe()
 
 # ############################################################ the physics
 pb = ProgressBar(0, 5, dt, c="b")
@@ -49,7 +50,8 @@ for t in pb.range():
     # set orientation along gaxis and rotate it around its axis by omega*t degrees
     gyro.orientation(Lrot, rotation=omega * t, rad=True).pos(gpos)
     spring.stretch(top, gpos)
-    vp.show()
+    plt.show()
+    if plt.escaped: break # if ESC is hit during the loop
     pb.print()
 
-vp.show(interactive=1)
+interactive().close()

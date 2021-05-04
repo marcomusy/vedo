@@ -21,5 +21,5 @@ vol = pts.density(radius=None).c('Paired_r') # returns a Volume
 r = precision(vol.info['radius'], 2) # retrieve automatic radius value
 vol.addScalarBar3D(title='Density (counts in r_search ='+r+')', c='k', italic=1)
 
-show([(pts,__doc__), vol], N=2, axes=True)
+show([(pts,__doc__), vol], N=2, axes=True).close()
 

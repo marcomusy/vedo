@@ -13,4 +13,4 @@ for i in range(N):
     pc = pc.clone().smoothMLS1D(f=f).color(i)
     show(pc, at=i, N=N, elevation=-5)
 
-interactive()
+interactive().close()

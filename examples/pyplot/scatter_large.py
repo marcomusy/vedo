@@ -28,4 +28,4 @@ t1 = time.time()
 print("-> elapsed time:", t1-t0, "seconds for N:", N)
 
 # use mouse to zoom, press r to reset
-show(pts, __doc__, axes=1, viewup='2d')
+show(pts, __doc__, axes=1, viewup='2d').close()

@@ -3,10 +3,8 @@
 ## Slightly modified by Andrey Antonov for a torus.
 ## Adapted by M. Musy for vedo
 ## relevant points in the code are marked with '### <--'
-from __future__ import division, print_function
 from random import random
-from vedo import Plotter, ProgressBar, mag, versor, Text2D
-from vedo import Torus, Sphere
+from vedo import Plotter, ProgressBar, mag, versor, Torus, Sphere, settings
 import numpy as np
 
 #############################################################
@@ -19,6 +17,7 @@ RingRadius = 1
 k = 1.4e-23  # Boltzmann constant
 T = 300  # room temperature
 dt = 1.5e-5
+settings.useDepthPeeling = False
 #############################################################
 
 
@@ -27,10 +26,10 @@ def reflection(p, pos):
     return np.dot(np.identity(3) - 2 * n * n[:, np.newaxis], p)
 
 
-vp = Plotter(title="gas in toroid", interactive=0, axes=0)
+plt = Plotter(title="gas in toroid", interactive=0, axes=0)
 
-vp += __doc__
-vp += Torus(c="g", r=RingRadius, thickness=RingThickness, alpha=0.1).wireframe(1)  ### <--
+plt += __doc__
+plt += Torus(c="g", r=RingRadius, thickness=RingThickness, alpha=0.1).wireframe(1)  ### <--
 
 Atoms = []
 poslist = []
@@ -44,7 +43,7 @@ for i in range(Natoms):
     y = RingRadius * np.sin(alpha) * 0.9
     z = 0
     atm = Sphere(pos=(x, y, z), r=Ratom, c=i, res=6).phong()
-    vp += atm
+    plt += atm
     Atoms = Atoms + [atm]  ### <--
     theta = np.pi * random()
     phi = 2 * np.pi * random()
@@ -128,9 +127,11 @@ for i in pb.range():
         Atoms[i].pos(pos[i])  ### <--
     outside = np.greater_equal(mag(pos), RingRadius + RingThickness)
 
-    vp.show()  ### <--
-    vp.camera.Azimuth(0.5)
-    vp.camera.Elevation(0.1)
+    plt.show()  ### <--    
+    if plt.escaped: break # if ESC is hit during the loop
+
+    plt.camera.Azimuth(0.5)
+    plt.camera.Elevation(0.1)
     pb.print()
 
-vp.show(interactive=1)
+plt.show(interactive=1).close()

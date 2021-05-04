@@ -18,4 +18,4 @@ plt = plot( x, y,
 
 # show Assembly object and lock interaction to 2d:
 # (can zoom in a region w/ mouse, press r to reset)
-show(plt, __doc__, viewup='2d')
+show(plt, __doc__, zoom=1.2, viewup='2d').close()

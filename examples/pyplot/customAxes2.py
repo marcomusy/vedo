@@ -31,4 +31,4 @@ axs = Axes([vpts1, vpts2],  # build axes for this set of objects
            tipSize=0.25,
           )
 
-show(vpts1, vpts2, axs, "Customizing Axes", viewup='z')
+show(vpts1, vpts2, axs, "Customizing Axes", viewup='z').close()

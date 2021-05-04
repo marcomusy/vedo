@@ -29,4 +29,4 @@ plt += Lines(pts1, pts2, c="black")
 plt += histogram(vals, xtitle='radius', xlim=[0,2]).pos(-1,0.5,-1)
 plt += __doc__
 
-plt.show()
+plt.show().close()

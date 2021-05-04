@@ -12,4 +12,4 @@ from vedo import Volume, show
 vol = Volume(data_matrix, c=['white','b','g','r'])
 vol.addScalarBar3D()
 
-show(vol, __doc__, axes=1)
+show(vol, __doc__, axes=1).close()

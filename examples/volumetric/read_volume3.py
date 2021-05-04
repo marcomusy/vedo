@@ -1,6 +1,5 @@
 from vedo import *
 
-
 vol = Volume(dataurl+"embryo.slc").cmap('nipy_spectral')
 
 vsl = VolumeSlice(vol) # reuse the same underlying data as in vol
@@ -28,6 +27,4 @@ custom_shape = [ # define here the 2 rendering rectangle spaces
 
 show([ (vsl,usage,"VolumeSlice example"), (vol,"Volume") ],
      shape=custom_shape,
-     interactorStyle="Image", bg='k9', zoom=1.2, axes=11, interactive=1)
-
-
+     interactorStyle="Image", bg='k9', zoom=1.2, axes=11, interactive=1).close()

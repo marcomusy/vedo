@@ -15,6 +15,5 @@ for l in alignedsplines:
 
 alignedsplines += [lmean, __doc__]
 
-show([splines, alignedsplines],
-     N=2, sharecam=False, axes=1, interactive=True)
+show([splines, alignedsplines], N=2, sharecam=False, axes=1).close()
 

@@ -15,7 +15,7 @@ pl = Plane(mesh.centroid, normal=[0,0,1], sx=6, sy=4, c='green', alpha=0.3)
 slice_2D, to_3D = mslice.to_planar()
 
 # show objects on N=2 non-synced renderers:
-show([(mesh, pl), (slice_2D, txt)], N=2, sharecam=False, axes=7)
+show([(mesh, pl), (slice_2D, txt)], N=2, sharecam=False, axes=7).close()
 
 # if we wanted to take a bunch of parallel slices, like for a 3D printer
 # we can do that easily with the section_multiplane method
@@ -38,5 +38,5 @@ combined = np.sum(sections)
 sections.append([combined, 'combined'])
 
 # show objects in N synced renderers:
-show(sections, N=N, axes=True, new=True, interactive=True)
+show(sections, N=N, axes=True, new=True, interactive=True).close()
 

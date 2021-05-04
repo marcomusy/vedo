@@ -19,4 +19,4 @@ sptool.off()
 
 # Extract and visualize the resulting spline
 sp = sptool.spline().lw(4)
-show(sp, "My spline is ready!", interactive=True, resetcam=False)
+show(sp, "My spline is ready!", interactive=True, resetcam=False).close()

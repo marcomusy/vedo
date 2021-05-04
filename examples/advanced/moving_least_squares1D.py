@@ -28,4 +28,4 @@ for i in range(1, N):
 
     show(pts, f"Iteration {i}, #points: {pts.N()}", at=i)
 
-interactive()
+interactive().close()

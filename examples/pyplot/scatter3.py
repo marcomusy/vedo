@@ -27,4 +27,6 @@ bra3 = Brace([8,-6], [8,-2], comment='my stars').z(0.3)
 msg = Text3D("preliminary\nresults!", font='Quikhand', s=1.5)
 msg.c('black').rotateZ(20).pos(-10,3,.2)
 
-show(pts1, pts2, pts3, msg, bra1, bra2, bra3, __doc__, axes=1, zoom=1.2)
+show(pts1, pts2, pts3, msg, bra1, bra2, bra3, __doc__,
+     axes=1, zoom=1.2, viewup="2d",
+).close()

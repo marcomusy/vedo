@@ -14,4 +14,4 @@ p1 = Picture(rgbaimage1)
 
 p2 = Picture(rgbaimage2).z(12)
 
-show(p1, p2, __doc__, axes=7, viewup="z")
+show(p1, p2, __doc__, axes=7, viewup="z").close()

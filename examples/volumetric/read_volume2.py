@@ -27,4 +27,4 @@ vol2.addScalarBar3D(title='maximum-projection', c='k')
 vol2.scalarbar.scale(0.8).x(160)
 
 # show command creates and returns an instance of class Plotter
-show(vol1, vol2, __doc__, axes=1, size=(800,600))
+show(vol1, vol2, __doc__, size=(800,600), zoom=1.5).close()

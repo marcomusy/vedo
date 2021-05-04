@@ -21,4 +21,4 @@ plt = Plotter(N=2, axes=1, sharecam=False)
 # Add a 2D hover legend to both renderers and show:
 plt.addHoverLegend(at=0).show(mesh, sph, __doc__, at=0)
 plt.addHoverLegend(at=1).show(cub, pts, at=1)
-interactive()
+interactive().close()

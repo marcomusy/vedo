@@ -32,4 +32,4 @@ vig3 = m3.vignette('Overlap polygon\nA=' + precision(m3.area(),3),
                    point=(2.2,0.6), s=0.012)
 
 show(m1, m2, m3, vig1, vig2, vig3, __doc__,
-     axes=1, size=(800,600), zoom=1.3)
+     axes=1, size=(800,600), zoom=1.3).close()

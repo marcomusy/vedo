@@ -24,4 +24,4 @@ b.legend('Bugs the bunny')
 c.legend('The Cube box')
 lbox = LegendBox([b,c], font="Bongas", width=0.25)
 
-show(b, c, vig, labs, lbox, __doc__, axes=11, bg2='linen')
+show(b, c, vig, labs, lbox, __doc__, axes=11, bg2='linen').close()

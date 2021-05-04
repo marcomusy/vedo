@@ -45,4 +45,4 @@ plt.show(axes=dict(xtitle='X-axis in \mum',
                    yzGrid=False,
                    textScale=1.5,
                   ),
-         )
+).close()

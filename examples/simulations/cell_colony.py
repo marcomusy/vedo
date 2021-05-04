@@ -1,7 +1,5 @@
-"""
-Simulation of bacteria types that divide at a given rate
-As they divide they occupy more and more space
-"""
+"""Simulation of bacteria types that divide at a given rate
+As they divide they occupy more and more space"""
 print(__doc__)
 from vedo import Plotter, ProgressBar, pcaEllipsoid, Points, Line
 import numpy as np
@@ -75,14 +73,14 @@ class Cell:
 
 
 ##############################################################################
-vp = Plotter(interactive=0, axes=3)
+plt = Plotter(interactive=0, axes=3)
 
 # place vtkCamera at a specific position
 # (get these numbers by pressing Shift-C)
-vp.camera.SetPosition([2.5, 2.5, 5.5])
-vp.camera.SetFocalPoint([0.4, 0.4, 0.4])
-vp.camera.SetParallelScale(1.8)
-vp.camera.SetViewUp([-0.1, 1, -0.3])
+plt.camera.SetPosition([2.5, 2.5, 5.5])
+plt.camera.SetFocalPoint([0.4, 0.4, 0.4])
+plt.camera.SetParallelScale(1.8)
+plt.camera.SetViewUp([-0.1, 1, -0.3])
 
 # Let's start with creating 3 colonies of 1 cell each
 # of types: red, green and blue, in different positions in space
@@ -96,7 +94,7 @@ colonies = [c1, c2, c3]
 pb = ProgressBar(0, 50, step=0.1, c=1)
 for t in pb.range():
     msg = "[Nb,Ng,Nr,t] = "
-    vp.actors = []  # clean up the list of actors
+    plt.actors = []  # clean up the list of actors
 
     for colony in colonies:
 
@@ -107,18 +105,19 @@ for t in pb.range():
                 continue
             if cell.divideAt(t):
                 newc = cell.split()  # make daughter cell
-                vp += Line(cell.pos, newc.pos, c="k", lw=3, alpha=0.5)
+                plt += Line(cell.pos, newc.pos, c="k", lw=3, alpha=0.5)
                 newcells.append(newc)
             newcells.append(cell)
         colony.cells = newcells
 
         pts = [c.pos for c in newcells]  # draw all points at once
-        vp += Points(pts, c=colony.color, r=5, alpha=0.80)   # nucleus
-        vp += Points(pts, c=colony.color, r=15, alpha=0.05)  # halo
+        plt += Points(pts, c=colony.color, r=5, alpha=0.80)   # nucleus
+        plt += Points(pts, c=colony.color, r=15, alpha=0.05)  # halo
         msg += str(len(colony.cells)) + ","
 
     pb.print(msg + str(int(t)))
-    vp.show(resetcam=0)
+    plt.show(resetcam=0)
+    if plt.escaped: exit(0)  # if ESC is hit during the loop
 
 # draw the oriented ellipsoid that contains 50% of the cells
 for colony in colonies:
@@ -126,6 +125,6 @@ for colony in colonies:
     a = pcaEllipsoid(pts, pvalue=0.5)
     a.color(colony.color).alpha(0.3)
     a.legend("1/rate=" + str(colony.cells[0].tdiv) + "h")
-    vp += a
+    plt += a
 
-vp.show(resetcam=0, interactive=1)
+plt.show(resetcam=0, interactive=1).close()

@@ -13,7 +13,7 @@ from vedo import *
 import scipy.optimize as opt
 
 
-vp = Plotter(shape=[1, 3], interactive=0, axes=1)
+plt = Plotter(shape=[1, 3], interactive=0, axes=1)
 
 
 class Morpher:
@@ -126,17 +126,18 @@ class Morpher:
         text2 = Text3D("morphed vs target", tpos, s=sz / 10, c="dg")
         text3 = Text3D("deformation", tpos, s=sz / 10, c="dr")
 
-        vp.show(sphere0, sphere1, zero, text3, hair, at=2)
-        vp.show(self.msource, self.target, text2, at=1)
-        vp.show(self.source, self.target, text1, at=0, zoom=1.2, interactive=1)
+        plt.show(sphere0, sphere1, zero, text3, hair, at=2)
+        plt.show(self.msource, self.target, text2, at=1)
+        plt.show(self.source, self.target, text1, at=0, zoom=1.2, interactive=1)
+        plt.close()
 
 
 #################################
 if __name__ == "__main__":
 
     mr = Morpher()
-    mr.source = vp.load(dataurl+"270.vtk").color("g").alpha(0.4)
-    mr.target = vp.load(dataurl+"290.vtk").color("b").alpha(0.3)
+    mr.source = plt.load(dataurl+"270.vtk").color("g").alpha(0.4)
+    mr.target = plt.load(dataurl+"290.vtk").color("b").alpha(0.3)
     mr.target.wireframe()
     mr.allowScaling = True
     mr.bound = 0.4  # limits the parameter value

@@ -14,4 +14,4 @@ labs = mesh.labels('id').c('black')
 printc('points():\n', mesh.points(), c=3)
 printc('faces(): \n', mesh.faces(),  c=3)
 
-show(mesh, labs, __doc__, viewup='z', axes=1)
+show(mesh, labs, __doc__, viewup='z', axes=1).close()

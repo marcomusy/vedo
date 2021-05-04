@@ -18,4 +18,4 @@ printc("ave. squared distance =", d/rim2.N())
 # vtkTransform is available through:
 # printc([rim2.transform])
 
-show(limb, rim, rim2, __doc__, axes=1)
+show(limb, rim, rim2, __doc__, axes=1).close()

@@ -27,5 +27,5 @@ for x,y,z in  np.random.rand(200, 3)*3:
 
 printc('Last optimization output:', c='green7', invert=1)
 printc(m, c='green7', italic=1)
-show(paths, Point([4,3,2]), __doc__, axes=1)
+show(paths, Point([4,3,2]), __doc__, axes=1).close()
 

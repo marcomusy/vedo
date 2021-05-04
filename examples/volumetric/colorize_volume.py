@@ -20,4 +20,4 @@ vol.addScalarBar3D(title='color~\dot~alpha transfer function', c='k')
 ch = cornerHistogram(vol, logscale=True, pos='bottom-left')
 
 # show both Volume and Mesh
-show(vol, ch, __doc__, axes=1, zoom=1.2)
+show(vol, ch, __doc__, axes=1, zoom=1.2).close()

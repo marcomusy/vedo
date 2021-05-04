@@ -7,7 +7,6 @@ import os.path
 import numpy as np
 
 import vedo
-from vedo.colors import printc, getColor, getColorName, rgb2hex
 import vedo.utils as utils
 import vedo.settings as settings
 import vedo.addons as addons
@@ -197,18 +196,18 @@ def show(*actors,
 
         if utils.isSequence(at):                     # user passed a sequence for "at"
             if not utils.isSequence(actors):
-                printc("show() Error: input must be a list.", c='r')
+                vedo.printc("show() Error: input must be a list.", c='r')
                 raise RuntimeError()
             if len(at) != len(actors):
-                printc("show() Error: lists 'input' and 'at', must have equal lengths.", c='r')
+                vedo.printc("show() Error: lists 'input' and 'at', must have equal lengths.", c='r')
                 raise RuntimeError()
             if len(at) > 1 and (shape == (1, 1) and N is None):
                 N = max(at) + 1
 
         elif at is None and (N or shape != (1, 1)):
             if not utils.isSequence(actors):
-                printc('show() Error: N or shape is set, but input is not a sequence.', c='r')
-                printc('              you may need to specify e.g. at=0', c='r')
+                vedo.printc('show() Error: N or shape is set, but input is not a sequence.', c='r')
+                vedo.printc('              you may need to specify e.g. at=0', c='r')
                 raise RuntimeError()
             at = list(range(len(actors)))
 
@@ -283,6 +282,8 @@ def show(*actors,
 def interactive():
     """Start the rendering window interaction mode."""
     if settings.plotter_instance:
+        if settings.plotter_instance.escaped: # just return
+            return settings.plotter_instance
         if hasattr(settings.plotter_instance, 'interactor'):
             if settings.plotter_instance.interactor:
                 settings.plotter_instance.interactor.Start()
@@ -469,6 +470,7 @@ class Plotter:
         # build the rendering window:
         self.camera = vtk.vtkCamera()
         self.window = vtk.vtkRenderWindow()
+        self.escaped = False
         self.window.GlobalWarningDisplayOff()
 
 
@@ -516,7 +518,7 @@ class Plotter:
 
         if N:  # N = number of renderers. Find out the best
             if shape != (1, 1):  # arrangement based on minimum nr. of empty renderers
-                printc("Warning: having set N, shape is ignored.", c='r')
+                vedo.printc("Warning: having set N, shape is ignored.", c='r')
             nx = int(np.sqrt(int(N * y / x) + 1))
             ny = int(np.sqrt(int(N * x / y) + 1))
             lm = [
@@ -598,7 +600,7 @@ class Plotter:
                     r.SetSSAOKernelSize(settings.SSAOKernelSize)
                     r.SetSSAOBlur(settings.SSAOBlur)
 
-                r.SetBackground(getColor(self.backgrcol))
+                r.SetBackground(vedo.getColor(self.backgrcol))
 
                 self.axes_instances.append(None)
 
@@ -635,10 +637,10 @@ class Plotter:
                     arenderer.SetSSAOBlur(settings.SSAOBlur)
 
                 arenderer.SetViewport(x0, y0, x1, y1)
-                arenderer.SetBackground(getColor(bg_))
+                arenderer.SetBackground(vedo.getColor(bg_))
                 if bg2_:
                     arenderer.GradientBackgroundOn()
-                    arenderer.SetBackground2(getColor(bg2_))
+                    arenderer.SetBackground2(vedo.getColor(bg2_))
 
                 self.renderers.append(arenderer)
                 self.axes_instances.append(None)
@@ -672,7 +674,7 @@ class Plotter:
                 self.backgroundRenderer = vtk.vtkRenderer()
                 self.backgroundRenderer.SetLayer(0)
                 self.backgroundRenderer.InteractiveOff()
-                self.backgroundRenderer.SetBackground(getColor(bg2))
+                self.backgroundRenderer.SetBackground(vedo.getColor(bg2))
                 image_actor = vedo.Picture(self.backgrcol)
                 self.window.AddRenderer(self.backgroundRenderer)
                 self.backgroundRenderer.AddActor(image_actor)
@@ -701,10 +703,10 @@ class Plotter:
                     if image_actor:
                         arenderer.SetLayer(1)
 
-                    arenderer.SetBackground(getColor(self.backgrcol))
+                    arenderer.SetBackground(vedo.getColor(self.backgrcol))
                     if bg2:
                         arenderer.GradientBackgroundOn()
-                        arenderer.SetBackground2(getColor(bg2))
+                        arenderer.SetBackground2(vedo.getColor(bg2))
 
                     x0 = i / shape[0]
                     y0 = j / shape[1]
@@ -782,12 +784,13 @@ class Plotter:
 
     def allowInteraction(self):
         """Call this method from inside a loop to allow mouse and keyboard interaction."""
-        if self._timer_event_id is not None and settings.immediateRendering:
+        if self.interactor and self._timer_event_id is not None and settings.immediateRendering:
             self._repeatingtimer_id = self.interactor.CreateRepeatingTimer(10)
             # self.interactor.EnableRenderOff() # or window.ProcessEvents()
             self.interactor.Start()
             # self.interactor.EnableRenderOn()
-            self.interactor.DestroyTimer(self._repeatingtimer_id)
+            if self.interactor:
+                self.interactor.DestroyTimer(self._repeatingtimer_id)
             self._repeatingtimer_id = None
         return self
 
@@ -902,10 +905,10 @@ class Plotter:
             r = self.renderers[at]
         if r:
             if c1 is not None:
-                r.SetBackground(getColor(c1))
+                r.SetBackground(vedo.getColor(c1))
             if c2 is not None:
                 r.GradientBackgroundOn()
-                r.SetBackground2(getColor(c2))
+                r.SetBackground2(vedo.getColor(c2))
             else:
                 r.GradientBackgroundOff()
         return self
@@ -1019,9 +1022,9 @@ class Plotter:
         of parameters for the current camera view.
         """
         if isinstance(fraction, int):
-            printc("Warning in moveCamera(): fraction should not be an integer", c='r')
+            vedo.printc("Warning in moveCamera(): fraction should not be an integer", c='r')
         if fraction > 1:
-            printc("Warning in moveCamera(): fraction is > 1", c='r')
+            vedo.printc("Warning in moveCamera(): fraction is > 1", c='r')
         cam = vtk.vtkCamera()
         cam.DeepCopy(camstart)
         p1 = np.array(camstart.GetPosition())
@@ -1543,7 +1546,7 @@ class Plotter:
 
         cid = self.interactor.AddObserver(eventName, _func_wrap, priority)
         if verbose:
-            printc('addCallback(): registering event:', eventName, 'with id =', cid)
+            vedo.printc('addCallback(): registering event:', eventName, 'with id =', cid)
         return cid
 
     def removeCallback(self, cid):
@@ -1607,8 +1610,8 @@ class Plotter:
             if timerId is not None:
                 self.interactor.DestroyTimer(timerId)
         else:
-            printc("Error in plotter.timer(). Cannot understand action:", action, c='r')
-            printc("                          allowed actions: [create, destroy]", action, c='r')
+            vedo.printc("Error in plotter.timer(). Cannot understand action:", action, c='r')
+            vedo.printc("                          allowed actions: [create, destroy]", action, c='r')
         return self
 
 
@@ -1789,7 +1792,7 @@ class Plotter:
                     scannedacts.append(vedo.Mesh(utils.meshlab2vedo(a)))
 
             else:
-                printc("Error: cannot understand input in show():", type(a), c='r')
+                vedo.printc("Error: cannot understand input in show():", type(a), c='r')
         return scannedacts
 
 
@@ -1920,11 +1923,11 @@ class Plotter:
 
         if not settings.notebookBackend:
             if bg is not None:
-                self.backgrcol = getColor(bg)
+                self.backgrcol = vedo.getColor(bg)
                 self.renderer.SetBackground(self.backgrcol)
             if bg2 is not None:
                 self.renderer.GradientBackgroundOn()
-                self.renderer.SetBackground2(getColor(bg2))
+                self.renderer.SetBackground2(vedo.getColor(bg2))
 
         if axes is not None:
             self.axes = axes
@@ -1967,6 +1970,26 @@ class Plotter:
                 return backends.getNotebookBackend(actors2show, zoom, viewup)
         #########################################################################
 
+        # check if the widow needs to be closed (ESC button was hit)
+        if self.escaped:
+            if not self.window:
+                return self # do nothing, just return self (was already closed)
+            for r in self.renderers:
+                r.RemoveAllObservers()
+            self.camera.RemoveAllObservers()
+            self.closeWindow()
+            #reset some important defaults in case vedo is not reloaded..
+            settings.defaultFont = 'Normografo'
+            settings.interactorStyle = None
+            settings.immediateRendering = True
+            settings.useParallelProjection = False
+            settings.allowInteraction = True
+            settings.multiSamples = 8
+            settings.xtitle = "x"
+            settings.ytitle = "y"
+            settings.ztitle = "z"
+            return self
+
         if interactive is not None:
             self.interactive = interactive
 
@@ -1989,9 +2012,9 @@ class Plotter:
             self.renderer = self.renderers[at]
         else:
             if settings.notebookBackend:
-                printc("Error in show(): multiple renderings not supported in notebooks.", c='r')
+                vedo.printc("Error in show(): multiple renderings not supported in notebooks.", c='r')
             else:
-                printc("Error in show(): wrong renderer index", at, c='r')
+                vedo.printc("Error in show(): wrong renderer index", at, c='r')
             return self
 
         if self.qtWidget is not None:
@@ -2014,6 +2037,7 @@ class Plotter:
                 if isinstance(a, vtk.vtkVolume):
                     self.window.SetMultiSamples(0) # to fix mac OSX BUG vtk9
                     break
+
         # rendering
         for ia in actors2show:  # add the actors that are not already in scene
             if ia:
@@ -2057,8 +2081,8 @@ class Plotter:
                             breppr.SetFontFamily(vtk.VTK_FONT_FILE)
                             breppr.SetFontFile(settings.fonts_path + settings.flagFont +'.ttf')
                             breppr.SetFontSize(settings.flagFontSize)
-                            breppr.SetColor(getColor(settings.flagColor))
-                            breppr.SetBackgroundColor(getColor(settings.flagBackgroundColor))
+                            breppr.SetColor(vedo.getColor(settings.flagColor))
+                            breppr.SetBackgroundColor(vedo.getColor(settings.flagBackgroundColor))
                             breppr.SetShadow(settings.flagShadow)
                             breppr.SetJustification(settings.flagJustification)
                             breppr.UseTightBoundingBoxOn()
@@ -2141,7 +2165,7 @@ class Plotter:
                 sz = np.array([(b[1]-b[0])*0.7, -(b[3]-b[2])*1.0, (b[5]-b[4])*1.2])
                 self.camera.SetPosition(cm+2*sz)
             elif viewup == "2d":
-                interactorStyle = 7
+                interactorStyle = 12
 
         if isinstance(camera, dict):
             camera = dict(camera) # make a copy so input is not emptied by pop()
@@ -2154,7 +2178,7 @@ class Plotter:
             cm_thickness = camera.pop("thickness", None)
             cm_viewAngle = camera.pop("viewAngle", None)
             if len(camera.keys()):
-                printc("Warning in show(cam=...), key(s) not recognized:",
+                vedo.printc("Warning in show(cam=...), key(s) not recognized:",
                        *(camera.keys()), c='y')
             if cm_pos is not None: self.camera.SetPosition(cm_pos)
             if cm_focalPoint is not None: self.camera.SetFocalPoint(cm_focalPoint)
@@ -2239,7 +2263,7 @@ class Plotter:
 
     def showInset(self, *actors, **options):
         """DEPRECATED, please use addInset() instead."""
-        printc("DEPRECATED showInset(): please use addInset() instead.", c='r')
+        vedo.printc("DEPRECATED showInset(): please use addInset() instead.", c='r')
         return self.addInset(*actors, **options)
 
     def addInset(self, *actors, **options):
@@ -2264,12 +2288,12 @@ class Plotter:
         draggable = options.pop("draggable", True)
 
         if not self.renderer:
-            printc("Use showInset() after first rendering the scene.", c='y')
+            vedo.printc("Use showInset() after first rendering the scene.", c='y')
             save_int = self.interactive
             self.show(interactive=0)
             self.interactive = save_int
         widget = vtk.vtkOrientationMarkerWidget()
-        r,g,b = getColor(c)
+        r,g,b = vedo.getColor(c)
         widget.SetOutlineColor(r,g,b)
         if len(actors)==1:
             widget.SetOrientationMarker(actors[0])
@@ -2339,8 +2363,10 @@ class Plotter:
             self.window.Finalize()
             if hasattr(self, 'interactor') and self.interactor:
                 self.interactor.TerminateApp()
-                del self.window
-                del self.interactor
+                #del self.window
+                #del self.interactor
+                self.window = None
+                self.interactor = None
         return self
 
     def close(self):
@@ -2351,6 +2377,18 @@ class Plotter:
         self.camera.RemoveAllObservers()
         self.closeWindow()
         self.actors = []
+        #reset some important defaults in case vedo is not reloaded..
+        settings.defaultFont = 'Normografo'
+        settings.interactorStyle = None
+        settings.immediateRendering = True
+        settings.useParallelProjection = False
+        settings.allowInteraction = True
+        settings.multiSamples = 8
+        settings.xtitle = "x"
+        settings.ytitle = "y"
+        settings.ztitle = "z"
+        if settings.plotter_instance in settings.plotter_instances:
+             settings.plotter_instances.remove(settings.plotter_instance)
         settings.plotter_instance = None
 
     def screenshot(self, filename='screenshot.png', scale=None, returnNumpy=False):
@@ -2521,10 +2559,10 @@ class Plotter:
     #######################################################################
     def _keypress(self, iren, event):
 
-        # qt creates and passes a vtkGenericRenderWindowInteractor
+        #NB: qt creates and passes a vtkGenericRenderWindowInteractor
 
         key = iren.GetKeySym()
-        # utils.printc('Pressed key:', self.keyheld, key, c='y', box='-')
+        # utils.vedo.printc('Pressed key:', self.keyheld, key, c='y', box='-')
 
         if key in ["Shift_L", "Control_L", "Super_L", "Alt_L",
                    "Shift_R", "Control_R", "Super_R", "Alt_R", "Menu"]:
@@ -2534,10 +2572,15 @@ class Plotter:
             iren.ExitCallback()
             return
 
-        elif key in ["F1", "Pause", "Escape"]:
-            sys.stdout.flush()
-            printc('\nExecution aborted. Exiting python kernel now.', c='r')
-            settings.plotter_instance.close()
+        elif key == "Escape":
+            vedo.printc('\nClosing window. Plotter.escaped is set to True.', c='r')
+            self.escaped = True # window will be escaped ASAP
+            iren.ExitCallback()
+            return
+            
+        elif key == "F1":
+            vedo.printc('\nExecution aborted. Exiting python kernel now.', c='r')
+            #settings.plotter_instance.close()
             sys.exit(0)
 
         # if ("Control_" in self.keyheld) and key=="c":
@@ -2671,10 +2714,10 @@ class Plotter:
             iren.ExitCallback()
             cur = iren.GetInteractorStyle()
             if isinstance(cur, vtk.vtkInteractorStyleTrackballCamera):
-                printc("\nInteractor style changed to TrackballActor")
-                printc("  you can now move and rotate individual meshes:")
-                printc("  press X twice to save the repositioned mesh,")
-                printc("  press 'a' to go back to normal style.")
+                vedo.printc("\nInteractor style changed to TrackballActor")
+                vedo.printc("  you can now move and rotate individual meshes:")
+                vedo.printc("  press X twice to save the repositioned mesh,")
+                vedo.printc("  press 'a' to go back to normal style.")
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballActor())
             else:
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
@@ -2689,9 +2732,9 @@ class Plotter:
                 settings.plotter_instance.window.SetMultiSamples(0)
             msam = settings.plotter_instance.window.GetMultiSamples()
             if msam:
-                printc(f'Antialiasing is now set to {msam} samples', c=bool(msam))
+                vedo.printc(f'Antialiasing is now set to {msam} samples', c=bool(msam))
             else:
-                printc('Antialiasing is now disabled', c=bool(msam))
+                vedo.printc('Antialiasing is now disabled', c=bool(msam))
 
         elif key == "D": # toggle depthpeeling
             udp = not settings.plotter_instance.renderer.GetUseDepthPeeling()
@@ -2705,9 +2748,9 @@ class Plotter:
             settings.plotter_instance.interactor.Render()
             wasUsed = settings.plotter_instance.renderer.GetLastRenderingUsedDepthPeeling()
             rnr = self.renderers.index(settings.plotter_instance.renderer)
-            printc(f'Depth Peeling is now set to {udp} for renderer nr.{rnr}', c=udp)
+            vedo.printc(f'Depth peeling is now set to {udp} for renderer nr.{rnr}', c=udp)
             if not wasUsed and udp:
-                printc('\t...but last rendering did not actually used it!', c=udp, invert=True)
+                vedo.printc('\t...but last rendering did not actually used it!', c=udp, invert=True)
             return
 
         elif key == "j":
@@ -2716,36 +2759,36 @@ class Plotter:
             if isinstance(cur, vtk.vtkInteractorStyleJoystickCamera):
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
             else:
-                printc("\nInteractor style changed to Joystick,", end="")
-                printc(" press j to go back to normal.")
+                vedo.printc("\nInteractor style changed to Joystick,", end="")
+                vedo.printc(" press j to go back to normal.")
                 iren.SetInteractorStyle(vtk.vtkInteractorStyleJoystickCamera())
             iren.Start()
             return
 
         elif key == "S":
             vedo.io.screenshot("screenshot.png")
-            printc("\camera Saved rendering window as screenshot.png", c="blue")
+            vedo.printc("\camera Saved rendering window as screenshot.png", c="blue")
             return
 
         elif key == "C":
             cam = self.renderer.GetActiveCamera()
-            printc('\n###################################################', c='y')
-            printc('## Template python code to position this camera: ##', c='y')
-            printc('cam = dict(pos='          +utils.precision(cam.GetPosition(),3)+',', c='y')
-            printc('           focalPoint='   +utils.precision(cam.GetFocalPoint(),3)+',', c='y')
-            printc('           viewup='       +utils.precision(cam.GetViewUp(),3)+',', c='y')
-            printc('           distance='     +utils.precision(cam.GetDistance(),3)+',', c='y')
-            printc('           clippingRange='+utils.precision(cam.GetClippingRange(),3)+')', c='y')
-            printc('show(mymeshes, camera=cam)', c='y')
-            printc('\n### OR equivalently: ##############################', c='y')
-            printc('plt = vedo.Plotter()\n...', c='y')
-            printc('plt.camera.SetPosition(',   [round(e, 3) for e in cam.GetPosition()],  ')', c='y')
-            printc('plt.camera.SetFocalPoint(', [round(e, 3) for e in cam.GetFocalPoint()], ')', c='y')
-            printc('plt.camera.SetViewUp(',     [round(e, 3) for e in cam.GetViewUp()], ')', c='y')
-            printc('plt.camera.SetDistance(',   round(cam.GetDistance(), 3), ')', c='y')
-            printc('plt.camera.SetClippingRange(',
+            vedo.printc('\n###################################################', c='y')
+            vedo.printc('## Template python code to position this camera: ##', c='y')
+            vedo.printc('cam = dict(pos='          +utils.precision(cam.GetPosition(),3)+',', c='y')
+            vedo.printc('           focalPoint='   +utils.precision(cam.GetFocalPoint(),3)+',', c='y')
+            vedo.printc('           viewup='       +utils.precision(cam.GetViewUp(),3)+',', c='y')
+            vedo.printc('           distance='     +utils.precision(cam.GetDistance(),3)+',', c='y')
+            vedo.printc('           clippingRange='+utils.precision(cam.GetClippingRange(),3)+')', c='y')
+            vedo.printc('show(mymeshes, camera=cam)', c='y')
+            vedo.printc('\n### OR equivalently: ##############################', c='y')
+            vedo.printc('plt = vedo.Plotter()\n...', c='y')
+            vedo.printc('plt.camera.SetPosition(',   [round(e, 3) for e in cam.GetPosition()],  ')', c='y')
+            vedo.printc('plt.camera.SetFocalPoint(', [round(e, 3) for e in cam.GetFocalPoint()], ')', c='y')
+            vedo.printc('plt.camera.SetViewUp(',     [round(e, 3) for e in cam.GetViewUp()], ')', c='y')
+            vedo.printc('plt.camera.SetDistance(',   round(cam.GetDistance(), 3), ')', c='y')
+            vedo.printc('plt.camera.SetClippingRange(',
                                     [round(e, 3) for e in cam.GetClippingRange()], ')', c='y')
-            printc('###################################################', c='y')
+            vedo.printc('###################################################', c='y')
             return
 
         elif key == "s":
@@ -2791,7 +2834,7 @@ class Plotter:
                             arr = ia.getPointArray(ia._scals_idx)
                             if arr is not None:
                                 arr = arr.ravel()
-                                printc("..active point array set to:", arnam, c='g', bold=0)
+                                vedo.printc("..active point array set to:", arnam, c='g', bold=0)
                                 ia.cmap('rainbow')
                                 ia._mapper.SetScalarRange(min(arr), max(arr))
                                 ia._scals_idx += 1
@@ -2805,7 +2848,7 @@ class Plotter:
                                 arr = ia.getPointArray(ia._scals_idx)
                                 if arr is not None:
                                     arr = arr.ravel()
-                                    printc("..active cell array set to:", arnam, c='g', bold=0)
+                                    vedo.printc("..active cell array set to:", arnam, c='g', bold=0)
                                     ia.cmap('rainbow', on='cells')
                                     ia._mapper.SetScalarRange(min(arr), max(arr))
                                     ia._scals_idx += 1
@@ -2826,7 +2869,7 @@ class Plotter:
             bg2cols = ['lightyellow', 'darkseagreen', 'palegreen',
                        'steelblue','lightblue', 'cadetblue','lavender',
                        'white', 'blackboard', 'black']
-            bg2name = vedo.colors.getColorName(self.renderer.GetBackground2())
+            bg2name = vedo.getColorName(self.renderer.GetBackground2())
             if bg2name in bg2cols:
                 idx = bg2cols.index(bg2name)
             else:
@@ -2837,7 +2880,7 @@ class Plotter:
                 self.renderer.GradientBackgroundOff()
             else:
                 self.renderer.GradientBackgroundOn()
-                self.renderer.SetBackground2(getColor(bg2name_next))
+                self.renderer.SetBackground2(vedo.getColor(bg2name_next))
 
         elif key in ["plus", "equal", "KP_Add", "minus", "KP_Subtract"]:  # cycle axes style
             clickedr = self.renderers.index(self.renderer)
@@ -2947,7 +2990,7 @@ class Plotter:
                         lnr = (ia._ligthingnr+1)%5
                         ia.lighting(shds[lnr])
                         ia._ligthingnr = lnr
-                        #printc('-> lighting set to:', shds[lnr], c='g', bold=0)
+                        #vedo.printc('-> lighting set to:', shds[lnr], c='g', bold=0)
                     except AttributeError:
                         pass
 
@@ -2993,7 +3036,7 @@ class Plotter:
                         w.SetInputData(self.clickedActor.polydata())
                         w.SetFileName(fname)
                         w.Write()
-                        printc("\save Saved file:", fname, c="m")
+                        vedo.printc("\save Saved file:", fname, c="m")
                         self.cutterWidget.Off()
                         self.cutterWidget = None
             else:
@@ -3002,12 +3045,12 @@ class Plotter:
                         addons.addCutterTool(a)
                         return
 
-                printc("Click object and press X to open the cutter box widget.", c=4)
+                vedo.printc("Click object and press X to open the cutter box widget.", c=4)
 
         elif key == "E":
-            printc("\camera Exporting 3D window to file", c="blue", end="")
+            vedo.printc("\camera Exporting 3D window to file", c="blue", end="")
             vedo.io.exportWindow('scene.npz')
-            printc(". Try:\n> vedo scene.npz", c="blue")
+            vedo.printc(". Try:\n> vedo scene.npz", c="blue")
             settings.plotter_instance.interactor.Start()
 
         elif key == "i":  # print info
@@ -3020,19 +3063,19 @@ class Plotter:
             x, y = iren.GetEventPosition()
             rgb = vedo.colors.colorPicker([x,y], self)
             if rgb is None: return
-            printc('Pixel', [x,y], 'has RGB[',  end='')
-            printc('█', c=[rgb[0],0,0], end='')
-            printc('█', c=[0,rgb[1],0], end='')
-            printc('█', c=[0,0,rgb[2]], end='')
-            printc('] = ', end='')
-            cnm = getColorName(rgb)
+            vedo.printc('Pixel', [x,y], 'has RGB[',  end='')
+            vedo.printc('█', c=[rgb[0],0,0], end='')
+            vedo.printc('█', c=[0,rgb[1],0], end='')
+            vedo.printc('█', c=[0,0,rgb[2]], end='')
+            vedo.printc('] = ', end='')
+            cnm = vedo.getColorName(rgb)
             if np.sum(rgb) < 150:
-                printc(rgb.tolist(), rgb2hex(np.array(rgb)/255), c='w',
+                vedo.printc(rgb.tolist(), vedo.colors.rgb2hex(np.array(rgb)/255), c='w',
                        bc=rgb, invert=1, end='')
-                printc('  ~ '+cnm, invert=1, c='w')
+                vedo.printc('  ~ '+cnm, invert=1, c='w')
             else:
-                printc(rgb.tolist(), rgb2hex(np.array(rgb)/255), c=rgb, end='')
-                printc('  ~ '+cnm, c=cnm)
+                vedo.printc(rgb.tolist(), vedo.colors.rgb2hex(np.array(rgb)/255), c=rgb, end='')
+                vedo.printc('  ~ '+cnm, c=cnm)
 
         if iren:
             iren.Render()
@@ -3042,7 +3085,7 @@ class Plotter:
     def _keyrelease(self, iren, event):
         key = iren.GetKeySym()
         # print(iren.GetShiftKey())
-        # utils.printc('Released key:', key, c='v', box='-')
+        # utils.vedo.printc('Released key:', key, c='v', box='-')
         if key in ["Shift_L", "Control_L", "Super_L", "Alt_L",
                    "Shift_R", "Control_R", "Super_R", "Alt_R", "Menu"]:
             self.keyheld = ''

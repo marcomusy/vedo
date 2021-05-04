@@ -13,4 +13,4 @@ s = Sphere().scale([1,1,0.5]).pos(-.1,1.5,0.3).alpha(1).lw(0.1)
 s.interpolateDataFrom(h, N=4, kernel='gaussian')
 s.cmap('hsv', vmin=0, vmax=6)
 
-show(h,s, __doc__, axes=1)
+show(h,s, __doc__, axes=1).close()
