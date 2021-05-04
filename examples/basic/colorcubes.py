@@ -1,6 +1,6 @@
 """Show a cube for each available color name"""
 print(__doc__)
-from vedo import Cube, Text2D, show, settings, interactive
+from vedo import Cube, Text2D, show, settings
 from vedo.colors import colors
 from operator import itemgetter
 
@@ -17,6 +17,7 @@ for sc in sorted_colors1:
     cbs.append([tname, cb])
 print("click on any cube and press i or I")
 plt1= show(cbs, N=len(cbs), azimuth=.2, size='full', title="matplotlib colors", interactive=0)
+plt1.render()
 
 # sort by name (bootstrap5 colors):
 sorted_colors2 = sorted(colors.items(), key=itemgetter(0))
@@ -28,6 +29,5 @@ for sc in sorted_colors2:
     cbs.append([cname, cb])
 plt2= show(cbs, shape=(11,9), azimuth=.2, size=(800,1000), title="bootstrap5 colors", new=True)
 
-interactive()
-plt1.close()
 plt2.close()
+plt1.close()

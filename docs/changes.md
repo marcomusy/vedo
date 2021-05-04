@@ -1,5 +1,6 @@
 ## Main changes
 
+
 - general improvements to the `vedo` command line
 - `colorcet` [colormaps](https://colorcet.holoviz.org) are directly usable in `vedo`.
 Check example `basic/mesh_custom.py`
@@ -14,9 +15,10 @@ Check example `basic/mesh_custom.py`
 `vedo --info some_image.jpg https://vedo.embl.es/examples/data/porsche.ply`
 
 - pressing `shift-A` toggles antialiasing for the whole rendering window
-- pressing `shift-D` toggles depth-peeling algorithm (to visualize transparent object)
+- pressing `shift-D` toggles depth-peeling algorithm for the current renderer
 
 - antialiasing set by default on vtk9
+- balloon-style flags are disabled  because of a bug in vtk9.
 
 ---
 ### `base.py`
@@ -26,8 +28,8 @@ Check example `basic/mesh_custom.py`
 ### `addons.py`
 - added `addSplineTool()` to interactively spline points in space
 - added `labelRotation` in addScalarBar3D
-- added `xAxisRotation` to rotate the whole axis (ticks and labels)
 - added `xShiftAlongY` keywords in `Axes` to slide the whole axis position along another axis
+- added `xAxisRotation` to rotate the whole axis (ticks and labels)
 - `addScalarBar3D()` can now render categorical data
 
 ---
@@ -56,9 +58,6 @@ Check example `basic/mesh_custom.py`
 ---
 ### `pointcloud.py`
 - added `cutWithBox()`, `cutWithLine()`, `cutWithSphere()` and `cutWithCylinder()` methods
-
----
-### `pyplot.py`
 
 ---
 ### `shapes.py`

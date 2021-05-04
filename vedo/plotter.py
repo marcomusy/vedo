@@ -2577,7 +2577,7 @@ class Plotter:
             self.escaped = True # window will be escaped ASAP
             iren.ExitCallback()
             return
-            
+
         elif key == "F1":
             vedo.printc('\nExecution aborted. Exiting python kernel now.', c='r')
             #settings.plotter_instance.close()
@@ -3001,9 +3001,13 @@ class Plotter:
                 acts = self.getMeshes()
             for ia in acts:
                 if ia.GetPickable() and isinstance(ia, vedo.Mesh):
-                    ia.computeNormals()
-                    intrp = (ia.GetProperty().GetInterpolation()+1)%3
-                    ia.GetProperty().SetInterpolation(intrp)
+                    ia.computeNormals(cells=False)
+                    intrp = ia.GetProperty().GetInterpolation()
+                    # print(intrp, ia.GetProperty().GetInterpolationAsString())
+                    if intrp > 0:
+                        ia.GetProperty().SetInterpolation(0) #flat
+                    else:
+                        ia.GetProperty().SetInterpolation(2) #phong
 
         elif key == "n":  # show normals to an actor
             if self.clickedActor in self.getMeshes():

@@ -23,8 +23,8 @@ class Viewer:
         return self
 
     def show(self, *args, **kwargs):
-        self.plotter.show(*args, **kwargs)
-        return self
+        plt = self.plotter.show(*args, **kwargs)
+        return plt
 
     def _buttonfunc(self):
         if self.timerId is not None:
