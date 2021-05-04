@@ -4,7 +4,8 @@ from vedo import *
 
 # "depth peeling" may improve the rendering of transparent objects
 settings.useDepthPeeling = True
-
+settings.multiSamples = 0  # needed on OSX vtk9
+ 
 man = Mesh(dataurl+"man.vtk")
 
 # let the scalar be the z coordinate of the mesh vertices

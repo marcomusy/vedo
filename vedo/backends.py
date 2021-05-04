@@ -195,7 +195,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
                 settings.notebook_plotter += kobj
 
             #####################################################################Points
-            elif isinstance(ia, Points) or ia.NPoints() == ia.NCells():
+            elif isinstance(ia, Points):
                 # print('Points', ia.name, ia.N())
                 kcols=[]
                 if color_attribute is not None:

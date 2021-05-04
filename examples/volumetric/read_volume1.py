@@ -2,8 +2,6 @@ import numpy as np
 from vedo import *
 from vedo.pyplot import histogram, plot
 
-settings.useDepthPeeling=1
-
 cmap = 'nipy_spectral'
 alpha = np.array([0, 0, 0.05, 0.2, 0.8, 1])
 

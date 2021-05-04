@@ -218,8 +218,9 @@ twoSidedLighting = True
 #print("vtk_version sys_platform", vtk_version, sys_platform)
 useDepthPeeling = False
 multiSamples = 8
-if vtk_version[0] >= 9 and "Windows" in sys_platform:
-    useDepthPeeling = True
+if vtk_version[0] >= 9:
+    if "Windows" in sys_platform:
+        useDepthPeeling = True
 # only relevant if depthpeeling is on
 alphaBitPlanes = 1
 maxNumberOfPeels= 4
@@ -500,7 +501,7 @@ font_parameters = dict(
 
 
 ####################################################################################
-def embedWindow(backend='k3d', verbose=True):
+def embedWindow(backend='ipyvtk', verbose=True):
     """Use this function to control whether the rendering window is inside
     the jupyter notebook or as an independent external window"""
     global notebook_plotter, notebookBackend
