@@ -113,7 +113,7 @@ Well3 = Line(xyz, lw=3).cmap("cool", pressure)
 Well3.name = "Pressure log well 58-32"
 plt += Well3.flag()
 
-# Temperatue log
+# Temperature log
 xyz = temp_well[["X", "Y", "Z"]].values
 temp = temp_well["Temperature"].values
 Well4 = Line(xyz, lw=3).cmap("seismic", temp)
