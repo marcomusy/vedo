@@ -901,13 +901,11 @@ def printc(*strings,
         .. code-block:: python
 
             from vedo.colors import printc
-            printc('anything', c='tomato', bold=False, end='' )
-            printc('anything', 455.5, vtkObject, c='lightblue')
+            printc('anything', c='tomato', bold=False, end=' ')
+            printc('anything', 455.5, c='lightblue')
             printc(299792.48, c=4)
 
-    .. hint::  |colorprint.py|_
-
-        |colorprint|
+    |colorprint| |colorprint.py|_
     """
     if not settings.enablePrintColor:
         print(*strings, end=end, flush=flush)

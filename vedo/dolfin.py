@@ -37,10 +37,9 @@ Basic example:
     .. code-block:: python
 
         import dolfin
-        from vedo.dolfin import dataurl, plot
-
-        mesh = dolfin.Mesh(dataurl+"dolfin_fine.xml")
-
+        from vedo.dolfin import dataurl, download, plot
+        fname = download(dataurl+"dolfin_fine.xml")
+        mesh = dolfin.Mesh(fname)
         plot(mesh)
 
     |dolfinmesh|

@@ -27,7 +27,7 @@ __all__ = ["Points",
            "fitSphere",
            "pcaEllipsoid",
            "recoSurface",
-           ]
+]
 
 
 ###################################################
@@ -1518,7 +1518,7 @@ class Points(vtk.vtkFollower, BaseActor):
         qp.SetInputData(poly)
         qp.SetQFactor(binSize)
         qp.Update()
-        return self._update(qp.GetOutput())
+        return self._update(qp.GetOutput()).flat()
 
 
     def averageSize(self):
@@ -1600,10 +1600,9 @@ class Points(vtk.vtkFollower, BaseActor):
             .. code-block:: python
 
                 from vedo import *
-                s = Sphere(alpha=0.2, res=10).lineWidth(0.1)
-                s.computeNormals().clean()
-                point_ids = s.labels(cells=False).c('green')
-                cell_ids  = s.labels(cells=True ).c('black')
+                s = Sphere(res=10).lineWidth(1).c("orange").computeNormals()
+                point_ids = s.labels('id', cells=False).c('green')
+                cell_ids  = s.labels('id', cells=True ).c('black')
                 show(s, point_ids, cell_ids)
 
             |meshquality| |meshquality.py|_
@@ -2587,10 +2586,12 @@ class Points(vtk.vtkFollower, BaseActor):
         self._mapper.ScalarVisibilityOn()
         return self
 
+
     def interpolateDataFrom(self, source,
                             radius=None, N=None,
                             kernel='shepard',
                             exclude=('Normals',),
+                            on="points",
                             nullStrategy=1,
                             nullValue=0,
         ):
@@ -2615,7 +2616,18 @@ class Points(vtk.vtkFollower, BaseActor):
             colors.printc("Error in interpolateDataFrom(): please set either radius or N", c='r')
             raise RuntimeError
 
-        points = source.polydata()
+        if on == "points":
+            points = source.polydata()
+        elif on == "cells":
+            poly2 = vtk.vtkPolyData()
+            poly2.ShallowCopy(source.polydata())
+            c2p = vtk.vtkCellDataToPointData()
+            c2p.SetInputData(poly2)
+            c2p.Update()
+            points = c2p.GetOutput()
+        else:
+            colors.printc("Error in interpolateDataFrom(): must be on 'points' or 'cells'", c='r')
+            raise RuntimeError()
 
         locator = vtk.vtkPointLocator()
         locator.SetDataSet(points)
@@ -2652,7 +2664,14 @@ class Points(vtk.vtkFollower, BaseActor):
         for ex in exclude:
             interpolator.AddExcludedArray(ex)
         interpolator.Update()
-        cpoly = interpolator.GetOutput()
+
+        if on == "cells":
+            p2c = vtk.vtkPointDataToCellData()
+            p2c.SetInputData(interpolator.GetOutput())
+            p2c.Update()
+            cpoly = p2c.GetOutput()
+        else:
+            cpoly = interpolator.GetOutput()
 
         if self.GetIsIdentity() or cpoly.GetNumberOfPoints() == 0:
             self._update(cpoly)
@@ -2670,7 +2689,6 @@ class Points(vtk.vtkFollower, BaseActor):
             self._update(tf.GetOutput())
 
         return self
-
 
     def pointGaussNoise(self, sigma):
         """

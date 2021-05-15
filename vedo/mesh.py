@@ -719,7 +719,7 @@ class Mesh(Points):
             .. code-block:: python
 
                 from vedo import *
-                pot = load(datadir + 'teapot.vtk').shrink(0.75)
+                pot = load(dataurl+'teapot.vtk').shrink(0.75)
                 s = Sphere(r=0.2).pos(0,0,-0.5)
                 show(pot, s)
 
@@ -1168,7 +1168,7 @@ class Mesh(Points):
                 s = Sphere().addElevationScalars(lowPoint=(0,0,0), highPoint=(1,1,1))
                 s.addScalarBar().show(axes=1)
 
-                |elevation|
+            |elevation|
         """
         ef = vtk.vtkElevationFilter()
         ef.SetInputData(self.polydata())
@@ -1232,11 +1232,12 @@ class Mesh(Points):
         return self
 
 
-    def subdivide(self, N=1, method=0):
+    def subdivide(self, N=1, method=0, mel=None):
         """Increase the number of vertices of a surface mesh.
 
         :param int N: number of subdivisions.
         :param int method: Loop(0), Linear(1), Adaptive(2), Butterfly(3)
+        :param float mel: Maximum Edge Length for Adaptive method only.
         """
         triangles = vtk.vtkTriangleFilter()
         triangles.SetInputData(self._data)
@@ -1248,6 +1249,9 @@ class Mesh(Points):
             sdf = vtk.vtkLinearSubdivisionFilter()
         elif method == 2:
             sdf = vtk.vtkAdaptiveSubdivisionFilter()
+            if mel is None:
+                mel = self.diagonalSize() / np.sqrt(self._data.GetNumberOfPoints())/N
+            sdf.SetMaximumEdgeLength(mel)
         elif method == 3:
             sdf = vtk.vtkButterflySubdivisionFilter()
         else:
@@ -1286,12 +1290,12 @@ class Mesh(Points):
 
         if 'quad' in method:
             decimate = vtk.vtkQuadricDecimation()
-            decimate.SetAttributeErrorMetric(True)
-            if self.GetTexture():
-                decimate.TCoordsAttributeOn()
-            else:
-                pass
-                # decimate.SetVolumePreservation(True)
+            # decimate.SetAttributeErrorMetric(True)
+            # if self.GetTexture():
+            #     decimate.TCoordsAttributeOn()
+            # else:
+            #     pass
+            # decimate.SetVolumePreservation(True)
         else:
             decimate = vtk.vtkDecimatePro()
             decimate.PreserveTopologyOn()

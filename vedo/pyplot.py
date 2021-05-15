@@ -184,7 +184,7 @@ def plot(*args, **kwargs):
     :Example:
         .. code-block:: python
 
-            from vedo import plot
+            from vedo.pyplot import plot
             import numpy as np
 
             x = np.linspace(0, 6.28, num=50)
@@ -274,6 +274,9 @@ def plot(*args, **kwargs):
     mode = kwargs.pop("mode", "")
     if "spher" in mode:
         return _plotSpheric(args[0], **kwargs)
+
+    if "bar" in mode:
+        return _barplot(args[0], **kwargs)
 
     if isinstance(args[0], str) or "function" in str(type(args[0])):
         if "complex" in mode:
@@ -854,8 +857,8 @@ def _plotxy(
             ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
             # print(i, tp[i], ynew, ts[i])
             labs.append([ynew, ts[i]])
-        axes["xtitle"] = xtitle
-        axes["ytitle"] = ytitle
+        if "xtitle" not in axes: axes["xtitle"] = xtitle
+        if "ytitle" not in axes: axes["ytitle"] = ytitle
         axes["yValuesAndLabels"] = labs
         axes["xrange"] = (x0lim, x1lim)
         axes["yrange"] = (y0lim, y1lim)
@@ -1273,6 +1276,242 @@ def _plotSpheric(rfunc, normalize=True, res=33, scalarbar=True, c="grey", alpha=
     asse.name = "plotSpheric"
     return asse
 
+#########################################################################################
+def _barplot(
+    data,
+    format=None,
+    errors=False,
+    aspect=4/3,
+    xlim=None,
+    ylim=(0,None),
+    xtitle=" ",
+    ytitle="counts",
+    title="",
+    titleSize=None,
+    titleColor=None,
+    logscale=False,
+    fill=True,
+    c="olivedrab",
+    gap=0.02,
+    alpha=1,
+    outline=False,
+    lw=2,
+    lc="k",
+    pad=0.05,
+    axes={},
+    bc="k",
+):
+    offs = 0  # z offset
+    if len(data) == 4:
+        counts, xlabs, cols, edges = data
+    elif len(data) == 3:
+        counts, xlabs, cols = data
+        edges = np.array(range(len(counts)+1))+0.5
+    elif len(data) == 2:
+        counts, xlabs = data
+        edges = np.array(range(len(counts)+1))+0.5
+        cols = [c] * len(counts)
+    else:
+        m = "barplot error: data must be given as [counts, labels, colors, edges] not\n"
+        colors.printc(m, data, c='r')
+        colors.printc("     bin edges and colors are optional. Abort.", c='r')
+        raise RuntimeError()
+    counts = np.asarray(counts)
+    edges  = np.asarray(edges)
+
+    # sanity checks
+    assert len(counts) == len(xlabs)
+    assert len(counts) == len(cols)
+    assert len(counts) == len(edges)-1
+
+    if format is not None:  # reset to allow meaningful overlap
+        xlim = format.xlim
+        ylim = format.ylim
+        aspect = format.aspect
+        pad = format.pad
+        axes = 0
+        title = ""
+        xtitle = ""
+        ytitle = ""
+        offs = format.zmax
+
+    if logscale:
+        counts = np.log10(counts + 1)
+        if ytitle=='counts':
+            ytitle='log_10 (counts+1)'
+
+    x0, x1 = np.min(edges), np.max(edges)
+    y0, y1 = 0, np.max(counts)
+    binsize = edges[1] - edges[0]
+
+    x0lim, x1lim = x0 - pad * (x1 - x0), x1 + pad * (x1 - x0)
+    y0lim, y1lim = y0 - pad * (y1 - y0) / 100, y1 + pad * (y1 - y0)
+    if errors:
+        y1lim += np.sqrt(y1) / 2
+
+    if y0lim == y1lim:  # in case y is constant
+        y0lim = y0lim - (x1lim - x0lim) / 2
+        y1lim = y1lim + (x1lim - x0lim) / 2
+    elif x0lim == x1lim:  # in case x is constant
+        x0lim = x0lim - (y1lim - y0lim) / 2
+        x1lim = x1lim + (y1lim - y0lim) / 2
+
+    if xlim is not None and xlim[0] is not None:
+        x0lim = xlim[0]
+    if xlim is not None and xlim[1] is not None:
+        x1lim = xlim[1]
+    if ylim is not None and ylim[0] is not None:
+        y0lim = ylim[0]
+    if ylim is not None and ylim[1] is not None:
+        y1lim = ylim[1]
+
+    dx = x1lim - x0lim
+    dy = y1lim - y0lim
+    if dx == 0 and dy == 0:  # in case x and y are all constant
+        x0lim = x0lim - 1
+        x1lim = x1lim + 1
+        y0lim = y0lim - 1
+        y1lim = y1lim + 1
+        dx, dy = 1, 1
+
+    yscale = dx / dy / aspect
+    y0lim, y1lim = y0lim * yscale, y1lim * yscale
+
+    if format is not None:
+        x0lim = format._x0lim
+        y0lim = format._y0lim
+        x1lim = format._x1lim
+        y1lim = format._y1lim
+        yscale = format.yscale
+
+    dx = x1lim - x0lim
+    dy = y1lim - y0lim
+    offs += np.sqrt(dx * dx + dy * dy) / 10000
+
+    counts = counts * yscale
+    centers = (edges[0:-1] + edges[1:]) / 2
+
+    rs = []
+    maxheigth = 0
+    if fill:  #####################
+        if outline:
+            gap = 0
+
+        for i in range(len(centers)):
+            p0 = (edges[i] + gap * binsize, 0, 0)
+            p1 = (edges[i + 1] - gap * binsize, counts[i], 0)
+            r = shapes.Rectangle(p0, p1)
+            r.origin(p0).PickableOff()
+            maxheigth = max(maxheigth, p1[1])
+            if c in colors.cmaps_names:
+                col = colors.colorMap((p0[0]+p1[0])/2, c, edges[0], edges[-1])
+            else:
+                col = cols[i]
+            r.color(col).alpha(alpha).lighting('off').z(offs)
+            r.name = f'bar_{i}'
+            rs.append(r)
+
+    if outline or not fill:  #####################
+        lns = [[edges[0], 0, 0]]
+        for i in range(len(centers)):
+            lns.append([edges[i], counts[i], 0])
+            lns.append([edges[i + 1], counts[i], 0])
+            maxheigth = max(maxheigth, counts[i])
+        lns.append([edges[-1], 0, 0])
+        outl = shapes.Line(lns, c=lc, alpha=alpha, lw=lw).z(offs)
+        outl.name = f'bar_outline_{i}'
+        rs.append(outl)
+
+    bin_centers_pos = []
+    for i in range(len(centers)):
+        if counts[i]:
+            bin_centers_pos.append([centers[i], counts[i], 0])
+
+    if errors:  #####################
+        for bcp in bin_centers_pos:
+            x = bcp[0]
+            f = bcp[1]
+            err = np.sqrt(f / yscale) * yscale
+            el = shapes.Line([x, f-err/2, 0], [x, f+err/2, 0], c=lc, alpha=alpha, lw=lw)
+            el.z(offs * 1.9)
+            rs.append(el)
+        # print('errors', el.z())
+
+    for a in rs:  #####################
+        a.cutWithPlane([0, y0lim, 0], [0,  1, 0])
+        a.cutWithPlane([0, y1lim, 0], [0, -1, 0])
+        a.cutWithPlane([x0lim, 0, 0], [1,  0, 0])
+        a.cutWithPlane([x1lim, 0, 0], [-1, 0, 0])
+        a.lighting('off')
+
+    if title:  #####################
+        if titleColor is None:
+            titleColor = bc
+
+        if titleSize is None:
+            titleSize = dx / 40.0
+        tit = shapes.Text3D(
+            title,
+            s=titleSize,
+            c=titleColor,
+            depth=0,
+            alpha=alpha,
+            pos=((x0lim + x1lim) / 2, y1lim + (y1lim-y0lim) / 80, 0),
+            justify="bottom-center",
+        )
+        tit.pickable(False).z(2.5 * offs)
+        rs.append(tit)
+
+    if axes == 1 or axes == True: #####################
+        axes = {}
+    if isinstance(axes, dict):
+        ndiv = 6
+        if "numberOfDivisions" in axes:
+            ndiv = axes["numberOfDivisions"]
+        tp, ts = utils.makeTicks(y0lim / yscale, y1lim / yscale, ndiv / aspect)
+        ylabs = []
+        for i in range(1, len(tp) - 1):
+            ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
+            ylabs.append([ynew, ts[i]])
+        axes["yValuesAndLabels"] = ylabs
+        _xlabs = []
+        for i in range(len(centers)):
+            _xlabs.append([centers[i], xlabs[i]])
+        axes["xValuesAndLabels"] = _xlabs
+        if "xtitle" not in axes: axes["xtitle"] = xtitle
+        if "ytitle" not in axes: axes["ytitle"] = ytitle
+        axes["xrange"] = (x0lim, x1lim)
+        axes["yrange"] = (y0lim, y1lim)
+        axes["zrange"] = (0, 0)
+        axes["c"] = bc
+        axs = addons.Axes(**axes)
+        axs.name = "axes"
+        asse = Plot(rs, axs)
+        asse.axes = axs
+        asse.SetOrigin(x0lim, y0lim, 0)
+    else:
+        settings.xtitle = xtitle
+        settings.ytitle = ytitle
+        asse = Plot(rs)
+
+    asse.yscale = yscale
+    asse.xlim = xlim
+    asse.ylim = ylim
+    asse.aspect = aspect
+    asse.pad = pad
+    asse.title = title
+    asse.xtitle = xtitle
+    asse.ytitle = ytitle
+    asse._x0lim = x0lim
+    asse._y0lim = y0lim
+    asse._x1lim = x1lim
+    asse._y1lim = y1lim
+    asse.zmax = offs * 3  # z-order
+    asse.bins = edges
+    asse.centers = centers
+    asse.freqs = counts / yscale
+    asse.name = "BarPlot"
+    return asse
 
 #########################################################################################
 def _histogram1D(
@@ -1324,6 +1563,7 @@ def _histogram1D(
 
     fs, edges = np.histogram(data, bins=bins, range=xlim)
     # print('frequencies', fs)
+    # print('edges', edges)
     if density:
         ntot = len(data.ravel())
         binsize = edges[1]-edges[0]
@@ -1509,8 +1749,8 @@ def _histogram1D(
         for i in range(1, len(tp) - 1):
             ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
             labs.append([ynew, ts[i]])
-        axes["xtitle"] = xtitle
-        axes["ytitle"] = ytitle
+        if "xtitle" not in axes:  axes["xtitle"] = xtitle
+        if "ytitle" not in axes:  axes["ytitle"] = ytitle
         axes["yValuesAndLabels"] = labs
         axes["xrange"] = (x0lim, x1lim)
         axes["yrange"] = (y0lim, y1lim)
@@ -1540,10 +1780,10 @@ def _histogram1D(
     asse._y1lim = y1lim
     asse.zmax = offs * 3  # z-order
     asse.bins = edges
-    asse.freqs = fs
+    asse.centers = (edges[0:-1] + edges[1:]) / 2
+    asse.freqs = fs / yscale
     asse.name = "histogram1D"
     return asse
-
 
 def _histogram2D(
     xvalues,
@@ -1658,9 +1898,9 @@ def _histogram2D(
         for i in range(1, len(tp) - 1):
             ynew = utils.linInterpolate(tp[i], [0, 1], [y0lim, y1lim])
             labs.append([ynew, ts[i]])
-        axes["xtitle"] = xtitle
-        axes["ytitle"] = ytitle
-        axes["ztitle"] = ztitle
+        if "xtitle" not in axes:  axes["xtitle"] = xtitle
+        if "ytitle" not in axes:  axes["ytitle"] = ytitle
+        if "ztitle" not in axes:  axes["ztitle"] = ztitle
         axes["yValuesAndLabels"] = labs
         axes["xrange"] = (x0lim, x1lim)
         axes["yrange"] = (y0lim, y1lim)

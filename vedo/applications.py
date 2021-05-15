@@ -427,10 +427,9 @@ def IsosurfaceBrowser(volume, c=None, alpha=1, lego=False, cmap='hot', pos=None)
     :Example:
         .. code-block:: python
 
-            from vedo import datadir, Volume
+            from vedo import dataurl, Volume
             from vedo.applications import IsosurfaceBrowser
-
-            vol = Volume(datadir+'head.vti')
+            vol = Volume(dataurl+'head.vti')
             plt = IsosurfaceBrowser(vol, c='gold')
             plt.show(axes=7, bg2='lb')
     """

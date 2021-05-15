@@ -1694,6 +1694,7 @@ def Axes(
         xLabelColor=None, yLabelColor=None, zLabelColor=None,
         xLabelSize=0.016, yLabelSize=0.016, zLabelSize=0.016,
         xLabelOffset=0.8, yLabelOffset=0.8, zLabelOffset=0.8, # each can be a list (dx,dy,dz)
+        xLabelJustify=None, yLabelJustify=None, zLabelJustify=None,
         xLabelRotation=0, yLabelRotation=0, zLabelRotation=0, # each can be a list (rx,ry,rz)
         xAxisRotation=0, yAxisRotation=0, zAxisRotation=0,    # rotate all elements around axis
         xValuesAndLabels=None, yValuesAndLabels=None, zValuesAndLabels=None,
@@ -1740,7 +1741,7 @@ def Axes(
     - `hTitleOffset`,   [(0,0.01,0)], control offsets of header title in x, y and z
     - `xTitlePosition`,       [0.32], title fractional positions along axis
     - `xTitleOffset`,         [0.05], title fractional offset distance from axis line, can be a list
-    - `xTitleJustify`,        [None], title justification
+    - `xTitleJustify`,        [None], choose the origin of the bounding box of title
     - `xTitleRotation`,          [0], add a rotation of the axis title, can be a list (rx,ry,rz)
     - `xTitleBox`,           [False], add a box around title text
     - `xLineColor`,      [automatic], color of the x-axis
@@ -1758,6 +1759,7 @@ def Axes(
     - `xLabelSize`,          [0.015], size of the numeric labels along axis
     - 'xLabelRotation',          [0], numeric labels rotation (can be a list of 3 rotations)
     - `xLabelOffset`,          [0.8], offset of the numeric labels (can be a list of 3 offsets)
+    - `xLabelJustify`,        [None], choose the origin of the bounding box of labels
     - 'xAxisRotation',           [0], rotate the X axis elements (ticks and labels) around this same axis
     - `xValuesAndLabels`          [], assign custom tick positions and labels [(pos1, label1), ...]
     - `xyShift`                [0.0], slide the xy-plane along z (the range is [0,1])
@@ -1772,11 +1774,10 @@ def Axes(
 
         .. code-block:: python
 
-            from vedo import Box, show
+            from vedo import Axes, Box, show
             b = Box(pos=(1,2,3), length=8, width=9, height=7).alpha(0.1)
             axs = Axes(b, c='k')  # returns Assembly object
-            for a in axs:
-                print(a.name)
+            #for a in axs.unpack(): print(a.name)
             show(axs)
 
     |customAxes1| |customAxes1.py|_ |customAxes2.py|_ |customAxes3.py|_
@@ -2342,6 +2343,8 @@ def Axes(
             if zRot > 247: jus = "center-left"
             if zRot > 292: jus = "top-left"
             if zRot > 337: jus = "top-center"
+        if xLabelJustify is not None:
+            jus = xLabelJustify
 
         for i in range(1, len(xticks_str)):
             t = xticks_str[i]
@@ -2388,6 +2391,8 @@ def Axes(
             if zRot > 247: jus = "center-top"
             if zRot > 292: jus = "top-right"
             if zRot > 337: jus = "right-center"
+        if yLabelJustify is not None:
+            jus = yLabelJustify
 
         for i in range(1, len(yticks_str)):
             t = yticks_str[i]
@@ -2434,6 +2439,8 @@ def Axes(
             if xRot > 247: jus = "center-top"
             if xRot > 292: jus = "top-right"
             if xRot > 337: jus = "right-center"
+        if zLabelJustify is not None:
+            jus = zLabelJustify
 
         for i in range(1, len(zticks_str)):
             t = zticks_str[i]
@@ -2687,11 +2694,12 @@ def addGlobalAxes(axtype=None, c=None):
             .. code-block:: python
 
                 from vedo import Box, show
-                b = Box(pos=(0,0,0), length=80, width=90, height=70).alpha(0)
+                b = Box(pos=(0,0,0), length=80, width=90, height=70).alpha(0.1)
                 show(b, axes={ 'xtitle':'Some long variable [a.u.]',
                                'numberOfDivisions':4,
                                # ...
-                             })
+                             }
+                )
 
     |customAxes| |customAxes.py|_
     """

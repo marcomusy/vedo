@@ -2184,7 +2184,7 @@ class Grid(Mesh):
         .. code-block:: python
 
             from vedo import *
-            impot numpy as np
+            import numpy as np
             xcoords = np.arange(0, 2, 0.2)
             ycoords = np.arange(0, 1, 0.2)
             sqrtx = sqrt(xcoords)
@@ -2312,7 +2312,7 @@ class Box(Mesh):
     Build a box of dimensions `x=length, y=width and z=height`.
     Alternatively dimensions can be defined by setting `size` keyword with a tuple.
     If ``size`` is a list of 6 numbers, this will be interpreted as the bounding box:
-        [xmin,xmax, ymin,ymax, zmin,zmax]
+    [xmin,xmax, ymin,ymax, zmin,zmax]
 
     |aspring| |aspring.py|_
     """
@@ -3407,7 +3407,7 @@ class ParametricShape(Mesh):
             from vedo import *
             for i in range(18):
                 ps = ParametricShape(i, c=i)
-                show([ps, Text3D(ps.name)], at=i, N=18)
+                show([ps, ps.name], at=i, N=18)
             interactive()
 
         |paramshapes|

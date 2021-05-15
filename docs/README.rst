@@ -39,7 +39,7 @@ Philosophy
 
 Inspired by the `vpython <https://vpython.org/>`_ *manifesto* "3D programming for ordinary mortals",
 *vedo* makes it easy to work wth three-dimensional objects, create displays and animations
-in just a few lines of code, even for those with less programming experience.
+in just a few lines of code, even for less experienced programmers.
 
 `vedo` is based on `VTK <https://www.vtk.org/>`_ and `numpy <http://www.numpy.org/>`_,
 with no other dependencies.
@@ -67,8 +67,8 @@ Run any of the available scripts from with:
 
 .. code-block:: bash
 
-    vedo --list
     vedo -r covid19
+    vedo --help
 
 
 More than 300 examples are sorted by subject in directories:

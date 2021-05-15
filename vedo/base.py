@@ -46,6 +46,7 @@ class Base3DProp(object):
         self.transform = None
         self._set2actcam = False # used by mesh.followCamera()
 
+
     def address(self):
         """
         Return a unique memory address integer which can serve as the ID of the
@@ -1657,7 +1658,7 @@ class BaseGrid(BaseActor):
         return self._update(cout)
 
 
-    def cutWithBoundingBox(self, box):
+    def cutWithBox(self, box):
         """
         Cut the grid with the specified bounding box.
 
@@ -1739,15 +1740,6 @@ class BaseGrid(BaseActor):
         If tetsOnly=True will cull all 1D and 2D cells from the output.
 
         Return a TetMesh.
-
-        Example:
-
-            .. code-block:: python
-
-                from vedo import *
-                ug = loadUnStructuredGrid(datadir+'ugrid.vtk')
-                tmesh = tetralize(ug)
-                tmesh.write('ugrid.vtu').show(axes=1)
         """
         return vedo.tetmesh.tetralize(self._data, tetsOnly)
 

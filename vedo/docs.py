@@ -1324,14 +1324,4 @@ _defs = ""
 #     :alt: whiskers.py
 # """
 
-######################################################################## template
-# .. |.py| replace:: .py
-# .. _.py: https://github.com/marcomusy/vedo/tree/master/examples/pyplot/.py
-# .. || image::
-#     :width: 200 px
-#     :target: .py_
-#     :alt: .py
-########################################################################
-
-
 
