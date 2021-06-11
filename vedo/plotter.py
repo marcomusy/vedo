@@ -473,6 +473,8 @@ class Plotter:
         self.escaped = False
         self.window.GlobalWarningDisplayOff()
 
+        self._repeating_timer_id = None
+        self._timer_event_id = None
 
         ############################################################
         notebookBackend = settings.notebookBackend
@@ -769,8 +771,6 @@ class Plotter:
             self.interactor.AddObserver("KeyPressEvent", self._keypress)
             self.interactor.AddObserver("KeyReleaseEvent", self._keyrelease)
 
-        self._repeating_timer_id = None
-        self._timer_event_id = None
         if settings.allowInteraction:
 
             def win_interact(iren, event):  # flushing interactor events
@@ -873,6 +873,8 @@ class Plotter:
 
     def render(self, resetcam=False):
         """Render the scene."""
+        if not self.window:
+            return self
         if settings.vtk_version[0] == 9 and "Darwin" in settings.sys_platform:
             for a in self.actors:
                 if isinstance(a, vtk.vtkVolume):

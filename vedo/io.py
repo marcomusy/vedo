@@ -937,6 +937,7 @@ def loadNumpy(inobj):
         if 'time' in keys: obj.time(d['time'])
         if 'name' in keys: obj.name = d['name']
         if 'filename' in keys: obj.filename = d['filename']
+        if 'info' in keys: obj.info = d['info']
 
         if 'transform' in keys and len(d['transform']) == 4:
             vm = vtk.vtkMatrix4x4()

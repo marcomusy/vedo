@@ -1476,7 +1476,7 @@ def _barplot(
         axes["yValuesAndLabels"] = ylabs
         _xlabs = []
         for i in range(len(centers)):
-            _xlabs.append([centers[i], xlabs[i]])
+            _xlabs.append([centers[i], str(xlabs[i])])
         axes["xValuesAndLabels"] = _xlabs
         if "xtitle" not in axes: axes["xtitle"] = xtitle
         if "ytitle" not in axes: axes["ytitle"] = ytitle
