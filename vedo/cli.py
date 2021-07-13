@@ -38,7 +38,7 @@ def execute_cli():
     elif args.search_vtk:
         exe_search_vtk(args)
 
-    elif len(args.convert):
+    elif args.convert:
         exe_convert(args)
 
     elif (len(args.files) == 0 or os.name == "nt"):
