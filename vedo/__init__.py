@@ -15,6 +15,7 @@ from vedo.version import _version as __version__
 from vedo.plotter import *
 from vedo.shapes import *
 from vedo.io import *
+from vedo.cli import execute_cli
 
 from vedo.base import *
 from vedo.ugrid import UGrid

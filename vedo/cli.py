@@ -1,61 +1,317 @@
 #!/usr/bin/env python3
-#
-from vedo import Plotter, printInfo, isSequence
-from vedo import settings, printc, getColor, humansort, __version__
-from vedo import io, load
-from vedo.mesh import Mesh
-from vedo.tetmesh import TetMesh
-from vedo.ugrid import UGrid
-from vedo.volume import Volume
-import vedo.applications as applications
-from vedo.docs import tips
+# -*- coding: utf-8 -*-
 import sys, argparse, os, glob
 import vtk
 import numpy as np
 
-#################################################################################################
-class MyArgs:
-    def __init__(self):
-        self.files = []
-        self.color = None
-        self.alpha = 1
-        self.wireframe = False
-        self.point_size = -1
-        self.showedges = False ##
-        self.lighting = 'default'##
-        self.flat = False##
-        self.axes_type = 4
-        self.no_camera_share = False
-        self.full_screen = False
-        self.background = ""
-        self.background_grad = ""
-        self.zoom = 1
-        self.quiet = False
-        self.multirenderer_mode = False
-        self.scrolling_mode = False
-        self.ray_cast_mode = False
-        self.z_spacing = 1
-        self.y_spacing = 1
-        self.x_spacing = 1
-        self.slicer = False
-        self.slicer2d = False
-        self.lego = False
-        self.cmap = "jet"
-        self.mode = 0
-        self.reload = False
-        self.edit = False
+from vedo import io, load, settings, __version__
+from vedo.plotter import Plotter
+from vedo.utils import printInfo, isSequence, humansort
+from vedo.colors import printc, getColor
+from vedo.mesh import Mesh
+from vedo.tetmesh import TetMesh
+from vedo.ugrid import UGrid
+from vedo.volume import Volume
+from vedo.docs import tips
+import vedo.applications as applications
+
+__all__ = []
+
+##############################################################################################
+def execute_cli():
+
+    parser = get_parser()
+    args = parser.parse_args()
+
+    if "/vedo/vedo" in settings.installdir:
+        settings.installdir = settings.installdir.replace('vedo/','').replace('vedo\\','')
+
+    if args.info is not None:
+        exe_info(args)
+
+    elif args.run:
+        exe_run(args)
+
+    elif args.search:
+        exe_search(args)
+
+    elif args.search_vtk:
+        exe_search_vtk(args)
+
+    elif len(args.convert):
+        exe_convert(args)
+
+    elif (len(args.files) == 0 or os.name == "nt"):
+        exe_gui(args)
+
+    else:
+        draw_scene(args)
+
+
+##############################################################################################
+def get_parser():
+
+    descr = f"version {__version__}"
+    descr+= " - check out home page at https://vedo.embl.es"
+
+    pr = argparse.ArgumentParser(description=descr)
+    pr.add_argument('files', nargs='*',             help="input filename(s)")
+    pr.add_argument("-c", "--color", type=str,      help="mesh color [integer or color name]", default=None, metavar='')
+    pr.add_argument("-a", "--alpha",    type=float, help="alpha value [0-1]", default=1, metavar='')
+    pr.add_argument("-w", "--wireframe",            help="use wireframe representation", action="store_true")
+    pr.add_argument("-p", "--point-size", type=float, help="specify point size", default=-1, metavar='')
+    pr.add_argument("-l", "--showedges",            help="show a thin line on mesh edges", action="store_true")
+    pr.add_argument("-k", "--lighting", type=str,   help="metallic, plastic, shiny or glossy", default='default', metavar='')
+    pr.add_argument("-K", "--flat",                 help="use flat shading", action="store_true")
+    pr.add_argument("-t", "--texture-file",         help="texture image file", default='', metavar='')
+    pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-14]", default=1, metavar='')
+    pr.add_argument("-i", "--no-camera-share",      help="do not share camera in renderers", action="store_true")
+    pr.add_argument("-f", "--full-screen",          help="full screen mode", action="store_true")
+    pr.add_argument("-bg","--background", type=str, help="background color [integer or color name]", default='', metavar='')
+    pr.add_argument("-bg2", "--background-grad",    help="use background color gradient", default='', metavar='')
+    pr.add_argument("-z", "--zoom", type=float,     help="zooming factor", default=1, metavar='')
+    pr.add_argument("-q", "--quiet",                help="quiet mode, less verbose", default=False, action="store_false")
+    pr.add_argument("-n", "--multirenderer-mode",   help="multi renderer mode: files go to separate renderers", action="store_true")
+    pr.add_argument("-s", "--scrolling-mode",       help="scrolling Mode: use slider to scroll files", action="store_true")
+    pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode for 3D image files", action="store_true")
+    pr.add_argument("-gx", "--x-spacing", type=float, help="volume x-spacing factor [1]", default=1, metavar='')
+    pr.add_argument("-gy", "--y-spacing", type=float, help="volume y-spacing factor [1]", default=1, metavar='')
+    pr.add_argument("-gz", "--z-spacing", type=float, help="volume z-spacing factor [1]", default=1, metavar='')
+    pr.add_argument("--mode",                       help="volume rendering style (composite/maxproj/...)", default=0, metavar='')
+    pr.add_argument("--cmap",                       help="volume rendering color map name", default='jet', metavar='')
+    pr.add_argument("-e", "--edit",                 help="free-hand edit the input Mesh", action="store_true")
+    pr.add_argument("--slicer",                     help="slicer Mode for volumetric data", action="store_true")
+    pr.add_argument("--slicer2d",                   help="2D Slicer Mode for volumetric data", action="store_true")
+    pr.add_argument("--lego",                       help="voxel rendering for 3D image files", action="store_true")
+    pr.add_argument("-r", "--run",                  help="run example from vedo/examples", metavar='')
+    pr.add_argument("--search",           type=str, help="search/grep for word in vedo examples", default='', metavar='')
+    pr.add_argument("--search-vtk",       type=str, help="search examples for the input vtk class", default='', metavar='')
+    pr.add_argument("--reload",                     help="reload the file, ignoring any previous download", action="store_true")
+    pr.add_argument("--info", nargs='*',            help="get an info printout of the input file(s)")
+    pr.add_argument("--convert", nargs='*',         help="input file(s) to be converted")
+    pr.add_argument("--to",               type=str, help="convert to this target format", default='vtk', metavar='')
+
+    return pr
+
 
 #################################################################################################
-vp = None
-args = MyArgs()
-kact = 0
-cmap_slicer = None
+def exe_info(args):
+    for i in range(2, len(sys.argv)):
+        file = sys.argv[i]
+        try:
+            A = load(file)
+            if isinstance(A, np.ndarray):
+                printInfo(A)
+            elif isSequence(A):
+                for a in A:
+                    printInfo(a)
+            else:
+                printInfo(A)
+        except:
+            printc("Could not load:", file, "skip.", c="r")
+
+    printc("_" * 65, bold=0)
+    printc("vedo version      :", __version__, invert=1, end='   ')
+    printc("https://vedo.embl.es", underline=1, italic=1)
+    printc("vtk version       :", vtk.vtkVersion().GetVTKVersion())
+    printc("python version    :", sys.version.replace("\n", ""))
+    printc("python interpreter:", sys.executable)
+    printc("vedo installation :", settings.installdir)
+    try:
+        import platform
+        printc("system            :", platform.system(),
+               platform.release(), os.name, platform.machine())
+    except:
+        pass
+    try:
+        import k3d
+        printc("k3d version       :", k3d.__version__, bold=0, dim=1)
+    except:
+        pass
+    try:
+        import ipyvtk_simple
+        printc("ipyvtk version    :", ipyvtk_simple.__version__, bold=0, dim=1)
+    except:
+        pass
+    try:
+        import itkwidgets
+        printc("itkwidgets version:", itkwidgets.__version__, bold=0, dim=1)
+    except:
+        pass
+    try:
+        import panel
+        printc("panel version     :", panel.__version__, bold=0, dim=1)
+    except:
+        pass
 
 
 #################################################################################################
-def draw_scene():
+def exe_run(args):
+    expath = os.path.join(settings.installdir, "examples", "**", "*.py")
+    exfiles = [f for f in glob.glob(expath, recursive=True)]
+    f2search = os.path.basename(args.run).lower()
+    matching = [s for s in exfiles if (f2search in os.path.basename(s).lower() and "__" not in s)]
+    matching = list(sorted(matching))
+    nmat = len(matching)
+    if nmat == 0:
+        printc("No matching example found containing string:", args.run, c=1)
+        printc(" Current installation directory is:", settings.installdir, c=1)
+        exit(1)
 
-    global kact, cmap_slicer
+    if nmat > 1:
+        printc("\nSelect one of", nmat, "matching scripts:", c='y', italic=1)
+
+    for mat in matching[:25]:
+        printc(os.path.basename(mat).replace('.py',''), c='y', italic=1, end=' ')
+        with open(mat) as fm:
+            lline = ''.join(fm.readlines(60))
+            lline = lline.replace('\n',' ').replace('\'','').replace('\"','').replace('-','')
+            line = lline[:56] #cut
+            if line.startswith('from'): line=''
+            if line.startswith('import'): line=''
+            if len(lline) > len(line):
+                line += '..'
+            if len(line)>5:
+                printc('-', line,  c='y', bold=0, italic=1)
+            else:
+                print()
+
+    if nmat>25:
+        printc('...', c='y')
+
+    if nmat > 1:
+        exit(0)
+
+    if args.no_camera_share: # -i option to dump the full code
+        print()
+        with open(matching[0]) as fm:
+            codedump = fm.readlines()
+        for line in codedump:
+            printc(line, c='cyan', italic=1, bold=0, end='')
+        print()
+
+    printc("("+matching[0]+")", c='y', bold=0, italic=1)
+    os.system('python3 ' + matching[0])
+
+################################################################################################
+def exe_convert(args):
+
+    allowedexts = ['vtk', 'vtp', 'vtu', 'vts', 'npy', 'ply', 'stl', 'obj',
+                   'byu', 'xml', 'vti', 'tif', 'mhd', 'xml']
+
+    humansort(args.convert)
+    nfiles = len(args.convert)
+    if nfiles == 0:
+        sys.exit()
+
+    target_ext = args.to.lower()
+
+    if target_ext not in allowedexts:
+        printc('Sorry target cannot be', target_ext, '\nMust be', allowedexts, c=1)
+        sys.exit()
+
+    for f in args.convert:
+        source_ext = f.split('.')[-1]
+
+        if target_ext == source_ext:
+            continue
+
+        a = load(f)
+        newf = f.replace("."+source_ext,"")+"."+target_ext
+        a.write(newf, binary=True)
+
+##############################################################################################
+def exe_search(args):
+    expath = os.path.join(settings.installdir, "examples", "**", "*.py")
+    exfiles = [f for f in sorted(glob.glob(expath, recursive=True))]
+    pattern = args.search
+    if args.no_camera_share:
+        pattern = pattern.lower()
+    if len(pattern) > 3:
+        for ifile in exfiles:
+            with open(ifile, "r") as file:
+                fflag=True
+                for i,line in enumerate(file):
+                    if args.no_camera_share:
+                        bline = line.lower()
+                    else:
+                        bline = line
+                    if pattern in bline:
+                        if fflag:
+                            name = os.path.basename(ifile)
+                            etype = ifile.split("/")[-2]
+                            printc("--> examples/"+etype+"/"+name+":", c='y', italic=1, invert=1)
+                            fflag = False
+                        line = line.replace(pattern, "\x1b[4m\x1b[1m"+pattern+"\x1b[0m\u001b[33m")
+                        print(f"\u001b[33m{i}\t{line}\x1b[0m", end='')
+                        # printc(i, line, c='o', bold=False, end='')
+    else:
+        printc("Please specify at least four characters.", c='r')
+
+##############################################################################################
+def exe_search_vtk(args):
+    # input a vtk class name to get links to examples that involve that class
+    # From https://kitware.github.io/vtk-examples/site/Python/Utilities/SelectExamples/
+    import json
+    import tempfile
+    from datetime import datetime
+    from pathlib import Path
+    from urllib.error import HTTPError
+    from urllib.request import urlretrieve
+
+    xref_url='https://raw.githubusercontent.com/Kitware/vtk-examples/gh-pages/src/Coverage/vtk_vtk-examples_xref.json'
+
+    def download_file(dl_path, dl_url, overwrite=False):
+        file_name = dl_url.split('/')[-1]
+        # Create necessary sub-directories in the dl_path (if they don't exist).
+        Path(dl_path).mkdir(parents=True, exist_ok=True)
+        # Download if it doesn't exist in the directory overriding if overwrite is True.
+        path = Path(dl_path, file_name)
+        if not path.is_file() or overwrite:
+            try:
+                urlretrieve(dl_url, path)
+            except HTTPError as e:
+                raise RuntimeError(f'Failed to download {dl_url}. {e.reason}')
+        return path
+
+    def get_examples(d, vtk_class, lang, all_values=False, number=5):
+        try:
+            kv = d[vtk_class][lang].items()
+        except KeyError as e:
+            print(f'For the combination {vtk_class} and {lang}, this key does not exist: {e}')
+            return None, None
+        total = len(kv)
+        samples = list(kv)
+        return total, [f'{s[1]}' for s in samples]
+
+    vtk_class, language, all_values, number = args.search_vtk, "Python", True, 10000
+    tmp_dir = tempfile.gettempdir()
+    path = download_file(tmp_dir, xref_url, overwrite=False)
+    if not path.is_file():
+        print(f'The path: {str(path)} does not exist.')
+
+    dt = datetime.today().timestamp() - os.path.getmtime(path)
+    # Force a new download if the time difference is > 10 minutes.
+    if dt > 600:
+        path = download_file(tmp_dir, xref_url, overwrite=True)
+    with open(path) as json_file:
+        xref_dict = json.load(json_file)
+
+    total_number, examples = get_examples(xref_dict, vtk_class, language, all_values=all_values, number=number)
+    if examples:
+        if total_number <= number or all_values:
+            print(f'VTK Class: {vtk_class}, language: {language}\n'
+                  f'Number of example(s): {total_number}.')
+        else:
+            print(f'VTK Class: {vtk_class}, language: {language}\n'
+                  f'Number of example(s): {total_number} with {number} random sample(s) shown.')
+        print('\n'.join(examples))
+    else:
+        print(f'No examples for the VTK Class: {vtk_class} and language: {language}')
+
+
+#################################################################################################################
+def draw_scene(args):
 
     nfiles = len(args.files)
     if nfiles == 0:
@@ -79,8 +335,7 @@ def draw_scene():
 
     if nfiles == 1 and args.files[0].endswith(".gif"): ###can be improved
         frames = load(args.files[0])
-        applications.Browser(frames).show(bg=args.background, prefix="frame ",
-                                          bg2=args.background_grad)
+        applications.Browser(frames).show(bg=args.background, prefix="frame ", bg2=args.background_grad)
         return ##########################################################
 
     N = None
@@ -203,13 +458,13 @@ def draw_scene():
     ########################################################################
     # normal mode for single VOXEL file with Isosurface Slider or LEGO mode
     elif nfiles == 1 and (
-        ".slc" in args.files[0].lower()
-        or ".vti" in args.files[0].lower()
-        or ".tif" in args.files[0].lower()
-        or ".mhd" in args.files[0].lower()
-        or ".nrrd" in args.files[0].lower()
-        or ".dem" in args.files[0].lower()
-    ):
+            ".slc" in args.files[0].lower()
+            or ".vti" in args.files[0].lower()
+            or ".tif" in args.files[0].lower()
+            or ".mhd" in args.files[0].lower()
+            or ".nrrd" in args.files[0].lower()
+            or ".dem" in args.files[0].lower()
+        ):
         # print('DEBUG normal mode for single VOXEL file with Isosurface Slider or LEGO mode')
         vol = io.load(args.files[0], force=args.reload)
         sp = vol.spacing()
@@ -315,11 +570,8 @@ def draw_scene():
         applications.Browser(acts)
         vp.show(interactive=True, zoom=args.zoom)
 
-
-#################################################################################
-# GUI or argparse
-#################################################################################
-if len(sys.argv) == 1 or os.name == "nt":  # no args are passed, pop up GUI
+########################################################################
+def exe_gui(args):
 
     # print('DEBUG gui started')
     if sys.version_info[0] > 2:
@@ -573,7 +825,7 @@ if len(sys.argv) == 1 or os.name == "nt":  # no args are passed, pop up GUI
             if self.yspacing.get() != '1.0': args.y_spacing = float(self.yspacing.get())
             if self.zspacing.get() != '1.0': args.z_spacing = float(self.zspacing.get())
 
-            draw_scene()
+            draw_scene(args)
             if os.name == "nt":
                 exit()
             if settings.plotter_instance:
@@ -599,233 +851,4 @@ if len(sys.argv) == 1 or os.name == "nt":  # no args are passed, pop up GUI
     root.mainloop()
 
 
-else:  ################################################################################################# command line mode
 
-    descr = f"version {__version__}"
-    descr+= " - check out home page at https://vedo.embl.es"
-
-    pr = argparse.ArgumentParser(description=descr)
-    pr.add_argument('files', nargs='*',             help="input filename(s)")
-    pr.add_argument("-c", "--color", type=str,      help="mesh color [integer or color name]", default=None, metavar='')
-    pr.add_argument("-a", "--alpha",    type=float, help="alpha value [0-1]", default=1, metavar='')
-    pr.add_argument("-w", "--wireframe",            help="use wireframe representation", action="store_true")
-    pr.add_argument("-p", "--point-size", type=float, help="specify point size", default=-1, metavar='')
-    pr.add_argument("-l", "--showedges",            help="show a thin line on mesh edges", action="store_true")
-    pr.add_argument("-k", "--lighting", type=str,   help="metallic, plastic, shiny or glossy", default='default', metavar='')
-    pr.add_argument("-K", "--flat",                 help="use flat shading", action="store_true")
-    pr.add_argument("-t", "--texture-file",         help="texture image file", default='', metavar='')
-    pr.add_argument("-x", "--axes-type", type=int,  help="specify axes type [0-14]", default=1, metavar='')
-    pr.add_argument("-i", "--no-camera-share",      help="do not share camera in renderers", action="store_true")
-    pr.add_argument("-f", "--full-screen",          help="full screen mode", action="store_true")
-    pr.add_argument("-bg","--background", type=str, help="background color [integer or color name]", default='', metavar='')
-    pr.add_argument("-bg2", "--background-grad",    help="use background color gradient", default='', metavar='')
-    pr.add_argument("-z", "--zoom", type=float,     help="zooming factor", default=1, metavar='')
-    pr.add_argument("-q", "--quiet",                help="quiet mode, less verbose", default=False, action="store_false")
-    pr.add_argument("-n", "--multirenderer-mode",   help="multi renderer mode: files go to separate renderers", action="store_true")
-    pr.add_argument("-s", "--scrolling-mode",       help="scrolling Mode: use slider to scroll files", action="store_true")
-    pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode for 3D image files", action="store_true")
-    pr.add_argument("-gx", "--x-spacing", type=float, help="volume x-spacing factor [1]", default=1, metavar='')
-    pr.add_argument("-gy", "--y-spacing", type=float, help="volume y-spacing factor [1]", default=1, metavar='')
-    pr.add_argument("-gz", "--z-spacing", type=float, help="volume z-spacing factor [1]", default=1, metavar='')
-    pr.add_argument("--mode",                       help="volume rendering style (composite/maxproj/...)", default=0, metavar='')
-    pr.add_argument("--cmap",                       help="volume rendering color map name", default='jet', metavar='')
-    pr.add_argument("-e", "--edit",                 help="free-hand edit the input Mesh", action="store_true")
-    pr.add_argument("--slicer",                     help="slicer Mode for volumetric data", action="store_true")
-    pr.add_argument("--slicer2d",                   help="2D Slicer Mode for volumetric data", action="store_true")
-    pr.add_argument("--lego",                       help="voxel rendering for 3D image files", action="store_true")
-    pr.add_argument("-r", "--run",                  help="run example from vedo/examples", metavar='')
-    pr.add_argument("--search",           type=str, help="search/grep for word in vedo examples", default='', metavar='')
-    pr.add_argument("--search-vtk",       type=str, help="search examples for the input vtk class", default='', metavar='')
-    pr.add_argument("--reload",                     help="reload the file, ignoring any previous download", action="store_true")
-    pr.add_argument("--info", nargs='*',            help="get an info printout of the input file(s)")
-    args = pr.parse_args()
-
-    if "/vedo/vedo" in settings.installdir:
-        settings.installdir = settings.installdir.replace('vedo/','').replace('vedo\\','')
-
-    if args.info is not None:
-        for i in range(2, len(sys.argv)):
-            file = sys.argv[i]
-            try:
-                A = load(file)
-                if isinstance(A, np.ndarray):
-                    printInfo(A)
-                elif isSequence(A):
-                    for a in A:
-                        printInfo(a)
-                else:
-                    printInfo(A)
-            except:
-                printc("Could not load:", file, "skip.", c="r")
-
-        printc("_" * 65, bold=0)
-        printc("vedo version      :", __version__, invert=1, end='   ')
-        printc("https://vedo.embl.es", underline=1, italic=1)
-        printc("vtk version       :", vtk.vtkVersion().GetVTKVersion())
-        printc("python version    :", sys.version.replace("\n", ""))
-        printc("python interpreter:", sys.executable)
-        printc("vedo installation :", settings.installdir)
-        try:
-            import platform
-            printc("system            :", platform.system(),
-                   platform.release(), os.name, platform.machine())
-        except:
-            pass
-        try:
-            import k3d
-            printc("k3d version       :", k3d.__version__, bold=0, dim=1)
-        except:
-            pass
-        try:
-            import ipyvtk_simple
-            printc("ipyvtk version    :", ipyvtk_simple.__version__, bold=0, dim=1)
-        except:
-            pass
-        try:
-            import itkwidgets
-            printc("itkwidgets version:", itkwidgets.__version__, bold=0, dim=1)
-        except:
-            pass
-        try:
-            import panel
-            printc("panel version     :", panel.__version__, bold=0, dim=1)
-        except:
-            pass
-
-    elif args.run:
-        expath = os.path.join(settings.installdir, "examples", "**", "*.py")
-        exfiles = [f for f in glob.glob(expath, recursive=True)]
-        f2search = os.path.basename(args.run).lower()
-        matching = [s for s in exfiles if (f2search in os.path.basename(s).lower() and "__" not in s)]
-        matching = list(sorted(matching))
-        nmat = len(matching)
-        if nmat == 0:
-            printc("No matching example found containing string:", args.run, c=1)
-            printc(" Current installation directory is:", settings.installdir, c=1)
-            exit(1)
-
-        if nmat > 1:
-            printc("\nSelect one of", nmat, "matching scripts:", c='y', italic=1)
-
-        for mat in matching[:25]:
-            printc(os.path.basename(mat).replace('.py',''), c='y', italic=1, end=' ')
-            with open(mat) as fm:
-                lline = ''.join(fm.readlines(60))
-                lline = lline.replace('\n',' ').replace('\'','').replace('\"','').replace('-','')
-                line = lline[:56] #cut
-                if line.startswith('from'): line=''
-                if line.startswith('import'): line=''
-                if len(lline) > len(line):
-                    line += '..'
-                if len(line)>5:
-                    printc('-', line,  c='y', bold=0, italic=1)
-                else:
-                    print()
-
-        if nmat>25:
-            printc('...', c='y')
-
-        if nmat > 1:
-            exit(0)
-
-        if args.no_camera_share: # -i option to dump the full code
-            print()
-            with open(matching[0]) as fm:
-                codedump = fm.readlines()
-            for line in codedump:
-                printc(line, c='cyan', italic=1, bold=0, end='')
-            print()
-
-        printc("("+matching[0]+")", c='y', bold=0, italic=1)
-        os.system('python3 ' + matching[0])
-
-    elif args.search:
-        expath = os.path.join(settings.installdir, "examples", "**", "*.py")
-        exfiles = [f for f in sorted(glob.glob(expath, recursive=True))]
-        pattern = args.search
-        if args.no_camera_share:
-            pattern = pattern.lower()
-        if len(pattern) > 3:
-            for ifile in exfiles:
-                with open(ifile, "r") as file:
-                    fflag=True
-                    for i,line in enumerate(file):
-                        if args.no_camera_share:
-                            bline = line.lower()
-                        else:
-                            bline = line
-                        if pattern in bline:
-                            if fflag:
-                                name = os.path.basename(ifile)
-                                etype = ifile.split("/")[-2]
-                                printc("--> examples/"+etype+"/"+name+":", c='y', italic=1, invert=1)
-                                fflag = False
-                            line = line.replace(pattern, "\x1b[4m\x1b[1m"+pattern+"\x1b[0m\u001b[33m")
-                            print(f"\u001b[33m{i}\t{line}\x1b[0m", end='')
-                            # printc(i, line, c='o', bold=False, end='')
-        else:
-            printc("Please specify at least four characters.", c='r')
-
-    elif args.search_vtk:
-        # input a vtk class name to get links to examples that involve that class
-        # From https://kitware.github.io/vtk-examples/site/Python/Utilities/SelectExamples/
-        import json
-        import tempfile
-        from datetime import datetime
-        from pathlib import Path
-        from urllib.error import HTTPError
-        from urllib.request import urlretrieve
-
-        xref_url='https://raw.githubusercontent.com/Kitware/vtk-examples/gh-pages/src/Coverage/vtk_vtk-examples_xref.json'
-
-        def download_file(dl_path, dl_url, overwrite=False):
-            file_name = dl_url.split('/')[-1]
-            # Create necessary sub-directories in the dl_path (if they don't exist).
-            Path(dl_path).mkdir(parents=True, exist_ok=True)
-            # Download if it doesn't exist in the directory overriding if overwrite is True.
-            path = Path(dl_path, file_name)
-            if not path.is_file() or overwrite:
-                try:
-                    urlretrieve(dl_url, path)
-                except HTTPError as e:
-                    raise RuntimeError(f'Failed to download {dl_url}. {e.reason}')
-            return path
-
-        def get_examples(d, vtk_class, lang, all_values=False, number=5):
-            try:
-                kv = d[vtk_class][lang].items()
-            except KeyError as e:
-                print(f'For the combination {vtk_class} and {lang}, this key does not exist: {e}')
-                return None, None
-            total = len(kv)
-            samples = list(kv)
-            return total, [f'{s[1]}' for s in samples]
-
-        vtk_class, language, all_values, number = args.search_vtk, "Python", True, 10000
-        tmp_dir = tempfile.gettempdir()
-        path = download_file(tmp_dir, xref_url, overwrite=False)
-        if not path.is_file():
-            print(f'The path: {str(path)} does not exist.')
-
-        dt = datetime.today().timestamp() - os.path.getmtime(path)
-        # Force a new download if the time difference is > 10 minutes.
-        if dt > 600:
-            path = download_file(tmp_dir, xref_url, overwrite=True)
-        with open(path) as json_file:
-            xref_dict = json.load(json_file)
-
-        total_number, examples = get_examples(xref_dict, vtk_class, language, all_values=all_values, number=number)
-        if examples:
-            if total_number <= number or all_values:
-                print(f'VTK Class: {vtk_class}, language: {language}\n'
-                      f'Number of example(s): {total_number}.')
-            else:
-                print(f'VTK Class: {vtk_class}, language: {language}\n'
-                      f'Number of example(s): {total_number} with {number} random sample(s) shown.')
-            print('\n'.join(examples))
-        else:
-            print(f'No examples for the VTK Class: {vtk_class} and language: {language}')
-
-
-    else:
-        draw_scene()

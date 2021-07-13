@@ -35,10 +35,19 @@
 ---
 ### `utils.py`
 
+
+---
+### `cli.py`
+
+- removed `bin/vedo` and created entry point from `vedo/cli.py` (command line interface).
+This works better on windows systems.
+
 -------------------------
 
 ## New/Revised examples:
 - `vedo -r plot_bars`
+- `vedo -r alien_life`
+- `vedo -r pendulum_ode`
 
 
 

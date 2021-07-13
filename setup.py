@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 try:
     VERSIONFILE = "vedo/version.py"
@@ -11,41 +11,18 @@ except:
 setup(
     name="vedo",
     version=verstr,
-    packages=[
-               "vedo",
-               "vedo.examples.basic",
-               "vedo.examples.advanced",
-               "vedo.examples.pyplot",
-               "vedo.examples.simulations",
-               "vedo.examples.volumetric",
-               "vedo.examples.other",
-               "vedo.examples.other.dolfin",
-               "vedo.examples.other.trimesh",
-    ],
-    package_dir={
-                  'vedo': 'vedo',
-                  'vedo.examples.basic': 'examples/basic',
-                  'vedo.examples.advanced': 'examples/advanced',
-                  'vedo.examples.pyplot': 'examples/pyplot',
-                  'vedo.examples.simulations': 'examples/simulations',
-                  'vedo.examples.volumetric': 'examples/volumetric',
-                  'vedo.examples.other': 'examples/other',
-                  'vedo.examples.other.dolfin': 'examples/other/dolfin',
-                  'vedo.examples.other.trimesh': 'examples/other/trimesh',
+    python_requires=">=3",
+    packages=find_packages(),
+    include_package_data=True,
+    entry_points={
+        "console_scripts": ["vedo=vedo.cli:execute_cli"],
     },
-    scripts=["bin/vedo",
-             "bin/vedo-convert",
-             ],
-    #entry_points={
-    #    'console_scripts': [
-    #        "vedo = bin/vedo:main"
-    #    ]
-    #},
     install_requires=["vtk", "numpy"],
     description="A python module for scientific analysis and visualization of 3D objects and point clouds based on VTK.",
     long_description="A python module for scientific visualization, analysis of 3D objects and point clouds based on VTK. Check out https://vedo.embl.es for documentation.",
     author="Marco Musy",
     author_email="marco.musy@embl.es",
+    maintainer="Marco Musy",
     license="MIT",
     url="https://github.com/marcomusy/vedo",
     keywords="vtk 3D visualization mesh numpy",
@@ -54,14 +31,14 @@ setup(
         "Intended Audience :: Education",
         "Intended Audience :: Information Technology",
         "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Topic :: Scientific/Engineering :: Visualization",
         "Topic :: Scientific/Engineering :: Physics",
         "Topic :: Scientific/Engineering :: Medical Science Apps.",
         "Topic :: Scientific/Engineering :: Information Analysis",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX",
+        "Operating System :: MacOS",
     ],
-    include_package_data=True,
 )
