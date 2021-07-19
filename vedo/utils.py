@@ -6,6 +6,7 @@ from vedo.colors import printc
 import time
 import math
 import sys
+import os
 
 __doc__ = (
     """
@@ -450,6 +451,27 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
     return poly
 
 ##############################################################################
+def getFontPath(font):
+    if font in vedo.settings.font_parameters.keys():
+        if vedo.settings.font_parameters[font]["islocal"]:
+            fl = os.path.join(vedo.settings.fonts_path, f'{font}.ttf')
+        else:
+            fl = vedo.io.download(f"https://vedo.embl.es/fonts/{font}.ttf")
+    else:
+        if os.path.isfile(font):
+            fl = font # assume user is passing a valid file
+        else:
+            if font.endswith(".ttf"):
+                printc("Could not set font file", font,
+                       "-> Using default:", vedo.settings.defaultFont, c='r')
+            else:
+                printc("Could set font name", font,
+                       "-> Using default:", vedo.settings.defaultFont, c='r')
+                printc("Check https://vedo.embl.es/fonts for additional fonts", c='r')
+                printc("Type 'vedo -r fonts' to see available fonts", c='g')
+            fl = getFontPath(vedo.settings.defaultFont)
+    return fl
+
 def isSequence(arg):
     """Check if input is iterable."""
     if hasattr(arg, "strip"):

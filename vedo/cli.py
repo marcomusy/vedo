@@ -374,7 +374,7 @@ def draw_scene(args):
         vol = io.load(args.files[0], force=args.reload)
 
         if not isinstance(vol, Volume):
-            printc("~times Type Error:\nExpected a Volume but loaded", type(vol),
+            printc("Type Error: expected a Volume but loaded", type(vol),
                    'object.', c=1)
             return
 

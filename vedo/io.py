@@ -136,16 +136,16 @@ def load(inputobj, unpack=True, force=False):
                     a = _load_file(fod+'/'+ifile, unpack)
                     acts.append(a)
         else:
-            colors.printc("\times Error in load(): cannot find", fod, c='r')
+            colors.printc("Error in load(): cannot find", fod, c='r')
 
     if len(acts) == 1:
         if "numpy" in str(type(acts[0])):
             return acts[0]
         if not acts[0]:
-            colors.printc("\times Error in load(): cannot load", inputobj, c='r')
+            colors.printc("Error in load(): cannot load", inputobj, c='r')
         return acts[0]
     elif len(acts) == 0:
-        colors.printc("\times Error in load(): cannot load", inputobj, c='r')
+        colors.printc("Error in load(): cannot load", inputobj, c='r')
         return None
     else:
         return acts

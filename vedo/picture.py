@@ -163,14 +163,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         elif font.lower() == "arial": tp.SetFontFamilyToArial()
         else:
             tp.SetFontFamily(vtk.VTK_FONT_FILE)
-            if font in settings.fonts:
-                tp.SetFontFile(settings.fonts_path + font + '.ttf')
-            elif os.path.exists(font):
-                tp.SetFontFile(font)
-            else:
-                colors.printc("\sad Font", font, "not found in", settings.fonts_path, c="r")
-                colors.printc("\pin Available fonts are:", settings.fonts, c="m")
-                return None
+            tp.SetFontFile(utils.getFontPath(font))
 
         if bg:
             bgcol = colors.getColor(bg)
@@ -263,7 +256,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         elif axis.lower() == "y":
             ff.SetFilteredAxis(1)
         else:
-            colors.printc("\times Error in mirror(): mirror must be set to x or y.", c='r')
+            colors.printc("Error in mirror(): mirror must be set to x or y.", c='r')
             raise RuntimeError()
         ff.Update()
         return self._update(ff.GetOutput())

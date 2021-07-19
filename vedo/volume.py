@@ -526,7 +526,7 @@ class BaseVolume:
         elif axis.lower() == "z":
             ff.SetFilteredAxis(2)
         else:
-            colors.printc("\times Error in mirror(): mirror must be set to x, y, z or n.", c='r')
+            colors.printc("Error in mirror(): mirror must be set to x, y, z or n.", c='r')
             raise RuntimeError()
         ff.Update()
         return self._update(ff.GetOutput())
@@ -644,7 +644,7 @@ class BaseVolume:
         elif op in ["atan2"]:
             mat.SetOperationToATAN2()
         else:
-            colors.printc("\times Error in volumeOperation: unknown operation", operation, c='r')
+            colors.printc("Error in volume.operation(): unknown operation", operation, c='r')
             raise RuntimeError()
         mat.Update()
         return self._update(mat.GetOutput())

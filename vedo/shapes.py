@@ -1948,7 +1948,7 @@ class Spheres(Mesh):
 
         if cisseq:
             if len(centers) > len(c):
-                printc("\times Mismatch in Spheres() colors", len(centers), len(c), c='r')
+                printc("Mismatch in Spheres() colors", len(centers), len(c), c='r')
                 raise RuntimeError()
             if len(centers) != len(c):
                 printc("\lightningWarning: mismatch in Spheres() colors", len(centers), len(c))
@@ -1959,7 +1959,7 @@ class Spheres(Mesh):
 
         if risseq:
             if len(centers) > len(r):
-                printc("times Mismatch in Spheres() radius", len(centers), len(r), c='r')
+                printc("Mismatch in Spheres() radius", len(centers), len(r), c='r')
                 raise RuntimeError()
             if len(centers) != len(r):
                 printc("\lightning Warning: mismatch in Spheres() radius", len(centers), len(r))
@@ -2664,7 +2664,7 @@ def _load_font(font):
         fontfile = font
         font = os.path.basename(font).split('.')[0]
     else:                        # user passed font by its name
-        fontfile = settings.fonts_path + font + '.npz'
+        fontfile = os.path.join(settings.fonts_path, font + '.npz')
 
     try:
         #printc('loading', font, fontfile)
@@ -3020,26 +3020,19 @@ class TextBase:
 
         if not font:                   # use default font
             font = settings.defaultFont
-            fpath = settings.fonts_path + font +'.ttf'
+            fpath = os.path.join(settings.fonts_path, font +'.ttf')
         elif font.startswith('https'): # user passed URL link, make it a path
             fpath = vedo.io.download(font, verbose=False, force=False)
         elif font.endswith('.ttf'):    # user passing a local path to font file
             fpath = font
         else:                          # user passing name of preset font
-            fpath = settings.fonts_path + font +'.ttf'
+            fpath = os.path.join(settings.fonts_path, font +'.ttf')
 
         if   font == "Courier": self.property.SetFontFamilyToCourier()
         elif font == "Times":   self.property.SetFontFamilyToTimes()
         elif font == "Arial":   self.property.SetFontFamilyToArial()
         else:
-            try:
-                if not settings.font_parameters[font]['islocal']:
-                    fpath = vedo.download("https://vedo.embl.es/fonts/"+font+".ttf", verbose=False)
-            except:
-                printc("Warning: could not download/set font", font,
-                       "-> Using default:", settings.defaultFont)
-                font = settings.defaultFont
-                fpath = settings.fonts_path + font +'.ttf'
+            fpath = utils.getFontPath(font)
             self.property.SetFontFamily(vtk.VTK_FONT_FILE)
             self.property.SetFontFile(fpath)
 

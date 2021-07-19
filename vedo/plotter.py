@@ -2081,7 +2081,7 @@ class Plotter:
                             self._flagRep.SetBalloonLayoutToImageRight()
                             breppr = self._flagRep.GetTextProperty()
                             breppr.SetFontFamily(vtk.VTK_FONT_FILE)
-                            breppr.SetFontFile(settings.fonts_path + settings.flagFont +'.ttf')
+                            breppr.SetFontFile(utils.getFontPath(settings.flagFont))
                             breppr.SetFontSize(settings.flagFontSize)
                             breppr.SetColor(vedo.getColor(settings.flagColor))
                             breppr.SetBackgroundColor(vedo.getColor(settings.flagBackgroundColor))

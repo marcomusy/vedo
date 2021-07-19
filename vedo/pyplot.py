@@ -2852,7 +2852,7 @@ def cornerHistogram(
     tprop = vtk.vtkTextProperty()
     tprop.SetColor(colors.getColor(bg))
     tprop.SetFontFamily(vtk.VTK_FONT_FILE)
-    tprop.SetFontFile(settings.fonts_path + settings.defaultFont + '.ttf')
+    tprop.SetFontFile(utils.getFontPath(settings.defaultFont))
     tprop.SetOpacity(alpha)
     plot.SetAxisTitleTextProperty(tprop)
     plot.GetProperty().SetOpacity(alpha)

@@ -83,11 +83,11 @@ More than 300 examples are sorted by subject in directories:
 Mesh format conversion
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The command ``vedo-convert`` can be used to convert multiple files from a format to a different one:
+The command ``vedo --convert`` can be used to convert multiple files from a format to a different one:
 
 .. code-block:: bash
 
-   Usage: vedo-convert [-h] [-to] [files [files ...]]
+   Usage: vedo --convert [files [files ...]] [--to] new_format
    allowed targets formats: [vtk, vtp, vtu, vts, ply, stl, byu, xml]
 
-   Example: > vedo-convert myfile.vtk -to ply
+   Example: > vedo --convert myfile.vtk --to ply

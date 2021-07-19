@@ -294,7 +294,7 @@ installdir = os.path.dirname(__file__)
 textures_path = os.path.join(installdir, "textures/")
 textures = []
 
-fonts_path = os.path.join(installdir, "fonts/")
+fonts_path = os.path.join(installdir, "fonts")
 fonts = []
 
 #dataurl = "/home/musy/Dropbox/Public/vktwork/vedo_data/"; print('\ndataurl=',dataurl)

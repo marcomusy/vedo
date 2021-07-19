@@ -51,7 +51,7 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
     :param int pad: padding space in number of pixels
     :param bg: background color of the box
     :param float alpha: opacity of the box
-    :param str pos: position of the box
+    :param str pos: position of the box, can be either a string or a (x,y) screen position in range [0,1]
     """
     def __init__( self,
                  entries=(),
@@ -177,7 +177,7 @@ class Button:
             if not font:
                 font = settings.defaultFont
             self.textproperty.SetFontFamily(vtk.VTK_FONT_FILE)
-            self.textproperty.SetFontFile(settings.fonts_path + font +'.ttf')
+            self.textproperty.SetFontFile(utils.getFontPath(font))
         self.textproperty.SetFontSize(size)
         self.textproperty.SetBackgroundOpacity(alpha)
         self.textproperty.BoldOff()
@@ -463,7 +463,7 @@ def addSplineTool(plotter, points, pc='k', ps=8, lc='r4', ac='g5',
     if plotter.interactor:
         sw.SetInteractor(plotter.interactor)
     else:
-        printc("\times Error in addSplineTool: no interactor found.", c='r')
+        printc("Error in addSplineTool: no interactor found.", c='r')
         raise RuntimeError
     sw.On()
     sw.Initialize(sw.points.polydata())
@@ -503,7 +503,7 @@ def addScalarBar(obj,
     plt = settings.plotter_instance
 
     if not hasattr(obj, "mapper"):
-        printc("\times addScalarBar(): input is invalid,", type(obj), c='r')
+        printc("Error in addScalarBar(): input is invalid,", type(obj), c='r')
         return None
 
     if plt and plt.renderer:
@@ -563,7 +563,7 @@ def addScalarBar(obj,
         titprop.SetVerticalJustificationToTop()
         titprop.SetFontSize(titleFontSize)
         titprop.SetFontFamily(vtk.VTK_FONT_FILE)
-        titprop.SetFontFile(settings.fonts_path + settings.defaultFont +'.ttf')
+        titprop.SetFontFile(utils.getFontPath(settings.defaultFont))
         sb.SetTitle(title)
         sb.SetVerticalTitleSeparation(titleYOffset)
         sb.SetTitleTextProperty(titprop)
@@ -595,7 +595,7 @@ def addScalarBar(obj,
 
     sctxt = sb.GetLabelTextProperty()
     sctxt.SetFontFamily(vtk.VTK_FONT_FILE)
-    sctxt.SetFontFile(settings.fonts_path + settings.defaultFont +'.ttf')
+    sctxt.SetFontFile(utils.getFontPath(settings.defaultFont))
     sctxt.SetColor(c)
     sctxt.SetShadow(0)
     sctxt.SetFontSize(titleFontSize-2)
@@ -982,9 +982,9 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
         sliderRep.GetTitleProperty().SetFontFamilyToArial()
     else:
         if font =='':
-            font = settings.fonts_path + settings.defaultFont + '.ttf'
+            font = utils.getFontPath(settings.defaultFont)
         else:
-            font = settings.fonts_path + font + '.ttf'
+            font = utils.getFontPath(font)
         sliderRep.GetTitleProperty().SetFontFamily(vtk.VTK_FONT_FILE)
         sliderRep.GetLabelProperty().SetFontFamily(vtk.VTK_FONT_FILE)
         sliderRep.GetTitleProperty().SetFontFile(font)
@@ -1124,7 +1124,7 @@ def addButton(
     """
     plt = settings.plotter_instance
     if not plt.renderer:
-        printc("\timesError: Use addButton() after rendering the scene.", c='r')
+        printc("Error: Use addButton() after rendering the scene.", c='r')
         return
     bu = Button(fnc, states, c, bc, pos, size, font, bold, italic, alpha, angle)
     plt.renderer.AddActor2D(bu.actor)
@@ -3040,7 +3040,7 @@ def addGlobalAxes(axtype=None, c=None):
         ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
         pr = ls.GetBottomAxis().GetLabelTextProperty()
         pr.SetFontFamily(vtk.VTK_FONT_FILE)
-        pr.SetFontFile(settings.fonts_path + settings.defaultFont +'.ttf')
+        pr.SetFontFile(utils.getFontPath(settings.defaultFont))
         ls.PickableOff()
         plt.renderer.AddActor(ls)
         plt.axes_instances[r] = ls
@@ -3071,7 +3071,7 @@ def addGlobalAxes(axtype=None, c=None):
         ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
         pr = ls.GetBottomAxis().GetLabelTextProperty()
         pr.SetFontFamily(vtk.VTK_FONT_FILE)
-        pr.SetFontFile(settings.fonts_path + settings.defaultFont +'.ttf')
+        pr.SetFontFile(utils.getFontPath(settings.defaultFont))
         ls.PickableOff()
         plt.renderer.AddActor(ls)
         plt.axes_instances[r] = ls

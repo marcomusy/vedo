@@ -31,9 +31,6 @@ pip install vedo
 <details>
 <summary>additional installation details <i>(click to expand)</i> </summary>
 
-- As some of the features work better and faster on the older VTK version 8 you can install it via:<br>
-`pip install vtk==8.1.2`
-
 - To install the latest _dev_ version of `vedo`: <br>
 `pip install -U git+https://github.com/marcomusy/vedo.git`
 

@@ -1873,6 +1873,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 vspacing=1,
                 c=None,
                 alpha=1,
+                lw=1,
                 ontop=True,
         ):
         """
@@ -1904,6 +1905,8 @@ class Points(vtk.vtkFollower, BaseActor):
             text and box color. The default is 'lb'.
         alpha : float, optional
             text and box transparency. The default is 1.
+        lw : int, optional,
+            line width in pixels. The default is 1.
         ontop : bool, optional
             keep the 2d caption always on top. The default is True.
 
@@ -1954,16 +1957,12 @@ class Points(vtk.vtkFollower, BaseActor):
 
         pra = capt.GetProperty()
         pra.SetColor(c)
-        pra.SetOpacity(alpha*0.5)
+        pra.SetOpacity(alpha)
+        pra.SetLineWidth(lw)
 
         pr = capt.GetCaptionTextProperty()
         pr.SetFontFamily(vtk.VTK_FONT_FILE)
-        if 'LogoType' in font: # special case of big file
-            fl = vedo.io.download("https://vedo.embl.es/fonts/LogoType.ttf")
-        else:
-            fl = settings.fonts_path + font + '.ttf'
-        if not os.path.isfile(fl):
-            fl = font
+        fl = utils.getFontPath(font)
         pr.SetFontFile(fl)
         pr.ShadowOff()
         pr.BoldOff()
