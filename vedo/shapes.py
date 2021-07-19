@@ -1848,7 +1848,7 @@ class Arc(Mesh):
     ):
         if len(point1) == 2:
             point1 = (point1[0], point1[1], 0)
-        if point2 is not None and len(point2):
+        if point2 is not None and len(point2) == 2:
             point2 = (point2[0], point2[1], 0)
 
         ar = vtk.vtkArcSource()
