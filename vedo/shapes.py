@@ -2649,6 +2649,13 @@ def Text(*args, **kwargs):
 @lru_cache(None)
 def _load_font(font):
     # print('_load_font', font)
+
+    if font not in font_parameters.keys():
+        printc("Unknown font:", font, c='r')
+        printc("Avaliable 3D fonts are:", list(font_parameters.keys()), c='y')
+        printc("Using font Normografo instead.", c='y')
+        font = "Normografo"
+
     if not settings.font_parameters[font]['islocal']:
         font = "https://vedo.embl.es/fonts/"+font+".npz"
 
@@ -2780,12 +2787,11 @@ class Text3D(Mesh):
                 font = lfonts[font]
 
             if font not in font_parameters.keys():
-                printc("Unknown font: ", font, c='r')
-                printc("Avaliable fonts are:", list(font_parameters.keys()))
-                font = "Normografo"
+                fpars = font_parameters["Normografo"]
+            else:
+                fpars = font_parameters[font]
 
             # ad hoc adjustments
-            fpars = font_parameters[font]
             mono = fpars['mono']
             lspacing = fpars['lspacing']
             hspacing *=  fpars['hspacing']
