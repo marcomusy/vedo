@@ -456,10 +456,10 @@ def getFontPath(font):
         if vedo.settings.font_parameters[font]["islocal"]:
             fl = os.path.join(vedo.settings.fonts_path, f'{font}.ttf')
         else:
-            fl = vedo.io.download(f"https://vedo.embl.es/fonts/{font}.ttf")
+            fl = vedo.io.download(f"https://vedo.embl.es/fonts/{font}.ttf", verbose=False)
     else:
         if font.startswith("https://"):
-            fl = vedo.io.download(font)
+            fl = vedo.io.download(font, verbose=False)
         elif os.path.isfile(font):
             fl = font # assume user is passing a valid file
         else:
