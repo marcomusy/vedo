@@ -1917,6 +1917,7 @@ class Mesh(Points):
         bf.SetInputData(1, poly2)
         bf.Update()
         mesh = Mesh(bf.GetOutput(), c=None)
+        mesh.flat()
         mesh.name = self.name+operation+mesh2.name
         return mesh
 

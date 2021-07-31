@@ -833,6 +833,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         self._scals_idx = 0  # index of the active scalar changed from CLI
         self._ligthingnr = 0 # index of the lighting mode changed from CLI
+        self._cmap_name = "" # remember assigned cmap name (to be used by ipygany)
 
         self.property = self.GetProperty()
         try:
@@ -2312,6 +2313,7 @@ class Points(vtk.vtkFollower, BaseActor):
         DEPRECATED: use cmap() instead.
         """
         poly = self.polydata(False)
+        self._cmap_name = cmap
 
         if input_array is None:             # if None try to fetch the active scalars
             arr = poly.GetPointData().GetScalars()
@@ -2418,6 +2420,7 @@ class Points(vtk.vtkFollower, BaseActor):
         DEPRECATED: use cmap(on='cells') instead.
         """
         poly = self.polydata(False)
+        self._cmap_name = cmap
 
         if input_array is None:             # if None try to fetch the active scalars
             arr = poly.GetCellData().GetScalars()

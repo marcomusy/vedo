@@ -37,11 +37,9 @@ pip install vedo
 - To install from the conda-forge channel: <br>
 `conda install -c conda-forge vedo`
 
-- For **windows** users, we suggest to install
-[anaconda](https://www.anaconda.com/products/individual)
-(or [miniconda](https://docs.conda.io/en/latest/miniconda.html)).
-Command line in windows-10 will then look something like e.g.: <br>
-`python c:\path_to\anaconda3\Scripts\vedo panther.stl`
+- To use in jupyter notebooks use function `vedo.embedWindow()`, you may want to install `k3d` with:<br>
+`pip install k3d==2.7.4`
+
 
 </details>
 
@@ -176,7 +174,7 @@ Type `vedo -h` for the complete list of options.<br>
 | [![cubecut](https://user-images.githubusercontent.com/32848391/99916179-e763d580-2d08-11eb-9044-b647115167ed.jpg)](https://github.com/marcomusy/vedo/tree/master/examples/advanced/cutWithMesh2.py)   | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)| [![quatumsine](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/tunnelling2.py) |
 | *Easily work with volumes, tetrahedral and polygonal meshes.*        | *Turing system of reaction-diffusion between two molecules.*                                                                   |  *Quantum-tunnelling of a particle in a box hitting a sinusoidal potential.*  |
 | [![trimesh](https://user-images.githubusercontent.com/32848391/91164151-e8b44080-e6ce-11ea-8213-cf5b12aa4d16.png)](https://github.com/marcomusy/vedo/blob/master/examples/other/trimesh)              | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)| [![whisker](https://user-images.githubusercontent.com/32848391/99916183-e8950280-2d08-11eb-8070-8bb1146c7c62.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/whiskers.py) |
-| *Interoperability with external libraries like [trimesh](https://trimsh.org/), [pyvista](https://github.com/pyvista/pyvista), and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab).*  |  *Support for the [FEniCS/Dolfin](https://fenicsproject.org/) library for PDE and finite element solutions.*       | *Advanced 2D/3D histogramming and plotting capablities.* |
+| *Interoperability with external libraries like [trimesh](https://trimsh.org/), [pyvista](https://github.com/pyvista/pyvista), and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab).*          |  *Support for the [FEniCS/Dolfin](https://fenicsproject.org/) library for PDE and finite element solutions.*       | *Advanced 2D/3D histogramming and plotting capablities.* |
 
 
 ### Galleries
@@ -203,10 +201,13 @@ Development, 5 April 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/c
 - G. Dalmasso *et al.*, *"Evolution in space and time of 3D volumetric images"*, in preparation.
 - F. Claudi, A. L. Tyson, T. Branco, *"Brainrender. A python based software for visualisation of neuroanatomical and morphological data."*,
  [DOI](https://doi.org/10.1101/2020.02.23.961748).
-- J. S. Bennett, D. Sijacki, <i>"Resolving shocks and filaments in galaxy formation
-                simulations: effects on gas properties and star formation in the circumgalactic medium"</i>,
+- J. S. Bennett, D. Sijacki, *"Resolving shocks and filaments in galaxy formation
+                simulations: effects on gas properties and star formation in the circumgalactic medium"*,
                 Monthly Notices of the Royal Astronomical Society, Vol. 499, Issue 1, Nov. 2020, <a href="https://doi.org/10.1093/mnras/staa2835">DOI</a>.
 - J.D.P. Deshapriya et al., *"Spectral analysis of craters on (101955) Bennu"*. (DOI: 10.1016/j.icarus.2020.114252)
+- A. Pollack et al., *"Stochastic inversion of gravity, magnetic, tracer, lithology, and fault data for geologically realistic structural models: Patua Geothermal Field case study"</i>
+                Geothermics Volume 95, September 2021, [doi: 10.1016/j.geothermics.2021.102129](https://doi.org/10.1016/j.geothermics.2021.102129).
+
 
 **Have you found this software useful for your research? Star ✨ the project and cite it as:**
 

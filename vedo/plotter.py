@@ -484,7 +484,7 @@ class Plotter:
                 if self.size == "auto":
                     self.size = (900, 700)
 
-            elif notebookBackend == "k3d":
+            elif notebookBackend == "k3d" or "ipygany" in notebookBackend:
                 self.interactive = False
                 self.interactor = None
                 self.window = None
@@ -1012,6 +1012,7 @@ class Plotter:
         """Reset the camera position and zooming."""
         self.renderer.ResetCamera()
         return self
+    
 
     def moveCamera(self, camstart, camstop, fraction):
         """
@@ -1745,19 +1746,20 @@ class Plotter:
                     scannedacts.append(out)
                 else:                            # assume a 2D comment was given
                     changed = False  # check if one already exists so to just update text
-                    acs = self.renderer.GetActors2D()
-                    acs.InitTraversal()
-                    for i in range(acs.GetNumberOfItems()):
-                        act = acs.GetNextItem()
-                        if isinstance(act, vedo.shapes.Text2D):
-                            aposx, aposy = act.GetPosition()
-                            if aposx<0.01 and aposy>0.99: # "top-left"
-                                act.text(a)  # update content! no appending nada
-                                changed = True
-                                break
-                    if not changed:
-                        out = vedo.shapes.Text2D(a) # append a new one
-                        scannedacts.append(out)
+                    if self.renderer: # might be jupyter
+                        acs = self.renderer.GetActors2D()
+                        acs.InitTraversal()
+                        for i in range(acs.GetNumberOfItems()):
+                            act = acs.GetNextItem()
+                            if isinstance(act, vedo.shapes.Text2D):
+                                aposx, aposy = act.GetPosition()
+                                if aposx<0.01 and aposy>0.99: # "top-left"
+                                    act.text(a)  # update content! no appending nada
+                                    changed = True
+                                    break
+                        if not changed:
+                            out = vedo.shapes.Text2D(a) # append a new one
+                            scannedacts.append(out)
 
             elif isinstance(a, vtk.vtkImageActor):
                 scannedacts.append(a)

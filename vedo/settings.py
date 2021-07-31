@@ -126,6 +126,17 @@ General settings.
     annotatedCubeTextScale  = 0.2
     annotatedCubeTexts      = ["right","left ", "front","back ", " top ", "bttom"]
 
+    # k3d settings for jupyter notebooks
+    k3dMenuVisibility = True
+    k3dPlotHeight = 512
+    k3dAntialias  = True
+    k3dLighting   = 1.2
+    k3dCameraAutoFit = True
+    k3dGridAutoFit= True
+    k3dAxesHelper = True    # size of the small triad of axes on the bottom right
+    k3dPointShader= "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
+    k3dLineShader = "thick" # others are 'flat', 'mesh'
+
 Usage example:
 
 .. code-block:: python
@@ -270,9 +281,20 @@ annotatedCubeTexts      = ["right","left ", "front","back ", " top ", "bttom"]
 enablePrintColor = True
 
 ####################################################################################
-# notebook support with K3D
+# notebook support
 notebookBackend = None
 notebook_plotter = None
+
+# k3d settings for jupyter notebooks
+k3dMenuVisibility = True
+k3dPlotHeight = 512
+k3dAntialias  = True
+k3dLighting   = 1.2
+k3dCameraAutoFit = True
+k3dGridAutoFit= True
+k3dAxesHelper = True    # size of the small triad of axes on the bottom right
+k3dPointShader= "mesh"  # others are '3d', '3dSpecular', 'dot', 'flat'
+k3dLineShader = "thick" # others are 'flat', 'mesh'
 
 ####################################################################################
 flagDelay = 150 # values will be superseded
@@ -530,12 +552,24 @@ def embedWindow(backend='ipyvtk', verbose=True):
     if backend=='k3d':
         try:
             import k3d
+            if k3d._version.version_info != (2, 7, 4):
+                print('Warning: only k3d version 2.7.4 is currently supported')
+#                print('> pip install k3d==2.7.4')
+            
         except:
             notebookBackend = None
             if verbose:
                 print('embedWindow(verbose=True): could not load k3d module, try:')
-                print('> pip install k3d      # and if necessary:')
-                print('> conda install nodejs')
+                print('> pip install k3d==2.7.4')
+
+    elif 'ipygany' in backend: # ipygany
+        try:
+            import ipygany
+        except:
+            notebookBackend = None
+            if verbose:
+                print('embedWindow(verbose=True): could not load ipygany module, try:')
+                print('> pip install ipygany')
 
     elif 'itk' in backend: # itkwidgets
         try:
@@ -544,8 +578,7 @@ def embedWindow(backend='ipyvtk', verbose=True):
             notebookBackend = None
             if verbose:
                 print('embedWindow(verbose=True): could not load itkwidgets module, try:')
-                print('> pip install itkwidgets    # and if necessary:')
-                print('> conda install nodejs')
+                print('> pip install itkwidgets')
 
     elif backend.lower() == '2d':
         pass
@@ -557,16 +590,15 @@ def embedWindow(backend='ipyvtk', verbose=True):
         except:
             if verbose:
                 print('embedWindow(verbose=True): could not load panel try:')
-                print('> pip install panel -U   # and/or')
-                print('> conda install nodejs')
+                print('> pip install panel')
 
     elif 'ipyvtk' in backend:
         try:
             from ipyvtklink.viewer import ViewInteractiveWidget
         except:
             if verbose:
-                print('embedWindow(verbose=True): could not load ipyvtk_simple try:')
-                print('> pip install -U git+https://github.com/Kitware/ipyvtk-simple.git')
+                print('embedWindow(verbose=True): could not load ipyvtklink try:')
+                print('> pip install ipyvtklink')
 
     else:
         print("Unknown backend", backend)

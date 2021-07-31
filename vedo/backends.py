@@ -1,6 +1,7 @@
 import vtk
 import numpy
 import os
+import vedo
 import vedo.colors as colors
 from vedo.mesh import Mesh
 from vedo.pointcloud import Points
@@ -53,14 +54,18 @@ def getNotebookBackend(actors2show, zoom, viewup):
         # kgrid = vbb[0], vbb[2], vbb[4], vbb[1], vbb[3], vbb[5]
 
         settings.notebook_plotter = k3d.plot(axes=[vp.xtitle, vp.ytitle, vp.ztitle],
-                                             menu_visibility=True,
-                                             # height=int(vp.size[1]/2),
+                                             menu_visibility=settings.k3dMenuVisibility,
+                                             height=settings.k3dPlotHeight,
+                                             antialias=settings.k3dAntialias,
                                              )
         # settings.notebook_plotter.grid = kgrid
-        settings.notebook_plotter.lighting = 1.2
+        settings.notebook_plotter.lighting = settings.k3dLighting
 
         # set k3d camera
-        settings.notebook_plotter.camera_auto_fit = True
+        settings.notebook_plotter.camera_auto_fit = settings.k3dCameraAutoFit
+        settings.notebook_plotter.grid_auto_fit = settings.k3dGridAutoFit
+
+        settings.notebook_plotter.axes_helper = settings.k3dAxesHelper
 
         if settings.plotter_instance and settings.plotter_instance.camera:
             k3dc =  utils.vtkCameraToK3D(settings.plotter_instance.camera)
@@ -208,14 +213,14 @@ def getNotebookBackend(actors2show, zoom, viewup):
                                   color=_rgb2int(iap.GetColor()),
                                   colors=kcols,
                                   opacity=iap.GetOpacity(),
-                                  shader="dot",
-                                  point_size=3, # point_size=iap.GetPointSize()*sqsize/800,
+                                  shader=settings.k3dPointShader,
+                                  point_size=iap.GetPointSize(),
                                   name=name,
                                   )
                 settings.notebook_plotter += kobj
 
 
-            #####################################################################Line
+            #####################################################################Lines
             elif ia.polydata(False).GetNumberOfLines():
                 # print('Line', ia.name, ia.N(), len(ia.faces()),
                 #       ia.polydata(False).GetNumberOfLines(), len(ia.lines()),
@@ -236,9 +241,8 @@ def getNotebookBackend(actors2show, zoom, viewup):
                     pts = ia.points()[ln_idx]
                     kobj = k3d.line(pts.astype(numpy.float32),
                                     color=_rgb2int(iap.GetColor()),
-#                                    colors=kcols,
                                     opacity=iap.GetOpacity(),
-                                    shader="thick",
+                                    shader=settings.k3dLineShader,
                                     # width=iap.GetLineWidth()*sqsize/1000,
                                     name=name,
                                     )
@@ -262,8 +266,108 @@ def getNotebookBackend(actors2show, zoom, viewup):
         from ipyvtklink.viewer import ViewInteractiveWidget
         vp.renderer.ResetCamera()
         settings.notebook_plotter = ViewInteractiveWidget(vp.window)
+        
+    ####################################################################################
+    elif 'ipygany' in settings.notebookBackend:
+        
+        from ipygany import PolyMesh, Scene, IsoColor, RGB, Component
+        from ipygany import Alpha, ColorBar, colormaps, PointCloud
+        from ipywidgets import FloatRangeSlider, Dropdown, VBox, AppLayout, jslink
+        
+        bgcol = colors.rgb2hex(colors.getColor(vp.backgrcol))
+        
+        actors2show2 = []
+        for ia in actors2show:
+            if not ia:
+                continue
+            if isinstance(ia, vedo.Assembly): #unpack assemblies
+                assacts = ia.unpack()
+                for ja in assacts:
+                    if isinstance(ja, vedo.Assembly):
+                        actors2show2 += ja.unpack()
+                    else:
+                        actors2show2.append(ja)
+            else:
+                actors2show2.append(ia)
+        
+        pmeshes = []
+        colorbar = None
+        for obj in actors2show2:
+#            print("ipygany processing:", [obj], obj.name)
+            
+            if isinstance(obj, vedo.shapes.Line):
+                lg = obj.diagonalSize()/1000 * obj.GetProperty().GetLineWidth()
+                vmesh = vedo.shapes.Tube(obj.points(), r=lg, res=4).triangulate()
+                vmesh.c(obj.c())
+                faces = vmesh.faces()
+                # todo: Lines
+            elif isinstance(obj, Mesh):
+                vmesh = obj.triangulate()
+                faces = vmesh.faces()
+            elif isinstance(obj, Points):
+                vmesh = obj
+                faces = []
+            elif isinstance(obj, Volume):
+                vmesh = obj.isosurface()
+                faces = vmesh.faces()
+            elif isinstance(obj, vedo.TetMesh):
+                vmesh = obj.tomesh(fill=False)
+                faces = vmesh.faces()
+            else:
+                print("ipygany backend: cannot process object type", [obj])
+                continue
+                       
+            vertices = vmesh.points()
+            scals = vmesh.inputdata().GetPointData().GetScalars()
+            if scals and not colorbar: # there is an active array, only pick the first
+                aname = scals.GetName()
+                arr = vmesh.getPointArray(aname)
+                parr = Component(name=aname, array=arr)
+                if len(faces):
+                    pmesh = PolyMesh(vertices=vertices, triangle_indices=faces, data={aname: [parr]})
+                else:
+                    pmesh = PointCloud(vertices=vertices, data={aname: [parr]})
+                rng = scals.GetRange()
+                colored_pmesh = IsoColor(pmesh, input=aname, min=rng[0], max=rng[1])
+                if obj.scalarbar:
+                    colorbar = ColorBar(colored_pmesh)
+                    colormap_slider_range = FloatRangeSlider(value=rng, 
+                                                             min=rng[0], max=rng[1], 
+                                                             step=(rng[1] - rng[0]) / 100.)
+                    jslink((colored_pmesh, 'range'), (colormap_slider_range, 'value'))
+                    colormap = Dropdown(
+                        options=colormaps,
+                        description='Colormap:'
+                    )
+                    jslink((colored_pmesh, 'colormap'), (colormap, 'index'))
 
-
+            else:
+                if len(faces):
+                    pmesh = PolyMesh(vertices=vertices, triangle_indices=faces)
+                else:
+                    pmesh = PointCloud(vertices=vertices)
+                if vmesh.alpha() < 1:
+                    colored_pmesh = Alpha(RGB(pmesh, input=tuple(vmesh.color())), input=vmesh.alpha())
+                else:
+                    colored_pmesh = RGB(pmesh, input=tuple(vmesh.color()))
+            
+            pmeshes.append(colored_pmesh)
+        
+        if colorbar:
+            scene = AppLayout(
+                    left_sidebar=Scene(pmeshes, background_color=bgcol), 
+                    right_sidebar=VBox((colormap_slider_range, #not working
+                                        colorbar,
+                                        colormap)),
+                    pane_widths=[2, 0, 1],
+            )            
+        else:
+            scene = Scene(pmeshes, background_color=bgcol)
+        
+        settings.notebook_plotter = scene
+        
+        
+    
     ####################################################################################
     elif '2d' in settings.notebookBackend.lower() and hasattr(vp, 'window') and vp.window:
         import PIL.Image

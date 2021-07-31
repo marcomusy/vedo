@@ -40,7 +40,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
                 iac = vtk.vtkImageAppendComponents()
                 nchan = obj.shape[2] # get number of channels in inputimage (L/LA/RGB/RGBA)
                 for i in range(nchan):
-                    #arr = np.flip(np.flip(array[:,:,i], 0), 0).ravel()
+                    #arr = np.flip(np.flip(obj[:,:,i], 0), 0).ravel()
                     arr = np.flip(obj[:,:,i], 0).ravel()
                     varb = numpy_to_vtk(arr, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
                     varb.SetName("RGBA")
@@ -52,7 +52,8 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
                 img = iac.GetOutput()
 
             elif len(obj.shape) == 2: # black and white
-                arr = np.flip(obj[:,:], 0).ravel()
+                # arr = np.flip(obj[:,:], 0).ravel()
+                arr = obj.ravel()
                 varb = numpy_to_vtk(arr, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
                 varb.SetName("RGBA")
                 img = vtk.vtkImageData()
