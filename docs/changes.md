@@ -1,5 +1,8 @@
 ## Main changes
 
+- Added support for `ipygany` in jupyter notebooks.
+- Command line interface `vedo ...` should now work on windows 10 too.
+
 ---
 ### `base.py`
 
@@ -26,6 +29,8 @@
 ---
 ### `pointcloud.py`
 
+- added `hausdorffDistance()` to compute the Hausdorff distance of two point sets
+
 ---
 ### `shapes.py`
 
@@ -48,6 +53,7 @@ This works better on windows systems.
 - `vedo -r plot_bars`
 - `vedo -r alien_life`
 - `vedo -r pendulum_ode`
+- `vedo -r earth model`
 
 
 

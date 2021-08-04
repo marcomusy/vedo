@@ -7,7 +7,7 @@ x, y, z = np.mgrid[:30,:30,:30] * 0.4
 U = sin(x)*cos(y) + sin(y)*cos(z) + sin(z)*cos(x)
 
 # Create a Volume, take the isosurface at 0, smooth and subdivide it
-gyr = Volume(U).isosurface(0).smoothLaplacian().subdivide()
+gyr = Volume(U).isosurface(0).smooth().subdivide()
 
 # Intersect it with a sphere made of quads
 sph = Sphere(pos=(15,15,15), r=14, quads=True, res=30).triangulate()

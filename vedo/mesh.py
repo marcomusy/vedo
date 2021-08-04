@@ -1151,7 +1151,7 @@ class Mesh(Points):
         cf.ColorRegionsOn()
         cf.Update()
         return self._update(cf.GetOutput())
-
+   
 
     def addElevationScalars(self, lowPoint=(0,0,0), highPoint=(0,0,1), vrange=(0,1)):
         """
@@ -1308,38 +1308,14 @@ class Mesh(Points):
         decimate.Update()
         return self._update(decimate.GetOutput())
 
+
     def smoothLaplacian(self, niter=15, relaxfact=0.1, edgeAngle=15, featureAngle=60,
                         boundary=False):
-        """
-        Adjust mesh point positions using `Laplacian` smoothing.
-
-        :param int niter: number of iterations.
-        :param float relaxfact: relaxation factor.
-            Small `relaxfact` and large `niter` are more stable.
-        :param float edgeAngle: edge angle to control smoothing along edges
-            (either interior or boundary).
-        :param float featureAngle: specifies the feature angle for sharp edge identification.
-
-        .. hint:: |mesh_smoother1.py|_
-        """
-        poly = self._data
-        cl = vtk.vtkCleanPolyData()
-        cl.SetInputData(poly)
-        cl.Update()
-        smoothFilter = vtk.vtkSmoothPolyDataFilter()
-        smoothFilter.SetInputData(cl.GetOutput())
-        smoothFilter.SetNumberOfIterations(niter)
-        smoothFilter.SetRelaxationFactor(relaxfact)
-        smoothFilter.SetEdgeAngle(edgeAngle)
-        smoothFilter.SetFeatureAngle(featureAngle)
-        smoothFilter.SetBoundarySmoothing(boundary)
-        smoothFilter.FeatureEdgeSmoothingOn()
-        smoothFilter.GenerateErrorScalarsOn()
-        smoothFilter.Update()
-        return self._update(smoothFilter.GetOutput())
-
-    def smoothWSinc(self, niter=15, passBand=0.1, edgeAngle=15, featureAngle=60,
-                    boundary=False):
+        """DEPRECATED. Please use smooth()"""
+        printc("smoothLaplacian() is DEPRECATED. Please use smooth()", c='r')        
+        return self.smooth(niter, passBand=0.1, edgeAngle=edgeAngle, boundary=boundary)  
+    
+    def smooth(self, niter=15, passBand=0.1, edgeAngle=15, featureAngle=60, boundary=False):
         """
         Adjust mesh point positions using the `Windowed Sinc` function interpolation kernel.
 

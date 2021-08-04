@@ -14,7 +14,7 @@ hst1 = histogram(data1,
                  xtitle='some stochastic x_\mu^0',
                  c='red',
                  marker='o',
-                )
+)
 
 # pick the 16th bin and color it violet
 hst1.unpack(15).c('violet')

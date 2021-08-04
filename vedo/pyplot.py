@@ -1649,7 +1649,7 @@ def _histogram1D(
                 col = c
             r.color(col).alpha(alpha).lighting('off').z(offs)
             rs.append(r)
-        # print('rectangles', r.z())
+#            print('rectangles', r.z())
 
     if outline:  #####################
         lns = [[myedges[0], 0, 0]]

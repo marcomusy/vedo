@@ -29,7 +29,7 @@ path = nx.shortest_path(g, source=start, target=end, weight="length")
 from vedo import show
 
 # make the sphere transparent-ish
-mesh.visual.face_colors = [100, 100, 100, 100]
+mesh.visual.face_colors = [150, 150, 180, 255]
 
 # Path3D with the path between the points
 path_visual = trimesh.load_path(mesh.vertices[path])

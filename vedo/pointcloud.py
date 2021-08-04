@@ -2798,6 +2798,15 @@ class Points(vtk.vtkFollower, BaseActor):
             else:
                 return np.array(trgp)
 
+    def hausdorffDistance(self, points):
+        """Compute the Hausdorff distance of two point sets."""
+        hp = vtk.vtkHausdorffDistancePointSetFilter()
+        hp.SetInputData(0, self.polydata())
+        hp.SetInputData(1, points.polydata())
+        hp.SetTargetDistanceMethodToPointToCell()
+        hp.Update()
+        return hp.GetHausdorffDistance()
+
 
     def smoothMLS1D(self, f=0.2, radius=None):
         """
@@ -3393,7 +3402,7 @@ class Points(vtk.vtkFollower, BaseActor):
             import numpy as np
             x, y, z = np.mgrid[:30, :30, :30] / 15
             U = sin(6*x)*cos(6*y) + sin(6*y)*cos(6*z) + sin(6*z)*cos(6*x)
-            iso = Volume(U).isosurface(0).smoothLaplacian().c('silver').lw(1)
+            iso = Volume(U).isosurface(0).smooth().c('silver').lw(1)
             cube = CubicGrid(n=(29,29,29), spacing=(1,1,1))
             cube.cutWithMesh(iso).c('silver').alpha(1)
             show(iso, cube)

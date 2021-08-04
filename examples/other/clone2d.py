@@ -2,7 +2,7 @@
 and place it in the rendering window"""
 from vedo import Mesh, dataurl, show
 
-s = Mesh(dataurl+'man.vtk').rotateZ(20).rotateX(-70).scale(0.2).c('darkgreen', 0.3)
+s = Mesh(dataurl+'man.vtk').rotateZ(20).rotateX(-70).scale(0.2).c('darkgreen')
 
 # Make a 2D snapshot of a 3D mesh
 # The coordinate system options are

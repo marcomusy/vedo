@@ -8,8 +8,8 @@ shape = shapes[56].mirror().rotateZ(-90)
 cmap = "RdYlBu"
 
 msh = shape.tomesh()       # Generate the Mesh from the line
-msh.smoothLaplacian()      # Make the triangles more uniform
-msh.addQuality()           # Measure triangle quality
+msh.smooth()               # make the triangles more uniform
+msh.addQuality()           # add a measure of triangle quality
 msh.cmap(cmap, on="cells").addScalarBar3D()
 
 contour = Line(shape).c('red4').lw(5)

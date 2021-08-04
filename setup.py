@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 try:
     VERSIONFILE = "vedo/version.py"
@@ -12,7 +12,28 @@ setup(
     name="vedo",
     version=verstr,
     python_requires=">=3",
-    packages=find_packages(),
+    packages=[
+               "vedo",
+               "vedo.examples.basic",
+               "vedo.examples.advanced",
+               "vedo.examples.pyplot",
+               "vedo.examples.simulations",
+               "vedo.examples.volumetric",
+               "vedo.examples.other",
+               "vedo.examples.other.dolfin",
+               "vedo.examples.other.trimesh",
+    ],
+    package_dir={
+                  'vedo': 'vedo',
+                  'vedo.examples.basic': 'examples/basic',
+                  'vedo.examples.advanced': 'examples/advanced',
+                  'vedo.examples.pyplot': 'examples/pyplot',
+                  'vedo.examples.simulations': 'examples/simulations',
+                  'vedo.examples.volumetric': 'examples/volumetric',
+                  'vedo.examples.other': 'examples/other',
+                  'vedo.examples.other.dolfin': 'examples/other/dolfin',
+                  'vedo.examples.other.trimesh': 'examples/other/trimesh',
+    },
     include_package_data=True,
     entry_points={
         "console_scripts": ["vedo=vedo.cli:execute_cli"],

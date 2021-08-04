@@ -9,7 +9,7 @@ x, y, z = np.mgrid[:30,:30,:30] * 0.4
 U = sin(x)*cos(y) + sin(y)*cos(z) + sin(z)*cos(x)
 
 # Create a Volume, take the isosurface at 0, smooth it and set mesh edges
-s = Volume(U).isosurface(0).smoothLaplacian().lineWidth(1)
+s = Volume(U).isosurface(0).smooth().lineWidth(1)
 
 # Create a gridded cube
 c = TessellatedBox(n=(29,29,29), spacing=(1,1,1)).alpha(1)
