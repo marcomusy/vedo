@@ -1,4 +1,4 @@
-from vedo import *
+from vedo import Latex, show
 from vedo.pyplot import histogram
 import numpy as np
 

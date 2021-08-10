@@ -776,7 +776,9 @@ class BaseActor(Base3DProp):
 
 
     def lighting(self, style='', ambient=None, diffuse=None,
-                 specular=None, specularPower=None, specularColor=None):
+                 specular=None, specularPower=None, specularColor=None,
+                 metallicity=None, roughness=None,
+        ):
         """
         Set the ambient, diffuse, specular and specularPower lighting constants.
 
@@ -840,6 +842,14 @@ class BaseActor(Base3DProp):
         if specular is not None: pr.SetSpecular(specular)
         if specularPower is not None: pr.SetSpecularPower(specularPower)
         if specularColor is not None: pr.SetSpecularColor(colors.getColor(specularColor))
+        if utils.vtkVersionIsAtLeast(9):
+            if metallicity is not None:
+                pr.SetInterpolationToPBR()
+                pr.SetMetallic(metallicity)
+            if roughness is not None:
+                pr.SetInterpolationToPBR()
+                pr.SetRoughness(roughness)
+
         return self
 
 

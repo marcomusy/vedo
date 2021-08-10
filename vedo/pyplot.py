@@ -1960,12 +1960,15 @@ def _histogramHexBin(
     ymin, ymax = np.min(yvalues), np.max(yvalues)
     dx, dy = xmax - xmin, ymax - ymin
 
-    if xmax - xmin < ymax - ymin:
-        n = bins
-        m = np.rint(dy / dx * n / 1.2 + 0.5).astype(int)
+    if utils.isSequence(bins):
+        n,m = bins
     else:
-        m = bins
-        n = np.rint(dx / dy * m * 1.2 + 0.5).astype(int)
+        if xmax - xmin < ymax - ymin:
+            n = bins
+            m = np.rint(dy / dx * n / 1.2 + 0.5).astype(int)
+        else:
+            m = bins
+            n = np.rint(dx / dy * m * 1.2 + 0.5).astype(int)
 
     src = vtk.vtkPointSource()
     src.SetNumberOfPoints(len(xvalues))

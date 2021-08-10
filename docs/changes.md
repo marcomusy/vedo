@@ -2,9 +2,12 @@
 
 - Added support for `ipygany` in jupyter notebooks.
 - Command line interface `vedo ...` should now work on windows 10 too.
+- added skybox environment with `show(..., bg="path/to/file.hdr")`
 
 ---
 ### `base.py`
+
+- added `.lighting(metallicity=1, roughness=0.1)` to include PBR (physics based rendering).
 
 ---
 ### `addons.py`
@@ -53,7 +56,7 @@ This works better on windows systems.
 - `vedo -r plot_bars`
 - `vedo -r alien_life`
 - `vedo -r pendulum_ode`
-- `vedo -r earth model`
+- `vedo -r earth_model`
 
 
 

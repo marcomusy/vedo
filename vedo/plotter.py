@@ -400,7 +400,7 @@ class Plotter:
         resetcam=True,
         interactive=None,
         offscreen=False,
-        qtWidget = None
+        qtWidget=None,
     ):
 
         settings.plotter_instance = self
@@ -434,6 +434,7 @@ class Plotter:
         self.offscreen = offscreen
         self.resetcam = resetcam
         self.qtWidget = qtWidget # (QVTKRenderWindowInteractor)
+        self.skybox = None
 
         # mostly internal stuff:
         self.hoverLegends = []
@@ -802,6 +803,42 @@ class Plotter:
         self.remove(actors, render=False)
         return self
 
+    def _addSkybox(self, hdrfile):
+        # many hdr files are at https://polyhaven.com/all
+        if utils.vtkVersionIsAtLeast(9):
+            
+#            if self.skybox:
+#                #already exists, skip.
+#                return self
+            
+            reader = vtk.vtkHDRReader()
+            # Check the image can be read.
+            if not reader.CanReadFile(hdrfile):
+                vedo.printc('Cannot read HDR file', hdrfile, c='r')
+                return self
+            reader.SetFileName(hdrfile)
+            reader.Update()
+        
+            texture = vtk.vtkTexture()
+            texture.SetColorModeToDirectScalars()
+            texture.SetInputData(reader.GetOutput())
+        
+            # Convert to a cube map
+            tcm = vtk.vtkEquirectangularToCubeMapTexture()
+            tcm.SetInputTexture(texture)
+            # Enable mipmapping to handle HDR image
+            tcm.MipmapOn()
+            tcm.InterpolateOn()            
+            
+            self.renderer.SetEnvironmentTexture(tcm)
+            self.renderer.UseImageBasedLightingOn()
+            self.skybox = vtk.vtkSkybox()
+            self.skybox.SetTexture(tcm)
+            self.renderer.AddActor(self.skybox)
+        else:
+            vedo.printc("addSkyBox not supported in this VTK version. Skip.", c='r')
+        return self
+    
     def add(self, actors, at=None, render=True, resetcam=False):
         """Append input object to the internal list of actors to be shown.
 
@@ -826,6 +863,7 @@ class Plotter:
             self.render(resetcam=resetcam)
         return self
 
+                    
     def remove(self, actors, at=None, render=False, resetcam=False):
         """Remove input object to the internal list of actors to be shown.
 
@@ -1926,12 +1964,15 @@ class Plotter:
             self.renderer = self.renderers[at]
 
         if not settings.notebookBackend:
-            if bg is not None:
-                self.backgrcol = vedo.getColor(bg)
-                self.renderer.SetBackground(self.backgrcol)
-            if bg2 is not None:
-                self.renderer.GradientBackgroundOn()
-                self.renderer.SetBackground2(vedo.getColor(bg2))
+            if str(bg).endswith(".hdr"):
+                self._addSkybox(bg)
+            else:
+                if bg is not None:
+                    self.backgrcol = vedo.getColor(bg)
+                    self.renderer.SetBackground(self.backgrcol)
+                if bg2 is not None:
+                    self.renderer.GradientBackgroundOn()
+                    self.renderer.SetBackground2(vedo.getColor(bg2))
 
         if axes is not None:
             self.axes = axes
@@ -1973,7 +2014,6 @@ class Plotter:
             if settings.notebookBackend not in ['panel', '2d', 'ipyvtk']:
                 return backends.getNotebookBackend(actors2show, zoom, viewup)
         #########################################################################
-
         # check if the widow needs to be closed (ESC button was hit)
         if self.escaped:
             if not self.window:
@@ -2107,10 +2147,12 @@ class Plotter:
                             self.flagWidget.AddBalloon(ia, ia.flagText)
                     if ia.flagText is False and self.flagWidget:
                         self.flagWidget.RemoveBalloon(ia)
-
+  
         # remove the ones that are not in actors2show (and their scalarbar if any)
         for ia in self.getMeshes(at, includeNonPickables=True) + self.getVolumes(at, includeNonPickables=True):
             if ia not in actors2show:
+                if isinstance(ia, vtk.vtkSkybox):
+                    continue
                 self.renderer.RemoveActor(ia)
                 if hasattr(ia, 'scalarbar') and ia.scalarbar:
                     if isinstance(ia.scalarbar, vtk.vtkActor):
@@ -2265,10 +2307,6 @@ class Plotter:
 
         return self
 
-    def showInset(self, *actors, **options):
-        """DEPRECATED, please use addInset() instead."""
-        vedo.printc("DEPRECATED showInset(): please use addInset() instead.", c='r')
-        return self.addInset(*actors, **options)
 
     def addInset(self, *actors, **options):
         """Add a draggable inset space into a renderer.
