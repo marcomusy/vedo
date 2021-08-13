@@ -3,6 +3,8 @@
 - Added support for `ipygany` in jupyter notebooks.
 - Command line interface `vedo ...` should now work on windows 10 too.
 - added skybox environment with `show(..., bg="path/to/file.hdr")`
+- added (kind of limited) support to `wxpython` embedding (analogous to Qt, but open-source)
+
 
 ---
 ### `base.py`
@@ -11,6 +13,8 @@
 
 ---
 ### `addons.py`
+
+- added `SplineTool.nodes()` to retrieve current node positions.
 
 ---
 ### `colors.py`
@@ -57,6 +61,8 @@ This works better on windows systems.
 - `vedo -r alien_life`
 - `vedo -r pendulum_ode`
 - `vedo -r earth_model`
+- `vedo -r spline_tool`
+- `vedo -r wx_window1`
 
 
 
