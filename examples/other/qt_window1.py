@@ -4,13 +4,13 @@ from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from vedo import Plotter, Cone, printc
 
 class MainWindow(Qt.QMainWindow):
+    
     def __init__(self, parent=None):
 
         Qt.QMainWindow.__init__(self, parent)
         self.frame = Qt.QFrame()
-        self.vl = Qt.QVBoxLayout()
+        self.layout = Qt.QVBoxLayout()
         self.vtkWidget = QVTKRenderWindowInteractor(self.frame)
-        self.vl.addWidget(self.vtkWidget)
 
         # Create renderer and add the vedo objects and callbacks
         self.vp = Plotter(qtWidget=self.vtkWidget)
@@ -23,8 +23,9 @@ class MainWindow(Qt.QMainWindow):
         button = Qt.QPushButton("My Button makes the cone red")
         button.setToolTip('This is an example button')
         button.clicked.connect(self.onClick)
-        self.vl.addWidget(button)
-        self.frame.setLayout(self.vl)
+        self.layout.addWidget(self.vtkWidget)
+        self.layout.addWidget(button)
+        self.frame.setLayout(self.layout)
         self.setCentralWidget(self.frame)
         self.show()                     # <--- show the Qt Window
 

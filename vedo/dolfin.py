@@ -9,7 +9,7 @@ import vedo.docs as docs
 from vedo.colors import printc
 
 import vedo.settings as settings
-from vedo.settings import datadir, dataurl, embedWindow
+from vedo.settings import dataurl, embedWindow
 
 from vedo.mesh import Mesh
 

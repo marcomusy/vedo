@@ -149,7 +149,7 @@ Usage example:
 """
 import os, vtk
 
-__all__ = ['datadir', 'dataurl', 'embedWindow']
+__all__ = ['dataurl', 'embedWindow']
 
 
 vtk_version = [ int(vtk.vtkVersion().GetVTKMajorVersion()),
@@ -321,7 +321,6 @@ fonts = []
 
 #dataurl = "/home/musy/Dropbox/Public/vktwork/vedo_data/"; print('\ndataurl=',dataurl)
 dataurl = "https://vedo.embl.es/examples/data/"
-datadir = dataurl # will disappear
 
 plotter_instances = []
 plotter_instance = None

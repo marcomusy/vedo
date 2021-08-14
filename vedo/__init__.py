@@ -34,7 +34,7 @@ import vedo.shapes as shapes
 from vedo.addons import Ruler, Goniometer, buildRulerAxes, Axes, Light, LegendBox
 
 import vedo.settings as settings
-from vedo.settings import datadir, dataurl, embedWindow
+from vedo.settings import dataurl, embedWindow
 
 # hack: need to uncomment this to generate dolfin documentation html
 from vedo.dolfin import _inputsort

@@ -1,62 +1,49 @@
-"""
-A sort of minimal example of how to embed a rendering window
-into a qt application.
-"""
-print(__doc__)
-
 import sys
 from PyQt5 import Qt
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-
-from vedo import Plotter, Cube, Torus, Cone
-
+from vedo import Plotter, Picture, Text2D, printc
 
 class MainWindow(Qt.QMainWindow):
+    
     def __init__(self, parent=None):
 
         Qt.QMainWindow.__init__(self, parent)
         self.frame = Qt.QFrame()
-        self.vl = Qt.QVBoxLayout()
+        self.layout = Qt.QVBoxLayout()
         self.vtkWidget = QVTKRenderWindowInteractor(self.frame)
-        self.vl.addWidget(self.vtkWidget)
 
-        vp = Plotter(qtWidget=self.vtkWidget, axes=2, N=2)
+        # Create vedo renderer and add objects and callbacks
+        self.vp = Plotter(qtWidget=self.vtkWidget)
+        self.cbid = self.vp.addCallback("key press", self.onKeypress)
+        self.imgActor = Picture("https://icatcare.org/app/uploads/2018/07/Helping-your-new-cat-or-kitten-settle-in-1.png")
+        self.text2d = Text2D("Use slider to change contrast")
 
-        cn = Cone()
-        cc = Cube().pos(1, 1, 1).color("pink")
-        ss = Torus()
-        vp.show(cn, cc, at=0)
-        vp.show(ss, at=1, viewup="z", interactorStyle=0)
+        self.slider = Qt.QSlider(1)
+        self.slider.valueChanged.connect(self.onSlider)
+        self.layout.addWidget(self.vtkWidget)
+        self.layout.addWidget(self.slider)
 
-        self.start(vp)
-
-    def start(self, vp):
-
-        for r in vp.renderers:
-            self.vtkWidget.GetRenderWindow().AddRenderer(r)
-        self.iren = self.vtkWidget.GetRenderWindow().GetInteractor()
-
-        self.iren.AddObserver("LeftButtonPressEvent", vp._mouseleft)
-        self.iren.AddObserver("RightButtonPressEvent", vp._mouseright)
-        self.iren.AddObserver("MiddleButtonPressEvent", vp._mousemiddle)
-
-        def keypress(obj, e):
-            vp._keypress(obj, e)
-            if self.iren.GetKeySym() in ["q", "space"]:
-                self.iren.ExitCallback()
-                exit()
-        self.iren.AddObserver("KeyPressEvent", keypress)
-
-        self.frame.setLayout(self.vl)
+        self.frame.setLayout(self.layout)
         self.setCentralWidget(self.frame)
-        self.show()  # qt not Plotter method
-        r.ResetCamera()
-        self.iren.Start()
+        self.vp.show(self.imgActor, self.text2d,
+                     interactorStyle='Image') # build the vedo rendering
+        self.show()                           # show the Qt Window
 
+           
+    def onSlider(self, value):
+        self.imgActor.window(value*10) # change image contrast
+        self.text2d.text(f"window level is now: {value*10}")
+        self.vp.render()
+
+    def onKeypress(self, evt):
+        printc("You have pressed key:", evt.keyPressed, c='b')
+        if evt.keyPressed=='q':
+            self.vp.close()
+            self.vtkWidget.close()
+            exit()
+            
     def onClose(self):
-        print("Disable the interactor before closing to prevent it from trying to act on a already deleted items")
         self.vtkWidget.close()
-
 
 if __name__ == "__main__":
     app = Qt.QApplication(sys.argv)

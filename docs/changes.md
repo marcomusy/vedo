@@ -24,6 +24,8 @@
 ---
 ### `picture.py`
 
+- added `level()` and `window()` methods to control brightness and contrast of a Picture.
+
 ---
 ### `pyplot.py`
 
@@ -57,6 +59,7 @@ This works better on windows systems.
 - `vedo -r alien_life`
 - `vedo -r pendulum_ode`
 - `vedo -r earth_model`
+- `vedo -r qt_window2`
 
 
 

@@ -1,5 +1,5 @@
 import numpy as np
-import vtk, os
+import vtk
 import vedo
 import vedo.colors as colors
 import vedo.docs as docs

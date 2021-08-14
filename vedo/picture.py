@@ -1,4 +1,3 @@
-import os
 import numpy as np
 import vtk
 import vedo
@@ -200,6 +199,21 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             return self
         else:
             return self.GetProperty().GetOpacity()
+
+    def level(self, value=None):
+        """Get/Set the image color level (brightness)."""
+        if value is None:
+            return self.GetProperty().GetColorLevel()
+        self.GetProperty().SetColorLevel(value)
+        return self
+
+    def window(self, value=None):
+        """Get/Set the image color window (contrast)."""
+        if value is None:
+            return self.GetProperty().GetColorWindow()
+        self.GetProperty().SetColorWindow(value)
+        return self
+
 
     def crop(self, top=None, bottom=None, right=None, left=None):
         """Crop picture.
