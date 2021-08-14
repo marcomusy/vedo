@@ -401,6 +401,7 @@ class Plotter:
         interactive=None,
         offscreen=False,
         qtWidget=None,
+        wxWidget=None,
     ):
 
         settings.plotter_instance = self
@@ -410,6 +411,10 @@ class Plotter:
             # overrides the interactive and offscreen properties
             interactive = False
             offscreen = True
+
+        if wxWidget is not None:
+            # overrides the interactive property
+            interactive = False
 
         if interactive is None:
             if N==1:
@@ -433,7 +438,8 @@ class Plotter:
         self.picked3d = None  # 3d coords of a clicked point on an actor
         self.offscreen = offscreen
         self.resetcam = resetcam
-        self.qtWidget = qtWidget # (QVTKRenderWindowInteractor)
+        self.qtWidget = qtWidget #  QVTKRenderWindowInteractor
+        self.wxWidget = wxWidget # wxVTKRenderWindowInteractor
         self.skybox = None
 
         # mostly internal stuff:
@@ -496,8 +502,6 @@ class Plotter:
                 return #####################
                 ############################
 
-        self.window.SetWindowName(self.title)
-
         # more settings
         if settings.useDepthPeeling:
             self.window.SetAlphaBitPlanes(settings.alphaBitPlanes)
@@ -506,6 +510,8 @@ class Plotter:
         self.window.SetPolygonSmoothing(settings.polygonSmoothing)
         self.window.SetLineSmoothing(settings.lineSmoothing)
         self.window.SetPointSmoothing(settings.pointSmoothing)
+
+        self.window.SetWindowName(self.title)
 
         # sort out screen size
         if screensize == "auto":
@@ -730,7 +736,24 @@ class Plotter:
         else:
             self.window.SetSize(int(self.size[0]), int(self.size[1]))
 
-        self.window.SetPosition(pos)
+        if self.wxWidget is not None:
+            settings.immediateRendering = False # overrride
+            self.window = self.wxWidget.GetRenderWindow() # overwrite
+            self.interactor = self.window.GetInteractor()
+            for r in self.renderers:
+                self.window.AddRenderer(r)
+            self.wxWidget.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+            self.camera = self.renderer.GetActiveCamera()
+            # if settings.enableDefaultMouseCallbacks:
+            #     self.wxWidget.AddObserver("LeftButtonPressEvent", self._mouseleft)
+            #     self.wxWidget.AddObserver("RightButtonPressEvent", self._mouseright)
+            #     self.wxWidget.AddObserver("MiddleButtonPressEvent", self._mousemiddle)
+            # if settings.enableDefaultKeyboardCallbacks:
+            #     self.wxWidget.AddObserver("KeyPressEvent", self._keypress)
+            #     self.wxWidget.AddObserver("KeyReleaseEvent", self._keyrelease)
+            ########################
+            return #################
+            ########################
 
         if self.qtWidget is not None:
             self.interactor = self.qtWidget.GetRenderWindow().GetInteractor()
@@ -738,6 +761,8 @@ class Plotter:
             ########################
             return #################
             ########################
+
+        self.window.SetPosition(pos)
 
         for r in self.renderers:
             self.window.AddRenderer(r)
@@ -806,11 +831,11 @@ class Plotter:
     def _addSkybox(self, hdrfile):
         # many hdr files are at https://polyhaven.com/all
         if utils.vtkVersionIsAtLeast(9):
-            
+
 #            if self.skybox:
 #                #already exists, skip.
 #                return self
-            
+
             reader = vtk.vtkHDRReader()
             # Check the image can be read.
             if not reader.CanReadFile(hdrfile):
@@ -818,18 +843,18 @@ class Plotter:
                 return self
             reader.SetFileName(hdrfile)
             reader.Update()
-        
+
             texture = vtk.vtkTexture()
             texture.SetColorModeToDirectScalars()
             texture.SetInputData(reader.GetOutput())
-        
+
             # Convert to a cube map
             tcm = vtk.vtkEquirectangularToCubeMapTexture()
             tcm.SetInputTexture(texture)
             # Enable mipmapping to handle HDR image
             tcm.MipmapOn()
-            tcm.InterpolateOn()            
-            
+            tcm.InterpolateOn()
+
             self.renderer.SetEnvironmentTexture(tcm)
             self.renderer.UseImageBasedLightingOn()
             self.skybox = vtk.vtkSkybox()
@@ -838,7 +863,7 @@ class Plotter:
         else:
             vedo.printc("addSkyBox not supported in this VTK version. Skip.", c='r')
         return self
-    
+
     def add(self, actors, at=None, render=True, resetcam=False):
         """Append input object to the internal list of actors to be shown.
 
@@ -863,7 +888,7 @@ class Plotter:
             self.render(resetcam=resetcam)
         return self
 
-                    
+
     def remove(self, actors, at=None, render=False, resetcam=False):
         """Remove input object to the internal list of actors to be shown.
 
@@ -911,7 +936,7 @@ class Plotter:
 
     def render(self, resetcam=False):
         """Render the scene."""
-        if not self.window:
+        if not self.window or self.wxWidget:
             return self
         if settings.vtk_version[0] == 9 and "Darwin" in settings.sys_platform:
             for a in self.actors:
@@ -1050,7 +1075,7 @@ class Plotter:
         """Reset the camera position and zooming."""
         self.renderer.ResetCamera()
         return self
-    
+
 
     def moveCamera(self, camstart, camstop, fraction):
         """
@@ -1945,6 +1970,9 @@ class Plotter:
 
         :param bool q:  force program to quit after `show()` command returns.
         """
+        if self.wxWidget:
+            return self
+
         if title is not None:
             self.title = title
 
@@ -2147,7 +2175,7 @@ class Plotter:
                             self.flagWidget.AddBalloon(ia, ia.flagText)
                     if ia.flagText is False and self.flagWidget:
                         self.flagWidget.RemoveBalloon(ia)
-  
+
         # remove the ones that are not in actors2show (and their scalarbar if any)
         for ia in self.getMeshes(at, includeNonPickables=True) + self.getVolumes(at, includeNonPickables=True):
             if ia not in actors2show:
@@ -2604,7 +2632,7 @@ class Plotter:
         #NB: qt creates and passes a vtkGenericRenderWindowInteractor
 
         key = iren.GetKeySym()
-        # utils.vedo.printc('Pressed key:', self.keyheld, key, c='y', box='-')
+        #utils.vedo.printc('Pressed key:', self.keyheld, key, c='y', box='-')
 
         if key in ["Shift_L", "Control_L", "Super_L", "Alt_L",
                    "Shift_R", "Control_R", "Super_R", "Alt_R", "Menu"]:

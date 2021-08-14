@@ -225,25 +225,46 @@ class Button:
 #####################################################################
 class SplineTool(vtk.vtkContourWidget):
 
-    def __init__(self, points, pc='k', ps=8, lc='r4', ac='g5', lw=2,
-                 closed=False):
+    def __init__(self, points, pc='k', ps=8, lc='r4', ac='g5', lw=2, closed=False, ontop=True):
+        """
+        Spline tool, to be used with ``plotter.addSplineTool()``.
+
+        Parameters
+        ----------
+        points : list, Points
+            initial set of points.
+        pc : str, optional
+            point color. The default is 'k'.
+        ps : int, optional
+            point size. The default is 8.
+        lc : str, optional
+            line color. The default is 'r4'.
+        ac : str, optional
+            active point color. The default is 'g5'.
+        lw : int, optional
+            line width. The default is 2.
+        closed : bool, optional
+            spline is closed or open. The default is False.
+        ontop : bool, optional
+            show it always on top of other objects. The default is True.
+        """
 
         vtk.vtkContourWidget.__init__(self)
 
-        self.repr = vtk.vtkOrientedGlyphContourRepresentation()
-        self.repr.AlwaysOnTopOn()
+        self.representation = vtk.vtkOrientedGlyphContourRepresentation()
+        self.representation.SetAlwaysOnTop(ontop)
 
-        self.repr.GetLinesProperty().SetColor(getColor(lc))
-        self.repr.GetLinesProperty().SetLineWidth(lw)
+        self.representation.GetLinesProperty().SetColor(getColor(lc))
+        self.representation.GetLinesProperty().SetLineWidth(lw)
 
-        self.repr.GetProperty().SetColor(getColor(pc))
-        self.repr.GetProperty().SetPointSize(ps)
-        self.repr.GetProperty().RenderPointsAsSpheresOn()
+        self.representation.GetProperty().SetColor(getColor(pc))
+        self.representation.GetProperty().SetPointSize(ps)
+        self.representation.GetProperty().RenderPointsAsSpheresOn()
 
-        self.repr.GetActiveProperty().SetColor(getColor(ac))
-        self.repr.GetActiveProperty().SetLineWidth(lw+1)
+        self.representation.GetActiveProperty().SetColor(getColor(ac))
+        self.representation.GetActiveProperty().SetLineWidth(lw+1)
 
-        self.SetRepresentation(self.repr)
+        self.SetRepresentation(self.representation)
 
         if utils.isSequence(points):
             self.points = Points(points)
@@ -251,16 +272,18 @@ class SplineTool(vtk.vtkContourWidget):
             self.points = points
 
         self.closed = closed
-        self.interactor = None
 
-    # def add(self, pt):
-    #     """add point"""
-    #     if len(pt)==2:
-    #         self.repr.AddNodeAtDisplayPosition(pt)
-    #     else:
-    #         self.repr.AddNodeAtWorldPosition(pt)
-    #     # self.Render()
-    #     return self
+    def add(self, pt):
+        """Add one point at a specified position in space if 3D, or 2D screen-display position if 2D."""
+        if len(pt)==2:
+            self.representation.AddNodeAtDisplayPosition(int(pt[0]), int(pt[1]))
+        else:
+            self.representation.AddNodeAtWorldPosition(pt)
+        return self
+
+    def remove(self, i):
+        self.representation.DeleteNthNode(i)
+        return self
 
     def on(self):
         self.On()
@@ -272,16 +295,34 @@ class SplineTool(vtk.vtkContourWidget):
         self.Render()
         return self
 
+    def render(self):
+        self.Render()
+        return self
+
     def bounds(self):
         return self.GetBounds()
 
     def spline(self):
-        if self.closed:
-            self.repr.ClosedLoopOn()
-        self.repr.BuildRepresentation()
-        ln = vedo.Mesh(self.repr.GetContourRepresentationAsPolyData(), c='k')
-        ln.lighting('off').lw(2)
+        self.representation.SetClosedLoop(self.closed)
+        self.representation.BuildRepresentation()
+        pd = self.representation.GetContourRepresentationAsPolyData()
+        pts = utils.vtk2numpy(pd.GetPoints().GetData())
+        ln = vedo.Line(pts, lw=2, c='k')
         return ln
+
+    def nodes(self, onscreen=False):
+        """Return the current position in space (or on 2D screen-display) of the spline nodes."""
+        n = self.representation.GetNumberOfNodes()
+        pts = []
+        for i in range(n):
+            p = [0.,0.,0.]
+            if onscreen:
+                self.representation.GetNthNodeDisplayPosition(i, p)
+            else:
+                self.representation.GetNthNodeWorldPosition(i, p)
+            pts.append(p)
+        return np.array(pts)
+
 
 #####################################################################
 
@@ -332,7 +373,6 @@ def Goniometer(
         line width. The default is 1.
     precision : int, optional
         number of significant digits. The default is 3.
-
 
     |goniometer| |goniometer.py|_
     """
@@ -468,9 +508,9 @@ def addSplineTool(plotter, points, pc='k', ps=8, lc='r4', ac='g5',
     sw.On()
     sw.Initialize(sw.points.polydata())
     if sw.closed:
-        sw.repr.ClosedLoopOn()
-    sw.repr.SetRenderer(plotter.renderer)
-    sw.repr.BuildRepresentation()
+        sw.representation.ClosedLoopOn()
+    sw.representation.SetRenderer(plotter.renderer)
+    sw.representation.BuildRepresentation()
     sw.Render()
     if interactive:
         plotter.interactor.Start()
@@ -1383,6 +1423,56 @@ def _addCutterToolVolumeWithBox(vol, invert):
     plt.widgets.append(boxWidget)
     return vol
 
+
+#####################################################################
+def addRendererFrame(c=None, alpha=None, lw=None, pad=None):
+
+    if lw is None:
+        lw = settings.rendererFrameWidth
+    if lw==0:
+        return None
+
+    if pad is None:
+        pad = settings.rendererFramePadding
+
+    if c is None:  # automatic black or white
+        c = (0.9, 0.9, 0.9)
+        if np.sum(settings.plotter_instance.renderer.GetBackground())>1.5:
+            c = (0.1, 0.1, 0.1)
+    c = getColor(c)
+
+    if alpha is None:
+        alpha = settings.rendererFrameAlpha
+
+    ppoints = vtk.vtkPoints()  # Generate the polyline
+    xy = 1-pad
+    psqr = [[pad,pad],[pad,xy],[xy,xy],[xy,pad],[pad,pad]]
+    for i, pt in enumerate(psqr):
+        ppoints.InsertPoint(i, pt[0], pt[1], 0)
+    lines = vtk.vtkCellArray()
+    lines.InsertNextCell(len(psqr))
+    for i in range(len(psqr)):
+        lines.InsertCellPoint(i)
+    pd = vtk.vtkPolyData()
+    pd.SetPoints(ppoints)
+    pd.SetLines(lines)
+
+    mapper = vtk.vtkPolyDataMapper2D()
+    mapper.SetInputData(pd)
+    cs = vtk.vtkCoordinate()
+    cs.SetCoordinateSystemToNormalizedViewport()
+    mapper.SetTransformCoordinate(cs)
+
+    fractor = vtk.vtkActor2D()
+    fractor.GetPositionCoordinate().SetValue(0, 0)
+    fractor.GetPosition2Coordinate().SetValue(1, 1)
+    fractor.SetMapper(mapper)
+    fractor.GetProperty().SetColor(c)
+    fractor.GetProperty().SetOpacity(alpha)
+    fractor.GetProperty().SetLineWidth(lw)
+
+    settings.plotter_instance.renderer.AddActor(fractor)
+    return fractor
 
 
 #####################################################################
@@ -3045,25 +3135,14 @@ def addGlobalAxes(axtype=None, c=None):
         plt.renderer.AddActor(ls)
         plt.axes_instances[r] = ls
 
-    elif plt.axes == 123:
+    elif plt.axes == 13:
         # draws a simple ruler at the bottom of the window
         ls = vtk.vtkLegendScaleActor()
-        # ls.SetLabelModeToDistance()
-        ls.AllAnnotationsOff ()
-        #ls.LegendVisibilityOff ()
-
-
-        ls.BottomAxisVisibilityOn()
-        # ls.GetBottomAxis().SetNumberOfMinorTicks(0)
-        ls.GetBottomAxis().RulerModeOn()
-        ls.GetBottomAxis().SetRulerDistance (.1)
-        ls.GetBottomAxis().AdjustLabelsOn ()
-        ls.GetBottomAxis().SetRange([0,1])
-        #print(ls.GetBottomAxis().GetLabelFormat ())
-
-
-
-
+        ls.RightAxisVisibilityOff()
+        ls.TopAxisVisibilityOff()
+        ls.LegendVisibilityOff()
+        ls.LeftAxisVisibilityOff()
+        ls.GetBottomAxis().SetNumberOfMinorTicks(1)
         ls.GetBottomAxis().GetProperty().SetColor(c)
         ls.GetBottomAxis().GetLabelTextProperty().SetColor(c)
         ls.GetBottomAxis().GetLabelTextProperty().BoldOff()
@@ -3075,6 +3154,43 @@ def addGlobalAxes(axtype=None, c=None):
         ls.PickableOff()
         plt.renderer.AddActor(ls)
         plt.axes_instances[r] = ls
+
+    elif plt.axes == 14:
+        try:
+            cow = vtk.vtkCameraOrientationWidget()
+            cow.SetParentRenderer(plt.renderer)
+            cow.On()
+            plt.axes_instances[r] = cow
+        except AttributeError:
+            pass
+
+
+    # elif plt.axes == 123:
+    #     # draws a simple ruler at the bottom of the window
+    #     ls = vtk.vtkLegendScaleActor()
+    #     # ls.SetLabelModeToDistance()
+    #     ls.AllAnnotationsOff ()
+    #     #ls.LegendVisibilityOff ()
+
+    #     ls.BottomAxisVisibilityOn()
+    #     # ls.GetBottomAxis().SetNumberOfMinorTicks(0)
+    #     ls.GetBottomAxis().RulerModeOn()
+    #     ls.GetBottomAxis().SetRulerDistance (.1)
+    #     ls.GetBottomAxis().AdjustLabelsOn ()
+    #     ls.GetBottomAxis().SetRange([0,1])
+    #     #print(ls.GetBottomAxis().GetLabelFormat ())
+
+    #     ls.GetBottomAxis().GetProperty().SetColor(c)
+    #     ls.GetBottomAxis().GetLabelTextProperty().SetColor(c)
+    #     ls.GetBottomAxis().GetLabelTextProperty().BoldOff()
+    #     ls.GetBottomAxis().GetLabelTextProperty().ItalicOff()
+    #     ls.GetBottomAxis().GetLabelTextProperty().ShadowOff()
+    #     pr = ls.GetBottomAxis().GetLabelTextProperty()
+    #     pr.SetFontFamily(vtk.VTK_FONT_FILE)
+    #     pr.SetFontFile(utils.getFontPath(settings.defaultFont))
+    #     ls.PickableOff()
+    #     plt.renderer.AddActor(ls)
+    #     plt.axes_instances[r] = ls
 
     else:
         printc('\bomb Keyword axes type must be in range [0-13].', c='r')
@@ -3101,54 +3217,4 @@ def addGlobalAxes(axtype=None, c=None):
         plt.axes_instances[r] = True
     return
 
-
-#####################################################################
-def addRendererFrame(c=None, alpha=None, lw=None, pad=None):
-
-    if lw is None:
-        lw = settings.rendererFrameWidth
-    if lw==0:
-        return None
-
-    if pad is None:
-        pad = settings.rendererFramePadding
-
-    if c is None:  # automatic black or white
-        c = (0.9, 0.9, 0.9)
-        if np.sum(settings.plotter_instance.renderer.GetBackground())>1.5:
-            c = (0.1, 0.1, 0.1)
-    c = getColor(c)
-
-    if alpha is None:
-        alpha = settings.rendererFrameAlpha
-
-    ppoints = vtk.vtkPoints()  # Generate the polyline
-    xy = 1-pad
-    psqr = [[pad,pad],[pad,xy],[xy,xy],[xy,pad],[pad,pad]]
-    for i, pt in enumerate(psqr):
-        ppoints.InsertPoint(i, pt[0], pt[1], 0)
-    lines = vtk.vtkCellArray()
-    lines.InsertNextCell(len(psqr))
-    for i in range(len(psqr)):
-        lines.InsertCellPoint(i)
-    pd = vtk.vtkPolyData()
-    pd.SetPoints(ppoints)
-    pd.SetLines(lines)
-
-    mapper = vtk.vtkPolyDataMapper2D()
-    mapper.SetInputData(pd)
-    cs = vtk.vtkCoordinate()
-    cs.SetCoordinateSystemToNormalizedViewport()
-    mapper.SetTransformCoordinate(cs)
-
-    fractor = vtk.vtkActor2D()
-    fractor.GetPositionCoordinate().SetValue(0, 0)
-    fractor.GetPosition2Coordinate().SetValue(1, 1)
-    fractor.SetMapper(mapper)
-    fractor.GetProperty().SetColor(c)
-    fractor.GetProperty().SetOpacity(alpha)
-    fractor.GetProperty().SetLineWidth(lw)
-
-    settings.plotter_instance.renderer.AddActor(fractor)
-    return fractor
 

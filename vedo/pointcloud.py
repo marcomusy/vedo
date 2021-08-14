@@ -1375,6 +1375,13 @@ class Points(vtk.vtkFollower, BaseActor):
         self.SetForceTranslucent(value)
         return self
 
+    def occlusion(self, value=None):
+        """Occlusion strength in range [0,1]."""
+        if value is None:
+            return self.GetProperty().GetOcclusionStrength()
+        else:
+            self.GetProperty().SetOcclusionStrength(value)
+            return self
 
     def pointSize(self, value):
         """Set/get mesh's point size of vertices. Same as `mesh.ps()`"""
