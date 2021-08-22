@@ -773,7 +773,7 @@ class BaseVolume:
         return self._update(imgm.GetOutput())
 
 
-    def toPoints(self):
+    def topoints(self):
         """Extract all image voxels as points.
         This function takes an input ``Volume`` and creates an ``Mesh``
         that contains the points and the point attributes.
@@ -1254,7 +1254,7 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
     Derived class of ``vtkImageSlice``.
     This class is equivalent to ``Volume`` except for its representation.
     The main purpose of this class is to be used in conjunction with ``Volume``
-    for visualization using ``interactorStyle="Image"``.
+    for visualization using ``mode="image"``.
     """
     def __init__(self, inputobj=None):
 

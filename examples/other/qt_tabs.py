@@ -17,7 +17,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.plt += Mesh(dataurl+'shark.ply').c('cyan')
 
-        self.plt.show(interactorStyle=0)
+        self.plt.show()
 
     def onClose(self):
         print("Disable the interactor before closing to prevent it from trying to act on a already deleted items")

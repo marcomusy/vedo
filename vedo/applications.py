@@ -257,7 +257,7 @@ def Slicer2d(volume, levels=(None, None), size=(900,900), bg='k9', zoom=1.2):
                            c='dg', bg='k', alpha=1)
 
     plt = vedo.show([ (vsl,usage,hist), volume ],
-                   shape=custom_shape, interactorStyle="Image",
+                   shape=custom_shape, mode="image",
                    title=volume.filename[:80],
                    size=size, bg=bg, zoom=zoom, axes=axes, interactive=0)
     return plt

@@ -8,7 +8,7 @@ vol = Volume(dataurl+'embryo.slc')
 
 pts = np.random.rand(5000, 3)*256
 
-mpts = probePoints(vol, pts).pointSize(3).printInfo()
+mpts = probePoints(vol, pts).pointSize(3).print()
 
 scals = mpts.getPointArray()
 

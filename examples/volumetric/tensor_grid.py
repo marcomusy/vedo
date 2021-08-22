@@ -10,7 +10,7 @@ ag.GenerateAllDataOn()
 ag.Update()
 
 ts = Tensors(ag.GetOutput(), scale=0.1)
-#ts.printInfo()
+ts.print()
 
 show(domain, ts).close()
 

@@ -366,7 +366,7 @@ class Mesh(Points):
             ###########
 
         if isinstance(tname, str) and 'https' in tname:
-            tname = vedo.io.download(tname)
+            tname = vedo.io.download(tname, verbose=False)
 
         if isSequence(tname):
             from PIL import Image

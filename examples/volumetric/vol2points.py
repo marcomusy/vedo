@@ -3,7 +3,7 @@ from vedo import *
 
 v = Volume(dataurl+'vase.vti')
 
-pts = v.toPoints().printInfo() # returns Points
+pts = v.topoints().print() # returns Points
 
 scalars = pts.getPointArray(0)
 pts.cmap('afmhot_r', scalars)

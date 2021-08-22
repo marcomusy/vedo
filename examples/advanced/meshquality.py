@@ -4,10 +4,10 @@ the cells of a triangular mesh
 from vedo import *
 from vedo.pyplot import histogram
 
-mesh = Mesh(dataurl+"panther.stl").computeNormals().lineWidth(0.1)
+mesh = Mesh(dataurl+"panther.stl").computeNormals().lineWidth(0.1).flat()
 
 # generate a numpy array for mesh quality
-mesh.addQuality(measure=6).printInfo().cmap('RdYlBu', on='cells')
+mesh.addQuality(measure=6).cmap('RdYlBu', on='cells').print()
 
 hist = histogram(mesh.getCellArray("Quality"), xtitle='mesh quality', bc='w')
 # make it smaller and position it, useBounds makes the cam

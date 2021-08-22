@@ -26,4 +26,4 @@ img = img.transpose(1,0)
 
 pict = Picture(img)
 
-show(pict, interactorStyle="Image", bg=(0.4,0.5,0.6), axes=1).close()
+show(pict, mode="image", bg=(0.4,0.5,0.6), axes=1).close()

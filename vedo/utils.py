@@ -951,16 +951,16 @@ def printInfo(obj):
             printc(tab + "  diagonal size: ", c="g", bold=1, end="")
             printc(precision(actor.diagonalSize(), 6), c="g", bold=0)
 
-            if hasattr(actor, "area"):
-                _area = actor.area()
-                if _area:
-                    printc(tab + "           area: ", c="g", bold=1, end="")
-                    printc(precision(_area, 6), c="g", bold=0)
+            # if hasattr(actor, "area"):
+                # _area = actor.area()
+                # if _area:
+                #     printc(tab + "           area: ", c="g", bold=1, end="")
+                #     printc(precision(_area, 6), c="g", bold=0)
 
-                _vol = actor.volume()
-                if _vol:
-                    printc(tab + "         volume: ", c="g", bold=1, end="")
-                    printc(precision(_vol, 6), c="g", bold=0)
+                # _vol = actor.volume()
+                # if _vol:
+                #     printc(tab + "         volume: ", c="g", bold=1, end="")
+                #     printc(precision(_vol, 6), c="g", bold=0)
 
         printc(tab + "         bounds: ", c="g", bold=1, end="")
         bx1, bx2 = precision(bnds[0], 3), precision(bnds[1], 3)

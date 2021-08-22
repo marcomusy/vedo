@@ -27,4 +27,4 @@ custom_shape = [ # define here the 2 rendering rectangle spaces
 
 show([ (vsl,usage,"VolumeSlice example"), (vol,"Volume") ],
      shape=custom_shape,
-     interactorStyle="Image", bg='k9', zoom=1.2, axes=11, interactive=1).close()
+     mode="image", bg='k9', zoom=1.2, axes=11, interactive=1).close()

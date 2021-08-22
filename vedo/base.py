@@ -563,6 +563,10 @@ class Base3DProp(object):
         return m
 
     def printInfo(self):
+        """Obsolete, use print() instead."""
+        return self.print()
+
+    def print(self):
         """Print information about an object."""
         utils.printInfo(self)
         return self
@@ -1390,10 +1394,20 @@ class BaseGrid(BaseActor):
             sf.Update()
             gf.SetInputData(sf.GetOutput())
             gf.Update()
+            poly = gf.GetOutput()
+            if shrink==1.0:
+                cleanPolyData = vtk.vtkCleanPolyData()
+                cleanPolyData.PointMergingOn()
+                cleanPolyData.ConvertLinesToPointsOn()
+                cleanPolyData.ConvertPolysToLinesOn()
+                cleanPolyData.ConvertStripsToPolysOn()
+                cleanPolyData.SetInputData(poly)
+                cleanPolyData.Update()
+                poly = cleanPolyData.GetOutput()
         else:
             gf.SetInputData(self._data)
             gf.Update()
-        poly = gf.GetOutput()
+            poly = gf.GetOutput()
 
         msh = vedo.mesh.Mesh(poly).flat()
         msh.scalarbar = self.scalarbar

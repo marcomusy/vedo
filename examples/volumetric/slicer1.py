@@ -1,13 +1,13 @@
 """Use sliders to slice volume
 Click button to change colormap"""
-from vedo import dataurl, load, show, Text2D
+from vedo import dataurl, Volume, show, Text2D
 from vedo.applications import SlicerPlotter
 
 filename = dataurl+'embryo.slc'
 #filename = dataurl+'embryo.tif'
 #filename = dataurl+'vase.vti'
 
-vol = load(filename)#.printInfo()
+vol = Volume(filename)#.print()
 
 plt = SlicerPlotter( vol,
                      bg='white', bg2='lightblue',

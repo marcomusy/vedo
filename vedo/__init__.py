@@ -48,11 +48,6 @@ settings._init()
 ###########################################################################
 
 
-################### deprecations
-def Text(*args, **kwargs):
-    print("*** Deprecation: use Text3D() instead of Text(). ***")
-    return Text3D(*args, **kwargs)
-
 def CubicGrid(*args, **kwargs):
     print("*** CubicGrid is obsolete: use TessellatedBox. ***")
     return TessellatedBox(*args, **kwargs)

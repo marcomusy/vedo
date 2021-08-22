@@ -35,4 +35,4 @@ plt.plot(x, y/5, "g")
 
 
 ##################
-plt.show(interactorStyle="Image").close()
+plt.show(mode="image").close()

@@ -42,8 +42,7 @@ def onLeftClick(evt):
     axes = ishape.buildAxes(yzGrid=False)
     acts = [ishape, axes, sname, sprop, instt]
 
-    plt1.backgroundColor('silver')
-    plt1.render()
+    plt1.background('silver').render()
     plt2.clear()
     plt2.add(acts, resetcam=True)
 

@@ -37,8 +37,12 @@ pip install vedo
 - To install from the conda-forge channel: <br>
 `conda install -c conda-forge vedo`
 
+- Sometimes an older version of VTK can give better visualizations with transparent objects,
+to install it use: `pip install vtk==8.1.2` (if available on your system).
+
 - To use in jupyter notebooks use function `vedo.embedWindow()`, you may want to install `k3d` with:<br>
 `pip install k3d==2.7.4`
+
 
 
 </details>
@@ -155,7 +159,7 @@ for a wide range of functionalities:
 ## ⌨  Command Line Interface
 Visualize a polygonal mesh from a terminal window simply with e.g.:
 ```bash
-vedo my_mesh.obj
+vedo https://vedo.embl.es/examples/data/embryo.tif
 ```
 Volumetric files (_mhd, vti, slc, tiff, DICOM etc.._) can be visualized in different modes:
 
@@ -190,7 +194,7 @@ Check out the example galleries organized by subject here:
 
 ## 📜  References
 
-**Scientific publications leveraging `vedo` (formerly known as `vtkplotter`):**
+**Scientific publications leveraging `vedo`:**
 
 - X. Diego *et al.*:
 *"Key features of Turing systems are determined purely by network topology"*,
@@ -207,6 +211,9 @@ Development, 5 April 2018, [doi: 10.1242/dev.154856](http://dev.biologists.org/c
 - J.D.P. Deshapriya et al., *"Spectral analysis of craters on (101955) Bennu"*. (DOI: 10.1016/j.icarus.2020.114252)
 - A. Pollack et al., *"Stochastic inversion of gravity, magnetic, tracer, lithology, and fault data for geologically realistic structural models: Patua Geothermal Field case study"</i>
                 Geothermics Volume 95, September 2021, [doi: 10.1016/j.geothermics.2021.102129](https://doi.org/10.1016/j.geothermics.2021.102129).
+- X. Lu et al., *"3D electromagnetic modeling of graphitic faults in the Athabasca
+ Basin using a finite-volume time-domain approach with unstructured grids"*
+[doi: 10.1190](https://doi.org/10.1190/geo2020-0657.1).
 
 
 **Have you found this software useful for your research? Star ✨ the project and cite it as:**

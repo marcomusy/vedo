@@ -25,9 +25,8 @@ class MainWindow(Qt.QMainWindow):
 
         self.frame.setLayout(self.layout)
         self.setCentralWidget(self.frame)
-        self.vp.show(self.imgActor, self.text2d,
-                     interactorStyle='Image') # build the vedo rendering
-        self.show()                           # show the Qt Window
+        self.vp.show(self.imgActor, self.text2d, mode='image') # build the vedo rendering
+        self.show()                                            # show the Qt Window
 
            
     def onSlider(self, value):

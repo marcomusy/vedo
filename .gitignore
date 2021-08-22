@@ -1,5 +1,7 @@
 *pyc
 .DS_Store
+.vedo_recorded_events.log
+docs/web_page
 
 .ipynb
 notebooks/.ipynb_checkpoints/

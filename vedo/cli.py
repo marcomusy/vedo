@@ -70,7 +70,6 @@ def get_parser():
     pr.add_argument("-bg","--background", type=str, help="background color [integer or color name]", default='', metavar='')
     pr.add_argument("-bg2", "--background-grad",    help="use background color gradient", default='', metavar='')
     pr.add_argument("-z", "--zoom", type=float,     help="zooming factor", default=1, metavar='')
-    pr.add_argument("-q", "--quiet",                help="quiet mode, less verbose", default=False, action="store_false")
     pr.add_argument("-n", "--multirenderer-mode",   help="multi renderer mode: files go to separate renderers", action="store_true")
     pr.add_argument("-s", "--scrolling-mode",       help="scrolling Mode: use slider to scroll files", action="store_true")
     pr.add_argument("-g", "--ray-cast-mode",        help="GPU Ray-casting Mode for 3D image files", action="store_true")
@@ -161,20 +160,21 @@ def exe_run(args):
     if nmat > 1:
         printc("\nSelect one of", nmat, "matching scripts:", c='y', italic=1)
 
-    for mat in matching[:25]:
-        printc(os.path.basename(mat).replace('.py',''), c='y', italic=1, end=' ')
-        with open(mat) as fm:
-            lline = ''.join(fm.readlines(60))
-            lline = lline.replace('\n',' ').replace('\'','').replace('\"','').replace('-','')
-            line = lline[:56] #cut
-            if line.startswith('from'): line=''
-            if line.startswith('import'): line=''
-            if len(lline) > len(line):
-                line += '..'
-            if len(line)>5:
-                printc('-', line,  c='y', bold=0, italic=1)
-            else:
-                print()
+    if args.full_screen: # -f option not to dump the full code but just the first line
+        for mat in matching[:25]:
+            printc(os.path.basename(mat).replace('.py',''), c='y', italic=1, end=' ')
+            with open(mat) as fm:
+                lline = ''.join(fm.readlines(60))
+                lline = lline.replace('\n',' ').replace('\'','').replace('\"','').replace('-','')
+                line = lline[:56] #cut
+                if line.startswith('from'): line=''
+                if line.startswith('import'): line=''
+                if len(lline) > len(line):
+                    line += '..'
+                if len(line)>5:
+                    printc('-', line,  c='y', bold=0, italic=1)
+                else:
+                    print()
 
     if nmat>25:
         printc('...', c='y')
@@ -182,13 +182,24 @@ def exe_run(args):
     if nmat > 1:
         exit(0)
 
-    if args.no_camera_share: # -i option to dump the full code
-        print()
+    if not args.full_screen: # -f option not to dump the full code
         with open(matching[0]) as fm:
-            codedump = fm.readlines()
-        for line in codedump:
-            printc(line, c='cyan', italic=1, bold=0, end='')
-        print()
+            code = fm.read()
+        code = "#"*80 + "\n" + code + "\n"+ "#"*80
+
+        try:
+            from pygments import highlight
+            from pygments.lexers import Python3Lexer
+            from pygments.formatters import Terminal256Formatter
+            # from pygments.styles import STYLE_MAP
+            # print(STYLE_MAP.keys())
+            result = highlight(code, Python3Lexer(), Terminal256Formatter(style='zenburn'))
+            print(result, end='')
+
+        except:
+            printc(code, italic=1, bold=0)
+            printc("To colorize code try:  pip install Pygments")
+        # print()
 
     printc("("+matching[0]+")", c='y', bold=0, italic=1)
     os.system('python3 ' + matching[0])
@@ -335,7 +346,7 @@ def draw_scene(args):
 
     if nfiles == 1 and args.files[0].endswith(".gif"): ###can be improved
         frames = load(args.files[0])
-        applications.Browser(frames).show(bg=args.background, prefix="frame ", bg2=args.background_grad)
+        applications.Browser(frames).show(bg=args.background, bg2=args.background_grad)
         return ##########################################################
 
     N = None
@@ -359,7 +370,6 @@ def draw_scene(args):
         vp.axes = args.axes_type
         vp.addHoverLegend()
 
-    vp.verbose = not args.quiet
     vp.sharecam = not args.no_camera_share
 
     wire = False

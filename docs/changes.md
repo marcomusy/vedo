@@ -10,6 +10,7 @@
 ### `base.py`
 
 - added `.lighting(metallicity=1, roughness=0.1)` to include PBR (physics based rendering).
+- method `.printInfo()` is now simply `.print()`
 
 ---
 ### `addons.py`
@@ -25,10 +26,14 @@
 ---
 ### `plotter.py`
 
+- added `record()` and `play()` to store and playback camera and all other events
+- keyword `interactorStyle` becomes now `mode`
+
 ---
 ### `picture.py`
 
 - added `level()` and `window()` methods to control brightness and contrast of a Picture.
+- added `smooth()` to make gaussian smoothing of a Picture object.
 
 ---
 ### `pyplot.py`
@@ -38,7 +43,7 @@
 ---
 ### `pointcloud.py`
 
-- added `hausdorffDistance()` to compute the Hausdorff distance of two point sets
+- added `hausdorffDistance()` to compute the Hausdorff distance of two point sets or meshes
 
 ---
 ### `shapes.py`
@@ -55,6 +60,7 @@
 
 - removed `bin/vedo` and created entry point from `vedo/cli.py` (command line interface).
 This works better on windows systems.
+- `vedo -r ` colorizes code dump.
 
 -------------------------
 
@@ -66,6 +72,7 @@ This works better on windows systems.
 - `vedo -r qt_window2`
 - `vedo -r spline_tool`
 - `vedo -r wx_window1`
-
+- `vedo -r picture2mesh`
+- `vedo -r record_play`
 
 

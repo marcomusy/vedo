@@ -2,16 +2,14 @@ import numpy as np
 import vtk
 import vedo
 import vedo.colors as colors
-import vedo.docs as docs
 import vedo.utils as utils
-import vedo.settings as settings
 from vtk.util.numpy_support import numpy_to_vtk
 
 __doc__ = (
     """
 Submodule extending the ``vtkImageActor`` object functionality.
 """
-    + docs._defs
+    + vedo.docs._defs
 )
 
 __all__ = ["Picture"]
@@ -128,13 +126,13 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
                    font="Theemim",
                    dpi=500,
                    justify="bottom-left",
-                   ):
+        ):
         """Build an image from a string."""
 
         if c is None: # automatic black or white
-            if settings.plotter_instance and settings.plotter_instance.renderer:
+            if vedo.settings.plotter_instance and vedo.settings.plotter_instance.renderer:
                 c = (0.9, 0.9, 0.9)
-                if np.sum(settings.plotter_instance.renderer.GetBackground()) > 1.5:
+                if np.sum(vedo.settings.plotter_instance.renderer.GetBackground()) > 1.5:
                     c = (0.1, 0.1, 0.1)
             else:
                 c = (0.3, 0.3, 0.3)
@@ -283,6 +281,33 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         ec.SetComponents(component)
         ec.Update()
         return Picture(ec.GetOutput())
+    
+    def smooth(self, sigma=3, radius=None):
+        """
+        Smooth a Picture with Gaussian kernel.
+
+        Parameters
+        ----------
+        sigma : int, optional
+            number of sigmas in pixel units. The default is 3.
+        radius : TYPE, optional
+            how far out the gaussian kernel will go before being clamped to zero. The default is None.
+        """
+        gsf = vtk.vtkImageGaussianSmooth()
+        gsf.SetDimensionality(2)
+        gsf.SetInputData(self._data)
+        if radius is not None:
+            if utils.isSequence(radius):
+                gsf.SetRadiusFactors(radius[0],radius[1])
+            else:
+                gsf.SetRadiusFactor(radius)
+        
+        if utils.isSequence(sigma):
+            gsf.SetStandardDeviations(sigma[0], sigma[1])
+        else:
+            gsf.SetStandardDeviation(sigma)
+        gsf.Update()
+        return self._update(gsf.GetOutput())
 
 
     def fft(self, mode='magnitude', logscale=12, center=True):

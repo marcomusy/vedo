@@ -52,6 +52,7 @@ def show(*actors,
         roll=0,
         camera=None,
         interactorStyle=0,
+        mode=None,
         q=False,
         new=False,
     ):
@@ -137,7 +138,7 @@ def show(*actors,
         or continue execution (False)
 
     :param float rate:  maximum rate of `show()` in Hertz
-    :param int interactorStyle: set the type of interaction
+    :param int mode: set the type of interaction
 
         - 0 = TrackballCamera [default]
         - 1 = TrackballActor
@@ -179,9 +180,6 @@ def show(*actors,
             plt.show(p, at=1)
             plt.show(c, at=2, interactive=True)
     """
-    if axes is None:
-        axes = settings.defaultAxesType
-
     if len(actors) == 0:
         actors = None
     elif len(actors) == 1:
@@ -243,6 +241,7 @@ def show(*actors,
                                         camera=camera,
                                         interactive=False,
                                         interactorStyle=interactorStyle,
+                                        mode=mode,
                                         bg=bg,
                                         bg2=bg2,
                                         axes=axes,
@@ -271,6 +270,7 @@ def show(*actors,
                                     camera=camera,
                                     interactive=interactive,
                                     interactorStyle=interactorStyle,
+                                    mode=mode,
                                     bg=bg,
                                     bg2=bg2,
                                     axes=axes,
@@ -395,7 +395,7 @@ class Plotter:
         title="vedo",
         bg="white",
         bg2=None,
-        axes=settings.defaultAxesType,
+        axes=None,
         sharecam=True,
         resetcam=True,
         interactive=None,
@@ -948,7 +948,7 @@ class Plotter:
         self.window.Render()
         return self
 
-    def backgroundColor(self, c1=None, c2=None, at=None):
+    def background(self, c1=None, c2=None, at=None):
         """Set the color of the background for the current renderer.
         A different renderer index can be specified by keyword ``at``.
 
@@ -1134,7 +1134,67 @@ class Plotter:
         self.interactor.FlyTo(self.renderers[at], point)
         return self
 
-    def useParallelProjection(self, value=True, at=0):
+
+    def record(self, filename='.vedo_recorded_events.log'):
+        """
+        Record camera, mouse, keystrokes and all other events.
+        Recording can be toggled on/off by pressing key "R".
+
+        Parameters
+        ----------
+        filename : str, optional
+            ascii file to store events. The default is '.vedo_recorded_events.log'.
+
+        Returns
+        -------
+        events : str
+            a string descriptor of events.
+        """
+        erec = vtk.vtkInteractorEventRecorder()
+        erec.SetInteractor(self.interactor)
+        erec.SetFileName(filename)
+        erec.SetKeyPressActivationValue("R")        
+        erec.EnabledOn()
+        erec.Record()
+        self.interactor.Start()
+        erec.Stop()
+        erec.EnabledOff()
+        with open(filename, 'r') as fl:
+            events = fl.read()
+        erec = None
+        return events
+
+    def play(self, events='.vedo_recorded_events.log', repeats=0):
+        """        
+        Play camera, mouse, keystrokes and all other events.         
+
+        Parameters
+        ----------
+        events : str, optional
+            file o string of events. The default is '.vedo_recorded_events.log'.
+        repeats : int, optional
+            number of extra repeats of the same events. The default is 0.
+        """
+        erec = vtk.vtkInteractorEventRecorder()
+        erec.SetInteractor(self.interactor)
+
+        if events.endswith(".log"):
+            erec.ReadFromInputStringOff()
+            erec.SetFileName(events)
+        else:
+            erec.ReadFromInputStringOn()
+            erec.SetInputString(events)
+
+        erec.Play()
+        for _i in range(repeats):
+            erec.Rewind()
+            erec.Play()
+        erec.EnabledOff()
+        erec = None
+        return self
+    
+
+    def parallelProjection(self, value=True, at=0):
         """
         Use parallel projection ``at`` a specified renderer.
         Object is seen from "infinite" distance, e.i. remove any perspective effects.
@@ -1875,6 +1935,7 @@ class Plotter:
                     roll=0,
                     camera=None,
                     interactorStyle=0,
+                    mode=None,
                     rate=None,
                     bg=None,
                     bg2=None,
@@ -1953,7 +2014,7 @@ class Plotter:
             or continue execution (False)
 
         :param float rate:  maximum rate of `show()` in Hertz
-        :param int interactorStyle: set the type of interaction
+        :param int,str mode: set the type of interaction
             - 0 = TrackballCamera [default]
             - 1 = TrackballActor
             - 2 = JoystickCamera
@@ -1975,9 +2036,9 @@ class Plotter:
 
         if title is not None:
             self.title = title
-
-        if axes is None:
-            axes = settings.defaultAxesType
+        
+        if mode is not None: ### interactorStyle will disappear in later releases!
+            interactorStyle = mode
 
         if size is not None:
             self.size = size
@@ -2309,13 +2370,12 @@ class Plotter:
             self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleTerrain())
         elif interactorStyle ==11 or interactorStyle == "Unicam":
             self.interactor.SetInteractorStyle(vtk.vtkInteractorStyleUnicam())
-        elif interactorStyle ==12 or interactorStyle == "Image":
+        elif interactorStyle ==12 or interactorStyle == "Image" or interactorStyle == "image":
             style = vtk.vtkInteractorStyleImage()
             style.SetInteractionModeToImage3D()
             self.interactor.SetInteractorStyle(style)
 
         if self.interactor and self.interactive:
-            # print("Start", [self.renderer])
             self.interactor.Start()
 
         if rate:
@@ -2491,9 +2551,7 @@ class Plotter:
                 w2if.SetInputBufferTypeToRGBA()
             w2if.ReadFrontBufferOff()  # read from the back buffer
         w2if.Update()
-        pic = vedo.picture.Picture(w2if.GetOutput())
-        return pic
-
+        return vedo.picture.Picture(w2if.GetOutput())
 
     def export(self, filename='scene.npz'):
         """Export scene to file to HTML, X3D or Numpy file."""
@@ -2844,11 +2902,11 @@ class Plotter:
             cam = self.renderer.GetActiveCamera()
             vedo.printc('\n###################################################', c='y')
             vedo.printc('## Template python code to position this camera: ##', c='y')
-            vedo.printc('cam = dict(pos='          +utils.precision(cam.GetPosition(),3)+',', c='y')
-            vedo.printc('           focalPoint='   +utils.precision(cam.GetFocalPoint(),3)+',', c='y')
-            vedo.printc('           viewup='       +utils.precision(cam.GetViewUp(),3)+',', c='y')
-            vedo.printc('           distance='     +utils.precision(cam.GetDistance(),3)+',', c='y')
-            vedo.printc('           clippingRange='+utils.precision(cam.GetClippingRange(),3)+')', c='y')
+            vedo.printc('cam = dict(pos='          +utils.precision(cam.GetPosition(),4)+',', c='y')
+            vedo.printc('           focalPoint='   +utils.precision(cam.GetFocalPoint(),4)+',', c='y')
+            vedo.printc('           viewup='       +utils.precision(cam.GetViewUp(),4)+',', c='y')
+            vedo.printc('           distance='     +utils.precision(cam.GetDistance(),4)+',', c='y')
+            vedo.printc('           clippingRange='+utils.precision(cam.GetClippingRange(),4)+')', c='y')
             vedo.printc('show(mymeshes, camera=cam)', c='y')
             vedo.printc('\n### OR equivalently: ##############################', c='y')
             vedo.printc('plt = vedo.Plotter()\n...', c='y')
@@ -2858,6 +2916,7 @@ class Plotter:
             vedo.printc('plt.camera.SetDistance(',   round(cam.GetDistance(), 3), ')', c='y')
             vedo.printc('plt.camera.SetClippingRange(',
                                     [round(e, 3) for e in cam.GetClippingRange()], ')', c='y')
+            vedo.printc('plt.show(mymeshes, resetcamera=False)', c='y')
             vedo.printc('###################################################', c='y')
             return
 

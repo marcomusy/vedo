@@ -22,22 +22,6 @@ General settings.
     # Automatically reset the range of the active scalars
     autoResetScalarRange = True
 
-    # Default style is TrackBallCamera
-    interactorStyle = None
-    # possible values are (see https://vtk.org/doc/nightly/html/classvtkInteractorStyle.html):
-        - 0 = TrackballCamera [default]
-        - 1 = TrackballActor
-        - 2 = JoystickCamera
-        - 3 = JoystickActor
-        - 4 = Flight
-        - 5 = RubberBand2D
-        - 6 = RubberBand3D
-        - 7 = RubberBandZoom
-        - 8 = Context
-        - 9 = 3D
-        -10 = Terrain
-        -11 = Unicam
-
     # Allow to continously interact with scene during interactive() execution
     allowInteraction = True
 
@@ -168,8 +152,7 @@ except:
 xtitle = 'x'
 ytitle = 'y'
 ztitle = 'z'
-defaultAxesType = None
-
+ 
 # Set a default for the font to be used for axes, comments etc.
 defaultFont = 'Normografo'
 
@@ -183,9 +166,6 @@ computeNormals = None
 
 # Automatic resetting the range of the active scalars
 autoResetScalarRange = True
-
-# Default style is TrackBallCamera
-interactorStyle = None
 
 # Allow to continously interact with scene during interactor.Start() execution
 allowInteraction = True
@@ -324,6 +304,8 @@ dataurl = "https://vedo.embl.es/examples/data/"
 
 plotter_instances = []
 plotter_instance = None
+
+interactorStyle = None # internal use only
 
 ####################################################################################
 ####################################################################################
