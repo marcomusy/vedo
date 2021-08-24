@@ -54,6 +54,7 @@ pic = Picture("https://embryology.med.unsw.edu.au/embryology/images/4/40/Mouse-_
 
 t = """Click to add a point
 Right-click to remove
+Drag mouse to change constrast
 Press c to clear points
 Press s to save to file"""
 instrucs = Text2D(t, pos='bottom-left', c='white', bg='green', font='Quikhand', s=0.9)
@@ -62,6 +63,6 @@ plt = Plotter()
 plt.addCallback('KeyPress', keyfunc)
 plt.addCallback('LeftButtonPress', onLeftClick)
 plt.addCallback('RightButtonPress', onRightClick)
-plt.show(pic, instrucs, axes=True, bg='blackboard').close()
+plt.show(pic, instrucs, axes=True, bg='blackboard', mode='image').close()
 
 

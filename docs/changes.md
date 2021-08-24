@@ -33,10 +33,16 @@
 ---
 ### `picture.py`
 
+- added `flip` keyword to flip xy convention
 - added `level()` and `window()` methods to control brightness and contrast of a Picture.
 - added `smooth()` to make gaussian smoothing of a Picture object.
+- added `bw()` to make a picture black and white
 - added `channels` keyword to specify rgba channels to use (useful to remove alpha)
-
+- `extract()` renamed to `select()`
+- added `pad()` to create a padding margin to a picture
+- added `median()` a median filter that preserves thin lines and corners
+- added `frequencyPassFilter()` to filter images based on level of detail frequencies
+- added `rotateAntiClockWise()` to rotate an image (landscape to portrait and viceversa)
 ---
 ### `pyplot.py`
 

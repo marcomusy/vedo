@@ -26,8 +26,9 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     |rotateImage| |rotateImage.py|_
     
     :param list channels: only select these specific rgba channels (useful to remove alpha)
+    :param bool flip: flip xy axis convention (when input is a numpy array)
     """    
-    def __init__(self, obj=None, channels=()):
+    def __init__(self, obj=None, channels=(), flip=False):
         vtk.vtkImageActor.__init__(self)
         vedo.base.Base3DProp.__init__(self)
 
@@ -39,8 +40,10 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
                 iac = vtk.vtkImageAppendComponents()
                 nchan = obj.shape[2] # get number of channels in inputimage (L/LA/RGB/RGBA)
                 for i in range(nchan):
-                    #arr = np.flip(np.flip(obj[:,:,i], 0), 0).ravel()
-                    arr = np.flip(obj[:,:,i], 0).ravel()
+                    if flip:
+                        arr = np.flip(np.flip(obj[:,:,i], 0), 0).ravel()
+                    else:
+                        arr = np.flip(obj[:,:,i], 0).ravel()
                     varb = numpy_to_vtk(arr, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
                     varb.SetName("RGBA")
                     imgb = vtk.vtkImageData()
@@ -51,8 +54,10 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
                 img = iac.GetOutput()
 
             elif len(obj.shape) == 2: # black and white
-                # arr = np.flip(obj[:,:], 0).ravel()
-                arr = obj.ravel()
+                if flip:
+                    arr = np.flip(obj[:,:], 0).ravel()
+                else:
+                    arr = obj.ravel()
                 varb = numpy_to_vtk(arr, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
                 varb.SetName("RGBA")
                 img = vtk.vtkImageData()
@@ -229,30 +234,58 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         return self
 
 
-    def crop(self, top=None, bottom=None, right=None, left=None):
+    def crop(self, top=None, bottom=None, right=None, left=None, pixels=False):
         """Crop picture.
 
         :param float top: fraction to crop from the top margin
         :param float bottom: fraction to crop from the bottom margin
         :param float left: fraction to crop from the left margin
         :param float right: fraction to crop from the right margin
+        :param bool pixels: units are pixels
         """
         extractVOI = vtk.vtkExtractVOI()
         extractVOI.SetInputData(self._data)
         extractVOI.IncludeBoundaryOn()
 
         d = self.GetInput().GetDimensions()
-        bx0, bx1, by0, by1 = 0, d[0]-1, 0, d[1]-1
-        if left is not None:   bx0 = int((d[0]-1)*left)
-        if right is not None:  bx1 = int((d[0]-1)*(1-right))
-        if bottom is not None: by0 = int((d[1]-1)*bottom)
-        if top is not None:    by1 = int((d[1]-1)*(1-top))
-        extractVOI.SetVOI(bx0, bx1, by0, by1, 0, 0)
+        if pixels:
+            extractVOI.SetVOI(right, d[0]-left, bottom, d[1]-top, 0, 0)
+        else:
+            bx0, bx1, by0, by1 = 0, d[0]-1, 0, d[1]-1
+            if left is not None:   bx0 = int((d[0]-1)*left)
+            if right is not None:  bx1 = int((d[0]-1)*(1-right))
+            if bottom is not None: by0 = int((d[1]-1)*bottom)
+            if top is not None:    by1 = int((d[1]-1)*(1-top))
+            extractVOI.SetVOI(bx0, bx1, by0, by1, 0, 0)
         extractVOI.Update()
         return self._update(extractVOI.GetOutput())
 
+    def pad(self, pixels=10, value=255):
+        """
+        Add the specified number of pixels at the picture borders.
+
+        Parameters
+        ----------
+        pixels : int,list , optional
+            number of pixels to be added (or a list of length 4). The default is 10.
+        value : int, optional
+            intensity value (gray-scale color) of the padding. The default is 255.
+        """
+        x0,x1,y0,y1,_z0,_z1 = self._data.GetExtent()
+        pf = vtk.vtkImageConstantPad()
+        pf.SetInputData(self._data)
+        pf.SetConstant(value)
+        if utils.isSequence(pixels):
+            pf.SetOutputWholeExtent(x0-pixels[0],x1+pixels[1],
+                                    y0-pixels[2],y1+pixels[4], 0,0)
+        else:
+            pf.SetOutputWholeExtent(x0-pixels,x1+pixels, y0-pixels,y1+pixels, 0,0)
+        pf.Update()
+        img = pf.GetOutput()
+        return self._update(img)
+
     def resize(self, newsize):
-        """Resize the image by specifying the number of pixels in width and height.
+        """Resize the image resolution by specifying the number of pixels in width and height.
         If left to zero, it will be automatically calculated to keep the original aspect ratio.
 
         :param list newsize: shape of picture as [npx, npy]
@@ -289,15 +322,64 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             raise RuntimeError()
         ff.Update()
         return self._update(ff.GetOutput())
+        
+    def rotateAntiClockWise(self, n=1):
+        """
+        Rotate a black and white Picture in steps of 90 degrees anticlockwise 
+        (landscape to portrait and viceversa).
 
-    def extract(self, component):
-        """Extract one component of the rgb image"""
+        Parameters
+        ----------
+        n : int, optional
+            number of 90 deg rotations. The default is 1.
+        """
+        varr = self._data.GetPointData().GetScalars()
+        nx,ny,nz = self._data.GetDimensions()
+        n = n%4
+        if n==1:
+            self.bw()
+            arr = utils.vtk2numpy(varr).reshape(nx,ny, order='F')
+            pp = Picture(arr).mirror('x')
+            img = pp._data
+            pp = None
+            return self._update(img)
+        elif n==2:
+            return self.mirror('x').mirror('y')
+        elif n==3:
+            self.bw()
+            arr = utils.vtk2numpy(varr).reshape(nx,ny, order='F')
+            pp = Picture(arr).mirror('y')
+            img = pp._data
+            pp = None
+            return self._update(img)
+        else:
+            return self
+
+    def select(self, component):
+        """Select one single component of the rgb image"""
         ec = vtk.vtkImageExtractComponents()
         ec.SetInputData(self._data)
         ec.SetComponents(component)
         ec.Update()
         return Picture(ec.GetOutput())
     
+    def bw(self):
+        """Make it black and white"""
+        n = self._data.GetPointData().GetNumberOfComponents()        
+        if n==4:
+            ecr = vtk.vtkImageExtractComponents()
+            ecr.SetInputData(self._data)
+            ecr.SetComponents(0,1,2)
+            ecr.Update()
+            img = ecr.GetOutput()
+        else:
+            img = self._data
+        
+        ecr = vtk.vtkImageLuminance()
+        ecr.SetInputData(img)
+        ecr.Update()
+        return self._update(ecr.GetOutput())
+
     def smooth(self, sigma=3, radius=None):
         """
         Smooth a Picture with Gaussian kernel.
@@ -325,6 +407,17 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         gsf.Update()
         return self._update(gsf.GetOutput())
 
+    def median(self):
+        """Median filter that preserves thin lines and corners. 
+        It operates on a 5x5 pixel neighborhood. It computes two values initially: 
+        the median of the + neighbors and the median of the x neighbors. 
+        It then computes the median of these two values plus the center pixel. 
+        This result of this second median is the output pixel value.
+        """
+        medf = vtk.vtkImageHybridMedian2D()
+        medf.SetInputData(self._data)
+        medf.Update()        
+        return self._update(medf.GetOutput())
 
     def fft(self, mode='magnitude', logscale=12, center=True):
         """Fast Fourier transform of a picture.
@@ -412,7 +505,61 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
 
         return Picture(out)
 
+    def frequencyPassFilter(self, lowcutoff=None, highcutoff=None, order=3):
+        """
+        Low-pass and high-pass filtering become trivial in the frequency domain.
+        A portion of the pixels/voxels are simply masked or attenuated.
+        This function applies a high pass Butterworth filter that attenuates the
+        frequency domain image with the function
 
+        |G_Of_Omega|
+
+        The gradual attenuation of the filter is important.
+        A simple high-pass filter would simply mask a set of pixels in the frequency domain,
+        but the abrupt transition would cause a ringing effect in the spatial domain.
+
+        :param list lowcutoff:  the cutoff frequencies
+        :param list highcutoff: the cutoff frequencies
+        :param int order: order determines sharpness of the cutoff curve
+        """
+        #https://lorensen.github.io/VTKExamples/site/Cxx/ImageProcessing/IdealHighPass
+        fft = vtk.vtkImageFFT()
+        fft.SetInputData(self._data)
+        fft.Update()
+        out = fft.GetOutput()
+
+        if highcutoff:
+            butterworthLowPass = vtk.vtkImageButterworthLowPass()
+            butterworthLowPass.SetInputData(out)
+            butterworthLowPass.SetCutOff(highcutoff)
+            butterworthLowPass.SetOrder(order)
+            butterworthLowPass.Update()
+            out = butterworthLowPass.GetOutput()
+
+        if lowcutoff:
+            butterworthHighPass = vtk.vtkImageButterworthHighPass()
+            butterworthHighPass.SetInputData(out)
+            butterworthHighPass.SetCutOff(lowcutoff)
+            butterworthHighPass.SetOrder(order)
+            butterworthHighPass.Update()
+            out = butterworthHighPass.GetOutput()
+
+        butterworthRfft = vtk.vtkImageRFFT()
+        butterworthRfft.SetInputData(out)
+        butterworthRfft.Update()
+
+        butterworthReal = vtk.vtkImageExtractComponents()
+        butterworthReal.SetInputData(butterworthRfft.GetOutput())
+        butterworthReal.SetComponents(0)
+        butterworthReal.Update()
+        
+        caster = vtk.vtkImageCast()
+        caster. SetOutputScalarTypeToUnsignedChar()
+        caster.SetInputData(butterworthReal.GetOutput())
+        caster.Update()
+        return self._update(caster.GetOutput())
+    
+    
     def blend(self, pic, alpha1=0.5, alpha2=0.5):
         """Take L, LA, RGB, or RGBA images as input and blends
         them according to the alpha values and/or the opacity setting for each input.
@@ -485,7 +632,6 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """Write picture to file as png or jpg."""
         vedo.io.write(self._data, filename)
         return self
-
 
 
 
