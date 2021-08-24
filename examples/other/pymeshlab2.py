@@ -1,26 +1,24 @@
+"""pymeshlab interoperability example:
+    Surface reconstruction by ball pivoting"""
 import pymeshlab
 import vedo
 
-filepath = vedo.download(vedo.dataurl+'bunny.obj')
+pts = vedo.Mesh(vedo.dataurl+'cow.vtk').points() # numpy array of vertices
+
+m = pymeshlab.Mesh(vertex_matrix=pts)
 
 ms = pymeshlab.MeshSet()
-ms.load_new_mesh(filepath)
-# vedo.show(ms, axes=True) # this already works!
-
-pt = [0.02343884, 0.0484675, 0.03972297]
-ms.colorize_by_geodesic_distance_from_a_given_point(startpoint=pt)
+ms.add_mesh(m)
+              
+ms.surface_reconstruction_ball_pivoting(ballradius=0.15)
+# ms.compute_normals_for_point_sets()
+# ms.surface_reconstruction_screened_poisson()
 
 mlab_mesh = ms.current_mesh()
 
-vedo_mesh = vedo.Mesh(mlab_mesh).cmap('Paired').addScalarBar("distance")
+reco_mesh = vedo.Mesh(mlab_mesh).computeNormals().flat()
 
-print("Can convert back to pymeshlab.MeshSet:", type(vedo_mesh.to_meshlab()))
-
-vedo.show("pymeshlab interoperability example",
-          vedo_mesh,
-          vedo.Point(pt),
-          axes=True, bg='green9', bg2='blue9', title="vedo + pymeshlab",
-)
+vedo.show(__doc__, reco_mesh, axes=True, bg2='blue9', title="vedo + pymeshlab")
 
 
 ################################################################################
@@ -31,6 +29,8 @@ vedo.show("pymeshlab interoperability example",
 # ambient_occlusion
 # compute_curvature_principal_directions
 # colorize_by_geodesic_distance_from_a_given_point
+# colorize_by_border_distance
+# colorize_curvature_apss
 # compute_normals_for_point_sets
 # compute_planar_section
 # compute_geometric_measures
@@ -39,6 +39,7 @@ vedo.show("pymeshlab interoperability example",
 # curvature_flipping_optimization
 # cut_mesh_along_crease_edges
 # define_new_per_vertex_attribute
+# distance_from_reference_mesh
 # dust_accumulation
 # estimate_radius_from_density
 # global_registration

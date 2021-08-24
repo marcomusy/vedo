@@ -151,7 +151,7 @@ class Mesh(Points):
                 print("Could not add meshio cell data, skip.")
 
         elif "meshlab" in inputtype:
-            self._data = vedo.utils.meshlab2vedo(inputobj)
+            self._data = vedo.utils._meshlab2vedo(inputobj)
 
         elif isSequence(inputobj):
             ninp = len(inputobj)

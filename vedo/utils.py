@@ -1762,23 +1762,28 @@ def trimesh2vedo(inputobj, alphaPerCell=False):
     return None
 
 
-def vedo2meshlab(vmesh):
+def _vedo2meshlab(vmesh):
     try:
         import pymeshlab as mlab
     except RuntimeError:
         printc("Need pymeshlab to run: pip install pymeshlab", c='r')
 
-    ms = mlab.MeshSet()
     m = mlab.Mesh(vertex_matrix=vmesh.points(),
                   face_matrix=vmesh.faces(),
                   v_normals_matrix=vmesh.normals(cells=False, compute=False),
                   f_normals_matrix=vmesh.normals(cells=True, compute=False),
-                 )
+    )
+    parr = vmesh.getPointArray()
+    if parr is not None:
+        m.vertex_quality_array(parr)
+    carr = vmesh.getCellArray()
+    if carr is not None:
+        m.face_quality_array(carr)        
     m.update_bounding_box()
-    ms.add_mesh(m)
-    return ms
+    return m
 
-def meshlab2vedo(mmesh):
+
+def _meshlab2vedo(mmesh):
     inputtype = str(type(mmesh))
 
     if "MeshSet" in inputtype:
@@ -1786,10 +1791,37 @@ def meshlab2vedo(mmesh):
     mpoints, mcells = mmesh.vertex_matrix(), mmesh.face_matrix()
     pnorms = mmesh.vertex_normal_matrix()
     cnorms = mmesh.face_normal_matrix()
+        
+    try:
+        parr = mmesh.vertex_quality_array()
+    except:
+        parr = None
+    try:
+        carr = mmesh.face_quality_array()
+    except:
+        carr = None  
+    
     if len(mcells):
         polydata = buildPolyData(mpoints, mcells)
     else:
         polydata = buildPolyData(mpoints, None)
+    
+    if parr is not None:
+        parr_vtk = numpy_to_vtk(parr)
+        parr_vtk.SetName("MeshLabQuality")
+        x0,x1 = parr_vtk.GetRange()
+        if x1-x0:
+            polydata.GetPointData().AddArray(parr_vtk)
+            polydata.GetPointData().SetActiveScalars("MeshLabQuality")
+    
+    if carr is not None:
+        carr_vtk = numpy_to_vtk(carr)
+        carr_vtk.SetName("MeshLabQuality")
+        x0,x1 = carr_vtk.GetRange()
+        if x1-x0:
+            polydata.GetCellData().AddArray(carr_vtk)
+            polydata.GetCellData().SetActiveScalars("MeshLabQuality")
+        
     if len(pnorms):
         polydata.GetPointData().SetNormals(numpy2vtk(pnorms))
     if len(cnorms):

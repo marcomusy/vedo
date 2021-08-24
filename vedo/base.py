@@ -1694,7 +1694,7 @@ class BaseGrid(BaseActor):
             .. code-block:: python
 
                 from vedo import *
-                tetmesh = TetMesh(datadir+'limb_ugrid.vtk')
+                tetmesh = TetMesh(dataurl+'limb_ugrid.vtk')
                 tetmesh.color('rainbow')
                 cu = Cube(side=500).x(500) # any Mesh works
                 tetmesh.cutWithBox(cu).show(axes=1)

@@ -3520,14 +3520,13 @@ def ConvexHull(pts):
     return m
 
 
-def VedoLogo(distance=0, c=None, bc='t', version=False, frame=True, simple=False):
+def VedoLogo(distance=0, c=None, bc='t', version=False, frame=True):
     """
     Create the 3D vedo logo.
 
     :param float distance: send back logo by this distance from camera
     :param bool version: add version text to the right end of the logo
     :param bc: text back face color
-    :param bool simple: simple plain appearence
     """
     if c is None:
         c = (0,0,0)
@@ -3536,33 +3535,9 @@ def VedoLogo(distance=0, c=None, bc='t', version=False, frame=True, simple=False
                 c=[0,0,0]
             else:
                 c='linen'
-
-    sphere = Sphere(r=500, res=12, c=c).x(400).alpha(0.16)
-    # generate and save
-    # tetm = TetMesh(datadir+'limb_ugrid.vtk')
-    # ms = tetm.cutWithMesh(sphere, onlyBoundary=True).tomesh(shrink=1)
-    # ms.clean().write('omesh.vtk')
-
-    if simple:
-        txt = 'vэdo'
-        ms = None
-        sphere = None
-    else:
-        try: # might be offline
-            txt = 'vэd' #chr(1101)
-            ms = vedo.io.load(vedo.datadir+'omesh.vtk')
-            ms.scale([1,1,0.3]).pos(1210, 550, 95).lighting('shiny').pickable(False)
-            # Spectral, viridis_r, jet_r, gist_ncar, prism, seismic_r, brg_r
-            ms.cmap('jet_r', on='cells')
-            sphere.scale([1,1,0.3]).pos(1540, 548, 82)
-            sphere.lighting('off').frontFaceCulling(True).pickable(False)
-        except:
-            txt = 'vэdo'
-            ms = None
-            sphere = None
-
+ 
     font = 'Comae'
-    vlogo = Text3D(txt, font=font, s=1350, depth=0.2, c=c, hspacing=0.8)
+    vlogo = Text3D('vэdo', font=font, s=1350, depth=0.2, c=c, hspacing=0.8)
     vlogo.scale([1,.95,1]).x(-2525).pickable(False).bc(bc)
     vlogo.GetProperty().LightingOn()
 
@@ -3573,7 +3548,6 @@ def VedoLogo(distance=0, c=None, bc='t', version=False, frame=True, simple=False
         vr.RotateZ(90)
         vr.pos(2450,50,80).bc(bc).pickable(False)
     elif frame:
-        # print(vedo.Assembly(vlogo, sphere, ms).bounds()[0:4])
         rul = vedo.buildRulerAxes((-2600,2110, 0,1650, 0,0),
                                   xlabel='European Molecular Biology Laboratory',
                                   ylabel=vedo.__version__,
@@ -3581,7 +3555,6 @@ def VedoLogo(distance=0, c=None, bc='t', version=False, frame=True, simple=False
                                   xpad=0.09, ypad=0.04,
                                  ).pickable(False)
     fakept = vedo.Point((0,500, distance*1725), alpha=0, c=c, r=1).pickable(0)
-    asso = vedo.Assembly([vlogo, vr, ms, sphere, fakept, rul]).scale(1/1725)
-    return asso
+    return vedo.Assembly([vlogo, vr, fakept, rul]).scale(1/1725)
 
 

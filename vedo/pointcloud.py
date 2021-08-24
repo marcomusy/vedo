@@ -3058,7 +3058,7 @@ class Points(vtk.vtkFollower, BaseActor):
             .. code-block:: python
 
                 from vedo import *
-                b = load(datadir+'dodecahedron.vtk').computeNormals()
+                b = Mesh(dataurl+'dodecahedron.vtk').computeNormals()
                 b.warpByVectors("Normals", factor=0.15).show()
 
             |warpv|
@@ -3661,7 +3661,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
     def to_meshlab(self):
         """Return the ``pymeshlab.Mesh`` object."""
-        return utils.vedo2meshlab(self)
+        return utils._vedo2meshlab(self)
 
 
     def density(self, dims=(40,40,40),

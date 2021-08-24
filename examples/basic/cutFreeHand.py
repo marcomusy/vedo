@@ -52,7 +52,7 @@ from vedo.applications import FreeHandCutPlotter
 ######################################################################################
 vedo.settings.useParallelProjection = True  # to avoid perspective artifacts
 
-msh = vedo.Volume(vedo.datadir+'embryo.tif').isosurface().color('gold', 0.25) # Mesh
+msh = vedo.Volume(vedo.dataurl+'embryo.tif').isosurface().color('gold', 0.25) # Mesh
 
 plt = FreeHandCutPlotter(msh).addHoverLegend()
 #plt.init(some_list_of_initial_pts) #optional!

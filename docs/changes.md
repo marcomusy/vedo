@@ -4,6 +4,7 @@
 - Command line interface `vedo ...` should now work on windows 10 too.
 - added skybox environment with `show(..., bg="path/to/file.hdr")`
 - added (kind of limited) support to `wxpython` embedding (analogous to Qt, but open-source)
+- updated pymeshlab examples
 
 
 ---
@@ -34,6 +35,7 @@
 
 - added `level()` and `window()` methods to control brightness and contrast of a Picture.
 - added `smooth()` to make gaussian smoothing of a Picture object.
+- added `channels` keyword to specify rgba channels to use (useful to remove alpha)
 
 ---
 ### `pyplot.py`
@@ -74,5 +76,7 @@ This works better on windows systems.
 - `vedo -r wx_window1`
 - `vedo -r picture2mesh`
 - `vedo -r record_play`
+- `vedo -r pymeshlab1`
+- `vedo -r pymeshlab2`
 
 

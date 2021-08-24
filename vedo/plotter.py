@@ -993,10 +993,10 @@ class Plotter:
 
             .. code-block:: python
 
-                from vedo import datadir, load, show
+                from vedo import *
 
                 # Return a list of 2 Mesh
-                g = load([datadir+'250.vtk', datadir+'290.vtk'])
+                g = load([dataurl+'250.vtk', dataurl+'290.vtk'])
                 show(g)
 
                 # Return a list of meshes by reading all files in a directory
@@ -1005,7 +1005,7 @@ class Plotter:
                 show(g)
 
                 # Return a Volume. Color/Opacity transfer function can be specified too.
-                g = load(datadir+'embryo.slc')
+                g = load(dataurl+'embryo.slc')
                 g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1)).show()
         """
         acts = vedo.io.load(filename, unpack, force)
@@ -1914,9 +1914,9 @@ class Plotter:
                 if "MeshSet" in str(type(a)):
                     for i in range(a.number_meshes()):
                         if a.mesh_id_exists(i):
-                            scannedacts.append(vedo.Mesh(utils.meshlab2vedo(a.mesh(i))))
+                            scannedacts.append(vedo.Mesh(utils._meshlab2vedo(a.mesh(i))))
                 else:
-                    scannedacts.append(vedo.Mesh(utils.meshlab2vedo(a)))
+                    scannedacts.append(vedo.Mesh(utils._meshlab2vedo(a)))
 
             else:
                 vedo.printc("Error: cannot understand input in show():", type(a), c='r')

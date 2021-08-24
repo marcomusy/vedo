@@ -454,8 +454,8 @@ class BaseVolume:
 
         .. code-block:: python
 
-            from vedo import load, datadir
-            vol = load(datadir+'embryo.tif')
+            from vedo import Volume, dataurl
+            vol = Volume(dataurl+'embryo.tif')
             vol.append(vol, axis='x').show()
         """
         ima = vtk.vtkImageAppend()

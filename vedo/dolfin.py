@@ -112,7 +112,6 @@ __all__ = [
     "Text3D",
     "Text2D",
     "Latex",
-    "datadir",
     "dataurl",
     "screenshot",
     "Video",

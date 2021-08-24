@@ -53,7 +53,7 @@ def tetralize(dataset, tetsOnly=True):
         .. code-block:: python
 
             from vedo import *
-            ug = loadUnStructuredGrid(datadir+'ugrid.vtk')
+            ug = loadUnStructuredGrid(dataurl+'ugrid.vtk')
             tmesh = tetralize(ug)
             tmesh.write('ugrid.vtu').show(axes=1)
     """

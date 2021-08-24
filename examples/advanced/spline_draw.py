@@ -49,8 +49,8 @@ outfl = 'spline.txt'
 cpoints = []
 points, spline= None, None
 
-pic = Picture("https://embryology.med.unsw.edu.au/embryology/images/4/40/Mouse-_embryo_E11.5.jpg")
-pic.alpha(1).pickable(True)  # VTK9 has problems with opacity
+pic = Picture("https://embryology.med.unsw.edu.au/embryology/images/4/40/Mouse-_embryo_E11.5.jpg",
+              channels=[0,1,2]) # keep rgb but drop alpha channel
 
 t = """Click to add a point
 Right-click to remove

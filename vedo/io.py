@@ -59,14 +59,14 @@ def load(inputobj, unpack=True, force=False):
 
         .. code-block:: python
 
-            from vedo import datadir, load, show
+            from vedo import dataurl, load, show
 
             # Return a Mesh object
-            g = load(datadir+'250.vtk')
+            g = load(dataurl+'250.vtk')
             show(g)
 
             # Return a list of 2 meshes
-            g = load([datadir+'250.vtk', datadir+'270.vtk'])
+            g = load([dataurl+'250.vtk', dataurl+'270.vtk'])
             show(g)
 
             # Return a list of meshes by reading all files in a directory
@@ -75,7 +75,7 @@ def load(inputobj, unpack=True, force=False):
             show(g)
 
             # Return a Volume. Color/Opacity transfer functions can be specified later.
-            g = load(datadir+'embryo.slc')
+            g = load(dataurl+'embryo.slc')
             g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1)).show()
 
             # Download a file from a URL address and unzip it on the fly

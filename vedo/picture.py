@@ -16,7 +16,7 @@ __all__ = ["Picture"]
 
 
 #################################################
-class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
+class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):   
     """
     Derived class of ``vtkImageActor``. Used to represent 2D pictures.
     Can be instantiated with a path file name or with a numpy array.
@@ -24,8 +24,10 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     Use `Picture.shape` to access the number of pixels in x and y.
 
     |rotateImage| |rotateImage.py|_
-    """
-    def __init__(self, obj=None):
+    
+    :param list channels: only select these specific rgba channels (useful to remove alpha)
+    """    
+    def __init__(self, obj=None, channels=()):
         vtk.vtkImageActor.__init__(self)
         vedo.base.Base3DProp.__init__(self)
 
@@ -82,6 +84,20 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
 
         else:
             img = vtk.vtkImageData()
+
+        # select channels
+        nchans = len(channels)
+        if nchans and img.GetPointData().GetScalars().GetNumberOfComponents() > nchans:
+            pec = vtk.vtkImageExtractComponents()
+            pec.SetInputData(img)
+            if nchans == 3:
+                pec.SetComponents(channels[0], channels[1], channels[2])
+            elif nchans == 2:
+                pec.SetComponents(channels[0], channels[1])
+            elif nchans == 1:
+                pec.SetComponents(channels[0])
+            pec.Update()
+            img = pec.GetOutput()
 
         self._data = img
         self.SetInputData(img)
