@@ -1448,7 +1448,7 @@ class BaseGrid(BaseActor):
         return conn
 
 
-    def color(self, col, alpha=None):
+    def color(self, col, alpha=None, vmin=None, vmax=None):
         """
         Assign a color or a set of colors along the range of the scalar value.
         A single constant color can also be assigned.
@@ -1458,14 +1458,20 @@ class BaseGrid(BaseActor):
         and you want -3 to show red and 1.5 violet and 6 green, then just set:
 
         ``volume.color(['red', 'violet', 'green'])``
+        
+        :param list alpha: use a list to specify transparencies along the scalar range
+        :param float vmin: force the min of the scalar range to be this value
+        :param float vmax: force the max of the scalar range to be this value
         """
-        # superseeded in Points, Mesh
-
-        smin, smax = self._data.GetScalarRange()
+        # superseeds method in Points, Mesh
+        if vmin is None: 
+            vmin, _ = self._data.GetScalarRange()
+        if vmax is None: 
+            _, vmax = self._data.GetScalarRange()
         ctf = self.GetProperty().GetRGBTransferFunction()
         ctf.RemoveAllPoints()
         self._color = col
-
+        
         if utils.isSequence(col):
             if utils.isSequence(col[0]) and len(col[0])==2:
                 # user passing [(value1, color1), ...]
@@ -1479,29 +1485,29 @@ class BaseGrid(BaseActor):
                 # user passing [color1, color2, ..]
                 for i, ci in enumerate(col):
                     r, g, b = colors.getColor(ci)
-                    x = smin + (smax - smin) * i / (len(col) - 1)
+                    x = vmin + (vmax - vmin) * i / (len(col) - 1)
                     ctf.AddRGBPoint(x, r, g, b)
         elif isinstance(col, str):
             if col in colors.colors.keys() or col in colors.color_nicks.keys():
                 r, g, b = colors.getColor(col)
-                ctf.AddRGBPoint(smin, r,g,b) # constant color
-                ctf.AddRGBPoint(smax, r,g,b)
+                ctf.AddRGBPoint(vmin, r,g,b) # constant color
+                ctf.AddRGBPoint(vmax, r,g,b)
             else: # assume it's a colormap
-                for x in np.linspace(smin, smax, num=64, endpoint=True):
-                    r,g,b = colors.colorMap(x, name=col, vmin=smin, vmax=smax)
+                for x in np.linspace(vmin, vmax, num=64, endpoint=True):
+                    r,g,b = colors.colorMap(x, name=col, vmin=vmin, vmax=vmax)
                     ctf.AddRGBPoint(x, r, g, b)
         elif isinstance(col, int):
             r, g, b = colors.getColor(col)
-            ctf.AddRGBPoint(smin, r,g,b) # constant color
-            ctf.AddRGBPoint(smax, r,g,b)
+            ctf.AddRGBPoint(vmin, r,g,b) # constant color
+            ctf.AddRGBPoint(vmax, r,g,b)
         else:
             colors.printc("color(): unknown input type:", col, c='r')
 
         if alpha is not None:
-            self.alpha(alpha)
+            self.alpha(alpha, vmin=vmin, vmax=vmax)
         return self
 
-    def alpha(self, alpha):
+    def alpha(self, alpha, vmin=None, vmax=None):
         """
         Assign a set of tranparencies along the range of the scalar value.
         A single constant value can also be assigned.
@@ -1516,7 +1522,10 @@ class BaseGrid(BaseActor):
         Then all cells below -5 will be completely transparent, cells with a scalar value of 35
         will get an opacity of 40% and above 123 alpha is set to 90%.
         """
-        smin, smax = self._data.GetScalarRange()
+        if vmin is None: 
+            vmin, _ = self._data.GetScalarRange()
+        if vmax is None: 
+            _, vmax = self._data.GetScalarRange()
         otf = self.GetProperty().GetScalarOpacity()
         otf.RemoveAllPoints()
         self._alpha = alpha
@@ -1525,21 +1534,21 @@ class BaseGrid(BaseActor):
             alpha = np.array(alpha)
             if len(alpha.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
                 for i, al in enumerate(alpha):
-                    xalpha = smin + (smax - smin) * i / (len(alpha) - 1)
+                    xalpha = vmin + (vmax - vmin) * i / (len(alpha) - 1)
                     # Create transfer mapping scalar value to opacity
                     otf.AddPoint(xalpha, al)
                     #colors.printc("alpha at", round(xalpha, 1), "\tset to", al)
             elif len(alpha.shape)==2: # user passing [(x0,alpha0), ...]
-                otf.AddPoint(smin, alpha[0][1])
+                otf.AddPoint(vmin, alpha[0][1])
                 for xalpha, al in alpha:
                     # Create transfer mapping scalar value to opacity
                     otf.AddPoint(xalpha, al)
-                otf.AddPoint(smax, alpha[-1][1])
+                otf.AddPoint(vmax, alpha[-1][1])
 
         else:
 
-            otf.AddPoint(smin, alpha) # constant alpha
-            otf.AddPoint(smax, alpha)
+            otf.AddPoint(vmin, alpha) # constant alpha
+            otf.AddPoint(vmax, alpha)
 
         return self
 

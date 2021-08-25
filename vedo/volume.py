@@ -1119,9 +1119,14 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         self.GetProperty().SetShade(status)
         return self
 
-    def cmap(self, c):
-        """Same as color() or c()."""
-        return self.c(c)
+    def cmap(self, c, alpha=None, vmin=None, vmax=None):
+        """Same as color().
+
+        :param list alpha: use a list to specify transparencies along the scalar range
+        :param float vmin: force the min of the scalar range to be this value
+        :param float vmax: force the max of the scalar range to be this value
+        """
+        return self.color(c, alpha, vmin, vmax)
 
     def jittering(self, status=None):
         """If `jittering` is `True`, each ray traversal direction will be perturbed slightly
@@ -1133,7 +1138,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
             self._mapper.SetUseJittering(status)
         return self
 
-    def alphaGradient(self, alphaGrad):
+    def alphaGradient(self, alphaGrad, vmin=None, vmax=None):
         """
         Assign a set of tranparencies to a volume's gradient
         along the range of the scalar value.
@@ -1147,6 +1152,10 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
 
         |read_volume2| |read_volume2.py|_
         """
+        if vmin is None: 
+            vmin, _ = self._data.GetScalarRange()
+        if vmax is None: 
+            _, vmax = self._data.GetScalarRange()
         self._alphaGrad = alphaGrad
         volumeProperty = self.GetProperty()
         if alphaGrad is None:
@@ -1155,26 +1164,24 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         else:
             volumeProperty.DisableGradientOpacityOff()
 
-        #smin, smax = self._data.GetScalarRange()
-        smin, smax = 0, 255
         gotf = volumeProperty.GetGradientOpacity()
         if utils.isSequence(alphaGrad):
             alphaGrad = np.array(alphaGrad)
             if len(alphaGrad.shape)==1: # user passing a flat list e.g. (0.0, 0.3, 0.9, 1)
                 for i, al in enumerate(alphaGrad):
-                    xalpha = smin + (smax - smin) * i / (len(alphaGrad) - 1)
+                    xalpha = vmin + (vmax - vmin) * i / (len(alphaGrad) - 1)
                     # Create transfer mapping scalar value to gradient opacity
                     gotf.AddPoint(xalpha, al)
             elif len(alphaGrad.shape)==2: # user passing [(x0,alpha0), ...]
-                gotf.AddPoint(smin, alphaGrad[0][1])
+                gotf.AddPoint(vmin, alphaGrad[0][1])
                 for xalpha, al in alphaGrad:
                     # Create transfer mapping scalar value to opacity
                     gotf.AddPoint(xalpha, al)
-                gotf.AddPoint(smax, alphaGrad[-1][1])
+                gotf.AddPoint(vmax, alphaGrad[-1][1])
             #colors.printc("alphaGrad at", round(xalpha, 1), "\tset to", al, c="b", bold=0)
         else:
-            gotf.AddPoint(smin, alphaGrad) # constant alphaGrad
-            gotf.AddPoint(smax, alphaGrad)
+            gotf.AddPoint(vmin, alphaGrad) # constant alphaGrad
+            gotf.AddPoint(vmax, alphaGrad)
         return self
 
     def componentWeight(self, i, weight):

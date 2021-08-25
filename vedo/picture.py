@@ -116,6 +116,10 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     def inputdata(self):
         """Return the underlying ``vtkImagaData`` object."""
         return self._data
+    
+    def dimensions(self):
+        nx, ny, _ = self._data.GetDimensions()
+        return np.array([nx, ny])
 
     def _update(self, data):
         """Overwrite the Picture data mesh with a new data."""
@@ -333,11 +337,11 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         n : int, optional
             number of 90 deg rotations. The default is 1.
         """
-        varr = self._data.GetPointData().GetScalars()
         nx,ny,nz = self._data.GetDimensions()
         n = n%4
         if n==1:
             self.bw()
+            varr = self._data.GetPointData().GetScalars()
             arr = utils.vtk2numpy(varr).reshape(nx,ny, order='F')
             pp = Picture(arr).mirror('x')
             img = pp._data
@@ -347,6 +351,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             return self.mirror('x').mirror('y')
         elif n==3:
             self.bw()
+            varr = self._data.GetPointData().GetScalars()
             arr = utils.vtk2numpy(varr).reshape(nx,ny, order='F')
             pp = Picture(arr).mirror('y')
             img = pp._data
@@ -355,6 +360,25 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         else:
             return self
 
+    # def rotateACW(self, n=1):
+    #     """
+    #     Rotate a black and white Picture in steps of 90 degrees anticlockwise 
+    #     (landscape to portrait and viceversa).
+
+    #     Parameters
+    #     ----------
+    #     n : int, optional
+    #         number of 90 deg rotations. The default is 1.
+    #     """
+    #     irs = vtk.vtkImageResize()
+    #     irs.SetResizeMethodToOutputDimensions()
+    #     nx,ny,nz = self._data.GetDimensions()
+    #     irs.SetOutputDimensions(ny, int(nx/2), 1)
+    #     irs.SetInputData(self._data)
+    #     irs.Update()
+    #     return self._update(irs.GetOutput())
+       
+        
     def select(self, component):
         """Select one single component of the rgb image"""
         ec = vtk.vtkImageExtractComponents()
