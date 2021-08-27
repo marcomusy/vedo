@@ -43,6 +43,7 @@
 - added `frequencyPassFilter()` to filter images based on level of detail frequencies
 - added `rotateAntiClockWise()` to rotate an image (landscape to portrait and viceversa)
 - added `tonumpy()` and `modified()` methods.
+- added `tiling()` to generate tilings from a single picture
 - `extract()` renamed to `select()`
 
 ---
@@ -62,6 +63,7 @@
 ### `volume.py`
 
 - added `vmin` and `vmax` keywords to share the same mapping across different volumes
+- renamed `getDataArray` to `tonumpy`.
 
 ---
 ### `utils.py`
@@ -89,5 +91,7 @@ This works better on windows systems.
 - `vedo -r pymeshlab1`
 - `vedo -r pymeshlab2`
 - `vedo -r volume_sharemap`
+- `vedo -r multiwindows1`
+
 
 

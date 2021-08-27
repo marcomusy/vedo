@@ -288,6 +288,29 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         img = pf.GetOutput()
         return self._update(img)
 
+
+    def tiling(self, nx=4, ny=4, shift=(0,0)):
+        """
+        Generate a tiling from the current picture by mirroring and repeating it.
+
+        Parameters
+        ----------
+        nx :  float, optional
+            number of repeats along x. The default is 4.
+        ny : float, optional
+            number of repeats along x. The default is 4.
+        shift : list, optional
+            shift in x and y in pixels. The default is 4.
+        """
+        x0,x1,y0,y1,z0,z1 = self._data.GetExtent()
+        constantPad = vtk.vtkImageMirrorPad()
+        constantPad.SetInputData(self._data)
+        constantPad.SetOutputWholeExtent(int(x0+shift[0]+0.5), int(x1*nx+shift[0]+0.5),
+                                         int(y0+shift[1]+0.5), int(y1*ny+shift[1]+0.5), z0,z1)
+        constantPad.Update()
+        return Picture(constantPad.GetOutput())
+
+
     def resize(self, newsize):
         """Resize the image resolution by specifying the number of pixels in width and height.
         If left to zero, it will be automatically calculated to keep the original aspect ratio.

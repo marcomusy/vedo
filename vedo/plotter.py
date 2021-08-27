@@ -728,7 +728,7 @@ class Plotter:
 
         if len(self.renderers):
             self.renderer = self.renderers[0]
-
+        
         if self.size[0] == 'f':  # full screen
             self.size = 'fullscreen'
             self.window.SetFullScreen(True)
@@ -978,6 +978,23 @@ class Plotter:
                 r.GradientBackgroundOff()
         return self
 
+
+    # def addShadows(self, at=0):
+    #     """to do"""
+    #     smp = vtk.vtkShadowMapPass()
+    #     rpc = vtk.vtkRenderPassCollection()
+    #     rpc.AddItem(smp.GetShadowMapBakerPass())
+    #     rpc.AddItem(smp)
+
+    #     seq = vtk.vtkSequencePass()
+    #     seq.SetPasses(rpc)
+    #     cpass = vtk.vtkCameraPass()
+    #     cpass.SetDelegatePass(seq)
+    #     self.renderers[at].SetPass(cpass)
+    #     self.renderers[at].Modified()
+    #     return self        
+        
+        
     ####################################################
     def load(self, filename, unpack=True, force=False):
         """
@@ -1334,7 +1351,7 @@ class Plotter:
         |cutter| |cutter.py|_
         """
         return addons.addCutterTool(obj, mode, invert)
-
+    
     def addIcon(self, icon, pos=3, size=0.08):
         """Add an inset icon mesh into the same renderer.
 

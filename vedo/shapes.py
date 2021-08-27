@@ -3411,7 +3411,7 @@ class ParametricShape(Mesh):
 
         |paramshapes|
     """
-    def __init__(self, name, c='purple3', alpha=1, res=51):
+    def __init__(self, name, res=51, n=25, seed=1):
         shapes = ['Boy', 'ConicSpiral', 'CrossCap', 'Enneper',
                   'Figure8Klein', 'Klein', 'Dini', 'Mobius', 'RandomHills', 'Roman',
                   'SuperEllipsoid', 'BohemianDome', 'Bour', 'CatalanMinimal',
@@ -3443,8 +3443,8 @@ class ParametricShape(Mesh):
         elif name == 'RandomHills':
             ps = vtk.vtkParametricRandomHills()
             ps.AllowRandomGenerationOn()
-            ps.SetRandomSeed(1)
-            ps.SetNumberOfHills(25)
+            ps.SetRandomSeed(seed)
+            ps.SetNumberOfHills(n)
         elif name == 'Roman':
             ps = vtk.vtkParametricRoman()
         elif name == 'SuperEllipsoid':
@@ -3482,7 +3482,7 @@ class ParametricShape(Mesh):
         pfs.SetScalarModeToZ()
         pfs.Update()
 
-        Mesh.__init__(self, pfs.GetOutput(), c, alpha)
+        Mesh.__init__(self, pfs.GetOutput())
         if name != 'Kuen': self.normalize()
         if name == 'Dini': self.scale(0.4)
         if name == 'Enneper': self.scale(0.4)
