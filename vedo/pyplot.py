@@ -446,7 +446,7 @@ def histogram(*args, **kwargs):
     elif len(args) == 1:
 
         if isinstance(args[0], vedo.Volume):
-            data = args[0].getDataArray().ravel()
+            data = args[0].getPointArray()
         elif isinstance(args[0], vedo.Points):
             if args[0].getPointArray():
                 data = args[0].getPointArray().ravel()

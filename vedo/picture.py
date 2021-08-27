@@ -652,6 +652,29 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         gr.inputdata().GetPointData().AddArray(self._data.GetPointData().GetScalars())
         return gr
 
+    def tonumpy(self):
+        """Get read-write access to pixels of a Picture object as a numpy array.
+        Note that the shape is (nrofchannels, nx, ny).
+
+        When you set values in the output image, you don't want numpy to reallocate the array
+        but instead set values in the existing array, so use the [:] operator.
+        Example: arr[:] = arr - 15
+
+        If the array is modified call:
+        ``picture.modified()``
+        when all your modifications are completed.
+        """
+        nx, ny, _ = self._data.GetDimensions()
+        nchan = self._data.GetPointData().GetScalars().GetNumberOfComponents()
+        narray = utils.vtk2numpy(self._data.GetPointData().GetScalars()).reshape(nchan, ny,nx)
+        # narray = np.transpose(narray, axes=[1, 0])
+        return narray
+    
+    def modified(self):
+        """Use in conjunction with ``tonumpy()`` to update any modifications to the picture array"""
+        self._data.GetPointData().GetScalars().Modified()
+        return self
+    
     def write(self, filename):
         """Write picture to file as png or jpg."""
         vedo.io.write(self._data, filename)

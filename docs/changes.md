@@ -38,11 +38,13 @@
 - added `smooth()` to make gaussian smoothing of a Picture object.
 - added `bw()` to make a picture black and white
 - added `channels` keyword to specify rgba channels to use (useful to remove alpha)
-- `extract()` renamed to `select()`
 - added `pad()` to create a padding margin to a picture
 - added `median()` a median filter that preserves thin lines and corners
 - added `frequencyPassFilter()` to filter images based on level of detail frequencies
 - added `rotateAntiClockWise()` to rotate an image (landscape to portrait and viceversa)
+- added `tonumpy()` and `modified()` methods.
+- `extract()` renamed to `select()`
+
 ---
 ### `pyplot.py`
 
@@ -59,6 +61,8 @@
 ---
 ### `volume.py`
 
+- added `vmin` and `vmax` keywords to share the same mapping across different volumes
+
 ---
 ### `utils.py`
 
@@ -68,7 +72,7 @@
 
 - removed `bin/vedo` and created entry point from `vedo/cli.py` (command line interface).
 This works better on windows systems.
-- `vedo -r ` colorizes code dump.
+- `vedo -r ` now colorizes the code dump.
 
 -------------------------
 
@@ -84,5 +88,6 @@ This works better on windows systems.
 - `vedo -r record_play`
 - `vedo -r pymeshlab1`
 - `vedo -r pymeshlab2`
+- `vedo -r volume_sharemap`
 
 

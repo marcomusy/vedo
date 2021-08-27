@@ -24,5 +24,5 @@ msht = pic.clone().threshold(100).lineWidth(0)
 
 show([[pic, "A normal jpg image.."], 
       [msh, "..becomes a polygonal Mesh"],
-      [msht, "Thresholding also generates a Mesh"]], 
-     N=3, axes=1, zoom=5, elevation=-20, bg='black').close()
+      [msht, "Thresholding also generates a Mesh"]
+     ], N=3, axes=1, zoom=5, elevation=-20, bg='black').close()

@@ -262,7 +262,12 @@ class BaseVolume:
 
 
     def getDataArray(self):
-        """Get read-write access to voxels of a Volume object as a numpy array.
+        """Deprecated. Please use ``tonumpy()``."""
+        return self.tonumpy()
+
+    def tonumpy(self):
+        """
+        Get read-write access to voxels of a Volume object as a numpy array.
 
         When you set values in the output image, you don't want numpy to reallocate the array
         but instead set values in the existing array, so use the [:] operator.
@@ -276,10 +281,15 @@ class BaseVolume:
         narray = utils.vtk2numpy(self._data.GetPointData().GetScalars()).reshape(narray_shape)
         narray = np.transpose(narray, axes=[2, 1, 0])
         return narray
-
+    
+    def modified(self):
+        """Use in conjunction with ``tonumpy()`` to update any modifications to the volume array"""
+        self._data.GetPointData().GetScalars().Modified()
+        return self
+    
     def dimensions(self):
         """Return the nr. of voxels in the 3 dimensions."""
-        return self._data.GetDimensions()
+        return np.array(self._data.GetDimensions())
 
     def scalarRange(self):
         """Return the range of the scalar values."""

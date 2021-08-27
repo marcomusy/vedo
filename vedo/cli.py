@@ -159,6 +159,7 @@ def exe_run(args):
 
     if nmat > 1:
         printc("\nSelect one of", nmat, "matching scripts:", c='y', italic=1)
+        args.full_screen=True # to print out the one line description
 
     if args.full_screen: # -f option not to dump the full code but just the first line
         for mat in matching[:25]:
