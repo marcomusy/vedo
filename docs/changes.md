@@ -27,6 +27,7 @@
 ---
 ### `plotter.py`
 
+- removed global functions `closeWindow()` `ion()` `ioff()`, `plotter.load()`
 - added `record()` and `play()` to store and playback camera and all other events
 - keyword `interactorStyle` becomes now `mode`
 

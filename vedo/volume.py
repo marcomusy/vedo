@@ -6,6 +6,7 @@ import vedo.docs as docs
 import vedo.utils as utils
 from vedo.mesh import Mesh
 from vedo.base import BaseGrid, Base3DProp
+from deprecated import deprecated
 
 __doc__ = ("""Submodule extending the ``vtkVolume`` object functionality."""
     + docs._defs
@@ -260,9 +261,8 @@ class BaseVolume:
         """Return the underlying vtkImagaData object."""
         return self._data
 
-
+    @deprecated(reason=colors.red+"Please use tonumpy()"+colors.reset)
     def getDataArray(self):
-        """Deprecated. Please use ``tonumpy()``."""
         return self.tonumpy()
 
     def tonumpy(self):
@@ -1237,7 +1237,7 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
     def slicePlane(self, origin=(0,0,0), normal=(1,1,1)):
         """Extract the slice along a given plane position and normal.
 
-        |slicePlane| |slicePlane.py|_
+        |slicePlane1| |slicePlane1.py|_
         """
         reslice = vtk.vtkImageReslice()
         reslice.SetInputData(self._data)

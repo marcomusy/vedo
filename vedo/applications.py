@@ -1,5 +1,5 @@
 import vedo
-from vedo.addons import addScalarBar, addGlobalAxes
+from vedo.addons import addScalarBar
 from vedo.plotter import Plotter
 from vedo.pyplot import cornerHistogram
 from vedo.utils import mag, precision, linInterpolate, isSequence
@@ -532,20 +532,21 @@ def Browser(meshes, sliderpos=((0.55, 0.07),(0.96, 0.07)), c=None, prefix=""):
 class FreeHandCutPlotter(Plotter):
     """
     A Plotter derived class which edits polygonal meshes interactively.
-    Can also be invoked from command line. E.g. with:
+    Can also be invoked from command line. E.g. with
+        
     ``vedo --edit https://vedo.embl.es/examples/data/porsche.ply``
 
-    Usage
-    -----
-    - Left-click and hold to rotate
-    - Right-click and move to draw line
-    - Second right-click to stop drawing
-    - Press c to clear points
-    -       z/Z to cut mesh (Z inverts inside-out the selection area)
-    -       L to keep only the largest connected surface
-    -       s to save mesh to file (tag _edited is appended to filename)
-    -       u to undo last action
-    -       h for help, i for info
+    Usage:
+            
+        - Left-click and hold to rotate
+        - Right-click and move to draw line
+        - Second right-click to stop drawing
+        - Press c to clear points
+        -       z/Z to cut mesh (Z inverts inside-out the selection area)
+        -       L to keep only the largest connected surface
+        -       s to save mesh to file (tag _edited is appended to filename)
+        -       u to undo last action
+        -       h for help, i for info
 
     Parameters
     ----------

@@ -27,7 +27,6 @@ __all__ = [
             "addSlider3D",
             "addButton",
             "addCutterTool",
-            "addSplineTool",
             "addIcon",
             "LegendBox",
             "Light",
@@ -248,7 +247,6 @@ class SplineTool(vtk.vtkContourWidget):
         ontop : bool, optional
             show it always on top of other objects. The default is True.
         """
-
         vtk.vtkContourWidget.__init__(self)
 
         self.representation = vtk.vtkOrientedGlyphContourRepresentation()
@@ -470,55 +468,6 @@ def Light(
 
 
 #####################################################################
-def addSplineTool(plotter, points, pc='k', ps=8, lc='r4', ac='g5',
-                  lw=2, closed=False, interactive=True):
-    """
-    Add a spline tool to the current plotter. Nodes of the spline can be dragged in space
-    with the mouse.
-    Clicking on the line itself adds an extra point.
-    Selecting a point and pressing ``del`` removes it.
-
-    Parameters
-    ----------
-    points : Mesh, Points, array
-        the set of vertices forming the spline nodes.
-    pc : str, optional
-        point color. The default is 'k'.
-    ps : str, optional
-        point size. The default is 8.
-    lc : str, optional
-        line color. The default is 'r4'.
-    ac : str, optional
-        active point marker color. The default is 'g5'.
-    lw : int, optional
-        line width. The default is 2.
-    closed : bool, optional
-        spline is meant to be closed. The default is False.
-
-    Returns
-    -------
-    SplineTool object.
-    """
-    sw = SplineTool(points, pc, ps, lc, ac, lw, closed)
-    if plotter.interactor:
-        sw.SetInteractor(plotter.interactor)
-    else:
-        printc("Error in addSplineTool: no interactor found.", c='r')
-        raise RuntimeError
-    sw.On()
-    sw.Initialize(sw.points.polydata())
-    if sw.closed:
-        sw.representation.ClosedLoopOn()
-    sw.representation.SetRenderer(plotter.renderer)
-    sw.representation.BuildRepresentation()
-    sw.Render()
-    if interactive:
-        plotter.interactor.Start()
-    else:
-        plotter.interactor.Render()
-    return sw
-
-
 def addScalarBar(obj,
                  title="",
                  pos=(0.8,0.05),
@@ -1580,8 +1529,8 @@ def Ruler(
     |goniometer| |goniometer.py|_
     """
     if unitScale != 1.0 and units == "":
-        raise ValueError(f"When setting 'unitScale' to a value other than 1, "
-                         f"a 'units' arguments must be specified.")
+        raise ValueError("When setting 'unitScale' to a value other than 1, " +
+                         "a 'units' arguments must be specified.")
 
     if isinstance(p1, Points): p1 = p1.GetPosition()
     if isinstance(p2, Points): p2 = p2.GetPosition()

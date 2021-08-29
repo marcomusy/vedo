@@ -6,6 +6,7 @@ import vedo.docs as docs
 import vedo.settings as settings
 import vedo.utils as utils
 from vedo.base import BaseActor
+from deprecated import deprecated
 
 
 __doc__ = ("""Submodule to manage point clouds."""
@@ -2333,16 +2334,20 @@ class Points(vtk.vtkFollower, BaseActor):
         """
         if on.startswith('p'):
             if not arrayName: arrayName="PointScalars"
-            self.pointColors(input_array, cname, alpha, vmin, vmax, arrayName, n)
+            self._pointColors(input_array, cname, alpha, vmin, vmax, arrayName, n)
         elif on.startswith('c'):
             if not arrayName: arrayName="CellScalars"
-            self.cellColors(input_array, cname, alpha, vmin, vmax, arrayName, n)
+            self._cellColors(input_array, cname, alpha, vmin, vmax, arrayName, n)
         else:
             colors.printc('Must specify mode in cmap(on="either cells or points")!', c='r')
             raise RuntimeError()
         return self
 
-    def pointColors(self,
+    @deprecated(reason=vedo.colors.red+"Please use cmap(on='points')"+vedo.colors.reset)
+    def pointColors(self, *args, **kwargs):
+        return self
+
+    def _pointColors(self,
                     input_array=None,
                     cmap="rainbow",
                     alpha=1,
@@ -2350,9 +2355,6 @@ class Points(vtk.vtkFollower, BaseActor):
                     arrayName="PointScalars",
                     n=256,
         ):
-        """
-        DEPRECATED: use cmap() instead.
-        """
         poly = self.polydata(False)
         self._cmap_name = cmap
 
@@ -2449,7 +2451,11 @@ class Points(vtk.vtkFollower, BaseActor):
         poly.GetPointData().Modified()
         return self
 
-    def cellColors(self,
+    @deprecated(reason=vedo.colors.red+"Please use cmap(on='cells')"+vedo.colors.reset)
+    def cellColors(self, *args, **kwargs):
+        return self
+
+    def _cellColors(self,
                    input_array=None,
                    cmap="jet",
                    alpha=1,
@@ -2457,9 +2463,6 @@ class Points(vtk.vtkFollower, BaseActor):
                    arrayName="CellScalars",
                    n=256,
         ):
-        """
-        DEPRECATED: use cmap(on='cells') instead.
-        """
         poly = self.polydata(False)
         self._cmap_name = cmap
 

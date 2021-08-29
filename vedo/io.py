@@ -1410,25 +1410,25 @@ def exportWindow(fileoutput, binary=False):
     ####################################################################
     if fr.endswith(".npy") or fr.endswith(".npz"):
         sdict = dict()
-        vp = settings.plotter_instance
-        sdict['shape'] = vp.shape #todo
-        sdict['sharecam'] = vp.sharecam #todo
-        sdict['camera'] = dict( pos=vp.camera.GetPosition(),
-                                focalPoint=vp.camera.GetFocalPoint(),
-                                viewup=vp.camera.GetViewUp(),
-                                distance=vp.camera.GetDistance(),
-                                clippingRange=vp.camera.GetClippingRange() )
-        sdict['position'] = vp.pos
-        sdict['size'] = vp.size
-        sdict['axes'] = vp.axes
-        sdict['title'] = vp.title
-        sdict['xtitle'] = vp.xtitle
-        sdict['ytitle'] = vp.ytitle
-        sdict['ztitle'] = vp.ztitle
-        sdict['backgrcol'] = colors.getColor(vp.backgrcol)
+        plt = settings.plotter_instance
+        sdict['shape'] = plt.shape #todo
+        sdict['sharecam'] = plt.sharecam #todo
+        sdict['camera'] = dict( pos=plt.camera.GetPosition(),
+                                focalPoint=plt.camera.GetFocalPoint(),
+                                viewup=plt.camera.GetViewUp(),
+                                distance=plt.camera.GetDistance(),
+                                clippingRange=plt.camera.GetClippingRange() )
+        sdict['position'] = plt.pos
+        sdict['size'] = plt.size
+        sdict['axes'] = plt.axes
+        sdict['title'] = plt.title
+        sdict['xtitle'] = plt.xtitle
+        sdict['ytitle'] = plt.ytitle
+        sdict['ztitle'] = plt.ztitle
+        sdict['backgrcol'] = colors.getColor(plt.backgrcol)
         sdict['backgrcol2'] = None
-        if vp.renderer.GetGradientBackground():
-            sdict['backgrcol2'] = vp.renderer.GetBackground2()
+        if plt.renderer.GetGradientBackground():
+            sdict['backgrcol2'] = plt.renderer.GetBackground2()
         sdict['useDepthPeeling'] = settings.useDepthPeeling
         sdict['renderLinesAsTubes'] = settings.renderLinesAsTubes
         sdict['hiddenLineRemoval'] = settings.hiddenLineRemoval
@@ -1438,8 +1438,8 @@ def exportWindow(fileoutput, binary=False):
         sdict['defaultFont'] = settings.defaultFont
         sdict['objects'] = []
 
-        allobjs = vp.getMeshes(includeNonPickables=True) + vp.getVolumes(includeNonPickables=True)
-        acts2d = vp.renderer.GetActors2D()
+        allobjs = plt.getMeshes(includeNonPickables=True) + plt.getVolumes(includeNonPickables=True)
+        acts2d = plt.renderer.GetActors2D()
         acts2d.InitTraversal()
         for i in range(acts2d.GetNumberOfItems()):
             a = acts2d.GetNextItem()
@@ -1550,24 +1550,24 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
 
         if data['shape'] != (1,1): data['size']="auto" # disable size
 
-        vp = Plotter(size=data['size'], # not necessarily a good idea to set it
+        plt = Plotter(size=data['size'], # not necessarily a good idea to set it
                      #shape=data['shape'], # will need to create a Renderer class first
                      axes=axes,
                      title=title,
                      bg=backgrcol,
                      bg2=backgrcol2,
         )
-        vp.xtitle = data.pop('xtitle', 'x')
-        vp.ytitle = data.pop('ytitle', 'y')
-        vp.ztitle = data.pop('ztitle', 'z')
+        plt.xtitle = data.pop('xtitle', 'x')
+        plt.ytitle = data.pop('ytitle', 'y')
+        plt.ztitle = data.pop('ztitle', 'z')
 
         if cam:
-            if 'pos' in cam.keys(): vp.camera.SetPosition( cam['pos'] )
-            if 'focalPoint' in cam.keys(): vp.camera.SetFocalPoint( cam['focalPoint'] )
-            if 'viewup' in cam.keys(): vp.camera.SetViewUp(cam['viewup']  )
-            if 'distance' in cam.keys(): vp.camera.SetDistance( cam['distance'] )
-            if 'clippingRange' in cam.keys(): vp.camera.SetClippingRange( cam['clippingRange'] )
-            vp.resetcam = False
+            if 'pos' in cam.keys(): plt.camera.SetPosition( cam['pos'] )
+            if 'focalPoint' in cam.keys(): plt.camera.SetFocalPoint( cam['focalPoint'] )
+            if 'viewup' in cam.keys(): plt.camera.SetViewUp(cam['viewup']  )
+            if 'distance' in cam.keys(): plt.camera.SetDistance( cam['distance'] )
+            if 'clippingRange' in cam.keys(): plt.camera.SetClippingRange( cam['clippingRange'] )
+            plt.resetcam = False
 
         if 'objects' in data.keys():
             objs = loadNumpy(data['objects'])
@@ -1578,12 +1578,12 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
             #colors.printc(" -> try to load a single object with load().", c='r')
             objs = [loadNumpy(fileinput)]
 
-        vp.actors = objs
-        return vp
+        plt.actors = objs
+        return plt
 
     elif '.obj' in fileinput.lower():
 
-        vp = Plotter()
+        plt = Plotter()
 
         importer = vtk.vtkOBJImporter()
         importer.SetFileName(fileinput)
@@ -1595,10 +1595,10 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
             if texturePath is None:
                 texturePath = fileinput.replace('.obj', '.txt').replace('.OBJ', '.TXT')
             importer.SetTexturePath(texturePath)
-        importer.SetRenderWindow(vp.window)
+        importer.SetRenderWindow(plt.window)
         importer.Update()
 
-        actors = vp.renderer.GetActors()
+        actors = plt.renderer.GetActors()
         actors.InitTraversal()
         for i in range(actors.GetNumberOfItems()):
             vactor = actors.GetNextActor()
@@ -1607,8 +1607,8 @@ def importWindow(fileinput, mtlFile=None, texturePath=None):
             if act_tu:
                 act_tu.InterpolateOn()
                 act.texture(act_tu)
-            vp.actors.append( act )
-        return vp
+            plt.actors.append( act )
+        return plt
 
 
 ##########################################################
@@ -1799,10 +1799,10 @@ class Video:
             if cm_viewAngle is not None: cm.SetViewAngle(cm_viewAngle)
             return cm
 
-        vp = settings.plotter_instance
+        plt = settings.plotter_instance
 
         if zoom:
-            vp.camera.Zoom(zoom)
+            plt.camera.Zoom(zoom)
 
         if isinstance(cam1, dict):
             cam1 = buildcam(cam1)
@@ -1810,23 +1810,23 @@ class Video:
             cam2 = buildcam(cam2)
 
         if len(elevation_range)==2:
-            vp.camera.Elevation(elevation_range[0])
+            plt.camera.Elevation(elevation_range[0])
         if len(azimuth_range)==2:
-            vp.camera.Azimuth(azimuth_range[0])
+            plt.camera.Azimuth(azimuth_range[0])
 
-        vp.show(resetcam=resetcam, interactive=False)
-        # if resetcam: vp.renderer.ResetCamera()
+        plt.show(resetcam=resetcam, interactive=False)
+        # if resetcam: plt.renderer.ResetCamera()
 
         n = self.fps * self.duration
         for i in range(int(n)):
             if cam1 and cam2:
-                vp.moveCamera(cam1, cam2, i/n)
+                plt.moveCamera(cam1, cam2, i/n)
             else:
                 if len(elevation_range)==2:
-                    vp.camera.Elevation((elevation_range[1]-elevation_range[0])/n)
+                    plt.camera.Elevation((elevation_range[1]-elevation_range[0])/n)
                 if len(azimuth_range)==2:
-                    vp.camera.Azimuth((azimuth_range[1]-azimuth_range[0])/n)
-            vp.show()
+                    plt.camera.Azimuth((azimuth_range[1]-azimuth_range[0])/n)
+            plt.show()
             self.addFrame()
         return self
 

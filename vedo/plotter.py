@@ -21,13 +21,9 @@ Defines main class ``Plotter`` to manage actors and 3D rendering.
 
 __all__ = ["show",
            "clear",
-           "ion",
-           "ioff",
            "Plotter",
-           "closeWindow",
-           "closePlotter",
            "interactive",
-           ]
+]
 
 ########################################################################
 def show(*actors,
@@ -289,24 +285,6 @@ def interactive():
                 settings.plotter_instance.interactor.Start()
     return settings.plotter_instance
 
-def ion():
-    """Set interactive mode ON for the current window.
-
-    When calling ``show()`` python script exectution will stop and control
-    will stay on the graphic window allowing mouse/keyboard interaction."""
-    if settings.plotter_instance:
-        settings.plotter_instance.interactive = True
-    return settings.plotter_instance
-
-def ioff():
-    """Set interactive mode OFF for the current window.
-
-    When calling ``show()`` image will be rendered but python script execution
-    will continue, the graphic window will be not responsive to interaction."""
-    if settings.plotter_instance:
-        settings.plotter_instance.interactive = False
-    return settings.plotter_instance
-
 
 def clear(actor=None, at=None):
     """
@@ -317,25 +295,6 @@ def clear(actor=None, at=None):
         return
     settings.plotter_instance.clear(actor, at)
     return settings.plotter_instance
-
-
-def closeWindow(plotterInstance=None):
-    """Close the current or the input rendering window."""
-    if not plotterInstance:
-        plotterInstance  = settings.plotter_instance
-        if not plotterInstance:
-            return
-    if plotterInstance.interactor:
-        plotterInstance.interactor.ExitCallback()
-        plotterInstance.closeWindow()
-    return plotterInstance
-
-
-def closePlotter():
-    """Close the current instance of ``Plotter`` and its rendering window."""
-    if settings.plotter_instance:
-        settings.plotter_instance.close()
-    return None
 
 
 ########################################################################
@@ -728,7 +687,7 @@ class Plotter:
 
         if len(self.renderers):
             self.renderer = self.renderers[0]
-        
+
         if self.size[0] == 'f':  # full screen
             self.size = 'fullscreen'
             self.window.SetFullScreen(True)
@@ -828,42 +787,6 @@ class Plotter:
         self.remove(actors, render=False)
         return self
 
-    def _addSkybox(self, hdrfile):
-        # many hdr files are at https://polyhaven.com/all
-        if utils.vtkVersionIsAtLeast(9):
-
-#            if self.skybox:
-#                #already exists, skip.
-#                return self
-
-            reader = vtk.vtkHDRReader()
-            # Check the image can be read.
-            if not reader.CanReadFile(hdrfile):
-                vedo.printc('Cannot read HDR file', hdrfile, c='r')
-                return self
-            reader.SetFileName(hdrfile)
-            reader.Update()
-
-            texture = vtk.vtkTexture()
-            texture.SetColorModeToDirectScalars()
-            texture.SetInputData(reader.GetOutput())
-
-            # Convert to a cube map
-            tcm = vtk.vtkEquirectangularToCubeMapTexture()
-            tcm.SetInputTexture(texture)
-            # Enable mipmapping to handle HDR image
-            tcm.MipmapOn()
-            tcm.InterpolateOn()
-
-            self.renderer.SetEnvironmentTexture(tcm)
-            self.renderer.UseImageBasedLightingOn()
-            self.skybox = vtk.vtkSkybox()
-            self.skybox.SetTexture(tcm)
-            self.renderer.AddActor(self.skybox)
-        else:
-            vedo.printc("addSkyBox not supported in this VTK version. Skip.", c='r')
-        return self
-
     def add(self, actors, at=None, render=True, resetcam=False):
         """Append input object to the internal list of actors to be shown.
 
@@ -929,14 +852,19 @@ class Plotter:
             self.render(resetcam=resetcam)
         return self
 
-    def pop(self, at=0, render=False):
+    def pop(self, at=0):
         """Remove the last added object from the rendering window"""
-        self.remove(self.actors[-1], at=at, render=render)
+        self.remove(self.actors[-1], at=at)
         return self
 
     def render(self, resetcam=False):
         """Render the scene."""
-        if not self.window or self.wxWidget:
+        if not self.window:
+            return self
+        if self.wxWidget:
+            if resetcam:
+                self.renderer.ResetCamera()
+            self.wxWidget.Render()
             return self
         if settings.vtk_version[0] == 9 and "Darwin" in settings.sys_platform:
             for a in self.actors:
@@ -996,43 +924,6 @@ class Plotter:
         
         
     ####################################################
-    def load(self, filename, unpack=True, force=False):
-        """
-        Load objects from file.
-        The output will depend on the file extension. See examples below.
-
-        :param bool unpack: only for multiblock data,
-            if True returns a flat list of objects.
-        :param bool force: when downloading a file ignore any previous
-            cached downloads and force a new one.
-
-        :Example:
-
-            .. code-block:: python
-
-                from vedo import *
-
-                # Return a list of 2 Mesh
-                g = load([dataurl+'250.vtk', dataurl+'290.vtk'])
-                show(g)
-
-                # Return a list of meshes by reading all files in a directory
-                # (if directory contains DICOM files then a Volume is returned)
-                g = load('mydicomdir/')
-                show(g)
-
-                # Return a Volume. Color/Opacity transfer function can be specified too.
-                g = load(dataurl+'embryo.slc')
-                g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1)).show()
-        """
-        acts = vedo.io.load(filename, unpack, force)
-        if utils.isSequence(acts):
-            self.actors += acts
-        else:
-            self.actors.append(acts)
-        return acts
-
-
     def getMeshes(self, at=None, includeNonPickables=False):
         """
         Return a list of Meshes from the specified renderer.
@@ -1093,41 +984,64 @@ class Plotter:
         self.renderer.ResetCamera()
         return self
 
-
     def moveCamera(self, camstart, camstop, fraction):
         """
-        Takes as input two ``vtkCamera`` objects and returns a
-        new ``vtkCamera`` that is at an intermediate position:
+        Takes as input two ``vtkCamera`` objects and set camera at an intermediate position:
 
         fraction=0 -> camstart,  fraction=1 -> camstop.
+        
+        ``camstart`` and ``camstop`` can also be dictionaries of format:
+            
+            camstart = dict(pos=..., focalPoint=..., viewup=..., distance=..., clippingRange=...)
 
         Press ``shift-C`` key in interactive mode to dump a python snipplet
         of parameters for the current camera view.
         """
-        if isinstance(fraction, int):
-            vedo.printc("Warning in moveCamera(): fraction should not be an integer", c='r')
         if fraction > 1:
-            vedo.printc("Warning in moveCamera(): fraction is > 1", c='r')
-        cam = vtk.vtkCamera()
-        cam.DeepCopy(camstart)
-        p1 = np.array(camstart.GetPosition())
-        f1 = np.array(camstart.GetFocalPoint())
-        v1 = np.array(camstart.GetViewUp())
-        c1 = np.array(camstart.GetClippingRange())
-        s1 = camstart.GetDistance()
-
+            fraction = 1
+        if fraction < 0:
+            fraction = 0
+        
+        if isinstance(camstart, dict):
+            p1 = np.asarray(camstart.pop("pos", [0,0,1]))
+            f1 = np.asarray(camstart.pop("focalPoint", [0,0,0]))
+            v1 = np.asarray(camstart.pop("viewup", [0,1,0]))
+            s1 = camstart.pop("distance", None)
+            c1 = np.asarray(camstart.pop("clippingRange", None))     
+        else:
+            p1 = np.array(camstart.GetPosition())
+            f1 = np.array(camstart.GetFocalPoint())
+            v1 = np.array(camstart.GetViewUp())
+            c1 = np.array(camstart.GetClippingRange())
+            s1 = camstart.GetDistance()
+        
+        if isinstance(camstop, dict):
+            p1 = np.asarray(camstop.pop("pos", [0,0,1]))
+            f1 = np.asarray(camstop.pop("focalPoint", [0,0,0]))
+            v1 = np.asarray(camstop.pop("viewup", [0,1,0]))
+            s1 = camstop.pop("distance", None)
+            c1 = np.asarray(camstop.pop("clippingRange", None))     
+        else:
+            p1 = np.array(camstop.GetPosition())
+            f1 = np.array(camstop.GetFocalPoint())
+            v1 = np.array(camstop.GetViewUp())
+            c1 = np.array(camstop.GetClippingRange())
+            s1 = camstop.GetDistance()
+            
         p2 = np.array(camstop.GetPosition())
         f2 = np.array(camstop.GetFocalPoint())
         v2 = np.array(camstop.GetViewUp())
         c2 = np.array(camstop.GetClippingRange())
         s2 = camstop.GetDistance()
-        cam.SetPosition(p2 * fraction + p1 * (1 - fraction))
-        cam.SetFocalPoint(f2 * fraction + f1 * (1 - fraction))
-        cam.SetViewUp(v2 * fraction + v1 * (1 - fraction))
-        cam.SetDistance(s2 * fraction + s1 * (1 - fraction))
-        cam.SetClippingRange(c2 * fraction + c1 * (1 - fraction))
-        self.camera = cam
-        return cam
+        ufraction = 1 - fraction
+        self.camera.SetPosition(  p2 * fraction + p1 * ufraction)
+        self.camera.SetFocalPoint(f2 * fraction + f1 * ufraction)
+        self.camera.SetViewUp    (v2 * fraction + v1 * ufraction)
+        if s1 and s2:
+            self.camera.SetDistance(s2 * fraction + s1 * ufraction)
+        if c1 and c2:
+            self.camera.SetClippingRange(c2 * fraction + c1 * ufraction)
+        return self
 
     def flyTo(self, point, at=0):
         """
@@ -1170,7 +1084,7 @@ class Plotter:
         erec = vtk.vtkInteractorEventRecorder()
         erec.SetInteractor(self.interactor)
         erec.SetFileName(filename)
-        erec.SetKeyPressActivationValue("R")        
+        erec.SetKeyPressActivationValue("R")
         erec.EnabledOn()
         erec.Record()
         self.interactor.Start()
@@ -1182,8 +1096,8 @@ class Plotter:
         return events
 
     def play(self, events='.vedo_recorded_events.log', repeats=0):
-        """        
-        Play camera, mouse, keystrokes and all other events.         
+        """
+        Play camera, mouse, keystrokes and all other events.
 
         Parameters
         ----------
@@ -1209,7 +1123,7 @@ class Plotter:
         erec.EnabledOff()
         erec = None
         return self
-    
+
 
     def parallelProjection(self, value=True, at=0):
         """
@@ -1339,7 +1253,27 @@ class Plotter:
         Returns
         -------
         SplineTool object.
-        """
+        """    
+        sw = addons.SplineTool(points, pc, ps, lc, ac, lw, closed)
+        if self.interactor:
+            sw.SetInteractor(self.interactor)
+        else:
+            vedo.printc("Error in addSplineTool: no interactor found.", c='r')
+            raise RuntimeError
+        sw.On()
+        sw.Initialize(sw.points.polydata())
+        if sw.closed:
+            sw.representation.ClosedLoopOn()
+        sw.representation.SetRenderer(self.renderer)
+        sw.representation.BuildRepresentation()
+        sw.Render()
+        if interactive:
+            self.interactor.Start()
+        else:
+            self.interactor.Render()
+        return sw
+
+
         return addons.addSplineTool(self, points, pc, ps, lc, ac, lw, closed, interactive)
 
     def addCutterTool(self, obj=None, mode='box', invert=False):
@@ -1351,7 +1285,7 @@ class Plotter:
         |cutter| |cutter.py|_
         """
         return addons.addCutterTool(obj, mode, invert)
-    
+
     def addIcon(self, icon, pos=3, size=0.08):
         """Add an inset icon mesh into the same renderer.
 
@@ -1410,6 +1344,42 @@ class Plotter:
         acts = self.getMeshes()
         lb = addons.LegendBox(acts, **kwargs)
         self.add(lb)
+        return self
+
+    def _addSkybox(self, hdrfile):
+        # many hdr files are at https://polyhaven.com/all
+        if utils.vtkVersionIsAtLeast(9):
+
+#            if self.skybox:
+#                #already exists, skip.
+#                return self
+
+            reader = vtk.vtkHDRReader()
+            # Check the image can be read.
+            if not reader.CanReadFile(hdrfile):
+                vedo.printc('Cannot read HDR file', hdrfile, c='r')
+                return self
+            reader.SetFileName(hdrfile)
+            reader.Update()
+
+            texture = vtk.vtkTexture()
+            texture.SetColorModeToDirectScalars()
+            texture.SetInputData(reader.GetOutput())
+
+            # Convert to a cube map
+            tcm = vtk.vtkEquirectangularToCubeMapTexture()
+            tcm.SetInputTexture(texture)
+            # Enable mipmapping to handle HDR image
+            tcm.MipmapOn()
+            tcm.InterpolateOn()
+
+            self.renderer.SetEnvironmentTexture(tcm)
+            self.renderer.UseImageBasedLightingOn()
+            self.skybox = vtk.vtkSkybox()
+            self.skybox.SetTexture(tcm)
+            self.renderer.AddActor(self.skybox)
+        else:
+            vedo.printc("addSkyBox not supported in this VTK version. Skip.", c='r')
         return self
 
     def addHoverLegend(self,
@@ -2053,7 +2023,7 @@ class Plotter:
 
         if title is not None:
             self.title = title
-        
+
         if mode is not None: ### interactorStyle will disappear in later releases!
             interactorStyle = mode
 

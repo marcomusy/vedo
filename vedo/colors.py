@@ -33,6 +33,13 @@ except:
     # see below, this is dealt with in colorMap()
 
 
+red   = '\x1b[1m\x1b[31;1m'
+green = '\x1b[1m\x1b[32;1m'
+blue  = '\x1b[1m\x1b[34;1m'
+yellow= '\x1b[1m\x1b[33;1m'
+reset = "\x1b[0m"
+
+
 #########################################################
 # basic color schemes
 #########################################################
@@ -444,7 +451,6 @@ cmaps_names = (
     "twilight",  "twilight_r",  "twilight_shifted", "twilight_shifted_r",
     "viridis",   "viridis_r",   "winter",     "winter_r"
 )
-
 
 def _isSequence(arg):
     # Check if input is iterable.

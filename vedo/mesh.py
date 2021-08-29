@@ -5,6 +5,7 @@ import vedo
 from vedo.colors import printc, getColor, colorMap
 from vedo.utils import isSequence, flatten, buildPolyData, numpy2vtk, vtk2numpy
 from vedo.pointcloud import Points
+from deprecated import deprecated
 
 __doc__ = ("""Submodule to manage polygonal meshes.""" + vedo.docs._defs)
 
@@ -1308,11 +1309,8 @@ class Mesh(Points):
         decimate.Update()
         return self._update(decimate.GetOutput())
 
-
-    def smoothLaplacian(self, niter=15, relaxfact=0.1, edgeAngle=15, featureAngle=60,
-                        boundary=False):
-        """DEPRECATED. Please use smooth()"""
-        printc("smoothLaplacian() is DEPRECATED. Please use smooth()", c='r')        
+    @deprecated(reason=vedo.colors.red+"Please use smooth()"+vedo.colors.reset)
+    def smoothLaplacian(self, niter=15, relaxfact=0.1, edgeAngle=15, featureAngle=60, boundary=False):
         return self.smooth(niter, passBand=0.1, edgeAngle=edgeAngle, boundary=boundary)  
     
     def smooth(self, niter=15, passBand=0.1, edgeAngle=15, featureAngle=60, boundary=False):

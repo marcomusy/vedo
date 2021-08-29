@@ -12,6 +12,7 @@ from vedo.mesh import Mesh, merge
 from vedo.pointcloud import Points
 from vedo.picture import Picture
 from vedo.settings import font_parameters
+from deprecated import deprecated
 
 __doc__ = ("""Submodule to generate basic geometric shapes.""" +
            vedo.docs._defs)
@@ -2641,9 +2642,8 @@ class Hyperboloid(Mesh):
         self.SetPosition(pos)
         self.name = "Hyperboloid"
 
-
+@deprecated(reason=vedo.colors.red+"Please use Text3D() instead."+vedo.colors.reset)
 def Text(*args, **kwargs):
-    printc("Deprecation: use Text3D() instead of Text().", c='r')
     return Text3D(*args, **kwargs)
 
 @lru_cache(None)

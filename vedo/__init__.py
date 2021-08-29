@@ -47,7 +47,3 @@ from numpy import sin, cos, sqrt, exp, log, dot, cross, array
 settings._init()
 ###########################################################################
 
-
-def CubicGrid(*args, **kwargs):
-    print("*** CubicGrid is obsolete: use TessellatedBox. ***")
-    return TessellatedBox(*args, **kwargs)

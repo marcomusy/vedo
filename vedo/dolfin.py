@@ -19,7 +19,7 @@ import vedo.shapes as shapes
 from vedo.shapes import Text3D, Text2D, Latex
 
 from vedo.plotter import show, clear, Plotter
-from vedo.plotter import closeWindow, closePlotter, interactive
+from vedo.plotter import interactive
 
 from vedo.pyplot import histogram
 
@@ -116,8 +116,6 @@ __all__ = [
     "screenshot",
     "Video",
     "exportWindow",
-    "closeWindow",
-    "closePlotter",
     "interactive",
     "embedWindow",
 ]
