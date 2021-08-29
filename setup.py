@@ -38,7 +38,7 @@ setup(
     entry_points={
         "console_scripts": ["vedo=vedo.cli:execute_cli"],
     },
-    install_requires=["vtk", "numpy"],
+    install_requires=["vtk", "numpy", "Deprecated"],
     description="A python module for scientific analysis and visualization of 3D objects and point clouds based on VTK.",
     long_description="A python module for scientific visualization, analysis of 3D objects and point clouds based on VTK. Check out https://vedo.embl.es for documentation.",
     author="Marco Musy",

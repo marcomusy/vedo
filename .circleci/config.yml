@@ -24,6 +24,7 @@ jobs:
             sudo apt upgrade -y
             sudo apt install libgl1-mesa-dev xvfb -y
             sudo apt install python3-vtk7 -y
+            pip3 install Deprecated
             pip3 install .
             pip3 uninstall -y vtk
             
