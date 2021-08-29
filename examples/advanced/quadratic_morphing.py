@@ -5,13 +5,12 @@ quadratic, transformation defined in transform()
 The fitting minimizes the distance to the target surface
 using algorithms available in the scipy.optimize package.
 """
-from __future__ import division, print_function
-
-print(__doc__)
-
 from vedo import *
 import scipy.optimize as opt
 
+print(__doc__)
+
+settings.useDepthPeeling = True
 
 plt = Plotter(shape=[1, 3], interactive=0, axes=1)
 
@@ -51,7 +50,6 @@ class Morpher:
         #calculate chi2
         d2sum, n = 0.0, self.source.N()
         srcpts = self.source.points()
-        mpts = self.msource.points()
         rng = range(0, n, int(n / self.subsample))
         for i in rng:
             p1 = srcpts[i]

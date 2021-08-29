@@ -786,7 +786,36 @@ class Plotter:
     def __isub__(self, actors):
         self.remove(actors, render=False)
         return self
-
+    
+    def load(self, filename, unpack=True, force=False):
+            """
+            Load objects from file.
+            The output will depend on the file extension. See examples below.
+            :param bool unpack: only for multiblock data,
+                if True returns a flat list of objects.
+            :param bool force: when downloading a file ignore any previous
+                cached downloads and force a new one.
+            :Example:
+                .. code-block:: python
+                    from vedo import *
+                    # Return a list of 2 Mesh
+                    g = load([dataurl+'250.vtk', dataurl+'290.vtk'])
+                    show(g)
+                    # Return a list of meshes by reading all files in a directory
+                    # (if directory contains DICOM files then a Volume is returned)
+                    g = load('mydicomdir/')
+                    show(g)
+                    # Return a Volume. Color/Opacity transfer function can be specified too.
+                    g = load(dataurl+'embryo.slc')
+                    g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1)).show()
+            """
+            acts = vedo.io.load(filename, unpack, force)
+            if utils.isSequence(acts):
+                self.actors += acts
+            else:
+                self.actors.append(acts)
+            return acts    
+    
     def add(self, actors, at=None, render=True, resetcam=False):
         """Append input object to the internal list of actors to be shown.
 

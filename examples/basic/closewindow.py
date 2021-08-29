@@ -38,9 +38,6 @@ vp3 = Plotter(title='Third Plotter instance')
 vp2.closeWindow()
 printc('vp2.closeWindow() called')
 
-vp3.show(Hyperboloid())
-
-from vedo import closeWindow
-closeWindow()  # automatically find and close the current window
+vp3.show(Hyperboloid()).close()
 
 printc('done.')
