@@ -18,7 +18,7 @@ sc2 = np.random.randint(-100,+100, nx*ny*nz)
 vol.addPointArray(sc2, "myscalars2")
 
 # make SLCImage scalars the active array (can set 0, to pick the first):
-printc('Arrays in Volume are:\n', vol.getArrayNames(), invert=True)
+printc('Arrays in Volume are:\n', vol.pointdata.keys(), invert=True)
 vol.selectPointArray('SLCImage')  # select the first data array
 
 # Build the isosurface of the active scalars,

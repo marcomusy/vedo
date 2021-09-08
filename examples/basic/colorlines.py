@@ -1,4 +1,5 @@
-"""Color lines by a scalar"""
+"""Color lines by a scalar
+Click the lines to get their lenghts"""
 from vedo import *
 
 settings.allowInteraction=0
@@ -20,6 +21,4 @@ def clickfunc(evt):
 
 plt = Plotter(axes=1, bg2='lightblue')
 plt.addCallback('mouse click', clickfunc)
-plt.show(l1,l2, lines, __doc__, viewup='z')
-# interactive()
-plt.close()
+plt.show(l1,l2, lines, __doc__, viewup='z').close()

@@ -5,7 +5,7 @@ from vedo import *
 
 def func(evt):                       ### called every time mouse moves!
     msh = evt.actor
-    if not msh: return               # no mouse hits, return.
+    if not msh: return               # mouse hits nothing, return.
     pt = evt.picked3d                # 3d coords of point under mouse
 
     pid = msh.closestPoint(pt, returnPointId=True)
@@ -21,7 +21,7 @@ def func(evt):                       ### called every time mouse moves!
 
 msg = Text2D(pos='bottom-left', font="VictorMono") # an empty text
 hil = ParametricShape('RandomHills').cmap('terrain').addScalarBar()
-arr = hil.getPointArray("Scalars")   # numpy array with heights
+arr = hil.pointdata["Scalars"]       # numpy array with heights
 
 plt = Plotter(axes=1, bg2='lightblue')
 plt.addCallback('mouse move', func)  # add the callback function

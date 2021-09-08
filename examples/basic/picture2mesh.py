@@ -6,7 +6,7 @@ pic = Picture(dataurl+"images/dog.jpg").smooth(5)
 msh = pic.tomesh()  # make a quad-mesh out of it
 
 # build a scalar array with intensities
-rgb = msh.getPointArray("RGBA")
+rgb = msh.pointdata["RGBA"]
 intensity = np.sum(rgb, axis=1)
 intensityz = np.zeros_like(rgb)
 intensityz[:,2] = intensity / 10

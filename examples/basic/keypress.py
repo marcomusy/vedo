@@ -19,7 +19,7 @@ def myfnc(evt):
 
 ##############################################################
 plt = Plotter(axes=1)
-plt += Mesh(dataurl+"bunny.obj")
+plt += Mesh(dataurl+"bunny.obj").color("gold")
 plt += __doc__
 plt.addCallback('KeyPress', myfnc)
 plt.show().close()

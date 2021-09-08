@@ -393,16 +393,16 @@ def RayCastPlotter(volume):
     )
     bum.status(volume.mode())
 
-    def CheckAbort(obj, event):
-        if obj.GetEventPending() != 0:
-            obj.SetAbortRender(1)
-
-    vp.window.AddObserver("AbortCheckEvent", CheckAbort)
+    # def CheckAbort(obj, event):
+    #     if obj.GetEventPending() != 0:
+    #         obj.SetAbortRender(1)
+    # vp.window.AddObserver("AbortCheckEvent", CheckAbort)
 
     # add histogram of scalar
-    plot = cornerHistogram(volume.getPointArray(),
+    plot = cornerHistogram(volume,
         bins=25, logscale=1, c=(.7,.7,.7), bg=(.7,.7,.7), pos=(0.78, 0.065),
         lines=True, dots=False,
+        nmax=3.1415e+06, # subsample otherwise is too slow
     )
 
     # xbins = np.linspace(smin, smax, 25)

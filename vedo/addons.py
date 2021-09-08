@@ -63,6 +63,7 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
                  bg="k8",
                  alpha=0.25,
                  pos="top-right",
+                 markers=None,
         ):
         vtk.vtkLegendBoxActor.__init__(self)
 
@@ -113,13 +114,21 @@ class LegendBox(vtk.vtkLegendBoxActor, shapes.TextBase):
                     col = (0.2, 0.2, 0.2)
             else:
                 col = getColor(c)
-            poly = e.inputdata()
+            if markers is None: # default
+                poly = e.inputdata()
+            else:
+                marker = markers[i] if utils.isSequence(markers) else markers
+                if isinstance(marker, vedo.Points):
+                    poly = marker.clone(deep=False).normalize().shift(0,1,0).polydata()
+                else: # assume string marker
+                    poly = vedo.shapes.Marker(marker, s=1).shift(0,1,0).polydata()                    
+                
             self.SetEntry(n, poly, ti, col)
             n += 1
 
         self.SetWidth(width)
         if height is None:
-            self.SetHeight(width / 4.0 * n)
+            self.SetHeight(width / 3.0 * n)
         else:
             self.SetHeight(height)
 

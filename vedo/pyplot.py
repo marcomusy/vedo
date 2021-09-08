@@ -2823,12 +2823,15 @@ def cornerHistogram(
     s=0.175,
     lines=True,
     dots=False,
+    nmax=None,
 ):
     """
     Build a histogram from a list of values in n bins.
     The resulting object is a 2D actor.
 
     Use *vrange* to restrict the range of the histogram.
+    
+    :param int nmax: limit the sampling to this max nr of entries
 
     Use `pos` to assign its position:
         - 1, topleft,
@@ -2839,8 +2842,15 @@ def cornerHistogram(
     """
     if hasattr(values, '_data'):
         values = utils.vtk2numpy(values._data.GetPointData().GetScalars())
+    
+    n = values.shape[0]
+    if nmax and nmax < n:
+        # subsample:
+        idxs = np.linspace(0, n, num=int(nmax), endpoint=False).astype(int)
+        values = values[idxs]
 
     fs, edges = np.histogram(values, bins=bins, range=vrange)
+
     if minbin:
         fs = fs[minbin:-1]
     if logscale:

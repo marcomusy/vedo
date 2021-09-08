@@ -1,7 +1,7 @@
 """Example usage of removeOutliers()
-and cluster() methods.
+and addClustering() methods.
 """
-from vedo import show, cluster, removeOutliers
+from vedo import *
 import numpy as np
 
 
@@ -17,8 +17,11 @@ noise4 = removeOutliers(noise4, 0.05)
 
 # merge points to lose their identity
 pts = noise1.tolist() + noise2.tolist() + noise3.tolist() + noise4.tolist()
+pts = Points(pts)
 
 # find back their identity through clustering
-cl = cluster(pts, radius=0.1)  # returns a vtkAssembly
+clpts = pts.addClustering(radius=0.1).print()
+clpts.cmap("jet", "ClusterId")
+#print(pts.pointdata["ClusterId"])
 
-show(cl, __doc__, axes=1, viewup='z').close()
+show(clpts, __doc__, axes=1, viewup='z', bg='bb').close()

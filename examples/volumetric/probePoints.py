@@ -8,10 +8,12 @@ vol = Volume(dataurl+'embryo.slc')
 
 pts = np.random.rand(5000, 3)*256
 
-mpts = probePoints(vol, pts).pointSize(3).print()
+mpts = probePoints(vol, pts).pointSize(3)
 
-scals = mpts.getPointArray()
+mpts.print()
+# valid = mpts.pointdata['vtkValidPointMask']
+scals = mpts.pointdata['SLCImage']
 
-his = histogram(scals, xlim=(5,120), xtitle='probed voxel value')
+his = histogram(scals,  xtitle='probed voxel value', xlim=(5,100))
 
 show([(vol, Axes(vol), mpts, __doc__), his], N=2, sharecam=False).close()

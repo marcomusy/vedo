@@ -32,7 +32,7 @@ def funcMove(event):
 msg = vedo.Text2D(pos='bottom-left', font="VictorMono")
 msh = vedo.shapes.ParametricShape("RandomHills").cmap('terrain')
 axs = vedo.Axes(msh)
-arr = msh.getPointArray("Scalars")
+arr = msh.pointdata["Scalars"]
 
 plt = vedo.Plotter(bg='moccasin', bg2='blue9', wxWidget=widget)
 plt.add([msh, axs, msg]).resetCamera()

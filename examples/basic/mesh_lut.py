@@ -2,7 +2,7 @@
 out-of-range and NaN colors and labels"""
 from vedo import buildLUT, Sphere, show, settings
 
-# settings.useDepthPeeling = True # might help with transparencies
+settings.useDepthPeeling = True # might help with transparencies
 
 # generate a sphere and stretch it, so it sits between z=-2 and z=+2
 mesh = Sphere(quads=True).scale([1,1,2]).lineWidth(0.1)

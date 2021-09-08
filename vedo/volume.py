@@ -889,6 +889,14 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
         As is the case with the additive intensity projection, the final image will
         always be grayscale i.e. the aggregated values are not passed through the
         color transfer function.
+    
+    Example:
+        
+        .. code-block:: python
+        
+            from vedo import Volume
+            vol = Volume("path/to/mydata/rec*.bmp", c='jet', mode=1)
+            vol.show(axes=1)
 
     .. hint:: if a `list` of values is used for `alphas` this is interpreted
         as a transfer function along the range of the scalar.
@@ -941,19 +949,23 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
 
         ###################
         inputtype = str(type(inputobj))
-        #colors.printc('Volume inputtype', inputtype)
+        
+        # colors.printc('Volume inputtype', inputtype, c='b')
 
         if inputobj is None:
             img = vtk.vtkImageData()
 
         elif utils.isSequence(inputobj):
 
-            if isinstance(inputobj[0], str): # scan sequence of BMP files
+            if isinstance(inputobj[0], str) and ".bmp" in inputobj[0].lower():
+                # scan sequence of BMP files
                 ima = vtk.vtkImageAppend()
                 ima.SetAppendAxis(2)
                 pb = utils.ProgressBar(0, len(inputobj))
                 for i in pb.range():
                     f = inputobj[i]
+                    if "_rec_spr.bmp" in f:
+                        continue
                     picr = vtk.vtkBMPReader()
                     picr.SetFileName(f)
                     picr.Update()

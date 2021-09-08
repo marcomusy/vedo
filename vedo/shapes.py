@@ -1261,15 +1261,19 @@ class Tube(Mesh):
     """
     def __init__(self, points, r=1, cap=True, c=None, alpha=1, res=12):
 
-        ppoints = vtk.vtkPoints()  # Generate the polyline
-        ppoints.SetData(utils.numpy2vtk(points, dtype=np.float))
-        lines = vtk.vtkCellArray()
-        lines.InsertNextCell(len(points))
-        for i in range(len(points)):
-            lines.InsertCellPoint(i)
-        polyln = vtk.vtkPolyData()
-        polyln.SetPoints(ppoints)
-        polyln.SetLines(lines)
+        if isinstance(points, Mesh):
+            polyln = points.polydata()
+            points = points.points()
+        else:
+            ppoints = vtk.vtkPoints()  # Generate the polyline
+            ppoints.SetData(utils.numpy2vtk(points, dtype=np.float))
+            lines = vtk.vtkCellArray()
+            lines.InsertNextCell(len(points))
+            for i in range(len(points)):
+                lines.InsertCellPoint(i)
+            polyln = vtk.vtkPolyData()
+            polyln.SetPoints(ppoints)
+            polyln.SetLines(lines)
 
         tuf = vtk.vtkTubeFilter()
         tuf.SetCapping(cap)
@@ -1285,7 +1289,7 @@ class Tube(Mesh):
             tuf.SetRadius(r)
 
         usingColScals = False
-        if utils.isSequence(c) and len(c) != 3:
+        if utils.isSequence(c):
             usingColScals = True
             cc = vtk.vtkUnsignedCharArray()
             cc.SetName("TubeColors")

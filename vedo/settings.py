@@ -69,8 +69,8 @@ General settings.
     # Turn on/off rendering of translucent material with depth peeling technique.
     useDepthPeeling = False
     alphaBitPlanes  = True  # options only active if useDepthPeeling=True
-    multiSamples    = 0     # force to not pick a framebuffer with a multisample buffer
-    maxNumberOfPeels= 8     # maximum number of rendering passes
+    multiSamples    = 8     # force to not pick a framebuffer with a multisample buffer
+    maxNumberOfPeels= 4     # maximum number of rendering passes
     occlusionRatio  = 0.0   # occlusion ratio, 0 = exact image.
 
     # Turn on/off nvidia FXAA post-process anti-aliasing, if supported.
@@ -213,9 +213,9 @@ if vtk_version[0] >= 9:
     if "Windows" in sys_platform:
         useDepthPeeling = True
 # only relevant if depthpeeling is on
-alphaBitPlanes = 1
-maxNumberOfPeels= 4
-occlusionRatio  = 0.1
+alphaBitPlanes   = 1
+maxNumberOfPeels = 4
+occlusionRatio   = 0.1
 
 # Turn on/off nvidia FXAA anti-aliasing, if supported.
 useFXAA = False  # either True or False

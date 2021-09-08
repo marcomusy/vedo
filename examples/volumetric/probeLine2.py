@@ -10,7 +10,7 @@ p1, p2 = (50,50,50), (200,200,200)
 pl = probeLine(vol, p1, p2, res=100).lineWidth(4)
 
 xvals = pl.points()[:,0]
-yvals = pl.getPointArray()
+yvals = pl.pointdata[0] # get the probed values along the line
 
 plt = plot(xvals, yvals,
            xtitle=" ", ytitle="voxel intensity",

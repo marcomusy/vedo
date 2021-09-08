@@ -13,6 +13,7 @@ scals = mesh.points()[:, 1]
 alphas = [0.1, 0.1, 0.3, 0.4, 0.9]
 
 mesh.cmap("copper", scals, alpha=alphas)
-# print(mesh.getPointArray('PointScalars')) # retrieve scalars
+# mesh.print()
+# print(mesh.pointdata['PointScalars']) # retrieve scalars
 
 show(mesh, __doc__, axes=9).close()

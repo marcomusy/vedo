@@ -22,7 +22,8 @@ for ptold in pts:
     pttarget.append(ptnew)
     # print(ptold,'->',ptnew)
 
-warped = mesh.clone().thinPlateSpline(ptsource, pttarget).color("b", 0.4)
+# make a clone copy and warp it
+warped = mesh.clone().warp(ptsource, pttarget).color("b").alpha(0.4)
 
 apts = Points(ptsource, r=15, c="r")
 

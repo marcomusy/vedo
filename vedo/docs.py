@@ -1,6 +1,16 @@
 import vtk, sys
 
 __all__ = []
+_defs = ""
+
+####################################################################################
+##### to generate documentation must uncomment this line:
+# from vedo.docs_defs import _substitutions_defs as _defs
+
+# Then:
+    # cd vedo/docs
+    # pip install -r requirements.txt # optionally
+    # make html
 
 
 ####################################################################################
@@ -91,16 +101,5 @@ google-chrome --enable-webgl --use-gl=desktop
 </html>
 """
 
-
-####################################################################################
-_defs = ""
-
-##### to generate documentation must uncomment this line:
-# from vedo.docs_defs import _substitutions_defs as _defs
-
-# Then:
-    # cd vedo/docs
-    # pip install -r requirements.txt # optionally
-    # make html
 
 ####################################################################################

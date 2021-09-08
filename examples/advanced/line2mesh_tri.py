@@ -13,10 +13,9 @@ msh.addQuality()           # add a measure of triangle quality
 msh.cmap(cmap, on="cells").addScalarBar3D()
 
 contour = Line(shape).c('red4').lw(5)
-histo = histogram(msh.getCellArray('Quality'), aspect=3/4,
+histo = histogram(msh.celldata['Quality'], aspect=3/4,
                   c=cmap, xtitle='triangle mesh quality')
-show([
-      [contour, contour.labels('id'), msh, __doc__],
-      [histo],
+show([(contour, contour.labels('id'), msh, __doc__),
+      histo,
      ], N=2, sharecam=False,
 ).close()

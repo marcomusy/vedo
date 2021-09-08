@@ -6,7 +6,7 @@ settings.immediateRendering = False
 
 mesh0 = ParametricShape('RandomHills')
 # ParametricShapes already have a scalar associated to points
-printc('Mesh arrays are:    ', mesh0.getArrayNames())
+printc('Mesh point arrays:', mesh0.pointdata.keys())
 # so assign it a colormap:
 mesh0.cmap('terrain')
 
@@ -18,7 +18,7 @@ show(isob, at=1)
 
 # make a copy and interpolate the Scalars from points to cells
 mesh1 = mesh0.clone(deep=False).mapPointsToCells()
-printc('Mesh arrays are now:', mesh1.getArrayNames())
+printc('Mesh cell arrays :', mesh1.celldata.keys())
 
 gvecs = mesh1.gradient('Scalars', on='cells')
 cc = mesh1.cellCenters()
@@ -29,9 +29,11 @@ show(mesh1, isol, ars, "Arrows=\nablaH", at=2)
 # colormap the gradient magnitude directly on the mesh
 mesh2 = mesh1.clone(deep=False).lw(0.1).cmap('jet', mag(gvecs), on='cells')
 mesh2.addScalarBar3D(title='|\nablaH| [arb.units]')
-cam = dict(pos=(2.57, -1.92, 3.25), # get these nrs by pressing C
-           focalPoint=(0.195, 1.06, 8.65e-3),
-           viewup=(-0.329, 0.563, 0.758),
-           distance=5.00,
-           clippingRange=(1.87, 8.79))
+
+# get these nrs by pressing C
+cam = dict(pos=(1.373, 6.645, 5.967),
+           focalPoint=(0.04096, 9.814, 2.167),
+           viewup=(-0.1858, 0.7215, 0.6670),
+           distance=5.125)
+
 show(mesh2, "Color=|\nablaH|", at=3, camera=cam, interactive=True).close()

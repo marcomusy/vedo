@@ -11,7 +11,7 @@ for i in range(60):  # probe scalars on 60 parallel lines
     pl = probeLine(vol, p1, p2).cmap('hot', vmin=0, vmax=110)
     pl.alpha(0.5).lineWidth(4)
     lines.append(pl)
-    #print(pl.getPointArray()) # numpy scalars can be accessed here
-    #print(pl.getPointArray('vtkValidPointMask')) # the mask of valid points
+    #print(pl.pointdata.keys()) # numpy scalars can be accessed here
+    #print(pl.pointdata['vtkValidPointMask']) # the mask of valid points
 
 show(lines, __doc__, axes=1).close()

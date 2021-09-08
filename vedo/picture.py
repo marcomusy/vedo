@@ -315,9 +315,12 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """Resize the image resolution by specifying the number of pixels in width and height.
         If left to zero, it will be automatically calculated to keep the original aspect ratio.
 
-        :param list newsize: shape of picture as [npx, npy]
+        :param list,float newsize: shape of picture as [npx, npy], or as a fraction.
         """
         old_dims = np.array(self._data.GetDimensions())
+
+        if not utils.isSequence(newsize):
+            newsize = (old_dims * newsize + 0.5).astype(int)
 
         if not newsize[1]:
             ar = old_dims[1]/old_dims[0]
@@ -349,59 +352,48 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             raise RuntimeError()
         ff.Update()
         return self._update(ff.GetOutput())
-        
-    def rotateAntiClockWise(self, n=1):
+    
+    def rotate(self, angle, center=(), scale=1, mirroring=False, bc='w', alpha=1):
         """
-        Rotate a black and white Picture in steps of 90 degrees anticlockwise 
-        (landscape to portrait and viceversa).
+        Rotate an image by an angle (anticlockwise).
 
         Parameters
         ----------
-        n : int, optional
-            number of 90 deg rotations. The default is 1.
-        """
-        nx,ny,nz = self._data.GetDimensions()
-        n = n%4
-        if n==1:
-            self.bw()
-            varr = self._data.GetPointData().GetScalars()
-            arr = utils.vtk2numpy(varr).reshape(nx,ny, order='F')
-            pp = Picture(arr).mirror('x')
-            img = pp._data
-            pp = None
-            return self._update(img)
-        elif n==2:
-            return self.mirror('x').mirror('y')
-        elif n==3:
-            self.bw()
-            varr = self._data.GetPointData().GetScalars()
-            arr = utils.vtk2numpy(varr).reshape(nx,ny, order='F')
-            pp = Picture(arr).mirror('y')
-            img = pp._data
-            pp = None
-            return self._update(img)
+        angle : float
+            rotation angle in degrees.
+        center: list
+            center of rotation (x,y) in pixels.
+        """        
+        bounds = self.bounds()
+        pc = [0,0,0]
+        if center:
+            pc[0] = center[0]
+            pc[1] = center[1]
         else:
-            return self
+            pc[0] = (bounds[1] + bounds[0]) / 2.0
+            pc[1] = (bounds[3] + bounds[2]) / 2.0
+        pc[2] = (bounds[5] + bounds[4]) / 2.0
+  
+        transform = vtk.vtkTransform()
+        transform.Translate(pc)
+        transform.RotateWXYZ(-angle, 0, 0, 1)
+        transform.Scale(1/scale,1/scale,1)
+        transform.Translate(-pc[0], -pc[1], -pc[2])
 
-    # def rotateACW(self, n=1):
-    #     """
-    #     Rotate a black and white Picture in steps of 90 degrees anticlockwise 
-    #     (landscape to portrait and viceversa).
+        reslice = vtk.vtkImageReslice()
+        reslice.SetMirror(mirroring)
+        c = np.array(colors.getColor(bc))*255
+        reslice.SetBackgroundColor([c[0],c[1],c[2], alpha*255])
+        reslice.SetInputData(self._data)
+        reslice.SetResliceTransform(transform)
+        reslice.SetOutputDimensionality(2)
+        reslice.SetInterpolationModeToCubic()
+        reslice.SetOutputSpacing(self._data.GetSpacing())
+        reslice.SetOutputOrigin(self._data.GetOrigin())
+        reslice.SetOutputExtent(self._data.GetExtent())
+        reslice.Update()
+        return self._update(reslice.GetOutput())
 
-    #     Parameters
-    #     ----------
-    #     n : int, optional
-    #         number of 90 deg rotations. The default is 1.
-    #     """
-    #     irs = vtk.vtkImageResize()
-    #     irs.SetResizeMethodToOutputDimensions()
-    #     nx,ny,nz = self._data.GetDimensions()
-    #     irs.SetOutputDimensions(ny, int(nx/2), 1)
-    #     irs.SetInputData(self._data)
-    #     irs.Update()
-    #     return self._update(irs.GetOutput())
-       
-        
     def select(self, component):
         """Select one single component of the rgb image"""
         ec = vtk.vtkImageExtractComponents()
@@ -465,6 +457,46 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         medf.SetInputData(self._data)
         medf.Update()        
         return self._update(medf.GetOutput())
+    
+    def enhance(self):
+        """
+        Enhance a b&w picture using the laplacian, enhancing high-freq edges.
+        
+        Example:
+            
+            .. code-block:: python
+            
+                import vedo
+                p = vedo.Picture(vedo.dataurl+'images/dog.jpg').bw()
+                vedo.show(p, p.clone().enhance(), N=2, mode='image')
+        """       
+        img = self._data
+        scalarRange = img.GetPointData().GetScalars().GetRange()
+        
+        cast = vtk.vtkImageCast()
+        cast.SetInputData(img)
+        cast.SetOutputScalarTypeToDouble()
+        cast.Update()
+       
+        laplacian = vtk.vtkImageLaplacian()
+        laplacian.SetInputData(cast.GetOutput())
+        laplacian.SetDimensionality(2)
+        laplacian.Update()
+        
+        subtr = vtk.vtkImageMathematics()
+        subtr.SetInputData(0, cast.GetOutput())
+        subtr.SetInputData(1, laplacian.GetOutput())
+        subtr.SetOperationToSubtract()
+        subtr.Update()    
+        
+        colorWindow = scalarRange[1] - scalarRange[0]
+        colorLevel = colorWindow / 2    
+        originalColor = vtk.vtkImageMapToWindowLevelColors()
+        originalColor.SetWindow(colorWindow)
+        originalColor.SetLevel(colorLevel)
+        originalColor.SetInputData(subtr.GetOutput())
+        originalColor.Update()        
+        return self._update(originalColor.GetOutput())
 
     def fft(self, mode='magnitude', logscale=12, center=True):
         """Fast Fourier transform of a picture.
@@ -619,6 +651,76 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         blf.SetBlendModeToNormal()
         blf.Update()
         return self._update(blf.GetOutput())
+    
+    
+    def warp(self, sourcePts=(), targetPts=(), transform=None, sigma=1, 
+             mirroring=False, bc='w', alpha=1):
+        """
+        Warp an image using thin-plate splines.
+
+        Parameters
+        ----------
+        sourcePts : list, optional
+            source points. 
+        targetPts : list, optional
+            target points.
+        transform : TYPE, optional
+            a vtkTransform object can be supplied. The default is None.
+        sigma : float, optional
+            stiffness of the interpolation. The default is 1.
+        mirroring : TYPE, optional
+            fill the margins with a reflection of the original image. The default is False.
+        bc : TYPE, optional
+            fill the margins with a solid color. The default is 'w'.
+        alpha : TYPE, optional
+            opacity of the filled margins. The default is 1.
+        """
+        if transform is None:
+            # source and target must be filled
+            transform = vtk.vtkThinPlateSplineTransform()
+            transform.SetBasisToR2LogR()
+            if isinstance(sourcePts, vedo.Points):
+                sourcePts = sourcePts.points()
+            if isinstance(targetPts, vedo.Points):
+                targetPts = targetPts.points()
+    
+            ns = len(sourcePts)
+            nt = len(targetPts)
+            if ns != nt:
+                colors.printc("Error in picture.warp(): #source != #target points", ns, nt, c='r')
+                raise RuntimeError()
+                
+            ptsou = vtk.vtkPoints()
+            ptsou.SetNumberOfPoints(ns)   
+    
+            pttar = vtk.vtkPoints()
+            pttar.SetNumberOfPoints(nt)
+            
+            for i in range(ns):
+                p = sourcePts[i]
+                ptsou.SetPoint(i, [p[0],p[1],0])
+                p = targetPts[i]
+                pttar.SetPoint(i, [p[0],p[1],0])
+
+            transform.SetSigma(sigma)
+            transform.SetSourceLandmarks(pttar)
+            transform.SetTargetLandmarks(ptsou)
+        else:
+            # ignore source and target
+            pass
+        
+        reslice = vtk.vtkImageReslice()
+        reslice.SetInputData(self._data)
+        reslice.SetOutputDimensionality(2)
+        reslice.SetResliceTransform(transform)
+        reslice.SetInterpolationModeToCubic()
+        reslice.SetMirror(mirroring)
+        c = np.array(colors.getColor(bc))*255
+        reslice.SetBackgroundColor([c[0],c[1],c[2], alpha*255])
+        reslice.Update()
+        self.transform = transform
+        return self._update(reslice.GetOutput())
+    
 
     def threshold(self, value=None, flip=False):
         """
@@ -673,6 +775,13 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         gr.pos(int(dims[0]/2), int(dims[1]/2)).pickable(True).wireframe(False).lw(0)
         self._data.GetPointData().GetScalars().SetName("RGBA")
         gr.inputdata().GetPointData().AddArray(self._data.GetPointData().GetScalars())
+        gr.inputdata().GetPointData().SetActiveScalars("RGBA")
+        gr._mapper.SetArrayName("RGBA")
+        gr._mapper.SetScalarModeToUsePointData()
+        # gr._mapper.SetColorModeToDirectScalars()
+        gr._mapper.ScalarVisibilityOn()
+        gr.name = self.name
+        gr.filename = self.filename
         return gr
 
     def tonumpy(self):
@@ -689,8 +798,8 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         """
         nx, ny, _ = self._data.GetDimensions()
         nchan = self._data.GetPointData().GetScalars().GetNumberOfComponents()
-        narray = utils.vtk2numpy(self._data.GetPointData().GetScalars()).reshape(nchan, ny,nx)
-        # narray = np.transpose(narray, axes=[1, 0])
+        narray = utils.vtk2numpy(self._data.GetPointData().GetScalars()).reshape(ny,nx,nchan)
+        narray = np.flip(narray, axis=0)
         return narray
     
     def modified(self):

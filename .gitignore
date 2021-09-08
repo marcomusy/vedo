@@ -4,9 +4,16 @@
 docs/web_page
 
 .ipynb
-notebooks/.ipynb_checkpoints/
+.ipynb_checkpoints
+examples/notebooks/*/.ipynb_checkpoints
+Untitled.ipynb
+untitled*.py
+*png
+*jpg
+*tiff
+*tif
 
-docs/build/
+docs/build
 docs/source/content
 docs/source/index.rst
 

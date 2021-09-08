@@ -122,12 +122,13 @@ print('getTransform',ct.getTransform().GetNumberOfConcatenatedTransforms())
 assert ct.getTransform().GetNumberOfConcatenatedTransforms()
 
 
-###################################### getArrayNames
-arrnames = cone.getArrayNames()
-print('getArrayNames',arrnames['PointData'][0] , 'parr')
-assert arrnames['PointData'][0] == 'parr'
-print('getArrayNames',arrnames['CellData'][0] , 'carr')
-assert arrnames['CellData'][0] == 'carr'
+###################################### pointdata and celldata
+arrnames = cone.pointdata.keys()
+print('pointdata', arrnames, 'parr')
+assert 'parr' in arrnames
+arrnames = cone.celldata.keys()
+print('celldata.keys', arrnames, 'carr')
+assert 'carr' in arrnames
 
 
 ###################################### getPointArray

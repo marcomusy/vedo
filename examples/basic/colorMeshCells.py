@@ -11,6 +11,7 @@ for i in range(tor.NCells()):
     alphas.append(i/tor.NCells()) # a transparency value
 
 tor.cellIndividualColors(cols, alphas)
-print('Mesh arrays:', tor.getArrayNames())
+print('Mesh cell arrays:', tor.celldata.keys(), 
+      'shape:', tor.celldata['CellIndividualColors'].shape)
 
 show(tor, __doc__).close()

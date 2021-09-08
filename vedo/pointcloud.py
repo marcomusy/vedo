@@ -15,7 +15,6 @@ __doc__ = ("""Submodule to manage point clouds."""
 
 __all__ = ["Points",
            "Point",
-           "cluster",
            "removeOutliers",
            "connectedPoints",
            "smoothMLS3D",
@@ -32,60 +31,6 @@ __all__ = ["Points",
 
 
 ###################################################
-
-def cluster(points, radius):
-    """
-    Clustering of points in space.
-
-    `radius` is the radius of local search.
-    Individual subsets can be accessed through ``mesh.clusters``.
-
-    |clustering| |clustering.py|_
-    """
-    if isinstance(points, vtk.vtkActor):
-        poly = points.GetMapper().GetInput()
-    else:
-        src = vtk.vtkPointSource()
-        src.SetNumberOfPoints(len(points))
-        src.Update()
-        vpts = src.GetOutput().GetPoints()
-        for i, p in enumerate(points):
-            vpts.SetPoint(i, p)
-        poly = src.GetOutput()
-
-    cluster = vtk.vtkEuclideanClusterExtraction()
-    cluster.SetInputData(poly)
-    cluster.SetExtractionModeToAllClusters()
-    cluster.SetRadius(radius)
-    cluster.ColorClustersOn()
-    cluster.Update()
-
-    idsarr = cluster.GetOutput().GetPointData().GetArray("ClusterId")
-    Nc = cluster.GetNumberOfExtractedClusters()
-
-    sets = [[] for i in range(Nc)]
-    for i, p in enumerate(points):
-        sets[idsarr.GetValue(i)].append(p)
-
-    acts = []
-    for i, aset in enumerate(sets):
-        acts.append(Points(aset, c=i))
-
-    asse = vedo.assembly.Assembly(acts)
-
-    asse.info["clusters"] = sets
-    print("Nr. of extracted clusters", Nc)
-    if Nc > 10:
-        print("First ten:")
-    for i in range(Nc):
-        if i > 9:
-            print("...")
-            break
-        print("Cluster #" + str(i) + ",  N =", len(sets[i]))
-    print("Access individual clusters through attribute: obj.info['cluster']")
-    return asse
-
-
 def removeOutliers(points, radius, neighbors=5):
     """
     Remove outliers from a cloud of points within the specified `radius` search.
@@ -120,7 +65,6 @@ def removeOutliers(points, radius, neighbors=5):
         return outpts
 
     return Points(outpts)
-
 
 
 def smoothMLS3D(meshs, neighbours=10):
@@ -765,7 +709,6 @@ def recoSurface(pts, dims=(100,100,100), radius=None,
     surface.SetInputConnection(sdf.GetOutputPort())
     surface.Update()
     return vedo.mesh.Mesh(surface.GetOutput())
-
 
 
 ###################################################
@@ -2223,7 +2166,10 @@ class Points(vtk.vtkFollower, BaseActor):
         xyz2 = np.sum(pts * pts, axis=0)
         scale = 1 / np.sqrt(np.sum(xyz2) / len(pts))
         t = vtk.vtkTransform()
+        t.PostMultiply()
+        # t.Translate(-cm)
         t.Scale(scale, scale, scale)
+        # t.Translate(cm)
         tf = vtk.vtkTransformPolyDataFilter()
         tf.SetInputData(self._data)
         tf.SetTransform(t)
@@ -2855,7 +2801,7 @@ class Points(vtk.vtkFollower, BaseActor):
     def smoothMLS1D(self, f=0.2, radius=None):
         """
         Smooth mesh or points with a `Moving Least Squares` variant.
-        The list ``mesh.info['variances']`` contain the residue calculated for each point.
+        The point data array "Variances" will contain the residue calculated for each point.
         Input mesh's polydata is modified.
 
         :param float f: smoothing factor - typical range is [0,2].
@@ -2890,7 +2836,10 @@ class Points(vtk.vtkFollower, BaseActor):
             variances.append(dd[1] + dd[2])
             newline.append(newp)
 
-        self.info["variances"] = np.array(variances)
+        vdata = utils.numpy2vtk(np.array(variances))
+        vdata.SetName("Variances")
+        self._data.GetPointData().AddArray(vdata)
+        self._data.GetPointData().Modified()
         return self.points(newline)
 
 
@@ -3047,25 +2996,9 @@ class Points(vtk.vtkFollower, BaseActor):
         warpTo.Update()
         return self._update(warpTo.GetOutput())
 
+    @deprecated(reason=vedo.colors.red+"Please use points(my_new_pts)"+vedo.colors.reset)
     def warpByVectors(self, vects, factor=1, useCells=False):
-        """Modify point coordinates by moving points along vector times the scale factor.
-        Useful for showing flow profiles or mechanical deformation.
-        Input can be an existing point/cell data array or a new array, in this case
-        it will be named 'WarpVectors'.
-
-        :parameter float factor: value to scale displacement
-
-        :parameter bool useCell: if True, look for cell array instead of point array
-
-        Example:
-            .. code-block:: python
-
-                from vedo import *
-                b = Mesh(dataurl+'dodecahedron.vtk').computeNormals()
-                b.warpByVectors("Normals", factor=0.15).show()
-
-            |warpv|
-        """
+        """Deprecated. Please use points(my_new_pts) """
         wf = vtk.vtkWarpVector()
         wf.SetInputDataObject(self.polydata())
 
@@ -3087,8 +3020,11 @@ class Points(vtk.vtkFollower, BaseActor):
         wf.Update()
         return self._update(wf.GetOutput())
 
+    @deprecated(reason=vedo.colors.red+"Please use warp()"+vedo.colors.reset)
+    def thinPlateSpline(self, sourcePts, targetPts, sigma=1, mode="3d"):
+        return self.warp(sourcePts, targetPts, sigma, mode)
 
-    def thinPlateSpline(self, sourcePts, targetPts, sigma=1, mode="3d", funcs=(None,None)):
+    def warp(self, sourcePts, targetPts, sigma=1, mode="3d"):
         """
         `Thin Plate Spline` transformations describe a nonlinear warp transform defined by a set
         of source and target landmarks. Any point on the mesh close to a source landmark will
@@ -3100,7 +3036,6 @@ class Points(vtk.vtkFollower, BaseActor):
 
         :param float sigma: specify the 'stiffness' of the spline.
         :param str mode: set the basis function to either abs(R) (for 3d) or R2LogR (for 2d meshes)
-        :param funcs: You may supply both the function and its derivative with respect to r.
 
         .. hint:: Examples: |thinplate_morphing1.py|_ |thinplate_morphing2.py|_
             |thinplate_grid.py|_ |thinplate_morphing_2d.py|_ |interpolateField.py|_
@@ -3137,9 +3072,7 @@ class Points(vtk.vtkFollower, BaseActor):
         else:
             colors.printc("Error in thinPlateSpline(): unknown mode", mode, c='r')
             raise RuntimeError()
-        if funcs[0]:
-            transform.SetBasisFunction(funcs[0])
-            transform.SetBasisDerivative(funcs[1])
+            
         transform.SetSigma(sigma)
         transform.SetSourceLandmarks(ptsou)
         transform.SetTargetLandmarks(pttar)
@@ -3666,6 +3599,22 @@ class Points(vtk.vtkFollower, BaseActor):
         """Return the ``pymeshlab.Mesh`` object."""
         return utils._vedo2meshlab(self)
 
+    def addClustering(self, radius):
+        """
+        Clustering of points in space. The `radius` is the radius of local search.
+        An array named "ClusterId" is added to the vertex points.
+    
+        |clustering| |clustering.py|_
+        """    
+        cluster = vtk.vtkEuclideanClusterExtraction()
+        cluster.SetInputData(self._data)
+        cluster.SetExtractionModeToAllClusters()
+        cluster.SetRadius(radius)
+        cluster.ColorClustersOn()
+        cluster.Update()
+        idsarr = cluster.GetOutput().GetPointData().GetArray("ClusterId")
+        self._data.GetPointData().AddArray(idsarr)
+        return self        
 
     def density(self, dims=(40,40,40),
                 bounds=None, radius=None,

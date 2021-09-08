@@ -788,33 +788,37 @@ class Plotter:
         return self
     
     def load(self, filename, unpack=True, force=False):
-            """
-            Load objects from file.
-            The output will depend on the file extension. See examples below.
-            :param bool unpack: only for multiblock data,
-                if True returns a flat list of objects.
-            :param bool force: when downloading a file ignore any previous
-                cached downloads and force a new one.
-            :Example:
-                .. code-block:: python
-                    from vedo import *
-                    # Return a list of 2 Mesh
-                    g = load([dataurl+'250.vtk', dataurl+'290.vtk'])
-                    show(g)
-                    # Return a list of meshes by reading all files in a directory
-                    # (if directory contains DICOM files then a Volume is returned)
-                    g = load('mydicomdir/')
-                    show(g)
-                    # Return a Volume. Color/Opacity transfer function can be specified too.
-                    g = load(dataurl+'embryo.slc')
-                    g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1)).show()
-            """
-            acts = vedo.io.load(filename, unpack, force)
-            if utils.isSequence(acts):
-                self.actors += acts
-            else:
-                self.actors.append(acts)
-            return acts    
+        """
+        Load objects from file.
+        The output will depend on the file extension. See examples below.
+        
+        :param bool unpack: only for multiblock data,
+            if True returns a flat list of objects.
+        :param bool force: when downloading a file ignore any previous
+            cached downloads and force a new one.
+            
+        :Example:
+            
+            .. code-block:: python
+            
+                from vedo import *
+                # Return a list of 2 Mesh
+                g = load([dataurl+'250.vtk', dataurl+'290.vtk'])
+                show(g)
+                # Return a list of meshes by reading all files in a directory
+                # (if directory contains DICOM files then a Volume is returned)
+                g = load('mydicomdir/')
+                show(g)
+                # Return a Volume. Color/Opacity transfer function can be specified too.
+                g = load(dataurl+'embryo.slc')
+                g.c(['y','lb','w']).alpha((0.0, 0.4, 0.9, 1)).show()
+        """
+        acts = vedo.io.load(filename, unpack, force)
+        if utils.isSequence(acts):
+            self.actors += acts
+        else:
+            self.actors.append(acts)
+        return acts    
     
     def add(self, actors, at=None, render=True, resetcam=False):
         """Append input object to the internal list of actors to be shown.
@@ -1440,6 +1444,7 @@ class Plotter:
         hoverLegend = vedo.shapes.Text2D('', pos=pos, font=font, c=c, s=s, alpha=alpha, bg=bg)
 
         def _legfunc(evt):
+            # helper function (png not pickable because of alpha channel in vtk9 ??)
             if not evt.actor or not self.renderer or at != evt.at:
                 if hoverLegend._mapper.GetInput(): # clear and return
                     hoverLegend._mapper.SetInput('')
@@ -1488,12 +1493,7 @@ class Plotter:
                         t += "\n             : "
                         sz, created = evt.actor.fileSize, evt.actor.created
                         t += f"{created[4:-5]} ({sz})"
-
-                if evt.isPicture:
-                    t += f"\nImage shape  : {evt.actor.shape}"
-                    pcol = vedo.colors.colorPicker(evt.picked2d, plotter=self)
-                    t += f"\nPixel color  : {vedo.colors.rgb2hex(pcol/255)} {pcol}"
-
+                        
                 if evt.isPoints:
                     indata = evt.actor.polydata(False)
                     if indata.GetNumberOfPoints():
@@ -1503,14 +1503,19 @@ class Plotter:
                     cdata = indata.GetCellData()
                     if pdata.GetScalars() and pdata.GetScalars().GetName():
                         t += f"\nPoint array  : {pdata.GetScalars().GetName()}"
-                        if pdata.GetScalars().GetName() == evt.actor.GetMapper().GetArrayName():
+                        if pdata.GetScalars().GetName() == evt.actor.mapper().GetArrayName():
                             t += " *"
                     if cdata.GetScalars() and cdata.GetScalars().GetName():
                         t += f"\nCell  array  : {cdata.GetScalars().GetName()}"
                         if cdata.GetScalars().GetName() == evt.actor.mapper().GetArrayName():
                             t += " *"
-                t += f"\nWorld coords : {utils.precision(evt.picked3d, precision)}"
-                t += f"\nMouse coords : {evt.picked2d}"
+                            
+                if evt.isPicture:
+                    t = f"{os.path.basename(evt.actor.filename[:maxlength+10])}".ljust(maxlength+10)
+                    t += f"\nImage shape: {evt.actor.shape}"
+                    pcol = vedo.colors.colorPicker(evt.picked2d, plotter=self)
+                    t += f"\nPixel color: {vedo.colors.rgb2hex(pcol/255)} {pcol}"
+
 
             # change box color if needed in 'auto' mode
             if evt.isPoints and 'auto' in str(bg):
@@ -1534,7 +1539,7 @@ class Plotter:
 
         self.add(hoverLegend, render=False, at=at)
         self.hoverLegends.append(hoverLegend)
-        self.addCallback('MouseMoveEvent', _legfunc)
+        self.addCallback('MouseMove', _legfunc)
         return self
 
 

@@ -1,8 +1,10 @@
 import numpy as np
 import vtk
+from vtk.numpy_interface import dataset_adapter
 import vedo
 import vedo.colors as colors
 import vedo.utils as utils
+from deprecated import deprecated
 
 __doc__ = (
     """Base classes. Do not instantiate these."""
@@ -631,7 +633,8 @@ class BaseActor(Base3DProp):
 
         self.flagText = None
         self._caption = None
-
+        
+        self._wrapped_data = None
 
     def mapper(self, newMapper=None):
         """Return the ``vtkMapper`` data object, or update it with a new one."""
@@ -899,14 +902,33 @@ class BaseActor(Base3DProp):
         """
         return self.color(color, alpha)
 
-
+    @deprecated(reason=colors.red+"Please use myobj.pointdata.keys() instead."+colors.reset)
     def getArrayNames(self):
-        """Get the existing arrays names as a dictionary"""
-        from vtk.numpy_interface import dataset_adapter
-        wrapped = dataset_adapter.WrapDataObject(self.GetMapper().GetInput())
-        return {"PointData":wrapped.PointData.keys(),
-                "CellData":wrapped.CellData.keys() }
+        """Deprecated. Please use myobj.pointdata.keys() instead"""
+        self._wrapped_data = dataset_adapter.WrapDataObject(self._data)
+        return {"PointData": self._wrapped_data.PointData.keys(),
+                "CellData":  self._wrapped_data.CellData.keys() }
 
+    @property
+    def pointdata(self):
+        """
+        Return the point array content as a ``numpy.array``.
+        This can be identified either as a string or by an integer number.
+        E.g.:  ``myobj.pointdata["arrayname"]``
+        """
+        self._wrapped_data = dataset_adapter.WrapDataObject(self._data)
+        return self._wrapped_data.PointData
+        
+    @property
+    def celldata(self):
+        """
+        Return the point array content as a ``numpy.array``.
+        This can be identified either as a string or by an integer number.
+        E.g.:  ``myobj.celldata["arrayname"]``
+        """
+        self._wrapped_data = dataset_adapter.WrapDataObject(self._data)
+        return self._wrapped_data.CellData    
+    
     def getPointArray(self, name=0):
         """
         Return the point array content as a ``numpy.array``.

@@ -14,6 +14,7 @@ Colors definitions and printing methods.
 
 __all__ = [
     "printc",
+    "printd",
     "getColor",
     "getColorName",
     "colorMap",
@@ -24,19 +25,21 @@ __all__ = [
 _global_start_time = time.time()
 
 try:
-    import matplotlib
     import matplotlib.cm as cm_mpl
-    _has_matplotlib = cm_mpl
+    _has_matplotlib = True
 except:
     from vedo.cmaps import cmaps
     _has_matplotlib = False
     # see below, this is dealt with in colorMap()
 
-
+#########################################################
+# handy global shortcuts for terminal printing
+# Ex.: print(colors.red + "hello" + colors.reset)
+#########################################################
 red   = '\x1b[1m\x1b[31;1m'
 green = '\x1b[1m\x1b[32;1m'
-blue  = '\x1b[1m\x1b[34;1m'
 yellow= '\x1b[1m\x1b[33;1m'
+blue  = '\x1b[1m\x1b[34;1m'
 reset = "\x1b[0m"
 
 
@@ -608,9 +611,10 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
 
         .. image:: https://matplotlib.org/1.2.1/_images/show_colormaps.png
 
-    .. tip:: Can also use directly a matplotlib color map:
+    .. tip:: Can also directly use and customize a matplotlib color map:
 
         :Example:
+            
             .. code-block:: python
 
                 from vedo import colorMap
@@ -619,70 +623,63 @@ def colorMap(value, name="jet", vmin=None, vmax=None):
 
                 (1.0, 0.809016994374948, 0.6173258487801733)
     """
-    value_isSequence = False
-    if _isSequence(value):
-        value_isSequence = True
-        values = np.array(value)
-        if vmin is None:
-            vmin = np.min(values)
-        if vmax is None:
-            vmax = np.max(values)
+    cut = _isSequence(value) # to speed up later
+        
+    if cut:
+        values = np.asarray(value)
+        if vmin is None: vmin = np.min(values)
+        if vmax is None: vmax = np.max(values)
         values = np.clip(values, vmin, vmax)
-        values -= vmin
-        values = values / (vmax - vmin)
+        values = (values - vmin) / (vmax - vmin)
+    else:
+        if vmin is None: 
+            printc("In colorMap(): must specify vmin! Assume 0.0", c='r')
+            vmin = 0
+        if vmax is None: 
+            printc("In colorMap(): must specify vmax! Assume 1.0", c='r')
+            vmax = 1
+        values = [(value - vmin) / (vmax - vmin)]
 
-    # matplotlib not available #######################
-    if not _has_matplotlib:
-        invert=False
-        if name.endswith('_r'):
-            invert=True
-            name = name.replace('_r', "")
-        cmap = cmaps[name]
-
-        n = len(cmap)-1
-        if value_isSequence:
-            outs = []
-            for v in values:
-                iv = min(255, int(v*n))
-                if invert:
-                    rgb = hex2rgb(cmap[n-iv])
-                else:
-                    rgb = hex2rgb(cmap[iv])
-                outs.append(rgb)
-            return outs
-
+    if _has_matplotlib:
+        # matplotlib is available, use it! ###########################
+        if isinstance(name, str):
+            mp = cm_mpl.get_cmap(name=name)    
         else:
-            iv = min(255, int(value*n))
-            if invert:
-                return hex2rgb(cmap[n-iv])
-            else:
-                return hex2rgb(cmap[iv])
+            mp = name  # assume matplotlib.colors.LinearSegmentedColormap
+        result = mp(values)[:, [0,1,2]]
 
-    # matplotlib is available, use it! #######################
-    if isinstance(name, matplotlib.colors.LinearSegmentedColormap):
-        mp = name
+    else:    
+        # matplotlib not available ###################################
+        invert = False
+        if name.endswith('_r'):
+            invert = True
+            name = name.replace('_r', "")
+        try:
+            cmap = cmaps[name]
+        except KeyError:
+            printc("In colorMap(): no color map with name:", name, 'or', name+'_r', c='r')
+            printc("Available color maps are:\n", cmaps.keys(), c='y', bold=False)
+            return np.array([0.5,0.5,0.5])
+
+        result = []
+        n = len(cmap)-1
+        for v in values:
+            iv = int( v * n )
+            if invert: iv = n - iv
+            rgb = hex2rgb(cmap[iv])
+            result.append(rgb)
+        result = np.array(result)
+
+    if cut:
+        return result
     else:
-        mp = cm_mpl.get_cmap(name=name)
-
-    if value_isSequence:
-        mp = cm_mpl.get_cmap(name=name)
-        return mp(values)[:,[0,1,2]]
-    else:
-        value -= vmin
-        dv = vmax - vmin
-        if dv:
-            value /= dv
-        if value > 0.999:
-            value = 0.999
-        elif value < 0:
-            value = 0
-        return mp(value)[0:3]
-
+        return result[0]
+   
 
 def buildPalette(color1, color2, N, hsv=True):
     """
     Generate N colors starting from `color1` to `color2`
-    by linear interpolation HSV in or RGB spaces.
+    by linear interpolation in HSV or RGB spaces.
 
     :param int N: number of output colors.
     :param color1: first rgb color.
@@ -882,7 +879,6 @@ def printc(*strings,
             dim = False,
             invert = False,
             box = "",
-            dbg = False,
             end = "\n",
             flush = True,
     ):
@@ -901,7 +897,6 @@ def printc(*strings,
     :param box: print a box with specified text character ['']
     :param bool flush: flush buffer after printing [True]
     :param str end: the end character to be printed [newline]
-    :param bool dbg: print debug information about the evironment
 
     :Example:
         .. code-block:: python
@@ -944,7 +939,7 @@ def printc(*strings,
 
             txt += str(s) + separator
 
-        special, cseq, reset = "", "", u"\u001b[0m"
+        special, cseq = "", ""
         oneletter_colors = {'k': u'\u001b[30;1m', # because these are supported by most terminals
                             'r': u'\u001b[31;1m',
                             'g': u'\u001b[32;1m',
@@ -1015,51 +1010,64 @@ def printc(*strings,
         else:
 
             out = special + cseq + txt + reset
-
-            if dbg:
-                from inspect import currentframe, getframeinfo
-                from vedo.utils import isSequence, precision
-                cf = currentframe().f_back
-                cfi = getframeinfo(cf)
-                fname = os.path.basename(getframeinfo(cf).filename)
-                print("\x1b[7m\x1b[3m\x1b[37m"+fname+" line:\x1b[1m"+str(cfi.lineno)+reset, end='')
-                print('\x1b[3m\x1b[37m\x1b[2m', "\U00002501"*30, time.ctime(), reset)
-                if txt:
-                    print("    \x1b[37m\x1b[1mMessage : "+ out)
-                print("    \x1b[37m\x1b[1mFunction:\x1b[0m\x1b[37m "+ str(cfi.function))
-                print('    \x1b[1mLocals  :'+reset)
-                for loc in cf.f_locals.keys():
-                    obj = cf.f_locals[loc]
-                    var = repr(obj)
-                    if 'module ' in var: continue
-                    if 'function ' in var: continue
-                    if 'class ' in var: continue
-                    if '_' in loc: continue
-                    if hasattr(obj, 'name'):
-                        if not obj.name:
-                            oname = str(type(obj))
-                        else:
-                            oname = obj.name
-                        var = oname + ', at ' + precision(obj.GetPosition(),3)
-
-                    print('      \x1b[37m', loc,'=', var[:60].replace('\n',''), reset)
-                    if isSequence(obj) and len(obj)>4:
-                        print('           \x1b[37m\x1b[2m\x1b[3m len:', len(obj),
-                              ' min:', precision(min(obj), 4),
-                              ' max:', precision(max(obj), 4),
-                              reset)
-
-                print("    \x1b[1m\x1b[37mElapsed time:\x1b[0m\x1b[37m",
-                      str(time.time()-_global_start_time)[:6], 's'+reset)
-
-            else:
-                sys.stdout.write(out + end)
+            sys.stdout.write(out + end)
 
     except: # ------------------------------------------------------------- fallback
         print(*strings, end=end)
 
     if flush:
         sys.stdout.flush()
+
+def printd(txt="", q=False):
+    """
+    Print debug information about the evironment where the printd() is called.
+    Local variables are printed out with their current values.
+    
+    :param bool q: quit (exit) python session after the printd call.
+    """
+    from inspect import currentframe, getframeinfo
+    from vedo.utils import isSequence, precision
+    
+    cf = currentframe().f_back
+    cfi = getframeinfo(cf)
+    
+    txt = str(txt)
+    
+    fname = os.path.basename(getframeinfo(cf).filename)
+    print("\x1b[7m\x1b[3m\x1b[37m"+fname+" line:\x1b[1m"+str(cfi.lineno)+reset, end='')
+    print('\x1b[3m\x1b[37m\x1b[2m', "\U00002501"*30, time.ctime(), reset)
+    if txt:
+        print("    \x1b[37m\x1b[1mMessage : "+ txt)
+    print("    \x1b[37m\x1b[1mFunction:\x1b[0m\x1b[37m "+ str(cfi.function))
+    print('    \x1b[1mLocals  :'+reset)
+    for loc in cf.f_locals.keys():
+        obj = cf.f_locals[loc]
+        var = repr(obj)
+        if 'module ' in var: continue
+        if 'function ' in var: continue
+        if 'class ' in var: continue
+        if loc.startswith('_'): continue
+        if hasattr(obj, 'name'):
+            if not obj.name:
+                oname = str(type(obj))
+            else:
+                oname = obj.name
+            var = oname + ', at ' + precision(obj.GetPosition(),3)
+
+        var = var.replace('vtkmodules.','')
+        print('      \x1b[37m', loc,'\t\t=', var[:60].replace('\n',''), reset)
+        if isSequence(obj) and len(obj)>4:
+            print('           \x1b[37m\x1b[2m\x1b[3m len:', len(obj),
+                  ' min:', precision(min(obj), 4),
+                  ' max:', precision(max(obj), 4),
+                  reset)
+
+    print("    \x1b[1m\x1b[37mElapsed time:\x1b[0m\x1b[37m",
+          str(time.time()-_global_start_time)[:6], 's'+reset)
+    if q:
+        print(f"    \x1b[1m\x1b[37mExiting python now (q={bool(q)}).\x1b[0m\x1b[37m")
+        exit(0)
+    sys.stdout.flush()
 
 
 def colorPicker(xy, plotter=None):

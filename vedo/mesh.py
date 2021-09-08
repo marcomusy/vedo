@@ -1950,18 +1950,30 @@ class Mesh(Points):
         weights = vtk.vtkDoubleArray()
         dijkstra.GetCumulativeWeights(weights)
 
+        idlist = dijkstra.GetIdList()
+        ids = [idlist.GetId(i) for i in range(idlist.GetNumberOfIds())]
+
         length = weights.GetMaxId() + 1
         arr = np.zeros(length)
         for i in range(length):
             arr[i] = weights.GetTuple(i)[0]
 
-        dmesh = Mesh(dijkstra.GetOutput())
+        poly = dijkstra.GetOutput()
+        
+        vdata = numpy2vtk(arr)
+        vdata.SetName("CumulativeWeights")
+        poly.GetPointData().AddArray(vdata)
+
+        vdata2 = numpy2vtk(ids, dtype=np.uint)
+        vdata2.SetName("VertexIDs")
+        poly.GetPointData().AddArray(vdata2)
+        
+        dmesh = Mesh(poly, c='k')
         prop = vtk.vtkProperty()
         prop.DeepCopy(self.GetProperty())
         prop.SetLineWidth(3)
         prop.SetOpacity(1)
         dmesh.SetProperty(prop)
-        dmesh.info["CumulativeWeights"] = arr
         dmesh.name = "geodesicLine"
         return dmesh
 

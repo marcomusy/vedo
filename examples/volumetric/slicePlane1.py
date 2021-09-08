@@ -6,7 +6,7 @@ vol = Volume(dataurl+'embryo.slc').alpha([0,0,0.8]).c('w').pickable(False)
 
 sl = vol.slicePlane(origin=vol.center(), normal=(0,1,1))
 sl.cmap('Purples_r').lighting('off').addScalarBar(title='Slice', c='w')
-arr = sl.getPointArray()
+arr = sl.pointdata[0] # retrieve vertex array data
 
 def func(evt):
     if not evt.actor:

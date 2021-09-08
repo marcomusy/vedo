@@ -1201,9 +1201,9 @@ def write(objct, fileoutput, binary=True):
         writer = vtk.vtkSimplePointsWriter()
     elif fr.endswith(".facet"):
         writer = vtk.vtkFacetWriter()
-    elif fr.endswith(".tif"):
+    elif fr.endswith(".tif") or fr.endswith(".tiff"):
         writer = vtk.vtkTIFFWriter()
-        # print("GetCompression ", writer.GetCompression ())
+        # print("GetCompression ", writer.GetCompression())
         writer.SetFileDimensionality(len(obj.GetDimensions()))
     elif fr.endswith(".vti"):
         writer = vtk.vtkXMLImageDataWriter()
@@ -1701,14 +1701,44 @@ def ask(*question, **kwarg):
     """
     Ask a question from command line. Return the answer as a string.
     See function `printc()` for the description of the options.
+    
+    :param list options: a python list of possible answers to choose from.
+    :param str default: the default answer when just hitting return.
+    
+    Example:
+        
+        .. code-block:: python
+
+            import vedo            
+            res = vedo.io.ask("Continue?", options=['Y','n'], default='Y', c='g')
+            print(res)            
     """
     kwarg.update({'end': ' '})
     if 'invert' not in kwarg.keys():
         kwarg.update({'invert': True})
     if 'box' in kwarg.keys():
         kwarg.update({'box': ''})
-    colors.printc(*question, **kwarg)
+    
+    options = kwarg.pop("options", [])
+    default = kwarg.pop("default", '')
+    if options:
+        opt = '['
+        for o in options:
+            opt += o + '/'
+        opt = opt[:-1]+']'
+        colors.printc(*question, opt, **kwarg)
+    else:   
+        colors.printc(*question, **kwarg)
+        
     resp = input()
+    
+    if options:
+        if resp not in options:
+            if default and str(repr(resp))=="''":
+                return default
+            colors.printc("Please choose one option in:", opt, italic=True, bold=False)
+            kwarg["options"] = options
+            return ask(*question, **kwarg) # ask again
     return resp
 
 class Video:

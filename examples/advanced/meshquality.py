@@ -9,7 +9,7 @@ mesh = Mesh(dataurl+"panther.stl").computeNormals().lineWidth(0.1).flat()
 # generate a numpy array for mesh quality
 mesh.addQuality(measure=6).cmap('RdYlBu', on='cells').print()
 
-hist = histogram(mesh.getCellArray("Quality"), xtitle='mesh quality', bc='w')
+hist = histogram(mesh.celldata["Quality"], xtitle='mesh quality', bc='w')
 # make it smaller and position it, useBounds makes the cam
 # ignore the object when resetting the 3d qscene
 hist.scale(0.6).pos(40,-53,0).useBounds(False)

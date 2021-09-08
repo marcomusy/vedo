@@ -1,8 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Command Line Interface module
+-----------------------------
+
+# Type for help
+vedo -h 
+
+# Some useful bash aliases:
+alias v='vedo '
+alias vv='vedo -bg blackboard -bg2 gray3 -z 1.05 -k glossy -c blue9 '
+alias vr='vedo --run '        # to search and run examples by name
+alias vs='vedo -i --search '  # to search for a string in examples
+alias vi='vedo --image -x0 -z 1.2 -n ' # to view multiple images
+"""
+
 import sys, argparse, os, glob
-import vtk
 import numpy as np
+import vtk
 
 from vedo import io, load, settings, __version__
 from vedo.plotter import Plotter
@@ -89,7 +104,7 @@ def get_parser():
     pr.add_argument("--info", nargs='*',            help="get an info printout of the input file(s)")
     pr.add_argument("--convert", nargs='*',         help="input file(s) to be converted")
     pr.add_argument("--to",               type=str, help="convert to this target format", default='vtk', metavar='')
-
+    pr.add_argument("--image",                      help="image mode for 2d objects", action="store_true")
     return pr
 
 
@@ -350,6 +365,9 @@ def draw_scene(args):
         applications.Browser(frames).show(bg=args.background, bg2=args.background_grad)
         return ##########################################################
 
+    if args.scrolling_mode:
+        args.multirenderer_mode = False
+
     N = None
     if args.multirenderer_mode:
         if nfiles < 201:
@@ -491,6 +509,10 @@ def draw_scene(args):
     # NORMAL mode for single or multiple files, or multiren mode, or numpy scene
     elif nfiles == 1 or (not args.scrolling_mode):
         # print('DEBUG NORMAL mode for single or multiple files, or multiren mode')
+        
+        interactor_mode = 0
+        if args.image: 
+            interactor_mode = 'image'
 
         ##########################################################
         # loading a full scene
@@ -499,13 +521,14 @@ def draw_scene(args):
             objct = io.load(args.files[0], force=args.reload)
 
             if "Plotter" in str(type(objct)): # loading a full scene
-                objct.show()
+                objct.show(mode=interactor_mode)
                 return
             else:                             # loading a set of meshes
-                vp.show(objct)
+                vp.show(objct, mode=interactor_mode)
                 return
-                ##################################################
+        #########################################################
 
+        ds=0
         actors = []
         for i in range(N):
             f = args.files[i]
@@ -548,11 +571,16 @@ def draw_scene(args):
                 actors.append(actor)
 
             if args.multirenderer_mode:
-                vp.show(actor, at=i, interactive=False, zoom=args.zoom)
-                vp.actors = actors
+                try:
+                    ds = actor.diagonalSize() * 3
+                    vp.camera.SetClippingRange(0, ds)
+                    vp.show(actor, at=i, interactive=False, zoom=args.zoom, mode=interactor_mode)
+                    vp.actors = actors
+                except AttributeError:
+                    # wildcards in quotes make glob return actor as a list :(
+                    printc("Please do not use wildcards within single or double quotes!", c='r')
 
         if args.multirenderer_mode:
-
             vp.interactor.Start()
 
         else:
@@ -562,7 +590,7 @@ def draw_scene(args):
                 printc("..could not load file(s). Quit.", c='r')
                 return
 
-            vp.show(actors, interactive=True, zoom=args.zoom)
+            vp.show(actors, interactive=True, zoom=args.zoom, mode=interactor_mode)
         return
 
     ########################################################################
