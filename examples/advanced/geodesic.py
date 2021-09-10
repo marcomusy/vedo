@@ -1,15 +1,15 @@
 """Dijkstra algorithm to compute the graph geodesic.
 
 Takes as input a polygonal mesh and performs
-a shortest path calculation 20 times.
-"""
+a shortest path calculation 20 times"""
 from vedo import *
 
-s = Sphere(r=1.02, res=200).clean(0.007).wireframe().alpha(0.02)
+msh = Sphere(r=1.02, res=200).clean(0.007).wireframe().alpha(0.02)
+# msh.triangulate().clean() # often needed!
 
-paths = []
-for i in range(20):
-    paths.append(s.geodesic(2500, i*700))
-    # print(paths[-1].info['CumulativeWeights'])
+path = msh.geodesic([0.349,-0.440,0.852], [-0.176,-0.962,0.302]).c("red4")
+# path = msh.geodesic(10728, 9056).c("red4") # use vertex indices
 
-show(s, Earth(), __doc__, paths, bg2='lb', viewup="z").close()
+# printc(geo.pointdata["VertexIDs"])
+
+show(Earth(), msh, __doc__, path, bg2='lb', viewup="z").close()

@@ -12,6 +12,7 @@ untitled*.py
 *jpg
 *tiff
 *tif
+*npz
 
 docs/build
 docs/source/content

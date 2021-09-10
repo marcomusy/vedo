@@ -1925,10 +1925,8 @@ class Mesh(Points):
         Takes as input a polygonal mesh and performs a single source
         shortest path calculation.
 
-        :param start: start vertex index or close point `[x,y,z]`
-        :type start: int, list
-        :param end: end vertex index or close point `[x,y,z]`
-        :type start: int, list
+        :param int,list start: start vertex index or close point `[x,y,z]`
+        :param int,list end: end vertex index or close point `[x,y,z]`
 
         |geodesic| |geodesic.py|_
         """
@@ -1937,14 +1935,12 @@ class Mesh(Points):
         if isSequence(start):
             cc = self.points()
             pa = Points(cc)
-            start = pa.closestPoint(start, returnIds=True)
-            end = pa.closestPoint(end, returnIds=True)
-            dijkstra.SetInputData(pa.polydata())
-        else:
-            dijkstra.SetInputData(self.polydata())
+            start = pa.closestPoint(start, returnPointId=True)
+            end   = pa.closestPoint(end,   returnPointId=True)
+        dijkstra.SetInputData(self.polydata())
 
-        dijkstra.SetStartVertex(start)
-        dijkstra.SetEndVertex(end)
+        dijkstra.SetStartVertex(end) # inverted in vtk
+        dijkstra.SetEndVertex(start)
         dijkstra.Update()
 
         weights = vtk.vtkDoubleArray()
@@ -1967,6 +1963,7 @@ class Mesh(Points):
         vdata2 = numpy2vtk(ids, dtype=np.uint)
         vdata2.SetName("VertexIDs")
         poly.GetPointData().AddArray(vdata2)
+        poly.GetPointData().Modified()
         
         dmesh = Mesh(poly, c='k')
         prop = vtk.vtkProperty()

@@ -26,7 +26,7 @@ same for cell/face data: `myobj.celldata["arrayname"]`
 ---
 ### `picture.py`
 
-- added `enhance()` method.
+- added `.enhance()` method.
 - method `.tonumpy()` reshape to [nx,ny,nchannels] to match matplotlib standard
 
 ---
