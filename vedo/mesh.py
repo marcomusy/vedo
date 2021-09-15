@@ -3,7 +3,7 @@ import os
 import vtk
 import vedo
 from vedo.colors import printc, getColor, colorMap
-from vedo.utils import isSequence, flatten, buildPolyData, numpy2vtk, vtk2numpy
+from vedo.utils import isSequence, flatten, mag, buildPolyData, numpy2vtk, vtk2numpy
 from vedo.pointcloud import Points
 from deprecated import deprecated
 
@@ -1419,7 +1419,7 @@ class Mesh(Points):
                    featureAngle=180,
                    returnPointIds=False,
                    returnCellIds=False,
-                   ):
+        ):
         """
         Return a ``Mesh`` that shows the boundary lines of an input mesh.
 
@@ -1531,12 +1531,12 @@ class Mesh(Points):
         gf.Update()
         return Mesh(gf.GetOutput()).lw(1)
 
-
-    def intersectWithLine(self, p0, p1=None, returnIds=False):
+    def intersectWithLine(self, p0, p1=None, returnIds=False, tol=0):
         """Return the list of points intersecting the mesh
         along the segment defined by two points `p0` and `p1`.
 
         :param bool returnIds: return the cell ids instead of point coords
+        :param float tol: tolerance/precision of the computation (0 = auto).
 
         :Example:
             .. code-block:: python
@@ -1556,32 +1556,30 @@ class Mesh(Points):
         if not self.line_locator:
             self.line_locator = vtk.vtkOBBTree()
             self.line_locator.SetDataSet(self.polydata())
+            if not tol:
+                tol = mag(np.asarray(p1)-np.asarray(p0))/10000
+            self.line_locator.SetTolerance(tol)
             self.line_locator.BuildLocator()
 
-        # t = vtk.mutable(tol)
-        # x = [0,0,0]
-        # pcoords = [0,0,0]
-        # subId = vtk.mutable(0)
-        # found = self.line_locator.IntersectWithLine(p0, p1, tol, t, x, pcoords, subId)
-        # if found:
-        #     return [x]
-        # else:
-        #     return []
-
+        intersectPoints = vtk.vtkPoints()
+        idlist = vtk.vtkIdList()
+        self.line_locator.IntersectWithLine(p0, p1, intersectPoints, idlist)
+        pts = []
+        for i in range(intersectPoints.GetNumberOfPoints()):
+            intersection = [0, 0, 0]
+            intersectPoints.GetPoint(i, intersection)
+            pts.append(intersection)
+        pts = np.array(pts)
+        
         if returnIds:
-            idlist = vtk.vtkIdList()
-            self.line_locator.IntersectWithLine(p0, p1, None, idlist)
-            return [idlist.GetId(i) for i in range(idlist.GetNumberOfIds())]
-
+            pts_ids = []
+            for i in range(idlist.GetNumberOfIds()):
+                cid = idlist.GetId(i)
+                pts_ids.append([pts[i], cid])
+            return pts_ids
         else:
-            intersectPoints = vtk.vtkPoints()
-            self.line_locator.IntersectWithLine(p0, p1, intersectPoints, None)
-            pts = []
-            for i in range(intersectPoints.GetNumberOfPoints()):
-                intersection = [0, 0, 0]
-                intersectPoints.GetPoint(i, intersection)
-                pts.append(intersection)
-            return np.array(pts)
+            return pts
+                
 
     def silhouette(self, direction=None, borderEdges=True, featureAngle=False):
         """
@@ -1930,15 +1928,14 @@ class Mesh(Points):
 
         |geodesic| |geodesic.py|_
         """
-        dijkstra = vtk.vtkDijkstraGraphGeodesicPath()
-
         if isSequence(start):
             cc = self.points()
             pa = Points(cc)
             start = pa.closestPoint(start, returnPointId=True)
             end   = pa.closestPoint(end,   returnPointId=True)
-        dijkstra.SetInputData(self.polydata())
 
+        dijkstra = vtk.vtkDijkstraGraphGeodesicPath()
+        dijkstra.SetInputData(self.polydata())
         dijkstra.SetStartVertex(end) # inverted in vtk
         dijkstra.SetEndVertex(start)
         dijkstra.Update()

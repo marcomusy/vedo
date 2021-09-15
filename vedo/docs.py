@@ -2,9 +2,9 @@ import vtk, sys
 
 __all__ = []
 _defs = ""
-
 ####################################################################################
-##### to generate documentation must uncomment this line:
+####################################################################################
+##### To generate documentation you must uncomment this line:
 # from vedo.docs_defs import _substitutions_defs as _defs
 
 # Then:
@@ -12,8 +12,10 @@ _defs = ""
     # pip install -r requirements.txt # optionally
     # make html
 
-
 ####################################################################################
+####################################################################################
+
+
 def tips():
     from vedo import colors, __version__
     msg  = " ==========================================================\n"

@@ -1053,9 +1053,10 @@ class Points(vtk.vtkFollower, BaseActor):
         if lut:
             cloned._mapper.SetLookupTable(lut)
 
-        cloned.base = self.base
-        cloned.top = self.top
-        cloned.name = self.name
+        cloned.base = np.array(self.base)
+        cloned.top =  np.array(self.top)
+        cloned.name = str(self.name)
+        cloned.info = dict(self.info)
         if self.trail:
             n = len(self.trailPoints)
             cloned.addTrail(self.trailOffset, self.trailSegmentSize*n, n,
@@ -1576,7 +1577,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         :param float scale: absolute size of labels, if left as None it is automatic
 
-        :param float rotX: local rotation angle of label in degrees
+        :param float rotZ: local rotation angle of label in degrees
 
         :param int ratio: skipping ratio, to reduce nr of labels for large meshes
 
@@ -1624,15 +1625,15 @@ class Points(vtk.vtkFollower, BaseActor):
             if content=='id':
                 mode = 1
             elif cells:
-                mode=0
+                mode = 0
                 arr = self.getCellArray(content)
             else:
-                mode=0
+                mode = 0
                 arr = self.getPointArray(content)
         elif utils.isSequence(content):
             mode = 0
             arr = content
-            # print('testttt', content)  # WEIRD!
+            # print('WEIRD labels() test', content)
             # exit()
 
         if arr is None and mode == 0:
@@ -2756,7 +2757,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
             if returnPointId:
                 ########
-                return [int(vtklist.GetId(k)) for k in range(vtklist.GetNumberOfIds())]
+                return utils.vtk2numpy(vtklist) 
                 ########
             else:
                 if not poly:

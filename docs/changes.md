@@ -20,6 +20,9 @@ same for cell/face data: `myobj.celldata["arrayname"]`
 ---
 ### `mesh.py`
 
+- fixed problem in `geodesic()`.
+- added tolerance keyword in `intersectWithLine()`. Also, now `returnIds` returns `[[pt,cellid]]`
+
 ---
 ### `plotter.py`
 
@@ -55,5 +58,5 @@ same for cell/face data: `myobj.celldata["arrayname"]`
 
 ## New/Revised examples:
 
-
+`vedo -r optics`
 

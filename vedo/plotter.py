@@ -1876,34 +1876,22 @@ class Plotter:
                 scannedacts.append(vvol)
 
             elif isinstance(a, str):
-                if a.startswith('https'):        # assume a url/filepath was given
-                    a = vedo.io.download(a)
-                # make a few obvious checks before accessing os.path.isfile
-                if ("." in a
-                    and ". " not in a
-                    and not a.endswith(".")
-                    and not a.endswith(" ")
-                    and not a.endswith("\n")
-                    and os.path.isfile(a)
-                   ):
-                    out = vedo.io.load(a)
-                    scannedacts.append(out)
-                else:                            # assume a 2D comment was given
-                    changed = False  # check if one already exists so to just update text
-                    if self.renderer: # might be jupyter
-                        acs = self.renderer.GetActors2D()
-                        acs.InitTraversal()
-                        for i in range(acs.GetNumberOfItems()):
-                            act = acs.GetNextItem()
-                            if isinstance(act, vedo.shapes.Text2D):
-                                aposx, aposy = act.GetPosition()
-                                if aposx<0.01 and aposy>0.99: # "top-left"
-                                    act.text(a)  # update content! no appending nada
-                                    changed = True
-                                    break
-                        if not changed:
-                            out = vedo.shapes.Text2D(a) # append a new one
-                            scannedacts.append(out)
+                # assume a 2D comment was given
+                changed = False  # check if one already exists so to just update text
+                if self.renderer: # might be jupyter
+                    acs = self.renderer.GetActors2D()
+                    acs.InitTraversal()
+                    for i in range(acs.GetNumberOfItems()):
+                        act = acs.GetNextItem()
+                        if isinstance(act, vedo.shapes.Text2D):
+                            aposx, aposy = act.GetPosition()
+                            if aposx<0.01 and aposy>0.99: # "top-left"
+                                act.text(a)  # update content! no appending nada
+                                changed = True
+                                break
+                    if not changed:
+                        out = vedo.shapes.Text2D(a) # append a new one
+                        scannedacts.append(out)
 
             elif isinstance(a, vtk.vtkImageActor):
                 scannedacts.append(a)

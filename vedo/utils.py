@@ -253,7 +253,8 @@ class dotdict(dict):
 
 ###########################################################
 def numpy2vtk(arr, dtype=None, deep=True, name=""):
-    """Convert a numpy array into a vtkDataArray"""
+    """Convert a numpy array into a vtkDataArray.
+    Use dtype='id' for vtkIdTypeArray objects."""
     if arr is None:
         return None
     arr = np.ascontiguousarray(arr)
@@ -293,13 +294,12 @@ def geometry(obj, extent=None):
 
     :param list extent: set a `[xmin,xmax, ymin,ymax, zmin,zmax]` bounding box to clip data.
     """
-    from vedo.mesh import Mesh
     gf = vtk.vtkGeometryFilter()
     gf.SetInputData(obj)
     if extent is not None:
         gf.SetExtent(extent)
     gf.Update()
-    return Mesh(gf.GetOutput())
+    return vedo.Mesh(gf.GetOutput())
 
 
 def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, tetras=False):
@@ -618,9 +618,9 @@ def linInterpolate(x, rangeX, rangeY):
     |linInterpolate| |linInterpolate.py|_
     """
     if isSequence(x):
-        x = np.array(x)
-        x0, x1 = np.array(rangeX)
-        y0, y1 = np.array(rangeY)
+        x = np.asarray(x)
+        x0, x1 = np.asarray(rangeX)
+        y0, y1 = np.asarray(rangeY)
         # if len(np.unique([x.shape, x0.shape, x1.shape, y1.shape]))>1:
         #     printc("Error in linInterpolate(): mismatch in input shapes.", c='r')
         #     raise RuntimeError()
@@ -844,9 +844,9 @@ def grep(filename, tag, firstOccurrence=False):
 
     try:
         afile = open(filename, "r")
-    except:
-        print("Error in utils.grep(): cannot open file", filename)
-        raise RuntimeError()
+    except FileNotFoundError:
+        printc("Error in utils.grep(): cannot open file", filename, c='r')
+        return []
 
     content = []
     for line in afile:
@@ -1601,8 +1601,8 @@ def makeTicks(x0, x1, N, labels=None, digits=None):
 
 def gridcorners(i, nm, size, margin=0, flipy=True):
     """
-    Compute the 2 corners of the i-th box of a grid n*m.
-    The bottom-left square is number 1.
+    Compute the 2 corners coordinates of the i-th box in a grid of shape n*m.
+    The top-left square is square number 1.
 
     Parameters
     ----------

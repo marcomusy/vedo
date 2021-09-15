@@ -157,12 +157,11 @@ for a wide range of functionalities:
 
 
 ## ⌨  Command Line Interface
-Visualize a polygonal mesh from a terminal window simply with e.g.:
+Visualize a polygonal mesh or a volume from a terminal window simply with e.g.:
 ```bash
 vedo https://vedo.embl.es/examples/data/embryo.tif
 ```
 Volumetric files (_mhd, vti, slc, tiff, DICOM etc.._) can be visualized in different modes:
-
 
 |Volume 3D slicing<br>`vedo --slicer embryo.slc`| Ray-casting<br>`vedo -g`| 2D slicing<br>`vedo --slicer2d`| Colorize voxels<br>`vedo --lego`|
 |:--------|:-----|:--------|:-----|

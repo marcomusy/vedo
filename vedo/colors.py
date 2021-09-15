@@ -465,7 +465,6 @@ def _isSequence(arg):
         return True
     return False
 
-
 def getColor(rgb=None, hsv=None):
     """
     Convert a color or list of colors to (r,g,b) format from many different input formats.
@@ -490,6 +489,14 @@ def getColor(rgb=None, hsv=None):
         for sc in rgb:
             seqcol.append(getColor(sc))
         return seqcol
+    
+    # because they are most common:
+    if rgb=='r': 
+        return (1, 0, 0)
+    elif rgb=='g':
+        return (0, 1, 0)
+    elif rgb=='b':
+        return (0, 0, 1)
 
     if str(rgb).isdigit():
         rgb = int(rgb)
@@ -552,7 +559,6 @@ def getColor(rgb=None, hsv=None):
 
     # print("Unknown color:", c)
     return (0.5, 0.5, 0.5)
-
 
 def getColorName(c):
     """
@@ -703,10 +709,10 @@ def buildPalette(color1, color2, N, hsv=True):
 
 
 def buildLUT(colorlist,
-            vmin=None, vmax=None,
-            belowColor=None, aboveColor=None, nanColor=None,
-            belowAlpha=1, aboveAlpha=1, nanAlpha=1,
-            interpolate=False,
+             vmin=None, vmax=None,
+             belowColor=None, aboveColor=None, nanColor=None,
+             belowAlpha=1, aboveAlpha=1, nanAlpha=1,
+             interpolate=False,
     ):
     """
     Generate colors in a lookup table (LUT).
@@ -1018,7 +1024,7 @@ def printc(*strings,
     if flush:
         sys.stdout.flush()
 
-def printd(txt="", q=False):
+def printd(*strings, q=False):
     """
     Print debug information about the evironment where the printd() is called.
     Local variables are printed out with their current values.
@@ -1030,14 +1036,12 @@ def printd(txt="", q=False):
     
     cf = currentframe().f_back
     cfi = getframeinfo(cf)
-    
-    txt = str(txt)
-    
+        
     fname = os.path.basename(getframeinfo(cf).filename)
     print("\x1b[7m\x1b[3m\x1b[37m"+fname+" line:\x1b[1m"+str(cfi.lineno)+reset, end='')
     print('\x1b[3m\x1b[37m\x1b[2m', "\U00002501"*30, time.ctime(), reset)
-    if txt:
-        print("    \x1b[37m\x1b[1mMessage : "+ txt)
+    if len(strings):
+        print("    \x1b[37m\x1b[1mMessage : ", *strings)
     print("    \x1b[37m\x1b[1mFunction:\x1b[0m\x1b[37m "+ str(cfi.function))
     print('    \x1b[1mLocals  :'+reset)
     for loc in cf.f_locals.keys():
@@ -1057,10 +1061,13 @@ def printd(txt="", q=False):
         var = var.replace('vtkmodules.','')
         print('      \x1b[37m', loc,'\t\t=', var[:60].replace('\n',''), reset)
         if isSequence(obj) and len(obj)>4:
-            print('           \x1b[37m\x1b[2m\x1b[3m len:', len(obj),
-                  ' min:', precision(min(obj), 4),
-                  ' max:', precision(max(obj), 4),
-                  reset)
+            try:
+                print('           \x1b[37m\x1b[2m\x1b[3m len:', len(obj),
+                      ' min:', precision(min(obj), 4),
+                      ' max:', precision(max(obj), 4),
+                      reset)
+            except:
+                pass
 
     print("    \x1b[1m\x1b[37mElapsed time:\x1b[0m\x1b[37m",
           str(time.time()-_global_start_time)[:6], 's'+reset)
