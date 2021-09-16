@@ -1,12 +1,12 @@
 
 ![vlogo](https://user-images.githubusercontent.com/32848391/110344277-9bc20700-802d-11eb-8c0d-2e97226a9a32.png)
 
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/4acbc84816a540bfb9dc67bbff520d38)](https://www.codacy.com/manual/marcomusy/vedo?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=marcomusy/vedo&amp;utm_campaign=Badge_Grade)
-[![Downloads](https://pepy.tech/badge/vedo)](https://pepy.tech/project/vedo)
+
 [![lics](https://img.shields.io/badge/license-MIT-blue.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/vedo/badges/version.svg)](https://anaconda.org/conda-forge/vedo)
 [![Ubuntu 20.10](https://repology.org/badge/version-for-repo/ubuntu_20_10/vedo.svg)](https://repology.org/project/vedo/versions)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4609336.svg)](https://doi.org/10.5281/zenodo.4609336)
+[![Downloads](https://pepy.tech/badge/vedo)](https://pepy.tech/project/vedo)
 [![CircleCI](https://circleci.com/gh/marcomusy/vedo.svg?style=svg)](https://circleci.com/gh/marcomusy/vedo)
 
 
@@ -14,8 +14,8 @@
 for scientific analysis and **v**isualization of **3d** **o**bjects.<br>
 
 
-## ✨  Philosophy
-Inspired by the [vpython](https://vpython.org/) *manifesto* "3D programming for ordinary mortals",
+### ✨  Philosophy
+Inspired by the *vpython* *manifesto* "3D programming for ordinary mortals",
 `vedo` makes it easy to work with 3D pointclouds, meshes and volumes,
 in just a few lines of code, even for less experienced programmers.
 
@@ -47,31 +47,21 @@ to install it use: `pip install vtk==8.1.2` (if available on your system).
 
 </details>
 
----------------------------------------------------------------------
-
-📌 **Done?** Run any of the built-in examples. In a terminal, type e.g.:
-
-**`vedo -r covid19`**
-
-Visualize a file from web URL (or your dropbox!), type:
-
-**`vedo https://vedo.embl.es/examples/data/panther.stl.gz`**
-
 
 ## 📙  Documentation
 [The webpage of the library with documentation is available here](https://vedo.embl.es).
 
-📌 **Need help?** Have any question, or wish to ask for a missing feature?
+📌 **Need help? Have a question, or wish to ask for a missing feature?** <br>
 Do not hesitate to open a [**issue**](https://github.com/marcomusy/vedo/issues)
 (or send an [email](mailto:marco.musy@embl.es)).
 
 
 ## 🎨  Features
-The `vedo` library includes a [large set of working examples](https://github.com/marcomusy/vedo/tree/master/examples)
+The library includes a [large set of working examples](https://github.com/marcomusy/vedo/tree/master/examples)
 for a wide range of functionalities:
 
 <details>
-<summary>working with polygonal meshes and point clouds <i>(click to expand)</i> </summary>
+<summary>working with polygonal meshes and point clouds <i><b>[click to expand]</b></i> </summary>
 <i>
 
 - Import meshes from VTK format, STL, Wavefront OBJ, 3DS, Dolfin-XML, Neutral, GMSH, OFF, PCD (PointCloud),
@@ -156,8 +146,8 @@ for a wide range of functionalities:
 </details>
 
 
-## ⌨  Command Line Interface
-Visualize a polygonal mesh or a volume from a terminal window simply with e.g.:
+### ⌨  Command Line Interface
+Visualize a polygonal mesh or a volume from a terminal window simply with:
 ```bash
 vedo https://vedo.embl.es/examples/data/embryo.tif
 ```
@@ -169,18 +159,15 @@ Volumetric files (_mhd, vti, slc, tiff, DICOM etc.._) can be visualized in diffe
 
 Type `vedo -h` for the complete list of options.<br>
 
-## 🐾  Examples
+### 🐾  Gallery
 `vedo` currently includes 300+ working [examples](https://github.com/marcomusy/vedo/tree/master/examples) and [notebooks](https://github.com/marcomusy/vedo/tree/master/examples/notebooks). <br>
-
-|         |         |         |
+||||
 |:--------|:--------|:--------|
-| [![cubecut](https://user-images.githubusercontent.com/32848391/99916179-e763d580-2d08-11eb-9044-b647115167ed.jpg)](https://github.com/marcomusy/vedo/tree/master/examples/advanced/cutWithMesh2.py)   | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)| [![quatumsine](https://user-images.githubusercontent.com/32848391/47751431-06aae880-dc92-11e8-9fcf-6659123edbfa.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/tunnelling2.py) |
-| *Easily work with volumes, tetrahedral and polygonal meshes.*        | *Turing system of reaction-diffusion between two molecules.*                                                                   |  *Quantum-tunnelling of a particle in a box hitting a sinusoidal potential.*  |
-| [![trimesh](https://user-images.githubusercontent.com/32848391/91164151-e8b44080-e6ce-11ea-8213-cf5b12aa4d16.png)](https://github.com/marcomusy/vedo/blob/master/examples/other/trimesh)              | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)| [![whisker](https://user-images.githubusercontent.com/32848391/99916183-e8950280-2d08-11eb-8070-8bb1146c7c62.png)](https://github.com/marcomusy/vedo/tree/master/examples/pyplot/whiskers.py) |
-| *Interoperability with external libraries like [trimesh](https://trimsh.org/), [pyvista](https://github.com/pyvista/pyvista), and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab).*          |  *Support for the [FEniCS/Dolfin](https://fenicsproject.org/) library for PDE and finite element solutions.*       | *Advanced 2D/3D histogramming and plotting capablities.* |
+| ![bunny](https://user-images.githubusercontent.com/32848391/133623000-8ed0457c-0725-441c-93e1-ea08829e98fb.jpg)  | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)  | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)  |
+| *Work with volumes, tetrahedral and polygonal meshes.* |   *Interoperability with external libraries like [FEniCs](https://fenicsproject.org/), [trimesh](https://trimsh.org/), [pyvista](https://github.com/pyvista/pyvista), and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab).*   |  *Animations of physical systems (Turing system of reaction-diffusion).* |
 
+Run any of the built-in examples. In a terminal type: `vedo -r earthquake_browser`
 
-### Galleries
 Check out the example galleries organized by subject here:
 
 <a href="https://vedo.embl.es/#gallery" target="_blank">

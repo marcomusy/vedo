@@ -33,7 +33,7 @@ for i, d in data.iterrows():
     ce = GeoCircle(lat, long, E/50).scale(picscale).z(num/M).c(rgb).lw(0.1).useBounds(False)
     ce.time = i
     ce.info = '\n'.join(str(d).split('\n')[:-1])    # remove of the last line in string d
-    #if M > 6.5: ce.alpha(0.8)                       # make the big ones slightly transparent (vtk9 bugged)
+    #if M > 6.5: ce.alpha(0.8)                       # make the big ones slightly transparent
     if i < len(data)-num: ce.off()                  # switch off older ones: make circles invisible
     centers.append(ce)
 
