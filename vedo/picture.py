@@ -142,6 +142,17 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             pic.SetPosition(self.GetPosition())
         return pic
 
+    def extent(self, ext=None):
+        """
+        Get or set the physical extent that the picture spans.
+        Format is ext=[minx, maxx, miny, maxy].
+        """
+        if ext is None:
+            return self._data.GetExtent()
+        self._data.SetExtent(ext[0],ext[1],ext[2],ext[3],0,0)
+        self._mapper.Modified()
+        return self
+    
     def text(self, txt,
                    pos=(0,0,0),
                    s=1,
@@ -267,7 +278,8 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
     def pad(self, pixels=10, value=255):
         """
         Add the specified number of pixels at the picture borders.
-
+        Pixels can be a list formatted as [left,right,bottom,top].
+        
         Parameters
         ----------
         pixels : int,list , optional
@@ -281,7 +293,7 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         pf.SetConstant(value)
         if utils.isSequence(pixels):
             pf.SetOutputWholeExtent(x0-pixels[0],x1+pixels[1],
-                                    y0-pixels[2],y1+pixels[4], 0,0)
+                                    y0-pixels[2],y1+pixels[3], 0,0)
         else:
             pf.SetOutputWholeExtent(x0-pixels,x1+pixels, y0-pixels,y1+pixels, 0,0)
         pf.Update()
@@ -310,6 +322,48 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
         constantPad.Update()
         return Picture(constantPad.GetOutput())
 
+
+    def append(self, pictures, axis='z', preserveExtents=False):
+        """
+        Append the input images to the current one along the specified axis.
+        Except for the append axis, all inputs must have the same extent.
+        All inputs must have the same number of scalar components.
+        The output has the same origin and spacing as the first input.
+        The origin and spacing of all other inputs are ignored.
+        All inputs must have the same scalar type.
+
+        :param int,str axis: axis expanded to hold the multiple images.
+        :param bool preserveExtents: if True, the extent of the inputs is used to place
+            the image in the output. The whole extent of the output is the union of the input
+            whole extents. Any portion of the output not covered by the inputs is set to zero.
+            The origin and spacing is taken from the first input.
+
+        .. code-block:: python
+
+            from vedo import Picture, dataurl
+            pic = Picture(dataurl+'dog.jpg').pad()
+            pic.append([pic,pic,pic], axis='y')
+            pic.append([pic,pic,pic,pic], axis='x')
+            pic.show(axes=1)
+        """
+        ima = vtk.vtkImageAppend()
+        ima.SetInputData(self._data)
+        if not utils.isSequence(pictures):
+            pictures = [pictures]
+        for p in pictures:
+            if isinstance(p, vtk.vtkImageData):
+                ima.AddInputData(p)
+            else:
+                ima.AddInputData(p._data)
+        ima.SetPreserveExtents(preserveExtents)
+        if axis   == "x":
+            axis = 0
+        elif axis == "y":
+            axis = 1
+        ima.SetAppendAxis(axis)
+        ima.Update()
+        return self._update(ima.GetOutput())
+    
 
     def resize(self, newsize):
         """Resize the image resolution by specifying the number of pixels in width and height.

@@ -31,6 +31,8 @@ same for cell/face data: `myobj.celldata["arrayname"]`
 
 - added `.enhance()` method.
 - method `.tonumpy()` reshape to [nx,ny,nchannels] to match matplotlib standard
+- added `.append()` to stitch images the current to the left or to the top.
+- added `.extent()` to specify physical extention of an image.
 
 ---
 ### `pyplot.py`
