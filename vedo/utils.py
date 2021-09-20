@@ -1,5 +1,6 @@
 import vtk
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy, numpy_to_vtkIdTypeArray
+# from vtk.util.numpy_support import get_vtk_array_type, get_vtk_to_numpy_typemap
 import numpy as np
 import vedo
 from vedo.colors import printc
@@ -255,16 +256,20 @@ class dotdict(dict):
 def numpy2vtk(arr, dtype=None, deep=True, name=""):
     """Convert a numpy array into a vtkDataArray.
     Use dtype='id' for vtkIdTypeArray objects."""
+    # https://github.com/Kitware/VTK/blob/master/Wrapping/Python/vtkmodules/util/numpy_support.py
     if arr is None:
         return None
+    
     arr = np.ascontiguousarray(arr)
-    if dtype is not None and dtype!='id':
-        arr = arr.astype(dtype)
-
-    if dtype and dtype=='id':
+    
+    if dtype=='id':
         varr = numpy_to_vtkIdTypeArray(arr.astype(np.int64), deep=deep)
+    elif dtype:
+        varr = numpy_to_vtk(arr.astype(dtype), deep=deep)
     else:
+        # let numpy_to_vtk() decide what is best type based on arr type
         varr = numpy_to_vtk(arr, deep=deep)
+
     if name:
         varr.SetName(name)
     return varr
@@ -977,21 +982,25 @@ def printInfo(obj):
         ptdata = poly.GetPointData()
         cldata = poly.GetCellData()
         if ptdata.GetNumberOfArrays() + cldata.GetNumberOfArrays():
-
+            
             arrtypes = dict()
-            arrtypes[vtk.VTK_UNSIGNED_CHAR] = "UNSIGNED_CHAR"
-            arrtypes[vtk.VTK_SIGNED_CHAR]   = "SIGNED_CHAR"
-            arrtypes[vtk.VTK_UNSIGNED_INT]  = "UNSIGNED_INT"
-            arrtypes[vtk.VTK_INT]           = "INT"
-            arrtypes[vtk.VTK_CHAR]          = "CHAR"
-            arrtypes[vtk.VTK_SHORT]         = "SHORT"
-            arrtypes[vtk.VTK_LONG]          = "LONG"
-            arrtypes[vtk.VTK_ID_TYPE]       = "ID"
-            arrtypes[vtk.VTK_FLOAT]         = "FLOAT"
-            arrtypes[vtk.VTK_DOUBLE]        = "DOUBLE"
+            arrtypes[vtk.VTK_UNSIGNED_CHAR] = ("UNSIGNED_CHAR",  "np.uint8")
+            arrtypes[vtk.VTK_UNSIGNED_SHORT]= ("UNSIGNED_SHORT", "np.uint16")
+            arrtypes[vtk.VTK_UNSIGNED_INT]  = ("UNSIGNED_INT",   "np.uint32")
+            arrtypes[vtk.VTK_UNSIGNED_LONG_LONG] = ("UNSIGNED_LONG_LONG", "np.uint64")
+            arrtypes[vtk.VTK_CHAR]          = ("CHAR",           "np.int8")# ?? should be uint?
+            arrtypes[vtk.VTK_SHORT]         = ("SHORT",          "np.int16")
+            arrtypes[vtk.VTK_INT]           = ("INT",            "np.int32")
+            arrtypes[vtk.VTK_LONG]          = ("LONG",           "") # ??
+            arrtypes[vtk.VTK_LONG_LONG]     = ("LONG_LONG",      "np.int64")
+            arrtypes[vtk.VTK_FLOAT]         = ("FLOAT",          "np.float32")
+            arrtypes[vtk.VTK_DOUBLE]        = ("DOUBLE",         "np.float64")
+            arrtypes[vtk.VTK_SIGNED_CHAR]   = ("SIGNED_CHAR",    "np.int8")
+            arrtypes[vtk.VTK_ID_TYPE]       = ("ID",             "np.int64")
+
             printc(tab + "    scalar mode:", c="g", bold=1, end=" ")
             printc(mapper.GetScalarModeAsString(),
-                          '  coloring =', mapper.GetColorModeAsString(), c="g", bold=0)
+                   '  coloring =', mapper.GetColorModeAsString(), c="g", bold=0)
 
             printc(tab + "   active array: ", c="g", bold=1, end="")
             if ptdata.GetScalars():
@@ -1005,21 +1014,22 @@ def printInfo(obj):
                 if name and ptdata.GetArray(i):
                     printc(tab + "     point data: ", c="g", bold=1, end="")
                     try:
-                        tt = arrtypes[ptdata.GetArray(i).GetDataType()]
+                        tt, nptt = arrtypes[ptdata.GetArray(i).GetDataType()]
                     except:
-                        tt = str(ptdata.GetArray(i).GetDataType())
+                        tt = "VTKTYPE"+str(ptdata.GetArray(i).GetDataType())
+                        nptt = ""
                     ncomp = str(ptdata.GetArray(i).GetNumberOfComponents())
-                    printc("name=" + name, "("+ncomp+" "+tt+"),", c="g", bold=0, end="")
+                    printc("name=" + name, "("+ncomp+" "+tt+", "+nptt+"),", c="g", bold=0, end="")
                     rng = ptdata.GetArray(i).GetRange()
-                    printc(" range=(" + precision(rng[0],4) + ',' +
-                                            precision(rng[1],4) + ')', c="g", bold=0)
+                    printc(" range=(" + precision(rng[0],3) + ',' +
+                                        precision(rng[1],3) + ')', c="g", bold=0)
 
             for i in range(cldata.GetNumberOfArrays()):
                 name = cldata.GetArrayName(i)
                 if name and cldata.GetArray(i):
                     printc(tab + "      cell data: ", c="g", bold=1, end="")
                     try:
-                        tt = arrtypes[cldata.GetArray(i).GetDataType()]
+                        tt, nptt = arrtypes[cldata.GetArray(i).GetDataType()]
                     except:
                         tt = str(cldata.GetArray(i).GetDataType())
                     ncomp = str(cldata.GetArray(i).GetNumberOfComponents())
@@ -1675,7 +1685,7 @@ def vedo2trimesh(mesh):
     lut = mesh.mapper().GetLookupTable()
 
     tris = mesh.faces()
-    carr = mesh.getCellArray('CellIndividualColors')
+    carr = mesh.celldata['CellIndividualColors']
     ccols = None
     if carr is not None and len(carr)==len(tris):
         ccols = []
@@ -1685,7 +1695,7 @@ def vedo2trimesh(mesh):
         ccols = np.array(ccols, dtype=np.int16)
 
     points = mesh.points()
-    varr = mesh.getPointArray('VertexColors')
+    varr = mesh.pointdata['VertexColors']
     vcols = None
     if varr is not None and len(varr)==len(points):
         vcols = []
@@ -1773,7 +1783,7 @@ def _vedo2meshlab(vmesh):
                   v_normals_matrix=vmesh.normals(cells=False, compute=False),
                   f_normals_matrix=vmesh.normals(cells=True, compute=False),
     )
-    parr = vmesh.getPointArray()
+    parr = vmesh.pointdata[0]
     if parr is not None:
         m.vertex_quality_array(parr)
     carr = vmesh.getCellArray()

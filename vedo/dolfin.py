@@ -581,12 +581,12 @@ def plot(*inputobj, **options):
                 actor.cmap(cmap, actor.u_values, vmin=vmin, vmax=vmax)
 
         if warpYfactor:
-            scals = actor.getPointArray()
+            scals = actor.pointdata[0]
             if len(scals):
                 pts_act = actor.points(copy=False)
                 pts_act[:, 1] = scals*warpYfactor*scaleMeshFactors[1]
         if warpZfactor:
-            scals = actor.getPointArray()
+            scals = actor.pointdata[0]
             if len(scals):
                 pts_act = actor.points(copy=False)
                 pts_act[:, 2] = scals*warpZfactor*scaleMeshFactors[2]

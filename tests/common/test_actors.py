@@ -13,15 +13,18 @@ sphere = Sphere(res=24)
 
 carr = cone.cellCenters()[:, 2]
 parr = cone.points()[:, 0]
-cone.addCellArray(carr, 'carr')
-cone.addPointArray(parr, 'parr')
+
+cone.pointdata["parr"] = parr
+cone.celldata["carr"] = carr
 
 carr = sphere.cellCenters()[:, 2]
 parr = sphere.points()[:, 0]
-sphere.addCellArray(carr, 'carr')
-sphere.addPointArray(parr, 'parr')
 
-sphere.addPointArray(np.sin(sphere.points()), 'pvectors')
+sphere.pointdata["parr"] = parr
+sphere.celldata["carr"] = carr
+
+sphere.pointdata["pvectors"] = np.sin(sphere.points())
+
 sphere.addElevationScalars()
 
 cone.computeNormals()
@@ -131,17 +134,17 @@ print('celldata.keys', arrnames, 'carr')
 assert 'carr' in arrnames
 
 
-###################################### getPointArray
-arr = sphere.getPointArray('parr')
-print('getPointArray',len(arr))
+###################################### Get Point Data
+arr = sphere.pointdata['parr']
+print('pointdata',len(arr))
 assert len(arr)
-print('getPointArray',np.max(arr) ,'>', .99)
+print('pointdata',np.max(arr) ,'>', .99)
 assert np.max(arr) > .99
 
-arr = sphere.getCellArray('carr')
-print('getCellArray',[arr])
+arr = sphere.celldata['carr']
+print('celldata',[arr])
 assert len(arr)
-print('getCellArray',np.max(arr) ,'>', .99)
+print('celldata',np.max(arr) ,'>', .99)
 assert np.max(arr) > .99
 
 
@@ -311,7 +314,7 @@ scalar_field = ((X-15)**2 + (Y-15)**2 + (Z-15)**2)/225
 print('Test Volume, scalar min, max =', np.min(scalar_field), np.max(scalar_field))
 
 vol = Volume(scalar_field)
-volarr = vol.getPointArray()
+volarr = vol.pointdata[0]
 
 print('Volume',volarr.shape[0] , 27000)
 assert volarr.shape[0] == 27000

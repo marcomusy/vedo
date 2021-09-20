@@ -5,7 +5,7 @@ Thin Plate Spline or Radial Basis Function.
 Example shows how to share the same vtkCamera
 between different Plotter windows.
 """
-from vedo import Plotter, Points, Arrows, show, Text2D
+from vedo import Plotter, Points, Arrows, show
 import numpy as np
 
 
@@ -30,8 +30,8 @@ src = Points(sources, c="r", r=12)
 trs = Points(sources + deltas, c="v", r=12)
 arr = Arrows(sources, sources + deltas)
 
-################################################# Thin Plate Splines
-warped = apos.clone().thinPlateSpline(sources, sources+deltas)
+################################################# warp using Thin Plate Splines
+warped = apos.clone().warp(sources, sources+deltas)
 warped.alpha(0.4).color("lg").pointSize(10)
 allarr = Arrows(apos.points(), warped.points())
 

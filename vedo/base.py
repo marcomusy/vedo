@@ -1,6 +1,5 @@
 import numpy as np
 import vtk
-from vtk.numpy_interface import dataset_adapter
 import vedo
 import vedo.colors as colors
 import vedo.utils as utils
@@ -20,6 +19,108 @@ __all__ = [
            "probePlane",
            "streamLines",
 ]
+
+
+###############################################################################
+class _DataArrayHelper(object):
+    """Helper class to manage data associated to either
+    points (or vertices) and cells (or faces). Internal use only."""
+    def __init__(self, actor, association):
+        self.actor = actor
+        self.association = association
+
+    def __getitem__(self, key):
+        if self.association == 0:
+            data = self.actor._data.GetPointData()
+        else:
+            data = self.actor._data.GetCellData()
+        
+        if isinstance(key, int):
+            key = data.GetArrayName(key)
+        arr = data.GetArray(key)
+        if not arr:
+            return None
+        return utils.vtk2numpy(arr)
+
+    def __setitem__(self, key, input_array):
+        if self.association == 0:
+            data = self.actor._data.GetPointData()
+            n = self.actor._data.GetNumberOfPoints()
+            self.actor._mapper.SetScalarModeToUsePointData()
+        else:
+            data = self.actor._data.GetCellData()
+            n = self.actor._data.GetNumberOfCells()
+            self.actor._mapper.SetScalarModeToUseCellData()
+
+        if len(input_array) != n:
+            colors.printc(f'Error in point/cell data: length of input {len(input_array)}'
+                          f' !=  {n} nr. of elements', c='r')
+            raise RuntimeError()
+        
+        input_array = np.ascontiguousarray(input_array)
+   
+        varr = utils.numpy2vtk(input_array)        
+        varr.SetName(key)
+        data.AddArray(varr)
+        data.SetActiveScalars(key)
+
+        if hasattr(self.actor._mapper, 'ScalarVisibilityOn'): # could be volume mapper
+            self.actor._mapper.ScalarVisibilityOn()
+            self.actor._mapper.SetScalarRange(varr.GetRange())
+
+        if hasattr(self.actor._mapper, 'SetArrayName'):
+            self.actor._mapper.SetArrayName(key)
+
+        if key == "Normals":
+            data.SetActiveNormals(key)
+        return #####################
+    
+    def keys(self):
+        if self.association == 0:
+            data = self.actor._data.GetPointData()
+        else:
+            data = self.actor._data.GetCellData()
+        arrnames = []
+        for i in range(data.GetNumberOfArrays()):
+            arrnames.append(data.GetArray(i).GetName())
+        return arrnames
+    
+    def remove(self, key):
+        if self.association == 0:
+            self.actor._data.GetPointData().RemoveArray(key)
+        else:
+            self.actor._data.GetCellData().RemoveArray(key)
+        self.actor._data.GetPointData().Modified()
+    
+    def rename(self, oldname, newname):
+        if self.association == 0:
+            varr = self.actor._data.GetPointData().GetArray(oldname)
+        else:
+            varr = self.actor._data.GetCellData().GetArray(oldname)
+        varr.SetName(newname)
+        self.actor._data.GetPointData().Modified()        
+    
+    def select(self, key):
+        if self.association == 0:
+            data = self.actor._data.GetPointData()
+            self.actor._mapper.SetScalarModeToUsePointData()
+        else:
+            data = self.actor._data.GetCellData()
+            self.actor._mapper.SetScalarModeToUseCellData()
+
+        if isinstance(key, int):
+            key = data.GetArrayName(key)
+        data.SetActiveScalars(key)
+        
+        if hasattr(self.actor._mapper, 'SetArrayName'):
+            self.actor._mapper.SetArrayName(key)
+
+        # if hasattr(self.actor._mapper, 'ScalarVisibilityOn'): # could be volume mapper
+        #     self.actor._mapper.ScalarVisibilityOn()
+
+    def print(self, **kwargs):
+        colors.printc(self.keys(), **kwargs)
+        
 
 ###############################################################################
 class Base3DProp(object):
@@ -901,39 +1002,44 @@ class BaseActor(Base3DProp):
         If None is passed as input, will use colors from current active scalars.
         """
         return self.color(color, alpha)
-
-    @deprecated(reason=colors.red+"Please use myobj.pointdata.keys() instead."+colors.reset)
-    def getArrayNames(self):
-        """Deprecated. Please use myobj.pointdata.keys() instead"""
-        self._wrapped_data = dataset_adapter.WrapDataObject(self._data)
-        return {"PointData": self._wrapped_data.PointData.keys(),
-                "CellData":  self._wrapped_data.CellData.keys() }
-
+    
     @property
     def pointdata(self):
         """
-        Return the point array content as a ``numpy.array``.
-        This can be identified either as a string or by an integer number.
+        Create and/or return a ``numpy.array`` associated to points (vertices).
+        A data array can be indexed either as a string or by an integer number.
         E.g.:  ``myobj.pointdata["arrayname"]``
-        """
-        self._wrapped_data = dataset_adapter.WrapDataObject(self._data)
-        return self._wrapped_data.PointData
         
+        Use:
+
+            ``myobj.pointdata.keys()`` to return the available data array names           
+
+            ``myobj.pointdata.select(name)`` to make this array the active one       
+
+            ``myobj.pointdata.remove(name)`` to remove this array
+        """
+        return _DataArrayHelper(self, 0)
+
     @property
     def celldata(self):
         """
-        Return the point array content as a ``numpy.array``.
-        This can be identified either as a string or by an integer number.
+        Create and/or return a ``numpy.array`` associated to cells (faces).
+        A data array can be indexed either as a string or by an integer number.
         E.g.:  ``myobj.celldata["arrayname"]``
+        
+        Use:
+            
+            ``myobj.celldata.keys()`` to return the available data array names           
+
+            ``myobj.celldata.select(name)`` to make this array the active one       
+
+            ``myobj.celldata.remove(name)`` to remove this array
         """
-        self._wrapped_data = dataset_adapter.WrapDataObject(self._data)
-        return self._wrapped_data.CellData    
-    
+        return _DataArrayHelper(self, 1)
+
+    @deprecated(reason=colors.red+"Please use myobj.pointdata[name] instead."+colors.reset)
     def getPointArray(self, name=0):
-        """
-        Return the point array content as a ``numpy.array``.
-        This can be identified either as a string or by an integer number.
-        """
+        """Deprecated. Use myobj.pointdata[name]` instead."""
         data = self._data.GetPointData()
         if isinstance(name, int):
             name = data.GetArrayName(name)
@@ -942,11 +1048,9 @@ class BaseActor(Base3DProp):
             return None
         return utils.vtk2numpy(arr)
 
+    @deprecated(reason=colors.red+"Please use myobj.celldata[name] instead."+colors.reset)
     def getCellArray(self, name=0):
-        """
-        Return the cell array content as a ``numpy.array``.
-        This can be identified either as a string or by an integer number.
-        """
+        """Deprecated. Use myobj.celldata[name]` instead."""
         data = self._data.GetCellData()
         if isinstance(name, int):
             name = data.GetArrayName(name)
@@ -955,63 +1059,10 @@ class BaseActor(Base3DProp):
             return None
         return utils.vtk2numpy(arr)
 
-
-    def addIDs(self, asfield=False):
-        """
-        Generate point and cell ids.
-
-        :param bool asfield: flag to control whether to generate scalar or field data.
-        """
-        ids = vtk.vtkIdFilter()
-        ids.SetInputData(self._data)
-        ids.PointIdsOn()
-        ids.CellIdsOn()
-        if asfield:
-            ids.FieldDataOn()
-        else:
-            ids.FieldDataOff()
-        ids.Update()
-        return self._update(ids.GetOutput())
-
-    def selectPointArray(self, name):
-        """Make this point array the active one. Name can be a string or integer."""
-        data = self.inputdata().GetPointData()
-        arrname = name
-        if isinstance(name, int):
-            arrname = data.GetArrayName(name)
-        data.SetActiveScalars(arrname)
-        if hasattr(self._mapper, 'SetArrayName'):
-            self._mapper.SetArrayName(arrname)
-        self._mapper.SetScalarModeToUsePointData()
-        return self
-
-    def selectCellArray(self, name):
-        """Make this cell array the active one. Name can be a string or integer."""
-        data = self.inputdata().GetCellData()
-        arrname = name
-        if isinstance(name, int):
-            arrname = data.GetArrayName(name)
-        data.SetActiveScalars(arrname)
-        if hasattr(self._mapper, 'SetArrayName'):
-            self._mapper.SetArrayName(arrname)
-        self._mapper.SetScalarModeToUseCellData()
-        return self
-
-    def removePointArray(self, name):
-        """Reomve point array from object."""
-        self.inputdata().GetPointData().RemoveArray(name)
-        return self
-
-    def removeCellArray(self, name):
-        """Reomve cell array from object."""
-        self.inputdata().GetCellData().RemoveArray(name)
-        return self
-
+    @deprecated(reason=colors.red+"Please use myobj.pointdata[name] = myarr instead."+colors.reset)
     def addPointArray(self, input_array, name):
         """
-        Add point array and assign it a name.
-
-        |mesh_coloring| |mesh_coloring.py|_
+        Deprecated. Use myobj.pointdata[name] = input_array` instead.
         """
         data = self.inputdata()
 
@@ -1065,11 +1116,10 @@ class BaseActor(Base3DProp):
 
         return self
 
+    @deprecated(reason=colors.red+"Please use myobj.celldata[name] = myarr instead."+colors.reset)
     def addCellArray(self, input_array, name):
         """
-        Add Cell array and assign it a name.
-
-        |mesh_coloring| |mesh_coloring.py|_
+        Deprecated. Use myobj.celldata[name] = input_array` instead.
         """
         data = self.inputdata()
 
@@ -1122,6 +1172,44 @@ class BaseActor(Base3DProp):
             data.GetCellData().SetActiveNormals(name)
 
         return self
+
+    def mapCellsToPoints(self):
+        """
+        Interpolate cell data (i.e., data specified per cell or face)
+        into point data (i.e., data specified at each vertex).
+        The method of transformation is based on averaging the data values
+        of all cells using a particular point.
+        """
+        c2p = vtk.vtkCellDataToPointData()
+        c2p.SetInputData(self.inputdata())
+        c2p.Update()
+        self._mapper.SetScalarModeToUsePointData()
+        return self._update(c2p.GetOutput())
+
+    def mapPointsToCells(self):
+        """
+        Interpolate point data (i.e., data specified per point or vertex)
+        into cell data (i.e., data specified per cell).
+        The method of transformation is based on averaging the data values
+        of all points defining a particular cell.
+
+        |mesh_map2cell| |mesh_map2cell.py|_
+        """
+        p2c = vtk.vtkPointDataToCellData()
+        p2c.SetInputData(self.inputdata())
+        p2c.Update()
+        self._mapper.SetScalarModeToUseCellData()
+        return self._update(p2c.GetOutput())
+
+    def addIDs(self, asfield=False):
+        """Generate point and cell ids."""
+        ids = vtk.vtkIdFilter()
+        ids.SetInputData(self._data)
+        ids.PointIdsOn()
+        ids.CellIdsOn()
+        ids.FieldDataOff()
+        ids.Update()
+        return self._update(ids.GetOutput())
 
 
     def gradient(self, arrname=None, on='points', fast=False):
@@ -1233,36 +1321,6 @@ class BaseActor(Base3DProp):
         else:
             vvecs = utils.vtk2numpy(vort.GetOutput().GetCellData().GetArray('Vorticity'))
         return vvecs
-
-
-    def mapCellsToPoints(self):
-        """
-        Transform cell data (i.e., data specified per cell)
-        into point data (i.e., data specified at each vertex).
-        The method of transformation is based on averaging the data values
-        of all cells using a particular point.
-        """
-        c2p = vtk.vtkCellDataToPointData()
-        c2p.SetInputData(self.inputdata())
-        c2p.Update()
-        self._mapper.SetScalarModeToUsePointData()
-        return self._update(c2p.GetOutput())
-
-    def mapPointsToCells(self):
-        """
-        Transform point data (i.e., data specified per point)
-        into cell data (i.e., data specified per cell).
-        The method of transformation is based on averaging the data values
-        of all points defining a particular cell.
-
-        |mesh_map2cell| |mesh_map2cell.py|_
-        """
-        p2c = vtk.vtkPointDataToCellData()
-        p2c.SetInputData(self.inputdata())
-        p2c.Update()
-        self._mapper.SetScalarModeToUseCellData()
-        return self._update(p2c.GetOutput())
-
 
     def addScalarBar(self,
                      title="",
@@ -1676,7 +1734,7 @@ class BaseGrid(BaseActor):
         gf.Update()
 
         a = vedo.mesh.Mesh(gf.GetOutput()).lw(0.1).flat().lighting('ambient')
-        scalars = a.getPointArray()
+        scalars = a.pointdata[0]
         if scalars is None:
             print("Error in legosurface(): no scalars found!")
             return a
@@ -1782,9 +1840,9 @@ class BaseGrid(BaseActor):
             scalname = ug.GetCellData().GetScalars().GetName()
             if scalname: # not working
                 if self.useCells:
-                    self.selectCellArray(scalname)
+                    self.celldata.select(scalname)
                 else:
-                    self.selectPointArray(scalname)
+                    self.pointdata.select(scalname)
 
         self._update(cug)
         return self
@@ -1845,7 +1903,7 @@ def probePoints(dataset, pts):
     and probes its scalars at the specified points in space.
 
     Note that a mask is also output with valid/invalid points which can be accessed
-    with `mesh.getPointArray('vtkValidPointMask')`.
+    with `mesh.pointdata['vtkValidPointMask']`.
     """
     if isinstance(pts, vedo.pointcloud.Points):
         pts = pts.points()
@@ -1883,7 +1941,7 @@ def probeLine(dataset, p1, p2, res=100):
     and probes its scalars along a line defined by 2 points `p1` and `p2`.
 
     Note that a mask is also output with valid/invalid points which can be accessed
-    with `mesh.getPointArray('vtkValidPointMask')`.
+    with `mesh.pointdata['vtkValidPointMask']`.
 
     :param int res: nr of points along the line
 

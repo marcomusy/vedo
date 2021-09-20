@@ -1,10 +1,11 @@
 """Usage example of fitLine() and fitPlane()
 
 Draw a line in 3D that fits a cloud of 20 Points,
-Show the first set of 20 points and fit a plane to them.
-"""
+Show the first set of 20 points and fit a plane to them"""
 import numpy as np
 from vedo import *
+
+settings.useDepthPeeling = True
 
 # declare the class instance
 plt = Plotter()

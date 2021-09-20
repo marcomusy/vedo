@@ -45,9 +45,6 @@ General settings.
     # Enable / disable color printing by printc()
     enablePrintColor = True
 
-    # Qt embedding
-    usingQt = False
-
     # Wrap lines in tubes
     renderLinesAsTubes = False
 
@@ -102,7 +99,7 @@ General settings.
     # BOTRIGHT 3 (row 0 bottom, col 0 rhs) BOTLEFT  4 (row 0 bottom, col 0 lhs)
     # LEFTTOP  5 (row 0 lhs, col 0 top)    RIGHTTOP 6 (row 0 rhs, col 0 top)
     # RIGHTBOT 7 (row 0 rhs, col 0 bottom) LEFTBOT  8 (row 0 lhs, col 0 bottom)
-    tiffOrientationType = 4
+    tiffOrientationType = 1
 
     # AnnotatedCube axis type nr. 5 options:
     annotatedCubeColor      = (0.75, 0.75, 0.75)
@@ -184,10 +181,8 @@ rendererFrameAlpha = 0.5
 rendererFrameWidth = 0.5
 rendererFramePadding = 0.0001
 
-# Qt embedding
-usingQt = False
-
 # Wrap lines in tubes
+# renderPointsAsSpheres has become mesh.renderPointsAsSpheres(True)
 renderLinesAsTubes = False
 
 # Remove hidden lines when in wireframe mode
@@ -535,7 +530,7 @@ def embedWindow(backend='ipyvtk', verbose=True):
             import k3d
             if k3d._version.version_info != (2, 7, 4):
                 print('Warning: only k3d version 2.7.4 is currently supported')
-#                print('> pip install k3d==2.7.4')
+                # print('> pip install k3d==2.7.4')
             
         except:
             notebookBackend = None

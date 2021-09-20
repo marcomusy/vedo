@@ -2,13 +2,12 @@
 and points of a Mesh"""
 from vedo import *
 
-##################################### addCellArray
+##################################### add a cell array
 man1 = Mesh(dataurl+"man_low.vtk").lineWidth(0.1)
 nv = man1.NCells()                         # nr. of cells
 scals = range(nv)                          # coloring by the index of cell
 
-man1.addCellArray(scals, "mycellscalars")  # add an array of scalars to mesh
-# print(man1.celldata['mycellscalars'])    # it can be retrieved this way
+man1.celldata["mycellscalars"] = scals    # add an array of scalars to mesh
 show(man1, __doc__, at=0, N=3, axes=11, elevation=-60)
 
 

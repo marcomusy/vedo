@@ -2969,7 +2969,7 @@ class Plotter:
                     if len(arnames):
                         arnam =  arnames[ia._scals_idx]
                         if arnam and "normals" not in arnam.lower(): # exclude normals
-                            arr = ia.getPointArray(ia._scals_idx)
+                            arr = ia.pointdata[ia._scals_idx]
                             if arr is not None:
                                 arr = arr.ravel()
                                 vedo.printc("..active point array set to:", arnam, c='g', bold=0)
@@ -2983,7 +2983,7 @@ class Plotter:
                         if len(arnames):
                             arnam =  arnames[ia._scals_idx]
                             if arnam and "normals" not in arnam.lower(): # exclude normals
-                                arr = ia.getPointArray(ia._scals_idx)
+                                arr = ia.pointdata[ia._scals_idx]
                                 if arr is not None:
                                     arr = arr.ravel()
                                     vedo.printc("..active cell array set to:", arnam, c='g', bold=0)

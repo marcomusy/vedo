@@ -155,7 +155,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
             if isinstance(ia, Volume):
 #                print('Volume', ia.name, ia.dimensions())
                 kx, ky, kz = ia.dimensions()
-                arr = ia.getPointArray()
+                arr = ia.pointdata[0]
                 kimage = arr.reshape(-1, ky, kx)
 
                 colorTransferFunction = ia.GetProperty().GetRGBTransferFunction()
@@ -321,7 +321,7 @@ def getNotebookBackend(actors2show, zoom, viewup):
             scals = vmesh.inputdata().GetPointData().GetScalars()
             if scals and not colorbar: # there is an active array, only pick the first
                 aname = scals.GetName()
-                arr = vmesh.getPointArray(aname)
+                arr = vmesh.pointdata[aname]
                 parr = Component(name=aname, array=arr)
                 if len(faces):
                     pmesh = PolyMesh(vertices=vertices, triangle_indices=faces, data={aname: [parr]})

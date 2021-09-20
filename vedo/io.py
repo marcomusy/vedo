@@ -777,7 +777,7 @@ def toNumpy(obj):
             adict['lines'] = obj.lines()
 
         adict['pointdata'] = []
-        for iname in obj.getArrayNames()['PointData']:
+        for iname in obj.pointdata.keys():
             if 'Normals' in iname.lower(): continue
             arr = poly.GetPointData().GetArray(iname)
             adict['pointdata'].append([utils.vtk2numpy(arr), iname])
@@ -1201,10 +1201,6 @@ def write(objct, fileoutput, binary=True):
         writer = vtk.vtkSimplePointsWriter()
     elif fr.endswith(".facet"):
         writer = vtk.vtkFacetWriter()
-    elif fr.endswith(".tif") or fr.endswith(".tiff"):
-        writer = vtk.vtkTIFFWriter()
-        # print("GetCompression ", writer.GetCompression())
-        writer.SetFileDimensionality(len(obj.GetDimensions()))
     elif fr.endswith(".vti"):
         writer = vtk.vtkXMLImageDataWriter()
     elif fr.endswith(".mhd"):
@@ -1217,6 +1213,10 @@ def write(objct, fileoutput, binary=True):
         writer = vtk.vtkJPEGWriter()
     elif fr.endswith(".bmp"):
         writer = vtk.vtkBMPWriter()
+    elif fr.endswith(".tif") or fr.endswith(".tiff"):
+        writer = vtk.vtkTIFFWriter()
+        # print("GetCompression ", writer.GetCompression()) # basically uncompressed..
+        writer.SetFileDimensionality(len(obj.GetDimensions()))
     elif fr.endswith(".npy") or fr.endswith(".npz"):
         if utils.isSequence(objct):
             objslist = objct

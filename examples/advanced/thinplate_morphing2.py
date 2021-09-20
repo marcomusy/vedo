@@ -1,6 +1,6 @@
-"""Warp the tip of a mesh using Thin Plate Splines.
+"""Warp a region of a mesh using Thin Plate Splines.
 Red points stay fixed while a single point in space
-moves as the arrow indicates. """
+moves as the arrow indicates."""
 from vedo import *
 
 
@@ -18,7 +18,7 @@ for pt in meshdec.points():
         sources.append(pt)   # source = target
         targets.append(pt)   #
 
-warp = mesh.clone().thinPlateSpline(sources, targets)
+warp = mesh.clone().warp(sources, targets)
 warp.c("blue",0.3).lineWidth(0)
 
 apts = Points(sources).c("red")

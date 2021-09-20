@@ -37,7 +37,7 @@ pip install vedo
 - To install from the conda-forge channel: <br>
 `conda install -c conda-forge vedo`
 
-- Sometimes an older version of VTK can give better visualizations with transparent objects,
+- Sometimes an older version of VTK can yield better visualizations with transparent objects,
 to install it use: `pip install vtk==8.1.2` (if available on your system).
 
 - To use in jupyter notebooks use function `vedo.embedWindow()`, you may want to install `k3d` with:<br>
@@ -159,12 +159,12 @@ Volumetric files (_mhd, vti, slc, tiff, DICOM etc.._) can be visualized in diffe
 
 Type `vedo -h` for the complete list of options.<br>
 
-### 🐾  Gallery
+## 🐾  Gallery
 `vedo` currently includes 300+ working [examples](https://github.com/marcomusy/vedo/tree/master/examples) and [notebooks](https://github.com/marcomusy/vedo/tree/master/examples/notebooks). <br>
 ||||
 |:--------|:--------|:--------|
 | ![bunny](https://user-images.githubusercontent.com/32848391/133623000-8ed0457c-0725-441c-93e1-ea08829e98fb.jpg)  | [![dolf](https://user-images.githubusercontent.com/32848391/58368591-8b3fab80-7eef-11e9-882f-8b8eaef43567.gif)](https://vedo.embl.es/content/vedo/dolfin.html)  | [![greyscott](https://user-images.githubusercontent.com/32848391/80291855-87e11f80-8751-11ea-9428-12e193a2a66e.gif)](https://github.com/marcomusy/vedo/tree/master/examples/simulations/grayscott.py)  |
-| *Work with volumes, tetrahedral and polygonal meshes.* |   *Interoperability with external libraries like [FEniCs](https://fenicsproject.org/), [trimesh](https://trimsh.org/), [pyvista](https://github.com/pyvista/pyvista), and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab).*   |  *Animations of physical systems (Turing system of reaction-diffusion).* |
+| *Work with volumes, tetrahedral and polygonal meshes.* |   *Interoperability with external libraries like [FEniCs](https://fenicsproject.org/), [trimesh](https://trimsh.org/), [meshio](https://github.com/nschloe/meshio), [pyvista](https://github.com/pyvista/pyvista), and [pymeshlab](https://github.com/cnr-isti-vclab/PyMeshLab).*   |  *Animations of physical systems (above, a system of reaction-diffusion).* |
 
 Run any of the built-in examples. In a terminal type: `vedo -r earthquake_browser`
 

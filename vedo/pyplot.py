@@ -446,12 +446,13 @@ def histogram(*args, **kwargs):
     elif len(args) == 1:
 
         if isinstance(args[0], vedo.Volume):
-            data = args[0].getPointArray()
+            data = args[0].pointdata[0]
         elif isinstance(args[0], vedo.Points):
-            if args[0].getPointArray():
-                data = args[0].getPointArray().ravel()
+            pd0 = args[0].pointdata[0]
+            if pd0:
+                data = pd0.ravel()
             else:
-                data = args[0].getCellArray().ravel()
+                data = args[0].celldata[0].ravel()
         else:
             data = np.array(args[0])
 
@@ -1545,6 +1546,7 @@ def _histogram1D(
     bc="k",
 ):
     # purge NaN from data
+    data = np.asarray(data).ravel()
     validIds = np.all(np.logical_not(np.isnan(data)))
     data = data[validIds]
     offs = 0  # z offset
@@ -1565,7 +1567,7 @@ def _histogram1D(
     # print('frequencies', fs)
     # print('edges', edges)
     if density:
-        ntot = len(data.ravel())
+        ntot = len(data)
         binsize = edges[1]-edges[0]
         fs = fs/(ntot*binsize)
         if ytitle=='counts':

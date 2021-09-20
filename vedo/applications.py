@@ -82,7 +82,7 @@ def SlicerPlotter(
     # inits
     la, ld = 0.7, 0.3 #ambient, diffuse
     dims = volume.dimensions()
-    data = volume.getPointArray()
+    data = volume.pointdata[0]
     rmin, rmax = volume.imagedata().GetScalarRange()
     if clamp:
         hdata, edg = np.histogram(data, bins=50)
@@ -252,7 +252,7 @@ def Slicer2d(volume, levels=(None, None), size=(900,900), bg='k9', zoom=1.2):
     if settings.vtk_version[0] == 9:
         axes=0
 
-    hist = cornerHistogram(volume.getPointArray(),
+    hist = cornerHistogram(volume.pointdata[0],
                            bins=25, logscale=1, pos=(0.02, 0.02), s=0.175,
                            c='dg', bg='k', alpha=1)
 
@@ -490,17 +490,20 @@ def IsosurfaceBrowser(volume, c=None, alpha=1, lego=False, cmap='hot', pos=None)
 
 
 ##############################################################################
-def Browser(meshes, sliderpos=((0.55, 0.07),(0.96, 0.07)), c=None, prefix=""):
+def Browser(meshes, sliderpos=((0.55, 0.07),(0.96, 0.07)), c=None, prefix="",
+            # extras=(), #Not working
+            ):
     """
     Generate a ``Plotter`` window to browse a list of objects using a slider.
     Returns the ``Plotter`` object.
+    
     """
 
     vp = settings.plotter_instance
     if not vp:
         vp = Plotter(axes=1, bg='white', title="Browser")
     vp.actors = meshes
-
+    
     # define the slider
     def sliderfunc(widget, event=None):
         k = int(widget.GetRepresentation().GetValue())
@@ -518,13 +521,16 @@ def Browser(meshes, sliderpos=((0.55, 0.07),(0.96, 0.07)), c=None, prefix=""):
             tx = ak.name
         widget.GetRepresentation().SetTitleText(prefix+tx)
 
-    printc("Browser Mode", c="y", invert=1, end="")
-    printc(" loaded", len(meshes), "objects", c="y", bold=False)
+    # printc("Browser", c="y", invert=1, end="")
+    # printc(" loaded", len(meshes), "objects", c="y", bold=False)
 
     wid = vp.addSlider2D(sliderfunc, 0.5, len(meshes)-0.5,
                          pos=sliderpos, font='courier', c=c, showValue=False)
     wid.GetRepresentation().SetTitleHeight(0.020)
     sliderfunc(wid) # init call
+    
+    # for e in extras:
+    #     vp.add(extras, render=False)
 
     return vp
 

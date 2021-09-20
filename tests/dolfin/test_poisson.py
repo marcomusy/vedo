@@ -31,9 +31,9 @@ acts = plot(u, l, cmap='jet', scalarbar='h', returnActorsNoShow=True)
 
 actor = acts[0]
 
-solution = actor.getPointArray(0)
+solution = actor.pointdata[0]
 
-print('ArrayNames', actor.getArrayNames())
+print('ArrayNames', actor.pointdata.keys())
 print('min', 'mean', 'max:')
 print(np.min(solution), np.mean(solution), np.max(solution), len(solution))
 

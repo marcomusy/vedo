@@ -1375,9 +1375,9 @@ class Points(vtk.vtkFollower, BaseActor):
         """Set/get mesh's point size of vertices. Same as `mesh.pointSize()`"""
         return self.pointSize(pointSize)
 
-    def renderPointsAsSpheres(self, ras=True):
+    def renderPointsAsSpheres(self, value=True):
         """Make points look spheric or make them look as squares."""
-        self.GetProperty().SetRenderPointsAsSpheres(ras)
+        self.GetProperty().SetRenderPointsAsSpheres(value)
         return self
 
 
@@ -1446,9 +1446,9 @@ class Points(vtk.vtkFollower, BaseActor):
             scalars = "threshold"
         else: # string is passed
             if on.startswith('c'):
-                arr = self.getCellArray(scalars)
+                arr = self.celldata[scalars]
             else:
-                arr = self.getPointArray(scalars)
+                arr = self.pointdata[scalars]
             if arr is None:
                 colors.printc("No scalars found with name/nr:", scalars, c='r')
                 colors.printc("Available scalars are:\n", self.getArrayNames(), c='y')
@@ -1617,19 +1617,19 @@ class Points(vtk.vtkFollower, BaseActor):
             mode=0
             if cells:
                 name = self._data.GetCellData().GetScalars().GetName()
-                arr = self.getCellArray(name)
+                arr = self.celldata[name]
             else:
                 name = self._data.GetPointData().GetScalars().GetName()
-                arr = self.getPointArray(name)
+                arr = self.pointdata[name]
         elif isinstance(content, (str, int)):
             if content=='id':
                 mode = 1
             elif cells:
                 mode = 0
-                arr = self.getCellArray(content)
+                arr = self.celldata[content]
             else:
                 mode = 0
-                arr = self.getPointArray(content)
+                arr = self.pointdata[content]
         elif utils.isSequence(content):
             mode = 0
             arr = content
@@ -3444,7 +3444,7 @@ class Points(vtk.vtkFollower, BaseActor):
             tf.Update()
             self._update(tf.GetOutput())
 
-        self.removePointArray("SignedDistances")
+        self.pointdata.remove("SignedDistances")
         self._mapper.SetScalarVisibility(vis)
         return self
 
@@ -3566,7 +3566,8 @@ class Points(vtk.vtkFollower, BaseActor):
         vgrid_tmp = Points(grid_tmp)
 
         for p in contour.points():
-            todel += vgrid_tmp.closestPoint(p, radius=density, returnPointId=True)
+            out = vgrid_tmp.closestPoint(p, radius=density, returnPointId=True)
+            todel += out.tolist()
         # cpoints = contour.points()
         # for i, p in enumerate(cpoints):
         #     if i:

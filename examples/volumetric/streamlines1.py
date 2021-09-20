@@ -8,7 +8,7 @@ from vedo import *
 mesh = Hyperboloid(pos=(0,0,0)).alpha(0.2)
 
 vects = mesh.clone().points() # let's assume this
-mesh.addPointArray(vects, 'hyp_coords')
+mesh.pointdata["hyp_coords"] = vects
 
 probe = Sphere(pos=[0,0.6,0.3], r=0.3, res=8).clean()
 probe.wireframe().alpha(0.2).color('g')

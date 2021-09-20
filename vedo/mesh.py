@@ -13,32 +13,43 @@ __all__ = ["Mesh", "merge"]
 
 
 ####################################################
-def merge(*meshs):
+def merge(*meshs, flag=False):
     """
-    Build a new mesh formed by the fusion of the polygonal meshes of the input objects.
-    Similar to Assembly, but in this case the input objects become a single mesh.
+    Build a new mesh formed by the fusion of the input polygonal Meshes (or Points).
+    
+    Similar to Assembly, but in this case the input objects become a single mesh entity.
+    
+    To keep track of the original identities of the input mesh you can set flag. 
+    In this case a point array of IDs is added to the merged output mesh.
 
     .. hint:: |thinplate_grid.py|_ |value-iteration.py|_
 
         |thinplate_grid| |value-iteration|
     """
-    acts = []
-    for a in flatten(meshs):
-        if a:
-            acts += [a]
+    acts = [a for a in flatten(meshs) if a]
 
     if not acts:
         return None
 
+    idarr = []
     polyapp = vtk.vtkAppendPolyData()
-    for a in acts:
-        if isinstance(a, vtk.vtkPolyData):
-            polyapp.AddInputData(a)
-        else:
-            polyapp.AddInputData(a.polydata())
+    for i, a in enumerate(acts):
+        try:
+            poly = a.polydata()
+        except:
+            # so a vtkPolydata can also be passed
+            poly = a
+        polyapp.AddInputData(poly)
+        if flag:
+            idarr += [i]*poly.GetNumberOfPoints()
     polyapp.Update()
+    mpoly = polyapp.GetOutput()
+    
+    if flag:
+        varr = numpy2vtk(idarr, dtype=np.uint16, name="OriginalMeshID")
+        mpoly.GetPointData().AddArray(varr)
 
-    msh = Mesh(polyapp.GetOutput())
+    msh = Mesh(mpoly)
     if isinstance(acts[0], vtk.vtkActor):
         cprp = vtk.vtkProperty()
         cprp.DeepCopy(acts[0].GetProperty())
@@ -206,12 +217,6 @@ class Mesh(Points):
 
         self.property = self.GetProperty()
         self.property.SetInterpolationToPhong()
-
-        if vedo.settings.renderLinesAsTubes:
-            try:
-                self.property.RenderLinesAsTubesOn()
-            except:
-                pass
 
         # set the color by c or by scalar
         if self._data:
@@ -452,7 +457,7 @@ class Mesh(Points):
             tu.SetRepeat(repeat)
             tu.SetEdgeClamp(edgeClamp)
 
-        self.GetProperty().SetColor(1, 1, 1)
+        self.property.SetColor(1, 1, 1)
         self._mapper.ScalarVisibilityOff()
         self.SetTexture(tu)
 
@@ -463,7 +468,7 @@ class Mesh(Points):
             ugradm, vgradm = vedo.utils.mag2(ugrad), vedo.utils.mag2(vgrad)
             gradm = np.log(ugradm + vgradm)
             largegrad_ids = np.arange(len(grad))[gradm>seamThreshold*4]
-            uvmap = self.getPointArray(tname)
+            uvmap = self.pointdata[tname]
             # collapse triangles that have large gradient
             new_points = self.points(transformed=False)
             for f in self.faces():
@@ -547,9 +552,9 @@ class Mesh(Points):
         """Set mesh's representation as wireframe or solid surface.
         Same as `mesh.wireframe()`."""
         if value:
-            self.GetProperty().SetRepresentationToWireframe()
+            self.property.SetRepresentationToWireframe()
         else:
-            self.GetProperty().SetRepresentationToSurface()
+            self.property.SetRepresentationToSurface()
         return self
 
     def flat(self):
@@ -557,39 +562,28 @@ class Mesh(Points):
 
         |wikiphong|
         """
-        self.GetProperty().SetInterpolationToFlat()
+        self.property.SetInterpolationToFlat()
         return self
 
     def phong(self):
         """Set surface interpolation to Phong."""
-        self.GetProperty().SetInterpolationToPhong()
+        self.property.SetInterpolationToPhong()
         return self
 
     def backFaceCulling(self, value=True):
         """Set culling of polygons based on orientation
         of normal with respect to camera."""
-        self.GetProperty().SetBackfaceCulling(value)
+        self.property.SetBackfaceCulling(value)
         return self
 
+    def renderLinesAsTubes(self, value=True):
+        self.property.SetRenderLinesAsTubes(value)
+        return self
+            
     def frontFaceCulling(self, value=True):
         """Set culling of polygons based on orientation of normal with respect to camera."""
-        self.GetProperty().SetFrontfaceCulling(value)
+        self.property.SetFrontfaceCulling(value)
         return self
-
-    # def depthSort(self, camera=None):
-    #     """Depth Sort"""
-    #     https://gitlab.kitware.com/vtk/vtk/-/issues/18173
-    #     depth_sort = vtk.vtkDepthSortPolyData()
-    #     depth_sort.SetInputData(self.polydata(False))
-    #     depth_sort.SetDirectionToBackToFront()
-    #     if camera is None:
-    #         if vedo.settings.plotter_instance and vedo.settings.plotter_instance.renderer:
-    #             cam = vedo.settings.plotter_instance.renderer.GetActiveCamera()
-    #             if cam:
-    #                 depth_sort.SetCamera(cam)
-    #     depth_sort.SortScalarsOff()
-    #     depth_sort.Update()
-    #     return self._update(depth_sort.GetOuput())
 
     def backColor(self, bc=None):
         """
@@ -602,7 +596,7 @@ class Mesh(Points):
                 return backProp.GetDiffuseColor()
             return self
 
-        if self.GetProperty().GetOpacity() < 1:
+        if self.property.GetOpacity() < 1:
             # printc("In backColor(): only active for alpha=1", c="y")
             return self
 
@@ -610,7 +604,7 @@ class Mesh(Points):
             backProp = vtk.vtkProperty()
 
         backProp.SetDiffuseColor(getColor(bc))
-        backProp.SetOpacity(self.GetProperty().GetOpacity())
+        backProp.SetOpacity(self.property.GetOpacity())
         self.SetBackfaceProperty(backProp)
         self._mapper.ScalarVisibilityOff()
         return self
@@ -623,13 +617,13 @@ class Mesh(Points):
         """Set/get width of mesh edges. Same as `lw()`."""
         if lw is not None:
             if lw == 0:
-                self.GetProperty().EdgeVisibilityOff()
-                self.GetProperty().SetRepresentationToSurface()
+                self.property.EdgeVisibilityOff()
+                self.property.SetRepresentationToSurface()
                 return self
-            self.GetProperty().EdgeVisibilityOn()
-            self.GetProperty().SetLineWidth(lw)
+            self.property.EdgeVisibilityOn()
+            self.property.SetLineWidth(lw)
         else:
-            return self.GetProperty().GetLineWidth()
+            return self.property.GetLineWidth()
         return self
 
     def lw(self, lineWidth=None):
@@ -639,14 +633,14 @@ class Mesh(Points):
     def lineColor(self, lc=None):
         """Set/get color of mesh edges. Same as `lc()`."""
         if lc is not None:
-            if "ireframe" in self.GetProperty().GetRepresentationAsString():
-                self.GetProperty().EdgeVisibilityOff()
+            if "ireframe" in self.property.GetRepresentationAsString():
+                self.property.EdgeVisibilityOff()
                 self.color(lc)
                 return self
-            self.GetProperty().EdgeVisibilityOn()
-            self.GetProperty().SetEdgeColor(getColor(lc))
+            self.property.EdgeVisibilityOn()
+            self.property.SetEdgeColor(getColor(lc))
         else:
-            return self.GetProperty().GetEdgeColor()
+            return self.property.GetEdgeColor()
         return self
 
     def lc(self, lineColor=None):
@@ -1144,7 +1138,7 @@ class Mesh(Points):
     def addConnectivity(self):
         """
         Flag a mesh by connectivity: each disconnected region will receive a different Id.
-        You can access the array of ids through ``mesh.getPointArray("RegionId")``.
+        You can access the array of ids through ``mesh.pointdata["RegionId"]``.
         """
         cf = vtk.vtkConnectivityFilter()
         cf.SetInputData(self.polydata(False))
@@ -1403,7 +1397,7 @@ class Mesh(Points):
         sep.SetInsideOut(invert)
         sep.Update()
 
-        mask = Mesh(sep.GetOutput()).getPointArray(0).astype(np.bool)
+        mask = Mesh(sep.GetOutput()).pointdata[0].astype(np.bool)
         ids = np.array(range(len(pts)))[mask]
 
         if returnIds:
@@ -1797,7 +1791,7 @@ class Mesh(Points):
             rf.Update()
             m = Mesh(rf.GetOutput(), c=self.c(), alpha=self.alpha())
             prop = vtk.vtkProperty()
-            prop.DeepCopy(self.GetProperty())
+            prop.DeepCopy(self.property)
             m.SetProperty(prop)
             # assign the same transformation
             m.SetOrigin(self.GetOrigin())
@@ -1826,7 +1820,7 @@ class Mesh(Points):
         a = Mesh(cf.GetOutput())
         alist = []
 
-        for t in range(max(a.getPointArray("RegionId")) + 1):
+        for t in range(max(a.pointdata["RegionId"]) + 1):
             if t == maxdepth:
                 break
             suba = a.clone().threshold("RegionId", t - 0.1, t + 0.1)
@@ -1857,7 +1851,7 @@ class Mesh(Points):
         conn.Update()
         m = Mesh(conn.GetOutput())
         pr = vtk.vtkProperty()
-        pr.DeepCopy(self.GetProperty())
+        pr.DeepCopy(self.property)
         m.SetProperty(pr)
         # assign the same transformation
         m.SetOrigin(self.GetOrigin())
@@ -1964,7 +1958,7 @@ class Mesh(Points):
         
         dmesh = Mesh(poly, c='k')
         prop = vtk.vtkProperty()
-        prop.DeepCopy(self.GetProperty())
+        prop.DeepCopy(self.property)
         prop.SetLineWidth(3)
         prop.SetOpacity(1)
         dmesh.SetProperty(prop)

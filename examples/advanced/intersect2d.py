@@ -27,7 +27,6 @@ if m3.NPoints():
     m3.cutWithPlane(origin=v1, normal=np.cross(zax, v2-v1))
 if m3.NPoints():
     m3.cutWithPlane(origin=v2, normal=np.cross(zax, v0-v2))
-
 vig3 = m3.vignette('Overlap polygon\nA=' + precision(m3.area(),3),
                    point=(2.2,0.6), s=0.012)
 

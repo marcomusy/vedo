@@ -21,9 +21,9 @@ actors = plot(u, mode='color', cmap='viridis', vmin=-3, vmax=3, style=1,
 
 actor = actors[0]
 
-solution = actor.getPointArray(0)
+solution = actor.pointdata[0]
 
-print('ArrayNames', actor.getArrayNames())
+print('ArrayNames', actor.pointdata.keys())
 print('min', 'mean', 'max:')
 print(np.min(solution), np.mean(solution), np.max(solution), len(solution))
 

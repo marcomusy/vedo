@@ -71,14 +71,16 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
             if "https://" in obj:
                 obj = vedo.io.download(obj, verbose=False)
 
-            if   ".png" in obj.lower():
+            fname = obj.lower()
+            if fname.endswith(".png"):
                 picr = vtk.vtkPNGReader()
-            elif ".jpg" in obj.lower() or ".jpeg" in obj.lower():
+            elif fname.endswith(".jpg") or fname.endswith(".jpeg"):
                 picr = vtk.vtkJPEGReader()
-            elif ".bmp" in obj.lower():
+            elif fname.endswith(".bmp"):
                 picr = vtk.vtkBMPReader()
-            elif ".tif" in obj.lower():
+            elif fname.endswith(".tif") or fname.endswith(".tiff"):
                 picr = vtk.vtkTIFFReader()
+                picr.SetOrientationType(vedo.settings.tiffOrientationType)
             else:
                 colors.printc("Cannot understand picture format", obj, c='r')
                 return

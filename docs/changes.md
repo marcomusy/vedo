@@ -4,7 +4,7 @@
 ---
 ### `base.py`
 
-- introduced new sintax to retrieve a mesh point data array: `myobj.pointdata["arrayname"]`
+- introduced new sintax to set/retrieve a mesh point data array: `myobj.pointdata["arrayname"]`
 same for cell/face data: `myobj.celldata["arrayname"]`
 
 ---
@@ -22,6 +22,7 @@ same for cell/face data: `myobj.celldata["arrayname"]`
 
 - fixed problem in `geodesic()`.
 - added tolerance keyword in `intersectWithLine()`. Also, now `returnIds` returns `[[pt,cellid]]`
+- added kword flag to function `merge(..., flag=True)` to optionally keep track of the original meshes ids
 
 ---
 ### `plotter.py`
@@ -60,5 +61,7 @@ same for cell/face data: `myobj.celldata["arrayname"]`
 
 ## New/Revised examples:
 
-`vedo -r optics`
+`vedo -r optics_main1`
+`vedo -r optics_main2`
+`vedo -r morphomatics_tube`
 

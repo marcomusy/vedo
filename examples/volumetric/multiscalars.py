@@ -1,6 +1,6 @@
 """A Volume can have multiple
 scalars associated to each voxel"""
-from vedo import *
+from vedo import dataurl, Volume, printc, show
 import numpy as np
 
 vol = Volume(dataurl+'vase.vti')
@@ -8,18 +8,15 @@ nx, ny, nz = vol.dimensions()
 r0,r1 = vol.scalarRange()
 vol.addScalarBar3D(title='original voxel scalars')
 
-
 # create a set of scalars and add it to the Volume
-sc1 = np.linspace(r0,r1, num=nx*ny*nz)#.astype(np.uint8)
-vol.addPointArray(sc1, "myscalars1")
+vol.pointdata["myscalars1"] = np.linspace(r0,r1, num=nx*ny*nz)
 
 # create another set of scalars and add it to the Volume
-sc2 = np.random.randint(-100,+100, nx*ny*nz)
-vol.addPointArray(sc2, "myscalars2")
+vol.pointdata["myscalars2"] = np.random.randint(-100,+100, nx*ny*nz)
 
 # make SLCImage scalars the active array (can set 0, to pick the first):
 printc('Arrays in Volume are:\n', vol.pointdata.keys(), invert=True)
-vol.selectPointArray('SLCImage')  # select the first data array
+vol.pointdata.select("SLCImage")  # select the first data array as the active one
 
 # Build the isosurface of the active scalars,
 # but use testscals1 to colorize this isosurface, and then smooth it

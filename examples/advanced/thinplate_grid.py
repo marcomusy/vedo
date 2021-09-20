@@ -24,7 +24,7 @@ for pt in pts:
     ptnew = ptold + [0, 0, np.random.randn(1) * 0.1]  # move in z
     pttarget.append(ptnew)
 
-warped = mesh.thinPlateSpline(ptsource, pttarget)
+warped = mesh.warp(ptsource, pttarget)
 warped.alpha(0.2).color("b")
 
 apts = Points(ptsource, r=5, c="r")
