@@ -2,7 +2,7 @@
 visualize object details"""
 from vedo import *
 
-mesh = Mesh(dataurl+"bunny.obj")
+mesh = Mesh(dataurl+"bunny.obj").color('k7')
 
 # Create multiple arrays associated to mesh vertices or cells
 mesh.pointdata['MYPOINTARRAY'] = mesh.points()[:,0]

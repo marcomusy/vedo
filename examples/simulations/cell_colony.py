@@ -1,7 +1,7 @@
 """Simulation of bacteria types that divide at a given rate
 As they divide they occupy more and more space"""
 print(__doc__)
-from vedo import Plotter, ProgressBar, pcaEllipsoid, Points, Line
+from vedo import Plotter, ProgressBar, Points, Line
 import numpy as np
 
 
@@ -73,7 +73,7 @@ class Cell:
 
 
 ##############################################################################
-plt = Plotter(interactive=0, axes=3)
+plt = Plotter(interactive=False, axes=3)
 
 # place vtkCamera at a specific position
 # (get these numbers by pressing Shift-C)
@@ -117,14 +117,5 @@ for t in pb.range():
 
     pb.print(msg + str(int(t)))
     plt.show(resetcam=0)
-    if plt.escaped: exit(0)  # if ESC is hit during the loop
-
-# draw the oriented ellipsoid that contains 50% of the cells
-for colony in colonies:
-    pts = [c.pos for c in colony.cells]
-    a = pcaEllipsoid(pts, pvalue=0.5)
-    a.color(colony.color).alpha(0.3)
-    a.legend("1/rate=" + str(colony.cells[0].tdiv) + "h")
-    plt += a
-
-plt.show(resetcam=0, interactive=1).close()
+    if plt.escaped:
+        exit(0)  # if ESC is hit during the loop

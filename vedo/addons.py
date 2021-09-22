@@ -722,6 +722,9 @@ def addScalarBar3D(
         ticks_pos, ticks_txt = utils.makeTicks(vmin, vmax, nlabels)
 
     scale.lw(0).wireframe(False).lighting('off')
+    
+    scales = [scale]
+
     xbns = scale.xbounds()
     if pos is None:
         d = sx/2
@@ -760,13 +763,13 @@ def addScalarBar3D(
         tacts.append(t)
 
     # build below scale
-    brect = None
     if lut.GetUseBelowRangeColor():
         r,g,b,alfa = lut.GetBelowRangeColor()
         brect = shapes.Rectangle([-sx *labelOffset -sx/2, -sy/2-sx-sx*0.1, 0],
                                  [-sx *labelOffset +sx/2, -sy/2   -sx*0.1, 0],
                                  c=(r,g,b), alpha=alfa)
         brect.lw(1).lc(c).lighting('off')
+        scales += [brect]
         if belowText is None:
            belowText = ' <'+str(vmin)
         if belowText:
@@ -782,13 +785,13 @@ def addScalarBar3D(
             tacts.append(btx)
 
     # build above scale
-    arect = None
     if lut.GetUseAboveRangeColor():
         r,g,b,alfa = lut.GetAboveRangeColor()
         arect = shapes.Rectangle([-sx *labelOffset -sx/2, sy/2   +sx*0.1, 0],
                                  [-sx *labelOffset +sx/2, sy/2+sx+sx*0.1, 0],
                                  c=(r,g,b), alpha=alfa)
         arect.lw(1).lc(c).lighting('off')
+        scales += [arect]
         if aboveText is None:
             aboveText = ' >'+str(vmax)
         if aboveText:
@@ -804,7 +807,6 @@ def addScalarBar3D(
             tacts.append(atx)
 
     # build NaN scale
-    nanrect = None
     if lut.GetNanColor() != (0.5, 0.0, 0.0, 1.0):
         nanshift = sx*0.1
         if brect:
@@ -814,6 +816,7 @@ def addScalarBar3D(
                                    [-sx *labelOffset +sx/2, -sy/2   -sx*0.1-nanshift, 0],
                                    c=(r,g,b), alpha=alfa)
         nanrect.lw(1).lc(c).lighting('off')
+        scales += [nanrect]
         if labelRotation:
             nantx = shapes.Text3D(nanText, (0,0,0), s=lsize,
                                   c=c, justify='center-left', italic=italic, font=labelFont)
@@ -833,7 +836,7 @@ def addScalarBar3D(
     mtacts.PickableOff()
     scale.PickableOff()
 
-    sact = Assembly([scale, arect, brect, nanrect] + tacts)
+    sact = Assembly(scales + tacts)
     sact.SetPosition(pos)
     sact.PickableOff()
     sact.UseBoundsOff()
@@ -843,7 +846,7 @@ def addScalarBar3D(
 
 #####################################################################
 def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
-                title='', font='', titleSize=1, c=None, showValue=True):
+                title='', font='', titleSize=1, c=None, showValue=True, delayed=False):
     """Add a slider widget which can call an external custom function.
 
     :param sliderfunc: external function to be called by the widget
@@ -856,6 +859,7 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     :param str font: title font
     :param float titleSize: title text scale [1.0]
     :param bool showValue:  if true current value is shown
+    :param bool delayed: if True the callback is delayed to when the mouse is released
 
     |sliders1| |sliders1.py|_ |sliders2.py|_
     """
@@ -1001,7 +1005,10 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     sliderWidget.SetInteractor(plt.interactor)
     sliderWidget.SetAnimationModeToJump()
     sliderWidget.SetRepresentation(sliderRep)
-    sliderWidget.AddObserver("InteractionEvent", sliderfunc)
+    if delayed:
+        sliderWidget.AddObserver("EndInteractionEvent", sliderfunc)
+    else:
+        sliderWidget.AddObserver("InteractionEvent", sliderfunc)
     if plt.renderer:
         sliderWidget.SetCurrentRenderer(plt.renderer)
     sliderWidget.EnabledOn()

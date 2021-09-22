@@ -225,12 +225,11 @@ class TetMesh(vtk.vtkVolume, BaseGrid):
         th.SetInputData(self._data)
 
         if name is None:
-            ns = self.getArrayNames()
-            if len(ns['CellData']):
-                name=ns['CellData'][0]
+            if len(self.celldata.keys()):
+                name = self.celldata.keys()[0]
                 th.SetInputArrayToProcess(0,0,0, 1, name)
-            elif len(ns['PointData']):
-                name=ns['PointData'][0]
+            elif len(self.pointdata.keys()):
+                name = self.pointdata.keys()[0]
                 th.SetInputArrayToProcess(0,0,0, 0, name)
             if name is None:
                 printc("threshold(): Cannot find active array. Skip.", c='r')

@@ -56,23 +56,26 @@ class _DataArrayHelper(object):
             colors.printc(f'Error in point/cell data: length of input {len(input_array)}'
                           f' !=  {n} nr. of elements', c='r')
             raise RuntimeError()
-        
+
         input_array = np.ascontiguousarray(input_array)
-   
-        varr = utils.numpy2vtk(input_array)        
-        varr.SetName(key)
+        varr = utils.numpy2vtk(input_array, name=key)        
         data.AddArray(varr)
-        data.SetActiveScalars(key)
+        
+        if len(input_array.shape)==1: # scalars
+            data.SetActiveScalars(key)
+        elif len(input_array.shape)==2 and input_array.shape[1] == 3: # vectors
+            if key == "Normals":
+                data.SetActiveNormals(key)
+            else:
+                data.SetActiveVectors(key)
 
-        if hasattr(self.actor._mapper, 'ScalarVisibilityOn'): # could be volume mapper
-            self.actor._mapper.ScalarVisibilityOn()
-            self.actor._mapper.SetScalarRange(varr.GetRange())
+        # if hasattr(self.actor._mapper, 'ScalarVisibilityOn'): # could be volume mapper
+        #     self.actor._mapper.ScalarVisibilityOn()
+        #     self.actor._mapper.SetScalarRange(varr.GetRange())
 
-        if hasattr(self.actor._mapper, 'SetArrayName'):
-            self.actor._mapper.SetArrayName(key)
+        # if hasattr(self.actor._mapper, 'SetArrayName'):
+        #     self.actor._mapper.SetArrayName(key)
 
-        if key == "Normals":
-            data.SetActiveNormals(key)
         return #####################
     
     def keys(self):
@@ -90,15 +93,16 @@ class _DataArrayHelper(object):
             self.actor._data.GetPointData().RemoveArray(key)
         else:
             self.actor._data.GetCellData().RemoveArray(key)
-        self.actor._data.GetPointData().Modified()
     
     def rename(self, oldname, newname):
         if self.association == 0:
             varr = self.actor._data.GetPointData().GetArray(oldname)
         else:
             varr = self.actor._data.GetCellData().GetArray(oldname)
-        varr.SetName(newname)
-        self.actor._data.GetPointData().Modified()        
+        if varr:
+            varr.SetName(newname)
+        else:
+            colors.printc("Cannot rename non existing array:", oldname, "to:", newname, c='r')
     
     def select(self, key):
         if self.association == 0:
@@ -115,8 +119,8 @@ class _DataArrayHelper(object):
         if hasattr(self.actor._mapper, 'SetArrayName'):
             self.actor._mapper.SetArrayName(key)
 
-        # if hasattr(self.actor._mapper, 'ScalarVisibilityOn'): # could be volume mapper
-        #     self.actor._mapper.ScalarVisibilityOn()
+        if hasattr(self.actor._mapper, 'ScalarVisibilityOn'): # could be volume mapper
+            self.actor._mapper.ScalarVisibilityOn()
 
     def print(self, **kwargs):
         colors.printc(self.keys(), **kwargs)
@@ -607,6 +611,7 @@ class Base3DProp(object):
                 pr = vtk.vtkProperty()
                 pr.DeepCopy(self.GetProperty())
                 bx.SetProperty(pr)
+                bx.property = pr
         bx.flat().lighting('off')
         bx.wireframe(not fill)
         return bx
@@ -734,8 +739,8 @@ class BaseActor(Base3DProp):
 
         self.flagText = None
         self._caption = None
+        self.property = None
         
-        self._wrapped_data = None
 
     def mapper(self, newMapper=None):
         """Return the ``vtkMapper`` data object, or update it with a new one."""
@@ -1040,137 +1045,23 @@ class BaseActor(Base3DProp):
     @deprecated(reason=colors.red+"Please use myobj.pointdata[name] instead."+colors.reset)
     def getPointArray(self, name=0):
         """Deprecated. Use myobj.pointdata[name]` instead."""
-        data = self._data.GetPointData()
-        if isinstance(name, int):
-            name = data.GetArrayName(name)
-        arr = data.GetArray(name)
-        if not arr:
-            return None
-        return utils.vtk2numpy(arr)
+        return self.pointdata[name]
 
     @deprecated(reason=colors.red+"Please use myobj.celldata[name] instead."+colors.reset)
     def getCellArray(self, name=0):
         """Deprecated. Use myobj.celldata[name]` instead."""
-        data = self._data.GetCellData()
-        if isinstance(name, int):
-            name = data.GetArrayName(name)
-        arr = data.GetArray(name)
-        if not arr:
-            return None
-        return utils.vtk2numpy(arr)
+        return self.celldata[name]
 
     @deprecated(reason=colors.red+"Please use myobj.pointdata[name] = myarr instead."+colors.reset)
     def addPointArray(self, input_array, name):
-        """
-        Deprecated. Use myobj.pointdata[name] = input_array` instead.
-        """
-        data = self.inputdata()
-
-        if isinstance(input_array, vtk.vtkDataArray):
-            data.GetPointData().AddArray(input_array)
-            input_array.SetName(name)
-            data.GetPointData().SetActiveScalars(name)
-            self._mapper.ScalarVisibilityOn()
-            self._mapper.SetScalarRange(input_array.GetRange())
-            if hasattr(self._mapper, 'SetArrayName'):
-                self._mapper.SetArrayName(name)
-            self._mapper.SetScalarModeToUsePointData()
-            return self
-
-        if len(input_array) != data.GetNumberOfPoints():
-            colors.printc('Error in addPointArray(): Number of inputs != nr. of points',
-                          len(input_array), data.GetNumberOfPoints(), c='r')
-            raise RuntimeError()
-
-        nparr = np.ascontiguousarray(input_array)
-        if len(nparr.shape)==1: # scalars
-            varr = utils.numpy2vtk(nparr)
-            varr.SetName(name)
-            data.GetPointData().AddArray(varr)
-            data.GetPointData().SetActiveScalars(name)
-            self._mapper.SetScalarModeToUsePointData()
-            if hasattr(self._mapper, 'ScalarVisibilityOn'): # could be volume mapper
-                self._mapper.ScalarVisibilityOn()
-                self._mapper.SetScalarRange(varr.GetRange())
-
-        elif len(nparr.shape)==2: # vectors or higher dim ntuples
-            varr = vtk.vtkFloatArray()
-            varr.SetNumberOfComponents(nparr.shape[1])
-            varr.SetName(name)
-            for v in nparr:
-                varr.InsertNextTuple(v)
-            data.GetPointData().AddArray(varr)
-            if nparr.shape[1] == 3:
-                data.GetPointData().SetActiveVectors(name)
-        else:
-            colors.printc('Error in addPointArray(): cannot deal with shape:',
-                          nparr.shape, c='r')
-            return self
-
-        if hasattr(self._mapper, 'SetArrayName'):
-            self._mapper.SetArrayName(name)
-        self._mapper.SetScalarModeToUsePointData()
-
-        if name == "Normals":
-            data.GetPointData().SetActiveNormals(name)
-
+        """Deprecated. Use myobj.pointdata[name] = input_array` instead."""
+        self.pointdata[name] = input_array
         return self
 
     @deprecated(reason=colors.red+"Please use myobj.celldata[name] = myarr instead."+colors.reset)
     def addCellArray(self, input_array, name):
-        """
-        Deprecated. Use myobj.celldata[name] = input_array` instead.
-        """
-        data = self.inputdata()
-
-        if isinstance(input_array, vtk.vtkDataArray):
-            data.GetCellData().AddArray(input_array)
-            input_array.SetName(name)
-            data.GetCellData().SetActiveScalars(name)
-            self._mapper.ScalarVisibilityOn()
-            self._mapper.SetScalarRange(input_array.GetRange())
-            if hasattr(self._mapper, 'SetArrayName'):
-                self._mapper.SetArrayName(name)
-            self._mapper.SetScalarModeToUseCellData()
-            return self
-            ###########
-
-        if len(input_array) != data.GetNumberOfCells():
-            colors.printc('Error in addCellArray(): Number of inputs != nr. of Cells',
-                          len(input_array), data.GetNumberOfCells(), c='r')
-            raise RuntimeError()
-
-        nparr = np.ascontiguousarray(input_array)
-        if len(nparr.shape)==1: # scalars
-            varr = utils.numpy2vtk(nparr)
-            varr.SetName(name)
-            data.GetCellData().AddArray(varr)
-            data.GetCellData().SetActiveScalars(name)
-            if hasattr(self._mapper, 'ScalarVisibilityOn'): # could be volume mapper
-                self._mapper.ScalarVisibilityOn()
-                self._mapper.SetScalarRange(varr.GetRange())
-
-        elif len(nparr.shape)==2: # vectors or higher dim ntuples
-            varr = vtk.vtkFloatArray()
-            varr.SetNumberOfComponents(nparr.shape[1])
-            varr.SetName(name)
-            for v in nparr:
-                varr.InsertNextTuple(v)
-            data.GetCellData().AddArray(varr)
-            if nparr.shape[1] == 3:
-                data.GetCellData().SetActiveVectors(name)
-        else:
-            colors.printc('Error in addCellArray(): cannot deal with shape:',
-                          nparr.shape, c='r')
-            return self
-
-        if hasattr(self._mapper, 'SetArrayName'):
-            self._mapper.SetArrayName(name)
-        self._mapper.SetScalarModeToUseCellData()
-
-        if name == "Normals":
-            data.GetCellData().SetActiveNormals(name)
-
+        """Deprecated. Use myobj.celldata[name] = input_array` instead."""
+        self.celldata[name] = input_array
         return self
 
     def mapCellsToPoints(self):
@@ -1879,6 +1770,7 @@ class BaseGrid(BaseActor):
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.GetProperty())
         tm_sel.SetProperty(pr)
+        tm_sel.property = pr
 
         #assign the same transformation to the copy
         tm_sel.SetOrigin(self.GetOrigin())

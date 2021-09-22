@@ -19,9 +19,6 @@ General settings.
     # Recompute vertex and cell normals
     computeNormals = None
 
-    # Automatically reset the range of the active scalars
-    autoResetScalarRange = True
-
     # Allow to continously interact with scene during interactive() execution
     allowInteraction = True
 
@@ -160,9 +157,6 @@ screeshotLargeImage = False
 
 # Recompute vertex and cell normals
 computeNormals = None
-
-# Automatic resetting the range of the active scalars
-autoResetScalarRange = True
 
 # Allow to continously interact with scene during interactor.Start() execution
 allowInteraction = True

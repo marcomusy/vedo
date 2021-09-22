@@ -3,6 +3,7 @@
 from vedo import *
 import pandas as pd
 
+settings.useDepthPeeling = True
 
 # Load surfaces, import the file from github
 printc("...loading data...", invert=1, end='')

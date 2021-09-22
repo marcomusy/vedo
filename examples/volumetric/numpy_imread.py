@@ -15,4 +15,6 @@ vraw = Volume(raw, spacing=(104,104,104))
 
 # Compare loading the volume directly with the numpy volume:
 # they should be the same
-show([(voriginal,__doc__), (vraw,"From imread")], N=2, axes=1)
+show([(voriginal,__doc__), 
+      (vraw,"From imread\n(should be same as left)")],
+     N=2, axes=1).close()

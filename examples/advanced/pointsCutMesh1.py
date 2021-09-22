@@ -1,7 +1,8 @@
 """Set a loop of random points on a sphere
-to cut a region of the mesh.
-"""
+to cut a region of the mesh"""
 from vedo import *
+
+settings.useDepthPeeling = True
 
 s = Sphere().alpha(0.2).lw(0.1)
 

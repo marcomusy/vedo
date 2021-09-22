@@ -88,8 +88,8 @@ def showSolution3D(S, start, goal):
         for x,c in enumerate(line):
             if c: cubes.append(Cube([x,-y,0]))
 
-    path = Line(pts).lw(6).c('tomato')
-    walls = merge(cubes).clean().flat().texture('wood1')
+    path = Line(pts).lw(6).c('red5')
+    walls = merge(cubes).flat().c('orange1')
 
     sy, sx = S[1].shape
     gradient = np.flip(S[1], axis=0).ravel()

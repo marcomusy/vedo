@@ -1546,7 +1546,6 @@ def _histogram1D(
     bc="k",
 ):
     # purge NaN from data
-    data = np.asarray(data).ravel()
     validIds = np.all(np.logical_not(np.isnan(data)))
     data = data[validIds]
     offs = 0  # z offset
@@ -1567,7 +1566,7 @@ def _histogram1D(
     # print('frequencies', fs)
     # print('edges', edges)
     if density:
-        ntot = len(data)
+        ntot = len(data.ravel())
         binsize = edges[1]-edges[0]
         fs = fs/(ntot*binsize)
         if ytitle=='counts':

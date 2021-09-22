@@ -375,8 +375,12 @@ def buildPolyData(vertices, faces=None, lines=None, indexOffset=0, fast=True, te
 
     # faces exist
     sourcePolygons = vtk.vtkCellArray()
-    faces = np.array(faces)
-    if len(faces.shape) == 2 and indexOffset==0 and fast:
+    
+    # try it anyway: in case it's not uniform np.ndim will be 1
+    np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning) 
+    faces = np.asarray(faces)
+
+    if np.ndim(faces) == 2 and indexOffset==0 and fast:
         #################### all faces are composed of equal nr of vtxs, FAST
 
         ast = np.int32

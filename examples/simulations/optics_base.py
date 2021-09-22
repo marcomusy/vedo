@@ -57,7 +57,7 @@ class Lens(vedo.Mesh, OpticalElement):
             return self.ref_index
 
 
-class MirrorSurface(vedo.Mesh, OpticalElement):
+class Mirror(vedo.Mesh, OpticalElement):
     """A mirror surface defined by an arbitrary Mesh"""
     def __init__(self, actor):
         vedo.Mesh.__init__(self, actor.polydata(), "blue8", 0.5)
@@ -79,13 +79,13 @@ class Screen(vedo.Grid, OpticalElement):
         self.normals = self.celldata["Normals"]
         self.color('red3').lw(2).lighting('off').wireframe(False).alpha(0.2)
 
-class Wall(vedo.Grid, OpticalElement):
-    """A simple non detecting wall, absorbing, but not generating a hit."""
+class Absorber(vedo.Grid, OpticalElement):
+    """A simple non detecting absorber, not generating a hit."""
     def __init__(self, sizex, sizey):
         vedo.Grid.__init__(self, resx=100, resy=100, sx=sizex, sy=sizey)
         OpticalElement.__init__(self)
         self.computeNormals()
-        self.name = "Wall"
+        self.name = "Absorber"
         self.type = "screen"
         self.normals = self.celldata["Normals"]
         self.color('k3').lw(1).lighting('default').wireframe(False).alpha(0.8)

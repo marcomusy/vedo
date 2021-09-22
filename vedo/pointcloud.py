@@ -1,5 +1,6 @@
 import numpy as np
 import vtk
+# from vtk.util.numpy_support import get_vtk_to_numpy_typemap
 import vedo
 import vedo.colors as colors
 import vedo.docs as docs
@@ -777,7 +778,6 @@ class Points(vtk.vtkFollower, BaseActor):
 
         self._scals_idx = 0  # index of the active scalar changed from CLI
         self._ligthingnr = 0 # index of the lighting mode changed from CLI
-        self._cmap_name = "" # remember assigned cmap name (to be used by ipygany)
 
         self.property = self.GetProperty()
         try:
@@ -805,6 +805,7 @@ class Points(vtk.vtkFollower, BaseActor):
             self._mapper.SetInputData(polyCopy)
             self._mapper.SetScalarVisibility(inputobj.GetMapper().GetScalarVisibility())
             self.SetProperty(pr)
+            self.property = pr
 
         elif isinstance(inputobj, vtk.vtkPolyData):
             if inputobj.GetNumberOfCells() == 0:
@@ -1030,6 +1031,7 @@ class Points(vtk.vtkFollower, BaseActor):
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.GetProperty())
         cloned.SetProperty(pr)
+        cloned.property = pr
 
         if self.GetBackfaceProperty():
             bfpr = vtk.vtkProperty()
@@ -1451,7 +1453,6 @@ class Points(vtk.vtkFollower, BaseActor):
                 arr = self.pointdata[scalars]
             if arr is None:
                 colors.printc("No scalars found with name/nr:", scalars, c='r')
-                colors.printc("Available scalars are:\n", self.getArrayNames(), c='y')
                 raise RuntimeError()
 
         thres = vtk.vtkThreshold()
@@ -2264,7 +2265,7 @@ class Points(vtk.vtkFollower, BaseActor):
         :param str on: either 'points' or 'cells'.
             Apply the color map as defined on either point or cell data.
 
-        :param str arrayName: give a name to the array
+        :param str arrayName: give a name to the numpy array
 
         :param float vmin: clip scalars to this minimum value
 
@@ -2291,38 +2292,37 @@ class Points(vtk.vtkFollower, BaseActor):
         return self
 
     @deprecated(reason=vedo.colors.red+"Please use cmap(on='points')"+vedo.colors.reset)
-    def pointColors(self, *args, **kwargs):
-        return self
+    def pointColors(self, *args, **kwargs): return self
 
     def _pointColors(self,
-                    input_array=None,
-                    cmap="rainbow",
-                    alpha=1,
-                    vmin=None, vmax=None,
-                    arrayName="PointScalars",
-                    n=256,
+                     input_array=None,
+                     cmap="rainbow",
+                     alpha=1,
+                     vmin=None, vmax=None,
+                     arrayName="",
+                     n=256,
         ):
         poly = self.polydata(False)
-        self._cmap_name = cmap
-
+        data = poly.GetPointData()
+        
         if input_array is None:             # if None try to fetch the active scalars
-            arr = poly.GetPointData().GetScalars()
+            arr = data.GetScalars()
             if not arr:
-                colors.printc('In cmap(): cannot find any active point array ...skip coloring.', c='r')
+                colors.printc('In cmap(): cannot find any active Point array ...skip coloring.', c='r')
                 return self
 
         elif isinstance(input_array, str):  # if a name string is passed
-            arr = poly.GetPointData().GetArray(input_array)
+            arr = data.GetArray(input_array)
             if not arr:
-                colors.printc('In cmap(): cannot find point array with name:',
+                colors.printc('In cmap(): cannot find Point array with name:',
                               input_array, '...skip coloring.', c='r')
                 return self
 
-        elif isinstance(input_array, int):  # if a int is passed
-            if input_array < poly.GetPointData().GetNumberOfArrays():
-                arr = poly.GetPointData().GetArray(input_array)
+        elif isinstance(input_array, int):  # if an int is passed
+            if input_array < data.GetNumberOfArrays():
+                arr = data.GetArray(input_array)
             else:
-                colors.printc('In cmap(): cannot find point array at position:', input_array,
+                colors.printc('In cmap(): cannot find Point array at position:', input_array,
                               '...skip coloring.', c='r')
                 return self
 
@@ -2333,23 +2333,34 @@ class Points(vtk.vtkFollower, BaseActor):
                               n, poly.GetNumberOfPoints(), '...skip coloring.', c='r')
                 return self
             arr = utils.numpy2vtk(input_array, name=arrayName)
+            data.AddArray(arr)
 
         elif isinstance(input_array, vtk.vtkArray): # if a vtkArray is passed
             arr = input_array
+            data.AddArray(arr)
 
         else:
             colors.printc('In cmap(): cannot understand input:', input_array, c='r')
             raise RuntimeError()
 
         ##########################
-        arrfl = vtk.vtkFloatArray() #casting
-        arrfl.ShallowCopy(arr)
-        arr = arrfl
+        if not arr.GetName(): # sometimes they dont have a name..
+            arr.SetName("PointScalars")
+        arrayName = arr.GetName()
 
-        if not arr.GetName():
-            arr.SetName(arrayName)
-        else:
-            arrayName = arr.GetName()
+        if arr.GetDataType() in [vtk.VTK_UNSIGNED_CHAR, vtk.VTK_UNSIGNED_SHORT,
+                                 vtk.VTK_UNSIGNED_INT, vtk.VTK_UNSIGNED_LONG,
+                                 vtk.VTK_UNSIGNED_LONG_LONG]:
+            # dt = get_vtk_to_numpy_typemap()[arr.GetDataType()]
+            # colors.printc(f"Warning in cmap(): your point array {arrayName}, "
+            #               f"of data type {dt}, is not supported.", c='y')
+            # make a copy as a float and add it...
+            arr_float = vtk.vtkFloatArray() # fast type casting
+            arr_float.ShallowCopy(arr)
+            arr_float.SetName(arrayName+"_float")
+            data.AddArray(arr_float)
+            arr = arr_float
+            arrayName = arrayName+"_float"
 
         if not utils.isSequence(alpha):
             alpha = [alpha]*n
@@ -2391,16 +2402,16 @@ class Points(vtk.vtkFollower, BaseActor):
         self._mapper.ScalarVisibilityOn()
         if hasattr(self._mapper, 'SetArrayName'):
             self._mapper.SetArrayName(arrayName)
-        if settings.autoResetScalarRange:
-            self._mapper.SetScalarRange(lut.GetRange())
-        poly.GetPointData().SetScalars(arr)
-        poly.GetPointData().SetActiveScalars(arrayName)
-        poly.GetPointData().Modified()
+
+        self._mapper.SetScalarRange(lut.GetRange())
+        # data.SetScalars(arr)  # wrong! it deletes array in position 0
+        # data.SetActiveAttribute(arrayName, 0) # boh!
+        data.SetActiveScalars(arrayName)
+        data.Modified()
         return self
 
     @deprecated(reason=vedo.colors.red+"Please use cmap(on='cells')"+vedo.colors.reset)
-    def cellColors(self, *args, **kwargs):
-        return self
+    def cellColors(self, *args, **kwargs): return self
 
     def _cellColors(self,
                    input_array=None,
@@ -2411,53 +2422,64 @@ class Points(vtk.vtkFollower, BaseActor):
                    n=256,
         ):
         poly = self.polydata(False)
-        self._cmap_name = cmap
+        data = poly.GetCellData()
 
         if input_array is None:             # if None try to fetch the active scalars
-            arr = poly.GetCellData().GetScalars()
+            arr = data.GetScalars()
             if not arr:
                 colors.printc('In cmap(): Cannot find any active Cell array ...skip coloring.', c='r')
                 return self
 
         elif isinstance(input_array, str):  # if a name string is passed
-            arr = poly.GetCellData().GetArray(input_array)
+            arr = data.GetArray(input_array)
             if not arr:
                 colors.printc('In cmap(): Cannot find Cell array with name:', input_array,
                               '...skip coloring.', c='r')
                 return self
 
         elif isinstance(input_array, int):  # if a int is passed
-            if input_array < poly.GetCellData().GetNumberOfArrays():
-                arr = poly.GetCellData().GetArray(input_array)
+            if input_array < data.GetNumberOfArrays():
+                arr = data.GetArray(input_array)
             else:
                 colors.printc('In cmap(): Cannot find Cell array at position:', input_array,
                               '...skip coloring.', c='r')
                 return self
 
         elif utils.isSequence(input_array): # if a numpy array is passed
-            npts = len(input_array)
-            if npts != poly.GetNumberOfCells():
-                colors.printc('In cmap(): nr. of scalars != nr. of Cells',
-                              npts, poly.GetNumberOfCells(), '...skip coloring.', c='r')
+            n = len(input_array)
+            if n != poly.GetNumberOfCells():
+                colors.printc('In cmap(): nr. of scalars != nr. of cells',
+                              n, poly.GetNumberOfCells(), '...skip coloring.', c='r')
                 return self
             arr = utils.numpy2vtk(input_array, name=arrayName)
+            data.AddArray(arr)
 
         elif isinstance(input_array, vtk.vtkArray): # if a vtkArray is passed
             arr = input_array
+            data.AddArray(arr)
 
         else:
             colors.printc('In cmap(): cannot understand input:', input_array, c='r')
             raise RuntimeError()
 
         ##########################
-        arrfl = vtk.vtkFloatArray() #casting
-        arrfl.ShallowCopy(arr)
-        arr = arrfl
+        if not arr.GetName(): # sometimes they dont have a name..
+            arr.SetName("CellScalars")
+        arrayName = arr.GetName()
 
-        if not arr.GetName():
-            arr.SetName(arrayName)
-        else:
-            arrayName = arr.GetName()
+        if arr.GetDataType() in [vtk.VTK_UNSIGNED_CHAR, vtk.VTK_UNSIGNED_SHORT,
+                                 vtk.VTK_UNSIGNED_INT, vtk.VTK_UNSIGNED_LONG,
+                                 vtk.VTK_UNSIGNED_LONG_LONG]:
+            # dt = get_vtk_to_numpy_typemap()[arr.GetDataType()]
+            # colors.printc(f"Warning in cmap(): your cell array {arrayName}, "
+            #               f"of data type {dt}, is not supported.", c='y')
+            # make a copy as a float and add it...
+            arr_float = vtk.vtkFloatArray() # fast type casting
+            arr_float.ShallowCopy(arr)
+            arr_float.SetName(arrayName+"_float")
+            data.AddArray(arr_float)
+            arr = arr_float
+            arrayName = arrayName+"_float"
 
         if not utils.isSequence(alpha):
             alpha = [alpha]*n
@@ -2498,12 +2520,10 @@ class Points(vtk.vtkFollower, BaseActor):
         self._mapper.SetScalarModeToUseCellData()
         self._mapper.ScalarVisibilityOn()
         if hasattr(self._mapper, 'SetArrayName'):
-            self._mapper.SetArrayName(arrayName)
-        if settings.autoResetScalarRange:
-            self._mapper.SetScalarRange(lut.GetRange())
-        poly.GetCellData().SetScalars(arr)
-        poly.GetCellData().SetActiveScalars(arrayName)
-        poly.GetCellData().Modified()
+            self._mapper.SetArrayName(arrayName)            
+        self._mapper.SetScalarRange(lut.GetRange())
+        data.SetActiveScalars(arrayName)
+        data.Modified()
         return self
 
 

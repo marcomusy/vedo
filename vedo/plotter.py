@@ -1172,7 +1172,7 @@ class Plotter:
     ##################################################################
     def addSlider2D(self, sliderfunc, xmin, xmax,
                     value=None, pos=4, title="", font="", titleSize=1, c=None,
-                    showValue=True):
+                    showValue=True, delayed=False):
         """Add a slider widget which can call an external custom function.
 
         :param sliderfunc: external function to be called by the widget
@@ -1184,12 +1184,13 @@ class Plotter:
         :param str title: title text
         :param float titleSize: title text scale [1.0]
         :param str font: title font [arial, courier]
-        :param bool showValue:  if true current value is shown
+        :param bool showValue: if true current value is shown
+        :param bool delayed: if True the callback is delayed to when the mouse is released
 
         |sliders1| |sliders1.py|_ |sliders2.py|_
         """
         return addons.addSlider2D(sliderfunc, xmin, xmax, value,
-                                  pos, title, font, titleSize, c, showValue)
+                                  pos, title, font, titleSize, c, showValue, delayed)
 
     def addSlider3D(
         self,
@@ -2961,38 +2962,32 @@ class Plotter:
                     self.clickedActor._current_texture_name = settings.textures[0]
 
         elif key == "4":
-            for ia in self.getMeshes():
-                if not ia.GetPickable():
-                    continue
+            if self.clickedActor:
+                acts = [self.clickedActor]
+            else:
+                acts = self.getMeshes()
+            for ia in acts:
                 if isinstance(ia, vedo.pointcloud.Points):
-                    arnames = ia.getArrayNames()['PointData']
+                    arnames = ia.pointdata.keys()
                     if len(arnames):
                         arnam =  arnames[ia._scals_idx]
-                        if arnam and "normals" not in arnam.lower(): # exclude normals
-                            arr = ia.pointdata[ia._scals_idx]
-                            if arr is not None:
-                                arr = arr.ravel()
-                                vedo.printc("..active point array set to:", arnam, c='g', bold=0)
-                                ia.cmap('rainbow')
-                                ia._mapper.SetScalarRange(min(arr), max(arr))
+                        if arnam and ("normals" not in arnam.lower()): # exclude normals
+                            ia.cmap('rainbow', arnam, on="points")
+                            vedo.printc("..active point data set to:", arnam, c='g', bold=0)
+                            ia._scals_idx += 1
+                            if ia._scals_idx >= len(arnames):
+                                ia._scals_idx = 0
+                    else:
+                        arnames = ia.celldata.keys()
+                        if len(arnames):
+                            arnam =  arnames[ia._scals_idx]
+                            if arnam and ("normals" not in arnam.lower()): # exclude normals
+                                ia.cmap('rainbow', arnam, on="cells")
+                                vedo.printc("..active cell array set to:", arnam, c='g', bold=0)
                                 ia._scals_idx += 1
                                 if ia._scals_idx >= len(arnames):
                                     ia._scals_idx = 0
-                    else:
-                        arnames = ia.getArrayNames()['CellData']
-                        if len(arnames):
-                            arnam =  arnames[ia._scals_idx]
-                            if arnam and "normals" not in arnam.lower(): # exclude normals
-                                arr = ia.pointdata[ia._scals_idx]
-                                if arr is not None:
-                                    arr = arr.ravel()
-                                    vedo.printc("..active cell array set to:", arnam, c='g', bold=0)
-                                    ia.cmap('rainbow', on='cells')
-                                    ia._mapper.SetScalarRange(min(arr), max(arr))
-                                    ia._scals_idx += 1
-                                    if ia._scals_idx >= len(arnames):
-                                        ia._scals_idx = 0
-
+                                        
         elif key == "5":
             bgc = np.array(self.renderer.GetBackground()).sum() / 3
             if bgc <= 0:

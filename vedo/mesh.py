@@ -1793,6 +1793,7 @@ class Mesh(Points):
             prop = vtk.vtkProperty()
             prop.DeepCopy(self.property)
             m.SetProperty(prop)
+            m.property = prop
             # assign the same transformation
             m.SetOrigin(self.GetOrigin())
             m.SetScale(self.GetScale())
@@ -1853,6 +1854,7 @@ class Mesh(Points):
         pr = vtk.vtkProperty()
         pr.DeepCopy(self.property)
         m.SetProperty(pr)
+        m.property = pr
         # assign the same transformation
         m.SetOrigin(self.GetOrigin())
         m.SetScale(self.GetScale())
@@ -1962,6 +1964,7 @@ class Mesh(Points):
         prop.SetLineWidth(3)
         prop.SetOpacity(1)
         dmesh.SetProperty(prop)
+        dmesh.property = prop
         dmesh.name = "geodesicLine"
         return dmesh
 

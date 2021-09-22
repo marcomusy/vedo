@@ -1,6 +1,6 @@
 import numpy as np
 import vedo
-from optics_base import Lens, Ray, MirrorSurface, Detector, Screen  # see file ./optics_base.py
+from optics_base import Lens, Ray, Mirror, Detector, Screen  # see file ./optics_base.py
 
 
 ###################################################################### thin lenses
@@ -34,8 +34,8 @@ vedo.show("Test of chromatic dispersion", prism, screen, lines,
 ################################################################ spherical mirrors
 s1 = vedo.Sphere(r=7, res=50).cutWithPlane([0,0,6],'z').cutWithCylinder(invert=True)
 s2 = vedo.Sphere(r=5, res=50).cutWithPlane([0,0,-2],'-z').cutWithCylinder().z(10)
-m1 = MirrorSurface(s1)
-m2 = MirrorSurface(s2)
+m1 = Mirror(s1)
+m2 = Mirror(s2)
 screen = Screen(5,5).z(9)
 elements = [m2, m1, m2,  m1, screen] ## NOTE ordering!
 source= vedo.Disc(r1=1, r2=3, res=[20,60]).cutWithPlane().cutWithPlane(normal='y').z(1)
@@ -45,7 +45,7 @@ vedo.show("Reflection from spherical mirrors", elements, lines, axes=1).close()
 
 ################################################################# parabolic mirror
 s = vedo.Paraboloid(res=200).cutWithPlane([0,0,-0.4], 'z').scale([1,1,0.1]).z(1)
-elements = [MirrorSurface(s), Screen(0.2,0.2).z(0.35)]
+elements = [Mirror(s), Screen(0.2,0.2).z(0.35)]
 source= vedo.Disc(r1=.1, r2=.3, res=[10,30]).cutWithPlane().cutWithPlane(normal='y')
 lines = [Ray(pt).trace(elements).asLine() for pt in source.points()]
 vedo.show("Reflection from a parabolic mirror", elements, lines, axes=2, azimuth=-90).close()

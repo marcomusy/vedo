@@ -30,10 +30,4 @@ show(mesh1, isol, ars, "Arrows=\nablaH", at=2)
 mesh2 = mesh1.clone(deep=False).lw(0.1).cmap('jet', mag(gvecs), on='cells')
 mesh2.addScalarBar3D(title='|\nablaH| [arb.units]')
 
-# get these nrs by pressing C
-cam = dict(pos=(1.373, 6.645, 5.967),
-           focalPoint=(0.04096, 9.814, 2.167),
-           viewup=(-0.1858, 0.7215, 0.6670),
-           distance=5.125)
-
-show(mesh2, "Color=|\nablaH|", at=3, camera=cam, interactive=True).close()
+show(mesh2, "Color=|\nablaH|", at=3, interactive=True).close()

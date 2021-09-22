@@ -8,6 +8,7 @@ nv = man1.NCells()                         # nr. of cells
 scals = range(nv)                          # coloring by the index of cell
 
 man1.celldata["mycellscalars"] = scals    # add an array of scalars to mesh
+man1.cmap("Paired", scals, on='cells').addScalarBar("cell nr")
 show(man1, __doc__, at=0, N=3, axes=11, elevation=-60)
 
 

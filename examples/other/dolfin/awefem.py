@@ -11,7 +11,6 @@ from vedo.dolfin import plot, interactive, ProgressBar, printc, download, settin
 import numpy as np
 set_log_level(30)
 
-#settings.autoResetScalarRange=True
 
 def ricker_source(t, f=40):
     t -= 2 / f

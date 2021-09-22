@@ -2,13 +2,15 @@
 the vertices of a mesh to its cells"""
 from vedo import *
 
-mesh1 = Mesh(dataurl+'icosahedron.vtk').lineWidth(0.1)
+mesh1 = Mesh(dataurl+'icosahedron.vtk').lineWidth(0.1).flat()
 
 doc = Text2D(__doc__, pos="bottom-left")
 
 # let the scalar be the z coordinate of the mesh vertices
 msg1 = Text2D("Scalar originally defined on points..", pos="top-center")
 mesh1.pointdata["myzscalars"] = mesh1.points()[:, 2]
+
+mesh1.cmap("jet", "myzscalars", on="points")
 
 msg2 = Text2D("..is interpolated to cells.", pos="top-center")
 mesh2 = mesh1.clone(deep=False).mapPointsToCells()

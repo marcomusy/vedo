@@ -2,6 +2,8 @@
 (note the presence of polygonal boundary)"""
 from vedo import *
 
+settings.useDepthPeeling = True
+
 tetm = TetMesh(dataurl+'limb_ugrid.vtk')
 
 sphere = Sphere(r=500).x(400).c('green', 0.1)

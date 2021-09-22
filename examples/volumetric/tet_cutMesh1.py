@@ -3,6 +3,8 @@ an arbitrary polygonal Mesh
 Units are \mum"""
 from vedo import *
 
+settings.useDepthPeeling = True
+
 tetmesh = TetMesh(dataurl+'limb_ugrid.vtk')
 
 sphere = Sphere(r=500, c='g').x(400).alpha(0.2)
