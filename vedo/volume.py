@@ -997,7 +997,8 @@ class Volume(vtk.vtkVolume, BaseGrid, BaseVolume):
                         colors.printc("Error: must set dimensions (dims keyword) in Volume.", c='r')
                         raise RuntimeError()
                     img.SetDimensions(inputobj.shape)
-                img.GetPointData().SetScalars(varr)
+                img.GetPointData().AddArray(varr)
+                img.GetPointData().SetActiveScalars(varr.GetName())
 
                 #to convert rgb to numpy
                 #        img_scalar = data.GetPointData().GetScalars()
@@ -1356,7 +1357,8 @@ class VolumeSlice(vtk.vtkImageSlice, Base3DProp, BaseVolume):
 
                 img = vtk.vtkImageData()
                 img.SetDimensions(inputobj.shape)
-                img.GetPointData().SetScalars(varr)
+                img.GetPointData().AddArray(varr)
+                img.GetPointData().SetActiveScalars(varr.GetName())
 
         elif "ImageData" in inputtype:
             img = inputobj

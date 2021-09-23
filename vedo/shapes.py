@@ -291,7 +291,8 @@ class Glyph(Mesh):
             for col in c:
                 cl = getColor(col)
                 ucols.InsertNextTuple3(cl[0]*255, cl[1]*255, cl[2]*255)
-            poly.GetPointData().SetScalars(ucols)
+            poly.GetPointData().AddArray(ucols)
+            poly.GetPointData().SetActiveScalars("glyph_RGB")
             c = None
 
         gly = vtk.vtkGlyph3D()
@@ -2001,13 +2002,15 @@ class Spheres(Mesh):
             for acol in c:
                 cx, cy, cz = getColor(acol)
                 ucols.InsertNextTuple3(cx * 255, cy * 255, cz * 255)
-            pd.GetPointData().SetScalars(ucols)
+            pd.GetPointData().AddArray(ucols)
+            pd.GetPointData().SetActiveScalars("Colors")
             glyph.ScalingOff()
         elif risseq:
             glyph.SetScaleModeToScaleByScalar()
             urads = utils.numpy2vtk(2*np.ascontiguousarray(r), dtype=np.float)
             urads.SetName("Radii")
-            pd.GetPointData().SetScalars(urads)
+            pd.GetPointData().AddArray(urads)
+            pd.GetPointData().SetActiveScalars("Radii")
 
         vpts.SetData(utils.numpy2vtk(centers, dtype=np.float))
 

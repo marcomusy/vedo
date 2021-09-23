@@ -69,13 +69,6 @@ class _DataArrayHelper(object):
             else:
                 data.SetActiveVectors(key)
 
-        # if hasattr(self.actor._mapper, 'ScalarVisibilityOn'): # could be volume mapper
-        #     self.actor._mapper.ScalarVisibilityOn()
-        #     self.actor._mapper.SetScalarRange(varr.GetRange())
-
-        # if hasattr(self.actor._mapper, 'SetArrayName'):
-        #     self.actor._mapper.SetArrayName(key)
-
         return #####################
     
     def keys(self):
@@ -874,7 +867,8 @@ class BaseActor(Base3DProp):
             defcol = np.array(self.color())*255
             for i in range(cellData.GetNumberOfTuples()):
                 cellData.InsertTuple(i, defcol)
-            self.polydata(False).GetCellData().SetScalars(cellData)
+            self._data.GetCellData().AddArray(cellData)
+            self._data.GetCellData().SetActiveScalars('CellsWithinBoundsColor')
             self._mapper.ScalarVisibilityOn()
             flagcol = np.array(colors.getColor(c))*255
 
@@ -1718,7 +1712,8 @@ class BaseGrid(BaseActor):
                 p = ug.GetPoint(pointId)
                 signedDistance = ippd.EvaluateFunction(p)
                 signedDistances.InsertNextValue(signedDistance)
-            ug.GetPointData().SetScalars(signedDistances)
+            ug.GetPointData().AddArray(signedDistances)
+            ug.GetPointData().SetActiveScalars("SignedDistances")
             clipper = vtk.vtkClipDataSet()
             clipper.SetInputData(ug)
             clipper.SetInsideOut(not invert)
@@ -2141,8 +2136,6 @@ def streamLines(domain, probe,
         sta.mapper().SetScalarRange(scalarRange)
     return sta
 
-
-
 ###################################################################################
 # def extractCellsByType(obj, types=(7,)):    ### VTK9 only
 #     """Extract cells of a specified type.
@@ -2156,3 +2149,7 @@ def streamLines(domain, probe,
 #         ef.AddCellType(ct)
 #     ef.Update()
 #     return Mesh(ef.GetOutput())
+
+
+
+

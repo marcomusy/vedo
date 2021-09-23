@@ -2967,12 +2967,15 @@ class Plotter:
             else:
                 acts = self.getMeshes()
             for ia in acts:
+                cmap_name = ia._cmap_name
+                if not cmap_name:
+                    cmap_name = "rainbow"
                 if isinstance(ia, vedo.pointcloud.Points):
                     arnames = ia.pointdata.keys()
                     if len(arnames):
                         arnam =  arnames[ia._scals_idx]
                         if arnam and ("normals" not in arnam.lower()): # exclude normals
-                            ia.cmap('rainbow', arnam, on="points")
+                            ia.cmap(cmap_name, arnam, on="points")
                             vedo.printc("..active point data set to:", arnam, c='g', bold=0)
                             ia._scals_idx += 1
                             if ia._scals_idx >= len(arnames):
@@ -2982,7 +2985,7 @@ class Plotter:
                         if len(arnames):
                             arnam =  arnames[ia._scals_idx]
                             if arnam and ("normals" not in arnam.lower()): # exclude normals
-                                ia.cmap('rainbow', arnam, on="cells")
+                                ia.cmap(cmap_name, arnam, on="cells")
                                 vedo.printc("..active cell array set to:", arnam, c='g', bold=0)
                                 ia._scals_idx += 1
                                 if ia._scals_idx >= len(arnames):
@@ -3116,14 +3119,15 @@ class Plotter:
                     'metallic',
                     'plastic',
                     'shiny',
-                    'glossy')
+                    'glossy',
+                    'off')
             for ia in acts:
                 if ia.GetPickable():
                     try:
-                        lnr = (ia._ligthingnr+1)%5
+                        lnr = (ia._ligthingnr+1)%6
                         ia.lighting(shds[lnr])
                         ia._ligthingnr = lnr
-                        #vedo.printc('-> lighting set to:', shds[lnr], c='g', bold=0)
+                        # vedo.printc('-> lighting set to:', shds[lnr], c='g', bold=0)
                     except AttributeError:
                         pass
 

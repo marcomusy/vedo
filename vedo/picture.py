@@ -48,7 +48,8 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
                     varb.SetName("RGBA")
                     imgb = vtk.vtkImageData()
                     imgb.SetDimensions(obj.shape[1], obj.shape[0], 1)
-                    imgb.GetPointData().SetScalars(varb)
+                    imgb.GetPointData().AddArray(varb)
+                    imgb.GetPointData().SetActiveScalars("RGBA")
                     iac.AddInputData(imgb)
                 iac.Update()
                 img = iac.GetOutput()
@@ -62,7 +63,8 @@ class Picture(vtk.vtkImageActor, vedo.base.Base3DProp):
                 varb.SetName("RGBA")
                 img = vtk.vtkImageData()
                 img.SetDimensions(obj.shape[1], obj.shape[0], 1)
-                img.GetPointData().SetScalars(varb)
+                img.GetPointData().AddArray(varb)
+                img.GetPointData().SetActiveScalars("RGBA")
 
         elif isinstance(obj, vtk.vtkImageData):
             img = obj

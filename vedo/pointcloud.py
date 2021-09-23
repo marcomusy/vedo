@@ -778,6 +778,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
         self._scals_idx = 0  # index of the active scalar changed from CLI
         self._ligthingnr = 0 # index of the lighting mode changed from CLI
+        self._cmap_name = "" # remember the name for self._keypress
 
         self.property = self.GetProperty()
         try:
@@ -880,7 +881,8 @@ class Points(vtk.vtkFollower, BaseActor):
                 else:
                     c = cols
 
-                pd.GetPointData().SetScalars(ucols)
+                pd.GetPointData().AddArray(ucols)
+                pd.GetPointData().SetActiveScalars("Points_RGBA")
                 self._mapper.SetInputData(pd)
                 self._mapper.ScalarVisibilityOn()
                 self._data = pd
@@ -1110,9 +1112,9 @@ class Points(vtk.vtkFollower, BaseActor):
 
         cmsh = self.clone()
 
-        if self.color() is not None or c is not None:
-            cmsh._data.GetPointData().SetScalars(None)
-            cmsh._data.GetCellData().SetScalars(None)
+        # if self.color() is not None or c is not None:
+        #     cmsh._data.GetPointData().SetScalars(None)
+        #     cmsh._data.GetCellData().SetScalars(None)
         poly = cmsh.pos(0,0,0).scale(scale).polydata()
 
         mapper2d = vtk.vtkPolyDataMapper2D()
@@ -1144,7 +1146,8 @@ class Points(vtk.vtkFollower, BaseActor):
 
 
     def addTrail(self, offset=None, maxlength=None, n=50, c=None, alpha=None, lw=2):
-        """Add a trailing line to mesh.
+        """
+        Add a trailing line to mesh.
         This new mesh is accessible through `mesh.trail`.
 
         :param float offset: set an offset vector from the object center.
@@ -1283,7 +1286,6 @@ class Points(vtk.vtkFollower, BaseActor):
         rp.Update()
         out = rp.GetOutput()
         return self._update(out)
-
 
 
     def computeNormalsWithPCA(self, n=20, orientationPoint=None, flip=False):
@@ -2280,6 +2282,7 @@ class Points(vtk.vtkFollower, BaseActor):
 
              |mesh_coloring| |mesh_alphas| |mesh_custom|
         """
+        self._cmap_name = cname
         if on.startswith('p'):
             if not arrayName: arrayName="PointScalars"
             self._pointColors(input_array, cname, alpha, vmin, vmax, arrayName, n)
@@ -2404,7 +2407,7 @@ class Points(vtk.vtkFollower, BaseActor):
             self._mapper.SetArrayName(arrayName)
 
         self._mapper.SetScalarRange(lut.GetRange())
-        # data.SetScalars(arr)  # wrong! it deletes array in position 0
+        # data.SetScalars(arr)  # wrong! it deletes array in position 0, never use SetScalars
         # data.SetActiveAttribute(arrayName, 0) # boh!
         data.SetActiveScalars(arrayName)
         data.Modified()
@@ -2541,8 +2544,8 @@ class Points(vtk.vtkFollower, BaseActor):
             (same color has the same opacity).
             This is very fast even for large meshes.
         """
-        cellData = vtk.vtkUnsignedIntArray()
-        cellData.SetName("CellIndividualColors")
+        uarray = vtk.vtkUnsignedIntArray()
+        uarray.SetName("CellIndividualColors")
 
         n = self._data.GetNumberOfCells()
         if len(colorlist) != n or (utils.isSequence(alpha) and len(alpha) != n):
@@ -2558,7 +2561,7 @@ class Points(vtk.vtkFollower, BaseActor):
             if not utils.isSequence(alpha):
                 alpha = [alpha] * n
             for i in range(n):
-                cellData.InsertNextValue(i)
+                uarray.InsertNextValue(i)
                 c = cols[i]
                 lut.SetTableValue(i, c[0], c[1], c[2], alpha[i])
         else:
@@ -2575,7 +2578,7 @@ class Points(vtk.vtkFollower, BaseActor):
                 return self
 
             for i in range(n):
-                cellData.InsertNextValue(int(inds[i]))
+                uarray.InsertNextValue(int(inds[i]))
 
             lut.SetNumberOfTableValues(nc)
             lut.Build()
@@ -2589,12 +2592,10 @@ class Points(vtk.vtkFollower, BaseActor):
                 c = cols[i]
                 lut.SetTableValue(i, c[0], c[1], c[2], alpha[uids[i]])
 
-        self._data.GetCellData().SetScalars(cellData)
-        self._data.GetCellData().Modified()
+        self._data.GetCellData().AddArray(uarray)
+        self._data.GetCellData().SetActiveScalars("CellIndividualColors")
         self._mapper.SetScalarRange(0, lut.GetNumberOfTableValues()-1)
         self._mapper.SetLookupTable(lut)
-        if hasattr(self._mapper, 'SetArrayName'):
-            self._mapper.SetArrayName("CellColors")
         self._mapper.SetScalarModeToUseCellData()
         self._mapper.ScalarVisibilityOn()
         return self
