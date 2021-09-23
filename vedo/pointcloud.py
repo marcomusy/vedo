@@ -1128,6 +1128,7 @@ class Points(vtk.vtkFollower, BaseActor):
         if c is not None:
             c = colors.getColor(c)
             act2d.GetProperty().SetColor(c)
+            act2d.GetProperty().SetScalarVisibility(False)
         else:
             act2d.GetProperty().SetColor(cmsh.color())
         if alpha is not None:
