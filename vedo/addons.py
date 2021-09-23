@@ -847,7 +847,10 @@ def addScalarBar3D(
 #####################################################################
 def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
                 title='', font='', titleSize=1, c=None, showValue=True, delayed=False):
-    """Add a slider widget which can call an external custom function.
+    """
+    Add a slider widget which can call an external custom function.
+
+    Set any value as float to increase the number of significant digits above the slider.
 
     :param sliderfunc: external function to be called by the widget
     :param float xmin:  lower value
@@ -858,7 +861,7 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
     :param str title: title text
     :param str font: title font
     :param float titleSize: title text scale [1.0]
-    :param bool showValue:  if true current value is shown
+    :param bool showValue: if true current value is shown
     :param bool delayed: if True the callback is delayed to when the mouse is released
 
     |sliders1| |sliders1.py|_ |sliders2.py|_
@@ -952,10 +955,10 @@ def addSlider2D(sliderfunc, xmin, xmax, value=None, pos=4,
         sliderRep.GetPoint2Coordinate().SetValue(0.95, 0.06)
 
     if showValue:
-        if isinstance(xmin, int) and isinstance(xmax, int):
+        if isinstance(xmin, int) and isinstance(xmax, int) and isinstance(value, int):
             frm = "%0.0f"
         else:
-            frm = "%0.1f"
+            frm = "%0.3f"
         sliderRep.SetLabelFormat(frm)  # default is '%0.3g'
         sliderRep.GetLabelProperty().SetShadow(0)
         sliderRep.GetLabelProperty().SetBold(0)

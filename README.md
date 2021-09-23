@@ -29,7 +29,7 @@ pip install vedo
 ```
 
 <details>
-<summary>additional installation details <i>(click to expand)</i> </summary>
+<summary>additional installation details <i>[click to expand]</i> </summary>
 
 - To install the latest _dev_ version of `vedo`: <br>
 `pip install -U git+https://github.com/marcomusy/vedo.git`
@@ -49,11 +49,11 @@ to install it use: `pip install vtk==8.1.2` (if available on your system).
 
 
 ## 📙  Documentation
-[The webpage of the library with documentation is available here](https://vedo.embl.es).
+The webpage of the library with documentation is available [**here**](https://vedo.embl.es).
 
-📌 **Need help? Have a question, or wish to ask for a missing feature?** <br>
+📌 **Need help? Have a question, or wish to ask for a missing feature?**
+
 Do not hesitate to open a [**issue**](https://github.com/marcomusy/vedo/issues)
-(or send an [email](mailto:marco.musy@embl.es)).
 
 
 ## 🎨  Features

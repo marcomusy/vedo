@@ -10,9 +10,7 @@ __all__ = ["UGrid"]
 #########################################################################
 class UGrid(vtk.vtkActor, BaseGrid):
     """Support for UnstructuredGrid objects."""
-    def __init__(self,
-                 inputobj=None,
-                 ):
+    def __init__(self, inputobj=None):
 
         vtk.vtkActor.__init__(self)
         BaseGrid.__init__(self)
@@ -20,6 +18,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
         inputtype = str(type(inputobj))
         self._data = None
         self._polydata = None
+        self.name = "UGrid"
 
         ###################
         if inputobj is None:
@@ -89,6 +88,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
             if "https://" in inputobj:
                 inputobj = download(inputobj, verbose=False)
             self._data = loadUnStructuredGrid(inputobj)
+            self.filename = inputobj
 
         else:
             colors.printc("UGrid(): cannot understand input type:\n", inputtype, c='r')
@@ -115,7 +115,6 @@ class UGrid(vtk.vtkActor, BaseGrid):
         sf.Update()
         gf = vtk.vtkGeometryFilter()
         gf.SetInputData(sf.GetOutput())
-        # gf.SetInputData(self._data)
         gf.Update()
         self._polydata = gf.GetOutput()
 
@@ -129,6 +128,8 @@ class UGrid(vtk.vtkActor, BaseGrid):
             self._mapper.SetScalarRange(sc.GetRange())
 
         self.SetMapper(self._mapper)
+        self.property = self.GetProperty()
+
     # ------------------------------------------------------------------
 
 
@@ -145,6 +146,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
             prv = vtk.vtkProperty()
         prv.DeepCopy(pr)
         cloned.SetProperty(prv)
+        cloned.property = prv
 
         #assign the same transformation to the copy
         cloned.SetOrigin(self.GetOrigin())
@@ -168,7 +170,7 @@ class UGrid(vtk.vtkActor, BaseGrid):
             return self
         self._mapper.ScalarVisibilityOff()
         cc = colors.getColor(c)
-        self.GetProperty().SetColor(cc)
+        self.property.SetColor(cc)
         if self.trail:
             self.trail.GetProperty().SetColor(cc)
         if alpha is not None:
@@ -179,9 +181,9 @@ class UGrid(vtk.vtkActor, BaseGrid):
     def alpha(self, opacity=None):
         """Set/get mesh's transparency. Same as `mesh.opacity()`."""
         if opacity is None:
-            return self.GetProperty().GetOpacity()
+            return self.property.GetOpacity()
 
-        self.GetProperty().SetOpacity(opacity)
+        self.property.SetOpacity(opacity)
         bfp = self.GetBackfaceProperty()
         if bfp:
             if opacity < 1:
@@ -199,22 +201,22 @@ class UGrid(vtk.vtkActor, BaseGrid):
         """Set mesh's representation as wireframe or solid surface.
         Same as `mesh.wireframe()`."""
         if value:
-            self.GetProperty().SetRepresentationToWireframe()
+            self.property.SetRepresentationToWireframe()
         else:
-            self.GetProperty().SetRepresentationToSurface()
+            self.property.SetRepresentationToSurface()
         return self
 
     def lineWidth(self, lw=None):
         """Set/get width of mesh edges. Same as `lw()`."""
         if lw is not None:
             if lw == 0:
-                self.GetProperty().EdgeVisibilityOff()
-                self.GetProperty().SetRepresentationToSurface()
+                self.property.EdgeVisibilityOff()
+                self.property.SetRepresentationToSurface()
                 return self
-            self.GetProperty().EdgeVisibilityOn()
-            self.GetProperty().SetLineWidth(lw)
+            self.property.EdgeVisibilityOn()
+            self.property.SetLineWidth(lw)
         else:
-            return self.GetProperty().GetLineWidth()
+            return self.property.GetLineWidth()
         return self
 
     def lw(self, lineWidth=None):
@@ -224,14 +226,14 @@ class UGrid(vtk.vtkActor, BaseGrid):
     def lineColor(self, lc=None):
         """Set/get color of mesh edges. Same as `lc()`."""
         if lc is not None:
-            if "ireframe" in self.GetProperty().GetRepresentationAsString():
-                self.GetProperty().EdgeVisibilityOff()
+            if "ireframe" in self.property.GetRepresentationAsString():
+                self.property.EdgeVisibilityOff()
                 self.color(lc)
                 return self
-            self.GetProperty().EdgeVisibilityOn()
-            self.GetProperty().SetEdgeColor(colors.getColor(lc))
+            self.property.EdgeVisibilityOn()
+            self.property.SetEdgeColor(colors.getColor(lc))
         else:
-            return self.GetProperty().GetEdgeColor()
+            return self.property.GetEdgeColor()
         return self
 
     def lc(self, lineColor=None):

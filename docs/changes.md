@@ -1,5 +1,6 @@
 ## Main changes
 
+- various fixes
 
 ---
 ### `base.py`
@@ -62,6 +63,7 @@ same for cell/face data: `myobj.celldata["arrayname"]`
 ## New/Revised examples:
 
 `vedo -r optics_main1`
+`vedo -r optics_main2`
 `vedo -r optics_main2`
 `vedo -r morphomatics_tube`
 

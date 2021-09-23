@@ -2956,6 +2956,7 @@ class TextBase:
 
         self.renderedAt = set()
         self.fontname = settings.defaultFont
+        self.name = "Text"
 
     def angle(self, a):
         """Orientation angle in degrees"""

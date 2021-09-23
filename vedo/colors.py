@@ -455,6 +455,84 @@ cmaps_names = (
     "viridis",   "viridis_r",   "winter",     "winter_r"
 )
 
+
+# default sets of colors
+colors1 = [
+    [1.0, 0.832, 0.000],  # gold
+    [0.960, 0.509, 0.188],
+    [0.901, 0.098, 0.194],
+    [0.235, 0.85, 0.294],
+    [0.46, 0.48, 0.000],
+    [0.274, 0.941, 0.941],
+    [0.0, 0.509, 0.784],
+    [0.1, 0.1, 0.900],
+    [0.902, 0.7, 1.000],
+    [0.941, 0.196, 0.901],
+]
+# negative integer color number get this:
+colors2 = [
+    (0.99, 0.83, 0),    # gold
+    (0.59, 0.0, 0.09),  # dark red
+    (0.5, 1.0, 0.0),    # green
+    (0.5, 0.5, 0),      # yellow-green
+    (0.0, 0.66, 0.42),  # green blue
+    (0.0, 0.18, 0.65),  # blue
+    (0.4, 0.0, 0.4),    # plum
+    (0.4, 0.0, 0.6),
+    (0.2, 0.4, 0.6),
+    (0.1, 0.3, 0.2),
+]
+
+
+emoji = {
+    "\bomb": u"\U0001F4A5",
+    "\sparks": u"\U00002728",
+    "\ethumbup": u"\U0001F44d",
+    "\etarget": u"\U0001F3af",
+    "\save": u"\U0001F4be",
+    "\noentry": u"\U000026d4",
+    "\video": u"\U0001F4fd ",
+    "\lightning": u"\U000026a1",
+    "\camera": u"\U0001F4f8",
+    "\!?": u"\U00002049",
+    "\times": u"\U0000274c",
+    "\world": u"\U0001F30d",
+    "\erainbow": u"\U0001F308",
+    "\idea": u"\U0001F4a1",
+    "\pin": u"\U0001F4CC",
+    "\construction": u"\U0001F6A7",
+    "\rightarrow": u"\U000027a1",
+    "\minus": u"\U00002796",
+    "\erocket": u"\U0001F680",
+    "\hourglass": u"\U000023f3",
+    "\prohibited": u"\U0001F6ab",
+    "\checked": u"\U00002705",
+    "\smile": u"\U0001F642",
+    "\sad": u"\U0001F612",
+    "\star": u"\U00002B50",
+    "\zzz": u"\U0001F4a4",
+    "\mu": u"\U000003BC",
+    "\pi": u"\U000003C0",
+    "\sigma": u"\U000003C3",
+}
+
+# terminal color print
+def _has_colors(stream):
+    if not hasattr(stream, "isatty"):
+        return False
+    if not stream.isatty():
+        return False
+    try:
+        import curses
+
+        curses.setupterm()
+        return curses.tigetnum("colors") > 2
+    except:
+        return False
+
+_terminal_has_colors = _has_colors(sys.stdout)
+
+
 def _isSequence(arg):
     # Check if input is iterable.
     if hasattr(arg, "strip"):
@@ -797,83 +875,7 @@ def buildLUT(colorlist,
     lut.Build()
     return lut
 
-
-# default sets of colors
-colors1 = [
-    [1.0, 0.832, 0.000],  # gold
-    [0.960, 0.509, 0.188],
-    [0.901, 0.098, 0.194],
-    [0.235, 0.85, 0.294],
-    [0.46, 0.48, 0.000],
-    [0.274, 0.941, 0.941],
-    [0.0, 0.509, 0.784],
-    [0.1, 0.1, 0.900],
-    [0.902, 0.7, 1.000],
-    [0.941, 0.196, 0.901],
-]
-# negative integer color number get this:
-colors2 = [
-    (0.99, 0.83, 0),  # gold
-    (0.59, 0.0, 0.09),  # dark red
-    (0.5, 1.0, 0.0),  # green
-    (0.5, 0.5, 0),  # yellow-green
-    (0.0, 0.66, 0.42),  # green blue
-    (0.0, 0.18, 0.65),  # blue
-    (0.4, 0.0, 0.4),  # plum
-    (0.4, 0.0, 0.6),
-    (0.2, 0.4, 0.6),
-    (0.1, 0.3, 0.2),
-]
-
-
-# terminal color print
-def _has_colors(stream):
-    if not hasattr(stream, "isatty"):
-        return False
-    if not stream.isatty():
-        return False
-    try:
-        import curses
-
-        curses.setupterm()
-        return curses.tigetnum("colors") > 2
-    except:
-        return False
-
-_terminal_has_colors = _has_colors(sys.stdout)
-
-emoji = {
-    "\bomb": u"\U0001F4A5",
-    "\sparks": u"\U00002728",
-    "\ethumbup": u"\U0001F44d",
-    "\etarget": u"\U0001F3af",
-    "\save": u"\U0001F4be",
-    "\noentry": u"\U000026d4",
-    "\video": u"\U0001F4fd ",
-    "\lightning": u"\U000026a1",
-    "\camera": u"\U0001F4f8",
-    "\!?": u"\U00002049",
-    "\times": u"\U0000274c",
-    "\world": u"\U0001F30d",
-    "\erainbow": u"\U0001F308",
-    "\idea": u"\U0001F4a1",
-    "\pin": u"\U0001F4CC",
-    "\construction": u"\U0001F6A7",
-    "\rightarrow": u"\U000027a1",
-    "\minus": u"\U00002796",
-    "\erocket": u"\U0001F680",
-    "\hourglass": u"\U000023f3",
-    "\prohibited": u"\U0001F6ab",
-    "\checked": u"\U00002705",
-    "\smile": u"\U0001F642",
-    "\sad": u"\U0001F612",
-    "\star": u"\U00002B50",
-    "\zzz": u"\U0001F4a4",
-    "\mu": u"\U000003BC",
-    "\pi": u"\U000003C0",
-    "\sigma": u"\U000003C3",
-}
-
+#########################################################################
 def printc(*strings,
             c = None,
             bc = None,

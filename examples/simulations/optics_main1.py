@@ -51,6 +51,29 @@ lines = [Ray(pt).trace(elements).asLine() for pt in source.points()]
 vedo.show("Reflection from a parabolic mirror", elements, lines, axes=2, azimuth=-90).close()
 
 
+################################################################# mesh mirror
+# Create the mirror from a vedo.Mesh object
+shape = vedo.Mesh(vedo.dataurl+"bunny.obj").fillHoles().subdivide().smooth()
+shape.scale(7).pos(0.1,-0.6,0).rotateX(90)
+mirror = Mirror(shape).color("silver")
+
+# Create a detector surface as a quad-sphere surrounding the shape
+sd = vedo.Sphere(quads=1, res=12).cutWithPlane([0,-0.8,0], normal='y')
+detector = Detector(sd).color("white").alpha(1).lw(1)
+
+source = vedo.Grid(resx=30, resy=30).rotateX(90).y(-1)
+lines=[]
+for pt in source.points():
+    ray = Ray(pt, direction=(0,1,0)).trace([mirror, detector])
+    line = ray.asLine(min_hits=2, max_hits=4)
+    lines.append(line)
+
+detector.count().cmap("Reds", on='cells', vmax=10).addScalarBar("Counts")
+
+vedo.show(mirror, detector, lines, "A Mesh mirror and a spherical detector", 
+          elevation=-90, axes=1, bg='bb', bg2='blue9').close()
+
+
 # ################################################################# interference
 s1 = vedo.Sphere(res=100).rotateY(90).cutWithPlane([0,0,0.9], normal='z').y(-.5)
 s2 = vedo.Sphere(res=100).rotateY(90).cutWithPlane([0,0,0.9], normal='z').y(+.5)
@@ -70,7 +93,6 @@ for i,pt in enumerate(src.points()):
         lines.append(line)
     pols.append(ray.polarizations[-1])
 
-# detector.count().cmap("bone_r", on='cells').addScalarBar("Counts")
 detector.integrate(pols).cmap("brg", on='cells').addScalarBar("Prob.")
 
 vedo.show("Interference on a detector surface", s1,s2, lines, elements,
